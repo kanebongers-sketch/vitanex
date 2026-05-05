@@ -1,0 +1,20 @@
+@import "tailwindcss";
+
+:root {
+  --vitanex-primary: #1D9E75;
+  --vitanex-primary-light: #E1F5EE;
+  --vitanex-primary-dark: #0F6E56;
+  --vitanex-accent: #378ADD;
+  --vitanex-accent-light: #E6F1FB;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background: #F8F9FA;
+  color: #111;
+  font-family: var(--font-geist-sans), -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
