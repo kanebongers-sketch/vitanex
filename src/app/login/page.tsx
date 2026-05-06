@@ -66,7 +66,7 @@ export default function Login() {
 
     if (rol === 'admin') router.push('/admin')
     else if (rol === 'hr') router.push('/dashboard')
-    else router.push('/portaal')
+    else router.push('/home')
   }
 
   async function stuurBevestigingOpnieuw() {
