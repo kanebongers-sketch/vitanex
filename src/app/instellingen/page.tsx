@@ -128,13 +128,27 @@ export default function Instellingen() {
 
   // Weergave
   const [taal, setTaal] = useState('nl')
-  const [thema, setThema] = useState('licht')
+  const [thema, setThema] = useState(() =>
+    typeof window !== 'undefined' ? (localStorage.getItem('mf-thema') ?? 'licht') : 'licht'
+  )
   const [checkinDag, setCheckinDag] = useState('maandag')
   const [compactMode, setCompactMode] = useState(false)
 
   // Account delete
   const [deleteBevestig, setDeleteBevestig] = useState('')
   const [deleteBezig, setDeleteBezig] = useState(false)
+
+  useEffect(() => {
+    const root = document.documentElement
+    root.classList.remove('thema-schemering', 'thema-donker')
+    if (thema === 'schemering') root.classList.add('thema-schemering')
+    if (thema === 'donker') root.classList.add('thema-donker')
+    if (thema === 'systeem') {
+      const dark = window.matchMedia('(prefers-color-scheme: dark)').matches
+      if (dark) root.classList.add('thema-donker')
+    }
+    localStorage.setItem('mf-thema', thema)
+  }, [thema])
 
   useEffect(() => {
     async function laad() {
@@ -694,16 +708,17 @@ export default function Instellingen() {
 
                   <section className="bg-white rounded-2xl border border-gray-200 p-6">
                     <h2 className="text-base font-semibold text-gray-900 mb-4">Thema</h2>
-                    <div className="grid grid-cols-3 gap-2.5">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                       {[
-                        { value: 'licht', label: '☀️ Licht', sub: 'Standaard' },
-                        { value: 'donker', label: '🌙 Donker', sub: 'Binnenkort' },
-                        { value: 'systeem', label: '💻 Systeem', sub: 'Binnenkort' },
+                        { value: 'licht', label: '☀️ Licht', sub: 'Helder en fris' },
+                        { value: 'schemering', label: '🌅 Schemering', sub: 'Warm en rustig' },
+                        { value: 'donker', label: '🌙 Donker', sub: 'Voor \'s avonds' },
+                        { value: 'systeem', label: '💻 Systeem', sub: 'Volgt je OS' },
                       ].map(t => (
                         <button key={t.value} onClick={() => setThema(t.value)}
                           className="p-3 rounded-xl border text-left transition"
                           style={{
-                            background: thema === t.value ? 'var(--MentaForce-primary-light)' : 'transparent',
+                            background: thema === t.value ? 'var(--mentaforce-primary-light)' : 'transparent',
                             borderColor: thema === t.value ? 'var(--mentaforce-primary)' : '#e5e7eb',
                           }}>
                           <p className="text-sm font-medium text-gray-800">{t.label}</p>

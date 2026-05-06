@@ -34,7 +34,14 @@ export default function RootLayout({
       lang="nl"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem('mf-thema');var r=document.documentElement;if(t==='schemering')r.classList.add('thema-schemering');else if(t==='donker')r.classList.add('thema-donker');else if(t==='systeem'&&window.matchMedia('(prefers-color-scheme: dark)').matches)r.classList.add('thema-donker');}catch(e){}})()`,
+          }}
+        />
+        {children}
+      </body>
     </html>
   );
 }

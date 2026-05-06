@@ -352,7 +352,7 @@ export default function Chat() {
               <div
                 className="px-3.5 py-2 text-sm leading-relaxed break-words whitespace-pre-wrap"
                 style={{
-                  background: isIk ? 'var(--MentaForce-primary)' : 'white',
+                  background: isIk ? 'var(--mentaforce-primary)' : 'white',
                   color: isIk ? 'white' : '#1f2937',
                   borderRadius,
                   boxShadow: isIk ? 'none' : '0 1px 2px rgba(0,0,0,0.08)',
@@ -401,13 +401,13 @@ export default function Chat() {
             <button
               onClick={() => { setActieveChat('team'); setMobielZijbalk(false) }}
               className="w-full flex items-center gap-3 px-4 py-3 transition text-left"
-              style={{ background: actieveChat === 'team' ? 'var(--MentaForce-primary-light)' : 'transparent' }}
+              style={{ background: actieveChat === 'team' ? 'var(--mentaforce-primary-light)' : 'transparent' }}
               onMouseEnter={e => { if (actieveChat !== 'team') (e.currentTarget as HTMLElement).style.background = '#f9fafb' }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = actieveChat === 'team' ? 'var(--MentaForce-primary-light)' : 'transparent' }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = actieveChat === 'team' ? 'var(--mentaforce-primary-light)' : 'transparent' }}
             >
               <div
                 className="w-10 h-10 rounded-full flex items-center justify-center text-lg flex-shrink-0"
-                style={{ background: 'var(--MentaForce-primary-light)', color: 'var(--MentaForce-primary)' }}
+                style={{ background: 'var(--mentaforce-primary-light)', color: 'var(--mentaforce-primary)' }}
               >
                 👥
               </div>
@@ -427,16 +427,16 @@ export default function Chat() {
             {/* Team members */}
             {laden ? (
               <div className="flex justify-center py-6">
-                <div className="w-5 h-5 rounded-full border-2 border-gray-200 animate-spin" style={{ borderTopColor: 'var(--MentaForce-primary)' }} />
+                <div className="w-5 h-5 rounded-full border-2 border-gray-200 animate-spin" style={{ borderTopColor: 'var(--mentaforce-primary)' }} />
               </div>
             ) : teamleden.map(lid => (
               <button
                 key={lid.id}
                 onClick={() => openDm(lid.id)}
                 className="w-full flex items-center gap-3 px-4 py-3 transition text-left"
-                style={{ background: actieveChat === lid.id ? 'var(--MentaForce-primary-light)' : 'transparent' }}
+                style={{ background: actieveChat === lid.id ? 'var(--mentaforce-primary-light)' : 'transparent' }}
                 onMouseEnter={e => { if (actieveChat !== lid.id) (e.currentTarget as HTMLElement).style.background = '#f9fafb' }}
-                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = actieveChat === lid.id ? 'var(--MentaForce-primary-light)' : 'transparent' }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = actieveChat === lid.id ? 'var(--mentaforce-primary-light)' : 'transparent' }}
               >
                 <Avatar naam={lid.naam} avatarUrl={lid.avatar_url} size={40} online={onlineSet.has(lid.id)} />
                 <div className="flex-1 min-w-0">
@@ -468,7 +468,7 @@ export default function Chat() {
             {isTeam ? (
               <>
                 <div className="w-10 h-10 rounded-full flex items-center justify-center text-lg flex-shrink-0"
-                  style={{ background: 'var(--MentaForce-primary-light)', color: 'var(--MentaForce-primary)' }}>
+                  style={{ background: 'var(--mentaforce-primary-light)', color: 'var(--mentaforce-primary)' }}>
                   👥
                 </div>
                 <div>
@@ -509,17 +509,17 @@ export default function Chat() {
           <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-0.5">
             {laden || (!isTeam && dmLaden) ? (
               <div className="flex justify-center items-center h-full">
-                <div className="w-8 h-8 rounded-full border-2 border-gray-300 animate-spin" style={{ borderTopColor: 'var(--MentaForce-primary)' }} />
+                <div className="w-8 h-8 rounded-full border-2 border-gray-300 animate-spin" style={{ borderTopColor: 'var(--mentaforce-primary)' }} />
               </div>
             ) : isTeam && teamBerichten.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-center gap-3">
-                <div className="w-16 h-16 rounded-full flex items-center justify-center text-3xl" style={{ background: 'var(--MentaForce-primary-light)' }}>💬</div>
+                <div className="w-16 h-16 rounded-full flex items-center justify-center text-3xl" style={{ background: 'var(--mentaforce-primary-light)' }}>💬</div>
                 <p className="text-sm font-semibold text-gray-700">Nog geen berichten</p>
                 <p className="text-xs text-gray-400">Stuur het eerste bericht naar je team!</p>
               </div>
             ) : !isTeam && dmBerichten.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-center gap-3">
-                <div className="w-16 h-16 rounded-full flex items-center justify-center text-3xl" style={{ background: 'var(--MentaForce-primary-light)' }}>✉️</div>
+                <div className="w-16 h-16 rounded-full flex items-center justify-center text-3xl" style={{ background: 'var(--mentaforce-primary-light)' }}>✉️</div>
                 <p className="text-sm font-semibold text-gray-700">Begin een gesprek</p>
                 <p className="text-xs text-gray-400">Stuur {partnerProfiel?.naam ?? 'een collega'} een bericht</p>
               </div>
@@ -561,7 +561,7 @@ export default function Chat() {
                   onClick={isTeam ? verstuurTeam : verstuurDm}
                   disabled={isTeam ? (!teamInput.trim() || teamVerzenden) : (!dmInput.trim() || dmVerzenden)}
                   className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition disabled:opacity-30"
-                  style={{ background: (isTeam ? teamInput.trim() : dmInput.trim()) ? 'var(--MentaForce-primary)' : '#e5e7eb' }}
+                  style={{ background: (isTeam ? teamInput.trim() : dmInput.trim()) ? 'var(--mentaforce-primary)' : '#e5e7eb' }}
                 >
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
                     stroke={(isTeam ? teamInput.trim() : dmInput.trim()) ? 'white' : '#9ca3af'}

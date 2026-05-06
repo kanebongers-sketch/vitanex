@@ -8,6 +8,92 @@
   --mentaforce-accent-light: #E6F1FB;
 }
 
+/* ── Schemering (medium) thema ── */
+.thema-schemering {
+  --mentaforce-primary: #1D9E75;
+  --mentaforce-primary-light: #c8ede0;
+  --mentaforce-primary-dark: #0F6E56;
+  --mentaforce-accent: #378ADD;
+  --mentaforce-accent-light: #cfe3f7;
+  --bg-app: #1e2330;
+  --bg-card: #252c3b;
+  --bg-card-border: #2e3749;
+  --text-primary: #e2e8f0;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+}
+
+/* ── Donker thema ── */
+.thema-donker {
+  --mentaforce-primary: #1D9E75;
+  --mentaforce-primary-light: #163d2c;
+  --mentaforce-primary-dark: #0F6E56;
+  --mentaforce-accent: #378ADD;
+  --mentaforce-accent-light: #1a2a40;
+  --bg-app: #0f1117;
+  --bg-card: #1a1d27;
+  --bg-card-border: #252836;
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted: #475569;
+}
+
+.thema-schemering body,
+.thema-donker body {
+  background: var(--bg-app);
+  color: var(--text-primary);
+}
+
+/* Cards / panels */
+.thema-schemering .bg-white,
+.thema-donker .bg-white {
+  background: var(--bg-card) !important;
+  border-color: var(--bg-card-border) !important;
+}
+
+/* General text colour overrides */
+.thema-schemering .text-gray-900,
+.thema-donker .text-gray-900 { color: var(--text-primary) !important; }
+
+.thema-schemering .text-gray-800,
+.thema-donker .text-gray-800 { color: var(--text-primary) !important; }
+
+.thema-schemering .text-gray-700,
+.thema-donker .text-gray-700 { color: var(--text-secondary) !important; }
+
+.thema-schemering .text-gray-600,
+.thema-donker .text-gray-600 { color: var(--text-secondary) !important; }
+
+.thema-schemering .text-gray-500,
+.thema-donker .text-gray-500 { color: var(--text-muted) !important; }
+
+.thema-schemering .text-gray-400,
+.thema-donker .text-gray-400 { color: var(--text-muted) !important; }
+
+/* Borders */
+.thema-schemering .border-gray-200,
+.thema-donker .border-gray-200 { border-color: var(--bg-card-border) !important; }
+
+.thema-schemering .border-gray-100,
+.thema-donker .border-gray-100 { border-color: var(--bg-card-border) !important; }
+
+/* Input backgrounds */
+.thema-schemering input,
+.thema-donker input,
+.thema-schemering textarea,
+.thema-donker textarea {
+  background: var(--bg-app) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--bg-card-border) !important;
+}
+
+/* Navbar */
+.thema-schemering nav,
+.thema-donker nav {
+  background: var(--bg-card) !important;
+  border-color: var(--bg-card-border) !important;
+}
+
 * {
   box-sizing: border-box;
 }
