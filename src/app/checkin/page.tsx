@@ -371,7 +371,11 @@ export default function CheckIn() {
   async function verwijderSessie() {
     if (!sessieId) return
     setLaden(true)
-    await supabase.from('checkin_sessies').delete().eq('id', sessieId)
+    await fetch('/api/reset-sessie', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sessie_id: sessieId, user_id: userId }),
+    })
     setAlIngevuld(false)
     setSessieId(null)
     setSectieIdx(0)
@@ -471,7 +475,8 @@ export default function CheckIn() {
       }
       const alleNull = LEGACY_KEYS.every(k => legacyRij[k] === null || legacyRij[k] === undefined)
       if (!alleNull) {
-        await supabase.from('checkins').insert(legacyRij)
+        // Legacy tabel — best-effort, fouten hier breken de opslaan niet
+        await supabase.from('checkins').insert(legacyRij).then(() => null, () => null)
       }
 
       // 4. Bereken categoriescores en stuur door naar gepersonaliseerde bedankt-pagina
