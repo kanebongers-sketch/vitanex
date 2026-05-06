@@ -96,7 +96,7 @@ export async function POST(req: NextRequest) {
       .map(c => `${CAT_LABELS[c]}: ${catAvgs[c]}/5`)
       .join('\n')
 
-    const prompt = `Je bent een empathische welzijnscoach bij Vitanex. Analyseer de check-in data en geef een persoonlijk welzijnsrapport terug.
+    const prompt = `Je bent een empathische welzijnscoach bij Vitanex. Schrijf een persoonlijk welzijnsrapport in het Nederlands (Belgisch), warm en direct (je/jij).
 
 SCORES (1=slecht, 5=uitstekend):
 Totaal: ${totaal}/5
@@ -105,19 +105,34 @@ ${catSamenvatting}
 ANTWOORDEN:
 ${dataBlok}
 
-Geef je antwoord UITSLUITEND als geldig JSON in dit exacte formaat, zonder markdown of uitleg erbuiten:
-{
-  "samenvatting": "2-3 zinnen die de week samenvatten, warm en persoonlijk (je/jij), specifiek verwijzend naar de scores",
-  "sterkePunten": "1-2 paragrafen over wat goed gaat, met concrete score-referenties, motiverend",
-  "aandachtspunten": "1-2 paragrafen over wat aandacht verdient, empathisch en constructief",
-  "tips": [
-    { "titel": "Korte actietitel", "beschrijving": "Concrete tip van 1-2 zinnen" },
-    { "titel": "Korte actietitel", "beschrijving": "Concrete tip van 1-2 zinnen" },
-    { "titel": "Korte actietitel", "beschrijving": "Concrete tip van 1-2 zinnen" }
-  ]
-}
+Gebruik EXACT dit formaat met de markers — schrijf de inhoud gewoon als lopende tekst, geen JSON of speciale tekens:
 
-Taal: Nederlands (Belgisch). Toon: professioneel, warm, direct. Geen platitudes.`
+<<<SAMENVATTING>>>
+2-3 zinnen die de week samenvatten, verwijzend naar concrete scores.
+
+<<<STERKE_PUNTEN>>>
+1-2 alinea's over wat goed gaat, met specifieke score-referenties, motiverend.
+
+<<<AANDACHTSPUNTEN>>>
+1-2 alinea's over wat aandacht verdient, empathisch en constructief.
+
+<<<TIP1_TITEL>>>
+Korte actietitel (max 6 woorden)
+
+<<<TIP1_TEKST>>>
+Concrete tip van 2-3 zinnen.
+
+<<<TIP2_TITEL>>>
+Korte actietitel (max 6 woorden)
+
+<<<TIP2_TEKST>>>
+Concrete tip van 2-3 zinnen.
+
+<<<TIP3_TITEL>>>
+Korte actietitel (max 6 woorden)
+
+<<<TIP3_TEKST>>>
+Concrete tip van 2-3 zinnen.`
 
     const response = await anthropic.messages.create({
       model: 'claude-sonnet-4-6',
@@ -125,17 +140,22 @@ Taal: Nederlands (Belgisch). Toon: professioneel, warm, direct. Geen platitudes.
       messages: [{ role: 'user', content: prompt }],
     })
 
-    const raw = response.content[0].type === 'text' ? response.content[0].text : '{}'
+    const raw = response.content[0].type === 'text' ? response.content[0].text : ''
 
-    // Strip markdown code fences if present
-    const cleaned = raw.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim()
+    function extract(marker: string): string {
+      const re = new RegExp(`<<<${marker}>>>\\s*([\\s\\S]*?)(?=<<<|$)`)
+      return raw.match(re)?.[1]?.trim() ?? ''
+    }
 
-    let rapportData
-    try {
-      rapportData = JSON.parse(cleaned)
-    } catch {
-      // Fallback: wrap plain text in structure
-      rapportData = { samenvatting: raw, sterkePunten: '', aandachtspunten: '', tips: [] }
+    const rapportData = {
+      samenvatting:    extract('SAMENVATTING'),
+      sterkePunten:    extract('STERKE_PUNTEN'),
+      aandachtspunten: extract('AANDACHTSPUNTEN'),
+      tips: [
+        { titel: extract('TIP1_TITEL'), beschrijving: extract('TIP1_TEKST') },
+        { titel: extract('TIP2_TITEL'), beschrijving: extract('TIP2_TEKST') },
+        { titel: extract('TIP3_TITEL'), beschrijving: extract('TIP3_TEKST') },
+      ].filter(t => t.titel || t.beschrijving),
     }
 
     return NextResponse.json({ rapport: rapportData, totaal, catAvgs })
