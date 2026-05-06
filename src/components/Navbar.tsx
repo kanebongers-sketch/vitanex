@@ -14,20 +14,44 @@ type Profiel = {
   avatar_url: string | null
 }
 
-function rolLabel(rol: string) {
-  if (rol === 'admin') return { label: 'Staff Vitanex', bg: '#EEEDFE', color: '#3C3489' }
-  if (rol === 'hr') return { label: 'HR', bg: '#E1F5EE', color: '#0F6E56' }
-  return { label: 'Werknemer', bg: '#E6F1FB', color: '#185FA5' }
+const ROL_CONFIG = {
+  admin: {
+    label: 'Admin',
+    accent: '#8B5CF6',
+    accentLight: '#EEEDFE',
+    accentText: '#3C3489',
+    badge: { bg: '#EEEDFE', color: '#3C3489' },
+  },
+  hr: {
+    label: 'HR',
+    accent: '#185FA5',
+    accentLight: '#E6F1FB',
+    accentText: '#185FA5',
+    badge: { bg: '#E6F1FB', color: '#185FA5' },
+  },
+  medewerker: {
+    label: 'Medewerker',
+    accent: 'var(--vitanex-primary)',
+    accentLight: 'var(--vitanex-primary-light)',
+    accentText: 'var(--vitanex-primary)',
+    badge: { bg: '#E1F5EE', color: '#0F6E56' },
+  },
+}
+
+function getRolConfig(rol: string) {
+  return ROL_CONFIG[rol as keyof typeof ROL_CONFIG] ?? ROL_CONFIG.medewerker
 }
 
 function NavDropdown({
   label,
   items,
   currentPath,
+  accentColor,
 }: {
   label: string
   items: { href: string; label: string; emoji?: string; badge?: number }[]
   currentPath: string
+  accentColor: string
 }) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
@@ -48,8 +72,8 @@ function NavDropdown({
         onClick={() => setOpen(o => !o)}
         className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm transition select-none"
         style={{
-          color: isActive ? 'var(--vitanex-primary)' : '#6b7280',
-          background: isActive ? 'var(--vitanex-primary-light)' : 'transparent',
+          color: isActive ? accentColor : '#6b7280',
+          background: isActive ? `${accentColor}15` : 'transparent',
           fontWeight: isActive ? 500 : 400,
         }}
       >
@@ -74,9 +98,9 @@ function NavDropdown({
               onClick={() => setOpen(false)}
               className="flex items-center gap-2.5 px-4 py-2.5 text-sm transition hover:bg-gray-50"
               style={{
-                color: currentPath === item.href ? 'var(--vitanex-primary)' : '#374151',
+                color: currentPath === item.href ? accentColor : '#374151',
                 fontWeight: currentPath === item.href ? 500 : 400,
-                background: currentPath === item.href ? 'var(--vitanex-primary-light)' : undefined,
+                background: currentPath === item.href ? `${accentColor}10` : undefined,
               }}
             >
               {item.emoji && <span className="w-5 text-center text-base">{item.emoji}</span>}
@@ -97,10 +121,10 @@ function NavDropdown({
   )
 }
 
-function UserMenu({ profiel, onUitloggen }: { profiel: Profiel; onUitloggen: () => void }) {
+function UserMenu({ profiel, onUitloggen, accentColor }: { profiel: Profiel; onUitloggen: () => void; accentColor: string }) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
-  const rolBadge = rolLabel(profiel.rol)
+  const cfg = getRolConfig(profiel.rol)
 
   useEffect(() => {
     if (!open) return
@@ -122,9 +146,9 @@ function UserMenu({ profiel, onUitloggen }: { profiel: Profiel; onUitloggen: () 
           <span className="text-sm font-medium text-gray-800">{profiel.naam || 'Gebruiker'}</span>
           <span
             className="text-xs font-medium px-1.5 py-0.5 rounded-md"
-            style={{ background: rolBadge.bg, color: rolBadge.color }}
+            style={{ background: cfg.badge.bg, color: cfg.badge.color }}
           >
-            {rolBadge.label}
+            {cfg.label}
           </span>
         </div>
         <svg
@@ -160,10 +184,48 @@ function UserMenu({ profiel, onUitloggen }: { profiel: Profiel; onUitloggen: () 
   )
 }
 
+function NavLink({
+  href,
+  label,
+  badge,
+  currentPath,
+  accentColor,
+}: {
+  href: string
+  label: string
+  badge?: number
+  currentPath: string
+  accentColor: string
+}) {
+  const active = currentPath === href
+  return (
+    <Link
+      href={href}
+      className="relative px-3 py-1.5 rounded-lg text-sm transition"
+      style={{
+        color: active ? accentColor : '#6b7280',
+        background: active ? `${accentColor}15` : 'transparent',
+        fontWeight: active ? 500 : 400,
+      }}
+    >
+      {label}
+      {(badge ?? 0) > 0 && (
+        <span
+          className="absolute -top-1 -right-1 min-w-[16px] h-4 px-0.5 rounded-full text-white flex items-center justify-center font-medium"
+          style={{ background: '#E24B4A', fontSize: 10 }}
+        >
+          {(badge ?? 0) > 9 ? '9+' : badge}
+        </span>
+      )}
+    </Link>
+  )
+}
+
 export default function Navbar() {
   const router = useRouter()
   const pad = usePathname()
   const [profiel, setProfiel] = useState<Profiel | null>(null)
+  const [profielLaden, setProfielLaden] = useState(true)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [ongelezen, setOngelezen] = useState(0)
 
@@ -179,14 +241,12 @@ export default function Navbar() {
         .eq('id', user.id)
         .single()
       if (data) setProfiel({ id: user.id, ...data })
+      setProfielLaden(false)
     }
     laadProfiel()
 
-    // Luister naar sessiewijzigingen (uitloggen, token verlopen)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
-        if (event === 'SIGNED_OUT') router.push('/login')
-      }
+      if (event === 'SIGNED_OUT') router.push('/login')
     })
     return () => subscription.unsubscribe()
   }, [router])
@@ -239,17 +299,18 @@ export default function Navbar() {
   }
 
   const rol = profiel?.rol ?? 'medewerker'
-  const isHR = rol === 'hr' || rol === 'admin'
-  const isAdmin = rol === 'admin'
+  const cfg = getRolConfig(rol)
+  const accent = profielLaden ? 'transparent' : cfg.accent
 
-  const mainLinks = [
+  // Role-specific navigation
+  const medewerkerLinks = [
     { href: '/checkin', label: 'Check-in' },
-    { href: '/portaal', label: 'Portaal' },
+    { href: '/portaal', label: 'Mijn portaal' },
     { href: '/coach', label: 'Coach' },
     { href: '/chat', label: 'Chat', badge: ongelezen },
   ]
 
-  const toolsLinks = [
+  const medewerkerTools = [
     { href: '/surveys', label: 'Surveys', emoji: '📋' },
     { href: '/focus', label: 'Focus & Herstel', emoji: '🫁' },
     { href: '/journal', label: 'Journal', emoji: '📓' },
@@ -257,61 +318,76 @@ export default function Navbar() {
   ]
 
   const hrLinks = [
-    { href: '/dashboard', label: 'Dashboard', emoji: '📊' },
-    { href: '/team', label: 'Team', emoji: '👥' },
-    { href: '/rapport', label: 'Rapport', emoji: '📈' },
-    ...(isAdmin ? [{ href: '/admin', label: 'Admin', emoji: '⚙️' }] : []),
+    { href: '/dashboard', label: 'Dashboard' },
+    { href: '/team', label: 'Team' },
+    { href: '/rapport', label: 'Rapporten' },
+    { href: '/chat', label: 'Chat', badge: ongelezen },
   ]
 
-  const allMobileToolsLinks = toolsLinks
-  const chatBadge = ongelezen
+  const adminLinks = [
+    { href: '/admin', label: 'Admin' },
+    { href: '/dashboard', label: 'HR-dashboard' },
+    { href: '/chat', label: 'Chat', badge: ongelezen },
+  ]
+
+  const adminTools = [
+    { href: '/team', label: 'Team', emoji: '👥' },
+    { href: '/rapport', label: 'Rapporten', emoji: '📈' },
+  ]
+
+  const primaryLinks =
+    rol === 'admin' ? adminLinks :
+    rol === 'hr' ? hrLinks :
+    medewerkerLinks
+
+  const portalLabel =
+    rol === 'admin' ? 'Admin portaal' :
+    rol === 'hr' ? 'HR portaal' :
+    'Medewerker portaal'
 
   return (
-    <nav className="w-full bg-white border-b border-gray-100 sticky top-0 z-40">
+    <nav
+      className="w-full bg-white border-b border-gray-100 sticky top-0 z-40"
+      style={{ borderTop: `3px solid ${accent}` }}
+    >
       <div className="px-4 sm:px-8 py-3 flex items-center gap-1">
 
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2 flex-shrink-0 mr-3">
+        <Link href={rol === 'admin' ? '/admin' : rol === 'hr' ? '/dashboard' : '/portaal'}
+          className="flex items-center gap-2 flex-shrink-0 mr-3">
           <div
             className="w-7 h-7 rounded-lg flex items-center justify-center"
-            style={{ background: 'var(--vitanex-primary)' }}
+            style={{ background: accent }}
           >
             <span className="text-white text-xs font-semibold">V</span>
           </div>
-          <span className="font-semibold text-gray-900 text-base">Vitanex</span>
+          <div className="flex flex-col leading-none">
+            <span className="font-semibold text-gray-900 text-sm">Vitanex</span>
+            <span className="text-gray-400 hidden sm:block" style={{ fontSize: 10 }}>{portalLabel}</span>
+          </div>
         </Link>
 
-        {/* Desktop main links */}
+        {/* Desktop links */}
         <div className="hidden sm:flex items-center gap-0.5 flex-1">
-          {mainLinks.map(l => (
-            <Link
-              key={l.href}
-              href={l.href}
-              className="relative px-3 py-1.5 rounded-lg text-sm transition"
-              style={{
-                color: pad === l.href ? 'var(--vitanex-primary)' : '#6b7280',
-                background: pad === l.href ? 'var(--vitanex-primary-light)' : 'transparent',
-                fontWeight: pad === l.href ? 500 : 400,
-              }}
-            >
-              {l.label}
-              {(l.badge ?? 0) > 0 && (
-                <span
-                  className="absolute -top-1 -right-1 min-w-[16px] h-4 px-0.5 rounded-full text-white flex items-center justify-center font-medium"
-                  style={{ background: '#E24B4A', fontSize: 10 }}
-                >
-                  {(l.badge ?? 0) > 9 ? '9+' : l.badge}
-                </span>
+          {profielLaden ? (
+            // Skeleton placeholders — same width as typical links, no layout shift
+            <div className="flex items-center gap-0.5">
+              {[80, 96, 60, 52].map(w => (
+                <div key={w} className="h-7 rounded-lg bg-gray-100 animate-pulse" style={{ width: w }} />
+              ))}
+            </div>
+          ) : (
+            <>
+              {primaryLinks.map(l => (
+                <NavLink key={l.href} href={l.href} label={l.label} badge={l.badge} currentPath={pad} accentColor={accent} />
+              ))}
+              {rol === 'medewerker' && (
+                <NavDropdown label="Meer" items={medewerkerTools} currentPath={pad} accentColor={accent} />
               )}
-            </Link>
-          ))}
-
-          {/* Tools dropdown */}
-          <NavDropdown label="Meer" items={toolsLinks} currentPath={pad} />
-
-          {/* HR dropdown */}
-          {isHR && (
-            <NavDropdown label="HR" items={hrLinks} currentPath={pad} />
+              {rol === 'admin' && (
+                <NavDropdown label="Meer" items={adminTools} currentPath={pad} accentColor={accent} />
+              )}
+            </>
           )}
         </div>
 
@@ -321,18 +397,18 @@ export default function Navbar() {
         {/* Desktop user menu */}
         {profiel && (
           <div className="hidden sm:block ml-2">
-            <UserMenu profiel={profiel} onUitloggen={uitloggen} />
+            <UserMenu profiel={profiel} onUitloggen={uitloggen} accentColor={accent} />
           </div>
         )}
 
         {/* Mobile: badge + hamburger */}
         <div className="flex sm:hidden items-center gap-2">
-          {chatBadge > 0 && pad !== '/chat' && (
+          {ongelezen > 0 && pad !== '/chat' && (
             <span
               className="min-w-[18px] h-[18px] px-1 rounded-full text-white flex items-center justify-center font-medium"
               style={{ background: '#E24B4A', fontSize: 10 }}
             >
-              {chatBadge > 9 ? '9+' : chatBadge}
+              {ongelezen > 9 ? '9+' : ongelezen}
             </span>
           )}
           <button
@@ -353,17 +429,24 @@ export default function Navbar() {
         <div className="sm:hidden border-t border-gray-100 bg-white shadow-lg">
           <div className="px-4 py-3">
 
-            {/* Main */}
+            {/* Role banner */}
+            <div className="flex items-center gap-2 px-3 py-2 mb-3 rounded-xl"
+              style={{ background: `${accent}12` }}>
+              <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: accent }} />
+              <span className="text-xs font-semibold" style={{ color: accent }}>{portalLabel}</span>
+            </div>
+
+            {/* Primary links */}
             <div className="flex flex-col gap-0.5 mb-2">
-              {mainLinks.map(l => (
+              {primaryLinks.map(l => (
                 <Link
                   key={l.href}
                   href={l.href}
                   onClick={() => setMobileOpen(false)}
                   className="flex items-center justify-between px-3 py-2.5 rounded-xl text-sm transition"
                   style={{
-                    color: pad === l.href ? 'var(--vitanex-primary)' : '#374151',
-                    background: pad === l.href ? 'var(--vitanex-primary-light)' : 'transparent',
+                    color: pad === l.href ? accent : '#374151',
+                    background: pad === l.href ? `${accent}12` : 'transparent',
                     fontWeight: pad === l.href ? 500 : 400,
                   }}
                 >
@@ -380,43 +463,45 @@ export default function Navbar() {
               ))}
             </div>
 
-            {/* Tools section */}
-            <div className="border-t border-gray-100 pt-2.5 mb-2">
-              <p className="text-xs font-semibold text-gray-400 px-3 mb-1.5 uppercase tracking-widest">Tools</p>
-              <div className="flex flex-col gap-0.5">
-                {allMobileToolsLinks.map(l => (
-                  <Link
-                    key={l.href}
-                    href={l.href}
-                    onClick={() => setMobileOpen(false)}
-                    className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm transition"
-                    style={{
-                      color: pad === l.href ? 'var(--vitanex-primary)' : '#374151',
-                      background: pad === l.href ? 'var(--vitanex-primary-light)' : 'transparent',
-                      fontWeight: pad === l.href ? 500 : 400,
-                    }}
-                  >
-                    <span>{l.emoji}</span>
-                    <span>{l.label}</span>
-                  </Link>
-                ))}
-              </div>
-            </div>
-
-            {/* HR section */}
-            {isHR && (
+            {/* Tools section for medewerker */}
+            {rol === 'medewerker' && (
               <div className="border-t border-gray-100 pt-2.5 mb-2">
-                <p className="text-xs font-semibold text-gray-400 px-3 mb-1.5 uppercase tracking-widest">HR</p>
+                <p className="text-xs font-semibold text-gray-400 px-3 mb-1.5 uppercase tracking-widest">Tools</p>
                 <div className="flex flex-col gap-0.5">
-                  {hrLinks.map(l => (
+                  {medewerkerTools.map(l => (
                     <Link
                       key={l.href}
                       href={l.href}
                       onClick={() => setMobileOpen(false)}
                       className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm transition"
                       style={{
-                        color: pad === l.href ? 'var(--vitanex-primary)' : '#374151',
-                        background: pad === l.href ? 'var(--vitanex-primary-light)' : 'transparent',
+                        color: pad === l.href ? accent : '#374151',
+                        background: pad === l.href ? `${accent}12` : 'transparent',
+                        fontWeight: pad === l.href ? 500 : 400,
+                      }}
+                    >
+                      <span>{l.emoji}</span>
+                      <span>{l.label}</span>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Admin extra tools */}
+            {rol === 'admin' && (
+              <div className="border-t border-gray-100 pt-2.5 mb-2">
+                <p className="text-xs font-semibold text-gray-400 px-3 mb-1.5 uppercase tracking-widest">Meer</p>
+                <div className="flex flex-col gap-0.5">
+                  {adminTools.map(l => (
+                    <Link
+                      key={l.href}
+                      href={l.href}
+                      onClick={() => setMobileOpen(false)}
+                      className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm transition"
+                      style={{
+                        color: pad === l.href ? accent : '#374151',
+                        background: pad === l.href ? `${accent}12` : 'transparent',
                         fontWeight: pad === l.href ? 500 : 400,
                       }}
                     >
@@ -439,8 +524,8 @@ export default function Navbar() {
                   <Avatar naam={profiel.naam || 'G'} avatarUrl={profiel.avatar_url} size={32} />
                   <div className="flex flex-col leading-tight">
                     <span className="text-sm font-medium text-gray-800">{profiel.naam || 'Gebruiker'}</span>
-                    <span className="text-xs" style={{ color: rolLabel(profiel.rol).color }}>
-                      {rolLabel(profiel.rol).label}
+                    <span className="text-xs" style={{ color: accent }}>
+                      {cfg.label}
                     </span>
                   </div>
                 </Link>

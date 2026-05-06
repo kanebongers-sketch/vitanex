@@ -311,8 +311,20 @@ export default function Portaal() {
   }
 
   return (
-    <div className="min-h-screen" style={{ background: '#F8F9FA' }}>
+    <div className="min-h-screen" style={{ background: '#F4FBF8' }}>
       <Navbar />
+
+      {/* Employee portal identity banner */}
+      <div style={{ background: '#0F3D2E', borderBottom: '1px solid #1a5c42' }}>
+        <div className="max-w-2xl mx-auto px-6 py-3 flex items-center gap-3">
+          <div className="w-6 h-6 rounded-md flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
+            style={{ background: '#1D9E75' }}>MW</div>
+          <p className="text-sm font-medium text-white">Mijn Portaal</p>
+          <span className="text-gray-500 text-xs">—</span>
+          <p className="text-xs text-gray-400">Jouw persoonlijke vitaliteit en welzijn</p>
+        </div>
+      </div>
+
       <main className="max-w-2xl mx-auto p-6">
 
         <div className="flex items-center justify-between mb-6">
