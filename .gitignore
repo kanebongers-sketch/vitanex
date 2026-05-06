@@ -42,3 +42,12 @@ next-env.d.ts
 
 # Claude Code local settings
 .claude/settings.local.json
+
+# Capacitor - native build artefacten (niet committen)
+android/.gradle/
+android/app/build/
+android/.idea/
+ios/App/Pods/
+ios/App/App.xcworkspace/xcuserdata/
+ios/App/.build/
+ios/App/DerivedData/
