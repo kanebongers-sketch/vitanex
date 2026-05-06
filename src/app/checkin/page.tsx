@@ -66,12 +66,12 @@ const SECTIE_META: SectieConfig[] = [
 
 // Hoeveel vragen per sectie per checkin worden geselecteerd
 const SELECTIE: Record<string, { schaal: number; tekst: number }> = {
-  energie:    { schaal: 7, tekst: 2 },
-  mentaal:    { schaal: 7, tekst: 2 },
-  werk:       { schaal: 7, tekst: 2 },
-  sociaal:    { schaal: 6, tekst: 2 },
-  groei:      { schaal: 5, tekst: 2 },
-  afsluiting: { schaal: 3, tekst: 2 }, // afsluiting schaal is altijd vast
+  energie:    { schaal: 10, tekst: 2 },
+  mentaal:    { schaal: 10, tekst: 2 },
+  werk:       { schaal: 10, tekst: 2 },
+  sociaal:    { schaal: 10, tekst: 2 },
+  groei:      { schaal: 10, tekst: 2 },
+  afsluiting: { schaal: 3,  tekst: 2 },
 }
 
 // ── Energie & Lichaam pool ─────────────────────────────────────────────────
@@ -323,6 +323,7 @@ export default function CheckIn() {
   const [kanOpnieuw,      setKanOpnieuw]      = useState(false)
   const [volgendeCheckin, setVolgendeCheckin] = useState('')
   const [secties,         setSecties]         = useState<Sectie[]>([])
+  const [seed]                                = useState(() => Date.now() % 1000000)
 
   const [sectieIdx,  setSectieIdx]  = useState(0)
   const [antwoorden, setAntwoorden] = useState<Record<string, number | string>>({})
@@ -341,9 +342,6 @@ export default function CheckIn() {
         .from('profiles').select('bedrijf_id').eq('id', user.id).single()
       setBedrijfId(profiel?.bedrijf_id ?? null)
 
-      // Bouw secties op basis van seed (user + week → zelfde vragen binnen één week,
-      // maar wekelijks roterend)
-      const seed = hashCode(user.id + weekStart)
       setSecties(bouwSecties(seed))
 
       // Controleer of al ingevuld deze week
@@ -368,7 +366,7 @@ export default function CheckIn() {
     }
     init()
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [router])
+  }, [router, seed])
 
   async function verwijderSessie() {
     if (!sessieId) return
@@ -412,6 +410,20 @@ export default function CheckIn() {
 
   function vorigeSectie() {
     setSectieIdx(s => Math.max(0, s - 1))
+    scrollTop()
+  }
+
+  function vulAutomatischIn() {
+    const auto: Record<string, number | string> = {}
+    for (const sectie of secties) {
+      for (const vraag of sectie.vragen) {
+        if (vraag.type === 'schaal') {
+          auto[vraag.code] = Math.ceil(Math.random() * 5)
+        }
+      }
+    }
+    setAntwoorden(prev => ({ ...prev, ...auto }))
+    setSectieIdx(secties.length - 1)
     scrollTop()
   }
 
@@ -526,7 +538,7 @@ export default function CheckIn() {
         </p>
 
         {kanOpnieuw && (
-          <div className="rounded-xl p-4 mb-6 text-left"
+          <div className="rounded-xl p-4 mb-4 text-left"
             style={{ background: '#FAEEDA', borderLeft: '3px solid #BA7517' }}>
             <p className="text-xs font-medium mb-1" style={{ color: '#854F0B' }}>
               Wil je je antwoorden aanpassen?
@@ -543,6 +555,22 @@ export default function CheckIn() {
             </button>
           </div>
         )}
+
+        {/* Tijdelijke testknop — altijd beschikbaar */}
+        <div className="rounded-xl p-4 mb-6 text-left"
+          style={{ background: '#F3F4F6', borderLeft: '3px solid #9ca3af' }}>
+          <p className="text-xs font-medium mb-1 text-gray-500">Testmodus</p>
+          <p className="text-xs mb-3 text-gray-400">
+            Bypass de wekelijkse limiet en vul de check-in opnieuw in.
+          </p>
+          <button
+            onClick={verwijderSessie}
+            disabled={laden}
+            className="w-full py-2 rounded-lg text-xs font-medium transition disabled:opacity-40"
+            style={{ background: '#6b7280', color: 'white' }}>
+            {laden ? 'Bezig...' : 'Opnieuw invullen (test)'}
+          </button>
+        </div>
 
         <div className="flex flex-col gap-3">
           <Link href="/portaal"
@@ -604,13 +632,20 @@ export default function CheckIn() {
             })}
           </div>
 
-          {/* Voortgangsbalk */}
+          {/* Voortgangsbalk + auto-invullen */}
           <div className="flex items-center gap-3">
             <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
               <div className="h-full rounded-full transition-all duration-500"
                 style={{ width: `${voortgangPct}%`, background: huidigeSectie.kleur }} />
             </div>
             <span className="text-xs text-gray-400 flex-shrink-0">{voortgangPct}%</span>
+            <button
+              onClick={vulAutomatischIn}
+              className="flex-shrink-0 text-xs px-2.5 py-1 rounded-full font-medium transition"
+              style={{ background: '#F3F4F6', color: '#6b7280' }}
+              title="Auto-invullen voor test">
+              Auto
+            </button>
           </div>
         </div>
       </div>

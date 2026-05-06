@@ -114,27 +114,35 @@ function MijnRapportInhoud() {
     if (!rapportRef.current) return
     setPdfBezig(true)
     try {
-      const html2canvas = (await import('html2canvas')).default
-      const jsPDF       = (await import('jspdf')).default
+      const { default: jsPDF }       = await import('jspdf')
+      const { default: html2canvas } = await import('html2canvas')
 
-      const canvas  = await html2canvas(rapportRef.current, { scale: 2, useCORS: true })
-      const imgData = canvas.toDataURL('image/png')
-      const pdf     = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
+      const canvas = await html2canvas(rapportRef.current, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#ffffff',
+      })
 
-      const pdfW   = pdf.internal.pageSize.getWidth()
-      const pdfH   = (canvas.height * pdfW) / canvas.width
+      const imgData   = canvas.toDataURL('image/png')
+      const pdf       = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
+      const pdfW      = pdf.internal.pageSize.getWidth()
+      const pdfH      = pdf.internal.pageSize.getHeight()
+      const canvasH   = (canvas.height * pdfW) / canvas.width
 
-      let positie = 0
-      const paginaH = pdf.internal.pageSize.getHeight()
+      let positie   = 0
+      let resterend = canvasH
 
-      while (positie < pdfH) {
-        if (positie > 0) pdf.addPage()
-        pdf.addImage(imgData, 'PNG', 0, -positie, pdfW, pdfH)
-        positie += paginaH
+      while (resterend > 0) {
+        pdf.addImage(imgData, 'PNG', 0, positie, pdfW, canvasH)
+        resterend -= pdfH
+        if (resterend > 0) {
+          pdf.addPage()
+          positie -= pdfH
+        }
       }
 
       const datum = new Date().toLocaleDateString('nl-BE').replace(/\//g, '-')
-      pdf.save(`Vitanex-rapport-${datum}.pdf`)
+      pdf.save(`Vitanex-mijn-rapport-${datum}.pdf`)
     } catch (err) {
       console.error(err)
     } finally {
