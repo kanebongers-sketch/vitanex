@@ -26,21 +26,23 @@ const ACCENT: Record<string, string> = {
 
 /* Page titles shown in the top bar */
 const PAGE_TITLES: Record<string, string> = {
-  '/home':        'Home',
-  '/portaal':     'Mijn portaal',
-  '/checkin':     'Check-in',
-  '/coach':       'AI Coach',
-  '/chat':        'Berichten',
-  '/journal':     'Journal',
-  '/burnout':     'Burn-out scan',
-  '/surveys':     'Surveys',
-  '/focus':       'Focus & Herstel',
-  '/mijn-rapport':'Mijn rapport',
-  '/dashboard':   'HR Dashboard',
-  '/team':        'Team',
-  '/rapport':     'Rapporten',
-  '/admin':       'Admin',
-  '/instellingen':'Instellingen',
+  '/home':         'Home',
+  '/portaal':      'Mijn portaal',
+  '/checkin':      'Check-in',
+  '/coach':        'AI Coach',
+  '/chat':         'Berichten',
+  '/journal':      'Journal',
+  '/burnout':      'Burn-out scan',
+  '/surveys':      'Surveys',
+  '/focus':        'Focus & Herstel',
+  '/mijn-rapport': 'Mijn rapport',
+  '/doelen':       'Doelen',
+  '/uitdagingen':  'Uitdagingen',
+  '/dashboard':    'HR Dashboard',
+  '/team':         'Team',
+  '/rapport':      'Rapporten',
+  '/admin':        'Admin',
+  '/instellingen': 'Instellingen',
 }
 
 function UserMenu({ profiel, onUitloggen, accent }: { profiel: Profiel; onUitloggen: () => void; accent: string }) {
