@@ -489,6 +489,7 @@ export default function CheckIn() {
         e: String(e), m: String(m), w: String(w),
         s: String(s), g: String(g), t: String(t),
         seed: String(hashCode(userId + weekStart) % 1000),
+        sessie: nieuweSessie.id,
       })
       router.push(`/bedankt?${params.toString()}`)
     } catch (err) {

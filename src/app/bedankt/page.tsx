@@ -157,13 +157,14 @@ function scoreLabel(s: number): string {
 function BedanktInhoud() {
   const params = useSearchParams()
 
-  const e    = parseFloat(params.get('e') || '0')
-  const m    = parseFloat(params.get('m') || '0')
-  const w    = parseFloat(params.get('w') || '0')
-  const s    = parseFloat(params.get('s') || '0')
-  const g    = parseFloat(params.get('g') || '0')
-  const t    = parseFloat(params.get('t') || '0')
-  const seed = parseInt(params.get('seed') || '0', 10)
+  const e      = parseFloat(params.get('e') || '0')
+  const m      = parseFloat(params.get('m') || '0')
+  const w      = parseFloat(params.get('w') || '0')
+  const s      = parseFloat(params.get('s') || '0')
+  const g      = parseFloat(params.get('g') || '0')
+  const t      = parseFloat(params.get('t') || '0')
+  const seed   = parseInt(params.get('seed') || '0', 10)
+  const sessie = params.get('sessie') || ''
 
   const heeftScores = t > 0
 
@@ -357,22 +358,24 @@ function BedanktInhoud() {
 
         {/* Actieknoppen */}
         <div className="flex flex-col gap-3">
+          {sessie && (
+            <Link
+              href={`/mijn-rapport?sessie=${sessie}`}
+              className="w-full inline-block text-center text-white rounded-xl py-3.5 text-sm font-semibold"
+              style={{ background: '#1D9E75' }}>
+              Bekijk je persoonlijk AI-rapport
+            </Link>
+          )}
           <Link
             href="/portaal"
-            className="w-full inline-block text-center text-white rounded-xl py-3.5 text-sm font-semibold"
-            style={{ background: '#1D9E75' }}>
+            className="w-full inline-block text-center rounded-xl py-3.5 text-sm font-medium border"
+            style={{ borderColor: '#378ADD', color: '#378ADD' }}>
             Mijn portaal bekijken
           </Link>
           <Link
             href="/journal"
-            className="w-full inline-block text-center rounded-xl py-3.5 text-sm font-medium border"
-            style={{ borderColor: '#378ADD', color: '#378ADD' }}>
-            Schrijf een reflectie in je journal
-          </Link>
-          <Link
-            href="/"
             className="w-full inline-block text-center border border-gray-200 text-gray-500 rounded-xl py-3 text-sm hover:bg-gray-50 transition">
-            Terug naar home
+            Schrijf een reflectie in je journal
           </Link>
         </div>
 
