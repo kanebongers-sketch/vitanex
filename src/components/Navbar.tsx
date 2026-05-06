@@ -165,12 +165,15 @@ export default function Navbar() {
       setOngelezen(0); return
     }
     let actief = true
-    supabase.from('berichten')
-      .select('id', { count: 'exact', head: true })
-      .eq('bedrijf_id', bid).neq('user_id', mijnId)
-      .gt('aangemaakt_op', localStorage.getItem(`MentaForce_chat_seen_${bid}`) ?? '1970-01-01')
-      .then(({ count }) => { if (actief) setOngelezen(count ?? 0) })
-      .catch(() => {})
+    ;(async () => {
+      try {
+        const { count } = await supabase.from('berichten')
+          .select('id', { count: 'exact', head: true })
+          .eq('bedrijf_id', bid).neq('user_id', mijnId)
+          .gt('aangemaakt_op', localStorage.getItem(`MentaForce_chat_seen_${bid}`) ?? '1970-01-01')
+        if (actief) setOngelezen(count ?? 0)
+      } catch { /* berichten table may not exist yet */ }
+    })()
     const ch = supabase.channel(`nav-${bid}`)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'berichten', filter: `bedrijf_id=eq.${bid}` },
         (p) => { if ((p.new as { user_id: string }).user_id !== mijnId && actief) setOngelezen(n => n + 1) })
