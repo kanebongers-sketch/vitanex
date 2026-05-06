@@ -25,6 +25,7 @@ const TOOLS: Tegel[] = [
   { href: '/burnout',     emoji: '🔥', titel: 'Burn-out scan', sub: 'Check je signalen' },
   { href: '/focus',       emoji: '🫁', titel: 'Focus',         sub: 'Ademhaling & mindfulness' },
   { href: '/instellingen',emoji: '⚙️', titel: 'Instellingen',  sub: 'Voorkeuren' },
+  { href: '/koppelingen', emoji: '🔗', titel: 'Koppelingen',   sub: 'Fitbit & Google Agenda' },
 ]
 
 type CheckIn = {

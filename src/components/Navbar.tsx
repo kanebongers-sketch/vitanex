@@ -43,6 +43,7 @@ const PAGE_TITLES: Record<string, string> = {
   '/rapport':      'Rapporten',
   '/admin':        'Admin',
   '/instellingen': 'Instellingen',
+  '/koppelingen':  'Koppelingen',
 }
 
 function UserMenu({ profiel, onUitloggen, accent }: { profiel: Profiel; onUitloggen: () => void; accent: string }) {
