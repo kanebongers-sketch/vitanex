@@ -25,15 +25,18 @@ export function LogoIcon({ size = 36 }: { size?: number }) {
       {/* Background */}
       <rect width="48" height="48" rx="12" fill={`url(#${id})`} />
 
-      {/* EKG / M mark */}
+      {/* M — rechter poot is gedeeld met de verticale balk van de F */}
       <polyline
-        points="4,24 14,24 19,10 24,38 29,10 34,24 44,24"
+        points="4,40 4,10 15,27 26,10 26,40"
         fill="none"
         stroke="white"
-        strokeWidth="3"
+        strokeWidth="3.2"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
+      {/* F — horizontale balken, verticaal gedeeld met M */}
+      <line x1="26" y1="10" x2="44" y2="10" stroke="white" strokeWidth="3.2" strokeLinecap="round" />
+      <line x1="26" y1="22" x2="38" y2="22" stroke="white" strokeWidth="3.2" strokeLinecap="round" />
     </svg>
   )
 }
