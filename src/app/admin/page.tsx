@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/Navbar'
 
+const BEKIJK_ALS_KEY = 'mentaforce_admin_view_as'
+
 type Sectie = 'overzicht' | 'bedrijven' | 'gebruikers' | 'financieel' | 'platform' | 'beheer'
 
 type Bedrijf = {
@@ -58,8 +60,8 @@ function SectieKnop({ id, label, emoji, actief, onClick }: {
       onClick={onClick}
       className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl w-full text-left transition text-sm font-medium"
       style={{
-        background: actief ? 'var(--MentaForce-primary-light)' : 'transparent',
-        color: actief ? 'var(--MentaForce-primary)' : '#374151',
+        background: actief ? 'var(--mentaforce-primary-light)' : 'transparent',
+        color: actief ? 'var(--mentaforce-primary)' : '#374151',
       }}
     >
       <span>{emoji}</span> {label}
@@ -85,6 +87,9 @@ export default function Admin() {
   const [zoekterm, setZoekterm] = useState('')
 
   useEffect(() => {
+    // Altijd preview-modus beëindigen bij terugkeer naar admin
+    localStorage.removeItem(BEKIJK_ALS_KEY)
+
     async function check() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/login'); return }
@@ -96,6 +101,11 @@ export default function Admin() {
     }
     check()
   }, [router])
+
+  function schakelNaarRol(rol: 'hr' | 'medewerker') {
+    localStorage.setItem(BEKIJK_ALS_KEY, rol)
+    router.push(rol === 'hr' ? '/dashboard' : '/portaal')
+  }
 
   async function laadAlles() {
     const [{ data: bData }, { data: pData }, { data: cData }] = await Promise.all([
@@ -244,6 +254,37 @@ export default function Admin() {
               <SectieKnop key={id} id={id} label={label} emoji={emoji}
                 actief={sectie === id} onClick={() => setSectie(id)} />
             ))}
+            {/* Rol-switcher */}
+            <div className="mt-3 pt-3 border-t border-gray-100">
+              <p className="text-xs font-semibold text-gray-400 px-2 mb-2 uppercase tracking-widest">
+                Bekijken als
+              </p>
+              <div className="flex flex-col gap-1">
+                <div className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold"
+                  style={{ background: '#EEEDFE', color: '#8B5CF6' }}>
+                  <span>🛡️</span> Admin (huidig)
+                </div>
+                <button
+                  onClick={() => schakelNaarRol('hr')}
+                  className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-gray-500 hover:bg-blue-50 hover:text-blue-700 transition w-full text-left"
+                >
+                  <span>👔</span> HR-manager
+                  <svg className="ml-auto" width="10" height="10" viewBox="0 0 10 10" fill="none">
+                    <path d="M4 2l3 3-3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </button>
+                <button
+                  onClick={() => schakelNaarRol('medewerker')}
+                  className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-gray-500 hover:bg-green-50 hover:text-green-700 transition w-full text-left"
+                >
+                  <span>👤</span> Medewerker
+                  <svg className="ml-auto" width="10" height="10" viewBox="0 0 10 10" fill="none">
+                    <path d="M4 2l3 3-3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+
             <div className="mt-3 pt-3 border-t border-gray-100">
               <a
                 href="/setup"
@@ -283,7 +324,7 @@ export default function Admin() {
 
               {laden ? (
                 <div className="flex justify-center py-16">
-                  <div className="w-8 h-8 rounded-full border-2 border-gray-200 animate-spin" style={{ borderTopColor: 'var(--MentaForce-primary)' }} />
+                  <div className="w-8 h-8 rounded-full border-2 border-gray-200 animate-spin" style={{ borderTopColor: 'var(--mentaforce-primary)' }} />
                 </div>
               ) : (
                 <>
@@ -304,7 +345,7 @@ export default function Admin() {
                     <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
                       <h2 className="text-sm font-semibold text-gray-800">Meest actieve bedrijven</h2>
                       <button onClick={() => setSectie('bedrijven')}
-                        className="text-xs font-medium transition" style={{ color: 'var(--MentaForce-primary)' }}>
+                        className="text-xs font-medium transition" style={{ color: 'var(--mentaforce-primary)' }}>
                         Alles bekijken
                       </button>
                     </div>
@@ -348,7 +389,7 @@ export default function Admin() {
                     <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
                       <h2 className="text-sm font-semibold text-gray-800">Recente gebruikers</h2>
                       <button onClick={() => setSectie('gebruikers')}
-                        className="text-xs font-medium transition" style={{ color: 'var(--MentaForce-primary)' }}>
+                        className="text-xs font-medium transition" style={{ color: 'var(--mentaforce-primary)' }}>
                         Alles bekijken
                       </button>
                     </div>
@@ -395,7 +436,7 @@ export default function Admin() {
 
               {laden ? (
                 <div className="flex justify-center py-16">
-                  <div className="w-8 h-8 rounded-full border-2 border-gray-200 animate-spin" style={{ borderTopColor: 'var(--MentaForce-primary)' }} />
+                  <div className="w-8 h-8 rounded-full border-2 border-gray-200 animate-spin" style={{ borderTopColor: 'var(--mentaforce-primary)' }} />
                 </div>
               ) : (
                 <>
@@ -508,7 +549,7 @@ export default function Admin() {
                 <div className="divide-y divide-gray-50">
                   {laden ? (
                     <div className="flex justify-center py-12">
-                      <div className="w-6 h-6 rounded-full border-2 border-gray-200 animate-spin" style={{ borderTopColor: 'var(--MentaForce-primary)' }} />
+                      <div className="w-6 h-6 rounded-full border-2 border-gray-200 animate-spin" style={{ borderTopColor: 'var(--mentaforce-primary)' }} />
                     </div>
                   ) : gefilterdeBedrijven.length === 0 ? (
                     <div className="py-12 text-center text-sm text-gray-400">Geen resultaten gevonden.</div>
@@ -625,7 +666,7 @@ export default function Admin() {
                 <div className="divide-y divide-gray-50">
                   {laden ? (
                     <div className="flex justify-center py-12">
-                      <div className="w-6 h-6 rounded-full border-2 border-gray-200 animate-spin" style={{ borderTopColor: 'var(--MentaForce-primary)' }} />
+                      <div className="w-6 h-6 rounded-full border-2 border-gray-200 animate-spin" style={{ borderTopColor: 'var(--mentaforce-primary)' }} />
                     </div>
                   ) : gefilterdGebruikers.slice(0, 50).map(p => {
                     const bedrijf = bedrijven.find(b => b.id === p.bedrijf_id)
@@ -750,7 +791,7 @@ export default function Admin() {
                     onClick={maakBedrijfAan}
                     disabled={bezig || !nieuwBedrijf.trim()}
                     className="text-white rounded-xl px-6 py-3 text-sm font-semibold transition disabled:opacity-30"
-                    style={{ background: 'var(--MentaForce-primary)' }}>
+                    style={{ background: 'var(--mentaforce-primary)' }}>
                     {bezig ? 'Bezig...' : 'Aanmaken'}
                   </button>
                 </div>
