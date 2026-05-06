@@ -1,7 +1,7 @@
 'use client'
 
 import { useSearchParams } from 'next/navigation'
-import { Suspense, useEffect, useState, useRef } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import Link from 'next/link'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────
@@ -79,8 +79,6 @@ function MijnRapportInhoud() {
   const params = useSearchParams()
   const sessieId = params.get('sessie')
 
-  const rapportRef = useRef<HTMLDivElement>(null)
-
   const [rapport, setRapport]     = useState('')
   const [totaal, setTotaal]       = useState(0)
   const [catAvgs, setCatAvgs]     = useState<Record<string, number>>({})
@@ -111,40 +109,103 @@ function MijnRapportInhoud() {
   }, [sessieId])
 
   async function downloadPdf() {
-    if (!rapportRef.current) return
+    if (!rapport) return
     setPdfBezig(true)
     try {
-      const { default: jsPDF }       = await import('jspdf')
-      const { default: html2canvas } = await import('html2canvas')
+      const { default: jsPDF } = await import('jspdf')
 
-      const canvas = await html2canvas(rapportRef.current, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: '#ffffff',
-      })
+      const doc      = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
+      const W        = doc.internal.pageSize.getWidth()
+      const H        = doc.internal.pageSize.getHeight()
+      const mg       = 20
+      const cW       = W - mg * 2
+      let   y        = mg
 
-      const imgData   = canvas.toDataURL('image/png')
-      const pdf       = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
-      const pdfW      = pdf.internal.pageSize.getWidth()
-      const pdfH      = pdf.internal.pageSize.getHeight()
-      const canvasH   = (canvas.height * pdfW) / canvas.width
+      function checkPage(needed = 8) {
+        if (y + needed > H - mg) { doc.addPage(); y = mg }
+      }
 
-      let positie   = 0
-      let resterend = canvasH
+      // ── Header ────────────────────────────────────────
+      doc.setFillColor(29, 158, 117)
+      doc.rect(0, 0, W, 32, 'F')
+      doc.setTextColor(255, 255, 255)
+      doc.setFontSize(16); doc.setFont('helvetica', 'bold')
+      doc.text('Persoonlijk welzijnsrapport', mg, 14)
+      doc.setFontSize(9);  doc.setFont('helvetica', 'normal')
+      const datum = new Date().toLocaleDateString('nl-BE', { day: 'numeric', month: 'long', year: 'numeric' })
+      doc.text(`Vitanex · ${datum}`, mg, 23)
+      y = 42
 
-      while (resterend > 0) {
-        pdf.addImage(imgData, 'PNG', 0, positie, pdfW, canvasH)
-        resterend -= pdfH
-        if (resterend > 0) {
-          pdf.addPage()
-          positie -= pdfH
+      // ── Totaalscore ───────────────────────────────────
+      if (totaal > 0) {
+        const sk: [number, number, number] =
+          totaal >= 4 ? [29, 158, 117] : totaal >= 3 ? [186, 117, 23] : [226, 75, 74]
+        doc.setTextColor(120, 120, 120); doc.setFontSize(8.5); doc.setFont('helvetica', 'normal')
+        doc.text('Vitaliteitsscore deze week', mg, y); y += 6
+        doc.setTextColor(...sk); doc.setFontSize(28); doc.setFont('helvetica', 'bold')
+        doc.text(`${totaal.toFixed(1)} / 5`, mg, y + 7); y += 16
+      }
+
+      // ── Categoriescores ───────────────────────────────
+      const hoofdCats = ['energie', 'mentaal', 'werk', 'sociaal', 'groei']
+      const catLabels: Record<string, string> = {
+        energie: 'Energie & Lichaam', mentaal: 'Mentaal welzijn',
+        werk: 'Werk & Motivatie',     sociaal: 'Team & Samenwerking',
+        groei: 'Groei & Ontwikkeling',
+      }
+      const catKleuren: Record<string, [number, number, number]> = {
+        energie: [29, 158, 117], mentaal: [55, 138, 221],
+        werk: [139, 92, 246],    sociaal: [186, 117, 23],
+        groei: [5, 150, 105],
+      }
+
+      for (const cat of hoofdCats.filter(c => catAvgs[c] !== undefined)) {
+        checkPage(12)
+        const score = catAvgs[cat]
+        const kl    = catKleuren[cat]
+        doc.setFontSize(8.5); doc.setFont('helvetica', 'normal')
+        doc.setTextColor(60, 60, 60);  doc.text(catLabels[cat], mg, y)
+        doc.setTextColor(...kl);       doc.setFont('helvetica', 'bold')
+        doc.text(`${score.toFixed(1)}`, W - mg, y, { align: 'right' })
+        doc.setFont('helvetica', 'normal'); y += 3
+        doc.setFillColor(235, 235, 235); doc.roundedRect(mg, y, cW, 2.5, 1, 1, 'F')
+        doc.setFillColor(...kl);         doc.roundedRect(mg, y, cW * (score / 5), 2.5, 1, 1, 'F')
+        y += 7
+      }
+
+      // ── Scheidingslijn ────────────────────────────────
+      y += 2
+      doc.setDrawColor(220, 220, 220); doc.line(mg, y, W - mg, y); y += 8
+
+      // ── AI rapport tekst ──────────────────────────────
+      const secties = rapport.split(/\n(?=[A-Z][A-Z\s&]+\n)/)
+      for (const sectie of secties) {
+        const lijnen  = sectie.trim().split('\n')
+        const isHdr   = lijnen[0] && /^[A-Z][A-Z\s&]+$/.test(lijnen[0].trim())
+        const header  = isHdr ? lijnen[0].trim() : null
+        const body    = (header ? lijnen.slice(1) : lijnen).join('\n').trim()
+
+        if (header) {
+          checkPage(10)
+          doc.setFontSize(7.5); doc.setFont('helvetica', 'bold')
+          doc.setTextColor(160, 160, 160)
+          doc.text(header, mg, y); y += 5
+        }
+        if (body) {
+          const regels = doc.splitTextToSize(body, cW) as string[]
+          doc.setFontSize(10); doc.setFont('helvetica', 'normal')
+          doc.setTextColor(55, 55, 55)
+          for (const regel of regels) {
+            checkPage(6); doc.text(regel, mg, y); y += 5.5
+          }
+          y += 4
         }
       }
 
-      const datum = new Date().toLocaleDateString('nl-BE').replace(/\//g, '-')
-      pdf.save(`Vitanex-mijn-rapport-${datum}.pdf`)
+      const datumFile = new Date().toLocaleDateString('nl-BE').replace(/\//g, '-')
+      doc.save(`Vitanex-rapport-${datumFile}.pdf`)
     } catch (err) {
-      console.error(err)
+      console.error('[pdf]', err)
     } finally {
       setPdfBezig(false)
     }
@@ -201,8 +262,8 @@ function MijnRapportInhoud() {
 
       <div className="max-w-xl mx-auto px-5 pt-10">
 
-        {/* Rapport kaart — captured for PDF */}
-        <div ref={rapportRef} className="bg-white rounded-3xl border border-gray-100 shadow-sm mb-5 overflow-hidden">
+        {/* Rapport kaart */}
+        <div className="bg-white rounded-3xl border border-gray-100 shadow-sm mb-5 overflow-hidden">
 
           {/* Header */}
           <div className="p-8 pb-6" style={{ background: 'linear-gradient(135deg, #E1F5EE 0%, #E6F1FB 100%)' }}>
