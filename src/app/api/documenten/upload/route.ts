@@ -51,6 +51,9 @@ export async function POST(req: NextRequest) {
     const pad = `${uploaderProfiel.bedrijf_id}/${userId}/${crypto.randomUUID()}.${ext}`
     const buffer = await bestand.arrayBuffer()
 
+    // Bucket automatisch aanmaken als die nog niet bestaat
+    await admin.storage.createBucket('documenten', { public: false }).catch(() => {})
+
     const { error: storageErr } = await admin.storage
       .from('documenten')
       .upload(pad, buffer, { contentType: bestand.type, upsert: false })

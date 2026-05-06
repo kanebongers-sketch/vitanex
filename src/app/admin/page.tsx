@@ -244,6 +244,14 @@ export default function Admin() {
               <SectieKnop key={id} id={id} label={label} emoji={emoji}
                 actief={sectie === id} onClick={() => setSectie(id)} />
             ))}
+            <div className="mt-3 pt-3 border-t border-gray-100">
+              <a
+                href="/setup"
+                className="flex items-center gap-2.5 px-3 py-2 rounded-xl w-full text-left text-xs text-gray-400 hover:text-purple-600 hover:bg-purple-50 transition"
+              >
+                <span>🔧</span> Setup & migraties
+              </a>
+            </div>
           </div>
         </aside>
 
