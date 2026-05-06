@@ -5,6 +5,7 @@ import { useRouter, usePathname } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { useEffect, useState, useRef } from 'react'
 import { Avatar } from '@/components/Avatar'
+import { LogoIcon } from '@/components/Logo'
 
 type Profiel = {
   id: string
@@ -234,9 +235,8 @@ export default function Navbar() {
         <div className="flex items-center px-4 py-3 gap-3">
           {/* Logo mark */}
           <Link href={rol === 'medewerker' ? '/home' : rol === 'hr' ? '/dashboard' : '/admin'}
-            className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
-            style={{ background: accent }}>
-            <span className="text-white text-sm font-bold">M</span>
+            className="flex-shrink-0">
+            <LogoIcon size={34} />
           </Link>
 
           {/* Page title */}

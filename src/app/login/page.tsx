@@ -6,6 +6,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
+import { LogoFull } from '@/components/Logo'
 
 type LoginStatus =
   | 'idle'
@@ -85,12 +86,8 @@ export default function Login() {
 
         {/* Logo */}
         <div className="flex justify-center mb-7">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center"
-              style={{ background: '#1D9E75' }}>
-              <span className="text-white text-sm font-bold">M</span>
-            </div>
-            <span className="font-semibold text-gray-900 text-lg">MentaForce</span>
+          <Link href="/">
+            <LogoFull iconSize={40} />
           </Link>
         </div>
 
