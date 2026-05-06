@@ -96,38 +96,49 @@ export async function POST(req: NextRequest) {
       .map(c => `${CAT_LABELS[c]}: ${catAvgs[c]}/5`)
       .join('\n')
 
-    const prompt = `Je bent een warme, empathische welzijnscoach bij Vitanex. Schrijf een persoonlijk welzijnsrapport voor een medewerker op basis van hun wekelijkse check-in.
+    const prompt = `Je bent een empathische welzijnscoach bij Vitanex. Analyseer de check-in data en geef een persoonlijk welzijnsrapport terug.
 
-SCORES DEZE WEEK (1 = slecht, 5 = uitstekend):
-Totaalscore: ${totaal}/5
+SCORES (1=slecht, 5=uitstekend):
+Totaal: ${totaal}/5
 ${catSamenvatting}
 
-GEDETAILLEERDE ANTWOORDEN:
+ANTWOORDEN:
 ${dataBlok}
 
-INSTRUCTIES:
-- Schrijf in het Nederlands, warm en persoonlijk (spreek de persoon aan als "je")
-- Structureer in 4 duidelijk gelabelde secties:
-  SAMENVATTING VAN JE WEEK
-  JOUW STERKE PUNTEN
-  AANDACHTSPUNTEN
-  TIPS VOOR DEZE WEEK
-- Wees specifiek: verwijs naar concrete scores en eventuele toelichtingen
-- Geef 3 concrete, actionable tips in de laatste sectie
-- Max 450 woorden totaal
-- Toon: empathisch, professioneel, motiverend
+Geef je antwoord UITSLUITEND als geldig JSON in dit exacte formaat, zonder markdown of uitleg erbuiten:
+{
+  "samenvatting": "2-3 zinnen die de week samenvatten, warm en persoonlijk (je/jij), specifiek verwijzend naar de scores",
+  "sterkePunten": "1-2 paragrafen over wat goed gaat, met concrete score-referenties, motiverend",
+  "aandachtspunten": "1-2 paragrafen over wat aandacht verdient, empathisch en constructief",
+  "tips": [
+    { "titel": "Korte actietitel", "beschrijving": "Concrete tip van 1-2 zinnen" },
+    { "titel": "Korte actietitel", "beschrijving": "Concrete tip van 1-2 zinnen" },
+    { "titel": "Korte actietitel", "beschrijving": "Concrete tip van 1-2 zinnen" }
+  ]
+}
 
-Schrijf het rapport direct — geen inleiding.`
+Taal: Nederlands (Belgisch). Toon: professioneel, warm, direct. Geen platitudes.`
 
     const response = await anthropic.messages.create({
       model: 'claude-sonnet-4-6',
-      max_tokens: 900,
+      max_tokens: 1000,
       messages: [{ role: 'user', content: prompt }],
     })
 
-    const rapport = response.content[0].type === 'text' ? response.content[0].text : ''
+    const raw = response.content[0].type === 'text' ? response.content[0].text : '{}'
 
-    return NextResponse.json({ rapport, totaal, catAvgs })
+    // Strip markdown code fences if present
+    const cleaned = raw.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim()
+
+    let rapportData
+    try {
+      rapportData = JSON.parse(cleaned)
+    } catch {
+      // Fallback: wrap plain text in structure
+      rapportData = { samenvatting: raw, sterkePunten: '', aandachtspunten: '', tips: [] }
+    }
+
+    return NextResponse.json({ rapport: rapportData, totaal, catAvgs })
   } catch (err) {
     console.error('[rapport-checkin]', err)
     return NextResponse.json({ error: 'Rapport kon niet worden gegenereerd.' }, { status: 500 })
