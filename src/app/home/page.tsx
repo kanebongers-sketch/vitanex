@@ -6,79 +6,51 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
+import Navbar from '@/components/Navbar'
 
 type Tegel = {
   href: string
   emoji: string
   titel: string
   sub: string
-  kleur: string
-  tekstKleur?: string
+  accent?: string
+  full?: boolean
 }
 
-const TEGELS: Tegel[] = [
-  {
-    href: '/checkin',
-    emoji: '📋',
-    titel: 'Check-in',
-    sub: 'Vul je wekelijkse welzijnsmeting in',
-    kleur: 'var(--mentaforce-primary)',
-    tekstKleur: 'white',
-  },
+const HOOFD_TEGELS: Tegel[] = [
   {
     href: '/portaal',
-    emoji: '🏠',
-    titel: 'Portaal',
-    sub: 'Je persoonlijk overzicht en scores',
-    kleur: '#F0FDF9',
-  },
-  {
-    href: '/coach',
-    emoji: '🧠',
-    titel: 'AI Coach',
-    sub: 'Chat met je persoonlijke welzijnscoach',
-    kleur: '#EFF6FF',
-  },
-  {
-    href: '/journal',
-    emoji: '📓',
-    titel: 'Journal',
-    sub: 'Schrijf je gedachten en reflecties op',
-    kleur: '#FFFBEB',
-  },
-  {
-    href: '/chat',
-    emoji: '💬',
-    titel: 'Chat',
-    sub: 'Berichten met je team en collega\'s',
-    kleur: '#F5F3FF',
+    emoji: '📊',
+    titel: 'Mijn portaal',
+    sub: 'Scores, voortgang en rapport',
+    accent: '#1D9E75',
   },
   {
     href: '/instellingen',
     emoji: '⚙️',
     titel: 'Instellingen',
-    sub: 'Profiel, thema en voorkeuren',
-    kleur: '#F9FAFB',
+    sub: 'Profiel en voorkeuren',
   },
+]
+
+const EXTRA_TEGELS: Tegel[] = [
+  { href: '/journal',  emoji: '📓', titel: 'Journal',       sub: 'Schrijf gedachten op' },
+  { href: '/burnout',  emoji: '🔥', titel: 'Burn-out scan', sub: 'Check je signalen' },
+  { href: '/surveys',  emoji: '📋', titel: 'Surveys',       sub: 'Vul enquêtes in' },
+  { href: '/focus',    emoji: '🫁', titel: 'Focus',         sub: 'Herstel en ademhaling' },
 ]
 
 export default function HomePage() {
   const router = useRouter()
-  const [naam, setNaam] = useState<string>('')
+  const [naam, setNaam] = useState('')
   const [klaar, setKlaar] = useState(false)
 
   useEffect(() => {
     async function check() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/login'); return }
-
-      const { data: profiel } = await supabase
-        .from('profiles')
-        .select('naam, rol')
-        .eq('id', user.id)
-        .single()
-
-      if (profiel?.naam) setNaam(profiel.naam.split(' ')[0])
+      const { data } = await supabase.from('profiles').select('naam, rol').eq('id', user.id).single()
+      if (data?.naam) setNaam(data.naam.split(' ')[0])
       setKlaar(true)
     }
     check()
@@ -87,74 +59,70 @@ export default function HomePage() {
   const uur = new Date().getHours()
   const groet = uur < 12 ? 'Goedemorgen' : uur < 18 ? 'Goedemiddag' : 'Goedenavond'
 
-  if (!klaar) {
-    return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: '#F8F9FA' }}>
-        <div className="w-8 h-8 rounded-full border-2 border-gray-200 animate-spin" style={{ borderTopColor: 'var(--mentaforce-primary)' }} />
-      </div>
-    )
-  }
+  if (!klaar) return (
+    <div className="min-h-screen flex items-center justify-center" style={{ background: '#F8F9FA' }}>
+      <div className="w-8 h-8 rounded-full border-2 border-gray-200 animate-spin" style={{ borderTopColor: '#1D9E75' }} />
+    </div>
+  )
 
   return (
     <div className="min-h-screen" style={{ background: '#F8F9FA' }}>
-      {/* Top bar — minimal, no Navbar component */}
-      <header className="px-6 pt-8 pb-2 max-w-3xl mx-auto flex items-center justify-between">
-        <div>
-          <p className="text-2xl font-bold text-gray-900">
-            {groet}{naam ? `, ${naam}` : ''}! 👋
-          </p>
+      <Navbar />
+
+      <main className="max-w-lg mx-auto px-4 py-6">
+
+        {/* Greeting */}
+        <div className="mb-6">
+          <h2 className="text-xl font-bold text-gray-900">{groet}{naam ? `, ${naam}` : ''}!</h2>
           <p className="text-sm text-gray-400 mt-0.5">Wat wil je vandaag doen?</p>
         </div>
-        <div
-          className="w-10 h-10 rounded-xl flex items-center justify-center text-lg font-bold text-white flex-shrink-0"
-          style={{ background: 'var(--mentaforce-primary)' }}
-        >
-          M
-        </div>
-      </header>
 
-      {/* Grid */}
-      <main className="px-4 py-6 max-w-3xl mx-auto">
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-          {TEGELS.map(t => (
-            <Link
-              key={t.href}
-              href={t.href}
-              className="rounded-2xl p-5 flex flex-col gap-3 transition-transform active:scale-95 hover:scale-[1.02]"
-              style={{
-                background: t.kleur,
-                boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
-                textDecoration: 'none',
-              }}
-            >
-              <span className="text-4xl leading-none">{t.emoji}</span>
+        {/* Quick action: check-in CTA */}
+        <Link href="/checkin"
+          className="flex items-center gap-4 rounded-2xl p-5 mb-4 transition active:scale-[0.98]"
+          style={{ background: '#1D9E75', boxShadow: '0 4px 20px rgba(29,158,117,0.3)' }}>
+          <span className="text-4xl">📋</span>
+          <div className="flex-1">
+            <p className="text-white font-semibold text-base">Weeklijkse check-in</p>
+            <p className="text-white/70 text-sm mt-0.5">Hoe gaat het met je deze week?</p>
+          </div>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"
+            strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.7 }}>
+            <polyline points="9 18 15 12 9 6" />
+          </svg>
+        </Link>
+
+        {/* 2-column grid */}
+        <div className="grid grid-cols-2 gap-3 mb-3">
+          {HOOFD_TEGELS.map(t => (
+            <Link key={t.href} href={t.href}
+              className="rounded-2xl p-4 flex flex-col gap-3 bg-white transition active:scale-[0.97]"
+              style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+              <span className="text-3xl leading-none">{t.emoji}</span>
               <div>
-                <p
-                  className="text-base font-semibold leading-snug"
-                  style={{ color: t.tekstKleur ?? '#111827' }}
-                >
-                  {t.titel}
-                </p>
-                <p
-                  className="text-xs mt-0.5 leading-snug"
-                  style={{ color: t.tekstKleur ? 'rgba(255,255,255,0.8)' : '#6b7280' }}
-                >
-                  {t.sub}
-                </p>
+                <p className="text-sm font-semibold text-gray-900">{t.titel}</p>
+                <p className="text-xs text-gray-400 mt-0.5">{t.sub}</p>
               </div>
             </Link>
           ))}
         </div>
 
-        {/* Bottom logout link */}
-        <div className="mt-10 text-center">
-          <button
-            onClick={async () => { await supabase.auth.signOut(); router.push('/login') }}
-            className="text-xs text-gray-400 hover:text-gray-600 transition"
-          >
-            Uitloggen
-          </button>
+        {/* Extra tools */}
+        <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2 px-1">Meer tools</p>
+        <div className="grid grid-cols-2 gap-3">
+          {EXTRA_TEGELS.map(t => (
+            <Link key={t.href} href={t.href}
+              className="rounded-2xl p-4 flex items-center gap-3 bg-white transition active:scale-[0.97]"
+              style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+              <span className="text-2xl leading-none">{t.emoji}</span>
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-gray-900 truncate">{t.titel}</p>
+                <p className="text-xs text-gray-400 truncate">{t.sub}</p>
+              </div>
+            </Link>
+          ))}
         </div>
+
       </main>
     </div>
   )
