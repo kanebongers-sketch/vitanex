@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -265,7 +265,7 @@ function NieuweSurveyForm({ bedrijfId, userId, onGemaakt }: {
               onClick={maakAan}
               disabled={bezig || !titel.trim() || vragen.some(v => !v.tekst.trim())}
               className="px-5 py-2 rounded-xl text-sm text-white font-medium transition disabled:opacity-40"
-              style={{ background: 'var(--vitanex-primary)' }}
+              style={{ background: 'var(--MentaForce-primary)' }}
             >
               {bezig ? 'Aanmaken...' : 'Survey aanmaken'}
             </button>
@@ -413,7 +413,7 @@ export default function SurveysPagina() {
             <button
               onClick={() => setNieuwTonen(v => !v)}
               className="px-4 py-2 rounded-xl text-sm font-medium text-white transition"
-              style={{ background: nieuwTonen ? '#6b7280' : 'var(--vitanex-primary)' }}
+              style={{ background: nieuwTonen ? '#6b7280' : 'var(--MentaForce-primary)' }}
             >
               {nieuwTonen ? '✕ Sluiten' : '+ Nieuwe survey'}
             </button>
@@ -449,7 +449,7 @@ export default function SurveysPagina() {
             <div className="h-1 bg-gray-100">
               <div
                 className="h-full transition-all duration-300"
-                style={{ width: `${voortgang * 100}%`, background: 'var(--vitanex-primary)' }}
+                style={{ width: `${voortgang * 100}%`, background: 'var(--MentaForce-primary)' }}
               />
             </div>
 
@@ -482,8 +482,8 @@ export default function SurveysPagina() {
                             onClick={() => setAntwoorden(prev => ({ ...prev, [v.id]: n }))}
                             className="flex-1 py-3 rounded-xl text-sm font-semibold border-2 transition"
                             style={{
-                              background: antwoorden[v.id] === n ? 'var(--vitanex-primary)' : 'transparent',
-                              borderColor: antwoorden[v.id] === n ? 'var(--vitanex-primary)' : '#e5e7eb',
+                              background: antwoorden[v.id] === n ? 'var(--MentaForce-primary)' : 'transparent',
+                              borderColor: antwoorden[v.id] === n ? 'var(--MentaForce-primary)' : '#e5e7eb',
                               color: antwoorden[v.id] === n ? 'white' : '#374151',
                             }}
                           >
@@ -500,8 +500,8 @@ export default function SurveysPagina() {
                             onClick={() => setAntwoorden(prev => ({ ...prev, [v.id]: b }))}
                             className="flex-1 py-3 rounded-xl text-sm font-medium border-2 transition"
                             style={{
-                              background: antwoorden[v.id] === b ? 'var(--vitanex-primary)' : 'transparent',
-                              borderColor: antwoorden[v.id] === b ? 'var(--vitanex-primary)' : '#e5e7eb',
+                              background: antwoorden[v.id] === b ? 'var(--MentaForce-primary)' : 'transparent',
+                              borderColor: antwoorden[v.id] === b ? 'var(--MentaForce-primary)' : '#e5e7eb',
                               color: antwoorden[v.id] === b ? 'white' : '#374151',
                             }}
                           >
@@ -532,7 +532,7 @@ export default function SurveysPagina() {
                     activeSurvey.vragen.some(v => v.type !== 'tekst' && antwoorden[v.id] === undefined)
                   }
                   className="w-full py-3.5 rounded-xl text-white text-sm font-medium transition disabled:opacity-40"
-                  style={{ background: 'var(--vitanex-primary)' }}
+                  style={{ background: 'var(--MentaForce-primary)' }}
                 >
                   {verzenden ? 'Versturen...' : '🔒 Verstuur anoniem'}
                 </button>
@@ -568,7 +568,7 @@ export default function SurveysPagina() {
         {laden ? (
           <div className="flex justify-center py-10">
             <div className="w-7 h-7 rounded-full border-2 border-gray-200 animate-spin"
-              style={{ borderTopColor: 'var(--vitanex-primary)' }} />
+              style={{ borderTopColor: 'var(--MentaForce-primary)' }} />
           </div>
         ) : alleTabSurveys.length === 0 ? (
           <div className="bg-white rounded-2xl border border-gray-200 p-10 text-center">
@@ -625,7 +625,7 @@ export default function SurveysPagina() {
                           <button
                             onClick={() => { setActiveSurveyId(s.id); setAntwoorden({}) }}
                             className="text-xs px-3.5 py-2 rounded-xl text-white font-medium transition"
-                            style={{ background: 'var(--vitanex-primary)' }}
+                            style={{ background: 'var(--MentaForce-primary)' }}
                           >
                             Invullen
                           </button>

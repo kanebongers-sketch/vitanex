@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState } from 'react'
 import Link from 'next/link'
@@ -12,9 +12,9 @@ function MarketingNav() {
 
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: '#1D9E75' }}>
-            <span className="text-white text-sm font-bold">N</span>
+            <span className="text-white text-sm font-bold">M</span>
           </div>
-          <span className="font-bold text-white text-lg tracking-tight">Vitanex</span>
+          <span className="font-bold text-white text-lg tracking-tight">MentaForce</span>
         </div>
 
         <div className="hidden md:flex items-center gap-8">
@@ -80,7 +80,7 @@ function MockDashboard() {
         </div>
         <div className="flex-1 rounded-lg px-3 py-1.5 text-xs font-mono text-center"
           style={{ background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.3)' }}>
-          vitanex.app/dashboard
+          MentaForce.app/dashboard
         </div>
       </div>
 
@@ -185,7 +185,7 @@ export default function LandingPage() {
             <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 mb-8 text-xs font-semibold border"
               style={{ background: 'rgba(29,158,117,0.1)', borderColor: 'rgba(29,158,117,0.25)', color: '#4ECBA5' }}>
               <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: '#4ECBA5' }} />
-              Gebouwd voor Belgische werknemers en HR-teams
+              Gebouwd voor Nederlandse werknemers en HR-teams
             </div>
 
             <h1 className="font-extrabold text-white leading-tight mb-6 tracking-tight"
@@ -195,7 +195,7 @@ export default function LandingPage() {
             </h1>
 
             <p className="text-lg leading-relaxed mb-10" style={{ color: 'rgba(255,255,255,0.55)', maxWidth: 480 }}>
-              Vitanex geeft jou en je HR-team realtime inzicht in welzijn op het werk.
+              MentaForce geeft jou en je HR-team realtime inzicht in welzijn op het werk.
               Herken risicos vroeg - anoniem, veilig en actiegericht.
             </p>
 
@@ -443,7 +443,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
           <div className="text-center mb-20">
             <h2 className="text-4xl lg:text-5xl font-extrabold text-gray-900 mb-5 tracking-tight">Wat gebruikers zeggen</h2>
-            <p className="text-xl text-gray-400">Vroege gebruikers over hun ervaring met Vitanex.</p>
+            <p className="text-xl text-gray-400">Vroege gebruikers over hun ervaring met MentaForce.</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
@@ -508,9 +508,9 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-6 lg:px-12 py-10 flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-2.5">
             <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: '#1D9E75' }}>
-              <span className="text-white text-xs font-bold">N</span>
+              <span className="text-white text-xs font-bold">M</span>
             </div>
-            <span className="font-bold text-white">Vitanex</span>
+            <span className="font-bold text-white">MentaForce</span>
             <span className="mx-1" style={{ color: 'rgba(255,255,255,0.1)' }}>·</span>
             <span className="text-xs" style={{ color: 'rgba(255,255,255,0.18)' }}>Vitaliteit op de werkplek</span>
           </div>
@@ -521,7 +521,7 @@ export default function LandingPage() {
             <Link href="/register" className="transition hover:text-white/50">Registreren</Link>
             <Link href="/login" className="transition hover:text-white/50">Inloggen</Link>
           </div>
-          <p className="text-xs" style={{ color: 'rgba(255,255,255,0.18)' }}>2025 Vitanex - Gemaakt in Belgie</p>
+          <p className="text-xs" style={{ color: 'rgba(255,255,255,0.18)' }}>© 2025 MentaForce · Gemaakt in Nederland 🇳🇱</p>
         </div>
       </footer>
     </div>

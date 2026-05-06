@@ -1,4 +1,4 @@
-import { Resend } from 'resend'
+﻿import { Resend } from 'resend'
 import { NextResponse } from 'next/server'
 
 export async function POST(request: Request) {
@@ -9,16 +9,16 @@ export async function POST(request: Request) {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
 
   const { error } = await resend.emails.send({
-    from: 'Vitanex <onboarding@resend.dev>',
+    from: 'MentaForce <onboarding@resend.dev>',
     to: email,
-    subject: `Welkom bij Vitanex, ${naam || 'daar'}!`,
+    subject: `Welkom bij MentaForce, ${naam || 'daar'}!`,
     html: `
       <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; padding: 32px;">
         <div style="display:flex; align-items:center; gap:10px; margin-bottom:28px;">
           <div style="width:32px; height:32px; background:#1D9E75; border-radius:8px; display:flex; align-items:center; justify-content:center;">
-            <span style="color:white; font-size:14px; font-weight:600;">V</span>
+            <span style="color:white; font-size:14px; font-weight:600;">M</span>
           </div>
-          <span style="font-size:16px; font-weight:600; color:#111;">Vitanex</span>
+          <span style="font-size:16px; font-weight:600; color:#111;">MentaForce</span>
         </div>
 
         <h2 style="font-size:22px; font-weight:500; color:#111; margin:0 0 8px;">
@@ -40,7 +40,7 @@ export async function POST(request: Request) {
           <a href="${appUrl}/portaal" style="color:#1D9E75; font-size:12px;">${appUrl}/portaal</a>
         </div>
 
-        <p style="color:#ccc; font-size:11px; margin-top:32px;">Vitanex · Vitaliteit op de werkplek</p>
+        <p style="color:#ccc; font-size:11px; margin-top:32px;">MentaForce · Vitaliteit op de werkplek</p>
       </div>
     `,
   })

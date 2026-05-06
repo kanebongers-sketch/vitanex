@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -58,8 +58,8 @@ function SectieKnop({ id, label, emoji, actief, onClick }: {
       onClick={onClick}
       className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl w-full text-left transition text-sm font-medium"
       style={{
-        background: actief ? 'var(--vitanex-primary-light)' : 'transparent',
-        color: actief ? 'var(--vitanex-primary)' : '#374151',
+        background: actief ? 'var(--MentaForce-primary-light)' : 'transparent',
+        color: actief ? 'var(--MentaForce-primary)' : '#374151',
       }}
     >
       <span>{emoji}</span> {label}
@@ -216,7 +216,7 @@ export default function Admin() {
             style={{ background: '#8B5CF6' }}>A</div>
           <p className="text-sm font-medium text-white">Admin Portaal</p>
           <span className="text-gray-500 text-xs">—</span>
-          <p className="text-xs text-gray-400">Vitanex platform beheer</p>
+          <p className="text-xs text-gray-400">MentaForce platform beheer</p>
         </div>
       </div>
 
@@ -230,7 +230,7 @@ export default function Admin() {
                 style={{ background: '#8B5CF6' }}>A</div>
               <div>
                 <p className="text-xs font-bold text-gray-800">Admin</p>
-                <p className="text-xs text-gray-400">Vitanex Staff</p>
+                <p className="text-xs text-gray-400">MentaForce Staff</p>
               </div>
             </div>
             {([
@@ -276,14 +276,14 @@ export default function Admin() {
               <div className="mb-6">
                 <h1 className="text-2xl font-bold text-gray-900">Admin dashboard</h1>
                 <p className="text-sm text-gray-500 mt-1">
-                  Overzicht van alle activiteit op het Vitanex platform.
+                  Overzicht van alle activiteit op het MentaForce platform.
                   {' '}<span className="text-gray-400">Bijgewerkt: {new Date().toLocaleTimeString('nl-BE', { hour: '2-digit', minute: '2-digit' })}</span>
                 </p>
               </div>
 
               {laden ? (
                 <div className="flex justify-center py-16">
-                  <div className="w-8 h-8 rounded-full border-2 border-gray-200 animate-spin" style={{ borderTopColor: 'var(--vitanex-primary)' }} />
+                  <div className="w-8 h-8 rounded-full border-2 border-gray-200 animate-spin" style={{ borderTopColor: 'var(--MentaForce-primary)' }} />
                 </div>
               ) : (
                 <>
@@ -304,7 +304,7 @@ export default function Admin() {
                     <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
                       <h2 className="text-sm font-semibold text-gray-800">Meest actieve bedrijven</h2>
                       <button onClick={() => setSectie('bedrijven')}
-                        className="text-xs font-medium transition" style={{ color: 'var(--vitanex-primary)' }}>
+                        className="text-xs font-medium transition" style={{ color: 'var(--MentaForce-primary)' }}>
                         Alles bekijken
                       </button>
                     </div>
@@ -348,7 +348,7 @@ export default function Admin() {
                     <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
                       <h2 className="text-sm font-semibold text-gray-800">Recente gebruikers</h2>
                       <button onClick={() => setSectie('gebruikers')}
-                        className="text-xs font-medium transition" style={{ color: 'var(--vitanex-primary)' }}>
+                        className="text-xs font-medium transition" style={{ color: 'var(--MentaForce-primary)' }}>
                         Alles bekijken
                       </button>
                     </div>
@@ -395,7 +395,7 @@ export default function Admin() {
 
               {laden ? (
                 <div className="flex justify-center py-16">
-                  <div className="w-8 h-8 rounded-full border-2 border-gray-200 animate-spin" style={{ borderTopColor: 'var(--vitanex-primary)' }} />
+                  <div className="w-8 h-8 rounded-full border-2 border-gray-200 animate-spin" style={{ borderTopColor: 'var(--MentaForce-primary)' }} />
                 </div>
               ) : (
                 <>
@@ -508,7 +508,7 @@ export default function Admin() {
                 <div className="divide-y divide-gray-50">
                   {laden ? (
                     <div className="flex justify-center py-12">
-                      <div className="w-6 h-6 rounded-full border-2 border-gray-200 animate-spin" style={{ borderTopColor: 'var(--vitanex-primary)' }} />
+                      <div className="w-6 h-6 rounded-full border-2 border-gray-200 animate-spin" style={{ borderTopColor: 'var(--MentaForce-primary)' }} />
                     </div>
                   ) : gefilterdeBedrijven.length === 0 ? (
                     <div className="py-12 text-center text-sm text-gray-400">Geen resultaten gevonden.</div>
@@ -625,7 +625,7 @@ export default function Admin() {
                 <div className="divide-y divide-gray-50">
                   {laden ? (
                     <div className="flex justify-center py-12">
-                      <div className="w-6 h-6 rounded-full border-2 border-gray-200 animate-spin" style={{ borderTopColor: 'var(--vitanex-primary)' }} />
+                      <div className="w-6 h-6 rounded-full border-2 border-gray-200 animate-spin" style={{ borderTopColor: 'var(--MentaForce-primary)' }} />
                     </div>
                   ) : gefilterdGebruikers.slice(0, 50).map(p => {
                     const bedrijf = bedrijven.find(b => b.id === p.bedrijf_id)
@@ -750,7 +750,7 @@ export default function Admin() {
                     onClick={maakBedrijfAan}
                     disabled={bezig || !nieuwBedrijf.trim()}
                     className="text-white rounded-xl px-6 py-3 text-sm font-semibold transition disabled:opacity-30"
-                    style={{ background: 'var(--vitanex-primary)' }}>
+                    style={{ background: 'var(--MentaForce-primary)' }}>
                     {bezig ? 'Bezig...' : 'Aanmaken'}
                   </button>
                 </div>

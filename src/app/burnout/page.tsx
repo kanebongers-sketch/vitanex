@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -167,7 +167,7 @@ export default function BurnoutPagina() {
             <button
               onClick={() => setFase('scan')}
               className="w-full py-3 rounded-xl text-white font-medium text-sm transition"
-              style={{ background: 'var(--vitanex-primary)' }}
+              style={{ background: 'var(--MentaForce-primary)' }}
             >
               Start de scan
             </button>
@@ -199,7 +199,7 @@ export default function BurnoutPagina() {
           <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
             <div
               className="h-full rounded-full transition-all"
-              style={{ width: `${(voortgang / VRAGEN.length) * 100}%`, background: 'var(--vitanex-primary)' }}
+              style={{ width: `${(voortgang / VRAGEN.length) * 100}%`, background: 'var(--MentaForce-primary)' }}
             />
           </div>
         </div>
@@ -244,7 +244,7 @@ export default function BurnoutPagina() {
           onClick={submit}
           disabled={!volledig || opslaan}
           className="w-full py-3.5 rounded-xl text-white font-medium text-sm transition disabled:opacity-40"
-          style={{ background: 'var(--vitanex-primary)' }}
+          style={{ background: 'var(--MentaForce-primary)' }}
         >
           {opslaan ? 'Bezig...' : 'Bekijk mijn resultaat'}
         </button>
@@ -317,7 +317,7 @@ export default function BurnoutPagina() {
             <Link
               href="/coach"
               className="flex-1 py-3 rounded-xl text-sm font-medium text-center text-white transition"
-              style={{ background: 'var(--vitanex-primary)' }}
+              style={{ background: 'var(--MentaForce-primary)' }}
             >
               Praat met de coach
             </Link>
@@ -343,7 +343,7 @@ export default function BurnoutPagina() {
         <h1 className="text-xl font-semibold text-gray-900 mb-4">Eerdere scans</h1>
         {historyLaden ? (
           <div className="flex justify-center py-10">
-            <div className="w-7 h-7 rounded-full border-2 border-gray-200 animate-spin" style={{ borderTopColor: 'var(--vitanex-primary)' }} />
+            <div className="w-7 h-7 rounded-full border-2 border-gray-200 animate-spin" style={{ borderTopColor: 'var(--MentaForce-primary)' }} />
           </div>
         ) : history.length === 0 ? (
           <div className="bg-white rounded-2xl border border-gray-200 p-8 text-center">

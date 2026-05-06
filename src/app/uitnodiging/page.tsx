@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -101,7 +101,7 @@ function UitnodigingForm() {
     <main className="min-h-screen flex items-center justify-center"
       style={{ background: 'linear-gradient(135deg, #E1F5EE 0%, #E6F1FB 100%)' }}>
       <div className="w-8 h-8 rounded-full border-2 border-gray-200 animate-spin"
-        style={{ borderTopColor: 'var(--vitanex-primary)' }} />
+        style={{ borderTopColor: 'var(--mentaforce-primary)' }} />
     </main>
   )
 
@@ -113,8 +113,8 @@ function UitnodigingForm() {
         <p className="text-sm text-gray-500 mb-6 leading-relaxed">
           Deze uitnodigingslink is ongeldig of al eerder gebruikt. Vraag je HR-manager om een nieuwe uitnodiging te sturen.
         </p>
-        <a href="mailto:kanebongers@gmail.com"
-          className="text-sm font-medium transition" style={{ color: 'var(--vitanex-primary)' }}>
+        <a href="mailto:info@mentaforce.nl"
+          className="text-sm font-medium transition" style={{ color: 'var(--mentaforce-primary)' }}>
           Contact opnemen
         </a>
       </div>
@@ -131,7 +131,7 @@ function UitnodigingForm() {
         </p>
         <a href="/login"
           className="block w-full text-center py-3 rounded-xl text-white text-sm font-semibold transition hover:opacity-90"
-          style={{ background: 'var(--vitanex-primary)' }}>
+          style={{ background: 'var(--mentaforce-primary)' }}>
           Inloggen
         </a>
       </div>
@@ -160,7 +160,7 @@ function UitnodigingForm() {
             ].map((stap, i) => (
               <div key={i} className="flex items-center gap-3">
                 <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
-                  style={{ background: 'var(--vitanex-primary)' }}>
+                  style={{ background: 'var(--mentaforce-primary)' }}>
                   {i + 1}
                 </div>
                 <p className="text-sm text-gray-600">{stap}</p>
@@ -171,7 +171,7 @@ function UitnodigingForm() {
 
         <a href="/login"
           className="block w-full text-center py-3 rounded-xl text-white text-sm font-semibold transition hover:opacity-90"
-          style={{ background: 'var(--vitanex-primary)' }}>
+          style={{ background: 'var(--mentaforce-primary)' }}>
           Ga naar inloggen
         </a>
         <button
@@ -190,15 +190,15 @@ function UitnodigingForm() {
 
         <div className="flex items-center gap-2 mb-6">
           <div className="w-8 h-8 rounded-lg flex items-center justify-center"
-            style={{ background: 'var(--vitanex-primary)' }}>
-            <span className="text-white text-xs font-bold">N</span>
+            style={{ background: 'var(--mentaforce-primary)' }}>
+            <span className="text-white text-xs font-bold">M</span>
           </div>
-          <span className="font-semibold text-gray-900">Vitanex</span>
+          <span className="font-semibold text-gray-900">MentaForce</span>
         </div>
 
         <h1 className="text-2xl font-semibold text-gray-900 mb-1">Je bent uitgenodigd</h1>
         <p className="text-gray-500 text-sm mb-5 leading-relaxed">
-          Maak je account aan om te starten met Vitanex.
+          Maak je account aan om te starten met MentaForce.
         </p>
 
         {tokenData && (
@@ -252,7 +252,7 @@ function UitnodigingForm() {
           onClick={registreren}
           disabled={status === 'registreren' || !wachtwoord || !naam.trim() || wachtwoord.length < 8}
           className="w-full mt-5 text-white rounded-xl py-3 text-sm font-semibold hover:opacity-90 transition disabled:opacity-30 flex items-center justify-center gap-2"
-          style={{ background: 'var(--vitanex-primary)' }}>
+          style={{ background: 'var(--mentaforce-primary)' }}>
           {status === 'registreren' && (
             <div className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
           )}
@@ -269,7 +269,7 @@ export default function Uitnodiging() {
       <main className="min-h-screen flex items-center justify-center"
         style={{ background: 'linear-gradient(135deg, #E1F5EE 0%, #E6F1FB 100%)' }}>
         <div className="w-8 h-8 rounded-full border-2 border-gray-200 animate-spin"
-          style={{ borderTopColor: 'var(--vitanex-primary)' }} />
+          style={{ borderTopColor: 'var(--mentaforce-primary)' }} />
       </main>
     }>
       <UitnodigingForm />

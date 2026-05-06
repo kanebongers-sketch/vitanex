@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -285,7 +285,7 @@ export default function Instellingen() {
 
         {laden ? (
           <div className="flex justify-center py-16">
-            <div className="w-8 h-8 rounded-full border-2 border-gray-200 animate-spin" style={{ borderTopColor: 'var(--vitanex-primary)' }} />
+            <div className="w-8 h-8 rounded-full border-2 border-gray-200 animate-spin" style={{ borderTopColor: 'var(--mentaforce-primary)' }} />
           </div>
         ) : (
           <div className="flex flex-col lg:flex-row gap-6">
@@ -299,8 +299,8 @@ export default function Instellingen() {
                     onClick={() => setActiveSectie(s.id)}
                     className={`w-full flex items-center gap-3 px-4 py-3.5 text-left transition ${i < SECTIES.length - 1 ? 'border-b border-gray-50' : ''}`}
                     style={{
-                      background: activeSectie === s.id ? 'var(--vitanex-primary-light)' : 'transparent',
-                      color: activeSectie === s.id ? 'var(--vitanex-primary)' : s.id === 'gevaar' ? '#E24B4A' : '#374151',
+                      background: activeSectie === s.id ? 'var(--MentaForce-primary-light)' : 'transparent',
+                      color: activeSectie === s.id ? 'var(--mentaforce-primary)' : s.id === 'gevaar' ? '#E24B4A' : '#374151',
                     }}
                   >
                     <span className="text-lg w-6 text-center flex-shrink-0">{s.emoji}</span>
@@ -309,7 +309,7 @@ export default function Instellingen() {
                       <p className="text-xs text-gray-400 truncate hidden lg:block">{s.beschrijving}</p>
                     </div>
                     {activeSectie === s.id && (
-                      <div className="w-1.5 h-1.5 rounded-full ml-auto flex-shrink-0" style={{ background: 'var(--vitanex-primary)' }} />
+                      <div className="w-1.5 h-1.5 rounded-full ml-auto flex-shrink-0" style={{ background: 'var(--mentaforce-primary)' }} />
                     )}
                   </button>
                 ))}
@@ -577,7 +577,7 @@ export default function Instellingen() {
                       label="HR-aankondigingen"
                       beschrijving="Updates en berichten van je HR-afdeling" />
                     <Toggle actief={notifNieuws} onChange={setNotifNieuws}
-                      label="Vitanex nieuws & updates"
+                      label="MentaForce nieuws & updates"
                       beschrijving="Nieuwe functies en productnieuws" />
                   </section>
 
@@ -607,7 +607,7 @@ export default function Instellingen() {
                     <div>
                       <p className="text-sm font-semibold text-green-800 mb-1">Privacy-by-design</p>
                       <p className="text-xs leading-relaxed text-green-700">
-                        Vitanex deelt nooit jouw individuele check-in antwoorden met HR. HR ziet uitsluitend geaggregeerde teamgemiddelden. Jouw persoonlijke data blijft van jou.
+                        MentaForce deelt nooit jouw individuele check-in antwoorden met HR. HR ziet uitsluitend geaggregeerde teamgemiddelden. Jouw persoonlijke data blijft van jou.
                       </p>
                     </div>
                   </div>
@@ -628,7 +628,7 @@ export default function Instellingen() {
                     <p className="text-xs text-gray-400 mb-2">Deze gegevens zijn altijd strikt privé.</p>
                     <Toggle actief={privacyJournal} onChange={setPrivacyJournal}
                       label="Journal versleuteld opslaan"
-                      beschrijving="Journaalentries worden versleuteld. Niet leesbaar voor Vitanex of HR." />
+                      beschrijving="Journaalentries worden versleuteld. Niet leesbaar voor MentaForce of HR." />
                     <Toggle actief={privacyCoach} onChange={setPrivacyCoach}
                       label="Coach-gesprekken privé houden"
                       beschrijving="AI-coachgesprekken worden niet gebruikt voor teamanalyses." />
@@ -673,15 +673,15 @@ export default function Instellingen() {
                     <h2 className="text-base font-semibold text-gray-900 mb-4">Taal</h2>
                     <div className="grid grid-cols-3 gap-2.5">
                       {[
-                        { value: 'nl', label: '🇧🇪 Nederlands', sub: 'Standaard' },
+                        { value: 'nl', label: '🇳🇱 Nederlands', sub: 'Standaard' },
                         { value: 'fr', label: '🇫🇷 Français', sub: 'Binnenkort' },
                         { value: 'en', label: '🇬🇧 English', sub: 'Binnenkort' },
                       ].map(l => (
                         <button key={l.value} onClick={() => setTaal(l.value)}
                           className="p-3 rounded-xl border text-left transition"
                           style={{
-                            background: taal === l.value ? 'var(--vitanex-primary-light)' : 'transparent',
-                            borderColor: taal === l.value ? 'var(--vitanex-primary)' : '#e5e7eb',
+                            background: taal === l.value ? 'var(--MentaForce-primary-light)' : 'transparent',
+                            borderColor: taal === l.value ? 'var(--mentaforce-primary)' : '#e5e7eb',
                           }}>
                           <p className="text-sm font-medium text-gray-800">{l.label}</p>
                           <p className="text-xs text-gray-400">{l.sub}</p>
@@ -701,8 +701,8 @@ export default function Instellingen() {
                         <button key={t.value} onClick={() => setThema(t.value)}
                           className="p-3 rounded-xl border text-left transition"
                           style={{
-                            background: thema === t.value ? 'var(--vitanex-primary-light)' : 'transparent',
-                            borderColor: thema === t.value ? 'var(--vitanex-primary)' : '#e5e7eb',
+                            background: thema === t.value ? 'var(--MentaForce-primary-light)' : 'transparent',
+                            borderColor: thema === t.value ? 'var(--mentaforce-primary)' : '#e5e7eb',
                           }}>
                           <p className="text-sm font-medium text-gray-800">{t.label}</p>
                           <p className="text-xs text-gray-400">{t.sub}</p>
@@ -719,8 +719,8 @@ export default function Instellingen() {
                         <button key={d} onClick={() => setCheckinDag(d)}
                           className="py-2 rounded-xl text-xs font-medium capitalize transition border"
                           style={{
-                            background: checkinDag === d ? 'var(--vitanex-primary)' : 'transparent',
-                            borderColor: checkinDag === d ? 'var(--vitanex-primary)' : '#e5e7eb',
+                            background: checkinDag === d ? 'var(--mentaforce-primary)' : 'transparent',
+                            borderColor: checkinDag === d ? 'var(--mentaforce-primary)' : '#e5e7eb',
                             color: checkinDag === d ? 'white' : '#6b7280',
                           }}>
                           {d.slice(0, 2)}
@@ -743,7 +743,7 @@ export default function Instellingen() {
                 <>
                   <section className="bg-white rounded-2xl border border-gray-200 p-6">
                     <h2 className="text-base font-semibold text-gray-900 mb-1">Gegevensoverzicht</h2>
-                    <p className="text-xs text-gray-400 mb-5">Een overzicht van de gegevens die Vitanex over jou bijhoudt.</p>
+                    <p className="text-xs text-gray-400 mb-5">Een overzicht van de gegevens die MentaForce over jou bijhoudt.</p>
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                       {[
                         { label: 'Check-ins', icon: '✅', kleur: '#1D9E75', bg: '#E1F5EE' },
@@ -782,7 +782,7 @@ export default function Instellingen() {
                   <section className="bg-white rounded-2xl border border-gray-200 p-6">
                     <h2 className="text-base font-semibold text-gray-900 mb-1">Recht op inzage (AVG)</h2>
                     <p className="text-xs text-gray-400 mb-4">Je hebt het recht om al je persoonlijke gegevens in te zien, te corrigeren of te laten verwijderen.</p>
-                    <a href="mailto:kanebongers@gmail.com?subject=AVG-verzoek"
+                    <a href="mailto:info@mentaforce.nl?subject=AVG-verzoek"
                       className="inline-flex items-center gap-2 border border-gray-200 rounded-xl px-5 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition">
                       <span>✉️</span> AVG-verzoek indienen
                     </a>
@@ -853,7 +853,7 @@ export default function Instellingen() {
 
                     <p className="text-xs text-gray-400 text-center mt-3">
                       Of stuur een verwijderverzoek naar{' '}
-                      <a href="mailto:kanebongers@gmail.com" className="underline">kanebongers@gmail.com</a>
+                      <a href="mailto:info@mentaforce.nl" className="underline">info@mentaforce.nl</a>
                     </p>
                   </section>
                 </>

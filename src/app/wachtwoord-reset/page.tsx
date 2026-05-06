@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -56,7 +56,7 @@ export default function WachtwoordReset() {
       style={{ background: 'linear-gradient(135deg, #E1F5EE 0%, #E6F1FB 100%)' }}>
       <div className="text-center">
         <div className="w-8 h-8 rounded-full border-2 border-gray-200 animate-spin mx-auto mb-4"
-          style={{ borderTopColor: 'var(--vitanex-primary)' }} />
+          style={{ borderTopColor: 'var(--mentaforce-primary)' }} />
         <p className="text-sm text-gray-400">Link controleren...</p>
       </div>
     </main>
@@ -73,7 +73,7 @@ export default function WachtwoordReset() {
         </p>
         <Link href="/wachtwoord-vergeten"
           className="block w-full text-center py-3 rounded-xl text-white text-sm font-semibold transition hover:opacity-90"
-          style={{ background: 'var(--vitanex-primary)' }}>
+          style={{ background: 'var(--mentaforce-primary)' }}>
           Nieuwe resetlink aanvragen
         </Link>
       </div>
@@ -101,10 +101,10 @@ export default function WachtwoordReset() {
 
         <Link href="/" className="flex items-center gap-2 mb-8">
           <div className="w-8 h-8 rounded-lg flex items-center justify-center"
-            style={{ background: 'var(--vitanex-primary)' }}>
-            <span className="text-white text-xs font-bold">N</span>
+            style={{ background: 'var(--mentaforce-primary)' }}>
+            <span className="text-white text-xs font-bold">M</span>
           </div>
-          <span className="font-semibold text-gray-900">Vitanex</span>
+          <span className="font-semibold text-gray-900">MentaForce</span>
         </Link>
 
         <h1 className="text-xl font-semibold text-gray-900 mb-1">Nieuw wachtwoord instellen</h1>
@@ -169,7 +169,7 @@ export default function WachtwoordReset() {
             wachtwoord.length < 8
           }
           className="w-full text-white rounded-xl py-3 text-sm font-semibold transition disabled:opacity-40 flex items-center justify-center gap-2"
-          style={{ background: 'var(--vitanex-primary)' }}>
+          style={{ background: 'var(--mentaforce-primary)' }}>
           {status === 'opslaan' && (
             <div className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
           )}

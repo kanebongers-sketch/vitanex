@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState } from 'react'
 import Link from 'next/link'
@@ -10,9 +10,9 @@ function MarketingNav() {
       <div className="max-w-7xl mx-auto px-6 lg:px-12 py-4 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: '#1D9E75' }}>
-            <span className="text-white text-sm font-bold">V</span>
+            <span className="text-white text-sm font-bold">M</span>
           </div>
-          <span className="font-bold text-white text-lg tracking-tight">Vitanex</span>
+          <span className="font-bold text-white text-lg tracking-tight">MentaForce</span>
         </Link>
         <div className="flex items-center gap-4">
           <Link href="/voorwaarden" className="text-sm transition" style={{ color: 'rgba(255,255,255,0.45)' }}>Voorwaarden</Link>
@@ -27,7 +27,7 @@ function MarketingNav() {
 }
 
 const ONDERWERPEN = [
-  { id: 'demo', label: '🎯 Demo aanvragen', beschrijving: 'Ontdek hoe Vitanex werkt voor jouw team' },
+  { id: 'demo', label: '🎯 Demo aanvragen', beschrijving: 'Ontdek hoe MentaForce werkt voor jouw team' },
   { id: 'pricing', label: '💰 Prijsinformatie', beschrijving: 'Maatwerk offerte voor jouw organisatie' },
   { id: 'technisch', label: '🔧 Technische vraag', beschrijving: 'Support, integraties en API' },
   { id: 'privacy', label: '🔒 Privacy & AVG', beschrijving: 'Vragen over gegevensverwerking' },
@@ -37,8 +37,8 @@ const ONDERWERPEN = [
 
 const FAQ = [
   {
-    vraag: 'Hoe snel kan ik starten met Vitanex?',
-    antwoord: 'Na het aanmaken van een account is Vitanex binnen één werkdag operationeel. Medewerkers ontvangen automatisch een uitnodigingsmail.',
+    vraag: 'Hoe snel kan ik starten met MentaForce?',
+    antwoord: 'Na het aanmaken van een account is MentaForce binnen één werkdag operationeel. Medewerkers ontvangen automatisch een uitnodigingsmail.',
   },
   {
     vraag: 'Is er een gratis proefperiode?',
@@ -46,10 +46,10 @@ const FAQ = [
   },
   {
     vraag: 'Hoe worden de gegevens van medewerkers beschermd?',
-    antwoord: 'Vitanex is volledig AVG-conform. HR ziet nooit individuele antwoorden, enkel geaggregeerde teamdata. Alle data wordt opgeslagen binnen de EU.',
+    antwoord: 'MentaForce is volledig AVG-conform. HR ziet nooit individuele antwoorden, enkel geaggregeerde teamdata. Alle data wordt opgeslagen binnen de EU.',
   },
   {
-    vraag: 'Kan Vitanex integreren met ons HR-systeem?',
+    vraag: 'Kan MentaForce integreren met ons HR-systeem?',
     antwoord: 'Enterprise-klanten kunnen integreren met AFAS, Personio en andere HR-systemen. Neem contact op voor de mogelijkheden.',
   },
   {
@@ -189,7 +189,7 @@ export default function Contact() {
                     type="email"
                     value={email}
                     onChange={e => setEmail(e.target.value)}
-                    placeholder="jan@bedrijf.be"
+                    placeholder="jan@bedrijf.nl"
                     required
                     className="w-full rounded-xl px-4 py-3 text-sm outline-none transition"
                     style={{
@@ -301,14 +301,14 @@ export default function Contact() {
           <div className="rounded-2xl border p-6" style={{ borderColor: 'rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.02)' }}>
             <p className="text-sm font-bold text-white mb-4">Direct bereikbaar</p>
             <div className="flex flex-col gap-4">
-              <a href="mailto:kanebongers@gmail.com" className="flex items-start gap-3 group">
+              <a href="mailto:info@mentaforce.nl" className="flex items-start gap-3 group">
                 <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
                   style={{ background: 'rgba(29,158,117,0.15)' }}>
                   <span className="text-base">✉️</span>
                 </div>
                 <div>
                   <p className="text-xs font-medium mb-0.5" style={{ color: 'rgba(255,255,255,0.4)' }}>E-mail</p>
-                  <p className="text-sm font-medium text-white group-hover:underline">kanebongers@gmail.com</p>
+                  <p className="text-sm font-medium text-white group-hover:underline">info@mentaforce.nl</p>
                 </div>
               </a>
               <div className="flex items-start gap-3">
@@ -324,11 +324,11 @@ export default function Contact() {
               <div className="flex items-start gap-3">
                 <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
                   style={{ background: 'rgba(139,92,246,0.15)' }}>
-                  <span className="text-base">🇧🇪</span>
+                  <span className="text-base">🇳🇱</span>
                 </div>
                 <div>
                   <p className="text-xs font-medium mb-0.5" style={{ color: 'rgba(255,255,255,0.4)' }}>Locatie</p>
-                  <p className="text-sm text-white">Antwerpen, België</p>
+                  <p className="text-sm text-white">Amsterdam, Nederland</p>
                 </div>
               </div>
             </div>
@@ -355,7 +355,7 @@ export default function Contact() {
           <div className="flex flex-col gap-2.5">
             {[
               { icon: '🔒', tekst: 'Volledig AVG-conform' },
-              { icon: '🇧🇪', tekst: 'Data opgeslagen in de EU' },
+              { icon: '🇳🇱', tekst: 'Data opgeslagen in de EU' },
               { icon: '⚡', tekst: 'Operationeel in 1 dag' },
               { icon: '🤝', tekst: 'Geen commitments vereist' },
             ].map(t => (
@@ -410,16 +410,16 @@ export default function Contact() {
         <div className="max-w-7xl mx-auto px-6 lg:px-12 py-10 flex flex-col md:flex-row items-center justify-between gap-6">
           <Link href="/" className="flex items-center gap-2.5">
             <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: '#1D9E75' }}>
-              <span className="text-white text-xs font-bold">V</span>
+              <span className="text-white text-xs font-bold">M</span>
             </div>
-            <span className="font-bold text-white">Vitanex</span>
+            <span className="font-bold text-white">MentaForce</span>
           </Link>
           <div className="flex items-center gap-6 text-xs flex-wrap justify-center" style={{ color: 'rgba(255,255,255,0.2)' }}>
             <Link href="/voorwaarden" className="transition hover:text-white/50">Voorwaarden</Link>
             <Link href="/contact" className="transition hover:text-white/50" style={{ color: '#4ECBA5' }}>Contact</Link>
             <Link href="/login" className="transition hover:text-white/50">Inloggen</Link>
           </div>
-          <p className="text-xs" style={{ color: 'rgba(255,255,255,0.18)' }}>© 2025 Vitanex · Gemaakt in België 🇧🇪</p>
+          <p className="text-xs" style={{ color: 'rgba(255,255,255,0.18)' }}>© 2025 MentaForce · Gemaakt in Nederland 🇳🇱</p>
         </div>
       </footer>
     </div>

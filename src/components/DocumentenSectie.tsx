@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
@@ -162,7 +162,7 @@ export default function DocumentenSectie({ userId, isHR, naamMedewerker }: Props
         <button
           onClick={() => { setUploadOpen(o => !o); setFout(null) }}
           className="text-xs font-medium px-3 py-1.5 rounded-lg text-white transition"
-          style={{ background: uploadOpen ? '#6b7280' : 'var(--vitanex-primary)' }}
+          style={{ background: uploadOpen ? '#6b7280' : 'var(--MentaForce-primary)' }}
         >
           {uploadOpen ? 'Annuleer' : '+ Toevoegen'}
         </button>
@@ -272,7 +272,7 @@ export default function DocumentenSectie({ userId, isHR, naamMedewerker }: Props
             onClick={upload}
             disabled={!bestand || uploadBezig}
             className="w-full py-2.5 rounded-xl text-xs font-semibold text-white transition disabled:opacity-40"
-            style={{ background: 'var(--vitanex-primary)' }}
+            style={{ background: 'var(--MentaForce-primary)' }}
           >
             {uploadBezig ? 'Uploaden...' : 'Opslaan'}
           </button>
@@ -292,7 +292,7 @@ export default function DocumentenSectie({ userId, isHR, naamMedewerker }: Props
         {laden ? (
           <div className="flex justify-center py-6">
             <div className="w-5 h-5 rounded-full border-2 border-gray-200 animate-spin"
-              style={{ borderTopColor: 'var(--vitanex-primary)' }} />
+              style={{ borderTopColor: 'var(--MentaForce-primary)' }} />
           </div>
         ) : zichtbareDocumenten.length === 0 ? (
           <p className="text-xs text-gray-400 text-center py-4">

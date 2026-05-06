@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+﻿import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
 import { createAdminClient } from '@/lib/supabase-admin'
 
@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
     const resend = new Resend(process.env.RESEND_API_KEY)
 
     await resend.emails.send({
-      from: 'Vitanex <onboarding@resend.dev>',
+      from: 'MentaForce <onboarding@resend.dev>',
       to: hrEmails,
       subject: `${naam} deelt zijn/haar welzijnsrapport — week van ${weekLabel}`,
       html: `
@@ -74,13 +74,13 @@ export async function POST(req: NextRequest) {
           </div>
           <div style="background: white; border: 1px solid #e5e7eb; border-top: none; padding: 24px; border-radius: 0 0 12px 12px;">
             <p style="color: #6b7280; font-size: 13px; margin-top: 0;">
-              <strong style="color: #111;">${naam}</strong> heeft zijn/haar persoonlijk welzijnsrapport met jou gedeeld via Vitanex.
+              <strong style="color: #111;">${naam}</strong> heeft zijn/haar persoonlijk welzijnsrapport met jou gedeeld via MentaForce.
             </p>
             <div style="background: #F9FAFB; border-left: 3px solid #1D9E75; padding: 16px 20px; border-radius: 4px; color: #374151; font-size: 14px; line-height: 1.75;">
               ${rapportHtml}
             </div>
             <p style="color: #9ca3af; font-size: 11px; margin-top: 20px; margin-bottom: 0; line-height: 1.5;">
-              Dit rapport is gegenereerd door Vitanex op basis van de wekelijkse check-in van de medewerker. Behandel de inhoud vertrouwelijk.
+              Dit rapport is gegenereerd door MentaForce op basis van de wekelijkse check-in van de medewerker. Behandel de inhoud vertrouwelijk.
             </p>
           </div>
         </div>

@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useState } from 'react'
@@ -210,7 +210,7 @@ async function buildPdf(data: RapportData, totaal: number, catAvgs: Record<strin
 
   doc.setTextColor(255, 255, 255)
   doc.setFontSize(7.5); doc.setFont('helvetica', 'bold')
-  doc.text('VITANEX', mg, 11)
+  doc.text('MentaForce', mg, 11)
 
   doc.setFontSize(19); doc.setFont('helvetica', 'bold')
   doc.text('Persoonlijk Welzijnsrapport', mg, 22)
@@ -338,12 +338,12 @@ async function buildPdf(data: RapportData, totaal: number, catAvgs: Record<strin
     doc.setPage(p)
     doc.setDrawColor(...RULE); doc.line(mg, H - 14, W - mg, H - 14)
     doc.setFontSize(7); doc.setFont('helvetica', 'normal'); doc.setTextColor(...MUTED)
-    doc.text('Vitanex · Persoonlijk & Vertrouwelijk', mg, H - 8)
+    doc.text('MentaForce · Persoonlijk & Vertrouwelijk', mg, H - 8)
     doc.text(`${p} / ${numPages}`, W - mg, H - 8, { align: 'right' })
   }
 
   const datumFile = new Date().toLocaleDateString('nl-BE').replace(/\//g, '-')
-  doc.save(`Vitanex-rapport-${datumFile}.pdf`)
+  doc.save(`MentaForce-rapport-${datumFile}.pdf`)
 }
 
 // ─── Main component ───────────────────────────────────────────────────────

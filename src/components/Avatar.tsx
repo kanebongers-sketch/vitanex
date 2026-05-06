@@ -1,4 +1,4 @@
-type AvatarProps = {
+﻿type AvatarProps = {
   naam: string
   avatarUrl?: string | null
   size?: number
@@ -34,8 +34,8 @@ export function Avatar({ naam, avatarUrl, size = 32, online, className = '', sty
         <div
           className="rounded-full flex items-center justify-center font-medium w-full h-full select-none"
           style={{
-            background: 'var(--vitanex-primary-light)',
-            color: 'var(--vitanex-primary)',
+            background: 'var(--MentaForce-primary-light)',
+            color: 'var(--MentaForce-primary)',
             fontSize,
           }}
         >

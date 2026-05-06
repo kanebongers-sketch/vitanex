@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
@@ -170,7 +170,7 @@ export default function ProfielPagina() {
     <div className="min-h-screen" style={{ background: '#F8F9FA' }}>
       <Navbar />
       <main className="max-w-3xl mx-auto p-8 flex justify-center mt-16">
-        <div className="w-8 h-8 rounded-full border-2 border-gray-200 animate-spin" style={{ borderTopColor: 'var(--vitanex-primary)' }} />
+        <div className="w-8 h-8 rounded-full border-2 border-gray-200 animate-spin" style={{ borderTopColor: 'var(--mentaforce-primary)' }} />
       </main>
     </div>
   )
@@ -287,7 +287,7 @@ export default function ProfielPagina() {
                     <XAxis dataKey="datum" tick={{ fontSize: 11 }} />
                     <YAxis domain={[0, 100]} tick={{ fontSize: 11 }} unit="%" />
                     <Tooltip formatter={(v) => `${v}%`} />
-                    <Line type="monotone" dataKey="Score" stroke="var(--vitanex-primary)" strokeWidth={2} dot={{ r: 3 }} activeDot={{ r: 5 }} />
+                    <Line type="monotone" dataKey="Score" stroke="var(--mentaforce-primary)" strokeWidth={2} dot={{ r: 3 }} activeDot={{ r: 5 }} />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
@@ -298,7 +298,7 @@ export default function ProfielPagina() {
                 <p className="text-sm font-medium text-gray-700 mb-4">Anonieme toelichtingen ({toelichtingen.length})</p>
                 <div className="flex flex-col gap-3">
                   {toelichtingen.map(c => (
-                    <div key={c.id} className="rounded-xl p-4" style={{ background: '#F8F9FA', borderLeft: '3px solid var(--vitanex-primary)' }}>
+                    <div key={c.id} className="rounded-xl p-4" style={{ background: '#F8F9FA', borderLeft: '3px solid var(--mentaforce-primary)' }}>
                       <p className="text-sm text-gray-600 leading-relaxed">"{c.toelichting}"</p>
                       <p className="text-xs text-gray-400 mt-2">{new Date(c.created_at).toLocaleDateString('nl-BE')}</p>
                     </div>

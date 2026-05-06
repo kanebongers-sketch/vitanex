@@ -1,4 +1,4 @@
-import { Resend } from 'resend'
+﻿import { Resend } from 'resend'
 import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase-admin'
 
@@ -21,7 +21,7 @@ export async function POST(request: Request) {
   if (userError || !user?.email) return NextResponse.json({ error: 'E-mailadres niet gevonden' }, { status: 404 })
 
   const { error } = await resend.emails.send({
-    from: 'Vitanex <onboarding@resend.dev>',
+    from: 'MentaForce <onboarding@resend.dev>',
     to: user.email,
     subject: 'Jouw wekelijkse check-in staat klaar',
     html: `
@@ -32,7 +32,7 @@ export async function POST(request: Request) {
            style="display: inline-block; margin-top: 16px; background: #1D9E75; color: #fff; padding: 12px 24px; border-radius: 12px; text-decoration: none; font-size: 14px;">
           Check-in doen
         </a>
-        <p style="color: #aaa; font-size: 12px; margin-top: 32px;">Vitanex · Vitaliteit op de werkplek</p>
+        <p style="color: #aaa; font-size: 12px; margin-top: 32px;">MentaForce · Vitaliteit op de werkplek</p>
       </div>
     `,
   })

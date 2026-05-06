@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -11,7 +11,7 @@ type Bericht = {
   content: string
 }
 
-const WELKOM = `Hallo! Ik ben jouw Vitanex Coach 👋
+const WELKOM = `Hallo! Ik ben jouw MentaForce Coach 👋
 
 Ik ben hier om je te helpen met alles rondom welzijn op het werk — stress, energie, werk-privébalans, motivatie, slaap of gewoon even lucht geven.
 
@@ -93,7 +93,7 @@ export default function CoachPagina() {
     <div className="min-h-screen" style={{ background: '#F8F9FA' }}>
       <Navbar />
       <main className="flex justify-center mt-20">
-        <div className="w-7 h-7 rounded-full border-2 border-gray-200 animate-spin" style={{ borderTopColor: 'var(--vitanex-primary)' }} />
+        <div className="w-7 h-7 rounded-full border-2 border-gray-200 animate-spin" style={{ borderTopColor: 'var(--MentaForce-primary)' }} />
       </main>
     </div>
   )
@@ -107,12 +107,12 @@ export default function CoachPagina() {
         <div className="px-5 py-4 border-b border-gray-200 bg-white flex items-center gap-3 flex-shrink-0">
           <div
             className="w-11 h-11 rounded-full flex items-center justify-center text-xl flex-shrink-0"
-            style={{ background: 'var(--vitanex-primary-light)' }}
+            style={{ background: 'var(--MentaForce-primary-light)' }}
           >
             🧠
           </div>
           <div>
-            <p className="text-sm font-semibold text-gray-900">Vitanex Coach</p>
+            <p className="text-sm font-semibold text-gray-900">MentaForce Coach</p>
             <p className="text-xs text-gray-400">AI-coach · Vertrouwelijk · 24/7 beschikbaar</p>
           </div>
           <div className="ml-auto flex items-center gap-1.5">
@@ -128,7 +128,7 @@ export default function CoachPagina() {
               {b.role === 'assistant' && (
                 <div
                   className="w-8 h-8 rounded-full flex items-center justify-center text-sm flex-shrink-0 mt-0.5"
-                  style={{ background: 'var(--vitanex-primary-light)' }}
+                  style={{ background: 'var(--MentaForce-primary-light)' }}
                 >
                   🧠
                 </div>
@@ -136,7 +136,7 @@ export default function CoachPagina() {
               <div
                 className="max-w-[78%] px-4 py-3 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap"
                 style={{
-                  background: b.role === 'user' ? 'var(--vitanex-primary)' : 'white',
+                  background: b.role === 'user' ? 'var(--MentaForce-primary)' : 'white',
                   color: b.role === 'user' ? 'white' : '#1f2937',
                   boxShadow: b.role === 'assistant' ? '0 1px 3px rgba(0,0,0,0.07)' : 'none',
                   borderRadius: b.role === 'user' ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
@@ -151,7 +151,7 @@ export default function CoachPagina() {
           {laden && (
             <div className="flex justify-start gap-2.5">
               <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm flex-shrink-0"
-                style={{ background: 'var(--vitanex-primary-light)' }}>🧠</div>
+                style={{ background: 'var(--MentaForce-primary-light)' }}>🧠</div>
               <div className="bg-white px-4 py-3 rounded-2xl shadow-sm" style={{ borderRadius: '18px 18px 18px 4px' }}>
                 <div className="flex items-center gap-1">
                   <div className="w-2 h-2 rounded-full bg-gray-300 animate-bounce" style={{ animationDelay: '0ms' }} />
@@ -212,7 +212,7 @@ export default function CoachPagina() {
               onClick={() => verstuur()}
               disabled={!input.trim() || laden}
               className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition disabled:opacity-30"
-              style={{ background: input.trim() && !laden ? 'var(--vitanex-primary)' : '#e5e7eb' }}
+              style={{ background: input.trim() && !laden ? 'var(--MentaForce-primary)' : '#e5e7eb' }}
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
                 stroke={input.trim() && !laden ? 'white' : '#9ca3af'}

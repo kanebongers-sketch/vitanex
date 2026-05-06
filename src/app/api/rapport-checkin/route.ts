@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+﻿import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 import { createAdminClient } from '@/lib/supabase-admin'
 
@@ -96,7 +96,7 @@ export async function POST(req: NextRequest) {
       .map(c => `${CAT_LABELS[c]}: ${catAvgs[c]}/5`)
       .join('\n')
 
-    const prompt = `Je bent een empathische welzijnscoach bij Vitanex. Schrijf een persoonlijk welzijnsrapport in het Nederlands (Belgisch), warm en direct (je/jij).
+    const prompt = `Je bent een empathische welzijnscoach bij MentaForce. Schrijf een persoonlijk welzijnsrapport in het Nederlands (nederlands), warm en direct (je/jij).
 
 SCORES (1=slecht, 5=uitstekend):
 Totaal: ${totaal}/5

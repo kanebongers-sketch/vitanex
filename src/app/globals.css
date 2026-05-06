@@ -1,11 +1,11 @@
-@import "tailwindcss";
+﻿@import "tailwindcss";
 
 :root {
-  --vitanex-primary: #1D9E75;
-  --vitanex-primary-light: #E1F5EE;
-  --vitanex-primary-dark: #0F6E56;
-  --vitanex-accent: #378ADD;
-  --vitanex-accent-light: #E6F1FB;
+  --mentaforce-primary: #1D9E75;
+  --mentaforce-primary-light: #E1F5EE;
+  --mentaforce-primary-dark: #0F6E56;
+  --mentaforce-accent: #378ADD;
+  --mentaforce-accent-light: #E6F1FB;
 }
 
 * {

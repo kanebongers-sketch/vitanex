@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
@@ -138,7 +138,7 @@ export default function Rapport() {
       }
     }
 
-    pdf.save(`Vitanex-rapport-${bedrijfNaam}-${maanden[geselecteerdeMaand]}-${geselecteerdJaar}.pdf`)
+    pdf.save(`MentaForce-rapport-${bedrijfNaam}-${maanden[geselecteerdeMaand]}-${geselecteerdJaar}.pdf`)
     setExportBezig(false)
   }
 
@@ -215,7 +215,7 @@ export default function Rapport() {
               onClick={exporteerPDF}
               disabled={exportBezig || checkins.length === 0}
               className="text-white rounded-xl px-5 py-2 text-sm font-medium transition disabled:opacity-30 flex items-center gap-2"
-              style={{ background: 'var(--vitanex-primary)' }}
+              style={{ background: 'var(--MentaForce-primary)' }}
             >
               {exportBezig ? 'Exporteren...' : '↓ Download PDF'}
             </button>
@@ -238,10 +238,10 @@ export default function Rapport() {
               <div className="flex justify-between items-start">
                 <div>
                   <div className="flex items-center gap-2 mb-3">
-                    <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'var(--vitanex-primary)' }}>
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'var(--MentaForce-primary)' }}>
                       <span className="text-white text-xs font-medium">V</span>
                     </div>
-                    <span className="font-medium text-gray-700">Vitanex</span>
+                    <span className="font-medium text-gray-700">MentaForce</span>
                   </div>
                   <h2 className="text-2xl font-medium text-gray-900">Vitaliteitsrapport</h2>
                   <p className="text-gray-600 text-sm mt-1">{bedrijfNaam} · {maanden[geselecteerdeMaand]} {geselecteerdJaar}</p>
@@ -329,7 +329,7 @@ export default function Rapport() {
                   <p className="text-sm font-medium text-gray-700 mb-4">Anonieme toelichtingen ({toelichtingen.length})</p>
                   <div className="flex flex-col gap-3">
                     {toelichtingen.map(c => (
-                      <div key={c.id} className="rounded-xl p-4" style={{ background: '#F8F9FA', borderLeft: '3px solid var(--vitanex-primary)' }}>
+                      <div key={c.id} className="rounded-xl p-4" style={{ background: '#F8F9FA', borderLeft: '3px solid var(--MentaForce-primary)' }}>
                         <p className="text-sm text-gray-600 leading-relaxed">"{c.toelichting}"</p>
                         <p className="text-xs text-gray-400 mt-2">{new Date(c.created_at).toLocaleDateString('nl-BE')}</p>
                       </div>
@@ -362,7 +362,7 @@ export default function Rapport() {
 
               {/* Footer */}
               <div className="mt-8 pt-6 border-t border-gray-100 flex justify-between items-center">
-                <p className="text-xs text-gray-400">Vitanex · Vitaliteitsplatform voor de werkplek</p>
+                <p className="text-xs text-gray-400">MentaForce · Vitaliteitsplatform voor de werkplek</p>
                 <p className="text-xs text-gray-400">Vertrouwelijk — alleen voor intern gebruik</p>
               </div>
 

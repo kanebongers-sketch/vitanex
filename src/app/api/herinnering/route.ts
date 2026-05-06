@@ -1,4 +1,4 @@
-import { Resend } from 'resend'
+﻿import { Resend } from 'resend'
 import { NextResponse } from 'next/server'
 
 export async function POST(request: Request) {
@@ -6,7 +6,7 @@ export async function POST(request: Request) {
   const { email, naam } = await request.json()
 
   const { error } = await resend.emails.send({
-    from: 'Vitanex <onboarding@resend.dev>',
+    from: 'MentaForce <onboarding@resend.dev>',
     to: email,
     subject: 'Jouw wekelijkse check-in staat klaar',
     html: `
@@ -17,7 +17,7 @@ export async function POST(request: Request) {
            style="display: inline-block; margin-top: 16px; background: #111; color: #fff; padding: 12px 24px; border-radius: 12px; text-decoration: none; font-size: 14px;">
           Check-in doen
         </a>
-        <p style="color: #aaa; font-size: 12px; margin-top: 32px;">Vitanex · Vitaliteit op de werkplek</p>
+        <p style="color: #aaa; font-size: 12px; margin-top: 32px;">MentaForce · Vitaliteit op de werkplek</p>
       </div>
     `,
   })

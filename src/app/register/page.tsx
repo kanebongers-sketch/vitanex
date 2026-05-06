@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState } from 'react'
 import Link from 'next/link'
@@ -151,9 +151,9 @@ export default function Register() {
       <header className="w-full bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: '#1D9E75' }}>
-            <span className="text-white text-sm font-bold">N</span>
+            <span className="text-white text-sm font-bold">M</span>
           </div>
-          <span className="font-bold text-gray-900 text-lg tracking-tight">Vitanex</span>
+          <span className="font-bold text-gray-900 text-lg tracking-tight">MentaForce</span>
         </Link>
         <p className="text-sm text-gray-500">
           Al een account?{' '}
@@ -177,7 +177,7 @@ export default function Register() {
             {stap === 'type' && (
               <div>
                 <h1 className="text-3xl font-extrabold text-gray-900 mb-2 tracking-tight">Wie ben je?</h1>
-                <p className="text-gray-500 mb-8">We passen Vitanex aan op basis van jouw rol.</p>
+                <p className="text-gray-500 mb-8">We passen MentaForce aan op basis van jouw rol.</p>
 
                 <div className="flex flex-col gap-4 mb-8">
                   {[
@@ -416,7 +416,7 @@ export default function Register() {
                       <Link href="/voorwaarden" target="_blank" className="font-semibold underline" style={{ color: '#1D9E75' }}>
                         Algemene Voorwaarden
                       </Link>{' '}
-                      en het privacy beleid van Vitanex.
+                      en het privacy beleid van MentaForce.
                     </span>
                   </label>
                   <label className="flex items-start gap-3 cursor-pointer">
@@ -428,7 +428,7 @@ export default function Register() {
                       style={{ accentColor: '#1D9E75' }}
                     />
                     <span className="text-sm text-gray-600">
-                      Stuur mij tips over welzijn op het werk en updates over Vitanex. (optioneel)
+                      Stuur mij tips over welzijn op het werk en updates over MentaForce. (optioneel)
                     </span>
                   </label>
                 </div>
@@ -557,9 +557,9 @@ export default function Register() {
                 </h2>
                 <p className="text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.45)' }}>
                   {type === 'hr'
-                    ? 'Vitanex geeft je realtime inzicht in het welzijn van je team - zonder de privacy van medewerkers te schenden.'
+                    ? 'MentaForce geeft je realtime inzicht in het welzijn van je team - zonder de privacy van medewerkers te schenden.'
                     : type === 'zelfstandige'
-                    ? 'Zelfstandigen missen vaak de HR-structuur van een bedrijf. Vitanex vult dat op met persoonlijke tools.'
+                    ? 'Zelfstandigen missen vaak de HR-structuur van een bedrijf. MentaForce vult dat op met persoonlijke tools.'
                     : 'Volg je eigen vitaliteit, ontvang persoonlijk advies en gebruik tools die je dagelijks beter laten functioneren.'}
                 </p>
               </div>
@@ -581,7 +581,7 @@ export default function Register() {
                   {type === 'hr'
                     ? '"We hebben een dreigende burn-out kunnen voorkomen dankzij de vroege signaaldetectie. De ROI was bewezen na de eerste maand."'
                     : type === 'zelfstandige'
-                    ? '"Als freelancer had ik geen HR-support. Vitanex is nu mijn persoonlijke coach voor welzijn en productiviteit."'
+                    ? '"Als freelancer had ik geen HR-support. MentaForce is nu mijn persoonlijke coach voor welzijn en productiviteit."'
                     : '"Eindelijk een tool die ik echt gebruik. De anonimiteit geeft me de vrijheid om eerlijk te zijn over hoe ik me voel."'}
                 </p>
                 <div className="flex items-center gap-2.5">

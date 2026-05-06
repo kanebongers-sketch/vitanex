@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -69,7 +69,7 @@ export default function Login() {
   const [resendBezig, setResendBezig] = useState(false)
 
   const portaalCfg = gekozenPortaal ? PORTAAL_CONFIG[gekozenPortaal] : null
-  const accent = portaalCfg?.accent ?? 'var(--vitanex-primary)'
+  const accent = portaalCfg?.accent ?? 'var(--mentaforce-primary)'
   const isLeeg = !email.trim() || !wachtwoord
   const laden = status === 'loading'
 
@@ -128,10 +128,10 @@ export default function Login() {
 
         <Link href="/" className="flex items-center gap-2 mb-10">
           <div className="w-9 h-9 rounded-xl flex items-center justify-center"
-            style={{ background: 'var(--vitanex-primary)' }}>
-            <span className="text-white text-sm font-bold">V</span>
+            style={{ background: 'var(--mentaforce-primary)' }}>
+            <span className="text-white text-sm font-bold">M</span>
           </div>
-          <span className="font-semibold text-gray-900 text-lg">Vitanex</span>
+          <span className="font-semibold text-gray-900 text-lg">MentaForce</span>
         </Link>
 
         <div className="max-w-lg w-full text-center mb-8">
@@ -167,7 +167,7 @@ export default function Login() {
 
         <p className="text-xs text-gray-400 mt-8">
           Nog geen account?{' '}
-          <Link href="/register" className="font-semibold transition" style={{ color: 'var(--vitanex-primary)' }}>
+          <Link href="/register" className="font-semibold transition" style={{ color: 'var(--mentaforce-primary)' }}>
             Gratis registreren
           </Link>
         </p>
@@ -195,9 +195,9 @@ export default function Login() {
           <Link href="/" className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-lg flex items-center justify-center"
               style={{ background: accent }}>
-              <span className="text-white text-xs font-bold">V</span>
+              <span className="text-white text-xs font-bold">M</span>
             </div>
-            <span className="font-semibold text-gray-900 text-sm">Vitanex</span>
+            <span className="font-semibold text-gray-900 text-sm">MentaForce</span>
           </Link>
         </div>
 
@@ -267,7 +267,7 @@ export default function Login() {
             <p className="text-sm text-red-700 font-medium">Er ging iets mis.</p>
             <p className="text-xs text-red-500 mt-0.5">
               Probeer opnieuw of neem contact op via{' '}
-              <a href="mailto:kanebongers@gmail.com" className="underline">kanebongers@gmail.com</a>.
+              <a href="mailto:info@mentaforce.nl" className="underline">info@mentaforce.nl</a>.
             </p>
           </div>
         )}

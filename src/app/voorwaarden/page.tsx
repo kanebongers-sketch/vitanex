@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import Link from 'next/link'
 
@@ -9,9 +9,9 @@ function MarketingNav() {
       <div className="max-w-7xl mx-auto px-6 lg:px-12 py-4 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: '#1D9E75' }}>
-            <span className="text-white text-sm font-bold">V</span>
+            <span className="text-white text-sm font-bold">M</span>
           </div>
-          <span className="font-bold text-white text-lg tracking-tight">Vitanex</span>
+          <span className="font-bold text-white text-lg tracking-tight">MentaForce</span>
         </Link>
         <div className="flex items-center gap-4">
           <Link href="/contact" className="text-sm transition" style={{ color: 'rgba(255,255,255,0.45)' }}>Contact</Link>
@@ -29,14 +29,14 @@ const SECTIONS = [
   {
     id: 'aanvaarding',
     titel: '1. Aanvaarding van de voorwaarden',
-    inhoud: `Door gebruik te maken van het Vitanex-platform (de "Dienst"), aanvaardt u deze Algemene Gebruiksvoorwaarden ("Voorwaarden"). Als u niet akkoord gaat met deze Voorwaarden, mag u de Dienst niet gebruiken.
+    inhoud: `Door gebruik te maken van het MentaForce-platform (de "Dienst"), aanvaardt u deze Algemene Gebruiksvoorwaarden ("Voorwaarden"). Als u niet akkoord gaat met deze Voorwaarden, mag u de Dienst niet gebruiken.
 
-Deze Voorwaarden zijn van toepassing op alle gebruikers van de Dienst, inclusief HR-managers, medewerkers en beheerders. Vitanex behoudt zich het recht voor deze Voorwaarden op elk moment te wijzigen. Wijzigingen worden minimaal 14 dagen vooraf gecommuniceerd via e-mail of een melding in de applicatie.`,
+Deze Voorwaarden zijn van toepassing op alle gebruikers van de Dienst, inclusief HR-managers, medewerkers en beheerders. MentaForce behoudt zich het recht voor deze Voorwaarden op elk moment te wijzigen. Wijzigingen worden minimaal 14 dagen vooraf gecommuniceerd via e-mail of een melding in de applicatie.`,
   },
   {
     id: 'dienst',
     titel: '2. Beschrijving van de Dienst',
-    inhoud: `Vitanex is een SaaS-platform voor werknemerswelzijn dat HR-teams in staat stelt om anoniem gegevens te verzamelen over het welbevinden van medewerkers, trends te analyseren en proactief in te grijpen bij risicosignalen.
+    inhoud: `MentaForce is een SaaS-platform voor werknemerswelzijn dat HR-teams in staat stelt om anoniem gegevens te verzamelen over het welbevinden van medewerkers, trends te analyseren en proactief in te grijpen bij risicosignalen.
 
 De Dienst omvat onder meer:
 • Anonieme wekelijkse check-ins voor medewerkers
@@ -46,7 +46,7 @@ De Dienst omvat onder meer:
 • Teamchat en feedbackmodule
 • Rapportagefunctionaliteiten voor HR
 
-Vitanex kan de Dienst op elk moment uitbreiden, aanpassen of bepaalde functies tijdelijk of permanent stopzetten.`,
+MentaForce kan de Dienst op elk moment uitbreiden, aanpassen of bepaalde functies tijdelijk of permanent stopzetten.`,
   },
   {
     id: 'accounts',
@@ -58,12 +58,12 @@ U bent verantwoordelijk voor:
 • Alle activiteiten die plaatsvinden onder uw account
 • Het onmiddellijk melden van ongeautoriseerd gebruik
 
-Vitanex behoudt zich het recht voor accounts te deactiveren bij schending van deze Voorwaarden.`,
+MentaForce behoudt zich het recht voor accounts te deactiveren bij schending van deze Voorwaarden.`,
   },
   {
     id: 'privacy',
     titel: '4. Privacy en anonimiteit',
-    inhoud: `Vitanex hecht bijzonder veel belang aan de privacy van medewerkers. Het platform is gebouwd rond het principe van privacy-by-design:
+    inhoud: `MentaForce hecht bijzonder veel belang aan de privacy van medewerkers. Het platform is gebouwd rond het principe van privacy-by-design:
 
 • Check-in antwoorden worden nooit op individueel niveau gedeeld met HR
 • HR ziet uitsluitend geaggregeerde teamgegevens (gemiddelden, trends)
@@ -71,21 +71,21 @@ Vitanex behoudt zich het recht voor accounts te deactiveren bij schending van de
 • Persoonlijke journaalentries en coachgesprekken zijn strikt privé
 • Anonieme feedback bevat geen traceerbare metadata
 
-Alle gegevensverwerking vindt plaats conform de AVG (Algemene Verordening Gegevensbescherming). De volledige Privacyverklaring is beschikbaar op vitanex.app/privacy.`,
+Alle gegevensverwerking vindt plaats conform de AVG (Algemene Verordening Gegevensbescherming). De volledige Privacyverklaring is beschikbaar op MentaForce.app/privacy.`,
   },
   {
     id: 'gegevens',
     titel: '5. Gegevensverwerking en AVG',
-    inhoud: `Vitanex treedt op als gegevensverwerker in de zin van de AVG. De klantorganisatie treedt op als verwerkingsverantwoordelijke.
+    inhoud: `MentaForce treedt op als gegevensverwerker in de zin van de AVG. De klantorganisatie treedt op als verwerkingsverantwoordelijke.
 
-Vitanex verwerkt persoonsgegevens uitsluitend:
+MentaForce verwerkt persoonsgegevens uitsluitend:
 • Voor het verlenen van de overeengekomen Dienst
 • Op basis van een geldige verwerkersovereenkomst (DPA)
 • Nooit voor commerciële doeleinden van derden
 
-Gegevens worden opgeslagen op beveiligde servers binnen de Europese Economische Ruimte. Vitanex maakt gebruik van Supabase (data hosting) en Anthropic Claude (AI-analyse), met passende verwerkersovereenkomsten.
+Gegevens worden opgeslagen op beveiligde servers binnen de Europese Economische Ruimte. MentaForce maakt gebruik van Supabase (data hosting) en Anthropic Claude (AI-analyse), met passende verwerkersovereenkomsten.
 
-Medewerkers hebben te allen tijde het recht op inzage, correctie en verwijdering van hun persoonsgegevens via instellingen@vitanex.app.`,
+Medewerkers hebben te allen tijde het recht op inzage, correctie en verwijdering van hun persoonsgegevens via instellingen@MentaForce.app.`,
   },
   {
     id: 'gebruik',
@@ -103,60 +103,60 @@ Medewerkers hebben te allen tijde het recht op inzage, correctie en verwijdering
   {
     id: 'intellectueel',
     titel: '7. Intellectuele eigendom',
-    inhoud: `Alle rechten, titels en belangen met betrekking tot de Dienst — inclusief software, UI/UX-ontwerp, logo's, teksten en algoritmen — zijn en blijven exclusief eigendom van Vitanex BV.
+    inhoud: `Alle rechten, titels en belangen met betrekking tot de Dienst — inclusief software, UI/UX-ontwerp, logo's, teksten en algoritmen — zijn en blijven exclusief eigendom van MentaForce BV.
 
 U ontvangt een beperkte, niet-exclusieve, niet-overdraagbare licentie om de Dienst te gebruiken conform deze Voorwaarden. U mag de software niet kopiëren, aanpassen, decompileren, reverse-engineeren of distribueren zonder voorafgaande schriftelijke toestemming.
 
-Feedback, suggesties of ideeën die u deelt over de Dienst kunnen door Vitanex vrij worden gebruikt zonder verplichtingen.`,
+Feedback, suggesties of ideeën die u deelt over de Dienst kunnen door MentaForce vrij worden gebruikt zonder verplichtingen.`,
   },
   {
     id: 'abonnement',
     titel: '8. Abonnement en betalingen',
     inhoud: `De Dienst wordt aangeboden via een maandelijks of jaarlijks abonnement per medewerker. Facturering vindt plaats vooraf op basis van het aantal actieve gebruikers.
 
-• Minimumabonnement: zie actuele prijzenpagina op vitanex.app/#prijzen
+• Minimumabonnement: zie actuele prijzenpagina op MentaForce.app/#prijzen
 • Betalingstermijn: 30 dagen na factuurdatum
 • Automatische verlenging tenzij 30 dagen voor het einde van de looptijd opgezegd
 • Prijswijzigingen worden minimaal 60 dagen vooraf gecommuniceerd
 
-Bij wanbetaling kan de toegang tot de Dienst worden opgeschort na een betalingsherinnering. Vitanex is niet aansprakelijk voor verlies van gegevens als gevolg van opschorting wegens wanbetaling.`,
+Bij wanbetaling kan de toegang tot de Dienst worden opgeschort na een betalingsherinnering. MentaForce is niet aansprakelijk voor verlies van gegevens als gevolg van opschorting wegens wanbetaling.`,
   },
   {
     id: 'aansprakelijkheid',
     titel: '9. Beperking van aansprakelijkheid',
-    inhoud: `De Dienst wordt aangeboden "as is" en "as available". Vitanex geeft geen garanties, expliciet of impliciet, met betrekking tot de beschikbaarheid, nauwkeurigheid of geschiktheid voor een bepaald doel.
+    inhoud: `De Dienst wordt aangeboden "as is" en "as available". MentaForce geeft geen garanties, expliciet of impliciet, met betrekking tot de beschikbaarheid, nauwkeurigheid of geschiktheid voor een bepaald doel.
 
-Vitanex is niet aansprakelijk voor:
+MentaForce is niet aansprakelijk voor:
 • Indirecte, incidentele of gevolgschade
 • Verlies van gegevens, inkomsten of winst
 • Schade als gevolg van ongeautoriseerde toegang door derden
 • Beslissingen genomen op basis van AI-inzichten uit het platform
 
-De totale aansprakelijkheid van Vitanex is in alle gevallen beperkt tot het bedrag dat u in de afgelopen 12 maanden heeft betaald voor de Dienst.`,
+De totale aansprakelijkheid van MentaForce is in alle gevallen beperkt tot het bedrag dat u in de afgelopen 12 maanden heeft betaald voor de Dienst.`,
   },
   {
     id: 'beëindiging',
     titel: '10. Beëindiging',
-    inhoud: `U kunt de Dienst op elk moment opzeggen via uw accountbeheer of door een e-mail te sturen naar kanebongers@gmail.com.
+    inhoud: `U kunt de Dienst op elk moment opzeggen via uw accountbeheer of door een e-mail te sturen naar info@mentaforce.nl.
 
 Bij beëindiging:
 • Wordt de toegang tot de Dienst uiterlijk na 30 dagen stopgezet
 • Worden alle persoonsgegevens binnen 90 dagen verwijderd, tenzij wettelijke bewaarplichten gelden
 • Ontvangt u op verzoek een export van uw bedrijfsgegevens
 
-Vitanex kan het account onmiddellijk beëindigen bij ernstige schending van deze Voorwaarden.`,
+MentaForce kan het account onmiddellijk beëindigen bij ernstige schending van deze Voorwaarden.`,
   },
   {
     id: 'toepasselijk',
     titel: '11. Toepasselijk recht',
-    inhoud: `Deze Voorwaarden worden beheerst door het Belgisch recht. Geschillen worden voorgelegd aan de bevoegde rechtbanken van Antwerpen, België.
+    inhoud: `Deze Voorwaarden worden beheerst door het Nederlands recht. Geschillen worden voorgelegd aan de bevoegde rechtbanken van Amsterdam, Nederland.
 
 Indien een bepaling van deze Voorwaarden ongeldig of niet-afdwingbaar wordt verklaard, blijven de overige bepalingen onverminderd van kracht.
 
-Vitanex BV
-Antwerpen, België
-KBO: [registratienummer]
-BTW: BE [btw-nummer]`,
+MentaForce BV
+Amsterdam, Nederland
+KVK: [registratienummer]
+BTW: NL [btw-nummer]`,
   },
 ]
 
@@ -229,11 +229,11 @@ export default function Voorwaarden() {
               Neem contact op met ons via onderstaand e-mailadres.
             </p>
             <a
-              href="mailto:kanebongers@gmail.com"
+              href="mailto:info@mentaforce.nl"
               className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-white text-sm font-bold transition hover:opacity-90"
               style={{ background: '#1D9E75' }}
             >
-              ✉️ kanebongers@gmail.com
+              ✉️ info@mentaforce.nl
             </a>
           </div>
         </main>
@@ -244,16 +244,16 @@ export default function Voorwaarden() {
         <div className="max-w-7xl mx-auto px-6 lg:px-12 py-10 flex flex-col md:flex-row items-center justify-between gap-6">
           <Link href="/" className="flex items-center gap-2.5">
             <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: '#1D9E75' }}>
-              <span className="text-white text-xs font-bold">V</span>
+              <span className="text-white text-xs font-bold">M</span>
             </div>
-            <span className="font-bold text-white">Vitanex</span>
+            <span className="font-bold text-white">MentaForce</span>
           </Link>
           <div className="flex items-center gap-6 text-xs flex-wrap justify-center" style={{ color: 'rgba(255,255,255,0.2)' }}>
             <Link href="/voorwaarden" className="transition hover:text-white/50" style={{ color: '#4ECBA5' }}>Voorwaarden</Link>
             <Link href="/contact" className="transition hover:text-white/50">Contact</Link>
             <Link href="/login" className="transition hover:text-white/50">Inloggen</Link>
           </div>
-          <p className="text-xs" style={{ color: 'rgba(255,255,255,0.18)' }}>© 2025 Vitanex · Gemaakt in België 🇧🇪</p>
+          <p className="text-xs" style={{ color: 'rgba(255,255,255,0.18)' }}>© 2025 MentaForce · Gemaakt in Nederland 🇳🇱</p>
         </div>
       </footer>
     </div>

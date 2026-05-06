@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
@@ -31,9 +31,9 @@ const ROL_CONFIG = {
   },
   medewerker: {
     label: 'Medewerker',
-    accent: 'var(--vitanex-primary)',
-    accentLight: 'var(--vitanex-primary-light)',
-    accentText: 'var(--vitanex-primary)',
+    accent: 'var(--mentaforce-primary)',
+    accentLight: 'var(--mentaforce-primary-light)',
+    accentText: 'var(--mentaforce-primary)',
     badge: { bg: '#E1F5EE', color: '#0F6E56' },
   },
 }
@@ -257,7 +257,7 @@ export default function Navbar() {
     const mijnId = profiel.id
 
     if (pad === '/chat') {
-      localStorage.setItem(`vitanex_chat_seen_${bid}`, new Date().toISOString())
+      localStorage.setItem(`MentaForce_chat_seen_${bid}`, new Date().toISOString())
       setOngelezen(0)
       return
     }
@@ -265,7 +265,7 @@ export default function Navbar() {
     let actief = true
 
     async function haalOngelezenOp() {
-      const lastSeen = localStorage.getItem(`vitanex_chat_seen_${bid}`) ?? '1970-01-01'
+      const lastSeen = localStorage.getItem(`MentaForce_chat_seen_${bid}`) ?? '1970-01-01'
       try {
         const { count } = await supabase
           .from('berichten')
@@ -359,10 +359,10 @@ export default function Navbar() {
             className="w-7 h-7 rounded-lg flex items-center justify-center"
             style={{ background: accent }}
           >
-            <span className="text-white text-xs font-semibold">V</span>
+            <span className="text-white text-xs font-semibold">M</span>
           </div>
           <div className="flex flex-col leading-none">
-            <span className="font-semibold text-gray-900 text-sm">Vitanex</span>
+            <span className="font-semibold text-gray-900 text-sm">MentaForce</span>
             <span className="text-gray-400 hidden sm:block" style={{ fontSize: 10 }}>{portalLabel}</span>
           </div>
         </Link>

@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -408,7 +408,7 @@ export default function Dashboard() {
         {laden ? (
           <div className="flex justify-center py-16">
             <div className="w-7 h-7 rounded-full border-2 border-gray-200 animate-spin"
-              style={{ borderTopColor: 'var(--vitanex-primary)' }} />
+              style={{ borderTopColor: 'var(--MentaForce-primary)' }} />
           </div>
         ) : (
           <>
@@ -452,7 +452,7 @@ export default function Dashboard() {
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-6">
                   <div
                     className="bg-white rounded-2xl border border-gray-100 p-6 col-span-2 sm:col-span-1"
-                    style={{ borderTop: '3px solid var(--vitanex-primary)' }}
+                    style={{ borderTop: '3px solid var(--MentaForce-primary)' }}
                   >
                     <p className="text-xs text-gray-400 mb-1">Vitaliteitsscore</p>
                     <p className="text-5xl font-medium" style={{ color: vitaliteitscore > 0 ? scoreKleur(vitaliteitscore) : '#ccc' }}>
@@ -656,7 +656,7 @@ export default function Dashboard() {
                     <div className="flex flex-col gap-3">
                       {feedback.map(f => (
                         <div key={f.id} className="bg-white rounded-2xl border border-gray-100 p-4"
-                          style={{ borderLeft: '3px solid var(--vitanex-primary)' }}>
+                          style={{ borderLeft: '3px solid var(--MentaForce-primary)' }}>
                           <div className="flex items-center justify-between mb-2">
                             <span className="text-xs font-medium px-2.5 py-0.5 rounded-full"
                               style={{ background: '#E6F1FB', color: '#185FA5' }}>
@@ -691,7 +691,7 @@ export default function Dashboard() {
                           <XAxis dataKey="week" tick={{ fontSize: 11 }} />
                           <YAxis domain={[0, 100]} tick={{ fontSize: 11 }} unit="%" />
                           <Tooltip formatter={(v) => [`${v}%`, 'Score']} />
-                          <Line type="monotone" dataKey="Score" stroke="var(--vitanex-primary)" strokeWidth={2.5}
+                          <Line type="monotone" dataKey="Score" stroke="var(--MentaForce-primary)" strokeWidth={2.5}
                             dot={{ r: 3 }} activeDot={{ r: 5 }} />
                         </LineChart>
                       </ResponsiveContainer>
@@ -706,7 +706,7 @@ export default function Dashboard() {
                           <YAxis domain={[0, 5]} tick={{ fontSize: 11 }} />
                           <Tooltip formatter={(v) => [`${v}/5`, 'Gemiddelde']} />
                           <Bar dataKey="Gemiddelde" radius={[6, 6, 0, 0]}
-                            fill="var(--vitanex-primary)" />
+                            fill="var(--MentaForce-primary)" />
                         </BarChart>
                       </ResponsiveContainer>
                     </div>

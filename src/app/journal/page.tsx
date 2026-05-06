@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -102,7 +102,7 @@ export default function JournalPagina() {
           <button
             onClick={() => setNieuwTonen(true)}
             className="px-4 py-2 rounded-xl text-sm font-medium text-white transition"
-            style={{ background: 'var(--vitanex-primary)' }}
+            style={{ background: 'var(--MentaForce-primary)' }}
           >
             + Nieuw
           </button>
@@ -165,7 +165,7 @@ export default function JournalPagina() {
                 onClick={slaOp}
                 disabled={!tekst.trim() || opslaan}
                 className="text-sm rounded-xl px-4 py-2 text-white font-medium transition disabled:opacity-40"
-                style={{ background: 'var(--vitanex-primary)' }}
+                style={{ background: 'var(--MentaForce-primary)' }}
               >
                 {opslaan ? 'Opslaan...' : 'Opslaan'}
               </button>
@@ -176,7 +176,7 @@ export default function JournalPagina() {
         {/* Entries */}
         {laden ? (
           <div className="flex justify-center py-12">
-            <div className="w-7 h-7 rounded-full border-2 border-gray-200 animate-spin" style={{ borderTopColor: 'var(--vitanex-primary)' }} />
+            <div className="w-7 h-7 rounded-full border-2 border-gray-200 animate-spin" style={{ borderTopColor: 'var(--MentaForce-primary)' }} />
           </div>
         ) : entries.length === 0 ? (
           <div className="bg-white rounded-2xl border border-gray-200 p-12 text-center">
@@ -212,7 +212,7 @@ export default function JournalPagina() {
                     <button
                       onClick={() => setUitgevouwen(isOpen ? null : e.id)}
                       className="text-xs mt-2 font-medium"
-                      style={{ color: 'var(--vitanex-primary)' }}
+                      style={{ color: 'var(--MentaForce-primary)' }}
                     >
                       {isOpen ? 'Minder tonen' : 'Meer tonen'}
                     </button>
