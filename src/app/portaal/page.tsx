@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
 import Navbar from '@/components/Navbar'
+import DocumentenSectie from '@/components/DocumentenSectie'
 
 type Checkin = {
   energie: number
@@ -639,7 +640,21 @@ export default function Portaal() {
                 Laatste check-in: {new Date(laatste.created_at).toLocaleDateString('nl-BE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
               </p>
             )}
+
+            {/* Documenten sectie */}
+            {userId && (
+              <div className="mt-6">
+                <DocumentenSectie userId={userId} isHR={false} />
+              </div>
+            )}
           </>
+        )}
+
+        {/* Documenten sectie ook tonen als er nog geen check-ins zijn */}
+        {!laden && checkins.length === 0 && userId && (
+          <div className="mt-6">
+            <DocumentenSectie userId={userId} isHR={false} />
+          </div>
         )}
       </main>
     </div>

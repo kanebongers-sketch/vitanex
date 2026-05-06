@@ -7,6 +7,7 @@ import Navbar from '@/components/Navbar'
 import Link from 'next/link'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
 import { Avatar } from '@/components/Avatar'
+import DocumentenSectie from '@/components/DocumentenSectie'
 
 type Profiel = {
   id: string
@@ -309,8 +310,19 @@ export default function ProfielPagina() {
         )}
 
         {isHR && checkins.length === 0 && (
-          <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center">
+          <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center mb-6">
             <p className="text-gray-400 text-sm">Deze medewerker heeft nog geen check-ins gedaan.</p>
+          </div>
+        )}
+
+        {/* Dossier — altijd zichtbaar voor HR */}
+        {isHR && (
+          <div className="mt-2">
+            <DocumentenSectie
+              userId={profielId}
+              isHR={true}
+              naamMedewerker={profiel?.naam ?? undefined}
+            />
           </div>
         )}
 
