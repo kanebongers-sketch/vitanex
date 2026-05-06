@@ -437,39 +437,12 @@ export default function CheckIn() {
     setFout('')
 
     try {
-      // 1. Verwijder eventuele bestaande sessie voor deze week via admin API
-      //    (voorkomt UNIQUE-constraint fout ongeacht eerdere delete-pogingen)
-      const { data: bestaand } = await supabase
-        .from('checkin_sessies')
-        .select('id')
-        .eq('user_id', userId)
-        .eq('week_start', weekStart)
-        .maybeSingle()
-
-      if (bestaand?.id) {
-        await fetch('/api/reset-sessie', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ sessie_id: bestaand.id, user_id: userId }),
-        })
-      }
-
-      // 2. Nieuwe sessie aanmaken
-      const { data: nieuweSessie, error: sessieErr } = await supabase
-        .from('checkin_sessies')
-        .insert({ user_id: userId, bedrijf_id: bedrijfId, week_start: weekStart })
-        .select('id')
-        .single()
-
-      if (sessieErr) throw new Error(`Sessie: ${sessieErr.message} (${sessieErr.code})`)
-
-      // 3. Alle antwoorden opslaan
+      // Bouw rijen op voor de API
       const rijen = Object.entries(antwoorden)
         .filter(([, v]) => v !== '' && v !== undefined)
         .map(([code, waarde]) => {
           const sectieObj = secties.find(s => s.vragen.some(v => v.code === code))
           return {
-            sessie_id: nieuweSessie.id,
             vraag_code: code,
             categorie: sectieObj?.id ?? null,
             waarde_schaal: typeof waarde === 'number' ? waarde : null,
@@ -477,25 +450,19 @@ export default function CheckIn() {
           }
         })
 
-      if (rijen.length > 0) {
-        const { error: antwoordErr } = await supabase.from('checkin_antwoorden').insert(rijen)
-        if (antwoordErr) throw new Error(`Antwoorden: ${antwoordErr.message} (${antwoordErr.code})`)
-      }
+      // Submit via server-side API (admin client, bypassed RLS)
+      const res  = await fetch('/api/submit-checkin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: userId, bedrijf_id: bedrijfId, week_start: weekStart, rijen }),
+      })
+      const data = await res.json()
 
-      // 4. Legacy checkins tabel — best-effort
-      const legacyRij: Record<string, number | string | null> = {
-        user_id: userId,
-        toelichting: (antwoorden['toelichting'] as string) || null,
-      }
-      for (const key of LEGACY_KEYS) {
-        legacyRij[key] = (antwoorden[key] as number) ?? null
-      }
-      const alleNull = LEGACY_KEYS.every(k => legacyRij[k] === null || legacyRij[k] === undefined)
-      if (!alleNull) {
-        await supabase.from('checkins').insert(legacyRij).then(() => null, () => null)
-      }
+      if (!res.ok || data.error) throw new Error(data.error ?? `HTTP ${res.status}`)
 
-      // 5. Bereken categoriescores en redirect naar bedankt-pagina
+      const sessieId = data.sessie_id
+
+      // Bereken categoriescores voor de bedankt-pagina
       const catTotalen: Record<string, number[]> = {
         energie: [], mentaal: [], werk: [], sociaal: [], groei: [], afsluiting: [],
       }
@@ -523,13 +490,12 @@ export default function CheckIn() {
         e: String(e), m: String(m), w: String(w),
         s: String(s), g: String(g), t: String(t),
         seed: String(hashCode(userId + weekStart) % 1000),
-        sessie: nieuweSessie.id,
+        sessie: sessieId,
       })
       router.push(`/bedankt?${params.toString()}`)
     } catch (err) {
       console.error('[checkin submit]', err)
-      const detail = err instanceof Error ? err.message : String(err)
-      setFout(`Opslaan mislukt: ${detail}`)
+      setFout(`Opslaan mislukt: ${err instanceof Error ? err.message : String(err)}`)
       setLaden(false)
     }
   }
