@@ -80,6 +80,11 @@ export default function CoachPagina() {
       const json = await res.json()
       if (json.tekst) {
         setBerichten(prev => [...prev, { id: `a-${Date.now()}`, role: 'assistant', content: json.tekst }])
+      } else if (json.error) {
+        setBerichten(prev => [...prev, {
+          id: `err-${Date.now()}`, role: 'assistant',
+          content: `Helaas kan ik je nu niet helpen. ${json.error}`,
+        }])
       }
     } catch {
       setBerichten(prev => [...prev, {

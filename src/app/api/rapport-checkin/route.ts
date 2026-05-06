@@ -2,6 +2,10 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { createAdminClient } from '@/lib/supabase-admin'
 
+if (!process.env.ANTHROPIC_API_KEY) {
+  console.error('[rapport-checkin] ANTHROPIC_API_KEY is niet ingesteld in de omgevingsvariabelen')
+}
+
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
 const VRAAG_LABELS: Record<string, string> = {
@@ -36,6 +40,10 @@ const CAT_LABELS: Record<string, string> = {
 }
 
 export async function POST(req: NextRequest) {
+  if (!process.env.ANTHROPIC_API_KEY) {
+    return NextResponse.json({ error: 'AI rapport is niet beschikbaar: ANTHROPIC_API_KEY ontbreekt.' }, { status: 503 })
+  }
+
   try {
     const { sessie_id } = await req.json()
     if (!sessie_id) return NextResponse.json({ error: 'sessie_id verplicht' }, { status: 400 })

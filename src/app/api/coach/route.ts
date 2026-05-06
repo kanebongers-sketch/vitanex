@@ -1,6 +1,10 @@
 ﻿import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 
+if (!process.env.ANTHROPIC_API_KEY) {
+  console.error('[coach] ANTHROPIC_API_KEY is niet ingesteld in de omgevingsvariabelen')
+}
+
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
 const SYSTEEM = `Je bent de MentaForce Coach — een warme, empathische welzijnscoach die werknemers begeleidt bij stress, burn-out preventie, energiebeheer, werk-privébalans en mentale veerkracht. Je werkt voor het MentaForce platform dat gebruikt wordt door Nederlandse bedrijven.
@@ -22,6 +26,10 @@ Grenzen:
 type Bericht = { role: 'user' | 'assistant'; content: string }
 
 export async function POST(req: NextRequest) {
+  if (!process.env.ANTHROPIC_API_KEY) {
+    return NextResponse.json({ error: 'AI coach is niet beschikbaar: ANTHROPIC_API_KEY ontbreekt.' }, { status: 503 })
+  }
+
   try {
     const { berichten, systeem: systeemOverride, maxTokens }: {
       berichten: Bericht[]
