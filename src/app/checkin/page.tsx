@@ -437,16 +437,33 @@ export default function CheckIn() {
     setFout('')
 
     try {
-      // 1. Sessie aanmaken
+      // 1. Verwijder eventuele bestaande sessie voor deze week via admin API
+      //    (voorkomt UNIQUE-constraint fout ongeacht eerdere delete-pogingen)
+      const { data: bestaand } = await supabase
+        .from('checkin_sessies')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('week_start', weekStart)
+        .maybeSingle()
+
+      if (bestaand?.id) {
+        await fetch('/api/reset-sessie', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sessie_id: bestaand.id, user_id: userId }),
+        })
+      }
+
+      // 2. Nieuwe sessie aanmaken
       const { data: nieuweSessie, error: sessieErr } = await supabase
         .from('checkin_sessies')
         .insert({ user_id: userId, bedrijf_id: bedrijfId, week_start: weekStart })
         .select('id')
         .single()
 
-      if (sessieErr) throw sessieErr
+      if (sessieErr) throw new Error(`Sessie: ${sessieErr.message} (${sessieErr.code})`)
 
-      // 2. Alle antwoorden opslaan
+      // 3. Alle antwoorden opslaan
       const rijen = Object.entries(antwoorden)
         .filter(([, v]) => v !== '' && v !== undefined)
         .map(([code, waarde]) => {
@@ -462,10 +479,10 @@ export default function CheckIn() {
 
       if (rijen.length > 0) {
         const { error: antwoordErr } = await supabase.from('checkin_antwoorden').insert(rijen)
-        if (antwoordErr) throw antwoordErr
+        if (antwoordErr) throw new Error(`Antwoorden: ${antwoordErr.message} (${antwoordErr.code})`)
       }
 
-      // 3. Legacy checkins tabel vullen
+      // 4. Legacy checkins tabel — best-effort
       const legacyRij: Record<string, number | string | null> = {
         user_id: userId,
         toelichting: (antwoorden['toelichting'] as string) || null,
@@ -475,20 +492,17 @@ export default function CheckIn() {
       }
       const alleNull = LEGACY_KEYS.every(k => legacyRij[k] === null || legacyRij[k] === undefined)
       if (!alleNull) {
-        // Legacy tabel — best-effort, fouten hier breken de opslaan niet
         await supabase.from('checkins').insert(legacyRij).then(() => null, () => null)
       }
 
-      // 4. Bereken categoriescores en stuur door naar gepersonaliseerde bedankt-pagina
+      // 5. Bereken categoriescores en redirect naar bedankt-pagina
       const catTotalen: Record<string, number[]> = {
         energie: [], mentaal: [], werk: [], sociaal: [], groei: [], afsluiting: [],
       }
       for (const sectie of secties) {
         for (const vraag of sectie.vragen) {
           const w = antwoorden[vraag.code]
-          if (typeof w === 'number') {
-            catTotalen[sectie.id]?.push(w)
-          }
+          if (typeof w === 'number') catTotalen[sectie.id]?.push(w)
         }
       }
       const avg = (arr: number[]) =>
@@ -499,7 +513,10 @@ export default function CheckIn() {
       const w = avg(catTotalen.werk)
       const s = avg(catTotalen.sociaal)
       const g = avg(catTotalen.groei)
-      const alle = [...catTotalen.energie, ...catTotalen.mentaal, ...catTotalen.werk, ...catTotalen.sociaal, ...catTotalen.groei]
+      const alle = [
+        ...catTotalen.energie, ...catTotalen.mentaal, ...catTotalen.werk,
+        ...catTotalen.sociaal, ...catTotalen.groei,
+      ]
       const t = avg(alle)
 
       const params = new URLSearchParams({
@@ -510,8 +527,9 @@ export default function CheckIn() {
       })
       router.push(`/bedankt?${params.toString()}`)
     } catch (err) {
-      console.error(err)
-      setFout('Er ging iets mis bij het opslaan. Controleer je verbinding en probeer opnieuw.')
+      console.error('[checkin submit]', err)
+      const detail = err instanceof Error ? err.message : String(err)
+      setFout(`Opslaan mislukt: ${detail}`)
       setLaden(false)
     }
   }
