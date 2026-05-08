@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
-import Navbar from '@/components/Navbar'
+import EmployeeShell from '@/components/EmployeeShell'
 import CrisisButton from '@/components/CrisisButton'
 import { DEFAULT_TILES, getTileDef, type TileId } from '@/lib/tiles'
 
@@ -18,35 +18,41 @@ type CheckIn = {
   motivatie: number
 }
 
-// Extra vitaliteit tools — altijd zichtbaar
-const VITAAL_TOOLS = [
-  { href: '/doelen',      emoji: '🎯', titel: 'Doelen',        sub: 'Stel doelen en volg ze' },
-  { href: '/uitdagingen', emoji: '🏆', titel: 'Uitdagingen',   sub: '7- tot 30-daagse challenges' },
-  { href: '/journal',     emoji: '📓', titel: 'Journal',       sub: 'Reflecteer en schrijf' },
-  { href: '/burnout',     emoji: '🔥', titel: 'Burn-out scan', sub: 'Check je signalen' },
-  { href: '/focus',       emoji: '🫁', titel: 'Focus',         sub: 'Ademhaling & mindfulness' },
-]
-
 function berekenScore(ci: CheckIn): number {
-  const waarden = [ci.energie, ci.slaap, ci.mentaal_focus, ci.mentaal_balans, ci.motivatie]
-  return Math.round((waarden.reduce((a, b) => a + b, 0) / waarden.length) * 20)
+  const w = [ci.energie, ci.slaap, ci.mentaal_focus, ci.mentaal_balans, ci.motivatie]
+  return Math.round((w.reduce((a, b) => a + b, 0) / w.length) * 20)
 }
 
 function ScoreRing({ score }: { score: number }) {
-  const radius = 32
-  const omtrek = 2 * Math.PI * radius
-  const vulling = (score / 100) * omtrek
+  const r = 38
+  const circ = 2 * Math.PI * r
+  const fill = (score / 100) * circ
   const kleur = score >= 70 ? '#1D9E75' : score >= 45 ? '#F59E0B' : '#EF4444'
   return (
-    <svg width="84" height="84" viewBox="0 0 84 84">
-      <circle cx="42" cy="42" r={radius} fill="none" stroke="rgba(0,0,0,0.07)" strokeWidth="7" />
-      <circle cx="42" cy="42" r={radius} fill="none" stroke={kleur} strokeWidth="7"
-        strokeDasharray={`${vulling} ${omtrek}`} strokeLinecap="round"
-        transform="rotate(-90 42 42)"
-        style={{ transition: 'stroke-dasharray 1s var(--ease)' }} />
-      <text x="42" y="38" textAnchor="middle" fontSize="18" fontWeight="800" fill={kleur}>{score}</text>
-      <text x="42" y="51" textAnchor="middle" fontSize="9" fill="var(--text-4)">/100</text>
+    <svg width="100" height="100" viewBox="0 0 100 100">
+      <circle cx="50" cy="50" r={r} fill="none" stroke="#F3F4F6" strokeWidth="8" />
+      <circle cx="50" cy="50" r={r} fill="none" stroke={kleur} strokeWidth="8"
+        strokeDasharray={`${fill} ${circ}`} strokeLinecap="round"
+        transform="rotate(-90 50 50)"
+        style={{ transition: 'stroke-dasharray 1s ease' }} />
+      <text x="50" y="46" textAnchor="middle" fontSize="20" fontWeight="800" fill={kleur}>{score}</text>
+      <text x="50" y="60" textAnchor="middle" fontSize="10" fill="#9CA3AF">/100</text>
     </svg>
+  )
+}
+
+function StatCard({ label, value, color, bg, icon }: { label: string; value: string | number; color: string; bg: string; icon: string }) {
+  return (
+    <div style={{
+      background: 'white', borderRadius: 12, padding: '16px 18px',
+      border: '1px solid #E5E7EB', boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+        <p style={{ fontSize: 11, color: '#9CA3AF', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{label}</p>
+        <div style={{ width: 30, height: 30, borderRadius: 8, background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>{icon}</div>
+      </div>
+      <p style={{ fontSize: 24, fontWeight: 800, color, letterSpacing: '-0.02em' }}>{value}</p>
+    </div>
   )
 }
 
@@ -57,6 +63,8 @@ export default function HomePage() {
   const [isHr, setIsHr] = useState(false)
   const [checkIn, setCheckIn] = useState<CheckIn | null>(null)
   const [activeTiles, setActiveTiles] = useState<TileId[]>(DEFAULT_TILES)
+  const [recentCheckins, setRecentCheckins] = useState(0)
+  const [streak, setStreak] = useState(0)
 
   useEffect(() => {
     async function laad() {
@@ -64,214 +72,227 @@ export default function HomePage() {
       if (!user) { router.push('/login'); return }
 
       const { data: profiel } = await supabase
-        .from('profiles')
-        .select('naam, rol, bedrijf_id')
-        .eq('id', user.id)
-        .single()
+        .from('profiles').select('naam, rol, bedrijf_id').eq('id', user.id).single()
 
-      const hr = profiel?.rol === 'hr' || profiel?.rol === 'admin'
-      setIsHr(hr)
+      setIsHr(profiel?.rol === 'hr' || profiel?.rol === 'admin')
       setNaam(profiel?.naam ?? '')
 
       if (profiel?.bedrijf_id) {
         const { data: config } = await supabase
           .from('portaal_config').select('tiles').eq('bedrijf_id', profiel.bedrijf_id).single()
-        if (config?.tiles && Array.isArray(config.tiles)) {
-          setActiveTiles(config.tiles as TileId[])
-        }
+        if (config?.tiles && Array.isArray(config.tiles)) setActiveTiles(config.tiles as TileId[])
       }
 
+      // Laatste check-in
       const { data: ci } = await supabase
-        .from('checkins')
-        .select('energie, slaap, mentaal_focus, mentaal_balans, motivatie')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(1).single()
-
+        .from('checkins').select('energie, slaap, mentaal_focus, mentaal_balans, motivatie')
+        .eq('user_id', user.id).order('created_at', { ascending: false }).limit(1).single()
       if (ci) setCheckIn(ci as CheckIn)
+
+      // Afgelopen 4 weken check-ins
+      const { count } = await supabase.from('checkins')
+        .select('id', { count: 'exact', head: true }).eq('user_id', user.id)
+        .gte('created_at', new Date(Date.now() - 28 * 24 * 60 * 60 * 1000).toISOString())
+      setRecentCheckins(count ?? 0)
+      setStreak(Math.min(count ?? 0, 7))
+
       setLaden(false)
     }
     laad()
   }, [router])
 
-  if (laden) return (
-    <div className="min-h-screen" style={{ background: 'var(--bg-app)' }}>
-      <Navbar />
-      <main className="flex justify-center mt-20"><div className="mf-spinner" /></main>
-    </div>
-  )
-
   const score = checkIn ? berekenScore(checkIn) : null
   const scoreKleur = !score ? '#9CA3AF' : score >= 70 ? '#1D9E75' : score >= 45 ? '#F59E0B' : '#EF4444'
-  const scoreLabel = !score ? null : score >= 70 ? 'Goed op weg!' : score >= 45 ? 'Aandacht nodig' : 'Zorg voor jezelf'
-  const voornaam = naam.split(' ')[0] || 'je'
+  const scoreLabel = !score ? 'Geen data' : score >= 70 ? 'Goed op weg!' : score >= 45 ? 'Aandacht nodig' : 'Zorg voor jezelf'
 
   const dagtijd = (() => {
     const h = new Date().getHours()
-    if (h < 12) return 'Goedemorgen'
-    if (h < 18) return 'Goedemiddag'
-    return 'Goedenavond'
+    return h < 12 ? 'Goedemorgen' : h < 18 ? 'Goedemiddag' : 'Goedenavond'
   })()
 
-  const portaalTiles = activeTiles
-    .map(id => getTileDef(id))
-    .filter((t): t is NonNullable<typeof t> => t !== undefined)
+  // Werkdag tiles voor de sidebar (dynamisch)
+  const werkdagIds: TileId[] = ['verlof', 'uren', 'declaraties', 'loonstroken', 'nieuws', 'directory', 'protocollen', 'surveys']
+  const portaalTiles = activeTiles.map(id => getTileDef(id)).filter(Boolean) as NonNullable<ReturnType<typeof getTileDef>>[]
+  const werkdagTilesNav = portaalTiles
+    .filter(t => werkdagIds.includes(t.id))
+    .map(t => ({
+      href: t.path,
+      label: t.label,
+      icon: <span style={{ fontSize: 14 }}>{t.icon}</span>,
+    }))
 
-  const werkdagIds: TileId[] = ['verlof', 'uren', 'declaraties', 'loonstroken', 'nieuws', 'directory', 'protocollen', 'team', 'surveys']
-  const werkdagTiles = portaalTiles.filter(t => werkdagIds.includes(t.id))
+  if (laden) return (
+    <EmployeeShell naam="">
+      <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 80 }}>
+        <div className="mf-spinner" />
+      </div>
+    </EmployeeShell>
+  )
 
   return (
-    <div className="min-h-screen" style={{ background: 'var(--bg-app)' }}>
-      <Navbar />
-      <main className="max-w-lg mx-auto px-4 py-5 mf-safe-bottom">
+    <EmployeeShell naam={naam} isHr={isHr} werkdagTiles={werkdagTilesNav}>
 
-        {/* ── GREETING ── */}
-        <div className="flex items-center justify-between mb-5 mf-animate-up">
-          <div>
-            <p className="text-xs font-medium" style={{ color: 'var(--text-4)' }}>
-              {new Date().toLocaleDateString('nl-BE', { weekday: 'long', day: 'numeric', month: 'long' })}
-            </p>
-            <h1 className="text-xl font-bold tracking-tight mt-0.5"
-              style={{ color: 'var(--text-1)', letterSpacing: '-0.02em' }}>
-              {dagtijd}, {voornaam} 👋
-            </h1>
-          </div>
-          {isHr && (
-            <Link href="/hr"
-              className="flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-xl"
-              style={{ background: 'var(--bg-card)', color: 'var(--text-2)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-xs)' }}>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <circle cx="12" cy="12" r="3" />
-                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
-              </svg>
-              HR beheer
-            </Link>
-          )}
-        </div>
+      {/* ── GREETING ── */}
+      <div style={{ marginBottom: 24 }}>
+        <h1 style={{ fontSize: 22, fontWeight: 700, color: '#111827', letterSpacing: '-0.02em' }}>
+          {dagtijd}, {naam.split(' ')[0]} 👋
+        </h1>
+        <p style={{ color: '#6B7280', fontSize: 14, marginTop: 3 }}>
+          Hier is je vitaliteitsoverzicht van vandaag.
+        </p>
+      </div>
 
-        {/* ── SCORE HERO CARD ── */}
-        <div className="rounded-3xl p-5 mb-6 mf-animate-up mf-delay-1"
-          style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)' }}>
+      {/* ── STATS ROW ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14, marginBottom: 24 }}>
+        <StatCard
+          label="Vitaalscore"
+          value={score ?? '—'}
+          color={scoreKleur}
+          bg={!score ? '#F3F4F6' : score >= 70 ? '#E1F5EE' : score >= 45 ? '#FEF3C7' : '#FEE2E2'}
+          icon={!score ? '—' : score >= 70 ? '💚' : score >= 45 ? '🟡' : '🔴'}
+        />
+        <StatCard label="Check-ins (4w)" value={recentCheckins} color="#185FA5" bg="#EFF6FF" icon="📋" />
+        <StatCard label="Week streak" value={`${streak}x`} color="#7C3AED" bg="#EDE9FE" icon="🔥" />
+      </div>
+
+      {/* ── MAIN CONTENT: score kaart + vitaliteit tiles ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: 20, marginBottom: 20 }}>
+
+        {/* Score card */}
+        <div style={{
+          background: 'white', borderRadius: 16, padding: '24px',
+          border: '1px solid #E5E7EB', boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
+        }}>
+          <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#9CA3AF', marginBottom: 16 }}>
+            Vitaliteitsscore
+          </p>
           {score ? (
-            <div className="flex items-center gap-4">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
               <ScoreRing score={score} />
-              <div className="flex-1 min-w-0">
-                <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: 'var(--text-4)' }}>
-                  Vitaliteitsscore
+              <div>
+                <p style={{ fontSize: 20, fontWeight: 700, color: scoreKleur, marginBottom: 6 }}>{scoreLabel}</p>
+                <p style={{ fontSize: 13, color: '#6B7280', lineHeight: 1.5, marginBottom: 12 }}>
+                  {score < 50
+                    ? 'Je score is laag. Overweeg de AI Coach te raadplegen voor persoonlijk advies.'
+                    : 'Je staat er goed voor deze week. Blijf lekker zo doorgaan!'}
                 </p>
-                <p className="text-lg font-bold leading-snug" style={{ color: scoreKleur }}>{scoreLabel}</p>
-                <p className="text-xs mt-1 leading-relaxed" style={{ color: 'var(--text-3)' }}>
-                  {score < 50 ? 'Overweeg de AI Coach te raadplegen.' : 'Je staat er goed voor deze week.'}
-                </p>
-                <Link href="/rapport"
-                  className="inline-flex items-center gap-1 text-xs font-bold mt-2"
-                  style={{ color: 'var(--mf-green)' }}>
-                  Bekijk rapport
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                    <polyline points="9 18 15 12 9 6" />
-                  </svg>
-                </Link>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <Link href="/rapport" style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 6,
+                    background: '#1D9E75', color: 'white',
+                    borderRadius: 8, padding: '8px 14px',
+                    fontSize: 13, fontWeight: 600, textDecoration: 'none',
+                  }}>
+                    Bekijk rapport
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <polyline points="9 18 15 12 9 6" />
+                    </svg>
+                  </Link>
+                  <Link href="/checkin" style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 6,
+                    background: '#F0FDF8', color: '#1D9E75',
+                    border: '1.5px solid #1D9E75',
+                    borderRadius: 8, padding: '8px 14px',
+                    fontSize: 13, fontWeight: 600, textDecoration: 'none',
+                  }}>
+                    Nieuwe check-in
+                  </Link>
+                </div>
               </div>
             </div>
           ) : (
-            <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl flex-shrink-0"
-                style={{ background: '#E1F5EE' }}>📊</div>
-              <div className="flex-1">
-                <p className="text-sm font-bold" style={{ color: 'var(--text-1)' }}>Nog geen check-in</p>
-                <p className="text-xs mt-0.5 leading-relaxed" style={{ color: 'var(--text-3)' }}>
-                  Doe je eerste check-in en ontdek hoe je ervoor staat.
-                </p>
-                <Link href="/checkin"
-                  className="inline-flex items-center gap-1 text-xs font-bold mt-2"
-                  style={{ color: 'var(--mf-green)' }}>
-                  Start nu
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                    <polyline points="9 18 15 12 9 6" />
-                  </svg>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+              <div style={{ width: 80, height: 80, borderRadius: 16, background: '#F0FDF8', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 32, flexShrink: 0 }}>📊</div>
+              <div>
+                <p style={{ fontSize: 16, fontWeight: 600, color: '#111827', marginBottom: 6 }}>Nog geen check-in gedaan</p>
+                <p style={{ fontSize: 13, color: '#6B7280', marginBottom: 12 }}>Doe je eerste check-in en ontdek je vitaliteitsscore.</p>
+                <Link href="/checkin" style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 6,
+                  background: '#1D9E75', color: 'white',
+                  borderRadius: 8, padding: '8px 16px',
+                  fontSize: 13, fontWeight: 600, textDecoration: 'none',
+                }}>
+                  Start check-in →
                 </Link>
               </div>
             </div>
           )}
         </div>
 
-        {/* ── SNELLE TOEGANG — horizontale scroll (Virtuagym-stijl) ── */}
-        {portaalTiles.length > 0 && (
-          <div className="mb-6 mf-animate-up mf-delay-2">
-            <p className="text-[10px] font-bold uppercase tracking-widest mb-3"
-              style={{ color: 'var(--text-4)' }}>Snelle toegang</p>
-            <div className="flex gap-4 overflow-x-auto pb-1 -mx-4 px-4" style={{ scrollbarWidth: 'none' }}>
-              {portaalTiles.map(tile => (
-                <Link key={tile.id} href={tile.path}
-                  className="flex flex-col items-center gap-1.5 flex-shrink-0 transition active:scale-95">
-                  <div className="w-[56px] h-[56px] rounded-2xl flex items-center justify-center text-2xl"
-                    style={{ background: tile.bg, boxShadow: '0 2px 8px rgba(0,0,0,0.07)' }}>
-                    {tile.icon}
-                  </div>
-                  <p className="text-[10px] font-semibold text-center leading-tight"
-                    style={{ color: 'var(--text-2)', width: 56 }}>
-                    {tile.label}
-                  </p>
-                </Link>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* ── WERKDAG — card list (Virtuagym feature-card stijl) ── */}
-        {werkdagTiles.length > 0 && (
-          <div className="mb-6 mf-animate-up mf-delay-3">
-            <p className="text-[10px] font-bold uppercase tracking-widest mb-3"
-              style={{ color: 'var(--text-4)' }}>Werkdag</p>
-            <div className="grid grid-cols-2 gap-2.5">
-              {werkdagTiles.map(tile => (
-                <Link key={tile.id} href={tile.path}
-                  className="rounded-2xl p-4 flex items-center gap-3 transition active:scale-[0.97]"
-                  style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-xs)' }}>
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
-                    style={{ background: tile.bg }}>
-                    {tile.icon}
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-xs font-semibold truncate" style={{ color: 'var(--text-1)' }}>{tile.label}</p>
-                    <p className="text-[10px] truncate mt-0.5" style={{ color: 'var(--text-4)' }}>{tile.sublabel}</p>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* ── MEER TOOLS — lijst-stijl (Virtuagym settings-row stijl) ── */}
-        <div className="mb-6 mf-animate-up mf-delay-4">
-          <p className="text-[10px] font-bold uppercase tracking-widest mb-3"
-            style={{ color: 'var(--text-4)' }}>Meer tools</p>
-          <div className="rounded-2xl overflow-hidden"
-            style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-xs)' }}>
-            {VITAAL_TOOLS.map((t, i) => (
-              <Link key={t.href} href={t.href}
-                className="flex items-center gap-3.5 px-4 py-3.5 transition active:opacity-70"
-                style={{ borderBottom: i < VITAAL_TOOLS.length - 1 ? '1px solid var(--border)' : 'none' }}>
-                <span className="text-xl w-8 text-center flex-shrink-0">{t.emoji}</span>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold" style={{ color: 'var(--text-1)' }}>{t.titel}</p>
-                  <p className="text-xs truncate mt-0.5" style={{ color: 'var(--text-4)' }}>{t.sub}</p>
+        {/* Score per dimensie */}
+        {checkIn && (
+          <div style={{
+            background: 'white', borderRadius: 16, padding: '20px',
+            border: '1px solid #E5E7EB', boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
+          }}>
+            <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#9CA3AF', marginBottom: 14 }}>
+              Per dimensie
+            </p>
+            {[
+              { label: 'Energie', value: checkIn.energie, color: '#F59E0B', bg: '#FEF3C7' },
+              { label: 'Slaap', value: checkIn.slaap, color: '#185FA5', bg: '#EFF6FF' },
+              { label: 'Focus', value: checkIn.mentaal_focus, color: '#7C3AED', bg: '#EDE9FE' },
+              { label: 'Balans', value: checkIn.mentaal_balans, color: '#1D9E75', bg: '#E1F5EE' },
+              { label: 'Motivatie', value: checkIn.motivatie, color: '#EF4444', bg: '#FEE2E2' },
+            ].map(d => (
+              <div key={d.label} style={{ marginBottom: 10 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                  <p style={{ fontSize: 12, color: '#374151', fontWeight: 500 }}>{d.label}</p>
+                  <p style={{ fontSize: 12, fontWeight: 700, color: d.color }}>{d.value}/5</p>
                 </div>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                  stroke="var(--text-4)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-                  <polyline points="9 18 15 12 9 6" />
-                </svg>
-              </Link>
+                <div style={{ height: 6, borderRadius: 3, background: '#F3F4F6', overflow: 'hidden' }}>
+                  <div style={{
+                    height: '100%', borderRadius: 3,
+                    background: d.color, width: `${(d.value / 5) * 100}%`,
+                    transition: 'width 0.8s ease',
+                  }} />
+                </div>
+              </div>
             ))}
           </div>
-        </div>
+        )}
+      </div>
 
-        {/* ── CRISIS ── */}
-        <div className="mb-2 mf-animate-up mf-delay-4">
-          <CrisisButton />
+      {/* ── SNELLE ACTIES ── */}
+      <div style={{ marginBottom: 20 }}>
+        <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#9CA3AF', marginBottom: 12 }}>
+          Snelle acties
+        </p>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
+          {[
+            { href: '/checkin',     emoji: '✅', label: 'Check-in',    color: '#1D9E75', bg: '#E1F5EE' },
+            { href: '/coach',       emoji: '🧠', label: 'AI Coach',    color: '#185FA5', bg: '#EFF6FF' },
+            { href: '/doelen',      emoji: '🎯', label: 'Doelen',      color: '#7C3AED', bg: '#EDE9FE' },
+            { href: '/uitdagingen', emoji: '🏆', label: 'Uitdagingen', color: '#B45309', bg: '#FEF3C7' },
+            { href: '/journal',     emoji: '📓', label: 'Journal',     color: '#0369A1', bg: '#E0F2FE' },
+            { href: '/burnout',     emoji: '🔥', label: 'Burn-out',    color: '#DC2626', bg: '#FEE2E2' },
+            { href: '/focus',       emoji: '🫁', label: 'Focus',       color: '#065F46', bg: '#ECFDF5' },
+            { href: '/rapport',     emoji: '📊', label: 'Rapport',     color: '#374151', bg: '#F3F4F6' },
+          ].map(item => (
+            <Link key={item.href} href={item.href} style={{
+              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
+              background: 'white', borderRadius: 12, padding: '16px 8px',
+              border: '1px solid #E5E7EB', textDecoration: 'none',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+              transition: 'box-shadow 0.15s, transform 0.15s',
+            }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.boxShadow = '0 4px 12px rgba(0,0,0,0.08)'; (e.currentTarget as HTMLElement).style.transform = 'translateY(-1px)' }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.boxShadow = '0 1px 3px rgba(0,0,0,0.04)'; (e.currentTarget as HTMLElement).style.transform = 'translateY(0)' }}
+            >
+              <div style={{ width: 44, height: 44, borderRadius: 12, background: item.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22 }}>
+                {item.emoji}
+              </div>
+              <p style={{ fontSize: 11, fontWeight: 600, color: '#374151', textAlign: 'center' }}>{item.label}</p>
+            </Link>
+          ))}
         </div>
+      </div>
 
-      </main>
-    </div>
+      {/* Crisis */}
+      <div style={{ maxWidth: 400 }}>
+        <CrisisButton />
+      </div>
+
+    </EmployeeShell>
   )
 }
