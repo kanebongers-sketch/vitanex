@@ -70,7 +70,8 @@ async function downloadPDF(analyse: AnalyseJSON, scores: Record<string, number>,
     s: 'Team & Samenwerking', g: 'Groei & Ontwikkeling', t: 'Totaal',
   }
   for (const [k, label] of Object.entries(catLabels)) {
-    if (scores[k] > 0) write(`${label}: ${scores[k].toFixed(1)} / 5`, 10, [55, 65, 81])
+    const sv = (scores as Record<string, number>)[k]
+    if (sv > 0) write(`${label}: ${sv.toFixed(1)} / 5`, 10, [55, 65, 81])
   }
   nl(4); rule()
 
@@ -357,9 +358,9 @@ function BedanktInhoud() {
           {/* Categorie balkjes */}
           <div className="space-y-3">
             {Object.entries(CAT_LABELS).map(([key, label]) => {
-              const score = scores[key] ?? 0
+              const score = (scores as Record<string, number>)[key] ?? 0
               if (!score) return null
-              const { k, l } = CAT_KLEUREN[key]
+              const { k, l } = (CAT_KLEUREN as Record<string, { k: string; l: string }>)[key]
               return (
                 <div key={key}>
                   <div className="flex justify-between text-xs mb-1">
