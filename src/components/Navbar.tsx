@@ -1,15 +1,16 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
-import { DEFAULT_TILES, getTileDef, type TileId } from '@/lib/tiles'
+import { getTileDef, type TileId } from '@/lib/tiles'
 
 /* ── Types ── */
 type Profiel = { id: string; naam: string; rol: string; bedrijf_id: string | null }
 type NavItem = { href: string; label: string; icon: React.ReactNode; exact?: boolean }
 type NavSection = { label: string; items: NavItem[] }
+type ViewMode = 'employee' | 'hr' | 'admin'
 
 /* ── Icoon helpers ── */
 function Ico({ d, size = 16 }: { d: string | string[]; size?: number }) {
@@ -77,18 +78,158 @@ const I = {
   back:    <Ico d="M19 12H5 M12 19l-7-7 7-7" />,
   dash:    <Ico d={['M3 3h7v7H3z', 'M14 3h7v7h-7z', 'M14 14h7v7h-7z', 'M3 14h7v7H3z']} />,
   logout:  <Ico d={['M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4', 'M16 17l5-5-5-5', 'M21 12H9']} />,
+  shield:  <Ico d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />,
 }
 
 /* ── Sidebar breedte ── */
 export const SIDEBAR_W = 240
 
+/* ── Rol-dropdown (rechtsboven, fixed) ── */
+function RolDropdown({
+  huidigRol, huidigView, kanHr, kanAdmin, onSwitch,
+}: {
+  huidigRol: string
+  huidigView: ViewMode
+  kanHr: boolean
+  kanAdmin: boolean
+  onSwitch: (mode: ViewMode) => void
+}) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handler(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
+
+  const labels: Record<ViewMode, string> = {
+    employee: 'Medewerker',
+    hr: 'HR',
+    admin: 'Admin',
+  }
+
+  const ACCENT = '#1D9E75'
+
+  const opties: { mode: ViewMode; label: string; icon: React.ReactNode; beschikbaar: boolean }[] = [
+    {
+      mode: 'employee',
+      label: 'Medewerker',
+      icon: <Ico d={['M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2', 'M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z']} size={14} />,
+      beschikbaar: true,
+    },
+    {
+      mode: 'hr',
+      label: 'HR',
+      icon: <Ico d={['M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2', 'M23 21v-2a4 4 0 0 0-3-3.87', 'M9 7a4 4 0 1 0 8 0 4 4 0 0 0-8 0', 'M16 3.13a4 4 0 0 1 0 7.75']} size={14} />,
+      beschikbaar: kanHr,
+    },
+    {
+      mode: 'admin',
+      label: 'Admin',
+      icon: <Ico d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" size={14} />,
+      beschikbaar: kanAdmin,
+    },
+  ]
+
+  return (
+    <div ref={ref} style={{ position: 'fixed', top: 12, right: 16, zIndex: 100 }}>
+      {/* Trigger */}
+      <button
+        onClick={() => setOpen(o => !o)}
+        style={{
+          display: 'flex', alignItems: 'center', gap: 6,
+          padding: '6px 12px 6px 10px',
+          borderRadius: 20,
+          background: '#fff',
+          border: '1px solid #E5E7EB',
+          boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
+          cursor: 'pointer',
+          fontSize: 12, fontWeight: 600,
+          color: '#111827',
+          transition: 'box-shadow 0.15s',
+        }}
+      >
+        {/* Kleur-dot voor actieve modus */}
+        <span style={{
+          width: 7, height: 7, borderRadius: '50%', flexShrink: 0,
+          background: huidigView === 'admin' ? '#7C3AED' : huidigView === 'hr' ? '#185FA5' : ACCENT,
+        }} />
+        {labels[huidigView]}
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
+          style={{ opacity: 0.4, transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }}>
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      </button>
+
+      {/* Dropdown menu */}
+      {open && (
+        <div style={{
+          position: 'absolute', top: 'calc(100% + 6px)', right: 0,
+          background: '#fff',
+          border: '1px solid #E5E7EB',
+          borderRadius: 12,
+          boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+          minWidth: 160,
+          overflow: 'hidden',
+          animation: 'mf-scale-in 0.15s ease',
+        }}>
+          <p style={{
+            fontSize: 10, fontWeight: 700, textTransform: 'uppercase',
+            letterSpacing: '0.1em', color: '#9CA3AF',
+            padding: '10px 14px 6px',
+          }}>Wissel portaal</p>
+          {opties.filter(o => o.beschikbaar).map(opt => {
+            const actief = huidigView === opt.mode
+            const kleur = opt.mode === 'admin' ? '#7C3AED' : opt.mode === 'hr' ? '#185FA5' : ACCENT
+            return (
+              <button
+                key={opt.mode}
+                onClick={() => { onSwitch(opt.mode); setOpen(false) }}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 9,
+                  width: '100%', padding: '9px 14px',
+                  background: actief ? kleur + '12' : 'transparent',
+                  border: 'none', cursor: actief ? 'default' : 'pointer',
+                  fontSize: 13, fontWeight: actief ? 600 : 400,
+                  color: actief ? kleur : '#374151',
+                  textAlign: 'left',
+                  transition: 'background 0.1s',
+                }}
+              >
+                <span style={{ color: actief ? kleur : '#9CA3AF', display: 'flex' }}>{opt.icon}</span>
+                {opt.label}
+                {actief && (
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    strokeWidth="2.5" style={{ marginLeft: 'auto', color: kleur }}>
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                )}
+              </button>
+            )
+          })}
+          <div style={{ height: 1, background: '#F3F4F6', margin: '4px 0' }} />
+          <p style={{
+            fontSize: 10, color: '#9CA3AF',
+            padding: '6px 14px 10px', lineHeight: 1.4,
+          }}>
+            Ook te vinden in Instellingen
+          </p>
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function Navbar() {
   const router   = useRouter()
   const pathname = usePathname()
-  const [profiel, setProfiel]       = useState<Profiel | null>(null)
+  const [profiel, setProfiel]           = useState<Profiel | null>(null)
   const [werkdagItems, setWerkdagItems] = useState<NavItem[]>([])
-  const [mobileOpen, setMobileOpen] = useState(false)
-  const [viewMode, setViewMode]     = useState<'hr' | 'employee'>('hr')
+  const [mobileOpen, setMobileOpen]     = useState(false)
+  const [viewMode, setViewMode]         = useState<ViewMode>('employee')
 
   /* laad user + portaal config */
   useEffect(() => {
@@ -100,11 +241,10 @@ export default function Navbar() {
       if (!data) return
       setProfiel({ id: user.id, ...data })
 
-      /* herstel opgeslagen view mode voor hr/admin */
-      if (data.rol === 'hr' || data.rol === 'admin') {
-        const saved = localStorage.getItem('mf-view-mode') as 'hr' | 'employee' | null
-        setViewMode(saved ?? 'hr')
-      }
+      /* herstel opgeslagen view mode */
+      const saved = localStorage.getItem('mf-view-mode') as ViewMode | null
+      const defaultMode: ViewMode = (data.rol === 'admin') ? 'admin' : (data.rol === 'hr') ? 'hr' : 'employee'
+      setViewMode(saved ?? defaultMode)
 
       if (data.bedrijf_id) {
         const { data: config } = await supabase
@@ -138,32 +278,32 @@ export default function Navbar() {
     router.push('/login')
   }
 
-  function wisselView() {
-    const next = viewMode === 'hr' ? 'employee' : 'hr'
-    setViewMode(next)
-    localStorage.setItem('mf-view-mode', next)
-    router.push(next === 'hr' ? '/hr' : '/home')
+  function schakelView(mode: ViewMode) {
+    setViewMode(mode)
+    localStorage.setItem('mf-view-mode', mode)
+    if (mode === 'employee') router.push('/home')
+    else if (mode === 'hr') router.push('/hr')
+    else router.push('/admin')
   }
 
   if (!profiel) return null
 
-  const rol     = profiel.rol
-  const kanWisselen = rol === 'hr' || rol === 'admin'
-  /* effectieve view: hr/admin kunnen wisselen, gewone werknemers altijd employee */
-  const isHr    = kanWisselen && viewMode === 'hr'
-  const isAdmin = rol === 'admin'
-  const naam    = profiel.naam ?? ''
+  const rol      = profiel.rol
+  const kanHr    = rol === 'hr' || rol === 'admin'
+  const kanAdmin = rol === 'admin'
+  const isHr     = kanHr && (viewMode === 'hr' || viewMode === 'admin')
+  const naam     = profiel.naam ?? ''
 
   /* ── Kleurenschema per rol ── */
   const ACCENT = '#1D9E75'
-  const DARK   = '#14151f'      // HR donker
-  const LIGHT  = '#FFFFFF'      // Werknemer licht
-  const bg     = isHr ? DARK : LIGHT
-  const border = isHr ? 'rgba(255,255,255,0.07)' : '#E5E7EB'
-  const text   = isHr ? 'rgba(255,255,255,0.6)' : '#4B5563'
-  const textMuted = isHr ? 'rgba(255,255,255,0.28)' : '#9CA3AF'
-  const nameTxt   = isHr ? 'rgba(255,255,255,0.88)' : '#111827'
-  const activeBg  = isHr ? ACCENT + '22' : '#F0FDF8'
+  const DARK   = '#14151f'
+  const LIGHT  = '#FFFFFF'
+  const bg         = isHr ? DARK : LIGHT
+  const border     = isHr ? 'rgba(255,255,255,0.07)' : '#E5E7EB'
+  const text       = isHr ? 'rgba(255,255,255,0.6)' : '#4B5563'
+  const textMuted  = isHr ? 'rgba(255,255,255,0.28)' : '#9CA3AF'
+  const nameTxt    = isHr ? 'rgba(255,255,255,0.88)' : '#111827'
+  const activeBg   = isHr ? ACCENT + '22' : '#F0FDF8'
 
   /* ── Navigatie per rol ── */
   const sections: NavSection[] = isHr ? [
@@ -191,22 +331,22 @@ export default function Navbar() {
         { href: '/directory',   label: 'Medewerkers', icon: I.team },
       ],
     },
-    ...(isAdmin ? [{
+    ...(viewMode === 'admin' ? [{
       label: 'Admin',
-      items: [{ href: '/admin', label: 'Admin panel', icon: I.gear }],
+      items: [{ href: '/admin', label: 'Admin panel', icon: I.shield }],
     }] : []),
   ] : [
     {
       label: 'Vitaliteit',
       items: [
-        { href: '/checkin',     label: 'Check-in',       icon: I.check },
-        { href: '/coach',       label: 'AI Coach',        icon: I.coach },
-        { href: '/rapport',     label: 'Mijn rapport',    icon: I.rapport },
-        { href: '/doelen',      label: 'Doelen',          icon: I.doelen },
-        { href: '/uitdagingen', label: 'Uitdagingen',     icon: I.uitd },
-        { href: '/journal',     label: 'Journal',         icon: I.journal },
-        { href: '/burnout',     label: 'Burn-out scan',   icon: I.burnout },
-        { href: '/focus',       label: 'Focus',           icon: I.focus },
+        { href: '/checkin',     label: 'Check-in',      icon: I.check },
+        { href: '/coach',       label: 'AI Coach',       icon: I.coach },
+        { href: '/rapport',     label: 'Mijn rapport',   icon: I.rapport },
+        { href: '/doelen',      label: 'Doelen',         icon: I.doelen },
+        { href: '/uitdagingen', label: 'Uitdagingen',    icon: I.uitd },
+        { href: '/journal',     label: 'Journal',        icon: I.journal },
+        { href: '/burnout',     label: 'Burn-out scan',  icon: I.burnout },
+        { href: '/focus',       label: 'Focus',          icon: I.focus },
       ],
     },
     ...(werkdagItems.length > 0 ? [{
@@ -231,21 +371,6 @@ export default function Navbar() {
             <p style={{ color: nameTxt, fontWeight: 700, fontSize: 13, lineHeight: 1.2 }}>MentaForce</p>
             <p style={{ color: textMuted, fontSize: 10, marginTop: 1 }}>
               {isHr ? 'HR Portaal' : 'Werknemersportaal'}
-              {kanWisselen && (
-                <span style={{
-                  marginLeft: 5,
-                  background: '#1D9E7520',
-                  color: '#1D9E75',
-                  borderRadius: 4,
-                  padding: '1px 5px',
-                  fontSize: 9,
-                  fontWeight: 700,
-                  letterSpacing: '0.05em',
-                  textTransform: 'uppercase',
-                }}>
-                  {isAdmin ? 'Admin' : 'HR'}
-                </span>
-              )}
             </p>
           </div>
         </div>
@@ -276,7 +401,7 @@ export default function Navbar() {
 
         {/* Bottom */}
         <div style={{ padding: '8px', borderTop: `1px solid ${border}` }}>
-          {/* Chat */}
+          {/* Berichten */}
           <Link href="/chat" style={{
             display: 'flex', alignItems: 'center', gap: 9,
             padding: '7px 10px', borderRadius: 7, marginBottom: 2,
@@ -299,25 +424,6 @@ export default function Navbar() {
             <span style={{ color: pathname === '/instellingen' ? ACCENT : textMuted, display: 'flex' }}>{I.gear}</span>
             Instellingen
           </Link>
-
-          {/* View wisselen voor HR/admin */}
-          {kanWisselen && (
-            <button onClick={wisselView} style={{
-              display: 'flex', alignItems: 'center', gap: 9,
-              padding: '7px 10px', borderRadius: 7, marginBottom: 2,
-              width: '100%', border: 'none', cursor: 'pointer', textAlign: 'left',
-              background: isHr ? 'rgba(29,158,117,0.08)' : 'rgba(29,158,117,0.08)',
-              color: '#1D9E75', fontSize: 12, fontWeight: 500,
-              transition: 'background 0.12s',
-            }}>
-              <span style={{ display: 'flex', flexShrink: 0 }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M8 3 4 7l4 4"/><path d="M4 7h16"/><path d="m16 21 4-4-4-4"/><path d="M20 17H4"/>
-                </svg>
-              </span>
-              {isHr ? 'Naar werknemersportaal' : 'Naar HR portaal'}
-            </button>
-          )}
 
           {/* Naam + uitloggen */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px 2px', marginTop: 4, borderTop: `1px solid ${border}` }}>
@@ -385,6 +491,17 @@ export default function Navbar() {
             <SidebarContent />
           </aside>
         </>
+      )}
+
+      {/* ── Rol-dropdown rechtsboven (alleen voor HR/admin) ── */}
+      {kanHr && (
+        <RolDropdown
+          huidigRol={rol}
+          huidigView={viewMode}
+          kanHr={kanHr}
+          kanAdmin={kanAdmin}
+          onSwitch={schakelView}
+        />
       )}
     </>
   )
