@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
-import HrShell from '@/components/HrShell'
+import Navbar from '@/components/Navbar'
 
 type Protocol = {
   id: string
@@ -63,7 +63,9 @@ export default function HrProtokollenPage() {
   }
 
   return (
-    <HrShell>
+    <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
+      <Navbar />
+      <main style={{ padding: '32px 32px 48px' }}>
       <div style={{ maxWidth: 760 }}>
 
         <div className="flex items-start justify-between mb-6">
@@ -180,6 +182,8 @@ export default function HrProtokollenPage() {
           </div>
         </div>
       )}
-    </HrShell>
+      </div>
+      </main>
+    </div>
   )
 }

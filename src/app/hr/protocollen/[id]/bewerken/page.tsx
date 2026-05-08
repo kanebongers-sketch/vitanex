@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
-import HrShell from '@/components/HrShell'
+import Navbar from '@/components/Navbar'
 
 const CATEGORIEEN = [
   { value: 'algemeen', label: 'Algemeen', icon: '📋' },
@@ -78,13 +78,16 @@ export default function BewerkProtocolPage() {
   }
 
   if (laden) return (
-    <HrShell>
+    <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
+      <Navbar />
       <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 80 }}><div className="mf-spinner" /></div>
-    </HrShell>
+    </div>
   )
 
   return (
-    <HrShell>
+    <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
+      <Navbar />
+      <main style={{ padding: '32px 32px 48px' }}>
       <div style={{ maxWidth: 680 }}>
 
         <div className="mb-6">
@@ -204,6 +207,7 @@ export default function BewerkProtocolPage() {
           </div>
         </div>
       </div>
-    </HrShell>
+      </main>
+    </div>
   )
 }
