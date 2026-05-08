@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useLayoutEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
@@ -141,7 +141,7 @@ export default function Navbar() {
     return () => subscription.unsubscribe()
   }, [router])
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     document.body.classList.add('mf-has-sidebar')
     return () => document.body.classList.remove('mf-has-sidebar')
   }, [])
@@ -154,16 +154,17 @@ export default function Navbar() {
   if (!profiel) return null
 
   const naam    = profiel.naam ?? ''
-  const isHr    = viewMode === 'hr' || viewMode === 'admin'
+  // Elke portal heeft zijn eigen kleurschema — volledig gescheiden
+  const isDark  = viewMode === 'hr' || viewMode === 'admin'
 
-  /* ── Kleurenschema ── */
-  const ACCENT     = '#1D9E75'
-  const bg         = isHr ? '#14151f' : '#FFFFFF'
-  const border     = isHr ? 'rgba(255,255,255,0.07)' : '#E5E7EB'
-  const text       = isHr ? 'rgba(255,255,255,0.6)'  : '#4B5563'
-  const textMuted  = isHr ? 'rgba(255,255,255,0.28)' : '#9CA3AF'
-  const nameTxt    = isHr ? 'rgba(255,255,255,0.88)' : '#111827'
-  const activeBg   = isHr ? ACCENT + '22'            : '#F0FDF8'
+  /* ── Kleurenschema per portaal ── */
+  const ACCENT     = viewMode === 'admin' ? '#7C3AED' : '#1D9E75'
+  const bg         = viewMode === 'employee' ? '#FFFFFF' : viewMode === 'hr' ? '#14151f' : '#1a0533'
+  const border     = isDark  ? 'rgba(255,255,255,0.07)' : '#E5E7EB'
+  const text       = isDark  ? 'rgba(255,255,255,0.6)'  : '#4B5563'
+  const textMuted  = isDark  ? 'rgba(255,255,255,0.28)' : '#9CA3AF'
+  const nameTxt    = isDark  ? 'rgba(255,255,255,0.88)' : '#111827'
+  const activeBg   = viewMode === 'employee' ? '#F0FDF8' : ACCENT + '22'
 
   /* ── Navigatie per portaal ── */
   const portalLabel = viewMode === 'employee' ? 'Werknemersportaal' : viewMode === 'hr' ? 'HR Portaal' : 'Admin Portaal'
@@ -208,35 +209,11 @@ export default function Navbar() {
         { href: '/directory',   label: 'Medewerkers', icon: I.team },
       ],
     },
-  ] : /* admin */ [
+  ] : /* admin — volledig eigen portaal, niks van HR/werknemer */ [
     {
-      label: 'Overzicht',
+      label: 'Beheer',
       items: [
-        { href: '/hr',      label: 'Dashboard',  icon: I.dash, exact: true },
-        { href: '/team',    label: 'Team',        icon: I.team },
-        { href: '/rapport', label: 'Rapporten',   icon: I.chart },
-      ],
-    },
-    {
-      label: 'Inrichten',
-      items: [
-        { href: '/hr/protocollen', label: 'Protocollen', icon: I.prot },
-        { href: '/nieuws',         label: 'Nieuws',       icon: I.nieuws },
-        { href: '/surveys',        label: 'Surveys',      icon: I.check },
-      ],
-    },
-    {
-      label: 'Beheren',
-      items: [
-        { href: '/verlof',      label: 'Verlof',      icon: I.verlof },
-        { href: '/loonstroken', label: 'Loonstroken', icon: I.rapport },
-        { href: '/directory',   label: 'Medewerkers', icon: I.team },
-      ],
-    },
-    {
-      label: 'Admin',
-      items: [
-        { href: '/admin', label: 'Admin panel', icon: I.shield },
+        { href: '/admin', label: 'Admin panel', icon: I.shield, exact: true },
       ],
     },
   ]

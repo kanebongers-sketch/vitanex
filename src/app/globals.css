@@ -446,11 +446,12 @@ select:focus-visible {
 }
 
 /* ── Sidebar layout offset ───────────────────────────────── */
-/* Navbar injects this class on body when the sidebar is mounted */
+/* Navbar voegt mf-has-sidebar toe via useLayoutEffect (voor eerste paint) */
 
 @media (min-width: 768px) {
   body.mf-has-sidebar {
     padding-left: 240px;
+    min-height: 100vh;
   }
 }
 
@@ -458,4 +459,9 @@ select:focus-visible {
   body.mf-has-sidebar {
     padding-top: 52px;
   }
+}
+
+/* Zorg dat pagina-wrappers de sidebar niet overlappen */
+body.mf-has-sidebar > * {
+  min-width: 0;
 }
