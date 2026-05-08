@@ -12,7 +12,7 @@ type GebruikerType = 'werknemer' | 'hr' | 'zelfstandige'
 const VOORDELEN_WERKNEMER = [
   { icon: '??', tekst: 'Zie je eigen vitaliteitsverloop over tijd' },
   { icon: '??', tekst: 'AI-coach beschikbaar voor persoonlijk advies' },
-  { icon: '??', tekst: 'Privé journal voor reflectie en notities' },
+  { icon: '??', tekst: 'PrivÃ© journal voor reflectie en notities' },
   { icon: '??', tekst: 'Volledig anoniem tegenover je werkgever' },
   { icon: '??', tekst: 'Gewoontetracker met dagelijkse streaks' },
   { icon: '??', tekst: 'Focus- en hersteltools voor op het werk' },

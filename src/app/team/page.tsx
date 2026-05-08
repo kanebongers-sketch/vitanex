@@ -316,7 +316,7 @@ export default function Team() {
                       <div>
                         <p className="text-sm text-gray-700">{t.email}</p>
                         <p className="text-xs text-gray-400 mt-0.5">
-                          {new Date(t.aangemaakt_op).toLocaleDateString('nl-BE')} ·{' '}
+                          {new Date(t.aangemaakt_op).toLocaleDateString('nl-BE')} Â·{' '}
                           {t.gebruikt
                             ? <span className="text-green-600">Geactiveerd</span>
                             : <span className="text-amber-600">Nog niet gebruikt</span>

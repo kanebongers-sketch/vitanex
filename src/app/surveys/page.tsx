@@ -32,7 +32,7 @@ const TEMPLATES: { naam: string; emoji: string; beschrijving: string; kleur: str
     naam: 'Pulse check',
     emoji: '???',
     kleur: '#1D9E75',
-    beschrijving: '3 vragen · ±1 min · Ideaal wekelijks',
+    beschrijving: '3 vragen Â· Â±1 min Â· Ideaal wekelijks',
     vragen: [
       { tekst: 'Hoe voel je je vandaag op het werk?', type: 'schaal' },
       { tekst: 'Heb je voldoende energie voor je taken?', type: 'schaal' },
@@ -43,7 +43,7 @@ const TEMPLATES: { naam: string; emoji: string; beschrijving: string; kleur: str
     naam: 'Stress & werkdruk',
     emoji: '??',
     kleur: '#E24B4A',
-    beschrijving: '4 vragen · ±2 min · Maandelijks',
+    beschrijving: '4 vragen Â· Â±2 min Â· Maandelijks',
     vragen: [
       { tekst: 'Hoe hoog ervaar je de werkdruk momenteel?', type: 'schaal' },
       { tekst: 'Lukt het je om je werk af te krijgen binnen werktijd?', type: 'ja_nee' },
@@ -55,7 +55,7 @@ const TEMPLATES: { naam: string; emoji: string; beschrijving: string; kleur: str
     naam: 'Teamcultuur',
     emoji: '??',
     kleur: '#378ADD',
-    beschrijving: '4 vragen · ±2 min · Kwartaal',
+    beschrijving: '4 vragen Â· Â±2 min Â· Kwartaal',
     vragen: [
       { tekst: 'Hoe prettig ervaar je de samenwerking in je team?', type: 'schaal' },
       { tekst: 'Voel je je gehoord door je leidinggevende?', type: 'schaal' },
@@ -67,7 +67,7 @@ const TEMPLATES: { naam: string; emoji: string; beschrijving: string; kleur: str
     naam: 'Betrokkenheid',
     emoji: '??',
     kleur: '#8B5CF6',
-    beschrijving: '4 vragen · ±2 min · Kwartaal',
+    beschrijving: '4 vragen Â· Â±2 min Â· Kwartaal',
     vragen: [
       { tekst: 'Hoe gemotiveerd ben je in je werk?', type: 'schaal' },
       { tekst: 'Voel je je verbonden met de doelen van het bedrijf?', type: 'schaal' },
@@ -79,11 +79,11 @@ const TEMPLATES: { naam: string; emoji: string; beschrijving: string; kleur: str
     naam: 'Leiderschap',
     emoji: '??',
     kleur: '#BA7517',
-    beschrijving: '4 vragen · ±2 min · Extra anoniem',
+    beschrijving: '4 vragen Â· Â±2 min Â· Extra anoniem',
     vragen: [
       { tekst: 'Geeft je leidinggevende duidelijk richting?', type: 'schaal' },
       { tekst: 'Voel je je gesteund door je leidinggevende?', type: 'schaal' },
-      { tekst: 'Worden jouw ideeën serieus genomen?', type: 'schaal' },
+      { tekst: 'Worden jouw ideeÃ«n serieus genomen?', type: 'schaal' },
       { tekst: 'Wat kan beter in het leiderschap binnen je team?', type: 'tekst' },
     ],
   },
@@ -214,7 +214,7 @@ function NieuweSurveyForm({ bedrijfId, userId, onGemaakt }: {
               <div className="flex flex-wrap gap-1 mt-2">
                 {tmpl.vragen.slice(0, 2).map((v, i) => (
                   <span key={i} className="text-xs px-2 py-0.5 rounded-full bg-white border border-gray-200 text-gray-500 truncate max-w-[160px]">
-                    {v.tekst.slice(0, 30)}{v.tekst.length > 30 ? '…' : ''}
+                    {v.tekst.slice(0, 30)}{v.tekst.length > 30 ? 'Â…' : ''}
                   </span>
                 ))}
                 {tmpl.vragen.length > 2 && (
@@ -251,7 +251,7 @@ function NieuweSurveyForm({ bedrijfId, userId, onGemaakt }: {
                   onChange={e => setVragen(prev => prev.map(q => q.id === v.id ? { ...q, type: e.target.value as Vraag['type'] } : q))}
                   className="border border-gray-200 rounded-xl px-2 py-2.5 text-xs outline-none focus:border-gray-400 bg-white"
                 >
-                  <option value="schaal">1–5 schaal</option>
+                  <option value="schaal">1Â–5 schaal</option>
                   <option value="ja_nee">Ja / Nee</option>
                   <option value="tekst">Open tekst</option>
                 </select>
@@ -596,9 +596,9 @@ export default function SurveysPagina() {
                           <span className="text-xs text-gray-400">
                             {s.vragen.length} vra{s.vragen.length !== 1 ? 'gen' : 'ag'}
                           </span>
-                          <span className="text-gray-200">·</span>
-                          <span className="text-xs text-gray-400">±{geschatteMinuten} min</span>
-                          <span className="text-gray-200">·</span>
+                          <span className="text-gray-200">Â·</span>
+                          <span className="text-xs text-gray-400">Â±{geschatteMinuten} min</span>
+                          <span className="text-gray-200">Â·</span>
                           <span className="text-xs text-gray-400">
                             {new Date(s.aangemaakt_op).toLocaleDateString('nl-BE')}
                           </span>
