@@ -1,10 +1,11 @@
-ï»¿'use client'
+'use client'
 
 export const dynamic = 'force-dynamic'
 
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import { authFetch } from '@/lib/auth-fetch'
 import Navbar from '@/components/Navbar'
 
 type Bericht = {
@@ -13,9 +14,9 @@ type Bericht = {
   content: string
 }
 
-const WELKOM = `Hallo! Ik ben jouw MentaForce Coach ðŸ‘‹
+const WELKOM = `Hallo! Ik ben jouw MentaForce Coach ??
 
-Ik ben hier om je te helpen met alles rondom welzijn op het werk â€” stress, energie, werk-privÃ©balans, motivatie, slaap of gewoon even lucht geven.
+Ik ben hier om je te helpen met alles rondom welzijn op het werk — stress, energie, werk-privébalans, motivatie, slaap of gewoon even lucht geven.
 
 Alles wat je hier deelt is puur voor jou. Geen manager, geen HR die meeleest.
 
@@ -26,7 +27,7 @@ const SUGGESTIES = [
   'Mijn energie is op',
   'Ik slaap slecht',
   'Ik wil tips tegen burn-out',
-  'Werk en privÃ© in balans',
+  'Werk en privé in balans',
   'Ik mis motivatie',
 ]
 
@@ -72,9 +73,8 @@ export default function CoachPagina() {
       .map(b => ({ role: b.role, content: b.content }))
 
     try {
-      const res = await fetch('/api/coach', {
+      const res = await authFetch('/api/coach', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ berichten: api }),
       })
       const json = await res.json()
@@ -97,7 +97,7 @@ export default function CoachPagina() {
   }
 
   if (!klaar) return (
-    <div className="min-h-screen" style={{ background: '#F8F9FA' }}>
+    <div className="min-h-screen" style={{ background: 'var(--bg-app)' }}>
       <Navbar />
       <main className="flex justify-center mt-20">
         <div className="w-7 h-7 rounded-full border-2 border-gray-200 animate-spin" style={{ borderTopColor: 'var(--MentaForce-primary)' }} />
@@ -106,7 +106,7 @@ export default function CoachPagina() {
   )
 
   return (
-    <div className="h-screen flex flex-col" style={{ background: '#F8F9FA' }}>
+    <div className="h-screen flex flex-col" style={{ background: 'var(--bg-app)' }}>
       <Navbar />
       <main className="flex-1 flex flex-col max-w-2xl w-full mx-auto overflow-hidden">
 
@@ -116,11 +116,11 @@ export default function CoachPagina() {
             className="w-11 h-11 rounded-full flex items-center justify-center text-xl flex-shrink-0"
             style={{ background: 'var(--MentaForce-primary-light)' }}
           >
-            ðŸ§ 
+            ??
           </div>
           <div>
             <p className="text-sm font-semibold text-gray-900">MentaForce Coach</p>
-            <p className="text-xs text-gray-400">AI-coach Â· Vertrouwelijk Â· 24/7 beschikbaar</p>
+            <p className="text-xs text-gray-400">AI-coach · Vertrouwelijk · 24/7 beschikbaar</p>
           </div>
           <div className="ml-auto flex items-center gap-1.5">
             <div className="w-2 h-2 rounded-full bg-green-500" />
@@ -137,7 +137,7 @@ export default function CoachPagina() {
                   className="w-8 h-8 rounded-full flex items-center justify-center text-sm flex-shrink-0 mt-0.5"
                   style={{ background: 'var(--MentaForce-primary-light)' }}
                 >
-                  ðŸ§ 
+                  ??
                 </div>
               )}
               <div
@@ -158,7 +158,7 @@ export default function CoachPagina() {
           {laden && (
             <div className="flex justify-start gap-2.5">
               <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm flex-shrink-0"
-                style={{ background: 'var(--MentaForce-primary-light)' }}>ðŸ§ </div>
+                style={{ background: 'var(--MentaForce-primary-light)' }}>??</div>
               <div className="bg-white px-4 py-3 rounded-2xl shadow-sm" style={{ borderRadius: '18px 18px 18px 4px' }}>
                 <div className="flex items-center gap-1">
                   <div className="w-2 h-2 rounded-full bg-gray-300 animate-bounce" style={{ animationDelay: '0ms' }} />
@@ -169,7 +169,7 @@ export default function CoachPagina() {
             </div>
           )}
 
-          {/* Suggestions â€” only before first user message */}
+          {/* Suggestions — only before first user message */}
           {berichten.length === 1 && !laden && (
             <div className="mt-2">
               <p className="text-xs text-gray-400 mb-2 text-center">Kies een onderwerp om te beginnen</p>
@@ -192,12 +192,12 @@ export default function CoachPagina() {
 
         {/* Privacy note */}
         <div className="px-4 py-1 text-center flex-shrink-0">
-          <p className="text-xs text-gray-300">Gesprekken worden niet opgeslagen Â· Alleen zichtbaar voor jou</p>
+          <p className="text-xs text-gray-300">Gesprekken worden niet opgeslagen · Alleen zichtbaar voor jou</p>
         </div>
 
         {/* Input */}
         <div className="px-4 py-3 bg-white border-t border-gray-200 flex-shrink-0">
-          <div className="flex items-end gap-2 rounded-2xl border border-gray-200 px-3 py-2" style={{ background: '#F8F9FA' }}>
+          <div className="flex items-end gap-2 rounded-2xl border border-gray-200 px-3 py-2" style={{ background: 'var(--bg-app)' }}>
             <textarea
               ref={inputRef}
               rows={1}
@@ -210,7 +210,7 @@ export default function CoachPagina() {
               onKeyDown={e => {
                 if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); verstuur() }
               }}
-              placeholder="Typ je berichtâ€¦"
+              placeholder="Typ je bericht…"
               disabled={laden}
               className="flex-1 bg-transparent text-sm outline-none resize-none leading-relaxed disabled:opacity-50"
               style={{ minHeight: 24, maxHeight: 120 }}

@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 export const dynamic = 'force-dynamic'
 
@@ -25,14 +25,14 @@ type ResultatenMap = Record<string, {
   teksten: Record<string, string[]>
 }>
 
-// ── Survey templates ────────────────────────────────────────────────────────
+// -- Survey templates --------------------------------------------------------
 
 const TEMPLATES: { naam: string; emoji: string; beschrijving: string; kleur: string; vragen: Omit<Vraag, 'id'>[] }[] = [
   {
     naam: 'Pulse check',
-    emoji: '🌡️',
+    emoji: '???',
     kleur: '#1D9E75',
-    beschrijving: '3 vragen · ±1 min · Ideaal wekelijks',
+    beschrijving: '3 vragen � �1 min � Ideaal wekelijks',
     vragen: [
       { tekst: 'Hoe voel je je vandaag op het werk?', type: 'schaal' },
       { tekst: 'Heb je voldoende energie voor je taken?', type: 'schaal' },
@@ -41,9 +41,9 @@ const TEMPLATES: { naam: string; emoji: string; beschrijving: string; kleur: str
   },
   {
     naam: 'Stress & werkdruk',
-    emoji: '😰',
+    emoji: '??',
     kleur: '#E24B4A',
-    beschrijving: '4 vragen · ±2 min · Maandelijks',
+    beschrijving: '4 vragen � �2 min � Maandelijks',
     vragen: [
       { tekst: 'Hoe hoog ervaar je de werkdruk momenteel?', type: 'schaal' },
       { tekst: 'Lukt het je om je werk af te krijgen binnen werktijd?', type: 'ja_nee' },
@@ -53,9 +53,9 @@ const TEMPLATES: { naam: string; emoji: string; beschrijving: string; kleur: str
   },
   {
     naam: 'Teamcultuur',
-    emoji: '🤝',
+    emoji: '??',
     kleur: '#378ADD',
-    beschrijving: '4 vragen · ±2 min · Kwartaal',
+    beschrijving: '4 vragen � �2 min � Kwartaal',
     vragen: [
       { tekst: 'Hoe prettig ervaar je de samenwerking in je team?', type: 'schaal' },
       { tekst: 'Voel je je gehoord door je leidinggevende?', type: 'schaal' },
@@ -65,9 +65,9 @@ const TEMPLATES: { naam: string; emoji: string; beschrijving: string; kleur: str
   },
   {
     naam: 'Betrokkenheid',
-    emoji: '🎯',
+    emoji: '??',
     kleur: '#8B5CF6',
-    beschrijving: '4 vragen · ±2 min · Kwartaal',
+    beschrijving: '4 vragen � �2 min � Kwartaal',
     vragen: [
       { tekst: 'Hoe gemotiveerd ben je in je werk?', type: 'schaal' },
       { tekst: 'Voel je je verbonden met de doelen van het bedrijf?', type: 'schaal' },
@@ -77,13 +77,13 @@ const TEMPLATES: { naam: string; emoji: string; beschrijving: string; kleur: str
   },
   {
     naam: 'Leiderschap',
-    emoji: '👤',
+    emoji: '??',
     kleur: '#BA7517',
-    beschrijving: '4 vragen · ±2 min · Extra anoniem',
+    beschrijving: '4 vragen � �2 min � Extra anoniem',
     vragen: [
       { tekst: 'Geeft je leidinggevende duidelijk richting?', type: 'schaal' },
       { tekst: 'Voel je je gesteund door je leidinggevende?', type: 'schaal' },
-      { tekst: 'Worden jouw ideeën serieus genomen?', type: 'schaal' },
+      { tekst: 'Worden jouw idee�n serieus genomen?', type: 'schaal' },
       { tekst: 'Wat kan beter in het leiderschap binnen je team?', type: 'tekst' },
     ],
   },
@@ -93,7 +93,7 @@ function maakVragen(vragen: Omit<Vraag, 'id'>[]): Vraag[] {
   return vragen.map(v => ({ ...v, id: crypto.randomUUID() }))
 }
 
-// ── Transparantie-banner ─────────────────────────────────────────────────────
+// -- Transparantie-banner -----------------------------------------------------
 
 function AnonimBanner() {
   const [open, setOpen] = useState(false)
@@ -101,7 +101,7 @@ function AnonimBanner() {
     <div className="rounded-2xl border mb-6 overflow-hidden" style={{ borderColor: '#B8D5F5', background: '#E6F1FB' }}>
       <div className="flex items-center justify-between px-5 py-3.5">
         <div className="flex items-center gap-2.5">
-          <span className="text-lg">🔒</span>
+          <span className="text-lg">??</span>
           <div>
             <p className="text-sm font-semibold" style={{ color: '#185FA5' }}>Volledig anoniem</p>
             <p className="text-xs" style={{ color: '#2563EB' }}>Jouw naam wordt nooit gedeeld met HR of collega's</p>
@@ -119,9 +119,9 @@ function AnonimBanner() {
         <div className="px-5 pb-4 border-t" style={{ borderColor: '#B8D5F5' }}>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-3">
             {[
-              { icon: '✅', titel: 'Wat HR ziet', tekst: 'Alleen groepsgemiddelden en percentages. Nooit individuele antwoorden.' },
-              { icon: '❌', titel: 'Wat HR niet ziet', tekst: 'Jouw naam, e-mail, of welke antwoorden van jou zijn.' },
-              { icon: '🛡️', titel: 'Kleine teams', tekst: 'Bij teams < 5 personen worden resultaten niet getoond om herleidbaarheid te voorkomen.' },
+              { icon: '?', titel: 'Wat HR ziet', tekst: 'Alleen groepsgemiddelden en percentages. Nooit individuele antwoorden.' },
+              { icon: '?', titel: 'Wat HR niet ziet', tekst: 'Jouw naam, e-mail, of welke antwoorden van jou zijn.' },
+              { icon: '???', titel: 'Kleine teams', tekst: 'Bij teams < 5 personen worden resultaten niet getoond om herleidbaarheid te voorkomen.' },
             ].map(item => (
               <div key={item.titel} className="rounded-xl p-3" style={{ background: 'rgba(255,255,255,0.6)' }}>
                 <p className="text-sm font-medium mb-1" style={{ color: '#185FA5' }}>{item.icon} {item.titel}</p>
@@ -135,7 +135,7 @@ function AnonimBanner() {
   )
 }
 
-// ── HR form met templates ────────────────────────────────────────────────────
+// -- HR form met templates ----------------------------------------------------
 
 function NieuweSurveyForm({ bedrijfId, userId, onGemaakt }: {
   bedrijfId: string
@@ -192,7 +192,7 @@ function NieuweSurveyForm({ bedrijfId, userId, onGemaakt }: {
               boxShadow: templateTab === t ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
             }}
           >
-            {t === 'template' ? '⚡ Kies template' : '✏️ Zelf maken'}
+            {t === 'template' ? '? Kies template' : '?? Zelf maken'}
           </button>
         ))}
       </div>
@@ -214,7 +214,7 @@ function NieuweSurveyForm({ bedrijfId, userId, onGemaakt }: {
               <div className="flex flex-wrap gap-1 mt-2">
                 {tmpl.vragen.slice(0, 2).map((v, i) => (
                   <span key={i} className="text-xs px-2 py-0.5 rounded-full bg-white border border-gray-200 text-gray-500 truncate max-w-[160px]">
-                    {v.tekst.slice(0, 30)}{v.tekst.length > 30 ? '…' : ''}
+                    {v.tekst.slice(0, 30)}{v.tekst.length > 30 ? '�' : ''}
                   </span>
                 ))}
                 {tmpl.vragen.length > 2 && (
@@ -251,12 +251,12 @@ function NieuweSurveyForm({ bedrijfId, userId, onGemaakt }: {
                   onChange={e => setVragen(prev => prev.map(q => q.id === v.id ? { ...q, type: e.target.value as Vraag['type'] } : q))}
                   className="border border-gray-200 rounded-xl px-2 py-2.5 text-xs outline-none focus:border-gray-400 bg-white"
                 >
-                  <option value="schaal">1–5 schaal</option>
+                  <option value="schaal">1�5 schaal</option>
                   <option value="ja_nee">Ja / Nee</option>
                   <option value="tekst">Open tekst</option>
                 </select>
                 {vragen.length > 1 && (
-                  <button onClick={() => verwijderVraag(v.id)} className="text-gray-300 hover:text-red-400 transition mt-2.5 text-xs">✕</button>
+                  <button onClick={() => verwijderVraag(v.id)} className="text-gray-300 hover:text-red-400 transition mt-2.5 text-xs">?</button>
                 )}
               </div>
             ))}
@@ -278,7 +278,7 @@ function NieuweSurveyForm({ bedrijfId, userId, onGemaakt }: {
   )
 }
 
-// ── Schaalkleur helper ───────────────────────────────────────────────────────
+// -- Schaalkleur helper -------------------------------------------------------
 
 function schaalKleur(score: number) {
   if (score >= 4) return '#1D9E75'
@@ -286,7 +286,7 @@ function schaalKleur(score: number) {
   return '#E24B4A'
 }
 
-// ── Main pagina ──────────────────────────────────────────────────────────────
+// -- Main pagina --------------------------------------------------------------
 
 export default function SurveysPagina() {
   const router = useRouter()
@@ -401,7 +401,7 @@ export default function SurveysPagina() {
   const voortgang = activeSurvey ? aantalBeantwoord / activeSurvey.vragen.length : 0
 
   return (
-    <div className="min-h-screen" style={{ background: '#F8F9FA' }}>
+    <div className="min-h-screen" style={{ background: 'var(--bg-app)' }}>
       <Navbar />
       <main className="max-w-2xl mx-auto p-6">
 
@@ -417,7 +417,7 @@ export default function SurveysPagina() {
               className="px-4 py-2 rounded-xl text-sm font-medium text-white transition"
               style={{ background: nieuwTonen ? '#6b7280' : 'var(--MentaForce-primary)' }}
             >
-              {nieuwTonen ? '✕ Sluiten' : '+ Nieuwe survey'}
+              {nieuwTonen ? '? Sluiten' : '+ Nieuwe survey'}
             </button>
           )}
         </div>
@@ -428,7 +428,7 @@ export default function SurveysPagina() {
         {/* Success toast */}
         {verzondSuccess && (
           <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-gray-900 text-white text-sm px-5 py-3 rounded-2xl shadow-xl flex items-center gap-2">
-            ✅ Antwoord anoniem verstuurd
+            ? Antwoord anoniem verstuurd
           </div>
         )}
 
@@ -465,7 +465,7 @@ export default function SurveysPagina() {
                   onClick={() => { setActiveSurveyId(null); setAntwoorden({}) }}
                   className="text-xs text-gray-400 hover:text-gray-600 p-1.5"
                 >
-                  ✕
+                  ?
                 </button>
               </div>
 
@@ -507,7 +507,7 @@ export default function SurveysPagina() {
                               color: antwoorden[v.id] === b ? 'white' : '#374151',
                             }}
                           >
-                            {b ? '✓ Ja' : '✗ Nee'}
+                            {b ? '? Ja' : '? Nee'}
                           </button>
                         ))}
                       </div>
@@ -536,7 +536,7 @@ export default function SurveysPagina() {
                   className="w-full py-3.5 rounded-xl text-white text-sm font-medium transition disabled:opacity-40"
                   style={{ background: 'var(--MentaForce-primary)' }}
                 >
-                  {verzenden ? 'Versturen...' : '🔒 Verstuur anoniem'}
+                  {verzenden ? 'Versturen...' : '?? Verstuur anoniem'}
                 </button>
                 <p className="text-xs text-center text-gray-400">
                   Jouw naam wordt nooit gedeeld. Antwoorden zijn 100% anoniem.
@@ -574,7 +574,7 @@ export default function SurveysPagina() {
           </div>
         ) : alleTabSurveys.length === 0 ? (
           <div className="bg-white rounded-2xl border border-gray-200 p-10 text-center">
-            <p className="text-3xl mb-3">📋</p>
+            <p className="text-3xl mb-3">??</p>
             <p className="text-gray-500 text-sm">
               {isHR ? 'Nog geen surveys aangemaakt.' : 'Geen actieve surveys op dit moment.'}
             </p>
@@ -596,15 +596,15 @@ export default function SurveysPagina() {
                           <span className="text-xs text-gray-400">
                             {s.vragen.length} vra{s.vragen.length !== 1 ? 'gen' : 'ag'}
                           </span>
-                          <span className="text-gray-200">·</span>
-                          <span className="text-xs text-gray-400">±{geschatteMinuten} min</span>
-                          <span className="text-gray-200">·</span>
+                          <span className="text-gray-200">�</span>
+                          <span className="text-xs text-gray-400">�{geschatteMinuten} min</span>
+                          <span className="text-gray-200">�</span>
                           <span className="text-xs text-gray-400">
                             {new Date(s.aangemaakt_op).toLocaleDateString('nl-BE')}
                           </span>
                           <span className="text-xs font-medium px-2 py-0.5 rounded-full"
                             style={{ background: '#E6F1FB', color: '#185FA5' }}>
-                            🔒 Anoniem
+                            ?? Anoniem
                           </span>
                         </div>
                       </div>
@@ -620,7 +620,7 @@ export default function SurveysPagina() {
                               color: s.actief ? '#0F6E56' : '#6b7280',
                             }}
                           >
-                            {s.actief ? '● Actief' : '○ Inactief'}
+                            {s.actief ? '? Actief' : '? Inactief'}
                           </button>
                         )}
                         {!isHR && s.actief && !alBeantwoord && (
@@ -634,7 +634,7 @@ export default function SurveysPagina() {
                         )}
                         {!isHR && alBeantwoord && (
                           <span className="text-xs text-green-600 font-medium flex items-center gap-1">
-                            ✓ Ingevuld
+                            ? Ingevuld
                           </span>
                         )}
                       </div>
@@ -647,7 +647,7 @@ export default function SurveysPagina() {
                           <p className="text-xs text-gray-400">Nog geen antwoorden.</p>
                         ) : res.count < 3 ? (
                           <div className="flex items-center gap-2 text-xs text-amber-600 bg-amber-50 px-3 py-2 rounded-xl">
-                            <span>🛡️</span>
+                            <span>???</span>
                             <span>Resultaten worden verborgen totdat er minimaal 3 reacties zijn ({res.count}/3).</span>
                           </div>
                         ) : (
@@ -723,7 +723,7 @@ export default function SurveysPagina() {
         {/* Empty state employee */}
         {!isHR && actiefSurveys.length === 0 && !laden && (
           <div className="bg-white rounded-2xl border border-gray-200 p-10 text-center mt-4">
-            <p className="text-3xl mb-3">📭</p>
+            <p className="text-3xl mb-3">??</p>
             <p className="text-gray-500 text-sm">Geen actieve surveys op dit moment.</p>
             <p className="text-gray-400 text-xs mt-1">Je HR-team stuurt surveys wanneer ze inzichten nodig hebben.</p>
           </div>

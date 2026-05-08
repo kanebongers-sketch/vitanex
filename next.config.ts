@@ -5,7 +5,6 @@ const nextConfig: NextConfig = {
     root: __dirname,
   },
 
-  // Sta afbeeldingen van externe domeinen toe (Supabase storage)
   images: {
     remotePatterns: [
       {
@@ -14,36 +13,65 @@ const nextConfig: NextConfig = {
         pathname: '/storage/v1/object/public/**',
       },
     ],
-    // Schakel image optimization uit voor Capacitor static export
     unoptimized: process.env.CAPACITOR_BUILD === 'true',
   },
 
-  // Headers voor beveiliging
   async headers() {
     const supabaseHost = process.env.NEXT_PUBLIC_SUPABASE_URL
       ? new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).host
       : '*.supabase.co'
 
+    const isProd = process.env.NODE_ENV === 'production'
+
+    // Content-Security-Policy
     const csp = [
       "default-src 'self'",
-      // Next.js Turbopack heeft unsafe-eval nodig voor client-side chunk loading
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval'",   // Turbopack needs unsafe-eval in dev
       "style-src 'self' 'unsafe-inline'",
       `img-src 'self' data: blob: https://${supabaseHost}`,
       `connect-src 'self' https://${supabaseHost} wss://${supabaseHost}`,
       "font-src 'self' data:",
       "frame-src 'none'",
+      "frame-ancestors 'none'",
       "object-src 'none'",
+      "base-uri 'self'",
+      "form-action 'self'",
+      "manifest-src 'self'",
+      "worker-src 'self' blob:",
     ].join('; ')
+
+    // Permissions-Policy — disable unused browser features
+    const permissionsPolicy = [
+      'camera=()',
+      'microphone=()',
+      'geolocation=()',
+      'payment=()',
+      'usb=()',
+      'magnetometer=()',
+      'accelerometer=()',
+      'gyroscope=()',
+      'fullscreen=(self)',
+    ].join(', ')
 
     return [
       {
         source: '/(.*)',
         headers: [
-          { key: 'Content-Security-Policy', value: csp },
-          { key: 'X-Content-Type-Options', value: 'nosniff' },
-          { key: 'X-Frame-Options', value: 'DENY' },
-          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+          { key: 'Content-Security-Policy',           value: csp },
+          { key: 'X-Content-Type-Options',             value: 'nosniff' },
+          { key: 'X-Frame-Options',                    value: 'DENY' },
+          { key: 'Referrer-Policy',                    value: 'strict-origin-when-cross-origin' },
+          { key: 'Permissions-Policy',                 value: permissionsPolicy },
+          { key: 'X-DNS-Prefetch-Control',             value: 'on' },
+          // HSTS — only in production to avoid breaking local dev
+          ...(isProd ? [{ key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' }] : []),
+        ],
+      },
+      // Cache static assets aggressively
+      {
+        source: '/_next/static/(.*)',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
         ],
       },
     ]

@@ -27,44 +27,35 @@ function parseSupabaseError(message: string): LoginStatus {
 
 export default function Login() {
   const router = useRouter()
-  const [email, setEmail] = useState('')
-  const [wachtwoord, setWachtwoord] = useState('')
-  const [toonWachtwoord, setToonWachtwoord] = useState(false)
-  const [status, setStatus] = useState<LoginStatus>('idle')
-  const [resendBezig, setResendBezig] = useState(false)
+  const [email,        setEmail]        = useState('')
+  const [wachtwoord,   setWachtwoord]   = useState('')
+  const [toonWacht,    setToonWacht]    = useState(false)
+  const [status,       setStatus]       = useState<LoginStatus>('idle')
+  const [resendBezig,  setResendBezig]  = useState(false)
 
   const isLeeg = !email.trim() || !wachtwoord
-  const laden = status === 'loading'
+  const laden  = status === 'loading'
 
   async function inloggen() {
     if (isLeeg || laden) return
     setStatus('loading')
 
     const { data, error } = await supabase.auth.signInWithPassword({
-      email: email.trim(),
+      email:    email.trim(),
       password: wachtwoord,
     })
 
-    if (error) {
-      setStatus(parseSupabaseError(error.message))
-      return
-    }
-
+    if (error) { setStatus(parseSupabaseError(error.message)); return }
     if (!data.user) { setStatus('unknown_error'); return }
 
     if (!data.user.email_confirmed_at && !data.user.confirmed_at) {
-      setStatus('not_confirmed')
-      return
+      setStatus('not_confirmed'); return
     }
 
     const { data: profiel } = await supabase
-      .from('profiles')
-      .select('rol')
-      .eq('id', data.user.id)
-      .single()
+      .from('profiles').select('rol').eq('id', data.user.id).single()
 
     const rol = profiel?.rol ?? 'medewerker'
-
     if (rol === 'admin') router.push('/admin')
     else if (rol === 'hr') router.push('/dashboard')
     else router.push('/home')
@@ -79,49 +70,84 @@ export default function Login() {
   }
 
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center p-6"
-      style={{ background: 'linear-gradient(135deg, #E1F5EE 0%, #E6F1FB 100%)' }}>
+    <main
+      className="min-h-screen flex flex-col items-center justify-center p-5"
+      style={{
+        background: 'linear-gradient(160deg, #E8F8F2 0%, #EBF4FB 50%, #F0EEFF 100%)',
+      }}
+    >
+      {/* Decorative blobs */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden" aria-hidden>
+        <div style={{
+          position: 'absolute', top: '-10%', right: '-5%',
+          width: 400, height: 400, borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(29,158,117,0.12) 0%, transparent 70%)',
+        }} />
+        <div style={{
+          position: 'absolute', bottom: '-10%', left: '-5%',
+          width: 350, height: 350, borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(56,132,221,0.10) 0%, transparent 70%)',
+        }} />
+      </div>
 
-      <div className="max-w-md w-full bg-white rounded-2xl border border-gray-100 p-8 shadow-sm">
-
+      <div
+        className="w-full max-w-sm relative mf-animate-up"
+        style={{
+          background: 'rgba(255,255,255,0.92)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          border: '1px solid rgba(255,255,255,0.8)',
+          borderRadius: 24,
+          boxShadow: '0 20px 60px rgba(0,0,0,0.10), 0 4px 20px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04)',
+          padding: '36px 32px',
+        }}
+      >
         {/* Logo */}
-        <div className="flex justify-center mb-7">
-          <Link href="/">
-            <LogoFull iconSize={40} />
+        <div className="flex justify-center mb-8">
+          <Link href="/" aria-label="MentaForce home">
+            <LogoFull iconSize={38} />
           </Link>
         </div>
 
-        <h1 className="text-xl font-semibold text-gray-900 mb-1 text-center">Welkom terug</h1>
-        <p className="text-gray-400 text-sm mb-7 text-center">Log in met je e-mailadres en wachtwoord.</p>
+        <h1 className="text-[22px] font-bold text-center mb-1" style={{ color: '#0D1117', letterSpacing: '-0.03em' }}>
+          Welkom terug
+        </h1>
+        <p className="text-sm text-center mb-7" style={{ color: '#6B7280' }}>
+          Log in met je e-mailadres en wachtwoord.
+        </p>
 
-        {/* Foutmeldingen */}
+        {/* Status messages */}
         {status === 'not_confirmed' && (
-          <div className="rounded-xl border p-4 mb-5 flex items-start gap-3"
-            style={{ background: '#FAEEDA', borderColor: '#FAC775' }}>
-            <div className="flex-1">
-              <p className="text-sm font-semibold mb-1" style={{ color: '#854F0B' }}>E-mail nog niet bevestigd</p>
-              <p className="text-xs leading-relaxed mb-3" style={{ color: '#854F0B' }}>
-                Kijk in je inbox op <strong>{email}</strong> en klik op de bevestigingslink.
-              </p>
-              <button onClick={stuurBevestigingOpnieuw} disabled={resendBezig}
-                className="text-xs font-semibold underline disabled:opacity-50" style={{ color: '#854F0B' }}>
-                {resendBezig ? 'Versturen...' : 'Opnieuw sturen'}
-              </button>
-            </div>
+          <div
+            className="rounded-2xl p-4 mb-5"
+            style={{ background: '#FAEEDA', border: '1px solid #FAC775' }}
+          >
+            <p className="text-sm font-semibold mb-1" style={{ color: '#854F0B' }}>E-mail nog niet bevestigd</p>
+            <p className="text-xs leading-relaxed mb-3" style={{ color: '#854F0B' }}>
+              Kijk in je inbox op <strong>{email}</strong> en klik op de bevestigingslink.
+            </p>
+            <button
+              onClick={stuurBevestigingOpnieuw}
+              disabled={resendBezig}
+              className="text-xs font-semibold underline disabled:opacity-50"
+              style={{ color: '#854F0B' }}
+            >
+              {resendBezig ? 'Versturen...' : 'Opnieuw sturen'}
+            </button>
           </div>
         )}
 
         {status === 'resent' && (
-          <div className="rounded-xl border p-4 mb-5" style={{ background: '#E1F5EE', borderColor: '#A3DECE' }}>
-            <p className="text-sm font-semibold text-green-800">Bevestigingsmail verstuurd</p>
-            <p className="text-xs text-green-700 mt-0.5">Klik op de link in je inbox om je account te activeren.</p>
+          <div className="rounded-2xl p-4 mb-5" style={{ background: '#E1F5EE', border: '1px solid #A3DECE' }}>
+            <p className="text-sm font-semibold" style={{ color: '#0F6E56' }}>✓ Bevestigingsmail verstuurd</p>
+            <p className="text-xs mt-0.5" style={{ color: '#15785A' }}>Klik op de link in je inbox om je account te activeren.</p>
           </div>
         )}
 
         {status === 'wrong_credentials' && (
-          <div className="rounded-xl border border-red-100 bg-red-50 px-4 py-3 mb-5">
-            <p className="text-sm text-red-700 font-medium">E-mail of wachtwoord klopt niet.</p>
-            <p className="text-xs text-red-500 mt-0.5">
+          <div className="rounded-2xl p-4 mb-5" style={{ background: '#FCEBEB', border: '1px solid #FBBFBF' }}>
+            <p className="text-sm font-semibold" style={{ color: '#A32D2D' }}>E-mail of wachtwoord klopt niet</p>
+            <p className="text-xs mt-0.5" style={{ color: '#C45252' }}>
               Controleer je gegevens of{' '}
               <Link href="/wachtwoord-vergeten" className="underline font-medium">reset je wachtwoord</Link>.
             </p>
@@ -129,23 +155,23 @@ export default function Login() {
         )}
 
         {status === 'too_many_requests' && (
-          <div className="rounded-xl border border-red-100 bg-red-50 px-4 py-3 mb-5">
-            <p className="text-sm text-red-700 font-medium">Te veel pogingen.</p>
-            <p className="text-xs text-red-500 mt-0.5">Wacht een paar minuten en probeer opnieuw.</p>
+          <div className="rounded-2xl p-4 mb-5" style={{ background: '#FCEBEB', border: '1px solid #FBBFBF' }}>
+            <p className="text-sm font-semibold" style={{ color: '#A32D2D' }}>Te veel pogingen</p>
+            <p className="text-xs mt-0.5" style={{ color: '#C45252' }}>Wacht een paar minuten en probeer opnieuw.</p>
           </div>
         )}
 
         {status === 'unknown_error' && (
-          <div className="rounded-xl border border-red-100 bg-red-50 px-4 py-3 mb-5">
-            <p className="text-sm text-red-700 font-medium">Er ging iets mis.</p>
-            <p className="text-xs text-red-500 mt-0.5">
+          <div className="rounded-2xl p-4 mb-5" style={{ background: '#FCEBEB', border: '1px solid #FBBFBF' }}>
+            <p className="text-sm font-semibold" style={{ color: '#A32D2D' }}>Er ging iets mis</p>
+            <p className="text-xs mt-0.5" style={{ color: '#C45252' }}>
               Probeer opnieuw of neem contact op via{' '}
               <a href="mailto:info@mentaforce.nl" className="underline">info@mentaforce.nl</a>.
             </p>
           </div>
         )}
 
-        {/* Formulier */}
+        {/* Form */}
         <div className="flex flex-col gap-3 mb-4">
           <input
             type="email"
@@ -155,27 +181,46 @@ export default function Login() {
             autoComplete="email"
             onChange={e => { setEmail(e.target.value); if (status !== 'idle') setStatus('idle') }}
             onKeyDown={e => e.key === 'Enter' && inloggen()}
-            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-gray-400 transition"
+            className="mf-input"
+            style={{
+              borderRadius: 14,
+              padding: '12px 16px',
+              fontSize: 15,
+              border: '1.5px solid rgba(0,0,0,0.1)',
+              background: 'rgba(255,255,255,0.8)',
+            }}
           />
           <div className="relative">
             <input
-              type={toonWachtwoord ? 'text' : 'password'}
+              type={toonWacht ? 'text' : 'password'}
               placeholder="Wachtwoord"
               value={wachtwoord}
               autoComplete="current-password"
               onChange={e => { setWachtwoord(e.target.value); if (status !== 'idle') setStatus('idle') }}
               onKeyDown={e => e.key === 'Enter' && inloggen()}
-              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-gray-400 transition pr-16"
+              className="mf-input pr-16"
+              style={{
+                width: '100%',
+                borderRadius: 14,
+                padding: '12px 60px 12px 16px',
+                fontSize: 15,
+                border: '1.5px solid rgba(0,0,0,0.1)',
+                background: 'rgba(255,255,255,0.8)',
+              }}
             />
-            <button type="button" onClick={() => setToonWachtwoord(t => !t)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 hover:text-gray-600 transition px-1">
-              {toonWachtwoord ? 'Verberg' : 'Toon'}
+            <button
+              type="button"
+              onClick={() => setToonWacht(t => !t)}
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-medium transition"
+              style={{ color: '#9CA3AF' }}
+            >
+              {toonWacht ? 'Verberg' : 'Toon'}
             </button>
           </div>
         </div>
 
         <div className="flex justify-end mb-5">
-          <Link href="/wachtwoord-vergeten" className="text-xs transition" style={{ color: '#1D9E75' }}>
+          <Link href="/wachtwoord-vergeten" className="text-xs font-medium transition hover:opacity-70" style={{ color: '#1D9E75' }}>
             Wachtwoord vergeten?
           </Link>
         </div>
@@ -183,20 +228,29 @@ export default function Login() {
         <button
           onClick={inloggen}
           disabled={isLeeg || laden}
-          className="w-full text-white rounded-xl py-3 text-sm font-semibold transition disabled:opacity-40 flex items-center justify-center gap-2"
-          style={{ background: '#1D9E75' }}
+          className="w-full text-white rounded-2xl py-3.5 text-sm font-semibold transition flex items-center justify-center gap-2 disabled:opacity-40"
+          style={{
+            background: isLeeg ? '#9CA3AF' : 'linear-gradient(135deg, #1D9E75 0%, #15785A 100%)',
+            boxShadow: isLeeg ? 'none' : '0 4px 16px rgba(29,158,117,0.4)',
+            fontSize: 15,
+          }}
         >
-          {laden && <div className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" />}
+          {laden && <div className="mf-spinner-white" />}
           {laden ? 'Inloggen...' : 'Inloggen'}
         </button>
 
-        <p className="text-xs text-gray-400 text-center mt-5">
+        <p className="text-xs text-center mt-6" style={{ color: '#9CA3AF' }}>
           Nog geen account?{' '}
-          <Link href="/register" className="font-semibold transition" style={{ color: '#1D9E75' }}>
+          <Link href="/register" className="font-semibold" style={{ color: '#1D9E75' }}>
             Gratis registreren
           </Link>
         </p>
       </div>
+
+      {/* Footer */}
+      <p className="text-[11px] mt-6 text-center" style={{ color: 'rgba(0,0,0,0.35)' }}>
+        AVG-conform · Anoniem · Veilig versleuteld
+      </p>
     </main>
   )
 }

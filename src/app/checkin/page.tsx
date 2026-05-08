@@ -5,6 +5,7 @@ export const dynamic = 'force-dynamic'
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import { authFetch } from '@/lib/auth-fetch'
 import Link from 'next/link'
 
 // ─── Types ─────────────────────────────────────────────────────────────────
@@ -373,10 +374,9 @@ export default function CheckIn() {
   async function verwijderSessie() {
     if (!sessieId) return
     setLaden(true)
-    await fetch('/api/reset-sessie', {
+    await authFetch('/api/reset-sessie', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ sessie_id: sessieId, user_id: userId }),
+      body: JSON.stringify({ sessie_id: sessieId }),
     })
     setAlIngevuld(false)
     setSessieId(null)
@@ -465,10 +465,9 @@ export default function CheckIn() {
         })
 
       // Submit via server-side API (admin client, bypassed RLS)
-      const res  = await fetch('/api/submit-checkin', {
+      const res  = await authFetch('/api/submit-checkin', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user_id: userId, bedrijf_id: bedrijfId, week_start: weekStart, rijen }),
+        body: JSON.stringify({ bedrijf_id: bedrijfId, week_start: weekStart, rijen }),
       })
       const data = await res.json()
 

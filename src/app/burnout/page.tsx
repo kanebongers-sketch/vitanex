@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 export const dynamic = 'force-dynamic'
 
@@ -66,7 +66,7 @@ function risicoAdvies(niveau: string, uitputting: number, cynisme: number, effic
   const tips: string[] = []
   if (niveau === 'hoog') {
     tips.push('Overweeg een gesprek met je leidinggevende of HR over je werkbelasting.')
-    tips.push('Zoek professionele begeleiding — een coach of psycholoog kan goed helpen.')
+    tips.push('Zoek professionele begeleiding � een coach of psycholoog kan goed helpen.')
     tips.push('Plan bewust rustmomenten in je dag en week.')
   } else if (niveau === 'matig') {
     tips.push('Let op je energiepeil en kaart knelpunten aan bij je team of leidinggevende.')
@@ -74,9 +74,9 @@ function risicoAdvies(niveau: string, uitputting: number, cynisme: number, effic
   } else {
     tips.push('Goed bezig! Blijf inzetten op je herstel en energie.')
   }
-  if (uitputting >= 3.5) tips.push('Je scoort hoog op uitputting — slaap en herstel zijn extra belangrijk voor jou.')
-  if (cynisme >= 3.5) tips.push('Je voelt wat distantie — praten met de coach of een collega kan helpen die motivatie terug te vinden.')
-  if (efficaciteit <= 2.5) tips.push('Je twijfelt aan je effectiviteit — bespreek dit eens met je leidinggevende voor wat erkenning en helderheid.')
+  if (uitputting >= 3.5) tips.push('Je scoort hoog op uitputting � slaap en herstel zijn extra belangrijk voor jou.')
+  if (cynisme >= 3.5) tips.push('Je voelt wat distantie � praten met de coach of een collega kan helpen die motivatie terug te vinden.')
+  if (efficaciteit <= 2.5) tips.push('Je twijfelt aan je effectiviteit � bespreek dit eens met je leidinggevende voor wat erkenning en helderheid.')
   return tips
 }
 
@@ -155,15 +155,15 @@ export default function BurnoutPagina() {
   const volledig = voortgang === VRAGEN.length
 
   if (fase === 'intro') return (
-    <div className="min-h-screen" style={{ background: '#F8F9FA' }}>
+    <div className="min-h-screen" style={{ background: 'var(--bg-app)' }}>
       <Navbar />
       <main className="max-w-lg mx-auto p-6">
         <div className="bg-white rounded-2xl border border-gray-200 p-8 text-center mt-8">
-          <p className="text-5xl mb-4">🔥</p>
+          <p className="text-5xl mb-4">??</p>
           <h1 className="text-xl font-semibold text-gray-900 mb-2">Burn-out risicoscan</h1>
           <p className="text-gray-500 text-sm leading-relaxed mb-6">
             12 vragen over uitputting, betrokkenheid en effectiviteit. Duurt ongeveer 3 minuten.
-            Resultaten zijn alleen voor jou — niet zichtbaar voor HR of je leidinggevende.
+            Resultaten zijn alleen voor jou � niet zichtbaar voor HR of je leidinggevende.
           </p>
           <div className="flex flex-col gap-3">
             <button
@@ -186,11 +186,11 @@ export default function BurnoutPagina() {
   )
 
   if (fase === 'scan') return (
-    <div className="min-h-screen" style={{ background: '#F8F9FA' }}>
+    <div className="min-h-screen" style={{ background: 'var(--bg-app)' }}>
       <Navbar />
       <main className="max-w-lg mx-auto p-6">
         <button onClick={() => setFase('intro')} className="text-sm text-gray-400 hover:text-gray-600 mb-4 inline-flex items-center gap-1">
-          ← Terug
+          ? Terug
         </button>
 
         <div className="mb-6">
@@ -258,7 +258,7 @@ export default function BurnoutPagina() {
     const kleur = risicoKleur(resultaat.risico_niveau)
     const tips = risicoAdvies(resultaat.risico_niveau, resultaat.uitputting, resultaat.cynisme, resultaat.efficaciteit)
     return (
-      <div className="min-h-screen" style={{ background: '#F8F9FA' }}>
+      <div className="min-h-screen" style={{ background: 'var(--bg-app)' }}>
         <Navbar />
         <main className="max-w-lg mx-auto p-6">
           <h1 className="text-xl font-semibold text-gray-900 mb-4">Jouw resultaat</h1>
@@ -269,7 +269,7 @@ export default function BurnoutPagina() {
             style={{ background: kleur.bg, borderColor: kleur.border }}
           >
             <p className="text-3xl mb-2">
-              {resultaat.risico_niveau === 'laag' ? '✅' : resultaat.risico_niveau === 'matig' ? '⚠️' : '🚨'}
+              {resultaat.risico_niveau === 'laag' ? '?' : resultaat.risico_niveau === 'matig' ? '??' : '??'}
             </p>
             <p className="text-xl font-semibold" style={{ color: kleur.text }}>
               {risicoLabel(resultaat.risico_niveau)}
@@ -290,7 +290,7 @@ export default function BurnoutPagina() {
               <div key={s.label} className="mb-4 last:mb-0">
                 <div className="flex justify-between text-xs mb-1">
                   <span className="text-gray-600 font-medium">{s.label}</span>
-                  <span className="text-gray-400">{s.info} · {s.waarde}/5</span>
+                  <span className="text-gray-400">{s.info} � {s.waarde}/5</span>
                 </div>
                 <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                   <div
@@ -308,7 +308,7 @@ export default function BurnoutPagina() {
             <ul className="flex flex-col gap-2">
               {tips.map((tip, i) => (
                 <li key={i} className="flex gap-2.5 text-sm text-gray-600 leading-relaxed">
-                  <span className="flex-shrink-0 mt-0.5">→</span>
+                  <span className="flex-shrink-0 mt-0.5">?</span>
                   <span>{tip}</span>
                 </li>
               ))}
@@ -336,11 +336,11 @@ export default function BurnoutPagina() {
   }
 
   if (fase === 'history') return (
-    <div className="min-h-screen" style={{ background: '#F8F9FA' }}>
+    <div className="min-h-screen" style={{ background: 'var(--bg-app)' }}>
       <Navbar />
       <main className="max-w-lg mx-auto p-6">
         <button onClick={() => setFase('intro')} className="text-sm text-gray-400 hover:text-gray-600 mb-4 inline-flex items-center gap-1">
-          ← Terug
+          ? Terug
         </button>
         <h1 className="text-xl font-semibold text-gray-900 mb-4">Eerdere scans</h1>
         {historyLaden ? (

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase-admin'
+import { getAuthenticatedUser } from '@/lib/api-auth'
 
 type Rij = {
   vraag_code: string
@@ -10,16 +11,48 @@ type Rij = {
 
 export async function POST(req: NextRequest) {
   try {
-    const { user_id, bedrijf_id, week_start, rijen } = await req.json() as {
-      user_id: string
+    // ── Auth: verify JWT ──────────────────────────────────────────────────────
+    const user = await getAuthenticatedUser(req)
+    if (!user) {
+      return NextResponse.json({ error: 'Niet ingelogd.' }, { status: 401 })
+    }
+
+    const { bedrijf_id, week_start, rijen } = await req.json() as {
       bedrijf_id: string | null
       week_start: string
       rijen: Rij[]
     }
 
-    if (!user_id || !week_start) {
-      return NextResponse.json({ error: 'user_id en week_start verplicht' }, { status: 400 })
+    // Always use the authenticated user's ID — never trust client-supplied user_id
+    const user_id = user.id
+
+    if (!week_start) {
+      return NextResponse.json({ error: 'week_start verplicht' }, { status: 400 })
     }
+
+    // Validate week_start is a valid date in YYYY-MM-DD format
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(week_start)) {
+      return NextResponse.json({ error: 'Ongeldig datumformaat voor week_start.' }, { status: 400 })
+    }
+
+    // Limit rijen to prevent abuse
+    if (!Array.isArray(rijen) || rijen.length > 200) {
+      return NextResponse.json({ error: 'Ongeldige rijen.' }, { status: 400 })
+    }
+
+    // Sanitize rijen: only allow allowed fields, clamp schaal values
+    const gesaneerdeRijen = rijen
+      .filter(r => r.vraag_code && typeof r.vraag_code === 'string' && r.vraag_code.length < 100)
+      .map(r => ({
+        vraag_code:    String(r.vraag_code).slice(0, 100),
+        categorie:     r.categorie ? String(r.categorie).slice(0, 50) : null,
+        waarde_schaal: typeof r.waarde_schaal === 'number'
+          ? Math.min(5, Math.max(1, Math.round(r.waarde_schaal)))
+          : null,
+        waarde_tekst:  typeof r.waarde_tekst === 'string' && r.waarde_tekst.trim()
+          ? r.waarde_tekst.trim().slice(0, 2000)
+          : null,
+      }))
 
     const admin = createAdminClient()
 
@@ -50,10 +83,10 @@ export async function POST(req: NextRequest) {
     }
 
     // Antwoorden opslaan
-    if (rijen.length > 0) {
+    if (gesaneerdeRijen.length > 0) {
       const { error: antwoordErr } = await admin
         .from('checkin_antwoorden')
-        .insert(rijen.map(r => ({ ...r, sessie_id: sessie.id })))
+        .insert(gesaneerdeRijen.map(r => ({ ...r, sessie_id: sessie.id })))
 
       if (antwoordErr) {
         return NextResponse.json(

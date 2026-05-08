@@ -24,7 +24,6 @@ const ACCENT: Record<string, string> = {
   medewerker: '#1D9E75',
 }
 
-/* Page titles shown in the top bar */
 const PAGE_TITLES: Record<string, string> = {
   '/home':         'Home',
   '/portaal':      'Mijn portaal',
@@ -44,8 +43,15 @@ const PAGE_TITLES: Record<string, string> = {
   '/admin':        'Admin',
   '/instellingen': 'Instellingen',
   '/koppelingen':  'Koppelingen',
+  '/verlof':       'Verlof',
+  '/uren':         'Urenregistratie',
+  '/declaraties':  'Declaraties',
+  '/loonstroken':  'Loonstroken',
+  '/nieuws':       'Bedrijfsnieuws',
+  '/directory':    'Medewerkersgids',
 }
 
+/* ── User menu ────────────────────────────────────────────── */
 function UserMenu({ profiel, onUitloggen, accent }: { profiel: Profiel; onUitloggen: () => void; accent: string }) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
@@ -57,83 +63,154 @@ function UserMenu({ profiel, onUitloggen, accent }: { profiel: Profiel; onUitlog
     return () => document.removeEventListener('mousedown', h)
   }, [open])
 
+  const rolLabel = profiel.rol === 'admin' ? 'Administrator' : profiel.rol === 'hr' ? 'HR Manager' : 'Medewerker'
+
   return (
     <div ref={ref} className="relative">
-      <button onClick={() => setOpen(o => !o)} className="flex-shrink-0 hover:opacity-80 transition">
+      <button
+        onClick={() => setOpen(o => !o)}
+        className="flex-shrink-0 transition-opacity hover:opacity-80 active:opacity-60"
+        aria-label="Gebruikersmenu"
+        aria-expanded={open}
+      >
         <Avatar naam={profiel.naam || 'G'} avatarUrl={profiel.avatar_url} size={34} />
       </button>
+
       {open && (
-        <div className="absolute top-full right-0 mt-2 bg-white border border-gray-100 rounded-2xl py-1.5 z-50 min-w-[180px]"
-          style={{ boxShadow: '0 8px 30px rgba(0,0,0,0.12)' }}>
-          <div className="px-4 py-2.5 border-b border-gray-100">
-            <p className="text-sm font-semibold text-gray-900">{profiel.naam}</p>
-            <p className="text-xs mt-0.5 font-medium" style={{ color: accent }}>
-              {profiel.rol === 'admin' ? 'Administrator' : profiel.rol === 'hr' ? 'HR Manager' : 'Medewerker'}
-            </p>
+        <div
+          className="absolute top-full right-0 mt-2 rounded-2xl py-1.5 z-50"
+          style={{
+            background: 'var(--bg-card, white)',
+            border: '1px solid var(--border)',
+            boxShadow: 'var(--shadow-lg)',
+            minWidth: 200,
+            animation: 'mf-scale-in 0.18s cubic-bezier(0.16,1,0.3,1)',
+            transformOrigin: 'top right',
+          }}
+        >
+          {/* User info */}
+          <div className="px-4 py-3" style={{ borderBottom: '1px solid var(--border)' }}>
+            <p className="text-sm font-semibold" style={{ color: 'var(--text-1)' }}>{profiel.naam}</p>
+            <p className="text-xs mt-0.5 font-medium" style={{ color: accent }}>{rolLabel}</p>
           </div>
-          <Link href="/instellingen" onClick={() => setOpen(false)}
-            className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition">
-            ⚙️ <span>Instellingen</span>
-          </Link>
-          <div className="mx-3 my-1 border-t border-gray-100" />
-          <button onClick={() => { setOpen(false); onUitloggen() }}
-            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition">
-            🚪 <span>Uitloggen</span>
-          </button>
+
+          {/* Links */}
+          <div className="py-1">
+            <Link
+              href="/instellingen"
+              onClick={() => setOpen(false)}
+              className="flex items-center gap-3 px-4 py-2.5 text-sm transition-colors rounded-lg mx-1.5"
+              style={{ color: 'var(--text-2)' }}
+              onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-subtle)')}
+              onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+            >
+              <span className="text-base">⚙️</span>
+              <span>Instellingen</span>
+            </Link>
+            <Link
+              href="/portaal"
+              onClick={() => setOpen(false)}
+              className="flex items-center gap-3 px-4 py-2.5 text-sm transition-colors rounded-lg mx-1.5"
+              style={{ color: 'var(--text-2)' }}
+              onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-subtle)')}
+              onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+            >
+              <span className="text-base">📊</span>
+              <span>Mijn portaal</span>
+            </Link>
+          </div>
+
+          <div style={{ height: 1, background: 'var(--border)', margin: '4px 12px' }} />
+
+          <div className="py-1">
+            <button
+              onClick={() => { setOpen(false); onUitloggen() }}
+              className="w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors rounded-lg mx-1.5 text-left"
+              style={{ color: '#E24B4A', width: 'calc(100% - 12px)' }}
+              onMouseEnter={e => (e.currentTarget.style.background = '#FEF2F2')}
+              onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+            >
+              <span className="text-base">🚪</span>
+              <span>Uitloggen</span>
+            </button>
+          </div>
         </div>
       )}
     </div>
   )
 }
 
-/* ── Tab bar (bottom on mobile, bottom on desktop too for consistency) ── */
+/* ── Tab bar ──────────────────────────────────────────────── */
 type Tab = { href: string; emoji: string; label: string; badge?: number }
 
 function TabBar({ tabs, pad, accent }: { tabs: Tab[]; pad: string; accent: string }) {
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200"
-      style={{ boxShadow: '0 -2px 16px rgba(0,0,0,0.06)' }}>
+    <nav
+      className="fixed bottom-0 left-0 right-0 z-50"
+      style={{
+        background: 'var(--bg-card, white)',
+        borderTop: '1px solid var(--border)',
+        boxShadow: '0 -4px 24px rgba(0,0,0,0.06)',
+      }}
+    >
       <div className="flex items-stretch max-w-lg mx-auto">
         {tabs.map(tab => {
           const isActive = pad === tab.href || (tab.href !== '/home' && pad.startsWith(tab.href + '/'))
           return (
-            <Link key={tab.href} href={tab.href}
-              className="flex-1 flex flex-col items-center justify-center gap-1 py-2 relative transition-opacity active:opacity-60"
-              style={{ minHeight: 58 }}>
-              {/* active indicator */}
+            <Link
+              key={tab.href}
+              href={tab.href}
+              className="flex-1 flex flex-col items-center justify-center gap-1 py-2 relative transition-all active:opacity-60"
+              style={{ minHeight: 58 }}
+            >
+              {/* Active indicator pill */}
               {isActive && (
-                <span className="absolute top-0 left-1/2 -translate-x-1/2 rounded-full"
-                  style={{ width: 32, height: 3, background: accent }} />
+                <span
+                  className="absolute top-0 left-1/2 -translate-x-1/2 rounded-full"
+                  style={{ width: 28, height: 3, background: accent, borderRadius: '0 0 3px 3px' }}
+                />
               )}
-              {/* unread badge */}
+
+              {/* Unread badge */}
               {(tab.badge ?? 0) > 0 && (
-                <span className="absolute top-2 right-[calc(50%-20px)] min-w-[16px] h-4 px-1 rounded-full text-white flex items-center justify-center font-bold z-10"
-                  style={{ background: '#E24B4A', fontSize: 9 }}>
+                <span
+                  className="absolute top-2.5 right-[calc(50%-18px)] min-w-[15px] h-[15px] px-1 rounded-full text-white flex items-center justify-center font-bold z-10"
+                  style={{ background: '#E24B4A', fontSize: 9 }}
+                >
                   {(tab.badge ?? 0) > 9 ? '9+' : tab.badge}
                 </span>
               )}
-              <span className="text-2xl leading-none"
-                style={{ opacity: isActive ? 1 : 0.4, transform: isActive ? 'scale(1.1)' : 'scale(1)', transition: 'all 0.15s' }}>
+
+              <span
+                className="text-2xl leading-none"
+                style={{
+                  opacity: isActive ? 1 : 0.35,
+                  transform: isActive ? 'scale(1.08)' : 'scale(1)',
+                  transition: 'all 0.2s cubic-bezier(0.16,1,0.3,1)',
+                }}
+              >
                 {tab.emoji}
               </span>
-              <span className="text-[10px] font-semibold leading-none"
-                style={{ color: isActive ? accent : '#9ca3af' }}>
+              <span
+                className="text-[10px] font-semibold leading-none tracking-tight"
+                style={{ color: isActive ? accent : 'var(--text-4, #9CA3AF)' }}
+              >
                 {tab.label}
               </span>
             </Link>
           )
         })}
       </div>
-      {/* iOS home indicator safe area */}
-      <div style={{ height: 'env(safe-area-inset-bottom, 0px)', background: 'white' }} />
+      <div style={{ height: 'env(safe-area-inset-bottom, 0px)', background: 'var(--bg-card, white)' }} />
     </nav>
   )
 }
 
+/* ── Main Navbar ──────────────────────────────────────────── */
 export default function Navbar() {
-  const router = useRouter()
-  const pad = usePathname()
-  const [profiel, setProfiel] = useState<Profiel | null>(null)
+  const router   = useRouter()
+  const pad      = usePathname()
+  const [profiel, setProfiel]     = useState<Profiel | null>(null)
   const [ongelezen, setOngelezen] = useState(0)
   const [bekijkAls, setBekijkAls] = useState<SimRol | null>(null)
 
@@ -158,7 +235,7 @@ export default function Navbar() {
 
   useEffect(() => {
     if (!profiel?.bedrijf_id || !profiel?.id) return
-    const bid = profiel.bedrijf_id
+    const bid    = profiel.bedrijf_id
     const mijnId = profiel.id
     if (pad === '/chat') {
       localStorage.setItem(`MentaForce_chat_seen_${bid}`, new Date().toISOString())
@@ -172,7 +249,7 @@ export default function Navbar() {
           .eq('bedrijf_id', bid).neq('user_id', mijnId)
           .gt('aangemaakt_op', localStorage.getItem(`MentaForce_chat_seen_${bid}`) ?? '1970-01-01')
         if (actief) setOngelezen(count ?? 0)
-      } catch { /* berichten table may not exist yet */ }
+      } catch { /* table may not exist yet */ }
     })()
     const ch = supabase.channel(`nav-${bid}`)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'berichten', filter: `bedrijf_id=eq.${bid}` },
@@ -187,13 +264,12 @@ export default function Navbar() {
     router.push('/login')
   }
 
-  const echteRol = profiel?.rol ?? 'medewerker'
-  const isAdmin = echteRol === 'admin'
-  const rol = isAdmin && bekijkAls ? bekijkAls : echteRol
-  const accent = ACCENT[rol] ?? ACCENT.medewerker
+  const echteRol    = profiel?.rol ?? 'medewerker'
+  const isAdmin     = echteRol === 'admin'
+  const rol         = isAdmin && bekijkAls ? bekijkAls : echteRol
+  const accent      = ACCENT[rol] ?? ACCENT.medewerker
   const isInPreview = isAdmin && !!bekijkAls
 
-  /* Per-role tab definitions */
   const tabs: Tab[] =
     rol === 'admin' ? [
       { href: '/admin',     emoji: '🛡️', label: 'Admin' },
@@ -218,50 +294,74 @@ export default function Navbar() {
     <>
       {/* Admin preview banner */}
       {isInPreview && (
-        <div className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 py-2"
-          style={{ background: '#1e1340', borderBottom: '1px solid #2d1f60' }}>
+        <div
+          className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 py-2"
+          style={{ background: '#1e1340', borderBottom: '1px solid #2d1f60' }}
+        >
           <div className="flex items-center gap-2 min-w-0">
-            <span className="text-xs font-bold px-2 py-0.5 rounded-full flex-shrink-0"
-              style={{ background: '#8B5CF6', color: 'white' }}>PREVIEW</span>
+            <span
+              className="text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0 tracking-wide uppercase"
+              style={{ background: '#8B5CF6', color: 'white' }}
+            >
+              Preview
+            </span>
             <span className="text-xs text-gray-300 truncate">
               Als <strong className="text-white">{bekijkAls === 'hr' ? 'HR' : 'Medewerker'}</strong>
             </span>
           </div>
-          <button onClick={() => { localStorage.removeItem(BEKIJK_ALS_KEY); setBekijkAls(null); router.push('/admin') }}
-            className="text-xs font-semibold px-3 py-1 rounded-lg flex-shrink-0"
-            style={{ background: 'rgba(139,92,246,0.3)', color: '#c4b5fd' }}>
-            ← Admin
+          <button
+            onClick={() => { localStorage.removeItem(BEKIJK_ALS_KEY); setBekijkAls(null); router.push('/admin') }}
+            className="text-xs font-semibold px-3 py-1.5 rounded-lg flex-shrink-0 transition"
+            style={{ background: 'rgba(139,92,246,0.25)', color: '#c4b5fd' }}
+          >
+            ← Terug naar Admin
           </button>
         </div>
       )}
 
-      {/* ── Top bar: branding only ── */}
-      <header className="sticky top-0 z-40 bg-white border-b border-gray-100"
-        style={{ borderTop: `3px solid ${accent}`, marginTop: isInPreview ? 36 : 0 }}>
-        <div className="flex items-center px-4 py-3 gap-3">
-          {/* Logo mark */}
-          <Link href={rol === 'medewerker' ? '/home' : rol === 'hr' ? '/dashboard' : '/admin'}
-            className="flex-shrink-0">
-            <LogoIcon size={34} />
+      {/* Top bar */}
+      <header
+        className="sticky top-0 z-40"
+        style={{
+          background: 'var(--bg-card, white)',
+          borderBottom: '1px solid var(--border)',
+          borderTop: `3px solid ${accent}`,
+          marginTop: isInPreview ? 36 : 0,
+          boxShadow: 'var(--shadow-xs)',
+        }}
+      >
+        <div className="flex items-center px-4 py-3 gap-3 max-w-lg mx-auto">
+          {/* Logo */}
+          <Link
+            href={rol === 'medewerker' ? '/home' : rol === 'hr' ? '/dashboard' : '/admin'}
+            className="flex-shrink-0 transition-opacity hover:opacity-75"
+            aria-label="MentaForce home"
+          >
+            <LogoIcon size={32} />
           </Link>
 
           {/* Page title */}
-          <h1 className="flex-1 text-base font-semibold text-gray-900 truncate">{paginaTitel}</h1>
+          <h1
+            className="flex-1 text-[15px] font-semibold truncate"
+            style={{ color: 'var(--text-1)', letterSpacing: '-0.01em' }}
+          >
+            {paginaTitel}
+          </h1>
 
-          {/* Avatar / user menu */}
+          {/* User menu */}
           {profiel ? (
             <UserMenu profiel={profiel} onUitloggen={uitloggen} accent={accent} />
           ) : (
-            <div className="w-8 h-8 rounded-full bg-gray-100 animate-pulse" />
+            <div className="w-[34px] h-[34px] rounded-full bg-gray-100 animate-pulse flex-shrink-0" />
           )}
         </div>
       </header>
 
-      {/* ── Bottom tab bar ── */}
+      {/* Bottom tab bar */}
       <TabBar tabs={tabs} pad={pad} accent={accent} />
 
-      {/* Spacer so page content isn't hidden behind the tab bar */}
-      <div style={{ height: 72 }} className="pointer-events-none" />
+      {/* Content spacer */}
+      <div style={{ height: 'calc(72px + env(safe-area-inset-bottom, 0px))' }} className="pointer-events-none" />
     </>
   )
 }

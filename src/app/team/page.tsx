@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 export const dynamic = 'force-dynamic'
 
@@ -162,7 +162,7 @@ export default function Team() {
   ]
 
   return (
-    <div className="min-h-screen" style={{ background: '#F8F9FA' }}>
+    <div className="min-h-screen" style={{ background: 'var(--bg-app)' }}>
       <Navbar />
       <main className="max-w-2xl mx-auto p-8">
         <div className="mb-8">
@@ -179,7 +179,7 @@ export default function Team() {
               color: melding.type === 'success' ? '#0F6E56' : '#A32D2D',
             }}
           >
-            {melding.type === 'success' ? '✓ ' : '✗ '}{melding.tekst}
+            {melding.type === 'success' ? '? ' : '? '}{melding.tekst}
           </div>
         )}
 
@@ -316,7 +316,7 @@ export default function Team() {
                       <div>
                         <p className="text-sm text-gray-700">{t.email}</p>
                         <p className="text-xs text-gray-400 mt-0.5">
-                          {new Date(t.aangemaakt_op).toLocaleDateString('nl-BE')} ·{' '}
+                          {new Date(t.aangemaakt_op).toLocaleDateString('nl-BE')} �{' '}
                           {t.gebruikt
                             ? <span className="text-green-600">Geactiveerd</span>
                             : <span className="text-amber-600">Nog niet gebruikt</span>
@@ -329,7 +329,7 @@ export default function Team() {
                             onClick={() => kopieerLink(t.token)}
                             className="text-xs border border-gray-200 rounded-lg px-3 py-1.5 text-gray-600 hover:bg-gray-50 transition"
                           >
-                            {gekopieerd === t.token ? '✓ Gekopieerd' : 'Kopieer link'}
+                            {gekopieerd === t.token ? '? Gekopieerd' : 'Kopieer link'}
                           </button>
                           <button
                             onClick={() => intrekkenToken(t.id)}
@@ -339,7 +339,7 @@ export default function Team() {
                           </button>
                         </div>
                       ) : (
-                        <span className="text-xs text-green-600">✓</span>
+                        <span className="text-xs text-green-600">?</span>
                       )}
                     </div>
                   ))}

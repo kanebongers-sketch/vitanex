@@ -119,13 +119,13 @@ export default function DoelenPage() {
   const voltooideDezenMaand = dezenMaand.filter(d => d.voltooid).length
 
   if (!klaar) return (
-    <div className="min-h-screen flex items-center justify-center" style={{ background: '#F8F9FA' }}>
+    <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg-app)' }}>
       <div className="w-8 h-8 rounded-full border-2 border-gray-200 animate-spin" style={{ borderTopColor: '#1D9E75' }} />
     </div>
   )
 
   return (
-    <div className="min-h-screen" style={{ background: '#F8F9FA' }}>
+    <div className="min-h-screen" style={{ background: 'var(--bg-app)' }}>
       <Navbar />
 
       <main className="max-w-lg mx-auto px-4 py-6">
@@ -151,7 +151,7 @@ export default function DoelenPage() {
 
         {/* Progress bar */}
         {dezenMaand.length > 0 && (
-          <div className="bg-white rounded-2xl p-4 mb-4" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+          <div className="bg-white rounded-2xl p-4 mb-4" style={{ boxShadow: 'var(--shadow-sm)' }}>
             <div className="flex justify-between text-xs text-gray-500 mb-2">
               <span>Voortgang deze maand</span>
               <span className="font-semibold" style={{ color: '#1D9E75' }}>
@@ -174,7 +174,7 @@ export default function DoelenPage() {
 
         {/* Goals list */}
         {doelen.length === 0 ? (
-          <div className="bg-white rounded-2xl p-8 text-center mb-4" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+          <div className="bg-white rounded-2xl p-8 text-center mb-4" style={{ boxShadow: 'var(--shadow-sm)' }}>
             <div className="text-4xl mb-3">🎯</div>
             <p className="text-gray-500 text-sm">Nog geen doelen gesteld – begin klein!</p>
           </div>
@@ -186,7 +186,7 @@ export default function DoelenPage() {
                 <div
                   key={doel.id}
                   className="bg-white rounded-2xl p-4 flex items-start gap-3 relative transition"
-                  style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}
+                  style={{ boxShadow: 'var(--shadow-sm)' }}
                   onMouseEnter={() => setHoverDoel(doel.id)}
                   onMouseLeave={() => setHoverDoel(null)}
                 >
@@ -253,7 +253,7 @@ export default function DoelenPage() {
         )}
 
         {/* Quick suggestions */}
-        <div className="bg-white rounded-2xl p-4" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+        <div className="bg-white rounded-2xl p-4" style={{ boxShadow: 'var(--shadow-sm)' }}>
           <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Snelle suggesties</p>
           <div className="flex flex-col gap-2">
             {SNELLE_SUGGESTIES.map(s => (

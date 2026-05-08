@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 export const dynamic = 'force-dynamic'
 
@@ -11,7 +11,7 @@ type HoofdTab = 'adem' | 'beweging' | 'voeding' | 'slaap' | 'mentaal' | 'timer'
 type AdemTab = 'box' | '478' | 'coherentie' | 'wim'
 type TimerTab = 'focus' | 'pauze' | 'micro'
 
-// ─── Breathing data ──────────────────────────────────────────────────────────
+// --- Breathing data ----------------------------------------------------------
 const ADEM: Record<AdemTab, {
   naam: string
   beschrijving: string
@@ -60,14 +60,14 @@ const ADEM: Record<AdemTab, {
   },
 }
 
-// ─── Timer data ───────────────────────────────────────────────────────────────
+// --- Timer data ---------------------------------------------------------------
 const TIMERS: Record<TimerTab, { naam: string; duur: number; kleur: string; afk: string; tip: string }> = {
   focus: { naam: 'Diepe focus',  duur: 25 * 60, kleur: '#1D9E75', afk: '25', tip: 'Leg je telefoon weg, sluit onnodige tabs en zet notificaties op stil.' },
   pauze: { naam: 'Pauze',        duur: 5 * 60,  kleur: '#378ADD', afk: '5',  tip: 'Sta op, rek je uit, kijk even naar buiten. Geen scherm.' },
   micro: { naam: 'Micro-break',  duur: 90,       kleur: '#8B5CF6', afk: '90s',tip: 'Sluit je ogen. Adem 3x diep in. Ontspan je kaken en schouders.' },
 }
 
-// ─── Movement data ────────────────────────────────────────────────────────────
+// --- Movement data ------------------------------------------------------------
 const BUREAUOEFENINGEN = [
   {
     naam: 'Nek- en schouderrol',
@@ -180,7 +180,7 @@ const BUREAUOEFENINGEN = [
   },
 ]
 
-// ─── Nutrition data ───────────────────────────────────────────────────────────
+// --- Nutrition data -----------------------------------------------------------
 const VOEDING_CATEGORIEEN = [
   {
     titel: 'Hydratatie',
@@ -189,7 +189,7 @@ const VOEDING_CATEGORIEEN = [
     tips: [
       { titel: 'Drink voor je dorst voelt', tekst: 'Zodra je dorstig bent, ben je al 1-2% uitgedroogd. Dit verlaagt je concentratie meetbaar. Houd een fles water op je bureau.' },
       { titel: 'Koffieregel: 1 op 1', tekst: 'Drink bij elke kop koffie ook een glas water. Koffie werkt licht vochtafdrijvend. Zo blijf je gehydrateerd zonder cafeinegehalte te verlagen.' },
-      { titel: 'Groene thee als alternatief', tekst: 'Groene thee bevat L-theanine, wat samen met cafeïne zorgt voor rustige, gestage focus zonder de jittery bijwerking van koffie.' },
+      { titel: 'Groene thee als alternatief', tekst: 'Groene thee bevat L-theanine, wat samen met cafe�ne zorgt voor rustige, gestage focus zonder de jittery bijwerking van koffie.' },
       { titel: 'Kokoswatershot bij stress', tekst: 'Kokoswater bevat elektrolyten die verloren gaan bij stress (zweten, gespannen spieren). Een kleine portie helpt bij aanhoudende spanning.' },
     ],
   },
@@ -212,7 +212,7 @@ const VOEDING_CATEGORIEEN = [
     tips: [
       { titel: 'Vermijd suikerpieken', tekst: 'Na een snelle suikerpiek (snoep, frisdrank) volgt een even snelle dip, met verminderde concentratie. Kies voor complexe koolhydraten zoals havermout of volkorenbrood.' },
       { titel: 'Eiwitrijk ontbijt', tekst: 'Eiwitten (eieren, kwark, noten) stabiliseren de bloedsuiker en zorgen voor een lang gevoel van verzadiging. Dit voorkomt de ochtend-concentratieproblemen.' },
-      { titel: 'Cafeïnetiming is alles', tekst: 'Drink je eerste koffie pas 90 minuten na het opstaan. Dan is de cortisol-piek al voorbij. Koffie werkt dan veel effectiever en de crash is kleiner.' },
+      { titel: 'Cafe�netiming is alles', tekst: 'Drink je eerste koffie pas 90 minuten na het opstaan. Dan is de cortisol-piek al voorbij. Koffie werkt dan veel effectiever en de crash is kleiner.' },
       { titel: 'Lunch: licht maar vullend', tekst: 'Een te zware lunch (koolhydraatrijke pasta, aardappels) activeert je spijsvertering maximaal, wat energie wegtrekt van je hersenen. Kies voor salade met proteinen.' },
       { titel: 'Magnesium tegen stress', tekst: 'Langdurige stress put magnesiumreserves uit. Magnesiumrijke voedingsmiddelen (pompoenpitten, spinazie, donkere chocolade) helpen de stressrespons te temperen.' },
     ],
@@ -230,7 +230,7 @@ const VOEDING_CATEGORIEEN = [
   },
 ]
 
-// ─── Sleep data ───────────────────────────────────────────────────────────────
+// --- Sleep data ---------------------------------------------------------------
 const SLAAP_SECTIES = [
   {
     titel: 'Slaaproutine opbouwen',
@@ -239,7 +239,7 @@ const SLAAP_SECTIES = [
     items: [
       { titel: 'Vaste slaaptijden', tekst: 'Je lichaam heeft een interne klok (circadiaan ritme). Elke dag op dezelfde tijd naar bed gaan en opstaan, ook in het weekend, verbetert slaapkwaliteit dramatisch na 2-3 weken.' },
       { titel: 'Wind-down ritueel', tekst: 'Begin 60 minuten voor slaaptijd met dimmen: geen schermen, zachte verlichting, rustige activiteit (lezen, stretchen, warme douche). Dit activeert melatonineproductie.' },
-      { titel: 'Slaapomgeving optimaliseren', tekst: 'De ideale slaapkamer is koel (16-18°C), volledig donker en stil. Investeer in verduisterende gordijnen en oordoppen als dat nodig is.' },
+      { titel: 'Slaapomgeving optimaliseren', tekst: 'De ideale slaapkamer is koel (16-18�C), volledig donker en stil. Investeer in verduisterende gordijnen en oordoppen als dat nodig is.' },
       { titel: 'Geen schermen 1 uur voor bed', tekst: 'Blauw licht van schermen onderdrukt melatonine met tot 50%. Gebruik nacht-modus of bluelight-bril als je het niet kunt vermijden.' },
     ],
   },
@@ -260,7 +260,7 @@ const SLAAP_SECTIES = [
     kleur: '#1D9E75',
     items: [
       { titel: 'De ideale nap: 10-20 minuten', tekst: 'Korte naps van 10-20 minuten verbeteren alertheid, stemming en cognitieve prestaties zonder de slaapkwaliteit \'s nachts te verstoren. NASA-onderzoek bevestigt dit.' },
-      { titel: 'Koffiedutje truc', tekst: 'Drink een espresso net voor je dutje. Cafeïne werkt na 20-25 minuten: je wordt wakker precies als het cafeïne begint te werken. Extra alert op twee manieren tegelijk.' },
+      { titel: 'Koffiedutje truc', tekst: 'Drink een espresso net voor je dutje. Cafe�ne werkt na 20-25 minuten: je wordt wakker precies als het cafe�ne begint te werken. Extra alert op twee manieren tegelijk.' },
       { titel: 'Nooit nappen na 15:00', tekst: 'Naps na 15:00 verstoren je slaapdruk (adenosine) en maken het moeilijker om op tijd in slaap te vallen. Plan je nap in de vroege middag.' },
       { titel: 'Slaapschuld is cumulatief', tekst: 'Elke nacht een uur te kort slapen is na een week equivalent aan een nacht geen slaap. Een weekend "uitslapen" maakt maar een deel van de schade goed.' },
     ],
@@ -278,7 +278,7 @@ const SLAAP_SECTIES = [
   },
 ]
 
-// ─── Mental reset data ────────────────────────────────────────────────────────
+// --- Mental reset data --------------------------------------------------------
 const MENTAAL_TECHNIEKEN = [
   {
     naam: '5-4-3-2-1 grounding',
@@ -287,11 +287,11 @@ const MENTAAL_TECHNIEKEN = [
     kleur: '#1D9E75',
     beschrijving: 'Een evidence-based techniek tegen angst en overweldigend gevoel.',
     stappen: [
-      '5 dingen die je KAN ZIEN — benoem ze in je hoofd',
-      '4 dingen die je KAN AANRAKEN — voel ze even aan',
-      '3 dingen die je KAN HOREN — luister actief',
-      '2 dingen die je KAN RUIKEN — ook fantasie telt',
-      '1 ding dat je KAN PROEVEN — neem een slokje water',
+      '5 dingen die je KAN ZIEN � benoem ze in je hoofd',
+      '4 dingen die je KAN AANRAKEN � voel ze even aan',
+      '3 dingen die je KAN HOREN � luister actief',
+      '2 dingen die je KAN RUIKEN � ook fantasie telt',
+      '1 ding dat je KAN PROEVEN � neem een slokje water',
     ],
   },
   {
@@ -303,7 +303,7 @@ const MENTAAL_TECHNIEKEN = [
     stappen: [
       'Pak een leeg blad of open een leeg document',
       'Stel een timer op 5 minuten',
-      'Schrijf alles op wat in je hoofd zit — geen censuur',
+      'Schrijf alles op wat in je hoofd zit � geen censuur',
       'Schrijf ook fysieke gevoelens op: spanning, vermoeidheid',
       'Als de timer afgaat, sluit je het document. Gaan.',
     ],
@@ -330,11 +330,11 @@ const MENTAAL_TECHNIEKEN = [
     beschrijving: 'Scan je lichaam van voeten tot hoofd en laat spanning los.',
     stappen: [
       'Sluit je ogen en adem 3x diep in en uit',
-      'Richt je aandacht op je voeten — voel het contact met de grond',
+      'Richt je aandacht op je voeten � voel het contact met de grond',
       'Beweeg langzaam omhoog: kuiten, dijen, heupen',
-      'Buik, borst — voel je ademhaling van binnenuit',
-      'Rug, schouders — laat bewust los bij elke uitademing',
-      'Nek, kaak, gezicht — ontspan elk spiergroepje',
+      'Buik, borst � voel je ademhaling van binnenuit',
+      'Rug, schouders � laat bewust los bij elke uitademing',
+      'Nek, kaak, gezicht � ontspan elk spiergroepje',
       'Observeer je hele lichaam als een geheel. Adem nog 3x.',
     ],
   },
@@ -347,7 +347,7 @@ const MENTAAL_TECHNIEKEN = [
     stappen: [
       'Denk aan 3 specifieke dingen die goed gingen vandaag',
       'Geen grote zaken: "koffie was lekker" telt',
-      'Schrijf elk punt op — schrijven versterkt het effect',
+      'Schrijf elk punt op � schrijven versterkt het effect',
       'Noteer bij elk punt: waarom ben je hier dankbaar voor?',
       'Sluit af met: "Dit is wat vandaag goed was."',
     ],
@@ -360,7 +360,7 @@ const MENTAAL_TECHNIEKEN = [
     beschrijving: 'Beoordeel je stressniveau eerlijk en plan een actie.',
     stappen: [
       'Geef je stressniveau een cijfer van 1-10',
-      'Localiseer de spanning in je lichaam — waar voel je het?',
+      'Localiseer de spanning in je lichaam � waar voel je het?',
       'Noem 1 ding dat je stress geeft',
       'Vraag: kan ik dit NU oplossen of niet?',
       'Als ja: plan de eerste kleine stap. Als nee: laat het bewust los.',
@@ -395,7 +395,7 @@ export default function FocusPagina() {
   const [klaar, setKlaar] = useState(false)
   const [tab, setTab] = useState<HoofdTab>('adem')
 
-  // ── Breathing state ──────────────────────────────────────────────────────
+  // -- Breathing state ------------------------------------------------------
   const [ademTab, setAdemTab] = useState<AdemTab>('box')
   const [ademActief, setAdemActief] = useState(false)
   const [ademFaseIdx, setAdemFaseIdx] = useState(0)
@@ -403,23 +403,23 @@ export default function FocusPagina() {
   const [ademRonden, setAdemRonden] = useState(0)
   const ademRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
-  // ── Timer state ──────────────────────────────────────────────────────────
+  // -- Timer state ----------------------------------------------------------
   const [timerTab, setTimerTab] = useState<TimerTab>('focus')
   const [timerActief, setTimerActief] = useState(false)
   const [timerRest, setTimerRest] = useState(TIMERS.focus.duur)
   const [timerKlaar, setTimerKlaar] = useState(false)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
-  // ── Movement state ───────────────────────────────────────────────────────
+  // -- Movement state -------------------------------------------------------
   const [openOefening, setOpenOefening] = useState<number | null>(null)
 
-  // ── Mental state ─────────────────────────────────────────────────────────
+  // -- Mental state ---------------------------------------------------------
   const [openTechniek, setOpenTechniek] = useState<number | null>(null)
 
-  // ── Voeding state ────────────────────────────────────────────────────────
+  // -- Voeding state --------------------------------------------------------
   const [openVoedingCat, setOpenVoedingCat] = useState<number | null>(0)
 
-  // ── Slaap state ──────────────────────────────────────────────────────────
+  // -- Slaap state ----------------------------------------------------------
   const [openSlaapSectie, setOpenSlaapSectie] = useState<number | null>(0)
 
   useEffect(() => {
@@ -431,7 +431,7 @@ export default function FocusPagina() {
     check()
   }, [router])
 
-  // ── Breathing engine ──────────────────────────────────────────────────────
+  // -- Breathing engine ------------------------------------------------------
   useEffect(() => {
     if (!ademActief) {
       if (ademRef.current) clearInterval(ademRef.current)
@@ -459,7 +459,7 @@ export default function FocusPagina() {
     return () => { if (ademRef.current) clearInterval(ademRef.current) }
   }, [ademActief, ademTab])
 
-  // ── Timer engine ───────────────────────────────────────────────────────────
+  // -- Timer engine -----------------------------------------------------------
   useEffect(() => {
     if (!timerActief) {
       if (timerRef.current) clearInterval(timerRef.current)
@@ -513,13 +513,13 @@ export default function FocusPagina() {
   ]
 
   if (!klaar) return (
-    <div className="min-h-screen" style={{ background: '#F8F9FA' }}>
+    <div className="min-h-screen" style={{ background: 'var(--bg-app)' }}>
       <Navbar />
     </div>
   )
 
   return (
-    <div className="min-h-screen" style={{ background: '#F8F9FA' }}>
+    <div className="min-h-screen" style={{ background: 'var(--bg-app)' }}>
       <Navbar />
       <main className="max-w-2xl mx-auto p-4 pb-20">
 
@@ -529,7 +529,7 @@ export default function FocusPagina() {
           <p className="text-gray-500 text-sm mt-0.5">Ademhaling, beweging, voeding, slaap en mentale reset.</p>
         </div>
 
-        {/* Tab bar — scrollable on mobile */}
+        {/* Tab bar � scrollable on mobile */}
         <div className="overflow-x-auto pb-1 mb-6">
           <div className="flex gap-1.5 min-w-max bg-gray-100 rounded-2xl p-1.5">
             {TABS.map(t => (
@@ -549,7 +549,7 @@ export default function FocusPagina() {
           </div>
         </div>
 
-        {/* ══════════════ ADEMHALING ══════════════ */}
+        {/* -------------- ADEMHALING -------------- */}
         {tab === 'adem' && (
           <>
             <div className="bg-white rounded-2xl border border-gray-100 p-5 mb-4">
@@ -575,7 +575,7 @@ export default function FocusPagina() {
               </div>
 
               {!ademActief && (
-                <div className="rounded-xl p-4 mb-4" style={{ background: '#F8F9FA' }}>
+                <div className="rounded-xl p-4 mb-4" style={{ background: 'var(--bg-app)' }}>
                   <p className="text-sm text-gray-600 mb-3">{ADEM[ademTab].beschrijving}</p>
                   <div className="flex gap-2 flex-wrap mb-3">
                     {ADEM[ademTab].fases.map((f, i) => (
@@ -625,7 +625,7 @@ export default function FocusPagina() {
                 className="w-full py-3.5 rounded-xl text-white font-semibold text-sm transition"
                 style={{ background: ademActief ? '#E24B4A' : 'var(--MentaForce-primary)' }}
               >
-                {ademActief ? '■ Stop' : '▶ Start ademhaling'}
+                {ademActief ? '� Stop' : '? Start ademhaling'}
               </button>
             </div>
 
@@ -650,7 +650,7 @@ export default function FocusPagina() {
           </>
         )}
 
-        {/* ══════════════ BEWEGING ══════════════ */}
+        {/* -------------- BEWEGING -------------- */}
         {tab === 'beweging' && (
           <>
             <div className="bg-white rounded-2xl border border-gray-100 p-4 mb-4">
@@ -685,10 +685,10 @@ export default function FocusPagina() {
                       style={{ background: '#F3F4F6', color: '#6b7280' }}>{(oe as {afk: string}).afk}</div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold text-gray-900">{oe.naam}</p>
-                      <p className="text-xs text-gray-400">{oe.duur} · {oe.stappen.length} stappen</p>
+                      <p className="text-xs text-gray-400">{oe.duur} � {oe.stappen.length} stappen</p>
                     </div>
                     <IntensiteitLabel niveau={oe.intensiteit as IntensiteitBadge} />
-                    <span className="text-gray-300 ml-1">{openOefening === idx ? '↑' : '↓'}</span>
+                    <span className="text-gray-300 ml-1">{openOefening === idx ? '?' : '?'}</span>
                   </button>
                   {openOefening === idx && (
                     <div className="px-5 pb-5 border-t border-gray-50">
@@ -728,12 +728,12 @@ export default function FocusPagina() {
           </>
         )}
 
-        {/* ══════════════ VOEDING ══════════════ */}
+        {/* -------------- VOEDING -------------- */}
         {tab === 'voeding' && (
           <>
             <div className="bg-white rounded-2xl border border-gray-100 p-4 mb-4">
               <p className="text-sm text-gray-600">
-                Voeding heeft een direct effect op cortisol, serotonine en dopamine — de stofjes die je stress en energie bepalen.
+                Voeding heeft een direct effect op cortisol, serotonine en dopamine � de stofjes die je stress en energie bepalen.
               </p>
             </div>
 
@@ -750,7 +750,7 @@ export default function FocusPagina() {
                       <p className="text-sm font-semibold text-gray-900">{cat.titel}</p>
                       <p className="text-xs text-gray-400">{cat.tips.length} tips</p>
                     </div>
-                    <span className="text-gray-300 ml-1">{openVoedingCat === idx ? '↑' : '↓'}</span>
+                    <span className="text-gray-300 ml-1">{openVoedingCat === idx ? '?' : '?'}</span>
                   </button>
                   {openVoedingCat === idx && (
                     <div className="border-t border-gray-50">
@@ -787,13 +787,13 @@ export default function FocusPagina() {
           </>
         )}
 
-        {/* ══════════════ SLAAP ══════════════ */}
+        {/* -------------- SLAAP -------------- */}
         {tab === 'slaap' && (
           <>
             <div className="grid grid-cols-3 gap-3 mb-5">
               {[
-                { label: 'Ideale slaapduur', waarde: '7–9u', kleur: '#8B5CF6', bg: '#EEEDFE' },
-                { label: 'Ideale nap', waarde: '10–20m', kleur: '#1D9E75', bg: '#E1F5EE' },
+                { label: 'Ideale slaapduur', waarde: '7�9u', kleur: '#8B5CF6', bg: '#EEEDFE' },
+                { label: 'Ideale nap', waarde: '10�20m', kleur: '#1D9E75', bg: '#E1F5EE' },
                 { label: 'Geen schermen', waarde: '60m voor bed', kleur: '#378ADD', bg: '#E6F1FB' },
               ].map(s => (
                 <div key={s.label} className="bg-white rounded-2xl border border-gray-100 p-4 text-center">
@@ -816,7 +816,7 @@ export default function FocusPagina() {
                       <p className="text-sm font-semibold text-gray-900">{sec.titel}</p>
                       <p className="text-xs text-gray-400">{sec.items.length} tips</p>
                     </div>
-                    <span className="text-gray-300 ml-1">{openSlaapSectie === idx ? '↑' : '↓'}</span>
+                    <span className="text-gray-300 ml-1">{openSlaapSectie === idx ? '?' : '?'}</span>
                   </button>
                   {openSlaapSectie === idx && (
                     <div className="border-t border-gray-50">
@@ -839,7 +839,7 @@ export default function FocusPagina() {
                 { tijd: 'T-45 min', kleur: '#8B5CF6', actie: 'Warme douche of bad (kerntemperatuur daalt daarna)' },
                 { tijd: 'T-30 min', kleur: '#378ADD', actie: 'Schrijf morgenlijst + worry dump' },
                 { tijd: 'T-20 min', kleur: '#378ADD', actie: 'Lees boek (geen tablet) of doe lichte stretch' },
-                { tijd: 'T-10 min', kleur: '#1D9E75', actie: 'Verduister de kamer, stel temperatuur in op 17-18°C' },
+                { tijd: 'T-10 min', kleur: '#1D9E75', actie: 'Verduister de kamer, stel temperatuur in op 17-18�C' },
                 { tijd: 'In bed', kleur: '#1D9E75', actie: 'Diafragmatische ademhaling of 4-7-8 methode' },
               ].map(r => (
                 <div key={r.tijd} className="flex gap-3 items-start py-2 border-b border-gray-50 last:border-0">
@@ -851,7 +851,7 @@ export default function FocusPagina() {
           </>
         )}
 
-        {/* ══════════════ MENTAAL ══════════════ */}
+        {/* -------------- MENTAAL -------------- */}
         {tab === 'mentaal' && (
           <>
             <div className="bg-white rounded-2xl border border-gray-100 p-4 mb-4">
@@ -871,12 +871,12 @@ export default function FocusPagina() {
                       style={{ background: tech.kleur + '18', color: tech.kleur }}>{(tech as {afk: string}).afk}</div>
                     <div className="flex-1">
                       <p className="text-sm font-semibold text-gray-900">{tech.naam}</p>
-                      <p className="text-xs text-gray-400">{tech.duur} · {tech.stappen.length} stappen</p>
+                      <p className="text-xs text-gray-400">{tech.duur} � {tech.stappen.length} stappen</p>
                     </div>
                     <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: tech.kleur + '20', color: tech.kleur }}>
                       {tech.duur}
                     </span>
-                    <span className="text-gray-300 ml-2">{openTechniek === idx ? '↑' : '↓'}</span>
+                    <span className="text-gray-300 ml-2">{openTechniek === idx ? '?' : '?'}</span>
                   </button>
                   {openTechniek === idx && (
                     <div className="px-5 pb-5 border-t border-gray-50">
@@ -922,7 +922,7 @@ export default function FocusPagina() {
           </>
         )}
 
-        {/* ══════════════ TIMER ══════════════ */}
+        {/* -------------- TIMER -------------- */}
         {tab === 'timer' && (
           <>
             <div className="flex gap-2 mb-5">
@@ -967,7 +967,7 @@ export default function FocusPagina() {
 
               {timerKlaar && (
                 <div className="mt-4 text-center">
-                  <p className="text-2xl">🎉</p>
+                  <p className="text-2xl">??</p>
                   <p className="text-sm font-medium text-gray-700 mt-1">Klaar!</p>
                 </div>
               )}
@@ -994,7 +994,7 @@ export default function FocusPagina() {
 
             {timerTab === 'micro' && (
               <div className="bg-white rounded-2xl border border-gray-200 p-5 mb-4">
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Ideeën voor je micro-break</p>
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Idee�n voor je micro-break</p>
                 {[
                   'Kijk 20 sec naar iets op 6 meter (20-20-20 regel)',
                   'Rek je nek links en rechts, 3x per kant',

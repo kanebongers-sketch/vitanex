@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
+import { authFetch } from '@/lib/auth-fetch'
 import Navbar from '@/components/Navbar'
 import { Avatar } from '@/components/Avatar'
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
@@ -46,6 +47,32 @@ type FeedbackItem = {
 }
 
 type UserCheckin = Checkin & { user_id: string }
+
+type VerlofHR = {
+  id: string
+  user_id: string
+  type: string
+  datum_van: string
+  datum_tot: string
+  reden: string
+  status: 'aangevraagd' | 'goedgekeurd' | 'afgewezen'
+  reviewer_notitie?: string | null
+  created_at: string
+  naam?: string
+}
+
+type DeclaratieHR = {
+  id: string
+  user_id: string
+  datum: string
+  bedrag: number
+  categorie: string
+  beschrijving: string
+  status: 'ingediend' | 'goedgekeurd' | 'afgewezen'
+  reviewer_notitie?: string | null
+  created_at: string
+  naam?: string
+}
 
 function gemiddelde(arr: number[]) {
   if (!arr.length) return 0
@@ -88,9 +115,8 @@ function AIInsightCard({
     setLaden(true)
     try {
       const risicos = laagsteMetrics.slice(0, 3).map(m => `${m.label} (${m.score}/5)`).join(', ')
-      const resp = await fetch('/api/coach', {
+      const resp = await authFetch('/api/coach', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           maxTokens: 200,
           systeem: `Je bent een HR-analist die bondig advies geeft aan HR-managers. Geef altijd 2-3 concrete, actiegerichte zinnen in het Nederlands. Geen jargon, geen opsommingstekens — gewone alinea.`,
@@ -161,12 +187,14 @@ export default function Dashboard() {
   const [team, setTeam] = useState<TeamLid[]>([])
   const [laden, setLaden] = useState(true)
   const [email, setEmail] = useState('')
-  const [actieveTab, setActieveTab] = useState<'overzicht' | 'team' | 'trends' | 'signalen'>('overzicht')
+  const [actieveTab, setActieveTab] = useState<'overzicht' | 'team' | 'trends' | 'signalen' | 'verlof' | 'declaraties'>('overzicht')
   const [teamZoekterm, setTeamZoekterm] = useState('')
   const [teamFilter, setTeamFilter] = useState<'alle' | 'ingevuld' | 'niet_ingevuld' | 'laag'>('alle')
   const [teamSorteer, setTeamSorteer] = useState<'naam' | 'score'>('naam')
   const [feedback, setFeedback] = useState<FeedbackItem[]>([])
   const [userCheckinsMap, setUserCheckinsMap] = useState<Map<string, UserCheckin[]>>(new Map())
+  const [verlofAanvragen, setVerlofAanvragen] = useState<VerlofHR[]>([])
+  const [declaratiesHR, setDeclaratiesHR] = useState<DeclaratieHR[]>([])
 
   useEffect(() => {
     async function laadData() {
@@ -221,6 +249,38 @@ export default function Dashboard() {
         .order('aangemaakt_op', { ascending: false })
         .limit(50)
       setFeedback(fb || [])
+
+      // Verlof aanvragen
+      try {
+        const { data: verlofData } = await supabase
+          .from('verlof_aanvragen')
+          .select('*, profiles!user_id(naam)')
+          .eq('bedrijf_id', profiel.bedrijf_id)
+          .order('created_at', { ascending: false })
+          .limit(100)
+        if (verlofData) {
+          setVerlofAanvragen((verlofData as unknown as (VerlofHR & { profiles: { naam: string } | null })[]).map(v => ({
+            ...v,
+            naam: v.profiles?.naam ?? 'Onbekend',
+          })))
+        }
+      } catch { /* table may not exist yet */ }
+
+      // Declaraties
+      try {
+        const { data: declData } = await supabase
+          .from('declaraties')
+          .select('*, profiles!user_id(naam)')
+          .eq('bedrijf_id', profiel.bedrijf_id)
+          .order('created_at', { ascending: false })
+          .limit(100)
+        if (declData) {
+          setDeclaratiesHR((declData as unknown as (DeclaratieHR & { profiles: { naam: string } | null })[]).map(d => ({
+            ...d,
+            naam: d.profiles?.naam ?? 'Onbekend',
+          })))
+        }
+      } catch { /* table may not exist yet */ }
 
       setLaden(false)
     }
@@ -333,11 +393,16 @@ export default function Dashboard() {
   }
   signalen.sort((a, b) => (a.ernst === 'hoog' ? -1 : 1) - (b.ernst === 'hoog' ? -1 : 1))
 
+  const pendingVerlof = verlofAanvragen.filter(v => v.status === 'aangevraagd').length
+  const pendingDeclaraties = declaratiesHR.filter(d => d.status === 'ingediend').length
+
   const tabs = [
     { key: 'overzicht', label: 'Overzicht' },
     { key: 'team', label: `Team (${team.length})` },
     { key: 'trends', label: 'Trends' },
     { key: 'signalen', label: `Signalen${signalen.length > 0 ? ` (${signalen.length})` : ''}` },
+    { key: 'verlof', label: `Verlof${pendingVerlof > 0 ? ` (${pendingVerlof})` : ''}` },
+    { key: 'declaraties', label: `Declaraties${pendingDeclaraties > 0 ? ` (${pendingDeclaraties})` : ''}` },
   ]
 
   // Participation rate
@@ -737,9 +802,272 @@ export default function Dashboard() {
                 )}
               </>
             )}
+
+            {actieveTab === 'verlof' && (
+              <VerlofTab
+                aanvragen={verlofAanvragen}
+                onUpdate={(id, status, notitie) => {
+                  setVerlofAanvragen(prev => prev.map(v => v.id === id ? { ...v, status, reviewer_notitie: notitie } : v))
+                }}
+              />
+            )}
+
+            {actieveTab === 'declaraties' && (
+              <DeclaratiesTab
+                declaraties={declaratiesHR}
+                onUpdate={(id, status, notitie) => {
+                  setDeclaratiesHR(prev => prev.map(d => d.id === id ? { ...d, status, reviewer_notitie: notitie } : d))
+                }}
+              />
+            )}
           </>
         )}
       </main>
+    </div>
+  )
+}
+
+// ── Verlof Tab ───────────────────────────────────────────────────────────────
+
+type VerlofTabProps = {
+  aanvragen: VerlofHR[]
+  onUpdate: (id: string, status: 'goedgekeurd' | 'afgewezen', notitie: string) => void
+}
+
+const VERLOF_TYPE_LABELS: Record<string, string> = {
+  vakantie: '🌴 Vakantie', ziekte: '🤒 Ziekte', bijzonder: '⭐ Bijzonder',
+  onbetaald: '💼 Onbetaald', overig: '📋 Overig',
+}
+
+function VerlofTab({ aanvragen, onUpdate }: VerlofTabProps) {
+  const [notities, setNotities] = useState<Record<string, string>>({})
+  const [verwerking, setVerwerking] = useState<string | null>(null)
+
+  async function behandel(id: string, status: 'goedgekeurd' | 'afgewezen') {
+    setVerwerking(id)
+    const { error } = await supabase.from('verlof_aanvragen').update({
+      status,
+      reviewer_notitie: notities[id]?.trim() || null,
+    }).eq('id', id)
+    if (!error) onUpdate(id, status, notities[id]?.trim() || '')
+    setVerwerking(null)
+  }
+
+  const pending = aanvragen.filter(v => v.status === 'aangevraagd')
+  const behandeld = aanvragen.filter(v => v.status !== 'aangevraagd')
+
+  function dagenTekst(van: string, tot: string) {
+    const d = Math.max(1, Math.round((new Date(tot).getTime() - new Date(van).getTime()) / 86400000) + 1)
+    return `${d} dag${d !== 1 ? 'en' : ''}`
+  }
+
+  return (
+    <div>
+      {pending.length > 0 && (
+        <div className="mb-6">
+          <p className="text-sm font-medium text-gray-700 mb-3">In behandeling ({pending.length})</p>
+          <div className="flex flex-col gap-3">
+            {pending.map(v => (
+              <div key={v.id} className="bg-white rounded-2xl border border-gray-100 p-4"
+                style={{ borderLeft: '4px solid #BA7517' }}>
+                <div className="flex items-start justify-between gap-2 mb-2">
+                  <div>
+                    <p className="text-sm font-semibold text-gray-900">{v.naam}</p>
+                    <p className="text-xs text-gray-500">
+                      {VERLOF_TYPE_LABELS[v.type] ?? v.type} ·{' '}
+                      {new Date(v.datum_van).toLocaleDateString('nl-BE', { day: 'numeric', month: 'short' })}
+                      {v.datum_van !== v.datum_tot ? ` – ${new Date(v.datum_tot).toLocaleDateString('nl-BE', { day: 'numeric', month: 'short' })}` : ''}
+                      {' '}· {dagenTekst(v.datum_van, v.datum_tot)}
+                    </p>
+                    {v.reden && <p className="text-xs text-gray-400 mt-1">"{v.reden}"</p>}
+                  </div>
+                  <span className="text-xs font-semibold px-2 py-0.5 rounded-full flex-shrink-0"
+                    style={{ background: '#FAEEDA', color: '#854F0B' }}>In behandeling</span>
+                </div>
+                <input
+                  type="text"
+                  placeholder="Optionele notitie voor medewerker..."
+                  value={notities[v.id] ?? ''}
+                  onChange={e => setNotities(prev => ({ ...prev, [v.id]: e.target.value }))}
+                  className="w-full border border-gray-200 rounded-xl px-3 py-2 text-xs outline-none mb-3"
+                />
+                <div className="flex gap-2">
+                  <button onClick={() => behandel(v.id, 'goedgekeurd')}
+                    disabled={verwerking === v.id}
+                    className="flex-1 py-2 rounded-xl text-xs font-semibold text-white disabled:opacity-40"
+                    style={{ background: '#1D9E75' }}>
+                    ✓ Goedkeuren
+                  </button>
+                  <button onClick={() => behandel(v.id, 'afgewezen')}
+                    disabled={verwerking === v.id}
+                    className="flex-1 py-2 rounded-xl text-xs font-semibold text-white disabled:opacity-40"
+                    style={{ background: '#E24B4A' }}>
+                    ✗ Afwijzen
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {behandeld.length > 0 && (
+        <div>
+          <p className="text-sm font-medium text-gray-700 mb-3">Behandeld ({behandeld.length})</p>
+          <div className="flex flex-col gap-2">
+            {behandeld.map(v => (
+              <div key={v.id} className="bg-white rounded-2xl border border-gray-100 px-4 py-3 flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-gray-800">{v.naam}</p>
+                  <p className="text-xs text-gray-400">
+                    {VERLOF_TYPE_LABELS[v.type] ?? v.type} ·{' '}
+                    {new Date(v.datum_van).toLocaleDateString('nl-BE', { day: 'numeric', month: 'short' })}
+                    {v.datum_van !== v.datum_tot ? ` – ${new Date(v.datum_tot).toLocaleDateString('nl-BE', { day: 'numeric', month: 'short' })}` : ''}
+                  </p>
+                </div>
+                <span className="text-xs font-semibold px-2.5 py-1 rounded-full flex-shrink-0"
+                  style={v.status === 'goedgekeurd'
+                    ? { background: '#E1F5EE', color: '#0F6E56' }
+                    : { background: '#FCEBEB', color: '#A32D2D' }}>
+                  {v.status === 'goedgekeurd' ? '✓ Goedgekeurd' : '✗ Afgewezen'}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {aanvragen.length === 0 && (
+        <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center">
+          <p className="text-3xl mb-2">🌴</p>
+          <p className="text-sm text-gray-400">Geen verlofaanvragen.</p>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ── Declaraties Tab ──────────────────────────────────────────────────────────
+
+type DeclaratiesTabProps = {
+  declaraties: DeclaratieHR[]
+  onUpdate: (id: string, status: 'goedgekeurd' | 'afgewezen', notitie: string) => void
+}
+
+const DECL_CAT_LABELS: Record<string, string> = {
+  reiskosten: '🚗 Reiskosten', maaltijd: '🍽️ Maaltijd', materiaal: '📦 Materiaal',
+  training: '🎓 Training', representatie: '🤝 Representatie', overig: '💰 Overig',
+}
+
+function DeclaratiesTab({ declaraties, onUpdate }: DeclaratiesTabProps) {
+  const [notities, setNotities] = useState<Record<string, string>>({})
+  const [verwerking, setVerwerking] = useState<string | null>(null)
+
+  async function behandel(id: string, status: 'goedgekeurd' | 'afgewezen') {
+    setVerwerking(id)
+    const { error } = await supabase.from('declaraties').update({
+      status,
+      reviewer_notitie: notities[id]?.trim() || null,
+    }).eq('id', id)
+    if (!error) onUpdate(id, status, notities[id]?.trim() || '')
+    setVerwerking(null)
+  }
+
+  const pending = declaraties.filter(d => d.status === 'ingediend')
+  const behandeld = declaraties.filter(d => d.status !== 'ingediend')
+  const totaalOpenstaand = pending.reduce((s, d) => s + d.bedrag, 0)
+
+  return (
+    <div>
+      {totaalOpenstaand > 0 && (
+        <div className="bg-white rounded-2xl border border-gray-100 p-4 mb-5 flex items-center justify-between">
+          <p className="text-sm text-gray-600">Totaal openstaand</p>
+          <p className="text-lg font-bold" style={{ color: '#8B5CF6' }}>
+            €{totaalOpenstaand.toLocaleString('nl-BE', { minimumFractionDigits: 2 })}
+          </p>
+        </div>
+      )}
+
+      {pending.length > 0 && (
+        <div className="mb-6">
+          <p className="text-sm font-medium text-gray-700 mb-3">In behandeling ({pending.length})</p>
+          <div className="flex flex-col gap-3">
+            {pending.map(d => (
+              <div key={d.id} className="bg-white rounded-2xl border border-gray-100 p-4"
+                style={{ borderLeft: '4px solid #8B5CF6' }}>
+                <div className="flex items-start justify-between gap-2 mb-2">
+                  <div>
+                    <p className="text-sm font-semibold text-gray-900">{d.naam}</p>
+                    <p className="text-xs text-gray-500">
+                      {DECL_CAT_LABELS[d.categorie] ?? d.categorie} ·{' '}
+                      {new Date(d.datum).toLocaleDateString('nl-BE', { day: 'numeric', month: 'short', year: 'numeric' })}
+                    </p>
+                    <p className="text-xs text-gray-400 mt-0.5">{d.beschrijving}</p>
+                  </div>
+                  <p className="text-lg font-bold text-gray-900 flex-shrink-0">
+                    €{d.bedrag.toLocaleString('nl-BE', { minimumFractionDigits: 2 })}
+                  </p>
+                </div>
+                <input
+                  type="text"
+                  placeholder="Optionele notitie..."
+                  value={notities[d.id] ?? ''}
+                  onChange={e => setNotities(prev => ({ ...prev, [d.id]: e.target.value }))}
+                  className="w-full border border-gray-200 rounded-xl px-3 py-2 text-xs outline-none mb-3"
+                />
+                <div className="flex gap-2">
+                  <button onClick={() => behandel(d.id, 'goedgekeurd')}
+                    disabled={verwerking === d.id}
+                    className="flex-1 py-2 rounded-xl text-xs font-semibold text-white disabled:opacity-40"
+                    style={{ background: '#1D9E75' }}>
+                    ✓ Goedkeuren
+                  </button>
+                  <button onClick={() => behandel(d.id, 'afgewezen')}
+                    disabled={verwerking === d.id}
+                    className="flex-1 py-2 rounded-xl text-xs font-semibold text-white disabled:opacity-40"
+                    style={{ background: '#E24B4A' }}>
+                    ✗ Afwijzen
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {behandeld.length > 0 && (
+        <div>
+          <p className="text-sm font-medium text-gray-700 mb-3">Behandeld ({behandeld.length})</p>
+          <div className="flex flex-col gap-2">
+            {behandeld.map(d => (
+              <div key={d.id} className="bg-white rounded-2xl border border-gray-100 px-4 py-3 flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-gray-800">{d.naam}</p>
+                  <p className="text-xs text-gray-400">
+                    {DECL_CAT_LABELS[d.categorie] ?? d.categorie} · {d.beschrijving}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <p className="text-sm font-bold text-gray-700">€{d.bedrag.toLocaleString('nl-BE', { minimumFractionDigits: 2 })}</p>
+                  <span className="text-xs font-semibold px-2.5 py-1 rounded-full"
+                    style={d.status === 'goedgekeurd'
+                      ? { background: '#E1F5EE', color: '#0F6E56' }
+                      : { background: '#FCEBEB', color: '#A32D2D' }}>
+                    {d.status === 'goedgekeurd' ? '✓' : '✗'}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {declaraties.length === 0 && (
+        <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center">
+          <p className="text-3xl mb-2">💰</p>
+          <p className="text-sm text-gray-400">Geen declaraties ingediend.</p>
+        </div>
+      )}
     </div>
   )
 }

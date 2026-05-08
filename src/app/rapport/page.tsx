@@ -1,4 +1,4 @@
-ï»¿'use client'
+'use client'
 
 export const dynamic = 'force-dynamic'
 
@@ -180,7 +180,7 @@ export default function Rapport() {
     { label: 'Werkdruk', waarde: gem(checkins.map(c => c.werkdruk)) },
     { label: 'Focus', waarde: gem(checkins.map(c => c.mentaal_focus)) },
     { label: 'Stress', waarde: gem(checkins.map(c => c.mentaal_stress)) },
-    { label: 'Werk-privÃ© balans', waarde: gem(checkins.map(c => c.mentaal_balans)) },
+    { label: 'Werk-privé balans', waarde: gem(checkins.map(c => c.mentaal_balans)) },
     { label: 'Motivatie', waarde: gem(checkins.map(c => c.motivatie)) },
     { label: 'Teamwerk', waarde: gem(checkins.map(c => c.sociaal_team)) },
     { label: 'Sociale steun', waarde: gem(checkins.map(c => c.sociaal_steun)) },
@@ -188,7 +188,7 @@ export default function Rapport() {
   ]
 
   return (
-    <div className="min-h-screen" style={{ background: '#F8F9FA' }}>
+    <div className="min-h-screen" style={{ background: 'var(--bg-app)' }}>
       <Navbar />
       <main className="max-w-4xl mx-auto p-8">
 
@@ -219,7 +219,7 @@ export default function Rapport() {
               className="text-white rounded-xl px-5 py-2 text-sm font-medium transition disabled:opacity-30 flex items-center gap-2"
               style={{ background: 'var(--MentaForce-primary)' }}
             >
-              {exportBezig ? 'Exporteren...' : 'â†“ Download PDF'}
+              {exportBezig ? 'Exporteren...' : '? Download PDF'}
             </button>
           </div>
         </div>
@@ -232,7 +232,7 @@ export default function Rapport() {
           </div>
         ) : (
 
-          /* Rapport â€” dit wordt geÃ«xporteerd als PDF */
+          /* Rapport — dit wordt geëxporteerd als PDF */
           <div ref={rapportRef} className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
 
             {/* Rapport header */}
@@ -246,7 +246,7 @@ export default function Rapport() {
                     <span className="font-medium text-gray-700">MentaForce</span>
                   </div>
                   <h2 className="text-2xl font-medium text-gray-900">Vitaliteitsrapport</h2>
-                  <p className="text-gray-600 text-sm mt-1">{bedrijfNaam} Â· {maanden[geselecteerdeMaand]} {geselecteerdJaar}</p>
+                  <p className="text-gray-600 text-sm mt-1">{bedrijfNaam} · {maanden[geselecteerdeMaand]} {geselecteerdJaar}</p>
                 </div>
                 <div className="text-right">
                   <p className="text-xs text-gray-500">Gegenereerd op</p>
@@ -259,7 +259,7 @@ export default function Rapport() {
 
               {/* Totaalscore */}
               <div className="grid grid-cols-4 gap-4 mb-8">
-                <div className="col-span-1 rounded-2xl p-5 text-center" style={{ background: '#F8F9FA', border: `2px solid ${scoreKleur(totaalScore)}` }}>
+                <div className="col-span-1 rounded-2xl p-5 text-center" style={{ background: 'var(--bg-app)', border: `2px solid ${scoreKleur(totaalScore)}` }}>
                   <p className="text-xs text-gray-400 mb-1">Totaalscore</p>
                   <p className="text-4xl font-medium" style={{ color: scoreKleur(totaalScore) }}>{totaalScore}/5</p>
                   <p className="text-xs font-medium mt-1" style={{ color: scoreKleur(totaalScore) }}>{scoreLabel(totaalScore)}</p>
@@ -280,15 +280,15 @@ export default function Rapport() {
 
               {/* Participatie */}
               <div className="grid grid-cols-3 gap-4 mb-8">
-                <div className="rounded-xl p-4" style={{ background: '#F8F9FA' }}>
+                <div className="rounded-xl p-4" style={{ background: 'var(--bg-app)' }}>
                   <p className="text-xs text-gray-400 mb-1">Check-ins ontvangen</p>
                   <p className="text-2xl font-medium text-gray-900">{checkins.length}</p>
                 </div>
-                <div className="rounded-xl p-4" style={{ background: '#F8F9FA' }}>
+                <div className="rounded-xl p-4" style={{ background: 'var(--bg-app)' }}>
                   <p className="text-xs text-gray-400 mb-1">Teamleden</p>
                   <p className="text-2xl font-medium text-gray-900">{team.length}</p>
                 </div>
-                <div className="rounded-xl p-4" style={{ background: '#F8F9FA' }}>
+                <div className="rounded-xl p-4" style={{ background: 'var(--bg-app)' }}>
                   <p className="text-xs text-gray-400 mb-1">Participatiegraad</p>
                   <p className="text-2xl font-medium" style={{ color: participatie >= 80 ? '#1D9E75' : participatie >= 50 ? '#BA7517' : '#E24B4A' }}>
                     {participatie}%
@@ -301,7 +301,7 @@ export default function Rapport() {
                 <p className="text-sm font-medium text-gray-700 mb-4">Scores per indicator</p>
                 <div className="grid grid-cols-2 gap-3">
                   {detailMetrics.map(m => (
-                    <div key={m.label} className="flex items-center justify-between py-2 px-3 rounded-xl" style={{ background: '#F8F9FA' }}>
+                    <div key={m.label} className="flex items-center justify-between py-2 px-3 rounded-xl" style={{ background: 'var(--bg-app)' }}>
                       <span className="text-sm text-gray-600">{m.label}</span>
                       <div className="flex items-center gap-2">
                         <div className="w-24 h-1.5 rounded-full bg-gray-200 overflow-hidden">
@@ -331,7 +331,7 @@ export default function Rapport() {
                   <p className="text-sm font-medium text-gray-700 mb-4">Anonieme toelichtingen ({toelichtingen.length})</p>
                   <div className="flex flex-col gap-3">
                     {toelichtingen.map(c => (
-                      <div key={c.id} className="rounded-xl p-4" style={{ background: '#F8F9FA', borderLeft: '3px solid var(--MentaForce-primary)' }}>
+                      <div key={c.id} className="rounded-xl p-4" style={{ background: 'var(--bg-app)', borderLeft: '3px solid var(--MentaForce-primary)' }}>
                         <p className="text-sm text-gray-600 leading-relaxed">"{c.toelichting}"</p>
                         <p className="text-xs text-gray-400 mt-2">{new Date(c.created_at).toLocaleDateString('nl-BE')}</p>
                       </div>
@@ -345,27 +345,27 @@ export default function Rapport() {
                 <p className="text-sm font-medium mb-3" style={{ color: '#0F6E56' }}>Aanbevelingen</p>
                 <div className="flex flex-col gap-2">
                   {mentaalScore < 3 && (
-                    <p className="text-sm" style={{ color: '#0F6E56' }}>â€¢ Mentaal welzijn verdient aandacht. Overweeg een workshop stressmanagement of extra check-in momenten.</p>
+                    <p className="text-sm" style={{ color: '#0F6E56' }}>• Mentaal welzijn verdient aandacht. Overweeg een workshop stressmanagement of extra check-in momenten.</p>
                   )}
                   {fysiekScore < 3 && (
-                    <p className="text-sm" style={{ color: '#0F6E56' }}>â€¢ Fysiek welzijn is laag. Bekijk de werkplek ergonomie en stimuleer bewegingspauzes.</p>
+                    <p className="text-sm" style={{ color: '#0F6E56' }}>• Fysiek welzijn is laag. Bekijk de werkplek ergonomie en stimuleer bewegingspauzes.</p>
                   )}
                   {sociaalScore < 3 && (
-                    <p className="text-sm" style={{ color: '#0F6E56' }}>â€¢ Sociale connectie kan beter. Organiseer een teamactiviteit of verbeter de interne communicatie.</p>
+                    <p className="text-sm" style={{ color: '#0F6E56' }}>• Sociale connectie kan beter. Organiseer een teamactiviteit of verbeter de interne communicatie.</p>
                   )}
                   {participatie < 80 && (
-                    <p className="text-sm" style={{ color: '#0F6E56' }}>â€¢ Participatiegraad is onder 80%. Stuur een herinnering naar medewerkers die de check-in nog niet hebben ingevuld.</p>
+                    <p className="text-sm" style={{ color: '#0F6E56' }}>• Participatiegraad is onder 80%. Stuur een herinnering naar medewerkers die de check-in nog niet hebben ingevuld.</p>
                   )}
                   {totaalScore >= 4 && (
-                    <p className="text-sm" style={{ color: '#0F6E56' }}>â€¢ Uitstekend resultaat! Blijf het huidige beleid handhaven en deel deze resultaten met het team als motivatie.</p>
+                    <p className="text-sm" style={{ color: '#0F6E56' }}>• Uitstekend resultaat! Blijf het huidige beleid handhaven en deel deze resultaten met het team als motivatie.</p>
                   )}
                 </div>
               </div>
 
               {/* Footer */}
               <div className="mt-8 pt-6 border-t border-gray-100 flex justify-between items-center">
-                <p className="text-xs text-gray-400">MentaForce Â· Vitaliteitsplatform voor de werkplek</p>
-                <p className="text-xs text-gray-400">Vertrouwelijk â€” alleen voor intern gebruik</p>
+                <p className="text-xs text-gray-400">MentaForce · Vitaliteitsplatform voor de werkplek</p>
+                <p className="text-xs text-gray-400">Vertrouwelijk — alleen voor intern gebruik</p>
               </div>
 
             </div>

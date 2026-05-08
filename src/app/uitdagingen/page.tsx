@@ -92,13 +92,13 @@ export default function UitdagingenPage() {
   const actieveIds = new Set(actieven.map(a => a.id))
 
   if (!klaar) return (
-    <div className="min-h-screen flex items-center justify-center" style={{ background: '#F8F9FA' }}>
+    <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg-app)' }}>
       <div className="w-8 h-8 rounded-full border-2 border-gray-200 animate-spin" style={{ borderTopColor: '#1D9E75' }} />
     </div>
   )
 
   return (
-    <div className="min-h-screen" style={{ background: '#F8F9FA' }}>
+    <div className="min-h-screen" style={{ background: 'var(--bg-app)' }}>
       <Navbar />
 
       <main className="max-w-lg mx-auto px-4 py-6">
@@ -122,7 +122,7 @@ export default function UitdagingenPage() {
                 const klaar = verstreken >= uitdaging.duur
 
                 return (
-                  <div key={actief.id} className="bg-white rounded-2xl p-4" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+                  <div key={actief.id} className="bg-white rounded-2xl p-4" style={{ boxShadow: 'var(--shadow-sm)' }}>
                     <div className="flex items-start justify-between gap-3 mb-3">
                       <div className="flex items-center gap-3">
                         <span className="text-2xl">{uitdaging.emoji}</span>
@@ -179,7 +179,7 @@ export default function UitdagingenPage() {
                   key={uitdaging.id}
                   className="bg-white rounded-2xl p-4 flex flex-col gap-3"
                   style={{
-                    boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
+                    boxShadow: 'var(--shadow-sm)',
                     opacity: isActief ? 0.85 : 1,
                   }}
                 >

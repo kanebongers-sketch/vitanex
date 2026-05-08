@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
@@ -167,7 +167,7 @@ export default function ProfielPagina() {
   const toelichtingen = checkins.filter(c => c.toelichting?.trim())
 
   if (laden) return (
-    <div className="min-h-screen" style={{ background: '#F8F9FA' }}>
+    <div className="min-h-screen" style={{ background: 'var(--bg-app)' }}>
       <Navbar />
       <main className="max-w-3xl mx-auto p-8 flex justify-center mt-16">
         <div className="w-8 h-8 rounded-full border-2 border-gray-200 animate-spin" style={{ borderTopColor: 'var(--mentaforce-primary)' }} />
@@ -176,7 +176,7 @@ export default function ProfielPagina() {
   )
 
   if (nieGevonden) return (
-    <div className="min-h-screen" style={{ background: '#F8F9FA' }}>
+    <div className="min-h-screen" style={{ background: 'var(--bg-app)' }}>
       <Navbar />
       <main className="max-w-3xl mx-auto p-8 text-center mt-16">
         <p className="text-gray-400 text-sm">Profiel niet gevonden.</p>
@@ -186,7 +186,7 @@ export default function ProfielPagina() {
   )
 
   return (
-    <div className="min-h-screen" style={{ background: '#F8F9FA' }}>
+    <div className="min-h-screen" style={{ background: 'var(--bg-app)' }}>
       <Navbar />
       <main className="max-w-3xl mx-auto p-8">
 
@@ -238,7 +238,7 @@ export default function ProfielPagina() {
         {isHR && checkins.length > 0 && (
           <>
             <div className="grid grid-cols-4 gap-4 mb-6">
-              <div className="rounded-2xl p-5 text-center" style={{ background: '#F8F9FA', border: `2px solid ${scoreKleur(totaalScore)}` }}>
+              <div className="rounded-2xl p-5 text-center" style={{ background: 'var(--bg-app)', border: `2px solid ${scoreKleur(totaalScore)}` }}>
                 <p className="text-xs text-gray-400 mb-1">Totaal</p>
                 <p className="text-3xl font-medium" style={{ color: scoreKleur(totaalScore) }}>{totaalScore}/5</p>
               </div>
@@ -262,7 +262,7 @@ export default function ProfielPagina() {
                 {detailMetrics.map(m => {
                   const waarde = gem(checkins.map(c => c[m.key] as number))
                   return (
-                    <div key={m.label} className="flex items-center justify-between py-2 px-3 rounded-xl" style={{ background: '#F8F9FA' }}>
+                    <div key={m.label} className="flex items-center justify-between py-2 px-3 rounded-xl" style={{ background: 'var(--bg-app)' }}>
                       <span className="text-sm text-gray-600">{m.label}</span>
                       <div className="flex items-center gap-2">
                         <div className="w-20 h-1.5 rounded-full bg-gray-200 overflow-hidden">
@@ -298,7 +298,7 @@ export default function ProfielPagina() {
                 <p className="text-sm font-medium text-gray-700 mb-4">Anonieme toelichtingen ({toelichtingen.length})</p>
                 <div className="flex flex-col gap-3">
                   {toelichtingen.map(c => (
-                    <div key={c.id} className="rounded-xl p-4" style={{ background: '#F8F9FA', borderLeft: '3px solid var(--mentaforce-primary)' }}>
+                    <div key={c.id} className="rounded-xl p-4" style={{ background: 'var(--bg-app)', borderLeft: '3px solid var(--mentaforce-primary)' }}>
                       <p className="text-sm text-gray-600 leading-relaxed">"{c.toelichting}"</p>
                       <p className="text-xs text-gray-400 mt-2">{new Date(c.created_at).toLocaleDateString('nl-BE')}</p>
                     </div>

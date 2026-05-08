@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__9d59ee9b-f13d-4b13-94f4-85338fafe7c7__list_projects",
+      "mcp__9d59ee9b-f13d-4b13-94f4-85338fafe7c7__list_tables",
+      "mcp__9d59ee9b-f13d-4b13-94f4-85338fafe7c7__list_migrations",
+      "mcp__9d59ee9b-f13d-4b13-94f4-85338fafe7c7__get_project",
+      "mcp__9d59ee9b-f13d-4b13-94f4-85338fafe7c7__get_project_url",
+      "mcp__9d59ee9b-f13d-4b13-94f4-85338fafe7c7__get_publishable_keys",
+      "mcp__9d59ee9b-f13d-4b13-94f4-85338fafe7c7__get_cost",
+      "mcp__9d59ee9b-f13d-4b13-94f4-85338fafe7c7__get_advisors",
+      "mcp__9d59ee9b-f13d-4b13-94f4-85338fafe7c7__list_extensions",
+      "mcp__9d59ee9b-f13d-4b13-94f4-85338fafe7c7__search_docs",
+      "mcp__9d59ee9b-f13d-4b13-94f4-85338fafe7c7__list_organizations",
+      "mcp__9d59ee9b-f13d-4b13-94f4-85338fafe7c7__get_organization",
+      "mcp__9d59ee9b-f13d-4b13-94f4-85338fafe7c7__list_branches",
+      "mcp__9d59ee9b-f13d-4b13-94f4-85338fafe7c7__generate_typescript_types",
+      "mcp__9d59ee9b-f13d-4b13-94f4-85338fafe7c7__get_logs",
+      "mcp__9d59ee9b-f13d-4b13-94f4-85338fafe7c7__list_edge_functions",
+      "mcp__9d59ee9b-f13d-4b13-94f4-85338fafe7c7__get_edge_function",
+      "mcp__ccd_session__mark_chapter",
+      "mcp__ccd_session__list_sessions",
+      "mcp__ccd_session__search_session_transcripts"
+    ]
+  }
+}

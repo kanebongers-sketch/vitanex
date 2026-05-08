@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 export const dynamic = 'force-dynamic'
 
@@ -33,19 +33,19 @@ async function cropToSquareJpeg(file: File, size: number): Promise<Blob> {
 type Sectie = 'profiel' | 'account' | 'notificaties' | 'privacy' | 'weergave' | 'data' | 'gevaar'
 
 const SECTIES: { id: Sectie; label: string; emoji: string; beschrijving: string }[] = [
-  { id: 'profiel', label: 'Profiel', emoji: '👤', beschrijving: 'Naam, foto en persoonlijke informatie' },
-  { id: 'account', label: 'Account & Beveiliging', emoji: '🔐', beschrijving: 'E-mail, wachtwoord en twee-factor' },
-  { id: 'notificaties', label: 'Notificaties', emoji: '🔔', beschrijving: 'Herinneringen en meldingen beheren' },
-  { id: 'privacy', label: 'Privacy', emoji: '🛡️', beschrijving: 'Anonimiteit en zichtbaarheidsinstellingen' },
-  { id: 'weergave', label: 'Weergave', emoji: '🎨', beschrijving: 'Taal, thema en voorkeuren' },
-  { id: 'data', label: 'Mijn gegevens', emoji: '📊', beschrijving: 'Exporteer of bekijk je data' },
-  { id: 'gevaar', label: 'Gevarenzone', emoji: '⚠️', beschrijving: 'Account verwijderen of uitloggen' },
+  { id: 'profiel', label: 'Profiel', emoji: '??', beschrijving: 'Naam, foto en persoonlijke informatie' },
+  { id: 'account', label: 'Account & Beveiliging', emoji: '??', beschrijving: 'E-mail, wachtwoord en twee-factor' },
+  { id: 'notificaties', label: 'Notificaties', emoji: '??', beschrijving: 'Herinneringen en meldingen beheren' },
+  { id: 'privacy', label: 'Privacy', emoji: '???', beschrijving: 'Anonimiteit en zichtbaarheidsinstellingen' },
+  { id: 'weergave', label: 'Weergave', emoji: '??', beschrijving: 'Taal, thema en voorkeuren' },
+  { id: 'data', label: 'Mijn gegevens', emoji: '??', beschrijving: 'Exporteer of bekijk je data' },
+  { id: 'gevaar', label: 'Gevarenzone', emoji: '??', beschrijving: 'Account verwijderen of uitloggen' },
 ]
 
 function Melding({ melding }: { melding: { type: 'success' | 'error'; tekst: string } }) {
   return (
     <p className="text-sm" style={{ color: melding.type === 'success' ? '#0F6E56' : '#A32D2D' }}>
-      {melding.type === 'success' ? '✓ ' : '✗ '}{melding.tekst}
+      {melding.type === 'success' ? '? ' : '? '}{melding.tekst}
     </p>
   )
 }
@@ -290,7 +290,7 @@ export default function Instellingen() {
   const wachtwoordSterkte = nieuwWachtwoord.length < 8 ? 0 : nieuwWachtwoord.length < 12 ? 1 : nieuwWachtwoord.length < 16 ? 2 : 3
 
   return (
-    <div className="min-h-screen" style={{ background: '#F8F9FA' }}>
+    <div className="min-h-screen" style={{ background: 'var(--bg-app)' }}>
       <Navbar />
       <main className="max-w-5xl mx-auto px-4 py-8">
 
@@ -344,10 +344,10 @@ export default function Instellingen() {
                   </div>
                   <div className="mt-1 pt-2 border-t border-gray-100 flex flex-col gap-1">
                     <Link href="/portaal" className="text-xs text-gray-400 hover:text-gray-600 transition flex items-center gap-1.5">
-                      <span>→</span> Ga naar portaal
+                      <span>?</span> Ga naar portaal
                     </Link>
                     <button onClick={uitloggen} className="text-xs text-red-400 hover:text-red-600 transition flex items-center gap-1.5 text-left">
-                      <span>→</span> Uitloggen
+                      <span>?</span> Uitloggen
                     </button>
                   </div>
                 </div>
@@ -357,7 +357,7 @@ export default function Instellingen() {
             {/* Main content */}
             <div className="flex-1 min-w-0 flex flex-col gap-5">
 
-              {/* ── PROFIEL ── */}
+              {/* -- PROFIEL -- */}
               {activeSectie === 'profiel' && (
                 <>
                   {/* Avatar */}
@@ -456,18 +456,18 @@ export default function Instellingen() {
                 </>
               )}
 
-              {/* ── ACCOUNT & BEVEILIGING ── */}
+              {/* -- ACCOUNT & BEVEILIGING -- */}
               {activeSectie === 'account' && (
                 <>
                   {/* Current account info */}
                   <section className="bg-white rounded-2xl border border-gray-200 p-6">
                     <h2 className="text-base font-semibold text-gray-900 mb-4">Accountoverzicht</h2>
                     <div className="grid grid-cols-2 gap-4">
-                      <div className="rounded-xl p-4 border border-gray-100" style={{ background: '#F8F9FA' }}>
+                      <div className="rounded-xl p-4 border border-gray-100" style={{ background: 'var(--bg-app)' }}>
                         <p className="text-xs text-gray-400 mb-1">Huidig e-mailadres</p>
-                        <p className="text-sm font-medium text-gray-800">{userEmail || '—'}</p>
+                        <p className="text-sm font-medium text-gray-800">{userEmail || '�'}</p>
                       </div>
-                      <div className="rounded-xl p-4 border border-gray-100" style={{ background: '#F8F9FA' }}>
+                      <div className="rounded-xl p-4 border border-gray-100" style={{ background: 'var(--bg-app)' }}>
                         <p className="text-xs text-gray-400 mb-1">Account aangemaakt</p>
                         <p className="text-sm font-medium text-gray-800">Via uitnodiging</p>
                       </div>
@@ -539,12 +539,12 @@ export default function Instellingen() {
                   <section className="bg-white rounded-2xl border border-gray-200 p-6">
                     <h2 className="text-base font-semibold text-gray-900 mb-1">Actieve sessies</h2>
                     <p className="text-xs text-gray-400 mb-4">Beheer apparaten waarop je bent ingelogd.</p>
-                    <div className="flex items-center justify-between p-4 rounded-xl border border-gray-100" style={{ background: '#F8F9FA' }}>
+                    <div className="flex items-center justify-between p-4 rounded-xl border border-gray-100" style={{ background: 'var(--bg-app)' }}>
                       <div className="flex items-center gap-3">
-                        <span className="text-2xl">💻</span>
+                        <span className="text-2xl">??</span>
                         <div>
                           <p className="text-sm font-medium text-gray-800">Huidige sessie</p>
-                          <p className="text-xs text-gray-400">Web browser · Actief nu</p>
+                          <p className="text-xs text-gray-400">Web browser � Actief nu</p>
                         </div>
                       </div>
                       <span className="text-xs font-medium px-2.5 py-1 rounded-full"
@@ -558,7 +558,7 @@ export default function Instellingen() {
                 </>
               )}
 
-              {/* ── NOTIFICATIES ── */}
+              {/* -- NOTIFICATIES -- */}
               {activeSectie === 'notificaties' && (
                 <>
                   <section className="bg-white rounded-2xl border border-gray-200 p-6">
@@ -614,12 +614,12 @@ export default function Instellingen() {
                 </>
               )}
 
-              {/* ── PRIVACY ── */}
+              {/* -- PRIVACY -- */}
               {activeSectie === 'privacy' && (
                 <>
                   <div className="rounded-2xl border p-4 flex items-start gap-3"
                     style={{ background: '#E1F5EE', borderColor: '#A3DECE' }}>
-                    <span className="text-xl mt-0.5">🛡️</span>
+                    <span className="text-xl mt-0.5">???</span>
                     <div>
                       <p className="text-sm font-semibold text-green-800 mb-1">Privacy-by-design</p>
                       <p className="text-xs leading-relaxed text-green-700">
@@ -641,12 +641,12 @@ export default function Instellingen() {
 
                   <section className="bg-white rounded-2xl border border-gray-200 p-6">
                     <h2 className="text-base font-semibold text-gray-900 mb-1">Persoonlijke tools</h2>
-                    <p className="text-xs text-gray-400 mb-2">Deze gegevens zijn altijd strikt privé.</p>
+                    <p className="text-xs text-gray-400 mb-2">Deze gegevens zijn altijd strikt priv�.</p>
                     <Toggle actief={privacyJournal} onChange={setPrivacyJournal}
                       label="Journal versleuteld opslaan"
                       beschrijving="Journaalentries worden versleuteld. Niet leesbaar voor MentaForce of HR." />
                     <Toggle actief={privacyCoach} onChange={setPrivacyCoach}
-                      label="Coach-gesprekken privé houden"
+                      label="Coach-gesprekken priv� houden"
                       beschrijving="AI-coachgesprekken worden niet gebruikt voor teamanalyses." />
                   </section>
 
@@ -682,16 +682,16 @@ export default function Instellingen() {
                 </>
               )}
 
-              {/* ── WEERGAVE ── */}
+              {/* -- WEERGAVE -- */}
               {activeSectie === 'weergave' && (
                 <>
                   <section className="bg-white rounded-2xl border border-gray-200 p-6">
                     <h2 className="text-base font-semibold text-gray-900 mb-4">Taal</h2>
                     <div className="grid grid-cols-3 gap-2.5">
                       {[
-                        { value: 'nl', label: '🇳🇱 Nederlands', sub: 'Standaard' },
-                        { value: 'fr', label: '🇫🇷 Français', sub: 'Binnenkort' },
-                        { value: 'en', label: '🇬🇧 English', sub: 'Binnenkort' },
+                        { value: 'nl', label: '???? Nederlands', sub: 'Standaard' },
+                        { value: 'fr', label: '???? Fran�ais', sub: 'Binnenkort' },
+                        { value: 'en', label: '???? English', sub: 'Binnenkort' },
                       ].map(l => (
                         <button key={l.value} onClick={() => setTaal(l.value)}
                           className="p-3 rounded-xl border text-left transition"
@@ -710,10 +710,10 @@ export default function Instellingen() {
                     <h2 className="text-base font-semibold text-gray-900 mb-4">Thema</h2>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                       {[
-                        { value: 'licht', label: '☀️ Licht', sub: 'Helder en fris' },
-                        { value: 'schemering', label: '🌅 Schemering', sub: 'Warm en rustig' },
-                        { value: 'donker', label: '🌙 Donker', sub: 'Voor \'s avonds' },
-                        { value: 'systeem', label: '💻 Systeem', sub: 'Volgt je OS' },
+                        { value: 'licht', label: '?? Licht', sub: 'Helder en fris' },
+                        { value: 'schemering', label: '?? Schemering', sub: 'Warm en rustig' },
+                        { value: 'donker', label: '?? Donker', sub: 'Voor \'s avonds' },
+                        { value: 'systeem', label: '?? Systeem', sub: 'Volgt je OS' },
                       ].map(t => (
                         <button key={t.value} onClick={() => setThema(t.value)}
                           className="p-3 rounded-xl border text-left transition"
@@ -755,7 +755,7 @@ export default function Instellingen() {
                 </>
               )}
 
-              {/* ── DATA ── */}
+              {/* -- DATA -- */}
               {activeSectie === 'data' && (
                 <>
                   <section className="bg-white rounded-2xl border border-gray-200 p-6">
@@ -763,17 +763,17 @@ export default function Instellingen() {
                     <p className="text-xs text-gray-400 mb-5">Een overzicht van de gegevens die MentaForce over jou bijhoudt.</p>
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                       {[
-                        { label: 'Check-ins', icon: '✅', kleur: '#1D9E75', bg: '#E1F5EE' },
-                        { label: 'Journal entries', icon: '📓', kleur: '#378ADD', bg: '#E6F1FB' },
-                        { label: 'Coach-gesprekken', icon: '🧠', kleur: '#8B5CF6', bg: '#EEEDFE' },
-                        { label: 'Gewoonte logs', icon: '🎯', kleur: '#BA7517', bg: '#FAEEDA' },
-                        { label: 'Teamberichten', icon: '💬', kleur: '#E24B4A', bg: '#FCEBEB' },
-                        { label: 'Profiel data', icon: '👤', kleur: '#6b7280', bg: '#F3F4F6' },
+                        { label: 'Check-ins', icon: '?', kleur: '#1D9E75', bg: '#E1F5EE' },
+                        { label: 'Journal entries', icon: '??', kleur: '#378ADD', bg: '#E6F1FB' },
+                        { label: 'Coach-gesprekken', icon: '??', kleur: '#8B5CF6', bg: '#EEEDFE' },
+                        { label: 'Gewoonte logs', icon: '??', kleur: '#BA7517', bg: '#FAEEDA' },
+                        { label: 'Teamberichten', icon: '??', kleur: '#E24B4A', bg: '#FCEBEB' },
+                        { label: 'Profiel data', icon: '??', kleur: '#6b7280', bg: '#F3F4F6' },
                       ].map(d => (
                         <div key={d.label} className="rounded-xl p-4 border border-gray-100" style={{ background: d.bg }}>
                           <span className="text-2xl block mb-2">{d.icon}</span>
                           <p className="text-sm font-medium" style={{ color: d.kleur }}>{d.label}</p>
-                          <p className="text-xs text-gray-500">Privé & versleuteld</p>
+                          <p className="text-xs text-gray-500">Priv� & versleuteld</p>
                         </div>
                       ))}
                     </div>
@@ -786,12 +786,12 @@ export default function Instellingen() {
                       <button
                         onClick={() => alert('Export aangevraagd. Je ontvangt een e-mail met de downloadlink.')}
                         className="flex items-center gap-2 border border-gray-200 rounded-xl px-5 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition">
-                        <span>⬇️</span> Check-in data exporteren
+                        <span>??</span> Check-in data exporteren
                       </button>
                       <button
                         onClick={() => alert('Export aangevraagd. Je ontvangt een e-mail met de downloadlink.')}
                         className="flex items-center gap-2 border border-gray-200 rounded-xl px-5 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition">
-                        <span>⬇️</span> Volledige data exporteren
+                        <span>??</span> Volledige data exporteren
                       </button>
                     </div>
                   </section>
@@ -801,13 +801,13 @@ export default function Instellingen() {
                     <p className="text-xs text-gray-400 mb-4">Je hebt het recht om al je persoonlijke gegevens in te zien, te corrigeren of te laten verwijderen.</p>
                     <a href="mailto:info@mentaforce.nl?subject=AVG-verzoek"
                       className="inline-flex items-center gap-2 border border-gray-200 rounded-xl px-5 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition">
-                      <span>✉️</span> AVG-verzoek indienen
+                      <span>??</span> AVG-verzoek indienen
                     </a>
                   </section>
                 </>
               )}
 
-              {/* ── GEVARENZONE ── */}
+              {/* -- GEVARENZONE -- */}
               {activeSectie === 'gevaar' && (
                 <>
                   <section className="bg-white rounded-2xl border border-gray-200 p-6">
@@ -826,7 +826,7 @@ export default function Instellingen() {
 
                   <section className="bg-white rounded-2xl border border-red-100 p-6">
                     <div className="flex items-start gap-3 mb-4">
-                      <span className="text-xl">⚠️</span>
+                      <span className="text-xl">??</span>
                       <div>
                         <h2 className="text-base font-semibold text-red-600">Account verwijderen</h2>
                         <p className="text-xs text-gray-500 mt-0.5">
@@ -840,7 +840,7 @@ export default function Instellingen() {
                       <ul className="text-xs text-gray-500 space-y-1 ml-3">
                         {['Alle check-in antwoorden', 'Journal entries en notities', 'AI coach-gesprekken', 'Gewoonte-logs', 'Profielfoto en persoonlijke info'].map(i => (
                           <li key={i} className="flex items-center gap-2">
-                            <span className="text-red-400">✗</span> {i}
+                            <span className="text-red-400">?</span> {i}
                           </li>
                         ))}
                       </ul>

@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 export const dynamic = 'force-dynamic'
 
@@ -10,30 +10,30 @@ type Stap = 'type' | 'info' | 'account' | 'bevestig'
 type GebruikerType = 'werknemer' | 'hr' | 'zelfstandige'
 
 const VOORDELEN_WERKNEMER = [
-  { icon: '📊', tekst: 'Zie je eigen vitaliteitsverloop over tijd' },
-  { icon: '🧠', tekst: 'AI-coach beschikbaar voor persoonlijk advies' },
-  { icon: '📓', tekst: 'Privé journal voor reflectie en notities' },
-  { icon: '🔒', tekst: 'Volledig anoniem tegenover je werkgever' },
-  { icon: '🎯', tekst: 'Gewoontetracker met dagelijkse streaks' },
-  { icon: '🫁', tekst: 'Focus- en hersteltools voor op het werk' },
+  { icon: '??', tekst: 'Zie je eigen vitaliteitsverloop over tijd' },
+  { icon: '??', tekst: 'AI-coach beschikbaar voor persoonlijk advies' },
+  { icon: '??', tekst: 'Priv� journal voor reflectie en notities' },
+  { icon: '??', tekst: 'Volledig anoniem tegenover je werkgever' },
+  { icon: '??', tekst: 'Gewoontetracker met dagelijkse streaks' },
+  { icon: '??', tekst: 'Focus- en hersteltools voor op het werk' },
 ]
 
 const VOORDELEN_HR = [
-  { icon: '📈', tekst: 'Realtime welzijnsdata van je hele team' },
-  { icon: '⚡', tekst: 'Vroege signalen bij burn-out risicos' },
-  { icon: '🤖', tekst: 'AI-inzichten en concrete HR-adviezen' },
-  { icon: '📋', tekst: 'Anonieme pulse surveys met templates' },
-  { icon: '📊', tekst: 'Exporteerbare rapporten voor management' },
-  { icon: '🔒', tekst: 'Privacy-by-design - AVG-conform' },
+  { icon: '??', tekst: 'Realtime welzijnsdata van je hele team' },
+  { icon: '?', tekst: 'Vroege signalen bij burn-out risicos' },
+  { icon: '??', tekst: 'AI-inzichten en concrete HR-adviezen' },
+  { icon: '??', tekst: 'Anonieme pulse surveys met templates' },
+  { icon: '??', tekst: 'Exporteerbare rapporten voor management' },
+  { icon: '??', tekst: 'Privacy-by-design - AVG-conform' },
 ]
 
 const VOORDELEN_ZELFSTANDIGE = [
-  { icon: '📊', tekst: 'Persoonlijk vitaliteitsdashboard' },
-  { icon: '🧠', tekst: 'AI-coach voor welzijn en productiviteit' },
-  { icon: '🔥', tekst: 'Burn-out scan en vroege signalen' },
-  { icon: '📓', tekst: 'Journal en reflectietools' },
-  { icon: '🎯', tekst: 'Gewoontetracker en focus timers' },
-  { icon: '📈', tekst: 'Persoonlijke trendanalyse over tijd' },
+  { icon: '??', tekst: 'Persoonlijk vitaliteitsdashboard' },
+  { icon: '??', tekst: 'AI-coach voor welzijn en productiviteit' },
+  { icon: '??', tekst: 'Burn-out scan en vroege signalen' },
+  { icon: '??', tekst: 'Journal en reflectietools' },
+  { icon: '??', tekst: 'Gewoontetracker en focus timers' },
+  { icon: '??', tekst: 'Persoonlijke trendanalyse over tijd' },
 ]
 
 function StapIndicator({ stap, huidig }: { stap: Stap; huidig: Stap }) {
@@ -147,7 +147,7 @@ export default function Register() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: '#F8F9FA', fontFamily: 'var(--font-geist-sans)' }}>
+    <div className="min-h-screen flex flex-col" style={{ background: 'var(--bg-app)', fontFamily: 'var(--font-geist-sans)' }}>
 
       {/* Header */}
       <header className="w-full bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between">
@@ -185,21 +185,21 @@ export default function Register() {
                   {[
                     {
                       id: 'werknemer' as GebruikerType,
-                      icon: '👤',
+                      icon: '??',
                       titel: 'Werknemer',
                       beschrijving: 'Ik wil mijn eigen welzijn bijhouden en persoonlijke tools gebruiken.',
                       badge: null,
                     },
                     {
                       id: 'hr' as GebruikerType,
-                      icon: '📊',
+                      icon: '??',
                       titel: 'HR-manager of leidinggevende',
                       beschrijving: 'Ik wil het welzijn van mijn team monitoren en HR-inzichten ontvangen.',
                       badge: 'Populairste keuze',
                     },
                     {
                       id: 'zelfstandige' as GebruikerType,
-                      icon: '💼',
+                      icon: '??',
                       titel: 'Zelfstandige of freelancer',
                       beschrijving: 'Ik werk voor mezelf en wil burn-out voorkomen en mijn energie bewaken.',
                       badge: null,
@@ -476,7 +476,7 @@ export default function Register() {
               <div className="text-center py-8">
                 <div className="w-24 h-24 rounded-full flex items-center justify-center text-5xl mx-auto mb-8"
                   style={{ background: '#E1F5EE' }}>
-                  📬
+                  ??
                 </div>
                 <h1 className="text-3xl font-extrabold text-gray-900 mb-3 tracking-tight">Bevestig je e-mail</h1>
                 <p className="text-gray-500 mb-2 text-base leading-relaxed">
@@ -577,7 +577,7 @@ export default function Register() {
 
               <div className="rounded-2xl border p-5" style={{ borderColor: 'rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.03)' }}>
                 <div className="flex gap-1 mb-3">
-                  {[1, 2, 3, 4, 5].map(i => <span key={i} className="text-yellow-400 text-sm">★</span>)}
+                  {[1, 2, 3, 4, 5].map(i => <span key={i} className="text-yellow-400 text-sm">?</span>)}
                 </div>
                 <p className="text-sm leading-relaxed mb-4" style={{ color: 'rgba(255,255,255,0.55)' }}>
                   {type === 'hr'

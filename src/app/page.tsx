@@ -1,4 +1,4 @@
-ï»¿'use client'
+'use client'
 
 import { useState } from 'react'
 import Link from 'next/link'
@@ -84,7 +84,7 @@ function MockDashboard() {
         </div>
       </div>
 
-      <div className="p-5" style={{ background: '#F8F9FA' }}>
+      <div className="p-5" style={{ background: 'var(--bg-app)' }}>
         <div className="flex items-center justify-between mb-4">
           <div>
             <p className="text-sm font-bold text-gray-900">HR-dashboard</p>
@@ -299,7 +299,7 @@ export default function LandingPage() {
       </section>
 
       {/* FEATURE GRID */}
-      <section style={{ background: '#F8F9FA' }} className="py-28">
+      <section style={{ background: 'var(--bg-app)' }} className="py-28">
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
           <div className="text-center mb-20">
             <h2 className="text-4xl lg:text-5xl font-extrabold text-gray-900 mb-5 tracking-tight">
@@ -309,7 +309,7 @@ export default function LandingPage() {
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-5">
             {[
-              { afk: 'CI', kleur: '#1D9E75', bg: '#E1F5EE', label: 'Wekelijkse check-in', sub: '1 minuut Â· 12 metrics' },
+              { afk: 'CI', kleur: '#1D9E75', bg: '#E1F5EE', label: 'Wekelijkse check-in', sub: '1 minuut · 12 metrics' },
               { afk: 'AI', kleur: '#378ADD', bg: '#E6F1FB', label: 'Welzijnscoach', sub: '24/7 beschikbaar' },
               { afk: 'J',  kleur: '#8B5CF6', bg: '#EEEDFE', label: 'Persoonlijk journal', sub: 'Reflectie en inzicht' },
               { afk: 'F',  kleur: '#1D9E75', bg: '#E1F5EE', label: 'Focus en herstel', sub: 'Ademhaling en timers' },
@@ -358,7 +358,7 @@ export default function LandingPage() {
       </section>
 
       {/* PRICING */}
-      <section id="prijzen" style={{ background: '#F8F9FA' }} className="py-28">
+      <section id="prijzen" style={{ background: 'var(--bg-app)' }} className="py-28">
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
           <div className="text-center mb-20">
             <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: '#1D9E75' }}>Prijzen</p>
@@ -404,7 +404,7 @@ export default function LandingPage() {
                 )}
                 <p className="text-xs font-bold text-gray-400 mb-3 uppercase tracking-widest">{p.naam}</p>
                 <div className="flex items-baseline gap-1 mb-1">
-                  {p.prijs !== 'Op maat' && <span className="text-xl font-bold text-gray-500">â‚¬</span>}
+                  {p.prijs !== 'Op maat' && <span className="text-xl font-bold text-gray-500">€</span>}
                   <p className="font-black text-gray-900 tracking-tight" style={{ fontSize: '3rem' }}>{p.prijs}</p>
                 </div>
                 {p.per && <p className="text-xs text-gray-400 mb-0.5">{p.per}</p>}
@@ -453,7 +453,7 @@ export default function LandingPage() {
             ].map(t => (
               <div key={t.naam} className="rounded-3xl border border-gray-100 p-8 hover:shadow-xl transition-all duration-300">
                 <div className="flex gap-1 mb-6">
-                  {[1, 2, 3, 4, 5].map(i => <span key={i} className="text-yellow-400 text-xl">â˜…</span>)}
+                  {[1, 2, 3, 4, 5].map(i => <span key={i} className="text-yellow-400 text-xl">?</span>)}
                 </div>
                 <p className="text-gray-600 leading-relaxed mb-8 text-base">{t.quote}</p>
                 <div className="flex items-center gap-3">
@@ -511,7 +511,7 @@ export default function LandingPage() {
               <span className="text-white text-xs font-bold">M</span>
             </div>
             <span className="font-bold text-white">MentaForce</span>
-            <span className="mx-1" style={{ color: 'rgba(255,255,255,0.1)' }}>Â·</span>
+            <span className="mx-1" style={{ color: 'rgba(255,255,255,0.1)' }}>·</span>
             <span className="text-xs" style={{ color: 'rgba(255,255,255,0.18)' }}>Vitaliteit op de werkplek</span>
           </div>
           <div className="flex items-center gap-6 text-xs flex-wrap justify-center"
@@ -521,7 +521,7 @@ export default function LandingPage() {
             <Link href="/register" className="transition hover:text-white/50">Registreren</Link>
             <Link href="/login" className="transition hover:text-white/50">Inloggen</Link>
           </div>
-          <p className="text-xs" style={{ color: 'rgba(255,255,255,0.18)' }}>Â© 2025 MentaForce Â· Gemaakt in Nederland ðŸ‡³ðŸ‡±</p>
+          <p className="text-xs" style={{ color: 'rgba(255,255,255,0.18)' }}>© 2025 MentaForce · Gemaakt in Nederland ????</p>
         </div>
       </footer>
     </div>

@@ -161,7 +161,7 @@ function KoppelingenInhoud() {
         </div>
 
         {/* Fitbit */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-5 mb-4" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+        <div className="bg-white rounded-2xl border border-gray-100 p-5 mb-4" style={{ boxShadow: 'var(--shadow-sm)' }}>
           <div className="flex items-start justify-between mb-3">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl" style={{ background: '#00B0B9' }}>⌚</div>
@@ -194,7 +194,7 @@ function KoppelingenInhoud() {
         </div>
 
         {/* Google Calendar */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-5 mb-4" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+        <div className="bg-white rounded-2xl border border-gray-100 p-5 mb-4" style={{ boxShadow: 'var(--shadow-sm)' }}>
           <div className="flex items-start justify-between mb-3">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl" style={{ background: '#EA4335' }}>📅</div>
@@ -242,7 +242,7 @@ function KoppelingenInhoud() {
         </div>
 
         {/* Microsoft Outlook — binnenkort */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-5 mb-4 opacity-60" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+        <div className="bg-white rounded-2xl border border-gray-100 p-5 mb-4 opacity-60" style={{ boxShadow: 'var(--shadow-sm)' }}>
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl" style={{ background: '#0078D4' }}>📧</div>
             <div className="flex-1">
@@ -254,7 +254,7 @@ function KoppelingenInhoud() {
         </div>
 
         {/* Apple Health */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-5 mb-4 opacity-60" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+        <div className="bg-white rounded-2xl border border-gray-100 p-5 mb-4 opacity-60" style={{ boxShadow: 'var(--shadow-sm)' }}>
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl" style={{ background: '#FF2D55' }}>🍎</div>
             <div className="flex-1">
@@ -285,7 +285,7 @@ function KoppelingenInhoud() {
 
 export default function KoppelingenPage() {
   return (
-    <div className="min-h-screen" style={{ background: '#F8F9FA' }}>
+    <div className="min-h-screen" style={{ background: 'var(--bg-app)' }}>
       <Navbar />
       <Suspense fallback={
         <div className="flex items-center justify-center py-20">

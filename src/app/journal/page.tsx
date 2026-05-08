@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 export const dynamic = 'force-dynamic'
 
@@ -15,11 +15,11 @@ type Entry = {
 }
 
 const STEMMINGEN = [
-  { waarde: 1, emoji: '😞', label: 'Slecht' },
-  { waarde: 2, emoji: '😕', label: 'Matig' },
-  { waarde: 3, emoji: '😐', label: 'Oké' },
-  { waarde: 4, emoji: '🙂', label: 'Goed' },
-  { waarde: 5, emoji: '😊', label: 'Super' },
+  { waarde: 1, emoji: '??', label: 'Slecht' },
+  { waarde: 2, emoji: '??', label: 'Matig' },
+  { waarde: 3, emoji: '??', label: 'Ok�' },
+  { waarde: 4, emoji: '??', label: 'Goed' },
+  { waarde: 5, emoji: '??', label: 'Super' },
 ]
 
 const PROMPTS = [
@@ -92,14 +92,14 @@ export default function JournalPagina() {
   }
 
   return (
-    <div className="min-h-screen" style={{ background: '#F8F9FA' }}>
+    <div className="min-h-screen" style={{ background: 'var(--bg-app)' }}>
       <Navbar />
       <main className="max-w-2xl mx-auto p-6">
 
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-2xl font-medium text-gray-900">Gedachten dump</h1>
-            <p className="text-gray-500 text-sm mt-0.5">Schrijf vrij — alleen zichtbaar voor jou.</p>
+            <p className="text-gray-500 text-sm mt-0.5">Schrijf vrij � alleen zichtbaar voor jou.</p>
           </div>
           <button
             onClick={() => setNieuwTonen(true)}
@@ -182,7 +182,7 @@ export default function JournalPagina() {
           </div>
         ) : entries.length === 0 ? (
           <div className="bg-white rounded-2xl border border-gray-200 p-12 text-center">
-            <p className="text-4xl mb-3">📓</p>
+            <p className="text-4xl mb-3">??</p>
             <p className="text-gray-700 font-medium mb-1">Nog geen aantekeningen</p>
             <p className="text-gray-400 text-sm">Schrijf je eerste gedachten neer. Het helpt echt.</p>
           </div>
@@ -191,7 +191,7 @@ export default function JournalPagina() {
             {entries.map(e => {
               const s = STEMMINGEN.find(m => m.waarde === e.stemming)
               const isOpen = uitgevouwen === e.id
-              const preview = e.inhoud.length > 140 ? e.inhoud.slice(0, 140) + '…' : e.inhoud
+              const preview = e.inhoud.length > 140 ? e.inhoud.slice(0, 140) + '�' : e.inhoud
               return (
                 <div key={e.id} className="bg-white rounded-2xl border border-gray-200 p-5">
                   <div className="flex items-start justify-between gap-3 mb-2">
@@ -204,7 +204,7 @@ export default function JournalPagina() {
                       className="text-gray-300 hover:text-red-400 transition text-xs"
                       title="Verwijder"
                     >
-                      ✕
+                      ?
                     </button>
                   </div>
                   <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
