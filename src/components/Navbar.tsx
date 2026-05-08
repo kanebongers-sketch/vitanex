@@ -1,233 +1,117 @@
 'use client'
 
+import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
-import { useEffect, useState, useRef } from 'react'
-import { Avatar } from '@/components/Avatar'
-import { LogoIcon } from '@/components/Logo'
+import { DEFAULT_TILES, getTileDef, type TileId } from '@/lib/tiles'
 
-type Profiel = {
-  id: string
-  naam: string
-  rol: string
-  bedrijf_id: string | null
-  avatar_url: string | null
-}
+/* ── Types ── */
+type Profiel = { id: string; naam: string; rol: string; bedrijf_id: string | null }
+type NavItem = { href: string; label: string; icon: React.ReactNode; exact?: boolean }
+type NavSection = { label: string; items: NavItem[] }
 
-type SimRol = 'hr' | 'medewerker'
-const BEKIJK_ALS_KEY = 'mentaforce_admin_view_as'
-
-const ACCENT: Record<string, string> = {
-  admin:      '#8B5CF6',
-  hr:         '#185FA5',
-  medewerker: '#1D9E75',
-}
-
-const PAGE_TITLES: Record<string, string> = {
-  '/home':         'Home',
-  '/portaal':      'Mijn portaal',
-  '/checkin':      'Check-in',
-  '/coach':        'AI Coach',
-  '/chat':         'Berichten',
-  '/journal':      'Journal',
-  '/burnout':      'Burn-out scan',
-  '/surveys':      'Surveys',
-  '/focus':        'Focus & Herstel',
-  '/mijn-rapport': 'Mijn rapport',
-  '/doelen':       'Doelen',
-  '/uitdagingen':  'Uitdagingen',
-  '/dashboard':    'HR Dashboard',
-  '/team':         'Team',
-  '/rapport':      'Rapporten',
-  '/admin':        'Admin',
-  '/instellingen': 'Instellingen',
-  '/hr':           'HR Instellingen',
-  '/hr/portaal':   'Portaal inrichten',
-  '/hr/protocollen': 'Protocollen',
-  '/koppelingen':  'Koppelingen',
-  '/verlof':       'Verlof',
-  '/uren':         'Urenregistratie',
-  '/declaraties':  'Declaraties',
-  '/loonstroken':  'Loonstroken',
-  '/nieuws':       'Bedrijfsnieuws',
-  '/directory':    'Medewerkersgids',
-}
-
-/* ── User menu ────────────────────────────────────────────── */
-function UserMenu({ profiel, onUitloggen, accent }: { profiel: Profiel; onUitloggen: () => void; accent: string }) {
-  const [open, setOpen] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    if (!open) return
-    const h = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false) }
-    document.addEventListener('mousedown', h)
-    return () => document.removeEventListener('mousedown', h)
-  }, [open])
-
-  const rolLabel = profiel.rol === 'admin' ? 'Administrator' : profiel.rol === 'hr' ? 'HR Manager' : 'Medewerker'
-
+/* ── Icoon helpers ── */
+function Ico({ d, size = 16 }: { d: string | string[]; size?: number }) {
   return (
-    <div ref={ref} className="relative">
-      <button
-        onClick={() => setOpen(o => !o)}
-        className="flex-shrink-0 transition-opacity hover:opacity-80 active:opacity-60"
-        aria-label="Gebruikersmenu"
-        aria-expanded={open}
-      >
-        <Avatar naam={profiel.naam || 'G'} avatarUrl={profiel.avatar_url} size={34} />
-      </button>
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      {(Array.isArray(d) ? d : [d]).map((p, i) => <path key={i} d={p} />)}
+    </svg>
+  )
+}
 
-      {open && (
-        <div
-          className="absolute top-full right-0 mt-2 rounded-2xl py-1.5 z-50"
-          style={{
-            background: 'var(--bg-card, white)',
-            border: '1px solid var(--border)',
-            boxShadow: 'var(--shadow-lg)',
-            minWidth: 200,
-            animation: 'mf-scale-in 0.18s cubic-bezier(0.16,1,0.3,1)',
-            transformOrigin: 'top right',
-          }}
-        >
-          {/* User info */}
-          <div className="px-4 py-3" style={{ borderBottom: '1px solid var(--border)' }}>
-            <p className="text-sm font-semibold" style={{ color: 'var(--text-1)' }}>{profiel.naam}</p>
-            <p className="text-xs mt-0.5 font-medium" style={{ color: accent }}>{rolLabel}</p>
-          </div>
-
-          {/* Links */}
-          <div className="py-1">
-            <Link
-              href="/instellingen"
-              onClick={() => setOpen(false)}
-              className="flex items-center gap-3 px-4 py-2.5 text-sm transition-colors rounded-lg mx-1.5"
-              style={{ color: 'var(--text-2)' }}
-              onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-subtle)')}
-              onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-            >
-              <span className="text-base">⚙️</span>
-              <span>Instellingen</span>
-            </Link>
-            <Link
-              href="/portaal"
-              onClick={() => setOpen(false)}
-              className="flex items-center gap-3 px-4 py-2.5 text-sm transition-colors rounded-lg mx-1.5"
-              style={{ color: 'var(--text-2)' }}
-              onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-subtle)')}
-              onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-            >
-              <span className="text-base">📊</span>
-              <span>Mijn portaal</span>
-            </Link>
-          </div>
-
-          <div style={{ height: 1, background: 'var(--border)', margin: '4px 12px' }} />
-
-          <div className="py-1">
-            <button
-              onClick={() => { setOpen(false); onUitloggen() }}
-              className="w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors rounded-lg mx-1.5 text-left"
-              style={{ color: '#E24B4A', width: 'calc(100% - 12px)' }}
-              onMouseEnter={e => (e.currentTarget.style.background = '#FEF2F2')}
-              onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-            >
-              <span className="text-base">🚪</span>
-              <span>Uitloggen</span>
-            </button>
-          </div>
-        </div>
-      )}
+/* ── Sidebar nav-sectie ── */
+function NavSection({ section, pathname, accent, hover }: {
+  section: NavSection; pathname: string; accent: string; hover: string
+}) {
+  return (
+    <div style={{ marginBottom: 2 }}>
+      <p style={{
+        fontSize: 9, fontWeight: 700, textTransform: 'uppercase',
+        letterSpacing: '0.12em', color: hover,
+        padding: '10px 14px 5px',
+      }}>{section.label}</p>
+      {section.items.map(item => {
+        const active = item.exact
+          ? pathname === item.href
+          : pathname === item.href || pathname.startsWith(item.href + '/')
+        return (
+          <Link key={item.href} href={item.href} style={{
+            display: 'flex', alignItems: 'center', gap: 9,
+            padding: '7px 10px', margin: '1px 8px', borderRadius: 7,
+            background: active ? accent + '22' : 'transparent',
+            color: active ? accent : hover,
+            fontSize: 13, fontWeight: active ? 600 : 400,
+            textDecoration: 'none', transition: 'background 0.12s, color 0.12s',
+          }}>
+            <span style={{ color: active ? accent : hover, display: 'flex', flexShrink: 0 }}>
+              {item.icon}
+            </span>
+            {item.label}
+          </Link>
+        )
+      })}
     </div>
   )
 }
 
-/* ── Tab bar ──────────────────────────────────────────────── */
-type Tab = { href: string; emoji: string; label: string; badge?: number }
-
-function TabBar({ tabs, pad, accent }: { tabs: Tab[]; pad: string; accent: string }) {
-  return (
-    <nav
-      className="fixed bottom-0 left-0 right-0 z-50"
-      style={{
-        background: 'var(--bg-card, white)',
-        borderTop: '1px solid var(--border)',
-        boxShadow: '0 -4px 24px rgba(0,0,0,0.06)',
-      }}
-    >
-      <div className="flex items-stretch max-w-lg mx-auto">
-        {tabs.map(tab => {
-          const isActive = pad === tab.href || (tab.href !== '/home' && pad.startsWith(tab.href + '/'))
-          return (
-            <Link
-              key={tab.href}
-              href={tab.href}
-              className="flex-1 flex flex-col items-center justify-center gap-1 py-2 relative transition-all active:opacity-60"
-              style={{ minHeight: 58 }}
-            >
-              {/* Active indicator pill */}
-              {isActive && (
-                <span
-                  className="absolute top-0 left-1/2 -translate-x-1/2 rounded-full"
-                  style={{ width: 28, height: 3, background: accent, borderRadius: '0 0 3px 3px' }}
-                />
-              )}
-
-              {/* Unread badge */}
-              {(tab.badge ?? 0) > 0 && (
-                <span
-                  className="absolute top-2.5 right-[calc(50%-18px)] min-w-[15px] h-[15px] px-1 rounded-full text-white flex items-center justify-center font-bold z-10"
-                  style={{ background: '#E24B4A', fontSize: 9 }}
-                >
-                  {(tab.badge ?? 0) > 9 ? '9+' : tab.badge}
-                </span>
-              )}
-
-              <span
-                className="text-2xl leading-none"
-                style={{
-                  opacity: isActive ? 1 : 0.35,
-                  transform: isActive ? 'scale(1.08)' : 'scale(1)',
-                  transition: 'all 0.2s cubic-bezier(0.16,1,0.3,1)',
-                }}
-              >
-                {tab.emoji}
-              </span>
-              <span
-                className="text-[10px] font-semibold leading-none tracking-tight"
-                style={{ color: isActive ? accent : 'var(--text-4, #9CA3AF)' }}
-              >
-                {tab.label}
-              </span>
-            </Link>
-          )
-        })}
-      </div>
-      <div style={{ height: 'env(safe-area-inset-bottom, 0px)', background: 'var(--bg-card, white)' }} />
-    </nav>
-  )
+/* ── Iconen per pagina ── */
+const I = {
+  home:    <Ico d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z M9 22V12h6v10" />,
+  check:   <Ico d="M9 12l2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />,
+  coach:   <Ico d="M9.663 17h4.673M12 3v1m6.364 1.636-.707.707M21 12h-1M4 12H3m3.343-5.657-.707-.707m2.828 9.9a5 5 0 1 1 7.072 0l-.548.547A3.374 3.374 0 0 0 14 18.469V19a2 2 0 1 1-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />,
+  rapport: <Ico d={['M9 19v-6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2zm0 0V9a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v10m-6 0a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2m0 0V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2z']} />,
+  doelen:  <Ico d="M9 12l2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />,
+  uitd:    <Ico d="M5 3l14 9-14 9V3z" />,
+  journal: <Ico d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />,
+  burnout: <Ico d="M17.657 18.657A8 8 0 0 1 6.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0 1 20 13a7.975 7.975 0 0 1-2.343 5.657z" />,
+  focus:   <Ico d={['M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0z', 'M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z']} />,
+  team:    <Ico d={['M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2', 'M23 21v-2a4 4 0 0 0-3-3.87', 'M9 7a4 4 0 1 0 8 0 4 4 0 0 0-8 0', 'M16 3.13a4 4 0 0 1 0 7.75']} />,
+  chart:   <Ico d="M23 6 13.5 15.5 8.5 10.5 1 18 M17 6h6v6" />,
+  prot:    <Ico d={['M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z', 'M14 2v6h6', 'M16 13H8', 'M16 17H8', 'M10 9H8']} />,
+  nieuws:  <Ico d={['M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 0-2 2zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2', 'M18 14h-8', 'M15 18h-5', 'M10 6h8v4h-8V6z']} />,
+  gear:    <Ico d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 0 0-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 0 0-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 0 0-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 0 0-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 0 0 1.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0z" />,
+  verlof:  <Ico d={['M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z']} />,
+  chat:    <Ico d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />,
+  back:    <Ico d="M19 12H5 M12 19l-7-7 7-7" />,
+  dash:    <Ico d={['M3 3h7v7H3z', 'M14 3h7v7h-7z', 'M14 14h7v7h-7z', 'M3 14h7v7H3z']} />,
+  logout:  <Ico d={['M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4', 'M16 17l5-5-5-5', 'M21 12H9']} />,
 }
 
-/* ── Main Navbar ──────────────────────────────────────────── */
+/* ── Sidebar breedte ── */
+export const SIDEBAR_W = 240
+
 export default function Navbar() {
   const router   = useRouter()
-  const pad      = usePathname()
-  const [profiel, setProfiel]     = useState<Profiel | null>(null)
-  const [ongelezen, setOngelezen] = useState(0)
-  const [bekijkAls, setBekijkAls] = useState<SimRol | null>(null)
+  const pathname = usePathname()
+  const [profiel, setProfiel]       = useState<Profiel | null>(null)
+  const [werkdagItems, setWerkdagItems] = useState<NavItem[]>([])
+  const [mobileOpen, setMobileOpen] = useState(false)
 
-  useEffect(() => {
-    setBekijkAls(localStorage.getItem(BEKIJK_ALS_KEY) as SimRol | null)
-  }, [pad])
-
+  /* laad user + portaal config */
   useEffect(() => {
     async function laad() {
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) { router.push('/login'); return }
+      if (!user) return
       const { data } = await supabase.from('profiles')
-        .select('naam, rol, bedrijf_id, avatar_url').eq('id', user.id).single()
-      if (data) setProfiel({ id: user.id, ...data })
+        .select('naam, rol, bedrijf_id').eq('id', user.id).single()
+      if (!data) return
+      setProfiel({ id: user.id, ...data })
+
+      if (data.bedrijf_id) {
+        const { data: config } = await supabase
+          .from('portaal_config').select('tiles').eq('bedrijf_id', data.bedrijf_id).single()
+        if (config?.tiles && Array.isArray(config.tiles)) {
+          const werkdagIds: TileId[] = ['verlof','uren','declaraties','loonstroken','nieuws','directory','protocollen','surveys']
+          const items: NavItem[] = (config.tiles as TileId[])
+            .filter(id => werkdagIds.includes(id))
+            .map(id => getTileDef(id))
+            .filter(Boolean)
+            .map(t => ({ href: t!.path, label: t!.label, icon: <span style={{ fontSize: 14 }}>{t!.icon}</span> }))
+          setWerkdagItems(items)
+        }
+      }
     }
     laad()
     const { data: { subscription } } = supabase.auth.onAuthStateChange(e => {
@@ -236,135 +120,234 @@ export default function Navbar() {
     return () => subscription.unsubscribe()
   }, [router])
 
+  /* body class voor sidebar offset */
   useEffect(() => {
-    if (!profiel?.bedrijf_id || !profiel?.id) return
-    const bid    = profiel.bedrijf_id
-    const mijnId = profiel.id
-    if (pad === '/chat') {
-      localStorage.setItem(`MentaForce_chat_seen_${bid}`, new Date().toISOString())
-      setOngelezen(0); return
-    }
-    let actief = true
-    ;(async () => {
-      try {
-        const { count } = await supabase.from('berichten')
-          .select('id', { count: 'exact', head: true })
-          .eq('bedrijf_id', bid).neq('user_id', mijnId)
-          .gt('aangemaakt_op', localStorage.getItem(`MentaForce_chat_seen_${bid}`) ?? '1970-01-01')
-        if (actief) setOngelezen(count ?? 0)
-      } catch { /* table may not exist yet */ }
-    })()
-    const ch = supabase.channel(`nav-${bid}`)
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'berichten', filter: `bedrijf_id=eq.${bid}` },
-        (p) => { if ((p.new as { user_id: string }).user_id !== mijnId && actief) setOngelezen(n => n + 1) })
-      .subscribe()
-    return () => { actief = false; supabase.removeChannel(ch) }
-  }, [profiel, pad])
+    document.body.classList.add('mf-has-sidebar')
+    return () => document.body.classList.remove('mf-has-sidebar')
+  }, [])
 
   async function uitloggen() {
-    localStorage.removeItem(BEKIJK_ALS_KEY)
     await supabase.auth.signOut()
     router.push('/login')
   }
 
-  const echteRol    = profiel?.rol ?? 'medewerker'
-  const isAdmin     = echteRol === 'admin'
-  const rol         = isAdmin && bekijkAls ? bekijkAls : echteRol
-  const accent      = ACCENT[rol] ?? ACCENT.medewerker
-  const isInPreview = isAdmin && !!bekijkAls
+  if (!profiel) return null
 
-  const tabs: Tab[] =
-    rol === 'admin' ? [
-      { href: '/admin',     emoji: '🛡️', label: 'Admin' },
-      { href: '/dashboard', emoji: '📊', label: 'Dashboard' },
-      { href: '/team',      emoji: '👥', label: 'Team' },
-      { href: '/chat',      emoji: '💬', label: 'Chat', badge: ongelezen },
-    ] : rol === 'hr' ? [
-      { href: '/home',    emoji: '🏠', label: 'Home' },
-      { href: '/team',    emoji: '👥', label: 'Team' },
-      { href: '/rapport', emoji: '📈', label: 'Rapporten' },
-      { href: '/hr',      emoji: '⚙️', label: 'Instellingen' },
-    ] : [
-      { href: '/home',    emoji: '🏠', label: 'Home' },
-      { href: '/checkin', emoji: '📋', label: 'Check-in' },
-      { href: '/coach',   emoji: '🧠', label: 'Coach' },
-      { href: '/chat',    emoji: '💬', label: 'Chat', badge: ongelezen },
-    ]
+  const rol    = profiel.rol
+  const isHr   = rol === 'hr' || rol === 'admin'
+  const isAdmin = rol === 'admin'
+  const naam   = profiel.naam ?? ''
 
-  const paginaTitel = PAGE_TITLES[pad] ?? 'MentaForce'
+  /* ── Kleurenschema per rol ── */
+  const ACCENT = '#1D9E75'
+  const DARK   = '#14151f'      // HR donker
+  const LIGHT  = '#FFFFFF'      // Werknemer licht
+  const bg     = isHr ? DARK : LIGHT
+  const border = isHr ? 'rgba(255,255,255,0.07)' : '#E5E7EB'
+  const text   = isHr ? 'rgba(255,255,255,0.6)' : '#4B5563'
+  const textMuted = isHr ? 'rgba(255,255,255,0.28)' : '#9CA3AF'
+  const nameTxt   = isHr ? 'rgba(255,255,255,0.88)' : '#111827'
+  const activeBg  = isHr ? ACCENT + '22' : '#F0FDF8'
+
+  /* ── Navigatie per rol ── */
+  const sections: NavSection[] = isHr ? [
+    {
+      label: 'Overzicht',
+      items: [
+        { href: '/hr',      label: 'Dashboard',  icon: I.dash,   exact: true },
+        { href: '/team',    label: 'Team',        icon: I.team },
+        { href: '/rapport', label: 'Rapporten',   icon: I.chart },
+      ],
+    },
+    {
+      label: 'Inrichten',
+      items: [
+        { href: '/hr/protocollen', label: 'Protocollen', icon: I.prot },
+        { href: '/nieuws',         label: 'Nieuws',       icon: I.nieuws },
+        { href: '/surveys',        label: 'Surveys',      icon: I.check },
+      ],
+    },
+    {
+      label: 'Beheren',
+      items: [
+        { href: '/verlof',      label: 'Verlof',      icon: I.verlof },
+        { href: '/loonstroken', label: 'Loonstroken', icon: I.rapport },
+        { href: '/directory',   label: 'Medewerkers', icon: I.team },
+      ],
+    },
+    ...(isAdmin ? [{
+      label: 'Admin',
+      items: [{ href: '/admin', label: 'Admin panel', icon: I.gear }],
+    }] : []),
+  ] : [
+    {
+      label: 'Vitaliteit',
+      items: [
+        { href: '/checkin',     label: 'Check-in',       icon: I.check },
+        { href: '/coach',       label: 'AI Coach',        icon: I.coach },
+        { href: '/rapport',     label: 'Mijn rapport',    icon: I.rapport },
+        { href: '/doelen',      label: 'Doelen',          icon: I.doelen },
+        { href: '/uitdagingen', label: 'Uitdagingen',     icon: I.uitd },
+        { href: '/journal',     label: 'Journal',         icon: I.journal },
+        { href: '/burnout',     label: 'Burn-out scan',   icon: I.burnout },
+        { href: '/focus',       label: 'Focus',           icon: I.focus },
+      ],
+    },
+    ...(werkdagItems.length > 0 ? [{
+      label: 'Werkdag',
+      items: werkdagItems,
+    }] : []),
+  ]
+
+  /* ── Sidebar content ── */
+  function SidebarContent() {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+
+        {/* Brand */}
+        <div style={{ padding: '18px 14px 14px', borderBottom: `1px solid ${border}`, display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{
+            width: 34, height: 34, borderRadius: 10, flexShrink: 0,
+            background: isHr ? 'rgba(29,158,117,0.25)' : 'linear-gradient(135deg,#1D9E75,#0d7a5a)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 17,
+          }}>🌿</div>
+          <div>
+            <p style={{ color: nameTxt, fontWeight: 700, fontSize: 13, lineHeight: 1.2 }}>MentaForce</p>
+            <p style={{ color: textMuted, fontSize: 10, marginTop: 1 }}>
+              {isHr ? 'HR Portaal' : 'Jouw portaal'}
+            </p>
+          </div>
+        </div>
+
+        {/* Home / dashboard link */}
+        <div style={{ padding: '8px 8px 0' }}>
+          <Link href={isHr ? '/hr' : '/home'} style={{
+            display: 'flex', alignItems: 'center', gap: 9,
+            padding: '8px 10px', borderRadius: 7,
+            background: (isHr ? pathname === '/hr' : pathname === '/home') ? activeBg : 'transparent',
+            color: (isHr ? pathname === '/hr' : pathname === '/home') ? ACCENT : text,
+            fontSize: 13, fontWeight: (isHr ? pathname === '/hr' : pathname === '/home') ? 600 : 500,
+            textDecoration: 'none', transition: 'background 0.12s',
+          }}>
+            <span style={{ color: (isHr ? pathname === '/hr' : pathname === '/home') ? ACCENT : textMuted, display: 'flex' }}>
+              {I.home}
+            </span>
+            {isHr ? 'Dashboard' : 'Home'}
+          </Link>
+        </div>
+
+        {/* Nav sections */}
+        <nav style={{ flex: 1, overflowY: 'auto', padding: '4px 8px', scrollbarWidth: 'none' }}>
+          {sections.map(s => (
+            <NavSection key={s.label} section={s} pathname={pathname} accent={ACCENT} hover={text} />
+          ))}
+        </nav>
+
+        {/* Bottom */}
+        <div style={{ padding: '8px', borderTop: `1px solid ${border}` }}>
+          {/* Chat */}
+          <Link href="/chat" style={{
+            display: 'flex', alignItems: 'center', gap: 9,
+            padding: '7px 10px', borderRadius: 7, marginBottom: 2,
+            background: pathname === '/chat' ? activeBg : 'transparent',
+            color: pathname === '/chat' ? ACCENT : text,
+            fontSize: 12, fontWeight: 500, textDecoration: 'none',
+          }}>
+            <span style={{ color: pathname === '/chat' ? ACCENT : textMuted, display: 'flex' }}>{I.chat}</span>
+            Berichten
+          </Link>
+
+          {/* Instellingen */}
+          <Link href="/instellingen" style={{
+            display: 'flex', alignItems: 'center', gap: 9,
+            padding: '7px 10px', borderRadius: 7, marginBottom: 2,
+            background: pathname === '/instellingen' ? activeBg : 'transparent',
+            color: pathname === '/instellingen' ? ACCENT : text,
+            fontSize: 12, fontWeight: 500, textDecoration: 'none',
+          }}>
+            <span style={{ color: pathname === '/instellingen' ? ACCENT : textMuted, display: 'flex' }}>{I.gear}</span>
+            Instellingen
+          </Link>
+
+          {/* Wissel (HR → portaal of medewerker → HR) */}
+          {isHr && (
+            <Link href="/home" style={{
+              display: 'flex', alignItems: 'center', gap: 9,
+              padding: '7px 10px', borderRadius: 7, marginBottom: 2,
+              color: textMuted, fontSize: 12, textDecoration: 'none',
+            }}>
+              <span style={{ display: 'flex' }}>{I.back}</span>
+              Werknemersportaal
+            </Link>
+          )}
+
+          {/* Naam + uitloggen */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px 2px', marginTop: 4, borderTop: `1px solid ${border}` }}>
+            <div style={{
+              width: 28, height: 28, borderRadius: '50%', flexShrink: 0,
+              background: ACCENT, display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 11, fontWeight: 700, color: 'white',
+            }}>{naam.slice(0, 1).toUpperCase()}</div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <p style={{ fontSize: 12, fontWeight: 600, color: nameTxt, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{naam.split(' ')[0]}</p>
+              <p style={{ fontSize: 10, color: textMuted }}>{isHr ? 'HR Manager' : 'Medewerker'}</p>
+            </div>
+            <button onClick={uitloggen} style={{ background: 'none', border: 'none', cursor: 'pointer', color: textMuted, padding: 2, display: 'flex' }}
+              title="Uitloggen">
+              {I.logout}
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <>
-      {/* Admin preview banner */}
-      {isInPreview && (
-        <div
-          className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 py-2"
-          style={{ background: '#1e1340', borderBottom: '1px solid #2d1f60' }}
-        >
-          <div className="flex items-center gap-2 min-w-0">
-            <span
-              className="text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0 tracking-wide uppercase"
-              style={{ background: '#8B5CF6', color: 'white' }}
-            >
-              Preview
-            </span>
-            <span className="text-xs text-gray-300 truncate">
-              Als <strong className="text-white">{bekijkAls === 'hr' ? 'HR' : 'Medewerker'}</strong>
-            </span>
-          </div>
-          <button
-            onClick={() => { localStorage.removeItem(BEKIJK_ALS_KEY); setBekijkAls(null); router.push('/admin') }}
-            className="text-xs font-semibold px-3 py-1.5 rounded-lg flex-shrink-0 transition"
-            style={{ background: 'rgba(139,92,246,0.25)', color: '#c4b5fd' }}
-          >
-            ← Terug naar Admin
-          </button>
+      {/* ── Desktop sidebar (altijd zichtbaar) ── */}
+      <aside className="hidden md:flex" style={{
+        position: 'fixed', left: 0, top: 0, bottom: 0,
+        width: SIDEBAR_W,
+        background: bg,
+        borderRight: `1px solid ${border}`,
+        zIndex: 40,
+        boxShadow: isHr ? 'none' : '2px 0 12px rgba(0,0,0,0.04)',
+        flexDirection: 'column',
+      }}>
+        <SidebarContent />
+      </aside>
+
+      {/* ── Mobile: hamburger + drawer ── */}
+      <div style={{
+        position: 'fixed', top: 0, left: 0, right: 0, height: 52,
+        background: bg, borderBottom: `1px solid ${border}`,
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '0 16px', zIndex: 30,
+      }} className="flex md:hidden">
+        <button onClick={() => setMobileOpen(o => !o)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: text }}>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" />
+          </svg>
+        </button>
+        <p style={{ color: nameTxt, fontWeight: 700, fontSize: 14 }}>MentaForce</p>
+        <div style={{ width: 28, height: 28, borderRadius: '50%', background: ACCENT, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: 'white' }}>
+          {naam.slice(0, 1).toUpperCase()}
         </div>
+      </div>
+
+      {/* ── Mobile drawer ── */}
+      {mobileOpen && (
+        <>
+          <div onClick={() => setMobileOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 45, background: 'rgba(0,0,0,0.4)' }} />
+          <aside style={{
+            position: 'fixed', left: 0, top: 0, bottom: 0, width: SIDEBAR_W,
+            background: bg, zIndex: 50,
+            display: 'flex', flexDirection: 'column',
+          }}>
+            <SidebarContent />
+          </aside>
+        </>
       )}
-
-      {/* Top bar */}
-      <header
-        className="sticky top-0 z-40"
-        style={{
-          background: 'var(--bg-card, white)',
-          borderBottom: '1px solid var(--border)',
-          borderTop: `3px solid ${accent}`,
-          marginTop: isInPreview ? 36 : 0,
-          boxShadow: 'var(--shadow-xs)',
-        }}
-      >
-        <div className="flex items-center px-4 py-3 gap-3 max-w-lg mx-auto">
-          {/* Logo */}
-          <Link
-            href={rol === 'medewerker' ? '/home' : rol === 'hr' ? '/dashboard' : '/admin'}
-            className="flex-shrink-0 transition-opacity hover:opacity-75"
-            aria-label="MentaForce home"
-          >
-            <LogoIcon size={32} />
-          </Link>
-
-          {/* Page title */}
-          <h1
-            className="flex-1 text-[15px] font-semibold truncate"
-            style={{ color: 'var(--text-1)', letterSpacing: '-0.01em' }}
-          >
-            {paginaTitel}
-          </h1>
-
-          {/* User menu */}
-          {profiel ? (
-            <UserMenu profiel={profiel} onUitloggen={uitloggen} accent={accent} />
-          ) : (
-            <div className="w-[34px] h-[34px] rounded-full bg-gray-100 animate-pulse flex-shrink-0" />
-          )}
-        </div>
-      </header>
-
-      {/* Bottom tab bar */}
-      <TabBar tabs={tabs} pad={pad} accent={accent} />
-
-      {/* Content spacer */}
-      <div style={{ height: 'calc(72px + env(safe-area-inset-bottom, 0px))' }} className="pointer-events-none" />
     </>
   )
 }

@@ -444,3 +444,18 @@ select:focus-visible {
 .mf-safe-bottom {
   padding-bottom: max(72px, calc(72px + env(safe-area-inset-bottom)));
 }
+
+/* ── Sidebar layout offset ───────────────────────────────── */
+/* Navbar injects this class on body when the sidebar is mounted */
+
+@media (min-width: 768px) {
+  body.mf-has-sidebar {
+    padding-left: 240px;
+  }
+}
+
+@media (max-width: 767px) {
+  body.mf-has-sidebar {
+    padding-top: 52px;
+  }
+}
