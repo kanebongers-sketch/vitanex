@@ -88,6 +88,7 @@ export default function Navbar() {
   const [profiel, setProfiel]       = useState<Profiel | null>(null)
   const [werkdagItems, setWerkdagItems] = useState<NavItem[]>([])
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [viewMode, setViewMode]     = useState<'hr' | 'employee'>('hr')
 
   /* laad user + portaal config */
   useEffect(() => {
@@ -98,6 +99,12 @@ export default function Navbar() {
         .select('naam, rol, bedrijf_id').eq('id', user.id).single()
       if (!data) return
       setProfiel({ id: user.id, ...data })
+
+      /* herstel opgeslagen view mode voor hr/admin */
+      if (data.rol === 'hr' || data.rol === 'admin') {
+        const saved = localStorage.getItem('mf-view-mode') as 'hr' | 'employee' | null
+        setViewMode(saved ?? 'hr')
+      }
 
       if (data.bedrijf_id) {
         const { data: config } = await supabase
@@ -131,12 +138,21 @@ export default function Navbar() {
     router.push('/login')
   }
 
+  function wisselView() {
+    const next = viewMode === 'hr' ? 'employee' : 'hr'
+    setViewMode(next)
+    localStorage.setItem('mf-view-mode', next)
+    router.push(next === 'hr' ? '/hr' : '/home')
+  }
+
   if (!profiel) return null
 
-  const rol    = profiel.rol
-  const isHr   = rol === 'hr' || rol === 'admin'
+  const rol     = profiel.rol
+  const kanWisselen = rol === 'hr' || rol === 'admin'
+  /* effectieve view: hr/admin kunnen wisselen, gewone werknemers altijd employee */
+  const isHr    = kanWisselen && viewMode === 'hr'
   const isAdmin = rol === 'admin'
-  const naam   = profiel.naam ?? ''
+  const naam    = profiel.naam ?? ''
 
   /* ── Kleurenschema per rol ── */
   const ACCENT = '#1D9E75'
@@ -214,7 +230,22 @@ export default function Navbar() {
           <div>
             <p style={{ color: nameTxt, fontWeight: 700, fontSize: 13, lineHeight: 1.2 }}>MentaForce</p>
             <p style={{ color: textMuted, fontSize: 10, marginTop: 1 }}>
-              {isHr ? 'HR Portaal' : 'Jouw portaal'}
+              {isHr ? 'HR Portaal' : 'Werknemersportaal'}
+              {kanWisselen && (
+                <span style={{
+                  marginLeft: 5,
+                  background: '#1D9E7520',
+                  color: '#1D9E75',
+                  borderRadius: 4,
+                  padding: '1px 5px',
+                  fontSize: 9,
+                  fontWeight: 700,
+                  letterSpacing: '0.05em',
+                  textTransform: 'uppercase',
+                }}>
+                  {isAdmin ? 'Admin' : 'HR'}
+                </span>
+              )}
             </p>
           </div>
         </div>
@@ -269,16 +300,23 @@ export default function Navbar() {
             Instellingen
           </Link>
 
-          {/* Wissel (HR → portaal of medewerker → HR) */}
-          {isHr && (
-            <Link href="/home" style={{
+          {/* View wisselen voor HR/admin */}
+          {kanWisselen && (
+            <button onClick={wisselView} style={{
               display: 'flex', alignItems: 'center', gap: 9,
               padding: '7px 10px', borderRadius: 7, marginBottom: 2,
-              color: textMuted, fontSize: 12, textDecoration: 'none',
+              width: '100%', border: 'none', cursor: 'pointer', textAlign: 'left',
+              background: isHr ? 'rgba(29,158,117,0.08)' : 'rgba(29,158,117,0.08)',
+              color: '#1D9E75', fontSize: 12, fontWeight: 500,
+              transition: 'background 0.12s',
             }}>
-              <span style={{ display: 'flex' }}>{I.back}</span>
-              Werknemersportaal
-            </Link>
+              <span style={{ display: 'flex', flexShrink: 0 }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M8 3 4 7l4 4"/><path d="M4 7h16"/><path d="m16 21 4-4-4-4"/><path d="M20 17H4"/>
+                </svg>
+              </span>
+              {isHr ? 'Naar werknemersportaal' : 'Naar HR portaal'}
+            </button>
           )}
 
           {/* Naam + uitloggen */}
