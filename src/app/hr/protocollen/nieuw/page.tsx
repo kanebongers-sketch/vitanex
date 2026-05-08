@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
-import Navbar from '@/components/Navbar'
+import HrShell from '@/components/HrShell'
 
 const CATEGORIEEN = [
   { value: 'algemeen', label: 'Algemeen', icon: '📋' },
@@ -65,9 +65,8 @@ export default function NieuwProtocolPage() {
   }
 
   return (
-    <div className="min-h-screen" style={{ background: 'var(--bg-app)' }}>
-      <Navbar />
-      <main className="max-w-2xl mx-auto px-4 py-6 mf-safe-bottom">
+    <HrShell>
+      <div style={{ maxWidth: 680 }}>
 
         <div className="mb-6">
           <div className="flex items-center gap-2 mb-1">
@@ -201,7 +200,7 @@ export default function NieuwProtocolPage() {
             </button>
           </div>
         </div>
-      </main>
-    </div>
+      </div>
+    </HrShell>
   )
 }

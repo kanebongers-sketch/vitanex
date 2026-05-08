@@ -6,77 +6,25 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
-import Navbar from '@/components/Navbar'
+import HrShell from '@/components/HrShell'
 import { ALLE_TILES, DEFAULT_TILES, type TileId } from '@/lib/tiles'
 
-type HrSectie = {
-  icon: string
-  titel: string
-  beschrijving: string
-  href: string
-  kleur: string
-  bg: string
-}
-
-const HR_SECTIES: HrSectie[] = [
-  {
-    icon: '📋',
-    titel: 'Protocollen beheren',
-    beschrijving: 'Voeg beleid en procedures toe, bewerk of verberg ze',
-    href: '/hr/protocollen',
-    kleur: '#92400E',
-    bg: '#FEF3C7',
-  },
-  {
-    icon: '📰',
-    titel: 'Nieuws plaatsen',
-    beschrijving: 'Bedrijfsberichten en aankondigingen publiceren',
-    href: '/nieuws',
-    kleur: '#1D4ED8',
-    bg: '#EFF6FF',
-  },
-  {
-    icon: '🌴',
-    titel: 'Verlof beheren',
-    beschrijving: 'Verlofaanvragen van medewerkers goedkeuren of afwijzen',
-    href: '/verlof',
-    kleur: '#0F6E56',
-    bg: '#D1FAE5',
-  },
-  {
-    icon: '📈',
-    titel: 'Team dashboard',
-    beschrijving: 'Vitaliteitsoverzicht van het hele team',
-    href: '/team',
-    kleur: '#0369A1',
-    bg: '#E0F2FE',
-  },
-  {
-    icon: '💶',
-    titel: 'Loonstroken uploaden',
-    beschrijving: 'Salarisstroken beschikbaar stellen voor medewerkers',
-    href: '/loonstroken',
-    kleur: '#065F46',
-    bg: '#ECFDF5',
-  },
-]
-
-export default function HrHubPage() {
+export default function HrDashboardPage() {
   const router = useRouter()
   const [naam, setNaam] = useState('')
+  const [bedrijfNaam, setBedrijfNaam] = useState('MentaForce')
   const [bedrijfId, setBedrijfId] = useState('')
   const [geladen, setGeladen] = useState(false)
   const [opgeslagen, setOpgeslagen] = useState(false)
   const [bezig, setBezig] = useState(false)
-
-  // Portaal configuratie
   const [actief, setActief] = useState<Set<TileId>>(new Set(DEFAULT_TILES))
   const [volgorde, setVolgorde] = useState<TileId[]>(DEFAULT_TILES)
   const [dragIdx, setDragIdx] = useState<number | null>(null)
   const [overIdx, setOverIdx] = useState<number | null>(null)
+  const [stats, setStats] = useState({ medewerkers: 0, checkins: 0, gemScore: 0 })
 
   useEffect(() => {
-    async function check() {
+    async function laad() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/login'); return }
       const { data: profiel } = await supabase
@@ -87,33 +35,46 @@ export default function HrHubPage() {
       setNaam(profiel.naam ?? 'HR')
       setBedrijfId(profiel.bedrijf_id)
 
-      const { data: config } = await supabase
-        .from('portaal_config')
-        .select('tiles')
-        .eq('bedrijf_id', profiel.bedrijf_id)
-        .single()
+      // Bedrijfsnaam ophalen
+      const { data: bedrijf } = await supabase
+        .from('bedrijven').select('naam').eq('id', profiel.bedrijf_id).single()
+      if (bedrijf?.naam) setBedrijfNaam(bedrijf.naam)
 
+      // Portaal config
+      const { data: config } = await supabase
+        .from('portaal_config').select('tiles').eq('bedrijf_id', profiel.bedrijf_id).single()
       if (config?.tiles && Array.isArray(config.tiles)) {
         const ids = config.tiles as TileId[]
-        setVolgorde(ids)
-        setActief(new Set(ids))
+        setVolgorde(ids); setActief(new Set(ids))
       }
+
+      // Stats
+      const { count: medCount } = await supabase
+        .from('profiles').select('id', { count: 'exact', head: true })
+        .eq('bedrijf_id', profiel.bedrijf_id).eq('rol', 'medewerker')
+      const { count: ciCount } = await supabase
+        .from('checkins').select('id', { count: 'exact', head: true })
+        .eq('bedrijf_id', profiel.bedrijf_id)
+        .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
+      const { data: scores } = await supabase
+        .from('checkins').select('energie, slaap, mentaal_focus, mentaal_balans, motivatie')
+        .eq('bedrijf_id', profiel.bedrijf_id)
+        .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
+      const gemScore = scores?.length
+        ? Math.round(scores.reduce((s, c) => s + (c.energie + c.slaap + c.mentaal_focus + c.mentaal_balans + c.motivatie) / 5, 0) / scores.length * 20)
+        : 0
+      setStats({ medewerkers: medCount ?? 0, checkins: ciCount ?? 0, gemScore })
 
       setGeladen(true)
     }
-    check()
+    laad()
   }, [router])
 
   function toggleTile(id: TileId) {
     setActief(prev => {
       const next = new Set(prev)
-      if (next.has(id)) {
-        next.delete(id)
-        setVolgorde(v => v.filter(t => t !== id))
-      } else {
-        next.add(id)
-        setVolgorde(v => [...v, id])
-      }
+      if (next.has(id)) { next.delete(id); setVolgorde(v => v.filter(t => t !== id)) }
+      else { next.add(id); setVolgorde(v => [...v, id]) }
       return next
     })
     setOpgeslagen(false)
@@ -130,110 +91,141 @@ export default function HrHubPage() {
         return next
       })
     }
-    setDragIdx(null)
-    setOverIdx(null)
-    setOpgeslagen(false)
+    setDragIdx(null); setOverIdx(null); setOpgeslagen(false)
   }
 
   async function opslaan() {
     setBezig(true)
-    const tilesArray = volgorde.filter(t => actief.has(t))
     await supabase.from('portaal_config').upsert(
-      { bedrijf_id: bedrijfId, tiles: tilesArray, updated_at: new Date().toISOString() },
+      { bedrijf_id: bedrijfId, tiles: volgorde.filter(t => actief.has(t)), updated_at: new Date().toISOString() },
       { onConflict: 'bedrijf_id' }
     )
-    setOpgeslagen(true)
-    setBezig(false)
+    setOpgeslagen(true); setBezig(false)
   }
-
-  if (!geladen) return (
-    <div className="min-h-screen" style={{ background: 'var(--bg-app)' }}>
-      <Navbar /><main className="flex justify-center mt-20"><div className="mf-spinner" /></main>
-    </div>
-  )
 
   const actiefTiles = volgorde.filter(id => actief.has(id)).map(id => ALLE_TILES.find(t => t.id === id)!).filter(Boolean)
   const inactiefTiles = ALLE_TILES.filter(t => !actief.has(t.id))
 
+  if (!geladen) return (
+    <HrShell naam={naam} bedrijfNaam={bedrijfNaam}>
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 300 }}>
+        <div className="mf-spinner" />
+      </div>
+    </HrShell>
+  )
+
+  const ACCENT = '#1D9E75'
+
   return (
-    <div className="min-h-screen" style={{ background: 'var(--bg-app)' }}>
-      <Navbar />
-      <main className="max-w-2xl mx-auto px-4 py-6 mf-safe-bottom">
+    <HrShell naam={naam} bedrijfNaam={bedrijfNaam}>
 
-        {/* Header */}
-        <div className="mb-6">
-          <p className="text-sm mb-0.5" style={{ color: 'var(--text-3)' }}>Goedendag, {naam.split(' ')[0]}</p>
-          <h1 className="text-2xl font-bold tracking-tight" style={{ color: 'var(--text-1)', letterSpacing: '-0.03em' }}>
-            HR Instellingen
-          </h1>
-          <p className="text-sm mt-1" style={{ color: 'var(--text-3)' }}>
-            Richt het portaal in en beheer content voor je medewerkers.
-          </p>
-        </div>
+      {/* ── PAGE HEADER ── */}
+      <div style={{ marginBottom: 28 }}>
+        <h1 style={{ fontSize: 22, fontWeight: 700, color: '#111', letterSpacing: '-0.02em', marginBottom: 4 }}>
+          Goedendag, {naam.split(' ')[0]} 👋
+        </h1>
+        <p style={{ color: '#6B7280', fontSize: 14 }}>
+          Beheer het portaal en volg de vitaliteit van je team.
+        </p>
+      </div>
 
-        {/* ── PORTAAL INRICHTEN ── */}
-        <div className="mb-8">
-          <p className="text-xs font-bold uppercase tracking-widest mb-3 px-1"
-            style={{ color: 'var(--text-4)' }}>Portaal inrichten</p>
+      {/* ── STATS ROW ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 32 }}>
+        {[
+          { label: 'Medewerkers', value: stats.medewerkers, icon: '👥', color: '#185FA5', bg: '#EFF6FF' },
+          { label: 'Check-ins (7d)', value: stats.checkins, icon: '✅', color: '#1D9E75', bg: '#E1F5EE' },
+          { label: 'Gem. vitaalscore', value: stats.gemScore ? `${stats.gemScore}/100` : '—', icon: '💚', color: '#7C3AED', bg: '#EDE9FE' },
+        ].map(s => (
+          <div key={s.label} style={{
+            background: 'white', borderRadius: 12, padding: '18px 20px',
+            border: '1px solid #E5E7EB', boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+              <p style={{ fontSize: 12, color: '#9CA3AF', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{s.label}</p>
+              <div style={{ width: 32, height: 32, borderRadius: 8, background: s.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>{s.icon}</div>
+            </div>
+            <p style={{ fontSize: 26, fontWeight: 800, color: s.color, letterSpacing: '-0.02em' }}>{s.value}</p>
+          </div>
+        ))}
+      </div>
 
-          {/* Info banner */}
-          <div className="rounded-2xl px-4 py-3 mb-4 flex items-start gap-3"
-            style={{ background: '#E6F1FB', border: '1px solid rgba(24,95,165,0.15)' }}>
-            <span className="text-base flex-shrink-0">💡</span>
-            <p className="text-xs leading-relaxed" style={{ color: '#185FA5' }}>
-              Sleep tegels om de volgorde te wijzigen. Schakel tegels uit om ze voor medewerkers te verbergen.
-            </p>
+      {/* ── PORTAAL INRICHTEN ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 24, alignItems: 'start' }}>
+
+        {/* Left: tile configuratie */}
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+            <div>
+              <h2 style={{ fontSize: 16, fontWeight: 700, color: '#111' }}>Portaal inrichten</h2>
+              <p style={{ fontSize: 13, color: '#9CA3AF', marginTop: 2 }}>
+                Sleep tegels om volgorde te wijzigen
+              </p>
+            </div>
+            <button
+              onClick={opslaan} disabled={bezig}
+              style={{
+                background: opgeslagen ? '#E1F5EE' : ACCENT, color: opgeslagen ? ACCENT : 'white',
+                border: 'none', borderRadius: 8, padding: '8px 18px',
+                fontSize: 13, fontWeight: 600, cursor: bezig ? 'default' : 'pointer',
+                transition: 'all 0.2s',
+              }}
+            >
+              {bezig ? 'Opslaan...' : opgeslagen ? '✓ Opgeslagen' : 'Opslaan'}
+            </button>
           </div>
 
           {/* Actieve tegels */}
-          <p className="text-[11px] font-semibold uppercase tracking-wide mb-2 px-1"
-            style={{ color: 'var(--text-4)' }}>Actief ({actiefTiles.length})</p>
-
-          <div className="flex flex-col gap-2 mb-4">
+          <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#9CA3AF', marginBottom: 10 }}>
+            Actief ({actiefTiles.length})
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 20 }}>
             {actiefTiles.length === 0 && (
-              <div className="rounded-2xl p-5 text-center"
-                style={{ background: 'var(--bg-card)', border: '2px dashed var(--border)' }}>
-                <p className="text-sm" style={{ color: 'var(--text-4)' }}>Geen actieve tegels.</p>
-              </div>
+              <div style={{
+                background: 'white', border: '2px dashed #E5E7EB', borderRadius: 10,
+                padding: 24, textAlign: 'center', color: '#9CA3AF', fontSize: 13,
+              }}>Geen actieve tegels</div>
             )}
             {actiefTiles.map((tile, idx) => (
-              <div
-                key={tile.id}
-                draggable
-                onDragStart={() => onDragStart(idx)}
-                onDragEnter={() => onDragEnter(idx)}
-                onDragEnd={onDragEnd}
-                onDragOver={e => e.preventDefault()}
-                className="rounded-2xl p-3.5 flex items-center gap-3 cursor-grab active:cursor-grabbing transition-all"
+              <div key={tile.id} draggable
+                onDragStart={() => onDragStart(idx)} onDragEnter={() => onDragEnter(idx)}
+                onDragEnd={onDragEnd} onDragOver={e => e.preventDefault()}
                 style={{
-                  background: 'var(--bg-card)',
-                  border: `1.5px solid ${overIdx === idx && dragIdx !== idx ? tile.kleur : 'var(--border)'}`,
-                  boxShadow: dragIdx === idx ? 'var(--shadow-md)' : 'var(--shadow-xs)',
-                  opacity: dragIdx === idx ? 0.5 : 1,
+                  background: 'white', borderRadius: 10, padding: '12px 14px',
+                  display: 'flex', alignItems: 'center', gap: 12,
+                  border: `1.5px solid ${overIdx === idx && dragIdx !== idx ? ACCENT : '#E5E7EB'}`,
+                  boxShadow: dragIdx === idx ? '0 4px 16px rgba(0,0,0,0.1)' : '0 1px 3px rgba(0,0,0,0.04)',
+                  cursor: 'grab', opacity: dragIdx === idx ? 0.5 : 1,
                   transform: overIdx === idx && dragIdx !== idx ? 'scale(1.01)' : 'scale(1)',
+                  transition: 'border-color 0.15s, box-shadow 0.15s, transform 0.15s',
                 }}
               >
-                <div style={{ color: 'var(--text-4)', flexShrink: 0 }}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <line x1="8" y1="6" x2="16" y2="6" /><line x1="8" y1="12" x2="16" y2="12" /><line x1="8" y1="18" x2="16" y2="18" />
-                  </svg>
+                {/* Drag handle */}
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" strokeWidth="2" style={{ flexShrink: 0 }}>
+                  <line x1="8" y1="6" x2="16" y2="6" /><line x1="8" y1="12" x2="16" y2="12" /><line x1="8" y1="18" x2="16" y2="18" />
+                </svg>
+                {/* Icon */}
+                <div style={{
+                  width: 36, height: 36, borderRadius: 8, flexShrink: 0,
+                  background: tile.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18,
+                }}>{tile.icon}</div>
+                {/* Label */}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={{ fontSize: 13, fontWeight: 600, color: '#111' }}>{tile.label}</p>
+                  <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tile.sublabel}</p>
                 </div>
-                <div className="w-9 h-9 rounded-xl flex items-center justify-center text-lg flex-shrink-0"
-                  style={{ background: tile.bg }}>{tile.icon}</div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold" style={{ color: 'var(--text-1)' }}>{tile.label}</p>
-                  <p className="text-xs truncate" style={{ color: 'var(--text-3)' }}>{tile.sublabel}</p>
-                </div>
-                <span className="text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
-                  style={{ background: tile.kleur + '18', color: tile.kleur, fontSize: 10 }}>
-                  {idx + 1}
-                </span>
-                <button
-                  onClick={() => toggleTile(tile.id)}
-                  className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 transition"
-                  style={{ background: '#FEE2E2', color: '#DC2626' }}
-                  title="Uitschakelen"
-                >
+                {/* Position badge */}
+                <span style={{
+                  minWidth: 22, height: 22, borderRadius: '50%', flexShrink: 0,
+                  background: tile.kleur + '18', color: tile.kleur,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 10, fontWeight: 700,
+                }}>{idx + 1}</span>
+                {/* Remove */}
+                <button onClick={() => toggleTile(tile.id)} style={{
+                  width: 26, height: 26, borderRadius: '50%', flexShrink: 0,
+                  background: '#FEE2E2', border: 'none', cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#DC2626',
+                }}>
                   <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
                     <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
                   </svg>
@@ -242,88 +234,73 @@ export default function HrHubPage() {
             ))}
           </div>
 
-          {/* Uitgeschakelde tegels */}
+          {/* Uitgeschakeld */}
           {inactiefTiles.length > 0 && (
             <>
-              <p className="text-[11px] font-semibold uppercase tracking-wide mb-2 px-1"
-                style={{ color: 'var(--text-4)' }}>Uitgeschakeld ({inactiefTiles.length})</p>
-              <div className="flex flex-col gap-2 mb-4">
+              <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#9CA3AF', marginBottom: 10 }}>
+                Uitgeschakeld ({inactiefTiles.length})
+              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 {inactiefTiles.map(tile => (
-                  <div key={tile.id} className="rounded-2xl p-3.5 flex items-center gap-3"
-                    style={{ background: 'var(--bg-subtle)', border: '1px solid var(--border)', opacity: 0.7 }}>
-                    <div className="w-9 h-9 rounded-xl flex items-center justify-center text-lg flex-shrink-0"
-                      style={{ background: 'var(--bg-card)', filter: 'grayscale(1)' }}>{tile.icon}</div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium" style={{ color: 'var(--text-3)' }}>{tile.label}</p>
-                      <p className="text-xs truncate" style={{ color: 'var(--text-4)' }}>{tile.sublabel}</p>
+                  <div key={tile.id} style={{
+                    background: '#FAFAFA', borderRadius: 10, padding: '10px 14px',
+                    display: 'flex', alignItems: 'center', gap: 12,
+                    border: '1px solid #F3F4F6', opacity: 0.7,
+                  }}>
+                    <div style={{
+                      width: 36, height: 36, borderRadius: 8, flexShrink: 0,
+                      background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: 18, filter: 'grayscale(1)',
+                    }}>{tile.icon}</div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ fontSize: 13, fontWeight: 500, color: '#6B7280' }}>{tile.label}</p>
+                      <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 1 }}>{tile.sublabel}</p>
                     </div>
-                    <button
-                      onClick={() => toggleTile(tile.id)}
-                      className="mf-btn text-xs flex-shrink-0"
-                      style={{ padding: '5px 12px', background: 'var(--bg-card)', color: 'var(--mf-green)', border: '1.5px solid var(--mf-green)', fontWeight: 600, fontSize: 12 }}
-                    >
-                      Inschakelen
-                    </button>
+                    <button onClick={() => toggleTile(tile.id)} style={{
+                      background: 'white', border: `1.5px solid ${ACCENT}`,
+                      color: ACCENT, borderRadius: 6, padding: '5px 12px',
+                      fontSize: 11, fontWeight: 600, cursor: 'pointer',
+                    }}>Inschakelen</button>
                   </div>
                 ))}
               </div>
             </>
           )}
-
-          {/* Opslaan knop */}
-          <button
-            onClick={opslaan}
-            disabled={bezig}
-            className="mf-btn mf-btn-primary w-full"
-            style={{ padding: '12px', fontSize: 14 }}
-          >
-            {bezig ? 'Opslaan...' : opgeslagen ? '✓ Portaal opgeslagen' : 'Portaal opslaan'}
-          </button>
         </div>
 
-        {/* ── OVERIGE BEHEER-SECTIES ── */}
-        <p className="text-xs font-bold uppercase tracking-widest mb-3 px-1"
-          style={{ color: 'var(--text-4)' }}>Beheer</p>
-
-        <div className="flex flex-col gap-3">
-          {HR_SECTIES.map(s => (
-            <Link
-              key={s.href}
-              href={s.href}
-              className="flex items-center gap-4 rounded-2xl p-4 transition active:scale-[0.99]"
-              style={{
-                background: 'var(--bg-card)',
-                border: '1px solid var(--border)',
-                boxShadow: 'var(--shadow-xs)',
-              }}
+        {/* Right: quick links */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <h2 style={{ fontSize: 15, fontWeight: 700, color: '#111', marginBottom: 6 }}>Snelle acties</h2>
+          {[
+            { href: '/hr/protocollen/nieuw', label: 'Nieuw protocol aanmaken', icon: '📋', color: '#92400E', bg: '#FEF3C7' },
+            { href: '/hr/protocollen', label: 'Protocollen beheren', icon: '📂', color: '#1D4ED8', bg: '#EFF6FF' },
+            { href: '/team', label: 'Team bekijken', icon: '👥', color: '#0369A1', bg: '#E0F2FE' },
+            { href: '/verlof', label: 'Verlof beheren', icon: '🌴', color: '#0F6E56', bg: '#D1FAE5' },
+            { href: '/loonstroken', label: 'Loonstroken uploaden', icon: '💶', color: '#065F46', bg: '#ECFDF5' },
+            { href: '/rapport', label: 'Rapporten bekijken', icon: '📈', color: '#7C3AED', bg: '#EDE9FE' },
+          ].map(item => (
+            <Link key={item.href} href={item.href} style={{
+              display: 'flex', alignItems: 'center', gap: 12,
+              background: 'white', borderRadius: 10, padding: '12px 14px',
+              border: '1px solid #E5E7EB', textDecoration: 'none',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+              transition: 'box-shadow 0.15s, border-color 0.15s',
+            }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.boxShadow = '0 4px 12px rgba(0,0,0,0.08)'; (e.currentTarget as HTMLElement).style.borderColor = '#D1D5DB' }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.boxShadow = '0 1px 3px rgba(0,0,0,0.04)'; (e.currentTarget as HTMLElement).style.borderColor = '#E5E7EB' }}
             >
-              <div className="w-11 h-11 rounded-2xl flex items-center justify-center text-xl flex-shrink-0"
-                style={{ background: s.bg }}>
-                {s.icon}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold" style={{ color: 'var(--text-1)' }}>{s.titel}</p>
-                <p className="text-xs mt-0.5 line-clamp-1" style={{ color: 'var(--text-3)' }}>{s.beschrijving}</p>
-              </div>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-                stroke="var(--text-4)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+              <div style={{
+                width: 34, height: 34, borderRadius: 8, flexShrink: 0,
+                background: item.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16,
+              }}>{item.icon}</div>
+              <p style={{ fontSize: 13, fontWeight: 500, color: '#374151', flex: 1 }}>{item.label}</p>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" strokeWidth="2.5">
                 <polyline points="9 18 15 12 9 6" />
               </svg>
             </Link>
           ))}
         </div>
-
-        {/* Terug */}
-        <div className="mt-6">
-          <Link href="/home" className="flex items-center justify-center gap-2 text-sm"
-            style={{ color: 'var(--text-4)' }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-              <polyline points="15 18 9 12 15 6" />
-            </svg>
-            Terug naar hoofdpagina
-          </Link>
-        </div>
-      </main>
-    </div>
+      </div>
+    </HrShell>
   )
 }
