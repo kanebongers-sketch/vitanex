@@ -66,7 +66,7 @@ function risicoAdvies(niveau: string, uitputting: number, cynisme: number, effic
   const tips: string[] = []
   if (niveau === 'hoog') {
     tips.push('Overweeg een gesprek met je leidinggevende of HR over je werkbelasting.')
-    tips.push('Zoek professionele begeleiding — een coach of psycholoog kan goed helpen.')
+    tips.push('Zoek professionele begeleiding Â— een coach of psycholoog kan goed helpen.')
     tips.push('Plan bewust rustmomenten in je dag en week.')
   } else if (niveau === 'matig') {
     tips.push('Let op je energiepeil en kaart knelpunten aan bij je team of leidinggevende.')
@@ -74,9 +74,9 @@ function risicoAdvies(niveau: string, uitputting: number, cynisme: number, effic
   } else {
     tips.push('Goed bezig! Blijf inzetten op je herstel en energie.')
   }
-  if (uitputting >= 3.5) tips.push('Je scoort hoog op uitputting — slaap en herstel zijn extra belangrijk voor jou.')
-  if (cynisme >= 3.5) tips.push('Je voelt wat distantie — praten met de coach of een collega kan helpen die motivatie terug te vinden.')
-  if (efficaciteit <= 2.5) tips.push('Je twijfelt aan je effectiviteit — bespreek dit eens met je leidinggevende voor wat erkenning en helderheid.')
+  if (uitputting >= 3.5) tips.push('Je scoort hoog op uitputting Â— slaap en herstel zijn extra belangrijk voor jou.')
+  if (cynisme >= 3.5) tips.push('Je voelt wat distantie Â— praten met de coach of een collega kan helpen die motivatie terug te vinden.')
+  if (efficaciteit <= 2.5) tips.push('Je twijfelt aan je effectiviteit Â— bespreek dit eens met je leidinggevende voor wat erkenning en helderheid.')
   return tips
 }
 
@@ -163,7 +163,7 @@ export default function BurnoutPagina() {
           <h1 className="text-xl font-semibold text-gray-900 mb-2">Burn-out risicoscan</h1>
           <p className="text-gray-500 text-sm leading-relaxed mb-6">
             12 vragen over uitputting, betrokkenheid en effectiviteit. Duurt ongeveer 3 minuten.
-            Resultaten zijn alleen voor jou — niet zichtbaar voor HR of je leidinggevende.
+            Resultaten zijn alleen voor jou Â— niet zichtbaar voor HR of je leidinggevende.
           </p>
           <div className="flex flex-col gap-3">
             <button
@@ -290,7 +290,7 @@ export default function BurnoutPagina() {
               <div key={s.label} className="mb-4 last:mb-0">
                 <div className="flex justify-between text-xs mb-1">
                   <span className="text-gray-600 font-medium">{s.label}</span>
-                  <span className="text-gray-400">{s.info} · {s.waarde}/5</span>
+                  <span className="text-gray-400">{s.info} Â· {s.waarde}/5</span>
                 </div>
                 <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                   <div

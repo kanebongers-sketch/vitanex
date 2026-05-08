@@ -16,7 +16,7 @@ type Bericht = {
 
 const WELKOM = `Hallo! Ik ben jouw MentaForce Coach ??
 
-Ik ben hier om je te helpen met alles rondom welzijn op het werk — stress, energie, werk-privébalans, motivatie, slaap of gewoon even lucht geven.
+Ik ben hier om je te helpen met alles rondom welzijn op het werk Â— stress, energie, werk-privÃ©balans, motivatie, slaap of gewoon even lucht geven.
 
 Alles wat je hier deelt is puur voor jou. Geen manager, geen HR die meeleest.
 
@@ -27,7 +27,7 @@ const SUGGESTIES = [
   'Mijn energie is op',
   'Ik slaap slecht',
   'Ik wil tips tegen burn-out',
-  'Werk en privé in balans',
+  'Werk en privÃ© in balans',
   'Ik mis motivatie',
 ]
 
@@ -120,7 +120,7 @@ export default function CoachPagina() {
           </div>
           <div>
             <p className="text-sm font-semibold text-gray-900">MentaForce Coach</p>
-            <p className="text-xs text-gray-400">AI-coach · Vertrouwelijk · 24/7 beschikbaar</p>
+            <p className="text-xs text-gray-400">AI-coach Â· Vertrouwelijk Â· 24/7 beschikbaar</p>
           </div>
           <div className="ml-auto flex items-center gap-1.5">
             <div className="w-2 h-2 rounded-full bg-green-500" />
@@ -169,7 +169,7 @@ export default function CoachPagina() {
             </div>
           )}
 
-          {/* Suggestions — only before first user message */}
+          {/* Suggestions Â— only before first user message */}
           {berichten.length === 1 && !laden && (
             <div className="mt-2">
               <p className="text-xs text-gray-400 mb-2 text-center">Kies een onderwerp om te beginnen</p>
@@ -192,7 +192,7 @@ export default function CoachPagina() {
 
         {/* Privacy note */}
         <div className="px-4 py-1 text-center flex-shrink-0">
-          <p className="text-xs text-gray-300">Gesprekken worden niet opgeslagen · Alleen zichtbaar voor jou</p>
+          <p className="text-xs text-gray-300">Gesprekken worden niet opgeslagen Â· Alleen zichtbaar voor jou</p>
         </div>
 
         {/* Input */}
@@ -210,7 +210,7 @@ export default function CoachPagina() {
               onKeyDown={e => {
                 if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); verstuur() }
               }}
-              placeholder="Typ je bericht…"
+              placeholder="Typ je berichtÂ…"
               disabled={laden}
               className="flex-1 bg-transparent text-sm outline-none resize-none leading-relaxed disabled:opacity-50"
               style={{ minHeight: 24, maxHeight: 120 }}

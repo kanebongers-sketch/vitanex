@@ -17,7 +17,7 @@ type Entry = {
 const STEMMINGEN = [
   { waarde: 1, emoji: '??', label: 'Slecht' },
   { waarde: 2, emoji: '??', label: 'Matig' },
-  { waarde: 3, emoji: '??', label: 'Oké' },
+  { waarde: 3, emoji: '??', label: 'OkÃ©' },
   { waarde: 4, emoji: '??', label: 'Goed' },
   { waarde: 5, emoji: '??', label: 'Super' },
 ]
@@ -99,7 +99,7 @@ export default function JournalPagina() {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-2xl font-medium text-gray-900">Gedachten dump</h1>
-            <p className="text-gray-500 text-sm mt-0.5">Schrijf vrij — alleen zichtbaar voor jou.</p>
+            <p className="text-gray-500 text-sm mt-0.5">Schrijf vrij Â— alleen zichtbaar voor jou.</p>
           </div>
           <button
             onClick={() => setNieuwTonen(true)}
@@ -191,7 +191,7 @@ export default function JournalPagina() {
             {entries.map(e => {
               const s = STEMMINGEN.find(m => m.waarde === e.stemming)
               const isOpen = uitgevouwen === e.id
-              const preview = e.inhoud.length > 140 ? e.inhoud.slice(0, 140) + '…' : e.inhoud
+              const preview = e.inhoud.length > 140 ? e.inhoud.slice(0, 140) + 'Â…' : e.inhoud
               return (
                 <div key={e.id} className="bg-white rounded-2xl border border-gray-200 p-5">
                   <div className="flex items-start justify-between gap-3 mb-2">

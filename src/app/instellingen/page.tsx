@@ -465,7 +465,7 @@ export default function Instellingen() {
                     <div className="grid grid-cols-2 gap-4">
                       <div className="rounded-xl p-4 border border-gray-100" style={{ background: 'var(--bg-app)' }}>
                         <p className="text-xs text-gray-400 mb-1">Huidig e-mailadres</p>
-                        <p className="text-sm font-medium text-gray-800">{userEmail || '—'}</p>
+                        <p className="text-sm font-medium text-gray-800">{userEmail || 'Â—'}</p>
                       </div>
                       <div className="rounded-xl p-4 border border-gray-100" style={{ background: 'var(--bg-app)' }}>
                         <p className="text-xs text-gray-400 mb-1">Account aangemaakt</p>
@@ -544,7 +544,7 @@ export default function Instellingen() {
                         <span className="text-2xl">??</span>
                         <div>
                           <p className="text-sm font-medium text-gray-800">Huidige sessie</p>
-                          <p className="text-xs text-gray-400">Web browser · Actief nu</p>
+                          <p className="text-xs text-gray-400">Web browser Â· Actief nu</p>
                         </div>
                       </div>
                       <span className="text-xs font-medium px-2.5 py-1 rounded-full"
@@ -641,12 +641,12 @@ export default function Instellingen() {
 
                   <section className="bg-white rounded-2xl border border-gray-200 p-6">
                     <h2 className="text-base font-semibold text-gray-900 mb-1">Persoonlijke tools</h2>
-                    <p className="text-xs text-gray-400 mb-2">Deze gegevens zijn altijd strikt privé.</p>
+                    <p className="text-xs text-gray-400 mb-2">Deze gegevens zijn altijd strikt privÃ©.</p>
                     <Toggle actief={privacyJournal} onChange={setPrivacyJournal}
                       label="Journal versleuteld opslaan"
                       beschrijving="Journaalentries worden versleuteld. Niet leesbaar voor MentaForce of HR." />
                     <Toggle actief={privacyCoach} onChange={setPrivacyCoach}
-                      label="Coach-gesprekken privé houden"
+                      label="Coach-gesprekken privÃ© houden"
                       beschrijving="AI-coachgesprekken worden niet gebruikt voor teamanalyses." />
                   </section>
 
@@ -690,7 +690,7 @@ export default function Instellingen() {
                     <div className="grid grid-cols-3 gap-2.5">
                       {[
                         { value: 'nl', label: '???? Nederlands', sub: 'Standaard' },
-                        { value: 'fr', label: '???? Français', sub: 'Binnenkort' },
+                        { value: 'fr', label: '???? FranÃ§ais', sub: 'Binnenkort' },
                         { value: 'en', label: '???? English', sub: 'Binnenkort' },
                       ].map(l => (
                         <button key={l.value} onClick={() => setTaal(l.value)}
@@ -773,7 +773,7 @@ export default function Instellingen() {
                         <div key={d.label} className="rounded-xl p-4 border border-gray-100" style={{ background: d.bg }}>
                           <span className="text-2xl block mb-2">{d.icon}</span>
                           <p className="text-sm font-medium" style={{ color: d.kleur }}>{d.label}</p>
-                          <p className="text-xs text-gray-500">Privé & versleuteld</p>
+                          <p className="text-xs text-gray-500">PrivÃ© & versleuteld</p>
                         </div>
                       ))}
                     </div>

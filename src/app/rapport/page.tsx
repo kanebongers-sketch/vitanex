@@ -180,7 +180,7 @@ export default function Rapport() {
     { label: 'Werkdruk', waarde: gem(checkins.map(c => c.werkdruk)) },
     { label: 'Focus', waarde: gem(checkins.map(c => c.mentaal_focus)) },
     { label: 'Stress', waarde: gem(checkins.map(c => c.mentaal_stress)) },
-    { label: 'Werk-privé balans', waarde: gem(checkins.map(c => c.mentaal_balans)) },
+    { label: 'Werk-privÃ© balans', waarde: gem(checkins.map(c => c.mentaal_balans)) },
     { label: 'Motivatie', waarde: gem(checkins.map(c => c.motivatie)) },
     { label: 'Teamwerk', waarde: gem(checkins.map(c => c.sociaal_team)) },
     { label: 'Sociale steun', waarde: gem(checkins.map(c => c.sociaal_steun)) },
@@ -232,7 +232,7 @@ export default function Rapport() {
           </div>
         ) : (
 
-          /* Rapport — dit wordt geëxporteerd als PDF */
+          /* Rapport Â— dit wordt geÃ«xporteerd als PDF */
           <div ref={rapportRef} className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
 
             {/* Rapport header */}
@@ -246,7 +246,7 @@ export default function Rapport() {
                     <span className="font-medium text-gray-700">MentaForce</span>
                   </div>
                   <h2 className="text-2xl font-medium text-gray-900">Vitaliteitsrapport</h2>
-                  <p className="text-gray-600 text-sm mt-1">{bedrijfNaam} · {maanden[geselecteerdeMaand]} {geselecteerdJaar}</p>
+                  <p className="text-gray-600 text-sm mt-1">{bedrijfNaam} Â· {maanden[geselecteerdeMaand]} {geselecteerdJaar}</p>
                 </div>
                 <div className="text-right">
                   <p className="text-xs text-gray-500">Gegenereerd op</p>
@@ -345,27 +345,27 @@ export default function Rapport() {
                 <p className="text-sm font-medium mb-3" style={{ color: '#0F6E56' }}>Aanbevelingen</p>
                 <div className="flex flex-col gap-2">
                   {mentaalScore < 3 && (
-                    <p className="text-sm" style={{ color: '#0F6E56' }}>• Mentaal welzijn verdient aandacht. Overweeg een workshop stressmanagement of extra check-in momenten.</p>
+                    <p className="text-sm" style={{ color: '#0F6E56' }}>Â• Mentaal welzijn verdient aandacht. Overweeg een workshop stressmanagement of extra check-in momenten.</p>
                   )}
                   {fysiekScore < 3 && (
-                    <p className="text-sm" style={{ color: '#0F6E56' }}>• Fysiek welzijn is laag. Bekijk de werkplek ergonomie en stimuleer bewegingspauzes.</p>
+                    <p className="text-sm" style={{ color: '#0F6E56' }}>Â• Fysiek welzijn is laag. Bekijk de werkplek ergonomie en stimuleer bewegingspauzes.</p>
                   )}
                   {sociaalScore < 3 && (
-                    <p className="text-sm" style={{ color: '#0F6E56' }}>• Sociale connectie kan beter. Organiseer een teamactiviteit of verbeter de interne communicatie.</p>
+                    <p className="text-sm" style={{ color: '#0F6E56' }}>Â• Sociale connectie kan beter. Organiseer een teamactiviteit of verbeter de interne communicatie.</p>
                   )}
                   {participatie < 80 && (
-                    <p className="text-sm" style={{ color: '#0F6E56' }}>• Participatiegraad is onder 80%. Stuur een herinnering naar medewerkers die de check-in nog niet hebben ingevuld.</p>
+                    <p className="text-sm" style={{ color: '#0F6E56' }}>Â• Participatiegraad is onder 80%. Stuur een herinnering naar medewerkers die de check-in nog niet hebben ingevuld.</p>
                   )}
                   {totaalScore >= 4 && (
-                    <p className="text-sm" style={{ color: '#0F6E56' }}>• Uitstekend resultaat! Blijf het huidige beleid handhaven en deel deze resultaten met het team als motivatie.</p>
+                    <p className="text-sm" style={{ color: '#0F6E56' }}>Â• Uitstekend resultaat! Blijf het huidige beleid handhaven en deel deze resultaten met het team als motivatie.</p>
                   )}
                 </div>
               </div>
 
               {/* Footer */}
               <div className="mt-8 pt-6 border-t border-gray-100 flex justify-between items-center">
-                <p className="text-xs text-gray-400">MentaForce · Vitaliteitsplatform voor de werkplek</p>
-                <p className="text-xs text-gray-400">Vertrouwelijk — alleen voor intern gebruik</p>
+                <p className="text-xs text-gray-400">MentaForce Â· Vitaliteitsplatform voor de werkplek</p>
+                <p className="text-xs text-gray-400">Vertrouwelijk Â— alleen voor intern gebruik</p>
               </div>
 
             </div>
