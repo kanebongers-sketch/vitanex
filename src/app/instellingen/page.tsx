@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
-import Navbar from '@/components/Navbar'
+import Navbar, { schakelPortaal, type ViewMode } from '@/components/Navbar'
 import { Avatar } from '@/components/Avatar'
 
 async function cropToSquareJpeg(file: File, size: number): Promise<Blob> {
@@ -81,6 +81,8 @@ export default function Instellingen() {
   const [userId, setUserId] = useState<string | null>(null)
   const [userEmail, setUserEmail] = useState<string>('')
   const [laden, setLaden] = useState(true)
+  const [userRol, setUserRol] = useState('')
+  const [huidigPortaal, setHuidigPortaal] = useState<ViewMode>('employee')
 
   // Profiel
   const [naam, setNaam] = useState('')
@@ -159,9 +161,20 @@ export default function Instellingen() {
 
       const { data: profiel } = await supabase
         .from('profiles')
-        .select('naam, avatar_url, functie, afdeling, telefoon, bio')
+        .select('naam, avatar_url, functie, afdeling, telefoon, bio, rol')
         .eq('id', user.id)
         .single()
+
+      const rol = profiel?.rol ?? ''
+      setUserRol(rol)
+      if (rol === 'admin') {
+        const saved = localStorage.getItem('mf-view-mode') as ViewMode | null
+        setHuidigPortaal(saved ?? 'admin')
+      } else if (rol === 'hr') {
+        setHuidigPortaal('hr')
+      } else {
+        setHuidigPortaal('employee')
+      }
 
       const n = profiel?.naam ?? ''
       setNaam(n)
@@ -685,6 +698,48 @@ export default function Instellingen() {
               {/* -- WEERGAVE -- */}
               {activeSectie === 'weergave' && (
                 <>
+                  {/* ── Portaal wisselen (alleen admin) ── */}
+                  {userRol === 'admin' && (
+                    <section className="rounded-2xl border p-6" style={{ background: '#14151f', borderColor: 'rgba(255,255,255,0.08)' }}>
+                      <h2 className="text-base font-semibold mb-1" style={{ color: 'rgba(255,255,255,0.9)' }}>Portaal wisselen</h2>
+                      <p className="text-xs mb-5" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                        Kies welk portaal je wilt bekijken. Dit is de enige plek waar je kunt wisselen.
+                      </p>
+                      <div className="grid grid-cols-3 gap-3">
+                        {([
+                          { mode: 'employee' as ViewMode, label: 'Werknemer',  beschrijving: 'Vitaliteit & werkdag',  kleur: '#1D9E75', icon: '🌿' },
+                          { mode: 'hr'       as ViewMode, label: 'HR',         beschrijving: 'Team & beheer',         kleur: '#185FA5', icon: '👥' },
+                          { mode: 'admin'    as ViewMode, label: 'Admin',      beschrijving: 'Volledige toegang',     kleur: '#7C3AED', icon: '🛡️' },
+                        ] as const).map(opt => {
+                          const actief = huidigPortaal === opt.mode
+                          return (
+                            <button
+                              key={opt.mode}
+                              onClick={() => { setHuidigPortaal(opt.mode); schakelPortaal(opt.mode) }}
+                              style={{
+                                display: 'flex', flexDirection: 'column', alignItems: 'flex-start',
+                                gap: 8, padding: '14px 16px',
+                                borderRadius: 12, border: `2px solid ${actief ? opt.kleur : 'rgba(255,255,255,0.1)'}`,
+                                background: actief ? opt.kleur + '20' : 'rgba(255,255,255,0.04)',
+                                cursor: actief ? 'default' : 'pointer',
+                                transition: 'all 0.15s', textAlign: 'left',
+                              }}
+                            >
+                              <span style={{ fontSize: 22 }}>{opt.icon}</span>
+                              <div>
+                                <p style={{ fontSize: 13, fontWeight: 700, color: actief ? opt.kleur : 'rgba(255,255,255,0.8)' }}>
+                                  {opt.label}
+                                  {actief && <span style={{ marginLeft: 6, fontSize: 10, background: opt.kleur + '30', color: opt.kleur, borderRadius: 4, padding: '1px 6px' }}>Actief</span>}
+                                </p>
+                                <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', marginTop: 2 }}>{opt.beschrijving}</p>
+                              </div>
+                            </button>
+                          )
+                        })}
+                      </div>
+                    </section>
+                  )}
+
                   <section className="bg-white rounded-2xl border border-gray-200 p-6">
                     <h2 className="text-base font-semibold text-gray-900 mb-4">Taal</h2>
                     <div className="grid grid-cols-3 gap-2.5">

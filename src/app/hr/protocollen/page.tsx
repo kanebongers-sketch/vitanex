@@ -182,7 +182,6 @@ export default function HrProtokollenPage() {
           </div>
         </div>
       )}
-      </div>
       </main>
     </div>
   )

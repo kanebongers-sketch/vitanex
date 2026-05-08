@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
@@ -10,9 +10,16 @@ import { getTileDef, type TileId } from '@/lib/tiles'
 type Profiel = { id: string; naam: string; rol: string; bedrijf_id: string | null }
 type NavItem = { href: string; label: string; icon: React.ReactNode; exact?: boolean }
 type NavSection = { label: string; items: NavItem[] }
-type ViewMode = 'employee' | 'hr' | 'admin'
+export type ViewMode = 'employee' | 'hr' | 'admin'
 
-/* ── Icoon helpers ── */
+/* ── Portaal wisselen — alleen via Instellingen aanroepen ── */
+export function schakelPortaal(mode: ViewMode) {
+  localStorage.setItem('mf-view-mode', mode)
+  // Harde navigatie zodat Navbar opnieuw init
+  window.location.href = mode === 'employee' ? '/home' : mode === 'hr' ? '/hr' : '/admin'
+}
+
+/* ── Icoon helper ── */
 function Ico({ d, size = 16 }: { d: string | string[]; size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
@@ -57,7 +64,7 @@ function NavSection({ section, pathname, accent, hover }: {
   )
 }
 
-/* ── Iconen per pagina ── */
+/* ── Iconen ── */
 const I = {
   home:    <Ico d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z M9 22V12h6v10" />,
   check:   <Ico d="M9 12l2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />,
@@ -75,153 +82,12 @@ const I = {
   gear:    <Ico d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 0 0-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 0 0-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 0 0-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 0 0-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 0 0 1.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0z" />,
   verlof:  <Ico d={['M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z']} />,
   chat:    <Ico d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />,
-  back:    <Ico d="M19 12H5 M12 19l-7-7 7-7" />,
   dash:    <Ico d={['M3 3h7v7H3z', 'M14 3h7v7h-7z', 'M14 14h7v7h-7z', 'M3 14h7v7H3z']} />,
-  logout:  <Ico d={['M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4', 'M16 17l5-5-5-5', 'M21 12H9']} />,
   shield:  <Ico d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />,
+  logout:  <Ico d={['M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4', 'M16 17l5-5-5-5', 'M21 12H9']} />,
 }
 
-/* ── Sidebar breedte ── */
 export const SIDEBAR_W = 240
-
-/* ── Rol-dropdown (rechtsboven, fixed) ── */
-function RolDropdown({
-  huidigRol, huidigView, kanHr, kanAdmin, onSwitch,
-}: {
-  huidigRol: string
-  huidigView: ViewMode
-  kanHr: boolean
-  kanAdmin: boolean
-  onSwitch: (mode: ViewMode) => void
-}) {
-  const [open, setOpen] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    function handler(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
-    }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
-  }, [])
-
-  const labels: Record<ViewMode, string> = {
-    employee: 'Medewerker',
-    hr: 'HR',
-    admin: 'Admin',
-  }
-
-  const ACCENT = '#1D9E75'
-
-  const opties: { mode: ViewMode; label: string; icon: React.ReactNode; beschikbaar: boolean }[] = [
-    {
-      mode: 'employee',
-      label: 'Medewerker',
-      icon: <Ico d={['M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2', 'M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z']} size={14} />,
-      beschikbaar: true,
-    },
-    {
-      mode: 'hr',
-      label: 'HR',
-      icon: <Ico d={['M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2', 'M23 21v-2a4 4 0 0 0-3-3.87', 'M9 7a4 4 0 1 0 8 0 4 4 0 0 0-8 0', 'M16 3.13a4 4 0 0 1 0 7.75']} size={14} />,
-      beschikbaar: kanHr,
-    },
-    {
-      mode: 'admin',
-      label: 'Admin',
-      icon: <Ico d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" size={14} />,
-      beschikbaar: kanAdmin,
-    },
-  ]
-
-  return (
-    <div ref={ref} style={{ position: 'fixed', top: 12, right: 16, zIndex: 100 }}>
-      {/* Trigger */}
-      <button
-        onClick={() => setOpen(o => !o)}
-        style={{
-          display: 'flex', alignItems: 'center', gap: 6,
-          padding: '6px 12px 6px 10px',
-          borderRadius: 20,
-          background: '#fff',
-          border: '1px solid #E5E7EB',
-          boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
-          cursor: 'pointer',
-          fontSize: 12, fontWeight: 600,
-          color: '#111827',
-          transition: 'box-shadow 0.15s',
-        }}
-      >
-        {/* Kleur-dot voor actieve modus */}
-        <span style={{
-          width: 7, height: 7, borderRadius: '50%', flexShrink: 0,
-          background: huidigView === 'admin' ? '#7C3AED' : huidigView === 'hr' ? '#185FA5' : ACCENT,
-        }} />
-        {labels[huidigView]}
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
-          style={{ opacity: 0.4, transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }}>
-          <polyline points="6 9 12 15 18 9" />
-        </svg>
-      </button>
-
-      {/* Dropdown menu */}
-      {open && (
-        <div style={{
-          position: 'absolute', top: 'calc(100% + 6px)', right: 0,
-          background: '#fff',
-          border: '1px solid #E5E7EB',
-          borderRadius: 12,
-          boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
-          minWidth: 160,
-          overflow: 'hidden',
-          animation: 'mf-scale-in 0.15s ease',
-        }}>
-          <p style={{
-            fontSize: 10, fontWeight: 700, textTransform: 'uppercase',
-            letterSpacing: '0.1em', color: '#9CA3AF',
-            padding: '10px 14px 6px',
-          }}>Wissel portaal</p>
-          {opties.filter(o => o.beschikbaar).map(opt => {
-            const actief = huidigView === opt.mode
-            const kleur = opt.mode === 'admin' ? '#7C3AED' : opt.mode === 'hr' ? '#185FA5' : ACCENT
-            return (
-              <button
-                key={opt.mode}
-                onClick={() => { onSwitch(opt.mode); setOpen(false) }}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 9,
-                  width: '100%', padding: '9px 14px',
-                  background: actief ? kleur + '12' : 'transparent',
-                  border: 'none', cursor: actief ? 'default' : 'pointer',
-                  fontSize: 13, fontWeight: actief ? 600 : 400,
-                  color: actief ? kleur : '#374151',
-                  textAlign: 'left',
-                  transition: 'background 0.1s',
-                }}
-              >
-                <span style={{ color: actief ? kleur : '#9CA3AF', display: 'flex' }}>{opt.icon}</span>
-                {opt.label}
-                {actief && (
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                    strokeWidth="2.5" style={{ marginLeft: 'auto', color: kleur }}>
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
-                )}
-              </button>
-            )
-          })}
-          <div style={{ height: 1, background: '#F3F4F6', margin: '4px 0' }} />
-          <p style={{
-            fontSize: 10, color: '#9CA3AF',
-            padding: '6px 14px 10px', lineHeight: 1.4,
-          }}>
-            Ook te vinden in Instellingen
-          </p>
-        </div>
-      )}
-    </div>
-  )
-}
 
 export default function Navbar() {
   const router   = useRouter()
@@ -231,7 +97,6 @@ export default function Navbar() {
   const [mobileOpen, setMobileOpen]     = useState(false)
   const [viewMode, setViewMode]         = useState<ViewMode>('employee')
 
-  /* laad user + portaal config */
   useEffect(() => {
     async function laad() {
       const { data: { user } } = await supabase.auth.getUser()
@@ -241,10 +106,19 @@ export default function Navbar() {
       if (!data) return
       setProfiel({ id: user.id, ...data })
 
-      /* herstel opgeslagen view mode */
-      const saved = localStorage.getItem('mf-view-mode') as ViewMode | null
-      const defaultMode: ViewMode = (data.rol === 'admin') ? 'admin' : (data.rol === 'hr') ? 'hr' : 'employee'
-      setViewMode(saved ?? defaultMode)
+      // Bepaal view mode:
+      // - gewone medewerker: altijd 'employee'
+      // - hr: altijd 'hr'
+      // - admin: leest localStorage, default 'admin'
+      const rol = data.rol as string
+      if (rol === 'admin') {
+        const saved = localStorage.getItem('mf-view-mode') as ViewMode | null
+        setViewMode(saved ?? 'admin')
+      } else if (rol === 'hr') {
+        setViewMode('hr')
+      } else {
+        setViewMode('employee')
+      }
 
       if (data.bedrijf_id) {
         const { data: config } = await supabase
@@ -267,7 +141,6 @@ export default function Navbar() {
     return () => subscription.unsubscribe()
   }, [router])
 
-  /* body class voor sidebar offset */
   useEffect(() => {
     document.body.classList.add('mf-has-sidebar')
     return () => document.body.classList.remove('mf-has-sidebar')
@@ -278,39 +151,43 @@ export default function Navbar() {
     router.push('/login')
   }
 
-  function schakelView(mode: ViewMode) {
-    setViewMode(mode)
-    localStorage.setItem('mf-view-mode', mode)
-    if (mode === 'employee') router.push('/home')
-    else if (mode === 'hr') router.push('/hr')
-    else router.push('/admin')
-  }
-
   if (!profiel) return null
 
-  const rol      = profiel.rol
-  const kanHr    = rol === 'hr' || rol === 'admin'
-  const kanAdmin = rol === 'admin'
-  const isHr     = kanHr && (viewMode === 'hr' || viewMode === 'admin')
-  const naam     = profiel.naam ?? ''
+  const naam    = profiel.naam ?? ''
+  const isHr    = viewMode === 'hr' || viewMode === 'admin'
 
-  /* ── Kleurenschema per rol ── */
-  const ACCENT = '#1D9E75'
-  const DARK   = '#14151f'
-  const LIGHT  = '#FFFFFF'
-  const bg         = isHr ? DARK : LIGHT
+  /* ── Kleurenschema ── */
+  const ACCENT     = '#1D9E75'
+  const bg         = isHr ? '#14151f' : '#FFFFFF'
   const border     = isHr ? 'rgba(255,255,255,0.07)' : '#E5E7EB'
-  const text       = isHr ? 'rgba(255,255,255,0.6)' : '#4B5563'
+  const text       = isHr ? 'rgba(255,255,255,0.6)'  : '#4B5563'
   const textMuted  = isHr ? 'rgba(255,255,255,0.28)' : '#9CA3AF'
   const nameTxt    = isHr ? 'rgba(255,255,255,0.88)' : '#111827'
-  const activeBg   = isHr ? ACCENT + '22' : '#F0FDF8'
+  const activeBg   = isHr ? ACCENT + '22'            : '#F0FDF8'
 
-  /* ── Navigatie per rol ── */
-  const sections: NavSection[] = isHr ? [
+  /* ── Navigatie per portaal ── */
+  const portalLabel = viewMode === 'employee' ? 'Werknemersportaal' : viewMode === 'hr' ? 'HR Portaal' : 'Admin Portaal'
+
+  const sections: NavSection[] = viewMode === 'employee' ? [
+    {
+      label: 'Vitaliteit',
+      items: [
+        { href: '/checkin',     label: 'Check-in',      icon: I.check },
+        { href: '/coach',       label: 'AI Coach',       icon: I.coach },
+        { href: '/rapport',     label: 'Mijn rapport',   icon: I.rapport },
+        { href: '/doelen',      label: 'Doelen',         icon: I.doelen },
+        { href: '/uitdagingen', label: 'Uitdagingen',    icon: I.uitd },
+        { href: '/journal',     label: 'Journal',        icon: I.journal },
+        { href: '/burnout',     label: 'Burn-out scan',  icon: I.burnout },
+        { href: '/focus',       label: 'Focus',          icon: I.focus },
+      ],
+    },
+    ...(werkdagItems.length > 0 ? [{ label: 'Werkdag', items: werkdagItems }] : []),
+  ] : viewMode === 'hr' ? [
     {
       label: 'Overzicht',
       items: [
-        { href: '/hr',      label: 'Dashboard',  icon: I.dash,   exact: true },
+        { href: '/hr',      label: 'Dashboard',  icon: I.dash, exact: true },
         { href: '/team',    label: 'Team',        icon: I.team },
         { href: '/rapport', label: 'Rapporten',   icon: I.chart },
       ],
@@ -331,31 +208,40 @@ export default function Navbar() {
         { href: '/directory',   label: 'Medewerkers', icon: I.team },
       ],
     },
-    ...(viewMode === 'admin' ? [{
-      label: 'Admin',
-      items: [{ href: '/admin', label: 'Admin panel', icon: I.shield }],
-    }] : []),
-  ] : [
+  ] : /* admin */ [
     {
-      label: 'Vitaliteit',
+      label: 'Overzicht',
       items: [
-        { href: '/checkin',     label: 'Check-in',      icon: I.check },
-        { href: '/coach',       label: 'AI Coach',       icon: I.coach },
-        { href: '/rapport',     label: 'Mijn rapport',   icon: I.rapport },
-        { href: '/doelen',      label: 'Doelen',         icon: I.doelen },
-        { href: '/uitdagingen', label: 'Uitdagingen',    icon: I.uitd },
-        { href: '/journal',     label: 'Journal',        icon: I.journal },
-        { href: '/burnout',     label: 'Burn-out scan',  icon: I.burnout },
-        { href: '/focus',       label: 'Focus',          icon: I.focus },
+        { href: '/hr',      label: 'Dashboard',  icon: I.dash, exact: true },
+        { href: '/team',    label: 'Team',        icon: I.team },
+        { href: '/rapport', label: 'Rapporten',   icon: I.chart },
       ],
     },
-    ...(werkdagItems.length > 0 ? [{
-      label: 'Werkdag',
-      items: werkdagItems,
-    }] : []),
+    {
+      label: 'Inrichten',
+      items: [
+        { href: '/hr/protocollen', label: 'Protocollen', icon: I.prot },
+        { href: '/nieuws',         label: 'Nieuws',       icon: I.nieuws },
+        { href: '/surveys',        label: 'Surveys',      icon: I.check },
+      ],
+    },
+    {
+      label: 'Beheren',
+      items: [
+        { href: '/verlof',      label: 'Verlof',      icon: I.verlof },
+        { href: '/loonstroken', label: 'Loonstroken', icon: I.rapport },
+        { href: '/directory',   label: 'Medewerkers', icon: I.team },
+      ],
+    },
+    {
+      label: 'Admin',
+      items: [
+        { href: '/admin', label: 'Admin panel', icon: I.shield },
+      ],
+    },
   ]
 
-  /* ── Sidebar content ── */
+  /* ── Sidebar inhoud ── */
   function SidebarContent() {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
@@ -369,26 +255,22 @@ export default function Navbar() {
           }}>🌿</div>
           <div>
             <p style={{ color: nameTxt, fontWeight: 700, fontSize: 13, lineHeight: 1.2 }}>MentaForce</p>
-            <p style={{ color: textMuted, fontSize: 10, marginTop: 1 }}>
-              {isHr ? 'HR Portaal' : 'Werknemersportaal'}
-            </p>
+            <p style={{ color: textMuted, fontSize: 10, marginTop: 1 }}>{portalLabel}</p>
           </div>
         </div>
 
-        {/* Home / dashboard link */}
+        {/* Home link */}
         <div style={{ padding: '8px 8px 0' }}>
-          <Link href={isHr ? '/hr' : '/home'} style={{
+          <Link href={viewMode === 'employee' ? '/home' : viewMode === 'hr' ? '/hr' : '/admin'} style={{
             display: 'flex', alignItems: 'center', gap: 9,
             padding: '8px 10px', borderRadius: 7,
-            background: (isHr ? pathname === '/hr' : pathname === '/home') ? activeBg : 'transparent',
-            color: (isHr ? pathname === '/hr' : pathname === '/home') ? ACCENT : text,
-            fontSize: 13, fontWeight: (isHr ? pathname === '/hr' : pathname === '/home') ? 600 : 500,
+            background: (pathname === '/home' || pathname === '/hr' || pathname === '/admin') ? activeBg : 'transparent',
+            color: (pathname === '/home' || pathname === '/hr' || pathname === '/admin') ? ACCENT : text,
+            fontSize: 13, fontWeight: 500,
             textDecoration: 'none', transition: 'background 0.12s',
           }}>
-            <span style={{ color: (isHr ? pathname === '/hr' : pathname === '/home') ? ACCENT : textMuted, display: 'flex' }}>
-              {I.home}
-            </span>
-            {isHr ? 'Dashboard' : 'Home'}
+            <span style={{ display: 'flex' }}>{I.home}</span>
+            {viewMode === 'employee' ? 'Home' : 'Dashboard'}
           </Link>
         </div>
 
@@ -401,7 +283,6 @@ export default function Navbar() {
 
         {/* Bottom */}
         <div style={{ padding: '8px', borderTop: `1px solid ${border}` }}>
-          {/* Berichten */}
           <Link href="/chat" style={{
             display: 'flex', alignItems: 'center', gap: 9,
             padding: '7px 10px', borderRadius: 7, marginBottom: 2,
@@ -409,35 +290,36 @@ export default function Navbar() {
             color: pathname === '/chat' ? ACCENT : text,
             fontSize: 12, fontWeight: 500, textDecoration: 'none',
           }}>
-            <span style={{ color: pathname === '/chat' ? ACCENT : textMuted, display: 'flex' }}>{I.chat}</span>
+            <span style={{ display: 'flex', color: textMuted }}>{I.chat}</span>
             Berichten
           </Link>
-
-          {/* Instellingen */}
           <Link href="/instellingen" style={{
             display: 'flex', alignItems: 'center', gap: 9,
-            padding: '7px 10px', borderRadius: 7, marginBottom: 2,
+            padding: '7px 10px', borderRadius: 7, marginBottom: 4,
             background: pathname === '/instellingen' ? activeBg : 'transparent',
             color: pathname === '/instellingen' ? ACCENT : text,
             fontSize: 12, fontWeight: 500, textDecoration: 'none',
           }}>
-            <span style={{ color: pathname === '/instellingen' ? ACCENT : textMuted, display: 'flex' }}>{I.gear}</span>
+            <span style={{ display: 'flex', color: textMuted }}>{I.gear}</span>
             Instellingen
           </Link>
 
           {/* Naam + uitloggen */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px 2px', marginTop: 4, borderTop: `1px solid ${border}` }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px 2px', borderTop: `1px solid ${border}` }}>
             <div style={{
               width: 28, height: 28, borderRadius: '50%', flexShrink: 0,
               background: ACCENT, display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontSize: 11, fontWeight: 700, color: 'white',
             }}>{naam.slice(0, 1).toUpperCase()}</div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <p style={{ fontSize: 12, fontWeight: 600, color: nameTxt, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{naam.split(' ')[0]}</p>
-              <p style={{ fontSize: 10, color: textMuted }}>{isHr ? 'HR Manager' : 'Medewerker'}</p>
+              <p style={{ fontSize: 12, fontWeight: 600, color: nameTxt, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {naam.split(' ')[0]}
+              </p>
+              <p style={{ fontSize: 10, color: textMuted }}>
+                {viewMode === 'employee' ? 'Medewerker' : viewMode === 'hr' ? 'HR Manager' : 'Admin'}
+              </p>
             </div>
-            <button onClick={uitloggen} style={{ background: 'none', border: 'none', cursor: 'pointer', color: textMuted, padding: 2, display: 'flex' }}
-              title="Uitloggen">
+            <button onClick={uitloggen} style={{ background: 'none', border: 'none', cursor: 'pointer', color: textMuted, padding: 2, display: 'flex' }} title="Uitloggen">
               {I.logout}
             </button>
           </div>
@@ -448,26 +330,23 @@ export default function Navbar() {
 
   return (
     <>
-      {/* ── Desktop sidebar (altijd zichtbaar) ── */}
+      {/* Desktop sidebar */}
       <aside className="hidden md:flex" style={{
-        position: 'fixed', left: 0, top: 0, bottom: 0,
-        width: SIDEBAR_W,
-        background: bg,
-        borderRight: `1px solid ${border}`,
-        zIndex: 40,
+        position: 'fixed', left: 0, top: 0, bottom: 0, width: SIDEBAR_W,
+        background: bg, borderRight: `1px solid ${border}`, zIndex: 40,
         boxShadow: isHr ? 'none' : '2px 0 12px rgba(0,0,0,0.04)',
         flexDirection: 'column',
       }}>
         <SidebarContent />
       </aside>
 
-      {/* ── Mobile: hamburger + drawer ── */}
-      <div style={{
+      {/* Mobile topbar */}
+      <div className="flex md:hidden" style={{
         position: 'fixed', top: 0, left: 0, right: 0, height: 52,
         background: bg, borderBottom: `1px solid ${border}`,
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        alignItems: 'center', justifyContent: 'space-between',
         padding: '0 16px', zIndex: 30,
-      }} className="flex md:hidden">
+      }}>
         <button onClick={() => setMobileOpen(o => !o)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: text }}>
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" />
@@ -479,29 +358,17 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* ── Mobile drawer ── */}
+      {/* Mobile drawer */}
       {mobileOpen && (
         <>
           <div onClick={() => setMobileOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 45, background: 'rgba(0,0,0,0.4)' }} />
           <aside style={{
             position: 'fixed', left: 0, top: 0, bottom: 0, width: SIDEBAR_W,
-            background: bg, zIndex: 50,
-            display: 'flex', flexDirection: 'column',
+            background: bg, zIndex: 50, display: 'flex', flexDirection: 'column',
           }}>
             <SidebarContent />
           </aside>
         </>
-      )}
-
-      {/* ── Rol-dropdown rechtsboven (alleen voor HR/admin) ── */}
-      {kanHr && (
-        <RolDropdown
-          huidigRol={rol}
-          huidigView={viewMode}
-          kanHr={kanHr}
-          kanAdmin={kanAdmin}
-          onSwitch={schakelView}
-        />
       )}
     </>
   )
