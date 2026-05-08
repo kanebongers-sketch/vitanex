@@ -403,6 +403,18 @@ export default function CheckIn() {
     topRef.current?.scrollIntoView({ behavior: 'smooth' })
   }
 
+  function vulRandomIn() {
+    const nieuw: Record<string, number | string> = {}
+    for (const sectie of secties) {
+      for (const vraag of sectie.vragen) {
+        if (vraag.type === 'schaal') {
+          nieuw[vraag.code] = Math.floor(Math.random() * 5) + 1
+        }
+      }
+    }
+    setAntwoorden(nieuw)
+  }
+
   function volgendeSectie() {
     if (!sectieCompleet(sectieIdx)) return
     setFout('')
@@ -492,7 +504,7 @@ export default function CheckIn() {
         e: String(e), m: String(m), w: String(w),
         s: String(s), g: String(g), t: String(t),
         seed: String(hashCode(userId + weekStart) % 1000),
-        sessie: sessieId,
+        sid: nieuweSessie.id,
       })
       router.push(`/bedankt?${params.toString()}`)
     } catch (err) {
@@ -720,6 +732,16 @@ export default function CheckIn() {
         <p className="text-xs text-gray-400 text-center mt-6">
           Alle antwoorden zijn anoniem en beveiligd.
         </p>
+
+        {/* Demo knop */}
+        <div className="mt-8 pt-6 border-t border-gray-100 text-center">
+          <button
+            onClick={vulRandomIn}
+            className="text-xs text-gray-300 hover:text-gray-400 transition underline underline-offset-2"
+          >
+            Demo: alle vragen willekeurig invullen
+          </button>
+        </div>
       </div>
     </main>
   )

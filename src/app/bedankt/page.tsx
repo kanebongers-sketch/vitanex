@@ -1,381 +1,524 @@
 'use client'
 
 import { useSearchParams } from 'next/navigation'
-import { Suspense } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import Link from 'next/link'
+import { supabase } from '@/lib/supabase'
 
-// ─── Pools voor gevarieerde berichten ─────────────────────────────────────
+// ─── Types ────────────────────────────────────────────────────────────────────
 
-const TITELS_HOOG = [
-  'Je straalt deze week!',
-  'Wat een sterke week voor jou!',
-  'Topweek — goed bezig!',
-  'Indrukwekkend hoe goed je ervoor staat!',
-  'Energie, focus en balans — alles op groen!',
-]
+interface AandachtsPunt { titel: string; uitleg: string }
+interface ActiePlan { actie: string; waarom: string; wanneer: string }
+interface BurnoutRisico { niveau: 'laag' | 'matig' | 'hoog'; score: number; uitleg: string }
 
-const TITELS_MIDDEN = [
-  'Goed gedaan — je check-in is binnen.',
-  'Bedankt voor je eerlijke invulling.',
-  'Je doet het goed — en er is ruimte om verder te groeien.',
-  'Stap voor stap — je bent op de goede weg.',
-  'Check-in gedaan! We kijken samen waar winst zit.',
-]
-
-const TITELS_LAAG = [
-  'Fijn dat je eerlijk bent ingevuld.',
-  'Je hebt de moed om eerlijk te zijn — dat telt.',
-  'Bedankt voor je openheid. We nemen dit serieus.',
-  'Het is goed dat je dit signaleert.',
-  'Eerlijkheid is de eerste stap — goed gedaan.',
-]
-
-const SUBTEKSTEN_HOOG = [
-  'Je scores wijzen op een gezonde balans tussen energie, werk en welzijn. Blijf dit vasthouden!',
-  'Je vitaliteitsprofiel ziet er sterk uit. Jouw inzet voor je eigen welzijn is zichtbaar.',
-  'Fantastisch resultaat. Je bevindt je in een goede flow — koester dat en deel het met je team.',
-]
-
-const SUBTEKSTEN_MIDDEN = [
-  'Je antwoorden geven een gemengd beeld. Er zijn sterke punten, maar ook aandachtspunten. Jouw HR-team ziet dit.',
-  'Sommige gebieden gaan goed, andere verdienen extra aandacht. Kleine aanpassingen kunnen een groot verschil maken.',
-  'Je staat er redelijk voor — maar er is duidelijk ruimte voor verbetering op een aantal vlakken.',
-]
-
-const SUBTEKSTEN_LAAG = [
-  'Je check-in toont dat het nu zwaarder is dan normaal. Dat is oké — de eerste stap is erkenning.',
-  'Dit is een signaal dat je op dit moment extra ondersteuning kunt gebruiken. Praat erover met iemand die je vertrouwt.',
-  'We zien dat je het momenteel moeilijk hebt. Je HR-team is op de hoogte en kan je ondersteunen.',
-]
-
-const QUOTES = [
-  '"Goed voor jezelf zorgen is niet egoïstisch — het is de basis voor alles wat je doet."',
-  '"Kleine stappen in de goede richting zijn ook stappen vooruit."',
-  '"Je hoeft niet perfect te zijn om het goed te doen."',
-  '"Rust is geen verspilling van tijd — het is een investering in je toekomst."',
-  '"Erkennen dat het moeilijk is, is een teken van kracht, niet van zwakte."',
-  '"De beste investering die je kunt doen, is in jezelf."',
-  '"Elke week opnieuw beginnen is een kans, geen verplichting."',
-  '"Jij bent meer dan je productiviteit."',
-  '"Luister naar je lichaam — het spreekt de waarheid."',
-  '"Verbinding met anderen is een van de krachtigste bronnen van vitaliteit."',
-]
-
-// ─── Tips per categorie ───────────────────────────────────────────────────
-
-const TIPS: Record<string, string[][]> = {
-  energie: [
-    ['Beweeg dagelijks 20 minuten', 'Een korte wandeling na de lunch verbetert je energieniveau en focus significant.'],
-    ['Slaaphygiëne verbeteren', 'Probeer op vaste tijden te slapen en vermijd schermen een uur voor bedtijd.'],
-    ['Drink meer water', 'Uitdroging is een onderschatte oorzaak van vermoeidheid. Doel: 1,5–2 liter per dag.'],
-    ['Pauzes inplannen', 'Neem elke 90 minuten een korte pauze van 5 minuten om je lichaam te resetten.'],
-    ['Buitenlucht zoeken', 'Zelfs 10 minuten buiten in de frisse lucht kan je energieniveau merkbaar verbeteren.'],
-  ],
-  mentaal: [
-    ['Doe één ding tegelijk', 'Multitasking verhoogt stress. Focus op één taak per keer voor meer rust en betere resultaten.'],
-    ['Schrijf je gedachten op', 'Een korte dagelijkse braindump (3–5 minuten schrijven) vermindert piekeren en geeft mentale ruimte.'],
-    ['Ademhalingsoefening', 'Probeer de 4-7-8 methode: inademen 4 sec, vasthouden 7 sec, uitademen 8 sec.'],
-    ['Grenzen stellen', 'Zeg bewust "nee" of "later" wanneer je agenda vol zit — dat is geen zwakte, maar wijsheid.'],
-    ['Digitale detox', 'Plan elke dag een moment zonder telefoon of scherm — ook al is het maar 15 minuten.'],
-  ],
-  werk: [
-    ['Dag starten met prioriteiten', 'Schrijf elke ochtend je top 3 taken op. Alles wat je daarna doet, is bonus.'],
-    ['Één vergadering minder', 'Vraag jezelf bij elk overleg: is mijn aanwezigheid echt nodig? Bescherm je focustijd.'],
-    ['Kleine wins vieren', 'Noteer elke dag één ding dat je hebt afgerond of bereikt. Dit voedt motivatie.'],
-    ['Hulp vragen', 'Als je vastloopt, vraag dan sneller om hulp. Dat is efficiënter dan lang worstelen.'],
-    ['Aan het einde van de dag afsluiten', 'Schrijf voor je stopt je open taken op. Je hoofd kan dan echt loslaten.'],
-  ],
-  sociaal: [
-    ['Verbinding zoeken', 'Neem eens de tijd voor een informeel gesprek met een collega — dat bouwt vertrouwen op.'],
-    ['Feedback geven', 'Geef deze week één positieve, concrete opmerking aan een collega. Het versterkt de sfeer.'],
-    ['Open communiceren', 'Als iets je dwarszit, spreek het aan — rechtstreeks en vriendelijk. Onuitgesproken frustraties groeien.'],
-    ['Samen pauze nemen', 'Plan een gezamenlijke lunchpauze of koffiemoment. Sociale verbinding herstelt.'],
-    ['Je leidinggevende aanspreken', 'Heb je een zorg of idee? Maak tijd om het te bespreken. Dat toont betrokkenheid.'],
-  ],
-  groei: [
-    ['Één ding leren per week', 'Reserveer 30 minuten per week om iets nieuws te lezen, luisteren of oefenen.'],
-    ['Feedback vragen', 'Vraag actief om feedback na een project of presentatie. Dat versnelt je groei.'],
-    ['Je doelen opschrijven', 'Concrete, opgeschreven doelen worden 42% vaker bereikt dan ongeschreven doelen.'],
-    ['Reflectiemoment plannen', 'Neem elke vrijdagmiddag 10 minuten om terug te blikken: wat leerde ik deze week?'],
-    ['Mentor zoeken', 'Is er iemand in je organisatie of netwerk die je inspireert? Vraag om een gesprek.'],
-  ],
+interface AnalyseJSON {
+  samenvatting: string
+  sterke_punten: string[]
+  aandachtspunten: AandachtsPunt[]
+  actieplan: ActiePlan[]
+  burnout_risico: BurnoutRisico
+  bericht: string
 }
 
-// ─── Categorie labels ────────────────────────────────────────────────────
+// ─── PDF generator ────────────────────────────────────────────────────────────
 
-const CAT_LABELS: Record<string, string> = {
-  e: 'Energie & Lichaam',
-  m: 'Mentaal welzijn',
-  w: 'Werk & Motivatie',
-  s: 'Team & Samenwerking',
-  g: 'Groei & Ontwikkeling',
+async function downloadPDF(analyse: AnalyseJSON, scores: Record<string, number>, datum: string) {
+  const { default: jsPDF } = await import('jspdf')
+  const doc = new jsPDF()
+
+  const MARGIN = 18
+  const PAGE_W = 210
+  const TEXT_W = PAGE_W - MARGIN * 2
+  let y = 20
+
+  function nl(extra = 0) { y += extra }
+
+  function checkPage() {
+    if (y > 270) { doc.addPage(); y = 20 }
+  }
+
+  function write(text: string, size: number, rgb: [number, number, number], bold = false) {
+    doc.setFontSize(size)
+    doc.setTextColor(rgb[0], rgb[1], rgb[2])
+    doc.setFont('helvetica', bold ? 'bold' : 'normal')
+    const lines = doc.splitTextToSize(String(text), TEXT_W) as string[]
+    checkPage()
+    doc.text(lines, MARGIN, y)
+    y += lines.length * (size * 0.42) + 2
+  }
+
+  function rule() {
+    doc.setDrawColor(220, 220, 220)
+    doc.line(MARGIN, y, PAGE_W - MARGIN, y)
+    y += 5
+  }
+
+  // Kop
+  write('VITANEX', 8, [29, 158, 117], true)
+  nl(1)
+  write('Persoonlijke Vitaliteitsanalyse', 20, [17, 24, 39], true)
+  nl(1)
+  write(`Week van ${datum}`, 10, [107, 114, 128])
+  nl(4)
+  rule()
+
+  // Scores
+  write('SCORES DEZE WEEK', 11, [17, 24, 39], true)
+  nl(2)
+  const catLabels: Record<string, string> = {
+    e: 'Energie & Lichaam', m: 'Mentaal welzijn', w: 'Werk & Motivatie',
+    s: 'Team & Samenwerking', g: 'Groei & Ontwikkeling', t: 'Totaal',
+  }
+  for (const [k, label] of Object.entries(catLabels)) {
+    if (scores[k] > 0) write(`${label}: ${scores[k].toFixed(1)} / 5`, 10, [55, 65, 81])
+  }
+  nl(4); rule()
+
+  // Samenvatting
+  write('SAMENVATTING', 11, [17, 24, 39], true)
+  nl(2)
+  write(analyse.samenvatting, 10, [55, 65, 81])
+  nl(4); rule()
+
+  // Sterke punten
+  write('STERKE PUNTEN', 11, [17, 24, 39], true)
+  nl(2)
+  for (const p of analyse.sterke_punten) { write(`• ${p}`, 10, [55, 65, 81]) }
+  nl(4); rule()
+
+  // Aandachtspunten
+  write('AANDACHTSPUNTEN', 11, [17, 24, 39], true)
+  nl(2)
+  for (const a of analyse.aandachtspunten) {
+    checkPage()
+    write(a.titel, 10, [17, 24, 39], true)
+    write(a.uitleg, 10, [55, 65, 81])
+    nl(3)
+  }
+  rule()
+
+  // Actieplan
+  write('ACTIEPLAN VOOR VOLGENDE WEEK', 11, [17, 24, 39], true)
+  nl(2)
+  analyse.actieplan.forEach((item, i) => {
+    checkPage()
+    write(`${i + 1}. ${item.actie} — ${item.wanneer}`, 10, [17, 24, 39], true)
+    write(`   ${item.waarom}`, 10, [55, 65, 81])
+    nl(3)
+  })
+  rule()
+
+  // Burnout risico
+  const rKleur: Record<string, [number, number, number]> = {
+    laag: [29, 158, 117], matig: [186, 117, 23], hoog: [226, 75, 74],
+  }
+  const rk = rKleur[analyse.burnout_risico.niveau] ?? [55, 65, 81]
+  write(`BURN-OUT RISICO: ${analyse.burnout_risico.niveau.toUpperCase()}`, 11, rk, true)
+  nl(2)
+  write(analyse.burnout_risico.uitleg, 10, [55, 65, 81])
+  nl(4); rule()
+
+  // Bericht
+  write('PERSOONLIJK BERICHT', 11, [17, 24, 39], true)
+  nl(2)
+  write(analyse.bericht, 10, [55, 65, 81])
+  nl(10)
+
+  // Footer
+  write('Vitanex — Vitaliteit op de werkplek  |  Vertrouwelijk document', 8, [156, 163, 175])
+
+  doc.save(`vitanex-analyse-${datum.replace(/\s+/g, '-').replace(/[^a-z0-9-]/gi, '')}.pdf`)
 }
 
-const CAT_KLEUREN: Record<string, { kleur: string; licht: string }> = {
-  e: { kleur: '#1D9E75', licht: '#E1F5EE' },
-  m: { kleur: '#378ADD', licht: '#E6F1FB' },
-  w: { kleur: '#8B5CF6', licht: '#EEEDFE' },
-  s: { kleur: '#BA7517', licht: '#FAEEDA' },
-  g: { kleur: '#059669', licht: '#D1FAE5' },
-}
+// ─── Kleur helpers ────────────────────────────────────────────────────────────
 
-const CAT_TIPS_KEY: Record<string, string> = {
-  e: 'energie', m: 'mentaal', w: 'werk', s: 'sociaal', g: 'groei',
-}
-
-// ─── Helpers ─────────────────────────────────────────────────────────────
-
-function pick<T>(arr: T[], idx: number): T {
-  return arr[Math.abs(idx) % arr.length]
-}
-
-function scoreKleur(s: number): string {
-  if (s >= 4)   return '#1D9E75'
-  if (s >= 3)   return '#BA7517'
-  if (s >= 2)   return '#E26B4A'
+function scoreKleur(s: number) {
+  if (s >= 4) return '#1D9E75'
+  if (s >= 3) return '#BA7517'
+  if (s >= 2) return '#E26B4A'
   return '#E24B4A'
 }
 
-function scoreBalk(s: number): string {
-  if (s >= 4)   return '#1D9E75'
-  if (s >= 3)   return '#F59E0B'
-  if (s >= 2)   return '#F97316'
-  return '#EF4444'
+function risicoConfig(niveau: string) {
+  if (niveau === 'hoog')  return { bg: '#FCEBEB', border: '#E24B4A', tekst: '#A32D2D', label: 'Hoog risico' }
+  if (niveau === 'matig') return { bg: '#FAEEDA', border: '#BA7517', tekst: '#854F0B', label: 'Matig risico' }
+  return { bg: '#E1F5EE', border: '#1D9E75', tekst: '#0F6E56', label: 'Laag risico' }
 }
 
-function scoreLabel(s: number): string {
-  if (s >= 4.5) return 'Uitstekend'
-  if (s >= 4)   return 'Goed'
-  if (s >= 3.5) return 'Redelijk goed'
-  if (s >= 3)   return 'Matig'
-  if (s >= 2)   return 'Aandacht nodig'
-  return 'Zorgwekkend'
+const CAT_LABELS: Record<string, string> = {
+  e: 'Energie & Lichaam', m: 'Mentaal welzijn', w: 'Werk & Motivatie',
+  s: 'Team & Samenwerking', g: 'Groei & Ontwikkeling',
+}
+const CAT_KLEUREN: Record<string, { k: string; l: string }> = {
+  e: { k: '#1D9E75', l: '#E1F5EE' },
+  m: { k: '#378ADD', l: '#E6F1FB' },
+  w: { k: '#8B5CF6', l: '#EEEDFE' },
+  s: { k: '#BA7517', l: '#FAEEDA' },
+  g: { k: '#059669', l: '#D1FAE5' },
 }
 
-// ─── Inner component (uses useSearchParams) ───────────────────────────────
+// ─── Inner component ──────────────────────────────────────────────────────────
 
 function BedanktInhoud() {
   const params = useSearchParams()
 
-  const e      = parseFloat(params.get('e') || '0')
-  const m      = parseFloat(params.get('m') || '0')
-  const w      = parseFloat(params.get('w') || '0')
-  const s      = parseFloat(params.get('s') || '0')
-  const g      = parseFloat(params.get('g') || '0')
-  const t      = parseFloat(params.get('t') || '0')
-  const seed   = parseInt(params.get('seed') || '0', 10)
-  const sessie = params.get('sessie') || ''
+  const e    = parseFloat(params.get('e') ?? '0')
+  const m    = parseFloat(params.get('m') ?? '0')
+  const w    = parseFloat(params.get('w') ?? '0')
+  const s    = parseFloat(params.get('s') ?? '0')
+  const g    = parseFloat(params.get('g') ?? '0')
+  const t    = parseFloat(params.get('t') ?? '0')
+  const sid  = params.get('sid') ?? ''
 
+  const scores = { e, m, w, s, g, t }
   const heeftScores = t > 0
 
-  // Niveau bepalen
-  const niveau = t >= 3.8 ? 'hoog' : t >= 2.8 ? 'midden' : 'laag'
+  const [status,    setStatus]    = useState<'laden' | 'analyse' | 'klaar' | 'fout' | 'simpel'>('laden')
+  const [analyse,   setAnalyse]   = useState<AnalyseJSON | null>(null)
+  const [analyseId, setAnalyseId] = useState<string | null>(null)
+  const [gedeeld,   setGedeeld]   = useState(false)
+  const [deelBezig, setDeelBezig] = useState(false)
+  const [pdfBezig,  setPdfBezig]  = useState(false)
+  const [userId,    setUserId]    = useState<string | null>(null)
+  const [bedrijfId, setBedrijfId] = useState<string | null>(null)
 
-  const titel    = pick(niveau === 'hoog' ? TITELS_HOOG    : niveau === 'midden' ? TITELS_MIDDEN    : TITELS_LAAG,    seed)
-  const subtekst = pick(niveau === 'hoog' ? SUBTEKSTEN_HOOG : niveau === 'midden' ? SUBTEKSTEN_MIDDEN : SUBTEKSTEN_LAAG, seed + 1)
-  const quote    = pick(QUOTES, seed + 2)
+  const datum = new Date().toLocaleDateString('nl-BE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
 
-  const hoofdKleur = niveau === 'hoog' ? '#1D9E75' : niveau === 'midden' ? '#BA7517' : '#E24B4A'
-  const hoofdLicht = niveau === 'hoog' ? '#E1F5EE' : niveau === 'midden' ? '#FAEEDA' : '#FCEBEB'
-  const checkIcon  = niveau === 'hoog' ? '★'       : niveau === 'midden' ? '✓'       : '♥'
+  useEffect(() => {
+    if (!sid || !heeftScores) { setStatus('simpel'); return }
+    genereerAnalyse()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
-  // Scores per categorie
-  const catScores: Array<{ key: string; score: number }> = [
-    { key: 'e', score: e },
-    { key: 'm', score: m },
-    { key: 'w', score: w },
-    { key: 's', score: s },
-    { key: 'g', score: g },
-  ].filter(c => c.score > 0)
+  async function genereerAnalyse() {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) { setStatus('simpel'); return }
+    setUserId(user.id)
 
-  // Laagste 2 categorieën → tips
-  const gesorteerd  = [...catScores].sort((a, b) => a.score - b.score)
-  const aandacht    = gesorteerd.slice(0, 2)
-  const sterktes    = gesorteerd.filter(c => c.score >= 4).slice(-2).reverse()
+    const { data: profiel } = await supabase
+      .from('profiles').select('bedrijf_id').eq('id', user.id).single()
+    setBedrijfId(profiel?.bedrijf_id ?? null)
+
+    // Check of al bestaat
+    const { data: bestaand } = await supabase
+      .from('checkin_analyses')
+      .select('id, analyse_json, gedeeld_met_hr')
+      .eq('sessie_id', sid)
+      .maybeSingle()
+
+    if (bestaand) {
+      setAnalyse(bestaand.analyse_json as AnalyseJSON)
+      setAnalyseId(bestaand.id)
+      setGedeeld(bestaand.gedeeld_met_hr)
+      setStatus('klaar')
+      return
+    }
+
+    setStatus('analyse')
+
+    // Haal tekst-antwoorden op
+    const { data: antwoorden } = await supabase
+      .from('checkin_antwoorden')
+      .select('categorie, waarde_tekst')
+      .eq('sessie_id', sid)
+      .not('waarde_tekst', 'is', null)
+
+    // Roep AI aan
+    const res = await fetch('/api/analyse', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ scores, antwoorden: antwoorden ?? [] }),
+    })
+
+    if (!res.ok) { setStatus('fout'); return }
+    const json = await res.json()
+    if (!json.analyse) { setStatus('fout'); return }
+
+    // Sla op in DB
+    const { data: opgeslagen } = await supabase
+      .from('checkin_analyses')
+      .insert({
+        sessie_id:   sid,
+        user_id:     user.id,
+        bedrijf_id:  profiel?.bedrijf_id ?? null,
+        scores,
+        analyse_json: json.analyse,
+        gedeeld_met_hr: false,
+      })
+      .select('id')
+      .single()
+
+    setAnalyse(json.analyse)
+    setAnalyseId(opgeslagen?.id ?? null)
+    setStatus('klaar')
+  }
+
+  async function toggleDelen() {
+    if (!analyseId || !userId) return
+    setDeelBezig(true)
+    const nieuw = !gedeeld
+    await supabase
+      .from('checkin_analyses')
+      .update({ gedeeld_met_hr: nieuw })
+      .eq('id', analyseId)
+    setGedeeld(nieuw)
+    setDeelBezig(false)
+  }
+
+  async function downloadAnalysePDF() {
+    if (!analyse) return
+    setPdfBezig(true)
+    await downloadPDF(analyse, scores, datum)
+    setPdfBezig(false)
+  }
+
+  // ── Laadscherm ────────────────────────────────────────────────────────────
+
+  if (status === 'laden' || status === 'analyse') return (
+    <main className="min-h-screen flex flex-col items-center justify-center p-8"
+      style={{ background: 'linear-gradient(135deg, #E1F5EE 0%, #E6F1FB 100%)' }}>
+      <div className="max-w-md w-full bg-white rounded-2xl border border-gray-100 p-10 shadow-sm text-center">
+        <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-5"
+          style={{ background: '#E1F5EE' }}>
+          <div className="w-6 h-6 rounded-full border-2 border-gray-200 animate-spin"
+            style={{ borderTopColor: '#1D9E75' }} />
+        </div>
+        <h2 className="text-lg font-medium text-gray-900 mb-2">
+          {status === 'laden' ? 'Check-in verwerken...' : 'AI-analyse wordt gegenereerd...'}
+        </h2>
+        <p className="text-gray-400 text-sm leading-relaxed">
+          {status === 'analyse'
+            ? 'De AI analyseert jouw antwoorden en stelt een persoonlijk rapport op. Dit duurt een paar seconden.'
+            : 'Even geduld...'}
+        </p>
+      </div>
+    </main>
+  )
+
+  // ── Simpele bevestiging (geen sessie-id) ──────────────────────────────────
+
+  if (status === 'simpel' || status === 'fout') return (
+    <main className="min-h-screen flex flex-col items-center justify-center p-8"
+      style={{ background: 'linear-gradient(135deg, #E1F5EE 0%, #E6F1FB 100%)' }}>
+      <div className="max-w-md w-full bg-white rounded-2xl border border-gray-100 p-10 shadow-sm text-center">
+        <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-5"
+          style={{ background: '#E1F5EE' }}>
+          <span style={{ color: '#1D9E75', fontSize: 22 }}>✓</span>
+        </div>
+        <h2 className="text-xl font-medium text-gray-900 mb-2">Check-in gedaan!</h2>
+        <p className="text-gray-500 text-sm mb-8 leading-relaxed">
+          {status === 'fout'
+            ? 'De AI-analyse kon niet worden gegenereerd, maar je check-in is wel opgeslagen.'
+            : 'Bedankt. Je antwoorden helpen jouw team om beter te presteren en uitval te voorkomen.'}
+        </p>
+        <div className="flex flex-col gap-3">
+          <Link href="/portaal" className="w-full inline-block text-center text-white rounded-xl py-3 text-sm font-medium"
+            style={{ background: '#1D9E75' }}>Mijn portaal bekijken</Link>
+          <Link href="/" className="w-full inline-block text-center border border-gray-200 text-gray-500 rounded-xl py-3 text-sm hover:bg-gray-50 transition">
+            Terug naar home</Link>
+        </div>
+      </div>
+    </main>
+  )
+
+  // ── Volledige analyse ─────────────────────────────────────────────────────
+
+  if (!analyse) return null
+
+  const risico = risicoConfig(analyse.burnout_risico.niveau)
 
   return (
     <main className="min-h-screen pb-16"
       style={{ background: 'linear-gradient(160deg, #F0FAF6 0%, #EBF4FB 50%, #F5F3FF 100%)' }}>
+      <div className="max-w-2xl mx-auto px-5 pt-10">
 
-      <div className="max-w-xl mx-auto px-5 pt-10">
-
-        {/* Hero kaart */}
-        <div className="bg-white rounded-3xl border border-gray-100 p-8 shadow-sm mb-5 text-center">
-          <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-5"
-            style={{ background: hoofdLicht }}>
-            <span style={{ color: hoofdKleur, fontSize: 26 }}>{checkIcon}</span>
-          </div>
-
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">{titel}</h1>
-          <p className="text-gray-500 text-sm leading-relaxed mb-5">{subtekst}</p>
-
-          {heeftScores && (
-            <>
-              {/* Totaalscore */}
-              <div className="rounded-2xl p-5 mb-4" style={{ background: hoofdLicht }}>
-                <p className="text-xs text-gray-500 mb-1">Jouw vitaliteitsscore deze week</p>
-                <div className="flex items-end justify-center gap-1">
-                  <span className="text-5xl font-black" style={{ color: hoofdKleur }}>
-                    {t.toFixed(1)}
-                  </span>
-                  <span className="text-xl font-medium text-gray-400 pb-1">/5</span>
-                </div>
-                <p className="text-sm font-medium mt-1" style={{ color: hoofdKleur }}>
-                  {scoreLabel(t)}
-                </p>
-              </div>
-
-              {/* Categorie balkjes */}
-              <div className="space-y-3 text-left">
-                {catScores.map(({ key, score }) => {
-                  const { kleur, licht } = CAT_KLEUREN[key]
-                  const pct = Math.round((score / 5) * 100)
-                  return (
-                    <div key={key}>
-                      <div className="flex justify-between text-xs mb-1">
-                        <span className="font-medium text-gray-700">{CAT_LABELS[key]}</span>
-                        <span className="font-semibold" style={{ color: scoreKleur(score) }}>
-                          {score.toFixed(1)}
-                        </span>
-                      </div>
-                      <div className="h-2 rounded-full overflow-hidden" style={{ background: licht }}>
-                        <div
-                          className="h-full rounded-full transition-all duration-700"
-                          style={{ width: `${pct}%`, background: scoreBalk(score) }}
-                        />
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            </>
-          )}
-
-          {/* Quote */}
-          <div className="mt-6 rounded-xl p-4 text-left" style={{ background: '#F9FAFB' }}>
-            <p className="text-xs text-gray-500 italic leading-relaxed">{quote}</p>
-          </div>
-        </div>
-
-        {/* Sterke punten */}
-        {sterktes.length > 0 && (
-          <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm mb-5">
-            <h2 className="text-sm font-semibold text-gray-900 mb-4">Jouw sterke punten deze week</h2>
-            <div className="space-y-3">
-              {sterktes.map(({ key, score }) => {
-                const { kleur, licht } = CAT_KLEUREN[key]
-                return (
-                  <div key={key} className="flex items-center gap-3 rounded-xl p-3"
-                    style={{ background: licht }}>
-                    <div className="w-8 h-8 rounded-lg flex items-center justify-center text-sm flex-shrink-0"
-                      style={{ background: kleur, color: 'white' }}>✓</div>
-                    <div>
-                      <p className="text-xs font-semibold" style={{ color: kleur }}>{CAT_LABELS[key]}</p>
-                      <p className="text-xs text-gray-500">Score {score.toFixed(1)} / 5 — goed bezig!</p>
-                    </div>
-                  </div>
-                )
-              })}
+        {/* Hero */}
+        <div className="bg-white rounded-3xl border border-gray-100 p-8 shadow-sm mb-5">
+          <div className="flex items-center gap-4 mb-5">
+            <div className="w-14 h-14 rounded-2xl flex items-center justify-center"
+              style={{ background: '#E1F5EE' }}>
+              <span style={{ color: '#1D9E75', fontSize: 24 }}>★</span>
+            </div>
+            <div>
+              <h1 className="text-xl font-bold text-gray-900">Jouw vitaliteitsanalyse</h1>
+              <p className="text-xs text-gray-400 capitalize">{datum}</p>
             </div>
           </div>
-        )}
 
-        {/* Aandachtspunten + tips */}
-        {aandacht.length > 0 && (
-          <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm mb-5">
-            <h2 className="text-sm font-semibold text-gray-900 mb-1">Aandachtspunten & tips</h2>
-            <p className="text-xs text-gray-400 mb-4">
-              Op basis van je laagste scores hebben we gerichte tips voor je.
-            </p>
+          {/* Totaalscore */}
+          <div className="rounded-2xl p-5 mb-5 text-center" style={{ background: '#F0FAF6' }}>
+            <p className="text-xs text-gray-500 mb-1">Totale vitaliteitsscore</p>
+            <div className="flex items-end justify-center gap-1">
+              <span className="text-5xl font-black" style={{ color: scoreKleur(t) }}>{t.toFixed(1)}</span>
+              <span className="text-xl font-medium text-gray-400 pb-1">/5</span>
+            </div>
+          </div>
 
-            {aandacht.map(({ key, score }, i) => {
-              const { kleur, licht } = CAT_KLEUREN[key]
-              const tipsVoorCat = TIPS[CAT_TIPS_KEY[key]] ?? []
-              const tip = pick(tipsVoorCat, seed + 10 + i)
+          {/* Categorie balkjes */}
+          <div className="space-y-3">
+            {Object.entries(CAT_LABELS).map(([key, label]) => {
+              const score = scores[key] ?? 0
+              if (!score) return null
+              const { k, l } = CAT_KLEUREN[key]
               return (
-                <div key={key} className="rounded-2xl p-4 mb-3 last:mb-0"
-                  style={{ background: licht, borderLeft: `3px solid ${kleur}` }}>
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="text-xs font-semibold" style={{ color: kleur }}>{CAT_LABELS[key]}</p>
-                    <span className="text-xs font-medium px-2 py-0.5 rounded-full"
-                      style={{ background: kleur + '20', color: kleur }}>
-                      {score.toFixed(1)} / 5
-                    </span>
+                <div key={key}>
+                  <div className="flex justify-between text-xs mb-1">
+                    <span className="font-medium text-gray-700">{label}</span>
+                    <span className="font-semibold" style={{ color: scoreKleur(score) }}>{score.toFixed(1)}</span>
                   </div>
-                  {tip && (
-                    <>
-                      <p className="text-sm font-medium text-gray-900 mb-1">{tip[0]}</p>
-                      <p className="text-xs text-gray-500 leading-relaxed">{tip[1]}</p>
-                    </>
-                  )}
+                  <div className="h-2 rounded-full overflow-hidden" style={{ background: l }}>
+                    <div className="h-full rounded-full transition-all duration-700"
+                      style={{ width: `${(score / 5) * 100}%`, background: k }} />
+                  </div>
                 </div>
               )
             })}
           </div>
-        )}
+        </div>
 
-        {/* Extra tip uit een andere categorie */}
-        {catScores.length > 2 && (() => {
-          const middenCat = catScores.find(c => c.score >= 2.5 && c.score < 3.8 && !aandacht.some(a => a.key === c.key))
-          if (!middenCat) return null
-          const { kleur, licht } = CAT_KLEUREN[middenCat.key]
-          const tipsVoorCat = TIPS[CAT_TIPS_KEY[middenCat.key]] ?? []
-          const tip = pick(tipsVoorCat, seed + 20)
-          if (!tip) return null
-          return (
-            <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm mb-5">
-              <h2 className="text-sm font-semibold text-gray-900 mb-3">Bonustip voor deze week</h2>
-              <div className="rounded-2xl p-4" style={{ background: licht, borderLeft: `3px solid ${kleur}` }}>
-                <p className="text-xs font-semibold mb-1" style={{ color: kleur }}>{CAT_LABELS[middenCat.key]}</p>
-                <p className="text-sm font-medium text-gray-900 mb-1">{tip[0]}</p>
-                <p className="text-xs text-gray-500 leading-relaxed">{tip[1]}</p>
+        {/* Samenvatting */}
+        <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm mb-4">
+          <h2 className="text-sm font-semibold text-gray-900 mb-3">Samenvatting</h2>
+          <p className="text-sm text-gray-700 leading-relaxed">{analyse.samenvatting}</p>
+        </div>
+
+        {/* Sterke punten */}
+        <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm mb-4">
+          <h2 className="text-sm font-semibold text-gray-900 mb-3">Sterke punten deze week</h2>
+          <ul className="space-y-2">
+            {analyse.sterke_punten.map((p, i) => (
+              <li key={i} className="flex items-start gap-2.5">
+                <span className="w-5 h-5 rounded-full flex items-center justify-center text-xs flex-shrink-0 mt-0.5"
+                  style={{ background: '#E1F5EE', color: '#1D9E75' }}>✓</span>
+                <span className="text-sm text-gray-700">{p}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* Aandachtspunten */}
+        <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm mb-4">
+          <h2 className="text-sm font-semibold text-gray-900 mb-3">Aandachtspunten</h2>
+          <div className="space-y-4">
+            {analyse.aandachtspunten.map((a, i) => (
+              <div key={i} className="rounded-xl p-4"
+                style={{ background: '#FAEEDA', borderLeft: '3px solid #BA7517' }}>
+                <p className="text-xs font-semibold mb-1" style={{ color: '#854F0B' }}>{a.titel}</p>
+                <p className="text-sm text-gray-700 leading-relaxed">{a.uitleg}</p>
               </div>
-            </div>
-          )
-        })()}
-
-        {/* Wat nu? */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm mb-5">
-          <h2 className="text-sm font-semibold text-gray-900 mb-4">Wat nu?</h2>
-          <div className="space-y-3 text-sm text-gray-600">
-            <div className="flex items-start gap-3">
-              <span className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
-                style={{ background: '#E1F5EE', color: '#1D9E75' }}>1</span>
-              <p>Je antwoorden zijn anoniem opgeslagen en zichtbaar voor je HR-team.</p>
-            </div>
-            <div className="flex items-start gap-3">
-              <span className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
-                style={{ background: '#E1F5EE', color: '#1D9E75' }}>2</span>
-              <p>Volgende week krijg je andere vragen — zodat je meerdere aspecten van je welzijn belicht.</p>
-            </div>
-            <div className="flex items-start gap-3">
-              <span className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
-                style={{ background: '#E1F5EE', color: '#1D9E75' }}>3</span>
-              <p>Bekijk je persoonlijk portaal voor inzichten en trends over de weken heen.</p>
-            </div>
+            ))}
           </div>
         </div>
 
-        {/* Actieknoppen */}
+        {/* Actieplan */}
+        <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm mb-4">
+          <h2 className="text-sm font-semibold text-gray-900 mb-3">Actieplan voor volgende week</h2>
+          <div className="space-y-4">
+            {analyse.actieplan.map((item, i) => (
+              <div key={i} className="flex gap-3">
+                <span className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
+                  style={{ background: '#E6F1FB', color: '#378ADD' }}>{i + 1}</span>
+                <div>
+                  <p className="text-sm font-semibold text-gray-900">{item.actie}</p>
+                  <p className="text-xs text-gray-500 mt-0.5">{item.wanneer}</p>
+                  <p className="text-xs text-gray-600 mt-1 leading-relaxed">{item.waarom}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Burn-out risico */}
+        <div className="rounded-2xl p-5 mb-4"
+          style={{ background: risico.bg, borderLeft: `4px solid ${risico.border}` }}>
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-sm font-semibold" style={{ color: risico.tekst }}>
+              Burn-out risico: {risico.label}
+            </p>
+            <span className="text-xs font-medium px-2.5 py-1 rounded-full"
+              style={{ background: risico.border + '20', color: risico.tekst }}>
+              {analyse.burnout_risico.score}/10
+            </span>
+          </div>
+          <p className="text-sm leading-relaxed" style={{ color: risico.tekst }}>
+            {analyse.burnout_risico.uitleg}
+          </p>
+        </div>
+
+        {/* Persoonlijk bericht */}
+        <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm mb-5">
+          <p className="text-xs font-medium text-gray-400 mb-2">Persoonlijk bericht</p>
+          <p className="text-sm text-gray-700 leading-relaxed italic">"{analyse.bericht}"</p>
+        </div>
+
+        {/* Acties: Delen met HR + Download */}
+        <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm mb-5">
+          <h2 className="text-sm font-semibold text-gray-900 mb-1">Wat wil je doen met deze analyse?</h2>
+          <p className="text-xs text-gray-400 mb-4">
+            Je analyse is privé. Jij beslist of je hem deelt met HR of als PDF bewaart.
+          </p>
+
+          {/* Deel met HR toggle */}
+          <button
+            onClick={toggleDelen}
+            disabled={deelBezig}
+            className="w-full flex items-center justify-between p-4 rounded-xl border transition mb-3"
+            style={{
+              background:   gedeeld ? '#E1F5EE' : '#F9FAFB',
+              borderColor:  gedeeld ? '#1D9E75' : '#e5e7eb',
+            }}
+          >
+            <div className="text-left">
+              <p className="text-sm font-medium" style={{ color: gedeeld ? '#0F6E56' : '#374151' }}>
+                {gedeeld ? 'Gedeeld met HR' : 'Deel met HR'}
+              </p>
+              <p className="text-xs mt-0.5" style={{ color: gedeeld ? '#1D9E75' : '#9ca3af' }}>
+                {gedeeld
+                  ? 'Jouw HR-manager kan deze analyse inzien en downloaden.'
+                  : 'Jouw HR-manager krijgt toegang tot deze analyse.'}
+              </p>
+            </div>
+            <div className="w-10 h-6 rounded-full flex items-center transition-all duration-200 flex-shrink-0 ml-4"
+              style={{ background: gedeeld ? '#1D9E75' : '#d1d5db', justifyContent: gedeeld ? 'flex-end' : 'flex-start', padding: '2px' }}>
+              <div className="w-5 h-5 rounded-full bg-white shadow-sm" />
+            </div>
+          </button>
+
+          {/* Download PDF */}
+          <button
+            onClick={downloadAnalysePDF}
+            disabled={pdfBezig}
+            className="w-full flex items-center justify-center gap-2 p-4 rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 transition disabled:opacity-40"
+          >
+            {pdfBezig
+              ? <><span className="w-4 h-4 rounded-full border-2 border-gray-300 border-t-gray-600 animate-spin" /> Bezig...</>
+              : <>↓ Download als PDF</>
+            }
+          </button>
+        </div>
+
+        {/* Navigatie */}
         <div className="flex flex-col gap-3">
-          {sessie && (
-            <Link
-              href={`/mijn-rapport?sessie=${sessie}`}
+          {sid && (
+            <Link href={`/mijn-rapport?sid=${sid}`}
               className="w-full inline-block text-center text-white rounded-xl py-3.5 text-sm font-semibold"
               style={{ background: '#1D9E75' }}>
               Bekijk je persoonlijk AI-rapport
             </Link>
           )}
-          <Link
-            href="/portaal"
+          <Link href="/portaal"
             className="w-full inline-block text-center rounded-xl py-3.5 text-sm font-medium border"
             style={{ borderColor: '#378ADD', color: '#378ADD' }}>
             Mijn portaal bekijken
           </Link>
-          <Link
-            href="/journal"
-            className="w-full inline-block text-center border border-gray-200 text-gray-500 rounded-xl py-3 text-sm hover:bg-gray-50 transition">
+          <Link href="/journal"
+            className="w-full inline-block text-center rounded-xl py-3.5 text-sm font-medium border"
+            style={{ borderColor: '#8B5CF6', color: '#8B5CF6' }}>
             Schrijf een reflectie in je journal
+          </Link>
+          <Link href="/"
+            className="w-full inline-block text-center border border-gray-200 text-gray-500 rounded-xl py-3 text-sm hover:bg-gray-50 transition">
+            Terug naar home
           </Link>
         </div>
 
@@ -387,7 +530,7 @@ function BedanktInhoud() {
   )
 }
 
-// ─── Export met Suspense (vereist door useSearchParams in Next.js) ─────────
+// ─── Export met Suspense ──────────────────────────────────────────────────────
 
 export default function Bedankt() {
   return (

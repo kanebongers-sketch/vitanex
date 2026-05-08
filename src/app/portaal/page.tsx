@@ -10,6 +10,54 @@ import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'rec
 import Navbar from '@/components/Navbar'
 import DocumentenSectie from '@/components/DocumentenSectie'
 
+async function downloadAnalysePDF(analyse: AnalyseRecord) {
+  const { default: jsPDF } = await import('jspdf')
+  const doc = new jsPDF()
+  const MARGIN = 18, PAGE_W = 210, TEXT_W = PAGE_W - MARGIN * 2
+  let y = 20
+
+  function checkPage() { if (y > 270) { doc.addPage(); y = 20 } }
+  function write(text: string, size: number, rgb: [number,number,number], bold = false) {
+    doc.setFontSize(size); doc.setTextColor(rgb[0],rgb[1],rgb[2])
+    doc.setFont('helvetica', bold ? 'bold' : 'normal')
+    const lines = doc.splitTextToSize(String(text), TEXT_W) as string[]
+    checkPage(); doc.text(lines, MARGIN, y)
+    y += lines.length * (size * 0.42) + 2
+  }
+  function rule() { doc.setDrawColor(220,220,220); doc.line(MARGIN, y, PAGE_W-MARGIN, y); y += 5 }
+
+  const datum = new Date(analyse.aangemaakt_op).toLocaleDateString('nl-BE', { day:'numeric', month:'long', year:'numeric' })
+  write('VITANEX', 8, [29,158,117], true); y++
+  write('Persoonlijke Vitaliteitsanalyse', 20, [17,24,39], true); y++
+  write(`Week van ${datum}`, 10, [107,114,128]); y += 4; rule()
+
+  const catLabels: Record<string,string> = { e:'Energie & Lichaam', m:'Mentaal welzijn', w:'Werk & Motivatie', s:'Team & Samenwerking', g:'Groei & Ontwikkeling', t:'Totaal' }
+  write('SCORES', 11, [17,24,39], true); y += 2
+  for (const [k, label] of Object.entries(catLabels)) {
+    const sc = analyse.scores?.[k]
+    if (sc > 0) write(`${label}: ${Number(sc).toFixed(1)} / 5`, 10, [55,65,81])
+  }
+  y += 4; rule()
+
+  const a = analyse.analyse_json
+  write('SAMENVATTING', 11, [17,24,39], true); y += 2; write(a.samenvatting, 10, [55,65,81]); y += 4; rule()
+  write('STERKE PUNTEN', 11, [17,24,39], true); y += 2
+  for (const p of a.sterke_punten) write(`• ${p}`, 10, [55,65,81])
+  y += 4; rule()
+  write('AANDACHTSPUNTEN', 11, [17,24,39], true); y += 2
+  for (const ap of a.aandachtspunten) { checkPage(); write(ap.titel, 10, [17,24,39], true); write(ap.uitleg, 10, [55,65,81]); y += 3 }
+  rule()
+  write('ACTIEPLAN', 11, [17,24,39], true); y += 2
+  a.actieplan.forEach((item, i) => { checkPage(); write(`${i+1}. ${item.actie} — ${item.wanneer}`, 10, [17,24,39], true); write(`   ${item.waarom}`, 10, [55,65,81]); y += 3 })
+  rule()
+  const rKleur: Record<string,[number,number,number]> = { laag:[29,158,117], matig:[186,117,23], hoog:[226,75,74] }
+  write(`BURN-OUT RISICO: ${a.burnout_risico.niveau.toUpperCase()}`, 11, rKleur[a.burnout_risico.niveau]??[55,65,81], true)
+  y += 2; write(a.burnout_risico.uitleg, 10, [55,65,81]); y += 4; rule()
+  write('PERSOONLIJK BERICHT', 11, [17,24,39], true); y += 2; write(a.bericht, 10, [55,65,81]); y += 10
+  write('Vitanex — Vitaliteit op de werkplek  |  Vertrouwelijk document', 8, [156,163,175])
+  doc.save(`vitanex-analyse-${datum.replace(/\s+/g,'-')}.pdf`)
+}
+
 type Checkin = {
   energie: number
   slaap: number
@@ -27,6 +75,21 @@ type Checkin = {
 }
 
 type GewoontLog = { gewoonte: string; datum: string }
+
+type AnalyseRecord = {
+  id: string
+  aangemaakt_op: string
+  gedeeld_met_hr: boolean
+  scores: Record<string, number>
+  analyse_json: {
+    samenvatting: string
+    sterke_punten: string[]
+    aandachtspunten: { titel: string; uitleg: string }[]
+    actieplan: { actie: string; waarom: string; wanneer: string }[]
+    burnout_risico: { niveau: string; score: number; uitleg: string }
+    bericht: string
+  }
+}
 
 const GEWOONTES: { id: string; label: string; afk: string }[] = [
   { id: 'slaap', label: 'Goed geslapen', afk: 'S' },
@@ -147,6 +210,11 @@ export default function Portaal() {
   const [gewoontLogs, setGewoontLogs] = useState<GewoontLog[]>([])
   const [vandaagLogs, setVandaagLogs] = useState<Set<string>>(new Set())
 
+  // Analyses
+  const [analyses, setAnalyses] = useState<AnalyseRecord[]>([])
+  const [openAnalyse, setOpenAnalyse] = useState<string | null>(null)
+  const [pdfBezig, setPdfBezig] = useState<string | null>(null)
+
   // Anonymous feedback
   const [feedbackOpen, setFeedbackOpen] = useState(false)
   const [feedbackTekst, setFeedbackTekst] = useState('')
@@ -187,6 +255,15 @@ export default function Portaal() {
 
       const vandaag = new Date().toISOString().slice(0, 10)
       setVandaagLogs(new Set(logData.filter(l => l.datum === vandaag).map(l => l.gewoonte)))
+
+      // Laad analyses
+      const { data: analyseData } = await supabase
+        .from('checkin_analyses')
+        .select('id, aangemaakt_op, gedeeld_met_hr, scores, analyse_json')
+        .eq('user_id', user.id)
+        .order('aangemaakt_op', { ascending: false })
+        .limit(10)
+      setAnalyses((analyseData ?? []) as AnalyseRecord[])
 
       setLaden(false)
     }
@@ -576,6 +653,93 @@ export default function Portaal() {
                       <span className="text-xs text-gray-400">{l.label}</span>
                     </div>
                   ))}
+                </div>
+              </div>
+            )}
+
+            {/* AI Analyses */}
+            {analyses.length > 0 && (
+              <div className="mb-6">
+                <p className="text-sm font-medium text-gray-700 mb-3">Mijn AI-analyses</p>
+                <div className="flex flex-col gap-3">
+                  {analyses.map(a => {
+                    const isOpen = openAnalyse === a.id
+                    const datum = new Date(a.aangemaakt_op).toLocaleDateString('nl-BE', { day: 'numeric', month: 'long', year: 'numeric' })
+                    const totaal = a.scores?.t ?? 0
+                    const scoreKleur = totaal >= 4 ? '#1D9E75' : totaal >= 3 ? '#BA7517' : '#E24B4A'
+                    return (
+                      <div key={a.id} className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+                        {/* Header rij */}
+                        <button
+                          onClick={() => setOpenAnalyse(isOpen ? null : a.id)}
+                          className="w-full flex items-center justify-between p-5 text-left hover:bg-gray-50 transition"
+                        >
+                          <div>
+                            <p className="text-sm font-medium text-gray-900">Analyse — {datum}</p>
+                            <p className="text-xs mt-0.5" style={{ color: scoreKleur }}>
+                              Score {Number(totaal).toFixed(1)}/5
+                              {a.gedeeld_met_hr && <span className="ml-2 text-gray-400">· Gedeeld met HR</span>}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={e => { e.stopPropagation(); setPdfBezig(a.id); downloadAnalysePDF(a).finally(() => setPdfBezig(null)) }}
+                              disabled={pdfBezig === a.id}
+                              className="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-100 transition disabled:opacity-40"
+                            >
+                              {pdfBezig === a.id ? '...' : '↓ PDF'}
+                            </button>
+                            <span className="text-gray-400 text-sm">{isOpen ? '▲' : '▼'}</span>
+                          </div>
+                        </button>
+
+                        {/* Uitklap detail */}
+                        {isOpen && a.analyse_json && (
+                          <div className="px-5 pb-5 border-t border-gray-100 pt-4">
+                            <p className="text-xs text-gray-500 mb-3 leading-relaxed">{a.analyse_json.samenvatting}</p>
+
+                            {a.analyse_json.sterke_punten?.length > 0 && (
+                              <div className="mb-3">
+                                <p className="text-xs font-semibold text-gray-700 mb-1.5">Sterke punten</p>
+                                <ul className="space-y-1">
+                                  {a.analyse_json.sterke_punten.map((p, i) => (
+                                    <li key={i} className="flex items-start gap-2 text-xs text-gray-600">
+                                      <span style={{ color: '#1D9E75' }}>✓</span>{p}
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+
+                            {a.analyse_json.actieplan?.length > 0 && (
+                              <div className="mb-3">
+                                <p className="text-xs font-semibold text-gray-700 mb-1.5">Actieplan</p>
+                                {a.analyse_json.actieplan.map((item, i) => (
+                                  <div key={i} className="flex gap-2 mb-1.5">
+                                    <span className="text-xs font-bold text-gray-400">{i + 1}.</span>
+                                    <div>
+                                      <p className="text-xs font-medium text-gray-800">{item.actie}</p>
+                                      <p className="text-xs text-gray-400">{item.wanneer}</p>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+
+                            <div className="rounded-xl p-3 mt-2"
+                              style={{
+                                background: a.analyse_json.burnout_risico?.niveau === 'hoog' ? '#FCEBEB' : a.analyse_json.burnout_risico?.niveau === 'matig' ? '#FAEEDA' : '#E1F5EE',
+                                borderLeft: `3px solid ${a.analyse_json.burnout_risico?.niveau === 'hoog' ? '#E24B4A' : a.analyse_json.burnout_risico?.niveau === 'matig' ? '#BA7517' : '#1D9E75'}`,
+                              }}>
+                              <p className="text-xs font-semibold" style={{ color: a.analyse_json.burnout_risico?.niveau === 'hoog' ? '#A32D2D' : a.analyse_json.burnout_risico?.niveau === 'matig' ? '#854F0B' : '#0F6E56' }}>
+                                Burn-out risico: {a.analyse_json.burnout_risico?.niveau ?? '—'}
+                              </p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
                 </div>
               </div>
             )}
