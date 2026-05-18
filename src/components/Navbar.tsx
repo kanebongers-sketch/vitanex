@@ -227,7 +227,7 @@ export default function Navbar() {
         <div style={{ padding: '18px 14px 14px', borderBottom: `1px solid ${border}`, display: 'flex', alignItems: 'center', gap: 10 }}>
           <div style={{
             width: 34, height: 34, borderRadius: 10, flexShrink: 0,
-            background: isHr ? 'rgba(29,158,117,0.25)' : 'linear-gradient(135deg,#1D9E75,#0d7a5a)',
+            background: viewMode === 'hr' ? 'rgba(29,158,117,0.25)' : 'linear-gradient(135deg,#1D9E75,#0d7a5a)',
             display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 17,
           }}>🌿</div>
           <div>
@@ -311,7 +311,7 @@ export default function Navbar() {
       <aside className="hidden md:flex" style={{
         position: 'fixed', left: 0, top: 0, bottom: 0, width: SIDEBAR_W,
         background: bg, borderRight: `1px solid ${border}`, zIndex: 40,
-        boxShadow: isHr ? 'none' : '2px 0 12px rgba(0,0,0,0.04)',
+        boxShadow: viewMode === 'hr' ? 'none' : '2px 0 12px rgba(0,0,0,0.04)',
         flexDirection: 'column',
       }}>
         <SidebarContent />
