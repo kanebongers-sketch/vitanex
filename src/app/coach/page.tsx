@@ -14,7 +14,7 @@ type Bericht = {
   content: string
 }
 
-const WELKOM = `Hallo! Ik ben jouw MentaForce Coach ??
+const WELKOM = `Hallo! Ik ben jouw MentaForce Coach.
 
 Ik ben hier om je te helpen met alles rondom welzijn op het werk  stress, energie, werk-privébalans, motivatie, slaap of gewoon even lucht geven.
 
@@ -114,9 +114,9 @@ export default function CoachPagina() {
         <div className="px-5 py-4 border-b border-gray-200 bg-white flex items-center gap-3 flex-shrink-0">
           <div
             className="w-11 h-11 rounded-full flex items-center justify-center text-xl flex-shrink-0"
-            style={{ background: 'var(--MentaForce-primary-light)' }}
+            style={{ background: 'var(--MentaForce-primary-light)', color: 'var(--MentaForce-primary)' }}
           >
-            ??
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.44-4.24z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.44-4.24z"/></svg>
           </div>
           <div>
             <p className="text-sm font-semibold text-gray-900">MentaForce Coach</p>
@@ -135,9 +135,9 @@ export default function CoachPagina() {
               {b.role === 'assistant' && (
                 <div
                   className="w-8 h-8 rounded-full flex items-center justify-center text-sm flex-shrink-0 mt-0.5"
-                  style={{ background: 'var(--MentaForce-primary-light)' }}
+                  style={{ background: 'var(--MentaForce-primary-light)', color: 'var(--MentaForce-primary)' }}
                 >
-                  ??
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.44-4.24z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.44-4.24z"/></svg>
                 </div>
               )}
               <div
@@ -158,7 +158,7 @@ export default function CoachPagina() {
           {laden && (
             <div className="flex justify-start gap-2.5">
               <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm flex-shrink-0"
-                style={{ background: 'var(--MentaForce-primary-light)' }}>??</div>
+                style={{ background: 'var(--MentaForce-primary-light)', color: 'var(--MentaForce-primary)' }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.44-4.24z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.44-4.24z"/></svg></div>
               <div className="bg-white px-4 py-3 rounded-2xl shadow-sm" style={{ borderRadius: '18px 18px 18px 4px' }}>
                 <div className="flex items-center gap-1">
                   <div className="w-2 h-2 rounded-full bg-gray-300 animate-bounce" style={{ animationDelay: '0ms' }} />

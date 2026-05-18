@@ -625,7 +625,7 @@ export default function FocusPagina() {
                 className="w-full py-3.5 rounded-xl text-white font-semibold text-sm transition"
                 style={{ background: ademActief ? '#E24B4A' : 'var(--MentaForce-primary)' }}
               >
-                {ademActief ? '¦ Stop' : '? Start ademhaling'}
+                {ademActief ? (<><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg><span>Stop</span></>) : (<><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg><span>Start ademhaling</span></>)}
               </button>
             </div>
 
@@ -688,7 +688,7 @@ export default function FocusPagina() {
                       <p className="text-xs text-gray-400">{oe.duur} · {oe.stappen.length} stappen</p>
                     </div>
                     <IntensiteitLabel niveau={oe.intensiteit as IntensiteitBadge} />
-                    <span className="text-gray-300 ml-1">{openOefening === idx ? '?' : '?'}</span>
+                    <span className="text-gray-300 ml-1">{openOefening === idx ? <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="18 15 12 9 6 15"/></svg> : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>}</span>
                   </button>
                   {openOefening === idx && (
                     <div className="px-5 pb-5 border-t border-gray-50">
@@ -750,7 +750,7 @@ export default function FocusPagina() {
                       <p className="text-sm font-semibold text-gray-900">{cat.titel}</p>
                       <p className="text-xs text-gray-400">{cat.tips.length} tips</p>
                     </div>
-                    <span className="text-gray-300 ml-1">{openVoedingCat === idx ? '?' : '?'}</span>
+                    <span className="text-gray-300 ml-1">{openVoedingCat === idx ? <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="18 15 12 9 6 15"/></svg> : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>}</span>
                   </button>
                   {openVoedingCat === idx && (
                     <div className="border-t border-gray-50">
@@ -816,7 +816,7 @@ export default function FocusPagina() {
                       <p className="text-sm font-semibold text-gray-900">{sec.titel}</p>
                       <p className="text-xs text-gray-400">{sec.items.length} tips</p>
                     </div>
-                    <span className="text-gray-300 ml-1">{openSlaapSectie === idx ? '?' : '?'}</span>
+                    <span className="text-gray-300 ml-1">{openSlaapSectie === idx ? <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="18 15 12 9 6 15"/></svg> : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>}</span>
                   </button>
                   {openSlaapSectie === idx && (
                     <div className="border-t border-gray-50">
@@ -876,7 +876,7 @@ export default function FocusPagina() {
                     <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: tech.kleur + '20', color: tech.kleur }}>
                       {tech.duur}
                     </span>
-                    <span className="text-gray-300 ml-2">{openTechniek === idx ? '?' : '?'}</span>
+                    <span className="text-gray-300 ml-2">{openTechniek === idx ? <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="18 15 12 9 6 15"/></svg> : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>}</span>
                   </button>
                   {openTechniek === idx && (
                     <div className="px-5 pb-5 border-t border-gray-50">
@@ -967,7 +967,7 @@ export default function FocusPagina() {
 
               {timerKlaar && (
                 <div className="mt-4 text-center">
-                  <p className="text-2xl">??</p>
+                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#1D9E75" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
                   <p className="text-sm font-medium text-gray-700 mt-1">Klaar!</p>
                 </div>
               )}

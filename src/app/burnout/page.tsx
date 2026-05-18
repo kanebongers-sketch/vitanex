@@ -159,7 +159,7 @@ export default function BurnoutPagina() {
       <Navbar />
       <main className="max-w-lg mx-auto p-6">
         <div className="bg-white rounded-2xl border border-gray-200 p-8 text-center mt-8">
-          <p className="text-5xl mb-4">??</p>
+          <div className="flex justify-center mb-4"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#E24B4A" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17.657 18.657A8 8 0 0 1 6.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0 1 20 13a7.975 7.975 0 0 1-2.343 5.657z"/><path d="M9.879 16.121A3 3 0 1 0 12.99 12L11 14"/></svg></div>
           <h1 className="text-xl font-semibold text-gray-900 mb-2">Burn-out risicoscan</h1>
           <p className="text-gray-500 text-sm leading-relaxed mb-6">
             12 vragen over uitputting, betrokkenheid en effectiviteit. Duurt ongeveer 3 minuten.
@@ -190,7 +190,7 @@ export default function BurnoutPagina() {
       <Navbar />
       <main className="max-w-lg mx-auto p-6">
         <button onClick={() => setFase('intro')} className="text-sm text-gray-400 hover:text-gray-600 mb-4 inline-flex items-center gap-1">
-          ? Terug
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg> Terug
         </button>
 
         <div className="mb-6">
@@ -269,7 +269,7 @@ export default function BurnoutPagina() {
             style={{ background: kleur.bg, borderColor: kleur.border }}
           >
             <p className="text-3xl mb-2">
-              {resultaat.risico_niveau === 'laag' ? '?' : resultaat.risico_niveau === 'matig' ? '??' : '??'}
+              {resultaat.risico_niveau === 'laag' ? '✓' : resultaat.risico_niveau === 'matig' ? '!!' : '⚠'}
             </p>
             <p className="text-xl font-semibold" style={{ color: kleur.text }}>
               {risicoLabel(resultaat.risico_niveau)}
@@ -308,7 +308,7 @@ export default function BurnoutPagina() {
             <ul className="flex flex-col gap-2">
               {tips.map((tip, i) => (
                 <li key={i} className="flex gap-2.5 text-sm text-gray-600 leading-relaxed">
-                  <span className="flex-shrink-0 mt-0.5">?</span>
+                  <span className="flex-shrink-0 mt-0.5" style={{color: 'var(--MentaForce-primary)'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="4"/></svg></span>
                   <span>{tip}</span>
                 </li>
               ))}
@@ -340,7 +340,7 @@ export default function BurnoutPagina() {
       <Navbar />
       <main className="max-w-lg mx-auto p-6">
         <button onClick={() => setFase('intro')} className="text-sm text-gray-400 hover:text-gray-600 mb-4 inline-flex items-center gap-1">
-          ? Terug
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg> Terug
         </button>
         <h1 className="text-xl font-semibold text-gray-900 mb-4">Eerdere scans</h1>
         {historyLaden ? (

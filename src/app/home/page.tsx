@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic'
 
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
@@ -40,7 +40,7 @@ function ScoreRing({ score }: { score: number }) {
   )
 }
 
-function StatCard({ label, value, color, bg, icon }: { label: string; value: string | number; color: string; bg: string; icon: string }) {
+function StatCard({ label, value, color, bg, icon }: { label: string; value: string | number; color: string; bg: string; icon: React.ReactNode }) {
   return (
     <div style={{
       background: 'white', borderRadius: 12, padding: '16px 18px',
@@ -48,7 +48,7 @@ function StatCard({ label, value, color, bg, icon }: { label: string; value: str
     }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
         <p style={{ fontSize: 11, color: '#9CA3AF', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{label}</p>
-        <div style={{ width: 30, height: 30, borderRadius: 8, background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>{icon}</div>
+        <div style={{ width: 30, height: 30, borderRadius: 8, background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', color }}>{icon}</div>
       </div>
       <p style={{ fontSize: 24, fontWeight: 800, color, letterSpacing: '-0.02em' }}>{value}</p>
     </div>
@@ -117,7 +117,7 @@ export default function HomePage() {
         {/* ── GREETING ── */}
         <div style={{ marginBottom: 24 }}>
           <h1 style={{ fontSize: 22, fontWeight: 700, color: '#111827', letterSpacing: '-0.02em' }}>
-            {dagtijd}, {naam.split(' ')[0]} 👋
+            {dagtijd}, {naam.split(' ')[0]}
           </h1>
           <p style={{ color: '#6B7280', fontSize: 14, marginTop: 3 }}>
             Hier is je vitaliteitsoverzicht van vandaag.
@@ -131,10 +131,10 @@ export default function HomePage() {
             value={score ?? '—'}
             color={scoreKleur}
             bg={!score ? '#F3F4F6' : score >= 70 ? '#E1F5EE' : score >= 45 ? '#FEF3C7' : '#FEE2E2'}
-            icon={!score ? '—' : score >= 70 ? '💚' : score >= 45 ? '🟡' : '🔴'}
+            icon={<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>}
           />
-          <StatCard label="Check-ins (4w)" value={recentCheckins} color="#185FA5" bg="#EFF6FF" icon="📋" />
-          <StatCard label="Week streak" value={`${streak}x`} color="#7C3AED" bg="#EDE9FE" icon="🔥" />
+          <StatCard label="Check-ins (4w)" value={recentCheckins} color="#185FA5" bg="#EFF6FF" icon={<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1" ry="1"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg>} />
+          <StatCard label="Week streak" value={`${streak}x`} color="#7C3AED" bg="#EDE9FE" icon={<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>} />
         </div>
 
         {/* ── MAIN CONTENT: score kaart + vitaliteit tiles ── */}
@@ -184,7 +184,9 @@ export default function HomePage() {
               </div>
             ) : (
               <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                <div style={{ width: 80, height: 80, borderRadius: 16, background: '#F0FDF8', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 32, flexShrink: 0 }}>📊</div>
+                <div style={{ width: 80, height: 80, borderRadius: 16, background: '#F0FDF8', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1D9E75', flexShrink: 0 }}>
+                  <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 19v-6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2zm0 0V9a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v10m-6 0a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2m0 0V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2z"/></svg>
+                </div>
                 <div>
                   <p style={{ fontSize: 16, fontWeight: 600, color: '#111827', marginBottom: 6 }}>Nog geen check-in gedaan</p>
                   <p style={{ fontSize: 13, color: '#6B7280', marginBottom: 12 }}>Doe je eerste check-in en ontdek je vitaliteitsscore.</p>
@@ -241,16 +243,16 @@ export default function HomePage() {
             Snelle acties
           </p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
-            {[
-              { href: '/checkin',     emoji: '✅', label: 'Check-in',    color: '#1D9E75', bg: '#E1F5EE' },
-              { href: '/coach',       emoji: '🧠', label: 'AI Coach',    color: '#185FA5', bg: '#EFF6FF' },
-              { href: '/doelen',      emoji: '🎯', label: 'Doelen',      color: '#7C3AED', bg: '#EDE9FE' },
-              { href: '/uitdagingen', emoji: '🏆', label: 'Uitdagingen', color: '#B45309', bg: '#FEF3C7' },
-              { href: '/journal',     emoji: '📓', label: 'Journal',     color: '#0369A1', bg: '#E0F2FE' },
-              { href: '/burnout',     emoji: '🔥', label: 'Burn-out',    color: '#DC2626', bg: '#FEE2E2' },
-              { href: '/focus',       emoji: '🫁', label: 'Focus',       color: '#065F46', bg: '#ECFDF5' },
-              { href: '/rapport',     emoji: '📊', label: 'Rapport',     color: '#374151', bg: '#F3F4F6' },
-            ].map(item => (
+            {([
+              { href: '/checkin',     icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>, label: 'Check-in',    color: '#1D9E75', bg: '#E1F5EE' },
+              { href: '/coach',       icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9.663 17h4.673M12 3v1m6.364 1.636-.707.707M21 12h-1M4 12H3m3.343-5.657-.707-.707m2.828 9.9a5 5 0 1 1 7.072 0l-.548.547A3.374 3.374 0 0 0 14 18.469V19a2 2 0 1 1-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>, label: 'AI Coach',    color: '#185FA5', bg: '#EFF6FF' },
+              { href: '/doelen',      icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>, label: 'Doelen',      color: '#7C3AED', bg: '#EDE9FE' },
+              { href: '/uitdagingen', icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/></svg>, label: 'Uitdagingen', color: '#B45309', bg: '#FEF3C7' },
+              { href: '/journal',     icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>, label: 'Journal',     color: '#0369A1', bg: '#E0F2FE' },
+              { href: '/burnout',     icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.657 18.657A8 8 0 0 1 6.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0 1 20 13a7.975 7.975 0 0 1-2.343 5.657z"/><path d="M9.879 16.121A3 3 0 1 0 12.99 12L11 14"/></svg>, label: 'Burn-out',    color: '#DC2626', bg: '#FEE2E2' },
+              { href: '/focus',       icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>, label: 'Focus',       color: '#065F46', bg: '#ECFDF5' },
+              { href: '/rapport',     icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 19v-6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2zm0 0V9a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v10m-6 0a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2m0 0V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2z"/></svg>, label: 'Rapport',     color: '#374151', bg: '#F3F4F6' },
+            ] as { href: string; icon: React.ReactNode; label: string; color: string; bg: string }[]).map(item => (
               <Link key={item.href} href={item.href} style={{
                 display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
                 background: 'white', borderRadius: 12, padding: '16px 8px',
@@ -261,8 +263,8 @@ export default function HomePage() {
                 onMouseEnter={e => { (e.currentTarget as HTMLElement).style.boxShadow = '0 4px 12px rgba(0,0,0,0.08)'; (e.currentTarget as HTMLElement).style.transform = 'translateY(-1px)' }}
                 onMouseLeave={e => { (e.currentTarget as HTMLElement).style.boxShadow = '0 1px 3px rgba(0,0,0,0.04)'; (e.currentTarget as HTMLElement).style.transform = 'translateY(0)' }}
               >
-                <div style={{ width: 44, height: 44, borderRadius: 12, background: item.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22 }}>
-                  {item.emoji}
+                <div style={{ width: 44, height: 44, borderRadius: 12, background: item.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', color: item.color }}>
+                  {item.icon}
                 </div>
                 <p style={{ fontSize: 11, fontWeight: 600, color: '#374151', textAlign: 'center' }}>{item.label}</p>
               </Link>

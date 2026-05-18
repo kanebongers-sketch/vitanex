@@ -124,12 +124,22 @@ export default function Navbar() {
         const { data: config } = await supabase
           .from('portaal_config').select('tiles').eq('bedrijf_id', data.bedrijf_id).single()
         if (config?.tiles && Array.isArray(config.tiles)) {
+          const TILE_SVG: Partial<Record<TileId, React.ReactNode>> = {
+            verlof:      <Ico d={['M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z', 'M9 22V12h6v10']} />,
+            uren:        <Ico d="M12 8v4l3 3m6-3a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />,
+            declaraties: <Ico d={['M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z', 'M14 2v6h6', 'M12 18v-6', 'M9 15h6']} />,
+            loonstroken: <Ico d={['M12 1v22', 'M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6']} />,
+            nieuws:      I.nieuws,
+            directory:   I.team,
+            protocollen: I.prot,
+            surveys:     <Ico d={['M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2', 'M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2', 'M9 5a2 2 0 0 0 2-2h2a2 2 0 0 0 2 2', 'M9 14l2 2 4-4']} />,
+          }
           const werkdagIds: TileId[] = ['verlof','uren','declaraties','loonstroken','nieuws','directory','protocollen','surveys']
           const items: NavItem[] = (config.tiles as TileId[])
             .filter(id => werkdagIds.includes(id))
             .map(id => getTileDef(id))
             .filter(Boolean)
-            .map(t => ({ href: t!.path, label: t!.label, icon: <span style={{ fontSize: 14 }}>{t!.icon}</span> }))
+            .map(t => ({ href: t!.path, label: t!.label, icon: TILE_SVG[t!.id] ?? <Ico d="M4 6h16M4 12h16M4 18h16" /> }))
           setWerkdagItems(items)
         }
       }
@@ -228,8 +238,13 @@ export default function Navbar() {
           <div style={{
             width: 34, height: 34, borderRadius: 10, flexShrink: 0,
             background: viewMode === 'hr' ? 'rgba(29,158,117,0.25)' : 'linear-gradient(135deg,#1D9E75,#0d7a5a)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 17,
-          }}>🌿</div>
+            display: 'flex', alignItems: 'center', justifyContent: 'center', color: viewMode === 'hr' ? '#1D9E75' : 'white',
+          }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z"/>
+              <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>
+            </svg>
+          </div>
           <div>
             <p style={{ color: nameTxt, fontWeight: 700, fontSize: 13, lineHeight: 1.2 }}>MentaForce</p>
             <p style={{ color: textMuted, fontSize: 10, marginTop: 1 }}>{portalLabel}</p>
