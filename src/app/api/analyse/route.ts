@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
       .map(a => `[${a.categorie}]: "${a.waarde_tekst}"`)
       .join('\n')
 
-    const prompt = `Je bent een empathische welzijnscoach bij het Vitanex-platform voor Belgische bedrijven. Analyseer de volgende wekelijkse check-in resultaten van een medewerker en schrijf een uitgebreide, persoonlijke analyse in het Nederlands.
+    const prompt = `Je bent een empathische welzijnscoach bij het MentaForce-platform voor Nederlandse bedrijven. Analyseer de volgende wekelijkse check-in resultaten van een medewerker en schrijf een uitgebreide, persoonlijke analyse in het Nederlands.
 
 SCORES (schaal 1–5, waarbij 1 = slecht en 5 = uitstekend):
 ${scoresTekst}
@@ -29,6 +29,8 @@ ${scoresTekst}
 ${tekstAntwoorden ? `OPEN ANTWOORDEN VAN DE MEDEWERKER:\n${tekstAntwoorden}` : ''}
 
 Schrijf een grondige analyse als JSON. Wees empathisch, concreet en praktisch. Schrijf in de tweede persoon ("je", "jij"). Minimaal 3 items per array. Houd rekening met zowel de scores als de open antwoorden.
+
+BELANGRIJK: De sectie "wellbeing_categorieen" moet ALTIJD exact 6 items bevatten met PRECIES deze namen (in deze volgorde): "Slaap", "Stress", "Energie", "Focus", "Werk-privé balans", "Motivatie". Geef voor elke categorie een niveau (goed/matig/laag) op basis van de scores, een korte samenvatting, en 3 concrete uitvoerbare tips om dit te verbeteren.
 
 Geef UITSLUITEND geldige JSON terug, zonder markdown of extra tekst:
 {
@@ -55,7 +57,49 @@ Geef UITSLUITEND geldige JSON terug, zonder markdown of extra tekst:
     "score": 3,
     "uitleg": "2-3 zinnen die uitleggen hoe je tot dit risiconiveau komt en wat de belangrijkste indicatoren zijn"
   },
-  "bericht": "2-3 zinnen warm, persoonlijk slotbericht dat motiveert en de medewerker erkent"
+  "bericht": "2-3 zinnen warm, persoonlijk slotbericht dat motiveert en de medewerker erkent",
+  "wellbeing_categorieen": [
+    {
+      "naam": "Slaap",
+      "niveau": "goed of matig of laag",
+      "samenvatting": "1-2 zinnen over hoe het gaat met slaap op basis van de check-in scores",
+      "tips": [
+        "concrete, uitvoerbare tip 1 specifiek voor slaap",
+        "concrete, uitvoerbare tip 2 specifiek voor slaap",
+        "concrete, uitvoerbare tip 3 specifiek voor slaap"
+      ]
+    },
+    {
+      "naam": "Stress",
+      "niveau": "goed of matig of laag",
+      "samenvatting": "1-2 zinnen over stressniveau op basis van de scores",
+      "tips": ["tip 1", "tip 2", "tip 3"]
+    },
+    {
+      "naam": "Energie",
+      "niveau": "goed of matig of laag",
+      "samenvatting": "1-2 zinnen over energieniveau",
+      "tips": ["tip 1", "tip 2", "tip 3"]
+    },
+    {
+      "naam": "Focus",
+      "niveau": "goed of matig of laag",
+      "samenvatting": "1-2 zinnen over focusvermogen",
+      "tips": ["tip 1", "tip 2", "tip 3"]
+    },
+    {
+      "naam": "Werk-privé balans",
+      "niveau": "goed of matig of laag",
+      "samenvatting": "1-2 zinnen over werk-privé balans",
+      "tips": ["tip 1", "tip 2", "tip 3"]
+    },
+    {
+      "naam": "Motivatie",
+      "niveau": "goed of matig of laag",
+      "samenvatting": "1-2 zinnen over motivatie en betrokkenheid",
+      "tips": ["tip 1", "tip 2", "tip 3"]
+    }
+  ]
 }`
 
     const response = await anthropic.messages.create({

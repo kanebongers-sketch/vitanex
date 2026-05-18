@@ -10,6 +10,7 @@ import { supabase } from '@/lib/supabase'
 interface AandachtsPunt { titel: string; uitleg: string }
 interface ActiePlan { actie: string; waarom: string; wanneer: string }
 interface BurnoutRisico { niveau: 'laag' | 'matig' | 'hoog'; score: number; uitleg: string }
+interface WellbeingCategorie { naam: string; niveau: 'goed' | 'matig' | 'laag'; samenvatting: string; tips: string[] }
 
 interface AnalyseJSON {
   samenvatting: string
@@ -18,6 +19,7 @@ interface AnalyseJSON {
   actieplan: ActiePlan[]
   burnout_risico: BurnoutRisico
   bericht: string
+  wellbeing_categorieen?: WellbeingCategorie[]
 }
 
 // ─── PDF generator ────────────────────────────────────────────────────────────
@@ -156,6 +158,31 @@ const CAT_KLEUREN: Record<string, { k: string; l: string }> = {
   w: { k: '#8B5CF6', l: '#EEEDFE' },
   s: { k: '#BA7517', l: '#FAEEDA' },
   g: { k: '#059669', l: '#D1FAE5' },
+}
+
+// Mapping van AI-categorienaam naar doelen-slug
+const WELLBEING_SLUG: Record<string, string> = {
+  'Slaap': 'slaap',
+  'Stress': 'stress',
+  'Energie': 'energie',
+  'Focus': 'focus',
+  'Werk-privé balans': 'balans',
+  'Motivatie': 'motivatie',
+}
+
+const WELLBEING_KLEUR: Record<string, { k: string; l: string; border: string }> = {
+  'Slaap':              { k: '#6D28D9', l: '#F5F3FF', border: '#DDD6FE' },
+  'Stress':             { k: '#DC2626', l: '#FEF2F2', border: '#FECACA' },
+  'Energie':            { k: '#1D9E75', l: '#E1F5EE', border: '#A7F3D0' },
+  'Focus':              { k: '#185FA5', l: '#E6F1FB', border: '#BFDBFE' },
+  'Werk-privé balans':  { k: '#B45309', l: '#FEF3C7', border: '#FDE68A' },
+  'Motivatie':          { k: '#9D174D', l: '#FDF2F8', border: '#FBCFE8' },
+}
+
+const NIVEAU_CONFIG: Record<string, { bg: string; tekst: string; label: string }> = {
+  goed:  { bg: '#E1F5EE', tekst: '#0F6E56', label: 'Goed' },
+  matig: { bg: '#FAEEDA', tekst: '#854F0B', label: 'Matig' },
+  laag:  { bg: '#FCEBEB', tekst: '#A32D2D', label: 'Aandacht nodig' },
 }
 
 // ─── Inner component ──────────────────────────────────────────────────────────
@@ -428,6 +455,54 @@ function BedanktInhoud() {
             ))}
           </div>
         </div>
+
+        {/* Welzijn per categorie */}
+        {analyse.wellbeing_categorieen && analyse.wellbeing_categorieen.length > 0 && (
+          <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm mb-4">
+            <h2 className="text-sm font-semibold text-gray-900 mb-1">Jouw welzijn per gebied</h2>
+            <p className="text-xs text-gray-400 mb-4">Klik op een gebied om er een doel voor in te stellen en dagelijks bij te houden.</p>
+            <div className="space-y-3">
+              {analyse.wellbeing_categorieen.map((cat) => {
+                const kl = WELLBEING_KLEUR[cat.naam] ?? { k: '#6B7280', l: '#F9FAFB', border: '#E5E7EB' }
+                const nv = NIVEAU_CONFIG[cat.niveau] ?? NIVEAU_CONFIG.matig
+                const slug = WELLBEING_SLUG[cat.naam] ?? cat.naam.toLowerCase()
+                return (
+                  <div key={cat.naam} className="rounded-xl border p-4"
+                    style={{ borderColor: kl.border, background: kl.l }}>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-semibold" style={{ color: kl.k }}>{cat.naam}</span>
+                      <span className="text-xs font-medium px-2.5 py-0.5 rounded-full"
+                        style={{ background: nv.bg, color: nv.tekst }}>{nv.label}</span>
+                    </div>
+                    <p className="text-xs text-gray-600 leading-relaxed mb-3">{cat.samenvatting}</p>
+                    <ul className="space-y-1 mb-3">
+                      {cat.tips.map((tip, ti) => (
+                        <li key={ti} className="flex items-start gap-2 text-xs text-gray-700">
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                            stroke={kl.k} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+                            className="flex-shrink-0 mt-0.5">
+                            <polyline points="20 6 9 17 4 12" />
+                          </svg>
+                          {tip}
+                        </li>
+                      ))}
+                    </ul>
+                    <Link href={`/doelen?categorie=${slug}`}
+                      className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg transition"
+                      style={{ background: kl.k, color: '#fff' }}>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="12" cy="12" r="10" />
+                        <polyline points="12 6 12 12 16 14" />
+                      </svg>
+                      Stel een doel in
+                    </Link>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Burn-out risico */}
         <div className="rounded-2xl p-5 mb-4"
