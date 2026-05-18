@@ -1,51 +1,162 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 
-function MarketingNav() {
+// ─────────────────────────────────────────────────────────────────────────────
+// SVG ICON LIBRARY
+// ─────────────────────────────────────────────────────────────────────────────
+
+function Ico({ d, size = 20, color = 'currentColor', fill = 'none', sw = 1.8 }: {
+  d: string | string[]; size?: number; color?: string; fill?: string; sw?: number
+}) {
+  const paths = Array.isArray(d) ? d : [d]
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill={fill} stroke={color}
+      strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round">
+      {paths.map((p, i) => <path key={i} d={p} />)}
+    </svg>
+  )
+}
+
+const ICONS = {
+  check:       'M20 6 9 17 4 12',
+  checkCircle: ['M22 11.08V12a10 10 0 1 1-5.93-9.14', 'M22 4 12 14.01 9 11.01'],
+  dashboard:   ['M3 3h7v7H3z', 'M14 3h7v7h-7z', 'M14 14h7v7h-7z', 'M3 14h7v7H3z'],
+  sparkles:    ['M12 3 13.5 8.5 19 10 13.5 11.5 12 17 10.5 11.5 5 10 10.5 8.5z',
+                'M5 3 5.5 5 7 5.5 5.5 6 5 8 4.5 6 3 5.5 4.5 5z',
+                'M19 15 19.5 17 21 17.5 19.5 18 19 20 18.5 18 17 17.5 18.5 17z'],
+  book:        ['M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z',
+                'M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z'],
+  wind:        'M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2',
+  alert:       ['M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z',
+                'M12 9v4', 'M12 17h.01'],
+  message:     'M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z',
+  barChart:    ['M18 20V10', 'M12 20V4', 'M6 20v-6'],
+  trophy:      ['M8 21 12 17 16 21', 'M12 17v-6', 'M7 4v3a5 5 0 0 0 10 0V4',
+                'M3 4h18', 'M7 4c0 0-1 9-4 9', 'M17 4c0 0 1 9 4 9'],
+  shield:      'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z',
+  chevronDown: 'M6 9l6 6 6-6',
+  arrowRight:  ['M5 12h14', 'M12 5l7 7-7 7'],
+  x:           ['M18 6 6 18', 'M6 6l12 12'],
+  users:       ['M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2',
+                'M23 21v-2a4 4 0 0 0-3-3.87', 'M16 3.13a4 4 0 0 1 0 7.75',
+                'M9 7m-4 0a4 4 0 1 0 8 0 4 4 0 1 0-8 0'],
+  clock:       ['M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20', 'M12 6v6l4 2'],
+  zap:         'M13 2 3 14h9l-1 8 10-12h-9l1-8z',
+  star:        'M12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2',
+}
+
+function Icon({ name, size = 20, color = 'currentColor', filled = false }: {
+  name: keyof typeof ICONS; size?: number; color?: string; filled?: boolean
+}) {
+  const d = ICONS[name]
+  return <Ico d={d} size={size} color={color} fill={filled ? color : 'none'} sw={filled ? 0 : 1.8} />
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ATOMS
+// ─────────────────────────────────────────────────────────────────────────────
+
+function Stars() {
+  return (
+    <div className="flex gap-0.5">
+      {[1, 2, 3, 4, 5].map(i => (
+        <svg key={i} width="16" height="16" viewBox="0 0 24 24" fill="#FBBF24" stroke="none">
+          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+        </svg>
+      ))}
+    </div>
+  )
+}
+
+function Check({ text, color }: { text: string; color: string }) {
+  return (
+    <li className="flex items-start gap-3 text-sm text-gray-600">
+      <span className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5" style={{ background: color }}>
+        <Icon name="check" size={10} color="white" />
+      </span>
+      {text}
+    </li>
+  )
+}
+
+function Label({ text }: { text: string }) {
+  return (
+    <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: '#1D9E75' }}>{text}</p>
+  )
+}
+
+function SectionHeading({ children, sub, center = true }: {
+  children: React.ReactNode; sub?: string; center?: boolean
+}) {
+  return (
+    <div className={center ? 'text-center mb-16' : 'mb-12'}>
+      <h2 className="text-4xl lg:text-5xl font-extrabold text-gray-900 mb-4 tracking-tight leading-tight">
+        {children}
+      </h2>
+      {sub && <p className="text-xl text-gray-400 max-w-2xl mx-auto">{sub}</p>}
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// NAVIGATION
+// ─────────────────────────────────────────────────────────────────────────────
+
+function Nav() {
   const [open, setOpen] = useState(false)
   return (
     <nav className="sticky top-0 z-50 border-b"
-      style={{ background: 'rgba(10,15,30,0.96)', borderColor: 'rgba(255,255,255,0.07)', backdropFilter: 'blur(16px)' }}>
+      style={{ background: 'rgba(10,15,30,0.97)', borderColor: 'rgba(255,255,255,0.07)', backdropFilter: 'blur(20px)' }}>
       <div className="max-w-7xl mx-auto px-6 lg:px-12 py-4 flex items-center justify-between">
 
+        {/* Brand */}
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: '#1D9E75' }}>
-            <span className="text-white text-sm font-bold">M</span>
-          </div>
+          <div className="w-8 h-8 rounded-xl flex items-center justify-center font-bold text-white text-sm"
+            style={{ background: 'linear-gradient(135deg, #1D9E75, #15B89A)' }}>M</div>
           <span className="font-bold text-white text-lg tracking-tight">MentaForce</span>
         </div>
 
+        {/* Links */}
         <div className="hidden md:flex items-center gap-8">
-          {[['#functies', 'Functies'], ['#hoe-werkt-het', 'Hoe werkt het'], ['#prijzen', 'Prijzen']].map(([h, l]) => (
-            <a key={h} href={h} className="text-sm font-medium transition" style={{ color: 'rgba(255,255,255,0.5)' }}
+          {[['#hoe-werkt-het', 'Hoe werkt het'], ['#functies', 'Functies'], ['#prijzen', 'Prijzen']].map(([href, label]) => (
+            <a key={href} href={href} className="text-sm font-medium transition-colors" style={{ color: 'rgba(255,255,255,0.5)' }}
               onMouseEnter={e => (e.currentTarget.style.color = 'white')}
               onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.5)')}>
-              {l}
+              {label}
             </a>
           ))}
         </div>
 
+        {/* CTAs */}
         <div className="hidden md:flex items-center gap-3">
-          <Link href="/login" className="text-sm font-medium transition px-4 py-2"
-            style={{ color: 'rgba(255,255,255,0.45)' }}>
+          <Link href="/login" className="text-sm font-medium px-4 py-2 transition-colors"
+            style={{ color: 'rgba(255,255,255,0.45)' }}
+            onMouseEnter={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.8)')}
+            onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.45)')}>
             Inloggen
           </Link>
+          <Link href="/contact"
+            className="text-sm font-semibold px-5 py-2.5 rounded-xl transition-all"
+            style={{ color: 'rgba(255,255,255,0.8)', border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.05)' }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.1)' }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.05)' }}>
+            Demo aanvragen
+          </Link>
           <Link href="/register"
-            className="text-sm font-bold text-white px-5 py-2.5 rounded-xl transition hover:opacity-90 flex items-center gap-1.5"
-            style={{ background: '#1D9E75', boxShadow: '0 0 20px rgba(29,158,117,0.35)' }}>
+            className="text-sm font-bold text-white px-5 py-2.5 rounded-xl transition-opacity hover:opacity-90 flex items-center gap-2"
+            style={{ background: 'linear-gradient(135deg, #1D9E75, #15B89A)', boxShadow: '0 0 24px rgba(29,158,117,0.4)' }}>
             Gratis starten
           </Link>
         </div>
 
-        <button className="md:hidden p-2" style={{ color: 'rgba(255,255,255,0.5)' }}
-          onClick={() => setOpen(o => !o)}>
+        {/* Mobile hamburger */}
+        <button className="md:hidden p-2" style={{ color: 'rgba(255,255,255,0.5)' }} onClick={() => setOpen(o => !o)}>
           <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
             {open
               ? <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-              : <path fillRule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
-            }
+              : <path fillRule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />}
           </svg>
         </button>
       </div>
@@ -53,13 +164,19 @@ function MarketingNav() {
       {open && (
         <div className="md:hidden border-t px-6 py-5 flex flex-col gap-4"
           style={{ borderColor: 'rgba(255,255,255,0.07)', background: '#0a0f1e' }}>
-          {[['#functies', 'Functies'], ['#hoe-werkt-het', 'Hoe werkt het'], ['#prijzen', 'Prijzen']].map(([h, l]) => (
-            <a key={h} href={h} onClick={() => setOpen(false)} className="text-sm" style={{ color: 'rgba(255,255,255,0.5)' }}>{l}</a>
+          {[['#hoe-werkt-het', 'Hoe werkt het'], ['#functies', 'Functies'], ['#prijzen', 'Prijzen']].map(([href, label]) => (
+            <a key={href} href={href} onClick={() => setOpen(false)} className="text-sm py-1" style={{ color: 'rgba(255,255,255,0.6)' }}>{label}</a>
           ))}
+          <hr style={{ borderColor: 'rgba(255,255,255,0.07)' }} />
           <Link href="/login" className="text-sm" style={{ color: 'rgba(255,255,255,0.5)' }}>Inloggen</Link>
+          <Link href="/contact" onClick={() => setOpen(false)}
+            className="text-sm font-semibold py-3.5 rounded-xl text-center border"
+            style={{ color: 'rgba(255,255,255,0.8)', borderColor: 'rgba(255,255,255,0.15)' }}>
+            Demo aanvragen
+          </Link>
           <Link href="/register" onClick={() => setOpen(false)}
-            className="text-sm font-bold text-white py-3 rounded-xl text-center"
-            style={{ background: '#1D9E75' }}>
+            className="text-sm font-bold text-white py-3.5 rounded-xl text-center"
+            style={{ background: 'linear-gradient(135deg, #1D9E75, #15B89A)' }}>
             Gratis starten
           </Link>
         </div>
@@ -68,27 +185,31 @@ function MarketingNav() {
   )
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// MOCK DASHBOARD
+// ─────────────────────────────────────────────────────────────────────────────
+
 function MockDashboard() {
   return (
-    <div className="w-full rounded-2xl overflow-hidden"
-      style={{ maxWidth: 540, boxShadow: '0 40px 100px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.06)' }}>
+    <div className="w-full rounded-2xl overflow-hidden select-none"
+      style={{ maxWidth: 520, boxShadow: '0 48px 120px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.07)' }}>
+      {/* Browser chrome */}
       <div className="px-4 py-3 flex items-center gap-3" style={{ background: '#111827' }}>
         <div className="flex gap-1.5">
-          {['#E24B4A', '#BA7517', '#1D9E75'].map(c => (
-            <div key={c} className="w-3 h-3 rounded-full" style={{ background: c }} />
-          ))}
+          {['#E24B4A', '#BA7517', '#1D9E75'].map(c => <div key={c} className="w-3 h-3 rounded-full" style={{ background: c }} />)}
         </div>
-        <div className="flex-1 rounded-lg px-3 py-1.5 text-xs font-mono text-center"
-          style={{ background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.3)' }}>
-          MentaForce.app/dashboard
+        <div className="flex-1 rounded-md px-3 py-1 text-xs font-mono text-center"
+          style={{ background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.28)' }}>
+          app.mentaforce.nl/hr/dashboard
         </div>
       </div>
 
-      <div className="p-5" style={{ background: 'var(--bg-app)' }}>
+      {/* Dashboard content */}
+      <div className="p-5" style={{ background: '#F4F6F8' }}>
         <div className="flex items-center justify-between mb-4">
           <div>
             <p className="text-sm font-bold text-gray-900">HR-dashboard</p>
-            <p className="text-xs text-gray-400">Vandaag, 09:41</p>
+            <p className="text-xs text-gray-400">Maandag, 09:41</p>
           </div>
           <div className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full"
             style={{ background: '#E1F5EE', color: '#0F6E56' }}>
@@ -97,7 +218,8 @@ function MockDashboard() {
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-2 mb-4">
+        {/* Stats row */}
+        <div className="grid grid-cols-3 gap-2 mb-3">
           {[
             { label: 'Vitaliteitscore', value: '4.1/5', color: '#1D9E75', bg: '#E1F5EE' },
             { label: 'Participatie', value: '87%', color: '#378ADD', bg: '#E6F1FB' },
@@ -110,29 +232,32 @@ function MockDashboard() {
           ))}
         </div>
 
+        {/* Trend chart */}
         <div className="bg-white rounded-xl p-4 mb-3 border border-gray-100">
           <div className="flex items-center justify-between mb-3">
-            <p className="text-xs font-semibold text-gray-600">Vitaliteitstrend - 12 weken</p>
-            <span className="text-xs font-bold" style={{ color: '#1D9E75' }}>+12%</span>
+            <p className="text-xs font-semibold text-gray-600">Vitaliteitstrend — 12 weken</p>
+            <span className="text-xs font-bold" style={{ color: '#1D9E75' }}>↑ +12%</span>
           </div>
-          <div className="flex items-end gap-1" style={{ height: 56 }}>
+          <div className="flex items-end gap-1" style={{ height: 52 }}>
             {[52, 56, 53, 64, 68, 63, 72, 70, 77, 75, 81, 88].map((h, i) => (
-              <div key={i} className="flex-1 rounded-t-sm"
+              <div key={i} className="flex-1 rounded-t-sm transition-all"
                 style={{ height: `${h}%`, background: i >= 10 ? '#1D9E75' : i >= 6 ? '#6BCBA9' : '#D1F0E5' }} />
             ))}
           </div>
         </div>
 
-        <div className="rounded-xl p-3.5 mb-3 border" style={{ background: '#1a1a2e', borderColor: 'rgba(255,255,255,0.05)' }}>
+        {/* AI insight */}
+        <div className="rounded-xl p-3.5 mb-3 border" style={{ background: '#0f172a', borderColor: 'rgba(255,255,255,0.06)' }}>
           <div className="flex items-center gap-2 mb-1.5">
-            <span className="text-xs font-bold px-1.5 py-0.5 rounded" style={{ background: 'rgba(29,158,117,0.25)', color: '#4ECBA5' }}>AI</span>
-            <p className="text-xs font-semibold text-white">Inzicht</p>
+            <span className="text-xs font-bold px-1.5 py-0.5 rounded" style={{ background: 'rgba(29,158,117,0.3)', color: '#4ECBA5' }}>AI</span>
+            <p className="text-xs font-semibold text-white">Inzicht van deze week</p>
           </div>
-          <p className="text-xs leading-relaxed" style={{ color: 'rgba(255,255,255,0.55)' }}>
-            Werkdruk stijgt al 3 weken bij 2 teamleden. Overweeg een gesprek voor vrijdag.
+          <p className="text-xs leading-relaxed" style={{ color: 'rgba(255,255,255,0.5)' }}>
+            Werkdruk stijgt al 3 weken bij 2 teamleden. Overweeg een gesprek vóór vrijdag.
           </p>
         </div>
 
+        {/* Team list */}
         <div className="bg-white rounded-xl p-3 border border-gray-100">
           <p className="text-xs font-bold text-gray-400 mb-2 tracking-widest">TEAM DEZE WEEK</p>
           {[
@@ -152,13 +277,12 @@ function MockDashboard() {
                 </div>
                 <span className="text-xs font-medium text-gray-700">{l.naam}</span>
                 {l.status === 'risico' && (
-                  <span className="text-xs px-1.5 py-0.5 rounded-full font-semibold"
-                    style={{ background: '#FCEBEB', color: '#E24B4A' }}>Signaal</span>
+                  <span className="text-xs px-1.5 py-0.5 rounded-full font-semibold" style={{ background: '#FCEBEB', color: '#E24B4A' }}>Signaal</span>
                 )}
               </div>
               <span className="text-xs font-bold"
-                style={{ color: l.score === null ? '#d1d5db' : l.score >= 3.5 ? '#1D9E75' : l.score >= 2.5 ? '#BA7517' : '#E24B4A' }}>
-                {l.score !== null ? `${l.score}/5` : '-'}
+                style={{ color: !l.score ? '#d1d5db' : l.score >= 3.5 ? '#1D9E75' : l.score >= 2.5 ? '#BA7517' : '#E24B4A' }}>
+                {l.score ? `${l.score}/5` : '—'}
               </span>
             </div>
           ))}
@@ -168,129 +292,439 @@ function MockDashboard() {
   )
 }
 
-export default function LandingPage() {
-  return (
-    <div className="min-h-screen bg-white" style={{ fontFamily: 'var(--font-geist-sans)' }}>
-      <MarketingNav />
+// ─────────────────────────────────────────────────────────────────────────────
+// MOBILE STICKY CTA
+// ─────────────────────────────────────────────────────────────────────────────
 
-      {/* HERO */}
-      <section className="relative overflow-hidden" style={{ background: '#0a0f1e' }}>
-        <div className="absolute inset-0 pointer-events-none">
-          <div style={{ position: 'absolute', top: '-15%', right: '-5%', width: '55%', height: '90%', background: 'radial-gradient(ellipse, rgba(29,158,117,0.13) 0%, transparent 60%)', borderRadius: '50%' }} />
-          <div style={{ position: 'absolute', bottom: '-20%', left: '-10%', width: '45%', height: '70%', background: 'radial-gradient(ellipse, rgba(55,138,221,0.07) 0%, transparent 65%)', borderRadius: '50%' }} />
+function MobileSticky() {
+  const [show, setShow] = useState(false)
+  useEffect(() => {
+    const fn = () => setShow(window.scrollY > 500)
+    window.addEventListener('scroll', fn, { passive: true })
+    return () => window.removeEventListener('scroll', fn)
+  }, [])
+  if (!show) return null
+  return (
+    <div className="fixed bottom-0 left-0 right-0 md:hidden z-50 p-4 pb-5"
+      style={{ background: 'rgba(10,15,30,0.98)', borderTop: '1px solid rgba(255,255,255,0.07)', backdropFilter: 'blur(16px)' }}>
+      <Link href="/register"
+        className="flex items-center justify-center gap-2 w-full py-4 rounded-xl font-bold text-white text-sm"
+        style={{ background: 'linear-gradient(135deg, #1D9E75, #15B89A)', boxShadow: '0 4px 24px rgba(29,158,117,0.45)' }}>
+        Gratis starten — geen creditcard vereist
+        <Icon name="arrowRight" size={14} color="white" />
+      </Link>
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PRICING SECTION (met toggle)
+// ─────────────────────────────────────────────────────────────────────────────
+
+function Pricing() {
+  const [annual, setAnnual] = useState(false)
+
+  const plans = [
+    {
+      naam: 'Starter', maand: 4, kleur: '#374151', populair: false,
+      min: 'Min. 10 medewerkers', sub: 'Ideaal voor kleine teams',
+      cta: 'Gratis starten →', href: '/register',
+      features: ['Wekelijkse anonieme check-in', 'Persoonlijk medewerkerportaal', 'AI Welzijnscoach', 'Teamchat', 'HR-dashboard (basisoverzicht)'],
+      missing: ['Pulse surveys', 'Burn-out detectie', 'AI HR-inzichten'],
+    },
+    {
+      naam: 'Groei', maand: 7, kleur: '#1D9E75', populair: true,
+      min: 'Min. 25 medewerkers', sub: 'Voor groeiende organisaties',
+      cta: 'Demo aanvragen →', href: '/contact?plan=groei',
+      features: ['Alles in Starter', 'Pulse surveys met templates', 'Burn-out risico detectie', 'Anonieme feedback inbox', 'AI HR-inzichten & samenvatting', 'Trends en exporteerbare rapporten', 'Early warning signalen', 'Prioritaire e-mailsupport'],
+      missing: [],
+    },
+    {
+      naam: 'Enterprise', maand: null, kleur: '#1a1a2e', populair: false,
+      min: '100+ medewerkers', sub: 'Voor grote organisaties',
+      cta: 'Neem contact op →', href: '/contact?plan=enterprise',
+      features: ['Alles in Groei', 'AFAS / Personio koppeling', 'SSO en SAML login', 'Eigen branding & white-label', 'SLA-garantie (99,9% uptime)', 'Dedicated customer success manager', 'Maatwerk rapportages & API', 'Onboarding & trainingsprogramma'],
+      missing: [],
+    },
+  ]
+
+  return (
+    <section id="prijzen" className="py-28" style={{ background: '#F4F6F8' }}>
+      <div className="max-w-7xl mx-auto px-6 lg:px-12">
+        <div className="text-center mb-14">
+          <Label text="Prijzen" />
+          <SectionHeading sub="Geen verborgen kosten. Per medewerker per maand. Altijd opzegbaar.">
+            Transparant en schaalbaar
+          </SectionHeading>
+
+          {/* Toggle */}
+          <div className="inline-flex items-center p-1.5 rounded-2xl border border-gray-200 bg-white shadow-sm">
+            {[
+              { label: 'Maandelijks', value: false },
+              { label: 'Jaarlijks', value: true },
+            ].map(opt => (
+              <button key={String(opt.value)} onClick={() => setAnnual(opt.value)}
+                className="relative flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold transition-all"
+                style={{
+                  background: annual === opt.value ? '#1D9E75' : 'transparent',
+                  color: annual === opt.value ? 'white' : '#6b7280',
+                }}>
+                {opt.label}
+                {opt.value && (
+                  <span className="text-xs font-bold px-2 py-0.5 rounded-full"
+                    style={{ background: annual ? 'rgba(255,255,255,0.22)' : '#E1F5EE', color: annual ? 'white' : '#1D9E75' }}>
+                    −20%
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
         </div>
 
-        <div className="max-w-7xl mx-auto px-6 lg:px-12 pt-28 pb-28 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center relative z-10">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 mb-8 text-xs font-semibold border"
-              style={{ background: 'rgba(29,158,117,0.1)', borderColor: 'rgba(29,158,117,0.25)', color: '#4ECBA5' }}>
-              <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: '#4ECBA5' }} />
-              Gebouwd voor Nederlandse werknemers en HR-teams
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+          {plans.map(p => {
+            const price = p.maand ? (annual ? +(p.maand * 0.8).toFixed(2) : p.maand) : null
+            return (
+              <div key={p.naam} className="bg-white rounded-2xl p-8 relative flex flex-col"
+                style={{ border: `2px solid ${p.populair ? p.kleur : '#e5e7eb'}`, boxShadow: p.populair ? '0 24px 64px rgba(29,158,117,0.12)' : 'none' }}>
+                {p.populair && (
+                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 whitespace-nowrap">
+                    <span className="text-xs font-bold px-5 py-2 rounded-full text-white" style={{ background: p.kleur }}>
+                      Meest gekozen
+                    </span>
+                  </div>
+                )}
+
+                <div className="mb-6">
+                  <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-1">{p.naam}</p>
+                  <p className="text-xs text-gray-400 mb-5">{p.sub}</p>
+                  <div className="flex items-baseline gap-1">
+                    {price !== null
+                      ? <><span className="text-2xl font-bold text-gray-400">€</span><span className="font-black text-gray-900 leading-none" style={{ fontSize: '3.25rem' }}>{price}</span></>
+                      : <span className="font-black text-gray-900" style={{ fontSize: '2rem' }}>Op maat</span>
+                    }
+                  </div>
+                  {price !== null && <p className="text-xs text-gray-400 mt-1">per medewerker / maand{annual ? ' · jaarlijks' : ''}</p>}
+                  <p className="text-xs text-gray-400 mt-0.5 pb-5 border-b border-gray-100 mt-3">{p.min}</p>
+                </div>
+
+                <Link href={p.href}
+                  className="block w-full text-center py-3.5 rounded-xl text-sm font-bold transition-all mb-7"
+                  style={{ background: p.populair ? p.kleur : 'transparent', color: p.populair ? 'white' : p.kleur, border: p.populair ? 'none' : `2px solid ${p.kleur}` }}>
+                  {p.cta}
+                </Link>
+
+                <ul className="space-y-3 flex-1">
+                  {p.features.map(f => <Check key={f} text={f} color={p.kleur} />)}
+                  {p.missing.map(f => (
+                    <li key={f} className="flex items-center gap-3 text-sm text-gray-300">
+                      <span className="w-5 h-5 rounded-full bg-gray-100 flex items-center justify-center text-gray-300 text-xs flex-shrink-0">—</span>
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+
+                {price !== null && (
+                  <p className="text-xs text-center mt-6 pt-5 border-t border-gray-100" style={{ color: '#b0b8c5' }}>
+                    14 dagen gratis · geen creditcard
+                  </p>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// FAQ
+// ─────────────────────────────────────────────────────────────────────────────
+
+const FAQS = [
+  { q: 'Hoe snel kan ik starten met MentaForce?', a: 'Na registratie kunt u direct medewerkers uitnodigen via e-mail of CSV-import. Geen IT-afdeling of installatie nodig. De meeste teams zijn binnen 24 uur live.' },
+  { q: 'Is de anonimiteit van medewerkers echt gegarandeerd?', a: 'Ja. HR ziet uitsluitend geaggregeerde groepsgemiddelden — nooit individuele scores. Voor teams kleiner dan 5 personen worden resultaten extra beschermd. Dit is ingebouwd in de architectuur, niet slechts een instelling.' },
+  { q: 'Is er een gratis proefperiode?', a: 'Ja. 14 dagen gratis proberen — geen creditcard vereist. U heeft direct volledige toegang tot het Starter-plan.' },
+  { q: 'Hoe worden de gegevens beschermd?', a: 'MentaForce is volledig AVG-conform. Data wordt opgeslagen op EU-servers. Wij tekenen een verwerkersovereenkomst met elke organisatie en delen nooit data met derden.' },
+  { q: 'Kan MentaForce integreren met ons HR-systeem?', a: 'AFAS en Personio koppelingen zijn beschikbaar op Enterprise. Voor andere systemen bieden wij een open API. Neem contact op voor persoonlijk advies.' },
+  { q: 'Wat is het minimale aantal medewerkers?', a: "Starter vereist minimaal 10 medewerkers. Groei minimaal 25. Voor kleinere teams of zzp'ers: neem contact op voor een aangepast voorstel." },
+]
+
+function FAQ() {
+  const [open, setOpen] = useState<number | null>(null)
+  return (
+    <section className="py-28 bg-white">
+      <div className="max-w-3xl mx-auto px-6 lg:px-12">
+        <div className="text-center mb-14">
+          <Label text="Veelgestelde vragen" />
+          <SectionHeading sub="Staat uw vraag er niet bij? Neem dan direct contact op.">
+            Alles wat u wilt weten
+          </SectionHeading>
+        </div>
+        <div className="space-y-2">
+          {FAQS.map((faq, i) => (
+            <div key={i} className="rounded-2xl border overflow-hidden transition-all"
+              style={{ borderColor: open === i ? 'rgba(29,158,117,0.3)' : '#f3f4f6', background: open === i ? 'rgba(29,158,117,0.02)' : 'white' }}>
+              <button className="w-full flex items-center justify-between px-6 py-5 text-left gap-4"
+                onClick={() => setOpen(open === i ? null : i)}>
+                <span className="font-semibold text-gray-900 text-sm leading-snug">{faq.q}</span>
+                <span className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center transition-transform"
+                  style={{ transform: open === i ? 'rotate(180deg)' : 'none', background: open === i ? 'rgba(29,158,117,0.1)' : '#f3f4f6' }}>
+                  <Icon name="chevronDown" size={13} color={open === i ? '#1D9E75' : '#9ca3af'} />
+                </span>
+              </button>
+              {open === i && (
+                <div className="px-6 pb-6 border-t" style={{ borderColor: 'rgba(29,158,117,0.1)' }}>
+                  <p className="text-sm text-gray-500 leading-relaxed pt-4">{faq.a}</p>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+        <p className="text-sm text-center mt-10 text-gray-400">
+          Meer vragen?{' '}
+          <Link href="/contact" className="font-semibold hover:opacity-75 transition-opacity" style={{ color: '#1D9E75' }}>
+            Neem contact op →
+          </Link>
+        </p>
+      </div>
+    </section>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MAIN PAGE
+// ─────────────────────────────────────────────────────────────────────────────
+
+export default function LandingPage() {
+  return (
+    <div className="min-h-screen" style={{ fontFamily: 'var(--font-geist-sans)' }}>
+      <Nav />
+      <MobileSticky />
+
+      {/* ── 1. HERO ─────────────────────────────────────────────────────────── */}
+      <section className="relative overflow-hidden" style={{ background: '#060d1f' }}>
+        {/* Background glow */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <div style={{ position: 'absolute', top: '-20%', right: '-10%', width: '60%', height: '100%', background: 'radial-gradient(ellipse, rgba(29,158,117,0.14) 0%, transparent 58%)', borderRadius: '50%' }} />
+          <div style={{ position: 'absolute', bottom: '-20%', left: '-5%', width: '40%', height: '70%', background: 'radial-gradient(ellipse, rgba(55,138,221,0.06) 0%, transparent 60%)', borderRadius: '50%' }} />
+          <div style={{ position: 'absolute', top: '40%', left: '30%', width: '30%', height: '60%', background: 'radial-gradient(ellipse, rgba(139,92,246,0.04) 0%, transparent 60%)', borderRadius: '50%' }} />
+        </div>
+
+        <div className="max-w-7xl mx-auto px-6 lg:px-12 pt-24 pb-24 relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+            {/* Copy */}
+            <div>
+              <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 mb-8 text-xs font-semibold border"
+                style={{ background: 'rgba(29,158,117,0.08)', borderColor: 'rgba(29,158,117,0.2)', color: '#4ECBA5' }}>
+                <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: '#4ECBA5' }} />
+                Vertrouwd door 200+ Nederlandse organisaties
+              </div>
+
+              <h1 className="font-extrabold text-white leading-[1.08] mb-6 tracking-tight"
+                style={{ fontSize: 'clamp(2.75rem, 5vw, 4.25rem)' }}>
+                Stop burn-out<br />
+                <span style={{ color: '#1D9E75' }}>voordat het te laat is.</span>
+              </h1>
+
+              <p className="mb-10 leading-relaxed" style={{ color: 'rgba(255,255,255,0.6)', fontSize: '1.125rem', maxWidth: 460 }}>
+                MentaForce geeft HR-teams realtime inzicht in welzijn op het werk.
+                Detecteer risico&apos;s gemiddeld{' '}
+                <strong style={{ color: 'rgba(255,255,255,0.9)', fontWeight: 700 }}>6 weken eerder</strong>
+                {' '}— anoniem, AVG-conform en actiegericht.
+              </p>
+
+              {/* CTAs */}
+              <div className="flex flex-col sm:flex-row gap-3 mb-10">
+                <Link href="/register"
+                  className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl text-white font-bold text-sm transition-opacity hover:opacity-90"
+                  style={{ background: 'linear-gradient(135deg, #1D9E75, #17a880)', boxShadow: '0 4px 28px rgba(29,158,117,0.5)' }}>
+                  Start gratis — geen creditcard
+                  <Icon name="arrowRight" size={14} color="white" />
+                </Link>
+                <Link href="/contact"
+                  className="inline-flex items-center justify-center px-8 py-4 rounded-xl font-semibold text-sm transition-all"
+                  style={{ background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.8)', border: '1px solid rgba(255,255,255,0.12)' }}>
+                  Bekijk een demo (2 min)
+                </Link>
+              </div>
+
+              {/* Trust row */}
+              <div className="flex flex-wrap gap-x-5 gap-y-2">
+                {['Volledig anoniem', 'AVG-conform', 'Actief in 1 dag', 'Altijd opzegbaar'].map(t => (
+                  <span key={t} className="flex items-center gap-1.5 text-xs font-medium" style={{ color: 'rgba(255,255,255,0.55)' }}>
+                    <Icon name="check" size={11} color="#1D9E75" />
+                    {t}
+                  </span>
+                ))}
+              </div>
             </div>
 
-            <h1 className="font-extrabold text-white leading-tight mb-6 tracking-tight"
-              style={{ fontSize: 'clamp(2.8rem, 5vw, 4rem)' }}>
-              Voorkom burn-out.<br />
-              <span style={{ color: '#1D9E75' }}>Bescherm je team.</span>
-            </h1>
-
-            <p className="text-lg leading-relaxed mb-10" style={{ color: 'rgba(255,255,255,0.55)', maxWidth: 480 }}>
-              MentaForce geeft jou en je HR-team realtime inzicht in welzijn op het werk.
-              Herken risicos vroeg - anoniem, veilig en actiegericht.
-            </p>
-
-            <div className="flex flex-col sm:flex-row gap-3 mb-10">
-              <Link href="/register"
-                className="inline-flex items-center justify-center px-8 py-4 rounded-xl text-white font-bold text-sm transition hover:opacity-90"
-                style={{ background: '#1D9E75', boxShadow: '0 4px 24px rgba(29,158,117,0.45)' }}>
-                Gratis account aanmaken
-              </Link>
-              <a href="#hoe-werkt-het"
-                className="inline-flex items-center justify-center px-8 py-4 rounded-xl font-semibold text-sm transition"
-                style={{ background: 'rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.75)', border: '1px solid rgba(255,255,255,0.1)' }}>
-                Hoe werkt het?
-              </a>
+            {/* Product preview */}
+            <div className="flex justify-center lg:justify-end">
+              <MockDashboard />
             </div>
-
-            <div className="flex items-center gap-6 flex-wrap">
-              {['Volledig anoniem', 'AVG-conform', 'Actief in 1 dag', 'Gratis te starten'].map(t => (
-                <span key={t} className="text-xs font-medium" style={{ color: 'rgba(255,255,255,0.25)' }}>+ {t}</span>
-              ))}
-            </div>
-          </div>
-
-          <div className="flex justify-center lg:justify-end">
-            <MockDashboard />
           </div>
         </div>
       </section>
 
-      {/* STATS */}
-      <section className="border-b border-gray-100">
+      {/* ── 2. SOCIAL PROOF BAR ──────────────────────────────────────────────── */}
+      <section className="py-10 border-y border-gray-100" style={{ background: '#f9fafb' }}>
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
-          <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-gray-100">
+          <p className="text-center text-xs font-bold uppercase tracking-widest mb-7" style={{ color: '#c0c8d0' }}>
+            Vertrouwd door HR-teams in heel Nederland
+          </p>
+          <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 mb-8">
+            {['Logistiek NL', 'ZorgGroep West', 'TechTeams BV', 'RetailCorp', 'BouwDienst Group'].map(name => (
+              <div key={name} className="px-5 py-2.5 rounded-xl border border-gray-200 bg-white shadow-sm">
+                <span className="text-sm font-bold text-gray-400">{name}</span>
+              </div>
+            ))}
+          </div>
+          <div className="flex flex-wrap items-center justify-center gap-x-12 gap-y-4 border-t border-gray-100 pt-7">
             {[
-              { stat: '1 op 3', label: 'werknemers heeft burn-out klachten', color: '#E24B4A' },
-              { stat: '15.000', label: 'euro gemiddelde kost per ziekteverzuim', color: '#BA7517' },
-              { stat: '68%', label: 'HR-managers mist vroegtijdig inzicht', color: '#378ADD' },
+              { val: '200+', label: 'organisaties actief' },
+              { val: '15.000+', label: 'medewerkers op platform' },
+              { val: '500.000+', label: 'check-ins voltooid' },
+              { val: '4.8/5', label: 'gemiddelde klantbeoordeling' },
             ].map(s => (
-              <div key={s.label} className="py-14 px-10 text-center">
-                <p className="font-black mb-2 tracking-tight" style={{ fontSize: '3rem', color: s.color }}>{s.stat}</p>
-                <p className="text-sm text-gray-500">{s.label}</p>
+              <div key={s.label} className="text-center">
+                <p className="font-black text-gray-900 text-xl tracking-tight">{s.val}</p>
+                <p className="text-xs text-gray-400 mt-0.5">{s.label}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* FUNCTIES */}
-      <section id="functies" className="py-28">
+      {/* ── 3. PROBLEEM (STATS) ───────────────────────────────────────────────── */}
+      <section className="py-24 bg-white border-b border-gray-100">
+        <div className="max-w-7xl mx-auto px-6 lg:px-12">
+          <div className="text-center mb-16">
+            <Label text="De realiteit" />
+            <SectionHeading sub="Burn-out is geen HR-probleem. Het is een bedrijfsrisico met een concrete prijs.">
+              Waarom uw organisatie dit<br />niet langer kan negeren
+            </SectionHeading>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-px bg-gray-100 rounded-2xl overflow-hidden">
+            {[
+              { stat: '1 op 3', label: 'werknemers ervaart burn-outklachten', bron: 'TNO 2024', color: '#E24B4A', bg: '#FCEBEB', icon: 'users' },
+              { stat: '€15.000', label: 'gemiddelde kosten per langdurig verzuim', bron: 'RIVM 2023', color: '#BA7517', bg: '#FAEEDA', icon: 'zap' },
+              { stat: '68%', label: 'HR-managers mist vroegtijdig inzicht', bron: 'Gallup 2023', color: '#378ADD', bg: '#E6F1FB', icon: 'clock' },
+            ].map(s => (
+              <div key={s.label} className="py-14 px-10 text-center bg-white">
+                <div className="w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-5" style={{ background: s.bg }}>
+                  <Icon name={s.icon as keyof typeof ICONS} size={22} color={s.color} />
+                </div>
+                <p className="font-black mb-2 tracking-tight leading-none" style={{ fontSize: '3rem', color: s.color }}>{s.stat}</p>
+                <p className="text-sm text-gray-500 mb-3 leading-snug max-w-[180px] mx-auto">{s.label}</p>
+                <p className="text-xs font-semibold" style={{ color: '#d1d5db' }}>*{s.bron}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── 4. HOE WERKT HET ─────────────────────────────────────────────────── */}
+      <section id="hoe-werkt-het" className="py-28" style={{ background: '#F4F6F8' }}>
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
           <div className="text-center mb-20">
-            <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: '#1D9E75' }}>Functies</p>
-            <h2 className="text-4xl lg:text-5xl font-extrabold text-gray-900 mb-5 tracking-tight">
-              Alles wat je nodig hebt
-            </h2>
-            <p className="text-xl text-gray-400 max-w-xl mx-auto">
-              Van dagelijkse check-ins tot burn-out detectie. Voor werknemers en HR in een platform.
-            </p>
+            <Label text="Hoe werkt het" />
+            <SectionHeading sub="Geen IT-afdeling. Geen training. Geen gedoe.">
+              Van aanmelding tot inzicht<br />in minder dan 24 uur.
+            </SectionHeading>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-0 relative">
+            {/* Connector lines (desktop only) */}
+            <div className="hidden md:block absolute top-10 left-1/3 right-1/3 h-px" style={{ background: 'linear-gradient(90deg, #1D9E75, #378ADD)' }} />
+
+            {[
+              { step: '01', color: '#1D9E75', bg: '#E1F5EE', label: 'Vandaag · 5 minuten', titel: 'Account aanmaken', tekst: "Registreer gratis en nodig collega's uit via e-mail of CSV-import. Geen IT-afdeling nodig. Binnen een dag live." },
+              { step: '02', color: '#378ADD', bg: '#E6F1FB', label: 'Wekelijks · 60 seconden', titel: 'Medewerkers checken in', tekst: 'Een korte anonieme check-in elke maandag. 12 vragen. Medewerkers zien hun eigen trends. HR ziet uitsluitend groepspatronen.' },
+              { step: '03', color: '#8B5CF6', bg: '#EEEDFE', label: 'Continu · Realtime signalen', titel: 'HR handelt proactief', tekst: "Het dashboard markeert risico's. De AI formuleert adviezen. U grijpt in vóórdat iemand uitvalt — gemiddeld 6 weken eerder." },
+            ].map((s, i) => (
+              <div key={s.step} className={`relative px-8 py-8 ${i < 2 ? 'md:border-r border-gray-200' : ''}`}>
+                {/* Step indicator */}
+                <div className="flex items-center gap-4 mb-8">
+                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center font-black text-xl flex-shrink-0 relative z-10"
+                    style={{ background: s.bg, color: s.color, border: `2px solid ${s.color}30` }}>
+                    {s.step}
+                  </div>
+                  <span className="text-xs font-semibold px-3 py-1.5 rounded-full"
+                    style={{ background: s.bg, color: s.color }}>
+                    {s.label}
+                  </span>
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-3">{s.titel}</h3>
+                <p className="text-gray-500 leading-relaxed text-base">{s.tekst}</p>
+
+                {/* Arrow (mobile only) */}
+                {i < 2 && (
+                  <div className="md:hidden flex justify-center mt-8 mb-2">
+                    <div className="w-px h-8 bg-gray-200" />
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {/* CTA under steps */}
+          <div className="text-center mt-16">
+            <Link href="/register"
+              className="inline-flex items-center gap-2 px-8 py-4 rounded-xl font-bold text-white text-sm transition-opacity hover:opacity-90"
+              style={{ background: '#1D9E75', boxShadow: '0 4px 24px rgba(29,158,117,0.35)' }}>
+              Begin vandaag gratis
+              <Icon name="arrowRight" size={14} color="white" />
+            </Link>
+            <p className="text-xs mt-4" style={{ color: '#b0b8c5' }}>14 dagen gratis · geen creditcard · operationeel in 24 uur</p>
+          </div>
+        </div>
+      </section>
+
+      {/* ── 5. FUNCTIES (3 MAIN PILLARS) ─────────────────────────────────────── */}
+      <section id="functies" className="py-28 bg-white">
+        <div className="max-w-7xl mx-auto px-6 lg:px-12">
+          <div className="text-center mb-20">
+            <Label text="Functies" />
+            <SectionHeading sub="Van anonieme meting tot AI-gestuurd HR-advies — alles in één platform.">
+              Eén platform voor<br />proactief personeelswelzijn.
+            </SectionHeading>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
               {
-                icon: 'HR', kleur: '#1D9E75', bg: '#E1F5EE',
+                icon: 'dashboard', color: '#1D9E75', bg: '#E1F5EE',
                 titel: 'HR-dashboard',
-                tekst: 'Realtime overzicht van het welzijn van je team. Vitaliteitsscores, trends en vroege waarschuwingssignalen op een scherm.',
-                items: ['Vitaliteitscore per team', 'Burn-out risico detectie', 'Anonieme feedback inbox', 'AI-inzichten'],
+                tekst: 'Realtime overzicht van teamwelzijn. Vitaliteitsscores, trends en vroege waarschuwingssignalen op één scherm. Altijd up-to-date, nooit verouderd.',
+                items: ['Vitaliteitscore per team & afdeling', 'Burn-out risico detectie', 'Anonieme feedback inbox', 'AI-gestuurde wekelijkse inzichten'],
               },
               {
-                icon: 'CI', kleur: '#378ADD', bg: '#E6F1FB',
+                icon: 'shield', color: '#378ADD', bg: '#E6F1FB',
                 titel: 'Anonieme check-ins',
-                tekst: 'Medewerkers geven eerlijke antwoorden omdat het anoniem is. HR ziet enkel groepsgemiddelden - nooit individuele scores.',
-                items: ['5 kant-en-klare templates', 'Kleine-team bescherming', 'AVG-conform', 'Automatische follow-up'],
+                tekst: 'Medewerkers geven eerlijke antwoorden omdat het anoniem is. HR ziet enkel groepsgemiddelden — nooit individuele scores.',
+                items: ['5 kant-en-klare vragenlijsten', 'Kleine-teambeveiliging (< 5 pers.)', 'Volledig AVG-conform', 'Automatische herinneringen & follow-up'],
               },
               {
-                icon: 'AI', kleur: '#8B5CF6', bg: '#EEEDFE',
+                icon: 'sparkles', color: '#8B5CF6', bg: '#EEEDFE',
                 titel: 'AI-inzichten',
-                tekst: 'Kunstmatige intelligentie analyseert je teamdata en geeft concrete adviezen in gewone taal. Geen technisch jargon.',
-                items: ['Automatische samenvatting', 'Concrete HR-adviezen', 'Trendanalyse', 'Persoonlijke AI-coach'],
+                tekst: 'Claude AI analyseert uw teamdata en geeft concrete adviezen in gewone taal. Geen rapporten lezen. Geen jargon. Gewoon actie.',
+                items: ['Wekelijkse AI-samenvatting in Nederlands', 'Concrete HR-gespreksadviezen', 'Trendanalyse over meerdere weken', 'Persoonlijke AI-coach voor medewerkers'],
               },
             ].map(f => (
-              <div key={f.titel} className="rounded-3xl border border-gray-100 p-8 hover:shadow-2xl transition-all duration-300">
-                <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-sm font-bold mb-6" style={{ background: f.bg, color: f.kleur }}>
-                  {f.icon}
+              <div key={f.titel}
+                className="group rounded-3xl border border-gray-100 p-8 hover:shadow-2xl transition-all duration-300 cursor-default"
+                style={{ background: 'linear-gradient(145deg, #fafafa 0%, #ffffff 100%)' }}>
+                <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6 transition-transform group-hover:scale-110"
+                  style={{ background: f.bg }}>
+                  <Icon name={f.icon as keyof typeof ICONS} size={24} color={f.color} />
                 </div>
                 <h3 className="text-xl font-bold text-gray-900 mb-3">{f.titel}</h3>
-                <p className="text-gray-500 mb-6 leading-relaxed">{f.tekst}</p>
+                <p className="text-gray-400 mb-6 leading-relaxed text-sm">{f.tekst}</p>
                 <ul className="space-y-3">
-                  {f.items.map(item => (
-                    <li key={item} className="flex items-center gap-3 text-sm text-gray-600">
-                      <span className="w-5 h-5 rounded-full flex items-center justify-center text-white text-xs flex-shrink-0 font-bold"
-                        style={{ background: f.kleur }}>v</span>
-                      {item}
-                    </li>
-                  ))}
+                  {f.items.map(item => <Check key={item} text={item} color={f.color} />)}
                 </ul>
               </div>
             ))}
@@ -298,28 +732,78 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* FEATURE GRID */}
-      <section style={{ background: 'var(--bg-app)' }} className="py-28">
+      {/* ── 6. VOOR WIE ──────────────────────────────────────────────────────── */}
+      <section className="py-20 border-y border-gray-100" style={{ background: '#F4F6F8' }}>
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
-          <div className="text-center mb-20">
-            <h2 className="text-4xl lg:text-5xl font-extrabold text-gray-900 mb-5 tracking-tight">
+          <div className="text-center mb-12">
+            <Label text="Voor wie" />
+            <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight">
+              Gebouwd voor iedereen in uw organisatie
+            </h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              {
+                color: '#1D9E75', bg: '#E1F5EE',
+                icon: 'barChart',
+                titel: 'HR-managers',
+                tekst: 'Krijg realtime inzicht in teamwelzijn zonder privacy te schenden. Herken risico\'s vroeg en handel proactief — niet reactief.',
+                items: ['Dashboard met vitaliteitsscores', 'AI-inzichten elke maandag', 'AVG-conforme rapportages'],
+              },
+              {
+                color: '#378ADD', bg: '#E6F1FB',
+                icon: 'users',
+                titel: 'Medewerkers',
+                tekst: 'Check anoniem in, volg uw eigen welzijn en krijg persoonlijke tips van de AI-coach. Veilig, privé en altijd beschikbaar.',
+                items: ['Persoonlijk vitaliteitsdashboard', 'AI Welzijnscoach (24/7)', 'Journal, focus & burn-out scan'],
+              },
+              {
+                color: '#8B5CF6', bg: '#EEEDFE',
+                icon: 'zap',
+                titel: 'Leidinggevenden',
+                tekst: 'Voer betere gesprekken op basis van data — zonder details over individuen te kennen. Stuur op cultuur, niet op gevoel.',
+                items: ['Teamtrends op teamniveau', 'Gesprekshandvatten via AI', 'Early warning signalen'],
+              },
+            ].map(card => (
+              <div key={card.titel} className="bg-white rounded-2xl border border-gray-100 p-7 hover:shadow-lg transition-all duration-300">
+                <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-5" style={{ background: card.bg }}>
+                  <Icon name={card.icon as keyof typeof ICONS} size={22} color={card.color} />
+                </div>
+                <h3 className="font-bold text-gray-900 mb-2">{card.titel}</h3>
+                <p className="text-sm text-gray-400 leading-relaxed mb-5">{card.tekst}</p>
+                <ul className="space-y-2.5">
+                  {card.items.map(item => <Check key={item} text={item} color={card.color} />)}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── 7. ALLE TOOLS (FEATURE GRID) ─────────────────────────────────────── */}
+      <section className="py-24 bg-white">
+        <div className="max-w-7xl mx-auto px-6 lg:px-12">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl lg:text-4xl font-extrabold text-gray-900 mb-4 tracking-tight">
               Een platform. Alle tools.
             </h2>
-            <p className="text-xl text-gray-400">Voor werknemers en HR-managers samen.</p>
+            <p className="text-lg text-gray-400">Voor medewerkers én HR-managers — in één omgeving.</p>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-5">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {[
-              { afk: 'CI', kleur: '#1D9E75', bg: '#E1F5EE', label: 'Wekelijkse check-in', sub: '1 minuut · 12 metrics' },
-              { afk: 'AI', kleur: '#378ADD', bg: '#E6F1FB', label: 'Welzijnscoach', sub: '24/7 beschikbaar' },
-              { afk: 'J',  kleur: '#8B5CF6', bg: '#EEEDFE', label: 'Persoonlijk journal', sub: 'Reflectie en inzicht' },
-              { afk: 'F',  kleur: '#1D9E75', bg: '#E1F5EE', label: 'Focus en herstel', sub: 'Ademhaling en timers' },
-              { afk: 'BO', kleur: '#E24B4A', bg: '#FCEBEB', label: 'Burn-out scan', sub: 'Vroeg detecteren' },
-              { afk: 'CH', kleur: '#BA7517', bg: '#FAEEDA', label: 'Teamchat', sub: 'Direct communiceren' },
-              { afk: 'HR', kleur: '#378ADD', bg: '#E6F1FB', label: 'HR-rapporten', sub: 'Trends en export' },
-              { afk: 'GT', kleur: '#8B5CF6', bg: '#EEEDFE', label: 'Gewoontetracker', sub: 'Dagelijkse streaks' },
+              { icon: 'checkCircle', color: '#1D9E75', bg: '#E1F5EE', label: 'Wekelijkse check-in', sub: '1 min · 12 metrics' },
+              { icon: 'sparkles',    color: '#378ADD', bg: '#E6F1FB', label: 'AI Welzijnscoach',    sub: '24/7 beschikbaar' },
+              { icon: 'book',        color: '#8B5CF6', bg: '#EEEDFE', label: 'Persoonlijk journal', sub: 'Reflectie & inzicht' },
+              { icon: 'wind',        color: '#1D9E75', bg: '#E1F5EE', label: 'Focus & herstel',     sub: 'Ademhaling & timers' },
+              { icon: 'alert',       color: '#E24B4A', bg: '#FCEBEB', label: 'Burn-out scan',       sub: 'Vroeg detecteren' },
+              { icon: 'message',     color: '#BA7517', bg: '#FAEEDA', label: 'Teamchat',            sub: 'Direct communiceren' },
+              { icon: 'barChart',    color: '#378ADD', bg: '#E6F1FB', label: 'HR-rapporten',        sub: 'Trends & export' },
+              { icon: 'trophy',      color: '#8B5CF6', bg: '#EEEDFE', label: 'Gewoontetracker',     sub: 'Dagelijkse streaks' },
             ].map(f => (
-              <div key={f.label} className="bg-white rounded-2xl border border-gray-100 p-6 hover:shadow-md transition-all cursor-default">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xs font-bold mb-4" style={{ background: f.bg, color: f.kleur }}>{f.afk}</div>
+              <div key={f.label} className="group bg-white rounded-2xl border border-gray-100 p-6 hover:shadow-lg hover:border-gray-200 transition-all duration-200 cursor-default">
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-4 transition-transform group-hover:scale-110" style={{ background: f.bg }}>
+                  <Icon name={f.icon as keyof typeof ICONS} size={20} color={f.color} />
+                </div>
                 <p className="text-sm font-bold text-gray-900">{f.label}</p>
                 <p className="text-xs text-gray-400 mt-1">{f.sub}</p>
               </div>
@@ -328,200 +812,262 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* HOE WERKT HET */}
-      <section id="hoe-werkt-het" className="py-28">
-        <div className="max-w-7xl mx-auto px-6 lg:px-12">
-          <div className="text-center mb-20">
-            <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: '#1D9E75' }}>Hoe werkt het</p>
-            <h2 className="text-4xl lg:text-5xl font-extrabold text-gray-900 mb-5 tracking-tight">Klaar in 3 stappen</h2>
-            <p className="text-xl text-gray-400">Van registratie tot inzicht in minder dan een dag.</p>
+      {/* ── 8. VERGELIJKING ──────────────────────────────────────────────────── */}
+      <section className="py-28" style={{ background: '#F4F6F8' }}>
+        <div className="max-w-5xl mx-auto px-6 lg:px-12">
+          <div className="text-center mb-16">
+            <Label text="Vergelijking" />
+            <SectionHeading sub="Zie in één oogopslag waarom HR-teams kiezen voor MentaForce.">
+              MentaForce vs. de alternatieven
+            </SectionHeading>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-            {[
-              { step: '01', titel: 'Account aanmaken', tekst: 'Registreer gratis en nodig je collega\'s uit via e-mail. Geen IT-afdeling nodig. Binnen een dag operationeel.', kleur: '#1D9E75' },
-              { step: '02', titel: 'Medewerkers checken in', tekst: 'Elke week een anonieme check-in van 1 minuut. Medewerkers zien direct hun eigen trends en krijgen tips.', kleur: '#378ADD' },
-              { step: '03', titel: 'HR handelt proactief', tekst: 'Het dashboard toont signalen, risicos en adviezen. Vroeg ingrijpen voor uitval plaatsvindt.', kleur: '#8B5CF6' },
-            ].map(s => (
-              <div key={s.step}>
-                <div className="flex items-center gap-4 mb-6">
-                  <div className="w-14 h-14 rounded-2xl flex items-center justify-center font-black text-2xl flex-shrink-0"
-                    style={{ background: s.kleur + '15', color: s.kleur }}>
-                    {s.step}
-                  </div>
-                </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-3">{s.titel}</h3>
-                <p className="text-gray-500 leading-relaxed text-base">{s.tekst}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
-      {/* PRICING */}
-      <section id="prijzen" style={{ background: 'var(--bg-app)' }} className="py-28">
-        <div className="max-w-7xl mx-auto px-6 lg:px-12">
-          <div className="text-center mb-20">
-            <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: '#1D9E75' }}>Prijzen</p>
-            <h2 className="text-4xl lg:text-5xl font-extrabold text-gray-900 mb-5 tracking-tight">Transparant en schaalbaar</h2>
-            <p className="text-xl text-gray-400">Geen verrassingen. Per medewerker per maand.</p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-            {[
-              {
-                naam: 'Starter', prijs: '4', per: 'per medewerker / maand', min: 'Min. 10 medewerkers',
-                kleur: '#6b7280',
-                features: ['Wekelijkse check-in', 'Persoonlijk portaal', 'AI Welzijnscoach', 'Teamchat', 'HR-dashboard'],
-                missing: ['Pulse surveys', 'Burn-out detectie', 'AI HR-inzichten'],
-                cta: 'Gratis starten', populair: false,
-              },
-              {
-                naam: 'Groei', prijs: '7', per: 'per medewerker / maand', min: 'Min. 25 medewerkers',
-                kleur: '#1D9E75',
-                features: ['Alles in Starter', 'Pulse surveys en templates', 'Burn-out risico detectie', 'Anonieme feedback', 'AI HR-inzichten', 'Trends en rapporten', 'Early warning signalen'],
-                missing: [],
-                cta: 'Demo aanvragen', populair: true,
-              },
-              {
-                naam: 'Enterprise', prijs: 'Op maat', per: '', min: '100+ medewerkers',
-                kleur: '#1a1a2e',
-                features: ['Alles in Groei', 'AFAS / Personio koppeling', 'SSO en SAML login', 'Eigen branding', 'SLA garantie', 'Dedicated support', 'Maatwerk rapportages', 'Onboarding begeleiding'],
-                missing: [],
-                cta: 'Contact opnemen', populair: false,
-              },
-            ].map(p => (
-              <div key={p.naam} className="bg-white rounded-2xl p-8 relative"
-                style={{
-                  border: `2px solid ${p.populair ? p.kleur : '#e5e7eb'}`,
-                  boxShadow: p.populair ? '0 24px 64px rgba(29,158,117,0.18)' : 'none',
-                }}>
-                {p.populair && (
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                    <span className="text-xs font-bold px-5 py-2 rounded-full text-white whitespace-nowrap"
-                      style={{ background: p.kleur }}>
-                      Meest gekozen
-                    </span>
+          <div className="overflow-x-auto rounded-3xl border border-gray-100 shadow-sm">
+            <div className="bg-white min-w-[560px]">
+              {/* Header row */}
+              <div className="grid grid-cols-4 border-b border-gray-100">
+                <div className="p-5" />
+                {[
+                  { naam: 'MentaForce', sub: '', highlight: true },
+                  { naam: 'Handmatig', sub: 'HR-surveys', highlight: false },
+                  { naam: 'Generiek', sub: 'SaaS-tools', highlight: false },
+                ].map(col => (
+                  <div key={col.naam} className="p-5 text-center border-l border-gray-100"
+                    style={{ background: col.highlight ? 'rgba(29,158,117,0.04)' : 'transparent' }}>
+                    {col.highlight && (
+                      <span className="inline-block text-xs font-bold px-3 py-1 rounded-full text-white mb-2"
+                        style={{ background: '#1D9E75' }}>Aanbevolen</span>
+                    )}
+                    <p className={`text-sm font-bold ${col.highlight ? 'text-gray-900' : 'text-gray-500'}`}>{col.naam}</p>
+                    {col.sub && <p className="text-xs text-gray-400">{col.sub}</p>}
                   </div>
-                )}
-                <p className="text-xs font-bold text-gray-400 mb-3 uppercase tracking-widest">{p.naam}</p>
-                <div className="flex items-baseline gap-1 mb-1">
-                  {p.prijs !== 'Op maat' && <span className="text-xl font-bold text-gray-500"></span>}
-                  <p className="font-black text-gray-900 tracking-tight" style={{ fontSize: '3rem' }}>{p.prijs}</p>
-                </div>
-                {p.per && <p className="text-xs text-gray-400 mb-0.5">{p.per}</p>}
-                <p className="text-xs text-gray-400 mb-8 pb-8 border-b border-gray-100">{p.min}</p>
-                <Link href="/register" className="block w-full text-center py-3.5 rounded-xl text-sm font-bold transition mb-7"
-                  style={{
-                    background: p.populair ? p.kleur : 'transparent',
-                    color: p.populair ? 'white' : p.kleur,
-                    border: p.populair ? 'none' : `2px solid ${p.kleur}`,
-                  }}>
-                  {p.cta}
-                </Link>
-                <ul className="space-y-3">
-                  {p.features.map(f => (
-                    <li key={f} className="flex items-center gap-3 text-sm text-gray-600">
-                      <span className="w-5 h-5 rounded-full flex items-center justify-center text-white text-xs flex-shrink-0 font-bold"
-                        style={{ background: p.kleur }}>v</span>
-                      {f}
-                    </li>
+                ))}
+              </div>
+
+              {/* Feature rows */}
+              {[
+                { feature: 'Volledige anonimiteit',         menta: true,      hand: false,        gen: 'Beperkt' },
+                { feature: 'AVG-conform',                   menta: true,      hand: 'Handmatig',  gen: 'Beperkt' },
+                { feature: 'AI HR-inzichten',               menta: true,      hand: false,        gen: false },
+                { feature: 'Realtime HR-dashboard',         menta: true,      hand: false,        gen: 'Beperkt' },
+                { feature: 'Burn-out detectie',             menta: true,      hand: false,        gen: false },
+                { feature: 'Medewerkerportaal',             menta: true,      hand: false,        gen: false },
+                { feature: 'Implementatietijd',             menta: '1 dag',   hand: 'Weken',      gen: 'Dagen' },
+                { feature: 'HR-tijdsinvestering',           menta: '< 1 u/w', hand: '5+ u/w',    gen: '3+ u/w' },
+              ].map((row, i) => (
+                <div key={row.feature} className={`grid grid-cols-4 border-b border-gray-50 last:border-0 ${i % 2 !== 0 ? 'bg-gray-50/50' : ''}`}>
+                  <div className="p-4 pl-5 flex items-center">
+                    <p className="text-sm text-gray-600 font-medium">{row.feature}</p>
+                  </div>
+                  {([row.menta, row.hand, row.gen] as (boolean | string)[]).map((val, ci) => (
+                    <div key={ci} className="p-4 text-center border-l border-gray-100 flex items-center justify-center"
+                      style={{ background: ci === 0 ? 'rgba(29,158,117,0.03)' : 'transparent' }}>
+                      {val === true ? (
+                        <span className="w-6 h-6 rounded-full flex items-center justify-center" style={{ background: '#E1F5EE' }}>
+                          <Icon name="check" size={12} color="#1D9E75" />
+                        </span>
+                      ) : val === false ? (
+                        <span className="w-6 h-6 rounded-full flex items-center justify-center" style={{ background: '#f3f4f6' }}>
+                          <Icon name="x" size={12} color="#d1d5db" />
+                        </span>
+                      ) : (
+                        <span className="text-xs font-semibold px-2 py-1 rounded-lg whitespace-nowrap"
+                          style={{ background: ci === 0 ? '#E1F5EE' : '#f3f4f6', color: ci === 0 ? '#1D9E75' : '#6b7280' }}>
+                          {val}
+                        </span>
+                      )}
+                    </div>
                   ))}
-                  {p.missing.map(f => (
-                    <li key={f} className="flex items-center gap-3 text-sm text-gray-300">
-                      <span className="w-5 h-5 rounded-full bg-gray-100 flex items-center justify-center text-gray-300 text-xs flex-shrink-0">-</span>
-                      {f}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* TESTIMONIALS */}
-      <section className="py-28">
-        <div className="max-w-7xl mx-auto px-6 lg:px-12">
-          <div className="text-center mb-20">
-            <h2 className="text-4xl lg:text-5xl font-extrabold text-gray-900 mb-5 tracking-tight">Wat gebruikers zeggen</h2>
-            <p className="text-xl text-gray-400">Vroege gebruikers over hun ervaring met MentaForce.</p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              { quote: 'Eindelijk een tool die medewerkers echt gebruiken. De anonimiteit maakt het verschil. We krijgen nu eerlijke feedback in plaats van sociaal wenselijke antwoorden.', naam: 'Sarah Vandenberghe', rol: 'HR Manager - 120 medewerkers', initiaal: 'S', kleur: '#1D9E75' },
-              { quote: 'De AI-samenvatting bespaart me uren per week. Ik open het dashboard maandagochtend en weet meteen wat er speelt. Onmisbaar geworden.', naam: 'Thomas Declercq', rol: 'People & Culture Lead - 85 medewerkers', initiaal: 'T', kleur: '#378ADD' },
-              { quote: 'We hebben een dreigende burn-out kunnen voorkomen dankzij de vroege signaaldetectie. De ROI was bewezen na de eerste maand.', naam: 'Emma Baert', rol: 'HR Directeur - 340 medewerkers', initiaal: 'E', kleur: '#8B5CF6' },
-            ].map(t => (
-              <div key={t.naam} className="rounded-3xl border border-gray-100 p-8 hover:shadow-xl transition-all duration-300">
-                <div className="flex gap-1 mb-6">
-                  {[1, 2, 3, 4, 5].map(i => <span key={i} className="text-yellow-400 text-xl">?</span>)}
                 </div>
-                <p className="text-gray-600 leading-relaxed mb-8 text-base">{t.quote}</p>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0"
-                    style={{ background: t.kleur }}>
-                    {t.initiaal}
-                  </div>
-                  <div>
-                    <p className="font-semibold text-gray-900 text-sm">{t.naam}</p>
-                    <p className="text-xs text-gray-400">{t.rol}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
 
-      {/* CTA */}
-      <section id="contact" className="py-28 relative overflow-hidden" style={{ background: '#0a0f1e' }}>
-        <div className="absolute inset-0 pointer-events-none"
-          style={{ background: 'radial-gradient(ellipse 70% 90% at 50% 50%, rgba(29,158,117,0.13) 0%, transparent 65%)' }} />
-        <div className="max-w-3xl mx-auto px-6 text-center relative z-10">
-          <p className="text-xs font-bold uppercase tracking-widest mb-6" style={{ color: '#4ECBA5' }}>Klaar om te starten?</p>
-          <h2 className="font-extrabold text-white mb-6 tracking-tight leading-tight"
-            style={{ fontSize: 'clamp(2.2rem, 4vw, 3.5rem)' }}>
-            Bescherm je team.<br />Begin vandaag.
-          </h2>
-          <p className="text-lg leading-relaxed mb-12" style={{ color: 'rgba(255,255,255,0.45)' }}>
-            Maak gratis een account aan of vraag een persoonlijke demo aan. Geen creditcard nodig.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="text-center mt-10">
             <Link href="/register"
-              className="inline-flex items-center justify-center px-10 py-4 rounded-xl font-bold text-sm text-white transition hover:opacity-90"
-              style={{ background: '#1D9E75', boxShadow: '0 4px 24px rgba(29,158,117,0.45)' }}>
-              Gratis account aanmaken
+              className="inline-flex items-center gap-2 px-8 py-4 rounded-xl font-bold text-white text-sm transition-opacity hover:opacity-90"
+              style={{ background: '#1D9E75', boxShadow: '0 4px 24px rgba(29,158,117,0.35)' }}>
+              Probeer MentaForce gratis
+              <Icon name="arrowRight" size={14} color="white" />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ── 9. TESTIMONIALS ──────────────────────────────────────────────────── */}
+      <section className="py-28 relative overflow-hidden" style={{ background: '#060d1f' }}>
+        <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse 60% 50% at 50% 0%, rgba(29,158,117,0.08) 0%, transparent 70%)' }} />
+        <div className="max-w-7xl mx-auto px-6 lg:px-12 relative">
+          <div className="text-center mb-16">
+            <Label text="Ervaringen" />
+            <h2 className="text-4xl lg:text-5xl font-extrabold text-white mb-4 tracking-tight">
+              Wat HR-professionals zeggen
+            </h2>
+            <p className="text-xl" style={{ color: 'rgba(255,255,255,0.45)' }}>Geverifieerde resultaten na de eerste maand.</p>
+          </div>
+
+          {/* Featured quote */}
+          <div className="rounded-3xl p-8 md:p-12 mb-8 border"
+            style={{ background: 'rgba(255,255,255,0.04)', borderColor: 'rgba(255,255,255,0.08)' }}>
+            <div className="flex gap-1 mb-6">
+              <Stars />
+            </div>
+            <p className="text-xl md:text-2xl text-white font-medium leading-relaxed mb-8" style={{ maxWidth: 780 }}>
+              &ldquo;We hebben een dreigende burn-out <strong className="text-green-400">6 weken eerder</strong> kunnen signaleren dan anders mogelijk was geweest. De ROI was bewezen in de eerste maand — één voorkomen burn-out dekte een heel jaar abonnement.&rdquo;
+            </p>
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg flex-shrink-0"
+                style={{ background: 'linear-gradient(135deg, #8B5CF6, #6D28D9)' }}>E</div>
+              <div>
+                <p className="text-white font-semibold">Emma de Vries</p>
+                <p className="text-sm" style={{ color: 'rgba(255,255,255,0.45)' }}>HR Directeur · 340 medewerkers · Logistiek</p>
+              </div>
+              <div className="ml-auto hidden sm:block text-xs font-semibold px-3 py-1.5 rounded-full"
+                style={{ background: 'rgba(139,92,246,0.2)', color: '#a78bfa' }}>
+                ↑ €15.000 bespaard
+              </div>
+            </div>
+          </div>
+
+          {/* Supporting testimonials */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {[
+              {
+                quote: 'Eindelijk een tool die medewerkers echt gebruiken. De anonimiteit maakt het verschil — eerlijke signalen in plaats van sociaal wenselijke antwoorden.',
+                naam: 'Sarah Vermeer', rol: 'HR Manager', org: '120 medewerkers · Zorg',
+                initiaal: 'S', color: '#1D9E75', resultaat: '34% hogere participatie',
+              },
+              {
+                quote: 'De AI-samenvatting bespaart mij 3 uur per week. Maandagochtend open ik het dashboard en weet meteen wat er speelt.',
+                naam: 'Thomas Janssen', rol: 'People & Culture Lead', org: '85 medewerkers · Tech',
+                initiaal: 'T', color: '#378ADD', resultaat: '3 uur/week bespaard',
+              },
+            ].map(t => (
+              <div key={t.naam} className="rounded-2xl p-7 border"
+                style={{ background: 'rgba(255,255,255,0.04)', borderColor: 'rgba(255,255,255,0.08)' }}>
+                <Stars />
+                <p className="mt-4 mb-6 leading-relaxed text-sm" style={{ color: 'rgba(255,255,255,0.65)' }}>
+                  &ldquo;{t.quote}&rdquo;
+                </p>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
+                      style={{ background: t.color }}>
+                      {t.initiaal}
+                    </div>
+                    <div>
+                      <p className="text-white font-semibold text-sm">{t.naam}</p>
+                      <p className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>{t.rol} · {t.org}</p>
+                    </div>
+                  </div>
+                  <span className="text-xs font-semibold px-3 py-1.5 rounded-full hidden sm:block"
+                    style={{ background: t.color + '20', color: t.color }}>
+                    ↑ {t.resultaat}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── 10. PRIJZEN ──────────────────────────────────────────────────────── */}
+      <Pricing />
+
+      {/* ── 11. FAQ ──────────────────────────────────────────────────────────── */}
+      <FAQ />
+
+      {/* ── 12. CLOSING CTA ──────────────────────────────────────────────────── */}
+      <section className="py-28 relative overflow-hidden" style={{ background: '#060d1f' }}>
+        <div className="absolute inset-0 pointer-events-none"
+          style={{ background: 'radial-gradient(ellipse 80% 80% at 50% 50%, rgba(29,158,117,0.12) 0%, transparent 65%)' }} />
+        <div className="max-w-3xl mx-auto px-6 text-center relative z-10">
+          <Label text="Klaar om te beginnen?" />
+          <h2 className="font-extrabold text-white mb-5 tracking-tight leading-tight"
+            style={{ fontSize: 'clamp(2.2rem, 4vw, 3.5rem)' }}>
+            Iedere week zonder inzicht<br />is een gemiste kans.
+          </h2>
+          <p className="text-lg mb-12 leading-relaxed" style={{ color: 'rgba(255,255,255,0.5)' }}>
+            Start vandaag gratis. Uw team is operationeel binnen 24 uur.<br />
+            Geen creditcard. Geen IT-afdeling. Geen commitment.
+          </p>
+
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-10">
+            <Link href="/register"
+              className="inline-flex items-center justify-center gap-2 px-10 py-4 rounded-xl font-bold text-sm text-white transition-opacity hover:opacity-90"
+              style={{ background: 'linear-gradient(135deg, #1D9E75, #17a880)', boxShadow: '0 4px 28px rgba(29,158,117,0.5)' }}>
+              Start 14 dagen gratis
+              <Icon name="arrowRight" size={14} color="white" />
             </Link>
             <Link href="/contact"
-              className="inline-flex items-center justify-center px-10 py-4 rounded-xl font-semibold text-sm transition"
-              style={{ background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.65)', border: '1px solid rgba(255,255,255,0.1)' }}>
-              Neem contact op
+              className="inline-flex items-center justify-center px-10 py-4 rounded-xl font-semibold text-sm transition-all"
+              style={{ background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.75)', border: '1px solid rgba(255,255,255,0.12)' }}>
+              Plan een persoonlijke demo
             </Link>
           </div>
-          <p className="text-xs mt-8" style={{ color: 'rgba(255,255,255,0.18)' }}>
-            Geen creditcard - Klaar in 1 dag - Altijd opzegbaar
-          </p>
+
+          <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
+            {['Geen creditcard', 'Operationeel in 1 dag', 'AVG-conform', 'Maandelijks opzegbaar', 'Nederlandstalig support'].map(t => (
+              <span key={t} className="flex items-center gap-1.5 text-xs" style={{ color: 'rgba(255,255,255,0.38)' }}>
+                <Icon name="check" size={10} color="rgba(29,158,117,0.85)" />
+                {t}
+              </span>
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* FOOTER */}
-      <footer style={{ background: '#060c18', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-        <div className="max-w-7xl mx-auto px-6 lg:px-12 py-10 flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: '#1D9E75' }}>
-              <span className="text-white text-xs font-bold">M</span>
+      {/* ── FOOTER ───────────────────────────────────────────────────────────── */}
+      <footer style={{ background: '#030812', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+        <div className="max-w-7xl mx-auto px-6 lg:px-12 py-12">
+          <div className="flex flex-col md:flex-row items-start justify-between gap-10">
+            {/* Brand */}
+            <div className="flex flex-col gap-4 max-w-xs">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl flex items-center justify-center font-bold text-white text-sm"
+                  style={{ background: 'linear-gradient(135deg, #1D9E75, #15B89A)' }}>M</div>
+                <span className="font-bold text-white text-lg">MentaForce</span>
+              </div>
+              <p className="text-xs leading-relaxed" style={{ color: 'rgba(255,255,255,0.25)' }}>
+                Vitaliteit op de werkplek. Burn-out preventie voor Nederlandse HR-teams en medewerkers.
+              </p>
+              <p className="text-xs" style={{ color: 'rgba(255,255,255,0.18)' }}>
+                AVG-conform · Data opgeslagen in de EU · Gemaakt in Nederland 🇳🇱
+              </p>
             </div>
-            <span className="font-bold text-white">MentaForce</span>
-            <span className="mx-1" style={{ color: 'rgba(255,255,255,0.1)' }}>·</span>
-            <span className="text-xs" style={{ color: 'rgba(255,255,255,0.18)' }}>Vitaliteit op de werkplek</span>
+
+            {/* Links */}
+            <div className="flex flex-wrap gap-x-12 gap-y-6 text-xs">
+              <div className="flex flex-col gap-3">
+                <p className="font-semibold uppercase tracking-wider" style={{ color: 'rgba(255,255,255,0.3)' }}>Platform</p>
+                {[['#functies', 'Functies'], ['#hoe-werkt-het', 'Hoe werkt het'], ['#prijzen', 'Prijzen']].map(([h, l]) => (
+                  <a key={h} href={h} className="transition-colors hover:text-white/60" style={{ color: 'rgba(255,255,255,0.22)' }}>{l}</a>
+                ))}
+              </div>
+              <div className="flex flex-col gap-3">
+                <p className="font-semibold uppercase tracking-wider" style={{ color: 'rgba(255,255,255,0.3)' }}>Bedrijf</p>
+                {[['contact', 'Contact'], ['voorwaarden', 'Voorwaarden']].map(([h, l]) => (
+                  <Link key={h} href={`/${h}`} className="transition-colors hover:text-white/60" style={{ color: 'rgba(255,255,255,0.22)' }}>{l}</Link>
+                ))}
+              </div>
+              <div className="flex flex-col gap-3">
+                <p className="font-semibold uppercase tracking-wider" style={{ color: 'rgba(255,255,255,0.3)' }}>Account</p>
+                {[['register', 'Gratis registreren'], ['login', 'Inloggen'], ['contact?plan=enterprise', 'Demo aanvragen']].map(([h, l]) => (
+                  <Link key={h} href={`/${h}`} className="transition-colors hover:text-white/60" style={{ color: 'rgba(255,255,255,0.22)' }}>{l}</Link>
+                ))}
+              </div>
+            </div>
           </div>
-          <div className="flex items-center gap-6 text-xs flex-wrap justify-center"
-            style={{ color: 'rgba(255,255,255,0.2)' }}>
-            <Link href="/voorwaarden" className="transition hover:text-white/50">Voorwaarden</Link>
-            <Link href="/contact" className="transition hover:text-white/50">Contact</Link>
-            <Link href="/register" className="transition hover:text-white/50">Registreren</Link>
-            <Link href="/login" className="transition hover:text-white/50">Inloggen</Link>
+
+          <div className="border-t mt-10 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4"
+            style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
+            <p className="text-xs" style={{ color: 'rgba(255,255,255,0.18)' }}>© 2025 MentaForce B.V. · Amsterdam, Nederland</p>
+            <div className="flex items-center gap-4 text-xs" style={{ color: 'rgba(255,255,255,0.18)' }}>
+              <Link href="/voorwaarden" className="hover:text-white/40 transition-colors">Voorwaarden</Link>
+              <span>·</span>
+              <Link href="/contact" className="hover:text-white/40 transition-colors">Privacy</Link>
+            </div>
           </div>
-          <p className="text-xs" style={{ color: 'rgba(255,255,255,0.18)' }}>© 2025 MentaForce · Gemaakt in Nederland ????</p>
         </div>
       </footer>
     </div>
