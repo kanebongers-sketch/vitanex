@@ -101,7 +101,7 @@ export default function UitdagingenPage() {
     <div className="min-h-screen" style={{ background: 'var(--bg-app)' }}>
       <Navbar />
 
-      <main className="max-w-lg mx-auto px-4 py-6">
+      <main className="max-w-5xl mx-auto px-6 py-6">
 
         {/* Header */}
         <div className="mb-6">
@@ -169,7 +169,7 @@ export default function UitdagingenPage() {
         {/* Available challenges */}
         <section>
           <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Beschikbare uitdagingen</p>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             {UITDAGINGEN.map(uitdaging => {
               const isActief = actieveIds.has(uitdaging.id)
               const stijl = MOEILIJKHEID_STIJL[uitdaging.moeilijkheid]

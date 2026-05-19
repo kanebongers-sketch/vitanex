@@ -154,7 +154,7 @@ function KoppelingenInhoud() {
         </div>
       )}
 
-      <main className="max-w-lg mx-auto px-4 py-6">
+      <main className="max-w-5xl mx-auto px-6 py-6">
         <div className="mb-6">
           <h2 className="text-xl font-bold text-gray-900">Koppelingen</h2>
           <p className="text-sm text-gray-400 mt-0.5">Verbind je wearables en agenda voor persoonlijke inzichten</p>

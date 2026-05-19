@@ -521,7 +521,7 @@ export default function FocusPagina() {
   return (
     <div className="min-h-screen" style={{ background: 'var(--bg-app)' }}>
       <Navbar />
-      <main className="max-w-2xl mx-auto p-4 pb-20">
+      <main className="max-w-4xl mx-auto p-6 pb-20">
 
         {/* Header */}
         <div className="mb-5">

@@ -108,7 +108,7 @@ export default function CoachPagina() {
   return (
     <div className="h-screen flex flex-col" style={{ background: 'var(--bg-app)' }}>
       <Navbar />
-      <main className="flex-1 flex flex-col max-w-2xl w-full mx-auto overflow-hidden">
+      <main className="flex-1 flex flex-col max-w-3xl w-full mx-auto overflow-hidden">
 
         {/* Header */}
         <div className="px-5 py-4 border-b border-gray-200 bg-white flex items-center gap-3 flex-shrink-0">

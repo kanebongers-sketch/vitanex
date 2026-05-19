@@ -164,7 +164,7 @@ export default function Team() {
   return (
     <div className="min-h-screen" style={{ background: 'var(--bg-app)' }}>
       <Navbar />
-      <main className="max-w-2xl mx-auto p-8">
+      <main className="max-w-5xl mx-auto p-8">
         <div className="mb-8">
           <h1 className="text-2xl font-medium text-gray-900">Team beheren</h1>
           <p className="text-gray-500 text-sm mt-1">Beheer leden en stuur uitnodigingen.</p>

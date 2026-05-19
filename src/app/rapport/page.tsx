@@ -190,7 +190,7 @@ export default function Rapport() {
   return (
     <div className="min-h-screen" style={{ background: 'var(--bg-app)' }}>
       <Navbar />
-      <main className="max-w-4xl mx-auto p-8">
+      <main className="max-w-6xl mx-auto p-8">
 
         {/* Header + controls */}
         <div className="flex justify-between items-start mb-6">
