@@ -10,17 +10,18 @@ import Navbar from '@/components/Navbar'
 import CrisisButton from '@/components/CrisisButton'
 import { laadXPData, pasDecayToe, berekenLevel, xpVoortgang, LEVEL_NAMEN, LEVEL_KLEUREN, LEVEL_BG, ALLE_ACHIEVEMENTS, type XPData } from '@/lib/xp'
 
-type CheckIn = {
-  energie: number
-  slaap: number
-  mentaal_focus: number
-  mentaal_balans: number
-  motivatie: number
+type ScoresNieuw = {
+  e: number   // Energie & Lichaam
+  m: number   // Mentaal welzijn
+  w: number   // Werk & Motivatie
+  s: number   // Team & Samenwerking
+  g: number   // Groei & Ontwikkeling
+  t: number   // Totaal (0–5)
 }
 
-function berekenScore(ci: CheckIn): number {
-  const w = [ci.energie, ci.slaap, ci.mentaal_focus, ci.mentaal_balans, ci.motivatie]
-  return Math.round((w.reduce((a, b) => a + b, 0) / w.length) * 20)
+function berekenScore(scores: ScoresNieuw): number {
+  // t is on 0–5 scale, convert to 0–100
+  return Math.round((scores.t / 5) * 100)
 }
 
 function ScoreRing({ score }: { score: number }) {
@@ -60,7 +61,7 @@ export default function HomePage() {
   const router = useRouter()
   const [laden, setLaden] = useState(true)
   const [naam, setNaam] = useState('')
-  const [checkIn, setCheckIn] = useState<CheckIn | null>(null)
+  const [scores, setScores] = useState<ScoresNieuw | null>(null)
   const [recentCheckins, setRecentCheckins] = useState(0)
   const [streak, setStreak] = useState(0)
   const [xpData, setXpData] = useState<XPData | null>(null)
@@ -75,16 +76,20 @@ export default function HomePage() {
 
       setNaam(profiel?.naam ?? '')
 
-      // Laatste check-in
-      const { data: ci } = await supabase
-        .from('checkins').select('energie, slaap, mentaal_focus, mentaal_balans, motivatie')
-        .eq('user_id', user.id).order('created_at', { ascending: false }).limit(1).single()
-      if (ci) setCheckIn(ci as CheckIn)
+      // Laatste analyse (scores uit het nieuwe systeem)
+      const { data: analyse } = await supabase
+        .from('checkin_analyses')
+        .select('scores')
+        .eq('user_id', user.id)
+        .order('aangemaakt_op', { ascending: false })
+        .limit(1)
+        .single()
+      if (analyse?.scores) setScores(analyse.scores as ScoresNieuw)
 
-      // Afgelopen 4 weken check-ins
-      const { count } = await supabase.from('checkins')
+      // Afgelopen 4 weken check-ins (nieuw systeem)
+      const { count } = await supabase.from('checkin_sessies')
         .select('id', { count: 'exact', head: true }).eq('user_id', user.id)
-        .gte('created_at', new Date(Date.now() - 28 * 24 * 60 * 60 * 1000).toISOString())
+        .gte('aangemaakt_op', new Date(Date.now() - 28 * 24 * 60 * 60 * 1000).toISOString())
       setRecentCheckins(count ?? 0)
       setStreak(Math.min(count ?? 0, 7))
 
@@ -100,7 +105,7 @@ export default function HomePage() {
     laad()
   }, [router])
 
-  const score = checkIn ? berekenScore(checkIn) : null
+  const score = scores ? berekenScore(scores) : null
   const scoreKleur = !score ? '#9CA3AF' : score >= 70 ? '#1D9E75' : score >= 45 ? '#F59E0B' : '#EF4444'
   const scoreLabel = !score ? 'Geen data' : score >= 70 ? 'Goed op weg!' : score >= 45 ? 'Aandacht nodig' : 'Zorg voor jezelf'
 
@@ -273,26 +278,26 @@ export default function HomePage() {
             )}
           </div>
 
-          {/* Score per dimensie */}
-          {checkIn && (
+          {/* Score per categorie */}
+          {scores && (
             <div style={{
               background: 'white', borderRadius: 16, padding: '20px',
               border: '1px solid #E5E7EB', boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
             }}>
               <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#9CA3AF', marginBottom: 14 }}>
-                Per dimensie
+                Per categorie
               </p>
               {[
-                { label: 'Energie',   value: checkIn.energie,        color: '#F59E0B', bg: '#FEF3C7' },
-                { label: 'Slaap',     value: checkIn.slaap,          color: '#185FA5', bg: '#EFF6FF' },
-                { label: 'Focus',     value: checkIn.mentaal_focus,  color: '#7C3AED', bg: '#EDE9FE' },
-                { label: 'Balans',    value: checkIn.mentaal_balans, color: '#1D9E75', bg: '#E1F5EE' },
-                { label: 'Motivatie', value: checkIn.motivatie,      color: '#EF4444', bg: '#FEE2E2' },
-              ].map(d => (
+                { label: 'Energie',      value: scores.e, color: '#1D9E75', bg: '#E1F5EE' },
+                { label: 'Mentaal',      value: scores.m, color: '#378ADD', bg: '#E6F1FB' },
+                { label: 'Werk',         value: scores.w, color: '#8B5CF6', bg: '#EEEDFE' },
+                { label: 'Samenwerking', value: scores.s, color: '#B45309', bg: '#FEF3C7' },
+                { label: 'Groei',        value: scores.g, color: '#059669', bg: '#D1FAE5' },
+              ].filter(d => d.value > 0).map(d => (
                 <div key={d.label} style={{ marginBottom: 10 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
                     <p style={{ fontSize: 12, color: '#374151', fontWeight: 500 }}>{d.label}</p>
-                    <p style={{ fontSize: 12, fontWeight: 700, color: d.color }}>{d.value}/5</p>
+                    <p style={{ fontSize: 12, fontWeight: 700, color: d.color }}>{d.value.toFixed(1)}/5</p>
                   </div>
                   <div style={{ height: 6, borderRadius: 3, background: '#F3F4F6', overflow: 'hidden' }}>
                     <div style={{
