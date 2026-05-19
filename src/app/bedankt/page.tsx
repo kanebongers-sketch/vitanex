@@ -330,16 +330,28 @@ function BedanktInhoud() {
       style={{ background: 'linear-gradient(135deg, #E1F5EE 0%, #E6F1FB 100%)' }}>
       <div className="max-w-md w-full bg-white rounded-2xl border border-gray-100 p-10 shadow-sm text-center">
         <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-5"
-          style={{ background: '#E1F5EE' }}>
-          <span style={{ color: '#1D9E75', fontSize: 22 }}>✓</span>
+          style={{ background: status === 'fout' ? '#FCEBEB' : '#E1F5EE' }}>
+          <span style={{ color: status === 'fout' ? '#E24B4A' : '#1D9E75', fontSize: 22 }}>
+            {status === 'fout' ? '!' : '✓'}
+          </span>
         </div>
-        <h2 className="text-xl font-medium text-gray-900 mb-2">Check-in gedaan!</h2>
+        <h2 className="text-xl font-medium text-gray-900 mb-2">
+          {status === 'fout' ? 'Rapport kon niet worden geladen' : 'Check-in gedaan!'}
+        </h2>
         <p className="text-gray-500 text-sm mb-8 leading-relaxed">
           {status === 'fout'
-            ? 'De AI-analyse kon niet worden gegenereerd, maar je check-in is wel opgeslagen.'
+            ? 'Je check-in is opgeslagen, maar de AI-analyse is mislukt. Klik hieronder om het opnieuw te proberen.'
             : 'Bedankt. Je antwoorden helpen jouw team om beter te presteren en uitval te voorkomen.'}
         </p>
         <div className="flex flex-col gap-3">
+          {status === 'fout' && sid && (
+            <button
+              onClick={() => { setStatus('laden'); genereerAnalyse() }}
+              className="w-full inline-block text-center text-white rounded-xl py-3 text-sm font-medium"
+              style={{ background: '#185FA5' }}>
+              Opnieuw proberen
+            </button>
+          )}
           <Link href="/portaal" className="w-full inline-block text-center text-white rounded-xl py-3 text-sm font-medium"
             style={{ background: '#1D9E75' }}>Mijn portaal bekijken</Link>
           <Link href="/" className="w-full inline-block text-center border border-gray-200 text-gray-500 rounded-xl py-3 text-sm hover:bg-gray-50 transition">

@@ -104,7 +104,7 @@ Geef UITSLUITEND geldige JSON terug, zonder markdown of extra tekst:
 
     const response = await anthropic.messages.create({
       model: 'claude-sonnet-4-6',
-      max_tokens: 2500,
+      max_tokens: 4096,
       messages: [{ role: 'user', content: prompt }],
     })
 
@@ -113,7 +113,14 @@ Geef UITSLUITEND geldige JSON terug, zonder markdown of extra tekst:
     // Strip possible markdown code fences
     const schoon = tekst.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim()
 
-    const analyse = JSON.parse(schoon)
+    let analyse
+    try {
+      analyse = JSON.parse(schoon)
+    } catch (parseErr) {
+      console.error('[analyse] JSON parse mislukt. stop_reason:', response.stop_reason, 'tokens:', response.usage, 'tekst lengte:', schoon.length)
+      console.error('[analyse] parse fout:', parseErr)
+      return NextResponse.json({ error: 'Analyse JSON ongeldig — mogelijk afgekapt.' }, { status: 500 })
+    }
     return NextResponse.json({ analyse })
   } catch (err) {
     console.error('[analyse]', err)
