@@ -223,7 +223,7 @@ export default function Admin() {
 
       {/* Admin portal identity banner */}
       <div style={{ background: '#1e1340', borderBottom: '1px solid #2d1f60' }}>
-        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center gap-3">
+        <div className="px-4 py-3 flex items-center gap-3">
           <div className="w-6 h-6 rounded-md flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
             style={{ background: '#8B5CF6' }}>A</div>
           <p className="text-sm font-medium text-white">Admin Portaal</p>
@@ -232,7 +232,7 @@ export default function Admin() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-8 flex gap-6">
+      <div className="px-4 py-8 flex gap-6">
 
         {/* Sidebar */}
         <aside className="w-52 flex-shrink-0">

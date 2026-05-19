@@ -396,7 +396,7 @@ export default function Portaal() {
 
       {/* Employee portal identity banner */}
       <div style={{ background: '#0F3D2E', borderBottom: '1px solid #1a5c42' }}>
-        <div className="max-w-5xl mx-auto px-6 py-3 flex items-center gap-3">
+        <div className="px-6 py-3 flex items-center gap-3">
           <div className="w-6 h-6 rounded-md flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
             style={{ background: '#1D9E75' }}>MW</div>
           <p className="text-sm font-medium text-white">Mijn Portaal</p>
@@ -405,7 +405,7 @@ export default function Portaal() {
         </div>
       </div>
 
-      <main className="max-w-5xl mx-auto p-6">
+      <main className="p-6">
 
         <div className="flex items-center justify-between mb-6">
           <div>
@@ -449,7 +449,7 @@ export default function Portaal() {
         ) : (
           <>
             {/* Top scores */}
-            <div className="grid grid-cols-3 gap-4 mb-6">
+            <div className="grid grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 mb-6">
               <div className="bg-white rounded-2xl border border-gray-100 p-5"
                 style={{ borderTop: `3px solid ${totaalScore >= 70 ? '#1D9E75' : totaalScore >= 50 ? '#BA7517' : '#E24B4A'}` }}>
                 <p className="text-xs text-gray-400 mb-1">Vitaliteitsscore</p>
@@ -511,7 +511,7 @@ export default function Portaal() {
             })()}
 
             {/* Category scores */}
-            <div className="grid grid-cols-3 gap-4 mb-6">
+            <div className="grid grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 mb-6">
               {categorieMetrics.map(cat => {
                 const score = laatste ? catGem(laatste, cat.keys) : 0
                 const d = catDelta(cat.keys)
@@ -595,7 +595,7 @@ export default function Portaal() {
             {inzichten && (
               <div className="bg-white rounded-2xl border border-gray-100 p-5 mb-6">
                 <p className="text-sm font-medium text-gray-700 mb-4">Persoonlijke inzichten</p>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                   <div className="rounded-xl p-3" style={{ background: '#E1F5EE' }}>
                     <p className="text-xs text-gray-500 mb-0.5">Beste dag</p>
                     <p className="text-sm font-semibold capitalize" style={{ color: '#0F6E56' }}>

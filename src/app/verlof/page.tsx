@@ -125,7 +125,7 @@ export default function VerlofPage() {
   return (
     <div className="min-h-screen" style={{ background: 'var(--bg-app)' }}>
       <Navbar />
-      <main className="max-w-5xl mx-auto px-6 py-6 mf-safe-bottom">
+      <main className="px-6 py-6 mf-safe-bottom">
 
         {/* Header */}
         <div className="flex items-center justify-between mb-5">

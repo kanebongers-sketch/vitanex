@@ -94,7 +94,7 @@ export default function JournalPagina() {
   return (
     <div className="min-h-screen" style={{ background: 'var(--bg-app)' }}>
       <Navbar />
-      <main className="max-w-5xl mx-auto p-6">
+      <main className="p-6">
 
         <div className="flex items-center justify-between mb-6">
           <div>

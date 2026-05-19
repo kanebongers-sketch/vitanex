@@ -417,7 +417,7 @@ export default function Dashboard() {
 
       {/* HR portal identity banner */}
       <div style={{ background: '#0F172A', borderBottom: '1px solid #1e293b' }}>
-        <div className="max-w-4xl mx-auto px-6 sm:px-8 py-3 flex items-center gap-3">
+        <div className="px-6 sm:px-8 py-3 flex items-center gap-3">
           <div className="w-6 h-6 rounded-md flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
             style={{ background: '#185FA5' }}>HR</div>
           <p className="text-sm font-medium text-white">HR Portaal</p>
@@ -426,7 +426,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <main className="max-w-4xl mx-auto p-6 sm:p-8">
+      <main className="p-6 sm:p-8">
 
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">

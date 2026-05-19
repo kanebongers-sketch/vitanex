@@ -305,7 +305,7 @@ export default function Instellingen() {
   return (
     <div className="min-h-screen" style={{ background: 'var(--bg-app)' }}>
       <Navbar />
-      <main className="max-w-5xl mx-auto px-4 py-8">
+      <main className="px-4 py-8">
 
         <div className="mb-8">
           <h1 className="text-2xl font-semibold text-gray-900">Instellingen</h1>

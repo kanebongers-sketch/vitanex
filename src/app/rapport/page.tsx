@@ -190,7 +190,7 @@ export default function Rapport() {
   return (
     <div className="min-h-screen" style={{ background: 'var(--bg-app)' }}>
       <Navbar />
-      <main className="max-w-6xl mx-auto p-8">
+      <main className="p-8">
 
         {/* Header + controls */}
         <div className="flex justify-between items-start mb-6">
@@ -279,7 +279,7 @@ export default function Rapport() {
               </div>
 
               {/* Participatie */}
-              <div className="grid grid-cols-3 gap-4 mb-8">
+              <div className="grid grid-cols-3 xl:grid-cols-4 gap-4 mb-8">
                 <div className="rounded-xl p-4" style={{ background: 'var(--bg-app)' }}>
                   <p className="text-xs text-gray-400 mb-1">Check-ins ontvangen</p>
                   <p className="text-2xl font-medium text-gray-900">{checkins.length}</p>
@@ -299,7 +299,7 @@ export default function Rapport() {
               {/* Detail per metric */}
               <div className="mb-8">
                 <p className="text-sm font-medium text-gray-700 mb-4">Scores per indicator</p>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
                   {detailMetrics.map(m => (
                     <div key={m.label} className="flex items-center justify-between py-2 px-3 rounded-xl" style={{ background: 'var(--bg-app)' }}>
                       <span className="text-sm text-gray-600">{m.label}</span>

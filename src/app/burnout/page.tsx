@@ -157,7 +157,7 @@ export default function BurnoutPagina() {
   if (fase === 'intro') return (
     <div className="min-h-screen" style={{ background: 'var(--bg-app)' }}>
       <Navbar />
-      <main className="max-w-3xl mx-auto p-6">
+      <main className="p-6">
         <div className="bg-white rounded-2xl border border-gray-200 p-8 text-center mt-8">
           <div className="flex justify-center mb-4"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#E24B4A" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17.657 18.657A8 8 0 0 1 6.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0 1 20 13a7.975 7.975 0 0 1-2.343 5.657z"/><path d="M9.879 16.121A3 3 0 1 0 12.99 12L11 14"/></svg></div>
           <h1 className="text-xl font-semibold text-gray-900 mb-2">Burn-out risicoscan</h1>
@@ -188,7 +188,7 @@ export default function BurnoutPagina() {
   if (fase === 'scan') return (
     <div className="min-h-screen" style={{ background: 'var(--bg-app)' }}>
       <Navbar />
-      <main className="max-w-3xl mx-auto p-6">
+      <main className="p-6">
         <button onClick={() => setFase('intro')} className="text-sm text-gray-400 hover:text-gray-600 mb-4 inline-flex items-center gap-1">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg> Terug
         </button>
@@ -260,7 +260,7 @@ export default function BurnoutPagina() {
     return (
       <div className="min-h-screen" style={{ background: 'var(--bg-app)' }}>
         <Navbar />
-        <main className="max-w-3xl mx-auto p-6">
+        <main className="p-6">
           <h1 className="text-xl font-semibold text-gray-900 mb-4">Jouw resultaat</h1>
 
           {/* Risk badge */}
@@ -338,7 +338,7 @@ export default function BurnoutPagina() {
   if (fase === 'history') return (
     <div className="min-h-screen" style={{ background: 'var(--bg-app)' }}>
       <Navbar />
-      <main className="max-w-3xl mx-auto p-6">
+      <main className="p-6">
         <button onClick={() => setFase('intro')} className="text-sm text-gray-400 hover:text-gray-600 mb-4 inline-flex items-center gap-1">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg> Terug
         </button>

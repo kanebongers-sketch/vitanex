@@ -113,7 +113,7 @@ export default function DeclaratiesPage() {
   return (
     <div className="min-h-screen" style={{ background: 'var(--bg-app)' }}>
       <Navbar />
-      <main className="max-w-5xl mx-auto px-6 py-6 mf-safe-bottom">
+      <main className="px-6 py-6 mf-safe-bottom">
 
         {/* Header */}
         <div className="flex items-center justify-between mb-5">
@@ -131,7 +131,7 @@ export default function DeclaratiesPage() {
         </div>
 
         {/* Statistieken */}
-        <div className="grid grid-cols-2 gap-3 mb-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mb-6">
           <div className="bg-white rounded-2xl p-4" style={{ boxShadow: 'var(--shadow-sm)' }}>
             <p className="text-xs text-gray-400 mb-1">Openstaand</p>
             <p className="text-xl font-bold" style={{ color: '#BA7517' }}>
