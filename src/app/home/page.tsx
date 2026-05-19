@@ -9,6 +9,8 @@ import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/Navbar'
 import CrisisButton from '@/components/CrisisButton'
 import { laadXPData, pasDecayToe, berekenLevel, xpVoortgang, LEVEL_NAMEN, LEVEL_KLEUREN, LEVEL_BG, ALLE_ACHIEVEMENTS, type XPData } from '@/lib/xp'
+import { laadWeekSelectie, isVandaagGelogd, vandaag as weekVandaag, type WeekSelectie } from '@/lib/weekdoelen'
+import { CAT } from '@/app/doelen/page'
 
 type ScoresNieuw = { e: number; m: number; w: number; s: number; g: number; t: number }
 
@@ -37,6 +39,7 @@ export default function HomePage() {
   const [checkInDezeWeek, setCheckInDezeWeek] = useState(false)
   const [recentCheckins, setRecentCheckins] = useState(0)
   const [xpData, setXpData]                 = useState<XPData | null>(null)
+  const [weekSelectie, setWeekSelectie]     = useState<WeekSelectie | null>(null)
 
   useEffect(() => {
     async function laad() {
@@ -77,6 +80,10 @@ export default function HomePage() {
         let xp = laadXPData()
         xp = pasDecayToe(xp)
         setXpData(xp)
+      } catch { /* non-critical */ }
+
+      try {
+        setWeekSelectie(laadWeekSelectie())
       } catch { /* non-critical */ }
     }
     laad()
@@ -296,6 +303,100 @@ export default function HomePage() {
               <p style={{ fontSize: 11, color: '#9CA3AF', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>Fit Level</p>
               <p style={{ fontSize: 30, fontWeight: 800, color: '#9CA3AF' }}>—</p>
             </div>
+          )}
+        </div>
+
+        {/* ── DOELEN DEZE WEEK ── */}
+        <div style={{ marginBottom: 28 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+            <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#9CA3AF' }}>
+              Doelen deze week
+            </p>
+            <Link href="/doelen" style={{ fontSize: 12, color: '#1D9E75', fontWeight: 600, textDecoration: 'none' }}>
+              {weekSelectie ? 'Bekijk alles →' : 'Kies je doelen →'}
+            </Link>
+          </div>
+
+          {weekSelectie ? (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+              {weekSelectie.doelen.map(doel => {
+                const c = CAT[doel.vlak]
+                const preset = c.presets[doel.presetIndex]
+                const gelogd = isVandaagGelogd(doel)
+                const log = doel.logs.find(l => l.datum === weekVandaag())
+                const gehaald = log && log.waarde >= preset.targetWaarde
+
+                const weekDagen = Array.from({ length: 7 }, (_, i) => {
+                  const d = new Date(weekSelectie.weekStart)
+                  d.setDate(d.getDate() + i)
+                  return d.toISOString().slice(0, 10)
+                })
+                const aantalGehaald = weekDagen.filter(dag => {
+                  const l = doel.logs.find(x => x.datum === dag)
+                  return l && l.waarde >= preset.targetWaarde
+                }).length
+
+                return (
+                  <Link key={doel.vlak} href="/doelen" style={{ textDecoration: 'none' }}>
+                    <div style={{
+                      background: 'white', borderRadius: 16,
+                      border: `2px solid ${gelogd ? c.kleur + '50' : '#E5E7EB'}`,
+                      padding: '16px 18px',
+                      boxShadow: gelogd ? `0 2px 12px ${c.kleur}15` : 'none',
+                      transition: 'box-shadow 0.15s',
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                          <div style={{ width: 28, height: 28, borderRadius: 8, background: c.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', color: c.kleur }}>
+                            <span style={{ transform: 'scale(0.75)', display: 'flex' }}>{c.icon}</span>
+                          </div>
+                          <span style={{ fontSize: 11, fontWeight: 700, color: c.kleur }}>{c.label}</span>
+                        </div>
+                        {gelogd && (
+                          <div style={{ width: 20, height: 20, borderRadius: '50%', background: gehaald ? c.kleur : c.bg, border: `2px solid ${c.kleur}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke={gehaald ? 'white' : c.kleur} strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                          </div>
+                        )}
+                      </div>
+                      <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', marginBottom: 8, lineHeight: 1.3 }}>{preset.titel}</p>
+                      {/* Mini weekbalk */}
+                      <div style={{ display: 'flex', gap: 2 }}>
+                        {weekDagen.map((dag, i) => {
+                          const l = doel.logs.find(x => x.datum === dag)
+                          const ok = l && l.waarde >= preset.targetWaarde
+                          const isVandaagDag = dag === weekVandaag()
+                          return (
+                            <div key={i} style={{
+                              flex: 1, height: 5, borderRadius: 2,
+                              background: ok ? c.kleur : l ? c.bg : '#F3F4F6',
+                              border: isVandaagDag && !gelogd ? `1px solid ${c.kleur}` : 'none',
+                            }} />
+                          )
+                        })}
+                      </div>
+                      <p style={{ fontSize: 10, color: '#9CA3AF', marginTop: 5 }}>{aantalGehaald}/7 dagen gehaald</p>
+                    </div>
+                  </Link>
+                )
+              })}
+            </div>
+          ) : (
+            <Link href="/doelen" style={{ textDecoration: 'none' }}>
+              <div style={{
+                background: 'white', borderRadius: 16, padding: '22px 24px',
+                border: '2px dashed #E5E7EB',
+                display: 'flex', alignItems: 'center', gap: 16,
+              }}>
+                <div style={{ width: 44, height: 44, borderRadius: 12, background: '#E1F5EE', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: '#1D9E75' }}>
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <p style={{ fontSize: 14, fontWeight: 700, color: '#111827', marginBottom: 3 }}>Nog geen doelen voor deze week</p>
+                  <p style={{ fontSize: 13, color: '#9CA3AF' }}>Kies 3 vlakken en 3 doelen om aan te werken</p>
+                </div>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D1D5DB" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+              </div>
+            </Link>
           )}
         </div>
 
