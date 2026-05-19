@@ -385,6 +385,7 @@ function BedanktInhoud() {
   const risico = risicoConfig(analyse.burnout_risico.niveau)
 
   return (
+    <>
     <main className="min-h-screen pb-16"
       style={{ background: 'linear-gradient(160deg, #F0FAF6 0%, #EBF4FB 50%, #F5F3FF 100%)' }}>
       <div className="max-w-2xl mx-auto px-5 pt-10">
@@ -669,6 +670,7 @@ function BedanktInhoud() {
         </div>
       </div>
     )}
+    </>
   )
 }
 
