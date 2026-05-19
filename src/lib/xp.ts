@@ -185,7 +185,7 @@ export function pasDecayToe(data: XPData): XPData {
   const vandaag = new Date().toISOString().slice(0, 10)
   if (data.lastDecayCheck === vandaag) return data
 
-  let result = { ...data, lastDecayCheck: vandaag }
+  let result: XPData = { ...data, lastDecayCheck: vandaag }
 
   if (data.lastCheckinDatum) {
     const dagen = Math.floor((Date.now() - new Date(data.lastCheckinDatum).getTime()) / 86400000)
