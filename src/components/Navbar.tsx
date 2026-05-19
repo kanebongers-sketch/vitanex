@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { getTileDef, type TileId } from '@/lib/tiles'
+import { laadXPData, berekenLevel, LEVEL_KLEUREN, LEVEL_BG } from '@/lib/xp'
 
 /* ── Types ── */
 type Profiel = { id: string; naam: string; rol: string; bedrijf_id: string | null }
@@ -96,6 +97,7 @@ export default function Navbar() {
   const [werkdagItems, setWerkdagItems] = useState<NavItem[]>([])
   const [mobileOpen, setMobileOpen]     = useState(false)
   const [viewMode, setViewMode]         = useState<ViewMode>('employee')
+  const [fitLevel, setFitLevel]         = useState<number | null>(null)
 
   useEffect(() => {
     async function laad() {
@@ -119,6 +121,8 @@ export default function Navbar() {
       } else {
         setViewMode('employee')
       }
+
+      try { setFitLevel(berekenLevel(laadXPData().xp)) } catch { /* non-critical */ }
 
       if (data.bedrijf_id) {
         const { data: config } = await supabase
@@ -308,17 +312,31 @@ export default function Navbar() {
 
           {/* Naam + uitloggen */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px 2px', borderTop: `1px solid ${border}` }}>
-            <div style={{
-              width: 28, height: 28, borderRadius: '50%', flexShrink: 0,
-              background: ACCENT, display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 11, fontWeight: 700, color: 'white',
-            }}>{naam.slice(0, 1).toUpperCase()}</div>
+            <div style={{ position: 'relative', flexShrink: 0 }}>
+              <div style={{
+                width: 28, height: 28, borderRadius: '50%',
+                background: ACCENT, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 11, fontWeight: 700, color: 'white',
+              }}>{naam.slice(0, 1).toUpperCase()}</div>
+              {fitLevel !== null && viewMode === 'employee' && (
+                <div style={{
+                  position: 'absolute', bottom: -4, right: -6,
+                  background: LEVEL_BG[fitLevel] || '#F3F4F6',
+                  border: `1.5px solid ${LEVEL_KLEUREN[fitLevel] || '#9CA3AF'}`,
+                  borderRadius: 6, padding: '0px 4px',
+                  fontSize: 9, fontWeight: 800, color: LEVEL_KLEUREN[fitLevel] || '#9CA3AF',
+                  lineHeight: '14px',
+                }}>{fitLevel}</div>
+              )}
+            </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <p style={{ fontSize: 12, fontWeight: 600, color: nameTxt, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {naam.split(' ')[0]}
               </p>
               <p style={{ fontSize: 10, color: textMuted }}>
-                {viewMode === 'employee' ? 'Medewerker' : viewMode === 'hr' ? 'HR Manager' : 'Admin'}
+                {viewMode === 'employee'
+                  ? (fitLevel !== null ? `Fit Level ${fitLevel}` : 'Medewerker')
+                  : viewMode === 'hr' ? 'HR Manager' : 'Admin'}
               </p>
             </div>
             <button onClick={uitloggen} style={{ background: 'none', border: 'none', cursor: 'pointer', color: textMuted, padding: 2, display: 'flex' }} title="Uitloggen">
