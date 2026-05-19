@@ -181,16 +181,26 @@ export default function Navbar() {
 
   const sections: NavSection[] = viewMode === 'employee' ? [
     {
-      label: 'Vitaliteit',
+      label: 'Mijn week',
       items: [
-        { href: '/checkin',     label: 'Check-in',      icon: I.check },
-        { href: '/coach',       label: 'AI Coach',       icon: I.coach },
-        { href: '/rapport',     label: 'Mijn rapport',   icon: I.rapport },
-        { href: '/doelen',      label: 'Doelen',         icon: I.doelen },
-        { href: '/uitdagingen', label: 'Uitdagingen',    icon: I.uitd },
-        { href: '/journal',     label: 'Journal',        icon: I.journal },
-        { href: '/burnout',     label: 'Burn-out scan',  icon: I.burnout },
-        { href: '/focus',       label: 'Focus',          icon: I.focus },
+        { href: '/checkin', label: 'Check-in',    icon: I.check },
+        { href: '/rapport', label: 'Mijn rapport', icon: I.rapport },
+      ],
+    },
+    {
+      label: 'Begeleiding',
+      items: [
+        { href: '/coach',   label: 'AI Coach',    icon: I.coach },
+        { href: '/doelen',  label: 'Doelen',      icon: I.doelen },
+        { href: '/uitdagingen', label: 'Uitdagingen', icon: I.uitd },
+      ],
+    },
+    {
+      label: 'Zelfzorg',
+      items: [
+        { href: '/journal', label: 'Journal',      icon: I.journal },
+        { href: '/focus',   label: 'Focus',        icon: I.focus },
+        { href: '/burnout', label: 'Burn-out scan', icon: I.burnout },
       ],
     },
     ...(werkdagItems.length > 0 ? [{ label: 'Werkdag', items: werkdagItems }] : []),
