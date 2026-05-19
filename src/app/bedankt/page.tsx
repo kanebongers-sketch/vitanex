@@ -1,9 +1,10 @@
 'use client'
 
 import { useSearchParams } from 'next/navigation'
-import { Suspense, useEffect, useState } from 'react'
+import { Suspense, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
+import { verwerkCheckin, berekenLevel, LEVEL_NAMEN, LEVEL_KLEUREN, type Achievement } from '@/lib/xp'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -209,6 +210,8 @@ function BedanktInhoud() {
   const [pdfBezig,  setPdfBezig]  = useState(false)
   const [userId,    setUserId]    = useState<string | null>(null)
   const [bedrijfId, setBedrijfId] = useState<string | null>(null)
+  const [xpToast,   setXpToast]   = useState<{ xp: number; level?: number; achievements: Achievement[] } | null>(null)
+  const xpToastRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const datum = new Date().toLocaleDateString('nl-BE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
 
@@ -279,6 +282,20 @@ function BedanktInhoud() {
     setAnalyse(json.analyse)
     setAnalyseId(opgeslagen?.id ?? null)
     setStatus('klaar')
+
+    // Award XP for check-in
+    try {
+      const xpResult = verwerkCheckin(t)
+      if (xpResult.xpGewonnen > 0 || xpResult.nieuweAchievements.length > 0) {
+        if (xpToastRef.current) clearTimeout(xpToastRef.current)
+        setXpToast({
+          xp: xpResult.xpGewonnen,
+          level: xpResult.levelOmhoog ? xpResult.nieuwLevel : undefined,
+          achievements: xpResult.nieuweAchievements,
+        })
+        xpToastRef.current = setTimeout(() => setXpToast(null), 5000)
+      }
+    } catch { /* XP is non-critical */ }
   }
 
   async function toggleDelen() {
@@ -615,6 +632,43 @@ function BedanktInhoud() {
         </p>
       </div>
     </main>
+
+    {/* XP Toast */}
+    {xpToast && (
+      <div style={{
+        position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)',
+        zIndex: 1000, background: 'white', borderRadius: 16,
+        border: '1.5px solid #E5E7EB', boxShadow: '0 8px 32px rgba(0,0,0,0.14)',
+        padding: '16px 20px', minWidth: 280, maxWidth: 360,
+      }}>
+        <style>{`@keyframes slideUpBedankt { from { opacity:0; transform: translateX(-50%) translateY(16px); } to { opacity:1; transform: translateX(-50%) translateY(0); } }`}</style>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+          <div style={{ width: 44, height: 44, borderRadius: 12, background: '#EDE9FE', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+            </svg>
+          </div>
+          <div style={{ flex: 1 }}>
+            <p style={{ fontSize: 15, fontWeight: 800, color: '#7C3AED', marginBottom: 2 }}>
+              +{xpToast.xp} XP verdiend!
+            </p>
+            {xpToast.level && (
+              <p style={{ fontSize: 12, fontWeight: 700, color: LEVEL_KLEUREN[xpToast.level] }}>
+                Level {xpToast.level} bereikt — {LEVEL_NAMEN[xpToast.level]}!
+              </p>
+            )}
+            {xpToast.achievements.length > 0 && (
+              <p style={{ fontSize: 11, color: '#BA7517', fontWeight: 600 }}>
+                Achievement: {xpToast.achievements.map((a: Achievement) => a.naam).join(', ')}
+              </p>
+            )}
+            <Link href="/niveau" style={{ fontSize: 11, color: '#7C3AED', textDecoration: 'underline', fontWeight: 600 }}>
+              Bekijk Fit Level
+            </Link>
+          </div>
+        </div>
+      </div>
+    )}
   )
 }
 

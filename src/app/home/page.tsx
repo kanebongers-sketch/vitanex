@@ -8,6 +8,7 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/Navbar'
 import CrisisButton from '@/components/CrisisButton'
+import { laadXPData, pasDecayToe, berekenLevel, xpVoortgang, LEVEL_NAMEN, LEVEL_KLEUREN, LEVEL_BG, ALLE_ACHIEVEMENTS, type XPData } from '@/lib/xp'
 
 type CheckIn = {
   energie: number
@@ -62,6 +63,7 @@ export default function HomePage() {
   const [checkIn, setCheckIn] = useState<CheckIn | null>(null)
   const [recentCheckins, setRecentCheckins] = useState(0)
   const [streak, setStreak] = useState(0)
+  const [xpData, setXpData] = useState<XPData | null>(null)
 
   useEffect(() => {
     async function laad() {
@@ -87,6 +89,13 @@ export default function HomePage() {
       setStreak(Math.min(count ?? 0, 7))
 
       setLaden(false)
+
+      // Load XP from localStorage (client-only)
+      try {
+        let xp = laadXPData()
+        xp = pasDecayToe(xp)
+        setXpData(xp)
+      } catch { /* XP is non-critical */ }
     }
     laad()
   }, [router])
@@ -136,6 +145,67 @@ export default function HomePage() {
           <StatCard label="Check-ins (4w)" value={recentCheckins} color="#185FA5" bg="#EFF6FF" icon={<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1" ry="1"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg>} />
           <StatCard label="Week streak" value={`${streak}x`} color="#7C3AED" bg="#EDE9FE" icon={<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>} />
         </div>
+
+        {/* ── FIT LEVEL WIDGET ── */}
+        {xpData && (() => {
+          const level = berekenLevel(xpData.xp)
+          const kleur = LEVEL_KLEUREN[level]
+          const bg    = LEVEL_BG[level]
+          const vrt   = xpVoortgang(xpData.xp, level)
+          const behaald = (xpData.achievements ?? []).length
+          const recentAch = ALLE_ACHIEVEMENTS.filter(a => (xpData.achievements ?? []).includes(a.id)).slice(-3)
+          return (
+            <Link href="/niveau" style={{ textDecoration: 'none', display: 'block', marginBottom: 20 }}>
+              <div style={{
+                background: 'white', borderRadius: 16, border: `1.5px solid ${kleur}30`,
+                padding: '16px 20px', boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
+                display: 'flex', alignItems: 'center', gap: 16,
+                transition: 'box-shadow 0.15s',
+              }}>
+                {/* Level badge */}
+                <div style={{
+                  width: 56, height: 56, borderRadius: 16, background: bg,
+                  border: `2px solid ${kleur}40`, display: 'flex', flexDirection: 'column',
+                  alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                }}>
+                  <span style={{ fontSize: 9, fontWeight: 700, color: kleur, letterSpacing: '0.08em' }}>LVL</span>
+                  <span style={{ fontSize: 22, fontWeight: 900, color: kleur, lineHeight: 1 }}>{level}</span>
+                </div>
+                {/* Info */}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                    <p style={{ fontSize: 13, fontWeight: 700, color: '#111827' }}>
+                      Fit Level {level} — {LEVEL_NAMEN[level]}
+                    </p>
+                    <span style={{ fontSize: 11, color: kleur, fontWeight: 700, flexShrink: 0, marginLeft: 8 }}>
+                      {xpData.xp.toLocaleString('nl-NL')} XP
+                    </span>
+                  </div>
+                  {/* XP bar */}
+                  {level < 10 ? (
+                    <div style={{ height: 6, borderRadius: 3, background: '#F3F4F6', overflow: 'hidden', marginBottom: 6 }}>
+                      <div style={{ height: '100%', borderRadius: 3, background: kleur, width: `${vrt.pct}%`, transition: 'width 1s ease' }} />
+                    </div>
+                  ) : (
+                    <div style={{ height: 6, borderRadius: 3, background: kleur, marginBottom: 6 }} />
+                  )}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <p style={{ fontSize: 11, color: '#9CA3AF' }}>
+                      {level < 10 ? `${vrt.nodig} XP tot niveau ${level + 1}` : 'Maximum bereikt!'}
+                    </p>
+                    <p style={{ fontSize: 11, color: '#9CA3AF' }}>
+                      {behaald}/{ALLE_ACHIEVEMENTS.length} achievements
+                    </p>
+                  </div>
+                </div>
+                {/* Arrow */}
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                  <polyline points="9 18 15 12 9 6"/>
+                </svg>
+              </div>
+            </Link>
+          )
+        })()}
 
         {/* ── MAIN CONTENT: score kaart + vitaliteit tiles ── */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: 20, marginBottom: 20 }}>

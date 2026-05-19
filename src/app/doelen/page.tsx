@@ -7,6 +7,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/Navbar'
 import { Suspense } from 'react'
+import { verwerkGoalLog, verwerkGoalVoltooid, berekenLevel, LEVEL_NAMEN, LEVEL_KLEUREN, type Achievement } from '@/lib/xp'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -203,6 +204,16 @@ function DoelenInhoud() {
   const [logNotitie, setLogNotitie] = useState('')
   const autoCompleteRef = useRef(false)
 
+  // XP toast
+  const [xpToast, setXpToast] = useState<{ xp: number; level?: number; achievements: Achievement[] } | null>(null)
+  const xpToastRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  function toonXPToast(xp: number, level: number | undefined, achievements: Achievement[]) {
+    if (xpToastRef.current) clearTimeout(xpToastRef.current)
+    setXpToast({ xp, level, achievements })
+    xpToastRef.current = setTimeout(() => setXpToast(null), 4000)
+  }
+
   useEffect(() => {
     async function check() {
       const { data: { user } } = await supabase.auth.getUser()
@@ -239,6 +250,8 @@ function DoelenInhoud() {
 
   function slaLogOp() {
     if (!actiefDoel) return
+    let voltooidDoel: Doel | null = null
+
     const bijgewerkt = doelen.map(d => {
       if (d.id !== actiefDoel.id) return d
       const nieuweLogs = d.logs.filter(l => l.datum !== vandaag())
@@ -248,8 +261,9 @@ function DoelenInhoud() {
       // Auto-complete check
       if (!autoCompleteRef.current && checkAutoComplete(bijgewerktDoel)) {
         autoCompleteRef.current = true
+        voltooidDoel = { ...bijgewerktDoel, status: 'voltooid', voltooid: new Date().toISOString() }
         setTimeout(() => {
-          setFeestDoel({ ...bijgewerktDoel, status: 'voltooid', voltooid: new Date().toISOString() })
+          setFeestDoel(voltooidDoel)
           setScherm('feest')
           autoCompleteRef.current = false
         }, 500)
@@ -258,6 +272,32 @@ function DoelenInhoud() {
     })
     sla(bijgewerkt)
     setLogModal(false)
+
+    // XP for logging
+    const streakLen = streakBerekenen(
+      bijgewerkt.find(d => d.id === actiefDoel.id)?.logs ?? [],
+      actiefDoel.targetWaarde
+    )
+    const xpResult = verwerkGoalLog(streakLen)
+    if (xpResult.xpGewonnen > 0 || xpResult.nieuweAchievements.length > 0) {
+      toonXPToast(
+        xpResult.xpGewonnen,
+        xpResult.levelOmhoog ? xpResult.nieuwLevel : undefined,
+        xpResult.nieuweAchievements
+      )
+    }
+
+    // XP for goal completion (auto-complete)
+    if (voltooidDoel) {
+      const voltResult = verwerkGoalVoltooid()
+      setTimeout(() => {
+        toonXPToast(
+          voltResult.xpGewonnen,
+          voltResult.levelOmhoog ? voltResult.nieuwLevel : undefined,
+          voltResult.nieuweAchievements
+        )
+      }, 600)
+    }
   }
 
   // ── Doel voltooien (handmatig) ────────────────────────────────────────────
@@ -270,6 +310,16 @@ function DoelenInhoud() {
     sla(bijgewerkt)
     setFeestDoel({ ...actiefDoel, status: 'voltooid', voltooid: new Date().toISOString() })
     setScherm('feest')
+
+    // XP for manual completion
+    const voltResult = verwerkGoalVoltooid()
+    if (voltResult.xpGewonnen > 0 || voltResult.nieuweAchievements.length > 0) {
+      setTimeout(() => toonXPToast(
+        voltResult.xpGewonnen,
+        voltResult.levelOmhoog ? voltResult.nieuwLevel : undefined,
+        voltResult.nieuweAchievements
+      ), 300)
+    }
   }
 
   // ── Nieuw doel aanmaken ────────────────────────────────────────────────────
@@ -314,6 +364,42 @@ function DoelenInhoud() {
     <div style={{ minHeight: '100vh', background: 'var(--bg-app)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <Navbar />
       <div className="w-8 h-8 rounded-full border-2 border-gray-200 animate-spin" style={{ borderTopColor: '#1D9E75' }} />
+    </div>
+  )
+
+  // ── XP Toast UI ─────────────────────────────────────────────────────────
+
+  const XPToastUI = xpToast && (
+    <div style={{
+      position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)',
+      zIndex: 1000, background: 'white', borderRadius: 16,
+      border: '1.5px solid #E5E7EB', boxShadow: '0 8px 32px rgba(0,0,0,0.14)',
+      padding: '14px 20px', minWidth: 260, maxWidth: 340,
+      animation: 'slideUp 0.3s ease',
+    }}>
+      <style>{`@keyframes slideUp { from { opacity:0; transform: translateX(-50%) translateY(16px); } to { opacity:1; transform: translateX(-50%) translateY(0); } }`}</style>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div style={{ width: 40, height: 40, borderRadius: 12, background: '#E1F5EE', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1D9E75" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+          </svg>
+        </div>
+        <div style={{ flex: 1 }}>
+          <p style={{ fontSize: 15, fontWeight: 800, color: '#1D9E75', marginBottom: 1 }}>
+            +{xpToast.xp} XP verdiend!
+          </p>
+          {xpToast.level && (
+            <p style={{ fontSize: 12, fontWeight: 700, color: LEVEL_KLEUREN[xpToast.level] }}>
+              Level {xpToast.level} bereikt — {LEVEL_NAMEN[xpToast.level]}!
+            </p>
+          )}
+          {xpToast.achievements.length > 0 && (
+            <p style={{ fontSize: 11, color: '#BA7517', fontWeight: 600 }}>
+              Achievement: {xpToast.achievements.map(a => a.naam).join(', ')}
+            </p>
+          )}
+        </div>
+      </div>
     </div>
   )
 
@@ -391,6 +477,7 @@ function DoelenInhoud() {
             </button>
           </div>
         </main>
+        {XPToastUI}
       </div>
     )
   }
@@ -831,6 +918,7 @@ function DoelenInhoud() {
           </div>
         </div>
       )}
+      {XPToastUI}
     </div>
   )
 }

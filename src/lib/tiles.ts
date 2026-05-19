@@ -1,7 +1,7 @@
 export type TileId =
   | 'checkin' | 'coach' | 'rapport' | 'verlof' | 'uren'
   | 'declaraties' | 'loonstroken' | 'nieuws' | 'directory'
-  | 'protocollen' | 'surveys' | 'team'
+  | 'protocollen' | 'surveys' | 'team' | 'niveau'
 
 export type TileDef = {
   id: TileId
@@ -124,10 +124,19 @@ export const ALLE_TILES: TileDef[] = [
     bg: '#E0F2FE',
     hrOnly: true,
   },
+  {
+    id: 'niveau',
+    label: 'Fit Level',
+    sublabel: 'XP & achievements',
+    icon: 'LV',
+    path: '/niveau',
+    kleur: '#7C3AED',
+    bg: '#EDE9FE',
+  },
 ]
 
 export const DEFAULT_TILES: TileId[] = [
-  'checkin', 'coach', 'rapport', 'verlof', 'uren',
+  'checkin', 'coach', 'rapport', 'niveau', 'verlof', 'uren',
   'declaraties', 'loonstroken', 'nieuws', 'directory', 'protocollen', 'surveys',
 ]
 
