@@ -32,20 +32,32 @@ async function cropToSquareJpeg(file: File, size: number): Promise<Blob> {
 
 type Sectie = 'profiel' | 'account' | 'notificaties' | 'privacy' | 'weergave' | 'data' | 'gevaar'
 
-const SECTIES: { id: Sectie; label: string; emoji: string; beschrijving: string }[] = [
-  { id: 'profiel', label: 'Profiel', emoji: '??', beschrijving: 'Naam, foto en persoonlijke informatie' },
-  { id: 'account', label: 'Account & Beveiliging', emoji: '??', beschrijving: 'E-mail, wachtwoord en twee-factor' },
-  { id: 'notificaties', label: 'Notificaties', emoji: '??', beschrijving: 'Herinneringen en meldingen beheren' },
-  { id: 'privacy', label: 'Privacy', emoji: '???', beschrijving: 'Anonimiteit en zichtbaarheidsinstellingen' },
-  { id: 'weergave', label: 'Weergave', emoji: '??', beschrijving: 'Taal, thema en voorkeuren' },
-  { id: 'data', label: 'Mijn gegevens', emoji: '??', beschrijving: 'Exporteer of bekijk je data' },
-  { id: 'gevaar', label: 'Gevarenzone', emoji: '??', beschrijving: 'Account verwijderen of uitloggen' },
+function SI({ d, size = 16 }: { d: string | string[]; size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      {(Array.isArray(d) ? d : [d]).map((p, i) => <path key={i} d={p} />)}
+    </svg>
+  )
+}
+
+const SECTIES: { id: Sectie; label: string; icon: React.ReactNode; beschrijving: string }[] = [
+  { id: 'profiel',      label: 'Profiel',              icon: <SI d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2 M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" />, beschrijving: 'Naam, foto en persoonlijke informatie' },
+  { id: 'account',      label: 'Account & Beveiliging', icon: <SI d={['M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z']} />, beschrijving: 'E-mail, wachtwoord en twee-factor' },
+  { id: 'notificaties', label: 'Notificaties',          icon: <SI d={['M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9', 'M13.73 21a2 2 0 0 1-3.46 0']} />, beschrijving: 'Herinneringen en meldingen beheren' },
+  { id: 'privacy',      label: 'Privacy',               icon: <SI d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z" />, beschrijving: 'Anonimiteit en zichtbaarheidsinstellingen' },
+  { id: 'weergave',     label: 'Weergave',              icon: <SI d={['M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z']} />, beschrijving: 'Taal, thema en voorkeuren' },
+  { id: 'data',         label: 'Mijn gegevens',         icon: <SI d={['M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4', 'M7 10l5 5 5-5', 'M12 15V3']} />, beschrijving: 'Exporteer of bekijk je data' },
+  { id: 'gevaar',       label: 'Gevarenzone',           icon: <SI d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z M12 9v4 M12 17h.01" />, beschrijving: 'Account verwijderen of uitloggen' },
 ]
 
 function Melding({ melding }: { melding: { type: 'success' | 'error'; tekst: string } }) {
   return (
-    <p className="text-sm" style={{ color: melding.type === 'success' ? '#0F6E56' : '#A32D2D' }}>
-      {melding.type === 'success' ? '? ' : '? '}{melding.tekst}
+    <p className="text-sm flex items-center gap-1.5" style={{ color: melding.type === 'success' ? '#0F6E56' : '#A32D2D' }}>
+      {melding.type === 'success'
+        ? <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      }
+      {melding.tekst}
     </p>
   )
 }
@@ -332,7 +344,7 @@ export default function Instellingen() {
                       color: activeSectie === s.id ? 'var(--mentaforce-primary)' : s.id === 'gevaar' ? '#E24B4A' : '#374151',
                     }}
                   >
-                    <span className="text-lg w-6 text-center flex-shrink-0">{s.emoji}</span>
+                    <span className="w-5 flex-shrink-0 flex items-center justify-center">{s.icon}</span>
                     <div className="min-w-0">
                       <p className="text-sm font-medium truncate">{s.label}</p>
                       <p className="text-xs text-gray-400 truncate hidden lg:block">{s.beschrijving}</p>
@@ -357,10 +369,12 @@ export default function Instellingen() {
                   </div>
                   <div className="mt-1 pt-2 border-t border-gray-100 flex flex-col gap-1">
                     <Link href="/portaal" className="text-xs text-gray-400 hover:text-gray-600 transition flex items-center gap-1.5">
-                      <span>?</span> Ga naar portaal
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+                      Ga naar portaal
                     </Link>
                     <button onClick={uitloggen} className="text-xs text-red-400 hover:text-red-600 transition flex items-center gap-1.5 text-left">
-                      <span>?</span> Uitloggen
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                      Uitloggen
                     </button>
                   </div>
                 </div>
@@ -554,7 +568,9 @@ export default function Instellingen() {
                     <p className="text-xs text-gray-400 mb-4">Beheer apparaten waarop je bent ingelogd.</p>
                     <div className="flex items-center justify-between p-4 rounded-xl border border-gray-100" style={{ background: 'var(--bg-app)' }}>
                       <div className="flex items-center gap-3">
-                        <span className="text-2xl">??</span>
+                        <div style={{ width: 36, height: 36, borderRadius: 10, background: '#F3F4F6', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6B7280' }}>
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                        </div>
                         <div>
                           <p className="text-sm font-medium text-gray-800">Huidige sessie</p>
                           <p className="text-xs text-gray-400">Web browser · Actief nu</p>
@@ -632,7 +648,7 @@ export default function Instellingen() {
                 <>
                   <div className="rounded-2xl border p-4 flex items-start gap-3"
                     style={{ background: '#E1F5EE', borderColor: '#A3DECE' }}>
-                    <span className="text-xl mt-0.5">???</span>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1D9E75" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 2 }}><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                     <div>
                       <p className="text-sm font-semibold text-green-800 mb-1">Privacy-by-design</p>
                       <p className="text-xs leading-relaxed text-green-700">
@@ -744,9 +760,9 @@ export default function Instellingen() {
                     <h2 className="text-base font-semibold text-gray-900 mb-4">Taal</h2>
                     <div className="grid grid-cols-3 gap-2.5">
                       {[
-                        { value: 'nl', label: '???? Nederlands', sub: 'Standaard' },
-                        { value: 'fr', label: '???? Français', sub: 'Binnenkort' },
-                        { value: 'en', label: '???? English', sub: 'Binnenkort' },
+                        { value: 'nl', label: 'Nederlands', sub: 'Standaard' },
+                        { value: 'fr', label: 'Français', sub: 'Binnenkort' },
+                        { value: 'en', label: 'English', sub: 'Binnenkort' },
                       ].map(l => (
                         <button key={l.value} onClick={() => setTaal(l.value)}
                           className="p-3 rounded-xl border text-left transition"
@@ -765,10 +781,10 @@ export default function Instellingen() {
                     <h2 className="text-base font-semibold text-gray-900 mb-4">Thema</h2>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                       {[
-                        { value: 'licht', label: '?? Licht', sub: 'Helder en fris' },
-                        { value: 'schemering', label: '?? Schemering', sub: 'Warm en rustig' },
-                        { value: 'donker', label: '?? Donker', sub: 'Voor \'s avonds' },
-                        { value: 'systeem', label: '?? Systeem', sub: 'Volgt je OS' },
+                        { value: 'licht',      label: 'Licht',      sub: 'Helder en fris' },
+                        { value: 'schemering', label: 'Schemering', sub: 'Warm en rustig' },
+                        { value: 'donker',     label: 'Donker',     sub: 'Voor \'s avonds' },
+                        { value: 'systeem',    label: 'Systeem',    sub: 'Volgt je OS' },
                       ].map(t => (
                         <button key={t.value} onClick={() => setThema(t.value)}
                           className="p-3 rounded-xl border text-left transition"
@@ -818,15 +834,19 @@ export default function Instellingen() {
                     <p className="text-xs text-gray-400 mb-5">Een overzicht van de gegevens die MentaForce over jou bijhoudt.</p>
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                       {[
-                        { label: 'Check-ins', icon: '?', kleur: '#1D9E75', bg: '#E1F5EE' },
-                        { label: 'Journal entries', icon: '??', kleur: '#378ADD', bg: '#E6F1FB' },
-                        { label: 'Coach-gesprekken', icon: '??', kleur: '#8B5CF6', bg: '#EEEDFE' },
-                        { label: 'Gewoonte logs', icon: '??', kleur: '#BA7517', bg: '#FAEEDA' },
-                        { label: 'Teamberichten', icon: '??', kleur: '#E24B4A', bg: '#FCEBEB' },
-                        { label: 'Profiel data', icon: '??', kleur: '#6b7280', bg: '#F3F4F6' },
+                        { label: 'Check-ins',        kleur: '#1D9E75', bg: '#E1F5EE', d: 'M9 12l2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0z' },
+                        { label: 'Journal entries',  kleur: '#378ADD', bg: '#E6F1FB', d: 'M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253' },
+                        { label: 'Coach-gesprekken', kleur: '#8B5CF6', bg: '#EEEDFE', d: 'M9.663 17h4.673M12 3v1m6.364 1.636-.707.707M21 12h-1M4 12H3m3.343-5.657-.707-.707m2.828 9.9a5 5 0 1 1 7.072 0l-.548.547A3.374 3.374 0 0 0 14 18.469V19a2 2 0 1 1-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z' },
+                        { label: 'Gewoonte logs',    kleur: '#BA7517', bg: '#FAEEDA', d: 'M13 2L3 14h9l-1 8 10-12h-9l1-8z' },
+                        { label: 'Teamberichten',    kleur: '#E24B4A', bg: '#FCEBEB', d: 'M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z' },
+                        { label: 'Profiel data',     kleur: '#6b7280', bg: '#F3F4F6', d: 'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2 M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z' },
                       ].map(d => (
                         <div key={d.label} className="rounded-xl p-4 border border-gray-100" style={{ background: d.bg }}>
-                          <span className="text-2xl block mb-2">{d.icon}</span>
+                          <div style={{ color: d.kleur, marginBottom: 8 }}>
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                              <path d={d.d} />
+                            </svg>
+                          </div>
                           <p className="text-sm font-medium" style={{ color: d.kleur }}>{d.label}</p>
                           <p className="text-xs text-gray-500">Privé & versleuteld</p>
                         </div>
@@ -841,12 +861,14 @@ export default function Instellingen() {
                       <button
                         onClick={() => alert('Export aangevraagd. Je ontvangt een e-mail met de downloadlink.')}
                         className="flex items-center gap-2 border border-gray-200 rounded-xl px-5 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition">
-                        <span>??</span> Check-in data exporteren
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                        Check-in data exporteren
                       </button>
                       <button
                         onClick={() => alert('Export aangevraagd. Je ontvangt een e-mail met de downloadlink.')}
                         className="flex items-center gap-2 border border-gray-200 rounded-xl px-5 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition">
-                        <span>??</span> Volledige data exporteren
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                        Volledige data exporteren
                       </button>
                     </div>
                   </section>
@@ -856,7 +878,8 @@ export default function Instellingen() {
                     <p className="text-xs text-gray-400 mb-4">Je hebt het recht om al je persoonlijke gegevens in te zien, te corrigeren of te laten verwijderen.</p>
                     <a href="mailto:info@mentaforce.nl?subject=AVG-verzoek"
                       className="inline-flex items-center gap-2 border border-gray-200 rounded-xl px-5 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition">
-                      <span>??</span> AVG-verzoek indienen
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                      AVG-verzoek indienen
                     </a>
                   </section>
                 </>
@@ -881,7 +904,7 @@ export default function Instellingen() {
 
                   <section className="bg-white rounded-2xl border border-red-100 p-6">
                     <div className="flex items-start gap-3 mb-4">
-                      <span className="text-xl">??</span>
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#E24B4A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 2 }}><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
                       <div>
                         <h2 className="text-base font-semibold text-red-600">Account verwijderen</h2>
                         <p className="text-xs text-gray-500 mt-0.5">
@@ -895,7 +918,8 @@ export default function Instellingen() {
                       <ul className="text-xs text-gray-500 space-y-1 ml-3">
                         {['Alle check-in antwoorden', 'Journal entries en notities', 'AI coach-gesprekken', 'Gewoonte-logs', 'Profielfoto en persoonlijke info'].map(i => (
                           <li key={i} className="flex items-center gap-2">
-                            <span className="text-red-400">?</span> {i}
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#E24B4A" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                            {i}
                           </li>
                         ))}
                       </ul>
