@@ -40,6 +40,7 @@ export default function HomePage() {
   const [recentCheckins, setRecentCheckins] = useState(0)
   const [xpData, setXpData]                 = useState<XPData | null>(null)
   const [weekSelectie, setWeekSelectie]     = useState<WeekSelectie | null>(null)
+  const [vlakScores, setVlakScores]         = useState<Record<string, 'goed'|'matig'|'laag'> | null>(null)
 
   useEffect(() => {
     async function laad() {
@@ -50,12 +51,22 @@ export default function HomePage() {
         .from('profiles').select('naam').eq('id', user.id).single()
       setNaam(profiel?.naam ?? '')
 
-      // Laatste vitaliteitsscore
+      // Laatste vitaliteitsscore + wellbeing categorieen
       const { data: analyse } = await supabase
-        .from('checkin_analyses').select('scores')
+        .from('checkin_analyses').select('scores, analyse_json')
         .eq('user_id', user.id).order('aangemaakt_op', { ascending: false })
         .limit(1).maybeSingle()
       if (analyse?.scores) setScores(analyse.scores as ScoresNieuw)
+      const cats = analyse?.analyse_json?.wellbeing_categorieen as { naam: string; niveau: 'goed'|'matig'|'laag' }[] | undefined
+      if (cats) {
+        const NAAM_MAP: Record<string, string> = {
+          'Slaap': 'slaap', 'Stress': 'stress', 'Energie': 'energie',
+          'Focus': 'focus', 'Werk-privé balans': 'balans', 'Motivatie': 'motivatie',
+        }
+        const s: Record<string, 'goed'|'matig'|'laag'> = {}
+        cats.forEach(c => { const v = NAAM_MAP[c.naam]; if (v) s[v] = c.niveau })
+        setVlakScores(s)
+      }
 
       // Check-in deze week (maandag = start)
       const nu = new Date()
@@ -305,6 +316,57 @@ export default function HomePage() {
             </div>
           )}
         </div>
+
+        {/* ── 6 VLAKKEN SCORES ── */}
+        {vlakScores && (
+          <div style={{ marginBottom: 28 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+              <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#9CA3AF' }}>
+                Jouw welzijnsscores
+              </p>
+              <Link href="/rapport" style={{ fontSize: 12, color: '#1D9E75', fontWeight: 600, textDecoration: 'none' }}>
+                Volledig rapport →
+              </Link>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 10 }}>
+              {Object.entries(CAT).map(([vlak, c]) => {
+                const nv = vlakScores[vlak]
+                const nvcfg = !nv ? null
+                  : nv === 'goed'  ? { bg: '#E1F5EE', kleur: '#0F6E56', label: 'Goed',     bar: '#1D9E75', pct: 85 }
+                  : nv === 'matig' ? { bg: '#FEF3C7', kleur: '#854F0B', label: 'Matig',    bar: '#B45309', pct: 50 }
+                  :                  { bg: '#FCEBEB', kleur: '#A32D2D', label: 'Aandacht', bar: '#DC2626', pct: 20 }
+                return (
+                  <Link key={vlak} href="/doelen" style={{ textDecoration: 'none' }}>
+                    <div style={{
+                      background: 'white', borderRadius: 14, padding: '14px 10px',
+                      border: `1.5px solid ${nvcfg ? nvcfg.bar + '30' : '#E5E7EB'}`,
+                      textAlign: 'center', transition: 'box-shadow 0.15s',
+                    }}>
+                      <div style={{
+                        width: 38, height: 38, borderRadius: 10,
+                        background: nvcfg?.bg ?? c.bg,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        color: nvcfg ? nvcfg.bar : c.kleur, margin: '0 auto 8px',
+                      }}>
+                        <span style={{ transform: 'scale(0.8)', display: 'flex' }}>{c.icon}</span>
+                      </div>
+                      <p style={{ fontSize: 11, fontWeight: 700, color: '#374151', marginBottom: 6 }}>{c.label}</p>
+                      {/* Score balk */}
+                      <div style={{ height: 4, borderRadius: 2, background: '#F3F4F6', overflow: 'hidden', marginBottom: 5 }}>
+                        <div style={{ height: '100%', borderRadius: 2, background: nvcfg?.bar ?? '#E5E7EB', width: `${nvcfg?.pct ?? 0}%`, transition: 'width 0.8s ease' }} />
+                      </div>
+                      {nvcfg ? (
+                        <span style={{ fontSize: 10, fontWeight: 700, color: nvcfg.kleur }}>{nvcfg.label}</span>
+                      ) : (
+                        <span style={{ fontSize: 10, color: '#D1D5DB' }}>—</span>
+                      )}
+                    </div>
+                  </Link>
+                )
+              })}
+            </div>
+          </div>
+        )}
 
         {/* ── DOELEN DEZE WEEK ── */}
         <div style={{ marginBottom: 28 }}>

@@ -91,6 +91,7 @@ function DoelenInhoud() {
   const router = useRouter()
   const [klaar, setKlaar] = useState(false)
   const [selectie, setSelectie] = useState<WeekSelectie | null>(null)
+  const [vlakScores, setVlakScores] = useState<Record<WellbeingCat, 'goed'|'matig'|'laag'> | null>(null)
 
   // Wizard state
   const [stap, setStap] = useState<'vlakken' | 'doelen' | 'overzicht'>('vlakken')
@@ -113,6 +114,25 @@ function DoelenInhoud() {
       if (!user) { router.push('/login'); return }
       const s = laadWeekSelectie()
       if (s) { setSelectie(s); setStap('overzicht') }
+
+      // Laad wellbeing scores uit laatste check-in
+      const { data: analyse } = await supabase
+        .from('checkin_analyses')
+        .select('analyse_json')
+        .eq('user_id', user.id)
+        .order('aangemaakt_op', { ascending: false })
+        .limit(1).maybeSingle()
+      const cats = analyse?.analyse_json?.wellbeing_categorieen as { naam: string; niveau: 'goed'|'matig'|'laag' }[] | undefined
+      if (cats) {
+        const NAAM_MAP: Record<string, WellbeingCat> = {
+          'Slaap': 'slaap', 'Stress': 'stress', 'Energie': 'energie',
+          'Focus': 'focus', 'Werk-privé balans': 'balans', 'Motivatie': 'motivatie',
+        }
+        const scores = {} as Record<WellbeingCat, 'goed'|'matig'|'laag'>
+        cats.forEach(c => { const v = NAAM_MAP[c.naam]; if (v) scores[v] = c.niveau })
+        setVlakScores(scores)
+      }
+
       setKlaar(true)
     }
     check()
@@ -284,6 +304,17 @@ function DoelenInhoud() {
                   <div style={{ color: gekozen ? c.kleur : '#9CA3AF' }}>{c.icon}</div>
                   <p style={{ fontSize: 13, fontWeight: 700, color: gekozen ? c.kleur : '#374151' }}>{c.label}</p>
                   <p style={{ fontSize: 11, color: '#9CA3AF', lineHeight: 1.4 }}>{c.omschrijving}</p>
+                  {vlakScores?.[vlak] && (() => {
+                    const nv = vlakScores[vlak]
+                    const cfg = nv === 'goed' ? { bg: '#E1F5EE', kleur: '#0F6E56', label: 'Goed' }
+                      : nv === 'matig' ? { bg: '#FEF3C7', kleur: '#854F0B', label: 'Matig' }
+                      : { bg: '#FCEBEB', kleur: '#A32D2D', label: 'Aandacht' }
+                    return (
+                      <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 100, background: cfg.bg, color: cfg.kleur }}>
+                        {cfg.label}
+                      </span>
+                    )
+                  })()}
                 </button>
               )
             })}
@@ -525,6 +556,48 @@ function DoelenInhoud() {
             )
           })}
         </div>
+
+        {/* 6 vlakken scores */}
+        {vlakScores && (
+          <div style={{ background: 'white', borderRadius: 16, padding: '20px 24px', border: '1px solid #E5E7EB', marginBottom: 0 }}>
+            <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#9CA3AF', marginBottom: 14 }}>
+              Jouw scores per vlak
+            </p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 10 }}>
+              {(Object.keys(CAT) as WellbeingCat[]).map(vlak => {
+                const c = CAT[vlak]
+                const nv = vlakScores[vlak]
+                const nvcfg = !nv ? null
+                  : nv === 'goed'  ? { bg: '#E1F5EE', kleur: '#0F6E56', label: 'Goed',     dot: '#1D9E75' }
+                  : nv === 'matig' ? { bg: '#FEF3C7', kleur: '#854F0B', label: 'Matig',    dot: '#B45309' }
+                  :                  { bg: '#FCEBEB', kleur: '#A32D2D', label: 'Aandacht', dot: '#DC2626' }
+                return (
+                  <div key={vlak} style={{ textAlign: 'center' }}>
+                    <div style={{
+                      width: 44, height: 44, borderRadius: 12, background: nvcfg?.bg ?? c.bg,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      color: nvcfg ? nvcfg.dot : c.kleur, margin: '0 auto 6px',
+                      border: `1.5px solid ${nvcfg?.dot ?? c.kleur}30`,
+                    }}>
+                      <span style={{ transform: 'scale(0.85)', display: 'flex' }}>{c.icon}</span>
+                    </div>
+                    <p style={{ fontSize: 11, fontWeight: 600, color: '#374151', marginBottom: 3 }}>{c.label}</p>
+                    {nvcfg ? (
+                      <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 100, background: nvcfg.bg, color: nvcfg.kleur }}>
+                        {nvcfg.label}
+                      </span>
+                    ) : (
+                      <span style={{ fontSize: 10, color: '#D1D5DB' }}>—</span>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+            <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 12 }}>
+              Op basis van je laatste check-in · <a href="/rapport" style={{ color: '#1D9E75', textDecoration: 'none', fontWeight: 600 }}>Bekijk rapport →</a>
+            </p>
+          </div>
+        )}
 
         {/* Samenvatting */}
         <div style={{ background: 'white', borderRadius: 16, padding: '16px 20px', border: '1px solid #E5E7EB', display: 'flex', alignItems: 'center', gap: 16 }}>
