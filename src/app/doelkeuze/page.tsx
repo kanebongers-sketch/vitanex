@@ -1,0 +1,192 @@
+'use client'
+
+export const dynamic = 'force-dynamic'
+
+import { Suspense, useState } from 'react'
+import { useSearchParams, useRouter } from 'next/navigation'
+import { CAT, DOELKEUZE_OPTIES } from '@/lib/doelen-config'
+import {
+  type WellbeingCat, type WeekDoel, type WeekSelectie,
+  vandaag, slaWeekSelectieOp,
+} from '@/lib/weekdoelen'
+
+const ALLE_VLAKKEN: WellbeingCat[] = ['slaap', 'stress', 'energie', 'focus', 'balans', 'motivatie']
+
+function DoelKeuzeInhoud() {
+  const params = useSearchParams()
+  const router = useRouter()
+
+  const scores: Record<WellbeingCat, number> = {
+    slaap:    parseInt(params.get('slaap')    ?? '0'),
+    stress:   parseInt(params.get('stress')   ?? '0'),
+    energie:  parseInt(params.get('energie')  ?? '0'),
+    focus:    parseInt(params.get('focus')    ?? '0'),
+    balans:   parseInt(params.get('balans')   ?? '0'),
+    motivatie:parseInt(params.get('motivatie')?? '0'),
+  }
+
+  // 3 lowest-scoring domains with valid scores
+  const topDrie = ALLE_VLAKKEN
+    .filter(v => scores[v] > 0)
+    .sort((a, b) => scores[a] - scores[b])
+    .slice(0, 3)
+
+  const [keuzes, setKeuzes] = useState<Partial<Record<WellbeingCat, number>>>({})
+  const [opgeslagen, setOpgeslagen] = useState(false)
+
+  const resterend = topDrie.filter(v => keuzes[v] === undefined).length
+  const alleGekozen = resterend === 0 && topDrie.length > 0
+
+  function slaatOp() {
+    if (!alleGekozen) return
+    const doelen: WeekDoel[] = topDrie.map(vlak => {
+      const optie = DOELKEUZE_OPTIES[vlak][keuzes[vlak]!]
+      return {
+        vlak,
+        doel_titel:       optie.titel,
+        doel_beschrijving:optie.beschrijving,
+        target_waarde:    7,
+        eenheid:          'dagen',
+        meetType:         'dagelijks' as const,
+        logs:             [],
+      }
+    })
+    const ws: WeekSelectie = {
+      weekStart:   vandaag(),
+      doelen,
+      vlak_scores: scores,
+    }
+    slaWeekSelectieOp(ws)
+    setOpgeslagen(true)
+    router.push('/home')
+  }
+
+  return (
+    <main style={{
+      minHeight: '100vh',
+      background: 'linear-gradient(160deg, #F0FAF6 0%, #EBF4FB 50%, #F5F3FF 100%)',
+      padding: '40px 20px 80px',
+    }}>
+      <div style={{ maxWidth: 600, margin: '0 auto' }}>
+
+        {/* Header */}
+        <div style={{ textAlign: 'center', marginBottom: 32 }}>
+          <div style={{
+            width: 56, height: 56, borderRadius: '50%',
+            background: '#E1F5EE', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            margin: '0 auto 16px',
+          }}>
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1D9E75" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+          </div>
+          <h1 style={{ fontSize: 22, fontWeight: 800, color: '#111827', marginBottom: 8, letterSpacing: '-0.02em' }}>
+            Check-in ingevuld!
+          </h1>
+          <p style={{ fontSize: 14, color: '#6B7280', lineHeight: 1.5 }}>
+            Kies voor elk aandachtsgebied één doel dat je deze week wil aanpakken.
+          </p>
+        </div>
+
+        {/* Domain goal selection */}
+        {topDrie.map((vlak, idx) => {
+          const c = CAT[vlak]
+          const opties = DOELKEUZE_OPTIES[vlak]
+          const gekozen = keuzes[vlak]
+
+          return (
+            <div key={vlak} style={{
+              background: 'white', borderRadius: 20,
+              border: `1.5px solid ${gekozen !== undefined ? c.kleur + '40' : '#E5E7EB'}`,
+              padding: '20px 20px', marginBottom: 16,
+              transition: 'border-color 0.2s',
+            }}>
+              {/* Domain header */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+                <div style={{
+                  width: 34, height: 34, borderRadius: 10, background: c.bg,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', color: c.kleur, flexShrink: 0,
+                }}>
+                  <span style={{ transform: 'scale(0.75)', display: 'flex' }}>{c.icon}</span>
+                </div>
+                <div>
+                  <p style={{ fontSize: 10, color: '#9CA3AF', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em' }}>
+                    Aandachtsgebied {idx + 1}
+                  </p>
+                  <p style={{ fontSize: 14, fontWeight: 700, color: c.kleur }}>
+                    {c.label} — {scores[vlak]}/20
+                  </p>
+                </div>
+                {gekozen !== undefined && (
+                  <div style={{
+                    marginLeft: 'auto', width: 22, height: 22, borderRadius: '50%',
+                    background: c.kleur, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                  }}>
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                  </div>
+                )}
+              </div>
+
+              {/* Goal options */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {opties.map((opt, i) => {
+                  const selected = gekozen === i
+                  return (
+                    <button key={i}
+                      onClick={() => setKeuzes(prev => ({ ...prev, [vlak]: i }))}
+                      style={{
+                        textAlign: 'left', padding: '13px 15px', borderRadius: 12,
+                        border: `2px solid ${selected ? c.kleur : '#E5E7EB'}`,
+                        background: selected ? c.licht : '#FAFAFA',
+                        cursor: 'pointer', transition: 'all 0.15s', width: '100%',
+                      }}>
+                      <p style={{ fontSize: 13, fontWeight: 700, color: selected ? c.kleur : '#111827', marginBottom: 3 }}>
+                        {opt.titel}
+                      </p>
+                      <p style={{ fontSize: 12, color: '#6B7280', lineHeight: 1.4 }}>
+                        {opt.beschrijving}
+                      </p>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          )
+        })}
+
+        {/* Confirm button */}
+        <button
+          onClick={slaatOp}
+          disabled={!alleGekozen || opgeslagen}
+          style={{
+            width: '100%', padding: '16px', borderRadius: 14, border: 'none',
+            background: alleGekozen ? '#1D9E75' : '#E5E7EB',
+            color: alleGekozen ? 'white' : '#9CA3AF',
+            fontSize: 15, fontWeight: 700, cursor: alleGekozen ? 'pointer' : 'default',
+            transition: 'all 0.2s', marginTop: 4,
+          }}>
+          {opgeslagen ? 'Bezig...' : alleGekozen ? 'Start deze week →' : `Kies nog ${resterend} doel${resterend > 1 ? 'en' : ''}`}
+        </button>
+
+        <p style={{ textAlign: 'center', fontSize: 12, color: '#9CA3AF', marginTop: 14 }}>
+          Je kunt je doelen later aanpassen via het Doelen-menu.
+        </p>
+
+      </div>
+    </main>
+  )
+}
+
+export default function DoelKeuze() {
+  return (
+    <Suspense fallback={
+      <main style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#F0FAF6' }}>
+        <div style={{ width: 32, height: 32, borderRadius: '50%', border: '3px solid #E5E7EB', borderTopColor: '#1D9E75' }} className="mf-spinner" />
+      </main>
+    }>
+      <DoelKeuzeInhoud />
+    </Suspense>
+  )
+}

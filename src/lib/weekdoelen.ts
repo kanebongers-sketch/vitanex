@@ -34,7 +34,12 @@ export function getMaandag(): string {
 }
 
 export function vandaag(): string {
-  return new Date().toISOString().slice(0, 10)
+  const d = new Date()
+  return [
+    d.getFullYear(),
+    String(d.getMonth() + 1).padStart(2, '0'),
+    String(d.getDate()).padStart(2, '0'),
+  ].join('-')
 }
 
 export function laadWeekSelectie(): WeekSelectie | null {
@@ -42,7 +47,9 @@ export function laadWeekSelectie(): WeekSelectie | null {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) return null
     const data: WeekSelectie = JSON.parse(raw)
-    if (data.weekStart !== getMaandag()) return null
+    const start = new Date(data.weekStart)
+    const dagsSinds = (Date.now() - start.getTime()) / (1000 * 60 * 60 * 24)
+    if (dagsSinds < 0 || dagsSinds >= 7) return null
     return data
   } catch { return null }
 }

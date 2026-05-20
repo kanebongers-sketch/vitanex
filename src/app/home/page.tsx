@@ -10,7 +10,7 @@ import Navbar from '@/components/Navbar'
 import CrisisButton from '@/components/CrisisButton'
 import { laadXPData, pasDecayToe, berekenLevel, xpVoortgang, LEVEL_NAMEN, LEVEL_KLEUREN, LEVEL_BG, type XPData } from '@/lib/xp'
 import { laadWeekSelectie, isVandaagGelogd, vandaag as weekVandaag, type WeekSelectie } from '@/lib/weekdoelen'
-import { CAT } from '@/app/doelen/page'
+import { CAT } from '@/lib/doelen-config'
 
 function berekenScore(s: Record<string, number>) {
   const vals = Object.values(s).filter(v => v > 0)
@@ -64,15 +64,12 @@ export default function HomePage() {
         if (Object.values(s).some(v => v > 0)) setVlakScores(s)
       }
 
-      const nu = new Date()
-      const dag = nu.getDay() === 0 ? 6 : nu.getDay() - 1
-      const weekStart = new Date(nu)
-      weekStart.setDate(nu.getDate() - dag)
-      weekStart.setHours(0, 0, 0, 0)
+      const zevenDagenGeleden = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
       const { count: weekCount } = await supabase.from('checkin_sessies')
         .select('id', { count: 'exact', head: true }).eq('user_id', user.id)
-        .gte('aangemaakt_op', weekStart.toISOString())
-      setCheckInDezeWeek((weekCount ?? 0) > 0)
+        .gte('aangemaakt_op', zevenDagenGeleden)
+      if ((weekCount ?? 0) === 0) { router.push('/checkin'); return }
+      setCheckInDezeWeek(true)
 
       const { count } = await supabase.from('checkin_sessies')
         .select('id', { count: 'exact', head: true }).eq('user_id', user.id)

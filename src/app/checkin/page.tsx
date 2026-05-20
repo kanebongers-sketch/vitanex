@@ -6,6 +6,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { authFetch } from '@/lib/auth-fetch'
+import { vandaag } from '@/lib/weekdoelen'
 import Link from 'next/link'
 
 // ─── Types ─────────────────────────────────────────────────────────────────
@@ -119,17 +120,6 @@ function pickRandom<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)]
 }
 
-// ─── Helper ───────────────────────────────────────────────────────────────
-
-function maandagVanDezeWeek(): string {
-  const nu = new Date()
-  const dag = nu.getDay() === 0 ? 6 : nu.getDay() - 1
-  const maandag = new Date(nu)
-  maandag.setDate(nu.getDate() - dag)
-  maandag.setHours(0, 0, 0, 0)
-  return maandag.toISOString().slice(0, 10)
-}
-
 // ─── Component ────────────────────────────────────────────────────────────
 
 export default function CheckIn() {
@@ -149,7 +139,7 @@ export default function CheckIn() {
   const [laden,      setLaden]      = useState(false)
   const [fout,       setFout]       = useState('')
 
-  const weekStart = maandagVanDezeWeek()
+  const weekStart = vandaag()
 
   useEffect(() => {
     async function init() {
@@ -161,11 +151,15 @@ export default function CheckIn() {
         .from('profiles').select('bedrijf_id').eq('id', user.id).single()
       setBedrijfId(profiel?.bedrijf_id ?? null)
 
+      // Check for any check-in in the last 7 days
+      const zevenDagenGeleden = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
       const { data: sessie } = await supabase
         .from('checkin_sessies')
         .select('id, aangemaakt_op')
         .eq('user_id', user.id)
-        .eq('week_start', weekStart)
+        .gte('aangemaakt_op', zevenDagenGeleden)
+        .order('aangemaakt_op', { ascending: false })
+        .limit(1)
         .maybeSingle()
 
       if (sessie) {
@@ -173,7 +167,7 @@ export default function CheckIn() {
         setSessieId(sessie.id)
         const uren = (Date.now() - new Date(sessie.aangemaakt_op).getTime()) / 3600000
         setKanOpnieuw(uren < 4)
-        const volgende = new Date(weekStart)
+        const volgende = new Date(sessie.aangemaakt_op)
         volgende.setDate(volgende.getDate() + 7)
         setVolgendeCheckin(volgende.toLocaleDateString('nl-BE', { weekday: 'long', day: 'numeric', month: 'long' }))
       }
@@ -297,7 +291,7 @@ export default function CheckIn() {
         motivatie:String(vlakScores.motivatie),
         sid:      nieuwSessieId ?? '',
       })
-      router.push(`/bedankt?${params.toString()}`)
+      router.push(`/doelkeuze?${params.toString()}`)
     } catch (err) {
       console.error('[checkin submit]', err)
       setFout(`Opslaan mislukt: ${err instanceof Error ? err.message : String(err)}`)
