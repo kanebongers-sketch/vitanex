@@ -27,10 +27,9 @@ type ResultatenMap = Record<string, {
 
 // -- Survey templates --------------------------------------------------------
 
-const TEMPLATES: { naam: string; emoji: string; beschrijving: string; kleur: string; vragen: Omit<Vraag, 'id'>[] }[] = [
+const TEMPLATES: { naam: string; kleur: string; beschrijving: string; vragen: Omit<Vraag, 'id'>[] }[] = [
   {
     naam: 'Pulse check',
-    emoji: '???',
     kleur: '#1D9E75',
     beschrijving: '3 vragen · ±1 min · Ideaal wekelijks',
     vragen: [
@@ -41,7 +40,6 @@ const TEMPLATES: { naam: string; emoji: string; beschrijving: string; kleur: str
   },
   {
     naam: 'Stress & werkdruk',
-    emoji: '??',
     kleur: '#E24B4A',
     beschrijving: '4 vragen · ±2 min · Maandelijks',
     vragen: [
@@ -53,7 +51,6 @@ const TEMPLATES: { naam: string; emoji: string; beschrijving: string; kleur: str
   },
   {
     naam: 'Teamcultuur',
-    emoji: '??',
     kleur: '#378ADD',
     beschrijving: '4 vragen · ±2 min · Kwartaal',
     vragen: [
@@ -65,7 +62,6 @@ const TEMPLATES: { naam: string; emoji: string; beschrijving: string; kleur: str
   },
   {
     naam: 'Betrokkenheid',
-    emoji: '??',
     kleur: '#8B5CF6',
     beschrijving: '4 vragen · ±2 min · Kwartaal',
     vragen: [
@@ -77,7 +73,6 @@ const TEMPLATES: { naam: string; emoji: string; beschrijving: string; kleur: str
   },
   {
     naam: 'Leiderschap',
-    emoji: '??',
     kleur: '#BA7517',
     beschrijving: '4 vragen · ±2 min · Extra anoniem',
     vragen: [
@@ -98,34 +93,49 @@ function maakVragen(vragen: Omit<Vraag, 'id'>[]): Vraag[] {
 function AnonimBanner() {
   const [open, setOpen] = useState(false)
   return (
-    <div className="rounded-2xl border mb-6 overflow-hidden" style={{ borderColor: '#B8D5F5', background: '#E6F1FB' }}>
-      <div className="flex items-center justify-between px-5 py-3.5">
-        <div className="flex items-center gap-2.5">
-          <span className="text-lg">??</span>
+    <div style={{ borderRadius: 16, border: '1px solid #B8D5F5', background: '#E6F1FB', marginBottom: 20, overflow: 'hidden' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#185FA5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
           <div>
-            <p className="text-sm font-semibold" style={{ color: '#185FA5' }}>Volledig anoniem</p>
-            <p className="text-xs" style={{ color: '#2563EB' }}>Jouw naam wordt nooit gedeeld met HR of collega's</p>
+            <p style={{ fontSize: 13, fontWeight: 600, color: '#185FA5' }}>Volledig anoniem</p>
+            <p style={{ fontSize: 12, color: '#2563EB' }}>Jouw naam wordt nooit gedeeld met HR of collega's</p>
           </div>
         </div>
         <button
           onClick={() => setOpen(o => !o)}
-          className="text-xs font-medium px-3 py-1.5 rounded-lg transition"
-          style={{ color: '#185FA5', background: 'rgba(37,99,235,0.1)' }}
+          style={{ fontSize: 12, fontWeight: 500, padding: '6px 12px', borderRadius: 8, color: '#185FA5', background: 'rgba(37,99,235,0.1)', border: 'none', cursor: 'pointer' }}
         >
           {open ? 'Verbergen' : 'Hoe werkt dit?'}
         </button>
       </div>
       {open && (
-        <div className="px-5 pb-4 border-t" style={{ borderColor: '#B8D5F5' }}>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-3">
+        <div style={{ padding: '0 20px 16px', borderTop: '1px solid #B8D5F5' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10, marginTop: 12 }}>
             {[
-              { icon: '?', titel: 'Wat HR ziet', tekst: 'Alleen groepsgemiddelden en percentages. Nooit individuele antwoorden.' },
-              { icon: '?', titel: 'Wat HR niet ziet', tekst: 'Jouw naam, e-mail, of welke antwoorden van jou zijn.' },
-              { icon: '???', titel: 'Kleine teams', tekst: 'Bij teams < 5 personen worden resultaten niet getoond om herleidbaarheid te voorkomen.' },
+              {
+                icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#185FA5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>,
+                titel: 'Wat HR ziet',
+                tekst: 'Alleen groepsgemiddelden en percentages. Nooit individuele antwoorden.',
+              },
+              {
+                icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#185FA5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>,
+                titel: 'Wat HR niet ziet',
+                tekst: 'Jouw naam, e-mail, of welke antwoorden van jou zijn.',
+              },
+              {
+                icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#185FA5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
+                titel: 'Kleine teams',
+                tekst: 'Bij teams < 5 personen worden resultaten niet getoond om herleidbaarheid te voorkomen.',
+              },
             ].map(item => (
-              <div key={item.titel} className="rounded-xl p-3" style={{ background: 'rgba(255,255,255,0.6)' }}>
-                <p className="text-sm font-medium mb-1" style={{ color: '#185FA5' }}>{item.icon} {item.titel}</p>
-                <p className="text-xs text-gray-500 leading-relaxed">{item.tekst}</p>
+              <div key={item.titel} style={{ borderRadius: 12, padding: 12, background: 'rgba(255,255,255,0.6)' }}>
+                <p style={{ fontSize: 12, fontWeight: 600, color: '#185FA5', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 5 }}>
+                  {item.icon} {item.titel}
+                </p>
+                <p style={{ fontSize: 11, color: '#6B7280', lineHeight: 1.5 }}>{item.tekst}</p>
               </div>
             ))}
           </div>
@@ -178,47 +188,50 @@ function NieuweSurveyForm({ bedrijfId, userId, onGemaakt }: {
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-200 p-6 mb-6">
-      <div className="flex gap-1 bg-gray-100 rounded-xl p-1 mb-5 w-fit">
+    <div style={{ background: 'white', borderRadius: 20, border: '1px solid #E5E7EB', padding: 24, marginBottom: 20 }}>
+      <div style={{ display: 'flex', gap: 4, background: '#F3F4F6', borderRadius: 12, padding: 4, width: 'fit-content', marginBottom: 20 }}>
         {(['template', 'zelf'] as const).map(t => (
           <button
             key={t}
             onClick={() => setTemplateTab(t)}
-            className="px-4 py-2 rounded-lg text-sm transition"
             style={{
+              padding: '8px 16px', borderRadius: 8, fontSize: 13, border: 'none', cursor: 'pointer',
               background: templateTab === t ? 'white' : 'transparent',
-              color: templateTab === t ? '#111' : '#888',
-              fontWeight: templateTab === t ? 500 : 400,
+              color: templateTab === t ? '#111827' : '#9CA3AF',
+              fontWeight: templateTab === t ? 600 : 400,
               boxShadow: templateTab === t ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
             }}
           >
-            {t === 'template' ? '? Kies template' : '?? Zelf maken'}
+            {t === 'template' ? 'Kies template' : 'Zelf maken'}
           </button>
         ))}
       </div>
 
       {templateTab === 'template' ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
           {TEMPLATES.map(tmpl => (
             <button
               key={tmpl.naam}
               onClick={() => laadTemplate(tmpl)}
-              className="text-left p-4 rounded-2xl border-2 transition hover:shadow-sm"
-              style={{ borderColor: tmpl.kleur + '40', background: tmpl.kleur + '08' }}
+              style={{
+                textAlign: 'left', padding: 16, borderRadius: 16,
+                border: `2px solid ${tmpl.kleur}40`, background: `${tmpl.kleur}08`,
+                cursor: 'pointer',
+              }}
             >
-              <div className="flex items-center gap-2 mb-1">
-                <span className="text-xl">{tmpl.emoji}</span>
-                <span className="text-sm font-semibold text-gray-800">{tmpl.naam}</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                <span style={{ width: 10, height: 10, borderRadius: '50%', background: tmpl.kleur, display: 'inline-block', flexShrink: 0 }} />
+                <span style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>{tmpl.naam}</span>
               </div>
-              <p className="text-xs text-gray-500">{tmpl.beschrijving}</p>
-              <div className="flex flex-wrap gap-1 mt-2">
+              <p style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 8 }}>{tmpl.beschrijving}</p>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
                 {tmpl.vragen.slice(0, 2).map((v, i) => (
-                  <span key={i} className="text-xs px-2 py-0.5 rounded-full bg-white border border-gray-200 text-gray-500 truncate max-w-[160px]">
-                    {v.tekst.slice(0, 30)}{v.tekst.length > 30 ? '' : ''}
+                  <span key={i} style={{ fontSize: 11, padding: '2px 8px', borderRadius: 100, background: 'white', border: '1px solid #E5E7EB', color: '#9CA3AF', maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {v.tekst.slice(0, 30)}{v.tekst.length > 30 ? '...' : ''}
                   </span>
                 ))}
                 {tmpl.vragen.length > 2 && (
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-white border border-gray-200 text-gray-400">
+                  <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 100, background: 'white', border: '1px solid #E5E7EB', color: '#9CA3AF' }}>
                     +{tmpl.vragen.length - 2} meer
                   </span>
                 )}
@@ -233,41 +246,47 @@ function NieuweSurveyForm({ bedrijfId, userId, onGemaakt }: {
             placeholder="Titel van de survey"
             value={titel}
             onChange={e => setTitel(e.target.value)}
-            className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-gray-400 mb-4"
+            style={{ width: '100%', border: '1px solid #E5E7EB', borderRadius: 12, padding: '10px 14px', fontSize: 13, outline: 'none', marginBottom: 16, boxSizing: 'border-box' }}
           />
-          <div className="flex flex-col gap-3 mb-4">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 16 }}>
             {vragen.map((v, i) => (
-              <div key={v.id} className="flex gap-2 items-start">
-                <span className="text-xs text-gray-400 mt-3 flex-shrink-0 w-4">{i + 1}.</span>
+              <div key={v.id} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <span style={{ fontSize: 12, color: '#9CA3AF', flexShrink: 0, width: 18 }}>{i + 1}.</span>
                 <input
                   type="text"
                   placeholder="Vraag..."
                   value={v.tekst}
                   onChange={e => setVragen(prev => prev.map(q => q.id === v.id ? { ...q, tekst: e.target.value } : q))}
-                  className="flex-1 border border-gray-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-gray-400"
+                  style={{ flex: 1, border: '1px solid #E5E7EB', borderRadius: 10, padding: '9px 12px', fontSize: 13, outline: 'none' }}
                 />
                 <select
                   value={v.type}
                   onChange={e => setVragen(prev => prev.map(q => q.id === v.id ? { ...q, type: e.target.value as Vraag['type'] } : q))}
-                  className="border border-gray-200 rounded-xl px-2 py-2.5 text-xs outline-none focus:border-gray-400 bg-white"
+                  style={{ border: '1px solid #E5E7EB', borderRadius: 10, padding: '9px 8px', fontSize: 12, outline: 'none', background: 'white' }}
                 >
-                  <option value="schaal">15 schaal</option>
+                  <option value="schaal">1-5 schaal</option>
                   <option value="ja_nee">Ja / Nee</option>
                   <option value="tekst">Open tekst</option>
                 </select>
                 {vragen.length > 1 && (
-                  <button onClick={() => verwijderVraag(v.id)} className="text-gray-300 hover:text-red-400 transition mt-2.5 text-xs">?</button>
+                  <button
+                    onClick={() => verwijderVraag(v.id)}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#D1D5DB', padding: 4, display: 'flex', alignItems: 'center' }}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>
+                    </svg>
+                  </button>
                 )}
               </div>
             ))}
           </div>
-          <div className="flex justify-between items-center">
-            <button onClick={voegVraagToe} className="text-xs text-gray-400 hover:text-gray-600 transition">+ Vraag toevoegen</button>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <button onClick={voegVraagToe} style={{ fontSize: 12, color: '#9CA3AF', background: 'none', border: 'none', cursor: 'pointer' }}>+ Vraag toevoegen</button>
             <button
               onClick={maakAan}
               disabled={bezig || !titel.trim() || vragen.some(v => !v.tekst.trim())}
-              className="px-5 py-2 rounded-xl text-sm text-white font-medium transition disabled:opacity-40"
-              style={{ background: 'var(--MentaForce-primary)' }}
+              style={{ padding: '9px 20px', borderRadius: 10, fontSize: 13, color: 'white', fontWeight: 600, border: 'none', cursor: 'pointer', background: '#1D9E75', opacity: (bezig || !titel.trim() || vragen.some(v => !v.tekst.trim())) ? 0.4 : 1 }}
             >
               {bezig ? 'Aanmaken...' : 'Survey aanmaken'}
             </button>
@@ -394,30 +413,33 @@ export default function SurveysPagina() {
   const actiefSurveys = surveys.filter(s => s.actief)
   const alleTabSurveys = tab === 'actief' ? actiefSurveys : surveys
 
-  // Progress: how many questions answered
   const aantalBeantwoord = activeSurvey
     ? activeSurvey.vragen.filter(v => antwoorden[v.id] !== undefined).length
     : 0
   const voortgang = activeSurvey ? aantalBeantwoord / activeSurvey.vragen.length : 0
 
   return (
-    <div className="min-h-screen" style={{ background: 'var(--bg-app)' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
       <Navbar />
-      <main className="p-6">
+      <main style={{ padding: '32px 40px 72px' }}>
 
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
           <div>
-            <h1 className="text-2xl font-medium text-gray-900">Surveys</h1>
-            <p className="text-gray-500 text-sm mt-0.5">Anonieme peilingen over welzijn op het werk.</p>
+            <h1 style={{ fontSize: 22, fontWeight: 800, color: '#111827', letterSpacing: '-0.03em', marginBottom: 2 }}>Surveys</h1>
+            <p style={{ color: '#9CA3AF', fontSize: 13 }}>Anonieme peilingen over welzijn op het werk.</p>
           </div>
           {isHR && (
             <button
               onClick={() => setNieuwTonen(v => !v)}
-              className="px-4 py-2 rounded-xl text-sm font-medium text-white transition"
-              style={{ background: nieuwTonen ? '#6b7280' : 'var(--MentaForce-primary)' }}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 6,
+                background: nieuwTonen ? '#6B7280' : '#1D9E75', color: 'white',
+                borderRadius: 12, padding: '10px 18px',
+                fontSize: 14, fontWeight: 600, border: 'none', cursor: 'pointer',
+              }}
             >
-              {nieuwTonen ? '? Sluiten' : '+ Nieuwe survey'}
+              {nieuwTonen ? 'Sluiten' : '+ Nieuwe survey'}
             </button>
           )}
         </div>
@@ -427,8 +449,16 @@ export default function SurveysPagina() {
 
         {/* Success toast */}
         {verzondSuccess && (
-          <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-gray-900 text-white text-sm px-5 py-3 rounded-2xl shadow-xl flex items-center gap-2">
-            ? Antwoord anoniem verstuurd
+          <div style={{
+            position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)', zIndex: 50,
+            background: '#111827', color: 'white', fontSize: 13, padding: '12px 20px',
+            borderRadius: 16, boxShadow: '0 8px 24px rgba(0,0,0,0.18)',
+            display: 'flex', alignItems: 'center', gap: 8,
+          }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1D9E75" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+            Antwoord anoniem verstuurd
           </div>
         )}
 
@@ -446,47 +476,47 @@ export default function SurveysPagina() {
 
         {/* Survey answering form */}
         {activeSurvey && (
-          <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden mb-6">
+          <div style={{ background: 'white', borderRadius: 20, border: '1px solid #E5E7EB', overflow: 'hidden', marginBottom: 20 }}>
             {/* Progress bar */}
-            <div className="h-1 bg-gray-100">
-              <div
-                className="h-full transition-all duration-300"
-                style={{ width: `${voortgang * 100}%`, background: 'var(--MentaForce-primary)' }}
-              />
+            <div style={{ height: 4, background: '#F3F4F6' }}>
+              <div style={{ height: '100%', width: `${voortgang * 100}%`, background: '#1D9E75', transition: 'width 0.3s' }} />
             </div>
 
-            <div className="p-6">
-              <div className="flex items-start justify-between mb-5">
+            <div style={{ padding: 24 }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 20 }}>
                 <div>
-                  <p className="text-base font-semibold text-gray-900">{activeSurvey.titel}</p>
-                  <p className="text-xs text-gray-400 mt-0.5">{aantalBeantwoord}/{activeSurvey.vragen.length} vragen beantwoord</p>
+                  <p style={{ fontSize: 15, fontWeight: 700, color: '#111827' }}>{activeSurvey.titel}</p>
+                  <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2 }}>{aantalBeantwoord}/{activeSurvey.vragen.length} vragen beantwoord</p>
                 </div>
                 <button
                   onClick={() => { setActiveSurveyId(null); setAntwoorden({}) }}
-                  className="text-xs text-gray-400 hover:text-gray-600 p-1.5"
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', padding: 6, display: 'flex', alignItems: 'center' }}
                 >
-                  ?
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                  </svg>
                 </button>
               </div>
 
-              <div className="flex flex-col gap-6">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
                 {activeSurvey.vragen.map((v, idx) => (
                   <div key={v.id}>
-                    <div className="flex items-start gap-2 mb-3">
-                      <span className="text-xs font-semibold text-gray-400 mt-0.5 w-5 flex-shrink-0">{idx + 1}</span>
-                      <p className="text-sm font-medium text-gray-800">{v.tekst}</p>
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 12 }}>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: '#9CA3AF', marginTop: 2, width: 20, flexShrink: 0 }}>{idx + 1}</span>
+                      <p style={{ fontSize: 14, fontWeight: 600, color: '#1F2937' }}>{v.tekst}</p>
                     </div>
                     {v.type === 'schaal' && (
-                      <div className="flex gap-2 pl-7">
+                      <div style={{ display: 'flex', gap: 8, paddingLeft: 28 }}>
                         {[1, 2, 3, 4, 5].map(n => (
                           <button
                             key={n}
                             onClick={() => setAntwoorden(prev => ({ ...prev, [v.id]: n }))}
-                            className="flex-1 py-3 rounded-xl text-sm font-semibold border-2 transition"
                             style={{
-                              background: antwoorden[v.id] === n ? 'var(--MentaForce-primary)' : 'transparent',
-                              borderColor: antwoorden[v.id] === n ? 'var(--MentaForce-primary)' : '#e5e7eb',
+                              flex: 1, padding: '12px 0', borderRadius: 12, fontSize: 14, fontWeight: 700,
+                              border: `2px solid ${antwoorden[v.id] === n ? '#1D9E75' : '#E5E7EB'}`,
+                              background: antwoorden[v.id] === n ? '#1D9E75' : 'transparent',
                               color: antwoorden[v.id] === n ? 'white' : '#374151',
+                              cursor: 'pointer',
                             }}
                           >
                             {n}
@@ -495,19 +525,20 @@ export default function SurveysPagina() {
                       </div>
                     )}
                     {v.type === 'ja_nee' && (
-                      <div className="flex gap-3 pl-7">
+                      <div style={{ display: 'flex', gap: 12, paddingLeft: 28 }}>
                         {([true, false] as const).map(b => (
                           <button
                             key={String(b)}
                             onClick={() => setAntwoorden(prev => ({ ...prev, [v.id]: b }))}
-                            className="flex-1 py-3 rounded-xl text-sm font-medium border-2 transition"
                             style={{
-                              background: antwoorden[v.id] === b ? 'var(--MentaForce-primary)' : 'transparent',
-                              borderColor: antwoorden[v.id] === b ? 'var(--MentaForce-primary)' : '#e5e7eb',
+                              flex: 1, padding: '12px 0', borderRadius: 12, fontSize: 14, fontWeight: 600,
+                              border: `2px solid ${antwoorden[v.id] === b ? '#1D9E75' : '#E5E7EB'}`,
+                              background: antwoorden[v.id] === b ? '#1D9E75' : 'transparent',
                               color: antwoorden[v.id] === b ? 'white' : '#374151',
+                              cursor: 'pointer',
                             }}
                           >
-                            {b ? '? Ja' : '? Nee'}
+                            {b ? 'Ja' : 'Nee'}
                           </button>
                         ))}
                       </div>
@@ -518,27 +549,26 @@ export default function SurveysPagina() {
                         value={(antwoorden[v.id] as string) ?? ''}
                         onChange={e => setAntwoorden(prev => ({ ...prev, [v.id]: e.target.value }))}
                         placeholder="Jouw antwoord (optioneel)..."
-                        className="w-full ml-7 border border-gray-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-gray-400 resize-none"
-                        style={{ width: 'calc(100% - 1.75rem)' }}
+                        style={{ width: 'calc(100% - 28px)', marginLeft: 28, border: '1px solid #E5E7EB', borderRadius: 12, padding: '10px 14px', fontSize: 13, outline: 'none', resize: 'none' }}
                       />
                     )}
                   </div>
                 ))}
               </div>
 
-              <div className="mt-6 space-y-3">
+              <div style={{ marginTop: 24 }}>
                 <button
                   onClick={() => verstuurAntwoord(activeSurvey.id)}
-                  disabled={
-                    verzenden ||
-                    activeSurvey.vragen.some(v => v.type !== 'tekst' && antwoorden[v.id] === undefined)
-                  }
-                  className="w-full py-3.5 rounded-xl text-white text-sm font-medium transition disabled:opacity-40"
-                  style={{ background: 'var(--MentaForce-primary)' }}
+                  disabled={verzenden || activeSurvey.vragen.some(v => v.type !== 'tekst' && antwoorden[v.id] === undefined)}
+                  style={{
+                    width: '100%', padding: '14px 0', borderRadius: 12, fontSize: 14, fontWeight: 600,
+                    color: 'white', border: 'none', cursor: 'pointer', background: '#1D9E75',
+                    opacity: (verzenden || activeSurvey.vragen.some(v => v.type !== 'tekst' && antwoorden[v.id] === undefined)) ? 0.4 : 1,
+                  }}
                 >
-                  {verzenden ? 'Versturen...' : '?? Verstuur anoniem'}
+                  {verzenden ? 'Versturen...' : 'Verstuur anoniem'}
                 </button>
-                <p className="text-xs text-center text-gray-400">
+                <p style={{ fontSize: 11, textAlign: 'center', color: '#9CA3AF', marginTop: 8 }}>
                   Jouw naam wordt nooit gedeeld. Antwoorden zijn 100% anoniem.
                 </p>
               </div>
@@ -548,93 +578,103 @@ export default function SurveysPagina() {
 
         {/* HR tabs */}
         {isHR && (
-          <div className="flex gap-1 bg-gray-100 rounded-xl p-1 mb-4 w-fit">
+          <div style={{ display: 'flex', gap: 4, background: '#F3F4F6', borderRadius: 12, padding: 4, width: 'fit-content', marginBottom: 16 }}>
             {(['actief', 'resultaten'] as const).map(t => (
               <button
                 key={t}
                 onClick={() => setTab(t)}
-                className="px-4 py-2 rounded-lg text-sm transition"
                 style={{
+                  padding: '8px 16px', borderRadius: 8, fontSize: 13, border: 'none', cursor: 'pointer',
                   background: tab === t ? 'white' : 'transparent',
-                  color: tab === t ? '#111' : '#888',
-                  fontWeight: tab === t ? 500 : 400,
+                  color: tab === t ? '#111827' : '#9CA3AF',
+                  fontWeight: tab === t ? 600 : 400,
                   boxShadow: tab === t ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
                 }}
               >
-                {t === 'actief' ? 'Actieve surveys' : `Resultaten`}
+                {t === 'actief' ? 'Actieve surveys' : 'Resultaten'}
               </button>
             ))}
           </div>
         )}
 
         {laden ? (
-          <div className="flex justify-center py-10">
-            <div className="w-7 h-7 rounded-full border-2 border-gray-200 animate-spin"
-              style={{ borderTopColor: 'var(--MentaForce-primary)' }} />
+          <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 60 }}>
+            <div className="mf-spinner" />
           </div>
         ) : alleTabSurveys.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-gray-200 p-10 text-center">
-            <p className="text-3xl mb-3">??</p>
-            <p className="text-gray-500 text-sm">
+          <div style={{ background: 'white', borderRadius: 20, border: '1px solid #E5E7EB', padding: '56px 40px', textAlign: 'center' }}>
+            <div style={{ width: 56, height: 56, borderRadius: 16, background: '#F3F4F6', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', color: '#9CA3AF' }}>
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
+                <rect x="9" y="3" width="6" height="4" rx="1" ry="1"/>
+                <line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/>
+              </svg>
+            </div>
+            <p style={{ fontSize: 15, fontWeight: 600, color: '#374151', marginBottom: 4 }}>Geen surveys</p>
+            <p style={{ fontSize: 13, color: '#9CA3AF' }}>
               {isHR ? 'Nog geen surveys aangemaakt.' : 'Geen actieve surveys op dit moment.'}
             </p>
           </div>
         ) : (
-          <div className="flex flex-col gap-4">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {alleTabSurveys.map(s => {
               const res = resultaten[s.id]
               const alBeantwoord = beantwoord.has(s.id)
               const geschatteMinuten = Math.ceil(s.vragen.length / 3)
 
               return (
-                <div key={s.id} className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
-                  <div className="p-5">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-gray-900">{s.titel}</p>
-                        <div className="flex items-center gap-2 mt-1 flex-wrap">
-                          <span className="text-xs text-gray-400">
+                <div key={s.id} style={{ background: 'white', borderRadius: 16, border: '1px solid #E5E7EB', overflow: 'hidden' }}>
+                  <div style={{ padding: '18px 20px' }}>
+                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <p style={{ fontSize: 14, fontWeight: 700, color: '#111827' }}>{s.titel}</p>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4, flexWrap: 'wrap' }}>
+                          <span style={{ fontSize: 12, color: '#9CA3AF' }}>
                             {s.vragen.length} vra{s.vragen.length !== 1 ? 'gen' : 'ag'}
                           </span>
-                          <span className="text-gray-200">·</span>
-                          <span className="text-xs text-gray-400">±{geschatteMinuten} min</span>
-                          <span className="text-gray-200">·</span>
-                          <span className="text-xs text-gray-400">
+                          <span style={{ color: '#E5E7EB' }}>·</span>
+                          <span style={{ fontSize: 12, color: '#9CA3AF' }}>±{geschatteMinuten} min</span>
+                          <span style={{ color: '#E5E7EB' }}>·</span>
+                          <span style={{ fontSize: 12, color: '#9CA3AF' }}>
                             {new Date(s.aangemaakt_op).toLocaleDateString('nl-BE')}
                           </span>
-                          <span className="text-xs font-medium px-2 py-0.5 rounded-full"
-                            style={{ background: '#E6F1FB', color: '#185FA5' }}>
-                            ?? Anoniem
+                          <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 100, background: '#E6F1FB', color: '#185FA5', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                            </svg>
+                            Anoniem
                           </span>
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-2 flex-shrink-0">
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
                         {isHR && (
                           <button
                             onClick={() => toggleActief(s.id, s.actief)}
-                            className="text-xs px-2.5 py-1 rounded-lg border transition"
                             style={{
+                              fontSize: 12, padding: '5px 10px', borderRadius: 8, border: '1px solid', cursor: 'pointer',
                               background: s.actief ? '#E1F5EE' : '#F3F4F6',
-                              borderColor: s.actief ? '#1D9E75' : '#e5e7eb',
-                              color: s.actief ? '#0F6E56' : '#6b7280',
+                              borderColor: s.actief ? '#1D9E75' : '#E5E7EB',
+                              color: s.actief ? '#0F6E56' : '#6B7280',
                             }}
                           >
-                            {s.actief ? '? Actief' : '? Inactief'}
+                            {s.actief ? 'Actief' : 'Inactief'}
                           </button>
                         )}
                         {!isHR && s.actief && !alBeantwoord && (
                           <button
                             onClick={() => { setActiveSurveyId(s.id); setAntwoorden({}) }}
-                            className="text-xs px-3.5 py-2 rounded-xl text-white font-medium transition"
-                            style={{ background: 'var(--MentaForce-primary)' }}
+                            style={{ fontSize: 13, padding: '8px 16px', borderRadius: 10, color: 'white', fontWeight: 600, border: 'none', cursor: 'pointer', background: '#1D9E75' }}
                           >
                             Invullen
                           </button>
                         )}
                         {!isHR && alBeantwoord && (
-                          <span className="text-xs text-green-600 font-medium flex items-center gap-1">
-                            ? Ingevuld
+                          <span style={{ fontSize: 12, color: '#1D9E75', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                              <polyline points="20 6 9 17 4 12"/>
+                            </svg>
+                            Ingevuld
                           </span>
                         )}
                       </div>
@@ -642,67 +682,58 @@ export default function SurveysPagina() {
 
                     {/* HR results */}
                     {isHR && tab === 'resultaten' && (
-                      <div className="border-t border-gray-100 pt-4 mt-4">
+                      <div style={{ borderTop: '1px solid #F3F4F6', paddingTop: 16, marginTop: 16 }}>
                         {!res ? (
-                          <p className="text-xs text-gray-400">Nog geen antwoorden.</p>
+                          <p style={{ fontSize: 12, color: '#9CA3AF' }}>Nog geen antwoorden.</p>
                         ) : res.count < 3 ? (
-                          <div className="flex items-center gap-2 text-xs text-amber-600 bg-amber-50 px-3 py-2 rounded-xl">
-                            <span>???</span>
-                            <span>Resultaten worden verborgen totdat er minimaal 3 reacties zijn ({res.count}/3).</span>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#92400E', background: '#FFFBEB', padding: '10px 14px', borderRadius: 10 }}>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                              <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                            </svg>
+                            Resultaten worden verborgen totdat er minimaal 3 reacties zijn ({res.count}/3).
                           </div>
                         ) : (
                           <>
-                            <p className="text-xs font-medium text-gray-500 mb-3">
+                            <p style={{ fontSize: 12, fontWeight: 600, color: '#9CA3AF', marginBottom: 12 }}>
                               {res.count} respons{res.count !== 1 ? 'en' : ''}
                             </p>
-                            <div className="flex flex-col gap-4">
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                               {s.vragen.map(v => (
                                 <div key={v.id}>
-                                  <p className="text-xs font-medium text-gray-700 mb-2">{v.tekst}</p>
+                                  <p style={{ fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 8 }}>{v.tekst}</p>
                                   {v.type === 'schaal' && res.schaalGems[v.id] !== undefined && (
-                                    <div className="flex items-center gap-3">
-                                      <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-                                        <div
-                                          className="h-full rounded-full transition-all"
-                                          style={{
-                                            width: `${(res.schaalGems[v.id] / 5) * 100}%`,
-                                            background: schaalKleur(res.schaalGems[v.id]),
-                                          }}
-                                        />
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                                      <div style={{ flex: 1, height: 8, background: '#F3F4F6', borderRadius: 100, overflow: 'hidden' }}>
+                                        <div style={{ height: '100%', borderRadius: 100, width: `${(res.schaalGems[v.id] / 5) * 100}%`, background: schaalKleur(res.schaalGems[v.id]) }} />
                                       </div>
-                                      <span
-                                        className="text-sm font-bold w-10 text-right"
-                                        style={{ color: schaalKleur(res.schaalGems[v.id]) }}
-                                      >
+                                      <span style={{ fontSize: 13, fontWeight: 700, color: schaalKleur(res.schaalGems[v.id]), width: 40, textAlign: 'right' }}>
                                         {res.schaalGems[v.id]}/5
                                       </span>
                                     </div>
                                   )}
                                   {v.type === 'ja_nee' && res.jaCount[v.id] !== undefined && (
-                                    <div className="flex items-center gap-3">
-                                      <div className="flex gap-2 w-full">
-                                        {[
-                                          { label: 'Ja', count: res.jaCount[v.id], kleur: '#1D9E75', bg: '#E1F5EE' },
-                                          { label: 'Nee', count: res.count - res.jaCount[v.id], kleur: '#E24B4A', bg: '#FCEBEB' },
-                                        ].map(item => (
-                                          <div key={item.label} className="flex-1 rounded-xl p-2.5 text-center"
-                                            style={{ background: item.bg }}>
-                                            <p className="text-lg font-bold" style={{ color: item.kleur }}>{item.count}</p>
-                                            <p className="text-xs" style={{ color: item.kleur }}>{item.label}</p>
-                                          </div>
-                                        ))}
-                                      </div>
+                                    <div style={{ display: 'flex', gap: 10 }}>
+                                      {[
+                                        { label: 'Ja', count: res.jaCount[v.id], kleur: '#1D9E75', bg: '#E1F5EE' },
+                                        { label: 'Nee', count: res.count - res.jaCount[v.id], kleur: '#E24B4A', bg: '#FCEBEB' },
+                                      ].map(item => (
+                                        <div key={item.label} style={{ flex: 1, borderRadius: 12, padding: '10px 0', textAlign: 'center', background: item.bg }}>
+                                          <p style={{ fontSize: 18, fontWeight: 800, color: item.kleur }}>{item.count}</p>
+                                          <p style={{ fontSize: 11, color: item.kleur }}>{item.label}</p>
+                                        </div>
+                                      ))}
                                     </div>
                                   )}
                                   {v.type === 'tekst' && res.teksten[v.id] && (
-                                    <div className="flex flex-col gap-1.5">
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                                       {res.teksten[v.id].slice(0, 4).map((t, i) => (
-                                        <p key={i} className="text-xs text-gray-600 italic bg-gray-50 px-3 py-2 rounded-lg">
+                                        <p key={i} style={{ fontSize: 12, color: '#4B5563', fontStyle: 'italic', background: '#F9FAFB', padding: '8px 12px', borderRadius: 8 }}>
                                           "{t}"
                                         </p>
                                       ))}
                                       {res.teksten[v.id].length > 4 && (
-                                        <p className="text-xs text-gray-400">+{res.teksten[v.id].length - 4} meer reacties</p>
+                                        <p style={{ fontSize: 11, color: '#9CA3AF' }}>+{res.teksten[v.id].length - 4} meer reacties</p>
                                       )}
                                     </div>
                                   )}
@@ -722,10 +753,17 @@ export default function SurveysPagina() {
 
         {/* Empty state employee */}
         {!isHR && actiefSurveys.length === 0 && !laden && (
-          <div className="bg-white rounded-2xl border border-gray-200 p-10 text-center mt-4">
-            <p className="text-3xl mb-3">??</p>
-            <p className="text-gray-500 text-sm">Geen actieve surveys op dit moment.</p>
-            <p className="text-gray-400 text-xs mt-1">Je HR-team stuurt surveys wanneer ze inzichten nodig hebben.</p>
+          <div style={{ background: 'white', borderRadius: 20, border: '1px solid #E5E7EB', padding: '56px 40px', textAlign: 'center', marginTop: 16 }}>
+            <div style={{ width: 56, height: 56, borderRadius: 16, background: '#F3F4F6', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', color: '#9CA3AF' }}>
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
+                <rect x="9" y="3" width="6" height="4" rx="1" ry="1"/>
+                <line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/>
+              </svg>
+            </div>
+            <p style={{ fontSize: 15, fontWeight: 600, color: '#374151', marginBottom: 4 }}>Geen actieve surveys</p>
+            <p style={{ fontSize: 13, color: '#9CA3AF', marginBottom: 2 }}>Geen actieve surveys op dit moment.</p>
+            <p style={{ fontSize: 12, color: '#9CA3AF' }}>Je HR-team stuurt surveys wanneer ze inzichten nodig hebben.</p>
           </div>
         )}
 

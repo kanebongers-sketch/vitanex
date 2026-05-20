@@ -100,7 +100,7 @@ export default function CoachPagina() {
     <div className="min-h-screen" style={{ background: 'var(--bg-app)' }}>
       <Navbar />
       <main className="flex justify-center mt-20">
-        <div className="w-7 h-7 rounded-full border-2 border-gray-200 animate-spin" style={{ borderTopColor: 'var(--MentaForce-primary)' }} />
+        <div className="w-7 h-7 rounded-full border-2 border-gray-200 animate-spin" style={{ borderTopColor: 'var(--mentaforce-primary)' }} />
       </main>
     </div>
   )
@@ -114,7 +114,7 @@ export default function CoachPagina() {
         <div className="px-5 py-4 border-b border-gray-200 bg-white flex items-center gap-3 flex-shrink-0">
           <div
             className="w-11 h-11 rounded-full flex items-center justify-center text-xl flex-shrink-0"
-            style={{ background: 'var(--MentaForce-primary-light)', color: 'var(--MentaForce-primary)' }}
+            style={{ background: 'var(--mentaforce-primary-light)', color: 'var(--mentaforce-primary)' }}
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.44-4.24z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.44-4.24z"/></svg>
           </div>
@@ -135,7 +135,7 @@ export default function CoachPagina() {
               {b.role === 'assistant' && (
                 <div
                   className="w-8 h-8 rounded-full flex items-center justify-center text-sm flex-shrink-0 mt-0.5"
-                  style={{ background: 'var(--MentaForce-primary-light)', color: 'var(--MentaForce-primary)' }}
+                  style={{ background: 'var(--mentaforce-primary-light)', color: 'var(--mentaforce-primary)' }}
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.44-4.24z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.44-4.24z"/></svg>
                 </div>
@@ -143,7 +143,7 @@ export default function CoachPagina() {
               <div
                 className="max-w-[78%] px-4 py-3 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap"
                 style={{
-                  background: b.role === 'user' ? 'var(--MentaForce-primary)' : 'white',
+                  background: b.role === 'user' ? 'var(--mentaforce-primary)' : 'white',
                   color: b.role === 'user' ? 'white' : '#1f2937',
                   boxShadow: b.role === 'assistant' ? '0 1px 3px rgba(0,0,0,0.07)' : 'none',
                   borderRadius: b.role === 'user' ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
@@ -158,7 +158,7 @@ export default function CoachPagina() {
           {laden && (
             <div className="flex justify-start gap-2.5">
               <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm flex-shrink-0"
-                style={{ background: 'var(--MentaForce-primary-light)', color: 'var(--MentaForce-primary)' }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.44-4.24z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.44-4.24z"/></svg></div>
+                style={{ background: 'var(--mentaforce-primary-light)', color: 'var(--mentaforce-primary)' }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.44-4.24z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.44-4.24z"/></svg></div>
               <div className="bg-white px-4 py-3 rounded-2xl shadow-sm" style={{ borderRadius: '18px 18px 18px 4px' }}>
                 <div className="flex items-center gap-1">
                   <div className="w-2 h-2 rounded-full bg-gray-300 animate-bounce" style={{ animationDelay: '0ms' }} />
@@ -219,7 +219,7 @@ export default function CoachPagina() {
               onClick={() => verstuur()}
               disabled={!input.trim() || laden}
               className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition disabled:opacity-30"
-              style={{ background: input.trim() && !laden ? 'var(--MentaForce-primary)' : '#e5e7eb' }}
+              style={{ background: input.trim() && !laden ? 'var(--mentaforce-primary)' : '#e5e7eb' }}
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
                 stroke={input.trim() && !laden ? 'white' : '#9ca3af'}

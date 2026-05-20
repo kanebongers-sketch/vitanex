@@ -340,7 +340,7 @@ export default function Instellingen() {
                     onClick={() => setActiveSectie(s.id)}
                     className={`w-full flex items-center gap-3 px-4 py-3.5 text-left transition ${i < SECTIES.length - 1 ? 'border-b border-gray-50' : ''}`}
                     style={{
-                      background: activeSectie === s.id ? 'var(--MentaForce-primary-light)' : 'transparent',
+                      background: activeSectie === s.id ? 'var(--mentaforce-primary-light)' : 'transparent',
                       color: activeSectie === s.id ? 'var(--mentaforce-primary)' : s.id === 'gevaar' ? '#E24B4A' : '#374151',
                     }}
                   >
@@ -767,7 +767,7 @@ export default function Instellingen() {
                         <button key={l.value} onClick={() => setTaal(l.value)}
                           className="p-3 rounded-xl border text-left transition"
                           style={{
-                            background: taal === l.value ? 'var(--MentaForce-primary-light)' : 'transparent',
+                            background: taal === l.value ? 'var(--mentaforce-primary-light)' : 'transparent',
                             borderColor: taal === l.value ? 'var(--mentaforce-primary)' : '#e5e7eb',
                           }}>
                           <p className="text-sm font-medium text-gray-800">{l.label}</p>

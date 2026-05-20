@@ -562,9 +562,9 @@ export default function FocusPagina() {
                     disabled={ademActief}
                     className="py-2.5 px-3 rounded-xl text-xs font-medium border transition text-left"
                     style={{
-                      background: ademTab === k ? 'var(--MentaForce-primary-light)' : '#FAFAFA',
-                      borderColor: ademTab === k ? 'var(--MentaForce-primary)' : '#e5e7eb',
-                      color: ademTab === k ? 'var(--MentaForce-primary)' : '#6b7280',
+                      background: ademTab === k ? 'var(--mentaforce-primary-light)' : '#FAFAFA',
+                      borderColor: ademTab === k ? 'var(--mentaforce-primary)' : '#e5e7eb',
+                      color: ademTab === k ? 'var(--mentaforce-primary)' : '#6b7280',
                       opacity: ademActief && ademTab !== k ? 0.4 : 1,
                     }}
                   >
@@ -623,7 +623,7 @@ export default function FocusPagina() {
               <button
                 onClick={() => ademActief ? stopAdem() : setAdemActief(true)}
                 className="w-full py-3.5 rounded-xl text-white font-semibold text-sm transition"
-                style={{ background: ademActief ? '#E24B4A' : 'var(--MentaForce-primary)' }}
+                style={{ background: ademActief ? '#E24B4A' : 'var(--mentaforce-primary)' }}
               >
                 {ademActief ? (<><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg><span>Stop</span></>) : (<><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg><span>Start ademhaling</span></>)}
               </button>
@@ -638,7 +638,7 @@ export default function FocusPagina() {
                 { when: 'Mentale vermoeidheid overdag', use: 'Hartcoherentie', reden: 'Herstelt energiebalans bij langdurige stress' },
               ].map(r => (
                 <div key={r.when} className="flex gap-3 py-3 border-b border-gray-50 last:border-0">
-                  <div className="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0" style={{ background: 'var(--MentaForce-primary)' }} />
+                  <div className="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0" style={{ background: 'var(--mentaforce-primary)' }} />
                   <div>
                     <p className="text-xs text-gray-400 mb-0.5">{r.when}</p>
                     <p className="text-sm font-semibold text-gray-800">{r.use}</p>
@@ -697,7 +697,7 @@ export default function FocusPagina() {
                         {oe.stappen.map((s, i) => (
                           <li key={i} className="flex gap-3 items-start">
                             <span className="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5"
-                              style={{ background: 'var(--MentaForce-primary-light)', color: 'var(--MentaForce-primary)' }}>
+                              style={{ background: 'var(--mentaforce-primary-light)', color: 'var(--mentaforce-primary)' }}>
                               {i + 1}
                             </span>
                             <p className="text-sm text-gray-700">{s}</p>
@@ -932,9 +932,9 @@ export default function FocusPagina() {
                   onClick={() => wisselTimerTab(k)}
                   className="flex-1 py-3 rounded-xl text-xs font-medium border transition flex flex-col items-center gap-1"
                   style={{
-                    background: timerTab === k ? 'var(--MentaForce-primary-light)' : 'white',
-                    borderColor: timerTab === k ? 'var(--MentaForce-primary)' : '#e5e7eb',
-                    color: timerTab === k ? 'var(--MentaForce-primary)' : '#6b7280',
+                    background: timerTab === k ? 'var(--mentaforce-primary-light)' : 'white',
+                    borderColor: timerTab === k ? 'var(--mentaforce-primary)' : '#e5e7eb',
+                    color: timerTab === k ? 'var(--mentaforce-primary)' : '#6b7280',
                   }}
                 >
                   <span className="text-xs font-bold opacity-60">{TIMERS[k].afk}</span>

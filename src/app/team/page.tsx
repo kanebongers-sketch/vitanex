@@ -238,7 +238,7 @@ export default function Team() {
         <div className="bg-white rounded-2xl border border-gray-200 p-6">
           {bezig ? (
             <div className="flex justify-center py-4">
-              <div className="w-6 h-6 rounded-full border-2 border-gray-200 animate-spin" style={{ borderTopColor: 'var(--MentaForce-primary)' }} />
+              <div className="w-6 h-6 rounded-full border-2 border-gray-200 animate-spin" style={{ borderTopColor: 'var(--mentaforce-primary)' }} />
             </div>
           ) : actieveTab === 'leden' ? (
             <>

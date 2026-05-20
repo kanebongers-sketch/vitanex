@@ -15,11 +15,11 @@ type Entry = {
 }
 
 const STEMMINGEN = [
-  { waarde: 1, emoji: '??', label: 'Slecht' },
-  { waarde: 2, emoji: '??', label: 'Matig' },
-  { waarde: 3, emoji: '??', label: 'Oké' },
-  { waarde: 4, emoji: '??', label: 'Goed' },
-  { waarde: 5, emoji: '??', label: 'Super' },
+  { waarde: 1, kleur: '#E24B4A', bg: '#FCEBEB', label: 'Slecht' },
+  { waarde: 2, kleur: '#B45309', bg: '#FEF3C7', label: 'Matig' },
+  { waarde: 3, kleur: '#6B7280', bg: '#F3F4F6', label: 'Oké' },
+  { waarde: 4, kleur: '#1D9E75', bg: '#E1F5EE', label: 'Goed' },
+  { waarde: 5, kleur: '#8B5CF6', bg: '#EEEDFE', label: 'Super' },
 ]
 
 const PROMPTS = [
@@ -33,8 +33,23 @@ const PROMPTS = [
 
 function formatDatum(iso: string) {
   return new Date(iso).toLocaleDateString('nl-BE', {
-    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+    weekday: 'long', day: 'numeric', month: 'long',
   })
+}
+
+function StemmingDot({ waarde, size = 10 }: { waarde: number; size?: number }) {
+  const s = STEMMINGEN.find(m => m.waarde === waarde)
+  if (!s) return null
+  return (
+    <span style={{
+      display: 'inline-flex', alignItems: 'center', gap: 5,
+      fontSize: 11, fontWeight: 600, color: s.kleur,
+      background: s.bg, borderRadius: 100, padding: '2px 9px',
+    }}>
+      <span style={{ width: size, height: size, borderRadius: '50%', background: s.kleur, display: 'inline-block', flexShrink: 0 }} />
+      {s.label}
+    </span>
+  )
 }
 
 export default function JournalPagina() {
@@ -53,14 +68,12 @@ export default function JournalPagina() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/login'); return }
       setUserId(user.id)
-
       const { data } = await supabase
         .from('journal_entries')
         .select('id, inhoud, stemming, aangemaakt_op')
         .eq('user_id', user.id)
         .order('aangemaakt_op', { ascending: false })
         .limit(50)
-
       setEntries(data || [])
       setLaden(false)
     }
@@ -70,13 +83,11 @@ export default function JournalPagina() {
   async function slaOp() {
     if (!tekst.trim() || !userId) return
     setOpslaan(true)
-
     const { data, error } = await supabase
       .from('journal_entries')
       .insert({ user_id: userId, inhoud: tekst.trim(), stemming })
       .select('id, inhoud, stemming, aangemaakt_op')
       .single()
-
     if (!error && data) {
       setEntries(prev => [data, ...prev])
       setTekst('')
@@ -87,60 +98,75 @@ export default function JournalPagina() {
   }
 
   async function verwijder(id: string) {
+    if (!confirm('Aantekening verwijderen?')) return
     const { error } = await supabase.from('journal_entries').delete().eq('id', id)
     if (!error) setEntries(prev => prev.filter(e => e.id !== id))
   }
 
   return (
-    <div className="min-h-screen" style={{ background: 'var(--bg-app)' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
       <Navbar />
-      <main className="p-6">
+      <main style={{ padding: '32px 40px 72px' }}>
 
-        <div className="flex items-center justify-between mb-6">
+        {/* Header */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
           <div>
-            <h1 className="text-2xl font-medium text-gray-900">Gedachten dump</h1>
-            <p className="text-gray-500 text-sm mt-0.5">Schrijf vrij  alleen zichtbaar voor jou.</p>
+            <h1 style={{ fontSize: 22, fontWeight: 800, color: '#111827', letterSpacing: '-0.03em', marginBottom: 2 }}>Journal</h1>
+            <p style={{ color: '#9CA3AF', fontSize: 13 }}>Schrijf vrij — alleen zichtbaar voor jou.</p>
           </div>
-          <button
-            onClick={() => setNieuwTonen(true)}
-            className="px-4 py-2 rounded-xl text-sm font-medium text-white transition"
-            style={{ background: 'var(--MentaForce-primary)' }}
-          >
-            + Nieuw
-          </button>
+          {!nieuwTonen && (
+            <button
+              onClick={() => setNieuwTonen(true)}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 6,
+                background: '#1D9E75', color: 'white',
+                borderRadius: 12, padding: '10px 18px',
+                fontSize: 14, fontWeight: 600, border: 'none', cursor: 'pointer',
+              }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Nieuwe aantekening
+            </button>
+          )}
         </div>
 
         {/* Nieuw entry form */}
         {nieuwTonen && (
-          <div className="bg-white rounded-2xl border border-gray-200 p-6 mb-6">
-            <p className="text-sm font-medium text-gray-700 mb-3">Nieuwe aantekening</p>
+          <div style={{ background: 'white', borderRadius: 20, border: '1px solid #E5E7EB', padding: '24px', marginBottom: 20 }}>
 
-            {/* Mood picker */}
-            <div className="flex items-center gap-1 mb-4">
-              <span className="text-xs text-gray-400 mr-2">Stemming:</span>
-              {STEMMINGEN.map(s => (
-                <button
-                  key={s.waarde}
-                  onClick={() => setStemming(stemming === s.waarde ? null : s.waarde)}
-                  title={s.label}
-                  className="text-xl transition-all"
-                  style={{
-                    opacity: stemming !== null && stemming !== s.waarde ? 0.3 : 1,
-                    transform: stemming === s.waarde ? 'scale(1.3)' : 'scale(1)',
-                  }}
-                >
-                  {s.emoji}
-                </button>
-              ))}
+            {/* Stemming picker */}
+            <p style={{ fontSize: 12, fontWeight: 600, color: '#9CA3AF', marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Hoe voel je je?</p>
+            <div style={{ display: 'flex', gap: 8, marginBottom: 18 }}>
+              {STEMMINGEN.map(s => {
+                const actief = stemming === s.waarde
+                return (
+                  <button
+                    key={s.waarde}
+                    onClick={() => setStemming(actief ? null : s.waarde)}
+                    style={{
+                      padding: '7px 14px', borderRadius: 100, border: `2px solid ${actief ? s.kleur : '#E5E7EB'}`,
+                      background: actief ? s.bg : 'white', cursor: 'pointer',
+                      fontSize: 12, fontWeight: 700, color: actief ? s.kleur : '#9CA3AF',
+                      transition: 'all 0.15s',
+                    }}
+                  >
+                    {s.label}
+                  </button>
+                )
+              })}
             </div>
 
-            {/* Prompt suggestions */}
-            <div className="flex flex-wrap gap-2 mb-3">
+            {/* Prompt chips */}
+            <p style={{ fontSize: 12, fontWeight: 600, color: '#9CA3AF', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Schrijftip</p>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 14 }}>
               {PROMPTS.map(p => (
                 <button
                   key={p}
                   onClick={() => setTekst(prev => prev ? `${prev}\n\n${p}\n` : `${p}\n`)}
-                  className="text-xs border border-gray-200 rounded-lg px-2.5 py-1 text-gray-500 hover:bg-gray-50 transition"
+                  style={{
+                    fontSize: 12, border: '1px solid #E5E7EB', borderRadius: 8,
+                    padding: '5px 12px', color: '#6B7280', background: 'white', cursor: 'pointer',
+                  }}
                 >
                   {p}
                 </button>
@@ -153,21 +179,29 @@ export default function JournalPagina() {
               value={tekst}
               onChange={e => setTekst(e.target.value)}
               placeholder="Begin te schrijven..."
-              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none resize-none focus:border-gray-400 leading-relaxed"
+              style={{
+                width: '100%', border: '1px solid #E5E7EB', borderRadius: 12,
+                padding: '12px 16px', fontSize: 14, outline: 'none', resize: 'none',
+                lineHeight: 1.7, boxSizing: 'border-box', color: '#374151',
+              }}
             />
 
-            <div className="flex justify-end gap-2 mt-3">
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 12 }}>
               <button
                 onClick={() => { setNieuwTonen(false); setTekst(''); setStemming(null) }}
-                className="text-sm border border-gray-200 rounded-xl px-4 py-2 text-gray-500 hover:bg-gray-50 transition"
+                style={{ fontSize: 13, border: '1px solid #E5E7EB', borderRadius: 10, padding: '9px 16px', color: '#6B7280', background: 'white', cursor: 'pointer' }}
               >
                 Annuleer
               </button>
               <button
                 onClick={slaOp}
                 disabled={!tekst.trim() || opslaan}
-                className="text-sm rounded-xl px-4 py-2 text-white font-medium transition disabled:opacity-40"
-                style={{ background: 'var(--MentaForce-primary)' }}
+                style={{
+                  fontSize: 13, borderRadius: 10, padding: '9px 18px',
+                  color: 'white', fontWeight: 600, border: 'none', cursor: 'pointer',
+                  background: tekst.trim() ? '#1D9E75' : '#D1D5DB',
+                  opacity: opslaan ? 0.7 : 1,
+                }}
               >
                 {opslaan ? 'Opslaan...' : 'Opslaan'}
               </button>
@@ -177,44 +211,56 @@ export default function JournalPagina() {
 
         {/* Entries */}
         {laden ? (
-          <div className="flex justify-center py-12">
-            <div className="w-7 h-7 rounded-full border-2 border-gray-200 animate-spin" style={{ borderTopColor: 'var(--MentaForce-primary)' }} />
+          <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 60 }}>
+            <div className="mf-spinner" />
           </div>
         ) : entries.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-gray-200 p-12 text-center">
-            <p className="text-4xl mb-3">??</p>
-            <p className="text-gray-700 font-medium mb-1">Nog geen aantekeningen</p>
-            <p className="text-gray-400 text-sm">Schrijf je eerste gedachten neer. Het helpt echt.</p>
+          <div style={{
+            background: 'white', borderRadius: 20, border: '1px solid #E5E7EB',
+            padding: '56px 40px', textAlign: 'center',
+          }}>
+            <div style={{ width: 56, height: 56, borderRadius: 16, background: '#F3F4F6', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', color: '#9CA3AF' }}>
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+            </div>
+            <p style={{ fontSize: 15, fontWeight: 600, color: '#374151', marginBottom: 6 }}>Nog geen aantekeningen</p>
+            <p style={{ fontSize: 13, color: '#9CA3AF', marginBottom: 20 }}>Schrijf je eerste gedachten neer. Het helpt echt.</p>
+            <button
+              onClick={() => setNieuwTonen(true)}
+              style={{ background: '#1D9E75', color: 'white', border: 'none', borderRadius: 12, padding: '10px 20px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}
+            >
+              Begin nu
+            </button>
           </div>
         ) : (
-          <div className="flex flex-col gap-3">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {entries.map(e => {
               const s = STEMMINGEN.find(m => m.waarde === e.stemming)
               const isOpen = uitgevouwen === e.id
-              const preview = e.inhoud.length > 140 ? e.inhoud.slice(0, 140) + '' : e.inhoud
+              const preview = e.inhoud.length > 160 ? e.inhoud.slice(0, 160) + '...' : e.inhoud
               return (
-                <div key={e.id} className="bg-white rounded-2xl border border-gray-200 p-5">
-                  <div className="flex items-start justify-between gap-3 mb-2">
-                    <div className="flex items-center gap-2">
-                      {s && <span className="text-xl">{s.emoji}</span>}
-                      <p className="text-xs text-gray-400 capitalize">{formatDatum(e.aangemaakt_op)}</p>
+                <div key={e.id} style={{ background: 'white', borderRadius: 16, border: '1px solid #E5E7EB', padding: '18px 20px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      {s && <StemmingDot waarde={s.waarde} />}
+                      <p style={{ fontSize: 12, color: '#9CA3AF', textTransform: 'capitalize' }}>{formatDatum(e.aangemaakt_op)}</p>
                     </div>
                     <button
                       onClick={() => verwijder(e.id)}
-                      className="text-gray-300 hover:text-red-400 transition text-xs"
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#D1D5DB', padding: 4, display: 'flex' }}
                       title="Verwijder"
                     >
-                      ?
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>
+                      </svg>
                     </button>
                   </div>
-                  <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
+                  <p style={{ fontSize: 13, color: '#374151', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>
                     {isOpen ? e.inhoud : preview}
                   </p>
-                  {e.inhoud.length > 140 && (
+                  {e.inhoud.length > 160 && (
                     <button
                       onClick={() => setUitgevouwen(isOpen ? null : e.id)}
-                      className="text-xs mt-2 font-medium"
-                      style={{ color: 'var(--MentaForce-primary)' }}
+                      style={{ fontSize: 12, marginTop: 8, fontWeight: 600, color: '#1D9E75', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
                     >
                       {isOpen ? 'Minder tonen' : 'Meer tonen'}
                     </button>

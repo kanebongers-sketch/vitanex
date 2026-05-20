@@ -34,8 +34,8 @@ export function Avatar({ naam, avatarUrl, size = 32, online, className = '', sty
         <div
           className="rounded-full flex items-center justify-center font-medium w-full h-full select-none"
           style={{
-            background: 'var(--MentaForce-primary-light)',
-            color: 'var(--MentaForce-primary)',
+            background: 'var(--mentaforce-primary-light)',
+            color: 'var(--mentaforce-primary)',
             fontSize,
           }}
         >

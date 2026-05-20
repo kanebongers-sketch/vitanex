@@ -413,7 +413,7 @@ export default function Portaal() {
             <p className="text-gray-500 text-sm mt-0.5">Jouw persoonlijke vitaliteitstrend</p>
           </div>
           <Link href="/checkin" className="text-sm font-medium text-white px-4 py-2 rounded-xl transition"
-            style={{ background: 'var(--MentaForce-primary)' }}>
+            style={{ background: 'var(--mentaforce-primary)' }}>
             Check-in doen
           </Link>
         </div>
@@ -436,13 +436,13 @@ export default function Portaal() {
 
         {laden ? (
           <div className="flex justify-center py-16">
-            <div className="w-8 h-8 rounded-full border-2 border-gray-200 animate-spin" style={{ borderTopColor: 'var(--MentaForce-primary)' }} />
+            <div className="w-8 h-8 rounded-full border-2 border-gray-200 animate-spin" style={{ borderTopColor: 'var(--mentaforce-primary)' }} />
           </div>
         ) : checkins.length === 0 ? (
           <div className="bg-white rounded-2xl border border-gray-200 p-12 text-center">
             <p className="text-gray-400 text-sm mb-4">Nog geen check-ins gedaan.</p>
             <Link href="/checkin" className="text-sm font-medium text-white px-5 py-3 rounded-xl inline-block"
-              style={{ background: 'var(--MentaForce-primary)' }}>
+              style={{ background: 'var(--mentaforce-primary)' }}>
               Doe je eerste check-in
             </Link>
           </div>
@@ -568,12 +568,12 @@ export default function Portaal() {
                       key={g.id}
                       onClick={() => toggleGewoonte(g.id)}
                       className="flex items-center gap-3 p-3 rounded-xl transition text-left"
-                      style={{ background: actief ? 'var(--MentaForce-primary-light)' : '#F8F9FA' }}
+                      style={{ background: actief ? 'var(--mentaforce-primary-light)' : '#F8F9FA' }}
                     >
                       <div
                         className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 transition"
                         style={{
-                          background: actief ? 'var(--MentaForce-primary)' : '#e5e7eb',
+                          background: actief ? 'var(--mentaforce-primary)' : '#e5e7eb',
                           color: actief ? 'white' : '#9ca3af',
                         }}
                       >
@@ -772,9 +772,9 @@ export default function Portaal() {
                           <button key={c} onClick={() => setFeedbackCat(c)}
                             className="text-xs px-3 py-1.5 rounded-full border transition"
                             style={{
-                              background: feedbackCat === c ? 'var(--MentaForce-primary-light)' : 'transparent',
-                              borderColor: feedbackCat === c ? 'var(--MentaForce-primary)' : '#e5e7eb',
-                              color: feedbackCat === c ? 'var(--MentaForce-primary)' : '#6b7280',
+                              background: feedbackCat === c ? 'var(--mentaforce-primary-light)' : 'transparent',
+                              borderColor: feedbackCat === c ? 'var(--mentaforce-primary)' : '#e5e7eb',
+                              color: feedbackCat === c ? 'var(--mentaforce-primary)' : '#6b7280',
                             }}>
                             {c}
                           </button>
@@ -791,7 +791,7 @@ export default function Portaal() {
                         onClick={stuurFeedback}
                         disabled={!feedbackTekst.trim() || feedbackBezig}
                         className="w-full mt-3 py-2.5 rounded-xl text-white text-sm font-medium transition disabled:opacity-40"
-                        style={{ background: 'var(--MentaForce-primary)' }}
+                        style={{ background: 'var(--mentaforce-primary)' }}
                       >
                         {feedbackBezig ? 'Versturen...' : 'Verstuur anoniem'}
                       </button>
