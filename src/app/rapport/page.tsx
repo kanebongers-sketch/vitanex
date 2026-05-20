@@ -32,11 +32,14 @@ interface Analyse {
 }
 
 const CAT_LABEL: Record<string, string> = {
-  e: 'Energie', m: 'Mentaal', w: 'Werk', s: 'Samenwerking', g: 'Groei',
+  slaap: 'Slaap', stress: 'Stress', energie: 'Energie',
+  focus: 'Focus', balans: 'Werk-privé', motivatie: 'Motivatie',
 }
 const CAT_KLEUR: Record<string, string> = {
-  e: '#1D9E75', m: '#378ADD', w: '#8B5CF6', s: '#B45309', g: '#059669',
+  slaap: '#8B5CF6', stress: '#E24B4A', energie: '#BA7517',
+  focus: '#1D9E75', balans: '#378ADD', motivatie: '#9D174D',
 }
+const VLAK_VOLGORDE = ['slaap', 'stress', 'energie', 'focus', 'balans', 'motivatie']
 
 function ScoreRing({ score }: { score: number }) {
   const r = 52, circ = 2 * Math.PI * r
@@ -89,7 +92,9 @@ export default function Rapport() {
       const { default: jsPDF } = await import('jspdf')
       const aj = analyse.analyse_json
       const datum = new Date(analyse.aangemaakt_op).toLocaleDateString('nl-BE', { day: 'numeric', month: 'long', year: 'numeric' })
-      const totaal = Math.round((analyse.scores.t / 5) * 100)
+      const scoreValsP = Object.values(analyse.scores).filter(v => v > 0)
+      const gemP = scoreValsP.length > 0 ? scoreValsP.reduce((a, b) => a + b, 0) / scoreValsP.length : 0
+      const totaal = scoreValsP.length > 0 ? Math.round(((gemP - 4) / 16) * 100) : 0
 
       const doc = new jsPDF({ unit: 'mm', format: 'a4' })
       const W = 210, mg = 20
@@ -115,9 +120,9 @@ export default function Rapport() {
       // Score
       addText(`Vitaliteitsscore: ${totaal}/100`, 16, true, [17,40,53])
       y += 2
-      const cats = ['e','m','w','s','g']
-      cats.forEach(k => {
-        if (analyse.scores[k]) addText(`${CAT_LABEL[k]}: ${analyse.scores[k].toFixed(1)}/5`, 11, false, [107,114,128], mg + 4)
+      VLAK_VOLGORDE.forEach(k => {
+        const v = analyse.scores[k]
+        if (v) addText(`${CAT_LABEL[k]}: ${v}/20`, 11, false, [107,114,128], mg + 4)
       })
       y += 4
 
@@ -199,7 +204,9 @@ export default function Rapport() {
   )
 
   const aj    = analyse?.analyse_json
-  const score = analyse ? Math.round((analyse.scores.t / 5) * 100) : null
+  const scoreVals = analyse ? Object.values(analyse.scores).filter(v => v > 0) : []
+  const gemiddelde = scoreVals.length > 0 ? scoreVals.reduce((a, b) => a + b, 0) / scoreVals.length : 0
+  const score = scoreVals.length > 0 ? Math.round(((gemiddelde - 4) / 16) * 100) : null
   const kleur = !score ? '#9CA3AF' : score >= 70 ? '#1D9E75' : score >= 45 ? '#F59E0B' : '#EF4444'
   const label = !score ? '' : score >= 70 ? 'Goed op weg' : score >= 45 ? 'Aandacht nodig' : 'Zorg voor jezelf'
   const datum = analyse ? new Date(analyse.aangemaakt_op).toLocaleDateString('nl-BE', { weekday: 'long', day: 'numeric', month: 'long' }) : ''
@@ -284,16 +291,17 @@ export default function Rapport() {
                 )}
                 {/* Score bars */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 7, maxWidth: 340 }}>
-                  {['e','m','w','s','g'].map(k => {
+                  {VLAK_VOLGORDE.map(k => {
                     const v = analyse.scores[k]
                     if (!v) return null
+                    const pct = Math.round(((v - 4) / 16) * 100)
                     return (
                       <div key={k} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <span style={{ fontSize: 11, color: '#9CA3AF', width: 80, flexShrink: 0 }}>{CAT_LABEL[k]}</span>
+                        <span style={{ fontSize: 11, color: '#9CA3AF', width: 72, flexShrink: 0 }}>{CAT_LABEL[k]}</span>
                         <div style={{ flex: 1, height: 6, borderRadius: 3, background: '#F3F4F6', overflow: 'hidden' }}>
-                          <div style={{ height: '100%', borderRadius: 3, background: CAT_KLEUR[k], width: `${(v / 5) * 100}%`, transition: 'width 0.8s ease' }} />
+                          <div style={{ height: '100%', borderRadius: 3, background: CAT_KLEUR[k], width: `${pct}%`, transition: 'width 0.8s ease' }} />
                         </div>
-                        <span style={{ fontSize: 11, fontWeight: 700, color: CAT_KLEUR[k], width: 26 }}>{v.toFixed(1)}</span>
+                        <span style={{ fontSize: 11, fontWeight: 700, color: CAT_KLEUR[k], width: 32 }}>{v}/20</span>
                       </div>
                     )
                   })}

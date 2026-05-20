@@ -3,76 +3,100 @@ import Anthropic from '@anthropic-ai/sdk'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
+const VLAK_LABELS: Record<string, string> = {
+  slaap:    'Slaap',
+  stress:   'Stress',
+  energie:  'Energie',
+  focus:    'Focus',
+  balans:   'Werk-privé balans',
+  motivatie:'Motivatie',
+}
+
+function scoreLabel(s: number) {
+  if (s >= 16) return 'Goed'
+  if (s >= 12) return 'Matig'
+  if (s >= 8)  return 'Aandacht nodig'
+  return 'Laag'
+}
+
 export async function POST(req: NextRequest) {
   try {
-    const { scores, antwoorden } = await req.json()
+    const { vlak_scores, antwoorden } = await req.json()
 
-    const scoresTekst = [
-      `Energie & Lichaam: ${scores.e}/5`,
-      `Mentaal welzijn: ${scores.m}/5`,
-      `Werk & Motivatie: ${scores.w}/5`,
-      `Team & Samenwerking: ${scores.s}/5`,
-      `Groei & Ontwikkeling: ${scores.g}/5`,
-      `Totaalscore: ${scores.t}/5`,
-    ].join('\n')
+    const scoresTekst = Object.entries(vlak_scores as Record<string, number>)
+      .map(([v, s]) => `${VLAK_LABELS[v] ?? v}: ${s}/20 — ${scoreLabel(s)}`)
+      .join('\n')
 
     const tekstAntwoorden = (antwoorden as { categorie: string; waarde_tekst: string }[])
       .filter(a => a.waarde_tekst?.trim())
-      .map(a => `[${a.categorie}]: "${a.waarde_tekst}"`)
+      .map(a => {
+        const domein = Object.keys(VLAK_LABELS).find(d => a.categorie.startsWith(d))
+        const label = domein ? VLAK_LABELS[domein] : a.categorie
+        return `[${label}]: "${a.waarde_tekst}"`
+      })
       .join('\n')
 
-    const prompt = `Je bent een empathische welzijnscoach bij het MentaForce-platform voor Nederlandse bedrijven. Analyseer de volgende wekelijkse check-in resultaten van een medewerker en schrijf een uitgebreide, persoonlijke analyse in het Nederlands.
+    const gesorteerd = Object.entries(vlak_scores as Record<string, number>)
+      .sort(([, a], [, b]) => a - b)
+      .slice(0, 3)
+      .map(([v, s]) => `${VLAK_LABELS[v] ?? v} (score: ${s}/20)`)
+      .join(', ')
 
-SCORES (schaal 1–5, waarbij 1 = slecht en 5 = uitstekend):
+    const prompt = `Je bent een empathische welzijnscoach bij het Vitanex-platform voor Nederlandse bedrijven. Analyseer de volgende wekelijkse check-in resultaten van een medewerker en schrijf een uitgebreide, persoonlijke analyse in het Nederlands.
+
+SCORES (schaal 4–20, waarbij 4 = slecht en 20 = uitstekend):
 ${scoresTekst}
 
 ${tekstAntwoorden ? `OPEN ANTWOORDEN VAN DE MEDEWERKER:\n${tekstAntwoorden}` : ''}
 
+LAAGST SCORENDE VLAKKEN (candidates voor doelen): ${gesorteerd}
+
 Schrijf een grondige analyse als JSON. Wees empathisch, concreet en praktisch. Schrijf in de tweede persoon ("je", "jij"). Minimaal 3 items per array. Houd rekening met zowel de scores als de open antwoorden.
 
-BELANGRIJK: De sectie "wellbeing_categorieen" moet ALTIJD exact 6 items bevatten met PRECIES deze namen (in deze volgorde): "Slaap", "Stress", "Energie", "Focus", "Werk-privé balans", "Motivatie". Geef voor elke categorie een niveau (goed/matig/laag) op basis van de scores, een korte samenvatting, en 3 concrete uitvoerbare tips om dit te verbeteren.
+BELANGRIJK voor "aanbevolen_doelen":
+- Kies ALTIJD precies 3 doelen: één per laagst scorend vlak (op basis van de scores + open antwoorden)
+- Als iemand zegt dat ze slecht slapen of maar 6 uur slapen → stel een concreet slaapdoel voor (bijv. "Om 23:00 in bed liggen" of "8 uur slaap per nacht")
+- De doelen moeten SPECIFIEK, MEETBAAR en DAGELIJKS uitvoerbaar zijn
+- "meetType" is "dagelijks" tenzij het echt een wekelijks doel is
+
+BELANGRIJK voor "wellbeing_categorieen": bevat ALTIJD exact 6 items met namen: "Slaap", "Stress", "Energie", "Focus", "Werk-privé balans", "Motivatie". Geef voor elke categorie een niveau (goed/matig/laag) op basis van de score (≥16=goed, ≥12=matig, <12=laag).
 
 Geef UITSLUITEND geldige JSON terug, zonder markdown of extra tekst:
 {
   "samenvatting": "3-4 zinnen die een eerlijk en empathisch totaalbeeld geven van deze week",
   "sterke_punten": [
-    "concreet sterk punt gebaseerd op hoge scores of positieve antwoorden",
-    "..."
+    "concreet sterk punt gebaseerd op hoge scores of positieve antwoorden"
   ],
   "aandachtspunten": [
     {
       "titel": "kort en duidelijk titel voor dit aandachtspunt",
-      "uitleg": "2-3 zinnen die uitleggen wat dit betekent, waarom het aandacht verdient en wat het effect kan zijn"
+      "uitleg": "2-3 zinnen die uitleggen wat dit betekent en wat het effect kan zijn"
     }
   ],
   "actieplan": [
     {
       "actie": "één concrete, uitvoerbare actie",
-      "waarom": "korte uitleg waarom dit helpt voor deze persoon",
-      "wanneer": "concreet moment of frequentie (bv. 'elke ochtend', 'deze week', 'dagelijks')"
+      "waarom": "korte uitleg waarom dit helpt",
+      "wanneer": "concreet moment of frequentie"
     }
   ],
   "burnout_risico": {
     "niveau": "laag of matig of hoog",
     "score": 3,
-    "uitleg": "2-3 zinnen die uitleggen hoe je tot dit risiconiveau komt en wat de belangrijkste indicatoren zijn"
+    "uitleg": "2-3 zinnen over het risiconiveau"
   },
-  "bericht": "2-3 zinnen warm, persoonlijk slotbericht dat motiveert en de medewerker erkent",
+  "bericht": "2-3 zinnen warm, persoonlijk slotbericht",
   "wellbeing_categorieen": [
     {
       "naam": "Slaap",
       "niveau": "goed of matig of laag",
-      "samenvatting": "1-2 zinnen over hoe het gaat met slaap op basis van de check-in scores",
-      "tips": [
-        "concrete, uitvoerbare tip 1 specifiek voor slaap",
-        "concrete, uitvoerbare tip 2 specifiek voor slaap",
-        "concrete, uitvoerbare tip 3 specifiek voor slaap"
-      ]
+      "samenvatting": "1-2 zinnen over slaap op basis van de score",
+      "tips": ["tip 1 specifiek voor slaap", "tip 2", "tip 3"]
     },
     {
       "naam": "Stress",
       "niveau": "goed of matig of laag",
-      "samenvatting": "1-2 zinnen over stressniveau op basis van de scores",
+      "samenvatting": "1-2 zinnen over stressniveau",
       "tips": ["tip 1", "tip 2", "tip 3"]
     },
     {
@@ -90,14 +114,43 @@ Geef UITSLUITEND geldige JSON terug, zonder markdown of extra tekst:
     {
       "naam": "Werk-privé balans",
       "niveau": "goed of matig of laag",
-      "samenvatting": "1-2 zinnen over werk-privé balans",
+      "samenvatting": "1-2 zinnen over balans",
       "tips": ["tip 1", "tip 2", "tip 3"]
     },
     {
       "naam": "Motivatie",
       "niveau": "goed of matig of laag",
-      "samenvatting": "1-2 zinnen over motivatie en betrokkenheid",
+      "samenvatting": "1-2 zinnen over motivatie",
       "tips": ["tip 1", "tip 2", "tip 3"]
+    }
+  ],
+  "aanbevolen_doelen": [
+    {
+      "vlak": "slaap",
+      "score": 9,
+      "doel_titel": "8 uur slaap per nacht",
+      "doel_beschrijving": "Leg je telefoon weg om 22:30 en ga voor 23:00 naar bed. Dit geeft je lichaam de nachtrust die het nodig heeft.",
+      "target_waarde": 8,
+      "eenheid": "uur",
+      "meetType": "dagelijks"
+    },
+    {
+      "vlak": "stress",
+      "score": 7,
+      "doel_titel": "10 minuten ademhaling per dag",
+      "doel_beschrijving": "Neem elke ochtend 10 minuten voor een eenvoudige ademhalingsoefening om de dag rustiger te beginnen.",
+      "target_waarde": 10,
+      "eenheid": "minuten",
+      "meetType": "dagelijks"
+    },
+    {
+      "vlak": "energie",
+      "score": 10,
+      "doel_titel": "30 minuten bewegen per dag",
+      "doel_beschrijving": "Een wandeling, fietsen of sport telt mee. Beweging verhoogt direct je energieniveau.",
+      "target_waarde": 30,
+      "eenheid": "minuten",
+      "meetType": "dagelijks"
     }
   ]
 }`
@@ -109,8 +162,6 @@ Geef UITSLUITEND geldige JSON terug, zonder markdown of extra tekst:
     })
 
     const tekst = response.content[0].type === 'text' ? response.content[0].text : ''
-
-    // Strip possible markdown code fences
     const schoon = tekst.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim()
 
     let analyse

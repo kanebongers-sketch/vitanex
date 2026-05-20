@@ -2,22 +2,27 @@ export type WellbeingCat = 'slaap' | 'stress' | 'energie' | 'focus' | 'balans' |
 
 export type GoalLog = {
   datum: string   // YYYY-MM-DD
-  waarde: number
+  gehaald: boolean
   notitie?: string
 }
 
 export type WeekDoel = {
   vlak: WellbeingCat
-  presetIndex: number
+  doel_titel: string
+  doel_beschrijving: string
+  target_waarde: number
+  eenheid: string
+  meetType: 'dagelijks' | 'wekelijks'
   logs: GoalLog[]
 }
 
 export type WeekSelectie = {
-  weekStart: string   // maandag YYYY-MM-DD
-  doelen: WeekDoel[]  // altijd 3
+  weekStart: string
+  doelen: WeekDoel[]   // 3 AI-generated goals
+  vlak_scores: Partial<Record<WellbeingCat, number>>  // 4-20 per domain
 }
 
-const STORAGE_KEY = 'mf-week-doelen-v1'
+const STORAGE_KEY = 'mf-week-doelen-v2'
 
 export function getMaandag(): string {
   const nu = new Date()
@@ -52,4 +57,18 @@ export function isVandaagGelogd(doel: WeekDoel): boolean {
 
 export function logVandaag(doel: WeekDoel): GoalLog | undefined {
   return doel.logs.find(l => l.datum === vandaag())
+}
+
+export function scoreKleur(score: number): string {
+  if (score >= 16) return '#1D9E75'
+  if (score >= 12) return '#B45309'
+  if (score >= 8)  return '#E26B4A'
+  return '#E24B4A'
+}
+
+export function scoreLabel(score: number): string {
+  if (score >= 16) return 'Goed'
+  if (score >= 12) return 'Matig'
+  if (score >= 8)  return 'Aandacht'
+  return 'Laag'
 }

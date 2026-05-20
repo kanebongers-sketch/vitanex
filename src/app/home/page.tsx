@@ -12,8 +12,12 @@ import { laadXPData, pasDecayToe, berekenLevel, xpVoortgang, LEVEL_NAMEN, LEVEL_
 import { laadWeekSelectie, isVandaagGelogd, vandaag as weekVandaag, type WeekSelectie } from '@/lib/weekdoelen'
 import { CAT } from '@/app/doelen/page'
 
-type ScoresNieuw = { e: number; m: number; w: number; s: number; g: number; t: number }
-function berekenScore(s: ScoresNieuw) { return Math.round((s.t / 5) * 100) }
+function berekenScore(s: Record<string, number>) {
+  const vals = Object.values(s).filter(v => v > 0)
+  if (!vals.length) return 0
+  const avg = vals.reduce((a, b) => a + b, 0) / vals.length
+  return Math.round(((avg - 4) / 16) * 100)
+}
 
 function ScoreRing({ score }: { score: number }) {
   const r = 36, circ = 2 * Math.PI * r
@@ -34,12 +38,12 @@ export default function HomePage() {
   const router = useRouter()
   const [laden, setLaden]                   = useState(true)
   const [naam, setNaam]                     = useState('')
-  const [scores, setScores]                 = useState<ScoresNieuw | null>(null)
+  const [scores, setScores]                 = useState<Record<string, number> | null>(null)
   const [checkInDezeWeek, setCheckInDezeWeek] = useState(false)
   const [recentCheckins, setRecentCheckins] = useState(0)
   const [xpData, setXpData]                 = useState<XPData | null>(null)
   const [weekSelectie, setWeekSelectie]     = useState<WeekSelectie | null>(null)
-  const [vlakScores, setVlakScores]         = useState<Record<string, 'goed'|'matig'|'laag'> | null>(null)
+  const [vlakScores, setVlakScores]         = useState<Record<string, number> | null>(null)
 
   useEffect(() => {
     async function laad() {
@@ -54,16 +58,10 @@ export default function HomePage() {
         .from('checkin_analyses').select('scores, analyse_json')
         .eq('user_id', user.id).order('aangemaakt_op', { ascending: false })
         .limit(1).maybeSingle()
-      if (analyse?.scores) setScores(analyse.scores as ScoresNieuw)
-      const cats = analyse?.analyse_json?.wellbeing_categorieen as { naam: string; niveau: 'goed'|'matig'|'laag' }[] | undefined
-      if (cats) {
-        const NAAM_MAP: Record<string, string> = {
-          'Slaap': 'slaap', 'Stress': 'stress', 'Energie': 'energie',
-          'Focus': 'focus', 'Werk-privé balans': 'balans', 'Motivatie': 'motivatie',
-        }
-        const s: Record<string, 'goed'|'matig'|'laag'> = {}
-        cats.forEach(c => { const v = NAAM_MAP[c.naam]; if (v) s[v] = c.niveau })
-        setVlakScores(s)
+      if (analyse?.scores) {
+        const s = analyse.scores as Record<string, number>
+        setScores(s)
+        if (Object.values(s).some(v => v > 0)) setVlakScores(s)
       }
 
       const nu = new Date()
@@ -89,9 +87,9 @@ export default function HomePage() {
     laad()
   }, [router])
 
-  const score      = scores ? berekenScore(scores) : null
-  const scoreKleur = !score ? '#9CA3AF' : score >= 70 ? '#1D9E75' : score >= 45 ? '#F59E0B' : '#EF4444'
-  const scoreLabel = !score ? 'Nog geen score' : score >= 70 ? 'Goed op weg' : score >= 45 ? 'Aandacht nodig' : 'Zorg voor jezelf'
+  const score       = scores ? berekenScore(scores) : null
+  const scoreKleur  = !score ? '#9CA3AF' : score >= 70 ? '#1D9E75' : score >= 45 ? '#F59E0B' : '#EF4444'
+  const scoreLabelStr = !score ? 'Nog geen score' : score >= 70 ? 'Goed op weg' : score >= 45 ? 'Aandacht nodig' : 'Zorg voor jezelf'
   const dagtijd    = (() => { const h = new Date().getHours(); return h < 12 ? 'Goedemorgen' : h < 18 ? 'Goedemiddag' : 'Goedenavond' })()
   const datum      = new Date().toLocaleDateString('nl-BE', { weekday: 'long', day: 'numeric', month: 'long' })
 
@@ -160,7 +158,7 @@ export default function HomePage() {
                 Vitaliteitsscore
               </p>
               <h2 style={{ fontSize: 20, fontWeight: 800, color: scoreKleur, marginBottom: 14, letterSpacing: '-0.02em' }}>
-                {scoreLabel}
+                {scoreLabelStr}
               </h2>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 <Link href="/rapport" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#1D9E75', color: 'white', borderRadius: 10, padding: '9px 16px', fontSize: 13, fontWeight: 600, textDecoration: 'none' }}>
@@ -234,32 +232,30 @@ export default function HomePage() {
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 10 }}>
             {Object.entries(CAT).map(([vlak, c]) => {
-              const nv = vlakScores?.[vlak]
-              const nvcfg = !nv ? null
-                : nv === 'goed'  ? { bg: '#E1F5EE', kleur: '#0F6E56', label: 'Goed',     bar: '#1D9E75', pct: 85 }
-                : nv === 'matig' ? { bg: '#FEF3C7', kleur: '#854F0B', label: 'Matig',    bar: '#B45309', pct: 50 }
-                :                  { bg: '#FCEBEB', kleur: '#A32D2D', label: 'Aandacht', bar: '#DC2626', pct: 20 }
+              const score = vlakScores?.[vlak] ?? 0
+              const pct = score > 0 ? Math.round(((score - 4) / 16) * 100) : 0
+              const bar = score >= 16 ? '#1D9E75' : score >= 12 ? '#B45309' : score >= 8 ? '#E26B4A' : score > 0 ? '#E24B4A' : '#E5E7EB'
               return (
                 <Link key={vlak} href="/doelen" style={{ textDecoration: 'none' }}>
                   <div style={{
                     background: 'white', borderRadius: 14, padding: '12px 8px',
-                    border: `1.5px solid ${nvcfg ? nvcfg.bar + '30' : '#E5E7EB'}`,
+                    border: `1.5px solid ${score > 0 ? bar + '30' : '#E5E7EB'}`,
                     textAlign: 'center',
                   }}>
                     <div style={{
                       width: 34, height: 34, borderRadius: 10,
-                      background: nvcfg?.bg ?? c.bg,
+                      background: score > 0 ? c.bg : '#F9FAFB',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      color: nvcfg ? nvcfg.bar : c.kleur, margin: '0 auto 6px',
+                      color: score > 0 ? c.kleur : '#D1D5DB', margin: '0 auto 6px',
                     }}>
                       <span style={{ transform: 'scale(0.75)', display: 'flex' }}>{c.icon}</span>
                     </div>
                     <p style={{ fontSize: 10, fontWeight: 700, color: '#374151', marginBottom: 5 }}>{c.label}</p>
                     <div style={{ height: 4, borderRadius: 2, background: '#F3F4F6', overflow: 'hidden', marginBottom: 4 }}>
-                      <div style={{ height: '100%', borderRadius: 2, background: nvcfg?.bar ?? '#E5E7EB', width: `${nvcfg?.pct ?? 0}%`, transition: 'width 0.8s ease' }} />
+                      <div style={{ height: '100%', borderRadius: 2, background: bar, width: `${pct}%`, transition: 'width 0.8s ease' }} />
                     </div>
-                    {nvcfg
-                      ? <span style={{ fontSize: 9, fontWeight: 700, color: nvcfg.kleur }}>{nvcfg.label}</span>
+                    {score > 0
+                      ? <span style={{ fontSize: 9, fontWeight: 700, color: bar }}>{score}/20</span>
                       : <span style={{ fontSize: 9, color: '#D1D5DB' }}>—</span>
                     }
                   </div>
@@ -276,17 +272,16 @@ export default function HomePage() {
               Doelen deze week
             </p>
             <Link href="/doelen" style={{ fontSize: 12, color: '#1D9E75', fontWeight: 600, textDecoration: 'none' }}>
-              {weekSelectie ? 'Bekijk alles →' : 'Kies je doelen →'}
+              {weekSelectie ? 'Bekijk alles →' : 'Doe check-in →'}
             </Link>
           </div>
           {weekSelectie ? (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
               {weekSelectie.doelen.map(doel => {
                 const c = CAT[doel.vlak]
-                const preset = c.presets[doel.presetIndex]
                 const gelogd = isVandaagGelogd(doel)
                 const log = doel.logs.find(l => l.datum === weekVandaag())
-                const gehaald = log && log.waarde >= preset.targetWaarde
+                const gehaald = log?.gehaald === true
                 const weekDagen = Array.from({ length: 7 }, (_, i) => {
                   const d = new Date(weekSelectie.weekStart)
                   d.setDate(d.getDate() + i)
@@ -294,7 +289,7 @@ export default function HomePage() {
                 })
                 const aantalGehaald = weekDagen.filter(dag => {
                   const l = doel.logs.find(x => x.datum === dag)
-                  return l && l.waarde >= preset.targetWaarde
+                  return l?.gehaald === true
                 }).length
                 return (
                   <Link key={doel.vlak} href="/doelen" style={{ textDecoration: 'none' }}>
@@ -311,21 +306,21 @@ export default function HomePage() {
                           <span style={{ fontSize: 11, fontWeight: 700, color: c.kleur }}>{c.label}</span>
                         </div>
                         {gelogd && (
-                          <div style={{ width: 18, height: 18, borderRadius: '50%', background: gehaald ? c.kleur : c.bg, border: `2px solid ${c.kleur}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke={gehaald ? 'white' : c.kleur} strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                          <div style={{ width: 18, height: 18, borderRadius: '50%', background: gehaald ? c.kleur : '#F3F4F6', border: `2px solid ${gehaald ? c.kleur : '#E5E7EB'}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke={gehaald ? 'white' : '#9CA3AF'} strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                           </div>
                         )}
                       </div>
-                      <p style={{ fontSize: 12, fontWeight: 600, color: '#111827', marginBottom: 8, lineHeight: 1.3 }}>{preset.titel}</p>
+                      <p style={{ fontSize: 12, fontWeight: 600, color: '#111827', marginBottom: 8, lineHeight: 1.3 }}>{doel.doel_titel}</p>
                       <div style={{ display: 'flex', gap: 2 }}>
                         {weekDagen.map((dag, i) => {
                           const l = doel.logs.find(x => x.datum === dag)
-                          const ok = l && l.waarde >= preset.targetWaarde
+                          const ok = l?.gehaald === true
                           const isVandaagDag = dag === weekVandaag()
                           return (
                             <div key={i} style={{
                               flex: 1, height: 5, borderRadius: 2,
-                              background: ok ? c.kleur : l ? c.bg : '#F3F4F6',
+                              background: ok ? c.kleur : '#F3F4F6',
                               border: isVandaagDag && !gelogd ? `1px solid ${c.kleur}` : 'none',
                             }} />
                           )
@@ -349,7 +344,7 @@ export default function HomePage() {
                 </div>
                 <div style={{ flex: 1 }}>
                   <p style={{ fontSize: 13, fontWeight: 700, color: '#111827', marginBottom: 2 }}>Nog geen doelen voor deze week</p>
-                  <p style={{ fontSize: 12, color: '#9CA3AF' }}>Kies 3 vlakken en stel je doelen in</p>
+                  <p style={{ fontSize: 12, color: '#9CA3AF' }}>Doe een check-in — de AI kiest je doelen</p>
                 </div>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#D1D5DB" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
               </div>

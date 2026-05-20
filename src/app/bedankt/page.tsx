@@ -5,6 +5,10 @@ import { Suspense, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { verwerkCheckin, berekenLevel, LEVEL_NAMEN, LEVEL_KLEUREN, type Achievement } from '@/lib/xp'
+import {
+  type WellbeingCat, type WeekDoel, type WeekSelectie,
+  getMaandag, slaWeekSelectieOp, scoreKleur, scoreLabel,
+} from '@/lib/weekdoelen'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -12,6 +16,11 @@ interface AandachtsPunt { titel: string; uitleg: string }
 interface ActiePlan { actie: string; waarom: string; wanneer: string }
 interface BurnoutRisico { niveau: 'laag' | 'matig' | 'hoog'; score: number; uitleg: string }
 interface WellbeingCategorie { naam: string; niveau: 'goed' | 'matig' | 'laag'; samenvatting: string; tips: string[] }
+interface AanbevolenDoel {
+  vlak: string; score: number
+  doel_titel: string; doel_beschrijving: string
+  target_waarde: number; eenheid: string; meetType: 'dagelijks' | 'wekelijks'
+}
 
 interface AnalyseJSON {
   samenvatting: string
@@ -21,163 +30,26 @@ interface AnalyseJSON {
   burnout_risico: BurnoutRisico
   bericht: string
   wellbeing_categorieen?: WellbeingCategorie[]
+  aanbevolen_doelen?: AanbevolenDoel[]
 }
 
-// ─── PDF generator ────────────────────────────────────────────────────────────
+// ─── Domain config ────────────────────────────────────────────────────────────
 
-async function downloadPDF(analyse: AnalyseJSON, scores: Record<string, number>, datum: string) {
-  const { default: jsPDF } = await import('jspdf')
-  const doc = new jsPDF()
-
-  const MARGIN = 18
-  const PAGE_W = 210
-  const TEXT_W = PAGE_W - MARGIN * 2
-  let y = 20
-
-  function nl(extra = 0) { y += extra }
-
-  function checkPage() {
-    if (y > 270) { doc.addPage(); y = 20 }
-  }
-
-  function write(text: string, size: number, rgb: [number, number, number], bold = false) {
-    doc.setFontSize(size)
-    doc.setTextColor(rgb[0], rgb[1], rgb[2])
-    doc.setFont('helvetica', bold ? 'bold' : 'normal')
-    const lines = doc.splitTextToSize(String(text), TEXT_W) as string[]
-    checkPage()
-    doc.text(lines, MARGIN, y)
-    y += lines.length * (size * 0.42) + 2
-  }
-
-  function rule() {
-    doc.setDrawColor(220, 220, 220)
-    doc.line(MARGIN, y, PAGE_W - MARGIN, y)
-    y += 5
-  }
-
-  // Kop
-  write('VITANEX', 8, [29, 158, 117], true)
-  nl(1)
-  write('Persoonlijke Vitaliteitsanalyse', 20, [17, 24, 39], true)
-  nl(1)
-  write(`Week van ${datum}`, 10, [107, 114, 128])
-  nl(4)
-  rule()
-
-  // Scores
-  write('SCORES DEZE WEEK', 11, [17, 24, 39], true)
-  nl(2)
-  const catLabels: Record<string, string> = {
-    e: 'Energie & Lichaam', m: 'Mentaal welzijn', w: 'Werk & Motivatie',
-    s: 'Team & Samenwerking', g: 'Groei & Ontwikkeling', t: 'Totaal',
-  }
-  for (const [k, label] of Object.entries(catLabels)) {
-    const sv = (scores as Record<string, number>)[k]
-    if (sv > 0) write(`${label}: ${sv.toFixed(1)} / 5`, 10, [55, 65, 81])
-  }
-  nl(4); rule()
-
-  // Samenvatting
-  write('SAMENVATTING', 11, [17, 24, 39], true)
-  nl(2)
-  write(analyse.samenvatting, 10, [55, 65, 81])
-  nl(4); rule()
-
-  // Sterke punten
-  write('STERKE PUNTEN', 11, [17, 24, 39], true)
-  nl(2)
-  for (const p of analyse.sterke_punten) { write(`• ${p}`, 10, [55, 65, 81]) }
-  nl(4); rule()
-
-  // Aandachtspunten
-  write('AANDACHTSPUNTEN', 11, [17, 24, 39], true)
-  nl(2)
-  for (const a of analyse.aandachtspunten) {
-    checkPage()
-    write(a.titel, 10, [17, 24, 39], true)
-    write(a.uitleg, 10, [55, 65, 81])
-    nl(3)
-  }
-  rule()
-
-  // Actieplan
-  write('ACTIEPLAN VOOR VOLGENDE WEEK', 11, [17, 24, 39], true)
-  nl(2)
-  analyse.actieplan.forEach((item, i) => {
-    checkPage()
-    write(`${i + 1}. ${item.actie} — ${item.wanneer}`, 10, [17, 24, 39], true)
-    write(`   ${item.waarom}`, 10, [55, 65, 81])
-    nl(3)
-  })
-  rule()
-
-  // Burnout risico
-  const rKleur: Record<string, [number, number, number]> = {
-    laag: [29, 158, 117], matig: [186, 117, 23], hoog: [226, 75, 74],
-  }
-  const rk = rKleur[analyse.burnout_risico.niveau] ?? [55, 65, 81]
-  write(`BURN-OUT RISICO: ${analyse.burnout_risico.niveau.toUpperCase()}`, 11, rk, true)
-  nl(2)
-  write(analyse.burnout_risico.uitleg, 10, [55, 65, 81])
-  nl(4); rule()
-
-  // Bericht
-  write('PERSOONLIJK BERICHT', 11, [17, 24, 39], true)
-  nl(2)
-  write(analyse.bericht, 10, [55, 65, 81])
-  nl(10)
-
-  // Footer
-  write('Vitanex — Vitaliteit op de werkplek  |  Vertrouwelijk document', 8, [156, 163, 175])
-
-  doc.save(`vitanex-analyse-${datum.replace(/\s+/g, '-').replace(/[^a-z0-9-]/gi, '')}.pdf`)
+const VLAK_CONFIG: Record<string, { label: string; kleur: string; licht: string }> = {
+  slaap:    { label: 'Slaap',           kleur: '#8B5CF6', licht: '#F5F3FF' },
+  stress:   { label: 'Stress',          kleur: '#E24B4A', licht: '#FFF5F5' },
+  energie:  { label: 'Energie',         kleur: '#BA7517', licht: '#FFFBEB' },
+  focus:    { label: 'Focus',           kleur: '#1D9E75', licht: '#F0FAF6' },
+  balans:   { label: 'Werk-privé',      kleur: '#378ADD', licht: '#EFF6FF' },
+  motivatie:{ label: 'Motivatie',       kleur: '#9D174D', licht: '#FDF2F8' },
 }
 
-// ─── Kleur helpers ────────────────────────────────────────────────────────────
-
-function scoreKleur(s: number) {
-  if (s >= 4) return '#1D9E75'
-  if (s >= 3) return '#BA7517'
-  if (s >= 2) return '#E26B4A'
-  return '#E24B4A'
-}
+const VLAK_VOLGORDE = ['slaap', 'stress', 'energie', 'focus', 'balans', 'motivatie']
 
 function risicoConfig(niveau: string) {
   if (niveau === 'hoog')  return { bg: '#FCEBEB', border: '#E24B4A', tekst: '#A32D2D', label: 'Hoog risico' }
   if (niveau === 'matig') return { bg: '#FAEEDA', border: '#BA7517', tekst: '#854F0B', label: 'Matig risico' }
   return { bg: '#E1F5EE', border: '#1D9E75', tekst: '#0F6E56', label: 'Laag risico' }
-}
-
-const CAT_LABELS: Record<string, string> = {
-  e: 'Energie & Lichaam', m: 'Mentaal welzijn', w: 'Werk & Motivatie',
-  s: 'Team & Samenwerking', g: 'Groei & Ontwikkeling',
-}
-const CAT_KLEUREN: Record<string, { k: string; l: string }> = {
-  e: { k: '#1D9E75', l: '#E1F5EE' },
-  m: { k: '#378ADD', l: '#E6F1FB' },
-  w: { k: '#8B5CF6', l: '#EEEDFE' },
-  s: { k: '#BA7517', l: '#FAEEDA' },
-  g: { k: '#059669', l: '#D1FAE5' },
-}
-
-// Mapping van AI-categorienaam naar doelen-slug
-const WELLBEING_SLUG: Record<string, string> = {
-  'Slaap': 'slaap',
-  'Stress': 'stress',
-  'Energie': 'energie',
-  'Focus': 'focus',
-  'Werk-privé balans': 'balans',
-  'Motivatie': 'motivatie',
-}
-
-const WELLBEING_KLEUR: Record<string, { k: string; l: string; border: string }> = {
-  'Slaap':              { k: '#6D28D9', l: '#F5F3FF', border: '#DDD6FE' },
-  'Stress':             { k: '#DC2626', l: '#FEF2F2', border: '#FECACA' },
-  'Energie':            { k: '#1D9E75', l: '#E1F5EE', border: '#A7F3D0' },
-  'Focus':              { k: '#185FA5', l: '#E6F1FB', border: '#BFDBFE' },
-  'Werk-privé balans':  { k: '#B45309', l: '#FEF3C7', border: '#FDE68A' },
-  'Motivatie':          { k: '#9D174D', l: '#FDF2F8', border: '#FBCFE8' },
 }
 
 const NIVEAU_CONFIG: Record<string, { bg: string; tekst: string; label: string }> = {
@@ -186,30 +58,42 @@ const NIVEAU_CONFIG: Record<string, { bg: string; tekst: string; label: string }
   laag:  { bg: '#FCEBEB', tekst: '#A32D2D', label: 'Aandacht nodig' },
 }
 
+const WELLBEING_KLEUR: Record<string, { k: string; l: string; border: string }> = {
+  'Slaap':             { k: '#6D28D9', l: '#F5F3FF', border: '#DDD6FE' },
+  'Stress':            { k: '#DC2626', l: '#FEF2F2', border: '#FECACA' },
+  'Energie':           { k: '#1D9E75', l: '#E1F5EE', border: '#A7F3D0' },
+  'Focus':             { k: '#185FA5', l: '#E6F1FB', border: '#BFDBFE' },
+  'Werk-privé balans': { k: '#B45309', l: '#FEF3C7', border: '#FDE68A' },
+  'Motivatie':         { k: '#9D174D', l: '#FDF2F8', border: '#FBCFE8' },
+}
+
 // ─── Inner component ──────────────────────────────────────────────────────────
 
 function BedanktInhoud() {
   const params = useSearchParams()
 
-  const e    = parseFloat(params.get('e') ?? '0')
-  const m    = parseFloat(params.get('m') ?? '0')
-  const w    = parseFloat(params.get('w') ?? '0')
-  const s    = parseFloat(params.get('s') ?? '0')
-  const g    = parseFloat(params.get('g') ?? '0')
-  const t    = parseFloat(params.get('t') ?? '0')
-  const sid  = params.get('sid') ?? ''
+  const slaap    = parseInt(params.get('slaap')    ?? '0')
+  const stress   = parseInt(params.get('stress')   ?? '0')
+  const energie  = parseInt(params.get('energie')  ?? '0')
+  const focus    = parseInt(params.get('focus')    ?? '0')
+  const balans   = parseInt(params.get('balans')   ?? '0')
+  const motivatie= parseInt(params.get('motivatie')?? '0')
+  const sid      = params.get('sid') ?? ''
 
-  const scores = { e, m, w, s, g, t }
-  const heeftScores = t > 0
+  const vlak_scores = { slaap, stress, energie, focus, balans, motivatie }
+  const heeftScores = slaap + stress + energie + focus + balans + motivatie > 0
+
+  // Vitaalscore: gemiddelde van 6 domeinen, genormaliseerd naar 0-100
+  const scoreVals = Object.values(vlak_scores).filter(v => v > 0)
+  const gemiddelde = scoreVals.length > 0 ? scoreVals.reduce((a, b) => a + b, 0) / scoreVals.length : 0
+  const vitaalScore = scoreVals.length > 0 ? Math.round(((gemiddelde - 4) / 16) * 100) : 0
 
   const [status,    setStatus]    = useState<'laden' | 'analyse' | 'klaar' | 'fout' | 'simpel'>('laden')
   const [analyse,   setAnalyse]   = useState<AnalyseJSON | null>(null)
   const [analyseId, setAnalyseId] = useState<string | null>(null)
   const [gedeeld,   setGedeeld]   = useState(false)
   const [deelBezig, setDeelBezig] = useState(false)
-  const [pdfBezig,  setPdfBezig]  = useState(false)
   const [userId,    setUserId]    = useState<string | null>(null)
-  const [bedrijfId, setBedrijfId] = useState<string | null>(null)
   const [xpToast,   setXpToast]   = useState<{ xp: number; level?: number; achievements: Achievement[] } | null>(null)
   const xpToastRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -228,7 +112,6 @@ function BedanktInhoud() {
 
     const { data: profiel } = await supabase
       .from('profiles').select('bedrijf_id').eq('id', user.id).single()
-    setBedrijfId(profiel?.bedrijf_id ?? null)
 
     // Check of al bestaat
     const { data: bestaand } = await supabase
@@ -238,9 +121,11 @@ function BedanktInhoud() {
       .maybeSingle()
 
     if (bestaand) {
-      setAnalyse(bestaand.analyse_json as AnalyseJSON)
+      const aj = bestaand.analyse_json as AnalyseJSON
+      setAnalyse(aj)
       setAnalyseId(bestaand.id)
       setGedeeld(bestaand.gedeeld_met_hr)
+      slaatDoelen(aj)
       setStatus('klaar')
       return
     }
@@ -258,63 +143,73 @@ function BedanktInhoud() {
     const res = await fetch('/api/analyse', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ scores, antwoorden: antwoorden ?? [] }),
+      body: JSON.stringify({ vlak_scores, antwoorden: antwoorden ?? [] }),
     })
 
     if (!res.ok) { setStatus('fout'); return }
     const json = await res.json()
     if (!json.analyse) { setStatus('fout'); return }
 
+    const aj: AnalyseJSON = json.analyse
+
     // Sla op in DB
     const { data: opgeslagen } = await supabase
       .from('checkin_analyses')
       .insert({
-        sessie_id:   sid,
-        user_id:     user.id,
-        bedrijf_id:  profiel?.bedrijf_id ?? null,
-        scores,
-        analyse_json: json.analyse,
+        sessie_id:      sid,
+        user_id:        user.id,
+        bedrijf_id:     profiel?.bedrijf_id ?? null,
+        scores:         vlak_scores,
+        analyse_json:   aj,
         gedeeld_met_hr: false,
       })
       .select('id')
       .single()
 
-    setAnalyse(json.analyse)
+    setAnalyse(aj)
     setAnalyseId(opgeslagen?.id ?? null)
+    slaatDoelen(aj)
     setStatus('klaar')
 
-    // Award XP for check-in
+    // Award XP
     try {
-      const xpResult = verwerkCheckin(t)
+      const xpResult = verwerkCheckin(vitaalScore)
       if (xpResult.xpGewonnen > 0 || xpResult.nieuweAchievements.length > 0) {
         if (xpToastRef.current) clearTimeout(xpToastRef.current)
-        setXpToast({
-          xp: xpResult.xpGewonnen,
-          level: xpResult.levelOmhoog ? xpResult.nieuwLevel : undefined,
-          achievements: xpResult.nieuweAchievements,
-        })
+        setXpToast({ xp: xpResult.xpGewonnen, level: xpResult.levelOmhoog ? xpResult.nieuwLevel : undefined, achievements: xpResult.nieuweAchievements })
         xpToastRef.current = setTimeout(() => setXpToast(null), 5000)
       }
     } catch { /* XP is non-critical */ }
+  }
+
+  function slaatDoelen(aj: AnalyseJSON) {
+    if (!aj.aanbevolen_doelen?.length) return
+    try {
+      const doelen: WeekDoel[] = aj.aanbevolen_doelen.map(d => ({
+        vlak:             d.vlak as WellbeingCat,
+        doel_titel:       d.doel_titel,
+        doel_beschrijving:d.doel_beschrijving,
+        target_waarde:    d.target_waarde,
+        eenheid:          d.eenheid,
+        meetType:         d.meetType,
+        logs:             [],
+      }))
+      const ws: WeekSelectie = {
+        weekStart:   getMaandag(),
+        doelen,
+        vlak_scores: vlak_scores as Partial<Record<WellbeingCat, number>>,
+      }
+      slaWeekSelectieOp(ws)
+    } catch { /* non-critical */ }
   }
 
   async function toggleDelen() {
     if (!analyseId || !userId) return
     setDeelBezig(true)
     const nieuw = !gedeeld
-    await supabase
-      .from('checkin_analyses')
-      .update({ gedeeld_met_hr: nieuw })
-      .eq('id', analyseId)
+    await supabase.from('checkin_analyses').update({ gedeeld_met_hr: nieuw }).eq('id', analyseId)
     setGedeeld(nieuw)
     setDeelBezig(false)
-  }
-
-  async function downloadAnalysePDF() {
-    if (!analyse) return
-    setPdfBezig(true)
-    await downloadPDF(analyse, scores, datum)
-    setPdfBezig(false)
   }
 
   // ── Laadscherm ────────────────────────────────────────────────────────────
@@ -323,10 +218,8 @@ function BedanktInhoud() {
     <main className="min-h-screen flex flex-col items-center justify-center p-8"
       style={{ background: 'linear-gradient(135deg, #E1F5EE 0%, #E6F1FB 100%)' }}>
       <div className="max-w-md w-full bg-white rounded-2xl border border-gray-100 p-10 shadow-sm text-center">
-        <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-5"
-          style={{ background: '#E1F5EE' }}>
-          <div className="w-6 h-6 rounded-full border-2 border-gray-200 animate-spin"
-            style={{ borderTopColor: '#1D9E75' }} />
+        <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-5" style={{ background: '#E1F5EE' }}>
+          <div className="w-6 h-6 rounded-full border-2 border-gray-200 animate-spin" style={{ borderTopColor: '#1D9E75' }} />
         </div>
         <h2 className="text-lg font-medium text-gray-900 mb-2">
           {status === 'laden' ? 'Check-in verwerken...' : 'AI-analyse wordt gegenereerd...'}
@@ -340,7 +233,7 @@ function BedanktInhoud() {
     </main>
   )
 
-  // ── Simpele bevestiging (geen sessie-id) ──────────────────────────────────
+  // ── Simpele bevestiging ───────────────────────────────────────────────────
 
   if (status === 'simpel' || status === 'fout') return (
     <main className="min-h-screen flex flex-col items-center justify-center p-8"
@@ -357,20 +250,19 @@ function BedanktInhoud() {
         </h2>
         <p className="text-gray-500 text-sm mb-8 leading-relaxed">
           {status === 'fout'
-            ? 'Je check-in is opgeslagen, maar de AI-analyse is mislukt. Klik hieronder om het opnieuw te proberen.'
-            : 'Bedankt. Je antwoorden helpen jouw team om beter te presteren en uitval te voorkomen.'}
+            ? 'Je check-in is opgeslagen, maar de AI-analyse is mislukt. Probeer het opnieuw.'
+            : 'Bedankt. Je antwoorden helpen jou om beter te presteren en uitval te voorkomen.'}
         </p>
         <div className="flex flex-col gap-3">
           {status === 'fout' && sid && (
-            <button
-              onClick={() => { setStatus('laden'); genereerAnalyse() }}
+            <button onClick={() => { setStatus('laden'); genereerAnalyse() }}
               className="w-full inline-block text-center text-white rounded-xl py-3 text-sm font-medium"
               style={{ background: '#185FA5' }}>
               Opnieuw proberen
             </button>
           )}
-          <Link href="/portaal" className="w-full inline-block text-center text-white rounded-xl py-3 text-sm font-medium"
-            style={{ background: '#1D9E75' }}>Mijn portaal bekijken</Link>
+          <Link href="/home" className="w-full inline-block text-center text-white rounded-xl py-3 text-sm font-medium"
+            style={{ background: '#1D9E75' }}>Naar dashboard</Link>
           <Link href="/" className="w-full inline-block text-center border border-gray-200 text-gray-500 rounded-xl py-3 text-sm hover:bg-gray-50 transition">
             Terug naar home</Link>
         </div>
@@ -378,10 +270,7 @@ function BedanktInhoud() {
     </main>
   )
 
-  // ── Volledige analyse ─────────────────────────────────────────────────────
-
   if (!analyse) return null
-
   const risico = risicoConfig(analyse.burnout_risico.niveau)
 
   return (
@@ -393,9 +282,10 @@ function BedanktInhoud() {
         {/* Hero */}
         <div className="bg-white rounded-3xl border border-gray-100 p-8 shadow-sm mb-5">
           <div className="flex items-center gap-4 mb-5">
-            <div className="w-14 h-14 rounded-2xl flex items-center justify-center"
-              style={{ background: '#E1F5EE' }}>
-              <span style={{ color: '#1D9E75', fontSize: 24 }}>★</span>
+            <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: '#E1F5EE' }}>
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1D9E75" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
             </div>
             <div>
               <h1 className="text-xl font-bold text-gray-900">Jouw vitaliteitsanalyse</h1>
@@ -403,36 +293,69 @@ function BedanktInhoud() {
             </div>
           </div>
 
-          {/* Totaalscore */}
-          <div className="rounded-2xl p-5 mb-5 text-center" style={{ background: '#F0FAF6' }}>
-            <p className="text-xs text-gray-500 mb-1">Totale vitaliteitsscore</p>
-            <div className="flex items-end justify-center gap-1">
-              <span className="text-5xl font-black" style={{ color: scoreKleur(t) }}>{t.toFixed(1)}</span>
-              <span className="text-xl font-medium text-gray-400 pb-1">/5</span>
+          {/* Vitaalscore */}
+          {vitaalScore > 0 && (
+            <div className="rounded-2xl p-5 mb-5 text-center" style={{ background: '#F0FAF6' }}>
+              <p className="text-xs text-gray-500 mb-1">Vitaalscore</p>
+              <div className="flex items-end justify-center gap-1">
+                <span className="text-5xl font-black" style={{ color: scoreKleur(Math.round(gemiddelde)) }}>{vitaalScore}</span>
+                <span className="text-xl font-medium text-gray-400 pb-1">/100</span>
+              </div>
+              <p className="text-xs text-gray-400 mt-1">{scoreLabel(Math.round(gemiddelde))}</p>
             </div>
-          </div>
+          )}
 
-          {/* Categorie balkjes */}
+          {/* Domain score bars */}
           <div className="space-y-3">
-            {Object.entries(CAT_LABELS).map(([key, label]) => {
-              const score = (scores as Record<string, number>)[key] ?? 0
+            {VLAK_VOLGORDE.map(vlak => {
+              const score = (vlak_scores as Record<string, number>)[vlak] ?? 0
               if (!score) return null
-              const { k, l } = (CAT_KLEUREN as Record<string, { k: string; l: string }>)[key]
+              const { label, kleur, licht } = VLAK_CONFIG[vlak]
               return (
-                <div key={key}>
+                <div key={vlak}>
                   <div className="flex justify-between text-xs mb-1">
                     <span className="font-medium text-gray-700">{label}</span>
-                    <span className="font-semibold" style={{ color: scoreKleur(score) }}>{score.toFixed(1)}</span>
+                    <span className="font-semibold" style={{ color: scoreKleur(score) }}>{score}/20 — {scoreLabel(score)}</span>
                   </div>
-                  <div className="h-2 rounded-full overflow-hidden" style={{ background: l }}>
+                  <div className="h-2 rounded-full overflow-hidden" style={{ background: licht }}>
                     <div className="h-full rounded-full transition-all duration-700"
-                      style={{ width: `${(score / 5) * 100}%`, background: k }} />
+                      style={{ width: `${((score - 4) / 16) * 100}%`, background: kleur }} />
                   </div>
                 </div>
               )
             })}
           </div>
         </div>
+
+        {/* Aanbevolen doelen */}
+        {analyse.aanbevolen_doelen && analyse.aanbevolen_doelen.length > 0 && (
+          <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm mb-4">
+            <div className="flex items-center justify-between mb-1">
+              <h2 className="text-sm font-semibold text-gray-900">Jouw doelen voor deze week</h2>
+              <Link href="/doelen" className="text-xs font-medium" style={{ color: '#1D9E75' }}>Bekijk alles →</Link>
+            </div>
+            <p className="text-xs text-gray-400 mb-4">De AI heeft 3 doelen gekozen op basis van jouw laagste scores.</p>
+            <div className="space-y-3">
+              {analyse.aanbevolen_doelen.map((doel, i) => {
+                const cfg = VLAK_CONFIG[doel.vlak] ?? { label: doel.vlak, kleur: '#6B7280', licht: '#F9FAFB' }
+                return (
+                  <div key={i} className="rounded-xl p-4 flex gap-3"
+                    style={{ background: cfg.licht, border: `1px solid ${cfg.kleur}20` }}>
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 text-white text-xs font-bold"
+                      style={{ background: cfg.kleur }}>{i + 1}</div>
+                    <div>
+                      <p className="text-sm font-semibold" style={{ color: cfg.kleur }}>{doel.doel_titel}</p>
+                      <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">{doel.doel_beschrijving}</p>
+                      <p className="text-xs font-medium mt-1" style={{ color: cfg.kleur }}>
+                        Doel: {doel.target_waarde} {doel.eenheid} — {doel.meetType}
+                      </p>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Samenvatting */}
         <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm mb-4">
@@ -489,13 +412,11 @@ function BedanktInhoud() {
         {/* Welzijn per categorie */}
         {analyse.wellbeing_categorieen && analyse.wellbeing_categorieen.length > 0 && (
           <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm mb-4">
-            <h2 className="text-sm font-semibold text-gray-900 mb-1">Jouw welzijn per gebied</h2>
-            <p className="text-xs text-gray-400 mb-4">Klik op een gebied om er een doel voor in te stellen en dagelijks bij te houden.</p>
+            <h2 className="text-sm font-semibold text-gray-900 mb-4">Jouw welzijn per gebied</h2>
             <div className="space-y-3">
               {analyse.wellbeing_categorieen.map((cat) => {
                 const kl = WELLBEING_KLEUR[cat.naam] ?? { k: '#6B7280', l: '#F9FAFB', border: '#E5E7EB' }
                 const nv = NIVEAU_CONFIG[cat.niveau] ?? NIVEAU_CONFIG.matig
-                const slug = WELLBEING_SLUG[cat.naam] ?? cat.naam.toLowerCase()
                 return (
                   <div key={cat.naam} className="rounded-xl border p-4"
                     style={{ borderColor: kl.border, background: kl.l }}>
@@ -505,7 +426,7 @@ function BedanktInhoud() {
                         style={{ background: nv.bg, color: nv.tekst }}>{nv.label}</span>
                     </div>
                     <p className="text-xs text-gray-600 leading-relaxed mb-3">{cat.samenvatting}</p>
-                    <ul className="space-y-1 mb-3">
+                    <ul className="space-y-1">
                       {cat.tips.map((tip, ti) => (
                         <li key={ti} className="flex items-start gap-2 text-xs text-gray-700">
                           <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
@@ -517,16 +438,6 @@ function BedanktInhoud() {
                         </li>
                       ))}
                     </ul>
-                    <Link href={`/doelen?categorie=${slug}`}
-                      className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg transition"
-                      style={{ background: kl.k, color: '#fff' }}>
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                        <circle cx="12" cy="12" r="10" />
-                        <polyline points="12 6 12 12 16 14" />
-                      </svg>
-                      Stel een doel in
-                    </Link>
                   </div>
                 )
               })}
@@ -557,31 +468,22 @@ function BedanktInhoud() {
           <p className="text-sm text-gray-700 leading-relaxed italic">"{analyse.bericht}"</p>
         </div>
 
-        {/* Acties: Delen met HR + Download */}
+        {/* Deel met HR */}
         <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm mb-5">
-          <h2 className="text-sm font-semibold text-gray-900 mb-1">Wat wil je doen met deze analyse?</h2>
-          <p className="text-xs text-gray-400 mb-4">
-            Je analyse is privé. Jij beslist of je hem deelt met HR of als PDF bewaart.
-          </p>
-
-          {/* Deel met HR toggle */}
+          <h2 className="text-sm font-semibold text-gray-900 mb-1">Deel met HR?</h2>
+          <p className="text-xs text-gray-400 mb-4">Je analyse is privé. Jij beslist of je hem deelt.</p>
           <button
             onClick={toggleDelen}
             disabled={deelBezig}
-            className="w-full flex items-center justify-between p-4 rounded-xl border transition mb-3"
-            style={{
-              background:   gedeeld ? '#E1F5EE' : '#F9FAFB',
-              borderColor:  gedeeld ? '#1D9E75' : '#e5e7eb',
-            }}
+            className="w-full flex items-center justify-between p-4 rounded-xl border transition"
+            style={{ background: gedeeld ? '#E1F5EE' : '#F9FAFB', borderColor: gedeeld ? '#1D9E75' : '#e5e7eb' }}
           >
             <div className="text-left">
               <p className="text-sm font-medium" style={{ color: gedeeld ? '#0F6E56' : '#374151' }}>
                 {gedeeld ? 'Gedeeld met HR' : 'Deel met HR'}
               </p>
               <p className="text-xs mt-0.5" style={{ color: gedeeld ? '#1D9E75' : '#9ca3af' }}>
-                {gedeeld
-                  ? 'Jouw HR-manager kan deze analyse inzien en downloaden.'
-                  : 'Jouw HR-manager krijgt toegang tot deze analyse.'}
+                {gedeeld ? 'HR kan deze analyse inzien.' : 'HR krijgt toegang tot deze analyse.'}
               </p>
             </div>
             <div className="w-10 h-6 rounded-full flex items-center transition-all duration-200 flex-shrink-0 ml-4"
@@ -589,42 +491,23 @@ function BedanktInhoud() {
               <div className="w-5 h-5 rounded-full bg-white shadow-sm" />
             </div>
           </button>
-
-          {/* Download PDF */}
-          <button
-            onClick={downloadAnalysePDF}
-            disabled={pdfBezig}
-            className="w-full flex items-center justify-center gap-2 p-4 rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 transition disabled:opacity-40"
-          >
-            {pdfBezig
-              ? <><span className="w-4 h-4 rounded-full border-2 border-gray-300 border-t-gray-600 animate-spin" /> Bezig...</>
-              : <>↓ Download als PDF</>
-            }
-          </button>
         </div>
 
         {/* Navigatie */}
         <div className="flex flex-col gap-3">
-          {sid && (
-            <Link href={`/mijn-rapport?sid=${sid}`}
-              className="w-full inline-block text-center text-white rounded-xl py-3.5 text-sm font-semibold"
-              style={{ background: '#1D9E75' }}>
-              Bekijk je persoonlijk AI-rapport
-            </Link>
-          )}
-          <Link href="/portaal"
+          <Link href="/doelen"
+            className="w-full inline-block text-center text-white rounded-xl py-3.5 text-sm font-semibold"
+            style={{ background: '#1D9E75' }}>
+            Bekijk je doelen voor deze week
+          </Link>
+          <Link href="/rapport"
             className="w-full inline-block text-center rounded-xl py-3.5 text-sm font-medium border"
             style={{ borderColor: '#378ADD', color: '#378ADD' }}>
-            Mijn portaal bekijken
+            Volledig rapport bekijken
           </Link>
-          <Link href="/journal"
-            className="w-full inline-block text-center rounded-xl py-3.5 text-sm font-medium border"
-            style={{ borderColor: '#8B5CF6', color: '#8B5CF6' }}>
-            Schrijf een reflectie in je journal
-          </Link>
-          <Link href="/"
+          <Link href="/home"
             className="w-full inline-block text-center border border-gray-200 text-gray-500 rounded-xl py-3 text-sm hover:bg-gray-50 transition">
-            Terug naar home
+            Terug naar dashboard
           </Link>
         </div>
 
@@ -642,7 +525,6 @@ function BedanktInhoud() {
         border: '1.5px solid #E5E7EB', boxShadow: '0 8px 32px rgba(0,0,0,0.14)',
         padding: '16px 20px', minWidth: 280, maxWidth: 360,
       }}>
-        <style>{`@keyframes slideUpBedankt { from { opacity:0; transform: translateX(-50%) translateY(16px); } to { opacity:1; transform: translateX(-50%) translateY(0); } }`}</style>
         <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
           <div style={{ width: 44, height: 44, borderRadius: 12, background: '#EDE9FE', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
