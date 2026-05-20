@@ -24,9 +24,13 @@ function fmtDatum(d: Date): string {
 function WeekKalender({ weekSelectie, vandaagStr }: { weekSelectie: WeekSelectie; vandaagStr: string }) {
   const aantalDoelen = weekSelectie.doelen.length
 
+  // Parse as LOCAL date to avoid UTC-midnight off-by-one in UTC+1/+2 timezones
+  const [wy, wm, wd] = weekSelectie.weekStart.split('-').map(Number)
+  const weekBasis = new Date(wy, wm - 1, wd)
+
   const dagen = Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(weekSelectie.weekStart)
-    d.setDate(d.getDate() + i)
+    const d = new Date(weekBasis)
+    d.setDate(weekBasis.getDate() + i)
     const datum   = fmtDatum(d)
     const dagKort = d.toLocaleDateString('nl-BE', { weekday: 'short' }).replace('.', '').slice(0, 2)
     const dagNr   = d.getDate()
@@ -57,10 +61,9 @@ function WeekKalender({ weekSelectie, vandaagStr }: { weekSelectie: WeekSelectie
     return { datum, dagKort, dagNr, gehaaldCount, gelogdCount, isVandaag, isVerleden, accentKleur, accentBg, accentTekst }
   })
 
-  const eindDatum = new Date(weekSelectie.weekStart)
-  eindDatum.setDate(eindDatum.getDate() + 6)
-  const startD    = new Date(weekSelectie.weekStart)
-  const weekLabel = `${startD.getDate()} – ${eindDatum.toLocaleDateString('nl-BE', { day: 'numeric', month: 'long' })}`
+  const eindDatum = new Date(weekBasis)
+  eindDatum.setDate(weekBasis.getDate() + 6)
+  const weekLabel = `${weekBasis.getDate()} – ${eindDatum.toLocaleDateString('nl-BE', { day: 'numeric', month: 'long' })}`
 
   const totaalGehaald = weekSelectie.doelen.reduce((acc, doel) =>
     acc + doel.logs.filter(l => l.gehaald).length, 0)
@@ -126,22 +129,25 @@ function WeekKalender({ weekSelectie, vandaagStr }: { weekSelectie: WeekSelectie
       {aantalDoelen > 0 && (
         <div style={{ padding: '14px 18px 18px', borderTop: '1px solid #F3F4F6' }}>
           {weekSelectie.doelen.map((doel, idx) => {
-            const kleur        = VLAK_KLEUR[doel.vlak] ?? '#9CA3AF'
+            const kleur         = VLAK_KLEUR[doel.vlak] ?? '#9CA3AF'
             const aantalGehaald = doel.logs.filter(l => l.gehaald).length
-            const pct          = (aantalGehaald / 7) * 100
+            const pct           = (aantalGehaald / 7) * 100
             return (
-              <div key={doel.vlak} style={{ marginBottom: idx < weekSelectie.doelen.length - 1 ? 12 : 0 }}>
+              <Link key={doel.vlak} href="/doelen" style={{ textDecoration: 'none', display: 'block', marginBottom: idx < weekSelectie.doelen.length - 1 ? 12 : 0 }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 5 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                     <div style={{ width: 8, height: 8, borderRadius: '50%', background: kleur, flexShrink: 0 }} />
                     <p style={{ fontSize: 12, fontWeight: 600, color: '#374151' }}>{doel.doel_titel}</p>
                   </div>
-                  <p style={{ fontSize: 11, fontWeight: 700, color: aantalGehaald > 0 ? kleur : '#9CA3AF', flexShrink: 0, marginLeft: 8 }}>{aantalGehaald}/7</p>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, marginLeft: 8 }}>
+                    <p style={{ fontSize: 11, fontWeight: 700, color: aantalGehaald > 0 ? kleur : '#9CA3AF' }}>{aantalGehaald}/7</p>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#D1D5DB" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                  </div>
                 </div>
                 <div style={{ height: 6, borderRadius: 3, background: '#F3F4F6', overflow: 'hidden' }}>
                   <div style={{ height: '100%', borderRadius: 3, background: kleur, width: `${pct}%`, transition: 'width 1s ease' }} />
                 </div>
-              </div>
+              </Link>
             )
           })}
         </div>
