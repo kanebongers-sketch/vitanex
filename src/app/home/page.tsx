@@ -9,8 +9,18 @@ import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/Navbar'
 import CrisisButton from '@/components/CrisisButton'
 import { laadXPData, pasDecayToe, berekenLevel, xpVoortgang, LEVEL_NAMEN, LEVEL_KLEUREN, LEVEL_BG, type XPData } from '@/lib/xp'
-import { laadWeekSelectie, isVandaagGelogd, vandaag as weekVandaag, type WeekSelectie } from '@/lib/weekdoelen'
+import { laadWeekSelectie, vandaag as weekVandaag, type WeekSelectie } from '@/lib/weekdoelen'
 import { CAT } from '@/lib/doelen-config'
+
+// Domain codes — sum of these 4 scale questions = 4-20 per domain
+const DOMEIN_CODES: Record<string, string[]> = {
+  slaap:    ['slaap_kwaliteit', 'slaap_uren', 'slaap_fris', 'slaap_loslaten'],
+  stress:   ['stress_niveau', 'stress_piekeren', 'stress_controle', 'stress_ontspanning'],
+  energie:  ['energie_niveau', 'energie_beweging', 'energie_voeding', 'energie_dip'],
+  focus:    ['focus_concentratie', 'focus_helderheid', 'focus_aanwezig', 'focus_flow'],
+  balans:   ['balans_werk_prive', 'balans_grenzen', 'balans_tijd', 'balans_herstel'],
+  motivatie:['motivatie_werk', 'motivatie_zinvol', 'motivatie_enthousiasme', 'motivatie_waardering'],
+}
 
 const VLAK_KLEUR: Record<string, string> = {
   slaap: '#8B5CF6', stress: '#E24B4A', energie: '#BA7517',
@@ -21,143 +31,8 @@ function fmtDatum(d: Date): string {
   return [d.getFullYear(), String(d.getMonth() + 1).padStart(2, '0'), String(d.getDate()).padStart(2, '0')].join('-')
 }
 
-function WeekKalender({ weekSelectie, vandaagStr }: { weekSelectie: WeekSelectie; vandaagStr: string }) {
-  const aantalDoelen = weekSelectie.doelen.length
-
-  // Parse as LOCAL date to avoid UTC-midnight off-by-one in UTC+1/+2 timezones
-  const [wy, wm, wd] = weekSelectie.weekStart.split('-').map(Number)
-  const weekBasis = new Date(wy, wm - 1, wd)
-
-  const dagen = Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(weekBasis)
-    d.setDate(weekBasis.getDate() + i)
-    const datum   = fmtDatum(d)
-    const dagKort = d.toLocaleDateString('nl-BE', { weekday: 'short' }).replace('.', '').slice(0, 2)
-    const dagNr   = d.getDate()
-
-    const gehaaldCount = weekSelectie.doelen.filter(doel =>
-      doel.logs.some(l => l.datum === datum && l.gehaald)
-    ).length
-    const gelogdCount = weekSelectie.doelen.filter(doel =>
-      doel.logs.some(l => l.datum === datum)
-    ).length
-
-    const isVandaag   = datum === vandaagStr
-    const isVerleden  = datum < vandaagStr
-
-    let accentKleur = '#D1D5DB'
-    let accentBg    = 'transparent'
-    let accentTekst = '#9CA3AF'
-    if (aantalDoelen > 0 && gehaaldCount === aantalDoelen) {
-      accentKleur = '#1D9E75'; accentBg = '#E1F5EE'; accentTekst = '#0F6E56'
-    } else if (gehaaldCount > 0) {
-      accentKleur = '#F59E0B'; accentBg = '#FEF3C7'; accentTekst = '#854F0B'
-    } else if (gelogdCount > 0) {
-      accentKleur = '#E24B4A'; accentBg = '#FEF2F2'; accentTekst = '#A32D2D'
-    } else if (isVerleden && aantalDoelen > 0) {
-      accentKleur = '#E5E7EB'; accentBg = 'transparent'; accentTekst = '#D1D5DB'
-    }
-
-    return { datum, dagKort, dagNr, gehaaldCount, gelogdCount, isVandaag, isVerleden, accentKleur, accentBg, accentTekst }
-  })
-
-  const eindDatum = new Date(weekBasis)
-  eindDatum.setDate(weekBasis.getDate() + 6)
-  const weekLabel = `${weekBasis.getDate()} – ${eindDatum.toLocaleDateString('nl-BE', { day: 'numeric', month: 'long' })}`
-
-  const totaalGehaald = weekSelectie.doelen.reduce((acc, doel) =>
-    acc + doel.logs.filter(l => l.gehaald).length, 0)
-  const maxMogelijk = aantalDoelen * 7
-
-  return (
-    <div style={{ background: 'white', borderRadius: 20, border: '1px solid #E5E7EB', overflow: 'hidden' }}>
-      {/* Header */}
-      <div style={{ padding: '14px 18px 13px', borderBottom: '1px solid #F3F4F6', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div>
-          <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: '#9CA3AF', marginBottom: 1 }}>Week overzicht</p>
-          <p style={{ fontSize: 13, fontWeight: 700, color: '#374151' }}>{weekLabel}</p>
-        </div>
-        {maxMogelijk > 0 && (
-          <div style={{ textAlign: 'right' }}>
-            <p style={{ fontSize: 20, fontWeight: 900, color: '#1D9E75', lineHeight: 1 }}>{totaalGehaald}</p>
-            <p style={{ fontSize: 10, color: '#9CA3AF' }}>van {maxMogelijk} doelen</p>
-          </div>
-        )}
-      </div>
-
-      {/* Day strip */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', padding: '16px 10px 14px', gap: 4 }}>
-        {dagen.map(dag => (
-          <div key={dag.datum} style={{
-            textAlign: 'center',
-            padding: '10px 3px 11px',
-            borderRadius: 14,
-            background: dag.isVandaag ? dag.accentBg || '#F0FAF6' : dag.accentBg,
-            border: dag.isVandaag ? `2px solid ${dag.accentKleur === '#D1D5DB' ? '#1D9E75' : dag.accentKleur}` : '2px solid transparent',
-            transition: 'all 0.2s',
-          }}>
-            <p style={{ fontSize: 9, fontWeight: 700, color: dag.isVandaag ? (dag.accentKleur === '#D1D5DB' ? '#1D9E75' : dag.accentKleur) : '#B0B7C3', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-              {dag.dagKort}
-            </p>
-            <p style={{ fontSize: 16, fontWeight: 800, color: dag.isVandaag ? '#111827' : dag.isVerleden && dag.gehaaldCount === 0 && dag.gelogdCount === 0 ? '#D1D5DB' : '#374151', marginBottom: 8 }}>
-              {dag.dagNr}
-            </p>
-            {/* Completion dots — one per goal */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 3, alignItems: 'center' }}>
-              {aantalDoelen > 0 ? weekSelectie.doelen.map((doel, di) => {
-                const log    = doel.logs.find(l => l.datum === dag.datum)
-                const gehaald = log?.gehaald === true
-                const gelogd  = !!log
-                const kleur   = VLAK_KLEUR[doel.vlak] ?? '#9CA3AF'
-                return (
-                  <div key={di} style={{
-                    width: 6, height: 6, borderRadius: '50%',
-                    background: gehaald ? kleur : gelogd ? '#FEE2E2' : '#F3F4F6',
-                    border: gelogd && !gehaald ? `1px solid ${kleur}60` : 'none',
-                    transition: 'background 0.2s',
-                  }} />
-                )
-              }) : (
-                <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#F3F4F6' }} />
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Goal progress bars */}
-      {aantalDoelen > 0 && (
-        <div style={{ padding: '14px 18px 18px', borderTop: '1px solid #F3F4F6' }}>
-          {weekSelectie.doelen.map((doel, idx) => {
-            const kleur         = VLAK_KLEUR[doel.vlak] ?? '#9CA3AF'
-            const aantalGehaald = doel.logs.filter(l => l.gehaald).length
-            const pct           = (aantalGehaald / 7) * 100
-            return (
-              <Link key={doel.vlak} href="/doelen" style={{ textDecoration: 'none', display: 'block', marginBottom: idx < weekSelectie.doelen.length - 1 ? 12 : 0 }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 5 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: kleur, flexShrink: 0 }} />
-                    <p style={{ fontSize: 12, fontWeight: 600, color: '#374151' }}>{doel.doel_titel}</p>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, marginLeft: 8 }}>
-                    <p style={{ fontSize: 11, fontWeight: 700, color: aantalGehaald > 0 ? kleur : '#9CA3AF' }}>{aantalGehaald}/7</p>
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#D1D5DB" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-                  </div>
-                </div>
-                <div style={{ height: 6, borderRadius: 3, background: '#F3F4F6', overflow: 'hidden' }}>
-                  <div style={{ height: '100%', borderRadius: 3, background: kleur, width: `${pct}%`, transition: 'width 1s ease' }} />
-                </div>
-              </Link>
-            )
-          })}
-        </div>
-      )}
-    </div>
-  )
-}
-
-function berekenScore(s: Record<string, number>) {
-  const vals = Object.values(s).filter(v => v > 0)
+function berekenVitaalScore(domeinScores: Record<string, number>): number {
+  const vals = Object.values(domeinScores).filter(v => v > 0)
   if (!vals.length) return 0
   const avg = vals.reduce((a, b) => a + b, 0) / vals.length
   return Math.round(((avg - 4) / 16) * 100)
@@ -178,61 +53,201 @@ function ScoreRing({ score }: { score: number }) {
   )
 }
 
+function WeekKalender({ weekSelectie, vandaagStr }: { weekSelectie: WeekSelectie; vandaagStr: string }) {
+  const aantalDoelen = weekSelectie.doelen.length
+  const [wy, wm, wd] = weekSelectie.weekStart.split('-').map(Number)
+  const weekBasis = new Date(wy, wm - 1, wd)
+
+  const dagen = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(weekBasis)
+    d.setDate(weekBasis.getDate() + i)
+    const datum   = fmtDatum(d)
+    const dagKort = d.toLocaleDateString('nl-BE', { weekday: 'short' }).replace('.', '').slice(0, 2)
+    const dagNr   = d.getDate()
+    const gehaaldCount = weekSelectie.doelen.filter(doel => doel.logs.some(l => l.datum === datum && l.gehaald)).length
+    const gelogdCount  = weekSelectie.doelen.filter(doel => doel.logs.some(l => l.datum === datum)).length
+    const isVandaag  = datum === vandaagStr
+    const isVerleden = datum < vandaagStr
+    let accentKleur = '#D1D5DB', accentBg = 'transparent'
+    if (aantalDoelen > 0 && gehaaldCount === aantalDoelen) { accentKleur = '#1D9E75'; accentBg = '#E1F5EE' }
+    else if (gehaaldCount > 0)                             { accentKleur = '#F59E0B'; accentBg = '#FEF3C7' }
+    else if (gelogdCount > 0)                              { accentKleur = '#E24B4A'; accentBg = '#FEF2F2' }
+    return { datum, dagKort, dagNr, gehaaldCount, gelogdCount, isVandaag, isVerleden, accentKleur, accentBg }
+  })
+
+  const eindDatum = new Date(weekBasis); eindDatum.setDate(weekBasis.getDate() + 6)
+  const weekLabel = `${weekBasis.getDate()} – ${eindDatum.toLocaleDateString('nl-BE', { day: 'numeric', month: 'long' })}`
+  const totaalGehaald = weekSelectie.doelen.reduce((acc, d) => acc + d.logs.filter(l => l.gehaald).length, 0)
+  const maxMogelijk = aantalDoelen * 7
+
+  return (
+    <div style={{ background: 'white', borderRadius: 20, border: '1px solid #E5E7EB', overflow: 'hidden' }}>
+      <div style={{ padding: '14px 18px 13px', borderBottom: '1px solid #F3F4F6', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div>
+          <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: '#9CA3AF', marginBottom: 1 }}>Week overzicht</p>
+          <p style={{ fontSize: 13, fontWeight: 700, color: '#374151' }}>{weekLabel}</p>
+        </div>
+        {maxMogelijk > 0 && (
+          <div style={{ textAlign: 'right' }}>
+            <p style={{ fontSize: 20, fontWeight: 900, color: '#1D9E75', lineHeight: 1 }}>{totaalGehaald}</p>
+            <p style={{ fontSize: 10, color: '#9CA3AF' }}>van {maxMogelijk} doelen</p>
+          </div>
+        )}
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', padding: '16px 10px 14px', gap: 4 }}>
+        {dagen.map(dag => (
+          <div key={dag.datum} style={{
+            textAlign: 'center', padding: '10px 3px 11px', borderRadius: 14,
+            background: dag.isVandaag ? dag.accentBg || '#F0FAF6' : dag.accentBg,
+            border: dag.isVandaag ? `2px solid ${dag.accentKleur === '#D1D5DB' ? '#1D9E75' : dag.accentKleur}` : '2px solid transparent',
+          }}>
+            <p style={{ fontSize: 9, fontWeight: 700, color: dag.isVandaag ? (dag.accentKleur === '#D1D5DB' ? '#1D9E75' : dag.accentKleur) : '#B0B7C3', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              {dag.dagKort}
+            </p>
+            <p style={{ fontSize: 16, fontWeight: 800, color: dag.isVandaag ? '#111827' : dag.isVerleden && dag.gehaaldCount === 0 && dag.gelogdCount === 0 ? '#D1D5DB' : '#374151', marginBottom: 8 }}>
+              {dag.dagNr}
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 3, alignItems: 'center' }}>
+              {aantalDoelen > 0 ? weekSelectie.doelen.map((doel, di) => {
+                const log = doel.logs.find(l => l.datum === dag.datum)
+                const kleur = VLAK_KLEUR[doel.vlak] ?? '#9CA3AF'
+                return (
+                  <div key={di} style={{
+                    width: 6, height: 6, borderRadius: '50%',
+                    background: log?.gehaald ? kleur : log ? '#FEE2E2' : '#F3F4F6',
+                    border: log && !log.gehaald ? `1px solid ${kleur}60` : 'none',
+                  }} />
+                )
+              }) : <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#F3F4F6' }} />}
+            </div>
+          </div>
+        ))}
+      </div>
+      {aantalDoelen > 0 && (
+        <div style={{ padding: '14px 18px 18px', borderTop: '1px solid #F3F4F6' }}>
+          {weekSelectie.doelen.map((doel, idx) => {
+            const kleur = VLAK_KLEUR[doel.vlak] ?? '#9CA3AF'
+            const aantalGehaald = doel.logs.filter(l => l.gehaald).length
+            const pct = (aantalGehaald / 7) * 100
+            return (
+              <Link key={doel.vlak} href="/doelen" style={{ textDecoration: 'none', display: 'block', marginBottom: idx < weekSelectie.doelen.length - 1 ? 12 : 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 5 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: kleur, flexShrink: 0 }} />
+                    <p style={{ fontSize: 12, fontWeight: 600, color: '#374151' }}>{doel.doel_titel}</p>
+                  </div>
+                  <p style={{ fontSize: 11, fontWeight: 700, color: aantalGehaald > 0 ? kleur : '#9CA3AF' }}>{aantalGehaald}/7</p>
+                </div>
+                <div style={{ height: 6, borderRadius: 3, background: '#F3F4F6', overflow: 'hidden' }}>
+                  <div style={{ height: '100%', borderRadius: 3, background: kleur, width: `${pct}%`, transition: 'width 1s ease' }} />
+                </div>
+              </Link>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function HomePage() {
   const router = useRouter()
-  const [laden, setLaden]                   = useState(true)
-  const [naam, setNaam]                     = useState('')
-  const [scores, setScores]                 = useState<Record<string, number> | null>(null)
-  const [checkInDezeWeek, setCheckInDezeWeek] = useState(false)
+  const [laden, setLaden]               = useState(true)
+  const [naam, setNaam]                 = useState('')
+  const [sessieId, setSessieId]         = useState<string | null>(null)
+  const [vlakScores, setVlakScores]     = useState<Record<string, number> | null>(null)
   const [recentCheckins, setRecentCheckins] = useState(0)
-  const [xpData, setXpData]                 = useState<XPData | null>(null)
-  const [weekSelectie, setWeekSelectie]     = useState<WeekSelectie | null>(null)
-  const [vlakScores, setVlakScores]         = useState<Record<string, number> | null>(null)
+  const [xpData, setXpData]             = useState<XPData | null>(null)
+  const [weekSelectie, setWeekSelectie] = useState<WeekSelectie | null>(null)
+  const [aiSamenvatting, setAiSamenvatting] = useState<string | null>(null)
 
   useEffect(() => {
     async function laad() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/login'); return }
 
+      // Profile
       const { data: profiel } = await supabase
         .from('profiles').select('naam').eq('id', user.id).single()
       setNaam(profiel?.naam ?? '')
 
-      const { data: analyse } = await supabase
-        .from('checkin_analyses').select('scores, analyse_json')
-        .eq('user_id', user.id).order('aangemaakt_op', { ascending: false })
-        .limit(1).maybeSingle()
-      if (analyse?.scores) {
-        const s = analyse.scores as Record<string, number>
-        setScores(s)
-        if (Object.values(s).some(v => v > 0)) setVlakScores(s)
-      }
+      // Most recent session (7 days) — if none, send to check-in
+      const zevenGeleden = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+      const { data: sessie } = await supabase
+        .from('checkin_sessies')
+        .select('id')
+        .eq('user_id', user.id)
+        .gte('aangemaakt_op', zevenGeleden)
+        .order('aangemaakt_op', { ascending: false })
+        .limit(1)
+        .maybeSingle()
 
-      const zevenDagenGeleden = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
-      const { count: weekCount } = await supabase.from('checkin_sessies')
-        .select('id', { count: 'exact', head: true }).eq('user_id', user.id)
-        .gte('aangemaakt_op', zevenDagenGeleden)
-      if ((weekCount ?? 0) === 0) { router.push('/checkin'); return }
-      setCheckInDezeWeek(true)
+      if (!sessie) { router.push('/checkin'); return }
+      setSessieId(sessie.id)
 
-      const { count } = await supabase.from('checkin_sessies')
-        .select('id', { count: 'exact', head: true }).eq('user_id', user.id)
+      // Count check-ins in last 28 days
+      const { count } = await supabase
+        .from('checkin_sessies')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', user.id)
         .gte('aangemaakt_op', new Date(Date.now() - 28 * 86400000).toISOString())
       setRecentCheckins(count ?? 0)
 
+      // Load domain scores from checkin_antwoorden — always available after check-in
+      const { data: antwoorden } = await supabase
+        .from('checkin_antwoorden')
+        .select('vraag_code, waarde_schaal')
+        .eq('sessie_id', sessie.id)
+        .not('waarde_schaal', 'is', null)
+
+      if (antwoorden?.length) {
+        const codeMap: Record<string, number> = {}
+        for (const r of antwoorden) {
+          if (r.waarde_schaal != null) codeMap[r.vraag_code] = Number(r.waarde_schaal)
+        }
+        const domeinScores: Record<string, number> = {}
+        for (const [domein, codes] of Object.entries(DOMEIN_CODES)) {
+          domeinScores[domein] = codes.reduce((acc, c) => acc + (codeMap[c] ?? 0), 0)
+        }
+        if (Object.values(domeinScores).some(v => v > 0)) {
+          setVlakScores(domeinScores)
+        }
+      }
+
       setLaden(false)
 
-      try { let xp = laadXPData(); xp = pasDecayToe(xp); setXpData(xp) } catch { /* non-critical */ }
-      try { setWeekSelectie(laadWeekSelectie()) } catch { /* non-critical */ }
+      // XP (localStorage)
+      try { let xp = laadXPData(); xp = pasDecayToe(xp); setXpData(xp) } catch { /* ok */ }
+
+      // Week goals (localStorage)
+      try { setWeekSelectie(laadWeekSelectie()) } catch { /* ok */ }
+
+      // AI summary from checkin_analyses (bonus, non-blocking)
+      try {
+        const { data: analyse } = await supabase
+          .from('checkin_analyses')
+          .select('analyse_json')
+          .eq('user_id', user.id)
+          .order('aangemaakt_op', { ascending: false })
+          .limit(1)
+          .maybeSingle()
+        const aj = analyse?.analyse_json as { samenvatting?: string } | null
+        if (aj?.samenvatting) setAiSamenvatting(aj.samenvatting)
+      } catch { /* ok */ }
     }
     laad()
   }, [router])
 
-  const score       = scores ? berekenScore(scores) : null
-  const scoreKleur  = !score ? '#9CA3AF' : score >= 70 ? '#1D9E75' : score >= 45 ? '#F59E0B' : '#EF4444'
-  const scoreLabelStr = !score ? 'Nog geen score' : score >= 70 ? 'Goed op weg' : score >= 45 ? 'Aandacht nodig' : 'Zorg voor jezelf'
-  const dagtijd    = (() => { const h = new Date().getHours(); return h < 12 ? 'Goedemorgen' : h < 18 ? 'Goedemiddag' : 'Goedenavond' })()
-  const datum      = new Date().toLocaleDateString('nl-BE', { weekday: 'long', day: 'numeric', month: 'long' })
+  const vitaalScore  = vlakScores ? berekenVitaalScore(vlakScores) : null
+  const scoreKleur   = !vitaalScore ? '#9CA3AF' : vitaalScore >= 70 ? '#1D9E75' : vitaalScore >= 45 ? '#F59E0B' : '#EF4444'
+  const scoreLabelStr = !vitaalScore ? '—' : vitaalScore >= 70 ? 'Goed op weg' : vitaalScore >= 45 ? 'Aandacht nodig' : 'Zorg voor jezelf'
+  const dagtijd = (() => { const h = new Date().getHours(); return h < 12 ? 'Goedemorgen' : h < 18 ? 'Goedemiddag' : 'Goedenavond' })()
+  const datum   = new Date().toLocaleDateString('nl-BE', { weekday: 'long', day: 'numeric', month: 'long' })
+
+  // Build doelkeuze URL for when goals haven't been selected yet
+  const doelkeuzeUrl = vlakScores && sessieId
+    ? `/doelkeuze?${new URLSearchParams({ ...Object.fromEntries(Object.entries(vlakScores).map(([k, v]) => [k, String(v)])), sid: sessieId }).toString()}`
+    : '/checkin'
 
   if (laden) return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
@@ -246,7 +261,7 @@ export default function HomePage() {
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
       <Navbar />
-      <main style={{ padding: '28px 40px 72px' }}>
+      <main style={{ padding: '28px 20px 72px', maxWidth: 900, margin: '0 auto' }}>
 
         {/* ── HEADER ── */}
         <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 24 }}>
@@ -256,66 +271,45 @@ export default function HomePage() {
           <p style={{ color: '#9CA3AF', fontSize: 13, textTransform: 'capitalize' }}>{datum}</p>
         </div>
 
-        {/* ── PRIMAIRE ACTIE ── */}
-        {!checkInDezeWeek ? (
-          <div style={{
-            background: 'linear-gradient(135deg, #0F6E56 0%, #1D9E75 100%)',
-            borderRadius: 20, padding: '24px 28px', marginBottom: 20,
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 20,
-            boxShadow: '0 4px 20px rgba(29,158,117,0.25)',
-          }}>
-            <div>
-              <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.6)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 6 }}>
-                Wekelijkse check-in
-              </p>
-              <h2 style={{ fontSize: 18, fontWeight: 800, color: 'white', marginBottom: 14 }}>
-                Hoe gaat het met je deze week?
-              </h2>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <Link href="/checkin" style={{
-                  display: 'inline-flex', alignItems: 'center', gap: 6,
-                  background: 'white', color: '#0F6E56',
-                  borderRadius: 10, padding: '10px 20px',
-                  fontSize: 14, fontWeight: 700, textDecoration: 'none',
-                }}>
-                  Start check-in
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
-                </Link>
-                <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)', fontWeight: 600 }}>+75 XP</span>
-              </div>
+        {/* ── VITALITEITSSCORE KAART ── */}
+        <div style={{
+          background: 'white', borderRadius: 20, padding: '20px 24px', marginBottom: 20,
+          border: '1px solid #E5E7EB', display: 'flex', alignItems: 'center', gap: 20,
+        }}>
+          {vitaalScore !== null && <ScoreRing score={vitaalScore} />}
+          {vitaalScore === null && (
+            <div style={{ width: 90, height: 90, borderRadius: '50%', background: '#F9FAFB', border: '2px dashed #E5E7EB', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <span style={{ fontSize: 22, color: '#D1D5DB' }}>—</span>
             </div>
-            <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-              <path d="M9 19v-6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2zm0 0V9a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v10m-6 0a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2m0 0V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2z"/>
-            </svg>
-          </div>
-        ) : (
-          <div style={{
-            background: 'white', borderRadius: 20, padding: '20px 24px', marginBottom: 20,
-            border: '1px solid #E5E7EB', display: 'flex', alignItems: 'center', gap: 20,
-          }}>
-            {score && <ScoreRing score={score} />}
-            <div style={{ flex: 1 }}>
-              <p style={{ fontSize: 11, fontWeight: 700, color: '#9CA3AF', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 4 }}>
-                Vitaliteitsscore
-              </p>
-              <h2 style={{ fontSize: 20, fontWeight: 800, color: scoreKleur, marginBottom: 14, letterSpacing: '-0.02em' }}>
-                {scoreLabelStr}
-              </h2>
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                <Link href="/rapport" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#1D9E75', color: 'white', borderRadius: 10, padding: '9px 16px', fontSize: 13, fontWeight: 600, textDecoration: 'none' }}>
-                  Bekijk rapport
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="9 18 15 12 9 6" /></svg>
-                </Link>
-                <Link href="/coach" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#E6F1FB', color: '#185FA5', borderRadius: 10, padding: '9px 16px', fontSize: 13, fontWeight: 600, textDecoration: 'none' }}>
-                  AI Coach
-                </Link>
-                <Link href="/checkin" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#F9FAFB', color: '#6B7280', border: '1px solid #E5E7EB', borderRadius: 10, padding: '9px 16px', fontSize: 13, fontWeight: 600, textDecoration: 'none' }}>
-                  Nieuwe check-in
-                </Link>
-              </div>
+          )}
+          <div style={{ flex: 1 }}>
+            <p style={{ fontSize: 11, fontWeight: 700, color: '#9CA3AF', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 4 }}>
+              Vitaliteitsscore
+            </p>
+            <h2 style={{ fontSize: 20, fontWeight: 800, color: scoreKleur, marginBottom: 4, letterSpacing: '-0.02em' }}>
+              {scoreLabelStr}
+            </h2>
+            <p style={{ fontSize: 12, color: '#9CA3AF', marginBottom: 12 }}>
+              {vitaalScore !== null
+                ? vitaalScore >= 70 ? 'Je doet het goed. Blijf op koers!'
+                  : vitaalScore >= 45 ? 'Een paar vlakken verdienen wat aandacht.'
+                  : 'Besteed extra zorg aan je welzijn deze week.'
+                : 'Vul je check-in in om je score te zien.'}
+            </p>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <Link href="/rapport" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#1D9E75', color: 'white', borderRadius: 10, padding: '9px 16px', fontSize: 13, fontWeight: 600, textDecoration: 'none' }}>
+                Bekijk rapport
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="9 18 15 12 9 6" /></svg>
+              </Link>
+              <Link href="/coach" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#E6F1FB', color: '#185FA5', borderRadius: 10, padding: '9px 16px', fontSize: 13, fontWeight: 600, textDecoration: 'none' }}>
+                AI Coach
+              </Link>
+              <Link href="/checkin" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#F9FAFB', color: '#6B7280', border: '1px solid #E5E7EB', borderRadius: 10, padding: '9px 16px', fontSize: 13, fontWeight: 600, textDecoration: 'none' }}>
+                Nieuwe check-in
+              </Link>
             </div>
           </div>
-        )}
+        </div>
 
         {/* ── STATS ── */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 20 }}>
@@ -326,12 +320,12 @@ export default function HomePage() {
           </div>
           <div style={{ background: 'white', borderRadius: 14, padding: '16px 18px', border: '1px solid #E5E7EB' }}>
             <p style={{ fontSize: 11, color: '#9CA3AF', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Vitaalscore</p>
-            <p style={{ fontSize: 26, fontWeight: 800, color: scoreKleur }}>{score ?? '—'}</p>
-            <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 2 }}>{score ? 'van 100' : 'nog geen data'}</p>
+            <p style={{ fontSize: 26, fontWeight: 800, color: scoreKleur }}>{vitaalScore ?? '—'}</p>
+            <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 2 }}>{vitaalScore !== null ? 'van 100' : 'nog geen data'}</p>
           </div>
           <div style={{ background: 'white', borderRadius: 14, padding: '16px 18px', border: '1px solid #E5E7EB' }}>
             <p style={{ fontSize: 11, color: '#9CA3AF', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Doelen</p>
-            <p style={{ fontSize: 26, fontWeight: 800, color: '#7C3AED' }}>{weekSelectie ? weekSelectie.doelen.length : 0}</p>
+            <p style={{ fontSize: 26, fontWeight: 800, color: '#7C3AED' }}>{weekSelectie?.doelen.length ?? 0}</p>
             <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 2 }}>actief deze week</p>
           </div>
           {xpData ? (() => {
@@ -344,7 +338,7 @@ export default function HomePage() {
                 <div style={{ background: 'white', borderRadius: 14, padding: '16px 18px', border: `1.5px solid ${kleur}30`, height: '100%', boxSizing: 'border-box' }}>
                   <p style={{ fontSize: 11, color: '#9CA3AF', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Fit Level</p>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                    <div style={{ width: 32, height: 32, borderRadius: 8, background: bg, border: `2px solid ${kleur}40`, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <div style={{ width: 32, height: 32, borderRadius: 8, background: bg, border: `2px solid ${kleur}40`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                       <span style={{ fontSize: 14, fontWeight: 900, color: kleur, lineHeight: 1 }}>{level}</span>
                     </div>
                     <span style={{ fontSize: 13, fontWeight: 700, color: '#111827' }}>{LEVEL_NAMEN[level]}</span>
@@ -359,6 +353,7 @@ export default function HomePage() {
             <div style={{ background: 'white', borderRadius: 14, padding: '16px 18px', border: '1px solid #E5E7EB' }}>
               <p style={{ fontSize: 11, color: '#9CA3AF', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Fit Level</p>
               <p style={{ fontSize: 26, fontWeight: 800, color: '#9CA3AF' }}>—</p>
+              <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 2 }}>doe een check-in</p>
             </div>
           )}
         </div>
@@ -371,32 +366,36 @@ export default function HomePage() {
             </p>
             <Link href="/rapport" style={{ fontSize: 12, color: '#1D9E75', fontWeight: 600, textDecoration: 'none' }}>Volledig rapport →</Link>
           </div>
+
+          {aiSamenvatting && (
+            <div style={{ background: 'white', borderRadius: 14, padding: '14px 16px', border: '1px solid #E5E7EB', marginBottom: 12, display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+              <div style={{ width: 28, height: 28, borderRadius: 8, background: '#E6F1FB', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#185FA5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                </svg>
+              </div>
+              <p style={{ fontSize: 12, color: '#374151', lineHeight: 1.55, flex: 1 }}>{aiSamenvatting}</p>
+            </div>
+          )}
+
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 10 }}>
             {Object.entries(CAT).map(([vlak, c]) => {
-              const score = vlakScores?.[vlak] ?? 0
-              const pct = score > 0 ? Math.round(((score - 4) / 16) * 100) : 0
-              const bar = score >= 16 ? '#1D9E75' : score >= 12 ? '#B45309' : score >= 8 ? '#E26B4A' : score > 0 ? '#E24B4A' : '#E5E7EB'
+              const s = vlakScores?.[vlak] ?? 0
+              const pct = s > 0 ? Math.round(((s - 4) / 16) * 100) : 0
+              const bar = s >= 16 ? '#1D9E75' : s >= 12 ? '#B45309' : s >= 8 ? '#E26B4A' : s > 0 ? '#E24B4A' : '#E5E7EB'
+              const label = s >= 16 ? 'Goed' : s >= 12 ? 'Matig' : s > 0 ? 'Laag' : null
               return (
-                <Link key={vlak} href="/doelen" style={{ textDecoration: 'none' }}>
-                  <div style={{
-                    background: 'white', borderRadius: 14, padding: '12px 8px',
-                    border: `1.5px solid ${score > 0 ? bar + '30' : '#E5E7EB'}`,
-                    textAlign: 'center',
-                  }}>
-                    <div style={{
-                      width: 34, height: 34, borderRadius: 10,
-                      background: score > 0 ? c.bg : '#F9FAFB',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      color: score > 0 ? c.kleur : '#D1D5DB', margin: '0 auto 6px',
-                    }}>
+                <Link key={vlak} href="/rapport" style={{ textDecoration: 'none' }}>
+                  <div style={{ background: 'white', borderRadius: 14, padding: '12px 8px', border: `1.5px solid ${s > 0 ? bar + '30' : '#E5E7EB'}`, textAlign: 'center' }}>
+                    <div style={{ width: 34, height: 34, borderRadius: 10, background: s > 0 ? c.bg : '#F9FAFB', display: 'flex', alignItems: 'center', justifyContent: 'center', color: s > 0 ? c.kleur : '#D1D5DB', margin: '0 auto 6px' }}>
                       <span style={{ transform: 'scale(0.75)', display: 'flex' }}>{c.icon}</span>
                     </div>
                     <p style={{ fontSize: 10, fontWeight: 700, color: '#374151', marginBottom: 5 }}>{c.label}</p>
                     <div style={{ height: 4, borderRadius: 2, background: '#F3F4F6', overflow: 'hidden', marginBottom: 4 }}>
                       <div style={{ height: '100%', borderRadius: 2, background: bar, width: `${pct}%`, transition: 'width 0.8s ease' }} />
                     </div>
-                    {score > 0
-                      ? <span style={{ fontSize: 9, fontWeight: 700, color: bar }}>{score}/20</span>
+                    {s > 0
+                      ? <span style={{ fontSize: 9, fontWeight: 700, color: bar }}>{label}</span>
                       : <span style={{ fontSize: 9, color: '#D1D5DB' }}>—</span>
                     }
                   </div>
@@ -406,7 +405,7 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* ── WEEK KALENDER ── */}
+        {/* ── DOELEN & PROGRESSIE ── */}
         <div style={{ marginBottom: 20 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
             <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#9CA3AF' }}>
@@ -419,18 +418,18 @@ export default function HomePage() {
           {weekSelectie ? (
             <WeekKalender weekSelectie={weekSelectie} vandaagStr={weekVandaag()} />
           ) : (
-            <Link href="/checkin" style={{ textDecoration: 'none' }}>
-              <div style={{
-                background: 'white', borderRadius: 16, padding: '18px 20px',
-                border: '2px dashed #E5E7EB',
-                display: 'flex', alignItems: 'center', gap: 14,
-              }}>
+            <Link href={doelkeuzeUrl} style={{ textDecoration: 'none' }}>
+              <div style={{ background: 'white', borderRadius: 16, padding: '18px 20px', border: '2px dashed #E5E7EB', display: 'flex', alignItems: 'center', gap: 14 }}>
                 <div style={{ width: 40, height: 40, borderRadius: 12, background: '#E1F5EE', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: '#1D9E75' }}>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
                 </div>
                 <div style={{ flex: 1 }}>
-                  <p style={{ fontSize: 13, fontWeight: 700, color: '#111827', marginBottom: 2 }}>Start je eerste check-in</p>
-                  <p style={{ fontSize: 12, color: '#9CA3AF' }}>Vul je check-in in — kies dan je weekdoelen</p>
+                  <p style={{ fontSize: 13, fontWeight: 700, color: '#111827', marginBottom: 2 }}>
+                    {vlakScores ? 'Kies je weekdoelen' : 'Start je eerste check-in'}
+                  </p>
+                  <p style={{ fontSize: 12, color: '#9CA3AF' }}>
+                    {vlakScores ? 'Je check-in is gedaan. Stel nu je 3 doelen in voor deze week.' : 'Vul je check-in in om weekdoelen te kiezen.'}
+                  </p>
                 </div>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#D1D5DB" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
               </div>
@@ -453,11 +452,7 @@ export default function HomePage() {
               { href: '/nieuws',      kleur: '#6B7280', bg: '#F3F4F6', label: 'Nieuws',      icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M18 14h-8"/><path d="M15 18h-5"/><path d="M10 6h8v4h-8V6Z"/></svg> },
             ].map(item => (
               <Link key={item.href} href={item.href} style={{ textDecoration: 'none', flex: 1 }}>
-                <div style={{
-                  background: 'white', borderRadius: 12, padding: '12px 10px',
-                  border: '1px solid #E5E7EB', textAlign: 'center',
-                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
-                }}>
+                <div style={{ background: 'white', borderRadius: 12, padding: '12px 10px', border: '1px solid #E5E7EB', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
                   <div style={{ width: 36, height: 36, borderRadius: 10, background: item.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', color: item.kleur }}>
                     {item.icon}
                   </div>

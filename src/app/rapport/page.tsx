@@ -59,10 +59,12 @@ function ScoreRing({ score }: { score: number }) {
 export default function Rapport() {
   const router  = useRouter()
   const printRef = useRef<HTMLDivElement>(null)
-  const [laden, setLaden]     = useState(true)
-  const [analyse, setAnalyse] = useState<Analyse | null>(null)
-  const [xpLevel, setXpLevel] = useState(1)
+  const [laden, setLaden]         = useState(true)
+  const [analyse, setAnalyse]     = useState<Analyse | null>(null)
+  const [xpLevel, setXpLevel]     = useState(1)
   const [downloading, setDownloading] = useState(false)
+  const [analyseAanMaken, setAnalyseAanMaken] = useState(false)
+  const [analyseFout, setAnalyseFout]         = useState(false)
 
   useEffect(() => {
     async function laad() {
@@ -77,8 +79,99 @@ export default function Rapport() {
         .limit(1)
         .maybeSingle()
 
-      if (data) setAnalyse(data as Analyse)
+      if (data) {
+        setAnalyse(data as Analyse)
+        setLaden(false)
+        try { setXpLevel(berekenLevel(laadXPData().xp)) } catch { /* ok */ }
+        return
+      }
+
+      // No analysis yet — check if there's a recent session we can analyse
       setLaden(false)
+      const zevenGeleden = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+      const { data: sessie } = await supabase
+        .from('checkin_sessies')
+        .select('id')
+        .eq('user_id', user.id)
+        .gte('aangemaakt_op', zevenGeleden)
+        .order('aangemaakt_op', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+
+      if (!sessie) return
+
+      // Session exists but no analysis — trigger it now
+      setAnalyseAanMaken(true)
+      try {
+        const { data: profiel } = await supabase
+          .from('profiles').select('bedrijf_id').eq('id', user.id).single()
+
+        const { data: antwoorden } = await supabase
+          .from('checkin_antwoorden')
+          .select('categorie, waarde_tekst')
+          .eq('sessie_id', sessie.id)
+          .not('waarde_tekst', 'is', null)
+
+        // Reconstruct vlak_scores from checkin_antwoorden scale responses
+        const { data: schaalRows } = await supabase
+          .from('checkin_antwoorden')
+          .select('vraag_code, waarde_schaal')
+          .eq('sessie_id', sessie.id)
+          .not('waarde_schaal', 'is', null)
+
+        const DOMEIN_CODES: Record<string, string[]> = {
+          slaap:    ['slaap_kwaliteit', 'slaap_uren', 'slaap_fris', 'slaap_loslaten'],
+          stress:   ['stress_niveau', 'stress_piekeren', 'stress_controle', 'stress_ontspanning'],
+          energie:  ['energie_niveau', 'energie_beweging', 'energie_voeding', 'energie_dip'],
+          focus:    ['focus_concentratie', 'focus_helderheid', 'focus_aanwezig', 'focus_flow'],
+          balans:   ['balans_werk_prive', 'balans_grenzen', 'balans_tijd', 'balans_herstel'],
+          motivatie:['motivatie_werk', 'motivatie_zinvol', 'motivatie_enthousiasme', 'motivatie_waardering'],
+        }
+        const codeMap: Record<string, number> = {}
+        for (const row of (schaalRows ?? [])) {
+          if (row.waarde_schaal !== null) codeMap[row.vraag_code] = row.waarde_schaal
+        }
+        const vlak_scores: Record<string, number> = {}
+        for (const [domein, codes] of Object.entries(DOMEIN_CODES)) {
+          const som = codes.reduce((acc, c) => acc + (codeMap[c] ?? 0), 0)
+          vlak_scores[domein] = som
+        }
+
+        const { data: { session: authSession } } = await supabase.auth.getSession()
+        const token = authSession?.access_token
+
+        const res = await fetch('/api/analyse', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify({ vlak_scores, antwoorden: antwoorden ?? [] }),
+        })
+
+        if (!res.ok) { setAnalyseAanMaken(false); setAnalyseFout(true); return }
+        const json = await res.json()
+        if (!json.analyse) { setAnalyseAanMaken(false); setAnalyseFout(true); return }
+
+        const { data: opgeslagen } = await supabase
+          .from('checkin_analyses')
+          .insert({
+            sessie_id:      sessie.id,
+            user_id:        user.id,
+            bedrijf_id:     profiel?.bedrijf_id ?? null,
+            scores:         vlak_scores,
+            analyse_json:   json.analyse,
+            gedeeld_met_hr: false,
+          })
+          .select('id, scores, analyse_json, aangemaakt_op')
+          .single()
+
+        if (opgeslagen) setAnalyse(opgeslagen as Analyse)
+        setAnalyseAanMaken(false)
+      } catch {
+        setAnalyseAanMaken(false)
+        setAnalyseFout(true)
+      }
 
       try { setXpLevel(berekenLevel(laadXPData().xp)) } catch { /* ok */ }
     }
@@ -257,22 +350,41 @@ export default function Rapport() {
           </div>
         </div>
 
-        {/* Geen data */}
+        {/* Geen data / aan het laden */}
         {!analyse ? (
           <div style={{
             background: 'white', borderRadius: 20, padding: '60px 40px',
             border: '1px solid #E5E7EB', textAlign: 'center',
           }}>
-            <h2 style={{ fontSize: 18, fontWeight: 700, color: '#111827', marginBottom: 8 }}>Nog geen rapport beschikbaar</h2>
-            <p style={{ fontSize: 14, color: '#6B7280', marginBottom: 24 }}>Doe je eerste check-in om een persoonlijk rapport te krijgen.</p>
-            <Link href="/checkin" style={{
-              display: 'inline-flex', alignItems: 'center', gap: 8,
-              background: '#1D9E75', color: 'white',
-              borderRadius: 12, padding: '12px 28px',
-              fontSize: 15, fontWeight: 700, textDecoration: 'none',
-            }}>
-              Start eerste check-in →
-            </Link>
+            {analyseAanMaken ? (
+              <>
+                <div className="mf-spinner" style={{ margin: '0 auto 20px' }} />
+                <h2 style={{ fontSize: 18, fontWeight: 700, color: '#111827', marginBottom: 8 }}>Analyse wordt opgesteld…</h2>
+                <p style={{ fontSize: 14, color: '#6B7280' }}>De AI analyseert jouw check-in. Dit duurt een paar seconden.</p>
+              </>
+            ) : analyseFout ? (
+              <>
+                <h2 style={{ fontSize: 18, fontWeight: 700, color: '#111827', marginBottom: 8 }}>Analyse mislukt</h2>
+                <p style={{ fontSize: 14, color: '#6B7280', marginBottom: 24 }}>Er ging iets mis bij het genereren van je rapport. Probeer het opnieuw.</p>
+                <button onClick={() => { setAnalyseFout(false); setLaden(true); setTimeout(() => window.location.reload(), 50) }}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: '#1D9E75', color: 'white', borderRadius: 12, padding: '12px 28px', fontSize: 15, fontWeight: 700, border: 'none', cursor: 'pointer' }}>
+                  Opnieuw proberen →
+                </button>
+              </>
+            ) : (
+              <>
+                <h2 style={{ fontSize: 18, fontWeight: 700, color: '#111827', marginBottom: 8 }}>Nog geen rapport beschikbaar</h2>
+                <p style={{ fontSize: 14, color: '#6B7280', marginBottom: 24 }}>Doe je eerste check-in om een persoonlijk rapport te krijgen.</p>
+                <Link href="/checkin" style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 8,
+                  background: '#1D9E75', color: 'white',
+                  borderRadius: 12, padding: '12px 28px',
+                  fontSize: 15, fontWeight: 700, textDecoration: 'none',
+                }}>
+                  Start eerste check-in →
+                </Link>
+              </>
+            )}
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>

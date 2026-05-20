@@ -4,7 +4,9 @@ export const dynamic = 'force-dynamic'
 
 import { Suspense, useState } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
+import { supabase } from '@/lib/supabase'
 import { CAT, DOELKEUZE_OPTIES } from '@/lib/doelen-config'
+import { verwerkCheckin } from '@/lib/xp'
 import {
   type WellbeingCat, type WeekDoel, type WeekSelectie,
   vandaag, slaWeekSelectieOp,
@@ -15,6 +17,8 @@ const ALLE_VLAKKEN: WellbeingCat[] = ['slaap', 'stress', 'energie', 'focus', 'ba
 function DoelKeuzeInhoud() {
   const params = useSearchParams()
   const router = useRouter()
+
+  const sid = params.get('sid') ?? ''
 
   const scores: Record<WellbeingCat, number> = {
     slaap:    parseInt(params.get('slaap')    ?? '0'),
@@ -37,7 +41,7 @@ function DoelKeuzeInhoud() {
   const resterend = topDrie.filter(v => keuzes[v] === undefined).length
   const alleGekozen = resterend === 0 && topDrie.length > 0
 
-  function slaatOp() {
+  async function slaatOp() {
     if (!alleGekozen) return
     const doelen: WeekDoel[] = topDrie.map(vlak => {
       const optie = DOELKEUZE_OPTIES[vlak][keuzes[vlak]!]
@@ -58,7 +62,66 @@ function DoelKeuzeInhoud() {
     }
     slaWeekSelectieOp(ws)
     setOpgeslagen(true)
+
+    // Redirect immediately — analysis runs in background for the rapport page
     router.push('/home')
+    triggerAnalyse(sid, scores)
+  }
+
+  async function triggerAnalyse(sessieId: string, vlak_scores: Record<string, number>) {
+    if (!sessieId) return
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+
+      // Check if analysis already exists for this session
+      const { data: bestaand } = await supabase
+        .from('checkin_analyses')
+        .select('id')
+        .eq('sessie_id', sessieId)
+        .maybeSingle()
+      if (bestaand) return
+
+      const { data: profiel } = await supabase
+        .from('profiles').select('bedrijf_id').eq('id', user.id).single()
+
+      const { data: antwoorden } = await supabase
+        .from('checkin_antwoorden')
+        .select('categorie, waarde_tekst')
+        .eq('sessie_id', sessieId)
+        .not('waarde_tekst', 'is', null)
+
+      const { data: { session } } = await supabase.auth.getSession()
+      const token = session?.access_token
+
+      const res = await fetch('/api/analyse', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ vlak_scores, antwoorden: antwoorden ?? [] }),
+      })
+      if (!res.ok) return
+
+      const json = await res.json()
+      if (!json.analyse) return
+
+      const scoreVals = Object.values(vlak_scores).filter(v => v > 0)
+      const gem = scoreVals.reduce((a, b) => a + b, 0) / (scoreVals.length || 1)
+      const vitaalScore = Math.round(((gem - 4) / 16) * 100)
+
+      await supabase.from('checkin_analyses').insert({
+        sessie_id:      sessieId,
+        user_id:        user.id,
+        bedrijf_id:     profiel?.bedrijf_id ?? null,
+        scores:         vlak_scores,
+        analyse_json:   json.analyse,
+        gedeeld_met_hr: false,
+      })
+
+      try { verwerkCheckin(vitaalScore) } catch { /* non-critical */ }
+    } catch { /* non-critical — home will still load */ }
   }
 
   return (
@@ -164,8 +227,9 @@ function DoelKeuzeInhoud() {
             width: '100%', padding: '16px', borderRadius: 14, border: 'none',
             background: alleGekozen ? '#1D9E75' : '#E5E7EB',
             color: alleGekozen ? 'white' : '#9CA3AF',
-            fontSize: 15, fontWeight: 700, cursor: alleGekozen ? 'pointer' : 'default',
+            fontSize: 15, fontWeight: 700, cursor: alleGekozen && !opgeslagen ? 'pointer' : 'default',
             transition: 'all 0.2s', marginTop: 4,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
           }}>
           {opgeslagen ? 'Bezig...' : alleGekozen ? 'Start deze week →' : `Kies nog ${resterend} doel${resterend > 1 ? 'en' : ''}`}
         </button>
