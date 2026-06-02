@@ -4,344 +4,324 @@ export const dynamic = 'force-dynamic'
 import { useEffect, useState, useCallback } from 'react'
 import { createClient } from '@supabase/supabase-js'
 
-const supabase = createClient(
+const sb = createClient(
   'https://wicadprbktnzjnyexukl.supabase.co',
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndpY2FkcHJia3RuempueWV4dWtsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4OTAxNDYsImV4cCI6MjA5MzQ2NjE0Nn0.jWTb0y0DgNUXZC6X84Ppm4SSP8R1rAX0yqJsRPuVVZE'
 )
 
-const FF     = '#F5A623'
-const DARK   = '#0c0c11'
-const CARD   = '#131318'
-const CARD2  = '#1a1a22'
-const BORDER = 'rgba(255,255,255,0.06)'
-const TEXT   = 'rgba(255,255,255,0.88)'
-const MUTED  = 'rgba(255,255,255,0.35)'
-const GREEN  = '#22C55E'
-const RED    = '#EF4444'
+const FF = '#F5A623', DARK = '#0c0c11', CARD = '#131318', CARD2 = '#1a1a22'
+const BORDER = 'rgba(255,255,255,0.06)', TEXT = 'rgba(255,255,255,0.88)', MUTED = 'rgba(255,255,255,0.35)'
+const GREEN = '#22C55E', RED = '#EF4444'
 
-const STATUS_COLOR: Record<string, { bg: string; text: string; label: string }> = {
-  wacht:             { bg: '#1e293b', text: '#94A3B8', label: '⏳ Wacht' },
-  goedgekeurd:       { bg: '#14532d', text: GREEN,     label: '✅ Goedgekeurd' },
-  overgeslagen:      { bg: '#1c1917', text: '#6B7280', label: '❌ Overgeslagen' },
-  mail_preview:      { bg: '#1e1a2e', text: '#818CF8', label: '📧 Email klaar' },
-  mail_goedgekeurd:  { bg: '#064e3b', text: '#6EE7B7', label: '✅ Email goed' },
-  mail_overgeslagen: { bg: '#1c1917', text: '#6B7280', label: '❌ Email skip' },
-  mail_verstuurd:    { bg: '#1a2e1a', text: GREEN,     label: '📤 Verstuurd' },
+const R_COLORS = ['#EAB308','#F97316','#EF4444']
+const R_NAMEN  = ['Eerste contact','Follow-up','Afsluitend']
+
+const STATUS_STYLE: Record<string, {bg:string;color:string;label:string}> = {
+  wacht:             {bg:'#1e293b', color:'#94A3B8', label:'⏳ Wacht'},
+  goedgekeurd:       {bg:'#14532d', color:GREEN,     label:'✅ Goed'},
+  overgeslagen:      {bg:'#111',    color:'#6B7280',  label:'❌ Skip'},
+  email_klaar:       {bg:'#1e1a2e', color:'#818CF8',  label:'📧 Email klaar'},
+  email_goedgekeurd: {bg:'#064e3b', color:'#6EE7B7',  label:'✅ Email goed'},
+  email_overgeslagen:{bg:'#111',    color:'#6B7280',  label:'❌ Email skip'},
+  verstuurd:         {bg:'#14532d', color:GREEN,      label:'📤 Verstuurd'},
+  gepland:           {bg:'#111',    color:'#374151',   label:'📅 Gepland'},
 }
 
-type Goedkeuring = {
-  id: string; datum: string; naam: string; email: string
-  stad: string; sector: string; score: number; status: string
-  onderwerp?: string; email_body?: string
+type Contact = {
+  id:string; naam:string; email:string; stad:string; sector:string; score:number
+  r1_status:string; r2_status:string; r3_status:string
+  r1_onderwerp?:string; r1_body?:string
+  r2_onderwerp?:string; r2_body?:string
+  r3_onderwerp?:string; r3_body?:string
 }
-type Bedrijf = { naam: string; email: string; stad: string; sector: string; status: string; ronde: number }
-type DagStat = { datum: string; verstuurd: number; followup: number }
+type Batch = {
+  id:string; naam:string; start_datum:string; ronde_2_datum:string; ronde_3_datum:string; status:string
+  contacten?: Contact[]
+}
 
 export default function AgentPage() {
-  const [goedkeuringen, setGoedkeuringen] = useState<Goedkeuring[]>([])
-  const [bedrijven, setBedrijven]         = useState<Bedrijf[]>([])
-  const [dagStats, setDagStats]           = useState<DagStat[]>([])
-  const [geladen, setGeladen]             = useState(false)
-  const [tab, setTab]                     = useState<'vandaag' | 'campagne' | 'bedrijven'>('vandaag')
-  const [expandedEmail, setExpandedEmail] = useState<string | null>(null)
-  const [zoek, setZoek]                   = useState('')
+  const [batches, setBatches] = useState<Batch[]>([])
+  const [geladen, setGeladen] = useState(false)
+  const [activeBatch, setActiveBatch] = useState<string|null>(null)
+  const [activeRonde, setActiveRonde] = useState(1)
+  const [expandedBody, setExpandedBody] = useState<string|null>(null)
+  const [approvingAll, setApprovingAll] = useState(false)
+  const [nu, setNu] = useState(new Date())
 
   const laad = useCallback(async () => {
-    const vandaag = new Date().toISOString().split('T')[0]
-    const [{ data: g }, { data: b }, { data: d }] = await Promise.all([
-      supabase.from('agent_goedkeuring').select('*').eq('datum', vandaag).order('score', { ascending: false }),
-      supabase.from('agent_bedrijven').select('*').order('score', { ascending: false }).limit(200),
-      supabase.from('agent_dag_stats').select('*').order('datum', { ascending: false }).limit(14),
-    ])
-    setGoedkeuringen((g ?? []) as Goedkeuring[])
-    setBedrijven((b ?? []) as Bedrijf[])
-    setDagStats((d ?? []) as DagStat[])
+    const {data: bs} = await sb.from('agent_batches').select('*').order('aangemaakt_op', {ascending:false}).limit(10)
+    if (!bs) { setGeladen(true); return }
+
+    const batches_met_contacten = await Promise.all(bs.map(async (b) => {
+      const {data: cs} = await sb.from('agent_contacten').select('*').eq('batch_id', b.id).order('score', {ascending:false})
+      return {...b, contacten: cs ?? []}
+    }))
+    setBatches(batches_met_contacten as Batch[])
+    if (!activeBatch && batches_met_contacten.length > 0) setActiveBatch(batches_met_contacten[0].id)
     setGeladen(true)
-  }, [])
+    setNu(new Date())
+  }, [activeBatch])
 
-  useEffect(() => { laad() }, [laad])
-  useEffect(() => {
-    const t = setInterval(laad, 15_000) // Elke 15s refreshen
-    return () => clearInterval(t)
-  }, [laad])
+  useEffect(()=>{ laad() }, [laad])
+  useEffect(()=>{ const t=setInterval(laad,15000); return()=>clearInterval(t) }, [laad])
 
-  const vandaag    = new Date().toLocaleDateString('nl-NL')
-  const totaal_b   = bedrijven.length
-  const perStatus  = bedrijven.reduce<Record<string, number>>((a, b) => { a[b.status] = (a[b.status] ?? 0) + 1; return a }, {})
+  const batch = batches.find(b => b.id === activeBatch)
+  const contacten = batch?.contacten ?? []
+  const vandaag = new Date().toISOString().split('T')[0]
 
-  // Vandaag stats
-  const wacht       = goedkeuringen.filter(g => g.status === 'wacht').length
-  const goed        = goedkeuringen.filter(g => g.status === 'goedgekeurd').length
-  const skip        = goedkeuringen.filter(g => g.status === 'overgeslagen').length
-  const mail_klaar  = goedkeuringen.filter(g => g.status === 'mail_goedgekeurd').length
-  const verstuurd   = goedkeuringen.filter(g => g.status === 'mail_verstuurd').length
-  const totaal_dag  = goedkeuringen.length
+  // Welke rondes zijn vandaag actief?
+  const rondesVandaag = batch ? [
+    batch.start_datum    === vandaag ? 1 : null,
+    batch.ronde_2_datum  === vandaag ? 2 : null,
+    batch.ronde_3_datum  === vandaag ? 3 : null,
+  ].filter(Boolean) as number[] : []
 
-  // Flow stap
-  const flowStap = totaal_dag === 0 ? 'leeg'
-    : wacht > 0 ? 'beoordelen'
-    : goed > 0 && goedkeuringen.some(g => g.status === 'mail_preview') ? 'emails_beoordelen'
-    : mail_klaar > 0 ? 'versturen'
-    : verstuurd > 0 ? 'klaar'
-    : 'leeg'
+  // Stats per ronde
+  const rStats = (r:number) => {
+    const col = `r${r}_status` as keyof Contact
+    return {
+      wacht:     contacten.filter(c => c[col] === 'wacht').length,
+      goed:      contacten.filter(c => c[col] === 'goedgekeurd').length,
+      verstuurd: contacten.filter(c => c[col] === 'verstuurd').length,
+      klaar:     contacten.filter(c => c[col] === 'email_goedgekeurd').length,
+      skip:      contacten.filter(c => ['overgeslagen','email_overgeslagen'].includes(c[col] as string)).length,
+    }
+  }
 
-  const gefilterd = bedrijven.filter(b =>
-    !zoek || [b.naam, b.email, b.stad, b.sector].some(s => s?.toLowerCase().includes(zoek.toLowerCase()))
-  )
+  // Goedkeuren vanuit dashboard
+  async function keurGoed(contactId: string, ronde: number, type: 'bedrijf'|'email') {
+    const col = type === 'bedrijf' ? `r${ronde}_status` : `r${ronde}_status`
+    const val = type === 'bedrijf' ? 'goedgekeurd' : 'email_goedgekeurd'
+    await sb.from('agent_contacten').update({[col]: val}).eq('id', contactId)
+    laad()
+  }
+
+  async function slaOver(contactId: string, ronde: number, type: 'bedrijf'|'email') {
+    const col = `r${ronde}_status`
+    const val = type === 'bedrijf' ? 'overgeslagen' : 'email_overgeslagen'
+    await sb.from('agent_contacten').update({[col]: val}).eq('id', contactId)
+    laad()
+  }
+
+  async function keurAllesGoed(ronde: number, type: 'bedrijf'|'email') {
+    setApprovingAll(true)
+    const col = `r${ronde}_status`
+    const huidige = type === 'bedrijf' ? 'wacht' : 'email_klaar'
+    const nieuw   = type === 'bedrijf' ? 'goedgekeurd' : 'email_goedgekeurd'
+    const ids = contacten.filter(c => (c as any)[col] === huidige).map(c => c.id)
+    for (const id of ids) {
+      await sb.from('agent_contacten').update({[col]: nieuw}).eq('id', id)
+    }
+    setApprovingAll(false)
+    laad()
+  }
+
+  const formatDatum = (d: string) => d ? new Date(d).toLocaleDateString('nl-NL',{weekday:'short',day:'numeric',month:'short'}) : '—'
 
   return (
-    <div style={{ minHeight: '100vh', background: DARK, color: TEXT, fontFamily: 'system-ui,-apple-system,sans-serif' }}>
+    <div style={{minHeight:'100vh',background:DARK,color:TEXT,fontFamily:'system-ui,-apple-system,sans-serif'}}>
 
       {/* HEADER */}
-      <header style={{ height: 56, borderBottom: `1px solid ${BORDER}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 28px', position: 'sticky', top: 0, background: DARK, zIndex: 100 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div style={{ width: 32, height: 32, borderRadius: 8, background: FF, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>🤖</div>
+      <header style={{height:54,borderBottom:`1px solid ${BORDER}`,display:'flex',alignItems:'center',justifyContent:'space-between',padding:'0 24px',position:'sticky',top:0,background:DARK,zIndex:100}}>
+        <div style={{display:'flex',alignItems:'center',gap:10}}>
+          <div style={{width:30,height:30,borderRadius:8,background:FF,display:'flex',alignItems:'center',justifyContent:'center',fontSize:15}}>🤖</div>
           <div>
-            <p style={{ fontWeight: 700, fontSize: 14, color: 'white', lineHeight: 1 }}>Fit Factory Agent</p>
-            <p style={{ fontSize: 10, color: MUTED, marginTop: 2 }}>15km rond Eersel · Max 10/dag · Goedkeuring via Telegram</p>
+            <p style={{fontWeight:700,fontSize:13,color:'white',lineHeight:1}}>Fit Factory Agent</p>
+            <p style={{fontSize:10,color:MUTED,marginTop:2}}>3 rondes · 2 dagen apart · Eersel 15km</p>
           </div>
         </div>
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <div style={{ width: 8, height: 8, borderRadius: '50%', background: GREEN, boxShadow: '0 0 6px #22C55E' }} />
-          <span style={{ fontSize: 11, color: MUTED }}>Live · auto-refresh</span>
-          <button onClick={laad} style={{ background: CARD2, border: `1px solid ${BORDER}`, borderRadius: 6, color: MUTED, fontSize: 12, padding: '5px 12px', cursor: 'pointer' }}>↻</button>
+        <div style={{display:'flex',gap:8,alignItems:'center'}}>
+          <div style={{width:7,height:7,borderRadius:'50%',background:GREEN,boxShadow:'0 0 5px #22C55E'}}/>
+          <span style={{fontSize:10,color:MUTED}}>{nu.toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'})}</span>
+          <button onClick={laad} style={{background:CARD2,border:`1px solid ${BORDER}`,borderRadius:6,color:MUTED,fontSize:11,padding:'5px 10px',cursor:'pointer'}}>↻</button>
         </div>
       </header>
 
-      <div style={{ maxWidth: 1100, margin: '0 auto', padding: '24px 20px 60px' }}>
+      <div style={{display:'grid',gridTemplateColumns:'260px 1fr',height:'calc(100vh - 54px)'}}>
 
-        {/* DAGELIJKSE FLOW BANNER */}
-        <div style={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: 16, padding: '22px 26px', marginBottom: 22 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 18 }}>
-            <div>
-              <p style={{ fontSize: 11, color: MUTED, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>Vandaag · {vandaag}</p>
-              <p style={{ fontSize: 20, fontWeight: 700, color: 'white' }}>
-                {flowStap === 'leeg'            && '📭 Agent nog niet gestart vandaag'}
-                {flowStap === 'beoordelen'       && `⏳ ${wacht} van ${totaal_dag} bedrijven wachten op jouw beoordeling`}
-                {flowStap === 'emails_beoordelen'&& `📧 ${goedkeuringen.filter(g=>g.status==='mail_preview').length} preview emails wachten op goedkeuring`}
-                {flowStap === 'versturen'        && `🚀 ${mail_klaar} emails klaar om te versturen`}
-                {flowStap === 'klaar'            && `✅ ${verstuurd} emails verstuurd vandaag!`}
-              </p>
+        {/* LINKER ZIJBALK: Batch lijst */}
+        <aside style={{borderRight:`1px solid ${BORDER}`,overflowY:'auto',padding:'12px 0'}}>
+          <p style={{fontSize:10,fontWeight:700,color:MUTED,textTransform:'uppercase',letterSpacing:'0.1em',padding:'4px 16px 10px'}}>Campagne batches</p>
+
+          {!geladen ? <p style={{color:MUTED,fontSize:12,padding:'0 16px'}}>Laden...</p>
+          : batches.length === 0 ? (
+            <div style={{padding:'16px',textAlign:'center'}}>
+              <p style={{fontSize:12,color:MUTED,lineHeight:1.7}}>Nog geen batches.<br/>Start via terminal:<br/><code style={{color:'#86EFAC',fontFamily:'monospace'}}>python main.py ochtend_batch</code></p>
             </div>
-            <div style={{ background: flowStap === 'klaar' ? '#14532d' : flowStap === 'leeg' ? CARD2 : '#1c1a0a', border: `1px solid ${flowStap === 'klaar' ? '#22c55e30' : flowStap === 'leeg' ? BORDER : 'rgba(245,166,35,0.3)'}`, borderRadius: 10, padding: '10px 16px', textAlign: 'center' }}>
-              <p style={{ fontSize: 28, fontWeight: 800, color: flowStap === 'klaar' ? GREEN : FF, lineHeight: 1 }}>{verstuurd}</p>
-              <p style={{ fontSize: 10, color: MUTED, marginTop: 3 }}>verstuurd</p>
-            </div>
-          </div>
-
-          {/* Flow stappen */}
-          <div style={{ display: 'flex', gap: 6 }}>
-            {[
-              { stap: 1, label: 'Agent draait', klaar: totaal_dag > 0 },
-              { stap: 2, label: '10 bedrijven kiezen', klaar: wacht === 0 && totaal_dag > 0 },
-              { stap: 3, label: 'Emails beoordelen', klaar: goedkeuringen.every(g => !['mail_preview'].includes(g.status)) && goedkeuringen.some(g => ['mail_goedgekeurd','mail_verstuurd'].includes(g.status)) },
-              { stap: 4, label: 'Versturen', klaar: verstuurd > 0 },
-            ].map(({ stap, label, klaar }) => (
-              <div key={stap} style={{ flex: 1, background: klaar ? '#14532d' : CARD2, border: `1px solid ${klaar ? '#22c55e30' : BORDER}`, borderRadius: 8, padding: '8px 12px', display: 'flex', alignItems: 'center', gap: 7 }}>
-                <span style={{ width: 20, height: 20, borderRadius: '50%', background: klaar ? GREEN : 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: klaar ? '#000' : MUTED, flexShrink: 0 }}>
-                  {klaar ? '✓' : stap}
-                </span>
-                <span style={{ fontSize: 11, color: klaar ? GREEN : MUTED }}>{label}</span>
-              </div>
-            ))}
-          </div>
-
-          {/* Verstuur instructie */}
-          {flowStap === 'versturen' && (
-            <div style={{ marginTop: 14, background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.2)', borderRadius: 8, padding: '10px 14px' }}>
-              <p style={{ fontSize: 12, color: GREEN, fontWeight: 600 }}>🚀 Klaar om te versturen</p>
-              <p style={{ fontSize: 11, color: MUTED, marginTop: 3 }}>Open terminal en typ: <code style={{ color: '#86EFAC', fontFamily: 'monospace', background: 'rgba(0,0,0,0.3)', padding: '1px 6px', borderRadius: 4 }}>python main.py verstuur_goedgekeurd</code></p>
-            </div>
-          )}
-        </div>
-
-        {/* STATS ROW */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 10, marginBottom: 22 }}>
-          {[
-            { label: 'Totaal in CRM',  val: totaal_b,                           color: TEXT,    icon: '🏢' },
-            { label: 'Nieuw',          val: perStatus['Nieuw'] ?? 0,            color: '#93C5FD', icon: '🆕' },
-            { label: 'In campagne',    val: [1,2,3,4].reduce((s,r)=>s+(perStatus[`Verstuurd ${r}`]??0),0), color: FF, icon: '📤' },
-            { label: 'Gereageerd',     val: perStatus['Gereageerd'] ?? 0,       color: GREEN,   icon: '🎯' },
-            { label: 'Vandaag goed',   val: goed,                               color: FF,      icon: '✅' },
-          ].map(s => (
-            <div key={s.label} style={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: 12, padding: '14px 16px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <p style={{ fontSize: 24, fontWeight: 800, color: s.color, lineHeight: 1 }}>{s.val}</p>
-                <span style={{ fontSize: 18 }}>{s.icon}</span>
-              </div>
-              <p style={{ fontSize: 11, color: MUTED, marginTop: 6 }}>{s.label}</p>
-            </div>
-          ))}
-        </div>
-
-        {/* TABS */}
-        <div style={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: 14, overflow: 'hidden' }}>
-          <div style={{ display: 'flex', borderBottom: `1px solid ${BORDER}` }}>
-            {([
-              { id: 'vandaag',   label: `Vandaag (${totaal_dag})` },
-              { id: 'campagne',  label: 'Campagne' },
-              { id: 'bedrijven', label: `Database (${totaal_b})` },
-            ] as const).map(t => (
-              <button key={t.id} onClick={() => setTab(t.id)} style={{ padding: '13px 20px', background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: tab === t.id ? 600 : 400, color: tab === t.id ? FF : MUTED, borderBottom: tab === t.id ? `2px solid ${FF}` : '2px solid transparent', transition: 'all 0.15s' }}>
-                {t.label}
+          ) : batches.map(b => {
+            const cs = b.contacten ?? []
+            const r1v = cs.filter(c=>c.r1_status==='verstuurd').length
+            const r2v = cs.filter(c=>c.r2_status==='verstuurd').length
+            const r3v = cs.filter(c=>c.r3_status==='verstuurd').length
+            const isActief = b.id === activeBatch
+            const isVandaag = [b.start_datum, b.ronde_2_datum, b.ronde_3_datum].includes(vandaag)
+            return (
+              <button key={b.id} onClick={()=>setActiveBatch(b.id)} style={{
+                width:'100%',textAlign:'left',background:isActief?'rgba(245,166,35,0.08)':'transparent',
+                border:'none',borderLeft:isActief?`3px solid ${FF}`:'3px solid transparent',
+                padding:'10px 16px',cursor:'pointer',transition:'all 0.15s',
+              }}>
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:4}}>
+                  <p style={{fontSize:12,fontWeight:isActief?600:400,color:isActief?FF:TEXT,lineHeight:1.3,flex:1,marginRight:6}}>{b.naam}</p>
+                  {isVandaag && <span style={{background:'rgba(245,166,35,0.2)',color:FF,borderRadius:4,padding:'1px 6px',fontSize:10,flexShrink:0}}>Vandaag</span>}
+                </div>
+                <div style={{display:'flex',gap:8,fontSize:10,color:MUTED}}>
+                  {[r1v,r2v,r3v].map((v,i)=>(
+                    <span key={i} style={{color:v>0?R_COLORS[i]:MUTED}}>R{i+1}: {v}/{cs.length}</span>
+                  ))}
+                </div>
+                <p style={{fontSize:10,color:MUTED,marginTop:3}}>{formatDatum(b.start_datum)}</p>
               </button>
-            ))}
-          </div>
+            )
+          })}
+        </aside>
 
-          <div style={{ padding: 22, maxHeight: 560, overflowY: 'auto' }}>
-
-            {/* VANDAAG TAB */}
-            {tab === 'vandaag' && (
-              <div>
-                {!geladen ? <p style={{ color: MUTED }}>Laden...</p>
-                : goedkeuringen.length === 0 ? (
-                  <div style={{ textAlign: 'center', padding: '40px 0' }}>
-                    <p style={{ fontSize: 36, marginBottom: 12 }}>📱</p>
-                    <p style={{ fontSize: 15, fontWeight: 600, color: TEXT, marginBottom: 8 }}>Wacht op de ochtend selectie</p>
-                    <p style={{ fontSize: 13, color: MUTED, lineHeight: 1.7 }}>Elke werkdag om 08:00 stuurt de agent je<br />10 kansrijke bedrijven via <strong style={{ color: FF }}>Telegram</strong>.</p>
-                    <div style={{ marginTop: 20, background: CARD2, borderRadius: 10, padding: '14px 18px', display: 'inline-block', textAlign: 'left' }}>
-                      <p style={{ fontSize: 12, color: MUTED, marginBottom: 8 }}>Of start handmatig:</p>
-                      <code style={{ fontSize: 12, color: '#86EFAC', fontFamily: 'monospace' }}>python main.py ochtend</code>
-                    </div>
-                  </div>
-                ) : (
+        {/* HOOFD CONTENT */}
+        <main style={{overflowY:'auto',padding:'20px 24px'}}>
+          {!batch ? (
+            <div style={{textAlign:'center',padding:'60px 20px'}}>
+              <p style={{fontSize:36,marginBottom:12}}>📱</p>
+              <p style={{fontSize:16,fontWeight:600,color:TEXT,marginBottom:8}}>Selecteer een batch</p>
+              <p style={{fontSize:13,color:MUTED}}>Of wacht op de ochtend selectie via Telegram</p>
+            </div>
+          ) : (
+            <>
+              {/* Batch header */}
+              <div style={{marginBottom:20}}>
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:10}}>
                   <div>
-                    <div style={{ display: 'flex', gap: 10, marginBottom: 18, flexWrap: 'wrap' }}>
-                      {[
-                        { label: 'Wacht', val: wacht, color: '#94A3B8' },
-                        { label: 'Goedgekeurd', val: goed, color: GREEN },
-                        { label: 'Overgeslagen', val: skip, color: '#6B7280' },
-                        { label: 'Email klaar', val: mail_klaar, color: '#6EE7B7' },
-                        { label: 'Verstuurd', val: verstuurd, color: FF },
-                      ].map(s => (
-                        <div key={s.label} style={{ background: CARD2, border: `1px solid ${BORDER}`, borderRadius: 8, padding: '8px 14px', display: 'flex', alignItems: 'center', gap: 8 }}>
-                          <span style={{ fontSize: 16, fontWeight: 700, color: s.color }}>{s.val}</span>
-                          <span style={{ fontSize: 11, color: MUTED }}>{s.label}</span>
-                        </div>
-                      ))}
-                    </div>
+                    <h1 style={{fontSize:18,fontWeight:700,color:'white',margin:0}}>{batch.naam}</h1>
+                    <p style={{fontSize:12,color:MUTED,marginTop:4}}>
+                      Status: <span style={{color:batch.status==='voltooid'?GREEN:FF}}>{batch.status}</span>
+                    </p>
+                  </div>
+                  <div style={{display:'flex',gap:8,fontSize:12,color:MUTED}}>
+                    <span>R1: {formatDatum(batch.start_datum)}</span>
+                    <span>·</span>
+                    <span>R2: {formatDatum(batch.ronde_2_datum)}</span>
+                    <span>·</span>
+                    <span>R3: {formatDatum(batch.ronde_3_datum)}</span>
+                  </div>
+                </div>
 
-                    {goedkeuringen.map(g => {
-                      const st = STATUS_COLOR[g.status] ?? STATUS_COLOR['wacht']
-                      const isExpanded = expandedEmail === g.id
-                      return (
-                        <div key={g.id} style={{ background: CARD2, border: `1px solid ${BORDER}`, borderRadius: 10, padding: '14px 16px', marginBottom: 8 }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                            <div style={{ flex: 1 }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                                <p style={{ fontSize: 13, fontWeight: 600, color: TEXT }}>{g.naam}</p>
-                                <span style={{ background: `${st.bg}`, color: st.text, borderRadius: 5, padding: '2px 8px', fontSize: 10 }}>{st.label}</span>
-                                <span style={{ background: 'rgba(245,166,35,0.1)', color: FF, borderRadius: 5, padding: '2px 7px', fontSize: 10 }}>{g.score}pts</span>
-                              </div>
-                              <p style={{ fontSize: 11, color: MUTED }}>{g.email} · {g.stad} · {g.sector}</p>
-                              {g.onderwerp && <p style={{ fontSize: 11, color: '#818CF8', marginTop: 4 }}>✉️ {g.onderwerp}</p>}
-                            </div>
-                            {g.email_body && (
-                              <button onClick={() => setExpandedEmail(isExpanded ? null : g.id)} style={{ background: 'rgba(255,255,255,0.04)', border: `1px solid ${BORDER}`, borderRadius: 6, color: MUTED, fontSize: 11, padding: '4px 10px', cursor: 'pointer', flexShrink: 0, marginLeft: 10 }}>
-                                {isExpanded ? '▲ Sluit' : '▼ Email'}
-                              </button>
+                {/* Ronde tabs */}
+                <div style={{display:'flex',gap:6}}>
+                  {[1,2,3].map(r => {
+                    const s = rStats(r)
+                    const isVandaag = [batch.start_datum, batch.ronde_2_datum, batch.ronde_3_datum][r-1] === vandaag
+                    return (
+                      <button key={r} onClick={()=>setActiveRonde(r)} style={{
+                        flex:1,padding:'10px',borderRadius:10,cursor:'pointer',transition:'all 0.15s',
+                        background: activeRonde===r ? `rgba(${R_COLORS[r-1].slice(1).match(/.{2}/g)!.map(h=>parseInt(h,16)).join(',')},0.15)` : CARD2,
+                        border: `1px solid ${activeRonde===r ? R_COLORS[r-1]+'44' : BORDER}`,
+                      }}>
+                        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:4}}>
+                          <span style={{fontSize:12,fontWeight:600,color:activeRonde===r?R_COLORS[r-1]:TEXT}}>Ronde {r}</span>
+                          {isVandaag && <span style={{background:'rgba(245,166,35,0.2)',color:FF,borderRadius:3,padding:'1px 5px',fontSize:9}}>Vandaag</span>}
+                        </div>
+                        <p style={{fontSize:10,color:MUTED,marginBottom:6}}>{R_NAMEN[r-1]}</p>
+                        <div style={{display:'flex',gap:6,fontSize:10}}>
+                          {s.verstuurd > 0 && <span style={{color:GREEN}}>✓ {s.verstuurd}</span>}
+                          {s.wacht > 0 && <span style={{color:'#94A3B8'}}>⏳ {s.wacht}</span>}
+                          {s.goed > 0 && <span style={{color:GREEN}}>✅ {s.goed}</span>}
+                          {s.klaar > 0 && <span style={{color:'#6EE7B7'}}>📧 {s.klaar}</span>}
+                        </div>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* Bulk acties */}
+              {(() => {
+                const s = rStats(activeRonde)
+                const col = `r${activeRonde}_status` as keyof Contact
+                const heeftWacht = s.wacht > 0
+                const heeftEmailKlaar = contacten.some(c => c[col] === 'email_klaar')
+                const heeftEmailGoed = s.klaar > 0
+                return (heeftWacht || heeftEmailKlaar || heeftEmailGoed) ? (
+                  <div style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:10,padding:'12px 16px',marginBottom:16,display:'flex',gap:10,alignItems:'center',flexWrap:'wrap'}}>
+                    <span style={{fontSize:12,color:MUTED,flex:1}}>Bulk acties voor ronde {activeRonde}:</span>
+                    {heeftWacht && (
+                      <button onClick={()=>keurAllesGoed(activeRonde,'bedrijf')} disabled={approvingAll} style={{background:'rgba(34,197,94,0.1)',border:'1px solid rgba(34,197,94,0.3)',borderRadius:7,color:GREEN,fontSize:12,padding:'7px 14px',cursor:'pointer',fontWeight:600}}>
+                        ✅ Alle {s.wacht} bedrijven goedkeuren
+                      </button>
+                    )}
+                    {heeftEmailKlaar && (
+                      <button onClick={()=>keurAllesGoed(activeRonde,'email')} disabled={approvingAll} style={{background:'rgba(110,231,183,0.1)',border:'1px solid rgba(110,231,183,0.3)',borderRadius:7,color:'#6EE7B7',fontSize:12,padding:'7px 14px',cursor:'pointer',fontWeight:600}}>
+                        ✅ Alle emails goedkeuren
+                      </button>
+                    )}
+                    {heeftEmailGoed && (
+                      <div style={{background:'rgba(34,197,94,0.08)',border:'1px solid rgba(34,197,94,0.2)',borderRadius:7,padding:'7px 14px'}}>
+                        <p style={{fontSize:12,color:GREEN,margin:0}}>🚀 Klaar! Terminal: <code style={{fontFamily:'monospace'}}>python main.py verstuur_batch {batch.id} {activeRonde}</code></p>
+                      </div>
+                    )}
+                  </div>
+                ) : null
+              })()}
+
+              {/* Contacten lijst */}
+              <div style={{display:'flex',flexDirection:'column',gap:8}}>
+                {contacten.map(c => {
+                  const r = activeRonde
+                  const statusKey = `r${r}_status` as keyof Contact
+                  const onderwerpKey = `r${r}_onderwerp` as keyof Contact
+                  const bodyKey = `r${r}_body` as keyof Contact
+                  const status = c[statusKey] as string || 'gepland'
+                  const st = STATUS_STYLE[status] ?? STATUS_STYLE['gepland']
+                  const isExpanded = expandedBody === c.id
+                  const isGepland = status === 'gepland'
+                  const heeftEmail = !!c[onderwerpKey]
+
+                  return (
+                    <div key={c.id} style={{background:CARD2,border:`1px solid ${isGepland?BORDER:st.bg+'44'}`,borderRadius:10,padding:'12px 14px',opacity:isGepland?0.5:1}}>
+                      <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
+                        <div style={{flex:1,minWidth:0}}>
+                          <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:3,flexWrap:'wrap'}}>
+                            <p style={{fontSize:13,fontWeight:600,color:TEXT,margin:0}}>{c.naam}</p>
+                            <span style={{background:st.bg,color:st.color,borderRadius:5,padding:'2px 8px',fontSize:10}}>{st.label}</span>
+                            <span style={{background:'rgba(245,166,35,0.1)',color:FF,borderRadius:5,padding:'2px 7px',fontSize:10}}>{c.score}pts</span>
+                          </div>
+                          <p style={{fontSize:11,color:MUTED,margin:0}}>{c.email} · {c.stad} · {c.sector}</p>
+                          {heeftEmail && <p style={{fontSize:11,color:'#818CF8',marginTop:4}}>✉️ {c[onderwerpKey] as string}</p>}
+                        </div>
+
+                        {/* Actie knoppen */}
+                        {!isGepland && (
+                          <div style={{display:'flex',gap:6,flexShrink:0,marginLeft:10}}>
+                            {status === 'wacht' && <>
+                              <Btn color={GREEN} onClick={()=>keurGoed(c.id,r,'bedrijf')}>✅</Btn>
+                              <Btn color={RED}   onClick={()=>slaOver(c.id,r,'bedrijf')}>❌</Btn>
+                            </>}
+                            {status === 'email_klaar' && <>
+                              <Btn color={GREEN} onClick={()=>keurGoed(c.id,r,'email')}>✅ Email</Btn>
+                              <Btn color={RED}   onClick={()=>slaOver(c.id,r,'email')}>❌</Btn>
+                            </>}
+                            {heeftEmail && (
+                              <Btn color={MUTED} onClick={()=>setExpandedBody(isExpanded?null:c.id)}>
+                                {isExpanded?'▲':'▼'}
+                              </Btn>
                             )}
                           </div>
-                          {isExpanded && g.email_body && (
-                            <div style={{ marginTop: 12, background: 'rgba(0,0,0,0.3)', borderRadius: 8, padding: '12px 14px', borderLeft: `3px solid ${FF}` }}>
-                              <pre style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)', whiteSpace: 'pre-wrap', fontFamily: 'inherit', margin: 0, lineHeight: 1.7 }}>{g.email_body}</pre>
-                            </div>
-                          )}
-                        </div>
-                      )
-                    })}
-                  </div>
-                )}
-              </div>
-            )}
+                        )}
+                      </div>
 
-            {/* CAMPAGNE TAB */}
-            {tab === 'campagne' && (
-              <div>
-                <p style={{ fontSize: 12, color: MUTED, marginBottom: 16, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Funnel</p>
-                {[
-                  { label: 'Totaal in database', val: totaal_b, color: '#4B5563' },
-                  { label: 'Ronde 1', val: perStatus['Verstuurd 1'] ?? 0, color: '#EAB308' },
-                  { label: 'Ronde 2', val: perStatus['Verstuurd 2'] ?? 0, color: '#F59E0B' },
-                  { label: 'Ronde 3', val: perStatus['Verstuurd 3'] ?? 0, color: '#F97316' },
-                  { label: 'Ronde 4', val: perStatus['Verstuurd 4'] ?? 0, color: RED },
-                  { label: 'Ronde 5', val: perStatus['Verstuurd 5'] ?? 0, color: '#DC2626' },
-                  { label: 'Gereageerd', val: perStatus['Gereageerd'] ?? 0, color: GREEN },
-                ].map(row => {
-                  const p = totaal_b > 0 ? (row.val / totaal_b) * 100 : 0
-                  return (
-                    <div key={row.label} style={{ marginBottom: 12 }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
-                        <span style={{ fontSize: 12, color: TEXT }}>{row.label}</span>
-                        <span style={{ fontSize: 13, fontWeight: 700, color: row.color }}>{row.val}</span>
-                      </div>
-                      <div style={{ height: 5, background: 'rgba(255,255,255,0.05)', borderRadius: 3 }}>
-                        <div style={{ height: '100%', width: `${Math.max(p, row.val > 0 ? 2 : 0)}%`, background: row.color, borderRadius: 3, transition: 'width 0.6s' }} />
-                      </div>
+                      {/* Email preview */}
+                      {isExpanded && c[bodyKey] && (
+                        <div style={{marginTop:12,background:'rgba(0,0,0,0.3)',borderRadius:8,padding:'12px 14px',borderLeft:`3px solid ${FF}`}}>
+                          <pre style={{fontSize:12,color:'rgba(255,255,255,0.7)',whiteSpace:'pre-wrap',fontFamily:'inherit',margin:0,lineHeight:1.7}}>
+                            {c[bodyKey] as string}
+                          </pre>
+                        </div>
+                      )}
                     </div>
                   )
                 })}
-
-                {dagStats.length > 0 && (
-                  <div style={{ marginTop: 24 }}>
-                    <p style={{ fontSize: 12, color: MUTED, marginBottom: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Activiteit</p>
-                    {dagStats.slice(0, 7).map((d, i) => (
-                      <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderTop: i > 0 ? `1px solid ${BORDER}` : 'none', fontSize: 12 }}>
-                        <span style={{ color: MUTED }}>{d.datum}</span>
-                        <div style={{ display: 'flex', gap: 8 }}>
-                          <Chip color='#4B5563'>{d.verstuurd} emails</Chip>
-                          {d.followup > 0 && <Chip color={FF}>{d.followup} follow-up</Chip>}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                <div style={{ marginTop: 20, background: CARD2, borderRadius: 10, padding: '14px 16px' }}>
-                  <p style={{ fontSize: 12, color: FF, fontWeight: 600, marginBottom: 8 }}>Dagelijkse flow</p>
-                  <p style={{ fontSize: 11, color: MUTED, lineHeight: 1.8 }}>
-                    08:00 → Agent selecteert top 10<br />
-                    Telegram → Jij keurt goed/af<br />
-                    Agent → Genereert preview emails<br />
-                    Telegram → Jij keurt emails goed<br />
-                    Terminal → <code style={{ color: '#86EFAC', fontFamily: 'monospace' }}>python main.py verstuur_goedgekeurd</code>
-                  </p>
-                </div>
               </div>
-            )}
-
-            {/* BEDRIJVEN TAB */}
-            {tab === 'bedrijven' && (
-              <div>
-                <input value={zoek} onChange={e => setZoek(e.target.value)} placeholder="Zoek bedrijf, email, stad of sector..." style={{ width: '100%', background: 'rgba(255,255,255,0.05)', border: `1px solid ${BORDER}`, borderRadius: 8, padding: '9px 14px', color: 'white', fontSize: 13, marginBottom: 14, boxSizing: 'border-box', outline: 'none' }} />
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
-                  <thead>
-                    <tr>{['Bedrijf', 'Stad', 'Score', 'Status'].map(h => (
-                      <th key={h} style={{ padding: '0 8px 10px', textAlign: 'left', fontWeight: 600, fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.07em', color: MUTED }}>{h}</th>
-                    ))}</tr>
-                  </thead>
-                  <tbody>
-                    {gefilterd.slice(0, 100).map((b, i) => (
-                      <tr key={i} style={{ borderTop: `1px solid ${BORDER}` }}>
-                        <td style={{ padding: '8px 8px', fontWeight: 500, maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{b.naam}</td>
-                        <td style={{ padding: '8px 8px', color: MUTED }}>{b.stad}</td>
-                        <td style={{ padding: '8px 8px' }}>
-                          <span style={{ color: FF, fontWeight: 600 }}>{(b as any).score ?? 0}</span>
-                        </td>
-                        <td style={{ padding: '8px 8px' }}>
-                          <span style={{ background: `${STATUS_COLOR[b.status]?.bg ?? '#1c1917'}`, color: STATUS_COLOR[b.status]?.text ?? MUTED, borderRadius: 4, padding: '2px 8px', fontSize: 10 }}>
-                            {b.status}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-                {gefilterd.length > 100 && <p style={{ textAlign: 'center', color: MUTED, fontSize: 12, marginTop: 12 }}>Toont 100 van {gefilterd.length} resultaten</p>}
-              </div>
-            )}
-          </div>
-        </div>
+            </>
+          )}
+        </main>
       </div>
 
       <style>{`
@@ -349,12 +329,15 @@ export default function AgentPage() {
         ::-webkit-scrollbar { width: 5px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 3px; }
-        code { font-family: monospace; }
       `}</style>
     </div>
   )
 }
 
-function Chip({ color, children }: { color: string; children: React.ReactNode }) {
-  return <span style={{ background: `${color}18`, color, borderRadius: 5, padding: '2px 8px', fontSize: 11, fontWeight: 600 }}>{children}</span>
+function Btn({color,onClick,children}:{color:string;onClick:()=>void;children:React.ReactNode}) {
+  return (
+    <button onClick={onClick} style={{background:`${color}15`,border:`1px solid ${color}40`,borderRadius:6,color,fontSize:11,padding:'5px 10px',cursor:'pointer',fontWeight:600,whiteSpace:'nowrap'}}>
+      {children}
+    </button>
+  )
 }
