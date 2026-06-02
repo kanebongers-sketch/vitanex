@@ -1,0 +1,15 @@
+name: Keep Render Awake
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'  # Elke 10 minuten
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping mentaforce.nl
+        run: |
+          curl -s https://mentaforce.nl/api/ping
+          echo "Render wakker gehouden"
