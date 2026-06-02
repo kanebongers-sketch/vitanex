@@ -110,28 +110,34 @@ export async function POST(req: Request) {
     }
 
     // ── Claude AI antwoord ──
-    // Haal gesprekshistorie op
     const historie = geheugen.get(chat_id) ?? []
     historie.push({ role: 'user', content: tekst })
-
-    // Begrens op 20 berichten
     const context = historie.slice(-20)
 
-    // Stuur "..." terwijl Claude nadenkt
+    // Typing indicator
     await fetch(`${TG_BASE}/sendChatAction`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ chat_id, action: 'typing' }),
     })
 
-    const response = await AI_CLIENT.messages.create({
-      model: 'claude-sonnet-4-6',
-      max_tokens: 1024,
-      system: SYSTEEM,
-      messages: context,
-    })
+    let antwoord: string
+    try {
+      const apiKey = process.env.ANTHROPIC_API_KEY
+      if (!apiKey) throw new Error('ANTHROPIC_API_KEY niet ingesteld in Render')
 
-    const antwoord = response.content[0].type === 'text' ? response.content[0].text : '...'
+      const response = await AI_CLIENT.messages.create({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1024,
+        system: SYSTEEM,
+        messages: context,
+      })
+      antwoord = response.content[0].type === 'text' ? response.content[0].text : '...'
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err)
+      console.error('[claude error]', msg)
+      antwoord = `⚠️ Fout: ${msg.slice(0, 200)}`
+    }
 
     // Sla op in geheugen
     historie.push({ role: 'assistant', content: antwoord })
@@ -140,7 +146,7 @@ export async function POST(req: Request) {
     await tg_stuur(chat_id, antwoord)
     return NextResponse.json({ ok: true })
 
-  } catch (err) {
+  } catch (err: unknown) {
     console.error('[telegram webhook]', err)
     return NextResponse.json({ ok: false })
   }
