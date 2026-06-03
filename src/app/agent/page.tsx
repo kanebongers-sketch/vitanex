@@ -42,11 +42,23 @@ type Batch = {
 export default function AgentPage() {
   const [batches, setBatches] = useState<Batch[]>([])
   const [geladen, setGeladen] = useState(false)
+  const [toegang, setToegang] = useState(false)
   const [activeBatch, setActiveBatch] = useState<string|null>(null)
   const [activeRonde, setActiveRonde] = useState(1)
   const [expandedBody, setExpandedBody] = useState<string|null>(null)
   const [approvingAll, setApprovingAll] = useState(false)
   const [nu, setNu] = useState(new Date())
+
+  // Auth check — alleen kanebongers@gmail.com
+  useEffect(() => {
+    sb.auth.getUser().then(({ data: { user } }) => {
+      if (!user) { window.location.href = '/login'; return }
+      if (user.email?.toLowerCase() !== 'kanebongers@gmail.com') {
+        window.location.href = '/home'; return
+      }
+      setToegang(true)
+    })
+  }, [])
 
   const laad = useCallback(async () => {
     const {data: bs} = await sb.from('agent_batches').select('*').order('aangemaakt_op', {ascending:false}).limit(10)
@@ -117,6 +129,13 @@ export default function AgentPage() {
   }
 
   const formatDatum = (d: string) => d ? new Date(d).toLocaleDateString('nl-NL',{weekday:'short',day:'numeric',month:'short'}) : '—'
+
+  // Toon niets totdat toegang bevestigd is
+  if (!toegang) return (
+    <div style={{minHeight:'100vh',background:DARK,display:'flex',alignItems:'center',justifyContent:'center'}}>
+      <div style={{width:32,height:32,borderRadius:'50%',border:'3px solid #333',borderTopColor:FF,animation:'spin 0.8s linear infinite'}} />
+    </div>
+  )
 
   return (
     <div style={{minHeight:'100vh',background:DARK,color:TEXT,fontFamily:'system-ui,-apple-system,sans-serif'}}>
