@@ -129,14 +129,34 @@ export default function AgentPage() {
 
   async function regenereerEmail(contactId: string, ronde: number) {
     setRegenerating(contactId)
-    // Reset email velden → agent genereert opnieuw bij volgende run
-    await sb.from('agent_contacten').update({
-      [`r${ronde}_body`]: null,
-      [`r${ronde}_onderwerp`]: null,
-      [`r${ronde}_status`]: 'goedgekeurd',
-    }).eq('id', contactId)
-    setExpandedBody(null)
-    setEdit(null)
+    try {
+      // Stap 1: Reset email velden in Supabase
+      const { error } = await sb.from('agent_contacten').update({
+        [`r${ronde}_body`]: '',
+        [`r${ronde}_onderwerp`]: '',
+        [`r${ronde}_status`]: 'goedgekeurd',
+      }).eq('id', contactId)
+
+      if (error) {
+        console.error('Supabase fout:', error)
+        setRegenerating(null)
+        return
+      }
+
+      // Stap 2: Trigger GitHub Actions om preview te genereren
+      await fetch('/api/agent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ actie: 'trigger_workflow', stap: 'preview' }),
+      })
+
+      setExpandedBody(null)
+      setEdit(null)
+      setZoekMelding({ ok: true, tekst: '🔄 Email wordt opnieuw gegenereerd door de agent — duurt ~1 min.' })
+      setTimeout(() => { setZoekMelding(null); laad() }, 8000)
+    } catch (e) {
+      console.error(e)
+    }
     setRegenerating(null)
     laad()
   }

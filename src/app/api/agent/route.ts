@@ -74,7 +74,7 @@ export async function POST(req: Request) {
   // GitHub Actions workflow dispatch
   if (actie === 'trigger_workflow') {
     const { stap } = body
-    const geldig = ['zoek', 'ochtend_batch', 'alles', 'status', 'batch_status']
+    const geldig = ['zoek', 'ochtend_batch', 'alles', 'status', 'batch_status', 'preview', 'check_batch_callbacks']
     if (!geldig.includes(stap)) return NextResponse.json({ error: 'Ongeldige stap' }, { status: 400 })
     if (!GH_TOKEN) return NextResponse.json({ error: 'GITHUB_TOKEN niet geconfigureerd' }, { status: 500 })
     const ok = await triggerWorkflow(stap)
