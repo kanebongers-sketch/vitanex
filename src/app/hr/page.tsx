@@ -8,12 +8,17 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/Navbar'
 import { ALLE_TILES, DEFAULT_TILES, type TileId } from '@/lib/tiles'
+import GesprekkenTab from '@/components/GesprekkenTab'
+
+type HrTab = 'portaal' | 'gesprekken'
 
 export default function HrDashboardPage() {
   const router = useRouter()
   const [naam, setNaam] = useState('')
   const [bedrijfId, setBedrijfId] = useState('')
+  const [hrUserId, setHrUserId] = useState('')
   const [geladen, setGeladen] = useState(false)
+  const [actieveTab, setActieveTab] = useState<HrTab>('portaal')
   const [opgeslagen, setOpgeslagen] = useState(false)
   const [bezig, setBezig] = useState(false)
   const [actief, setActief] = useState<Set<TileId>>(new Set(DEFAULT_TILES))
@@ -33,6 +38,7 @@ export default function HrDashboardPage() {
       }
       setNaam(profiel.naam ?? 'HR')
       setBedrijfId(profiel.bedrijf_id)
+      setHrUserId(user.id)
 
       // Portaal config
       const { data: config } = await supabase
@@ -117,7 +123,7 @@ export default function HrDashboardPage() {
       <main style={{ padding: '32px 32px 48px' }}>
 
         {/* ── PAGE HEADER ── */}
-        <div style={{ marginBottom: 28 }}>
+        <div style={{ marginBottom: 20 }}>
           <h1 style={{ fontSize: 22, fontWeight: 700, color: '#111', letterSpacing: '-0.02em', marginBottom: 4 }}>
             Goedendag, {naam.split(' ')[0]} 👋
           </h1>
@@ -125,6 +131,28 @@ export default function HrDashboardPage() {
             Beheer het portaal en volg de vitaliteit van je team.
           </p>
         </div>
+
+        {/* ── TABS ── */}
+        <div style={{ display: 'flex', gap: 0, borderBottom: '1px solid #E5E7EB', marginBottom: 28 }}>
+          {([['portaal', 'Portaal beheren'], ['gesprekken', 'HR Gesprekken']] as const).map(([tab, label]) => (
+            <button key={tab} onClick={() => setActieveTab(tab)} style={{
+              padding: '10px 18px', fontSize: 13, fontWeight: 600, border: 'none',
+              background: 'transparent', cursor: 'pointer',
+              borderBottom: `2px solid ${actieveTab === tab ? ACCENT : 'transparent'}`,
+              color: actieveTab === tab ? ACCENT : '#6B7280',
+              transition: 'all 0.15s',
+            }}>
+              {tab === 'gesprekken' ? '💬 ' : '🏠 '}{label}
+            </button>
+          ))}
+        </div>
+
+        {/* ── GESPREKKEN TAB ── */}
+        {actieveTab === 'gesprekken' && bedrijfId && hrUserId && (
+          <GesprekkenTab bedrijfId={bedrijfId} hrUserId={hrUserId} />
+        )}
+
+        {actieveTab !== 'portaal' ? null : (<>
 
         {/* ── STATS ROW ── */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 32 }}>
@@ -281,6 +309,7 @@ export default function HrDashboardPage() {
             ))}
           </div>
         </div>
+        </>)}
       </main>
     </div>
   )

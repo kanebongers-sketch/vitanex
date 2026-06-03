@@ -8,6 +8,9 @@ import Link from 'next/link'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
 import { Avatar } from '@/components/Avatar'
 import DocumentenSectie from '@/components/DocumentenSectie'
+import GesprekkenTab from '@/components/GesprekkenTab'
+
+type TeamTab = 'vitaliteit' | 'gesprekken' | 'dossier'
 
 type Profiel = {
   id: string
@@ -84,10 +87,13 @@ export default function ProfielPagina() {
   const [profiel, setProfiel] = useState<Profiel | null>(null)
   const [checkins, setCheckins] = useState<Checkin[]>([])
   const [mijnRol, setMijnRol] = useState('')
+  const [mijnBedrijfId, setMijnBedrijfId] = useState('')
+  const [mijnUserId, setMijnUserId] = useState('')
   const [laden, setLaden] = useState(true)
   const [nieGevonden, setNieGevonden] = useState(false)
   const [herinneringBezig, setHerinneringBezig] = useState(false)
   const [herinneringMelding, setHerinneringMelding] = useState<string | null>(null)
+  const [actieveTab, setActieveTab] = useState<TeamTab>('vitaliteit')
 
   useEffect(() => {
     async function laadData() {
@@ -102,6 +108,8 @@ export default function ProfielPagina() {
 
       if (!mijnProfiel) { router.push('/login'); return }
       setMijnRol(mijnProfiel.rol)
+      setMijnBedrijfId(mijnProfiel.bedrijf_id)
+      setMijnUserId(user.id)
 
       const { data: doelProfiel } = await supabase
         .from('profiles')
@@ -234,8 +242,27 @@ export default function ProfielPagina() {
           </div>
         </div>
 
+        {/* Tabs — alleen voor HR */}
+        {isHR && (
+          <div style={{ display: 'flex', gap: 0, borderBottom: '1px solid #E5E7EB', marginBottom: 24 }}>
+            {([
+              ['vitaliteit', '📊 Vitaliteit'],
+              ['gesprekken', '💬 Gesprekken'],
+              ['dossier', '📁 Dossier'],
+            ] as const).map(([tab, label]) => (
+              <button key={tab} onClick={() => setActieveTab(tab)} className="text-sm" style={{
+                padding: '9px 16px', fontWeight: 600, border: 'none',
+                background: 'transparent', cursor: 'pointer',
+                borderBottom: `2px solid ${actieveTab === tab ? '#1D9E75' : 'transparent'}`,
+                color: actieveTab === tab ? '#1D9E75' : '#6B7280',
+                transition: 'all 0.15s',
+              }}>{label}</button>
+            ))}
+          </div>
+        )}
+
         {/* HR-only: scores + detail + trend + toelichtingen */}
-        {isHR && checkins.length > 0 && (
+        {isHR && actieveTab === 'vitaliteit' && checkins.length > 0 && (
           <>
             <div className="grid grid-cols-4 gap-4 mb-6">
               <div className="rounded-2xl p-5 text-center" style={{ background: 'var(--bg-app)', border: `2px solid ${scoreKleur(totaalScore)}` }}>
@@ -309,18 +336,38 @@ export default function ProfielPagina() {
           </>
         )}
 
-        {isHR && checkins.length === 0 && (
+        {isHR && actieveTab === 'vitaliteit' && checkins.length === 0 && (
           <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center mb-6">
             <p className="text-gray-400 text-sm">Deze medewerker heeft nog geen check-ins gedaan.</p>
           </div>
         )}
 
-        {/* Dossier — altijd zichtbaar voor HR */}
-        {isHR && (
+        {/* Gesprekken tab */}
+        {isHR && actieveTab === 'gesprekken' && mijnBedrijfId && mijnUserId && (
+          <GesprekkenTab
+            bedrijfId={mijnBedrijfId}
+            hrUserId={mijnUserId}
+            gefilterdOpMedewerker={profielId}
+          />
+        )}
+
+        {/* Dossier tab */}
+        {isHR && actieveTab === 'dossier' && (
           <div className="mt-2">
             <DocumentenSectie
               userId={profielId}
               isHR={true}
+              naamMedewerker={profiel?.naam ?? undefined}
+            />
+          </div>
+        )}
+
+        {/* Dossier — altijd zichtbaar voor HR als geen tabs (fallback) */}
+        {!isHR && (
+          <div className="mt-2">
+            <DocumentenSectie
+              userId={profielId}
+              isHR={false}
               naamMedewerker={profiel?.naam ?? undefined}
             />
           </div>
