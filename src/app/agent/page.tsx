@@ -48,6 +48,8 @@ export default function AgentPage() {
   const [expandedBody, setExpandedBody] = useState<string|null>(null)
   const [approvingAll, setApprovingAll] = useState(false)
   const [nu, setNu] = useState(new Date())
+  const [editBody, setEditBody] = useState<{id:string; key:string; val:string}|null>(null)
+  const [savingBody, setSavingBody] = useState(false)
 
   // Auth check — alleen kanebongers@gmail.com
   useEffect(() => {
@@ -112,6 +114,14 @@ export default function AgentPage() {
     const col = `r${ronde}_status`
     const val = type === 'bedrijf' ? 'overgeslagen' : 'email_overgeslagen'
     await sb.from('agent_contacten').update({[col]: val}).eq('id', contactId)
+    laad()
+  }
+
+  async function slaEmailOp(contactId: string, key: string, val: string) {
+    setSavingBody(true)
+    await sb.from('agent_contacten').update({[key]: val}).eq('id', contactId)
+    setSavingBody(false)
+    setEditBody(null)
     laad()
   }
 
@@ -322,16 +332,46 @@ export default function AgentPage() {
                                 {isExpanded?'▲':'▼'}
                               </Btn>
                             )}
+                            {heeftEmail && isExpanded && editBody?.id !== c.id && (
+                              <Btn color={FF} onClick={()=>setEditBody({id:c.id, key:bodyKey as string, val:c[bodyKey] as string})}>
+                                ✏️
+                              </Btn>
+                            )}
                           </div>
                         )}
                       </div>
 
-                      {/* Email preview */}
+                      {/* Email preview / edit */}
                       {isExpanded && c[bodyKey] && (
                         <div style={{marginTop:12,background:'rgba(0,0,0,0.3)',borderRadius:8,padding:'12px 14px',borderLeft:`3px solid ${FF}`}}>
-                          <pre style={{fontSize:12,color:'rgba(255,255,255,0.7)',whiteSpace:'pre-wrap',fontFamily:'inherit',margin:0,lineHeight:1.7}}>
-                            {c[bodyKey] as string}
-                          </pre>
+                          {editBody?.id === c.id ? (
+                            <>
+                              <textarea
+                                value={editBody.val}
+                                onChange={e=>setEditBody({...editBody, val:e.target.value})}
+                                style={{width:'100%',minHeight:220,background:'rgba(255,255,255,0.06)',color:'rgba(255,255,255,0.88)',border:'1px solid rgba(255,255,255,0.15)',borderRadius:6,padding:'10px',fontSize:12,fontFamily:'inherit',lineHeight:1.7,resize:'vertical',outline:'none'}}
+                              />
+                              <div style={{display:'flex',gap:8,marginTop:10}}>
+                                <button
+                                  onClick={()=>slaEmailOp(c.id, editBody.key, editBody.val)}
+                                  disabled={savingBody}
+                                  style={{background:'rgba(34,197,94,0.15)',border:'1px solid rgba(34,197,94,0.4)',borderRadius:6,color:GREEN,fontSize:12,padding:'6px 14px',cursor:'pointer',fontWeight:600}}
+                                >
+                                  {savingBody ? 'Opslaan...' : '💾 Opslaan'}
+                                </button>
+                                <button
+                                  onClick={()=>setEditBody(null)}
+                                  style={{background:'rgba(239,68,68,0.1)',border:'1px solid rgba(239,68,68,0.3)',borderRadius:6,color:RED,fontSize:12,padding:'6px 14px',cursor:'pointer'}}
+                                >
+                                  Annuleren
+                                </button>
+                              </div>
+                            </>
+                          ) : (
+                            <pre style={{fontSize:12,color:'rgba(255,255,255,0.7)',whiteSpace:'pre-wrap',fontFamily:'inherit',margin:0,lineHeight:1.7}}>
+                              {c[bodyKey] as string}
+                            </pre>
+                          )}
                         </div>
                       )}
                     </div>
