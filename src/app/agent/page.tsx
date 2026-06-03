@@ -60,6 +60,8 @@ export default function AgentPage() {
   const [regenerating, setRegenerating] = useState<string|null>(null)
   const [zoekBezig, setZoekBezig] = useState(false)
   const [zoekMelding, setZoekMelding] = useState<{ok:boolean;tekst:string}|null>(null)
+  const [zoekTerm, setZoekTerm] = useState('')
+  const [filterStatus, setFilterStatus] = useState<string>('actie')
 
   useEffect(() => {
     sb.auth.getUser().then(({ data: { user } }) => {
@@ -88,20 +90,60 @@ export default function AgentPage() {
   useEffect(()=>{ const t=setInterval(laad,15000); return()=>clearInterval(t) }, [laad])
 
   const batch = batches.find(b => b.id === activeBatch)
-  const contacten = batch?.contacten ?? []
+  const alleContacten = batch?.contacten ?? []
   const vandaag = new Date().toISOString().split('T')[0]
-  const totaal = contacten.length || 1
+  const totaal = alleContacten.length || 1
+
+  // Filter logic
+  const contacten = (() => {
+    const col = `r${activeRonde}_status` as keyof Contact
+    let result = alleContacten
+    // Status filter
+    if (filterStatus === 'actie') {
+      result = result.filter(c => {
+        const s = (c[col] as string) || 'gepland'
+        return ['wacht','email_klaar','email_goedgekeurd'].includes(s)
+      })
+    } else if (filterStatus !== 'alle') {
+      result = result.filter(c => (c[col] as string) === filterStatus)
+    }
+    // Zoekterm filter
+    if (zoekTerm.trim()) {
+      const term = zoekTerm.toLowerCase()
+      result = result.filter(c =>
+        c.naam.toLowerCase().includes(term) ||
+        c.email.toLowerCase().includes(term) ||
+        c.stad.toLowerCase().includes(term) ||
+        c.sector.toLowerCase().includes(term)
+      )
+    }
+    return result
+  })()
 
   const rStats = (r:number) => {
     const col = `r${r}_status` as keyof Contact
     return {
-      wacht:     contacten.filter(c => c[col] === 'wacht').length,
-      goed:      contacten.filter(c => c[col] === 'goedgekeurd').length,
-      verstuurd: contacten.filter(c => c[col] === 'verstuurd').length,
-      klaar:     contacten.filter(c => c[col] === 'email_goedgekeurd').length,
-      skip:      contacten.filter(c => ['overgeslagen','email_overgeslagen'].includes(c[col] as string)).length,
+      wacht:     alleContacten.filter(c => c[col] === 'wacht').length,
+      goed:      alleContacten.filter(c => c[col] === 'goedgekeurd').length,
+      verstuurd: alleContacten.filter(c => c[col] === 'verstuurd').length,
+      klaar:     alleContacten.filter(c => c[col] === 'email_goedgekeurd').length,
+      skip:      alleContacten.filter(c => ['overgeslagen','email_overgeslagen'].includes(c[col] as string)).length,
     }
   }
+
+  // Stats voor de actieve batch
+  const batchStats = (() => {
+    if (!batch) return null
+    const col = `r${activeRonde}_status` as keyof Contact
+    const verstuurd = alleContacten.filter(c => c[col] === 'verstuurd').length
+    const teReviewen = alleContacten.filter(c => {
+      const s = (c[col] as string) || 'gepland'
+      return ['wacht','email_klaar'].includes(s)
+    }).length
+    const pct = alleContacten.length ? Math.round(verstuurd / alleContacten.length * 100) : 0
+    const zwarteLijst = alleContacten.filter(c => c.op_zwarte_lijst).length
+    return { verstuurd, teReviewen, pct, zwarteLijst, totaal: alleContacten.length }
+  })()
 
   async function keurGoed(contactId: string, ronde: number, type: 'bedrijf'|'email') {
     const val = type === 'bedrijf' ? 'goedgekeurd' : 'email_goedgekeurd'
@@ -130,7 +172,6 @@ export default function AgentPage() {
   async function regenereerEmail(contactId: string, ronde: number) {
     setRegenerating(contactId)
     try {
-      // Stap 1: Reset email velden in Supabase
       const { error } = await sb.from('agent_contacten').update({
         [`r${ronde}_body`]: '',
         [`r${ronde}_onderwerp`]: '',
@@ -143,7 +184,6 @@ export default function AgentPage() {
         return
       }
 
-      // Stap 2: Trigger GitHub Actions om preview te genereren
       await fetch('/api/agent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -161,14 +201,15 @@ export default function AgentPage() {
     laad()
   }
 
+  // Batch update met .in() voor performance
   async function keurAllesGoed(ronde: number, type: 'bedrijf'|'email') {
     setApprovingAll(true)
     const col = `r${ronde}_status`
     const huidige = type === 'bedrijf' ? 'wacht' : 'email_klaar'
     const nieuw   = type === 'bedrijf' ? 'goedgekeurd' : 'email_goedgekeurd'
-    const ids = contacten.filter(c => (c as any)[col] === huidige).map(c => c.id)
-    for (const id of ids) {
-      await sb.from('agent_contacten').update({[col]: nieuw}).eq('id', id)
+    const ids = alleContacten.filter(c => (c as any)[col] === huidige).map(c => c.id)
+    if (ids.length > 0) {
+      await sb.from('agent_contacten').update({[col]: nieuw}).in('id', ids)
     }
     setApprovingAll(false)
     laad()
@@ -194,6 +235,17 @@ export default function AgentPage() {
       setZoekMelding({ok:false, tekst:'❌ Kan agent niet bereiken'})
     }
     setZoekBezig(false)
+  }
+
+  const wisselRonde = (r: number) => {
+    if (edit) {
+      if (!confirm('Je hebt niet-opgeslagen wijzigingen. Ronde wisselen en annuleren?')) return
+      setEdit(null)
+      setExpandedBody(null)
+    }
+    setActiveRonde(r)
+    setFilterStatus('actie')
+    setZoekTerm('')
   }
 
   const formatDatum = (d: string) => d ? new Date(d).toLocaleDateString('nl-NL',{weekday:'short',day:'numeric',month:'short'}) : '—'
@@ -322,6 +374,32 @@ export default function AgentPage() {
                   </div>
                 </div>
 
+                {/* Stats header bar */}
+                {batchStats && (
+                  <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:8,marginBottom:14}}>
+                    <div style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:8,padding:'10px 14px'}}>
+                      <p style={{fontSize:10,color:MUTED,margin:'0 0 3px',textTransform:'uppercase',letterSpacing:'0.08em'}}>Totaal</p>
+                      <p style={{fontSize:20,fontWeight:700,color:'white',margin:0,lineHeight:1}}>{batchStats.totaal}</p>
+                      <p style={{fontSize:10,color:MUTED,margin:'2px 0 0'}}>contacten</p>
+                    </div>
+                    <div style={{background:CARD,border:`1px solid rgba(34,197,94,0.15)`,borderRadius:8,padding:'10px 14px'}}>
+                      <p style={{fontSize:10,color:MUTED,margin:'0 0 3px',textTransform:'uppercase',letterSpacing:'0.08em'}}>Verstuurd R{activeRonde}</p>
+                      <p style={{fontSize:20,fontWeight:700,color:GREEN,margin:0,lineHeight:1}}>{batchStats.verstuurd}</p>
+                      <p style={{fontSize:10,color:MUTED,margin:'2px 0 0'}}>{batchStats.pct}% van batch</p>
+                    </div>
+                    <div style={{background:CARD,border:`1px solid rgba(245,166,35,0.15)`,borderRadius:8,padding:'10px 14px'}}>
+                      <p style={{fontSize:10,color:MUTED,margin:'0 0 3px',textTransform:'uppercase',letterSpacing:'0.08em'}}>Te reviewen</p>
+                      <p style={{fontSize:20,fontWeight:700,color:batchStats.teReviewen>0?FF:MUTED,margin:0,lineHeight:1}}>{batchStats.teReviewen}</p>
+                      <p style={{fontSize:10,color:MUTED,margin:'2px 0 0'}}>wacht op actie</p>
+                    </div>
+                    <div style={{background:CARD,border:`1px solid ${batchStats.zwarteLijst>0?'rgba(239,68,68,0.2)':BORDER}`,borderRadius:8,padding:'10px 14px'}}>
+                      <p style={{fontSize:10,color:MUTED,margin:'0 0 3px',textTransform:'uppercase',letterSpacing:'0.08em'}}>Zwarte lijst</p>
+                      <p style={{fontSize:20,fontWeight:700,color:batchStats.zwarteLijst>0?RED:MUTED,margin:0,lineHeight:1}}>{batchStats.zwarteLijst}</p>
+                      <p style={{fontSize:10,color:MUTED,margin:'2px 0 0'}}>geblokkeerd</p>
+                    </div>
+                  </div>
+                )}
+
                 {/* Ronde tabs met voortgangsbars */}
                 <div style={{display:'flex',gap:6}}>
                   {[1,2,3].map(r => {
@@ -329,7 +407,7 @@ export default function AgentPage() {
                     const isVandaag = [batch.start_datum, batch.ronde_2_datum, batch.ronde_3_datum][r-1] === vandaag
                     const pct = Math.round(s.verstuurd / totaal * 100)
                     return (
-                      <button key={r} onClick={()=>setActiveRonde(r)} style={{
+                      <button key={r} onClick={()=>wisselRonde(r)} style={{
                         flex:1,padding:'10px',borderRadius:10,cursor:'pointer',transition:'all 0.15s',
                         background: activeRonde===r ? `rgba(${R_COLORS[r-1].slice(1).match(/.{2}/g)!.map(h=>parseInt(h,16)).join(',')},0.15)` : CARD2,
                         border: `1px solid ${activeRonde===r ? R_COLORS[r-1]+'44' : BORDER}`,
@@ -364,7 +442,7 @@ export default function AgentPage() {
                 const s = rStats(activeRonde)
                 const col = `r${activeRonde}_status` as keyof Contact
                 const heeftWacht = s.wacht > 0
-                const heeftEmailKlaar = contacten.some(c => c[col] === 'email_klaar')
+                const heeftEmailKlaar = alleContacten.some(c => c[col] === 'email_klaar')
                 const heeftEmailGoed = s.klaar > 0
                 return (heeftWacht || heeftEmailKlaar || heeftEmailGoed) ? (
                   <div style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:10,padding:'12px 16px',marginBottom:16,display:'flex',gap:10,alignItems:'center',flexWrap:'wrap'}}>
@@ -380,16 +458,86 @@ export default function AgentPage() {
                       </button>
                     )}
                     {heeftEmailGoed && (
-                      <div style={{background:'rgba(34,197,94,0.08)',border:'1px solid rgba(34,197,94,0.2)',borderRadius:7,padding:'7px 14px'}}>
-                        <p style={{fontSize:12,color:GREEN,margin:0}}>🚀 Klaar om te versturen! Terminal: <code style={{fontFamily:'monospace',fontSize:11}}>python main.py verstuur_batch {batch.id} {activeRonde}</code></p>
-                      </div>
+                      <button
+                        onClick={async () => {
+                          setApprovingAll(true)
+                          try {
+                            const res = await fetch('/api/agent', {
+                              method: 'POST',
+                              headers: {'Content-Type':'application/json'},
+                              body: JSON.stringify({ actie: 'trigger_workflow', stap: 'verstuur', batch_id: batch.id, ronde: activeRonde }),
+                            })
+                            const data = await res.json()
+                            setZoekMelding(data.ok
+                              ? {ok:true, tekst:`🚀 Verstuur gestart voor ronde ${activeRonde}! Agent verwerkt de emails.`}
+                              : {ok:false, tekst:`❌ Fout: ${data.error ?? 'Onbekende fout'}`}
+                            )
+                          } catch { setZoekMelding({ok:false, tekst:'❌ Kan agent niet bereiken'}) }
+                          setApprovingAll(false)
+                        }}
+                        disabled={approvingAll}
+                        style={{background:'rgba(34,197,94,0.12)',border:'1px solid rgba(34,197,94,0.4)',borderRadius:7,color:GREEN,fontSize:12,padding:'7px 14px',cursor:'pointer',fontWeight:600}}
+                      >
+                        🚀 Verstuur {s.klaar} emails (ronde {activeRonde})
+                      </button>
                     )}
                   </div>
                 ) : null
               })()}
 
+              {/* Zoek en filter bar */}
+              <div style={{marginBottom:12}}>
+                {/* Zoekbalk */}
+                <div style={{position:'relative',marginBottom:8}}>
+                  <span style={{position:'absolute',left:10,top:'50%',transform:'translateY(-50%)',fontSize:13,color:MUTED,pointerEvents:'none'}}>🔍</span>
+                  <input
+                    type="text"
+                    placeholder="Zoek op naam, email, stad of sector..."
+                    value={zoekTerm}
+                    onChange={e=>setZoekTerm(e.target.value)}
+                    style={{width:'100%',background:CARD2,border:`1px solid ${BORDER}`,borderRadius:7,color:TEXT,fontSize:12,padding:'8px 10px 8px 32px',outline:'none',fontFamily:'inherit'}}
+                  />
+                  {zoekTerm && (
+                    <button onClick={()=>setZoekTerm('')} style={{position:'absolute',right:8,top:'50%',transform:'translateY(-50%)',background:'none',border:'none',color:MUTED,cursor:'pointer',fontSize:13,padding:0}}>✕</button>
+                  )}
+                </div>
+
+                {/* Status filter pills */}
+                <div style={{display:'flex',gap:6,flexWrap:'wrap',alignItems:'center'}}>
+                  {[
+                    {key:'actie', label:'🎯 Actie vereist'},
+                    {key:'alle',  label:'Alle'},
+                    {key:'wacht', label:'⏳ Wacht'},
+                    {key:'email_klaar', label:'📧 Email klaar'},
+                    {key:'verstuurd', label:'📤 Verstuurd'},
+                    {key:'overgeslagen', label:'❌ Skip'},
+                  ].map(f => {
+                    const count = f.key === 'alle' || f.key === 'actie' ? null
+                      : alleContacten.filter(c => (c[`r${activeRonde}_status` as keyof Contact] as string) === f.key).length
+                    return (
+                      <button key={f.key} onClick={()=>setFilterStatus(f.key)} style={{
+                        background: filterStatus===f.key ? 'rgba(245,166,35,0.15)' : CARD2,
+                        border: `1px solid ${filterStatus===f.key ? FF+'66' : BORDER}`,
+                        borderRadius:6, color: filterStatus===f.key ? FF : MUTED,
+                        fontSize:11, padding:'5px 10px', cursor:'pointer',
+                      }}>
+                        {f.label}{count !== null ? ` (${count})` : ''}
+                      </button>
+                    )
+                  })}
+                  <span style={{fontSize:11,color:MUTED,marginLeft:4}}>
+                    {contacten.length}/{alleContacten.length} zichtbaar
+                  </span>
+                </div>
+              </div>
+
               {/* Contacten lijst */}
               <div style={{display:'flex',flexDirection:'column',gap:8}}>
+                {contacten.length === 0 && (
+                  <div style={{textAlign:'center',padding:'32px 16px',color:MUTED,fontSize:13}}>
+                    {zoekTerm ? `Geen resultaten voor "${zoekTerm}"` : 'Geen contacten voor deze filter.'}
+                  </div>
+                )}
                 {contacten.map(c => {
                   const r = activeRonde
                   const statusKey = `r${r}_status` as keyof Contact
@@ -402,15 +550,30 @@ export default function AgentPage() {
                   const heeftEmail = !!c[onderwerpKey]
                   const isEditing = edit?.id === c.id
                   const isRegenerating = regenerating === c.id
+                  const opZwarteLijst = !!c.op_zwarte_lijst
 
                   return (
-                    <div key={c.id} style={{background:CARD2,border:`1px solid ${c.op_zwarte_lijst?'#7f1d1d44':isGepland?BORDER:st.bg+'44'}`,borderRadius:10,padding:'12px 14px',opacity:isGepland?0.5:1}}>
+                    <div key={c.id} style={{
+                      background:CARD2,
+                      border:`1px solid ${opZwarteLijst?'rgba(239,68,68,0.35)':isGepland?BORDER:st.bg+'44'}`,
+                      borderRadius:10,
+                      padding:'12px 14px',
+                      opacity:isGepland?0.5:1,
+                      position:'relative',
+                    }}>
+                      {/* Zwarte lijst stripe */}
+                      {opZwarteLijst && (
+                        <div style={{position:'absolute',top:0,left:0,bottom:0,width:3,background:RED,borderRadius:'10px 0 0 10px'}} />
+                      )}
                       <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
                         <div style={{flex:1,minWidth:0}}>
                           <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:3,flexWrap:'wrap'}}>
                             <p style={{fontSize:13,fontWeight:600,color:TEXT,margin:0}}>{c.naam}</p>
                             <span style={{background:st.bg,color:st.color,borderRadius:5,padding:'2px 8px',fontSize:10}}>{st.label}</span>
                             <span style={{background:'rgba(245,166,35,0.1)',color:FF,borderRadius:5,padding:'2px 7px',fontSize:10}}>{c.score}pts</span>
+                            {opZwarteLijst && (
+                              <span style={{background:'rgba(239,68,68,0.15)',color:RED,borderRadius:5,padding:'2px 7px',fontSize:10,fontWeight:700,border:'1px solid rgba(239,68,68,0.3)'}}>ZL</span>
+                            )}
                           </div>
                           <p style={{fontSize:11,color:MUTED,margin:0}}>{c.email} · {c.stad} · {c.sector}</p>
                           {heeftEmail && !isEditing && <p style={{fontSize:11,color:'#818CF8',marginTop:4}}>✉️ {c[onderwerpKey] as string}</p>}
@@ -420,31 +583,44 @@ export default function AgentPage() {
                         {!isGepland && (
                           <div style={{display:'flex',gap:6,flexShrink:0,marginLeft:10,flexWrap:'wrap',justifyContent:'flex-end'}}>
                             {status === 'wacht' && <>
-                              <Btn color={GREEN} onClick={()=>keurGoed(c.id,r,'bedrijf')}>✅</Btn>
-                              <Btn color={RED}   onClick={()=>slaOver(c.id,r,'bedrijf')}>❌</Btn>
+                              <div style={{position:'relative',display:'inline-flex'}}>
+                                <Btn color={GREEN} onClick={()=>keurGoed(c.id,r,'bedrijf')}>✅</Btn>
+                                <span style={{position:'absolute',bottom:-18,left:'50%',transform:'translateX(-50%)',fontSize:9,color:MUTED,whiteSpace:'nowrap',pointerEvents:'none'}}>A</span>
+                              </div>
+                              <div style={{position:'relative',display:'inline-flex'}}>
+                                <Btn color={RED}   onClick={()=>slaOver(c.id,r,'bedrijf')}>❌</Btn>
+                                <span style={{position:'absolute',bottom:-18,left:'50%',transform:'translateX(-50%)',fontSize:9,color:MUTED,whiteSpace:'nowrap',pointerEvents:'none'}}>S</span>
+                              </div>
                             </>}
                             {status === 'email_klaar' && <>
-                              <Btn color={GREEN} onClick={()=>keurGoed(c.id,r,'email')}>✅ Email</Btn>
-                              <Btn color={RED}   onClick={()=>slaOver(c.id,r,'email')}>❌</Btn>
+                              <div style={{position:'relative',display:'inline-flex'}}>
+                                <Btn color={GREEN} onClick={()=>keurGoed(c.id,r,'email')}>✅ Email</Btn>
+                                <span style={{position:'absolute',bottom:-18,left:'50%',transform:'translateX(-50%)',fontSize:9,color:MUTED,whiteSpace:'nowrap',pointerEvents:'none'}}>A</span>
+                              </div>
+                              <div style={{position:'relative',display:'inline-flex'}}>
+                                <Btn color={RED}   onClick={()=>slaOver(c.id,r,'email')}>❌</Btn>
+                                <span style={{position:'absolute',bottom:-18,left:'50%',transform:'translateX(-50%)',fontSize:9,color:MUTED,whiteSpace:'nowrap',pointerEvents:'none'}}>S</span>
+                              </div>
                             </>}
                             {heeftEmail && !isEditing && (
-                              <Btn color={MUTED} onClick={()=>{ setExpandedBody(isExpanded?null:c.id); setEdit(null) }}>
-                                {isExpanded?'▲':'▼'}
-                              </Btn>
-                            )}
-                            {heeftEmail && isExpanded && !isEditing && (
-                              <Btn color={FF} onClick={()=>setEdit({
-                                id: c.id,
-                                bodyKey: bodyKey as string,
-                                bodyVal: c[bodyKey] as string ?? '',
-                                onderwerpKey: onderwerpKey as string,
-                                onderwerpVal: c[onderwerpKey] as string ?? '',
-                              })}>✏️</Btn>
-                            )}
-                            {heeftEmail && isExpanded && !isEditing && (
-                              <Btn color={'#A78BFA'} onClick={()=>regenereerEmail(c.id, r)}>
-                                {isRegenerating ? '⏳' : '🔄'}
-                              </Btn>
+                              <>
+                                <Btn color={MUTED} onClick={()=>{ setExpandedBody(isExpanded?null:c.id); setEdit(null) }}>
+                                  {isExpanded?'▲':'▼'}
+                                </Btn>
+                                <Btn color={FF} onClick={()=>{
+                                  setExpandedBody(c.id)
+                                  setEdit({
+                                    id: c.id,
+                                    bodyKey: bodyKey as string,
+                                    bodyVal: c[bodyKey] as string ?? '',
+                                    onderwerpKey: onderwerpKey as string,
+                                    onderwerpVal: c[onderwerpKey] as string ?? '',
+                                  })
+                                }}>✏️</Btn>
+                                <Btn color={'#A78BFA'} onClick={()=>regenereerEmail(c.id, r)} disabled={isRegenerating}>
+                                  {isRegenerating ? '⏳' : '🔄'}
+                                </Btn>
+                              </>
                             )}
                           </div>
                         )}

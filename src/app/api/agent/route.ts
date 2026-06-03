@@ -1,57 +1,80 @@
-import { NextResponse } from 'next/server'
-import { exec } from 'child_process'
-import { promisify } from 'util'
-import fs from 'fs'
-import path from 'path'
+import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@supabase/supabase-js'
 
-const execAsync = promisify(exec)
-const AGENT_DIR = 'C:\\Users\\Kaneb\\fitfactory-agent'
-const CRM_STATUS = path.join(AGENT_DIR, 'crm_status.json')
-const DAGLOG = path.join(AGENT_DIR, 'dag_log.json')
-
-function laadDagLog() {
-  if (!fs.existsSync(DAGLOG)) return { vandaag: 0, datum: '', history: [] as {datum:string,verstuurd:number,followup:number}[] }
-  return JSON.parse(fs.readFileSync(DAGLOG, 'utf-8'))
+async function checkAuth(req: NextRequest): Promise<{ ok: boolean; error?: string }> {
+  const authHeader = req.headers.get('authorization')
+  if (!authHeader?.startsWith('Bearer ')) return { ok: false, error: 'Geen Bearer token' }
+  const token = authHeader.slice(7)
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    { global: { headers: { Authorization: `Bearer ${token}` } } }
+  )
+  const { data: { user }, error } = await supabase.auth.getUser()
+  if (error || !user) return { ok: false, error: 'Ongeldige sessie' }
+  if (user.email?.toLowerCase() !== 'kanebongers@gmail.com') return { ok: false, error: 'Geen toegang' }
+  return { ok: true }
 }
 
-export async function GET() {
+function getServiceClient() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
+}
+
+const EMPTY_STATS = {
+  totaal: 0, per_status: {}, laatste_update: null,
+  dag: { vandaag: 0, doel: 10, resterend: 10, datum: '' },
+  history: [], rondesVandaag: [],
+}
+
+export async function GET(req: NextRequest) {
+  const auth = await checkAuth(req)
+  if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: 401 })
+
   try {
-    const crm = fs.existsSync(CRM_STATUS)
-      ? JSON.parse(fs.readFileSync(CRM_STATUS, 'utf-8'))
-      : { totaal: 0, per_status: {}, bedrijven: [], laatste_update: null }
+    const db = getServiceClient()
+    const { data: contacten, error: cErr } = await db
+      .from('agent_contacten')
+      .select('r1_status, r2_status, r3_status')
 
-    const daglog = laadDagLog()
-    const vandaag = new Date().toLocaleDateString('nl-NL')
+    if (cErr) return NextResponse.json({ ...EMPTY_STATS, dag: { ...EMPTY_STATS.dag, datum: new Date().toLocaleDateString('nl-NL') } })
 
-    // Tel hoeveel er vandaag al verstuurd zijn
-    const vandaagVerstuurd = daglog.datum === vandaag ? daglog.vandaag : 0
-    const dagDoel = 10
-    const resterend = Math.max(0, dagDoel - vandaagVerstuurd)
-
-    // Bereken welke rondes vandaag actief zijn
-    const rondesVandaag: number[] = []
-    const nieuw = crm.per_status?.['Nieuw'] ?? 0
-    if (nieuw > 0) rondesVandaag.push(1)
-    for (let r = 2; r <= 5; r++) {
-      if ((crm.per_status?.[`Verstuurd ${r-1}`] ?? 0) > 0) rondesVandaag.push(r)
+    const perStatus: Record<string, number> = { Nieuw: 0, 'Verstuurd 1': 0, 'Verstuurd 2': 0, 'Verstuurd 3': 0 }
+    for (const c of contacten ?? []) {
+      if (c.r3_status === 'verstuurd') perStatus['Verstuurd 3']++
+      else if (c.r2_status === 'verstuurd') perStatus['Verstuurd 2']++
+      else if (c.r1_status === 'verstuurd') perStatus['Verstuurd 1']++
+      else perStatus['Nieuw']++
     }
 
+    const vandaag = new Date().toLocaleDateString('nl-NL')
+    const dagDoel = 10
+
+    const rondesVandaag: number[] = []
+    if (perStatus['Nieuw'] > 0) rondesVandaag.push(1)
+    if (perStatus['Verstuurd 1'] > 0) rondesVandaag.push(2)
+    if (perStatus['Verstuurd 2'] > 0) rondesVandaag.push(3)
+
     return NextResponse.json({
-      ...crm,
-      dag: { vandaag: vandaagVerstuurd, doel: dagDoel, resterend, datum: vandaag },
-      history: daglog.history ?? [],
+      totaal: contacten?.length ?? 0,
+      per_status: perStatus,
+      laatste_update: new Date().toISOString(),
+      dag: { vandaag: 0, doel: dagDoel, resterend: dagDoel, datum: vandaag },
+      history: [],
       rondesVandaag,
     })
   } catch {
-    return NextResponse.json({ error: 'Kan CRM niet lezen' }, { status: 500 })
+    return NextResponse.json({ ...EMPTY_STATS, dag: { ...EMPTY_STATS.dag, datum: new Date().toLocaleDateString('nl-NL') } })
   }
 }
 
-const GH_TOKEN = process.env.GITHUB_TOKEN || ''
-const GH_REPO  = 'kanebongers-sketch/fitfactory-agent'
+const GH_TOKEN    = process.env.GITHUB_TOKEN || ''
+const GH_REPO     = 'kanebongers-sketch/fitfactory-agent'
 const GH_WORKFLOW = 'dagelijkse_agent.yml'
 
-async function triggerWorkflow(stap: string) {
+async function triggerWorkflow(stap: string, extraInputs: Record<string, string> = {}) {
   const res = await fetch(
     `https://api.github.com/repos/${GH_REPO}/actions/workflows/${GH_WORKFLOW}/dispatches`,
     {
@@ -61,70 +84,52 @@ async function triggerWorkflow(stap: string) {
         Accept: 'application/vnd.github.v3+json',
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ ref: 'main', inputs: { stap } }),
+      body: JSON.stringify({ ref: 'main', inputs: { stap, ...extraInputs } }),
     }
   )
   return res.ok
 }
 
-export async function POST(req: Request) {
-  const body = await req.json()
-  const { actie, ronde, aantal } = body
+export async function POST(req: NextRequest) {
+  const auth = await checkAuth(req)
+  if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: 401 })
 
-  // GitHub Actions workflow dispatch
+  if (!GH_TOKEN) return NextResponse.json({ error: 'GITHUB_TOKEN niet geconfigureerd' }, { status: 500 })
+
+  const body = await req.json()
+  const { actie, stap, ronde } = body
+
+  const geldigeStappen = ['zoek', 'ochtend_batch', 'alles', 'status', 'batch_status', 'preview', 'check_batch_callbacks']
+
   if (actie === 'trigger_workflow') {
-    const { stap } = body
-    const geldig = ['zoek', 'ochtend_batch', 'alles', 'status', 'batch_status', 'preview', 'check_batch_callbacks']
-    if (!geldig.includes(stap)) return NextResponse.json({ error: 'Ongeldige stap' }, { status: 400 })
-    if (!GH_TOKEN) return NextResponse.json({ error: 'GITHUB_TOKEN niet geconfigureerd' }, { status: 500 })
+    if (!stap || !geldigeStappen.includes(stap)) {
+      return NextResponse.json({ error: 'Ongeldige stap' }, { status: 400 })
+    }
     const ok = await triggerWorkflow(stap)
     return NextResponse.json({ ok, stap })
   }
 
   if (actie === 'verstuur') {
-    return NextResponse.json({ error: 'Versturen kan alleen via de terminal' }, { status: 403 })
+    return NextResponse.json({ error: 'Gebruik trigger_workflow met stap=ochtend_batch' }, { status: 400 })
   }
 
-  // Dagelijkse limiet check voor preview
+  const actieNaarStap: Record<string, string> = {
+    zoek: 'zoek', status: 'status', preview: 'preview', scrape: 'zoek', filter: 'zoek', crm: 'status',
+  }
+
   if (actie === 'preview' && !ronde) {
     return NextResponse.json({ error: 'Geef een ronde op' }, { status: 400 })
   }
 
-  const toegestaan = ['status', 'preview', 'zoek', 'scrape', 'filter', 'crm']
-  if (!toegestaan.includes(actie)) {
-    return NextResponse.json({ error: 'Ongeldige actie' }, { status: 400 })
-  }
+  const mappedStap = actieNaarStap[actie]
+  if (!mappedStap) return NextResponse.json({ error: 'Ongeldige actie' }, { status: 400 })
 
-  const maxEmails = aantal ?? 10
-  const cmd = ronde
-    ? `cd "${AGENT_DIR}" && set PYTHONIOENCODING=utf-8 && python -W ignore main.py ${actie} ${ronde}`
-    : `cd "${AGENT_DIR}" && set PYTHONIOENCODING=utf-8 && python -W ignore main.py ${actie}`
+  const extraInputs = ronde ? { ronde: String(ronde) } : {}
+  const ok = await triggerWorkflow(mappedStap, extraInputs)
 
-  try {
-    const { stdout, stderr } = await execAsync(cmd, {
-      shell: 'cmd.exe',
-      timeout: 300_000,
-      maxBuffer: 1024 * 1024 * 10,
-    })
-    const output = (stdout || stderr || '').trim()
-
-    // Update daglog na succesvol versturen
-    if (actie === 'stuur_dag' && output.includes('emails verstuurd')) {
-      const match = output.match(/(\d+)\/\d+ emails verstuurd/)
-      const verstuurd = match ? parseInt(match[1]) : 0
-      const daglog = laadDagLog()
-      const vandaag = new Date().toLocaleDateString('nl-NL')
-      const vandaagVerstuurd = daglog.datum === vandaag ? daglog.vandaag + verstuurd : verstuurd
-      const history = daglog.history ?? []
-      const bestaand = history.findIndex((h: {datum:string}) => h.datum === vandaag)
-      if (bestaand >= 0) history[bestaand].verstuurd = vandaagVerstuurd
-      else history.unshift({ datum: vandaag, verstuurd: vandaagVerstuurd, followup: ronde > 1 ? verstuurd : 0 })
-      fs.writeFileSync(DAGLOG, JSON.stringify({ vandaag: vandaagVerstuurd, datum: vandaag, history: history.slice(0, 30) }, null, 2))
-    }
-
-    return NextResponse.json({ ok: true, output, maxEmails })
-  } catch (e: unknown) {
-    const err = e as { stdout?: string; stderr?: string; message?: string }
-    return NextResponse.json({ ok: false, output: err.stdout || err.stderr || err.message }, { status: 500 })
-  }
+  return NextResponse.json({
+    ok,
+    output: ok ? `Workflow '${mappedStap}' gestart via GitHub Actions` : 'GitHub Actions dispatch mislukt',
+    stap: mappedStap,
+  })
 }

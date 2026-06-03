@@ -244,6 +244,55 @@ export default function HomePage() {
   const dagtijd = (() => { const h = new Date().getHours(); return h < 12 ? 'Goedemorgen' : h < 18 ? 'Goedemiddag' : 'Goedenavond' })()
   const datum   = new Date().toLocaleDateString('nl-BE', { weekday: 'long', day: 'numeric', month: 'long' })
 
+  // Bereken huidige streak van dagelijkse doellog events uit XP history
+  const huidigeStreak = (() => {
+    if (!xpData?.history?.length) return 0
+    const vandaagStr = weekVandaag()
+    const gelogdeDagen = new Set(
+      xpData.history
+        .filter(e => e.type === 'goal' && e.xp > 0)
+        .map(e => e.datum)
+    )
+    let streak = 0
+    const d = new Date(vandaagStr)
+    while (true) {
+      const key = [d.getFullYear(), String(d.getMonth() + 1).padStart(2, '0'), String(d.getDate()).padStart(2, '0')].join('-')
+      if (!gelogdeDagen.has(key)) break
+      streak++
+      d.setDate(d.getDate() - 1)
+    }
+    return streak
+  })()
+
+  // Check-in CTA: heeft de gebruiker vandaag al doelen gelogd?
+  const heeftVandaagGelogd = (() => {
+    if (!weekSelectie?.doelen.length) return false
+    const vd = weekVandaag()
+    return weekSelectie.doelen.some(d => d.logs.some(l => l.datum === vd))
+  })()
+
+  // Weken-streak: aaneengesloten weken met minimaal 1 check-in
+  const wekenStreak = (() => {
+    if (!xpData?.history?.length) return 0
+    const checkinDagen = new Set(
+      xpData.history.filter(e => e.type === 'checkin').map(e => e.datum.slice(0, 10))
+    )
+    let weken = 0
+    const nu = new Date(weekVandaag())
+    while (weken < 52) {
+      const dag = nu.getDay()
+      const maandag = new Date(nu)
+      maandag.setDate(nu.getDate() - (dag === 0 ? 6 : dag - 1) - weken * 7)
+      const weekDagen = Array.from({ length: 7 }, (_, i) => {
+        const d = new Date(maandag); d.setDate(maandag.getDate() + i)
+        return fmtDatum(d)
+      })
+      if (!weekDagen.some(d => checkinDagen.has(d))) break
+      weken++
+    }
+    return weken
+  })()
+
   // Build doelkeuze URL for when goals haven't been selected yet
   const doelkeuzeUrl = vlakScores && sessieId
     ? `/doelkeuze?${new URLSearchParams({ ...Object.fromEntries(Object.entries(vlakScores).map(([k, v]) => [k, String(v)])), sid: sessieId }).toString()}`
@@ -264,12 +313,60 @@ export default function HomePage() {
       <main style={{ padding: '28px 20px 72px', maxWidth: 900, margin: '0 auto' }}>
 
         {/* ── HEADER ── */}
-        <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 24 }}>
-          <h1 style={{ fontSize: 22, fontWeight: 800, color: '#111827', letterSpacing: '-0.03em' }}>
-            {dagtijd}, {naam.split(' ')[0]}
-          </h1>
-          <p style={{ color: '#9CA3AF', fontSize: 13, textTransform: 'capitalize' }}>{datum}</p>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24, flexWrap: 'wrap', gap: 8 }}>
+          <div>
+            <h1 style={{ fontSize: 22, fontWeight: 800, color: '#111827', letterSpacing: '-0.03em' }}>
+              {dagtijd}, {naam.split(' ')[0]}
+            </h1>
+            <p style={{ color: '#9CA3AF', fontSize: 13, textTransform: 'capitalize', marginTop: 2 }}>{datum}</p>
+            {vitaalScore !== null && (
+              <p style={{ fontSize: 12, color: scoreKleur, fontWeight: 600, marginTop: 4 }}>
+                {vitaalScore >= 70 ? 'Je bent lekker bezig — houd het vast!' : vitaalScore >= 45 ? 'Je bent er bijna — een klein zetje maakt het verschil.' : 'Vandaag is een goed moment om voor jezelf te zorgen.'}
+              </p>
+            )}
+          </div>
+          {huidigeStreak >= 2 && (
+            <Link href="/doelen" style={{ textDecoration: 'none' }}>
+              <div style={{
+                display: 'inline-flex', alignItems: 'center', gap: 6,
+                background: huidigeStreak >= 7 ? '#FEF3C7' : '#FFF7ED',
+                border: `1.5px solid ${huidigeStreak >= 7 ? '#F59E0B' : '#FB923C'}`,
+                borderRadius: 12, padding: '7px 13px',
+              }}>
+                <span style={{ fontSize: 16, lineHeight: 1 }}>🔥</span>
+                <span style={{ fontSize: 13, fontWeight: 700, color: huidigeStreak >= 7 ? '#B45309' : '#C2410C' }}>
+                  {huidigeStreak} {huidigeStreak === 1 ? 'dag' : 'dagen'} op rij
+                </span>
+              </div>
+            </Link>
+          )}
         </div>
+
+        {/* ── QUICK CHECK-IN CTA ── */}
+        {weekSelectie && weekSelectie.doelen.length > 0 && !heeftVandaagGelogd && (
+          <Link href="/doelen" style={{ textDecoration: 'none', display: 'block', marginBottom: 20 }}>
+            <div style={{
+              background: 'linear-gradient(135deg, #E1F5EE 0%, #D1FAE5 100%)',
+              borderRadius: 16, padding: '16px 20px',
+              border: '1.5px solid #6EE7B7',
+              display: 'flex', alignItems: 'center', gap: 14,
+              animation: 'pulse-border 2s ease-in-out infinite',
+            }}>
+              <div style={{ width: 42, height: 42, borderRadius: 12, background: '#1D9E75', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                </svg>
+              </div>
+              <div style={{ flex: 1 }}>
+                <p style={{ fontSize: 13, fontWeight: 800, color: '#065F46', marginBottom: 2 }}>Log je doelen van vandaag</p>
+                <p style={{ fontSize: 12, color: '#059669' }}>Je hebt {weekSelectie.doelen.length} actieve weekdoel{weekSelectie.doelen.length !== 1 ? 'en' : ''} — even inchecken!</p>
+              </div>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1D9E75" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="9 18 15 12 9 6"/>
+              </svg>
+            </div>
+          </Link>
+        )}
 
         {/* ── VITALITEITSSCORE KAART ── */}
         <div style={{
@@ -346,6 +443,11 @@ export default function HomePage() {
                   <div style={{ height: 4, borderRadius: 2, background: '#F3F4F6', overflow: 'hidden' }}>
                     <div style={{ height: '100%', borderRadius: 2, background: kleur, width: `${vrt.pct}%`, transition: 'width 1s ease' }} />
                   </div>
+                  {wekenStreak >= 2 && (
+                    <p style={{ fontSize: 9, color: kleur, fontWeight: 700, marginTop: 4, textAlign: 'right' }}>
+                      🔥 {wekenStreak}w streak
+                    </p>
+                  )}
                 </div>
               </Link>
             )
@@ -378,11 +480,17 @@ export default function HomePage() {
             </div>
           )}
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 10 }}>
+          <style>{`
+            .domein-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+            @media (min-width: 480px) { .domein-grid { grid-template-columns: repeat(6, 1fr); } }
+            @keyframes pulse-border { 0%, 100% { border-color: #6EE7B7; } 50% { border-color: #1D9E75; } }
+          `}</style>
+          <div className="domein-grid">
             {Object.entries(CAT).map(([vlak, c]) => {
               const s = vlakScores?.[vlak] ?? 0
               const pct = s > 0 ? Math.round(((s - 4) / 16) * 100) : 0
-              const bar = s >= 16 ? '#1D9E75' : s >= 12 ? '#B45309' : s >= 8 ? '#E26B4A' : s > 0 ? '#E24B4A' : '#E5E7EB'
+              const domeinKleur = VLAK_KLEUR[vlak] ?? '#9CA3AF'
+              const bar = s > 0 ? domeinKleur : '#E5E7EB'
               const label = s >= 16 ? 'Goed' : s >= 12 ? 'Matig' : s > 0 ? 'Laag' : null
               return (
                 <Link key={vlak} href="/rapport" style={{ textDecoration: 'none' }}>
