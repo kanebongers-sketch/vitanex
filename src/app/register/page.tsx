@@ -6,7 +6,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 
-type Stap = 'type' | 'info' | 'account' | 'bevestig'
+type Stap = 'type' | 'hrcode' | 'info' | 'account' | 'bevestig'
 type GebruikerType = 'werknemer' | 'hr' | 'zelfstandige'
 
 const VOORDELEN_WERKNEMER = [
@@ -36,9 +36,14 @@ const VOORDELEN_ZELFSTANDIGE = [
   { icon: '??', tekst: 'Persoonlijke trendanalyse over tijd' },
 ]
 
-function StapIndicator({ stap, huidig }: { stap: Stap; huidig: Stap }) {
-  const stappen: Stap[] = ['type', 'info', 'account', 'bevestig']
-  const labels = ['Jouw rol', 'Gegevens', 'Account', 'Bevestiging']
+function StapIndicator({ stap, huidig, type }: { stap: Stap; huidig: Stap; type: GebruikerType | null }) {
+  // Werknemers krijgen een extra HR-code stap; andere rollen niet
+  const stappen: Stap[] = type === 'werknemer'
+    ? ['type', 'hrcode', 'info', 'account', 'bevestig']
+    : ['type', 'info', 'account', 'bevestig']
+  const labels = type === 'werknemer'
+    ? ['Jouw rol', 'HR Code', 'Gegevens', 'Account', 'Bevestiging']
+    : ['Jouw rol', 'Gegevens', 'Account', 'Bevestiging']
   const huidigeIndex = stappen.indexOf(huidig)
 
   return (
@@ -94,10 +99,44 @@ export default function Register() {
   const [akkoord, setAkkoord] = useState(false)
   const [nieuwsbrief, setNieuwsbrief] = useState(false)
 
+  // Stap hrcode (alleen werknemers)
+  const [hrCode, setHrCode] = useState('')
+  const [hrCodeBedrijfId, setHrCodeBedrijfId] = useState<string | null>(null)
+  const [hrCodeBedrijfsnaam, setHrCodeBedrijfsnaam] = useState('')
+  const [hrCodeBezig, setHrCodeBezig] = useState(false)
+  const [hrCodeFout, setHrCodeFout] = useState<string | null>(null)
+  const [hrCodeOvergeslagen, setHrCodeOvergeslagen] = useState(false)
+
   const [bezig, setBezig] = useState(false)
   const [fout, setFout] = useState<string | null>(null)
   const [resendBezig, setResendBezig] = useState(false)
   const [resendKlaar, setResendKlaar] = useState(false)
+
+  async function valideerHrCode() {
+    const code = hrCode.toUpperCase().trim()
+    if (!/^[A-Z]{3}-[0-9][A-Z][0-9]$/.test(code)) {
+      setHrCodeFout('Voer een geldige code in, zoals FIT-X2K.')
+      return
+    }
+    setHrCodeBezig(true)
+    setHrCodeFout(null)
+    try {
+      const res = await fetch(`/api/hr-code/valideer?code=${encodeURIComponent(code)}`)
+      const json = await res.json()
+      if (!res.ok || !json.geldig) {
+        setHrCodeFout(json.fout ?? 'Ongeldige HR code.')
+      } else {
+        setHrCodeBedrijfId(json.bedrijf_id)
+        setHrCodeBedrijfsnaam(json.bedrijfsnaam)
+        setHrCodeOvergeslagen(false)
+        setStap('info')
+      }
+    } catch {
+      setHrCodeFout('Netwerkfout. Controleer je verbinding en probeer opnieuw.')
+    } finally {
+      setHrCodeBezig(false)
+    }
+  }
 
   const wachtwoordSterkte = wachtwoord.length < 8 ? 0 : wachtwoord.length < 12 ? 1 : wachtwoord.length < 16 ? 2 : 3
   const sterkteTekst = ['Te kort', 'Matig', 'Goed', 'Sterk'][wachtwoordSterkte]
@@ -142,6 +181,24 @@ export default function Register() {
       setBezig(false)
       return
     }
+
+    // Koppel HR code als de werknemer een geldige code heeft ingevoerd
+    if (type === 'werknemer' && hrCodeBedrijfId && signUpData.session?.access_token) {
+      try {
+        await fetch('/api/hr-code/koppel', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${signUpData.session.access_token}`,
+          },
+          body: JSON.stringify({ code: hrCode.toUpperCase().trim() }),
+        })
+        // Fout bij koppelen is niet fataal: gebruiker kan later koppelen via Instellingen
+      } catch {
+        // stil negeren
+      }
+    }
+
     setBezig(false)
     setStap('bevestig')
   }
@@ -172,7 +229,7 @@ export default function Register() {
           <div className="w-full max-w-lg">
 
             {stap !== 'bevestig' && (
-              <StapIndicator stap={stap} huidig={stap} />
+              <StapIndicator stap={stap} huidig={stap} type={type} />
             )}
 
             {/* STAP 1: Kies type */}
@@ -238,12 +295,100 @@ export default function Register() {
                 </div>
 
                 <button
-                  onClick={() => type && setStap('info')}
+                  onClick={() => {
+                    if (!type) return
+                    // Werknemers krijgen de HR-code stap; andere rollen gaan direct naar info
+                    setStap(type === 'werknemer' ? 'hrcode' : 'info')
+                  }}
                   disabled={!type}
                   className="w-full py-4 rounded-xl text-white font-bold text-sm transition hover:opacity-90 disabled:opacity-30"
                   style={{ background: '#1D9E75' }}
                 >
                   Verder
+                </button>
+              </div>
+            )}
+
+            {/* STAP 1b: HR Code invoer (alleen voor werknemers) */}
+            {stap === 'hrcode' && (
+              <div>
+                <h1 className="text-3xl font-extrabold text-gray-900 mb-2 tracking-tight">HR Code van je werkgever</h1>
+                <p className="text-gray-500 mb-8">
+                  Voer de 7-tekens HR code in die je van je werkgever of HR-afdeling hebt ontvangen.
+                  Geen code? Je kunt deze stap overslaan en later koppelen via Instellingen.
+                </p>
+
+                <div className="mb-6">
+                  <label className="text-xs font-semibold text-gray-600 block mb-2">HR Code</label>
+                  <input
+                    type="text"
+                    value={hrCode}
+                    onChange={e => {
+                      let v = e.target.value.toUpperCase().replace(/[^A-Z0-9-]/g, '')
+                      if (v.length === 3 && !v.includes('-') && hrCode.length === 2) v = v + '-'
+                      if (v.length > 7) v = v.slice(0, 7)
+                      setHrCode(v)
+                      setHrCodeFout(null)
+                    }}
+                    onKeyDown={e => e.key === 'Enter' && hrCode.length === 7 && valideerHrCode()}
+                    placeholder="FIT-X2K"
+                    maxLength={7}
+                    autoFocus
+                    className="w-full border-2 rounded-xl px-4 py-4 text-2xl font-mono font-bold text-center tracking-[0.3em] outline-none transition"
+                    style={{
+                      borderColor: hrCodeFout ? '#E24B4A' : hrCode.length === 7 ? '#1D9E75' : '#e5e7eb',
+                      color: '#0a0f1e',
+                    }}
+                    spellCheck={false}
+                    autoComplete="off"
+                  />
+                  {hrCodeBedrijfsnaam && !hrCodeFout && hrCode.length === 7 && (
+                    <div className="mt-3 rounded-xl border border-green-200 bg-green-50 px-4 py-2.5 text-sm font-medium"
+                      style={{ color: '#0F6E56' }}>
+                      Bedrijf gevonden: <strong>{hrCodeBedrijfsnaam}</strong>
+                    </div>
+                  )}
+                  {hrCodeFout && (
+                    <div className="mt-3 rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-sm text-red-700">
+                      {hrCodeFout}
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setStap('type')}
+                    className="px-6 py-4 rounded-xl text-sm font-medium text-gray-600 border border-gray-200 hover:bg-gray-50 transition"
+                  >
+                    Terug
+                  </button>
+                  <button
+                    onClick={valideerHrCode}
+                    disabled={hrCodeBezig || hrCode.length < 7}
+                    className="flex-1 py-4 rounded-xl text-white font-bold text-sm transition hover:opacity-90 disabled:opacity-30 flex items-center justify-center gap-2"
+                    style={{ background: '#1D9E75' }}
+                  >
+                    {hrCodeBezig ? (
+                      <>
+                        <div className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                        Controleren...
+                      </>
+                    ) : (
+                      'Controleer & verder'
+                    )}
+                  </button>
+                </div>
+
+                <button
+                  onClick={() => {
+                    setHrCodeOvergeslagen(true)
+                    setHrCodeBedrijfId(null)
+                    setHrCodeBedrijfsnaam('')
+                    setStap('info')
+                  }}
+                  className="w-full mt-4 text-sm text-gray-400 hover:text-gray-600 transition underline"
+                >
+                  Ik heb geen HR code, overslaan
                 </button>
               </div>
             )}
@@ -322,7 +467,7 @@ export default function Register() {
 
                 <div className="flex gap-3">
                   <button
-                    onClick={() => setStap('type')}
+                    onClick={() => setStap(type === 'werknemer' ? 'hrcode' : 'type')}
                     className="px-6 py-4 rounded-xl text-sm font-medium text-gray-600 border border-gray-200 hover:bg-gray-50 transition"
                   >
                     Terug

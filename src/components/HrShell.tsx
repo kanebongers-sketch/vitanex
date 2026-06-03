@@ -28,9 +28,10 @@ const NAV_SECTIONS: NavSection[] = [
   {
     label: 'Beheren',
     items: [
-      { href: '/verlof',     icon: '◷', label: 'Verlof' },
-      { href: '/loonstroken',icon: '◈', label: 'Loonstroken' },
-      { href: '/directory',  icon: '◎', label: 'Medewerkers' },
+      { href: '/hr/roosters', icon: '▦', label: 'Roosters' },
+      { href: '/verlof',      icon: '◷', label: 'Verlof' },
+      { href: '/loonstroken', icon: '◈', label: 'Loonstroken' },
+      { href: '/directory',   icon: '◎', label: 'Medewerkers' },
     ],
   },
 ]

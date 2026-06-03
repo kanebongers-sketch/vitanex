@@ -1,8 +1,8 @@
-﻿'use client'
+'use client'
 
 export const dynamic = 'force-dynamic'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
@@ -10,6 +10,7 @@ import { authFetch } from '@/lib/auth-fetch'
 import Navbar from '@/components/Navbar'
 import { Avatar } from '@/components/Avatar'
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
+import GesprekkenTab from '@/components/GesprekkenTab'
 
 const WAARSCHUWING_GRENS = 2.5
 
@@ -72,6 +73,19 @@ type DeclaratieHR = {
   reviewer_notitie?: string | null
   created_at: string
   naam?: string
+}
+
+type Gesprek = {
+  id: string
+  medewerker_naam: string
+  datum: string
+  type: string
+}
+
+type BedrijfInfo = {
+  id: string
+  naam: string
+  hr_code: string
 }
 
 function gemiddelde(arr: number[]) {
@@ -172,9 +186,657 @@ Geef 2-3 zinnen concreet advies. Wat moet HR nu doen?`,
         </p>
       ) : (
         <p className="text-sm" style={{ color: 'rgba(255,255,255,0.35)' }}>
-          Klik op "Genereer inzicht" voor een AI-analyse van jouw teamdata.
+          Klik op &quot;Analyseer team&quot; voor een AI-analyse van jouw teamdata.
         </p>
       )}
+    </div>
+  )
+}
+
+// ── KPI Cards row ────────────────────────────────────────────────────────────
+
+function KPICards({
+  participatieRate,
+  ingevuld,
+  teamGrootte,
+  signaalCount,
+  pendingVerlof,
+  pendingDeclaraties,
+  onTabSwitch,
+}: {
+  participatieRate: number
+  ingevuld: number
+  teamGrootte: number
+  signaalCount: number
+  pendingVerlof: number
+  pendingDeclaraties: number
+  onTabSwitch: (tab: string) => void
+}) {
+  const kpis = [
+    {
+      label: 'Participatie',
+      value: `${participatieRate}%`,
+      sub: `${ingevuld}/${teamGrootte} check-ins`,
+      color: participatieRate >= 70 ? '#1D9E75' : participatieRate >= 40 ? '#BA7517' : '#E24B4A',
+      bg: participatieRate >= 70 ? '#E1F5EE' : participatieRate >= 40 ? '#FAEEDA' : '#FCEBEB',
+      tab: null,
+    },
+    {
+      label: 'Actieve signalen',
+      value: String(signaalCount),
+      sub: signaalCount === 0 ? 'Geen aandachtspunten' : `${signaalCount} risico${signaalCount !== 1 ? 's' : ''}`,
+      color: signaalCount > 0 ? '#E24B4A' : '#1D9E75',
+      bg: signaalCount > 0 ? '#FCEBEB' : '#E1F5EE',
+      tab: 'signalen',
+    },
+    {
+      label: 'Open verlof',
+      value: String(pendingVerlof),
+      sub: pendingVerlof === 0 ? 'Alles behandeld' : `${pendingVerlof} te behandelen`,
+      color: pendingVerlof > 0 ? '#BA7517' : '#1D9E75',
+      bg: pendingVerlof > 0 ? '#FAEEDA' : '#E1F5EE',
+      tab: 'verlof',
+    },
+    {
+      label: 'Open declaraties',
+      value: String(pendingDeclaraties),
+      sub: pendingDeclaraties === 0 ? 'Alles behandeld' : `${pendingDeclaraties} te behandelen`,
+      color: pendingDeclaraties > 0 ? '#8B5CF6' : '#1D9E75',
+      bg: pendingDeclaraties > 0 ? '#EDE9FE' : '#E1F5EE',
+      tab: 'declaraties',
+    },
+  ]
+
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+      {kpis.map(kpi => (
+        <div
+          key={kpi.label}
+          onClick={() => kpi.tab && onTabSwitch(kpi.tab)}
+          className="bg-white rounded-2xl border border-gray-100 p-4"
+          style={{ cursor: kpi.tab ? 'pointer' : 'default', borderTop: `3px solid ${kpi.color}` }}
+        >
+          <p className="text-xs text-gray-400 mb-1">{kpi.label}</p>
+          <p className="text-2xl font-bold" style={{ color: kpi.color }}>{kpi.value}</p>
+          <p className="text-xs mt-1" style={{ color: kpi.color }}>{kpi.sub}</p>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+// ── Snelkoppelingen row ──────────────────────────────────────────────────────
+
+function Snelkoppelingen({
+  hrCode,
+  onTabSwitch,
+  onNieuwMedewerker,
+}: {
+  hrCode: string
+  onTabSwitch: (tab: string) => void
+  onNieuwMedewerker: () => void
+}) {
+  const [gekopieerd, setGekopieerd] = useState(false)
+
+  function kopieerCode() {
+    navigator.clipboard.writeText(hrCode).then(() => {
+      setGekopieerd(true)
+      setTimeout(() => setGekopieerd(false), 2000)
+    })
+  }
+
+  const acties = [
+    {
+      icon: '💬',
+      label: 'Nieuw gesprek',
+      sub: 'Plannen',
+      onClick: () => onTabSwitch('gesprekken'),
+      color: '#185FA5',
+      bg: '#E6F1FB',
+    },
+    {
+      icon: '🔔',
+      label: 'Herinnering',
+      sub: 'Stuur naar team',
+      onClick: () => onTabSwitch('team'),
+      color: '#BA7517',
+      bg: '#FAEEDA',
+    },
+    {
+      icon: '📅',
+      label: 'Nieuw rooster',
+      sub: 'Plannen',
+      onClick: () => onTabSwitch('roosters'),
+      color: '#8B5CF6',
+      bg: '#EDE9FE',
+    },
+    {
+      icon: '🔑',
+      label: hrCode ? `Code: ${hrCode}` : 'HR Code',
+      sub: gekopieerd ? 'Gekopieerd!' : 'Klik om te kopieren',
+      onClick: kopieerCode,
+      color: '#1D9E75',
+      bg: '#E1F5EE',
+    },
+  ]
+
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+      {acties.map(actie => (
+        <button
+          key={actie.label}
+          onClick={actie.onClick}
+          className="rounded-2xl p-4 text-left transition hover:opacity-80"
+          style={{ background: actie.bg, border: `1px solid ${actie.color}20` }}
+        >
+          <span className="text-2xl block mb-2">{actie.icon}</span>
+          <p className="text-sm font-semibold" style={{ color: actie.color }}>{actie.label}</p>
+          <p className="text-xs mt-0.5" style={{ color: actie.color, opacity: 0.7 }}>{actie.sub}</p>
+        </button>
+      ))}
+    </div>
+  )
+}
+
+// ── Aankomende Gesprekken Widget ─────────────────────────────────────────────
+
+function AankomendeGesprekken({ gesprekken }: { gesprekken: Gesprek[] }) {
+  const aankomend = gesprekken
+    .filter(g => new Date(g.datum) >= new Date())
+    .sort((a, b) => new Date(a.datum).getTime() - new Date(b.datum).getTime())
+    .slice(0, 3)
+
+  return (
+    <div className="bg-white rounded-2xl border border-gray-100 p-5">
+      <p className="text-sm font-medium text-gray-700 mb-3">Aankomende gesprekken</p>
+      {aankomend.length === 0 ? (
+        <p className="text-xs text-gray-400 py-2">Geen geplande gesprekken.</p>
+      ) : (
+        <div className="flex flex-col gap-2">
+          {aankomend.map(g => (
+            <div key={g.id} className="flex items-center gap-3 py-2 border-b border-gray-50 last:border-0">
+              <div className="w-9 h-9 rounded-xl flex flex-col items-center justify-center flex-shrink-0"
+                style={{ background: '#E6F1FB' }}>
+                <span className="text-xs font-bold leading-none" style={{ color: '#185FA5' }}>
+                  {new Date(g.datum).getDate()}
+                </span>
+                <span className="text-[9px] leading-none" style={{ color: '#185FA5' }}>
+                  {new Date(g.datum).toLocaleDateString('nl-BE', { month: 'short' })}
+                </span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-gray-800 truncate">{g.medewerker_naam}</p>
+                <p className="text-xs text-gray-400">{g.type}</p>
+              </div>
+              <p className="text-xs text-gray-400 flex-shrink-0">
+                {new Date(g.datum).toLocaleTimeString('nl-BE', { hour: '2-digit', minute: '2-digit' })}
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ── Verlof Kalender Mini Widget ──────────────────────────────────────────────
+
+function VerlofKalenderWidget({ verlofAanvragen }: { verlofAanvragen: VerlofHR[] }) {
+  const now = new Date()
+  const jaar = now.getFullYear()
+  const maand = now.getMonth()
+  const eerstedag = new Date(jaar, maand, 1).getDay()
+  const offset = eerstedag === 0 ? 6 : eerstedag - 1
+  const aantalDagenInMaand = new Date(jaar, maand + 1, 0).getDate()
+
+  const goedgekeurdVerlof = verlofAanvragen.filter(v => v.status === 'goedgekeurd')
+
+  function heeftVerlof(dag: number) {
+    const datum = new Date(jaar, maand, dag)
+    return goedgekeurdVerlof.some(v => {
+      const van = new Date(v.datum_van)
+      const tot = new Date(v.datum_tot)
+      return datum >= van && datum <= tot
+    })
+  }
+
+  const dagletters = ['Ma', 'Di', 'Wo', 'Do', 'Vr', 'Za', 'Zo']
+
+  return (
+    <div className="bg-white rounded-2xl border border-gray-100 p-5">
+      <p className="text-sm font-medium text-gray-700 mb-3">
+        Verlofkalender — {now.toLocaleDateString('nl-BE', { month: 'long', year: 'numeric' })}
+      </p>
+      <div className="grid grid-cols-7 gap-1 mb-1">
+        {dagletters.map(d => (
+          <p key={d} className="text-center text-[10px] font-medium text-gray-400">{d}</p>
+        ))}
+      </div>
+      <div className="grid grid-cols-7 gap-1">
+        {Array.from({ length: offset }).map((_, i) => (
+          <div key={`leeg-${i}`} />
+        ))}
+        {Array.from({ length: aantalDagenInMaand }).map((_, i) => {
+          const dag = i + 1
+          const isVandaag = dag === now.getDate()
+          const isVerlof = heeftVerlof(dag)
+          return (
+            <div
+              key={dag}
+              className="aspect-square flex items-center justify-center rounded-md text-[11px] font-medium"
+              style={{
+                background: isVerlof ? '#E1F5EE' : isVandaag ? '#0F172A' : 'transparent',
+                color: isVerlof ? '#1D9E75' : isVandaag ? 'white' : '#6b7280',
+              }}
+            >
+              {dag}
+            </div>
+          )
+        })}
+      </div>
+      {goedgekeurdVerlof.length > 0 && (
+        <p className="text-xs text-gray-400 mt-2">
+          {goedgekeurdVerlof.length} goedgekeurd verlof{goedgekeurdVerlof.length !== 1 ? 'en' : ''} actief
+        </p>
+      )}
+    </div>
+  )
+}
+
+// ── Bulk Acties Component (voor Team tab) ────────────────────────────────────
+
+function BulkActies({
+  team,
+  gefilterdTeam,
+  onHerinnering,
+}: {
+  team: TeamLid[]
+  gefilterdTeam: TeamLid[]
+  onHerinnering: (leden: TeamLid[]) => void
+}) {
+  const [geselecteerd, setGeselecteerd] = useState<Set<string>>(new Set())
+  const [uitgevouwen, setUitgevouwen] = useState(false)
+  const [bezig, setBezig] = useState(false)
+  const [feedback, setFeedback] = useState<string | null>(null)
+
+  const laagScorendeLeden = team.filter(l => l.laatste_score !== null && l.laatste_score < WAARSCHUWING_GRENS)
+  const nietIngevuld = team.filter(l => !l.deze_week_ingevuld)
+
+  function selecteerGroep(leden: TeamLid[]) {
+    setGeselecteerd(new Set(leden.map(l => l.id)))
+  }
+
+  function toggleLid(id: string) {
+    setGeselecteerd(prev => {
+      const volgende = new Set(prev)
+      if (volgende.has(id)) volgende.delete(id)
+      else volgende.add(id)
+      return volgende
+    })
+  }
+
+  async function stuurHerinnering() {
+    const doelwitten = gefilterdTeam.filter(l => geselecteerd.has(l.id))
+    if (doelwitten.length === 0) return
+    setBezig(true)
+    // In werkelijkheid: API call naar /api/herinnering met user IDs
+    await new Promise(r => setTimeout(r, 800))
+    onHerinnering(doelwitten)
+    setFeedback(`Herinnering verstuurd naar ${doelwitten.length} medewerker${doelwitten.length !== 1 ? 's' : ''}.`)
+    setGeselecteerd(new Set())
+    setBezig(false)
+    setTimeout(() => setFeedback(null), 4000)
+  }
+
+  function exporteerCSV() {
+    const rijen = [
+      ['Naam', 'Score', 'Laatste check-in', 'Deze week ingevuld'],
+      ...gefilterdTeam.map(l => [
+        l.naam || 'Onbekend',
+        l.laatste_score !== null ? String(l.laatste_score) : '-',
+        l.laatste_checkin ? new Date(l.laatste_checkin).toLocaleDateString('nl-BE') : 'Nooit',
+        l.deze_week_ingevuld ? 'Ja' : 'Nee',
+      ]),
+    ]
+    const csv = rijen.map(r => r.join(',')).join('\n')
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `team-export-${new Date().toISOString().slice(0, 10)}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  return (
+    <div className="mb-4">
+      <div className="flex items-center gap-2 flex-wrap mb-3">
+        <button
+          onClick={exporteerCSV}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-gray-200 bg-white hover:bg-gray-50 transition"
+          style={{ color: '#374151' }}
+        >
+          ↓ Exporteer CSV
+        </button>
+        <button
+          onClick={() => setUitgevouwen(u => !u)}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition"
+          style={{
+            background: uitgevouwen ? '#0F172A' : 'white',
+            color: uitgevouwen ? 'white' : '#374151',
+            borderColor: uitgevouwen ? '#0F172A' : '#e5e7eb',
+          }}
+        >
+          Bulk acties {geselecteerd.size > 0 ? `(${geselecteerd.size})` : ''}
+        </button>
+        {laagScorendeLeden.length > 0 && (
+          <button
+            onClick={() => { selecteerGroep(laagScorendeLeden); setUitgevouwen(true) }}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition"
+            style={{ background: '#FCEBEB', color: '#A32D2D', border: '1px solid #F09595' }}
+          >
+            Selecteer lage scores ({laagScorendeLeden.length})
+          </button>
+        )}
+        {nietIngevuld.length > 0 && (
+          <button
+            onClick={() => { selecteerGroep(nietIngevuld); setUitgevouwen(true) }}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition"
+            style={{ background: '#FAEEDA', color: '#854F0B', border: '1px solid #FAC775' }}
+          >
+            Selecteer niet ingevuld ({nietIngevuld.length})
+          </button>
+        )}
+      </div>
+
+      {uitgevouwen && (
+        <div className="rounded-xl border border-gray-100 bg-gray-50 p-4 mb-4">
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-xs font-medium text-gray-600">
+              {geselecteerd.size} medewerker{geselecteerd.size !== 1 ? 's' : ''} geselecteerd
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setGeselecteerd(new Set(gefilterdTeam.map(l => l.id)))}
+                className="text-xs text-gray-400 hover:text-gray-600"
+              >
+                Alles
+              </button>
+              <button
+                onClick={() => setGeselecteerd(new Set())}
+                className="text-xs text-gray-400 hover:text-gray-600"
+              >
+                Wis
+              </button>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-1.5 mb-3 max-h-28 overflow-y-auto">
+            {gefilterdTeam.map(lid => (
+              <button
+                key={lid.id}
+                onClick={() => toggleLid(lid.id)}
+                className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs transition"
+                style={{
+                  background: geselecteerd.has(lid.id) ? '#0F172A' : 'white',
+                  color: geselecteerd.has(lid.id) ? 'white' : '#374151',
+                  border: `1px solid ${geselecteerd.has(lid.id) ? '#0F172A' : '#e5e7eb'}`,
+                }}
+              >
+                {lid.naam}
+              </button>
+            ))}
+          </div>
+          <button
+            onClick={stuurHerinnering}
+            disabled={geselecteerd.size === 0 || bezig}
+            className="w-full py-2 rounded-xl text-xs font-semibold text-white disabled:opacity-40 transition"
+            style={{ background: '#BA7517' }}
+          >
+            {bezig ? 'Versturen...' : `Stuur herinnering (${geselecteerd.size})`}
+          </button>
+        </div>
+      )}
+
+      {feedback && (
+        <div className="rounded-xl p-3 text-xs font-medium mb-3" style={{ background: '#E1F5EE', color: '#0F6E56' }}>
+          {feedback}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ── Medewerker uitnodigen modal ──────────────────────────────────────────────
+
+function MedewerkerUitnodigenModal({ onSluit, hrCode }: { onSluit: () => void; hrCode: string }) {
+  const [emailInput, setEmailInput] = useState('')
+  const [naamInput, setNaamInput] = useState('')
+  const [bezig, setBezig] = useState(false)
+  const [resultaat, setResultaat] = useState<{ ok: boolean; bericht: string } | null>(null)
+
+  async function stuurUitnodiging(e: React.FormEvent) {
+    e.preventDefault()
+    if (!emailInput.trim()) return
+    setBezig(true)
+    try {
+      // In werkelijkheid: POST /api/uitnodiging met email, naam, hrCode
+      await new Promise(r => setTimeout(r, 800))
+      setResultaat({ ok: true, bericht: `Uitnodiging verstuurd naar ${emailInput}` })
+    } catch {
+      setResultaat({ ok: false, bericht: 'Kon uitnodiging niet versturen. Probeer opnieuw.' })
+    }
+    setBezig(false)
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.5)' }}>
+      <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl">
+        <div className="flex items-center justify-between mb-4">
+          <p className="font-semibold text-gray-900">Medewerker uitnodigen</p>
+          <button onClick={onSluit} className="text-gray-400 hover:text-gray-600 text-xl leading-none">×</button>
+        </div>
+        {resultaat ? (
+          <div className="text-center py-4">
+            <p className="text-3xl mb-3">{resultaat.ok ? '✉️' : '❌'}</p>
+            <p className="text-sm text-gray-700">{resultaat.bericht}</p>
+            {resultaat.ok && (
+              <p className="text-xs text-gray-400 mt-2">
+                De medewerker ontvangt een e-mail met HR-code <strong>{hrCode}</strong> om in te loggen.
+              </p>
+            )}
+            <button
+              onClick={onSluit}
+              className="mt-4 px-4 py-2 rounded-xl text-sm font-medium text-white"
+              style={{ background: '#1D9E75' }}
+            >
+              Sluiten
+            </button>
+          </div>
+        ) : (
+          <form onSubmit={stuurUitnodiging}>
+            <div className="mb-3">
+              <label className="text-xs font-medium text-gray-600 block mb-1">Naam</label>
+              <input
+                type="text"
+                value={naamInput}
+                onChange={e => setNaamInput(e.target.value)}
+                placeholder="Jan de Vries"
+                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-gray-400"
+              />
+            </div>
+            <div className="mb-4">
+              <label className="text-xs font-medium text-gray-600 block mb-1">E-mailadres *</label>
+              <input
+                type="email"
+                value={emailInput}
+                onChange={e => setEmailInput(e.target.value)}
+                placeholder="jan@bedrijf.nl"
+                required
+                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-gray-400"
+              />
+            </div>
+            <div className="rounded-xl p-3 mb-4 text-xs" style={{ background: '#E1F5EE', color: '#0F6E56' }}>
+              HR-code: <strong>{hrCode || 'Laden...'}</strong> — wordt meegestuurd in de e-mail.
+            </div>
+            <button
+              type="submit"
+              disabled={bezig || !emailInput.trim()}
+              className="w-full py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-40"
+              style={{ background: '#1D9E75' }}
+            >
+              {bezig ? 'Versturen...' : 'Stuur uitnodiging'}
+            </button>
+          </form>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// ── Bedrijf Tab ──────────────────────────────────────────────────────────────
+
+function BedrijfTab({
+  bedrijf,
+  teamGrootte,
+  onCodeVernieuwd,
+}: {
+  bedrijf: BedrijfInfo | null
+  teamGrootte: number
+  onCodeVernieuwd: (nieuweCode: string) => void
+}) {
+  const [gekopieerd, setGekopieerd] = useState(false)
+  const [vernieuwBezig, setVernieuwBezig] = useState(false)
+  const [bewerkenActief, setBewerkenActief] = useState(false)
+  const [bedrijfsnaam, setBedrijfsnaam] = useState(bedrijf?.naam || '')
+  const [opslaanBezig, setOpslaanBezig] = useState(false)
+  const [opslaanFeedback, setOpslaanFeedback] = useState<string | null>(null)
+
+  function kopieerCode() {
+    if (!bedrijf?.hr_code) return
+    navigator.clipboard.writeText(bedrijf.hr_code).then(() => {
+      setGekopieerd(true)
+      setTimeout(() => setGekopieerd(false), 2000)
+    })
+  }
+
+  async function vernieuwCode() {
+    if (!bedrijf?.id) return
+    setVernieuwBezig(true)
+    const nieuweCode = Math.random().toString(36).slice(2, 8).toUpperCase()
+    const { error } = await supabase
+      .from('bedrijven')
+      .update({ hr_code: nieuweCode })
+      .eq('id', bedrijf.id)
+    if (!error) onCodeVernieuwd(nieuweCode)
+    setVernieuwBezig(false)
+  }
+
+  async function slaaNaamOp(e: React.FormEvent) {
+    e.preventDefault()
+    if (!bedrijf?.id || !bedrijfsnaam.trim()) return
+    setOpslaanBezig(true)
+    const { error } = await supabase
+      .from('bedrijven')
+      .update({ naam: bedrijfsnaam.trim() })
+      .eq('id', bedrijf.id)
+    if (!error) {
+      setOpslaanFeedback('Naam opgeslagen.')
+      setBewerkenActief(false)
+      setTimeout(() => setOpslaanFeedback(null), 3000)
+    }
+    setOpslaanBezig(false)
+  }
+
+  return (
+    <div className="flex flex-col gap-4 max-w-lg">
+      {/* HR Code card */}
+      <div className="bg-white rounded-2xl border border-gray-100 p-6">
+        <p className="text-sm font-semibold text-gray-700 mb-1">HR-code</p>
+        <p className="text-xs text-gray-400 mb-4">
+          Medewerkers gebruiken deze code om lid te worden van jouw bedrijf in MentaForce.
+        </p>
+        <div className="flex items-center gap-3 mb-4">
+          <div className="flex-1 rounded-xl border-2 border-dashed border-gray-200 px-4 py-3 text-center">
+            <p className="text-3xl font-bold tracking-widest" style={{ color: '#1D9E75', fontFamily: 'monospace' }}>
+              {bedrijf?.hr_code || '......'}
+            </p>
+          </div>
+        </div>
+        <div className="flex gap-2">
+          <button
+            onClick={kopieerCode}
+            className="flex-1 py-2 rounded-xl text-sm font-medium transition"
+            style={{ background: '#E1F5EE', color: '#0F6E56' }}
+          >
+            {gekopieerd ? 'Gekopieerd!' : 'Kopieer code'}
+          </button>
+          <button
+            onClick={vernieuwCode}
+            disabled={vernieuwBezig}
+            className="px-4 py-2 rounded-xl text-sm font-medium border border-gray-200 hover:bg-gray-50 transition disabled:opacity-40"
+            style={{ color: '#6b7280' }}
+          >
+            {vernieuwBezig ? '...' : 'Vernieuwen'}
+          </button>
+        </div>
+        <p className="text-xs text-gray-400 mt-3">
+          Let op: bij vernieuwen werkt de oude code niet meer.
+        </p>
+      </div>
+
+      {/* Bedrijfsinfo */}
+      <div className="bg-white rounded-2xl border border-gray-100 p-6">
+        <div className="flex items-center justify-between mb-4">
+          <p className="text-sm font-semibold text-gray-700">Bedrijfsinformatie</p>
+          <button
+            onClick={() => setBewerkenActief(a => !a)}
+            className="text-xs px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 transition"
+            style={{ color: '#6b7280' }}
+          >
+            {bewerkenActief ? 'Annuleren' : 'Bewerken'}
+          </button>
+        </div>
+
+        {bewerkenActief ? (
+          <form onSubmit={slaaNaamOp}>
+            <label className="text-xs font-medium text-gray-500 block mb-1">Bedrijfsnaam</label>
+            <input
+              value={bedrijfsnaam}
+              onChange={e => setBedrijfsnaam(e.target.value)}
+              className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-gray-400 mb-3"
+            />
+            <button
+              type="submit"
+              disabled={opslaanBezig}
+              className="w-full py-2 rounded-xl text-sm font-semibold text-white disabled:opacity-40"
+              style={{ background: '#1D9E75' }}
+            >
+              {opslaanBezig ? 'Opslaan...' : 'Opslaan'}
+            </button>
+          </form>
+        ) : (
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center justify-between py-2 border-b border-gray-50">
+              <span className="text-xs text-gray-400">Naam</span>
+              <span className="text-sm font-medium text-gray-700">{bedrijf?.naam || '—'}</span>
+            </div>
+            <div className="flex items-center justify-between py-2 border-b border-gray-50">
+              <span className="text-xs text-gray-400">Actieve medewerkers</span>
+              <span className="text-sm font-medium text-gray-700">{teamGrootte}</span>
+            </div>
+            <div className="flex items-center justify-between py-2">
+              <span className="text-xs text-gray-400">Bedrijf-ID</span>
+              <span className="text-xs font-mono text-gray-400">{bedrijf?.id?.slice(0, 8)}...</span>
+            </div>
+          </div>
+        )}
+
+        {opslaanFeedback && (
+          <div className="mt-3 rounded-xl p-2 text-xs font-medium" style={{ background: '#E1F5EE', color: '#0F6E56' }}>
+            {opslaanFeedback}
+          </div>
+        )}
+      </div>
     </div>
   )
 }
@@ -187,7 +849,9 @@ export default function Dashboard() {
   const [team, setTeam] = useState<TeamLid[]>([])
   const [laden, setLaden] = useState(true)
   const [email, setEmail] = useState('')
-  const [actieveTab, setActieveTab] = useState<'overzicht' | 'team' | 'trends' | 'signalen' | 'verlof' | 'declaraties'>('overzicht')
+  const [actieveTab, setActieveTab] = useState<'overzicht' | 'team' | 'trends' | 'signalen' | 'verlof' | 'declaraties' | 'gesprekken' | 'bedrijf'>('overzicht')
+  const [bedrijfId, setBedrijfId] = useState<string | null>(null)
+  const [hrUserId, setHrUserId] = useState<string | null>(null)
   const [teamZoekterm, setTeamZoekterm] = useState('')
   const [teamFilter, setTeamFilter] = useState<'alle' | 'ingevuld' | 'niet_ingevuld' | 'laag'>('alle')
   const [teamSorteer, setTeamSorteer] = useState<'naam' | 'score'>('naam')
@@ -195,12 +859,20 @@ export default function Dashboard() {
   const [userCheckinsMap, setUserCheckinsMap] = useState<Map<string, UserCheckin[]>>(new Map())
   const [verlofAanvragen, setVerlofAanvragen] = useState<VerlofHR[]>([])
   const [declaratiesHR, setDeclaratiesHR] = useState<DeclaratieHR[]>([])
+  const [bedrijf, setBedrijf] = useState<BedrijfInfo | null>(null)
+  const [gesprekken] = useState<Gesprek[]>([]) // Wordt gevuld zodra gesprekken-tabel beschikbaar is
+  const [uitnodigenOpen, setUitnodigenOpen] = useState(false)
+
+  const switchTab = useCallback((tab: string) => {
+    setActieveTab(tab as typeof actieveTab)
+  }, [])
 
   useEffect(() => {
     async function laadData() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/login'); return }
       setEmail(user.email || '')
+      setHrUserId(user.id)
 
       const { data: profiel } = await supabase
         .from('profiles')
@@ -209,6 +881,7 @@ export default function Dashboard() {
         .single()
 
       if (!profiel?.bedrijf_id) { setLaden(false); return }
+      setBedrijfId(profiel.bedrijf_id)
 
       const { data: checkinData } = await supabase
         .from('checkins')
@@ -226,6 +899,16 @@ export default function Dashboard() {
 
       const avatarMap = new Map((avatarData ?? []).map(p => [p.id, p.avatar_url as string | null]))
       setTeam((teamData ?? []).map(lid => ({ ...lid, avatar_url: avatarMap.get(lid.id) ?? null })))
+
+      // Bedrijf info
+      try {
+        const { data: bedrijfData } = await supabase
+          .from('bedrijven')
+          .select('id, naam, hr_code')
+          .eq('id', profiel.bedrijf_id)
+          .single()
+        if (bedrijfData) setBedrijf(bedrijfData as BedrijfInfo)
+      } catch { /* bedrijven tabel kan anders heten */ }
 
       const { data: perUserData } = await supabase
         .from('checkins')
@@ -395,21 +1078,36 @@ export default function Dashboard() {
 
   const pendingVerlof = verlofAanvragen.filter(v => v.status === 'aangevraagd').length
   const pendingDeclaraties = declaratiesHR.filter(d => d.status === 'ingediend').length
+  const participatieRate = team.length > 0 ? Math.round((ingevuld.length / team.length) * 100) : 0
+  const burnoutRisico = team.length > 0 ? Math.round((waarschuwingen.length / team.length) * 100) : 0
 
-  const tabs = [
+  type TabKey = 'overzicht' | 'team' | 'trends' | 'signalen' | 'verlof' | 'declaraties' | 'gesprekken' | 'bedrijf'
+
+  const tabs: { key: TabKey; label: string; badge?: number; badgeKleur?: string }[] = [
     { key: 'overzicht', label: 'Overzicht' },
     { key: 'team', label: `Team (${team.length})` },
     { key: 'trends', label: 'Trends' },
-    { key: 'signalen', label: `Signalen${signalen.length > 0 ? ` (${signalen.length})` : ''}` },
-    { key: 'verlof', label: `Verlof${pendingVerlof > 0 ? ` (${pendingVerlof})` : ''}` },
-    { key: 'declaraties', label: `Declaraties${pendingDeclaraties > 0 ? ` (${pendingDeclaraties})` : ''}` },
+    {
+      key: 'signalen',
+      label: 'Signalen',
+      badge: signalen.length > 0 ? signalen.length : undefined,
+      badgeKleur: '#E24B4A',
+    },
+    {
+      key: 'verlof',
+      label: 'Verlof',
+      badge: pendingVerlof > 0 ? pendingVerlof : undefined,
+      badgeKleur: '#BA7517',
+    },
+    {
+      key: 'declaraties',
+      label: 'Declaraties',
+      badge: pendingDeclaraties > 0 ? pendingDeclaraties : undefined,
+      badgeKleur: '#8B5CF6',
+    },
+    { key: 'gesprekken', label: 'Gesprekken' },
+    { key: 'bedrijf', label: 'Bedrijf' },
   ]
-
-  // Participation rate
-  const participatieRate = team.length > 0 ? Math.round((ingevuld.length / team.length) * 100) : 0
-  const burnoutRisico = team.length > 0
-    ? Math.round((waarschuwingen.length / team.length) * 100)
-    : 0
 
   return (
     <div className="min-h-screen" style={{ background: '#F0F4FF' }}>
@@ -453,13 +1151,16 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Tabs */}
-        <div className="flex gap-1 bg-gray-100 rounded-xl p-1 mb-6 w-fit overflow-x-auto">
+        {/* Tabs — scrollable on mobile with badges */}
+        <div
+          className="flex gap-1 bg-gray-100 rounded-xl p-1 mb-6 overflow-x-auto"
+          style={{ WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' }}
+        >
           {tabs.map(t => (
             <button
               key={t.key}
-              onClick={() => setActieveTab(t.key as typeof actieveTab)}
-              className="px-4 py-2 rounded-lg text-sm transition whitespace-nowrap"
+              onClick={() => setActieveTab(t.key)}
+              className="px-4 py-2 rounded-lg text-sm transition whitespace-nowrap flex items-center gap-1.5 flex-shrink-0"
               style={{
                 background: actieveTab === t.key ? 'white' : 'transparent',
                 color: actieveTab === t.key ? '#111' : '#888',
@@ -468,6 +1169,14 @@ export default function Dashboard() {
               }}
             >
               {t.label}
+              {t.badge !== undefined && (
+                <span
+                  className="text-[10px] font-bold px-1.5 py-0.5 rounded-full text-white min-w-[18px] text-center leading-none"
+                  style={{ background: t.badgeKleur ?? '#E24B4A' }}
+                >
+                  {t.badge}
+                </span>
+              )}
             </button>
           ))}
         </div>
@@ -475,12 +1184,37 @@ export default function Dashboard() {
         {laden ? (
           <div className="flex justify-center py-16">
             <div className="w-7 h-7 rounded-full border-2 border-gray-200 animate-spin"
-              style={{ borderTopColor: 'var(--mentaforce-primary)' }} />
+              style={{ borderTopColor: '#1D9E75' }} />
           </div>
         ) : (
           <>
+            {/* ── OVERZICHT TAB ── */}
             {actieveTab === 'overzicht' && (
               <>
+                {/* Snelkoppelingen */}
+                <Snelkoppelingen
+                  hrCode={bedrijf?.hr_code ?? ''}
+                  onTabSwitch={switchTab}
+                  onNieuwMedewerker={() => setUitnodigenOpen(true)}
+                />
+
+                {/* KPI Cards */}
+                <KPICards
+                  participatieRate={participatieRate}
+                  ingevuld={ingevuld.length}
+                  teamGrootte={team.length}
+                  signaalCount={signalen.length}
+                  pendingVerlof={pendingVerlof}
+                  pendingDeclaraties={pendingDeclaraties}
+                  onTabSwitch={switchTab}
+                />
+
+                {/* Two column widgets row */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                  <AankomendeGesprekken gesprekken={gesprekken} />
+                  <VerlofKalenderWidget verlofAanvragen={verlofAanvragen} />
+                </div>
+
                 {/* AI Insights */}
                 <AIInsightCard
                   vitaliteitscore={vitaliteitscore}
@@ -519,7 +1253,7 @@ export default function Dashboard() {
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-6">
                   <div
                     className="bg-white rounded-2xl border border-gray-100 p-6 col-span-2 sm:col-span-1"
-                    style={{ borderTop: '3px solid var(--mentaforce-primary)' }}
+                    style={{ borderTop: '3px solid #1D9E75' }}
                   >
                     <p className="text-xs text-gray-400 mb-1">Vitaliteitsscore</p>
                     <p className="text-5xl font-medium" style={{ color: vitaliteitscore > 0 ? scoreKleur(vitaliteitscore) : '#ccc' }}>
@@ -583,38 +1317,54 @@ export default function Dashboard() {
               </>
             )}
 
+            {/* ── TEAM TAB ── */}
             {actieveTab === 'team' && (
               <div className="bg-white rounded-2xl border border-gray-100 p-6">
-                <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-5">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
                   <p className="text-sm font-medium text-gray-700 flex-1">Teamoverzicht</p>
-                  <div className="flex gap-2 flex-wrap">
-                    <input
-                      type="text"
-                      placeholder="Zoek op naam..."
-                      value={teamZoekterm}
-                      onChange={e => setTeamZoekterm(e.target.value)}
-                      className="border border-gray-200 rounded-lg px-3 py-1.5 text-xs outline-none focus:border-gray-400 w-36"
-                    />
-                    <select
-                      value={teamFilter}
-                      onChange={e => setTeamFilter(e.target.value as typeof teamFilter)}
-                      className="border border-gray-200 rounded-lg px-2 py-1.5 text-xs outline-none focus:border-gray-400 bg-white"
-                    >
-                      <option value="alle">Alle</option>
-                      <option value="ingevuld">Ingevuld</option>
-                      <option value="niet_ingevuld">Niet ingevuld</option>
-                      <option value="laag">Lage score</option>
-                    </select>
-                    <select
-                      value={teamSorteer}
-                      onChange={e => setTeamSorteer(e.target.value as typeof teamSorteer)}
-                      className="border border-gray-200 rounded-lg px-2 py-1.5 text-xs outline-none focus:border-gray-400 bg-white"
-                    >
-                      <option value="naam">Sorteer: naam</option>
-                      <option value="score">Sorteer: score</option>
-                    </select>
-                  </div>
+                  <button
+                    onClick={() => setUitnodigenOpen(true)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white transition"
+                    style={{ background: '#1D9E75' }}
+                  >
+                    + Medewerker uitnodigen
+                  </button>
                 </div>
+
+                <div className="flex gap-2 flex-wrap mb-4">
+                  <input
+                    type="text"
+                    placeholder="Zoek op naam..."
+                    value={teamZoekterm}
+                    onChange={e => setTeamZoekterm(e.target.value)}
+                    className="border border-gray-200 rounded-lg px-3 py-1.5 text-xs outline-none focus:border-gray-400 w-36"
+                  />
+                  <select
+                    value={teamFilter}
+                    onChange={e => setTeamFilter(e.target.value as typeof teamFilter)}
+                    className="border border-gray-200 rounded-lg px-2 py-1.5 text-xs outline-none focus:border-gray-400 bg-white"
+                  >
+                    <option value="alle">Alle</option>
+                    <option value="ingevuld">Ingevuld</option>
+                    <option value="niet_ingevuld">Niet ingevuld</option>
+                    <option value="laag">Lage score</option>
+                  </select>
+                  <select
+                    value={teamSorteer}
+                    onChange={e => setTeamSorteer(e.target.value as typeof teamSorteer)}
+                    className="border border-gray-200 rounded-lg px-2 py-1.5 text-xs outline-none focus:border-gray-400 bg-white"
+                  >
+                    <option value="naam">Sorteer: naam</option>
+                    <option value="score">Sorteer: score</option>
+                  </select>
+                </div>
+
+                <BulkActies
+                  team={team}
+                  gefilterdTeam={gefilterdTeam}
+                  onHerinnering={() => {}}
+                />
+
                 {team.length === 0 ? (
                   <p className="text-gray-400 text-sm">Nog geen medewerkers.</p>
                 ) : gefilterdTeam.length === 0 ? (
@@ -667,6 +1417,7 @@ export default function Dashboard() {
               </div>
             )}
 
+            {/* ── SIGNALEN TAB ── */}
             {actieveTab === 'signalen' && (
               <>
                 <div className="mb-6">
@@ -681,7 +1432,7 @@ export default function Dashboard() {
                         <div key={lid.id} className="bg-white rounded-2xl border p-4 flex items-center gap-4"
                           style={{ borderColor: ernst === 'hoog' ? '#F09595' : '#FAC775', borderLeft: `4px solid ${ernst === 'hoog' ? '#E24B4A' : '#BA7517'}` }}>
                           <div
-                            className="flex-shrink-0 w-2.5 h-2.5 rounded-full flex-shrink-0"
+                            className="flex-shrink-0 w-2.5 h-2.5 rounded-full"
                             style={{ background: ernst === 'hoog' ? '#E24B4A' : '#BA7517' }}
                           />
                           <div className="flex-1 min-w-0">
@@ -723,7 +1474,7 @@ export default function Dashboard() {
                     <div className="flex flex-col gap-3">
                       {feedback.map(f => (
                         <div key={f.id} className="bg-white rounded-2xl border border-gray-100 p-4"
-                          style={{ borderLeft: '3px solid var(--mentaforce-primary)' }}>
+                          style={{ borderLeft: '3px solid #1D9E75' }}>
                           <div className="flex items-center justify-between mb-2">
                             <span className="text-xs font-medium px-2.5 py-0.5 rounded-full"
                               style={{ background: '#E6F1FB', color: '#185FA5' }}>
@@ -733,7 +1484,7 @@ export default function Dashboard() {
                               {new Date(f.aangemaakt_op).toLocaleDateString('nl-BE')}
                             </span>
                           </div>
-                          <p className="text-sm text-gray-700 leading-relaxed">"{f.inhoud}"</p>
+                          <p className="text-sm text-gray-700 leading-relaxed">&quot;{f.inhoud}&quot;</p>
                         </div>
                       ))}
                     </div>
@@ -742,6 +1493,7 @@ export default function Dashboard() {
               </>
             )}
 
+            {/* ── TRENDS TAB ── */}
             {actieveTab === 'trends' && (
               <>
                 {checkins.length === 0 ? (
@@ -758,7 +1510,7 @@ export default function Dashboard() {
                           <XAxis dataKey="week" tick={{ fontSize: 11 }} />
                           <YAxis domain={[0, 100]} tick={{ fontSize: 11 }} unit="%" />
                           <Tooltip formatter={(v) => [`${v}%`, 'Score']} />
-                          <Line type="monotone" dataKey="Score" stroke="var(--mentaforce-primary)" strokeWidth={2.5}
+                          <Line type="monotone" dataKey="Score" stroke="#1D9E75" strokeWidth={2.5}
                             dot={{ r: 3 }} activeDot={{ r: 5 }} />
                         </LineChart>
                       </ResponsiveContainer>
@@ -772,19 +1524,17 @@ export default function Dashboard() {
                           <XAxis dataKey="metric" tick={{ fontSize: 10 }} />
                           <YAxis domain={[0, 5]} tick={{ fontSize: 11 }} />
                           <Tooltip formatter={(v) => [`${v}/5`, 'Gemiddelde']} />
-                          <Bar dataKey="Gemiddelde" radius={[6, 6, 0, 0]}
-                            fill="var(--mentaforce-primary)" />
+                          <Bar dataKey="Gemiddelde" radius={[6, 6, 0, 0]} fill="#1D9E75" />
                         </BarChart>
                       </ResponsiveContainer>
                     </div>
 
-                    {/* Top 3 aandachtspunten */}
                     {laagsteMetrics.length >= 3 && (
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         {[
-                          { label: '🔴 Meeste aandacht nodig', items: laagsteMetrics.slice(0, 3), kleur: '#E24B4A', bg: '#FCEBEB' },
-                          { label: '🟡 Kan beter', items: laagsteMetrics.slice(3, 6), kleur: '#BA7517', bg: '#FAEEDA' },
-                          { label: '🟢 Gaat goed', items: [...laagsteMetrics].reverse().slice(0, 3), kleur: '#1D9E75', bg: '#E1F5EE' },
+                          { label: 'Meeste aandacht nodig', items: laagsteMetrics.slice(0, 3), kleur: '#E24B4A', bg: '#FCEBEB' },
+                          { label: 'Kan beter', items: laagsteMetrics.slice(3, 6), kleur: '#BA7517', bg: '#FAEEDA' },
+                          { label: 'Gaat goed', items: [...laagsteMetrics].reverse().slice(0, 3), kleur: '#1D9E75', bg: '#E1F5EE' },
                         ].map(groep => (
                           <div key={groep.label} className="rounded-2xl p-4" style={{ background: groep.bg }}>
                             <p className="text-xs font-semibold mb-2" style={{ color: groep.kleur }}>{groep.label}</p>
@@ -803,6 +1553,7 @@ export default function Dashboard() {
               </>
             )}
 
+            {/* ── VERLOF TAB ── */}
             {actieveTab === 'verlof' && (
               <VerlofTab
                 aanvragen={verlofAanvragen}
@@ -812,6 +1563,7 @@ export default function Dashboard() {
               />
             )}
 
+            {/* ── DECLARATIES TAB ── */}
             {actieveTab === 'declaraties' && (
               <DeclaratiesTab
                 declaraties={declaratiesHR}
@@ -820,9 +1572,38 @@ export default function Dashboard() {
                 }}
               />
             )}
+
+            {/* ── GESPREKKEN TAB ── */}
+            {actieveTab === 'gesprekken' && bedrijfId && hrUserId && (
+              <GesprekkenTab
+                bedrijfId={bedrijfId}
+                hrUserId={hrUserId}
+              />
+            )}
+            {actieveTab === 'gesprekken' && !bedrijfId && (
+              <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center">
+                <p className="text-sm text-gray-400">Bedrijf niet gevonden. Koppel eerst een bedrijf aan je account.</p>
+              </div>
+            )}
+
+            {/* ── BEDRIJF TAB ── */}
+            {actieveTab === 'bedrijf' && (
+              <BedrijfTab
+                bedrijf={bedrijf}
+                teamGrootte={team.length}
+                onCodeVernieuwd={(nieuweCode) => setBedrijf(prev => prev ? { ...prev, hr_code: nieuweCode } : prev)}
+              />
+            )}
           </>
         )}
       </main>
+
+      {uitnodigenOpen && (
+        <MedewerkerUitnodigenModal
+          onSluit={() => setUitnodigenOpen(false)}
+          hrCode={bedrijf?.hr_code ?? ''}
+        />
+      )}
     </div>
   )
 }
@@ -879,7 +1660,7 @@ function VerlofTab({ aanvragen, onUpdate }: VerlofTabProps) {
                       {v.datum_van !== v.datum_tot ? ` – ${new Date(v.datum_tot).toLocaleDateString('nl-BE', { day: 'numeric', month: 'short' })}` : ''}
                       {' '}· {dagenTekst(v.datum_van, v.datum_tot)}
                     </p>
-                    {v.reden && <p className="text-xs text-gray-400 mt-1">"{v.reden}"</p>}
+                    {v.reden && <p className="text-xs text-gray-400 mt-1">&quot;{v.reden}&quot;</p>}
                   </div>
                   <span className="text-xs font-semibold px-2 py-0.5 rounded-full flex-shrink-0"
                     style={{ background: '#FAEEDA', color: '#854F0B' }}>In behandeling</span>

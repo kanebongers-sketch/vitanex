@@ -8,6 +8,7 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import Navbar, { schakelPortaal, type ViewMode } from '@/components/Navbar'
 import { Avatar } from '@/components/Avatar'
+import HrCodeModal from '@/components/HrCodeModal'
 
 async function cropToSquareJpeg(file: File, size: number): Promise<Blob> {
   return new Promise((resolve, reject) => {
@@ -148,6 +149,11 @@ export default function Instellingen() {
   const [checkinDag, setCheckinDag] = useState('maandag')
   const [compactMode, setCompactMode] = useState(false)
 
+  // Werkgever koppeling
+  const [bedrijfId, setBedrijfId] = useState<string | null>(null)
+  const [bedrijfsnaam, setBedrijfsnaam] = useState<string | null>(null)
+  const [toonKoppelModal, setToonKoppelModal] = useState(false)
+
   // Account delete
   const [deleteBevestig, setDeleteBevestig] = useState('')
   const [deleteBezig, setDeleteBezig] = useState(false)
@@ -173,7 +179,7 @@ export default function Instellingen() {
 
       const { data: profiel } = await supabase
         .from('profiles')
-        .select('naam, avatar_url, functie, afdeling, telefoon, bio, rol')
+        .select('naam, avatar_url, functie, afdeling, telefoon, bio, rol, bedrijf_id')
         .eq('id', user.id)
         .single()
 
@@ -192,6 +198,17 @@ export default function Instellingen() {
       setNaam(n)
       setOrigineelNaam(n)
       setAvatarUrl(profiel?.avatar_url ?? null)
+      setBedrijfId(profiel?.bedrijf_id ?? null)
+
+      // Bedrijfsnaam ophalen als er een bedrijf_id is
+      if (profiel?.bedrijf_id) {
+        const { data: bedrijf } = await supabase
+          .from('bedrijven')
+          .select('naam')
+          .eq('id', profiel.bedrijf_id)
+          .single()
+        setBedrijfsnaam(bedrijf?.naam ?? null)
+      }
       const f = profiel?.functie ?? ''
       const a = profiel?.afdeling ?? ''
       const t = profiel?.telefoon ?? ''
@@ -584,6 +601,82 @@ export default function Instellingen() {
                       Alle andere sessies uitloggen
                     </button>
                   </section>
+
+                  {/* Werkgever koppeling — alleen zichtbaar voor medewerkers */}
+                  {(userRol === 'medewerker' || userRol === '') && (
+                    <section className="bg-white rounded-2xl border border-gray-100 p-6">
+                      <div className="flex items-start justify-between gap-4 mb-4">
+                        <div>
+                          <h2 className="text-base font-semibold text-gray-900">Werkgever</h2>
+                          <p className="text-xs text-gray-400 mt-0.5">
+                            Koppel je account aan je werkgever via een HR code.
+                          </p>
+                        </div>
+                        {bedrijfId && (
+                          <span
+                            className="text-xs font-semibold px-2.5 py-1 rounded-full flex-shrink-0"
+                            style={{ background: '#E1F5EE', color: '#0F6E56' }}
+                          >
+                            Gekoppeld
+                          </span>
+                        )}
+                      </div>
+
+                      {bedrijfId ? (
+                        /* Al gekoppeld */
+                        <div
+                          className="rounded-xl border px-4 py-3 flex items-center gap-3"
+                          style={{ borderColor: '#d1fae5', background: '#F0FBF7' }}
+                        >
+                          <div
+                            className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 text-white font-bold text-xs"
+                            style={{ background: 'linear-gradient(135deg, #1D9E75 0%, #185FA5 100%)' }}
+                          >
+                            HR
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-sm font-semibold text-gray-900 truncate">
+                              {bedrijfsnaam ?? 'Jouw werkgever'}
+                            </p>
+                            <p className="text-xs text-gray-500">Account is gekoppeld</p>
+                          </div>
+                        </div>
+                      ) : (
+                        /* Nog niet gekoppeld */
+                        <div>
+                          <div
+                            className="rounded-xl border border-dashed p-5 flex flex-col items-center text-center gap-3 mb-4"
+                            style={{ borderColor: '#d1d5db' }}
+                          >
+                            <div
+                              className="w-12 h-12 rounded-2xl flex items-center justify-center text-white font-bold"
+                              style={{ background: 'linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%)', color: '#9ca3af' }}
+                            >
+                              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                                <circle cx="9" cy="7" r="4" />
+                                <line x1="19" y1="8" x2="19" y2="14" />
+                                <line x1="22" y1="11" x2="16" y2="11" />
+                              </svg>
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-gray-700">Nog niet gekoppeld aan een werkgever</p>
+                              <p className="text-xs text-gray-400 mt-0.5">
+                                Vraag de HR code op bij je werkgever en koppel je account.
+                              </p>
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => setToonKoppelModal(true)}
+                            className="w-full py-3 rounded-xl text-white font-bold text-sm transition hover:opacity-90"
+                            style={{ background: '#1D9E75' }}
+                          >
+                            Koppel aan werkgever via HR code
+                          </button>
+                        </div>
+                      )}
+                    </section>
+                  )}
                 </>
               )}
 
@@ -959,6 +1052,17 @@ export default function Instellingen() {
           </div>
         )}
       </main>
+
+      {/* HR code koppelmodal */}
+      <HrCodeModal
+        open={toonKoppelModal}
+        onSluit={() => setToonKoppelModal(false)}
+        onGekoppeld={({ bedrijf_id, bedrijfsnaam: naam }) => {
+          setBedrijfId(bedrijf_id)
+          setBedrijfsnaam(naam)
+          setToonKoppelModal(false)
+        }}
+      />
     </div>
   )
 }

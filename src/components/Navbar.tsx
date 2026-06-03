@@ -207,14 +207,22 @@ export default function Navbar() {
         { href: '/burnout', label: 'Burn-out scan', icon: I.burnout },
       ],
     },
+    { label: 'Planning', items: [{ href: '/roosters', label: 'Mijn rooster', icon: <Ico d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" /> }] },
     ...(werkdagItems.length > 0 ? [{ label: 'Werkdag', items: werkdagItems }] : []),
   ] : viewMode === 'hr' ? [
     {
       label: 'Overzicht',
       items: [
-        { href: '/hr',      label: 'Dashboard',  icon: I.dash, exact: true },
-        { href: '/team',    label: 'Team',        icon: I.team },
-        { href: '/rapport', label: 'Rapporten',   icon: I.chart },
+        { href: '/hr',        label: 'Dashboard',   icon: I.dash, exact: true },
+        { href: '/dashboard', label: 'HR Analytics', icon: I.chart },
+        { href: '/team',      label: 'Team',         icon: I.team },
+      ],
+    },
+    {
+      label: 'Planning',
+      items: [
+        { href: '/roosters',   label: 'Roosters',    icon: <Ico d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" /> },
+        { href: '/hr/gesprekken', label: 'Gesprekken', icon: <Ico d={['M17 8h2a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-2v4l-4-4H9a1.994 1.994 0 0 1-1.414-.586m0 0L11 14h4a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2v4l.586-.586z']} /> },
       ],
     },
     {
