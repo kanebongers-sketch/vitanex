@@ -58,6 +58,8 @@ export default function AgentPage() {
   const [edit, setEdit] = useState<EditState|null>(null)
   const [saving, setSaving] = useState(false)
   const [regenerating, setRegenerating] = useState<string|null>(null)
+  const [zoekBezig, setZoekBezig] = useState(false)
+  const [zoekMelding, setZoekMelding] = useState<{ok:boolean;tekst:string}|null>(null)
 
   useEffect(() => {
     sb.auth.getUser().then(({ data: { user } }) => {
@@ -152,6 +154,28 @@ export default function AgentPage() {
     laad()
   }
 
+  async function voegBedrijvenToe() {
+    setZoekBezig(true)
+    setZoekMelding(null)
+    try {
+      const res = await fetch('/api/agent', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ actie: 'trigger_workflow', stap: 'zoek' }),
+      })
+      const data = await res.json()
+      if (data.ok) {
+        setZoekMelding({ok:true, tekst:'✅ Agent gestart! Nieuwe bedrijven worden gezocht. Pagina vernieuwt automatisch.'})
+        setTimeout(()=>{ setZoekMelding(null); laad() }, 5000)
+      } else {
+        setZoekMelding({ok:false, tekst:`❌ Fout: ${data.error ?? 'Onbekende fout'}`})
+      }
+    } catch {
+      setZoekMelding({ok:false, tekst:'❌ Kan agent niet bereiken'})
+    }
+    setZoekBezig(false)
+  }
+
   const formatDatum = (d: string) => d ? new Date(d).toLocaleDateString('nl-NL',{weekday:'short',day:'numeric',month:'short'}) : '—'
 
   if (!toegang) return (
@@ -175,11 +199,26 @@ export default function AgentPage() {
         <div style={{display:'flex',gap:8,alignItems:'center'}}>
           <div style={{width:7,height:7,borderRadius:'50%',background:GREEN,boxShadow:'0 0 5px #22C55E'}}/>
           <span style={{fontSize:10,color:MUTED}}>{nu.toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'})}</span>
+          <button
+            onClick={voegBedrijvenToe}
+            disabled={zoekBezig}
+            style={{background:zoekBezig?'rgba(245,166,35,0.05)':'rgba(245,166,35,0.12)',border:`1px solid ${FF}40`,borderRadius:6,color:zoekBezig?MUTED:FF,fontSize:11,padding:'5px 12px',cursor:zoekBezig?'not-allowed':'pointer',fontWeight:600,transition:'all 0.2s'}}
+          >
+            {zoekBezig ? '⏳ Zoeken...' : '+ 10 bedrijven'}
+          </button>
           <button onClick={laad} style={{background:CARD2,border:`1px solid ${BORDER}`,borderRadius:6,color:MUTED,fontSize:11,padding:'5px 10px',cursor:'pointer'}}>↻</button>
         </div>
       </header>
 
-      <div style={{display:'grid',gridTemplateColumns:'260px 1fr',height:'calc(100vh - 54px)'}}>
+      {/* Melding banner */}
+      {zoekMelding && (
+        <div style={{padding:'10px 24px',background:zoekMelding.ok?'rgba(34,197,94,0.1)':'rgba(239,68,68,0.1)',borderBottom:`1px solid ${zoekMelding.ok?'rgba(34,197,94,0.3)':'rgba(239,68,68,0.3)'}`,fontSize:12,color:zoekMelding.ok?GREEN:RED,display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+          <span>{zoekMelding.tekst}</span>
+          <button onClick={()=>setZoekMelding(null)} style={{background:'none',border:'none',color:MUTED,cursor:'pointer',fontSize:14}}>✕</button>
+        </div>
+      )}
+
+      <div style={{display:'grid',gridTemplateColumns:'260px 1fr',height:`calc(100vh - ${zoekMelding?94:54}px)`}}>
 
         {/* LINKER ZIJBALK */}
         <aside style={{borderRight:`1px solid ${BORDER}`,overflowY:'auto',padding:'12px 0',display:'flex',flexDirection:'column'}}>

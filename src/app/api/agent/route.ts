@@ -47,9 +47,39 @@ export async function GET() {
   }
 }
 
+const GH_TOKEN = process.env.GITHUB_TOKEN || ''
+const GH_REPO  = 'kanebongers-sketch/fitfactory-agent'
+const GH_WORKFLOW = 'dagelijkse_agent.yml'
+
+async function triggerWorkflow(stap: string) {
+  const res = await fetch(
+    `https://api.github.com/repos/${GH_REPO}/actions/workflows/${GH_WORKFLOW}/dispatches`,
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `token ${GH_TOKEN}`,
+        Accept: 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ ref: 'main', inputs: { stap } }),
+    }
+  )
+  return res.ok
+}
+
 export async function POST(req: Request) {
   const body = await req.json()
   const { actie, ronde, aantal } = body
+
+  // GitHub Actions workflow dispatch
+  if (actie === 'trigger_workflow') {
+    const { stap } = body
+    const geldig = ['zoek', 'ochtend_batch', 'alles', 'status', 'batch_status']
+    if (!geldig.includes(stap)) return NextResponse.json({ error: 'Ongeldige stap' }, { status: 400 })
+    if (!GH_TOKEN) return NextResponse.json({ error: 'GITHUB_TOKEN niet geconfigureerd' }, { status: 500 })
+    const ok = await triggerWorkflow(stap)
+    return NextResponse.json({ ok, stap })
+  }
 
   if (actie === 'verstuur') {
     return NextResponse.json({ error: 'Versturen kan alleen via de terminal' }, { status: 403 })
