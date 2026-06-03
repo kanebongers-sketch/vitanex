@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic'
 
 import { useEffect, useState, useCallback } from 'react'
 import { createClient } from '@supabase/supabase-js'
+import Link from 'next/link'
 
 const sb = createClient(
   'https://wicadprbktnzjnyexukl.supabase.co',
@@ -33,10 +34,16 @@ type Contact = {
   r1_onderwerp?:string; r1_body?:string
   r2_onderwerp?:string; r2_body?:string
   r3_onderwerp?:string; r3_body?:string
+  op_zwarte_lijst?: boolean
 }
 type Batch = {
   id:string; naam:string; start_datum:string; ronde_2_datum:string; ronde_3_datum:string; status:string
   contacten?: Contact[]
+}
+type EditState = {
+  id: string
+  bodyKey: string; bodyVal: string
+  onderwerpKey: string; onderwerpVal: string
 }
 
 export default function AgentPage() {
@@ -48,10 +55,10 @@ export default function AgentPage() {
   const [expandedBody, setExpandedBody] = useState<string|null>(null)
   const [approvingAll, setApprovingAll] = useState(false)
   const [nu, setNu] = useState(new Date())
-  const [editBody, setEditBody] = useState<{id:string; key:string; val:string}|null>(null)
-  const [savingBody, setSavingBody] = useState(false)
+  const [edit, setEdit] = useState<EditState|null>(null)
+  const [saving, setSaving] = useState(false)
+  const [regenerating, setRegenerating] = useState<string|null>(null)
 
-  // Auth check — alleen kanebongers@gmail.com
   useEffect(() => {
     sb.auth.getUser().then(({ data: { user } }) => {
       if (!user) { window.location.href = '/login'; return }
@@ -65,7 +72,6 @@ export default function AgentPage() {
   const laad = useCallback(async () => {
     const {data: bs} = await sb.from('agent_batches').select('*').order('aangemaakt_op', {ascending:false}).limit(10)
     if (!bs) { setGeladen(true); return }
-
     const batches_met_contacten = await Promise.all(bs.map(async (b) => {
       const {data: cs} = await sb.from('agent_contacten').select('*').eq('batch_id', b.id).order('score', {ascending:false})
       return {...b, contacten: cs ?? []}
@@ -82,15 +88,8 @@ export default function AgentPage() {
   const batch = batches.find(b => b.id === activeBatch)
   const contacten = batch?.contacten ?? []
   const vandaag = new Date().toISOString().split('T')[0]
+  const totaal = contacten.length || 1
 
-  // Welke rondes zijn vandaag actief?
-  const rondesVandaag = batch ? [
-    batch.start_datum    === vandaag ? 1 : null,
-    batch.ronde_2_datum  === vandaag ? 2 : null,
-    batch.ronde_3_datum  === vandaag ? 3 : null,
-  ].filter(Boolean) as number[] : []
-
-  // Stats per ronde
   const rStats = (r:number) => {
     const col = `r${r}_status` as keyof Contact
     return {
@@ -102,26 +101,41 @@ export default function AgentPage() {
     }
   }
 
-  // Goedkeuren vanuit dashboard
   async function keurGoed(contactId: string, ronde: number, type: 'bedrijf'|'email') {
-    const col = type === 'bedrijf' ? `r${ronde}_status` : `r${ronde}_status`
     const val = type === 'bedrijf' ? 'goedgekeurd' : 'email_goedgekeurd'
-    await sb.from('agent_contacten').update({[col]: val}).eq('id', contactId)
+    await sb.from('agent_contacten').update({[`r${ronde}_status`]: val}).eq('id', contactId)
     laad()
   }
 
   async function slaOver(contactId: string, ronde: number, type: 'bedrijf'|'email') {
-    const col = `r${ronde}_status`
     const val = type === 'bedrijf' ? 'overgeslagen' : 'email_overgeslagen'
-    await sb.from('agent_contacten').update({[col]: val}).eq('id', contactId)
+    await sb.from('agent_contacten').update({[`r${ronde}_status`]: val}).eq('id', contactId)
     laad()
   }
 
-  async function slaEmailOp(contactId: string, key: string, val: string) {
-    setSavingBody(true)
-    await sb.from('agent_contacten').update({[key]: val}).eq('id', contactId)
-    setSavingBody(false)
-    setEditBody(null)
+  async function slaEmailOp() {
+    if (!edit) return
+    setSaving(true)
+    await sb.from('agent_contacten').update({
+      [edit.bodyKey]: edit.bodyVal,
+      [edit.onderwerpKey]: edit.onderwerpVal,
+    }).eq('id', edit.id)
+    setSaving(false)
+    setEdit(null)
+    laad()
+  }
+
+  async function regenereerEmail(contactId: string, ronde: number) {
+    setRegenerating(contactId)
+    // Reset email velden → agent genereert opnieuw bij volgende run
+    await sb.from('agent_contacten').update({
+      [`r${ronde}_body`]: null,
+      [`r${ronde}_onderwerp`]: null,
+      [`r${ronde}_status`]: 'goedgekeurd',
+    }).eq('id', contactId)
+    setExpandedBody(null)
+    setEdit(null)
+    setRegenerating(null)
     laad()
   }
 
@@ -140,7 +154,6 @@ export default function AgentPage() {
 
   const formatDatum = (d: string) => d ? new Date(d).toLocaleDateString('nl-NL',{weekday:'short',day:'numeric',month:'short'}) : '—'
 
-  // Toon niets totdat toegang bevestigd is
   if (!toegang) return (
     <div style={{minHeight:'100vh',background:DARK,display:'flex',alignItems:'center',justifyContent:'center'}}>
       <div style={{width:32,height:32,borderRadius:'50%',border:'3px solid #333',borderTopColor:FF,animation:'spin 0.8s linear infinite'}} />
@@ -168,14 +181,24 @@ export default function AgentPage() {
 
       <div style={{display:'grid',gridTemplateColumns:'260px 1fr',height:'calc(100vh - 54px)'}}>
 
-        {/* LINKER ZIJBALK: Batch lijst */}
-        <aside style={{borderRight:`1px solid ${BORDER}`,overflowY:'auto',padding:'12px 0'}}>
+        {/* LINKER ZIJBALK */}
+        <aside style={{borderRight:`1px solid ${BORDER}`,overflowY:'auto',padding:'12px 0',display:'flex',flexDirection:'column'}}>
+          {/* Nav links */}
+          <div style={{padding:'0 12px 12px',borderBottom:`1px solid ${BORDER}`,marginBottom:8}}>
+            <Link href="/agent" style={{display:'flex',alignItems:'center',gap:8,padding:'8px 10px',borderRadius:8,background:'rgba(245,166,35,0.1)',color:FF,fontSize:12,fontWeight:600,textDecoration:'none',marginBottom:4}}>
+              🗂️ Campagne batches
+            </Link>
+            <Link href="/agent/bedrijven" style={{display:'flex',alignItems:'center',gap:8,padding:'8px 10px',borderRadius:8,color:MUTED,fontSize:12,textDecoration:'none',transition:'all 0.15s'}}>
+              📋 Alle bedrijven
+            </Link>
+          </div>
+
           <p style={{fontSize:10,fontWeight:700,color:MUTED,textTransform:'uppercase',letterSpacing:'0.1em',padding:'4px 16px 10px'}}>Campagne batches</p>
 
           {!geladen ? <p style={{color:MUTED,fontSize:12,padding:'0 16px'}}>Laden...</p>
           : batches.length === 0 ? (
             <div style={{padding:'16px',textAlign:'center'}}>
-              <p style={{fontSize:12,color:MUTED,lineHeight:1.7}}>Nog geen batches.<br/>Start via terminal:<br/><code style={{color:'#86EFAC',fontFamily:'monospace'}}>python main.py ochtend_batch</code></p>
+              <p style={{fontSize:12,color:MUTED,lineHeight:1.7}}>Nog geen batches.</p>
             </div>
           ) : batches.map(b => {
             const cs = b.contacten ?? []
@@ -194,12 +217,19 @@ export default function AgentPage() {
                   <p style={{fontSize:12,fontWeight:isActief?600:400,color:isActief?FF:TEXT,lineHeight:1.3,flex:1,marginRight:6}}>{b.naam}</p>
                   {isVandaag && <span style={{background:'rgba(245,166,35,0.2)',color:FF,borderRadius:4,padding:'1px 6px',fontSize:10,flexShrink:0}}>Vandaag</span>}
                 </div>
-                <div style={{display:'flex',gap:8,fontSize:10,color:MUTED}}>
+                {/* Progress bars per ronde */}
+                <div style={{display:'flex',flexDirection:'column',gap:3,marginBottom:4}}>
                   {[r1v,r2v,r3v].map((v,i)=>(
-                    <span key={i} style={{color:v>0?R_COLORS[i]:MUTED}}>R{i+1}: {v}/{cs.length}</span>
+                    <div key={i} style={{display:'flex',alignItems:'center',gap:6}}>
+                      <span style={{fontSize:9,color:v>0?R_COLORS[i]:MUTED,width:18}}>R{i+1}</span>
+                      <div style={{flex:1,height:3,background:'rgba(255,255,255,0.06)',borderRadius:2}}>
+                        <div style={{width:`${cs.length?v/cs.length*100:0}%`,height:'100%',background:v>0?R_COLORS[i]:'transparent',borderRadius:2,transition:'width 0.3s'}}/>
+                      </div>
+                      <span style={{fontSize:9,color:MUTED,width:24,textAlign:'right'}}>{v}/{cs.length}</span>
+                    </div>
                   ))}
                 </div>
-                <p style={{fontSize:10,color:MUTED,marginTop:3}}>{formatDatum(b.start_datum)}</p>
+                <p style={{fontSize:10,color:MUTED,marginTop:2}}>{formatDatum(b.start_datum)}</p>
               </button>
             )
           })}
@@ -233,11 +263,12 @@ export default function AgentPage() {
                   </div>
                 </div>
 
-                {/* Ronde tabs */}
+                {/* Ronde tabs met voortgangsbars */}
                 <div style={{display:'flex',gap:6}}>
                   {[1,2,3].map(r => {
                     const s = rStats(r)
                     const isVandaag = [batch.start_datum, batch.ronde_2_datum, batch.ronde_3_datum][r-1] === vandaag
+                    const pct = Math.round(s.verstuurd / totaal * 100)
                     return (
                       <button key={r} onClick={()=>setActiveRonde(r)} style={{
                         flex:1,padding:'10px',borderRadius:10,cursor:'pointer',transition:'all 0.15s',
@@ -246,14 +277,22 @@ export default function AgentPage() {
                       }}>
                         <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:4}}>
                           <span style={{fontSize:12,fontWeight:600,color:activeRonde===r?R_COLORS[r-1]:TEXT}}>Ronde {r}</span>
-                          {isVandaag && <span style={{background:'rgba(245,166,35,0.2)',color:FF,borderRadius:3,padding:'1px 5px',fontSize:9}}>Vandaag</span>}
+                          <div style={{display:'flex',gap:4,alignItems:'center'}}>
+                            {isVandaag && <span style={{background:'rgba(245,166,35,0.2)',color:FF,borderRadius:3,padding:'1px 5px',fontSize:9}}>Vandaag</span>}
+                            <span style={{fontSize:9,color:s.verstuurd>0?GREEN:MUTED}}>{s.verstuurd}/{totaal}</span>
+                          </div>
                         </div>
-                        <p style={{fontSize:10,color:MUTED,marginBottom:6}}>{R_NAMEN[r-1]}</p>
-                        <div style={{display:'flex',gap:6,fontSize:10}}>
+                        {/* Progress bar */}
+                        <div style={{height:3,background:'rgba(255,255,255,0.06)',borderRadius:2,marginBottom:6}}>
+                          <div style={{width:`${pct}%`,height:'100%',background:R_COLORS[r-1],borderRadius:2,transition:'width 0.4s'}}/>
+                        </div>
+                        <p style={{fontSize:10,color:MUTED,marginBottom:4}}>{R_NAMEN[r-1]}</p>
+                        <div style={{display:'flex',gap:6,fontSize:10,flexWrap:'wrap'}}>
                           {s.verstuurd > 0 && <span style={{color:GREEN}}>✓ {s.verstuurd}</span>}
                           {s.wacht > 0 && <span style={{color:'#94A3B8'}}>⏳ {s.wacht}</span>}
                           {s.goed > 0 && <span style={{color:GREEN}}>✅ {s.goed}</span>}
                           {s.klaar > 0 && <span style={{color:'#6EE7B7'}}>📧 {s.klaar}</span>}
+                          {s.skip > 0 && <span style={{color:'#6B7280'}}>❌ {s.skip}</span>}
                         </div>
                       </button>
                     )
@@ -283,7 +322,7 @@ export default function AgentPage() {
                     )}
                     {heeftEmailGoed && (
                       <div style={{background:'rgba(34,197,94,0.08)',border:'1px solid rgba(34,197,94,0.2)',borderRadius:7,padding:'7px 14px'}}>
-                        <p style={{fontSize:12,color:GREEN,margin:0}}>🚀 Klaar! Terminal: <code style={{fontFamily:'monospace'}}>python main.py verstuur_batch {batch.id} {activeRonde}</code></p>
+                        <p style={{fontSize:12,color:GREEN,margin:0}}>🚀 Klaar om te versturen! Terminal: <code style={{fontFamily:'monospace',fontSize:11}}>python main.py verstuur_batch {batch.id} {activeRonde}</code></p>
                       </div>
                     )}
                   </div>
@@ -302,9 +341,11 @@ export default function AgentPage() {
                   const isExpanded = expandedBody === c.id
                   const isGepland = status === 'gepland'
                   const heeftEmail = !!c[onderwerpKey]
+                  const isEditing = edit?.id === c.id
+                  const isRegenerating = regenerating === c.id
 
                   return (
-                    <div key={c.id} style={{background:CARD2,border:`1px solid ${isGepland?BORDER:st.bg+'44'}`,borderRadius:10,padding:'12px 14px',opacity:isGepland?0.5:1}}>
+                    <div key={c.id} style={{background:CARD2,border:`1px solid ${c.op_zwarte_lijst?'#7f1d1d44':isGepland?BORDER:st.bg+'44'}`,borderRadius:10,padding:'12px 14px',opacity:isGepland?0.5:1}}>
                       <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
                         <div style={{flex:1,minWidth:0}}>
                           <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:3,flexWrap:'wrap'}}>
@@ -313,12 +354,12 @@ export default function AgentPage() {
                             <span style={{background:'rgba(245,166,35,0.1)',color:FF,borderRadius:5,padding:'2px 7px',fontSize:10}}>{c.score}pts</span>
                           </div>
                           <p style={{fontSize:11,color:MUTED,margin:0}}>{c.email} · {c.stad} · {c.sector}</p>
-                          {heeftEmail && <p style={{fontSize:11,color:'#818CF8',marginTop:4}}>✉️ {c[onderwerpKey] as string}</p>}
+                          {heeftEmail && !isEditing && <p style={{fontSize:11,color:'#818CF8',marginTop:4}}>✉️ {c[onderwerpKey] as string}</p>}
                         </div>
 
                         {/* Actie knoppen */}
                         {!isGepland && (
-                          <div style={{display:'flex',gap:6,flexShrink:0,marginLeft:10}}>
+                          <div style={{display:'flex',gap:6,flexShrink:0,marginLeft:10,flexWrap:'wrap',justifyContent:'flex-end'}}>
                             {status === 'wacht' && <>
                               <Btn color={GREEN} onClick={()=>keurGoed(c.id,r,'bedrijf')}>✅</Btn>
                               <Btn color={RED}   onClick={()=>slaOver(c.id,r,'bedrijf')}>❌</Btn>
@@ -327,14 +368,23 @@ export default function AgentPage() {
                               <Btn color={GREEN} onClick={()=>keurGoed(c.id,r,'email')}>✅ Email</Btn>
                               <Btn color={RED}   onClick={()=>slaOver(c.id,r,'email')}>❌</Btn>
                             </>}
-                            {heeftEmail && (
-                              <Btn color={MUTED} onClick={()=>setExpandedBody(isExpanded?null:c.id)}>
+                            {heeftEmail && !isEditing && (
+                              <Btn color={MUTED} onClick={()=>{ setExpandedBody(isExpanded?null:c.id); setEdit(null) }}>
                                 {isExpanded?'▲':'▼'}
                               </Btn>
                             )}
-                            {heeftEmail && isExpanded && editBody?.id !== c.id && (
-                              <Btn color={FF} onClick={()=>setEditBody({id:c.id, key:bodyKey as string, val:c[bodyKey] as string})}>
-                                ✏️
+                            {heeftEmail && isExpanded && !isEditing && (
+                              <Btn color={FF} onClick={()=>setEdit({
+                                id: c.id,
+                                bodyKey: bodyKey as string,
+                                bodyVal: c[bodyKey] as string ?? '',
+                                onderwerpKey: onderwerpKey as string,
+                                onderwerpVal: c[onderwerpKey] as string ?? '',
+                              })}>✏️</Btn>
+                            )}
+                            {heeftEmail && isExpanded && !isEditing && (
+                              <Btn color={'#A78BFA'} onClick={()=>regenereerEmail(c.id, r)}>
+                                {isRegenerating ? '⏳' : '🔄'}
                               </Btn>
                             )}
                           </div>
@@ -342,27 +392,31 @@ export default function AgentPage() {
                       </div>
 
                       {/* Email preview / edit */}
-                      {isExpanded && c[bodyKey] && (
+                      {isExpanded && (c[bodyKey] || isEditing) && (
                         <div style={{marginTop:12,background:'rgba(0,0,0,0.3)',borderRadius:8,padding:'12px 14px',borderLeft:`3px solid ${FF}`}}>
-                          {editBody?.id === c.id ? (
+                          {isEditing ? (
                             <>
+                              {/* Onderwerp edit */}
+                              <p style={{fontSize:10,color:MUTED,margin:'0 0 4px'}}>Onderwerp</p>
+                              <input
+                                value={edit!.onderwerpVal}
+                                onChange={e=>setEdit({...edit!, onderwerpVal:e.target.value})}
+                                style={{width:'100%',background:'rgba(255,255,255,0.06)',color:TEXT,border:'1px solid rgba(255,255,255,0.15)',borderRadius:6,padding:'8px 10px',fontSize:12,fontFamily:'inherit',outline:'none',marginBottom:10}}
+                              />
+                              {/* Body edit */}
+                              <p style={{fontSize:10,color:MUTED,margin:'0 0 4px'}}>Email tekst</p>
                               <textarea
-                                value={editBody.val}
-                                onChange={e=>setEditBody({...editBody, val:e.target.value})}
-                                style={{width:'100%',minHeight:220,background:'rgba(255,255,255,0.06)',color:'rgba(255,255,255,0.88)',border:'1px solid rgba(255,255,255,0.15)',borderRadius:6,padding:'10px',fontSize:12,fontFamily:'inherit',lineHeight:1.7,resize:'vertical',outline:'none'}}
+                                value={edit!.bodyVal}
+                                onChange={e=>setEdit({...edit!, bodyVal:e.target.value})}
+                                style={{width:'100%',minHeight:220,background:'rgba(255,255,255,0.06)',color:TEXT,border:'1px solid rgba(255,255,255,0.15)',borderRadius:6,padding:'10px',fontSize:12,fontFamily:'inherit',lineHeight:1.7,resize:'vertical',outline:'none'}}
                               />
                               <div style={{display:'flex',gap:8,marginTop:10}}>
-                                <button
-                                  onClick={()=>slaEmailOp(c.id, editBody.key, editBody.val)}
-                                  disabled={savingBody}
-                                  style={{background:'rgba(34,197,94,0.15)',border:'1px solid rgba(34,197,94,0.4)',borderRadius:6,color:GREEN,fontSize:12,padding:'6px 14px',cursor:'pointer',fontWeight:600}}
-                                >
-                                  {savingBody ? 'Opslaan...' : '💾 Opslaan'}
+                                <button onClick={slaEmailOp} disabled={saving}
+                                  style={{background:'rgba(34,197,94,0.15)',border:'1px solid rgba(34,197,94,0.4)',borderRadius:6,color:GREEN,fontSize:12,padding:'6px 14px',cursor:'pointer',fontWeight:600}}>
+                                  {saving ? 'Opslaan...' : '💾 Opslaan'}
                                 </button>
-                                <button
-                                  onClick={()=>setEditBody(null)}
-                                  style={{background:'rgba(239,68,68,0.1)',border:'1px solid rgba(239,68,68,0.3)',borderRadius:6,color:RED,fontSize:12,padding:'6px 14px',cursor:'pointer'}}
-                                >
+                                <button onClick={()=>setEdit(null)}
+                                  style={{background:'rgba(239,68,68,0.1)',border:'1px solid rgba(239,68,68,0.3)',borderRadius:6,color:RED,fontSize:12,padding:'6px 14px',cursor:'pointer'}}>
                                   Annuleren
                                 </button>
                               </div>
@@ -373,6 +427,11 @@ export default function AgentPage() {
                             </pre>
                           )}
                         </div>
+                      )}
+
+                      {/* Regenereer melding */}
+                      {isRegenerating && (
+                        <p style={{fontSize:11,color:'#A78BFA',marginTop:8}}>⏳ Email wordt gereset — agent genereert opnieuw bij volgende run...</p>
                       )}
                     </div>
                   )
@@ -388,14 +447,15 @@ export default function AgentPage() {
         ::-webkit-scrollbar { width: 5px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 3px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
       `}</style>
     </div>
   )
 }
 
-function Btn({color,onClick,children}:{color:string;onClick:()=>void;children:React.ReactNode}) {
+function Btn({color,onClick,children,disabled}:{color:string;onClick:()=>void;children:React.ReactNode;disabled?:boolean}) {
   return (
-    <button onClick={onClick} style={{background:`${color}15`,border:`1px solid ${color}40`,borderRadius:6,color,fontSize:11,padding:'5px 10px',cursor:'pointer',fontWeight:600,whiteSpace:'nowrap'}}>
+    <button onClick={onClick} disabled={disabled} style={{background:`${color}15`,border:`1px solid ${color}40`,borderRadius:6,color,fontSize:11,padding:'5px 10px',cursor:disabled?'not-allowed':'pointer',fontWeight:600,whiteSpace:'nowrap',opacity:disabled?0.5:1}}>
       {children}
     </button>
   )
