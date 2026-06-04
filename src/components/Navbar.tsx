@@ -222,6 +222,7 @@ export default function Navbar() {
     : viewMode === 'hr' ? 'HR Portaal' : 'Admin Portaal'
 
   const DEFAULT_WERKDAG_ITEMS: NavItem[] = [
+    { href: '/bestanden',   label: 'Mijn bestanden', icon: <Ico d={['M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z','M14 2v6h6']} /> },
     { href: '/verlof',      label: 'Verlof',      icon: <Ico d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2z" /> },
     { href: '/uren',        label: 'Uren',        icon: <Ico d="M12 8v4l3 3m6-3a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" /> },
     { href: '/declaraties', label: 'Declaraties', icon: <Ico d={['M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z', 'M14 2v6h6', 'M12 18v-6', 'M9 15h6']} /> },
@@ -247,6 +248,7 @@ export default function Navbar() {
         { href: '/coach',       label: 'AI Coach',     icon: I.coach },
         { href: '/doelen',      label: 'Doelen',       icon: I.doelen },
         { href: '/uitdagingen', label: 'Uitdagingen',  icon: I.uitd },
+        { href: '/disc',        label: 'DISC test',    icon: <Ico d={['M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z','M8 12h8','M12 8v8']} /> },
       ],
     },
     {
@@ -292,9 +294,10 @@ export default function Navbar() {
     {
       label: 'Beheren',
       items: [
-        { href: '/verlof',      label: 'Verlof',      icon: I.verlof },
-        { href: '/loonstroken', label: 'Loonstroken', icon: I.rapport },
-        { href: '/directory',   label: 'Medewerkers', icon: I.team },
+        { href: '/verlof',       label: 'Verlof',       icon: I.verlof },
+        { href: '/loonstroken',  label: 'Loonstroken',  icon: I.rapport },
+        { href: '/hr/bestanden', label: 'Bestanden',    icon: <Ico d={['M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z','M14 2v6h6']} /> },
+        { href: '/directory',    label: 'Medewerkers',  icon: I.team },
       ],
     },
   ] : /* admin — volledig eigen portaal, niks van HR/werknemer */ [

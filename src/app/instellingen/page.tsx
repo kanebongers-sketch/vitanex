@@ -138,6 +138,8 @@ export default function Instellingen() {
   // Privacy
   const [privacyScore, setPrivacyScore] = useState(false)
   const [privacyJournal, setPrivacyJournal] = useState(true)
+  const [hrInzageRapporten, setHrInzageRapporten] = useState(false)
+  const [hrInzageBestanden, setHrInzageBestanden] = useState(false)
   const [privacyCoach, setPrivacyCoach] = useState(true)
   const [privacyAnonymous, setPrivacyAnonymous] = useState(true)
 
@@ -184,7 +186,7 @@ export default function Instellingen() {
 
       const { data: profiel } = await supabase
         .from('profiles')
-        .select('naam, avatar_url, functie, afdeling, telefoon, bio, rol, bedrijf_id')
+        .select('naam, avatar_url, functie, afdeling, telefoon, bio, rol, bedrijf_id, hr_inzage_rapporten, hr_inzage_bestanden')
         .eq('id', user.id)
         .single()
 
@@ -230,6 +232,8 @@ export default function Instellingen() {
       setAfdeling(a); setOrigineelAfdeling(a)
       setTelefoon(t); setOrigineelTelefoon(t)
       setBio(b); setOrigineelBio(b)
+      setHrInzageRapporten(profiel?.hr_inzage_rapporten ?? false)
+      setHrInzageBestanden(profiel?.hr_inzage_bestanden ?? false)
       setLaden(false)
     }
     laad()
@@ -982,6 +986,32 @@ export default function Instellingen() {
                       label="Coach-gesprekken privé houden"
                       beschrijving="AI-coachgesprekken worden niet gebruikt voor teamanalyses." />
                   </section>
+
+                  {/* HR Inzage — alleen voor werknemers met bedrijf */}
+                  {bedrijfId && (
+                    <section className="bg-white rounded-2xl border border-gray-200 p-6">
+                      <h2 className="text-base font-semibold text-gray-900 mb-1">Wat HR van jou kan zien</h2>
+                      <p className="text-xs text-gray-400 mb-4">Jij bepaalt wat jouw HR-afdeling mag inzien. Standaard staat alles uit.</p>
+                      <Toggle
+                        actief={hrInzageRapporten}
+                        onChange={async (v) => {
+                          setHrInzageRapporten(v)
+                          if (userId) await supabase.from('profiles').update({ hr_inzage_rapporten: v }).eq('id', userId)
+                        }}
+                        label="HR mag mijn AI-rapporten inzien"
+                        beschrijving="Check-in rapporten, DISC-profiel en onboarding samenvatting"
+                      />
+                      <Toggle
+                        actief={hrInzageBestanden}
+                        onChange={async (v) => {
+                          setHrInzageBestanden(v)
+                          if (userId) await supabase.from('profiles').update({ hr_inzage_bestanden: v }).eq('id', userId)
+                        }}
+                        label="HR mag mijn gedeelde bestanden bekijken"
+                        beschrijving="Alleen bestanden die jij markeert als 'Deel met HR' in Mijn bestanden"
+                      />
+                    </section>
+                  )}
 
                   <section className="bg-white rounded-2xl border border-gray-200 p-6">
                     <h2 className="text-base font-semibold text-gray-900 mb-4">Toestemmingen</h2>

@@ -10,8 +10,8 @@ type HrStap = 'welkom' | 'gegevens' | 'bedrijf' | 'details' | 'klaar'
 const HR_STAPPEN: HrStap[] = ['welkom', 'gegevens', 'bedrijf', 'details', 'klaar']
 
 // ─── Gebruiker/werknemer onboarding stappen ───────────────────────────────────
-type GebrStap = 'welkom' | 'profiel' | 'lichaam' | 'hrcode' | 'klaar'
-const GEBR_STAPPEN: GebrStap[] = ['welkom', 'profiel', 'lichaam', 'hrcode', 'klaar']
+type GebrStap = 'welkom' | 'profiel' | 'lichaam' | 'privacy' | 'hrcode' | 'klaar'
+const GEBR_STAPPEN: GebrStap[] = ['welkom', 'profiel', 'lichaam', 'privacy', 'hrcode', 'klaar']
 
 // ─── Sectoren ────────────────────────────────────────────────────────────────
 const SECTOREN = [
@@ -124,6 +124,8 @@ export default function OnboardingPage() {
   const [gebr, setGebr] = useState({
     naam: '', geslacht: '' as '' | 'man' | 'vrouw' | 'anders' | 'zeg_ik_niet',
     geboortedatum: '', lengte_cm: '', gewicht_kg: '', hrCode: '',
+    hrInzageRapporten: false,
+    hrInzageBestanden: false,
   })
 
   // HR code validatie
@@ -216,6 +218,8 @@ export default function OnboardingPage() {
     const updates: Record<string, unknown> = {
       naam: gebr.naam.trim(),
       onboarding_voltooid: true,
+      hr_inzage_rapporten: gebr.hrInzageRapporten,
+      hr_inzage_bestanden: gebr.hrInzageBestanden,
     }
     if (gebr.geboortedatum) updates.geboortedatum = gebr.geboortedatum
     if (gebr.lengte_cm) updates.lengte_cm = parseInt(gebr.lengte_cm)
@@ -556,6 +560,68 @@ export default function OnboardingPage() {
 
                 <div style={{ display: 'flex', gap: 12, justifyContent: 'space-between' }}>
                   <Knop onClick={() => setGebrStap('profiel')} variant="ghost">← Terug</Knop>
+                  <Knop onClick={() => setGebrStap('privacy')}>Volgende →</Knop>
+                </div>
+              </div>
+            )}
+
+            {/* ── PRIVACY ── */}
+            {gebrStap === 'privacy' && (
+              <div>
+                <div style={{ fontSize: 28, marginBottom: 10 }}>🔒</div>
+                <h2 style={{ fontSize: 20, fontWeight: 800, color: '#111827', marginBottom: 4 }}>Privacy-instellingen</h2>
+                <p style={{ fontSize: 13, color: '#9CA3AF', marginBottom: 20 }}>Kies wat je HR-afdeling van jou mag inzien</p>
+
+                <p style={{ fontSize: 13, color: '#6B7280', lineHeight: 1.6, marginBottom: 20 }}>
+                  MentaForce is gebouwd op privacy. Jij bepaalt wat HR kan zien. Deze keuze kun je altijd aanpassen via <strong>Instellingen → Privacy</strong>.
+                </p>
+
+                {[
+                  {
+                    key: 'hrInzageRapporten' as const,
+                    titel: 'HR mag mijn AI-rapporten inzien',
+                    sub: 'Check-in rapporten, DISC-profiel analyse en onboarding samenvatting',
+                    actief: gebr.hrInzageRapporten,
+                  },
+                  {
+                    key: 'hrInzageBestanden' as const,
+                    titel: 'HR mag mijn gedeelde bestanden bekijken',
+                    sub: 'Alleen bestanden die jij expliciet markeert als "Deel met HR"',
+                    actief: gebr.hrInzageBestanden,
+                  },
+                ].map(opt => (
+                  <div key={opt.key} style={{
+                    display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16,
+                    padding: '16px', borderRadius: 14, marginBottom: 12,
+                    background: opt.actief ? '#E1F5EE' : '#F9FAFB',
+                    border: `1.5px solid ${opt.actief ? '#A3DECE' : '#E5E7EB'}`,
+                    transition: 'all 0.15s',
+                  }}>
+                    <div style={{ flex: 1 }}>
+                      <p style={{ fontSize: 14, fontWeight: 600, color: '#111827', marginBottom: 3 }}>{opt.titel}</p>
+                      <p style={{ fontSize: 12, color: '#9CA3AF', lineHeight: 1.4 }}>{opt.sub}</p>
+                    </div>
+                    <button onClick={() => setGebr(f => ({ ...f, [opt.key]: !f[opt.key] }))}
+                      style={{
+                        width: 44, height: 24, borderRadius: 9999, border: 'none', cursor: 'pointer',
+                        background: opt.actief ? '#1D9E75' : '#E5E7EB', flexShrink: 0, position: 'relative',
+                        transition: 'background 0.2s',
+                      }}>
+                      <span style={{
+                        position: 'absolute', top: 2, left: opt.actief ? 22 : 2, width: 20, height: 20,
+                        borderRadius: '50%', background: 'white', transition: 'left 0.2s',
+                        boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+                      }} />
+                    </button>
+                  </div>
+                ))}
+
+                <p style={{ fontSize: 12, color: '#9CA3AF', marginBottom: 20, lineHeight: 1.5 }}>
+                  💡 Standaard staat alles <strong>uit</strong>. Je kunt het altijd later aanzetten.
+                </p>
+
+                <div style={{ display: 'flex', gap: 12, justifyContent: 'space-between' }}>
+                  <Knop onClick={() => setGebrStap('lichaam')} variant="ghost">← Terug</Knop>
                   <Knop onClick={() => setGebrStap('hrcode')}>Volgende →</Knop>
                 </div>
               </div>
