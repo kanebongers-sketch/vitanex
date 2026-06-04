@@ -110,12 +110,7 @@ export async function POST(req: NextRequest) {
         cache_creation_input_tokens?: number
         cache_read_input_tokens?: number
       }
-      console.log('[coach] tokens:', {
-        input: usage.input_tokens,
-        output: usage.output_tokens,
-        cache_created: usage.cache_creation_input_tokens ?? 0,
-        cache_read: usage.cache_read_input_tokens ?? 0,
-      })
+      // token usage logging removed
     }
 
     return NextResponse.json({ tekst })

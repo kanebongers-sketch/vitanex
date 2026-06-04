@@ -721,36 +721,36 @@ export default function Register() {
               </div>
 
               <div className="rounded-2xl border p-5" style={{ borderColor: 'rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.03)' }}>
-                <div className="flex gap-1 mb-3">
-                  {[1, 2, 3, 4, 5].map(i => <span key={i} className="text-yellow-400 text-sm">?</span>)}
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-2xl">
+                    {type === 'hr' ? '👥' : type === 'zelfstandige' ? '💼' : '🌿'}
+                  </span>
+                  <span className="text-xs font-semibold px-2 py-1 rounded-full"
+                    style={{ background: 'rgba(29,158,117,0.2)', color: '#4ECBA5' }}>
+                    {type === 'hr' ? 'HR Platform' : type === 'zelfstandige' ? 'Persoonlijk gebruik' : 'Werknemerportaal'}
+                  </span>
                 </div>
                 <p className="text-sm leading-relaxed mb-4" style={{ color: 'rgba(255,255,255,0.55)' }}>
                   {type === 'hr'
-                    ? '"We hebben een dreigende burn-out kunnen voorkomen dankzij de vroege signaaldetectie. De ROI was bewezen na de eerste maand."'
+                    ? 'Stel in minuten je bedrijfsprofiel in, nodig medewerkers uit via een HR-code en begin direct met het monitoren van teamwelzijn.'
                     : type === 'zelfstandige'
-                    ? '"Als freelancer had ik geen HR-support. MentaForce is nu mijn persoonlijke coach voor welzijn en productiviteit."'
-                    : '"Eindelijk een tool die ik echt gebruik. De anonimiteit geeft me de vrijheid om eerlijk te zijn over hoe ik me voel."'}
+                    ? 'Volg je eigen welzijn, gebruik de AI-coach en houd grip op je energie en productiviteit — ook als zelfstandige.'
+                    : 'Doe wekelijks je check-in, gebruik de AI-coach en volg je eigen vitaliteit — volledig anoniem tegenover je werkgever.'}
                 </p>
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold"
-                    style={{ background: '#1D9E75' }}>
-                    {type === 'hr' ? 'E' : type === 'zelfstandige' ? 'M' : 'S'}
-                  </div>
-                  <div>
-                    <p className="text-xs font-semibold text-white">
-                      {type === 'hr' ? 'Emma Baert' : type === 'zelfstandige' ? 'Mark Hendrix' : 'Sarah V.'}
-                    </p>
-                    <p className="text-xs" style={{ color: 'rgba(255,255,255,0.35)' }}>
-                      {type === 'hr' ? 'HR Directeur' : type === 'zelfstandige' ? 'Freelance designer' : 'Marketing medewerker'}
-                    </p>
-                  </div>
+                <div className="flex flex-col gap-1.5">
+                  {(type === 'hr' ? VOORDELEN_HR : type === 'zelfstandige' ? VOORDELEN_ZELFSTANDIGE : VOORDELEN_WERKNEMER).slice(0, 3).map(v => (
+                    <div key={v.tekst} className="flex items-center gap-2">
+                      <span className="text-sm">{v.icon}</span>
+                      <span className="text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>{v.tekst}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
 
               <div className="mt-8 flex items-center gap-4">
                 {['Gratis te starten', 'AVG-conform', 'Geen creditcard'].map(t => (
                   <div key={t} className="flex items-center gap-1.5">
-                    <span className="text-xs font-bold" style={{ color: '#1D9E75' }}>v</span>
+                    <span className="text-xs font-bold" style={{ color: '#1D9E75' }}>✓</span>
                     <span className="text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>{t}</span>
                   </div>
                 ))}

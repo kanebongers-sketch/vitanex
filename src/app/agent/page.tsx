@@ -6,8 +6,8 @@ import { createClient } from '@supabase/supabase-js'
 import Link from 'next/link'
 
 const sb = createClient(
-  'https://wicadprbktnzjnyexukl.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndpY2FkcHJia3RuempueWV4dWtsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4OTAxNDYsImV4cCI6MjA5MzQ2NjE0Nn0.jWTb0y0DgNUXZC6X84Ppm4SSP8R1rAX0yqJsRPuVVZE'
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 )
 
 const FF = '#F5A623', DARK = '#0c0c11', CARD = '#131318', CARD2 = '#1a1a22'
