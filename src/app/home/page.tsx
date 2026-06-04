@@ -138,8 +138,8 @@ function WeekKalender({ weekSelectie, vandaagStr }: { weekSelectie: WeekSelectie
                   </div>
                   <p style={{ fontSize: 11, fontWeight: 700, color: aantalGehaald > 0 ? kleur : '#9CA3AF' }}>{aantalGehaald}/7</p>
                 </div>
-                <div style={{ height: 6, borderRadius: 3, background: '#F3F4F6', overflow: 'hidden' }}>
-                  <div style={{ height: '100%', borderRadius: 3, background: kleur, width: `${pct}%`, transition: 'width 1s ease' }} />
+                <div style={{ height: 6, borderRadius: 9999, background: '#F3F4F6', overflow: 'hidden' }}>
+                  <div style={{ height: '100%', borderRadius: 9999, background: `linear-gradient(90deg, ${kleur}cc, ${kleur})`, width: `${pct}%`, transition: 'width 1s ease' }} />
                 </div>
               </Link>
             )
@@ -242,7 +242,7 @@ export default function HomePage() {
   const scoreKleur   = !vitaalScore ? '#9CA3AF' : vitaalScore >= 70 ? '#1D9E75' : vitaalScore >= 45 ? '#F59E0B' : '#EF4444'
   const scoreLabelStr = !vitaalScore ? '—' : vitaalScore >= 70 ? 'Goed op weg' : vitaalScore >= 45 ? 'Aandacht nodig' : 'Zorg voor jezelf'
   const dagtijd = (() => { const h = new Date().getHours(); return h < 12 ? 'Goedemorgen' : h < 18 ? 'Goedemiddag' : 'Goedenavond' })()
-  const datum   = new Date().toLocaleDateString('nl-BE', { weekday: 'long', day: 'numeric', month: 'long' })
+  const datum   = new Date().toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long' })
 
   // Bereken huidige streak van dagelijkse doellog events uit XP history
   const huidigeStreak = (() => {
@@ -394,14 +394,23 @@ export default function HomePage() {
                 : 'Vul je check-in in om je score te zien.'}
             </p>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              <Link href="/rapport" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#1D9E75', color: 'white', borderRadius: 10, padding: '9px 16px', fontSize: 13, fontWeight: 600, textDecoration: 'none' }}>
+              <Link href="/rapport" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#1D9E75', color: 'white', borderRadius: 10, padding: '9px 16px', fontSize: 13, fontWeight: 600, textDecoration: 'none', transition: 'transform 0.1s ease, opacity 0.1s ease' }}
+                onMouseDown={e => (e.currentTarget as HTMLElement).style.transform = 'scale(0.97)'}
+                onMouseUp={e => (e.currentTarget as HTMLElement).style.transform = 'scale(1)'}
+                onMouseLeave={e => (e.currentTarget as HTMLElement).style.transform = 'scale(1)'}>
                 Bekijk rapport
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="9 18 15 12 9 6" /></svg>
               </Link>
-              <Link href="/coach" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#E6F1FB', color: '#185FA5', borderRadius: 10, padding: '9px 16px', fontSize: 13, fontWeight: 600, textDecoration: 'none' }}>
+              <Link href="/coach" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#E6F1FB', color: '#185FA5', borderRadius: 10, padding: '9px 16px', fontSize: 13, fontWeight: 600, textDecoration: 'none', transition: 'transform 0.1s ease' }}
+                onMouseDown={e => (e.currentTarget as HTMLElement).style.transform = 'scale(0.97)'}
+                onMouseUp={e => (e.currentTarget as HTMLElement).style.transform = 'scale(1)'}
+                onMouseLeave={e => (e.currentTarget as HTMLElement).style.transform = 'scale(1)'}>
                 AI Coach
               </Link>
-              <Link href="/checkin" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#F9FAFB', color: '#6B7280', border: '1px solid #E5E7EB', borderRadius: 10, padding: '9px 16px', fontSize: 13, fontWeight: 600, textDecoration: 'none' }}>
+              <Link href="/checkin" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#F9FAFB', color: '#6B7280', border: '1px solid #E5E7EB', borderRadius: 10, padding: '9px 16px', fontSize: 13, fontWeight: 600, textDecoration: 'none', transition: 'transform 0.1s ease' }}
+                onMouseDown={e => (e.currentTarget as HTMLElement).style.transform = 'scale(0.97)'}
+                onMouseUp={e => (e.currentTarget as HTMLElement).style.transform = 'scale(1)'}
+                onMouseLeave={e => (e.currentTarget as HTMLElement).style.transform = 'scale(1)'}>
                 Nieuwe check-in
               </Link>
             </div>
@@ -410,19 +419,25 @@ export default function HomePage() {
 
         {/* ── STATS ── */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 20 }}>
-          <div style={{ background: 'white', borderRadius: 14, padding: '16px 18px', border: '1px solid #E5E7EB' }}>
+          <div className="mf-stat-card" style={{ background: 'white', borderRadius: 14, padding: '16px 18px', border: '1px solid #E5E7EB', transition: 'transform 0.18s ease, box-shadow 0.18s ease', cursor: 'default' }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-1px)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 4px 14px rgba(0,0,0,0.07)' }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(0)'; (e.currentTarget as HTMLElement).style.boxShadow = 'none' }}>
             <p style={{ fontSize: 11, color: '#9CA3AF', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Check-ins</p>
-            <p style={{ fontSize: 26, fontWeight: 800, color: '#185FA5' }}>{recentCheckins}</p>
+            <p style={{ fontSize: 26, fontWeight: 800, background: 'linear-gradient(135deg, #1D4ED8, #185FA5)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{recentCheckins}</p>
             <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 2 }}>afgelopen 4 weken</p>
           </div>
-          <div style={{ background: 'white', borderRadius: 14, padding: '16px 18px', border: '1px solid #E5E7EB' }}>
+          <div className="mf-stat-card" style={{ background: 'white', borderRadius: 14, padding: '16px 18px', border: '1px solid #E5E7EB', transition: 'transform 0.18s ease, box-shadow 0.18s ease', cursor: 'default' }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-1px)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 4px 14px rgba(0,0,0,0.07)' }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(0)'; (e.currentTarget as HTMLElement).style.boxShadow = 'none' }}>
             <p style={{ fontSize: 11, color: '#9CA3AF', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Vitaalscore</p>
-            <p style={{ fontSize: 26, fontWeight: 800, color: scoreKleur }}>{vitaalScore ?? '—'}</p>
+            <p style={{ fontSize: 26, fontWeight: 800, ...(vitaalScore !== null ? { background: `linear-gradient(135deg, ${scoreKleur}cc, ${scoreKleur})`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' } : { color: '#9CA3AF' }) }}>{vitaalScore ?? '—'}</p>
             <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 2 }}>{vitaalScore !== null ? 'van 100' : 'nog geen data'}</p>
           </div>
-          <div style={{ background: 'white', borderRadius: 14, padding: '16px 18px', border: '1px solid #E5E7EB' }}>
+          <div className="mf-stat-card" style={{ background: 'white', borderRadius: 14, padding: '16px 18px', border: '1px solid #E5E7EB', transition: 'transform 0.18s ease, box-shadow 0.18s ease', cursor: 'default' }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-1px)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 4px 14px rgba(0,0,0,0.07)' }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(0)'; (e.currentTarget as HTMLElement).style.boxShadow = 'none' }}>
             <p style={{ fontSize: 11, color: '#9CA3AF', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Doelen</p>
-            <p style={{ fontSize: 26, fontWeight: 800, color: '#7C3AED' }}>{weekSelectie?.doelen.length ?? 0}</p>
+            <p style={{ fontSize: 26, fontWeight: 800, background: 'linear-gradient(135deg, #9333EA, #7C3AED)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{weekSelectie?.doelen.length ?? 0}</p>
             <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 2 }}>actief deze week</p>
           </div>
           {xpData ? (() => {
@@ -432,7 +447,9 @@ export default function HomePage() {
             const vrt   = xpVoortgang(xpData.xp, level)
             return (
               <Link href="/niveau" style={{ textDecoration: 'none' }}>
-                <div style={{ background: 'white', borderRadius: 14, padding: '16px 18px', border: `1.5px solid ${kleur}30`, height: '100%', boxSizing: 'border-box' }}>
+                <div style={{ background: 'white', borderRadius: 14, padding: '16px 18px', border: `1.5px solid ${kleur}30`, height: '100%', boxSizing: 'border-box', transition: 'transform 0.18s ease, box-shadow 0.18s ease' }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-1px)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 4px 14px rgba(0,0,0,0.07)' }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(0)'; (e.currentTarget as HTMLElement).style.boxShadow = 'none' }}>
                   <p style={{ fontSize: 11, color: '#9CA3AF', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Fit Level</p>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
                     <div style={{ width: 32, height: 32, borderRadius: 8, background: bg, border: `2px solid ${kleur}40`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -440,8 +457,8 @@ export default function HomePage() {
                     </div>
                     <span style={{ fontSize: 13, fontWeight: 700, color: '#111827' }}>{LEVEL_NAMEN[level]}</span>
                   </div>
-                  <div style={{ height: 4, borderRadius: 2, background: '#F3F4F6', overflow: 'hidden' }}>
-                    <div style={{ height: '100%', borderRadius: 2, background: kleur, width: `${vrt.pct}%`, transition: 'width 1s ease' }} />
+                  <div style={{ height: 4, borderRadius: 9999, background: '#F3F4F6', overflow: 'hidden' }}>
+                    <div style={{ height: '100%', borderRadius: 9999, background: `linear-gradient(90deg, ${kleur}99, ${kleur})`, width: `${vrt.pct}%`, transition: 'width 1s ease' }} />
                   </div>
                   {wekenStreak >= 2 && (
                     <p style={{ fontSize: 9, color: kleur, fontWeight: 700, marginTop: 4, textAlign: 'right' }}>
@@ -489,13 +506,15 @@ export default function HomePage() {
               const label = s >= 16 ? 'Goed' : s >= 12 ? 'Matig' : s > 0 ? 'Laag' : null
               return (
                 <Link key={vlak} href="/rapport" style={{ textDecoration: 'none' }}>
-                  <div style={{ background: 'white', borderRadius: 14, padding: '12px 8px', border: `1.5px solid ${s > 0 ? bar + '30' : '#E5E7EB'}`, textAlign: 'center' }}>
+                  <div style={{ background: 'white', borderRadius: 14, padding: '12px 8px', border: `1.5px solid ${s > 0 ? bar + '30' : '#E5E7EB'}`, textAlign: 'center', transition: 'transform 0.18s ease, box-shadow 0.18s ease' }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-1px)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 4px 14px rgba(0,0,0,0.07)' }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(0)'; (e.currentTarget as HTMLElement).style.boxShadow = 'none' }}>
                     <div style={{ width: 34, height: 34, borderRadius: 10, background: s > 0 ? c.bg : '#F9FAFB', display: 'flex', alignItems: 'center', justifyContent: 'center', color: s > 0 ? c.kleur : '#D1D5DB', margin: '0 auto 6px' }}>
                       <span style={{ transform: 'scale(0.75)', display: 'flex' }}>{c.icon}</span>
                     </div>
                     <p style={{ fontSize: 10, fontWeight: 700, color: '#374151', marginBottom: 5 }}>{c.label}</p>
-                    <div style={{ height: 4, borderRadius: 2, background: '#F3F4F6', overflow: 'hidden', marginBottom: 4 }}>
-                      <div style={{ height: '100%', borderRadius: 2, background: bar, width: `${pct}%`, transition: 'width 0.8s ease' }} />
+                    <div style={{ height: 4, borderRadius: 9999, background: '#F3F4F6', overflow: 'hidden', marginBottom: 4 }}>
+                      <div style={{ height: '100%', borderRadius: 9999, background: s > 0 ? `linear-gradient(90deg, ${bar}99, ${bar})` : bar, width: `${pct}%`, transition: 'width 0.8s ease' }} />
                     </div>
                     {s > 0
                       ? <span style={{ fontSize: 9, fontWeight: 700, color: bar }}>{label}</span>
@@ -522,19 +541,22 @@ export default function HomePage() {
             <WeekKalender weekSelectie={weekSelectie} vandaagStr={weekVandaag()} />
           ) : (
             <Link href={doelkeuzeUrl} style={{ textDecoration: 'none' }}>
-              <div style={{ background: 'white', borderRadius: 16, padding: '18px 20px', border: '2px dashed #E5E7EB', display: 'flex', alignItems: 'center', gap: 14 }}>
-                <div style={{ width: 40, height: 40, borderRadius: 12, background: '#E1F5EE', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: '#1D9E75' }}>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+              <div style={{ background: 'white', borderRadius: 20, padding: '32px 24px', border: '2px dashed #E5E7EB', textAlign: 'center', transition: 'transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease' }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-1px)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 4px 14px rgba(0,0,0,0.07)'; (e.currentTarget as HTMLElement).style.borderColor = '#1D9E75' }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(0)'; (e.currentTarget as HTMLElement).style.boxShadow = 'none'; (e.currentTarget as HTMLElement).style.borderColor = '#E5E7EB' }}>
+                <div style={{ width: 56, height: 56, borderRadius: 16, background: '#E1F5EE', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px', color: '#1D9E75' }}>
+                  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
                 </div>
-                <div style={{ flex: 1 }}>
-                  <p style={{ fontSize: 13, fontWeight: 700, color: '#111827', marginBottom: 2 }}>
-                    {vlakScores ? 'Kies je weekdoelen' : 'Start je eerste check-in'}
-                  </p>
-                  <p style={{ fontSize: 12, color: '#9CA3AF' }}>
-                    {vlakScores ? 'Je check-in is gedaan. Stel nu je 3 doelen in voor deze week.' : 'Vul je check-in in om weekdoelen te kiezen.'}
-                  </p>
+                <p style={{ fontSize: 15, fontWeight: 700, color: '#111827', marginBottom: 6 }}>
+                  {vlakScores ? 'Kies je weekdoelen' : 'Start je eerste check-in'}
+                </p>
+                <p style={{ fontSize: 13, color: '#9CA3AF', marginBottom: 18, lineHeight: 1.5 }}>
+                  {vlakScores ? 'Je check-in is gedaan. Stel nu je 3 doelen in voor deze week.' : 'Vul je check-in in om je welzijn te meten en weekdoelen te kiezen.'}
+                </p>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#1D9E75', color: 'white', borderRadius: 10, padding: '9px 20px', fontSize: 13, fontWeight: 600 }}>
+                  {vlakScores ? 'Doelen instellen' : 'Check-in starten'}
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="9 18 15 12 9 6" /></svg>
                 </div>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#D1D5DB" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
               </div>
             </Link>
           )}
@@ -554,8 +576,13 @@ export default function HomePage() {
               { href: '/focus',       kleur: '#059669', bg: '#D1FAE5', label: 'Focus',       icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg> },
               { href: '/nieuws',      kleur: '#6B7280', bg: '#F3F4F6', label: 'Nieuws',      icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M18 14h-8"/><path d="M15 18h-5"/><path d="M10 6h8v4h-8V6Z"/></svg> },
             ].map(item => (
-              <Link key={item.href} href={item.href} style={{ textDecoration: 'none', flex: 1 }}>
-                <div style={{ background: 'white', borderRadius: 12, padding: '12px 10px', border: '1px solid #E5E7EB', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+              <Link key={item.href} href={item.href} style={{ textDecoration: 'none', flex: 1 }}
+                onMouseDown={e => (e.currentTarget as HTMLElement).style.transform = 'scale(0.97)'}
+                onMouseUp={e => (e.currentTarget as HTMLElement).style.transform = 'scale(1)'}
+                onMouseLeave={e => (e.currentTarget as HTMLElement).style.transform = 'scale(1)'}>
+                <div style={{ background: 'white', borderRadius: 12, padding: '12px 10px', border: '1px solid #E5E7EB', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, transition: 'transform 0.18s ease, box-shadow 0.18s ease' }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-1px)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 4px 14px rgba(0,0,0,0.07)' }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(0)'; (e.currentTarget as HTMLElement).style.boxShadow = 'none' }}>
                   <div style={{ width: 36, height: 36, borderRadius: 10, background: item.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', color: item.kleur }}>
                     {item.icon}
                   </div>

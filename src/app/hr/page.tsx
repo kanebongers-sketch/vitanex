@@ -164,12 +164,15 @@ export default function HrDashboardPage() {
             <div key={s.label} style={{
               background: 'white', borderRadius: 12, padding: '18px 20px',
               border: '1px solid #E5E7EB', boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
-            }}>
+              transition: 'transform 0.18s ease, box-shadow 0.18s ease', cursor: 'default',
+            }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-1px)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 6px 18px rgba(0,0,0,0.08)' }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(0)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 1px 4px rgba(0,0,0,0.05)' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
                 <p style={{ fontSize: 12, color: '#9CA3AF', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{s.label}</p>
                 <div style={{ width: 32, height: 32, borderRadius: 8, background: s.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>{s.icon}</div>
               </div>
-              <p style={{ fontSize: 26, fontWeight: 800, color: s.color, letterSpacing: '-0.02em' }}>{s.value}</p>
+              <p style={{ fontSize: 26, fontWeight: 800, letterSpacing: '-0.02em', background: `linear-gradient(135deg, ${s.color}cc, ${s.color})`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{s.value}</p>
             </div>
           ))}
         </div>
@@ -192,6 +195,9 @@ export default function HrDashboardPage() {
                   fontSize: 13, fontWeight: 600, cursor: bezig ? 'default' : 'pointer',
                   transition: 'all 0.2s',
                 }}
+                onMouseDown={e => !bezig && ((e.currentTarget as HTMLElement).style.transform = 'scale(0.97)')}
+                onMouseUp={e => ((e.currentTarget as HTMLElement).style.transform = 'scale(1)')}
+                onMouseLeave={e => ((e.currentTarget as HTMLElement).style.transform = 'scale(1)')}
               >
                 {bezig ? 'Opslaan...' : opgeslagen ? '✓ Opgeslagen' : 'Opslaan'}
               </button>
@@ -204,9 +210,17 @@ export default function HrDashboardPage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 20 }}>
               {actiefTiles.length === 0 && (
                 <div style={{
-                  background: 'white', border: '2px dashed #E5E7EB', borderRadius: 10,
-                  padding: 24, textAlign: 'center', color: '#9CA3AF', fontSize: 13,
-                }}>Geen actieve tegels</div>
+                  background: 'white', border: '2px dashed #E5E7EB', borderRadius: 14,
+                  padding: '28px 20px', textAlign: 'center',
+                }}>
+                  <div style={{ width: 44, height: 44, borderRadius: 12, background: '#F3F4F6', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 10px' }}>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+                    </svg>
+                  </div>
+                  <p style={{ fontSize: 13, fontWeight: 600, color: '#6B7280', marginBottom: 4 }}>Geen actieve tegels</p>
+                  <p style={{ fontSize: 12, color: '#9CA3AF' }}>Schakel hieronder tegels in om ze te tonen in het portaal.</p>
+                </div>
               )}
               {actiefTiles.map((tile, idx) => (
                 <div key={tile.id} draggable
@@ -295,10 +309,12 @@ export default function HrDashboardPage() {
                 background: 'white', borderRadius: 10, padding: '12px 14px',
                 border: '1px solid #E5E7EB', textDecoration: 'none',
                 boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
-                transition: 'box-shadow 0.15s, border-color 0.15s',
+                transition: 'box-shadow 0.15s, border-color 0.15s, transform 0.1s ease',
               }}
-                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.boxShadow = '0 4px 12px rgba(0,0,0,0.08)'; (e.currentTarget as HTMLElement).style.borderColor = '#D1D5DB' }}
-                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.boxShadow = '0 1px 3px rgba(0,0,0,0.04)'; (e.currentTarget as HTMLElement).style.borderColor = '#E5E7EB' }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.boxShadow = '0 4px 12px rgba(0,0,0,0.08)'; (e.currentTarget as HTMLElement).style.borderColor = '#D1D5DB'; (e.currentTarget as HTMLElement).style.transform = 'translateY(-1px)' }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.boxShadow = '0 1px 3px rgba(0,0,0,0.04)'; (e.currentTarget as HTMLElement).style.borderColor = '#E5E7EB'; (e.currentTarget as HTMLElement).style.transform = 'translateY(0)' }}
+                onMouseDown={e => ((e.currentTarget as HTMLElement).style.transform = 'scale(0.97)')}
+                onMouseUp={e => ((e.currentTarget as HTMLElement).style.transform = 'translateY(-1px)')}
               >
                 <div style={{ width: 34, height: 34, borderRadius: 8, flexShrink: 0, background: item.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>{item.icon}</div>
                 <p style={{ fontSize: 13, fontWeight: 500, color: '#374151', flex: 1 }}>{item.label}</p>

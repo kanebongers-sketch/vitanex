@@ -169,7 +169,7 @@ export default function CheckIn() {
         setKanOpnieuw(uren < 4)
         const volgende = new Date(sessie.aangemaakt_op)
         volgende.setDate(volgende.getDate() + 7)
-        setVolgendeCheckin(volgende.toLocaleDateString('nl-BE', { weekday: 'long', day: 'numeric', month: 'long' }))
+        setVolgendeCheckin(volgende.toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long' }))
       }
 
       setCheckend(false)
@@ -404,9 +404,9 @@ export default function CheckIn() {
 
           {/* Voortgangsbalk + auto-knop */}
           <div className="flex items-center gap-3">
-            <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-              <div className="h-full rounded-full transition-all duration-500"
-                style={{ width: `${voortgangPct}%`, background: huidigeSectie.kleur }} />
+            <div className="flex-1 h-1.5 bg-gray-100 overflow-hidden" style={{ borderRadius: 9999 }}>
+              <div className="h-full transition-all duration-500"
+                style={{ width: `${voortgangPct}%`, background: `linear-gradient(90deg, ${huidigeSectie.kleur}99, ${huidigeSectie.kleur})`, borderRadius: 9999 }} />
             </div>
             <span className="text-xs text-gray-400 flex-shrink-0">{voortgangPct}%</span>
             <button
@@ -461,7 +461,10 @@ export default function CheckIn() {
         <div className="flex gap-3 mt-6">
           {sectieIdx > 0 && (
             <button onClick={vorigeSectie}
-              className="px-6 py-3.5 rounded-xl text-sm font-medium border border-gray-200 text-gray-500 hover:bg-gray-50 transition">
+              className="px-6 py-3.5 rounded-xl text-sm font-medium border border-gray-200 text-gray-500 hover:bg-gray-50 transition"
+              onMouseDown={e => ((e.currentTarget as HTMLElement).style.transform = 'scale(0.97)')}
+              onMouseUp={e => ((e.currentTarget as HTMLElement).style.transform = 'scale(1)')}
+              onMouseLeave={e => ((e.currentTarget as HTMLElement).style.transform = 'scale(1)')}>
               Vorige
             </button>
           )}
@@ -469,7 +472,11 @@ export default function CheckIn() {
             onClick={volgendeSectie}
             disabled={!sectieCompleet(sectieIdx) || laden}
             className="flex-1 py-3.5 rounded-xl text-white font-semibold text-sm transition disabled:opacity-30 flex items-center justify-center gap-2"
-            style={{ background: huidigeSectie.kleur }}>
+            style={{ background: huidigeSectie.kleur }}
+            onMouseDown={e => !laden && ((e.currentTarget as HTMLElement).style.transform = 'scale(0.97)')}
+            onMouseUp={e => ((e.currentTarget as HTMLElement).style.transform = 'scale(1)')}
+            onMouseLeave={e => ((e.currentTarget as HTMLElement).style.transform = 'scale(1)')}>
+
             {laden && <span className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" />}
             {laden ? 'Opslaan...' : sectieIdx === totaalSecties - 1 ? 'Afronden en opslaan' : 'Volgende'}
           </button>
@@ -514,7 +521,11 @@ function VraagKaart({ vraag, waarde, kleur, licht, onChange }: {
                 background:  geselecteerd === n ? kleur : '#F9FAFB',
                 borderColor: geselecteerd === n ? kleur : '#e5e7eb',
                 color:       geselecteerd === n ? 'white' : '#9ca3af',
-              }}>
+                transition:  'transform 0.1s ease, background 0.15s ease',
+              }}
+              onMouseDown={e => ((e.currentTarget as HTMLElement).style.transform = 'scale(0.93)')}
+              onMouseUp={e => ((e.currentTarget as HTMLElement).style.transform = 'scale(1)')}
+              onMouseLeave={e => ((e.currentTarget as HTMLElement).style.transform = 'scale(1)')}>
               {n}
             </button>
           ))}

@@ -11,6 +11,9 @@ import Navbar from '@/components/Navbar'
 import { Avatar } from '@/components/Avatar'
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
 import GesprekkenTab from '@/components/GesprekkenTab'
+import HRKpiCards from '@/components/HRKpiCards'
+import HRSnelkoppelingen from '@/components/HRSnelkoppelingen'
+import BedrijfTabComponent, { type BedrijfInfo as BedrijfInfoComponent } from '@/components/BedrijfTab'
 
 const WAARSCHUWING_GRENS = 2.5
 
@@ -197,151 +200,6 @@ Geef 2-3 zinnen concreet advies. Wat moet HR nu doen?`,
 
 type TabKey = 'overzicht' | 'team' | 'trends' | 'signalen' | 'verlof' | 'declaraties' | 'gesprekken' | 'bedrijf'
 
-// ── KPI Cards row ────────────────────────────────────────────────────────────
-
-function KPICards({
-  participatieRate,
-  ingevuld,
-  teamGrootte,
-  signaalCount,
-  pendingVerlof,
-  pendingDeclaraties,
-  onTabSwitch,
-}: {
-  participatieRate: number
-  ingevuld: number
-  teamGrootte: number
-  signaalCount: number
-  pendingVerlof: number
-  pendingDeclaraties: number
-  onTabSwitch: (tab: TabKey) => void
-}) {
-  const kpis: { label: string; value: string; sub: string; color: string; bg: string; tab: TabKey | null }[] = [
-    {
-      label: 'Participatie',
-      value: `${participatieRate}%`,
-      sub: `${ingevuld}/${teamGrootte} check-ins`,
-      color: participatieRate >= 70 ? '#1D9E75' : participatieRate >= 40 ? '#BA7517' : '#E24B4A',
-      bg: participatieRate >= 70 ? '#E1F5EE' : participatieRate >= 40 ? '#FAEEDA' : '#FCEBEB',
-      tab: null,
-    },
-    {
-      label: 'Actieve signalen',
-      value: String(signaalCount),
-      sub: signaalCount === 0 ? 'Geen aandachtspunten' : `${signaalCount} risico${signaalCount !== 1 ? 's' : ''}`,
-      color: signaalCount > 0 ? '#E24B4A' : '#1D9E75',
-      bg: signaalCount > 0 ? '#FCEBEB' : '#E1F5EE',
-      tab: 'signalen',
-    },
-    {
-      label: 'Open verlof',
-      value: String(pendingVerlof),
-      sub: pendingVerlof === 0 ? 'Alles behandeld' : `${pendingVerlof} te behandelen`,
-      color: pendingVerlof > 0 ? '#BA7517' : '#1D9E75',
-      bg: pendingVerlof > 0 ? '#FAEEDA' : '#E1F5EE',
-      tab: 'verlof',
-    },
-    {
-      label: 'Open declaraties',
-      value: String(pendingDeclaraties),
-      sub: pendingDeclaraties === 0 ? 'Alles behandeld' : `${pendingDeclaraties} te behandelen`,
-      color: pendingDeclaraties > 0 ? '#8B5CF6' : '#1D9E75',
-      bg: pendingDeclaraties > 0 ? '#EDE9FE' : '#E1F5EE',
-      tab: 'declaraties',
-    },
-  ]
-
-  return (
-    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-      {kpis.map(kpi => (
-        <div
-          key={kpi.label}
-          onClick={() => kpi.tab && onTabSwitch(kpi.tab)}
-          className="bg-white rounded-2xl border border-gray-100 p-4"
-          style={{ cursor: kpi.tab ? 'pointer' : 'default', borderTop: `3px solid ${kpi.color}` }}
-        >
-          <p className="text-xs text-gray-400 mb-1">{kpi.label}</p>
-          <p className="text-2xl font-bold" style={{ color: kpi.color }}>{kpi.value}</p>
-          <p className="text-xs mt-1" style={{ color: kpi.color }}>{kpi.sub}</p>
-        </div>
-      ))}
-    </div>
-  )
-}
-
-// ── Snelkoppelingen row ──────────────────────────────────────────────────────
-
-function Snelkoppelingen({
-  hrCode,
-  onTabSwitch,
-  onNieuwMedewerker,
-}: {
-  hrCode: string
-  onTabSwitch: (tab: string) => void
-  onNieuwMedewerker: () => void
-}) {
-  const [gekopieerd, setGekopieerd] = useState(false)
-
-  function kopieerCode() {
-    navigator.clipboard.writeText(hrCode).then(() => {
-      setGekopieerd(true)
-      setTimeout(() => setGekopieerd(false), 2000)
-    })
-  }
-
-  const acties = [
-    {
-      icon: '💬',
-      label: 'Nieuw gesprek',
-      sub: 'Plannen',
-      onClick: () => onTabSwitch('gesprekken'),
-      color: '#185FA5',
-      bg: '#E6F1FB',
-    },
-    {
-      icon: '🔔',
-      label: 'Herinnering',
-      sub: 'Stuur naar team',
-      onClick: () => onTabSwitch('team'),
-      color: '#BA7517',
-      bg: '#FAEEDA',
-    },
-    {
-      icon: '📅',
-      label: 'Nieuw rooster',
-      sub: 'Plannen',
-      onClick: () => onTabSwitch('roosters'),
-      color: '#8B5CF6',
-      bg: '#EDE9FE',
-    },
-    {
-      icon: '🔑',
-      label: hrCode ? `Code: ${hrCode}` : 'HR Code',
-      sub: gekopieerd ? 'Gekopieerd!' : 'Klik om te kopieren',
-      onClick: kopieerCode,
-      color: '#1D9E75',
-      bg: '#E1F5EE',
-    },
-  ]
-
-  return (
-    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-      {acties.map(actie => (
-        <button
-          key={actie.label}
-          onClick={actie.onClick}
-          className="rounded-2xl p-4 text-left transition hover:opacity-80"
-          style={{ background: actie.bg, border: `1px solid ${actie.color}20` }}
-        >
-          <span className="text-2xl block mb-2">{actie.icon}</span>
-          <p className="text-sm font-semibold" style={{ color: actie.color }}>{actie.label}</p>
-          <p className="text-xs mt-0.5" style={{ color: actie.color, opacity: 0.7 }}>{actie.sub}</p>
-        </button>
-      ))}
-    </div>
-  )
-}
-
 // ── Aankomende Gesprekken Widget ─────────────────────────────────────────────
 
 function AankomendeGesprekken({ gesprekken }: { gesprekken: Gesprek[] }) {
@@ -483,13 +341,26 @@ function BulkActies({
     const doelwitten = gefilterdTeam.filter(l => geselecteerd.has(l.id))
     if (doelwitten.length === 0) return
     setBezig(true)
-    // In werkelijkheid: API call naar /api/herinnering met user IDs
-    await new Promise(r => setTimeout(r, 800))
-    onHerinnering(doelwitten)
-    setFeedback(`Herinnering verstuurd naar ${doelwitten.length} medewerker${doelwitten.length !== 1 ? 's' : ''}.`)
-    setGeselecteerd(new Set())
+    try {
+      const resp = await fetch('/api/herinnering', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userIds: doelwitten.map(l => l.id) }),
+      })
+      if (resp.ok) {
+        onHerinnering(doelwitten)
+        setFeedback(`Herinnering verstuurd naar ${doelwitten.length} medewerker${doelwitten.length !== 1 ? 's' : ''}.`)
+        setGeselecteerd(new Set())
+        setTimeout(() => setFeedback(null), 4000)
+      } else {
+        setFeedback('Kon herinnering niet versturen. Probeer opnieuw.')
+        setTimeout(() => setFeedback(null), 5000)
+      }
+    } catch {
+      setFeedback('Networkfout — herinnering niet verstuurd.')
+      setTimeout(() => setFeedback(null), 5000)
+    }
     setBezig(false)
-    setTimeout(() => setFeedback(null), 4000)
   }
 
   function exporteerCSV() {
@@ -623,11 +494,19 @@ function MedewerkerUitnodigenModal({ onSluit, hrCode }: { onSluit: () => void; h
     if (!emailInput.trim()) return
     setBezig(true)
     try {
-      // In werkelijkheid: POST /api/uitnodiging met email, naam, hrCode
-      await new Promise(r => setTimeout(r, 800))
-      setResultaat({ ok: true, bericht: `Uitnodiging verstuurd naar ${emailInput}` })
+      const resp = await fetch('/api/uitnodiging', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: emailInput.trim(), naam: naamInput.trim(), hrCode }),
+      })
+      if (resp.ok) {
+        setResultaat({ ok: true, bericht: `Uitnodiging verstuurd naar ${emailInput}` })
+      } else {
+        const fout = await resp.json().catch(() => ({}))
+        setResultaat({ ok: false, bericht: fout?.message || 'Kon uitnodiging niet versturen. Probeer opnieuw.' })
+      }
     } catch {
-      setResultaat({ ok: false, bericht: 'Kon uitnodiging niet versturen. Probeer opnieuw.' })
+      setResultaat({ ok: false, bericht: 'Networkfout — controleer de verbinding en probeer opnieuw.' })
     }
     setBezig(false)
   }
@@ -697,154 +576,6 @@ function MedewerkerUitnodigenModal({ onSluit, hrCode }: { onSluit: () => void; h
   )
 }
 
-// ── Bedrijf Tab ──────────────────────────────────────────────────────────────
-
-function BedrijfTab({
-  bedrijf,
-  teamGrootte,
-  onCodeVernieuwd,
-}: {
-  bedrijf: BedrijfInfo | null
-  teamGrootte: number
-  onCodeVernieuwd: (nieuweCode: string) => void
-}) {
-  const [gekopieerd, setGekopieerd] = useState(false)
-  const [vernieuwBezig, setVernieuwBezig] = useState(false)
-  const [bewerkenActief, setBewerkenActief] = useState(false)
-  const [bedrijfsnaam, setBedrijfsnaam] = useState(bedrijf?.naam || '')
-  const [opslaanBezig, setOpslaanBezig] = useState(false)
-  const [opslaanFeedback, setOpslaanFeedback] = useState<string | null>(null)
-
-  function kopieerCode() {
-    if (!bedrijf?.hr_code) return
-    navigator.clipboard.writeText(bedrijf.hr_code).then(() => {
-      setGekopieerd(true)
-      setTimeout(() => setGekopieerd(false), 2000)
-    })
-  }
-
-  async function vernieuwCode() {
-    if (!bedrijf?.id) return
-    setVernieuwBezig(true)
-    const nieuweCode = Math.random().toString(36).slice(2, 8).toUpperCase()
-    const { error } = await supabase
-      .from('bedrijven')
-      .update({ hr_code: nieuweCode })
-      .eq('id', bedrijf.id)
-    if (!error) onCodeVernieuwd(nieuweCode)
-    setVernieuwBezig(false)
-  }
-
-  async function slaaNaamOp(e: React.FormEvent) {
-    e.preventDefault()
-    if (!bedrijf?.id || !bedrijfsnaam.trim()) return
-    setOpslaanBezig(true)
-    const { error } = await supabase
-      .from('bedrijven')
-      .update({ naam: bedrijfsnaam.trim() })
-      .eq('id', bedrijf.id)
-    if (!error) {
-      setOpslaanFeedback('Naam opgeslagen.')
-      setBewerkenActief(false)
-      setTimeout(() => setOpslaanFeedback(null), 3000)
-    }
-    setOpslaanBezig(false)
-  }
-
-  return (
-    <div className="flex flex-col gap-4 max-w-lg">
-      {/* HR Code card */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-6">
-        <p className="text-sm font-semibold text-gray-700 mb-1">HR-code</p>
-        <p className="text-xs text-gray-400 mb-4">
-          Medewerkers gebruiken deze code om lid te worden van jouw bedrijf in MentaForce.
-        </p>
-        <div className="flex items-center gap-3 mb-4">
-          <div className="flex-1 rounded-xl border-2 border-dashed border-gray-200 px-4 py-3 text-center">
-            <p className="text-3xl font-bold tracking-widest" style={{ color: '#1D9E75', fontFamily: 'monospace' }}>
-              {bedrijf?.hr_code || '......'}
-            </p>
-          </div>
-        </div>
-        <div className="flex gap-2">
-          <button
-            onClick={kopieerCode}
-            className="flex-1 py-2 rounded-xl text-sm font-medium transition"
-            style={{ background: '#E1F5EE', color: '#0F6E56' }}
-          >
-            {gekopieerd ? 'Gekopieerd!' : 'Kopieer code'}
-          </button>
-          <button
-            onClick={vernieuwCode}
-            disabled={vernieuwBezig}
-            className="px-4 py-2 rounded-xl text-sm font-medium border border-gray-200 hover:bg-gray-50 transition disabled:opacity-40"
-            style={{ color: '#6b7280' }}
-          >
-            {vernieuwBezig ? '...' : 'Vernieuwen'}
-          </button>
-        </div>
-        <p className="text-xs text-gray-400 mt-3">
-          Let op: bij vernieuwen werkt de oude code niet meer.
-        </p>
-      </div>
-
-      {/* Bedrijfsinfo */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-6">
-        <div className="flex items-center justify-between mb-4">
-          <p className="text-sm font-semibold text-gray-700">Bedrijfsinformatie</p>
-          <button
-            onClick={() => setBewerkenActief(a => !a)}
-            className="text-xs px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 transition"
-            style={{ color: '#6b7280' }}
-          >
-            {bewerkenActief ? 'Annuleren' : 'Bewerken'}
-          </button>
-        </div>
-
-        {bewerkenActief ? (
-          <form onSubmit={slaaNaamOp}>
-            <label className="text-xs font-medium text-gray-500 block mb-1">Bedrijfsnaam</label>
-            <input
-              value={bedrijfsnaam}
-              onChange={e => setBedrijfsnaam(e.target.value)}
-              className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-gray-400 mb-3"
-            />
-            <button
-              type="submit"
-              disabled={opslaanBezig}
-              className="w-full py-2 rounded-xl text-sm font-semibold text-white disabled:opacity-40"
-              style={{ background: '#1D9E75' }}
-            >
-              {opslaanBezig ? 'Opslaan...' : 'Opslaan'}
-            </button>
-          </form>
-        ) : (
-          <div className="flex flex-col gap-3">
-            <div className="flex items-center justify-between py-2 border-b border-gray-50">
-              <span className="text-xs text-gray-400">Naam</span>
-              <span className="text-sm font-medium text-gray-700">{bedrijf?.naam || '—'}</span>
-            </div>
-            <div className="flex items-center justify-between py-2 border-b border-gray-50">
-              <span className="text-xs text-gray-400">Actieve medewerkers</span>
-              <span className="text-sm font-medium text-gray-700">{teamGrootte}</span>
-            </div>
-            <div className="flex items-center justify-between py-2">
-              <span className="text-xs text-gray-400">Bedrijf-ID</span>
-              <span className="text-xs font-mono text-gray-400">{bedrijf?.id?.slice(0, 8)}...</span>
-            </div>
-          </div>
-        )}
-
-        {opslaanFeedback && (
-          <div className="mt-3 rounded-xl p-2 text-xs font-medium" style={{ background: '#E1F5EE', color: '#0F6E56' }}>
-            {opslaanFeedback}
-          </div>
-        )}
-      </div>
-    </div>
-  )
-}
-
 // ── Main Dashboard ───────────────────────────────────────────────────────────
 
 export default function Dashboard() {
@@ -864,7 +595,7 @@ export default function Dashboard() {
   const [verlofAanvragen, setVerlofAanvragen] = useState<VerlofHR[]>([])
   const [declaratiesHR, setDeclaratiesHR] = useState<DeclaratieHR[]>([])
   const [bedrijf, setBedrijf] = useState<BedrijfInfo | null>(null)
-  const [gesprekken] = useState<Gesprek[]>([]) // Wordt gevuld zodra gesprekken-tabel beschikbaar is
+  const [gesprekken, setGesprekken] = useState<Gesprek[]>([])
   const [uitnodigenOpen, setUitnodigenOpen] = useState(false)
 
   const switchTab = useCallback((tab: TabKey) => {
@@ -912,7 +643,9 @@ export default function Dashboard() {
           .eq('id', profiel.bedrijf_id)
           .single()
         if (bedrijfData) setBedrijf(bedrijfData as BedrijfInfo)
-      } catch { /* bedrijven tabel kan anders heten */ }
+      } catch (err) {
+        console.error('[Dashboard] Bedrijf ophalen mislukt:', err)
+      }
 
       const { data: perUserData } = await supabase
         .from('checkins')
@@ -968,6 +701,26 @@ export default function Dashboard() {
           })))
         }
       } catch { /* table may not exist yet */ }
+
+      // Aankomende gesprekken voor het overzicht widget
+      try {
+        const { data: gesprekData } = await supabase
+          .from('hr_gesprekken')
+          .select('id, datum, type, medewerker:profiles!hr_gesprekken_medewerker_id_fkey(naam)')
+          .eq('bedrijf_id', profiel.bedrijf_id)
+          .eq('status', 'gepland')
+          .gte('datum', new Date().toISOString())
+          .order('datum', { ascending: true })
+          .limit(10)
+        if (gesprekData) {
+          setGesprekken((gesprekData as unknown as { id: string; datum: string; type: string; medewerker: { naam: string } | null }[]).map(g => ({
+            id: g.id,
+            datum: g.datum,
+            type: g.type,
+            medewerker_naam: g.medewerker?.naam ?? 'Onbekend',
+          })))
+        }
+      } catch { /* hr_gesprekken table may not exist yet */ }
 
       setLaden(false)
     }
@@ -1084,6 +837,14 @@ export default function Dashboard() {
   const pendingVerlof = verlofAanvragen.filter(v => v.status === 'aangevraagd').length
   const pendingDeclaraties = declaratiesHR.filter(d => d.status === 'ingediend').length
   const participatieRate = team.length > 0 ? Math.round((ingevuld.length / team.length) * 100) : 0
+
+  const now = new Date()
+  const maandStart = new Date(now.getFullYear(), now.getMonth(), 1)
+  const maandEind = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59)
+  const gesprekkenDezeMaand = gesprekken.filter(g => {
+    const d = new Date(g.datum)
+    return d >= maandStart && d <= maandEind
+  }).length
   const burnoutRisico = team.length > 0 ? Math.round((waarschuwingen.length / team.length) * 100) : 0
 
   const tabs: { key: TabKey; label: string; badge?: number; badgeKleur?: string }[] = [
@@ -1195,21 +956,22 @@ export default function Dashboard() {
             {actieveTab === 'overzicht' && (
               <>
                 {/* Snelkoppelingen */}
-                <Snelkoppelingen
+                <HRSnelkoppelingen
                   hrCode={bedrijf?.hr_code ?? ''}
                   onTabSwitch={(tab) => switchTab(tab as TabKey)}
                   onNieuwMedewerker={() => setUitnodigenOpen(true)}
                 />
 
                 {/* KPI Cards */}
-                <KPICards
+                <HRKpiCards
                   participatieRate={participatieRate}
                   ingevuld={ingevuld.length}
                   teamGrootte={team.length}
                   signaalCount={signalen.length}
                   pendingVerlof={pendingVerlof}
                   pendingDeclaraties={pendingDeclaraties}
-                  onTabSwitch={switchTab}
+                  gesprekkenDezeMaand={gesprekkenDezeMaand}
+                  onTabSwitch={(tab) => switchTab(tab as TabKey)}
                 />
 
                 {/* Two column widgets row */}
@@ -1312,9 +1074,36 @@ export default function Dashboard() {
                   </div>
                 )}
 
-                {checkins.length === 0 && (
+                {team.length === 0 && (
                   <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center mt-4">
-                    <p className="text-gray-400 text-sm">Nog geen check-ins. Nodig medewerkers uit via de Team-pagina.</p>
+                    <div className="max-w-sm mx-auto">
+                      <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl mx-auto mb-4"
+                        style={{ background: '#E6F1FB' }}>
+                        👋
+                      </div>
+                      <p className="text-base font-semibold text-gray-800 mb-1">Nodig je eerste medewerker uit</p>
+                      <p className="text-sm text-gray-400 mb-5">
+                        Je hebt nog geen medewerkers gekoppeld. Deel je HR-code of stuur een directe uitnodiging.
+                      </p>
+                      {bedrijf?.hr_code && (
+                        <div className="rounded-xl px-4 py-3 mb-4 text-sm font-mono font-bold tracking-widest"
+                          style={{ background: '#E1F5EE', color: '#0F6E56' }}>
+                          {bedrijf.hr_code}
+                        </div>
+                      )}
+                      <button
+                        onClick={() => setUitnodigenOpen(true)}
+                        className="px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition hover:opacity-90"
+                        style={{ background: '#1D9E75' }}
+                      >
+                        Medewerker uitnodigen
+                      </button>
+                    </div>
+                  </div>
+                )}
+                {team.length > 0 && checkins.length === 0 && (
+                  <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center mt-4">
+                    <p className="text-gray-400 text-sm">Nog geen check-ins beschikbaar. Medewerkers kunnen inloggen en een check-in invullen.</p>
                   </div>
                 )}
               </>
@@ -1590,10 +1379,21 @@ export default function Dashboard() {
             )}
 
             {/* ── BEDRIJF TAB ── */}
-            {actieveTab === 'bedrijf' && (
-              <BedrijfTab
-                bedrijf={bedrijf}
-                teamGrootte={team.length}
+            {actieveTab === 'bedrijf' && !bedrijf && (
+              <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center">
+                <p className="text-sm text-gray-500">Bedrijfsdata kon niet worden geladen. Ververs de pagina of neem contact op met support.</p>
+              </div>
+            )}
+            {actieveTab === 'bedrijf' && bedrijf && (
+              <BedrijfTabComponent
+                bedrijf={bedrijf as BedrijfInfoComponent | null}
+                team={team.map(l => ({
+                  id: l.id,
+                  naam: l.naam,
+                  afdeling: null,
+                  laatste_score: l.laatste_score,
+                  deze_week_ingevuld: l.deze_week_ingevuld,
+                }))}
                 onCodeVernieuwd={(nieuweCode) => setBedrijf(prev => prev ? { ...prev, hr_code: nieuweCode } : prev)}
               />
             )}
