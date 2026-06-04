@@ -372,6 +372,18 @@ export default function CheckIn() {
     <main className="min-h-screen pb-16"
       style={{ background: 'linear-gradient(160deg, #F0FAF6 0%, #EBF4FB 50%, #F5F3FF 100%)' }}>
 
+      {/* Verplichte check-in banner */}
+      <div style={{
+        background: 'linear-gradient(135deg, #0F6E56, #1D9E75)',
+        padding: '14px 20px',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+      }}>
+        <span style={{ fontSize: 18 }}>📋</span>
+        <p style={{ color: 'white', fontSize: 13, fontWeight: 600, textAlign: 'center' }}>
+          Vul eerst je wekelijkse check-in in — daarna heb je toegang tot de rest van de app.
+        </p>
+      </div>
+
       {/* Sticky header */}
       <div ref={topRef} className="sticky top-0 z-20 border-b"
         style={{ background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(12px)', borderColor: '#e5e7eb' }}>

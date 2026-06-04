@@ -125,6 +125,36 @@ export default function Navbar() {
 
       try { if (mounted) setFitLevel(berekenLevel(laadXPData().xp)) } catch { /* non-critical */ }
 
+      // ── Wekelijkse check-in gate (alleen voor medewerkers/gebruikers) ──
+      const effectiefViewMode = rol === 'admin'
+        ? (localStorage.getItem('mf-view-mode') ?? 'admin')
+        : rol === 'hr' ? 'hr' : 'employee'
+
+      const VRIJGESTELD = [
+        '/checkin', '/login', '/register', '/onboarding',
+        '/instellingen', '/', '/contact', '/voorwaarden', '/bedankt',
+      ]
+      const isVrijgesteld = VRIJGESTELD.some(p =>
+        pathname === p || pathname.startsWith('/hr') || pathname.startsWith('/admin') ||
+        pathname.startsWith('/agent') || pathname === '/dashboard'
+      )
+
+      if (effectiefViewMode === 'employee' && !isVrijgesteld) {
+        const zevenDagenGeleden = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+        const { data: sessie } = await supabase
+          .from('checkin_sessies')
+          .select('id')
+          .eq('user_id', user.id)
+          .gte('aangemaakt_op', zevenDagenGeleden)
+          .limit(1)
+          .maybeSingle()
+
+        if (!sessie && mounted) {
+          router.replace('/checkin')
+          return
+        }
+      }
+
       if (data.bedrijf_id) {
         const { data: config } = await supabase
           .from('portaal_config').select('tiles').eq('bedrijf_id', data.bedrijf_id).single()
@@ -158,7 +188,7 @@ export default function Navbar() {
       mounted = false
       subscription.unsubscribe()
     }
-  }, [router])
+  }, [router, pathname])
 
   useLayoutEffect(() => {
     document.body.classList.add('mf-has-sidebar')
