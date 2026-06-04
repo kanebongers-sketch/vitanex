@@ -157,6 +157,7 @@ export default function Instellingen() {
   // Rol wisselen (alleen admin)
   const [rolWisselBezig, setRolWisselBezig] = useState(false)
   const [rolWisselMelding, setRolWisselMelding] = useState<{ type: 'success' | 'error'; tekst: string } | null>(null)
+  const [adminBedrijfId, setAdminBedrijfId] = useState<string | null>(null) // bewaar originele bedrijf_id
 
   // Account delete
   const [deleteBevestig, setDeleteBevestig] = useState('')
@@ -203,6 +204,14 @@ export default function Instellingen() {
       setOrigineelNaam(n)
       setAvatarUrl(profiel?.avatar_url ?? null)
       setBedrijfId(profiel?.bedrijf_id ?? null)
+      // Sla originele bedrijf_id op voor admin-herstel (alleen als echte admin)
+      if (profiel?.rol === 'admin') {
+        setAdminBedrijfId(profiel?.bedrijf_id ?? null)
+      } else {
+        // Mogelijk in testmodus — haal opgeslagen admin bedrijf_id op
+        const opgeslagen = localStorage.getItem('mf-admin-bedrijf-id')
+        if (opgeslagen) setAdminBedrijfId(opgeslagen)
+      }
 
       // Bedrijfsnaam ophalen als er een bedrijf_id is
       if (profiel?.bedrijf_id) {
@@ -328,27 +337,66 @@ export default function Instellingen() {
     telefoon.trim() !== origineelTelefoon ||
     bio.trim() !== origineelBio
 
-  async function schakelNaarRol(nieuweRol: 'admin' | 'hr' | 'medewerker') {
+  async function schakelNaarRol(nieuweRol: 'admin' | 'hr' | 'medewerker' | 'gebruiker') {
     if (!userId) return
     setRolWisselBezig(true)
     setRolWisselMelding(null)
-    const { error } = await supabase.from('profiles').update({ rol: nieuweRol }).eq('id', userId)
+
+    // Bepaal de DB-rol en bedrijf_id op basis van testmodus
+    const dbRol = nieuweRol === 'gebruiker' ? 'medewerker' : nieuweRol
+    let nieuwBedrijfId: string | null | undefined = undefined // undefined = niet wijzigen
+
+    if (nieuweRol === 'admin') {
+      // Herstel: terug naar admin + originele bedrijf_id
+      nieuwBedrijfId = adminBedrijfId
+      localStorage.removeItem('mf-view-mode')
+      localStorage.removeItem('mf-admin-bedrijf-id')
+    } else if (nieuweRol === 'gebruiker') {
+      // Gebruiker = geen bedrijf gekoppeld
+      // Sla huidige bedrijf_id op zodat we kunnen herstellen
+      if (bedrijfId) localStorage.setItem('mf-admin-bedrijf-id', bedrijfId)
+      nieuwBedrijfId = null
+      localStorage.removeItem('mf-view-mode')
+    } else if (nieuweRol === 'medewerker') {
+      // Werknemer = wel bedrijf gekoppeld (admin z'n eigen bedrijf)
+      if (bedrijfId) localStorage.setItem('mf-admin-bedrijf-id', bedrijfId)
+      nieuwBedrijfId = adminBedrijfId ?? bedrijfId
+      localStorage.removeItem('mf-view-mode')
+    } else if (nieuweRol === 'hr') {
+      if (bedrijfId) localStorage.setItem('mf-admin-bedrijf-id', bedrijfId)
+      nieuwBedrijfId = adminBedrijfId ?? bedrijfId
+      localStorage.removeItem('mf-view-mode')
+    }
+
+    // Update profiles — rol altijd, bedrijf_id alleen als gewijzigd
+    const update: Record<string, unknown> = { rol: dbRol }
+    if (nieuwBedrijfId !== undefined) update.bedrijf_id = nieuwBedrijfId
+
+    const { error } = await supabase.from('profiles').update(update).eq('id', userId)
     if (error) {
       setRolWisselMelding({ type: 'error', tekst: `Fout: ${error.message}` })
-    } else {
-      setUserRol(nieuweRol)
-      setRolWisselMelding({
-        type: 'success',
-        tekst: nieuweRol === 'admin'
-          ? 'Terug als admin. Pagina wordt herladen...'
-          : `Rol gewisseld naar ${nieuweRol}. Pagina wordt herladen...`,
-      })
-      setTimeout(() => {
-        if (nieuweRol === 'hr') router.push('/hr')
-        else if (nieuweRol === 'medewerker') router.push('/home')
-        else window.location.reload()
-      }, 1200)
+      setRolWisselBezig(false)
+      return
     }
+
+    const LABELS: Record<string, string> = {
+      admin:      'Admin',
+      hr:         'HR Manager',
+      medewerker: 'Werknemer',
+      gebruiker:  'Gebruiker (geen bedrijf)',
+    }
+    setUserRol(dbRol)
+    setRolWisselMelding({
+      type: 'success',
+      tekst: `Overgeschakeld naar ${LABELS[nieuweRol]}. Doorsturen...`,
+    })
+
+    setTimeout(() => {
+      if (nieuweRol === 'admin') window.location.href = '/admin'
+      else if (nieuweRol === 'hr') window.location.href = '/hr'
+      else window.location.href = '/home'
+    }, 900)
+
     setRolWisselBezig(false)
   }
 
@@ -568,51 +616,96 @@ export default function Instellingen() {
 
                       {/* Huidige rol badge */}
                       <div className="flex items-center gap-2 mb-5 px-4 py-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
-                        <span className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>Huidige rol:</span>
+                        <span className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>Nu actief als:</span>
                         <span className="text-xs font-bold px-2.5 py-1 rounded-full"
                           style={{
                             background: userRol === 'admin' ? 'rgba(124,58,237,0.25)' : userRol === 'hr' ? 'rgba(24,95,165,0.25)' : 'rgba(29,158,117,0.25)',
                             color: userRol === 'admin' ? '#a78bfa' : userRol === 'hr' ? '#60a5fa' : '#34d399',
                           }}>
-                          {userRol === 'admin' ? '🛡️ Admin' : userRol === 'hr' ? '👥 HR' : '🌿 Medewerker'}
+                          {userRol === 'admin' ? '🛡️ Admin' : userRol === 'hr' ? '👥 HR Manager' : bedrijfId ? '🌿 Werknemer' : '👤 Gebruiker'}
                         </span>
                         {userRol !== 'admin' && (
                           <span className="text-xs px-2 py-0.5 rounded-full animate-pulse" style={{ background: 'rgba(234,179,8,0.2)', color: '#fbbf24' }}>
-                            Testmodus actief
+                            Testmodus
                           </span>
                         )}
                       </div>
 
-                      {/* Rol knoppen */}
-                      <div className="grid grid-cols-3 gap-3 mb-4">
+                      {/* Rol knoppen — 2x2 grid */}
+                      <div className="grid grid-cols-2 gap-3 mb-4">
                         {([
-                          { rol: 'hr' as const,         label: 'HR portaal',    emoji: '👥', kleur: '#185FA5', bg: 'rgba(24,95,165,0.15)',  beschrijving: 'Teams, roosters, gesprekken' },
-                          { rol: 'medewerker' as const,  label: 'Medewerker',   emoji: '🌿', kleur: '#1D9E75', bg: 'rgba(29,158,117,0.15)', beschrijving: 'Check-in, coach, journal' },
-                          { rol: 'admin' as const,       label: 'Admin (terug)',emoji: '🛡️', kleur: '#7C3AED', bg: 'rgba(124,58,237,0.15)', beschrijving: 'Volledige toegang' },
+                          {
+                            id: 'medewerker' as const,
+                            label: 'Werknemer',
+                            emoji: '🌿',
+                            kleur: '#1D9E75',
+                            bg: 'rgba(29,158,117,0.15)',
+                            beschrijving: 'Gekoppeld aan bedrijf',
+                            detail: 'Check-in · rooster · gesprekken · werkdag',
+                          },
+                          {
+                            id: 'gebruiker' as const,
+                            label: 'Gebruiker',
+                            emoji: '👤',
+                            kleur: '#6B7280',
+                            bg: 'rgba(107,114,128,0.15)',
+                            beschrijving: 'Geen bedrijf gekoppeld',
+                            detail: 'Alleen welzijn · coach · journal',
+                          },
+                          {
+                            id: 'hr' as const,
+                            label: 'HR Manager',
+                            emoji: '👥',
+                            kleur: '#185FA5',
+                            bg: 'rgba(24,95,165,0.15)',
+                            beschrijving: 'HR portaal',
+                            detail: 'Teams · roosters · KPI · gesprekken',
+                          },
+                          {
+                            id: 'admin' as const,
+                            label: 'Admin (terug)',
+                            emoji: '🛡️',
+                            kleur: '#7C3AED',
+                            bg: 'rgba(124,58,237,0.15)',
+                            beschrijving: 'Volledige toegang',
+                            detail: 'Herstel je eigen account',
+                          },
                         ] as const).map(opt => {
-                          const actief = userRol === opt.rol
+                          const actieveOptie = userRol === 'admin' ? 'admin'
+                            : userRol === 'hr' ? 'hr'
+                            : bedrijfId ? 'medewerker' : 'gebruiker'
+                          const isActief = (opt.id as string) === actieveOptie
+
                           return (
                             <button
-                              key={opt.rol}
-                              onClick={() => !actief && schakelNaarRol(opt.rol)}
-                              disabled={rolWisselBezig || actief}
+                              key={opt.id}
+                              onClick={() => !isActief && schakelNaarRol(opt.id)}
+                              disabled={rolWisselBezig || isActief}
                               style={{
                                 display: 'flex', flexDirection: 'column', alignItems: 'flex-start',
-                                gap: 6, padding: '12px 14px', borderRadius: 12,
-                                border: `2px solid ${actief ? opt.kleur : 'rgba(255,255,255,0.1)'}`,
-                                background: actief ? opt.bg : 'rgba(255,255,255,0.03)',
-                                cursor: actief ? 'default' : rolWisselBezig ? 'wait' : 'pointer',
-                                opacity: rolWisselBezig && !actief ? 0.5 : 1,
-                                transition: 'all 0.15s', textAlign: 'left',
+                                gap: 8, padding: '14px 16px', borderRadius: 14,
+                                border: `2px solid ${isActief ? opt.kleur : 'rgba(255,255,255,0.1)'}`,
+                                background: isActief ? opt.bg : 'rgba(255,255,255,0.03)',
+                                cursor: isActief ? 'default' : rolWisselBezig ? 'wait' : 'pointer',
+                                opacity: rolWisselBezig && !isActief ? 0.4 : 1,
+                                transition: 'all 0.15s', textAlign: 'left', width: '100%',
                               }}
                             >
-                              <span style={{ fontSize: 18 }}>{opt.emoji}</span>
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                                <span style={{ fontSize: 20 }}>{opt.emoji}</span>
+                                {isActief && (
+                                  <span style={{ fontSize: 9, fontWeight: 800, background: opt.kleur + '30', color: opt.kleur, borderRadius: 4, padding: '2px 6px' }}>
+                                    ACTIEF
+                                  </span>
+                                )}
+                              </div>
                               <div>
-                                <p style={{ fontSize: 12, fontWeight: 700, color: actief ? opt.kleur : 'rgba(255,255,255,0.75)' }}>
+                                <p style={{ fontSize: 13, fontWeight: 700, color: isActief ? opt.kleur : 'rgba(255,255,255,0.85)', marginBottom: 2 }}>
                                   {opt.label}
-                                  {actief && <span style={{ marginLeft: 5, fontSize: 9, background: opt.kleur + '30', color: opt.kleur, borderRadius: 4, padding: '1px 5px' }}>Nu</span>}
                                 </p>
-                                <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', marginTop: 2 }}>{opt.beschrijving}</p>
+                                <p style={{ fontSize: 10, color: isActief ? opt.kleur + 'aa' : 'rgba(255,255,255,0.4)', lineHeight: 1.4 }}>
+                                  {opt.detail}
+                                </p>
                               </div>
                             </button>
                           )
@@ -630,8 +723,8 @@ export default function Instellingen() {
                         </div>
                       )}
 
-                      <p className="text-xs mt-3" style={{ color: 'rgba(255,255,255,0.2)' }}>
-                        ⚠️ Dit wijzigt je echte rol in de database. RLS-policies en HR-functies werken precies zoals een echte gebruiker ze zou zien.
+                      <p className="text-xs mt-3 leading-relaxed" style={{ color: 'rgba(255,255,255,0.2)' }}>
+                        ⚠️ Elke optie wijzigt je <strong style={{ color: 'rgba(255,255,255,0.35)' }}>echte rol én bedrijfskoppeling</strong> in de database — je ziet precies wat een echte gebruiker ziet, inclusief alle RLS-policies. "Admin (terug)" herstelt alles naar je originele staat.
                       </p>
                     </section>
                   )}
