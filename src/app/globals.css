@@ -265,6 +265,23 @@ a:focus:not(:focus-visible) {
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 
+/* ── DISC profiel badges ─────────────────────────────────── */
+
+.mf-disc-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+.mf-disc-D { color: #E24B4A; background: #FCEBEB22; border: 1px solid #E24B4A33; }
+.mf-disc-I { color: #F59E0B; background: #FEF3C722; border: 1px solid #F59E0B33; }
+.mf-disc-S { color: #1D9E75; background: #E1F5EE22; border: 1px solid #1D9E7533; }
+.mf-disc-C { color: #185FA5; background: #E6F1FB22; border: 1px solid #185FA533; }
+
 /* ── Premium card ────────────────────────────────────────── */
 
 .mf-card {

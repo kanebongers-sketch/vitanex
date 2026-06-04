@@ -11,6 +11,7 @@ import Navbar from '@/components/Navbar'
 import { Avatar } from '@/components/Avatar'
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
 import GesprekkenTab from '@/components/GesprekkenTab'
+import RapportenTab from '@/components/RapportenTab'
 import HRKpiCards from '@/components/HRKpiCards'
 import HRSnelkoppelingen from '@/components/HRSnelkoppelingen'
 import BedrijfTabComponent, { type BedrijfInfo as BedrijfInfoComponent } from '@/components/BedrijfTab'
@@ -89,6 +90,10 @@ type BedrijfInfo = {
   id: string
   naam: string
   hr_code: string
+  sector?: string | null
+  grootte?: string | null
+  stad?: string | null
+  website?: string | null
 }
 
 function gemiddelde(arr: number[]): number {
@@ -198,7 +203,7 @@ Geef 2-3 zinnen concreet advies. Wat moet HR nu doen?`,
 
 // ── Shared tab key type ──────────────────────────────────────────────────────
 
-type TabKey = 'overzicht' | 'team' | 'trends' | 'signalen' | 'verlof' | 'declaraties' | 'gesprekken' | 'bedrijf'
+type TabKey = 'overzicht' | 'team' | 'trends' | 'signalen' | 'verlof' | 'declaraties' | 'gesprekken' | 'rapporten' | 'bedrijf'
 
 // ── Aankomende Gesprekken Widget ─────────────────────────────────────────────
 
@@ -595,6 +600,7 @@ export default function Dashboard() {
   const [verlofAanvragen, setVerlofAanvragen] = useState<VerlofHR[]>([])
   const [declaratiesHR, setDeclaratiesHR] = useState<DeclaratieHR[]>([])
   const [bedrijf, setBedrijf] = useState<BedrijfInfo | null>(null)
+  const [discIngevuld, setDiscIngevuld] = useState<number>(0)
   const [gesprekken, setGesprekken] = useState<Gesprek[]>([])
   const [uitnodigenOpen, setUitnodigenOpen] = useState(false)
 
@@ -639,12 +645,26 @@ export default function Dashboard() {
       try {
         const { data: bedrijfData } = await supabase
           .from('bedrijven')
-          .select('id, naam, hr_code')
+          .select('id, naam, hr_code, sector, grootte, stad, website')
           .eq('id', profiel.bedrijf_id)
           .single()
         if (bedrijfData) setBedrijf(bedrijfData as BedrijfInfo)
       } catch (err) {
         console.error('[Dashboard] Bedrijf ophalen mislukt:', err)
+      }
+
+      // DISC ingevuld: distinct user_ids in disc_inzendingen voor dit bedrijf
+      try {
+        const { data: discData } = await supabase
+          .from('disc_inzendingen')
+          .select('user_id')
+          .eq('bedrijf_id', profiel.bedrijf_id)
+        if (discData) {
+          const uniqueUsers = new Set(discData.map((r: { user_id: string }) => r.user_id))
+          setDiscIngevuld(uniqueUsers.size)
+        }
+      } catch {
+        // disc_inzendingen tabel mogelijk niet aanwezig, stilletjes negeren
       }
 
       const { data: perUserData } = await supabase
@@ -870,6 +890,7 @@ export default function Dashboard() {
       badgeKleur: '#8B5CF6',
     },
     { key: 'gesprekken', label: 'Gesprekken' },
+    { key: 'rapporten', label: '🤖 Rapporten' },
     { key: 'bedrijf', label: 'Bedrijf' },
   ]
 
@@ -971,6 +992,7 @@ export default function Dashboard() {
                   pendingVerlof={pendingVerlof}
                   pendingDeclaraties={pendingDeclaraties}
                   gesprekkenDezeMaand={gesprekkenDezeMaand}
+                  discIngevuld={discIngevuld}
                   onTabSwitch={(tab) => switchTab(tab as TabKey)}
                 />
 
@@ -1376,6 +1398,11 @@ export default function Dashboard() {
               <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center">
                 <p className="text-sm text-gray-400">Bedrijf niet gevonden. Koppel eerst een bedrijf aan je account.</p>
               </div>
+            )}
+
+            {/* ── RAPPORTEN TAB ── */}
+            {actieveTab === 'rapporten' && (
+              <RapportenTab bedrijfId={bedrijfId ?? ''} />
             )}
 
             {/* ── BEDRIJF TAB ── */}

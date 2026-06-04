@@ -7,6 +7,10 @@ export type BedrijfInfo = {
   id: string
   naam: string
   hr_code: string
+  sector?: string | null
+  grootte?: string | null
+  stad?: string | null
+  website?: string | null
 }
 
 type TeamLidMinimal = {
@@ -174,6 +178,38 @@ export default function BedrijfTab({ bedrijf, team, onCodeVernieuwd }: Props) {
               <span className="text-xs text-gray-400">Naam</span>
               <span className="text-sm font-medium text-gray-700">{bedrijf?.naam || '—'}</span>
             </div>
+            {bedrijf?.sector && (
+              <div className="flex items-center justify-between py-2 border-b border-gray-50">
+                <span className="text-xs text-gray-400">Sector</span>
+                <span className="text-sm font-medium text-gray-700">{bedrijf.sector}</span>
+              </div>
+            )}
+            {bedrijf?.grootte && (
+              <div className="flex items-center justify-between py-2 border-b border-gray-50">
+                <span className="text-xs text-gray-400">Teamgrootte</span>
+                <span className="text-sm font-medium text-gray-700">{bedrijf.grootte} medewerkers</span>
+              </div>
+            )}
+            {bedrijf?.stad && (
+              <div className="flex items-center justify-between py-2 border-b border-gray-50">
+                <span className="text-xs text-gray-400">Stad</span>
+                <span className="text-sm font-medium text-gray-700">{bedrijf.stad}</span>
+              </div>
+            )}
+            {bedrijf?.website && (
+              <div className="flex items-center justify-between py-2 border-b border-gray-50">
+                <span className="text-xs text-gray-400">Website</span>
+                <a
+                  href={bedrijf.website.startsWith('http') ? bedrijf.website : `https://${bedrijf.website}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm font-medium"
+                  style={{ color: '#1D9E75' }}
+                >
+                  {bedrijf.website}
+                </a>
+              </div>
+            )}
             <div className="flex items-center justify-between py-2 border-b border-gray-50">
               <span className="text-xs text-gray-400">Actieve medewerkers</span>
               <span className="text-sm font-medium text-gray-700">{team.length}</span>

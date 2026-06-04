@@ -160,6 +160,7 @@ export default function HomePage() {
   const [xpData, setXpData]             = useState<XPData | null>(null)
   const [weekSelectie, setWeekSelectie] = useState<WeekSelectie | null>(null)
   const [aiSamenvatting, setAiSamenvatting] = useState<string | null>(null)
+  const [discProfiel, setDiscProfiel]       = useState<{ primair: string } | null>(null)
 
   useEffect(() => {
     async function laad() {
@@ -239,6 +240,18 @@ export default function HomePage() {
           .maybeSingle()
         const aj = analyse?.analyse_json as { samenvatting?: string } | null
         if (aj?.samenvatting) setAiSamenvatting(aj.samenvatting)
+      } catch { /* ok */ }
+
+      // DISC profiel (bonus, non-blocking)
+      try {
+        const { data: disc } = await supabase
+          .from('disc_inzendingen')
+          .select('primair')
+          .eq('user_id', user.id)
+          .order('aangemaakt_op', { ascending: false })
+          .limit(1)
+          .maybeSingle()
+        if (disc?.primair) setDiscProfiel({ primair: disc.primair as string })
       } catch { /* ok */ }
     }
     laad()
@@ -598,6 +611,51 @@ export default function HomePage() {
             ))}
           </div>
         </div>
+
+        {/* ── DISC PROFIEL ── */}
+        {discProfiel && (() => {
+          const discKleuren: Record<string, { kleur: string; bg: string; label: string }> = {
+            D: { kleur: '#E24B4A', bg: '#FCEBEB22', label: 'Dominant' },
+            I: { kleur: '#F59E0B', bg: '#FEF3C722', label: 'Invloedrijk' },
+            S: { kleur: '#1D9E75', bg: '#E1F5EE22', label: 'Stabiel' },
+            C: { kleur: '#185FA5', bg: '#E6F1FB22', label: 'Consciëntieus' },
+          }
+          const d = discKleuren[discProfiel.primair] ?? discKleuren['S']
+          return (
+            <div style={{ marginBottom: 20 }}>
+              <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#9CA3AF', marginBottom: 12 }}>
+                DISC profiel
+              </p>
+              <Link href="/disc" style={{ textDecoration: 'none', display: 'block' }}>
+                <div style={{
+                  background: 'white', borderRadius: 16, padding: '16px 20px',
+                  border: `1.5px solid ${d.kleur}30`,
+                  display: 'flex', alignItems: 'center', gap: 16,
+                  transition: 'transform 0.18s ease, box-shadow 0.18s ease',
+                }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-1px)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 4px 14px rgba(0,0,0,0.07)' }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(0)'; (e.currentTarget as HTMLElement).style.boxShadow = 'none' }}>
+                  <div style={{
+                    width: 52, height: 52, borderRadius: 14,
+                    background: d.bg, border: `2px solid ${d.kleur}40`,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    flexShrink: 0,
+                  }}>
+                    <span style={{ fontSize: 22, fontWeight: 900, color: d.kleur, lineHeight: 1 }}>{discProfiel.primair}</span>
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <p style={{ fontSize: 11, fontWeight: 700, color: '#9CA3AF', letterSpacing: '0.07em', textTransform: 'uppercase', marginBottom: 2 }}>Primair profiel</p>
+                    <p style={{ fontSize: 16, fontWeight: 800, color: d.kleur, letterSpacing: '-0.02em' }}>{d.label}</p>
+                    <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2 }}>Bekijk je volledige DISC analyse →</p>
+                  </div>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={d.kleur} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="9 18 15 12 9 6"/>
+                  </svg>
+                </div>
+              </Link>
+            </div>
+          )
+        })()}
 
         {/* ── CRISIS ── */}
         <CrisisButton />

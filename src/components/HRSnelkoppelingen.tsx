@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 
 type Props = {
   hrCode: string
@@ -16,6 +17,15 @@ export default function HRSnelkoppelingen({ hrCode, onTabSwitch, onNieuwMedewerk
       setGekopieerd(true)
       setTimeout(() => setGekopieerd(false), 2000)
     })
+  }
+
+  const discActie = {
+    icon: '🧠',
+    label: 'DISC doen',
+    sub: 'Eigen profiel',
+    href: '/disc',
+    color: '#7C3AED',
+    bg: '#EDE9FE',
   }
 
   const acties: {
@@ -61,7 +71,7 @@ export default function HRSnelkoppelingen({ hrCode, onTabSwitch, onNieuwMedewerk
   ]
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+    <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-6">
       {acties.map(actie => (
         <button
           key={actie.label}
@@ -74,6 +84,15 @@ export default function HRSnelkoppelingen({ hrCode, onTabSwitch, onNieuwMedewerk
           <p className="text-xs mt-0.5" style={{ color: actie.color, opacity: 0.7 }}>{actie.sub}</p>
         </button>
       ))}
+      <Link
+        href={discActie.href}
+        className="rounded-2xl p-4 text-left transition hover:opacity-80 active:scale-95 block"
+        style={{ background: discActie.bg, border: `1px solid ${discActie.color}20`, textDecoration: 'none' }}
+      >
+        <span className="text-2xl block mb-2">{discActie.icon}</span>
+        <p className="text-sm font-semibold truncate" style={{ color: discActie.color }}>{discActie.label}</p>
+        <p className="text-xs mt-0.5" style={{ color: discActie.color, opacity: 0.7 }}>{discActie.sub}</p>
+      </Link>
     </div>
   )
 }

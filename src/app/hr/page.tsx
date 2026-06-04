@@ -26,6 +26,8 @@ export default function HrDashboardPage() {
   const [dragIdx, setDragIdx] = useState<number | null>(null)
   const [overIdx, setOverIdx] = useState<number | null>(null)
   const [stats, setStats] = useState({ medewerkers: 0, checkins: 0, gemScore: 0 })
+  const [discVerplicht, setDiscVerplicht] = useState(false)
+  const [discBezig, setDiscBezig] = useState(false)
 
   useEffect(() => {
     async function laad() {
@@ -39,6 +41,18 @@ export default function HrDashboardPage() {
       setNaam(profiel.naam ?? 'HR')
       setBedrijfId(profiel.bedrijf_id ?? null)
       setHrUserId(user.id)
+
+      // Bedrijf instellingen
+      if (profiel.bedrijf_id) {
+        const { data: bedrijfData } = await supabase
+          .from('bedrijven')
+          .select('disc_verplicht')
+          .eq('id', profiel.bedrijf_id)
+          .single()
+        if (bedrijfData) {
+          setDiscVerplicht(bedrijfData.disc_verplicht ?? false)
+        }
+      }
 
       // Portaal config
       const { data: config } = await supabase
@@ -325,6 +339,46 @@ export default function HrDashboardPage() {
             ))}
           </div>
         </div>
+
+        {/* ── INSTELLINGEN ── */}
+        <div style={{ marginTop: 32, background: 'white', borderRadius: 12, padding: '20px 24px', border: '1px solid #E5E7EB', boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
+          <h2 style={{ fontSize: 15, fontWeight: 700, color: '#111', marginBottom: 16 }}>Instellingen</h2>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
+            <div>
+              <p style={{ fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 2 }}>DISC test verplicht voor alle medewerkers</p>
+              <p style={{ fontSize: 12, color: '#9CA3AF' }}>Medewerkers moeten de DISC-persoonlijkheidstest invullen voordat ze toegang krijgen tot het portaal.</p>
+            </div>
+            <button
+              onClick={async () => {
+                if (!bedrijfId || discBezig) return
+                setDiscBezig(true)
+                const nieuweWaarde = !discVerplicht
+                const { error } = await supabase
+                  .from('bedrijven')
+                  .update({ disc_verplicht: nieuweWaarde })
+                  .eq('id', bedrijfId)
+                if (!error) setDiscVerplicht(nieuweWaarde)
+                setDiscBezig(false)
+              }}
+              disabled={discBezig}
+              style={{
+                flexShrink: 0,
+                width: 48, height: 26, borderRadius: 13, border: 'none', cursor: discBezig ? 'default' : 'pointer',
+                background: discVerplicht ? ACCENT : '#D1D5DB',
+                position: 'relative', transition: 'background 0.2s',
+                opacity: discBezig ? 0.6 : 1,
+              }}
+              aria-label="DISC test verplicht toggle"
+            >
+              <span style={{
+                position: 'absolute', top: 3, left: discVerplicht ? 24 : 3,
+                width: 20, height: 20, borderRadius: '50%', background: 'white',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.2)', transition: 'left 0.2s',
+              }} />
+            </button>
+          </div>
+        </div>
+
         </>)}
       </main>
     </div>

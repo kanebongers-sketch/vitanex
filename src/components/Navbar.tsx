@@ -131,7 +131,7 @@ export default function Navbar() {
         : rol === 'hr' ? 'hr' : 'employee'
 
       const VRIJGESTELD = [
-        '/checkin', '/login', '/register', '/onboarding',
+        '/checkin', '/disc', '/login', '/register', '/onboarding',
         '/instellingen', '/', '/contact', '/voorwaarden', '/bedankt',
       ]
       const isVrijgesteld = VRIJGESTELD.some(p =>
@@ -152,6 +152,29 @@ export default function Navbar() {
         if (!sessie && mounted) {
           router.replace('/checkin')
           return
+        }
+      }
+
+      // ── DISC gate (alleen voor medewerkers met bedrijf_id) ──
+      if (effectiefViewMode === 'employee' && data.bedrijf_id && pathname !== '/disc') {
+        const { data: bedrijf } = await supabase
+          .from('bedrijven')
+          .select('disc_verplicht')
+          .eq('id', data.bedrijf_id)
+          .maybeSingle()
+
+        if (bedrijf?.disc_verplicht) {
+          const { data: discInzending } = await supabase
+            .from('disc_inzendingen')
+            .select('id')
+            .eq('user_id', user.id)
+            .limit(1)
+            .maybeSingle()
+
+          if (!discInzending && mounted) {
+            router.replace('/disc')
+            return
+          }
         }
       }
 

@@ -242,21 +242,21 @@ export default function Register() {
                   {[
                     {
                       id: 'werknemer' as GebruikerType,
-                      icon: '??',
+                      icon: '👤',
                       titel: 'Werknemer',
                       beschrijving: 'Ik wil mijn eigen welzijn bijhouden en persoonlijke tools gebruiken.',
                       badge: null,
                     },
                     {
                       id: 'hr' as GebruikerType,
-                      icon: '??',
+                      icon: '👥',
                       titel: 'HR-manager of leidinggevende',
                       beschrijving: 'Ik wil het welzijn van mijn team monitoren en HR-inzichten ontvangen.',
                       badge: 'Populairste keuze',
                     },
                     {
                       id: 'zelfstandige' as GebruikerType,
-                      icon: '??',
+                      icon: '💼',
                       titel: 'Zelfstandige of freelancer',
                       beschrijving: 'Ik werk voor mezelf en wil burn-out voorkomen en mijn energie bewaken.',
                       badge: null,
@@ -621,7 +621,7 @@ export default function Register() {
               <div className="text-center py-8">
                 <div className="w-24 h-24 rounded-full flex items-center justify-center text-5xl mx-auto mb-8"
                   style={{ background: '#E1F5EE' }}>
-                  ??
+                  ✉️
                 </div>
                 <h1 className="text-3xl font-extrabold text-gray-900 mb-3 tracking-tight">Bevestig je e-mail</h1>
                 <p className="text-gray-500 mb-2 text-base leading-relaxed">

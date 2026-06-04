@@ -58,6 +58,7 @@ export default function HrBestandenPage() {
   function datumLabel(d: string) {
     return new Date(d).toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' })
   }
+
   const gefilterdeRapporten = rapporten.filter(r => {
     const typeOk = filterType === "alle" || r.type === filterType
     const medOk = !filterMedewerker || (medewerkers[r.user_id]?.naam ?? '').toLowerCase().includes(filterMedewerker.toLowerCase())
@@ -70,6 +71,18 @@ export default function HrBestandenPage() {
     bestandenPerMed[b.user_id].push(b)
   }
 
+  // Sorteer medewerkers op naam
+  const gesorteerdeBestandenEntries = Object.entries(bestandenPerMed).sort(([uidA], [uidB]) => {
+    const naamA = medewerkers[uidA]?.naam ?? ''
+    const naamB = medewerkers[uidB]?.naam ?? ''
+    return naamA.localeCompare(naamB, 'nl')
+  })
+
+  // Samenvatting statistieken
+  const aantalMedewerkersGedeeld = Object.keys(bestandenPerMed).length
+  const aantalBestanden = bestanden.length
+  const aantalRapporten = rapporten.length
+
   if (!geladen) return (
     <HrShell><div style={{ padding: 32, color: '#94a3b8' }}>Laden...</div></HrShell>
   )
@@ -77,7 +90,22 @@ export default function HrBestandenPage() {
     <HrShell>
       <div style={{ maxWidth: 900, margin: '0 auto', padding: '32px 20px' }}>
         <h1 style={{ fontSize: 24, fontWeight: 700, color: '#f8fafc', marginBottom: 8 }}>Bestanden &amp; Rapporten</h1>
-        <p style={{ color: '#64748b', marginBottom: 28 }}>Gedeelde bestanden en AI-rapporten van medewerkers.</p>
+        <p style={{ color: '#64748b', marginBottom: 20 }}>Gedeelde bestanden en AI-rapporten van medewerkers.</p>
+
+        {/* Samenvatting balk */}
+        <div style={{ display: 'flex', gap: 12, marginBottom: 28, flexWrap: 'wrap' }}>
+          {[
+            { label: 'Medewerkers gedeeld', waarde: aantalMedewerkersGedeeld, kleur: '#3b82f6' },
+            { label: 'Bestanden totaal', waarde: aantalBestanden, kleur: '#10b981' },
+            { label: 'Rapporten', waarde: aantalRapporten, kleur: '#8b5cf6' },
+          ].map(stat => (
+            <div key={stat.label} style={{ background: '#0a1628', border: `1px solid ${stat.kleur}30`, borderRadius: 12, padding: '14px 20px', flex: 1, minWidth: 140 }}>
+              <div style={{ fontSize: 28, fontWeight: 800, color: stat.kleur, lineHeight: 1 }}>{stat.waarde}</div>
+              <div style={{ fontSize: 13, color: '#64748b', marginTop: 4 }}>{stat.label}</div>
+            </div>
+          ))}
+        </div>
+
         <div style={{ display: 'flex', gap: 4, marginBottom: 28, background: '#0a1628', borderRadius: 10, padding: 4, width: 'fit-content' }}>
           {(['bestanden', 'rapporten'] as const).map(tab => (
             <button key={tab} onClick={() => setActieveTab(tab)} style={{ background: actieveTab === tab ? '#1e40af' : 'transparent', color: actieveTab === tab ? '#fff' : '#64748b', border: 'none', borderRadius: 8, padding: '8px 20px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
@@ -85,12 +113,13 @@ export default function HrBestandenPage() {
             </button>
           ))}
         </div>
+
         {actieveTab === 'bestanden' && (
           <div>
-            {Object.entries(bestandenPerMed).length === 0 ? (
+            {gesorteerdeBestandenEntries.length === 0 ? (
               <div style={{ background: '#0a1628', borderRadius: 12, padding: 32, textAlign: 'center', color: '#64748b' }}>Geen gedeelde bestanden.</div>
             ) : (
-              Object.entries(bestandenPerMed).map(([uid, docs]) => (
+              gesorteerdeBestandenEntries.map(([uid, docs]) => (
                 <div key={uid} style={{ marginBottom: 24 }}>
                   <div style={{ fontWeight: 600, color: '#94a3b8', fontSize: 13, marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{medewerkers[uid]?.naam ?? 'Onbekend'}</div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -106,6 +135,7 @@ export default function HrBestandenPage() {
             )}
           </div>
         )}
+
         {actieveTab === 'rapporten' && (
           <div>
             <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>

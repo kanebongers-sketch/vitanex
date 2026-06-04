@@ -17,6 +17,7 @@ type Props = {
   pendingVerlof: number
   pendingDeclaraties: number
   gesprekkenDezeMaand: number
+  discIngevuld?: number
   onTabSwitch: (tab: string) => void
 }
 
@@ -28,6 +29,7 @@ export default function HRKpiCards({
   pendingVerlof,
   pendingDeclaraties,
   gesprekkenDezeMaand,
+  discIngevuld,
   onTabSwitch,
 }: Props) {
   const kpis: KpiDef[] = [
@@ -71,6 +73,14 @@ export default function HRKpiCards({
       bg: gesprekkenDezeMaand > 0 ? '#E6F1FB' : '#F3F4F6',
       tab: 'gesprekken',
     },
+    ...(discIngevuld !== undefined ? [{
+      label: 'DISC ingevuld',
+      value: teamGrootte > 0 ? `${Math.round((discIngevuld / teamGrootte) * 100)}%` : '—',
+      sub: `${discIngevuld}/${teamGrootte} medewerkers`,
+      color: teamGrootte > 0 && discIngevuld / teamGrootte >= 0.7 ? '#1D9E75' : discIngevuld > 0 ? '#BA7517' : '#9CA3AF',
+      bg: teamGrootte > 0 && discIngevuld / teamGrootte >= 0.7 ? '#E1F5EE' : discIngevuld > 0 ? '#FAEEDA' : '#F3F4F6',
+      tab: null,
+    }] : []),
   ]
 
   return (
