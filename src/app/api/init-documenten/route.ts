@@ -56,9 +56,9 @@ END $$;
 `
 
 export async function GET(req: NextRequest) {
-  // Beveilig met admin token check
+  // Beveilig met een echte interne API-key — gebruik nooit een afgeleid deel van een secret
   const token = req.nextUrl.searchParams.get('token')
-  if (token !== process.env.SUPABASE_SERVICE_ROLE_KEY?.slice(-12)) {
+  if (!token || token !== process.env.INTERNAL_API_KEY) {
     return NextResponse.json({ error: 'Niet geautoriseerd' }, { status: 401 })
   }
 

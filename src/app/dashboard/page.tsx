@@ -88,18 +88,18 @@ type BedrijfInfo = {
   hr_code: string
 }
 
-function gemiddelde(arr: number[]) {
+function gemiddelde(arr: number[]): number {
   if (!arr.length) return 0
   return Math.round((arr.reduce((a, b) => a + b, 0) / arr.length) * 10) / 10
 }
 
-function scoreKleur(score: number) {
+function scoreKleur(score: number): string {
   if (score >= 4) return '#1D9E75'
   if (score >= 2.5) return '#BA7517'
   return '#E24B4A'
 }
 
-function scoreBadge(score: number) {
+function scoreBadge(score: number): { bg: string; color: string; label: string } {
   if (score >= 4) return { bg: '#E1F5EE', color: '#0F6E56', label: 'Goed' }
   if (score >= 2.5) return { bg: '#FAEEDA', color: '#854F0B', label: 'Matig' }
   return { bg: '#FCEBEB', color: '#A32D2D', label: 'Laag' }
@@ -193,6 +193,10 @@ Geef 2-3 zinnen concreet advies. Wat moet HR nu doen?`,
   )
 }
 
+// ── Shared tab key type ──────────────────────────────────────────────────────
+
+type TabKey = 'overzicht' | 'team' | 'trends' | 'signalen' | 'verlof' | 'declaraties' | 'gesprekken' | 'bedrijf'
+
 // ── KPI Cards row ────────────────────────────────────────────────────────────
 
 function KPICards({
@@ -210,9 +214,9 @@ function KPICards({
   signaalCount: number
   pendingVerlof: number
   pendingDeclaraties: number
-  onTabSwitch: (tab: string) => void
+  onTabSwitch: (tab: TabKey) => void
 }) {
-  const kpis = [
+  const kpis: { label: string; value: string; sub: string; color: string; bg: string; tab: TabKey | null }[] = [
     {
       label: 'Participatie',
       value: `${participatieRate}%`,
@@ -848,8 +852,8 @@ export default function Dashboard() {
   const [checkins, setCheckins] = useState<Checkin[]>([])
   const [team, setTeam] = useState<TeamLid[]>([])
   const [laden, setLaden] = useState(true)
-  const [email, setEmail] = useState('')
-  const [actieveTab, setActieveTab] = useState<'overzicht' | 'team' | 'trends' | 'signalen' | 'verlof' | 'declaraties' | 'gesprekken' | 'bedrijf'>('overzicht')
+  const [email, setEmail] = useState<string>('')
+  const [actieveTab, setActieveTab] = useState<TabKey>('overzicht')
   const [bedrijfId, setBedrijfId] = useState<string | null>(null)
   const [hrUserId, setHrUserId] = useState<string | null>(null)
   const [teamZoekterm, setTeamZoekterm] = useState('')
@@ -863,8 +867,8 @@ export default function Dashboard() {
   const [gesprekken] = useState<Gesprek[]>([]) // Wordt gevuld zodra gesprekken-tabel beschikbaar is
   const [uitnodigenOpen, setUitnodigenOpen] = useState(false)
 
-  const switchTab = useCallback((tab: string) => {
-    setActieveTab(tab as typeof actieveTab)
+  const switchTab = useCallback((tab: TabKey) => {
+    setActieveTab(tab)
   }, [])
 
   useEffect(() => {
@@ -893,7 +897,7 @@ export default function Dashboard() {
       setCheckins(checkinData || [])
 
       const [{ data: teamData }, { data: avatarData }] = await Promise.all([
-        supabase.from('checkin_status').select('*').eq('bedrijf_id', profiel.bedrijf_id),
+        supabase.from('checkin_status').select('id, naam, deze_week_ingevuld, laatste_score, laatste_checkin').eq('bedrijf_id', profiel.bedrijf_id),
         supabase.from('profiles').select('id, avatar_url').eq('bedrijf_id', profiel.bedrijf_id),
       ])
 
@@ -919,8 +923,8 @@ export default function Dashboard() {
 
       const ucMap = new Map<string, UserCheckin[]>()
       for (const c of (perUserData ?? []) as UserCheckin[]) {
-        if (!ucMap.has(c.user_id)) ucMap.set(c.user_id, [])
-        const arr = ucMap.get(c.user_id)!
+        const arr = ucMap.get(c.user_id) ?? []
+        ucMap.set(c.user_id, arr)
         if (arr.length < 4) arr.push(c)
       }
       setUserCheckinsMap(ucMap)
@@ -1004,8 +1008,9 @@ export default function Dashboard() {
     maandag.setDate(d.getDate() - dag)
     const weekKey = maandag.toLocaleDateString('nl-BE', { day: 'numeric', month: 'short' })
     const score = Math.round((allMetricKeys.reduce((sum, k) => sum + c[k], 0) / 60) * 100)
-    if (!weekMap.has(weekKey)) weekMap.set(weekKey, [])
-    weekMap.get(weekKey)!.push(score)
+    const weekArr = weekMap.get(weekKey) ?? []
+    weekMap.set(weekKey, weekArr)
+    weekArr.push(score)
   }
   const trendData = [...weekMap.entries()].map(([week, scores]) => ({
     week,
@@ -1080,8 +1085,6 @@ export default function Dashboard() {
   const pendingDeclaraties = declaratiesHR.filter(d => d.status === 'ingediend').length
   const participatieRate = team.length > 0 ? Math.round((ingevuld.length / team.length) * 100) : 0
   const burnoutRisico = team.length > 0 ? Math.round((waarschuwingen.length / team.length) * 100) : 0
-
-  type TabKey = 'overzicht' | 'team' | 'trends' | 'signalen' | 'verlof' | 'declaraties' | 'gesprekken' | 'bedrijf'
 
   const tabs: { key: TabKey; label: string; badge?: number; badgeKleur?: string }[] = [
     { key: 'overzicht', label: 'Overzicht' },
@@ -1194,7 +1197,7 @@ export default function Dashboard() {
                 {/* Snelkoppelingen */}
                 <Snelkoppelingen
                   hrCode={bedrijf?.hr_code ?? ''}
-                  onTabSwitch={switchTab}
+                  onTabSwitch={(tab) => switchTab(tab as TabKey)}
                   onNieuwMedewerker={() => setUitnodigenOpen(true)}
                 />
 

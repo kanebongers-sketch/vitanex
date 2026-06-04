@@ -10,30 +10,30 @@ type Stap = 'type' | 'hrcode' | 'info' | 'account' | 'bevestig'
 type GebruikerType = 'werknemer' | 'hr' | 'zelfstandige'
 
 const VOORDELEN_WERKNEMER = [
-  { icon: '??', tekst: 'Zie je eigen vitaliteitsverloop over tijd' },
-  { icon: '??', tekst: 'AI-coach beschikbaar voor persoonlijk advies' },
-  { icon: '??', tekst: 'Privé journal voor reflectie en notities' },
-  { icon: '??', tekst: 'Volledig anoniem tegenover je werkgever' },
-  { icon: '??', tekst: 'Gewoontetracker met dagelijkse streaks' },
-  { icon: '??', tekst: 'Focus- en hersteltools voor op het werk' },
+  { icon: '📈', tekst: 'Zie je eigen vitaliteitsverloop over tijd' },
+  { icon: '🤖', tekst: 'AI-coach beschikbaar voor persoonlijk advies' },
+  { icon: '📓', tekst: 'Privé journal voor reflectie en notities' },
+  { icon: '🔒', tekst: 'Volledig anoniem tegenover je werkgever' },
+  { icon: '🔥', tekst: 'Gewoontetracker met dagelijkse streaks' },
+  { icon: '🎯', tekst: 'Focus- en hersteltools voor op het werk' },
 ]
 
 const VOORDELEN_HR = [
-  { icon: '??', tekst: 'Realtime welzijnsdata van je hele team' },
-  { icon: '?', tekst: 'Vroege signalen bij burn-out risicos' },
-  { icon: '??', tekst: 'AI-inzichten en concrete HR-adviezen' },
-  { icon: '??', tekst: 'Anonieme pulse surveys met templates' },
-  { icon: '??', tekst: 'Exporteerbare rapporten voor management' },
-  { icon: '??', tekst: 'Privacy-by-design - AVG-conform' },
+  { icon: '📊', tekst: 'Realtime welzijnsdata van je hele team' },
+  { icon: '⚠️', tekst: 'Vroege signalen bij burn-out risicos' },
+  { icon: '💡', tekst: 'AI-inzichten en concrete HR-adviezen' },
+  { icon: '📋', tekst: 'Anonieme pulse surveys met templates' },
+  { icon: '📄', tekst: 'Exporteerbare rapporten voor management' },
+  { icon: '🛡️', tekst: 'Privacy-by-design - AVG-conform' },
 ]
 
 const VOORDELEN_ZELFSTANDIGE = [
-  { icon: '??', tekst: 'Persoonlijk vitaliteitsdashboard' },
-  { icon: '??', tekst: 'AI-coach voor welzijn en productiviteit' },
-  { icon: '??', tekst: 'Burn-out scan en vroege signalen' },
-  { icon: '??', tekst: 'Journal en reflectietools' },
-  { icon: '??', tekst: 'Gewoontetracker en focus timers' },
-  { icon: '??', tekst: 'Persoonlijke trendanalyse over tijd' },
+  { icon: '🏠', tekst: 'Persoonlijk vitaliteitsdashboard' },
+  { icon: '🤖', tekst: 'AI-coach voor welzijn en productiviteit' },
+  { icon: '🔍', tekst: 'Burn-out scan en vroege signalen' },
+  { icon: '📓', tekst: 'Journal en reflectietools' },
+  { icon: '🔥', tekst: 'Gewoontetracker en focus timers' },
+  { icon: '📈', tekst: 'Persoonlijke trendanalyse over tijd' },
 ]
 
 function StapIndicator({ stap, huidig, type }: { stap: Stap; huidig: Stap; type: GebruikerType | null }) {

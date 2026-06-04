@@ -71,9 +71,10 @@ export default function DeclaratiesPage() {
 
       const { data } = await supabase
         .from('declaraties')
-        .select('*')
+        .select('id, datum, bedrag, categorie, beschrijving, status, reviewer_notitie, created_at')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
+        .limit(50)
 
       if (data) setDeclaraties(data as Declaratie[])
       setLaden(false)

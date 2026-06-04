@@ -74,12 +74,17 @@ export default function AgentPage() {
   }, [])
 
   const laad = useCallback(async () => {
-    const {data: bs} = await sb.from('agent_batches').select('*').order('aangemaakt_op', {ascending:false}).limit(10)
+    const {data: bs} = await sb.from('agent_batches').select('id, naam, aangemaakt_op, status, totaal, verwerkt, actief').order('aangemaakt_op', {ascending:false}).limit(10)
     if (!bs) { setGeladen(true); return }
-    const batches_met_contacten = await Promise.all(bs.map(async (b) => {
-      const {data: cs} = await sb.from('agent_contacten').select('*').eq('batch_id', b.id).order('score', {ascending:false})
-      return {...b, contacten: cs ?? []}
-    }))
+    const batchIds = bs.map(b => b.id)
+    const {data: alleCs} = await sb.from('agent_contacten').select('id, batch_id, naam, bedrijf, email, telefoon, score, notities, r1_status, r2_status, r3_status, laatste_actie, aangemaakt_op').in('batch_id', batchIds).order('score', {ascending:false})
+    const csPerBatch = new Map<string, typeof alleCs>()
+    for (const c of alleCs ?? []) {
+      const arr = csPerBatch.get(c.batch_id) ?? []
+      arr.push(c)
+      csPerBatch.set(c.batch_id, arr)
+    }
+    const batches_met_contacten = bs.map(b => ({...b, contacten: csPerBatch.get(b.id) ?? []}))
     setBatches(batches_met_contacten as Batch[])
     if (!activeBatch && batches_met_contacten.length > 0) setActiveBatch(batches_met_contacten[0].id)
     setGeladen(true)

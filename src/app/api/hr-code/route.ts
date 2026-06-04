@@ -83,8 +83,8 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  // Gebruik opgegeven user_id of de ingelogde user
-  const targetUserId = body.user_id ?? user.id
+  // Gebruik altijd de ingelogde user — accepteer geen afwijkende user_id van de client
+  const targetUserId = user.id
 
   // ── 3. Service role client ────────────────────────────────────────────────
   const supabaseService = createClient(

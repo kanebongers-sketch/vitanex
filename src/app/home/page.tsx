@@ -108,11 +108,11 @@ function WeekKalender({ weekSelectie, vandaagStr }: { weekSelectie: WeekSelectie
               {dag.dagNr}
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 3, alignItems: 'center' }}>
-              {aantalDoelen > 0 ? weekSelectie.doelen.map((doel, di) => {
+              {aantalDoelen > 0 ? weekSelectie.doelen.map((doel) => {
                 const log = doel.logs.find(l => l.datum === dag.datum)
                 const kleur = VLAK_KLEUR[doel.vlak] ?? '#9CA3AF'
                 return (
-                  <div key={di} style={{
+                  <div key={doel.vlak} style={{
                     width: 6, height: 6, borderRadius: '50%',
                     background: log?.gehaald ? kleur : log ? '#FEE2E2' : '#F3F4F6',
                     border: log && !log.gehaald ? `1px solid ${kleur}60` : 'none',
@@ -125,7 +125,7 @@ function WeekKalender({ weekSelectie, vandaagStr }: { weekSelectie: WeekSelectie
       </div>
       {aantalDoelen > 0 && (
         <div style={{ padding: '14px 18px 18px', borderTop: '1px solid #F3F4F6' }}>
-          {weekSelectie.doelen.map((doel, idx) => {
+          {weekSelectie.doelen.map((doel) => {
             const kleur = VLAK_KLEUR[doel.vlak] ?? '#9CA3AF'
             const aantalGehaald = doel.logs.filter(l => l.gehaald).length
             const pct = (aantalGehaald / 7) * 100
@@ -480,11 +480,6 @@ export default function HomePage() {
             </div>
           )}
 
-          <style>{`
-            .domein-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-            @media (min-width: 480px) { .domein-grid { grid-template-columns: repeat(6, 1fr); } }
-            @keyframes pulse-border { 0%, 100% { border-color: #6EE7B7; } 50% { border-color: #1D9E75; } }
-          `}</style>
           <div className="domein-grid">
             {Object.entries(CAT).map(([vlak, c]) => {
               const s = vlakScores?.[vlak] ?? 0

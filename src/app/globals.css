@@ -465,3 +465,10 @@ select:focus-visible {
 body.mf-has-sidebar > * {
   min-width: 0;
 }
+
+/* ── Home page animations ───────────────────────────────── */
+@keyframes pulse-border { 0%, 100% { border-color: #6EE7B7; } 50% { border-color: #1D9E75; } }
+
+/* ── Domein grid ───────────────────────────────── */
+.domein-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+@media (min-width: 480px) { .domein-grid { grid-template-columns: repeat(6, 1fr); } }

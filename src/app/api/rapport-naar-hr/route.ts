@@ -1,9 +1,15 @@
 ﻿import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
 import { createAdminClient } from '@/lib/supabase-admin'
+import { getAuthenticatedUser } from '@/lib/api-auth'
 
 export async function POST(req: NextRequest) {
   try {
+    const user = await getAuthenticatedUser(req)
+    if (!user) {
+      return NextResponse.json({ error: 'Niet ingelogd.' }, { status: 401 })
+    }
+
     const { sessie_id, rapport_tekst } = await req.json()
     if (!sessie_id || !rapport_tekst) {
       return NextResponse.json({ error: 'sessie_id en rapport_tekst verplicht' }, { status: 400 })
@@ -18,6 +24,11 @@ export async function POST(req: NextRequest) {
       .single()
 
     if (!sessie) return NextResponse.json({ error: 'Sessie niet gevonden' }, { status: 404 })
+
+    // Verifieer dat de ingelogde gebruiker de eigenaar is van deze sessie
+    if (sessie.user_id !== user.id) {
+      return NextResponse.json({ error: 'Geen toegang tot deze sessie.' }, { status: 403 })
+    }
 
     // Get sender name
     const { data: profiel } = await admin

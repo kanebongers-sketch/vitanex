@@ -111,7 +111,7 @@ export default function Admin() {
 
   async function laadAlles() {
     const [{ data: bData }, { data: pData }, { data: cData }] = await Promise.all([
-      supabase.from('bedrijven').select('*').order('aangemaakt_op', { ascending: false }),
+      supabase.from('bedrijven').select('id, naam, hr_code, aangemaakt_op').order('aangemaakt_op', { ascending: false }).limit(100),
       supabase.from('profiles').select('id, naam, rol, bedrijf_id').order('naam'),
       supabase.from('checkins').select('user_id, created_at').order('created_at', { ascending: false }).limit(500),
     ])

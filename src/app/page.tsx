@@ -453,7 +453,7 @@ function FAQ() {
         </div>
         <div className="space-y-2">
           {FAQS.map((faq, i) => (
-            <div key={i} className="rounded-2xl border overflow-hidden transition-all"
+            <div key={faq.q} className="rounded-2xl border overflow-hidden transition-all"
               style={{ borderColor: open === i ? 'rgba(29,158,117,0.3)' : '#f3f4f6', background: open === i ? 'rgba(29,158,117,0.02)' : 'white' }}>
               <button className="w-full flex items-center justify-between px-6 py-5 text-left gap-4"
                 onClick={() => setOpen(open === i ? null : i)}>

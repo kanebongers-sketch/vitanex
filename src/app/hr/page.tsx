@@ -14,9 +14,9 @@ type HrTab = 'portaal' | 'gesprekken'
 
 export default function HrDashboardPage() {
   const router = useRouter()
-  const [naam, setNaam] = useState('')
-  const [bedrijfId, setBedrijfId] = useState('')
-  const [hrUserId, setHrUserId] = useState('')
+  const [naam, setNaam] = useState<string>('')
+  const [bedrijfId, setBedrijfId] = useState<string | null>(null)
+  const [hrUserId, setHrUserId] = useState<string | null>(null)
   const [geladen, setGeladen] = useState(false)
   const [actieveTab, setActieveTab] = useState<HrTab>('portaal')
   const [opgeslagen, setOpgeslagen] = useState(false)
@@ -37,7 +37,7 @@ export default function HrDashboardPage() {
         router.push('/home'); return
       }
       setNaam(profiel.naam ?? 'HR')
-      setBedrijfId(profiel.bedrijf_id)
+      setBedrijfId(profiel.bedrijf_id ?? null)
       setHrUserId(user.id)
 
       // Portaal config
@@ -103,7 +103,7 @@ export default function HrDashboardPage() {
     setOpgeslagen(true); setBezig(false)
   }
 
-  const actiefTiles = volgorde.filter(id => actief.has(id)).map(id => ALLE_TILES.find(t => t.id === id)!).filter(Boolean)
+  const actiefTiles = volgorde.filter(id => actief.has(id)).map(id => ALLE_TILES.find(t => t.id === id)).filter((t): t is typeof ALLE_TILES[number] => t !== undefined)
   const inactiefTiles = ALLE_TILES.filter(t => !actief.has(t.id))
 
   const ACCENT = '#1D9E75'

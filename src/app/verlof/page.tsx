@@ -77,9 +77,10 @@ export default function VerlofPage() {
 
       const { data } = await supabase
         .from('verlof_aanvragen')
-        .select('*')
+        .select('id, type, datum_van, datum_tot, reden, status, reviewer_notitie, created_at')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
+        .limit(50)
 
       if (data) {
         setAanvragen(data as VerlofAanvraag[])

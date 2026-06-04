@@ -230,9 +230,11 @@ export function verwerkCheckin(gemiddeldeScore: number): XPResult {
       totaalXP += 25
       if (!data.achievements.includes('hoge_score')) {
         data = { ...data, achievements: [...data.achievements, 'hoge_score'] }
-        const ach = ALLE_ACHIEVEMENTS.find(a => a.id === 'hoge_score')!
-        data = verdienXP(data, ach.xpBonus, `Achievement: ${ach.naam}`, 'achievement')
-        totaalXP += ach.xpBonus
+        const ach = ALLE_ACHIEVEMENTS.find(a => a.id === 'hoge_score')
+        if (ach) {
+          data = verdienXP(data, ach.xpBonus, `Achievement: ${ach.naam}`, 'achievement')
+          totaalXP += ach.xpBonus
+        }
       }
     }
   }

@@ -21,6 +21,21 @@ type Contact = {
   batch_naam?: string
 }
 
+interface RawContact {
+  id: string
+  naam: string
+  email: string
+  stad: string
+  sector: string
+  score: number
+  r1_status: string
+  r2_status: string
+  r3_status: string
+  batch_id: string
+  op_zwarte_lijst?: boolean
+  agent_batches?: { naam: string } | null
+}
+
 type Filter = 'alles' | 'verstuurd' | 'zwarte_lijst' | 'overgeslagen'
 
 export default function BedrijvenPage() {
@@ -50,7 +65,7 @@ export default function BedrijvenPage() {
 
     if (!cs) { setGeladen(true); return }
 
-    const mapped = cs.map((c: any) => ({
+    const mapped = (cs as RawContact[]).map((c) => ({
       ...c,
       batch_naam: c.agent_batches?.naam ?? '—',
     }))

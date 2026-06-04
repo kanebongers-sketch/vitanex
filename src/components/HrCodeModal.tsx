@@ -50,7 +50,7 @@ export default function HrCodeModal({ open, onSluit, onGekoppeld, sessieToken }:
       setFoutTekst(null)
       setBedrijfsnaam('')
       setBedrijfId('')
-      setTimeout(() => inputRef.current?.focus(), 100)
+      requestAnimationFrame(() => inputRef.current?.focus())
     }
   }, [open])
 

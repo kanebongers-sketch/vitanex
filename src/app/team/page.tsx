@@ -64,9 +64,11 @@ export default function Team() {
   async function laadTokens(bid: string) {
     const { data } = await supabase
       .from('uitnodiging_tokens')
-      .select('*')
+      .select('id, email, aangemaakt_op, gebruikt')
       .eq('bedrijf_id', bid)
+      .eq('gebruikt', false)
       .order('aangemaakt_op', { ascending: false })
+      .limit(50)
     setTokens(data || [])
   }
 

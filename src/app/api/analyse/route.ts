@@ -1,7 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
+import { getAuthenticatedUser } from '@/lib/api-auth'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+
+// Simple in-memory rate limiter per user (resets on deploy/restart)
+const rateMap = new Map<string, { count: number; reset: number }>()
+const RATE_LIMIT = 20
+const RATE_WINDOW = 60 * 60 * 1000
+
+function checkRateLimit(userId: string): boolean {
+  const now = Date.now()
+  const data = rateMap.get(userId)
+  if (!data || now > data.reset) {
+    rateMap.set(userId, { count: 1, reset: now + RATE_WINDOW })
+    return true
+  }
+  if (data.count >= RATE_LIMIT) return false
+  data.count++
+  return true
+}
 
 const VLAK_LABELS: Record<string, string> = {
   slaap:    'Slaap',
@@ -20,6 +38,18 @@ function scoreLabel(s: number) {
 }
 
 export async function POST(req: NextRequest) {
+  const user = await getAuthenticatedUser(req)
+  if (!user) {
+    return NextResponse.json({ error: 'Niet ingelogd.' }, { status: 401 })
+  }
+
+  if (!checkRateLimit(user.id)) {
+    return NextResponse.json(
+      { error: 'Te veel analyses. Probeer het over een uur opnieuw.' },
+      { status: 429 }
+    )
+  }
+
   try {
     const { vlak_scores, antwoorden } = await req.json()
 

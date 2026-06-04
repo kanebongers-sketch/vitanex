@@ -100,12 +100,13 @@ export default function Navbar() {
   const [fitLevel, setFitLevel]         = useState<number | null>(null)
 
   useEffect(() => {
+    let mounted = true
     async function laad() {
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
+      if (!mounted || !user) return
       const { data } = await supabase.from('profiles')
         .select('naam, rol, bedrijf_id').eq('id', user.id).single()
-      if (!data) return
+      if (!mounted || !data) return
       setProfiel({ id: user.id, ...data })
 
       // Bepaal view mode:
@@ -115,18 +116,19 @@ export default function Navbar() {
       const rol = data.rol as string
       if (rol === 'admin') {
         const saved = localStorage.getItem('mf-view-mode') as ViewMode | null
-        setViewMode(saved ?? 'admin')
+        if (mounted) setViewMode(saved ?? 'admin')
       } else if (rol === 'hr') {
-        setViewMode('hr')
+        if (mounted) setViewMode('hr')
       } else {
-        setViewMode('employee')
+        if (mounted) setViewMode('employee')
       }
 
-      try { setFitLevel(berekenLevel(laadXPData().xp)) } catch { /* non-critical */ }
+      try { if (mounted) setFitLevel(berekenLevel(laadXPData().xp)) } catch { /* non-critical */ }
 
       if (data.bedrijf_id) {
         const { data: config } = await supabase
           .from('portaal_config').select('tiles').eq('bedrijf_id', data.bedrijf_id).single()
+        if (!mounted) return
         if (config?.tiles && Array.isArray(config.tiles)) {
           const TILE_SVG: Partial<Record<TileId, React.ReactNode>> = {
             verlof:      <Ico d={['M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z', 'M9 22V12h6v10']} />,
@@ -152,7 +154,10 @@ export default function Navbar() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(e => {
       if (e === 'SIGNED_OUT') router.push('/login')
     })
-    return () => subscription.unsubscribe()
+    return () => {
+      mounted = false
+      subscription.unsubscribe()
+    }
   }, [router])
 
   useLayoutEffect(() => {

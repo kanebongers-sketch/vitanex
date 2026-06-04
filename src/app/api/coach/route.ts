@@ -77,7 +77,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Te veel berichten in de context.' }, { status: 400 })
     }
 
-    const systeemTekst = systeemOverride ?? SYSTEEM
+    // systeemOverride is niet toegestaan — gebruik altijd het server-side systeem-prompt
+    const systeemTekst = SYSTEEM
 
     // Prompt caching: cache het systeem-prompt
     const response = await anthropic.messages.create({

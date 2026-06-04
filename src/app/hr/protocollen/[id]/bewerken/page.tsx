@@ -50,7 +50,7 @@ export default function BewerkProtocolPage() {
       }
       setBedrijfId(profiel.bedrijf_id)
 
-      const { data } = await supabase.from('protocollen').select('*').eq('id', id).single()
+      const { data } = await supabase.from('protocollen').select('id, titel, beschrijving, inhoud, gepubliceerd, bedrijf_id, categorie, icoon, kleur').eq('id', id).single()
       if (!data || data.bedrijf_id !== profiel.bedrijf_id) { router.push('/hr/protocollen'); return }
 
       setTitel(data.titel)

@@ -62,6 +62,15 @@ async function haal_status(): Promise<string> {
 
 export async function POST(req: Request) {
   try {
+    // Verifieer de Telegram webhook signature
+    const webhookSecret = process.env.TELEGRAM_WEBHOOK_SECRET
+    if (webhookSecret) {
+      const incomingSecret = req.headers.get('x-telegram-bot-api-secret-token')
+      if (incomingSecret !== webhookSecret) {
+        return NextResponse.json({ ok: false }, { status: 401 })
+      }
+    }
+
     const body = await req.json()
 
     // ── Callback query (knop ingedrukt) ──

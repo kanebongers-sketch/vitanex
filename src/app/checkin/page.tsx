@@ -137,7 +137,7 @@ export default function CheckIn() {
   const [sectieIdx,  setSectieIdx]  = useState(0)
   const [antwoorden, setAntwoorden] = useState<Record<string, number | string>>({})
   const [laden,      setLaden]      = useState(false)
-  const [fout,       setFout]       = useState('')
+  const [fout,       setFout]       = useState<string | null>(null)
 
   const weekStart = vandaag()
 
@@ -229,7 +229,7 @@ export default function CheckIn() {
 
   function volgendeSectie() {
     if (!sectieCompleet(sectieIdx)) return
-    setFout('')
+    setFout(null)
     if (sectieIdx < totaalSecties - 1) {
       setSectieIdx(s => s + 1)
       scrollTop()
@@ -246,7 +246,7 @@ export default function CheckIn() {
   async function submit() {
     if (!userId) return
     setLaden(true)
-    setFout('')
+    setFout(null)
 
     try {
       // Bouw rijen op voor de API

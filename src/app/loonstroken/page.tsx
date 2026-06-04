@@ -26,7 +26,7 @@ export default function LoonstrokenPage() {
 
       const { data } = await supabase
         .from('loonstroken')
-        .select('*')
+        .select('id, periode_datum, naam, opslag_pad, aangemaakt_op')
         .eq('user_id', user.id)
         .order('periode_datum', { ascending: false })
 

@@ -43,8 +43,9 @@ export default function HrProtokollenPage() {
       }
       setBedrijfId(profiel.bedrijf_id)
       const { data } = await supabase
-        .from('protocollen').select('*').eq('bedrijf_id', profiel.bedrijf_id)
+        .from('protocollen').select('id, titel, beschrijving, gepubliceerd, aangemaakt_op').eq('bedrijf_id', profiel.bedrijf_id)
         .order('aangemaakt_op', { ascending: false })
+        .limit(100)
       if (data) setProtocollen(data as Protocol[])
       setLaden(false)
     }

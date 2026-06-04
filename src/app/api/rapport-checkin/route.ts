@@ -1,6 +1,7 @@
 ﻿import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 import { createAdminClient } from '@/lib/supabase-admin'
+import { getAuthenticatedUser } from '@/lib/api-auth'
 
 if (!process.env.ANTHROPIC_API_KEY) {
   console.error('[rapport-checkin] ANTHROPIC_API_KEY is niet ingesteld in de omgevingsvariabelen')
@@ -44,11 +45,28 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'AI rapport is niet beschikbaar: ANTHROPIC_API_KEY ontbreekt.' }, { status: 503 })
   }
 
+  const user = await getAuthenticatedUser(req)
+  if (!user) {
+    return NextResponse.json({ error: 'Niet ingelogd.' }, { status: 401 })
+  }
+
   try {
     const { sessie_id } = await req.json()
     if (!sessie_id) return NextResponse.json({ error: 'sessie_id verplicht' }, { status: 400 })
 
     const admin = createAdminClient()
+
+    // Verifieer dat de sessie toebehoort aan de ingelogde gebruiker
+    const { data: sessie } = await admin
+      .from('checkin_sessies')
+      .select('user_id')
+      .eq('id', sessie_id)
+      .single()
+
+    if (!sessie) return NextResponse.json({ error: 'Sessie niet gevonden' }, { status: 404 })
+    if (sessie.user_id !== user.id) {
+      return NextResponse.json({ error: 'Geen toegang tot deze sessie.' }, { status: 403 })
+    }
 
     const { data: antwoorden } = await admin
       .from('checkin_antwoorden')

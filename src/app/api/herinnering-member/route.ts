@@ -1,13 +1,30 @@
 ﻿import { Resend } from 'resend'
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase-admin'
+import { getAuthenticatedUser } from '@/lib/api-auth'
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
+  const user = await getAuthenticatedUser(request)
+  if (!user) {
+    return NextResponse.json({ error: 'Niet ingelogd.' }, { status: 401 })
+  }
+
   const resend = new Resend(process.env.RESEND_API_KEY)
   const { profielId } = await request.json()
   if (!profielId) return NextResponse.json({ error: 'profielId vereist' }, { status: 400 })
 
   const admin = createAdminClient()
+
+  // Haal het profiel van de aanroeper op om bedrijf_id en rol te controleren
+  const { data: aanroeper } = await admin
+    .from('profiles')
+    .select('bedrijf_id, rol')
+    .eq('id', user.id)
+    .single()
+
+  if (!aanroeper || aanroeper.rol !== 'hr') {
+    return NextResponse.json({ error: 'Geen HR-rechten.' }, { status: 403 })
+  }
 
   const { data: profiel } = await admin
     .from('profiles')
@@ -17,12 +34,17 @@ export async function POST(request: Request) {
 
   if (!profiel) return NextResponse.json({ error: 'Profiel niet gevonden' }, { status: 404 })
 
-  const { data: { user }, error: userError } = await admin.auth.admin.getUserById(profielId)
-  if (userError || !user?.email) return NextResponse.json({ error: 'E-mailadres niet gevonden' }, { status: 404 })
+  // Verifieer dat de doelgebruiker tot hetzelfde bedrijf behoort
+  if (profiel.bedrijf_id !== aanroeper.bedrijf_id) {
+    return NextResponse.json({ error: 'Geen toegang tot deze gebruiker.' }, { status: 403 })
+  }
+
+  const { data: { user: doelUser }, error: userError } = await admin.auth.admin.getUserById(profielId)
+  if (userError || !doelUser?.email) return NextResponse.json({ error: 'E-mailadres niet gevonden' }, { status: 404 })
 
   const { error } = await resend.emails.send({
     from: 'MentaForce <onboarding@resend.dev>',
-    to: user.email,
+    to: doelUser.email,
     subject: 'Jouw wekelijkse check-in staat klaar',
     html: `
       <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; padding: 32px;">
@@ -38,5 +60,5 @@ export async function POST(request: Request) {
   })
 
   if (error) return NextResponse.json({ error }, { status: 400 })
-  return NextResponse.json({ success: true, email: user.email })
+  return NextResponse.json({ success: true, email: doelUser.email })
 }

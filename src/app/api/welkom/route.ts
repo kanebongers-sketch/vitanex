@@ -1,9 +1,17 @@
 ﻿import { Resend } from 'resend'
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
+  try {
+  // Controleer de interne API-key — dit endpoint mag alleen vanuit server-side code worden aangeroepen
+  const internalKey = request.headers.get('x-internal-key')
+  if (!internalKey || internalKey !== process.env.INTERNAL_API_KEY) {
+    return NextResponse.json({ error: 'Niet geautoriseerd.' }, { status: 401 })
+  }
+
   const resend = new Resend(process.env.RESEND_API_KEY)
-  const { naam, email } = await request.json()
+  const body = await request.json()
+  const { naam, email } = body as { naam?: string; email?: string }
   if (!email) return NextResponse.json({ error: 'email vereist' }, { status: 400 })
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
@@ -47,4 +55,8 @@ export async function POST(request: Request) {
 
   if (error) return NextResponse.json({ error }, { status: 400 })
   return NextResponse.json({ success: true })
+  } catch (err) {
+    console.error('[welkom]', err)
+    return NextResponse.json({ error: 'Welkomstmail kon niet worden verstuurd.' }, { status: 500 })
+  }
 }

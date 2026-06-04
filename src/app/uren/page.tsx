@@ -67,11 +67,17 @@ export default function UrenPage() {
       const van = new Date(vanDatum)
       const dag = van.getDay() === 0 ? 6 : van.getDay() - 1
       van.setDate(van.getDate() - dag - (actieveWeek === 'vorig' ? 7 : 0))
+      const tot = new Date(van)
+      tot.setDate(van.getDate() + 6)
+      const startDatum = van.toISOString().split('T')[0]
+      const eindDatum = tot.toISOString().split('T')[0]
 
       const { data } = await supabase
         .from('tijdregistraties')
-        .select('*')
+        .select('id, datum, uren, project, omschrijving, created_at')
         .eq('user_id', user.id)
+        .gte('datum', startDatum)
+        .lte('datum', eindDatum)
         .order('datum', { ascending: false })
 
       if (data) setRegistraties(data as Registratie[])
