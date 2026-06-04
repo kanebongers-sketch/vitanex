@@ -166,9 +166,15 @@ export default function HomePage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/login'); return }
 
-      // Profile
+      // Profile — check onboarding
       const { data: profiel } = await supabase
-        .from('profiles').select('naam').eq('id', user.id).single()
+        .from('profiles').select('naam, onboarding_voltooid').eq('id', user.id).single()
+
+      if (!profiel?.onboarding_voltooid) {
+        router.replace('/onboarding')
+        return
+      }
+
       setNaam(profiel?.naam ?? '')
 
       // Most recent session (7 days) — if none, send to check-in

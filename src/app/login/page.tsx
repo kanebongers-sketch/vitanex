@@ -53,7 +53,13 @@ export default function Login() {
     }
 
     const { data: profiel } = await supabase
-      .from('profiles').select('rol').eq('id', data.user.id).single()
+      .from('profiles').select('rol, onboarding_voltooid').eq('id', data.user.id).single()
+
+    // Onboarding nog niet gedaan → wizard eerst
+    if (!profiel?.onboarding_voltooid) {
+      router.push('/onboarding')
+      return
+    }
 
     const rol = profiel?.rol ?? 'medewerker'
     if (rol === 'admin') router.push('/admin')
