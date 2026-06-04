@@ -58,17 +58,6 @@ function Icon({ name, size = 20, color = 'currentColor', filled = false }: {
 // ATOMS
 // ─────────────────────────────────────────────────────────────────────────────
 
-function Stars() {
-  return (
-    <div className="flex gap-0.5">
-      {[1, 2, 3, 4, 5].map(i => (
-        <svg key={i} width="16" height="16" viewBox="0 0 24 24" fill="#FBBF24" stroke="none">
-          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-        </svg>
-      ))}
-    </div>
-  )
-}
 
 function Check({ text, color }: { text: string; color: string }) {
   return (
@@ -569,29 +558,24 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── 2. SOCIAL PROOF BAR ──────────────────────────────────────────────── */}
+      {/* ── 2. VERTROUWEN BAR ────────────────────────────────────────────────── */}
       <section className="py-10 border-y border-gray-100" style={{ background: '#f9fafb' }}>
-        <div className="max-w-7xl mx-auto px-6 lg:px-12">
-          <p className="text-center text-xs font-bold uppercase tracking-widest mb-7" style={{ color: '#c0c8d0' }}>
-            Vertrouwd door HR-teams in heel Nederland
-          </p>
-          <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 mb-8">
-            {['Logistiek NL', 'ZorgGroep West', 'TechTeams BV', 'RetailCorp', 'BouwDienst Group'].map(name => (
-              <div key={name} className="px-5 py-2.5 rounded-xl border border-gray-200 bg-white shadow-sm">
-                <span className="text-sm font-bold text-gray-400">{name}</span>
-              </div>
-            ))}
-          </div>
-          <div className="flex flex-wrap items-center justify-center gap-x-12 gap-y-4 border-t border-gray-100 pt-7">
+        <div className="max-w-5xl mx-auto px-6 lg:px-12">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {[
-              { val: '200+', label: 'organisaties actief' },
-              { val: '15.000+', label: 'medewerkers op platform' },
-              { val: '500.000+', label: 'check-ins voltooid' },
-              { val: '4.8/5', label: 'gemiddelde klantbeoordeling' },
-            ].map(s => (
-              <div key={s.label} className="text-center">
-                <p className="font-black text-gray-900 text-xl tracking-tight">{s.val}</p>
-                <p className="text-xs text-gray-400 mt-0.5">{s.label}</p>
+              { icon: 'shield',  color: '#1D9E75', bg: '#E1F5EE', titel: 'AVG-conform',       sub: 'Data op EU-servers · verwerkersovereenkomst inbegrepen' },
+              { icon: 'sparkles',color: '#8B5CF6', bg: '#EEEDFE', titel: 'Aangedreven door AI',sub: 'Claude AI analyseert patronen en schrijft HR-adviezen in het Nederlands' },
+              { icon: 'users',   color: '#378ADD', bg: '#E6F1FB', titel: 'Privacy by design',  sub: 'HR ziet nooit individuele scores — alleen groepsgemiddelden' },
+              { icon: 'zap',     color: '#BA7517', bg: '#FAEEDA', titel: 'Gemaakt in Nederland',sub: 'Nederlandstalig platform, support en documentatie' },
+            ].map(p => (
+              <div key={p.titel} className="flex items-start gap-3">
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5" style={{ background: p.bg }}>
+                  <Icon name={p.icon as keyof typeof ICONS} size={16} color={p.color} />
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-gray-800">{p.titel}</p>
+                  <p className="text-xs text-gray-400 mt-0.5 leading-snug">{p.sub}</p>
+                </div>
               </div>
             ))}
           </div>
@@ -894,79 +878,111 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── 9. TESTIMONIALS ──────────────────────────────────────────────────── */}
+      {/* ── 9. TWEE PERSPECTIEVEN ────────────────────────────────────────────── */}
       <section className="py-28 relative overflow-hidden" style={{ background: '#060d1f' }}>
         <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse 60% 50% at 50% 0%, rgba(29,158,117,0.08) 0%, transparent 70%)' }} />
         <div className="max-w-7xl mx-auto px-6 lg:px-12 relative">
+
           <div className="text-center mb-16">
-            <Label text="Ervaringen" />
-            <h2 className="text-4xl lg:text-5xl font-extrabold text-white mb-4 tracking-tight">
-              Wat HR-professionals zeggen
+            <Label text="Twee perspectieven. Één platform." />
+            <h2 className="text-4xl lg:text-5xl font-extrabold text-white mb-4 tracking-tight leading-tight">
+              Wat iedereen ziet —<br />
+              <span style={{ color: '#1D9E75' }}>en wat verborgen blijft.</span>
             </h2>
-            <p className="text-xl" style={{ color: 'rgba(255,255,255,0.45)' }}>Geverifieerde resultaten na de eerste maand.</p>
-          </div>
-
-          {/* Featured quote */}
-          <div className="rounded-3xl p-8 md:p-12 mb-8 border"
-            style={{ background: 'rgba(255,255,255,0.04)', borderColor: 'rgba(255,255,255,0.08)' }}>
-            <div className="flex gap-1 mb-6">
-              <Stars />
-            </div>
-            <p className="text-xl md:text-2xl text-white font-medium leading-relaxed mb-8" style={{ maxWidth: 780 }}>
-              &ldquo;We hebben een dreigende burn-out <strong className="text-green-400">6 weken eerder</strong> kunnen signaleren dan anders mogelijk was geweest. De ROI was bewezen in de eerste maand — één voorkomen burn-out dekte een heel jaar abonnement.&rdquo;
+            <p className="text-lg max-w-xl mx-auto" style={{ color: 'rgba(255,255,255,0.45)' }}>
+              Anonimiteit is niet een instelling die je kunt uitzetten. Het zit ingebakken in hoe het platform werkt.
             </p>
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg flex-shrink-0"
-                style={{ background: 'linear-gradient(135deg, #8B5CF6, #6D28D9)' }}>E</div>
-              <div>
-                <p className="text-white font-semibold">Emma de Vries</p>
-                <p className="text-sm" style={{ color: 'rgba(255,255,255,0.45)' }}>HR Directeur · 340 medewerkers · Logistiek</p>
-              </div>
-              <div className="ml-auto hidden sm:block text-xs font-semibold px-3 py-1.5 rounded-full"
-                style={{ background: 'rgba(139,92,246,0.2)', color: '#a78bfa' }}>
-                ↑ €15.000 bespaard
-              </div>
-            </div>
           </div>
 
-          {/* Supporting testimonials */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {[
-              {
-                quote: 'Eindelijk een tool die medewerkers echt gebruiken. De anonimiteit maakt het verschil — eerlijke signalen in plaats van sociaal wenselijke antwoorden.',
-                naam: 'Sarah Vermeer', rol: 'HR Manager', org: '120 medewerkers · Zorg',
-                initiaal: 'S', color: '#1D9E75', resultaat: '34% hogere participatie',
-              },
-              {
-                quote: 'De AI-samenvatting bespaart mij 3 uur per week. Maandagochtend open ik het dashboard en weet meteen wat er speelt.',
-                naam: 'Thomas Janssen', rol: 'People & Culture Lead', org: '85 medewerkers · Tech',
-                initiaal: 'T', color: '#378ADD', resultaat: '3 uur/week bespaard',
-              },
-            ].map(t => (
-              <div key={t.naam} className="rounded-2xl p-7 border"
-                style={{ background: 'rgba(255,255,255,0.04)', borderColor: 'rgba(255,255,255,0.08)' }}>
-                <Stars />
-                <p className="mt-4 mb-6 leading-relaxed text-sm" style={{ color: 'rgba(255,255,255,0.65)' }}>
-                  &ldquo;{t.quote}&rdquo;
-                </p>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
-                      style={{ background: t.color }}>
-                      {t.initiaal}
-                    </div>
-                    <div>
-                      <p className="text-white font-semibold text-sm">{t.naam}</p>
-                      <p className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>{t.rol} · {t.org}</p>
-                    </div>
-                  </div>
-                  <span className="text-xs font-semibold px-3 py-1.5 rounded-full hidden sm:block"
-                    style={{ background: t.color + '20', color: t.color }}>
-                    ↑ {t.resultaat}
-                  </span>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-12">
+
+            {/* Medewerker kant */}
+            <div className="rounded-3xl overflow-hidden border" style={{ borderColor: 'rgba(55,138,221,0.25)', background: 'rgba(55,138,221,0.04)' }}>
+              <div className="px-7 py-5 border-b flex items-center gap-3" style={{ borderColor: 'rgba(55,138,221,0.15)' }}>
+                <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: 'rgba(55,138,221,0.2)' }}>
+                  <Icon name="users" size={15} color="#378ADD" />
+                </div>
+                <div>
+                  <p className="text-white font-bold text-sm">Medewerker</p>
+                  <p className="text-xs" style={{ color: 'rgba(255,255,255,0.35)' }}>Ziet alleen zijn eigen data</p>
                 </div>
               </div>
-            ))}
+              <div className="p-7 space-y-4">
+                {[
+                  { label: 'Jouw vitaliteitscore', value: '3.8 / 5', color: '#378ADD', sub: 'Alleen zichtbaar voor jou' },
+                  { label: 'Trend afgelopen 8 weken', value: '↑ Stijgend', color: '#1D9E75', sub: 'Jouw persoonlijk verloop' },
+                  { label: 'AI welzijnscoach', value: 'Nieuw advies beschikbaar', color: '#8B5CF6', sub: 'Privé en persoonlijk' },
+                  { label: 'Check-in status', value: 'Voltooid · maandag 09:03', color: '#BA7517', sub: 'Anoniem ingediend' },
+                ].map(r => (
+                  <div key={r.label} className="flex items-center justify-between rounded-2xl px-4 py-3.5"
+                    style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                    <div>
+                      <p className="text-xs font-semibold text-white">{r.label}</p>
+                      <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.35)' }}>{r.sub}</p>
+                    </div>
+                    <span className="text-xs font-bold px-2.5 py-1 rounded-lg" style={{ background: r.color + '22', color: r.color }}>{r.value}</span>
+                  </div>
+                ))}
+                <div className="rounded-2xl px-4 py-3.5 border" style={{ background: 'rgba(255,255,255,0.04)', borderColor: 'rgba(255,255,255,0.06)' }}>
+                  <p className="text-xs font-bold mb-1" style={{ color: '#E24B4A' }}>🔒 Niet beschikbaar voor medewerker</p>
+                  <p className="text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>Scores van collega&apos;s, teamgemiddelden, HR-notities</p>
+                </div>
+              </div>
+            </div>
+
+            {/* HR kant */}
+            <div className="rounded-3xl overflow-hidden border" style={{ borderColor: 'rgba(29,158,117,0.25)', background: 'rgba(29,158,117,0.04)' }}>
+              <div className="px-7 py-5 border-b flex items-center gap-3" style={{ borderColor: 'rgba(29,158,117,0.15)' }}>
+                <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: 'rgba(29,158,117,0.2)' }}>
+                  <Icon name="barChart" size={15} color="#1D9E75" />
+                </div>
+                <div>
+                  <p className="text-white font-bold text-sm">HR-manager</p>
+                  <p className="text-xs" style={{ color: 'rgba(255,255,255,0.35)' }}>Ziet alleen groepspatronen</p>
+                </div>
+              </div>
+              <div className="p-7 space-y-4">
+                {[
+                  { label: 'Team vitaliteitscore', value: '4.1 / 5 gem.', color: '#1D9E75', sub: 'Groepsgemiddelde · 18 deelnemers' },
+                  { label: 'Participatiegraad', value: '87%', color: '#378ADD', sub: 'Deze week ingevuld' },
+                  { label: 'Risicosignalen', value: '2 signalen', color: '#E24B4A', sub: 'Patroon in de groep — geen namen' },
+                  { label: 'AI HR-advies', value: 'Nieuw inzicht', color: '#8B5CF6', sub: 'Gebaseerd op anonieme patronen' },
+                ].map(r => (
+                  <div key={r.label} className="flex items-center justify-between rounded-2xl px-4 py-3.5"
+                    style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                    <div>
+                      <p className="text-xs font-semibold text-white">{r.label}</p>
+                      <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.35)' }}>{r.sub}</p>
+                    </div>
+                    <span className="text-xs font-bold px-2.5 py-1 rounded-lg" style={{ background: r.color + '22', color: r.color }}>{r.value}</span>
+                  </div>
+                ))}
+                <div className="rounded-2xl px-4 py-3.5 border" style={{ background: 'rgba(255,255,255,0.04)', borderColor: 'rgba(255,255,255,0.06)' }}>
+                  <p className="text-xs font-bold mb-1" style={{ color: '#E24B4A' }}>🔒 Niet beschikbaar voor HR</p>
+                  <p className="text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>Individuele scores, namen achter signalen, persoonlijke journaalentries</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Onderste uitleg balk */}
+          <div className="rounded-2xl px-8 py-6 border flex flex-col sm:flex-row items-start sm:items-center gap-4"
+            style={{ background: 'rgba(255,255,255,0.03)', borderColor: 'rgba(255,255,255,0.07)' }}>
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(29,158,117,0.15)' }}>
+              <Icon name="shield" size={18} color="#1D9E75" />
+            </div>
+            <div className="flex-1">
+              <p className="text-white font-semibold text-sm mb-1">Privacy by design — geen instelling, maar architectuur</p>
+              <p className="text-xs leading-relaxed" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                Individuele scores worden nooit opgeslagen als herleidbaar gegeven. Het systeem kan ze technisch niet aan een naam koppelen — ook niet als HR dat zou willen. Teams kleiner dan 5 worden extra beschermd: resultaten worden pas getoond zodra voldoende deelnemers hebben ingevuld.
+              </p>
+            </div>
+            <Link href="/register"
+              className="flex-shrink-0 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-white text-xs transition-opacity hover:opacity-90"
+              style={{ background: 'linear-gradient(135deg, #1D9E75, #17a880)' }}>
+              Zelf proberen
+              <Icon name="arrowRight" size={12} color="white" />
+            </Link>
           </div>
         </div>
       </section>
