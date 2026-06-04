@@ -186,7 +186,22 @@ export default function Navbar() {
   const activeBg   = viewMode === 'employee' ? '#F0FDF8' : ACCENT + '22'
 
   /* ── Navigatie per portaal ── */
-  const portalLabel = viewMode === 'employee' ? 'Werknemersportaal' : viewMode === 'hr' ? 'HR Portaal' : 'Admin Portaal'
+  const isWerknemer = viewMode === 'employee' && !!profiel?.bedrijf_id
+  const portalLabel = viewMode === 'employee'
+    ? (isWerknemer ? 'Werknemersportaal' : 'Persoonlijk portaal')
+    : viewMode === 'hr' ? 'HR Portaal' : 'Admin Portaal'
+
+  const DEFAULT_WERKDAG_ITEMS: NavItem[] = [
+    { href: '/verlof',      label: 'Verlof',      icon: <Ico d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2z" /> },
+    { href: '/uren',        label: 'Uren',        icon: <Ico d="M12 8v4l3 3m6-3a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" /> },
+    { href: '/declaraties', label: 'Declaraties', icon: <Ico d={['M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z', 'M14 2v6h6', 'M12 18v-6', 'M9 15h6']} /> },
+    { href: '/loonstroken', label: 'Loonstroken', icon: <Ico d={['M12 1v22', 'M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6']} /> },
+    { href: '/nieuws',      label: 'Nieuws',      icon: I.nieuws },
+    { href: '/protocollen', label: 'Protocollen', icon: I.prot },
+    { href: '/directory',   label: 'Collega\'s',  icon: I.team },
+  ]
+
+  const effectiefWerkdagItems = werkdagItems.length > 0 ? werkdagItems : (isWerknemer ? DEFAULT_WERKDAG_ITEMS : [])
 
   const sections: NavSection[] = viewMode === 'employee' ? [
     {
@@ -199,9 +214,9 @@ export default function Navbar() {
     {
       label: 'Begeleiding',
       items: [
-        { href: '/coach',   label: 'AI Coach',    icon: I.coach },
-        { href: '/doelen',  label: 'Doelen',      icon: I.doelen },
-        { href: '/uitdagingen', label: 'Uitdagingen', icon: I.uitd },
+        { href: '/coach',       label: 'AI Coach',     icon: I.coach },
+        { href: '/doelen',      label: 'Doelen',       icon: I.doelen },
+        { href: '/uitdagingen', label: 'Uitdagingen',  icon: I.uitd },
       ],
     },
     {
@@ -212,8 +227,14 @@ export default function Navbar() {
         { href: '/burnout', label: 'Burn-out scan', icon: I.burnout },
       ],
     },
-    { label: 'Planning', items: [{ href: '/roosters', label: 'Mijn rooster', icon: <Ico d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" /> }] },
-    ...(werkdagItems.length > 0 ? [{ label: 'Werkdag', items: werkdagItems }] : []),
+    ...(isWerknemer ? [{
+      label: 'Planning',
+      items: [
+        { href: '/roosters',        label: 'Mijn rooster',    icon: <Ico d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" /> },
+        { href: '/mijn-gesprekken', label: 'Mijn gesprekken', icon: <Ico d={['M17 8h2a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-2v4l-4-4H9a1.994 1.994 0 0 1-1.414-.586m0 0L11 14h4a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2v4l.586-.586z']} /> },
+      ],
+    }] : []),
+    ...(effectiefWerkdagItems.length > 0 ? [{ label: 'Werkdag', items: effectiefWerkdagItems }] : []),
   ] : viewMode === 'hr' ? [
     {
       label: 'Overzicht',
@@ -348,7 +369,7 @@ export default function Navbar() {
               </p>
               <p style={{ fontSize: 10, color: textMuted }}>
                 {viewMode === 'employee'
-                  ? (fitLevel !== null ? `Fit Level ${fitLevel}` : 'Medewerker')
+                  ? (fitLevel !== null ? `Fit Level ${fitLevel}` : isWerknemer ? 'Werknemer' : 'Gebruiker')
                   : viewMode === 'hr' ? 'HR Manager' : 'Admin'}
               </p>
             </div>
