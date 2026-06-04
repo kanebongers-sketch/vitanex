@@ -48,7 +48,7 @@ export default function HrGesprekkenPage() {
             Plan en log 1-op-1 gesprekken met medewerkers
           </p>
         </div>
-        <GesprekkenTab bedrijfId={bedrijfId} hrUserId={hrUserId} />
+        <GesprekkenTab bedrijfId={bedrijfId ?? ''} hrUserId={hrUserId ?? ''} />
       </div>
     </HrShell>
   )

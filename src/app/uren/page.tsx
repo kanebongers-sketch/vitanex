@@ -74,7 +74,7 @@ export default function UrenPage() {
 
       const { data } = await supabase
         .from('tijdregistraties')
-        .select('id, datum, uren, project, omschrijving, created_at')
+        .select('id, user_id, datum, uren, project, beschrijving, omschrijving, goedgekeurd, created_at')
         .eq('user_id', user.id)
         .gte('datum', startDatum)
         .lte('datum', eindDatum)

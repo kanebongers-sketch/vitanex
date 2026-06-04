@@ -130,7 +130,7 @@ function WeekKalender({ weekSelectie, vandaagStr }: { weekSelectie: WeekSelectie
             const aantalGehaald = doel.logs.filter(l => l.gehaald).length
             const pct = (aantalGehaald / 7) * 100
             return (
-              <Link key={doel.vlak} href="/doelen" style={{ textDecoration: 'none', display: 'block', marginBottom: idx < weekSelectie.doelen.length - 1 ? 12 : 0 }}>
+              <Link key={doel.vlak} href="/doelen" style={{ textDecoration: 'none', display: 'block', marginBottom: 12 }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 5 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                     <div style={{ width: 8, height: 8, borderRadius: '50%', background: kleur, flexShrink: 0 }} />

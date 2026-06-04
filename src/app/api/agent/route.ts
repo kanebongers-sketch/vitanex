@@ -124,7 +124,7 @@ export async function POST(req: NextRequest) {
   const mappedStap = actieNaarStap[actie]
   if (!mappedStap) return NextResponse.json({ error: 'Ongeldige actie' }, { status: 400 })
 
-  const extraInputs = ronde ? { ronde: String(ronde) } : {}
+  const extraInputs: Record<string, string> = ronde ? { ronde: String(ronde) } : {}
   const ok = await triggerWorkflow(mappedStap, extraInputs)
 
   return NextResponse.json({
