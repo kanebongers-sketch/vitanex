@@ -508,7 +508,7 @@ export default function LandingPage() {
               <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 mb-8 text-xs font-semibold border"
                 style={{ background: 'rgba(29,158,117,0.08)', borderColor: 'rgba(29,158,117,0.2)', color: '#4ECBA5' }}>
                 <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: '#4ECBA5' }} />
-                Vertrouwd door 200+ Nederlandse organisaties
+                Voor Nederlandse HR-teams en medewerkers
               </div>
 
               <h1 className="font-extrabold text-white leading-[1.08] mb-6 tracking-tight"
