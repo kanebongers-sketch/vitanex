@@ -74,7 +74,7 @@ export default function AgentPage() {
   }, [])
 
   const laad = useCallback(async () => {
-    const {data: bs} = await sb.from('agent_batches').select('id, naam, aangemaakt_op, status, totaal, verwerkt, actief').order('aangemaakt_op', {ascending:false}).limit(10)
+    const {data: bs} = await sb.from('agent_batches').select('id, naam, aangemaakt_op, status, totaal, verwerkt, actief, start_datum, ronde_2_datum, ronde_3_datum').order('aangemaakt_op', {ascending:false}).limit(10)
     if (!bs) { setGeladen(true); return }
     const batchIds = bs.map(b => b.id)
     const {data: alleCs} = await sb.from('agent_contacten').select('id, batch_id, naam, bedrijf, email, telefoon, score, notities, r1_status, r2_status, r3_status, laatste_actie, aangemaakt_op').in('batch_id', batchIds).order('score', {ascending:false})
