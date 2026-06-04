@@ -568,9 +568,10 @@ export default function OnboardingPage() {
                 <h2 style={{ fontSize: 20, fontWeight: 800, color: '#111827', marginBottom: 4 }}>Werkgever koppelen</h2>
                 <p style={{ fontSize: 13, color: '#9CA3AF', marginBottom: 20 }}>Optioneel — je kunt dit overslaan</p>
 
-                <p style={{ fontSize: 14, color: '#4B5563', lineHeight: 1.6, marginBottom: 20 }}>
-                  Werkt u bij een organisatie die MentaForce gebruikt? Voer de HR code in die u van uw werkgever heeft ontvangen.
-                </p>
+                <div style={{ padding: '10px 14px', borderRadius: 10, background: '#FEF3C7', border: '1px solid #FCD34D', fontSize: 13, color: '#92400E', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ fontSize: 16 }}>⚠️</span>
+                  <p><strong>Verplicht</strong> — vraag je HR code op bij je werkgever of HR-afdeling.</p>
+                </div>
 
                 <Veld label="HR Code" sub="6 tekens — ontvangen van uw werkgever">
                   <div style={{ position: 'relative' }}>
@@ -601,15 +602,15 @@ export default function OnboardingPage() {
 
                 <div style={{ display: 'flex', gap: 12, justifyContent: 'space-between', marginTop: 24 }}>
                   <Knop onClick={() => setGebrStap('lichaam')} variant="ghost">← Terug</Knop>
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    {!hrCodeBedrijf && (
-                      <Knop onClick={gebruikerAfronden} variant="ghost" disabled={bezig}>Overslaan</Knop>
-                    )}
-                    <Knop onClick={gebruikerAfronden} disabled={bezig || (gebr.hrCode.length > 0 && !hrCodeBedrijf)}>
-                      {bezig ? 'Opslaan...' : hrCodeBedrijf ? 'Koppelen & afronden →' : 'Afronden →'}
-                    </Knop>
-                  </div>
+                  <Knop onClick={gebruikerAfronden} disabled={bezig || !hrCodeBedrijf}>
+                    {bezig ? 'Opslaan...' : 'Koppelen & afronden →'}
+                  </Knop>
                 </div>
+                {!hrCodeBedrijf && (
+                  <p style={{ fontSize: 12, color: '#9CA3AF', textAlign: 'center', marginTop: 12 }}>
+                    Geen code ontvangen? Neem contact op met je HR-afdeling.
+                  </p>
+                )}
               </div>
             )}
 
