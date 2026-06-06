@@ -12,6 +12,14 @@ const nextConfig: NextConfig = {
         hostname: '*.supabase.co',
         pathname: '/storage/v1/object/public/**',
       },
+      {
+        protocol: 'https',
+        hostname: '*.openfoodfacts.org',
+      },
+      {
+        protocol: 'https',
+        hostname: 'images.openfoodfacts.org',
+      },
     ],
     unoptimized: process.env.CAPACITOR_BUILD === 'true',
   },
@@ -28,8 +36,8 @@ const nextConfig: NextConfig = {
       "default-src 'self'",
       "script-src 'self' 'unsafe-inline' 'unsafe-eval'",   // Turbopack needs unsafe-eval in dev
       "style-src 'self' 'unsafe-inline'",
-      `img-src 'self' data: blob: https://${supabaseHost}`,
-      `connect-src 'self' https://${supabaseHost} wss://${supabaseHost}`,
+      `img-src 'self' data: blob: https://${supabaseHost} https://*.openfoodfacts.org https://exercisedb.io https://v2.exercisedb.io https://exercisedb-api.vercel.app https://*.exercisedb.io`,
+      `connect-src 'self' https://${supabaseHost} wss://${supabaseHost} https://world.openfoodfacts.org https://exercisedb.io https://v2.exercisedb.io https://exercisedb-api.vercel.app https://*.exercisedb.io https://api.nal.usda.gov`,
       "font-src 'self' data:",
       "frame-src 'none'",
       "frame-ancestors 'none'",

@@ -9,6 +9,9 @@ interface OFFProduct {
   brands?: string
   quantity?: string
   image_url?: string
+  image_front_url?: string
+  image_front_small_url?: string
+  image_small_url?: string
   nutriments?: Record<string, number>
 }
 
@@ -125,7 +128,7 @@ export async function GET(request: Request) {
 
   // Default: Open Food Facts
   try {
-    const url = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(q)}&json=1&fields=code,product_name,brands,quantity,image_url,nutriments&page_size=20&lc=nl,en`
+    const url = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(q)}&json=1&fields=code,product_name,brands,quantity,image_url,image_front_url,image_front_small_url,image_small_url,nutriments&page_size=20&lc=nl,en`
     const res = await fetch(url, { next: { revalidate: 3600 } })
     if (!res.ok) throw new Error('OFF unavailable')
     const data = await res.json() as OFFResponse
@@ -139,7 +142,7 @@ export async function GET(request: Request) {
         hoeveelheid: p.quantity || null,
         bron: 'open_food_facts' as const,
         per_100g: offNutrienten(p.nutriments),
-        foto_url: p.image_url || null,
+        foto_url: p.image_front_small_url || p.image_small_url || p.image_front_url || p.image_url || null,
       }))
     return NextResponse.json({ resultaten, totaal: data.count })
   } catch {
