@@ -394,7 +394,7 @@ export default function HomePage() {
         <div style={{
           background: 'white', borderRadius: 20, padding: '20px 24px', marginBottom: 20,
           border: '1px solid #E5E7EB', display: 'flex', alignItems: 'center', gap: 20,
-        }}>
+        }} className="mf-vita-card">
           {vitaalScore !== null && <ScoreRing score={vitaalScore} />}
           {vitaalScore === null && (
             <div style={{ width: 90, height: 90, borderRadius: '50%', background: '#F9FAFB', border: '2px dashed #E5E7EB', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -415,7 +415,7 @@ export default function HomePage() {
                   : 'Besteed extra zorg aan je welzijn deze week.'
                 : 'Vul je check-in in om je score te zien.'}
             </p>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }} className="mf-vita-btns">
               <Link href="/rapport" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#1D9E75', color: 'white', borderRadius: 10, padding: '9px 16px', fontSize: 13, fontWeight: 600, textDecoration: 'none', transition: 'transform 0.1s ease, opacity 0.1s ease' }}
                 onMouseDown={e => (e.currentTarget as HTMLElement).style.transform = 'scale(0.97)'}
                 onMouseUp={e => (e.currentTarget as HTMLElement).style.transform = 'scale(1)'}

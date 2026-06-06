@@ -591,6 +591,23 @@ body.mf-has-sidebar > * {
   }
 }
 
+/* ── Vitaalscore kaart — mobile layout ─────────── */
+@media (max-width: 639px) {
+  .mf-vita-card {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 14px !important;
+  }
+  .mf-vita-btns {
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    gap: 8px !important;
+  }
+  .mf-vita-btns a:last-child {
+    display: none !important; /* Verberg "Nieuwe check-in" knop op mobile */
+  }
+}
+
 /* ── Skeleton shimmer ────────────────────────────────────── */
 
 @keyframes mf-shimmer {
