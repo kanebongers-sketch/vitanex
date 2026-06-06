@@ -64,9 +64,17 @@ function createSupabaseAdmin() {
 }
 
 function extractJson<T>(text: string): T {
-  const match = text.match(/```json\s*([\s\S]*?)```/) ?? text.match(/\{[\s\S]*\}|\[[\s\S]*\]/)
-  const raw = match ? (match[1] ?? match[0]) : text
-  return JSON.parse(raw.trim()) as T
+  // Probeer eerst ```json ... ``` blok
+  const codeBlock = text.match(/```(?:json)?\s*([\s\S]*?)```/)
+  if (codeBlock) {
+    return JSON.parse(codeBlock[1].trim()) as T
+  }
+  // Daarna eerste JSON object of array in de tekst
+  const arrMatch = text.match(/\[[\s\S]*\]/)
+  if (arrMatch) return JSON.parse(arrMatch[0]) as T
+  const objMatch = text.match(/\{[\s\S]*\}/)
+  if (objMatch) return JSON.parse(objMatch[0]) as T
+  throw new Error(`Geen geldige JSON gevonden in AI respons. Tekst begint met: ${text.slice(0, 200)}`)
 }
 
 function buildDiscInstructie(disc_profiel?: DiscProfiel): string {
@@ -219,6 +227,11 @@ Richtlijnen:
 // Agent 3 — Coach Reviewer (claude-haiku-4-5)
 // ---------------------------------------------------------------------------
 
+interface CoachingOutput {
+  dag: number
+  coaching_tekst: string
+}
+
 async function runCoachAgent(
   anthropic: Anthropic,
   schema: Trainingsdag[],
@@ -226,25 +239,34 @@ async function runCoachAgent(
 ): Promise<Trainingsdag[]> {
   const discInstructie = buildDiscInstructie(disc_profiel)
 
+  // Stuur alleen samenvatting per dag — niet het volledige schema
+  const dagSamenvattingen = schema.map(d => ({
+    dag: d.dag,
+    naam: d.naam,
+    spiergroepen: d.spiergroepen,
+    doel_van_sessie: d.oefeningen.map(o => o.naam).join(", "),
+  }))
+
   const messages: Anthropic.Messages.MessageParam[] = [
     {
       role: "user",
-      content: `Je bent een persoonlijke coach. Voeg motiverende coaching_tekst toe aan elk trainingsdag.
+      content: `Je bent een persoonlijke coach. Schrijf een motiverende coaching_tekst per trainingsdag.
 
-DISC communicatiestijl instructie: ${discInstructie}
+DISC communicatiestijl: ${discInstructie}
 
-Trainingsschema:
-${JSON.stringify(schema, null, 2)}
+Trainingsdagen:
+${JSON.stringify(dagSamenvattingen, null, 2)}
 
-Voeg voor elke training een coaching_tekst toe (2-3 zinnen) die:
-- Motiveert voor deze specifieke training
-- Past bij de genoemde DISC stijl
-- Beschrijft het doel van deze sessie
+Schrijf per dag een coaching_tekst van 2-3 zinnen die:
+- Motiveert voor deze training
+- Past bij de DISC stijl
+- Het doel van de sessie beschrijft
 
-Geef het VOLLEDIGE schema terug met ingevulde coaching_tekst per training als JSON:
+Geef ALLEEN dit JSON terug:
 \`\`\`json
 [
-  { ... volledig training object met coaching_tekst ingevuld ... }
+  { "dag": 1, "coaching_tekst": "..." },
+  { "dag": 2, "coaching_tekst": "..." }
 ]
 \`\`\``,
     },
@@ -252,12 +274,18 @@ Geef het VOLLEDIGE schema terug met ingevulde coaching_tekst per training als JS
 
   const response = await anthropic.messages.create({
     model: "claude-haiku-4-5",
-    max_tokens: 8192,
+    max_tokens: 2048,
     messages,
   })
 
   const text = response.content[0].type === "text" ? response.content[0].text : ""
-  return extractJson<Trainingsdag[]>(text)
+  const coachingTexts = extractJson<CoachingOutput[]>(text)
+
+  // Merge coaching_tekst terug in het volledige schema
+  return schema.map(dag => {
+    const coaching = coachingTexts.find(c => c.dag === dag.dag)
+    return { ...dag, coaching_tekst: coaching?.coaching_tekst ?? "" }
+  })
 }
 
 // ---------------------------------------------------------------------------
