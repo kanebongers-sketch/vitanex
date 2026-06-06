@@ -43,6 +43,24 @@ next-env.d.ts
 # Claude Code local settings
 .claude/settings.local.json
 
+# Obsidian vault en documentatie (nooit committen — kunnen secrets bevatten)
+.obsidian/
+MentaForce/
+"FitFactory Agent"/
+FitFactory Agent/
+Gedeeld/
+Systeem/
+*.md
+!README.md
+!CLAUDE.md
+!AGENTS.md
+
+# Tijdelijke scripts
+test.ps1
+write1.ps1
+actions-image.md
+START\ HIER.md
+
 # Capacitor - native build artefacten (niet committen)
 android/.gradle/
 android/app/build/
