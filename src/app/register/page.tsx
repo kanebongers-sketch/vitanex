@@ -155,7 +155,7 @@ export default function Register() {
       options: {
         data: {
           naam: naam.trim(),
-          rol: type === 'hr' ? 'hr' : 'medewerker',
+          rol: type === 'hr' ? 'hr' : type === 'zelfstandige' ? 'zelfstandige' : 'medewerker',
           organisatie: organisatie.trim(),
           functie: functie.trim(),
         },

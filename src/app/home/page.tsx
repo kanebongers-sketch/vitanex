@@ -8,6 +8,7 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/Navbar'
 import CrisisButton from '@/components/CrisisButton'
+import MoodPulse from '@/components/MoodPulse'
 import { laadXPData, pasDecayToe, berekenLevel, xpVoortgang, LEVEL_NAMEN, LEVEL_KLEUREN, LEVEL_BG, type XPData } from '@/lib/xp'
 import { laadWeekSelectie, vandaag as weekVandaag, type WeekSelectie } from '@/lib/weekdoelen'
 import { CAT } from '@/lib/doelen-config'
@@ -154,6 +155,7 @@ export default function HomePage() {
   const router = useRouter()
   const [laden, setLaden]               = useState(true)
   const [naam, setNaam]                 = useState('')
+  const [userId, setUserId]             = useState<string | null>(null)
   const [sessieId, setSessieId]         = useState<string | null>(null)
   const [vlakScores, setVlakScores]     = useState<Record<string, number> | null>(null)
   const [recentCheckins, setRecentCheckins] = useState(0)
@@ -166,6 +168,7 @@ export default function HomePage() {
     async function laad() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/login'); return }
+      setUserId(user.id)
 
       // Profile — check onboarding
       const { data: profiel } = await supabase
@@ -495,6 +498,16 @@ export default function HomePage() {
             </div>
           )}
         </div>
+
+        {/* ── DAGELIJKSE PULSE ── */}
+        {userId && (
+          <div style={{ marginBottom: 20 }}>
+            <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#9CA3AF', marginBottom: 12 }}>
+              Dagelijkse pulse
+            </p>
+            <MoodPulse userId={userId} />
+          </div>
+        )}
 
         {/* ── WELZIJN PER VLAK ── */}
         <div style={{ marginBottom: 20 }}>

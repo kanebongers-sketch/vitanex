@@ -103,7 +103,8 @@ function Knop({ onClick, disabled, children, variant = 'primary' }: {
 // ─── Hoofd pagina ─────────────────────────────────────────────────────────────
 export default function OnboardingPage() {
   const router = useRouter()
-  const [rol, setRol] = useState<'hr' | 'other' | null>(null)
+  const [rol, setRol] = useState<'hr' | 'zelfstandige' | 'other' | null>(null)
+  const [profielRol, setProfielRol] = useState<string | null>(null)
   const [userId, setUserId] = useState<string | null>(null)
   const [bezig, setBezig] = useState(false)
 
@@ -152,7 +153,9 @@ export default function OnboardingPage() {
       }
 
       const isHr = profiel?.rol === 'hr'
-      setRol(isHr ? 'hr' : 'other')
+      const isZelfstandige = profiel?.rol === 'zelfstandige'
+      setProfielRol(profiel?.rol ?? null)
+      setRol(isHr ? 'hr' : isZelfstandige ? 'zelfstandige' : 'other')
       if (profiel?.naam) {
         if (isHr) setHr(f => ({ ...f, naam: profiel.naam }))
         else setGebr(f => ({ ...f, naam: profiel.naam }))
@@ -453,6 +456,139 @@ export default function OnboardingPage() {
         )}
 
         {/* ══════════════════════════════════════════════════════════════════ */}
+        {/* ZELFSTANDIGE FLOW — zelfde als other maar zonder privacy/hrcode  */}
+        {/* ══════════════════════════════════════════════════════════════════ */}
+        {rol === 'zelfstandige' && (
+          <>
+            {gebrStap !== 'welkom' && gebrStap !== 'klaar' && (
+              <VoortgangsBalk huidig={['welkom', 'profiel', 'lichaam', 'klaar'].indexOf(gebrStap)} totaal={4} />
+            )}
+
+            {gebrStap === 'welkom' && (
+              <div>
+                <div style={{ fontSize: 36, marginBottom: 12 }}>💼</div>
+                <h1 style={{ fontSize: 22, fontWeight: 800, color: '#111827', marginBottom: 6, letterSpacing: '-0.02em' }}>Welkom bij MentaForce</h1>
+                <p style={{ fontSize: 14, color: '#6B7280', lineHeight: 1.7, marginBottom: 24 }}>
+                  Even kennismaken. Duurt minder dan <strong>2 minuten</strong>.
+                </p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 28 }}>
+                  {[
+                    { emoji: '🎯', tekst: 'Persoonlijke vitaliteitsscores' },
+                    { emoji: '🤖', tekst: 'Betere AI-coach adviezen' },
+                    { emoji: '💪', tekst: 'Sport & fitness schema op maat' },
+                  ].map(({ emoji, tekst }) => (
+                    <div key={tekst} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, color: '#6B7280', padding: '8px 12px', borderRadius: 10, background: '#F9FAFB' }}>
+                      <span style={{ fontSize: 18 }}>{emoji}</span>{tekst}
+                    </div>
+                  ))}
+                </div>
+                <Knop onClick={() => setGebrStap('profiel')}>Beginnen →</Knop>
+              </div>
+            )}
+
+            {gebrStap === 'profiel' && (
+              <div>
+                <div style={{ fontSize: 28, marginBottom: 10 }}>😊</div>
+                <h2 style={{ fontSize: 20, fontWeight: 800, color: '#111827', marginBottom: 4 }}>Jouw profiel</h2>
+                <p style={{ fontSize: 13, color: '#9CA3AF', marginBottom: 24 }}>Hoe mogen we je noemen?</p>
+
+                <Veld label="Naam *">
+                  <Input value={gebr.naam} onChange={e => setGebr(f => ({ ...f, naam: e.target.value }))} placeholder="Jouw naam" autoFocus />
+                </Veld>
+
+                <Veld label="Geslacht">
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                    {([
+                      { val: 'man', label: '♂ Man' }, { val: 'vrouw', label: '♀ Vrouw' },
+                      { val: 'anders', label: '⚧ Anders' }, { val: 'zeg_ik_niet', label: '— Zeg ik niet' },
+                    ] as const).map(opt => (
+                      <button key={opt.val} type="button" onClick={() => setGebr(f => ({ ...f, geslacht: opt.val }))}
+                        style={{
+                          padding: '10px 12px', borderRadius: 10, fontSize: 13, cursor: 'pointer',
+                          fontWeight: gebr.geslacht === opt.val ? 700 : 400,
+                          border: `1.5px solid ${gebr.geslacht === opt.val ? '#1D9E75' : '#E5E7EB'}`,
+                          background: gebr.geslacht === opt.val ? '#E1F5EE' : 'white',
+                          color: gebr.geslacht === opt.val ? '#0F6E56' : '#6B7280',
+                          transition: 'all 0.12s',
+                        }}>
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </Veld>
+
+                <div style={{ display: 'flex', gap: 12, justifyContent: 'space-between', marginTop: 28 }}>
+                  <Knop onClick={() => setGebrStap('welkom')} variant="ghost">← Terug</Knop>
+                  <Knop onClick={() => setGebrStap('lichaam')} disabled={!gebr.naam.trim()}>Volgende →</Knop>
+                </div>
+              </div>
+            )}
+
+            {gebrStap === 'lichaam' && (
+              <div>
+                <div style={{ fontSize: 28, marginBottom: 10 }}>📊</div>
+                <h2 style={{ fontSize: 20, fontWeight: 800, color: '#111827', marginBottom: 4 }}>Persoonlijke gegevens</h2>
+                <p style={{ fontSize: 13, color: '#9CA3AF', marginBottom: 16 }}>Voor nauwkeurige vitaliteitsberekeningen</p>
+
+                <Veld label="Geboortedatum">
+                  <Input type="date" value={gebr.geboortedatum} onChange={e => setGebr(f => ({ ...f, geboortedatum: e.target.value }))}
+                    max={new Date(Date.now() - 14 * 365.25 * 86400000).toISOString().split('T')[0]} />
+                </Veld>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                  <Veld label="Lengte (cm)">
+                    <Input type="number" value={gebr.lengte_cm} onChange={e => setGebr(f => ({ ...f, lengte_cm: e.target.value }))} placeholder="175" min={100} max={250} />
+                  </Veld>
+                  <Veld label="Gewicht (kg)">
+                    <Input type="number" value={gebr.gewicht_kg} onChange={e => setGebr(f => ({ ...f, gewicht_kg: e.target.value }))} placeholder="70" min={30} max={300} step={0.1} />
+                  </Veld>
+                </div>
+
+                <p style={{ fontSize: 12, color: '#9CA3AF', marginBottom: 20 }}>Alle velden optioneel — later invullen kan via Instellingen</p>
+
+                <div style={{ display: 'flex', gap: 12, justifyContent: 'space-between' }}>
+                  <Knop onClick={() => setGebrStap('profiel')} variant="ghost">← Terug</Knop>
+                  <Knop onClick={async () => {
+                    if (!userId) return
+                    setBezig(true)
+                    const updates: Record<string, unknown> = {
+                      naam: gebr.naam.trim(),
+                      onboarding_voltooid: true,
+                    }
+                    if (gebr.geboortedatum) updates.geboortedatum = gebr.geboortedatum
+                    if (gebr.lengte_cm) updates.lengte_cm = parseInt(gebr.lengte_cm)
+                    if (gebr.gewicht_kg) updates.gewicht_kg = parseFloat(gebr.gewicht_kg.replace(',', '.'))
+                    if (gebr.geslacht) updates.geslacht = gebr.geslacht
+                    await supabase.from('profiles').update(updates).eq('id', userId)
+                    setGebrStap('klaar')
+                    setBezig(false)
+                  }} disabled={bezig}>
+                    {bezig ? 'Opslaan...' : 'Account activeren →'}
+                  </Knop>
+                </div>
+              </div>
+            )}
+
+            {gebrStap === 'klaar' && (
+              <div>
+                <div style={{ fontSize: 40, marginBottom: 16 }}>🎉</div>
+                <h2 style={{ fontSize: 22, fontWeight: 800, color: '#111827', marginBottom: 6 }}>Je bent klaar!</h2>
+                <p style={{ fontSize: 14, color: '#6B7280', marginBottom: 24 }}>Jouw persoonlijke MentaForce-omgeving staat klaar.</p>
+                <button onClick={() => { window.location.href = '/home' }}
+                  style={{
+                    width: '100%', padding: '16px', borderRadius: 14, fontSize: 15, fontWeight: 800,
+                    background: 'linear-gradient(135deg, #1D9E75, #15B89A)',
+                    color: 'white', border: 'none', cursor: 'pointer',
+                    boxShadow: '0 4px 20px rgba(29,158,117,0.3)',
+                  }}>
+                  Naar mijn dashboard 🚀
+                </button>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* ══════════════════════════════════════════════════════════════════ */}
         {/* GEBRUIKER / WERKNEMER FLOW */}
         {/* ══════════════════════════════════════════════════════════════════ */}
         {rol === 'other' && (
@@ -565,7 +701,7 @@ export default function OnboardingPage() {
               </div>
             )}
 
-            {/* ── PRIVACY ── */}
+            {/* ── PRIVACY ── (alleen voor werknemers met bedrijf) */}
             {gebrStap === 'privacy' && (
               <div>
                 <div style={{ fontSize: 28, marginBottom: 10 }}>🔒</div>
@@ -622,12 +758,14 @@ export default function OnboardingPage() {
 
                 <div style={{ display: 'flex', gap: 12, justifyContent: 'space-between' }}>
                   <Knop onClick={() => setGebrStap('lichaam')} variant="ghost">← Terug</Knop>
-                  <Knop onClick={() => setGebrStap('hrcode')}>Volgende →</Knop>
+                  <Knop onClick={() => profielRol === 'medewerker' ? setGebrStap('hrcode') : gebruikerAfronden()} disabled={bezig}>
+                    {bezig ? 'Opslaan...' : profielRol === 'medewerker' ? 'Volgende →' : 'Afronden →'}
+                  </Knop>
                 </div>
               </div>
             )}
 
-            {/* ── HR CODE ── */}
+            {/* ── HR CODE — alleen voor werknemers ── */}
             {gebrStap === 'hrcode' && (
               <div>
                 <div style={{ fontSize: 28, marginBottom: 10 }}>🏢</div>
