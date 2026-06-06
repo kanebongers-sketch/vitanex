@@ -104,6 +104,7 @@ function Knop({ onClick, disabled, children, variant = 'primary' }: {
 export default function OnboardingPage() {
   const router = useRouter()
   const [rol, setRol] = useState<'hr' | 'zelfstandige' | 'other' | null>(null)
+  const [profielRol, setProfielRol] = useState<string | null>(null)
   const [userId, setUserId] = useState<string | null>(null)
   const [bezig, setBezig] = useState(false)
 
@@ -153,6 +154,7 @@ export default function OnboardingPage() {
 
       const isHr = profiel?.rol === 'hr'
       const isZelfstandige = profiel?.rol === 'zelfstandige'
+      setProfielRol(profiel?.rol ?? null)
       setRol(isHr ? 'hr' : isZelfstandige ? 'zelfstandige' : 'other')
       if (profiel?.naam) {
         if (isHr) setHr(f => ({ ...f, naam: profiel.naam }))
@@ -699,7 +701,7 @@ export default function OnboardingPage() {
               </div>
             )}
 
-            {/* ── PRIVACY ── */}
+            {/* ── PRIVACY ── (alleen voor werknemers met bedrijf) */}
             {gebrStap === 'privacy' && (
               <div>
                 <div style={{ fontSize: 28, marginBottom: 10 }}>🔒</div>
@@ -756,12 +758,14 @@ export default function OnboardingPage() {
 
                 <div style={{ display: 'flex', gap: 12, justifyContent: 'space-between' }}>
                   <Knop onClick={() => setGebrStap('lichaam')} variant="ghost">← Terug</Knop>
-                  <Knop onClick={() => setGebrStap('hrcode')}>Volgende →</Knop>
+                  <Knop onClick={() => profielRol === 'medewerker' ? setGebrStap('hrcode') : gebruikerAfronden()} disabled={bezig}>
+                    {bezig ? 'Opslaan...' : profielRol === 'medewerker' ? 'Volgende →' : 'Afronden →'}
+                  </Knop>
                 </div>
               </div>
             )}
 
-            {/* ── HR CODE ── */}
+            {/* ── HR CODE — alleen voor werknemers ── */}
             {gebrStap === 'hrcode' && (
               <div>
                 <div style={{ fontSize: 28, marginBottom: 10 }}>🏢</div>
