@@ -527,7 +527,7 @@ a:focus:not(:focus-visible) {
 
 :root {
   /* Fallback 0px voor browser, echte waarden in Capacitor */
-  --safe-top:    env(safe-area-inset-top,    0px);
+  --safe-top:    env(safe-area-inset-top,    24px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --safe-left:   env(safe-area-inset-left,   0px);
   --safe-right:  env(safe-area-inset-right,  0px);
