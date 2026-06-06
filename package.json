@@ -22,6 +22,7 @@
     "@capacitor/push-notifications": "^8.0.3",
     "@capacitor/splash-screen": "^8.0.1",
     "@capacitor/status-bar": "^8.0.2",
+    "@devmaxime/capacitor-health-connect": "^1.1.0",
     "@supabase/supabase-js": "^2.105.1",
     "html2canvas": "^1.4.1",
     "jspdf": "^4.2.1",

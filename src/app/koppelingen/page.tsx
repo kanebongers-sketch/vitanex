@@ -6,6 +6,7 @@ import { Suspense, useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/Navbar'
+import { isAndroidApp, leesHealthData, vraagPermissies, type HealthData } from '@/lib/health-connect'
 
 type FitbitData = {
   stappen: number | null
@@ -50,6 +51,11 @@ function KoppelingenInhoud() {
   const [userId, setUserId] = useState<string | null>(null)
   const [laden, setLaden] = useState(true)
   const [toast, setToast] = useState<{ type: 'success' | 'error'; tekst: string } | null>(null)
+
+  const [isAndroid, setIsAndroid] = useState(false)
+  const [hcData, setHcData] = useState<HealthData | null>(null)
+  const [hcVerbonden, setHcVerbonden] = useState(false)
+  const [hcLaden, setHcLaden] = useState(false)
 
   const [fitbitData, setFitbitData] = useState<FitbitData | null>(null)
   const [fitbitVerbonden, setFitbitVerbonden] = useState(false)
@@ -101,6 +107,22 @@ function KoppelingenInhoud() {
         setToast({ type: 'success', tekst: 'Google Agenda succesvol gekoppeld!' })
       } else if (googleConnected) {
         setToast({ type: 'success', tekst: 'Google Agenda succesvol gekoppeld!' })
+      }
+
+      // Health Connect (alleen Android app)
+      const android = isAndroidApp()
+      setIsAndroid(android)
+      if (android) {
+        setHcLaden(true)
+        leesHealthData()
+          .then(d => {
+            if (d.stappen !== null || d.slaapMinuten !== null || d.hartslag !== null) {
+              setHcData(d)
+              setHcVerbonden(true)
+            }
+          })
+          .catch(() => {})
+          .finally(() => setHcLaden(false))
       }
 
       setFitbitLaden(true)
@@ -159,6 +181,55 @@ function KoppelingenInhoud() {
           <h2 className="text-xl font-bold text-gray-900">Koppelingen</h2>
           <p className="text-sm text-gray-400 mt-0.5">Verbind je wearables en agenda voor persoonlijke inzichten</p>
         </div>
+
+        {/* Health Connect — alleen zichtbaar in Android app */}
+        {isAndroid && (
+          <div className="bg-white rounded-2xl border border-gray-100 p-5 mb-4" style={{ boxShadow: 'var(--shadow-sm)' }}>
+            <div className="flex items-start justify-between mb-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl" style={{ background: '#4CAF50' }}>💚</div>
+                <div>
+                  <p className="text-sm font-semibold text-gray-900">Health Connect</p>
+                  <p className="text-xs text-gray-400">Fitbit · Samsung Health · Google Fit</p>
+                  <StatusBadge connected={hcVerbonden} />
+                </div>
+              </div>
+              {!hcVerbonden && (
+                <button
+                  onClick={async () => {
+                    setHcLaden(true)
+                    const ok = await vraagPermissies()
+                    if (ok) {
+                      const d = await leesHealthData()
+                      setHcData(d)
+                      setHcVerbonden(true)
+                    }
+                    setHcLaden(false)
+                  }}
+                  className="text-xs font-semibold px-4 py-2 rounded-xl text-white"
+                  style={{ background: '#4CAF50' }}
+                >
+                  Koppelen
+                </button>
+              )}
+            </div>
+            {hcLaden ? (
+              <div className="flex items-center gap-2 py-2">
+                <div className="w-4 h-4 rounded-full border-2 border-gray-200 animate-spin" style={{ borderTopColor: '#4CAF50' }} />
+                <span className="text-xs text-gray-400">Data ophalen…</span>
+              </div>
+            ) : hcData ? (
+              <div className="mt-3 pt-3 border-t border-gray-50">
+                <DataRij label="Stappen vandaag" waarde={hcData.stappen?.toLocaleString('nl-BE') ?? null} />
+                <DataRij label="Slaap" waarde={hcData.slaapMinuten !== null ? Math.round(hcData.slaapMinuten / 60 * 10) / 10 : null} eenheid="uur" />
+                <DataRij label="Gemiddelde hartslag" waarde={hcData.hartslag} eenheid="bpm" />
+                <DataRij label="Verbrande calorieën" waarde={hcData.calorieën} eenheid="kcal" />
+              </div>
+            ) : (
+              <p className="text-xs text-gray-400 mt-2">Koppel Health Connect om stappen, slaap en hartslag te zien van je Fitbit of Samsung Health.</p>
+            )}
+          </div>
+        )}
 
         {/* Fitbit */}
         <div className="bg-white rounded-2xl border border-gray-100 p-5 mb-4" style={{ boxShadow: 'var(--shadow-sm)' }}>

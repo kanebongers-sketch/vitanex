@@ -572,6 +572,25 @@ body.mf-has-sidebar > * {
 .domein-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
 @media (min-width: 480px) { .domein-grid { grid-template-columns: repeat(6, 1fr); } }
 
+/* ── Stats grid (home page) ────────────────────── */
+.mf-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+@media (min-width: 640px) {
+  .mf-stats-grid { grid-template-columns: repeat(4, 1fr); }
+}
+
+/* ── Mobile content padding ────────────────────── */
+/* Zorg dat content niet tegen de rand zit op smalle schermen */
+@media (max-width: 767px) {
+  .mf-page-main {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+}
+
 /* ── Skeleton shimmer ────────────────────────────────────── */
 
 @keyframes mf-shimmer {

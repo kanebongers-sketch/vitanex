@@ -332,7 +332,7 @@ export default function HomePage() {
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
       <Navbar />
-      <main style={{ padding: '28px 20px 72px', maxWidth: 900, margin: '0 auto' }}>
+      <main className="mf-page-main" style={{ padding: '24px 20px 88px', maxWidth: 900, margin: '0 auto' }}>
 
         {/* ── HEADER ── */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24, flexWrap: 'wrap', gap: 8 }}>
@@ -440,7 +440,7 @@ export default function HomePage() {
         </div>
 
         {/* ── STATS ── */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 20 }}>
+        <div className="mf-stats-grid" style={{ marginBottom: 20 }}>
           <div className="mf-stat-card" style={{ background: 'white', borderRadius: 14, padding: '16px 18px', border: '1px solid #E5E7EB', transition: 'transform 0.18s ease, box-shadow 0.18s ease', cursor: 'default' }}
             onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-1px)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 4px 14px rgba(0,0,0,0.07)' }}
             onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(0)'; (e.currentTarget as HTMLElement).style.boxShadow = 'none' }}>
@@ -477,7 +477,7 @@ export default function HomePage() {
                     <div style={{ width: 32, height: 32, borderRadius: 8, background: bg, border: `2px solid ${kleur}40`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                       <span style={{ fontSize: 14, fontWeight: 900, color: kleur, lineHeight: 1 }}>{level}</span>
                     </div>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: '#111827' }}>{LEVEL_NAMEN[level]}</span>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: '#111827', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{LEVEL_NAMEN[level]}</span>
                   </div>
                   <div style={{ height: 4, borderRadius: 9999, background: '#F3F4F6', overflow: 'hidden' }}>
                     <div style={{ height: '100%', borderRadius: 9999, background: `linear-gradient(90deg, ${kleur}99, ${kleur})`, width: `${vrt.pct}%`, transition: 'width 1s ease' }} />
