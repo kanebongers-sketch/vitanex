@@ -73,7 +73,7 @@ export default function GenereerSchemaPage() {
 
       const { data: disc } = await supabase
         .from('disc_inzendingen')
-        .select('primair')
+        .select('primair_profiel')
         .eq('user_id', user.id)
         .order('aangemaakt_op', { ascending: false })
         .limit(1)
@@ -93,7 +93,7 @@ export default function GenereerSchemaPage() {
           beschikbare_tijd: beschikbareTijd,
           benodigdheden,
           blessures: blessures || undefined,
-          disc_profiel: disc?.primair || undefined,
+          disc_profiel: disc?.primair_profiel || undefined,
         }),
       })
 
