@@ -453,16 +453,20 @@ export default function Navbar() {
         background: bg, borderRight: `1px solid ${border}`, zIndex: 40,
         boxShadow: viewMode === 'hr' ? 'none' : '2px 0 12px rgba(0,0,0,0.04)',
         flexDirection: 'column',
+        paddingTop: 'var(--safe-top, 0px)',
       }}>
         <SidebarContent />
       </aside>
 
       {/* Mobile topbar */}
       <div className="flex md:hidden" style={{
-        position: 'fixed', top: 0, left: 0, right: 0, height: 52,
+        position: 'fixed', top: 0, left: 0, right: 0,
+        height: 'var(--topbar-h, 52px)',
         background: bg, borderBottom: `1px solid ${border}`,
-        alignItems: 'center', justifyContent: 'space-between',
-        padding: '0 16px', zIndex: 30,
+        alignItems: 'flex-end', justifyContent: 'space-between',
+        paddingBottom: 8, paddingLeft: 16, paddingRight: 16,
+        paddingTop: 'var(--safe-top, 0px)',
+        zIndex: 30,
       }}>
         <button onClick={() => setMobileOpen(o => !o)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: text }}>
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -482,6 +486,7 @@ export default function Navbar() {
           <aside style={{
             position: 'fixed', left: 0, top: 0, bottom: 0, width: SIDEBAR_W,
             background: bg, zIndex: 50, display: 'flex', flexDirection: 'column',
+            paddingTop: 'var(--safe-top, 0px)',
           }}>
             <SidebarContent />
           </aside>

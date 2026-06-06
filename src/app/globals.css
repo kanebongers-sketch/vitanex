@@ -194,6 +194,9 @@ html {
   scroll-behavior: smooth;
   text-rendering: optimizeLegibility;
   -webkit-text-size-adjust: 100%;
+  /* Voorkom bounce/rubber-band in Capacitor */
+  height: 100%;
+  overflow: hidden;
 }
 
 body {
@@ -205,6 +208,15 @@ body {
   -moz-osx-font-smoothing: grayscale;
   line-height: 1.5;
   font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  /* Native app scroll gedrag */
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
+  /* Voorkom tekst selectie in UI-elementen */
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 /* ── Typography ──────────────────────────────────────────── */
@@ -217,8 +229,16 @@ h1, h2, h3, h4, h5, h6 {
 
 /* ── Interactive ─────────────────────────────────────────── */
 
+/* Tekst in inputs/textareas wél selecteerbaar */
+input, textarea, [contenteditable] {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
 button, a {
   -webkit-tap-highlight-color: transparent;
+  /* Snellere tap response, geen double-tap zoom */
+  touch-action: manipulation;
 }
 
 button:focus-visible,
@@ -440,7 +460,8 @@ a:focus:not(:focus-visible) {
   padding: 10px 14px;
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  font-size: 14px;
+  /* Minimaal 16px voorkomt auto-zoom op iOS */
+  font-size: 16px;
   background: var(--bg-card, #fff);
   color: var(--text-1, #0D1117);
   transition: border-color 0.15s, box-shadow 0.15s;
@@ -504,8 +525,22 @@ a:focus:not(:focus-visible) {
 
 /* ── Safe area ───────────────────────────────────────────── */
 
+:root {
+  /* Fallback 0px voor browser, echte waarden in Capacitor */
+  --safe-top:    env(safe-area-inset-top,    0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left:   env(safe-area-inset-left,   0px);
+  --safe-right:  env(safe-area-inset-right,  0px);
+  /* Hoogte van de mobiele topbar incl. status bar */
+  --topbar-h: calc(52px + var(--safe-top));
+}
+
+.mf-safe-top {
+  padding-top: var(--safe-top);
+}
+
 .mf-safe-bottom {
-  padding-bottom: max(72px, calc(72px + env(safe-area-inset-bottom)));
+  padding-bottom: max(72px, calc(72px + var(--safe-bottom)));
 }
 
 /* ── Sidebar layout offset ───────────────────────────────── */
@@ -514,13 +549,14 @@ a:focus:not(:focus-visible) {
 @media (min-width: 768px) {
   body.mf-has-sidebar {
     padding-left: 240px;
-    min-height: 100vh;
+    min-height: 100%;
   }
 }
 
 @media (max-width: 767px) {
   body.mf-has-sidebar {
-    padding-top: 52px;
+    /* Topbar hoogte + status bar safe area */
+    padding-top: var(--topbar-h);
   }
 }
 

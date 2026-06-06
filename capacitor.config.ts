@@ -11,8 +11,8 @@ const config: CapacitorConfig = {
     // Verander dit naar je productie-URL zodra de app live staat
     // Bijv. 'https://app.mentaforce.nl' of 'https://mentaforce.vercel.app'
     url: isProd
-      ? process.env.CAPACITOR_SERVER_URL ?? 'https://app.mentaforce.nl'
-      : 'http://10.0.2.2:3000', // 10.0.2.2 = localhost vanuit Android emulator
+      ? process.env.CAPACITOR_SERVER_URL ?? 'https://mentaforce.nl'
+      : 'http://localhost:3000', // via adb reverse tcp:3000 tcp:3000
     cleartext: !isProd,
     androidScheme: 'https',
   },
