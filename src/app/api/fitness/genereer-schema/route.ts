@@ -337,10 +337,18 @@ export async function POST(req: NextRequest) {
 
   try {
     const supabase = createSupabaseAdmin()
+    // Haal company_id op uit profiles (nullable voor zelfstandigen)
+    const { data: profiel } = await supabase
+      .from("profiles")
+      .select("bedrijf_id")
+      .eq("id", body.userId)
+      .maybeSingle()
+
     const { data, error } = await supabase
       .from("fitness_schemas")
       .insert({
         user_id: body.userId,
+        company_id: profiel?.bedrijf_id ?? null,
         naam: schemaNaam,
         doel: body.doel,
         niveau: body.niveau,

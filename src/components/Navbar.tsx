@@ -121,6 +121,7 @@ export default function Navbar() {
       } else if (rol === 'hr') {
         if (mounted) setViewMode('hr')
       } else {
+        // medewerker, zelfstandige, en alle andere rollen → employee portaal
         if (mounted) setViewMode('employee')
       }
 
