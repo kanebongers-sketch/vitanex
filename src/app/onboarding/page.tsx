@@ -11,7 +11,7 @@ const HR_STAPPEN: HrStap[] = ['welkom', 'gegevens', 'bedrijf', 'details', 'klaar
 
 // ─── Gebruiker/werknemer onboarding stappen ───────────────────────────────────
 type GebrStap = 'welkom' | 'profiel' | 'lichaam' | 'privacy' | 'hrcode' | 'klaar'
-const GEBR_STAPPEN: GebrStap[] = ['welkom', 'profiel', 'lichaam', 'privacy', 'hrcode', 'klaar']
+const GEBR_STAPPEN: GebrStap[] = ['welkom', 'profiel', 'lichaam', 'privacy', 'klaar']
 
 // ─── Sectoren ────────────────────────────────────────────────────────────────
 const SECTOREN = [
@@ -758,63 +758,10 @@ export default function OnboardingPage() {
 
                 <div style={{ display: 'flex', gap: 12, justifyContent: 'space-between' }}>
                   <Knop onClick={() => setGebrStap('lichaam')} variant="ghost">← Terug</Knop>
-                  <Knop onClick={() => profielRol === 'medewerker' ? setGebrStap('hrcode') : gebruikerAfronden()} disabled={bezig}>
-                    {bezig ? 'Opslaan...' : profielRol === 'medewerker' ? 'Volgende →' : 'Afronden →'}
+                  <Knop onClick={gebruikerAfronden} disabled={bezig}>
+                    {bezig ? 'Opslaan...' : 'Afronden →'}
                   </Knop>
                 </div>
-              </div>
-            )}
-
-            {/* ── HR CODE — alleen voor werknemers ── */}
-            {gebrStap === 'hrcode' && (
-              <div>
-                <div style={{ fontSize: 28, marginBottom: 10 }}>🏢</div>
-                <h2 style={{ fontSize: 20, fontWeight: 800, color: '#111827', marginBottom: 4 }}>Werkgever koppelen</h2>
-                <p style={{ fontSize: 13, color: '#9CA3AF', marginBottom: 20 }}>Optioneel — je kunt dit overslaan</p>
-
-                <div style={{ padding: '10px 14px', borderRadius: 10, background: '#FEF3C7', border: '1px solid #FCD34D', fontSize: 13, color: '#92400E', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{ fontSize: 16 }}>⚠️</span>
-                  <p><strong>Verplicht</strong> — vraag je HR code op bij je werkgever of HR-afdeling.</p>
-                </div>
-
-                <Veld label="HR Code" sub="6 tekens — ontvangen van uw werkgever">
-                  <div style={{ position: 'relative' }}>
-                    <Input
-                      value={gebr.hrCode}
-                      onChange={e => setGebr(f => ({ ...f, hrCode: e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6) }))}
-                      placeholder="bijv. A3KZ9W"
-                      maxLength={6}
-                      style={{ ...inputStijl, fontSize: 20, fontFamily: 'monospace', fontWeight: 800, letterSpacing: '0.2em', paddingRight: 44, borderColor: hrCodeFout ? '#E24B4A' : hrCodeBedrijf ? '#1D9E75' : '#E5E7EB' }}
-                    />
-                    <div style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)' }}>
-                      {hrCodeBezig && <div style={{ width: 16, height: 16, borderRadius: '50%', border: '2px solid #E5E7EB', borderTopColor: '#1D9E75', animation: 'spin 0.7s linear infinite' }} />}
-                      {!hrCodeBezig && hrCodeBedrijf && <span style={{ color: '#1D9E75' }}>✓</span>}
-                      {!hrCodeBezig && hrCodeFout && <span style={{ color: '#E24B4A' }}>✗</span>}
-                    </div>
-                  </div>
-                  {hrCodeBedrijf && (
-                    <div style={{ marginTop: 10, padding: '10px 14px', borderRadius: 10, background: '#E1F5EE', border: '1px solid #A3DECE', display: 'flex', alignItems: 'center', gap: 10 }}>
-                      <div style={{ width: 28, height: 28, borderRadius: 8, background: 'linear-gradient(135deg, #1D9E75, #185FA5)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: 10, fontWeight: 800 }}>HR</div>
-                      <div>
-                        <p style={{ fontSize: 13, fontWeight: 700, color: '#0F6E56' }}>{hrCodeBedrijf}</p>
-                        <p style={{ fontSize: 11, color: '#4CAF87' }}>Je wordt als werknemer gekoppeld</p>
-                      </div>
-                    </div>
-                  )}
-                  {hrCodeFout && <p style={{ fontSize: 12, color: '#E24B4A', marginTop: 6 }}>{hrCodeFout}</p>}
-                </Veld>
-
-                <div style={{ display: 'flex', gap: 12, justifyContent: 'space-between', marginTop: 24 }}>
-                  <Knop onClick={() => setGebrStap('lichaam')} variant="ghost">← Terug</Knop>
-                  <Knop onClick={gebruikerAfronden} disabled={bezig || !hrCodeBedrijf}>
-                    {bezig ? 'Opslaan...' : 'Koppelen & afronden →'}
-                  </Knop>
-                </div>
-                {!hrCodeBedrijf && (
-                  <p style={{ fontSize: 12, color: '#9CA3AF', textAlign: 'center', marginTop: 12 }}>
-                    Geen code ontvangen? Neem contact op met je HR-afdeling.
-                  </p>
-                )}
               </div>
             )}
 
