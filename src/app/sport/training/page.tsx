@@ -8,17 +8,30 @@ import Navbar from '@/components/Navbar'
 type SetLog = { herhalingen: number; gewicht_kg: number | null; voltooid: boolean }
 type OefeningState = {
   naam: string
+  naam_en: string
   setsGedaan: SetLog[]
   doelSets: number
   doelHerhalingen: string
+  heeft_gewicht: boolean
   gewicht_tip: string
   uitvoering_tip: string
   tipIngeklapt: boolean
 }
 
+type OefeningData = {
+  naam: string
+  naam_en?: string
+  sets: number
+  herhalingen: string
+  rusttijd_sec: number
+  heeft_gewicht?: boolean
+  gewicht_tip: string
+  uitvoering_tip: string
+}
+
 type Trainingsdag = {
   dag: number; naam: string; spiergroepen: string[]; coaching_tekst: string; geschatte_duur: number
-  oefeningen: { naam: string; sets: number; herhalingen: string; rusttijd_sec: number; gewicht_tip: string; uitvoering_tip: string }[]
+  oefeningen: OefeningData[]
 }
 type FitnessSchema = { id: string; naam: string; schema_json: Trainingsdag[] }
 type Scherm = 'kiezen' | 'actief' | 'afronden'
@@ -48,6 +61,7 @@ export default function TrainingLoggerPage() {
   const [notities, setNotities] = useState('')
   const [opslaan, setOpslaan] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
+  const [oefenImages, setOefenImages] = useState<Record<string, string>>({})
 
   useEffect(() => {
     if (!timerActive) return
@@ -83,8 +97,10 @@ export default function TrainingLoggerPage() {
     setOefeningen(
       training.oefeningen.map(oef => ({
         naam: oef.naam,
+        naam_en: oef.naam_en ?? oef.naam,
         doelSets: oef.sets,
         doelHerhalingen: oef.herhalingen,
+        heeft_gewicht: oef.heeft_gewicht ?? true,
         gewicht_tip: oef.gewicht_tip,
         uitvoering_tip: oef.uitvoering_tip,
         tipIngeklapt: true,
@@ -95,6 +111,21 @@ export default function TrainingLoggerPage() {
         })),
       }))
     )
+
+    // Laad afbeeldingen voor elke oefening op de achtergrond
+    setOefenImages({})
+    training.oefeningen.forEach(oef => {
+      const zoekNaam = oef.naam_en ?? oef.naam
+      fetch(`/api/sport/oefening-image?naam=${encodeURIComponent(zoekNaam)}`)
+        .then(r => r.ok ? r.json() : null)
+        .then((data: { gif_url?: string } | null) => {
+          if (data?.gif_url) {
+            setOefenImages(prev => ({ ...prev, [oef.naam]: data.gif_url! }))
+          }
+        })
+        .catch(() => undefined)
+    })
+
     setTimerSec(0)
     setTimerActive(true)
     setScherm('actief')
@@ -345,12 +376,29 @@ export default function TrainingLoggerPage() {
                         background: '#f9fafb', borderRadius: 8, padding: '8px 12px',
                         fontSize: 13, color: '#666', marginBottom: 12, lineHeight: 1.5,
                       }}>
+                        {oefenImages[oef.naam] && (
+                          <img
+                            src={oefenImages[oef.naam]}
+                            alt={oef.naam}
+                            style={{ width: '100%', maxHeight: 160, objectFit: 'cover', borderRadius: 6, marginBottom: 8 }}
+                          />
+                        )}
                         {oef.uitvoering_tip}
-                        {oef.gewicht_tip && (
+                        {oef.heeft_gewicht && oef.gewicht_tip && (
                           <div style={{ marginTop: 4, color: '#F97316', fontWeight: 500 }}>
                             💡 {oef.gewicht_tip}
                           </div>
                         )}
+                      </div>
+                    )}
+
+                    {!oef.heeft_gewicht && (
+                      <div style={{
+                        display: 'inline-flex', alignItems: 'center', gap: 4,
+                        background: '#f0fdf4', color: '#1D9E75', borderRadius: 8,
+                        padding: '4px 10px', fontSize: 12, fontWeight: 600, marginBottom: 10,
+                      }}>
+                        💪 Bodyweight oefening
                       </div>
                     )}
 
@@ -367,7 +415,9 @@ export default function TrainingLoggerPage() {
                           {si + 1}
                         </div>
                         <input type="number" min={1} max={100} value={set.herhalingen || ''} onChange={e => updateSet(oi, si, 'herhalingen', parseInt(e.target.value) || 0)} placeholder={oef.doelHerhalingen} disabled={set.voltooid} style={{ flex: 1, height: 36, borderRadius: 8, border: '1.5px solid #e5e7eb', textAlign: 'center', fontSize: 15, fontWeight: 600, background: set.voltooid ? '#f9fafb' : '#fff' }} />
-                        <input type="number" min={0} step={0.5} value={set.gewicht_kg ?? ''} onChange={e => updateSet(oi, si, 'gewicht_kg', e.target.value === '' ? null : parseFloat(e.target.value))} placeholder="kg" disabled={set.voltooid} style={{ flex: 1, height: 36, borderRadius: 8, border: '1.5px solid #e5e7eb', textAlign: 'center', fontSize: 15, fontWeight: 600, background: set.voltooid ? '#f9fafb' : '#fff' }} />
+                        {oef.heeft_gewicht && (
+                          <input type="number" min={0} step={0.5} value={set.gewicht_kg ?? ''} onChange={e => updateSet(oi, si, 'gewicht_kg', e.target.value === '' ? null : parseFloat(e.target.value))} placeholder="kg" disabled={set.voltooid} style={{ flex: 1, height: 36, borderRadius: 8, border: '1.5px solid #e5e7eb', textAlign: 'center', fontSize: 15, fontWeight: 600, background: set.voltooid ? '#f9fafb' : '#fff' }} />
+                        )}
                         <button
                           onClick={() => updateSet(oi, si, 'voltooid', !set.voltooid)}
                           style={{
@@ -432,7 +482,10 @@ export default function TrainingLoggerPage() {
                     {voltooidesets.map((set, si) => (
                       <div key={si} style={{ fontSize: 13, color: '#666', marginLeft: 12 }}>
                         Set {si + 1}: {set.herhalingen} herh.
-                        {set.gewicht_kg !== null ? ` · ${set.gewicht_kg} kg` : ' · bodyweight'}
+                        {oef.heeft_gewicht
+                          ? (set.gewicht_kg !== null ? ` · ${set.gewicht_kg} kg` : '')
+                          : ' · bodyweight'
+                        }
                       </div>
                     ))}
                   </div>

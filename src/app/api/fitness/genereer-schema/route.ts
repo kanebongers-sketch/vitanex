@@ -23,9 +23,11 @@ interface RequestBody {
 
 interface Oefening {
   naam: string
+  naam_en: string
   sets: number
   herhalingen: string
   rusttijd_sec: number
+  heeft_gewicht: boolean
   gewicht_tip: string
   uitvoering_tip: string
 }
@@ -192,10 +194,12 @@ Vul elke trainingsdag in. Geef ALLEEN de JSON terug:
     "geschatte_duur": ${body.beschikbare_tijd},
     "oefeningen": [
       {
-        "naam": "Oefening naam",
+        "naam": "Nederlandse naam",
+        "naam_en": "English exercise name (for ExerciseDB lookup)",
         "sets": 3,
         "herhalingen": "8-12",
         "rusttijd_sec": 90,
+        "heeft_gewicht": true,
         "gewicht_tip": "Start met licht gewicht",
         "uitvoering_tip": "Korte uitvoeringstip"
       }
@@ -209,7 +213,9 @@ Richtlijnen:
 - Pas volume en intensiteit aan op het niveau
 - Stem oefeningen af op het doel (${body.doel})
 - Houd de sessieduur binnen ~${body.beschikbare_tijd} minuten
-- Laat coaching_tekst leeg (wordt later ingevuld)`,
+- Laat coaching_tekst leeg (wordt later ingevuld)
+- BELANGRIJK: heeft_gewicht = false voor bodyweight oefeningen (push-up, pull-up, dip, plank, etc.) of als materiaal = "geen". heeft_gewicht = true alleen als er daadwerkelijk gewichten nodig zijn.
+- naam_en: geef de standaard Engelse naam zoals gebruikt in fitness apps (bijv. "push-up", "barbell squat", "dumbbell curl")`,
     },
   ]
 
