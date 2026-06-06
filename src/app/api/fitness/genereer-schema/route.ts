@@ -55,8 +55,8 @@ interface PlannerOutput {
 // ---------------------------------------------------------------------------
 
 function createSupabaseAdmin() {
-  const url = process.env.SUPABASE_URL
-  const key = process.env.SUPABASE_SERVICE_KEY
+  const url = process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.SUPABASE_SERVICE_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY
   if (!url || !key) {
     throw new Error("Supabase omgevingsvariabelen ontbreken")
   }
@@ -267,8 +267,8 @@ Geef het VOLLEDIGE schema terug met ingevulde coaching_tekst per training als JS
 export async function POST(req: NextRequest) {
   const missingEnv: string[] = []
   if (!process.env.ANTHROPIC_API_KEY) missingEnv.push("ANTHROPIC_API_KEY")
-  if (!process.env.SUPABASE_URL) missingEnv.push("SUPABASE_URL")
-  if (!process.env.SUPABASE_SERVICE_KEY) missingEnv.push("SUPABASE_SERVICE_KEY")
+  if (!process.env.SUPABASE_URL && !process.env.NEXT_PUBLIC_SUPABASE_URL) missingEnv.push("SUPABASE_URL")
+  if (!process.env.SUPABASE_SERVICE_KEY && !process.env.SUPABASE_SERVICE_ROLE_KEY) missingEnv.push("SUPABASE_SERVICE_KEY")
 
   if (missingEnv.length > 0) {
     return NextResponse.json(
