@@ -206,8 +206,8 @@ Richtlijnen:
   ]
 
   const response = await anthropic.messages.create({
-    model: "claude-sonnet-4-6",
-    max_tokens: 4096,
+    model: "claude-haiku-4-5",
+    max_tokens: 8192,
     messages,
   })
 
@@ -252,7 +252,7 @@ Geef het VOLLEDIGE schema terug met ingevulde coaching_tekst per training als JS
 
   const response = await anthropic.messages.create({
     model: "claude-haiku-4-5",
-    max_tokens: 4096,
+    max_tokens: 8192,
     messages,
   })
 
@@ -301,9 +301,9 @@ export async function POST(req: NextRequest) {
   try {
     planning = await runPlannerAgent(anthropic, body)
   } catch (err) {
-    void err
+    console.error("[Agent 1] mislukt:", err)
     return NextResponse.json(
-      { error: "Agent 1 (Schema Planner) mislukt. Probeer opnieuw." },
+      { error: `Agent 1 (Schema Planner) mislukt: ${err instanceof Error ? err.message : String(err)}` },
       { status: 500 },
     )
   }
@@ -313,9 +313,9 @@ export async function POST(req: NextRequest) {
   try {
     schema = await runOefeningAgent(anthropic, body, planning)
   } catch (err) {
-    void err
+    console.error("[Agent 2] mislukt:", err)
     return NextResponse.json(
-      { error: "Agent 2 (Oefening Specialist) mislukt. Probeer opnieuw." },
+      { error: `Agent 2 (Oefening Specialist) mislukt: ${err instanceof Error ? err.message : String(err)}` },
       { status: 500 },
     )
   }
@@ -325,9 +325,9 @@ export async function POST(req: NextRequest) {
   try {
     finaalSchema = await runCoachAgent(anthropic, schema, body.disc_profiel)
   } catch (err) {
-    void err
+    console.error("[Agent 3] mislukt:", err)
     return NextResponse.json(
-      { error: "Agent 3 (Coach Reviewer) mislukt. Probeer opnieuw." },
+      { error: `Agent 3 (Coach Reviewer) mislukt: ${err instanceof Error ? err.message : String(err)}` },
       { status: 500 },
     )
   }
