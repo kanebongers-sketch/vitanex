@@ -69,6 +69,7 @@ function NavSection({ section, pathname, accent, hover }: {
 const I = {
   home:    <Ico d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z M9 22V12h6v10" />,
   sport:   <Ico d={['M6.5 6.5m-2.5 0a2.5 2.5 0 1 0 5 0a2.5 2.5 0 1 0-5 0', 'M6 10l-3 8h6l1-4 4 4 5-8', 'M14 6l2-2 3 3-2 2']} />,
+  voeding: <Ico d={['M12 2a7 7 0 0 1 7 7c0 3-2 5.5-5 6.7V21h-4v-5.3C7 14.5 5 12 5 9a7 7 0 0 1 7-7z', 'M9 21h6']} />,
   check:   <Ico d="M9 12l2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />,
   coach:   <Ico d="M9.663 17h4.673M12 3v1m6.364 1.636-.707.707M21 12h-1M4 12H3m3.343-5.657-.707-.707m2.828 9.9a5 5 0 1 1 7.072 0l-.548.547A3.374 3.374 0 0 0 14 18.469V19a2 2 0 1 1-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />,
   rapport: <Ico d={['M9 19v-6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2zm0 0V9a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v10m-6 0a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2m0 0V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2z']} />,
@@ -275,6 +276,7 @@ export default function Navbar() {
         { href: '/uitdagingen', label: 'Uitdagingen',  icon: I.uitd },
         { href: '/disc',        label: 'DISC test',    icon: <Ico d={['M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z','M8 12h8','M12 8v8']} /> },
         { href: '/sport',       label: 'Sport & Fitness', icon: I.sport },
+        { href: '/voeding',     label: 'Voeding',         icon: I.voeding },
       ],
     },
     {
