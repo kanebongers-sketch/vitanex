@@ -468,7 +468,13 @@ export default function Navbar() {
         paddingTop: 'var(--safe-top, 0px)',
         zIndex: 30,
       }}>
-        <button onClick={() => setMobileOpen(o => !o)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: text }}>
+        <button
+          onClick={() => setMobileOpen(o => !o)}
+          aria-label={mobileOpen ? 'Menu sluiten' : 'Menu openen'}
+          aria-expanded={mobileOpen}
+          aria-controls="mobile-drawer"
+          style={{ background: 'none', border: 'none', cursor: 'pointer', color: text, minWidth: 44, minHeight: 44, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+        >
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" />
           </svg>
@@ -483,7 +489,7 @@ export default function Navbar() {
       {mobileOpen && (
         <>
           <div onClick={() => setMobileOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 45, background: 'rgba(0,0,0,0.4)' }} />
-          <aside style={{
+          <aside id="mobile-drawer" style={{
             position: 'fixed', left: 0, top: 0, bottom: 0, width: SIDEBAR_W,
             background: bg, zIndex: 50, display: 'flex', flexDirection: 'column',
             paddingTop: 'var(--safe-top, 0px)',

@@ -43,7 +43,7 @@ function ScoreRing({ score }: { score: number }) {
   const r = 36, circ = 2 * Math.PI * r
   const kleur = score >= 70 ? '#1D9E75' : score >= 45 ? '#F59E0B' : '#EF4444'
   return (
-    <svg width="90" height="90" viewBox="0 0 90 90" style={{ flexShrink: 0 }}>
+    <svg width="90" height="90" viewBox="0 0 90 90" style={{ flexShrink: 0 }} role="img" aria-label={`Vitaliteitsscore: ${score} van 100`}>
       <circle cx="45" cy="45" r={r} fill="none" stroke="#F3F4F6" strokeWidth="7" />
       <circle cx="45" cy="45" r={r} fill="none" stroke={kleur} strokeWidth="7"
         strokeDasharray={`${(score / 100) * circ} ${circ}`} strokeLinecap="round"
@@ -393,8 +393,8 @@ export default function HomePage() {
         {/* ── VITALITEITSSCORE KAART ── */}
         <div style={{
           background: 'white', borderRadius: 20, padding: '20px 24px', marginBottom: 20,
-          border: '1px solid #E5E7EB', display: 'flex', alignItems: 'center', gap: 20,
-        }} className="mf-vita-card">
+          border: '1px solid #E5E7EB', display: 'flex', flexDirection: 'column', gap: 14,
+        }}>
           {vitaalScore !== null && <ScoreRing score={vitaalScore} />}
           {vitaalScore === null && (
             <div style={{ width: 90, height: 90, borderRadius: '50%', background: '#F9FAFB', border: '2px dashed #E5E7EB', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -415,7 +415,7 @@ export default function HomePage() {
                   : 'Besteed extra zorg aan je welzijn deze week.'
                 : 'Vul je check-in in om je score te zien.'}
             </p>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }} className="mf-vita-btns">
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'nowrap' }}>
               <Link href="/rapport" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#1D9E75', color: 'white', borderRadius: 10, padding: '9px 16px', fontSize: 13, fontWeight: 600, textDecoration: 'none', transition: 'transform 0.1s ease, opacity 0.1s ease' }}
                 onMouseDown={e => (e.currentTarget as HTMLElement).style.transform = 'scale(0.97)'}
                 onMouseUp={e => (e.currentTarget as HTMLElement).style.transform = 'scale(1)'}
@@ -429,10 +429,7 @@ export default function HomePage() {
                 onMouseLeave={e => (e.currentTarget as HTMLElement).style.transform = 'scale(1)'}>
                 AI Coach
               </Link>
-              <Link href="/checkin" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#F9FAFB', color: '#6B7280', border: '1px solid #E5E7EB', borderRadius: 10, padding: '9px 16px', fontSize: 13, fontWeight: 600, textDecoration: 'none', transition: 'transform 0.1s ease' }}
-                onMouseDown={e => (e.currentTarget as HTMLElement).style.transform = 'scale(0.97)'}
-                onMouseUp={e => (e.currentTarget as HTMLElement).style.transform = 'scale(1)'}
-                onMouseLeave={e => (e.currentTarget as HTMLElement).style.transform = 'scale(1)'}>
+              <Link href="/checkin" style={{ display: 'none' }}>
                 Nieuwe check-in
               </Link>
             </div>
@@ -440,7 +437,7 @@ export default function HomePage() {
         </div>
 
         {/* ── STATS ── */}
-        <div className="mf-stats-grid" style={{ marginBottom: 20 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12, marginBottom: 20 }}>
           <div className="mf-stat-card" style={{ background: 'white', borderRadius: 14, padding: '16px 18px', border: '1px solid #E5E7EB', transition: 'transform 0.18s ease, box-shadow 0.18s ease', cursor: 'default' }}
             onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-1px)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 4px 14px rgba(0,0,0,0.07)' }}
             onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(0)'; (e.currentTarget as HTMLElement).style.boxShadow = 'none' }}>

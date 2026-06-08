@@ -316,7 +316,7 @@ export default function Rapport() {
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
       <Navbar />
-      <main style={{ padding: '36px 40px 72px' }} ref={printRef}>
+      <main style={{ padding: '36px 40px 72px', maxWidth: 900, margin: '0 auto' }} ref={printRef}>
 
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 28 }}>

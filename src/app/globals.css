@@ -661,4 +661,16 @@ body.mf-has-sidebar > * {
   .mf-skeleton {
     animation: none;
   }
+
+  .mf-spinner,
+  .mf-spinner-white {
+    animation: none;
+    opacity: 0.5;
+  }
+
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

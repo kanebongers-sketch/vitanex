@@ -345,16 +345,18 @@ export default function CheckIn() {
           </div>
         )}
 
-        {/* Testmodus */}
-        <div className="rounded-xl p-4 mb-6 text-left" style={{ background: '#F3F4F6', borderLeft: '3px solid #9ca3af' }}>
-          <p className="text-xs font-medium mb-1 text-gray-500">Testmodus</p>
-          <p className="text-xs mb-3 text-gray-400">Bypass de wekelijkse limiet en vul opnieuw in.</p>
-          <button onClick={verwijderSessie} disabled={laden}
-            className="w-full py-2 rounded-lg text-xs font-medium disabled:opacity-40"
-            style={{ background: '#6b7280', color: 'white' }}>
-            {laden ? 'Bezig...' : 'Opnieuw invullen (test)'}
-          </button>
-        </div>
+        {/* Testmodus — alleen in development */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="rounded-xl p-4 mb-6 text-left" style={{ background: '#F3F4F6', borderLeft: '3px solid #9ca3af' }}>
+            <p className="text-xs font-medium mb-1 text-gray-500">Testmodus</p>
+            <p className="text-xs mb-3 text-gray-400">Bypass de wekelijkse limiet en vul opnieuw in.</p>
+            <button onClick={verwijderSessie} disabled={laden}
+              className="w-full py-2 rounded-lg text-xs font-medium disabled:opacity-40"
+              style={{ background: '#6b7280', color: 'white' }}>
+              {laden ? 'Bezig...' : 'Opnieuw invullen (test)'}
+            </button>
+          </div>
+        )}
 
         <div className="flex flex-col gap-3">
           <Link href="/home" className="w-full inline-block text-center text-white rounded-xl py-3 text-sm font-medium"
@@ -369,8 +371,8 @@ export default function CheckIn() {
   // ── Formulier ──────────────────────────────────────────────────────────────
 
   return (
-    <main className="min-h-screen pb-16"
-      style={{ background: 'linear-gradient(160deg, #F0FAF6 0%, #EBF4FB 50%, #F5F3FF 100%)' }}>
+    <main className="min-h-screen"
+      style={{ background: 'linear-gradient(160deg, #F0FAF6 0%, #EBF4FB 50%, #F5F3FF 100%)', paddingBottom: 'calc(64px + env(safe-area-inset-bottom, 0px))' }}>
 
       {/* Verplichte check-in banner */}
       <div style={{
@@ -416,18 +418,28 @@ export default function CheckIn() {
 
           {/* Voortgangsbalk + auto-knop */}
           <div className="flex items-center gap-3">
-            <div className="flex-1 h-1.5 bg-gray-100 overflow-hidden" style={{ borderRadius: 9999 }}>
+            <div
+              className="flex-1 h-1.5 bg-gray-100 overflow-hidden"
+              style={{ borderRadius: 9999 }}
+              role="progressbar"
+              aria-valuenow={voortgangPct}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-label={`Voortgang check-in: ${voortgangPct}%`}
+            >
               <div className="h-full transition-all duration-500"
                 style={{ width: `${voortgangPct}%`, background: `linear-gradient(90deg, ${huidigeSectie.kleur}99, ${huidigeSectie.kleur})`, borderRadius: 9999 }} />
             </div>
-            <span className="text-xs text-gray-400 flex-shrink-0">{voortgangPct}%</span>
-            <button
-              onClick={vulAutomatischIn}
-              className="flex-shrink-0 text-xs px-3 py-1 rounded-full font-medium transition"
-              style={{ background: huidigeSectie.licht, color: huidigeSectie.kleur, border: `1px solid ${huidigeSectie.kleur}30` }}
-              title="Auto-invullen — vult alle vragen in met realistische antwoorden">
-              Auto
-            </button>
+            <span className="text-xs text-gray-400 flex-shrink-0" aria-hidden="true">{voortgangPct}%</span>
+            {process.env.NODE_ENV === 'development' && (
+              <button
+                onClick={vulAutomatischIn}
+                className="flex-shrink-0 text-xs px-3 py-1 rounded-full font-medium transition"
+                style={{ background: huidigeSectie.licht, color: huidigeSectie.kleur, border: `1px solid ${huidigeSectie.kleur}30` }}
+                title="Auto-invullen — vult alle vragen in met realistische antwoorden">
+                Auto
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -562,7 +574,8 @@ function VraagKaart({ vraag, waarde, kleur, licht, onChange }: {
         value={tekst}
         onChange={e => onChange(e.target.value)}
         placeholder={vraag.placeholder ?? 'Schrijf hier je antwoord...'}
-        className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm outline-none resize-none transition text-gray-700"
+        className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 outline-none resize-none transition text-gray-700"
+        style={{ fontSize: 16 }}
         onFocus={e => e.target.style.borderColor = kleur}
         onBlur={e  => e.target.style.borderColor = '#e5e7eb'}
       />

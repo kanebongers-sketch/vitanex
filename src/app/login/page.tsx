@@ -125,6 +125,8 @@ export default function Login() {
         {/* Status messages */}
         {status === 'not_confirmed' && (
           <div
+            role="alert"
+            aria-live="assertive"
             className="rounded-2xl p-4 mb-5"
             style={{ background: '#FAEEDA', border: '1px solid #FAC775' }}
           >
@@ -144,14 +146,14 @@ export default function Login() {
         )}
 
         {status === 'resent' && (
-          <div className="rounded-2xl p-4 mb-5" style={{ background: '#E1F5EE', border: '1px solid #A3DECE' }}>
+          <div role="alert" aria-live="assertive" className="rounded-2xl p-4 mb-5" style={{ background: '#E1F5EE', border: '1px solid #A3DECE' }}>
             <p className="text-sm font-semibold" style={{ color: '#0F6E56' }}>✓ Bevestigingsmail verstuurd</p>
             <p className="text-xs mt-0.5" style={{ color: '#15785A' }}>Klik op de link in je inbox om je account te activeren.</p>
           </div>
         )}
 
         {status === 'wrong_credentials' && (
-          <div className="rounded-2xl p-4 mb-5" style={{ background: '#FCEBEB', border: '1px solid #FBBFBF' }}>
+          <div role="alert" aria-live="assertive" className="rounded-2xl p-4 mb-5" style={{ background: '#FCEBEB', border: '1px solid #FBBFBF' }}>
             <p className="text-sm font-semibold" style={{ color: '#A32D2D' }}>E-mail of wachtwoord klopt niet</p>
             <p className="text-xs mt-0.5" style={{ color: '#C45252' }}>
               Controleer je gegevens of{' '}
@@ -161,14 +163,14 @@ export default function Login() {
         )}
 
         {status === 'too_many_requests' && (
-          <div className="rounded-2xl p-4 mb-5" style={{ background: '#FCEBEB', border: '1px solid #FBBFBF' }}>
+          <div role="alert" aria-live="assertive" className="rounded-2xl p-4 mb-5" style={{ background: '#FCEBEB', border: '1px solid #FBBFBF' }}>
             <p className="text-sm font-semibold" style={{ color: '#A32D2D' }}>Te veel pogingen</p>
             <p className="text-xs mt-0.5" style={{ color: '#C45252' }}>Wacht een paar minuten en probeer opnieuw.</p>
           </div>
         )}
 
         {status === 'unknown_error' && (
-          <div className="rounded-2xl p-4 mb-5" style={{ background: '#FCEBEB', border: '1px solid #FBBFBF' }}>
+          <div role="alert" aria-live="assertive" className="rounded-2xl p-4 mb-5" style={{ background: '#FCEBEB', border: '1px solid #FBBFBF' }}>
             <p className="text-sm font-semibold" style={{ color: '#A32D2D' }}>Er ging iets mis</p>
             <p className="text-xs mt-0.5" style={{ color: '#C45252' }}>
               Probeer opnieuw of neem contact op via{' '}
@@ -179,7 +181,9 @@ export default function Login() {
 
         {/* Form */}
         <div className="flex flex-col gap-3 mb-4">
+          <label htmlFor="login-email" className="sr-only">E-mailadres</label>
           <input
+            id="login-email"
             type="email"
             placeholder="E-mailadres"
             value={email}
@@ -197,7 +201,9 @@ export default function Login() {
             }}
           />
           <div className="relative">
+            <label htmlFor="login-wachtwoord" className="sr-only">Wachtwoord</label>
             <input
+              id="login-wachtwoord"
               type={toonWacht ? 'text' : 'password'}
               placeholder="Wachtwoord"
               value={wachtwoord}
