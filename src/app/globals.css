@@ -432,6 +432,13 @@ a:focus:not(:focus-visible) {
 .mf-btn:active { transform: scale(0.97); }
 .mf-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
 
+.mf-pressable { transition: transform 0.1s ease; }
+.mf-pressable:active { transform: scale(0.97); }
+@media (prefers-reduced-motion: reduce) {
+  .mf-pressable { transition: none; }
+  .mf-pressable:active { transform: none; }
+}
+
 .mf-btn-primary {
   background: var(--mf-green, #1D9E75);
   color: white;

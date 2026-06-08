@@ -103,6 +103,7 @@ function Knop({ onClick, disabled, children, variant = 'primary' }: {
 // ─── Hoofd pagina ─────────────────────────────────────────────────────────────
 export default function OnboardingPage() {
   const router = useRouter()
+  const [stap, setStap] = useState<'welkom' | 'profiel'>('welkom')
   const [rol, setRol] = useState<'hr' | 'zelfstandige' | 'other' | null>(null)
   const [profielRol, setProfielRol] = useState<string | null>(null)
   const [userId, setUserId] = useState<string | null>(null)
@@ -243,6 +244,41 @@ export default function OnboardingPage() {
     setGebrStap('klaar')
     setBezig(false)
   }
+
+  if (stap === 'welkom') return (
+    <main style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '32px 24px', background: 'linear-gradient(160deg, #E8F8F2 0%, #EBF4FB 50%, #F0EEFF 100%)' }}>
+      <div style={{ maxWidth: 400, width: '100%', textAlign: 'center' }}>
+        <div style={{ fontSize: 56, marginBottom: 16 }}>🌱</div>
+        <h1 style={{ fontSize: 28, fontWeight: 800, color: '#111827', marginBottom: 8, letterSpacing: '-0.03em' }}>
+          Welkom bij MentaForce
+        </h1>
+        <p style={{ fontSize: 16, color: '#6B7280', marginBottom: 36, lineHeight: 1.6 }}>
+          Jouw persoonlijke welzijnscoach. In 3 minuten per week weet je hoe je er echt voor staat.
+        </p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 36, textAlign: 'left' }}>
+          {([
+            { icon: '📊', title: 'Wekelijkse check-in', desc: 'Beantwoord vragen over slaap, stress, energie en meer.' },
+            { icon: '🤖', title: 'Persoonlijk AI-rapport', desc: 'AI analyseert jouw antwoorden en geeft gerichte tips.' },
+            { icon: '🎯', title: 'Concreet actieplan', desc: 'Praktische stappen om beter te voelen en te presteren.' },
+          ] as const).map(item => (
+            <div key={item.title} style={{ display: 'flex', gap: 14, alignItems: 'flex-start', background: 'white', borderRadius: 14, padding: '14px 16px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+              <span style={{ fontSize: 24, flexShrink: 0 }}>{item.icon}</span>
+              <div>
+                <p style={{ fontSize: 14, fontWeight: 700, color: '#111827', marginBottom: 2 }}>{item.title}</p>
+                <p style={{ fontSize: 13, color: '#6B7280', lineHeight: 1.4 }}>{item.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+        <button
+          onClick={() => setStap('profiel')}
+          style={{ width: '100%', background: '#1D9E75', color: 'white', borderRadius: 14, padding: '15px', fontSize: 16, fontWeight: 700, border: 'none', cursor: 'pointer', boxShadow: '0 4px 16px rgba(29,158,117,0.35)' }}
+        >
+          Aan de slag →
+        </button>
+      </div>
+    </main>
+  )
 
   if (rol === null) {
     return (
