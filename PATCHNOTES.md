@@ -93,4 +93,26 @@ Er is een systeem gebouwd dat elke maandag een mailtje stuurt naar mensen die hu
 
 ---
 
+---
+
+## 8 juni 2026 — design upgrade
+
+### ✨ Vitaliteitsscore ziet er veel beter uit
+De grote ring met je score op de homepagina was best klein en saai. Nu is hij groter (130px), en de achtergrond van de hele kaart verandert mee met je score: groen als je goed scoort, geel als het matig is, rood als je extra zorg nodig hebt. Voelt meteen als een premium app.
+
+### ✨ Rapport ook met kleur-achtergrond
+Zelfde behandeling voor je rapport: de score-kaart bovenaan heeft nu ook een kleurverloop dat past bij hoe je ervoor staat.
+
+### ✨ Aandachtspunten en actieplan in rapport
+De AI maakte al aandachtspunten en een actieplan — maar die waren bijna onzichtbaar. Nu staan de aandachtspunten met oranje bolletjes duidelijk in beeld, en het actieplan heeft een groene kaart met genummerde stappen (wat, waarom, wanneer).
+
+### ✨ Coach-suggesties met emoji's
+De suggestieknoppen in de AI-coach hebben nu emoji's: 😰 gestrest, ⚡ energie op, 😴 slecht slapen, enz. Ook zijn er 2 nieuwe suggesties bijgekomen.
+
+### ✨ Navigatiebalk onderaan is glassmorphism geworden
+De balk onderaan het scherm (Home / Check-in / Rapport / Coach) heeft nu een doorzichtig, wazig effect — net zoals bij moderne apps als Arc of iOS. De actieve tab heeft een subtiel gekleurd bolletje als indicator.
+
+### 🔧 Statistiek-kaartjes hover werkt nu via CSS
+De kaartjes op de homepagina die omhoog kwamen bij aanraken hadden nog oud JavaScript in zich. Nu werkt dat via CSS-klassen — schoner en sneller.
+
 *Volgende update volgt zodra er iets nieuws is gebouwd.*
