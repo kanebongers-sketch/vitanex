@@ -565,6 +565,13 @@ body.mf-has-sidebar > * {
   min-width: 0;
 }
 
+/* ── Bottom tab bar layout offset ───────────────────────────── */
+@media (max-width: 767px) {
+  body.mf-has-tabbar {
+    padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
 /* ── Home page animations ───────────────────────────────── */
 @keyframes pulse-border { 0%, 100% { border-color: var(--mf-green-light, #6EE7B7); } 50% { border-color: var(--mf-green, #1D9E75); } }
 

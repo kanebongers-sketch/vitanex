@@ -101,6 +101,7 @@ export default function Navbar() {
   const [mobileOpen, setMobileOpen]     = useState(false)
   const [viewMode, setViewMode]         = useState<ViewMode>('employee')
   const [fitLevel, setFitLevel]         = useState<number | null>(null)
+  const [toonCheckinNudge, setToonCheckinNudge] = useState(false)
 
   useEffect(() => {
     let mounted = true
@@ -154,8 +155,7 @@ export default function Navbar() {
           .maybeSingle()
 
         if (!sessie && mounted) {
-          router.replace('/checkin')
-          return
+          setToonCheckinNudge(true)
         }
       }
 
@@ -219,7 +219,11 @@ export default function Navbar() {
 
   useLayoutEffect(() => {
     document.body.classList.add('mf-has-sidebar')
-    return () => document.body.classList.remove('mf-has-sidebar')
+    document.body.classList.add('mf-has-tabbar')
+    return () => {
+      document.body.classList.remove('mf-has-sidebar')
+      document.body.classList.remove('mf-has-tabbar')
+    }
   }, [])
 
   async function uitloggen() {
@@ -497,6 +501,84 @@ export default function Navbar() {
             <SidebarContent />
           </aside>
         </>
+      )}
+
+      {/* Mobile bottom tab bar */}
+      <nav className="flex md:hidden" aria-label="Hoofdnavigatie" style={{
+        position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 50,
+        height: 'calc(56px + env(safe-area-inset-bottom, 0px))',
+        background: bg, borderTop: `1px solid ${border}`,
+        display: 'flex', alignItems: 'stretch',
+        paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+      }}>
+        {([
+          { href: viewMode === 'employee' ? '/home' : viewMode === 'hr' ? '/hr' : '/admin', label: 'Home', icon: I.home, match: ['/home', '/hr', '/admin'] },
+          { href: '/checkin', label: 'Check-in', icon: I.check, match: ['/checkin'] },
+          { href: '/rapport', label: 'Rapport', icon: I.rapport, match: ['/rapport'] },
+          { href: '/coach', label: 'Coach', icon: I.coach, match: ['/coach'] },
+        ] as { href: string; label: string; icon: React.ReactNode; match: string[] }[]).map(tab => {
+          const isActive = tab.match.some(m => pathname === m || pathname.startsWith(m + '/'))
+          return (
+            <Link
+              key={tab.href}
+              href={tab.href}
+              aria-label={tab.label}
+              aria-current={isActive ? 'page' : undefined}
+              style={{
+                flex: 1, display: 'flex', flexDirection: 'column',
+                alignItems: 'center', justifyContent: 'center', gap: 4,
+                minHeight: 44, textDecoration: 'none',
+                color: isActive ? ACCENT : textMuted,
+                fontWeight: isActive ? 700 : 400,
+              }}
+            >
+              <span style={{ display: 'flex', color: isActive ? ACCENT : textMuted }}>{tab.icon}</span>
+              <span style={{ fontSize: 10, lineHeight: 1 }}>{tab.label}</span>
+            </Link>
+          )
+        })}
+      </nav>
+
+      {/* Check-in nudge bottom sheet */}
+      {toonCheckinNudge && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 200,
+          background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(4px)',
+          display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
+        }}>
+          <div style={{
+            background: '#fff', borderRadius: '20px 20px 0 0',
+            padding: '24px 24px calc(24px + env(safe-area-inset-bottom, 0px))',
+            width: '100%', maxWidth: 480,
+            boxShadow: '0 -4px 32px rgba(0,0,0,0.12)',
+          }}>
+            <div style={{ width: 36, height: 4, borderRadius: 9999, background: '#E5E7EB', margin: '0 auto 20px' }} />
+            <div style={{ fontSize: 28, textAlign: 'center', marginBottom: 8 }}>📋</div>
+            <h2 style={{ fontSize: 18, fontWeight: 700, color: '#111827', textAlign: 'center', marginBottom: 6 }}>
+              Vul je check-in in
+            </h2>
+            <p style={{ fontSize: 14, color: '#6B7280', textAlign: 'center', lineHeight: 1.5, marginBottom: 24 }}>
+              Vul eerst je wekelijkse check-in in.<br/>Het duurt maar 3 minuten.
+            </p>
+            <Link href="/checkin" onClick={() => setToonCheckinNudge(false)} style={{
+              display: 'block', textAlign: 'center',
+              background: '#1D9E75', color: 'white',
+              borderRadius: 14, padding: '14px 0',
+              fontWeight: 600, fontSize: 15, textDecoration: 'none',
+              marginBottom: 10,
+            }}>
+              Check-in invullen →
+            </Link>
+            <button onClick={() => setToonCheckinNudge(false)} style={{
+              display: 'block', width: '100%',
+              background: 'none', border: 'none',
+              color: '#9CA3AF', fontSize: 13, cursor: 'pointer',
+              padding: '10px 0',
+            }}>
+              Misschien later
+            </button>
+          </div>
+        </div>
       )}
     </>
   )
