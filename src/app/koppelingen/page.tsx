@@ -65,6 +65,10 @@ function KoppelingenInhoud() {
   const [calVerbonden, setCalVerbonden] = useState(false)
   const [calLaden, setCalLaden] = useState(false)
 
+  const [fitVerbonden, setFitVerbonden] = useState(false)
+  const [fitLaden, setFitLaden] = useState(false)
+  const [fitData, setFitData] = useState<{ stappen: number | null; slaapMinuten: number | null; hartslag: number | null } | null>(null)
+
   useEffect(() => {
     async function init() {
       const { data: { user } } = await supabase.auth.getUser()
@@ -73,12 +77,18 @@ function KoppelingenInhoud() {
 
       const fitbitToken   = searchParams.get('fitbit_access_token')
       const googleToken   = searchParams.get('google_access_token')
+      const fitToken      = searchParams.get('fit_access_token')
       const fitbitConnected = searchParams.get('fitbit_connected')
       const googleConnected = searchParams.get('google_connected')
+      const fitConnected  = searchParams.get('fit_connected')
       const error         = searchParams.get('error')
 
       if (error) {
-        setToast({ type: 'error', tekst: error === 'fitbit_denied' ? 'Fitbit koppeling geweigerd' : error === 'google_denied' ? 'Google koppeling geweigerd' : 'Koppeling mislukt' })
+        const tekst = error === 'fitbit_denied' ? 'Fitbit koppeling geweigerd'
+          : error === 'google_denied' ? 'Google koppeling geweigerd'
+          : error === 'fit_denied' ? 'Google Fit koppeling geweigerd'
+          : 'Koppeling mislukt'
+        setToast({ type: 'error', tekst })
       }
 
       if (fitbitToken) {
@@ -108,6 +118,34 @@ function KoppelingenInhoud() {
       } else if (googleConnected) {
         setToast({ type: 'success', tekst: 'Google Agenda succesvol gekoppeld!' })
       }
+
+      if (fitToken) {
+        const expiresIn = Number(searchParams.get('fit_expires_in') ?? 3600)
+        await supabase.from('wearable_tokens').upsert({
+          user_id: user.id, provider: 'google_fit',
+          access_token: fitToken,
+          refresh_token: searchParams.get('fit_refresh_token') ?? null,
+          expires_at: new Date(Date.now() + expiresIn * 1000).toISOString(),
+          bijgewerkt_op: new Date().toISOString(),
+        }, { onConflict: 'user_id,provider' })
+        setFitVerbonden(true)
+        setToast({ type: 'success', tekst: 'Google Fit succesvol gekoppeld!' })
+      } else if (fitConnected) {
+        setFitVerbonden(true)
+        setToast({ type: 'success', tekst: 'Google Fit succesvol gekoppeld!' })
+      }
+
+      // Check of Google Fit al gekoppeld is
+      setFitLaden(true)
+      supabase.from('wearable_tokens')
+        .select('access_token')
+        .eq('user_id', user.id)
+        .eq('provider', 'google_fit')
+        .maybeSingle()
+        .then(({ data }) => {
+          if (data?.access_token) setFitVerbonden(true)
+        })
+        .finally(() => setFitLaden(false))
 
       // Health Connect (alleen Android app)
       const android = isAndroidApp()
@@ -150,10 +188,11 @@ function KoppelingenInhoud() {
     return () => clearTimeout(t)
   }, [toast])
 
-  async function ontkoppel(provider: 'fitbit' | 'google_calendar') {
+  async function ontkoppel(provider: 'fitbit' | 'google_calendar' | 'google_fit') {
     if (!userId) return
     await supabase.from('wearable_tokens').delete().eq('user_id', userId).eq('provider', provider)
     if (provider === 'fitbit') { setFitbitVerbonden(false); setFitbitData(null) }
+    else if (provider === 'google_fit') { setFitVerbonden(false); setFitData(null) }
     else { setCalVerbonden(false); setCalData(null) }
     setToast({ type: 'success', tekst: 'Koppeling verwijderd' })
   }
@@ -264,6 +303,45 @@ function KoppelingenInhoud() {
           )}
         </div>
 
+        {/* Google Fit */}
+        <div className="bg-white rounded-2xl border border-gray-100 p-5 mb-4" style={{ boxShadow: 'var(--shadow-sm)' }}>
+          <div className="flex items-start justify-between mb-3">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: '#EA4335' }}>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z" fill="white"/>
+                </svg>
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-gray-900">Google Fit</p>
+                <p className="text-xs text-gray-400">Stappen · Slaap · Hartslag</p>
+                <StatusBadge connected={fitVerbonden} />
+              </div>
+            </div>
+            {fitVerbonden ? (
+              <button onClick={() => ontkoppel('google_fit')} className="text-xs text-red-400 hover:text-red-600 transition font-medium">Ontkoppelen</button>
+            ) : (
+              <a href="/api/google-fit/auth" className="text-xs font-semibold px-4 py-2 rounded-xl text-white" style={{ background: '#EA4335' }}>Koppelen</a>
+            )}
+          </div>
+          {fitLaden ? (
+            <div className="flex items-center gap-2 py-2">
+              <div className="w-4 h-4 rounded-full border-2 border-gray-200 animate-spin" style={{ borderTopColor: '#EA4335' }} />
+              <span className="text-xs text-gray-400">Status ophalen…</span>
+            </div>
+          ) : fitData ? (
+            <div className="mt-3 pt-3 border-t border-gray-50">
+              <DataRij label="Stappen vandaag" waarde={fitData.stappen?.toLocaleString('nl-BE') ?? null} />
+              <DataRij label="Slaap" waarde={fitData.slaapMinuten !== null ? Math.round(fitData.slaapMinuten / 60 * 10) / 10 : null} eenheid="uur" />
+              <DataRij label="Gemiddelde hartslag" waarde={fitData.hartslag} eenheid="bpm" />
+            </div>
+          ) : fitVerbonden ? (
+            <p className="text-xs text-gray-400 mt-2">✓ Gekoppeld — data wordt opgehaald bij je volgende check-in.</p>
+          ) : (
+            <p className="text-xs text-gray-400 mt-2">Koppel Google Fit om je stappen, slaap en hartslag automatisch mee te nemen in je check-in.</p>
+          )}
+        </div>
+
         {/* Google Calendar */}
         <div className="bg-white rounded-2xl border border-gray-100 p-5 mb-4" style={{ boxShadow: 'var(--shadow-sm)' }}>
           <div className="flex items-start justify-between mb-3">
@@ -342,7 +420,8 @@ function KoppelingenInhoud() {
           <div className="space-y-1">
             {[
               'FITBIT_CLIENT_ID + FITBIT_CLIENT_SECRET → developer.fitbit.com',
-              'GOOGLE_CLIENT_ID + GOOGLE_CLIENT_SECRET → console.cloud.google.com',
+              'GOOGLE_CLIENT_ID + GOOGLE_CLIENT_SECRET → Supabase Google Login',
+              'GOOGLE_FIT_CLIENT_ID + GOOGLE_FIT_CLIENT_SECRET → Google Fit OAuth',
               'NEXT_PUBLIC_APP_URL=https://mentaforce.nl',
             ].map(t => (
               <p key={t} className="text-xs text-blue-600 font-mono">{t}</p>
