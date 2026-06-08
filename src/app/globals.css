@@ -439,6 +439,19 @@ a:focus:not(:focus-visible) {
   .mf-pressable:active { transform: none; }
 }
 
+.mf-lift { transition: transform 0.18s ease, box-shadow 0.18s ease; }
+.mf-lift:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(0,0,0,0.07); }
+@media (prefers-reduced-motion: reduce) {
+  .mf-lift { transition: none; }
+  .mf-lift:hover { transform: none; box-shadow: none; }
+}
+
+.mf-doelen-empty { transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease; }
+.mf-doelen-empty:hover { border-color: #1D9E75 !important; }
+@media (prefers-reduced-motion: reduce) {
+  .mf-doelen-empty { transition: none; }
+}
+
 .mf-btn-primary {
   background: var(--mf-green, #1D9E75);
   color: white;
