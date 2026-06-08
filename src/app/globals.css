@@ -207,6 +207,7 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   line-height: 1.5;
+  font-size: 15px;
   font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
   /* Native app scroll gedrag */
   height: 100%;
@@ -594,6 +595,21 @@ body.mf-has-sidebar > * {
 
 /* ── Home page animations ───────────────────────────────── */
 @keyframes pulse-border { 0%, 100% { border-color: var(--mf-green-light, #6EE7B7); } 50% { border-color: var(--mf-green, #1D9E75); } }
+
+/* ── Section label ─────────────────────────────────────── */
+.mf-section-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-4, #9CA3AF);
+  margin-bottom: 12px;
+}
+
+/* ── Stat card hover ───────────────────────────────────── */
+.mf-stat-card.mf-lift:hover {
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+}
 
 /* ── Domein grid ───────────────────────────────── */
 .domein-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }

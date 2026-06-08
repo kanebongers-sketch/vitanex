@@ -40,16 +40,17 @@ function berekenVitaalScore(domeinScores: Record<string, number>): number {
 }
 
 function ScoreRing({ score }: { score: number }) {
-  const r = 36, circ = 2 * Math.PI * r
+  const r = 52, circ = 2 * Math.PI * r
   const kleur = score >= 70 ? '#1D9E75' : score >= 45 ? '#F59E0B' : '#EF4444'
+  const trackKleur = score >= 70 ? 'rgba(29,158,117,0.12)' : score >= 45 ? 'rgba(245,158,11,0.12)' : 'rgba(239,68,68,0.12)'
   return (
-    <svg width="90" height="90" viewBox="0 0 90 90" style={{ flexShrink: 0 }} role="img" aria-label={`Vitaliteitsscore: ${score} van 100`}>
-      <circle cx="45" cy="45" r={r} fill="none" stroke="#F3F4F6" strokeWidth="7" />
-      <circle cx="45" cy="45" r={r} fill="none" stroke={kleur} strokeWidth="7"
+    <svg width="130" height="130" viewBox="0 0 130 130" style={{ flexShrink: 0 }} role="img" aria-label={`Vitaliteitsscore: ${score} van 100`}>
+      <circle cx="65" cy="65" r={r} fill="none" stroke={trackKleur} strokeWidth="10" />
+      <circle cx="65" cy="65" r={r} fill="none" stroke={kleur} strokeWidth="10"
         strokeDasharray={`${(score / 100) * circ} ${circ}`} strokeLinecap="round"
-        transform="rotate(-90 45 45)" style={{ transition: 'stroke-dasharray 1s ease' }} />
-      <text x="45" y="41" textAnchor="middle" fontSize="19" fontWeight="800" fill={kleur}>{score}</text>
-      <text x="45" y="55" textAnchor="middle" fontSize="10" fill="#9CA3AF">/100</text>
+        transform="rotate(-90 65 65)" style={{ transition: 'stroke-dasharray 1.2s cubic-bezier(0.16,1,0.3,1)' }} />
+      <text x="65" y="59" textAnchor="middle" fontSize="30" fontWeight="800" fill={kleur}>{score}</text>
+      <text x="65" y="77" textAnchor="middle" fontSize="11" fill="#9CA3AF" fontWeight="600">/100</text>
     </svg>
   )
 }
@@ -390,71 +391,75 @@ export default function HomePage() {
           </Link>
         )}
 
-        {/* ── VITALITEITSSCORE KAART ── */}
+        {/* ── VITALITEITSSCORE HERO KAART ── */}
         <div style={{
-          background: 'white', borderRadius: 20, padding: '20px 24px', marginBottom: 20,
-          border: '1px solid #E5E7EB', display: 'flex', flexDirection: 'column', gap: 14,
+          borderRadius: 24, marginBottom: 20, overflow: 'hidden',
+          background: vitaalScore !== null
+            ? vitaalScore >= 70
+              ? 'linear-gradient(135deg, #E1F5EE 0%, #D1FAE5 60%, #EBF4FB 100%)'
+              : vitaalScore >= 45
+              ? 'linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 60%, #FFF7ED 100%)'
+              : 'linear-gradient(135deg, #FEF2F2 0%, #FCEBEB 60%, #FEF3C7 100%)'
+            : 'linear-gradient(135deg, #F9FAFB 0%, #F3F4F6 100%)',
+          border: `1.5px solid ${vitaalScore !== null
+            ? vitaalScore >= 70 ? 'rgba(29,158,117,0.20)' : vitaalScore >= 45 ? 'rgba(245,158,11,0.20)' : 'rgba(239,68,68,0.20)'
+            : '#E5E7EB'}`,
+          boxShadow: vitaalScore !== null
+            ? vitaalScore >= 70 ? '0 4px 24px rgba(29,158,117,0.10), 0 1px 4px rgba(0,0,0,0.04)'
+              : vitaalScore >= 45 ? '0 4px 24px rgba(245,158,11,0.10), 0 1px 4px rgba(0,0,0,0.04)'
+              : '0 4px 24px rgba(239,68,68,0.10), 0 1px 4px rgba(0,0,0,0.04)'
+            : '0 1px 4px rgba(0,0,0,0.04)',
         }}>
-          {vitaalScore !== null && <ScoreRing score={vitaalScore} />}
-          {vitaalScore === null && (
-            <div style={{ width: 90, height: 90, borderRadius: '50%', background: '#F9FAFB', border: '2px dashed #E5E7EB', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <span style={{ fontSize: 22, color: '#D1D5DB' }}>—</span>
-            </div>
-          )}
-          <div style={{ flex: 1 }}>
-            <p style={{ fontSize: 11, fontWeight: 700, color: '#9CA3AF', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 4 }}>
-              Vitaliteitsscore
-            </p>
-            <h2 style={{ fontSize: 20, fontWeight: 800, color: scoreKleur, marginBottom: 4, letterSpacing: '-0.02em' }}>
-              {scoreLabelStr}
-            </h2>
-            <p style={{ fontSize: 12, color: '#9CA3AF', marginBottom: 12 }}>
-              {vitaalScore !== null
-                ? vitaalScore >= 70 ? 'Je doet het goed. Blijf op koers!'
-                  : vitaalScore >= 45 ? 'Een paar vlakken verdienen wat aandacht.'
-                  : 'Besteed extra zorg aan je welzijn deze week.'
-                : 'Vul je check-in in om je score te zien.'}
-            </p>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'nowrap' }}>
-              <Link href="/rapport" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#1D9E75', color: 'white', borderRadius: 10, padding: '9px 16px', fontSize: 13, fontWeight: 600, textDecoration: 'none', transition: 'transform 0.1s ease, opacity 0.1s ease' }}
-                onMouseDown={e => (e.currentTarget as HTMLElement).style.transform = 'scale(0.97)'}
-                onMouseUp={e => (e.currentTarget as HTMLElement).style.transform = 'scale(1)'}
-                onMouseLeave={e => (e.currentTarget as HTMLElement).style.transform = 'scale(1)'}>
-                Bekijk rapport
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="9 18 15 12 9 6" /></svg>
-              </Link>
-              <Link href="/coach" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#E6F1FB', color: '#185FA5', borderRadius: 10, padding: '9px 16px', fontSize: 13, fontWeight: 600, textDecoration: 'none', transition: 'transform 0.1s ease' }}
-                onMouseDown={e => (e.currentTarget as HTMLElement).style.transform = 'scale(0.97)'}
-                onMouseUp={e => (e.currentTarget as HTMLElement).style.transform = 'scale(1)'}
-                onMouseLeave={e => (e.currentTarget as HTMLElement).style.transform = 'scale(1)'}>
-                AI Coach
-              </Link>
-              <Link href="/checkin" style={{ display: 'none' }}>
-                Nieuwe check-in
-              </Link>
+          <div className="mf-vita-card" style={{ display: 'flex', alignItems: 'center', gap: 20, padding: '24px 24px 20px' }}>
+            {vitaalScore !== null && <ScoreRing score={vitaalScore} />}
+            {vitaalScore === null && (
+              <div style={{ width: 130, height: 130, borderRadius: '50%', background: 'white', border: '2px dashed #E5E7EB', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <span style={{ fontSize: 28, color: '#D1D5DB' }}>—</span>
+              </div>
+            )}
+            <div style={{ flex: 1 }}>
+              <p style={{ fontSize: 10, fontWeight: 700, color: vitaalScore !== null ? scoreKleur : '#9CA3AF', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 4, opacity: 0.7 }}>
+                Vitaliteitsscore
+              </p>
+              <h2 style={{ fontSize: 22, fontWeight: 800, color: vitaalScore !== null ? scoreKleur : '#9CA3AF', marginBottom: 6, letterSpacing: '-0.02em', lineHeight: 1.2 }}>
+                {scoreLabelStr}
+              </h2>
+              <p style={{ fontSize: 13, color: vitaalScore !== null ? scoreKleur : '#9CA3AF', marginBottom: 16, opacity: 0.75, lineHeight: 1.5 }}>
+                {vitaalScore !== null
+                  ? vitaalScore >= 70 ? 'Je doet het goed. Blijf op koers!'
+                    : vitaalScore >= 45 ? 'Een paar vlakken verdienen wat aandacht.'
+                    : 'Besteed extra zorg aan je welzijn deze week.'
+                  : 'Vul je check-in in om je score te zien.'}
+              </p>
+              <div className="mf-vita-btns" style={{ display: 'flex', gap: 8, flexWrap: 'nowrap' }}>
+                <Link href="/rapport" className="mf-pressable" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: scoreKleur, color: 'white', borderRadius: 12, padding: '10px 18px', fontSize: 13, fontWeight: 600, textDecoration: 'none', boxShadow: `0 2px 8px ${scoreKleur}40` }}>
+                  Bekijk rapport
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="9 18 15 12 9 6" /></svg>
+                </Link>
+                <Link href="/coach" className="mf-pressable" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,0.7)', color: '#374151', borderRadius: 12, padding: '10px 18px', fontSize: 13, fontWeight: 600, textDecoration: 'none', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.8)' }}>
+                  AI Coach
+                </Link>
+                <Link href="/checkin" style={{ display: 'none' }}>
+                  Nieuwe check-in
+                </Link>
+              </div>
             </div>
           </div>
         </div>
 
         {/* ── STATS ── */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12, marginBottom: 20 }}>
-          <div className="mf-stat-card" style={{ background: 'white', borderRadius: 14, padding: '16px 18px', border: '1px solid #E5E7EB', transition: 'transform 0.18s ease, box-shadow 0.18s ease', cursor: 'default' }}
-            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-1px)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 4px 14px rgba(0,0,0,0.07)' }}
-            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(0)'; (e.currentTarget as HTMLElement).style.boxShadow = 'none' }}>
+          <div className="mf-stat-card mf-lift" style={{ background: 'white', borderRadius: 14, padding: '16px 18px', border: '1px solid #E5E7EB', cursor: 'default' }}>
             <p style={{ fontSize: 11, color: '#9CA3AF', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Check-ins</p>
             <p style={{ fontSize: 26, fontWeight: 800, background: 'linear-gradient(135deg, #1D4ED8, #185FA5)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{recentCheckins}</p>
             <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 2 }}>afgelopen 4 weken</p>
           </div>
-          <div className="mf-stat-card" style={{ background: 'white', borderRadius: 14, padding: '16px 18px', border: '1px solid #E5E7EB', transition: 'transform 0.18s ease, box-shadow 0.18s ease', cursor: 'default' }}
-            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-1px)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 4px 14px rgba(0,0,0,0.07)' }}
-            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(0)'; (e.currentTarget as HTMLElement).style.boxShadow = 'none' }}>
+          <div className="mf-stat-card mf-lift" style={{ background: 'white', borderRadius: 14, padding: '16px 18px', border: '1px solid #E5E7EB', cursor: 'default' }}>
             <p style={{ fontSize: 11, color: '#9CA3AF', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Vitaalscore</p>
             <p style={{ fontSize: 26, fontWeight: 800, ...(vitaalScore !== null ? { background: `linear-gradient(135deg, ${scoreKleur}cc, ${scoreKleur})`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' } : { color: '#9CA3AF' }) }}>{vitaalScore ?? '—'}</p>
             <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 2 }}>{vitaalScore !== null ? 'van 100' : 'nog geen data'}</p>
           </div>
-          <div className="mf-stat-card" style={{ background: 'white', borderRadius: 14, padding: '16px 18px', border: '1px solid #E5E7EB', transition: 'transform 0.18s ease, box-shadow 0.18s ease', cursor: 'default' }}
-            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-1px)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 4px 14px rgba(0,0,0,0.07)' }}
-            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(0)'; (e.currentTarget as HTMLElement).style.boxShadow = 'none' }}>
+          <div className="mf-stat-card mf-lift" style={{ background: 'white', borderRadius: 14, padding: '16px 18px', border: '1px solid #E5E7EB', cursor: 'default' }}>
             <p style={{ fontSize: 11, color: '#9CA3AF', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Doelen</p>
             <p style={{ fontSize: 26, fontWeight: 800, background: 'linear-gradient(135deg, #9333EA, #7C3AED)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{weekSelectie?.doelen.length ?? 0}</p>
             <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 2 }}>actief deze week</p>
@@ -466,9 +471,7 @@ export default function HomePage() {
             const vrt   = xpVoortgang(xpData.xp, level)
             return (
               <Link href="/niveau" style={{ textDecoration: 'none' }}>
-                <div style={{ background: 'white', borderRadius: 14, padding: '16px 18px', border: `1.5px solid ${kleur}30`, height: '100%', boxSizing: 'border-box', transition: 'transform 0.18s ease, box-shadow 0.18s ease' }}
-                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-1px)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 4px 14px rgba(0,0,0,0.07)' }}
-                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(0)'; (e.currentTarget as HTMLElement).style.boxShadow = 'none' }}>
+                <div className="mf-lift" style={{ background: 'white', borderRadius: 14, padding: '16px 18px', border: `1.5px solid ${kleur}30`, height: '100%', boxSizing: 'border-box' }}>
                   <p style={{ fontSize: 11, color: '#9CA3AF', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Fit Level</p>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
                     <div style={{ width: 32, height: 32, borderRadius: 8, background: bg, border: `2px solid ${kleur}40`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>

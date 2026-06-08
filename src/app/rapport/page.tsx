@@ -42,16 +42,17 @@ const CAT_KLEUR: Record<string, string> = {
 const VLAK_VOLGORDE = ['slaap', 'stress', 'energie', 'focus', 'balans', 'motivatie']
 
 function ScoreRing({ score }: { score: number }) {
-  const r = 52, circ = 2 * Math.PI * r
+  const r = 56, circ = 2 * Math.PI * r
   const kleur = score >= 70 ? '#1D9E75' : score >= 45 ? '#F59E0B' : '#EF4444'
+  const trackKleur = score >= 70 ? 'rgba(29,158,117,0.12)' : score >= 45 ? 'rgba(245,158,11,0.12)' : 'rgba(239,68,68,0.12)'
   return (
-    <svg width="130" height="130" viewBox="0 0 130 130">
-      <circle cx="65" cy="65" r={r} fill="none" stroke="#F3F4F6" strokeWidth="10" />
-      <circle cx="65" cy="65" r={r} fill="none" stroke={kleur} strokeWidth="10"
+    <svg width="140" height="140" viewBox="0 0 140 140">
+      <circle cx="70" cy="70" r={r} fill="none" stroke={trackKleur} strokeWidth="11" />
+      <circle cx="70" cy="70" r={r} fill="none" stroke={kleur} strokeWidth="11"
         strokeDasharray={`${(score / 100) * circ} ${circ}`} strokeLinecap="round"
-        transform="rotate(-90 65 65)" style={{ transition: 'stroke-dasharray 1s ease' }} />
-      <text x="65" y="60" textAnchor="middle" fontSize="28" fontWeight="800" fill={kleur}>{score}</text>
-      <text x="65" y="78" textAnchor="middle" fontSize="12" fill="#9CA3AF">/100</text>
+        transform="rotate(-90 70 70)" style={{ transition: 'stroke-dasharray 1.2s cubic-bezier(0.16,1,0.3,1)' }} />
+      <text x="70" y="65" textAnchor="middle" fontSize="32" fontWeight="800" fill={kleur}>{score}</text>
+      <text x="70" y="84" textAnchor="middle" fontSize="12" fill="#9CA3AF" fontWeight="600">/100</text>
     </svg>
   )
 }
@@ -391,9 +392,17 @@ export default function Rapport() {
 
             {/* Hoofd kaart: score + samenvatting */}
             <div style={{
-              background: 'white', borderRadius: 20, padding: '28px 32px',
-              border: '1px solid #E5E7EB', boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-              display: 'flex', alignItems: 'center', gap: 28, flexWrap: 'wrap',
+              borderRadius: 20, padding: '28px 32px', flexWrap: 'wrap',
+              background: score !== null
+                ? score >= 70 ? 'linear-gradient(135deg, #E1F5EE 0%, #D1FAE5 60%, #EBF4FB 100%)'
+                  : score >= 45 ? 'linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 60%, #FFF7ED 100%)'
+                  : 'linear-gradient(135deg, #FEF2F2 0%, #FCEBEB 60%, #FEF3C7 100%)'
+                : '#F9FAFB',
+              border: `1.5px solid ${score !== null
+                ? score >= 70 ? 'rgba(29,158,117,0.20)' : score >= 45 ? 'rgba(245,158,11,0.20)' : 'rgba(239,68,68,0.20)'
+                : '#E5E7EB'}`,
+              boxShadow: '0 4px 24px rgba(0,0,0,0.06)',
+              display: 'flex', alignItems: 'center', gap: 28,
             }}>
               {score !== null && <ScoreRing score={score} />}
               <div style={{ flex: 1, minWidth: 200 }}>
@@ -484,6 +493,73 @@ export default function Rapport() {
                     )
                   })}
                 </div>
+              </div>
+            )}
+
+            {/* Aandachtspunten */}
+            {aj?.aandachtspunten && aj.aandachtspunten.length > 0 && (
+              <div style={{ background: 'white', borderRadius: 16, padding: '20px 24px', border: '1px solid #E5E7EB' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+                  <div style={{ width: 28, height: 28, borderRadius: 8, background: '#FEF3C7', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#B45309" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                    </svg>
+                  </div>
+                  <p style={{ fontSize: 13, fontWeight: 700, color: '#111827' }}>Aandachtspunten</p>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  {aj.aandachtspunten.map((punt, i) => (
+                    <div key={i} style={{ display: 'flex', gap: 12 }}>
+                      <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#F59E0B', flexShrink: 0, marginTop: 5 }} />
+                      <div>
+                        <p style={{ fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 2 }}>{punt.titel}</p>
+                        <p style={{ fontSize: 12, color: '#6B7280', lineHeight: 1.55 }}>{punt.uitleg}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Actieplan */}
+            {aj?.actieplan && aj.actieplan.length > 0 && (
+              <div style={{
+                background: 'linear-gradient(135deg, #E1F5EE 0%, #D1FAE5 100%)',
+                borderRadius: 16, padding: '20px 24px',
+                border: '1.5px solid rgba(29,158,117,0.20)',
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+                  <div style={{ width: 28, height: 28, borderRadius: 8, background: '#1D9E75', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                    </svg>
+                  </div>
+                  <p style={{ fontSize: 13, fontWeight: 700, color: '#065F46' }}>Actieplan volgende week</p>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                  {aj.actieplan.map((item, i) => (
+                    <div key={i} style={{ display: 'flex', gap: 14 }}>
+                      <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#1D9E75', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 13, fontWeight: 800 }}>
+                        {i + 1}
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <p style={{ fontSize: 14, fontWeight: 600, color: '#065F46', marginBottom: 4 }}>{item.actie}</p>
+                        <p style={{ fontSize: 12, color: '#0F6E56', lineHeight: 1.5, marginBottom: 6 }}>{item.waarom}</p>
+                        <span style={{ fontSize: 11, fontWeight: 700, color: '#0F6E56', background: 'rgba(255,255,255,0.6)', borderRadius: 100, padding: '3px 10px', border: '1px solid rgba(29,158,117,0.20)' }}>
+                          📅 {item.wanneer}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* AI bericht */}
+            {aj?.bericht && (
+              <div style={{ background: 'white', borderRadius: 16, padding: '20px 24px', border: '1px solid #E5E7EB' }}>
+                <p style={{ fontSize: 11, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>Bericht van de Coach</p>
+                <p style={{ fontSize: 14, color: '#374151', lineHeight: 1.7, fontStyle: 'italic' }}>"{aj.bericht}"</p>
               </div>
             )}
 

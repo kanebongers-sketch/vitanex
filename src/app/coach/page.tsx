@@ -23,12 +23,14 @@ Alles wat je hier deelt is puur voor jou. Geen manager, geen HR die meeleest.
 Waar kan ik je vandaag mee helpen?`
 
 const SUGGESTIES = [
-  'Ik voel me gestrest',
-  'Mijn energie is op',
-  'Ik slaap slecht',
-  'Ik wil tips tegen burn-out',
-  'Werk en privé in balans',
-  'Ik mis motivatie',
+  { emoji: '😰', tekst: 'Ik voel me gestrest' },
+  { emoji: '⚡', tekst: 'Mijn energie is op' },
+  { emoji: '😴', tekst: 'Ik slaap slecht' },
+  { emoji: '🚨', tekst: 'Ik wil tips tegen burn-out' },
+  { emoji: '⚖️', tekst: 'Werk en privé in balans' },
+  { emoji: '💡', tekst: 'Ik mis motivatie' },
+  { emoji: '🎯', tekst: 'Hoe blijf ik gemotiveerd?' },
+  { emoji: '🧘', tekst: 'Ik wil rustiger worden' },
 ]
 
 export default function CoachPagina() {
@@ -176,11 +178,11 @@ export default function CoachPagina() {
               <div className="flex flex-wrap gap-2 justify-center">
                 {SUGGESTIES.map(s => (
                   <button
-                    key={s}
-                    onClick={() => verstuur(s)}
-                    className="text-xs border border-gray-200 rounded-full px-3.5 py-1.5 text-gray-600 bg-white hover:bg-gray-50 transition"
+                    key={s.tekst}
+                    onClick={() => verstuur(s.tekst)}
+                    className="mf-pressable text-xs border border-gray-200 rounded-full px-3.5 py-1.5 text-gray-600 bg-white hover:bg-gray-50 transition flex items-center gap-1.5"
                   >
-                    {s}
+                    <span>{s.emoji}</span>{s.tekst}
                   </button>
                 ))}
               </div>

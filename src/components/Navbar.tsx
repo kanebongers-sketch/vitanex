@@ -506,10 +506,14 @@ export default function Navbar() {
       {/* Mobile bottom tab bar */}
       <nav className="flex md:hidden" aria-label="Hoofdnavigatie" style={{
         position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 50,
-        height: 'calc(56px + env(safe-area-inset-bottom, 0px))',
-        background: bg, borderTop: `1px solid ${border}`,
+        height: 'calc(60px + env(safe-area-inset-bottom, 0px))',
+        background: isDark ? 'rgba(20,21,31,0.92)' : 'rgba(255,255,255,0.92)',
+        backdropFilter: 'blur(20px) saturate(180%)',
+        WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+        borderTop: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)'}`,
         display: 'flex', alignItems: 'stretch',
         paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+        boxShadow: '0 -1px 20px rgba(0,0,0,0.06)',
       }}>
         {([
           { href: viewMode === 'employee' ? '/home' : viewMode === 'hr' ? '/hr' : '/admin', label: 'Home', icon: I.home, match: ['/home', '/hr', '/admin'] },
@@ -526,14 +530,23 @@ export default function Navbar() {
               aria-current={isActive ? 'page' : undefined}
               style={{
                 flex: 1, display: 'flex', flexDirection: 'column',
-                alignItems: 'center', justifyContent: 'center', gap: 4,
+                alignItems: 'center', justifyContent: 'center', gap: 3,
                 minHeight: 44, textDecoration: 'none',
                 color: isActive ? ACCENT : textMuted,
                 fontWeight: isActive ? 700 : 400,
+                position: 'relative',
               }}
             >
-              <span style={{ display: 'flex', color: isActive ? ACCENT : textMuted }}>{tab.icon}</span>
-              <span style={{ fontSize: 10, lineHeight: 1 }}>{tab.label}</span>
+              {isActive && (
+                <span style={{
+                  position: 'absolute', top: 6, left: '50%', transform: 'translateX(-50%)',
+                  width: 32, height: 32, borderRadius: 10,
+                  background: ACCENT + '15',
+                  pointerEvents: 'none',
+                }} />
+              )}
+              <span style={{ display: 'flex', color: isActive ? ACCENT : textMuted, position: 'relative' }}>{tab.icon}</span>
+              <span style={{ fontSize: 10, lineHeight: 1, letterSpacing: '0.01em' }}>{tab.label}</span>
             </Link>
           )
         })}
