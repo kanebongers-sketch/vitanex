@@ -1,6 +1,6 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase-admin'
-import { createClient } from '@supabase/supabase-js'
+import { getAuthenticatedUser } from '@/lib/api-auth'
 
 async function refreshFitbitToken(refreshToken: string, userId: string): Promise<string | null> {
   const clientId = process.env.FITBIT_CLIENT_ID!
@@ -26,11 +26,8 @@ async function refreshFitbitToken(refreshToken: string, userId: string): Promise
   return tokens.access_token
 }
 
-export async function GET() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  const client = createClient(supabaseUrl, supabaseKey, { auth: { persistSession: false } })
-  const { data: { user } } = await client.auth.getUser()
+export async function GET(req: NextRequest) {
+  const user = await getAuthenticatedUser(req)
   if (!user) return NextResponse.json({ error: 'Niet ingelogd' }, { status: 401 })
 
   const admin = createAdminClient()

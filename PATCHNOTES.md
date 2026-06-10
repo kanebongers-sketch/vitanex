@@ -4,6 +4,28 @@ Hier staat alles wat er is veranderd aan de app, in gewone taal.
 
 ---
 
+## 10 juni 2026 — beveiligingsronde
+
+### 🔒 Wearable-koppelingen zijn nu echt veilig
+Bij het koppelen van Fitbit, Google Fit of Google Agenda reisden je toegangssleutels via de adresbalk van de browser — daar konden ze blijven hangen in geschiedenis en logs. Dat is helemaal dicht: de sleutels worden nu direct op de server opgeslagen en de koppeling is cryptografisch gebonden aan jouw account (CSRF-bescherming met een getekende state).
+
+### 🔧 Google Fit-koppeling deed het stiekem niet
+De database weigerde Google Fit-sleutels op te slaan door een te strenge controle. Gefixt — koppelen werkt nu echt.
+
+### 🔧 Fitbit- en agendagegevens laadden nooit
+De pagina Koppelingen vroeg data op zonder je identiteit mee te sturen, dus kreeg je altijd "niet ingelogd" terug. Nu zie je je stappen, slaap en agenda-inzichten gewoon.
+
+### 🔒 Telegram-bot alleen voor Kane
+De Telegram-webhook accepteerde berichten van iedereen die de bot vond — en elke vraag kostte AI-tegoed. De bot reageert nu alleen nog op de eigen chat.
+
+### 🔒 Oude installatie-endpoints verwijderd
+Twee overgebleven endpoints konden zonder login databasewijzigingen uitvoeren. Weg ermee.
+
+### 🔒 Outreach-data afgeschermd (migratie klaarstaand)
+De tabellen van de outreach-agent waren via de publieke API voor iedereen leesbaar én schrijfbaar. Er staat een migratie klaar die dit afsluit — eerst checken of het outreach-script de service role key gebruikt, dan toepassen.
+
+---
+
 ## 8 juni 2026 — tweede ronde
 
 ### ✨ Inloggen met Google

@@ -1,15 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase-admin'
-import { createClient } from '@supabase/supabase-js'
+import { verifyOAuthState } from '@/lib/oauth-state'
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const code = searchParams.get('code')
   const error = searchParams.get('error')
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? ''
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL
+  if (!appUrl) {
+    console.error('[Google Calendar callback] NEXT_PUBLIC_APP_URL niet ingesteld')
+    return NextResponse.json({ error: 'Serverconfiguratie onvolledig' }, { status: 500 })
+  }
 
   if (error || !code) {
     return NextResponse.redirect(`${appUrl}/koppelingen?error=google_denied`)
+  }
+
+  // State bindt deze callback aan de gebruiker die de flow startte (CSRF-bescherming)
+  const userId = verifyOAuthState(searchParams.get('state'))
+  if (!userId) {
+    return NextResponse.redirect(`${appUrl}/koppelingen?error=google_state`)
   }
 
   const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
@@ -28,29 +38,16 @@ export async function GET(req: NextRequest) {
     return NextResponse.redirect(`${appUrl}/koppelingen?error=google_token`)
   }
 
-  const tokens = await tokenRes.json()
-
-  // Try to get the user from supabase
-  const client = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    { auth: { persistSession: false } }
-  )
-  const { data: { user } } = await client.auth.getUser()
-
-  if (!user) {
-    const params = new URLSearchParams({
-      google_connected: '1',
-      google_access_token: tokens.access_token,
-      google_refresh_token: tokens.refresh_token ?? '',
-      google_expires_in: String(tokens.expires_in ?? 3600),
-    })
-    return NextResponse.redirect(`${appUrl}/koppelingen?${params.toString()}`)
+  const tokens = await tokenRes.json() as {
+    access_token: string
+    refresh_token?: string
+    expires_in?: number
+    scope?: string
   }
 
   const admin = createAdminClient()
-  await admin.from('wearable_tokens').upsert({
-    user_id: user.id,
+  const { error: dbError } = await admin.from('wearable_tokens').upsert({
+    user_id: userId,
     provider: 'google_calendar',
     access_token: tokens.access_token,
     refresh_token: tokens.refresh_token ?? null,
@@ -58,6 +55,11 @@ export async function GET(req: NextRequest) {
     scope: tokens.scope ?? '',
     bijgewerkt_op: new Date().toISOString(),
   }, { onConflict: 'user_id,provider' })
+
+  if (dbError) {
+    console.error('[Google Calendar callback] opslaan mislukt:', dbError)
+    return NextResponse.redirect(`${appUrl}/koppelingen?error=google_opslaan`)
+  }
 
   return NextResponse.redirect(`${appUrl}/koppelingen?google_connected=1`)
 }

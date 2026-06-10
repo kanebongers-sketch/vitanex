@@ -73,6 +73,18 @@ export async function POST(req: Request) {
 
     const body = await req.json()
 
+    // Alleen berichten uit Kane's eigen chat verwerken — voorkomt dat
+    // vreemden via de bot Anthropic-tegoed verbruiken. Fail closed:
+    // zonder geconfigureerd CHAT_ID verwerken we niets.
+    if (!CHAT_ID) {
+      console.error('[telegram] TELEGRAM_CHAT_ID niet ingesteld — webhook geweigerd')
+      return NextResponse.json({ ok: false }, { status: 503 })
+    }
+    const inkomendChatId = body?.message?.chat?.id ?? body?.callback_query?.message?.chat?.id
+    if (String(inkomendChatId) !== CHAT_ID) {
+      return NextResponse.json({ ok: true })
+    }
+
     // ── Callback query (knop ingedrukt) ──
     const cb = body.callback_query
     if (cb) {

@@ -1,15 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase-admin'
-import { createClient } from '@supabase/supabase-js'
+import { verifyOAuthState } from '@/lib/oauth-state'
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const code = searchParams.get('code')
   const error = searchParams.get('error')
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? ''
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL
+  if (!appUrl) {
+    console.error('[Google Fit callback] NEXT_PUBLIC_APP_URL niet ingesteld')
+    return NextResponse.json({ error: 'Serverconfiguratie onvolledig' }, { status: 500 })
+  }
 
   if (error || !code) {
     return NextResponse.redirect(`${appUrl}/koppelingen?error=fit_denied`)
+  }
+
+  // State bindt deze callback aan de gebruiker die de flow startte (CSRF-bescherming)
+  const userId = verifyOAuthState(searchParams.get('state'))
+  if (!userId) {
+    return NextResponse.redirect(`${appUrl}/koppelingen?error=fit_state`)
   }
 
   const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
@@ -37,28 +47,9 @@ export async function GET(req: NextRequest) {
     scope?: string
   }
 
-  // Get the authenticated user from cookie
-  const client = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    { auth: { persistSession: false } }
-  )
-  const { data: { user } } = await client.auth.getUser()
-
-  if (!user) {
-    // Pass tokens via URL so koppelingen page can store them after login
-    const params = new URLSearchParams({
-      fit_connected: '1',
-      fit_access_token: tokens.access_token,
-      fit_refresh_token: tokens.refresh_token ?? '',
-      fit_expires_in: String(tokens.expires_in ?? 3600),
-    })
-    return NextResponse.redirect(`${appUrl}/koppelingen?${params.toString()}`)
-  }
-
   const admin = createAdminClient()
-  await admin.from('wearable_tokens').upsert({
-    user_id: user.id,
+  const { error: dbError } = await admin.from('wearable_tokens').upsert({
+    user_id: userId,
     provider: 'google_fit',
     access_token: tokens.access_token,
     refresh_token: tokens.refresh_token ?? null,
@@ -66,6 +57,11 @@ export async function GET(req: NextRequest) {
     scope: tokens.scope ?? '',
     bijgewerkt_op: new Date().toISOString(),
   }, { onConflict: 'user_id,provider' })
+
+  if (dbError) {
+    console.error('[Google Fit callback] opslaan mislukt:', dbError)
+    return NextResponse.redirect(`${appUrl}/koppelingen?error=fit_opslaan`)
+  }
 
   return NextResponse.redirect(`${appUrl}/koppelingen?fit_connected=1`)
 }

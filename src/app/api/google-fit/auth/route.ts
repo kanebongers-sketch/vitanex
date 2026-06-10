@@ -1,6 +1,18 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
+import { getAuthenticatedUser } from '@/lib/api-auth'
+import { createOAuthState } from '@/lib/oauth-state'
 
-export async function GET() {
+/**
+ * Start de Google Fit OAuth-flow voor de ingelogde gebruiker.
+ * Geeft de autorisatie-URL terug (incl. getekende state) zodat de
+ * client zelf kan doorsturen.
+ */
+export async function GET(req: NextRequest) {
+  const user = await getAuthenticatedUser(req)
+  if (!user) {
+    return NextResponse.json({ error: 'Niet ingelogd' }, { status: 401 })
+  }
+
   const clientId = process.env.GOOGLE_FIT_CLIENT_ID
   if (!clientId) {
     return NextResponse.json({ error: 'GOOGLE_FIT_CLIENT_ID niet ingesteld' }, { status: 503 })
@@ -19,6 +31,7 @@ export async function GET() {
   ].join(' '))
   url.searchParams.set('access_type', 'offline')
   url.searchParams.set('prompt', 'consent')
+  url.searchParams.set('state', createOAuthState(user.id))
 
-  return NextResponse.redirect(url.toString())
+  return NextResponse.json({ url: url.toString() })
 }

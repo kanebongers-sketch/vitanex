@@ -5,6 +5,7 @@ export const dynamic = 'force-dynamic'
 import { Suspense, useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import { authFetch } from '@/lib/auth-fetch'
 import Navbar from '@/components/Navbar'
 import { isAndroidApp, leesHealthData, vraagPermissies, type HealthData } from '@/lib/health-connect'
 
@@ -75,9 +76,6 @@ function KoppelingenInhoud() {
       if (!user) { router.push('/login'); return }
       setUserId(user.id)
 
-      const fitbitToken   = searchParams.get('fitbit_access_token')
-      const googleToken   = searchParams.get('google_access_token')
-      const fitToken      = searchParams.get('fit_access_token')
       const fitbitConnected = searchParams.get('fitbit_connected')
       const googleConnected = searchParams.get('google_connected')
       const fitConnected  = searchParams.get('fit_connected')
@@ -87,50 +85,20 @@ function KoppelingenInhoud() {
         const tekst = error === 'fitbit_denied' ? 'Fitbit koppeling geweigerd'
           : error === 'google_denied' ? 'Google koppeling geweigerd'
           : error === 'fit_denied' ? 'Google Fit koppeling geweigerd'
+          : error.endsWith('_state') ? 'Koppeling verlopen — probeer opnieuw'
           : 'Koppeling mislukt'
         setToast({ type: 'error', tekst })
       }
 
-      if (fitbitToken) {
-        const expiresIn = Number(searchParams.get('fitbit_expires_in') ?? 28800)
-        await supabase.from('wearable_tokens').upsert({
-          user_id: user.id, provider: 'fitbit',
-          access_token: fitbitToken,
-          refresh_token: searchParams.get('fitbit_refresh_token') ?? null,
-          expires_at: new Date(Date.now() + expiresIn * 1000).toISOString(),
-          bijgewerkt_op: new Date().toISOString(),
-        }, { onConflict: 'user_id,provider' })
-        setToast({ type: 'success', tekst: 'Fitbit succesvol gekoppeld!' })
-      } else if (fitbitConnected) {
+      if (fitbitConnected) {
         setToast({ type: 'success', tekst: 'Fitbit succesvol gekoppeld!' })
       }
 
-      if (googleToken) {
-        const expiresIn = Number(searchParams.get('google_expires_in') ?? 3600)
-        await supabase.from('wearable_tokens').upsert({
-          user_id: user.id, provider: 'google_calendar',
-          access_token: googleToken,
-          refresh_token: searchParams.get('google_refresh_token') ?? null,
-          expires_at: new Date(Date.now() + expiresIn * 1000).toISOString(),
-          bijgewerkt_op: new Date().toISOString(),
-        }, { onConflict: 'user_id,provider' })
-        setToast({ type: 'success', tekst: 'Google Agenda succesvol gekoppeld!' })
-      } else if (googleConnected) {
+      if (googleConnected) {
         setToast({ type: 'success', tekst: 'Google Agenda succesvol gekoppeld!' })
       }
 
-      if (fitToken) {
-        const expiresIn = Number(searchParams.get('fit_expires_in') ?? 3600)
-        await supabase.from('wearable_tokens').upsert({
-          user_id: user.id, provider: 'google_fit',
-          access_token: fitToken,
-          refresh_token: searchParams.get('fit_refresh_token') ?? null,
-          expires_at: new Date(Date.now() + expiresIn * 1000).toISOString(),
-          bijgewerkt_op: new Date().toISOString(),
-        }, { onConflict: 'user_id,provider' })
-        setFitVerbonden(true)
-        setToast({ type: 'success', tekst: 'Google Fit succesvol gekoppeld!' })
-      } else if (fitConnected) {
+      if (fitConnected) {
         setFitVerbonden(true)
         setToast({ type: 'success', tekst: 'Google Fit succesvol gekoppeld!' })
       }
@@ -144,8 +112,8 @@ function KoppelingenInhoud() {
         .maybeSingle()
         .then(({ data }) => {
           if (data?.access_token) setFitVerbonden(true)
+          setFitLaden(false)
         })
-        .finally(() => setFitLaden(false))
 
       // Health Connect (alleen Android app)
       const android = isAndroidApp()
@@ -164,14 +132,14 @@ function KoppelingenInhoud() {
       }
 
       setFitbitLaden(true)
-      fetch('/api/fitbit/data')
+      authFetch('/api/fitbit/data')
         .then(r => r.json())
         .then(d => { if (!d.error) { setFitbitData(d); setFitbitVerbonden(true) } })
         .catch(() => {})
         .finally(() => setFitbitLaden(false))
 
       setCalLaden(true)
-      fetch('/api/google-calendar/data')
+      authFetch('/api/google-calendar/data')
         .then(r => r.json())
         .then(d => { if (!d.error) { setCalData(d); setCalVerbonden(true) } })
         .catch(() => {})
@@ -187,6 +155,20 @@ function KoppelingenInhoud() {
     const t = setTimeout(() => setToast(null), 4000)
     return () => clearTimeout(t)
   }, [toast])
+
+  async function startKoppeling(provider: 'fitbit' | 'google-fit' | 'google-calendar') {
+    try {
+      const res = await authFetch(`/api/${provider}/auth`)
+      const data = await res.json() as { url?: string; error?: string }
+      if (!res.ok || !data.url) {
+        setToast({ type: 'error', tekst: data.error ?? 'Koppeling starten mislukt' })
+        return
+      }
+      window.location.href = data.url
+    } catch {
+      setToast({ type: 'error', tekst: 'Koppeling starten mislukt' })
+    }
+  }
 
   async function ontkoppel(provider: 'fitbit' | 'google_calendar' | 'google_fit') {
     if (!userId) return
@@ -283,7 +265,7 @@ function KoppelingenInhoud() {
             {fitbitVerbonden ? (
               <button onClick={() => ontkoppel('fitbit')} className="text-xs text-red-400 hover:text-red-600 transition font-medium">Ontkoppelen</button>
             ) : (
-              <a href="/api/fitbit/auth" className="text-xs font-semibold px-4 py-2 rounded-xl text-white" style={{ background: '#00B0B9' }}>Koppelen</a>
+              <button onClick={() => startKoppeling('fitbit')} className="text-xs font-semibold px-4 py-2 rounded-xl text-white" style={{ background: '#00B0B9' }}>Koppelen</button>
             )}
           </div>
           {fitbitLaden ? (
@@ -321,7 +303,7 @@ function KoppelingenInhoud() {
             {fitVerbonden ? (
               <button onClick={() => ontkoppel('google_fit')} className="text-xs text-red-400 hover:text-red-600 transition font-medium">Ontkoppelen</button>
             ) : (
-              <a href="/api/google-fit/auth" className="text-xs font-semibold px-4 py-2 rounded-xl text-white" style={{ background: '#EA4335' }}>Koppelen</a>
+              <button onClick={() => startKoppeling('google-fit')} className="text-xs font-semibold px-4 py-2 rounded-xl text-white" style={{ background: '#EA4335' }}>Koppelen</button>
             )}
           </div>
           {fitLaden ? (
@@ -355,7 +337,7 @@ function KoppelingenInhoud() {
             {calVerbonden ? (
               <button onClick={() => ontkoppel('google_calendar')} className="text-xs text-red-400 hover:text-red-600 transition font-medium">Ontkoppelen</button>
             ) : (
-              <a href="/api/google-calendar/auth" className="text-xs font-semibold px-4 py-2 rounded-xl text-white" style={{ background: '#EA4335' }}>Koppelen</a>
+              <button onClick={() => startKoppeling('google-calendar')} className="text-xs font-semibold px-4 py-2 rounded-xl text-white" style={{ background: '#EA4335' }}>Koppelen</button>
             )}
           </div>
           {calLaden ? (
