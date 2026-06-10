@@ -4,6 +4,25 @@ Hier staat alles wat er is veranderd aan de app, in gewone taal.
 
 ---
 
+## 10 juni 2026 — security hardening (migratie 013)
+
+### 🔒 Teamoverzicht alleen zichtbaar voor HR van het eigen bedrijf
+Het check-in overzicht (`checkin_status`) kon door elke ingelogde gebruiker met een willekeurig bedrijfs-ID worden opgevraagd. De controle zit nu in de database zelf: alleen HR/admin van het eigen bedrijf ziet de gegevens.
+
+### 🔒 Koppellog afgeschermd
+Het logboek van HR-code koppelingen (`hr_code_logs`) was door een te ruime regel feitelijk voor iedereen leesbaar. Nu alleen voor de medewerker zelf en HR van het eigen bedrijf.
+
+### 🔒 Avatars: bestandslijst niet meer openbaar
+Profielfoto's blijven gewoon zichtbaar, maar de lijst met bestanden in de avatars-opslag is niet meer op te vragen door anderen.
+
+### 🔒 Database-functies vastgezet
+Interne database-functies hebben nu een vaste `search_path` en zijn niet meer rechtstreeks aan te roepen door (anonieme) gebruikers.
+
+### ⚠️ Handmatige actie nodig (Supabase Dashboard)
+**Leaked password protection** staat nog uit. Aanzetten via: Dashboard → Authentication → Settings → "Leaked password protection". Dit blokkeert wachtwoorden die in bekende datalekken voorkomen en kan niet via een migratie worden geregeld.
+
+---
+
 ## 8 juni 2026 — tweede ronde
 
 ### ✨ Inloggen met Google
