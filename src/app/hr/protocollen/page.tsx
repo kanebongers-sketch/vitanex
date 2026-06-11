@@ -29,7 +29,6 @@ export default function HrProtokollenPage() {
   const router = useRouter()
   const [protocollen, setProtocollen] = useState<Protocol[]>([])
   const [laden, setLaden] = useState(true)
-  const [bedrijfId, setBedrijfId] = useState('')
   const [verwijderModal, setVerwijderModal] = useState<string | null>(null)
 
   useEffect(() => {
@@ -41,7 +40,6 @@ export default function HrProtokollenPage() {
       if (!profiel || !['hr', 'admin'].includes(profiel.rol ?? '')) {
         router.push('/home'); return
       }
-      setBedrijfId(profiel.bedrijf_id)
       const { data } = await supabase
         .from('protocollen').select('id, titel, beschrijving, gepubliceerd, aangemaakt_op').eq('bedrijf_id', profiel.bedrijf_id)
         .order('aangemaakt_op', { ascending: false })

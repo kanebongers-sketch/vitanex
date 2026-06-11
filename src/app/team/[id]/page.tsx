@@ -52,12 +52,6 @@ function catScore(checkins: Checkin[], keys: (keyof Checkin)[]) {
   return gem(keys.map(k => gem(checkins.map(c => c[k] as number))))
 }
 
-function initialen(naam: string) {
-  const delen = naam.trim().split(' ')
-  if (delen.length >= 2) return (delen[0][0] + delen[delen.length - 1][0]).toUpperCase()
-  return naam.slice(0, 2).toUpperCase()
-}
-
 const rolBadge: Record<string, { label: string; bg: string; color: string }> = {
   hr: { label: 'HR', bg: '#E1F5EE', color: '#0F6E56' },
   admin: { label: 'Staff Vitanex', bg: '#EEEDFE', color: '#3C3489' },
@@ -326,7 +320,7 @@ export default function ProfielPagina() {
                 <div className="flex flex-col gap-3">
                   {toelichtingen.map(c => (
                     <div key={c.id} className="rounded-xl p-4" style={{ background: 'var(--bg-app)', borderLeft: '3px solid var(--mentaforce-primary)' }}>
-                      <p className="text-sm text-gray-600 leading-relaxed">"{c.toelichting}"</p>
+                      <p className="text-sm text-gray-600 leading-relaxed">&ldquo;{c.toelichting}&rdquo;</p>
                       <p className="text-xs text-gray-400 mt-2">{new Date(c.created_at).toLocaleDateString('nl-BE')}</p>
                     </div>
                   ))}

@@ -83,7 +83,10 @@ export default function DocumentenSectie({ userId, isHR, naamMedewerker }: Props
     }
   }, [userId])
 
-  useEffect(() => { laadDocumenten() }, [laadDocumenten])
+  useEffect(() => {
+    // Buiten de synchrone effect-body starten (react-compiler regel)
+    Promise.resolve().then(laadDocumenten)
+  }, [laadDocumenten])
 
   async function upload() {
     if (!bestand) return

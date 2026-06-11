@@ -175,7 +175,6 @@ export default function CheckIn() {
       setCheckend(false)
     }
     init()
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router])
 
   async function verwijderSessie() {
@@ -522,7 +521,7 @@ export default function CheckIn() {
 
 // ─── VraagKaart ───────────────────────────────────────────────────────────────
 
-function VraagKaart({ vraag, waarde, kleur, licht, onChange }: {
+function VraagKaart({ vraag, waarde, kleur, onChange }: {
   vraag:    Vraag
   waarde:   number | string | undefined
   kleur:    string

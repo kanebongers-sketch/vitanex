@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const { berichten, systeem: systeemOverride, maxTokens }: {
+    const { berichten, maxTokens }: {
       berichten: Bericht[]
       systeem?: string
       maxTokens?: number
@@ -104,14 +104,6 @@ export async function POST(req: NextRequest) {
     })
 
     const tekst = response.content[0].type === 'text' ? response.content[0].text : ''
-
-    if (process.env.NODE_ENV === 'development') {
-      const usage = response.usage as Anthropic.Usage & {
-        cache_creation_input_tokens?: number
-        cache_read_input_tokens?: number
-      }
-      // token usage logging removed
-    }
 
     return NextResponse.json({ tekst })
   } catch (err) {

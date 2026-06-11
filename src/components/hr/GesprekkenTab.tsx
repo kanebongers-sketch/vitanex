@@ -55,7 +55,10 @@ export default function GesprekkenTab({ bedrijfId, hrUserId, gefilterdOpMedewerk
     setLaden(false)
   }, [bedrijfId])
 
-  useEffect(() => { laadData() }, [laadData])
+  useEffect(() => {
+    // Buiten de synchrone effect-body starten (react-compiler regel)
+    Promise.resolve().then(laadData)
+  }, [laadData])
 
   function nieuwGesprek() {
     setGeselecteerd(

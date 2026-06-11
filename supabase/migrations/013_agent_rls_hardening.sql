@@ -9,9 +9,8 @@
 -- toegang via de app. Server-side processen die de service role key
 -- gebruiken omzeilen RLS en blijven gewoon werken.
 --
--- LET OP vóór het toepassen: draait er een extern outreach-script dat met
--- de ANON key schrijft naar deze tabellen? Zet dat script dan eerst om
--- naar de service role key, anders stopt het met werken.
+-- Toegepast op 11 juni 2026, nadat het outreach-script (fitfactory-agent)
+-- is omgezet van de anon key naar de service role key.
 
 DROP POLICY IF EXISTS "agent schrijven batches" ON public.agent_batches;
 DROP POLICY IF EXISTS "agent schrijven bedrijven" ON public.agent_bedrijven;
@@ -19,6 +18,14 @@ DROP POLICY IF EXISTS "agent schrijven contacten" ON public.agent_contacten;
 DROP POLICY IF EXISTS "agent schrijven dag stats" ON public.agent_dag_stats;
 DROP POLICY IF EXISTS "agent schrijven emails" ON public.agent_emails;
 DROP POLICY IF EXISTS "agent schrijven goedkeuring" ON public.agent_goedkeuring;
+
+-- Ook de publieke SELECT-policies moeten weg: outreach-data is niet openbaar
+DROP POLICY IF EXISTS "publiek lezen batches" ON public.agent_batches;
+DROP POLICY IF EXISTS "publiek lezen bedrijven" ON public.agent_bedrijven;
+DROP POLICY IF EXISTS "publiek lezen contacten" ON public.agent_contacten;
+DROP POLICY IF EXISTS "publiek lezen dag stats" ON public.agent_dag_stats;
+DROP POLICY IF EXISTS "publiek lezen emails" ON public.agent_emails;
+DROP POLICY IF EXISTS "publiek lezen goedkeuring" ON public.agent_goedkeuring;
 
 ALTER TABLE public.agent_dagselectie ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.agent_instellingen ENABLE ROW LEVEL SECURITY;

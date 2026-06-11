@@ -158,7 +158,7 @@ export default function OefeningenPage() {
             <p style={{ fontSize: 40, marginBottom: 16 }}>📚</p>
             <p style={{ fontSize: 18, fontWeight: 700, color: '#111827', marginBottom: 8 }}>Bibliotheek nog leeg</p>
             <p style={{ color: '#6b7280', fontSize: 15, maxWidth: 400, margin: '0 auto' }}>
-              De bibliotheek wordt gevuld naarmate je schema's genereert. Genereer je eerste schema om oefeningen toe te voegen.
+              De bibliotheek wordt gevuld naarmate je schema&apos;s genereert. Genereer je eerste schema om oefeningen toe te voegen.
             </p>
           </div>
         ) : gefilterd.length === 0 ? (

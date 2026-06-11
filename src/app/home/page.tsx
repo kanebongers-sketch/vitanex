@@ -505,7 +505,7 @@ export default function HomePage() {
             <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#9CA3AF', marginBottom: 12 }}>
               Dagelijkse pulse
             </p>
-            <MoodPulse userId={userId} />
+            <MoodPulse />
           </div>
         )}
 

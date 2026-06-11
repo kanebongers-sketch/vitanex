@@ -44,7 +44,7 @@ export default function UrenPage() {
   const [formulier, setFormulier] = useState(false)
   const [opslaan, setOpslaan] = useState(false)
   const [fout, setFout] = useState('')
-  const [actieveWeek, setActieveWeek] = useState<'huidig' | 'vorig'>('huidig')
+  const [actieveWeek] = useState<'huidig' | 'vorig'>('huidig')
 
   const [datum, setDatum] = useState(new Date().toISOString().slice(0, 10))
   const [uren, setUren] = useState('')

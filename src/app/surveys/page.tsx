@@ -101,7 +101,7 @@ function AnonimBanner() {
           </svg>
           <div>
             <p style={{ fontSize: 13, fontWeight: 600, color: '#185FA5' }}>Volledig anoniem</p>
-            <p style={{ fontSize: 12, color: '#2563EB' }}>Jouw naam wordt nooit gedeeld met HR of collega's</p>
+            <p style={{ fontSize: 12, color: '#2563EB' }}>Jouw naam wordt nooit gedeeld met HR of collega&apos;s</p>
           </div>
         </div>
         <button
@@ -729,7 +729,7 @@ export default function SurveysPagina() {
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                                       {res.teksten[v.id].slice(0, 4).map((t, i) => (
                                         <p key={i} style={{ fontSize: 12, color: '#4B5563', fontStyle: 'italic', background: '#F9FAFB', padding: '8px 12px', borderRadius: 8 }}>
-                                          "{t}"
+                                          &ldquo;{t}&rdquo;
                                         </p>
                                       ))}
                                       {res.teksten[v.id].length > 4 && (

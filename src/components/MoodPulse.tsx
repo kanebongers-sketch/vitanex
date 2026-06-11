@@ -3,10 +3,6 @@
 import React, { useEffect, useState } from 'react'
 import { authFetch } from '@/lib/auth-fetch'
 
-interface MoodPulseProps {
-  userId: string
-}
-
 type Stemming = 'moe' | 'gestrest' | 'ok' | 'blij' | 'energiek'
 
 interface MoodLog {
@@ -54,7 +50,7 @@ function laatsteZevenDagen(): string[] {
   return dagen
 }
 
-export default function MoodPulse(_props: MoodPulseProps) {
+export default function MoodPulse() {
   const [logs, setLogs] = useState<MoodLog[]>([])
   const [laden, setLaden] = useState(true)
   const [bezig, setBezig] = useState(false)

@@ -105,7 +105,6 @@ export default function OnboardingPage() {
   const router = useRouter()
   const [stap, setStap] = useState<'welkom' | 'profiel'>('welkom')
   const [rol, setRol] = useState<'hr' | 'zelfstandige' | 'other' | null>(null)
-  const [profielRol, setProfielRol] = useState<string | null>(null)
   const [userId, setUserId] = useState<string | null>(null)
   const [bezig, setBezig] = useState(false)
 
@@ -132,9 +131,11 @@ export default function OnboardingPage() {
 
   // HR code validatie
   const [hrCodeBedrijf, setHrCodeBedrijf] = useState('')
-  const [hrCodeFout, setHrCodeFout] = useState('')
-  const [hrCodeBezig, setHrCodeBezig] = useState(false)
   const hrCodeTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  // Maximaal toegestane geboortedatum (minimaal 14 jaar oud) — per mount vastgezet
+  const [maxGeboortedatum] = useState(
+    () => new Date(Date.now() - 14 * 365.25 * 86400000).toISOString().split('T')[0]
+  )
 
   // Auth check
   useEffect(() => {
@@ -155,7 +156,6 @@ export default function OnboardingPage() {
 
       const isHr = profiel?.rol === 'hr'
       const isZelfstandige = profiel?.rol === 'zelfstandige'
-      setProfielRol(profiel?.rol ?? null)
       setRol(isHr ? 'hr' : isZelfstandige ? 'zelfstandige' : 'other')
       if (profiel?.naam) {
         if (isHr) setHr(f => ({ ...f, naam: profiel.naam }))
@@ -168,16 +168,17 @@ export default function OnboardingPage() {
   // HR code live check
   useEffect(() => {
     if (hrCodeTimer.current) clearTimeout(hrCodeTimer.current)
-    if (!gebr.hrCode || gebr.hrCode.length < 6) { setHrCodeBedrijf(''); setHrCodeFout(''); return }
+    if (!gebr.hrCode || gebr.hrCode.length < 6) {
+      // Reset via de debounce-timer zodat er geen setState in de effect-body staat
+      hrCodeTimer.current = setTimeout(() => setHrCodeBedrijf(''), 0)
+      return
+    }
     hrCodeTimer.current = setTimeout(async () => {
-      setHrCodeBezig(true)
       try {
         const res = await fetch(`/api/hr-code?code=${gebr.hrCode.toUpperCase()}`)
         const data = await res.json()
-        if (data.geldig) { setHrCodeBedrijf(data.bedrijfsnaam); setHrCodeFout('') }
-        else { setHrCodeBedrijf(''); setHrCodeFout('Ongeldige code') }
-      } catch { setHrCodeFout('Kan niet valideren') }
-      setHrCodeBezig(false)
+        setHrCodeBedrijf(data.geldig ? data.bedrijfsnaam : '')
+      } catch { setHrCodeBedrijf('') }
     }, 500)
     return () => { if (hrCodeTimer.current) clearTimeout(hrCodeTimer.current) }
   }, [gebr.hrCode])
@@ -568,7 +569,7 @@ export default function OnboardingPage() {
 
                 <Veld label="Geboortedatum">
                   <Input type="date" value={gebr.geboortedatum} onChange={e => setGebr(f => ({ ...f, geboortedatum: e.target.value }))}
-                    max={new Date(Date.now() - 14 * 365.25 * 86400000).toISOString().split('T')[0]} />
+                    max={maxGeboortedatum} />
                 </Veld>
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
@@ -708,7 +709,7 @@ export default function OnboardingPage() {
 
                 <Veld label="Geboortedatum">
                   <Input type="date" value={gebr.geboortedatum} onChange={e => setGebr(f => ({ ...f, geboortedatum: e.target.value }))}
-                    max={new Date(Date.now() - 14 * 365.25 * 86400000).toISOString().split('T')[0]} />
+                    max={maxGeboortedatum} />
                 </Veld>
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>

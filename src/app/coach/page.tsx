@@ -64,7 +64,8 @@ export default function CoachPagina() {
     setInput('')
     if (inputRef.current) inputRef.current.style.height = 'auto'
 
-    const gebruikerBericht: Bericht = { id: `u-${Date.now()}`, role: 'user', content: invoer }
+    // Index-gebaseerd id: puur, en uniek binnen de lijst (deze groeit alleen)
+    const gebruikerBericht: Bericht = { id: `u-${berichten.length}`, role: 'user', content: invoer }
     const nieuweLijst = [...berichten, gebruikerBericht]
     setBerichten(nieuweLijst)
     setLaden(true)

@@ -543,14 +543,16 @@ export default function Chat() {
                   rows={1}
                   value={isTeam ? teamInput : dmInput}
                   onChange={e => {
-                    isTeam ? setTeamInput(e.target.value) : setDmInput(e.target.value)
+                    if (isTeam) setTeamInput(e.target.value)
+                    else setDmInput(e.target.value)
                     e.target.style.height = 'auto'
                     e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px'
                   }}
                   onKeyDown={e => {
                     if (e.key === 'Enter' && !e.shiftKey) {
                       e.preventDefault()
-                      isTeam ? verstuurTeam() : verstuurDm()
+                      if (isTeam) verstuurTeam()
+                      else verstuurDm()
                     }
                   }}
                   placeholder={isTeam ? 'Stuur een bericht…' : `Stuur ${partnerProfiel?.naam ?? 'een bericht'}…`}

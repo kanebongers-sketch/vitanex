@@ -530,7 +530,7 @@ export default function Instellingen() {
                   {/* Personal info */}
                   <section className="bg-white rounded-2xl border border-gray-200 p-6">
                     <h2 className="text-base font-semibold text-gray-900 mb-1">Persoonlijke informatie</h2>
-                    <p className="text-xs text-gray-400 mb-5">Je naam is zichtbaar voor collega's in de teamchat.</p>
+                    <p className="text-xs text-gray-400 mb-5">Je naam is zichtbaar voor collega&apos;s in de teamchat.</p>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                       <div>
@@ -728,7 +728,7 @@ export default function Instellingen() {
                       )}
 
                       <p className="text-xs mt-3 leading-relaxed" style={{ color: 'rgba(255,255,255,0.2)' }}>
-                        ⚠️ Elke optie wijzigt je <strong style={{ color: 'rgba(255,255,255,0.35)' }}>echte rol én bedrijfskoppeling</strong> in de database — je ziet precies wat een echte gebruiker ziet, inclusief alle RLS-policies. "Admin (terug)" herstelt alles naar je originele staat.
+                        ⚠️ Elke optie wijzigt je <strong style={{ color: 'rgba(255,255,255,0.35)' }}>echte rol én bedrijfskoppeling</strong> in de database — je ziet precies wat een echte gebruiker ziet, inclusief alle RLS-policies. &quot;Admin (terug)&quot; herstelt alles naar je originele staat.
                       </p>
                     </section>
                   )}

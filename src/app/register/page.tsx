@@ -36,7 +36,7 @@ const VOORDELEN_ZELFSTANDIGE = [
   { icon: '📈', tekst: 'Persoonlijke trendanalyse over tijd' },
 ]
 
-function StapIndicator({ stap, huidig, type }: { stap: Stap; huidig: Stap; type: GebruikerType | null }) {
+function StapIndicator({ huidig, type }: { stap: Stap; huidig: Stap; type: GebruikerType | null }) {
   // Werknemers krijgen een extra HR-code stap; andere rollen niet
   const stappen: Stap[] = type === 'werknemer'
     ? ['type', 'hrcode', 'info', 'account', 'bevestig']
@@ -105,7 +105,6 @@ export default function Register() {
   const [hrCodeBedrijfsnaam, setHrCodeBedrijfsnaam] = useState('')
   const [hrCodeBezig, setHrCodeBezig] = useState(false)
   const [hrCodeFout, setHrCodeFout] = useState<string | null>(null)
-  const [hrCodeOvergeslagen, setHrCodeOvergeslagen] = useState(false)
 
   const [bezig, setBezig] = useState(false)
   const [fout, setFout] = useState<string | null>(null)
@@ -128,7 +127,6 @@ export default function Register() {
       } else {
         setHrCodeBedrijfId(json.bedrijf_id)
         setHrCodeBedrijfsnaam(json.bedrijfsnaam)
-        setHrCodeOvergeslagen(false)
         setStap('info')
       }
     } catch {
@@ -414,7 +412,6 @@ export default function Register() {
 
                 <button
                   onClick={() => {
-                    setHrCodeOvergeslagen(true)
                     setHrCodeBedrijfId(null)
                     setHrCodeBedrijfsnaam('')
                     setStap('info')

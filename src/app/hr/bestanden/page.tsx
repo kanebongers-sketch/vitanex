@@ -25,18 +25,6 @@ export default function HrBestandenPage() {
   const [filterMedewerker, setFilterMedewerker] = useState('')
   const [openRapport, setOpenRapport] = useState<string | null>(null)
 
-  useEffect(() => {
-    async function init() {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) { router.push('/login'); return }
-      const { data: profiel } = await supabase.from('profiles').select('rol, bedrijf_id').eq('id', user.id).single()
-      if (!profiel || !['hr','admin'].includes(profiel.rol ?? '')) { router.push('/hr'); return }
-      await laadData(profiel.bedrijf_id ?? "")
-      setGeladen(true)
-    }
-    init()
-  }, [router])
-
   async function laadData(bedrijfId: string) {
     if (!bedrijfId) return
     const { data: meds } = await supabase.from('profiles').select('id, naam, email, hr_inzage_rapporten, hr_inzage_bestanden').eq('bedrijf_id', bedrijfId)
@@ -54,6 +42,19 @@ export default function HrBestandenPage() {
       setRapporten(raps ?? [])
     }
   }
+
+  useEffect(() => {
+    async function init() {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { router.push('/login'); return }
+      const { data: profiel } = await supabase.from('profiles').select('rol, bedrijf_id').eq('id', user.id).single()
+      if (!profiel || !['hr','admin'].includes(profiel.rol ?? '')) { router.push('/hr'); return }
+      await laadData(profiel.bedrijf_id ?? "")
+      setGeladen(true)
+    }
+    init()
+  }, [router])
+
 
   function datumLabel(d: string) {
     return new Date(d).toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' })

@@ -357,15 +357,15 @@ function MijnRapportInhoud() {
   const [rapportData, setRapportData] = useState<RapportData | null>(null)
   const [totaal,      setTotaal]      = useState(0)
   const [catAvgs,     setCatAvgs]     = useState<Record<string, number>>({})
-  const [laden,       setLaden]       = useState(true)
-  const [fout,        setFout]        = useState('')
+  const [laden,       setLaden]       = useState(() => Boolean(sessieId))
+  const [fout,        setFout]        = useState(() => sessieId ? '' : 'Geen sessie-ID gevonden.')
   const [pdfBezig,    setPdfBezig]    = useState(false)
   const [hrBezig,     setHrBezig]     = useState(false)
   const [hrVerstuurd, setHrVerstuurd] = useState(false)
   const [hrFout,      setHrFout]      = useState('')
 
   useEffect(() => {
-    if (!sessieId) { setFout('Geen sessie-ID gevonden.'); setLaden(false); return }
+    if (!sessieId) return
 
     fetch('/api/rapport-checkin', {
       method: 'POST',

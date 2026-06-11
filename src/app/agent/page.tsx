@@ -73,9 +73,11 @@ export default function AgentPage() {
     })
   }, [])
 
-  const laad = useCallback(async () => {
+  // Haalt batches+contacten op; state wordt in .then() gezet (geen setState
+  // in de effect-body) en activeBatch via functionele update — geen cascade
+  const haalBatches = useCallback(async (): Promise<Batch[]> => {
     const {data: bs} = await sb.from('agent_batches').select('id, naam, aangemaakt_op, status, totaal, verwerkt, actief, start_datum, ronde_2_datum, ronde_3_datum').order('aangemaakt_op', {ascending:false}).limit(10)
-    if (!bs) { setGeladen(true); return }
+    if (!bs) return []
     const batchIds = bs.map(b => b.id)
     const {data: alleCs} = await sb.from('agent_contacten').select('id, batch_id, naam, bedrijf, email, telefoon, score, notities, r1_status, r2_status, r3_status, laatste_actie, aangemaakt_op, stad, sector').in('batch_id', batchIds).order('score', {ascending:false})
     const csPerBatch = new Map<string, typeof alleCs>()
@@ -84,12 +86,17 @@ export default function AgentPage() {
       arr.push(c)
       csPerBatch.set(c.batch_id, arr)
     }
-    const batches_met_contacten = bs.map(b => ({...b, contacten: csPerBatch.get(b.id) ?? []}))
-    setBatches(batches_met_contacten as Batch[])
-    if (!activeBatch && batches_met_contacten.length > 0) setActiveBatch(batches_met_contacten[0].id)
-    setGeladen(true)
-    setNu(new Date())
-  }, [activeBatch])
+    return bs.map(b => ({...b, contacten: csPerBatch.get(b.id) ?? []})) as Batch[]
+  }, [])
+
+  const laad = useCallback(() => {
+    haalBatches().then(bs => {
+      setBatches(bs)
+      setActiveBatch(prev => prev ?? (bs.length > 0 ? bs[0].id : null))
+      setGeladen(true)
+      setNu(new Date())
+    })
+  }, [haalBatches])
 
   useEffect(()=>{ laad() }, [laad])
   useEffect(()=>{ const t=setInterval(laad,15000); return()=>clearInterval(t) }, [laad])
@@ -212,7 +219,7 @@ export default function AgentPage() {
     const col = `r${ronde}_status`
     const huidige = type === 'bedrijf' ? 'wacht' : 'email_klaar'
     const nieuw   = type === 'bedrijf' ? 'goedgekeurd' : 'email_goedgekeurd'
-    const ids = alleContacten.filter(c => (c as any)[col] === huidige).map(c => c.id)
+    const ids = alleContacten.filter(c => c[col as 'r1_status' | 'r2_status' | 'r3_status'] === huidige).map(c => c.id)
     if (ids.length > 0) {
       await sb.from('agent_contacten').update({[col]: nieuw}).in('id', ids)
     }

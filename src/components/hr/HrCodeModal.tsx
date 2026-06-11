@@ -42,16 +42,22 @@ export default function HrCodeModal({ open, onSluit, onGekoppeld, sessieToken }:
   const [bedrijfId, setBedrijfId] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
 
-  // Reset bij openen
-  useEffect(() => {
+  // Reset bij openen — via het render-vergelijkingspatroon i.p.v. een effect
+  // (zie react.dev: "adjusting state when a prop changes")
+  const [vorigeOpen, setVorigeOpen] = useState(open)
+  if (open !== vorigeOpen) {
+    setVorigeOpen(open)
     if (open) {
       setInvoer('')
       setFase('invoer')
       setFoutTekst(null)
       setBedrijfsnaam('')
       setBedrijfId('')
-      requestAnimationFrame(() => inputRef.current?.focus())
     }
+  }
+
+  useEffect(() => {
+    if (open) requestAnimationFrame(() => inputRef.current?.focus())
   }, [open])
 
   // Formatteer invoer automatisch: letters naar hoofd, voeg streepje in
@@ -227,7 +233,11 @@ export default function HrCodeModal({ open, onSluit, onGekoppeld, sessieToken }:
                   Annuleren
                 </button>
                 <button
-                  onClick={() => { setFoutTekst(null); fase === 'fout' ? setFase('invoer') : valideerCode() }}
+                  onClick={() => {
+                    setFoutTekst(null)
+                    if (fase === 'fout') setFase('invoer')
+                    else valideerCode()
+                  }}
                   disabled={fase === 'valideren' || invoer.length < 7}
                   className="flex-1 py-3 rounded-xl text-white font-bold text-sm transition hover:opacity-90 disabled:opacity-30"
                   style={{ background: '#1D9E75' }}

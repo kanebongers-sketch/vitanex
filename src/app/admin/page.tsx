@@ -54,7 +54,7 @@ function StatKaart({ label, waarde, sub, kleur, icon }: {
   )
 }
 
-function SectieKnop({ id, label, emoji, actief, onClick }: {
+function SectieKnop({ label, emoji, actief, onClick }: {
   id: Sectie; label: string; emoji: string; actief: boolean; onClick: () => void
 }) {
   return (
@@ -178,16 +178,6 @@ export default function Admin() {
   function checkinsPerBedrijf(bid: string) {
     const userIds = new Set(profielen.filter(p => p.bedrijf_id === bid).map(p => p.id))
     return checkins.filter(c => userIds.has(c.user_id)).length
-  }
-
-  function participatiePerBedrijf(bid: string) {
-    const medewerkers = profielen.filter(p => p.bedrijf_id === bid && p.rol === 'medewerker')
-    if (!medewerkers.length) return 0
-    const userIds = new Set(medewerkers.map(p => p.id))
-    const actiefDezeWeek = new Set(
-      checkins.filter(c => new Date(c.created_at) >= zevenDagenGeleden && userIds.has(c.user_id)).map(c => c.user_id)
-    )
-    return Math.round((actiefDezeWeek.size / medewerkers.length) * 100)
   }
 
   // MRR berekening: schatting op basis van medewerkercount per bedrijf

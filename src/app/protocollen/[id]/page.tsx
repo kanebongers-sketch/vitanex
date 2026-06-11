@@ -52,7 +52,6 @@ export default function ProtocolDetailPage() {
   const [protocol, setProtocol] = useState<Protocol | null>(null)
   const [laden, setLaden] = useState(true)
   const [isHr, setIsHr] = useState(false)
-  const [bedrijfId, setBedrijfId] = useState('')
 
   useEffect(() => {
     async function laad() {
@@ -62,7 +61,6 @@ export default function ProtocolDetailPage() {
       const { data: profiel } = await supabase
         .from('profiles').select('bedrijf_id, rol').eq('id', user.id).single()
       setIsHr(profiel?.rol === 'hr' || profiel?.rol === 'admin')
-      setBedrijfId(profiel?.bedrijf_id ?? '')
 
       const { data } = await supabase
         .from('protocollen').select('*').eq('id', id).single()

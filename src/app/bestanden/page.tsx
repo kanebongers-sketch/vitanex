@@ -13,7 +13,6 @@ interface Rapport { id: string; type: string; titel: string; inhoud: string; aan
 interface DiscInzending { primair_profiel: string; score_d: number; score_i: number; score_s: number; score_c: number; aangemaakt_op: string }
 
 const TYPE_KLEUR: Record<string, string> = { disc: '#3B82F6', checkin: '#10B981', onboarding: '#8B5CF6', algemeen: '#64748b' }
-const TYPE_LABEL: Record<string, string> = { disc: 'DISC', checkin: 'Check-in', onboarding: 'Onboarding', algemeen: 'Algemeen' }
 const TYPE_GROEPEN: { key: string; label: string }[] = [
   { key: 'disc', label: 'DISC' },
   { key: 'checkin', label: 'Check-in' },
@@ -53,14 +52,14 @@ export default function BestandenPage() {
         const json = await res.json() as { documenten?: Bestand[] }
         setBestanden(json.documenten ?? [])
       }
-    } catch (_) { setFout("Bestanden laden mislukt") }
+    } catch { setFout("Bestanden laden mislukt") }
   }
 
   async function laadRapporten(uid: string) {
     try {
       const { data } = await supabase.from('ai_rapporten').select('id, type, titel, inhoud, aangemaakt_op').eq('user_id', uid).order('aangemaakt_op', { ascending: false })
       setRapporten(data ?? [])
-    } catch (_) { setFout("Rapporten laden mislukt") }
+    } catch { setFout("Rapporten laden mislukt") }
   }
 
   async function laadDiscProfiel(uid: string) {
@@ -73,7 +72,7 @@ export default function BestandenPage() {
         .limit(1)
         .maybeSingle()
       if (data) setDiscProfiel(data)
-    } catch (_) { /* stil falen */ }
+    } catch { /* stil falen */ }
   }
 
   async function toggleDelen(bestandId: string, huidig: boolean) {
@@ -91,7 +90,7 @@ export default function BestandenPage() {
       const res = await authFetch('/api/documenten/upload', { method: 'POST', body: form })
       if (res.ok) await laadBestanden(userId)
       else setFout("Upload mislukt")
-    } catch (_) { setFout("Upload mislukt") }
+    } catch { setFout("Upload mislukt") }
     finally { setUploaden(false) }
   }
 

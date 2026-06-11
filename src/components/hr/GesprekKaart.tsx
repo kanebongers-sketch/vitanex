@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { type Gesprek, StatusBadge } from './GesprekModal'
 
 type Props = {
@@ -22,8 +23,10 @@ export default function GesprekKaart({ gesprek, onClick }: Props) {
   const typeInfo = TYPE_LABELS[gesprek.type] ?? TYPE_LABELS.overig
   const gedaanCount = gesprek.actiepunten.filter(a => a.gedaan).length
   const totaalCount = gesprek.actiepunten.length
-  const isAankomend = gesprek.status === 'gepland' && new Date(gesprek.datum) >= new Date(new Date().toDateString())
-  const isDringend = isAankomend && new Date(gesprek.datum) <= new Date(Date.now() + 3 * 24 * 60 * 60 * 1000)
+  // Tijdstip per mount vastzetten zodat de render puur blijft
+  const [nu] = useState(() => Date.now())
+  const isAankomend = gesprek.status === 'gepland' && new Date(gesprek.datum) >= new Date(new Date(nu).toDateString())
+  const isDringend = isAankomend && new Date(gesprek.datum) <= new Date(nu + 3 * 24 * 60 * 60 * 1000)
 
   return (
     <div

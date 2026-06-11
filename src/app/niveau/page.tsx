@@ -7,7 +7,7 @@ import Link from 'next/link'
 import Navbar from '@/components/layout/Navbar'
 import {
   laadXPData, pasDecayToe, slaXPOp, berekenLevel, xpVoortgang,
-  LEVEL_NAMEN, LEVEL_DREMPELS, LEVEL_KLEUREN, LEVEL_BG,
+  LEVEL_NAMEN, LEVEL_KLEUREN, LEVEL_BG,
   ALLE_ACHIEVEMENTS, type XPData, type Achievement,
 } from '@/lib/xp'
 
@@ -165,11 +165,17 @@ function AchievementBadge({ ach, unlocked }: { ach: Achievement; unlocked: boole
 export default function NiveauPage() {
   const [xpData, setXpData] = useState<XPData | null>(null)
 
+  // Tijdstip per mount vastzetten zodat de render puur blijft
+  const [nuTs] = useState(() => Date.now())
+
   useEffect(() => {
-    let data = laadXPData()
-    data = pasDecayToe(data)
-    slaXPOp(data)
-    setXpData(data)
+    // localStorage lezen + setState buiten de synchrone effect-body
+    Promise.resolve().then(() => {
+      let data = laadXPData()
+      data = pasDecayToe(data)
+      slaXPOp(data)
+      setXpData(data)
+    })
   }, [])
 
   if (!xpData) return (
@@ -183,7 +189,6 @@ export default function NiveauPage() {
 
   const level    = berekenLevel(xpData.xp)
   const kleur    = LEVEL_KLEUREN[level]
-  const bg       = LEVEL_BG[level]
   const voortgang = xpVoortgang(xpData.xp, level)
   const geldig   = xpData.achievements ?? []
 
@@ -192,7 +197,7 @@ export default function NiveauPage() {
 
   // Decay warning
   const dagenZonderCheckin = xpData.lastCheckinDatum
-    ? Math.floor((Date.now() - new Date(xpData.lastCheckinDatum).getTime()) / 86400000)
+    ? Math.floor((nuTs - new Date(xpData.lastCheckinDatum).getTime()) / 86400000)
     : 999
   const decayWaarschuwing = dagenZonderCheckin >= 10
 

@@ -34,8 +34,6 @@ export default function Setup() {
     setStap('bezig')
 
     // Sla token tijdelijk op en roep init-route aan
-    const { data: { session } } = await supabase.auth.getSession()
-    const tokenSuffix = session?.access_token?.slice(-12) ?? ''
 
     // Eerst token instellen via env kan niet client-side, gebruik directe fetch
     const res = await fetch('/api/init-documenten-direct', {
@@ -110,7 +108,7 @@ export default function Setup() {
               </li>
               <li className="flex gap-2">
                 <span className="w-5 h-5 rounded-full bg-purple-100 text-purple-700 text-xs flex items-center justify-center font-bold flex-shrink-0 mt-0.5">2</span>
-                <span>Klik <strong>Generate new token</strong> → naam bijv. "MentaForce setup"</span>
+                <span>Klik <strong>Generate new token</strong> → naam bijv. &quot;MentaForce setup&quot;</span>
               </li>
               <li className="flex gap-2">
                 <span className="w-5 h-5 rounded-full bg-purple-100 text-purple-700 text-xs flex items-center justify-center font-bold flex-shrink-0 mt-0.5">3</span>

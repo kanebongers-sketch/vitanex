@@ -191,7 +191,7 @@ export default function NieuwsPage() {
           <div className="bg-white rounded-2xl p-10 text-center" style={{ boxShadow: 'var(--shadow-sm)' }}>
             <p className="text-4xl mb-3">📰</p>
             <p className="text-gray-500 text-sm">Nog geen berichten geplaatst.</p>
-            {isHr && <p className="text-gray-400 text-xs mt-1">Klik op '+ Plaatsen' om een bericht toe te voegen.</p>}
+            {isHr && <p className="text-gray-400 text-xs mt-1">Klik op &apos;+ Plaatsen&apos; om een bericht toe te voegen.</p>}
           </div>
         ) : (
           <div className="flex flex-col gap-4">

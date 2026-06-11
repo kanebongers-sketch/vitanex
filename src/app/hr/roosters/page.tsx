@@ -28,7 +28,6 @@ export default function HrRoostersPage() {
   const router = useRouter()
   const [roosters, setRoosters] = useState<Rooster[]>([])
   const [geladen, setGeladen] = useState(false)
-  const [bedrijfId, setBedrijfId] = useState('')
   const [verwijderBezig, setVerwijderBezig] = useState<string | null>(null)
 
   useEffect(() => {
@@ -40,7 +39,6 @@ export default function HrRoostersPage() {
       if (!profiel || !['hr', 'admin'].includes(profiel.rol ?? '')) {
         router.push('/home'); return
       }
-      setBedrijfId(profiel.bedrijf_id)
 
       const { data } = await supabase
         .from('roosters')
@@ -50,7 +48,7 @@ export default function HrRoostersPage() {
 
       // Haal dienst-aantallen op
       const ids = (data ?? []).map(r => r.id)
-      let counts: Record<string, number> = {}
+      const counts: Record<string, number> = {}
       if (ids.length > 0) {
         const { data: dc } = await supabase
           .from('rooster_diensten')
@@ -63,7 +61,7 @@ export default function HrRoostersPage() {
       setGeladen(true)
     }
     laad()
-  }, [])
+  }, [router])
 
   async function verwijder(id: string) {
     if (!confirm('Rooster en alle diensten verwijderen?')) return

@@ -344,7 +344,7 @@ export default function Navbar() {
   ]
 
   /* ── Sidebar inhoud ── */
-  function SidebarContent() {
+  function renderSidebarInhoud() {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
 
@@ -459,7 +459,7 @@ export default function Navbar() {
         flexDirection: 'column',
         paddingTop: 'var(--safe-top, 0px)',
       }}>
-        <SidebarContent />
+        {renderSidebarInhoud()}
       </aside>
 
       {/* Mobile topbar */}
@@ -498,7 +498,7 @@ export default function Navbar() {
             background: bg, zIndex: 50, display: 'flex', flexDirection: 'column',
             paddingTop: 'var(--safe-top, 0px)',
           }}>
-            <SidebarContent />
+            {renderSidebarInhoud()}
           </aside>
         </>
       )}

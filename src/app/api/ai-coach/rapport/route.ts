@@ -78,7 +78,7 @@ Formatteer als JSON zonder markdown:
     messages: [{ role: 'user', content: prompt }],
   })
 
-  let responseText = (message.content[0] as { type: string; text: string }).text.trim()
+  const responseText = (message.content[0] as { type: string; text: string }).text.trim()
     .replace(/^```json\s*/i, '').replace(/\s*```$/, '').trim()
 
   let aiResponse: { trend_bericht: string; acties: string[] }

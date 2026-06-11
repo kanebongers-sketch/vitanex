@@ -228,23 +228,6 @@ export default function VoedingPage() {
 
   // ── Init ────────────────────────────────────────────────────────────────────
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!session) { router.replace('/login'); return }
-      setToken(session.access_token)
-      laadLogs(session.access_token)
-    })
-    // Load water from localStorage
-    try { setWater(parseInt(localStorage.getItem(`water_${vandaag}`) || '0')) } catch { /* ok */ }
-    // Load recent foods
-    try {
-      const r = JSON.parse(localStorage.getItem('voeding_recent') || '[]') as ZoekResultaat[]
-      setRecenteFoods(r.slice(0, 8))
-    } catch { /* ok */ }
-  }, [router, vandaag])
-
-  // ── Data ─────────────────────────────────────────────────────────────────────
-
   const laadLogs = useCallback(async (tok: string) => {
     setLaden(true)
     const res = await fetch(`/api/voeding?datum=${vandaag}`, { headers: { Authorization: `Bearer ${tok}` } })
@@ -252,6 +235,25 @@ export default function VoedingPage() {
     setLogs(data.logs || [])
     setLaden(false)
   }, [vandaag])
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session) { router.replace('/login'); return }
+      setToken(session.access_token)
+      laadLogs(session.access_token)
+    })
+    // localStorage lezen + setState buiten de synchrone effect-body
+    Promise.resolve().then(() => {
+      try { setWater(parseInt(localStorage.getItem(`water_${vandaag}`) || '0')) } catch { /* ok */ }
+      try {
+        const r = JSON.parse(localStorage.getItem('voeding_recent') || '[]') as ZoekResultaat[]
+        setRecenteFoods(r.slice(0, 8))
+      } catch { /* ok */ }
+    })
+  }, [router, vandaag, laadLogs])
+
+  // ── Data ─────────────────────────────────────────────────────────────────────
+
 
   const dagTotaal: DagTotaal = logs.reduce(
     (acc, l) => ({
@@ -411,7 +413,7 @@ export default function VoedingPage() {
   const kCalKleur = dagTotaal.calorieen > DOEL_KCAL * 1.05 ? '#E24B4A' : dagTotaal.calorieen > DOEL_KCAL * 0.75 ? '#1D9E75' : '#F59E0B'
   const logsByMaaltijd = MAALTIJD_VOLGORDE.reduce((acc, mt) => { acc[mt] = logs.filter(l => l.maaltijd_type === mt); return acc }, {} as Record<string, VoedingLog[]>)
 
-  function InputVeld({ label, veld, type = 'text', suffix = '' }: { label: string; veld: keyof typeof form; type?: string; suffix?: string }) {
+  function renderInputVeld({ label, veld, type = 'text', suffix = '' }: { label: string; veld: keyof typeof form; type?: string; suffix?: string }) {
     return (
       <div>
         <label style={{ fontSize: 11, fontWeight: 700, color: '#6B7280', display: 'block', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</label>
@@ -426,7 +428,7 @@ export default function VoedingPage() {
     )
   }
 
-  function MaaltijdSelector() {
+  function renderMaaltijdSelector() {
     return (
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 }}>
         {MAALTIJD_VOLGORDE.map(mt => (
@@ -740,17 +742,17 @@ export default function VoedingPage() {
             <div style={{ background: 'white', borderRadius: 18, border: '1px solid #F1F5F9', padding: '16px', marginBottom: 14 }}>
               <p style={{ fontSize: 10, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 12 }}>Aanpassen indien nodig</p>
               <div style={{ display: 'grid', gap: 10 }}>
-                <MaaltijdSelector />
-                <InputVeld label="Gerecht" veld="omschrijving" />
+                {renderMaaltijdSelector()}
+                {renderInputVeld({ label: 'Gerecht', veld: 'omschrijving' })}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                  <InputVeld label="Calorieën" veld="calorieen" type="number" suffix="kcal" />
-                  <InputVeld label="Portie" veld="portie_gram" type="number" suffix="g" />
+                  {renderInputVeld({ label: 'Calorieën', veld: 'calorieen', type: 'number', suffix: 'kcal' })}
+                  {renderInputVeld({ label: 'Portie', veld: 'portie_gram', type: 'number', suffix: 'g' })}
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
-                  <InputVeld label="Eiwit" veld="eiwitten_g" type="number" suffix="g" />
-                  <InputVeld label="Koolh." veld="koolhydraten_g" type="number" suffix="g" />
-                  <InputVeld label="Vet" veld="vetten_g" type="number" suffix="g" />
-                  <InputVeld label="Vezels" veld="vezels_g" type="number" suffix="g" />
+                  {renderInputVeld({ label: 'Eiwit', veld: 'eiwitten_g', type: 'number', suffix: 'g' })}
+                  {renderInputVeld({ label: 'Koolh.', veld: 'koolhydraten_g', type: 'number', suffix: 'g' })}
+                  {renderInputVeld({ label: 'Vet', veld: 'vetten_g', type: 'number', suffix: 'g' })}
+                  {renderInputVeld({ label: 'Vezels', veld: 'vezels_g', type: 'number', suffix: 'g' })}
                 </div>
               </div>
             </div>
@@ -810,7 +812,7 @@ export default function VoedingPage() {
             </div>
 
             {/* Maaltijd type */}
-            <div style={{ marginBottom: 14 }}><MaaltijdSelector /></div>
+            <div style={{ marginBottom: 14 }}>{renderMaaltijdSelector()}</div>
 
             {/* Recent (alleen als geen query) */}
             {zoekQuery.length < 2 && recenteFoods.length > 0 && (
@@ -1038,7 +1040,7 @@ export default function VoedingPage() {
               )}
 
               {/* Maaltijd type */}
-              <div style={{ marginBottom: 14 }}><MaaltijdSelector /></div>
+              <div style={{ marginBottom: 14 }}>{renderMaaltijdSelector()}</div>
 
               {fout && <div style={{ background: '#FEF2F2', border: '1px solid #FCA5A5', borderRadius: 12, padding: '10px 14px', marginBottom: 12, fontSize: 13, color: '#B91C1C' }}>{fout}</div>}
 
@@ -1065,17 +1067,17 @@ export default function VoedingPage() {
 
             <div style={{ background: 'white', borderRadius: 20, border: '1px solid #F1F5F9', padding: '18px 16px', marginBottom: 16 }}>
               <div style={{ display: 'grid', gap: 12 }}>
-                <MaaltijdSelector />
-                <InputVeld label="Gerecht / omschrijving" veld="omschrijving" />
+                {renderMaaltijdSelector()}
+                {renderInputVeld({ label: 'Gerecht / omschrijving', veld: 'omschrijving' })}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                  <InputVeld label="Calorieën" veld="calorieen" type="number" suffix="kcal" />
-                  <InputVeld label="Portie" veld="portie_gram" type="number" suffix="gram" />
+                  {renderInputVeld({ label: 'Calorieën', veld: 'calorieen', type: 'number', suffix: 'kcal' })}
+                  {renderInputVeld({ label: 'Portie', veld: 'portie_gram', type: 'number', suffix: 'gram' })}
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
-                  <InputVeld label="Eiwit" veld="eiwitten_g" type="number" suffix="g" />
-                  <InputVeld label="Koolhydraten" veld="koolhydraten_g" type="number" suffix="g" />
-                  <InputVeld label="Vet" veld="vetten_g" type="number" suffix="g" />
-                  <InputVeld label="Vezels" veld="vezels_g" type="number" suffix="g" />
+                  {renderInputVeld({ label: 'Eiwit', veld: 'eiwitten_g', type: 'number', suffix: 'g' })}
+                  {renderInputVeld({ label: 'Koolhydraten', veld: 'koolhydraten_g', type: 'number', suffix: 'g' })}
+                  {renderInputVeld({ label: 'Vet', veld: 'vetten_g', type: 'number', suffix: 'g' })}
+                  {renderInputVeld({ label: 'Vezels', veld: 'vezels_g', type: 'number', suffix: 'g' })}
                 </div>
               </div>
             </div>

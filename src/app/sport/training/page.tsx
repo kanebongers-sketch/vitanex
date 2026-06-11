@@ -284,7 +284,7 @@ export default function TrainingLoggerPage() {
 
                     {training.coaching_tekst && (
                       <p style={{ fontSize: 13, color: '#666', fontStyle: 'italic', margin: '0 0 14px', lineHeight: 1.5 }}>
-                        "{training.coaching_tekst}"
+                        &ldquo;{training.coaching_tekst}&rdquo;
                       </p>
                     )}
 

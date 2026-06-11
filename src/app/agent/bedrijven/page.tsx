@@ -56,25 +56,31 @@ export default function BedrijvenPage() {
     })
   }, [])
 
-  const laad = useCallback(async () => {
-    // Laad alle contacten met batch info
+  // Haalt contacten op; state wordt pas in .then() gezet zodat laden en
+  // state-updates gescheiden blijven (geen setState in de effect-body zelf)
+  const haalContacten = useCallback(async (): Promise<Contact[]> => {
     const { data: cs } = await sb
       .from('agent_contacten')
       .select('*, agent_batches(naam)')
       .order('score', { ascending: false })
 
-    if (!cs) { setGeladen(true); return }
-
-    const mapped = (cs as RawContact[]).map((c) => ({
+    return ((cs ?? []) as RawContact[]).map((c) => ({
       ...c,
       batch_naam: c.agent_batches?.naam ?? '—',
     }))
-    setContacten(mapped)
-    setGeladen(true)
-    setNu(new Date())
   }, [])
 
-  useEffect(() => { if (toegang) laad() }, [toegang, laad])
+  const laad = useCallback(() => {
+    haalContacten().then(mapped => {
+      setContacten(mapped)
+      setGeladen(true)
+      setNu(new Date())
+    })
+  }, [haalContacten])
+
+  useEffect(() => {
+    if (toegang) laad()
+  }, [toegang, laad])
 
   async function toggleZwarteLijst(id: string, huidig: boolean) {
     await sb.from('agent_contacten').update({ op_zwarte_lijst: !huidig }).eq('id', id)
@@ -95,7 +101,7 @@ export default function BedrijvenPage() {
   const zwarteLijstCount = contacten.filter(c => c.op_zwarte_lijst).length
 
   const rondeStatus = (c: Contact, r: number) => {
-    const s = (c as any)[`r${r}_status`] as string
+    const s = c[`r${r}_status` as 'r1_status' | 'r2_status' | 'r3_status']
     if (!s || s === 'gepland') return null
     const colors: Record<string, string> = {
       verstuurd: GREEN, goedgekeurd: GREEN, email_goedgekeurd: '#6EE7B7',

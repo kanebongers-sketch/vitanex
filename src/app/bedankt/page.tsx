@@ -4,7 +4,7 @@ import { useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
-import { verwerkCheckin, berekenLevel, LEVEL_NAMEN, LEVEL_KLEUREN, type Achievement } from '@/lib/xp'
+import { verwerkCheckin, LEVEL_NAMEN, LEVEL_KLEUREN, type Achievement } from '@/lib/xp'
 import {
   type WellbeingCat, type WeekDoel, type WeekSelectie,
   getMaandag, slaWeekSelectieOp, scoreKleur, scoreLabel,
@@ -88,7 +88,9 @@ function BedanktInhoud() {
   const gemiddelde = scoreVals.length > 0 ? scoreVals.reduce((a, b) => a + b, 0) / scoreVals.length : 0
   const vitaalScore = scoreVals.length > 0 ? Math.round(((gemiddelde - 4) / 16) * 100) : 0
 
-  const [status,    setStatus]    = useState<'laden' | 'analyse' | 'klaar' | 'fout' | 'simpel'>('laden')
+  const [status,    setStatus]    = useState<'laden' | 'analyse' | 'klaar' | 'fout' | 'simpel'>(
+    () => (!sid || !heeftScores) ? 'simpel' : 'laden'
+  )
   const [analyse,   setAnalyse]   = useState<AnalyseJSON | null>(null)
   const [analyseId, setAnalyseId] = useState<string | null>(null)
   const [gedeeld,   setGedeeld]   = useState(false)
@@ -99,11 +101,26 @@ function BedanktInhoud() {
 
   const datum = new Date().toLocaleDateString('nl-BE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
 
-  useEffect(() => {
-    if (!sid || !heeftScores) { setStatus('simpel'); return }
-    genereerAnalyse()
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  function slaatDoelen(aj: AnalyseJSON) {
+    if (!aj.aanbevolen_doelen?.length) return
+    try {
+      const doelen: WeekDoel[] = aj.aanbevolen_doelen.map(d => ({
+        vlak:             d.vlak as WellbeingCat,
+        doel_titel:       d.doel_titel,
+        doel_beschrijving:d.doel_beschrijving,
+        target_waarde:    d.target_waarde,
+        eenheid:          d.eenheid,
+        meetType:         d.meetType,
+        logs:             [],
+      }))
+      const ws: WeekSelectie = {
+        weekStart:   getMaandag(),
+        doelen,
+        vlak_scores: vlak_scores as Partial<Record<WellbeingCat, number>>,
+      }
+      slaWeekSelectieOp(ws)
+    } catch { /* non-critical */ }
+  }
 
   async function genereerAnalyse() {
     const { data: { user } } = await supabase.auth.getUser()
@@ -182,26 +199,12 @@ function BedanktInhoud() {
     } catch { /* XP is non-critical */ }
   }
 
-  function slaatDoelen(aj: AnalyseJSON) {
-    if (!aj.aanbevolen_doelen?.length) return
-    try {
-      const doelen: WeekDoel[] = aj.aanbevolen_doelen.map(d => ({
-        vlak:             d.vlak as WellbeingCat,
-        doel_titel:       d.doel_titel,
-        doel_beschrijving:d.doel_beschrijving,
-        target_waarde:    d.target_waarde,
-        eenheid:          d.eenheid,
-        meetType:         d.meetType,
-        logs:             [],
-      }))
-      const ws: WeekSelectie = {
-        weekStart:   getMaandag(),
-        doelen,
-        vlak_scores: vlak_scores as Partial<Record<WellbeingCat, number>>,
-      }
-      slaWeekSelectieOp(ws)
-    } catch { /* non-critical */ }
-  }
+  useEffect(() => {
+    if (!sid || !heeftScores) return
+    // Start de analyse buiten de synchrone effect-body (compiler-regel)
+    Promise.resolve().then(genereerAnalyse)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   async function toggleDelen() {
     if (!analyseId || !userId) return
@@ -465,7 +468,7 @@ function BedanktInhoud() {
         {/* Persoonlijk bericht */}
         <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm mb-5">
           <p className="text-xs font-medium text-gray-400 mb-2">Persoonlijk bericht</p>
-          <p className="text-sm text-gray-700 leading-relaxed italic">"{analyse.bericht}"</p>
+          <p className="text-sm text-gray-700 leading-relaxed italic">&ldquo;{analyse.bericht}&rdquo;</p>
         </div>
 
         {/* Deel met HR */}

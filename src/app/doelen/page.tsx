@@ -11,7 +11,7 @@ import { verwerkGoalLog, LEVEL_KLEUREN, LEVEL_NAMEN, type Achievement } from '@/
 import {
   type WellbeingCat, type WeekDoel, type WeekSelectie,
   vandaag, laadWeekSelectie, slaWeekSelectieOp, isVandaagGelogd, logVandaag,
-  scoreKleur, scoreLabel,
+  scoreKleur,
 } from '@/lib/weekdoelen'
 import { CAT } from '@/lib/doelen-config'
 

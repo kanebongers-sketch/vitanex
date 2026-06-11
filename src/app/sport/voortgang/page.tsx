@@ -33,6 +33,37 @@ type SessieData = {
   totaalVolume: number
 }
 
+function verwerk(data: OefeningLog[]): OefeningGroep[] {
+  const map = new Map<string, OefeningLog[]>()
+  for (const log of data) {
+    const bestaande = map.get(log.oefening_naam) || []
+    map.set(log.oefening_naam, [...bestaande, log])
+  }
+
+  return Array.from(map.entries()).map(([naam, logsVoorOefening]) => {
+    const sessieMap = new Map<string, OefeningLog[]>()
+    for (const log of logsVoorOefening) {
+      const datum = log.training_logs.datum
+      const bestaande = sessieMap.get(datum) || []
+      sessieMap.set(datum, [...bestaande, log])
+    }
+
+    const sessies: SessieData[] = Array.from(sessieMap.entries()).map(([datum, sessielogs]) => {
+      const maxGewicht = Math.max(...sessielogs.map(l => l.gewicht_kg ?? 0))
+      const totaalVolume = sessielogs.reduce((acc, l) => acc + (l.herhalingen * (l.gewicht_kg ?? 0)), 0)
+      return { datum, maxGewicht, totaalVolume }
+    }).sort((a, b) => a.datum.localeCompare(b.datum))
+
+    const beginGewicht = sessies[0]?.maxGewicht ?? 0
+    const huidigGewicht = sessies[sessies.length - 1]?.maxGewicht ?? 0
+    const progressieProcent = beginGewicht > 0
+      ? Math.round(((huidigGewicht - beginGewicht) / beginGewicht) * 100)
+      : 0
+
+    return { naam, logs: logsVoorOefening, beginGewicht, huidigGewicht, progressieProcent, sessies }
+  })
+}
+
 export default function VoortgangPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
@@ -66,36 +97,6 @@ export default function VoortgangPage() {
     init()
   }, [router])
 
-  function verwerk(data: OefeningLog[]): OefeningGroep[] {
-    const map = new Map<string, OefeningLog[]>()
-    for (const log of data) {
-      const bestaande = map.get(log.oefening_naam) || []
-      map.set(log.oefening_naam, [...bestaande, log])
-    }
-
-    return Array.from(map.entries()).map(([naam, logsVoorOefening]) => {
-      const sessieMap = new Map<string, OefeningLog[]>()
-      for (const log of logsVoorOefening) {
-        const datum = log.training_logs.datum
-        const bestaande = sessieMap.get(datum) || []
-        sessieMap.set(datum, [...bestaande, log])
-      }
-
-      const sessies: SessieData[] = Array.from(sessieMap.entries()).map(([datum, sessielogs]) => {
-        const maxGewicht = Math.max(...sessielogs.map(l => l.gewicht_kg ?? 0))
-        const totaalVolume = sessielogs.reduce((acc, l) => acc + (l.herhalingen * (l.gewicht_kg ?? 0)), 0)
-        return { datum, maxGewicht, totaalVolume }
-      }).sort((a, b) => a.datum.localeCompare(b.datum))
-
-      const beginGewicht = sessies[0]?.maxGewicht ?? 0
-      const huidigGewicht = sessies[sessies.length - 1]?.maxGewicht ?? 0
-      const progressieProcent = beginGewicht > 0
-        ? Math.round(((huidigGewicht - beginGewicht) / beginGewicht) * 100)
-        : 0
-
-      return { naam, logs: logsVoorOefening, beginGewicht, huidigGewicht, progressieProcent, sessies }
-    })
-  }
 
   const actieveGroep = oefeningen.find(o => o.naam === geselecteerdeOefening)
   const totaalTrainingen = new Set(logs.map(l => l.training_logs.datum)).size

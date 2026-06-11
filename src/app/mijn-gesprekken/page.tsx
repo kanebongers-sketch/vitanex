@@ -37,7 +37,9 @@ function formatDatum(d: string) {
 }
 
 function DagenTot({ datum }: { datum: string }) {
-  const dagen = Math.ceil((new Date(datum).getTime() - Date.now()) / 86400000)
+  // Tijdstip per mount vastzetten zodat de render puur blijft
+  const [nu] = useState(() => Date.now())
+  const dagen = Math.ceil((new Date(datum).getTime() - nu) / 86400000)
   if (dagen < 0) return null
   if (dagen === 0) return <span style={{ color: '#E24B4A', fontWeight: 700, fontSize: 11 }}>Vandaag</span>
   if (dagen <= 3) return <span style={{ color: '#BA7517', fontWeight: 700, fontSize: 11 }}>{dagen}d</span>

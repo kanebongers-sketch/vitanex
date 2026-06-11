@@ -208,7 +208,6 @@ export default function HrShell({ children, naam = 'HR', bedrijfNaam = 'MentaFor
         {/* Bottom items */}
         <div style={{ padding: '8px 0 16px', borderTop: '1px solid rgba(255,255,255,0.07)' }}>
           {BOTTOM_ITEMS.map(item => {
-            const active = isActive(item)
             return (
               <Link key={item.href} href={item.href} style={{
                 display: 'flex', alignItems: 'center', gap: 10,

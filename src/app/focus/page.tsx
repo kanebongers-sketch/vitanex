@@ -438,8 +438,6 @@ export default function FocusPagina() {
       return
     }
     const fases = ADEM[ademTab].fases
-    setAdemFaseIdx(0)
-    setAdemTeller(fases[0].duur)
 
     let faseIdx = 0
     let teller = fases[0].duur
@@ -478,6 +476,12 @@ export default function FocusPagina() {
     }, 1000)
     return () => { if (timerRef.current) clearInterval(timerRef.current) }
   }, [timerActief])
+
+  function startAdem() {
+    setAdemFaseIdx(0)
+    setAdemTeller(ADEM[ademTab].fases[0].duur)
+    setAdemActief(true)
+  }
 
   function stopAdem() {
     setAdemActief(false)
@@ -621,7 +625,7 @@ export default function FocusPagina() {
               )}
 
               <button
-                onClick={() => ademActief ? stopAdem() : setAdemActief(true)}
+                onClick={() => ademActief ? stopAdem() : startAdem()}
                 className="w-full py-3.5 rounded-xl text-white font-semibold text-sm transition"
                 style={{ background: ademActief ? '#E24B4A' : 'var(--mentaforce-primary)' }}
               >

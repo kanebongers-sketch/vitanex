@@ -4,6 +4,22 @@ Hier staat alles wat er is veranderd aan de app, in gewone taal.
 
 ---
 
+## 11 juni 2026 — grote schoonmaak onder de motorkap
+
+### 🔒 Outreach-data is nu echt afgeschermd
+De bedrijven, contacten en concept-mails van de outreach-agent waren via de publieke API voor iedereen leesbaar. Het script is omgezet naar een veilige sleutel (lokaal én in GitHub) en de database-regels zijn aangescherpt en geverifieerd: buitenstaanders zien nu niets meer, de agent en het dashboard werken gewoon door.
+
+### 🔧 135 codeproblemen opgelost — de linter is nu helemaal schoon
+Waaronder een paar échte bugs:
+- **Invoervelden op de Voedingspagina verloren focus** bij elke toetsaanslag (componenten werden per render opnieuw aangemaakt) — gefixt.
+- **Het agent-dashboard kon in een render-lus belanden** door een afhankelijkheidscyclus — gefixt.
+- Verder: dode code en ongebruikte variabelen verwijderd, React-effecten herschreven volgens de nieuwe compiler-regels, en alle tekst-escaping netjes gemaakt.
+
+### ✨ Eerste geautomatiseerde tests
+Het project heeft nu een testfundament (vitest) met 22 tests op de meest kritieke logica: de beveiliging van wearable-koppelingen en de gezondheidsberekeningen. Draai ze met `npm test`.
+
+---
+
 ## 11 juni 2026 — Gezondheid nieuwe stijl
 
 ### ✨ Gezondheidspagina volledig vernieuwd — zoals Apple Health

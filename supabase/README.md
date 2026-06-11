@@ -31,7 +31,7 @@ we gebruiken niet de Supabase CLI-migratietabel.
 | `010_sport_fitness.sql` | Sport: oefeningen, schema's, voortgang |
 | `011_fitness_company_nullable.sql` | Fix: sport ook zonder bedrijf |
 | `012_handle_new_user_rol.sql` | Rol-afhandeling bij registratie |
-| `013_agent_rls_hardening.sql` | ⚠️ RLS-aanscherping agent-tabellen — **nog niet toegepast**, zie opmerking in het bestand |
+| `013_agent_rls_hardening.sql` | RLS-aanscherping agent-tabellen (toegepast; outreach-script gebruikt nu de service role key) |
 | `014_wearable_tokens_google_fit.sql` | Google Fit toegevoegd aan provider-constraint (toegepast) |
 
 **Nieuwe migratie toevoegen:** maak `0XX_korte_naam.sql` met het eerstvolgende

@@ -29,7 +29,6 @@ export default function BewerkProtocolPage() {
   const [laden, setLaden] = useState(true)
   const [bezig, setBezig] = useState(false)
   const [fout, setFout] = useState('')
-  const [bedrijfId, setBedrijfId] = useState('')
 
   const [titel, setTitel] = useState('')
   const [beschrijving, setBeschrijving] = useState('')
@@ -48,7 +47,6 @@ export default function BewerkProtocolPage() {
       if (!profiel || !['hr', 'admin'].includes(profiel.rol ?? '')) {
         router.push('/home'); return
       }
-      setBedrijfId(profiel.bedrijf_id)
 
       const { data } = await supabase.from('protocollen').select('id, titel, beschrijving, inhoud, gepubliceerd, bedrijf_id, categorie, icoon, kleur').eq('id', id).single()
       if (!data || data.bedrijf_id !== profiel.bedrijf_id) { router.push('/hr/protocollen'); return }

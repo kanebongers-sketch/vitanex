@@ -816,7 +816,8 @@ export default function Dashboard() {
       return (a.naam || '').localeCompare(b.naam || '', 'nl')
     })
 
-  // Signalen
+  // Signalen — tijdstip per mount vastzetten zodat de render puur blijft
+  const [nuTs] = useState(() => Date.now())
   const allKeys2 = ['energie', 'slaap', 'fysiek_pijn', 'fysiek_beweging', 'werkdruk', 'mentaal_focus', 'mentaal_stress', 'mentaal_balans', 'motivatie', 'sociaal_team', 'sociaal_steun', 'herstel'] as const
   type MetricKey = typeof allKeys2[number]
 
@@ -846,7 +847,7 @@ export default function Dashboard() {
       }
     }
     if (lid.laatste_checkin) {
-      const dagenGeleden = Math.floor((Date.now() - new Date(lid.laatste_checkin).getTime()) / (1000 * 60 * 60 * 24))
+      const dagenGeleden = Math.floor((nuTs - new Date(lid.laatste_checkin).getTime()) / (1000 * 60 * 60 * 24))
       if (dagenGeleden >= 14) {
         signalen.push({ lid, reden: `${dagenGeleden} dagen geen check-in`, ernst: 'matig' })
       }

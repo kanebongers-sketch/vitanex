@@ -559,7 +559,7 @@ export default function Rapport() {
             {aj?.bericht && (
               <div style={{ background: 'white', borderRadius: 16, padding: '20px 24px', border: '1px solid #E5E7EB' }}>
                 <p style={{ fontSize: 11, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>Bericht van de Coach</p>
-                <p style={{ fontSize: 14, color: '#374151', lineHeight: 1.7, fontStyle: 'italic' }}>"{aj.bericht}"</p>
+                <p style={{ fontSize: 14, color: '#374151', lineHeight: 1.7, fontStyle: 'italic' }}>&ldquo;{aj.bericht}&rdquo;</p>
               </div>
             )}
 

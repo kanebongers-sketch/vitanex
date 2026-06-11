@@ -116,7 +116,10 @@ export default function GenereerSchemaPage() {
   }
 
   useEffect(() => {
-    if (stap === 4 && !laden) startGenereren()
+    // Start de generatie buiten de synchrone effect-body; bewust alleen
+    // afhankelijk van stap — generatie hoort eenmalig te starten bij stap 4
+    if (stap === 4 && !laden) Promise.resolve().then(startGenereren)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stap])
 
   const agentLabels = [

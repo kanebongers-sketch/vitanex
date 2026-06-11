@@ -235,7 +235,7 @@ export default function DirectoryPage() {
               )
             })}
             {(zoekterm || rolFilter !== 'alle') && (
-              <p className="text-xs text-gray-400 text-center pt-2">{gefilterd.length} van {medewerkers.length} collega's</p>
+              <p className="text-xs text-gray-400 text-center pt-2">{gefilterd.length} van {medewerkers.length} collega&apos;s</p>
             )}
           </div>
         )}
