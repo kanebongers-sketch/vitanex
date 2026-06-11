@@ -75,13 +75,15 @@ const nextConfig: NextConfig = {
           ...(isProd ? [{ key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' }] : []),
         ],
       },
-      // Cache static assets aggressively
-      {
+      // Cache static assets aggressively — alleen in productie.
+      // In dev zijn Turbopack-chunknamen stabiel: immutable caching laat de
+      // browser dan voor altijd oude code serveren.
+      ...(isProd ? [{
         source: '/_next/static/(.*)',
         headers: [
           { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
         ],
-      },
+      }] : []),
     ]
   },
 }

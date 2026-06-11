@@ -4,6 +4,24 @@ Hier staat alles wat er is veranderd aan de app, in gewone taal.
 
 ---
 
+## 11 juni 2026 — Gezondheid nieuwe stijl
+
+### ✨ Gezondheidspagina volledig vernieuwd — zoals Apple Health
+De pagina Gezondheid is opnieuw ontworpen als een persoonlijk gezondheidsoverzicht:
+
+- **Mijn metingen** — een kaartje per meting (stappen, slaap, hartslag, stemming, verbranding, welzijn) met je laatste waarde, een mini-grafiekje van de afgelopen twee weken en de datum van de meting.
+- **Tik op een kaartje** voor het detailscherm: kies week, twee weken of maand, zie je gemiddelde, hoogste en laagste waarde, een volledige grafiek én uitleg over wat de meting betekent.
+- **Hoogtepunten** — de app vergelijkt automatisch deze week met vorige week ("29% meer stappen — lekker bezig!") met visuele balkjes, naast je bekende patronen.
+- **Burn-out risicometer** bovenaan, met risicofactoren als overzichtelijke labels.
+- **Ontdek meer** — snelle navigatie naar Voeding, Sport, Check-in en Koppelingen.
+
+Alles werkt op telefoon én desktop, met rustige animaties (die netjes uit gaan als je systeem "minder beweging" aan heeft staan).
+
+### 🔧 Wijzigingen kwamen soms niet aan tijdens ontwikkelen
+De app vertelde browsers om code een jaar lang te bewaren — ook tijdens het ontwikkelen, waardoor je soms oude versies bleef zien. Die regel geldt nu alleen nog voor de echte website.
+
+---
+
 ## 10 juni 2026 — beveiligingsronde
 
 ### 🔒 Wearable-koppelingen zijn nu echt veilig

@@ -128,6 +128,7 @@ export async function GET(request: Request) {
     hartslag?: number
     welzijn?: number
     stemming?: string
+    calorieen?: number
   }> = {}
 
   // Fill wearable data
@@ -137,6 +138,7 @@ export async function GET(request: Request) {
       stappen: w.stappen || undefined,
       slaap: w.slaap_minuten ? Math.round(w.slaap_minuten / 60 * 10) / 10 : undefined,
       hartslag: w.hartslag_gemiddeld || undefined,
+      calorieen: w.calorieen || undefined,
     }
   })
 
@@ -163,10 +165,10 @@ export async function GET(request: Request) {
     }
   })
 
-  // Sort by date
+  // Sort by date — 30 dagen zodat detailweergaven per periode kunnen filteren
   const trend = Object.values(trendData)
     .sort((a, b) => a.datum.localeCompare(b.datum))
-    .slice(-14)
+    .slice(-30)
 
   // Correlaties berekenen
   const correlaties: { label: string; tip: string }[] = []
