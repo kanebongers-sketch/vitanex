@@ -33,6 +33,18 @@ we gebruiken niet de Supabase CLI-migratietabel.
 | `012_handle_new_user_rol.sql` | Rol-afhandeling bij registratie |
 | `013_agent_rls_hardening.sql` | RLS-aanscherping agent-tabellen (toegepast; outreach-script gebruikt nu de service role key) |
 | `014_wearable_tokens_google_fit.sql` | Google Fit toegevoegd aan provider-constraint (toegepast) |
+| `015_security_advisories.sql` | Security advisories: checkin_status filtert nu zelf op eigen bedrijf (HR/admin), fitness_voortgang respecteert RLS, hr_code_logs alleen service role, search_path vastgezet, trigger-functies niet via RPC aanroepbaar, avatars-listing dicht (toegepast en geverifieerd) |
+
+**Bewust geaccepteerde advisor-meldingen:**
+- `checkin_status` is nog steeds SECURITY DEFINER — dat is nodig om als HR
+  check-ins van medewerkers te kunnen lezen. De view filtert sindsdien zélf
+  op `auth.uid()` (alleen HR/admin, alleen eigen bedrijf), dus de melding is
+  een vals alarm.
+- `hr_code_logs` heeft RLS aan zonder policies — bewust: alleen de service
+  role (API-routes) mag erbij.
+- "Leaked password protection disabled" — aanzetten kan alleen via het
+  dashboard: Authentication → Providers → Email → "Prevent use of leaked
+  passwords".
 
 **Nieuwe migratie toevoegen:** maak `0XX_korte_naam.sql` met het eerstvolgende
 nummer, pas hem toe in Supabase, en zet er bovenin een comment bij wat hij doet.

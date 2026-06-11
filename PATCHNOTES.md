@@ -4,6 +4,22 @@ Hier staat alles wat er is veranderd aan de app, in gewone taal.
 
 ---
 
+## 11 juni 2026 — laatste beveiligingsronde: alles dicht
+
+### 🔒 HR-overzicht lekte naar andere bedrijven — gedicht
+Het teamoverzicht (namen, laatste check-in, welzijnsscores) werd door de database aan élke ingelogde gebruiker gegeven; alleen de app filterde op bedrijf. Een handige gebruiker kon dus data van andere bedrijven opvragen. De database filtert nu zélf: alleen HR/admin ziet medewerkers, en alleen van het eigen bedrijf. Getest in beide richtingen (HR ziet wel, medewerker ziet niets, anoniem geweigerd).
+
+### 🔒 Alle overige database-waarschuwingen weggewerkt
+Van 22 security-meldingen naar 0 echte: sportvoortgang respecteert nu ieders eigen rechten, HR-code-logs zijn alleen nog server-side leesbaar, database-functies zijn vastgepind en niet meer van buitenaf aanroepbaar, en de avatars-map is niet meer doorbladerbaar. Registratie en check-ins zijn na de wijzigingen end-to-end getest — alles werkt.
+
+### ✅ Outreach-agent draait bewezen op de veilige sleutel
+De eerste geplande run na de sleutelwissel is geslaagd.
+
+### 👉 Eén klusje voor jou
+"Leaked password protection" aanzetten kan alleen handmatig: Supabase dashboard → Authentication → Providers → Email → "Prevent use of leaked passwords" aanvinken.
+
+---
+
 ## 11 juni 2026 — grote schoonmaak onder de motorkap
 
 ### 🔒 Outreach-data is nu echt afgeschermd
