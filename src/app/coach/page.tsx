@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { authFetch } from '@/lib/auth-fetch'
-import Navbar from '@/components/Navbar'
+import Navbar from '@/components/layout/Navbar'
 
 type Bericht = {
   id: string

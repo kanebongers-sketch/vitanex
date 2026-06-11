@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { authFetch } from '@/lib/auth-fetch'
-import Navbar from '@/components/Navbar'
+import Navbar from '@/components/layout/Navbar'
 
 interface Bestand { id: string; bestandsnaam: string; aangemaakt_op: string; gedeeld_met_hr: boolean; categorie: string }
 interface Rapport { id: string; type: string; titel: string; inhoud: string; aangemaakt_op: string }

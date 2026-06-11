@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
-import Navbar from '@/components/Navbar'
+import Navbar from '@/components/layout/Navbar'
 import { laadXPData, berekenLevel, LEVEL_NAMEN } from '@/lib/xp'
 
 interface WellbeingCat  { naam: string; niveau: 'goed' | 'matig' | 'laag'; samenvatting: string; tips: string[] }

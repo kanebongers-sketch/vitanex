@@ -4,7 +4,7 @@ export const dynamic = 'force-dynamic'
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import Navbar from '@/components/Navbar'
+import Navbar from '@/components/layout/Navbar'
 import { supabase } from '@/lib/supabase'
 
 type AgentFase = 'wachten' | 'bezig' | 'klaar'

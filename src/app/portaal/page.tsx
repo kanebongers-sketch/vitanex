@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
-import Navbar from '@/components/Navbar'
+import Navbar from '@/components/layout/Navbar'
 import DocumentenSectie from '@/components/DocumentenSectie'
 
 async function downloadAnalysePDF(analyse: AnalyseRecord) {

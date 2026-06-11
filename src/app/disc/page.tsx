@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { authFetch } from '@/lib/auth-fetch'
-import Navbar from '@/components/Navbar'
+import Navbar from '@/components/layout/Navbar'
 
 type Dimensie = 'D' | 'I' | 'S' | 'C'
 interface Vraag { id: number; tekst: string; dimensie: Dimensie }

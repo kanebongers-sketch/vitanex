@@ -7,7 +7,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { authFetch } from '@/lib/auth-fetch'
-import Navbar from '@/components/Navbar'
+import Navbar from '@/components/layout/Navbar'
 import nextDynamic from 'next/dynamic'
 import MetricTile from '@/components/gezondheid/MetricTile'
 import HighlightCard from '@/components/gezondheid/HighlightCard'
@@ -16,7 +16,7 @@ import {
   type MetricKey, type TrendPunt,
 } from '@/lib/gezondheid-metrics'
 
-const AiCoachCard = nextDynamic(() => import('@/components/AiCoachCard'), { ssr: false })
+const AiCoachCard = nextDynamic(() => import('@/components/gezondheid/AiCoachCard'), { ssr: false })
 const MetricDetailSheet = nextDynamic(() => import('@/components/gezondheid/MetricDetailSheet'), { ssr: false })
 
 interface Risico {

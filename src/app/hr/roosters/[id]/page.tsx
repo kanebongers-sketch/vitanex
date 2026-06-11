@@ -5,9 +5,9 @@ export const dynamic = 'force-dynamic'
 import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
-import HrShell from '@/components/HrShell'
-import WeekRoosterView from '@/components/WeekRoosterView'
-import { type Dienst } from '@/components/DienstKaart'
+import HrShell from '@/components/layout/HrShell'
+import WeekRoosterView from '@/components/rooster/WeekRoosterView'
+import { type Dienst } from '@/components/rooster/DienstKaart'
 
 type Profiel = { id: string; naam: string; afdeling?: string | null; functie?: string | null }
 type RoosterInfo = { id: string; naam: string; week_start: string }

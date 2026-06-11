@@ -6,9 +6,9 @@ import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
-import Navbar, { schakelPortaal, type ViewMode } from '@/components/Navbar'
+import Navbar, { schakelPortaal, type ViewMode } from '@/components/layout/Navbar'
 import { Avatar } from '@/components/Avatar'
-import HrCodeModal from '@/components/HrCodeModal'
+import HrCodeModal from '@/components/hr/HrCodeModal'
 
 async function cropToSquareJpeg(file: File, size: number): Promise<Blob> {
   return new Promise((resolve, reject) => {

@@ -6,9 +6,9 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
-import Navbar from '@/components/Navbar'
+import Navbar from '@/components/layout/Navbar'
 import { ALLE_TILES, DEFAULT_TILES, type TileId } from '@/lib/tiles'
-import GesprekkenTab from '@/components/GesprekkenTab'
+import GesprekkenTab from '@/components/hr/GesprekkenTab'
 
 type HrTab = 'portaal' | 'gesprekken'
 

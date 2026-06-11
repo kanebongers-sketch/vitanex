@@ -1,7 +1,7 @@
 ﻿import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import AndroidBackHandler from "@/components/AndroidBackHandler";
+import AndroidBackHandler from "@/components/layout/AndroidBackHandler";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

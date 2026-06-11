@@ -5,7 +5,7 @@ export const dynamic = 'force-dynamic'
 import React, { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
-import Navbar from '@/components/Navbar'
+import Navbar from '@/components/layout/Navbar'
 import { Suspense } from 'react'
 import { verwerkGoalLog, LEVEL_KLEUREN, LEVEL_NAMEN, type Achievement } from '@/lib/xp'
 import {

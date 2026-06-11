@@ -3,12 +3,12 @@
 import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
-import Navbar from '@/components/Navbar'
+import Navbar from '@/components/layout/Navbar'
 import Link from 'next/link'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
 import { Avatar } from '@/components/Avatar'
 import DocumentenSectie from '@/components/DocumentenSectie'
-import GesprekkenTab from '@/components/GesprekkenTab'
+import GesprekkenTab from '@/components/hr/GesprekkenTab'
 
 type TeamTab = 'vitaliteit' | 'gesprekken' | 'dossier'
 

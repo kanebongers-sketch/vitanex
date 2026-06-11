@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
-import HrShell from '@/components/HrShell'
+import HrShell from '@/components/layout/HrShell'
 
 type Rooster = {
   id: string

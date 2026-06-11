@@ -6,9 +6,9 @@ import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { supabase } from '@/lib/supabase'
-import Navbar from '@/components/Navbar'
+import Navbar from '@/components/layout/Navbar'
 import nextDynamic from 'next/dynamic'
-const AiCoachCard = nextDynamic(() => import('@/components/AiCoachCard'), { ssr: false })
+const AiCoachCard = nextDynamic(() => import('@/components/gezondheid/AiCoachCard'), { ssr: false })
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

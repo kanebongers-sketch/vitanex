@@ -5,9 +5,9 @@ export const dynamic = 'force-dynamic'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
-import Navbar from '@/components/Navbar'
-import WeekRoosterView from '@/components/WeekRoosterView'
-import DienstKaart, { type Dienst } from '@/components/DienstKaart'
+import Navbar from '@/components/layout/Navbar'
+import WeekRoosterView from '@/components/rooster/WeekRoosterView'
+import DienstKaart, { type Dienst } from '@/components/rooster/DienstKaart'
 
 function maandag(datum: Date): Date {
   const d = new Date(datum)

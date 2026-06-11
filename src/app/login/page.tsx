@@ -6,7 +6,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
-import { LogoFull } from '@/components/Logo'
+import { LogoFull } from '@/components/layout/Logo'
 
 type LoginStatus =
   | 'idle'

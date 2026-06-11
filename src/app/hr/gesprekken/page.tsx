@@ -4,8 +4,8 @@ export const dynamic = 'force-dynamic'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
-import HrShell from '@/components/HrShell'
-import GesprekkenTab from '@/components/GesprekkenTab'
+import HrShell from '@/components/layout/HrShell'
+import GesprekkenTab from '@/components/hr/GesprekkenTab'
 
 export default function HrGesprekkenPage() {
   const router = useRouter()

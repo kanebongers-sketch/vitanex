@@ -5,7 +5,7 @@ export const dynamic = 'force-dynamic'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
-import HrShell from '@/components/HrShell'
+import HrShell from '@/components/layout/HrShell'
 
 interface Medewerker { id: string; naam: string; email: string }
 interface GedeeldBestand { id: string; bestandsnaam: string; aangemaakt_op: string; categorie: string; user_id: string }

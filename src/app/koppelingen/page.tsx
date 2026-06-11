@@ -6,7 +6,7 @@ import { Suspense, useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { authFetch } from '@/lib/auth-fetch'
-import Navbar from '@/components/Navbar'
+import Navbar from '@/components/layout/Navbar'
 import { isAndroidApp, leesHealthData, vraagPermissies, type HealthData } from '@/lib/health-connect'
 
 type FitbitData = {

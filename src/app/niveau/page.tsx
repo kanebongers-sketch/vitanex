@@ -4,7 +4,7 @@ export const dynamic = 'force-dynamic'
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import Navbar from '@/components/Navbar'
+import Navbar from '@/components/layout/Navbar'
 import {
   laadXPData, pasDecayToe, slaXPOp, berekenLevel, xpVoortgang,
   LEVEL_NAMEN, LEVEL_DREMPELS, LEVEL_KLEUREN, LEVEL_BG,
