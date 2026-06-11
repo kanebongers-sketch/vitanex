@@ -34,6 +34,7 @@ we gebruiken niet de Supabase CLI-migratietabel.
 | `013_agent_rls_hardening.sql` | RLS-aanscherping agent-tabellen (toegepast; outreach-script gebruikt nu de service role key) |
 | `014_wearable_tokens_google_fit.sql` | Google Fit toegevoegd aan provider-constraint (toegepast) |
 | `015_security_advisories.sql` | Security advisories: checkin_status filtert nu zelf op eigen bedrijf (HR/admin), fitness_voortgang respecteert RLS, hr_code_logs alleen service role, search_path vastgezet, trigger-functies niet via RPC aanroepbaar, avatars-listing dicht (toegepast en geverifieerd) |
+| `016_health_logs_unique.sql` | Unieke index op health_native_logs (user_id, datum) + dedupe — basis voor idempotente wearable-sync (toegepast) |
 
 **Bewust geaccepteerde advisor-meldingen:**
 - `checkin_status` is nog steeds SECURITY DEFINER — dat is nodig om als HR

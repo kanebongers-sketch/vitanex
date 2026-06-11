@@ -4,6 +4,27 @@ Hier staat alles wat er is veranderd aan de app, in gewone taal.
 
 ---
 
+## 12 juni 2026 — Apple Watch & Google Health werken nu écht
+
+### ✨ Je wearable-data wordt eindelijk verwerkt
+Tot nu toe werden koppelingen wel opgeslagen, maar werd er nooit data opgehaald — je gezondheidspagina bleef leeg. Dat is opgelost met één pijplijn voor alle bronnen:
+- **Apple Watch / Apple Health** (iOS-app): stappen en verbranding, automatisch gesynchroniseerd
+- **Health Connect** (Android-app): stappen, slaap, hartslag én verbranding — nu 14 dagen historie in plaats van alleen vandaag
+- **Google Fit** (web): de server haalt zelf stappen, slaap, hartslag en calorieën op
+
+Bronnen vullen elkaar aan zonder elkaars data te overschrijven, en dubbele dagen kunnen niet meer ontstaan.
+
+### ✨ Nieuwe "Vandaag"-kaart op Gezondheid
+Een activiteitsring laat zien hoe ver je bent richting je stappendoel (10.000), met je verbranding, slaap en hartslag van vandaag ernaast — plus wanneer er voor het laatst is gesynchroniseerd en een "Sync nu"-knop. Synchroniseren gebeurt ook automatisch als je de pagina opent.
+
+### ✨ Detailgrafieken met referentielijnen
+Elke metriek-grafiek toont nu je gemiddelde als stippellijn, en de stappengrafiek ook je doel.
+
+### ✨ Apple Health koppelen vanuit de app
+De Koppelingen-pagina heeft een werkende Apple Health-koppeling in de iOS-app, en Health Connect stuurt na het koppelen direct twee weken historie door.
+
+---
+
 ## 11 juni 2026 — laatste beveiligingsronde: alles dicht
 
 ### 🔒 HR-overzicht lekte naar andere bedrijven — gedicht

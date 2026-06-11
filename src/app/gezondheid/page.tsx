@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic'
 
-import { Suspense, useEffect, useMemo, useState } from 'react'
+import { Suspense, useCallback, useEffect, useMemo, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
@@ -11,6 +11,8 @@ import Navbar from '@/components/layout/Navbar'
 import nextDynamic from 'next/dynamic'
 import MetricTile from '@/components/gezondheid/MetricTile'
 import HighlightCard from '@/components/gezondheid/HighlightCard'
+import VandaagHero from '@/components/gezondheid/VandaagHero'
+import { laatsteSyncInfo, syncGezondheidsdata, type LaatsteSyncInfo } from '@/lib/health-sync'
 import {
   METRICS, METRIC_VOLGORDE, berekenVergelijkingen, vatMetricSamen,
   type MetricKey, type TrendPunt,
@@ -107,21 +109,45 @@ function GezondheidInhoud() {
   const searchParams = useSearchParams()
   const [data, setData] = useState<HealthData | null>(null)
   const [loading, setLoading] = useState(true)
+  const [syncBezig, setSyncBezig] = useState(false)
+  const [syncInfo, setSyncInfo] = useState<LaatsteSyncInfo | null>(null)
 
   const metricParam = searchParams.get('metric')
   const openMetric: MetricKey | null =
     metricParam && metricParam in METRICS ? (metricParam as MetricKey) : null
 
+  const laadInsights = useCallback((): Promise<HealthData | null> =>
+    authFetch('/api/health-insights')
+      .then(r => r.json())
+      .then(d => (d?.trend ? d as HealthData : null))
+      .catch(() => null)
+  , [])
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session) { router.replace('/login'); return }
-      authFetch('/api/health-insights')
-        .then(r => r.json())
-        .then(d => setData(d?.trend ? d : null))
-        .catch(() => setData(null))
-        .finally(() => setLoading(false))
+      setSyncInfo(laatsteSyncInfo())
+      laadInsights().then(d => { setData(d); setLoading(false) })
+
+      // Stille achtergrond-sync (Apple Health / Health Connect / Google Fit),
+      // daarna de inzichten verversen met de nieuwe data
+      syncGezondheidsdata().then(uitkomst => {
+        if (!uitkomst) return
+        setSyncInfo(laatsteSyncInfo())
+        laadInsights().then(d => { if (d) setData(d) })
+      })
     })
-  }, [router])
+  }, [router, laadInsights])
+
+  function handmatigeSync() {
+    setSyncBezig(true)
+    syncGezondheidsdata({ forceer: true })
+      .then(uitkomst => {
+        setSyncInfo(laatsteSyncInfo())
+        if (uitkomst) return laadInsights().then(d => { if (d) setData(d) })
+      })
+      .finally(() => setSyncBezig(false))
+  }
 
   const trend = useMemo(() => data?.trend ?? [], [data])
 
@@ -191,7 +217,11 @@ function GezondheidInhoud() {
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 26 }}>
 
-          <div className="gz-sectie" style={{ animationDelay: '0.05s' }}>
+          <div className="gz-sectie" style={{ animationDelay: '0.02s' }}>
+            <VandaagHero trend={trend} syncInfo={syncInfo} syncBezig={syncBezig} onSync={handmatigeSync} />
+          </div>
+
+          <div className="gz-sectie" style={{ animationDelay: '0.08s' }}>
             <RisicoRing risico={data.risico} />
           </div>
 

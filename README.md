@@ -80,6 +80,25 @@ Productie-build checken: `npm run build` · Lint: `npm run lint`
 | `USDA_API_KEY` | Voedingsdatabase-zoekfunctie |
 | `INTERNAL_API_KEY` | Interne beheer-endpoints |
 
+## Gezondheidsdata (wearables)
+
+Eén pijplijn voor alle bronnen, opgeslagen in `health_native_logs` (één rij
+per gebruiker per dag, bronnen overschrijven elkaars velden niet):
+
+| Platform | Bron | Route |
+|---|---|---|
+| iOS-app | Apple Health / Apple Watch (`capacitor-health`) | client leest 14 dagen → `POST /api/health/sync` |
+| Android-app | Health Connect (`@devmaxime/capacitor-health-connect`) | client leest 14 dagen → `POST /api/health/sync` |
+| Web | Google Fit REST API | server haalt zelf op via `POST /api/google-fit/sync` |
+
+De Gezondheid-pagina synct automatisch bij openen (max. elke 30 min) en heeft
+een "Sync nu"-knop. Parsers en merge-logica staan in `src/lib/google-fit-parser.ts`
+en `src/lib/health-data.ts` (volledig unit-getest).
+
+**iOS eenmalig instellen (Xcode, vereist macOS):** open `npm run cap:ios`,
+voeg onder *Signing & Capabilities* de **HealthKit**-capability toe.
+De `NSHealthShareUsageDescription` staat al in `Info.plist`.
+
 ## Mobiel (Capacitor)
 
 ```bash

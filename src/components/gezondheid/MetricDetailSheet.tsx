@@ -8,7 +8,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
   BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip,
-  ResponsiveContainer, CartesianGrid,
+  ResponsiveContainer, CartesianGrid, ReferenceLine,
 } from 'recharts'
 import {
   METRICS, STEMMING_INFO, dagKort, metricWaarde,
@@ -200,6 +200,12 @@ export default function MetricDetailSheet({ metricKey, trend, onClose }: MetricD
                       <XAxis dataKey="dagLabel" tick={{ fontSize: 10, fill: '#9CA3AF' }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
                       <YAxis tick={{ fontSize: 10, fill: '#9CA3AF' }} axisLine={false} tickLine={false} width={42} domain={cfg.domein} />
                       <Tooltip content={<GrafiekTooltip eenheid={cfg.eenheid} />} cursor={{ fill: 'rgba(0,0,0,0.04)' }} />
+                      {metricKey === 'stappen' && (
+                        <ReferenceLine y={10000} stroke="#9CA3AF" strokeDasharray="6 4" label={{ value: 'Doel', position: 'insideTopRight', fontSize: 10, fill: '#9CA3AF' }} />
+                      )}
+                      {stats && (
+                        <ReferenceLine y={stats.gemiddeld} stroke={cfg.kleur} strokeOpacity={0.45} strokeDasharray="4 4" label={{ value: 'Gem.', position: 'insideTopLeft', fontSize: 10, fill: cfg.kleur }} />
+                      )}
                       <Bar dataKey="waarde" fill={cfg.kleur} radius={[5, 5, 0, 0]} />
                     </BarChart>
                   ) : (
@@ -208,6 +214,9 @@ export default function MetricDetailSheet({ metricKey, trend, onClose }: MetricD
                       <XAxis dataKey="dagLabel" tick={{ fontSize: 10, fill: '#9CA3AF' }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
                       <YAxis tick={{ fontSize: 10, fill: '#9CA3AF' }} axisLine={false} tickLine={false} width={36} domain={cfg.domein} />
                       <Tooltip content={<GrafiekTooltip eenheid={cfg.eenheid} />} />
+                      {stats && metricKey !== 'stemming' && (
+                        <ReferenceLine y={stats.gemiddeld} stroke={cfg.kleur} strokeOpacity={0.45} strokeDasharray="4 4" label={{ value: 'Gem.', position: 'insideTopLeft', fontSize: 10, fill: cfg.kleur }} />
+                      )}
                       <Line dataKey="waarde" stroke={cfg.kleur} strokeWidth={2.5} dot={{ r: 3.5, fill: cfg.kleur, strokeWidth: 0 }} connectNulls />
                     </LineChart>
                   )}

@@ -56,6 +56,11 @@
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>MentaForce slaat documenten op in je fotobibliotheek.</string>
 
+	<!-- Apple Health (HealthKit) — vereist voor de Apple Watch-koppeling.
+	     Let op: zet ook de HealthKit-capability aan in Xcode (Signing & Capabilities). -->
+	<key>NSHealthShareUsageDescription</key>
+	<string>MentaForce leest je stappen en verbranding uit Apple Health om je gezondheidsoverzicht en burn-out inzichten te vullen.</string>
+
 	<!-- Push notificaties -->
 	<key>UIBackgroundModes</key>
 	<array>

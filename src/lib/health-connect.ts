@@ -4,6 +4,7 @@
  */
 
 import { Capacitor } from '@capacitor/core'
+import { datumInNL, type DagMeting } from './health-data'
 
 // Lazy-load de plugin zodat de web build niet breekt
 async function getPlugin() {
@@ -147,3 +148,55 @@ export async function leesHealthData(): Promise<HealthData> {
 
 export const isAndroidApp = () =>
   Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'android'
+
+/**
+ * Lees de afgelopen N dagen uit Health Connect als dagmetingen,
+ * klaar om naar /api/health/sync te sturen.
+ */
+export async function leesHealthBereik(dagenTerug: number): Promise<DagMeting[]> {
+  const plugin = await getPlugin()
+  if (!plugin) return []
+
+  const eind = new Date()
+  const start = new Date(eind.getTime() - dagenTerug * 86400000)
+  start.setHours(0, 0, 0, 0)
+
+  const [stappen, calorieen, hartslag, slaap] = await Promise.allSettled([
+    plugin.aggregateRecords({ start: start.toISOString(), end: eind.toISOString(), type: 'Steps', groupBy: 'day' }),
+    plugin.aggregateRecords({ start: start.toISOString(), end: eind.toISOString(), type: 'ActiveCaloriesBurned', groupBy: 'day' }),
+    plugin.aggregateRecords({ start: start.toISOString(), end: eind.toISOString(), type: 'HeartRate', groupBy: 'day' }),
+    plugin.readRecords({ start: start.toISOString(), end: eind.toISOString(), type: 'SleepSession' }),
+  ])
+
+  const perDatum = new Map<string, DagMeting>()
+  const meting = (datum: string): DagMeting => {
+    const bestaand = perDatum.get(datum) ?? { datum }
+    perDatum.set(datum, bestaand)
+    return bestaand
+  }
+
+  const verwerk = (
+    resultaat: PromiseSettledResult<{ aggregates: { startTime: string; value: number }[] }>,
+    veld: 'stappen' | 'calorieen' | 'hartslag'
+  ) => {
+    if (resultaat.status !== 'fulfilled') return
+    for (const a of resultaat.value?.aggregates ?? []) {
+      if (a.value === null || a.value === undefined) continue
+      meting(datumInNL(new Date(a.startTime)))[veld] = Math.round(a.value)
+    }
+  }
+  verwerk(stappen, 'stappen')
+  verwerk(calorieen, 'calorieen')
+  verwerk(hartslag, 'hartslag')
+
+  if (slaap.status === 'fulfilled') {
+    for (const r of (slaap.value?.records ?? []) as { startTime: string; endTime: string }[]) {
+      const duur = (new Date(r.endTime).getTime() - new Date(r.startTime).getTime()) / 60000
+      if (duur <= 0) continue
+      const m = meting(datumInNL(new Date(r.endTime)))
+      m.slaapMinuten = (m.slaapMinuten ?? 0) + Math.round(duur)
+    }
+  }
+
+  return [...perDatum.values()].sort((a, b) => a.datum.localeCompare(b.datum))
+}

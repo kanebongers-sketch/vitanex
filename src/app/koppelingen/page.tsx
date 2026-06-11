@@ -8,6 +8,8 @@ import { supabase } from '@/lib/supabase'
 import { authFetch } from '@/lib/auth-fetch'
 import Navbar from '@/components/layout/Navbar'
 import { isAndroidApp, leesHealthData, vraagPermissies, type HealthData } from '@/lib/health-connect'
+import { isIosApp, vraagAppleHealthPermissies } from '@/lib/apple-health'
+import { syncGezondheidsdata } from '@/lib/health-sync'
 
 type FitbitData = {
   stappen: number | null
@@ -54,6 +56,10 @@ function KoppelingenInhoud() {
   const [toast, setToast] = useState<{ type: 'success' | 'error'; tekst: string } | null>(null)
 
   const [isAndroid, setIsAndroid] = useState(false)
+  const [isIos, setIsIos] = useState(false)
+  const [ahVerbonden, setAhVerbonden] = useState(false)
+  const [ahLaden, setAhLaden] = useState(false)
+  const [fitSyncBezig, setFitSyncBezig] = useState(false)
   const [hcData, setHcData] = useState<HealthData | null>(null)
   const [hcVerbonden, setHcVerbonden] = useState(false)
   const [hcLaden, setHcLaden] = useState(false)
@@ -118,6 +124,8 @@ function KoppelingenInhoud() {
       // Health Connect (alleen Android app)
       const android = isAndroidApp()
       setIsAndroid(android)
+      setIsIos(isIosApp())
+      try { setAhVerbonden(localStorage.getItem('mf-apple-health-verbonden') === '1') } catch { /* ok */ }
       if (android) {
         setHcLaden(true)
         leesHealthData()
@@ -224,6 +232,9 @@ function KoppelingenInhoud() {
                       const d = await leesHealthData()
                       setHcData(d)
                       setHcVerbonden(true)
+                      // Stuur direct 14 dagen historie naar je gezondheidslog
+                      const uitkomst = await syncGezondheidsdata({ forceer: true })
+                      if (uitkomst) setToast({ type: 'success', tekst: `${uitkomst.opgeslagen} dagen gesynchroniseerd!` })
                     }
                     setHcLaden(false)
                   }}
@@ -301,7 +312,22 @@ function KoppelingenInhoud() {
               </div>
             </div>
             {fitVerbonden ? (
-              <button onClick={() => ontkoppel('google_fit')} className="text-xs text-red-400 hover:text-red-600 transition font-medium">Ontkoppelen</button>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => {
+                    setFitSyncBezig(true)
+                    syncGezondheidsdata({ forceer: true })
+                      .then(u => setToast(u
+                        ? { type: 'success', tekst: `${u.opgeslagen} dagen gesynchroniseerd!` }
+                        : { type: 'error', tekst: 'Synchroniseren mislukt' }))
+                      .finally(() => setFitSyncBezig(false))
+                  }}
+                  disabled={fitSyncBezig}
+                  className="text-xs font-semibold px-3 py-1.5 rounded-lg text-white disabled:opacity-50"
+                  style={{ background: '#1D9E75' }}
+                >{fitSyncBezig ? 'Bezig…' : '↻ Sync nu'}</button>
+                <button onClick={() => ontkoppel('google_fit')} className="text-xs text-red-400 hover:text-red-600 transition font-medium">Ontkoppelen</button>
+              </div>
             ) : (
               <button onClick={() => startKoppeling('google-fit')} className="text-xs font-semibold px-4 py-2 rounded-xl text-white" style={{ background: '#EA4335' }}>Koppelen</button>
             )}
@@ -384,16 +410,50 @@ function KoppelingenInhoud() {
           <p className="text-xs text-gray-400 mt-3">Outlook agenda-integratie via Microsoft Graph API — binnenkort beschikbaar.</p>
         </div>
 
-        {/* Apple Health */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-5 mb-4 opacity-60" style={{ boxShadow: 'var(--shadow-sm)' }}>
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl" style={{ background: '#FF2D55' }}>🍎</div>
-            <div className="flex-1">
-              <p className="text-sm font-semibold text-gray-900">Apple Health</p>
-              <span className="text-xs bg-pink-50 text-pink-500 font-semibold px-2 py-0.5 rounded-full">iOS app vereist</span>
+        {/* Apple Health — actief in de iOS-app, informatief daarbuiten */}
+        <div className={`bg-white rounded-2xl border border-gray-100 p-5 mb-4 ${isIos ? '' : 'opacity-60'}`} style={{ boxShadow: 'var(--shadow-sm)' }}>
+          <div className="flex items-start justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl" style={{ background: '#FF2D55' }}>🍎</div>
+              <div>
+                <p className="text-sm font-semibold text-gray-900">Apple Health</p>
+                <p className="text-xs text-gray-400">Apple Watch · iPhone</p>
+                {isIos ? (
+                  <StatusBadge connected={ahVerbonden} />
+                ) : (
+                  <span className="text-xs bg-pink-50 text-pink-500 font-semibold px-2 py-0.5 rounded-full">iOS app vereist</span>
+                )}
+              </div>
             </div>
+            {isIos && !ahVerbonden && (
+              <button
+                onClick={async () => {
+                  setAhLaden(true)
+                  const ok = await vraagAppleHealthPermissies()
+                  if (ok) {
+                    const uitkomst = await syncGezondheidsdata({ forceer: true })
+                    setAhVerbonden(true)
+                    try { localStorage.setItem('mf-apple-health-verbonden', '1') } catch { /* ok */ }
+                    setToast({ type: 'success', tekst: uitkomst ? `Apple Health gekoppeld — ${uitkomst.opgeslagen} dagen gesynchroniseerd!` : 'Apple Health gekoppeld!' })
+                  } else {
+                    setToast({ type: 'error', tekst: 'Geen toegang tot Apple Health' })
+                  }
+                  setAhLaden(false)
+                }}
+                className="text-xs font-semibold px-4 py-2 rounded-xl text-white"
+                style={{ background: '#FF2D55' }}
+              >
+                {ahLaden ? 'Bezig…' : 'Koppelen'}
+              </button>
+            )}
           </div>
-          <p className="text-xs text-gray-400 mt-3">Apple Health koppeling is beschikbaar via de MentaForce iOS-app (HealthKit).</p>
+          <p className="text-xs text-gray-400 mt-3">
+            {isIos
+              ? ahVerbonden
+                ? '✓ Stappen en verbranding van je Apple Watch worden automatisch gesynchroniseerd.'
+                : 'Koppel Apple Health om stappen en verbranding van je Apple Watch automatisch mee te nemen.'
+              : 'Apple Health koppeling is beschikbaar via de MentaForce iOS-app (HealthKit).'}
+          </p>
         </div>
 
         {/* Admin info */}
