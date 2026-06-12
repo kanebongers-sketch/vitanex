@@ -33,9 +33,8 @@ export default function Setup() {
     if (!mgmtToken.trim()) return
     setStap('bezig')
 
-    // Sla token tijdelijk op en roep init-route aan
-
-    // Eerst token instellen via env kan niet client-side, gebruik directe fetch
+    // Init-route aanroepen met het Bearer-token van de ingelogde admin
+    const { data: { session } } = await supabase.auth.getSession()
     const res = await fetch('/api/init-documenten-direct', {
       method: 'POST',
       headers: {
