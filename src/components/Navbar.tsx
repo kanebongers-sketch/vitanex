@@ -277,6 +277,8 @@ export default function Navbar() {
         { href: '/checkin',   label: 'Check-in',        icon: I.check },
         { href: '/rapport',   label: 'Mijn rapport',    icon: I.rapport },
         { href: '/inzichten', label: 'Wekelijkse inzichten', icon: <Ico d={['M9 19v-6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2zm0 0V9a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v10m-6 0a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2m0 0V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2z']} /> },
+        { href: '/voortgang',          label: 'Voortgang & stats',    icon: <Ico d={['M18 20V10','M12 20V4','M6 20v-6']} /> },
+        { href: '/checkin/geschiedenis', label: 'Check-in geschiedenis', icon: <Ico d="M12 8v4l3 3m6-3a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" /> },
       ],
     },
     {
@@ -296,8 +298,10 @@ export default function Navbar() {
     {
       label: 'Zelfzorg',
       items: [
-        { href: '/journal',          label: 'Journal',           icon: I.journal },
+        { href: '/journal',          label: 'Journal',             icon: I.journal },
+        { href: '/reflectie',        label: 'Wekelijkse reflectie', icon: <Ico d={['M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7','M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z']} /> },
         { href: '/focus',            label: 'Focus',             icon: I.focus },
+        { href: '/pomodoro',         label: 'Pomodoro timer',    icon: <Ico d="M12 8v4l3 3m6-3a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" /> },
         { href: '/stress',    label: 'Stress',     icon: <Ico d={['M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z','M8 15s1.5 2 4 2 4-2 4-2','M9 9h.01M15 9h.01']} /> },
         { href: '/slaap',     label: 'Slaap',      icon: <Ico d={['M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z']} /> },
         { href: '/meditatie', label: 'Meditatie',   icon: <Ico d={['M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z','M12 8v4','M12 16h.01']} /> },
@@ -328,9 +332,10 @@ export default function Navbar() {
     {
       label: 'Overzicht',
       items: [
-        { href: '/hr',        label: 'Dashboard',   icon: I.dash, exact: true },
-        { href: '/dashboard', label: 'HR Analytics', icon: I.chart },
-        { href: '/team',      label: 'Team',         icon: I.team },
+        { href: '/hr',           label: 'Dashboard',       icon: I.dash, exact: true },
+        { href: '/dashboard',    label: 'HR Analytics',    icon: I.chart },
+        { href: '/team',         label: 'Team',            icon: I.team },
+        { href: '/hr/team',      label: 'Welzijn team',    icon: <Ico d={['M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2','M23 21v-2a4 4 0 0 0-3-3.87','M16 3.13a4 4 0 0 1 0 7.75']} /> },
       ],
     },
     {

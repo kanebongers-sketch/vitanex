@@ -14,6 +14,14 @@ import {
   scoreKleur, scoreLabel,
 } from '@/lib/weekdoelen'
 import { CAT } from '@/lib/doelen-config'
+import { authFetch } from '@/lib/auth-fetch'
+
+type DoelenAdvies = { domein: string; doel: string; waarom: string }
+
+const DOMEIN_KLEUR: Record<string, string> = {
+  slaap: '#6366f1', stress: '#E24B4A', energie: '#F59E0B',
+  focus: '#1D9E75', balans: '#8B5CF6', motivatie: '#EC4899',
+}
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
@@ -29,6 +37,24 @@ function DoelenInhoud() {
   // XP toast
   const [xpToast, setXpToast]     = useState<{ xp: number; level?: number; achievements: Achievement[] } | null>(null)
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // AI doelen-advies
+  const [adviezen, setAdviezen] = useState<DoelenAdvies[] | null>(null)
+  const [adviesBezig, setAdviesBezig] = useState(false)
+
+  async function laadAdviezen() {
+    if (adviesBezig) return
+    setAdviesBezig(true)
+    try {
+      const res = await authFetch('/api/doelen-advies')
+      if (res.ok) {
+        const data = await res.json() as { adviezen: DoelenAdvies[] }
+        setAdviezen(data.adviezen ?? [])
+      }
+    } catch { /* stil */ } finally {
+      setAdviesBezig(false)
+    }
+  }
 
   useEffect(() => {
     async function check() {
@@ -199,6 +225,72 @@ function DoelenInhoud() {
             </div>
           </div>
         )}
+
+        {/* AI Doelen-advies */}
+        <div style={{ background: 'white', borderRadius: 16, border: '1px solid #E5E7EB', padding: '18px 22px', marginBottom: 20 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ width: 28, height: 28, borderRadius: 8, background: '#EEEDFE', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/>
+                </svg>
+              </div>
+              <p style={{ fontSize: 13, fontWeight: 700, color: '#374151' }}>AI Weekdoel-suggesties</p>
+            </div>
+            {!adviezen && (
+              <button
+                onClick={laadAdviezen}
+                disabled={adviesBezig}
+                style={{
+                  fontSize: 12, fontWeight: 600, padding: '6px 14px', borderRadius: 8,
+                  background: '#8B5CF6', color: 'white', border: 'none', cursor: 'pointer',
+                  opacity: adviesBezig ? 0.6 : 1,
+                }}
+              >
+                {adviesBezig ? 'Laden...' : 'Genereer suggesties'}
+              </button>
+            )}
+            {adviezen && (
+              <button onClick={() => setAdviezen(null)} style={{ fontSize: 11, color: '#9CA3AF', background: 'none', border: 'none', cursor: 'pointer' }}>
+                Verbergen
+              </button>
+            )}
+          </div>
+
+          {!adviezen && !adviesBezig && (
+            <p style={{ fontSize: 12, color: '#9CA3AF', lineHeight: 1.5 }}>
+              Laat de AI 3 concrete weekdoelen voorstellen op basis van jouw laagste scores en burnout-risico.
+            </p>
+          )}
+
+          {adviesBezig && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, paddingTop: 4 }}>
+              <div className="mf-spinner" style={{ width: 16, height: 16 }} />
+              <p style={{ fontSize: 12, color: '#9CA3AF' }}>AI analyseert jouw data...</p>
+            </div>
+          )}
+
+          {adviezen && adviezen.length > 0 && (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
+              {adviezen.map((a, i) => {
+                const kleur = DOMEIN_KLEUR[a.domein] ?? '#6366f1'
+                return (
+                  <div key={i} style={{ borderRadius: 12, padding: '12px 14px', background: `${kleur}0A`, border: `1px solid ${kleur}30` }}>
+                    <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: kleur }}>
+                      {a.domein}
+                    </span>
+                    <p style={{ fontSize: 12, fontWeight: 600, color: '#111827', margin: '4px 0 6px', lineHeight: 1.4 }}>{a.doel}</p>
+                    <p style={{ fontSize: 11, color: '#6B7280', lineHeight: 1.4 }}>{a.waarom}</p>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+
+          {adviezen && adviezen.length === 0 && (
+            <p style={{ fontSize: 12, color: '#9CA3AF' }}>Geen suggesties beschikbaar. Doe eerst een check-in.</p>
+          )}
+        </div>
 
         {/* 3 doelkaarten */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 20 }}>

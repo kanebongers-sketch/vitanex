@@ -17,6 +17,7 @@ import MicroLearning from '@/components/MicroLearning'
 import BurnoutPredictorWidget from '@/components/BurnoutPredictorWidget'
 import ENPSWidget from '@/components/ENPSWidget'
 import WellbeingSnapshot from '@/components/WellbeingSnapshot'
+import DagelijksNudge from '@/components/DagelijksNudge'
 
 // Domain codes — sum of these 4 scale questions = 4-20 per domain
 const DOMEIN_CODES: Record<string, string[]> = {
@@ -516,6 +517,7 @@ export default function HomePage() {
 
         {/* ── WELLBEING SNAPSHOT (afgelopen 7 dagen) ── */}
         <WellbeingSnapshot />
+        <DagelijksNudge />
 
         {/* ── DAGELIJKSE PULSE ── */}
         {userId && (

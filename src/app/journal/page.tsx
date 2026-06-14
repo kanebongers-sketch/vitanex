@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/Navbar'
+import { authFetch } from '@/lib/auth-fetch'
 
 type Entry = {
   id: string
@@ -62,6 +63,8 @@ export default function JournalPagina() {
   const [opslaan, setOpslaan] = useState(false)
   const [userId, setUserId] = useState<string | null>(null)
   const [uitgevouwen, setUitgevouwen] = useState<string | null>(null)
+  const [aiPrompt, setAiPrompt] = useState<string | null>(null)
+  const [aiPromptLaden, setAiPromptLaden] = useState(false)
 
   useEffect(() => {
     async function laad() {
@@ -133,6 +136,39 @@ export default function JournalPagina() {
         {/* Nieuw entry form */}
         {nieuwTonen && (
           <div style={{ background: 'white', borderRadius: 20, border: '1px solid #E5E7EB', padding: '24px', marginBottom: 20 }}>
+
+            {/* AI Prompt */}
+            <div style={{ background: '#F8F7FF', borderRadius: 12, padding: '12px 16px', marginBottom: 18, border: '1px solid #DDD6FE' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: aiPrompt ? 8 : 0 }}>
+                <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#8B5CF6' }}>AI reflectievraag</p>
+                <button
+                  onClick={async () => {
+                    setAiPromptLaden(true)
+                    try {
+                      const res = await authFetch('/api/journal/ai-prompt')
+                      if (res.ok) {
+                        const d = await res.json() as { prompt: string | null }
+                        setAiPrompt(d.prompt)
+                      }
+                    } catch { /* stil */ } finally {
+                      setAiPromptLaden(false)
+                    }
+                  }}
+                  disabled={aiPromptLaden}
+                  style={{ fontSize: 11, fontWeight: 600, color: '#8B5CF6', background: 'none', border: 'none', cursor: 'pointer', opacity: aiPromptLaden ? 0.5 : 1 }}
+                >
+                  {aiPromptLaden ? 'Laden...' : aiPrompt ? '↻ Nieuw' : 'Genereer →'}
+                </button>
+              </div>
+              {aiPrompt && (
+                <button
+                  onClick={() => setTekst(prev => prev ? `${prev}\n\n${aiPrompt}\n` : `${aiPrompt}\n`)}
+                  style={{ fontSize: 13, color: '#5B21B6', background: 'none', border: 'none', cursor: 'pointer', padding: 0, textAlign: 'left', lineHeight: 1.5, fontStyle: 'italic' }}
+                >
+                  "{aiPrompt}" →
+                </button>
+              )}
+            </div>
 
             {/* Stemming picker */}
             <p style={{ fontSize: 12, fontWeight: 600, color: '#9CA3AF', marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Hoe voel je je?</p>
