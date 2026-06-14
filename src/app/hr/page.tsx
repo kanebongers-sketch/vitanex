@@ -28,6 +28,15 @@ export default function HrDashboardPage() {
   const [stats, setStats] = useState({ medewerkers: 0, checkins: 0, gemScore: 0 })
   const [discVerplicht, setDiscVerplicht] = useState(false)
   const [discBezig, setDiscBezig] = useState(false)
+  const [analytics, setAnalytics] = useState<{
+    burnout_distributie?: { laag: number; matig: number; hoog: number }
+    enps_score?: number | null
+    enps_responses?: number
+    werkgeluk_gemiddeld?: number | null
+    psych_veiligheid_gemiddeld?: number | null
+    top_burnout_factoren?: { factor: string; count: number }[]
+    participatie_pct?: number
+  } | null>(null)
 
   useEffect(() => {
     async function laad() {
@@ -78,6 +87,20 @@ export default function HrDashboardPage() {
         ? Math.round(scores.reduce((s, c) => s + (c.energie + c.slaap + c.mentaal_focus + c.mentaal_balans + c.motivatie) / 5, 0) / scores.length * 20)
         : 0
       setStats({ medewerkers: medCount ?? 0, checkins: ciCount ?? 0, gemScore })
+
+      // Analytics (non-blocking)
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        if (session?.access_token) {
+          const res = await fetch('/api/hr/analytics', {
+            headers: { authorization: `Bearer ${session.access_token}` },
+          })
+          if (res.ok) {
+            const json = await res.json()
+            setAnalytics(json)
+          }
+        }
+      } catch { /* niet-kritiek */ }
 
       setGeladen(true)
     }
@@ -190,6 +213,98 @@ export default function HrDashboardPage() {
             </div>
           ))}
         </div>
+
+        {/* ── ANALYTICS SECTIE ── */}
+        {analytics && (
+          <div style={{ marginBottom: 32 }}>
+            <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#9CA3AF', marginBottom: 12 }}>
+              Team welzijn analyse (afgelopen 4 weken)
+            </p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
+
+              {/* Burn-out risico */}
+              {analytics.burnout_distributie && (
+                <div style={{ background: 'white', borderRadius: 14, padding: '16px', border: '1px solid #E5E7EB' }}>
+                  <p style={{ fontSize: 11, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 12 }}>Burn-out risico</p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    {[
+                      { label: 'Laag', count: analytics.burnout_distributie.laag, kleur: '#1D9E75' },
+                      { label: 'Matig', count: analytics.burnout_distributie.matig, kleur: '#F59E0B' },
+                      { label: 'Hoog', count: analytics.burnout_distributie.hoog, kleur: '#EF4444' },
+                    ].map(b => {
+                      const totaal = analytics.burnout_distributie!.laag + analytics.burnout_distributie!.matig + analytics.burnout_distributie!.hoog
+                      const pct = totaal > 0 ? Math.round((b.count / totaal) * 100) : 0
+                      return (
+                        <div key={b.label}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 2 }}>
+                            <span style={{ fontSize: 11, color: '#374151' }}>{b.label}</span>
+                            <span style={{ fontSize: 11, fontWeight: 700, color: b.kleur }}>{b.count} ({pct}%)</span>
+                          </div>
+                          <div style={{ height: 4, borderRadius: 9999, background: '#F3F4F6', overflow: 'hidden' }}>
+                            <div style={{ height: '100%', borderRadius: 9999, background: b.kleur, width: `${pct}%` }} />
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* eNPS */}
+              {analytics.enps_score !== null && analytics.enps_score !== undefined && (
+                <div style={{ background: 'white', borderRadius: 14, padding: '16px', border: '1px solid #E5E7EB' }}>
+                  <p style={{ fontSize: 11, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>eNPS score</p>
+                  <p style={{ fontSize: 32, fontWeight: 800, color: analytics.enps_score >= 30 ? '#1D9E75' : analytics.enps_score >= 0 ? '#F59E0B' : '#EF4444', lineHeight: 1, marginBottom: 4 }}>
+                    {analytics.enps_score > 0 ? '+' : ''}{analytics.enps_score}
+                  </p>
+                  <p style={{ fontSize: 11, color: '#9CA3AF' }}>{analytics.enps_responses} responses</p>
+                  <p style={{ fontSize: 11, color: '#6B7280', marginTop: 6 }}>
+                    {analytics.enps_score >= 30 ? 'Uitstekend!' : analytics.enps_score >= 0 ? 'Verbetering mogelijk' : 'Actie vereist'}
+                  </p>
+                </div>
+              )}
+
+              {/* Werkgeluk */}
+              {analytics.werkgeluk_gemiddeld !== null && analytics.werkgeluk_gemiddeld !== undefined && (
+                <div style={{ background: 'white', borderRadius: 14, padding: '16px', border: '1px solid #E5E7EB' }}>
+                  <p style={{ fontSize: 11, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>Werkgeluk</p>
+                  <p style={{ fontSize: 32, fontWeight: 800, color: analytics.werkgeluk_gemiddeld >= 4 ? '#1D9E75' : analytics.werkgeluk_gemiddeld >= 3 ? '#F59E0B' : '#EF4444', lineHeight: 1, marginBottom: 4 }}>
+                    {analytics.werkgeluk_gemiddeld}/5
+                  </p>
+                  <p style={{ fontSize: 11, color: '#9CA3AF' }}>Gemiddeld team</p>
+                </div>
+              )}
+
+              {/* Psych veiligheid */}
+              {analytics.psych_veiligheid_gemiddeld !== null && analytics.psych_veiligheid_gemiddeld !== undefined && (
+                <div style={{ background: 'white', borderRadius: 14, padding: '16px', border: '1px solid #E5E7EB' }}>
+                  <p style={{ fontSize: 11, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>Psych. veiligheid</p>
+                  <p style={{ fontSize: 32, fontWeight: 800, color: analytics.psych_veiligheid_gemiddeld >= 4 ? '#1D9E75' : analytics.psych_veiligheid_gemiddeld >= 3 ? '#F59E0B' : '#EF4444', lineHeight: 1, marginBottom: 4 }}>
+                    {analytics.psych_veiligheid_gemiddeld}/5
+                  </p>
+                  <p style={{ fontSize: 11, color: '#9CA3AF' }}>Gemiddeld team</p>
+                </div>
+              )}
+
+              {/* Top burnout factoren */}
+              {analytics.top_burnout_factoren?.length ? (
+                <div style={{ background: 'white', borderRadius: 14, padding: '16px', border: '1px solid #E5E7EB' }}>
+                  <p style={{ fontSize: 11, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 10 }}>Top aandachtspunten</p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    {analytics.top_burnout_factoren.map((f, i) => (
+                      <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span style={{ fontSize: 12, fontWeight: 700, color: '#9CA3AF', minWidth: 16 }}>{i + 1}.</span>
+                        <span style={{ fontSize: 12, color: '#374151', fontWeight: 600, textTransform: 'capitalize' }}>{f.factor}</span>
+                        <span style={{ fontSize: 10, color: '#9CA3AF', marginLeft: 'auto' }}>{f.count}×</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
+            </div>
+          </div>
+        )}
 
         {/* ── PORTAAL INRICHTEN ── */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 24, alignItems: 'start' }}>

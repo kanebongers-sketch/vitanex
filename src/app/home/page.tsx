@@ -12,6 +12,11 @@ import MoodPulse from '@/components/MoodPulse'
 import { laadXPData, pasDecayToe, berekenLevel, xpVoortgang, LEVEL_NAMEN, LEVEL_KLEUREN, LEVEL_BG, type XPData } from '@/lib/xp'
 import { laadWeekSelectie, vandaag as weekVandaag, type WeekSelectie } from '@/lib/weekdoelen'
 import { CAT } from '@/lib/doelen-config'
+import RadarChart from '@/components/RadarChart'
+import MicroLearning from '@/components/MicroLearning'
+import BurnoutPredictorWidget from '@/components/BurnoutPredictorWidget'
+import ENPSWidget from '@/components/ENPSWidget'
+import WellbeingSnapshot from '@/components/WellbeingSnapshot'
 
 // Domain codes — sum of these 4 scale questions = 4-20 per domain
 const DOMEIN_CODES: Record<string, string[]> = {
@@ -164,6 +169,7 @@ export default function HomePage() {
   const [weekSelectie, setWeekSelectie] = useState<WeekSelectie | null>(null)
   const [aiSamenvatting, setAiSamenvatting] = useState<string | null>(null)
   const [discProfiel, setDiscProfiel]       = useState<{ primair: string } | null>(null)
+  const [nieuweAchievements, setNieuweAchievements] = useState<{ naam: string; icon: string }[]>([])
 
   useEffect(() => {
     async function laad() {
@@ -256,6 +262,15 @@ export default function HomePage() {
           .limit(1)
           .maybeSingle()
         if (disc?.primair) setDiscProfiel({ primair: disc.primair as string })
+      } catch { /* ok */ }
+
+      // Achievement check (bonus, non-blocking)
+      try {
+        const res = await fetch('/api/achievements/check', { method: 'POST' })
+        if (res.ok) {
+          const json = await res.json() as { nieuw: { naam: string; icon: string }[] }
+          if (json.nieuw?.length) setNieuweAchievements(json.nieuw)
+        }
       } catch { /* ok */ }
     }
     laad()
@@ -499,6 +514,9 @@ export default function HomePage() {
           )}
         </div>
 
+        {/* ── WELLBEING SNAPSHOT (afgelopen 7 dagen) ── */}
+        <WellbeingSnapshot />
+
         {/* ── DAGELIJKSE PULSE ── */}
         {userId && (
           <div style={{ marginBottom: 20 }}>
@@ -559,6 +577,47 @@ export default function HomePage() {
           </div>
         </div>
 
+        {/* ── RADAR CHART + MICRO-LEARNING ── */}
+        {vlakScores && Object.values(vlakScores).some(v => v > 0) && (() => {
+          const laagste = Object.entries(vlakScores)
+            .filter(([, v]) => v > 0)
+            .sort(([, a], [, b]) => a - b)[0]
+          return (
+            <div style={{ marginBottom: 20, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, alignItems: 'start' }}>
+              <div style={{ background: 'white', borderRadius: 14, padding: '16px 12px', border: '1px solid #E5E7EB', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+                <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: '#9CA3AF', alignSelf: 'flex-start', marginBottom: 8 }}>
+                  Radaroverzicht
+                </p>
+                <RadarChart scores={vlakScores} size={180} />
+              </div>
+              {laagste && (
+                <MicroLearning domein={laagste[0]} score={laagste[1]} />
+              )}
+            </div>
+          )
+        })()}
+
+        {/* ── NIEUWE ACHIEVEMENTS ── */}
+        {nieuweAchievements.length > 0 && (
+          <div style={{ marginBottom: 20 }}>
+            {nieuweAchievements.map((a, i) => (
+              <div key={i} style={{
+                background: 'linear-gradient(135deg, #FEF3C7 0%, #FFFBEB 100%)',
+                borderRadius: 14, padding: '14px 18px', border: '1.5px solid #F59E0B40',
+                display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8,
+              }}>
+                <span style={{ fontSize: 24, lineHeight: 1 }}>{a.icon}</span>
+                <div>
+                  <p style={{ fontSize: 11, fontWeight: 700, color: '#B45309', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 2 }}>
+                    Prestatie behaald!
+                  </p>
+                  <p style={{ fontSize: 13, fontWeight: 600, color: '#92400E' }}>{a.naam}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
         {/* ── DOELEN & PROGRESSIE ── */}
         <div style={{ marginBottom: 20 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
@@ -605,8 +664,15 @@ export default function HomePage() {
               { href: '/journal',     kleur: '#0369A1', bg: '#E0F2FE', label: 'Journal',     icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg> },
               { href: '/uitdagingen', kleur: '#B45309', bg: '#FEF3C7', label: 'Uitdagingen', icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/></svg> },
               { href: '/surveys',     kleur: '#7C3AED', bg: '#EDE9FE', label: 'Surveys',     icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1" ry="1"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg> },
-              { href: '/focus',       kleur: '#059669', bg: '#D1FAE5', label: 'Focus',       icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg> },
-              { href: '/nieuws',      kleur: '#6B7280', bg: '#F3F4F6', label: 'Nieuws',      icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M18 14h-8"/><path d="M15 18h-5"/><path d="M10 6h8v4h-8V6Z"/></svg> },
+              { href: '/focus',           kleur: '#059669', bg: '#D1FAE5', label: 'Focus',       icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg> },
+              { href: '/dankbaarheid',    kleur: '#BE185D', bg: '#FCE7F3', label: 'Dankbaarheid', icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> },
+              { href: '/achievements',    kleur: '#B45309', bg: '#FEF3C7', label: 'Prestaties',   icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg> },
+              { href: '/werkgeluk',       kleur: '#0369A1', bg: '#E0F2FE', label: 'Werkgeluk',    icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg> },
+              { href: '/team-uitdagingen',kleur: '#6B7280', bg: '#F3F4F6', label: 'Team',         icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> },
+              { href: '/stemming',        kleur: '#F59E0B', bg: '#FEF3C7', label: 'Stemming',     icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg> },
+              { href: '/slaap',           kleur: '#6366f1', bg: '#EEF2FF', label: 'Slaap',        icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg> },
+              { href: '/meditatie',       kleur: '#1D9E75', bg: '#F0FDF4', label: 'Meditatie',    icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></svg> },
+              { href: '/groeiplan',       kleur: '#7C3AED', bg: '#EDE9FE', label: 'Groeiplan',    icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg> },
             ].map(item => (
               <Link key={item.href} href={item.href} style={{ textDecoration: 'none', flex: 1 }}
                 onMouseDown={e => (e.currentTarget as HTMLElement).style.transform = 'scale(0.97)'}
@@ -624,6 +690,14 @@ export default function HomePage() {
             ))}
           </div>
         </div>
+
+        {/* ── BURN-OUT PREDICTOR + eNPS ── */}
+        {userId && (
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 20 }}>
+            <BurnoutPredictorWidget />
+            <ENPSWidget />
+          </div>
+        )}
 
         {/* ── DISC PROFIEL ── */}
         {discProfiel && (() => {

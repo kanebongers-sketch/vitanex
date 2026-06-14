@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/Navbar'
+import { authFetch } from '@/lib/auth-fetch'
 
 type HoofdTab = 'adem' | 'beweging' | 'voeding' | 'slaap' | 'mentaal' | 'timer'
 type AdemTab = 'box' | '478' | 'coherentie' | 'wim'
@@ -471,6 +472,15 @@ export default function FocusPagina() {
           clearInterval(timerRef.current!)
           setTimerActief(false)
           setTimerKlaar(true)
+
+          // Log voltooide sessie (niet-blokkerend)
+          const duur = Math.round(TIMERS[timerTab as TimerTab]?.duur / 60) || 25
+          const apiType = timerTab === 'focus' ? 'deep_work' : timerTab === 'pauze' ? 'pauze' : 'pomodoro'
+          authFetch('/api/focus/log', {
+            method: 'POST',
+            body: JSON.stringify({ duur_minuten: duur, type: apiType }),
+          }).catch(() => { /* stil falen */ })
+
           return 0
         }
         return prev - 1

@@ -8,6 +8,7 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/Navbar'
 import { laadXPData, berekenLevel, LEVEL_NAMEN } from '@/lib/xp'
+import RadarChart from '@/components/RadarChart'
 
 interface WellbeingCat  { naam: string; niveau: 'goed' | 'matig' | 'laag'; samenvatting: string; tips: string[] }
 interface BurnoutRisico { niveau: 'laag' | 'matig' | 'hoog'; score: number; uitleg: string }
@@ -429,6 +430,13 @@ export default function Rapport() {
                 </div>
               </div>
             </div>
+
+            {/* Radar chart */}
+            {Object.values(analyse.scores).some(v => v > 0) && (
+              <div style={{ display: 'flex', justifyContent: 'center', padding: '8px 0 16px' }}>
+                <RadarChart scores={analyse.scores} size={240} />
+              </div>
+            )}
 
             {/* Rij: burnout risico + sterke punten */}
             <div style={{ display: 'grid', gridTemplateColumns: burnoutCfg ? '1fr 1fr' : '1fr', gap: 16 }}>

@@ -1,17 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 import { getAuthenticatedUser } from '@/lib/api-auth'
+import { buildCoachSystemPrompt } from '@/lib/coach-context'
 
 if (!process.env.ANTHROPIC_API_KEY) {
-  console.error('[coach] ANTHROPIC_API_KEY is niet ingesteld in de omgevingsvariabelen')
+  console.error('[coach] ANTHROPIC_API_KEY is niet ingesteld')
 }
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
-const SYSTEEM = `Je bent de MentaForce Coach — een warme, empathische welzijnscoach die werknemers begeleidt bij stress, burn-out preventie, energiebeheer, werk-privébalans en mentale veerkracht. Je werkt voor het MentaForce platform dat gebruikt wordt door Nederlandse bedrijven.
+const BASIS_SYSTEEM = `Je bent de MentaForce Coach — een warme, empathische welzijnscoach die werknemers begeleidt bij stress, burn-out preventie, energiebeheer, werk-privébalans en mentale veerkracht.
 
 Jouw stijl:
-- Je communiceert altijd in het Nederlands (nederlands)
+- Je communiceert altijd in het Nederlands
 - Je bent warm, niet-oordelend en praktisch
 - Je stelt reflectieve vragen om inzicht te stimuleren
 - Je biedt concrete, toepasbare tips
@@ -26,13 +27,19 @@ Grenzen:
 
 type Bericht = { role: 'user' | 'assistant'; content: string }
 
-// Simple in-memory rate limiter per user (resets on deploy/restart)
+type GebruikerContext = {
+  naam: string
+  discPrimair?: string
+  domeinScores?: Record<string, number>
+  actieveDoelen?: string[]
+}
+
 const rateMap = new Map<string, { count: number; reset: number }>()
-const RATE_LIMIT = 30  // max messages
-const RATE_WINDOW = 60 * 60 * 1000  // per hour
+const RATE_LIMIT = 30
+const RATE_WINDOW = 60 * 60 * 1000
 
 function checkRateLimit(userId: string): boolean {
-  const now  = Date.now()
+  const now = Date.now()
   const data = rateMap.get(userId)
   if (!data || now > data.reset) {
     rateMap.set(userId, { count: 1, reset: now + RATE_WINDOW })
@@ -48,28 +55,25 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'AI coach is niet beschikbaar.' }, { status: 503 })
   }
 
-  // ── Auth verification ──────────────────────────────────────────────────────
   const user = await getAuthenticatedUser(req)
   if (!user) {
     return NextResponse.json({ error: 'Niet ingelogd.' }, { status: 401 })
   }
 
-  // ── Rate limiting ──────────────────────────────────────────────────────────
   if (!checkRateLimit(user.id)) {
     return NextResponse.json(
       { error: 'Te veel berichten. Probeer het over een uur opnieuw.' },
-      { status: 429 }
+      { status: 429 },
     )
   }
 
   try {
-    const { berichten, systeem: systeemOverride, maxTokens }: {
+    const { berichten, gebruiker_context, maxTokens }: {
       berichten: Bericht[]
-      systeem?: string
+      gebruiker_context?: GebruikerContext
       maxTokens?: number
     } = await req.json()
 
-    // Validate input
     if (!Array.isArray(berichten) || berichten.length === 0) {
       return NextResponse.json({ error: 'Geen berichten meegegeven.' }, { status: 400 })
     }
@@ -77,10 +81,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Te veel berichten in de context.' }, { status: 400 })
     }
 
-    // systeemOverride is niet toegestaan — gebruik altijd het server-side systeem-prompt
-    const systeemTekst = SYSTEEM
+    // Bouw gepersonaliseerd systeem-prompt met gebruikerscontext
+    const defaultContext: GebruikerContext = { naam: 'je', ...gebruiker_context }
+    const systeemTekst = await buildCoachSystemPrompt(BASIS_SYSTEEM, user.id, defaultContext)
 
-    // Prompt caching: cache het systeem-prompt
     const response = await anthropic.messages.create({
       model: 'claude-sonnet-4-5',
       max_tokens: maxTokens ?? 400,
@@ -92,7 +96,6 @@ export async function POST(req: NextRequest) {
         },
       ],
       messages: berichten.map((b, i) => {
-        // Cache de voorlaatste user-message als die lang genoeg is
         if (i === berichten.length - 2 && b.role === 'user' && b.content.length > 200) {
           return {
             role: b.role,
@@ -104,14 +107,6 @@ export async function POST(req: NextRequest) {
     })
 
     const tekst = response.content[0].type === 'text' ? response.content[0].text : ''
-
-    if (process.env.NODE_ENV === 'development') {
-      const usage = response.usage as Anthropic.Usage & {
-        cache_creation_input_tokens?: number
-        cache_read_input_tokens?: number
-      }
-      // token usage logging removed
-    }
 
     return NextResponse.json({ tekst })
   } catch (err) {
