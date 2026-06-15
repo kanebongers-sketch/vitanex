@@ -40,7 +40,7 @@ function burnoutKleur(score: number | null) {
 }
 
 function RisicoBar({ score, max = 100 }: { score: number | null; max?: number }) {
-  if (score === null) return <span style={{ fontSize: 12, color: '#D1D5DB' }}>â€”</span>
+  if (score === null) return <span style={{ fontSize: 12, color: '#D1D5DB' }}>—</span>
   const kleur = burnoutKleur(score)
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -117,7 +117,7 @@ export default function HrTeamPage() {
                   { label: 'Actief (30d)', waarde: aggregaat.actief_30d, kleur: '#1D9E75' },
                   { label: 'Participatie', waarde: `${aggregaat.participatie_pct}%`, kleur: aggregaat.participatie_pct >= 70 ? '#1D9E75' : '#F59E0B' },
                   { label: 'Check-ins', waarde: aggregaat.totaal_checkins, kleur: '#6366f1' },
-                  { label: 'Gem. burnout', waarde: aggregaat.gem_burnout_risico !== null ? `${aggregaat.gem_burnout_risico}%` : 'â€”', kleur: burnoutKleur(aggregaat.gem_burnout_risico) },
+                  { label: 'Gem. burnout', waarde: aggregaat.gem_burnout_risico !== null ? `${aggregaat.gem_burnout_risico}%` : '—', kleur: burnoutKleur(aggregaat.gem_burnout_risico) },
                 ].map(s => (
                   <div key={s.label} style={{ background: 'white', borderRadius: 14, border: '1px solid #E5E7EB', padding: '16px 18px' }}>
                     <p style={{ fontSize: 20, fontWeight: 800, color: s.kleur }}>{s.waarde}</p>
@@ -137,7 +137,7 @@ export default function HrTeamPage() {
                     color: filter === f ? '#111827' : '#9CA3AF',
                     fontWeight: filter === f ? 600 : 400,
                   }}>
-                    {f === 'alles' ? 'Alles' : f === 'risico' ? 'âš  Hoog risico' : 'ðŸ’¤ Inactief'}
+                    {f === 'alles' ? 'Alles' : f === 'risico' ? '⚠ Hoog risico' : '💤 Inactief'}
                   </button>
                 ))}
               </div>
@@ -189,7 +189,7 @@ export default function HrTeamPage() {
                               <div key={i} style={{ width: 6, height: 6, borderRadius: 2, background: i < Math.min(m.checkins_30d, 5) ? '#1D9E75' : '#E5E7EB' }} />
                             ))}
                           </div>
-                          <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 3 }}>{m.checkins_30d}Ã—</p>
+                          <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 3 }}>{m.checkins_30d}×</p>
                         </td>
                         <td style={{ padding: '12px 16px' }}>
                           {m.dagen_sinds_checkin === null ? (
@@ -206,7 +206,7 @@ export default function HrTeamPage() {
                           <RisicoBar score={m.burnout_risico} />
                           {m.burnout_trending && (
                             <p style={{ fontSize: 10, color: m.burnout_trending === 'stijgend' ? '#E24B4A' : '#1D9E75', marginTop: 2 }}>
-                              {m.burnout_trending === 'stijgend' ? 'â†‘ stijgend' : m.burnout_trending === 'dalend' ? 'â†“ dalend' : 'â†’ stabiel'}
+                              {m.burnout_trending === 'stijgend' ? '↑ stijgend' : m.burnout_trending === 'dalend' ? '↓ dalend' : '→ stabiel'}
                             </p>
                           )}
                         </td>

@@ -75,7 +75,7 @@ export default function PulseSurveyPage() {
     <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
       <Navbar />
       <main style={{ padding: '72px 40px', maxWidth: 560, margin: '0 auto', textAlign: 'center' }}>
-        <div style={{ fontSize: 48, marginBottom: 20 }}>âœ“</div>
+        <div style={{ fontSize: 48, marginBottom: 20 }}>✓</div>
         <h1 style={{ fontSize: 22, fontWeight: 800, color: '#111827', letterSpacing: '-0.03em', marginBottom: 10 }}>
           {klaar ? 'Bedankt voor je bijdrage!' : 'Al ingevuld deze week'}
         </h1>
@@ -131,7 +131,7 @@ export default function PulseSurveyPage() {
             {huidigeVraag.vraag}
           </p>
 
-          {/* Scale 1â€“5 */}
+          {/* Scale 1—5 */}
           {huidigeVraag.type === 'scale' && (
             <div>
               <div style={{ display: 'flex', gap: 10, justifyContent: 'center', marginBottom: 10 }}>
@@ -155,7 +155,7 @@ export default function PulseSurveyPage() {
             </div>
           )}
 
-          {/* NPS 0â€“10 */}
+          {/* NPS 0—10 */}
           {huidigeVraag.type === 'nps' && (
             <div>
               <div style={{ display: 'flex', gap: 6, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 10 }}>
@@ -233,7 +233,7 @@ export default function PulseSurveyPage() {
               opacity: !isBeantwoord || verzenden ? 0.4 : 1,
             }}
           >
-            {verzenden ? 'Verzenden...' : isLaatste ? 'Verzend survey â†’' : 'Volgende â†’'}
+            {verzenden ? 'Verzenden...' : isLaatste ? 'Verzend survey →' : 'Volgende →'}
           </button>
         </div>
 

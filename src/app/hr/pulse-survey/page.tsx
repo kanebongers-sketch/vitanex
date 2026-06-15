@@ -28,8 +28,8 @@ interface SurveyData {
 }
 
 const TYPE_LABELS: Record<string, string> = {
-  scale: '1â€“5 schaal',
-  nps: 'NPS (0â€“10)',
+  scale: '1—5 schaal',
+  nps: 'NPS (0—10)',
   multiple_choice: 'Meerkeuze',
   text: 'Open tekst',
 }
@@ -110,7 +110,7 @@ export default function HrPulseSurveyPage() {
           <div>
             <h1 style={{ fontSize: 22, fontWeight: 800, color: '#111827', letterSpacing: '-0.03em', marginBottom: 4 }}>Pulse survey</h1>
             <p style={{ fontSize: 13, color: '#9CA3AF' }}>
-              Week van {data?.week_start ? new Date(data.week_start).toLocaleDateString('nl-BE', { day: 'numeric', month: 'long' }) : 'â€”'} Â·{' '}
+              Week van {data?.week_start ? new Date(data.week_start).toLocaleDateString('nl-BE', { day: 'numeric', month: 'long' }) : '—'} ·{' '}
               {participatie.respondenten} van {participatie.totaal} ingevuld ({participatie.pct}%)
             </p>
           </div>
@@ -118,7 +118,7 @@ export default function HrPulseSurveyPage() {
             onClick={() => setNieuw(v => !v)}
             style={{ padding: '10px 18px', borderRadius: 12, background: '#1D9E75', color: 'white', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 13 }}
           >
-            {nieuw ? 'âœ• Annuleer' : '+ Vraag toevoegen'}
+            {nieuw ? '✕ Annuleer' : '+ Vraag toevoegen'}
           </button>
         </div>
 
@@ -161,7 +161,7 @@ export default function HrPulseSurveyPage() {
             </div>
             {type === 'multiple_choice' && (
               <div style={{ marginBottom: 12 }}>
-                <p style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 5 }}>Opties (Ã©Ã©n per regel)</p>
+                <p style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 5 }}>Opties (één per regel)</p>
                 <textarea
                   rows={4}
                   value={optiesRaw}
@@ -210,7 +210,7 @@ export default function HrPulseSurveyPage() {
 
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{v.vraag}</p>
-                  <p style={{ fontSize: 11, color: '#9CA3AF' }}>{TYPE_LABELS[v.type]} Â· {v.aantal_antwoorden} antwoorden</p>
+                  <p style={{ fontSize: 11, color: '#9CA3AF' }}>{TYPE_LABELS[v.type]} · {v.aantal_antwoorden} antwoorden</p>
                 </div>
 
                 {v.type === 'nps' && v.nps !== null && (
@@ -226,7 +226,7 @@ export default function HrPulseSurveyPage() {
                   </div>
                 )}
 
-                <span style={{ fontSize: 12, color: '#9CA3AF', flexShrink: 0 }}>{uitbreiden === v.id ? 'â–²' : 'â–¼'}</span>
+                <span style={{ fontSize: 12, color: '#9CA3AF', flexShrink: 0 }}>{uitbreiden === v.id ? '▲' : '▼'}</span>
               </div>
 
               {uitbreiden === v.id && v.aantal_antwoorden > 0 && (
@@ -237,9 +237,9 @@ export default function HrPulseSurveyPage() {
                         <div style={{ marginBottom: 14 }}>
                           <div style={{ display: 'flex', gap: 12, marginBottom: 8 }}>
                             {[
-                              { label: 'Detractors (0â€“6)', count: Object.entries(v.distributie).filter(([k]) => parseInt(k) <= 6).reduce((s, [, c]) => s + c, 0), kleur: '#E24B4A' },
-                              { label: 'Passives (7â€“8)', count: Object.entries(v.distributie).filter(([k]) => [7, 8].includes(parseInt(k))).reduce((s, [, c]) => s + c, 0), kleur: '#F59E0B' },
-                              { label: 'Promoters (9â€“10)', count: Object.entries(v.distributie).filter(([k]) => parseInt(k) >= 9).reduce((s, [, c]) => s + c, 0), kleur: '#1D9E75' },
+                              { label: 'Detractors (0—6)', count: Object.entries(v.distributie).filter(([k]) => parseInt(k) <= 6).reduce((s, [, c]) => s + c, 0), kleur: '#E24B4A' },
+                              { label: 'Passives (7—8)', count: Object.entries(v.distributie).filter(([k]) => [7, 8].includes(parseInt(k))).reduce((s, [, c]) => s + c, 0), kleur: '#F59E0B' },
+                              { label: 'Promoters (9—10)', count: Object.entries(v.distributie).filter(([k]) => parseInt(k) >= 9).reduce((s, [, c]) => s + c, 0), kleur: '#1D9E75' },
                             ].map(g => (
                               <div key={g.label} style={{ flex: 1, background: `${g.kleur}12`, borderRadius: 10, padding: '10px 12px', textAlign: 'center' }}>
                                 <p style={{ fontSize: 16, fontWeight: 800, color: g.kleur }}>{g.count}</p>

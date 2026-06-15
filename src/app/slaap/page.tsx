@@ -19,7 +19,7 @@ interface SlaapLog {
 }
 
 const KWALITEIT_LABELS = ['', 'Heel slecht', 'Slecht', 'Gemiddeld', 'Goed', 'Uitstekend']
-const KWALITEIT_EMOJI  = ['', 'ðŸ˜«', 'ðŸ˜´', 'ðŸ˜', 'ðŸ™‚', 'ðŸ˜„']
+const KWALITEIT_EMOJI  = ['', '😫', '😴', '😐', '🙂', '😄']
 
 function urenNaarTijd(uren: number) {
   const h = Math.floor(uren)
@@ -138,7 +138,7 @@ export default function SlaapPagina() {
                 </p>
                 <p style={{ fontSize: 24, fontWeight: 800, color: '#111827' }}>{KWALITEIT_EMOJI[Math.round(gemiddeldKwaliteit)]}</p>
                 <p style={{ fontSize: 10, color: '#9CA3AF', marginTop: 2 }}>
-                  {gemiddeldKwaliteit.toFixed(1)}/5 â€” {KWALITEIT_LABELS[Math.round(gemiddeldKwaliteit)]}
+                  {gemiddeldKwaliteit.toFixed(1)}/5 — {KWALITEIT_LABELS[Math.round(gemiddeldKwaliteit)]}
                 </p>
               </div>
             )}
@@ -147,7 +147,7 @@ export default function SlaapPagina() {
 
         {succes && (
           <div style={{ background: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: 12, padding: '10px 14px', marginBottom: 16, fontSize: 13, color: '#15803D', fontWeight: 600 }}>
-            Slaap opgeslagen âœ“
+            Slaap opgeslagen ✓
           </div>
         )}
 
@@ -206,7 +206,7 @@ export default function SlaapPagina() {
           <textarea
             value={notitie}
             onChange={e => setNotitie(e.target.value)}
-            placeholder="Notitie (nachtmerrie, stress, cafeÃ¯ne...)"
+            placeholder="Notitie (nachtmerrie, stress, cafeïne...)"
             maxLength={200}
             rows={2}
             style={{
@@ -223,7 +223,7 @@ export default function SlaapPagina() {
             color: 'white', border: 'none', cursor: 'pointer',
             fontSize: 14, fontWeight: 700,
           }}>
-            {opslaan ? 'Opslaanâ€¦' : 'Slaap loggen â†’'}
+            {opslaan ? 'Opslaan…' : 'Slaap loggen →'}
           </button>
         </div>
 
@@ -280,7 +280,7 @@ export default function SlaapPagina() {
                     </p>}
                   </div>
                   {log.bedtijd && <p style={{ fontSize: 10, color: '#9CA3AF' }}>
-                    {log.bedtijd.slice(0, 5)} â†’ {log.wektijd?.slice(0, 5) ?? '?'}
+                    {log.bedtijd.slice(0, 5)} → {log.wektijd?.slice(0, 5) ?? '?'}
                   </p>}
                 </div>
               ))}

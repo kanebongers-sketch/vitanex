@@ -137,7 +137,7 @@ export default function NotificatiesPage() {
             {/* Push notificaties info */}
             <div style={{ background: '#F0FDF4', borderRadius: 16, border: '1px solid #BBF7D0', padding: '16px 18px' }}>
               <div style={{ display: 'flex', gap: 10 }}>
-                <span style={{ fontSize: 16, flexShrink: 0 }}>ðŸ’¡</span>
+                <span style={{ fontSize: 16, flexShrink: 0 }}>💡</span>
                 <div>
                   <p style={{ fontSize: 13, fontWeight: 600, color: '#166534', marginBottom: 3 }}>Push notificaties via de app</p>
                   <p style={{ fontSize: 12, color: '#15803D', lineHeight: 1.5 }}>
@@ -156,7 +156,7 @@ export default function NotificatiesPage() {
                 opacity: bezig ? 0.7 : 1, marginTop: 4,
               }}
             >
-              {bezig ? 'Opslaan...' : opgeslagen ? 'âœ“ Opgeslagen!' : 'Voorkeuren opslaan'}
+              {bezig ? 'Opslaan...' : opgeslagen ? '✓ Opgeslagen!' : 'Voorkeuren opslaan'}
             </button>
           </div>
         )}

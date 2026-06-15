@@ -163,7 +163,7 @@ export default function PomodoroPage() {
                 }}
               >
                 <p>{m.label}</p>
-                <p style={{ fontSize: 11, fontWeight: 400, marginTop: 2 }}>{m.focus}m Â· {m.pauze}m pauze</p>
+                <p style={{ fontSize: 11, fontWeight: 400, marginTop: 2 }}>{m.focus}m · {m.pauze}m pauze</p>
               </button>
             ))}
           </div>

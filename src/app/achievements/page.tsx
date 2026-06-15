@@ -96,7 +96,7 @@ export default function AchievementsPagina() {
             Prestaties
           </h1>
           <p style={{ fontSize: 13, color: '#9CA3AF' }}>
-            {achievements.length} behaald Â· {totaalXP} XP verdiend
+            {achievements.length} behaald · {totaalXP} XP verdiend
           </p>
         </header>
 
@@ -105,7 +105,7 @@ export default function AchievementsPagina() {
             background: 'white', borderRadius: 20, padding: '48px 24px',
             border: '2px dashed #E5E7EB', textAlign: 'center',
           }}>
-            <div style={{ fontSize: 48, marginBottom: 16 }}>ðŸŽ¯</div>
+            <div style={{ fontSize: 48, marginBottom: 16 }}>🎯</div>
             <p style={{ fontSize: 15, fontWeight: 700, color: '#374151', marginBottom: 8 }}>
               Nog geen prestaties behaald
             </p>

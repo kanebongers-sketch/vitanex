@@ -182,7 +182,7 @@ export default function AdemhalingPage() {
                   <p style={{ fontSize: 11, color: '#9CA3AF', lineHeight: 1.4, marginBottom: 8 }}>{t.beschrijving}</p>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <span style={{ fontSize: 11, fontWeight: 600, color: '#1D9E75', background: '#F0FAF6', padding: '2px 8px', borderRadius: 100 }}>{t.doel}</span>
-                    <span style={{ fontSize: 11, color: '#9CA3AF' }}>{t.rondes} rondes Â· {Math.round((t.fasen.reduce((s, f) => s + f.seconden, 0) * t.rondes) / 60)} min</span>
+                    <span style={{ fontSize: 11, color: '#9CA3AF' }}>{t.rondes} rondes · {Math.round((t.fasen.reduce((s, f) => s + f.seconden, 0) * t.rondes) / 60)} min</span>
                   </div>
                 </div>
               ))}
@@ -190,7 +190,7 @@ export default function AdemhalingPage() {
 
             {gekozen && (
               <div style={{ background: 'white', borderRadius: 14, border: '1px solid #E5E7EB', padding: '16px 20px', marginBottom: 16 }}>
-                <p style={{ fontSize: 12, fontWeight: 700, color: '#374151', marginBottom: 10 }}>Fasen â€” {gekozen.naam}</p>
+                <p style={{ fontSize: 12, fontWeight: 700, color: '#374151', marginBottom: 10 }}>Fasen — {gekozen.naam}</p>
                 <div style={{ display: 'flex', gap: 10 }}>
                   {gekozen.fasen.map((f, i) => (
                     <div key={i} style={{ flex: 1, textAlign: 'center' }}>
@@ -212,12 +212,12 @@ export default function AdemhalingPage() {
                 opacity: gekozen ? 1 : 0.4,
               }}
             >
-              Start oefening â†’
+              Start oefening →
             </button>
           </>
         ) : klaar ? (
           <div style={{ textAlign: 'center', padding: '40px 0' }}>
-            <div style={{ fontSize: 48, marginBottom: 16 }}>ðŸ§˜</div>
+            <div style={{ fontSize: 48, marginBottom: 16 }}>🧘</div>
             <h2 style={{ fontSize: 20, fontWeight: 800, color: '#111827', marginBottom: 8 }}>Goed gedaan!</h2>
             <p style={{ fontSize: 14, color: '#6B7280', marginBottom: 28 }}>
               Je hebt {gekozen?.rondes} rondes {gekozen?.naam} voltooid.<br/>

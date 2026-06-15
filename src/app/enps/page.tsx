@@ -15,8 +15,8 @@ interface Meting {
 }
 
 const SCORE_LABEL: Record<string, string> = {
-  '0': 'ðŸ˜°', '1': 'ðŸ˜°', '2': 'ðŸ˜¤', '3': 'ðŸ˜¤', '4': 'ðŸ˜',
-  '5': 'ðŸ˜', '6': 'ðŸ˜', '7': 'ðŸ™‚', '8': 'ðŸ™‚', '9': 'ðŸ˜„', '10': 'ðŸ˜„',
+  '0': '😰', '1': '😰', '2': '😤', '3': '😤', '4': '😐',
+  '5': '😐', '6': '😐', '7': '🙂', '8': '🙂', '9': '😄', '10': '😄',
 }
 
 const CATEGORIE = (score: number) => score >= 9 ? 'Promoter' : score >= 7 ? 'Passief' : 'Detractor'
@@ -94,7 +94,7 @@ export default function ENPSPage() {
           </div>
         ) : klaar ? (
           <div style={{ background: '#F0FAF6', borderRadius: 16, border: '1px solid #BBF0DC', padding: '20px 22px', marginBottom: 16, textAlign: 'center' }}>
-            <p style={{ fontSize: 20, marginBottom: 8 }}>âœ“</p>
+            <p style={{ fontSize: 20, marginBottom: 8 }}>✓</p>
             <p style={{ fontSize: 14, fontWeight: 600, color: '#1D9E75' }}>Bedankt voor je eerlijke antwoord!</p>
             <p style={{ fontSize: 12, color: '#6B7280', marginTop: 4 }}>Jouw respons is volledig anoniem verwerkt.</p>
           </div>
@@ -124,8 +124,8 @@ export default function ENPSPage() {
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 20 }}>
-              <span style={{ fontSize: 11, color: '#E24B4A', fontWeight: 600 }}>0 â€” Helemaal niet</span>
-              <span style={{ fontSize: 11, color: '#1D9E75', fontWeight: 600 }}>10 â€” Absoluut</span>
+              <span style={{ fontSize: 11, color: '#E24B4A', fontWeight: 600 }}>0 — Helemaal niet</span>
+              <span style={{ fontSize: 11, color: '#1D9E75', fontWeight: 600 }}>10 — Absoluut</span>
             </div>
 
             {score !== null && (
@@ -160,7 +160,7 @@ export default function ENPSPage() {
                 opacity: score === null || verzenden ? 0.4 : 1,
               }}
             >
-              {verzenden ? 'Verzenden...' : 'Score indienen â†’'}
+              {verzenden ? 'Verzenden...' : 'Score indienen →'}
             </button>
           </div>
         )}

@@ -24,8 +24,8 @@ interface Uitdaging {
 }
 
 const TYPE_LABELS: Record<string, string> = {
-  stappen: 'ðŸ‘Ÿ Stappen', checkin: 'âœ… Check-ins', sport: 'ðŸ’ª Sport',
-  voeding: 'ðŸ¥— Voeding', meditatie: 'ðŸ§˜ Meditatie', focus: 'â±ï¸ Focus', custom: 'ðŸŽ¯ Overig',
+  stappen: '👟 Stappen', checkin: '✅ Check-ins', sport: '💪 Sport',
+  voeding: '🥗 Voeding', meditatie: '🧘 Meditatie', focus: '⏱️ Focus', custom: '🎯 Overig',
 }
 
 function dagsTot(datum: string): number {
@@ -113,7 +113,7 @@ export default function TeamUitdagingenPagina() {
             </p>
           </div>
           <Link href="/uitdagingen" style={{ fontSize: 12, color: 'var(--mentaforce-primary, #6366f1)', fontWeight: 600, textDecoration: 'none' }}>
-            Alle uitdagingen â†’
+            Alle uitdagingen →
           </Link>
         </header>
 
@@ -122,7 +122,7 @@ export default function TeamUitdagingenPagina() {
             background: 'white', borderRadius: 20, padding: '48px 24px',
             border: '2px dashed #E5E7EB', textAlign: 'center',
           }}>
-            <div style={{ fontSize: 48, marginBottom: 16 }}>ðŸ†</div>
+            <div style={{ fontSize: 48, marginBottom: 16 }}>🏆</div>
             <p style={{ fontSize: 15, fontWeight: 700, color: '#374151', marginBottom: 8 }}>
               Geen actieve uitdagingen
             </p>
@@ -154,7 +154,7 @@ export default function TeamUitdagingenPagina() {
                         </span>
                         {heeftVandaag && (
                           <span style={{ fontSize: 10, background: '#E1F5EE', color: '#059669', fontWeight: 700, padding: '2px 7px', borderRadius: 20 }}>
-                            âœ“ vandaag gelogd
+                            ✓ vandaag gelogd
                           </span>
                         )}
                       </div>
@@ -210,7 +210,7 @@ export default function TeamUitdagingenPagina() {
                           cursor: 'pointer', opacity: loggen === u.id || !logWaarde ? 0.5 : 1,
                         }}
                       >
-                        {loggen === u.id ? 'â€¦' : 'Log'}
+                        {loggen === u.id ? '…' : 'Log'}
                       </button>
                     </div>
                   ) : (
@@ -224,7 +224,7 @@ export default function TeamUitdagingenPagina() {
                         fontWeight: 700, fontSize: 13, cursor: heeftVandaag ? 'default' : 'pointer',
                       }}
                     >
-                      {heeftVandaag ? 'âœ“ Vandaag geregistreerd' : loggen === u.id ? 'Bezigâ€¦' : 'Deelnemen vandaag'}
+                      {heeftVandaag ? '✓ Vandaag geregistreerd' : loggen === u.id ? 'Bezig…' : 'Deelnemen vandaag'}
                     </button>
                   )}
                 </article>

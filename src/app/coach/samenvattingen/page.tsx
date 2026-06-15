@@ -67,7 +67,7 @@ export default function CoachSamenvattingenPagina() {
             background: '#111827', color: 'white', textDecoration: 'none',
             padding: '8px 14px', borderRadius: 10, fontSize: 12, fontWeight: 600,
           }}>
-            Naar coach â†’
+            Naar coach →
           </Link>
         </header>
 
@@ -76,7 +76,7 @@ export default function CoachSamenvattingenPagina() {
             background: 'white', borderRadius: 20, padding: '40px 24px',
             textAlign: 'center', border: '1px solid #E5E7EB',
           }}>
-            <div style={{ fontSize: 40, marginBottom: 12 }}>ðŸ§ </div>
+            <div style={{ fontSize: 40, marginBottom: 12 }}>🧠</div>
             <p style={{ fontSize: 15, fontWeight: 600, color: '#374151', marginBottom: 6 }}>
               Nog geen samenvattingen
             </p>

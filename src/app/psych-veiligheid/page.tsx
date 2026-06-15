@@ -19,7 +19,7 @@ interface Meting {
 const VRAGEN = [
   { key: 'vrijheid_spreken', label: 'Vrijheid van spreken', beschrijving: 'Ik voel me vrij om mijn mening te geven, ook als dat afwijkt.' },
   { key: 'fouten_ok', label: 'Fouten zijn OK', beschrijving: 'Ik durf fouten toe te geven zonder bang te zijn voor de gevolgen.' },
-  { key: 'idee_delen', label: 'IdeeÃ«n delen', beschrijving: 'Ik deel nieuwe ideeÃ«n zonder me te schamen als ze niet perfect zijn.' },
+  { key: 'idee_delen', label: 'Ideeën delen', beschrijving: 'Ik deel nieuwe ideeën zonder me te schamen als ze niet perfect zijn.' },
 ]
 
 export default function PsychVeiligheidPagina() {
@@ -89,7 +89,7 @@ export default function PsychVeiligheidPagina() {
             Psychologische veiligheid
           </h1>
           <p style={{ fontSize: 13, color: '#9CA3AF', lineHeight: 1.5 }}>
-            Hoe veilig voelt het om jezelf te zijn op je werk? Â· Wekelijkse meting
+            Hoe veilig voelt het om jezelf te zijn op je werk? · Wekelijkse meting
           </p>
           {gemiddeld && (
             <p style={{ fontSize: 14, fontWeight: 700, color: Number(gemiddeld) >= 4 ? '#059669' : Number(gemiddeld) >= 3 ? '#F59E0B' : '#EF4444', marginTop: 6 }}>
@@ -145,7 +145,7 @@ export default function PsychVeiligheidPagina() {
               transition: 'background 0.3s ease',
             }}
           >
-            {succes ? 'âœ“ Opgeslagen!' : opslaan ? 'Opslaanâ€¦' : 'Meting opslaan'}
+            {succes ? '✓ Opgeslagen!' : opslaan ? 'Opslaan…' : 'Meting opslaan'}
           </button>
         </section>
 
