@@ -4,8 +4,9 @@ import { createAdminClient } from '@/lib/supabase-admin'
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params
   const user = await getAuthenticatedUser(req)
   if (!user) return NextResponse.json({ error: 'Niet ingelogd.' }, { status: 401 })
 
@@ -14,7 +15,7 @@ export async function GET(
   const { data: uitdaging } = await admin
     .from('team_uitdagingen')
     .select('id, titel, type, doel_waarde, eenheid, start_datum, eind_datum, bedrijf_id')
-    .eq('id', params.id)
+    .eq('id', id)
     .single()
 
   if (!uitdaging) return NextResponse.json({ error: 'Niet gevonden.' }, { status: 404 })
@@ -22,7 +23,7 @@ export async function GET(
   const [{ data: logs }, { data: profiel }] = await Promise.all([
     admin.from('uitdaging_logs')
       .select('user_id, waarde, aangemaakt_op')
-      .eq('uitdaging_id', params.id)
+      .eq('uitdaging_id', id)
       .order('aangemaakt_op', { ascending: false }),
     admin.from('profiles')
       .select('bedrijf_id, rol')
@@ -60,8 +61,9 @@ export async function GET(
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params
   const user = await getAuthenticatedUser(req)
   if (!user) return NextResponse.json({ error: 'Niet ingelogd.' }, { status: 401 })
 
@@ -76,7 +78,7 @@ export async function POST(
   const { error } = await admin
     .from('uitdaging_logs')
     .insert({
-      uitdaging_id: params.id,
+      uitdaging_id: id,
       user_id: user.id,
       waarde: Math.round(waarde * 10) / 10,
       notitie: notitie?.trim() || null,
