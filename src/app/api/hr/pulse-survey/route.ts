@@ -32,7 +32,7 @@ export async function GET(req: NextRequest) {
       .eq('bedrijf_id', bedrijfId)
       .order('volgorde'),
     admin.from('pulse_survey_antwoorden')
-      .select('vraag_id, antwoord, aangemaakt_op')
+      .select('vraag_id, antwoord, aangemaakt_op, user_id')
       .eq('bedrijf_id', bedrijfId)
       .gte('aangemaakt_op', `${weekStart}T00:00:00Z`),
     admin.from('profiles')
@@ -44,7 +44,7 @@ export async function GET(req: NextRequest) {
   const totaalMedewerkers = profielen?.length ?? 0
 
   const respondentenDitWeek = new Set(
-    (antwoorden ?? []).map(a => a.aangemaakt_op)
+    (antwoorden ?? []).map(a => a.user_id)
   ).size
 
   const vraagStats = (vragen ?? []).map(vraag => {

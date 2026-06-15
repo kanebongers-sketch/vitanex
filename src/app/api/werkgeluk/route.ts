@@ -78,7 +78,7 @@ export async function POST(req: NextRequest) {
         { onConflict: 'user_id,datum' }
       )
       .select('datum, score, notitie')
-      .single()
+      .maybeSingle()
 
     if (error || !data) {
       return NextResponse.json({ error: `Opslaan mislukt: ${error?.message}` }, { status: 500 })

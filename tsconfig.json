@@ -27,8 +27,7 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    ".next/dev/types/**/*.ts",
     "**/*.mts"
   ],
-  "exclude": ["node_modules", "capacitor.config.ts", "supabase/functions"]
+  "exclude": ["node_modules", ".next", "capacitor.config.ts", "supabase/functions"]
 }

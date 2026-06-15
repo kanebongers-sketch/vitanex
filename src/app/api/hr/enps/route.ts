@@ -22,7 +22,7 @@ export async function GET(req: NextRequest) {
 
   const { data: antwoorden } = await admin
     .from('enps_antwoorden')
-    .select('score, categorie, aangemaakt_op')
+    .select('score, categorie, aangemaakt_op, user_id')
     .eq('bedrijf_id', bedrijfId)
     .order('aangemaakt_op', { ascending: false })
 
@@ -62,15 +62,15 @@ export async function GET(req: NextRequest) {
     .eq('rol', 'medewerker')
 
   const totaalMedewerkers = medewerkers?.length ?? 0
-  const uniekRespondenten = new Set((antwoorden ?? []).map(a => a.aangemaakt_op?.slice(0, 10))).size
+  const uniekRespondenten = new Set((antwoorden ?? []).map(a => a.user_id)).size
 
   return NextResponse.json({
     nps,
-    totaal_respondenten: scores.length,
+    totaal_respondenten: uniekRespondenten,
     promoters,
     passives,
     detractors,
-    participatie_pct: totaalMedewerkers > 0 ? Math.round((scores.length / totaalMedewerkers) * 100) : 0,
+    participatie_pct: totaalMedewerkers > 0 ? Math.round((uniekRespondenten / totaalMedewerkers) * 100) : 0,
     distributie,
     trend,
   })

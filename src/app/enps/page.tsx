@@ -50,17 +50,20 @@ export default function ENPSPage() {
   async function verzend() {
     if (score === null || verzenden) return
     setVerzenden(true)
-    const res = await authFetch('/api/enps', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ score, reden: reden.trim() || undefined }),
-    })
-    if (res.ok) {
-      setKlaar(true)
-      const data = await authFetch('/api/enps')
-      if (data.ok) setMetingen((await data.json() as { metingen: Meting[] }).metingen)
+    try {
+      const res = await authFetch('/api/enps', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ score, reden: reden.trim() || undefined }),
+      })
+      if (res.ok) {
+        setKlaar(true)
+        const data = await authFetch('/api/enps')
+        if (data.ok) setMetingen((await data.json() as { metingen: Meting[] }).metingen)
+      }
+    } finally {
+      setVerzenden(false)
     }
-    setVerzenden(false)
   }
 
   if (laden) return (

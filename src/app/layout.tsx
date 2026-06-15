@@ -1,5 +1,6 @@
 ﻿import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import AndroidBackHandler from "@/components/layout/AndroidBackHandler";
 
@@ -45,11 +46,7 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <AndroidBackHandler />
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem('mf-thema');var r=document.documentElement;if(t==='schemering')r.classList.add('thema-schemering');else if(t==='donker')r.classList.add('thema-donker');else if(t==='systeem'&&window.matchMedia('(prefers-color-scheme: dark)').matches)r.classList.add('thema-donker');}catch(e){}})()`,
-          }}
-        />
+        <Script src="/theme-init.js" strategy="beforeInteractive" />
         {children}
       </body>
     </html>

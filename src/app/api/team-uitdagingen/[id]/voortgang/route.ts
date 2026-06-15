@@ -20,20 +20,21 @@ export async function GET(
 
   if (!uitdaging) return NextResponse.json({ error: 'Niet gevonden.' }, { status: 404 })
 
-  const [{ data: logs }, { data: profiel }] = await Promise.all([
-    admin.from('uitdaging_logs')
-      .select('user_id, waarde, aangemaakt_op')
-      .eq('uitdaging_id', id)
-      .order('aangemaakt_op', { ascending: false }),
-    admin.from('profiles')
-      .select('bedrijf_id, rol')
-      .eq('id', user.id)
-      .single(),
-  ])
+  const { data: profiel } = await admin
+    .from('profiles')
+    .select('bedrijf_id, rol')
+    .eq('id', user.id)
+    .maybeSingle()
 
-  if (profiel?.bedrijf_id !== uitdaging.bedrijf_id) {
+  if (!profiel || profiel.bedrijf_id !== uitdaging.bedrijf_id) {
     return NextResponse.json({ error: 'Geen toegang.' }, { status: 403 })
   }
+
+  const { data: logs } = await admin
+    .from('team_uitdaging_logs')
+    .select('user_id, waarde, aangemaakt_op')
+    .eq('uitdaging_id', id)
+    .order('aangemaakt_op', { ascending: false })
 
   const logsLijst = logs ?? []
   const mijnLogs = logsLijst.filter(l => l.user_id === user.id)
@@ -76,7 +77,7 @@ export async function POST(
   const admin = createAdminClient()
 
   const { error } = await admin
-    .from('uitdaging_logs')
+    .from('team_uitdaging_logs')
     .insert({
       uitdaging_id: id,
       user_id: user.id,
