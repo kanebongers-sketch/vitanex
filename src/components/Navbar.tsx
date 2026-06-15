@@ -304,7 +304,8 @@ export default function Navbar() {
         { href: '/pomodoro',         label: 'Pomodoro timer',    icon: <Ico d="M12 8v4l3 3m6-3a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" /> },
         { href: '/stress',    label: 'Stress',     icon: <Ico d={['M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z','M8 15s1.5 2 4 2 4-2 4-2','M9 9h.01M15 9h.01']} /> },
         { href: '/slaap',     label: 'Slaap',      icon: <Ico d={['M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z']} /> },
-        { href: '/meditatie', label: 'Meditatie',   icon: <Ico d={['M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z','M12 8v4','M12 16h.01']} /> },
+        { href: '/meditatie',  label: 'Meditatie',         icon: <Ico d={['M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z','M12 8v4','M12 16h.01']} /> },
+        { href: '/ademhaling', label: 'Ademhalingsoefeningen', icon: <Ico d={['M12 2a7 7 0 0 1 0 14','M12 16v6','M8 22h8','M5 9.5C5 7 7.5 5 10 5','M19 9.5C19 7 16.5 5 14 5']} /> },
         { href: '/stemming',  label: 'Stemming',    icon: <Ico d="M14.828 14.828a4 4 0 0 1-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" /> },
         { href: '/burnout',          label: 'Burn-out scan',     icon: I.burnout },
         { href: '/dankbaarheid',     label: 'Dankbaarheid',      icon: I.dankb },
@@ -318,6 +319,7 @@ export default function Navbar() {
       label: 'Team',
       items: [
         { href: '/team-uitdagingen', label: 'Team uitdagingen', icon: I.team },
+        { href: '/pulse-survey',     label: 'Pulse survey',     icon: <Ico d={['M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2','M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2','M9 12h6','M9 16h4']} /> },
       ],
     },
     ...(isWerknemer ? [{
@@ -349,9 +351,11 @@ export default function Navbar() {
     {
       label: 'Inrichten',
       items: [
-        { href: '/hr/protocollen', label: 'Protocollen', icon: I.prot },
-        { href: '/nieuws',         label: 'Nieuws',       icon: I.nieuws },
-        { href: '/surveys',        label: 'Surveys',      icon: I.check },
+        { href: '/hr/protocollen',  label: 'Protocollen',  icon: I.prot },
+        { href: '/nieuws',          label: 'Nieuws',       icon: I.nieuws },
+        { href: '/surveys',         label: 'Surveys',      icon: I.check },
+        { href: '/hr/pulse-survey', label: 'Pulse survey', icon: <Ico d={['M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2','M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2','M9 12h6','M9 16h4']} /> },
+        { href: '/hr/enps',         label: 'eNPS',         icon: <Ico d={['M18 20V10','M12 20V4','M6 20v-6']} /> },
       ],
     },
     {
