@@ -33,6 +33,22 @@ const SUGGESTIES = [
   { emoji: '🧘', tekst: 'Ik wil rustiger worden' },
 ]
 
+type GebruikerContext = {
+  naam: string
+  discPrimair?: string
+  domeinScores?: Record<string, number>
+  actieveDoelen?: string[]
+}
+
+const DOMEIN_CODES: Record<string, string[]> = {
+  slaap:    ['slaap_kwaliteit', 'slaap_uren', 'slaap_fris', 'slaap_loslaten'],
+  stress:   ['stress_niveau', 'stress_piekeren', 'stress_controle', 'stress_ontspanning'],
+  energie:  ['energie_niveau', 'energie_beweging', 'energie_voeding', 'energie_dip'],
+  focus:    ['focus_concentratie', 'focus_helderheid', 'focus_aanwezig', 'focus_flow'],
+  balans:   ['balans_werk_prive', 'balans_grenzen', 'balans_tijd', 'balans_herstel'],
+  motivatie:['motivatie_werk', 'motivatie_zinvol', 'motivatie_enthousiasme', 'motivatie_waardering'],
+}
+
 export default function CoachPagina() {
   const router = useRouter()
   const [berichten, setBerichten] = useState<Bericht[]>([
@@ -41,6 +57,7 @@ export default function CoachPagina() {
   const [input, setInput] = useState('')
   const [laden, setLaden] = useState(false)
   const [klaar, setKlaar] = useState(false)
+  const [gebruikerContext, setGebruikerContext] = useState<GebruikerContext | null>(null)
   const onderRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
 
@@ -48,6 +65,45 @@ export default function CoachPagina() {
     async function check() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/login'); return }
+
+      // Laad context voor coach (non-blocking)
+      try {
+        const ctx: GebruikerContext = { naam: 'je' }
+
+        const { data: profiel } = await supabase
+          .from('profiles').select('naam').eq('id', user.id).single()
+        if (profiel?.naam) ctx.naam = profiel.naam as string
+
+        const { data: disc } = await supabase
+          .from('disc_inzendingen').select('primair').eq('user_id', user.id)
+          .order('aangemaakt_op', { ascending: false }).limit(1).maybeSingle()
+        if (disc?.primair) ctx.discPrimair = disc.primair as string
+
+        const { data: sessie } = await supabase
+          .from('checkin_sessies').select('id')
+          .eq('user_id', user.id).order('aangemaakt_op', { ascending: false })
+          .limit(1).maybeSingle()
+
+        if (sessie?.id) {
+          const { data: antwoorden } = await supabase
+            .from('checkin_antwoorden').select('vraag_code, waarde_schaal')
+            .eq('sessie_id', sessie.id)
+          if (antwoorden?.length) {
+            const codeMap: Record<string, number> = {}
+            for (const r of antwoorden) {
+              if (r.waarde_schaal != null) codeMap[r.vraag_code] = Number(r.waarde_schaal)
+            }
+            const scores: Record<string, number> = {}
+            for (const [domein, codes] of Object.entries(DOMEIN_CODES)) {
+              scores[domein] = codes.reduce((acc, c) => acc + (codeMap[c] ?? 0), 0)
+            }
+            ctx.domeinScores = scores
+          }
+        }
+
+        setGebruikerContext(ctx)
+      } catch { /* niet-kritiek */ }
+
       setKlaar(true)
     }
     check()
@@ -78,7 +134,10 @@ export default function CoachPagina() {
     try {
       const res = await authFetch('/api/coach', {
         method: 'POST',
-        body: JSON.stringify({ berichten: api }),
+        body: JSON.stringify({
+          berichten: api,
+          ...(gebruikerContext ? { gebruiker_context: gebruikerContext } : {}),
+        }),
       })
       const json = await res.json()
       if (json.tekst) {
@@ -97,6 +156,15 @@ export default function CoachPagina() {
     }
     setLaden(false)
     inputRef.current?.focus()
+
+    // Sla samenvatting op na elk 6e bericht (niet-blokkerend)
+    const updatedBerichten = berichten.filter(b => b.id !== 'welkom')
+    if (updatedBerichten.length > 0 && updatedBerichten.length % 6 === 0) {
+      authFetch('/api/coach/samenvatting', {
+        method: 'POST',
+        body: JSON.stringify({ berichten: updatedBerichten.map(b => ({ role: b.role, content: b.content })) }),
+      }).catch(() => { /* stil falen */ })
+    }
   }
 
   if (!klaar) return (

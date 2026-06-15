@@ -717,3 +717,109 @@ body.mf-has-sidebar > * {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ── MicroLearning component ─────────────────────────────────────────────── */
+.micro-learning {
+  background: white;
+  border-radius: 14px;
+  padding: 14px 14px 16px;
+  border: 1px solid var(--color-border, #e5e7eb);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.micro-learning__header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.micro-learning__label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--color-text-muted, #9ca3af);
+  flex: 1;
+}
+
+.micro-learning__domein {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--mentaforce-primary, #6366f1);
+  background: var(--mentaforce-primary-light, #eef2ff);
+  padding: 2px 7px;
+  border-radius: 20px;
+}
+
+.micro-learning__duur {
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--color-text-muted, #9ca3af);
+  background: #f3f4f6;
+  padding: 2px 6px;
+  border-radius: 20px;
+}
+
+.micro-learning__tip {
+  font-size: 12px;
+  color: #374151;
+  line-height: 1.55;
+  flex: 1;
+}
+
+.micro-learning__actie-btn {
+  align-self: flex-start;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--mentaforce-primary, #6366f1);
+  background: var(--mentaforce-primary-light, #eef2ff);
+  border: none;
+  border-radius: 8px;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.micro-learning__actie-btn:hover {
+  opacity: 0.8;
+}
+
+.micro-learning__actie {
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
+  background: #f0fdf4;
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
+.micro-learning__actie-icon {
+  font-size: 12px;
+  color: #059669;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.micro-learning__actie p {
+  font-size: 11px;
+  color: #065f46;
+  line-height: 1.5;
+  font-weight: 500;
+}
+
+/* ── TrendGrafiek component ───────────────────────────────────────────────── */
+.trend-grafiek {
+  margin: 0;
+}
+
+.trend-grafiek__caption {
+  font-size: 10px;
+  color: var(--color-text-muted, #9ca3af);
+  text-align: right;
+  margin-top: 2px;
+}
