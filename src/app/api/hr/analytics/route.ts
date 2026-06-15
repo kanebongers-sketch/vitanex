@@ -2,6 +2,35 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getAuthenticatedUser } from '@/lib/api-auth'
 import { createAdminClient } from '@/lib/supabase-admin'
 
+function weekLabel(date: Date): string {
+  const d = new Date(date)
+  d.setHours(0, 0, 0, 0)
+  d.setDate(d.getDate() - d.getDay() + 1) // Monday
+  return d.toISOString().split('T')[0]
+}
+
+function groepeerPerWeek<T extends { aangemaakt_op?: string; datum?: string }>(
+  rijen: T[],
+  waarde: (r: T) => number,
+): { week: string; gemiddelde: number; aantal: number }[] {
+  const groepen = new Map<string, number[]>()
+  for (const r of rijen) {
+    const datumStr = r.aangemaakt_op ?? r.datum ?? null
+    if (!datumStr) continue
+    const week = weekLabel(new Date(datumStr))
+    const arr = groepen.get(week) ?? []
+    arr.push(waarde(r))
+    groepen.set(week, arr)
+  }
+  return [...groepen.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([week, vals]) => ({
+      week,
+      gemiddelde: Math.round((vals.reduce((s, v) => s + v, 0) / vals.length) * 10) / 10,
+      aantal: vals.length,
+    }))
+}
+
 export async function GET(req: NextRequest) {
   const user = await getAuthenticatedUser(req)
   if (!user) return NextResponse.json({ error: 'Niet ingelogd.' }, { status: 401 })
@@ -9,7 +38,10 @@ export async function GET(req: NextRequest) {
   const admin = createAdminClient()
 
   const { data: profiel } = await admin
-    .from('profiles').select('bedrijf_id, rol').eq('id', user.id).single()
+    .from('profiles')
+    .select('bedrijf_id, rol')
+    .eq('id', user.id)
+    .single()
 
   if (!profiel?.bedrijf_id || !['hr', 'admin'].includes(profiel.rol as string)) {
     return NextResponse.json({ error: 'Geen toegang.' }, { status: 403 })
@@ -17,114 +49,119 @@ export async function GET(req: NextRequest) {
 
   const bedrijfId = profiel.bedrijf_id as string
 
-  // Haal alle medewerkers op
+  // Medewerkers ophalen
   const { data: medewerkers } = await admin
     .from('profiles')
     .select('id')
     .eq('bedrijf_id', bedrijfId)
     .eq('rol', 'medewerker')
 
-  const mwIds = (medewerkers ?? []).map(m => m.id as string)
-  if (!mwIds.length) {
-    return NextResponse.json({ totaal_medewerkers: 0 })
+  const mwIds = (medewerkers ?? []).map((m) => m.id as string)
+  const totaalMedewerkers = mwIds.length
+
+  if (!totaalMedewerkers) {
+    return NextResponse.json({
+      stemming_trend: [],
+      slaap_trend: [],
+      stress_trend: [],
+      checkin_trend: [],
+      totaal_medewerkers: 0,
+      actief_deze_week: 0,
+    })
   }
 
-  const vierWekenTerug = new Date()
-  vierWekenTerug.setDate(vierWekenTerug.getDate() - 28)
-  const vierWekenStr = vierWekenTerug.toISOString().split('T')[0]
+  const twaalf = new Date()
+  twaalf.setDate(twaalf.getDate() - 84) // 12 weken
+  const twaalfStr = twaalf.toISOString()
+
+  const dertig = new Date()
+  dertig.setDate(dertig.getDate() - 30)
+  const dertigStr = dertig.toISOString()
+
+  const dezeWeekStart = weekLabel(new Date())
 
   const [
-    { count: actieveCheckins },
-    { data: burnoutScores },
-    { data: enpsMetingen },
-    { data: werkgelukMetingen },
-    { data: psychMetingen },
+    { data: stemmingRijen },
+    { data: slaapRijen },
+    { data: stressRijen },
+    { data: checkinRijen },
+    { data: hogeStressRijen },
   ] = await Promise.all([
-    admin.from('checkin_sessies')
-      .select('*', { count: 'exact', head: true })
+    admin
+      .from('stemming_logs')
+      .select('user_id, stemming, aangemaakt_op')
       .in('user_id', mwIds)
-      .gte('aangemaakt_op', vierWekenStr),
+      .gte('aangemaakt_op', twaalfStr),
 
-    admin.from('burnout_predictor_scores')
-      .select('user_id, risico_score, trending, dominante_factor')
+    admin
+      .from('slaap_logs')
+      .select('user_id, uren_slaap, datum')
       .in('user_id', mwIds)
-      .gte('week_start', vierWekenStr),
+      .gte('datum', twaalf.toISOString().split('T')[0]),
 
-    admin.from('enps_metingen')
-      .select('score')
-      .eq('bedrijf_id', bedrijfId)
-      .gte('aangemaakt_op', new Date(vierWekenTerug).toISOString()),
+    admin
+      .from('stress_logs')
+      .select('user_id, stress_niveau, aangemaakt_op')
+      .in('user_id', mwIds)
+      .gte('aangemaakt_op', twaalfStr),
 
-    admin.from('werkgeluk_metingen')
-      .select('werkgeluk_score, zingeving, plezier, verbinding, groei')
-      .eq('bedrijf_id', bedrijfId)
-      .gte('week_start', vierWekenStr),
+    admin
+      .from('checkin_sessies')
+      .select('user_id, aangemaakt_op')
+      .in('user_id', mwIds)
+      .gte('aangemaakt_op', twaalfStr),
 
-    admin.from('psych_veiligheid_metingen')
-      .select('score, vrijheid_spreken, fouten_ok, idee_delen')
-      .eq('bedrijf_id', bedrijfId)
-      .gte('week_start', vierWekenStr),
+    admin
+      .from('stress_logs')
+      .select('stress_niveau, notitie, techniek, aangemaakt_op')
+      .in('user_id', mwIds)
+      .gte('aangemaakt_op', dertigStr)
+      .gte('stress_niveau', 7),
   ])
 
-  // Burnout risico distributie
-  const burnoutDist = { laag: 0, matig: 0, hoog: 0 }
-  const burnoutPerUser = new Map<string, number>()
-  for (const s of (burnoutScores ?? [])) {
-    if (!burnoutPerUser.has(s.user_id) || burnoutPerUser.get(s.user_id)! < s.risico_score) {
-      burnoutPerUser.set(s.user_id, s.risico_score)
-    }
-  }
-  for (const score of burnoutPerUser.values()) {
-    if (score >= 70) burnoutDist.hoog++
-    else if (score >= 45) burnoutDist.matig++
-    else burnoutDist.laag++
-  }
+  // Trends per week
+  const stemming_trend = groepeerPerWeek(stemmingRijen ?? [], (r) => r.stemming)
+  const slaap_trend = groepeerPerWeek(slaapRijen ?? [], (r) => r.uren_slaap)
+  const stress_trend = groepeerPerWeek(stressRijen ?? [], (r) => r.stress_niveau)
 
-  // eNPS berekening
-  let enpsScore: number | null = null
-  if (enpsMetingen?.length) {
-    const promotors = enpsMetingen.filter(e => e.score >= 9).length
-    const detractors = enpsMetingen.filter(e => e.score <= 6).length
-    enpsScore = Math.round(((promotors - detractors) / enpsMetingen.length) * 100)
+  // Check-in participatie: unieke users per week
+  const checkinGroepen = new Map<string, Set<string>>()
+  for (const r of checkinRijen ?? []) {
+    if (!r.aangemaakt_op) continue
+    const week = weekLabel(new Date(r.aangemaakt_op))
+    const s = checkinGroepen.get(week) ?? new Set<string>()
+    s.add(r.user_id)
+    checkinGroepen.set(week, s)
   }
+  const checkin_trend = [...checkinGroepen.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([week, users]) => ({
+      week,
+      unieke_users: users.size,
+      participatie_pct: Math.round((users.size / totaalMedewerkers) * 100),
+    }))
 
-  // Werkgeluk gemiddelde
-  const werkgelukGemiddeld = werkgelukMetingen?.length
-    ? werkgelukMetingen.reduce((s, m) => s + m.werkgeluk_score, 0) / werkgelukMetingen.length
-    : null
+  // Actief deze week
+  const actiefDezeWeek = checkinGroepen.get(dezeWeekStart)?.size ?? 0
 
-  // Psych veiligheid gemiddelde
-  const psychGemiddeld = psychMetingen?.length
-    ? psychMetingen.reduce((s, m) => s + m.score, 0) / psychMetingen.length
-    : null
-
-  // Dominante burnout factoren (team-level)
-  const factorTelling: Record<string, number> = {}
-  for (const s of (burnoutScores ?? [])) {
-    if (s.dominante_factor) {
-      factorTelling[s.dominante_factor] = (factorTelling[s.dominante_factor] ?? 0) + 1
-    }
+  // Top stressoren (techniek of notitie categorieën bij hoge stress)
+  const technieken: Record<string, number> = {}
+  for (const r of hogeStressRijen ?? []) {
+    const key = r.techniek ?? 'geen_techniek'
+    technieken[key] = (technieken[key] ?? 0) + 1
   }
-  const topFactoren = Object.entries(factorTelling)
+  const top_stressoren = Object.entries(technieken)
     .sort(([, a], [, b]) => b - a)
-    .slice(0, 3)
-    .map(([factor, count]) => ({ factor, count }))
+    .slice(0, 5)
+    .map(([naam, count]) => ({ naam, count }))
 
   return NextResponse.json({
-    totaal_medewerkers: mwIds.length,
-    actieve_checkins_4w: actieveCheckins ?? 0,
-    participatie_pct: mwIds.length > 0
-      ? Math.round(((actieveCheckins ?? 0) / mwIds.length) * 100)
-      : 0,
-    burnout_distributie: burnoutDist,
-    enps_score: enpsScore,
-    enps_responses: enpsMetingen?.length ?? 0,
-    werkgeluk_gemiddeld: werkgelukGemiddeld !== null
-      ? Math.round(werkgelukGemiddeld * 10) / 10
-      : null,
-    psych_veiligheid_gemiddeld: psychGemiddeld !== null
-      ? Math.round(psychGemiddeld * 10) / 10
-      : null,
-    top_burnout_factoren: topFactoren,
+    stemming_trend,
+    slaap_trend,
+    stress_trend,
+    checkin_trend,
+    top_stressoren,
+    totaal_medewerkers: totaalMedewerkers,
+    actief_deze_week: actiefDezeWeek,
   })
 }

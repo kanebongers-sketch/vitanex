@@ -2,66 +2,91 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getAuthenticatedUser } from '@/lib/api-auth'
 import { createAdminClient } from '@/lib/supabase-admin'
 
-function berekenWeekStart(datum: Date): string {
-  const d = new Date(datum)
-  const dag = d.getDay()
-  const diff = dag === 0 ? -6 : 1 - dag
-  d.setDate(d.getDate() + diff)
-  return d.toISOString().split('T')[0]
+function vandaagDatum(): string {
+  const d = new Date()
+  return [
+    d.getFullYear(),
+    String(d.getMonth() + 1).padStart(2, '0'),
+    String(d.getDate()).padStart(2, '0'),
+  ].join('-')
 }
 
 export async function GET(req: NextRequest) {
-  const user = await getAuthenticatedUser(req)
-  if (!user) return NextResponse.json({ error: 'Niet ingelogd.' }, { status: 401 })
+  try {
+    const user = await getAuthenticatedUser(req)
+    if (!user) return NextResponse.json({ error: 'Niet ingelogd.' }, { status: 401 })
 
-  const admin = createAdminClient()
-  const { data } = await admin
-    .from('werkgeluk_metingen')
-    .select('week_start, zingeving, plezier, verbinding, groei, werkgeluk_score')
-    .eq('user_id', user.id)
-    .order('week_start', { ascending: false })
-    .limit(12)
+    const admin = createAdminClient()
+    const vandaag = vandaagDatum()
 
-  return NextResponse.json({ metingen: data ?? [] })
+    const dertigDagenGeleden = new Date()
+    dertigDagenGeleden.setDate(dertigDagenGeleden.getDate() - 30)
+    const grens = dertigDagenGeleden.toISOString().split('T')[0]
+
+    const { data, error } = await admin
+      .from('werkgeluk_logs')
+      .select('score, notitie, datum')
+      .eq('user_id', user.id)
+      .gte('datum', grens)
+      .order('datum', { ascending: false })
+      .limit(31)
+
+    if (error) {
+      return NextResponse.json({ error: `Ophalen mislukt: ${error.message}` }, { status: 500 })
+    }
+
+    const logs = data ?? []
+    const vandaagLog = logs.find(l => l.datum === vandaag)
+    const geschiedenis = logs.map(l => ({ datum: l.datum, score: l.score }))
+
+    const gemiddelde =
+      logs.length > 0
+        ? Math.round((logs.reduce((som, l) => som + l.score, 0) / logs.length) * 10) / 10
+        : null
+
+    return NextResponse.json({
+      vandaag: vandaagLog ? { score: vandaagLog.score, notitie: vandaagLog.notitie ?? null } : null,
+      geschiedenis,
+      gemiddelde,
+    })
+  } catch (err) {
+    console.error('[werkgeluk GET]', err)
+    return NextResponse.json({ error: String(err) }, { status: 500 })
+  }
 }
 
 export async function POST(req: NextRequest) {
-  const user = await getAuthenticatedUser(req)
-  if (!user) return NextResponse.json({ error: 'Niet ingelogd.' }, { status: 401 })
+  try {
+    const user = await getAuthenticatedUser(req)
+    if (!user) return NextResponse.json({ error: 'Niet ingelogd.' }, { status: 401 })
 
-  const { zingeving, plezier, verbinding, groei }: {
-    zingeving: number; plezier: number; verbinding: number; groei: number
-  } = await req.json()
+    const body = await req.json() as { score?: unknown; notitie?: unknown }
+    const score = body.score
+    const notitie = typeof body.notitie === 'string' ? body.notitie.trim().slice(0, 500) : null
 
-  for (const [k, v] of Object.entries({ zingeving, plezier, verbinding, groei })) {
-    if (!Number.isInteger(v) || v < 1 || v > 5) {
-      return NextResponse.json({ error: `${k} moet tussen 1 en 5 zijn.` }, { status: 400 })
+    if (!Number.isInteger(score) || (score as number) < 1 || (score as number) > 10) {
+      return NextResponse.json({ error: 'Score moet een geheel getal zijn tussen 1 en 10.' }, { status: 400 })
     }
+
+    const datum = vandaagDatum()
+    const admin = createAdminClient()
+
+    const { data, error } = await admin
+      .from('werkgeluk_logs')
+      .upsert(
+        { user_id: user.id, score, notitie, datum },
+        { onConflict: 'user_id,datum' }
+      )
+      .select('datum, score, notitie')
+      .single()
+
+    if (error || !data) {
+      return NextResponse.json({ error: `Opslaan mislukt: ${error?.message}` }, { status: 500 })
+    }
+
+    return NextResponse.json({ log: data })
+  } catch (err) {
+    console.error('[werkgeluk POST]', err)
+    return NextResponse.json({ error: String(err) }, { status: 500 })
   }
-
-  const werkgeluk_score = ((zingeving + plezier + verbinding + groei) / 4)
-  const weekStart = berekenWeekStart(new Date())
-
-  const admin = createAdminClient()
-
-  const { data: profiel } = await admin
-    .from('profiles').select('bedrijf_id').eq('id', user.id).single()
-
-  const { data, error } = await admin
-    .from('werkgeluk_metingen')
-    .upsert(
-      {
-        user_id: user.id,
-        bedrijf_id: profiel?.bedrijf_id ?? null,
-        week_start: weekStart,
-        zingeving, plezier, verbinding, groei,
-        werkgeluk_score: Math.round(werkgeluk_score * 10) / 10,
-      },
-      { onConflict: 'user_id,week_start' },
-    )
-    .select('id, week_start, werkgeluk_score')
-    .single()
-
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  return NextResponse.json({ meting: data })
 }
