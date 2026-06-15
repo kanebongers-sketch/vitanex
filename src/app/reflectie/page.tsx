@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 export const dynamic = 'force-dynamic'
 
@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
-import Navbar from '@/components/Navbar'
+import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
 
 const REFLECTIE_VRAGEN = [
@@ -14,7 +14,7 @@ const REFLECTIE_VRAGEN = [
   { id: 'uitdaging', vraag: 'Wat was de grootste uitdaging?', placeholder: 'Iets wat me moeilijk afging of stress gaf...' },
   { id: 'leermoment', vraag: 'Wat heb ik geleerd of ontdekt over mezelf?', placeholder: 'Een inzicht, patroon of nieuwe vaardigheid...' },
   { id: 'energie', vraag: 'Wat gaf me energie? Wat kostte energie?', placeholder: 'Activiteiten, mensen of situaties die...' },
-  { id: 'volgende_week', vraag: 'Wat wil ik volgende week anders doen?', placeholder: 'Eén concrete verandering of intentie...' },
+  { id: 'volgende_week', vraag: 'Wat wil ik volgende week anders doen?', placeholder: 'EÃ©n concrete verandering of intentie...' },
   { id: 'dankbaarheid', vraag: 'Waar ben ik dankbaar voor deze week?', placeholder: 'Klein of groot, persoonlijk of professioneel...' },
 ]
 
@@ -93,7 +93,7 @@ export default function ReflectiePage() {
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 28 }}>
           <div>
             <h1 style={{ fontSize: 22, fontWeight: 800, color: '#111827', letterSpacing: '-0.03em', marginBottom: 4 }}>Wekelijkse reflectie</h1>
-            <p style={{ fontSize: 13, color: '#9CA3AF' }}>Week van {weekLabel} · {ingevuld}/{REFLECTIE_VRAGEN.length} vragen beantwoord</p>
+            <p style={{ fontSize: 13, color: '#9CA3AF' }}>Week van {weekLabel} Â· {ingevuld}/{REFLECTIE_VRAGEN.length} vragen beantwoord</p>
           </div>
           <button
             onClick={() => setToonHistorie(v => !v)}
@@ -140,7 +140,7 @@ export default function ReflectiePage() {
               <div key={vraag.id} style={{ background: 'white', borderRadius: 16, border: '1px solid #E5E7EB', padding: '20px 22px' }}>
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: 12 }}>
                   <div style={{ width: 24, height: 24, borderRadius: 7, background: antwoorden[vraag.id]?.trim() ? '#E1F5EE' : '#F3F4F6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: antwoorden[vraag.id]?.trim() ? '#1D9E75' : '#9CA3AF', flexShrink: 0 }}>
-                    {antwoorden[vraag.id]?.trim() ? '✓' : i + 1}
+                    {antwoorden[vraag.id]?.trim() ? 'âœ“' : i + 1}
                   </div>
                   <p style={{ fontSize: 14, fontWeight: 600, color: '#1F2937', lineHeight: 1.4 }}>{vraag.vraag}</p>
                 </div>
@@ -169,7 +169,7 @@ export default function ReflectiePage() {
                   opacity: (opslaan || Object.values(antwoorden).every(v => !v.trim())) ? 0.5 : 1,
                 }}
               >
-                {opslaan ? 'Opslaan...' : opgeslagen ? '✓ Opgeslagen!' : 'Reflectie opslaan'}
+                {opslaan ? 'Opslaan...' : opgeslagen ? 'âœ“ Opgeslagen!' : 'Reflectie opslaan'}
               </button>
               <Link
                 href="/journal"
@@ -184,3 +184,4 @@ export default function ReflectiePage() {
     </div>
   )
 }
+

@@ -1,11 +1,11 @@
-'use client'
+﻿'use client'
 
 export const dynamic = 'force-dynamic'
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
-import Navbar from '@/components/Navbar'
+import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
 
 interface ENPSData {
@@ -70,7 +70,7 @@ export default function HrENPSPage() {
         {/* Top stats */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 16 }}>
           {[
-            { label: 'eNPS score', waarde: data.nps !== null ? (data.nps > 0 ? '+' : '') + data.nps : '–', kleur: npsKleur },
+            { label: 'eNPS score', waarde: data.nps !== null ? (data.nps > 0 ? '+' : '') + data.nps : 'â€“', kleur: npsKleur },
             { label: 'Respondenten', waarde: String(data.totaal_respondenten), kleur: '#374151' },
             { label: 'Participatie', waarde: `${data.participatie_pct}%`, kleur: '#374151' },
             { label: 'Promoters', waarde: String(data.promoters), kleur: '#1D9E75' },
@@ -101,9 +101,9 @@ export default function HrENPSPage() {
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {[
-                    { label: 'Promoters (9–10)', count: data.promoters, kleur: '#1D9E75' },
-                    { label: 'Passives (7–8)',   count: data.passives,  kleur: '#F59E0B' },
-                    { label: 'Detractors (0–6)', count: data.detractors, kleur: '#E24B4A' },
+                    { label: 'Promoters (9â€“10)', count: data.promoters, kleur: '#1D9E75' },
+                    { label: 'Passives (7â€“8)',   count: data.passives,  kleur: '#F59E0B' },
+                    { label: 'Detractors (0â€“6)', count: data.detractors, kleur: '#E24B4A' },
                   ].map(g => (
                     <div key={g.label} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       <div style={{ width: 10, height: 10, borderRadius: 3, background: g.kleur, flexShrink: 0 }} />
@@ -137,7 +137,7 @@ export default function HrENPSPage() {
                         )}
                       </div>
                       <span style={{ fontSize: 12, fontWeight: 700, color: kleur, width: 36, textAlign: 'right', flexShrink: 0 }}>
-                        {t.nps !== null ? (t.nps > 0 ? '+' : '') + t.nps : '–'}
+                        {t.nps !== null ? (t.nps > 0 ? '+' : '') + t.nps : 'â€“'}
                       </span>
                       <span style={{ fontSize: 10, color: '#9CA3AF', width: 20, flexShrink: 0 }}>{t.respondenten}</span>
                     </div>
@@ -170,10 +170,11 @@ export default function HrENPSPage() {
             </div>
           )}
           <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 12 }}>
-            eNPS benchmarks: Excellent ≥ 50 · Goed ≥ 20 · Matig ≥ 0 · Negatief &lt; 0
+            eNPS benchmarks: Excellent â‰¥ 50 Â· Goed â‰¥ 20 Â· Matig â‰¥ 0 Â· Negatief &lt; 0
           </p>
         </div>
       </main>
     </div>
   )
 }
+

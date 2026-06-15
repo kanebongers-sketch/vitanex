@@ -1,27 +1,27 @@
-'use client'
+﻿'use client'
 
 export const dynamic = 'force-dynamic'
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
-import Navbar from '@/components/Navbar'
+import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
 
 const STEMMING_OPTIES = [
-  { waarde: 1, emoji: '😫', label: 'Slecht' },
-  { waarde: 2, emoji: '😔', label: 'Matig' },
-  { waarde: 3, emoji: '😐', label: 'Neutraal' },
-  { waarde: 4, emoji: '🙂', label: 'Goed' },
-  { waarde: 5, emoji: '😄', label: 'Super!' },
+  { waarde: 1, emoji: 'ðŸ˜«', label: 'Slecht' },
+  { waarde: 2, emoji: 'ðŸ˜”', label: 'Matig' },
+  { waarde: 3, emoji: 'ðŸ˜', label: 'Neutraal' },
+  { waarde: 4, emoji: 'ðŸ™‚', label: 'Goed' },
+  { waarde: 5, emoji: 'ðŸ˜„', label: 'Super!' },
 ]
 
 const ENERGIE_OPTIES = [
-  { waarde: 1, emoji: '🔋', label: 'Leeg' },
-  { waarde: 2, emoji: '🔋', label: 'Laag' },
-  { waarde: 3, emoji: '⚡', label: 'Normaal' },
-  { waarde: 4, emoji: '⚡', label: 'Goed' },
-  { waarde: 5, emoji: '🚀', label: 'Vol!' },
+  { waarde: 1, emoji: 'ðŸ”‹', label: 'Leeg' },
+  { waarde: 2, emoji: 'ðŸ”‹', label: 'Laag' },
+  { waarde: 3, emoji: 'âš¡', label: 'Normaal' },
+  { waarde: 4, emoji: 'âš¡', label: 'Goed' },
+  { waarde: 5, emoji: 'ðŸš€', label: 'Vol!' },
 ]
 
 interface StemmingLog {
@@ -105,7 +105,7 @@ export default function StemmingPagina() {
 
         {succes && (
           <div style={{ background: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: 12, padding: '10px 14px', marginBottom: 16, fontSize: 13, color: '#15803D', fontWeight: 600 }}>
-            Stemming opgeslagen ✓
+            Stemming opgeslagen âœ“
           </div>
         )}
 
@@ -177,7 +177,7 @@ export default function StemmingPagina() {
           color: 'white', border: 'none', cursor: 'pointer',
           fontSize: 15, fontWeight: 700,
         }}>
-          {opslaan ? 'Opslaan…' : 'Log stemming →'}
+          {opslaan ? 'Opslaanâ€¦' : 'Log stemming â†’'}
         </button>
 
         {/* Recente stemming */}
@@ -214,12 +214,12 @@ export default function StemmingPagina() {
                   display: 'flex', alignItems: 'center', gap: 12,
                 }}>
                   <span style={{ fontSize: 22, flexShrink: 0 }}>
-                    {STEMMING_OPTIES.find(o => o.waarde === log.stemming)?.emoji ?? '😐'}
+                    {STEMMING_OPTIES.find(o => o.waarde === log.stemming)?.emoji ?? 'ðŸ˜'}
                   </span>
                   <div style={{ flex: 1 }}>
                     <p style={{ fontSize: 12, fontWeight: 600, color: stemmingKleur(log.stemming) }}>
                       {STEMMING_OPTIES.find(o => o.waarde === log.stemming)?.label}
-                      {log.energie && ` · energie ${log.energie}/5`}
+                      {log.energie && ` Â· energie ${log.energie}/5`}
                     </p>
                     {log.notitie && <p style={{ fontSize: 11, color: '#9CA3AF' }}>{log.notitie}</p>}
                   </div>
@@ -235,3 +235,4 @@ export default function StemmingPagina() {
     </div>
   )
 }
+

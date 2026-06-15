@@ -1,11 +1,11 @@
-'use client'
+﻿'use client'
 
 export const dynamic = 'force-dynamic'
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
-import Navbar from '@/components/Navbar'
+import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
 
 interface TeamUitdaging {
@@ -121,7 +121,7 @@ export default function HRUitdagingenPagina() {
             background: '#111827', color: 'white', border: 'none', borderRadius: 10,
             padding: '8px 14px', fontSize: 12, fontWeight: 600, cursor: 'pointer',
           }}>
-            {showForm ? '✕ Annuleer' : '+ Nieuw'}
+            {showForm ? 'âœ• Annuleer' : '+ Nieuw'}
           </button>
         </header>
 
@@ -190,7 +190,7 @@ export default function HRUitdagingenPagina() {
                 color: 'white', border: 'none', cursor: 'pointer',
                 fontSize: 14, fontWeight: 700,
               }}>
-                {opslaan ? 'Aanmaken…' : 'Uitdaging aanmaken →'}
+                {opslaan ? 'Aanmakenâ€¦' : 'Uitdaging aanmaken â†’'}
               </button>
             </div>
           </div>
@@ -199,7 +199,7 @@ export default function HRUitdagingenPagina() {
         {/* Uitdagingen lijst */}
         {uitdagingen.length === 0 && !showForm ? (
           <div style={{ background: 'white', borderRadius: 20, padding: '40px 24px', textAlign: 'center', border: '1px solid #E5E7EB' }}>
-            <div style={{ fontSize: 40, marginBottom: 12 }}>🏆</div>
+            <div style={{ fontSize: 40, marginBottom: 12 }}>ðŸ†</div>
             <p style={{ fontSize: 15, fontWeight: 600, color: '#374151', marginBottom: 6 }}>Nog geen uitdagingen</p>
             <p style={{ fontSize: 13, color: '#9CA3AF' }}>Maak je eerste team uitdaging aan.</p>
           </div>
@@ -232,9 +232,9 @@ export default function HRUitdagingenPagina() {
                     </div>
                   </div>
                   <div style={{ display: 'flex', gap: 12, fontSize: 11, color: '#9CA3AF' }}>
-                    <span>📅 {new Date(u.start_datum).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' })} → {new Date(u.eind_datum).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' })}</span>
-                    {u.doel_waarde && <span>🎯 {u.doel_waarde} {u.eenheid}</span>}
-                    <span>👥 {deelnemers} deelnemers</span>
+                    <span>ðŸ“… {new Date(u.start_datum).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' })} â†’ {new Date(u.eind_datum).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' })}</span>
+                    {u.doel_waarde && <span>ðŸŽ¯ {u.doel_waarde} {u.eenheid}</span>}
+                    <span>ðŸ‘¥ {deelnemers} deelnemers</span>
                   </div>
                 </div>
               )
@@ -245,3 +245,4 @@ export default function HRUitdagingenPagina() {
     </div>
   )
 }
+

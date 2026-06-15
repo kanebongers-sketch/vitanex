@@ -1,11 +1,11 @@
-'use client'
+﻿'use client'
 
 export const dynamic = 'force-dynamic'
 
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
-import Navbar from '@/components/Navbar'
+import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
 
 const SESSIES = [
@@ -14,7 +14,7 @@ const SESSIES = [
     titel: 'Korte adem reset',
     duur: 3,
     beschrijving: 'Kalm je zenuwstelsel in 3 minuten',
-    emoji: '🌬️',
+    emoji: 'ðŸŒ¬ï¸',
     stappen: [
       { tekst: 'Ga comfortabel zitten. Sluit je ogen.', duur: 15 },
       { tekst: 'Adem diep in door je neus, 4 tellen.', duur: 20 },
@@ -28,9 +28,9 @@ const SESSIES = [
     titel: 'Body scan',
     duur: 5,
     beschrijving: 'Scan je lichaam op spanning',
-    emoji: '🧘',
+    emoji: 'ðŸ§˜',
     stappen: [
-      { tekst: 'Leg je handen op je knieën. Sluit je ogen.', duur: 15 },
+      { tekst: 'Leg je handen op je knieÃ«n. Sluit je ogen.', duur: 15 },
       { tekst: 'Voel je voeten op de grond. Ontspan.', duur: 30 },
       { tekst: 'Ga omhoog via je benen. Laat spanning los.', duur: 40 },
       { tekst: 'Ontspan je buik en je borst.', duur: 40 },
@@ -44,12 +44,12 @@ const SESSIES = [
     titel: 'Dankbaarheidsmeditatie',
     duur: 3,
     beschrijving: 'Focus op wat goed gaat',
-    emoji: '🙏',
+    emoji: 'ðŸ™',
     stappen: [
       { tekst: 'Sluit je ogen. Haal diep adem.', duur: 15 },
       { tekst: 'Denk aan iemand voor wie je dankbaar bent.', duur: 40 },
       { tekst: 'Denk aan iets wat goed ging vandaag.', duur: 40 },
-      { tekst: 'Denk aan je lichaam – dat het voor jou werkt.', duur: 40 },
+      { tekst: 'Denk aan je lichaam â€“ dat het voor jou werkt.', duur: 40 },
       { tekst: 'Voel de warmte van dankbaarheid in je borst.', duur: 45 },
     ],
   },
@@ -58,13 +58,13 @@ const SESSIES = [
     titel: 'Focus reset',
     duur: 5,
     beschrijving: 'Herstel je concentratie',
-    emoji: '🎯',
+    emoji: 'ðŸŽ¯',
     stappen: [
       { tekst: 'Sluit alle tabs in je hoofd.', duur: 20 },
-      { tekst: 'Adem in, tél: 1. Uit, tél: 2.', duur: 30 },
+      { tekst: 'Adem in, tÃ©l: 1. Uit, tÃ©l: 2.', duur: 30 },
       { tekst: 'Blijf tellen tot 10. Begin opnieuw bij afleiding.', duur: 60 },
       { tekst: 'Als je afgeleid wordt, constateer dat en ga terug.', duur: 60 },
-      { tekst: 'Nog één ronde van 1-10.', duur: 50 },
+      { tekst: 'Nog Ã©Ã©n ronde van 1-10.', duur: 50 },
       { tekst: 'Open je ogen. Je bent klaar om te focussen.', duur: 80 },
     ],
   },
@@ -237,7 +237,7 @@ export default function MeditatiePagina() {
             textAlign: 'center', marginBottom: 24,
             border: '1px solid #BBF7D0',
           }}>
-            <div style={{ fontSize: 48, marginBottom: 12 }}>🌟</div>
+            <div style={{ fontSize: 48, marginBottom: 12 }}>ðŸŒŸ</div>
             <h2 style={{ fontSize: 20, fontWeight: 700, color: '#111827', marginBottom: 8 }}>Goed gedaan!</h2>
             <p style={{ fontSize: 14, color: '#6B7280', marginBottom: 20 }}>
               Je hebt {gekozenSessie.duur} minuten {gekozenSessie.titel.toLowerCase()} geoefend.
@@ -285,3 +285,4 @@ export default function MeditatiePagina() {
     </div>
   )
 }
+

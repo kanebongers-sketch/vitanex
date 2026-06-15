@@ -1,11 +1,11 @@
-'use client'
+﻿'use client'
 
 export const dynamic = 'force-dynamic'
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
-import Navbar from '@/components/Navbar'
+import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
 
 interface Inzichten {
@@ -82,7 +82,7 @@ export default function InzichtenPagina() {
 
         {bericht && !inzichten && (
           <div style={{ background: 'white', borderRadius: 20, padding: '32px 24px', textAlign: 'center', border: '1px solid #E5E7EB' }}>
-            <div style={{ fontSize: 40, marginBottom: 12 }}>📊</div>
+            <div style={{ fontSize: 40, marginBottom: 12 }}>ðŸ“Š</div>
             <p style={{ fontSize: 14, color: '#6B7280', lineHeight: 1.6 }}>{bericht}</p>
           </div>
         )}
@@ -134,7 +134,7 @@ export default function InzichtenPagina() {
                   <p style={{ fontSize: 9, color: '#9CA3AF', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginTop: 2 }}>Focus</p>
                 </div>
                 <div style={{ background: 'white', borderRadius: 14, padding: '14px 10px', border: '1px solid #E5E7EB', textAlign: 'center' }}>
-                  <p style={{ fontSize: 20, fontWeight: 800, color: stats.dankbaarheid_dagen >= 3 ? '#1D9E75' : '#9CA3AF' }}>{stats.dankbaarheid_dagen}×</p>
+                  <p style={{ fontSize: 20, fontWeight: 800, color: stats.dankbaarheid_dagen >= 3 ? '#1D9E75' : '#9CA3AF' }}>{stats.dankbaarheid_dagen}Ã—</p>
                   <p style={{ fontSize: 9, color: '#9CA3AF', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginTop: 2 }}>Dankbaarheid</p>
                 </div>
                 <div style={{ background: 'white', borderRadius: 14, padding: '14px 10px', border: '1px solid #E5E7EB', textAlign: 'center' }}>
@@ -147,7 +147,7 @@ export default function InzichtenPagina() {
             {/* Patroon */}
             <div style={{ background: 'white', borderRadius: 16, padding: '16px', border: '1px solid #E5E7EB', marginBottom: 14 }}>
               <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#9CA3AF', marginBottom: 8 }}>
-                🔍 Patroon
+                ðŸ” Patroon
               </p>
               <p style={{ fontSize: 13, color: '#374151', lineHeight: 1.6 }}>{inzichten.patroon}</p>
             </div>
@@ -155,7 +155,7 @@ export default function InzichtenPagina() {
             {/* Tip */}
             <div style={{ background: '#F0FDF4', borderRadius: 16, padding: '16px', border: '1px solid #BBF7D0' }}>
               <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#15803D', marginBottom: 8 }}>
-                💡 Tip van de week
+                ðŸ’¡ Tip van de week
               </p>
               <p style={{ fontSize: 13, color: '#374151', lineHeight: 1.6 }}>{inzichten.tip_van_de_week}</p>
             </div>
@@ -165,3 +165,4 @@ export default function InzichtenPagina() {
     </div>
   )
 }
+

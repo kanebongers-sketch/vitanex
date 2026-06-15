@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 export const dynamic = 'force-dynamic'
 
@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
-import Navbar from '@/components/Navbar'
+import Navbar from '@/components/layout/Navbar'
 
 interface CheckIn {
   id: string
@@ -64,7 +64,7 @@ export default function CheckInGeschiedenisPage() {
       <main style={{ padding: '36px 40px 72px', maxWidth: 800, margin: '0 auto' }}>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
-          <Link href="/checkin" style={{ color: '#9CA3AF', textDecoration: 'none', fontSize: 13 }}>← Check-in</Link>
+          <Link href="/checkin" style={{ color: '#9CA3AF', textDecoration: 'none', fontSize: 13 }}>â† Check-in</Link>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
@@ -73,7 +73,7 @@ export default function CheckInGeschiedenisPage() {
             <p style={{ fontSize: 13, color: '#9CA3AF' }}>{checkIns.length} check-ins in de afgelopen tijd</p>
           </div>
           <Link href="/voortgang" style={{ fontSize: 13, fontWeight: 600, color: '#6366f1', textDecoration: 'none', padding: '8px 16px', borderRadius: 10, background: '#EEEDFE' }}>
-            Voortgang →
+            Voortgang â†’
           </Link>
         </div>
 
@@ -83,7 +83,7 @@ export default function CheckInGeschiedenisPage() {
           <div style={{ background: 'white', borderRadius: 20, border: '1px solid #E5E7EB', padding: '56px 40px', textAlign: 'center' }}>
             <p style={{ fontSize: 15, fontWeight: 600, color: '#374151', marginBottom: 8 }}>Nog geen check-ins</p>
             <Link href="/checkin" style={{ fontSize: 14, color: 'white', background: '#1D9E75', borderRadius: 12, padding: '10px 20px', textDecoration: 'none', fontWeight: 600, display: 'inline-block' }}>
-              Eerste check-in →
+              Eerste check-in â†’
             </Link>
           </div>
         ) : (
@@ -118,7 +118,7 @@ export default function CheckInGeschiedenisPage() {
                               {datum.toLocaleDateString('nl-BE', { weekday: 'long', day: 'numeric', month: 'long' })}
                             </p>
                             <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 1 }}>
-                              {datum.toLocaleTimeString('nl-BE', { hour: '2-digit', minute: '2-digit' })} · {domeinen.length} domeinen
+                              {datum.toLocaleTimeString('nl-BE', { hour: '2-digit', minute: '2-digit' })} Â· {domeinen.length} domeinen
                             </p>
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -164,3 +164,4 @@ export default function CheckInGeschiedenisPage() {
     </div>
   )
 }
+

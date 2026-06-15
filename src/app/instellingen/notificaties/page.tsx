@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 export const dynamic = 'force-dynamic'
 
@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
-import Navbar from '@/components/Navbar'
+import Navbar from '@/components/layout/Navbar'
 
 interface Voorkeuren {
   checkin_reminder: boolean
@@ -84,7 +84,7 @@ export default function NotificatiesPage() {
       <main style={{ padding: '36px 40px 72px', maxWidth: 600, margin: '0 auto' }}>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 28 }}>
-          <Link href="/instellingen" style={{ color: '#9CA3AF', textDecoration: 'none', fontSize: 13 }}>← Instellingen</Link>
+          <Link href="/instellingen" style={{ color: '#9CA3AF', textDecoration: 'none', fontSize: 13 }}>â† Instellingen</Link>
         </div>
 
         <h1 style={{ fontSize: 22, fontWeight: 800, color: '#111827', letterSpacing: '-0.03em', marginBottom: 4 }}>Notificaties</h1>
@@ -137,7 +137,7 @@ export default function NotificatiesPage() {
             {/* Push notificaties info */}
             <div style={{ background: '#F0FDF4', borderRadius: 16, border: '1px solid #BBF7D0', padding: '16px 18px' }}>
               <div style={{ display: 'flex', gap: 10 }}>
-                <span style={{ fontSize: 16, flexShrink: 0 }}>💡</span>
+                <span style={{ fontSize: 16, flexShrink: 0 }}>ðŸ’¡</span>
                 <div>
                   <p style={{ fontSize: 13, fontWeight: 600, color: '#166534', marginBottom: 3 }}>Push notificaties via de app</p>
                   <p style={{ fontSize: 12, color: '#15803D', lineHeight: 1.5 }}>
@@ -156,7 +156,7 @@ export default function NotificatiesPage() {
                 opacity: bezig ? 0.7 : 1, marginTop: 4,
               }}
             >
-              {bezig ? 'Opslaan...' : opgeslagen ? '✓ Opgeslagen!' : 'Voorkeuren opslaan'}
+              {bezig ? 'Opslaan...' : opgeslagen ? 'âœ“ Opgeslagen!' : 'Voorkeuren opslaan'}
             </button>
           </div>
         )}
@@ -164,3 +164,4 @@ export default function NotificatiesPage() {
     </div>
   )
 }
+

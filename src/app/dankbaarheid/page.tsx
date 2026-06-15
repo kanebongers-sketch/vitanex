@@ -1,11 +1,11 @@
-'use client'
+﻿'use client'
 
 export const dynamic = 'force-dynamic'
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
-import Navbar from '@/components/Navbar'
+import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
 
 interface DankbaarheidLog {
@@ -15,11 +15,11 @@ interface DankbaarheidLog {
 }
 
 const PLACEHOLDERS = [
-  'Een fijne samenwerking vandaag…',
-  'Een moment waarvan ik genoot…',
-  'Iets wat me energie gaf…',
-  'Een kleine overwinning…',
-  'Een persoon die me hielp…',
+  'Een fijne samenwerking vandaagâ€¦',
+  'Een moment waarvan ik genootâ€¦',
+  'Iets wat me energie gafâ€¦',
+  'Een kleine overwinningâ€¦',
+  'Een persoon die me hielpâ€¦',
 ]
 
 export default function DankbaarheidPagina() {
@@ -107,10 +107,10 @@ export default function DankbaarheidPagina() {
           boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-            <span style={{ fontSize: 20 }}>🙏</span>
+            <span style={{ fontSize: 20 }}>ðŸ™</span>
             <div>
               <p style={{ fontSize: 14, fontWeight: 700, color: '#111827' }}>
-                {heeftVandaag ? 'Aanpassen' : 'Vandaag dankbaar voor…'}
+                {heeftVandaag ? 'Aanpassen' : 'Vandaag dankbaar voorâ€¦'}
               </p>
               <p style={{ fontSize: 11, color: '#9CA3AF' }}>
                 {new Date().toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long' })}
@@ -154,7 +154,7 @@ export default function DankbaarheidPagina() {
               transition: 'background 0.3s ease, opacity 0.15s ease',
             }}
           >
-            {succes ? '✓ Opgeslagen!' : opslaan ? 'Opslaan…' : heeftVandaag ? 'Bijwerken' : 'Opslaan'}
+            {succes ? 'âœ“ Opgeslagen!' : opslaan ? 'Opslaanâ€¦' : heeftVandaag ? 'Bijwerken' : 'Opslaan'}
           </button>
         </section>
 
@@ -179,7 +179,7 @@ export default function DankbaarheidPagina() {
                   <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 5 }}>
                     {log.items.map((item, i) => (
                       <li key={i} style={{ fontSize: 13, color: '#374151', display: 'flex', gap: 8, alignItems: 'flex-start' }}>
-                        <span style={{ color: '#A7F3D0', fontWeight: 700, flexShrink: 0, marginTop: 1 }}>✦</span>
+                        <span style={{ color: '#A7F3D0', fontWeight: 700, flexShrink: 0, marginTop: 1 }}>âœ¦</span>
                         {item}
                       </li>
                     ))}
@@ -194,3 +194,4 @@ export default function DankbaarheidPagina() {
     </div>
   )
 }
+

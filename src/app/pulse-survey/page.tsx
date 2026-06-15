@@ -1,11 +1,11 @@
-'use client'
+﻿'use client'
 
 export const dynamic = 'force-dynamic'
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
-import Navbar from '@/components/Navbar'
+import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
 
 interface Vraag {
@@ -75,7 +75,7 @@ export default function PulseSurveyPage() {
     <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
       <Navbar />
       <main style={{ padding: '72px 40px', maxWidth: 560, margin: '0 auto', textAlign: 'center' }}>
-        <div style={{ fontSize: 48, marginBottom: 20 }}>✓</div>
+        <div style={{ fontSize: 48, marginBottom: 20 }}>âœ“</div>
         <h1 style={{ fontSize: 22, fontWeight: 800, color: '#111827', letterSpacing: '-0.03em', marginBottom: 10 }}>
           {klaar ? 'Bedankt voor je bijdrage!' : 'Al ingevuld deze week'}
         </h1>
@@ -131,7 +131,7 @@ export default function PulseSurveyPage() {
             {huidigeVraag.vraag}
           </p>
 
-          {/* Scale 1–5 */}
+          {/* Scale 1â€“5 */}
           {huidigeVraag.type === 'scale' && (
             <div>
               <div style={{ display: 'flex', gap: 10, justifyContent: 'center', marginBottom: 10 }}>
@@ -155,7 +155,7 @@ export default function PulseSurveyPage() {
             </div>
           )}
 
-          {/* NPS 0–10 */}
+          {/* NPS 0â€“10 */}
           {huidigeVraag.type === 'nps' && (
             <div>
               <div style={{ display: 'flex', gap: 6, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 10 }}>
@@ -221,7 +221,7 @@ export default function PulseSurveyPage() {
               onClick={vorige}
               style={{ padding: '13px 20px', borderRadius: 12, border: '1px solid #E5E7EB', background: 'white', color: '#6B7280', fontWeight: 600, fontSize: 14, cursor: 'pointer' }}
             >
-              ← Vorige
+              â† Vorige
             </button>
           )}
           <button
@@ -233,7 +233,7 @@ export default function PulseSurveyPage() {
               opacity: !isBeantwoord || verzenden ? 0.4 : 1,
             }}
           >
-            {verzenden ? 'Verzenden...' : isLaatste ? 'Verzend survey →' : 'Volgende →'}
+            {verzenden ? 'Verzenden...' : isLaatste ? 'Verzend survey â†’' : 'Volgende â†’'}
           </button>
         </div>
 
@@ -244,3 +244,4 @@ export default function PulseSurveyPage() {
     </div>
   )
 }
+

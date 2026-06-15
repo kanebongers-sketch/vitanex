@@ -1,11 +1,11 @@
-'use client'
+﻿'use client'
 
 export const dynamic = 'force-dynamic'
 
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
-import Navbar from '@/components/Navbar'
+import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
 
 type Fase = 'focus' | 'pauze' | 'lang-pauze' | 'klaar'
@@ -163,7 +163,7 @@ export default function PomodoroPage() {
                 }}
               >
                 <p>{m.label}</p>
-                <p style={{ fontSize: 11, fontWeight: 400, marginTop: 2 }}>{m.focus}m · {m.pauze}m pauze</p>
+                <p style={{ fontSize: 11, fontWeight: 400, marginTop: 2 }}>{m.focus}m Â· {m.pauze}m pauze</p>
               </button>
             ))}
           </div>
@@ -277,3 +277,4 @@ export default function PomodoroPage() {
     </div>
   )
 }
+

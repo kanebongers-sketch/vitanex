@@ -1,11 +1,11 @@
-'use client'
+﻿'use client'
 
 export const dynamic = 'force-dynamic'
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
-import Navbar from '@/components/Navbar'
+import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
 
 interface Meting {
@@ -91,7 +91,7 @@ export default function WerkgelukPagina() {
             Werkgeluk
           </h1>
           <p style={{ fontSize: 13, color: '#9CA3AF' }}>
-            Hoe blij ben je met je werk deze week? · 4 dimensies · 1-5 schaal
+            Hoe blij ben je met je werk deze week? Â· 4 dimensies Â· 1-5 schaal
           </p>
           {gemiddeldScore && (
             <p style={{ fontSize: 14, fontWeight: 700, color: '#059669', marginTop: 6 }}>
@@ -151,7 +151,7 @@ export default function WerkgelukPagina() {
               transition: 'background 0.3s ease',
             }}
           >
-            {succes ? '✓ Opgeslagen!' : opslaan ? 'Opslaan…' : 'Werkgeluk opslaan'}
+            {succes ? 'âœ“ Opgeslagen!' : opslaan ? 'Opslaanâ€¦' : 'Werkgeluk opslaan'}
           </button>
         </section>
 
@@ -192,3 +192,4 @@ export default function WerkgelukPagina() {
     </div>
   )
 }
+

@@ -1,11 +1,11 @@
-'use client'
+﻿'use client'
 
 export const dynamic = 'force-dynamic'
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
-import Navbar from '@/components/Navbar'
+import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
 
 const VRAGEN = [
@@ -108,7 +108,7 @@ export default function MentaleSterktePagina() {
                 Mentale veerkracht quiz
               </h1>
               <p style={{ fontSize: 13, color: '#9CA3AF' }}>
-                8 vragen · AI-analyse · 2 minuten
+                8 vragen Â· AI-analyse Â· 2 minuten
               </p>
               {/* Voortgangsbalk */}
               <div style={{ marginTop: 14, height: 4, borderRadius: 9999, background: '#F3F4F6', overflow: 'hidden' }}>
@@ -174,7 +174,7 @@ export default function MentaleSterktePagina() {
                   boxShadow: '0 4px 14px rgba(99,102,241,0.35)',
                 }}
               >
-                {bezig ? 'AI analyseert…' : 'Bekijk mijn analyse →'}
+                {bezig ? 'AI analyseertâ€¦' : 'Bekijk mijn analyse â†’'}
               </button>
             )}
           </>
@@ -182,7 +182,7 @@ export default function MentaleSterktePagina() {
           <>
             <header style={{ marginBottom: 24, textAlign: 'center' }}>
               <div style={{ fontSize: 48, marginBottom: 12 }}>
-                {resultaat.score >= 80 ? '💪' : resultaat.score >= 60 ? '🌱' : resultaat.score >= 40 ? '⚠️' : '🆘'}
+                {resultaat.score >= 80 ? 'ðŸ’ª' : resultaat.score >= 60 ? 'ðŸŒ±' : resultaat.score >= 40 ? 'âš ï¸' : 'ðŸ†˜'}
               </div>
               <h1 style={{ fontSize: 28, fontWeight: 800, color: NIVEAU_KLEUR[resultaat.niveau] ?? '#111827', marginBottom: 4 }}>
                 {resultaat.niveau}
@@ -245,7 +245,7 @@ export default function MentaleSterktePagina() {
                   fontSize: 13, fontWeight: 600,
                 }}
               >
-                Bespreek met coach →
+                Bespreek met coach â†’
               </button>
             </div>
           </>
@@ -255,3 +255,4 @@ export default function MentaleSterktePagina() {
     </div>
   )
 }
+

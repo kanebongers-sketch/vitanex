@@ -1,11 +1,11 @@
-'use client'
+﻿'use client'
 
 export const dynamic = 'force-dynamic'
 
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
-import Navbar from '@/components/Navbar'
+import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
 
 const TECHNIEKEN = [
@@ -103,7 +103,7 @@ export default function StressPagina() {
         const json = await res.json() as { log: StressLog }
         setLogs(prev => [json.log, ...prev.slice(0, 6)])
         setNotitie('')
-        setSuccesBericht('Stress niveau opgeslagen ✓')
+        setSuccesBericht('Stress niveau opgeslagen âœ“')
         setTimeout(() => setSuccesBericht(null), 3000)
       }
     } catch { /* stil falen */ }
@@ -208,7 +208,7 @@ export default function StressPagina() {
                   <p style={{ fontSize: 13, fontWeight: 600, color: '#374151' }}>{t.label}</p>
                   <p style={{ fontSize: 11, color: '#9CA3AF' }}>{t.beschrijving}</p>
                 </div>
-                {gekozeTechniek === t.id && <span style={{ color: '#1D9E75', fontSize: 16 }}>✓</span>}
+                {gekozeTechniek === t.id && <span style={{ color: '#1D9E75', fontSize: 16 }}>âœ“</span>}
               </button>
             ))}
           </div>
@@ -224,13 +224,13 @@ export default function StressPagina() {
             fontSize: 15, fontWeight: 700,
           }}
         >
-          {opslaan ? 'Opslaan…' : 'Stress loggen →'}
+          {opslaan ? 'Opslaanâ€¦' : 'Stress loggen â†’'}
         </button>
 
         {/* Box breathing oefening */}
         <div style={{ background: 'white', borderRadius: 20, padding: '20px', border: '1px solid #E5E7EB', marginBottom: 20 }}>
           <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#9CA3AF', marginBottom: 16 }}>
-            Box breathing — 4×4 cycli
+            Box breathing â€” 4Ã—4 cycli
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
             <div
@@ -251,7 +251,7 @@ export default function StressPagina() {
               {ademBezig && <span style={{ fontSize: 10, color: '#1D9E75', marginTop: 2 }}>{ademCyclus}/4</span>}
             </div>
             <p style={{ fontSize: 12, color: '#9CA3AF', textAlign: 'center' }}>
-              {ademBezig ? 'Tik om te stoppen' : '4 sec inademen · 4 vast · 4 uitademen · 4 rust'}
+              {ademBezig ? 'Tik om te stoppen' : '4 sec inademen Â· 4 vast Â· 4 uitademen Â· 4 rust'}
             </p>
           </div>
         </div>
@@ -293,3 +293,4 @@ export default function StressPagina() {
     </div>
   )
 }
+

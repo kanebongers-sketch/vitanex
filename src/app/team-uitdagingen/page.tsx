@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 export const dynamic = 'force-dynamic'
 
@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
-import Navbar from '@/components/Navbar'
+import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
 
 interface UitdagingLog { user_id: string; datum: string; waarde: number | null }
@@ -24,8 +24,8 @@ interface Uitdaging {
 }
 
 const TYPE_LABELS: Record<string, string> = {
-  stappen: '👟 Stappen', checkin: '✅ Check-ins', sport: '💪 Sport',
-  voeding: '🥗 Voeding', meditatie: '🧘 Meditatie', focus: '⏱️ Focus', custom: '🎯 Overig',
+  stappen: 'ðŸ‘Ÿ Stappen', checkin: 'âœ… Check-ins', sport: 'ðŸ’ª Sport',
+  voeding: 'ðŸ¥— Voeding', meditatie: 'ðŸ§˜ Meditatie', focus: 'â±ï¸ Focus', custom: 'ðŸŽ¯ Overig',
 }
 
 function dagsTot(datum: string): number {
@@ -113,7 +113,7 @@ export default function TeamUitdagingenPagina() {
             </p>
           </div>
           <Link href="/uitdagingen" style={{ fontSize: 12, color: 'var(--mentaforce-primary, #6366f1)', fontWeight: 600, textDecoration: 'none' }}>
-            Alle uitdagingen →
+            Alle uitdagingen â†’
           </Link>
         </header>
 
@@ -122,7 +122,7 @@ export default function TeamUitdagingenPagina() {
             background: 'white', borderRadius: 20, padding: '48px 24px',
             border: '2px dashed #E5E7EB', textAlign: 'center',
           }}>
-            <div style={{ fontSize: 48, marginBottom: 16 }}>🏆</div>
+            <div style={{ fontSize: 48, marginBottom: 16 }}>ðŸ†</div>
             <p style={{ fontSize: 15, fontWeight: 700, color: '#374151', marginBottom: 8 }}>
               Geen actieve uitdagingen
             </p>
@@ -154,7 +154,7 @@ export default function TeamUitdagingenPagina() {
                         </span>
                         {heeftVandaag && (
                           <span style={{ fontSize: 10, background: '#E1F5EE', color: '#059669', fontWeight: 700, padding: '2px 7px', borderRadius: 20 }}>
-                            ✓ vandaag gelogd
+                            âœ“ vandaag gelogd
                           </span>
                         )}
                       </div>
@@ -210,7 +210,7 @@ export default function TeamUitdagingenPagina() {
                           cursor: 'pointer', opacity: loggen === u.id || !logWaarde ? 0.5 : 1,
                         }}
                       >
-                        {loggen === u.id ? '…' : 'Log'}
+                        {loggen === u.id ? 'â€¦' : 'Log'}
                       </button>
                     </div>
                   ) : (
@@ -224,7 +224,7 @@ export default function TeamUitdagingenPagina() {
                         fontWeight: 700, fontSize: 13, cursor: heeftVandaag ? 'default' : 'pointer',
                       }}
                     >
-                      {heeftVandaag ? '✓ Vandaag geregistreerd' : loggen === u.id ? 'Bezig…' : 'Deelnemen vandaag'}
+                      {heeftVandaag ? 'âœ“ Vandaag geregistreerd' : loggen === u.id ? 'Bezigâ€¦' : 'Deelnemen vandaag'}
                     </button>
                   )}
                 </article>
@@ -237,3 +237,4 @@ export default function TeamUitdagingenPagina() {
     </div>
   )
 }
+

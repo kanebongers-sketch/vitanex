@@ -1,11 +1,11 @@
-'use client'
+﻿'use client'
 
 export const dynamic = 'force-dynamic'
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
-import Navbar from '@/components/Navbar'
+import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
 
 interface Actie {
@@ -25,7 +25,7 @@ interface Groeiplan {
 }
 
 const TERMIJN_KLEUR: Record<string, string> = { week: '#1D9E75', maand: '#6366f1', kwartaal: '#F59E0B' }
-const DOMEIN_EMOJI: Record<string, string> = { slaap: '😴', stress: '🧘', energie: '⚡', focus: '🎯', balans: '⚖️', motivatie: '🔥' }
+const DOMEIN_EMOJI: Record<string, string> = { slaap: 'ðŸ˜´', stress: 'ðŸ§˜', energie: 'âš¡', focus: 'ðŸŽ¯', balans: 'âš–ï¸', motivatie: 'ðŸ”¥' }
 
 export default function GroeiplanPagina() {
   const router = useRouter()
@@ -85,7 +85,7 @@ export default function GroeiplanPagina() {
               padding: '8px 12px', fontSize: 11, fontWeight: 600, cursor: 'pointer',
               color: '#374151',
             }}>
-              {genereren ? '⏳' : '↺ Nieuw'}
+              {genereren ? 'â³' : 'â†º Nieuw'}
             </button>
           )}
         </header>
@@ -95,7 +95,7 @@ export default function GroeiplanPagina() {
             background: 'white', borderRadius: 24, padding: '40px 24px',
             textAlign: 'center', border: '1px solid #E5E7EB',
           }}>
-            <div style={{ fontSize: 52, marginBottom: 16 }}>🌱</div>
+            <div style={{ fontSize: 52, marginBottom: 16 }}>ðŸŒ±</div>
             <h2 style={{ fontSize: 18, fontWeight: 700, color: '#111827', marginBottom: 8 }}>
               Genereer jouw groeiplan
             </h2>
@@ -108,7 +108,7 @@ export default function GroeiplanPagina() {
               padding: '14px 32px', fontSize: 15, fontWeight: 700, cursor: 'pointer',
               boxShadow: '0 4px 14px rgba(29,158,117,0.35)',
             }}>
-              Plan genereren →
+              Plan genereren â†’
             </button>
           </div>
         ) : genereren ? (
@@ -117,7 +117,7 @@ export default function GroeiplanPagina() {
             textAlign: 'center', border: '1px solid #E5E7EB',
           }}>
             <div className="mf-spinner" style={{ margin: '0 auto 20px' }} />
-            <p style={{ fontSize: 15, fontWeight: 600, color: '#374151' }}>AI analyseert jouw data…</p>
+            <p style={{ fontSize: 15, fontWeight: 600, color: '#374151' }}>AI analyseert jouw dataâ€¦</p>
             <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 6 }}>Dit duurt 5-10 seconden</p>
           </div>
         ) : groeiplan ? (
@@ -129,7 +129,7 @@ export default function GroeiplanPagina() {
             {/* Doelen */}
             <div style={{ background: 'white', borderRadius: 20, padding: '18px', border: '1px solid #E5E7EB', marginBottom: 14 }}>
               <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#9CA3AF', marginBottom: 12 }}>
-                🎯 Mijn doelen
+                ðŸŽ¯ Mijn doelen
               </p>
               {(groeiplan.doelen ?? []).map((d, i) => (
                 <div key={i} style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
@@ -145,18 +145,18 @@ export default function GroeiplanPagina() {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
               <div style={{ background: '#F0FDF4', borderRadius: 16, padding: '16px', border: '1px solid #BBF7D0' }}>
                 <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#15803D', marginBottom: 10 }}>
-                  💪 Sterk
+                  ðŸ’ª Sterk
                 </p>
                 {(groeiplan.sterke_punten ?? []).map((s, i) => (
-                  <p key={i} style={{ fontSize: 12, color: '#374151', marginBottom: 6, lineHeight: 1.4 }}>• {s}</p>
+                  <p key={i} style={{ fontSize: 12, color: '#374151', marginBottom: 6, lineHeight: 1.4 }}>â€¢ {s}</p>
                 ))}
               </div>
               <div style={{ background: '#FFF7ED', borderRadius: 16, padding: '16px', border: '1px solid #FED7AA' }}>
                 <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#C2410C', marginBottom: 10 }}>
-                  🌱 Groeipunten
+                  ðŸŒ± Groeipunten
                 </p>
                 {(groeiplan.aandachtspunten ?? []).map((a, i) => (
-                  <p key={i} style={{ fontSize: 12, color: '#374151', marginBottom: 6, lineHeight: 1.4 }}>• {a}</p>
+                  <p key={i} style={{ fontSize: 12, color: '#374151', marginBottom: 6, lineHeight: 1.4 }}>â€¢ {a}</p>
                 ))}
               </div>
             </div>
@@ -164,7 +164,7 @@ export default function GroeiplanPagina() {
             {/* Acties */}
             <div style={{ background: 'white', borderRadius: 20, padding: '18px', border: '1px solid #E5E7EB' }}>
               <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#9CA3AF', marginBottom: 12 }}>
-                ✅ Concrete acties
+                âœ… Concrete acties
               </p>
               {(groeiplan.acties ?? []).map((a, i) => (
                 <div key={i} style={{
@@ -173,7 +173,7 @@ export default function GroeiplanPagina() {
                   borderBottom: i < (groeiplan.acties?.length ?? 0) - 1 ? '1px solid #F3F4F6' : 'none',
                 }}>
                   <div style={{ fontSize: 18, flexShrink: 0 }}>
-                    {DOMEIN_EMOJI[a.domein] ?? '📌'}
+                    {DOMEIN_EMOJI[a.domein] ?? 'ðŸ“Œ'}
                   </div>
                   <div style={{ flex: 1 }}>
                     <p style={{ fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 4, lineHeight: 1.4 }}>{a.actie}</p>
@@ -183,7 +183,7 @@ export default function GroeiplanPagina() {
                       color: TERMIJN_KLEUR[a.termijn] ?? '#9CA3AF',
                       padding: '2px 7px', borderRadius: 99,
                     }}>
-                      {a.termijn} · {a.domein}
+                      {a.termijn} Â· {a.domein}
                     </span>
                   </div>
                 </div>
@@ -195,3 +195,4 @@ export default function GroeiplanPagina() {
     </div>
   )
 }
+
