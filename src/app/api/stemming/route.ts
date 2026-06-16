@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
       emoji: emoji ?? null,
       notitie: notitie?.trim() ?? null,
     })
-    .select('id, stemming, aangemaakt_op')
+    .select('id, stemming, energie, emoji, notitie, aangemaakt_op')
     .single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })

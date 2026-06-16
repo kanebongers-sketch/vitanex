@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
       wektijd: wektijd ?? null,
       notitie: notitie?.trim() ?? null,
     }, { onConflict: 'user_id,datum' })
-    .select('id, datum, uren_slaap, kwaliteit')
+    .select('id, datum, uren_slaap, kwaliteit, bedtijd, wektijd, notitie')
     .single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })

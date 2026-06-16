@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
       notitie: notitie?.trim() ?? null,
       techniek: techniek ?? null,
     })
-    .select('id, stress_niveau, aangemaakt_op')
+    .select('id, stress_niveau, aangemaakt_op, notitie, techniek')
     .single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })

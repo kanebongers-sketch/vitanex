@@ -661,6 +661,7 @@ export default function Navbar() {
                 justifyContent: 'center',
                 gap: 3,
                 minHeight: 44,
+                width: '100%',
                 padding: '6px 4px 4px',
                 position: 'relative',
               }}>
@@ -668,7 +669,7 @@ export default function Navbar() {
                 {isActive && (
                   <div style={{
                     position: 'absolute',
-                    top: 2,
+                    top: 0,
                     width: 16,
                     height: 3,
                     borderRadius: 100,
