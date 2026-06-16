@@ -152,7 +152,7 @@ function NavLink({
         gap: 8,
         padding: indent ? '7px 12px 7px 32px' : '7px 12px',
         fontSize: 13,
-        color: isActive ? '#1D9E75' : '#374151',
+        color: isActive ? 'var(--mf-green)' : 'var(--text-2)',
         borderRadius: 8,
         margin: '1px 8px',
         textDecoration: 'none',
@@ -161,7 +161,7 @@ function NavLink({
         transition: 'background 0.12s, color 0.12s',
       }}
       onMouseEnter={(e) => {
-        if (!isActive) (e.currentTarget as HTMLAnchorElement).style.background = '#F9FAFB'
+        if (!isActive) (e.currentTarget as HTMLAnchorElement).style.background = 'var(--bg-subtle)'
       }}
       onMouseLeave={(e) => {
         if (!isActive) (e.currentTarget as HTMLAnchorElement).style.background = 'transparent'
@@ -195,20 +195,26 @@ function SidebarContent({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       {/* Logo */}
-      <div style={{ padding: '18px 16px 14px', borderBottom: '1px solid #E5E7EB' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontSize: 18, fontWeight: 800, color: '#1D9E75', letterSpacing: '-0.02em' }}>
+      <div style={{ padding: '18px 16px 14px', borderBottom: '1px solid var(--border)' }}>
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+          <span style={{
+            fontFamily: 'var(--font-display, Georgia, serif)',
+            fontStyle: 'italic',
+            fontSize: 20,
+            fontWeight: 400,
+            color: 'var(--mf-green)',
+          }}>
             MentaForce
           </span>
-          <span
-            style={{
-              width: 8,
-              height: 8,
-              borderRadius: '50%',
-              background: '#1D9E75',
-              flexShrink: 0,
-            }}
-          />
+          <p style={{
+            fontSize: 10,
+            fontWeight: 600,
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+            color: 'var(--text-4)',
+            marginTop: 2,
+            margin: '2px 0 0 0',
+          }}>Welzijn &amp; Vitaliteit</p>
         </div>
       </div>
 
@@ -230,15 +236,15 @@ function SidebarContent({
                   padding: '8px 16px',
                   fontSize: 14,
                   fontWeight: isActive ? 700 : 600,
-                  color: isActive ? '#1D9E75' : '#111827',
+                  color: isActive ? 'var(--mf-green)' : 'var(--text-1)',
                   borderRadius: 8,
                   margin: '1px 8px',
                   textDecoration: 'none',
-                  background: isActive ? '#E1F5EE' : 'transparent',
+                  background: isActive ? 'var(--mf-green-light)' : 'transparent',
                   transition: 'background 0.12s, color 0.12s',
                 }}
                 onMouseEnter={(e) => {
-                  if (!isActive) (e.currentTarget as HTMLAnchorElement).style.background = '#F3F4F6'
+                  if (!isActive) (e.currentTarget as HTMLAnchorElement).style.background = 'var(--bg-subtle)'
                 }}
                 onMouseLeave={(e) => {
                   if (!isActive) (e.currentTarget as HTMLAnchorElement).style.background = 'transparent'
@@ -252,6 +258,9 @@ function SidebarContent({
 
           /* Collapsible sectie */
           const isOpen = openSections[item.key] ?? false
+          const hasActiveChild = item.items?.some(
+            (sub) => pathname === sub.href || pathname.startsWith(sub.href + '/')
+          ) ?? false
           return (
             <div key={item.key} style={{ marginBottom: 2 }}>
               <button
@@ -264,10 +273,11 @@ function SidebarContent({
                   width: '100%',
                   background: 'none',
                   border: 'none',
+                  borderLeft: hasActiveChild ? '2px solid var(--mf-green)' : '2px solid transparent',
                   cursor: 'pointer',
                   fontSize: 14,
                   fontWeight: 600,
-                  color: '#111827',
+                  color: 'var(--text-1)',
                   borderRadius: 8,
                   margin: '1px 8px',
                   maxWidth: 'calc(100% - 16px)',
@@ -303,7 +313,7 @@ function SidebarContent({
 
         {/* HR sectie — conditioneel */}
         {isHrOrAdmin && (
-          <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid #E5E7EB' }}>
+          <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--border)' }}>
             <button
               onClick={() => onToggleSection('hr')}
               style={{
@@ -314,10 +324,11 @@ function SidebarContent({
                 width: '100%',
                 background: 'none',
                 border: 'none',
+                borderLeft: '2px solid transparent',
                 cursor: 'pointer',
                 fontSize: 14,
                 fontWeight: 600,
-                color: '#111827',
+                color: 'var(--text-1)',
                 borderRadius: 8,
                 margin: '1px 8px',
                 maxWidth: 'calc(100% - 16px)',
@@ -352,7 +363,7 @@ function SidebarContent({
       </nav>
 
       {/* Check-in CTA */}
-      <div style={{ padding: '8px', borderTop: '1px solid #E5E7EB' }}>
+      <div style={{ padding: '8px', borderTop: '1px solid var(--border)' }}>
         <Link
           href="/checkin"
           onClick={onClose}
@@ -363,19 +374,21 @@ function SidebarContent({
             gap: 8,
             height: 44,
             width: '100%',
-            background: '#1D9E75',
+            background: 'var(--mf-green)',
             color: 'white',
             borderRadius: 10,
             fontSize: 14,
             fontWeight: 700,
+            letterSpacing: '-0.01em',
             textDecoration: 'none',
             transition: 'background 0.15s',
+            boxShadow: '0 2px 10px rgba(29,158,117,0.25)',
           }}
           onMouseEnter={(e) => {
-            (e.currentTarget as HTMLAnchorElement).style.background = '#17855F'
+            (e.currentTarget as HTMLAnchorElement).style.background = 'var(--mf-green-dark)'
           }}
           onMouseLeave={(e) => {
-            (e.currentTarget as HTMLAnchorElement).style.background = '#1D9E75'
+            (e.currentTarget as HTMLAnchorElement).style.background = 'var(--mf-green)'
           }}
         >
           ✅ Start check-in
@@ -391,7 +404,7 @@ function SidebarContent({
             padding: '7px 12px',
             marginTop: 4,
             fontSize: 13,
-            color: '#6B7280',
+            color: 'var(--text-3)',
             borderRadius: 8,
             cursor: 'pointer',
             background: 'none',
@@ -505,8 +518,8 @@ export default function Navbar() {
           left: 0,
           height: '100vh',
           width: SIDEBAR_W,
-          background: 'white',
-          borderRight: '1px solid #E5E7EB',
+          background: 'var(--bg-card)',
+          borderRight: '1px solid var(--border)',
           overflowY: 'auto',
           zIndex: 40,
           flexDirection: 'column',
@@ -524,15 +537,21 @@ export default function Navbar() {
           left: 0,
           right: 0,
           height: 52,
-          background: 'white',
-          borderBottom: '1px solid #E5E7EB',
+          background: 'var(--bg-card)',
+          borderBottom: '1px solid var(--border)',
           alignItems: 'center',
           justifyContent: 'space-between',
           padding: '0 16px',
           zIndex: 30,
         }}
       >
-        <span style={{ fontSize: 16, fontWeight: 800, color: '#1D9E75' }}>MentaForce</span>
+        <span style={{
+          fontFamily: 'var(--font-display, Georgia, serif)',
+          fontStyle: 'italic',
+          fontSize: 17,
+          fontWeight: 400,
+          color: 'var(--mf-green)',
+        }}>MentaForce</span>
         <button
           onClick={() => setOpenMenu((o) => !o)}
           aria-label={openMenu ? 'Menu sluiten' : 'Menu openen'}
@@ -541,7 +560,7 @@ export default function Navbar() {
             background: 'none',
             border: 'none',
             cursor: 'pointer',
-            color: '#374151',
+            color: 'var(--text-2)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -570,7 +589,14 @@ export default function Navbar() {
         <>
           <div
             onClick={() => setOpenMenu(false)}
-            style={{ position: 'fixed', inset: 0, zIndex: 45, background: 'rgba(0,0,0,0.4)' }}
+            style={{
+              position: 'fixed',
+              inset: 0,
+              zIndex: 45,
+              background: 'rgba(0,0,0,0.5)',
+              backdropFilter: 'blur(4px)',
+              WebkitBackdropFilter: 'blur(4px)',
+            }}
           />
           <aside
             style={{
@@ -579,7 +605,7 @@ export default function Navbar() {
               top: 0,
               bottom: 0,
               width: SIDEBAR_W,
-              background: 'white',
+              background: 'var(--bg-card)',
               zIndex: 50,
               display: 'flex',
               flexDirection: 'column',
@@ -625,15 +651,51 @@ export default function Navbar() {
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: 3,
-                minHeight: 44,
                 textDecoration: 'none',
-                color: isActive ? '#1D9E75' : '#9CA3AF',
-                fontWeight: isActive ? 700 : 400,
               }}
             >
-              <span style={{ fontSize: 20 }}>{tab.emoji}</span>
-              <span style={{ fontSize: 10, lineHeight: 1 }}>{tab.label}</span>
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 3,
+                minHeight: 44,
+                padding: '6px 4px 4px',
+                position: 'relative',
+              }}>
+                {/* Active indicator dot above icon */}
+                {isActive && (
+                  <div style={{
+                    position: 'absolute',
+                    top: 2,
+                    width: 16,
+                    height: 3,
+                    borderRadius: 100,
+                    background: 'var(--mf-green)',
+                  }} />
+                )}
+                {/* Icon with scale when active */}
+                <span style={{
+                  fontSize: isActive ? 22 : 20,
+                  transform: isActive ? 'scale(1.12)' : 'scale(1)',
+                  transition: 'transform 0.2s cubic-bezier(0.16,1,0.3,1), font-size 0.2s ease',
+                  display: 'block',
+                  lineHeight: 1.2,
+                }}>
+                  {tab.emoji}
+                </span>
+                <span style={{
+                  fontSize: 10,
+                  lineHeight: 1,
+                  fontWeight: isActive ? 700 : 500,
+                  color: isActive ? 'var(--mf-green)' : 'var(--text-4)',
+                  letterSpacing: isActive ? '-0.01em' : '0',
+                  transition: 'color 0.15s, font-weight 0.15s',
+                }}>
+                  {tab.label}
+                </span>
+              </div>
             </Link>
           )
         })}

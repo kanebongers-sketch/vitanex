@@ -191,38 +191,50 @@ export default function HomePage() {
 
   if (laden) {
     return (
-      <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
+      <div style={{ minHeight: '100vh' }} className="mf-mesh-bg">
         <Navbar />
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', paddingTop: 120 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', paddingTop: 160, flexDirection: 'column', gap: 16 }}>
           <div className="mf-spinner" />
+          <p style={{ fontSize: 13, color: 'var(--text-4)', fontWeight: 500 }}>Laden…</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
+    <div style={{ minHeight: '100vh', position: 'relative' }} className="mf-mesh-bg">
       <Navbar />
 
-      {/* ── STICKY HEADER ── */}
+      {/* ── FIXED HEADER ── */}
       <header
         style={{
-          position: 'sticky',
+          position: 'fixed',
           top: 0,
           zIndex: 40,
-          background: 'rgba(244,246,248,0.92)',
-          backdropFilter: 'blur(12px)',
+          width: '100%',
+          background: 'rgba(244,246,248,0.88)',
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
           borderBottom: '1px solid var(--border)',
-          padding: '12px 20px',
+          padding: '0 20px',
+          height: 52,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
         }}
       >
-        <span style={{ fontSize: 15, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.02em' }}>
+        <span
+          style={{
+            fontFamily: 'var(--font-display)',
+            fontStyle: 'italic',
+            fontSize: 17,
+            fontWeight: 400,
+            color: 'var(--mf-green)',
+          }}
+        >
           MentaForce
         </span>
-        <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-3)' }}>
+        <span style={{ fontSize: 12, color: 'var(--text-4)', fontWeight: 600 }}>
           {nlDatumKort()}
         </span>
         <div
@@ -247,137 +259,166 @@ export default function HomePage() {
         </div>
       </header>
 
-      <main style={{ maxWidth: 480, margin: '0 auto', padding: '24px 16px 100px' }}>
+      <main style={{ maxWidth: 480, margin: '0 auto', padding: '72px 16px 120px' }}>
 
-        {/* ── 1. READINESS HERO ── */}
+        {/* ── SECTION 1 — READINESS HERO ── */}
         <section
+          className="mf-grain"
           style={{
-            background: gradient,
-            border: `1.5px solid ${kleur}25`,
             borderRadius: 28,
-            marginBottom: 14,
+            background: gradient,
+            border: `1.5px solid ${kleur}22`,
+            boxShadow: `0 8px 40px ${kleur}15, 0 2px 8px ${kleur}08`,
+            marginBottom: 16,
             overflow: 'hidden',
-            boxShadow: `0 4px 28px ${kleur}18`,
+            position: 'relative',
           }}
         >
-          <div style={{ height: 5, background: `linear-gradient(90deg, ${kleur}, ${kleur}60)` }} />
-          <div style={{ padding: '28px 24px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-            <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: kleur, marginBottom: 8 }}>
-              Readiness vandaag
+          <div style={{ height: 5, background: `linear-gradient(90deg, ${kleur}, ${kleur}50)`, width: '100%' }} />
+          <div
+            style={{
+              padding: '32px 24px 28px',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 0,
+            }}
+          >
+            <p
+              style={{
+                fontSize: 10,
+                fontWeight: 700,
+                letterSpacing: '0.12em',
+                textTransform: 'uppercase',
+                color: kleur,
+                opacity: 0.85,
+                marginBottom: 20,
+              }}
+            >
+              READINESS VANDAAG
             </p>
 
-            <ReadinessRing score={readiness} />
+            <div className="mf-animate-breathe mf-animate-glow" style={{ display: 'inline-block' }}>
+              <ReadinessRing score={readiness} />
+            </div>
 
-            <p style={{ fontSize: 20, fontWeight: 800, color: kleur, marginTop: 4, letterSpacing: '-0.02em' }}>
+            <p
+              className="mf-display"
+              style={{
+                fontSize: 'clamp(22px, 5vw, 28px)',
+                color: kleur,
+                marginTop: 12,
+                fontStyle: 'italic',
+                letterSpacing: '-0.01em',
+              }}
+            >
               {label}
             </p>
 
-            {/* Data pills */}
-            <div style={{ display: 'flex', gap: 8, marginTop: 16, flexWrap: 'wrap', justifyContent: 'center' }}>
-              {[
-                { emoji: '😴', label: 'Slaap', href: '/slaap' },
-                { emoji: '😊', label: 'Stemming', href: '/stemming' },
-                { emoji: '⚡', label: 'Stress', href: '/checkin' },
-              ].map(p => (
-                <Link key={p.label} href={p.href} style={{ textDecoration: 'none' }}>
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 5,
-                      padding: '6px 12px',
-                      borderRadius: 20,
-                      background: 'rgba(255,255,255,0.7)',
-                      border: '1px solid rgba(255,255,255,0.9)',
-                      backdropFilter: 'blur(8px)',
-                      fontSize: 12,
-                      fontWeight: 600,
-                      color: 'var(--text-2)',
-                    }}
-                  >
-                    <span style={{ fontSize: 14 }}>{p.emoji}</span>
-                    {p.label}
-                  </div>
-                </Link>
-              ))}
+            <div style={{ display: 'flex', gap: 8, marginTop: 20, flexWrap: 'wrap', justifyContent: 'center' }}>
+              <Link href="/slaap" className="mf-pill"><span>😴</span> Slaap</Link>
+              <Link href="/stemming" className="mf-pill"><span>😊</span> Stemming</Link>
+              <Link href="/checkin" className="mf-pill"><span>⚡</span> Stress</Link>
             </div>
 
-            {readiness === null ? (
-              <Link href="/checkin" style={{ textDecoration: 'none', marginTop: 20, width: '100%' }}>
-                <div
-                  style={{
-                    background: '#1D9E75',
-                    color: '#fff',
-                    borderRadius: 14,
-                    padding: '14px 24px',
-                    textAlign: 'center',
-                    fontSize: 15,
-                    fontWeight: 700,
-                    letterSpacing: '-0.01em',
-                    boxShadow: '0 4px 16px rgba(29,158,117,0.35)',
-                  }}
-                >
-                  Log vandaag om je score te berekenen
-                </div>
-              </Link>
-            ) : (
-              <Link href="/checkin" style={{ textDecoration: 'none', marginTop: 20, width: '100%' }}>
-                <div
-                  style={{
-                    background: kleur,
-                    color: '#fff',
-                    borderRadius: 14,
-                    padding: '13px 24px',
-                    textAlign: 'center',
-                    fontSize: 14,
-                    fontWeight: 700,
-                    letterSpacing: '-0.01em',
-                    boxShadow: `0 4px 16px ${kleur}40`,
-                  }}
-                >
-                  Start je dag →
-                </div>
-              </Link>
-            )}
+            <Link
+              href="/checkin"
+              style={{
+                marginTop: 24,
+                width: '100%',
+                background: kleur,
+                color: 'white',
+                borderRadius: 14,
+                padding: '14px 24px',
+                fontSize: 15,
+                fontWeight: 700,
+                textAlign: 'center',
+                boxShadow: `0 4px 20px ${kleur}35`,
+                letterSpacing: '-0.01em',
+                display: 'block',
+                textDecoration: 'none',
+              }}
+            >
+              {readiness === null ? 'Log vandaag om je score te berekenen' : 'Start je dag →'}
+            </Link>
           </div>
         </section>
 
-        {/* ── 2. STREAK BANNER ── */}
+        {/* ── SECTION 2 — STREAK ── */}
         <section
+          className="mf-animate-slide-up mf-stagger-1"
           style={{
+            borderRadius: 20,
             background: streak >= 30
               ? 'linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%)'
               : streak > 0
-              ? 'linear-gradient(135deg, #FFF7ED 0%, #FED7AA 100%)'
-              : 'linear-gradient(135deg, #F9FAFB 0%, #F3F4F6 100%)',
-            border: `1.5px solid ${streak > 0 ? 'rgba(186,117,23,0.25)' : 'var(--border)'}`,
-            borderRadius: 20,
-            padding: '18px 20px',
+              ? 'linear-gradient(135deg, #FFF7ED 0%, #FFEDD5 100%)'
+              : 'var(--bg-card)',
+            border: streak > 0 ? '1.5px solid rgba(186,117,23,0.22)' : '1px solid var(--border)',
+            padding: '20px 22px',
             marginBottom: 14,
             display: 'flex',
             alignItems: 'center',
-            gap: 14,
-            boxShadow: streak > 0 ? '0 2px 16px rgba(186,117,23,0.10)' : 'var(--shadow-xs)',
+            gap: 16,
+            boxShadow: streak > 0 ? 'var(--shadow-amber-glow)' : 'var(--shadow-xs)',
           }}
         >
-          <span style={{ fontSize: 32, lineHeight: 1, flexShrink: 0 }}>
+          <div
+            className={streak > 0 ? 'mf-animate-flame' : ''}
+            style={{
+              width: 52,
+              height: 52,
+              borderRadius: '50%',
+              background: streak >= 30 ? '#FDE047' : streak > 0 ? '#FED7AA' : '#F3F4F6',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: 28,
+              flexShrink: 0,
+            }}
+          >
             {streak >= 30 ? '🏆' : streak > 0 ? '🔥' : '💪'}
-          </span>
+          </div>
           <div style={{ flex: 1 }}>
-            <p style={{ fontSize: 20, fontWeight: 900, color: streak > 0 ? '#92400E' : 'var(--text-1)', letterSpacing: '-0.03em' }}>
-              {streak > 0 ? `${streak} DAGEN OP RIJ` : 'Start vandaag je streak!'}
-            </p>
-            <p style={{ fontSize: 12, color: streak > 0 ? '#B45309' : 'var(--text-4)', fontWeight: 500, marginTop: 2 }}>
+            <div>
+              <span
+                className="mf-display"
+                style={{
+                  fontSize: 28,
+                  color: streak > 0 ? '#92400E' : 'var(--text-1)',
+                }}
+              >
+                {streak > 0 ? `${streak}` : '0'}
+              </span>
+              <span
+                style={{
+                  fontSize: 14,
+                  fontWeight: 600,
+                  marginLeft: 4,
+                  color: streak > 0 ? '#92400E' : 'var(--text-1)',
+                }}
+              >
+                {streak > 0 ? ' dagen op rij' : ' – start vandaag!'}
+              </span>
+            </div>
+            <p
+              style={{
+                fontSize: 12,
+                color: streak > 0 ? '#B45309' : 'var(--text-4)',
+                fontWeight: 500,
+                marginTop: 3,
+              }}
+            >
               {streak > 0
                 ? 'Elke dag telt. Mis je vandaag, start je opnieuw.'
-                : 'Log elke dag en bouw een gewoonte op.'
-              }
+                : 'Log elke dag en bouw een gewoonte op.'}
             </p>
           </div>
         </section>
 
-        {/* ── 3. VANDAAG CHECKLIST ── */}
+        {/* ── SECTION 3 — VANDAAG CHECKLIST ── */}
         <section
+          className="mf-animate-slide-up mf-stagger-2"
           style={{
             background: 'var(--bg-card)',
             border: '1px solid var(--border)',
@@ -387,82 +428,104 @@ export default function HomePage() {
             boxShadow: 'var(--shadow-sm)',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-            <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-2)' }}>
-              Nog te doen vandaag
-            </p>
-            <span style={{ fontSize: 12, fontWeight: 700, color: gedaanCount === vandaagItems.length ? '#1D9E75' : 'var(--text-4)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
+            <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-1)', letterSpacing: '-0.01em' }}>
+              Vandaag
+            </span>
+            <span
+              style={{
+                fontSize: 13,
+                fontWeight: 700,
+                color: gedaanCount === vandaagItems.length ? 'var(--mf-green)' : 'var(--text-4)',
+              }}
+            >
               {gedaanCount}/{vandaagItems.length}
             </span>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            {vandaagItems.map(item => (
-              <Link key={item.key} href={item.href} style={{ textDecoration: 'none' }}>
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 12,
-                    padding: '10px 12px',
-                    borderRadius: 12,
-                    background: item.gedaan ? 'rgba(29,158,117,0.06)' : 'transparent',
-                    transition: 'background 0.15s ease',
-                  }}
-                >
-                  <span
-                    style={{
-                      fontSize: 16,
-                      width: 22,
-                      textAlign: 'center',
-                      color: item.gedaan ? '#1D9E75' : '#D1D5DB',
-                      fontWeight: 800,
-                      flexShrink: 0,
-                    }}
-                  >
-                    {item.gedaan ? '✓' : '●'}
-                  </span>
-                  <span style={{ fontSize: 13, fontWeight: 600, color: item.gedaan ? '#1D9E75' : 'var(--text-2)', flex: 1 }}>
-                    {item.emoji} {item.label}
-                  </span>
-                  <span style={{ fontSize: 13, color: 'var(--text-4)' }}>→</span>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </section>
 
-        {/* ── 4. SNELLE LOG KNOPPEN ── */}
-        <section>
-          <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.09em', color: 'var(--text-4)', marginBottom: 12 }}>
-            Snel loggen
-          </p>
+          {/* Progress bar */}
           <div
             style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(3, 1fr)',
-              gap: 10,
+              height: 3,
+              borderRadius: 100,
+              background: 'var(--bg-subtle)',
+              marginBottom: 16,
+              overflow: 'hidden',
             }}
           >
+            <div
+              style={{
+                height: '100%',
+                width: `${(gedaanCount / vandaagItems.length) * 100}%`,
+                background: 'linear-gradient(90deg, var(--mf-green), var(--mf-green-mid))',
+                borderRadius: 100,
+                transition: 'width 0.6s cubic-bezier(0.16,1,0.3,1)',
+              }}
+            />
+          </div>
+
+          {/* Checklist items */}
+          {vandaagItems.map(item => (
+            <Link
+              key={item.key}
+              href={item.href}
+              className={`mf-check-row${item.gedaan ? ' done' : ''}`}
+            >
+              <span className="mf-check-bubble">
+                {item.gedaan ? <span style={{ fontSize: 13, color: 'white', fontWeight: 800 }}>✓</span> : null}
+              </span>
+              <span
+                style={{
+                  fontSize: 14,
+                  fontWeight: item.gedaan ? 600 : 500,
+                  color: item.gedaan ? 'var(--mf-green)' : 'var(--text-2)',
+                  flex: 1,
+                  textDecoration: item.gedaan ? 'line-through' : 'none',
+                  textDecorationColor: 'rgba(29,158,117,0.4)',
+                }}
+              >
+                {item.emoji} {item.label}
+              </span>
+              {!item.gedaan && <span style={{ fontSize: 12, color: 'var(--text-4)' }}>›</span>}
+            </Link>
+          ))}
+        </section>
+
+        {/* ── SECTION 4 — SNEL LOGGEN ── */}
+        <section className="mf-animate-slide-up mf-stagger-3">
+          <p
+            style={{
+              fontSize: 11,
+              fontWeight: 700,
+              textTransform: 'uppercase',
+              letterSpacing: '0.09em',
+              color: 'var(--text-4)',
+              marginBottom: 12,
+            }}
+          >
+            Snel loggen
+          </p>
+          <div className="mf-scroll-row">
             {snelLog.map(actie => (
-              <Link key={actie.href} href={actie.href} style={{ textDecoration: 'none' }}>
+              <Link key={actie.href} href={actie.href} className="mf-scroll-item" style={{ textDecoration: 'none' }}>
                 <div
                   style={{
-                    background: 'var(--bg-card)',
-                    border: '1px solid var(--border)',
-                    borderRadius: 18,
-                    boxShadow: 'var(--shadow-xs)',
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: 6,
-                    padding: '16px 8px 14px',
+                    gap: 8,
+                    padding: '16px 18px 14px',
+                    background: 'var(--bg-card)',
+                    border: '1px solid var(--border)',
+                    borderRadius: 20,
+                    boxShadow: 'var(--shadow-xs)',
+                    minWidth: 80,
                     cursor: 'pointer',
-                    transition: 'transform 0.15s var(--ease), box-shadow 0.15s var(--ease)',
+                    transition: 'transform 0.15s, box-shadow 0.15s',
                   }}
                   onMouseEnter={e => {
                     const el = e.currentTarget as HTMLDivElement
-                    el.style.transform = 'translateY(-2px)'
+                    el.style.transform = 'translateY(-3px)'
                     el.style.boxShadow = 'var(--shadow-md)'
                   }}
                   onMouseLeave={e => {
@@ -473,20 +536,29 @@ export default function HomePage() {
                 >
                   <div
                     style={{
-                      width: 52,
-                      height: 52,
+                      width: 48,
+                      height: 48,
                       borderRadius: '50%',
-                      background: 'var(--mf-green-light)',
+                      background: 'linear-gradient(135deg, var(--mf-green-light), rgba(29,158,117,0.08))',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      fontSize: 26,
+                      fontSize: 24,
                       lineHeight: 1,
                     }}
                   >
                     {actie.emoji}
                   </div>
-                  <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-3)', textAlign: 'center', letterSpacing: '0.01em' }}>
+                  <span
+                    style={{
+                      fontSize: 10,
+                      fontWeight: 700,
+                      color: 'var(--text-3)',
+                      textAlign: 'center',
+                      letterSpacing: '0.02em',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
                     {actie.label}
                   </span>
                 </div>

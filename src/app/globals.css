@@ -1102,3 +1102,292 @@ body.mf-has-sidebar > * {
   .mf-animate-streak,
   .mf-streak-flame { animation: none; }
 }
+
+/* ═══════════════════════════════════════════════════════════
+   OBSIDIAN VITALITY — Typography upgrade
+   ═══════════════════════════════════════════════════════════ */
+
+:root {
+  --font-serif: var(--font-display), 'Georgia', serif;
+  --font-sans: var(--font-body), var(--font-geist-sans), -apple-system, sans-serif;
+
+  /* Upgraded shadow tokens — colored glows */
+  --shadow-green-glow: 0 0 0 1px rgba(29,158,117,0.15), 0 4px 24px rgba(29,158,117,0.18), 0 1px 6px rgba(29,158,117,0.10);
+  --shadow-green-ring:  0 0 32px rgba(29,158,117,0.25);
+  --shadow-amber-glow:  0 0 24px rgba(186,117,23,0.22), 0 4px 16px rgba(186,117,23,0.12);
+
+  /* Mesh gradient layers (used in home page) */
+  --mesh-1: radial-gradient(ellipse 70% 60% at 20% 10%, rgba(29,158,117,0.09) 0%, transparent 60%);
+  --mesh-2: radial-gradient(ellipse 60% 50% at 80% 80%, rgba(24,95,165,0.07) 0%, transparent 55%);
+  --mesh-3: radial-gradient(ellipse 50% 40% at 50% 50%, rgba(139,92,246,0.04) 0%, transparent 50%);
+}
+
+/* Enhanced dark theme — more vivid, glowing */
+.thema-donker {
+  --mf-green:        #00D48A;
+  --mf-green-light:  #0D2E21;
+  --mf-green-dark:   #00B077;
+  --mf-green-mid:    #00C07D;
+  --mf-amber:        #FFAD3B;
+  --mf-amber-light:  #2A1F07;
+
+  --shadow-green-glow: 0 0 0 1px rgba(0,212,138,0.20), 0 4px 32px rgba(0,212,138,0.25), 0 1px 8px rgba(0,212,138,0.15);
+  --shadow-green-ring:  0 0 48px rgba(0,212,138,0.35);
+  --shadow-amber-glow:  0 0 28px rgba(255,173,59,0.28), 0 4px 20px rgba(255,173,59,0.14);
+
+  --mesh-1: radial-gradient(ellipse 70% 60% at 20% 10%, rgba(0,212,138,0.10) 0%, transparent 60%);
+  --mesh-2: radial-gradient(ellipse 60% 50% at 80% 80%, rgba(93,170,255,0.08) 0%, transparent 55%);
+  --mesh-3: radial-gradient(ellipse 50% 40% at 50% 50%, rgba(139,92,246,0.06) 0%, transparent 50%);
+}
+
+.thema-schemering {
+  --mf-green:        #1FBD88;
+  --mf-green-light:  #0F2A1E;
+  --shadow-green-glow: 0 0 0 1px rgba(31,189,136,0.18), 0 4px 28px rgba(31,189,136,0.22), 0 1px 8px rgba(31,189,136,0.12);
+}
+
+/* Update body font to use Plus Jakarta Sans */
+body {
+  font-family: var(--font-sans);
+}
+
+/* ── Display typography (Instrument Serif) ──────────────────────── */
+.mf-display {
+  font-family: var(--font-serif);
+  font-style: italic;
+  letter-spacing: -0.01em;
+}
+
+.mf-display-normal {
+  font-family: var(--font-serif);
+  font-style: normal;
+}
+
+/* Big readiness / streak numbers */
+.mf-number-display {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: clamp(52px, 14vw, 80px);
+  font-weight: 400;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+/* ── Mesh gradient background ───────────────────────────────────── */
+.mf-mesh-bg {
+  background:
+    var(--mesh-1),
+    var(--mesh-2),
+    var(--mesh-3),
+    var(--bg-app, #F4F6F8);
+}
+
+/* ── Grain texture overlay ──────────────────────────────────────── */
+.mf-grain::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.032;
+  border-radius: inherit;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+  background-size: 200px 200px;
+  z-index: 0;
+}
+
+.thema-donker .mf-grain::before,
+.thema-schemering .mf-grain::before {
+  opacity: 0.05;
+}
+
+/* ── Glowing card ───────────────────────────────────────────────── */
+.mf-card-glow {
+  box-shadow: var(--shadow-green-glow);
+  border-color: rgba(29,158,117,0.20) !important;
+}
+
+.thema-donker .mf-card-glow {
+  border-color: rgba(0,212,138,0.18) !important;
+}
+
+/* ── Ring glow (for readiness SVG) ─────────────────────────────── */
+.mf-ring-glow {
+  filter: drop-shadow(0 0 12px rgba(29,158,117,0.35));
+}
+
+.thema-donker .mf-ring-glow {
+  filter: drop-shadow(0 0 16px rgba(0,212,138,0.45));
+}
+
+/* ── Gradient border card (using background-clip) ──────────────── */
+.mf-card-gradient-border {
+  background-clip: padding-box;
+  border: 1.5px solid transparent;
+  background-color: var(--bg-card);
+  position: relative;
+}
+
+.mf-card-gradient-border::before {
+  content: '';
+  position: absolute;
+  inset: -1.5px;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(29,158,117,0.25) 0%, rgba(24,95,165,0.12) 50%, rgba(139,92,246,0.10) 100%);
+  z-index: -1;
+  pointer-events: none;
+}
+
+.thema-donker .mf-card-gradient-border::before {
+  background: linear-gradient(135deg, rgba(0,212,138,0.28) 0%, rgba(93,170,255,0.14) 50%, rgba(139,92,246,0.12) 100%);
+}
+
+/* ── New animations ─────────────────────────────────────────────── */
+
+@keyframes mf-breathe {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50%       { transform: scale(1.015); opacity: 0.92; }
+}
+
+@keyframes mf-glow-pulse {
+  0%, 100% { filter: drop-shadow(0 0 8px rgba(29,158,117,0.3)); }
+  50%       { filter: drop-shadow(0 0 20px rgba(29,158,117,0.55)); }
+}
+
+@keyframes mf-glow-pulse-dark {
+  0%, 100% { filter: drop-shadow(0 0 10px rgba(0,212,138,0.35)); }
+  50%       { filter: drop-shadow(0 0 28px rgba(0,212,138,0.65)); }
+}
+
+@keyframes mf-float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-4px); }
+}
+
+@keyframes mf-slide-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes mf-count-in {
+  from { opacity: 0; transform: translateY(12px) scale(0.9); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.mf-animate-breathe   { animation: mf-breathe 4s ease-in-out infinite; }
+.mf-animate-glow      { animation: mf-glow-pulse 3s ease-in-out infinite; }
+.mf-animate-float     { animation: mf-float 3.5s ease-in-out infinite; }
+.mf-animate-slide-up  { animation: mf-slide-up 0.5s cubic-bezier(0.16,1,0.3,1) both; }
+.mf-animate-count-in  { animation: mf-count-in 0.6s cubic-bezier(0.16,1,0.3,1) both; }
+
+.thema-donker .mf-animate-glow {
+  animation: mf-glow-pulse-dark 3s ease-in-out infinite;
+}
+
+/* Stagger for slide-up */
+.mf-stagger-1 { animation-delay: 0.08s; }
+.mf-stagger-2 { animation-delay: 0.16s; }
+.mf-stagger-3 { animation-delay: 0.24s; }
+.mf-stagger-4 { animation-delay: 0.32s; }
+.mf-stagger-5 { animation-delay: 0.40s; }
+
+/* ── Score color utilities ──────────────────────────────────────── */
+.mf-score-hersteld { color: #1D9E75; }
+.mf-score-goed     { color: #185FA5; }
+.mf-score-matig    { color: #BA7517; }
+.mf-score-laag     { color: #E24B4A; }
+
+.thema-donker .mf-score-hersteld { color: #00D48A; }
+.thema-donker .mf-score-goed     { color: #5DAAFF; }
+
+/* ── Premium checklist item ─────────────────────────────────────── */
+.mf-check-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 14px;
+  border-radius: 12px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.15s ease, transform 0.1s ease;
+  position: relative;
+}
+
+.mf-check-row:active { transform: scale(0.98); }
+
+.mf-check-row.done {
+  background: rgba(29,158,117,0.07);
+}
+
+.thema-donker .mf-check-row.done {
+  background: rgba(0,212,138,0.08);
+}
+
+.mf-check-bubble {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid var(--border-strong);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.mf-check-row.done .mf-check-bubble {
+  background: var(--mf-green);
+  border-color: var(--mf-green);
+}
+
+/* ── Horizontal scroll snap row ─────────────────────────────────── */
+.mf-scroll-row {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 4px;
+}
+
+.mf-scroll-row::-webkit-scrollbar { display: none; }
+.mf-scroll-row { -ms-overflow-style: none; scrollbar-width: none; }
+
+.mf-scroll-item {
+  scroll-snap-align: start;
+  flex-shrink: 0;
+}
+
+/* ── Pill tag ───────────────────────────────────────────────────── */
+.mf-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  border-radius: 100px;
+  font-size: 12px;
+  font-weight: 600;
+  background: rgba(255,255,255,0.72);
+  border: 1px solid rgba(255,255,255,0.9);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: var(--text-2);
+  text-decoration: none;
+  transition: background 0.12s, transform 0.1s;
+  white-space: nowrap;
+}
+
+.mf-pill:active { transform: scale(0.96); }
+
+.thema-donker .mf-pill,
+.thema-schemering .mf-pill {
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.10);
+  color: var(--text-2);
+}
+
+/* ── Reduced motion overrides ───────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .mf-animate-breathe,
+  .mf-animate-glow,
+  .mf-animate-float { animation: none; }
+}
