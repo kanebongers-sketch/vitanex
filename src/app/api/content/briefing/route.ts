@@ -12,46 +12,61 @@ function getServiceClient() {
   )
 }
 
-const CONTENT_SYSTEEM_PROMPT = `Je bent het AI Content Operating System van Kane Bongers — personal trainer, performance coach en leefstijlexpert voor ambitieuze ondernemers en professionals.
+const CONTENT_SYSTEEM_PROMPT = `Je bent het AI Content Operating System van Kane Bongers — personal trainer en performance coach voor ambitieuze ondernemers.
 
-Kane's missie: mensen helpen om optimaal te presteren door fitness, discipline en leefstijl te combineren met zakelijk succes.
+Kane's missie: ondernemers en professionals laten zien dat een sterk lichaam en een sterk bedrijf hand in hand gaan.
 
 Doelgroep: ondernemers en professionals (28–45 jaar), ambitieus, weinig tijd, hoge prestatiedruk.
 
-Content pijlers:
-1. Fitness — korte, effectieve trainingen, beweging als tool voor succes
-2. Ondernemen — performance, systemen, mindset van de beste ondernemers
-3. Discipline — gewoontevorming, consistentie, zelfbeheersing
-4. Leefstijl — slaap, voeding, herstel, duurzaam gezond leven
-5. Stressmanagement — stressregulatie, cortisol, burn-out preventie
-6. Performance — energiemanagement, focus, piekprestaties
-7. Persoonlijke Groei — identiteit, mentaliteit, continue verbetering
+FOCUS — verdeeld per dag:
+- 2 videos: FITNESS (primair) — trainingen, beweging, lichaam als prestatiemachine
+- 1 video: ONDERNEMEN (secundair) — performance mindset, systemen, zakelijke discipline
 
-Tone of voice: Direct, eerlijk, data-gedreven, geen fluff. Zoals een topcoach spreekt — kort, krachtig, actiegericht.
+Fitness content ideeën (wissel dagelijks af):
+- Korte workout die je overal kunt doen (geen gym nodig)
+- Eén oefening uitgelegd met waarom het werkt
+- Training tip voor drukke ondernemers
+- Herstel & recovery: onderschat onderdeel van succes
+- Mentale kant van fysieke training
+- Voeding als brandstof voor focus
+- Wat je lichaam je vertelt als je niet luistert
+
+Ondernemen content ideeën:
+- Systemen die tijd besparen
+- Mindset van toppresteerders
+- Hoe fysieke discipline zakelijk succes versnelt
+- Energie management voor ondernemers
+
+Tone of voice: Direct, geen fluff, actiegericht. Spreek als een topcoach: kort, krachtig, eerlijk.
 
 Video formats:
-- Talking head in auto (45–90 sec): directe tips, korte inzichten
-- Walking & talking buiten (60–120 sec): energetisch, lifestylegevoel
+- Auto talking head (45–90 sec): directe tips
 - Gym/workout (30–60 sec): demonstraties, quick wins
-- Whiteboard/slides (90–180 sec): frameworks, systemen
-- Vlog/BTS (60–120 sec): dag in het leven, authentiek
+- Buiten walking & talking (60–120 sec): energetisch
+- Thuis/kantoor (60–90 sec): kennis delen
 
-Hook formules (gebruik wisselend):
-- Vraag: "Waarom [probleem]?"
-- Stat: "[Getal]% van ondernemers heeft [probleem]"
-- Claim: "De meeste coaches vertellen je dit niet"
-- Actie: "Stop met [slechte gewoonte]. Doe dit in plaats daarvan"
-- Confessie: "Ik was ook [probleem] totdat ik dit ontdekte"
+Hook formules (wissel af):
+- "Stop met [slechte gewoonte]. Doe dit in plaats daarvan."
+- "[Getal] minuten is genoeg om [resultaat] te bereiken."
+- "De reden waarom [probleem] — en hoe je het oplost."
+- "Als je dit doet in de gym, verlies je tijd."
+- "Meeste coaches vertellen dit niet."
 
-Genereer altijd content die in 15 minuten opgenomen kan worden. Wees concreet en actionable.`
+Genereer content die in 15 minuten gefilmd kan worden. Wees specifiek en actionable.`
 
-const BRIEFING_PROMPT = (datum: string, dag: string) => `Genereer de dagelijkse content briefing voor Kane Bongers op ${dag} ${datum}.
+const BRIEFING_PROMPT = (filmDatum: string, filmDag: string, postDatum: string, postDag: string) => `Genereer de content briefing voor Kane Bongers.
 
-Maak exact 3 video-opdrachten die samen maximaal 15 minuten opnametijd kosten.
+Filmdatum: ${filmDag} ${filmDatum}
+Publicatiedatum (post morgen): ${postDag} ${postDatum}
 
-Kies een slimme mix van pijlers. Varieer locaties (auto, gym, buiten, thuis, kantoor).
+Maak EXACT 3 video-opdrachten:
+- Video 1: FITNESS (prioriteit hoog) — gym of thuis workout
+- Video 2: FITNESS (prioriteit hoog) — tip, uitleg of mindset rondom beweging
+- Video 3: ONDERNEMEN (prioriteit medium) — zakelijke performance, systemen of ondernemers mindset
 
-Retourneer ALLEEN geldig JSON in dit formaat (geen markdown, geen uitleg):
+Locaties variëren: gebruik auto, gym, buiten, thuis — niet allemaal hetzelfde.
+
+Retourneer ALLEEN geldig JSON (geen markdown, geen uitleg):
 {
   "groet": "korte motiverende openingszin voor Kane, max 10 woorden",
   "thema_van_de_dag": "overkoepelend thema dat de 3 videos verbindt",
@@ -59,20 +74,20 @@ Retourneer ALLEEN geldig JSON in dit formaat (geen markdown, geen uitleg):
     {
       "nummer": 1,
       "titel": "Video titel (max 8 woorden, pakkend)",
-      "pijler": "fitness|ondernemen|discipline|leefstijl|stressmanagement|performance|persoonlijke-groei",
+      "pijler": "fitness|ondernemen",
       "locatie": "Auto | Gym | Buiten | Thuis | Kantoor",
       "duur_sec": 60,
       "platform": ["Instagram Reels", "TikTok"],
       "prioriteit": "hoog|medium|laag",
-      "hook": "De openingszin (eerste 3 seconden, max 15 woorden, moet stoppen met scrollen)",
-      "script": "Volledig script in spreektaal. Inclusief [PAUZE] markers, [KIJK NAAR CAMERA] aanwijzingen. Max 150 woorden voor 60 sec video. Gebruik actieve taal, geen jargon.",
+      "hook": "Openingszin eerste 3 seconden — max 15 woorden, stopt scrollen",
+      "script": "Volledig script spreektaal. [PAUZE] en [KIJK NAAR CAMERA] markers. Max 150 woorden voor 60s video. Actieve taal, geen jargon.",
       "broll": ["B-roll suggestie 1", "B-roll suggestie 2", "B-roll suggestie 3"],
-      "cta": "Duidelijke call-to-action op het einde",
-      "caption_idee": "Instagram/TikTok caption in max 3 zinnen + 5 relevante hashtags"
+      "cta": "Duidelijke call-to-action",
+      "caption_idee": "Instagram/TikTok caption max 3 zinnen + 5 hashtags"
     }
   ],
   "totale_opnametijd_sec": 540,
-  "tip_van_de_dag": "Concrete productiviteitstip voor vandaag, max 20 woorden"
+  "tip_van_de_dag": "Concrete tip voor vandaag, max 20 woorden"
 }`
 
 export async function GET(req: NextRequest) {
@@ -112,15 +127,21 @@ export async function POST(req: NextRequest) {
 
   const nu = new Date()
   const dagNamen = ['zondag', 'maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag']
-  const dag = dagNamen[nu.getDay()]
-  const datumStr = nu.toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' })
+  const filmDag = dagNamen[nu.getDay()]
+  const filmDatumStr = nu.toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' })
+
+  const morgen = new Date(nu)
+  morgen.setDate(morgen.getDate() + 1)
+  const postDag = dagNamen[morgen.getDay()]
+  const postDatumStr = morgen.toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' })
+  const postDatum = morgen.toISOString().split('T')[0]
 
   try {
     const response = await anthropic.messages.create({
       model: 'claude-sonnet-4-6',
       max_tokens: 4096,
       system: CONTENT_SYSTEEM_PROMPT,
-      messages: [{ role: 'user', content: BRIEFING_PROMPT(datumStr, dag) }],
+      messages: [{ role: 'user', content: BRIEFING_PROMPT(filmDatumStr, filmDag, postDatumStr, postDag) }],
     })
 
     const tekst = response.content[0].type === 'text' ? response.content[0].text : ''
@@ -138,6 +159,7 @@ export async function POST(req: NextRequest) {
         totale_opnametijd_sec: totaalSec,
         status: 'actief',
         gegenereerd_op: new Date().toISOString(),
+        post_datum: postDatum,
       }, { onConflict: 'datum' })
       .select()
       .single()

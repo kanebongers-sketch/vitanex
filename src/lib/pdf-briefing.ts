@@ -17,6 +17,7 @@ interface Video {
 
 interface BriefingData {
   datum: string
+  post_datum?: string
   videos: Video[]
   totale_opnametijd_sec?: number
   meta?: {
@@ -26,10 +27,12 @@ interface BriefingData {
   }
 }
 
-const GROEN = '#2d6a4f'
-const DONKER = '#1a1a2e'
+const GROEN = '#1D9E75'
+const GROEN_DARK = '#15785A'
+const DONKER = '#0D1117'
 const GRIJS = '#6b7280'
 const LICHTGRIJS = '#f3f4f6'
+const ORANJE = '#E8A020'
 
 export function generateBriefingPDF(briefing: BriefingData): Promise<Buffer> {
   return new Promise((resolve, reject) => {
@@ -45,22 +48,36 @@ export function generateBriefingPDF(briefing: BriefingData): Promise<Buffer> {
     const contentW = pageW - margin * 2
 
     // ── Header ──────────────────────────────────────────────────
-    doc.rect(0, 0, pageW, 90).fill(DONKER)
+    doc.rect(0, 0, pageW, 110).fill(DONKER)
 
-    doc.fillColor('#ffffff').font('Helvetica-Bold').fontSize(22)
-       .text('CONTENT BRIEFING', margin, 22)
+    doc.fillColor('#ffffff').font('Helvetica-Bold').fontSize(20)
+       .text('CONTENT BRIEFING', margin, 18)
 
-    const datumNL = new Date(briefing.datum).toLocaleDateString('nl-NL', {
+    const filmDatumNL = new Date(briefing.datum).toLocaleDateString('nl-NL', {
       weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
     })
-    doc.fillColor('#9ca3af').font('Helvetica').fontSize(11)
-       .text(datumNL.charAt(0).toUpperCase() + datumNL.slice(1), margin, 48)
+    doc.fillColor('#9ca3af').font('Helvetica').fontSize(10)
+       .text(`Filmdag: ${filmDatumNL.charAt(0).toUpperCase() + filmDatumNL.slice(1)}`, margin, 44)
 
     const minuten = Math.round((briefing.totale_opnametijd_sec ?? 0) / 60)
-    doc.fillColor('#ffffff').font('Helvetica-Bold').fontSize(11)
-       .text(`${briefing.videos?.length ?? 0} videos  ·  ~${minuten} min opnemen`, margin, 65)
+    doc.fillColor('#9ca3af').font('Helvetica').fontSize(10)
+       .text(`${briefing.videos?.length ?? 0} videos  ·  ~${minuten} min opnemen`, margin, 60)
 
-    doc.y = 106
+    // "POST MORGEN" badge
+    const postDatumRaw = briefing.post_datum ?? (() => {
+      const d = new Date(briefing.datum); d.setDate(d.getDate() + 1); return d.toISOString().split('T')[0]
+    })()
+    const postDatumNL = new Date(postDatumRaw).toLocaleDateString('nl-NL', {
+      weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+    })
+    const postLabel = `POST MORGEN — ${postDatumNL.charAt(0).toUpperCase() + postDatumNL.slice(1)}`
+    doc.rect(margin, 78, contentW, 22).fill(GROEN)
+    doc.fillColor('#ffffff').font('Helvetica-Bold').fontSize(10)
+       .text(postLabel, margin + 10, 84, { width: contentW - 20 })
+
+    const datumNL = filmDatumNL
+
+    doc.y = 126
 
     // ── Thema ───────────────────────────────────────────────────
     if (briefing.meta?.thema) {
@@ -164,8 +181,9 @@ export function generateBriefingPDF(briefing: BriefingData): Promise<Buffer> {
     const footerY = doc.page.height - 32
     doc.rect(0, footerY - 4, pageW, 36).fill(DONKER)
     doc.fillColor('#6b7280').font('Helvetica').fontSize(8)
-       .text('Vitanex · AI Content OS · Maak vandaag · Post morgen', margin, footerY + 4)
-    doc.text(datumNL, margin, footerY + 4, { width: contentW, align: 'right' })
+       .text('MentaForce · AI Content OS · Film vandaag · Post morgen', margin, footerY + 4)
+    doc.fillColor(GROEN).font('Helvetica-Bold').fontSize(8)
+       .text(`Post: ${postDatumNL.charAt(0).toUpperCase() + postDatumNL.slice(1)}`, margin, footerY + 4, { width: contentW, align: 'right' })
 
     doc.end()
   })

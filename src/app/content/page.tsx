@@ -30,6 +30,7 @@ type Video = {
 type Briefing = {
   id: string
   datum: string
+  post_datum?: string
   videos: Video[]
   totale_opnametijd_sec: number
   status: string
@@ -405,8 +406,21 @@ export default function ContentPage() {
           </h1>
           {briefing?.meta?.thema && (
             <p style={{ fontSize: 15, color: 'var(--text-3)', margin: '8px 0 0', fontWeight: 500 }}>
-              Thema van vandaag: <strong style={{ color: 'var(--text-2)' }}>{briefing.meta.thema}</strong>
+              Thema: <strong style={{ color: 'var(--text-2)' }}>{briefing.meta.thema}</strong>
             </p>
+          )}
+          {briefing?.post_datum && (
+            <div style={{
+              display: 'inline-flex', alignItems: 'center', gap: 8,
+              marginTop: 12, padding: '6px 14px', borderRadius: 8,
+              background: 'rgba(29,158,117,0.1)', border: '1px solid rgba(29,158,117,0.25)',
+            }}>
+              <span style={{ fontSize: 14 }}>📅</span>
+              <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--mf-green)' }}>
+                Film vandaag &middot; Post morgen{' '}
+                {new Date(briefing.post_datum).toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long' })}
+              </span>
+            </div>
           )}
         </div>
 

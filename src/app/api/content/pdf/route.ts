@@ -31,6 +31,7 @@ export async function POST(req: NextRequest) {
 
   const pdfBuffer = await generateBriefingPDF({
     datum: briefing.datum,
+    post_datum: briefing.post_datum,
     videos: briefing.videos ?? [],
     totale_opnametijd_sec: briefing.totale_opnametijd_sec,
     meta: briefing.meta,
@@ -83,6 +84,7 @@ export async function GET(req: NextRequest) {
 
   const pdfBuffer = await generateBriefingPDF({
     datum: briefing.datum,
+    post_datum: briefing.post_datum,
     videos: briefing.videos ?? [],
     totale_opnametijd_sec: briefing.totale_opnametijd_sec,
     meta: briefing.meta,
