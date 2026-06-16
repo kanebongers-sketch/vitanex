@@ -449,6 +449,13 @@ export default function Navbar() {
   const [openSections, setOpenSections] = useState<Record<string, boolean>>(buildInitialSections)
 
   useEffect(() => {
+    document.body.classList.add('mf-has-sidebar', 'mf-has-tabbar')
+    return () => {
+      document.body.classList.remove('mf-has-sidebar', 'mf-has-tabbar')
+    }
+  }, [])
+
+  useEffect(() => {
     let mounted = true
 
     async function laad() {
