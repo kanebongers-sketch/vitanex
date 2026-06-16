@@ -823,3 +823,107 @@ body.mf-has-sidebar > * {
   text-align: right;
   margin-top: 2px;
 }
+
+/* ── Wellness App Component Classes ─────────── */
+
+.mf-card {
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  border: 1px solid var(--border);
+  padding: 20px;
+}
+
+.mf-card-elevated {
+  background: var(--bg-card);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-elevated);
+  padding: 24px;
+}
+
+.mf-btn-primary {
+  background: var(--mf-green);
+  color: white;
+  border: none;
+  border-radius: var(--radius-btn);
+  padding: 12px 24px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.12s;
+}
+
+.mf-btn-primary:hover { opacity: 0.88; }
+.mf-btn-primary:active { opacity: 0.76; }
+
+.mf-btn-secondary {
+  background: var(--mf-green-light);
+  color: var(--mf-green);
+  border: none;
+  border-radius: var(--radius-btn);
+  padding: 12px 24px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.mf-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-4);
+}
+
+.mf-section-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-1);
+  letter-spacing: -0.02em;
+}
+
+.mf-quick-action {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 16px 12px;
+  background: var(--bg-card);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  text-decoration: none;
+  transition: transform 0.12s, box-shadow 0.12s;
+}
+
+.mf-quick-action:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.mf-quick-action .emoji { font-size: 28px; }
+.mf-quick-action .label { font-size: 11px; font-weight: 600; color: var(--text-2); }
+
+/* Progress ring utility */
+.mf-ring-track { fill: none; stroke: #F3F4F6; }
+.mf-ring-fill { fill: none; stroke-linecap: round; transition: stroke-dasharray 0.8s var(--ease); }
+
+/* Habit chip */
+.mf-habit-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 14px; border-radius: 100px;
+  font-size: 13px; font-weight: 600; cursor: pointer;
+  border: 2px solid transparent; transition: all 0.15s;
+}
+.mf-habit-chip.done { background: var(--mf-green-light); color: var(--mf-green); border-color: var(--mf-green); }
+.mf-habit-chip.todo { background: #F3F4F6; color: var(--text-3); border-color: #E5E7EB; }
+
+/* Water bar */
+.mf-water-bar {
+  height: 12px; border-radius: 100px;
+  background: #EFF6FF; overflow: hidden;
+}
+.mf-water-bar-fill {
+  height: 100%; background: linear-gradient(90deg, #60A5FA, #3B82F6);
+  border-radius: 100px; transition: width 0.6s var(--ease);
+}

@@ -23,6 +23,7 @@ const SECTIONS: NavSection[] = [
     defaultOpen: true,
     items: [
       { href: '/home',    label: '🏠 Dashboard' },
+      { href: '/vandaag', label: '📋 Vandaag'   },
       { href: '/checkin', label: '✅ Check-in'   },
     ],
   },
@@ -37,6 +38,8 @@ const SECTIONS: NavSection[] = [
       { href: '/slaap',            label: '😴 Slaap'      },
       { href: '/stress',           label: '⚡ Stress'     },
       { href: '/werkgeluk',        label: '😄 Werkgeluk'  },
+      { href: '/gewoontes',        label: '✅ Gewoontes'  },
+      { href: '/water',            label: '💧 Water'       },
     ],
   },
   {
