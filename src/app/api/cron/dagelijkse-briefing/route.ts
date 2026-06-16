@@ -1,0 +1,70 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@supabase/supabase-js'
+import { generateBriefingPDF } from '@/lib/pdf-briefing'
+import { uploadToDrive } from '@/lib/google-drive'
+
+// Called daily at 07:00 by Render cron or external scheduler
+// Protected by CRON_SECRET env var
+export async function GET(req: NextRequest) {
+  const secret = req.headers.get('x-cron-secret') ?? req.nextUrl.searchParams.get('secret')
+  if (secret !== process.env.CRON_SECRET) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const db = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
+
+  const vandaag = new Date().toISOString().split('T')[0]
+
+  // 1. Genereer briefing (of gebruik bestaande)
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://mentaforce.nl'
+  const briefingRes = await fetch(`${baseUrl}/api/content/briefing`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-cron-secret': process.env.CRON_SECRET! },
+    body: JSON.stringify({ forceer: false }),
+  })
+
+  if (!briefingRes.ok) {
+    console.error('Briefing generatie mislukt:', await briefingRes.text())
+    return NextResponse.json({ error: 'Briefing generatie mislukt' }, { status: 500 })
+  }
+
+  // 2. Haal briefing op uit DB
+  const { data: briefing } = await db
+    .from('content_briefings')
+    .select('*')
+    .eq('datum', vandaag)
+    .single()
+
+  if (!briefing) {
+    return NextResponse.json({ error: 'Geen briefing gevonden na generatie' }, { status: 500 })
+  }
+
+  // 3. Genereer PDF
+  const pdfBuffer = await generateBriefingPDF({
+    datum: briefing.datum,
+    videos: briefing.videos ?? [],
+    totale_opnametijd_sec: briefing.totale_opnametijd_sec,
+    meta: briefing.meta,
+  })
+
+  // 4. Upload naar Drive (als geconfigureerd)
+  const folderId = process.env.GOOGLE_DRIVE_FOLDER_ID
+  if (folderId && process.env.GOOGLE_SERVICE_ACCOUNT_JSON) {
+    const datumNL = new Date(vandaag).toLocaleDateString('nl-NL', {
+      weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+    })
+    const bestandsnaam = `Content Briefing ${datumNL.charAt(0).toUpperCase() + datumNL.slice(1)}.pdf`
+
+    const driveLink = await uploadToDrive(pdfBuffer, bestandsnaam, folderId)
+    await db.from('content_briefings').update({ drive_link: driveLink }).eq('datum', vandaag)
+
+    console.log(`[CRON] Briefing ${vandaag} opgeslagen: ${driveLink}`)
+    return NextResponse.json({ ok: true, datum: vandaag, drive_link: driveLink })
+  }
+
+  console.log(`[CRON] Briefing ${vandaag} gegenereerd (geen Drive geconfigureerd)`)
+  return NextResponse.json({ ok: true, datum: vandaag, drive_link: null })
+}

@@ -299,6 +299,8 @@ export default function ContentPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [genereren, setGenereren] = useState(false)
+  const [pdfLaden, setPdfLaden] = useState(false)
+  const [driveLink, setDriveLink] = useState<string | null>(null)
   const [briefing, setBriefing] = useState<Briefing | null>(null)
   const [error, setError] = useState('')
   const [gefilmdTeller, setGefilmdTeller] = useState(0)
@@ -339,6 +341,34 @@ export default function ContentPage() {
       setError(e instanceof Error ? e.message : 'Onbekende fout')
     } finally {
       setGenereren(false)
+    }
+  }
+
+  async function downloadPDF() {
+    setPdfLaden(true)
+    setError('')
+    try {
+      const res = await authFetch('/api/content/pdf', { method: 'POST' })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error)
+      if (json.link) {
+        setDriveLink(json.link)
+      } else {
+        // Geen Drive geconfigureerd — directe download via GET
+        const dl = await authFetch('/api/content/pdf')
+        if (!dl.ok) throw new Error('Download mislukt')
+        const blob = await dl.blob()
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `briefing-${new Date().toISOString().split('T')[0]}.pdf`
+        a.click()
+        URL.revokeObjectURL(url)
+      }
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'PDF downloaden mislukt')
+    } finally {
+      setPdfLaden(false)
     }
   }
 
@@ -553,7 +583,37 @@ export default function ContentPage() {
             )}
 
             {/* Acties */}
-            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
+              <button
+                onClick={downloadPDF}
+                disabled={pdfLaden}
+                style={{
+                  padding: '12px 24px', borderRadius: 10, border: 'none',
+                  cursor: pdfLaden ? 'not-allowed' : 'pointer',
+                  background: pdfLaden ? '#9CA3AF' : '#185FA5',
+                  color: '#fff', fontSize: 13, fontWeight: 700,
+                  boxShadow: pdfLaden ? 'none' : '0 2px 10px rgba(24,95,165,0.35)',
+                  transition: 'all 0.2s ease',
+                  opacity: pdfLaden ? 0.7 : 1,
+                }}
+              >
+                {pdfLaden ? '⏳ PDF genereren...' : '📄 Download PDF'}
+              </button>
+              {driveLink && (
+                <a
+                  href={driveLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    padding: '12px 24px', borderRadius: 10, border: 'none',
+                    background: '#1D9E75', color: '#fff',
+                    fontSize: 13, fontWeight: 700, textDecoration: 'none',
+                    boxShadow: '0 2px 10px rgba(29,158,117,0.35)',
+                  }}
+                >
+                  ☁️ Open in Drive
+                </a>
+              )}
               <button
                 onClick={() => genereerBriefing(true)}
                 disabled={genereren}
@@ -572,7 +632,7 @@ export default function ContentPage() {
                 background: 'var(--bg-card)', color: 'var(--text-2)',
                 fontSize: 13, fontWeight: 700, textDecoration: 'none',
               }}>
-                💡 Bekijk ideeën bank
+                💡 Ideeën bank
               </Link>
             </div>
           </>
