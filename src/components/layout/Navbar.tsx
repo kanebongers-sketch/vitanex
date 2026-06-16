@@ -93,6 +93,16 @@ const TOP_ITEMS: TopItem[] = [
       { href: '/mijn-rapport', label: '📄 Mijn rapport' },
     ],
   },
+  {
+    key: 'content',
+    label: 'Content OS',
+    emoji: '🎬',
+    items: [
+      { href: '/content',           label: '📋 Dagelijkse Briefing' },
+      { href: '/content/strategie', label: '🗺 Strategie'           },
+      { href: '/content/ideeen',    label: '💡 Ideeën Bank'         },
+    ],
+  },
 ]
 
 const HR_ITEMS: NavItem[] = [
