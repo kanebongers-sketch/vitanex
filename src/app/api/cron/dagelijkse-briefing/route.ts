@@ -7,8 +7,9 @@ import { uploadToDrive } from '@/lib/google-drive'
 // Generates today's filming plan → posts tomorrow
 // Protected by CRON_SECRET env var
 export async function GET(req: NextRequest) {
+  const cronSecret = process.env.CRON_SECRET
   const secret = req.headers.get('x-cron-secret') ?? req.nextUrl.searchParams.get('secret')
-  if (secret !== process.env.CRON_SECRET) {
+  if (cronSecret && secret !== cronSecret) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
