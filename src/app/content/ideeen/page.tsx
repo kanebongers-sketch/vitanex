@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
@@ -224,7 +224,7 @@ function IdeeKaart({
 
 // ── Hoofdpagina ────────────────────────────────────────────
 
-export default function IdeeBankPage() {
+function IdeeBankContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
 
@@ -529,5 +529,13 @@ export default function IdeeBankPage() {
 
       </main>
     </div>
+  )
+}
+
+export default function IdeeBankPage() {
+  return (
+    <Suspense fallback={null}>
+      <IdeeBankContent />
+    </Suspense>
   )
 }
