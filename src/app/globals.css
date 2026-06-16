@@ -927,3 +927,178 @@ body.mf-has-sidebar > * {
   height: 100%; background: linear-gradient(90deg, #60A5FA, #3B82F6);
   border-radius: 100px; transition: width 0.6s var(--ease);
 }
+
+/* ═══════════════════════════════════════════
+   MICRO-ANIMATIES & TRANSITIONS
+   ═══════════════════════════════════════════ */
+
+@keyframes mf-scale-in-v2 {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes mf-slide-right {
+  from { opacity: 0; transform: translateX(-16px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes mf-pulse-ring {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50%       { transform: scale(1.04); opacity: 0.85; }
+}
+
+@keyframes mf-flame {
+  0%, 100% { transform: scale(1) rotate(-2deg); }
+  50%       { transform: scale(1.08) rotate(2deg); }
+}
+
+@keyframes mf-streak-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
+  50%       { box-shadow: 0 0 24px 4px rgba(245, 158, 11, 0.3); }
+}
+
+@keyframes mf-check {
+  0%   { transform: scale(0) rotate(-45deg); opacity: 0; }
+  60%  { transform: scale(1.2) rotate(5deg); }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+@keyframes mf-number-count {
+  from { transform: translateY(8px); opacity: 0; }
+  to   { transform: translateY(0); opacity: 1; }
+}
+
+/* Utility klasses */
+.mf-animate-fade-up   { animation: mf-fade-up 0.4s var(--ease) both; }
+.mf-animate-scale-in  { animation: mf-scale-in-v2 0.3s var(--ease) both; }
+.mf-animate-slide-right { animation: mf-slide-right 0.3s var(--ease) both; }
+.mf-animate-flame     { animation: mf-flame 1.5s ease-in-out infinite; }
+.mf-animate-streak    { animation: mf-streak-glow 2s ease-in-out infinite; }
+
+/* ═══════════════════════════════════════════
+   TYPOGRAFIE UPGRADE
+   ═══════════════════════════════════════════ */
+
+/* Heading schaal */
+.mf-h1 { font-size: clamp(24px, 5vw, 32px); font-weight: 800; letter-spacing: -0.03em; color: var(--text-1); line-height: 1.15; }
+.mf-h2 { font-size: clamp(18px, 4vw, 22px); font-weight: 700; letter-spacing: -0.025em; color: var(--text-1); line-height: 1.25; }
+.mf-h3 { font-size: 17px; font-weight: 700; letter-spacing: -0.02em; color: var(--text-1); }
+.mf-subtitle { font-size: 14px; font-weight: 500; color: var(--text-3); line-height: 1.5; }
+.mf-body { font-size: 14px; color: var(--text-2); line-height: 1.6; }
+.mf-caption { font-size: 12px; color: var(--text-4); }
+.mf-overline { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-4); }
+.mf-number-hero { font-size: clamp(48px, 12vw, 72px); font-weight: 800; letter-spacing: -0.05em; line-height: 1; }
+.mf-number-large { font-size: 36px; font-weight: 800; letter-spacing: -0.04em; }
+
+/* ═══════════════════════════════════════════
+   READINESS SCORE COMPONENTS
+   ═══════════════════════════════════════════ */
+
+.mf-readiness-card {
+  border-radius: var(--radius-xl);
+  padding: 28px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+.mf-readiness-card.hersteld { background: linear-gradient(135deg, #E1F5EE 0%, #DCFCE7 100%); border: 1px solid #BBF7D0; }
+.mf-readiness-card.goed     { background: linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%); border: 1px solid #C7D2FE; }
+.mf-readiness-card.matig    { background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%); border: 1px solid #FDE68A; }
+.mf-readiness-card.laag     { background: linear-gradient(135deg, #FEF2F2 0%, #FEE2E2 100%); border: 1px solid #FECACA; }
+
+/* ═══════════════════════════════════════════
+   STREAK COMPONENTS
+   ═══════════════════════════════════════════ */
+
+.mf-streak-banner {
+  background: linear-gradient(135deg, #FFF7ED 0%, #FFEDD5 100%);
+  border: 1px solid #FED7AA;
+  border-radius: var(--radius-lg);
+  padding: 18px 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.mf-streak-flame {
+  font-size: 36px;
+  display: inline-block;
+  animation: mf-flame 1.5s ease-in-out infinite;
+}
+
+.mf-streak-number {
+  font-size: 32px;
+  font-weight: 800;
+  color: #EA580C;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+
+/* ═══════════════════════════════════════════
+   QUICK ACTION GRID
+   ═══════════════════════════════════════════ */
+
+.mf-action-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.mf-action-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  aspect-ratio: 1;
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  text-decoration: none;
+  transition: transform 0.15s var(--ease), box-shadow 0.15s var(--ease);
+  padding: 12px 8px;
+}
+
+.mf-action-btn:hover  { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+.mf-action-btn:active { transform: scale(0.96); }
+.mf-action-btn .icon  { font-size: 28px; line-height: 1; }
+.mf-action-btn .label { font-size: 11px; font-weight: 600; color: var(--text-3); text-align: center; }
+
+/* ═══════════════════════════════════════════
+   CHECKLIST ITEM
+   ═══════════════════════════════════════════ */
+
+.mf-checklist-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 16px;
+  background: var(--bg-card);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.12s;
+}
+.mf-checklist-item:hover { background: var(--bg-subtle); }
+.mf-checklist-item.done  { background: var(--mf-green-light); border-color: #BBF7D0; }
+.mf-checklist-item .check { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--border-strong); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.mf-checklist-item.done .check { background: var(--mf-green); border-color: var(--mf-green); color: white; }
+
+/* ═══════════════════════════════════════════
+   REDUCED MOTION (micro-animatie uitbreidingen)
+   ═══════════════════════════════════════════ */
+
+@media (prefers-reduced-motion: reduce) {
+  .mf-animate-fade-up,
+  .mf-animate-scale-in,
+  .mf-animate-slide-right { animation: none; }
+  .mf-animate-flame,
+  .mf-animate-streak,
+  .mf-streak-flame { animation: none; }
+}

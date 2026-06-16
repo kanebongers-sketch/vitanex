@@ -10,8 +10,28 @@ type HrStap = 'welkom' | 'gegevens' | 'bedrijf' | 'details' | 'klaar'
 const HR_STAPPEN: HrStap[] = ['welkom', 'gegevens', 'bedrijf', 'details', 'klaar']
 
 // ─── Gebruiker/werknemer onboarding stappen ───────────────────────────────────
-type GebrStap = 'welkom' | 'profiel' | 'lichaam' | 'privacy' | 'hrcode' | 'klaar'
-const GEBR_STAPPEN: GebrStap[] = ['welkom', 'profiel', 'lichaam', 'privacy', 'klaar']
+type GebrStap = 'welkom' | 'profiel' | 'eerste-meting' | 'lichaam' | 'privacy' | 'hrcode' | 'klaar'
+const GEBR_STAPPEN: GebrStap[] = ['welkom', 'profiel', 'eerste-meting', 'lichaam', 'privacy', 'klaar']
+
+// ─── Eerste meting state ──────────────────────────────────────────────────────
+interface EersteMeting {
+  slaap: number | null
+  energie: number | null
+  stemming: number | null
+  geladen: boolean
+  score: number | null
+}
+
+function berekenReadiness(slaap: number, energie: number, stemming: number): number {
+  return 50 + slaap * 20 + energie * 15 + stemming * 15
+}
+
+function readinessLabel(score: number): { label: string; uitleg: string; kleur: string } {
+  if (score >= 90) return { label: 'Uitstekend', uitleg: 'Je bent top in vorm. Profiteer hiervan.', kleur: '#1D9E75' }
+  if (score >= 75) return { label: 'Goed', uitleg: 'Je hebt een solide basis. Kleine verbeteringen maken het verschil.', kleur: '#3B82F6' }
+  if (score >= 60) return { label: 'Matig', uitleg: 'Ruimte voor verbetering. Let op slaap en herstel.', kleur: '#F59E0B' }
+  return { label: 'Laag', uitleg: 'Je lichaam vraagt aandacht. Neem het rustig aan vandaag.', kleur: '#EF4444' }
+}
 
 // ─── Sectoren ────────────────────────────────────────────────────────────────
 const SECTOREN = [
@@ -100,6 +120,188 @@ function Knop({ onClick, disabled, children, variant = 'primary' }: {
   )
 }
 
+// ─── ReadinessRing SVG ────────────────────────────────────────────────────────
+function ReadinessRing({ score, kleur }: { score: number; kleur: string }) {
+  const radius = 54
+  const omtrek = 2 * Math.PI * radius
+  const voortgang = (score / 100) * omtrek
+  return (
+    <svg width={140} height={140} viewBox="0 0 140 140" style={{ display: 'block', margin: '0 auto' }}>
+      <circle cx={70} cy={70} r={radius} fill="none" stroke="#F3F4F6" strokeWidth={12} />
+      <circle
+        cx={70} cy={70} r={radius} fill="none"
+        stroke={kleur} strokeWidth={12}
+        strokeDasharray={`${voortgang} ${omtrek}`}
+        strokeLinecap="round"
+        transform="rotate(-90 70 70)"
+        style={{ transition: 'stroke-dasharray 1s cubic-bezier(0.16,1,0.3,1)' }}
+      />
+      <text x={70} y={65} textAnchor="middle" fontSize={28} fontWeight={800} fill="#111827">{score}</text>
+      <text x={70} y={85} textAnchor="middle" fontSize={11} fill="#9CA3AF">/100</text>
+    </svg>
+  )
+}
+
+// ─── EersteMeting stap ────────────────────────────────────────────────────────
+function EersteMeting({
+  meting, setMeting, onVolgende, onTerug, bezig,
+}: {
+  meting: EersteMeting
+  setMeting: React.Dispatch<React.SetStateAction<EersteMeting>>
+  onVolgende: () => void
+  onTerug: () => void
+  bezig: boolean
+}) {
+  const alleIngevuld = meting.slaap !== null && meting.energie !== null && meting.stemming !== null
+
+  const SLAAP_EMOJIS = ['😫', '😕', '😐', '😊', '🤩']
+  const ENERGIE_EMOJIS = ['⚡', '⚡⚡', '⚡⚡⚡', '⚡⚡⚡⚡', '⚡⚡⚡⚡⚡']
+  const STEMMING_EMOJIS = ['😞', '😔', '😐', '🙂', '😄']
+
+  function EmojiSchaal({
+    vraag, emojis, waarde, onChange,
+  }: {
+    vraag: string
+    emojis: string[]
+    waarde: number | null
+    onChange: (v: number) => void
+  }) {
+    return (
+      <div style={{ marginBottom: 24 }}>
+        <p style={{ fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 12 }}>{vraag}</p>
+        <div style={{ display: 'flex', gap: 8, justifyContent: 'space-between' }}>
+          {emojis.map((emoji, i) => {
+            const val = i + 1
+            const geselecteerd = waarde === val
+            return (
+              <button
+                key={val}
+                type="button"
+                onClick={() => onChange(val)}
+                style={{
+                  flex: 1,
+                  padding: '10px 4px',
+                  borderRadius: 12,
+                  border: `2px solid ${geselecteerd ? '#1D9E75' : '#E5E7EB'}`,
+                  background: geselecteerd ? '#E1F5EE' : '#F9FAFB',
+                  cursor: 'pointer',
+                  fontSize: 22,
+                  transition: 'all 0.15s',
+                  transform: geselecteerd ? 'scale(1.12)' : 'scale(1)',
+                  boxShadow: geselecteerd ? '0 2px 10px rgba(29,158,117,0.22)' : 'none',
+                }}
+              >
+                {emoji}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+    )
+  }
+
+  if (meting.geladen && meting.score !== null) {
+    const { label, uitleg, kleur } = readinessLabel(meting.score)
+    return (
+      <div>
+        <div style={{ textAlign: 'center', marginBottom: 28 }}>
+          <div style={{ fontSize: 36, marginBottom: 8 }}>🎯</div>
+          <h2 style={{ fontSize: 20, fontWeight: 800, color: '#111827', marginBottom: 4, letterSpacing: '-0.02em' }}>
+            Jouw eerste Readiness Score
+          </h2>
+          <p style={{ fontSize: 13, color: '#9CA3AF' }}>Gebaseerd op slaap, energie en stemming</p>
+        </div>
+
+        <div style={{
+          padding: '28px 24px', borderRadius: 20,
+          background: 'linear-gradient(135deg, #F0FDF8, #EFF6FF)',
+          border: `2px solid ${kleur}30`,
+          marginBottom: 20,
+          textAlign: 'center',
+        }}>
+          <ReadinessRing score={meting.score} kleur={kleur} />
+          <div style={{ marginTop: 16 }}>
+            <span style={{
+              display: 'inline-block', fontSize: 13, fontWeight: 800, padding: '4px 14px',
+              borderRadius: 20, background: kleur + '20', color: kleur, marginBottom: 8,
+            }}>{label}</span>
+            <p style={{ fontSize: 14, color: '#4B5563', lineHeight: 1.5 }}>{uitleg}</p>
+          </div>
+        </div>
+
+        <div style={{
+          padding: '14px 16px', borderRadius: 12,
+          background: '#F9FAFB', border: '1px solid #E5E7EB',
+          marginBottom: 24,
+        }}>
+          <p style={{ fontSize: 13, color: '#6B7280', lineHeight: 1.6 }}>
+            Morgenvroeg vergelijken we dit. Zo zien we hoe je evolueert.
+          </p>
+        </div>
+
+        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <Knop onClick={onVolgende} disabled={bezig}>
+            {bezig ? 'Opslaan...' : 'Ga naar mijn app →'}
+          </Knop>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div>
+      <div style={{ marginBottom: 28 }}>
+        <div style={{ fontSize: 32, marginBottom: 10 }}>🎯</div>
+        <h2 style={{ fontSize: 20, fontWeight: 800, color: '#111827', marginBottom: 4, letterSpacing: '-0.02em' }}>
+          Jouw eerste meting
+        </h2>
+        <p style={{ fontSize: 13, color: '#9CA3AF', lineHeight: 1.5 }}>
+          Dit duurt 30 seconden. Dan zien we gelijk hoe je je voelt.
+        </p>
+      </div>
+
+      <EmojiSchaal
+        vraag="Hoe sliep je gisteravond?"
+        emojis={SLAAP_EMOJIS}
+        waarde={meting.slaap}
+        onChange={v => setMeting(m => ({ ...m, slaap: v }))}
+      />
+
+      <EmojiSchaal
+        vraag="Hoe is je energieniveau nu?"
+        emojis={ENERGIE_EMOJIS}
+        waarde={meting.energie}
+        onChange={v => setMeting(m => ({ ...m, energie: v }))}
+      />
+
+      <EmojiSchaal
+        vraag="Hoe voel je je op dit moment?"
+        emojis={STEMMING_EMOJIS}
+        waarde={meting.stemming}
+        onChange={v => setMeting(m => ({ ...m, stemming: v }))}
+      />
+
+      <div style={{ display: 'flex', gap: 12, justifyContent: 'space-between', marginTop: 8 }}>
+        <Knop onClick={onTerug} variant="ghost">← Terug</Knop>
+        <Knop
+          onClick={() => {
+            if (meting.slaap === null || meting.energie === null || meting.stemming === null) return
+            const score = Math.min(100, berekenReadiness(
+              (meting.slaap - 1) / 4,
+              (meting.energie - 1) / 4,
+              (meting.stemming - 1) / 4,
+            ))
+            setMeting(m => ({ ...m, score: Math.round(score), geladen: true }))
+          }}
+          disabled={!alleIngevuld}
+        >
+          Bereken mijn score →
+        </Knop>
+      </div>
+    </div>
+  )
+}
+
 // ─── Hoofd pagina ─────────────────────────────────────────────────────────────
 export default function OnboardingPage() {
   const router = useRouter()
@@ -113,6 +315,11 @@ export default function OnboardingPage() {
 
   // Gebruiker stap state
   const [gebrStap, setGebrStap] = useState<GebrStap>('welkom')
+
+  // Eerste meting state
+  const [meting, setMeting] = useState<EersteMeting>({
+    slaap: null, energie: null, stemming: null, geladen: false, score: null,
+  })
 
   // HR form
   const [hr, setHr] = useState({
@@ -169,7 +376,6 @@ export default function OnboardingPage() {
   useEffect(() => {
     if (hrCodeTimer.current) clearTimeout(hrCodeTimer.current)
     if (!gebr.hrCode || gebr.hrCode.length < 6) {
-      // Reset via de debounce-timer zodat er geen setState in de effect-body staat
       hrCodeTimer.current = setTimeout(() => setHrCodeBedrijf(''), 0)
       return
     }
@@ -188,7 +394,6 @@ export default function OnboardingPage() {
     if (!userId) return
     setBezig(true)
 
-    // 1. Maak bedrijf aan
     const { data: bedrijf } = await supabase
       .from('bedrijven')
       .insert({
@@ -202,7 +407,6 @@ export default function OnboardingPage() {
       .select('id')
       .single()
 
-    // 2. Update HR profiel
     await supabase.from('profiles').update({
       naam: hr.naam.trim(),
       functie: hr.functietitel.trim() || null,
@@ -215,7 +419,31 @@ export default function OnboardingPage() {
     setBezig(false)
   }
 
-  // ── Gebruiker afronden ─────────────────────────────────────────────────────
+  // ── Sla eerste meting op en rond daarna af ─────────────────────────────────
+  async function slaEersteMeting() {
+    if (!userId || meting.slaap === null || meting.energie === null || meting.stemming === null) return
+    setBezig(true)
+
+    const vandaag = new Date().toISOString().split('T')[0]
+    const { data: { session } } = await supabase.auth.getSession()
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+    if (session?.access_token) headers['Authorization'] = `Bearer ${session.access_token}`
+
+    await Promise.allSettled([
+      fetch('/api/stemming', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ score: meting.stemming, notitie: 'Ingevoerd tijdens onboarding' }),
+      }),
+      fetch('/api/slaap', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ kwaliteit: meting.slaap, datum: vandaag }),
+      }),
+    ])
+  }
+
+  // ── Gebruiker afronden (zonder eerste meting) ──────────────────────────────
   async function gebruikerAfronden() {
     if (!userId) return
     setBezig(true)
@@ -244,6 +472,39 @@ export default function OnboardingPage() {
     await supabase.from('profiles').update(updates).eq('id', userId)
     setGebrStap('klaar')
     setBezig(false)
+  }
+
+  // ── Gebruiker afronden na eerste meting ────────────────────────────────────
+  async function gebruikerAfrondenMetMeting() {
+    if (!userId) return
+    setBezig(true)
+
+    await slaEersteMeting()
+
+    const updates: Record<string, unknown> = {
+      naam: gebr.naam.trim(),
+      onboarding_voltooid: true,
+      hr_inzage_rapporten: gebr.hrInzageRapporten,
+      hr_inzage_bestanden: gebr.hrInzageBestanden,
+    }
+    if (gebr.geboortedatum) updates.geboortedatum = gebr.geboortedatum
+    if (gebr.lengte_cm) updates.lengte_cm = parseInt(gebr.lengte_cm)
+    if (gebr.gewicht_kg) updates.gewicht_kg = parseFloat(gebr.gewicht_kg.replace(',', '.'))
+    if (gebr.geslacht) updates.geslacht = gebr.geslacht
+
+    if (gebr.hrCode && hrCodeBedrijf) {
+      const { data: { session } } = await supabase.auth.getSession()
+      await fetch('/api/hr-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session?.access_token}` },
+        body: JSON.stringify({ code: gebr.hrCode.toUpperCase() }),
+      })
+      updates.rol = 'medewerker'
+    }
+
+    await supabase.from('profiles').update(updates).eq('id', userId)
+    setBezig(false)
+    window.location.href = '/home'
   }
 
   if (stap === 'welkom') return (
@@ -493,12 +754,15 @@ export default function OnboardingPage() {
         )}
 
         {/* ══════════════════════════════════════════════════════════════════ */}
-        {/* ZELFSTANDIGE FLOW — zelfde als other maar zonder privacy/hrcode  */}
+        {/* ZELFSTANDIGE FLOW */}
         {/* ══════════════════════════════════════════════════════════════════ */}
         {rol === 'zelfstandige' && (
           <>
             {gebrStap !== 'welkom' && gebrStap !== 'klaar' && (
-              <VoortgangsBalk huidig={['welkom', 'profiel', 'lichaam', 'klaar'].indexOf(gebrStap)} totaal={4} />
+              <VoortgangsBalk
+                huidig={['welkom', 'profiel', 'eerste-meting', 'lichaam', 'klaar'].indexOf(gebrStap)}
+                totaal={5}
+              />
             )}
 
             {gebrStap === 'welkom' && (
@@ -556,9 +820,19 @@ export default function OnboardingPage() {
 
                 <div style={{ display: 'flex', gap: 12, justifyContent: 'space-between', marginTop: 28 }}>
                   <Knop onClick={() => setGebrStap('welkom')} variant="ghost">← Terug</Knop>
-                  <Knop onClick={() => setGebrStap('lichaam')} disabled={!gebr.naam.trim()}>Volgende →</Knop>
+                  <Knop onClick={() => setGebrStap('eerste-meting')} disabled={!gebr.naam.trim()}>Volgende →</Knop>
                 </div>
               </div>
+            )}
+
+            {gebrStap === 'eerste-meting' && (
+              <EersteMeting
+                meting={meting}
+                setMeting={setMeting}
+                onTerug={() => setGebrStap('profiel')}
+                onVolgende={() => setGebrStap('lichaam')}
+                bezig={false}
+              />
             )}
 
             {gebrStap === 'lichaam' && (
@@ -584,10 +858,11 @@ export default function OnboardingPage() {
                 <p style={{ fontSize: 12, color: '#9CA3AF', marginBottom: 20 }}>Alle velden optioneel — later invullen kan via Instellingen</p>
 
                 <div style={{ display: 'flex', gap: 12, justifyContent: 'space-between' }}>
-                  <Knop onClick={() => setGebrStap('profiel')} variant="ghost">← Terug</Knop>
+                  <Knop onClick={() => setGebrStap('eerste-meting')} variant="ghost">← Terug</Knop>
                   <Knop onClick={async () => {
                     if (!userId) return
                     setBezig(true)
+                    await slaEersteMeting()
                     const updates: Record<string, unknown> = {
                       naam: gebr.naam.trim(),
                       onboarding_voltooid: true,
@@ -691,9 +966,20 @@ export default function OnboardingPage() {
 
                 <div style={{ display: 'flex', gap: 12, justifyContent: 'space-between', marginTop: 28 }}>
                   <Knop onClick={() => setGebrStap('welkom')} variant="ghost">← Terug</Knop>
-                  <Knop onClick={() => setGebrStap('lichaam')} disabled={!gebr.naam.trim()}>Volgende →</Knop>
+                  <Knop onClick={() => setGebrStap('eerste-meting')} disabled={!gebr.naam.trim()}>Volgende →</Knop>
                 </div>
               </div>
+            )}
+
+            {/* ── EERSTE METING (2b) ── */}
+            {gebrStap === 'eerste-meting' && (
+              <EersteMeting
+                meting={meting}
+                setMeting={setMeting}
+                onTerug={() => setGebrStap('profiel')}
+                onVolgende={() => setGebrStap('lichaam')}
+                bezig={false}
+              />
             )}
 
             {/* ── LICHAAM ── */}
@@ -732,13 +1018,13 @@ export default function OnboardingPage() {
                 <p style={{ fontSize: 12, color: '#9CA3AF', marginBottom: 20 }}>Alle velden optioneel — later invullen kan via Instellingen</p>
 
                 <div style={{ display: 'flex', gap: 12, justifyContent: 'space-between' }}>
-                  <Knop onClick={() => setGebrStap('profiel')} variant="ghost">← Terug</Knop>
+                  <Knop onClick={() => setGebrStap('eerste-meting')} variant="ghost">← Terug</Knop>
                   <Knop onClick={() => setGebrStap('privacy')}>Volgende →</Knop>
                 </div>
               </div>
             )}
 
-            {/* ── PRIVACY ── (alleen voor werknemers met bedrijf) */}
+            {/* ── PRIVACY ── */}
             {gebrStap === 'privacy' && (
               <div>
                 <div style={{ fontSize: 28, marginBottom: 10 }}>🔒</div>
@@ -790,12 +1076,12 @@ export default function OnboardingPage() {
                 ))}
 
                 <p style={{ fontSize: 12, color: '#9CA3AF', marginBottom: 20, lineHeight: 1.5 }}>
-                  💡 Standaard staat alles <strong>uit</strong>. Je kunt het altijd later aanzetten.
+                  Standaard staat alles <strong>uit</strong>. Je kunt het altijd later aanzetten.
                 </p>
 
                 <div style={{ display: 'flex', gap: 12, justifyContent: 'space-between' }}>
                   <Knop onClick={() => setGebrStap('lichaam')} variant="ghost">← Terug</Knop>
-                  <Knop onClick={gebruikerAfronden} disabled={bezig}>
+                  <Knop onClick={gebruikerAfrondenMetMeting} disabled={bezig}>
                     {bezig ? 'Opslaan...' : 'Afronden →'}
                   </Knop>
                 </div>
@@ -813,6 +1099,7 @@ export default function OnboardingPage() {
                   {[
                     { emoji: '✅', tekst: `Profiel: ${gebr.naam}` },
                     gebr.geboortedatum || gebr.lengte_cm ? { emoji: '📊', tekst: 'Persoonlijke gegevens opgeslagen' } : null,
+                    meting.score !== null ? { emoji: '🎯', tekst: `Readiness Score: ${meting.score}/100` } : null,
                     hrCodeBedrijf ? { emoji: '🏢', tekst: `Gekoppeld aan ${hrCodeBedrijf}` } : { emoji: '👤', tekst: 'Persoonlijk account' },
                   ].filter(Boolean).map((item, i) => item && (
                     <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', borderRadius: 12, background: '#F9FAFB', border: '1px solid #E5E7EB' }}>
