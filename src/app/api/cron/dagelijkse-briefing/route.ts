@@ -121,7 +121,35 @@ export async function GET(req: NextRequest) {
     )
 
     console.log(`[CRON] Briefing ${vandaag} → Storage: ${pdfUrl}`)
-    return NextResponse.json({ ok: true, datum: vandaag, post_datum: postDatumRaw, pdf_url: pdfUrl })
+
+    // Op maandag ook de weekplanning genereren
+    let weekplanningUrl: string | null = null
+    if (nu.getDay() === 1) {
+      try {
+        const wpRes = await fetch(`${baseUrl}/api/content/weekplanning`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(cronSecret ? { 'x-cron-secret': cronSecret } : {}),
+          },
+          body: JSON.stringify({ forceer: false }),
+        })
+        const wpData = await wpRes.json()
+        weekplanningUrl = wpData.pdf_url ?? null
+        if (weekplanningUrl) {
+          await stuurTelegram(
+            `📅 <b>Weekplanning gegenereerd!</b>\n` +
+            `Week van ${wpData.weekplanning?.week_start ?? vandaag}\n\n` +
+            `<a href="${weekplanningUrl}">📋 Open weekplanning PDF</a>`
+          )
+        }
+        console.log(`[CRON] Weekplanning gegenereerd → ${weekplanningUrl}`)
+      } catch (wpErr) {
+        console.error('[CRON] Weekplanning mislukt:', wpErr)
+      }
+    }
+
+    return NextResponse.json({ ok: true, datum: vandaag, post_datum: postDatumRaw, pdf_url: pdfUrl, weekplanning_url: weekplanningUrl })
   } catch (err) {
     console.error('[CRON] PDF/Storage mislukt:', err)
     return NextResponse.json({ ok: true, datum: vandaag, pdf_url: null, warning: 'PDF generatie mislukt', error: String(err) })
