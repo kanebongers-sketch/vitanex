@@ -16,11 +16,19 @@ type Video = {
   titel: string
   pijler: string
   locatie: string
+  format?: string
+  invalshoek?: string
+  doelgroep_pijn?: string
   duur_sec: number
   platform: string[]
   prioriteit: 'hoog' | 'medium' | 'laag'
   hook: string
   script: string
+  camera_opstelling?: string
+  kleding?: string
+  opname_volgorde?: string[]
+  licht?: string
+  productie_tip?: string
   broll: string[]
   cta: string
   caption_idee: string
@@ -40,36 +48,6 @@ type Briefing = {
 
 // ── Helpers ────────────────────────────────────────────────
 
-const PIJLER_KLEUR: Record<string, string> = {
-  fitness: '#1D9E75',
-  ondernemen: '#185FA5',
-  discipline: '#0D1117',
-  leefstijl: '#8B5CF6',
-  stressmanagement: '#E24B4A',
-  performance: '#BA7517',
-  'persoonlijke-groei': '#1D9E75',
-}
-
-const PIJLER_LABEL: Record<string, string> = {
-  fitness: 'Fitness',
-  ondernemen: 'Ondernemen',
-  discipline: 'Discipline',
-  leefstijl: 'Leefstijl',
-  stressmanagement: 'Stressmanagement',
-  performance: 'Performance',
-  'persoonlijke-groei': 'Persoonlijke Groei',
-}
-
-const PIJLER_EMOJI: Record<string, string> = {
-  fitness: '💪',
-  ondernemen: '🚀',
-  discipline: '🧱',
-  leefstijl: '🌿',
-  stressmanagement: '⚡',
-  performance: '📈',
-  'persoonlijke-groei': '🧠',
-}
-
 function secNaarMinuten(sec: number): string {
   const min = Math.floor(sec / 60)
   const rest = sec % 60
@@ -79,10 +57,7 @@ function secNaarMinuten(sec: number): string {
 
 function vandaagNl(): string {
   return new Date().toLocaleDateString('nl-NL', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
+    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
   })
 }
 
@@ -93,6 +68,10 @@ function uurVanDeDag(): string {
   return 'Goedenavond'
 }
 
+const GROEN = '#1D9E75'
+const ORANJE = '#E8A020'
+const BLAUW = '#185FA5'
+
 // ── VideoKaart ─────────────────────────────────────────────
 
 function VideoKaart({ video, briefingId, onStatusUpdate }: {
@@ -100,10 +79,8 @@ function VideoKaart({ video, briefingId, onStatusUpdate }: {
   briefingId: string
   onStatusUpdate: (nummer: number, status: string) => void
 }) {
-  const [open, setOpen] = useState(false)
+  const [tab, setTab] = useState<'script' | 'productie' | 'caption'>('script')
   const [gefilmd, setGefilmd] = useState(video.status === 'gefilmd')
-  const kleur = PIJLER_KLEUR[video.pijler] ?? '#1D9E75'
-  const emoji = PIJLER_EMOJI[video.pijler] ?? '🎬'
 
   async function markeerGefilmd() {
     const nieuwStatus = gefilmd ? 'te_filmen' : 'gefilmd'
@@ -115,181 +92,273 @@ function VideoKaart({ video, briefingId, onStatusUpdate }: {
     onStatusUpdate(video.nummer, nieuwStatus)
   }
 
-  const prioriteitKleur = video.prioriteit === 'hoog' ? '#E24B4A' : video.prioriteit === 'medium' ? '#BA7517' : '#6B7280'
-
   return (
     <div style={{
       background: gefilmd ? '#F0FDF4' : 'var(--bg-card)',
-      border: `1px solid ${gefilmd ? '#86EFAC' : 'var(--border)'}`,
+      border: `2px solid ${gefilmd ? '#86EFAC' : 'var(--border)'}`,
       borderRadius: 'var(--radius-lg)',
       overflow: 'hidden',
       transition: 'all 0.2s ease',
-      boxShadow: 'var(--shadow-sm)',
+      boxShadow: gefilmd ? 'none' : 'var(--shadow-sm)',
     }}>
       {/* Header */}
-      <div
-        style={{ padding: '20px 24px', cursor: 'pointer', userSelect: 'none' }}
-        onClick={() => setOpen(o => !o)}
-      >
+      <div style={{ padding: '20px 24px' }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16 }}>
           {/* Nummer badge */}
           <div style={{
-            width: 40, height: 40, borderRadius: '50%',
-            background: `${kleur}18`,
-            border: `2px solid ${kleur}30`,
+            width: 44, height: 44, borderRadius: 12,
+            background: gefilmd ? '#1D9E75' : 'var(--bg-subtle)',
+            border: `2px solid ${gefilmd ? '#1D9E75' : 'var(--border)'}`,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 16, fontWeight: 800, color: kleur, flexShrink: 0,
+            fontSize: 18, fontWeight: 900, color: gefilmd ? '#fff' : 'var(--text-1)', flexShrink: 0,
           }}>
-            {video.nummer}
+            {gefilmd ? '✓' : video.nummer}
           </div>
 
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 6 }}>
+            {/* Locatie + format chips */}
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 8 }}>
               <span style={{
-                fontSize: 11, fontWeight: 700, letterSpacing: '0.06em',
-                background: `${kleur}15`, color: kleur,
+                fontSize: 11, fontWeight: 700, letterSpacing: '0.05em',
+                background: `${GROEN}15`, color: GROEN,
                 padding: '3px 10px', borderRadius: 20,
               }}>
-                {emoji} {PIJLER_LABEL[video.pijler] ?? video.pijler}
+                📍 {video.locatie}
               </span>
+              {video.format && (
+                <span style={{
+                  fontSize: 11, fontWeight: 700, letterSpacing: '0.05em',
+                  background: 'var(--bg-subtle)', color: 'var(--text-3)',
+                  padding: '3px 10px', borderRadius: 20,
+                }}>
+                  {video.format}
+                </span>
+              )}
               <span style={{
-                fontSize: 11, fontWeight: 600,
-                background: `${prioriteitKleur}12`, color: prioriteitKleur,
+                fontSize: 11, fontWeight: 700,
+                background: 'var(--bg-subtle)', color: 'var(--text-3)',
                 padding: '3px 10px', borderRadius: 20,
               }}>
-                {video.prioriteit === 'hoog' ? '🔴 Hoog' : video.prioriteit === 'medium' ? '🟡 Medium' : '🟢 Laag'}
+                ⏱ {secNaarMinuten(video.duur_sec)}
               </span>
             </div>
 
             <h3 style={{
-              fontSize: 17, fontWeight: 800, color: 'var(--text-1)',
-              margin: 0, lineHeight: 1.3,
+              fontSize: 18, fontWeight: 800, color: 'var(--text-1)',
+              margin: '0 0 6px', lineHeight: 1.3,
               textDecoration: gefilmd ? 'line-through' : 'none',
               opacity: gefilmd ? 0.5 : 1,
             }}>
               {video.titel}
             </h3>
 
-            <div style={{ display: 'flex', gap: 16, marginTop: 8, flexWrap: 'wrap' }}>
-              <span style={{ fontSize: 13, color: 'var(--text-3)', display: 'flex', alignItems: 'center', gap: 4 }}>
-                📍 {video.locatie}
-              </span>
-              <span style={{ fontSize: 13, color: 'var(--text-3)', display: 'flex', alignItems: 'center', gap: 4 }}>
-                ⏱ {secNaarMinuten(video.duur_sec)}
-              </span>
-              <span style={{ fontSize: 13, color: 'var(--text-3)', display: 'flex', alignItems: 'center', gap: 4 }}>
-                📱 {video.platform.join(' · ')}
-              </span>
-            </div>
+            {/* Invalshoek / doelgroep pijn */}
+            {video.invalshoek && (
+              <div style={{ fontSize: 13, color: 'var(--text-3)', fontWeight: 500 }}>
+                {video.invalshoek}
+                {video.doelgroep_pijn && <span style={{ color: 'var(--text-4)' }}> · {video.doelgroep_pijn}</span>}
+              </div>
+            )}
           </div>
 
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0 }}>
-            <button
-              onClick={(e) => { e.stopPropagation(); markeerGefilmd() }}
-              style={{
-                padding: '8px 16px', borderRadius: 8, border: 'none', cursor: 'pointer',
-                background: gefilmd ? '#1D9E75' : 'var(--bg-subtle)',
-                color: gefilmd ? '#fff' : 'var(--text-2)',
-                fontSize: 13, fontWeight: 700,
-                transition: 'all 0.15s ease',
-              }}
-            >
-              {gefilmd ? '✓ Gefilmd' : 'Gefilmd'}
-            </button>
-            <svg
-              width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)"
-              strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-              style={{ transform: open ? 'rotate(180deg)' : 'rotate(0)', transition: '0.2s' }}
-            >
-              <polyline points="6 9 12 15 18 9" />
-            </svg>
-          </div>
+          <button
+            onClick={markeerGefilmd}
+            style={{
+              padding: '10px 20px', borderRadius: 10, border: 'none', cursor: 'pointer',
+              background: gefilmd ? '#1D9E75' : 'var(--bg-subtle)',
+              color: gefilmd ? '#fff' : 'var(--text-2)',
+              fontSize: 13, fontWeight: 700, flexShrink: 0,
+              transition: 'all 0.15s ease',
+            }}
+          >
+            {gefilmd ? '✓ Gefilmd' : 'Gefilmd'}
+          </button>
+        </div>
+
+        {/* Hook — altijd zichtbaar */}
+        <div style={{
+          marginTop: 16,
+          background: `${GROEN}08`,
+          border: `1px solid ${GROEN}25`,
+          borderLeft: `4px solid ${GROEN}`,
+          borderRadius: 10, padding: '12px 16px',
+          fontSize: 16, fontWeight: 700, color: 'var(--text-1)',
+          lineHeight: 1.5, fontStyle: 'italic',
+        }}>
+          "{video.hook}"
         </div>
       </div>
 
-      {/* Uitklapbare inhoud */}
-      {open && (
-        <div style={{ padding: '0 24px 24px', borderTop: '1px solid var(--border)' }}>
-          {/* Hook */}
-          <div style={{ marginTop: 20 }}>
-            <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.08em', color: 'var(--text-3)', marginBottom: 8, textTransform: 'uppercase' }}>
-              Hook (eerste 3 seconden)
-            </div>
-            <div style={{
-              background: `${kleur}08`,
-              border: `1px solid ${kleur}25`,
-              borderLeft: `4px solid ${kleur}`,
-              borderRadius: 10, padding: '14px 16px',
-              fontSize: 16, fontWeight: 700, color: 'var(--text-1)',
-              lineHeight: 1.5, fontStyle: 'italic',
-            }}>
-              "{video.hook}"
-            </div>
-          </div>
+      {/* Tabs */}
+      <div style={{
+        display: 'flex', borderTop: '1px solid var(--border)',
+        borderBottom: '1px solid var(--border)',
+        background: 'var(--bg-subtle)',
+      }}>
+        {([
+          { id: 'script', label: '📝 Script' },
+          { id: 'productie', label: '🎬 Productie' },
+          { id: 'caption', label: '📱 Caption' },
+        ] as const).map(t => (
+          <button
+            key={t.id}
+            onClick={() => setTab(t.id)}
+            style={{
+              flex: 1, padding: '10px', border: 'none', cursor: 'pointer',
+              background: tab === t.id ? 'var(--bg-card)' : 'transparent',
+              color: tab === t.id ? 'var(--text-1)' : 'var(--text-3)',
+              fontSize: 13, fontWeight: tab === t.id ? 700 : 500,
+              borderBottom: tab === t.id ? `2px solid ${GROEN}` : '2px solid transparent',
+              transition: 'all 0.15s',
+            }}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
 
-          {/* Script */}
-          <div style={{ marginTop: 20 }}>
-            <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.08em', color: 'var(--text-3)', marginBottom: 8, textTransform: 'uppercase' }}>
-              Script
-            </div>
+      {/* Tab inhoud */}
+      <div style={{ padding: '20px 24px' }}>
+
+        {/* ── Script tab ── */}
+        {tab === 'script' && (
+          <>
             <div style={{
-              background: 'var(--bg-subtle)',
-              border: '1px solid var(--border)',
-              borderRadius: 10, padding: '16px',
-              fontSize: 14, color: 'var(--text-2)',
-              lineHeight: 1.8, whiteSpace: 'pre-line', fontFamily: 'monospace',
+              background: 'var(--bg-subtle)', border: '1px solid var(--border)',
+              borderRadius: 10, padding: '18px',
+              fontSize: 14, color: 'var(--text-1)',
+              lineHeight: 2, whiteSpace: 'pre-line',
+              fontFamily: '"SF Mono", "Fira Code", monospace',
             }}>
               {video.script}
             </div>
-          </div>
 
-          {/* B-roll + CTA grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginTop: 20 }}>
-            <div>
-              <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.08em', color: 'var(--text-3)', marginBottom: 8, textTransform: 'uppercase' }}>
-                B-roll
+            <div style={{ marginTop: 16, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.08em', color: 'var(--text-4)', marginBottom: 6, textTransform: 'uppercase' }}>
+                  B-roll shots
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                  {(video.broll ?? []).map((b, i) => (
+                    <div key={i} style={{ display: 'flex', gap: 8, fontSize: 13, color: 'var(--text-2)' }}>
+                      <span style={{ color: GROEN, fontWeight: 800, flexShrink: 0 }}>▸</span>
+                      {b}
+                    </div>
+                  ))}
+                </div>
               </div>
-              <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 6 }}>
-                {video.broll.map((b, i) => (
-                  <li key={i} style={{
-                    display: 'flex', alignItems: 'flex-start', gap: 8,
-                    fontSize: 13, color: 'var(--text-2)',
-                  }}>
-                    <span style={{ color: kleur, fontWeight: 800, flexShrink: 0 }}>▸</span>
-                    {b}
-                  </li>
-                ))}
-              </ul>
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.08em', color: 'var(--text-4)', marginBottom: 6, textTransform: 'uppercase' }}>
+                  Call to action
+                </div>
+                <div style={{
+                  background: `${GROEN}10`, border: `1px solid ${GROEN}25`,
+                  borderRadius: 10, padding: '12px 14px',
+                  fontSize: 13, fontWeight: 700, color: GROEN,
+                }}>
+                  {video.cta}
+                </div>
+              </div>
             </div>
-            <div>
-              <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.08em', color: 'var(--text-3)', marginBottom: 8, textTransform: 'uppercase' }}>
-                Call-to-Action
+          </>
+        )}
+
+        {/* ── Productie tab ── */}
+        {tab === 'productie' && (
+          <>
+            {/* Camera / Kleding / Licht */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginBottom: 16 }}>
+              {[
+                { label: '📷 Camera', waarde: video.camera_opstelling, kleur: ORANJE },
+                { label: '👕 Kleding', waarde: video.kleding, kleur: BLAUW },
+                { label: '💡 Licht', waarde: video.licht, kleur: '#8B5CF6' },
+              ].map(item => item.waarde ? (
+                <div key={item.label} style={{
+                  background: 'var(--bg-subtle)', border: '1px solid var(--border)',
+                  borderRadius: 10, padding: '14px',
+                }}>
+                  <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.06em', color: item.kleur, marginBottom: 6, textTransform: 'uppercase' }}>
+                    {item.label}
+                  </div>
+                  <div style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.6 }}>
+                    {item.waarde}
+                  </div>
+                </div>
+              ) : null)}
+            </div>
+
+            {/* Opname volgorde */}
+            {video.opname_volgorde?.length ? (
+              <div style={{ marginBottom: 16 }}>
+                <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.08em', color: 'var(--text-4)', marginBottom: 8, textTransform: 'uppercase' }}>
+                  Opname volgorde
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {video.opname_volgorde.map((shot, i) => (
+                    <div key={i} style={{
+                      display: 'flex', gap: 12, alignItems: 'flex-start',
+                      background: 'var(--bg-subtle)', borderRadius: 8, padding: '10px 14px',
+                    }}>
+                      <div style={{
+                        width: 24, height: 24, borderRadius: 6, flexShrink: 0,
+                        background: ORANJE, color: '#fff',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: 12, fontWeight: 800,
+                      }}>
+                        {i + 1}
+                      </div>
+                      <span style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.6 }}>{shot}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
+            ) : null}
+
+            {/* Pro tip */}
+            {video.productie_tip && (
               <div style={{
-                background: `${kleur}10`, border: `1px solid ${kleur}25`,
-                borderRadius: 10, padding: '12px 14px',
-                fontSize: 13, color: 'var(--text-2)', lineHeight: 1.6,
+                background: '#FFF7ED', border: '1px solid #FED7AA',
+                borderRadius: 10, padding: '14px 16px',
+                display: 'flex', gap: 10, alignItems: 'flex-start',
               }}>
-                {video.cta}
+                <span style={{ fontSize: 18, flexShrink: 0 }}>⚡</span>
+                <div>
+                  <div style={{ fontSize: 11, fontWeight: 800, color: ORANJE, marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                    Pro tip
+                  </div>
+                  <div style={{ fontSize: 13, color: '#92400E', lineHeight: 1.6 }}>
+                    {video.productie_tip}
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
+            )}
+          </>
+        )}
 
-          {/* Caption idee */}
-          <div style={{ marginTop: 20 }}>
-            <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.08em', color: 'var(--text-3)', marginBottom: 8, textTransform: 'uppercase' }}>
-              Caption idee
-            </div>
+        {/* ── Caption tab ── */}
+        {tab === 'caption' && (
+          <>
             <div style={{
               background: 'var(--bg-subtle)', border: '1px solid var(--border)',
-              borderRadius: 10, padding: '14px 16px',
-              fontSize: 13, color: 'var(--text-2)', lineHeight: 1.7,
+              borderRadius: 10, padding: '16px',
+              fontSize: 14, color: 'var(--text-2)', lineHeight: 1.8,
+              whiteSpace: 'pre-line',
             }}>
               {video.caption_idee}
             </div>
-          </div>
-        </div>
-      )}
+            <div style={{ marginTop: 12, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+              {(video.platform ?? []).map(p => (
+                <span key={p} style={{
+                  fontSize: 12, fontWeight: 700, padding: '4px 12px', borderRadius: 20,
+                  background: `${BLAUW}12`, color: BLAUW,
+                }}>
+                  {p}
+                </span>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
     </div>
   )
 }
@@ -301,7 +370,7 @@ export default function ContentPage() {
   const [loading, setLoading] = useState(true)
   const [genereren, setGenereren] = useState(false)
   const [pdfLaden, setPdfLaden] = useState(false)
-  const [driveLink, setDriveLink] = useState<string | null>(null)
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null)
   const [briefing, setBriefing] = useState<Briefing | null>(null)
   const [error, setError] = useState('')
   const [gefilmdTeller, setGefilmdTeller] = useState(0)
@@ -309,13 +378,13 @@ export default function ContentPage() {
   const laadBriefing = useCallback(async () => {
     const { data: { session } } = await supabase.auth.getSession()
     if (!session) { router.push('/login'); return }
-
     try {
       const res = await authFetch('/api/content/briefing')
       const json = await res.json()
       if (json.briefing) {
         setBriefing(json.briefing)
         setGefilmdTeller(json.briefing.videos?.filter((v: Video) => v.status === 'gefilmd').length ?? 0)
+        if (json.briefing.drive_link) setPdfUrl(json.briefing.drive_link)
       }
     } catch {
       setError('Kon briefing niet laden')
@@ -346,6 +415,7 @@ export default function ContentPage() {
   }
 
   async function downloadPDF() {
+    if (pdfUrl) { window.open(pdfUrl, '_blank'); return }
     setPdfLaden(true)
     setError('')
     try {
@@ -353,21 +423,11 @@ export default function ContentPage() {
       const json = await res.json()
       if (!res.ok) throw new Error(json.error)
       if (json.link) {
-        setDriveLink(json.link)
-      } else {
-        // Geen Drive geconfigureerd — directe download via GET
-        const dl = await authFetch('/api/content/pdf')
-        if (!dl.ok) throw new Error('Download mislukt')
-        const blob = await dl.blob()
-        const url = URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = url
-        a.download = `briefing-${new Date().toISOString().split('T')[0]}.pdf`
-        a.click()
-        URL.revokeObjectURL(url)
+        setPdfUrl(json.link)
+        window.open(json.link, '_blank')
       }
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'PDF downloaden mislukt')
+      setError(e instanceof Error ? e.message : 'PDF mislukt')
     } finally {
       setPdfLaden(false)
     }
@@ -377,15 +437,13 @@ export default function ContentPage() {
     setBriefing(prev => {
       if (!prev) return prev
       const videos = prev.videos.map(v => v.nummer === nummer ? { ...v, status } : v)
-      const teller = videos.filter(v => v.status === 'gefilmd').length
-      setGefilmdTeller(teller)
+      setGefilmdTeller(videos.filter(v => v.status === 'gefilmd').length)
       return { ...prev, videos }
     })
   }
 
-  const videosGefilmd = gefilmdTeller
-  const videosTotaal = briefing?.videos?.length ?? 0
-  const volledigKlaar = videosGefilmd === videosTotaal && videosTotaal > 0
+  const videosTotaal  = briefing?.videos?.length ?? 0
+  const volledigKlaar = gefilmdTeller === videosTotaal && videosTotaal > 0
 
   return (
     <div className="mf-has-sidebar" style={{ background: 'var(--bg-app)', minHeight: '100vh' }}>
@@ -398,84 +456,53 @@ export default function ContentPage() {
           <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-3)', marginBottom: 4, textTransform: 'capitalize' }}>
             {vandaagNl()}
           </div>
-          <h1 style={{
-            fontSize: 32, fontWeight: 900, color: 'var(--text-1)',
-            margin: 0, letterSpacing: '-0.02em', lineHeight: 1.1,
-          }}>
+          <h1 style={{ fontSize: 32, fontWeight: 900, color: 'var(--text-1)', margin: 0, letterSpacing: '-0.02em', lineHeight: 1.1 }}>
             {uurVanDeDag()}, Kane
           </h1>
-          {briefing?.meta?.thema && (
-            <p style={{ fontSize: 15, color: 'var(--text-3)', margin: '8px 0 0', fontWeight: 500 }}>
-              Thema: <strong style={{ color: 'var(--text-2)' }}>{briefing.meta.thema}</strong>
-            </p>
-          )}
           {briefing?.post_datum && (
             <div style={{
-              display: 'inline-flex', alignItems: 'center', gap: 8,
-              marginTop: 12, padding: '6px 14px', borderRadius: 8,
+              display: 'inline-flex', alignItems: 'center', gap: 8, marginTop: 12,
+              padding: '6px 14px', borderRadius: 8,
               background: 'rgba(29,158,117,0.1)', border: '1px solid rgba(29,158,117,0.25)',
             }}>
-              <span style={{ fontSize: 14 }}>📅</span>
-              <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--mf-green)' }}>
-                Film vandaag &middot; Post morgen{' '}
+              <span style={{ fontSize: 13, fontWeight: 700, color: GROEN }}>
+                🎬 Film vandaag &middot; 📅 Post morgen{' '}
                 {new Date(briefing.post_datum).toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long' })}
               </span>
             </div>
           )}
         </div>
 
-        {/* Navigatie tabs */}
-        <div style={{ display: 'flex', gap: 8, marginBottom: 28, flexWrap: 'wrap' }}>
-          {[
-            { href: '/content', label: '📋 Briefing', actief: true },
-            { href: '/content/strategie', label: '🗺 Strategie' },
-            { href: '/content/ideeen', label: '💡 Ideeën bank' },
-          ].map(tab => (
-            <Link key={tab.href} href={tab.href} style={{
-              padding: '8px 18px', borderRadius: 10, textDecoration: 'none',
-              fontSize: 13, fontWeight: 700,
-              background: tab.actief ? 'var(--mf-green)' : 'var(--bg-card)',
-              color: tab.actief ? '#fff' : 'var(--text-2)',
-              border: tab.actief ? 'none' : '1px solid var(--border)',
-              boxShadow: tab.actief ? '0 2px 8px rgba(29,158,117,0.3)' : 'var(--shadow-xs)',
-            }}>
-              {tab.label}
-            </Link>
-          ))}
-        </div>
-
-        {/* Geen briefing state */}
+        {/* Geen briefing */}
         {!loading && !briefing && (
           <div style={{
             background: 'var(--bg-card)', border: '1px solid var(--border)',
             borderRadius: 'var(--radius-xl)', padding: '60px 40px', textAlign: 'center',
             boxShadow: 'var(--shadow-md)',
           }}>
-            <div style={{ fontSize: 64, marginBottom: 16 }}>🎬</div>
+            <div style={{ fontSize: 64, marginBottom: 16 }}>💪</div>
             <h2 style={{ fontSize: 24, fontWeight: 800, color: 'var(--text-1)', margin: '0 0 8px' }}>
-              Nog geen briefing voor vandaag
+              Klaar om te groeien?
             </h2>
             <p style={{ fontSize: 15, color: 'var(--text-3)', margin: '0 0 28px' }}>
-              Genereer je dagelijkse content briefing met AI. Je ontvangt 3 video-opdrachten
-              die samen maximaal 15 minuten opnametijd kosten.
+              4 AI agents genereren jouw dagelijkse fitness content — scripts, hooks, camera-instructies en shot lists. Klaar in 30 seconden.
             </p>
             <button
               onClick={() => genereerBriefing(false)}
               disabled={genereren}
               style={{
-                padding: '14px 32px', borderRadius: 12, border: 'none', cursor: 'pointer',
-                background: genereren ? '#9CA3AF' : 'var(--mf-green)',
+                padding: '14px 36px', borderRadius: 12, border: 'none', cursor: 'pointer',
+                background: genereren ? '#9CA3AF' : GROEN,
                 color: '#fff', fontSize: 16, fontWeight: 800,
                 boxShadow: genereren ? 'none' : '0 4px 16px rgba(29,158,117,0.4)',
-                transition: 'all 0.2s ease',
               }}
             >
-              {genereren ? '⚡ AI genereert...' : '⚡ Genereer vandaag briefing'}
+              {genereren ? '⚡ 4 agents aan het werk...' : '⚡ Genereer vandaag briefing'}
             </button>
           </div>
         )}
 
-        {/* Loading state */}
+        {/* Loading */}
         {loading && (
           <div style={{ textAlign: 'center', padding: '80px 0', color: 'var(--text-3)' }}>
             <div style={{ fontSize: 32, marginBottom: 12 }}>⚡</div>
@@ -483,47 +510,25 @@ export default function ContentPage() {
           </div>
         )}
 
-        {/* Briefing gevonden */}
+        {/* Briefing */}
         {briefing && (
           <>
-            {/* Groet banner */}
-            {briefing.meta?.groet && (
-              <div style={{
-                background: 'linear-gradient(135deg, var(--mf-green) 0%, var(--mf-green-dark) 100%)',
-                borderRadius: 'var(--radius-lg)', padding: '16px 24px', marginBottom: 24,
-                boxShadow: '0 4px 20px rgba(29,158,117,0.25)',
-              }}>
-                <p style={{ margin: 0, color: '#fff', fontSize: 15, fontWeight: 700 }}>
-                  {briefing.meta.groet}
-                </p>
-              </div>
-            )}
-
             {/* Stats bar */}
-            <div style={{
-              display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 28,
-            }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 24 }}>
               {[
                 {
-                  label: 'Totale opnametijd',
-                  waarde: secNaarMinuten(briefing.totale_opnametijd_sec),
-                  sub: 'max 15 minuten',
-                  kleur: briefing.totale_opnametijd_sec <= 900 ? '#1D9E75' : '#E24B4A',
-                  icon: '⏱',
+                  label: 'Opnametijd', waarde: secNaarMinuten(briefing.totale_opnametijd_sec),
+                  sub: 'vandaag filmen', kleur: GROEN, icon: '⏱',
                 },
                 {
-                  label: 'Video\'s vandaag',
-                  waarde: `${videosGefilmd} / ${videosTotaal}`,
-                  sub: volledigKlaar ? 'Alles gefilmd!' : 'gefilmd',
-                  kleur: volledigKlaar ? '#1D9E75' : '#185FA5',
-                  icon: '🎬',
+                  label: 'Voortgang', waarde: `${gefilmdTeller} / ${videosTotaal}`,
+                  sub: volledigKlaar ? '🎉 Alles gefilmd!' : 'videos gefilmd', kleur: volledigKlaar ? GROEN : BLAUW, icon: '🎬',
                 },
                 {
                   label: 'Platforms',
                   waarde: [...new Set(briefing.videos.flatMap(v => v.platform))].length.toString(),
-                  sub: [...new Set(briefing.videos.flatMap(v => v.platform))].slice(0, 2).join(', '),
-                  kleur: '#8B5CF6',
-                  icon: '📱',
+                  sub: [...new Set(briefing.videos.flatMap(v => v.platform))].join(', '),
+                  kleur: '#8B5CF6', icon: '📱',
                 },
               ].map(stat => (
                 <div key={stat.label} style={{
@@ -532,32 +537,21 @@ export default function ContentPage() {
                   boxShadow: 'var(--shadow-xs)',
                 }}>
                   <div style={{ fontSize: 22, marginBottom: 6 }}>{stat.icon}</div>
-                  <div style={{ fontSize: 26, fontWeight: 900, color: stat.kleur, letterSpacing: '-0.02em' }}>
-                    {stat.waarde}
-                  </div>
-                  <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-3)', marginTop: 2 }}>
-                    {stat.label}
-                  </div>
-                  <div style={{ fontSize: 11, color: 'var(--text-4)', marginTop: 2 }}>
-                    {stat.sub}
-                  </div>
+                  <div style={{ fontSize: 26, fontWeight: 900, color: stat.kleur, letterSpacing: '-0.02em' }}>{stat.waarde}</div>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-3)', marginTop: 2 }}>{stat.label}</div>
+                  <div style={{ fontSize: 11, color: 'var(--text-4)', marginTop: 2 }}>{stat.sub}</div>
                 </div>
               ))}
             </div>
 
-            {/* Voortgangs balk */}
+            {/* Voortgangsbalk */}
             {videosTotaal > 0 && (
-              <div style={{ marginBottom: 28 }}>
-                <div style={{
-                  height: 8, background: 'var(--bg-subtle)', borderRadius: 99,
-                  border: '1px solid var(--border)', overflow: 'hidden',
-                }}>
+              <div style={{ marginBottom: 24 }}>
+                <div style={{ height: 6, background: 'var(--bg-subtle)', borderRadius: 99, overflow: 'hidden' }}>
                   <div style={{
                     height: '100%', borderRadius: 99,
-                    width: `${(videosGefilmd / videosTotaal) * 100}%`,
-                    background: volledigKlaar
-                      ? 'var(--mf-green)'
-                      : 'linear-gradient(90deg, var(--mf-green) 0%, #15785A 100%)',
+                    width: `${(gefilmdTeller / videosTotaal) * 100}%`,
+                    background: GROEN,
                     transition: 'width 0.5s ease',
                   }} />
                 </div>
@@ -565,7 +559,7 @@ export default function ContentPage() {
             )}
 
             {/* Video kaarten */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 32 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 28 }}>
               {briefing.videos.map(video => (
                 <VideoKaart
                   key={video.nummer}
@@ -576,58 +570,22 @@ export default function ContentPage() {
               ))}
             </div>
 
-            {/* Tip van de dag */}
-            {briefing.meta?.tip && (
-              <div style={{
-                background: 'var(--bg-card)', border: '1px solid var(--border)',
-                borderRadius: 'var(--radius-md)', padding: '20px 24px',
-                display: 'flex', alignItems: 'flex-start', gap: 16,
-                boxShadow: 'var(--shadow-xs)', marginBottom: 24,
-              }}>
-                <span style={{ fontSize: 24, flexShrink: 0 }}>💡</span>
-                <div>
-                  <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.08em', color: 'var(--text-4)', marginBottom: 4, textTransform: 'uppercase' }}>
-                    Tip van de dag
-                  </div>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-2)', lineHeight: 1.6 }}>
-                    {briefing.meta.tip}
-                  </div>
-                </div>
-              </div>
-            )}
-
             {/* Acties */}
-            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
+            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center', paddingTop: 8 }}>
               <button
                 onClick={downloadPDF}
                 disabled={pdfLaden}
                 style={{
                   padding: '12px 24px', borderRadius: 10, border: 'none',
                   cursor: pdfLaden ? 'not-allowed' : 'pointer',
-                  background: pdfLaden ? '#9CA3AF' : '#185FA5',
+                  background: pdfLaden ? '#9CA3AF' : pdfUrl ? GROEN : BLAUW,
                   color: '#fff', fontSize: 13, fontWeight: 700,
-                  boxShadow: pdfLaden ? 'none' : '0 2px 10px rgba(24,95,165,0.35)',
+                  boxShadow: pdfLaden ? 'none' : '0 2px 10px rgba(24,95,165,0.3)',
                   transition: 'all 0.2s ease',
-                  opacity: pdfLaden ? 0.7 : 1,
                 }}
               >
-                {pdfLaden ? '⏳ PDF genereren...' : '📄 Download PDF'}
+                {pdfLaden ? '⏳ PDF genereren...' : pdfUrl ? '📄 Open PDF' : '📄 Download PDF'}
               </button>
-              {driveLink && (
-                <a
-                  href={driveLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{
-                    padding: '12px 24px', borderRadius: 10, border: 'none',
-                    background: '#1D9E75', color: '#fff',
-                    fontSize: 13, fontWeight: 700, textDecoration: 'none',
-                    boxShadow: '0 2px 10px rgba(29,158,117,0.35)',
-                  }}
-                >
-                  ☁️ Open in Drive
-                </a>
-              )}
               <button
                 onClick={() => genereerBriefing(true)}
                 disabled={genereren}
@@ -635,18 +593,17 @@ export default function ContentPage() {
                   padding: '12px 24px', borderRadius: 10, border: '1px solid var(--border)',
                   cursor: genereren ? 'not-allowed' : 'pointer',
                   background: 'var(--bg-card)', color: 'var(--text-2)',
-                  fontSize: 13, fontWeight: 700,
-                  opacity: genereren ? 0.6 : 1,
+                  fontSize: 13, fontWeight: 700, opacity: genereren ? 0.6 : 1,
                 }}
               >
-                {genereren ? '⚡ Genereren...' : '🔄 Hergeneer briefing'}
+                {genereren ? '⚡ 4 agents...' : '🔄 Hergeneer briefing'}
               </button>
-              <Link href="/content/ideeen" style={{
+              <Link href="/content/kalender" style={{
                 padding: '12px 24px', borderRadius: 10, border: '1px solid var(--border)',
                 background: 'var(--bg-card)', color: 'var(--text-2)',
                 fontSize: 13, fontWeight: 700, textDecoration: 'none',
               }}>
-                💡 Ideeën bank
+                📅 Weekkalender
               </Link>
             </div>
           </>

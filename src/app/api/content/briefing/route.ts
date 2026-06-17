@@ -12,69 +12,101 @@ function getServiceClient() {
   )
 }
 
-// ── Agent 1: Strategie ────────────────────────────────────────────────────────
-// Kiest 3 fitness topics die vandaag het beste scoren op Reels/TikTok.
-// Output: raw JSON array met topic-objecten.
+// ── Haal recente topics op (variety guard) ─────────────────────────────────
 
-async function kiesTopics(filmDag: string, filmDatum: string): Promise<string> {
+async function haalRecenteTopics(db: ReturnType<typeof getServiceClient>): Promise<string[]> {
+  const zeven = new Date()
+  zeven.setDate(zeven.getDate() - 7)
+  const { data } = await db
+    .from('content_briefings')
+    .select('videos')
+    .gte('datum', zeven.toISOString().split('T')[0])
+    .order('datum', { ascending: false })
+    .limit(7)
+
+  if (!data) return []
+  return data.flatMap((r: { videos: Array<{ titel?: string; hook?: string }> }) =>
+    (r.videos ?? []).map((v) => v.titel ?? v.hook ?? '').filter(Boolean)
+  )
+}
+
+// ── Agent 1: Strategie ─────────────────────────────────────────────────────
+// Kiest 3 fitness topics — puur fitness, maximaal visueel, niet herhaald.
+
+async function kiesTopics(filmDag: string, filmDatum: string, recenteTopics: string[]): Promise<string> {
+  const vermijden = recenteTopics.length
+    ? `\n\nVERMIJD deze topics want ze zijn de afgelopen week al gedaan:\n${recenteTopics.slice(0, 12).map(t => `- ${t}`).join('\n')}`
+    : ''
+
   const res = await anthropic.messages.create({
     model: 'claude-sonnet-4-6',
-    max_tokens: 1024,
-    system: `Je bent een fitness content strateeg. Je enige taak: kiezen welke fitness topics vandaag maximaal engagement opleveren op Instagram Reels en TikTok.
+    max_tokens: 1200,
+    system: `Je bent een fitness content strateeg die weet wat viraal gaat op Instagram Reels en TikTok in 2025.
 
-Kane Bongers is personal trainer in Eersel. Hij filmt zichzelf. Zijn kijkers: mensen die willen afvallen, sterker worden, of meer energie willen — maar het lastig vinden om consistent te trainen.
+Kane Bongers is personal trainer in Eersel, Nederland. Hij filmt zichzelf — geen crew, geen studio. Zijn publiek: mannen en vrouwen 20–40 jaar die willen afvallen, spiermassa opbouwen of meer energie willen. Ze scrollen 's ochtends of 's avonds.
 
-Kies topics die:
-- Direct actionable zijn (iets wat de kijker vandaag nog kan doen)
-- Visueel sterk zijn (je kunt het demonstreren, niet alleen praten)
-- Een veelgemaakte fout corrigeren, OF een quick win geven
-- Aansluiten bij wat er trending is in fitness (niet verouderd)
+Kies topics die aan ALLE vier criteria voldoen:
+1. Visueel — je ziet het, je demonstreert het (geen praatje alleen)
+2. Specifiek — niet "goede techniek" maar "zo til je de dumbbell bij een Romanian Deadlift"
+3. Correct fout/win — lost een veelgemaakte fout op óf geeft een direct resultaat
+4. Fitness only — geen ondernemerscontent, geen mindset-fluff, geen motivatiequotes
 
-Varieer formaten per dag: mix demonstraties, uitleg, myth-busting, transformatie mindset.
+Denk aan:
+- Techniekfouten bij populaire oefeningen (squat, bench, deadlift, shoulder press)
+- Snel effectieve workouts (5-10 minuten, thuis of gym)
+- Voeding die direct invloed heeft op prestatie (pre/post workout, eiwitten)
+- Herstel tips die mensen niet kennen
+- Progressie methoden (hoe je sterker wordt)
+- Lichaamssignalen die mensen verkeerd interpreteren
 
-Retourneer ALLEEN een JSON array, geen uitleg:
+Varieer locatie: niet alle 3 op dezelfde plek.
+Varieer format: mix demonstratie met talking head.${vermijden}
+
+Retourneer ALLEEN een JSON array:
 [
   {
     "nummer": 1,
-    "topic": "exacte beschrijving van het onderwerp",
-    "invalshoek": "hoe je het aanvliegt — bijv. 'corrigeer fout', 'geef quick win', 'bust mythe'",
-    "locatie": "Gym | Buiten | Thuis | Auto",
+    "topic": "heel specifieke beschrijving — één oefening of concept",
+    "invalshoek": "corrigeer fout | geef quick win | bust mythe | demonstreer techniek | uitleg mechanic",
+    "locatie": "Gym | Buiten | Thuis",
     "format": "demonstratie | talking head | workout | uitleg",
-    "waarom_nu": "waarom dit topic nu scoort (max 1 zin)"
+    "doelgroep_pijn": "welk probleem of frustratie raakt dit bij de kijker"
   }
 ]`,
     messages: [{
       role: 'user',
-      content: `Filmdag: ${filmDag} ${filmDatum}. Kies 3 fitness topics voor vandaag. Maak ze specifiek, visueel en actionable. Geen ondernemerscontent — puur fitness.`
+      content: `Filmdag: ${filmDag} ${filmDatum}. Kies 3 sterke fitness topics. Maak elk topic zo specifiek dat Kane precies weet welke oefening of welk concept hij gaat filmen.`
     }],
   })
   return res.content[0].type === 'text' ? res.content[0].text : '[]'
 }
 
-// ── Agent 2: Scripts ──────────────────────────────────────────────────────────
-// Schrijft voor elk topic een killer hook + strak script.
+// ── Agent 2: Scripts ───────────────────────────────────────────────────────
+// Schrijft een hook die scrollen stopt + strak script in echte spreektaal.
 
 async function schrijfScripts(topicsJson: string, postDag: string, postDatum: string): Promise<string> {
   const res = await anthropic.messages.create({
     model: 'claude-sonnet-4-6',
-    max_tokens: 3000,
-    system: `Je bent een ervaren short-form video scriptwriter, gespecialiseerd in fitness content voor Instagram Reels en TikTok.
+    max_tokens: 3500,
+    system: `Je bent een short-form video scriptwriter die fitness content schrijft voor Instagram Reels en TikTok. Je schrijft voor een Nederlandse personal trainer die zichzelf filmt.
 
-Schrijf scripts die:
-- Beginnen met een hook die in de eerste 2 seconden het scrollen stopt
-- Geen intro, geen "hoi ik ben Kane" — direct to the point
-- Conversatietaal — zoals je het zou zeggen tegen iemand in de gym
-- Concreet en specifiek — geen vage algemeenheden
-- Eindigen met een micro-CTA (kort, geen smeekbede)
+Regels die je nooit breekt:
+- GEEN intro. Geen "hoi", geen "ik ben Kane". Direct in de hook.
+- GEEN vage algemeenheden. Elk woord moet concreet zijn.
+- GEEN jargon. Gewone taal, zoals je het in de gym zou zeggen.
+- Hook is de EERSTE zin — moet shock, nieuwsgierigheid of directe waarde bevatten.
+- Script is spreektaal — korte zinnen, komma's als pauze, actieve werkwoorden.
+- Eindig met een concrete micro-CTA, geen smeekbede ("volg me voor meer" is verboden).
 
-Hook formules die werken:
-- "Je doet [oefening] al jaren verkeerd."
-- "Dit is waarom je geen [resultaat] ziet."
-- "[Getal] seconden. Probeer dit."
-- "Stop met [foute aanpak]. Doe dit."
-- "Meeste mensen missen dit bij [onderwerp]."
+Hook formules die bewezen werken:
+- "Je [oefening] klopt niet. Hier is waarom."
+- "Meeste mensen doen dit fout bij [onderwerp] — en het kost ze maanden resultaat."
+- "Probeer dit 30 seconden. Je voelt het verschil direct."
+- "[Getal] seconden is genoeg. Zo doe je het."
+- "Dit ene aanpassing bij [oefening] verdubbelt je resultaat."
+- "Je traint al maanden maar dit doet niemand."
 
-Spreektaal. Nederlandse tekst. Geen jargon. Gebruik [PAUZE] en [DEMO] als markers.`,
+Gebruik [PAUZE] voor een adempauze, [DEMO] voor een demonstratiemoment, [KIJK NAAR CAMERA] voor directe blik.`,
     messages: [{
       role: 'user',
       content: `Topics: ${topicsJson}
@@ -85,11 +117,11 @@ Retourneer ALLEEN geldig JSON array:
 [
   {
     "nummer": 1,
-    "titel": "video titel max 6 woorden pakkend",
-    "hook": "exacte openingszin, max 12 woorden",
-    "script": "volledig script met [PAUZE] en [DEMO] markers, max 120 woorden voor 60s",
-    "cta": "call to action max 8 woorden",
-    "caption_idee": "caption max 2 zinnen + 5 relevante hashtags"
+    "titel": "pakkende videotitel max 5 woorden, lowercase behalve eerste woord",
+    "hook": "exacte eerste zin die het scrollen stopt — max 10 woorden, eindigt NIET met punt",
+    "script": "volledig script spreektaal met [PAUZE] [DEMO] [KIJK NAAR CAMERA] markers — 80-130 woorden voor 45-60s video",
+    "cta": "concrete call to action max 6 woorden, actief",
+    "caption_idee": "2 zinnen caption — eerste zin pakt aan, tweede geeft context — plus 5 niche fitness hashtags"
   }
 ]`
     }],
@@ -97,41 +129,45 @@ Retourneer ALLEEN geldig JSON array:
   return res.content[0].type === 'text' ? res.content[0].text : '[]'
 }
 
-// ── Agent 3: Productie ────────────────────────────────────────────────────────
-// Vertaalt topics + scripts naar exacte filmopnames.
+// ── Agent 3: Productie ─────────────────────────────────────────────────────
+// Exacte filmopnames — alsof een productieleider op set staat.
 
 async function maakShotList(topicsJson: string, scriptsJson: string): Promise<string> {
   const res = await anthropic.messages.create({
     model: 'claude-sonnet-4-6',
-    max_tokens: 2000,
-    system: `Je bent een video productieleider voor fitness content. Jouw taak: zorg dat de filmmaker precies weet wat hij moet doen. Geen vaagheid.
+    max_tokens: 2500,
+    system: `Je bent een productieleider voor solo fitness content creators. Kane filmt zichzelf — hij heeft een telefoon, een statief, en de locatie die bij het topic past. Geen crew.
 
-Geef voor elke video:
-- Exacte cameraopstelling (hoogte, hoek, afstand)
-- Wat Kane draagt (kleding die past bij de locatie en boodschap)
-- Welke specifieke shots/oefeningen — inclusief herhalingen, tempo
-- Lichtinstructies (raam links, buiten in schaduw, etc.)
-- B-roll shots die de video versterken
-- Volgorde van opnames (meest energie eerst)
+Jouw taak: geef exact aan wat Kane moet doen. Geen "zorg voor goed licht" — maar "zet je telefoon op kniehoogte, 1.5 meter voor je, camera recht op de barbell gericht". Geen "draag sportkleding" — maar "zwart t-shirt en donkere trainingsbroek, geen logo's".
 
-Schrijf alsof je direct tegen de cameraman praat. Praktisch, concreet.`,
+Denk als een filmmaker die de video al in zijn hoofd ziet:
+- Welke angle maakt de oefening/boodschap het duidelijkst?
+- Wat ziet de kijker precies — en wat niet?
+- Welke shots zijn nodig als insert/b-roll?
+- Wat gaat er mis als hij dit niet weet?`,
     messages: [{
       role: 'user',
       content: `Topics: ${topicsJson}
 Scripts: ${scriptsJson}
 
-Retourneer ALLEEN geldig JSON array:
+Geef voor elke video exacte productie-instructies. Retourneer ALLEEN geldig JSON array:
 [
   {
     "nummer": 1,
     "duur_sec": 60,
     "platform": ["Instagram Reels", "TikTok"],
-    "camera_opstelling": "exacte beschrijving positie en hoek camera",
-    "kleding": "wat aantrekken",
-    "opname_volgorde": ["shot 1 beschrijving", "shot 2 beschrijving"],
-    "broll": ["b-roll shot 1", "b-roll shot 2", "b-roll shot 3"],
-    "licht": "lichtinstructie",
-    "tip": "1 concrete productieopmerking die de video beter maakt"
+    "camera_opstelling": "exacte hoogte, hoek, afstand in centimeters/meters — stel je voor je geeft instructie aan iemand die er nog nooit een video mee heeft gemaakt",
+    "kleding": "specifiek: kleur, type kledingstuk, waarom deze keuze",
+    "opname_volgorde": [
+      "shot 1: wat doe je precies, hoeveel herhalingen/seconden",
+      "shot 2: volgende shot beschrijving"
+    ],
+    "broll": [
+      "b-roll 1: welke shot, hoek, duratie",
+      "b-roll 2: volgende b-roll"
+    ],
+    "licht": "specifieke lichtinstructie — raamkant, tijdstip, schaduwen",
+    "tip": "1 productiefout die beginners maken bij dit type video — en hoe het beter kan"
   }
 ]`
     }],
@@ -139,7 +175,41 @@ Retourneer ALLEEN geldig JSON array:
   return res.content[0].type === 'text' ? res.content[0].text : '[]'
 }
 
-// ── Samenvoegen ───────────────────────────────────────────────────────────────
+// ── Agent 4: Critic ────────────────────────────────────────────────────────
+// Beoordeelt de hooks en scripts — maakt ze scherper of geeft betere versie.
+
+async function verbeterHooks(scriptsJson: string, topicsJson: string): Promise<string> {
+  const res = await anthropic.messages.create({
+    model: 'claude-sonnet-4-6',
+    max_tokens: 2000,
+    system: `Je bent een brutaal eerlijke short-form video editor. Je ziet in 2 seconden of een hook werkt of niet.
+
+Je criterium voor een goede hook:
+- Maakt de kijker nieuwsgierig OF raakt een pijn/frustratie
+- Is specifiek genoeg om geloofwaardig te zijn
+- Is NIET generic ("Wil jij afvallen?" — nooit)
+- Heeft urgentie of verrassing
+- Max 10 woorden
+
+Je criterium voor een goed script:
+- Elke zin heeft een reden om er te zijn
+- Geen herhaling van de hook in andere woorden
+- Demo-momenten zijn concreet (niet "doe de oefening" maar "zak door je knieën tot je dijen parallel zijn")
+- CTA is een actie, geen wens
+
+Beoordeel elk script. Als iets beter kan: herschrijf dat stuk. Als het al goed is: laat het staan.`,
+    messages: [{
+      role: 'user',
+      content: `Topics: ${topicsJson}
+Scripts: ${scriptsJson}
+
+Verbeter de hooks en scripts waar nodig. Retourneer dezelfde JSON structuur terug, met verbeterde hooks/scripts waar je aanpassingen hebt gemaakt. ALLEEN geldig JSON array, zelfde format als input.`
+    }],
+  })
+  return res.content[0].type === 'text' ? res.content[0].text : scriptsJson
+}
+
+// ── Helpers ────────────────────────────────────────────────────────────────
 
 function parseJSON<T>(tekst: string, fallback: T): T {
   try {
@@ -155,7 +225,8 @@ interface TopicItem {
   topic: string
   locatie: string
   format: string
-  waarom_nu?: string
+  invalshoek?: string
+  doelgroep_pijn?: string
 }
 
 interface ScriptItem {
@@ -179,11 +250,7 @@ interface ProductieItem {
   tip: string
 }
 
-function combineerdeBriefing(
-  topics: TopicItem[],
-  scripts: ScriptItem[],
-  productie: ProductieItem[]
-) {
+function combineerdeBriefing(topics: TopicItem[], scripts: ScriptItem[], productie: ProductieItem[]) {
   return topics.map((t) => {
     const s = scripts.find(x => x.nummer === t.nummer) ?? {} as ScriptItem
     const p = productie.find(x => x.nummer === t.nummer) ?? {} as ProductieItem
@@ -193,6 +260,8 @@ function combineerdeBriefing(
       pijler: 'fitness',
       locatie: t.locatie,
       format: t.format,
+      invalshoek: t.invalshoek ?? '',
+      doelgroep_pijn: t.doelgroep_pijn ?? '',
       duur_sec: p.duur_sec ?? 60,
       platform: p.platform ?? ['Instagram Reels', 'TikTok'],
       prioriteit: 'hoog',
@@ -209,6 +278,8 @@ function combineerdeBriefing(
     }
   })
 }
+
+// ── Route handlers ─────────────────────────────────────────────────────────
 
 export async function GET(req: NextRequest) {
   const user = await getAuthenticatedUser(req)
@@ -230,8 +301,7 @@ export async function GET(req: NextRequest) {
 function isCronRequest(req: NextRequest): boolean {
   const cronSecret = process.env.CRON_SECRET
   if (!cronSecret) return true
-  const secret = req.headers.get('x-cron-secret')
-  return secret === cronSecret
+  return req.headers.get('x-cron-secret') === cronSecret
 }
 
 export async function POST(req: NextRequest) {
@@ -264,19 +334,22 @@ export async function POST(req: NextRequest) {
   const postDatum = morgen.toISOString().split('T')[0]
 
   try {
-    // Drie agents draaien sequentieel — elke agent bouwt op de vorige
-    const topicsRaw = await kiesTopics(filmDag, filmDatumStr)
-    const scriptsRaw = await schrijfScripts(topicsRaw, postDag, postDatumStr)
-    const productieRaw = await maakShotList(topicsRaw, scriptsRaw)
+    // Haal recente topics op voor variety guard
+    const recenteTopics = await haalRecenteTopics(db)
 
-    const topics = parseJSON<TopicItem[]>(topicsRaw, [])
-    const scripts = parseJSON<ScriptItem[]>(scriptsRaw, [])
+    // 4 agents sequentieel — elke agent bouwt op de vorige
+    const topicsRaw    = await kiesTopics(filmDag, filmDatumStr, recenteTopics)
+    const scriptsRaw   = await schrijfScripts(topicsRaw, postDag, postDatumStr)
+    const verbeterdRaw = await verbeterHooks(scriptsRaw, topicsRaw)   // critic pass
+    const productieRaw = await maakShotList(topicsRaw, verbeterdRaw)
+
+    const topics    = parseJSON<TopicItem[]>(topicsRaw, [])
+    const scripts   = parseJSON<ScriptItem[]>(verbeterdRaw, parseJSON<ScriptItem[]>(scriptsRaw, []))
     const productie = parseJSON<ProductieItem[]>(productieRaw, [])
 
-    const videos = combineerdeBriefing(topics, scripts, productie)
+    const videos    = combineerdeBriefing(topics, scripts, productie)
     const totaalSec = videos.reduce((s, v) => s + v.duur_sec, 0)
-
-    const thema = topics.map(t => t.topic).join(' · ')
+    const thema     = topics.map(t => t.topic).join(' · ')
 
     const { data: opgeslagen, error } = await db
       .from('content_briefings')
@@ -285,9 +358,9 @@ export async function POST(req: NextRequest) {
         videos,
         totale_opnametijd_sec: totaalSec,
         meta: {
-          groet: `Film dag ${filmDag} — ${videos.length} videos klaarstaan`,
+          groet: `${videos.length} fitness videos klaar voor ${filmDag}`,
           thema,
-          tip: topics[0]?.waarom_nu ?? '',
+          tip: topics[0]?.doelgroep_pijn ?? '',
         },
         status: 'actief',
         gegenereerd_op: new Date().toISOString(),
@@ -297,7 +370,6 @@ export async function POST(req: NextRequest) {
       .single()
 
     if (error) throw error
-
     return NextResponse.json({ briefing: opgeslagen, cached: false })
   } catch (err) {
     console.error('Briefing generatie mislukt:', err)

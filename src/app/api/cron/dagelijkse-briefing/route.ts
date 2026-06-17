@@ -105,11 +105,18 @@ export async function GET(req: NextRequest) {
     const postDatumNL = new Date(postDatumRaw).toLocaleDateString('nl-NL', {
       weekday: 'long', day: 'numeric', month: 'long',
     })
+
+    const videos: Array<{ titel?: string; hook?: string; locatie?: string }> = briefing.videos ?? []
+    const videoRegels = videos.map((v, i) =>
+      `${i + 1}. <b>${v.titel ?? ''}</b> (${v.locatie ?? ''})\n   <i>"${v.hook ?? ''}"</i>`
+    ).join('\n\n')
+
     await stuurTelegram(
-      `📋 <b>Content Briefing klaar!</b>\n\n` +
-      `🎬 Film vandaag · 📅 Post ${postDatumNL.charAt(0).toUpperCase() + postDatumNL.slice(1)}\n` +
-      `${briefing.videos?.length ?? 0} videos · ~${Math.round((briefing.totale_opnametijd_sec ?? 0) / 60)} min opnemen\n\n` +
-      `<a href="${pdfUrl}">📄 Open briefing PDF</a>`
+      `💪 <b>Fitness Briefing klaar!</b>\n` +
+      `📅 Post ${postDatumNL.charAt(0).toUpperCase() + postDatumNL.slice(1)}\n` +
+      `⏱ ~${Math.round((briefing.totale_opnametijd_sec ?? 0) / 60)} min opnemen\n\n` +
+      `${videoRegels}\n\n` +
+      `<a href="${pdfUrl}">📄 Open volledige briefing PDF</a>`
     )
 
     console.log(`[CRON] Briefing ${vandaag} → Storage: ${pdfUrl}`)
