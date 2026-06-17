@@ -7,11 +7,10 @@ import type {
   WeekPlanning,
   WeekStrategieItem,
   ReelContent,
-  CarouselContent,
-  CarouselSlide,
   StoryFrame,
   TrendData,
   DagPlanning,
+  ReelPlanning,
 } from '@/app/api/content/weekplanning/route'
 
 // ── Kleurenpalet ──────────────────────────────────────────────────────────
@@ -23,7 +22,6 @@ const ORANJE = '#F97316'
 const GRIJS_LICHT = '#F4F4F5'
 const GRIJS_MID = '#A1A1AA'
 const GRIJS_DARK = '#3F3F46'
-const BLAUW = '#3B82F6'
 
 const A4_W = 595.28
 const A4_H = 841.89
@@ -33,25 +31,7 @@ function contentBreedte(): number {
   return A4_W - MARGIN * 2
 }
 
-function dagKleur(format: string): string {
-  if (format === 'reel') return GROEN
-  if (format === 'carousel') return BLAUW
-  return GRIJS_MID
-}
-
 // ── Helpers ───────────────────────────────────────────────────────────────
-
-function schrijfWikkelTekst(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  doc: any,
-  tekst: string,
-  x: number,
-  y: number,
-  breedte: number,
-  opties: Record<string, unknown> = {}
-): void {
-  doc.text(tekst, x, y, { width: breedte, ...opties })
-}
 
 function chip(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -86,18 +66,12 @@ function maakKaft(
 ): void {
   doc.addPage()
 
-  // Achtergrond
   doc.rect(0, 0, A4_W, A4_H).fill(ZWART)
-
-  // Accent blok links
   doc.rect(0, 0, 8, A4_H).fill(GROEN)
 
-  // Header
   doc.fillColor(GROEN).font('Helvetica-Bold').fontSize(11).text('MENTAFORCE', MARGIN, 60)
-  doc.fillColor(WIT).font('Helvetica-Bold').fontSize(38)
-     .text('WEEK', MARGIN, 85, { lineGap: 0 })
-  doc.fillColor(GROEN).font('Helvetica-Bold').fontSize(38)
-     .text('PLANNING', MARGIN, 124)
+  doc.fillColor(WIT).font('Helvetica-Bold').fontSize(38).text('WEEK', MARGIN, 85, { lineGap: 0 })
+  doc.fillColor(GROEN).font('Helvetica-Bold').fontSize(38).text('PLANNING', MARGIN, 124)
 
   const startDatum = new Date(weekplanning.week_start)
   const eindDatum = new Date(weekplanning.week_start)
@@ -106,16 +80,18 @@ function maakKaft(
   const datumStr = `${startDatum.toLocaleDateString('nl-NL', { day: 'numeric', month: 'long' })} – ${eindDatum.toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' })}`
   doc.fillColor(GRIJS_MID).font('Helvetica').fontSize(12).text(datumStr, MARGIN, 170)
 
-  // Scheidingslijn
-  doc.moveTo(MARGIN, 200).lineTo(A4_W - MARGIN, 200).strokeColor(GRIJS_DARK).lineWidth(1).stroke()
+  // Reels badge
+  doc.roundedRect(MARGIN, 196, 130, 22, 4).fill(GROEN)
+  doc.fillColor(ZWART).font('Helvetica-Bold').fontSize(11).text('🎬 18 REELS DEZE WEEK', MARGIN + 8, 202)
+
+  doc.moveTo(MARGIN, 230).lineTo(A4_W - MARGIN, 230).strokeColor(GRIJS_DARK).lineWidth(1).stroke()
 
   // Trends sectie
-  doc.fillColor(GROEN).font('Helvetica-Bold').fontSize(14).text('TRENDING DEZE WEEK', MARGIN, 220)
-  doc.fillColor(GRIJS_MID).font('Helvetica').fontSize(9)
-     .text('Live opgehaald via web search', MARGIN, 238)
+  doc.fillColor(GROEN).font('Helvetica-Bold').fontSize(14).text('TRENDING DEZE WEEK', MARGIN, 248)
+  doc.fillColor(GRIJS_MID).font('Helvetica').fontSize(9).text('Live opgehaald via web search', MARGIN, 266)
 
   const trends: TrendData = weekplanning.trends
-  let tY = 258
+  let tY = 286
 
   if (trends.samenvatting) {
     doc.fillColor(WIT).font('Helvetica').fontSize(10)
@@ -137,48 +113,44 @@ function maakKaft(
     tY += 28
   }
 
-  if (trends.viral_formats?.length) {
-    doc.fillColor(GRIJS_MID).font('Helvetica-Bold').fontSize(9).text('VIRAL FORMATS', MARGIN, tY)
-    tY += 14
-    for (const fmt of trends.viral_formats.slice(0, 3)) {
-      doc.fillColor(GROEN).font('Helvetica').fontSize(9).text('▶', MARGIN, tY)
-      doc.fillColor(WIT).font('Helvetica').fontSize(9).text(fmt, MARGIN + 14, tY, { width: contentBreedte() - 14 })
-      tY += doc.heightOfString(fmt, { width: contentBreedte() - 14 }) + 4
-    }
-  }
-
   // Weekoverzicht tabel
-  const tabelY = Math.max(tY + 20, 540)
+  const tabelY = Math.max(tY + 20, 560)
   doc.fillColor(GROEN).font('Helvetica-Bold').fontSize(14).text('WEEKOVERZICHT', MARGIN, tabelY)
 
-  const kolBreedte = contentBreedte() / 7
-  const rijH = 44
-
   const dagNamen = ['MA', 'DI', 'WO', 'DO', 'VR', 'ZA', 'ZO']
+  const kolBreedte = contentBreedte() / 7
+  const rijH = 52
+
   for (let i = 0; i < 7; i++) {
     const x = MARGIN + i * kolBreedte
     const y = tabelY + 22
-
     const dag = weekplanning.dagen[i]
-    const kleur = dag ? dagKleur(dag.strategie.format) : GRIJS_DARK
-    doc.rect(x, y, kolBreedte - 2, rijH).fill(kleur === GROEN ? '#166534' : kleur === BLAUW ? '#1e3a5f' : GRIJS_DARK)
+    const isRust = i === 6 || !dag || dag.reels.length === 0
 
-    doc.fillColor(kleur).font('Helvetica-Bold').fontSize(8).text(dagNamen[i], x + 6, y + 6)
-    if (dag && dag.strategie.format !== 'rustdag') {
-      doc.fillColor(WIT).font('Helvetica-Bold').fontSize(7)
-         .text(dag.strategie.format.toUpperCase(), x + 6, y + 18, { width: kolBreedte - 10 })
-      const topicKort = dag.strategie.topic.length > 22 ? dag.strategie.topic.slice(0, 20) + '…' : dag.strategie.topic
-      doc.fillColor(GRIJS_MID).font('Helvetica').fontSize(6)
-         .text(topicKort, x + 6, y + 29, { width: kolBreedte - 10 })
-    } else if (dag?.strategie.format === 'rustdag') {
-      doc.fillColor(GRIJS_MID).font('Helvetica').fontSize(7).text('Rust', x + 6, y + 20)
+    doc.rect(x, y, kolBreedte - 2, rijH).fill(isRust ? GRIJS_DARK : '#166534')
+
+    doc.fillColor(GROEN).font('Helvetica-Bold').fontSize(8).text(dagNamen[i], x + 4, y + 5)
+
+    if (!isRust && dag) {
+      doc.fillColor(WIT).font('Helvetica-Bold').fontSize(7).text('3 REELS', x + 4, y + 17)
+      const eersteReel = dag.reels[0]?.strategie?.topic ?? ''
+      const topicKort = eersteReel.length > 20 ? eersteReel.slice(0, 18) + '…' : eersteReel
+      doc.fillColor(GRIJS_MID).font('Helvetica').fontSize(5.5)
+         .text(topicKort, x + 4, y + 28, { width: kolBreedte - 8 })
+      const posttijden = dag.reels.map(r => r.strategie?.posttijd ?? '').filter(Boolean).join(' · ')
+      doc.fillColor(GROEN).font('Helvetica').fontSize(5)
+         .text(posttijden, x + 4, y + 40, { width: kolBreedte - 8 })
+    } else {
+      doc.fillColor(GRIJS_MID).font('Helvetica').fontSize(7).text('Rust', x + 4, y + 22)
     }
   }
 
   // Footer
   doc.fillColor(GRIJS_DARK).font('Helvetica').fontSize(8)
      .text('Gegenereerd door MentaForce Content Engine', MARGIN, A4_H - 40)
-  const gegOp = new Date(weekplanning.gegenereerd_op).toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' } as Intl.DateTimeFormatOptions)
+  const gegOp = new Date(weekplanning.gegenereerd_op).toLocaleDateString('nl-NL', {
+    day: 'numeric', month: 'long', year: 'numeric',
+  } as Intl.DateTimeFormatOptions)
   doc.fillColor(GRIJS_DARK).font('Helvetica').fontSize(8)
      .text(gegOp, A4_W - MARGIN - 150, A4_H - 40, { width: 150, align: 'right' })
 }
@@ -188,48 +160,52 @@ function maakKaft(
 function maakReelPagina(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   doc: any,
-  dag: WeekStrategieItem,
+  strategie: WeekStrategieItem,
   reel: ReelContent,
+  reelNummer: number,
   stories: StoryFrame[],
   paginaNummer: number,
   totaalPaginas: number,
 ): void {
   doc.addPage()
 
-  // Pagina header
+  // Hoofd header balk
   doc.rect(0, 0, A4_W, 52).fill(GROEN)
-  doc.fillColor(WIT).font('Helvetica-Bold').fontSize(9)
-     .text('MENTAFORCE WEEKPLANNING', MARGIN, 12)
+  doc.fillColor(WIT).font('Helvetica-Bold').fontSize(9).text('MENTAFORCE WEEKPLANNING', MARGIN, 12)
 
-  const dagLabel = `${dag.dag_naam.toUpperCase()} ${dag.datum} — REEL`
-  doc.fillColor(WIT).font('Helvetica-Bold').fontSize(16).text(dagLabel, MARGIN, 26)
-
+  const dagLabel = `${strategie.dag_naam.toUpperCase()} ${strategie.datum} — REEL ${reelNummer}/3`
+  doc.fillColor(WIT).font('Helvetica-Bold').fontSize(15).text(dagLabel, MARGIN, 26)
   doc.fillColor(GRIJS_DARK).font('Helvetica').fontSize(8)
-     .text(`Pagina ${paginaNummer} / ${totaalPaginas}`, A4_W - MARGIN - 60, 38)
+     .text(`${paginaNummer} / ${totaalPaginas}`, A4_W - MARGIN - 40, 38)
 
-  let y = 70
+  let y = 66
 
-  // Titel + chips
-  doc.fillColor(ZWART).font('Helvetica-Bold').fontSize(18)
-     .text(reel.titel ?? dag.topic, MARGIN, y, { width: contentBreedte() - 180 })
+  // Reel nummer indicator
+  doc.roundedRect(MARGIN, y, 60, 24, 4).fill(GROEN)
+  doc.fillColor(ZWART).font('Helvetica-Bold').fontSize(12).text(`REEL ${reelNummer}`, MARGIN + 8, y + 7)
 
-  let chipX = A4_W - MARGIN - 170
-  chipX -= chip(doc, dag.beste_posttijd, chipX, y + 2, GRIJS_DARK)
-  chip(doc, dag.locatie, chipX, y + 2, GRIJS_DARK)
+  // Posttijd chip
+  chip(doc, `🕐 ${strategie.posttijd ?? ''}`, MARGIN + 68, y + 4, GRIJS_DARK)
+  chip(doc, strategie.locatie ?? '', A4_W - MARGIN - 80, y + 4, GRIJS_DARK)
 
-  y = doc.y + 10
+  y += 32
+
+  // Titel
+  doc.fillColor(ZWART).font('Helvetica-Bold').fontSize(17)
+     .text(reel.titel ?? strategie.topic, MARGIN, y, { width: contentBreedte() })
+  y = doc.y + 6
 
   // Hook blok
-  doc.rect(MARGIN, y, contentBreedte(), 36).fill('#F0FDF4')
-  doc.fillColor(GROEN).font('Helvetica-Bold').fontSize(8).text('HOOK', MARGIN + 10, y + 6)
+  doc.rect(MARGIN, y, contentBreedte(), 40).fill('#F0FDF4')
+  doc.fillColor(GROEN).font('Helvetica-Bold').fontSize(8).text('OPENING HOOK', MARGIN + 10, y + 6)
   doc.fillColor(ZWART).font('Helvetica-Bold').fontSize(11)
-     .text(`"${reel.hook}"`, MARGIN + 10, y + 17, { width: contentBreedte() - 20 })
-  y += 44
+     .text(`"${reel.hook ?? ''}"`, MARGIN + 10, y + 17, { width: contentBreedte() - 20 })
+  y += 48
 
-  // DM share trigger
-  if (dag.dm_share_reden) {
+  // DM share reden
+  if (strategie.dm_share_reden) {
     doc.fillColor(GRIJS_MID).font('Helvetica-Oblique').fontSize(8)
-       .text(`📤 ${dag.dm_share_reden}`, MARGIN, y, { width: contentBreedte() })
+       .text(`📤 Waarom doorsturen: ${strategie.dm_share_reden}`, MARGIN, y, { width: contentBreedte() })
     y = doc.y + 8
   }
 
@@ -239,21 +215,19 @@ function maakReelPagina(
   // Twee kolommen: Script + Productie
   const colW = (contentBreedte() - 14) / 2
 
-  // Kolom 1: Script
   doc.fillColor(ZWART).font('Helvetica-Bold').fontSize(10).text('SCRIPT', MARGIN, y)
-  doc.fillColor(GRIJS_MID).font('Helvetica').fontSize(7)
-     .text(reel.duur_doel ?? '15–30s', MARGIN + 46, y + 2)
+  doc.fillColor(GRIJS_MID).font('Helvetica').fontSize(7).text(reel.duur_doel ?? '15–30s', MARGIN + 46, y + 2)
+  doc.fillColor(ZWART).font('Helvetica-Bold').fontSize(10).text('PRODUCTIE', MARGIN + colW + 14, y)
   y += 16
 
+  const scriptStartY = y
   doc.fillColor(ZWART).font('Helvetica').fontSize(9)
      .text(reel.script ?? '', MARGIN, y, { width: colW, lineGap: 3 })
   const scriptH = doc.heightOfString(reel.script ?? '', { width: colW, lineGap: 3 })
 
-  // Kolom 2: Camera + kleding + licht
   const col2X = MARGIN + colW + 14
-  doc.fillColor(ZWART).font('Helvetica-Bold').fontSize(10).text('PRODUCTIE', col2X, y)
+  let c2Y = scriptStartY
 
-  let c2Y = y + 16
   if (reel.camera_opstelling) {
     doc.fillColor(GROEN).font('Helvetica-Bold').fontSize(7).text('CAMERA', col2X, c2Y)
     c2Y += 10
@@ -274,7 +248,7 @@ function maakReelPagina(
     c2Y = doc.y + 8
   }
 
-  y = Math.max(y + scriptH, c2Y) + 10
+  y = Math.max(scriptStartY + scriptH, c2Y) + 10
 
   horizontaleLijn(doc, y)
   y += 10
@@ -286,7 +260,8 @@ function maakReelPagina(
     reel.opname_volgorde.forEach((shot, i) => {
       doc.roundedRect(MARGIN, y, 18, 14, 3).fill(GROEN)
       doc.fillColor(WIT).font('Helvetica-Bold').fontSize(7).text(String(i + 1), MARGIN + 6, y + 4)
-      doc.fillColor(ZWART).font('Helvetica').fontSize(8).text(shot, MARGIN + 24, y + 3, { width: contentBreedte() - 24 })
+      doc.fillColor(ZWART).font('Helvetica').fontSize(8)
+         .text(shot, MARGIN + 24, y + 3, { width: contentBreedte() - 24 })
       y += doc.heightOfString(shot, { width: contentBreedte() - 24 }) + 8
     })
     y += 4
@@ -300,10 +275,9 @@ function maakReelPagina(
     reel.broll.forEach((br, i) => {
       const bx = MARGIN + (i % 3) * (brollKolW + 4)
       if (i % 3 === 0 && i > 0) y += 20
-      const bY = i < 3 ? y : y
-      doc.roundedRect(bx, bY, brollKolW, 16, 3).fill(GRIJS_LICHT)
+      doc.roundedRect(bx, y, brollKolW, 16, 3).fill(GRIJS_LICHT)
       doc.fillColor(GRIJS_DARK).font('Helvetica').fontSize(7)
-         .text(br, bx + 6, bY + 5, { width: brollKolW - 12 })
+         .text(br, bx + 6, y + 5, { width: brollKolW - 12 })
     })
     y += Math.ceil(reel.broll.length / 3) * 20 + 8
   }
@@ -311,7 +285,7 @@ function maakReelPagina(
   horizontaleLijn(doc, y)
   y += 10
 
-  // CTA + caption + hashtags
+  // CTA + Caption + Hashtags
   if (reel.cta) {
     doc.fillColor(ZWART).font('Helvetica-Bold').fontSize(10).text('CTA', MARGIN, y)
     y += 12
@@ -320,7 +294,7 @@ function maakReelPagina(
   }
 
   if (reel.caption) {
-    doc.fillColor(ZWART).font('Helvetica-Bold').fontSize(10).text('INSTAGRAM CAPTION', MARGIN, y)
+    doc.fillColor(ZWART).font('Helvetica-Bold').fontSize(10).text('CAPTION', MARGIN, y)
     y += 12
     doc.fillColor(ZWART).font('Helvetica').fontSize(9)
        .text(reel.caption, MARGIN, y, { width: contentBreedte(), lineGap: 2 })
@@ -328,152 +302,26 @@ function maakReelPagina(
   }
 
   if (reel.hashtags?.length) {
-    const hashStr = reel.hashtags.join(' ')
-    doc.fillColor(BLAUW).font('Helvetica').fontSize(8)
-       .text(hashStr, MARGIN, y, { width: contentBreedte() })
+    doc.fillColor('#3B82F6').font('Helvetica').fontSize(8)
+       .text(reel.hashtags.join(' '), MARGIN, y, { width: contentBreedte() })
     y = doc.y + 10
   }
 
   if (reel.productie_tip) {
     doc.rect(MARGIN, y, contentBreedte(), 1).fill(ORANJE)
     y += 6
-    doc.fillColor(ORANJE).font('Helvetica-Bold').fontSize(8).text('💡 PRODUCTIE TIP: ', MARGIN, y, { continued: true })
-    doc.fillColor(ZWART).font('Helvetica').fontSize(8).text(reel.productie_tip, { width: contentBreedte() - 120 })
+    doc.fillColor(ORANJE).font('Helvetica-Bold').fontSize(8).text('💡 TIP: ', MARGIN, y, { continued: true })
+    doc.fillColor(ZWART).font('Helvetica').fontSize(8).text(reel.productie_tip, { width: contentBreedte() - 60 })
     y = doc.y + 10
   }
 
-  // Stories sectie
-  maakStoriesSectie(doc, stories, y)
+  // Stories alleen op de laatste reel van de dag
+  if (stories?.length) {
+    maakStoriesSectie(doc, stories, y)
+  }
 }
 
-// ── Carousel pagina ───────────────────────────────────────────────────────
-
-function maakCarouselPagina(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  doc: any,
-  dag: WeekStrategieItem,
-  carousel: CarouselContent,
-  stories: StoryFrame[],
-  paginaNummer: number,
-  totaalPaginas: number,
-): void {
-  doc.addPage()
-
-  // Pagina header
-  doc.rect(0, 0, A4_W, 52).fill(BLAUW)
-  doc.fillColor(WIT).font('Helvetica-Bold').fontSize(9).text('MENTAFORCE WEEKPLANNING', MARGIN, 12)
-
-  const dagLabel = `${dag.dag_naam.toUpperCase()} ${dag.datum} — CAROUSEL`
-  doc.fillColor(WIT).font('Helvetica-Bold').fontSize(16).text(dagLabel, MARGIN, 26)
-  doc.fillColor('#93C5FD').font('Helvetica').fontSize(8)
-     .text(`Pagina ${paginaNummer} / ${totaalPaginas}`, A4_W - MARGIN - 60, 38)
-
-  let y = 70
-
-  // Titel
-  doc.fillColor(ZWART).font('Helvetica-Bold').fontSize(18)
-     .text(carousel.titel ?? dag.topic, MARGIN, y, { width: contentBreedte() - 120 })
-
-  chip(doc, dag.beste_posttijd, A4_W - MARGIN - 70, y + 2, GRIJS_DARK)
-  y = doc.y + 8
-
-  if (carousel.concept) {
-    doc.fillColor(GRIJS_DARK).font('Helvetica-Oblique').fontSize(9)
-       .text(carousel.concept, MARGIN, y, { width: contentBreedte() })
-    y = doc.y + 10
-  }
-
-  horizontaleLijn(doc, y)
-  y += 10
-
-  // DM-share reden
-  if (dag.dm_share_reden) {
-    doc.fillColor(GRIJS_MID).font('Helvetica-Oblique').fontSize(8)
-       .text(`📤 ${dag.dm_share_reden}`, MARGIN, y, { width: contentBreedte() })
-    y = doc.y + 10
-  }
-
-  // Slides
-  doc.fillColor(ZWART).font('Helvetica-Bold').fontSize(12).text('SLIDES', MARGIN, y)
-  y += 16
-
-  const slides: CarouselSlide[] = carousel.slides ?? []
-  const slideKolB = (contentBreedte() - (Math.min(slides.length, 3) - 1) * 6) / Math.min(slides.length, 3)
-  const MAX_PER_RIJ = 3
-
-  for (let i = 0; i < slides.length; i++) {
-    const s = slides[i]
-    const kolIndex = i % MAX_PER_RIJ
-    if (i > 0 && kolIndex === 0) y += 4
-
-    const sx = MARGIN + kolIndex * (slideKolB + 6)
-    const slideH = 100
-
-    const bgKleur = s.achtergrond_kleur === 'donker' ? GRIJS_DARK
-      : s.achtergrond_kleur === 'groen' ? '#166534'
-      : s.achtergrond_kleur === 'wit' ? GRIJS_LICHT
-      : GRIJS_LICHT
-
-    doc.roundedRect(sx, y, slideKolB, slideH, 5).fill(bgKleur)
-
-    // Slide nummer chip
-    const numKleur = s.type === 'hook' ? GROEN : BLAUW
-    doc.roundedRect(sx + 6, y + 6, 20, 14, 3).fill(numKleur)
-    doc.fillColor(WIT).font('Helvetica-Bold').fontSize(7)
-       .text(String(s.nummer), sx + 10, y + 10)
-
-    const isLicht = bgKleur === GRIJS_LICHT
-    const tekstKleur = isLicht ? ZWART : WIT
-
-    doc.fillColor(tekstKleur).font('Helvetica-Bold').fontSize(8)
-       .text(s.hoofd_tekst ?? '', sx + 6, y + 24, { width: slideKolB - 12, lineGap: 1 })
-
-    if (s.sub_tekst) {
-      const subY = Math.min(doc.y + 2, y + 60)
-      doc.fillColor(isLicht ? GRIJS_DARK : '#D4D4D8').font('Helvetica').fontSize(6)
-         .text(s.sub_tekst, sx + 6, subY, { width: slideKolB - 12 })
-    }
-
-    doc.fillColor(isLicht ? GRIJS_DARK : GRIJS_MID).font('Helvetica').fontSize(6)
-       .text(s.visual ?? '', sx + 6, y + slideH - 20, { width: slideKolB - 12 })
-
-    if (kolIndex === MAX_PER_RIJ - 1 || i === slides.length - 1) {
-      y += slideH + 8
-    }
-  }
-
-  y += 6
-
-  horizontaleLijn(doc, y)
-  y += 10
-
-  // Caption + hashtags
-  if (carousel.caption) {
-    doc.fillColor(ZWART).font('Helvetica-Bold').fontSize(10).text('INSTAGRAM CAPTION', MARGIN, y)
-    y += 12
-    doc.fillColor(ZWART).font('Helvetica').fontSize(9)
-       .text(carousel.caption, MARGIN, y, { width: contentBreedte(), lineGap: 2 })
-    y = doc.y + 8
-  }
-
-  if (carousel.hashtags?.length) {
-    doc.fillColor(BLAUW).font('Helvetica').fontSize(8)
-       .text(carousel.hashtags.join(' '), MARGIN, y, { width: contentBreedte() })
-    y = doc.y + 8
-  }
-
-  if (carousel.design_tip) {
-    doc.rect(MARGIN, y, contentBreedte(), 1).fill(BLAUW)
-    y += 6
-    doc.fillColor(BLAUW).font('Helvetica-Bold').fontSize(8).text('🎨 DESIGN TIP: ', MARGIN, y, { continued: true })
-    doc.fillColor(ZWART).font('Helvetica').fontSize(8).text(carousel.design_tip, { width: contentBreedte() - 100 })
-    y = doc.y + 10
-  }
-
-  maakStoriesSectie(doc, stories, y)
-}
-
-// ── Stories sectie (gedeeld) ──────────────────────────────────────────────
+// ── Stories sectie ────────────────────────────────────────────────────────
 
 function maakStoriesSectie(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -483,15 +331,13 @@ function maakStoriesSectie(
 ): void {
   if (!stories?.length) return
 
-  // Zorg dat we genoeg ruimte hebben
   if (y > A4_H - 160) {
     doc.addPage()
     y = MARGIN
   }
 
   doc.rect(MARGIN, y, contentBreedte(), 24).fill(PAARS)
-  doc.fillColor(WIT).font('Helvetica-Bold').fontSize(10)
-     .text('📱  INSTAGRAM STORIES', MARGIN + 10, y + 8)
+  doc.fillColor(WIT).font('Helvetica-Bold').fontSize(10).text('📱  INSTAGRAM STORIES', MARGIN + 10, y + 8)
   y += 30
 
   const storyKolW = (contentBreedte() - 10) / Math.min(stories.length, 3)
@@ -502,12 +348,10 @@ function maakStoriesSectie(
 
     doc.roundedRect(sx, y, storyKolW, frameH, 5).stroke(PAARS)
 
-    // Frame nr
     doc.roundedRect(sx + 6, y + 6, 20, 14, 3).fill(PAARS)
     doc.fillColor(WIT).font('Helvetica-Bold').fontSize(7).text(String(s.frame), sx + 11, y + 10)
 
-    // Type badge
-    const typKleur = s.type === 'poll' ? ORANJE : s.type === 'cta' ? GROEN : BLAUW
+    const typKleur = s.type === 'poll' ? ORANJE : s.type === 'cta' ? GROEN : '#3B82F6'
     chip(doc, s.type.toUpperCase(), sx + 30, y + 8, typKleur)
 
     let sY = y + 26
@@ -539,17 +383,18 @@ function maakStoriesSectie(
 
     if (s.achtergrond) {
       doc.fillColor(GRIJS_MID).font('Helvetica').fontSize(6)
-         .text(`achtergrond: ${s.achtergrond}`, sx + 6, y + frameH - 10, { width: storyKolW - 12 })
+         .text(`bg: ${s.achtergrond}`, sx + 6, y + frameH - 10, { width: storyKolW - 12 })
     }
   }
 }
 
-// ── Rustdag pagina (compact) ──────────────────────────────────────────────
+// ── Rustdag pagina ────────────────────────────────────────────────────────
 
 function maakRustdagPagina(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   doc: any,
-  dag: WeekStrategieItem,
+  dagNaam: string,
+  datum: string,
   paginaNummer: number,
   totaalPaginas: number,
 ): void {
@@ -558,12 +403,14 @@ function maakRustdagPagina(
   doc.rect(0, 0, A4_W, 52).fill(GRIJS_DARK)
   doc.fillColor(WIT).font('Helvetica-Bold').fontSize(9).text('MENTAFORCE WEEKPLANNING', MARGIN, 12)
   doc.fillColor(WIT).font('Helvetica-Bold').fontSize(16)
-     .text(`${dag.dag_naam.toUpperCase()} ${dag.datum} — RUSTDAG`, MARGIN, 26)
+     .text(`${dagNaam.toUpperCase()} ${datum} — RUSTDAG`, MARGIN, 26)
   doc.fillColor(GRIJS_MID).font('Helvetica').fontSize(8)
-     .text(`Pagina ${paginaNummer} / ${totaalPaginas}`, A4_W - MARGIN - 60, 38)
+     .text(`${paginaNummer} / ${totaalPaginas}`, A4_W - MARGIN - 40, 38)
 
   doc.fillColor(GRIJS_MID).font('Helvetica').fontSize(14)
-     .text('Geen content gepland voor vandaag. Herstel, laden, herladen.', MARGIN, 100, { width: contentBreedte(), align: 'center' })
+     .text('Geen content gepland vandaag. Herstel, laden, voorbereiden.', MARGIN, 110, {
+       width: contentBreedte(), align: 'center',
+     })
 }
 
 // ── Hoofd export ──────────────────────────────────────────────────────────
@@ -581,32 +428,44 @@ export async function generateWeekplanningPDF(weekplanning: WeekPlanning): Promi
     info: {
       Title: `MentaForce Weekplanning ${weekplanning.week_start}`,
       Author: 'MentaForce Content Engine',
-      Subject: 'Instagram & Fitness Content Weekplanning',
+      Subject: 'Instagram Reels Weekplanning',
     },
   })
 
   const chunks: Buffer[] = []
   doc.on('data', (chunk: Buffer) => chunks.push(chunk))
 
-  // Bereken totaal pagina's: 1 kaft + 7 dag-pagina's
-  const totaalPaginas = 1 + weekplanning.dagen.filter(d => d.strategie.format !== 'rustdag').length
-    + weekplanning.dagen.filter(d => d.strategie.format === 'rustdag').length
+  // Totaal: 1 kaft + 3 reel-pagina's per actieve dag + 1 rustdag (zondag)
+  const actieveDagen = weekplanning.dagen.filter(d => d.reels.length > 0)
+  const totaalPaginas = 1 + actieveDagen.length * 3 + 1
 
   maakKaft(doc, weekplanning)
 
   let paginaNummer = 2
-  for (const dagPlanning of weekplanning.dagen as DagPlanning[]) {
-    const { strategie, content, stories } = dagPlanning
 
-    if (strategie.format === 'reel') {
-      maakReelPagina(doc, strategie, content as ReelContent, stories, paginaNummer, totaalPaginas)
-    } else if (strategie.format === 'carousel') {
-      maakCarouselPagina(doc, strategie, content as CarouselContent, stories, paginaNummer, totaalPaginas)
-    } else {
-      maakRustdagPagina(doc, strategie, paginaNummer, totaalPaginas)
+  for (const dagPlanning of weekplanning.dagen as DagPlanning[]) {
+    if (dagPlanning.reels.length === 0) {
+      // Rustdag
+      maakRustdagPagina(doc, dagPlanning.dag_naam, dagPlanning.datum, paginaNummer, totaalPaginas)
+      paginaNummer++
+      continue
     }
 
-    paginaNummer++
+    const reels: ReelPlanning[] = dagPlanning.reels
+    for (let i = 0; i < reels.length; i++) {
+      const { strategie, content } = reels[i]
+      const isLaatsteReel = i === reels.length - 1
+      maakReelPagina(
+        doc,
+        strategie,
+        content,
+        i + 1,
+        isLaatsteReel ? dagPlanning.stories : [],
+        paginaNummer,
+        totaalPaginas,
+      )
+      paginaNummer++
+    }
   }
 
   doc.end()
@@ -616,6 +475,3 @@ export async function generateWeekplanningPDF(weekplanning: WeekPlanning): Promi
     doc.on('error', reject)
   })
 }
-
-// Suppress unused variable warning — schrijfWikkelTekst is a shared helper
-void schrijfWikkelTekst

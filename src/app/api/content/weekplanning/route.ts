@@ -27,22 +27,14 @@ ALGORITME-FEITEN 2026:
 - DM-shares zijn het ZWAARSTE algoritme-signaal op Instagram Reels
 - Reels 7–30 seconden = hoogste completion rate + meest nieuw bereik
 - Eerste 3 seconden bepalen 50% kijktijd — hook moet instant raken
-- Carousels = hoogste engagement (10%) — gebruik voor educatieve content (lijstjes, stappenplannen)
-- Stories dagelijks = positie vooraan in Story-tray van volgers
-- Poll/vraagsticker in Stories = sterk engagement-signaal voor algoritme
-- Originality Score 2026: geen hergebruikte/watermark content`
+- Originality Score 2026: geen hergebruikte/watermark content
+- Wat viraal gaat: techniekfouten corrigeren, mythe busten, quick wins, cijfers die schrikken`
 
 // ── Agent 1: Trend Research (web search) ──────────────────────────────────
 async function zoekTrends(weekStart: string): Promise<TrendData> {
   const messages: Anthropic.MessageParam[] = [{
     role: 'user',
-    content: `Zoek voor de week van ${weekStart} welke fitness onderwerpen trending zijn op TikTok en Instagram Reels. Focus op:
-1. Trending gym oefeningen of technieken
-2. Viral hooks/formats die nu scoren in fitness
-3. Trending fitness thema's (bijv. 75 Hard, bepaalde training methodes)
-4. Wat Nederlandse fitness creators nu posten dat viraal gaat
-
-Geef concrete, actionable bevindingen. Geen algemene uitleg — specifieke trends met voorbeelden.`
+    content: `Zoek voor de week van ${weekStart} welke fitness onderwerpen trending zijn op TikTok en Instagram Reels. Focus op trending oefeningen, viral hooks/formats en wat Nederlandse fitness creators nu posten.`,
   }]
 
   let response = await anthropic.messages.create({
@@ -50,47 +42,36 @@ Geef concrete, actionable bevindingen. Geen algemene uitleg — specifieke trend
     max_tokens: 2000,
     // @ts-ignore — web_search_20250305 is a valid Anthropic hosted tool not yet in SDK types
     tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 5 }],
-    system: `Je bent een fitness content trend researcher voor de Nederlandse markt. Zoek actuele trends op TikTok en Instagram fitness. Geef je bevindingen als gestructureerde lijst.`,
+    system: 'Je bent een fitness content trend researcher voor de Nederlandse markt.',
     messages,
   })
 
-  // Agentic loop — verwerk tool_use indien model zoekt
   while (response.stop_reason === 'tool_use') {
-    const toolUseBlocks = response.content.filter(
-      (b): b is Anthropic.ToolUseBlock => b.type === 'tool_use'
-    )
+    const toolUseBlocks = response.content.filter((b): b is Anthropic.ToolUseBlock => b.type === 'tool_use')
     messages.push({ role: 'assistant', content: response.content })
     messages.push({
       role: 'user',
-      content: toolUseBlocks.map(b => ({
-        type: 'tool_result' as const,
-        tool_use_id: b.id,
-        content: 'Search executed by Anthropic.',
-      })),
+      content: toolUseBlocks.map(b => ({ type: 'tool_result' as const, tool_use_id: b.id, content: 'Search executed.' })),
     })
     response = await anthropic.messages.create({
       model: 'claude-sonnet-4-6',
       max_tokens: 2000,
       // @ts-ignore
       tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 5 }],
-      system: `Je bent een fitness content trend researcher voor de Nederlandse markt.`,
+      system: 'Je bent een fitness content trend researcher voor de Nederlandse markt.',
       messages,
     })
   }
 
-  const tekst = response.content
-    .filter((b): b is Anthropic.TextBlock => b.type === 'text')
-    .map(b => b.text)
-    .join('\n')
+  const tekst = response.content.filter((b): b is Anthropic.TextBlock => b.type === 'text').map(b => b.text).join('\n')
 
-  // Parse trends uit de tekst via een tweede call
   const parseRes = await anthropic.messages.create({
     model: 'claude-sonnet-4-6',
-    max_tokens: 1000,
-    system: 'Verwerk de gegeven trendinformatie naar een gestructureerde JSON.',
+    max_tokens: 800,
+    system: 'Verwerk trendinformatie naar JSON.',
     messages: [{
       role: 'user',
-      content: `Verwerk deze trendinformatie naar JSON:\n\n${tekst}\n\nRetourneer ALLEEN geldig JSON:\n{\n  "trending_topics": ["topic 1", "topic 2", "topic 3"],\n  "viral_formats": ["format 1", "format 2"],\n  "te_vermijden": ["iets wat niet meer werkt"],\n  "samenvatting": "2 zinnen over de belangrijkste trends"\n}`,
+      content: `Verwerk:\n\n${tekst}\n\nRetourneer ALLEEN:\n{"trending_topics":["topic 1","topic 2","topic 3"],"viral_formats":["format 1","format 2"],"te_vermijden":["verouderd"],"samenvatting":"2 zinnen"}`,
     }],
   })
 
@@ -103,56 +84,54 @@ Geef concrete, actionable bevindingen. Geen algemene uitleg — specifieke trend
   }
 }
 
-// ── Agent 2: Week Strategie ────────────────────────────────────────────────
+// ── Agent 2: Week Strategie — 3 Reels per dag, 21 items totaal ────────────
 async function maakWeekStrategie(weekStart: string, dagNamen: DagInfo[], trends: TrendData, recenteTopics: string[]): Promise<WeekStrategieItem[]> {
   const vermijden = recenteTopics.length
-    ? `\nVERMIJD deze topics (afgelopen 2 weken al gebruikt):\n${recenteTopics.slice(0, 15).map(t => `- ${t}`).join('\n')}`
+    ? `\nVERMIJD deze topics (afgelopen 2 weken al gebruikt):\n${recenteTopics.slice(0, 20).map(t => `- ${t}`).join('\n')}`
     : ''
 
   const res = await anthropic.messages.create({
     model: 'claude-sonnet-4-6',
-    max_tokens: 2500,
+    max_tokens: 4000,
     system: `Je bent een fitness content strateeg voor Kane Bongers — personal trainer in Eersel, Nederland.
 
 ${ALGORITME_CONTEXT}
 
 TRENDING DEZE WEEK:
 ${trends.samenvatting}
-Trending topics: ${trends.trending_topics.join(', ')}
-Viral formats: ${trends.viral_formats.join(', ')}
+Topics: ${trends.trending_topics.join(', ')}
 
-WEEK POSTING SCHEMA (bewezen voor NL markt 2026):
-- Maandag: Reel — motivatie/lifestyle opener van de week
-- Dinsdag: Carousel — educatief, 5-6 slides, hoog engagement
-- Woensdag: Reel — training techniek, concrete demonstratie
-- Donderdag: Carousel — voeding/herstel, stappenplan
-- Vrijdag: Reel — quick win of mythe-busting
-- Zaterdag: Reel — gym sessie / physique / intense training
-- Zondag: Rustdag (optioneel 1 Story)
+SCHEMA: Elke dag 3 Reels. Geen carousels. Zondag is rustdag (0 Reels).
+Dat zijn 18 Reels over 6 dagen (ma t/m za).
 
-REGELS:
-- Elk topic moet DM-sharebaar zijn (mensen sturen het door)
-- 15-30 seconden voor Reels (max completion rate)
-- Geen ongemakkelijke content — Kane moet zich op zijn gemak voelen
-- Verwerk trending topics waar relevant, niet geforceerd
-- Fitness only: geen motivatiequotes, geen fluff${vermijden}`,
+REGELS PER DAG:
+- Reel 1: posted 07:00 — motivatie of morning energy topic
+- Reel 2: posted 12:00 — educatief / techniek
+- Reel 3: posted 19:00 — high-energy, deelbaar, community-gedreven
+
+REGELS VOOR ALLE REELS:
+- Elk topic DM-sharebaar (mensen sturen het door)
+- 15-30 seconden
+- Geen ongemakkelijke situaties
+- Varieer locatie en format (mix demonstratie / talking head / workout)
+- Fitness only: geen motivatiequotes, geen fluff
+- 3 Reels per dag mogen NIET allemaal dezelfde invalshoek hebben${vermijden}`,
     messages: [{
       role: 'user',
-      content: `Maak een complete weekstrategie voor de week van ${weekStart} (${dagNamen[0].dag_naam} t/m ${dagNamen[6].dag_naam}).
+      content: `Maak een weekstrategie voor week van ${weekStart} (${dagNamen[0].dag_naam} t/m ${dagNamen[5].dag_naam} — 6 dagen × 3 Reels = 18 items).
 
-Retourneer ALLEEN geldig JSON array (7 items, één per dag):
+Retourneer ALLEEN geldig JSON array (18 items — zondag weglaten):
 [
   {
     "dag": 1,
     "datum": "YYYY-MM-DD",
     "dag_naam": "maandag",
-    "format": "reel | carousel | rustdag",
+    "reel_nummer": 1,
     "topic": "specifiek onderwerp — één oefening of concept",
-    "invalshoek": "corrigeer fout | quick win | bust mythe | demonstreer | educatief stappenplan",
+    "invalshoek": "corrigeer fout | quick win | bust mythe | demonstreer techniek",
     "kern_boodschap": "wat de kijker na het kijken weet of voelt",
     "dm_share_reden": "waarom stuurt iemand dit door?",
-    "trending_haak": "hoe sluit dit aan op de trends van deze week (of leeg als niet van toepassing)",
-    "beste_posttijd": "07:00 | 09:00 | 19:00 | 20:00",
+    "posttijd": "07:00",
     "locatie": "Gym | Thuis | Buiten"
   }
 ]`,
@@ -167,49 +146,45 @@ Retourneer ALLEEN geldig JSON array (7 items, één per dag):
 }
 
 // ── Agent 3: Reel Content ─────────────────────────────────────────────────
-async function maakReelContent(dag: WeekStrategieItem, trends: TrendData): Promise<ReelContent> {
+async function maakReelContent(item: WeekStrategieItem, trends: TrendData): Promise<ReelContent> {
   const res = await anthropic.messages.create({
     model: 'claude-sonnet-4-6',
-    max_tokens: 2000,
-    system: `Je schrijft en produceert short-form fitness video content voor Kane Bongers (personal trainer, Eersel NL).
+    max_tokens: 1800,
+    system: `Je schrijft fitness Reel content voor Kane Bongers (personal trainer, Eersel NL).
 
 ${ALGORITME_CONTEXT}
+TRENDING: ${trends.trending_topics.join(', ')}
 
-TRENDING DEZE WEEK: ${trends.trending_topics.join(', ')}
-
-REGELS:
 - GEEN intro, GEEN "hoi". Direct in de hook.
 - Script: spreektaal, 40-70 woorden, 15-30 seconden
 - Hook: max 10 woorden, confronterend of verrassend
 - Gebruik [DEMO] [PAUZE] [KIJK NAAR CAMERA] markers
-- Geen ongemakkelijke situaties — Kane filmt zichzelf solo
-- Camera instructies: exact, in centimeters/richting
-- Kleding: specifiek kleur + type`,
+- Geen ongemakkelijke situaties
+- Camera instructies: exact in centimeters`,
     messages: [{
       role: 'user',
-      content: `Maak een volledige Reel brief voor:
-Dag: ${dag.dag_naam} ${dag.datum}
-Topic: ${dag.topic}
-Invalshoek: ${dag.invalshoek}
-Kern boodschap: ${dag.kern_boodschap}
-DM-share reden: ${dag.dm_share_reden}
-Locatie: ${dag.locatie}
+      content: `Reel ${item.reel_nummer}/3 voor ${item.dag_naam} ${item.datum}
+Topic: ${item.topic}
+Invalshoek: ${item.invalshoek}
+Kern boodschap: ${item.kern_boodschap}
+Posttijd: ${item.posttijd}
+Locatie: ${item.locatie}
 
 Retourneer ALLEEN geldig JSON:
 {
-  "titel": "max 5 woorden, pakkend",
+  "titel": "max 5 woorden",
   "hook": "exacte openingszin — max 10 woorden",
-  "script": "volledig spreektaal script met markers — 40-70 woorden",
+  "script": "volledig script met markers — 40-70 woorden",
   "duur_doel": "15s | 20s | 25s | 30s",
-  "camera_opstelling": "exacte beschrijving: hoogte, hoek, afstand in cm",
-  "kleding": "specifiek: kleur, type",
-  "licht": "concrete instructie: raam links/rechts, tijdstip",
-  "opname_volgorde": ["shot 1 beschrijving", "shot 2 beschrijving"],
-  "broll": ["b-roll 1", "b-roll 2", "b-roll 3", "b-roll 4", "b-roll 5"],
-  "cta": "max 6 woorden, actief",
-  "caption": "Instagram caption: 2-3 zinnen, pakt aan, geeft context",
-  "hashtags": ["#tag1", "#tag2", "#tag3", "#tag4", "#tag5", "#tag6", "#tag7"],
-  "productie_tip": "1 veelgemaakte fout bij dit type video + hoe te vermijden"
+  "camera_opstelling": "hoogte, hoek, afstand in cm",
+  "kleding": "kleur + type",
+  "licht": "concrete instructie",
+  "opname_volgorde": ["shot 1", "shot 2", "shot 3"],
+  "broll": ["b-roll 1", "b-roll 2", "b-roll 3"],
+  "cta": "max 6 woorden",
+  "caption": "2-3 zinnen",
+  "hashtags": ["#tag1", "#tag2", "#tag3", "#tag4", "#tag5"],
+  "productie_tip": "1 concrete tip"
 }`,
     }],
   })
@@ -221,99 +196,20 @@ Retourneer ALLEEN geldig JSON:
   } catch { return {} as unknown as ReelContent }
 }
 
-// ── Agent 4: Carousel Content ─────────────────────────────────────────────
-async function maakCarouselContent(dag: WeekStrategieItem): Promise<CarouselContent> {
-  const res = await anthropic.messages.create({
-    model: 'claude-sonnet-4-6',
-    max_tokens: 2500,
-    system: `Je maakt Instagram Carousel content voor Kane Bongers (personal trainer, Eersel NL).
-
-CAROUSEL FEITEN 2026:
-- Carousels hebben 10% engagement (hoogste van alle Instagram formats)
-- Minimaal 5 slides, maximaal 10
-- Slide 1 = hook (stopt het scrollen) — visueel + max 8 woorden
-- Slides 2-5/6 = content (één punt per slide, simpel en scanbaar)
-- Laatste slide = CTA
-- Mensen swipen door als elke slide waarde geeft
-
-REGELS:
-- Eenvoudige tekst per slide — mensen scannen, niet lezen
-- Elk slide heeft een duidelijke visual beschrijving
-- Geen ongemakkelijke content
-- Fitness educatief: stappenplannen, vergelijkingen, lijstjes`,
-    messages: [{
-      role: 'user',
-      content: `Maak een volledige Carousel brief voor:
-Dag: ${dag.dag_naam} ${dag.datum}
-Topic: ${dag.topic}
-Invalshoek: ${dag.invalshoek}
-Kern boodschap: ${dag.kern_boodschap}
-
-Retourneer ALLEEN geldig JSON:
-{
-  "titel": "carousel titel max 6 woorden",
-  "concept": "wat is het overkoepelende thema van de carousel",
-  "slides": [
-    {
-      "nummer": 1,
-      "type": "hook",
-      "hoofd_tekst": "max 8 woorden — stopt het scrollen",
-      "sub_tekst": "optionele ondertekst max 12 woorden",
-      "visual": "beschrijving van wat er visueel op dit slide staat",
-      "achtergrond_kleur": "donker / licht / groen / wit"
-    }
-  ],
-  "cta": "laatste slide CTA tekst",
-  "caption": "Instagram caption 2-3 zinnen",
-  "hashtags": ["#tag1", "#tag2", "#tag3", "#tag4", "#tag5"],
-  "design_tip": "1 concrete design instructie voor Canva/Adobe Express"
-}`,
-    }],
-  })
-
-  const tekst = res.content[0].type === 'text' ? res.content[0].text : '{}'
-  try {
-    const match = tekst.match(/\{[\s\S]*\}/)
-    return match ? JSON.parse(match[0]) : {} as unknown as CarouselContent
-  } catch { return {} as unknown as CarouselContent }
-}
-
-// ── Agent 5: Stories ──────────────────────────────────────────────────────
-async function maakDagStories(dag: WeekStrategieItem, content: ReelContent | CarouselContent): Promise<StoryFrame[]> {
-  const contentSamenvatting = 'titel' in content ? `Reel: "${content.titel}"` : `Carousel: "${(content as CarouselContent).titel}"`
+// ── Agent 4: Stories (op basis van de 3 reels van die dag) ───────────────
+async function maakDagStories(dagNaam: string, reels: ReelContent[]): Promise<StoryFrame[]> {
+  const reelSamenvatting = reels.map((r, i) => `Reel ${i + 1}: "${r.titel ?? ''}" — hook: "${r.hook ?? ''}"`).join('\n')
 
   const res = await anthropic.messages.create({
     model: 'claude-sonnet-4-6',
-    max_tokens: 1000,
-    system: `Je maakt Instagram Stories voor Kane Bongers. Simpel, direct, niet geforceerd.
-
-STORIES REGELS 2026:
-- 3 frames per dag maximum
-- Frame 1: poll of vraag (algoritme-signaal, zet je vooraan in story-tray)
-- Frame 2: tip of teaser van de Reel/Carousel (waarde)
-- Frame 3: CTA (simpel, niet salesy)
-- Tekst op screen: max 8 woorden
-- Geen ongemakkelijke content
-- Poll-formules die werken: "Doe jij dit ook?" Ja/Nee`,
+    max_tokens: 800,
+    system: `Je maakt Instagram Stories voor Kane Bongers. 3 frames per dag. Simpel, direct.
+- Frame 1: poll (zet je vooraan in story-tray)
+- Frame 2: teaser van de beste Reel van vandaag
+- Frame 3: simpele CTA`,
     messages: [{
       role: 'user',
-      content: `Dag: ${dag.dag_naam}
-Content: ${contentSamenvatting}
-Topic: ${dag.topic}
-
-Maak 3 story-frames. Retourneer ALLEEN geldig JSON array:
-[
-  {
-    "frame": 1,
-    "type": "poll | tip | cta",
-    "tekst": "tekst op het scherm — max 8 woorden",
-    "interactie": "poll-vraag OF vraagsticker tekst OF leeg",
-    "optie_a": "poll optie A of leeg",
-    "optie_b": "poll optie B of leeg",
-    "achtergrond": "gym footage | selfie | tekst op kleur | b-roll",
-    "doel": "wat bereikt dit frame"
-  }
-]`,
+      content: `Dag: ${dagNaam}\nReels vandaag:\n${reelSamenvatting}\n\nMaak 3 story-frames. ALLEEN geldig JSON array:\n[{"frame":1,"type":"poll | tip | cta","tekst":"max 8 woorden","interactie":"poll-vraag of leeg","optie_a":"A of leeg","optie_b":"B of leeg","achtergrond":"gym footage | selfie | tekst op kleur","doel":"wat bereikt dit frame"}]`,
     }],
   })
 
@@ -358,13 +254,12 @@ export interface WeekStrategieItem {
   dag: number
   datum: string
   dag_naam: string
-  format: 'reel' | 'carousel' | 'rustdag'
+  reel_nummer: number
   topic: string
   invalshoek: string
   kern_boodschap: string
   dm_share_reden: string
-  trending_haak: string
-  beste_posttijd: string
+  posttijd: string
   locatie: string
 }
 
@@ -384,25 +279,6 @@ export interface ReelContent {
   productie_tip: string
 }
 
-export interface CarouselSlide {
-  nummer: number
-  type: string
-  hoofd_tekst: string
-  sub_tekst?: string
-  visual: string
-  achtergrond_kleur: string
-}
-
-export interface CarouselContent {
-  titel: string
-  concept: string
-  slides: CarouselSlide[]
-  cta: string
-  caption: string
-  hashtags: string[]
-  design_tip: string
-}
-
 export interface StoryFrame {
   frame: number
   type: string
@@ -414,9 +290,16 @@ export interface StoryFrame {
   doel: string
 }
 
-export interface DagPlanning {
+export interface ReelPlanning {
   strategie: WeekStrategieItem
-  content: ReelContent | CarouselContent
+  content: ReelContent
+}
+
+export interface DagPlanning {
+  dag_nummer: number
+  datum: string
+  dag_naam: string
+  reels: ReelPlanning[]
   stories: StoryFrame[]
 }
 
@@ -469,7 +352,7 @@ export async function POST(req: NextRequest) {
     if (bestaand) return NextResponse.json({ weekplanning: bestaand, cached: true })
   }
 
-  // Bouw daginfo array
+  // Bouw daginfo array (ma t/m zo)
   const dagNamen: DagInfo[] = []
   const startDatum = new Date(weekStart)
   for (let i = 0; i < 7; i++) {
@@ -482,28 +365,55 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    // Stap 1: Trends opzoeken (web search)
-    const trends = await zoekTrends(weekStart)
+    // Stap 1 + 2 parallel: trends + recente topics
+    const [trends, recenteTopics] = await Promise.all([
+      zoekTrends(weekStart),
+      haalRecenteTopics(db),
+    ])
 
-    // Stap 2: Recente topics ophalen (variety guard)
-    const recenteTopics = await haalRecenteTopics(db)
+    // Stap 3: 18 reel-topics (3 per dag × 6 dagen)
+    const strategieItems = await maakWeekStrategie(weekStart, dagNamen, trends, recenteTopics)
 
-    // Stap 3: Week strategie (7 dagen planning)
-    const strategie = await maakWeekStrategie(weekStart, dagNamen, trends, recenteTopics)
+    // Stap 4: Genereer alle 18 reels parallel, dan per dag de stories
+    const alleReels = await Promise.all(
+      strategieItems.map(item => maakReelContent(item, trends))
+    )
 
-    // Stap 4: Content per dag — reel of carousel parallel
-    const dagenContent = await Promise.all(
-      strategie.map(async (dag) => {
-        if (dag.format === 'rustdag') {
-          return { strategie: dag, content: {} as ReelContent, stories: [] }
+    // Groepeer per dag (dag 1–6)
+    const dagenMap = new Map<number, { strategie: WeekStrategieItem; content: ReelContent }[]>()
+    strategieItems.forEach((item, idx) => {
+      if (!dagenMap.has(item.dag)) dagenMap.set(item.dag, [])
+      dagenMap.get(item.dag)!.push({ strategie: item, content: alleReels[idx] })
+    })
+
+    // Stap 5: Stories per dag parallel
+    const dagenContent: DagPlanning[] = await Promise.all(
+      Array.from(dagenMap.entries()).map(async ([dagNr, reels]) => {
+        const dagInfo = dagNamen[dagNr - 1]
+        const reelContents = reels.map(r => r.content)
+        const stories = await maakDagStories(dagInfo.dag_naam, reelContents)
+        return {
+          dag_nummer: dagNr,
+          datum: dagInfo.datum,
+          dag_naam: dagInfo.dag_naam,
+          reels,
+          stories,
         }
-        const content = dag.format === 'carousel'
-          ? await maakCarouselContent(dag)
-          : await maakReelContent(dag, trends)
-        const stories = await maakDagStories(dag, content)
-        return { strategie: dag, content, stories }
       })
     )
+
+    // Voeg zondag toe als rustdag
+    const zondag = dagNamen[6]
+    dagenContent.push({
+      dag_nummer: 7,
+      datum: zondag.datum,
+      dag_naam: zondag.dag_naam,
+      reels: [],
+      stories: [],
+    })
+
+    // Sorteer op dag_nummer
+    dagenContent.sort((a, b) => a.dag_nummer - b.dag_nummer)
 
     const weekplanning: WeekPlanning = {
       week_start: weekStart,
@@ -512,7 +422,7 @@ export async function POST(req: NextRequest) {
       gegenereerd_op: new Date().toISOString(),
     }
 
-    // Stap 5: Opslaan in Supabase
+    // Stap 6: Opslaan in Supabase
     const { data: opgeslagen, error } = await db
       .from('content_weekplanningen')
       .upsert({
@@ -526,7 +436,7 @@ export async function POST(req: NextRequest) {
 
     if (error) throw error
 
-    // Stap 6: Genereer en upload PDF
+    // Stap 7: PDF
     try {
       const { generateWeekplanningPDF: genPDF } = await import('@/lib/pdf-weekplanning')
       const pdfBuffer = await genPDF(weekplanning)

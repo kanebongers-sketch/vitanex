@@ -25,12 +25,11 @@ export async function GET(req: NextRequest) {
 
   if (!wp) return NextResponse.json({ error: 'Geen weekplanning gevonden' }, { status: 404 })
 
-  const dagEmoji: Record<string, string> = { reel: '🎬', carousel: '🖼', rustdag: '😴' }
-
   const dagRegels = (wp.dagen ?? [])
-    .map((d: { strategie: { dag_naam: string; format: string; topic: string; beste_posttijd: string } }) => {
-      const emoji = dagEmoji[d.strategie.format] ?? '📌'
-      return `${emoji} <b>${d.strategie.dag_naam}</b> ${d.strategie.beste_posttijd} — ${d.strategie.topic}`
+    .map((d: { dag_naam: string; datum: string; reels: Array<{ strategie: { topic: string; posttijd: string } }> }) => {
+      if (!d.reels?.length) return `😴 <b>${d.dag_naam}</b> — Rustdag`
+      const eersteReel = d.reels[0]?.strategie
+      return `🎬 <b>${d.dag_naam}</b> — ${d.reels.length}× reel · ${eersteReel?.topic ?? ''}`
     })
     .join('\n')
 

@@ -138,14 +138,11 @@ export async function GET(req: NextRequest) {
         weekplanningUrl = wpData.pdf_url ?? null
         const wp = wpData.weekplanning
         if (wp) {
-          const dagEmoji: Record<string, string> = {
-            reel: '🎬', carousel: '🖼', rustdag: '😴',
-          }
           const dagRegels = (wp.dagen ?? [])
-            .map((d: { strategie: { dag_naam: string; format: string; topic: string; beste_posttijd: string } }) => {
-              const fmt = d.strategie.format
-              const emoji = dagEmoji[fmt] ?? '📌'
-              return `${emoji} <b>${d.strategie.dag_naam}</b> ${d.strategie.beste_posttijd} — ${d.strategie.topic}`
+            .map((d: { dag_naam: string; reels: Array<{ strategie: { topic: string; posttijd: string } }> }) => {
+              if (!d.reels?.length) return `😴 <b>${d.dag_naam}</b> — Rustdag`
+              const eersteReel = d.reels[0]?.strategie
+              return `🎬 <b>${d.dag_naam}</b> — ${d.reels.length}× reel · ${eersteReel?.topic ?? ''}`
             })
             .join('\n')
 
