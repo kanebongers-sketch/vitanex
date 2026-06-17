@@ -84,6 +84,8 @@ function maakKaft(
   doc: any,
   weekplanning: WeekPlanning
 ): void {
+  doc.addPage()
+
   // Achtergrond
   doc.rect(0, 0, A4_W, A4_H).fill(ZWART)
 

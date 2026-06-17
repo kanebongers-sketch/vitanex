@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 import { createClient } from '@supabase/supabase-js'
 import { getAuthenticatedUser } from '@/lib/api-auth'
-import { generateWeekplanningPDF } from '@/lib/pdf-weekplanning'
 import { uploadBriefingPDF } from '@/lib/briefing-storage'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
@@ -449,8 +448,14 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({ weekplanning: null, cached: false, weekStart })
 }
 
+function isCronRequest(req: NextRequest): boolean {
+  const cronSecret = process.env.CRON_SECRET
+  if (!cronSecret) return true
+  return req.headers.get('x-cron-secret') === cronSecret
+}
+
 export async function POST(req: NextRequest) {
-  const authorised = !!(await getAuthenticatedUser(req))
+  const authorised = isCronRequest(req) || !!(await getAuthenticatedUser(req))
   if (!authorised) return NextResponse.json({ error: 'Niet ingelogd' }, { status: 401 })
 
   const { forceer = false, week } = await req.json().catch(() => ({}))
@@ -532,8 +537,9 @@ export async function POST(req: NextRequest) {
       await db.from('content_weekplanningen').update({ pdf_url: pdfUrl }).eq('week_start', weekStart)
       return NextResponse.json({ weekplanning: opgeslagen, pdf_url: pdfUrl, cached: false })
     } catch (pdfErr) {
-      console.error('[WEEKPLANNING] PDF mislukt:', pdfErr)
-      return NextResponse.json({ weekplanning: opgeslagen, pdf_url: null, cached: false })
+      const errMsg = pdfErr instanceof Error ? pdfErr.message : String(pdfErr)
+      console.error('[WEEKPLANNING] PDF mislukt:', errMsg)
+      return NextResponse.json({ weekplanning: opgeslagen, pdf_url: null, pdf_error: errMsg, cached: false })
     }
   } catch (err) {
     console.error('[WEEKPLANNING] Generatie mislukt:', err)
