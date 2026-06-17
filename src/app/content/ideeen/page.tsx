@@ -325,6 +325,7 @@ function IdeeBankContent() {
             { href: '/content',          label: '📋 Briefing',     actief: false },
             { href: '/content/strategie',label: '🗺 Strategie',    actief: false },
             { href: '/content/ideeen',   label: '💡 Ideeën bank',  actief: true  },
+            { href: '/content/kalender', label: '📅 Kalender',     actief: false },
           ].map(tab => (
             <Link key={tab.href} href={tab.href} style={{
               padding: '8px 18px', borderRadius: 10, textDecoration: 'none',

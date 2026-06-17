@@ -229,6 +229,7 @@ export default function ContentStrategiePage() {
             { href: '/content', label: 'Overzicht' },
             { href: '/content/strategie', label: 'Strategie' },
             { href: '/content/ideeen', label: 'Ideeën' },
+            { href: '/content/kalender', label: 'Kalender' },
           ].map((tab) => {
             const isActive = tab.href === '/content/strategie'
             return (
