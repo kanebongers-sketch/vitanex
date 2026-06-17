@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { generateBriefingPDF } from '@/lib/pdf-briefing'
 import { uploadBriefingPDF } from '@/lib/briefing-storage'
+import { stuurTelegram } from '@/lib/telegram'
 
 // Called daily at 20:00 (NL time) by cron-job.org
 // Protected by CRON_SECRET env var (optional — if not set, any request passes)
@@ -100,6 +101,16 @@ export async function GET(req: NextRequest) {
     const postDatumRaw = briefing.post_datum ?? (() => {
       const d = new Date(vandaag); d.setDate(d.getDate() + 1); return d.toISOString().split('T')[0]
     })()
+
+    const postDatumNL = new Date(postDatumRaw).toLocaleDateString('nl-NL', {
+      weekday: 'long', day: 'numeric', month: 'long',
+    })
+    await stuurTelegram(
+      `📋 <b>Content Briefing klaar!</b>\n\n` +
+      `🎬 Film vandaag · 📅 Post ${postDatumNL.charAt(0).toUpperCase() + postDatumNL.slice(1)}\n` +
+      `${briefing.videos?.length ?? 0} videos · ~${Math.round((briefing.totale_opnametijd_sec ?? 0) / 60)} min opnemen\n\n` +
+      `<a href="${pdfUrl}">📄 Open briefing PDF</a>`
+    )
 
     console.log(`[CRON] Briefing ${vandaag} → Storage: ${pdfUrl}`)
     return NextResponse.json({ ok: true, datum: vandaag, post_datum: postDatumRaw, pdf_url: pdfUrl })
