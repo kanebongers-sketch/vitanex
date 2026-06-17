@@ -136,11 +136,27 @@ export async function GET(req: NextRequest) {
         })
         const wpData = await wpRes.json()
         weekplanningUrl = wpData.pdf_url ?? null
-        if (weekplanningUrl) {
+        const wp = wpData.weekplanning
+        if (wp) {
+          const dagEmoji: Record<string, string> = {
+            reel: '🎬', carousel: '🖼', rustdag: '😴',
+          }
+          const dagRegels = (wp.dagen ?? [])
+            .map((d: { strategie: { dag_naam: string; format: string; topic: string; beste_posttijd: string } }) => {
+              const fmt = d.strategie.format
+              const emoji = dagEmoji[fmt] ?? '📌'
+              return `${emoji} <b>${d.strategie.dag_naam}</b> ${d.strategie.beste_posttijd} — ${d.strategie.topic}`
+            })
+            .join('\n')
+
+          const trendsSamenvatting = wp.trends?.samenvatting
+            ? `\n\n🔥 <b>Trending:</b> ${wp.trends.samenvatting.slice(0, 180)}…`
+            : ''
+
           await stuurTelegram(
-            `📅 <b>Weekplanning gegenereerd!</b>\n` +
-            `Week van ${wpData.weekplanning?.week_start ?? vandaag}\n\n` +
-            `<a href="${weekplanningUrl}">📋 Open weekplanning PDF</a>`
+            `📅 <b>Weekplanning week ${wp.week_start}</b>${trendsSamenvatting}\n\n` +
+            `${dagRegels}\n\n` +
+            (weekplanningUrl ? `<a href="${weekplanningUrl}">📋 Open volledige weekplanning PDF</a>` : '')
           )
         }
         console.log(`[CRON] Weekplanning gegenereerd → ${weekplanningUrl}`)
