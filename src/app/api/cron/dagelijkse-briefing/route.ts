@@ -22,9 +22,13 @@ export async function GET(req: NextRequest) {
 
   // 1. Genereer briefing (of gebruik bestaande)
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://mentaforce.nl'
+  const cronSecret = process.env.CRON_SECRET ?? ''
   const briefingRes = await fetch(`${baseUrl}/api/content/briefing`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'x-cron-secret': process.env.CRON_SECRET! },
+    headers: {
+      'Content-Type': 'application/json',
+      ...(cronSecret ? { 'x-cron-secret': cronSecret } : {}),
+    },
     body: JSON.stringify({ forceer: false }),
   })
 

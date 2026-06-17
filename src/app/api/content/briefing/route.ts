@@ -107,9 +107,16 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({ briefing: null, cached: false })
 }
 
+function isCronRequest(req: NextRequest): boolean {
+  const cronSecret = process.env.CRON_SECRET
+  if (!cronSecret) return true
+  const secret = req.headers.get('x-cron-secret')
+  return secret === cronSecret
+}
+
 export async function POST(req: NextRequest) {
-  const user = await getAuthenticatedUser(req)
-  if (!user) return NextResponse.json({ error: 'Niet ingelogd' }, { status: 401 })
+  const authorised = isCronRequest(req) || !!(await getAuthenticatedUser(req))
+  if (!authorised) return NextResponse.json({ error: 'Niet ingelogd' }, { status: 401 })
 
   const { forceer = false } = await req.json().catch(() => ({}))
 
@@ -151,12 +158,19 @@ export async function POST(req: NextRequest) {
     const briefingData = JSON.parse(jsonMatch[0])
     const totaalSec = briefingData.videos?.reduce((s: number, v: { duur_sec?: number }) => s + (v.duur_sec ?? 0), 0) ?? 0
 
+    const meta = {
+      groet: briefingData.groet,
+      thema: briefingData.thema_van_de_dag,
+      tip: briefingData.tip_van_de_dag,
+    }
+
     const { data: opgeslagen, error } = await db
       .from('content_briefings')
       .upsert({
         datum: vandaag,
         videos: briefingData.videos ?? [],
         totale_opnametijd_sec: totaalSec,
+        meta,
         status: 'actief',
         gegenereerd_op: new Date().toISOString(),
         post_datum: postDatum,
@@ -166,10 +180,7 @@ export async function POST(req: NextRequest) {
 
     if (error) throw error
 
-    return NextResponse.json({
-      briefing: { ...opgeslagen, meta: { groet: briefingData.groet, thema: briefingData.thema_van_de_dag, tip: briefingData.tip_van_de_dag } },
-      cached: false,
-    })
+    return NextResponse.json({ briefing: opgeslagen, cached: false })
   } catch (err) {
     console.error('Briefing generatie mislukt:', err)
     return NextResponse.json({ error: 'Generatie mislukt. Probeer opnieuw.' }, { status: 500 })
