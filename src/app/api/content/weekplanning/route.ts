@@ -430,9 +430,6 @@ export interface WeekPlanning {
 // ── Route Handlers ────────────────────────────────────────────────────────
 
 export async function GET(req: NextRequest) {
-  const user = await getAuthenticatedUser(req)
-  if (!user) return NextResponse.json({ error: 'Niet ingelogd' }, { status: 401 })
-
   const url = new URL(req.url)
   const weekParam = url.searchParams.get('week')
   const weekStart = weekParam ?? getMaandagVanWeek(new Date())
