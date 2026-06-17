@@ -1,19 +1,7 @@
 // pdfkit is loaded via webpackIgnore dynamic import — prevents Turbopack from bundling
 // it (which replaces __dirname with /ROOT/ and breaks AFM font file loading)
-type PDFDocumentConstructor = new (options?: Record<string, unknown>) => {
-  on(event: string, handler: (chunk: Buffer) => void): void
-  page: { width: number; height: number }
-  y: number
-  rect(x: number, y: number, w: number, h: number): { fill(color: string): void }
-  fillColor(color: string): PDFDocumentInstance
-  font(name: string): PDFDocumentInstance
-  fontSize(size: number): PDFDocumentInstance
-  text(str: string, x?: number, y?: number, options?: Record<string, unknown>): PDFDocumentInstance
-  moveDown(lines?: number): PDFDocumentInstance
-  addPage(): PDFDocumentInstance
-  end(): void
-}
-type PDFDocumentInstance = ReturnType<PDFDocumentConstructor>
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type PDFDocumentConstructor = new (options?: Record<string, unknown>) => any
 
 interface Video {
   nummer: number
