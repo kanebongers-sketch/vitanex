@@ -8,11 +8,17 @@ interface Video {
   titel: string
   pijler: string
   locatie: string
+  format?: string
   duur_sec: number
   platform: string[]
   prioriteit: string
   hook: string
   script: string
+  camera_opstelling?: string
+  kleding?: string
+  opname_volgorde?: string[]
+  licht?: string
+  productie_tip?: string
   broll: string[]
   cta: string
   caption_idee: string
@@ -160,6 +166,40 @@ export async function generateBriefingPDF(briefing: BriefingData): Promise<Buffe
          .text(v.script, margin, doc.y + 2, { width: contentW })
       doc.moveDown(0.8)
 
+      // Productie sectie: camera + kleding + licht
+      if (v.camera_opstelling || v.kleding || v.licht) {
+        const colW3 = (contentW - 24) / 3
+        const prodY = doc.y
+
+        if (v.camera_opstelling) {
+          doc.fillColor(ORANJE).font('Helvetica-Bold').fontSize(9).text('CAMERA', margin, prodY)
+          doc.fillColor('#374151').font('Helvetica').fontSize(9)
+             .text(v.camera_opstelling, margin, prodY + 12, { width: colW3 })
+        }
+        if (v.kleding) {
+          const kledingX = margin + colW3 + 12
+          doc.fillColor(ORANJE).font('Helvetica-Bold').fontSize(9).text('KLEDING', kledingX, prodY)
+          doc.fillColor('#374151').font('Helvetica').fontSize(9)
+             .text(v.kleding, kledingX, prodY + 12, { width: colW3 })
+        }
+        if (v.licht) {
+          const lichtX = margin + (colW3 + 12) * 2
+          doc.fillColor(ORANJE).font('Helvetica-Bold').fontSize(9).text('LICHT', lichtX, prodY)
+          doc.fillColor('#374151').font('Helvetica').fontSize(9)
+             .text(v.licht, lichtX, prodY + 12, { width: colW3 })
+        }
+        doc.moveDown(1.8)
+      }
+
+      // Opname volgorde
+      if (v.opname_volgorde?.length) {
+        doc.fillColor(ORANJE).font('Helvetica-Bold').fontSize(9).text('OPNAME VOLGORDE', margin, doc.y)
+        const shots = v.opname_volgorde.map((s, i) => `${i + 1}. ${s}`).join('\n')
+        doc.fillColor('#374151').font('Helvetica').fontSize(9)
+           .text(shots, margin, doc.y + 2, { width: contentW })
+        doc.moveDown(0.8)
+      }
+
       // B-roll + CTA naast elkaar
       const colW = (contentW - 12) / 2
 
@@ -177,6 +217,16 @@ export async function generateBriefingPDF(briefing: BriefingData): Promise<Buffe
          .text(v.cta, ctaX, brollY + 12, { width: colW })
 
       doc.moveDown(1.5)
+
+      // Productie tip
+      if (v.productie_tip) {
+        doc.rect(margin, doc.y, contentW, 24).fill('#fff7ed')
+        doc.fillColor(ORANJE).font('Helvetica-Bold').fontSize(8.5)
+           .text('💡 PRO TIP', margin + 8, doc.y + 6)
+        doc.fillColor('#92400e').font('Helvetica').fontSize(9)
+           .text(v.productie_tip, margin + 8, doc.y + 2, { width: contentW - 16 })
+        doc.moveDown(1.2)
+      }
 
       // Caption
       doc.rect(margin, doc.y, contentW, 0.5).fill('#e5e7eb')

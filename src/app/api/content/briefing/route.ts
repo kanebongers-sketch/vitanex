@@ -12,83 +12,203 @@ function getServiceClient() {
   )
 }
 
-const CONTENT_SYSTEEM_PROMPT = `Je bent het AI Content Operating System van Kane Bongers — personal trainer en performance coach voor ambitieuze ondernemers.
+// ── Agent 1: Strategie ────────────────────────────────────────────────────────
+// Kiest 3 fitness topics die vandaag het beste scoren op Reels/TikTok.
+// Output: raw JSON array met topic-objecten.
 
-Kane's missie: ondernemers en professionals laten zien dat een sterk lichaam en een sterk bedrijf hand in hand gaan.
+async function kiesTopics(filmDag: string, filmDatum: string): Promise<string> {
+  const res = await anthropic.messages.create({
+    model: 'claude-sonnet-4-6',
+    max_tokens: 1024,
+    system: `Je bent een fitness content strateeg. Je enige taak: kiezen welke fitness topics vandaag maximaal engagement opleveren op Instagram Reels en TikTok.
 
-Doelgroep: ondernemers en professionals (28–45 jaar), ambitieus, weinig tijd, hoge prestatiedruk.
+Kane Bongers is personal trainer in Eersel. Hij filmt zichzelf. Zijn kijkers: mensen die willen afvallen, sterker worden, of meer energie willen — maar het lastig vinden om consistent te trainen.
 
-FOCUS — verdeeld per dag:
-- 2 videos: FITNESS (primair) — trainingen, beweging, lichaam als prestatiemachine
-- 1 video: ONDERNEMEN (secundair) — performance mindset, systemen, zakelijke discipline
+Kies topics die:
+- Direct actionable zijn (iets wat de kijker vandaag nog kan doen)
+- Visueel sterk zijn (je kunt het demonstreren, niet alleen praten)
+- Een veelgemaakte fout corrigeren, OF een quick win geven
+- Aansluiten bij wat er trending is in fitness (niet verouderd)
 
-Fitness content ideeën (wissel dagelijks af):
-- Korte workout die je overal kunt doen (geen gym nodig)
-- Eén oefening uitgelegd met waarom het werkt
-- Training tip voor drukke ondernemers
-- Herstel & recovery: onderschat onderdeel van succes
-- Mentale kant van fysieke training
-- Voeding als brandstof voor focus
-- Wat je lichaam je vertelt als je niet luistert
+Varieer formaten per dag: mix demonstraties, uitleg, myth-busting, transformatie mindset.
 
-Ondernemen content ideeën:
-- Systemen die tijd besparen
-- Mindset van toppresteerders
-- Hoe fysieke discipline zakelijk succes versnelt
-- Energie management voor ondernemers
+Retourneer ALLEEN een JSON array, geen uitleg:
+[
+  {
+    "nummer": 1,
+    "topic": "exacte beschrijving van het onderwerp",
+    "invalshoek": "hoe je het aanvliegt — bijv. 'corrigeer fout', 'geef quick win', 'bust mythe'",
+    "locatie": "Gym | Buiten | Thuis | Auto",
+    "format": "demonstratie | talking head | workout | uitleg",
+    "waarom_nu": "waarom dit topic nu scoort (max 1 zin)"
+  }
+]`,
+    messages: [{
+      role: 'user',
+      content: `Filmdag: ${filmDag} ${filmDatum}. Kies 3 fitness topics voor vandaag. Maak ze specifiek, visueel en actionable. Geen ondernemerscontent — puur fitness.`
+    }],
+  })
+  return res.content[0].type === 'text' ? res.content[0].text : '[]'
+}
 
-Tone of voice: Direct, geen fluff, actiegericht. Spreek als een topcoach: kort, krachtig, eerlijk.
+// ── Agent 2: Scripts ──────────────────────────────────────────────────────────
+// Schrijft voor elk topic een killer hook + strak script.
 
-Video formats:
-- Auto talking head (45–90 sec): directe tips
-- Gym/workout (30–60 sec): demonstraties, quick wins
-- Buiten walking & talking (60–120 sec): energetisch
-- Thuis/kantoor (60–90 sec): kennis delen
+async function schrijfScripts(topicsJson: string, postDag: string, postDatum: string): Promise<string> {
+  const res = await anthropic.messages.create({
+    model: 'claude-sonnet-4-6',
+    max_tokens: 3000,
+    system: `Je bent een ervaren short-form video scriptwriter, gespecialiseerd in fitness content voor Instagram Reels en TikTok.
 
-Hook formules (wissel af):
-- "Stop met [slechte gewoonte]. Doe dit in plaats daarvan."
-- "[Getal] minuten is genoeg om [resultaat] te bereiken."
-- "De reden waarom [probleem] — en hoe je het oplost."
-- "Als je dit doet in de gym, verlies je tijd."
-- "Meeste coaches vertellen dit niet."
+Schrijf scripts die:
+- Beginnen met een hook die in de eerste 2 seconden het scrollen stopt
+- Geen intro, geen "hoi ik ben Kane" — direct to the point
+- Conversatietaal — zoals je het zou zeggen tegen iemand in de gym
+- Concreet en specifiek — geen vage algemeenheden
+- Eindigen met een micro-CTA (kort, geen smeekbede)
 
-Genereer content die in 15 minuten gefilmd kan worden. Wees specifiek en actionable.`
+Hook formules die werken:
+- "Je doet [oefening] al jaren verkeerd."
+- "Dit is waarom je geen [resultaat] ziet."
+- "[Getal] seconden. Probeer dit."
+- "Stop met [foute aanpak]. Doe dit."
+- "Meeste mensen missen dit bij [onderwerp]."
 
-const BRIEFING_PROMPT = (filmDatum: string, filmDag: string, postDatum: string, postDag: string) => `Genereer de content briefing voor Kane Bongers.
+Spreektaal. Nederlandse tekst. Geen jargon. Gebruik [PAUZE] en [DEMO] als markers.`,
+    messages: [{
+      role: 'user',
+      content: `Topics: ${topicsJson}
 
-Filmdatum: ${filmDag} ${filmDatum}
-Publicatiedatum (post morgen): ${postDag} ${postDatum}
+Schrijf voor elk topic een volledig script. Publicatiedatum: ${postDag} ${postDatum}.
 
-Maak EXACT 3 video-opdrachten:
-- Video 1: FITNESS (prioriteit hoog) — gym of thuis workout
-- Video 2: FITNESS (prioriteit hoog) — tip, uitleg of mindset rondom beweging
-- Video 3: ONDERNEMEN (prioriteit medium) — zakelijke performance, systemen of ondernemers mindset
+Retourneer ALLEEN geldig JSON array:
+[
+  {
+    "nummer": 1,
+    "titel": "video titel max 6 woorden pakkend",
+    "hook": "exacte openingszin, max 12 woorden",
+    "script": "volledig script met [PAUZE] en [DEMO] markers, max 120 woorden voor 60s",
+    "cta": "call to action max 8 woorden",
+    "caption_idee": "caption max 2 zinnen + 5 relevante hashtags"
+  }
+]`
+    }],
+  })
+  return res.content[0].type === 'text' ? res.content[0].text : '[]'
+}
 
-Locaties variëren: gebruik auto, gym, buiten, thuis — niet allemaal hetzelfde.
+// ── Agent 3: Productie ────────────────────────────────────────────────────────
+// Vertaalt topics + scripts naar exacte filmopnames.
 
-Retourneer ALLEEN geldig JSON (geen markdown, geen uitleg):
-{
-  "groet": "korte motiverende openingszin voor Kane, max 10 woorden",
-  "thema_van_de_dag": "overkoepelend thema dat de 3 videos verbindt",
-  "videos": [
-    {
-      "nummer": 1,
-      "titel": "Video titel (max 8 woorden, pakkend)",
-      "pijler": "fitness|ondernemen",
-      "locatie": "Auto | Gym | Buiten | Thuis | Kantoor",
-      "duur_sec": 60,
-      "platform": ["Instagram Reels", "TikTok"],
-      "prioriteit": "hoog|medium|laag",
-      "hook": "Openingszin eerste 3 seconden — max 15 woorden, stopt scrollen",
-      "script": "Volledig script spreektaal. [PAUZE] en [KIJK NAAR CAMERA] markers. Max 150 woorden voor 60s video. Actieve taal, geen jargon.",
-      "broll": ["B-roll suggestie 1", "B-roll suggestie 2", "B-roll suggestie 3"],
-      "cta": "Duidelijke call-to-action",
-      "caption_idee": "Instagram/TikTok caption max 3 zinnen + 5 hashtags"
+async function maakShotList(topicsJson: string, scriptsJson: string): Promise<string> {
+  const res = await anthropic.messages.create({
+    model: 'claude-sonnet-4-6',
+    max_tokens: 2000,
+    system: `Je bent een video productieleider voor fitness content. Jouw taak: zorg dat de filmmaker precies weet wat hij moet doen. Geen vaagheid.
+
+Geef voor elke video:
+- Exacte cameraopstelling (hoogte, hoek, afstand)
+- Wat Kane draagt (kleding die past bij de locatie en boodschap)
+- Welke specifieke shots/oefeningen — inclusief herhalingen, tempo
+- Lichtinstructies (raam links, buiten in schaduw, etc.)
+- B-roll shots die de video versterken
+- Volgorde van opnames (meest energie eerst)
+
+Schrijf alsof je direct tegen de cameraman praat. Praktisch, concreet.`,
+    messages: [{
+      role: 'user',
+      content: `Topics: ${topicsJson}
+Scripts: ${scriptsJson}
+
+Retourneer ALLEEN geldig JSON array:
+[
+  {
+    "nummer": 1,
+    "duur_sec": 60,
+    "platform": ["Instagram Reels", "TikTok"],
+    "camera_opstelling": "exacte beschrijving positie en hoek camera",
+    "kleding": "wat aantrekken",
+    "opname_volgorde": ["shot 1 beschrijving", "shot 2 beschrijving"],
+    "broll": ["b-roll shot 1", "b-roll shot 2", "b-roll shot 3"],
+    "licht": "lichtinstructie",
+    "tip": "1 concrete productieopmerking die de video beter maakt"
+  }
+]`
+    }],
+  })
+  return res.content[0].type === 'text' ? res.content[0].text : '[]'
+}
+
+// ── Samenvoegen ───────────────────────────────────────────────────────────────
+
+function parseJSON<T>(tekst: string, fallback: T): T {
+  try {
+    const match = tekst.match(/\[[\s\S]*\]/)
+    return match ? JSON.parse(match[0]) : fallback
+  } catch {
+    return fallback
+  }
+}
+
+interface TopicItem {
+  nummer: number
+  topic: string
+  locatie: string
+  format: string
+  waarom_nu?: string
+}
+
+interface ScriptItem {
+  nummer: number
+  titel: string
+  hook: string
+  script: string
+  cta: string
+  caption_idee: string
+}
+
+interface ProductieItem {
+  nummer: number
+  duur_sec: number
+  platform: string[]
+  camera_opstelling: string
+  kleding: string
+  opname_volgorde: string[]
+  broll: string[]
+  licht: string
+  tip: string
+}
+
+function combineerdeBriefing(
+  topics: TopicItem[],
+  scripts: ScriptItem[],
+  productie: ProductieItem[]
+) {
+  return topics.map((t) => {
+    const s = scripts.find(x => x.nummer === t.nummer) ?? {} as ScriptItem
+    const p = productie.find(x => x.nummer === t.nummer) ?? {} as ProductieItem
+    return {
+      nummer: t.nummer,
+      titel: s.titel ?? t.topic,
+      pijler: 'fitness',
+      locatie: t.locatie,
+      format: t.format,
+      duur_sec: p.duur_sec ?? 60,
+      platform: p.platform ?? ['Instagram Reels', 'TikTok'],
+      prioriteit: 'hoog',
+      hook: s.hook ?? '',
+      script: s.script ?? '',
+      camera_opstelling: p.camera_opstelling ?? '',
+      kleding: p.kleding ?? '',
+      opname_volgorde: p.opname_volgorde ?? [],
+      broll: p.broll ?? [],
+      licht: p.licht ?? '',
+      productie_tip: p.tip ?? '',
+      cta: s.cta ?? '',
+      caption_idee: s.caption_idee ?? '',
     }
-  ],
-  "totale_opnametijd_sec": 540,
-  "tip_van_de_dag": "Concrete tip voor vandaag, max 20 woorden"
-}`
+  })
+}
 
 export async function GET(req: NextRequest) {
   const user = await getAuthenticatedUser(req)
@@ -144,33 +264,31 @@ export async function POST(req: NextRequest) {
   const postDatum = morgen.toISOString().split('T')[0]
 
   try {
-    const response = await anthropic.messages.create({
-      model: 'claude-sonnet-4-6',
-      max_tokens: 4096,
-      system: CONTENT_SYSTEEM_PROMPT,
-      messages: [{ role: 'user', content: BRIEFING_PROMPT(filmDatumStr, filmDag, postDatumStr, postDag) }],
-    })
+    // Drie agents draaien sequentieel — elke agent bouwt op de vorige
+    const topicsRaw = await kiesTopics(filmDag, filmDatumStr)
+    const scriptsRaw = await schrijfScripts(topicsRaw, postDag, postDatumStr)
+    const productieRaw = await maakShotList(topicsRaw, scriptsRaw)
 
-    const tekst = response.content[0].type === 'text' ? response.content[0].text : ''
-    const jsonMatch = tekst.match(/\{[\s\S]*\}/)
-    if (!jsonMatch) throw new Error('Geen JSON in AI response')
+    const topics = parseJSON<TopicItem[]>(topicsRaw, [])
+    const scripts = parseJSON<ScriptItem[]>(scriptsRaw, [])
+    const productie = parseJSON<ProductieItem[]>(productieRaw, [])
 
-    const briefingData = JSON.parse(jsonMatch[0])
-    const totaalSec = briefingData.videos?.reduce((s: number, v: { duur_sec?: number }) => s + (v.duur_sec ?? 0), 0) ?? 0
+    const videos = combineerdeBriefing(topics, scripts, productie)
+    const totaalSec = videos.reduce((s, v) => s + v.duur_sec, 0)
 
-    const meta = {
-      groet: briefingData.groet,
-      thema: briefingData.thema_van_de_dag,
-      tip: briefingData.tip_van_de_dag,
-    }
+    const thema = topics.map(t => t.topic).join(' · ')
 
     const { data: opgeslagen, error } = await db
       .from('content_briefings')
       .upsert({
         datum: vandaag,
-        videos: briefingData.videos ?? [],
+        videos,
         totale_opnametijd_sec: totaalSec,
-        meta,
+        meta: {
+          groet: `Film dag ${filmDag} — ${videos.length} videos klaarstaan`,
+          thema,
+          tip: topics[0]?.waarom_nu ?? '',
+        },
         status: 'actief',
         gegenereerd_op: new Date().toISOString(),
         post_datum: postDatum,
