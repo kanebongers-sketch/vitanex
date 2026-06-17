@@ -84,6 +84,7 @@ export async function GET(req: NextRequest) {
 
   // 4. Upload naar Drive (optioneel — alleen als geconfigureerd)
   const folderId = process.env.GOOGLE_DRIVE_FOLDER_ID
+  console.log('[CRON] Drive env check — folderId:', !!folderId, '| serviceAccount:', !!process.env.GOOGLE_SERVICE_ACCOUNT_JSON)
   if (folderId && process.env.GOOGLE_SERVICE_ACCOUNT_JSON) {
     try {
       const pdfBuffer = await generateBriefingPDF({
