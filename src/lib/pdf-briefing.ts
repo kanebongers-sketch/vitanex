@@ -1,8 +1,19 @@
-import path from 'node:path'
-
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-type PDFDocumentType = typeof import('pdfkit').prototype
-type PDFDocumentConstructor = new (options?: import('pdfkit').PDFDocumentOptions) => PDFDocumentType
+// pdfkit is loaded via webpackIgnore dynamic import — prevents Turbopack from bundling
+// it (which replaces __dirname with /ROOT/ and breaks AFM font file loading)
+type PDFDocumentConstructor = new (options?: Record<string, unknown>) => {
+  on(event: string, handler: (chunk: Buffer) => void): void
+  page: { width: number; height: number }
+  y: number
+  rect(x: number, y: number, w: number, h: number): { fill(color: string): void }
+  fillColor(color: string): PDFDocumentInstance
+  font(name: string): PDFDocumentInstance
+  fontSize(size: number): PDFDocumentInstance
+  text(str: string, x?: number, y?: number, options?: Record<string, unknown>): PDFDocumentInstance
+  moveDown(lines?: number): PDFDocumentInstance
+  addPage(): PDFDocumentInstance
+  end(): void
+}
+type PDFDocumentInstance = ReturnType<PDFDocumentConstructor>
 
 interface Video {
   nummer: number
@@ -38,11 +49,11 @@ const GRIJS = '#6b7280'
 const LICHTGRIJS = '#f3f4f6'
 const ORANJE = '#E8A020'
 
-export function generateBriefingPDF(briefing: BriefingData): Promise<Buffer> {
-  // Absolute-path require bypasses Turbopack bundling — pdfkit needs its own __dirname
-  // to resolve AFM font files from node_modules/pdfkit/js/data/
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const PDFDocument = require(path.join(process.cwd(), 'node_modules', 'pdfkit')) as PDFDocumentConstructor
+export async function generateBriefingPDF(briefing: BriefingData): Promise<Buffer> {
+  // webpackIgnore prevents Turbopack from bundling pdfkit statically.
+  // When bundled, __dirname becomes /ROOT/ and AFM font files can't be found.
+  // With this dynamic import, pdfkit is resolved at runtime from node_modules.
+  const { default: PDFDocument } = await import(/* webpackIgnore: true */ 'pdfkit') as { default: PDFDocumentConstructor }
 
   return new Promise((resolve, reject) => {
     const chunks: Buffer[] = []
