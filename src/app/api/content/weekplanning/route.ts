@@ -440,7 +440,8 @@ export async function POST(req: NextRequest) {
     try {
       const { generateWeekplanningPDF: genPDF } = await import('@/lib/pdf-weekplanning')
       const pdfBuffer = await genPDF(weekplanning)
-      const pdfUrl = await uploadBriefingPDF(pdfBuffer, `week-${weekStart}`)
+      const ts = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)
+      const pdfUrl = await uploadBriefingPDF(pdfBuffer, `week-${weekStart}-${ts}`)
       await db.from('content_weekplanningen').update({ pdf_url: pdfUrl }).eq('week_start', weekStart)
       return NextResponse.json({ weekplanning: opgeslagen, pdf_url: pdfUrl, cached: false })
     } catch (pdfErr) {
