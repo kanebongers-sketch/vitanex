@@ -30,37 +30,108 @@ async function haalRecenteTopics(db: ReturnType<typeof getServiceClient>): Promi
   )
 }
 
+// ── Agent 0: Trend Research (web search) ──────────────────────────────────
+// Zoekt actuele fitness trends — resultaat wordt meegestuurd naar Agent 1.
+
+async function zoekDagTrends(): Promise<string> {
+  const vandaag = new Date().toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' })
+  const messages: Anthropic.MessageParam[] = [{
+    role: 'user',
+    content: `Wat zijn vandaag (${vandaag}) trending fitness onderwerpen op TikTok en Instagram Reels? Geef maximaal 5 concrete trending topics of formats die nu scoren in de fitness niche. Noem ook 1 format of hook-stijl die nu viraal gaat.`,
+  }]
+
+  let response = await anthropic.messages.create({
+    model: 'claude-sonnet-4-6',
+    max_tokens: 1000,
+    // @ts-ignore — web_search_20250305 is a valid Anthropic hosted tool not yet in SDK types
+    tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 3 }],
+    system: 'Je bent een fitness content trend researcher. Zoek actuele trends voor de Nederlandse fitness creator markt. Geef een korte, concrete samenvatting.',
+    messages,
+  })
+
+  while (response.stop_reason === 'tool_use') {
+    const toolUseBlocks = response.content.filter(
+      (b): b is Anthropic.ToolUseBlock => b.type === 'tool_use'
+    )
+    messages.push({ role: 'assistant', content: response.content })
+    messages.push({
+      role: 'user',
+      content: toolUseBlocks.map(b => ({
+        type: 'tool_result' as const,
+        tool_use_id: b.id,
+        content: 'Search executed.',
+      })),
+    })
+    response = await anthropic.messages.create({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 1000,
+      // @ts-ignore
+      tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 3 }],
+      system: 'Je bent een fitness content trend researcher.',
+      messages,
+    })
+  }
+
+  return response.content
+    .filter((b): b is Anthropic.TextBlock => b.type === 'text')
+    .map(b => b.text)
+    .join('\n')
+    .slice(0, 600)
+}
+
+// ── Algoritme-inzichten (research-backed 2026) ─────────────────────────────
+// Bron: Instagram/TikTok algoritme-onderzoek juni 2026
+const ALGORITME_CONTEXT = `
+ALGORITME-FEITEN 2026 (gebruik dit bij elke keuze):
+- DM-shares zijn het ZWAARSTE signaal op Instagram Reels — maak content die mensen doorsturen
+- 7–30 seconden video heeft hoogste completion rate en meeste nieuw bereik
+- Eerste 3 seconden bepalen 50% van de kijktijd — hook moet instant raken
+- Originality Score: geen hergebruikte content, geen TikTok-watermark op Instagram
+- Wat gaat viral op fitness TikTok/Reels in 2026:
+  * Techniekfouten corrigeren (mensen herkennen zichzelf, sturen het door)
+  * "Dit doe je waarschijnlijk fout bij [oefening]" — confronterend, deelbaar
+  * Minimal equipment / thuis workout content (breed bereik)
+  * Resultaat in één shot (voor/na beweging, form fix in real time)
+  * Cijfers die schrikken: "Je verliest 40% spierkracht als je dit doet"
+- VERMIJD: vage motivatiequotes, lange talking heads, content waarbij je je ongemakkelijk voelt`
+
 // ── Agent 1: Strategie ─────────────────────────────────────────────────────
 // Kiest 3 fitness topics — puur fitness, maximaal visueel, niet herhaald.
 
-async function kiesTopics(filmDag: string, filmDatum: string, recenteTopics: string[]): Promise<string> {
+async function kiesTopics(filmDag: string, filmDatum: string, recenteTopics: string[], dagTrends: string): Promise<string> {
   const vermijden = recenteTopics.length
     ? `\n\nVERMIJD deze topics want ze zijn de afgelopen week al gedaan:\n${recenteTopics.slice(0, 12).map(t => `- ${t}`).join('\n')}`
+    : ''
+
+  const trendBlok = dagTrends.trim()
+    ? `\n\nACTUELE TRENDS VANDAAG (web search resultaat — gebruik dit om topics aan te scherpen):\n${dagTrends}`
     : ''
 
   const res = await anthropic.messages.create({
     model: 'claude-sonnet-4-6',
     max_tokens: 1200,
-    system: `Je bent een fitness content strateeg die weet wat viraal gaat op Instagram Reels en TikTok in 2025.
+    system: `Je bent een fitness content strateeg die weet wat viraal gaat op Instagram Reels en TikTok in 2026.
 
 Kane Bongers is personal trainer in Eersel, Nederland. Hij filmt zichzelf — geen crew, geen studio. Zijn publiek: mannen en vrouwen 20–40 jaar die willen afvallen, spiermassa opbouwen of meer energie willen. Ze scrollen 's ochtends of 's avonds.
 
-Kies topics die aan ALLE vier criteria voldoen:
-1. Visueel — je ziet het, je demonstreert het (geen praatje alleen)
-2. Specifiek — niet "goede techniek" maar "zo til je de dumbbell bij een Romanian Deadlift"
-3. Correct fout/win — lost een veelgemaakte fout op óf geeft een direct resultaat
-4. Fitness only — geen ondernemerscontent, geen mindset-fluff, geen motivatiequotes
+${ALGORITME_CONTEXT}
+
+Kies topics die aan ALLE vijf criteria voldoen:
+1. Deelbaar — iemand stuurt dit door naar een vriend ("dit ben jij")
+2. Visueel — je ziet het, je demonstreert het in max 30 seconden
+3. Specifiek — niet "goede techniek" maar "zo til je bij een Romanian Deadlift"
+4. Herkenbaar fout/win — lost een veelgemaakte fout op óf geeft direct resultaat
+5. Niet ongemakkelijk — Kane moet zich op zijn gemak voelen bij het filmen
 
 Denk aan:
 - Techniekfouten bij populaire oefeningen (squat, bench, deadlift, shoulder press)
-- Snel effectieve workouts (5-10 minuten, thuis of gym)
-- Voeding die direct invloed heeft op prestatie (pre/post workout, eiwitten)
+- Quick wins die mensen direct kunnen toepassen (30 seconden om te laten zien)
+- Voeding die direct invloed heeft op prestatie
 - Herstel tips die mensen niet kennen
 - Progressie methoden (hoe je sterker wordt)
-- Lichaamssignalen die mensen verkeerd interpreteren
 
 Varieer locatie: niet alle 3 op dezelfde plek.
-Varieer format: mix demonstratie met talking head.${vermijden}
+Varieer format: mix demonstratie met talking head.${trendBlok}${vermijden}
 
 Retourneer ALLEEN een JSON array:
 [
@@ -70,12 +141,13 @@ Retourneer ALLEEN een JSON array:
     "invalshoek": "corrigeer fout | geef quick win | bust mythe | demonstreer techniek | uitleg mechanic",
     "locatie": "Gym | Buiten | Thuis",
     "format": "demonstratie | talking head | workout | uitleg",
-    "doelgroep_pijn": "welk probleem of frustratie raakt dit bij de kijker"
+    "doelgroep_pijn": "welk probleem of frustratie raakt dit bij de kijker",
+    "dm_share_reden": "waarom stuurt iemand dit door aan een vriend?"
   }
 ]`,
     messages: [{
       role: 'user',
-      content: `Filmdag: ${filmDag} ${filmDatum}. Kies 3 sterke fitness topics. Maak elk topic zo specifiek dat Kane precies weet welke oefening of welk concept hij gaat filmen.`
+      content: `Filmdag: ${filmDag} ${filmDatum}. Kies 3 sterke fitness topics. Maak elk topic zo specifiek dat Kane precies weet welke oefening of welk concept hij gaat filmen. Prioriteit: DM-shareability.`
     }],
   })
   return res.content[0].type === 'text' ? res.content[0].text : '[]'
@@ -90,21 +162,24 @@ async function schrijfScripts(topicsJson: string, postDag: string, postDatum: st
     max_tokens: 3500,
     system: `Je bent een short-form video scriptwriter die fitness content schrijft voor Instagram Reels en TikTok. Je schrijft voor een Nederlandse personal trainer die zichzelf filmt.
 
+${ALGORITME_CONTEXT}
+
 Regels die je nooit breekt:
 - GEEN intro. Geen "hoi", geen "ik ben Kane". Direct in de hook.
 - GEEN vage algemeenheden. Elk woord moet concreet zijn.
 - GEEN jargon. Gewone taal, zoals je het in de gym zou zeggen.
 - Hook is de EERSTE zin — moet shock, nieuwsgierigheid of directe waarde bevatten.
 - Script is spreektaal — korte zinnen, komma's als pauze, actieve werkwoorden.
+- Doellengte: 15–30 seconden (hogere completion rate = meer bereik).
 - Eindig met een concrete micro-CTA, geen smeekbede ("volg me voor meer" is verboden).
+- Schrijf content waarbij Kane zich op zijn gemak voelt — geen ongemakkelijke poses of situaties.
 
-Hook formules die bewezen werken:
-- "Je [oefening] klopt niet. Hier is waarom."
-- "Meeste mensen doen dit fout bij [onderwerp] — en het kost ze maanden resultaat."
+Hook formules die DM-shares genereren (mensen sturen dit door):
+- "Je [oefening] klopt niet. Hier is waarom." → mensen sturen naar gym-buddy
+- "Dit doe jij ook fout bij [oefening]" → confronterend maar herkenbaar
+- "Meeste mensen verliezen [resultaat] omdat ze dit missen"
 - "Probeer dit 30 seconden. Je voelt het verschil direct."
-- "[Getal] seconden is genoeg. Zo doe je het."
-- "Dit ene aanpassing bij [oefening] verdubbelt je resultaat."
-- "Je traint al maanden maar dit doet niemand."
+- "[Getal] seconden aanpassing bij [oefening] = direct resultaat"
 
 Gebruik [PAUZE] voor een adempauze, [DEMO] voor een demonstratiemoment, [KIJK NAAR CAMERA] voor directe blik.`,
     messages: [{
@@ -119,9 +194,60 @@ Retourneer ALLEEN geldig JSON array:
     "nummer": 1,
     "titel": "pakkende videotitel max 5 woorden, lowercase behalve eerste woord",
     "hook": "exacte eerste zin die het scrollen stopt — max 10 woorden, eindigt NIET met punt",
-    "script": "volledig script spreektaal met [PAUZE] [DEMO] [KIJK NAAR CAMERA] markers — 80-130 woorden voor 45-60s video",
+    "script": "volledig script spreektaal met [PAUZE] [DEMO] [KIJK NAAR CAMERA] markers — 40-70 woorden voor 15-30s video",
+    "duur_doel": "15s | 20s | 25s | 30s",
     "cta": "concrete call to action max 6 woorden, actief",
-    "caption_idee": "2 zinnen caption — eerste zin pakt aan, tweede geeft context — plus 5 niche fitness hashtags"
+    "caption_idee": "2 zinnen caption — eerste zin pakt aan, tweede geeft context — plus 5 niche fitness hashtags",
+    "dm_share_trigger": "waarom stuurt iemand dit door? max 1 zin"
+  }
+]`
+    }],
+  })
+  return res.content[0].type === 'text' ? res.content[0].text : '[]'
+}
+
+// ── Agent 5: Stories ───────────────────────────────────────────────────────
+// Genereert 3 simpele Story-frames die aansluiten op de Reels van die dag.
+
+async function maakStories(topicsJson: string, scriptsJson: string): Promise<string> {
+  const res = await anthropic.messages.create({
+    model: 'claude-sonnet-4-6',
+    max_tokens: 1500,
+    system: `Je maakt Instagram Stories voor een Nederlandse personal trainer. Simpel, direct, geen gedoe.
+
+REGELS:
+- Maximaal 3 story-frames per dag
+- Elke story heeft een duidelijk doel: engagement, tip, of CTA
+- Tekst op screen: max 8 woorden per frame — people scan, not read
+- Geen ongemakkelijke of nep-poses
+- Frame 1: altijd een poll of vraag (boogt engagement, zet Kane vooraan in de Story-tray)
+- Frame 2: één concrete tip van vandaag (direct toepasbaar)
+- Frame 3: simpele CTA aansluitend op de Reel van die dag
+
+POLL-formules die werken:
+- "Doe jij dit ook?" → Ja / Nee
+- "Welke doe jij?" → Optie A / Optie B
+- "Raad eens" → A / B
+
+STORY IS GEEN REEL: geen lang script, geen voice-over. Puur visueel + tekst overlay.`,
+    messages: [{
+      role: 'user',
+      content: `Topics van vandaag: ${topicsJson}
+Scripts van vandaag: ${scriptsJson}
+
+Maak 3 story-frames die aansluiten op deze content.
+
+Retourneer ALLEEN geldig JSON array:
+[
+  {
+    "frame": 1,
+    "type": "poll | tip | cta | vraag",
+    "achtergrond": "gym footage | selfie | tekst op kleur | b-roll",
+    "tekst": "tekst die op het scherm staat — max 8 woorden",
+    "interactie": "poll-vraag met 2 opties, OF vraagsticker tekst, OF geen",
+    "optie_a": "poll optie A of leeg",
+    "optie_b": "poll optie B of leeg",
+    "doel": "wat dit frame bereikt"
   }
 ]`
     }],
@@ -234,8 +360,21 @@ interface ScriptItem {
   titel: string
   hook: string
   script: string
+  duur_doel?: string
   cta: string
   caption_idee: string
+  dm_share_trigger?: string
+}
+
+interface StoryFrame {
+  frame: number
+  type: string
+  achtergrond: string
+  tekst: string
+  interactie: string
+  optie_a: string
+  optie_b: string
+  doel: string
 }
 
 interface ProductieItem {
@@ -262,7 +401,9 @@ function combineerdeBriefing(topics: TopicItem[], scripts: ScriptItem[], product
       format: t.format,
       invalshoek: t.invalshoek ?? '',
       doelgroep_pijn: t.doelgroep_pijn ?? '',
-      duur_sec: p.duur_sec ?? 60,
+      duur_sec: p.duur_sec ?? 30,
+      duur_doel: s.duur_doel ?? '30s',
+      dm_share_trigger: s.dm_share_trigger ?? '',
       platform: p.platform ?? ['Instagram Reels', 'TikTok'],
       prioriteit: 'hoog',
       hook: s.hook ?? '',
@@ -334,18 +475,25 @@ export async function POST(req: NextRequest) {
   const postDatum = morgen.toISOString().split('T')[0]
 
   try {
-    // Haal recente topics op voor variety guard
-    const recenteTopics = await haalRecenteTopics(db)
+    // Agent 0 + variety guard parallel — onafhankelijk van elkaar
+    const [recenteTopics, dagTrends] = await Promise.all([
+      haalRecenteTopics(db),
+      zoekDagTrends(),
+    ])
 
-    // 4 agents sequentieel — elke agent bouwt op de vorige
-    const topicsRaw    = await kiesTopics(filmDag, filmDatumStr, recenteTopics)
+    // Agent 1-4 sequentieel — elke agent bouwt op de vorige
+    const topicsRaw    = await kiesTopics(filmDag, filmDatumStr, recenteTopics, dagTrends)
     const scriptsRaw   = await schrijfScripts(topicsRaw, postDag, postDatumStr)
     const verbeterdRaw = await verbeterHooks(scriptsRaw, topicsRaw)   // critic pass
     const productieRaw = await maakShotList(topicsRaw, verbeterdRaw)
 
+    // Agent 5: Stories parallel aan productie (onafhankelijk)
+    const storiesRaw = await maakStories(topicsRaw, verbeterdRaw)
+
     const topics    = parseJSON<TopicItem[]>(topicsRaw, [])
     const scripts   = parseJSON<ScriptItem[]>(verbeterdRaw, parseJSON<ScriptItem[]>(scriptsRaw, []))
     const productie = parseJSON<ProductieItem[]>(productieRaw, [])
+    const stories   = parseJSON<StoryFrame[]>(storiesRaw, [])
 
     const videos    = combineerdeBriefing(topics, scripts, productie)
     const totaalSec = videos.reduce((s, v) => s + v.duur_sec, 0)
@@ -356,6 +504,7 @@ export async function POST(req: NextRequest) {
       .upsert({
         datum: vandaag,
         videos,
+        stories,
         totale_opnametijd_sec: totaalSec,
         meta: {
           groet: `${videos.length} fitness videos klaar voor ${filmDag}`,

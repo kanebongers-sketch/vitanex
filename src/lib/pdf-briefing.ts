@@ -10,6 +10,8 @@ interface Video {
   locatie: string
   format?: string
   duur_sec: number
+  duur_doel?: string
+  dm_share_trigger?: string
   platform: string[]
   prioriteit: string
   hook: string
@@ -22,6 +24,17 @@ interface Video {
   broll: string[]
   cta: string
   caption_idee: string
+}
+
+interface StoryFrame {
+  frame: number
+  type: string
+  achtergrond: string
+  tekst: string
+  interactie: string
+  optie_a: string
+  optie_b: string
+  doel: string
 }
 
 export interface KalenderItem {
@@ -43,6 +56,7 @@ interface BriefingData {
   datum: string
   post_datum?: string
   videos: Video[]
+  stories?: StoryFrame[]
   totale_opnametijd_sec?: number
   meta?: {
     groet?: string
@@ -141,23 +155,30 @@ export async function generateBriefingPDF(briefing: BriefingData): Promise<Buffe
       doc.fillColor(DONKER).font('Helvetica-Bold').fontSize(14)
          .text(v.titel, margin + 36, topY, { width: contentW - 36 })
 
-      // Meta chips: locatie · duur · pijler · prioriteit
+      // Meta chips: locatie · duur · pijler · platform
       const metaY = doc.y + 3
+      const duurLabel = v.duur_doel ? `${v.duur_doel}` : `${v.duur_sec}s`
       doc.fillColor(GRIJS).font('Helvetica').fontSize(9.5)
          .text(
-           `${v.locatie}  ·  ${v.duur_sec}s  ·  ${v.pijler}  ·  ${(v.platform ?? []).join(', ')}`,
+           `${v.locatie}  ·  ${duurLabel}  ·  ${v.pijler}  ·  ${(v.platform ?? []).join(', ')}`,
            margin + 36, metaY, { width: contentW - 36 }
          )
 
       doc.moveDown(0.8)
 
       // Hook
-      doc.rect(margin, doc.y, 3, 1).fill(GROEN) // lijn-indicator
       doc.fillColor(GROEN).font('Helvetica-Bold').fontSize(9)
          .text('HOOK', margin, doc.y)
       doc.fillColor(DONKER).font('Helvetica-Bold').fontSize(11)
          .text(`"${v.hook}"`, margin, doc.y + 2, { width: contentW })
-      doc.moveDown(0.8)
+      doc.moveDown(0.5)
+
+      // DM-share trigger
+      if (v.dm_share_trigger) {
+        doc.fillColor(GRIJS).font('Helvetica-Oblique').fontSize(8.5)
+           .text(`📤 ${v.dm_share_trigger}`, margin, doc.y, { width: contentW })
+        doc.moveDown(0.5)
+      }
 
       // Script
       doc.fillColor(GROEN).font('Helvetica-Bold').fontSize(9)
@@ -250,6 +271,60 @@ export async function generateBriefingPDF(briefing: BriefingData): Promise<Buffe
       doc.fillColor(DONKER).font('Helvetica').fontSize(10.5)
          .text(briefing.meta.tip, margin + 10, doc.y + 4, { width: contentW - 20 })
       doc.moveDown(2)
+    }
+
+    // ── Stories ─────────────────────────────────────────────────
+    if (briefing.stories?.length) {
+      if (doc.y > doc.page.height - 160) doc.addPage()
+
+      const PAARS = '#7C3AED'
+
+      // Sectie header
+      doc.rect(margin, doc.y, contentW, 26).fill(PAARS)
+      doc.fillColor('#ffffff').font('Helvetica-Bold').fontSize(11)
+         .text('📱  INSTAGRAM STORIES — vandaag posten', margin + 10, doc.y + 7)
+      doc.moveDown(1.4)
+
+      const storyColW = (contentW - 16) / 3
+
+      for (const s of briefing.stories) {
+        if (doc.y > doc.page.height - 140) doc.addPage()
+
+        const frameX = margin + (s.frame - 1) * (storyColW + 8)
+        const frameY = doc.y
+
+        // Kader per story frame
+        doc.rect(frameX, frameY, storyColW, 110).stroke(PAARS)
+
+        // Frame nummer + type
+        doc.fillColor(PAARS).font('Helvetica-Bold').fontSize(8)
+           .text(`FRAME ${s.frame} — ${s.type.toUpperCase()}`, frameX + 6, frameY + 6, { width: storyColW - 12 })
+
+        // Tekst op scherm
+        doc.fillColor(DONKER).font('Helvetica-Bold').fontSize(9.5)
+           .text(s.tekst, frameX + 6, frameY + 20, { width: storyColW - 12 })
+
+        // Poll opties indien aanwezig
+        if (s.interactie && s.interactie !== 'geen') {
+          doc.fillColor(PAARS).font('Helvetica-Bold').fontSize(8)
+             .text(s.interactie, frameX + 6, frameY + 50, { width: storyColW - 12 })
+          if (s.optie_a) {
+            doc.fillColor(GRIJS).font('Helvetica').fontSize(8)
+               .text(`A: ${s.optie_a}  |  B: ${s.optie_b}`, frameX + 6, frameY + 63, { width: storyColW - 12 })
+          }
+        }
+
+        // Achtergrond hint
+        doc.fillColor(GRIJS).font('Helvetica-Oblique').fontSize(7.5)
+           .text(`Achtergrond: ${s.achtergrond}`, frameX + 6, frameY + 78, { width: storyColW - 12 })
+
+        // Doel
+        doc.fillColor(GRIJS).font('Helvetica').fontSize(7.5)
+           .text(s.doel, frameX + 6, frameY + 91, { width: storyColW - 12 })
+      }
+
+      doc.y = doc.y + 120
+      doc.moveDown(0.5)
     }
 
     // ── Kalender: vandaag + morgen posten ───────────────────────

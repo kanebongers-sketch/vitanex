@@ -89,6 +89,7 @@ export async function GET(req: NextRequest) {
       datum: briefing.datum,
       post_datum: briefing.post_datum,
       videos: briefing.videos ?? [],
+      stories: briefing.stories ?? [],
       totale_opnametijd_sec: briefing.totale_opnametijd_sec,
       meta: briefing.meta,
       kalender_vandaag: kalenderVandaag,
