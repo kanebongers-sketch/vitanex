@@ -1,4 +1,8 @@
-import PDFDocument from 'pdfkit'
+import path from 'node:path'
+
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+type PDFDocumentType = typeof import('pdfkit').prototype
+type PDFDocumentConstructor = new (options?: import('pdfkit').PDFDocumentOptions) => PDFDocumentType
 
 interface Video {
   nummer: number
@@ -35,6 +39,11 @@ const LICHTGRIJS = '#f3f4f6'
 const ORANJE = '#E8A020'
 
 export function generateBriefingPDF(briefing: BriefingData): Promise<Buffer> {
+  // Absolute-path require bypasses Turbopack bundling — pdfkit needs its own __dirname
+  // to resolve AFM font files from node_modules/pdfkit/js/data/
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const PDFDocument = require(path.join(process.cwd(), 'node_modules', 'pdfkit')) as PDFDocumentConstructor
+
   return new Promise((resolve, reject) => {
     const chunks: Buffer[] = []
     const doc = new PDFDocument({ margin: 48, size: 'A4' })

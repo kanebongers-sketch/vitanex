@@ -46,31 +46,35 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Geen briefing gevonden na generatie' }, { status: 500 })
   }
 
-  // 3. Genereer PDF
-  const pdfBuffer = await generateBriefingPDF({
-    datum: briefing.datum,
-    post_datum: briefing.post_datum,
-    videos: briefing.videos ?? [],
-    totale_opnametijd_sec: briefing.totale_opnametijd_sec,
-    meta: briefing.meta,
-  })
-
-  // 4. Upload naar Drive (als geconfigureerd)
+  // 3. Upload naar Drive (optioneel — alleen als geconfigureerd)
   const folderId = process.env.GOOGLE_DRIVE_FOLDER_ID
   if (folderId && process.env.GOOGLE_SERVICE_ACCOUNT_JSON) {
-    const postDatumRaw = briefing.post_datum ?? (() => {
-      const d = new Date(vandaag); d.setDate(d.getDate() + 1); return d.toISOString().split('T')[0]
-    })()
-    const postDatumNL = new Date(postDatumRaw).toLocaleDateString('nl-NL', {
-      weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
-    })
-    const bestandsnaam = `Content Briefing — Post ${postDatumNL.charAt(0).toUpperCase() + postDatumNL.slice(1)}.pdf`
+    try {
+      const pdfBuffer = await generateBriefingPDF({
+        datum: briefing.datum,
+        post_datum: briefing.post_datum,
+        videos: briefing.videos ?? [],
+        totale_opnametijd_sec: briefing.totale_opnametijd_sec,
+        meta: briefing.meta,
+      })
 
-    const driveLink = await uploadToDrive(pdfBuffer, bestandsnaam, folderId)
-    await db.from('content_briefings').update({ drive_link: driveLink }).eq('datum', vandaag)
+      const postDatumRaw = briefing.post_datum ?? (() => {
+        const d = new Date(vandaag); d.setDate(d.getDate() + 1); return d.toISOString().split('T')[0]
+      })()
+      const postDatumNL = new Date(postDatumRaw).toLocaleDateString('nl-NL', {
+        weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+      })
+      const bestandsnaam = `Content Briefing — Post ${postDatumNL.charAt(0).toUpperCase() + postDatumNL.slice(1)}.pdf`
 
-    console.log(`[CRON] Briefing ${vandaag} → Drive: ${driveLink}`)
-    return NextResponse.json({ ok: true, datum: vandaag, post_datum: postDatumRaw, drive_link: driveLink })
+      const driveLink = await uploadToDrive(pdfBuffer, bestandsnaam, folderId)
+      await db.from('content_briefings').update({ drive_link: driveLink }).eq('datum', vandaag)
+
+      console.log(`[CRON] Briefing ${vandaag} → Drive: ${driveLink}`)
+      return NextResponse.json({ ok: true, datum: vandaag, post_datum: postDatumRaw, drive_link: driveLink })
+    } catch (err) {
+      console.error('[CRON] PDF/Drive mislukt:', err)
+      return NextResponse.json({ ok: true, datum: vandaag, drive_link: null, warning: 'PDF/Drive mislukt' })
+    }
   }
 
   console.log(`[CRON] Briefing ${vandaag} gegenereerd (Drive niet geconfigureerd)`)
