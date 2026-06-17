@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import Link from 'next/link'
 import { authFetch } from '@/lib/auth-fetch'
 import Navbar from '@/components/layout/Navbar'
@@ -96,6 +96,202 @@ const NAV_TABS = [
   { href: '/content/kalender',  label: 'Kalender'   },
 ]
 
+// ── DagZoomModal ───────────────────────────────────────────
+
+function DagZoomModal({ dag, kalender, onClose }: {
+  dag: { dagNr: number; dagNaam: string; datum: string | undefined }
+  kalender: Kalender
+  onClose: () => void
+}) {
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) { if (e.key === 'Escape') onClose() }
+    document.addEventListener('keydown', onKey)
+    document.body.style.overflow = 'hidden'
+    return () => { document.removeEventListener('keydown', onKey); document.body.style.overflow = '' }
+  }, [onClose])
+
+  const platforms: { key: Platform; cfg: typeof PLATFORM_CONFIG[Platform] }[] = (
+    Object.entries(PLATFORM_CONFIG) as [Platform, typeof PLATFORM_CONFIG[Platform]][]
+  ).map(([key, cfg]) => ({ key, cfg }))
+
+  const datumObj = dag.datum ? new Date(dag.datum) : null
+  const isVandaag = datumObj ? datumObj.toDateString() === new Date().toDateString() : false
+  const isMorgen = datumObj ? datumObj.toDateString() === (() => { const d = new Date(); d.setDate(d.getDate() + 1); return d.toDateString() })() : false
+
+  return (
+    <div
+      onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 1000,
+        background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: '20px',
+      }}
+    >
+      <div
+        ref={ref}
+        style={{
+          background: 'var(--bg-card)',
+          borderRadius: 'var(--radius-xl)',
+          border: '1px solid var(--border)',
+          boxShadow: '0 24px 80px rgba(0,0,0,0.35)',
+          width: '100%', maxWidth: 780,
+          maxHeight: '90vh',
+          overflow: 'hidden',
+          display: 'flex', flexDirection: 'column',
+        }}
+      >
+        {/* Modal header */}
+        <div style={{
+          padding: '22px 28px 18px',
+          borderBottom: '1px solid var(--border)',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          flexShrink: 0,
+        }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <h2 style={{ fontSize: 22, fontWeight: 900, color: 'var(--text-1)', margin: 0 }}>
+                {dag.dagNaam.charAt(0).toUpperCase() + dag.dagNaam.slice(1)}
+              </h2>
+              {isVandaag && (
+                <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--mf-green)', background: 'rgba(29,158,117,0.12)', borderRadius: 100, padding: '3px 10px' }}>
+                  Vandaag
+                </span>
+              )}
+              {isMorgen && (
+                <span style={{ fontSize: 11, fontWeight: 800, color: '#185FA5', background: 'rgba(24,95,165,0.12)', borderRadius: 100, padding: '3px 10px' }}>
+                  Morgen
+                </span>
+              )}
+            </div>
+            {datumObj && (
+              <p style={{ fontSize: 13, color: 'var(--text-3)', margin: '4px 0 0' }}>
+                {datumObj.toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long' })}
+              </p>
+            )}
+          </div>
+          <button
+            onClick={onClose}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 22, color: 'var(--text-3)', lineHeight: 1, padding: '4px 8px' }}
+          >
+            ×
+          </button>
+        </div>
+
+        {/* Modal body — per platform */}
+        <div style={{ overflowY: 'auto', padding: '24px 28px', display: 'flex', flexDirection: 'column', gap: 28 }}>
+          {platforms.map(({ key, cfg }) => {
+            const dagEntry = (kalender[key] as DagEntry[]).find(d => d.dag === dag.dagNr)
+            const items = dagEntry?.items ?? []
+            return (
+              <div key={key}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+                  <span style={{ fontSize: 18 }}>{cfg.icon}</span>
+                  <h3 style={{ fontSize: 16, fontWeight: 800, color: cfg.kleur, margin: 0 }}>{cfg.label}</h3>
+                  <span style={{ fontSize: 12, color: 'var(--text-4)', fontWeight: 600 }}>
+                    {items.length} {items.length === 1 ? 'post' : 'posts'}
+                  </span>
+                </div>
+                {items.length === 0 ? (
+                  <p style={{ fontSize: 13, color: 'var(--text-4)', margin: 0, fontStyle: 'italic' }}>Geen content gepland</p>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    {items.map((item, idx) => (
+                      <ModalItemKaart key={idx} item={item} platformKleur={cfg.kleur} />
+                    ))}
+                  </div>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function ModalItemKaart({ item, platformKleur }: { item: ContentItem; platformKleur: string }) {
+  const typeCfg = TYPE_CONFIG[item.type] ?? { label: item.type, kleur: '#6b7280' }
+  const pijlerKleur = PIJLER_KLEUR[item.pijler] ?? '#6b7280'
+
+  return (
+    <div style={{
+      background: 'var(--bg-app)',
+      border: `1px solid ${typeCfg.kleur}30`,
+      borderRadius: 'var(--radius-md)',
+      padding: '16px 18px',
+    }}>
+      {/* Type + tijd */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+        <span style={{
+          fontSize: 11, fontWeight: 800, color: typeCfg.kleur,
+          background: typeCfg.kleur + '18', borderRadius: 100, padding: '3px 10px',
+          textTransform: 'uppercase', letterSpacing: '0.4px',
+        }}>
+          {typeCfg.label}
+        </span>
+        <span style={{
+          fontSize: 11, fontWeight: 700, color: pijlerKleur,
+          background: pijlerKleur + '15', borderRadius: 100, padding: '3px 10px',
+        }}>
+          {item.pijler}
+        </span>
+        <span style={{ fontSize: 12, color: 'var(--text-3)', fontWeight: 600, marginLeft: 'auto' }}>
+          ⏰ {item.beste_tijd}
+        </span>
+      </div>
+
+      {/* Titel */}
+      <h4 style={{ fontSize: 15, fontWeight: 800, color: 'var(--text-1)', margin: '0 0 10px', lineHeight: 1.3 }}>
+        {item.titel}
+      </h4>
+
+      {/* Hook */}
+      {item.hook && (
+        <div style={{ marginBottom: 10 }}>
+          <p style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: '0.8px', margin: '0 0 4px' }}>
+            Hook
+          </p>
+          <p style={{
+            fontSize: 13, color: platformKleur, fontStyle: 'italic', fontWeight: 600,
+            margin: 0, lineHeight: 1.45,
+            background: platformKleur + '08', borderRadius: 8, padding: '8px 12px',
+            borderLeft: `3px solid ${platformKleur}`,
+          }}>
+            "{item.hook}"
+          </p>
+        </div>
+      )}
+
+      {/* Caption */}
+      <div style={{ marginBottom: item.hashtags?.length ? 10 : 0 }}>
+        <p style={{ fontSize: 10, fontWeight: 800, color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: '0.8px', margin: '0 0 4px' }}>
+          Caption
+        </p>
+        <p style={{ fontSize: 13, color: 'var(--text-2)', margin: 0, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
+          {item.caption}
+        </p>
+      </div>
+
+      {/* Hashtags */}
+      {item.hashtags && item.hashtags.length > 0 && (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 10 }}>
+          {item.hashtags.map((tag, i) => (
+            <span key={i} style={{
+              fontSize: 11, color: platformKleur, fontWeight: 600,
+              background: platformKleur + '10', borderRadius: 6, padding: '3px 8px',
+            }}>
+              #{tag.replace(/^#/, '')}
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ── Page ───────────────────────────────────────────────────
 
 export default function ContentKalenderPage() {
@@ -104,6 +300,7 @@ export default function ContentKalenderPage() {
   const [laden, setLaden] = useState(true)
   const [genereren, setGenereren] = useState(false)
   const [openDag, setOpenDag] = useState<number | null>(null)
+  const [zoomDag, setZoomDag] = useState<{ dagNr: number; dagNaam: string; datum: string | undefined } | null>(null)
   const weekStart = getMaandagVanWeek()
 
   const laadKalender = useCallback(async () => {
@@ -312,14 +509,24 @@ export default function ContentKalenderPage() {
                   ? datumObj.toDateString() === new Date().toDateString()
                   : false
 
+                const dagNamen = ['maandag','dinsdag','woensdag','donderdag','vrijdag','zaterdag','zondag']
+
                 return (
-                  <div key={dagNr} style={{
-                    borderRadius: 'var(--radius-lg)',
-                    border: `1px solid ${isVandaag ? 'var(--mf-green)' : 'var(--border)'}`,
-                    background: isVandaag ? 'rgba(29,158,117,0.04)' : 'var(--bg-card)',
-                    overflow: 'hidden',
-                    boxShadow: isVandaag ? '0 0 0 2px rgba(29,158,117,0.15)' : 'var(--shadow-sm)',
-                  }}>
+                  <div
+                    key={dagNr}
+                    onClick={() => setZoomDag({ dagNr, dagNaam: dagNamen[i], datum: entry?.datum })}
+                    style={{
+                      borderRadius: 'var(--radius-lg)',
+                      border: `1px solid ${isVandaag ? 'var(--mf-green)' : 'var(--border)'}`,
+                      background: isVandaag ? 'rgba(29,158,117,0.04)' : 'var(--bg-card)',
+                      overflow: 'hidden',
+                      boxShadow: isVandaag ? '0 0 0 2px rgba(29,158,117,0.15)' : 'var(--shadow-sm)',
+                      cursor: 'pointer',
+                      transition: 'box-shadow 0.15s ease',
+                    }}
+                    onMouseEnter={e => (e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.12)')}
+                    onMouseLeave={e => (e.currentTarget.style.boxShadow = isVandaag ? '0 0 0 2px rgba(29,158,117,0.15)' : 'var(--shadow-sm)')}
+                  >
                     {/* Dag header */}
                     <div style={{
                       padding: '10px 12px 8px',
@@ -371,6 +578,15 @@ export default function ContentKalenderPage() {
           </>
         )}
       </main>
+
+      {/* Dag zoom modal */}
+      {zoomDag && kalender && (
+        <DagZoomModal
+          dag={zoomDag}
+          kalender={kalender}
+          onClose={() => setZoomDag(null)}
+        />
+      )}
     </div>
   )
 }

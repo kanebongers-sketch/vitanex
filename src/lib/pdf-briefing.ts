@@ -18,6 +18,21 @@ interface Video {
   caption_idee: string
 }
 
+export interface KalenderItem {
+  type: string
+  pijler: string
+  titel: string
+  hook?: string
+  caption: string
+  hashtags?: string[]
+  beste_tijd: string
+}
+
+export interface KalenderDag {
+  platform: string
+  items: KalenderItem[]
+}
+
 interface BriefingData {
   datum: string
   post_datum?: string
@@ -28,6 +43,8 @@ interface BriefingData {
     thema?: string
     tip?: string
   }
+  kalender_vandaag?: KalenderDag[]
+  kalender_morgen?: KalenderDag[]
 }
 
 const GROEN = '#1D9E75'
@@ -185,7 +202,76 @@ export async function generateBriefingPDF(briefing: BriefingData): Promise<Buffe
       doc.moveDown(2)
     }
 
-    // ── Footer ──────────────────────────────────────────────────
+    // ── Kalender: vandaag + morgen posten ───────────────────────
+    const kalenderSections: { label: string; kleur: string; dagen: KalenderDag[] }[] = []
+    if (briefing.kalender_vandaag?.length) {
+      const vandaagNL = new Date(briefing.datum).toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long' })
+      kalenderSections.push({ label: `Vandaag posten — ${vandaagNL.charAt(0).toUpperCase() + vandaagNL.slice(1)}`, kleur: GROEN, dagen: briefing.kalender_vandaag })
+    }
+    if (briefing.kalender_morgen?.length) {
+      const morgenRaw = postDatumRaw
+      const morgenNL = new Date(morgenRaw).toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long' })
+      kalenderSections.push({ label: `Morgen posten — ${morgenNL.charAt(0).toUpperCase() + morgenNL.slice(1)}`, kleur: '#185FA5', dagen: briefing.kalender_morgen })
+    }
+
+    for (const sectie of kalenderSections) {
+      doc.addPage()
+
+      // Sectie header
+      doc.rect(0, 0, pageW, 52).fill(sectie.kleur)
+      doc.fillColor('#ffffff').font('Helvetica-Bold').fontSize(16)
+         .text(sectie.label, margin, 18)
+      doc.y = 68
+
+      for (const dag of sectie.dagen) {
+        if (!dag.items?.length) continue
+        if (doc.y > doc.page.height - 150) doc.addPage()
+
+        // Platform naam
+        const platformIcons: Record<string, string> = { instagram: 'Instagram', facebook: 'Facebook', linkedin: 'LinkedIn' }
+        doc.fillColor(sectie.kleur).font('Helvetica-Bold').fontSize(10)
+           .text((platformIcons[dag.platform] ?? dag.platform).toUpperCase(), margin, doc.y)
+        doc.rect(margin, doc.y + 2, 32, 1.5).fill(sectie.kleur)
+        doc.moveDown(0.6)
+
+        for (const item of dag.items) {
+          if (doc.y > doc.page.height - 120) doc.addPage()
+
+          // Item header: type + tijd
+          doc.fillColor(DONKER).font('Helvetica-Bold').fontSize(11)
+             .text(`${item.type.toUpperCase()}  ·  ${item.titel}`, margin, doc.y, { width: contentW - 80 })
+          doc.fillColor(GRIJS).font('Helvetica').fontSize(9)
+             .text(item.beste_tijd, margin + contentW - 60, doc.y - 12, { width: 60, align: 'right' })
+          doc.moveDown(0.3)
+
+          if (item.hook) {
+            doc.fillColor(sectie.kleur).font('Helvetica-Bold').fontSize(8.5)
+               .text('HOOK', margin, doc.y)
+            doc.fillColor('#374151').font('Helvetica-Oblique').fontSize(10)
+               .text(`"${item.hook}"`, margin, doc.y + 2, { width: contentW })
+            doc.moveDown(0.5)
+          }
+
+          doc.fillColor(sectie.kleur).font('Helvetica-Bold').fontSize(8.5)
+             .text('CAPTION', margin, doc.y)
+          doc.fillColor('#374151').font('Helvetica').fontSize(9.5)
+             .text(item.caption, margin, doc.y + 2, { width: contentW })
+          doc.moveDown(0.3)
+
+          if (item.hashtags?.length) {
+            doc.fillColor(sectie.kleur).font('Helvetica').fontSize(8.5)
+               .text(item.hashtags.map(h => `#${h.replace(/^#/, '')}`).join('  '), margin, doc.y, { width: contentW })
+            doc.moveDown(0.3)
+          }
+
+          doc.rect(margin, doc.y, contentW, 0.5).fill('#e5e7eb')
+          doc.moveDown(0.8)
+        }
+        doc.moveDown(0.5)
+      }
+    }
+
+    // ── Footer (op elke pagina via addPage hook is complex — zet op laatste pagina) ──
     const footerY = doc.page.height - 32
     doc.rect(0, footerY - 4, pageW, 36).fill(DONKER)
     doc.fillColor('#6b7280').font('Helvetica').fontSize(8)
