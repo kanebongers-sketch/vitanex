@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { generateBriefingPDF } from '@/lib/pdf-briefing'
-import { uploadToDrive } from '@/lib/google-drive'
+import { uploadBriefingPDF } from '@/lib/briefing-storage'
 
 // Called daily at 20:00 (NL time) by cron-job.org
 // Protected by CRON_SECRET env var (optional — if not set, any request passes)
@@ -82,41 +82,29 @@ export async function GET(req: NextRequest) {
   const kalenderVandaag = kalenderVoorDatum(kalender as Record<string, { dag: number; items: unknown[] }[]> | null, vandaag)
   const kalenderMorgen = kalenderVoorDatum(kalender as Record<string, { dag: number; items: unknown[] }[]> | null, morgen)
 
-  // 4. Upload naar Drive (optioneel — alleen als geconfigureerd)
-  const folderId = process.env.GOOGLE_DRIVE_FOLDER_ID
-  const driveDebug = { folderId: !!folderId, serviceAccount: !!process.env.GOOGLE_SERVICE_ACCOUNT_JSON }
-  console.log('[CRON] Drive env check', driveDebug)
-  if (folderId && process.env.GOOGLE_SERVICE_ACCOUNT_JSON) {
-    try {
-      const pdfBuffer = await generateBriefingPDF({
-        datum: briefing.datum,
-        post_datum: briefing.post_datum,
-        videos: briefing.videos ?? [],
-        totale_opnametijd_sec: briefing.totale_opnametijd_sec,
-        meta: briefing.meta,
-        kalender_vandaag: kalenderVandaag,
-        kalender_morgen: kalenderMorgen,
-      })
+  // 4. Genereer PDF en sla op in Supabase Storage
+  try {
+    const pdfBuffer = await generateBriefingPDF({
+      datum: briefing.datum,
+      post_datum: briefing.post_datum,
+      videos: briefing.videos ?? [],
+      totale_opnametijd_sec: briefing.totale_opnametijd_sec,
+      meta: briefing.meta,
+      kalender_vandaag: kalenderVandaag,
+      kalender_morgen: kalenderMorgen,
+    })
 
-      const postDatumRaw = briefing.post_datum ?? (() => {
-        const d = new Date(vandaag); d.setDate(d.getDate() + 1); return d.toISOString().split('T')[0]
-      })()
-      const postDatumNL = new Date(postDatumRaw).toLocaleDateString('nl-NL', {
-        weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
-      })
-      const bestandsnaam = `Content Briefing — Post ${postDatumNL.charAt(0).toUpperCase() + postDatumNL.slice(1)}.pdf`
+    const pdfUrl = await uploadBriefingPDF(pdfBuffer, vandaag)
+    await db.from('content_briefings').update({ drive_link: pdfUrl }).eq('datum', vandaag)
 
-      const driveLink = await uploadToDrive(pdfBuffer, bestandsnaam, folderId)
-      await db.from('content_briefings').update({ drive_link: driveLink }).eq('datum', vandaag)
+    const postDatumRaw = briefing.post_datum ?? (() => {
+      const d = new Date(vandaag); d.setDate(d.getDate() + 1); return d.toISOString().split('T')[0]
+    })()
 
-      console.log(`[CRON] Briefing ${vandaag} → Drive: ${driveLink}`)
-      return NextResponse.json({ ok: true, datum: vandaag, post_datum: postDatumRaw, drive_link: driveLink })
-    } catch (err) {
-      console.error('[CRON] PDF/Drive mislukt:', err)
-      return NextResponse.json({ ok: true, datum: vandaag, drive_link: null, warning: 'PDF/Drive mislukt', error: String(err) })
-    }
+    console.log(`[CRON] Briefing ${vandaag} → Storage: ${pdfUrl}`)
+    return NextResponse.json({ ok: true, datum: vandaag, post_datum: postDatumRaw, pdf_url: pdfUrl })
+  } catch (err) {
+    console.error('[CRON] PDF/Storage mislukt:', err)
+    return NextResponse.json({ ok: true, datum: vandaag, pdf_url: null, warning: 'PDF generatie mislukt', error: String(err) })
   }
-
-  console.log(`[CRON] Briefing ${vandaag} gegenereerd (Drive niet geconfigureerd)`)
-  return NextResponse.json({ ok: true, datum: vandaag, drive_link: null, _debug: driveDebug })
 }
