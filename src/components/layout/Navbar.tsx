@@ -99,6 +99,7 @@ const TOP_ITEMS: TopItem[] = [
     emoji: '🎬',
     items: [
       { href: '/content',           label: '📋 Dagelijkse Briefing' },
+      { href: '/content/kalender',  label: '📅 Weekkalender'        },
       { href: '/content/strategie', label: '🗺 Strategie'           },
       { href: '/content/ideeen',    label: '💡 Ideeën Bank'         },
     ],
