@@ -113,7 +113,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ ok: true, datum: vandaag, post_datum: postDatumRaw, drive_link: driveLink })
     } catch (err) {
       console.error('[CRON] PDF/Drive mislukt:', err)
-      return NextResponse.json({ ok: true, datum: vandaag, drive_link: null, warning: 'PDF/Drive mislukt' })
+      return NextResponse.json({ ok: true, datum: vandaag, drive_link: null, warning: 'PDF/Drive mislukt', error: String(err) })
     }
   }
 
