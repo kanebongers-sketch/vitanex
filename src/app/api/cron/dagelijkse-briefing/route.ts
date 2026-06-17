@@ -124,7 +124,7 @@ export async function GET(req: NextRequest) {
 
     // Op maandag ook de weekplanning genereren
     let weekplanningUrl: string | null = null
-    if (nu.getDay() === 1) {
+    if (new Date().getDay() === 1) {
       try {
         const wpRes = await fetch(`${baseUrl}/api/content/weekplanning`, {
           method: 'POST',
