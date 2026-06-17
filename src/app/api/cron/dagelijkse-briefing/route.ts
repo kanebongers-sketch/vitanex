@@ -3,11 +3,10 @@ import { createClient } from '@supabase/supabase-js'
 import { generateBriefingPDF } from '@/lib/pdf-briefing'
 import { uploadToDrive } from '@/lib/google-drive'
 
-// Called daily at 20:00 (NL time) by Render cron or external scheduler
-// Generates today's filming plan → posts tomorrow
-// Protected by CRON_SECRET env var
+// Called daily at 20:00 (NL time) by cron-job.org
+// Protected by CRON_SECRET env var (optional — if not set, any request passes)
 export async function GET(req: NextRequest) {
-  const cronSecret = process.env.CRON_SECRET
+  const cronSecret = process.env.CRON_SECRET ?? ''
   const secret = req.headers.get('x-cron-secret') ?? req.nextUrl.searchParams.get('secret')
   if (cronSecret && secret !== cronSecret) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -22,7 +21,6 @@ export async function GET(req: NextRequest) {
 
   // 1. Genereer briefing (of gebruik bestaande)
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://mentaforce.nl'
-  const cronSecret = process.env.CRON_SECRET ?? ''
   const briefingRes = await fetch(`${baseUrl}/api/content/briefing`, {
     method: 'POST',
     headers: {
@@ -60,7 +58,6 @@ export async function GET(req: NextRequest) {
   // 4. Upload naar Drive (als geconfigureerd)
   const folderId = process.env.GOOGLE_DRIVE_FOLDER_ID
   if (folderId && process.env.GOOGLE_SERVICE_ACCOUNT_JSON) {
-    // Gebruik post_datum (morgen) in de bestandsnaam — dat is wanneer het gepost wordt
     const postDatumRaw = briefing.post_datum ?? (() => {
       const d = new Date(vandaag); d.setDate(d.getDate() + 1); return d.toISOString().split('T')[0]
     })()
