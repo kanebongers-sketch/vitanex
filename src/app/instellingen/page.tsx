@@ -416,9 +416,104 @@ export default function Instellingen() {
       <Navbar />
       <main className="px-4 py-8">
 
-        <div className="mb-8">
-          <h1 className="text-2xl font-semibold text-gray-900">Instellingen</h1>
-          <p className="text-gray-500 text-sm mt-1">Beheer je profiel, account en voorkeuren.</p>
+        {/* Profiel hero */}
+        <div className="mb-6 rounded-2xl overflow-hidden mf-animate-up" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)' }}>
+          {/* Gradient header */}
+          <div className="h-20 relative" style={{ background: 'linear-gradient(135deg, var(--mf-green-dark) 0%, var(--mf-blue) 100%)' }}>
+            <div className="absolute inset-0 opacity-30" style={{ backgroundImage: 'radial-gradient(circle at 80% 50%, rgba(255,255,255,0.15) 0%, transparent 60%)' }} />
+          </div>
+
+          {/* Info rij */}
+          <div className="px-6 pb-5 relative">
+            {/* Avatar — overlapt de header */}
+            <div className="absolute -top-9 left-6">
+              <div className="relative">
+                <Avatar naam={naam || 'G'} avatarUrl={avatarUrl} size={72} />
+                {/* Online dot */}
+                <span className="absolute bottom-1 right-1 w-3.5 h-3.5 rounded-full border-2" style={{ background: 'var(--mf-green)', borderColor: 'var(--bg-card)' }} />
+              </div>
+            </div>
+
+            {/* Ruimte voor avatar overlap */}
+            <div className="h-10" />
+
+            <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
+              <div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h1 className="text-xl font-bold" style={{ color: 'var(--text-1)' }}>
+                    {naam || 'Gebruiker'}
+                  </h1>
+                  {/* Rol badge */}
+                  <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full" style={{
+                    background: userRol === 'admin' ? 'var(--mf-purple-light)' : userRol === 'hr' ? 'var(--mf-blue-light)' : 'var(--mf-green-light)',
+                    color: userRol === 'admin' ? 'var(--mf-purple)' : userRol === 'hr' ? 'var(--mf-blue)' : 'var(--mf-green-dark)',
+                  }}>
+                    {userRol === 'admin' ? 'Admin' : userRol === 'hr' ? 'HR Manager' : userRol === 'medewerker' ? 'Werknemer' : 'Gebruiker'}
+                  </span>
+                </div>
+                <p className="text-sm mt-0.5" style={{ color: 'var(--text-3)' }}>{userEmail}</p>
+                {(functie || afdeling) && (
+                  <p className="text-xs mt-1" style={{ color: 'var(--text-4)' }}>
+                    {[functie, afdeling].filter(Boolean).join(' · ')}
+                  </p>
+                )}
+              </div>
+
+              {/* Acties */}
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setActiveSectie('profiel')}
+                  className="text-sm font-medium px-4 py-2 rounded-xl transition"
+                  style={{ background: 'var(--bg-subtle)', color: 'var(--text-2)', border: '1px solid var(--border)' }}
+                >
+                  Profiel bewerken
+                </button>
+                <button
+                  onClick={uitloggen}
+                  className="text-sm font-semibold px-4 py-2 rounded-xl transition flex items-center gap-1.5"
+                  style={{ background: 'var(--mf-red-light)', color: 'var(--mf-red)', border: '1px solid rgba(226,75,74,0.15)' }}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                    <polyline points="16 17 21 12 16 7"/>
+                    <line x1="21" y1="12" x2="9" y2="12"/>
+                  </svg>
+                  Uitloggen
+                </button>
+              </div>
+            </div>
+
+            {/* Account info strip */}
+            <div className="mt-4 pt-4 flex flex-wrap gap-x-6 gap-y-1" style={{ borderTop: '1px solid var(--border)' }}>
+              <div className="flex items-center gap-1.5">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--text-4)' }}>
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                  <polyline points="22,6 12,13 2,6"/>
+                </svg>
+                <span className="text-xs" style={{ color: 'var(--text-3)' }}>{userEmail}</span>
+              </div>
+              {bedrijfsnaam && (
+                <div className="flex items-center gap-1.5">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--text-4)' }}>
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                  </svg>
+                  <span className="text-xs" style={{ color: 'var(--text-3)' }}>{bedrijfsnaam}</span>
+                </div>
+              )}
+              <div className="flex items-center gap-1.5">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--text-4)' }}>
+                  <circle cx="12" cy="12" r="10"/>
+                  <polyline points="12 6 12 12 16 14"/>
+                </svg>
+                <span className="text-xs" style={{ color: 'var(--text-4)' }}>MentaForce v0.9.0</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="mb-6">
+          <h2 className="text-base font-semibold" style={{ color: 'var(--text-1)' }}>Instellingen</h2>
+          <p className="text-sm mt-0.5" style={{ color: 'var(--text-3)' }}>Beheer je profiel, account en voorkeuren.</p>
         </div>
 
         {laden ? (
@@ -430,52 +525,51 @@ export default function Instellingen() {
 
             {/* Sidebar */}
             <aside className="lg:w-64 flex-shrink-0">
-              <nav className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+              <nav className="rounded-2xl overflow-hidden" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-xs)' }}>
                 {SECTIES.map((s, i) => (
                   <button
                     key={s.id}
                     onClick={() => setActiveSectie(s.id)}
-                    className={`w-full flex items-center gap-3 px-4 py-3.5 text-left transition ${i < SECTIES.length - 1 ? 'border-b border-gray-50' : ''}`}
+                    className="w-full flex items-center gap-3 px-4 py-3.5 text-left transition"
                     style={{
-                      background: activeSectie === s.id ? 'var(--mentaforce-primary-light)' : 'transparent',
-                      color: activeSectie === s.id ? 'var(--mentaforce-primary)' : s.id === 'gevaar' ? '#E24B4A' : '#374151',
+                      borderBottom: i < SECTIES.length - 1 ? '1px solid var(--border)' : undefined,
+                      background: activeSectie === s.id ? 'var(--mf-green-light)' : 'transparent',
+                      color: activeSectie === s.id ? 'var(--mf-green)' : s.id === 'gevaar' ? 'var(--mf-red)' : 'var(--text-2)',
                     }}
                   >
                     <span className="w-5 flex-shrink-0 flex items-center justify-center">{s.icon}</span>
                     <div className="min-w-0">
                       <p className="text-sm font-medium truncate">{s.label}</p>
-                      <p className="text-xs text-gray-400 truncate hidden lg:block">{s.beschrijving}</p>
+                      <p className="text-xs truncate hidden lg:block" style={{ color: 'var(--text-4)' }}>{s.beschrijving}</p>
                     </div>
                     {activeSectie === s.id && (
-                      <div className="w-1.5 h-1.5 rounded-full ml-auto flex-shrink-0" style={{ background: 'var(--mentaforce-primary)' }} />
+                      <div className="w-1.5 h-1.5 rounded-full ml-auto flex-shrink-0" style={{ background: 'var(--mf-green)' }} />
                     )}
                   </button>
                 ))}
               </nav>
 
-              {/* Quick stats */}
-              <div className="bg-white rounded-2xl border border-gray-200 p-4 mt-4">
-                <p className="text-xs font-semibold text-gray-400 mb-3 uppercase tracking-widest">Account info</p>
-                <div className="flex flex-col gap-2">
-                  <div className="flex items-center gap-2">
-                    <Avatar naam={naam || 'G'} avatarUrl={avatarUrl} size={28} />
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium text-gray-800 truncate">{naam || 'Gebruiker'}</p>
-                      <p className="text-xs text-gray-400 truncate">{userEmail}</p>
-                    </div>
-                  </div>
-                  <div className="mt-1 pt-2 border-t border-gray-100 flex flex-col gap-1">
-                    <Link href="/portaal" className="text-xs text-gray-400 hover:text-gray-600 transition flex items-center gap-1.5">
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
-                      Ga naar portaal
-                    </Link>
-                    <button onClick={uitloggen} className="text-xs text-red-400 hover:text-red-600 transition flex items-center gap-1.5 text-left">
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-                      Uitloggen
-                    </button>
-                  </div>
-                </div>
-              </div>
+              {/* Uitloggen knop */}
+              <button
+                onClick={uitloggen}
+                className="w-full mt-3 flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-medium transition"
+                style={{
+                  background: 'var(--bg-card)',
+                  border: '1px solid var(--border)',
+                  color: 'var(--mf-red)',
+                  boxShadow: 'var(--shadow-xs)',
+                }}
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                  <polyline points="16 17 21 12 16 7"/>
+                  <line x1="21" y1="12" x2="9" y2="12"/>
+                </svg>
+                Uitloggen
+              </button>
+
+              {/* App versie */}
+              <p className="text-center text-xs mt-4" style={{ color: 'var(--text-4)' }}>MentaForce v0.9.0</p>
             </aside>
 
             {/* Main content */}

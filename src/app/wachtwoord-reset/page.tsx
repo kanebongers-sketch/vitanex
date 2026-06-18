@@ -50,7 +50,7 @@ export default function WachtwoordReset() {
     }
 
     setStatus('klaar')
-    setTimeout(() => router.push('/login'), 2500)
+    setTimeout(() => router.push('/home'), 2500)
   }
 
   if (status === 'laden') return (

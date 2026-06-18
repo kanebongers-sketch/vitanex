@@ -111,6 +111,10 @@ export default function Register() {
   const [resendBezig, setResendBezig] = useState(false)
   const [resendKlaar, setResendKlaar] = useState(false)
 
+  // Email validatie feedback
+  const emailGeldig = email.trim().length === 0 || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())
+  const emailFout = !emailGeldig ? 'Voer een geldig e-mailadres in.' : null
+
   async function valideerHrCode() {
     const code = hrCode.toUpperCase().trim()
     if (!/^[A-Z]{3}-[0-9][A-Z][0-9]$/.test(code)) {
@@ -559,11 +563,15 @@ export default function Register() {
                     <input
                       type="email"
                       value={email}
-                      onChange={e => setEmail(e.target.value)}
+                      onChange={e => { setEmail(e.target.value); setFout(null) }}
                       placeholder="jij@bedrijf.be"
                       autoFocus
-                      className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-gray-400 transition bg-white"
+                      className="w-full border rounded-xl px-4 py-3 text-sm outline-none transition bg-white"
+                      style={{ borderColor: emailFout ? '#E24B4A' : '#e5e7eb' }}
                     />
+                    {emailFout && (
+                      <p className="text-xs mt-1" style={{ color: '#E24B4A' }}>{emailFout}</p>
+                    )}
                   </div>
 
                   <div>
@@ -658,7 +666,7 @@ export default function Register() {
                   </button>
                   <button
                     onClick={registreer}
-                    disabled={bezig || !email || !wachtwoord || wachtwoord !== bevestigWachtwoord || !akkoord}
+                    disabled={bezig || !email || !emailGeldig || !wachtwoord || wachtwoord.length < 8 || wachtwoord !== bevestigWachtwoord || !akkoord}
                     className="flex-1 py-4 rounded-xl text-white font-bold text-sm transition hover:opacity-90 disabled:opacity-30 flex items-center justify-center gap-2"
                     style={{ background: '#1D9E75' }}
                   >
