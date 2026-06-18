@@ -85,22 +85,22 @@ export default function StemmingPagina() {
     s >= 4 ? '#1D9E75' : s >= 3 ? '#F59E0B' : '#EF4444'
 
   if (laden) return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
+    <div className="mf-mesh-bg" style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
       <Navbar />
       <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 80 }}><div className="mf-spinner" /></div>
     </div>
   )
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
+    <div className="mf-mesh-bg" style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
       <Navbar />
       <main style={{ padding: '24px 20px 88px', maxWidth: 600, margin: '0 auto' }}>
 
         <header style={{ marginBottom: 24 }}>
-          <h1 style={{ fontSize: 22, fontWeight: 800, color: '#111827', letterSpacing: '-0.03em', marginBottom: 4 }}>
+          <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 4 }}>
             Dagelijkse stemming
           </h1>
-          <p style={{ fontSize: 13, color: '#9CA3AF' }}>Hoe voel je je op dit moment?</p>
+          <p style={{ fontSize: 13, color: 'var(--text-4)' }}>Hoe voel je je op dit moment?</p>
         </header>
 
         {succes && (
@@ -110,8 +110,8 @@ export default function StemmingPagina() {
         )}
 
         {/* Stemming kiezer */}
-        <div style={{ background: 'white', borderRadius: 20, padding: '20px', border: '1px solid #E5E7EB', marginBottom: 14 }}>
-          <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#9CA3AF', marginBottom: 14 }}>
+        <div style={{ background: 'var(--bg-card)', borderRadius: 20, padding: '20px', border: '1px solid var(--border)', marginBottom: 14 }}>
+          <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-4)', marginBottom: 14 }}>
             Stemming
           </p>
           <div style={{ display: 'flex', gap: 8, justifyContent: 'center', marginBottom: 8 }}>
@@ -133,16 +133,16 @@ export default function StemmingPagina() {
         </div>
 
         {/* Energie */}
-        <div style={{ background: 'white', borderRadius: 16, padding: '16px', border: '1px solid #E5E7EB', marginBottom: 14 }}>
-          <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#9CA3AF', marginBottom: 12 }}>
+        <div style={{ background: 'var(--bg-card)', borderRadius: 16, padding: '16px', border: '1px solid var(--border)', marginBottom: 14 }}>
+          <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-4)', marginBottom: 12 }}>
             Energieniveau
           </p>
           <div style={{ display: 'flex', gap: 6 }}>
             {ENERGIE_OPTIES.map(o => (
               <button key={o.waarde} onClick={() => setEnergie(o.waarde)} style={{
                 flex: 1, height: 36, borderRadius: 8, border: 'none', cursor: 'pointer',
-                background: energie === o.waarde ? '#6366f1' : '#F3F4F6',
-                color: energie === o.waarde ? 'white' : '#6B7280',
+                background: energie === o.waarde ? 'var(--mf-green)' : 'var(--bg-subtle)',
+                color: energie === o.waarde ? 'white' : 'var(--text-3)',
                 fontWeight: 700, fontSize: 11,
                 transition: 'background 0.12s',
               }}>
@@ -150,13 +150,13 @@ export default function StemmingPagina() {
               </button>
             ))}
           </div>
-          <p style={{ fontSize: 10, color: '#9CA3AF', marginTop: 4, textAlign: 'center' }}>
+          <p style={{ fontSize: 10, color: 'var(--text-4)', marginTop: 4, textAlign: 'center' }}>
             {ENERGIE_OPTIES.find(o => o.waarde === energie)?.label}
           </p>
         </div>
 
         {/* Notitie */}
-        <div style={{ background: 'white', borderRadius: 16, padding: '16px', border: '1px solid #E5E7EB', marginBottom: 16 }}>
+        <div style={{ background: 'var(--bg-card)', borderRadius: 16, padding: '16px', border: '1px solid var(--border)', marginBottom: 16 }}>
           <textarea
             value={notitie}
             onChange={e => setNotitie(e.target.value)}
@@ -165,7 +165,7 @@ export default function StemmingPagina() {
             rows={2}
             style={{
               width: '100%', border: 'none', outline: 'none', resize: 'none',
-              fontSize: 13, color: '#374151', fontFamily: 'inherit',
+              fontSize: 13, color: 'var(--text-2)', fontFamily: 'inherit',
               boxSizing: 'border-box',
             }}
           />
@@ -173,7 +173,8 @@ export default function StemmingPagina() {
 
         <button onClick={verstuur} disabled={opslaan} style={{
           width: '100%', padding: '14px', borderRadius: 14, marginBottom: 28,
-          background: opslaan ? '#9CA3AF' : '#111827',
+          background: opslaan ? '#9CA3AF' : 'linear-gradient(135deg, var(--mf-green) 0%, var(--mf-green-dark) 100%)',
+          boxShadow: opslaan ? 'none' : '0 4px 16px rgba(29,158,117,0.35)',
           color: 'white', border: 'none', cursor: 'pointer',
           fontSize: 15, fontWeight: 700,
         }}>
@@ -183,12 +184,12 @@ export default function StemmingPagina() {
         {/* Recente stemming */}
         {logs.length > 0 && (
           <>
-            <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#9CA3AF', marginBottom: 10 }}>
+            <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-4)', marginBottom: 10 }}>
               Recente check-ins
             </p>
 
             {/* Mini stemming grafiek */}
-            <div style={{ background: 'white', borderRadius: 14, padding: '14px', border: '1px solid #E5E7EB', marginBottom: 14 }}>
+            <div style={{ background: 'var(--bg-card)', borderRadius: 14, padding: '14px', border: '1px solid var(--border)', marginBottom: 14 }}>
               <div style={{ display: 'flex', gap: 4, alignItems: 'flex-end', height: 40 }}>
                 {[...logs].reverse().map(log => {
                   const h = (log.stemming / 5) * 36
@@ -209,8 +210,8 @@ export default function StemmingPagina() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {logs.map(log => (
                 <div key={log.id} style={{
-                  background: 'white', borderRadius: 12, padding: '12px 14px',
-                  border: '1px solid #E5E7EB',
+                  background: 'var(--bg-card)', borderRadius: 12, padding: '12px 14px',
+                  border: '1px solid var(--border)',
                   display: 'flex', alignItems: 'center', gap: 12,
                 }}>
                   <span style={{ fontSize: 22, flexShrink: 0 }}>
@@ -221,9 +222,9 @@ export default function StemmingPagina() {
                       {STEMMING_OPTIES.find(o => o.waarde === log.stemming)?.label}
                       {log.energie && ` · energie ${log.energie}/5`}
                     </p>
-                    {log.notitie && <p style={{ fontSize: 11, color: '#9CA3AF' }}>{log.notitie}</p>}
+                    {log.notitie && <p style={{ fontSize: 11, color: 'var(--text-4)' }}>{log.notitie}</p>}
                   </div>
-                  <p style={{ fontSize: 10, color: '#9CA3AF', flexShrink: 0 }}>
+                  <p style={{ fontSize: 10, color: 'var(--text-4)', flexShrink: 0 }}>
                     {new Date(log.aangemaakt_op).toLocaleDateString('nl-NL', { weekday: 'short', day: 'numeric', month: 'short' })}
                   </p>
                 </div>

@@ -195,9 +195,12 @@ export default function WaterPagina() {
 
   if (laden) {
     return (
-      <main style={{ minHeight: '100vh', background: '#F0F7FF', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <p style={{ color: '#378ADD', fontFamily: 'system-ui, sans-serif' }}>Laden…</p>
-      </main>
+      <>
+        <Navbar />
+        <main style={{ minHeight: '100vh', background: '#F0F7FF', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div className="mf-spinner" />
+        </main>
+      </>
     )
   }
 
@@ -207,7 +210,6 @@ export default function WaterPagina() {
       <main style={{
         minHeight: '100vh',
         background: 'linear-gradient(160deg, #E6F1FB 0%, #F7FBFF 60%, #EAF4FF 100%)',
-        fontFamily: 'system-ui, -apple-system, sans-serif',
         paddingBottom: '3rem',
       }}>
         <div style={{ maxWidth: '520px', margin: '0 auto', padding: '0 1.25rem' }}>

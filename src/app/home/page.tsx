@@ -152,7 +152,7 @@ export default function HomePage() {
       const [readinessRes, vandaagRes, gewoontesRes] = await Promise.allSettled([
         authFetch('/api/readiness').then(r => r.ok ? r.json() : null).catch(() => null),
         authFetch('/api/vandaag').then(r => r.ok ? r.json() : null).catch(() => null),
-        authFetch('/api/gewoontes').then(r => r.ok ? r.json() : null).catch(() => null),
+        authFetch('/api/streak').then(r => r.ok ? r.json() : null).catch(() => null),
       ])
 
       // Readiness score
@@ -171,13 +171,10 @@ export default function HomePage() {
         })))
       }
 
-      // Streak — hoogste streak uit gewoontes
+      // Streak uit /api/streak
       if (gewoontesRes.status === 'fulfilled' && gewoontesRes.value) {
-        const d = gewoontesRes.value as { gewoontes?: Array<{ streak?: number }> }
-        const hoogste = (d.gewoontes ?? []).reduce(
-          (max: number, g) => Math.max(max, g.streak ?? 0), 0
-        )
-        setStreak(hoogste)
+        const d = gewoontesRes.value as { streak?: number }
+        setStreak(d.streak ?? 0)
       }
     }
 
@@ -253,7 +250,7 @@ export default function HomePage() {
             cursor: 'pointer',
             flexShrink: 0,
           }}
-          onClick={() => router.push('/profiel')}
+          onClick={() => router.push('/instellingen')}
         >
           {initialen(naam) || '?'}
         </div>
