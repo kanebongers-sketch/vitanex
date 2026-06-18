@@ -34,7 +34,7 @@ ALGORITME-FEITEN 2026:
 async function zoekTrends(weekStart: string): Promise<TrendData> {
   const messages: Anthropic.MessageParam[] = [{
     role: 'user',
-    content: `Zoek voor de week van ${weekStart} welke fitness onderwerpen trending zijn op TikTok en Instagram Reels. Focus op trending oefeningen, viral hooks/formats en wat Nederlandse fitness creators nu posten.`,
+    content: `Zoek voor de week van ${weekStart} welke onderwerpen trending zijn op TikTok en Instagram Reels rondom: krachtraining, physique opbouwen, spiermassa, vetverbranding, eiwitinname en fitness voeding. Wat posten fitness creators die focussen op lichaamsbouw en sterker worden — GEEN wedstrijdsporten zoals HYROX, triathlon of hardlopen.`,
   }]
 
   let response = await anthropic.messages.create({
@@ -95,6 +95,13 @@ async function maakWeekStrategie(weekStart: string, dagNamen: DagInfo[], trends:
     max_tokens: 4000,
     system: `Je bent een fitness content strateeg voor Kane Bongers — personal trainer in Eersel, Nederland.
 
+KANE ZIJN NICHE EN STIJL:
+- Focust op: physique opbouwen, krachtraining (compound lifts, progressive overload), fitness voeding (eiwitten, calorie deficit, bulken/cutten)
+- Doelgroep: mensen die sterker en slanker willen worden — geen wedstrijdsporters
+- Stijl: direct, eerlijk, praktisch. Geen hype, geen fluff. Kane spreekt als iemand die het zelf doet.
+- GEEN HYROX, geen wedstrijdsport, geen hardloopspecifieke content
+- WEL: hoe spieren groeien, wat je moet eten, welke oefeningen werken, veelgemaakte fouten in de gym
+
 ${ALGORITME_CONTEXT}
 
 TRENDING DEZE WEEK:
@@ -105,16 +112,15 @@ SCHEMA: Elke dag 3 Reels. Geen carousels. Zondag is rustdag (0 Reels).
 Dat zijn 18 Reels over 6 dagen (ma t/m za).
 
 REGELS PER DAG:
-- Reel 1: posted 07:00 — motivatie of morning energy topic
-- Reel 2: posted 12:00 — educatief / techniek
-- Reel 3: posted 19:00 — high-energy, deelbaar, community-gedreven
+- Reel 1 (07:00): motivatie of mindset — waarom iets werkt, wat mensen verkeerd begrijpen
+- Reel 2 (12:00): techniek of oefening — één beweging of concept uitgelegd
+- Reel 3 (19:00): voeding of lifestyle — eiwitten, maaltijden, gewoontes
 
 REGELS VOOR ALLE REELS:
 - Elk topic DM-sharebaar (mensen sturen het door)
 - 15-30 seconden
 - Geen ongemakkelijke situaties
-- Varieer locatie en format (mix demonstratie / talking head / workout)
-- Fitness only: geen motivatiequotes, geen fluff
+- Varieer locatie: gym voor oefeningen, thuis/keuken voor voeding
 - 3 Reels per dag mogen NIET allemaal dezelfde invalshoek hebben${vermijden}`,
     messages: [{
       role: 'user',
@@ -151,6 +157,12 @@ async function maakReelContent(item: WeekStrategieItem, trends: TrendData): Prom
     model: 'claude-sonnet-4-6',
     max_tokens: 1800,
     system: `Je schrijft fitness Reel content voor Kane Bongers (personal trainer, Eersel NL).
+
+KANE ZIJN STIJL:
+- Niche: physique, krachtraining, fitness voeding — GEEN wedstrijdsporten of HYROX
+- Toon: direct, nuchter, praktisch — geen motivatiehype
+- Spreekt vanuit eigen ervaring als personal trainer en iemand die zelf traint
+- Locaties: gym (oefeningen), thuis/keuken (voeding), buiten (cardio/mindset)
 
 ${ALGORITME_CONTEXT}
 TRENDING: ${trends.trending_topics.join(', ')}
