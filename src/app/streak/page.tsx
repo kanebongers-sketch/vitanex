@@ -21,16 +21,63 @@ interface StreakData {
   actief_vandaag: boolean
 }
 
-function motivatieTekst(streak: number): string {
-  if (streak === 0) return 'Begin vandaag — elke grote reis start met één stap.'
-  if (streak < 3) return 'Goed begin! Houd dit vast.'
-  if (streak < 7) return 'Je bouwt momentum op. Zo doe je dat!'
-  if (streak < 14) return 'Een week of meer — indrukwekkend!'
-  if (streak < 30) return 'Je bent een gewoonte aan het vormen. Echt gaaf!'
-  if (streak < 60) return 'Een maand of langer — je bent een doorzetteraar!'
-  if (streak < 100) return 'Bijna 100 dagen. Legendair bezig!'
-  return 'Je bent een absolute kampioen. Geen woorden voor.'
+function motivatieTekst(streak: number): { tekst: string; subtekst: string } {
+  if (streak === 0)
+    return {
+      tekst: 'Start vandaag!',
+      subtekst: 'Elke grote streak begint met dag 1.',
+    }
+  if (streak < 7)
+    return {
+      tekst: 'Geweldig begin!',
+      subtekst: 'Kom morgen terug om je streak te verlengen.',
+    }
+  if (streak < 30)
+    return {
+      tekst: 'Indrukwekkend!',
+      subtekst: 'Je bent een echte gewoonte aan het opbouwen.',
+    }
+  return {
+    tekst: 'Legende!',
+    subtekst: 'Je zit in de top 1% van gebruikers.',
+  }
 }
+
+interface Badge {
+  doel: number
+  label: string
+  emoji: string
+  kleur: string
+  achtergrond: string
+  rand: string
+}
+
+const BADGES: Badge[] = [
+  {
+    doel: 7,
+    label: '7 dagen',
+    emoji: '🌱',
+    kleur: '#1D9E75',
+    achtergrond: '#E1F5EE',
+    rand: '#A7F3D0',
+  },
+  {
+    doel: 30,
+    label: '30 dagen',
+    emoji: '⚡',
+    kleur: '#7C3AED',
+    achtergrond: '#EDE9FE',
+    rand: '#C4B5FD',
+  },
+  {
+    doel: 90,
+    label: '90 dagen',
+    emoji: '🏆',
+    kleur: '#B45309',
+    achtergrond: '#FEF3C7',
+    rand: '#FCD34D',
+  },
+]
 
 function vandaagStr(): string {
   return new Date().toISOString().slice(0, 10)
@@ -44,7 +91,9 @@ export default function StreakPage() {
 
   useEffect(() => {
     async function init() {
-      const { data: { session } } = await supabase.auth.getSession()
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
       if (!session) {
         router.replace('/login')
         return
@@ -69,315 +118,500 @@ export default function StreakPage() {
 
   return (
     <>
+      <style>{`
+        @keyframes vlamSchommelen {
+          0%, 100% { transform: rotate(-6deg) scale(1); }
+          50%       { transform: rotate(6deg) scale(1.1); }
+        }
+        @keyframes fadein {
+          from { opacity: 0; transform: translateY(10px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        .streak-section {
+          animation: fadein 0.4s var(--ease, cubic-bezier(0.16,1,0.3,1)) both;
+        }
+        .streak-section:nth-child(2) { animation-delay: 0.06s; }
+        .streak-section:nth-child(3) { animation-delay: 0.12s; }
+        .streak-section:nth-child(4) { animation-delay: 0.18s; }
+        .streak-section:nth-child(5) { animation-delay: 0.24s; }
+        .streak-section:nth-child(6) { animation-delay: 0.30s; }
+
+        .dot-cell {
+          width: 13px;
+          height: 13px;
+          border-radius: 50%;
+          box-sizing: border-box;
+          cursor: default;
+          transition: transform 0.12s ease;
+        }
+        .dot-cell:hover { transform: scale(1.35); }
+
+        .badge-card {
+          border-radius: var(--radius-md, 14px);
+          border: 1.5px solid;
+          padding: 16px 10px;
+          text-align: center;
+          transition: transform 0.15s var(--ease, ease), box-shadow 0.15s ease;
+        }
+        .badge-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+        .badge-card.locked { opacity: 0.42; filter: grayscale(0.6); }
+      `}</style>
+
       <Navbar />
+
       <main
+        className="mf-mesh-bg"
         style={{
-          maxWidth: 560,
-          margin: '0 auto',
-          padding: '20px 20px 80px',
-          fontFamily: 'system-ui, -apple-system, sans-serif',
+          minHeight: '100vh',
+          paddingBottom: 80,
         }}
       >
-        {/* Header */}
-        <h1
+        <div
           style={{
-            fontSize: 28,
-            fontWeight: 800,
-            color: '#111827',
-            margin: '0 0 24px',
+            maxWidth: 560,
+            margin: '0 auto',
+            padding: '24px 20px 0',
           }}
         >
-          Jouw streak
-        </h1>
+          {/* Header */}
+          <h1
+            style={{
+              fontSize: 26,
+              fontWeight: 800,
+              color: 'var(--text-1, #0D1117)',
+              margin: '0 0 20px',
+              letterSpacing: '-0.5px',
+            }}
+          >
+            Jouw streak
+          </h1>
 
-        {laden && (
-          <p style={{ color: '#6B7280', textAlign: 'center', marginTop: 60 }}>
-            Laden…
-          </p>
-        )}
-
-        {fout && (
-          <p style={{ color: '#DC2626', textAlign: 'center', marginTop: 40 }}>
-            {fout}
-          </p>
-        )}
-
-        {data && (
-          <>
-            {/* Streak Hero */}
-            <div
+          {laden && (
+            <p
               style={{
-                background: 'linear-gradient(135deg, #FFF7ED 0%, #FFEDD5 100%)',
-                border: '2px solid #FED7AA',
-                borderRadius: 20,
-                padding: '32px 24px',
+                color: 'var(--text-3, #6B7280)',
                 textAlign: 'center',
-                marginBottom: 20,
+                marginTop: 60,
               }}
             >
-              <style>{`
-                @keyframes vlamSchommelen {
-                  0%, 100% { transform: rotate(-6deg) scale(1); }
-                  50% { transform: rotate(6deg) scale(1.1); }
-                }
-              `}</style>
-              <div
-                style={{
-                  fontSize: 64,
-                  display: 'inline-block',
-                  animation: 'vlamSchommelen 1.6s ease-in-out infinite',
-                  marginBottom: 12,
-                }}
-                aria-hidden="true"
-              >
-                🔥
-              </div>
-              <div
-                style={{
-                  fontSize: 72,
-                  fontWeight: 800,
-                  color: '#EA580C',
-                  lineHeight: 1,
-                  marginBottom: 4,
-                }}
-              >
-                {data.streak}
-              </div>
-              <div
-                style={{
-                  fontSize: 18,
-                  color: '#9A3412',
-                  fontWeight: 600,
-                  marginBottom: 12,
-                }}
-              >
-                dagen op rij
-              </div>
-              <div
-                style={{
-                  fontSize: 14,
-                  color: '#C2410C',
-                  fontStyle: 'italic',
-                }}
-              >
-                {motivatieTekst(data.streak)}
-              </div>
-            </div>
+              Laden…
+            </p>
+          )}
 
-            {/* Drie stat kaartjes */}
-            <div
+          {fout && (
+            <p
               style={{
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr 1fr',
-                gap: 10,
-                marginBottom: 24,
+                color: 'var(--mf-red, #E24B4A)',
+                textAlign: 'center',
+                marginTop: 40,
               }}
             >
-              {[
-                { label: 'Huidige streak', waarde: `${data.streak}d`, kleur: '#EA580C' },
-                { label: 'Deze maand', waarde: `${data.maand_pct}%`, kleur: '#7C3AED' },
-                { label: 'Totaal actief', waarde: `${data.totaal_actief}d`, kleur: '#1D9E75' },
-              ].map(({ label, waarde, kleur }) => (
+              {fout}
+            </p>
+          )}
+
+          {data && (
+            <>
+              {/* ── Streak Hero ──────────────────────────────── */}
+              <div
+                className="streak-section"
+                style={{
+                  background: 'linear-gradient(135deg, #FFF7ED 0%, #FFEDD5 100%)',
+                  border: '1.5px solid #FED7AA',
+                  borderRadius: 'var(--radius-xl, 24px)',
+                  padding: '32px 24px 28px',
+                  textAlign: 'center',
+                  marginBottom: 16,
+                  boxShadow: 'var(--shadow-md)',
+                }}
+              >
                 <div
-                  key={label}
                   style={{
-                    background: '#F9FAFB',
-                    border: '1px solid #E5E7EB',
-                    borderRadius: 12,
-                    padding: '14px 8px',
-                    textAlign: 'center',
+                    fontSize: 64,
+                    display: 'inline-block',
+                    animation: 'vlamSchommelen 1.6s ease-in-out infinite',
+                    marginBottom: 8,
+                  }}
+                  aria-hidden="true"
+                >
+                  🔥
+                </div>
+
+                <div
+                  style={{
+                    fontSize: 80,
+                    fontWeight: 900,
+                    color: '#EA580C',
+                    lineHeight: 1,
+                    marginBottom: 4,
+                    letterSpacing: '-2px',
+                  }}
+                >
+                  {data.streak}
+                </div>
+
+                <div
+                  style={{
+                    fontSize: 16,
+                    color: '#9A3412',
+                    fontWeight: 700,
+                    marginBottom: 14,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.08em',
+                  }}
+                >
+                  dagen op rij
+                </div>
+
+                <div
+                  style={{
+                    background: 'rgba(255,255,255,0.6)',
+                    borderRadius: 'var(--radius-md, 14px)',
+                    padding: '12px 16px',
+                    backdropFilter: 'blur(4px)',
                   }}
                 >
                   <div
                     style={{
-                      fontSize: 22,
+                      fontSize: 15,
                       fontWeight: 800,
-                      color: kleur,
-                      lineHeight: 1.1,
+                      color: '#C2410C',
+                      marginBottom: 2,
                     }}
                   >
-                    {waarde}
+                    {motivatieTekst(data.streak).tekst}
                   </div>
                   <div
                     style={{
-                      fontSize: 11,
-                      color: '#6B7280',
-                      marginTop: 4,
-                      lineHeight: 1.3,
+                      fontSize: 13,
+                      color: '#9A3412',
                     }}
                   >
-                    {label}
+                    {motivatieTekst(data.streak).subtekst}
                   </div>
                 </div>
-              ))}
-            </div>
+              </div>
 
-            {/* 90-dag heatmap */}
-            <div
-              style={{
-                background: '#F9FAFB',
-                border: '1px solid #E5E7EB',
-                borderRadius: 16,
-                padding: '20px 16px',
-                marginBottom: 20,
-              }}
-            >
-              <h2
-                style={{
-                  fontSize: 14,
-                  fontWeight: 700,
-                  color: '#374151',
-                  margin: '0 0 12px',
-                }}
-              >
-                Afgelopen 90 dagen
-              </h2>
-
-              {/* Dag-van-week labels */}
+              {/* ── Stat kaartjes ──────────────────────────── */}
               <div
+                className="streak-section"
                 style={{
                   display: 'grid',
-                  gridTemplateRows: 'repeat(7, 15px)',
-                  gridAutoFlow: 'column',
-                  gridAutoColumns: '15px',
-                  gap: 3,
-                  overflowX: 'auto',
+                  gridTemplateColumns: '1fr 1fr 1fr',
+                  gap: 10,
+                  marginBottom: 16,
                 }}
               >
-                {data.kalender.map(({ datum, actief }) => {
-                  const isVandaag = datum === vandaag
-                  return (
-                    <div
-                      key={datum}
-                      title={datum}
-                      style={{
-                        width: 15,
-                        height: 15,
-                        borderRadius: 3,
-                        background: actief ? '#1D9E75' : '#F3F4F6',
-                        border: isVandaag ? '2px solid #111827' : '1px solid transparent',
-                        boxSizing: 'border-box',
-                        cursor: 'default',
-                      }}
-                    />
-                  )
-                })}
-              </div>
-
-              {/* Legenda */}
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  marginTop: 10,
-                  fontSize: 11,
-                  color: '#9CA3AF',
-                }}
-              >
-                <div
-                  style={{
-                    width: 12,
-                    height: 12,
-                    borderRadius: 2,
-                    background: '#F3F4F6',
-                    border: '1px solid #E5E7EB',
-                  }}
-                />
-                <span>Niet actief</span>
-                <div
-                  style={{
-                    width: 12,
-                    height: 12,
-                    borderRadius: 2,
-                    background: '#1D9E75',
-                    marginLeft: 8,
-                  }}
-                />
-                <span>Actief</span>
-                <div
-                  style={{
-                    width: 12,
-                    height: 12,
-                    borderRadius: 2,
-                    background: '#F3F4F6',
-                    border: '2px solid #111827',
-                    marginLeft: 8,
-                    boxSizing: 'border-box',
-                  }}
-                />
-                <span>Vandaag</span>
-              </div>
-            </div>
-
-            {/* Vandaag sectie */}
-            {data.actief_vandaag ? (
-              <div
-                style={{
-                  background: '#ECFDF5',
-                  border: '1px solid #A7F3D0',
-                  borderRadius: 14,
-                  padding: '16px 20px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 12,
-                }}
-              >
-                <span style={{ fontSize: 28 }}>✅</span>
-                <div>
+                {[
+                  {
+                    label: 'Huidige streak',
+                    waarde: `${data.streak}d`,
+                    kleur: '#EA580C',
+                  },
+                  {
+                    label: 'Deze maand',
+                    waarde: `${data.maand_pct}%`,
+                    kleur: 'var(--mf-purple, #8B5CF6)',
+                  },
+                  {
+                    label: 'Totaal actief',
+                    waarde: `${data.totaal_actief}d`,
+                    kleur: 'var(--mf-green, #1D9E75)',
+                  },
+                ].map(({ label, waarde, kleur }) => (
                   <div
+                    key={label}
                     style={{
-                      fontSize: 16,
-                      fontWeight: 700,
-                      color: '#065F46',
+                      background: 'var(--bg-card, #fff)',
+                      border: '1px solid var(--border, rgba(0,0,0,0.07))',
+                      borderRadius: 'var(--radius-md, 14px)',
+                      padding: '14px 8px',
+                      textAlign: 'center',
+                      boxShadow: 'var(--shadow-xs)',
                     }}
                   >
-                    Streak veilig!
+                    <div
+                      style={{
+                        fontSize: 22,
+                        fontWeight: 800,
+                        color: kleur,
+                        lineHeight: 1.1,
+                      }}
+                    >
+                      {waarde}
+                    </div>
+                    <div
+                      style={{
+                        fontSize: 11,
+                        color: 'var(--text-3, #6B7280)',
+                        marginTop: 4,
+                        lineHeight: 1.3,
+                      }}
+                    >
+                      {label}
+                    </div>
                   </div>
-                  <div style={{ fontSize: 13, color: '#047857', marginTop: 2 }}>
-                    Je hebt vandaag al iets geregistreerd. Goed bezig!
-                  </div>
-                </div>
+                ))}
               </div>
-            ) : (
+
+              {/* ── 90-dag heatmap ─────────────────────────── */}
               <div
+                className="streak-section"
                 style={{
-                  background: '#FFF7ED',
-                  border: '1px solid #FED7AA',
-                  borderRadius: 14,
-                  padding: '16px 20px',
+                  background: 'var(--bg-card, #fff)',
+                  border: '1px solid var(--border, rgba(0,0,0,0.07))',
+                  borderRadius: 'var(--radius-card, 16px)',
+                  padding: '20px 18px 16px',
+                  marginBottom: 16,
+                  boxShadow: 'var(--shadow-xs)',
                 }}
               >
+                <h2
+                  style={{
+                    fontSize: 13,
+                    fontWeight: 700,
+                    color: 'var(--text-2, #374151)',
+                    margin: '0 0 14px',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.07em',
+                  }}
+                >
+                  Afgelopen 90 dagen
+                </h2>
+
                 <div
                   style={{
-                    fontSize: 14,
-                    fontWeight: 600,
-                    color: '#92400E',
-                    marginBottom: 12,
+                    display: 'grid',
+                    gridTemplateRows: 'repeat(7, 13px)',
+                    gridAutoFlow: 'column',
+                    gridAutoColumns: '13px',
+                    gap: 4,
+                    overflowX: 'auto',
+                    paddingBottom: 4,
                   }}
                 >
-                  Je hebt vandaag nog niets geregistreerd — houd je streak in stand!
+                  {data.kalender.map(({ datum, actief }) => {
+                    const isVandaag = datum === vandaag
+                    return (
+                      <div
+                        key={datum}
+                        className="dot-cell"
+                        title={datum}
+                        style={{
+                          background: actief
+                            ? 'var(--mf-green, #1D9E75)'
+                            : 'rgba(0,0,0,0.06)',
+                          border: isVandaag
+                            ? '2px solid var(--text-1, #0D1117)'
+                            : '1.5px solid transparent',
+                          boxShadow: actief
+                            ? '0 0 0 1.5px rgba(29,158,117,0.18)'
+                            : 'none',
+                        }}
+                      />
+                    )
+                  })}
                 </div>
-                <a
-                  href="/vandaag"
+
+                {/* Legenda */}
+                <div
                   style={{
-                    display: 'block',
-                    background: '#EA580C',
-                    color: '#fff',
-                    fontWeight: 700,
-                    fontSize: 15,
-                    textAlign: 'center',
-                    padding: '14px 24px',
-                    borderRadius: 10,
-                    textDecoration: 'none',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    marginTop: 12,
+                    fontSize: 11,
+                    color: 'var(--text-4, #9CA3AF)',
                   }}
                 >
-                  Houd je streak in stand →
-                </a>
+                  <div
+                    style={{
+                      width: 11,
+                      height: 11,
+                      borderRadius: '50%',
+                      background: 'rgba(0,0,0,0.08)',
+                    }}
+                  />
+                  <span>Niet actief</span>
+                  <div
+                    style={{
+                      width: 11,
+                      height: 11,
+                      borderRadius: '50%',
+                      background: 'var(--mf-green, #1D9E75)',
+                      marginLeft: 8,
+                    }}
+                  />
+                  <span>Actief</span>
+                  <div
+                    style={{
+                      width: 11,
+                      height: 11,
+                      borderRadius: '50%',
+                      background: 'rgba(0,0,0,0.06)',
+                      border: '2px solid var(--text-1, #0D1117)',
+                      marginLeft: 8,
+                      boxSizing: 'border-box',
+                    }}
+                  />
+                  <span>Vandaag</span>
+                </div>
               </div>
-            )}
-          </>
-        )}
+
+              {/* ── Streakdoelen / badges ──────────────────── */}
+              <div
+                className="streak-section"
+                style={{
+                  background: 'var(--bg-card, #fff)',
+                  border: '1px solid var(--border, rgba(0,0,0,0.07))',
+                  borderRadius: 'var(--radius-card, 16px)',
+                  padding: '20px 18px',
+                  marginBottom: 16,
+                  boxShadow: 'var(--shadow-xs)',
+                }}
+              >
+                <h2
+                  style={{
+                    fontSize: 13,
+                    fontWeight: 700,
+                    color: 'var(--text-2, #374151)',
+                    margin: '0 0 14px',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.07em',
+                  }}
+                >
+                  Streakdoelen
+                </h2>
+
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(3, 1fr)',
+                    gap: 10,
+                  }}
+                >
+                  {BADGES.map((badge) => {
+                    const bereikt = data.streak >= badge.doel
+                    return (
+                      <div
+                        key={badge.doel}
+                        className={`badge-card${bereikt ? '' : ' locked'}`}
+                        style={{
+                          background: bereikt ? badge.achtergrond : 'var(--bg-subtle, #F9FAFB)',
+                          borderColor: bereikt ? badge.rand : 'var(--border, rgba(0,0,0,0.07))',
+                        }}
+                      >
+                        <div style={{ fontSize: 30, marginBottom: 6 }}>
+                          {bereikt ? badge.emoji : '🔒'}
+                        </div>
+                        <div
+                          style={{
+                            fontSize: 13,
+                            fontWeight: 800,
+                            color: bereikt ? badge.kleur : 'var(--text-3, #6B7280)',
+                            lineHeight: 1.2,
+                          }}
+                        >
+                          {badge.label}
+                        </div>
+                        <div
+                          style={{
+                            fontSize: 10,
+                            color: bereikt ? badge.kleur : 'var(--text-4, #9CA3AF)',
+                            marginTop: 3,
+                            fontWeight: 600,
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.05em',
+                          }}
+                        >
+                          {bereikt ? 'Behaald!' : `nog ${badge.doel - data.streak}d`}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* ── Vandaag sectie ─────────────────────────── */}
+              {data.actief_vandaag ? (
+                <div
+                  className="streak-section"
+                  style={{
+                    background: 'var(--mf-green-light, #E1F5EE)',
+                    border: '1.5px solid #A7F3D0',
+                    borderRadius: 'var(--radius-md, 14px)',
+                    padding: '18px 20px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 14,
+                    boxShadow: 'var(--shadow-xs)',
+                  }}
+                >
+                  <span style={{ fontSize: 30 }}>✅</span>
+                  <div>
+                    <div
+                      style={{
+                        fontSize: 15,
+                        fontWeight: 700,
+                        color: 'var(--mf-green-dark, #0F6E56)',
+                      }}
+                    >
+                      Streak veilig!
+                    </div>
+                    <div
+                      style={{
+                        fontSize: 13,
+                        color: 'var(--mf-green-mid, #15785A)',
+                        marginTop: 2,
+                      }}
+                    >
+                      Je hebt vandaag al iets geregistreerd. Goed bezig!
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div
+                  className="streak-section"
+                  style={{
+                    background: '#FFF7ED',
+                    border: '1.5px solid #FED7AA',
+                    borderRadius: 'var(--radius-md, 14px)',
+                    padding: '18px 20px',
+                    boxShadow: 'var(--shadow-xs)',
+                  }}
+                >
+                  <div
+                    style={{
+                      fontSize: 14,
+                      fontWeight: 600,
+                      color: '#92400E',
+                      marginBottom: 14,
+                    }}
+                  >
+                    Je hebt vandaag nog niets geregistreerd — houd je streak in stand!
+                  </div>
+                  <a
+                    href="/vandaag"
+                    style={{
+                      display: 'block',
+                      background: '#EA580C',
+                      color: '#fff',
+                      fontWeight: 700,
+                      fontSize: 15,
+                      textAlign: 'center',
+                      padding: '14px 24px',
+                      borderRadius: 'var(--radius-btn, 10px)',
+                      textDecoration: 'none',
+                      boxShadow: '0 4px 12px rgba(234,88,12,0.30)',
+                    }}
+                  >
+                    Houd je streak in stand →
+                  </a>
+                </div>
+              )}
+            </>
+          )}
+        </div>
       </main>
     </>
   )
