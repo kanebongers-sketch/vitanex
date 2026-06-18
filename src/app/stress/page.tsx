@@ -266,8 +266,8 @@ export default function StressPagina() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {logs.map(log => (
                 <div key={log.id} style={{
-                  background: 'white', borderRadius: 12, padding: '12px 14px',
-                  border: '1px solid #E5E7EB',
+                  background: 'var(--bg-card)', borderRadius: 12, padding: '12px 14px',
+                  border: '1px solid var(--border)',
                   display: 'flex', alignItems: 'center', gap: 12,
                 }}>
                   <div style={{
@@ -279,10 +279,10 @@ export default function StressPagina() {
                     {log.stress_niveau}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    {log.notitie && <p style={{ fontSize: 12, color: '#374151', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{log.notitie}</p>}
-                    {log.techniek && <p style={{ fontSize: 10, color: '#9CA3AF' }}>{TECHNIEKEN.find(t => t.id === log.techniek)?.label}</p>}
+                    {log.notitie && <p style={{ fontSize: 12, color: 'var(--text-2)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{log.notitie}</p>}
+                    {log.techniek && <p style={{ fontSize: 10, color: 'var(--text-4)' }}>{TECHNIEKEN.find(t => t.id === log.techniek)?.label}</p>}
                   </div>
-                  <p style={{ fontSize: 10, color: '#9CA3AF', flexShrink: 0 }}>
+                  <p style={{ fontSize: 10, color: 'var(--text-4)', flexShrink: 0 }}>
                     {new Date(log.aangemaakt_op).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' })}
                   </p>
                 </div>

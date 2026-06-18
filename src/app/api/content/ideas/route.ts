@@ -76,14 +76,16 @@ async function genereerIdeeën(pijler: string | null, aantal: number) {
     ? `Focus UITSLUITEND op de pijler: "${pijler}"`
     : 'Verdeel de ideeën evenredig over alle 7 pijlers'
 
-  const prompt = `Genereer ${aantal} unieke, concrete content ideeën voor Kane Bongers (personal trainer & performance coach voor ondernemers).
+  const prompt = `Genereer ${aantal} unieke, concrete content ideeën voor Kane Bongers (personal trainer gespecialiseerd in krachtsport en physique).
 
 ${pijlerContext}
 
+FOCUS: krachtsport en physique. Denk aan spiergroei, techniek bij krachtoefeningen, lichaamscompositie, voeding voor spiermassa, en Kane die zijn eigen lichaam als voorbeeld laat zien. GEEN Hyrox, GEEN cardio-only, GEEN ondernemerscontent.
+
 Elk idee moet:
-- Specifiek zijn (niet "tips over fitness" maar "3 oefeningen die je in de auto kunt doen")
+- Specifiek zijn (niet "tips over fitness" maar "zo activeer je je lats bij elke pull-up")
 - Een duidelijke hook hebben die stopt met scrollen
-- Actionable zijn voor de doelgroep (ondernemers 28-45 jaar)
+- Actionable zijn voor de doelgroep (20–40 jaar, wil sterker worden en beter eruitzien)
 - Passen bij een short-form video format (Reels/TikTok/YouTube Shorts)
 
 Retourneer ALLEEN geldig JSON (geen markdown):
@@ -91,7 +93,7 @@ Retourneer ALLEEN geldig JSON (geen markdown):
   "ideeen": [
     {
       "titel": "Pakkende titel max 10 woorden",
-      "pijler": "fitness|ondernemen|discipline|leefstijl|stressmanagement|performance|persoonlijke-groei",
+      "pijler": "kracht|physique|voeding|herstel|techniek|spiergroei|leefstijl",
       "hook": "Opening die zorgt dat mensen stoppen met scrollen (max 15 woorden)",
       "format": "reel|carousel|post|video|nieuwsbrief|linkedin",
       "platform": ["Instagram Reels", "TikTok"],
