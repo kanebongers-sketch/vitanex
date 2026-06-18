@@ -104,7 +104,7 @@ export default function StressPagina() {
         setLogs(prev => [json.log, ...prev.slice(0, 6)])
         setNotitie('')
         setSuccesBericht('Stress niveau opgeslagen ✓')
-        setTimeout(() => setSuccesBericht(null), 3000)
+        setTimeout(() => router.push('/vandaag'), 1500)
       }
     } catch { /* stil falen */ }
     setOpslaan(false)

@@ -85,9 +85,12 @@ export async function POST(req: NextRequest) {
     const defaultContext: GebruikerContext = { naam: 'je', ...gebruiker_context }
     const systeemTekst = await buildCoachSystemPrompt(BASIS_SYSTEEM, user.id, defaultContext)
 
+    // Cap maxTokens: client mag nooit meer dan 600 tokens vragen (voorkomt hoge AI-kosten)
+    const safeMaxTokens = Math.min(Math.max(100, maxTokens ?? 400), 600)
+
     const response = await anthropic.messages.create({
       model: 'claude-sonnet-4-5',
-      max_tokens: maxTokens ?? 400,
+      max_tokens: safeMaxTokens,
       system: [
         {
           type: 'text',

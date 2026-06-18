@@ -75,7 +75,7 @@ export default function StemmingPagina() {
         setLogs(prev => [json.log, ...prev.slice(0, 9)])
         setNotitie('')
         setSucces(true)
-        setTimeout(() => setSucces(false), 3000)
+        setTimeout(() => router.push('/vandaag'), 1500)
       }
     } catch { /* stil falen */ }
     setOpslaan(false)
@@ -140,19 +140,19 @@ export default function StemmingPagina() {
           <div style={{ display: 'flex', gap: 6 }}>
             {ENERGIE_OPTIES.map(o => (
               <button key={o.waarde} onClick={() => setEnergie(o.waarde)} style={{
-                flex: 1, height: 36, borderRadius: 8, border: 'none', cursor: 'pointer',
+                flex: 1, borderRadius: 10, border: 'none', cursor: 'pointer',
+                padding: '8px 4px',
                 background: energie === o.waarde ? 'var(--mf-green)' : 'var(--bg-subtle)',
                 color: energie === o.waarde ? 'white' : 'var(--text-3)',
-                fontWeight: 700, fontSize: 11,
+                fontWeight: 600, fontSize: 11,
                 transition: 'background 0.12s',
+                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
               }}>
-                {o.waarde}
+                <span style={{ fontSize: 16 }}>{o.emoji}</span>
+                <span style={{ fontSize: 9, letterSpacing: '0.02em' }}>{o.label}</span>
               </button>
             ))}
           </div>
-          <p style={{ fontSize: 10, color: 'var(--text-4)', marginTop: 4, textAlign: 'center' }}>
-            {ENERGIE_OPTIES.find(o => o.waarde === energie)?.label}
-          </p>
         </div>
 
         {/* Notitie */}

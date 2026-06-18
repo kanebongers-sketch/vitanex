@@ -90,7 +90,7 @@ export default function SlaapPagina() {
           return [json.log, ...prev.slice(0, 13)]
         })
         setSucces(true)
-        setTimeout(() => setSucces(false), 3000)
+        setTimeout(() => router.push('/vandaag'), 1500)
       }
     } catch { /* stil falen */ }
     setOpslaan(false)

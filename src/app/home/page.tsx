@@ -117,11 +117,12 @@ export default function HomePage() {
   const [readiness, setReadiness] = useState<number | null>(null)
   const [streak, setStreak] = useState(0)
   const [vandaagItems, setVandaagItems] = useState<VandaagItem[]>([
-    { key: 'stemming', label: 'Stemming', emoji: '😊', href: '/stemming', gedaan: false },
-    { key: 'slaap',    label: 'Slaap',    emoji: '😴', href: '/slaap',    gedaan: false },
-    { key: 'water',    label: 'Water',    emoji: '💧', href: '/water',    gedaan: false },
-    { key: 'bewegen',  label: 'Bewegen',  emoji: '🏃', href: '/sport',    gedaan: false },
-    { key: 'checkin',  label: 'Check-in', emoji: '✅', href: '/checkin',  gedaan: false },
+    { key: 'stemming',    label: 'Stemming',   emoji: '😊', href: '/stemming',    gedaan: false },
+    { key: 'slaap',       label: 'Slaap',      emoji: '😴', href: '/slaap',       gedaan: false },
+    { key: 'water',       label: 'Water',       emoji: '💧', href: '/water',       gedaan: false },
+    { key: 'sport',       label: 'Bewegen',     emoji: '🏃', href: '/sport',       gedaan: false },
+    { key: 'meditatie',   label: 'Meditatie',   emoji: '🧘', href: '/meditatie',   gedaan: false },
+    { key: 'dankbaarheid',label: 'Dankbaarheid',emoji: '🙏', href: '/dankbaarheid',gedaan: false },
   ])
 
   const snelLog = [
@@ -162,12 +163,15 @@ export default function HomePage() {
         if (typeof s === 'number') setReadiness(Math.round(s))
       }
 
-      // Vandaag checklist
+      // Vandaag checklist — API geeft { checklist: [{id, status}], scores, suggestie }
       if (vandaagRes.status === 'fulfilled' && vandaagRes.value) {
-        const d = vandaagRes.value as Record<string, boolean | unknown>
+        const d = vandaagRes.value as { checklist?: Array<{ id: string; status: string }> }
+        const gedaanSet = new Set(
+          (d.checklist ?? []).filter(i => i.status === 'gedaan').map(i => i.id)
+        )
         setVandaagItems(prev => prev.map(item => ({
           ...item,
-          gedaan: Boolean(d[item.key] ?? false),
+          gedaan: gedaanSet.has(item.key),
         })))
       }
 
