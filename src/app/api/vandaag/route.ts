@@ -125,7 +125,7 @@ export async function GET(req: NextRequest) {
 
       // focus vandaag (minuten)
       admin
-        .from('focus_sessies')
+        .from('focus_timer_logs')
         .select('duur_minuten')
         .eq('user_id', user.id)
         .gte('aangemaakt_op', dagstartUtc),
