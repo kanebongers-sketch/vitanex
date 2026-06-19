@@ -411,11 +411,42 @@ export default function HomePage() {
               }}
             >
               {streak > 0
-                ? 'Elke dag telt. Mis je vandaag, start je opnieuw.'
-                : 'Log elke dag en bouw een gewoonte op.'}
+                ? `${streak >= 7 ? 'Gewoonte gevormd' : 'Gewoonte in opbouw'} — kom ook morgen terug.`
+                : 'Eén log per dag. Meer is niet nodig.'}
             </p>
           </div>
         </section>
+
+        {/* ── SECTION 2b — PATRONEN TEASER ── */}
+        <Link
+          href="/patronen"
+          className="mf-animate-slide-up mf-stagger-1"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            background: 'linear-gradient(135deg, #F0FDF4 0%, #DCFCE7 100%)',
+            border: '1.5px solid #A7F3D0',
+            borderRadius: 16,
+            padding: '14px 18px',
+            marginBottom: 14,
+            textDecoration: 'none',
+            boxShadow: 'var(--shadow-xs)',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <span style={{ fontSize: 22 }}>🔬</span>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--mf-green-dark)' }}>
+                Wat verandert er in jouw leven?
+              </div>
+              <div style={{ fontSize: 11, color: '#15785A', marginTop: 2 }}>
+                Bekijk jouw persoonlijke patronen →
+              </div>
+            </div>
+          </div>
+          <span style={{ fontSize: 16, color: '#15785A', fontWeight: 700 }}>›</span>
+        </Link>
 
         {/* ── SECTION 3 — VANDAAG CHECKLIST ── */}
         <section

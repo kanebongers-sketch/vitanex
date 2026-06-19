@@ -48,6 +48,7 @@ const TOP_ITEMS: TopItem[] = [
       { href: '/stress',            label: '⚡ Stress'            },
       { href: '/werkgeluk',         label: '😄 Werkgeluk'         },
       { href: '/inzichten',         label: '📊 Inzichten'         },
+      { href: '/patronen',          label: '🔬 Mijn patronen'     },
       { href: '/rapport',           label: '📋 Rapport'           },
       { href: '/stemming-kalender', label: '📅 Stemming kalender' },
     ],
