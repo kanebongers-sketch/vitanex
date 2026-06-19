@@ -115,7 +115,7 @@ function DoelenInhoud() {
   const XPToastUI = xpToast && (
     <div style={{
       position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)',
-      zIndex: 1000, background: 'white', borderRadius: 16, border: '1.5px solid #E5E7EB',
+      zIndex: 1000, background: 'var(--bg-card)', borderRadius: 16, border: '1.5px solid var(--border)',
       boxShadow: '0 8px 32px rgba(0,0,0,0.14)', padding: '14px 20px', minWidth: 240,
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -142,8 +142,8 @@ function DoelenInhoud() {
               <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>
             </svg>
           </div>
-          <h1 style={{ fontSize: 22, fontWeight: 800, color: '#111827', marginBottom: 10 }}>Nog geen doelen</h1>
-          <p style={{ fontSize: 14, color: '#6B7280', lineHeight: 1.6, marginBottom: 28 }}>
+          <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', marginBottom: 10 }}>Nog geen doelen</h1>
+          <p style={{ fontSize: 14, color: 'var(--text-3)', lineHeight: 1.6, marginBottom: 28 }}>
             Doe een wekelijkse check-in en de AI kiest automatisch 3 doelen die perfect passen bij jouw situatie.
           </p>
           <a href="/checkin" style={{
@@ -172,15 +172,15 @@ function DoelenInhoud() {
   })
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
+    <div className="mf-mesh-bg" style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
       <Navbar />
       <main style={{ padding: '36px 40px 72px' }}>
 
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 28 }}>
           <div>
-            <h1 style={{ fontSize: 22, fontWeight: 800, color: '#111827', letterSpacing: '-0.03em', marginBottom: 4 }}>Mijn doelen deze week</h1>
-            <p style={{ fontSize: 13, color: '#9CA3AF' }}>{weekLabel} · AI-geselecteerde doelen</p>
+            <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 4 }}>Mijn doelen deze week</h1>
+            <p style={{ fontSize: 13, color: 'var(--text-4)' }}>{weekLabel} · AI-geselecteerde doelen</p>
           </div>
           <a href="/checkin" style={{
             fontSize: 13, color: '#1D9E75', padding: '8px 16px', borderRadius: 10,
@@ -194,8 +194,8 @@ function DoelenInhoud() {
 
         {/* Domein scores */}
         {selectie.vlak_scores && Object.keys(selectie.vlak_scores).length > 0 && (
-          <div style={{ background: 'white', borderRadius: 16, padding: '18px 22px', border: '1px solid #E5E7EB', marginBottom: 20 }}>
-            <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#9CA3AF', marginBottom: 12 }}>
+          <div style={{ background: 'var(--bg-card)', borderRadius: 16, padding: '18px 22px', border: '1px solid var(--border)', marginBottom: 20 }}>
+            <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-4)', marginBottom: 12 }}>
               Jouw scores deze week
             </p>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 10 }}>
@@ -206,14 +206,14 @@ function DoelenInhoud() {
                   <div key={vlak} style={{ textAlign: 'center' }}>
                     <div style={{
                       width: 44, height: 44, borderRadius: 12,
-                      background: score ? c.bg : '#F9FAFB',
+                      background: score ? c.bg : 'var(--bg-subtle)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       color: score ? c.kleur : '#D1D5DB', margin: '0 auto 6px',
-                      border: `1.5px solid ${score ? c.kleur + '30' : '#E5E7EB'}`,
+                      border: `1.5px solid ${score ? c.kleur + '30' : 'var(--border)'}`,
                     }}>
                       <span style={{ transform: 'scale(0.85)', display: 'flex' }}>{c.icon}</span>
                     </div>
-                    <p style={{ fontSize: 11, fontWeight: 600, color: '#374151', marginBottom: 2 }}>{c.label}</p>
+                    <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-2)', marginBottom: 2 }}>{c.label}</p>
                     {score > 0 ? (
                       <span style={{ fontSize: 12, fontWeight: 700, color: scoreKleur(score) }}>{score}/20</span>
                     ) : (
@@ -227,7 +227,7 @@ function DoelenInhoud() {
         )}
 
         {/* AI Doelen-advies */}
-        <div style={{ background: 'white', borderRadius: 16, border: '1px solid #E5E7EB', padding: '18px 22px', marginBottom: 20 }}>
+        <div style={{ background: 'var(--bg-card)', borderRadius: 16, border: '1px solid var(--border)', padding: '18px 22px', marginBottom: 20 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <div style={{ width: 28, height: 28, borderRadius: 8, background: '#EEEDFE', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -235,7 +235,7 @@ function DoelenInhoud() {
                   <circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/>
                 </svg>
               </div>
-              <p style={{ fontSize: 13, fontWeight: 700, color: '#374151' }}>AI Weekdoel-suggesties</p>
+              <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-2)' }}>AI Weekdoel-suggesties</p>
             </div>
             {!adviezen && (
               <button
@@ -251,14 +251,14 @@ function DoelenInhoud() {
               </button>
             )}
             {adviezen && (
-              <button onClick={() => setAdviezen(null)} style={{ fontSize: 11, color: '#9CA3AF', background: 'none', border: 'none', cursor: 'pointer' }}>
+              <button onClick={() => setAdviezen(null)} style={{ fontSize: 11, color: 'var(--text-4)', background: 'none', border: 'none', cursor: 'pointer' }}>
                 Verbergen
               </button>
             )}
           </div>
 
           {!adviezen && !adviesBezig && (
-            <p style={{ fontSize: 12, color: '#9CA3AF', lineHeight: 1.5 }}>
+            <p style={{ fontSize: 12, color: 'var(--text-4)', lineHeight: 1.5 }}>
               Laat de AI 3 concrete weekdoelen voorstellen op basis van jouw laagste scores en burnout-risico.
             </p>
           )}
@@ -266,7 +266,7 @@ function DoelenInhoud() {
           {adviesBezig && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, paddingTop: 4 }}>
               <div className="mf-spinner" style={{ width: 16, height: 16 }} />
-              <p style={{ fontSize: 12, color: '#9CA3AF' }}>AI analyseert jouw data...</p>
+              <p style={{ fontSize: 12, color: 'var(--text-4)' }}>AI analyseert jouw data...</p>
             </div>
           )}
 
@@ -279,8 +279,8 @@ function DoelenInhoud() {
                     <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: kleur }}>
                       {a.domein}
                     </span>
-                    <p style={{ fontSize: 12, fontWeight: 600, color: '#111827', margin: '4px 0 6px', lineHeight: 1.4 }}>{a.doel}</p>
-                    <p style={{ fontSize: 11, color: '#6B7280', lineHeight: 1.4 }}>{a.waarom}</p>
+                    <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-1)', margin: '4px 0 6px', lineHeight: 1.4 }}>{a.doel}</p>
+                    <p style={{ fontSize: 11, color: 'var(--text-3)', lineHeight: 1.4 }}>{a.waarom}</p>
                   </div>
                 )
               })}
@@ -288,14 +288,14 @@ function DoelenInhoud() {
           )}
 
           {adviezen && adviezen.length === 0 && (
-            <p style={{ fontSize: 12, color: '#9CA3AF' }}>Geen suggesties beschikbaar. Doe eerst een check-in.</p>
+            <p style={{ fontSize: 12, color: 'var(--text-4)' }}>Geen suggesties beschikbaar. Doe eerst een check-in.</p>
           )}
         </div>
 
         {/* 3 doelkaarten */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 20 }}>
           {selectie.doelen.map(doel => {
-            const c = CAT[doel.vlak] ?? { label: doel.vlak, kleur: '#6B7280', bg: '#F9FAFB', licht: '#F9FAFB', icon: null }
+            const c = CAT[doel.vlak] ?? { label: doel.vlak, kleur: 'var(--text-3)', bg: 'var(--bg-subtle)', licht: 'var(--bg-subtle)', icon: null }
             const gelogd = isVandaagGelogd(doel)
             const logEntry = logVandaag(doel)
             const gehaaldVandaag = logEntry?.gehaald === true
@@ -307,8 +307,8 @@ function DoelenInhoud() {
 
             return (
               <div key={doel.vlak} style={{
-                background: 'white', borderRadius: 20,
-                border: `2px solid ${gelogd ? c.kleur + '40' : '#E5E7EB'}`,
+                background: 'var(--bg-card)', borderRadius: 20,
+                border: `2px solid ${gelogd ? c.kleur + '40' : 'var(--border)'}`,
                 padding: '22px 22px 20px',
                 boxShadow: gelogd ? `0 4px 20px ${c.kleur}12` : '0 1px 4px rgba(0,0,0,0.04)',
                 display: 'flex', flexDirection: 'column', gap: 14,
@@ -324,8 +324,8 @@ function DoelenInhoud() {
                   {gelogd && (
                     <div style={{
                       width: 26, height: 26, borderRadius: '50%',
-                      background: gehaaldVandaag ? c.kleur : '#F3F4F6',
-                      border: `2px solid ${gehaaldVandaag ? c.kleur : '#E5E7EB'}`,
+                      background: gehaaldVandaag ? c.kleur : 'var(--bg-subtle)',
+                      border: `2px solid ${gehaaldVandaag ? c.kleur : 'var(--border)'}`,
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                     }}>
                       {gehaaldVandaag
@@ -338,8 +338,8 @@ function DoelenInhoud() {
 
                 {/* Doel info */}
                 <div>
-                  <p style={{ fontSize: 14, fontWeight: 700, color: '#111827', marginBottom: 4, lineHeight: 1.3 }}>{doel.doel_titel}</p>
-                  <p style={{ fontSize: 11, color: '#9CA3AF', lineHeight: 1.5 }}>{doel.doel_beschrijving}</p>
+                  <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-1)', marginBottom: 4, lineHeight: 1.3 }}>{doel.doel_titel}</p>
+                  <p style={{ fontSize: 11, color: 'var(--text-4)', lineHeight: 1.5 }}>{doel.doel_beschrijving}</p>
                   <p style={{ fontSize: 11, color: c.kleur, fontWeight: 600, marginTop: 6 }}>
                     {doel.target_waarde} {doel.eenheid} · {doel.meetType}
                   </p>
@@ -348,7 +348,7 @@ function DoelenInhoud() {
                 {/* Week voortgang */}
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
-                    <span style={{ fontSize: 11, color: '#9CA3AF' }}>Deze week</span>
+                    <span style={{ fontSize: 11, color: 'var(--text-4)' }}>Deze week</span>
                     <span style={{ fontSize: 11, fontWeight: 700, color: c.kleur }}>{aantalGehaald}/7 dagen</span>
                   </div>
                   <div style={{ display: 'flex', gap: 3 }}>
@@ -359,7 +359,7 @@ function DoelenInhoud() {
                       return (
                         <div key={i} style={{
                           flex: 1, height: 20, borderRadius: 4,
-                          background: gehaald ? c.kleur : log ? '#F3F4F6' : '#F9FAFB',
+                          background: gehaald ? c.kleur : log ? 'var(--bg-subtle)' : 'var(--bg-subtle)',
                           border: isVandaagDag && !gelogd ? `1.5px dashed ${c.kleur}` : 'none',
                         }} />
                       )
@@ -400,20 +400,20 @@ function DoelenInhoud() {
         </div>
 
         {/* Samenvatting strip */}
-        <div style={{ background: 'white', borderRadius: 16, padding: '16px 20px', border: '1px solid #E5E7EB', display: 'flex', alignItems: 'center', gap: 16 }}>
+        <div style={{ background: 'var(--bg-card)', borderRadius: 16, padding: '16px 20px', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 16 }}>
           <div style={{ flex: 1, display: 'flex', gap: 24 }}>
             {selectie.doelen.map(d => {
               const c = CAT[d.vlak]
               const gelogd = isVandaagGelogd(d)
               return (
                 <div key={d.vlak} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: gelogd ? c.kleur : '#E5E7EB' }} />
-                  <span style={{ fontSize: 12, color: gelogd ? '#374151' : '#9CA3AF', fontWeight: gelogd ? 600 : 400 }}>{c.label}</span>
+                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: gelogd ? c.kleur : 'var(--border)' }} />
+                  <span style={{ fontSize: 12, color: gelogd ? 'var(--text-2)' : 'var(--text-4)', fontWeight: gelogd ? 600 : 400 }}>{c.label}</span>
                 </div>
               )
             })}
           </div>
-          <p style={{ fontSize: 12, color: '#9CA3AF' }}>
+          <p style={{ fontSize: 12, color: 'var(--text-4)' }}>
             {selectie.doelen.filter(d => isVandaagGelogd(d)).length}/3 vandaag gelogd
           </p>
         </div>
@@ -422,27 +422,27 @@ function DoelenInhoud() {
       {/* Log modal */}
       {logModal && (() => {
         const { doel } = logModal
-        const c = CAT[doel.vlak] ?? { label: doel.vlak, kleur: '#6B7280', bg: '#F9FAFB', licht: '#F9FAFB', icon: null }
+        const c = CAT[doel.vlak] ?? { label: doel.vlak, kleur: 'var(--text-3)', bg: 'var(--bg-subtle)', licht: 'var(--bg-subtle)', icon: null }
         const logEntry = logVandaag(doel)
         return (
           <div
             style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 50, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}
             onClick={e => { if (e.target === e.currentTarget) setLogModal(null) }}
           >
-            <div style={{ background: 'white', width: '100%', maxWidth: 480, borderRadius: '24px 24px 0 0', padding: '24px 20px 40px' }}>
+            <div style={{ background: 'var(--bg-card)', width: '100%', maxWidth: 480, borderRadius: '24px 24px 0 0', padding: '24px 20px 40px' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
                 <div>
                   <p style={{ fontSize: 11, color: c.kleur, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>{c.label}</p>
-                  <h3 style={{ fontSize: 16, fontWeight: 700, color: '#111827' }}>{doel.doel_titel}</h3>
+                  <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-1)' }}>{doel.doel_titel}</h3>
                 </div>
-                <button onClick={() => setLogModal(null)} style={{ width: 32, height: 32, borderRadius: '50%', background: '#F3F4F6', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                <button onClick={() => setLogModal(null)} style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--bg-subtle)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" strokeWidth="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                 </button>
               </div>
 
-              <p style={{ fontSize: 13, color: '#6B7280', marginBottom: 16, lineHeight: 1.5 }}>{doel.doel_beschrijving}</p>
+              <p style={{ fontSize: 13, color: 'var(--text-3)', marginBottom: 16, lineHeight: 1.5 }}>{doel.doel_beschrijving}</p>
 
-              <p style={{ fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 12 }}>
+              <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-2)', marginBottom: 12 }}>
                 Heb je vandaag <strong style={{ color: c.kleur }}>{doel.target_waarde} {doel.eenheid}</strong> gehaald?
               </p>
 
@@ -451,9 +451,9 @@ function DoelenInhoud() {
                 <button
                   onClick={() => logGehaald(doel, true)}
                   style={{
-                    padding: '14px', borderRadius: 14, border: `2px solid ${logEntry?.gehaald === true ? c.kleur : '#E5E7EB'}`,
-                    background: logEntry?.gehaald === true ? c.kleur : 'white',
-                    color: logEntry?.gehaald === true ? 'white' : '#374151',
+                    padding: '14px', borderRadius: 14, border: `2px solid ${logEntry?.gehaald === true ? c.kleur : 'var(--border)'}`,
+                    background: logEntry?.gehaald === true ? c.kleur : 'var(--bg-card)',
+                    color: logEntry?.gehaald === true ? 'white' : 'var(--text-2)',
                     fontSize: 14, fontWeight: 700, cursor: 'pointer',
                     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
                   }}
@@ -464,9 +464,9 @@ function DoelenInhoud() {
                 <button
                   onClick={() => logGehaald(doel, false)}
                   style={{
-                    padding: '14px', borderRadius: 14, border: `2px solid ${logEntry?.gehaald === false ? '#DC2626' : '#E5E7EB'}`,
-                    background: logEntry?.gehaald === false ? '#DC2626' : 'white',
-                    color: logEntry?.gehaald === false ? 'white' : '#374151',
+                    padding: '14px', borderRadius: 14, border: `2px solid ${logEntry?.gehaald === false ? '#DC2626' : 'var(--border)'}`,
+                    background: logEntry?.gehaald === false ? '#DC2626' : 'var(--bg-card)',
+                    color: logEntry?.gehaald === false ? 'white' : 'var(--text-2)',
                     fontSize: 14, fontWeight: 700, cursor: 'pointer',
                     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
                   }}
@@ -480,7 +480,7 @@ function DoelenInhoud() {
                 placeholder="Optionele notitie (hoe ging het?)"
                 value={logNotitie} onChange={e => setLogNotitie(e.target.value)}
                 rows={2}
-                style={{ width: '100%', border: '1px solid #E5E7EB', borderRadius: 10, padding: '10px 12px', fontSize: 13, outline: 'none', resize: 'none', boxSizing: 'border-box' }}
+                style={{ width: '100%', border: '1px solid var(--border)', borderRadius: 10, padding: '10px 12px', fontSize: 13, outline: 'none', resize: 'none', boxSizing: 'border-box', background: 'var(--bg-card)', color: 'var(--text-2)' }}
               />
             </div>
           </div>

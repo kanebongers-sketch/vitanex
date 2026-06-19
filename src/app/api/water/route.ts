@@ -32,7 +32,7 @@ export async function GET(req: NextRequest) {
     vandaag_ml,
     doel_ml: STANDAARD_DOEL_ML,
     logs,
-  })
+  }, { headers: { 'Cache-Control': 'private, max-age=60, stale-while-revalidate=30' } })
 }
 
 export async function POST(req: NextRequest) {

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 import { getAuthenticatedUser } from '@/lib/api-auth'
 import { buildCoachSystemPrompt } from '@/lib/coach-context'
+import { createAdminClient } from '@/lib/supabase-admin'
 
 if (!process.env.ANTHROPIC_API_KEY) {
   console.error('[coach] ANTHROPIC_API_KEY is niet ingesteld')
@@ -34,20 +35,29 @@ type GebruikerContext = {
   actieveDoelen?: string[]
 }
 
-const rateMap = new Map<string, { count: number; reset: number }>()
-const RATE_LIMIT = 30
-const RATE_WINDOW = 60 * 60 * 1000
+async function checkRateLimit(userId: string): Promise<boolean> {
+  try {
+    const supabase = createAdminClient()
+    const windowStart = new Date(Date.now() - 3600 * 1000).toISOString()
 
-function checkRateLimit(userId: string): boolean {
-  const now = Date.now()
-  const data = rateMap.get(userId)
-  if (!data || now > data.reset) {
-    rateMap.set(userId, { count: 1, reset: now + RATE_WINDOW })
+    const { count, error: countError } = await supabase
+      .from('coach_rate_limits')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .gte('created_at', windowStart)
+
+    if (countError) return true
+    if ((count ?? 0) >= 30) return false
+
+    const { error: insertError } = await supabase
+      .from('coach_rate_limits')
+      .insert({ user_id: userId })
+
+    if (insertError) return true
+    return true
+  } catch {
     return true
   }
-  if (data.count >= RATE_LIMIT) return false
-  data.count++
-  return true
 }
 
 export async function POST(req: NextRequest) {
@@ -60,7 +70,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Niet ingelogd.' }, { status: 401 })
   }
 
-  if (!checkRateLimit(user.id)) {
+  if (!await checkRateLimit(user.id)) {
     return NextResponse.json(
       { error: 'Te veel berichten. Probeer het over een uur opnieuw.' },
       { status: 429 },

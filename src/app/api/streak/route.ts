@@ -112,5 +112,5 @@ export async function GET(req: NextRequest) {
     maand_pct,
     kalender,
     actief_vandaag,
-  })
+  }, { headers: { 'Cache-Control': 'private, max-age=60, stale-while-revalidate=30' } })
 }

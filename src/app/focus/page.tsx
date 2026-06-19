@@ -533,7 +533,7 @@ export default function FocusPagina() {
   )
 
   return (
-    <div className="min-h-screen" style={{ background: 'var(--bg-app)' }}>
+    <div className="min-h-screen mf-mesh-bg" style={{ background: 'var(--bg-app)' }}>
       <Navbar />
       <main className="p-6 pb-20">
 
@@ -552,7 +552,7 @@ export default function FocusPagina() {
                 onClick={() => setTab(t.id)}
                 className="px-4 py-2 rounded-xl text-xs font-medium transition whitespace-nowrap"
                 style={{
-                  background: tab === t.id ? 'white' : 'transparent',
+                  background: tab === t.id ? 'var(--bg-card)' : 'transparent',
                   color: tab === t.id ? '#111' : '#888',
                   boxShadow: tab === t.id ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
                 }}
@@ -566,7 +566,7 @@ export default function FocusPagina() {
         {/* -------------- ADEMHALING -------------- */}
         {tab === 'adem' && (
           <>
-            <div className="bg-white rounded-2xl border border-gray-100 p-5 mb-4">
+            <div className="rounded-2xl border p-5 mb-4" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Kies techniek</p>
               <div className="grid grid-cols-2 gap-2 mb-4">
                 {(Object.keys(ADEM) as AdemTab[]).map(k => (
@@ -577,7 +577,7 @@ export default function FocusPagina() {
                     className="py-2.5 px-3 rounded-xl text-xs font-medium border transition text-left"
                     style={{
                       background: ademTab === k ? 'var(--mentaforce-primary-light)' : '#FAFAFA',
-                      borderColor: ademTab === k ? 'var(--mentaforce-primary)' : '#e5e7eb',
+                      borderColor: ademTab === k ? 'var(--mentaforce-primary)' : 'var(--border)',
                       color: ademTab === k ? 'var(--mentaforce-primary)' : '#6b7280',
                       opacity: ademActief && ademTab !== k ? 0.4 : 1,
                     }}
@@ -643,7 +643,7 @@ export default function FocusPagina() {
               </button>
             </div>
 
-            <div className="bg-white rounded-2xl border border-gray-100 p-5">
+            <div className="rounded-2xl border p-5" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Wanneer gebruik je wat?</p>
               {[
                 { when: 'Acuut gestrest of overprikkeld', use: 'Fysiologische snik', reden: 'Snelste resultaat, werkt in 1-2 ademhalingen' },
@@ -667,7 +667,7 @@ export default function FocusPagina() {
         {/* -------------- BEWEGING -------------- */}
         {tab === 'beweging' && (
           <>
-            <div className="bg-white rounded-2xl border border-gray-100 p-4 mb-4">
+            <div className="rounded-2xl border p-4 mb-4" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
               <p className="text-sm text-gray-600">
                 Elke 50-90 minuten bewegen verhoogt productiviteit met <strong>13%</strong> en verlaagt rugklachten significant.
               </p>
@@ -690,13 +690,13 @@ export default function FocusPagina() {
 
             <div className="space-y-3">
               {BUREAUOEFENINGEN.map((oe, idx) => (
-                <div key={idx} className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+                <div key={idx} className="rounded-2xl border overflow-hidden" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
                   <button
                     onClick={() => setOpenOefening(openOefening === idx ? null : idx)}
                     className="w-full px-5 py-4 flex items-center gap-4 text-left hover:bg-gray-50 transition"
                   >
                     <div className="w-9 h-9 rounded-xl flex items-center justify-center text-xs font-bold flex-shrink-0"
-                      style={{ background: '#F3F4F6', color: '#6b7280' }}>{(oe as {afk: string}).afk}</div>
+                      style={{ background: 'var(--bg-subtle)', color: 'var(--text-3)' }}>{(oe as {afk: string}).afk}</div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold text-gray-900">{oe.naam}</p>
                       <p className="text-xs text-gray-400">{oe.duur} · {oe.stappen.length} stappen</p>
@@ -724,7 +724,7 @@ export default function FocusPagina() {
               ))}
             </div>
 
-            <div className="mt-5 bg-white rounded-2xl border border-gray-100 p-5">
+            <div className="mt-5 rounded-2xl border p-5" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Snel bewegingsschema</p>
               {[
                 { tijd: '09:00', actie: 'Sta op, doe 10 squats voor je begint' },
@@ -745,7 +745,7 @@ export default function FocusPagina() {
         {/* -------------- VOEDING -------------- */}
         {tab === 'voeding' && (
           <>
-            <div className="bg-white rounded-2xl border border-gray-100 p-4 mb-4">
+            <div className="rounded-2xl border p-4 mb-4" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
               <p className="text-sm text-gray-600">
                 Voeding heeft een direct effect op cortisol, serotonine en dopamine  de stofjes die je stress en energie bepalen.
               </p>
@@ -753,7 +753,7 @@ export default function FocusPagina() {
 
             <div className="space-y-3">
               {VOEDING_CATEGORIEEN.map((cat, idx) => (
-                <div key={idx} className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+                <div key={idx} className="rounded-2xl border overflow-hidden" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
                   <button
                     onClick={() => setOpenVoedingCat(openVoedingCat === idx ? null : idx)}
                     className="w-full px-5 py-4 flex items-center gap-4 text-left hover:bg-gray-50 transition"
@@ -780,7 +780,7 @@ export default function FocusPagina() {
               ))}
             </div>
 
-            <div className="mt-5 bg-white rounded-2xl border border-gray-100 p-5">
+            <div className="mt-5 rounded-2xl border p-5" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Ideale werkdag qua eten</p>
               {[
                 { tijd: 'Ochtend', kleur: '#1D9E75', items: ['Eiwitrijk ontbijt (eieren, kwark)', 'Eerste koffie na 90 min opstaan', '500ml water voor 10:00'] },
@@ -810,7 +810,7 @@ export default function FocusPagina() {
                 { label: 'Ideale nap', waarde: '1020m', kleur: '#1D9E75', bg: '#E1F5EE' },
                 { label: 'Geen schermen', waarde: '60m voor bed', kleur: '#378ADD', bg: '#E6F1FB' },
               ].map(s => (
-                <div key={s.label} className="bg-white rounded-2xl border border-gray-100 p-4 text-center">
+                <div key={s.label} className="rounded-2xl border p-4 text-center" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
                   <p className="text-sm font-bold mb-0.5" style={{ color: s.kleur }}>{s.waarde}</p>
                   <p className="text-xs text-gray-400">{s.label}</p>
                 </div>
@@ -819,7 +819,7 @@ export default function FocusPagina() {
 
             <div className="space-y-3">
               {SLAAP_SECTIES.map((sec, idx) => (
-                <div key={idx} className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+                <div key={idx} className="rounded-2xl border overflow-hidden" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
                   <button
                     onClick={() => setOpenSlaapSectie(openSlaapSectie === idx ? null : idx)}
                     className="w-full px-5 py-4 flex items-center gap-4 text-left hover:bg-gray-50 transition"
@@ -846,7 +846,7 @@ export default function FocusPagina() {
               ))}
             </div>
 
-            <div className="mt-5 bg-white rounded-2xl border border-gray-100 p-5">
+            <div className="mt-5 rounded-2xl border p-5" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Slaap-wind-down routine</p>
               {[
                 { tijd: 'T-60 min', kleur: '#8B5CF6', actie: 'Schermen weg of blauwlichtfilter aan' },
@@ -868,7 +868,7 @@ export default function FocusPagina() {
         {/* -------------- MENTAAL -------------- */}
         {tab === 'mentaal' && (
           <>
-            <div className="bg-white rounded-2xl border border-gray-100 p-4 mb-4">
+            <div className="rounded-2xl border p-4 mb-4" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
               <p className="text-sm text-gray-600">
                 Mentale technieken veranderen aantoonbaar de activiteit in de prefrontale cortex en verlagen de amygdala-respons.
               </p>
@@ -876,7 +876,7 @@ export default function FocusPagina() {
 
             <div className="space-y-3">
               {MENTAAL_TECHNIEKEN.map((tech, idx) => (
-                <div key={idx} className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+                <div key={idx} className="rounded-2xl border overflow-hidden" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
                   <button
                     onClick={() => setOpenTechniek(openTechniek === idx ? null : idx)}
                     className="w-full px-5 py-4 flex items-center gap-4 text-left hover:bg-gray-50 transition"
@@ -912,7 +912,7 @@ export default function FocusPagina() {
               ))}
             </div>
 
-            <div className="mt-5 bg-white rounded-2xl border border-gray-100 p-5">
+            <div className="mt-5 rounded-2xl border p-5" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Stress signalen herkennen</p>
               <p className="text-xs text-gray-400 mb-3">Fysieke en mentale tekenen dat je een reset nodig hebt:</p>
               <div className="grid grid-cols-2 gap-2">
@@ -947,7 +947,7 @@ export default function FocusPagina() {
                   className="flex-1 py-3 rounded-xl text-xs font-medium border transition flex flex-col items-center gap-1"
                   style={{
                     background: timerTab === k ? 'var(--mentaforce-primary-light)' : 'white',
-                    borderColor: timerTab === k ? 'var(--mentaforce-primary)' : '#e5e7eb',
+                    borderColor: timerTab === k ? 'var(--mentaforce-primary)' : 'var(--border)',
                     color: timerTab === k ? 'var(--mentaforce-primary)' : '#6b7280',
                   }}
                 >
@@ -958,7 +958,7 @@ export default function FocusPagina() {
               ))}
             </div>
 
-            <div className="bg-white rounded-2xl border border-gray-200 p-6 mb-4 flex flex-col items-center">
+            <div className="rounded-2xl border p-6 mb-4 flex flex-col items-center" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
               <div className="relative" style={{ width: 200, height: 200 }}>
                 <svg width="200" height="200" viewBox="0 0 200 200" style={{ transform: 'rotate(-90deg)' }}>
                   <circle cx="100" cy="100" r="88" fill="none" stroke="#f0f0f0" strokeWidth="8" />
@@ -1000,14 +1000,14 @@ export default function FocusPagina() {
               </button>
               <button
                 onClick={() => { setTimerActief(false); setTimerKlaar(false); setTimerRest(timerConfig.duur) }}
-                className="px-5 py-3.5 rounded-xl text-sm border border-gray-200 text-gray-500 hover:bg-gray-50 transition"
+                className="px-5 py-3.5 rounded-xl text-sm border text-gray-500 hover:bg-gray-50 transition" style={{ borderColor: 'var(--border)' }}
               >
                 Reset
               </button>
             </div>
 
             {timerTab === 'micro' && (
-              <div className="bg-white rounded-2xl border border-gray-200 p-5 mb-4">
+              <div className="rounded-2xl border p-5 mb-4" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
                 <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Ideeën voor je micro-break</p>
                 {[
                   'Kijk 20 sec naar iets op 6 meter (20-20-20 regel)',
@@ -1026,7 +1026,7 @@ export default function FocusPagina() {
               </div>
             )}
 
-            <div className="bg-white rounded-2xl border border-gray-100 p-5">
+            <div className="rounded-2xl border p-5" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Pomodoro methode</p>
               <p className="text-sm text-gray-600 mb-4">
                 Werk in blokken van 25 minuten gefocust werk, gevolgd door 5 minuten pauze. Na 4 blokken een lange pauze van 15-30 minuten.

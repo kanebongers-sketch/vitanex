@@ -73,7 +73,7 @@ export async function GET(req: NextRequest) {
   const admin = createAdminClient()
   const vandaag = new Date().toISOString().split('T')[0]
   const gisteren = new Date(Date.now() - 86400000).toISOString().split('T')[0]
-  const dagstartUtc = `${vandaag}T00:00:00.000Z`
+  const dagstart = new Date(); dagstart.setHours(0, 0, 0, 0); const dagstartUtc = dagstart.toISOString()
 
   const uur = new Date().getHours()
   const suggestie = bepaalSuggestie(uur)
@@ -166,7 +166,7 @@ export async function GET(req: NextRequest) {
       },
       {
         status: 200,
-        headers: { 'Cache-Control': 'private, max-age=300' },
+        headers: { 'Cache-Control': 'private, max-age=60, stale-while-revalidate=30' },
       }
     )
   }
@@ -289,7 +289,7 @@ export async function GET(req: NextRequest) {
       suggestie,
     },
     {
-      headers: { 'Cache-Control': 'private, max-age=300' },
+      headers: { 'Cache-Control': 'private, max-age=60, stale-while-revalidate=30' },
     }
   )
 }

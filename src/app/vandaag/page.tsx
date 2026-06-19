@@ -3,6 +3,7 @@
 export const dynamic = 'force-dynamic'
 
 import { useEffect, useRef, useState } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
@@ -518,6 +519,7 @@ export default function VandaagPage() {
     <>
       <Navbar />
       <main
+        className="mf-mesh-bg"
         style={{
           minHeight: '100vh',
           background: 'var(--bg-app)',
@@ -533,6 +535,21 @@ export default function VandaagPage() {
         >
           {/* ── Header ───────────────────────────────────────────────────── */}
           <header style={{ padding: '32px 0 24px' }}>
+            <Link
+              href="/home"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 4,
+                fontSize: 13,
+                fontWeight: 500,
+                color: 'var(--text-3)',
+                textDecoration: 'none',
+                marginBottom: 12,
+              }}
+            >
+              ← Terug
+            </Link>
             <p
               style={{
                 margin: 0,
@@ -622,11 +639,6 @@ export default function VandaagPage() {
 
           {/* ── Dagdeel suggestie ─────────────────────────────────────────── */}
           <DagdeelSuggestie suggestie={suggestie} />
-
-          {/* ── Voortgangsbalk ────────────────────────────────────────────── */}
-          <div style={{ marginTop: 20 }}>
-            <VoortgangsBalk pct={scores.score_pct} />
-          </div>
         </div>
       </main>
     </>

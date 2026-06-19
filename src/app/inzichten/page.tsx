@@ -64,7 +64,7 @@ function ProgressRing({ value, max, kleur, label, eenheid = '', size = 80, strok
       <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
         <circle
           cx={size / 2} cy={size / 2} r={radius}
-          fill="none" stroke="#F3F4F6" strokeWidth={strokeWidth}
+          fill="none" stroke="var(--border)" strokeWidth={strokeWidth}
         />
         <circle
           cx={size / 2} cy={size / 2} r={radius}
@@ -78,7 +78,7 @@ function ProgressRing({ value, max, kleur, label, eenheid = '', size = 80, strok
         <span style={{ fontSize: 18, fontWeight: 800, color: kleur, lineHeight: 1 }}>
           {displayVal}{eenheid}
         </span>
-        <span style={{ fontSize: 9, color: '#9CA3AF', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginTop: 3 }}>
+        <span style={{ fontSize: 9, color: 'var(--text-4)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginTop: 3 }}>
           {label}
         </span>
       </div>
@@ -89,11 +89,11 @@ function ProgressRing({ value, max, kleur, label, eenheid = '', size = 80, strok
 function StatKaart({ waarde, label, kleur }: { waarde: number | string; label: string; kleur: string }) {
   return (
     <div style={{
-      background: 'white', borderRadius: 14, padding: '16px 12px',
-      border: '1px solid #E5E7EB', textAlign: 'center', flex: 1,
+      background: 'var(--bg-card)', borderRadius: 14, padding: '16px 12px',
+      border: '1px solid var(--border)', textAlign: 'center', flex: 1,
     }}>
       <p style={{ fontSize: 22, fontWeight: 800, color: kleur, margin: 0 }}>{waarde}</p>
-      <p style={{ fontSize: 9, color: '#9CA3AF', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginTop: 4 }}>{label}</p>
+      <p style={{ fontSize: 9, color: 'var(--text-4)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginTop: 4 }}>{label}</p>
     </div>
   )
 }
@@ -128,19 +128,19 @@ export default function InzichtenPagina() {
   const stats = rapport?.stats ?? null
 
   const stemmingKleur = (v: number | null) =>
-    v === null ? '#9CA3AF' : v >= 4 ? '#1D9E75' : v >= 3 ? '#F59E0B' : '#EF4444'
+    v === null ? 'var(--text-4)' : v >= 4 ? '#1D9E75' : v >= 3 ? '#F59E0B' : '#EF4444'
 
   const slaapKleur = (v: number | null) =>
-    v === null ? '#9CA3AF' : v >= 7 ? '#1D9E75' : v >= 5 ? '#F59E0B' : '#EF4444'
+    v === null ? 'var(--text-4)' : v >= 7 ? '#1D9E75' : v >= 5 ? '#F59E0B' : '#EF4444'
 
   const rustKleur = (stress: number | null) => {
-    if (stress === null) return '#9CA3AF'
+    if (stress === null) return 'var(--text-4)'
     const rust = 10 - stress
     return rust >= 7 ? '#1D9E75' : rust >= 5 ? '#F59E0B' : '#EF4444'
   }
 
   if (laden) return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
+    <div className="mf-mesh-bg" style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
       <Navbar />
       <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 80 }}>
         <div className="mf-spinner" />
@@ -149,23 +149,23 @@ export default function InzichtenPagina() {
   )
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
+    <div className="mf-mesh-bg" style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
       <Navbar />
       <main style={{ padding: '24px 20px 88px', maxWidth: 600, margin: '0 auto' }}>
 
         <header style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 24 }}>
           <div>
-            <h1 style={{ fontSize: 22, fontWeight: 800, color: '#111827', letterSpacing: '-0.03em', marginBottom: 4 }}>
+            <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 4 }}>
               Wekelijkse inzichten
             </h1>
-            <p style={{ fontSize: 13, color: '#9CA3AF' }}>AI-analyse van jouw afgelopen 7 dagen</p>
+            <p style={{ fontSize: 13, color: 'var(--text-4)' }}>AI-analyse van jouw afgelopen 7 dagen</p>
           </div>
           <button
             onClick={() => laadRapport(true)}
             disabled={vernieuwen}
             style={{
-              background: 'white', border: '1px solid #E5E7EB', borderRadius: 10,
-              padding: '8px 14px', fontSize: 12, fontWeight: 600, color: '#374151',
+              background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 10,
+              padding: '8px 14px', fontSize: 12, fontWeight: 600, color: 'var(--text-2)',
               cursor: vernieuwen ? 'not-allowed' : 'pointer',
               opacity: vernieuwen ? 0.6 : 1, whiteSpace: 'nowrap', marginTop: 2,
               display: 'flex', alignItems: 'center', gap: 6,
@@ -185,12 +185,12 @@ export default function InzichtenPagina() {
         {/* Lege staat */}
         {!rapport && (
           <div style={{
-            background: 'white', borderRadius: 20, padding: '40px 24px',
-            textAlign: 'center', border: '1px solid #E5E7EB',
+            background: 'var(--bg-card)', borderRadius: 20, padding: '40px 24px',
+            textAlign: 'center', border: '1px solid var(--border)',
           }}>
             <div style={{ fontSize: 44, marginBottom: 14 }}>📊</div>
-            <p style={{ fontSize: 15, fontWeight: 700, color: '#111827', marginBottom: 8 }}>Nog geen inzichten</p>
-            <p style={{ fontSize: 13, color: '#6B7280', lineHeight: 1.65 }}>
+            <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-1)', marginBottom: 8 }}>Nog geen inzichten</p>
+            <p style={{ fontSize: 13, color: 'var(--text-3)', lineHeight: 1.65 }}>
               {data?.bericht ?? 'Doe minimaal 3 check-ins deze week om jouw wekelijkse analyse te ontvangen.'}
             </p>
           </div>
@@ -224,8 +224,8 @@ export default function InzichtenPagina() {
             {/* Progress rings */}
             {stats && (
               <div style={{
-                background: 'white', borderRadius: 20, padding: '22px 16px',
-                border: '1px solid #E5E7EB', marginBottom: 14,
+                background: 'var(--bg-card)', borderRadius: 20, padding: '22px 16px',
+                border: '1px solid var(--border)', marginBottom: 14,
                 display: 'flex', justifyContent: 'space-around', alignItems: 'center',
               }}>
                 <ProgressRing
@@ -263,37 +263,37 @@ export default function InzichtenPagina() {
                 <StatKaart
                   waarde={stats.dankbaarheid_items}
                   label="Dankbaarheid"
-                  kleur={stats.dankbaarheid_items >= 5 ? '#1D9E75' : stats.dankbaarheid_items >= 2 ? '#F59E0B' : '#9CA3AF'}
+                  kleur={stats.dankbaarheid_items >= 5 ? '#1D9E75' : stats.dankbaarheid_items >= 2 ? '#F59E0B' : 'var(--text-4)'}
                 />
               </div>
             )}
 
             {/* Samenvatting */}
             <div style={{
-              background: 'white', borderRadius: 20, padding: '18px',
-              border: '1px solid #E5E7EB', marginBottom: 14,
+              background: 'var(--bg-card)', borderRadius: 20, padding: '18px',
+              border: '1px solid var(--border)', marginBottom: 14,
             }}>
               <p style={{
                 fontSize: 11, fontWeight: 700, textTransform: 'uppercase',
-                letterSpacing: '0.08em', color: '#9CA3AF', marginBottom: 10,
+                letterSpacing: '0.08em', color: 'var(--text-4)', marginBottom: 10,
               }}>
                 Samenvatting
               </p>
-              <p style={{ fontSize: 14, color: '#374151', lineHeight: 1.7 }}>{rapport.samenvatting}</p>
+              <p style={{ fontSize: 14, color: 'var(--text-2)', lineHeight: 1.7 }}>{rapport.samenvatting}</p>
             </div>
 
             {/* Patroon */}
             <div style={{
-              background: 'white', borderRadius: 16, padding: '16px',
-              border: '1px solid #E5E7EB', marginBottom: 14,
+              background: 'var(--bg-card)', borderRadius: 16, padding: '16px',
+              border: '1px solid var(--border)', marginBottom: 14,
             }}>
               <p style={{
                 fontSize: 11, fontWeight: 700, textTransform: 'uppercase',
-                letterSpacing: '0.08em', color: '#9CA3AF', marginBottom: 8,
+                letterSpacing: '0.08em', color: 'var(--text-4)', marginBottom: 8,
               }}>
                 Patroon
               </p>
-              <p style={{ fontSize: 13, color: '#374151', lineHeight: 1.65 }}>{rapport.patroon}</p>
+              <p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.65 }}>{rapport.patroon}</p>
             </div>
 
             {/* Tip */}
@@ -307,7 +307,7 @@ export default function InzichtenPagina() {
               }}>
                 Tip van de week
               </p>
-              <p style={{ fontSize: 13, color: '#374151', lineHeight: 1.65 }}>{rapport.tip}</p>
+              <p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.65 }}>{rapport.tip}</p>
             </div>
           </>
         )}

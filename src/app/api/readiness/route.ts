@@ -64,6 +64,11 @@ export async function GET(req: NextRequest) {
   const gisteren = getGisteren()
   const dertigVijfDagenGeleden = getDatumNDagenGeleden(35)
 
+  const vandaag = getVandaag()
+  // 36-uur venster: Nederlandse gebruikers (UTC+2) kunnen een log van
+  // "gisteren" opslaan die in UTC al de dag daarvoor valt.
+  const zesendertigUurGeleden = new Date(Date.now() - 36 * 60 * 60 * 1000).toISOString()
+
   let slaapRes, stressRes, stemmingRes, gewoonteRes
 
   try {
@@ -72,14 +77,16 @@ export async function GET(req: NextRequest) {
         .from('slaap_logs')
         .select('uren_slaap, kwaliteit')
         .eq('user_id', user.id)
-        .eq('datum', gisteren)
+        .in('datum', [gisteren, vandaag])
+        .order('datum', { ascending: false })
+        .limit(1)
         .maybeSingle(),
 
       admin
         .from('stress_logs')
         .select('stress_niveau')
         .eq('user_id', user.id)
-        .gte('aangemaakt_op', gisteren)
+        .gte('aangemaakt_op', zesendertigUurGeleden)
         .order('aangemaakt_op', { ascending: false })
         .limit(1)
         .maybeSingle(),
@@ -88,7 +95,7 @@ export async function GET(req: NextRequest) {
         .from('stemming_logs')
         .select('stemming')
         .eq('user_id', user.id)
-        .gte('aangemaakt_op', gisteren)
+        .gte('aangemaakt_op', zesendertigUurGeleden)
         .order('aangemaakt_op', { ascending: false })
         .limit(1)
         .maybeSingle(),
@@ -105,7 +112,7 @@ export async function GET(req: NextRequest) {
       { ...DEFAULT_RESPONSE, datum: gisteren },
       {
         status: 200,
-        headers: { 'Cache-Control': 'private, max-age=300' },
+        headers: { 'Cache-Control': 'private, max-age=120, stale-while-revalidate=60' },
       }
     )
   }
@@ -123,7 +130,7 @@ export async function GET(req: NextRequest) {
       { ...DEFAULT_RESPONSE, datum: gisteren },
       {
         status: 200,
-        headers: { 'Cache-Control': 'private, max-age=300' },
+        headers: { 'Cache-Control': 'private, max-age=120, stale-while-revalidate=60' },
       }
     )
   }
@@ -266,7 +273,7 @@ export async function GET(req: NextRequest) {
       datum: gisteren,
     },
     {
-      headers: { 'Cache-Control': 'private, max-age=300' },
+      headers: { 'Cache-Control': 'private, max-age=120, stale-while-revalidate=60' },
     }
   )
 }

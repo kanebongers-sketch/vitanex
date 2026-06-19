@@ -73,7 +73,7 @@ function StatKaart({ label, waarde, icoon }: { label: string; waarde: string | n
   return (
     <div style={{
       backgroundColor: 'var(--bg-card, #FFFFFF)',
-      border: '1px solid #E5E7EB',
+      border: '1px solid var(--border)',
       borderRadius: 16,
       padding: '16px',
       display: 'flex',
@@ -82,9 +82,9 @@ function StatKaart({ label, waarde, icoon }: { label: string; waarde: string | n
       flex: 1,
       minWidth: 0,
     }}>
-      <div style={{ color: '#9CA3AF' }}>{icoon}</div>
-      <div style={{ fontSize: 22, fontWeight: 800, color: '#111827' }}>{waarde}</div>
-      <div style={{ fontSize: 12, color: '#6B7280', fontWeight: 500 }}>{label}</div>
+      <div style={{ color: 'var(--text-4)' }}>{icoon}</div>
+      <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)' }}>{waarde}</div>
+      <div style={{ fontSize: 12, color: 'var(--text-3)', fontWeight: 500 }}>{label}</div>
     </div>
   )
 }
@@ -94,7 +94,7 @@ function SnelleActie({ href, label, icoon, kleur }: { href: string; label: strin
     <Link href={href} style={{ textDecoration: 'none' }}>
       <div style={{
         backgroundColor: 'var(--bg-card, #FFFFFF)',
-        border: '1px solid #E5E7EB',
+        border: '1px solid var(--border)',
         borderRadius: 16,
         padding: '20px 16px',
         display: 'flex',
@@ -114,8 +114,8 @@ function SnelleActie({ href, label, icoon, kleur }: { href: string; label: strin
           flexShrink: 0,
           color: kleur,
         }}>{icoon}</div>
-        <span style={{ fontSize: 14, fontWeight: 600, color: '#111827' }}>{label}</span>
-        <svg style={{ marginLeft: 'auto', color: '#9CA3AF' }} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-1)' }}>{label}</span>
+        <svg style={{ marginLeft: 'auto', color: 'var(--text-4)' }} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <path d="M9 18l6-6-6-6" />
         </svg>
       </div>
@@ -179,14 +179,14 @@ export default function SportPagina() {
   const laatsteDatum = logs[0]?.datum ? fmtDatum(logs[0].datum) : 'Nog niet getraind'
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: 'var(--bg-app, #F4F6F8)', paddingBottom: 72 }}>
+    <div className="mf-mesh-bg" style={{ minHeight: '100vh', backgroundColor: 'var(--bg-app, #F4F6F8)', paddingBottom: 72 }}>
       <Navbar />
 
       <div style={{ padding: '28px 20px', maxWidth: 900, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 24 }}>
 
         <div>
-          <h1 style={{ fontSize: 26, fontWeight: 800, color: '#111827', margin: 0 }}>Sport & Fitness</h1>
-          <p style={{ color: '#6B7280', marginTop: 4, fontSize: 15 }}>Beheer je trainingen en schema</p>
+          <h1 style={{ fontSize: 26, fontWeight: 800, color: 'var(--text-1)', margin: 0 }}>Sport & Fitness</h1>
+          <p style={{ color: 'var(--text-3)', marginTop: 4, fontSize: 15 }}>Beheer je trainingen en schema</p>
         </div>
 
         {!schema ? (
@@ -316,12 +316,12 @@ export default function SportPagina() {
 
         <div style={{
           backgroundColor: 'var(--bg-card, #FFFFFF)',
-          border: '1px solid #E5E7EB',
+          border: '1px solid var(--border)',
           borderRadius: 20,
           overflow: 'hidden',
         }}>
           <div style={{ padding: '20px 20px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <h2 style={{ fontSize: 16, fontWeight: 700, color: '#111827', margin: 0 }}>Recente trainingen</h2>
+            <h2 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-1)', margin: 0 }}>Recente trainingen</h2>
             <Link href="/sport/geschiedenis" style={{ fontSize: 13, color: '#1D9E75', fontWeight: 600, textDecoration: 'none' }}>
               Bekijk alle →
             </Link>
@@ -330,8 +330,8 @@ export default function SportPagina() {
           {logs.length === 0 ? (
             <div style={{ padding: '32px 20px', textAlign: 'center' as const }}>
               <div style={{ fontSize: 36, marginBottom: 8 }}>💪</div>
-              <div style={{ fontSize: 15, fontWeight: 600, color: '#374151' }}>Nog geen trainingen geregistreerd</div>
-              <div style={{ fontSize: 13, color: '#9CA3AF', marginTop: 4 }}>Start je eerste training en schrijf geschiedenis!</div>
+              <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-2)' }}>Nog geen trainingen geregistreerd</div>
+              <div style={{ fontSize: 13, color: 'var(--text-4)', marginTop: 4 }}>Start je eerste training en schrijf geschiedenis!</div>
             </div>
           ) : (
             <div>
@@ -341,8 +341,8 @@ export default function SportPagina() {
                   alignItems: 'center',
                   gap: 14,
                   padding: '14px 20px',
-                  borderTop: i === 0 ? '1px solid #F3F4F6' : undefined,
-                  borderBottom: i < logs.length - 1 ? '1px solid #F3F4F6' : undefined,
+                  borderTop: i === 0 ? '1px solid var(--border)' : undefined,
+                  borderBottom: i < logs.length - 1 ? '1px solid var(--border)' : undefined,
                 }}>
                   <div style={{
                     width: 36,
@@ -359,13 +359,13 @@ export default function SportPagina() {
                     </svg>
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 14, fontWeight: 600, color: '#111827', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-1)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                       {log.naam ?? 'Training'}
                     </div>
-                    <div style={{ fontSize: 12, color: '#9CA3AF', marginTop: 1 }}>{fmtDatum(log.datum)}</div>
+                    <div style={{ fontSize: 12, color: 'var(--text-4)', marginTop: 1 }}>{fmtDatum(log.datum)}</div>
                   </div>
                   {log.duur_minuten && (
-                    <div style={{ fontSize: 13, fontWeight: 600, color: '#6B7280', flexShrink: 0 }}>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-3)', flexShrink: 0 }}>
                       {log.duur_minuten} min
                     </div>
                   )}
@@ -376,7 +376,7 @@ export default function SportPagina() {
         </div>
 
         <div>
-          <h2 style={{ fontSize: 16, fontWeight: 700, color: '#111827', marginBottom: 12 }}>Snelle acties</h2>
+          <h2 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-1)', marginBottom: 12 }}>Snelle acties</h2>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
             <SnelleActie
               href="/sport/genereer"

@@ -107,22 +107,22 @@ export default function JournalPagina() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
+    <div className="mf-mesh-bg" style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
       <Navbar />
       <main style={{ padding: '32px 40px 72px' }}>
 
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
           <div>
-            <h1 style={{ fontSize: 22, fontWeight: 800, color: '#111827', letterSpacing: '-0.03em', marginBottom: 2 }}>Journal</h1>
-            <p style={{ color: '#9CA3AF', fontSize: 13 }}>Schrijf vrij — alleen zichtbaar voor jou.</p>
+            <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 2 }}>Journal</h1>
+            <p style={{ color: 'var(--text-4)', fontSize: 13 }}>Schrijf vrij — alleen zichtbaar voor jou.</p>
           </div>
           {!nieuwTonen && (
             <button
               onClick={() => setNieuwTonen(true)}
               style={{
                 display: 'inline-flex', alignItems: 'center', gap: 6,
-                background: '#1D9E75', color: 'white',
+                background: 'linear-gradient(135deg, var(--mf-green) 0%, var(--mf-green-dark) 100%)', color: 'white',
                 borderRadius: 12, padding: '10px 18px',
                 fontSize: 14, fontWeight: 600, border: 'none', cursor: 'pointer',
               }}
@@ -135,7 +135,7 @@ export default function JournalPagina() {
 
         {/* Nieuw entry form */}
         {nieuwTonen && (
-          <div style={{ background: 'white', borderRadius: 20, border: '1px solid #E5E7EB', padding: '24px', marginBottom: 20 }}>
+          <div style={{ background: 'var(--bg-card)', borderRadius: 20, border: '1px solid var(--border)', padding: '24px', marginBottom: 20 }}>
 
             {/* AI Prompt */}
             <div style={{ background: '#F8F7FF', borderRadius: 12, padding: '12px 16px', marginBottom: 18, border: '1px solid #DDD6FE' }}>
@@ -171,7 +171,7 @@ export default function JournalPagina() {
             </div>
 
             {/* Stemming picker */}
-            <p style={{ fontSize: 12, fontWeight: 600, color: '#9CA3AF', marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Hoe voel je je?</p>
+            <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-4)', marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Hoe voel je je?</p>
             <div style={{ display: 'flex', gap: 8, marginBottom: 18 }}>
               {STEMMINGEN.map(s => {
                 const actief = stemming === s.waarde
@@ -180,9 +180,9 @@ export default function JournalPagina() {
                     key={s.waarde}
                     onClick={() => setStemming(actief ? null : s.waarde)}
                     style={{
-                      padding: '7px 14px', borderRadius: 100, border: `2px solid ${actief ? s.kleur : '#E5E7EB'}`,
-                      background: actief ? s.bg : 'white', cursor: 'pointer',
-                      fontSize: 12, fontWeight: 700, color: actief ? s.kleur : '#9CA3AF',
+                      padding: '7px 14px', borderRadius: 100, border: `2px solid ${actief ? s.kleur : 'var(--border)'}`,
+                      background: actief ? s.bg : 'var(--bg-card)', cursor: 'pointer',
+                      fontSize: 12, fontWeight: 700, color: actief ? s.kleur : 'var(--text-4)',
                       transition: 'all 0.15s',
                     }}
                   >
@@ -193,15 +193,15 @@ export default function JournalPagina() {
             </div>
 
             {/* Prompt chips */}
-            <p style={{ fontSize: 12, fontWeight: 600, color: '#9CA3AF', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Schrijftip</p>
+            <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-4)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Schrijftip</p>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 14 }}>
               {PROMPTS.map(p => (
                 <button
                   key={p}
                   onClick={() => setTekst(prev => prev ? `${prev}\n\n${p}\n` : `${p}\n`)}
                   style={{
-                    fontSize: 12, border: '1px solid #E5E7EB', borderRadius: 8,
-                    padding: '5px 12px', color: '#6B7280', background: 'white', cursor: 'pointer',
+                    fontSize: 12, border: '1px solid var(--border)', borderRadius: 8,
+                    padding: '5px 12px', color: 'var(--text-3)', background: 'var(--bg-card)', cursor: 'pointer',
                   }}
                 >
                   {p}
@@ -216,16 +216,16 @@ export default function JournalPagina() {
               onChange={e => setTekst(e.target.value)}
               placeholder="Begin te schrijven..."
               style={{
-                width: '100%', border: '1px solid #E5E7EB', borderRadius: 12,
+                width: '100%', border: '1px solid var(--border)', borderRadius: 12,
                 padding: '12px 16px', fontSize: 14, outline: 'none', resize: 'none',
-                lineHeight: 1.7, boxSizing: 'border-box', color: '#374151',
+                lineHeight: 1.7, boxSizing: 'border-box', color: 'var(--text-2)', background: 'var(--bg-card)',
               }}
             />
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 12 }}>
               <button
                 onClick={() => { setNieuwTonen(false); setTekst(''); setStemming(null) }}
-                style={{ fontSize: 13, border: '1px solid #E5E7EB', borderRadius: 10, padding: '9px 16px', color: '#6B7280', background: 'white', cursor: 'pointer' }}
+                style={{ fontSize: 13, border: '1px solid var(--border)', borderRadius: 10, padding: '9px 16px', color: 'var(--text-3)', background: 'var(--bg-card)', cursor: 'pointer' }}
               >
                 Annuleer
               </button>
@@ -235,7 +235,7 @@ export default function JournalPagina() {
                 style={{
                   fontSize: 13, borderRadius: 10, padding: '9px 18px',
                   color: 'white', fontWeight: 600, border: 'none', cursor: 'pointer',
-                  background: tekst.trim() ? '#1D9E75' : '#D1D5DB',
+                  background: tekst.trim() ? 'linear-gradient(135deg, var(--mf-green) 0%, var(--mf-green-dark) 100%)' : '#D1D5DB',
                   opacity: opslaan ? 0.7 : 1,
                 }}
               >
@@ -252,17 +252,17 @@ export default function JournalPagina() {
           </div>
         ) : entries.length === 0 ? (
           <div style={{
-            background: 'white', borderRadius: 20, border: '1px solid #E5E7EB',
+            background: 'var(--bg-card)', borderRadius: 20, border: '1px solid var(--border)',
             padding: '56px 40px', textAlign: 'center',
           }}>
-            <div style={{ width: 56, height: 56, borderRadius: 16, background: '#F3F4F6', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', color: '#9CA3AF' }}>
+            <div style={{ width: 56, height: 56, borderRadius: 16, background: 'var(--bg-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', color: 'var(--text-4)' }}>
               <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
             </div>
-            <p style={{ fontSize: 15, fontWeight: 600, color: '#374151', marginBottom: 6 }}>Nog geen aantekeningen</p>
-            <p style={{ fontSize: 13, color: '#9CA3AF', marginBottom: 20 }}>Schrijf je eerste gedachten neer. Het helpt echt.</p>
+            <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-2)', marginBottom: 6 }}>Nog geen aantekeningen</p>
+            <p style={{ fontSize: 13, color: 'var(--text-4)', marginBottom: 20 }}>Schrijf je eerste gedachten neer. Het helpt echt.</p>
             <button
               onClick={() => setNieuwTonen(true)}
-              style={{ background: '#1D9E75', color: 'white', border: 'none', borderRadius: 12, padding: '10px 20px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}
+              style={{ background: 'linear-gradient(135deg, var(--mf-green) 0%, var(--mf-green-dark) 100%)', color: 'white', border: 'none', borderRadius: 12, padding: '10px 20px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}
             >
               Begin nu
             </button>
@@ -274,11 +274,11 @@ export default function JournalPagina() {
               const isOpen = uitgevouwen === e.id
               const preview = e.inhoud.length > 160 ? e.inhoud.slice(0, 160) + '...' : e.inhoud
               return (
-                <div key={e.id} style={{ background: 'white', borderRadius: 16, border: '1px solid #E5E7EB', padding: '18px 20px' }}>
+                <div key={e.id} style={{ background: 'var(--bg-card)', borderRadius: 16, border: '1px solid var(--border)', padding: '18px 20px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                       {s && <StemmingDot waarde={s.waarde} />}
-                      <p style={{ fontSize: 12, color: '#9CA3AF', textTransform: 'capitalize' }}>{formatDatum(e.aangemaakt_op)}</p>
+                      <p style={{ fontSize: 12, color: 'var(--text-4)', textTransform: 'capitalize' }}>{formatDatum(e.aangemaakt_op)}</p>
                     </div>
                     <button
                       onClick={() => verwijder(e.id)}
@@ -290,7 +290,7 @@ export default function JournalPagina() {
                       </svg>
                     </button>
                   </div>
-                  <p style={{ fontSize: 13, color: '#374151', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>
+                  <p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>
                     {isOpen ? e.inhoud : preview}
                   </p>
                   {e.inhoud.length > 160 && (

@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 export const dynamic = 'force-dynamic'
 
@@ -163,23 +163,23 @@ export default function MeditatiePagina() {
   const totaalMeditatie = logs.reduce((s, l) => s + (l.duur_minuten ?? 0), 0)
 
   if (laden) return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
+    <div className="mf-mesh-bg" style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
       <Navbar />
       <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 80 }}><div className="mf-spinner" /></div>
     </div>
   )
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
+    <div className="mf-mesh-bg" style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
       <Navbar />
       <main style={{ padding: '24px 20px 88px', maxWidth: 600, margin: '0 auto' }}>
 
         <header style={{ marginBottom: 24 }}>
-          <h1 style={{ fontSize: 22, fontWeight: 800, color: '#111827', letterSpacing: '-0.03em', marginBottom: 4 }}>
+          <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 4 }}>
             Mindfulness & Meditatie
           </h1>
           {logs.length > 0 && (
-            <p style={{ fontSize: 13, color: '#9CA3AF' }}>
+            <p style={{ fontSize: 13, color: 'var(--text-4)' }}>
               {totaalMeditatie} min geoefend deze week
             </p>
           )}
@@ -238,12 +238,13 @@ export default function MeditatiePagina() {
             border: '1px solid #BBF7D0',
           }}>
             <div style={{ fontSize: 48, marginBottom: 12 }}>🌟</div>
-            <h2 style={{ fontSize: 20, fontWeight: 700, color: '#111827', marginBottom: 8 }}>Goed gedaan!</h2>
-            <p style={{ fontSize: 14, color: '#6B7280', marginBottom: 20 }}>
+            <h2 style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-1)', marginBottom: 8 }}>Goed gedaan!</h2>
+            <p style={{ fontSize: 14, color: 'var(--text-3)', marginBottom: 20 }}>
               Je hebt {gekozenSessie.duur} minuten {gekozenSessie.titel.toLowerCase()} geoefend.
             </p>
             <button onClick={() => { setKlaar(false); setGekozenSessie(null) }} style={{
-              background: '#1D9E75', color: 'white', border: 'none',
+              background: 'linear-gradient(135deg, #1D9E75 0%, #16a34a 100%)',
+              color: 'white', border: 'none',
               borderRadius: 12, padding: '12px 24px', fontSize: 14, fontWeight: 600, cursor: 'pointer',
             }}>
               Nieuwe sessie
@@ -257,7 +258,7 @@ export default function MeditatiePagina() {
             {SESSIES.map(sessie => (
               <button key={sessie.id} onClick={() => startSessie(sessie)} style={{
                 display: 'flex', alignItems: 'center', gap: 14,
-                background: 'white', border: '1.5px solid #E5E7EB',
+                background: 'var(--bg-card)', border: '1.5px solid var(--border)',
                 borderRadius: 16, padding: '16px 18px',
                 cursor: 'pointer', textAlign: 'left',
                 transition: 'border-color 0.15s, box-shadow 0.15s',
@@ -271,8 +272,8 @@ export default function MeditatiePagina() {
                   {sessie.emoji}
                 </div>
                 <div style={{ flex: 1 }}>
-                  <p style={{ fontSize: 14, fontWeight: 700, color: '#111827', marginBottom: 2 }}>{sessie.titel}</p>
-                  <p style={{ fontSize: 12, color: '#9CA3AF' }}>{sessie.beschrijving}</p>
+                  <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-1)', marginBottom: 2 }}>{sessie.titel}</p>
+                  <p style={{ fontSize: 12, color: 'var(--text-4)' }}>{sessie.beschrijving}</p>
                 </div>
                 <div style={{ flexShrink: 0, textAlign: 'right' }}>
                   <p style={{ fontSize: 13, fontWeight: 700, color: '#1D9E75' }}>{sessie.duur} min</p>
@@ -285,4 +286,3 @@ export default function MeditatiePagina() {
     </div>
   )
 }
-

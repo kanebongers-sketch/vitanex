@@ -16,7 +16,7 @@ type Bericht = {
 
 const WELKOM = `Hallo! Ik ben jouw MentaForce Coach.
 
-Ik ben hier om je te helpen met alles rondom welzijn op het werk  stress, energie, werk-privébalans, motivatie, slaap of gewoon even lucht geven.
+Ik ben hier om je te helpen met alles rondom welzijn op het werk  stress, energie, werk-privébalans, motivatie, slaap of gewoon even lucht geven.
 
 Alles wat je hier deelt is puur voor jou. Geen manager, geen HR die meeleest.
 
@@ -168,58 +168,65 @@ export default function CoachPagina() {
   }
 
   if (!klaar) return (
-    <div className="min-h-screen" style={{ background: 'var(--bg-app)' }}>
+    <div className="mf-mesh-bg" style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
       <Navbar />
-      <main className="flex justify-center mt-20">
-        <div className="w-7 h-7 rounded-full border-2 border-gray-200 animate-spin" style={{ borderTopColor: 'var(--mentaforce-primary)' }} />
-      </main>
+      <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 80 }}>
+        <div className="mf-spinner" />
+      </div>
     </div>
   )
 
   return (
-    <div className="h-screen flex flex-col" style={{ background: 'var(--bg-app)' }}>
+    <div className="mf-mesh-bg" style={{ height: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg-app)' }}>
       <Navbar />
-      <main className="flex-1 flex flex-col w-full overflow-hidden">
+      <main style={{ flex: 1, display: 'flex', flexDirection: 'column', width: '100%', overflow: 'hidden' }}>
 
         {/* Header */}
-        <div className="px-5 py-4 border-b border-gray-200 bg-white flex items-center gap-3 flex-shrink-0">
-          <div
-            className="w-11 h-11 rounded-full flex items-center justify-center text-xl flex-shrink-0"
-            style={{ background: 'var(--mentaforce-primary-light)', color: 'var(--mentaforce-primary)' }}
-          >
+        <div style={{
+          padding: '16px 20px', borderBottom: '1px solid var(--border)',
+          background: 'var(--bg-card)', display: 'flex', alignItems: 'center',
+          gap: 12, flexShrink: 0,
+        }}>
+          <div style={{
+            width: 44, height: 44, borderRadius: '50%',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: 20, flexShrink: 0,
+            background: 'var(--mentaforce-primary-light)', color: 'var(--mentaforce-primary)',
+          }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.44-4.24z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.44-4.24z"/></svg>
           </div>
           <div>
-            <p className="text-sm font-semibold text-gray-900">MentaForce Coach</p>
-            <p className="text-xs text-gray-400">AI-coach · Vertrouwelijk · 24/7 beschikbaar</p>
+            <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-1)' }}>MentaForce Coach</p>
+            <p style={{ fontSize: 12, color: 'var(--text-4)' }}>AI-coach · Vertrouwelijk · 24/7 beschikbaar</p>
           </div>
-          <div className="ml-auto flex items-center gap-1.5">
-            <div className="w-2 h-2 rounded-full bg-green-500" />
-            <span className="text-xs text-gray-400">Online</span>
+          <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6 }}>
+            <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#22c55e' }} />
+            <span style={{ fontSize: 12, color: 'var(--text-4)' }}>Online</span>
           </div>
         </div>
 
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto px-4 py-5 flex flex-col gap-3">
+        <div style={{ flex: 1, overflowY: 'auto', padding: '20px 16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
           {berichten.map((b) => (
-            <div key={b.id} className={`flex ${b.role === 'user' ? 'justify-end' : 'justify-start'} gap-2.5`}>
+            <div key={b.id} style={{ display: 'flex', justifyContent: b.role === 'user' ? 'flex-end' : 'flex-start', gap: 10 }}>
               {b.role === 'assistant' && (
-                <div
-                  className="w-8 h-8 rounded-full flex items-center justify-center text-sm flex-shrink-0 mt-0.5"
-                  style={{ background: 'var(--mentaforce-primary-light)', color: 'var(--mentaforce-primary)' }}
-                >
+                <div style={{
+                  width: 32, height: 32, borderRadius: '50%',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  flexShrink: 0, marginTop: 2,
+                  background: 'var(--mentaforce-primary-light)', color: 'var(--mentaforce-primary)',
+                }}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.44-4.24z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.44-4.24z"/></svg>
                 </div>
               )}
-              <div
-                className="max-w-[78%] px-4 py-3 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap"
-                style={{
-                  background: b.role === 'user' ? 'var(--mentaforce-primary)' : 'white',
-                  color: b.role === 'user' ? 'white' : '#1f2937',
-                  boxShadow: b.role === 'assistant' ? '0 1px 3px rgba(0,0,0,0.07)' : 'none',
-                  borderRadius: b.role === 'user' ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
-                }}
-              >
+              <div style={{
+                maxWidth: '78%', padding: '12px 16px',
+                fontSize: 14, lineHeight: 1.6, whiteSpace: 'pre-wrap',
+                background: b.role === 'user' ? 'var(--mentaforce-primary)' : 'var(--bg-card)',
+                color: b.role === 'user' ? 'white' : 'var(--text-1)',
+                boxShadow: b.role === 'assistant' ? '0 1px 3px rgba(0,0,0,0.07)' : 'none',
+                borderRadius: b.role === 'user' ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
+              }}>
                 {b.content}
               </div>
             </div>
@@ -227,29 +234,44 @@ export default function CoachPagina() {
 
           {/* Typing indicator */}
           {laden && (
-            <div className="flex justify-start gap-2.5">
-              <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm flex-shrink-0"
-                style={{ background: 'var(--mentaforce-primary-light)', color: 'var(--mentaforce-primary)' }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.44-4.24z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.44-4.24z"/></svg></div>
-              <div className="bg-white px-4 py-3 rounded-2xl shadow-sm" style={{ borderRadius: '18px 18px 18px 4px' }}>
-                <div className="flex items-center gap-1">
-                  <div className="w-2 h-2 rounded-full bg-gray-300 animate-bounce" style={{ animationDelay: '0ms' }} />
-                  <div className="w-2 h-2 rounded-full bg-gray-300 animate-bounce" style={{ animationDelay: '150ms' }} />
-                  <div className="w-2 h-2 rounded-full bg-gray-300 animate-bounce" style={{ animationDelay: '300ms' }} />
+            <div style={{ display: 'flex', justifyContent: 'flex-start', gap: 10 }}>
+              <div style={{
+                width: 32, height: 32, borderRadius: '50%',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                flexShrink: 0,
+                background: 'var(--mentaforce-primary-light)', color: 'var(--mentaforce-primary)',
+              }}>
+                <div className="mf-spinner" style={{ width: 16, height: 16 }} />
+              </div>
+              <div style={{
+                background: 'var(--bg-card)', padding: '12px 16px',
+                borderRadius: '18px 18px 18px 4px',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.07)',
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <div className="w-2 h-2 rounded-full bg-gray-300 animate-bounce" style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--border)', animationDelay: '0ms' }} />
+                  <div className="w-2 h-2 rounded-full bg-gray-300 animate-bounce" style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--border)', animationDelay: '150ms' }} />
+                  <div className="w-2 h-2 rounded-full bg-gray-300 animate-bounce" style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--border)', animationDelay: '300ms' }} />
                 </div>
               </div>
             </div>
           )}
 
-          {/* Suggestions  only before first user message */}
+          {/* Suggestions — only before first user message */}
           {berichten.length === 1 && !laden && (
-            <div className="mt-2">
-              <p className="text-xs text-gray-400 mb-2 text-center">Kies een onderwerp om te beginnen</p>
-              <div className="flex flex-wrap gap-2 justify-center">
+            <div style={{ marginTop: 8 }}>
+              <p style={{ fontSize: 12, color: 'var(--text-4)', marginBottom: 8, textAlign: 'center' }}>Kies een onderwerp om te beginnen</p>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center' }}>
                 {SUGGESTIES.map(s => (
                   <button
                     key={s.tekst}
                     onClick={() => verstuur(s.tekst)}
-                    className="mf-pressable text-xs border border-gray-200 rounded-full px-3.5 py-1.5 text-gray-600 bg-white hover:bg-gray-50 transition flex items-center gap-1.5"
+                    className="mf-pressable"
+                    style={{
+                      fontSize: 12, border: '1px solid var(--border)', borderRadius: 999,
+                      padding: '6px 14px', color: 'var(--text-2)', background: 'var(--bg-card)',
+                      cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6,
+                    }}
                   >
                     <span>{s.emoji}</span>{s.tekst}
                   </button>
@@ -262,13 +284,20 @@ export default function CoachPagina() {
         </div>
 
         {/* Privacy note */}
-        <div className="px-4 py-1 text-center flex-shrink-0">
-          <p className="text-xs text-gray-300">Gesprekken worden niet opgeslagen · Alleen zichtbaar voor jou</p>
+        <div style={{ padding: '4px 16px', textAlign: 'center', flexShrink: 0 }}>
+          <p style={{ fontSize: 12, color: 'var(--text-4)', opacity: 0.6 }}>Gesprekken worden niet opgeslagen · Alleen zichtbaar voor jou</p>
         </div>
 
         {/* Input */}
-        <div className="px-4 py-3 bg-white border-t border-gray-200 flex-shrink-0">
-          <div className="flex items-end gap-2 rounded-2xl border border-gray-200 px-3 py-2" style={{ background: 'var(--bg-app)' }}>
+        <div style={{
+          padding: '12px 16px', background: 'var(--bg-card)',
+          borderTop: '1px solid var(--border)', flexShrink: 0,
+        }}>
+          <div style={{
+            display: 'flex', alignItems: 'flex-end', gap: 8,
+            borderRadius: 20, border: '1px solid var(--border)',
+            padding: '8px 12px', background: 'var(--bg-subtle)',
+          }}>
             <textarea
               ref={inputRef}
               rows={1}
@@ -281,19 +310,31 @@ export default function CoachPagina() {
               onKeyDown={e => {
                 if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); verstuur() }
               }}
-              placeholder="Typ je bericht"
+              placeholder="Typ je bericht"
               disabled={laden}
-              className="flex-1 bg-transparent text-sm outline-none resize-none leading-relaxed disabled:opacity-50"
-              style={{ minHeight: 24, maxHeight: 120 }}
+              style={{
+                flex: 1, background: 'transparent', border: 'none', outline: 'none',
+                fontSize: 14, resize: 'none', lineHeight: 1.5,
+                minHeight: 24, maxHeight: 120, color: 'var(--text-1)',
+                opacity: laden ? 0.5 : 1,
+              }}
             />
             <button
               onClick={() => verstuur()}
               disabled={!input.trim() || laden}
-              className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition disabled:opacity-30"
-              style={{ background: input.trim() && !laden ? 'var(--mentaforce-primary)' : '#e5e7eb' }}
+              style={{
+                flexShrink: 0, width: 32, height: 32, borderRadius: '50%',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                border: 'none', cursor: input.trim() && !laden ? 'pointer' : 'default',
+                background: input.trim() && !laden
+                  ? 'linear-gradient(135deg, #1D9E75 0%, #16a34a 100%)'
+                  : 'var(--border)',
+                opacity: !input.trim() || laden ? 0.4 : 1,
+                transition: 'background 0.15s ease, opacity 0.15s ease',
+              }}
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                stroke={input.trim() && !laden ? 'white' : '#9ca3af'}
+                stroke={input.trim() && !laden ? 'white' : 'var(--text-4)'}
                 strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="22" y1="2" x2="11" y2="13" />
                 <polygon points="22 2 15 22 11 13 2 9 22 2" />

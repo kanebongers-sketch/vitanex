@@ -155,13 +155,13 @@ export default function BurnoutPagina() {
   const volledig = voortgang === VRAGEN.length
 
   if (fase === 'intro') return (
-    <div className="min-h-screen" style={{ background: 'var(--bg-app)' }}>
+    <div className="mf-mesh-bg min-h-screen" style={{ background: 'var(--bg-app)' }}>
       <Navbar />
       <main className="p-6">
-        <div className="bg-white rounded-2xl border border-gray-200 p-8 text-center mt-8">
+        <div className="rounded-2xl p-8 text-center mt-8" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
           <div className="flex justify-center mb-4"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#E24B4A" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17.657 18.657A8 8 0 0 1 6.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0 1 20 13a7.975 7.975 0 0 1-2.343 5.657z"/><path d="M9.879 16.121A3 3 0 1 0 12.99 12L11 14"/></svg></div>
-          <h1 className="text-xl font-semibold text-gray-900 mb-2">Burn-out risicoscan</h1>
-          <p className="text-gray-500 text-sm leading-relaxed mb-6">
+          <h1 className="text-xl font-semibold mb-2" style={{ color: 'var(--text-1)' }}>Burn-out risicoscan</h1>
+          <p className="text-sm leading-relaxed mb-6" style={{ color: 'var(--text-3)' }}>
             12 vragen over uitputting, betrokkenheid en effectiviteit. Duurt ongeveer 3 minuten.
             Resultaten zijn alleen voor jou  niet zichtbaar voor HR of je leidinggevende.
           </p>
@@ -175,7 +175,8 @@ export default function BurnoutPagina() {
             </button>
             <button
               onClick={laadHistory}
-              className="w-full py-3 rounded-xl text-gray-500 text-sm border border-gray-200 hover:bg-gray-50 transition"
+              className="w-full py-3 rounded-xl text-sm transition"
+              style={{ color: 'var(--text-3)', border: '1px solid var(--border)', background: 'var(--bg-subtle)' }}
             >
               Bekijk eerdere scans
             </button>
@@ -186,19 +187,19 @@ export default function BurnoutPagina() {
   )
 
   if (fase === 'scan') return (
-    <div className="min-h-screen" style={{ background: 'var(--bg-app)' }}>
+    <div className="mf-mesh-bg min-h-screen" style={{ background: 'var(--bg-app)' }}>
       <Navbar />
       <main className="p-6">
-        <button onClick={() => setFase('intro')} className="text-sm text-gray-400 hover:text-gray-600 mb-4 inline-flex items-center gap-1">
+        <button onClick={() => setFase('intro')} className="text-sm mb-4 inline-flex items-center gap-1" style={{ color: 'var(--text-4)' }}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg> Terug
         </button>
 
         <div className="mb-6">
-          <div className="flex justify-between text-xs text-gray-400 mb-1">
+          <div className="flex justify-between text-xs mb-1" style={{ color: 'var(--text-4)' }}>
             <span>{voortgang} van {VRAGEN.length} beantwoord</span>
             <span>{Math.round((voortgang / VRAGEN.length) * 100)}%</span>
           </div>
-          <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
+          <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--bg-subtle)' }}>
             <div
               className="h-full rounded-full transition-all"
               style={{ width: `${(voortgang / VRAGEN.length) * 100}%`, background: 'var(--mentaforce-primary)' }}
@@ -211,14 +212,14 @@ export default function BurnoutPagina() {
           { label: 'Betrokkenheid', categorie: 'cynisme' as const, kleur: '#BA7517' },
           { label: 'Effectiviteit', categorie: 'efficaciteit' as const, kleur: '#1D9E75' },
         ].map(groep => (
-          <div key={groep.categorie} className="bg-white rounded-2xl border border-gray-200 p-5 mb-4">
+          <div key={groep.categorie} className="rounded-2xl p-5 mb-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
             <p className="text-xs font-semibold uppercase tracking-wide mb-4" style={{ color: groep.kleur }}>
               {groep.label}
             </p>
             <div className="flex flex-col gap-5">
               {VRAGEN.filter(v => v.categorie === groep.categorie).map(vraag => (
                 <div key={vraag.id}>
-                  <p className="text-sm text-gray-700 mb-2 leading-relaxed">{vraag.tekst}</p>
+                  <p className="text-sm mb-2 leading-relaxed" style={{ color: 'var(--text-2)' }}>{vraag.tekst}</p>
                   <div className="flex gap-2">
                     {SCHAAL.map(s => (
                       <button
@@ -227,8 +228,8 @@ export default function BurnoutPagina() {
                         className="flex-1 py-1.5 rounded-lg text-xs font-medium transition border"
                         style={{
                           background: antwoorden[vraag.id] === s.waarde ? groep.kleur : 'transparent',
-                          borderColor: antwoorden[vraag.id] === s.waarde ? groep.kleur : '#e5e7eb',
-                          color: antwoorden[vraag.id] === s.waarde ? 'white' : '#6b7280',
+                          borderColor: antwoorden[vraag.id] === s.waarde ? groep.kleur : 'var(--border)',
+                          color: antwoorden[vraag.id] === s.waarde ? 'white' : 'var(--text-3)',
                         }}
                       >
                         {s.waarde}
@@ -246,7 +247,7 @@ export default function BurnoutPagina() {
           onClick={submit}
           disabled={!volledig || opslaan}
           className="w-full py-3.5 rounded-xl text-white font-medium text-sm transition disabled:opacity-40"
-          style={{ background: 'var(--mentaforce-primary)' }}
+          style={{ background: 'linear-gradient(135deg, var(--mf-green) 0%, var(--mf-green-dark) 100%)' }}
         >
           {opslaan ? 'Bezig...' : 'Bekijk mijn resultaat'}
         </button>
@@ -258,10 +259,10 @@ export default function BurnoutPagina() {
     const kleur = risicoKleur(resultaat.risico_niveau)
     const tips = risicoAdvies(resultaat.risico_niveau, resultaat.uitputting, resultaat.cynisme, resultaat.efficaciteit)
     return (
-      <div className="min-h-screen" style={{ background: 'var(--bg-app)' }}>
+      <div className="mf-mesh-bg min-h-screen" style={{ background: 'var(--bg-app)' }}>
         <Navbar />
         <main className="p-6">
-          <h1 className="text-xl font-semibold text-gray-900 mb-4">Jouw resultaat</h1>
+          <h1 className="text-xl font-semibold mb-4" style={{ color: 'var(--text-1)' }}>Jouw resultaat</h1>
 
           {/* Risk badge */}
           <div
@@ -280,8 +281,8 @@ export default function BurnoutPagina() {
           </div>
 
           {/* Score bars */}
-          <div className="bg-white rounded-2xl border border-gray-200 p-5 mb-4">
-            <p className="text-sm font-medium text-gray-700 mb-4">Scores</p>
+          <div className="rounded-2xl p-5 mb-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+            <p className="text-sm font-medium mb-4" style={{ color: 'var(--text-2)' }}>Scores</p>
             {[
               { label: 'Uitputting', waarde: resultaat.uitputting, kleur: '#E24B4A', info: 'Lager is beter' },
               { label: 'Distantie', waarde: resultaat.cynisme, kleur: '#BA7517', info: 'Lager is beter' },
@@ -289,10 +290,10 @@ export default function BurnoutPagina() {
             ].map(s => (
               <div key={s.label} className="mb-4 last:mb-0">
                 <div className="flex justify-between text-xs mb-1">
-                  <span className="text-gray-600 font-medium">{s.label}</span>
-                  <span className="text-gray-400">{s.info} · {s.waarde}/5</span>
+                  <span className="font-medium" style={{ color: 'var(--text-2)' }}>{s.label}</span>
+                  <span style={{ color: 'var(--text-4)' }}>{s.info} · {s.waarde}/5</span>
                 </div>
-                <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div className="h-2 rounded-full overflow-hidden" style={{ background: 'var(--bg-subtle)' }}>
                   <div
                     className="h-full rounded-full transition-all"
                     style={{ width: `${(s.waarde / 5) * 100}%`, background: s.kleur }}
@@ -303,11 +304,11 @@ export default function BurnoutPagina() {
           </div>
 
           {/* Advice */}
-          <div className="bg-white rounded-2xl border border-gray-200 p-5 mb-4">
-            <p className="text-sm font-medium text-gray-700 mb-3">Persoonlijk advies</p>
+          <div className="rounded-2xl p-5 mb-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+            <p className="text-sm font-medium mb-3" style={{ color: 'var(--text-2)' }}>Persoonlijk advies</p>
             <ul className="flex flex-col gap-2">
               {tips.map((tip, i) => (
-                <li key={i} className="flex gap-2.5 text-sm text-gray-600 leading-relaxed">
+                <li key={i} className="flex gap-2.5 text-sm leading-relaxed" style={{ color: 'var(--text-3)' }}>
                   <span className="flex-shrink-0 mt-0.5" style={{color: 'var(--mentaforce-primary)'}}><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="4"/></svg></span>
                   <span>{tip}</span>
                 </li>
@@ -319,13 +320,14 @@ export default function BurnoutPagina() {
             <Link
               href="/coach"
               className="flex-1 py-3 rounded-xl text-sm font-medium text-center text-white transition"
-              style={{ background: 'var(--mentaforce-primary)' }}
+              style={{ background: 'linear-gradient(135deg, var(--mf-green) 0%, var(--mf-green-dark) 100%)' }}
             >
               Praat met de coach
             </Link>
             <button
               onClick={() => { setAntwoorden({}); setFase('intro') }}
-              className="flex-1 py-3 rounded-xl text-sm border border-gray-200 text-gray-600 hover:bg-gray-50 transition"
+              className="flex-1 py-3 rounded-xl text-sm transition"
+              style={{ border: '1px solid var(--border)', color: 'var(--text-3)', background: 'var(--bg-subtle)' }}
             >
               Opnieuw scannen
             </button>
@@ -336,29 +338,29 @@ export default function BurnoutPagina() {
   }
 
   if (fase === 'history') return (
-    <div className="min-h-screen" style={{ background: 'var(--bg-app)' }}>
+    <div className="mf-mesh-bg min-h-screen" style={{ background: 'var(--bg-app)' }}>
       <Navbar />
       <main className="p-6">
-        <button onClick={() => setFase('intro')} className="text-sm text-gray-400 hover:text-gray-600 mb-4 inline-flex items-center gap-1">
+        <button onClick={() => setFase('intro')} className="text-sm mb-4 inline-flex items-center gap-1" style={{ color: 'var(--text-4)' }}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg> Terug
         </button>
-        <h1 className="text-xl font-semibold text-gray-900 mb-4">Eerdere scans</h1>
+        <h1 className="text-xl font-semibold mb-4" style={{ color: 'var(--text-1)' }}>Eerdere scans</h1>
         {historyLaden ? (
           <div className="flex justify-center py-10">
-            <div className="w-7 h-7 rounded-full border-2 border-gray-200 animate-spin" style={{ borderTopColor: 'var(--mentaforce-primary)' }} />
+            <div className="w-7 h-7 rounded-full border-2 animate-spin" style={{ borderColor: 'var(--border)', borderTopColor: 'var(--mf-green)' }} />
           </div>
         ) : history.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-gray-200 p-8 text-center">
-            <p className="text-gray-400 text-sm">Nog geen scans gedaan.</p>
+          <div className="rounded-2xl p-8 text-center" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+            <p className="text-sm" style={{ color: 'var(--text-4)' }}>Nog geen scans gedaan.</p>
           </div>
         ) : (
           <div className="flex flex-col gap-3">
             {history.map(s => {
               const kleur = risicoKleur(s.risico_niveau)
               return (
-                <div key={s.id} className="bg-white rounded-2xl border border-gray-200 p-5">
+                <div key={s.id} className="rounded-2xl p-5" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
                   <div className="flex items-center justify-between">
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm" style={{ color: 'var(--text-3)' }}>
                       {new Date(s.aangemaakt_op).toLocaleDateString('nl-BE', { day: 'numeric', month: 'long', year: 'numeric' })}
                     </p>
                     <span
@@ -368,7 +370,7 @@ export default function BurnoutPagina() {
                       {risicoLabel(s.risico_niveau)}
                     </span>
                   </div>
-                  <div className="flex gap-4 mt-3 text-xs text-gray-500">
+                  <div className="flex gap-4 mt-3 text-xs" style={{ color: 'var(--text-3)' }}>
                     <span>Uitputting: <strong>{s.uitputting}/5</strong></span>
                     <span>Distantie: <strong>{s.cynisme}/5</strong></span>
                     <span>Effect.: <strong>{s.efficaciteit}/5</strong></span>

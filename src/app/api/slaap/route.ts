@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
     ? Math.round((data.filter(l => l.kwaliteit).reduce((s, l) => s + (l.kwaliteit ?? 0), 0) / data.filter(l => l.kwaliteit).length) * 10) / 10
     : null
 
-  return NextResponse.json({ logs: data ?? [], gemiddeld_uren: gemiddeldUren, gemiddeld_kwaliteit: gemiddeldKwaliteit })
+  return NextResponse.json({ logs: data ?? [], gemiddeld_uren: gemiddeldUren, gemiddeld_kwaliteit: gemiddeldKwaliteit }, { headers: { 'Cache-Control': 'private, max-age=60, stale-while-revalidate=30' } })
 }
 
 export async function POST(req: NextRequest) {

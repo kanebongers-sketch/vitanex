@@ -119,7 +119,7 @@ function CalorieRing({ gegeten, doel, kleur }: { gegeten: number; doel: number; 
         strokeLinecap="round" transform="rotate(-90 90 90)"
         style={{ transition: 'stroke-dasharray 1s ease' }} />
       {/* Center text */}
-      <text x="90" y="82" textAnchor="middle" fontSize="28" fontWeight="900" fill={over ? '#E24B4A' : '#111827'}>{gegeten}</text>
+      <text x="90" y="82" textAnchor="middle" fontSize="28" fontWeight="900" fill={over ? '#E24B4A' : 'var(--text-1)'}>{gegeten}</text>
       <text x="90" y="100" textAnchor="middle" fontSize="12" fill="#9CA3AF" fontWeight="600">kcal</text>
       <text x="90" y="116" textAnchor="middle" fontSize="11" fill={over ? '#E24B4A' : '#1D9E75'} fontWeight="700">
         {over ? `+${gegeten - doel} over` : `${doel - gegeten} over`}
@@ -141,7 +141,7 @@ function MacroRing({ waarde, max, kleur, label, eenheid }: { waarde: number; max
           style={{ transition: 'stroke-dasharray 1s ease' }} />
         <text x="34" y="37" textAnchor="middle" fontSize="11" fontWeight="800" fill={kleur}>{waarde.toFixed(0)}{eenheid}</text>
       </svg>
-      <span style={{ fontSize: 10, fontWeight: 700, color: '#6B7280' }}>{label}</span>
+      <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-3)' }}>{label}</span>
     </div>
   )
 }
@@ -154,9 +154,9 @@ function RdiBalk({ label, waarde, eenheid, rdi, kleur = '#1D9E75', sub = false }
   return (
     <div style={{ padding: '8px 0', borderBottom: '1px solid #F9FAFB' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
-        <span style={{ fontSize: 13, color: sub ? '#9CA3AF' : '#374151', fontWeight: sub ? 400 : 600 }}>{label}</span>
+        <span style={{ fontSize: 13, color: sub ? 'var(--text-4)' : 'var(--text-2)', fontWeight: sub ? 400 : 600 }}>{label}</span>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontSize: 13, fontWeight: 700, color: sub ? '#9CA3AF' : '#374151' }}>{waarde.toFixed(1)} {eenheid}</span>
+          <span style={{ fontSize: 13, fontWeight: 700, color: sub ? 'var(--text-4)' : 'var(--text-2)' }}>{waarde.toFixed(1)} {eenheid}</span>
           <span style={{
             fontSize: 10, fontWeight: 800, borderRadius: 20, padding: '2px 7px',
             background: overRdi ? '#FEF2F2' : pct >= 50 ? '#F0FAF6' : '#FFF7ED',
@@ -164,7 +164,7 @@ function RdiBalk({ label, waarde, eenheid, rdi, kleur = '#1D9E75', sub = false }
           }}>{pct}%</span>
         </div>
       </div>
-      <div style={{ height: 4, borderRadius: 9999, background: '#F3F4F6', overflow: 'hidden' }}>
+      <div style={{ height: 4, borderRadius: 9999, background: 'var(--bg-subtle)', overflow: 'hidden' }}>
         <div style={{
           height: '100%', borderRadius: 9999, width: `${Math.min(100, pct)}%`,
           background: overRdi ? '#E24B4A' : kleur,
@@ -338,6 +338,7 @@ export default function VoedingPage() {
       if (!res.ok) throw new Error('Opslaan mislukt')
       await laadLogs(token)
       resetForm(); setScherm('overzicht')
+      router.push('/vandaag')
     } catch (e) { setFout((e as Error).message) }
     finally { setOpslaan(false) }
   }
@@ -416,13 +417,13 @@ export default function VoedingPage() {
   function renderInputVeld({ label, veld, type = 'text', suffix = '' }: { label: string; veld: keyof typeof form; type?: string; suffix?: string }) {
     return (
       <div>
-        <label style={{ fontSize: 11, fontWeight: 700, color: '#6B7280', display: 'block', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</label>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#F9FAFB', border: '1.5px solid #E5E7EB', borderRadius: 10, padding: '10px 14px' }}>
+        <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', display: 'block', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</label>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--bg-subtle)', border: '1.5px solid var(--border)', borderRadius: 10, padding: '10px 14px' }}>
           <input type={type} value={form[veld]}
             onChange={e => setForm(prev => ({ ...prev, [veld]: e.target.value }))}
-            style={{ flex: 1, background: 'none', border: 'none', outline: 'none', fontSize: 15, color: '#111827', fontWeight: 600 }}
+            style={{ flex: 1, background: 'none', border: 'none', outline: 'none', fontSize: 15, color: 'var(--text-1)', fontWeight: 600 }}
             placeholder="0" />
-          {suffix && <span style={{ fontSize: 12, color: '#9CA3AF', fontWeight: 700 }}>{suffix}</span>}
+          {suffix && <span style={{ fontSize: 12, color: 'var(--text-4)', fontWeight: 700 }}>{suffix}</span>}
         </div>
       </div>
     )
@@ -434,9 +435,9 @@ export default function VoedingPage() {
         {MAALTIJD_VOLGORDE.map(mt => (
           <button key={mt} onClick={() => setForm(prev => ({ ...prev, maaltijd_type: mt }))}
             style={{ padding: '9px 4px', borderRadius: 10,
-              border: `1.5px solid ${form.maaltijd_type === mt ? MAALTIJD_KLEUR[mt] : '#E5E7EB'}`,
-              background: form.maaltijd_type === mt ? `${MAALTIJD_KLEUR[mt]}18` : 'white',
-              color: form.maaltijd_type === mt ? MAALTIJD_KLEUR[mt] : '#9CA3AF',
+              border: `1.5px solid ${form.maaltijd_type === mt ? MAALTIJD_KLEUR[mt] : 'var(--border)'}`,
+              background: form.maaltijd_type === mt ? `${MAALTIJD_KLEUR[mt]}18` : 'var(--bg-card)',
+              color: form.maaltijd_type === mt ? MAALTIJD_KLEUR[mt] : 'var(--text-4)',
               fontSize: 10, fontWeight: 700, cursor: 'pointer',
               display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
             <span style={{ fontSize: 16 }}>{MAALTIJD_EMOJI[mt]}</span>
@@ -450,7 +451,7 @@ export default function VoedingPage() {
   // ── Loading ───────────────────────────────────────────────────────────────────
 
   if (laden) return (
-    <div style={{ background: '#F8FAFC', minHeight: '100vh' }}>
+    <div className="mf-mesh-bg" style={{ background: 'var(--bg-app)', minHeight: '100vh' }}>
       <Navbar />
       <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 80 }}>
         <div className="mf-spinner" />
@@ -461,7 +462,7 @@ export default function VoedingPage() {
   // ─────────────────────────────────────────────────────────────────────────────
 
   return (
-    <div style={{ background: '#F8FAFC', minHeight: '100vh' }}>
+    <div className="mf-mesh-bg" style={{ background: 'var(--bg-app)', minHeight: '100vh' }}>
       <Navbar />
       <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" onChange={onFotoInput} style={{ display: 'none' }} />
       <input ref={fileInputRef}   type="file" accept="image/*"                        onChange={onFotoInput} style={{ display: 'none' }} />
@@ -476,12 +477,12 @@ export default function VoedingPage() {
             {/* Header */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
               <div>
-                <h1 style={{ fontSize: 26, fontWeight: 900, color: '#111827', margin: '0 0 2px', letterSpacing: '-0.03em' }}>Voeding</h1>
-                <p style={{ fontSize: 13, color: '#9CA3AF', margin: 0, textTransform: 'capitalize' }}>
+                <h1 style={{ fontSize: 26, fontWeight: 900, color: 'var(--text-1)', margin: '0 0 2px', letterSpacing: '-0.03em' }}>Voeding</h1>
+                <p style={{ fontSize: 13, color: 'var(--text-4)', margin: 0, textTransform: 'capitalize' }}>
                   {new Date().toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long' })}
                 </p>
               </div>
-              <div style={{ fontSize: logs.length > 0 ? 12 : 11, color: logs.length > 0 ? '#1D9E75' : '#9CA3AF', fontWeight: 700 }}>
+              <div style={{ fontSize: logs.length > 0 ? 12 : 11, color: logs.length > 0 ? '#1D9E75' : 'var(--text-4)', fontWeight: 700 }}>
                 {logs.length > 0 ? `${logs.length} maaltijd${logs.length !== 1 ? 'en' : ''}` : 'Nog niets gelogd'}
               </div>
             </div>
@@ -491,7 +492,7 @@ export default function VoedingPage() {
             )}
 
             {/* ── Calorie Dashboard kaart ── */}
-            <div style={{ background: 'white', borderRadius: 24, border: '1px solid #F1F5F9', marginBottom: 14, overflow: 'hidden',
+            <div style={{ background: 'var(--bg-card)', borderRadius: 24, border: '1px solid #F1F5F9', marginBottom: 14, overflow: 'hidden',
               boxShadow: '0 2px 16px rgba(0,0,0,0.04)' }}>
               {/* Top: ring + macro rings */}
               <div style={{ padding: '20px 20px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
@@ -518,11 +519,11 @@ export default function VoedingPage() {
             </div>
 
             {/* ── Water tracker ── */}
-            <div style={{ background: 'white', borderRadius: 18, border: '1px solid #F1F5F9', padding: '12px 16px', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ background: 'var(--bg-card)', borderRadius: 18, border: '1px solid #F1F5F9', padding: '12px 16px', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 12 }}>
               <span style={{ fontSize: 22 }}>💧</span>
               <div style={{ flex: 1 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                  <span style={{ fontSize: 13, fontWeight: 700, color: '#374151' }}>Water</span>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-2)' }}>Water</span>
                   <span style={{ fontSize: 12, fontWeight: 700, color: '#185FA5' }}>{water}/{WATER_DOEL} glazen</span>
                 </div>
                 <div style={{ display: 'flex', gap: 4 }}>
@@ -536,7 +537,7 @@ export default function VoedingPage() {
               </div>
               <div style={{ display: 'flex', gap: 4 }}>
                 <button onClick={() => setWaterSave(water - 1)}
-                  style={{ width: 28, height: 28, borderRadius: 8, border: '1px solid #E5E7EB', background: 'white', cursor: 'pointer', fontSize: 14, color: '#6B7280', fontWeight: 700 }}>−</button>
+                  style={{ width: 28, height: 28, borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-card)', cursor: 'pointer', fontSize: 14, color: 'var(--text-3)', fontWeight: 700 }}>−</button>
                 <button onClick={() => setWaterSave(water + 1)}
                   style={{ width: 28, height: 28, borderRadius: 8, border: '1px solid #185FA5', background: '#185FA5', cursor: 'pointer', fontSize: 14, color: 'white', fontWeight: 700 }}>+</button>
               </div>
@@ -565,12 +566,12 @@ export default function VoedingPage() {
               {/* Manueel + galerij */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 <button onClick={() => fileInputRef.current?.click()}
-                  style={{ flex: 1, background: 'white', color: '#374151', border: '1.5px solid #E5E7EB', borderRadius: 12, padding: '8px 6px', cursor: 'pointer', textAlign: 'center' }}>
+                  style={{ flex: 1, background: 'var(--bg-card)', color: 'var(--text-2)', border: '1.5px solid var(--border)', borderRadius: 12, padding: '8px 6px', cursor: 'pointer', textAlign: 'center' }}>
                   <div style={{ fontSize: 16 }}>🖼️</div>
                   <div style={{ fontSize: 10, fontWeight: 700, marginTop: 2 }}>Galerij</div>
                 </button>
                 <button onClick={() => { resetForm(); setScherm('manueel') }}
-                  style={{ flex: 1, background: 'white', color: '#374151', border: '1.5px solid #E5E7EB', borderRadius: 12, padding: '8px 6px', cursor: 'pointer', textAlign: 'center' }}>
+                  style={{ flex: 1, background: 'var(--bg-card)', color: 'var(--text-2)', border: '1.5px solid var(--border)', borderRadius: 12, padding: '8px 6px', cursor: 'pointer', textAlign: 'center' }}>
                   <div style={{ fontSize: 16 }}>✏️</div>
                   <div style={{ fontSize: 10, fontWeight: 700, marginTop: 2 }}>Manueel</div>
                 </button>
@@ -590,17 +591,17 @@ export default function VoedingPage() {
             {/* ── Recente voeding ── */}
             {recenteFoods.length > 0 && (
               <div style={{ marginBottom: 16 }}>
-                <p style={{ fontSize: 11, fontWeight: 800, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 8px' }}>Recent gebruikt</p>
+                <p style={{ fontSize: 11, fontWeight: 800, color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 8px' }}>Recent gebruikt</p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   {recenteFoods.slice(0, 4).map(r => (
                     <button key={r.id} onClick={() => selecteerProduct(r)}
-                      style={{ background: 'white', border: '1px solid #F1F5F9', borderRadius: 12, padding: '10px 12px', cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', gap: 10 }}>
-                      <div style={{ width: 36, height: 36, borderRadius: 10, background: '#F3F4F6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0 }}>
+                      style={{ background: 'var(--bg-card)', border: '1px solid #F1F5F9', borderRadius: 12, padding: '10px 12px', cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <div style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--bg-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0 }}>
                         {r.foto_url ? <img src={r.foto_url} alt="" style={{ width: 36, height: 36, borderRadius: 10, objectFit: 'cover' }} /> : '🍽️'}
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <p style={{ fontSize: 13, fontWeight: 700, color: '#111827', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.naam}</p>
-                        <p style={{ fontSize: 11, color: '#9CA3AF', margin: 0 }}>{r.per_100g.calorieen} kcal/100g · {r.per_100g.eiwitten_g}g eiwit</p>
+                        <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-1)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.naam}</p>
+                        <p style={{ fontSize: 11, color: 'var(--text-4)', margin: 0 }}>{r.per_100g.calorieen} kcal/100g · {r.per_100g.eiwitten_g}g eiwit</p>
                       </div>
                       <span style={{ fontSize: 16, color: '#D1D5DB' }}>›</span>
                     </button>
@@ -631,7 +632,7 @@ export default function VoedingPage() {
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                     {mtLogs.map(log => (
-                      <div key={log.id} style={{ background: 'white', borderRadius: 14, border: '1px solid #F1F5F9', overflow: 'hidden', display: 'flex' }}>
+                      <div key={log.id} style={{ background: 'var(--bg-card)', borderRadius: 14, border: '1px solid #F1F5F9', overflow: 'hidden', display: 'flex' }}>
                         {/* Kleurstrook links */}
                         <div style={{ width: 4, background: MAALTIJD_KLEUR[mt], flexShrink: 0 }} />
                         <div style={{ display: 'flex', gap: 10, padding: '11px 12px', flex: 1, alignItems: 'center' }}>
@@ -645,7 +646,7 @@ export default function VoedingPage() {
                           {/* Content */}
                           <div style={{ flex: 1, minWidth: 0 }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                              <p style={{ fontSize: 13, fontWeight: 700, color: '#111827', margin: '0 0 3px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '80%' }}>
+                              <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-1)', margin: '0 0 3px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '80%' }}>
                                 {log.omschrijving}
                               </p>
                               <button onClick={() => verwijder(log.id)}
@@ -653,9 +654,9 @@ export default function VoedingPage() {
                             </div>
                             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
                               {log.calorieen && <span style={{ fontSize: 12, fontWeight: 800, color: kCalKleur }}>{log.calorieen} kcal</span>}
-                              {log.eiwitten_g && <span style={{ fontSize: 11, color: '#9CA3AF' }}>E:{log.eiwitten_g}g</span>}
-                              {log.koolhydraten_g && <span style={{ fontSize: 11, color: '#9CA3AF' }}>K:{log.koolhydraten_g}g</span>}
-                              {log.vetten_g && <span style={{ fontSize: 11, color: '#9CA3AF' }}>V:{log.vetten_g}g</span>}
+                              {log.eiwitten_g && <span style={{ fontSize: 11, color: 'var(--text-4)' }}>E:{log.eiwitten_g}g</span>}
+                              {log.koolhydraten_g && <span style={{ fontSize: 11, color: 'var(--text-4)' }}>K:{log.koolhydraten_g}g</span>}
+                              {log.vetten_g && <span style={{ fontSize: 11, color: 'var(--text-4)' }}>V:{log.vetten_g}g</span>}
                               {log.portie_gram && <span style={{ fontSize: 11, color: '#D1D5DB' }}>{log.portie_gram}g</span>}
                               {log.bron === 'foto' && log.ai_analyse?.gezondheid_score && (
                                 <GezondheidBadge score={log.ai_analyse.gezondheid_score} />
@@ -672,10 +673,10 @@ export default function VoedingPage() {
 
             {/* Leeg state */}
             {logs.length === 0 && (
-              <div style={{ textAlign: 'center', padding: '48px 24px', background: 'white', borderRadius: 20, border: '1.5px dashed #E5E7EB' }}>
+              <div style={{ textAlign: 'center', padding: '48px 24px', background: 'var(--bg-card)', borderRadius: 20, border: '1.5px dashed #E5E7EB' }}>
                 <div style={{ fontSize: 52, marginBottom: 12 }}>🥗</div>
-                <p style={{ fontSize: 16, fontWeight: 800, color: '#374151', marginBottom: 6 }}>Begin met loggen</p>
-                <p style={{ fontSize: 13, color: '#9CA3AF', lineHeight: 1.6 }}>Zoek een product, maak een foto,<br />of voeg handmatig in.</p>
+                <p style={{ fontSize: 16, fontWeight: 800, color: 'var(--text-2)', marginBottom: 6 }}>Begin met loggen</p>
+                <p style={{ fontSize: 13, color: 'var(--text-4)', lineHeight: 1.6 }}>Zoek een product, maak een foto,<br />of voeg handmatig in.</p>
               </div>
             )}
           </>
@@ -695,8 +696,8 @@ export default function VoedingPage() {
                 </div>
               </div>
             )}
-            <h2 style={{ fontSize: 22, fontWeight: 900, color: '#111827', margin: '0 0 10px', letterSpacing: '-0.03em' }}>AI analyseert je maaltijd</h2>
-            <p style={{ fontSize: 14, color: '#6B7280', margin: 0, lineHeight: 1.6 }}>Claude herkent ingrediënten en<br />berekent calorieën + micros.</p>
+            <h2 style={{ fontSize: 22, fontWeight: 900, color: 'var(--text-1)', margin: '0 0 10px', letterSpacing: '-0.03em' }}>AI analyseert je maaltijd</h2>
+            <p style={{ fontSize: 14, color: 'var(--text-3)', margin: 0, lineHeight: 1.6 }}>Claude herkent ingrediënten en<br />berekent calorieën + micros.</p>
           </div>
         )}
 
@@ -706,8 +707,8 @@ export default function VoedingPage() {
         {scherm === 'bevestigen' && analyse && (
           <>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 18 }}>
-              <button onClick={() => { resetForm(); setScherm('overzicht') }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6B7280', fontSize: 24, padding: 0, lineHeight: 1 }}>‹</button>
-              <h1 style={{ fontSize: 22, fontWeight: 900, color: '#111827', margin: 0 }}>Bevestig maaltijd</h1>
+              <button onClick={() => { resetForm(); setScherm('overzicht') }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-3)', fontSize: 24, padding: 0, lineHeight: 1 }}>‹</button>
+              <h1 style={{ fontSize: 22, fontWeight: 900, color: 'var(--text-1)', margin: 0 }}>Bevestig maaltijd</h1>
             </div>
 
             {fotoPreview && (
@@ -723,24 +724,24 @@ export default function VoedingPage() {
 
             <div style={{ background: analyse.betrouwbaarheid === 'hoog' ? '#F0FAF6' : analyse.betrouwbaarheid === 'gemiddeld' ? '#FFFBEB' : '#FEF2F2',
               border: `1px solid ${analyse.betrouwbaarheid === 'hoog' ? '#6EE7B7' : analyse.betrouwbaarheid === 'gemiddeld' ? '#FDE68A' : '#FCA5A5'}`,
-              borderRadius: 12, padding: '10px 14px', marginBottom: 14, fontSize: 12, color: '#374151', display: 'flex', alignItems: 'center', gap: 8 }}>
+              borderRadius: 12, padding: '10px 14px', marginBottom: 14, fontSize: 12, color: 'var(--text-2)', display: 'flex', alignItems: 'center', gap: 8 }}>
               <span style={{ fontSize: 16 }}>{analyse.betrouwbaarheid === 'hoog' ? '✅' : analyse.betrouwbaarheid === 'gemiddeld' ? '⚠️' : '❓'}</span>
               <span><strong>Betrouwbaarheid: {analyse.betrouwbaarheid}</strong>{analyse.betrouwbaarheid !== 'hoog' && ' — controleer de waarden.'}</span>
             </div>
 
             {analyse.ingredienten?.length > 0 && (
               <div style={{ marginBottom: 14 }}>
-                <p style={{ fontSize: 10, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 6 }}>Herkende ingrediënten</p>
+                <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 6 }}>Herkende ingrediënten</p>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
                   {analyse.ingredienten.map((ing, i) => (
-                    <span key={i} style={{ background: '#F3F4F6', color: '#374151', borderRadius: 20, padding: '3px 10px', fontSize: 12, fontWeight: 600 }}>{ing}</span>
+                    <span key={i} style={{ background: 'var(--bg-subtle)', color: 'var(--text-2)', borderRadius: 20, padding: '3px 10px', fontSize: 12, fontWeight: 600 }}>{ing}</span>
                   ))}
                 </div>
               </div>
             )}
 
-            <div style={{ background: 'white', borderRadius: 18, border: '1px solid #F1F5F9', padding: '16px', marginBottom: 14 }}>
-              <p style={{ fontSize: 10, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 12 }}>Aanpassen indien nodig</p>
+            <div style={{ background: 'var(--bg-card)', borderRadius: 18, border: '1px solid #F1F5F9', padding: '16px', marginBottom: 14 }}>
+              <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 12 }}>Aanpassen indien nodig</p>
               <div style={{ display: 'grid', gap: 10 }}>
                 {renderMaaltijdSelector()}
                 {renderInputVeld({ label: 'Gerecht', veld: 'omschrijving' })}
@@ -778,35 +779,35 @@ export default function VoedingPage() {
         {scherm === 'zoeken' && (
           <>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
-              <button onClick={() => setScherm('overzicht')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6B7280', fontSize: 24, padding: 0 }}>‹</button>
-              <h1 style={{ fontSize: 22, fontWeight: 900, color: '#111827', margin: 0 }}>Voeding zoeken</h1>
+              <button onClick={() => setScherm('overzicht')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-3)', fontSize: 24, padding: 0 }}>‹</button>
+              <h1 style={{ fontSize: 22, fontWeight: 900, color: 'var(--text-1)', margin: 0 }}>Voeding zoeken</h1>
             </div>
 
             {/* Zoekbalk + barcode */}
             <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
-              <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 10, background: 'white', border: '1.5px solid #E5E7EB', borderRadius: 14, padding: '12px 16px' }}>
-                <span style={{ fontSize: 18, color: '#9CA3AF' }}>🔍</span>
+              <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 10, background: 'var(--bg-card)', border: '1.5px solid var(--border)', borderRadius: 14, padding: '12px 16px' }}>
+                <span style={{ fontSize: 18, color: 'var(--text-4)' }}>🔍</span>
                 <input autoFocus type="text" value={zoekQuery}
                   onChange={e => { setZoekQuery(e.target.value); zoekVoeding(e.target.value) }}
                   placeholder="Zoek product, merk of ingrediënt..."
-                  style={{ flex: 1, border: 'none', outline: 'none', fontSize: 14, color: '#111827', background: 'none' }} />
+                  style={{ flex: 1, border: 'none', outline: 'none', fontSize: 14, color: 'var(--text-1)', background: 'none' }} />
                 {zoekLaden && <div className="mf-spinner" style={{ width: 18, height: 18 }} />}
                 {zoekQuery && !zoekLaden && (
                   <button onClick={() => { setZoekQuery(''); setZoekResultaten([]) }}
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', fontSize: 18, lineHeight: 1 }}>×</button>
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-4)', fontSize: 18, lineHeight: 1 }}>×</button>
                 )}
               </div>
             </div>
 
             {/* Bron tabs */}
-            <div style={{ display: 'flex', background: '#F3F4F6', borderRadius: 12, padding: 4, marginBottom: 12, gap: 4 }}>
+            <div style={{ display: 'flex', background: 'var(--bg-subtle)', borderRadius: 12, padding: 4, marginBottom: 12, gap: 4 }}>
               {[{ key: 'off' as const, label: '🌍 Open Food Facts', sub: '3M+ producten' }, { key: 'usda' as const, label: '🇺🇸 USDA', sub: 'Voedingswaarden' }].map(b => (
                 <button key={b.key} onClick={() => { setZoekBron(b.key); setZoekResultaten([]); if (zoekQuery.length >= 2) zoekVoeding(zoekQuery, b.key) }}
                   style={{ flex: 1, padding: '8px 10px', borderRadius: 10, border: 'none', cursor: 'pointer',
-                    background: zoekBron === b.key ? 'white' : 'transparent',
+                    background: zoekBron === b.key ? 'var(--bg-card)' : 'transparent',
                     boxShadow: zoekBron === b.key ? '0 1px 4px rgba(0,0,0,0.08)' : 'none' }}>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: zoekBron === b.key ? '#111827' : '#6B7280' }}>{b.label}</div>
-                  <div style={{ fontSize: 10, color: '#9CA3AF' }}>{b.sub}</div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: zoekBron === b.key ? 'var(--text-1)' : 'var(--text-3)' }}>{b.label}</div>
+                  <div style={{ fontSize: 10, color: 'var(--text-4)' }}>{b.sub}</div>
                 </button>
               ))}
             </div>
@@ -817,17 +818,17 @@ export default function VoedingPage() {
             {/* Recent (alleen als geen query) */}
             {zoekQuery.length < 2 && recenteFoods.length > 0 && (
               <div style={{ marginBottom: 16 }}>
-                <p style={{ fontSize: 11, fontWeight: 800, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 8px' }}>Recent gebruikt</p>
+                <p style={{ fontSize: 11, fontWeight: 800, color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 8px' }}>Recent gebruikt</p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   {recenteFoods.map(r => (
                     <button key={r.id} onClick={() => selecteerProduct(r)}
-                      style={{ background: 'white', border: '1px solid #F1F5F9', borderRadius: 12, padding: '10px 12px', cursor: 'pointer', textAlign: 'left', display: 'flex', gap: 10, alignItems: 'center' }}>
-                      <div style={{ width: 40, height: 40, borderRadius: 10, background: '#F3F4F6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0, overflow: 'hidden' }}>
+                      style={{ background: 'var(--bg-card)', border: '1px solid #F1F5F9', borderRadius: 12, padding: '10px 12px', cursor: 'pointer', textAlign: 'left', display: 'flex', gap: 10, alignItems: 'center' }}>
+                      <div style={{ width: 40, height: 40, borderRadius: 10, background: 'var(--bg-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0, overflow: 'hidden' }}>
                         {r.foto_url ? <img src={r.foto_url} alt="" style={{ width: 40, height: 40, objectFit: 'cover' }} /> : '🍽️'}
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <p style={{ fontSize: 13, fontWeight: 700, color: '#111827', margin: '0 0 2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.naam}</p>
-                        <p style={{ fontSize: 11, color: '#9CA3AF', margin: 0 }}>{r.per_100g.calorieen} kcal · {r.per_100g.eiwitten_g}g eiwit · {r.per_100g.koolhydraten_g}g koolh.</p>
+                        <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-1)', margin: '0 0 2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.naam}</p>
+                        <p style={{ fontSize: 11, color: 'var(--text-4)', margin: 0 }}>{r.per_100g.calorieen} kcal · {r.per_100g.eiwitten_g}g eiwit · {r.per_100g.koolhydraten_g}g koolh.</p>
                       </div>
                       <span style={{ fontSize: 16, color: '#D1D5DB' }}>›</span>
                     </button>
@@ -840,8 +841,8 @@ export default function VoedingPage() {
             {zoekQuery.length >= 2 && !zoekLaden && zoekResultaten.length === 0 && (
               <div style={{ textAlign: 'center', padding: '40px 24px' }}>
                 <div style={{ fontSize: 40, marginBottom: 12 }}>🔍</div>
-                <p style={{ fontSize: 15, fontWeight: 700, color: '#374151', marginBottom: 6 }}>Geen resultaten</p>
-                <p style={{ fontSize: 13, color: '#9CA3AF' }}>Probeer een andere zoekterm of wissel van database.</p>
+                <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-2)', marginBottom: 6 }}>Geen resultaten</p>
+                <p style={{ fontSize: 13, color: 'var(--text-4)' }}>Probeer een andere zoekterm of wissel van database.</p>
               </div>
             )}
 
@@ -849,11 +850,11 @@ export default function VoedingPage() {
             {zoekLaden && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {[1, 2, 3, 4].map(i => (
-                  <div key={i} style={{ background: 'white', borderRadius: 14, padding: '12px 14px', border: '1px solid #F1F5F9', display: 'flex', gap: 12, alignItems: 'center' }}>
-                    <div style={{ width: 48, height: 48, borderRadius: 10, background: '#F3F4F6', animation: 'pulse 1.4s ease-in-out infinite', animationDelay: `${i * 0.1}s` }} />
+                  <div key={i} style={{ background: 'var(--bg-card)', borderRadius: 14, padding: '12px 14px', border: '1px solid #F1F5F9', display: 'flex', gap: 12, alignItems: 'center' }}>
+                    <div style={{ width: 48, height: 48, borderRadius: 10, background: 'var(--bg-subtle)', animation: 'pulse 1.4s ease-in-out infinite', animationDelay: `${i * 0.1}s` }} />
                     <div style={{ flex: 1 }}>
-                      <div style={{ height: 13, borderRadius: 6, background: '#F3F4F6', width: '70%', marginBottom: 7, animation: 'pulse 1.4s ease-in-out infinite' }} />
-                      <div style={{ height: 11, borderRadius: 6, background: '#F3F4F6', width: '45%', animation: 'pulse 1.4s ease-in-out infinite' }} />
+                      <div style={{ height: 13, borderRadius: 6, background: 'var(--bg-subtle)', width: '70%', marginBottom: 7, animation: 'pulse 1.4s ease-in-out infinite' }} />
+                      <div style={{ height: 11, borderRadius: 6, background: 'var(--bg-subtle)', width: '45%', animation: 'pulse 1.4s ease-in-out infinite' }} />
                     </div>
                   </div>
                 ))}
@@ -865,19 +866,19 @@ export default function VoedingPage() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
                 {zoekResultaten.map(r => (
                   <button key={r.id} onClick={() => selecteerProduct(r)}
-                    style={{ background: 'white', border: '1px solid #F1F5F9', borderRadius: 14, padding: '12px 14px', cursor: 'pointer', textAlign: 'left', display: 'flex', gap: 12, alignItems: 'center',
+                    style={{ background: 'var(--bg-card)', border: '1px solid #F1F5F9', borderRadius: 14, padding: '12px 14px', cursor: 'pointer', textAlign: 'left', display: 'flex', gap: 12, alignItems: 'center',
                       transition: 'box-shadow 0.15s' }}>
-                    <div style={{ width: 50, height: 50, borderRadius: 12, background: '#F3F4F6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0, overflow: 'hidden' }}>
+                    <div style={{ width: 50, height: 50, borderRadius: 12, background: 'var(--bg-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0, overflow: 'hidden' }}>
                       {r.foto_url ? <img src={r.foto_url} alt={r.naam} style={{ width: 50, height: 50, objectFit: 'cover' }} /> : '🍽️'}
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <p style={{ fontSize: 13, fontWeight: 700, color: '#111827', margin: '0 0 2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.naam}</p>
-                      {r.merk && <p style={{ fontSize: 11, color: '#9CA3AF', margin: '0 0 4px' }}>{r.merk}</p>}
+                      <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-1)', margin: '0 0 2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.naam}</p>
+                      {r.merk && <p style={{ fontSize: 11, color: 'var(--text-4)', margin: '0 0 4px' }}>{r.merk}</p>}
                       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                         <span style={{ fontSize: 12, fontWeight: 800, color: '#1D9E75' }}>{r.per_100g.calorieen} kcal</span>
-                        <span style={{ fontSize: 11, color: '#9CA3AF' }}>E:{r.per_100g.eiwitten_g}g</span>
-                        <span style={{ fontSize: 11, color: '#9CA3AF' }}>K:{r.per_100g.koolhydraten_g}g</span>
-                        <span style={{ fontSize: 11, color: '#9CA3AF' }}>V:{r.per_100g.vetten_g}g</span>
+                        <span style={{ fontSize: 11, color: 'var(--text-4)' }}>E:{r.per_100g.eiwitten_g}g</span>
+                        <span style={{ fontSize: 11, color: 'var(--text-4)' }}>K:{r.per_100g.koolhydraten_g}g</span>
+                        <span style={{ fontSize: 11, color: 'var(--text-4)' }}>V:{r.per_100g.vetten_g}g</span>
                       </div>
                     </div>
                     <span style={{ color: '#D1D5DB', fontSize: 20 }}>›</span>
@@ -915,10 +916,10 @@ export default function VoedingPage() {
           return (
             <>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
-                <button onClick={() => setScherm('zoeken')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6B7280', fontSize: 24, padding: 0 }}>‹</button>
+                <button onClick={() => setScherm('zoeken')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-3)', fontSize: 24, padding: 0 }}>‹</button>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <h1 style={{ fontSize: 17, fontWeight: 900, color: '#111827', margin: '0 0 1px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{geselecteerdProduct.naam}</h1>
-                  {geselecteerdProduct.merk && <p style={{ fontSize: 11, color: '#9CA3AF', margin: 0 }}>{geselecteerdProduct.merk}</p>}
+                  <h1 style={{ fontSize: 17, fontWeight: 900, color: 'var(--text-1)', margin: '0 0 1px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{geselecteerdProduct.naam}</h1>
+                  {geselecteerdProduct.merk && <p style={{ fontSize: 11, color: 'var(--text-4)', margin: 0 }}>{geselecteerdProduct.merk}</p>}
                 </div>
               </div>
 
@@ -936,16 +937,16 @@ export default function VoedingPage() {
               )}
 
               {/* Portie aanpassen */}
-              <div style={{ background: 'white', borderRadius: 18, padding: '16px', border: '1px solid #F1F5F9', marginBottom: 12 }}>
-                <p style={{ fontSize: 10, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 10px' }}>Portiegrootte</p>
+              <div style={{ background: 'var(--bg-card)', borderRadius: 18, padding: '16px', border: '1px solid #F1F5F9', marginBottom: 12 }}>
+                <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 10px' }}>Portiegrootte</p>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
                   <button onClick={() => setPortieGram(Math.max(5, portieGram - 5))}
-                    style={{ width: 38, height: 38, borderRadius: 10, border: '1.5px solid #E5E7EB', background: 'white', fontSize: 20, cursor: 'pointer', color: '#374151', fontWeight: 700, flexShrink: 0 }}>−</button>
+                    style={{ width: 38, height: 38, borderRadius: 10, border: '1.5px solid var(--border)', background: 'var(--bg-card)', fontSize: 20, cursor: 'pointer', color: 'var(--text-2)', fontWeight: 700, flexShrink: 0 }}>−</button>
                   <div style={{ flex: 1, textAlign: 'center' }}>
                     <input type="number" value={portieGram}
                       onChange={e => setPortieGram(Math.max(1, parseInt(e.target.value) || 1))}
-                      style={{ fontSize: 28, fontWeight: 900, color: '#111827', border: 'none', outline: 'none', textAlign: 'center', width: 90, background: 'none' }} />
-                    <span style={{ fontSize: 14, color: '#9CA3AF', fontWeight: 600 }}>gram</span>
+                      style={{ fontSize: 28, fontWeight: 900, color: 'var(--text-1)', border: 'none', outline: 'none', textAlign: 'center', width: 90, background: 'none' }} />
+                    <span style={{ fontSize: 14, color: 'var(--text-4)', fontWeight: 600 }}>gram</span>
                   </div>
                   <button onClick={() => setPortieGram(portieGram + 5)}
                     style={{ width: 38, height: 38, borderRadius: 10, border: '1.5px solid #1D9E75', background: '#1D9E75', fontSize: 20, cursor: 'pointer', color: 'white', fontWeight: 700, flexShrink: 0 }}>+</button>
@@ -956,7 +957,7 @@ export default function VoedingPage() {
                       style={{ padding: '5px 11px', borderRadius: 20,
                         border: `1.5px solid ${portieGram === g ? '#1D9E75' : '#E5E7EB'}`,
                         background: portieGram === g ? '#1D9E75' : 'white',
-                        color: portieGram === g ? 'white' : '#6B7280',
+                        color: portieGram === g ? 'white' : 'var(--text-3)',
                         fontSize: 12, fontWeight: 700, cursor: 'pointer',
                         transition: 'all 0.15s' }}>
                       {g}g
@@ -995,17 +996,17 @@ export default function VoedingPage() {
                   ].map(m => (
                     <div key={m.label} style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
                       <div style={{ width: 8, height: 8, borderRadius: '50%', background: m.kleur, flexShrink: 0 }} />
-                      <span style={{ fontSize: 12, color: '#374151', fontWeight: 600, flex: 1 }}>{m.label}</span>
+                      <span style={{ fontSize: 12, color: 'var(--text-2)', fontWeight: 600, flex: 1 }}>{m.label}</span>
                       <span style={{ fontSize: 12, fontWeight: 800, color: m.kleur }}>{m.waarde.toFixed(1)}g</span>
-                      <span style={{ fontSize: 10, color: '#9CA3AF', width: 30, textAlign: 'right' }}>{m.pct}%</span>
+                      <span style={{ fontSize: 10, color: 'var(--text-4)', width: 30, textAlign: 'right' }}>{m.pct}%</span>
                     </div>
                   ))}
                 </div>
               </div>
 
               {/* Macros tabel met RDI % */}
-              <div style={{ background: 'white', borderRadius: 18, padding: '16px', border: '1px solid #F1F5F9', marginBottom: 12 }}>
-                <p style={{ fontSize: 10, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 4px' }}>
+              <div style={{ background: 'var(--bg-card)', borderRadius: 18, padding: '16px', border: '1px solid #F1F5F9', marginBottom: 12 }}>
+                <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 4px' }}>
                   Macronutriënten <span style={{ color: '#D1D5DB' }}>— % van dagelijkse behoefte</span>
                 </p>
                 <RdiBalk label="Calorieën"          waarde={Math.round(p.calorieen      * factor)} eenheid="kcal" rdi={RDI.calorieen}      kleur="#1D9E75" />
@@ -1022,8 +1023,8 @@ export default function VoedingPage() {
 
               {/* Micronutriënten met RDI % */}
               {heeftMicros && (
-                <div style={{ background: 'white', borderRadius: 18, padding: '16px', border: '1px solid #F1F5F9', marginBottom: 12 }}>
-                  <p style={{ fontSize: 10, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 4px' }}>
+                <div style={{ background: 'var(--bg-card)', borderRadius: 18, padding: '16px', border: '1px solid #F1F5F9', marginBottom: 12 }}>
+                  <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 4px' }}>
                     Micronutriënten <span style={{ color: '#D1D5DB' }}>— % van dagelijkse behoefte</span>
                   </p>
                   {Object.entries(MICRO_META)
@@ -1061,11 +1062,11 @@ export default function VoedingPage() {
         {scherm === 'manueel' && (
           <>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
-              <button onClick={() => { resetForm(); setScherm('overzicht') }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6B7280', fontSize: 24, padding: 0, lineHeight: 1 }}>‹</button>
-              <h1 style={{ fontSize: 22, fontWeight: 900, color: '#111827', margin: 0 }}>Manueel invoeren</h1>
+              <button onClick={() => { resetForm(); setScherm('overzicht') }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-3)', fontSize: 24, padding: 0, lineHeight: 1 }}>‹</button>
+              <h1 style={{ fontSize: 22, fontWeight: 900, color: 'var(--text-1)', margin: 0 }}>Manueel invoeren</h1>
             </div>
 
-            <div style={{ background: 'white', borderRadius: 20, border: '1px solid #F1F5F9', padding: '18px 16px', marginBottom: 16 }}>
+            <div style={{ background: 'var(--bg-card)', borderRadius: 20, border: '1px solid #F1F5F9', padding: '18px 16px', marginBottom: 16 }}>
               <div style={{ display: 'grid', gap: 12 }}>
                 {renderMaaltijdSelector()}
                 {renderInputVeld({ label: 'Gerecht / omschrijving', veld: 'omschrijving' })}
@@ -1085,7 +1086,7 @@ export default function VoedingPage() {
             {fout && <div style={{ background: '#FEF2F2', border: '1px solid #FCA5A5', borderRadius: 12, padding: '10px 14px', marginBottom: 12, fontSize: 13, color: '#B91C1C' }}>{fout}</div>}
 
             <button onClick={() => slaOp('manueel')} disabled={opslaan || !form.omschrijving.trim()}
-              style={{ width: '100%', background: '#1D9E75', color: 'white', border: 'none', borderRadius: 14, padding: '16px', fontSize: 15, fontWeight: 800,
+              style={{ width: '100%', background: 'linear-gradient(135deg, var(--mf-green) 0%, var(--mf-green-dark) 100%)', color: 'white', border: 'none', borderRadius: 14, padding: '16px', fontSize: 15, fontWeight: 800,
                 cursor: (opslaan || !form.omschrijving.trim()) ? 'not-allowed' : 'pointer',
                 opacity: (opslaan || !form.omschrijving.trim()) ? 0.6 : 1 }}>
               {opslaan ? 'Opslaan...' : '✅ Maaltijd opslaan'}
