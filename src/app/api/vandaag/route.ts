@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAuthenticatedUser } from '@/lib/api-auth'
 import { createAdminClient } from '@/lib/supabase-admin'
+import { vandaagNL, datumMinusDagenNL, dagstartUtcNL, huidigUurNL } from '@/lib/date-nl'
 
 const DOEL_WATER_ML = 2000
 
@@ -71,11 +72,11 @@ export async function GET(req: NextRequest) {
   if (!user) return NextResponse.json({ error: 'Niet ingelogd.' }, { status: 401 })
 
   const admin = createAdminClient()
-  const vandaag = new Date().toISOString().split('T')[0]
-  const gisteren = new Date(Date.now() - 86400000).toISOString().split('T')[0]
-  const dagstart = new Date(); dagstart.setHours(0, 0, 0, 0); const dagstartUtc = dagstart.toISOString()
+  const vandaag = vandaagNL()
+  const gisteren = datumMinusDagenNL(1)
+  const dagstartUtc = dagstartUtcNL()
 
-  const uur = new Date().getHours()
+  const uur = huidigUurNL()
   const suggestie = bepaalSuggestie(uur)
 
   let waterResult, stemmingResult, slaapResult, sportResult, focusResult, dankbaarheidResult, meditatieMorgenResult
@@ -146,7 +147,7 @@ export async function GET(req: NextRequest) {
         .limit(10),
     ])
   } catch (err) {
-    console.error('[vandaag] DB query failed:', err)
+    console.error('[api/vandaag] DB fout:', err)
     const checklist = defaultChecklist()
     return NextResponse.json(
       {

@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
     for (const a of (s.checkin_antwoorden ?? [])) {
       const domein = a.vraag_code.split('_')[0]
       if (!domeinSommen[domein]) domeinSommen[domein] = []
-      domeinSommen[domein].push(a.waarde_schaal)
+      if (a.waarde_schaal !== null) domeinSommen[domein].push(a.waarde_schaal)
     }
     const scores: DomeinScores = {}
     for (const [d, vals] of Object.entries(domeinSommen)) {
@@ -97,7 +97,7 @@ export async function POST(req: NextRequest) {
   const risicoAfrond = Math.round(Math.min(100, Math.max(0, risicoScore)) * 10) / 10
 
   // Sla op
-  await admin
+  const { error: upsertErr } = await admin
     .from('burnout_predictor_scores')
     .upsert(
       {
@@ -110,6 +110,10 @@ export async function POST(req: NextRequest) {
       },
       { onConflict: 'user_id,week_start' },
     )
+
+  if (upsertErr) {
+    console.error('[burnout-predictor] Opslaan mislukt:', upsertErr.message)
+  }
 
   return NextResponse.json({
     risico_score: risicoAfrond,
