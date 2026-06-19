@@ -206,7 +206,7 @@ export default function Register() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: 'var(--bg-app)', fontFamily: 'var(--font-geist-sans)' }}>
+    <div className="mf-mesh-bg min-h-screen flex flex-col" style={{ fontFamily: 'var(--font-geist-sans)' }}>
 
       {/* Header */}
       <header className="w-full bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between">
@@ -337,7 +337,10 @@ export default function Register() {
                   }}
                   disabled={!type}
                   className="w-full py-4 rounded-xl text-white font-bold text-sm transition hover:opacity-90 disabled:opacity-30"
-                  style={{ background: '#1D9E75' }}
+                  style={{
+                    background: 'linear-gradient(135deg, var(--color-primary, #1D9E75) 0%, var(--color-primary-dark, #15785A) 100%)',
+                    boxShadow: '0 4px 16px rgba(29,158,117,0.35)',
+                  }}
                 >
                   Verder
                 </button>
@@ -401,7 +404,10 @@ export default function Register() {
                     onClick={valideerHrCode}
                     disabled={hrCodeBezig || hrCode.length < 7}
                     className="flex-1 py-4 rounded-xl text-white font-bold text-sm transition hover:opacity-90 disabled:opacity-30 flex items-center justify-center gap-2"
-                    style={{ background: '#1D9E75' }}
+                    style={{
+                      background: 'linear-gradient(135deg, var(--color-primary, #1D9E75) 0%, var(--color-primary-dark, #15785A) 100%)',
+                      boxShadow: '0 4px 16px rgba(29,158,117,0.35)',
+                    }}
                   >
                     {hrCodeBezig ? (
                       <>
@@ -510,7 +516,10 @@ export default function Register() {
                     onClick={() => naam.trim() && setStap('account')}
                     disabled={!naam.trim()}
                     className="flex-1 py-4 rounded-xl text-white font-bold text-sm transition hover:opacity-90 disabled:opacity-30"
-                    style={{ background: '#1D9E75' }}
+                    style={{
+                      background: 'linear-gradient(135deg, var(--color-primary, #1D9E75) 0%, var(--color-primary-dark, #15785A) 100%)',
+                      boxShadow: '0 4px 16px rgba(29,158,117,0.35)',
+                    }}
                   >
                     Verder
                   </button>
@@ -668,12 +677,15 @@ export default function Register() {
                     onClick={registreer}
                     disabled={bezig || !email || !emailGeldig || !wachtwoord || wachtwoord.length < 8 || wachtwoord !== bevestigWachtwoord || !akkoord}
                     className="flex-1 py-4 rounded-xl text-white font-bold text-sm transition hover:opacity-90 disabled:opacity-30 flex items-center justify-center gap-2"
-                    style={{ background: '#1D9E75' }}
+                    style={{
+                      background: 'linear-gradient(135deg, var(--color-primary, #1D9E75) 0%, var(--color-primary-dark, #15785A) 100%)',
+                      boxShadow: '0 4px 16px rgba(29,158,117,0.35)',
+                    }}
                   >
                     {bezig ? (
                       <>
                         <div className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
-                        Account aanmaken...
+                        Bezig...
                       </>
                     ) : (
                       'Account aanmaken'
@@ -724,7 +736,10 @@ export default function Register() {
 
                 <Link href="/login"
                   className="inline-flex items-center justify-center w-full py-4 rounded-xl text-white font-bold text-sm transition hover:opacity-90"
-                  style={{ background: '#1D9E75' }}>
+                  style={{
+                    background: 'linear-gradient(135deg, var(--color-primary, #1D9E75) 0%, var(--color-primary-dark, #15785A) 100%)',
+                    boxShadow: '0 4px 16px rgba(29,158,117,0.35)',
+                  }}>
                   Ga naar inloggen
                 </Link>
                 {resendKlaar ? (

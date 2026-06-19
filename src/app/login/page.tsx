@@ -77,10 +77,7 @@ export default function Login() {
 
   return (
     <main
-      className="min-h-screen flex flex-col items-center justify-center p-5"
-      style={{
-        background: 'linear-gradient(160deg, #E8F8F2 0%, #EBF4FB 50%, #F0EEFF 100%)',
-      }}
+      className="mf-mesh-bg min-h-screen flex flex-col items-center justify-center p-5"
     >
       {/* Decorative blobs */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden" aria-hidden>
@@ -115,10 +112,10 @@ export default function Login() {
           </Link>
         </div>
 
-        <h1 className="text-[22px] font-bold text-center mb-1" style={{ color: '#0D1117', letterSpacing: '-0.03em' }}>
+        <h1 className="text-[22px] font-bold text-center mb-1" style={{ color: 'var(--text-primary)', letterSpacing: '-0.03em' }}>
           Welkom terug
         </h1>
-        <p className="text-sm text-center mb-7" style={{ color: '#6B7280' }}>
+        <p className="text-sm text-center mb-7" style={{ color: 'var(--text-secondary)' }}>
           Log in met je e-mailadres en wachtwoord.
         </p>
 
@@ -232,7 +229,7 @@ export default function Login() {
         </div>
 
         <div className="flex justify-end mb-5">
-          <Link href="/wachtwoord-vergeten" className="text-xs font-medium transition hover:opacity-70" style={{ color: '#1D9E75' }}>
+          <Link href="/wachtwoord-vergeten" className="text-xs font-medium transition hover:opacity-70" style={{ color: 'var(--color-primary, #1D9E75)' }}>
             Wachtwoord vergeten?
           </Link>
         </div>
@@ -242,13 +239,13 @@ export default function Login() {
           disabled={isLeeg || laden}
           className="w-full text-white rounded-2xl py-3.5 text-sm font-semibold transition flex items-center justify-center gap-2 disabled:opacity-40"
           style={{
-            background: isLeeg ? '#9CA3AF' : 'linear-gradient(135deg, #1D9E75 0%, #15785A 100%)',
-            boxShadow: isLeeg ? 'none' : '0 4px 16px rgba(29,158,117,0.4)',
+            background: isLeeg ? 'var(--text-muted, #9CA3AF)' : 'linear-gradient(135deg, var(--color-primary, #1D9E75) 0%, var(--color-primary-dark, #15785A) 100%)',
+            boxShadow: isLeeg ? 'none' : '0 4px 16px rgba(29,158,117,0.35)',
             fontSize: 15,
           }}
         >
           {laden && <div className="mf-spinner-white" />}
-          {laden ? 'Inloggen...' : 'Inloggen'}
+          {laden ? 'Bezig...' : 'Inloggen'}
         </button>
 
         {/* Divider */}
