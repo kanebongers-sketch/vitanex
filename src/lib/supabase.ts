@@ -8,13 +8,14 @@ function isValidUrl(v: string | undefined): v is string {
 
 function getClient(): SupabaseClient {
   if (!_client) {
-    const url = isValidUrl(process.env.NEXT_PUBLIC_SUPABASE_URL)
-      ? process.env.NEXT_PUBLIC_SUPABASE_URL!
-      : 'https://placeholder.supabase.co'
-    const key = (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY &&
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY !== 'undefined')
-      ? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-      : 'placeholder-anon-key'
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    if (!isValidUrl(url)) {
+      throw new Error('NEXT_PUBLIC_SUPABASE_URL is niet geconfigureerd of ongeldig.')
+    }
+    if (!key || key === 'undefined') {
+      throw new Error('NEXT_PUBLIC_SUPABASE_ANON_KEY is niet geconfigureerd.')
+    }
     _client = createClient(url, key)
   }
   return _client
