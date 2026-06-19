@@ -4,7 +4,8 @@ import { useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
-import { verwerkCheckin, LEVEL_NAMEN, LEVEL_KLEUREN, type Achievement } from '@/lib/xp'
+import { verwerkCheckin, laadXPData, LEVEL_NAMEN, LEVEL_KLEUREN, type Achievement } from '@/lib/xp'
+import { syncXPNaarServer } from '@/lib/xp-sync'
 import {
   type WellbeingCat, type WeekDoel, type WeekSelectie,
   getMaandag, slaWeekSelectieOp, scoreKleur, scoreLabel,
@@ -197,6 +198,9 @@ function BedanktInhoud() {
         xpToastRef.current = setTimeout(() => setXpToast(null), 5000)
       }
     } catch { /* XP is non-critical */ }
+
+    // Sync XP naar server (niet-blokkerend — localStorage blijft source of truth)
+    syncXPNaarServer(laadXPData()).catch(() => { /* stil falen */ })
   }
 
   useEffect(() => {

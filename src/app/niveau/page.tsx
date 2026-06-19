@@ -10,6 +10,7 @@ import {
   LEVEL_NAMEN, LEVEL_KLEUREN, LEVEL_BG,
   ALLE_ACHIEVEMENTS, type XPData, type Achievement,
 } from '@/lib/xp'
+import { laadXPVanServer } from '@/lib/xp-sync'
 
 // ─── Achievement SVG icons ────────────────────────────────────────────────────
 
@@ -169,12 +170,18 @@ export default function NiveauPage() {
   const [nuTs] = useState(() => Date.now())
 
   useEffect(() => {
-    // localStorage lezen + setState buiten de synchrone effect-body
-    Promise.resolve().then(() => {
+    Promise.resolve().then(async () => {
+      // Lokaal eerst tonen — geen wachttijd
       let data = laadXPData()
       data = pasDecayToe(data)
       slaXPOp(data)
       setXpData(data)
+
+      // Server daarna laden (hogere XP wint — cross-device correctheid)
+      const serverData = await laadXPVanServer()
+      if (serverData && serverData.xp >= data.xp) {
+        setXpData(serverData)
+      }
     })
   }, [])
 

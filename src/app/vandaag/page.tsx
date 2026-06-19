@@ -9,6 +9,59 @@ import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
 
+// ─── MomentumNudge ────────────────────────────────────────────────────────────
+
+function MomentumNudge({ checklist }: { checklist: TaakItem[] }) {
+  const gedaan = checklist.filter(t => t.status === 'gedaan')
+  const open   = checklist.filter(t => t.status === 'open')
+
+  if (gedaan.length === 0 || open.length === 0) return null
+
+  const volgende = open[0]
+
+  return (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 12,
+        padding: '14px 16px',
+        background: 'linear-gradient(135deg, #F0FDF4 0%, #DCFCE7 100%)',
+        border: '1px solid #A7F3D0',
+        borderRadius: 'var(--radius-md)',
+        marginBottom: 20,
+        boxShadow: '0 2px 8px rgba(29,158,117,0.08)',
+      }}
+    >
+      <span style={{ fontSize: 20, flexShrink: 0 }}>🔥</span>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: '#15785A', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+          Momentum
+        </p>
+        <p style={{ margin: '2px 0 0', fontSize: 13, color: 'var(--mf-green-dark)' }}>
+          {gedaan.length} gedaan — ga door met <strong>{volgende.titel}</strong>
+        </p>
+      </div>
+      <Link
+        href={volgende.url}
+        style={{
+          flexShrink: 0,
+          padding: '8px 14px',
+          background: 'var(--mf-green)',
+          color: '#fff',
+          fontSize: 12,
+          fontWeight: 700,
+          borderRadius: 'var(--radius-btn)',
+          textDecoration: 'none',
+          whiteSpace: 'nowrap',
+        }}
+      >
+        {volgende.icoon} Nu →
+      </Link>
+    </div>
+  )
+}
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface TaakItem {
@@ -636,6 +689,9 @@ export default function VandaagPage() {
               ))}
             </div>
           </section>
+
+          {/* ── Momentum nudge ────────────────────────────────────────────── */}
+          <MomentumNudge checklist={checklist} />
 
           {/* ── Dagdeel suggestie ─────────────────────────────────────────── */}
           <DagdeelSuggestie suggestie={suggestie} />
