@@ -822,15 +822,15 @@ export default function VoedingPage() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   {recenteFoods.map(r => (
                     <button key={r.id} onClick={() => selecteerProduct(r)}
-                      style={{ background: 'var(--bg-card)', border: '1px solid #F1F5F9', borderRadius: 12, padding: '10px 12px', cursor: 'pointer', textAlign: 'left', display: 'flex', gap: 10, alignItems: 'center' }}>
+                      style={{ background: 'var(--bg-card)', border: '1px solid #F1F5F9', borderRadius: 12, padding: '10px 12px', cursor: 'pointer', textAlign: 'left', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
                       <div style={{ width: 40, height: 40, borderRadius: 10, background: 'var(--bg-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0, overflow: 'hidden' }}>
                         {r.foto_url ? <img src={r.foto_url} alt="" style={{ width: 40, height: 40, objectFit: 'cover' }} /> : '🍽️'}
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-1)', margin: '0 0 2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.naam}</p>
-                        <p style={{ fontSize: 11, color: 'var(--text-4)', margin: 0 }}>{r.per_100g.calorieen} kcal · {r.per_100g.eiwitten_g}g eiwit · {r.per_100g.koolhydraten_g}g koolh.</p>
+                        <p style={{ fontSize: 11, color: 'var(--text-4)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.per_100g.calorieen} kcal · {r.per_100g.eiwitten_g}g eiwit · {r.per_100g.koolhydraten_g}g koolh.</p>
                       </div>
-                      <span style={{ fontSize: 16, color: '#D1D5DB' }}>›</span>
+                      <span style={{ fontSize: 16, color: '#D1D5DB', flexShrink: 0, paddingTop: 2 }}>›</span>
                     </button>
                   ))}
                 </div>
@@ -866,22 +866,22 @@ export default function VoedingPage() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
                 {zoekResultaten.map(r => (
                   <button key={r.id} onClick={() => selecteerProduct(r)}
-                    style={{ background: 'var(--bg-card)', border: '1px solid #F1F5F9', borderRadius: 14, padding: '12px 14px', cursor: 'pointer', textAlign: 'left', display: 'flex', gap: 12, alignItems: 'center',
+                    style={{ background: 'var(--bg-card)', border: '1px solid #F1F5F9', borderRadius: 14, padding: '12px 14px', cursor: 'pointer', textAlign: 'left', display: 'flex', gap: 12, alignItems: 'flex-start',
                       transition: 'box-shadow 0.15s' }}>
                     <div style={{ width: 50, height: 50, borderRadius: 12, background: 'var(--bg-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0, overflow: 'hidden' }}>
                       {r.foto_url ? <img src={r.foto_url} alt={r.naam} style={{ width: 50, height: 50, objectFit: 'cover' }} /> : '🍽️'}
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-1)', margin: '0 0 2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.naam}</p>
-                      {r.merk && <p style={{ fontSize: 11, color: 'var(--text-4)', margin: '0 0 4px' }}>{r.merk}</p>}
-                      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                        <span style={{ fontSize: 12, fontWeight: 800, color: '#1D9E75' }}>{r.per_100g.calorieen} kcal</span>
-                        <span style={{ fontSize: 11, color: 'var(--text-4)' }}>E:{r.per_100g.eiwitten_g}g</span>
-                        <span style={{ fontSize: 11, color: 'var(--text-4)' }}>K:{r.per_100g.koolhydraten_g}g</span>
-                        <span style={{ fontSize: 11, color: 'var(--text-4)' }}>V:{r.per_100g.vetten_g}g</span>
+                      {r.merk && <p style={{ fontSize: 11, color: 'var(--text-4)', margin: '0 0 4px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.merk}</p>}
+                      <div style={{ display: 'flex', gap: 6, overflow: 'hidden' }}>
+                        <span style={{ fontSize: 12, fontWeight: 800, color: '#1D9E75', flexShrink: 0 }}>{r.per_100g.calorieen} kcal</span>
+                        <span style={{ fontSize: 11, color: 'var(--text-4)', flexShrink: 0 }}>E:{r.per_100g.eiwitten_g}g</span>
+                        <span style={{ fontSize: 11, color: 'var(--text-4)', flexShrink: 0 }}>K:{r.per_100g.koolhydraten_g}g</span>
+                        <span style={{ fontSize: 11, color: 'var(--text-4)', flexShrink: 0 }}>V:{r.per_100g.vetten_g}g</span>
                       </div>
                     </div>
-                    <span style={{ color: '#D1D5DB', fontSize: 20 }}>›</span>
+                    <span style={{ color: '#D1D5DB', fontSize: 20, flexShrink: 0, paddingTop: 2 }}>›</span>
                   </button>
                 ))}
               </div>
