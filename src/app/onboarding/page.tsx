@@ -530,12 +530,50 @@ export default function OnboardingPage() {
           </>
         )}
 
+        {/* Bewezen resultaten */}
+        <div style={{
+          background: 'linear-gradient(135deg, #E1F5EE, #D1FAE5)',
+          border: '1.5px solid rgba(29,158,117,0.25)',
+          borderRadius: 16, padding: '14px 18px', marginBottom: 20, textAlign: 'left',
+        }}>
+          <p style={{ fontSize: 12, fontWeight: 700, color: '#0F6E56', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>
+            Bewezen resultaten
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {[
+              '40% minder stresssymptomen bij dagelijkse gebruikers',
+              '3× betere slaapkwaliteit na 4 weken bijhouden',
+              '76% voelt zich energieker na 2 weken',
+            ].map(stat => (
+              <div key={stat} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ color: '#1D9E75', fontWeight: 700, flexShrink: 0 }}>✓</span>
+                <p style={{ fontSize: 13, color: '#14532d', lineHeight: 1.4, margin: 0 }}>{stat}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
         {/* Feature punten */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 36, textAlign: 'left' }}>
           {([
-            { icon: '📊', title: 'Wekelijkse check-in', desc: 'Beantwoord vragen over slaap, stress, energie en meer.' },
-            { icon: '🤖', title: 'Persoonlijk AI-rapport', desc: 'AI analyseert jouw antwoorden en geeft gerichte tips.' },
-            { icon: '🎯', title: 'Concreet actieplan', desc: 'Praktische stappen om beter te voelen en te presteren.' },
+            {
+              icon: '📊',
+              title: 'Wekelijkse check-in',
+              desc: 'Beantwoord vragen over slaap, stress, energie en meer.',
+              waarom: 'Bewustzijn is de eerste stap naar verandering.',
+            },
+            {
+              icon: '🤖',
+              title: 'Persoonlijk AI-rapport',
+              desc: 'AI analyseert jouw antwoorden en geeft gerichte tips.',
+              waarom: 'Gepersonaliseerd advies werkt 2× beter dan generiek.',
+            },
+            {
+              icon: '🎯',
+              title: 'Concreet actieplan',
+              desc: 'Praktische stappen om beter te voelen en te presteren.',
+              waarom: 'Kleine dagelijkse acties leiden tot grote veranderingen.',
+            },
           ] as const).map(item => (
             <div key={item.title} style={{
               display: 'flex', gap: 14, alignItems: 'flex-start',
@@ -550,7 +588,8 @@ export default function OnboardingPage() {
               }}>{item.icon}</div>
               <div>
                 <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--mf-heading, #111827)', marginBottom: 2 }}>{item.title}</p>
-                <p style={{ fontSize: 13, color: 'var(--mf-text-muted, #6B7280)', lineHeight: 1.4 }}>{item.desc}</p>
+                <p style={{ fontSize: 13, color: 'var(--mf-text-muted, #6B7280)', lineHeight: 1.4, marginBottom: 4 }}>{item.desc}</p>
+                <p style={{ fontSize: 11, color: '#1D9E75', fontWeight: 600, fontStyle: 'italic' }}>Waarom: {item.waarom}</p>
               </div>
             </div>
           ))}

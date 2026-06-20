@@ -150,12 +150,12 @@ export default function AdemhalingPage() {
   const offset = circ * (1 - cirkelPct)
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
+    <div className="mf-mesh-bg" style={{ minHeight: '100vh' }}>
       <Navbar />
       <main style={{ padding: '36px 40px 72px', maxWidth: 680, margin: '0 auto' }}>
 
-        <h1 style={{ fontSize: 22, fontWeight: 800, color: '#111827', letterSpacing: '-0.03em', marginBottom: 6 }}>Ademhalingsoefeningen</h1>
-        <p style={{ fontSize: 13, color: '#9CA3AF', marginBottom: 28 }}>Bewezen technieken om stress te verminderen en focus te verbeteren.</p>
+        <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 6 }}>Ademhalingsoefeningen</h1>
+        <p style={{ fontSize: 13, color: 'var(--text-4)', marginBottom: 28 }}>Bewezen technieken om stress te verminderen en focus te verbeteren.</p>
 
         {!bezig && !klaar ? (
           <>
@@ -166,8 +166,8 @@ export default function AdemhalingPage() {
                   key={t.id}
                   onClick={() => setGekozen(t)}
                   style={{
-                    background: 'white', borderRadius: 16, padding: '18px 20px',
-                    border: `1.5px solid ${gekozen?.id === t.id ? '#1D9E75' : '#E5E7EB'}`,
+                    background: 'var(--bg-card)', borderRadius: 16, padding: '18px 20px',
+                    border: `1.5px solid ${gekozen?.id === t.id ? '#1D9E75' : 'var(--border)'}`,
                     cursor: 'pointer',
                     boxShadow: gekozen?.id === t.id ? '0 0 0 3px #1D9E7520' : 'none',
                     transition: 'all 0.15s ease',
@@ -178,25 +178,25 @@ export default function AdemhalingPage() {
                       <div key={f.naam} style={{ height: 4, flex: f.seconden, borderRadius: 100, background: f.kleur }} />
                     ))}
                   </div>
-                  <p style={{ fontSize: 14, fontWeight: 700, color: '#111827', marginBottom: 4 }}>{t.naam}</p>
-                  <p style={{ fontSize: 11, color: '#9CA3AF', lineHeight: 1.4, marginBottom: 8 }}>{t.beschrijving}</p>
+                  <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-1)', marginBottom: 4 }}>{t.naam}</p>
+                  <p style={{ fontSize: 11, color: 'var(--text-4)', lineHeight: 1.4, marginBottom: 8 }}>{t.beschrijving}</p>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ fontSize: 11, fontWeight: 600, color: '#1D9E75', background: '#F0FAF6', padding: '2px 8px', borderRadius: 100 }}>{t.doel}</span>
-                    <span style={{ fontSize: 11, color: '#9CA3AF' }}>{t.rondes} rondes · {Math.round((t.fasen.reduce((s, f) => s + f.seconden, 0) * t.rondes) / 60)} min</span>
+                    <span style={{ fontSize: 11, fontWeight: 600, color: '#1D9E75', background: '#1D9E7515', padding: '2px 8px', borderRadius: 100 }}>{t.doel}</span>
+                    <span style={{ fontSize: 11, color: 'var(--text-4)' }}>{t.rondes} rondes · {Math.round((t.fasen.reduce((s, f) => s + f.seconden, 0) * t.rondes) / 60)} min</span>
                   </div>
                 </div>
               ))}
             </div>
 
             {gekozen && (
-              <div style={{ background: 'white', borderRadius: 14, border: '1px solid #E5E7EB', padding: '16px 20px', marginBottom: 16 }}>
-                <p style={{ fontSize: 12, fontWeight: 700, color: '#374151', marginBottom: 10 }}>Fasen — {gekozen.naam}</p>
+              <div style={{ background: 'var(--bg-card)', borderRadius: 14, border: '1px solid var(--border)', padding: '16px 20px', marginBottom: 16 }}>
+                <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-2)', marginBottom: 10 }}>Fasen — {gekozen.naam}</p>
                 <div style={{ display: 'flex', gap: 10 }}>
                   {gekozen.fasen.map((f, i) => (
                     <div key={i} style={{ flex: 1, textAlign: 'center' }}>
                       <div style={{ height: 6, background: f.kleur, borderRadius: 100, marginBottom: 6 }} />
                       <p style={{ fontSize: 11, fontWeight: 600, color: f.kleur }}>{f.naam}</p>
-                      <p style={{ fontSize: 14, fontWeight: 800, color: '#111827' }}>{f.seconden}s</p>
+                      <p style={{ fontSize: 14, fontWeight: 800, color: 'var(--text-1)' }}>{f.seconden}s</p>
                     </div>
                   ))}
                 </div>
@@ -218,13 +218,13 @@ export default function AdemhalingPage() {
         ) : klaar ? (
           <div style={{ textAlign: 'center', padding: '40px 0' }}>
             <div style={{ fontSize: 48, marginBottom: 16 }}>🧘</div>
-            <h2 style={{ fontSize: 20, fontWeight: 800, color: '#111827', marginBottom: 8 }}>Goed gedaan!</h2>
-            <p style={{ fontSize: 14, color: '#6B7280', marginBottom: 28 }}>
+            <h2 style={{ fontSize: 20, fontWeight: 800, color: 'var(--text-1)', marginBottom: 8 }}>Goed gedaan!</h2>
+            <p style={{ fontSize: 14, color: 'var(--text-3)', marginBottom: 28 }}>
               Je hebt {gekozen?.rondes} rondes {gekozen?.naam} voltooid.<br/>
               Neem even de tijd om de rust te voelen.
             </p>
             <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
-              <button onClick={() => { setKlaar(false); setGekozen(null) }} style={{ padding: '12px 24px', borderRadius: 12, border: '1px solid #E5E7EB', background: 'white', color: '#374151', fontWeight: 600, fontSize: 14, cursor: 'pointer' }}>
+              <button onClick={() => { setKlaar(false); setGekozen(null) }} style={{ padding: '12px 24px', borderRadius: 12, border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text-2)', fontWeight: 600, fontSize: 14, cursor: 'pointer' }}>
                 Andere oefening
               </button>
               <button onClick={start} style={{ padding: '12px 24px', borderRadius: 12, background: '#1D9E75', color: 'white', border: 'none', fontWeight: 600, fontSize: 14, cursor: 'pointer' }}>
@@ -235,14 +235,14 @@ export default function AdemhalingPage() {
         ) : (
           /* Actieve sessie */
           <div style={{ textAlign: 'center', paddingTop: 20 }}>
-            <p style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#9CA3AF', marginBottom: 24 }}>
+            <p style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-4)', marginBottom: 24 }}>
               Ronde {ronde + 1} van {gekozen!.rondes}
             </p>
 
             {/* Cirkel */}
             <div style={{ position: 'relative', display: 'inline-block', marginBottom: 28 }}>
               <svg width={200} height={200}>
-                <circle cx={100} cy={100} r={r} fill="none" stroke="#F3F4F6" strokeWidth={8} />
+                <circle cx={100} cy={100} r={r} fill="none" stroke="var(--border-strong)" strokeWidth={8} />
                 <circle
                   cx={100} cy={100} r={r} fill="none"
                   stroke={huidigeF?.kleur ?? '#1D9E75'}
@@ -253,7 +253,7 @@ export default function AdemhalingPage() {
                   transform="rotate(-90 100 100)"
                   style={{ transition: 'stroke-dashoffset 1s linear, stroke 0.5s ease' }}
                 />
-                <text x="100" y="90" textAnchor="middle" style={{ fontSize: 40, fontWeight: 800, fill: '#111827', dominantBaseline: 'middle' }} dominantBaseline="middle">
+                <text x="100" y="90" textAnchor="middle" style={{ fontSize: 40, fontWeight: 800, fill: 'var(--text-1)', dominantBaseline: 'middle' }} dominantBaseline="middle">
                   {countdown}
                 </text>
                 <text x="100" y="125" textAnchor="middle" style={{ fontSize: 13, fill: huidigeF?.kleur, fontWeight: 600 }}>
@@ -264,13 +264,13 @@ export default function AdemhalingPage() {
 
             <div style={{ display: 'flex', gap: 6, justifyContent: 'center', marginBottom: 28 }}>
               {gekozen!.fasen.map((f, i) => (
-                <div key={i} style={{ height: 6, width: 32, borderRadius: 100, background: i === fase ? f.kleur : '#E5E7EB', transition: 'background 0.3s' }} />
+                <div key={i} style={{ height: 6, width: 32, borderRadius: 100, background: i === fase ? f.kleur : 'var(--border)', transition: 'background 0.3s' }} />
               ))}
             </div>
 
             <button
               onClick={stop}
-              style={{ padding: '12px 28px', borderRadius: 12, border: '1px solid #E5E7EB', background: 'white', color: '#6B7280', fontWeight: 600, fontSize: 14, cursor: 'pointer' }}
+              style={{ padding: '12px 28px', borderRadius: 12, border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text-3)', fontWeight: 600, fontSize: 14, cursor: 'pointer' }}
             >
               Stoppen
             </button>

@@ -114,7 +114,7 @@ export default function MentaleSterktePagina() {
               <div style={{ marginTop: 14, height: 4, borderRadius: 9999, background: '#F3F4F6', overflow: 'hidden' }}>
                 <div style={{
                   height: '100%', borderRadius: 9999,
-                  background: 'linear-gradient(90deg, #6366f1, #8B5CF6)',
+                  background: 'linear-gradient(90deg, var(--mf-green, #1D9E75), var(--mf-green-dark, #15785A))',
                   width: `${(antwoorden.filter(a => a > 0).length / VRAGEN.length) * 100}%`,
                   transition: 'width 0.4s ease',
                 }} />
@@ -128,7 +128,7 @@ export default function MentaleSterktePagina() {
               {VRAGEN.map((vraag, i) => (
                 <div key={i} style={{
                   background: 'white', borderRadius: 16, padding: '16px 18px',
-                  border: `1.5px solid ${huidigVraag === i ? '#6366f130' : antwoorden[i] > 0 ? '#1D9E7520' : '#E5E7EB'}`,
+                  border: `1.5px solid ${huidigVraag === i ? 'rgba(29,158,117,0.2)' : antwoorden[i] > 0 ? '#1D9E7520' : 'var(--border, #E5E7EB)'}`,
                   transition: 'border-color 0.2s ease',
                 }}>
                   <p style={{ fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 12, lineHeight: 1.5 }}>
@@ -143,8 +143,8 @@ export default function MentaleSterktePagina() {
                         title={s.label}
                         style={{
                           flex: 1, height: 36, borderRadius: 8, border: 'none', cursor: 'pointer',
-                          background: antwoorden[i] === s.waarde ? '#6366f1' : '#F3F4F6',
-                          color: antwoorden[i] === s.waarde ? 'white' : '#6B7280',
+                          background: antwoorden[i] === s.waarde ? 'var(--mf-green, #1D9E75)' : 'var(--bg-subtle, #F3F4F6)',
+                          color: antwoorden[i] === s.waarde ? 'white' : 'var(--text-3, #6B7280)',
                           fontWeight: 700, fontSize: 11,
                           transition: 'background 0.12s ease',
                         }}
@@ -168,10 +168,10 @@ export default function MentaleSterktePagina() {
                 disabled={bezig}
                 style={{
                   width: '100%', padding: '14px', borderRadius: 14, marginTop: 20,
-                  background: bezig ? '#9CA3AF' : 'linear-gradient(135deg, #6366f1, #8B5CF6)',
+                  background: bezig ? '#9CA3AF' : 'linear-gradient(135deg, var(--mf-green, #1D9E75) 0%, var(--mf-green-dark, #15785A) 100%)',
                   color: 'white', border: 'none', cursor: 'pointer',
                   fontSize: 15, fontWeight: 700, letterSpacing: '-0.01em',
-                  boxShadow: '0 4px 14px rgba(99,102,241,0.35)',
+                  boxShadow: bezig ? 'none' : '0 4px 14px rgba(29,158,117,0.35)',
                 }}
               >
                 {bezig ? 'AI analyseert…' : 'Bekijk mijn analyse →'}
@@ -192,7 +192,7 @@ export default function MentaleSterktePagina() {
               <div style={{ height: 8, borderRadius: 9999, background: '#F3F4F6', margin: '16px auto 0', maxWidth: 280, overflow: 'hidden' }}>
                 <div style={{
                   height: '100%', borderRadius: 9999, width: `${resultaat.score}%`,
-                  background: `linear-gradient(90deg, ${NIVEAU_KLEUR[resultaat.niveau] ?? '#6366f1'}80, ${NIVEAU_KLEUR[resultaat.niveau] ?? '#6366f1'})`,
+                  background: `linear-gradient(90deg, ${NIVEAU_KLEUR[resultaat.niveau] ?? '#1D9E75'}80, ${NIVEAU_KLEUR[resultaat.niveau] ?? '#1D9E75'})`,
                   transition: 'width 1s ease',
                 }} />
               </div>
@@ -240,9 +240,10 @@ export default function MentaleSterktePagina() {
                 onClick={() => router.push('/coach')}
                 style={{
                   flex: 1, padding: '12px', borderRadius: 12,
-                  background: '#111827', color: 'white',
+                  background: 'linear-gradient(135deg, var(--mf-green, #1D9E75) 0%, var(--mf-green-dark, #15785A) 100%)', color: 'white',
                   border: 'none', cursor: 'pointer',
                   fontSize: 13, fontWeight: 600,
+                  boxShadow: '0 4px 12px rgba(29,158,117,0.3)',
                 }}
               >
                 Bespreek met coach →

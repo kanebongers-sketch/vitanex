@@ -179,7 +179,7 @@ export default function NiveauPage() {
   }, [])
 
   if (!xpData) return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
+    <div className="mf-mesh-bg" style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
       <Navbar />
       <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 80 }}>
         <div className="mf-spinner" />
@@ -211,16 +211,16 @@ export default function NiveauPage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
+    <div className="mf-mesh-bg" style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
       <Navbar />
       <main style={{ maxWidth: 720, margin: '0 auto', padding: '32px 20px 64px' }}>
 
         {/* ── Page title ── */}
         <div style={{ marginBottom: 24 }}>
-          <h1 style={{ fontSize: 22, fontWeight: 800, color: '#111827', letterSpacing: '-0.02em' }}>
+          <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.02em' }}>
             Mijn Fit Level
           </h1>
-          <p style={{ fontSize: 13, color: '#6B7280', marginTop: 3 }}>
+          <p style={{ fontSize: 13, color: 'var(--text-3)', marginTop: 3 }}>
             Doe check-ins, haal doelen en klim naar Level 10 — Legende.
           </p>
         </div>
@@ -228,7 +228,7 @@ export default function NiveauPage() {
         {/* ── Decay warning ── */}
         {decayWaarschuwing && (
           <div style={{
-            background: '#FAEEDA', borderLeft: '4px solid #BA7517',
+            background: 'var(--color-amber-bg, #FAEEDA)', borderLeft: '4px solid var(--color-amber, #BA7517)',
             borderRadius: 12, padding: '12px 16px', marginBottom: 16,
             display: 'flex', alignItems: 'center', gap: 12,
           }}>
@@ -236,17 +236,17 @@ export default function NiveauPage() {
               <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
             </svg>
             <div>
-              <p style={{ fontSize: 12, fontWeight: 700, color: '#854F0B' }}>
+              <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-amber-dark, #854F0B)' }}>
                 {dagenZonderCheckin >= 14
                   ? `XP decay actief — al ${dagenZonderCheckin} dagen geen check-in`
                   : `Nog ${14 - dagenZonderCheckin} dagen voor XP decay begint`}
               </p>
-              <p style={{ fontSize: 11, color: '#854F0B', marginTop: 1 }}>
+              <p style={{ fontSize: 11, color: 'var(--color-amber-dark, #854F0B)', marginTop: 1 }}>
                 Doe een wekelijkse check-in om je XP te behouden.
               </p>
             </div>
             <Link href="/checkin" style={{
-              flexShrink: 0, background: '#BA7517', color: 'white',
+              flexShrink: 0, background: 'var(--color-amber, #BA7517)', color: 'white',
               borderRadius: 8, padding: '6px 12px', fontSize: 11, fontWeight: 700,
               textDecoration: 'none', whiteSpace: 'nowrap',
             }}>
@@ -257,17 +257,17 @@ export default function NiveauPage() {
 
         {/* ── Hero: level ring + stats ── */}
         <div style={{
-          background: 'white', borderRadius: 20, border: '1px solid #E5E7EB',
+          background: 'var(--bg-card)', borderRadius: 20, border: '1px solid var(--border)',
           padding: '28px 24px', marginBottom: 16,
           boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 28, flexWrap: 'wrap' }}>
             <LevelRing level={level} pct={level >= 10 ? 100 : voortgang.pct} kleur={kleur} />
             <div style={{ flex: 1, minWidth: 200 }}>
-              <p style={{ fontSize: 22, fontWeight: 800, color: '#111827', marginBottom: 2, letterSpacing: '-0.02em' }}>
+              <p style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', marginBottom: 2, letterSpacing: '-0.02em' }}>
                 {LEVEL_NAMEN[level]}
               </p>
-              <p style={{ fontSize: 13, color: '#6B7280', marginBottom: 16 }}>
+              <p style={{ fontSize: 13, color: 'var(--text-3)', marginBottom: 16 }}>
                 {xpData.xp.toLocaleString('nl-NL')} XP totaal
               </p>
 
@@ -275,29 +275,31 @@ export default function NiveauPage() {
               {level < 10 ? (
                 <>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
-                    <span style={{ fontSize: 11, color: '#9CA3AF' }}>
+                    <span style={{ fontSize: 11, color: 'var(--text-4)' }}>
                       Niveau {level}
                     </span>
                     <span style={{ fontSize: 11, fontWeight: 700, color: kleur }}>
                       {voortgang.inLevel} / {voortgang.levelBreedte} XP
                     </span>
-                    <span style={{ fontSize: 11, color: '#9CA3AF' }}>
+                    <span style={{ fontSize: 11, color: 'var(--text-4)' }}>
                       Niveau {level + 1}
                     </span>
                   </div>
-                  <div style={{ height: 8, borderRadius: 4, background: '#F3F4F6', overflow: 'hidden', marginBottom: 10 }}>
+                  <div style={{ height: 10, borderRadius: 5, background: 'var(--bg-subtle, #F3F4F6)', overflow: 'hidden', marginBottom: 10, position: 'relative' }}>
                     <div style={{
-                      height: '100%', borderRadius: 4, background: kleur,
+                      height: '100%', borderRadius: 5,
+                      background: `linear-gradient(90deg, ${kleur}cc, ${kleur})`,
                       width: `${voortgang.pct}%`, transition: 'width 1s ease',
+                      boxShadow: `0 0 8px ${kleur}66`,
                     }} />
                   </div>
-                  <p style={{ fontSize: 12, color: '#6B7280' }}>
+                  <p style={{ fontSize: 12, color: 'var(--text-3)' }}>
                     Nog <strong style={{ color: kleur }}>{voortgang.nodig} XP</strong> tot niveau {level + 1} — {LEVEL_NAMEN[level + 1]}
                   </p>
                 </>
               ) : (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <div style={{ height: 8, borderRadius: 4, background: kleur, flex: 1 }} />
+                  <div style={{ height: 10, borderRadius: 5, background: `linear-gradient(90deg, ${kleur}cc, ${kleur})`, flex: 1, boxShadow: `0 0 8px ${kleur}66` }} />
                   <p style={{ fontSize: 12, fontWeight: 700, color: kleur }}>Maximum bereikt!</p>
                 </div>
               )}
@@ -321,7 +323,7 @@ export default function NiveauPage() {
 
         {/* ── Level progression track ── */}
         <div style={{
-          background: 'white', borderRadius: 16, border: '1px solid #E5E7EB',
+          background: 'var(--bg-card)', borderRadius: 16, border: '1px solid var(--border)',
           padding: '20px 20px', marginBottom: 16,
         }}>
           <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#9CA3AF', marginBottom: 14 }}>
@@ -357,14 +359,14 @@ export default function NiveauPage() {
             })}
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 10 }}>
-            <span style={{ fontSize: 10, color: '#9CA3AF' }}>Starter</span>
+            <span style={{ fontSize: 10, color: 'var(--text-4)' }}>Starter</span>
             <span style={{ fontSize: 10, color: '#DC2626', fontWeight: 700 }}>Legende</span>
           </div>
         </div>
 
         {/* ── Achievements grid ── */}
         <div style={{
-          background: 'white', borderRadius: 16, border: '1px solid #E5E7EB',
+          background: 'var(--bg-card)', borderRadius: 16, border: '1px solid var(--border)',
           padding: '20px', marginBottom: 16,
         }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
@@ -385,8 +387,8 @@ export default function NiveauPage() {
           </div>
           {/* Achievement descriptions for unlocked ones */}
           {geldig.length > 0 && (
-            <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid #F3F4F6' }}>
-              <p style={{ fontSize: 11, fontWeight: 700, color: '#9CA3AF', marginBottom: 8 }}>BEHAALD</p>
+            <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--border)' }}>
+              <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-4)', marginBottom: 8 }}>BEHAALD</p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 {ALLE_ACHIEVEMENTS.filter(a => geldig.includes(a.id)).map(ach => (
                   <div key={ach.id} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -412,7 +414,7 @@ export default function NiveauPage() {
         {/* ── XP History ── */}
         {xpData.history.length > 0 && (
           <div style={{
-            background: 'white', borderRadius: 16, border: '1px solid #E5E7EB',
+            background: 'var(--bg-card)', borderRadius: 16, border: '1px solid var(--border)',
             padding: '20px', marginBottom: 16,
           }}>
             <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#9CA3AF', marginBottom: 14 }}>
@@ -433,8 +435,8 @@ export default function NiveauPage() {
                       {isPos ? '+' : '−'}
                     </div>
                     <div style={{ flex: 1 }}>
-                      <p style={{ fontSize: 12, fontWeight: 600, color: '#111827' }}>{evt.reden}</p>
-                      <p style={{ fontSize: 10, color: '#9CA3AF' }}>
+                      <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-1)' }}>{evt.reden}</p>
+                      <p style={{ fontSize: 10, color: 'var(--text-4)' }}>
                         {typeLabel[evt.type] ?? evt.type} · {evt.datum}
                       </p>
                     </div>
@@ -450,7 +452,7 @@ export default function NiveauPage() {
 
         {/* ── XP uitleg ── */}
         <div style={{
-          background: '#F9FAFB', borderRadius: 16, border: '1px solid #E5E7EB',
+          background: 'var(--bg-subtle, #F9FAFB)', borderRadius: 16, border: '1px solid var(--border)',
           padding: '20px',
         }}>
           <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#9CA3AF', marginBottom: 14 }}>
@@ -485,16 +487,20 @@ export default function NiveauPage() {
         {/* CTA */}
         <div style={{ display: 'flex', gap: 12, marginTop: 20 }}>
           <Link href="/checkin" style={{
-            flex: 1, textAlign: 'center', background: '#1D9E75', color: 'white',
-            borderRadius: 12, padding: '14px 20px', fontSize: 14, fontWeight: 700,
-            textDecoration: 'none',
+            flex: 1, textAlign: 'center',
+            background: 'linear-gradient(135deg, #1D9E75, #0ea872)',
+            color: 'white', borderRadius: 12, padding: '14px 20px',
+            fontSize: 14, fontWeight: 700, textDecoration: 'none',
+            boxShadow: '0 4px 14px rgba(29,158,117,0.35)',
           }}>
             Check-in doen (+75 XP)
           </Link>
           <Link href="/doelen" style={{
-            flex: 1, textAlign: 'center', background: '#185FA5', color: 'white',
-            borderRadius: 12, padding: '14px 20px', fontSize: 14, fontWeight: 700,
-            textDecoration: 'none',
+            flex: 1, textAlign: 'center',
+            background: 'linear-gradient(135deg, #185FA5, #1a6fc4)',
+            color: 'white', borderRadius: 12, padding: '14px 20px',
+            fontSize: 14, fontWeight: 700, textDecoration: 'none',
+            boxShadow: '0 4px 14px rgba(24,95,165,0.30)',
           }}>
             Doel loggen (+15 XP)
           </Link>

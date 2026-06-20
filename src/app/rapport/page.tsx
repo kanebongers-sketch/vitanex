@@ -316,15 +316,15 @@ export default function Rapport() {
   const zwakke = aj?.wellbeing_categorieen?.filter(c => c.niveau !== 'goed') ?? []
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
+    <div className="mf-mesh-bg" style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
       <Navbar />
       <main style={{ padding: '36px 40px 72px', maxWidth: 900, margin: '0 auto' }} ref={printRef}>
 
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 28 }}>
           <div>
-            <h1 style={{ fontSize: 26, fontWeight: 800, color: '#111827', letterSpacing: '-0.03em', marginBottom: 2 }}>Mijn rapport</h1>
-            <p style={{ fontSize: 13, color: '#9CA3AF' }}>{datum || 'Nog geen check-in gedaan'}</p>
+            <h1 style={{ fontSize: 26, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 2 }}>Mijn rapport</h1>
+            <p style={{ fontSize: 13, color: 'var(--text-4)' }}>{datum || 'Nog geen check-in gedaan'}</p>
           </div>
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
             {analyse && (

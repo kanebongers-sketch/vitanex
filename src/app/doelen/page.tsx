@@ -340,9 +340,33 @@ function DoelenInhoud() {
                 <div>
                   <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-1)', marginBottom: 4, lineHeight: 1.3 }}>{doel.doel_titel}</p>
                   <p style={{ fontSize: 11, color: 'var(--text-4)', lineHeight: 1.5 }}>{doel.doel_beschrijving}</p>
-                  <p style={{ fontSize: 11, color: c.kleur, fontWeight: 600, marginTop: 6 }}>
-                    {doel.target_waarde} {doel.eenheid} · {doel.meetType}
-                  </p>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 6 }}>
+                    <p style={{ fontSize: 11, color: c.kleur, fontWeight: 600 }}>
+                      {doel.target_waarde} {doel.eenheid} · {doel.meetType}
+                    </p>
+                    {/* Streak indicator */}
+                    {(() => {
+                      // Calculate streak for this goal
+                      const vandaagStr = vandaag()
+                      let streak = 0
+                      const sortedDagen = [...weekDagen].reverse()
+                      for (const dag of sortedDagen) {
+                        if (dag > vandaagStr) continue
+                        const log = doel.logs.find(l => l.datum === dag)
+                        if (log?.gehaald === true) streak++
+                        else break
+                      }
+                      return streak > 0 ? (
+                        <span style={{
+                          display: 'inline-flex', alignItems: 'center', gap: 3,
+                          fontSize: 10, fontWeight: 700, color: '#E24B4A',
+                          background: '#FEE2E2', borderRadius: 100, padding: '2px 8px',
+                        }}>
+                          🔥 {streak} dag{streak !== 1 ? 'en' : ''} op rij
+                        </span>
+                      ) : null
+                    })()}
+                  </div>
                 </div>
 
                 {/* Week voortgang */}
@@ -371,11 +395,11 @@ function DoelenInhoud() {
                 {gelogd ? (
                   <div style={{ borderRadius: 10, padding: '10px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: c.licht }}>
                     <span style={{ fontSize: 13, fontWeight: 600, color: c.kleur }}>
-                      {gehaaldVandaag ? 'Doel gehaald vandaag!' : 'Niet gehaald vandaag'}
+                      {gehaaldVandaag ? '✓ Doel gehaald!' : '✗ Niet gehaald'}
                     </span>
                     <button
                       onClick={() => openLog(doel)}
-                      style={{ fontSize: 11, color: c.kleur, background: 'transparent', border: `1px solid ${c.kleur}40`, borderRadius: 6, padding: '4px 10px', cursor: 'pointer' }}
+                      style={{ fontSize: 11, color: c.kleur, background: 'transparent', border: `1px solid ${c.kleur}40`, borderRadius: 6, padding: '4px 10px', cursor: 'pointer', fontWeight: 600 }}
                     >
                       Aanpassen
                     </button>
@@ -384,14 +408,16 @@ function DoelenInhoud() {
                   <button
                     onClick={() => openLog(doel)}
                     style={{
-                      width: '100%', padding: '11px', borderRadius: 12,
-                      background: c.kleur, color: 'white',
-                      fontSize: 14, fontWeight: 700, border: 'none', cursor: 'pointer',
+                      width: '100%', padding: '12px', borderRadius: 12,
+                      background: `linear-gradient(135deg, ${c.kleur}, ${c.kleur}cc)`,
+                      color: 'white', fontSize: 14, fontWeight: 700, border: 'none', cursor: 'pointer',
                       display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                      boxShadow: `0 4px 12px ${c.kleur}40`,
+                      transition: 'transform 0.15s ease, box-shadow 0.15s ease',
                     }}
                   >
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                    Log vandaag
+                    Log vandaag (+15 XP)
                   </button>
                 )}
               </div>

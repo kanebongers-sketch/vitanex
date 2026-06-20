@@ -412,7 +412,7 @@ export default function Instellingen() {
   const wachtwoordSterkte = nieuwWachtwoord.length < 8 ? 0 : nieuwWachtwoord.length < 12 ? 1 : nieuwWachtwoord.length < 16 ? 2 : 3
 
   return (
-    <div className="min-h-screen" style={{ background: 'var(--bg-app)' }}>
+    <div className="mf-mesh-bg min-h-screen">
       <Navbar />
       <main className="px-4 py-8">
 
@@ -549,18 +549,18 @@ export default function Instellingen() {
                 ))}
               </nav>
 
-              {/* Uitloggen knop */}
+              {/* Uitloggen knop — rode warning look */}
               <button
                 onClick={uitloggen}
-                className="w-full mt-3 flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-medium transition"
+                className="w-full mt-3 flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-bold transition"
                 style={{
-                  background: 'var(--bg-card)',
-                  border: '1px solid var(--border)',
-                  color: 'var(--mf-red)',
-                  boxShadow: 'var(--shadow-xs)',
+                  background: 'linear-gradient(135deg, #DC2626 0%, var(--mf-red, #E24B4A) 100%)',
+                  border: '1px solid rgba(220,38,38,0.4)',
+                  color: 'white',
+                  boxShadow: '0 4px 14px rgba(220,38,38,0.3)',
                 }}
               >
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
                   <polyline points="16 17 21 12 16 7"/>
                   <line x1="21" y1="12" x2="9" y2="12"/>

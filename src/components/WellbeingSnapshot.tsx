@@ -88,15 +88,15 @@ export default function WellbeingSnapshot() {
         <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#9CA3AF' }}>
           Deze week
         </p>
-        <Link href="/inzichten" style={{ fontSize: 11, color: '#6366f1', fontWeight: 600, textDecoration: 'none' }}>
+        <Link href="/inzichten" style={{ fontSize: 11, color: 'var(--mf-green, #1D9E75)', fontWeight: 600, textDecoration: 'none' }}>
           Inzichten →
         </Link>
       </div>
       <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4, scrollbarWidth: 'none' }}>
         {items.map(item => (
           <Link key={item.href} href={item.href} style={{
-            flexShrink: 0, background: 'white', borderRadius: 14, padding: '12px 14px',
-            border: '1px solid #E5E7EB', textDecoration: 'none',
+            flexShrink: 0, background: 'var(--bg-card)', borderRadius: 14, padding: '12px 14px',
+            border: '1px solid var(--border)', textDecoration: 'none',
             minWidth: 72,
           }}>
             <p style={{ fontSize: 16, fontWeight: 800, color: item.kleur }}>{item.waarde}</p>

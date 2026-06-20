@@ -184,8 +184,8 @@ export default function DiscPage() {
   }
 
   if (!geladen) return (
-    <div style={{ minHeight: '100vh', background: '#060d1f', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <span style={{ color: '#64748b' }}>Laden...</span>
+    <div className="mf-mesh-bg" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div className="mf-spinner" />
     </div>
   )
 
@@ -203,12 +203,12 @@ export default function DiscPage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#060d1f', color: '#f1f5f9' }}>
+    <div className="mf-mesh-bg" style={{ minHeight: '100vh', color: 'var(--text-1, #f1f5f9)' }}>
       <Navbar />
       <div style={{ maxWidth: 680, margin: '0 auto', padding: '32px 20px' }}>
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <h1 style={{ fontSize: 28, fontWeight: 700, color: '#f8fafc', marginBottom: 8 }}>DISC Persoonlijkheidstest</h1>
-          <p style={{ color: '#94a3b8', fontSize: 15 }}>Ontdek jouw dominante gedragsstijl</p>
+          <h1 style={{ fontSize: 28, fontWeight: 700, color: 'var(--text-1, #f8fafc)', marginBottom: 8 }}>DISC Persoonlijkheidstest</h1>
+          <p style={{ color: 'var(--text-2, #94a3b8)', fontSize: 15 }}>Ontdek jouw dominante gedragsstijl</p>
         </div>
 
         {/* FASE: eerder gedaan */}

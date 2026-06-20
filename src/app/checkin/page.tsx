@@ -306,21 +306,20 @@ export default function CheckIn() {
   // ── Laadscherm ─────────────────────────────────────────────────────────────
 
   if (checkend) return (
-    <main className="min-h-screen flex items-center justify-center"
-      style={{ background: 'linear-gradient(135deg, #E1F5EE 0%, #E6F1FB 100%)' }}>
+    <main className="mf-mesh-bg min-h-screen flex items-center justify-center">
       <div className="w-8 h-8 rounded-full border-2 border-gray-200 animate-spin"
-        style={{ borderTopColor: '#1D9E75' }} />
+        style={{ borderTopColor: 'var(--mf-green, #1D9E75)' }} />
     </main>
   )
 
   // ── Al ingevuld ────────────────────────────────────────────────────────────
 
   if (alIngevuld) return (
-    <main className="min-h-screen flex flex-col items-center justify-center p-8"
-      style={{ background: 'linear-gradient(135deg, #E1F5EE 0%, #E6F1FB 100%)' }}>
-      <div className="max-w-md w-full bg-white rounded-2xl border border-gray-100 p-10 shadow-sm text-center">
+    <main className="mf-mesh-bg min-h-screen flex flex-col items-center justify-center p-8">
+      <div className="max-w-md w-full rounded-2xl border p-10 shadow-sm text-center"
+        style={{ background: 'var(--bg-card, #fff)', borderColor: 'var(--border, rgba(0,0,0,0.07))' }}>
         <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-5"
-          style={{ background: '#E1F5EE' }}>
+          style={{ background: 'var(--mf-green-light, #E1F5EE)' }}>
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1D9E75" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="20 6 9 17 4 12"/>
           </svg>
@@ -370,8 +369,8 @@ export default function CheckIn() {
   // ── Formulier ──────────────────────────────────────────────────────────────
 
   return (
-    <main className="min-h-screen"
-      style={{ background: 'linear-gradient(160deg, #F0FAF6 0%, #EBF4FB 50%, #F5F3FF 100%)', paddingBottom: 'calc(64px + env(safe-area-inset-bottom, 0px))' }}>
+    <main className="mf-mesh-bg min-h-screen"
+      style={{ paddingBottom: 'calc(64px + env(safe-area-inset-bottom, 0px))' }}>
 
       {/* Verplichte check-in banner */}
       <div style={{
@@ -418,7 +417,7 @@ export default function CheckIn() {
           {/* Voortgangsbalk + auto-knop */}
           <div className="flex items-center gap-3">
             <div
-              className="flex-1 h-1.5 bg-gray-100 overflow-hidden"
+              className="flex-1 h-2 bg-gray-100 overflow-hidden"
               style={{ borderRadius: 9999 }}
               role="progressbar"
               aria-valuenow={voortgangPct}
@@ -429,7 +428,7 @@ export default function CheckIn() {
               <div className="h-full transition-all duration-500"
                 style={{ width: `${voortgangPct}%`, background: `linear-gradient(90deg, ${huidigeSectie.kleur}99, ${huidigeSectie.kleur})`, borderRadius: 9999 }} />
             </div>
-            <span className="text-xs text-gray-400 flex-shrink-0" aria-hidden="true">{voortgangPct}%</span>
+            <span className="text-xs font-semibold flex-shrink-0" style={{ color: huidigeSectie.kleur }} aria-hidden="true">{voortgangPct}%</span>
             {process.env.NODE_ENV === 'development' && (
               <button
                 onClick={vulAutomatischIn}
@@ -495,7 +494,12 @@ export default function CheckIn() {
             onClick={volgendeSectie}
             disabled={!sectieCompleet(sectieIdx) || laden}
             className="flex-1 py-3.5 rounded-xl text-white font-semibold text-sm transition disabled:opacity-30 flex items-center justify-center gap-2"
-            style={{ background: huidigeSectie.kleur }}
+            style={{
+              background: sectieIdx === totaalSecties - 1
+                ? 'linear-gradient(135deg, var(--mf-green-dark, #0F6E56) 0%, var(--mf-green, #1D9E75) 100%)'
+                : huidigeSectie.kleur,
+              boxShadow: sectieIdx === totaalSecties - 1 ? '0 4px 16px rgba(29,158,117,0.35)' : undefined,
+            }}
             onMouseDown={e => !laden && ((e.currentTarget as HTMLElement).style.transform = 'scale(0.97)')}
             onMouseUp={e => ((e.currentTarget as HTMLElement).style.transform = 'scale(1)')}
             onMouseLeave={e => ((e.currentTarget as HTMLElement).style.transform = 'scale(1)')}>

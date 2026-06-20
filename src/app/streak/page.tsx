@@ -216,8 +216,8 @@ export default function StreakPage() {
               <div
                 className="streak-section"
                 style={{
-                  background: 'linear-gradient(135deg, #FFF7ED 0%, #FFEDD5 100%)',
-                  border: '1.5px solid #FED7AA',
+                  background: 'linear-gradient(135deg, var(--mf-orange-light, #FFF7ED) 0%, var(--mf-orange-soft, #FFEDD5) 100%)',
+                  border: '1.5px solid var(--mf-orange-border, #FED7AA)',
                   borderRadius: 'var(--radius-xl, 24px)',
                   padding: '32px 24px 28px',
                   textAlign: 'center',
@@ -239,12 +239,13 @@ export default function StreakPage() {
 
                 <div
                   style={{
-                    fontSize: 80,
+                    fontSize: 96,
                     fontWeight: 900,
-                    color: '#EA580C',
+                    color: 'var(--mf-orange, #EA580C)',
                     lineHeight: 1,
                     marginBottom: 4,
-                    letterSpacing: '-2px',
+                    letterSpacing: '-3px',
+                    textShadow: '0 4px 20px rgba(234,88,12,0.25)',
                   }}
                 >
                   {data.streak}
@@ -253,7 +254,7 @@ export default function StreakPage() {
                 <div
                   style={{
                     fontSize: 16,
-                    color: '#9A3412',
+                    color: 'var(--mf-orange-dark, #9A3412)',
                     fontWeight: 700,
                     marginBottom: 14,
                     textTransform: 'uppercase',
@@ -265,18 +266,19 @@ export default function StreakPage() {
 
                 <div
                   style={{
-                    background: 'rgba(255,255,255,0.6)',
+                    background: 'rgba(255,255,255,0.65)',
                     borderRadius: 'var(--radius-md, 14px)',
                     padding: '12px 16px',
-                    backdropFilter: 'blur(4px)',
+                    backdropFilter: 'blur(6px)',
+                    border: '1px solid rgba(255,255,255,0.8)',
                   }}
                 >
                   <div
                     style={{
-                      fontSize: 15,
+                      fontSize: 16,
                       fontWeight: 800,
-                      color: '#C2410C',
-                      marginBottom: 2,
+                      color: 'var(--mf-orange-mid, #C2410C)',
+                      marginBottom: 3,
                     }}
                   >
                     {motivatieTekst(data.streak).tekst}
@@ -284,7 +286,7 @@ export default function StreakPage() {
                   <div
                     style={{
                       fontSize: 13,
-                      color: '#9A3412',
+                      color: 'var(--mf-orange-dark, #9A3412)',
                     }}
                   >
                     {motivatieTekst(data.streak).subtekst}
@@ -306,7 +308,7 @@ export default function StreakPage() {
                   {
                     label: 'Huidige streak',
                     waarde: `${data.streak}d`,
-                    kleur: '#EA580C',
+                    kleur: 'var(--mf-orange, #EA580C)',
                   },
                   {
                     label: 'Deze maand',
@@ -573,8 +575,8 @@ export default function StreakPage() {
                 <div
                   className="streak-section"
                   style={{
-                    background: '#FFF7ED',
-                    border: '1.5px solid #FED7AA',
+                    background: 'var(--mf-orange-light, #FFF7ED)',
+                    border: '1.5px solid var(--mf-orange-border, #FED7AA)',
                     borderRadius: 'var(--radius-md, 14px)',
                     padding: '18px 20px',
                     boxShadow: 'var(--shadow-xs)',
@@ -584,7 +586,7 @@ export default function StreakPage() {
                     style={{
                       fontSize: 14,
                       fontWeight: 600,
-                      color: '#92400E',
+                      color: 'var(--mf-orange-darker, #92400E)',
                       marginBottom: 14,
                     }}
                   >
@@ -594,7 +596,7 @@ export default function StreakPage() {
                     href="/vandaag"
                     style={{
                       display: 'block',
-                      background: '#EA580C',
+                      background: 'var(--mf-orange, #EA580C)',
                       color: '#fff',
                       fontWeight: 700,
                       fontSize: 15,
@@ -602,7 +604,7 @@ export default function StreakPage() {
                       padding: '14px 24px',
                       borderRadius: 'var(--radius-btn, 10px)',
                       textDecoration: 'none',
-                      boxShadow: '0 4px 12px rgba(234,88,12,0.30)',
+                      boxShadow: '0 4px 16px rgba(234,88,12,0.35)',
                     }}
                   >
                     Houd je streak in stand →

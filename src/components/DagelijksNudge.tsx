@@ -77,7 +77,7 @@ export default function DagelijksNudge() {
           href: '/slaap',
           label: 'Slaap bijhouden',
           beschrijving: 'Je hebt deze week nog weinig slaap gelogd',
-          kleur: '#8B5CF6',
+          kleur: '#185FA5',
           icon: '😴',
           prioriteit: 6,
         })
@@ -110,7 +110,7 @@ export default function DagelijksNudge() {
           href: '/journal',
           label: 'Journal schrijven',
           beschrijving: 'Reflecteer op jouw week',
-          kleur: '#6366f1',
+          kleur: '#1D9E75',
           icon: '📖',
           prioriteit: 3,
         })

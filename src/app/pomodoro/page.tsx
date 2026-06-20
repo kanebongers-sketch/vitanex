@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 export const dynamic = 'force-dynamic'
 
@@ -128,7 +128,7 @@ export default function PomodoroPage() {
     </div>
   )
 
-  const gefasseKleur = fase === 'focus' ? huidigemodus.kleur : fase === 'pauze' ? '#1D9E75' : fase === 'lang-pauze' ? '#6366f1' : '#9CA3AF'
+  const gefasseKleur = fase === 'focus' ? huidigemodus.kleur : fase === 'pauze' ? '#1D9E75' : fase === 'lang-pauze' ? '#6366f1' : 'var(--text-4)'
   const faseLabel = fase === 'focus' ? 'Focus' : fase === 'pauze' ? 'Pauze' : fase === 'lang-pauze' ? 'Lange pauze' : 'Klaar'
   const maxSec = fase === 'focus' ? huidigemodus.focus * 60
     : fase === 'pauze' ? huidigemodus.pauze * 60
@@ -138,13 +138,13 @@ export default function PomodoroPage() {
   const circ = 2 * Math.PI * r
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
+    <div className="mf-mesh-bg" style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
       <Navbar />
       <main style={{ padding: '36px 40px 72px', maxWidth: 600, margin: '0 auto' }}>
 
         <div style={{ marginBottom: 28 }}>
-          <h1 style={{ fontSize: 22, fontWeight: 800, color: '#111827', letterSpacing: '-0.03em', marginBottom: 4 }}>Pomodoro timer</h1>
-          <p style={{ fontSize: 13, color: '#9CA3AF' }}>Gestructureerde focus met pauzes voor optimale productiviteit</p>
+          <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 4 }}>Pomodoro timer</h1>
+          <p style={{ fontSize: 13, color: 'var(--text-4)' }}>Gestructureerde focus met pauzes voor optimale productiviteit</p>
         </div>
 
         {/* Modus selector */}
@@ -156,9 +156,9 @@ export default function PomodoroPage() {
                 onClick={() => setModus(i)}
                 style={{
                   flex: 1, padding: '10px', borderRadius: 12, fontSize: 13, fontWeight: 600,
-                  border: `2px solid ${modus === i ? m.kleur : '#E5E7EB'}`,
-                  background: modus === i ? `${m.kleur}0F` : 'white',
-                  color: modus === i ? m.kleur : '#9CA3AF',
+                  border: `2px solid ${modus === i ? m.kleur : 'var(--border)'}`,
+                  background: modus === i ? `${m.kleur}0F` : 'var(--bg-card)',
+                  color: modus === i ? m.kleur : 'var(--text-4)',
                   cursor: 'pointer',
                 }}
               >
@@ -170,10 +170,10 @@ export default function PomodoroPage() {
         )}
 
         {/* Timer ring */}
-        <div style={{ background: 'white', borderRadius: 24, border: '1px solid #E5E7EB', padding: '40px', textAlign: 'center', marginBottom: 20 }}>
+        <div style={{ background: 'var(--bg-card)', borderRadius: 24, border: '1px solid var(--border)', padding: '40px', textAlign: 'center', marginBottom: 20 }}>
           <div style={{ position: 'relative', display: 'inline-block', marginBottom: 24 }}>
             <svg width={r * 2 + 20} height={r * 2 + 20} style={{ transform: 'rotate(-90deg)' }}>
-              <circle cx={r + 10} cy={r + 10} r={r} fill="none" stroke="#F3F4F6" strokeWidth="8" />
+              <circle cx={r + 10} cy={r + 10} r={r} fill="none" stroke="var(--bg-subtle)" strokeWidth="8" />
               <circle
                 cx={r + 10} cy={r + 10} r={r}
                 fill="none" stroke={gefasseKleur} strokeWidth="8"
@@ -184,11 +184,11 @@ export default function PomodoroPage() {
             </svg>
             <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
               <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: gefasseKleur }}>{faseLabel}</p>
-              <p style={{ fontSize: 36, fontWeight: 800, color: '#111827', fontVariantNumeric: 'tabular-nums' }}>
+              <p style={{ fontSize: 36, fontWeight: 800, color: 'var(--text-1)', fontVariantNumeric: 'tabular-nums' }}>
                 {fase === 'klaar' ? formatTijd(huidigemodus.focus * 60) : formatTijd(secOver)}
               </p>
               {ronde > 0 && (
-                <p style={{ fontSize: 11, color: '#9CA3AF' }}>Ronde {ronde}/{huidigemodus.ronden}</p>
+                <p style={{ fontSize: 11, color: 'var(--text-4)' }}>Ronde {ronde}/{huidigemodus.ronden}</p>
               )}
             </div>
           </div>
@@ -196,7 +196,7 @@ export default function PomodoroPage() {
           {/* Ronde stippen */}
           <div style={{ display: 'flex', justifyContent: 'center', gap: 6, marginBottom: 20 }}>
             {Array.from({ length: huidigemodus.ronden }, (_, i) => (
-              <div key={i} style={{ width: 8, height: 8, borderRadius: '50%', background: i < ronde ? huidigemodus.kleur : '#E5E7EB' }} />
+              <div key={i} style={{ width: 8, height: 8, borderRadius: '50%', background: i < ronde ? huidigemodus.kleur : 'var(--border)' }} />
             ))}
           </div>
 
@@ -205,14 +205,14 @@ export default function PomodoroPage() {
             {fase === 'klaar' ? (
               <button
                 onClick={startFocus}
-                style={{ padding: '14px 40px', borderRadius: 14, fontSize: 15, fontWeight: 700, color: 'white', border: 'none', cursor: 'pointer', background: huidigemodus.kleur }}
+                style={{ padding: '14px 40px', borderRadius: 14, fontSize: 15, fontWeight: 700, color: 'white', border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg, var(--mf-green) 0%, var(--mf-green-dark) 100%)' }}
               >
                 Start focus
               </button>
             ) : fase === 'focus' ? (
               <button
                 onClick={stop}
-                style={{ padding: '14px 32px', borderRadius: 14, fontSize: 14, fontWeight: 600, color: '#E24B4A', border: '2px solid #E24B4A', cursor: 'pointer', background: 'white' }}
+                style={{ padding: '14px 32px', borderRadius: 14, fontSize: 14, fontWeight: 600, color: '#E24B4A', border: '2px solid #E24B4A', cursor: 'pointer', background: 'var(--bg-card)' }}
               >
                 Stop
               </button>
@@ -220,13 +220,13 @@ export default function PomodoroPage() {
               <>
                 <button
                   onClick={startFocus}
-                  style={{ padding: '14px 28px', borderRadius: 14, fontSize: 14, fontWeight: 700, color: 'white', border: 'none', cursor: 'pointer', background: huidigemodus.kleur }}
+                  style={{ padding: '14px 28px', borderRadius: 14, fontSize: 14, fontWeight: 700, color: 'white', border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg, var(--mf-green) 0%, var(--mf-green-dark) 100%)' }}
                 >
                   Volgende ronde
                 </button>
                 <button
                   onClick={() => { setFase('klaar'); setRonde(0) }}
-                  style={{ padding: '14px 20px', borderRadius: 14, fontSize: 14, fontWeight: 600, color: '#6B7280', border: '1px solid #E5E7EB', cursor: 'pointer', background: 'white' }}
+                  style={{ padding: '14px 20px', borderRadius: 14, fontSize: 14, fontWeight: 600, color: 'var(--text-3)', border: '1px solid var(--border)', cursor: 'pointer', background: 'var(--bg-card)' }}
                 >
                   Stoppen
                 </button>
@@ -236,36 +236,36 @@ export default function PomodoroPage() {
         </div>
 
         {/* Notitie */}
-        <div style={{ background: 'white', borderRadius: 16, border: '1px solid #E5E7EB', padding: '16px 20px', marginBottom: 20 }}>
-          <p style={{ fontSize: 12, fontWeight: 600, color: '#9CA3AF', marginBottom: 8 }}>Waar focus je op?</p>
+        <div style={{ background: 'var(--bg-card)', borderRadius: 16, border: '1px solid var(--border)', padding: '16px 20px', marginBottom: 20 }}>
+          <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-4)', marginBottom: 8 }}>Waar focus je op?</p>
           <input
             type="text"
             placeholder="Bijv. E-mails beantwoorden, rapport schrijven..."
             value={notitie}
             onChange={e => setNotitie(e.target.value)}
-            style={{ width: '100%', border: 'none', fontSize: 14, color: '#374151', outline: 'none', background: 'transparent', boxSizing: 'border-box' }}
+            style={{ width: '100%', border: 'none', fontSize: 14, color: 'var(--text-2)', outline: 'none', background: 'transparent', boxSizing: 'border-box' }}
           />
         </div>
 
         {/* Voltooide sessies vandaag */}
         {voltooide.length > 0 && (
-          <div style={{ background: 'white', borderRadius: 16, border: '1px solid #E5E7EB', padding: '16px 20px' }}>
-            <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#9CA3AF', marginBottom: 12 }}>Voltooide sessies</p>
+          <div style={{ background: 'var(--bg-card)', borderRadius: 16, border: '1px solid var(--border)', padding: '16px 20px' }}>
+            <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-4)', marginBottom: 12 }}>Voltooide sessies</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {voltooide.map((s, i) => (
                 <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <div style={{ width: 8, height: 8, borderRadius: '50%', background: s.type === 'Gedeeltelijk' ? '#F59E0B' : huidigemodus.kleur }} />
-                    <span style={{ fontSize: 13, color: '#374151' }}>{s.type}</span>
+                    <span style={{ fontSize: 13, color: 'var(--text-2)' }}>{s.type}</span>
                   </div>
-                  <div style={{ display: 'flex', gap: 12, fontSize: 12, color: '#9CA3AF' }}>
+                  <div style={{ display: 'flex', gap: 12, fontSize: 12, color: 'var(--text-4)' }}>
                     <span>{s.minuten} min</span>
                     <span>{s.tijd}</span>
                   </div>
                 </div>
               ))}
-              <div style={{ borderTop: '1px solid #F3F4F6', paddingTop: 8, marginTop: 4, display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ fontSize: 12, fontWeight: 600, color: '#374151' }}>Totaal vandaag</span>
+              <div style={{ borderTop: '1px solid var(--bg-subtle)', paddingTop: 8, marginTop: 4, display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-2)' }}>Totaal vandaag</span>
                 <span style={{ fontSize: 13, fontWeight: 700, color: huidigemodus.kleur }}>
                   {voltooide.reduce((s, v) => s + v.minuten, 0)} min
                 </span>
@@ -277,4 +277,3 @@ export default function PomodoroPage() {
     </div>
   )
 }
-

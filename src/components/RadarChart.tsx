@@ -91,9 +91,9 @@ export default function RadarChart({ scores, size = 220 }: RadarChartProps) {
       {/* Data vlak */}
       <path
         d={dataPath}
-        fill="var(--color-primary, #6366f1)"
+        fill="var(--mf-green, #1D9E75)"
         fillOpacity={0.18}
-        stroke="var(--color-primary, #6366f1)"
+        stroke="var(--mf-green, #1D9E75)"
         strokeWidth={1.75}
         strokeLinejoin="round"
       />
@@ -105,7 +105,7 @@ export default function RadarChart({ scores, size = 220 }: RadarChartProps) {
           cx={x.toFixed(1)}
           cy={y.toFixed(1)}
           r={3}
-          fill="var(--color-primary, #6366f1)"
+          fill="var(--mf-green, #1D9E75)"
         />
       ))}
 
