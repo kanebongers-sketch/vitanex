@@ -21,16 +21,21 @@ interface StreakData {
   actief_vandaag: boolean
 }
 
-function motivatieTekst(streak: number): { tekst: string; subtekst: string } {
+function motivatieTekst(streak: number, totaalActief: number): { tekst: string; subtekst: string } {
+  if (streak === 0 && totaalActief > 0)
+    return {
+      tekst: 'Nieuwe start 💪',
+      subtekst: `Je hebt al ${totaalActief} actieve dagen opgebouwd. Die tellen altijd.`,
+    }
   if (streak === 0)
     return {
-      tekst: 'Start vandaag!',
-      subtekst: 'Elke grote streak begint met dag 1.',
+      tekst: 'Dag 1 begint nu',
+      subtekst: 'Elke grote gewoonte begint met één beslissing.',
     }
   if (streak < 7)
     return {
-      tekst: 'Geweldig begin!',
-      subtekst: 'Kom morgen terug om je streak te verlengen.',
+      tekst: 'Goed bezig!',
+      subtekst: `${7 - streak} dag${7 - streak !== 1 ? 'en' : ''} te gaan voor je eerste badge.`,
     }
   if (streak < 30)
     return {
@@ -39,7 +44,7 @@ function motivatieTekst(streak: number): { tekst: string; subtekst: string } {
     }
   return {
     tekst: 'Legende!',
-    subtekst: 'Je zit in de top 1% van gebruikers.',
+    subtekst: 'Discipline die de meeste mensen niet bereiken.',
   }
 }
 
@@ -281,7 +286,7 @@ export default function StreakPage() {
                       marginBottom: 3,
                     }}
                   >
-                    {motivatieTekst(data.streak).tekst}
+                    {motivatieTekst(data.streak, data.totaal_actief).tekst}
                   </div>
                   <div
                     style={{
@@ -289,7 +294,7 @@ export default function StreakPage() {
                       color: 'var(--mf-orange-dark, #9A3412)',
                     }}
                   >
-                    {motivatieTekst(data.streak).subtekst}
+                    {motivatieTekst(data.streak, data.totaal_actief).subtekst}
                   </div>
                 </div>
               </div>
@@ -533,6 +538,37 @@ export default function StreakPage() {
                   })}
                 </div>
               </div>
+
+              {/* ── Jouw patronen link ────────────────────── */}
+              <a
+                href="/patronen"
+                className="streak-section"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  background: 'var(--bg-card)',
+                  border: '1px solid var(--border)',
+                  borderRadius: 'var(--radius-md)',
+                  padding: '16px 18px',
+                  marginBottom: 12,
+                  textDecoration: 'none',
+                  boxShadow: 'var(--shadow-xs)',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <span style={{ fontSize: 24 }}>🔬</span>
+                  <div>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-1)' }}>
+                      Wat werkt voor jou?
+                    </div>
+                    <div style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 2 }}>
+                      Bekijk je persoonlijke patronen en correlaties
+                    </div>
+                  </div>
+                </div>
+                <span style={{ fontSize: 18, color: 'var(--text-4)' }}>→</span>
+              </a>
 
               {/* ── Vandaag sectie ─────────────────────────── */}
               {data.actief_vandaag ? (
