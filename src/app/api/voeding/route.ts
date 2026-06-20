@@ -1,122 +1,143 @@
-
-import { NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { NextRequest, NextResponse } from 'next/server'
+import { getAuthenticatedUser } from '@/lib/api-auth'
+import { createAdminClient } from '@/lib/supabase-admin'
+import { vandaagNL, datumMinusDagenNL } from '@/lib/date-nl'
 
 export const dynamic = 'force-dynamic'
 
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+export async function GET(req: NextRequest) {
+  try {
+    const user = await getAuthenticatedUser(req)
+    if (!user) return NextResponse.json({ error: 'Niet ingelogd.' }, { status: 401 })
 
-function getAuth(request: Request) {
-  const header = request.headers.get('authorization')
-  if (!header?.startsWith('Bearer ')) return null
-  return header.slice(7)
-}
+    const admin = createAdminClient()
+    const { searchParams } = new URL(req.url)
+    const dagenParam = searchParams.get('dagen')
 
-// GET: fetch logs for a date (default today)
-export async function GET(request: Request) {
-  const token = getAuth(request)
-  if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  const { data: { user }, error } = await supabaseAdmin.auth.getUser(token)
-  if (error || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    if (dagenParam !== null) {
+      const dagenInt = parseInt(dagenParam, 10)
+      if (!Number.isFinite(dagenInt) || dagenInt < 1 || dagenInt > 365) {
+        return NextResponse.json({ error: 'dagen moet een getal zijn tussen 1 en 365.' }, { status: 400 })
+      }
+      const vanafStr = datumMinusDagenNL(dagenInt)
+      const { data, error } = await admin
+        .from('voeding_logs')
+        .select('*')
+        .eq('user_id', user.id)
+        .gte('datum', vanafStr)
+        .order('datum', { ascending: false })
+        .order('aangemaakt_op', { ascending: false })
 
-  const { searchParams } = new URL(request.url)
-  const datum = searchParams.get('datum') || new Date().toISOString().split('T')[0]
-  const dagen = searchParams.get('dagen') // e.g. "7" for last 7 days
+      if (error) {
+        console.error('[voeding GET] DB fout:', error.message)
+        return NextResponse.json({ error: 'Er is een fout opgetreden.' }, { status: 500 })
+      }
+      return NextResponse.json({ logs: data ?? [] })
+    }
 
-  if (dagen) {
-    const vanafDatum = new Date()
-    vanafDatum.setDate(vanafDatum.getDate() - parseInt(dagen))
-    const vanafStr = vanafDatum.toISOString().split('T')[0]
-
-    const { data, error: fetchError } = await supabaseAdmin
+    const datum = searchParams.get('datum') ?? vandaagNL()
+    const { data, error } = await admin
       .from('voeding_logs')
       .select('*')
       .eq('user_id', user.id)
-      .gte('datum', vanafStr)
-      .order('datum', { ascending: false })
-      .order('aangemaakt_op', { ascending: false })
+      .eq('datum', datum)
+      .order('aangemaakt_op', { ascending: true })
 
-    if (fetchError) return NextResponse.json({ error: fetchError.message }, { status: 500 })
-    return NextResponse.json({ logs: data || [] })
+    if (error) {
+      console.error('[voeding GET] DB fout:', error.message)
+      return NextResponse.json({ error: 'Er is een fout opgetreden.' }, { status: 500 })
+    }
+    return NextResponse.json({ logs: data ?? [] })
+  } catch (err) {
+    console.error('[voeding GET]', err)
+    return NextResponse.json({ error: 'Er is een fout opgetreden.' }, { status: 500 })
   }
-
-  const { data, error: fetchError } = await supabaseAdmin
-    .from('voeding_logs')
-    .select('*')
-    .eq('user_id', user.id)
-    .eq('datum', datum)
-    .order('aangemaakt_op', { ascending: true })
-
-  if (fetchError) return NextResponse.json({ error: fetchError.message }, { status: 500 })
-  return NextResponse.json({ logs: data || [] })
 }
 
-// POST: add a new voeding log
-export async function POST(request: Request) {
-  const token = getAuth(request)
-  if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  const { data: { user }, error } = await supabaseAdmin.auth.getUser(token)
-  if (error || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+export async function POST(req: NextRequest) {
+  try {
+    const user = await getAuthenticatedUser(req)
+    if (!user) return NextResponse.json({ error: 'Niet ingelogd.' }, { status: 401 })
 
-  const body = await request.json() as {
-    datum?: string
-    maaltijd_type: string
-    omschrijving: string
-    calorieen?: number
-    eiwitten_g?: number
-    koolhydraten_g?: number
-    vetten_g?: number
-    vezels_g?: number
-    portie_gram?: number
-    bron?: string
-    foto_url?: string
-    ai_analyse?: unknown
+    const body: {
+      datum?: string
+      maaltijd_type?: unknown
+      omschrijving?: unknown
+      calorieen?: unknown
+      eiwitten_g?: unknown
+      koolhydraten_g?: unknown
+      vetten_g?: unknown
+      vezels_g?: unknown
+      portie_gram?: unknown
+      bron?: unknown
+      foto_url?: unknown
+      ai_analyse?: unknown
+    } = await req.json()
+
+    if (!body.maaltijd_type || typeof body.maaltijd_type !== 'string' || !body.maaltijd_type.trim()) {
+      return NextResponse.json({ error: 'maaltijd_type is vereist.' }, { status: 400 })
+    }
+    if (!body.omschrijving || typeof body.omschrijving !== 'string' || !body.omschrijving.trim()) {
+      return NextResponse.json({ error: 'omschrijving is vereist.' }, { status: 400 })
+    }
+
+    const admin = createAdminClient()
+
+    const { data, error } = await admin
+      .from('voeding_logs')
+      .insert({
+        user_id: user.id,
+        datum: typeof body.datum === 'string' ? body.datum : vandaagNL(),
+        maaltijd_type: body.maaltijd_type.trim(),
+        omschrijving: (body.omschrijving as string).trim(),
+        calorieen: body.calorieen ?? null,
+        eiwitten_g: body.eiwitten_g ?? null,
+        koolhydraten_g: body.koolhydraten_g ?? null,
+        vetten_g: body.vetten_g ?? null,
+        vezels_g: body.vezels_g ?? null,
+        portie_gram: body.portie_gram ?? null,
+        bron: typeof body.bron === 'string' ? body.bron : 'manueel',
+        foto_url: body.foto_url ?? null,
+        ai_analyse: body.ai_analyse ?? null,
+      })
+      .select()
+      .single()
+
+    if (error) {
+      console.error('[voeding POST] Opslaan mislukt:', error.message)
+      return NextResponse.json({ error: 'Opslaan mislukt. Probeer opnieuw.' }, { status: 500 })
+    }
+    return NextResponse.json({ log: data }, { status: 201 })
+  } catch (err) {
+    console.error('[voeding POST]', err)
+    return NextResponse.json({ error: 'Er is een fout opgetreden.' }, { status: 500 })
   }
-
-  const { data, error: insertError } = await supabaseAdmin
-    .from('voeding_logs')
-    .insert({
-      user_id: user.id,
-      datum: body.datum || new Date().toISOString().split('T')[0],
-      maaltijd_type: body.maaltijd_type,
-      omschrijving: body.omschrijving,
-      calorieen: body.calorieen || null,
-      eiwitten_g: body.eiwitten_g || null,
-      koolhydraten_g: body.koolhydraten_g || null,
-      vetten_g: body.vetten_g || null,
-      vezels_g: body.vezels_g || null,
-      portie_gram: body.portie_gram || null,
-      bron: body.bron || 'manueel',
-      foto_url: body.foto_url || null,
-      ai_analyse: body.ai_analyse || null,
-    })
-    .select()
-    .single()
-
-  if (insertError) return NextResponse.json({ error: insertError.message }, { status: 500 })
-  return NextResponse.json({ log: data }, { status: 201 })
 }
 
-// DELETE: remove a voeding log
-export async function DELETE(request: Request) {
-  const token = getAuth(request)
-  if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  const { data: { user }, error } = await supabaseAdmin.auth.getUser(token)
-  if (error || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+export async function DELETE(req: NextRequest) {
+  try {
+    const user = await getAuthenticatedUser(req)
+    if (!user) return NextResponse.json({ error: 'Niet ingelogd.' }, { status: 401 })
 
-  const { searchParams } = new URL(request.url)
-  const id = searchParams.get('id')
-  if (!id) return NextResponse.json({ error: 'id vereist' }, { status: 400 })
+    const { searchParams } = new URL(req.url)
+    const id = searchParams.get('id')
+    if (!id) return NextResponse.json({ error: 'id vereist.' }, { status: 400 })
 
-  const { error: deleteError } = await supabaseAdmin
-    .from('voeding_logs')
-    .delete()
-    .eq('id', id)
-    .eq('user_id', user.id) // extra RLS check
+    const admin = createAdminClient()
 
-  if (deleteError) return NextResponse.json({ error: deleteError.message }, { status: 500 })
-  return NextResponse.json({ ok: true })
+    const { error } = await admin
+      .from('voeding_logs')
+      .delete()
+      .eq('id', id)
+      .eq('user_id', user.id)
+
+    if (error) {
+      console.error('[voeding DELETE] Verwijderen mislukt:', error.message)
+      return NextResponse.json({ error: 'Verwijderen mislukt. Probeer opnieuw.' }, { status: 500 })
+    }
+    return NextResponse.json({ ok: true })
+  } catch (err) {
+    console.error('[voeding DELETE]', err)
+    return NextResponse.json({ error: 'Er is een fout opgetreden.' }, { status: 500 })
+  }
 }

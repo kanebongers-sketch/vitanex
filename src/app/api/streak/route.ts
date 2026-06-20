@@ -1,27 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAuthenticatedUser } from '@/lib/api-auth'
 import { createAdminClient } from '@/lib/supabase-admin'
-
-function toDateString(value: string): string {
-  return value.slice(0, 10)
-}
-
-function vandaagStr(): string {
-  return new Date().toISOString().slice(0, 10)
-}
-
-function datumMinusDagen(days: number): string {
-  const d = new Date()
-  d.setDate(d.getDate() - days)
-  return d.toISOString().slice(0, 10)
-}
+import { vandaagNL, datumMinusDagenNL, toDateString } from '@/lib/date-nl'
 
 export async function GET(req: NextRequest) {
   const user = await getAuthenticatedUser(req)
   if (!user) return NextResponse.json({ error: 'Niet ingelogd.' }, { status: 401 })
 
   const admin = createAdminClient()
-  const negentigDagenGeleden = datumMinusDagen(89)
+  const negentigDagenGeleden = datumMinusDagenNL(89)
 
   const [stemming, slaap, snelcheck, gewoonte] = await Promise.all([
     admin
@@ -74,30 +61,28 @@ export async function GET(req: NextRequest) {
 
   // Bereken huidige streak (consecutive days terug vanaf vandaag)
   let streak = 0
-  const vandaag = vandaagStr()
+  const vandaag = vandaagNL()
   const actief_vandaag = activeDates.has(vandaag)
 
-  let checkDatum = vandaag
-  while (activeDates.has(checkDatum)) {
+  let dagenTerug = 0
+  while (activeDates.has(datumMinusDagenNL(dagenTerug))) {
     streak++
-    const d = new Date(checkDatum)
-    d.setDate(d.getDate() - 1)
-    checkDatum = d.toISOString().slice(0, 10)
+    dagenTerug++
+    if (dagenTerug > 90) break
   }
 
   // Kalender: laatste 90 dagen
   const kalender: { datum: string; actief: boolean }[] = []
   for (let i = 89; i >= 0; i--) {
-    const datum = datumMinusDagen(i)
+    const datum = datumMinusDagenNL(i)
     kalender.push({ datum, actief: activeDates.has(datum) })
   }
 
   const totaal_actief = activeDates.size
 
   // Maand percentage: actieve dagen deze maand / dag van de maand * 100
-  const nu = new Date()
-  const dagVanDeMaand = nu.getDate()
-  const eersteVanMaand = new Date(nu.getFullYear(), nu.getMonth(), 1).toISOString().slice(0, 10)
+  const eersteVanMaand = vandaag.slice(0, 8) + '01'
+  const dagVanDeMaand = parseInt(vandaag.slice(8, 10), 10)
   let actiefDezeMaand = 0
   for (const datum of activeDates) {
     if (datum >= eersteVanMaand && datum <= vandaag) actiefDezeMaand++

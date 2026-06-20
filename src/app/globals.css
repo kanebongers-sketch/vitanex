@@ -303,15 +303,6 @@ a:focus:not(:focus-visible) {
 .mf-disc-S { color: #1D9E75; background: #E1F5EE22; border: 1px solid #1D9E7533; }
 .mf-disc-C { color: #185FA5; background: #E6F1FB22; border: 1px solid #185FA533; }
 
-/* ── Premium card ────────────────────────────────────────── */
-
-.mf-card {
-  background: var(--bg-card, #fff);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
-}
-
 /* ── Glass effect ────────────────────────────────────────── */
 
 .mf-glass {
@@ -451,17 +442,6 @@ a:focus:not(:focus-visible) {
 .mf-doelen-empty:hover { border-color: #1D9E75 !important; }
 @media (prefers-reduced-motion: reduce) {
   .mf-doelen-empty { transition: none; }
-}
-
-.mf-btn-primary {
-  background: var(--mf-green, #1D9E75);
-  color: white;
-  box-shadow: 0 1px 3px rgba(29,158,117,0.3), 0 0 0 1px rgba(29,158,117,0.2);
-}
-
-.mf-btn-primary:hover:not(:disabled) {
-  background: var(--mf-green-mid, #15785A);
-  box-shadow: 0 4px 12px rgba(29,158,117,0.35), 0 0 0 1px rgba(29,158,117,0.2);
 }
 
 .mf-btn-ghost {
@@ -750,8 +730,8 @@ body.mf-has-sidebar > * {
 .micro-learning__domein {
   font-size: 10px;
   font-weight: 600;
-  color: var(--mentaforce-primary, #6366f1);
-  background: var(--mentaforce-primary-light, #eef2ff);
+  color: var(--mf-green, #1D9E75);
+  background: var(--mf-green-light, #E1F5EE);
   padding: 2px 7px;
   border-radius: 20px;
 }
@@ -776,8 +756,8 @@ body.mf-has-sidebar > * {
   align-self: flex-start;
   font-size: 11px;
   font-weight: 600;
-  color: var(--mentaforce-primary, #6366f1);
-  background: var(--mentaforce-primary-light, #eef2ff);
+  color: var(--mf-green, #1D9E75);
+  background: var(--mf-green-light, #E1F5EE);
   border: none;
   border-radius: 8px;
   padding: 6px 12px;

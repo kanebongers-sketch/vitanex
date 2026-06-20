@@ -165,7 +165,7 @@ Geef 2-3 zinnen concreet advies. Wat moet HR nu doen?`,
   }
 
   return (
-    <div className="rounded-2xl border p-5 mb-6" style={{ background: '#1a1a2e', borderColor: '#2d2d4e' }}>
+    <div className="mf-card rounded-2xl p-5 mb-6" style={{ borderLeft: '3px solid var(--mf-green)' }}>
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <span className="text-xs font-bold px-2 py-0.5 rounded" style={{ background: 'rgba(29,158,117,0.3)', color: '#4ECBA5' }}>AI</span>
@@ -347,7 +347,7 @@ function BulkActies({
     if (doelwitten.length === 0) return
     setBezig(true)
     try {
-      const resp = await fetch('/api/herinnering', {
+      const resp = await authFetch('/api/herinnering', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userIds: doelwitten.map(l => l.id) }),
@@ -704,7 +704,7 @@ export default function Dashboard() {
             naam: v.profiles?.naam ?? 'Onbekend',
           })))
         }
-      } catch { /* table may not exist yet */ }
+      } catch (err) { console.error('[dashboard] verlof_aanvragen ophalen mislukt:', err) }
 
       // Declaraties
       try {
@@ -720,7 +720,7 @@ export default function Dashboard() {
             naam: d.profiles?.naam ?? 'Onbekend',
           })))
         }
-      } catch { /* table may not exist yet */ }
+      } catch (err) { console.error('[dashboard] declaraties ophalen mislukt:', err) }
 
       // Aankomende gesprekken voor het overzicht widget
       try {
@@ -740,7 +740,7 @@ export default function Dashboard() {
             medewerker_naam: g.medewerker?.naam ?? 'Onbekend',
           })))
         }
-      } catch { /* hr_gesprekken table may not exist yet */ }
+      } catch (err) { console.error('[dashboard] hr_gesprekken ophalen mislukt:', err) }
 
       setLaden(false)
     }

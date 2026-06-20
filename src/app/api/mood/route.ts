@@ -37,7 +37,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ logs: data ?? [] })
   } catch (err) {
     console.error('[mood GET]', err)
-    return NextResponse.json({ error: String(err) }, { status: 500 })
+    return NextResponse.json({ error: 'Er is een fout opgetreden.' }, { status: 500 })
   }
 }
 
@@ -72,8 +72,9 @@ export async function POST(req: NextRequest) {
       .single()
 
     if (error || !data) {
+      console.error('[mood POST] Opslaan mislukt:', error?.message)
       return NextResponse.json(
-        { error: `Opslaan mislukt: ${error?.message}` },
+        { error: 'Opslaan mislukt. Probeer opnieuw.' },
         { status: 500 }
       )
     }
@@ -81,6 +82,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ log: data })
   } catch (err) {
     console.error('[mood POST]', err)
-    return NextResponse.json({ error: String(err) }, { status: 500 })
+    return NextResponse.json({ error: 'Er is een fout opgetreden.' }, { status: 500 })
   }
 }
