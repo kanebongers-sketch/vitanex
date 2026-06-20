@@ -19,6 +19,32 @@ function nlDatumKort(): string {
   })
 }
 
+function dagdeel(): string {
+  const uur = new Date().getHours()
+  if (uur < 12) return 'Goedemorgen'
+  if (uur < 18) return 'Goedemiddag'
+  return 'Goedenavond'
+}
+
+function readinessAdvies(score: number | null): { tekst: string; kleur: string; bg: string } {
+  if (score === null) return { tekst: '', kleur: '', bg: '' }
+  if (score >= 80) return {
+    tekst: 'Je bent klaar voor de dag',
+    kleur: '#1D9E75',
+    bg: 'linear-gradient(135deg, #E1F5EE 0%, #D1FAE5 100%)',
+  }
+  if (score >= 50) return {
+    tekst: 'Let op je energie vandaag',
+    kleur: '#BA7517',
+    bg: 'linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%)',
+  }
+  return {
+    tekst: 'Neem het rustig vandaag',
+    kleur: '#E24B4A',
+    bg: 'linear-gradient(135deg, #FEF2F2 0%, #FCEBEB 100%)',
+  }
+}
+
 function initialen(naam: string): string {
   return naam
     .split(' ')
@@ -262,6 +288,79 @@ export default function HomePage() {
 
       <main style={{ maxWidth: 480, margin: '0 auto', padding: '72px 16px 120px' }}>
 
+        {/* ── GREETING ── */}
+        <div
+          className="mf-animate-slide-up"
+          style={{ marginBottom: 18 }}
+        >
+          <h1
+            style={{
+              fontSize: 'clamp(22px, 6vw, 28px)',
+              fontWeight: 800,
+              color: 'var(--text-1)',
+              letterSpacing: '-0.02em',
+              lineHeight: 1.2,
+              marginBottom: 4,
+            }}
+          >
+            {dagdeel()}{naam ? `, ${naam.split(' ')[0]}` : ''} 👋
+          </h1>
+          <p style={{ fontSize: 13, color: 'var(--text-4)', fontWeight: 500 }}>
+            {nlDatumKort()} · Hoe voel jij je vandaag?
+          </p>
+
+          {/* Readiness advies banner (alleen als score aanwezig) */}
+          {readiness !== null && (() => {
+            const advies = readinessAdvies(readiness)
+            return (
+              <div
+                style={{
+                  marginTop: 14,
+                  borderRadius: 16,
+                  background: advies.bg,
+                  border: `1.5px solid ${advies.kleur}30`,
+                  padding: '12px 16px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10,
+                  boxShadow: `0 2px 12px ${advies.kleur}15`,
+                }}
+              >
+                <div
+                  style={{
+                    width: 10,
+                    height: 10,
+                    borderRadius: '50%',
+                    background: advies.kleur,
+                    flexShrink: 0,
+                    boxShadow: `0 0 8px ${advies.kleur}60`,
+                  }}
+                />
+                <span
+                  style={{
+                    fontSize: 14,
+                    fontWeight: 700,
+                    color: advies.kleur,
+                    letterSpacing: '-0.01em',
+                  }}
+                >
+                  {advies.tekst}
+                </span>
+                <span
+                  style={{
+                    marginLeft: 'auto',
+                    fontSize: 18,
+                    fontWeight: 900,
+                    color: advies.kleur,
+                  }}
+                >
+                  {readiness}
+                </span>
+              </div>
+            )
+          })()}
+        </div>
+
         {/* ── SECTION 1 — READINESS HERO ── */}
         <section
           className="mf-grain"
@@ -345,6 +444,68 @@ export default function HomePage() {
           </div>
         </section>
 
+        {/* ── STREAK MOTIVATOR BANNER (>=30 of >=7) ── */}
+        {streak >= 30 && (
+          <section
+            className="mf-animate-slide-up mf-stagger-1"
+            style={{
+              borderRadius: 20,
+              background: 'linear-gradient(135deg, #052e16 0%, #14532d 60%, #166534 100%)',
+              padding: '20px 22px',
+              marginBottom: 14,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 14,
+              boxShadow: '0 8px 32px rgba(29,158,117,0.35)',
+            }}
+          >
+            <div style={{
+              width: 52, height: 52, borderRadius: '50%', background: '#FDE047',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, flexShrink: 0,
+            }}>🏆</div>
+            <div>
+              <p style={{ fontSize: 15, fontWeight: 800, color: '#FFFFFF', marginBottom: 2 }}>
+                30 dagen sterk! Je bent een kampioen.
+              </p>
+              <p style={{ fontSize: 12, color: '#86efac', fontWeight: 500 }}>
+                Volharding als deze verandert levens. Ga zo door!
+              </p>
+            </div>
+          </section>
+        )}
+        {streak >= 7 && streak < 30 && (
+          <section
+            className="mf-animate-slide-up mf-stagger-1"
+            style={{
+              borderRadius: 20,
+              background: 'linear-gradient(135deg, #FFF7ED 0%, #FED7AA 60%, #FDBA74 100%)',
+              border: '1.5px solid rgba(249,115,22,0.35)',
+              padding: '18px 22px',
+              marginBottom: 14,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 14,
+              boxShadow: '0 4px 20px rgba(249,115,22,0.2)',
+            }}
+          >
+            <div
+              className="mf-animate-flame"
+              style={{
+                width: 52, height: 52, borderRadius: '50%', background: '#FEF3C7',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, flexShrink: 0,
+              }}
+            >🔥</div>
+            <div>
+              <p style={{ fontSize: 15, fontWeight: 800, color: '#92400E', marginBottom: 2 }}>
+                Je bent op een {streak}-daagse streak!
+              </p>
+              <p style={{ fontSize: 12, color: '#B45309', fontWeight: 500 }}>
+                Elke dag bijhouden bouwt een gewoonte voor het leven.
+              </p>
+            </div>
+          </section>
+        )}
+
         {/* ── SECTION 2 — STREAK ── */}
         <section
           className="mf-animate-slide-up mf-stagger-1"
@@ -367,36 +528,38 @@ export default function HomePage() {
           <div
             className={streak > 0 ? 'mf-animate-flame' : ''}
             style={{
-              width: 52,
-              height: 52,
+              width: streak >= 7 ? 64 : 52,
+              height: streak >= 7 ? 64 : 52,
               borderRadius: '50%',
-              background: streak >= 30 ? '#FDE047' : streak > 0 ? '#FED7AA' : '#F3F4F6',
+              background: streak >= 30 ? '#FDE047' : streak >= 7 ? '#FCD34D' : streak > 0 ? '#FED7AA' : '#F3F4F6',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: 28,
+              fontSize: streak >= 7 ? 34 : 28,
               flexShrink: 0,
+              boxShadow: streak >= 7 ? '0 4px 16px rgba(251,191,36,0.45)' : 'none',
+              transition: 'all 0.4s ease',
             }}
           >
-            {streak >= 30 ? '🏆' : streak > 0 ? '🔥' : '💪'}
+            {streak >= 30 ? '🏆' : streak >= 7 ? '🔥' : streak > 0 ? '🔥' : '💪'}
           </div>
           <div style={{ flex: 1 }}>
-            <div>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
               <span
                 className="mf-display"
                 style={{
-                  fontSize: 28,
-                  color: streak > 0 ? '#92400E' : 'var(--text-1)',
+                  fontSize: streak >= 7 ? 36 : 28,
+                  color: streak >= 30 ? '#78350F' : streak >= 7 ? '#92400E' : streak > 0 ? '#92400E' : 'var(--text-1)',
+                  transition: 'font-size 0.3s ease',
                 }}
               >
                 {streak > 0 ? `${streak}` : '0'}
               </span>
               <span
                 style={{
-                  fontSize: 14,
-                  fontWeight: 600,
-                  marginLeft: 4,
-                  color: streak > 0 ? '#92400E' : 'var(--text-1)',
+                  fontSize: streak >= 7 ? 16 : 14,
+                  fontWeight: 700,
+                  color: streak >= 30 ? '#78350F' : streak > 0 ? '#92400E' : 'var(--text-1)',
                 }}
               >
                 {streak > 0 ? ' dagen op rij' : ' – start vandaag!'}
@@ -410,7 +573,11 @@ export default function HomePage() {
                 marginTop: 3,
               }}
             >
-              {streak > 0
+              {streak >= 30
+                ? 'Ongelooflijk — je bent een ware kampioen!'
+                : streak >= 7
+                ? 'Je bent in de flow. Houd dit vol!'
+                : streak > 0
                 ? 'Elke dag telt. Mis je vandaag, start je opnieuw.'
                 : 'Log elke dag en bouw een gewoonte op.'}
             </p>
