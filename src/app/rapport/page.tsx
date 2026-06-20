@@ -290,7 +290,7 @@ export default function Rapport() {
   }
 
   if (laden) return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
+    <div className="mf-mesh-bg" style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
       <Navbar />
       <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 80 }}>
         <div className="mf-spinner" />
@@ -355,28 +355,28 @@ export default function Rapport() {
         {/* Geen data / aan het laden */}
         {!analyse ? (
           <div style={{
-            background: 'white', borderRadius: 20, padding: '60px 40px',
-            border: '1px solid #E5E7EB', textAlign: 'center',
+            background: 'var(--bg-card)', borderRadius: 20, padding: '60px 40px',
+            border: '1px solid var(--border)', textAlign: 'center',
           }}>
             {analyseAanMaken ? (
               <>
                 <div className="mf-spinner" style={{ margin: '0 auto 20px' }} />
-                <h2 style={{ fontSize: 18, fontWeight: 700, color: '#111827', marginBottom: 8 }}>Analyse wordt opgesteld…</h2>
-                <p style={{ fontSize: 14, color: '#6B7280' }}>De AI analyseert jouw check-in. Dit duurt een paar seconden.</p>
+                <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-1)', marginBottom: 8 }}>Analyse wordt opgesteld…</h2>
+                <p style={{ fontSize: 14, color: 'var(--text-3)' }}>De AI analyseert jouw check-in. Dit duurt een paar seconden.</p>
               </>
             ) : analyseFout ? (
               <>
-                <h2 style={{ fontSize: 18, fontWeight: 700, color: '#111827', marginBottom: 8 }}>Analyse mislukt</h2>
-                <p style={{ fontSize: 14, color: '#6B7280', marginBottom: 24 }}>Er ging iets mis bij het genereren van je rapport. Probeer het opnieuw.</p>
+                <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-1)', marginBottom: 8 }}>Analyse mislukt</h2>
+                <p style={{ fontSize: 14, color: 'var(--text-3)', marginBottom: 24 }}>Er ging iets mis bij het genereren van je rapport. Probeer het opnieuw.</p>
                 <button onClick={() => { setAnalyseFout(false); setLaden(true); setTimeout(() => window.location.reload(), 50) }}
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: '#1D9E75', color: 'white', borderRadius: 12, padding: '12px 28px', fontSize: 15, fontWeight: 700, border: 'none', cursor: 'pointer' }}>
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'linear-gradient(135deg, #1D9E75, #0ea872)', color: 'white', borderRadius: 12, padding: '12px 28px', fontSize: 15, fontWeight: 700, border: 'none', cursor: 'pointer' }}>
                   Opnieuw proberen →
                 </button>
               </>
             ) : (
               <>
-                <h2 style={{ fontSize: 18, fontWeight: 700, color: '#111827', marginBottom: 8 }}>Nog geen rapport beschikbaar</h2>
-                <p style={{ fontSize: 14, color: '#6B7280', marginBottom: 24 }}>Doe je eerste check-in om een persoonlijk rapport te krijgen.</p>
+                <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-1)', marginBottom: 8 }}>Nog geen rapport beschikbaar</h2>
+                <p style={{ fontSize: 14, color: 'var(--text-3)', marginBottom: 24 }}>Doe je eerste check-in om een persoonlijk rapport te krijgen.</p>
                 <Link href="/checkin" style={{
                   display: 'inline-flex', alignItems: 'center', gap: 8,
                   background: '#1D9E75', color: 'white',
@@ -409,7 +409,7 @@ export default function Rapport() {
               <div style={{ flex: 1, minWidth: 200 }}>
                 <p style={{ fontSize: 22, fontWeight: 800, color: kleur, marginBottom: 6, letterSpacing: '-0.02em' }}>{label}</p>
                 {aj?.samenvatting && (
-                  <p style={{ fontSize: 14, color: '#6B7280', lineHeight: 1.65, marginBottom: 16, maxWidth: 560 }}>{aj.samenvatting}</p>
+                  <p style={{ fontSize: 14, color: 'var(--text-3)', lineHeight: 1.65, marginBottom: 16, maxWidth: 560 }}>{aj.samenvatting}</p>
                 )}
                 {/* Score bars */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 7, maxWidth: 340 }}>
@@ -452,7 +452,7 @@ export default function Rapport() {
                     <p style={{ fontSize: 13, fontWeight: 700, color: burnoutCfg.kleur }}>Burn-out risico: {burnoutCfg.label}</p>
                     <span style={{ marginLeft: 'auto', fontSize: 12, fontWeight: 700, color: burnoutCfg.kleur }}>{burnout.score}/10</span>
                   </div>
-                  <p style={{ fontSize: 13, color: '#6B7280', lineHeight: 1.6 }}>{burnout.uitleg}</p>
+                  <p style={{ fontSize: 13, color: 'var(--text-3)', lineHeight: 1.6 }}>{burnout.uitleg}</p>
                   {burnout.niveau !== 'laag' && (
                     <Link href="/burnout" style={{ fontSize: 12, fontWeight: 600, color: burnoutCfg.kleur, textDecoration: 'underline', marginTop: 8, display: 'inline-block' }}>
                       Doe de volledige scan →
@@ -483,8 +483,8 @@ export default function Rapport() {
 
             {/* Verbeterpunten (compact) */}
             {zwakke.length > 0 && (
-              <div style={{ background: 'white', borderRadius: 16, padding: '20px 24px', border: '1px solid #E5E7EB' }}>
-                <p style={{ fontSize: 13, fontWeight: 700, color: '#111827', marginBottom: 14 }}>Verbeterpunten</p>
+              <div style={{ background: 'var(--bg-card)', borderRadius: 16, padding: '20px 24px', border: '1px solid var(--border)' }}>
+                <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-1)', marginBottom: 14 }}>Verbeterpunten</p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                   {zwakke.map(cat => {
                     const niveauKleur = cat.niveau === 'laag' ? '#DC2626' : '#B45309'
@@ -492,11 +492,11 @@ export default function Rapport() {
                     const niveauLabel = cat.niveau === 'laag' ? 'Aandacht nodig' : 'Matig'
                     return (
                       <div key={cat.naam} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                        <span style={{ fontSize: 13, fontWeight: 600, color: '#374151', minWidth: 140 }}>{cat.naam}</span>
+                        <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-2)', minWidth: 140 }}>{cat.naam}</span>
                         <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 100, background: niveauBg, color: niveauKleur, flexShrink: 0 }}>
                           {niveauLabel}
                         </span>
-                        <span style={{ fontSize: 12, color: '#9CA3AF', flex: 1 }}>{cat.samenvatting}</span>
+                        <span style={{ fontSize: 12, color: 'var(--text-4)', flex: 1 }}>{cat.samenvatting}</span>
                       </div>
                     )
                   })}
@@ -506,22 +506,22 @@ export default function Rapport() {
 
             {/* Aandachtspunten */}
             {aj?.aandachtspunten && aj.aandachtspunten.length > 0 && (
-              <div style={{ background: 'white', borderRadius: 16, padding: '20px 24px', border: '1px solid #E5E7EB' }}>
+              <div style={{ background: 'var(--bg-card)', borderRadius: 16, padding: '20px 24px', border: '1px solid var(--border)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
                   <div style={{ width: 28, height: 28, borderRadius: 8, background: '#FEF3C7', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#B45309" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
                     </svg>
                   </div>
-                  <p style={{ fontSize: 13, fontWeight: 700, color: '#111827' }}>Aandachtspunten</p>
+                  <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-1)' }}>Aandachtspunten</p>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                   {aj.aandachtspunten.map((punt, i) => (
                     <div key={i} style={{ display: 'flex', gap: 12 }}>
                       <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#F59E0B', flexShrink: 0, marginTop: 5 }} />
                       <div>
-                        <p style={{ fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 2 }}>{punt.titel}</p>
-                        <p style={{ fontSize: 12, color: '#6B7280', lineHeight: 1.55 }}>{punt.uitleg}</p>
+                        <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-2)', marginBottom: 2 }}>{punt.titel}</p>
+                        <p style={{ fontSize: 12, color: 'var(--text-3)', lineHeight: 1.55 }}>{punt.uitleg}</p>
                       </div>
                     </div>
                   ))}
@@ -565,9 +565,9 @@ export default function Rapport() {
 
             {/* AI bericht */}
             {aj?.bericht && (
-              <div style={{ background: 'white', borderRadius: 16, padding: '20px 24px', border: '1px solid #E5E7EB' }}>
-                <p style={{ fontSize: 11, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>Bericht van de Coach</p>
-                <p style={{ fontSize: 14, color: '#374151', lineHeight: 1.7, fontStyle: 'italic' }}>&ldquo;{aj.bericht}&rdquo;</p>
+              <div style={{ background: 'var(--bg-card)', borderRadius: 16, padding: '20px 24px', border: '1px solid var(--border)' }}>
+                <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>Bericht van de Coach</p>
+                <p style={{ fontSize: 14, color: 'var(--text-2)', lineHeight: 1.7, fontStyle: 'italic' }}>&ldquo;{aj.bericht}&rdquo;</p>
               </div>
             )}
 

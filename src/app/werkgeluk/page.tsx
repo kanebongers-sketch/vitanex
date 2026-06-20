@@ -149,7 +149,10 @@ export default function WerkgelukPagina() {
           setAantalDagen(prev => prev + 1)
         }
         setSucces(true)
-        setTimeout(() => setSucces(false), 3000)
+        setTimeout(() => {
+          setSucces(false)
+          router.push('/vandaag')
+        }, 2000)
       } else {
         const json = await res.json() as { error?: string }
         setFout(json.error ?? 'Er ging iets mis.')
@@ -165,7 +168,7 @@ export default function WerkgelukPagina() {
 
   if (laden) {
     return (
-      <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
+      <div className="mf-mesh-bg" style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
         <Navbar />
         <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 80 }}>
           <div className="mf-spinner" />
@@ -175,24 +178,24 @@ export default function WerkgelukPagina() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
+    <div className="mf-mesh-bg" style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
       <Navbar />
       <main style={{ padding: '24px 20px 96px', maxWidth: 560, margin: '0 auto' }}>
 
         <header style={{ marginBottom: 28 }}>
           <h1 style={{
-            fontSize: 24, fontWeight: 800, color: '#111827',
+            fontSize: 24, fontWeight: 800, color: 'var(--text-1)',
             letterSpacing: '-0.03em', marginBottom: 4,
           }}>
             Werkgeluk check
           </h1>
-          <p style={{ fontSize: 13, color: '#9CA3AF' }}>
+          <p style={{ fontSize: 13, color: 'var(--text-4)' }}>
             Hoe blij ben jij vandaag met je werk? Één meting per dag.
           </p>
         </header>
 
         <section style={{
-          background: 'white', borderRadius: 24, padding: '24px 20px',
+          background: 'var(--bg-card)', borderRadius: 24, padding: '24px 20px',
           border: `1.5px solid ${kleur}30`, marginBottom: 16,
           boxShadow: `0 4px 24px ${kleur}18`,
           transition: 'border-color 0.3s ease, box-shadow 0.3s ease',
@@ -270,14 +273,14 @@ export default function WerkgelukPagina() {
         </section>
 
         <section style={{
-          background: 'white', borderRadius: 16, padding: '14px 16px',
-          border: '1px solid #E5E7EB', marginBottom: 16,
+          background: 'var(--bg-card)', borderRadius: 16, padding: '14px 16px',
+          border: '1px solid var(--border)', marginBottom: 16,
         }}>
           <label
             htmlFor="werkgeluk-notitie"
-            style={{ fontSize: 12, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 8 }}
+            style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-3)', display: 'block', marginBottom: 8 }}
           >
-            Notitie <span style={{ fontWeight: 400, color: '#9CA3AF' }}>(optioneel)</span>
+            Notitie <span style={{ fontWeight: 400, color: 'var(--text-4)' }}>(optioneel)</span>
           </label>
           <textarea
             id="werkgeluk-notitie"
@@ -287,8 +290,8 @@ export default function WerkgelukPagina() {
             maxLength={500}
             rows={3}
             style={{
-              width: '100%', background: '#F9FAFB', border: '1px solid #E5E7EB',
-              borderRadius: 10, padding: '10px 12px', fontSize: 13, color: '#374151',
+              width: '100%', background: 'var(--bg-subtle, #F9FAFB)', border: '1px solid var(--border)',
+              borderRadius: 10, padding: '10px 12px', fontSize: 13, color: 'var(--text-2)',
               resize: 'none', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box',
             }}
           />
@@ -309,10 +312,14 @@ export default function WerkgelukPagina() {
           style={{
             width: '100%', padding: '14px', borderRadius: 14, border: 'none',
             cursor: opslaan ? 'not-allowed' : 'pointer', fontSize: 15, fontWeight: 700,
-            background: succes ? '#10B981' : kleur, color: 'white',
+            background: succes
+              ? 'linear-gradient(135deg, #10B981, #059669)'
+              : 'linear-gradient(135deg, #1D9E75, #0ea872)',
+            color: 'white',
             opacity: opslaan ? 0.7 : 1,
             transition: 'background 0.3s ease, opacity 0.15s ease',
             letterSpacing: '-0.01em', marginBottom: 16,
+            boxShadow: '0 4px 14px rgba(29,158,117,0.35)',
           }}
         >
           {succes
@@ -336,8 +343,8 @@ export default function WerkgelukPagina() {
 
         {data && data.geschiedenis.length > 0 && (
           <section style={{
-            background: 'white', borderRadius: 20, padding: '20px',
-            border: '1px solid #E5E7EB', boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
+            background: 'var(--bg-card)', borderRadius: 20, padding: '20px',
+            border: '1px solid var(--border)', boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
               <div>

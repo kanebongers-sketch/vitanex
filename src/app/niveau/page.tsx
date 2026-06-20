@@ -148,14 +148,14 @@ function AchievementBadge({ ach, unlocked }: { ach: Achievement; unlocked: boole
           </svg>
         )}
       </div>
-      <p style={{ fontSize: 10, fontWeight: 700, color: unlocked ? '#111827' : '#9CA3AF', textAlign: 'center', lineHeight: 1.3 }}>
+      <p style={{ fontSize: 10, fontWeight: 700, color: unlocked ? 'var(--text-1)' : 'var(--text-4)', textAlign: 'center', lineHeight: 1.3 }}>
         {ach.naam}
       </p>
       {unlocked && (
         <p style={{ fontSize: 9, color: ach.kleur, fontWeight: 700 }}>+{ach.xpBonus} XP</p>
       )}
       {!unlocked && (
-        <p style={{ fontSize: 9, color: '#9CA3AF' }}>{ach.xpBonus} XP</p>
+        <p style={{ fontSize: 9, color: 'var(--text-4)' }}>{ach.xpBonus} XP</p>
       )}
     </div>
   )
@@ -320,7 +320,7 @@ export default function NiveauPage() {
                 ].map(s => (
                   <div key={s.label} style={{ textAlign: 'center' }}>
                     <p style={{ fontSize: 18, fontWeight: 800, color: kleur }}>{s.val}</p>
-                    <p style={{ fontSize: 10, color: '#9CA3AF', fontWeight: 600 }}>{s.label}</p>
+                    <p style={{ fontSize: 10, color: 'var(--text-4)', fontWeight: 600 }}>{s.label}</p>
                   </div>
                 ))}
               </div>
@@ -333,7 +333,7 @@ export default function NiveauPage() {
           background: 'var(--bg-card)', borderRadius: 16, border: '1px solid var(--border)',
           padding: '20px 20px', marginBottom: 16,
         }}>
-          <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#9CA3AF', marginBottom: 14 }}>
+          <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-4)', marginBottom: 14 }}>
             Niveau-ladder
           </p>
           <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
@@ -347,15 +347,15 @@ export default function NiveauPage() {
                   <div style={{
                     width: '100%', height: isHuidige ? 38 : 30,
                     borderRadius: 8,
-                    background: isPast || isHuidige ? lBg : '#F9FAFB',
-                    border: `${isHuidige ? 2.5 : 1.5}px solid ${isPast || isHuidige ? lKleur + (isHuidige ? 'ff' : '60') : '#E5E7EB'}`,
+                    background: isPast || isHuidige ? lBg : 'var(--bg-subtle, #F9FAFB)',
+                    border: `${isHuidige ? 2.5 : 1.5}px solid ${isPast || isHuidige ? lKleur + (isHuidige ? 'ff' : '60') : 'var(--border)'}`,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     boxShadow: isHuidige ? `0 0 0 3px ${lKleur}25` : 'none',
                     transition: 'all 0.3s',
                   }}>
                     <span style={{
                       fontSize: isHuidige ? 14 : 12, fontWeight: 800,
-                      color: isPast || isHuidige ? lKleur : '#D1D5DB',
+                      color: isPast || isHuidige ? lKleur : 'var(--text-4)',
                     }}>{l}</span>
                   </div>
                   {isHuidige && (
@@ -377,7 +377,7 @@ export default function NiveauPage() {
           padding: '20px', marginBottom: 16,
         }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-            <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#9CA3AF' }}>
+            <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-4)' }}>
               Achievements
             </p>
             <span style={{
@@ -407,8 +407,8 @@ export default function NiveauPage() {
                       <div style={{ transform: 'scale(0.65)' }}>{ACH_ICON[ach.id]}</div>
                     </div>
                     <div style={{ flex: 1 }}>
-                      <p style={{ fontSize: 12, fontWeight: 700, color: '#111827' }}>{ach.naam}</p>
-                      <p style={{ fontSize: 11, color: '#6B7280' }}>{ach.beschrijving}</p>
+                      <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-1)' }}>{ach.naam}</p>
+                      <p style={{ fontSize: 11, color: 'var(--text-3)' }}>{ach.beschrijving}</p>
                     </div>
                     <span style={{ fontSize: 11, fontWeight: 700, color: ach.kleur, flexShrink: 0 }}>+{ach.xpBonus} XP</span>
                   </div>
@@ -424,7 +424,7 @@ export default function NiveauPage() {
             background: 'var(--bg-card)', borderRadius: 16, border: '1px solid var(--border)',
             padding: '20px', marginBottom: 16,
           }}>
-            <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#9CA3AF', marginBottom: 14 }}>
+            <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-4)', marginBottom: 14 }}>
               Recente XP-activiteit
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -462,7 +462,7 @@ export default function NiveauPage() {
           background: 'var(--bg-subtle, #F9FAFB)', borderRadius: 16, border: '1px solid var(--border)',
           padding: '20px',
         }}>
-          <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#9CA3AF', marginBottom: 14 }}>
+          <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-4)', marginBottom: 14 }}>
             Hoe verdien je XP?
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -476,16 +476,16 @@ export default function NiveauPage() {
               { label: 'Achievements',               xp: '50–500', kleur: '#BA7517' },
             ].map(item => (
               <div key={item.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: 12, color: '#374151' }}>{item.label}</span>
+                <span style={{ fontSize: 12, color: 'var(--text-2)' }}>{item.label}</span>
                 <span style={{ fontSize: 12, fontWeight: 700, color: item.kleur }}>
                   +{item.xp} XP
                 </span>
               </div>
             ))}
-            <div style={{ borderTop: '1px solid #E5E7EB', paddingTop: 8, marginTop: 4 }}>
+            <div style={{ borderTop: '1px solid var(--border)', paddingTop: 8, marginTop: 4 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: 12, color: '#9CA3AF' }}>Inactiviteit (14+ dagen)</span>
-                <span style={{ fontSize: 12, fontWeight: 700, color: '#9CA3AF' }}>−25–40 XP/week</span>
+                <span style={{ fontSize: 12, color: 'var(--text-4)' }}>Inactiviteit (14+ dagen)</span>
+                <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-4)' }}>−25–40 XP/week</span>
               </div>
             </div>
           </div>

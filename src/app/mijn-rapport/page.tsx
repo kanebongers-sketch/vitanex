@@ -424,19 +424,20 @@ function MijnRapportInhoud() {
 
   // ── Loading ─────────────────────────────────────────
   if (laden) return (
-    <main className="min-h-screen flex flex-col items-center justify-center gap-4"
-      style={{ background: 'linear-gradient(160deg, #F0FAF6 0%, #EBF4FB 50%, #F5F3FF 100%)' }}>
+    <main className="mf-mesh-bg min-h-screen flex flex-col items-center justify-center gap-4"
+      style={{ background: 'var(--bg-app)' }}>
       <div className="w-8 h-8 rounded-full border-2 border-gray-200 animate-spin"
         style={{ borderTopColor: '#1D9E75' }} />
-      <p className="text-sm text-gray-500">AI analyseert je check-in...</p>
+      <p className="text-sm" style={{ color: 'var(--text-4)' }}>AI analyseert je check-in...</p>
     </main>
   )
 
   if (fout) return (
-    <main className="min-h-screen flex items-center justify-center p-8"
-      style={{ background: 'linear-gradient(160deg, #F0FAF6 0%, #EBF4FB 50%, #F5F3FF 100%)' }}>
-      <div className="max-w-sm w-full bg-white rounded-2xl border border-gray-100 p-8 text-center shadow-sm">
-        <p className="text-sm text-gray-500 mb-4">{fout}</p>
+    <main className="mf-mesh-bg min-h-screen flex items-center justify-center p-8"
+      style={{ background: 'var(--bg-app)' }}>
+      <div className="max-w-sm w-full rounded-2xl p-8 text-center shadow-sm"
+        style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+        <p className="text-sm mb-4" style={{ color: 'var(--text-3)' }}>{fout}</p>
         <Link href="/portaal" className="text-sm font-medium" style={{ color: '#1D9E75' }}>
           Terug naar portaal
         </Link>
@@ -445,13 +446,13 @@ function MijnRapportInhoud() {
   )
 
   return (
-    <main className="min-h-screen pb-16"
-      style={{ background: 'linear-gradient(160deg, #F0FAF6 0%, #EBF4FB 50%, #F5F3FF 100%)' }}>
+    <main className="mf-mesh-bg min-h-screen pb-16"
+      style={{ background: 'var(--bg-app)' }}>
       <div className="max-w-xl mx-auto px-5 pt-10">
 
         <div className="mb-5">
-          <p className="text-xs text-gray-400 mb-1">Persoonlijk welzijnsrapport</p>
-          <h1 className="text-2xl font-bold text-gray-900">Jouw week in beeld</h1>
+          <p className="text-xs mb-1" style={{ color: 'var(--text-4)' }}>Persoonlijk welzijnsrapport</p>
+          <h1 className="text-2xl font-bold" style={{ color: 'var(--text-1)' }}>Jouw week in beeld</h1>
         </div>
 
         {rapportData && (
@@ -464,7 +465,7 @@ function MijnRapportInhoud() {
             onClick={downloadPdf}
             disabled={pdfBezig || !rapportData}
             className="w-full py-3.5 rounded-xl text-white font-semibold text-sm transition disabled:opacity-50 flex items-center justify-center gap-2"
-            style={{ background: '#1D9E75' }}>
+            style={{ background: 'linear-gradient(135deg, #1D9E75, #0ea872)', boxShadow: '0 4px 14px rgba(29,158,117,0.30)' }}>
             {pdfBezig
               ? <><span className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" />PDF wordt aangemaakt...</>
               : 'Download als PDF'}
@@ -472,14 +473,14 @@ function MijnRapportInhoud() {
 
           {hrVerstuurd
             ? <div className="w-full py-3.5 rounded-xl text-center text-sm font-medium"
-                style={{ background: '#E1F5EE', color: '#1D9E75' }}>
+                style={{ background: 'var(--color-green-bg, #E1F5EE)', color: '#1D9E75' }}>
                 Rapport verstuurd naar HR
               </div>
             : <button
                 onClick={stuurNaarHr}
                 disabled={hrBezig || !rapportData}
                 className="w-full py-3.5 rounded-xl font-semibold text-sm transition disabled:opacity-50 border flex items-center justify-center gap-2"
-                style={{ borderColor: '#378ADD', color: '#378ADD' }}>
+                style={{ borderColor: 'var(--border)', color: 'var(--text-2)', background: 'var(--bg-card)' }}>
                 {hrBezig
                   ? <><span className="w-4 h-4 rounded-full border-2 border-current border-t-transparent animate-spin" />Versturen...</>
                   : 'Stuur naar HR'}
@@ -489,18 +490,19 @@ function MijnRapportInhoud() {
           {hrFout && <p className="text-xs text-red-500 text-center">{hrFout}</p>}
 
           {!hrVerstuurd && (
-            <p className="text-xs text-gray-400 text-center">
+            <p className="text-xs text-center" style={{ color: 'var(--text-4)' }}>
               Je naam en rapport worden per e-mail naar je HR-team gestuurd.
             </p>
           )}
 
           <Link href="/portaal"
-            className="w-full inline-block text-center border border-gray-200 text-gray-500 rounded-xl py-3 text-sm hover:bg-gray-50 transition">
+            className="w-full inline-block text-center rounded-xl py-3 text-sm transition"
+            style={{ border: '1px solid var(--border)', color: 'var(--text-3)' }}>
             Terug naar portaal
           </Link>
         </div>
 
-        <p className="text-xs text-gray-400 text-center mt-6 pb-4">
+        <p className="text-xs text-center mt-6 pb-4" style={{ color: 'var(--text-4)' }}>
           Dit rapport is persoonlijk en vertrouwelijk.
         </p>
       </div>
@@ -511,8 +513,8 @@ function MijnRapportInhoud() {
 export default function MijnRapport() {
   return (
     <Suspense fallback={
-      <main className="min-h-screen flex items-center justify-center"
-        style={{ background: 'linear-gradient(135deg, #E1F5EE 0%, #E6F1FB 100%)' }}>
+      <main className="mf-mesh-bg min-h-screen flex items-center justify-center"
+        style={{ background: 'var(--bg-app)' }}>
         <div className="w-8 h-8 rounded-full border-2 border-gray-200 animate-spin"
           style={{ borderTopColor: '#1D9E75' }} />
       </main>
