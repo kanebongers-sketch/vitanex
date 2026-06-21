@@ -52,7 +52,7 @@ export async function GET(req: NextRequest) {
     // Per-day activity data for dots
     admin.from('slaap_logs').select('datum, uren_slaap').eq('user_id', user.id).in('datum', dagStrs),
     admin.from('stemming_logs').select('aangemaakt_op, stemming').eq('user_id', user.id).gte('aangemaakt_op', weekGeleden.toISOString()),
-    admin.from('gewoontes_logs').select('datum, gedaan').eq('user_id', user.id).eq('gewoonte_key', 'sport').in('datum', dagStrs),
+    admin.from('sport_logs').select('aangemaakt_op').eq('user_id', user.id).gte('aangemaakt_op', weekGeleden.toISOString()),
   ])
 
   const slaapGem = avg(slaapDezW?.map(r => r.uren_slaap) ?? [])
@@ -68,7 +68,7 @@ export async function GET(req: NextRequest) {
     (stemmingDagen ?? []).map(r => [r.aangemaakt_op.split('T')[0], r.stemming])
   )
   const sportSet = new Set(
-    (sportDagen ?? []).filter(r => r.gedaan).map(r => r.datum)
+    (sportDagen ?? []).map(r => (r as { aangemaakt_op: string }).aangemaakt_op.split('T')[0])
   )
 
   const dagActiviteit = dagStrs.map(dag => {
