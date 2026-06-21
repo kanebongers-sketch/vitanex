@@ -48,24 +48,24 @@ const VLAK_CONFIG: Record<string, { label: string; kleur: string; licht: string 
 const VLAK_VOLGORDE = ['slaap', 'stress', 'energie', 'focus', 'balans', 'motivatie']
 
 function risicoConfig(niveau: string) {
-  if (niveau === 'hoog')  return { bg: '#FCEBEB', border: '#E24B4A', tekst: '#A32D2D', label: 'Hoog risico' }
-  if (niveau === 'matig') return { bg: '#FAEEDA', border: '#BA7517', tekst: '#854F0B', label: 'Matig risico' }
-  return { bg: '#E1F5EE', border: '#1D9E75', tekst: '#0F6E56', label: 'Laag risico' }
+  if (niveau === 'hoog')  return { bg: 'var(--mf-red-light)', border: '#E24B4A', tekst: 'var(--mf-red)', label: 'Hoog risico' }
+  if (niveau === 'matig') return { bg: 'var(--mf-amber-light)', border: '#BA7517', tekst: 'var(--mf-amber-dark)', label: 'Matig risico' }
+  return { bg: 'var(--mf-green-light)', border: '#1D9E75', tekst: 'var(--mf-green-dark)', label: 'Laag risico' }
 }
 
 const NIVEAU_CONFIG: Record<string, { bg: string; tekst: string; label: string }> = {
-  goed:  { bg: '#E1F5EE', tekst: '#0F6E56', label: 'Goed' },
-  matig: { bg: '#FAEEDA', tekst: '#854F0B', label: 'Matig' },
-  laag:  { bg: '#FCEBEB', tekst: '#A32D2D', label: 'Aandacht nodig' },
+  goed:  { bg: 'var(--mf-green-light)', tekst: 'var(--mf-green-dark)', label: 'Goed' },
+  matig: { bg: 'var(--mf-amber-light)', tekst: 'var(--mf-amber-dark)', label: 'Matig' },
+  laag:  { bg: 'var(--mf-red-light)', tekst: 'var(--mf-red)', label: 'Aandacht nodig' },
 }
 
 const WELLBEING_KLEUR: Record<string, { k: string; l: string; border: string }> = {
-  'Slaap':             { k: '#6D28D9', l: '#F5F3FF', border: '#DDD6FE' },
-  'Stress':            { k: '#DC2626', l: '#FEF2F2', border: '#FECACA' },
-  'Energie':           { k: '#1D9E75', l: '#E1F5EE', border: '#A7F3D0' },
-  'Focus':             { k: '#185FA5', l: '#E6F1FB', border: '#BFDBFE' },
-  'Werk-privé balans': { k: '#B45309', l: '#FEF3C7', border: '#FDE68A' },
-  'Motivatie':         { k: '#9D174D', l: '#FDF2F8', border: '#FBCFE8' },
+  'Slaap':             { k: 'var(--mf-purple)', l: 'var(--mf-purple-light)', border: 'rgba(139,92,246,0.3)' },
+  'Stress':            { k: 'var(--mf-red)', l: 'var(--mf-red-light)', border: 'rgba(226,75,74,0.3)' },
+  'Energie':           { k: 'var(--mf-green)', l: 'var(--mf-green-light)', border: 'rgba(29,158,117,0.3)' },
+  'Focus':             { k: 'var(--mf-blue)', l: 'var(--mf-blue-light)', border: 'rgba(55,138,221,0.3)' },
+  'Werk-privé balans': { k: 'var(--mf-amber)', l: 'var(--mf-amber-light)', border: 'rgba(186,117,23,0.3)' },
+  'Motivatie':         { k: 'var(--mf-rose)', l: 'var(--mf-rose-light)', border: 'rgba(157,23,77,0.3)' },
 }
 
 // ─── Inner component ──────────────────────────────────────────────────────────
@@ -225,8 +225,8 @@ function BedanktInhoud() {
     <main className="min-h-screen flex flex-col items-center justify-center p-8"
       style={{ background: 'linear-gradient(135deg, #E1F5EE 0%, #E6F1FB 100%)' }}>
       <div className="max-w-md w-full bg-white rounded-2xl border border-gray-100 p-10 shadow-sm text-center">
-        <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-5" style={{ background: '#E1F5EE' }}>
-          <div className="w-6 h-6 rounded-full border-2 border-gray-200 animate-spin" style={{ borderTopColor: '#1D9E75' }} />
+        <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-5" style={{ background: 'var(--mf-green-light)' }}>
+          <div className="w-6 h-6 rounded-full border-2 border-gray-200 animate-spin" style={{ borderTopColor: 'var(--mf-green)' }} />
         </div>
         <h2 className="text-lg font-medium text-gray-900 mb-2">
           {status === 'laden' ? 'Check-in verwerken...' : 'AI-analyse wordt gegenereerd...'}
@@ -247,8 +247,8 @@ function BedanktInhoud() {
       style={{ background: 'linear-gradient(135deg, #E1F5EE 0%, #E6F1FB 100%)' }}>
       <div className="max-w-md w-full bg-white rounded-2xl border border-gray-100 p-10 shadow-sm text-center">
         <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-5"
-          style={{ background: status === 'fout' ? '#FCEBEB' : '#E1F5EE' }}>
-          <span style={{ color: status === 'fout' ? '#E24B4A' : '#1D9E75', fontSize: 22 }}>
+          style={{ background: status === 'fout' ? 'var(--mf-red-light)' : 'var(--mf-green-light)' }}>
+          <span style={{ color: status === 'fout' ? 'var(--mf-red)' : 'var(--mf-green)', fontSize: 22 }}>
             {status === 'fout' ? '!' : '✓'}
           </span>
         </div>
@@ -264,12 +264,12 @@ function BedanktInhoud() {
           {status === 'fout' && sid && (
             <button onClick={() => { setStatus('laden'); genereerAnalyse() }}
               className="w-full inline-block text-center text-white rounded-xl py-3 text-sm font-medium"
-              style={{ background: '#185FA5' }}>
+              style={{ background: 'var(--mf-blue)' }}>
               Opnieuw proberen
             </button>
           )}
           <Link href="/home" className="w-full inline-block text-center text-white rounded-xl py-3 text-sm font-medium"
-            style={{ background: '#1D9E75' }}>Naar dashboard</Link>
+            style={{ background: 'var(--mf-green)' }}>Naar dashboard</Link>
           <Link href="/" className="w-full inline-block text-center border border-gray-200 text-gray-500 rounded-xl py-3 text-sm hover:bg-gray-50 transition">
             Terug naar home</Link>
         </div>
@@ -289,7 +289,7 @@ function BedanktInhoud() {
         {/* Hero */}
         <div className="bg-white rounded-3xl border border-gray-100 p-8 shadow-sm mb-5">
           <div className="flex items-center gap-4 mb-5">
-            <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: '#E1F5EE' }}>
+            <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: 'var(--mf-green-light)' }}>
               <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1D9E75" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="20 6 9 17 4 12"/>
               </svg>
@@ -302,7 +302,7 @@ function BedanktInhoud() {
 
           {/* Vitaalscore */}
           {vitaalScore > 0 && (
-            <div className="rounded-2xl p-5 mb-5 text-center" style={{ background: '#F0FAF6' }}>
+            <div className="rounded-2xl p-5 mb-5 text-center" style={{ background: 'var(--mf-green-light)' }}>
               <p className="text-xs text-gray-500 mb-1">Vitaalscore</p>
               <div className="flex items-end justify-center gap-1">
                 <span className="text-5xl font-black" style={{ color: scoreKleur(Math.round(gemiddelde)) }}>{vitaalScore}</span>
@@ -339,7 +339,7 @@ function BedanktInhoud() {
           <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm mb-4">
             <div className="flex items-center justify-between mb-1">
               <h2 className="text-sm font-semibold text-gray-900">Jouw doelen voor deze week</h2>
-              <Link href="/doelen" className="text-xs font-medium" style={{ color: '#1D9E75' }}>Bekijk alles →</Link>
+              <Link href="/doelen" className="text-xs font-medium" style={{ color: 'var(--mf-green)' }}>Bekijk alles →</Link>
             </div>
             <p className="text-xs text-gray-400 mb-4">De AI heeft 3 doelen gekozen op basis van jouw laagste scores.</p>
             <div className="space-y-3">
@@ -377,7 +377,7 @@ function BedanktInhoud() {
             {analyse.sterke_punten.map((p, i) => (
               <li key={i} className="flex items-start gap-2.5">
                 <span className="w-5 h-5 rounded-full flex items-center justify-center text-xs flex-shrink-0 mt-0.5"
-                  style={{ background: '#E1F5EE', color: '#1D9E75' }}>✓</span>
+                  style={{ background: 'var(--mf-green-light)', color: 'var(--mf-green)' }}>✓</span>
                 <span className="text-sm text-gray-700">{p}</span>
               </li>
             ))}
@@ -390,7 +390,7 @@ function BedanktInhoud() {
           <div className="space-y-4">
             {analyse.aandachtspunten.map((a, i) => (
               <div key={i} className="rounded-xl p-4"
-                style={{ background: '#FAEEDA', borderLeft: '3px solid #BA7517' }}>
+                style={{ background: 'var(--mf-amber-light)', borderLeft: '3px solid var(--mf-amber)' }}>
                 <p className="text-xs font-semibold mb-1" style={{ color: '#854F0B' }}>{a.titel}</p>
                 <p className="text-sm text-gray-700 leading-relaxed">{a.uitleg}</p>
               </div>
@@ -571,7 +571,7 @@ export default function Bedankt() {
       <main className="min-h-screen flex items-center justify-center"
         style={{ background: 'linear-gradient(135deg, #E1F5EE 0%, #E6F1FB 100%)' }}>
         <div className="w-8 h-8 rounded-full border-2 border-gray-200 animate-spin"
-          style={{ borderTopColor: '#1D9E75' }} />
+          style={{ borderTopColor: 'var(--mf-green)' }} />
       </main>
     }>
       <BedanktInhoud />
