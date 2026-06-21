@@ -160,6 +160,44 @@ function ProgressBar({ waarde, max, kleur }: { waarde: number; max: number; kleu
   )
 }
 
+// ── Dagelijkse tips ───────────────────────────────────────────
+
+const DAGELIJKSE_TIPS = [
+  { emoji: '🌅', tip: 'Begin de dag met 5 minuten in de frisse lucht. Daglicht zet je bioritme op scherp.' },
+  { emoji: '💧', tip: 'Drink een glas water zodra je wakker wordt. Je lichaam is na de nacht uitgedroogd.' },
+  { emoji: '🧠', tip: 'Schrijf 3 dingen op waar je dankbaar voor bent. Dit traint de hersenen op positief denken.' },
+  { emoji: '😴', tip: 'Ga elke dag op dezelfde tijd slapen — ook in het weekend. Regelmaat verbetert slaapkwaliteit.' },
+  { emoji: '🏃', tip: '22 minuten matige beweging per dag is genoeg om je stemming en energie significant te verbeteren.' },
+  { emoji: '🍎', tip: 'Voeg elke dag één extra portie groente toe. Klein verandering, groot effect op de lange termijn.' },
+  { emoji: '🧘', tip: 'Drie diepe ademhalingen activeren het parasympathisch zenuwstelsel en verminderen stress direct.' },
+  { emoji: '📵', tip: 'Vermijd schermen het laatste uur voor bed. Blauw licht onderdrukt melatonine aanmaak.' },
+  { emoji: '⚡', tip: 'De 10-minuten regel: te moe om te trainen? Begin gewoon 10 minuten. Je stopt zelden na 10 minuten.' },
+  { emoji: '🌿', tip: 'Natuur verlaagt cortisol. Een korte wandeling in het groen kan evenveel doen als meditatie.' },
+  { emoji: '🎯', tip: 'Stel morgenochtend je top-3 prioriteiten in. Wie de ochtend wint, wint de dag.' },
+  { emoji: '🤝', tip: 'Sociale verbinding is net zo belangrijk als beweging en voeding. Plan deze week een afspraak in.' },
+  { emoji: '🔋', tip: 'Power nap van 10-20 min tussen 13:00 en 15:00 herstelt alertheid zonder de nacht te verstoren.' },
+  { emoji: '💪', tip: 'Consistentie klopt intensiteit. 30 minuten per dag verslaat 4 uur in het weekend.' },
+  { emoji: '🌊', tip: 'Koude douche (30 seconden) verhoogt dopamine met 250% en energieniveaus voor uren.' },
+  { emoji: '📖', tip: '20 minuten lezen voor het slapen vervangt scrolltime en kalmeert het zenuwstelsel.' },
+  { emoji: '🍵', tip: 'Cafeïne werkt het best als je het 90 minuten na opstaan neemt — na de eerste cortisol-piek.' },
+  { emoji: '🎵', tip: 'Muziek met 60 bpm vertraagt hartslag en verhoogt focus. Zoek op "binaural beats focus".' },
+  { emoji: '🌙', tip: 'Leg morgen je sportkleren al klaar. Beslissingsvermoeidheid saboteert je ochtendroutine.' },
+  { emoji: '🏋️', tip: 'Krachttraining 2-3x per week beschermt hersenen, botten en metabolisme tegelijk.' },
+  { emoji: '💬', tip: 'Praat hardop over je gevoelens — niet in je hoofd maar met iemand. Dat is wat echt helpt.' },
+  { emoji: '🎉', tip: 'Vier kleine overwinningen. Dopamine door erkenning maakt het makkelijker om door te gaan.' },
+  { emoji: '⏰', tip: 'Je telefoon uit de slaapkamer laten verlengt de gemiddelde slaap met 37 minuten.' },
+  { emoji: '🌞', tip: 'Een vaste ochtendroutine verlaagt de mentale belasting van elke dag — minder besluiten, meer energie.' },
+  { emoji: '🦶', tip: '5 minuten op blote voeten op gras (aarden) verlaagt ontstekingswaarden meetbaar.' },
+  { emoji: '💡', tip: 'Leer iets nieuws vandaag. Nieuwe neurale verbindingen beschermen tegen cognitieve achteruitgang.' },
+  { emoji: '🫁', tip: 'Box breathing (4-4-4-4 sec) werkt altijd. Ademhaling is de snelste toegang tot het zenuwstelsel.' },
+  { emoji: '🥗', tip: 'Eet meer eiwitten bij ontbijt. Dit stabiliseert bloedsuiker en vermindert snacken de rest van de dag.' },
+]
+
+function dagelijksTip(): { emoji: string; tip: string } {
+  const dag = Math.floor(Date.now() / 86400000)
+  return DAGELIJKSE_TIPS[dag % DAGELIJKSE_TIPS.length]
+}
+
 // ── Interfaces ────────────────────────────────────────────────
 
 interface VandaagItem {
@@ -751,6 +789,36 @@ export default function HomePage() {
             </Link>
           ))}
         </section>
+
+        {/* ── SECTION 5.5 — DAGELIJKSE TIP ── */}
+        {(() => {
+          const { emoji, tip } = dagelijksTip()
+          return (
+            <div
+              className="mf-animate-slide-up mf-stagger-2"
+              style={{
+                background: 'linear-gradient(135deg, var(--mf-purple-light), rgba(139,92,246,0.04))',
+                border: '1px solid rgba(139,92,246,0.15)',
+                borderRadius: 18,
+                padding: '14px 16px',
+                marginBottom: 12,
+                display: 'flex',
+                gap: 12,
+                alignItems: 'flex-start',
+              }}
+            >
+              <span style={{ fontSize: 22, flexShrink: 0, lineHeight: 1.3 }}>{emoji}</span>
+              <div>
+                <div style={{ fontSize: 9, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--mf-purple)', marginBottom: 4 }}>
+                  Tip van de dag
+                </div>
+                <p style={{ fontSize: 12, color: 'var(--text-2)', lineHeight: 1.55, margin: 0, fontWeight: 500 }}>
+                  {tip}
+                </p>
+              </div>
+            </div>
+          )
+        })()}
 
         {/* ── SECTION 6 — SNEL LOGGEN ── */}
         <section className="mf-animate-slide-up mf-stagger-3">
