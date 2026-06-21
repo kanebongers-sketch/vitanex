@@ -143,7 +143,7 @@ export default function HrDashboardPage() {
   const actiefTiles = volgorde.filter(id => actief.has(id)).map(id => ALLE_TILES.find(t => t.id === id)).filter((t): t is typeof ALLE_TILES[number] => t !== undefined)
   const inactiefTiles = ALLE_TILES.filter(t => !actief.has(t.id))
 
-  const ACCENT = '#1D9E75'
+  const ACCENT = 'var(--mf-green)'
 
   if (!geladen) return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
@@ -161,10 +161,10 @@ export default function HrDashboardPage() {
 
         {/* ── PAGE HEADER ── */}
         <div style={{ marginBottom: 20 }}>
-          <h1 style={{ fontSize: 22, fontWeight: 700, color: '#111', letterSpacing: '-0.02em', marginBottom: 4 }}>
+          <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-1)', letterSpacing: '-0.02em', marginBottom: 4 }}>
             Goedendag, {naam.split(' ')[0]} 👋
           </h1>
-          <p style={{ color: '#6B7280', fontSize: 14 }}>
+          <p style={{ color: 'var(--text-2)', fontSize: 14 }}>
             Beheer het portaal en volg de vitaliteit van je team.
           </p>
         </div>
@@ -176,7 +176,7 @@ export default function HrDashboardPage() {
               padding: '10px 18px', fontSize: 13, fontWeight: 600, border: 'none',
               background: 'transparent', cursor: 'pointer',
               borderBottom: `2px solid ${actieveTab === tab ? ACCENT : 'transparent'}`,
-              color: actieveTab === tab ? ACCENT : '#6B7280',
+              color: actieveTab === tab ? ACCENT : 'var(--text-2)',
               transition: 'all 0.15s',
             }}>
               {tab === 'gesprekken' ? '💬 ' : '🏠 '}{label}
@@ -194,9 +194,9 @@ export default function HrDashboardPage() {
         {/* ── STATS ROW ── */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 32 }}>
           {[
-            { label: 'Medewerkers',    value: stats.medewerkers, icon: '👥', color: '#185FA5', bg: '#EFF6FF' },
-            { label: 'Check-ins (7d)', value: stats.checkins,    icon: '✅', color: '#1D9E75', bg: '#E1F5EE' },
-            { label: 'Gem. vitaalscore', value: stats.gemScore ? `${stats.gemScore}/100` : '—', icon: '💚', color: '#7C3AED', bg: '#EDE9FE' },
+            { label: 'Medewerkers',    value: stats.medewerkers, icon: '👥', color: 'var(--mf-blue)', bg: 'var(--mf-blue-light)' },
+            { label: 'Check-ins (7d)', value: stats.checkins,    icon: '✅', color: 'var(--mf-green)', bg: 'var(--mf-green-light)' },
+            { label: 'Gem. vitaalscore', value: stats.gemScore ? `${stats.gemScore}/100` : '—', icon: '💚', color: 'var(--mf-purple)', bg: 'var(--mf-purple-light)' },
           ].map(s => (
             <div key={s.label} style={{
               background: 'white', borderRadius: 12, padding: '18px 20px',
@@ -206,7 +206,7 @@ export default function HrDashboardPage() {
               onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-1px)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 6px 18px rgba(0,0,0,0.08)' }}
               onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(0)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 1px 4px rgba(0,0,0,0.05)' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                <p style={{ fontSize: 12, color: '#9CA3AF', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{s.label}</p>
+                <p style={{ fontSize: 12, color: 'var(--text-3)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{s.label}</p>
                 <div style={{ width: 32, height: 32, borderRadius: 8, background: s.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>{s.icon}</div>
               </div>
               <p style={{ fontSize: 26, fontWeight: 800, letterSpacing: '-0.02em', background: `linear-gradient(135deg, ${s.color}cc, ${s.color})`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{s.value}</p>
@@ -217,7 +217,7 @@ export default function HrDashboardPage() {
         {/* ── ANALYTICS SECTIE ── */}
         {analytics && (
           <div style={{ marginBottom: 32 }}>
-            <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#9CA3AF', marginBottom: 12 }}>
+            <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-3)', marginBottom: 12 }}>
               Team welzijn analyse (afgelopen 4 weken)
             </p>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
@@ -225,22 +225,22 @@ export default function HrDashboardPage() {
               {/* Burn-out risico */}
               {analytics.burnout_distributie && (
                 <div style={{ background: 'white', borderRadius: 14, padding: '16px', border: '1px solid #E5E7EB' }}>
-                  <p style={{ fontSize: 11, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 12 }}>Burn-out risico</p>
+                  <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 12 }}>Burn-out risico</p>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                     {[
-                      { label: 'Laag', count: analytics.burnout_distributie.laag, kleur: '#1D9E75' },
-                      { label: 'Matig', count: analytics.burnout_distributie.matig, kleur: '#F59E0B' },
-                      { label: 'Hoog', count: analytics.burnout_distributie.hoog, kleur: '#EF4444' },
+                      { label: 'Laag', count: analytics.burnout_distributie.laag, kleur: 'var(--mf-green)' },
+                      { label: 'Matig', count: analytics.burnout_distributie.matig, kleur: 'var(--mf-amber)' },
+                      { label: 'Hoog', count: analytics.burnout_distributie.hoog, kleur: 'var(--mf-red)' },
                     ].map(b => {
                       const totaal = analytics.burnout_distributie!.laag + analytics.burnout_distributie!.matig + analytics.burnout_distributie!.hoog
                       const pct = totaal > 0 ? Math.round((b.count / totaal) * 100) : 0
                       return (
                         <div key={b.label}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 2 }}>
-                            <span style={{ fontSize: 11, color: '#374151' }}>{b.label}</span>
+                            <span style={{ fontSize: 11, color: 'var(--text-2)' }}>{b.label}</span>
                             <span style={{ fontSize: 11, fontWeight: 700, color: b.kleur }}>{b.count} ({pct}%)</span>
                           </div>
-                          <div style={{ height: 4, borderRadius: 9999, background: '#F3F4F6', overflow: 'hidden' }}>
+                          <div style={{ height: 4, borderRadius: 9999, background: 'var(--bg-subtle)', overflow: 'hidden' }}>
                             <div style={{ height: '100%', borderRadius: 9999, background: b.kleur, width: `${pct}%` }} />
                           </div>
                         </div>
@@ -253,12 +253,12 @@ export default function HrDashboardPage() {
               {/* eNPS */}
               {analytics.enps_score !== null && analytics.enps_score !== undefined && (
                 <div style={{ background: 'white', borderRadius: 14, padding: '16px', border: '1px solid #E5E7EB' }}>
-                  <p style={{ fontSize: 11, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>eNPS score</p>
-                  <p style={{ fontSize: 32, fontWeight: 800, color: analytics.enps_score >= 30 ? '#1D9E75' : analytics.enps_score >= 0 ? '#F59E0B' : '#EF4444', lineHeight: 1, marginBottom: 4 }}>
+                  <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>eNPS score</p>
+                  <p style={{ fontSize: 32, fontWeight: 800, color: analytics.enps_score >= 30 ? 'var(--mf-green)' : analytics.enps_score >= 0 ? 'var(--mf-amber)' : 'var(--mf-red)', lineHeight: 1, marginBottom: 4 }}>
                     {analytics.enps_score > 0 ? '+' : ''}{analytics.enps_score}
                   </p>
-                  <p style={{ fontSize: 11, color: '#9CA3AF' }}>{analytics.enps_responses} responses</p>
-                  <p style={{ fontSize: 11, color: '#6B7280', marginTop: 6 }}>
+                  <p style={{ fontSize: 11, color: 'var(--text-3)' }}>{analytics.enps_responses} responses</p>
+                  <p style={{ fontSize: 11, color: 'var(--text-2)', marginTop: 6 }}>
                     {analytics.enps_score >= 30 ? 'Uitstekend!' : analytics.enps_score >= 0 ? 'Verbetering mogelijk' : 'Actie vereist'}
                   </p>
                 </div>
@@ -267,35 +267,35 @@ export default function HrDashboardPage() {
               {/* Werkgeluk */}
               {analytics.werkgeluk_gemiddeld !== null && analytics.werkgeluk_gemiddeld !== undefined && (
                 <div style={{ background: 'white', borderRadius: 14, padding: '16px', border: '1px solid #E5E7EB' }}>
-                  <p style={{ fontSize: 11, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>Werkgeluk</p>
-                  <p style={{ fontSize: 32, fontWeight: 800, color: analytics.werkgeluk_gemiddeld >= 4 ? '#1D9E75' : analytics.werkgeluk_gemiddeld >= 3 ? '#F59E0B' : '#EF4444', lineHeight: 1, marginBottom: 4 }}>
+                  <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>Werkgeluk</p>
+                  <p style={{ fontSize: 32, fontWeight: 800, color: analytics.werkgeluk_gemiddeld >= 4 ? 'var(--mf-green)' : analytics.werkgeluk_gemiddeld >= 3 ? 'var(--mf-amber)' : 'var(--mf-red)', lineHeight: 1, marginBottom: 4 }}>
                     {analytics.werkgeluk_gemiddeld}/5
                   </p>
-                  <p style={{ fontSize: 11, color: '#9CA3AF' }}>Gemiddeld team</p>
+                  <p style={{ fontSize: 11, color: 'var(--text-3)' }}>Gemiddeld team</p>
                 </div>
               )}
 
               {/* Psych veiligheid */}
               {analytics.psych_veiligheid_gemiddeld !== null && analytics.psych_veiligheid_gemiddeld !== undefined && (
                 <div style={{ background: 'white', borderRadius: 14, padding: '16px', border: '1px solid #E5E7EB' }}>
-                  <p style={{ fontSize: 11, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>Psych. veiligheid</p>
-                  <p style={{ fontSize: 32, fontWeight: 800, color: analytics.psych_veiligheid_gemiddeld >= 4 ? '#1D9E75' : analytics.psych_veiligheid_gemiddeld >= 3 ? '#F59E0B' : '#EF4444', lineHeight: 1, marginBottom: 4 }}>
+                  <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>Psych. veiligheid</p>
+                  <p style={{ fontSize: 32, fontWeight: 800, color: analytics.psych_veiligheid_gemiddeld >= 4 ? 'var(--mf-green)' : analytics.psych_veiligheid_gemiddeld >= 3 ? 'var(--mf-amber)' : 'var(--mf-red)', lineHeight: 1, marginBottom: 4 }}>
                     {analytics.psych_veiligheid_gemiddeld}/5
                   </p>
-                  <p style={{ fontSize: 11, color: '#9CA3AF' }}>Gemiddeld team</p>
+                  <p style={{ fontSize: 11, color: 'var(--text-3)' }}>Gemiddeld team</p>
                 </div>
               )}
 
               {/* Top burnout factoren */}
               {analytics.top_burnout_factoren?.length ? (
                 <div style={{ background: 'white', borderRadius: 14, padding: '16px', border: '1px solid #E5E7EB' }}>
-                  <p style={{ fontSize: 11, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 10 }}>Top aandachtspunten</p>
+                  <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 10 }}>Top aandachtspunten</p>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                     {analytics.top_burnout_factoren.map((f, i) => (
                       <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <span style={{ fontSize: 12, fontWeight: 700, color: '#9CA3AF', minWidth: 16 }}>{i + 1}.</span>
-                        <span style={{ fontSize: 12, color: '#374151', fontWeight: 600, textTransform: 'capitalize' }}>{f.factor}</span>
-                        <span style={{ fontSize: 10, color: '#9CA3AF', marginLeft: 'auto' }}>{f.count}×</span>
+                        <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-3)', minWidth: 16 }}>{i + 1}.</span>
+                        <span style={{ fontSize: 12, color: 'var(--text-2)', fontWeight: 600, textTransform: 'capitalize' }}>{f.factor}</span>
+                        <span style={{ fontSize: 10, color: 'var(--text-3)', marginLeft: 'auto' }}>{f.count}×</span>
                       </div>
                     ))}
                   </div>
@@ -313,13 +313,13 @@ export default function HrDashboardPage() {
           <div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
               <div>
-                <h2 style={{ fontSize: 16, fontWeight: 700, color: '#111' }}>Portaal inrichten</h2>
-                <p style={{ fontSize: 13, color: '#9CA3AF', marginTop: 2 }}>Sleep tegels om volgorde te wijzigen</p>
+                <h2 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-1)' }}>Portaal inrichten</h2>
+                <p style={{ fontSize: 13, color: 'var(--text-3)', marginTop: 2 }}>Sleep tegels om volgorde te wijzigen</p>
               </div>
               <button
                 onClick={opslaan} disabled={bezig}
                 style={{
-                  background: opgeslagen ? '#E1F5EE' : ACCENT, color: opgeslagen ? ACCENT : 'white',
+                  background: opgeslagen ? 'var(--mf-green-light)' : ACCENT, color: opgeslagen ? ACCENT : 'white',
                   border: 'none', borderRadius: 8, padding: '8px 18px',
                   fontSize: 13, fontWeight: 600, cursor: bezig ? 'default' : 'pointer',
                   transition: 'all 0.2s',
@@ -333,7 +333,7 @@ export default function HrDashboardPage() {
             </div>
 
             {/* Actieve tegels */}
-            <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#9CA3AF', marginBottom: 10 }}>
+            <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-3)', marginBottom: 10 }}>
               Actief ({actiefTiles.length})
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 20 }}>
@@ -342,13 +342,13 @@ export default function HrDashboardPage() {
                   background: 'white', border: '2px dashed #E5E7EB', borderRadius: 14,
                   padding: '28px 20px', textAlign: 'center',
                 }}>
-                  <div style={{ width: 44, height: 44, borderRadius: 12, background: '#F3F4F6', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 10px' }}>
+                  <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--bg-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 10px' }}>
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                       <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
                     </svg>
                   </div>
-                  <p style={{ fontSize: 13, fontWeight: 600, color: '#6B7280', marginBottom: 4 }}>Geen actieve tegels</p>
-                  <p style={{ fontSize: 12, color: '#9CA3AF' }}>Schakel hieronder tegels in om ze te tonen in het portaal.</p>
+                  <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-2)', marginBottom: 4 }}>Geen actieve tegels</p>
+                  <p style={{ fontSize: 12, color: 'var(--text-3)' }}>Schakel hieronder tegels in om ze te tonen in het portaal.</p>
                 </div>
               )}
               {actiefTiles.map((tile, idx) => (
@@ -370,8 +370,8 @@ export default function HrDashboardPage() {
                   </svg>
                   <div style={{ width: 36, height: 36, borderRadius: 8, flexShrink: 0, background: tile.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>{tile.icon}</div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ fontSize: 13, fontWeight: 600, color: '#111' }}>{tile.label}</p>
-                    <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tile.sublabel}</p>
+                    <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-1)' }}>{tile.label}</p>
+                    <p style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tile.sublabel}</p>
                   </div>
                   <span style={{
                     minWidth: 22, height: 22, borderRadius: '50%', flexShrink: 0,
@@ -381,8 +381,8 @@ export default function HrDashboardPage() {
                   }}>{idx + 1}</span>
                   <button onClick={() => toggleTile(tile.id)} style={{
                     width: 26, height: 26, borderRadius: '50%', flexShrink: 0,
-                    background: '#FEE2E2', border: 'none', cursor: 'pointer',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#DC2626',
+                    background: 'var(--mf-red-light)', border: 'none', cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--mf-red)',
                   }}>
                     <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
                       <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
@@ -395,20 +395,20 @@ export default function HrDashboardPage() {
             {/* Uitgeschakeld */}
             {inactiefTiles.length > 0 && (
               <>
-                <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#9CA3AF', marginBottom: 10 }}>
+                <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-3)', marginBottom: 10 }}>
                   Uitgeschakeld ({inactiefTiles.length})
                 </p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   {inactiefTiles.map(tile => (
                     <div key={tile.id} style={{
-                      background: '#FAFAFA', borderRadius: 10, padding: '10px 14px',
+                      background: 'var(--bg-subtle)', borderRadius: 10, padding: '10px 14px',
                       display: 'flex', alignItems: 'center', gap: 12,
                       border: '1px solid #F3F4F6', opacity: 0.7,
                     }}>
                       <div style={{ width: 36, height: 36, borderRadius: 8, flexShrink: 0, background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, filter: 'grayscale(1)' }}>{tile.icon}</div>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <p style={{ fontSize: 13, fontWeight: 500, color: '#6B7280' }}>{tile.label}</p>
-                        <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 1 }}>{tile.sublabel}</p>
+                        <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-2)' }}>{tile.label}</p>
+                        <p style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 1 }}>{tile.sublabel}</p>
                       </div>
                       <button onClick={() => toggleTile(tile.id)} style={{
                         background: 'white', border: `1.5px solid ${ACCENT}`,
@@ -424,14 +424,14 @@ export default function HrDashboardPage() {
 
           {/* Right: quick links */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <h2 style={{ fontSize: 15, fontWeight: 700, color: '#111', marginBottom: 6 }}>Snelle acties</h2>
+            <h2 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-1)', marginBottom: 6 }}>Snelle acties</h2>
             {[
-              { href: '/hr/protocollen/nieuw', label: 'Nieuw protocol aanmaken', icon: '📋', color: '#92400E', bg: '#FEF3C7' },
-              { href: '/hr/protocollen',       label: 'Protocollen beheren',     icon: '📂', color: '#1D4ED8', bg: '#EFF6FF' },
-              { href: '/team',                 label: 'Team bekijken',           icon: '👥', color: '#0369A1', bg: '#E0F2FE' },
-              { href: '/verlof',               label: 'Verlof beheren',          icon: '🌴', color: '#0F6E56', bg: '#D1FAE5' },
-              { href: '/loonstroken',          label: 'Loonstroken uploaden',    icon: '💶', color: '#065F46', bg: '#ECFDF5' },
-              { href: '/rapport',              label: 'Rapporten bekijken',      icon: '📈', color: '#7C3AED', bg: '#EDE9FE' },
+              { href: '/hr/protocollen/nieuw', label: 'Nieuw protocol aanmaken', icon: '📋', color: 'var(--mf-amber-dark)', bg: 'var(--mf-amber-light)' },
+              { href: '/hr/protocollen',       label: 'Protocollen beheren',     icon: '📂', color: 'var(--mf-blue)', bg: 'var(--mf-blue-light)' },
+              { href: '/team',                 label: 'Team bekijken',           icon: '👥', color: 'var(--mf-blue)', bg: 'var(--mf-blue-light)' },
+              { href: '/verlof',               label: 'Verlof beheren',          icon: '🌴', color: 'var(--mf-green-dark)', bg: 'var(--mf-green-light)' },
+              { href: '/loonstroken',          label: 'Loonstroken uploaden',    icon: '💶', color: 'var(--mf-green-dark)', bg: 'var(--mf-green-light)' },
+              { href: '/rapport',              label: 'Rapporten bekijken',      icon: '📈', color: 'var(--mf-purple)', bg: 'var(--mf-purple-light)' },
             ].map(item => (
               <Link key={item.href} href={item.href} style={{
                 display: 'flex', alignItems: 'center', gap: 12,
@@ -440,13 +440,13 @@ export default function HrDashboardPage() {
                 boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
                 transition: 'box-shadow 0.15s, border-color 0.15s, transform 0.1s ease',
               }}
-                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.boxShadow = '0 4px 12px rgba(0,0,0,0.08)'; (e.currentTarget as HTMLElement).style.borderColor = '#D1D5DB'; (e.currentTarget as HTMLElement).style.transform = 'translateY(-1px)' }}
-                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.boxShadow = '0 1px 3px rgba(0,0,0,0.04)'; (e.currentTarget as HTMLElement).style.borderColor = '#E5E7EB'; (e.currentTarget as HTMLElement).style.transform = 'translateY(0)' }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.boxShadow = '0 4px 12px rgba(0,0,0,0.08)'; (e.currentTarget as HTMLElement).style.borderColor = 'var(--border-strong)'; (e.currentTarget as HTMLElement).style.transform = 'translateY(-1px)' }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.boxShadow = '0 1px 3px rgba(0,0,0,0.04)'; (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'; (e.currentTarget as HTMLElement).style.transform = 'translateY(0)' }}
                 onMouseDown={e => ((e.currentTarget as HTMLElement).style.transform = 'scale(0.97)')}
                 onMouseUp={e => ((e.currentTarget as HTMLElement).style.transform = 'translateY(-1px)')}
               >
                 <div style={{ width: 34, height: 34, borderRadius: 8, flexShrink: 0, background: item.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>{item.icon}</div>
-                <p style={{ fontSize: 13, fontWeight: 500, color: '#374151', flex: 1 }}>{item.label}</p>
+                <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-2)', flex: 1 }}>{item.label}</p>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" strokeWidth="2.5">
                   <polyline points="9 18 15 12 9 6" />
                 </svg>
@@ -457,11 +457,11 @@ export default function HrDashboardPage() {
 
         {/* ── INSTELLINGEN ── */}
         <div style={{ marginTop: 32, background: 'white', borderRadius: 12, padding: '20px 24px', border: '1px solid #E5E7EB', boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
-          <h2 style={{ fontSize: 15, fontWeight: 700, color: '#111', marginBottom: 16 }}>Instellingen</h2>
+          <h2 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-1)', marginBottom: 16 }}>Instellingen</h2>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
             <div>
-              <p style={{ fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 2 }}>DISC test verplicht voor alle medewerkers</p>
-              <p style={{ fontSize: 12, color: '#9CA3AF' }}>Medewerkers moeten de DISC-persoonlijkheidstest invullen voordat ze toegang krijgen tot het portaal.</p>
+              <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-2)', marginBottom: 2 }}>DISC test verplicht voor alle medewerkers</p>
+              <p style={{ fontSize: 12, color: 'var(--text-3)' }}>Medewerkers moeten de DISC-persoonlijkheidstest invullen voordat ze toegang krijgen tot het portaal.</p>
             </div>
             <button
               onClick={async () => {
@@ -479,7 +479,7 @@ export default function HrDashboardPage() {
               style={{
                 flexShrink: 0,
                 width: 48, height: 26, borderRadius: 13, border: 'none', cursor: discBezig ? 'default' : 'pointer',
-                background: discVerplicht ? ACCENT : '#D1D5DB',
+                background: discVerplicht ? ACCENT : 'var(--border-strong)',
                 position: 'relative', transition: 'background 0.2s',
                 opacity: discBezig ? 0.6 : 1,
               }}
