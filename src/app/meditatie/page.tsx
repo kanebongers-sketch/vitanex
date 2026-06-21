@@ -214,7 +214,7 @@ export default function MeditatiePagina() {
               {gekozenSessie.stappen.map((_, i) => (
                 <div key={i} style={{
                   width: 6, height: 6, borderRadius: '50%',
-                  background: i <= stapIndex ? '#1D9E75' : 'rgba(255,255,255,0.2)',
+                  background: i <= stapIndex ? 'var(--mf-green)' : 'rgba(255,255,255,0.2)',
                   transition: 'background 0.3s',
                 }} />
               ))}
@@ -233,7 +233,7 @@ export default function MeditatiePagina() {
         {/* Klaar scherm */}
         {klaar && gekozenSessie && (
           <div style={{
-            background: '#F0FDF4', borderRadius: 24, padding: '32px 24px',
+            background: 'var(--mf-green-light)', borderRadius: 24, padding: '32px 24px',
             textAlign: 'center', marginBottom: 24,
             border: '1px solid #BBF7D0',
           }}>
@@ -265,7 +265,7 @@ export default function MeditatiePagina() {
               }}>
                 <div style={{
                   width: 48, height: 48, borderRadius: 14, flexShrink: 0,
-                  background: '#F0FDF4',
+                  background: 'var(--mf-green-light)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   fontSize: 22,
                 }}>
@@ -276,7 +276,7 @@ export default function MeditatiePagina() {
                   <p style={{ fontSize: 12, color: 'var(--text-4)' }}>{sessie.beschrijving}</p>
                 </div>
                 <div style={{ flexShrink: 0, textAlign: 'right' }}>
-                  <p style={{ fontSize: 13, fontWeight: 700, color: '#1D9E75' }}>{sessie.duur} min</p>
+                  <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--mf-green)' }}>{sessie.duur} min</p>
                 </div>
               </button>
             ))}

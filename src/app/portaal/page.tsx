@@ -107,7 +107,7 @@ function gem(arr: number[]) {
 function scoreKleur(s: number) {
   if (s >= 4) return 'var(--mf-green)'
   if (s >= 2.5) return 'var(--mf-amber)'
-  return '#E24B4A'
+  return 'var(--mf-red)'
 }
 
 function formatDatum(iso: string) {
@@ -156,7 +156,7 @@ function berekenGewoontStreak(logs: GewoontLog[], gewoonte: string): number {
 
 const categorieMetrics = [
   {
-    label: 'Fysiek', kleur: '#1D9E75', licht: '#E1F5EE', donker: '#0F6E56',
+    label: 'Fysiek', kleur: 'var(--mf-green)', licht: 'var(--mf-green-light)', donker: 'var(--mf-green-dark)',
     keys: ['energie', 'slaap', 'fysiek_pijn', 'fysiek_beweging'] as (keyof Checkin)[],
     items: [
       { key: 'energie' as keyof Checkin, label: 'Energie' },
@@ -166,7 +166,7 @@ const categorieMetrics = [
     ],
   },
   {
-    label: 'Mentaal', kleur: '#378ADD', licht: '#E6F1FB', donker: '#185FA5',
+    label: 'Mentaal', kleur: 'var(--mf-blue)', licht: 'var(--mf-blue-light)', donker: 'var(--mf-blue)',
     keys: ['werkdruk', 'mentaal_focus', 'mentaal_stress', 'mentaal_balans'] as (keyof Checkin)[],
     items: [
       { key: 'werkdruk' as keyof Checkin, label: 'Werkdruk' },
@@ -176,7 +176,7 @@ const categorieMetrics = [
     ],
   },
   {
-    label: 'Sociaal', kleur: '#8B5CF6', licht: '#EEEDFE', donker: '#3C3489',
+    label: 'Sociaal', kleur: 'var(--mf-purple)', licht: 'var(--mf-purple-light)', donker: '#3C3489',
     keys: ['motivatie', 'sociaal_team', 'sociaal_steun', 'herstel'] as (keyof Checkin)[],
     items: [
       { key: 'motivatie' as keyof Checkin, label: 'Motivatie' },

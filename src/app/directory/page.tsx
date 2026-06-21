@@ -28,8 +28,8 @@ const ROL_LABELS: Record<string, string> = {
 
 const ROL_KLEUR: Record<string, { bg: string; color: string }> = {
   admin:      { bg: '#EDE9FE', color: '#5B21B6' },
-  hr:         { bg: '#E6F1FB', color: '#185FA5' },
-  medewerker: { bg: '#F3F4F6', color: '#4B5563' },
+  hr:         { bg: 'var(--mf-blue-light)', color: 'var(--mf-blue)' },
+  medewerker: { bg: 'var(--bg-subtle)', color: 'var(--text-2)' },
 }
 
 export default function DirectoryPage() {
@@ -109,8 +109,8 @@ export default function DirectoryPage() {
               className="flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition"
               style={{
                 background: rolFilter === r ? '#0F172A' : 'white',
-                color: rolFilter === r ? 'white' : '#6b7280',
-                borderColor: rolFilter === r ? '#0F172A' : '#e5e7eb',
+                color: rolFilter === r ? 'white' : 'var(--text-2)',
+                borderColor: rolFilter === r ? '#0F172A' : 'var(--border)',
               }}>
               {r === 'alle' ? 'Alle' : ROL_LABELS[r] ?? r}
             </button>
@@ -134,7 +134,7 @@ export default function DirectoryPage() {
                 <h2 className="text-xl font-bold text-gray-900 mt-3">{geselecteerd.naam}</h2>
                 {geselecteerd.functie && <p className="text-sm text-gray-500 mt-0.5">{geselecteerd.functie}</p>}
                 <span className="mt-2 text-xs font-semibold px-3 py-1 rounded-full"
-                  style={ROL_KLEUR[geselecteerd.rol] ?? { bg: '#F3F4F6', color: '#6b7280' }}>
+                  style={ROL_KLEUR[geselecteerd.rol] ?? { bg: 'var(--bg-subtle)', color: 'var(--text-2)' }}>
                   {ROL_LABELS[geselecteerd.rol] ?? geselecteerd.rol}
                 </span>
               </div>
@@ -183,7 +183,7 @@ export default function DirectoryPage() {
               {geselecteerd.id !== mijnId && (
                 <a href={`mailto:${geselecteerd.email}`}
                   className="mt-5 w-full flex items-center justify-center py-3 rounded-xl text-white font-semibold text-sm"
-                  style={{ background: '#1D9E75' }}>
+                  style={{ background: 'var(--mf-green)' }}>
                   ✉️ E-mail sturen
                 </a>
               )}
@@ -194,7 +194,7 @@ export default function DirectoryPage() {
         {/* Medewerkers lijst */}
         {laden ? (
           <div className="flex justify-center py-16">
-            <div className="w-6 h-6 rounded-full border-2 border-gray-200 animate-spin" style={{ borderTopColor: '#1D9E75' }} />
+            <div className="w-6 h-6 rounded-full border-2 border-gray-200 animate-spin" style={{ borderTopColor: 'var(--mf-green)' }} />
           </div>
         ) : gefilterd.length === 0 ? (
           <div className="bg-white rounded-2xl p-8 text-center" style={{ boxShadow: 'var(--shadow-sm)' }}>
@@ -206,7 +206,7 @@ export default function DirectoryPage() {
         ) : (
           <div className="flex flex-col gap-2">
             {gefilterd.map(m => {
-              const rolStijl = ROL_KLEUR[m.rol] ?? { bg: '#F3F4F6', color: '#6b7280' }
+              const rolStijl = ROL_KLEUR[m.rol] ?? { bg: 'var(--bg-subtle)', color: 'var(--text-2)' }
               return (
                 <button
                   key={m.id}
@@ -218,7 +218,7 @@ export default function DirectoryPage() {
                     <div className="flex items-center gap-2 flex-wrap">
                       <p className="text-sm font-semibold text-gray-900">{m.naam || 'Onbekend'}</p>
                       {m.id === mijnId && (
-                        <span className="text-xs px-1.5 py-0.5 rounded font-medium" style={{ background: '#E1F5EE', color: '#0F6E56' }}>
+                        <span className="text-xs px-1.5 py-0.5 rounded font-medium" style={{ background: 'var(--mf-green-light)', color: 'var(--mf-green-dark)' }}>
                           jij
                         </span>
                       )}

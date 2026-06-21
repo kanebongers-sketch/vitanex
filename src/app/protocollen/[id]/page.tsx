@@ -129,7 +129,7 @@ export default function ProtocolDetailPage() {
                 </span>
                 {isHr && !protocol.gepubliceerd && (
                   <span className="text-[11px] px-2 py-0.5 rounded-full font-medium"
-                    style={{ background: '#FEF3C7', color: '#92400E' }}>Concept</span>
+                    style={{ background: 'var(--mf-amber-light)', color: 'var(--mf-amber-dark)' }}>Concept</span>
                 )}
                 <span className="text-[11px]" style={{ color: 'var(--text-4)' }}>
                   Bijgewerkt {new Date(protocol.bijgewerkt_op).toLocaleDateString('nl-BE', { day: 'numeric', month: 'long', year: 'numeric' })}

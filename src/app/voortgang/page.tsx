@@ -138,12 +138,12 @@ export default function VoortgangPage() {
   }, [router])
 
   const METRICS = [
-    { label: 'Check-ins', waarde: totalen.checkins, eenheid: 'keer', kleur: '#1D9E75', bg: '#E1F5EE', href: '/checkin' },
-    { label: 'Focus', waarde: totalen.focus_minuten, eenheid: 'min', kleur: '#6366f1', bg: '#EEEDFE', href: '/focus' },
-    { label: 'Dankbaar', waarde: totalen.dankbaarheid, eenheid: '×', kleur: '#EC4899', bg: '#FCE7F3', href: '/dankbaarheid' },
-    { label: 'Stemming', waarde: totalen.stemming_logs, eenheid: 'logs', kleur: '#F59E0B', bg: '#FEF3C7', href: '/stemming' },
-    { label: 'Slaap', waarde: totalen.slaap_logs, eenheid: 'nachten', kleur: '#8B5CF6', bg: '#EEEDFE', href: '/slaap' },
-    { label: 'Stress', waarde: totalen.stress_logs, eenheid: 'logs', kleur: '#E24B4A', bg: '#FCEBEB', href: '/stress' },
+    { label: 'Check-ins', waarde: totalen.checkins, eenheid: 'keer', kleur: 'var(--mf-green)', bg: 'var(--mf-green-light)', href: '/checkin' },
+    { label: 'Focus', waarde: totalen.focus_minuten, eenheid: 'min', kleur: 'var(--mf-purple)', bg: 'var(--mf-purple-light)', href: '/focus' },
+    { label: 'Dankbaar', waarde: totalen.dankbaarheid, eenheid: '×', kleur: 'var(--mf-rose)', bg: '#FCE7F3', href: '/dankbaarheid' },
+    { label: 'Stemming', waarde: totalen.stemming_logs, eenheid: 'logs', kleur: 'var(--mf-amber)', bg: 'var(--mf-amber-light)', href: '/stemming' },
+    { label: 'Slaap', waarde: totalen.slaap_logs, eenheid: 'nachten', kleur: 'var(--mf-purple)', bg: 'var(--mf-purple-light)', href: '/slaap' },
+    { label: 'Stress', waarde: totalen.stress_logs, eenheid: 'logs', kleur: 'var(--mf-red)', bg: 'var(--mf-red-light)', href: '/stress' },
   ]
 
   const heeftData = totalen.checkins > 0 || totalen.stemming_logs > 0 || totalen.slaap_logs > 0
@@ -256,7 +256,7 @@ export default function VoortgangPage() {
                             : <span style={{ fontSize: 12, color: 'var(--text-4, #D1D5DB)' }}>—</span>}
                         </td>
                         <td style={{ padding: '10px 20px 10px 0' }}>
-                          <span style={{ fontSize: 13, fontWeight: 700, color: w.focus >= 60 ? '#6366f1' : 'var(--text-3, #9CA3AF)' }}>{w.focus}m</span>
+                          <span style={{ fontSize: 13, fontWeight: 700, color: w.focus >= 60 ? 'var(--mf-purple)' : 'var(--text-3, #9CA3AF)' }}>{w.focus}m</span>
                         </td>
                         <td style={{ padding: '10px 20px 10px 0' }}>
                           <div style={{ display: 'flex', gap: 3 }}>
@@ -275,10 +275,10 @@ export default function VoortgangPage() {
             {/* Quick links */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12 }}>
               {[
-                { href: '/inzichten', label: 'AI Inzichten', tekst: 'Persoonlijke analyse van jouw week', kleur: '#6366f1', icon: '✨' },
+                { href: '/inzichten', label: 'AI Inzichten', tekst: 'Persoonlijke analyse van jouw week', kleur: 'var(--mf-purple)', icon: '✨' },
                 { href: '/groeiplan', label: 'Groeiplan', tekst: 'AI-gegenereerd persoonlijk groeiplan', kleur: 'var(--mf-green, #1D9E75)', icon: '🌱' },
-                { href: '/mentale-sterkte', label: 'Mentale sterkte', tekst: 'Quiz: hoe sterk ben jij mentaal?', kleur: '#8B5CF6', icon: '🧠' },
-                { href: '/achievements', label: 'Achievements', tekst: 'Bekijk jouw behaalde badges', kleur: '#F59E0B', icon: '🏅' },
+                { href: '/mentale-sterkte', label: 'Mentale sterkte', tekst: 'Quiz: hoe sterk ben jij mentaal?', kleur: 'var(--mf-purple)', icon: '🧠' },
+                { href: '/achievements', label: 'Achievements', tekst: 'Bekijk jouw behaalde badges', kleur: 'var(--mf-amber)', icon: '🏅' },
               ].map(item => (
                 <Link key={item.href} href={item.href} style={{ textDecoration: 'none', background: 'var(--bg-card, white)', borderRadius: 16, border: '1px solid var(--border, #E5E7EB)', padding: '18px 20px', display: 'flex', alignItems: 'center', gap: 14, boxShadow: 'var(--shadow-xs)' }}>
                   <div style={{ width: 40, height: 40, borderRadius: 12, background: `${item.kleur}12`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, flexShrink: 0 }}>

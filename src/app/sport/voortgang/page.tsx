@@ -114,7 +114,7 @@ export default function VoortgangPage() {
     return (
       <div style={{ minHeight: '100vh', background: 'var(--bg-app)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <Navbar />
-        <p style={{ color: '#6b7280', marginTop: 80 }}>Laden...</p>
+        <p style={{ color: 'var(--text-2)', marginTop: 80 }}>Laden...</p>
       </div>
     )
   }
@@ -125,25 +125,25 @@ export default function VoortgangPage() {
       <div style={{ maxWidth: 900, margin: '0 auto', padding: '80px 16px 0' }}>
 
         <div style={{ marginBottom: 24 }}>
-          <Link href="/sport" style={{ color: '#1D9E75', fontSize: 14, textDecoration: 'none' }}>
+          <Link href="/sport" style={{ color: 'var(--mf-green)', fontSize: 14, textDecoration: 'none' }}>
             ← Terug naar sport
           </Link>
-          <h1 style={{ fontSize: 28, fontWeight: 700, color: '#111827', margin: '8px 0 4px' }}>
+          <h1 style={{ fontSize: 28, fontWeight: 700, color: 'var(--text-1)', margin: '8px 0 4px' }}>
             Mijn voortgang
           </h1>
-          <p style={{ color: '#6b7280', fontSize: 15 }}>Volg je gewichtsprogressie per oefening</p>
+          <p style={{ color: 'var(--text-2)', fontSize: 15 }}>Volg je gewichtsprogressie per oefening</p>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 32 }}>
           {[
-            { label: 'Trainingen', waarde: totaalTrainingen, kleur: '#185FA5' },
-            { label: 'Sets gelogd', waarde: totaalSets, kleur: '#1D9E75' },
-            { label: 'Beste oefening', waarde: besteOefening ? `+${besteOefening.progressieProcent}%` : '—', kleur: '#F97316', sub: besteOefening?.naam },
+            { label: 'Trainingen', waarde: totaalTrainingen, kleur: 'var(--mf-blue)' },
+            { label: 'Sets gelogd', waarde: totaalSets, kleur: 'var(--mf-green)' },
+            { label: 'Beste oefening', waarde: besteOefening ? `+${besteOefening.progressieProcent}%` : '—', kleur: 'var(--mf-orange)', sub: besteOefening?.naam },
           ].map((stat, i) => (
             <div key={i} style={{ background: '#fff', borderRadius: 12, padding: '20px 16px', boxShadow: '0 1px 4px rgba(0,0,0,0.07)' }}>
-              <p style={{ fontSize: 12, color: '#6b7280', marginBottom: 4 }}>{stat.label}</p>
+              <p style={{ fontSize: 12, color: 'var(--text-2)', marginBottom: 4 }}>{stat.label}</p>
               <p style={{ fontSize: 26, fontWeight: 700, color: stat.kleur }}>{stat.waarde}</p>
-              {stat.sub && <p style={{ fontSize: 11, color: '#9ca3af', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{stat.sub}</p>}
+              {stat.sub && <p style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{stat.sub}</p>}
             </div>
           ))}
         </div>
@@ -151,17 +151,17 @@ export default function VoortgangPage() {
         {oefeningen.length === 0 ? (
           <div style={{ background: '#fff', borderRadius: 12, padding: 40, textAlign: 'center', boxShadow: '0 1px 4px rgba(0,0,0,0.07)' }}>
             <p style={{ fontSize: 32, marginBottom: 12 }}>📊</p>
-            <p style={{ color: '#374151', fontWeight: 600, marginBottom: 8 }}>Nog geen logs gevonden</p>
-            <p style={{ color: '#6b7280', fontSize: 14 }}>Log je eerste training om je voortgang te zien.</p>
+            <p style={{ color: 'var(--text-2)', fontWeight: 600, marginBottom: 8 }}>Nog geen logs gevonden</p>
+            <p style={{ color: 'var(--text-2)', fontSize: 14 }}>Log je eerste training om je voortgang te zien.</p>
           </div>
         ) : (
           <>
             <div style={{ background: '#fff', borderRadius: 12, padding: '16px 20px', marginBottom: 24, boxShadow: '0 1px 4px rgba(0,0,0,0.07)' }}>
-              <label style={{ fontSize: 13, color: '#6b7280', display: 'block', marginBottom: 8 }}>Selecteer oefening</label>
+              <label style={{ fontSize: 13, color: 'var(--text-2)', display: 'block', marginBottom: 8 }}>Selecteer oefening</label>
               <select
                 value={geselecteerdeOefening}
                 onChange={e => setGeselecteerdeOefening(e.target.value)}
-                style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 15, color: '#111827', background: '#f9fafb', outline: 'none' }}
+                style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 15, color: 'var(--text-1)', background: 'var(--bg-subtle)', outline: 'none' }}
               >
                 {oefeningen.map(o => (
                   <option key={o.naam} value={o.naam}>{o.naam}</option>
@@ -173,17 +173,17 @@ export default function VoortgangPage() {
               <>
                 <div style={{ background: '#fff', borderRadius: 12, padding: '20px', marginBottom: 24, boxShadow: '0 1px 4px rgba(0,0,0,0.07)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
-                    <h2 style={{ fontSize: 16, fontWeight: 700, color: '#111827' }}>{actieveGroep.naam}</h2>
+                    <h2 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-1)' }}>{actieveGroep.naam}</h2>
                     <div style={{ display: 'flex', gap: 8 }}>
-                      <span style={{ background: '#f0fdf4', color: '#1D9E75', borderRadius: 20, padding: '4px 12px', fontSize: 13, fontWeight: 600 }}>
+                      <span style={{ background: '#f0fdf4', color: 'var(--mf-green)', borderRadius: 20, padding: '4px 12px', fontSize: 13, fontWeight: 600 }}>
                         Start: {actieveGroep.beginGewicht} kg
                       </span>
-                      <span style={{ background: '#eff6ff', color: '#185FA5', borderRadius: 20, padding: '4px 12px', fontSize: 13, fontWeight: 600 }}>
+                      <span style={{ background: '#eff6ff', color: 'var(--mf-blue)', borderRadius: 20, padding: '4px 12px', fontSize: 13, fontWeight: 600 }}>
                         Nu: {actieveGroep.huidigGewicht} kg
                       </span>
                       <span style={{
                         background: actieveGroep.progressieProcent >= 0 ? '#f0fdf4' : '#fef2f2',
-                        color: actieveGroep.progressieProcent >= 0 ? '#1D9E75' : '#ef4444',
+                        color: actieveGroep.progressieProcent >= 0 ? 'var(--mf-green)' : 'var(--mf-red)',
                         borderRadius: 20, padding: '4px 12px', fontSize: 13, fontWeight: 600
                       }}>
                         {actieveGroep.progressieProcent >= 0 ? '+' : ''}{actieveGroep.progressieProcent}%
@@ -192,7 +192,7 @@ export default function VoortgangPage() {
                   </div>
 
                   {chartSessies.length < 2 ? (
-                    <p style={{ color: '#9ca3af', fontSize: 14, textAlign: 'center', padding: '24px 0' }}>Log meer sessies om een grafiek te zien.</p>
+                    <p style={{ color: 'var(--text-3)', fontSize: 14, textAlign: 'center', padding: '24px 0' }}>Log meer sessies om een grafiek te zien.</p>
                   ) : (
                     <svg width="100%" height="180" viewBox={`0 0 ${chartSessies.length * 72} 180`} preserveAspectRatio="none">
                       {chartSessies.map((sessie, i) => {
@@ -216,13 +216,13 @@ export default function VoortgangPage() {
                 </div>
 
                 <div style={{ background: '#fff', borderRadius: 12, padding: '20px', boxShadow: '0 1px 4px rgba(0,0,0,0.07)' }}>
-                  <h2 style={{ fontSize: 16, fontWeight: 700, color: '#111827', marginBottom: 16 }}>Recente sets</h2>
+                  <h2 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-1)', marginBottom: 16 }}>Recente sets</h2>
                   <div style={{ overflowX: 'auto' }}>
                     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
                       <thead>
                         <tr style={{ borderBottom: '2px solid #f3f4f6' }}>
                           {['Datum', 'Set', 'Reps', 'Gewicht', 'Volume'].map(h => (
-                            <th key={h} style={{ padding: '8px 12px', textAlign: 'left', color: '#6b7280', fontWeight: 600, fontSize: 12 }}>{h}</th>
+                            <th key={h} style={{ padding: '8px 12px', textAlign: 'left', color: 'var(--text-2)', fontWeight: 600, fontSize: 12 }}>{h}</th>
                           ))}
                         </tr>
                       </thead>
@@ -231,11 +231,11 @@ export default function VoortgangPage() {
                           const volume = log.herhalingen * (log.gewicht_kg ?? 0)
                           return (
                             <tr key={log.id} style={{ borderBottom: '1px solid #f9fafb', background: i % 2 === 0 ? '#fff' : '#fafafa' }}>
-                              <td style={{ padding: '10px 12px', color: '#374151' }}>{log.training_logs.datum}</td>
-                              <td style={{ padding: '10px 12px', color: '#374151' }}>{log.set_nummer}</td>
-                              <td style={{ padding: '10px 12px', color: '#374151' }}>{log.herhalingen}</td>
-                              <td style={{ padding: '10px 12px', color: '#374151' }}>{log.gewicht_kg ?? '—'} kg</td>
-                              <td style={{ padding: '10px 12px', color: '#1D9E75', fontWeight: 600 }}>{volume > 0 ? `${volume} kg` : '—'}</td>
+                              <td style={{ padding: '10px 12px', color: 'var(--text-2)' }}>{log.training_logs.datum}</td>
+                              <td style={{ padding: '10px 12px', color: 'var(--text-2)' }}>{log.set_nummer}</td>
+                              <td style={{ padding: '10px 12px', color: 'var(--text-2)' }}>{log.herhalingen}</td>
+                              <td style={{ padding: '10px 12px', color: 'var(--text-2)' }}>{log.gewicht_kg ?? '—'} kg</td>
+                              <td style={{ padding: '10px 12px', color: 'var(--mf-green)', fontWeight: 600 }}>{volume > 0 ? `${volume} kg` : '—'}</td>
                             </tr>
                           )
                         })}

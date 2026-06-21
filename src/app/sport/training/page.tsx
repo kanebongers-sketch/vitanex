@@ -414,15 +414,15 @@ export default function TrainingLoggerPage() {
                         }}>
                           {si + 1}
                         </div>
-                        <input type="number" min={1} max={100} value={set.herhalingen || ''} onChange={e => updateSet(oi, si, 'herhalingen', parseInt(e.target.value) || 0)} placeholder={oef.doelHerhalingen} disabled={set.voltooid} style={{ flex: 1, height: 36, borderRadius: 8, border: '1.5px solid var(--border)', textAlign: 'center', fontSize: 15, fontWeight: 600, background: set.voltooid ? '#f9fafb' : '#fff' }} />
+                        <input type="number" min={1} max={100} value={set.herhalingen || ''} onChange={e => updateSet(oi, si, 'herhalingen', parseInt(e.target.value) || 0)} placeholder={oef.doelHerhalingen} disabled={set.voltooid} style={{ flex: 1, height: 36, borderRadius: 8, border: '1.5px solid var(--border)', textAlign: 'center', fontSize: 15, fontWeight: 600, background: set.voltooid ? 'var(--bg-subtle)' : '#fff' }} />
                         {oef.heeft_gewicht && (
-                          <input type="number" min={0} step={0.5} value={set.gewicht_kg ?? ''} onChange={e => updateSet(oi, si, 'gewicht_kg', e.target.value === '' ? null : parseFloat(e.target.value))} placeholder="kg" disabled={set.voltooid} style={{ flex: 1, height: 36, borderRadius: 8, border: '1.5px solid var(--border)', textAlign: 'center', fontSize: 15, fontWeight: 600, background: set.voltooid ? '#f9fafb' : '#fff' }} />
+                          <input type="number" min={0} step={0.5} value={set.gewicht_kg ?? ''} onChange={e => updateSet(oi, si, 'gewicht_kg', e.target.value === '' ? null : parseFloat(e.target.value))} placeholder="kg" disabled={set.voltooid} style={{ flex: 1, height: 36, borderRadius: 8, border: '1.5px solid var(--border)', textAlign: 'center', fontSize: 15, fontWeight: 600, background: set.voltooid ? 'var(--bg-subtle)' : '#fff' }} />
                         )}
                         <button
                           onClick={() => updateSet(oi, si, 'voltooid', !set.voltooid)}
                           style={{
                             width: 40, height: 36, borderRadius: 8, border: 'none', cursor: 'pointer',
-                            background: set.voltooid ? 'var(--mf-green)' : '#f3f4f6',
+                            background: set.voltooid ? 'var(--mf-green)' : 'var(--bg-subtle)',
                             color: set.voltooid ? '#fff' : '#aaa',
                             fontSize: 16, fontWeight: 700, flexShrink: 0,
                           }}>✓</button>

@@ -35,7 +35,7 @@ function MomentumNudge({ checklist }: { checklist: TaakItem[] }) {
     >
       <span style={{ fontSize: 20, flexShrink: 0 }}>🔥</span>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: '#15785A', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+        <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: 'var(--mf-green-mid)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
           Momentum
         </p>
         <p style={{ margin: '2px 0 0', fontSize: 13, color: 'var(--mf-green-dark)' }}>
@@ -109,7 +109,7 @@ function formatDatum(): { dag: string; datum: string } {
 
 function ringKleur(pct: number): string {
   if (pct >= 70) return 'var(--mf-green)'
-  if (pct >= 40) return '#F59E0B'
+  if (pct >= 40) return 'var(--mf-amber)'
   return 'var(--mf-red)'
 }
 

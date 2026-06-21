@@ -1279,7 +1279,7 @@ export default function Dashboard() {
                           style={{ borderColor: ernst === 'hoog' ? '#F09595' : '#FAC775', borderLeft: `4px solid ${ernst === 'hoog' ? '#E24B4A' : '#BA7517'}` }}>
                           <div
                             className="flex-shrink-0 w-2.5 h-2.5 rounded-full"
-                            style={{ background: ernst === 'hoog' ? '#E24B4A' : '#BA7517' }}
+                            style={{ background: ernst === 'hoog' ? 'var(--mf-red)' : 'var(--mf-amber)' }}
                           />
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-0.5">

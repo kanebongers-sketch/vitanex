@@ -151,7 +151,7 @@ export default function GroeiplanPagina() {
                   <p key={i} style={{ fontSize: 12, color: 'var(--text-2)', marginBottom: 6, lineHeight: 1.4 }}>• {s}</p>
                 ))}
               </div>
-              <div style={{ background: '#FFF7ED', borderRadius: 16, padding: '16px', border: '1px solid #FED7AA' }}>
+              <div style={{ background: 'var(--mf-orange-light)', borderRadius: 16, padding: '16px', border: '1px solid #FED7AA' }}>
                 <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--mf-orange-mid)', marginBottom: 10 }}>
                   🌱 Groeipunten
                 </p>

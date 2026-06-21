@@ -27,7 +27,7 @@ const PIJLERS: Pijler[] = [
     id: 'fitness',
     label: 'Fitness',
     emoji: '💪',
-    kleur: '#1D9E75',
+    kleur: 'var(--mf-green)',
     doelgroep: 'Ambitieuze ondernemers 28-45 jaar die te weinig bewegen',
     problemen: ['Geen tijd voor sport', 'Onweet hoe te beginnen', 'Snel opbranden na drukke dag', 'Motivatiegebrek'],
     ideeen: [
@@ -50,7 +50,7 @@ const PIJLERS: Pijler[] = [
     id: 'ondernemen',
     label: 'Ondernemen',
     emoji: '🚀',
-    kleur: '#185FA5',
+    kleur: 'var(--mf-blue)',
     doelgroep: 'Ondernemers en freelancers die willen schalen',
     problemen: ['Stress door werkdruk', 'Gebrek aan systeem', 'Werk-privé onbalans', 'Plateau in groei'],
     ideeen: [
@@ -96,7 +96,7 @@ const PIJLERS: Pijler[] = [
     id: 'leefstijl',
     label: 'Leefstijl',
     emoji: '🌿',
-    kleur: '#8B5CF6',
+    kleur: 'var(--mf-purple)',
     doelgroep: 'Mensen die duurzaam gezond willen leven',
     problemen: ['Slechte slaapkwaliteit', 'Ongezonde voedingspatronen', 'Chronische vermoeidheid', 'Te weinig herstel'],
     ideeen: [
@@ -119,7 +119,7 @@ const PIJLERS: Pijler[] = [
     id: 'stressmanagement',
     label: 'Stressmanagement',
     emoji: '⚡',
-    kleur: '#E24B4A',
+    kleur: 'var(--mf-red)',
     doelgroep: 'Ondernemers met hoge prestatiedruk',
     problemen: ['Chronische stress', 'Burn-out risico', 'Piekeren en slecht slapen', 'Lichamelijke stressklachten'],
     ideeen: [
@@ -142,7 +142,7 @@ const PIJLERS: Pijler[] = [
     id: 'performance',
     label: 'Performance',
     emoji: '📈',
-    kleur: '#BA7517',
+    kleur: 'var(--mf-amber)',
     doelgroep: 'High performers die hun top willen bereiken',
     problemen: ['Energietekort na lunch', 'Focusproblemen', 'Suboptimale resultaten', 'Mentale vermoeidheid'],
     ideeen: [
@@ -165,7 +165,7 @@ const PIJLERS: Pijler[] = [
     id: 'persoonlijke-groei',
     label: 'Persoonlijke Groei',
     emoji: '🧠',
-    kleur: '#1D9E75',
+    kleur: 'var(--mf-green)',
     doelgroep: 'Professionals die zichzelf willen ontwikkelen',
     problemen: ['Vastlopen in patronen', 'Identiteits- en richtingvragen', 'Gebrek aan zelfinzicht', 'Niet weten wat je wilt'],
     ideeen: [
@@ -454,7 +454,7 @@ function PijlerKaart({
                   style={{
                     fontSize: 12,
                     fontWeight: 600,
-                    color: '#E24B4A',
+                    color: 'var(--mf-red)',
                     background: '#E24B4A18',
                     borderRadius: 100,
                     padding: '4px 12px',

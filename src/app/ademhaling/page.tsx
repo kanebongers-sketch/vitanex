@@ -25,9 +25,9 @@ const TECHNIEKEN: Techniek[] = [
     doel: 'Ontspanning & slaap',
     rondes: 4,
     fasen: [
-      { naam: 'Inademen', seconden: 4, kleur: '#1D9E75' },
-      { naam: 'Vasthouden', seconden: 7, kleur: '#6366f1' },
-      { naam: 'Uitademen', seconden: 8, kleur: '#378ADD' },
+      { naam: 'Inademen', seconden: 4, kleur: 'var(--mf-green)' },
+      { naam: 'Vasthouden', seconden: 7, kleur: 'var(--mf-purple)' },
+      { naam: 'Uitademen', seconden: 8, kleur: 'var(--mf-blue)' },
     ],
   },
   {
@@ -37,10 +37,10 @@ const TECHNIEKEN: Techniek[] = [
     doel: 'Focus & stressreductie',
     rondes: 4,
     fasen: [
-      { naam: 'Inademen', seconden: 4, kleur: '#1D9E75' },
-      { naam: 'Vasthouden', seconden: 4, kleur: '#6366f1' },
-      { naam: 'Uitademen', seconden: 4, kleur: '#378ADD' },
-      { naam: 'Vasthouden', seconden: 4, kleur: '#8B5CF6' },
+      { naam: 'Inademen', seconden: 4, kleur: 'var(--mf-green)' },
+      { naam: 'Vasthouden', seconden: 4, kleur: 'var(--mf-purple)' },
+      { naam: 'Uitademen', seconden: 4, kleur: 'var(--mf-blue)' },
+      { naam: 'Vasthouden', seconden: 4, kleur: 'var(--mf-purple)' },
     ],
   },
   {
@@ -50,8 +50,8 @@ const TECHNIEKEN: Techniek[] = [
     doel: 'Hart-brein coherentie',
     rondes: 5,
     fasen: [
-      { naam: 'Inademen', seconden: 6, kleur: '#1D9E75' },
-      { naam: 'Uitademen', seconden: 6, kleur: '#378ADD' },
+      { naam: 'Inademen', seconden: 6, kleur: 'var(--mf-green)' },
+      { naam: 'Uitademen', seconden: 6, kleur: 'var(--mf-blue)' },
     ],
   },
   {
@@ -61,9 +61,9 @@ const TECHNIEKEN: Techniek[] = [
     doel: 'Energie & vitaliteit',
     rondes: 3,
     fasen: [
-      { naam: 'Snel inademen', seconden: 2, kleur: '#F59E0B' },
-      { naam: 'Loslaten', seconden: 2, kleur: '#E24B4A' },
-      { naam: 'Retentie', seconden: 15, kleur: '#8B5CF6' },
+      { naam: 'Snel inademen', seconden: 2, kleur: 'var(--mf-amber)' },
+      { naam: 'Loslaten', seconden: 2, kleur: 'var(--mf-red)' },
+      { naam: 'Retentie', seconden: 15, kleur: 'var(--mf-purple)' },
     ],
   },
 ]
@@ -181,7 +181,7 @@ export default function AdemhalingPage() {
                   <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-1)', marginBottom: 4 }}>{t.naam}</p>
                   <p style={{ fontSize: 11, color: 'var(--text-4)', lineHeight: 1.4, marginBottom: 8 }}>{t.beschrijving}</p>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ fontSize: 11, fontWeight: 600, color: '#1D9E75', background: '#1D9E7515', padding: '2px 8px', borderRadius: 100 }}>{t.doel}</span>
+                    <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--mf-green)', background: '#1D9E7515', padding: '2px 8px', borderRadius: 100 }}>{t.doel}</span>
                     <span style={{ fontSize: 11, color: 'var(--text-4)' }}>{t.rondes} rondes · {Math.round((t.fasen.reduce((s, f) => s + f.seconden, 0) * t.rondes) / 60)} min</span>
                   </div>
                 </div>
@@ -207,7 +207,7 @@ export default function AdemhalingPage() {
               onClick={start}
               disabled={!gekozen}
               style={{
-                width: '100%', padding: '14px', borderRadius: 14, background: '#1D9E75',
+                width: '100%', padding: '14px', borderRadius: 14, background: 'var(--mf-green)',
                 color: 'white', border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: 15,
                 opacity: gekozen ? 1 : 0.4,
               }}
@@ -227,7 +227,7 @@ export default function AdemhalingPage() {
               <button onClick={() => { setKlaar(false); setGekozen(null) }} style={{ padding: '12px 24px', borderRadius: 12, border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text-2)', fontWeight: 600, fontSize: 14, cursor: 'pointer' }}>
                 Andere oefening
               </button>
-              <button onClick={start} style={{ padding: '12px 24px', borderRadius: 12, background: '#1D9E75', color: 'white', border: 'none', fontWeight: 600, fontSize: 14, cursor: 'pointer' }}>
+              <button onClick={start} style={{ padding: '12px 24px', borderRadius: 12, background: 'var(--mf-green)', color: 'white', border: 'none', fontWeight: 600, fontSize: 14, cursor: 'pointer' }}>
                 Herhalen
               </button>
             </div>
@@ -245,7 +245,7 @@ export default function AdemhalingPage() {
                 <circle cx={100} cy={100} r={r} fill="none" stroke="var(--border-strong)" strokeWidth={8} />
                 <circle
                   cx={100} cy={100} r={r} fill="none"
-                  stroke={huidigeF?.kleur ?? '#1D9E75'}
+                  stroke={huidigeF?.kleur ?? 'var(--mf-green)'}
                   strokeWidth={8}
                   strokeDasharray={circ}
                   strokeDashoffset={offset}

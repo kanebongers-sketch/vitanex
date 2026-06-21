@@ -28,24 +28,24 @@ type IdeeRecord = {
 // ── Helpers ────────────────────────────────────────────────
 
 const PIJLERS = [
-  { id: 'fitness',           label: 'Fitness',           emoji: '💪', kleur: '#1D9E75' },
-  { id: 'ondernemen',        label: 'Ondernemen',        emoji: '🚀', kleur: '#185FA5' },
-  { id: 'discipline',        label: 'Discipline',        emoji: '🧱', kleur: '#374151' },
-  { id: 'leefstijl',         label: 'Leefstijl',         emoji: '🌿', kleur: '#8B5CF6' },
-  { id: 'stressmanagement',  label: 'Stressmanagement',  emoji: '⚡', kleur: '#E24B4A' },
-  { id: 'performance',       label: 'Performance',       emoji: '📈', kleur: '#BA7517' },
-  { id: 'persoonlijke-groei',label: 'Pers. Groei',       emoji: '🧠', kleur: '#1D9E75' },
+  { id: 'fitness',           label: 'Fitness',           emoji: '💪', kleur: 'var(--mf-green)' },
+  { id: 'ondernemen',        label: 'Ondernemen',        emoji: '🚀', kleur: 'var(--mf-blue)' },
+  { id: 'discipline',        label: 'Discipline',        emoji: '🧱', kleur: 'var(--text-2)' },
+  { id: 'leefstijl',         label: 'Leefstijl',         emoji: '🌿', kleur: 'var(--mf-purple)' },
+  { id: 'stressmanagement',  label: 'Stressmanagement',  emoji: '⚡', kleur: 'var(--mf-red)' },
+  { id: 'performance',       label: 'Performance',       emoji: '📈', kleur: 'var(--mf-amber)' },
+  { id: 'persoonlijke-groei',label: 'Pers. Groei',       emoji: '🧠', kleur: 'var(--mf-green)' },
 ]
 
 const PIJLER_MAP = Object.fromEntries(PIJLERS.map(p => [p.id, p]))
 
 const FORMAT_KLEUR: Record<string, string> = {
-  reel:         '#E24B4A',
-  carousel:     '#185FA5',
-  post:         '#374151',
-  video:        '#8B5CF6',
-  nieuwsbrief:  '#BA7517',
-  linkedin:     '#1D9E75',
+  reel:         'var(--mf-red)',
+  carousel:     'var(--mf-blue)',
+  post:         'var(--text-2)',
+  video:        'var(--mf-purple)',
+  nieuwsbrief:  'var(--mf-amber)',
+  linkedin:     'var(--mf-green)',
 }
 
 function PrioriteitSterren({ waarde }: { waarde: number }) {
@@ -54,7 +54,7 @@ function PrioriteitSterren({ waarde }: { waarde: number }) {
       {Array.from({ length: 5 }).map((_, i) => (
         <span key={i} style={{
           fontSize: 12,
-          color: i < waarde ? '#F59E0B' : '#D1D5DB',
+          color: i < waarde ? 'var(--mf-amber)' : 'var(--text-4)',
         }}>★</span>
       ))}
     </div>
@@ -71,8 +71,8 @@ function IdeeKaart({
   onStatusUpdate: (id: string, status: string) => void
 }) {
   const pijler = PIJLER_MAP[idee.pillar_id]
-  const kleur = pijler?.kleur ?? '#1D9E75'
-  const formatKleur = FORMAT_KLEUR[idee.format] ?? '#6B7280'
+  const kleur = pijler?.kleur ?? 'var(--mf-green)'
+  const formatKleur = FORMAT_KLEUR[idee.format] ?? 'var(--text-2)'
 
   async function handleStatusChange(e: React.ChangeEvent<HTMLSelectElement>) {
     const nieuweStatus = e.target.value
@@ -330,7 +330,7 @@ function IdeeBankContent() {
             <Link key={tab.href} href={tab.href} style={{
               padding: '8px 18px', borderRadius: 10, textDecoration: 'none',
               fontSize: 13, fontWeight: 700,
-              background: tab.actief ? '#1D9E75' : 'var(--bg-card)',
+              background: tab.actief ? 'var(--mf-green)' : 'var(--bg-card)',
               color: tab.actief ? '#fff' : 'var(--text-2)',
               border: tab.actief ? 'none' : '1px solid var(--border)',
               boxShadow: tab.actief ? '0 2px 8px rgba(29,158,117,0.3)' : 'var(--shadow-xs)',
@@ -343,9 +343,9 @@ function IdeeBankContent() {
         {/* Stats row */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14, marginBottom: 28 }}>
           {[
-            { label: 'Totaal ideeën',       waarde: totaalIdeeen,       icon: '💡', kleur: '#185FA5' },
-            { label: 'Klaar voor planning', waarde: klaarVoorPlanning,  icon: '📅', kleur: '#BA7517' },
-            { label: 'Gepubliceerd',        waarde: gepubliceerd,       icon: '🚀', kleur: '#1D9E75' },
+            { label: 'Totaal ideeën',       waarde: totaalIdeeen,       icon: '💡', kleur: 'var(--mf-blue)' },
+            { label: 'Klaar voor planning', waarde: klaarVoorPlanning,  icon: '📅', kleur: 'var(--mf-amber)' },
+            { label: 'Gepubliceerd',        waarde: gepubliceerd,       icon: '🚀', kleur: 'var(--mf-green)' },
           ].map(stat => (
             <div key={stat.label} style={{
               background: 'var(--bg-card)', border: '1px solid var(--border)',
@@ -439,7 +439,7 @@ function IdeeBankContent() {
               style={{
                 padding: '8px 20px', borderRadius: 8, border: 'none',
                 cursor: genereren ? 'not-allowed' : 'pointer',
-                background: genereren ? '#9CA3AF' : '#1D9E75',
+                background: genereren ? 'var(--text-3)' : 'var(--mf-green)',
                 color: '#fff', fontSize: 13, fontWeight: 800,
                 boxShadow: genereren ? 'none' : '0 2px 10px rgba(29,158,117,0.35)',
                 transition: 'all 0.15s ease', whiteSpace: 'nowrap',
@@ -454,9 +454,9 @@ function IdeeBankContent() {
         {/* Error */}
         {error && (
           <div style={{
-            marginBottom: 20, padding: '12px 16px', background: '#FEF2F2',
+            marginBottom: 20, padding: '12px 16px', background: 'var(--mf-red-light)',
             border: '1px solid #FECACA', borderRadius: 10,
-            fontSize: 14, color: '#E24B4A', fontWeight: 600,
+            fontSize: 14, color: 'var(--mf-red)', fontWeight: 600,
           }}>
             {error}
           </div>
@@ -491,7 +491,7 @@ function IdeeBankContent() {
               disabled={genereren}
               style={{
                 padding: '13px 28px', borderRadius: 10, border: 'none', cursor: 'pointer',
-                background: genereren ? '#9CA3AF' : '#1D9E75',
+                background: genereren ? 'var(--text-3)' : 'var(--mf-green)',
                 color: '#fff', fontSize: 15, fontWeight: 800,
                 boxShadow: genereren ? 'none' : '0 4px 16px rgba(29,158,117,0.4)',
                 transition: 'all 0.2s ease',

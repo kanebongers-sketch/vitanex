@@ -184,7 +184,7 @@ export default function DankbaarheidPagina() {
                   <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 5 }}>
                     {log.items.map((item, i) => (
                       <li key={i} style={{ fontSize: 13, color: 'var(--text-2)', display: 'flex', gap: 8, alignItems: 'flex-start' }}>
-                        <span style={{ color: '#A7F3D0', fontWeight: 700, flexShrink: 0, marginTop: 1 }}>✦</span>
+                        <span style={{ color: 'var(--mf-green-light)', fontWeight: 700, flexShrink: 0, marginTop: 1 }}>✦</span>
                         {item}
                       </li>
                     ))}

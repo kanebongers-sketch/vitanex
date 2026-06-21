@@ -183,7 +183,7 @@ function MockDashboard() {
     <div className="w-full rounded-2xl overflow-hidden select-none"
       style={{ maxWidth: 520, boxShadow: '0 48px 120px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.07)' }}>
       {/* Browser chrome */}
-      <div className="px-4 py-3 flex items-center gap-3" style={{ background: '#111827' }}>
+      <div className="px-4 py-3 flex items-center gap-3" style={{ background: 'var(--text-1)' }}>
         <div className="flex gap-1.5">
           {['var(--mf-red)', 'var(--mf-amber)', 'var(--mf-green)'].map(c => <div key={c} className="w-3 h-3 rounded-full" style={{ background: c }} />)}
         </div>
@@ -236,7 +236,7 @@ function MockDashboard() {
         </div>
 
         {/* AI insight */}
-        <div className="rounded-xl p-3.5 mb-3 border" style={{ background: '#0f172a', borderColor: 'rgba(255,255,255,0.06)' }}>
+        <div className="rounded-xl p-3.5 mb-3 border" style={{ background: 'var(--text-1)', borderColor: 'rgba(255,255,255,0.06)' }}>
           <div className="flex items-center gap-2 mb-1.5">
             <span className="text-xs font-bold px-1.5 py-0.5 rounded" style={{ background: 'rgba(29,158,117,0.3)', color: 'var(--mf-green)' }}>AI</span>
             <p className="text-xs font-semibold text-white">Inzicht van deze week</p>
@@ -315,7 +315,7 @@ function Pricing() {
 
   const plans = [
     {
-      naam: 'Starter', maand: 4, kleur: '#374151', populair: false,
+      naam: 'Starter', maand: 4, kleur: 'var(--text-2)', populair: false,
       min: 'Min. 10 medewerkers', sub: 'Ideaal voor kleine teams',
       cta: 'Gratis starten →', href: '/register',
       features: ['Wekelijkse anonieme check-in', 'Persoonlijk medewerkerportaal', 'AI Welzijnscoach', 'Teamchat', 'HR-dashboard (basisoverzicht)'],
@@ -603,7 +603,7 @@ export default function LandingPage() {
                 </div>
                 <p className="font-black mb-2 tracking-tight leading-none" style={{ fontSize: '3rem', color: s.color }}>{s.stat}</p>
                 <p className="text-sm text-gray-500 mb-3 leading-snug max-w-[180px] mx-auto">{s.label}</p>
-                <p className="text-xs font-semibold" style={{ color: '#d1d5db' }}>*{s.bron}</p>
+                <p className="text-xs font-semibold" style={{ color: 'var(--text-4)' }}>*{s.bron}</p>
               </div>
             ))}
           </div>

@@ -34,7 +34,7 @@ const TYPE_LABELS: Record<string, string> = {
   text: 'Open tekst',
 }
 
-const NPS_KLEUR = (score: number) => score >= 30 ? '#1D9E75' : score >= 0 ? '#F59E0B' : '#E24B4A'
+const NPS_KLEUR = (score: number) => score >= 30 ? 'var(--mf-green)' : score >= 0 ? 'var(--mf-amber)' : 'var(--mf-red)'
 
 export default function HrPulseSurveyPage() {
   const router = useRouter()
@@ -108,15 +108,15 @@ export default function HrPulseSurveyPage() {
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 24 }}>
           <div>
-            <h1 style={{ fontSize: 22, fontWeight: 800, color: '#111827', letterSpacing: '-0.03em', marginBottom: 4 }}>Pulse survey</h1>
-            <p style={{ fontSize: 13, color: '#9CA3AF' }}>
+            <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 4 }}>Pulse survey</h1>
+            <p style={{ fontSize: 13, color: 'var(--text-3)' }}>
               Week van {data?.week_start ? new Date(data.week_start).toLocaleDateString('nl-BE', { day: 'numeric', month: 'long' }) : '—'} ·{' '}
               {participatie.respondenten} van {participatie.totaal} ingevuld ({participatie.pct}%)
             </p>
           </div>
           <button
             onClick={() => setNieuw(v => !v)}
-            style={{ padding: '10px 18px', borderRadius: 12, background: '#1D9E75', color: 'white', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 13 }}
+            style={{ padding: '10px 18px', borderRadius: 12, background: 'var(--mf-green)', color: 'white', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 13 }}
           >
             {nieuw ? '✕ Annuleer' : '+ Vraag toevoegen'}
           </button>
@@ -125,19 +125,19 @@ export default function HrPulseSurveyPage() {
         {/* Participatie balk */}
         <div style={{ background: 'white', borderRadius: 14, border: '1px solid #E5E7EB', padding: '16px 20px', marginBottom: 16 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-            <p style={{ fontSize: 13, fontWeight: 600, color: '#374151' }}>Participatie deze week</p>
-            <p style={{ fontSize: 14, fontWeight: 800, color: '#1D9E75' }}>{participatie.pct}%</p>
+            <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-2)' }}>Participatie deze week</p>
+            <p style={{ fontSize: 14, fontWeight: 800, color: 'var(--mf-green)' }}>{participatie.pct}%</p>
           </div>
-          <div style={{ height: 8, background: '#F3F4F6', borderRadius: 100, overflow: 'hidden' }}>
-            <div style={{ height: '100%', width: `${participatie.pct}%`, background: '#1D9E75', borderRadius: 100 }} />
+          <div style={{ height: 8, background: 'var(--bg-subtle)', borderRadius: 100, overflow: 'hidden' }}>
+            <div style={{ height: '100%', width: `${participatie.pct}%`, background: 'var(--mf-green)', borderRadius: 100 }} />
           </div>
-          <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 5 }}>{participatie.respondenten} respondenten van {participatie.totaal} medewerkers</p>
+          <p style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 5 }}>{participatie.respondenten} respondenten van {participatie.totaal} medewerkers</p>
         </div>
 
         {/* Nieuw vraag formulier */}
         {nieuw && (
           <div style={{ background: 'white', borderRadius: 16, border: '1.5px solid #1D9E75', padding: '20px 22px', marginBottom: 16 }}>
-            <p style={{ fontSize: 13, fontWeight: 700, color: '#374151', marginBottom: 14 }}>Nieuwe vraag</p>
+            <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-2)', marginBottom: 14 }}>Nieuwe vraag</p>
             <textarea
               rows={2}
               value={vraag}
@@ -147,7 +147,7 @@ export default function HrPulseSurveyPage() {
             />
             <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
               <div style={{ flex: 1 }}>
-                <p style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 5 }}>Type vraag</p>
+                <p style={{ fontSize: 11, color: 'var(--text-3)', marginBottom: 5 }}>Type vraag</p>
                 <select
                   value={type}
                   onChange={e => setType(e.target.value as typeof type)}
@@ -161,7 +161,7 @@ export default function HrPulseSurveyPage() {
             </div>
             {type === 'multiple_choice' && (
               <div style={{ marginBottom: 12 }}>
-                <p style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 5 }}>Opties (één per regel)</p>
+                <p style={{ fontSize: 11, color: 'var(--text-3)', marginBottom: 5 }}>Opties (één per regel)</p>
                 <textarea
                   rows={4}
                   value={optiesRaw}
@@ -174,7 +174,7 @@ export default function HrPulseSurveyPage() {
             <button
               onClick={voegToe}
               disabled={!vraag.trim() || toevoegen}
-              style={{ width: '100%', padding: '11px', borderRadius: 12, background: '#1D9E75', color: 'white', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 14, opacity: !vraag.trim() || toevoegen ? 0.5 : 1 }}
+              style={{ width: '100%', padding: '11px', borderRadius: 12, background: 'var(--mf-green)', color: 'white', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 14, opacity: !vraag.trim() || toevoegen ? 0.5 : 1 }}
             >
               {toevoegen ? 'Toevoegen...' : 'Vraag toevoegen'}
             </button>
@@ -184,7 +184,7 @@ export default function HrPulseSurveyPage() {
         {/* Vragenlijst */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {(data?.vragen ?? []).length === 0 && (
-            <p style={{ fontSize: 13, color: '#9CA3AF', textAlign: 'center', paddingTop: 40 }}>
+            <p style={{ fontSize: 13, color: 'var(--text-3)', textAlign: 'center', paddingTop: 40 }}>
               Nog geen pulse survey vragen aangemaakt. Klik op "Vraag toevoegen" om te beginnen.
             </p>
           )}
@@ -199,7 +199,7 @@ export default function HrPulseSurveyPage() {
                   onClick={e => { e.stopPropagation(); toggleActief(v.id, v.actief) }}
                   style={{
                     width: 36, height: 20, borderRadius: 100, position: 'relative', cursor: 'pointer', flexShrink: 0,
-                    background: v.actief ? '#1D9E75' : '#E5E7EB', transition: 'background 0.2s',
+                    background: v.actief ? 'var(--mf-green)' : 'var(--border)', transition: 'background 0.2s',
                   }}
                 >
                   <div style={{
@@ -209,24 +209,24 @@ export default function HrPulseSurveyPage() {
                 </div>
 
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <p style={{ fontSize: 13, fontWeight: 600, color: '#111827', marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{v.vraag}</p>
-                  <p style={{ fontSize: 11, color: '#9CA3AF' }}>{TYPE_LABELS[v.type]} · {v.aantal_antwoorden} antwoorden</p>
+                  <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-1)', marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{v.vraag}</p>
+                  <p style={{ fontSize: 11, color: 'var(--text-3)' }}>{TYPE_LABELS[v.type]} · {v.aantal_antwoorden} antwoorden</p>
                 </div>
 
                 {v.type === 'nps' && v.nps !== null && (
                   <div style={{ textAlign: 'right', flexShrink: 0 }}>
                     <p style={{ fontSize: 14, fontWeight: 800, color: NPS_KLEUR(v.nps) }}>{v.nps > 0 ? '+' : ''}{v.nps}</p>
-                    <p style={{ fontSize: 10, color: '#9CA3AF' }}>NPS</p>
+                    <p style={{ fontSize: 10, color: 'var(--text-3)' }}>NPS</p>
                   </div>
                 )}
                 {(v.type === 'scale') && v.gemiddelde !== null && (
                   <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                    <p style={{ fontSize: 14, fontWeight: 800, color: '#1D9E75' }}>{v.gemiddelde}/5</p>
-                    <p style={{ fontSize: 10, color: '#9CA3AF' }}>gem.</p>
+                    <p style={{ fontSize: 14, fontWeight: 800, color: 'var(--mf-green)' }}>{v.gemiddelde}/5</p>
+                    <p style={{ fontSize: 10, color: 'var(--text-3)' }}>gem.</p>
                   </div>
                 )}
 
-                <span style={{ fontSize: 12, color: '#9CA3AF', flexShrink: 0 }}>{uitbreiden === v.id ? '▲' : '▼'}</span>
+                <span style={{ fontSize: 12, color: 'var(--text-3)', flexShrink: 0 }}>{uitbreiden === v.id ? '▲' : '▼'}</span>
               </div>
 
               {uitbreiden === v.id && v.aantal_antwoorden > 0 && (
@@ -237,13 +237,13 @@ export default function HrPulseSurveyPage() {
                         <div style={{ marginBottom: 14 }}>
                           <div style={{ display: 'flex', gap: 12, marginBottom: 8 }}>
                             {[
-                              { label: 'Detractors (0—6)', count: Object.entries(v.distributie).filter(([k]) => parseInt(k) <= 6).reduce((s, [, c]) => s + c, 0), kleur: '#E24B4A' },
-                              { label: 'Passives (7—8)', count: Object.entries(v.distributie).filter(([k]) => [7, 8].includes(parseInt(k))).reduce((s, [, c]) => s + c, 0), kleur: '#F59E0B' },
-                              { label: 'Promoters (9—10)', count: Object.entries(v.distributie).filter(([k]) => parseInt(k) >= 9).reduce((s, [, c]) => s + c, 0), kleur: '#1D9E75' },
+                              { label: 'Detractors (0—6)', count: Object.entries(v.distributie).filter(([k]) => parseInt(k) <= 6).reduce((s, [, c]) => s + c, 0), kleur: 'var(--mf-red)' },
+                              { label: 'Passives (7—8)', count: Object.entries(v.distributie).filter(([k]) => [7, 8].includes(parseInt(k))).reduce((s, [, c]) => s + c, 0), kleur: 'var(--mf-amber)' },
+                              { label: 'Promoters (9—10)', count: Object.entries(v.distributie).filter(([k]) => parseInt(k) >= 9).reduce((s, [, c]) => s + c, 0), kleur: 'var(--mf-green)' },
                             ].map(g => (
                               <div key={g.label} style={{ flex: 1, background: `${g.kleur}12`, borderRadius: 10, padding: '10px 12px', textAlign: 'center' }}>
                                 <p style={{ fontSize: 16, fontWeight: 800, color: g.kleur }}>{g.count}</p>
-                                <p style={{ fontSize: 10, color: '#9CA3AF', marginTop: 2 }}>{g.label}</p>
+                                <p style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 2 }}>{g.label}</p>
                               </div>
                             ))}
                           </div>
@@ -256,11 +256,11 @@ export default function HrPulseSurveyPage() {
                             const max = Math.max(...Object.values(v.distributie))
                             return (
                               <div key={waarde} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                                <span style={{ fontSize: 12, fontWeight: 600, color: '#374151', width: 24, textAlign: 'right' }}>{waarde}</span>
-                                <div style={{ flex: 1, height: 8, background: '#F3F4F6', borderRadius: 100, overflow: 'hidden' }}>
-                                  <div style={{ height: '100%', width: `${(aantal / max) * 100}%`, background: '#1D9E75', borderRadius: 100 }} />
+                                <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-2)', width: 24, textAlign: 'right' }}>{waarde}</span>
+                                <div style={{ flex: 1, height: 8, background: 'var(--bg-subtle)', borderRadius: 100, overflow: 'hidden' }}>
+                                  <div style={{ height: '100%', width: `${(aantal / max) * 100}%`, background: 'var(--mf-green)', borderRadius: 100 }} />
                                 </div>
-                                <span style={{ fontSize: 11, color: '#9CA3AF', width: 24 }}>{aantal}</span>
+                                <span style={{ fontSize: 11, color: 'var(--text-3)', width: 24 }}>{aantal}</span>
                               </div>
                             )
                           })}
@@ -272,17 +272,17 @@ export default function HrPulseSurveyPage() {
                         const max = Math.max(...Object.values(v.distributie))
                         return (
                           <div key={optie} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                            <span style={{ fontSize: 12, color: '#374151', flex: 1 }}>{optie}</span>
-                            <div style={{ width: 120, height: 8, background: '#F3F4F6', borderRadius: 100, overflow: 'hidden' }}>
-                              <div style={{ height: '100%', width: `${(aantal / max) * 100}%`, background: '#1D9E75', borderRadius: 100 }} />
+                            <span style={{ fontSize: 12, color: 'var(--text-2)', flex: 1 }}>{optie}</span>
+                            <div style={{ width: 120, height: 8, background: 'var(--bg-subtle)', borderRadius: 100, overflow: 'hidden' }}>
+                              <div style={{ height: '100%', width: `${(aantal / max) * 100}%`, background: 'var(--mf-green)', borderRadius: 100 }} />
                             </div>
-                            <span style={{ fontSize: 11, color: '#9CA3AF', width: 24 }}>{aantal}</span>
+                            <span style={{ fontSize: 11, color: 'var(--text-3)', width: 24 }}>{aantal}</span>
                           </div>
                         )
                       })}
                     </div>
                   ) : (
-                    <p style={{ fontSize: 12, color: '#9CA3AF' }}>Open antwoorden worden niet weergegeven om anonimiteit te bewaren.</p>
+                    <p style={{ fontSize: 12, color: 'var(--text-3)' }}>Open antwoorden worden niet weergegeven om anonimiteit te bewaren.</p>
                   )}
                 </div>
               )}

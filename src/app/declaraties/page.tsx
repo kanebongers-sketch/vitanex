@@ -40,9 +40,9 @@ const CAT_EMOJI: Record<DeclaratieCategorie, string> = {
 }
 
 const STATUS_STIJL: Record<DeclaratieStatus, { bg: string; color: string; label: string }> = {
-  ingediend:   { bg: '#FAEEDA', color: '#854F0B', label: 'In behandeling' },
-  goedgekeurd: { bg: '#E1F5EE', color: '#0F6E56', label: 'Goedgekeurd' },
-  afgewezen:   { bg: '#FCEBEB', color: '#A32D2D', label: 'Afgewezen' },
+  ingediend:   { bg: 'var(--mf-amber-light)', color: 'var(--mf-amber-dark)', label: 'In behandeling' },
+  goedgekeurd: { bg: 'var(--mf-green-light)', color: 'var(--mf-green-dark)', label: 'Goedgekeurd' },
+  afgewezen:   { bg: 'var(--mf-red-light)', color: 'var(--mf-red)', label: 'Afgewezen' },
 }
 
 export default function DeclaratiesPage() {
@@ -125,7 +125,7 @@ export default function DeclaratiesPage() {
           <button
             onClick={() => setFormulier(true)}
             className="px-4 py-2 rounded-xl text-sm font-semibold text-white"
-            style={{ background: '#8B5CF6' }}
+            style={{ background: 'var(--mf-purple)' }}
           >
             + Indienen
           </button>
@@ -135,13 +135,13 @@ export default function DeclaratiesPage() {
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mb-6">
           <div className="bg-white rounded-2xl p-4" style={{ boxShadow: 'var(--shadow-sm)' }}>
             <p className="text-xs text-gray-400 mb-1">Openstaand</p>
-            <p className="text-xl font-bold" style={{ color: '#BA7517' }}>
+            <p className="text-xl font-bold" style={{ color: 'var(--mf-amber)' }}>
               €{openstaand.toLocaleString('nl-BE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </p>
           </div>
           <div className="bg-white rounded-2xl p-4" style={{ boxShadow: 'var(--shadow-sm)' }}>
             <p className="text-xs text-gray-400 mb-1">Goedgekeurd</p>
-            <p className="text-xl font-bold" style={{ color: '#1D9E75' }}>
+            <p className="text-xl font-bold" style={{ color: 'var(--mf-green)' }}>
               €{totaalGoedgekeurd.toLocaleString('nl-BE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </p>
           </div>
@@ -167,8 +167,8 @@ export default function DeclaratiesPage() {
                       className="flex flex-col items-center gap-1 px-2 py-3 rounded-xl border text-xs transition"
                       style={{
                         background: categorie === c ? '#EDE9FE' : 'white',
-                        borderColor: categorie === c ? '#8B5CF6' : '#e5e7eb',
-                        color: categorie === c ? '#5B21B6' : '#6b7280',
+                        borderColor: categorie === c ? 'var(--mf-purple)' : 'var(--border)',
+                        color: categorie === c ? '#5B21B6' : 'var(--text-2)',
                         fontWeight: categorie === c ? 600 : 400,
                       }}>
                       <span className="text-xl">{CAT_EMOJI[c]}</span>
@@ -204,7 +204,7 @@ export default function DeclaratiesPage() {
 
               <button onClick={indienen} disabled={opslaan}
                 className="w-full py-3 rounded-xl text-white font-semibold text-sm disabled:opacity-40 transition"
-                style={{ background: '#8B5CF6' }}>
+                style={{ background: 'var(--mf-purple)' }}>
                 {opslaan ? 'Indienen...' : 'Declaratie indienen'}
               </button>
             </div>
@@ -216,7 +216,7 @@ export default function DeclaratiesPage() {
 
         {laden ? (
           <div className="flex justify-center py-10">
-            <div className="w-6 h-6 rounded-full border-2 border-gray-200 animate-spin" style={{ borderTopColor: '#8B5CF6' }} />
+            <div className="w-6 h-6 rounded-full border-2 border-gray-200 animate-spin" style={{ borderTopColor: 'var(--mf-purple)' }} />
           </div>
         ) : declaraties.length === 0 ? (
           <div className="bg-white rounded-2xl p-8 text-center" style={{ boxShadow: 'var(--shadow-sm)' }}>
@@ -252,7 +252,7 @@ export default function DeclaratiesPage() {
                   <p className="text-xs text-gray-500 mt-2 ml-11">{d.beschrijving}</p>
                   {d.reviewer_notitie && (
                     <div className="mt-2 ml-11 text-xs rounded-lg px-3 py-2"
-                      style={{ background: d.status === 'goedgekeurd' ? '#E1F5EE' : '#FCEBEB', color: d.status === 'goedgekeurd' ? '#0F6E56' : '#A32D2D' }}>
+                      style={{ background: d.status === 'goedgekeurd' ? 'var(--mf-green-light)' : 'var(--mf-red-light)', color: d.status === 'goedgekeurd' ? 'var(--mf-green-dark)' : 'var(--mf-red)' }}>
                       <strong>Notitie:</strong> {d.reviewer_notitie}
                     </div>
                   )}

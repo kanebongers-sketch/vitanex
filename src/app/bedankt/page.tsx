@@ -37,20 +37,20 @@ interface AnalyseJSON {
 // ─── Domain config ────────────────────────────────────────────────────────────
 
 const VLAK_CONFIG: Record<string, { label: string; kleur: string; licht: string }> = {
-  slaap:    { label: 'Slaap',           kleur: '#8B5CF6', licht: '#F5F3FF' },
-  stress:   { label: 'Stress',          kleur: '#E24B4A', licht: '#FFF5F5' },
-  energie:  { label: 'Energie',         kleur: '#BA7517', licht: '#FFFBEB' },
-  focus:    { label: 'Focus',           kleur: '#1D9E75', licht: '#F0FAF6' },
-  balans:   { label: 'Werk-privé',      kleur: '#378ADD', licht: '#EFF6FF' },
-  motivatie:{ label: 'Motivatie',       kleur: '#9D174D', licht: '#FDF2F8' },
+  slaap:    { label: 'Slaap',           kleur: 'var(--mf-purple)', licht: '#F5F3FF' },
+  stress:   { label: 'Stress',          kleur: 'var(--mf-red)', licht: '#FFF5F5' },
+  energie:  { label: 'Energie',         kleur: 'var(--mf-amber)', licht: 'var(--mf-amber-light)' },
+  focus:    { label: 'Focus',           kleur: 'var(--mf-green)', licht: '#F0FAF6' },
+  balans:   { label: 'Werk-privé',      kleur: 'var(--mf-blue)', licht: '#EFF6FF' },
+  motivatie:{ label: 'Motivatie',       kleur: 'var(--mf-rose)', licht: 'var(--mf-rose-light)' },
 }
 
 const VLAK_VOLGORDE = ['slaap', 'stress', 'energie', 'focus', 'balans', 'motivatie']
 
 function risicoConfig(niveau: string) {
-  if (niveau === 'hoog')  return { bg: 'var(--mf-red-light)', border: '#E24B4A', tekst: 'var(--mf-red)', label: 'Hoog risico' }
-  if (niveau === 'matig') return { bg: 'var(--mf-amber-light)', border: '#BA7517', tekst: 'var(--mf-amber-dark)', label: 'Matig risico' }
-  return { bg: 'var(--mf-green-light)', border: '#1D9E75', tekst: 'var(--mf-green-dark)', label: 'Laag risico' }
+  if (niveau === 'hoog')  return { bg: 'var(--mf-red-light)', border: 'var(--mf-red)', tekst: 'var(--mf-red)', label: 'Hoog risico' }
+  if (niveau === 'matig') return { bg: 'var(--mf-amber-light)', border: 'var(--mf-amber)', tekst: 'var(--mf-amber-dark)', label: 'Matig risico' }
+  return { bg: 'var(--mf-green-light)', border: 'var(--mf-green)', tekst: 'var(--mf-green-dark)', label: 'Laag risico' }
 }
 
 const NIVEAU_CONFIG: Record<string, { bg: string; tekst: string; label: string }> = {
@@ -344,7 +344,7 @@ function BedanktInhoud() {
             <p className="text-xs text-gray-400 mb-4">De AI heeft 3 doelen gekozen op basis van jouw laagste scores.</p>
             <div className="space-y-3">
               {analyse.aanbevolen_doelen.map((doel, i) => {
-                const cfg = VLAK_CONFIG[doel.vlak] ?? { label: doel.vlak, kleur: '#6B7280', licht: '#F9FAFB' }
+                const cfg = VLAK_CONFIG[doel.vlak] ?? { label: doel.vlak, kleur: 'var(--text-2)', licht: 'var(--bg-subtle)' }
                 return (
                   <div key={i} className="rounded-xl p-4 flex gap-3"
                     style={{ background: cfg.licht, border: `1px solid ${cfg.kleur}20` }}>
@@ -391,7 +391,7 @@ function BedanktInhoud() {
             {analyse.aandachtspunten.map((a, i) => (
               <div key={i} className="rounded-xl p-4"
                 style={{ background: 'var(--mf-amber-light)', borderLeft: '3px solid var(--mf-amber)' }}>
-                <p className="text-xs font-semibold mb-1" style={{ color: '#854F0B' }}>{a.titel}</p>
+                <p className="text-xs font-semibold mb-1" style={{ color: 'var(--mf-amber-dark)' }}>{a.titel}</p>
                 <p className="text-sm text-gray-700 leading-relaxed">{a.uitleg}</p>
               </div>
             ))}
@@ -405,7 +405,7 @@ function BedanktInhoud() {
             {analyse.actieplan.map((item, i) => (
               <div key={i} className="flex gap-3">
                 <span className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
-                  style={{ background: '#E6F1FB', color: '#378ADD' }}>{i + 1}</span>
+                  style={{ background: 'var(--mf-blue-light)', color: 'var(--mf-blue)' }}>{i + 1}</span>
                 <div>
                   <p className="text-sm font-semibold text-gray-900">{item.actie}</p>
                   <p className="text-xs text-gray-500 mt-0.5">{item.wanneer}</p>
@@ -422,7 +422,7 @@ function BedanktInhoud() {
             <h2 className="text-sm font-semibold text-gray-900 mb-4">Jouw welzijn per gebied</h2>
             <div className="space-y-3">
               {analyse.wellbeing_categorieen.map((cat) => {
-                const kl = WELLBEING_KLEUR[cat.naam] ?? { k: '#6B7280', l: '#F9FAFB', border: '#E5E7EB' }
+                const kl = WELLBEING_KLEUR[cat.naam] ?? { k: 'var(--text-2)', l: 'var(--bg-subtle)', border: 'var(--border)' }
                 const nv = NIVEAU_CONFIG[cat.niveau] ?? NIVEAU_CONFIG.matig
                 return (
                   <div key={cat.naam} className="rounded-xl border p-4"
@@ -483,18 +483,18 @@ function BedanktInhoud() {
             onClick={toggleDelen}
             disabled={deelBezig}
             className="w-full flex items-center justify-between p-4 rounded-xl border transition"
-            style={{ background: gedeeld ? '#E1F5EE' : '#F9FAFB', borderColor: gedeeld ? '#1D9E75' : '#e5e7eb' }}
+            style={{ background: gedeeld ? 'var(--mf-green-light)' : 'var(--bg-subtle)', borderColor: gedeeld ? 'var(--mf-green)' : 'var(--border)' }}
           >
             <div className="text-left">
-              <p className="text-sm font-medium" style={{ color: gedeeld ? '#0F6E56' : '#374151' }}>
+              <p className="text-sm font-medium" style={{ color: gedeeld ? 'var(--mf-green-dark)' : 'var(--text-2)' }}>
                 {gedeeld ? 'Gedeeld met HR' : 'Deel met HR'}
               </p>
-              <p className="text-xs mt-0.5" style={{ color: gedeeld ? '#1D9E75' : '#9ca3af' }}>
+              <p className="text-xs mt-0.5" style={{ color: gedeeld ? 'var(--mf-green)' : 'var(--text-3)' }}>
                 {gedeeld ? 'HR kan deze analyse inzien.' : 'HR krijgt toegang tot deze analyse.'}
               </p>
             </div>
             <div className="w-10 h-6 rounded-full flex items-center transition-all duration-200 flex-shrink-0 ml-4"
-              style={{ background: gedeeld ? '#1D9E75' : '#d1d5db', justifyContent: gedeeld ? 'flex-end' : 'flex-start', padding: '2px' }}>
+              style={{ background: gedeeld ? 'var(--mf-green)' : 'var(--text-4)', justifyContent: gedeeld ? 'flex-end' : 'flex-start', padding: '2px' }}>
               <div className="w-5 h-5 rounded-full bg-white shadow-sm" />
             </div>
           </button>
@@ -504,12 +504,12 @@ function BedanktInhoud() {
         <div className="flex flex-col gap-3">
           <Link href="/doelen"
             className="w-full inline-block text-center text-white rounded-xl py-3.5 text-sm font-semibold"
-            style={{ background: '#1D9E75' }}>
+            style={{ background: 'var(--mf-green)' }}>
             Bekijk je doelen voor deze week
           </Link>
           <Link href="/rapport"
             className="w-full inline-block text-center rounded-xl py-3.5 text-sm font-medium border"
-            style={{ borderColor: '#378ADD', color: '#378ADD' }}>
+            style={{ borderColor: 'var(--mf-blue)', color: 'var(--mf-blue)' }}>
             Volledig rapport bekijken
           </Link>
           <Link href="/home"
@@ -539,7 +539,7 @@ function BedanktInhoud() {
             </svg>
           </div>
           <div style={{ flex: 1 }}>
-            <p style={{ fontSize: 15, fontWeight: 800, color: '#7C3AED', marginBottom: 2 }}>
+            <p style={{ fontSize: 15, fontWeight: 800, color: 'var(--mf-purple)', marginBottom: 2 }}>
               +{xpToast.xp} XP verdiend!
             </p>
             {xpToast.level && (
@@ -548,11 +548,11 @@ function BedanktInhoud() {
               </p>
             )}
             {xpToast.achievements.length > 0 && (
-              <p style={{ fontSize: 11, color: '#BA7517', fontWeight: 600 }}>
+              <p style={{ fontSize: 11, color: 'var(--mf-amber)', fontWeight: 600 }}>
                 Achievement: {xpToast.achievements.map((a: Achievement) => a.naam).join(', ')}
               </p>
             )}
-            <Link href="/niveau" style={{ fontSize: 11, color: '#7C3AED', textDecoration: 'underline', fontWeight: 600 }}>
+            <Link href="/niveau" style={{ fontSize: 11, color: 'var(--mf-purple)', textDecoration: 'underline', fontWeight: 600 }}>
               Bekijk Fit Level
             </Link>
           </div>

@@ -332,12 +332,12 @@ export default function CheckIn() {
 
         {kanOpnieuw && (
           <div className="rounded-xl p-4 mb-4 text-left"
-            style={{ background: '#FAEEDA', borderLeft: '3px solid #BA7517' }}>
-            <p className="text-xs font-medium mb-1" style={{ color: '#854F0B' }}>Wil je je antwoorden aanpassen?</p>
-            <p className="text-xs mb-3" style={{ color: '#854F0B' }}>Je kan opnieuw invullen binnen 4 uur na het indienen.</p>
+            style={{ background: 'var(--mf-amber-light)', borderLeft: '3px solid #BA7517' }}>
+            <p className="text-xs font-medium mb-1" style={{ color: 'var(--mf-amber-dark)' }}>Wil je je antwoorden aanpassen?</p>
+            <p className="text-xs mb-3" style={{ color: 'var(--mf-amber-dark)' }}>Je kan opnieuw invullen binnen 4 uur na het indienen.</p>
             <button onClick={verwijderSessie} disabled={laden}
               className="w-full py-2 rounded-lg text-xs font-medium disabled:opacity-40"
-              style={{ background: '#854F0B', color: 'white' }}>
+              style={{ background: 'var(--mf-amber-dark)', color: 'white' }}>
               {laden ? 'Bezig...' : 'Opnieuw invullen'}
             </button>
           </div>
@@ -345,12 +345,12 @@ export default function CheckIn() {
 
         {/* Testmodus — alleen in development */}
         {process.env.NODE_ENV === 'development' && (
-          <div className="rounded-xl p-4 mb-6 text-left" style={{ background: '#F3F4F6', borderLeft: '3px solid #9ca3af' }}>
+          <div className="rounded-xl p-4 mb-6 text-left" style={{ background: 'var(--bg-subtle)', borderLeft: '3px solid #9ca3af' }}>
             <p className="text-xs font-medium mb-1 text-gray-500">Testmodus</p>
             <p className="text-xs mb-3 text-gray-400">Bypass de wekelijkse limiet en vul opnieuw in.</p>
             <button onClick={verwijderSessie} disabled={laden}
               className="w-full py-2 rounded-lg text-xs font-medium disabled:opacity-40"
-              style={{ background: '#6b7280', color: 'white' }}>
+              style={{ background: 'var(--text-2)', color: 'white' }}>
               {laden ? 'Bezig...' : 'Opnieuw invullen (test)'}
             </button>
           </div>
@@ -358,7 +358,7 @@ export default function CheckIn() {
 
         <div className="flex flex-col gap-3">
           <Link href="/home" className="w-full inline-block text-center text-white rounded-xl py-3 text-sm font-medium"
-            style={{ background: '#1D9E75' }}>Naar dashboard</Link>
+            style={{ background: 'var(--mf-green)' }}>Naar dashboard</Link>
           <Link href="/bedankt" className="w-full inline-block text-center border border-gray-200 text-gray-500 rounded-xl py-3 text-sm hover:bg-gray-50 transition">
             Bekijk laatste analyse</Link>
         </div>
@@ -386,7 +386,7 @@ export default function CheckIn() {
 
       {/* Sticky header */}
       <div ref={topRef} className="sticky top-0 z-20 border-b"
-        style={{ background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(12px)', borderColor: '#e5e7eb' }}>
+        style={{ background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(12px)', borderColor: 'var(--border)' }}>
         <div className="max-w-2xl mx-auto px-5 py-3">
 
           {/* Sectie pills */}
@@ -399,8 +399,8 @@ export default function CheckIn() {
                   onClick={() => i < sectieIdx && setSectieIdx(i)}
                   className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition"
                   style={{
-                    background: actief ? s.kleur : klaar ? s.kleur + '20' : '#F3F4F6',
-                    color:      actief ? 'white'  : klaar ? s.kleur        : '#9ca3af',
+                    background: actief ? s.kleur : klaar ? s.kleur + '20' : 'var(--bg-subtle)',
+                    color:      actief ? 'white'  : klaar ? s.kleur        : 'var(--text-3)',
                     cursor:     i < sectieIdx ? 'pointer' : 'default',
                   }}>
                   {klaar && (
@@ -474,7 +474,7 @@ export default function CheckIn() {
 
         {/* Fout */}
         {fout && (
-          <div className="mt-5 rounded-xl p-4" style={{ background: '#FCEBEB', borderLeft: '3px solid #E24B4A' }}>
+          <div className="mt-5 rounded-xl p-4" style={{ background: 'var(--mf-red-light)', borderLeft: '3px solid #E24B4A' }}>
             <p className="text-sm text-red-700">{fout}</p>
           </div>
         )}
@@ -545,9 +545,9 @@ function VraagKaart({ vraag, waarde, kleur, onChange }: {
             <button key={n} onClick={() => onChange(n)}
               className="flex-1 h-11 rounded-xl text-sm font-semibold transition-all border"
               style={{
-                background:  geselecteerd === n ? kleur : '#F9FAFB',
-                borderColor: geselecteerd === n ? kleur : '#e5e7eb',
-                color:       geselecteerd === n ? 'white' : '#9ca3af',
+                background:  geselecteerd === n ? kleur : 'var(--bg-subtle)',
+                borderColor: geselecteerd === n ? kleur : 'var(--border)',
+                color:       geselecteerd === n ? 'white' : 'var(--text-3)',
                 transition:  'transform 0.1s ease, background 0.15s ease',
               }}
               onMouseDown={e => ((e.currentTarget as HTMLElement).style.transform = 'scale(0.93)')}
@@ -580,7 +580,7 @@ function VraagKaart({ vraag, waarde, kleur, onChange }: {
         className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 outline-none resize-none transition text-gray-700"
         style={{ fontSize: 16 }}
         onFocus={e => e.target.style.borderColor = kleur}
-        onBlur={e  => e.target.style.borderColor = '#e5e7eb'}
+        onBlur={e  => e.target.style.borderColor = 'var(--border)'}
       />
       {tekst && <p className="text-xs text-gray-300 text-right mt-1">{tekst.length} tekens</p>}
     </div>

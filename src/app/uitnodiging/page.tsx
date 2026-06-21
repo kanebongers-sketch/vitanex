@@ -237,7 +237,7 @@ function UitnodigingForm() {
             <div className="flex items-center gap-2">
               {[0, 1, 2].map(i => (
                 <div key={i} className="flex-1 h-1.5 rounded-full transition-all"
-                  style={{ background: sterkte > i ? ['#E24B4A', '#BA7517', '#1D9E75'][i] : '#e5e7eb' }} />
+                  style={{ background: sterkte > i ? ['var(--mf-red)', 'var(--mf-amber)', 'var(--mf-green)'][i] : 'var(--border)' }} />
               ))}
               <span className="text-xs text-gray-400 w-10">
                 {['Te kort', 'Matig', 'Goed', 'Sterk'][sterkte]}

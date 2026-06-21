@@ -92,7 +92,7 @@ export default function PsychVeiligheidPagina() {
             Hoe veilig voelt het om jezelf te zijn op je werk? · Wekelijkse meting
           </p>
           {gemiddeld && (
-            <p style={{ fontSize: 14, fontWeight: 700, color: Number(gemiddeld) >= 4 ? '#059669' : Number(gemiddeld) >= 3 ? '#F59E0B' : '#EF4444', marginTop: 6 }}>
+            <p style={{ fontSize: 14, fontWeight: 700, color: Number(gemiddeld) >= 4 ? 'var(--mf-green)' : Number(gemiddeld) >= 3 ? 'var(--mf-amber)' : 'var(--mf-red)', marginTop: 6 }}>
               Gemiddeld de afgelopen maand: {gemiddeld}/5
             </p>
           )}
@@ -109,7 +109,7 @@ export default function PsychVeiligheidPagina() {
               <p style={{ fontSize: 11, color: 'var(--text-3, #9CA3AF)', marginBottom: 8 }}>{v.beschrijving}</p>
               <div style={{ display: 'flex', gap: 8 }}>
                 {[1, 2, 3, 4, 5].map(n => {
-                  const kleur = n >= 4 ? '#1D9E75' : n === 3 ? '#F59E0B' : '#EF4444'
+                  const kleur = n >= 4 ? 'var(--mf-green)' : n === 3 ? 'var(--mf-amber)' : 'var(--mf-red)'
                   return (
                     <button
                       key={n}
@@ -128,8 +128,8 @@ export default function PsychVeiligheidPagina() {
                 })}
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 3 }}>
-                <span style={{ fontSize: 9, color: '#9CA3AF' }}>Zelden</span>
-                <span style={{ fontSize: 9, color: '#9CA3AF' }}>Altijd</span>
+                <span style={{ fontSize: 9, color: 'var(--text-3)' }}>Zelden</span>
+                <span style={{ fontSize: 9, color: 'var(--text-3)' }}>Altijd</span>
               </div>
             </div>
           ))}
@@ -154,7 +154,7 @@ export default function PsychVeiligheidPagina() {
 
         {metingen.length > 1 && (
           <section>
-            <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#9CA3AF', marginBottom: 12 }}>
+            <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-3)', marginBottom: 12 }}>
               Verloop
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -166,12 +166,12 @@ export default function PsychVeiligheidPagina() {
                   <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
                     <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                       {[m.vrijheid_spreken, m.fouten_ok, m.idee_delen].map((s, i) => (
-                        <div key={i} style={{ width: 24, height: 24, borderRadius: 6, background: s >= 4 ? '#E1F5EE' : s >= 3 ? '#FEF3C7' : '#FEF2F2', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          <span style={{ fontSize: 10, fontWeight: 700, color: s >= 4 ? '#059669' : s >= 3 ? '#B45309' : '#EF4444' }}>{s}</span>
+                        <div key={i} style={{ width: 24, height: 24, borderRadius: 6, background: s >= 4 ? 'var(--mf-green-light)' : s >= 3 ? 'var(--mf-amber-light)' : 'var(--mf-red-light)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <span style={{ fontSize: 10, fontWeight: 700, color: s >= 4 ? 'var(--mf-green)' : s >= 3 ? 'var(--mf-amber-dark)' : 'var(--mf-red)' }}>{s}</span>
                         </div>
                       ))}
                     </div>
-                    <span style={{ fontSize: 14, fontWeight: 800, color: m.score >= 4 ? '#059669' : m.score >= 3 ? '#F59E0B' : '#EF4444' }}>
+                    <span style={{ fontSize: 14, fontWeight: 800, color: m.score >= 4 ? 'var(--mf-green)' : m.score >= 3 ? 'var(--mf-amber)' : 'var(--mf-red)' }}>
                       {m.score}/5
                     </span>
                   </div>

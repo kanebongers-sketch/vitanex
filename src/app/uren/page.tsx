@@ -140,7 +140,7 @@ export default function UrenPage() {
           <button
             onClick={() => setFormulier(true)}
             className="px-4 py-2 rounded-xl text-sm font-semibold text-white"
-            style={{ background: '#378ADD' }}
+            style={{ background: 'var(--mf-blue)' }}
           >
             + Loggen
           </button>
@@ -150,7 +150,7 @@ export default function UrenPage() {
         <div className="bg-white rounded-2xl p-5 mb-5" style={{ boxShadow: 'var(--shadow-sm)' }}>
           <div className="flex items-center justify-between mb-3">
             <p className="text-sm font-semibold text-gray-700">Deze week</p>
-            <p className="text-sm font-bold" style={{ color: totaalUren >= doelUren ? '#1D9E75' : '#378ADD' }}>
+            <p className="text-sm font-bold" style={{ color: totaalUren >= doelUren ? 'var(--mf-green)' : 'var(--mf-blue)' }}>
               {totaalUren}/{doelUren} uur
             </p>
           </div>
@@ -158,7 +158,7 @@ export default function UrenPage() {
             <div className="h-full rounded-full transition-all"
               style={{
                 width: `${Math.min(100, (totaalUren / doelUren) * 100)}%`,
-                background: totaalUren >= doelUren ? '#1D9E75' : '#378ADD',
+                background: totaalUren >= doelUren ? 'var(--mf-green)' : 'var(--mf-blue)',
               }} />
           </div>
           <div className="grid grid-cols-7 gap-1">
@@ -169,13 +169,13 @@ export default function UrenPage() {
               const isWeekend = dag.getDay() === 0 || dag.getDay() === 6
               return (
                 <div key={sleutel} className="flex flex-col items-center gap-1">
-                  <p className="text-xs" style={{ color: isVandaag ? '#378ADD' : '#9ca3af', fontWeight: isVandaag ? 700 : 400 }}>
+                  <p className="text-xs" style={{ color: isVandaag ? 'var(--mf-blue)' : 'var(--text-3)', fontWeight: isVandaag ? 700 : 400 }}>
                     {dagNaam(dag)}
                   </p>
                   <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-semibold"
                     style={{
-                      background: u > 0 ? '#E6F1FB' : isWeekend ? '#F9FAFB' : '#F3F4F6',
-                      color: u > 0 ? '#185FA5' : '#d1d5db',
+                      background: u > 0 ? 'var(--mf-blue-light)' : isWeekend ? 'var(--bg-subtle)' : 'var(--bg-subtle)',
+                      color: u > 0 ? 'var(--mf-blue)' : 'var(--text-4)',
                       border: isVandaag ? '2px solid #378ADD' : '2px solid transparent',
                     }}>
                     {u > 0 ? u : '—'}
@@ -232,7 +232,7 @@ export default function UrenPage() {
 
               <button onClick={opslaanRegistratie} disabled={opslaan || !uren}
                 className="w-full py-3 rounded-xl text-white font-semibold text-sm disabled:opacity-40 transition"
-                style={{ background: '#378ADD' }}>
+                style={{ background: 'var(--mf-blue)' }}>
                 {opslaan ? 'Opslaan...' : 'Opslaan'}
               </button>
             </div>
@@ -244,7 +244,7 @@ export default function UrenPage() {
 
         {laden ? (
           <div className="flex justify-center py-10">
-            <div className="w-6 h-6 rounded-full border-2 border-gray-200 animate-spin" style={{ borderTopColor: '#378ADD' }} />
+            <div className="w-6 h-6 rounded-full border-2 border-gray-200 animate-spin" style={{ borderTopColor: 'var(--mf-blue)' }} />
           </div>
         ) : registraties.length === 0 ? (
           <div className="bg-white rounded-2xl p-8 text-center" style={{ boxShadow: 'var(--shadow-sm)' }}>
@@ -258,7 +258,7 @@ export default function UrenPage() {
                 style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
                 <div className="flex items-center gap-3 min-w-0">
                   <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold flex-shrink-0"
-                    style={{ background: '#E6F1FB', color: '#185FA5' }}>
+                    style={{ background: 'var(--mf-blue-light)', color: 'var(--mf-blue)' }}>
                     {r.uren}
                   </div>
                   <div className="min-w-0">
@@ -272,7 +272,7 @@ export default function UrenPage() {
                 <div className="flex items-center gap-2 flex-shrink-0">
                   {r.goedgekeurd && (
                     <span className="text-xs px-2 py-0.5 rounded-full font-medium"
-                      style={{ background: '#E1F5EE', color: '#0F6E56' }}>✓</span>
+                      style={{ background: 'var(--mf-green-light)', color: 'var(--mf-green-dark)' }}>✓</span>
                   )}
                   <button onClick={() => verwijder(r.id)}
                     className="text-gray-300 hover:text-red-400 transition text-sm">🗑</button>

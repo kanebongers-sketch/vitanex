@@ -49,7 +49,7 @@ export default function WachtwoordVergeten() {
         {status === 'verstuurd' ? (
           <div className="text-center">
             <div className="w-16 h-16 rounded-full flex items-center justify-center text-3xl mx-auto mb-6"
-              style={{ background: '#E1F5EE' }}>
+              style={{ background: 'var(--mf-green-light)' }}>
               📬
             </div>
             <h1 className="text-xl font-semibold text-gray-900 mb-2">Mail verstuurd</h1>

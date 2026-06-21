@@ -20,7 +20,7 @@ const SCORE_LABEL: Record<string, string> = {
 }
 
 const CATEGORIE = (score: number) => score >= 9 ? 'Promoter' : score >= 7 ? 'Passief' : 'Detractor'
-const CAT_KLEUR = (score: number) => score >= 9 ? '#1D9E75' : score >= 7 ? '#F59E0B' : '#E24B4A'
+const CAT_KLEUR = (score: number) => score >= 9 ? 'var(--mf-green)' : score >= 7 ? 'var(--mf-amber)' : 'var(--mf-red)'
 
 export default function ENPSPage() {
   const router = useRouter()
@@ -95,7 +95,7 @@ export default function ENPSPage() {
         ) : klaar ? (
           <div style={{ background: '#F0FAF6', borderRadius: 16, border: '1px solid #BBF0DC', padding: '20px 22px', marginBottom: 16, textAlign: 'center' }}>
             <p style={{ fontSize: 20, marginBottom: 8 }}>✓</p>
-            <p style={{ fontSize: 14, fontWeight: 600, color: '#1D9E75' }}>Bedankt voor je eerlijke antwoord!</p>
+            <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--mf-green)' }}>Bedankt voor je eerlijke antwoord!</p>
             <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 4 }}>Jouw respons is volledig anoniem verwerkt.</p>
           </div>
         ) : (
@@ -124,8 +124,8 @@ export default function ENPSPage() {
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 20 }}>
-              <span style={{ fontSize: 11, color: '#E24B4A', fontWeight: 600 }}>0 — Helemaal niet</span>
-              <span style={{ fontSize: 11, color: '#1D9E75', fontWeight: 600 }}>10 — Absoluut</span>
+              <span style={{ fontSize: 11, color: 'var(--mf-red)', fontWeight: 600 }}>0 — Helemaal niet</span>
+              <span style={{ fontSize: 11, color: 'var(--mf-green)', fontWeight: 600 }}>10 — Absoluut</span>
             </div>
 
             {score !== null && (

@@ -12,7 +12,7 @@ const sb = createClient(
 
 const FF = '#F5A623', DARK = '#0c0c11', CARD = '#131318', CARD2 = '#1a1a22'
 const BORDER = 'rgba(255,255,255,0.06)', TEXT = 'rgba(255,255,255,0.88)', MUTED = 'rgba(255,255,255,0.35)'
-const GREEN = '#22C55E', RED = '#EF4444'
+const GREEN = 'var(--mf-green)', RED = 'var(--mf-red)'
 
 type Contact = {
   id: string; naam: string; email: string; stad: string; sector: string; score: number
@@ -104,9 +104,9 @@ export default function BedrijvenPage() {
     const s = c[`r${r}_status` as 'r1_status' | 'r2_status' | 'r3_status']
     if (!s || s === 'gepland') return null
     const colors: Record<string, string> = {
-      verstuurd: GREEN, goedgekeurd: GREEN, email_goedgekeurd: '#6EE7B7',
-      wacht: '#94A3B8', email_klaar: '#818CF8',
-      overgeslagen: '#6B7280', email_overgeslagen: '#6B7280',
+      verstuurd: GREEN, goedgekeurd: GREEN, email_goedgekeurd: 'var(--mf-green-light)',
+      wacht: 'var(--text-3)', email_klaar: '#818CF8',
+      overgeslagen: 'var(--text-2)', email_overgeslagen: 'var(--text-2)',
     }
     const labels: Record<string, string> = {
       verstuurd: '📤', goedgekeurd: '✅', email_goedgekeurd: '📧',

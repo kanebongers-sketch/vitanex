@@ -24,10 +24,10 @@ const ADEM: Record<AdemTab, {
     beschrijving: 'Gebruikt door Navy SEALs en topsporters om stress snel te verlagen en focus te herwinnen.',
     voordelen: ['Verlaagt cortisol', 'Verbetert concentratie', 'Kalmeert het zenuwstelsel'],
     fases: [
-      { label: 'Inademen',  duur: 4, kleur: '#1D9E75' },
-      { label: 'Vasthouden', duur: 4, kleur: '#378ADD' },
-      { label: 'Uitademen', duur: 4, kleur: '#8B5CF6' },
-      { label: 'Vasthouden', duur: 4, kleur: '#BA7517' },
+      { label: 'Inademen',  duur: 4, kleur: 'var(--mf-green)' },
+      { label: 'Vasthouden', duur: 4, kleur: 'var(--mf-blue)' },
+      { label: 'Uitademen', duur: 4, kleur: 'var(--mf-purple)' },
+      { label: 'Vasthouden', duur: 4, kleur: 'var(--mf-amber)' },
     ],
   },
   '478': {
@@ -35,9 +35,9 @@ const ADEM: Record<AdemTab, {
     beschrijving: 'Ontwikkeld door Dr. Andrew Weil. Kalmeert het autonome zenuwstelsel en helpt bij angst en inslapen.',
     voordelen: ['Vermindert angst', 'Helpt bij inslapen', 'Verlaagt hartslag'],
     fases: [
-      { label: 'Inademen',  duur: 4, kleur: '#1D9E75' },
-      { label: 'Vasthouden', duur: 7, kleur: '#378ADD' },
-      { label: 'Uitademen', duur: 8, kleur: '#8B5CF6' },
+      { label: 'Inademen',  duur: 4, kleur: 'var(--mf-green)' },
+      { label: 'Vasthouden', duur: 7, kleur: 'var(--mf-blue)' },
+      { label: 'Uitademen', duur: 8, kleur: 'var(--mf-purple)' },
     ],
   },
   coherentie: {
@@ -45,8 +45,8 @@ const ADEM: Record<AdemTab, {
     beschrijving: 'Synchroniseert de ademhaling met het hart. 5-5 ritme activeert de herstelrespons.',
     voordelen: ['Balanceert hart & geest', 'Verlaagt bloeddruk', 'Verbetert emotieregulatie'],
     fases: [
-      { label: 'Inademen',  duur: 5, kleur: '#1D9E75' },
-      { label: 'Uitademen', duur: 5, kleur: '#8B5CF6' },
+      { label: 'Inademen',  duur: 5, kleur: 'var(--mf-green)' },
+      { label: 'Uitademen', duur: 5, kleur: 'var(--mf-purple)' },
     ],
   },
   wim: {
@@ -54,18 +54,18 @@ const ADEM: Record<AdemTab, {
     beschrijving: 'Dubbele inademing door de neus gevolgd door een lange uitademing. Stamt uit neurowetenschappelijk onderzoek van Stanford.',
     voordelen: ['Snelste stressverlichting', 'Activeert parasympathisch stelsel', 'Werkt binnen 1 minuut'],
     fases: [
-      { label: 'In (neus)',      duur: 2, kleur: '#1D9E75' },
-      { label: 'Extra in (neus)', duur: 1, kleur: '#378ADD' },
-      { label: 'Lang uitademen', duur: 8, kleur: '#8B5CF6' },
+      { label: 'In (neus)',      duur: 2, kleur: 'var(--mf-green)' },
+      { label: 'Extra in (neus)', duur: 1, kleur: 'var(--mf-blue)' },
+      { label: 'Lang uitademen', duur: 8, kleur: 'var(--mf-purple)' },
     ],
   },
 }
 
 // --- Timer data ---------------------------------------------------------------
 const TIMERS: Record<TimerTab, { naam: string; duur: number; kleur: string; afk: string; tip: string }> = {
-  focus: { naam: 'Diepe focus', duur: 25 * 60, kleur: '#1D9E75', afk: '25',  tip: 'Leg je telefoon weg, sluit onnodige tabs en zet notificaties op stil.' },
-  pauze: { naam: 'Pauze',       duur: 5 * 60,  kleur: '#378ADD', afk: '5',   tip: 'Sta op, rek je uit, kijk even naar buiten. Geen scherm.' },
-  micro: { naam: 'Micro-break', duur: 90,       kleur: '#8B5CF6', afk: '90s', tip: 'Sluit je ogen. Adem 3x diep in. Ontspan je kaken en schouders.' },
+  focus: { naam: 'Diepe focus', duur: 25 * 60, kleur: 'var(--mf-green)', afk: '25',  tip: 'Leg je telefoon weg, sluit onnodige tabs en zet notificaties op stil.' },
+  pauze: { naam: 'Pauze',       duur: 5 * 60,  kleur: 'var(--mf-blue)', afk: '5',   tip: 'Sta op, rek je uit, kijk even naar buiten. Geen scherm.' },
+  micro: { naam: 'Micro-break', duur: 90,       kleur: 'var(--mf-purple)', afk: '90s', tip: 'Sluit je ogen. Adem 3x diep in. Ontspan je kaken en schouders.' },
 }
 
 // --- Movement data ------------------------------------------------------------
@@ -186,7 +186,7 @@ const VOEDING_CATEGORIEEN = [
   {
     titel: 'Hydratatie',
     afk: 'H2O',
-    kleur: '#378ADD',
+    kleur: 'var(--mf-blue)',
     tips: [
       { titel: 'Drink voor je dorst voelt', tekst: 'Zodra je dorstig bent, ben je al 1-2% uitgedroogd. Dit verlaagt je concentratie meetbaar. Houd een fles water op je bureau.' },
       { titel: 'Koffieregel: 1 op 1', tekst: 'Drink bij elke kop koffie ook een glas water. Koffie werkt licht vochtafdrijvend. Zo blijf je gehydrateerd zonder cafeinegehalte te verlagen.' },
@@ -197,7 +197,7 @@ const VOEDING_CATEGORIEEN = [
   {
     titel: 'Focus eten',
     afk: 'F',
-    kleur: '#1D9E75',
+    kleur: 'var(--mf-green)',
     tips: [
       { titel: 'Blauwe bessen: het hersenfruit', tekst: 'Rijk aan antioxidanten (flavonoiden) die de bloedtoevoer naar de prefrontale cortex verhogen. Een handje voor je werk bevordert aandacht en werkgeheugen.' },
       { titel: 'Noten als snack', tekst: 'Walnoten bevatten omega-3 vetzuren die de verbinding tussen neuronen versterken. Amandelen geven langzame energie. Ideaal als bureausnack.' },
@@ -209,7 +209,7 @@ const VOEDING_CATEGORIEEN = [
   {
     titel: 'Energieniveaus',
     afk: 'E',
-    kleur: '#BA7517',
+    kleur: 'var(--mf-amber)',
     tips: [
       { titel: 'Vermijd suikerpieken', tekst: 'Na een snelle suikerpiek (snoep, frisdrank) volgt een even snelle dip, met verminderde concentratie. Kies voor complexe koolhydraten zoals havermout of volkorenbrood.' },
       { titel: 'Eiwitrijk ontbijt', tekst: 'Eiwitten (eieren, kwark, noten) stabiliseren de bloedsuiker en zorgen voor een lang gevoel van verzadiging. Dit voorkomt de ochtend-concentratieproblemen.' },
@@ -221,7 +221,7 @@ const VOEDING_CATEGORIEEN = [
   {
     titel: 'Anti-stress voeding',
     afk: 'AS',
-    kleur: '#8B5CF6',
+    kleur: 'var(--mf-purple)',
     tips: [
       { titel: 'Adaptogenen: Ashwagandha', tekst: 'Ashwagandha (in supplementvorm of thee) is een klinisch onderzochte adaptogeen die de cortisolaanmaak bij chronische stress significant verlaagt.' },
       { titel: 'Gefermenteerd voedsel', tekst: 'Yoghurt, kefir en zuurkool bevatten probiotica die de darm-hersenverbinding ondersteunen. Gut health is direct gekoppeld aan stressgevoeligheid en stemming.' },
@@ -236,7 +236,7 @@ const SLAAP_SECTIES = [
   {
     titel: 'Slaaproutine opbouwen',
     afk: 'SR',
-    kleur: '#8B5CF6',
+    kleur: 'var(--mf-purple)',
     items: [
       { titel: 'Vaste slaaptijden', tekst: 'Je lichaam heeft een interne klok (circadiaan ritme). Elke dag op dezelfde tijd naar bed gaan en opstaan, ook in het weekend, verbetert slaapkwaliteit dramatisch na 2-3 weken.' },
       { titel: 'Wind-down ritueel', tekst: 'Begin 60 minuten voor slaaptijd met dimmen: geen schermen, zachte verlichting, rustige activiteit (lezen, stretchen, warme douche). Dit activeert melatonineproductie.' },
@@ -247,7 +247,7 @@ const SLAAP_SECTIES = [
   {
     titel: 'Slaap en stress',
     afk: 'SS',
-    kleur: '#378ADD',
+    kleur: 'var(--mf-blue)',
     items: [
       { titel: 'Schrijf zorgen van je af', tekst: 'Maak voor het slapen een "worry dump": schrijf alles op wat je bezighoudt. Dit ontlaadt je werkgeheugen en voorkomt piekeren in bed.' },
       { titel: 'Piekertijd overdag inplannen', tekst: 'Reserveer 15-20 minuten overdag specifiek om te piekeren. Als je in bed begint te piekeren, herinner jezelf: dat doe ik morgen tijdens mijn piekertijd.' },
@@ -258,7 +258,7 @@ const SLAAP_SECTIES = [
   {
     titel: 'Powernap wetenschap',
     afk: 'PN',
-    kleur: '#1D9E75',
+    kleur: 'var(--mf-green)',
     items: [
       { titel: 'De ideale nap: 10-20 minuten', tekst: 'Korte naps van 10-20 minuten verbeteren alertheid, stemming en cognitieve prestaties zonder de slaapkwaliteit \'s nachts te verstoren. NASA-onderzoek bevestigt dit.' },
       { titel: 'Koffiedutje truc', tekst: 'Drink een espresso net voor je dutje. Cafeïne werkt na 20-25 minuten: je wordt wakker precies als het cafeïne begint te werken. Extra alert op twee manieren tegelijk.' },
@@ -269,7 +269,7 @@ const SLAAP_SECTIES = [
   {
     titel: 'Melatonine & supplementen',
     afk: 'ML',
-    kleur: '#BA7517',
+    kleur: 'var(--mf-amber)',
     items: [
       { titel: 'Melatonine: minder is meer', tekst: 'De effectieve dosis melatonine is 0.5-1 mg, niet de 5-10 mg die in de meeste supplementen zit. Lagere doses werken even goed met minder bijeffecten.' },
       { titel: 'Magnesium glycinaat voor slaap', tekst: 'Magnesium glycinaat (niet oxide) ontspant spieren en zenuwstelsel. 200-400 mg 30 min voor bed helpt bij in- en doorslapen.' },
@@ -285,7 +285,7 @@ const MENTAAL_TECHNIEKEN = [
     naam: '5-4-3-2-1 grounding',
     afk: 'GR',
     duur: '2 min',
-    kleur: '#1D9E75',
+    kleur: 'var(--mf-green)',
     beschrijving: 'Een evidence-based techniek tegen angst en overweldigend gevoel.',
     stappen: [
       '5 dingen die je KAN ZIEN  benoem ze in je hoofd',
@@ -299,7 +299,7 @@ const MENTAAL_TECHNIEKEN = [
     naam: 'Mentale ontluchting',
     afk: 'MO',
     duur: '5 min',
-    kleur: '#378ADD',
+    kleur: 'var(--mf-blue)',
     beschrijving: 'Schrijf alles uit je hoofd. Geen oordeel, geen structuur.',
     stappen: [
       'Pak een leeg blad of open een leeg document',
@@ -313,7 +313,7 @@ const MENTAAL_TECHNIEKEN = [
     naam: 'Cognitieve herstructurering',
     afk: 'CH',
     duur: '5 min',
-    kleur: '#8B5CF6',
+    kleur: 'var(--mf-purple)',
     beschrijving: 'Stel de gedachte die je stress geeft in vraag.',
     stappen: [
       'Identificeer de stressvolle gedachte: "Ik ga dit niet afkrijgen."',
@@ -327,7 +327,7 @@ const MENTAAL_TECHNIEKEN = [
     naam: 'Bodyscan meditatie',
     afk: 'BS',
     duur: '8 min',
-    kleur: '#BA7517',
+    kleur: 'var(--mf-amber)',
     beschrijving: 'Scan je lichaam van voeten tot hoofd en laat spanning los.',
     stappen: [
       'Sluit je ogen en adem 3x diep in en uit',
@@ -343,7 +343,7 @@ const MENTAAL_TECHNIEKEN = [
     naam: 'Dankbaarheidsscan',
     afk: 'DK',
     duur: '3 min',
-    kleur: '#1D9E75',
+    kleur: 'var(--mf-green)',
     beschrijving: 'Wetenschappelijk bewezen: dankbaarheid verhoogt dopamine en verlaagt cortisol.',
     stappen: [
       'Denk aan 3 specifieke dingen die goed gingen vandaag',
@@ -357,7 +357,7 @@ const MENTAAL_TECHNIEKEN = [
     naam: 'Snelle stresscheck',
     afk: 'SC',
     duur: '1 min',
-    kleur: '#E24B4A',
+    kleur: 'var(--mf-red)',
     beschrijving: 'Beoordeel je stressniveau eerlijk en plan een actie.',
     stappen: [
       'Geef je stressniveau een cijfer van 1-10',

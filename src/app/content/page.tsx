@@ -317,7 +317,7 @@ function VideoKaart({ video, briefingId, onStatusUpdate }: {
             {/* Pro tip */}
             {video.productie_tip && (
               <div style={{
-                background: '#FFF7ED', border: '1px solid #FED7AA',
+                background: 'var(--mf-orange-light)', border: '1px solid #FED7AA',
                 borderRadius: 10, padding: '14px 16px',
                 display: 'flex', gap: 10, alignItems: 'flex-start',
               }}>

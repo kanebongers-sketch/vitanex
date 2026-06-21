@@ -87,7 +87,7 @@ export default function WachtwoordReset() {
       style={{ background: 'linear-gradient(135deg, #E1F5EE 0%, #E6F1FB 100%)' }}>
       <div className="max-w-md w-full bg-white rounded-2xl border border-gray-100 p-10 shadow-sm text-center">
         <div className="w-16 h-16 rounded-full flex items-center justify-center text-3xl mx-auto mb-6"
-          style={{ background: '#E1F5EE' }}>
+          style={{ background: 'var(--mf-green-light)' }}>
           ✅
         </div>
         <h1 className="text-xl font-semibold text-gray-900 mb-2">Wachtwoord gewijzigd</h1>
@@ -139,7 +139,7 @@ export default function WachtwoordReset() {
             <div className="flex items-center gap-2">
               {[0, 1, 2].map(i => (
                 <div key={i} className="flex-1 h-1.5 rounded-full transition-all"
-                  style={{ background: sterkte > i ? ['#E24B4A', '#BA7517', '#1D9E75'][i] : '#e5e7eb' }} />
+                  style={{ background: sterkte > i ? ['var(--mf-red)', 'var(--mf-amber)', 'var(--mf-green)'][i] : 'var(--border)' }} />
               ))}
               <span className="text-xs text-gray-400 w-10 font-medium">
                 {['Te kort', 'Matig', 'Goed', 'Sterk'][sterkte]}
@@ -154,7 +154,7 @@ export default function WachtwoordReset() {
             onChange={e => setBevestig(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && slaOp()}
             className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none transition"
-            style={{ borderColor: bevestig && wachtwoord !== bevestig ? '#E24B4A' : '' }}
+            style={{ borderColor: bevestig && wachtwoord !== bevestig ? 'var(--mf-red)' : '' }}
           />
           {bevestig && wachtwoord !== bevestig && (
             <p className="text-xs text-red-500 -mt-1">Wachtwoorden komen niet overeen</p>

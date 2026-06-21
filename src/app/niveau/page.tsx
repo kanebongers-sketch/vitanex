@@ -89,7 +89,7 @@ function LevelRing({ level, pct, kleur }: { level: number; pct: number; kleur: s
   const size = 180
   const r = 76
   const circ = 2 * Math.PI * r
-  const bg = LEVEL_BG[level] ?? '#F3F4F6'
+  const bg = LEVEL_BG[level] ?? 'var(--bg-subtle)'
   return (
     <div style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}
@@ -123,7 +123,7 @@ function LevelRing({ level, pct, kleur }: { level: number; pct: number; kleur: s
 function AchievementBadge({ ach, unlocked }: { ach: Achievement; unlocked: boolean }) {
   return (
     <div style={{
-      background: unlocked ? ach.kleur + '15' : '#F9FAFB',
+      background: unlocked ? ach.kleur + '15' : 'var(--bg-subtle)',
       border: `1.5px solid ${unlocked ? ach.kleur + '40' : '#E5E7EB'}`,
       borderRadius: 14, padding: '14px 10px 12px',
       display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
@@ -141,7 +141,7 @@ function AchievementBadge({ ach, unlocked }: { ach: Achievement; unlocked: boole
           </svg>
         </div>
       )}
-      <div style={{ color: unlocked ? ach.kleur : '#9CA3AF' }}>
+      <div style={{ color: unlocked ? ach.kleur : 'var(--text-3)' }}>
         {ACH_ICON[ach.id] ?? (
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="12" cy="12" r="10"/>
@@ -209,8 +209,8 @@ export default function NiveauPage() {
   const decayWaarschuwing = dagenZonderCheckin >= 10
 
   const typeKleur: Record<string, string> = {
-    checkin: '#1D9E75', goal: '#185FA5', streak: '#E24B4A',
-    achievement: '#BA7517', decay: '#9CA3AF',
+    checkin: 'var(--mf-green)', goal: 'var(--mf-blue)', streak: 'var(--mf-red)',
+    achievement: 'var(--mf-amber)', decay: 'var(--text-3)',
   }
   const typeLabel: Record<string, string> = {
     checkin: 'Check-in', goal: 'Doel', streak: 'Streak',
@@ -367,7 +367,7 @@ export default function NiveauPage() {
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 10 }}>
             <span style={{ fontSize: 10, color: 'var(--text-4)' }}>Starter</span>
-            <span style={{ fontSize: 10, color: '#DC2626', fontWeight: 700 }}>Legende</span>
+            <span style={{ fontSize: 10, color: 'var(--mf-red)', fontWeight: 700 }}>Legende</span>
           </div>
         </div>
 
@@ -430,7 +430,7 @@ export default function NiveauPage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {xpData.history.slice(0, 12).map((evt, i) => {
                 const isPos = evt.xp > 0
-                const kleurEvt = isPos ? (typeKleur[evt.type] ?? '#1D9E75') : '#9CA3AF'
+                const kleurEvt = isPos ? (typeKleur[evt.type] ?? 'var(--mf-green)') : 'var(--text-3)'
                 return (
                   <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                     <div style={{
@@ -467,13 +467,13 @@ export default function NiveauPage() {
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {[
-              { label: 'Wekelijkse check-in',       xp: 75,  kleur: '#1D9E75' },
-              { label: 'Uitstekende score (≥ 4.5)', xp: 25,  kleur: '#1D9E75' },
-              { label: 'Dagelijkse doelregistratie', xp: 15,  kleur: '#185FA5' },
-              { label: '7-daagse streak',            xp: 75,  kleur: '#E24B4A' },
-              { label: '30-daagse streak',           xp: 250, kleur: '#E24B4A' },
-              { label: 'Doel succesvol bereikt',     xp: 150, kleur: '#7C3AED' },
-              { label: 'Achievements',               xp: '50–500', kleur: '#BA7517' },
+              { label: 'Wekelijkse check-in',       xp: 75,  kleur: 'var(--mf-green)' },
+              { label: 'Uitstekende score (≥ 4.5)', xp: 25,  kleur: 'var(--mf-green)' },
+              { label: 'Dagelijkse doelregistratie', xp: 15,  kleur: 'var(--mf-blue)' },
+              { label: '7-daagse streak',            xp: 75,  kleur: 'var(--mf-red)' },
+              { label: '30-daagse streak',           xp: 250, kleur: 'var(--mf-red)' },
+              { label: 'Doel succesvol bereikt',     xp: 150, kleur: 'var(--mf-purple)' },
+              { label: 'Achievements',               xp: '50–500', kleur: 'var(--mf-amber)' },
             ].map(item => (
               <div key={item.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ fontSize: 12, color: 'var(--text-2)' }}>{item.label}</span>

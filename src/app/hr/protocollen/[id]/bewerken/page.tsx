@@ -19,7 +19,7 @@ const CATEGORIEEN = [
 ]
 
 const ICONEN = ['📋', '🦺', '🤒', '💻', '🚀', '🛡️', '🗂️', '📌', '⚠️', '🔒', '📞', '🏥', '🚛', '🎓', '📱', '🔑', '📄', '✅']
-const KLEUREN = ['#1D9E75', '#DC2626', '#185FA5', '#7C3AED', '#B45309', '#0369A1', '#9D174D', '#065F46', '#92400E', '#374151']
+const KLEUREN = ['var(--mf-green)', 'var(--mf-red)', 'var(--mf-blue)', 'var(--mf-purple)', 'var(--mf-amber-dark)', '#0369A1', 'var(--mf-rose)', 'var(--mf-green-dark)', 'var(--mf-amber-dark)', 'var(--text-2)']
 
 export default function BewerkProtocolPage() {
   const router = useRouter()
@@ -35,7 +35,7 @@ export default function BewerkProtocolPage() {
   const [inhoud, setInhoud] = useState('')
   const [categorie, setCategorie] = useState('algemeen')
   const [icoon, setIcoon] = useState('📋')
-  const [kleur, setKleur] = useState('#1D9E75')
+  const [kleur, setKleur] = useState('var(--mf-green)')
   const [gepubliceerd, setGepubliceerd] = useState(true)
 
   useEffect(() => {
@@ -181,15 +181,15 @@ export default function BewerkProtocolPage() {
             </div>
             <button onClick={() => setGepubliceerd(!gepubliceerd)}
               className="relative w-12 h-6 rounded-full transition-colors flex-shrink-0"
-              style={{ background: gepubliceerd ? 'var(--mf-green)' : '#D1D5DB' }}>
+              style={{ background: gepubliceerd ? 'var(--mf-green)' : 'var(--text-4)' }}>
               <span className="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform"
                 style={{ transform: gepubliceerd ? 'translateX(26px)' : 'translateX(2px)' }} />
             </button>
           </div>
 
           {fout && (
-            <div className="rounded-xl px-4 py-3" style={{ background: '#FEE2E2' }}>
-              <p className="text-sm" style={{ color: '#DC2626' }}>{fout}</p>
+            <div className="rounded-xl px-4 py-3" style={{ background: 'var(--mf-red-light)' }}>
+              <p className="text-sm" style={{ color: 'var(--mf-red)' }}>{fout}</p>
             </div>
           )}
 

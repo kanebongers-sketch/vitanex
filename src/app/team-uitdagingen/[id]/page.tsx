@@ -28,12 +28,12 @@ interface UitdagingData {
 }
 
 const TYPE_CONFIG: Record<string, { label: string; kleur: string; icon: string }> = {
-  stappen:    { label: 'Stappen',    kleur: '#1D9E75', icon: '👟' },
-  slaap:      { label: 'Slaap',      kleur: '#8B5CF6', icon: '😴' },
-  meditatie:  { label: 'Meditatie',  kleur: '#6366f1', icon: '🧘' },
-  water:      { label: 'Water',      kleur: '#378ADD', icon: '💧' },
-  beweging:   { label: 'Beweging',   kleur: '#F59E0B', icon: '🏃' },
-  focus:      { label: 'Focus',      kleur: '#E24B4A', icon: '🎯' },
+  stappen:    { label: 'Stappen',    kleur: 'var(--mf-green)', icon: '👟' },
+  slaap:      { label: 'Slaap',      kleur: 'var(--mf-purple)', icon: '😴' },
+  meditatie:  { label: 'Meditatie',  kleur: 'var(--mf-purple)', icon: '🧘' },
+  water:      { label: 'Water',      kleur: 'var(--mf-blue)', icon: '💧' },
+  beweging:   { label: 'Beweging',   kleur: 'var(--mf-amber)', icon: '🏃' },
+  focus:      { label: 'Focus',      kleur: 'var(--mf-red)', icon: '🎯' },
 }
 
 export default function UitdagingDetailPage() {
@@ -89,13 +89,13 @@ export default function UitdagingDetailPage() {
     <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
       <Navbar />
       <main style={{ padding: '36px 40px', textAlign: 'center' }}>
-        <p style={{ color: '#9CA3AF' }}>Uitdaging niet gevonden.</p>
-        <Link href="/team-uitdagingen" style={{ color: '#1D9E75', marginTop: 12, display: 'inline-block', textDecoration: 'none' }}>← Terug</Link>
+        <p style={{ color: 'var(--text-3)' }}>Uitdaging niet gevonden.</p>
+        <Link href="/team-uitdagingen" style={{ color: 'var(--mf-green)', marginTop: 12, display: 'inline-block', textDecoration: 'none' }}>← Terug</Link>
       </main>
     </div>
   )
 
-  const cfg = TYPE_CONFIG[data.uitdaging.type] ?? { label: data.uitdaging.type, kleur: '#1D9E75', icon: '🎯' }
+  const cfg = TYPE_CONFIG[data.uitdaging.type] ?? { label: data.uitdaging.type, kleur: 'var(--mf-green)', icon: '🎯' }
   const pct = data.doel_bereikt_pct
 
   return (
@@ -103,7 +103,7 @@ export default function UitdagingDetailPage() {
       <Navbar />
       <main style={{ padding: '36px 40px 72px', maxWidth: 680, margin: '0 auto' }}>
 
-        <Link href="/team-uitdagingen" style={{ color: '#9CA3AF', textDecoration: 'none', fontSize: 13, display: 'block', marginBottom: 20 }}>
+        <Link href="/team-uitdagingen" style={{ color: 'var(--text-3)', textDecoration: 'none', fontSize: 13, display: 'block', marginBottom: 20 }}>
           ← Alle uitdagingen
         </Link>
 
@@ -114,11 +114,11 @@ export default function UitdagingDetailPage() {
               {cfg.icon}
             </div>
             <div>
-              <h1 style={{ fontSize: 20, fontWeight: 800, color: '#111827', letterSpacing: '-0.02em', marginBottom: 4 }}>{data.uitdaging.titel}</h1>
+              <h1 style={{ fontSize: 20, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.02em', marginBottom: 4 }}>{data.uitdaging.titel}</h1>
               <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                 <span style={{ fontSize: 12, fontWeight: 600, color: cfg.kleur, background: `${cfg.kleur}12`, padding: '2px 8px', borderRadius: 100 }}>{cfg.label}</span>
-                <span style={{ fontSize: 12, color: '#9CA3AF' }}>{data.dagen_resterend} dagen resterend</span>
-                <span style={{ fontSize: 12, color: '#9CA3AF' }}>{data.aantal_deelnemers} deelnemers</span>
+                <span style={{ fontSize: 12, color: 'var(--text-3)' }}>{data.dagen_resterend} dagen resterend</span>
+                <span style={{ fontSize: 12, color: 'var(--text-3)' }}>{data.aantal_deelnemers} deelnemers</span>
               </div>
             </div>
           </div>
@@ -126,18 +126,18 @@ export default function UitdagingDetailPage() {
           {/* Voortgangsbalk */}
           <div style={{ marginBottom: 12 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-              <p style={{ fontSize: 12, fontWeight: 600, color: '#374151' }}>Team voortgang</p>
+              <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-2)' }}>Team voortgang</p>
               <p style={{ fontSize: 13, fontWeight: 800, color: cfg.kleur }}>{pct}%</p>
             </div>
-            <div style={{ height: 12, background: '#F3F4F6', borderRadius: 100, overflow: 'hidden' }}>
+            <div style={{ height: 12, background: 'var(--bg-subtle)', borderRadius: 100, overflow: 'hidden' }}>
               <div style={{
                 height: '100%', width: `${pct}%`, background: cfg.kleur, borderRadius: 100,
                 transition: 'width 0.8s ease',
               }} />
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
-              <p style={{ fontSize: 11, color: '#9CA3AF' }}>{data.team_totaal} {data.uitdaging.eenheid} behaald</p>
-              <p style={{ fontSize: 11, color: '#9CA3AF' }}>Doel: {data.uitdaging.doel_waarde} {data.uitdaging.eenheid}</p>
+              <p style={{ fontSize: 11, color: 'var(--text-3)' }}>{data.team_totaal} {data.uitdaging.eenheid} behaald</p>
+              <p style={{ fontSize: 11, color: 'var(--text-3)' }}>Doel: {data.uitdaging.doel_waarde} {data.uitdaging.eenheid}</p>
             </div>
           </div>
 
@@ -148,9 +148,9 @@ export default function UitdagingDetailPage() {
               { label: 'Team totaal', waarde: `${data.team_totaal} ${data.uitdaging.eenheid}` },
               { label: 'Deelnemers', waarde: `${data.aantal_deelnemers}` },
             ].map(s => (
-              <div key={s.label} style={{ background: '#F9FAFB', borderRadius: 10, padding: '12px 14px', textAlign: 'center' }}>
-                <p style={{ fontSize: 16, fontWeight: 800, color: '#111827' }}>{s.waarde}</p>
-                <p style={{ fontSize: 10, color: '#9CA3AF', marginTop: 2, fontWeight: 600, textTransform: 'uppercase' }}>{s.label}</p>
+              <div key={s.label} style={{ background: 'var(--bg-subtle)', borderRadius: 10, padding: '12px 14px', textAlign: 'center' }}>
+                <p style={{ fontSize: 16, fontWeight: 800, color: 'var(--text-1)' }}>{s.waarde}</p>
+                <p style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 2, fontWeight: 600, textTransform: 'uppercase' }}>{s.label}</p>
               </div>
             ))}
           </div>
@@ -158,10 +158,10 @@ export default function UitdagingDetailPage() {
 
         {/* Log bijdrage */}
         <div style={{ background: 'white', borderRadius: 16, border: '1px solid #E5E7EB', padding: '20px 22px', marginBottom: 16 }}>
-          <p style={{ fontSize: 13, fontWeight: 700, color: '#374151', marginBottom: 14 }}>Mijn bijdrage loggen</p>
+          <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-2)', marginBottom: 14 }}>Mijn bijdrage loggen</p>
           <div style={{ display: 'flex', gap: 10, alignItems: 'flex-end' }}>
             <div style={{ flex: 1 }}>
-              <p style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 5 }}>Waarde ({data.uitdaging.eenheid})</p>
+              <p style={{ fontSize: 11, color: 'var(--text-3)', marginBottom: 5 }}>Waarde ({data.uitdaging.eenheid})</p>
               <input
                 type="number"
                 placeholder={`0 ${data.uitdaging.eenheid}`}
@@ -172,7 +172,7 @@ export default function UitdagingDetailPage() {
               />
             </div>
             <div style={{ flex: 2 }}>
-              <p style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 5 }}>Notitie (optioneel)</p>
+              <p style={{ fontSize: 11, color: 'var(--text-3)', marginBottom: 5 }}>Notitie (optioneel)</p>
               <input
                 type="text"
                 placeholder="Korte omschrijving..."
@@ -199,11 +199,11 @@ export default function UitdagingDetailPage() {
         {/* Mijn recente logs */}
         {data.mijn_logs.length > 0 && (
           <div style={{ background: 'white', borderRadius: 16, border: '1px solid #E5E7EB', padding: '18px 20px' }}>
-            <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#9CA3AF', marginBottom: 12 }}>Mijn recente bijdragen</p>
+            <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-3)', marginBottom: 12 }}>Mijn recente bijdragen</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {data.mijn_logs.map((log, i) => (
                 <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: 8, borderBottom: i < data.mijn_logs.length - 1 ? '1px solid #F9FAFB' : 'none' }}>
-                  <span style={{ fontSize: 12, color: '#6B7280' }}>
+                  <span style={{ fontSize: 12, color: 'var(--text-2)' }}>
                     {new Date(log.aangemaakt_op).toLocaleDateString('nl-BE', { weekday: 'short', day: 'numeric', month: 'short' })}
                   </span>
                   <span style={{ fontSize: 13, fontWeight: 700, color: cfg.kleur }}>{log.waarde} {data.uitdaging.eenheid}</span>

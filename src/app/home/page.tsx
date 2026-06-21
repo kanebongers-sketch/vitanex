@@ -37,11 +37,11 @@ function scoreLabel(score: number | null): string {
 }
 
 const SCORE_KLEUR_HEX = {
-  onbekend: '#9CA3AF',
-  hersteld:  '#1D9E75',
-  goed:      '#185FA5',
-  matig:     '#BA7517',
-  rust:      '#E24B4A',
+  onbekend: 'var(--text-3)',
+  hersteld:  'var(--mf-green)',
+  goed:      'var(--mf-blue)',
+  matig:     'var(--mf-amber)',
+  rust:      'var(--mf-red)',
 }
 
 function scoreKleur(score: number | null): string {

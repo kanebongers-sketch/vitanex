@@ -112,7 +112,7 @@ export default function ReflectiePage() {
         ) : toonHistorie ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {eerdere.length === 0 ? (
-              <p style={{ fontSize: 13, color: '#9CA3AF', textAlign: 'center', paddingTop: 40 }}>Nog geen eerdere reflecties</p>
+              <p style={{ fontSize: 13, color: 'var(--text-3)', textAlign: 'center', paddingTop: 40 }}>Nog geen eerdere reflecties</p>
             ) : eerdere.map(e => {
               const datum = new Date(e.week_start).toLocaleDateString('nl-BE', { day: 'numeric', month: 'long' })
               const aantalIngevuld = Object.values(e.antwoorden ?? {}).filter(v => v.trim()).length
@@ -125,12 +125,12 @@ export default function ReflectiePage() {
                     </div>
                     <div style={{ display: 'flex', gap: 3 }}>
                       {Array.from({ length: 6 }, (_, i) => (
-                        <div key={i} style={{ width: 6, height: 6, borderRadius: 2, background: i < aantalIngevuld ? '#1D9E75' : '#E5E7EB' }} />
+                        <div key={i} style={{ width: 6, height: 6, borderRadius: 2, background: i < aantalIngevuld ? 'var(--mf-green)' : 'var(--border)' }} />
                       ))}
                     </div>
                   </div>
                   {e.antwoorden?.hoogtepunt && (
-                    <p style={{ fontSize: 12, color: '#6B7280', lineHeight: 1.5, fontStyle: 'italic', borderLeft: '2px solid #1D9E75', paddingLeft: 10 }}>
+                    <p style={{ fontSize: 12, color: 'var(--text-2)', lineHeight: 1.5, fontStyle: 'italic', borderLeft: '2px solid #1D9E75', paddingLeft: 10 }}>
                       "{e.antwoorden.hoogtepunt.slice(0, 120)}{e.antwoorden.hoogtepunt.length > 120 ? '...' : ''}"
                     </p>
                   )}

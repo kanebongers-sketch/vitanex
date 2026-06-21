@@ -16,11 +16,11 @@ type Entry = {
 }
 
 const STEMMINGEN = [
-  { waarde: 1, kleur: '#E24B4A', bg: '#FCEBEB', label: 'Slecht' },
-  { waarde: 2, kleur: '#B45309', bg: '#FEF3C7', label: 'Matig' },
-  { waarde: 3, kleur: '#6B7280', bg: '#F3F4F6', label: 'Oké' },
-  { waarde: 4, kleur: '#1D9E75', bg: '#E1F5EE', label: 'Goed' },
-  { waarde: 5, kleur: '#8B5CF6', bg: '#EEEDFE', label: 'Super' },
+  { waarde: 1, kleur: 'var(--mf-red)', bg: 'var(--mf-red-light)', label: 'Slecht' },
+  { waarde: 2, kleur: 'var(--mf-amber-dark)', bg: 'var(--mf-amber-light)', label: 'Matig' },
+  { waarde: 3, kleur: 'var(--text-2)', bg: 'var(--bg-subtle)', label: 'Oké' },
+  { waarde: 4, kleur: 'var(--mf-green)', bg: 'var(--mf-green-light)', label: 'Goed' },
+  { waarde: 5, kleur: 'var(--mf-purple)', bg: 'var(--mf-purple-light)', label: 'Super' },
 ]
 
 const PROMPTS = [
@@ -140,7 +140,7 @@ export default function JournalPagina() {
             {/* AI Prompt */}
             <div style={{ background: '#F8F7FF', borderRadius: 12, padding: '12px 16px', marginBottom: 18, border: '1px solid #DDD6FE' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: aiPrompt ? 8 : 0 }}>
-                <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#8B5CF6' }}>AI reflectievraag</p>
+                <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--mf-purple)' }}>AI reflectievraag</p>
                 <button
                   onClick={async () => {
                     setAiPromptLaden(true)
@@ -155,7 +155,7 @@ export default function JournalPagina() {
                     }
                   }}
                   disabled={aiPromptLaden}
-                  style={{ fontSize: 11, fontWeight: 600, color: '#8B5CF6', background: 'none', border: 'none', cursor: 'pointer', opacity: aiPromptLaden ? 0.5 : 1 }}
+                  style={{ fontSize: 11, fontWeight: 600, color: 'var(--mf-purple)', background: 'none', border: 'none', cursor: 'pointer', opacity: aiPromptLaden ? 0.5 : 1 }}
                 >
                   {aiPromptLaden ? 'Laden...' : aiPrompt ? '↻ Nieuw' : 'Genereer →'}
                 </button>
@@ -235,7 +235,7 @@ export default function JournalPagina() {
                 style={{
                   fontSize: 13, borderRadius: 10, padding: '9px 18px',
                   color: 'white', fontWeight: 600, border: 'none', cursor: 'pointer',
-                  background: tekst.trim() ? 'linear-gradient(135deg, var(--mf-green) 0%, var(--mf-green-dark) 100%)' : '#D1D5DB',
+                  background: tekst.trim() ? 'linear-gradient(135deg, var(--mf-green) 0%, var(--mf-green-dark) 100%)' : 'var(--text-4)',
                   opacity: opslaan ? 0.7 : 1,
                 }}
               >
@@ -282,7 +282,7 @@ export default function JournalPagina() {
                     </div>
                     <button
                       onClick={() => verwijder(e.id)}
-                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#D1D5DB', padding: 4, display: 'flex' }}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-4)', padding: 4, display: 'flex' }}
                       title="Verwijder"
                     >
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -296,7 +296,7 @@ export default function JournalPagina() {
                   {e.inhoud.length > 160 && (
                     <button
                       onClick={() => setUitgevouwen(isOpen ? null : e.id)}
-                      style={{ fontSize: 12, marginTop: 8, fontWeight: 600, color: '#1D9E75', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+                      style={{ fontSize: 12, marginTop: 8, fontWeight: 600, color: 'var(--mf-green)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
                     >
                       {isOpen ? 'Minder tonen' : 'Meer tonen'}
                     </button>

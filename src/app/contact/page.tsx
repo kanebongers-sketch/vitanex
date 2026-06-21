@@ -9,7 +9,7 @@ function MarketingNav() {
       style={{ background: 'rgba(10,15,30,0.96)', borderColor: 'rgba(255,255,255,0.07)', backdropFilter: 'blur(16px)' }}>
       <div className="max-w-7xl mx-auto px-6 lg:px-12 py-4 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: '#1D9E75' }}>
+          <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: 'var(--mf-green)' }}>
             <span className="text-white text-sm font-bold">M</span>
           </div>
           <span className="font-bold text-white text-lg tracking-tight">MentaForce</span>
@@ -17,7 +17,7 @@ function MarketingNav() {
         <div className="flex items-center gap-4">
           <Link href="/voorwaarden" className="text-sm transition" style={{ color: 'rgba(255,255,255,0.45)' }}>Voorwaarden</Link>
           <Link href="/login" className="text-sm font-bold text-white px-5 py-2.5 rounded-xl transition hover:opacity-90"
-            style={{ background: '#1D9E75' }}>
+            style={{ background: 'var(--mf-green)' }}>
             Inloggen
           </Link>
         </div>
@@ -274,7 +274,7 @@ export default function Contact() {
                 type="submit"
                 disabled={bezig || !naam.trim() || !email.trim() || !bericht.trim()}
                 className="w-full py-4 rounded-xl text-white font-bold text-sm transition hover:opacity-90 disabled:opacity-40 flex items-center justify-center gap-2"
-                style={{ background: '#1D9E75', boxShadow: '0 4px 24px rgba(29,158,117,0.35)' }}
+                style={{ background: 'var(--mf-green)', boxShadow: '0 4px 24px rgba(29,158,117,0.35)' }}
               >
                 {bezig ? (
                   <>
@@ -345,7 +345,7 @@ export default function Contact() {
             <button
               onClick={() => setGeselecteerd('demo')}
               className="w-full py-3 rounded-xl text-white text-sm font-bold transition hover:opacity-90"
-              style={{ background: '#1D9E75' }}
+              style={{ background: 'var(--mf-green)' }}
             >
               Demo aanvragen
             </button>
@@ -409,7 +409,7 @@ export default function Contact() {
       <footer style={{ background: '#060c18', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
         <div className="max-w-7xl mx-auto px-6 lg:px-12 py-10 flex flex-col md:flex-row items-center justify-between gap-6">
           <Link href="/" className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: '#1D9E75' }}>
+            <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: 'var(--mf-green)' }}>
               <span className="text-white text-xs font-bold">M</span>
             </div>
             <span className="font-bold text-white">MentaForce</span>

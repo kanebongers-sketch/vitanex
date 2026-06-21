@@ -49,7 +49,7 @@ const VRAGEN: Vraag[] = [
   { id: 24, tekst: 'Ik houd hoge kwaliteitsstandaarden aan in alles wat ik doe.', dimensie: 'C' },
 ]
 
-const DIM_KLEUR: Record<Dimensie, string> = { D: '#EF4444', I: '#F59E0B', S: '#10B981', C: '#3B82F6' }
+const DIM_KLEUR: Record<Dimensie, string> = { D: 'var(--mf-red)', I: 'var(--mf-amber)', S: 'var(--mf-green)', C: 'var(--mf-blue)' }
 const DIM_LABEL: Record<Dimensie, string> = { D: 'Dominantie', I: 'Invloed', S: 'Stabiliteit', C: 'Conscientieusheid' }
 const DIM_BESCHR: Record<Dimensie, string> = {
   D: 'Resultaatgericht, direct en besluitvaardig. Je neemt graag de leiding en stelt hoge eisen.',
@@ -73,16 +73,16 @@ const DIM_RANGES: Record<Dimensie, [number, number]> = {
 
 // Samenwerkingtabel: combinaties van primaire profielen
 const SAMENWERKING: Partial<Record<string, { label: string; beschrijving: string; kleur: string }>> = {
-  'D+D': { label: 'Krachtig duo', beschrijving: 'Hoge energie en ambitie, maar let op: beide willen leiden. Spreek rollen duidelijk af.', kleur: '#EF4444' },
-  'D+I': { label: 'Energieke combinatie', beschrijving: 'D brengt focus en richting, I zorgt voor enthousiasme en draagvlak. Sterk team.', kleur: '#F97316' },
-  'D+S': { label: 'Daadkracht & rust', beschrijving: 'D drijft vooruit, S zorgt voor stabiliteit. Goede balans als er respect is voor elkaars tempo.', kleur: '#8B5CF6' },
-  'D+C': { label: 'Resultaat & precisie', beschrijving: 'D wil snel, C wil grondig. Kan wrijving geven, maar levert kwalitatief sterke resultaten.', kleur: '#6366F1' },
-  'I+I': { label: 'Bruisend en creatief', beschrijving: 'Veel energie en ideeën, maar wie bewaakt de uitvoering? Zorg voor structuur erbij.', kleur: '#F59E0B' },
-  'I+S': { label: 'Warm en harmonieus', beschrijving: 'I inspireert, S ondersteunt. Mensen voelen zich gewaardeerd in dit team.', kleur: '#10B981' },
-  'I+C': { label: 'Creativiteit & kwaliteit', beschrijving: 'I genereert ideeën, C verfijnt ze. Complementair als ze elkaars stijl respecteren.', kleur: '#3B82F6' },
-  'S+S': { label: 'Stabiel en betrouwbaar', beschrijving: 'Hoge harmonie en loyaliteit. Sterk in uitvoering, maar pas op voor vermijding van conflict.', kleur: '#10B981' },
+  'D+D': { label: 'Krachtig duo', beschrijving: 'Hoge energie en ambitie, maar let op: beide willen leiden. Spreek rollen duidelijk af.', kleur: 'var(--mf-red)' },
+  'D+I': { label: 'Energieke combinatie', beschrijving: 'D brengt focus en richting, I zorgt voor enthousiasme en draagvlak. Sterk team.', kleur: 'var(--mf-orange)' },
+  'D+S': { label: 'Daadkracht & rust', beschrijving: 'D drijft vooruit, S zorgt voor stabiliteit. Goede balans als er respect is voor elkaars tempo.', kleur: 'var(--mf-purple)' },
+  'D+C': { label: 'Resultaat & precisie', beschrijving: 'D wil snel, C wil grondig. Kan wrijving geven, maar levert kwalitatief sterke resultaten.', kleur: 'var(--mf-purple)' },
+  'I+I': { label: 'Bruisend en creatief', beschrijving: 'Veel energie en ideeën, maar wie bewaakt de uitvoering? Zorg voor structuur erbij.', kleur: 'var(--mf-amber)' },
+  'I+S': { label: 'Warm en harmonieus', beschrijving: 'I inspireert, S ondersteunt. Mensen voelen zich gewaardeerd in dit team.', kleur: 'var(--mf-green)' },
+  'I+C': { label: 'Creativiteit & kwaliteit', beschrijving: 'I genereert ideeën, C verfijnt ze. Complementair als ze elkaars stijl respecteren.', kleur: 'var(--mf-blue)' },
+  'S+S': { label: 'Stabiel en betrouwbaar', beschrijving: 'Hoge harmonie en loyaliteit. Sterk in uitvoering, maar pas op voor vermijding van conflict.', kleur: 'var(--mf-green)' },
   'S+C': { label: 'Stabiel analytisch team', beschrijving: 'Geduldig, grondig en betrouwbaar. Uitstekend voor complexe, zorgvuldige taken.', kleur: '#0EA5E9' },
-  'C+C': { label: 'Kwaliteitsgedreven duo', beschrijving: 'Hoge standaarden en precisie. Sterk in analyse, maar bewaar oog voor de grote lijn.', kleur: '#3B82F6' },
+  'C+C': { label: 'Kwaliteitsgedreven duo', beschrijving: 'Hoge standaarden en precisie. Sterk in analyse, maar bewaar oog voor de grote lijn.', kleur: 'var(--mf-blue)' },
 }
 
 function getSamenwerking(primair: Dimensie) {
@@ -219,10 +219,10 @@ export default function DiscPage() {
                 {DIM_INTRO[eerderResultaat.primair_profiel as Dimensie]?.emoji ?? '📊'}
               </div>
               <h2 style={{ fontSize: 20, fontWeight: 700, color: '#f8fafc', marginBottom: 4 }}>Je hebt deze test al ingevuld</h2>
-              <p style={{ color: '#64748b', fontSize: 14 }}>Gedaan op {formatDatum(eerderResultaat.created_at)}</p>
+              <p style={{ color: 'var(--text-2)', fontSize: 14 }}>Gedaan op {formatDatum(eerderResultaat.created_at)}</p>
             </div>
 
-            <div style={{ background: '#1e293b', borderRadius: 12, padding: 20, marginBottom: 24 }}>
+            <div style={{ background: 'var(--text-1)', borderRadius: 12, padding: 20, marginBottom: 24 }}>
               <p style={{ color: '#94a3b8', fontSize: 13, marginBottom: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 1 }}>Jouw laatste resultaat</p>
               <p style={{ color: DIM_KLEUR[eerderResultaat.primair_profiel as Dimensie], fontSize: 22, fontWeight: 700, marginBottom: 4 }}>
                 {eerderResultaat.primair_profiel} – {DIM_LABEL[eerderResultaat.primair_profiel as Dimensie]}
@@ -240,7 +240,7 @@ export default function DiscPage() {
                   <div key={dim}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
                       <span style={{ color: DIM_KLEUR[dim], fontWeight: 600, fontSize: 13 }}>{dim} – {DIM_LABEL[dim]}</span>
-                      <span style={{ color: '#64748b', fontSize: 13 }}>{score}/30</span>
+                      <span style={{ color: 'var(--text-2)', fontSize: 13 }}>{score}/30</span>
                     </div>
                     <div style={{ background: '#0f1e36', borderRadius: 6, height: 8, overflow: 'hidden' }}>
                       <div style={{ width: ((score / 30) * 100) + '%', height: '100%', background: DIM_KLEUR[dim], borderRadius: 6 }} />
@@ -251,7 +251,7 @@ export default function DiscPage() {
             </div>
 
             <div style={{ display: 'flex', gap: 12, flexDirection: 'column' }}>
-              <button onClick={() => router.push('/bestanden')} style={{ background: '#3B82F6', color: '#fff', border: 'none', borderRadius: 10, padding: '12px 0', fontSize: 15, fontWeight: 600, cursor: 'pointer' }}>
+              <button onClick={() => router.push('/bestanden')} style={{ background: 'var(--mf-blue)', color: '#fff', border: 'none', borderRadius: 10, padding: '12px 0', fontSize: 15, fontWeight: 600, cursor: 'pointer' }}>
                 Bekijk je rapport
               </button>
               <button onClick={startOpnieuw} style={{ background: 'transparent', color: '#94a3b8', border: '1px solid #334155', borderRadius: 10, padding: '12px 0', fontSize: 15, cursor: 'pointer' }}>
@@ -286,7 +286,7 @@ export default function DiscPage() {
                 </div>
               ))}
             </div>
-            <button onClick={() => setFase('test')} style={{ width: '100%', background: '#3B82F6', color: '#fff', border: 'none', borderRadius: 12, padding: '16px 0', fontSize: 16, fontWeight: 700, cursor: 'pointer' }}>
+            <button onClick={() => setFase('test')} style={{ width: '100%', background: 'var(--mf-blue)', color: '#fff', border: 'none', borderRadius: 12, padding: '16px 0', fontSize: 16, fontWeight: 700, cursor: 'pointer' }}>
               Start de test →
             </button>
           </div>
@@ -300,12 +300,12 @@ export default function DiscPage() {
               {dims.map(dim => {
                 const vg = dimVoortgang(dim)
                 return (
-                  <div key={dim} style={{ flex: 1, background: '#0f1e36', borderRadius: 8, padding: '8px 10px', border: '1px solid ' + (vg.actief ? DIM_KLEUR[dim] + '60' : '#1e293b') }}>
-                    <div style={{ color: vg.actief ? DIM_KLEUR[dim] : '#475569', fontWeight: 700, fontSize: 13, marginBottom: 4 }}>{dim}</div>
-                    <div style={{ background: '#1e293b', borderRadius: 4, height: 4, overflow: 'hidden' }}>
+                  <div key={dim} style={{ flex: 1, background: '#0f1e36', borderRadius: 8, padding: '8px 10px', border: '1px solid ' + (vg.actief ? DIM_KLEUR[dim] + '60' : 'var(--text-1)') }}>
+                    <div style={{ color: vg.actief ? DIM_KLEUR[dim] : 'var(--text-2)', fontWeight: 700, fontSize: 13, marginBottom: 4 }}>{dim}</div>
+                    <div style={{ background: 'var(--text-1)', borderRadius: 4, height: 4, overflow: 'hidden' }}>
                       <div style={{ width: ((vg.beantwoord / vg.totaal) * 100) + '%', height: '100%', background: DIM_KLEUR[dim], borderRadius: 4, transition: 'width 0.3s' }} />
                     </div>
-                    <div style={{ color: '#475569', fontSize: 11, marginTop: 3 }}>{vg.beantwoord}/{vg.totaal}</div>
+                    <div style={{ color: 'var(--text-2)', fontSize: 11, marginTop: 3 }}>{vg.beantwoord}/{vg.totaal}</div>
                   </div>
                 )
               })}
@@ -314,10 +314,10 @@ export default function DiscPage() {
             {/* Algemene voortgangsbalk */}
             <div style={{ marginBottom: 24 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-                <span style={{ color: '#64748b', fontSize: 13 }}>Vraag {huidigIdx + 1} van {VRAGEN.length}</span>
-                <span style={{ color: '#64748b', fontSize: 13 }}>{Math.round(((huidigIdx + 1) / VRAGEN.length) * 100)}%</span>
+                <span style={{ color: 'var(--text-2)', fontSize: 13 }}>Vraag {huidigIdx + 1} van {VRAGEN.length}</span>
+                <span style={{ color: 'var(--text-2)', fontSize: 13 }}>{Math.round(((huidigIdx + 1) / VRAGEN.length) * 100)}%</span>
               </div>
-              <div style={{ background: '#1e293b', borderRadius: 6, height: 6 }}>
+              <div style={{ background: 'var(--text-1)', borderRadius: 6, height: 6 }}>
                 <div style={{ width: (((huidigIdx + 1) / VRAGEN.length) * 100) + '%', height: '100%', background: DIM_KLEUR[hv.dimensie], borderRadius: 6, transition: 'width 0.3s ease' }} />
               </div>
             </div>
@@ -331,7 +331,7 @@ export default function DiscPage() {
                 {[1, 2, 3, 4, 5].map(w => {
                   const g = antwoorden[hv.id] === w
                   return (
-                    <button key={w} onClick={() => antwoord(hv.id, w)} style={{ flex: 1, minWidth: 80, background: g ? DIM_KLEUR[hv.dimensie] : '#1e293b', border: '1px solid ' + (g ? DIM_KLEUR[hv.dimensie] : '#334155'), borderRadius: 10, padding: '14px 8px', color: g ? '#fff' : '#94a3b8', cursor: 'pointer', fontSize: 13, fontWeight: 600, textAlign: 'center', transition: 'all 0.15s' }}>
+                    <button key={w} onClick={() => antwoord(hv.id, w)} style={{ flex: 1, minWidth: 80, background: g ? DIM_KLEUR[hv.dimensie] : 'var(--text-1)', border: '1px solid ' + (g ? DIM_KLEUR[hv.dimensie] : 'var(--text-1)'), borderRadius: 10, padding: '14px 8px', color: g ? '#fff' : '#94a3b8', cursor: 'pointer', fontSize: 13, fontWeight: 600, textAlign: 'center', transition: 'all 0.15s' }}>
                       <div style={{ fontSize: 18, marginBottom: 4 }}>{w}</div>
                       <div style={{ fontSize: 11, lineHeight: 1.2 }}>{SCHAAL[w - 1]}</div>
                     </button>
@@ -342,12 +342,12 @@ export default function DiscPage() {
                 <button
                   onClick={() => setHuidigIdx(v => Math.max(0, v - 1))}
                   disabled={huidigIdx === 0}
-                  style={{ background: 'transparent', border: '1px solid #334155', borderRadius: 8, padding: '8px 20px', color: huidigIdx === 0 ? '#334155' : '#94a3b8', cursor: huidigIdx === 0 ? 'not-allowed' : 'pointer', fontSize: 14 }}
+                  style={{ background: 'transparent', border: '1px solid #334155', borderRadius: 8, padding: '8px 20px', color: huidigIdx === 0 ? 'var(--text-1)' : '#94a3b8', cursor: huidigIdx === 0 ? 'not-allowed' : 'pointer', fontSize: 14 }}
                 >
                   ← Vorige vraag
                 </button>
                 {huidigIdx < VRAGEN.length - 1 && antwoorden[hv.id] !== undefined && (
-                  <button onClick={() => setHuidigIdx(v => v + 1)} style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: 8, padding: '8px 20px', color: '#94a3b8', cursor: 'pointer', fontSize: 14 }}>
+                  <button onClick={() => setHuidigIdx(v => v + 1)} style={{ background: 'var(--text-1)', border: '1px solid #334155', borderRadius: 8, padding: '8px 20px', color: '#94a3b8', cursor: 'pointer', fontSize: 14 }}>
                     Volgende →
                   </button>
                 )}
@@ -371,7 +371,7 @@ export default function DiscPage() {
                       <span style={{ color: DIM_KLEUR[dim], fontWeight: 600 }}>{dim} – {DIM_LABEL[dim]}</span>
                       <span style={{ color: '#94a3b8', fontSize: 14 }}>{score}/30</span>
                     </div>
-                    <div style={{ background: '#1e293b', borderRadius: 6, height: 10, overflow: 'hidden' }}>
+                    <div style={{ background: 'var(--text-1)', borderRadius: 6, height: 10, overflow: 'hidden' }}>
                       <div style={{ width: ((score / 30) * 100) + '%', height: '100%', background: DIM_KLEUR[dim], borderRadius: 6 }} />
                     </div>
                   </div>
@@ -382,7 +382,7 @@ export default function DiscPage() {
                 <p style={{ color: '#cbd5e1', fontSize: 15, lineHeight: 1.6, margin: 0 }}>{DIM_BESCHR[primair]}</p>
               </div>
               {fout && <div style={{ background: '#3f0e0e', border: '1px solid #7f1d1d', borderRadius: 8, padding: 12, color: '#fca5a5', marginBottom: 16 }}>{fout}</div>}
-              <button onClick={verzend} disabled={bezig} style={{ width: '100%', background: bezig ? '#334155' : DIM_KLEUR[primair], color: '#fff', border: 'none', borderRadius: 12, padding: '14px 0', fontSize: 16, fontWeight: 700, cursor: bezig ? 'not-allowed' : 'pointer' }}>
+              <button onClick={verzend} disabled={bezig} style={{ width: '100%', background: bezig ? 'var(--text-1)' : DIM_KLEUR[primair], color: '#fff', border: 'none', borderRadius: 12, padding: '14px 0', fontSize: 16, fontWeight: 700, cursor: bezig ? 'not-allowed' : 'pointer' }}>
                 {bezig ? 'Opslaan...' : 'Resultaat opslaan & rapport genereren'}
               </button>
             </div>
@@ -390,10 +390,10 @@ export default function DiscPage() {
             {/* Samenwerkingtabel */}
             <div style={{ background: '#0f1e36', border: '1px solid #1e3a5f', borderRadius: 16, padding: 32 }}>
               <h3 style={{ fontSize: 18, fontWeight: 700, color: '#f8fafc', marginBottom: 6 }}>Samenwerking met andere profielen</h3>
-              <p style={{ color: '#64748b', fontSize: 14, marginBottom: 20 }}>Hoe werkt jouw {primair}-profiel samen met andere DISC-typen?</p>
+              <p style={{ color: 'var(--text-2)', fontSize: 14, marginBottom: 20 }}>Hoe werkt jouw {primair}-profiel samen met andere DISC-typen?</p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 {getSamenwerking(primair).map(({ andere, data }) => (
-                  <div key={andere} style={{ background: '#1e293b', borderRadius: 10, padding: 16, display: 'flex', gap: 14, alignItems: 'flex-start' }}>
+                  <div key={andere} style={{ background: 'var(--text-1)', borderRadius: 10, padding: 16, display: 'flex', gap: 14, alignItems: 'flex-start' }}>
                     <div style={{ minWidth: 48, textAlign: 'center' }}>
                       <div style={{ fontSize: 20 }}>{DIM_INTRO[andere].emoji}</div>
                       <div style={{ color: DIM_KLEUR[andere], fontWeight: 700, fontSize: 13 }}>{primair}+{andere}</div>
@@ -413,9 +413,9 @@ export default function DiscPage() {
         {fase === 'opgeslagen' && (
           <div style={{ background: '#0f1e36', border: '1px solid #1e3a5f', borderRadius: 16, padding: 40, textAlign: 'center' }}>
             <div style={{ fontSize: 48, marginBottom: 16 }}>✓</div>
-            <h2 style={{ fontSize: 22, fontWeight: 700, color: '#10B981', marginBottom: 8 }}>Resultaat opgeslagen!</h2>
+            <h2 style={{ fontSize: 22, fontWeight: 700, color: 'var(--mf-green)', marginBottom: 8 }}>Resultaat opgeslagen!</h2>
             <p style={{ color: '#94a3b8', marginBottom: 24 }}>Je DISC-profiel en rapport zijn opgeslagen.</p>
-            <button onClick={() => router.push('/bestanden')} style={{ background: '#3B82F6', color: '#fff', border: 'none', borderRadius: 10, padding: '12px 28px', fontSize: 15, fontWeight: 600, cursor: 'pointer' }}>
+            <button onClick={() => router.push('/bestanden')} style={{ background: 'var(--mf-blue)', color: '#fff', border: 'none', borderRadius: 10, padding: '12px 28px', fontSize: 15, fontWeight: 600, cursor: 'pointer' }}>
               Bekijk je rapport
             </button>
           </div>
