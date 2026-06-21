@@ -33,7 +33,7 @@ interface Sectie {
 
 const SECTIES: Sectie[] = [
   {
-    id: 'slaap', label: 'Slaap', kleur: '#8B5CF6', licht: '#F5F3FF',
+    id: 'slaap', label: 'Slaap', kleur: 'var(--mf-purple)', licht: 'var(--mf-purple-light)',
     vragen: [
       { code: 'slaap_kwaliteit', type: 'schaal', verplicht: true, min: 'Zeer slecht',       max: 'Uitstekend',     label: 'Hoe heb je deze week geslapen?' },
       { code: 'slaap_uren',      type: 'schaal', verplicht: true, min: 'Minder dan 5 uur',  max: '8 uur of meer',  label: 'Hoeveel uur sliep je gemiddeld per nacht?' },
@@ -43,7 +43,7 @@ const SECTIES: Sectie[] = [
     ],
   },
   {
-    id: 'stress', label: 'Stress', kleur: '#E24B4A', licht: '#FFF5F5',
+    id: 'stress', label: 'Stress', kleur: 'var(--mf-red)', licht: 'var(--mf-red-light)',
     vragen: [
       { code: 'stress_niveau',      type: 'schaal', verplicht: true, min: 'Extreem gestrest', max: 'Volledig ontspannen', label: 'Hoe stressvrij voelde je je deze week?' },
       { code: 'stress_piekeren',    type: 'schaal', verplicht: true, min: 'Voortdurend',       max: 'Helemaal niet',      label: 'In welke mate piekerde je over je werk?' },
@@ -53,7 +53,7 @@ const SECTIES: Sectie[] = [
     ],
   },
   {
-    id: 'energie', label: 'Energie', kleur: '#BA7517', licht: '#FFFBEB',
+    id: 'energie', label: 'Energie', kleur: 'var(--mf-amber)', licht: 'var(--mf-amber-light)',
     vragen: [
       { code: 'energie_niveau',    type: 'schaal', verplicht: true, min: 'Uitgeput',        max: 'Vol energie',   label: 'Hoe was je energieniveau deze week?' },
       { code: 'energie_beweging',  type: 'schaal', verplicht: true, min: 'Totaal inactief', max: 'Zeer actief',   label: 'Hoe actief was je buiten het werk (sport, wandelen)?' },
@@ -63,7 +63,7 @@ const SECTIES: Sectie[] = [
     ],
   },
   {
-    id: 'focus', label: 'Focus', kleur: '#1D9E75', licht: '#F0FDF4',
+    id: 'focus', label: 'Focus', kleur: 'var(--mf-green)', licht: 'var(--mf-green-light)',
     vragen: [
       { code: 'focus_concentratie', type: 'schaal', verplicht: true, min: 'Totaal niet',       max: 'Uitstekend',        label: 'Hoe goed kon je je concentreren op je werk?' },
       { code: 'focus_helderheid',   type: 'schaal', verplicht: true, min: 'Wazig en traag',     max: 'Scherp en helder',  label: 'Hoe helder was je hoofd — kon je snel beslissingen nemen?' },
@@ -73,7 +73,7 @@ const SECTIES: Sectie[] = [
     ],
   },
   {
-    id: 'balans', label: 'Werk-privé balans', kleur: '#378ADD', licht: '#EFF6FF',
+    id: 'balans', label: 'Werk-privé balans', kleur: 'var(--mf-blue-mid)', licht: 'var(--mf-blue-light)',
     vragen: [
       { code: 'balans_werk_prive', type: 'schaal', verplicht: true, min: 'Helemaal niet',  max: 'Perfecte balans',      label: 'Ervaarde je een goede balans tussen werk en privéleven?' },
       { code: 'balans_grenzen',    type: 'schaal', verplicht: true, min: 'Nauwelijks',     max: 'Uitstekend',           label: "Hoe goed kon je grenzen stellen en 'nee' zeggen?" },
@@ -83,7 +83,7 @@ const SECTIES: Sectie[] = [
     ],
   },
   {
-    id: 'motivatie', label: 'Motivatie', kleur: '#9D174D', licht: '#FDF2F8',
+    id: 'motivatie', label: 'Motivatie', kleur: 'var(--mf-rose)', licht: 'var(--mf-rose-light)',
     vragen: [
       { code: 'motivatie_werk',         type: 'schaal', verplicht: true, min: 'Helemaal niet', max: 'Zeer gemotiveerd',  label: 'Hoe gemotiveerd was je om je werk goed te doen?' },
       { code: 'motivatie_zinvol',       type: 'schaal', verplicht: true, min: 'Zinloos',        max: 'Zeer zinvol',      label: 'In welke mate vond je je werk zinvol en betekenisvol?' },

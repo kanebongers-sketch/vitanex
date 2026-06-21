@@ -44,9 +44,9 @@ interface PatronenData {
 
 function BetrouwbaarheidBadge({ niveau }: { niveau: 'laag' | 'middel' | 'hoog' }) {
   const config = {
-    laag:   { label: 'Weinig data',    bg: '#FEF3C7', kleur: '#92400E' },
-    middel: { label: 'Groeiend beeld', bg: '#EDE9FE', kleur: '#5B21B6' },
-    hoog:   { label: 'Sterk patroon', bg: '#D1FAE5', kleur: '#065F46' },
+    laag:   { label: 'Weinig data',    bg: 'var(--mf-amber-light)',  kleur: 'var(--mf-amber-dark)'  },
+    middel: { label: 'Groeiend beeld', bg: 'var(--mf-purple-light)', kleur: 'var(--mf-purple)'      },
+    hoog:   { label: 'Sterk patroon', bg: 'var(--mf-green-light)',  kleur: 'var(--mf-green-dark)'  },
   }[niveau]
 
   return (
@@ -97,7 +97,7 @@ function StatKaart({ label, waarde, delta, kleur }: {
           fontSize: 11,
           fontWeight: 700,
           marginTop: 4,
-          color: isPositief ? '#1D9E75' : isNegatief ? '#E24B4A' : 'var(--text-4)',
+          color: isPositief ? 'var(--mf-green)' : isNegatief ? 'var(--mf-red)' : 'var(--text-4)',
         }}>
           {delta} vs. vorige periode
         </div>
@@ -326,10 +326,10 @@ export default function PatronenPage() {
               {/* ── Motivatie footer ──────────────────────────── */}
               <div
                 style={{
-                  background: 'linear-gradient(135deg, #F0FDF4 0%, #DCFCE7 100%)',
-                  border: '1.5px solid #A7F3D0',
+                  background: 'var(--mf-green-light)',
+                  border: '1.5px solid rgba(29,158,117,0.25)',
                   borderRadius: 'var(--radius-xl)',
-                  padding: '20px 20px',
+                  padding: '20px',
                   textAlign: 'center',
                 }}
               >
@@ -340,7 +340,7 @@ export default function PatronenPage() {
                     ? `${data.samenvatting.totaal_checkins} check-ins gedaan. Na 21 worden je patronen betrouwbaar.`
                     : 'Elke log voegt een datapunt toe. Je patronen worden na een week duidelijk.'}
                 </p>
-                <p style={{ fontSize: 12, color: '#15785A', margin: 0 }}>
+                <p style={{ fontSize: 12, color: 'var(--mf-green-mid)', margin: 0 }}>
                   Patronen worden 24 uur gecached en bijgewerkt zodra je nieuw logt.
                 </p>
               </div>

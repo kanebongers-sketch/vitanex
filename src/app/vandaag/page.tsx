@@ -181,7 +181,7 @@ function TaakKaart({ taak, onClick }: { taak: TaakItem; onClick: () => void }) {
         gap: 14,
         width: '100%',
         padding: '14px 16px',
-        background: gedaan ? '#F0FBF6' : hovered ? 'var(--bg-subtle)' : 'var(--bg-card)',
+        background: gedaan ? 'var(--mf-green-light)' : hovered ? 'var(--bg-subtle)' : 'var(--bg-card)',
         border: gedaan
           ? '1px solid rgba(29, 158, 117, 0.25)'
           : '1px solid var(--border)',

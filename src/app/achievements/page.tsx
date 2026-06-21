@@ -20,46 +20,49 @@ interface Achievement {
   }
 }
 
-// Alle mogelijke achievements — behaalde worden opgezocht, rest wordt vergrendeld getoond
-const ALLE_ACHIEVEMENTS = [
-  { slug: 'eerste-checkin',    naam: 'Eerste check-in',    icon: '📋', xp_beloning: 50,  categorie: 'check-in', beschrijving: 'Voltooi je allereerste wekelijkse check-in.' },
-  { slug: 'week-streak',       naam: 'Week op rij',         icon: '🔥', xp_beloning: 75,  categorie: 'streak',   beschrijving: '7 dagen actief op MentaForce.' },
-  { slug: 'maand-streak',      naam: 'Maand streak',        icon: '⚡', xp_beloning: 200, categorie: 'streak',   beschrijving: '30 dagen ononderbroken actief.' },
-  { slug: 'vijf-checkins',     naam: '5 check-ins',         icon: '✅', xp_beloning: 100, categorie: 'check-in', beschrijving: 'Voltooi 5 wekelijkse check-ins.' },
-  { slug: 'coach-start',       naam: 'Coach debuut',        icon: '🤝', xp_beloning: 50,  categorie: 'coaching', beschrijving: 'Start je eerste gesprek met de AI Coach.' },
-  { slug: 'team-player',       naam: 'Team speler',         icon: '👥', xp_beloning: 75,  categorie: 'team',     beschrijving: 'Stuur je eerste teambericht.' },
-  { slug: 'beweger',           naam: 'Beweger',             icon: '🏃', xp_beloning: 50,  categorie: 'sport',    beschrijving: 'Log 3 sportactiviteiten in één week.' },
-  { slug: 'dankbaar',          naam: 'Dankbaar hart',       icon: '💚', xp_beloning: 50,  categorie: 'voeding',  beschrijving: 'Schrijf 5 dankbaarheidsmomenten.' },
-  { slug: 'honderd-dagen',     naam: 'Centurion',           icon: '🏆', xp_beloning: 500, categorie: 'mijlpaal', beschrijving: '100 dagen actief op het platform.' },
-  { slug: 'perfect-week',      naam: 'Perfecte week',       icon: '⭐', xp_beloning: 150, categorie: 'mijlpaal', beschrijving: 'Log elke dag van de week een activiteit.' },
-]
-
 const CAT_LABELS: Record<string, string> = {
   'check-in': 'Check-ins',
-  coaching: 'Coaching',
-  sport: 'Sport',
-  voeding: 'Voeding',
-  streak: 'Streaks',
-  team: 'Team',
-  mijlpaal: 'Mijlpalen',
+  coaching:   'Coaching',
+  sport:      'Sport',
+  voeding:    'Voeding',
+  streak:     'Streaks',
+  team:       'Team',
+  mijlpaal:   'Mijlpalen',
 }
 
-const CAT_KLEUREN: Record<string, { kleur: string; bg: string; rand: string }> = {
-  'check-in': { kleur: '#185FA5', bg: '#EFF6FF', rand: '#BFDBFE' },
-  coaching:   { kleur: '#7C3AED', bg: '#EDE9FE', rand: '#C4B5FD' },
-  sport:      { kleur: '#B45309', bg: '#FEF3C7', rand: '#FCD34D' },
-  voeding:    { kleur: '#059669', bg: '#D1FAE5', rand: '#6EE7B7' },
-  streak:     { kleur: '#EA580C', bg: '#FFF7ED', rand: '#FED7AA' },
-  team:       { kleur: '#0369A1', bg: '#E0F2FE', rand: '#7DD3FC' },
-  mijlpaal:   { kleur: '#9D174D', bg: '#FDF2F8', rand: '#F9A8D4' },
+const CAT_KLEUREN: Record<string, string> = {
+  'check-in': '#185FA5',
+  coaching:   '#8B5CF6',
+  sport:      '#B45309',
+  voeding:    '#1D9E75',
+  streak:     '#EA580C',
+  team:       '#0369A1',
+  mijlpaal:   '#9D174D',
+}
+
+const LEVELS = [
+  { min: 0,    max: 100,  naam: 'Beginner',    emoji: '🌱' },
+  { min: 100,  max: 300,  naam: 'Groeier',     emoji: '🌿' },
+  { min: 300,  max: 600,  naam: 'Gevorderd',   emoji: '🌳' },
+  { min: 600,  max: 1000, naam: 'Expert',      emoji: '⭐' },
+  { min: 1000, max: 2000, naam: 'Meester',     emoji: '🏆' },
+  { min: 2000, max: Infinity, naam: 'Legende', emoji: '💎' },
+]
+
+function huidigLevel(xp: number) {
+  return LEVELS.find(l => xp >= l.min && xp < l.max) ?? LEVELS[LEVELS.length - 1]
+}
+
+function volgendLevel(xp: number) {
+  const idx = LEVELS.findIndex(l => xp >= l.min && xp < l.max)
+  return idx >= 0 && idx < LEVELS.length - 1 ? LEVELS[idx + 1] : null
 }
 
 export default function AchievementsPagina() {
   const router = useRouter()
-  const [behaaldeSlugs, setBehaaldeSlugs] = useState<Set<string>>(new Set())
-  const [behaaldeMeta, setBehaaldeMeta] = useState<Record<string, string>>({}) // slug → behaald_op
-  const [totaalXP, setTotaalXP] = useState(0)
+  const [achievements, setAchievements] = useState<Achievement[]>([])
   const [laden, setLaden] = useState(true)
+  const [totaalXP, setTotaalXP] = useState(0)
 
   useEffect(() => {
     async function laad() {
@@ -71,16 +74,8 @@ export default function AchievementsPagina() {
         if (res.ok) {
           const json = await res.json() as { achievements: Achievement[] }
           const lijst = json.achievements ?? []
-          const slugSet = new Set(lijst.map(a => a.achievements?.slug))
-          const meta: Record<string, string> = {}
-          let xp = 0
-          for (const a of lijst) {
-            meta[a.achievements?.slug] = a.behaald_op
-            xp += a.achievements?.xp_beloning ?? 0
-          }
-          setBehaaldeSlugs(slugSet)
-          setBehaaldeMeta(meta)
-          setTotaalXP(xp)
+          setAchievements(lijst)
+          setTotaalXP(lijst.reduce((sum, a) => sum + (a.achievements?.xp_beloning ?? 0), 0))
         }
       } catch { /* niet-kritiek */ }
       setLaden(false)
@@ -88,8 +83,18 @@ export default function AchievementsPagina() {
     laad()
   }, [router])
 
+  const groeperenOpCategorie = () => {
+    const map = new Map<string, Achievement[]>()
+    for (const a of achievements) {
+      const cat = a.achievements?.categorie ?? 'overig'
+      if (!map.has(cat)) map.set(cat, [])
+      map.get(cat)!.push(a)
+    }
+    return map
+  }
+
   if (laden) return (
-    <div className="mf-mesh-bg" style={{ minHeight: '100vh' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
       <Navbar />
       <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 80 }}>
         <div className="mf-spinner" />
@@ -97,132 +102,163 @@ export default function AchievementsPagina() {
     </div>
   )
 
-  const aantalBehaald = behaaldeSlugs.size
-  const groeperenOpCategorie = () => {
-    const map = new Map<string, typeof ALLE_ACHIEVEMENTS>()
-    for (const a of ALLE_ACHIEVEMENTS) {
-      const cat = a.categorie
-      if (!map.has(cat)) map.set(cat, [])
-      map.get(cat)!.push(a)
-    }
-    return map
-  }
   const perCategorie = groeperenOpCategorie()
+  const niveau = huidigLevel(totaalXP)
+  const volgend = volgendLevel(totaalXP)
+  const levelPct = volgend
+    ? ((totaalXP - niveau.min) / (volgend.min - niveau.min)) * 100
+    : 100
 
   return (
-    <div className="mf-mesh-bg" style={{ minHeight: '100vh' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
       <Navbar />
       <main style={{ padding: '24px 20px 88px', maxWidth: 600, margin: '0 auto' }}>
 
-        <header style={{ marginBottom: 24 }}>
-          <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1, #111827)', letterSpacing: '-0.03em', marginBottom: 4 }}>
-            Prestaties
+        <header style={{ marginBottom: 20 }}>
+          <p style={{ fontSize: '0.8rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-4)', margin: '0 0 4px' }}>
+            Gamificatie
+          </p>
+          <h1 style={{ fontSize: 24, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', margin: 0 }}>
+            Jouw prestaties
           </h1>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <p style={{ fontSize: 13, color: 'var(--text-3, #9CA3AF)' }}>
-              {aantalBehaald} van {ALLE_ACHIEVEMENTS.length} behaald
-            </p>
-            {totaalXP > 0 && (
-              <span style={{
-                fontSize: 12, fontWeight: 700,
-                background: 'linear-gradient(135deg, var(--mf-orange-light, #FFF7ED), var(--mf-orange-soft, #FFEDD5))',
-                color: 'var(--mf-orange, #EA580C)',
-                border: '1px solid var(--mf-orange-border, #FED7AA)',
-                borderRadius: 20, padding: '3px 10px',
-              }}>
-                ⚡ {totaalXP} XP
-              </span>
-            )}
-          </div>
-
-          {/* Voortgangsbalk */}
-          <div style={{ marginTop: 12, height: 6, background: 'var(--border, rgba(0,0,0,0.07))', borderRadius: 9999, overflow: 'hidden' }}>
-            <div style={{
-              height: '100%',
-              width: `${Math.round(aantalBehaald / ALLE_ACHIEVEMENTS.length * 100)}%`,
-              background: 'linear-gradient(90deg, var(--mf-green-dark, #0F6E56), var(--mf-green, #1D9E75))',
-              borderRadius: 9999,
-              transition: 'width 0.6s cubic-bezier(0.16,1,0.3,1)',
-            }} />
-          </div>
         </header>
 
-        {aantalBehaald === 0 ? (
+        {/* XP Level card */}
+        <section style={{
+          background: 'var(--bg-card)',
+          borderRadius: 'var(--radius-xl)',
+          boxShadow: 'var(--shadow-md)',
+          padding: '20px',
+          marginBottom: 20,
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 16 }}>
+            <div style={{
+              width: 56, height: 56, borderRadius: 'var(--radius-md)',
+              background: 'var(--mf-amber-light)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 28, flexShrink: 0,
+            }}>
+              {niveau.emoji}
+            </div>
+            <div style={{ flex: 1 }}>
+              <p style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-4)', margin: '0 0 2px' }}>
+                Huidig niveau
+              </p>
+              <p style={{ fontSize: 18, fontWeight: 800, color: 'var(--text-1)', margin: '0 0 2px', letterSpacing: '-0.02em' }}>
+                {niveau.naam}
+              </p>
+              <p style={{ fontSize: 12, color: 'var(--text-3)', margin: 0 }}>
+                {totaalXP} XP · {achievements.length} badges
+              </p>
+            </div>
+          </div>
+
+          {/* Level voortgangsbalk */}
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+              <span style={{ fontSize: 11, color: 'var(--text-4)', fontWeight: 600 }}>
+                {niveau.min} XP
+              </span>
+              <span style={{ fontSize: 11, color: 'var(--text-4)', fontWeight: 600 }}>
+                {volgend ? `${volgend.min} XP — ${volgend.naam} ${volgend.emoji}` : 'Max niveau!'}
+              </span>
+            </div>
+            <div style={{ height: 8, background: 'var(--bg-subtle)', borderRadius: 100, overflow: 'hidden' }}>
+              <div style={{
+                height: '100%',
+                width: `${Math.min(100, levelPct)}%`,
+                background: 'linear-gradient(90deg, var(--mf-amber) 0%, var(--mf-amber-mid) 100%)',
+                borderRadius: 100,
+                transition: 'width 1s cubic-bezier(0.34,1.56,0.64,1)',
+              }} />
+            </div>
+          </div>
+        </section>
+
+        {achievements.length === 0 ? (
           <div style={{
-            background: 'var(--bg-card, white)', borderRadius: 20, padding: '48px 24px',
-            border: '2px dashed var(--border, #E5E7EB)', textAlign: 'center',
+            background: 'var(--bg-card)',
+            borderRadius: 'var(--radius-xl)',
+            padding: '56px 24px',
+            border: '2px dashed var(--border-strong)',
+            textAlign: 'center',
             boxShadow: 'var(--shadow-xs)',
           }}>
             <div style={{ fontSize: 48, marginBottom: 16 }}>🎯</div>
-            <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-1, #374151)', marginBottom: 8 }}>
+            <p style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-1)', marginBottom: 8 }}>
               Nog geen prestaties behaald
             </p>
-            <p style={{ fontSize: 13, color: 'var(--text-3, #9CA3AF)', lineHeight: 1.55 }}>
+            <p style={{ fontSize: 13, color: 'var(--text-3)', lineHeight: 1.6, maxWidth: 320, margin: '0 auto 24px' }}>
               Doe check-ins, gebruik de AI Coach en log trainingen om je eerste badges te verdienen.
             </p>
+            <a
+              href="/vandaag"
+              style={{
+                display: 'inline-block',
+                background: 'var(--mf-green)',
+                color: '#fff',
+                fontWeight: 700,
+                fontSize: 14,
+                padding: '12px 24px',
+                borderRadius: 'var(--radius-btn)',
+                textDecoration: 'none',
+                boxShadow: '0 4px 12px rgba(29,158,117,0.3)',
+              }}
+            >
+              Start vandaag →
+            </a>
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
             {Array.from(perCategorie.entries()).map(([cat, items]) => {
-              const stijl = CAT_KLEUREN[cat] ?? { kleur: '#9CA3AF', bg: '#F3F4F6', rand: '#E5E7EB' }
+              const kleur = CAT_KLEUREN[cat] ?? '#9CA3AF'
               return (
                 <section key={cat}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                    <div style={{ width: 3, height: 16, borderRadius: 2, background: stijl.kleur }} />
-                    <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: stijl.kleur }}>
-                      {CAT_LABELS[cat] ?? cat} ({items.filter(i => behaaldeSlugs.has(i.slug)).length}/{items.length})
+                    <div style={{ width: 3, height: 16, borderRadius: 2, background: kleur }} />
+                    <p style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: kleur, margin: 0 }}>
+                      {CAT_LABELS[cat] ?? cat} ({items.length})
                     </p>
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                    {items.map(a => {
-                      const bereikt = behaaldeSlugs.has(a.slug)
-                      const behaaldOp = behaaldeMeta[a.slug]
-                      return (
-                        <article key={a.slug} style={{
-                          background: bereikt ? stijl.bg : 'var(--bg-card, white)',
-                          borderRadius: 14,
-                          padding: '14px 16px',
-                          border: bereikt ? `1.5px solid ${stijl.rand}` : '1.5px solid var(--border, rgba(0,0,0,0.07))',
-                          display: 'flex', alignItems: 'center', gap: 14,
-                          opacity: bereikt ? 1 : 0.5,
-                          filter: bereikt ? 'none' : 'grayscale(0.5)',
-                          transition: 'all 0.2s ease',
-                          boxShadow: bereikt ? `0 2px 8px ${stijl.kleur}18` : 'none',
+                    {items.map(a => (
+                      <article key={a.achievements.slug} style={{
+                        background: 'var(--bg-card)',
+                        borderRadius: 'var(--radius-md)',
+                        boxShadow: 'var(--shadow-xs)',
+                        padding: '14px 16px',
+                        border: `1.5px solid ${kleur}20`,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 14,
+                      }}>
+                        <div style={{
+                          width: 48, height: 48,
+                          borderRadius: 'var(--radius-md)',
+                          background: `${kleur}12`,
+                          border: `1.5px solid ${kleur}25`,
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          flexShrink: 0, fontSize: 22,
                         }}>
-                          {/* Badge icoon */}
-                          <div style={{
-                            width: 52, height: 52, borderRadius: 14, flexShrink: 0,
-                            background: bereikt ? `${stijl.kleur}18` : 'var(--bg-subtle, #F9FAFB)',
-                            border: bereikt ? `1.5px solid ${stijl.kleur}30` : '1.5px solid var(--border, rgba(0,0,0,0.07))',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            fontSize: 24,
-                          }}>
-                            {bereikt ? a.icon : '🔒'}
-                          </div>
-
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <p style={{ fontSize: 14, fontWeight: 700, color: bereikt ? 'var(--text-1, #111827)' : 'var(--text-3, #9CA3AF)', marginBottom: 2 }}>
-                              {a.naam}
-                            </p>
-                            <p style={{ fontSize: 12, color: 'var(--text-3, #6B7280)', marginBottom: bereikt && behaaldOp ? 4 : 0, lineHeight: 1.4 }}>
-                              {a.beschrijving}
-                            </p>
-                            {bereikt && behaaldOp && (
-                              <p style={{ fontSize: 10, color: stijl.kleur, fontWeight: 600 }}>
-                                Behaald op {new Date(behaaldOp).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short', year: 'numeric' })}
-                              </p>
-                            )}
-                          </div>
-
-                          <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                            <p style={{ fontSize: 14, fontWeight: 800, color: bereikt ? stijl.kleur : 'var(--text-4, #D1D5DB)' }}>
-                              {a.xp_beloning}
-                            </p>
-                            <p style={{ fontSize: 9, color: bereikt ? stijl.kleur : 'var(--text-4, #D1D5DB)', fontWeight: 600 }}>XP</p>
-                          </div>
-                        </article>
-                      )
-                    })}
+                          {a.achievements.icon}
+                        </div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-1)', margin: '0 0 2px' }}>
+                            {a.achievements.naam}
+                          </p>
+                          <p style={{ fontSize: 12, color: 'var(--text-3)', margin: '0 0 4px', lineHeight: 1.4 }}>
+                            {a.achievements.beschrijving}
+                          </p>
+                          <p style={{ fontSize: 10, color: 'var(--text-4)', margin: 0 }}>
+                            {new Date(a.behaald_op).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short', year: 'numeric' })}
+                          </p>
+                        </div>
+                        <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                          <p style={{ fontSize: 15, fontWeight: 800, color: kleur, margin: 0 }}>{a.achievements.xp_beloning}</p>
+                          <p style={{ fontSize: 9, color: 'var(--text-4)', fontWeight: 600, margin: '2px 0 0' }}>XP</p>
+                        </div>
+                      </article>
+                    ))}
                   </div>
                 </section>
               )
