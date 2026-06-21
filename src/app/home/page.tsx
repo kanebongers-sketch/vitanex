@@ -8,6 +8,8 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { authFetch } from '@/lib/auth-fetch'
 import Navbar from '@/components/layout/Navbar'
+import { laadXPVanServer } from '@/lib/xp-sync'
+import { berekenLevel, xpVoortgang, LEVEL_NAMEN, LEVEL_KLEUREN, LEVEL_BG, type XPData } from '@/lib/xp'
 
 // ── Helpers ───────────────────────────────────────────────────
 
@@ -321,6 +323,7 @@ export default function HomePage() {
     vetten_g: 0,
   })
   const [weekData, setWeekData] = useState<WeekData | null>(null)
+  const [xpData, setXpData] = useState<XPData | null>(null)
 
   const [vandaagItems, setVandaagItems] = useState<VandaagItem[]>([
     { key: 'stemming',     label: 'Stemming',    emoji: '😊', href: '/stemming',     gedaan: false },
@@ -400,6 +403,9 @@ export default function HomePage() {
       if (weekRes.status === 'fulfilled' && weekRes.value) {
         setWeekData(weekRes.value as WeekData)
       }
+
+      // XP laden (non-blocking, na primaire data)
+      laadXPVanServer().then(xp => { if (xp) setXpData(xp) }).catch(() => null)
     }
 
     laad()
@@ -648,13 +654,45 @@ export default function HomePage() {
             </div>
           </div>
 
-          <Link href="/patronen" style={{ textDecoration: 'none' }}>
-            <div style={{ borderRadius: 18, background: 'var(--mf-green-light)', border: '1.5px solid rgba(29,158,117,0.2)', padding: '14px', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', boxShadow: 'var(--shadow-xs)' }}>
-              <span style={{ fontSize: 22, marginBottom: 6 }}>🔬</span>
-              <div style={{ fontSize: 12, fontWeight: 800, color: 'var(--mf-green-dark)', lineHeight: 1.3 }}>Jouw patronen</div>
-              <div style={{ fontSize: 10, color: 'var(--mf-green-mid)', marginTop: 3 }}>Bekijk trends →</div>
-            </div>
-          </Link>
+          {xpData ? (() => {
+            const lvl = berekenLevel(xpData.xp)
+            const vrt = xpVoortgang(xpData.xp, lvl)
+            const lvlKleur = LEVEL_KLEUREN[lvl] ?? 'var(--mf-green)'
+            const lvlBg = LEVEL_BG[lvl] ?? 'var(--mf-green-light)'
+            return (
+              <Link href="/niveau" style={{ textDecoration: 'none' }}>
+                <div style={{ borderRadius: 18, background: lvlBg, border: `1.5px solid ${lvlKleur}30`, padding: '14px', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', boxShadow: 'var(--shadow-xs)' }}>
+                  <div>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: lvlKleur, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>
+                      Level {lvl}
+                    </div>
+                    <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--text-1)', lineHeight: 1.2 }}>
+                      {LEVEL_NAMEN[lvl]}
+                    </div>
+                    <div style={{ fontSize: 10, color: 'var(--text-4)', marginTop: 2 }}>
+                      {xpData.xp} XP
+                    </div>
+                  </div>
+                  <div>
+                    <div style={{ height: 4, background: 'rgba(0,0,0,0.08)', borderRadius: 100, overflow: 'hidden', marginTop: 10 }}>
+                      <div style={{ height: '100%', width: `${vrt.pct}%`, background: lvlKleur, borderRadius: 100, transition: 'width 0.8s ease' }} />
+                    </div>
+                    <div style={{ fontSize: 9, color: 'var(--text-4)', marginTop: 4, fontWeight: 600 }}>
+                      {vrt.nodig > 0 ? `${vrt.nodig} XP tot level ${lvl + 1}` : 'Max level!'}
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            )
+          })() : (
+            <Link href="/patronen" style={{ textDecoration: 'none' }}>
+              <div style={{ borderRadius: 18, background: 'var(--mf-green-light)', border: '1.5px solid rgba(29,158,117,0.2)', padding: '14px', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', boxShadow: 'var(--shadow-xs)' }}>
+                <span style={{ fontSize: 22, marginBottom: 6 }}>🔬</span>
+                <div style={{ fontSize: 12, fontWeight: 800, color: 'var(--mf-green-dark)', lineHeight: 1.3 }}>Jouw patronen</div>
+                <div style={{ fontSize: 10, color: 'var(--mf-green-mid)', marginTop: 3 }}>Bekijk trends →</div>
+              </div>
+            </Link>
+          )}
         </div>
 
         {/* ── SECTION 4.5 — WEEK INZICHTEN ── */}
