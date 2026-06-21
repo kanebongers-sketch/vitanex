@@ -80,7 +80,7 @@ function RisicoRing({ risico }: { risico: Risico }) {
           style={{ transition: 'stroke-dasharray 1.2s var(--ease)' }}
         />
         <text x="38" y="36" textAnchor="middle" fontSize="19" fontWeight="900" fill={stijl.kleur}>{risico.score}</text>
-        <text x="38" y="49" textAnchor="middle" fontSize="9" fill="#9CA3AF">/100</text>
+        <text x="38" y="49" textAnchor="middle" fontSize="9" fill="var(--text-4)">/100</text>
       </svg>
       <div style={{ minWidth: 0 }}>
         <p style={{ fontSize: 11, fontWeight: 800, color: stijl.kleur, textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 5px' }}>
@@ -308,7 +308,7 @@ function GezondheidInhoud() {
 
 export default function GezondheidPage() {
   return (
-    <div style={{ background: 'var(--bg-app)', minHeight: '100vh' }}>
+    <div className="mf-mesh-bg" style={{ background: 'var(--bg-app)', minHeight: '100vh' }}>
       <Navbar />
       <Suspense fallback={
         <div style={{ display: 'flex', justifyContent: 'center', padding: 80 }}>

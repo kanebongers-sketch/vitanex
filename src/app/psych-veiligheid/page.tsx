@@ -71,7 +71,7 @@ export default function PsychVeiligheidPagina() {
     : null
 
   if (laden) return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
+    <div className="mf-mesh-bg" style={{ minHeight: '100vh' }}>
       <Navbar />
       <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 80 }}>
         <div className="mf-spinner" />
@@ -80,15 +80,15 @@ export default function PsychVeiligheidPagina() {
   )
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
+    <div className="mf-mesh-bg" style={{ minHeight: '100vh' }}>
       <Navbar />
       <main style={{ padding: '24px 20px 88px', maxWidth: 600, margin: '0 auto' }}>
 
         <header style={{ marginBottom: 24 }}>
-          <h1 style={{ fontSize: 22, fontWeight: 800, color: '#111827', letterSpacing: '-0.03em', marginBottom: 4 }}>
+          <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1, #111827)', letterSpacing: '-0.03em', marginBottom: 4 }}>
             Psychologische veiligheid
           </h1>
-          <p style={{ fontSize: 13, color: '#9CA3AF', lineHeight: 1.5 }}>
+          <p style={{ fontSize: 13, color: 'var(--text-3, #9CA3AF)', lineHeight: 1.5 }}>
             Hoe veilig voelt het om jezelf te zijn op je werk? · Wekelijkse meting
           </p>
           {gemiddeld && (
@@ -98,15 +98,15 @@ export default function PsychVeiligheidPagina() {
           )}
         </header>
 
-        <section style={{ background: 'white', borderRadius: 20, padding: '20px', border: '1px solid #E5E7EB', marginBottom: 24 }}>
-          <p style={{ fontSize: 12, color: '#6B7280', lineHeight: 1.5, marginBottom: 20, padding: '10px 14px', background: '#F9FAFB', borderRadius: 10 }}>
+        <section style={{ background: 'var(--surface-1, white)', borderRadius: 20, padding: '20px', border: '1px solid var(--border, #E5E7EB)', marginBottom: 24 }}>
+          <p style={{ fontSize: 12, color: 'var(--text-2, #6B7280)', lineHeight: 1.5, marginBottom: 20, padding: '10px 14px', background: 'var(--surface-2, #F9FAFB)', borderRadius: 10 }}>
             Psychologische veiligheid is de mate waarin medewerkers zich vrij voelen om risico&apos;s te nemen zonder bang te zijn voor vernedering of afwijzing.
           </p>
 
           {VRAGEN.map(v => (
             <div key={v.key} style={{ marginBottom: 20 }}>
-              <p style={{ fontSize: 13, fontWeight: 700, color: '#111827', marginBottom: 2 }}>{v.label}</p>
-              <p style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 8 }}>{v.beschrijving}</p>
+              <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-1, #111827)', marginBottom: 2 }}>{v.label}</p>
+              <p style={{ fontSize: 11, color: 'var(--text-3, #9CA3AF)', marginBottom: 8 }}>{v.beschrijving}</p>
               <div style={{ display: 'flex', gap: 8 }}>
                 {[1, 2, 3, 4, 5].map(n => {
                   const kleur = n >= 4 ? '#1D9E75' : n === 3 ? '#F59E0B' : '#EF4444'
@@ -116,8 +116,8 @@ export default function PsychVeiligheidPagina() {
                       onClick={() => setScores(prev => ({ ...prev, [v.key]: n }))}
                       style={{
                         flex: 1, height: 40, borderRadius: 10, border: 'none', cursor: 'pointer',
-                        background: scores[v.key] === n ? kleur : '#F3F4F6',
-                        color: scores[v.key] === n ? 'white' : '#9CA3AF',
+                        background: scores[v.key] === n ? kleur : 'var(--surface-2, #F3F4F6)',
+                        color: scores[v.key] === n ? 'white' : 'var(--text-3, #9CA3AF)',
                         fontWeight: 700, fontSize: 13,
                         transition: 'background 0.15s ease',
                       }}
@@ -139,7 +139,10 @@ export default function PsychVeiligheidPagina() {
             disabled={opslaan || Object.values(scores).some(v => v === 0)}
             style={{
               width: '100%', padding: '12px', borderRadius: 12,
-              background: succes ? '#1D9E75' : '#111827', color: 'white',
+              background: succes
+                ? 'var(--mf-green, #1D9E75)'
+                : 'linear-gradient(135deg, var(--mf-green, #1D9E75) 0%, var(--mf-green-dark, #0F6E56) 100%)',
+              color: 'white',
               border: 'none', cursor: 'pointer', fontSize: 14, fontWeight: 700,
               opacity: opslaan || Object.values(scores).some(v => v === 0) ? 0.5 : 1,
               transition: 'background 0.3s ease',
@@ -156,12 +159,12 @@ export default function PsychVeiligheidPagina() {
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {metingen.map(m => (
-                <div key={m.week_start} style={{ background: 'white', borderRadius: 12, padding: '12px 16px', border: '1px solid #E5E7EB', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <p style={{ fontSize: 12, color: '#6B7280' }}>
+                <div key={m.week_start} style={{ background: 'var(--surface-1, white)', borderRadius: 12, padding: '12px 16px', border: '1px solid var(--border, #E5E7EB)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <p style={{ fontSize: 12, color: 'var(--text-2, #6B7280)' }}>
                     Week {new Date(m.week_start).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' })}
                   </p>
                   <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-                    <div style={{ display: 'flex', gap: 6 }}>
+                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                       {[m.vrijheid_spreken, m.fouten_ok, m.idee_delen].map((s, i) => (
                         <div key={i} style={{ width: 24, height: 24, borderRadius: 6, background: s >= 4 ? '#E1F5EE' : s >= 3 ? '#FEF3C7' : '#FEF2F2', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                           <span style={{ fontSize: 10, fontWeight: 700, color: s >= 4 ? '#059669' : s >= 3 ? '#B45309' : '#EF4444' }}>{s}</span>

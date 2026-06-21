@@ -631,6 +631,57 @@ export default function VandaagPage() {
             </p>
           </header>
 
+          {/* ── Voltooiing motivatie banner ───────────────────────────────── */}
+          {scores.score_pct === 100 && (
+            <section
+              style={{
+                background: 'linear-gradient(135deg, #052e16 0%, #14532d 60%, #166534 100%)',
+                borderRadius: 'var(--radius-xl)',
+                padding: '20px 24px',
+                marginBottom: 16,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 14,
+                boxShadow: '0 8px 32px rgba(29,158,117,0.35)',
+              }}
+            >
+              <span style={{ fontSize: 36, flexShrink: 0 }}>🎉</span>
+              <div>
+                <p style={{ margin: 0, fontSize: 16, fontWeight: 800, color: '#FFFFFF', marginBottom: 4 }}>
+                  Perfecte dag! Alle taken gedaan.
+                </p>
+                <p style={{ margin: 0, fontSize: 13, color: '#86efac', lineHeight: 1.4 }}>
+                  Elke dag dat je bijhoudt, investeer je in je eigen welzijn.
+                </p>
+              </div>
+            </section>
+          )}
+          {scores.score_pct >= 80 && scores.score_pct < 100 && (
+            <section
+              style={{
+                background: 'linear-gradient(135deg, #F0FDF4 0%, #DCFCE7 60%, #D1FAE5 100%)',
+                border: '1.5px solid rgba(29,158,117,0.3)',
+                borderRadius: 'var(--radius-xl)',
+                padding: '16px 20px',
+                marginBottom: 16,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 12,
+                boxShadow: '0 4px 16px rgba(29,158,117,0.15)',
+              }}
+            >
+              <span style={{ fontSize: 28, flexShrink: 0 }}>⭐</span>
+              <div>
+                <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: '#14532d', marginBottom: 2 }}>
+                  Bijna perfect! Je bent bijna klaar.
+                </p>
+                <p style={{ margin: 0, fontSize: 12, color: '#166534', lineHeight: 1.4 }}>
+                  Elke dag dat je bijhoudt, investeer je in je eigen welzijn.
+                </p>
+              </div>
+            </section>
+          )}
+
           {/* ── Voortgang ring + teller ───────────────────────────────────── */}
           <section
             style={{

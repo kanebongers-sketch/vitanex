@@ -92,72 +92,63 @@ export default function UitdagingenPage() {
   const actieveIds = new Set(actieven.map(a => a.id))
 
   if (!klaar) return (
-    <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg-app)' }}>
-      <div className="w-8 h-8 rounded-full border-2 border-gray-200 animate-spin" style={{ borderTopColor: '#1D9E75' }} />
+    <div style={{ minHeight: '100vh', background: 'var(--bg-app)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div className="mf-spinner" />
     </div>
   )
 
   return (
-    <div className="min-h-screen" style={{ background: 'var(--bg-app)' }}>
+    <div className="mf-mesh-bg" style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
       <Navbar />
 
-      <main className="px-6 py-6">
+      <main style={{ padding: '24px 24px 72px', maxWidth: 900, margin: '0 auto' }}>
 
         {/* Header */}
-        <div className="mb-6">
-          <h2 className="text-xl font-bold text-gray-900">Uitdagingen</h2>
-          <p className="text-sm text-gray-400 mt-0.5">Doe mee aan een wellness-uitdaging</p>
+        <div style={{ marginBottom: 24 }}>
+          <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 4 }}>Uitdagingen</h1>
+          <p style={{ fontSize: 13, color: 'var(--text-4)' }}>Doe mee aan een wellness-uitdaging</p>
         </div>
 
         {/* Active challenges */}
         {actieven.length > 0 && (
-          <section className="mb-6">
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Actief bezig</p>
-            <div className="flex flex-col gap-3">
+          <section style={{ marginBottom: 24 }}>
+            <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 12 }}>Actief bezig</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               {actieven.map(actief => {
                 const uitdaging = UITDAGINGEN.find(u => u.id === actief.id)
                 if (!uitdaging) return null
                 const verstreken = Math.min(dagenVerstreken(actief.startDatum), uitdaging.duur)
                 const procent = Math.round((verstreken / uitdaging.duur) * 100)
-                const klaar = verstreken >= uitdaging.duur
+                const voltooid = verstreken >= uitdaging.duur
 
                 return (
-                  <div key={actief.id} className="bg-white rounded-2xl p-4" style={{ boxShadow: 'var(--shadow-sm)' }}>
-                    <div className="flex items-start justify-between gap-3 mb-3">
-                      <div className="flex items-center gap-3">
-                        <span className="text-2xl">{uitdaging.emoji}</span>
+                  <div key={actief.id} style={{ background: 'var(--bg-card)', borderRadius: 16, padding: '16px', border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)' }}>
+                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: 12 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        <span style={{ fontSize: 24 }}>{uitdaging.emoji}</span>
                         <div>
-                          <p className="text-sm font-semibold text-gray-900">{uitdaging.titel}</p>
-                          <p className="text-xs text-gray-400 mt-0.5">{uitdaging.sub}</p>
+                          <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-1)' }}>{uitdaging.titel}</p>
+                          <p style={{ fontSize: 12, color: 'var(--text-4)', marginTop: 2 }}>{uitdaging.sub}</p>
                         </div>
                       </div>
-                      {klaar ? (
-                        <span className="flex-shrink-0 text-xs font-semibold px-2 py-1 rounded-full" style={{ background: '#E1F5EE', color: '#1D9E75' }}>
+                      {voltooid ? (
+                        <span style={{ flexShrink: 0, fontSize: 12, fontWeight: 600, padding: '4px 10px', borderRadius: 999, background: '#E1F5EE', color: '#1D9E75' }}>
                           ✓ Voltooid!
                         </span>
                       ) : (
                         <button
                           onClick={() => stopUitdaging(actief.id)}
-                          className="flex-shrink-0 text-xs text-gray-400 hover:text-red-500 transition"
+                          style={{ flexShrink: 0, fontSize: 12, color: 'var(--text-4)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
                         >
                           Stoppen
                         </button>
                       )}
                     </div>
-                    {/* Progress bar */}
-                    <div className="flex items-center gap-2">
-                      <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-                        <div
-                          className="h-2 rounded-full transition-all"
-                          style={{
-                            background: klaar ? '#1D9E75' : '#1D9E75',
-                            width: `${procent}%`,
-                          }}
-                        />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <div style={{ flex: 1, height: 8, background: 'var(--bg-subtle)', borderRadius: 100, overflow: 'hidden' }}>
+                        <div style={{ height: '100%', width: `${procent}%`, background: '#1D9E75', borderRadius: 100, transition: 'width 0.3s ease' }} />
                       </div>
-                      <span className="text-xs text-gray-500 flex-shrink-0">
-                        {verstreken}/{uitdaging.duur} dagen
-                      </span>
+                      <span style={{ fontSize: 12, color: 'var(--text-3)', flexShrink: 0 }}>{verstreken}/{uitdaging.duur} dagen</span>
                     </div>
                   </div>
                 )
@@ -168,8 +159,8 @@ export default function UitdagingenPage() {
 
         {/* Available challenges */}
         <section>
-          <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Beschikbare uitdagingen</p>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+          <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 12 }}>Beschikbare uitdagingen</p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(200px, 100%), 1fr))', gap: 16 }}>
             {UITDAGINGEN.map(uitdaging => {
               const isActief = actieveIds.has(uitdaging.id)
               const stijl = MOEILIJKHEID_STIJL[uitdaging.moeilijkheid]
@@ -177,42 +168,39 @@ export default function UitdagingenPage() {
               return (
                 <div
                   key={uitdaging.id}
-                  className="bg-white rounded-2xl p-4 flex flex-col gap-3"
                   style={{
-                    boxShadow: 'var(--shadow-sm)',
+                    background: 'var(--bg-card)', borderRadius: 16, padding: '16px',
+                    border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)',
+                    display: 'flex', flexDirection: 'column', gap: 12,
                     opacity: isActief ? 0.85 : 1,
                   }}
                 >
-                  <div className="text-3xl leading-none">{uitdaging.emoji}</div>
-                  <div className="flex-1">
-                    <p className="text-sm font-bold text-gray-900 leading-tight">{uitdaging.titel}</p>
-                    <p className="text-xs text-gray-400 mt-1 leading-snug">{uitdaging.sub}</p>
+                  <div style={{ fontSize: 28, lineHeight: 1 }}>{uitdaging.emoji}</div>
+                  <div style={{ flex: 1 }}>
+                    <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-1)', lineHeight: 1.3 }}>{uitdaging.titel}</p>
+                    <p style={{ fontSize: 12, color: 'var(--text-4)', marginTop: 4, lineHeight: 1.4 }}>{uitdaging.sub}</p>
                   </div>
 
                   {/* Badges */}
-                  <div className="flex flex-wrap gap-1.5">
-                    <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                    <span style={{ fontSize: 11, fontWeight: 500, padding: '2px 8px', borderRadius: 999, background: 'var(--bg-subtle)', color: 'var(--text-3)' }}>
                       📅 {uitdaging.duur} dagen
                     </span>
-                    <span
-                      className="text-xs font-medium px-2 py-0.5 rounded-full"
-                      style={{ background: stijl.bg, color: stijl.kleur }}
-                    >
+                    <span style={{ fontSize: 11, fontWeight: 500, padding: '2px 8px', borderRadius: 999, background: stijl.bg, color: stijl.kleur }}>
                       {uitdaging.moeilijkheid}
                     </span>
                   </div>
 
-                  <p className="text-xs text-gray-400">👥 {uitdaging.deelnemers} deelnemers</p>
+                  <p style={{ fontSize: 12, color: 'var(--text-4)' }}>👥 {uitdaging.deelnemers} deelnemers</p>
 
                   {isActief ? (
-                    <span className="w-full py-2 rounded-xl text-xs font-semibold text-center" style={{ background: '#E1F5EE', color: '#1D9E75' }}>
+                    <span style={{ display: 'block', textAlign: 'center', padding: '8px', borderRadius: 12, fontSize: 12, fontWeight: 600, background: '#E1F5EE', color: '#1D9E75' }}>
                       Actief ✓
                     </span>
                   ) : (
                     <button
                       onClick={() => startUitdaging(uitdaging.id)}
-                      className="w-full py-2 rounded-xl text-white text-xs font-semibold transition active:scale-95"
-                      style={{ background: '#1D9E75' }}
+                      style={{ width: '100%', padding: '8px', borderRadius: 12, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 600, color: 'white', background: 'linear-gradient(135deg, var(--mf-green) 0%, var(--mf-green-dark) 100%)', transition: 'transform 0.15s ease', }}
                     >
                       Starten
                     </button>

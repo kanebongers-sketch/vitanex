@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import Anthropic from "@anthropic-ai/sdk"
 import { createClient } from "@supabase/supabase-js"
+import { getAuthenticatedUser } from "@/lib/api-auth"
 
 // ---------------------------------------------------------------------------
 // Types
@@ -299,6 +300,9 @@ Geef ALLEEN dit JSON terug:
 // ---------------------------------------------------------------------------
 
 export async function POST(req: NextRequest) {
+  const user = await getAuthenticatedUser(req)
+  if (!user) return NextResponse.json({ error: 'Niet ingelogd.' }, { status: 401 })
+
   const missingEnv: string[] = []
   if (!process.env.ANTHROPIC_API_KEY) missingEnv.push("ANTHROPIC_API_KEY")
   if (!process.env.SUPABASE_URL && !process.env.NEXT_PUBLIC_SUPABASE_URL) missingEnv.push("SUPABASE_URL")
@@ -326,6 +330,11 @@ export async function POST(req: NextRequest) {
       },
       { status: 400 },
     )
+  }
+
+  // Prevent users from generating schemas for other users
+  if (body.userId !== user.id) {
+    return NextResponse.json({ error: 'Geen toegang.' }, { status: 403 })
   }
 
   const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })

@@ -16,7 +16,7 @@ export default function TrendGrafiek({
   data,
   hoogte = 80,
   breedte = 280,
-  kleur = 'var(--color-primary, #6366f1)',
+  kleur = 'var(--mf-green, #1D9E75)',
 }: TrendGrafiekProps) {
   if (!data || data.length < 2) return null
 

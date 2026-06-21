@@ -895,12 +895,19 @@ export default function Dashboard() {
     { key: 'bedrijf', label: 'Bedrijf' },
   ]
 
+  // Score van de week — gemiddelde van checkins van de afgelopen 7 dagen
+  const zeveDagenGeleden = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+  const checkinsDezeWeek = checkins.filter(c => new Date(c.created_at) >= zeveDagenGeleden)
+  const weekScore = checkinsDezeWeek.length > 0
+    ? Math.round((checkinsDezeWeek.reduce((sum, c) => sum + (allMetricKeys.reduce((s, k) => s + c[k], 0) / 60) * 100, 0) / checkinsDezeWeek.length))
+    : null
+
   return (
-    <div className="min-h-screen" style={{ background: '#F0F4FF' }}>
+    <div className="min-h-screen mf-mesh-bg" style={{ background: 'var(--bg-main, #F0F4FF)' }}>
       <Navbar />
 
       {/* HR portal identity banner */}
-      <div style={{ background: '#0F172A', borderBottom: '1px solid #1e293b' }}>
+      <div style={{ background: 'var(--color-dark, #0F172A)', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
         <div className="px-6 sm:px-8 py-3 flex items-center gap-3">
           <div className="w-6 h-6 rounded-md flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
             style={{ background: '#185FA5' }}>HR</div>
@@ -915,17 +922,41 @@ export default function Dashboard() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
           <div>
-            <h1 className="text-2xl font-medium text-gray-900">HR-dashboard</h1>
-            <p className="text-gray-400 text-sm mt-0.5">{email}</p>
+            <h1 className="text-2xl font-medium" style={{ color: 'var(--text-1, #111827)' }}>HR-dashboard</h1>
+            <p className="text-sm mt-0.5" style={{ color: 'var(--text-4, #9CA3AF)' }}>{email}</p>
           </div>
-          <div className="flex gap-3 flex-wrap">
-            <div className="bg-white rounded-xl border border-gray-100 px-4 py-2.5 text-center">
-              <p className="text-lg font-semibold text-gray-900">{participatieRate}%</p>
-              <p className="text-xs text-gray-400">Participatie</p>
+          <div className="flex gap-3 flex-wrap items-start">
+            {/* Score van de week — prominente kaart */}
+            {weekScore !== null && (
+              <div
+                className="rounded-2xl px-5 py-3 text-center"
+                style={{
+                  background: weekScore >= 70
+                    ? 'linear-gradient(135deg, #E1F5EE 0%, #D1FAE5 100%)'
+                    : weekScore >= 45
+                    ? 'linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%)'
+                    : 'linear-gradient(135deg, #FEF2F2 0%, #FCEBEB 100%)',
+                  border: `1.5px solid ${weekScore >= 70 ? '#1D9E7530' : weekScore >= 45 ? '#BA751730' : '#E24B4A30'}`,
+                  boxShadow: `0 4px 20px ${weekScore >= 70 ? '#1D9E7520' : weekScore >= 45 ? '#BA751720' : '#E24B4A20'}`,
+                }}
+              >
+                <p
+                  className="text-2xl font-black leading-none"
+                  style={{ color: weekScore >= 70 ? '#1D9E75' : weekScore >= 45 ? '#BA7517' : '#E24B4A' }}
+                >
+                  {weekScore}
+                  <span className="text-sm font-semibold opacity-60">/100</span>
+                </p>
+                <p className="text-xs font-semibold mt-1" style={{ color: 'var(--text-4, #9CA3AF)' }}>Score week</p>
+              </div>
+            )}
+            <div className="rounded-xl border px-4 py-2.5 text-center" style={{ background: 'var(--bg-card, white)', borderColor: 'var(--border, #F3F4F6)' }}>
+              <p className="text-lg font-semibold" style={{ color: 'var(--text-1, #111827)' }}>{participatieRate}%</p>
+              <p className="text-xs" style={{ color: 'var(--text-4, #9CA3AF)' }}>Participatie</p>
             </div>
-            <div className="bg-white rounded-xl border border-gray-100 px-4 py-2.5 text-center">
-              <p className="text-lg font-semibold text-gray-900">{ingevuld.length}/{team.length}</p>
-              <p className="text-xs text-gray-400">Check-ins week</p>
+            <div className="rounded-xl border px-4 py-2.5 text-center" style={{ background: 'var(--bg-card, white)', borderColor: 'var(--border, #F3F4F6)' }}>
+              <p className="text-lg font-semibold" style={{ color: 'var(--text-1, #111827)' }}>{ingevuld.length}/{team.length}</p>
+              <p className="text-xs" style={{ color: 'var(--text-4, #9CA3AF)' }}>Check-ins week</p>
             </div>
             {signalen.length > 0 && (
               <div className="rounded-xl border px-4 py-2.5 text-center"
