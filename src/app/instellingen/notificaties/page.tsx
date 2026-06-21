@@ -139,7 +139,7 @@ export default function NotificatiesPage() {
               <div style={{ display: 'flex', gap: 10 }}>
                 <span style={{ fontSize: 16, flexShrink: 0 }}>💡</span>
                 <div>
-                  <p style={{ fontSize: 13, fontWeight: 600, color: '#166534', marginBottom: 3 }}>Push notificaties via de app</p>
+                  <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--mf-green-dark)', marginBottom: 3 }}>Push notificaties via de app</p>
                   <p style={{ fontSize: 12, color: 'var(--mf-green-dark)', lineHeight: 1.5 }}>
                     Voor push notificaties op je telefoon, download de Vitaal app. In de app kun je notificaties inschakelen via je telefooninstellingen.
                   </p>

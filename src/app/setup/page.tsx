@@ -58,7 +58,7 @@ export default function Setup() {
   if (isAdmin === null) {
     controleerToegang()
     return (
-      <main className="min-h-screen flex items-center justify-center" style={{ background: '#F5F3FF' }}>
+      <main className="min-h-screen flex items-center justify-center" style={{ background: 'var(--mf-purple-light)' }}>
         <div className="w-6 h-6 rounded-full border-2 border-gray-200 animate-spin" style={{ borderTopColor: 'var(--mf-purple)' }} />
       </main>
     )
@@ -66,7 +66,7 @@ export default function Setup() {
 
   if (isAdmin === false) {
     return (
-      <main className="min-h-screen flex items-center justify-center p-8" style={{ background: '#F5F3FF' }}>
+      <main className="min-h-screen flex items-center justify-center p-8" style={{ background: 'var(--mf-purple-light)' }}>
         <div className="bg-white rounded-2xl border border-gray-100 p-8 max-w-md w-full text-center">
           <p className="text-gray-700 font-medium mb-2">Geen toegang</p>
           <p className="text-gray-400 text-sm mb-4">Alleen admins kunnen de setup uitvoeren.</p>
@@ -77,7 +77,7 @@ export default function Setup() {
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center p-8" style={{ background: '#F5F3FF' }}>
+    <main className="min-h-screen flex items-center justify-center p-8" style={{ background: 'var(--mf-purple-light)' }}>
       <div className="bg-white rounded-2xl border border-gray-100 p-8 max-w-lg w-full">
 
         {/* Header */}

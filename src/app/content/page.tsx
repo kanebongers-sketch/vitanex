@@ -69,7 +69,7 @@ function uurVanDeDag(): string {
 }
 
 const GROEN = 'var(--mf-green)'
-const ORANJE = '#E8A020'
+const ORANJE = 'var(--mf-amber)'
 const BLAUW = 'var(--mf-blue)'
 
 // ── VideoKaart ─────────────────────────────────────────────

@@ -200,7 +200,7 @@ export default function CoachPagina() {
             <p style={{ fontSize: 12, color: 'var(--text-4)' }}>AI-coach · Vertrouwelijk · 24/7 beschikbaar</p>
           </div>
           <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6 }}>
-            <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#22c55e' }} />
+            <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--mf-green)' }} />
             <span style={{ fontSize: 12, color: 'var(--text-4)' }}>Online</span>
           </div>
         </div>

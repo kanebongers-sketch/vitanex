@@ -34,11 +34,11 @@ const CAT_LABELS: Record<string, string> = {
 const CAT_KLEUREN: Record<string, { bg: string; color: string }> = {
   algemeen:  { bg: 'var(--bg-subtle)', color: 'var(--text-2)' },
   arbo:      { bg: 'var(--mf-amber-light)', color: 'var(--mf-amber-dark)' },
-  verzuim:   { bg: 'var(--mf-red-light)', color: '#991B1B' },
-  it:        { bg: '#EFF6FF', color: '#1D4ED8' },
+  verzuim:   { bg: 'var(--mf-red-light)', color: 'var(--mf-red)' },
+  it:        { bg: 'var(--mf-blue-light)', color: 'var(--mf-blue)' },
   hr:        { bg: 'var(--mf-green-light)', color: 'var(--mf-green-dark)' },
   veiligheid:{ bg: 'var(--mf-amber-light)', color: 'var(--mf-amber-dark)' },
-  overig:    { bg: '#F5F3FF', color: '#6D28D9' },
+  overig:    { bg: 'var(--mf-purple-light)', color: 'var(--mf-purple)' },
 }
 
 export default function ProtokollenPage() {

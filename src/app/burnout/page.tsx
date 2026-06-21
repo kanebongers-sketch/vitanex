@@ -52,7 +52,7 @@ function berekenRisico(uitputting: number, cynisme: number, efficaciteit: number
 
 function risicoKleur(niveau: string) {
   if (niveau === 'hoog') return { bg: 'var(--mf-red-light)', border: 'var(--mf-red)', text: 'var(--mf-red)', gauge: 'var(--mf-red)' }
-  if (niveau === 'matig') return { bg: '#FFF8E7', border: 'var(--mf-amber)', text: '#7A4D0C', gauge: 'var(--mf-amber)' }
+  if (niveau === 'matig') return { bg: 'var(--mf-amber-light)', border: 'var(--mf-amber)', text: 'var(--mf-amber-dark)', gauge: 'var(--mf-amber)' }
   return { bg: 'var(--mf-green-light)', border: 'var(--mf-green)', text: 'var(--mf-green-dark)', gauge: 'var(--mf-green)' }
 }
 

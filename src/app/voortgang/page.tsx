@@ -140,7 +140,7 @@ export default function VoortgangPage() {
   const METRICS = [
     { label: 'Check-ins', waarde: totalen.checkins, eenheid: 'keer', kleur: 'var(--mf-green)', bg: 'var(--mf-green-light)', href: '/checkin' },
     { label: 'Focus', waarde: totalen.focus_minuten, eenheid: 'min', kleur: 'var(--mf-purple)', bg: 'var(--mf-purple-light)', href: '/focus' },
-    { label: 'Dankbaar', waarde: totalen.dankbaarheid, eenheid: '×', kleur: 'var(--mf-rose)', bg: '#FCE7F3', href: '/dankbaarheid' },
+    { label: 'Dankbaar', waarde: totalen.dankbaarheid, eenheid: '×', kleur: 'var(--mf-rose)', bg: 'var(--mf-rose-light)', href: '/dankbaarheid' },
     { label: 'Stemming', waarde: totalen.stemming_logs, eenheid: 'logs', kleur: 'var(--mf-amber)', bg: 'var(--mf-amber-light)', href: '/stemming' },
     { label: 'Slaap', waarde: totalen.slaap_logs, eenheid: 'nachten', kleur: 'var(--mf-purple)', bg: 'var(--mf-purple-light)', href: '/slaap' },
     { label: 'Stress', waarde: totalen.stress_logs, eenheid: 'logs', kleur: 'var(--mf-red)', bg: 'var(--mf-red-light)', href: '/stress' },

@@ -175,14 +175,14 @@ export default function VoortgangPage() {
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
                     <h2 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-1)' }}>{actieveGroep.naam}</h2>
                     <div style={{ display: 'flex', gap: 8 }}>
-                      <span style={{ background: '#f0fdf4', color: 'var(--mf-green)', borderRadius: 20, padding: '4px 12px', fontSize: 13, fontWeight: 600 }}>
+                      <span style={{ background: 'var(--mf-green-light)', color: 'var(--mf-green)', borderRadius: 20, padding: '4px 12px', fontSize: 13, fontWeight: 600 }}>
                         Start: {actieveGroep.beginGewicht} kg
                       </span>
-                      <span style={{ background: '#eff6ff', color: 'var(--mf-blue)', borderRadius: 20, padding: '4px 12px', fontSize: 13, fontWeight: 600 }}>
+                      <span style={{ background: 'var(--mf-blue-light)', color: 'var(--mf-blue)', borderRadius: 20, padding: '4px 12px', fontSize: 13, fontWeight: 600 }}>
                         Nu: {actieveGroep.huidigGewicht} kg
                       </span>
                       <span style={{
-                        background: actieveGroep.progressieProcent >= 0 ? '#f0fdf4' : '#fef2f2',
+                        background: actieveGroep.progressieProcent >= 0 ? 'var(--mf-green-light)' : 'var(--mf-red-light)',
                         color: actieveGroep.progressieProcent >= 0 ? 'var(--mf-green)' : 'var(--mf-red)',
                         borderRadius: 20, padding: '4px 12px', fontSize: 13, fontWeight: 600
                       }}>
@@ -230,7 +230,7 @@ export default function VoortgangPage() {
                         {recenteLogs.map((log, i) => {
                           const volume = log.herhalingen * (log.gewicht_kg ?? 0)
                           return (
-                            <tr key={log.id} style={{ borderBottom: '1px solid #f9fafb', background: i % 2 === 0 ? '#fff' : '#fafafa' }}>
+                            <tr key={log.id} style={{ borderBottom: '1px solid #f9fafb', background: i % 2 === 0 ? '#fff' : 'var(--bg-subtle)' }}>
                               <td style={{ padding: '10px 12px', color: 'var(--text-2)' }}>{log.training_logs.datum}</td>
                               <td style={{ padding: '10px 12px', color: 'var(--text-2)' }}>{log.set_nummer}</td>
                               <td style={{ padding: '10px 12px', color: 'var(--text-2)' }}>{log.herhalingen}</td>

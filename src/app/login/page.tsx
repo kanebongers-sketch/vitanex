@@ -152,7 +152,7 @@ export default function Login() {
         {status === 'wrong_credentials' && (
           <div role="alert" aria-live="assertive" className="rounded-2xl p-4 mb-5" style={{ background: 'var(--mf-red-light)', border: '1px solid #FBBFBF' }}>
             <p className="text-sm font-semibold" style={{ color: 'var(--mf-red)' }}>E-mail of wachtwoord klopt niet</p>
-            <p className="text-xs mt-0.5" style={{ color: '#C45252' }}>
+            <p className="text-xs mt-0.5" style={{ color: 'var(--mf-red)' }}>
               Controleer je gegevens of{' '}
               <Link href="/wachtwoord-vergeten" className="underline font-medium">reset je wachtwoord</Link>.
             </p>
@@ -162,14 +162,14 @@ export default function Login() {
         {status === 'too_many_requests' && (
           <div role="alert" aria-live="assertive" className="rounded-2xl p-4 mb-5" style={{ background: 'var(--mf-red-light)', border: '1px solid #FBBFBF' }}>
             <p className="text-sm font-semibold" style={{ color: 'var(--mf-red)' }}>Te veel pogingen</p>
-            <p className="text-xs mt-0.5" style={{ color: '#C45252' }}>Wacht een paar minuten en probeer opnieuw.</p>
+            <p className="text-xs mt-0.5" style={{ color: 'var(--mf-red)' }}>Wacht een paar minuten en probeer opnieuw.</p>
           </div>
         )}
 
         {status === 'unknown_error' && (
           <div role="alert" aria-live="assertive" className="rounded-2xl p-4 mb-5" style={{ background: 'var(--mf-red-light)', border: '1px solid #FBBFBF' }}>
             <p className="text-sm font-semibold" style={{ color: 'var(--mf-red)' }}>Er ging iets mis</p>
-            <p className="text-xs mt-0.5" style={{ color: '#C45252' }}>
+            <p className="text-xs mt-0.5" style={{ color: 'var(--mf-red)' }}>
               Probeer opnieuw of neem contact op via{' '}
               <a href="mailto:info@mentaforce.nl" className="underline">info@mentaforce.nl</a>.
             </p>

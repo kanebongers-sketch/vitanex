@@ -332,7 +332,7 @@ export default function HrAnalyticsPage() {
             <div className="mf-spinner" />
           </div>
         ) : fout ? (
-          <div style={{ background: 'var(--mf-red-light)', border: '1px solid #FECACA', borderRadius: 12, padding: '16px 20px', color: '#B91C1C', fontSize: 14 }}>
+          <div style={{ background: 'var(--mf-red-light)', border: '1px solid #FECACA', borderRadius: 12, padding: '16px 20px', color: 'var(--mf-red)', fontSize: 14 }}>
             {fout}
           </div>
         ) : data ? (

@@ -547,7 +547,7 @@ export default function OnboardingPage() {
             ].map(stat => (
               <div key={stat} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <span style={{ color: 'var(--mf-green)', fontWeight: 700, flexShrink: 0 }}>✓</span>
-                <p style={{ fontSize: 13, color: '#14532d', lineHeight: 1.4, margin: 0 }}>{stat}</p>
+                <p style={{ fontSize: 13, color: 'var(--mf-green-dark)', lineHeight: 1.4, margin: 0 }}>{stat}</p>
               </div>
             ))}
           </div>

@@ -723,12 +723,12 @@ export default function Instellingen() {
                         <span className="text-xs font-bold px-2.5 py-1 rounded-full"
                           style={{
                             background: userRol === 'admin' ? 'rgba(124,58,237,0.25)' : userRol === 'hr' ? 'rgba(24,95,165,0.25)' : 'rgba(29,158,117,0.25)',
-                            color: userRol === 'admin' ? '#a78bfa' : userRol === 'hr' ? '#60a5fa' : '#34d399',
+                            color: userRol === 'admin' ? 'var(--mf-purple)' : userRol === 'hr' ? 'var(--mf-blue-light)' : 'var(--mf-green)',
                           }}>
                           {userRol === 'admin' ? '🛡️ Admin' : userRol === 'hr' ? '👥 HR Manager' : bedrijfId ? '🌿 Werknemer' : '👤 Gebruiker'}
                         </span>
                         {userRol !== 'admin' && (
-                          <span className="text-xs px-2 py-0.5 rounded-full animate-pulse" style={{ background: 'rgba(234,179,8,0.2)', color: '#fbbf24' }}>
+                          <span className="text-xs px-2 py-0.5 rounded-full animate-pulse" style={{ background: 'rgba(234,179,8,0.2)', color: 'var(--mf-amber)' }}>
                             Testmodus
                           </span>
                         )}
@@ -819,7 +819,7 @@ export default function Instellingen() {
                         <div className="px-4 py-2.5 rounded-xl text-xs font-medium"
                           style={{
                             background: rolWisselMelding.type === 'success' ? 'rgba(29,158,117,0.15)' : 'rgba(226,75,74,0.15)',
-                            color: rolWisselMelding.type === 'success' ? '#34d399' : '#f87171',
+                            color: rolWisselMelding.type === 'success' ? 'var(--mf-green)' : 'var(--mf-red)',
                             border: `1px solid ${rolWisselMelding.type === 'success' ? 'rgba(29,158,117,0.3)' : 'rgba(226,75,74,0.3)'}`,
                           }}>
                           {rolWisselMelding.tekst}
@@ -940,7 +940,7 @@ export default function Instellingen() {
                         /* Al gekoppeld */
                         <div
                           className="rounded-xl border px-4 py-3 flex items-center gap-3"
-                          style={{ borderColor: '#d1fae5', background: '#F0FBF7' }}
+                          style={{ borderColor: 'var(--mf-green-light)', background: 'var(--mf-green-light)' }}
                         >
                           <div
                             className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 text-white font-bold text-xs"
@@ -1054,7 +1054,7 @@ export default function Instellingen() {
               {activeSectie === 'privacy' && (
                 <>
                   <div className="rounded-2xl border p-4 flex items-start gap-3"
-                    style={{ background: 'var(--mf-green-light)', borderColor: '#A3DECE' }}>
+                    style={{ background: 'var(--mf-green-light)', borderColor: 'var(--mf-green-light)' }}>
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1D9E75" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 2 }}><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                     <div>
                       <p className="text-sm font-semibold text-green-800 mb-1">Privacy-by-design</p>
@@ -1346,7 +1346,7 @@ export default function Instellingen() {
                       </div>
                     </div>
 
-                    <div className="rounded-xl border border-red-100 p-4 mb-4" style={{ background: '#FEF9F9' }}>
+                    <div className="rounded-xl border border-red-100 p-4 mb-4" style={{ background: 'var(--mf-red-light)' }}>
                       <p className="text-sm text-gray-600 mb-1">Wat er verwijderd wordt:</p>
                       <ul className="text-xs text-gray-500 space-y-1 ml-3">
                         {['Alle check-in antwoorden', 'Journal entries en notities', 'AI coach-gesprekken', 'Gewoonte-logs', 'Profielfoto en persoonlijke info'].map(i => (

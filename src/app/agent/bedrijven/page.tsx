@@ -10,7 +10,7 @@ const sb = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 )
 
-const FF = '#F5A623', DARK = '#0c0c11', CARD = '#131318', CARD2 = '#1a1a22'
+const FF = 'var(--mf-amber)', DARK = '#0c0c11', CARD = '#131318', CARD2 = '#1a1a22'
 const BORDER = 'rgba(255,255,255,0.06)', TEXT = 'rgba(255,255,255,0.88)', MUTED = 'rgba(255,255,255,0.35)'
 const GREEN = 'var(--mf-green)', RED = 'var(--mf-red)'
 
@@ -105,7 +105,7 @@ export default function BedrijvenPage() {
     if (!s || s === 'gepland') return null
     const colors: Record<string, string> = {
       verstuurd: GREEN, goedgekeurd: GREEN, email_goedgekeurd: 'var(--mf-green-light)',
-      wacht: 'var(--text-3)', email_klaar: '#818CF8',
+      wacht: 'var(--text-3)', email_klaar: 'var(--mf-purple)',
       overgeslagen: 'var(--text-2)', email_overgeslagen: 'var(--text-2)',
     }
     const labels: Record<string, string> = {
@@ -230,7 +230,7 @@ export default function BedrijvenPage() {
                 }}>
                   <div style={{flex:1,minWidth:0}}>
                     <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:2,flexWrap:'wrap'}}>
-                      <p style={{fontSize:13,fontWeight:600,color:c.op_zwarte_lijst?'#FCA5A5':TEXT,margin:0}}>{c.naam}</p>
+                      <p style={{fontSize:13,fontWeight:600,color:c.op_zwarte_lijst?'var(--mf-red-light)':TEXT,margin:0}}>{c.naam}</p>
                       {c.op_zwarte_lijst && <span style={{background:'rgba(239,68,68,0.15)',color:RED,borderRadius:4,padding:'1px 7px',fontSize:10}}>🚫 Zwarte lijst</span>}
                       <span style={{background:'rgba(245,166,35,0.1)',color:FF,borderRadius:4,padding:'1px 6px',fontSize:10}}>{c.score}pts</span>
                     </div>

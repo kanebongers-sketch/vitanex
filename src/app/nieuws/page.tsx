@@ -21,7 +21,7 @@ type NieuwsBericht = {
 const TYPE_STIJL: Record<NieuwsType, { emoji: string; bg: string; color: string; label: string }> = {
   aankondiging: { emoji: '📣', bg: 'var(--mf-blue-light)', color: 'var(--mf-blue)', label: 'Aankondiging' },
   beleid:       { emoji: '📋', bg: 'var(--mf-amber-light)', color: 'var(--mf-amber-dark)', label: 'Beleid' },
-  evenement:    { emoji: '🎉', bg: '#EDE9FE', color: '#5B21B6', label: 'Evenement' },
+  evenement:    { emoji: '🎉', bg: 'var(--mf-purple-light)', color: 'var(--mf-purple)', label: 'Evenement' },
   resultaten:   { emoji: '📈', bg: 'var(--mf-green-light)', color: 'var(--mf-green-dark)', label: 'Resultaten' },
   overig:       { emoji: '💬', bg: 'var(--bg-subtle)', color: 'var(--text-2)', label: 'Overig' },
 }

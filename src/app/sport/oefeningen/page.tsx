@@ -26,14 +26,14 @@ const SPIERGROEP_EMOJI: Record<string, string> = {
 }
 
 const SPIERGROEP_KLEUR: Record<string, string> = {
-  borst: '#fee2e2', rug: '#dbeafe', schouders: '#fef3c7', armen: '#f3e8ff',
-  benen: '#dcfce7', core: '#fff7ed', cardio: '#fce7f3'
+  borst: 'var(--mf-red-light)', rug: 'var(--mf-blue-light)', schouders: 'var(--mf-amber-light)', armen: 'var(--mf-purple-light)',
+  benen: 'var(--mf-green-light)', core: 'var(--mf-orange-light)', cardio: 'var(--mf-rose-light)'
 }
 
 const MOEILIJKHEID_KLEUR: Record<string, { bg: string; text: string }> = {
-  beginner: { bg: '#f0fdf4', text: 'var(--mf-green)' },
-  gemiddeld: { bg: '#fff7ed', text: 'var(--mf-orange)' },
-  gevorderd: { bg: '#fef2f2', text: 'var(--mf-red)' },
+  beginner: { bg: 'var(--mf-green-light)', text: 'var(--mf-green)' },
+  gemiddeld: { bg: 'var(--mf-orange-light)', text: 'var(--mf-orange)' },
+  gevorderd: { bg: 'var(--mf-red-light)', text: 'var(--mf-red)' },
 }
 
 function spierSleutel(spiergroep: string) {

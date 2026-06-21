@@ -1276,7 +1276,7 @@ export default function Dashboard() {
                     <div className="flex flex-col gap-3">
                       {signalen.map(({ lid, reden, ernst }) => (
                         <div key={lid.id} className="bg-white rounded-2xl border p-4 flex items-center gap-4"
-                          style={{ borderColor: ernst === 'hoog' ? '#F09595' : '#FAC775', borderLeft: `4px solid ${ernst === 'hoog' ? '#E24B4A' : '#BA7517'}` }}>
+                          style={{ borderColor: ernst === 'hoog' ? 'var(--mf-red-light)' : 'var(--mf-amber-light)', borderLeft: `4px solid ${ernst === 'hoog' ? '#E24B4A' : '#BA7517'}` }}>
                           <div
                             className="flex-shrink-0 w-2.5 h-2.5 rounded-full"
                             style={{ background: ernst === 'hoog' ? 'var(--mf-red)' : 'var(--mf-amber)' }}

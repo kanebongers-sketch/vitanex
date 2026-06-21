@@ -27,7 +27,7 @@ const ROL_LABELS: Record<string, string> = {
 }
 
 const ROL_KLEUR: Record<string, { bg: string; color: string }> = {
-  admin:      { bg: '#EDE9FE', color: '#5B21B6' },
+  admin:      { bg: 'var(--mf-purple-light)', color: 'var(--mf-purple)' },
   hr:         { bg: 'var(--mf-blue-light)', color: 'var(--mf-blue)' },
   medewerker: { bg: 'var(--bg-subtle)', color: 'var(--text-2)' },
 }

@@ -10,7 +10,7 @@ import { authFetch } from '@/lib/auth-fetch'
 
 const STEMMING_OPTIES = [
   { waarde: 1, emoji: '😫', label: 'Slecht',   kleur: 'var(--mf-red)',    achtergrond: 'var(--mf-red-light)'    },
-  { waarde: 2, emoji: '😔', label: 'Matig',    kleur: '#E8760A',          achtergrond: 'var(--mf-amber-light)'  },
+  { waarde: 2, emoji: '😔', label: 'Matig',    kleur: 'var(--mf-orange)',          achtergrond: 'var(--mf-amber-light)'  },
   { waarde: 3, emoji: '😐', label: 'Neutraal', kleur: 'var(--text-3)',    achtergrond: 'var(--bg-subtle)'       },
   { waarde: 4, emoji: '🙂', label: 'Goed',     kleur: 'var(--mf-green)',  achtergrond: 'var(--mf-green-light)'  },
   { waarde: 5, emoji: '😄', label: 'Super!',   kleur: 'var(--mf-green-dark)', achtergrond: 'var(--mf-green-light)' },
@@ -35,7 +35,7 @@ interface StemmingLog {
 
 function stemmingKleur(s: number): string {
   if (s >= 4) return 'var(--mf-green)'
-  if (s >= 3) return '#E8760A'
+  if (s >= 3) return 'var(--mf-orange)'
   return 'var(--mf-red)'
 }
 

@@ -53,7 +53,7 @@ const PLATFORM_CONFIG: Record<Platform, { label: string; kleur: string; icon: st
 
 const TYPE_CONFIG: Record<string, { label: string; kleur: string }> = {
   reel:     { label: 'Reel',     kleur: '#E1306C' },
-  carousel: { label: 'Carousel', kleur: '#9333EA' },
+  carousel: { label: 'Carousel', kleur: 'var(--mf-purple)' },
   post:     { label: 'Post',     kleur: 'var(--mf-green)' },
   story:    { label: 'Story',    kleur: 'var(--mf-amber)' },
 }

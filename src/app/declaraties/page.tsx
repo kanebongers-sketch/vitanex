@@ -166,9 +166,9 @@ export default function DeclaratiesPage() {
                     <button key={c} onClick={() => setCategorie(c)}
                       className="flex flex-col items-center gap-1 px-2 py-3 rounded-xl border text-xs transition"
                       style={{
-                        background: categorie === c ? '#EDE9FE' : 'white',
+                        background: categorie === c ? 'var(--mf-purple-light)' : 'white',
                         borderColor: categorie === c ? 'var(--mf-purple)' : 'var(--border)',
-                        color: categorie === c ? '#5B21B6' : 'var(--text-2)',
+                        color: categorie === c ? 'var(--mf-purple)' : 'var(--text-2)',
                         fontWeight: categorie === c ? 600 : 400,
                       }}>
                       <span className="text-xl">{CAT_EMOJI[c]}</span>

@@ -17,7 +17,7 @@ interface DagLog {
 const KLEUR_MAP: Record<number, string> = {
   0: 'var(--bg-subtle)',
   1: 'var(--mf-red-light)',
-  2: '#FCA5A5',
+  2: 'var(--mf-red-light)',
   3: 'var(--mf-amber-light)',
   4: 'var(--mf-green-light)',
   5: 'var(--mf-green)',

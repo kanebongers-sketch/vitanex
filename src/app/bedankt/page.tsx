@@ -37,11 +37,11 @@ interface AnalyseJSON {
 // ─── Domain config ────────────────────────────────────────────────────────────
 
 const VLAK_CONFIG: Record<string, { label: string; kleur: string; licht: string }> = {
-  slaap:    { label: 'Slaap',           kleur: 'var(--mf-purple)', licht: '#F5F3FF' },
-  stress:   { label: 'Stress',          kleur: 'var(--mf-red)', licht: '#FFF5F5' },
+  slaap:    { label: 'Slaap',           kleur: 'var(--mf-purple)', licht: 'var(--mf-purple-light)' },
+  stress:   { label: 'Stress',          kleur: 'var(--mf-red)', licht: 'var(--mf-red-light)' },
   energie:  { label: 'Energie',         kleur: 'var(--mf-amber)', licht: 'var(--mf-amber-light)' },
-  focus:    { label: 'Focus',           kleur: 'var(--mf-green)', licht: '#F0FAF6' },
-  balans:   { label: 'Werk-privé',      kleur: 'var(--mf-blue)', licht: '#EFF6FF' },
+  focus:    { label: 'Focus',           kleur: 'var(--mf-green)', licht: 'var(--mf-green-light)' },
+  balans:   { label: 'Werk-privé',      kleur: 'var(--mf-blue)', licht: 'var(--mf-blue-light)' },
   motivatie:{ label: 'Motivatie',       kleur: 'var(--mf-rose)', licht: 'var(--mf-rose-light)' },
 }
 
@@ -533,7 +533,7 @@ function BedanktInhoud() {
         padding: '16px 20px', minWidth: 280, maxWidth: 360,
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-          <div style={{ width: 44, height: 44, borderRadius: 12, background: '#EDE9FE', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--mf-purple-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
             </svg>

@@ -229,7 +229,7 @@ function GesprekKaart({ g, actief, onClick }: { g: Gesprek; actief: boolean; onC
   return (
     <button onClick={onClick} style={{
       width: '100%', textAlign: 'left', cursor: 'pointer',
-      background: actief ? '#F0FDF8' : 'white',
+      background: actief ? 'var(--mf-green-light)' : 'white',
       border: `1px solid ${actief ? '#A3DECE' : '#E5E7EB'}`,
       borderRadius: 14, padding: '14px 16px',
       transition: 'all 0.15s',

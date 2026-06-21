@@ -138,7 +138,7 @@ export default function JournalPagina() {
           <div style={{ background: 'var(--bg-card)', borderRadius: 20, border: '1px solid var(--border)', padding: '24px', marginBottom: 20 }}>
 
             {/* AI Prompt */}
-            <div style={{ background: '#F8F7FF', borderRadius: 12, padding: '12px 16px', marginBottom: 18, border: '1px solid #DDD6FE' }}>
+            <div style={{ background: 'var(--mf-purple-light)', borderRadius: 12, padding: '12px 16px', marginBottom: 18, border: '1px solid #DDD6FE' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: aiPrompt ? 8 : 0 }}>
                 <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--mf-purple)' }}>AI reflectievraag</p>
                 <button
@@ -163,7 +163,7 @@ export default function JournalPagina() {
               {aiPrompt && (
                 <button
                   onClick={() => setTekst(prev => prev ? `${prev}\n\n${aiPrompt}\n` : `${aiPrompt}\n`)}
-                  style={{ fontSize: 13, color: '#5B21B6', background: 'none', border: 'none', cursor: 'pointer', padding: 0, textAlign: 'left', lineHeight: 1.5, fontStyle: 'italic' }}
+                  style={{ fontSize: 13, color: 'var(--mf-purple)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, textAlign: 'left', lineHeight: 1.5, fontStyle: 'italic' }}
                 >
                   "{aiPrompt}" →
                 </button>

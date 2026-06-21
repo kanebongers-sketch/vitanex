@@ -93,8 +93,8 @@ export default function Contact() {
           style={{ background: 'radial-gradient(ellipse 70% 80% at 50% 0%, rgba(29,158,117,0.1) 0%, transparent 60%)' }} />
         <div className="max-w-3xl mx-auto px-6 text-center relative z-10">
           <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 mb-6 text-xs font-semibold border"
-            style={{ background: 'rgba(29,158,117,0.1)', borderColor: 'rgba(29,158,117,0.25)', color: '#4ECBA5' }}>
-            <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: '#4ECBA5' }} />
+            style={{ background: 'rgba(29,158,117,0.1)', borderColor: 'rgba(29,158,117,0.25)', color: 'var(--mf-green)' }}>
+            <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: 'var(--mf-green)' }} />
             We antwoorden binnen 24 uur
           </div>
           <h1 className="text-4xl lg:text-5xl font-extrabold text-white mb-4 tracking-tight">
@@ -123,7 +123,7 @@ export default function Contact() {
                 We hebben je bericht ontvangen en nemen zo snel mogelijk contact op.
               </p>
               <p className="text-sm mb-8" style={{ color: 'rgba(255,255,255,0.3)' }}>
-                Verwacht een reactie op <span style={{ color: '#4ECBA5' }}>{email}</span> binnen 24 uur.
+                Verwacht een reactie op <span style={{ color: 'var(--mf-green)' }}>{email}</span> binnen 24 uur.
               </p>
               <button
                 onClick={() => { setVerzonden(false); setNaam(''); setEmail(''); setOrganisatie(''); setBericht(''); setGeselecteerd(null) }}
@@ -416,7 +416,7 @@ export default function Contact() {
           </Link>
           <div className="flex items-center gap-6 text-xs flex-wrap justify-center" style={{ color: 'rgba(255,255,255,0.2)' }}>
             <Link href="/voorwaarden" className="transition hover:text-white/50">Voorwaarden</Link>
-            <Link href="/contact" className="transition hover:text-white/50" style={{ color: '#4ECBA5' }}>Contact</Link>
+            <Link href="/contact" className="transition hover:text-white/50" style={{ color: 'var(--mf-green)' }}>Contact</Link>
             <Link href="/login" className="transition hover:text-white/50">Inloggen</Link>
           </div>
           <p className="text-xs" style={{ color: 'rgba(255,255,255,0.18)' }}>© 2025 MentaForce · Gemaakt in Nederland 🇳🇱</p>

@@ -36,7 +36,7 @@ const CAT_KLEUREN: Record<string, string> = {
   sport:      'var(--mf-amber-dark)',
   voeding:    'var(--mf-green)',
   streak:     'var(--mf-orange)',
-  team:       '#0369A1',
+  team:       'var(--mf-blue)',
   mijlpaal:   'var(--mf-rose)',
 }
 

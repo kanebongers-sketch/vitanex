@@ -326,7 +326,7 @@ export default function GenereerSchemaPage() {
                 return (
                   <div key={key} style={{
                     display: 'flex', alignItems: 'center', gap: 14, padding: '14px 16px',
-                    borderRadius: 12, background: status === 'klaar' ? '#F0FDF9' : status === 'bezig' ? 'var(--mf-amber-light)' : 'var(--bg-subtle)',
+                    borderRadius: 12, background: status === 'klaar' ? 'var(--mf-green-light)' : status === 'bezig' ? 'var(--mf-amber-light)' : 'var(--bg-subtle)',
                     border: `1.5px solid ${status === 'klaar' ? '#6EE7C7' : status === 'bezig' ? '#FDE68A' : '#F3F4F6'}`,
                   }}>
                     <div style={{ width: 28, height: 28, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -358,11 +358,11 @@ export default function GenereerSchemaPage() {
             </div>
 
             {fout && (
-              <div style={{ marginTop: 20, padding: '12px 16px', background: 'var(--mf-red-light)', borderRadius: 10, color: '#B91C1C', fontSize: 14 }}>
+              <div style={{ marginTop: 20, padding: '12px 16px', background: 'var(--mf-red-light)', borderRadius: 10, color: 'var(--mf-red)', fontSize: 14 }}>
                 {fout}
                 <button
                   onClick={() => { setStap(4); setFout(null) }}
-                  style={{ display: 'block', marginTop: 8, color: '#B91C1C', fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, padding: 0 }}
+                  style={{ display: 'block', marginTop: 8, color: 'var(--mf-red)', fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, padding: 0 }}
                 >
                   Opnieuw proberen
                 </button>

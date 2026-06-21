@@ -246,7 +246,7 @@ function DoelKeuzeInhoud() {
 export default function DoelKeuze() {
   return (
     <Suspense fallback={
-      <main style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#F0FAF6' }}>
+      <main style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--mf-green-light)' }}>
         <div style={{ width: 32, height: 32, borderRadius: '50%', border: '3px solid #E5E7EB', borderTopColor: 'var(--mf-green)' }} className="mf-spinner" />
       </main>
     }>

@@ -194,7 +194,7 @@ function MockDashboard() {
       </div>
 
       {/* Dashboard content */}
-      <div className="p-5" style={{ background: '#F4F6F8' }}>
+      <div className="p-5" style={{ background: 'var(--bg-subtle)' }}>
         <div className="flex items-center justify-between mb-4">
           <div>
             <p className="text-sm font-bold text-gray-900">HR-dashboard</p>
@@ -338,7 +338,7 @@ function Pricing() {
   ]
 
   return (
-    <section id="prijzen" className="py-28" style={{ background: '#F4F6F8' }}>
+    <section id="prijzen" className="py-28" style={{ background: 'var(--bg-subtle)' }}>
       <div className="max-w-7xl mx-auto px-6 lg:px-12">
         <div className="text-center mb-14">
           <Label text="Prijzen" />
@@ -611,7 +611,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── 4. HOE WERKT HET ─────────────────────────────────────────────────── */}
-      <section id="hoe-werkt-het" className="py-28" style={{ background: '#F4F6F8' }}>
+      <section id="hoe-werkt-het" className="py-28" style={{ background: 'var(--bg-subtle)' }}>
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
           <div className="text-center mb-20">
             <Label text="Hoe werkt het" />
@@ -717,7 +717,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── 6. VOOR WIE ──────────────────────────────────────────────────────── */}
-      <section className="py-20 border-y border-gray-100" style={{ background: '#F4F6F8' }}>
+      <section className="py-20 border-y border-gray-100" style={{ background: 'var(--bg-subtle)' }}>
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
           <div className="text-center mb-12">
             <Label text="Voor wie" />
@@ -797,7 +797,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── 8. VERGELIJKING ──────────────────────────────────────────────────── */}
-      <section className="py-28" style={{ background: '#F4F6F8' }}>
+      <section className="py-28" style={{ background: 'var(--bg-subtle)' }}>
         <div className="max-w-5xl mx-auto px-6 lg:px-12">
           <div className="text-center mb-16">
             <Label text="Vergelijking" />

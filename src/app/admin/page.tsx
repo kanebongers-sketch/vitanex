@@ -208,7 +208,7 @@ export default function Admin() {
   }, {} as Record<string, number>)
 
   return (
-    <div className="min-h-screen" style={{ background: '#F5F3FF' }}>
+    <div className="min-h-screen" style={{ background: 'var(--mf-purple-light)' }}>
       <Navbar />
 
       {/* Admin portal identity banner */}
@@ -296,7 +296,7 @@ export default function Admin() {
             <div className="rounded-2xl border p-4 mb-5 text-sm font-medium"
               style={{
                 background: melding.type === 'success' ? 'var(--mf-green-light)' : 'var(--mf-red-light)',
-                borderColor: melding.type === 'success' ? '#A3DECE' : '#F5ABAB',
+                borderColor: melding.type === 'success' ? 'var(--mf-green-light)' : 'var(--mf-red-light)',
                 color: melding.type === 'success' ? 'var(--mf-green-dark)' : 'var(--mf-red)',
               }}>
               {melding.type === 'success' ? 'v ' : 'x '}{melding.tekst}

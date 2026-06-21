@@ -10,7 +10,7 @@ const sb = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 )
 
-const FF = '#F5A623', DARK = '#0c0c11', CARD = '#131318', CARD2 = '#1a1a22'
+const FF = 'var(--mf-amber)', DARK = '#0c0c11', CARD = '#131318', CARD2 = '#1a1a22'
 const BORDER = 'rgba(255,255,255,0.06)', TEXT = 'rgba(255,255,255,0.88)', MUTED = 'rgba(255,255,255,0.35)'
 const GREEN = 'var(--mf-green)', RED = 'var(--mf-red)'
 
@@ -19,12 +19,12 @@ const R_NAMEN  = ['Eerste contact','Follow-up','Afsluitend']
 
 const STATUS_STYLE: Record<string, {bg:string;color:string;label:string}> = {
   wacht:             {bg:'var(--text-1)', color:'var(--text-3)', label:'⏳ Wacht'},
-  goedgekeurd:       {bg:'#14532d', color:GREEN,     label:'✅ Goed'},
+  goedgekeurd:       {bg:'var(--mf-green-dark)', color:GREEN,     label:'✅ Goed'},
   overgeslagen:      {bg:'#111',    color:'var(--text-2)',  label:'❌ Skip'},
-  email_klaar:       {bg:'#1e1a2e', color:'#818CF8',  label:'📧 Email klaar'},
-  email_goedgekeurd: {bg:'#064e3b', color:'var(--mf-green-light)',  label:'✅ Email goed'},
+  email_klaar:       {bg:'#1e1a2e', color:'var(--mf-purple)',  label:'📧 Email klaar'},
+  email_goedgekeurd: {bg:'var(--mf-green-dark)', color:'var(--mf-green-light)',  label:'✅ Email goed'},
   email_overgeslagen:{bg:'#111',    color:'var(--text-2)',  label:'❌ Email skip'},
-  verstuurd:         {bg:'#14532d', color:GREEN,      label:'📤 Verstuurd'},
+  verstuurd:         {bg:'var(--mf-green-dark)', color:GREEN,      label:'📤 Verstuurd'},
   gepland:           {bg:'#111',    color:'var(--text-2)',   label:'📅 Gepland'},
 }
 
@@ -588,7 +588,7 @@ export default function AgentPage() {
                             )}
                           </div>
                           <p style={{fontSize:11,color:MUTED,margin:0}}>{c.email} · {c.stad} · {c.sector}</p>
-                          {heeftEmail && !isEditing && <p style={{fontSize:11,color:'#818CF8',marginTop:4}}>✉️ {c[onderwerpKey] as string}</p>}
+                          {heeftEmail && !isEditing && <p style={{fontSize:11,color:'var(--mf-purple)',marginTop:4}}>✉️ {c[onderwerpKey] as string}</p>}
                         </div>
 
                         {/* Actie knoppen */}
@@ -629,7 +629,7 @@ export default function AgentPage() {
                                     onderwerpVal: c[onderwerpKey] as string ?? '',
                                   })
                                 }}>✏️</Btn>
-                                <Btn color={'#A78BFA'} onClick={()=>regenereerEmail(c.id, r)} disabled={isRegenerating}>
+                                <Btn color={'var(--mf-purple)'} onClick={()=>regenereerEmail(c.id, r)} disabled={isRegenerating}>
                                   {isRegenerating ? '⏳' : '🔄'}
                                 </Btn>
                               </>
@@ -678,7 +678,7 @@ export default function AgentPage() {
 
                       {/* Regenereer melding */}
                       {isRegenerating && (
-                        <p style={{fontSize:11,color:'#A78BFA',marginTop:8}}>⏳ Email wordt gereset — agent genereert opnieuw bij volgende run...</p>
+                        <p style={{fontSize:11,color:'var(--mf-purple)',marginTop:8}}>⏳ Email wordt gereset — agent genereert opnieuw bij volgende run...</p>
                       )}
                     </div>
                   )

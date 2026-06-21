@@ -303,7 +303,7 @@ export default function Register() {
                       className="relative text-left p-5 rounded-2xl border-2 transition-all"
                       style={{
                         borderColor: type === o.id ? 'var(--mf-green)' : 'var(--border)',
-                        background: type === o.id ? '#F0FBF7' : 'white',
+                        background: type === o.id ? 'var(--mf-green-light)' : 'white',
                       }}
                     >
                       {o.badge && (
@@ -778,7 +778,7 @@ export default function Register() {
 
             <div className="relative z-10">
               <div className="mb-10">
-                <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: '#4ECBA5' }}>
+                <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: 'var(--mf-green)' }}>
                   {type === 'hr' ? 'Voor HR-managers' : type === 'zelfstandige' ? 'Voor zelfstandigen' : 'Voor werknemers'}
                 </p>
                 <h2 className="text-2xl font-bold text-white mb-3 leading-tight">
@@ -812,7 +812,7 @@ export default function Register() {
                     {type === 'hr' ? '👥' : type === 'zelfstandige' ? '💼' : '🌿'}
                   </span>
                   <span className="text-xs font-semibold px-2 py-1 rounded-full"
-                    style={{ background: 'rgba(29,158,117,0.2)', color: '#4ECBA5' }}>
+                    style={{ background: 'rgba(29,158,117,0.2)', color: 'var(--mf-green)' }}>
                     {type === 'hr' ? 'HR Platform' : type === 'zelfstandige' ? 'Persoonlijk gebruik' : 'Werknemerportaal'}
                   </span>
                 </div>

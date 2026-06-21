@@ -395,7 +395,7 @@ export default function TrainingLoggerPage() {
                     {!oef.heeft_gewicht && (
                       <div style={{
                         display: 'inline-flex', alignItems: 'center', gap: 4,
-                        background: '#f0fdf4', color: 'var(--mf-green)', borderRadius: 8,
+                        background: 'var(--mf-green-light)', color: 'var(--mf-green)', borderRadius: 8,
                         padding: '4px 10px', fontSize: 12, fontWeight: 600, marginBottom: 10,
                       }}>
                         💪 Bodyweight oefening

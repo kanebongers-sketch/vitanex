@@ -171,7 +171,7 @@ export default function Voorwaarden() {
           style={{ background: 'radial-gradient(ellipse 60% 80% at 50% 0%, rgba(29,158,117,0.08) 0%, transparent 60%)' }} />
         <div className="max-w-4xl mx-auto px-6 text-center relative z-10">
           <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 mb-6 text-xs font-semibold border"
-            style={{ background: 'rgba(29,158,117,0.1)', borderColor: 'rgba(29,158,117,0.25)', color: '#4ECBA5' }}>
+            style={{ background: 'rgba(29,158,117,0.1)', borderColor: 'rgba(29,158,117,0.25)', color: 'var(--mf-green)' }}>
             Juridisch
           </div>
           <h1 className="text-4xl lg:text-5xl font-extrabold text-white mb-4 tracking-tight">
@@ -249,7 +249,7 @@ export default function Voorwaarden() {
             <span className="font-bold text-white">MentaForce</span>
           </Link>
           <div className="flex items-center gap-6 text-xs flex-wrap justify-center" style={{ color: 'rgba(255,255,255,0.2)' }}>
-            <Link href="/voorwaarden" className="transition hover:text-white/50" style={{ color: '#4ECBA5' }}>Voorwaarden</Link>
+            <Link href="/voorwaarden" className="transition hover:text-white/50" style={{ color: 'var(--mf-green)' }}>Voorwaarden</Link>
             <Link href="/contact" className="transition hover:text-white/50">Contact</Link>
             <Link href="/login" className="transition hover:text-white/50">Inloggen</Link>
           </div>

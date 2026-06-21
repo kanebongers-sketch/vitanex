@@ -19,7 +19,7 @@ const CATEGORIEEN = [
 ]
 
 const ICONEN = ['📋', '🦺', '🤒', '💻', '🚀', '🛡️', '🗂️', '📌', '⚠️', '🔒', '📞', '🏥', '🚛', '🎓', '📱', '🔑', '📄', '✅']
-const KLEUREN = ['var(--mf-green)', 'var(--mf-red)', 'var(--mf-blue)', 'var(--mf-purple)', 'var(--mf-amber-dark)', '#0369A1', 'var(--mf-rose)', 'var(--mf-green-dark)', 'var(--mf-amber-dark)', 'var(--text-2)']
+const KLEUREN = ['var(--mf-green)', 'var(--mf-red)', 'var(--mf-blue)', 'var(--mf-purple)', 'var(--mf-amber-dark)', 'var(--mf-blue)', 'var(--mf-rose)', 'var(--mf-green-dark)', 'var(--mf-amber-dark)', 'var(--text-2)']
 
 export default function NieuwProtocolPage() {
   const router = useRouter()
