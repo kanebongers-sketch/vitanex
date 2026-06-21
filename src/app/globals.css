@@ -11,13 +11,18 @@
   --mf-green-dark:   #0F6E56;
   --mf-green-mid:    #15785A;
   --mf-blue:         #185FA5;
+  --mf-blue-mid:     #378ADD;
   --mf-blue-light:   #E6F1FB;
   --mf-purple:       #8B5CF6;
   --mf-purple-light: #EDE9FE;
   --mf-amber:        #BA7517;
+  --mf-amber-mid:    #B45309;
+  --mf-amber-dark:   #92400E;
   --mf-amber-light:  #FAEEDA;
   --mf-red:          #E24B4A;
   --mf-red-light:    #FCEBEB;
+  --mf-rose:         #9D174D;
+  --mf-rose-light:   #FDF2F8;
 
   /* Legacy aliases kept for existing pages */
   --mentaforce-primary:       #1D9E75;

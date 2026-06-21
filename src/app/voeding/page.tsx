@@ -111,18 +111,14 @@ function CalorieRing({ gegeten, doel, kleur }: { gegeten: number; doel: number; 
   const over = gegeten > doel
   return (
     <svg width="180" height="180" viewBox="0 0 180 180" style={{ display: 'block' }}>
-      {/* Track */}
-      <circle cx="90" cy="90" r={r} fill="none" stroke="#F3F4F6" strokeWidth="12" />
-      {/* Fill */}
+      <circle cx="90" cy="90" r={r} fill="none" style={{ stroke: 'var(--bg-subtle)' }} strokeWidth="12" />
       <circle cx="90" cy="90" r={r} fill="none"
-        stroke={over ? '#E24B4A' : kleur} strokeWidth="12"
+        style={{ stroke: over ? 'var(--mf-red)' : kleur, transition: 'stroke-dasharray 1s ease' }} strokeWidth="12"
         strokeDasharray={`${pct * circ} ${circ}`}
-        strokeLinecap="round" transform="rotate(-90 90 90)"
-        style={{ transition: 'stroke-dasharray 1s ease' }} />
-      {/* Center text */}
-      <text x="90" y="82" textAnchor="middle" fontSize="28" fontWeight="900" fill={over ? '#E24B4A' : 'var(--text-1)'}>{gegeten}</text>
-      <text x="90" y="100" textAnchor="middle" fontSize="12" fill="#9CA3AF" fontWeight="600">kcal</text>
-      <text x="90" y="116" textAnchor="middle" fontSize="11" fill={over ? '#E24B4A' : '#1D9E75'} fontWeight="700">
+        strokeLinecap="round" transform="rotate(-90 90 90)" />
+      <text x="90" y="82" textAnchor="middle" fontSize="28" fontWeight="900" style={{ fill: over ? 'var(--mf-red)' : 'var(--text-1)' }}>{gegeten}</text>
+      <text x="90" y="100" textAnchor="middle" fontSize="12" style={{ fill: 'var(--text-4)' }} fontWeight="600">kcal</text>
+      <text x="90" y="116" textAnchor="middle" fontSize="11" style={{ fill: over ? 'var(--mf-red)' : 'var(--mf-green)' }} fontWeight="700">
         {over ? `+${gegeten - doel} over` : `${doel - gegeten} over`}
       </text>
     </svg>
@@ -135,40 +131,39 @@ function MacroRing({ waarde, max, kleur, label, eenheid }: { waarde: number; max
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
       <svg width="68" height="68" viewBox="0 0 68 68">
-        <circle cx="34" cy="34" r={r} fill="none" stroke="#F3F4F6" strokeWidth="6" />
-        <circle cx="34" cy="34" r={r} fill="none" stroke={kleur} strokeWidth="6"
+        <circle cx="34" cy="34" r={r} fill="none" style={{ stroke: 'var(--bg-subtle)' }} strokeWidth="6" />
+        <circle cx="34" cy="34" r={r} fill="none" style={{ stroke: kleur, transition: 'stroke-dasharray 1s ease' }} strokeWidth="6"
           strokeDasharray={`${pct * circ} ${circ}`} strokeLinecap="round"
-          transform="rotate(-90 34 34)"
-          style={{ transition: 'stroke-dasharray 1s ease' }} />
-        <text x="34" y="37" textAnchor="middle" fontSize="11" fontWeight="800" fill={kleur}>{waarde.toFixed(0)}{eenheid}</text>
+          transform="rotate(-90 34 34)" />
+        <text x="34" y="37" textAnchor="middle" fontSize="11" fontWeight="800" style={{ fill: kleur }}>{waarde.toFixed(0)}{eenheid}</text>
       </svg>
       <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-3)' }}>{label}</span>
     </div>
   )
 }
 
-function RdiBalk({ label, waarde, eenheid, rdi, kleur = '#1D9E75', sub = false }: {
+function RdiBalk({ label, waarde, eenheid, rdi, kleur = 'var(--mf-green)', sub = false }: {
   label: string; waarde: number; eenheid: string; rdi: number; kleur?: string; sub?: boolean
 }) {
   const pct = Math.min(100, Math.round((waarde / rdi) * 100))
   const overRdi = pct > 100
   return (
-    <div style={{ padding: '8px 0', borderBottom: '1px solid #F9FAFB' }}>
+    <div style={{ padding: '8px 0', borderBottom: '1px solid var(--border)' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
         <span style={{ fontSize: 13, color: sub ? 'var(--text-4)' : 'var(--text-2)', fontWeight: sub ? 400 : 600 }}>{label}</span>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <span style={{ fontSize: 13, fontWeight: 700, color: sub ? 'var(--text-4)' : 'var(--text-2)' }}>{waarde.toFixed(1)} {eenheid}</span>
           <span style={{
             fontSize: 10, fontWeight: 800, borderRadius: 20, padding: '2px 7px',
-            background: overRdi ? '#FEF2F2' : pct >= 50 ? '#F0FAF6' : '#FFF7ED',
-            color: overRdi ? '#E24B4A' : pct >= 50 ? '#1D9E75' : '#F59E0B',
+            background: overRdi ? 'var(--mf-red-light)' : pct >= 50 ? 'var(--mf-green-light)' : 'var(--mf-amber-light)',
+            color: overRdi ? 'var(--mf-red)' : pct >= 50 ? 'var(--mf-green)' : 'var(--mf-amber)',
           }}>{pct}%</span>
         </div>
       </div>
       <div style={{ height: 4, borderRadius: 9999, background: 'var(--bg-subtle)', overflow: 'hidden' }}>
         <div style={{
           height: '100%', borderRadius: 9999, width: `${Math.min(100, pct)}%`,
-          background: overRdi ? '#E24B4A' : kleur,
+          background: overRdi ? 'var(--mf-red)' : kleur,
           transition: 'width 0.8s ease',
         }} />
       </div>
@@ -177,8 +172,8 @@ function RdiBalk({ label, waarde, eenheid, rdi, kleur = '#1D9E75', sub = false }
 }
 
 function GezondheidBadge({ score }: { score: number }) {
-  const kleur = score >= 7 ? '#1D9E75' : score >= 4 ? '#F59E0B' : '#E24B4A'
-  const bg    = score >= 7 ? '#F0FAF6' : score >= 4 ? '#FFFBEB' : '#FEF2F2'
+  const kleur = score >= 7 ? 'var(--mf-green)' : score >= 4 ? 'var(--mf-amber)' : 'var(--mf-red)'
+  const bg    = score >= 7 ? 'var(--mf-green-light)' : score >= 4 ? 'var(--mf-amber-light)' : 'var(--mf-red-light)'
   const label = score >= 7 ? 'Gezond' : score >= 4 ? 'Matig' : 'Ongezond'
   return (
     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: bg, color: kleur, borderRadius: 20, padding: '2px 8px', fontSize: 11, fontWeight: 700 }}>
@@ -412,7 +407,7 @@ export default function VoedingPage() {
 
   // ── Render helpers ────────────────────────────────────────────────────────────
 
-  const kCalKleur = dagTotaal.calorieen > DOEL_KCAL * 1.05 ? '#E24B4A' : dagTotaal.calorieen > DOEL_KCAL * 0.75 ? '#1D9E75' : '#F59E0B'
+  const kCalKleur = dagTotaal.calorieen > DOEL_KCAL * 1.05 ? 'var(--mf-red)' : dagTotaal.calorieen > DOEL_KCAL * 0.75 ? 'var(--mf-green)' : 'var(--mf-amber)'
   const logsByMaaltijd = MAALTIJD_VOLGORDE.reduce((acc, mt) => { acc[mt] = logs.filter(l => l.maaltijd_type === mt); return acc }, {} as Record<string, VoedingLog[]>)
 
   function renderInputVeld({ label, veld, type = 'text', suffix = '' }: { label: string; veld: keyof typeof form; type?: string; suffix?: string }) {
@@ -483,17 +478,17 @@ export default function VoedingPage() {
                   {new Date().toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long' })}
                 </p>
               </div>
-              <div style={{ fontSize: logs.length > 0 ? 12 : 11, color: logs.length > 0 ? '#1D9E75' : 'var(--text-4)', fontWeight: 700 }}>
+              <div style={{ fontSize: logs.length > 0 ? 12 : 11, color: logs.length > 0 ? 'var(--mf-green)' : 'var(--text-4)', fontWeight: 700 }}>
                 {logs.length > 0 ? `${logs.length} maaltijd${logs.length !== 1 ? 'en' : ''}` : 'Nog niets gelogd'}
               </div>
             </div>
 
             {fout && (
-              <div style={{ background: '#FEF2F2', border: '1px solid #FCA5A5', borderRadius: 12, padding: '12px 16px', marginBottom: 16, fontSize: 13, color: '#B91C1C' }}>{fout}</div>
+              <div style={{ background: 'var(--mf-red-light)', border: '1px solid var(--mf-red)', borderRadius: 12, padding: '12px 16px', marginBottom: 16, fontSize: 13, color: 'var(--mf-red)' }}>{fout}</div>
             )}
 
             {/* ── Calorie Dashboard kaart ── */}
-            <div style={{ background: 'var(--bg-card)', borderRadius: 24, border: '1px solid #F1F5F9', marginBottom: 14, overflow: 'hidden',
+            <div style={{ background: 'var(--bg-card)', borderRadius: 24, border: '1px solid var(--border)', marginBottom: 14, overflow: 'hidden',
               boxShadow: '0 2px 16px rgba(0,0,0,0.04)' }}>
               {/* Top: ring + macro rings */}
               <div style={{ padding: '20px 20px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
@@ -509,10 +504,10 @@ export default function VoedingPage() {
               {/* RDI bars for macros */}
               <div style={{ padding: '0 20px 16px' }}>
                 {[
-                  { label: 'Eiwit',        waarde: dagTotaal.eiwitten_g,     rdi: RDI.eiwitten_g,     kleur: '#E24B4A', eenheid: 'g' },
-                  { label: 'Koolhydraten', waarde: dagTotaal.koolhydraten_g, rdi: RDI.koolhydraten_g, kleur: '#F59E0B', eenheid: 'g' },
-                  { label: 'Vet',          waarde: dagTotaal.vetten_g,       rdi: RDI.vetten_g,       kleur: '#8B5CF6', eenheid: 'g' },
-                  { label: 'Vezels',       waarde: dagTotaal.vezels_g,       rdi: RDI.vezels_g,       kleur: '#1D9E75', eenheid: 'g' },
+                  { label: 'Eiwit',        waarde: dagTotaal.eiwitten_g,     rdi: RDI.eiwitten_g,     kleur: 'var(--mf-red)',    eenheid: 'g' },
+                  { label: 'Koolhydraten', waarde: dagTotaal.koolhydraten_g, rdi: RDI.koolhydraten_g, kleur: 'var(--mf-amber)',  eenheid: 'g' },
+                  { label: 'Vet',          waarde: dagTotaal.vetten_g,       rdi: RDI.vetten_g,       kleur: 'var(--mf-purple)', eenheid: 'g' },
+                  { label: 'Vezels',       waarde: dagTotaal.vezels_g,       rdi: RDI.vezels_g,       kleur: 'var(--mf-green)',  eenheid: 'g' },
                 ].map(m => (
                   <RdiBalk key={m.label} label={m.label} waarde={m.waarde} eenheid={m.eenheid} rdi={m.rdi} kleur={m.kleur} />
                 ))}
@@ -520,18 +515,18 @@ export default function VoedingPage() {
             </div>
 
             {/* ── Water tracker ── */}
-            <div style={{ background: 'var(--bg-card)', borderRadius: 18, border: '1px solid #F1F5F9', padding: '12px 16px', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ background: 'var(--bg-card)', borderRadius: 18, border: '1px solid var(--border)', padding: '12px 16px', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 12 }}>
               <span style={{ fontSize: 22 }}>💧</span>
               <div style={{ flex: 1 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
                   <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-2)' }}>Water</span>
-                  <span style={{ fontSize: 12, fontWeight: 700, color: '#185FA5' }}>{water}/{WATER_DOEL} glazen</span>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--mf-blue)' }}>{water}/{WATER_DOEL} glazen</span>
                 </div>
                 <div style={{ display: 'flex', gap: 4 }}>
                   {Array.from({ length: WATER_DOEL }).map((_, i) => (
                     <button key={i} onClick={() => setWaterSave(i < water ? i : i + 1)}
                       style={{ flex: 1, height: 8, borderRadius: 4, border: 'none', cursor: 'pointer',
-                        background: i < water ? '#185FA5' : '#E0F2FE',
+                        background: i < water ? 'var(--mf-blue)' : 'var(--mf-blue-light)',
                         transition: 'background 0.2s' }} />
                   ))}
                 </div>
@@ -540,7 +535,7 @@ export default function VoedingPage() {
                 <button onClick={() => setWaterSave(water - 1)}
                   style={{ width: 28, height: 28, borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-card)', cursor: 'pointer', fontSize: 14, color: 'var(--text-3)', fontWeight: 700 }}>−</button>
                 <button onClick={() => setWaterSave(water + 1)}
-                  style={{ width: 28, height: 28, borderRadius: 8, border: '1px solid #185FA5', background: '#185FA5', cursor: 'pointer', fontSize: 14, color: 'white', fontWeight: 700 }}>+</button>
+                  style={{ width: 28, height: 28, borderRadius: 8, border: '1px solid var(--mf-blue)', background: 'var(--mf-blue)', cursor: 'pointer', fontSize: 14, color: 'white', fontWeight: 700 }}>+</button>
               </div>
             </div>
 
@@ -596,7 +591,7 @@ export default function VoedingPage() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   {recenteFoods.slice(0, 4).map(r => (
                     <button key={r.id} onClick={() => selecteerProduct(r)}
-                      style={{ background: 'var(--bg-card)', border: '1px solid #F1F5F9', borderRadius: 12, padding: '10px 12px', cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', gap: 10 }}>
+                      style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 12, padding: '10px 12px', cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', gap: 10 }}>
                       <div style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--bg-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0 }}>
                         {r.foto_url ? <img src={r.foto_url} alt="" style={{ width: 36, height: 36, borderRadius: 10, objectFit: 'cover' }} /> : '🍽️'}
                       </div>
@@ -604,7 +599,7 @@ export default function VoedingPage() {
                         <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-1)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.naam}</p>
                         <p style={{ fontSize: 11, color: 'var(--text-4)', margin: 0 }}>{r.per_100g.calorieen} kcal/100g · {r.per_100g.eiwitten_g}g eiwit</p>
                       </div>
-                      <span style={{ fontSize: 16, color: '#D1D5DB' }}>›</span>
+                      <span style={{ fontSize: 16, color: 'var(--text-4)' }}>›</span>
                     </button>
                   ))}
                 </div>
@@ -621,7 +616,7 @@ export default function VoedingPage() {
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, padding: '0 2px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
                       <span style={{ fontSize: 16 }}>{MAALTIJD_EMOJI[mt]}</span>
-                      <span style={{ fontSize: 13, fontWeight: 800, color: '#0F172A' }}>{MAALTIJD_LABEL[mt]}</span>
+                      <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--text-1)' }}>{MAALTIJD_LABEL[mt]}</span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       <span style={{ fontSize: 12, fontWeight: 700, color: MAALTIJD_KLEUR[mt] }}>{mtKcal} kcal</span>
@@ -633,7 +628,7 @@ export default function VoedingPage() {
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                     {mtLogs.map(log => (
-                      <div key={log.id} style={{ background: 'var(--bg-card)', borderRadius: 14, border: '1px solid #F1F5F9', overflow: 'hidden', display: 'flex' }}>
+                      <div key={log.id} style={{ background: 'var(--bg-card)', borderRadius: 14, border: '1px solid var(--border)', overflow: 'hidden', display: 'flex' }}>
                         {/* Kleurstrook links */}
                         <div style={{ width: 4, background: MAALTIJD_KLEUR[mt], flexShrink: 0 }} />
                         <div style={{ display: 'flex', gap: 10, padding: '11px 12px', flex: 1, alignItems: 'center' }}>
@@ -651,14 +646,14 @@ export default function VoedingPage() {
                                 {log.omschrijving}
                               </p>
                               <button onClick={() => verwijder(log.id)}
-                                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#E5E7EB', fontSize: 18, lineHeight: 1, padding: 0, flexShrink: 0 }}>×</button>
+                                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--border-strong)', fontSize: 18, lineHeight: 1, padding: 0, flexShrink: 0 }}>×</button>
                             </div>
                             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
                               {log.calorieen && <span style={{ fontSize: 12, fontWeight: 800, color: kCalKleur }}>{log.calorieen} kcal</span>}
                               {log.eiwitten_g && <span style={{ fontSize: 11, color: 'var(--text-4)' }}>E:{log.eiwitten_g}g</span>}
                               {log.koolhydraten_g && <span style={{ fontSize: 11, color: 'var(--text-4)' }}>K:{log.koolhydraten_g}g</span>}
                               {log.vetten_g && <span style={{ fontSize: 11, color: 'var(--text-4)' }}>V:{log.vetten_g}g</span>}
-                              {log.portie_gram && <span style={{ fontSize: 11, color: '#D1D5DB' }}>{log.portie_gram}g</span>}
+                              {log.portie_gram && <span style={{ fontSize: 11, color: 'var(--text-4)' }}>{log.portie_gram}g</span>}
                               {log.bron === 'foto' && log.ai_analyse?.gezondheid_score && (
                                 <GezondheidBadge score={log.ai_analyse.gezondheid_score} />
                               )}
@@ -723,7 +718,8 @@ export default function VoedingPage() {
               </div>
             )}
 
-            <div style={{ background: analyse.betrouwbaarheid === 'hoog' ? '#F0FAF6' : analyse.betrouwbaarheid === 'gemiddeld' ? '#FFFBEB' : '#FEF2F2',
+            <div style={{
+              background: analyse.betrouwbaarheid === 'hoog' ? 'var(--mf-green-light)' : analyse.betrouwbaarheid === 'gemiddeld' ? 'var(--mf-amber-light)' : 'var(--mf-red-light)',
               border: `1px solid ${analyse.betrouwbaarheid === 'hoog' ? '#6EE7B7' : analyse.betrouwbaarheid === 'gemiddeld' ? '#FDE68A' : '#FCA5A5'}`,
               borderRadius: 12, padding: '10px 14px', marginBottom: 14, fontSize: 12, color: 'var(--text-2)', display: 'flex', alignItems: 'center', gap: 8 }}>
               <span style={{ fontSize: 16 }}>{analyse.betrouwbaarheid === 'hoog' ? '✅' : analyse.betrouwbaarheid === 'gemiddeld' ? '⚠️' : '❓'}</span>
@@ -741,7 +737,7 @@ export default function VoedingPage() {
               </div>
             )}
 
-            <div style={{ background: 'var(--bg-card)', borderRadius: 18, border: '1px solid #F1F5F9', padding: '16px', marginBottom: 14 }}>
+            <div style={{ background: 'var(--bg-card)', borderRadius: 18, border: '1px solid var(--border)', padding: '16px', marginBottom: 14 }}>
               <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 12 }}>Aanpassen indien nodig</p>
               <div style={{ display: 'grid', gap: 10 }}>
                 {renderMaaltijdSelector()}
@@ -760,12 +756,12 @@ export default function VoedingPage() {
             </div>
 
             {analyse.tips && (
-              <div style={{ background: '#F0FAF6', border: '1px solid #A7F3D0', borderRadius: 12, padding: '11px 14px', marginBottom: 14 }}>
-                <p style={{ fontSize: 13, color: '#065F46', margin: 0, lineHeight: 1.5 }}>💡 {analyse.tips}</p>
+              <div style={{ background: 'var(--mf-green-light)', border: '1px solid rgba(29,158,117,0.25)', borderRadius: 12, padding: '11px 14px', marginBottom: 14 }}>
+                <p style={{ fontSize: 13, color: 'var(--mf-green-dark)', margin: 0, lineHeight: 1.5 }}>💡 {analyse.tips}</p>
               </div>
             )}
 
-            {fout && <div style={{ background: '#FEF2F2', border: '1px solid #FCA5A5', borderRadius: 12, padding: '10px 14px', marginBottom: 12, fontSize: 13, color: '#B91C1C' }}>{fout}</div>}
+            {fout && <div style={{ background: 'var(--mf-red-light)', border: '1px solid var(--mf-red)', borderRadius: 12, padding: '10px 14px', marginBottom: 12, fontSize: 13, color: 'var(--mf-red)' }}>{fout}</div>}
 
             <button onClick={() => slaOp('foto')} disabled={opslaan}
               style={{ width: '100%', background: 'linear-gradient(135deg, #1D9E75, #059669)', color: 'white', border: 'none', borderRadius: 14, padding: '16px', fontSize: 15, fontWeight: 800, cursor: opslaan ? 'not-allowed' : 'pointer', opacity: opslaan ? 0.7 : 1 }}>
@@ -823,7 +819,7 @@ export default function VoedingPage() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   {recenteFoods.map(r => (
                     <button key={r.id} onClick={() => selecteerProduct(r)}
-                      style={{ background: 'var(--bg-card)', border: '1px solid #F1F5F9', borderRadius: 12, padding: '10px 12px', cursor: 'pointer', textAlign: 'left', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+                      style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 12, padding: '10px 12px', cursor: 'pointer', textAlign: 'left', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
                       <div style={{ width: 40, height: 40, borderRadius: 10, background: 'var(--bg-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0, overflow: 'hidden' }}>
                         {r.foto_url ? <img src={r.foto_url} alt="" style={{ width: 40, height: 40, objectFit: 'cover' }} /> : '🍽️'}
                       </div>
@@ -831,7 +827,7 @@ export default function VoedingPage() {
                         <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-1)', margin: '0 0 2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.naam}</p>
                         <p style={{ fontSize: 11, color: 'var(--text-4)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.per_100g.calorieen} kcal · {r.per_100g.eiwitten_g}g eiwit · {r.per_100g.koolhydraten_g}g koolh.</p>
                       </div>
-                      <span style={{ fontSize: 16, color: '#D1D5DB', flexShrink: 0, paddingTop: 2 }}>›</span>
+                      <span style={{ fontSize: 16, color: 'var(--text-4)', flexShrink: 0, paddingTop: 2 }}>›</span>
                     </button>
                   ))}
                 </div>
@@ -851,7 +847,7 @@ export default function VoedingPage() {
             {zoekLaden && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {[1, 2, 3, 4].map(i => (
-                  <div key={i} style={{ background: 'var(--bg-card)', borderRadius: 14, padding: '12px 14px', border: '1px solid #F1F5F9', display: 'flex', gap: 12, alignItems: 'center' }}>
+                  <div key={i} style={{ background: 'var(--bg-card)', borderRadius: 14, padding: '12px 14px', border: '1px solid var(--border)', display: 'flex', gap: 12, alignItems: 'center' }}>
                     <div style={{ width: 48, height: 48, borderRadius: 10, background: 'var(--bg-subtle)', animation: 'pulse 1.4s ease-in-out infinite', animationDelay: `${i * 0.1}s` }} />
                     <div style={{ flex: 1 }}>
                       <div style={{ height: 13, borderRadius: 6, background: 'var(--bg-subtle)', width: '70%', marginBottom: 7, animation: 'pulse 1.4s ease-in-out infinite' }} />
@@ -867,7 +863,7 @@ export default function VoedingPage() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
                 {zoekResultaten.map(r => (
                   <button key={r.id} onClick={() => selecteerProduct(r)}
-                    style={{ background: 'var(--bg-card)', border: '1px solid #F1F5F9', borderRadius: 14, padding: '12px 14px', cursor: 'pointer', textAlign: 'left', display: 'flex', gap: 12, alignItems: 'flex-start',
+                    style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 14, padding: '12px 14px', cursor: 'pointer', textAlign: 'left', display: 'flex', gap: 12, alignItems: 'flex-start',
                       transition: 'box-shadow 0.15s' }}>
                     <div style={{ width: 50, height: 50, borderRadius: 12, background: 'var(--bg-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0, overflow: 'hidden' }}>
                       {r.foto_url ? <img src={r.foto_url} alt={r.naam} style={{ width: 50, height: 50, objectFit: 'cover' }} /> : '🍽️'}
@@ -876,13 +872,13 @@ export default function VoedingPage() {
                       <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-1)', margin: '0 0 2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.naam}</p>
                       {r.merk && <p style={{ fontSize: 11, color: 'var(--text-4)', margin: '0 0 4px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.merk}</p>}
                       <div style={{ display: 'flex', gap: 6, overflow: 'hidden' }}>
-                        <span style={{ fontSize: 12, fontWeight: 800, color: '#1D9E75', flexShrink: 0 }}>{r.per_100g.calorieen} kcal</span>
+                        <span style={{ fontSize: 12, fontWeight: 800, color: 'var(--mf-green)', flexShrink: 0 }}>{r.per_100g.calorieen} kcal</span>
                         <span style={{ fontSize: 11, color: 'var(--text-4)', flexShrink: 0 }}>E:{r.per_100g.eiwitten_g}g</span>
                         <span style={{ fontSize: 11, color: 'var(--text-4)', flexShrink: 0 }}>K:{r.per_100g.koolhydraten_g}g</span>
                         <span style={{ fontSize: 11, color: 'var(--text-4)', flexShrink: 0 }}>V:{r.per_100g.vetten_g}g</span>
                       </div>
                     </div>
-                    <span style={{ color: '#D1D5DB', fontSize: 20, flexShrink: 0, paddingTop: 2 }}>›</span>
+                    <span style={{ color: 'var(--text-4)', fontSize: 20, flexShrink: 0, paddingTop: 2 }}>›</span>
                   </button>
                 ))}
               </div>
@@ -938,7 +934,7 @@ export default function VoedingPage() {
               )}
 
               {/* Portie aanpassen */}
-              <div style={{ background: 'var(--bg-card)', borderRadius: 18, padding: '16px', border: '1px solid #F1F5F9', marginBottom: 12 }}>
+              <div style={{ background: 'var(--bg-card)', borderRadius: 18, padding: '16px', border: '1px solid var(--border)', marginBottom: 12 }}>
                 <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 10px' }}>Portiegrootte</p>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
                   <button onClick={() => setPortieGram(Math.max(5, portieGram - 5))}
@@ -950,14 +946,14 @@ export default function VoedingPage() {
                     <span style={{ fontSize: 14, color: 'var(--text-4)', fontWeight: 600 }}>gram</span>
                   </div>
                   <button onClick={() => setPortieGram(portieGram + 5)}
-                    style={{ width: 38, height: 38, borderRadius: 10, border: '1.5px solid #1D9E75', background: '#1D9E75', fontSize: 20, cursor: 'pointer', color: 'white', fontWeight: 700, flexShrink: 0 }}>+</button>
+                    style={{ width: 38, height: 38, borderRadius: 10, border: '1.5px solid var(--mf-green)', background: 'var(--mf-green)', fontSize: 20, cursor: 'pointer', color: 'white', fontWeight: 700, flexShrink: 0 }}>+</button>
                 </div>
                 <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
                   {[30, 50, 100, 150, 200, 250, 300].map(g => (
                     <button key={g} onClick={() => setPortieGram(g)}
                       style={{ padding: '5px 11px', borderRadius: 20,
-                        border: `1.5px solid ${portieGram === g ? '#1D9E75' : '#E5E7EB'}`,
-                        background: portieGram === g ? '#1D9E75' : 'white',
+                        border: `1.5px solid ${portieGram === g ? '#1D9E75' : 'transparent'}`,
+                        background: portieGram === g ? 'var(--mf-green)' : 'var(--bg-subtle)',
                         color: portieGram === g ? 'white' : 'var(--text-3)',
                         fontSize: 12, fontWeight: 700, cursor: 'pointer',
                         transition: 'all 0.15s' }}>
@@ -968,32 +964,29 @@ export default function VoedingPage() {
               </div>
 
               {/* Calorieën + macro donut */}
-              <div style={{ background: 'linear-gradient(135deg, #F0FAF6, #E8F5FF)', borderRadius: 18, padding: '16px', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 16 }}>
+              <div style={{ background: 'var(--mf-green-light)', borderRadius: 18, padding: '16px', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 16 }}>
                 {/* Macro donut */}
                 <svg width="100" height="100" viewBox="0 0 100 100" style={{ flexShrink: 0 }}>
-                  <circle cx="50" cy="50" r={r2} fill="none" stroke="#F3F4F6" strokeWidth="10" />
-                  {/* Eiwit */}
-                  <circle cx="50" cy="50" r={r2} fill="none" stroke="#E24B4A" strokeWidth="10"
+                  <circle cx="50" cy="50" r={r2} fill="none" style={{ stroke: 'var(--bg-subtle)' }} strokeWidth="10" />
+                  <circle cx="50" cy="50" r={r2} fill="none" style={{ stroke: 'var(--mf-red)' }} strokeWidth="10"
                     strokeDasharray={`${eiwitDash} ${circ2}`} strokeDashoffset={-eiwitOff}
                     transform="rotate(-90 50 50)" />
-                  {/* Koolh */}
-                  <circle cx="50" cy="50" r={r2} fill="none" stroke="#F59E0B" strokeWidth="10"
+                  <circle cx="50" cy="50" r={r2} fill="none" style={{ stroke: 'var(--mf-amber)' }} strokeWidth="10"
                     strokeDasharray={`${koolhDash} ${circ2}`} strokeDashoffset={-koolhOff}
                     transform="rotate(-90 50 50)" />
-                  {/* Vet */}
-                  <circle cx="50" cy="50" r={r2} fill="none" stroke="#8B5CF6" strokeWidth="10"
+                  <circle cx="50" cy="50" r={r2} fill="none" style={{ stroke: 'var(--mf-purple)' }} strokeWidth="10"
                     strokeDasharray={`${vetDash} ${circ2}`} strokeDashoffset={-vetOff}
                     transform="rotate(-90 50 50)" />
-                  <text x="50" y="46" textAnchor="middle" fontSize="14" fontWeight="900" fill="#1D9E75">{Math.round(p.calorieen * factor)}</text>
-                  <text x="50" y="58" textAnchor="middle" fontSize="9" fill="#9CA3AF">kcal</text>
+                  <text x="50" y="46" textAnchor="middle" fontSize="14" fontWeight="900" style={{ fill: 'var(--mf-green)' }}>{Math.round(p.calorieen * factor)}</text>
+                  <text x="50" y="58" textAnchor="middle" fontSize="9" style={{ fill: 'var(--text-4)' }}>kcal</text>
                 </svg>
                 {/* Macro legend */}
                 <div style={{ flex: 1 }}>
-                  <p style={{ fontSize: 11, color: '#065F46', fontWeight: 700, margin: '0 0 8px' }}>Per {portieGram}g</p>
+                  <p style={{ fontSize: 11, color: 'var(--mf-green-dark)', fontWeight: 700, margin: '0 0 8px' }}>Per {portieGram}g</p>
                   {[
-                    { label: 'Eiwit',        waarde: p.eiwitten_g     * factor, kleur: '#E24B4A', pct: eiwitPct },
-                    { label: 'Koolhydr.',    waarde: p.koolhydraten_g * factor, kleur: '#F59E0B', pct: koolhPct },
-                    { label: 'Vet',          waarde: p.vetten_g       * factor, kleur: '#8B5CF6', pct: vetPct   },
+                    { label: 'Eiwit',        waarde: p.eiwitten_g     * factor, kleur: 'var(--mf-red)',    pct: eiwitPct },
+                    { label: 'Koolhydr.',    waarde: p.koolhydraten_g * factor, kleur: 'var(--mf-amber)',  pct: koolhPct },
+                    { label: 'Vet',          waarde: p.vetten_g       * factor, kleur: 'var(--mf-purple)', pct: vetPct   },
                   ].map(m => (
                     <div key={m.label} style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
                       <div style={{ width: 8, height: 8, borderRadius: '50%', background: m.kleur, flexShrink: 0 }} />
@@ -1006,9 +999,9 @@ export default function VoedingPage() {
               </div>
 
               {/* Macros tabel met RDI % */}
-              <div style={{ background: 'var(--bg-card)', borderRadius: 18, padding: '16px', border: '1px solid #F1F5F9', marginBottom: 12 }}>
+              <div style={{ background: 'var(--bg-card)', borderRadius: 18, padding: '16px', border: '1px solid var(--border)', marginBottom: 12 }}>
                 <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 4px' }}>
-                  Macronutriënten <span style={{ color: '#D1D5DB' }}>— % van dagelijkse behoefte</span>
+                  Macronutriënten <span style={{ color: 'var(--text-4)' }}>— % van dagelijkse behoefte</span>
                 </p>
                 <RdiBalk label="Calorieën"          waarde={Math.round(p.calorieen      * factor)} eenheid="kcal" rdi={RDI.calorieen}      kleur="#1D9E75" />
                 <RdiBalk label="Eiwit"              waarde={p.eiwitten_g     * factor}            eenheid="g"    rdi={RDI.eiwitten_g}     kleur="#E24B4A" />
@@ -1024,9 +1017,9 @@ export default function VoedingPage() {
 
               {/* Micronutriënten met RDI % */}
               {heeftMicros && (
-                <div style={{ background: 'var(--bg-card)', borderRadius: 18, padding: '16px', border: '1px solid #F1F5F9', marginBottom: 12 }}>
+                <div style={{ background: 'var(--bg-card)', borderRadius: 18, padding: '16px', border: '1px solid var(--border)', marginBottom: 12 }}>
                   <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 4px' }}>
-                    Micronutriënten <span style={{ color: '#D1D5DB' }}>— % van dagelijkse behoefte</span>
+                    Micronutriënten <span style={{ color: 'var(--text-4)' }}>— % van dagelijkse behoefte</span>
                   </p>
                   {Object.entries(MICRO_META)
                     .filter(([key]) => micros[key] !== null && micros[key] !== undefined && (micros[key] as number) > 0)
@@ -1044,7 +1037,7 @@ export default function VoedingPage() {
               {/* Maaltijd type */}
               <div style={{ marginBottom: 14 }}>{renderMaaltijdSelector()}</div>
 
-              {fout && <div style={{ background: '#FEF2F2', border: '1px solid #FCA5A5', borderRadius: 12, padding: '10px 14px', marginBottom: 12, fontSize: 13, color: '#B91C1C' }}>{fout}</div>}
+              {fout && <div style={{ background: 'var(--mf-red-light)', border: '1px solid var(--mf-red)', borderRadius: 12, padding: '10px 14px', marginBottom: 12, fontSize: 13, color: 'var(--mf-red)' }}>{fout}</div>}
 
               <button onClick={voegProductToe} disabled={opslaan}
                 style={{ width: '100%', background: 'linear-gradient(135deg, #1D9E75, #059669)',
@@ -1067,7 +1060,7 @@ export default function VoedingPage() {
               <h1 style={{ fontSize: 22, fontWeight: 900, color: 'var(--text-1)', margin: 0 }}>Manueel invoeren</h1>
             </div>
 
-            <div style={{ background: 'var(--bg-card)', borderRadius: 20, border: '1px solid #F1F5F9', padding: '18px 16px', marginBottom: 16 }}>
+            <div style={{ background: 'var(--bg-card)', borderRadius: 20, border: '1px solid var(--border)', padding: '18px 16px', marginBottom: 16 }}>
               <div style={{ display: 'grid', gap: 12 }}>
                 {renderMaaltijdSelector()}
                 {renderInputVeld({ label: 'Gerecht / omschrijving', veld: 'omschrijving' })}
@@ -1084,7 +1077,7 @@ export default function VoedingPage() {
               </div>
             </div>
 
-            {fout && <div style={{ background: '#FEF2F2', border: '1px solid #FCA5A5', borderRadius: 12, padding: '10px 14px', marginBottom: 12, fontSize: 13, color: '#B91C1C' }}>{fout}</div>}
+            {fout && <div style={{ background: 'var(--mf-red-light)', border: '1px solid var(--mf-red)', borderRadius: 12, padding: '10px 14px', marginBottom: 12, fontSize: 13, color: 'var(--mf-red)' }}>{fout}</div>}
 
             <button onClick={() => slaOp('manueel')} disabled={opslaan || !form.omschrijving.trim()}
               style={{ width: '100%', background: 'linear-gradient(135deg, var(--mf-green) 0%, var(--mf-green-dark) 100%)', color: 'white', border: 'none', borderRadius: 14, padding: '16px', fontSize: 15, fontWeight: 800,

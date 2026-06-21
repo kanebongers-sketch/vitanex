@@ -36,12 +36,20 @@ function scoreLabel(score: number | null): string {
   return 'Rust nodig'
 }
 
+const SCORE_KLEUR_HEX = {
+  onbekend: '#9CA3AF',
+  hersteld:  '#1D9E75',
+  goed:      '#185FA5',
+  matig:     '#BA7517',
+  rust:      '#E24B4A',
+}
+
 function scoreKleur(score: number | null): string {
-  if (score === null) return '#9CA3AF'
-  if (score >= 80) return '#1D9E75'
-  if (score >= 60) return '#185FA5'
-  if (score >= 40) return '#BA7517'
-  return '#E24B4A'
+  if (score === null) return SCORE_KLEUR_HEX.onbekend
+  if (score >= 80) return SCORE_KLEUR_HEX.hersteld
+  if (score >= 60) return SCORE_KLEUR_HEX.goed
+  if (score >= 40) return SCORE_KLEUR_HEX.matig
+  return SCORE_KLEUR_HEX.rust
 }
 
 function scoreGradient(score: number | null): string {
@@ -108,7 +116,8 @@ function CalorieRingMini({ kcal, doel }: { kcal: number; doel: number }) {
   const r = 30
   const circ = 2 * Math.PI * r
   const pct = Math.min(1, doel > 0 ? kcal / doel : 0)
-  const kleur = kcal > doel * 1.1 ? '#E24B4A' : '#1D9E75'
+  const overKcal = kcal > doel * 1.1
+  const kleur = overKcal ? SCORE_KLEUR_HEX.rust : SCORE_KLEUR_HEX.hersteld
   return (
     <svg width="72" height="72" viewBox="0 0 72 72" aria-label={`${kcal} van ${doel} kcal`}>
       <circle cx="36" cy="36" r={r} fill="none" stroke={`${kleur}20`} strokeWidth="7" />
@@ -125,7 +134,7 @@ function CalorieRingMini({ kcal, doel }: { kcal: number; doel: number }) {
         style={{ transition: 'stroke-dasharray 1s ease' }}
       />
       <text x="36" y="32" textAnchor="middle" fontSize="12" fontWeight="900" fill={kleur}>{kcal}</text>
-      <text x="36" y="45" textAnchor="middle" fontSize="8" fill="#9CA3AF">kcal</text>
+      <text x="36" y="45" textAnchor="middle" fontSize="8" fill={SCORE_KLEUR_HEX.onbekend}>kcal</text>
     </svg>
   )
 }
@@ -135,7 +144,7 @@ function CalorieRingMini({ kcal, doel }: { kcal: number; doel: number }) {
 function ProgressBar({ waarde, max, kleur }: { waarde: number; max: number; kleur: string }) {
   const pct = Math.min(100, max > 0 ? (waarde / max) * 100 : 0)
   return (
-    <div style={{ height: 5, background: '#F3F4F6', borderRadius: 100, overflow: 'hidden' }}>
+    <div style={{ height: 5, background: 'var(--bg-subtle)', borderRadius: 100, overflow: 'hidden' }}>
       <div
         style={{
           height: '100%',
@@ -392,20 +401,20 @@ export default function HomePage() {
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
                     <span style={{ fontSize: 11, color: 'var(--text-3)', fontWeight: 600 }}>Stemming</span>
-                    <span style={{ fontSize: 12, fontWeight: 800, color: '#185FA5' }}>
+                    <span style={{ fontSize: 12, fontWeight: 800, color: 'var(--mf-blue)' }}>
                       {scores.stemming_waarde != null ? `${scores.stemming_waarde}/10` : '—'}
                     </span>
                   </div>
-                  <ProgressBar waarde={scores.stemming_waarde ?? 0} max={10} kleur="#185FA5" />
+                  <ProgressBar waarde={scores.stemming_waarde ?? 0} max={10} kleur="var(--mf-blue)" />
                 </div>
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
                     <span style={{ fontSize: 11, color: 'var(--text-3)', fontWeight: 600 }}>Meditatie</span>
-                    <span style={{ fontSize: 12, fontWeight: 800, color: '#8B5CF6' }}>
+                    <span style={{ fontSize: 12, fontWeight: 800, color: 'var(--mf-purple)' }}>
                       {scores.meditatie_minuten > 0 ? `${scores.meditatie_minuten}m` : '—'}
                     </span>
                   </div>
-                  <ProgressBar waarde={scores.meditatie_minuten} max={20} kleur="#8B5CF6" />
+                  <ProgressBar waarde={scores.meditatie_minuten} max={20} kleur="var(--mf-purple)" />
                 </div>
               </div>
               <span style={{ fontSize: 10, color: 'var(--mf-green)', fontWeight: 700 }}>Details →</span>
@@ -423,27 +432,27 @@ export default function HomePage() {
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
                     <span style={{ fontSize: 11, color: 'var(--text-3)', fontWeight: 600 }}>💧 Water</span>
-                    <span style={{ fontSize: 12, fontWeight: 800, color: '#0EA5E9' }}>
+                    <span style={{ fontSize: 12, fontWeight: 800, color: 'var(--mf-blue-mid)' }}>
                       {scores.water_ml > 0 ? `${Math.round(scores.water_ml / 250)} gl` : '—'}
                     </span>
                   </div>
-                  <ProgressBar waarde={scores.water_ml} max={scores.water_doel_ml || WATER_DOEL_ML} kleur="#0EA5E9" />
+                  <ProgressBar waarde={scores.water_ml} max={scores.water_doel_ml || WATER_DOEL_ML} kleur="var(--mf-blue-mid)" />
                 </div>
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
                     <span style={{ fontSize: 11, color: 'var(--text-3)', fontWeight: 600 }}>😴 Slaap</span>
-                    <span style={{ fontSize: 12, fontWeight: 800, color: '#8B5CF6' }}>
+                    <span style={{ fontSize: 12, fontWeight: 800, color: 'var(--mf-purple)' }}>
                       {scores.slaap_uren != null ? `${scores.slaap_uren}u` : '—'}
                     </span>
                   </div>
-                  <ProgressBar waarde={scores.slaap_uren ?? 0} max={9} kleur="#8B5CF6" />
+                  <ProgressBar waarde={scores.slaap_uren ?? 0} max={9} kleur="var(--mf-purple)" />
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <span style={{ fontSize: 11, color: 'var(--text-3)', fontWeight: 600 }}>🏃 Sport</span>
                   <span style={{
                     fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20,
-                    background: sportGedaan ? '#D1FAE5' : '#F3F4F6',
-                    color: sportGedaan ? '#059669' : '#9CA3AF',
+                    background: sportGedaan ? 'var(--mf-green-light)' : 'var(--bg-subtle)',
+                    color: sportGedaan ? 'var(--mf-green-dark)' : 'var(--text-4)',
                   }}>
                     {sportGedaan ? 'Gedaan ✓' : 'Open'}
                   </span>
@@ -468,9 +477,9 @@ export default function HomePage() {
               <CalorieRingMini kcal={voedingTotaal.calorieen} doel={CALORIE_DOEL} />
               <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 7 }}>
                 {[
-                  { label: 'Eiwit',   waarde: voedingTotaal.eiwitten_g,     max: 56,  kleur: '#E24B4A' },
-                  { label: 'Koolh.',  waarde: voedingTotaal.koolhydraten_g, max: 275, kleur: '#F59E0B' },
-                  { label: 'Vet',     waarde: voedingTotaal.vetten_g,       max: 78,  kleur: '#8B5CF6' },
+                  { label: 'Eiwit',   waarde: voedingTotaal.eiwitten_g,     max: 56,  kleur: 'var(--mf-red)'    },
+                  { label: 'Koolh.',  waarde: voedingTotaal.koolhydraten_g, max: 275, kleur: 'var(--mf-amber)'  },
+                  { label: 'Vet',     waarde: voedingTotaal.vetten_g,       max: 78,  kleur: 'var(--mf-purple)' },
                 ].map(m => (
                   <div key={m.label}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
@@ -495,9 +504,9 @@ export default function HomePage() {
           <div style={{
             borderRadius: 18,
             background: streak >= 30
-              ? 'linear-gradient(135deg, #FEF3C7, #FDE68A)'
+              ? 'linear-gradient(135deg, var(--mf-amber-light), #FDE68A)'
               : streak > 0
-              ? 'linear-gradient(135deg, #FFF7ED, #FFEDD5)'
+              ? 'linear-gradient(135deg, var(--mf-amber-light), #FFEDD5)'
               : 'var(--bg-card)',
             border: streak > 0 ? '1.5px solid rgba(186,117,23,0.22)' : '1px solid var(--border)',
             padding: '14px',
@@ -510,20 +519,20 @@ export default function HomePage() {
               {streak >= 30 ? '🏆' : streak > 0 ? '🔥' : '💪'}
             </span>
             <div>
-              <div style={{ fontSize: 22, fontWeight: 900, color: streak > 0 ? '#92400E' : 'var(--text-1)', fontFamily: 'var(--font-display)', fontStyle: 'italic' }}>
+              <div style={{ fontSize: 22, fontWeight: 900, color: streak > 0 ? 'var(--mf-amber-dark)' : 'var(--text-1)', fontFamily: 'var(--font-display)', fontStyle: 'italic' }}>
                 {streak}
               </div>
-              <div style={{ fontSize: 10, color: streak > 0 ? '#B45309' : 'var(--text-4)', fontWeight: 600 }}>
+              <div style={{ fontSize: 10, color: streak > 0 ? 'var(--mf-amber-mid)' : 'var(--text-4)', fontWeight: 600 }}>
                 {streak === 1 ? 'dag op rij' : streak > 1 ? 'dagen op rij' : 'start vandaag'}
               </div>
             </div>
           </div>
 
           <Link href="/patronen" style={{ textDecoration: 'none' }}>
-            <div style={{ borderRadius: 18, background: 'linear-gradient(135deg, #F0FDF4, #DCFCE7)', border: '1.5px solid #A7F3D0', padding: '14px', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', boxShadow: 'var(--shadow-xs)' }}>
+            <div style={{ borderRadius: 18, background: 'var(--mf-green-light)', border: '1.5px solid rgba(29,158,117,0.2)', padding: '14px', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', boxShadow: 'var(--shadow-xs)' }}>
               <span style={{ fontSize: 22, marginBottom: 6 }}>🔬</span>
               <div style={{ fontSize: 12, fontWeight: 800, color: 'var(--mf-green-dark)', lineHeight: 1.3 }}>Jouw patronen</div>
-              <div style={{ fontSize: 10, color: '#15785A', marginTop: 3 }}>Bekijk trends →</div>
+              <div style={{ fontSize: 10, color: 'var(--mf-green-mid)', marginTop: 3 }}>Bekijk trends →</div>
             </div>
           </Link>
         </div>

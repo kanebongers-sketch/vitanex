@@ -54,8 +54,13 @@ function beginVanWeek(): string {
   return maandag.toISOString().split('T')[0]
 }
 
+const NIVEAU_HEX: Record<string, string> = {
+  gevorderd: '#E24B4A',
+  gemiddeld: '#BA7517',
+}
+
 function NiveauBadge({ niveau }: { niveau: string }) {
-  const kleur = niveau === 'gevorderd' ? '#EF4444' : niveau === 'gemiddeld' ? '#F97316' : '#1D9E75'
+  const kleur = NIVEAU_HEX[niveau] ?? '#1D9E75'
   return (
     <span style={{
       backgroundColor: kleur + '1A',

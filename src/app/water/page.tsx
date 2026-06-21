@@ -36,10 +36,10 @@ function formatDatum(): string {
 
 function motivatieTekst(percentage: number): string {
   if (percentage >= 100) return '🎉 Dagdoel behaald! Super!'
-  if (percentage >= 75) return 'Bijna! Nog een glas en je bent er! 💧💧💧'
-  if (percentage >= 50) return 'Halverwege je doel! 💧💧💧'
-  if (percentage >= 25) return 'Goed bezig, drink nog meer! 💧💧'
-  return 'Tijd om te drinken! 💧'
+  if (percentage >= 75) return 'Bijna! Nog een glas en je bent er!'
+  if (percentage >= 50) return 'Halverwege je doel!'
+  if (percentage >= 25) return 'Goed bezig, drink nog meer!'
+  return 'Tijd om te drinken!'
 }
 
 function WaterGlas({ percentage }: { percentage: number }) {
@@ -49,52 +49,47 @@ function WaterGlas({ percentage }: { percentage: number }) {
   return (
     <svg
       viewBox="0 0 160 260"
-      width="160"
-      height="260"
+      width="140"
+      height="230"
       aria-label={`Waterglas ${gevuld}% gevuld`}
       role="img"
     >
-      {/* Glas omlijning */}
       <path
         d="M20 20 L10 240 L150 240 L140 20 Z"
         fill="none"
-        stroke="#378ADD"
+        stroke="var(--mf-blue-mid)"
         strokeWidth="3"
         strokeLinejoin="round"
       />
-      {/* Reflectie op glas */}
       <path
         d="M28 30 L24 210"
-        stroke="rgba(55,138,221,0.2)"
+        stroke="var(--mf-blue-mid)"
         strokeWidth="4"
         strokeLinecap="round"
+        opacity="0.2"
       />
-      {/* Clip pad voor water */}
       <defs>
         <clipPath id="glasClip">
           <path d="M21 21 L11 239 L149 239 L139 21 Z" />
         </clipPath>
       </defs>
-      {/* Water vulling met animatie */}
       <g clipPath="url(#glasClip)">
         <rect
           x="0"
           y={240 - waterHoogte}
           width="160"
           height={waterHoogte + 10}
-          fill="#378ADD"
-          opacity="0.85"
+          fill="var(--mf-blue-mid)"
+          opacity="0.82"
           style={{ transition: 'y 0.8s cubic-bezier(0.34, 1.56, 0.64, 1), height 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)' }}
         />
-        {/* Golvend wateroppervlak */}
         <path
           d={`M0 ${240 - waterHoogte} q20 -8 40 0 q20 8 40 0 q20 -8 40 0 q20 8 40 0 v10 H0 Z`}
-          fill="#5BA8E8"
-          opacity="0.6"
+          fill="var(--mf-blue-light)"
+          opacity="0.7"
           style={{ transition: 'd 0.8s ease' }}
         />
       </g>
-      {/* Maatstreepjes */}
       {[25, 50, 75].map(pct => {
         const y = 240 - (pct / 100) * 200
         return (
@@ -104,8 +99,9 @@ function WaterGlas({ percentage }: { percentage: number }) {
             y1={y}
             x2="148"
             y2={y}
-            stroke="rgba(55,138,221,0.5)"
+            stroke="var(--mf-blue-mid)"
             strokeWidth="1.5"
+            opacity="0.4"
           />
         )
       })}
@@ -117,7 +113,7 @@ export default function WaterPagina() {
   const router = useRouter()
   const [laden, setLaden] = useState(true)
   const [data, setData] = useState<WaterData>({ vandaag_ml: 0, doel_ml: 2000, logs: [] })
-  const [toevoegen, setToevoegen] = useState(false)
+  const [bezig, setBezig] = useState(false)
   const [customMl, setCustomMl] = useState('')
   const [fout, setFout] = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -140,8 +136,8 @@ export default function WaterPagina() {
   }, [router])
 
   async function voegToe(ml: number) {
-    if (toevoegen) return
-    setToevoegen(true)
+    if (bezig) return
+    setBezig(true)
     setFout(null)
 
     const res = await authFetch('/api/water', {
@@ -151,22 +147,18 @@ export default function WaterPagina() {
 
     if (res.ok) {
       const { nieuw_totaal, doel_ml } = await res.json() as { nieuw_totaal: number; doel_ml: number }
-      const updated: WaterData = {
+      setData(prev => ({
         vandaag_ml: nieuw_totaal,
         doel_ml,
-        logs: [
-          ...data.logs,
-          { id: crypto.randomUUID(), ml, tijdstip: new Date().toISOString() },
-        ],
-      }
-      setData(updated)
+        logs: [...prev.logs, { id: crypto.randomUUID(), ml, tijdstip: new Date().toISOString() }],
+      }))
       setCustomMl('')
     } else {
       const json = await res.json() as { error: string }
       setFout(json.error ?? 'Fout bij toevoegen.')
     }
 
-    setToevoegen(false)
+    setBezig(false)
   }
 
   async function verwijder(id: string) {
@@ -197,7 +189,7 @@ export default function WaterPagina() {
     return (
       <>
         <Navbar />
-        <main style={{ minHeight: '100vh', background: '#F0F7FF', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <main style={{ minHeight: '100vh', background: 'var(--bg-app)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div className="mf-spinner" />
         </main>
       </>
@@ -209,121 +201,141 @@ export default function WaterPagina() {
       <Navbar />
       <main style={{
         minHeight: '100vh',
-        background: 'linear-gradient(160deg, #E6F1FB 0%, #F7FBFF 60%, #EAF4FF 100%)',
+        background: 'var(--bg-app)',
         paddingBottom: '3rem',
       }}>
         <div style={{ maxWidth: '520px', margin: '0 auto', padding: '0 1.25rem' }}>
 
           {/* Header */}
           <header style={{ paddingTop: '2rem', marginBottom: '1.5rem' }}>
+            <p style={{ color: 'var(--text-3)', fontSize: '0.85rem', margin: '0 0 4px', textTransform: 'capitalize', letterSpacing: '0.01em' }}>
+              {formatDatum()}
+            </p>
             <h1 style={{
               fontSize: '1.75rem',
               fontWeight: 700,
-              color: '#1B4F8A',
+              color: 'var(--text-1)',
               margin: 0,
               letterSpacing: '-0.02em',
             }}>
               Waterintake
             </h1>
-            <p style={{ color: '#5B8BBD', fontSize: '0.9rem', margin: '0.25rem 0 0', textTransform: 'capitalize' }}>
-              {formatDatum()}
-            </p>
           </header>
 
-          {/* Grote watervisualisatie */}
+          {/* Hero card — glas + stats */}
           <section
             aria-label="Waterstatus vandaag"
             style={{
-              background: 'white',
-              borderRadius: '1.5rem',
-              boxShadow: '0 4px 24px rgba(55,138,221,0.10)',
+              background: 'var(--bg-card)',
+              borderRadius: 'var(--radius-xl)',
+              boxShadow: 'var(--shadow-md)',
               padding: '2rem 1.5rem',
-              marginBottom: '1.25rem',
+              marginBottom: '1rem',
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
-              gap: '1rem',
+              gap: '1.25rem',
             }}
           >
             <WaterGlas percentage={percentage} />
 
             <div style={{ textAlign: 'center' }}>
               <p style={{
-                fontSize: '2.5rem',
+                fontSize: '2.75rem',
                 fontWeight: 800,
-                color: '#1B4F8A',
+                color: 'var(--mf-blue)',
                 margin: 0,
                 lineHeight: 1,
                 letterSpacing: '-0.03em',
               }}>
                 {data.vandaag_ml}
-                <span style={{ fontSize: '1.1rem', fontWeight: 500, color: '#5B8BBD', marginLeft: '0.25rem' }}>
+                <span style={{ fontSize: '1.1rem', fontWeight: 500, color: 'var(--text-3)', marginLeft: '0.3rem' }}>
                   / {data.doel_ml}ml
                 </span>
               </p>
-              <p style={{ color: '#5B8BBD', fontSize: '0.9rem', margin: '0.5rem 0 0' }}>
+              <p style={{ color: 'var(--text-3)', fontSize: '0.875rem', margin: '0.4rem 0 0' }}>
                 {percentage}% van je dagdoel
               </p>
             </div>
 
+            {/* Voortgangsbalk */}
+            <div style={{ width: '100%', maxWidth: 280, height: 8, background: 'var(--mf-blue-light)', borderRadius: 100 }}>
+              <div style={{
+                height: '100%',
+                width: `${Math.min(percentage, 100)}%`,
+                background: percentage >= 100 ? 'var(--mf-green)' : 'var(--mf-blue-mid)',
+                borderRadius: 100,
+                transition: 'width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)',
+              }} />
+            </div>
+
             {/* Motivatietekst */}
             <p style={{
-              background: percentage >= 100 ? '#D4F5E3' : '#E6F1FB',
-              color: percentage >= 100 ? '#1A7A4A' : '#1B4F8A',
-              borderRadius: '0.75rem',
+              background: percentage >= 100 ? 'var(--mf-green-light)' : 'var(--mf-blue-light)',
+              color: percentage >= 100 ? 'var(--mf-green-dark)' : 'var(--mf-blue)',
+              borderRadius: 'var(--radius-sm)',
               padding: '0.6rem 1.1rem',
-              fontSize: '0.9rem',
+              fontSize: '0.875rem',
               fontWeight: 600,
               margin: 0,
               textAlign: 'center',
+              width: '100%',
             }}>
-              {motivatieTekst(percentage)}
+              {percentage >= 100 ? '🎉 ' : '💧 '}{motivatieTekst(percentage)}
             </p>
           </section>
 
           {/* Snelle toevoeg knoppen */}
-          <section aria-label="Snel water toevoegen" style={{ marginBottom: '1.25rem' }}>
-            <h2 style={{ fontSize: '1rem', fontWeight: 600, color: '#1B4F8A', margin: '0 0 0.75rem' }}>
+          <section aria-label="Snel water toevoegen" style={{
+            background: 'var(--bg-card)',
+            borderRadius: 'var(--radius-xl)',
+            boxShadow: 'var(--shadow-sm)',
+            padding: '1.25rem 1.5rem',
+            marginBottom: '1rem',
+          }}>
+            <h2 style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-3)', margin: '0 0 0.875rem', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
               Snel toevoegen
             </h2>
-            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.5rem' }}>
               {SNELLE_OPTIES.map(ml => (
                 <button
                   key={ml}
                   onClick={() => voegToe(ml)}
-                  disabled={toevoegen}
+                  disabled={bezig}
                   style={{
-                    flex: '1 1 calc(50% - 0.25rem)',
-                    minWidth: '100px',
-                    padding: '0.85rem 1rem',
-                    borderRadius: '2rem',
-                    border: '2px solid #378ADD',
-                    background: 'white',
-                    color: '#378ADD',
+                    padding: '0.75rem 0.5rem',
+                    borderRadius: 'var(--radius-md)',
+                    border: '1.5px solid var(--mf-blue-light)',
+                    background: 'var(--mf-blue-light)',
+                    color: 'var(--mf-blue)',
                     fontWeight: 700,
-                    fontSize: '1rem',
-                    cursor: toevoegen ? 'not-allowed' : 'pointer',
-                    opacity: toevoegen ? 0.6 : 1,
-                    transition: 'background 0.15s, color 0.15s',
+                    fontSize: '0.9rem',
+                    cursor: bezig ? 'not-allowed' : 'pointer',
+                    opacity: bezig ? 0.6 : 1,
+                    transition: 'background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast)',
+                    textAlign: 'center',
                   }}
                   onMouseEnter={e => {
-                    if (!toevoegen) {
-                      (e.currentTarget as HTMLButtonElement).style.background = '#378ADD'
+                    if (!bezig) {
+                      (e.currentTarget as HTMLButtonElement).style.background = 'var(--mf-blue-mid)'
                       ;(e.currentTarget as HTMLButtonElement).style.color = 'white'
+                      ;(e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--mf-blue-mid)'
                     }
                   }}
                   onMouseLeave={e => {
-                    ;(e.currentTarget as HTMLButtonElement).style.background = 'white'
-                    ;(e.currentTarget as HTMLButtonElement).style.color = '#378ADD'
+                    ;(e.currentTarget as HTMLButtonElement).style.background = 'var(--mf-blue-light)'
+                    ;(e.currentTarget as HTMLButtonElement).style.color = 'var(--mf-blue)'
+                    ;(e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--mf-blue-light)'
                   }}
                 >
-                  +{ml}ml
+                  +{ml}
+                  <span style={{ display: 'block', fontSize: '0.7rem', fontWeight: 400, opacity: 0.7 }}>ml</span>
                 </button>
               ))}
             </div>
 
             {/* Custom ml */}
-            <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.75rem' }}>
+            <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.875rem' }}>
               <input
                 ref={inputRef}
                 type="number"
@@ -335,60 +347,60 @@ export default function WaterPagina() {
                 placeholder="Aangepast (ml)"
                 style={{
                   flex: 1,
-                  padding: '0.75rem 1rem',
-                  borderRadius: '2rem',
-                  border: '2px solid #C4DDF5',
-                  background: 'white',
-                  color: '#1B4F8A',
-                  fontSize: '0.95rem',
+                  padding: '0.7rem 1rem',
+                  borderRadius: 'var(--radius-sm)',
+                  border: '1.5px solid var(--border-strong)',
+                  background: 'var(--bg-subtle)',
+                  color: 'var(--text-1)',
+                  fontSize: '0.9rem',
                   outline: 'none',
                 }}
               />
               <button
                 onClick={handleCustomToevoegen}
-                disabled={toevoegen || !customMl}
+                disabled={bezig || !customMl}
                 style={{
-                  padding: '0.75rem 1.25rem',
-                  borderRadius: '2rem',
+                  padding: '0.7rem 1.1rem',
+                  borderRadius: 'var(--radius-sm)',
                   border: 'none',
-                  background: '#378ADD',
+                  background: 'var(--mf-blue-mid)',
                   color: 'white',
                   fontWeight: 700,
-                  fontSize: '0.95rem',
-                  cursor: toevoegen || !customMl ? 'not-allowed' : 'pointer',
-                  opacity: toevoegen || !customMl ? 0.5 : 1,
-                  transition: 'opacity 0.15s',
+                  fontSize: '0.875rem',
+                  cursor: bezig || !customMl ? 'not-allowed' : 'pointer',
+                  opacity: bezig || !customMl ? 0.5 : 1,
+                  transition: 'opacity var(--transition-fast)',
                   whiteSpace: 'nowrap',
                 }}
               >
-                + Toevoegen
+                Toevoegen
               </button>
             </div>
 
             {fout && (
-              <p role="alert" style={{ color: '#D9534F', fontSize: '0.85rem', margin: '0.5rem 0 0' }}>
+              <p role="alert" style={{ color: 'var(--mf-red)', fontSize: '0.85rem', margin: '0.5rem 0 0' }}>
                 {fout}
               </p>
             )}
           </section>
 
-          {/* Vandaag history */}
+          {/* Waterlog */}
           <section aria-label="Waterlog vandaag" style={{
-            background: 'white',
-            borderRadius: '1.5rem',
-            boxShadow: '0 2px 12px rgba(55,138,221,0.07)',
+            background: 'var(--bg-card)',
+            borderRadius: 'var(--radius-xl)',
+            boxShadow: 'var(--shadow-sm)',
             padding: '1.25rem 1.5rem',
           }}>
-            <h2 style={{ fontSize: '1rem', fontWeight: 600, color: '#1B4F8A', margin: '0 0 1rem' }}>
+            <h2 style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-3)', margin: '0 0 1rem', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
               Vandaag gelogd
             </h2>
 
             {data.logs.length === 0 ? (
-              <p style={{ color: '#8AAFC8', fontSize: '0.9rem', textAlign: 'center', padding: '1rem 0' }}>
+              <p style={{ color: 'var(--text-4)', fontSize: '0.9rem', textAlign: 'center', padding: '1rem 0' }}>
                 Nog niets gelogd vandaag.
               </p>
             ) : (
-              <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
                 {[...data.logs].reverse().map(log => (
                   <li
                     key={log.id}
@@ -396,16 +408,19 @@ export default function WaterPagina() {
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'space-between',
-                      padding: '0.65rem 0.9rem',
-                      borderRadius: '0.75rem',
-                      background: '#F0F7FF',
+                      padding: '0.6rem 0.875rem',
+                      borderRadius: 'var(--radius-sm)',
+                      background: 'var(--bg-subtle)',
                     }}
                   >
-                    <span style={{ color: '#1B4F8A', fontSize: '0.95rem', fontWeight: 500 }}>
-                      <span style={{ color: '#8AAFC8', fontWeight: 400, marginRight: '0.5rem' }}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ fontSize: '1rem' }}>💧</span>
+                      <span style={{ color: 'var(--text-1)', fontSize: '0.9rem', fontWeight: 600 }}>
+                        {log.ml}ml
+                      </span>
+                      <span style={{ color: 'var(--text-4)', fontSize: '0.8rem' }}>
                         {formatTijdstip(log.tijdstip)}
                       </span>
-                      {log.ml}ml
                     </span>
                     <button
                       onClick={() => verwijder(log.id)}
@@ -413,16 +428,16 @@ export default function WaterPagina() {
                       style={{
                         background: 'none',
                         border: 'none',
-                        color: '#C4DDF5',
+                        color: 'var(--text-4)',
                         fontSize: '1.1rem',
                         cursor: 'pointer',
                         padding: '0.2rem 0.4rem',
-                        borderRadius: '0.5rem',
+                        borderRadius: 'var(--radius-xs)',
                         lineHeight: 1,
-                        transition: 'color 0.15s',
+                        transition: 'color var(--transition-fast)',
                       }}
-                      onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = '#D9534F' }}
-                      onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = '#C4DDF5' }}
+                      onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--mf-red)' }}
+                      onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-4)' }}
                     >
                       ×
                     </button>
