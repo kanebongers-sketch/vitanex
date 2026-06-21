@@ -409,6 +409,7 @@ export default function HomePage() {
   const [xpData, setXpData] = useState<XPData | null>(null)
   const [waterToast, setWaterToast] = useState(false)
   const [waterLaden, setWaterLaden] = useState(false)
+  const [stemmingLaden, setStemmingLaden] = useState(false)
 
   const [vandaagItems, setVandaagItems] = useState<VandaagItem[]>([
     { key: 'stemming',     label: 'Stemming',    emoji: '😊', href: '/stemming',     gedaan: false },
@@ -418,6 +419,24 @@ export default function HomePage() {
     { key: 'meditatie',    label: 'Meditatie',    emoji: '🧘', href: '/meditatie',    gedaan: false },
     { key: 'dankbaarheid', label: 'Dankbaarheid', emoji: '🙏', href: '/dankbaarheid', gedaan: false },
   ])
+
+  const STEMMING_EMOJIS = ['😫','😔','😐','🙂','😄']
+
+  async function logStemming(waarde: number) {
+    if (stemmingLaden || scores.stemming_waarde !== null) return
+    setStemmingLaden(true)
+    try {
+      const res = await authFetch('/api/stemming', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ stemming: waarde, emoji: STEMMING_EMOJIS[waarde - 1] }),
+      })
+      if (!res.ok) throw new Error('POST mislukt')
+      setScores(prev => ({ ...prev, stemming_waarde: waarde }))
+      setVandaagItems(prev => prev.map(i => i.key === 'stemming' ? { ...i, gedaan: true } : i))
+    } catch { /* stil falen */ }
+    setStemmingLaden(false)
+  }
 
   async function logGlas() {
     if (waterLaden) return
@@ -630,35 +649,55 @@ export default function HomePage() {
           style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}
         >
           {/* Mentaal */}
-          <Link href="/stemming" style={{ textDecoration: 'none' }}>
-            <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 20, padding: '14px 14px 12px', boxShadow: 'var(--shadow-sm)', height: '100%', display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>🧠 Mentaal</span>
-                <span style={{ fontSize: 13, color: 'var(--text-4)' }}>›</span>
-              </div>
-              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 9 }}>
-                <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                    <span style={{ fontSize: 11, color: 'var(--text-3)', fontWeight: 600 }}>Stemming</span>
-                    <span style={{ fontSize: 12, fontWeight: 800, color: 'var(--mf-blue)' }}>
-                      {scores.stemming_waarde != null ? `${scores.stemming_waarde}/10` : '—'}
-                    </span>
-                  </div>
-                  <ProgressBar waarde={scores.stemming_waarde ?? 0} max={10} kleur="var(--mf-blue)" />
-                </div>
-                <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                    <span style={{ fontSize: 11, color: 'var(--text-3)', fontWeight: 600 }}>Meditatie</span>
-                    <span style={{ fontSize: 12, fontWeight: 800, color: 'var(--mf-purple)' }}>
-                      {scores.meditatie_minuten > 0 ? `${scores.meditatie_minuten}m` : '—'}
-                    </span>
-                  </div>
-                  <ProgressBar waarde={scores.meditatie_minuten} max={20} kleur="var(--mf-purple)" />
-                </div>
-              </div>
-              <span style={{ fontSize: 10, color: 'var(--mf-green)', fontWeight: 700 }}>Details →</span>
+          <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 20, padding: '14px 14px 12px', boxShadow: 'var(--shadow-sm)', height: '100%', display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>🧠 Mentaal</span>
             </div>
-          </Link>
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 9 }}>
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                  <span style={{ fontSize: 11, color: 'var(--text-3)', fontWeight: 600 }}>Stemming</span>
+                  <span style={{ fontSize: 12, fontWeight: 800, color: 'var(--mf-blue)' }}>
+                    {scores.stemming_waarde != null ? `${scores.stemming_waarde}/5` : '—'}
+                  </span>
+                </div>
+                {scores.stemming_waarde === null ? (
+                  <div style={{ display: 'flex', gap: 4, marginTop: 2 }}>
+                    {STEMMING_EMOJIS.map((em, i) => (
+                      <button
+                        key={i}
+                        onClick={() => logStemming(i + 1)}
+                        disabled={stemmingLaden}
+                        aria-label={`Stemming ${i + 1}`}
+                        style={{
+                          flex: 1, fontSize: 16, background: 'var(--bg-subtle)', border: '1.5px solid var(--border)',
+                          borderRadius: 8, padding: '4px 0', cursor: stemmingLaden ? 'default' : 'pointer',
+                          transition: 'transform 0.1s, background 0.15s',
+                          opacity: stemmingLaden ? 0.5 : 1,
+                        }}
+                        onMouseEnter={e => { if (!stemmingLaden) (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.15)' }}
+                        onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)' }}
+                      >
+                        {em}
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <ProgressBar waarde={scores.stemming_waarde ?? 0} max={5} kleur="var(--mf-blue)" />
+                )}
+              </div>
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                  <span style={{ fontSize: 11, color: 'var(--text-3)', fontWeight: 600 }}>Meditatie</span>
+                  <span style={{ fontSize: 12, fontWeight: 800, color: 'var(--mf-purple)' }}>
+                    {scores.meditatie_minuten > 0 ? `${scores.meditatie_minuten}m` : '—'}
+                  </span>
+                </div>
+                <ProgressBar waarde={scores.meditatie_minuten} max={20} kleur="var(--mf-purple)" />
+              </div>
+            </div>
+            <Link href="/stemming" style={{ fontSize: 10, color: 'var(--mf-green)', fontWeight: 700, textDecoration: 'none' }}>Details →</Link>
+          </div>
 
           {/* Fysiek */}
           <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 20, padding: '14px 14px 12px', boxShadow: 'var(--shadow-sm)', height: '100%', display: 'flex', flexDirection: 'column', gap: 10 }}>
