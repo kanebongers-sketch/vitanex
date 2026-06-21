@@ -32,13 +32,13 @@ const CAT_LABELS: Record<string, string> = {
 }
 
 const CAT_KLEUREN: Record<string, { bg: string; color: string }> = {
-  algemeen:  { bg: '#F3F4F6', color: '#374151' },
-  arbo:      { bg: '#FEF3C7', color: '#92400E' },
-  verzuim:   { bg: '#FEE2E2', color: '#991B1B' },
-  it:        { bg: '#EFF6FF', color: '#1D4ED8' },
-  hr:        { bg: '#ECFDF5', color: '#065F46' },
-  veiligheid:{ bg: '#FEF3C7', color: '#B45309' },
-  overig:    { bg: '#F5F3FF', color: '#6D28D9' },
+  algemeen:  { bg: 'var(--bg-subtle)', color: 'var(--text-2)' },
+  arbo:      { bg: 'var(--mf-amber-light)', color: 'var(--mf-amber-dark)' },
+  verzuim:   { bg: 'var(--mf-red-light)', color: 'var(--mf-red)' },
+  it:        { bg: 'var(--mf-blue-light)', color: 'var(--mf-blue)' },
+  hr:        { bg: 'var(--mf-green-light)', color: 'var(--mf-green-dark)' },
+  veiligheid:{ bg: 'var(--mf-amber-light)', color: 'var(--mf-amber-dark)' },
+  overig:    { bg: 'var(--mf-purple-light)', color: 'var(--mf-purple)' },
 }
 
 export default function ProtokollenPage() {
@@ -147,7 +147,7 @@ export default function ProtokollenPage() {
                 onClick={() => setFilter(cat)}
                 className="flex-shrink-0 text-xs px-3 py-1.5 rounded-full font-medium transition"
                 style={{
-                  background: filter === cat ? CAT_KLEUREN[cat]?.color ?? '#374151' : 'var(--bg-card)',
+                  background: filter === cat ? CAT_KLEUREN[cat]?.color ?? 'var(--text-2)' : 'var(--bg-card)',
                   color: filter === cat ? 'white' : 'var(--text-3)',
                   border: '1px solid var(--border)',
                 }}
@@ -206,7 +206,7 @@ export default function ProtokollenPage() {
                         <div className="flex items-center gap-2 flex-shrink-0">
                           {isHr && !p.gepubliceerd && (
                             <span className="text-[10px] px-2 py-0.5 rounded-full font-medium"
-                              style={{ background: '#FEF3C7', color: '#92400E' }}>
+                              style={{ background: 'var(--mf-amber-light)', color: 'var(--mf-amber-dark)' }}>
                               Concept
                             </span>
                           )}

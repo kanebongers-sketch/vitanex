@@ -11,7 +11,7 @@ interface Medewerker { id: string; naam: string; email: string }
 interface GedeeldBestand { id: string; bestandsnaam: string; aangemaakt_op: string; categorie: string; user_id: string }
 interface Rapport { id: string; type: string; titel: string; inhoud: string; aangemaakt_op: string; user_id: string }
 
-const TYPE_KLEUR: Record<string, string> = { disc: '#3B82F6', checkin: '#10B981', onboarding: '#8B5CF6', algemeen: '#64748b' }
+const TYPE_KLEUR: Record<string, string> = { disc: 'var(--mf-blue)', checkin: 'var(--mf-green)', onboarding: 'var(--mf-purple)', algemeen: 'var(--text-2)' }
 const TYPE_LABEL: Record<string, string> = { disc: 'DISC', checkin: 'Check-in', onboarding: 'Onboarding', algemeen: 'Algemeen' }
 
 export default function HrBestandenPage() {
@@ -85,31 +85,31 @@ export default function HrBestandenPage() {
   const aantalRapporten = rapporten.length
 
   if (!geladen) return (
-    <HrShell><div style={{ padding: 32, color: '#94a3b8' }}>Laden...</div></HrShell>
+    <HrShell><div style={{ padding: 32, color: 'var(--text-3)' }}>Laden...</div></HrShell>
   )
   return (
     <HrShell>
       <div style={{ maxWidth: 900, margin: '0 auto', padding: '32px 20px' }}>
-        <h1 style={{ fontSize: 24, fontWeight: 700, color: '#f8fafc', marginBottom: 8 }}>Bestanden &amp; Rapporten</h1>
-        <p style={{ color: '#64748b', marginBottom: 20 }}>Gedeelde bestanden en AI-rapporten van medewerkers.</p>
+        <h1 style={{ fontSize: 24, fontWeight: 700, color: 'var(--bg-subtle)', marginBottom: 8 }}>Bestanden &amp; Rapporten</h1>
+        <p style={{ color: 'var(--text-2)', marginBottom: 20 }}>Gedeelde bestanden en AI-rapporten van medewerkers.</p>
 
         {/* Samenvatting balk */}
         <div style={{ display: 'flex', gap: 12, marginBottom: 28, flexWrap: 'wrap' }}>
           {[
-            { label: 'Medewerkers gedeeld', waarde: aantalMedewerkersGedeeld, kleur: '#3b82f6' },
-            { label: 'Bestanden totaal', waarde: aantalBestanden, kleur: '#10b981' },
-            { label: 'Rapporten', waarde: aantalRapporten, kleur: '#8b5cf6' },
+            { label: 'Medewerkers gedeeld', waarde: aantalMedewerkersGedeeld, kleur: 'var(--mf-blue)' },
+            { label: 'Bestanden totaal', waarde: aantalBestanden, kleur: 'var(--mf-green)' },
+            { label: 'Rapporten', waarde: aantalRapporten, kleur: 'var(--mf-purple)' },
           ].map(stat => (
             <div key={stat.label} style={{ background: '#0a1628', border: `1px solid ${stat.kleur}30`, borderRadius: 12, padding: '14px 20px', flex: 1, minWidth: 140 }}>
               <div style={{ fontSize: 28, fontWeight: 800, color: stat.kleur, lineHeight: 1 }}>{stat.waarde}</div>
-              <div style={{ fontSize: 13, color: '#64748b', marginTop: 4 }}>{stat.label}</div>
+              <div style={{ fontSize: 13, color: 'var(--text-2)', marginTop: 4 }}>{stat.label}</div>
             </div>
           ))}
         </div>
 
         <div style={{ display: 'flex', gap: 4, marginBottom: 28, background: '#0a1628', borderRadius: 10, padding: 4, width: 'fit-content' }}>
           {(['bestanden', 'rapporten'] as const).map(tab => (
-            <button key={tab} onClick={() => setActieveTab(tab)} style={{ background: actieveTab === tab ? '#1e40af' : 'transparent', color: actieveTab === tab ? '#fff' : '#64748b', border: 'none', borderRadius: 8, padding: '8px 20px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
+            <button key={tab} onClick={() => setActieveTab(tab)} style={{ background: actieveTab === tab ? 'var(--mf-blue)' : 'transparent', color: actieveTab === tab ? '#fff' : 'var(--text-2)', border: 'none', borderRadius: 8, padding: '8px 20px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
               {tab === 'bestanden' ? 'Gedeelde bestanden' : 'AI Rapporten'}
             </button>
           ))}
@@ -118,16 +118,16 @@ export default function HrBestandenPage() {
         {actieveTab === 'bestanden' && (
           <div>
             {gesorteerdeBestandenEntries.length === 0 ? (
-              <div style={{ background: '#0a1628', borderRadius: 12, padding: 32, textAlign: 'center', color: '#64748b' }}>Geen gedeelde bestanden.</div>
+              <div style={{ background: '#0a1628', borderRadius: 12, padding: 32, textAlign: 'center', color: 'var(--text-2)' }}>Geen gedeelde bestanden.</div>
             ) : (
               gesorteerdeBestandenEntries.map(([uid, docs]) => (
                 <div key={uid} style={{ marginBottom: 24 }}>
-                  <div style={{ fontWeight: 600, color: '#94a3b8', fontSize: 13, marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{medewerkers[uid]?.naam ?? 'Onbekend'}</div>
+                  <div style={{ fontWeight: 600, color: 'var(--text-3)', fontSize: 13, marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{medewerkers[uid]?.naam ?? 'Onbekend'}</div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                     {docs.map(b => (
                       <div key={b.id} style={{ background: '#0a1628', border: '1px solid #1e293b', borderRadius: 10, padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <div style={{ color: '#e2e8f0', fontWeight: 500 }}>{b.bestandsnaam}</div>
-                        <div style={{ color: '#64748b', fontSize: 13 }}>{datumLabel(b.aangemaakt_op)}</div>
+                        <div style={{ color: 'var(--border)', fontWeight: 500 }}>{b.bestandsnaam}</div>
+                        <div style={{ color: 'var(--text-2)', fontSize: 13 }}>{datumLabel(b.aangemaakt_op)}</div>
                       </div>
                     ))}
                   </div>
@@ -140,34 +140,34 @@ export default function HrBestandenPage() {
         {actieveTab === 'rapporten' && (
           <div>
             <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
-              <select value={filterType} onChange={e => setFilterType(e.target.value)} style={{ background: '#0a1628', border: '1px solid #1e293b', borderRadius: 8, padding: '8px 12px', color: '#e2e8f0', fontSize: 14, cursor: 'pointer' }}>
+              <select value={filterType} onChange={e => setFilterType(e.target.value)} style={{ background: '#0a1628', border: '1px solid #1e293b', borderRadius: 8, padding: '8px 12px', color: 'var(--border)', fontSize: 14, cursor: 'pointer' }}>
                 <option value='alle'>Alle types</option>
                 <option value='disc'>DISC</option>
                 <option value='checkin'>Check-in</option>
                 <option value='onboarding'>Onboarding</option>
               </select>
-              <input placeholder='Medewerker zoeken...' value={filterMedewerker} onChange={e => setFilterMedewerker(e.target.value)} style={{ background: '#0a1628', border: '1px solid #1e293b', borderRadius: 8, padding: '8px 12px', color: '#e2e8f0', fontSize: 14, flex: 1, minWidth: 160 }} />
+              <input placeholder='Medewerker zoeken...' value={filterMedewerker} onChange={e => setFilterMedewerker(e.target.value)} style={{ background: '#0a1628', border: '1px solid #1e293b', borderRadius: 8, padding: '8px 12px', color: 'var(--border)', fontSize: 14, flex: 1, minWidth: 160 }} />
             </div>
             {gefilterdeRapporten.length === 0 ? (
-              <div style={{ background: '#0a1628', borderRadius: 12, padding: 32, textAlign: 'center', color: '#64748b' }}>Geen rapporten gevonden.</div>
+              <div style={{ background: '#0a1628', borderRadius: 12, padding: 32, textAlign: 'center', color: 'var(--text-2)' }}>Geen rapporten gevonden.</div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {gefilterdeRapporten.map(r => (
                   <div key={r.id} style={{ background: '#0a1628', border: '1px solid #1e293b', borderRadius: 12, overflow: 'hidden' }}>
                     <button onClick={() => setOpenRapport(openRapport === r.id ? null : r.id)} style={{ width: '100%', background: 'transparent', border: 'none', padding: '14px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', gap: 10 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0 }}>
-                        <span style={{ background: (TYPE_KLEUR[r.type] ?? '#64748b') + '20', color: TYPE_KLEUR[r.type] ?? '#64748b', border: '1px solid ' + (TYPE_KLEUR[r.type] ?? '#64748b') + '40', borderRadius: 5, padding: '2px 7px', fontSize: 11, fontWeight: 700, flexShrink: 0 }}>{TYPE_LABEL[r.type] ?? r.type}</span>
-                        <span style={{ color: '#94a3b8', fontSize: 12, flexShrink: 0 }}>{medewerkers[r.user_id]?.naam ?? 'Onbekend'}</span>
-                        <span style={{ fontWeight: 600, color: '#e2e8f0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.titel}</span>
+                        <span style={{ background: (TYPE_KLEUR[r.type] ?? 'var(--text-2)') + '20', color: TYPE_KLEUR[r.type] ?? 'var(--text-2)', border: '1px solid ' + (TYPE_KLEUR[r.type] ?? 'var(--text-2)') + '40', borderRadius: 5, padding: '2px 7px', fontSize: 11, fontWeight: 700, flexShrink: 0 }}>{TYPE_LABEL[r.type] ?? r.type}</span>
+                        <span style={{ color: 'var(--text-3)', fontSize: 12, flexShrink: 0 }}>{medewerkers[r.user_id]?.naam ?? 'Onbekend'}</span>
+                        <span style={{ fontWeight: 600, color: 'var(--border)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.titel}</span>
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
-                        <span style={{ fontSize: 12, color: '#64748b' }}>{datumLabel(r.aangemaakt_op)}</span>
-                        <span style={{ color: '#64748b' }}>{openRapport === r.id ? '▲' : '▼'}</span>
+                        <span style={{ fontSize: 12, color: 'var(--text-2)' }}>{datumLabel(r.aangemaakt_op)}</span>
+                        <span style={{ color: 'var(--text-2)' }}>{openRapport === r.id ? '▲' : '▼'}</span>
                       </div>
                     </button>
                     {openRapport === r.id && (
                       <div style={{ padding: '0 18px 18px', borderTop: '1px solid #1e293b' }}>
-                        <div style={{ paddingTop: 14, color: '#cbd5e1', fontSize: 14, lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>{r.inhoud}</div>
+                        <div style={{ paddingTop: 14, color: 'var(--border)', fontSize: 14, lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>{r.inhoud}</div>
                       </div>
                     )}
                   </div>

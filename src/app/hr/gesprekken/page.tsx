@@ -41,10 +41,10 @@ export default function HrGesprekkenPage() {
     <HrShell>
       <div style={{ maxWidth: 900, margin: '0 auto', padding: '28px 20px 72px' }}>
         <div style={{ marginBottom: 24 }}>
-          <h1 style={{ fontSize: 22, fontWeight: 800, color: '#111827', letterSpacing: '-0.02em' }}>
+          <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.02em' }}>
             HR Gesprekken
           </h1>
-          <p style={{ fontSize: 13, color: '#9CA3AF', marginTop: 4 }}>
+          <p style={{ fontSize: 13, color: 'var(--text-3)', marginTop: 4 }}>
             Plan en log 1-op-1 gesprekken met medewerkers
           </p>
         </div>

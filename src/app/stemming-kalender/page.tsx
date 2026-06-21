@@ -15,12 +15,12 @@ interface DagLog {
 }
 
 const KLEUR_MAP: Record<number, string> = {
-  0: '#F3F4F6',
-  1: '#FEE2E2',
-  2: '#FCA5A5',
-  3: '#FDE68A',
-  4: '#A7F3D0',
-  5: '#1D9E75',
+  0: 'var(--bg-subtle)',
+  1: 'var(--mf-red-light)',
+  2: 'var(--mf-red-light)',
+  3: 'var(--mf-amber-light)',
+  4: 'var(--mf-green-light)',
+  5: 'var(--mf-green)',
 }
 
 const STEMMING_LABEL: Record<number, string> = {
@@ -203,7 +203,7 @@ export default function StemmingKalenderPagina() {
                       )
                     }
                     const log = logMap.get(item)
-                    const kleur = log ? stemmingNaarKleur(log.stemming) : '#F3F4F6'
+                    const kleur = log ? stemmingNaarKleur(log.stemming) : 'var(--bg-subtle)'
                     const tooltip = log
                       ? `${datumLabel(item)}\nStemming: ${log.stemming.toFixed(1)} (${STEMMING_LABEL[Math.round(log.stemming)] ?? ''}) — ${log.count}x ingevoerd`
                       : datumLabel(item)
@@ -244,7 +244,7 @@ export default function StemmingKalenderPagina() {
           </p>
           <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <div style={{ width: 16, height: 16, borderRadius: 3, background: '#F3F4F6', border: '1px solid rgba(0,0,0,0.08)' }} />
+              <div style={{ width: 16, height: 16, borderRadius: 3, background: 'var(--bg-subtle)', border: '1px solid rgba(0,0,0,0.08)' }} />
               <span style={{ fontSize: 11, color: 'var(--text-2, #6B7280)' }}>Geen data</span>
             </div>
             {[1, 2, 3, 4, 5].map(n => (

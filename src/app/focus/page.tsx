@@ -24,10 +24,10 @@ const ADEM: Record<AdemTab, {
     beschrijving: 'Gebruikt door Navy SEALs en topsporters om stress snel te verlagen en focus te herwinnen.',
     voordelen: ['Verlaagt cortisol', 'Verbetert concentratie', 'Kalmeert het zenuwstelsel'],
     fases: [
-      { label: 'Inademen', duur: 4, kleur: '#1D9E75' },
-      { label: 'Vasthouden', duur: 4, kleur: '#378ADD' },
-      { label: 'Uitademen', duur: 4, kleur: '#8B5CF6' },
-      { label: 'Vasthouden', duur: 4, kleur: '#BA7517' },
+      { label: 'Inademen',  duur: 4, kleur: 'var(--mf-green)' },
+      { label: 'Vasthouden', duur: 4, kleur: 'var(--mf-blue)' },
+      { label: 'Uitademen', duur: 4, kleur: 'var(--mf-purple)' },
+      { label: 'Vasthouden', duur: 4, kleur: 'var(--mf-amber)' },
     ],
   },
   '478': {
@@ -35,9 +35,9 @@ const ADEM: Record<AdemTab, {
     beschrijving: 'Ontwikkeld door Dr. Andrew Weil. Kalmeert het autonome zenuwstelsel en helpt bij angst en inslapen.',
     voordelen: ['Vermindert angst', 'Helpt bij inslapen', 'Verlaagt hartslag'],
     fases: [
-      { label: 'Inademen', duur: 4, kleur: '#1D9E75' },
-      { label: 'Vasthouden', duur: 7, kleur: '#378ADD' },
-      { label: 'Uitademen', duur: 8, kleur: '#8B5CF6' },
+      { label: 'Inademen',  duur: 4, kleur: 'var(--mf-green)' },
+      { label: 'Vasthouden', duur: 7, kleur: 'var(--mf-blue)' },
+      { label: 'Uitademen', duur: 8, kleur: 'var(--mf-purple)' },
     ],
   },
   coherentie: {
@@ -45,8 +45,8 @@ const ADEM: Record<AdemTab, {
     beschrijving: 'Synchroniseert de ademhaling met het hart. 5-5 ritme activeert de herstelrespons.',
     voordelen: ['Balanceert hart & geest', 'Verlaagt bloeddruk', 'Verbetert emotieregulatie'],
     fases: [
-      { label: 'Inademen', duur: 5, kleur: '#1D9E75' },
-      { label: 'Uitademen', duur: 5, kleur: '#8B5CF6' },
+      { label: 'Inademen',  duur: 5, kleur: 'var(--mf-green)' },
+      { label: 'Uitademen', duur: 5, kleur: 'var(--mf-purple)' },
     ],
   },
   wim: {
@@ -54,18 +54,18 @@ const ADEM: Record<AdemTab, {
     beschrijving: 'Dubbele inademing door de neus gevolgd door een lange uitademing. Stamt uit neurowetenschappelijk onderzoek van Stanford.',
     voordelen: ['Snelste stressverlichting', 'Activeert parasympathisch stelsel', 'Werkt binnen 1 minuut'],
     fases: [
-      { label: 'In (neus)', duur: 2, kleur: '#1D9E75' },
-      { label: 'Extra in (neus)', duur: 1, kleur: '#378ADD' },
-      { label: 'Lang uitademen', duur: 8, kleur: '#8B5CF6' },
+      { label: 'In (neus)',      duur: 2, kleur: 'var(--mf-green)' },
+      { label: 'Extra in (neus)', duur: 1, kleur: 'var(--mf-blue)' },
+      { label: 'Lang uitademen', duur: 8, kleur: 'var(--mf-purple)' },
     ],
   },
 }
 
 // --- Timer data ---------------------------------------------------------------
 const TIMERS: Record<TimerTab, { naam: string; duur: number; kleur: string; afk: string; tip: string }> = {
-  focus: { naam: 'Diepe focus',  duur: 25 * 60, kleur: '#1D9E75', afk: '25', tip: 'Leg je telefoon weg, sluit onnodige tabs en zet notificaties op stil.' },
-  pauze: { naam: 'Pauze',        duur: 5 * 60,  kleur: '#378ADD', afk: '5',  tip: 'Sta op, rek je uit, kijk even naar buiten. Geen scherm.' },
-  micro: { naam: 'Micro-break',  duur: 90,       kleur: '#8B5CF6', afk: '90s',tip: 'Sluit je ogen. Adem 3x diep in. Ontspan je kaken en schouders.' },
+  focus: { naam: 'Diepe focus', duur: 25 * 60, kleur: 'var(--mf-green)', afk: '25',  tip: 'Leg je telefoon weg, sluit onnodige tabs en zet notificaties op stil.' },
+  pauze: { naam: 'Pauze',       duur: 5 * 60,  kleur: 'var(--mf-blue)', afk: '5',   tip: 'Sta op, rek je uit, kijk even naar buiten. Geen scherm.' },
+  micro: { naam: 'Micro-break', duur: 90,       kleur: 'var(--mf-purple)', afk: '90s', tip: 'Sluit je ogen. Adem 3x diep in. Ontspan je kaken en schouders.' },
 }
 
 // --- Movement data ------------------------------------------------------------
@@ -186,7 +186,7 @@ const VOEDING_CATEGORIEEN = [
   {
     titel: 'Hydratatie',
     afk: 'H2O',
-    kleur: '#378ADD',
+    kleur: 'var(--mf-blue)',
     tips: [
       { titel: 'Drink voor je dorst voelt', tekst: 'Zodra je dorstig bent, ben je al 1-2% uitgedroogd. Dit verlaagt je concentratie meetbaar. Houd een fles water op je bureau.' },
       { titel: 'Koffieregel: 1 op 1', tekst: 'Drink bij elke kop koffie ook een glas water. Koffie werkt licht vochtafdrijvend. Zo blijf je gehydrateerd zonder cafeinegehalte te verlagen.' },
@@ -197,7 +197,7 @@ const VOEDING_CATEGORIEEN = [
   {
     titel: 'Focus eten',
     afk: 'F',
-    kleur: '#1D9E75',
+    kleur: 'var(--mf-green)',
     tips: [
       { titel: 'Blauwe bessen: het hersenfruit', tekst: 'Rijk aan antioxidanten (flavonoiden) die de bloedtoevoer naar de prefrontale cortex verhogen. Een handje voor je werk bevordert aandacht en werkgeheugen.' },
       { titel: 'Noten als snack', tekst: 'Walnoten bevatten omega-3 vetzuren die de verbinding tussen neuronen versterken. Amandelen geven langzame energie. Ideaal als bureausnack.' },
@@ -209,7 +209,7 @@ const VOEDING_CATEGORIEEN = [
   {
     titel: 'Energieniveaus',
     afk: 'E',
-    kleur: '#BA7517',
+    kleur: 'var(--mf-amber)',
     tips: [
       { titel: 'Vermijd suikerpieken', tekst: 'Na een snelle suikerpiek (snoep, frisdrank) volgt een even snelle dip, met verminderde concentratie. Kies voor complexe koolhydraten zoals havermout of volkorenbrood.' },
       { titel: 'Eiwitrijk ontbijt', tekst: 'Eiwitten (eieren, kwark, noten) stabiliseren de bloedsuiker en zorgen voor een lang gevoel van verzadiging. Dit voorkomt de ochtend-concentratieproblemen.' },
@@ -221,7 +221,7 @@ const VOEDING_CATEGORIEEN = [
   {
     titel: 'Anti-stress voeding',
     afk: 'AS',
-    kleur: '#8B5CF6',
+    kleur: 'var(--mf-purple)',
     tips: [
       { titel: 'Adaptogenen: Ashwagandha', tekst: 'Ashwagandha (in supplementvorm of thee) is een klinisch onderzochte adaptogeen die de cortisolaanmaak bij chronische stress significant verlaagt.' },
       { titel: 'Gefermenteerd voedsel', tekst: 'Yoghurt, kefir en zuurkool bevatten probiotica die de darm-hersenverbinding ondersteunen. Gut health is direct gekoppeld aan stressgevoeligheid en stemming.' },
@@ -236,7 +236,7 @@ const SLAAP_SECTIES = [
   {
     titel: 'Slaaproutine opbouwen',
     afk: 'SR',
-    kleur: '#8B5CF6',
+    kleur: 'var(--mf-purple)',
     items: [
       { titel: 'Vaste slaaptijden', tekst: 'Je lichaam heeft een interne klok (circadiaan ritme). Elke dag op dezelfde tijd naar bed gaan en opstaan, ook in het weekend, verbetert slaapkwaliteit dramatisch na 2-3 weken.' },
       { titel: 'Wind-down ritueel', tekst: 'Begin 60 minuten voor slaaptijd met dimmen: geen schermen, zachte verlichting, rustige activiteit (lezen, stretchen, warme douche). Dit activeert melatonineproductie.' },
@@ -247,7 +247,7 @@ const SLAAP_SECTIES = [
   {
     titel: 'Slaap en stress',
     afk: 'SS',
-    kleur: '#378ADD',
+    kleur: 'var(--mf-blue)',
     items: [
       { titel: 'Schrijf zorgen van je af', tekst: 'Maak voor het slapen een "worry dump": schrijf alles op wat je bezighoudt. Dit ontlaadt je werkgeheugen en voorkomt piekeren in bed.' },
       { titel: 'Piekertijd overdag inplannen', tekst: 'Reserveer 15-20 minuten overdag specifiek om te piekeren. Als je in bed begint te piekeren, herinner jezelf: dat doe ik morgen tijdens mijn piekertijd.' },
@@ -258,7 +258,7 @@ const SLAAP_SECTIES = [
   {
     titel: 'Powernap wetenschap',
     afk: 'PN',
-    kleur: '#1D9E75',
+    kleur: 'var(--mf-green)',
     items: [
       { titel: 'De ideale nap: 10-20 minuten', tekst: 'Korte naps van 10-20 minuten verbeteren alertheid, stemming en cognitieve prestaties zonder de slaapkwaliteit \'s nachts te verstoren. NASA-onderzoek bevestigt dit.' },
       { titel: 'Koffiedutje truc', tekst: 'Drink een espresso net voor je dutje. Cafeïne werkt na 20-25 minuten: je wordt wakker precies als het cafeïne begint te werken. Extra alert op twee manieren tegelijk.' },
@@ -269,7 +269,7 @@ const SLAAP_SECTIES = [
   {
     titel: 'Melatonine & supplementen',
     afk: 'ML',
-    kleur: '#BA7517',
+    kleur: 'var(--mf-amber)',
     items: [
       { titel: 'Melatonine: minder is meer', tekst: 'De effectieve dosis melatonine is 0.5-1 mg, niet de 5-10 mg die in de meeste supplementen zit. Lagere doses werken even goed met minder bijeffecten.' },
       { titel: 'Magnesium glycinaat voor slaap', tekst: 'Magnesium glycinaat (niet oxide) ontspant spieren en zenuwstelsel. 200-400 mg 30 min voor bed helpt bij in- en doorslapen.' },
@@ -285,7 +285,7 @@ const MENTAAL_TECHNIEKEN = [
     naam: '5-4-3-2-1 grounding',
     afk: 'GR',
     duur: '2 min',
-    kleur: '#1D9E75',
+    kleur: 'var(--mf-green)',
     beschrijving: 'Een evidence-based techniek tegen angst en overweldigend gevoel.',
     stappen: [
       '5 dingen die je KAN ZIEN  benoem ze in je hoofd',
@@ -299,7 +299,7 @@ const MENTAAL_TECHNIEKEN = [
     naam: 'Mentale ontluchting',
     afk: 'MO',
     duur: '5 min',
-    kleur: '#378ADD',
+    kleur: 'var(--mf-blue)',
     beschrijving: 'Schrijf alles uit je hoofd. Geen oordeel, geen structuur.',
     stappen: [
       'Pak een leeg blad of open een leeg document',
@@ -313,7 +313,7 @@ const MENTAAL_TECHNIEKEN = [
     naam: 'Cognitieve herstructurering',
     afk: 'CH',
     duur: '5 min',
-    kleur: '#8B5CF6',
+    kleur: 'var(--mf-purple)',
     beschrijving: 'Stel de gedachte die je stress geeft in vraag.',
     stappen: [
       'Identificeer de stressvolle gedachte: "Ik ga dit niet afkrijgen."',
@@ -327,7 +327,7 @@ const MENTAAL_TECHNIEKEN = [
     naam: 'Bodyscan meditatie',
     afk: 'BS',
     duur: '8 min',
-    kleur: '#BA7517',
+    kleur: 'var(--mf-amber)',
     beschrijving: 'Scan je lichaam van voeten tot hoofd en laat spanning los.',
     stappen: [
       'Sluit je ogen en adem 3x diep in en uit',
@@ -343,7 +343,7 @@ const MENTAAL_TECHNIEKEN = [
     naam: 'Dankbaarheidsscan',
     afk: 'DK',
     duur: '3 min',
-    kleur: '#1D9E75',
+    kleur: 'var(--mf-green)',
     beschrijving: 'Wetenschappelijk bewezen: dankbaarheid verhoogt dopamine en verlaagt cortisol.',
     stappen: [
       'Denk aan 3 specifieke dingen die goed gingen vandaag',
@@ -357,7 +357,7 @@ const MENTAAL_TECHNIEKEN = [
     naam: 'Snelle stresscheck',
     afk: 'SC',
     duur: '1 min',
-    kleur: '#E24B4A',
+    kleur: 'var(--mf-red)',
     beschrijving: 'Beoordeel je stressniveau eerlijk en plan een actie.',
     stappen: [
       'Geef je stressniveau een cijfer van 1-10',
@@ -379,9 +379,9 @@ type IntensiteitBadge = 'laag' | 'gemiddeld' | 'hoog'
 
 function IntensiteitLabel({ niveau }: { niveau: IntensiteitBadge }) {
   const map = {
-    laag: { label: 'Laag', bg: '#E1F5EE', kleur: '#0F6E56' },
-    gemiddeld: { label: 'Gemiddeld', bg: '#FEF3C7', kleur: '#92400E' },
-    hoog: { label: 'Hoog', bg: '#FEE2E2', kleur: '#991B1B' },
+    laag: { label: 'Laag', bg: 'var(--mf-green-light)', kleur: 'var(--mf-green-dark)' },
+    gemiddeld: { label: 'Gemiddeld', bg: 'var(--mf-amber-light)', kleur: 'var(--mf-amber-dark)' },
+    hoog: { label: 'Hoog', bg: 'var(--mf-red-light)', kleur: 'var(--mf-red)' },
   }
   const c = map[niveau]
   return (
@@ -553,7 +553,7 @@ export default function FocusPagina() {
                 className="px-4 py-2 rounded-xl text-xs font-medium transition whitespace-nowrap"
                 style={{
                   background: tab === t.id ? 'var(--bg-card)' : 'transparent',
-                  color: tab === t.id ? '#111' : '#888',
+                  color: tab === t.id ? 'var(--text-1)' : 'var(--text-3)',
                   boxShadow: tab === t.id ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
                 }}
               >
@@ -576,9 +576,9 @@ export default function FocusPagina() {
                     disabled={ademActief}
                     className="py-2.5 px-3 rounded-xl text-xs font-medium border transition text-left"
                     style={{
-                      background: ademTab === k ? 'var(--mentaforce-primary-light)' : '#FAFAFA',
+                      background: ademTab === k ? 'var(--mentaforce-primary-light)' : 'var(--bg-subtle)',
                       borderColor: ademTab === k ? 'var(--mentaforce-primary)' : 'var(--border)',
-                      color: ademTab === k ? 'var(--mentaforce-primary)' : '#6b7280',
+                      color: ademTab === k ? 'var(--mentaforce-primary)' : 'var(--text-3)',
                       opacity: ademActief && ademTab !== k ? 0.4 : 1,
                     }}
                   >
@@ -603,7 +603,7 @@ export default function FocusPagina() {
                   <p className="text-xs font-semibold text-gray-400 mb-1.5">Voordelen</p>
                   <div className="flex flex-wrap gap-1.5">
                     {ADEM[ademTab].voordelen.map(v => (
-                      <span key={v} className="text-xs px-2.5 py-1 rounded-full" style={{ background: '#E1F5EE', color: '#0F6E56' }}>
+                      <span key={v} className="text-xs px-2.5 py-1 rounded-full" style={{ background: 'var(--mf-green-light)', color: 'var(--mf-green-dark)' }}>
                         {v}
                       </span>
                     ))}
@@ -637,7 +637,7 @@ export default function FocusPagina() {
               <button
                 onClick={() => ademActief ? stopAdem() : startAdem()}
                 className="w-full py-3.5 rounded-xl text-white font-semibold text-sm transition"
-                style={{ background: ademActief ? '#E24B4A' : 'var(--mentaforce-primary)' }}
+                style={{ background: ademActief ? 'var(--mf-red)' : 'var(--mentaforce-primary)' }}
               >
                 {ademActief ? (<><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg><span>Stop</span></>) : (<><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg><span>Start ademhaling</span></>)}
               </button>
@@ -675,9 +675,9 @@ export default function FocusPagina() {
 
             <div className="flex flex-wrap gap-2 mb-4">
               {[
-                { niveau: 'laag', kleur: '#1D9E75', bg: '#E1F5EE' },
-                { niveau: 'gemiddeld', kleur: '#BA7517', bg: '#FAEEDA' },
-                { niveau: 'hoog', kleur: '#E24B4A', bg: '#FCEBEB' },
+                { niveau: 'laag', kleur: 'var(--mf-green-dark)', bg: 'var(--mf-green-light)' },
+                { niveau: 'gemiddeld', kleur: 'var(--mf-amber-dark)', bg: 'var(--mf-amber-light)' },
+                { niveau: 'hoog', kleur: 'var(--mf-red)', bg: 'var(--mf-red-light)' },
               ].map(({ niveau, kleur, bg }) => {
                 const count = BUREAUOEFENINGEN.filter(o => o.intensiteit === niveau).length
                 return (
@@ -783,9 +783,9 @@ export default function FocusPagina() {
             <div className="mt-5 rounded-2xl border p-5" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Ideale werkdag qua eten</p>
               {[
-                { tijd: 'Ochtend', kleur: '#1D9E75', items: ['Eiwitrijk ontbijt (eieren, kwark)', 'Eerste koffie na 90 min opstaan', '500ml water voor 10:00'] },
-                { tijd: 'Middag', kleur: '#378ADD', items: ['Lichte lunch (proteinen + groenten)', 'Noten of bessen als snack', 'Koffie stop om 14:00'] },
-                { tijd: 'Avond', kleur: '#8B5CF6', items: ['Magnesiumrijke groenten (spinazie)', 'Geen alcohol als je wil slapen', 'Chamomile of valeriaan thee'] },
+                { tijd: 'Ochtend', kleur: 'var(--mf-green)', items: ['Eiwitrijk ontbijt (eieren, kwark)', 'Eerste koffie na 90 min opstaan', '500ml water voor 10:00'] },
+                { tijd: 'Middag', kleur: 'var(--mf-blue)', items: ['Lichte lunch (proteinen + groenten)', 'Noten of bessen als snack', 'Koffie stop om 14:00'] },
+                { tijd: 'Avond', kleur: 'var(--mf-purple)', items: ['Magnesiumrijke groenten (spinazie)', 'Geen alcohol als je wil slapen', 'Chamomile of valeriaan thee'] },
               ].map(b => (
                 <div key={b.tijd} className="mb-4 last:mb-0">
                   <p className="text-xs font-bold mb-2" style={{ color: b.kleur }}>{b.tijd}</p>
@@ -806,9 +806,9 @@ export default function FocusPagina() {
           <>
             <div className="grid grid-cols-3 gap-3 mb-5">
               {[
-                { label: 'Ideale slaapduur', waarde: '79u', kleur: '#8B5CF6', bg: '#EEEDFE' },
-                { label: 'Ideale nap', waarde: '1020m', kleur: '#1D9E75', bg: '#E1F5EE' },
-                { label: 'Geen schermen', waarde: '60m voor bed', kleur: '#378ADD', bg: '#E6F1FB' },
+                { label: 'Ideale slaapduur', waarde: '79u', kleur: 'var(--mf-purple)', bg: 'var(--mf-purple-light)' },
+                { label: 'Ideale nap', waarde: '1020m', kleur: 'var(--mf-green)', bg: 'var(--mf-green-light)' },
+                { label: 'Geen schermen', waarde: '60m voor bed', kleur: 'var(--mf-blue)', bg: 'var(--mf-blue-light)' },
               ].map(s => (
                 <div key={s.label} className="rounded-2xl border p-4 text-center" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
                   <p className="text-sm font-bold mb-0.5" style={{ color: s.kleur }}>{s.waarde}</p>
@@ -849,12 +849,12 @@ export default function FocusPagina() {
             <div className="mt-5 rounded-2xl border p-5" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Slaap-wind-down routine</p>
               {[
-                { tijd: 'T-60 min', kleur: '#8B5CF6', actie: 'Schermen weg of blauwlichtfilter aan' },
-                { tijd: 'T-45 min', kleur: '#8B5CF6', actie: 'Warme douche of bad (kerntemperatuur daalt daarna)' },
-                { tijd: 'T-30 min', kleur: '#378ADD', actie: 'Schrijf morgenlijst + worry dump' },
-                { tijd: 'T-20 min', kleur: '#378ADD', actie: 'Lees boek (geen tablet) of doe lichte stretch' },
-                { tijd: 'T-10 min', kleur: '#1D9E75', actie: 'Verduister de kamer, stel temperatuur in op 17-18°C' },
-                { tijd: 'In bed', kleur: '#1D9E75', actie: 'Diafragmatische ademhaling of 4-7-8 methode' },
+                { tijd: 'T-60 min', kleur: 'var(--mf-purple)', actie: 'Schermen weg of blauwlichtfilter aan' },
+                { tijd: 'T-45 min', kleur: 'var(--mf-purple)', actie: 'Warme douche of bad (kerntemperatuur daalt daarna)' },
+                { tijd: 'T-30 min', kleur: 'var(--mf-blue)', actie: 'Schrijf morgenlijst + worry dump' },
+                { tijd: 'T-20 min', kleur: 'var(--mf-blue)', actie: 'Lees boek (geen tablet) of doe lichte stretch' },
+                { tijd: 'T-10 min', kleur: 'var(--mf-green)', actie: 'Verduister de kamer, stel temperatuur in op 17-18°C' },
+                { tijd: 'In bed', kleur: 'var(--mf-green)', actie: 'Diafragmatische ademhaling of 4-7-8 methode' },
               ].map(r => (
                 <div key={r.tijd} className="flex gap-3 items-start py-2 border-b border-gray-50 last:border-0">
                   <span className="text-xs font-bold w-16 flex-shrink-0 mt-0.5" style={{ color: r.kleur }}>{r.tijd}</span>
@@ -927,7 +927,7 @@ export default function FocusPagina() {
                   'Constant scherm scrollen',
                 ].map(s => (
                   <div key={s} className="flex items-center gap-2 py-1.5">
-                    <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: '#E24B4A' }} />
+                    <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: 'var(--mf-red)' }} />
                     <p className="text-xs text-gray-600">{s}</p>
                   </div>
                 ))}
@@ -946,9 +946,9 @@ export default function FocusPagina() {
                   onClick={() => wisselTimerTab(k)}
                   className="flex-1 py-3 rounded-xl text-xs font-medium border transition flex flex-col items-center gap-1"
                   style={{
-                    background: timerTab === k ? 'var(--mentaforce-primary-light)' : 'white',
+                    background: timerTab === k ? 'var(--mentaforce-primary-light)' : 'var(--bg-card)',
                     borderColor: timerTab === k ? 'var(--mentaforce-primary)' : 'var(--border)',
-                    color: timerTab === k ? 'var(--mentaforce-primary)' : '#6b7280',
+                    color: timerTab === k ? 'var(--mentaforce-primary)' : 'var(--text-3)',
                   }}
                 >
                   <span className="text-xs font-bold opacity-60">{TIMERS[k].afk}</span>
@@ -961,7 +961,7 @@ export default function FocusPagina() {
             <div className="rounded-2xl border p-6 mb-4 flex flex-col items-center" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
               <div className="relative" style={{ width: 200, height: 200 }}>
                 <svg width="200" height="200" viewBox="0 0 200 200" style={{ transform: 'rotate(-90deg)' }}>
-                  <circle cx="100" cy="100" r="88" fill="none" stroke="#f0f0f0" strokeWidth="8" />
+                  <circle cx="100" cy="100" r="88" fill="none" style={{ stroke: 'var(--border-strong)' }} strokeWidth="8" />
                   <circle
                     cx="100" cy="100" r="88"
                     fill="none"
@@ -981,7 +981,7 @@ export default function FocusPagina() {
 
               {timerKlaar && (
                 <div className="mt-4 text-center">
-                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#1D9E75" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" style={{ stroke: 'var(--mf-green)' }} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
                   <p className="text-sm font-medium text-gray-700 mt-1">Klaar!</p>
                 </div>
               )}
@@ -994,7 +994,7 @@ export default function FocusPagina() {
                 onClick={() => setTimerActief(!timerActief)}
                 disabled={timerKlaar}
                 className="flex-1 py-3.5 rounded-xl text-white font-semibold text-sm transition disabled:opacity-40"
-                style={{ background: timerActief ? '#BA7517' : timerConfig.kleur }}
+                style={{ background: timerActief ? 'var(--mf-amber)' : timerConfig.kleur }}
               >
                 {timerActief ? 'Pauzeer' : timerRest === timerConfig.duur ? 'Start' : 'Hervat'}
               </button>
@@ -1019,7 +1019,7 @@ export default function FocusPagina() {
                   'Stuur een berichtje naar iemand die je energie geeft',
                 ].map(s => (
                   <div key={s} className="flex items-center gap-2.5 py-1.5 border-b border-gray-50 last:border-0">
-                    <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: '#8B5CF6' }} />
+                    <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: 'var(--mf-purple)' }} />
                     <p className="text-xs text-gray-600">{s}</p>
                   </div>
                 ))}
@@ -1035,8 +1035,8 @@ export default function FocusPagina() {
                 {['25m focus', '5m pauze', '25m focus', '5m pauze', '25m focus', '5m pauze', '25m focus', '20m pauze'].map((b, i) => (
                   <span key={i} className="text-xs px-2.5 py-1 rounded-lg font-medium"
                     style={{
-                      background: b.includes('focus') ? '#E1F5EE' : b.includes('20') ? '#EDE9FE' : '#EFF6FF',
-                      color: b.includes('focus') ? '#0F6E56' : b.includes('20') ? '#5B21B6' : '#1D4ED8',
+                      background: b.includes('focus') ? 'var(--mf-green-light)' : b.includes('20') ? 'var(--mf-purple-light)' : 'var(--mf-blue-light)',
+                      color: b.includes('focus') ? 'var(--mf-green-dark)' : b.includes('20') ? 'var(--mf-purple)' : 'var(--mf-blue)',
                     }}>
                     {b}
                   </span>

@@ -77,13 +77,13 @@ export default function HrRoostersPage() {
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 28 }}>
           <div>
-            <h1 style={{ fontSize: 22, fontWeight: 700, color: '#111827', margin: 0 }}>Roosters</h1>
-            <p style={{ color: '#6B7280', fontSize: 13, marginTop: 4 }}>Beheer werkroosters per week</p>
+            <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-1)', margin: 0 }}>Roosters</h1>
+            <p style={{ color: 'var(--text-2)', fontSize: 13, marginTop: 4 }}>Beheer werkroosters per week</p>
           </div>
           <Link
             href="/hr/roosters/nieuw"
             style={{
-              background: '#1D9E75',
+              background: 'var(--mf-green)',
               color: '#fff',
               padding: '9px 20px',
               borderRadius: 10,
@@ -98,13 +98,13 @@ export default function HrRoostersPage() {
         </div>
 
         {!geladen ? (
-          <div style={{ color: '#9CA3AF', textAlign: 'center', padding: 40 }}>Laden...</div>
+          <div style={{ color: 'var(--text-3)', textAlign: 'center', padding: 40 }}>Laden...</div>
         ) : roosters.length === 0 ? (
           <div className="rounded-2xl border border-gray-100" style={{ background: '#fff', padding: 48, textAlign: 'center' }}>
             <div style={{ fontSize: 32, marginBottom: 12 }}>📅</div>
-            <div style={{ color: '#374151', fontWeight: 600, marginBottom: 6 }}>Nog geen roosters</div>
-            <div style={{ color: '#9CA3AF', fontSize: 13, marginBottom: 20 }}>Maak je eerste rooster aan om diensten in te plannen.</div>
-            <Link href="/hr/roosters/nieuw" style={{ background: '#1D9E75', color: '#fff', padding: '9px 20px', borderRadius: 10, fontSize: 14, fontWeight: 600, textDecoration: 'none' }}>
+            <div style={{ color: 'var(--text-2)', fontWeight: 600, marginBottom: 6 }}>Nog geen roosters</div>
+            <div style={{ color: 'var(--text-3)', fontSize: 13, marginBottom: 20 }}>Maak je eerste rooster aan om diensten in te plannen.</div>
+            <Link href="/hr/roosters/nieuw" style={{ background: 'var(--mf-green)', color: '#fff', padding: '9px 20px', borderRadius: 10, fontSize: 14, fontWeight: 600, textDecoration: 'none' }}>
               + Nieuw rooster
             </Link>
           </div>
@@ -117,10 +117,10 @@ export default function HrRoostersPage() {
                 style={{ background: '#fff', padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}
               >
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 600, color: '#111827', fontSize: 15 }}>{r.naam}</div>
-                  <div style={{ fontSize: 12, color: '#6B7280', marginTop: 2 }}>
+                  <div style={{ fontWeight: 600, color: 'var(--text-1)', fontSize: 15 }}>{r.naam}</div>
+                  <div style={{ fontSize: 12, color: 'var(--text-2)', marginTop: 2 }}>
                     {weekLabel(r.week_start)}
-                    <span style={{ marginLeft: 12, color: '#9CA3AF' }}>{r.dienst_count} diensten</span>
+                    <span style={{ marginLeft: 12, color: 'var(--text-3)' }}>{r.dienst_count} diensten</span>
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: 8 }}>
@@ -130,7 +130,7 @@ export default function HrRoostersPage() {
                       padding: '6px 14px',
                       borderRadius: 8,
                       border: '1.5px solid #1D9E75',
-                      color: '#1D9E75',
+                      color: 'var(--mf-green)',
                       fontSize: 13,
                       fontWeight: 500,
                       textDecoration: 'none',
@@ -145,7 +145,7 @@ export default function HrRoostersPage() {
                       padding: '6px 14px',
                       borderRadius: 8,
                       border: '1.5px solid #E5E7EB',
-                      color: '#EF4444',
+                      color: 'var(--mf-red)',
                       fontSize: 13,
                       background: 'transparent',
                       cursor: 'pointer',

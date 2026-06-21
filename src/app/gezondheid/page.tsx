@@ -40,16 +40,16 @@ interface HealthData {
 }
 
 const RISICO_STIJL = {
-  laag:  { kleur: '#1D9E75', label: 'Laag risico' },
-  matig: { kleur: '#BA7517', label: 'Matig risico' },
-  hoog:  { kleur: '#E24B4A', label: 'Hoog risico' },
+  laag:  { kleur: 'var(--mf-green)', label: 'Laag risico' },
+  matig: { kleur: 'var(--mf-amber)', label: 'Matig risico' },
+  hoog:  { kleur: 'var(--mf-red)', label: 'Hoog risico' },
 }
 
 const CATEGORIEEN = [
-  { emoji: '🥗', label: 'Voeding', href: '/voeding', kleur: '#1D9E75' },
-  { emoji: '🏋️', label: 'Sport', href: '/sport', kleur: '#185FA5' },
-  { emoji: '✅', label: 'Check-in', href: '/checkin', kleur: '#8B5CF6' },
-  { emoji: '⌚', label: 'Koppelingen', href: '/koppelingen', kleur: '#BA7517' },
+  { emoji: '🥗', label: 'Voeding', href: '/voeding', kleur: 'var(--mf-green)' },
+  { emoji: '🏋️', label: 'Sport', href: '/sport', kleur: 'var(--mf-blue)' },
+  { emoji: '✅', label: 'Check-in', href: '/checkin', kleur: 'var(--mf-purple)' },
+  { emoji: '⌚', label: 'Koppelingen', href: '/koppelingen', kleur: 'var(--mf-amber)' },
 ]
 
 function SectieKop({ children }: { children: React.ReactNode }) {

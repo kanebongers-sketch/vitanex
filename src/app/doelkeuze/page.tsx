@@ -136,17 +136,17 @@ function DoelKeuzeInhoud() {
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
           <div style={{
             width: 56, height: 56, borderRadius: '50%',
-            background: '#E1F5EE', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: 'var(--mf-green-light)', display: 'flex', alignItems: 'center', justifyContent: 'center',
             margin: '0 auto 16px',
           }}>
             <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1D9E75" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="20 6 9 17 4 12"/>
             </svg>
           </div>
-          <h1 style={{ fontSize: 22, fontWeight: 800, color: '#111827', marginBottom: 8, letterSpacing: '-0.02em' }}>
+          <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', marginBottom: 8, letterSpacing: '-0.02em' }}>
             Check-in ingevuld!
           </h1>
-          <p style={{ fontSize: 14, color: '#6B7280', lineHeight: 1.5 }}>
+          <p style={{ fontSize: 14, color: 'var(--text-2)', lineHeight: 1.5 }}>
             Kies voor elk aandachtsgebied één doel dat je deze week wil aanpakken.
           </p>
         </div>
@@ -173,7 +173,7 @@ function DoelKeuzeInhoud() {
                   <span style={{ transform: 'scale(0.75)', display: 'flex' }}>{c.icon}</span>
                 </div>
                 <div>
-                  <p style={{ fontSize: 10, color: '#9CA3AF', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em' }}>
+                  <p style={{ fontSize: 10, color: 'var(--text-3)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em' }}>
                     Aandachtsgebied {idx + 1}
                   </p>
                   <p style={{ fontSize: 14, fontWeight: 700, color: c.kleur }}>
@@ -202,13 +202,13 @@ function DoelKeuzeInhoud() {
                       style={{
                         textAlign: 'left', padding: '13px 15px', borderRadius: 12,
                         border: `2px solid ${selected ? c.kleur : '#E5E7EB'}`,
-                        background: selected ? c.licht : '#FAFAFA',
+                        background: selected ? c.licht : 'var(--bg-subtle)',
                         cursor: 'pointer', transition: 'all 0.15s', width: '100%',
                       }}>
-                      <p style={{ fontSize: 13, fontWeight: 700, color: selected ? c.kleur : '#111827', marginBottom: 3 }}>
+                      <p style={{ fontSize: 13, fontWeight: 700, color: selected ? c.kleur : 'var(--text-1)', marginBottom: 3 }}>
                         {opt.titel}
                       </p>
-                      <p style={{ fontSize: 12, color: '#6B7280', lineHeight: 1.4 }}>
+                      <p style={{ fontSize: 12, color: 'var(--text-2)', lineHeight: 1.4 }}>
                         {opt.beschrijving}
                       </p>
                     </button>
@@ -225,8 +225,8 @@ function DoelKeuzeInhoud() {
           disabled={!alleGekozen || opgeslagen}
           style={{
             width: '100%', padding: '16px', borderRadius: 14, border: 'none',
-            background: alleGekozen ? '#1D9E75' : '#E5E7EB',
-            color: alleGekozen ? 'white' : '#9CA3AF',
+            background: alleGekozen ? 'var(--mf-green)' : 'var(--border)',
+            color: alleGekozen ? 'white' : 'var(--text-3)',
             fontSize: 15, fontWeight: 700, cursor: alleGekozen && !opgeslagen ? 'pointer' : 'default',
             transition: 'all 0.2s', marginTop: 4,
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
@@ -234,7 +234,7 @@ function DoelKeuzeInhoud() {
           {opgeslagen ? 'Bezig...' : alleGekozen ? 'Start deze week →' : `Kies nog ${resterend} doel${resterend > 1 ? 'en' : ''}`}
         </button>
 
-        <p style={{ textAlign: 'center', fontSize: 12, color: '#9CA3AF', marginTop: 14 }}>
+        <p style={{ textAlign: 'center', fontSize: 12, color: 'var(--text-3)', marginTop: 14 }}>
           Je kunt je doelen later aanpassen via het Doelen-menu.
         </p>
 
@@ -246,8 +246,8 @@ function DoelKeuzeInhoud() {
 export default function DoelKeuze() {
   return (
     <Suspense fallback={
-      <main style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#F0FAF6' }}>
-        <div style={{ width: 32, height: 32, borderRadius: '50%', border: '3px solid #E5E7EB', borderTopColor: '#1D9E75' }} className="mf-spinner" />
+      <main style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--mf-green-light)' }}>
+        <div style={{ width: 32, height: 32, borderRadius: '50%', border: '3px solid #E5E7EB', borderTopColor: 'var(--mf-green)' }} className="mf-spinner" />
       </main>
     }>
       <DoelKeuzeInhoud />

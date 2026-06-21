@@ -12,9 +12,9 @@ type Fase = 'focus' | 'pauze' | 'lang-pauze' | 'klaar'
 type Modus = { label: string; focus: number; pauze: number; langPauze: number; ronden: number; kleur: string }
 
 const MODI: Modus[] = [
-  { label: 'Klassiek', focus: 25, pauze: 5, langPauze: 15, ronden: 4, kleur: '#E24B4A' },
-  { label: 'Deep work', focus: 50, pauze: 10, langPauze: 30, ronden: 3, kleur: '#1D9E75' },
-  { label: 'Quick', focus: 15, pauze: 3, langPauze: 10, ronden: 4, kleur: '#6366f1' },
+  { label: 'Klassiek', focus: 25, pauze: 5, langPauze: 15, ronden: 4, kleur: 'var(--mf-red)' },
+  { label: 'Deep work', focus: 50, pauze: 10, langPauze: 30, ronden: 3, kleur: 'var(--mf-green)' },
+  { label: 'Quick', focus: 15, pauze: 3, langPauze: 10, ronden: 4, kleur: 'var(--mf-purple)' },
 ]
 
 function formatTijd(sec: number) {
@@ -128,7 +128,7 @@ export default function PomodoroPage() {
     </div>
   )
 
-  const gefasseKleur = fase === 'focus' ? huidigemodus.kleur : fase === 'pauze' ? '#1D9E75' : fase === 'lang-pauze' ? '#6366f1' : 'var(--text-4)'
+  const gefasseKleur = fase === 'focus' ? huidigemodus.kleur : fase === 'pauze' ? 'var(--mf-green)' : fase === 'lang-pauze' ? 'var(--mf-purple)' : 'var(--text-4)'
   const faseLabel = fase === 'focus' ? 'Focus' : fase === 'pauze' ? 'Pauze' : fase === 'lang-pauze' ? 'Lange pauze' : 'Klaar'
   const maxSec = fase === 'focus' ? huidigemodus.focus * 60
     : fase === 'pauze' ? huidigemodus.pauze * 60
@@ -212,7 +212,7 @@ export default function PomodoroPage() {
             ) : fase === 'focus' ? (
               <button
                 onClick={stop}
-                style={{ padding: '14px 32px', borderRadius: 14, fontSize: 14, fontWeight: 600, color: '#E24B4A', border: '2px solid #E24B4A', cursor: 'pointer', background: 'var(--bg-card)' }}
+                style={{ padding: '14px 32px', borderRadius: 14, fontSize: 14, fontWeight: 600, color: 'var(--mf-red)', border: '2px solid #E24B4A', cursor: 'pointer', background: 'var(--bg-card)' }}
               >
                 Stop
               </button>
@@ -255,7 +255,7 @@ export default function PomodoroPage() {
               {voltooide.map((s, i) => (
                 <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: s.type === 'Gedeeltelijk' ? '#F59E0B' : huidigemodus.kleur }} />
+                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: s.type === 'Gedeeltelijk' ? 'var(--mf-amber)' : huidigemodus.kleur }} />
                     <span style={{ fontSize: 13, color: 'var(--text-2)' }}>{s.type}</span>
                   </div>
                   <div style={{ display: 'flex', gap: 12, fontSize: 12, color: 'var(--text-4)' }}>

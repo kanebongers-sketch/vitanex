@@ -353,7 +353,7 @@ export default function Chat() {
                 className="px-3.5 py-2 text-sm leading-relaxed break-words whitespace-pre-wrap"
                 style={{
                   background: isIk ? 'var(--mentaforce-primary)' : 'white',
-                  color: isIk ? 'white' : '#1f2937',
+                  color: isIk ? 'white' : 'var(--text-1)',
                   borderRadius,
                   boxShadow: isIk ? 'none' : '0 1px 2px rgba(0,0,0,0.08)',
                   opacity: isOptimistic ? 0.55 : 1,
@@ -402,7 +402,7 @@ export default function Chat() {
               onClick={() => { setActieveChat('team'); setMobielZijbalk(false) }}
               className="w-full flex items-center gap-3 px-4 py-3 transition text-left"
               style={{ background: actieveChat === 'team' ? 'var(--mentaforce-primary-light)' : 'transparent' }}
-              onMouseEnter={e => { if (actieveChat !== 'team') (e.currentTarget as HTMLElement).style.background = '#f9fafb' }}
+              onMouseEnter={e => { if (actieveChat !== 'team') (e.currentTarget as HTMLElement).style.background = 'var(--bg-subtle)' }}
               onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = actieveChat === 'team' ? 'var(--mentaforce-primary-light)' : 'transparent' }}
             >
               <div
@@ -435,13 +435,13 @@ export default function Chat() {
                 onClick={() => openDm(lid.id)}
                 className="w-full flex items-center gap-3 px-4 py-3 transition text-left"
                 style={{ background: actieveChat === lid.id ? 'var(--mentaforce-primary-light)' : 'transparent' }}
-                onMouseEnter={e => { if (actieveChat !== lid.id) (e.currentTarget as HTMLElement).style.background = '#f9fafb' }}
+                onMouseEnter={e => { if (actieveChat !== lid.id) (e.currentTarget as HTMLElement).style.background = 'var(--bg-subtle)' }}
                 onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = actieveChat === lid.id ? 'var(--mentaforce-primary-light)' : 'transparent' }}
               >
                 <Avatar naam={lid.naam} avatarUrl={lid.avatar_url} size={40} online={onlineSet.has(lid.id)} />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-gray-900 truncate">{lid.naam}</p>
-                  <p className="text-xs truncate" style={{ color: onlineSet.has(lid.id) ? '#1D9E75' : '#9ca3af' }}>
+                  <p className="text-xs truncate" style={{ color: onlineSet.has(lid.id) ? 'var(--mf-green)' : 'var(--text-3)' }}>
                     {onlineSet.has(lid.id) ? 'Online' : 'Offline'}
                   </p>
                 </div>
@@ -451,7 +451,7 @@ export default function Chat() {
         </div>
 
         {/* Conversation panel */}
-        <div className="flex-1 flex flex-col overflow-hidden" style={{ background: '#F0F2F5' }}>
+        <div className="flex-1 flex flex-col overflow-hidden" style={{ background: 'var(--bg-subtle)' }}>
 
           {/* Conversation header */}
           <div className="px-5 py-3.5 border-b border-gray-200 bg-white flex items-center gap-3 flex-shrink-0">
@@ -497,7 +497,7 @@ export default function Chat() {
                 <Avatar naam={partnerProfiel.naam} avatarUrl={partnerProfiel.avatar_url} size={40} online={onlineSet.has(partnerProfiel.id)} />
                 <div>
                   <p className="text-sm font-semibold text-gray-900">{partnerProfiel.naam}</p>
-                  <p className="text-xs font-medium" style={{ color: onlineSet.has(partnerProfiel.id) ? '#1D9E75' : '#9ca3af' }}>
+                  <p className="text-xs font-medium" style={{ color: onlineSet.has(partnerProfiel.id) ? 'var(--mf-green)' : 'var(--text-3)' }}>
                     {onlineSet.has(partnerProfiel.id) ? 'Online' : 'Offline'}
                   </p>
                 </div>
@@ -537,7 +537,7 @@ export default function Chat() {
               {mijnProfiel && (
                 <Avatar naam={mijnProfiel.naam} avatarUrl={mijnProfiel.avatar_url} size={36} className="mb-0.5" />
               )}
-              <div className="flex-1 flex items-end gap-2 rounded-2xl border border-gray-200 px-3 py-2" style={{ background: '#F0F2F5' }}>
+              <div className="flex-1 flex items-end gap-2 rounded-2xl border border-gray-200 px-3 py-2" style={{ background: 'var(--bg-subtle)' }}>
                 <textarea
                   ref={isTeam ? teamInputRef : dmInputRef}
                   rows={1}
@@ -563,10 +563,10 @@ export default function Chat() {
                   onClick={isTeam ? verstuurTeam : verstuurDm}
                   disabled={isTeam ? (!teamInput.trim() || teamVerzenden) : (!dmInput.trim() || dmVerzenden)}
                   className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition disabled:opacity-30"
-                  style={{ background: (isTeam ? teamInput.trim() : dmInput.trim()) ? 'var(--mentaforce-primary)' : '#e5e7eb' }}
+                  style={{ background: (isTeam ? teamInput.trim() : dmInput.trim()) ? 'var(--mentaforce-primary)' : 'var(--border)' }}
                 >
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                    stroke={(isTeam ? teamInput.trim() : dmInput.trim()) ? 'white' : '#9ca3af'}
+                    stroke={(isTeam ? teamInput.trim() : dmInput.trim()) ? 'white' : 'var(--text-3)'}
                     strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <line x1="22" y1="2" x2="11" y2="13" />
                     <polygon points="22 2 15 22 11 13 2 9 22 2" />

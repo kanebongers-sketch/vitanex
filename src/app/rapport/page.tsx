@@ -37,14 +37,14 @@ const CAT_LABEL: Record<string, string> = {
   focus: 'Focus', balans: 'Werk-privé', motivatie: 'Motivatie',
 }
 const CAT_KLEUR: Record<string, string> = {
-  slaap: '#8B5CF6', stress: '#E24B4A', energie: '#BA7517',
-  focus: '#1D9E75', balans: '#378ADD', motivatie: '#9D174D',
+  slaap: 'var(--mf-purple)', stress: 'var(--mf-red)', energie: 'var(--mf-amber)',
+  focus: 'var(--mf-green)', balans: 'var(--mf-blue)', motivatie: 'var(--mf-rose)',
 }
 const VLAK_VOLGORDE = ['slaap', 'stress', 'energie', 'focus', 'balans', 'motivatie']
 
 function ScoreRing({ score }: { score: number }) {
   const r = 56, circ = 2 * Math.PI * r
-  const kleur = score >= 70 ? '#1D9E75' : score >= 45 ? '#F59E0B' : '#EF4444'
+  const kleur = score >= 70 ? 'var(--mf-green)' : score >= 45 ? 'var(--mf-amber)' : 'var(--mf-red)'
   const trackKleur = score >= 70 ? 'rgba(29,158,117,0.12)' : score >= 45 ? 'rgba(245,158,11,0.12)' : 'rgba(239,68,68,0.12)'
   return (
     <svg width="140" height="140" viewBox="0 0 140 140">
@@ -302,16 +302,16 @@ export default function Rapport() {
   const scoreVals = analyse ? Object.values(analyse.scores).filter(v => v > 0) : []
   const gemiddelde = scoreVals.length > 0 ? scoreVals.reduce((a, b) => a + b, 0) / scoreVals.length : 0
   const score = scoreVals.length > 0 ? Math.round(((gemiddelde - 4) / 16) * 100) : null
-  const kleur = !score ? '#9CA3AF' : score >= 70 ? '#1D9E75' : score >= 45 ? '#F59E0B' : '#EF4444'
+  const kleur = !score ? 'var(--text-3)' : score >= 70 ? 'var(--mf-green)' : score >= 45 ? 'var(--mf-amber)' : 'var(--mf-red)'
   const label = !score ? '' : score >= 70 ? 'Goed op weg' : score >= 45 ? 'Aandacht nodig' : 'Zorg voor jezelf'
   const datum = analyse ? new Date(analyse.aangemaakt_op).toLocaleDateString('nl-BE', { weekday: 'long', day: 'numeric', month: 'long' }) : ''
 
   const burnout = aj?.burnout_risico
   const burnoutCfg = !burnout ? null : burnout.niveau === 'hoog'
-    ? { bg: '#FCEBEB', kleur: '#DC2626', label: 'Hoog risico' }
+    ? { bg: 'var(--mf-red-light)', kleur: 'var(--mf-red)', label: 'Hoog risico' }
     : burnout.niveau === 'matig'
-    ? { bg: '#FEF3C7', kleur: '#B45309', label: 'Matig risico' }
-    : { bg: '#E1F5EE', kleur: '#1D9E75', label: 'Laag risico' }
+    ? { bg: 'var(--mf-amber-light)', kleur: 'var(--mf-amber-dark)', label: 'Matig risico' }
+    : { bg: 'var(--mf-green-light)', kleur: 'var(--mf-green)', label: 'Laag risico' }
 
   const zwakke = aj?.wellbeing_categorieen?.filter(c => c.niveau !== 'goed') ?? []
 
@@ -330,7 +330,7 @@ export default function Rapport() {
             {analyse && (
               <button onClick={downloadPDF} disabled={downloading} style={{
                 display: 'inline-flex', alignItems: 'center', gap: 8,
-                background: '#111827', color: 'white',
+                background: 'var(--text-1)', color: 'white',
                 borderRadius: 12, padding: '11px 20px',
                 fontSize: 14, fontWeight: 600, border: 'none', cursor: downloading ? 'wait' : 'pointer',
                 opacity: downloading ? 0.7 : 1,
@@ -343,7 +343,7 @@ export default function Rapport() {
             )}
             <Link href="/checkin" style={{
               display: 'inline-flex', alignItems: 'center', gap: 8,
-              background: '#1D9E75', color: 'white',
+              background: 'var(--mf-green)', color: 'white',
               borderRadius: 12, padding: '11px 20px',
               fontSize: 14, fontWeight: 600, textDecoration: 'none',
             }}>
@@ -379,7 +379,7 @@ export default function Rapport() {
                 <p style={{ fontSize: 14, color: 'var(--text-3)', marginBottom: 24 }}>Doe je eerste check-in om een persoonlijk rapport te krijgen.</p>
                 <Link href="/checkin" style={{
                   display: 'inline-flex', alignItems: 'center', gap: 8,
-                  background: '#1D9E75', color: 'white',
+                  background: 'var(--mf-green)', color: 'white',
                   borderRadius: 12, padding: '12px 28px',
                   fontSize: 15, fontWeight: 700, textDecoration: 'none',
                 }}>
@@ -398,7 +398,7 @@ export default function Rapport() {
                 ? score >= 70 ? 'linear-gradient(135deg, #E1F5EE 0%, #D1FAE5 60%, #EBF4FB 100%)'
                   : score >= 45 ? 'linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 60%, #FFF7ED 100%)'
                   : 'linear-gradient(135deg, #FEF2F2 0%, #FCEBEB 60%, #FEF3C7 100%)'
-                : '#F9FAFB',
+                : 'var(--bg-subtle)',
               border: `1.5px solid ${score !== null
                 ? score >= 70 ? 'rgba(29,158,117,0.20)' : score >= 45 ? 'rgba(245,158,11,0.20)' : 'rgba(239,68,68,0.20)'
                 : '#E5E7EB'}`,
@@ -419,8 +419,8 @@ export default function Rapport() {
                     const pct = Math.round(((v - 4) / 16) * 100)
                     return (
                       <div key={k} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <span style={{ fontSize: 11, color: '#9CA3AF', width: 72, flexShrink: 0 }}>{CAT_LABEL[k]}</span>
-                        <div style={{ flex: 1, height: 6, borderRadius: 3, background: '#F3F4F6', overflow: 'hidden' }}>
+                        <span style={{ fontSize: 11, color: 'var(--text-3)', width: 72, flexShrink: 0 }}>{CAT_LABEL[k]}</span>
+                        <div style={{ flex: 1, height: 6, borderRadius: 3, background: 'var(--bg-subtle)', overflow: 'hidden' }}>
                           <div style={{ height: '100%', borderRadius: 3, background: CAT_KLEUR[k], width: `${pct}%`, transition: 'width 0.8s ease' }} />
                         </div>
                         <span style={{ fontSize: 11, fontWeight: 700, color: CAT_KLEUR[k], width: 32 }}>{v}/20</span>
@@ -464,14 +464,14 @@ export default function Rapport() {
               {/* Sterke punten */}
               {aj?.sterke_punten && aj.sterke_punten.length > 0 && (
                 <div style={{
-                  background: '#E1F5EE', borderRadius: 16, padding: '20px 24px',
+                  background: 'var(--mf-green-light)', borderRadius: 16, padding: '20px 24px',
                   border: '1.5px solid #A7F3D0',
                 }}>
-                  <p style={{ fontSize: 13, fontWeight: 700, color: '#0F6E56', marginBottom: 10 }}>Sterke punten</p>
+                  <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--mf-green-dark)', marginBottom: 10 }}>Sterke punten</p>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                     {aj.sterke_punten.map((p, i) => (
                       <span key={i} style={{
-                        fontSize: 12, color: '#065F46', background: 'white',
+                        fontSize: 12, color: 'var(--mf-green-dark)', background: 'white',
                         borderRadius: 100, padding: '4px 12px',
                         border: '1px solid #A7F3D0', fontWeight: 500,
                       }}>✓ {p}</span>
@@ -487,8 +487,8 @@ export default function Rapport() {
                 <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-1)', marginBottom: 14 }}>Verbeterpunten</p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                   {zwakke.map(cat => {
-                    const niveauKleur = cat.niveau === 'laag' ? '#DC2626' : '#B45309'
-                    const niveauBg    = cat.niveau === 'laag' ? '#FEF2F2' : '#FEF3C7'
+                    const niveauKleur = cat.niveau === 'laag' ? 'var(--mf-red)' : 'var(--mf-amber-dark)'
+                    const niveauBg    = cat.niveau === 'laag' ? 'var(--mf-red-light)' : 'var(--mf-amber-light)'
                     const niveauLabel = cat.niveau === 'laag' ? 'Aandacht nodig' : 'Matig'
                     return (
                       <div key={cat.naam} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -508,7 +508,7 @@ export default function Rapport() {
             {aj?.aandachtspunten && aj.aandachtspunten.length > 0 && (
               <div style={{ background: 'var(--bg-card)', borderRadius: 16, padding: '20px 24px', border: '1px solid var(--border)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
-                  <div style={{ width: 28, height: 28, borderRadius: 8, background: '#FEF3C7', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <div style={{ width: 28, height: 28, borderRadius: 8, background: 'var(--mf-amber-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#B45309" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
                     </svg>
@@ -518,7 +518,7 @@ export default function Rapport() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                   {aj.aandachtspunten.map((punt, i) => (
                     <div key={i} style={{ display: 'flex', gap: 12 }}>
-                      <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#F59E0B', flexShrink: 0, marginTop: 5 }} />
+                      <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--mf-amber)', flexShrink: 0, marginTop: 5 }} />
                       <div>
                         <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-2)', marginBottom: 2 }}>{punt.titel}</p>
                         <p style={{ fontSize: 12, color: 'var(--text-3)', lineHeight: 1.55 }}>{punt.uitleg}</p>
@@ -537,23 +537,23 @@ export default function Rapport() {
                 border: '1.5px solid rgba(29,158,117,0.20)',
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-                  <div style={{ width: 28, height: 28, borderRadius: 8, background: '#1D9E75', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <div style={{ width: 28, height: 28, borderRadius: 8, background: 'var(--mf-green)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                       <polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
                     </svg>
                   </div>
-                  <p style={{ fontSize: 13, fontWeight: 700, color: '#065F46' }}>Actieplan volgende week</p>
+                  <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--mf-green-dark)' }}>Actieplan volgende week</p>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                   {aj.actieplan.map((item, i) => (
                     <div key={i} style={{ display: 'flex', gap: 14 }}>
-                      <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#1D9E75', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 13, fontWeight: 800 }}>
+                      <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'var(--mf-green)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 13, fontWeight: 800 }}>
                         {i + 1}
                       </div>
                       <div style={{ flex: 1 }}>
-                        <p style={{ fontSize: 14, fontWeight: 600, color: '#065F46', marginBottom: 4 }}>{item.actie}</p>
-                        <p style={{ fontSize: 12, color: '#0F6E56', lineHeight: 1.5, marginBottom: 6 }}>{item.waarom}</p>
-                        <span style={{ fontSize: 11, fontWeight: 700, color: '#0F6E56', background: 'rgba(255,255,255,0.6)', borderRadius: 100, padding: '3px 10px', border: '1px solid rgba(29,158,117,0.20)' }}>
+                        <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--mf-green-dark)', marginBottom: 4 }}>{item.actie}</p>
+                        <p style={{ fontSize: 12, color: 'var(--mf-green-dark)', lineHeight: 1.5, marginBottom: 6 }}>{item.waarom}</p>
+                        <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--mf-green-dark)', background: 'rgba(255,255,255,0.6)', borderRadius: 100, padding: '3px 10px', border: '1px solid rgba(29,158,117,0.20)' }}>
                           📅 {item.wanneer}
                         </span>
                       </div>

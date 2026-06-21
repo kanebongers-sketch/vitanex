@@ -30,7 +30,7 @@ type ResultatenMap = Record<string, {
 const TEMPLATES: { naam: string; kleur: string; beschrijving: string; vragen: Omit<Vraag, 'id'>[] }[] = [
   {
     naam: 'Pulse check',
-    kleur: '#1D9E75',
+    kleur: 'var(--mf-green)',
     beschrijving: '3 vragen · ±1 min · Ideaal wekelijks',
     vragen: [
       { tekst: 'Hoe voel je je vandaag op het werk?', type: 'schaal' },
@@ -40,7 +40,7 @@ const TEMPLATES: { naam: string; kleur: string; beschrijving: string; vragen: Om
   },
   {
     naam: 'Stress & werkdruk',
-    kleur: '#E24B4A',
+    kleur: 'var(--mf-red)',
     beschrijving: '4 vragen · ±2 min · Maandelijks',
     vragen: [
       { tekst: 'Hoe hoog ervaar je de werkdruk momenteel?', type: 'schaal' },
@@ -51,7 +51,7 @@ const TEMPLATES: { naam: string; kleur: string; beschrijving: string; vragen: Om
   },
   {
     naam: 'Teamcultuur',
-    kleur: '#378ADD',
+    kleur: 'var(--mf-blue)',
     beschrijving: '4 vragen · ±2 min · Kwartaal',
     vragen: [
       { tekst: 'Hoe prettig ervaar je de samenwerking in je team?', type: 'schaal' },
@@ -62,7 +62,7 @@ const TEMPLATES: { naam: string; kleur: string; beschrijving: string; vragen: Om
   },
   {
     naam: 'Betrokkenheid',
-    kleur: '#8B5CF6',
+    kleur: 'var(--mf-purple)',
     beschrijving: '4 vragen · ±2 min · Kwartaal',
     vragen: [
       { tekst: 'Hoe gemotiveerd ben je in je werk?', type: 'schaal' },
@@ -73,7 +73,7 @@ const TEMPLATES: { naam: string; kleur: string; beschrijving: string; vragen: Om
   },
   {
     naam: 'Leiderschap',
-    kleur: '#BA7517',
+    kleur: 'var(--mf-amber)',
     beschrijving: '4 vragen · ±2 min · Extra anoniem',
     vragen: [
       { tekst: 'Geeft je leidinggevende duidelijk richting?', type: 'schaal' },
@@ -93,26 +93,26 @@ function maakVragen(vragen: Omit<Vraag, 'id'>[]): Vraag[] {
 function AnonimBanner() {
   const [open, setOpen] = useState(false)
   return (
-    <div style={{ borderRadius: 16, border: '1px solid #B8D5F5', background: '#E6F1FB', marginBottom: 20, overflow: 'hidden' }}>
+    <div style={{ borderRadius: 16, border: '1px solid rgba(55,138,221,0.35)', background: 'var(--mf-blue-light)', marginBottom: 20, overflow: 'hidden' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#185FA5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
           </svg>
           <div>
-            <p style={{ fontSize: 13, fontWeight: 600, color: '#185FA5' }}>Volledig anoniem</p>
-            <p style={{ fontSize: 12, color: '#2563EB' }}>Jouw naam wordt nooit gedeeld met HR of collega&apos;s</p>
+            <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--mf-blue)' }}>Volledig anoniem</p>
+            <p style={{ fontSize: 12, color: 'var(--mf-blue-mid)' }}>Jouw naam wordt nooit gedeeld met HR of collega&apos;s</p>
           </div>
         </div>
         <button
           onClick={() => setOpen(o => !o)}
-          style={{ fontSize: 12, fontWeight: 500, padding: '6px 12px', borderRadius: 8, color: '#185FA5', background: 'rgba(37,99,235,0.1)', border: 'none', cursor: 'pointer' }}
+          style={{ fontSize: 12, fontWeight: 500, padding: '6px 12px', borderRadius: 8, color: 'var(--mf-blue)', background: 'rgba(55,138,221,0.12)', border: 'none', cursor: 'pointer' }}
         >
           {open ? 'Verbergen' : 'Hoe werkt dit?'}
         </button>
       </div>
       {open && (
-        <div style={{ padding: '0 20px 16px', borderTop: '1px solid #B8D5F5' }}>
+        <div style={{ padding: '0 20px 16px', borderTop: '1px solid rgba(55,138,221,0.25)' }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10, marginTop: 12 }}>
             {[
               {
@@ -132,10 +132,10 @@ function AnonimBanner() {
               },
             ].map(item => (
               <div key={item.titel} style={{ borderRadius: 12, padding: 12, background: 'rgba(255,255,255,0.6)' }}>
-                <p style={{ fontSize: 12, fontWeight: 600, color: '#185FA5', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 5 }}>
+                <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--mf-blue)', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 5 }}>
                   {item.icon} {item.titel}
                 </p>
-                <p style={{ fontSize: 11, color: '#6B7280', lineHeight: 1.5 }}>{item.tekst}</p>
+                <p style={{ fontSize: 11, color: 'var(--text-2)', lineHeight: 1.5 }}>{item.tekst}</p>
               </div>
             ))}
           </div>
@@ -189,7 +189,7 @@ function NieuweSurveyForm({ bedrijfId, userId, onGemaakt }: {
 
   return (
     <div style={{ background: 'white', borderRadius: 20, border: '1px solid #E5E7EB', padding: 24, marginBottom: 20 }}>
-      <div style={{ display: 'flex', gap: 4, background: '#F3F4F6', borderRadius: 12, padding: 4, width: 'fit-content', marginBottom: 20 }}>
+      <div style={{ display: 'flex', gap: 4, background: 'var(--bg-subtle)', borderRadius: 12, padding: 4, width: 'fit-content', marginBottom: 20 }}>
         {(['template', 'zelf'] as const).map(t => (
           <button
             key={t}
@@ -197,7 +197,7 @@ function NieuweSurveyForm({ bedrijfId, userId, onGemaakt }: {
             style={{
               padding: '8px 16px', borderRadius: 8, fontSize: 13, border: 'none', cursor: 'pointer',
               background: templateTab === t ? 'white' : 'transparent',
-              color: templateTab === t ? '#111827' : '#9CA3AF',
+              color: templateTab === t ? 'var(--text-1)' : 'var(--text-3)',
               fontWeight: templateTab === t ? 600 : 400,
               boxShadow: templateTab === t ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
             }}
@@ -221,17 +221,17 @@ function NieuweSurveyForm({ bedrijfId, userId, onGemaakt }: {
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
                 <span style={{ width: 10, height: 10, borderRadius: '50%', background: tmpl.kleur, display: 'inline-block', flexShrink: 0 }} />
-                <span style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>{tmpl.naam}</span>
+                <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-1)' }}>{tmpl.naam}</span>
               </div>
-              <p style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 8 }}>{tmpl.beschrijving}</p>
+              <p style={{ fontSize: 11, color: 'var(--text-3)', marginBottom: 8 }}>{tmpl.beschrijving}</p>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
                 {tmpl.vragen.slice(0, 2).map((v, i) => (
-                  <span key={i} style={{ fontSize: 11, padding: '2px 8px', borderRadius: 100, background: 'white', border: '1px solid #E5E7EB', color: '#9CA3AF', maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <span key={i} style={{ fontSize: 11, padding: '2px 8px', borderRadius: 100, background: 'white', border: '1px solid #E5E7EB', color: 'var(--text-3)', maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {v.tekst.slice(0, 30)}{v.tekst.length > 30 ? '...' : ''}
                   </span>
                 ))}
                 {tmpl.vragen.length > 2 && (
-                  <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 100, background: 'white', border: '1px solid #E5E7EB', color: '#9CA3AF' }}>
+                  <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 100, background: 'white', border: '1px solid #E5E7EB', color: 'var(--text-3)' }}>
                     +{tmpl.vragen.length - 2} meer
                   </span>
                 )}
@@ -251,7 +251,7 @@ function NieuweSurveyForm({ bedrijfId, userId, onGemaakt }: {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 16 }}>
             {vragen.map((v, i) => (
               <div key={v.id} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                <span style={{ fontSize: 12, color: '#9CA3AF', flexShrink: 0, width: 18 }}>{i + 1}.</span>
+                <span style={{ fontSize: 12, color: 'var(--text-3)', flexShrink: 0, width: 18 }}>{i + 1}.</span>
                 <input
                   type="text"
                   placeholder="Vraag..."
@@ -271,7 +271,7 @@ function NieuweSurveyForm({ bedrijfId, userId, onGemaakt }: {
                 {vragen.length > 1 && (
                   <button
                     onClick={() => verwijderVraag(v.id)}
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#D1D5DB', padding: 4, display: 'flex', alignItems: 'center' }}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-4)', padding: 4, display: 'flex', alignItems: 'center' }}
                   >
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>
@@ -282,11 +282,11 @@ function NieuweSurveyForm({ bedrijfId, userId, onGemaakt }: {
             ))}
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <button onClick={voegVraagToe} style={{ fontSize: 12, color: '#9CA3AF', background: 'none', border: 'none', cursor: 'pointer' }}>+ Vraag toevoegen</button>
+            <button onClick={voegVraagToe} style={{ fontSize: 12, color: 'var(--text-3)', background: 'none', border: 'none', cursor: 'pointer' }}>+ Vraag toevoegen</button>
             <button
               onClick={maakAan}
               disabled={bezig || !titel.trim() || vragen.some(v => !v.tekst.trim())}
-              style={{ padding: '9px 20px', borderRadius: 10, fontSize: 13, color: 'white', fontWeight: 600, border: 'none', cursor: 'pointer', background: '#1D9E75', opacity: (bezig || !titel.trim() || vragen.some(v => !v.tekst.trim())) ? 0.4 : 1 }}
+              style={{ padding: '9px 20px', borderRadius: 10, fontSize: 13, color: 'white', fontWeight: 600, border: 'none', cursor: 'pointer', background: 'var(--mf-green)', opacity: (bezig || !titel.trim() || vragen.some(v => !v.tekst.trim())) ? 0.4 : 1 }}
             >
               {bezig ? 'Aanmaken...' : 'Survey aanmaken'}
             </button>
@@ -300,9 +300,9 @@ function NieuweSurveyForm({ bedrijfId, userId, onGemaakt }: {
 // -- Schaalkleur helper -------------------------------------------------------
 
 function schaalKleur(score: number) {
-  if (score >= 4) return '#1D9E75'
-  if (score >= 3) return '#BA7517'
-  return '#E24B4A'
+  if (score >= 4) return 'var(--mf-green)'
+  if (score >= 3) return 'var(--mf-amber)'
+  return 'var(--mf-red)'
 }
 
 // -- Main pagina --------------------------------------------------------------
@@ -426,15 +426,15 @@ export default function SurveysPagina() {
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
           <div>
-            <h1 style={{ fontSize: 22, fontWeight: 800, color: '#111827', letterSpacing: '-0.03em', marginBottom: 2 }}>Surveys</h1>
-            <p style={{ color: '#9CA3AF', fontSize: 13 }}>Anonieme peilingen over welzijn op het werk.</p>
+            <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 2 }}>Surveys</h1>
+            <p style={{ color: 'var(--text-3)', fontSize: 13 }}>Anonieme peilingen over welzijn op het werk.</p>
           </div>
           {isHR && (
             <button
               onClick={() => setNieuwTonen(v => !v)}
               style={{
                 display: 'inline-flex', alignItems: 'center', gap: 6,
-                background: nieuwTonen ? '#6B7280' : '#1D9E75', color: 'white',
+                background: nieuwTonen ? 'var(--text-3)' : 'var(--mf-green)', color: 'white',
                 borderRadius: 12, padding: '10px 18px',
                 fontSize: 14, fontWeight: 600, border: 'none', cursor: 'pointer',
               }}
@@ -451,7 +451,7 @@ export default function SurveysPagina() {
         {verzondSuccess && (
           <div style={{
             position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)', zIndex: 50,
-            background: '#111827', color: 'white', fontSize: 13, padding: '12px 20px',
+            background: 'var(--text-1)', color: 'white', fontSize: 13, padding: '12px 20px',
             borderRadius: 16, boxShadow: '0 8px 24px rgba(0,0,0,0.18)',
             display: 'flex', alignItems: 'center', gap: 8,
           }}>
@@ -478,19 +478,19 @@ export default function SurveysPagina() {
         {activeSurvey && (
           <div style={{ background: 'white', borderRadius: 20, border: '1px solid #E5E7EB', overflow: 'hidden', marginBottom: 20 }}>
             {/* Progress bar */}
-            <div style={{ height: 4, background: '#F3F4F6' }}>
-              <div style={{ height: '100%', width: `${voortgang * 100}%`, background: '#1D9E75', transition: 'width 0.3s' }} />
+            <div style={{ height: 4, background: 'var(--bg-subtle)' }}>
+              <div style={{ height: '100%', width: `${voortgang * 100}%`, background: 'var(--mf-green)', transition: 'width 0.3s' }} />
             </div>
 
             <div style={{ padding: 24 }}>
               <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 20 }}>
                 <div>
-                  <p style={{ fontSize: 15, fontWeight: 700, color: '#111827' }}>{activeSurvey.titel}</p>
-                  <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2 }}>{aantalBeantwoord}/{activeSurvey.vragen.length} vragen beantwoord</p>
+                  <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-1)' }}>{activeSurvey.titel}</p>
+                  <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 2 }}>{aantalBeantwoord}/{activeSurvey.vragen.length} vragen beantwoord</p>
                 </div>
                 <button
                   onClick={() => { setActiveSurveyId(null); setAntwoorden({}) }}
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF', padding: 6, display: 'flex', alignItems: 'center' }}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-3)', padding: 6, display: 'flex', alignItems: 'center' }}
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
@@ -502,8 +502,8 @@ export default function SurveysPagina() {
                 {activeSurvey.vragen.map((v, idx) => (
                   <div key={v.id}>
                     <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 12 }}>
-                      <span style={{ fontSize: 12, fontWeight: 700, color: '#9CA3AF', marginTop: 2, width: 20, flexShrink: 0 }}>{idx + 1}</span>
-                      <p style={{ fontSize: 14, fontWeight: 600, color: '#1F2937' }}>{v.tekst}</p>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-3)', marginTop: 2, width: 20, flexShrink: 0 }}>{idx + 1}</span>
+                      <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-1)' }}>{v.tekst}</p>
                     </div>
                     {v.type === 'schaal' && (
                       <div style={{ display: 'flex', gap: 8, paddingLeft: 28 }}>
@@ -514,8 +514,8 @@ export default function SurveysPagina() {
                             style={{
                               flex: 1, padding: '12px 0', borderRadius: 12, fontSize: 14, fontWeight: 700,
                               border: `2px solid ${antwoorden[v.id] === n ? '#1D9E75' : '#E5E7EB'}`,
-                              background: antwoorden[v.id] === n ? '#1D9E75' : 'transparent',
-                              color: antwoorden[v.id] === n ? 'white' : '#374151',
+                              background: antwoorden[v.id] === n ? 'var(--mf-green)' : 'transparent',
+                              color: antwoorden[v.id] === n ? 'white' : 'var(--text-2)',
                               cursor: 'pointer',
                             }}
                           >
@@ -533,8 +533,8 @@ export default function SurveysPagina() {
                             style={{
                               flex: 1, padding: '12px 0', borderRadius: 12, fontSize: 14, fontWeight: 600,
                               border: `2px solid ${antwoorden[v.id] === b ? '#1D9E75' : '#E5E7EB'}`,
-                              background: antwoorden[v.id] === b ? '#1D9E75' : 'transparent',
-                              color: antwoorden[v.id] === b ? 'white' : '#374151',
+                              background: antwoorden[v.id] === b ? 'var(--mf-green)' : 'transparent',
+                              color: antwoorden[v.id] === b ? 'white' : 'var(--text-2)',
                               cursor: 'pointer',
                             }}
                           >
@@ -562,13 +562,13 @@ export default function SurveysPagina() {
                   disabled={verzenden || activeSurvey.vragen.some(v => v.type !== 'tekst' && antwoorden[v.id] === undefined)}
                   style={{
                     width: '100%', padding: '14px 0', borderRadius: 12, fontSize: 14, fontWeight: 600,
-                    color: 'white', border: 'none', cursor: 'pointer', background: '#1D9E75',
+                    color: 'white', border: 'none', cursor: 'pointer', background: 'var(--mf-green)',
                     opacity: (verzenden || activeSurvey.vragen.some(v => v.type !== 'tekst' && antwoorden[v.id] === undefined)) ? 0.4 : 1,
                   }}
                 >
                   {verzenden ? 'Versturen...' : 'Verstuur anoniem'}
                 </button>
-                <p style={{ fontSize: 11, textAlign: 'center', color: '#9CA3AF', marginTop: 8 }}>
+                <p style={{ fontSize: 11, textAlign: 'center', color: 'var(--text-3)', marginTop: 8 }}>
                   Jouw naam wordt nooit gedeeld. Antwoorden zijn 100% anoniem.
                 </p>
               </div>
@@ -578,7 +578,7 @@ export default function SurveysPagina() {
 
         {/* HR tabs */}
         {isHR && (
-          <div style={{ display: 'flex', gap: 4, background: '#F3F4F6', borderRadius: 12, padding: 4, width: 'fit-content', marginBottom: 16 }}>
+          <div style={{ display: 'flex', gap: 4, background: 'var(--bg-subtle)', borderRadius: 12, padding: 4, width: 'fit-content', marginBottom: 16 }}>
             {(['actief', 'resultaten'] as const).map(t => (
               <button
                 key={t}
@@ -586,7 +586,7 @@ export default function SurveysPagina() {
                 style={{
                   padding: '8px 16px', borderRadius: 8, fontSize: 13, border: 'none', cursor: 'pointer',
                   background: tab === t ? 'white' : 'transparent',
-                  color: tab === t ? '#111827' : '#9CA3AF',
+                  color: tab === t ? 'var(--text-1)' : 'var(--text-3)',
                   fontWeight: tab === t ? 600 : 400,
                   boxShadow: tab === t ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
                 }}
@@ -603,15 +603,15 @@ export default function SurveysPagina() {
           </div>
         ) : alleTabSurveys.length === 0 ? (
           <div style={{ background: 'white', borderRadius: 20, border: '1px solid #E5E7EB', padding: '56px 40px', textAlign: 'center' }}>
-            <div style={{ width: 56, height: 56, borderRadius: 16, background: '#F3F4F6', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', color: '#9CA3AF' }}>
+            <div style={{ width: 56, height: 56, borderRadius: 16, background: 'var(--bg-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', color: 'var(--text-3)' }}>
               <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
                 <rect x="9" y="3" width="6" height="4" rx="1" ry="1"/>
                 <line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/>
               </svg>
             </div>
-            <p style={{ fontSize: 15, fontWeight: 600, color: '#374151', marginBottom: 4 }}>Geen surveys</p>
-            <p style={{ fontSize: 13, color: '#9CA3AF' }}>
+            <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-2)', marginBottom: 4 }}>Geen surveys</p>
+            <p style={{ fontSize: 13, color: 'var(--text-3)' }}>
               {isHR ? 'Nog geen surveys aangemaakt.' : 'Geen actieve surveys op dit moment.'}
             </p>
           </div>
@@ -627,18 +627,18 @@ export default function SurveysPagina() {
                   <div style={{ padding: '18px 20px' }}>
                     <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <p style={{ fontSize: 14, fontWeight: 700, color: '#111827' }}>{s.titel}</p>
+                        <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-1)' }}>{s.titel}</p>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4, flexWrap: 'wrap' }}>
-                          <span style={{ fontSize: 12, color: '#9CA3AF' }}>
+                          <span style={{ fontSize: 12, color: 'var(--text-3)' }}>
                             {s.vragen.length} vra{s.vragen.length !== 1 ? 'gen' : 'ag'}
                           </span>
-                          <span style={{ color: '#E5E7EB' }}>·</span>
-                          <span style={{ fontSize: 12, color: '#9CA3AF' }}>±{geschatteMinuten} min</span>
-                          <span style={{ color: '#E5E7EB' }}>·</span>
-                          <span style={{ fontSize: 12, color: '#9CA3AF' }}>
+                          <span style={{ color: 'var(--border)' }}>·</span>
+                          <span style={{ fontSize: 12, color: 'var(--text-3)' }}>±{geschatteMinuten} min</span>
+                          <span style={{ color: 'var(--border)' }}>·</span>
+                          <span style={{ fontSize: 12, color: 'var(--text-3)' }}>
                             {new Date(s.aangemaakt_op).toLocaleDateString('nl-BE')}
                           </span>
-                          <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 100, background: '#E6F1FB', color: '#185FA5', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                          <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 100, background: 'var(--mf-blue-light)', color: 'var(--mf-blue)', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                               <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
                             </svg>
@@ -653,9 +653,9 @@ export default function SurveysPagina() {
                             onClick={() => toggleActief(s.id, s.actief)}
                             style={{
                               fontSize: 12, padding: '5px 10px', borderRadius: 8, border: '1px solid', cursor: 'pointer',
-                              background: s.actief ? '#E1F5EE' : '#F3F4F6',
-                              borderColor: s.actief ? '#1D9E75' : '#E5E7EB',
-                              color: s.actief ? '#0F6E56' : '#6B7280',
+                              background: s.actief ? 'var(--mf-green-light)' : 'var(--bg-subtle)',
+                              borderColor: s.actief ? 'var(--mf-green)' : 'var(--border)',
+                              color: s.actief ? 'var(--mf-green-dark)' : 'var(--text-2)',
                             }}
                           >
                             {s.actief ? 'Actief' : 'Inactief'}
@@ -664,13 +664,13 @@ export default function SurveysPagina() {
                         {!isHR && s.actief && !alBeantwoord && (
                           <button
                             onClick={() => { setActiveSurveyId(s.id); setAntwoorden({}) }}
-                            style={{ fontSize: 13, padding: '8px 16px', borderRadius: 10, color: 'white', fontWeight: 600, border: 'none', cursor: 'pointer', background: '#1D9E75' }}
+                            style={{ fontSize: 13, padding: '8px 16px', borderRadius: 10, color: 'white', fontWeight: 600, border: 'none', cursor: 'pointer', background: 'var(--mf-green)' }}
                           >
                             Invullen
                           </button>
                         )}
                         {!isHR && alBeantwoord && (
-                          <span style={{ fontSize: 12, color: '#1D9E75', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                          <span style={{ fontSize: 12, color: 'var(--mf-green)', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                               <polyline points="20 6 9 17 4 12"/>
                             </svg>
@@ -684,9 +684,9 @@ export default function SurveysPagina() {
                     {isHR && tab === 'resultaten' && (
                       <div style={{ borderTop: '1px solid #F3F4F6', paddingTop: 16, marginTop: 16 }}>
                         {!res ? (
-                          <p style={{ fontSize: 12, color: '#9CA3AF' }}>Nog geen antwoorden.</p>
+                          <p style={{ fontSize: 12, color: 'var(--text-3)' }}>Nog geen antwoorden.</p>
                         ) : res.count < 3 ? (
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#92400E', background: '#FFFBEB', padding: '10px 14px', borderRadius: 10 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: 'var(--mf-amber-dark)', background: 'var(--mf-amber-light)', padding: '10px 14px', borderRadius: 10 }}>
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                               <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
                               <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
@@ -695,16 +695,16 @@ export default function SurveysPagina() {
                           </div>
                         ) : (
                           <>
-                            <p style={{ fontSize: 12, fontWeight: 600, color: '#9CA3AF', marginBottom: 12 }}>
+                            <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-3)', marginBottom: 12 }}>
                               {res.count} respons{res.count !== 1 ? 'en' : ''}
                             </p>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                               {s.vragen.map(v => (
                                 <div key={v.id}>
-                                  <p style={{ fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 8 }}>{v.tekst}</p>
+                                  <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-2)', marginBottom: 8 }}>{v.tekst}</p>
                                   {v.type === 'schaal' && res.schaalGems[v.id] !== undefined && (
                                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                                      <div style={{ flex: 1, height: 8, background: '#F3F4F6', borderRadius: 100, overflow: 'hidden' }}>
+                                      <div style={{ flex: 1, height: 8, background: 'var(--bg-subtle)', borderRadius: 100, overflow: 'hidden' }}>
                                         <div style={{ height: '100%', borderRadius: 100, width: `${(res.schaalGems[v.id] / 5) * 100}%`, background: schaalKleur(res.schaalGems[v.id]) }} />
                                       </div>
                                       <span style={{ fontSize: 13, fontWeight: 700, color: schaalKleur(res.schaalGems[v.id]), width: 40, textAlign: 'right' }}>
@@ -715,8 +715,8 @@ export default function SurveysPagina() {
                                   {v.type === 'ja_nee' && res.jaCount[v.id] !== undefined && (
                                     <div style={{ display: 'flex', gap: 10 }}>
                                       {[
-                                        { label: 'Ja', count: res.jaCount[v.id], kleur: '#1D9E75', bg: '#E1F5EE' },
-                                        { label: 'Nee', count: res.count - res.jaCount[v.id], kleur: '#E24B4A', bg: '#FCEBEB' },
+                                        { label: 'Ja', count: res.jaCount[v.id], kleur: 'var(--mf-green)', bg: 'var(--mf-green-light)' },
+                                        { label: 'Nee', count: res.count - res.jaCount[v.id], kleur: 'var(--mf-red)', bg: 'var(--mf-red-light)' },
                                       ].map(item => (
                                         <div key={item.label} style={{ flex: 1, borderRadius: 12, padding: '10px 0', textAlign: 'center', background: item.bg }}>
                                           <p style={{ fontSize: 18, fontWeight: 800, color: item.kleur }}>{item.count}</p>
@@ -728,12 +728,12 @@ export default function SurveysPagina() {
                                   {v.type === 'tekst' && res.teksten[v.id] && (
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                                       {res.teksten[v.id].slice(0, 4).map((t, i) => (
-                                        <p key={i} style={{ fontSize: 12, color: '#4B5563', fontStyle: 'italic', background: '#F9FAFB', padding: '8px 12px', borderRadius: 8 }}>
+                                        <p key={i} style={{ fontSize: 12, color: 'var(--text-2)', fontStyle: 'italic', background: 'var(--bg-subtle)', padding: '8px 12px', borderRadius: 8 }}>
                                           &ldquo;{t}&rdquo;
                                         </p>
                                       ))}
                                       {res.teksten[v.id].length > 4 && (
-                                        <p style={{ fontSize: 11, color: '#9CA3AF' }}>+{res.teksten[v.id].length - 4} meer reacties</p>
+                                        <p style={{ fontSize: 11, color: 'var(--text-3)' }}>+{res.teksten[v.id].length - 4} meer reacties</p>
                                       )}
                                     </div>
                                   )}
@@ -754,16 +754,16 @@ export default function SurveysPagina() {
         {/* Empty state employee */}
         {!isHR && actiefSurveys.length === 0 && !laden && (
           <div style={{ background: 'white', borderRadius: 20, border: '1px solid #E5E7EB', padding: '56px 40px', textAlign: 'center', marginTop: 16 }}>
-            <div style={{ width: 56, height: 56, borderRadius: 16, background: '#F3F4F6', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', color: '#9CA3AF' }}>
+            <div style={{ width: 56, height: 56, borderRadius: 16, background: 'var(--bg-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', color: 'var(--text-3)' }}>
               <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
                 <rect x="9" y="3" width="6" height="4" rx="1" ry="1"/>
                 <line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/>
               </svg>
             </div>
-            <p style={{ fontSize: 15, fontWeight: 600, color: '#374151', marginBottom: 4 }}>Geen actieve surveys</p>
-            <p style={{ fontSize: 13, color: '#9CA3AF', marginBottom: 2 }}>Geen actieve surveys op dit moment.</p>
-            <p style={{ fontSize: 12, color: '#9CA3AF' }}>Je HR-team stuurt surveys wanneer ze inzichten nodig hebben.</p>
+            <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-2)', marginBottom: 4 }}>Geen actieve surveys</p>
+            <p style={{ fontSize: 13, color: 'var(--text-3)', marginBottom: 2 }}>Geen actieve surveys op dit moment.</p>
+            <p style={{ fontSize: 12, color: 'var(--text-3)' }}>Je HR-team stuurt surveys wanneer ze inzichten nodig hebben.</p>
           </div>
         )}
 

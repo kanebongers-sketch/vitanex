@@ -120,8 +120,8 @@ export default function HrProtokollenPage() {
                       <span
                         className="text-[11px] px-2 py-0.5 rounded-full font-semibold flex-shrink-0"
                         style={{
-                          background: p.gepubliceerd ? '#E1F5EE' : '#FEF3C7',
-                          color: p.gepubliceerd ? '#0F6E56' : '#92400E',
+                          background: p.gepubliceerd ? 'var(--mf-green-light)' : 'var(--mf-amber-light)',
+                          color: p.gepubliceerd ? 'var(--mf-green-dark)' : 'var(--mf-amber-dark)',
                         }}
                       >
                         {p.gepubliceerd ? 'Gepubliceerd' : 'Concept'}
@@ -138,8 +138,8 @@ export default function HrProtokollenPage() {
                         className="mf-btn text-xs"
                         style={{
                           padding: '5px 12px', fontSize: 12,
-                          background: p.gepubliceerd ? '#FEF3C7' : '#E1F5EE',
-                          color: p.gepubliceerd ? '#92400E' : '#0F6E56',
+                          background: p.gepubliceerd ? 'var(--mf-amber-light)' : 'var(--mf-green-light)',
+                          color: p.gepubliceerd ? 'var(--mf-amber-dark)' : 'var(--mf-green-dark)',
                           border: 'none',
                         }}
                       >
@@ -148,7 +148,7 @@ export default function HrProtokollenPage() {
                       <button
                         onClick={() => setVerwijderModal(p.id)}
                         className="mf-btn text-xs"
-                        style={{ padding: '5px 12px', fontSize: 12, background: '#FEE2E2', color: '#DC2626', border: 'none' }}>
+                        style={{ padding: '5px 12px', fontSize: 12, background: 'var(--mf-red-light)', color: 'var(--mf-red)', border: 'none' }}>
                         Verwijderen
                       </button>
                     </div>
@@ -174,7 +174,7 @@ export default function HrProtokollenPage() {
                 Annuleren
               </button>
               <button onClick={() => verwijder(verwijderModal)} className="mf-btn flex-1"
-                style={{ background: '#DC2626', color: 'white' }}>
+                style={{ background: 'var(--mf-red)', color: 'white' }}>
                 Verwijderen
               </button>
             </div>

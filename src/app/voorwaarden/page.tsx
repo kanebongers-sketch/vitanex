@@ -8,7 +8,7 @@ function MarketingNav() {
       style={{ background: 'rgba(10,15,30,0.96)', borderColor: 'rgba(255,255,255,0.07)', backdropFilter: 'blur(16px)' }}>
       <div className="max-w-7xl mx-auto px-6 lg:px-12 py-4 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: '#1D9E75' }}>
+          <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: 'var(--mf-green)' }}>
             <span className="text-white text-sm font-bold">M</span>
           </div>
           <span className="font-bold text-white text-lg tracking-tight">MentaForce</span>
@@ -16,7 +16,7 @@ function MarketingNav() {
         <div className="flex items-center gap-4">
           <Link href="/contact" className="text-sm transition" style={{ color: 'rgba(255,255,255,0.45)' }}>Contact</Link>
           <Link href="/login" className="text-sm font-bold text-white px-5 py-2.5 rounded-xl transition hover:opacity-90"
-            style={{ background: '#1D9E75' }}>
+            style={{ background: 'var(--mf-green)' }}>
             Inloggen
           </Link>
         </div>
@@ -171,7 +171,7 @@ export default function Voorwaarden() {
           style={{ background: 'radial-gradient(ellipse 60% 80% at 50% 0%, rgba(29,158,117,0.08) 0%, transparent 60%)' }} />
         <div className="max-w-4xl mx-auto px-6 text-center relative z-10">
           <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 mb-6 text-xs font-semibold border"
-            style={{ background: 'rgba(29,158,117,0.1)', borderColor: 'rgba(29,158,117,0.25)', color: '#4ECBA5' }}>
+            style={{ background: 'rgba(29,158,117,0.1)', borderColor: 'rgba(29,158,117,0.25)', color: 'var(--mf-green)' }}>
             Juridisch
           </div>
           <h1 className="text-4xl lg:text-5xl font-extrabold text-white mb-4 tracking-tight">
@@ -231,7 +231,7 @@ export default function Voorwaarden() {
             <a
               href="mailto:info@mentaforce.nl"
               className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-white text-sm font-bold transition hover:opacity-90"
-              style={{ background: '#1D9E75' }}
+              style={{ background: 'var(--mf-green)' }}
             >
               ✉️ info@mentaforce.nl
             </a>
@@ -243,13 +243,13 @@ export default function Voorwaarden() {
       <footer style={{ background: '#060c18', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
         <div className="max-w-7xl mx-auto px-6 lg:px-12 py-10 flex flex-col md:flex-row items-center justify-between gap-6">
           <Link href="/" className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: '#1D9E75' }}>
+            <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: 'var(--mf-green)' }}>
               <span className="text-white text-xs font-bold">M</span>
             </div>
             <span className="font-bold text-white">MentaForce</span>
           </Link>
           <div className="flex items-center gap-6 text-xs flex-wrap justify-center" style={{ color: 'rgba(255,255,255,0.2)' }}>
-            <Link href="/voorwaarden" className="transition hover:text-white/50" style={{ color: '#4ECBA5' }}>Voorwaarden</Link>
+            <Link href="/voorwaarden" className="transition hover:text-white/50" style={{ color: 'var(--mf-green)' }}>Voorwaarden</Link>
             <Link href="/contact" className="transition hover:text-white/50">Contact</Link>
             <Link href="/login" className="transition hover:text-white/50">Inloggen</Link>
           </div>

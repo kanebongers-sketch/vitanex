@@ -125,17 +125,17 @@ export default function Login() {
             role="alert"
             aria-live="assertive"
             className="rounded-2xl p-4 mb-5"
-            style={{ background: '#FAEEDA', border: '1px solid #FAC775' }}
+            style={{ background: 'var(--mf-amber-light)', border: '1px solid #FAC775' }}
           >
-            <p className="text-sm font-semibold mb-1" style={{ color: '#854F0B' }}>E-mail nog niet bevestigd</p>
-            <p className="text-xs leading-relaxed mb-3" style={{ color: '#854F0B' }}>
+            <p className="text-sm font-semibold mb-1" style={{ color: 'var(--mf-amber-dark)' }}>E-mail nog niet bevestigd</p>
+            <p className="text-xs leading-relaxed mb-3" style={{ color: 'var(--mf-amber-dark)' }}>
               Kijk in je inbox op <strong>{email}</strong> en klik op de bevestigingslink.
             </p>
             <button
               onClick={stuurBevestigingOpnieuw}
               disabled={resendBezig}
               className="text-xs font-semibold underline disabled:opacity-50"
-              style={{ color: '#854F0B' }}
+              style={{ color: 'var(--mf-amber-dark)' }}
             >
               {resendBezig ? 'Versturen...' : 'Opnieuw sturen'}
             </button>
@@ -143,16 +143,16 @@ export default function Login() {
         )}
 
         {status === 'resent' && (
-          <div role="alert" aria-live="assertive" className="rounded-2xl p-4 mb-5" style={{ background: '#E1F5EE', border: '1px solid #A3DECE' }}>
-            <p className="text-sm font-semibold" style={{ color: '#0F6E56' }}>✓ Bevestigingsmail verstuurd</p>
-            <p className="text-xs mt-0.5" style={{ color: '#15785A' }}>Klik op de link in je inbox om je account te activeren.</p>
+          <div role="alert" aria-live="assertive" className="rounded-2xl p-4 mb-5" style={{ background: 'var(--mf-green-light)', border: '1px solid #A3DECE' }}>
+            <p className="text-sm font-semibold" style={{ color: 'var(--mf-green-dark)' }}>✓ Bevestigingsmail verstuurd</p>
+            <p className="text-xs mt-0.5" style={{ color: 'var(--mf-green-mid)' }}>Klik op de link in je inbox om je account te activeren.</p>
           </div>
         )}
 
         {status === 'wrong_credentials' && (
-          <div role="alert" aria-live="assertive" className="rounded-2xl p-4 mb-5" style={{ background: '#FCEBEB', border: '1px solid #FBBFBF' }}>
-            <p className="text-sm font-semibold" style={{ color: '#A32D2D' }}>E-mail of wachtwoord klopt niet</p>
-            <p className="text-xs mt-0.5" style={{ color: '#C45252' }}>
+          <div role="alert" aria-live="assertive" className="rounded-2xl p-4 mb-5" style={{ background: 'var(--mf-red-light)', border: '1px solid #FBBFBF' }}>
+            <p className="text-sm font-semibold" style={{ color: 'var(--mf-red)' }}>E-mail of wachtwoord klopt niet</p>
+            <p className="text-xs mt-0.5" style={{ color: 'var(--mf-red)' }}>
               Controleer je gegevens of{' '}
               <Link href="/wachtwoord-vergeten" className="underline font-medium">reset je wachtwoord</Link>.
             </p>
@@ -160,16 +160,16 @@ export default function Login() {
         )}
 
         {status === 'too_many_requests' && (
-          <div role="alert" aria-live="assertive" className="rounded-2xl p-4 mb-5" style={{ background: '#FCEBEB', border: '1px solid #FBBFBF' }}>
-            <p className="text-sm font-semibold" style={{ color: '#A32D2D' }}>Te veel pogingen</p>
-            <p className="text-xs mt-0.5" style={{ color: '#C45252' }}>Wacht een paar minuten en probeer opnieuw.</p>
+          <div role="alert" aria-live="assertive" className="rounded-2xl p-4 mb-5" style={{ background: 'var(--mf-red-light)', border: '1px solid #FBBFBF' }}>
+            <p className="text-sm font-semibold" style={{ color: 'var(--mf-red)' }}>Te veel pogingen</p>
+            <p className="text-xs mt-0.5" style={{ color: 'var(--mf-red)' }}>Wacht een paar minuten en probeer opnieuw.</p>
           </div>
         )}
 
         {status === 'unknown_error' && (
-          <div role="alert" aria-live="assertive" className="rounded-2xl p-4 mb-5" style={{ background: '#FCEBEB', border: '1px solid #FBBFBF' }}>
-            <p className="text-sm font-semibold" style={{ color: '#A32D2D' }}>Er ging iets mis</p>
-            <p className="text-xs mt-0.5" style={{ color: '#C45252' }}>
+          <div role="alert" aria-live="assertive" className="rounded-2xl p-4 mb-5" style={{ background: 'var(--mf-red-light)', border: '1px solid #FBBFBF' }}>
+            <p className="text-sm font-semibold" style={{ color: 'var(--mf-red)' }}>Er ging iets mis</p>
+            <p className="text-xs mt-0.5" style={{ color: 'var(--mf-red)' }}>
               Probeer opnieuw of neem contact op via{' '}
               <a href="mailto:info@mentaforce.nl" className="underline">info@mentaforce.nl</a>.
             </p>
@@ -221,7 +221,7 @@ export default function Login() {
               type="button"
               onClick={() => setToonWacht(t => !t)}
               className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-medium transition"
-              style={{ color: '#9CA3AF' }}
+              style={{ color: 'var(--text-3)' }}
             >
               {toonWacht ? 'Verberg' : 'Toon'}
             </button>
@@ -251,7 +251,7 @@ export default function Login() {
         {/* Divider */}
         <div className="flex items-center gap-3 my-4">
           <div className="flex-1 h-px" style={{ background: 'rgba(0,0,0,0.08)' }} />
-          <span className="text-xs font-medium" style={{ color: '#9CA3AF' }}>of</span>
+          <span className="text-xs font-medium" style={{ color: 'var(--text-3)' }}>of</span>
           <div className="flex-1 h-px" style={{ background: 'rgba(0,0,0,0.08)' }} />
         </div>
 
@@ -269,7 +269,7 @@ export default function Login() {
           style={{
             background: 'white',
             border: '1.5px solid rgba(0,0,0,0.10)',
-            color: '#374151',
+            color: 'var(--text-2)',
             boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
             fontSize: 15,
           }}
@@ -283,9 +283,9 @@ export default function Login() {
           Inloggen met Google
         </button>
 
-        <p className="text-xs text-center mt-6" style={{ color: '#9CA3AF' }}>
+        <p className="text-xs text-center mt-6" style={{ color: 'var(--text-3)' }}>
           Nog geen account?{' '}
-          <Link href="/register" className="font-semibold" style={{ color: '#1D9E75' }}>
+          <Link href="/register" className="font-semibold" style={{ color: 'var(--mf-green)' }}>
             Gratis registreren
           </Link>
         </p>

@@ -20,10 +20,10 @@ type RapportData = {
 // ─── Helpers ──────────────────────────────────────────────────────────────
 
 function scoreKleur(s: number) {
-  if (s >= 4)  return '#1D9E75'
-  if (s >= 3)  return '#BA7517'
-  if (s >= 2)  return '#F97316'
-  return '#E24B4A'
+  if (s >= 4)  return 'var(--mf-green)'
+  if (s >= 3)  return 'var(--mf-amber)'
+  if (s >= 2)  return 'var(--mf-orange)'
+  return 'var(--mf-red)'
 }
 function scoreLabel(s: number) {
   if (s >= 4.5) return 'Uitstekend'
@@ -41,8 +41,8 @@ const CAT_LABELS: Record<string, string> = {
   groei:   'Groei & Ontwikkeling',
 }
 const CAT_KLEUREN: Record<string, string> = {
-  energie: '#1D9E75', mentaal: '#378ADD', werk: '#8B5CF6',
-  sociaal: '#BA7517', groei:   '#059669',
+  energie: 'var(--mf-green)', mentaal: 'var(--mf-blue)', werk: 'var(--mf-purple)',
+  sociaal: 'var(--mf-amber)', groei:   'var(--mf-green)',
 }
 
 // ─── On-screen rapport weergave ───────────────────────────────────────────
@@ -105,16 +105,16 @@ function RapportWeergave({ data, totaal, catAvgs }: {
 
       {/* Sterke punten */}
       {data.sterkePunten && (
-        <div className="rounded-2xl p-6" style={{ background: '#F0FDF4', borderLeft: '3px solid #1D9E75' }}>
-          <p className="text-xs font-bold uppercase tracking-wide mb-2" style={{ color: '#1D9E75' }}>Sterke punten</p>
+        <div className="rounded-2xl p-6" style={{ background: 'var(--mf-green-light)', borderLeft: '3px solid #1D9E75' }}>
+          <p className="text-xs font-bold uppercase tracking-wide mb-2" style={{ color: 'var(--mf-green)' }}>Sterke punten</p>
           <p className="text-sm text-gray-700 leading-relaxed">{data.sterkePunten}</p>
         </div>
       )}
 
       {/* Aandachtspunten */}
       {data.aandachtspunten && (
-        <div className="rounded-2xl p-6" style={{ background: '#FFFBEB', borderLeft: '3px solid #BA7517' }}>
-          <p className="text-xs font-bold uppercase tracking-wide mb-2" style={{ color: '#BA7517' }}>Aandachtspunten</p>
+        <div className="rounded-2xl p-6" style={{ background: 'var(--mf-amber-light)', borderLeft: '3px solid #BA7517' }}>
+          <p className="text-xs font-bold uppercase tracking-wide mb-2" style={{ color: 'var(--mf-amber)' }}>Aandachtspunten</p>
           <p className="text-sm text-gray-700 leading-relaxed">{data.aandachtspunten}</p>
         </div>
       )}
@@ -127,7 +127,7 @@ function RapportWeergave({ data, totaal, catAvgs }: {
             {data.tips.map((tip, i) => (
               <div key={i} className="flex gap-3">
                 <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5"
-                  style={{ background: '#1D9E75', color: 'white' }}>
+                  style={{ background: 'var(--mf-green)', color: 'white' }}>
                   {i + 1}
                 </div>
                 <div>
@@ -427,7 +427,7 @@ function MijnRapportInhoud() {
     <main className="mf-mesh-bg min-h-screen flex flex-col items-center justify-center gap-4"
       style={{ background: 'var(--bg-app)' }}>
       <div className="w-8 h-8 rounded-full border-2 border-gray-200 animate-spin"
-        style={{ borderTopColor: '#1D9E75' }} />
+        style={{ borderTopColor: 'var(--mf-green)' }} />
       <p className="text-sm" style={{ color: 'var(--text-4)' }}>AI analyseert je check-in...</p>
     </main>
   )
@@ -438,7 +438,7 @@ function MijnRapportInhoud() {
       <div className="max-w-sm w-full rounded-2xl p-8 text-center shadow-sm"
         style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
         <p className="text-sm mb-4" style={{ color: 'var(--text-3)' }}>{fout}</p>
-        <Link href="/portaal" className="text-sm font-medium" style={{ color: '#1D9E75' }}>
+        <Link href="/portaal" className="text-sm font-medium" style={{ color: 'var(--mf-green)' }}>
           Terug naar portaal
         </Link>
       </div>
@@ -473,7 +473,7 @@ function MijnRapportInhoud() {
 
           {hrVerstuurd
             ? <div className="w-full py-3.5 rounded-xl text-center text-sm font-medium"
-                style={{ background: 'var(--color-green-bg, #E1F5EE)', color: '#1D9E75' }}>
+                style={{ background: 'var(--color-green-bg, #E1F5EE)', color: 'var(--mf-green)' }}>
                 Rapport verstuurd naar HR
               </div>
             : <button
@@ -516,7 +516,7 @@ export default function MijnRapport() {
       <main className="mf-mesh-bg min-h-screen flex items-center justify-center"
         style={{ background: 'var(--bg-app)' }}>
         <div className="w-8 h-8 rounded-full border-2 border-gray-200 animate-spin"
-          style={{ borderTopColor: '#1D9E75' }} />
+          style={{ borderTopColor: 'var(--mf-green)' }} />
       </main>
     }>
       <MijnRapportInhoud />

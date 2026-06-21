@@ -31,13 +31,13 @@ const CAT_LABELS: Record<string, string> = {
 }
 
 const CAT_KLEUREN: Record<string, string> = {
-  'check-in': '#185FA5',
-  coaching:   '#8B5CF6',
-  sport:      '#B45309',
-  voeding:    '#1D9E75',
-  streak:     '#EA580C',
-  team:       '#0369A1',
-  mijlpaal:   '#9D174D',
+  'check-in': 'var(--mf-blue)',
+  coaching:   'var(--mf-purple)',
+  sport:      'var(--mf-amber-dark)',
+  voeding:    'var(--mf-green)',
+  streak:     'var(--mf-orange)',
+  team:       'var(--mf-blue)',
+  mijlpaal:   'var(--mf-rose)',
 }
 
 const LEVELS = [
@@ -211,7 +211,7 @@ export default function AchievementsPagina() {
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
             {Array.from(perCategorie.entries()).map(([cat, items]) => {
-              const kleur = CAT_KLEUREN[cat] ?? '#9CA3AF'
+              const kleur = CAT_KLEUREN[cat] ?? 'var(--text-3)'
               return (
                 <section key={cat}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>

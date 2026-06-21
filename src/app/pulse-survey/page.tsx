@@ -190,7 +190,7 @@ export default function PulseSurveyPage() {
                     padding: '13px 18px', borderRadius: 12, textAlign: 'left', fontSize: 14, fontWeight: 500,
                     cursor: 'pointer', border: '1.5px solid',
                     borderColor: huidigeAntwoord === optie ? 'var(--mf-green)' : 'var(--border)',
-                    background: huidigeAntwoord === optie ? '#F0FAF6' : 'var(--bg-card)',
+                    background: huidigeAntwoord === optie ? 'var(--mf-green-light)' : 'var(--bg-card)',
                     color: 'var(--text-2)', transition: 'all 0.15s ease',
                   }}
                 >{optie}</button>

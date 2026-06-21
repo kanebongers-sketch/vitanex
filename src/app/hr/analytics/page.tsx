@@ -74,7 +74,7 @@ function LijnenGrafiek({
 
   if (!punten.length) {
     return (
-      <div style={{ height: hoogte, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#D1D5DB', fontSize: 13 }}>
+      <div style={{ height: hoogte, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-4)', fontSize: 13 }}>
         Geen data beschikbaar
       </div>
     )
@@ -154,7 +154,7 @@ function StaafGrafiek({ punten, kleur }: { punten: WeekPunt[]; kleur: string }) 
 
   if (!punten.length) {
     return (
-      <div style={{ height: hoogte, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#D1D5DB', fontSize: 13 }}>
+      <div style={{ height: hoogte, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-4)', fontSize: 13 }}>
         Geen data beschikbaar
       </div>
     )
@@ -179,7 +179,7 @@ function StaafGrafiek({ punten, kleur }: { punten: WeekPunt[]; kleur: string }) 
         const val = p.gemiddelde ?? 0
         const staafH = (val / max) * innerH
         const y = padding.top + innerH - staafH
-        const stressKleur = val >= 7 ? '#E24B4A' : val >= 5 ? '#F59E0B' : kleur
+        const stressKleur = val >= 7 ? 'var(--mf-red)' : val >= 5 ? 'var(--mf-amber)' : kleur
         return (
           <rect
             key={i}
@@ -282,25 +282,25 @@ export default function HrAnalyticsPage() {
     {
       label: 'Gem. stemming',
       waarde: gemStemming !== null ? `${gemStemming}/5` : '–',
-      kleur: gemStemming !== null && gemStemming >= 3.5 ? '#1D9E75' : '#F59E0B',
+      kleur: gemStemming !== null && gemStemming >= 3.5 ? 'var(--mf-green)' : 'var(--mf-amber)',
       sub: 'Afgelopen 12 weken',
     },
     {
       label: 'Gem. slaap',
       waarde: gemSlaap !== null ? `${gemSlaap}u` : '–',
-      kleur: gemSlaap !== null && gemSlaap >= 7 ? '#1D9E75' : '#F59E0B',
+      kleur: gemSlaap !== null && gemSlaap >= 7 ? 'var(--mf-green)' : 'var(--mf-amber)',
       sub: 'Afgelopen 12 weken',
     },
     {
       label: 'Gem. stress',
       waarde: gemStress !== null ? `${gemStress}/10` : '–',
-      kleur: gemStress !== null && gemStress >= 7 ? '#E24B4A' : gemStress !== null && gemStress >= 5 ? '#F59E0B' : '#1D9E75',
+      kleur: gemStress !== null && gemStress >= 7 ? 'var(--mf-red)' : gemStress !== null && gemStress >= 5 ? 'var(--mf-amber)' : 'var(--mf-green)',
       sub: 'Afgelopen 12 weken',
     },
     {
       label: '% Actief',
       waarde: `${participatiePct}%`,
-      kleur: participatiePct >= 70 ? '#1D9E75' : participatiePct >= 40 ? '#F59E0B' : '#E24B4A',
+      kleur: participatiePct >= 70 ? 'var(--mf-green)' : participatiePct >= 40 ? 'var(--mf-amber)' : 'var(--mf-red)',
       sub: 'Deze week',
     },
   ]
@@ -313,16 +313,16 @@ export default function HrAnalyticsPage() {
         {/* Header */}
         <div style={{ marginBottom: 28, display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
           <div>
-            <h1 style={{ fontSize: 22, fontWeight: 800, color: '#111827', letterSpacing: '-0.03em', marginBottom: 4 }}>
+            <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 4 }}>
               Team Analytics
             </h1>
-            <p style={{ fontSize: 13, color: '#9CA3AF' }}>
+            <p style={{ fontSize: 13, color: 'var(--text-3)' }}>
               Week {recenteWeekRange()} &nbsp;·&nbsp; Anonieme wellbeing trends
             </p>
           </div>
           {data && (
-            <p style={{ fontSize: 13, color: '#6B7280' }}>
-              <strong style={{ color: '#111827' }}>{data.totaal_medewerkers}</strong> medewerkers
+            <p style={{ fontSize: 13, color: 'var(--text-2)' }}>
+              <strong style={{ color: 'var(--text-1)' }}>{data.totaal_medewerkers}</strong> medewerkers
             </p>
           )}
         </div>
@@ -332,7 +332,7 @@ export default function HrAnalyticsPage() {
             <div className="mf-spinner" />
           </div>
         ) : fout ? (
-          <div style={{ background: '#FCEBEB', border: '1px solid #FECACA', borderRadius: 12, padding: '16px 20px', color: '#B91C1C', fontSize: 14 }}>
+          <div style={{ background: 'var(--mf-red-light)', border: '1px solid #FECACA', borderRadius: 12, padding: '16px 20px', color: 'var(--mf-red)', fontSize: 14 }}>
             {fout}
           </div>
         ) : data ? (
@@ -353,8 +353,8 @@ export default function HrAnalyticsPage() {
                   <p style={{ fontSize: 26, fontWeight: 900, color: k.kleur, letterSpacing: '-0.04em', lineHeight: 1 }}>
                     {k.waarde}
                   </p>
-                  <p style={{ fontSize: 12, fontWeight: 700, color: '#374151', marginTop: 6 }}>{k.label}</p>
-                  <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 2 }}>{k.sub}</p>
+                  <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-2)', marginTop: 6 }}>{k.label}</p>
+                  <p style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 2 }}>{k.sub}</p>
                 </div>
               ))}
             </div>
@@ -365,8 +365,8 @@ export default function HrAnalyticsPage() {
               {/* Stemming trend */}
               <div style={{ background: 'white', border: '1px solid #E5E7EB', borderRadius: 16, padding: '20px 22px' }}>
                 <div style={{ marginBottom: 12 }}>
-                  <h2 style={{ fontSize: 13, fontWeight: 700, color: '#374151' }}>Stemming trend</h2>
-                  <p style={{ fontSize: 11, color: '#9CA3AF' }}>Gemiddelde per week (schaal 1–5)</p>
+                  <h2 style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-2)' }}>Stemming trend</h2>
+                  <p style={{ fontSize: 11, color: 'var(--text-3)' }}>Gemiddelde per week (schaal 1–5)</p>
                 </div>
                 <LijnenGrafiek
                   punten={data.stemming_trend}
@@ -380,8 +380,8 @@ export default function HrAnalyticsPage() {
               {/* Slaap trend */}
               <div style={{ background: 'white', border: '1px solid #E5E7EB', borderRadius: 16, padding: '20px 22px' }}>
                 <div style={{ marginBottom: 12 }}>
-                  <h2 style={{ fontSize: 13, fontWeight: 700, color: '#374151' }}>Slaap trend</h2>
-                  <p style={{ fontSize: 11, color: '#9CA3AF' }}>Gem. uren slaap per week</p>
+                  <h2 style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-2)' }}>Slaap trend</h2>
+                  <p style={{ fontSize: 11, color: 'var(--text-3)' }}>Gem. uren slaap per week</p>
                 </div>
                 <LijnenGrafiek
                   punten={data.slaap_trend}
@@ -399,8 +399,8 @@ export default function HrAnalyticsPage() {
               {/* Stress staafgrafiek */}
               <div style={{ background: 'white', border: '1px solid #E5E7EB', borderRadius: 16, padding: '20px 22px' }}>
                 <div style={{ marginBottom: 12 }}>
-                  <h2 style={{ fontSize: 13, fontWeight: 700, color: '#374151' }}>Stress trend</h2>
-                  <p style={{ fontSize: 11, color: '#9CA3AF' }}>Gem. stressniveau per week (1–10) — rood = hoog stress</p>
+                  <h2 style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-2)' }}>Stress trend</h2>
+                  <p style={{ fontSize: 11, color: 'var(--text-3)' }}>Gem. stressniveau per week (1–10) — rood = hoog stress</p>
                 </div>
                 <StaafGrafiek punten={data.stress_trend} kleur="#1D9E75" />
               </div>
@@ -420,16 +420,16 @@ export default function HrAnalyticsPage() {
                 }}
               >
                 <div style={{ textAlign: 'center' }}>
-                  <h2 style={{ fontSize: 13, fontWeight: 700, color: '#374151' }}>Participatie</h2>
-                  <p style={{ fontSize: 11, color: '#9CA3AF' }}>Check-ins deze week</p>
+                  <h2 style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-2)' }}>Participatie</h2>
+                  <p style={{ fontSize: 11, color: 'var(--text-3)' }}>Check-ins deze week</p>
                 </div>
                 <RingParticipatie
                   pct={participatiePct}
-                  kleur={participatiePct >= 70 ? '#1D9E75' : participatiePct >= 40 ? '#F59E0B' : '#E24B4A'}
+                  kleur={participatiePct >= 70 ? 'var(--mf-green)' : participatiePct >= 40 ? 'var(--mf-amber)' : 'var(--mf-red)'}
                 />
-                <p style={{ fontSize: 12, color: '#6B7280', textAlign: 'center' }}>
-                  <strong style={{ color: '#111827' }}>{data.actief_deze_week}</strong> van{' '}
-                  <strong style={{ color: '#111827' }}>{data.totaal_medewerkers}</strong> actief
+                <p style={{ fontSize: 12, color: 'var(--text-2)', textAlign: 'center' }}>
+                  <strong style={{ color: 'var(--text-1)' }}>{data.actief_deze_week}</strong> van{' '}
+                  <strong style={{ color: 'var(--text-1)' }}>{data.totaal_medewerkers}</strong> actief
                 </p>
               </div>
             </div>
@@ -438,8 +438,8 @@ export default function HrAnalyticsPage() {
             {data.top_stressoren.length > 0 && (
               <div style={{ background: 'white', border: '1px solid #E5E7EB', borderRadius: 16, padding: '20px 22px' }}>
                 <div style={{ marginBottom: 16 }}>
-                  <h2 style={{ fontSize: 13, fontWeight: 700, color: '#374151' }}>Top stressoren (30 dagen)</h2>
-                  <p style={{ fontSize: 11, color: '#9CA3AF' }}>Gebruikte technieken bij hoge stress (stress ≥ 7)</p>
+                  <h2 style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-2)' }}>Top stressoren (30 dagen)</h2>
+                  <p style={{ fontSize: 11, color: 'var(--text-3)' }}>Gebruikte technieken bij hoge stress (stress ≥ 7)</p>
                 </div>
                 <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                   {data.top_stressoren.map((s) => {
@@ -454,7 +454,7 @@ export default function HrAnalyticsPage() {
                       <div
                         key={s.naam}
                         style={{
-                          background: '#FEF3C7',
+                          background: 'var(--mf-amber-light)',
                           border: '1px solid #FDE68A',
                           borderRadius: 10,
                           padding: '10px 16px',
@@ -463,8 +463,8 @@ export default function HrAnalyticsPage() {
                           gap: 10,
                         }}
                       >
-                        <span style={{ fontSize: 18, fontWeight: 900, color: '#B45309' }}>{s.count}</span>
-                        <span style={{ fontSize: 12, fontWeight: 600, color: '#92400E' }}>
+                        <span style={{ fontSize: 18, fontWeight: 900, color: 'var(--mf-amber-dark)' }}>{s.count}</span>
+                        <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--mf-amber-dark)' }}>
                           {labelMap[s.naam] ?? s.naam}
                         </span>
                       </div>
@@ -474,7 +474,7 @@ export default function HrAnalyticsPage() {
               </div>
             )}
 
-            <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 16, textAlign: 'center' }}>
+            <p style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 16, textAlign: 'center' }}>
               Alle data is geanonimiseerd. Trends worden alleen getoond bij voldoende deelnemers.
             </p>
           </>

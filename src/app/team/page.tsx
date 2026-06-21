@@ -153,9 +153,9 @@ export default function Team() {
   )
 
   const rolBadge: Record<string, { label: string; bg: string; color: string }> = {
-    hr: { label: 'HR', bg: '#E1F5EE', color: '#0F6E56' },
-    admin: { label: 'Admin', bg: '#EEEDFE', color: '#3C3489' },
-    medewerker: { label: 'Medewerker', bg: '#E6F1FB', color: '#185FA5' },
+    hr: { label: 'HR', bg: 'var(--mf-green-light)', color: 'var(--mf-green-dark)' },
+    admin: { label: 'Admin', bg: 'var(--mf-purple-light)', color: '#3C3489' },
+    medewerker: { label: 'Medewerker', bg: 'var(--mf-blue-light)', color: 'var(--mf-blue)' },
   }
 
   const tabs = [
@@ -176,9 +176,9 @@ export default function Team() {
           <div
             className="rounded-2xl border p-4 mb-6 text-sm"
             style={{
-              background: melding.type === 'success' ? '#E1F5EE' : '#FCEBEB',
-              borderColor: melding.type === 'success' ? '#1D9E75' : '#E24B4A',
-              color: melding.type === 'success' ? '#0F6E56' : '#A32D2D',
+              background: melding.type === 'success' ? 'var(--mf-green-light)' : 'var(--mf-red-light)',
+              borderColor: melding.type === 'success' ? 'var(--mf-green)' : 'var(--mf-red)',
+              color: melding.type === 'success' ? 'var(--mf-green-dark)' : 'var(--mf-red)',
             }}
           >
             {melding.type === 'success' ? '? ' : '? '}{melding.tekst}
@@ -278,7 +278,7 @@ export default function Team() {
                                   <button
                                     onClick={() => verwijderLid(lid.id)}
                                     className="text-xs px-3 py-1.5 rounded-lg transition font-medium"
-                                    style={{ background: '#FCEBEB', color: '#A32D2D' }}
+                                    style={{ background: 'var(--mf-red-light)', color: 'var(--mf-red)' }}
                                   >
                                     Bevestig
                                   </button>

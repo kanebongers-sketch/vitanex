@@ -32,14 +32,14 @@ interface WeekRapportResponse {
 }
 
 const SCORE_LABEL_KLEUR: Record<string, string> = {
-  Uitstekend: '#1D9E75',
-  Goed: '#6366f1',
-  Matig: '#F59E0B',
-  Lastig: '#EF4444',
+  Uitstekend: 'var(--mf-green)',
+  Goed: 'var(--mf-purple)',
+  Matig: 'var(--mf-amber)',
+  Lastig: 'var(--mf-red)',
 }
 
 function scoreLabelKleur(label: string): string {
-  return SCORE_LABEL_KLEUR[label] ?? '#6366f1'
+  return SCORE_LABEL_KLEUR[label] ?? 'var(--mf-purple)'
 }
 
 interface RingProps {
@@ -128,15 +128,15 @@ export default function InzichtenPagina() {
   const stats = rapport?.stats ?? null
 
   const stemmingKleur = (v: number | null) =>
-    v === null ? 'var(--text-4)' : v >= 4 ? '#1D9E75' : v >= 3 ? '#F59E0B' : '#EF4444'
+    v === null ? 'var(--text-4)' : v >= 4 ? 'var(--mf-green)' : v >= 3 ? 'var(--mf-amber)' : 'var(--mf-red)'
 
   const slaapKleur = (v: number | null) =>
-    v === null ? 'var(--text-4)' : v >= 7 ? '#1D9E75' : v >= 5 ? '#F59E0B' : '#EF4444'
+    v === null ? 'var(--text-4)' : v >= 7 ? 'var(--mf-green)' : v >= 5 ? 'var(--mf-amber)' : 'var(--mf-red)'
 
   const rustKleur = (stress: number | null) => {
     if (stress === null) return 'var(--text-4)'
     const rust = 10 - stress
-    return rust >= 7 ? '#1D9E75' : rust >= 5 ? '#F59E0B' : '#EF4444'
+    return rust >= 7 ? 'var(--mf-green)' : rust >= 5 ? 'var(--mf-amber)' : 'var(--mf-red)'
   }
 
   if (laden) return (
@@ -258,12 +258,12 @@ export default function InzichtenPagina() {
                 <StatKaart
                   waarde={stats.aantal_checkins}
                   label="Check-ins"
-                  kleur={stats.aantal_checkins >= 3 ? '#1D9E75' : '#F59E0B'}
+                  kleur={stats.aantal_checkins >= 3 ? 'var(--mf-green)' : 'var(--mf-amber)'}
                 />
                 <StatKaart
                   waarde={stats.dankbaarheid_items}
                   label="Dankbaarheid"
-                  kleur={stats.dankbaarheid_items >= 5 ? '#1D9E75' : stats.dankbaarheid_items >= 2 ? '#F59E0B' : 'var(--text-4)'}
+                  kleur={stats.dankbaarheid_items >= 5 ? 'var(--mf-green)' : stats.dankbaarheid_items >= 2 ? 'var(--mf-amber)' : 'var(--text-4)'}
                 />
               </div>
             )}
@@ -298,12 +298,12 @@ export default function InzichtenPagina() {
 
             {/* Tip */}
             <div style={{
-              background: '#F0FDF4', borderRadius: 16, padding: '16px',
+              background: 'var(--mf-green-light)', borderRadius: 16, padding: '16px',
               border: '1px solid #BBF7D0',
             }}>
               <p style={{
                 fontSize: 11, fontWeight: 700, textTransform: 'uppercase',
-                letterSpacing: '0.08em', color: '#15803D', marginBottom: 8,
+                letterSpacing: '0.08em', color: 'var(--mf-green-dark)', marginBottom: 8,
               }}>
                 Tip van de week
               </p>

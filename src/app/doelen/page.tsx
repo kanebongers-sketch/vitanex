@@ -19,8 +19,8 @@ import { authFetch } from '@/lib/auth-fetch'
 type DoelenAdvies = { domein: string; doel: string; waarom: string }
 
 const DOMEIN_KLEUR: Record<string, string> = {
-  slaap: '#6366f1', stress: '#E24B4A', energie: '#F59E0B',
-  focus: '#1D9E75', balans: '#8B5CF6', motivatie: '#EC4899',
+  slaap: 'var(--mf-purple)', stress: 'var(--mf-red)', energie: 'var(--mf-amber)',
+  focus: 'var(--mf-green)', balans: 'var(--mf-purple)', motivatie: 'var(--mf-rose)',
 }
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
@@ -119,11 +119,11 @@ function DoelenInhoud() {
       boxShadow: '0 8px 32px rgba(0,0,0,0.14)', padding: '14px 20px', minWidth: 240,
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-        <div style={{ width: 36, height: 36, borderRadius: 10, background: '#E1F5EE', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+        <div style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--mf-green-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1D9E75" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
         </div>
         <div>
-          <p style={{ fontSize: 14, fontWeight: 800, color: '#1D9E75' }}>+{xpToast.xp} XP verdiend!</p>
+          <p style={{ fontSize: 14, fontWeight: 800, color: 'var(--mf-green)' }}>+{xpToast.xp} XP verdiend!</p>
           {xpToast.level && <p style={{ fontSize: 11, color: LEVEL_KLEUREN[xpToast.level] }}>Level {xpToast.level} — {LEVEL_NAMEN[xpToast.level]}!</p>}
         </div>
       </div>
@@ -137,7 +137,7 @@ function DoelenInhoud() {
       <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
         <Navbar />
         <main style={{ maxWidth: 520, margin: '0 auto', padding: '60px 24px', textAlign: 'center' }}>
-          <div style={{ width: 64, height: 64, borderRadius: 20, background: '#E1F5EE', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', color: '#1D9E75' }}>
+          <div style={{ width: 64, height: 64, borderRadius: 20, background: 'var(--mf-green-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', color: 'var(--mf-green)' }}>
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>
             </svg>
@@ -148,7 +148,7 @@ function DoelenInhoud() {
           </p>
           <a href="/checkin" style={{
             display: 'inline-flex', alignItems: 'center', gap: 8,
-            background: '#1D9E75', color: 'white', borderRadius: 14,
+            background: 'var(--mf-green)', color: 'white', borderRadius: 14,
             padding: '14px 28px', fontSize: 15, fontWeight: 700, textDecoration: 'none',
           }}>
             Start check-in
@@ -183,8 +183,8 @@ function DoelenInhoud() {
             <p style={{ fontSize: 13, color: 'var(--text-4)' }}>{weekLabel} · AI-geselecteerde doelen</p>
           </div>
           <a href="/checkin" style={{
-            fontSize: 13, color: '#1D9E75', padding: '8px 16px', borderRadius: 10,
-            background: '#E1F5EE', border: '1px solid #A7F3D0',
+            fontSize: 13, color: 'var(--mf-green)', padding: '8px 16px', borderRadius: 10,
+            background: 'var(--mf-green-light)', border: '1px solid #A7F3D0',
             cursor: 'pointer', fontWeight: 600, textDecoration: 'none',
             display: 'inline-flex', alignItems: 'center', gap: 6,
           }}>
@@ -208,7 +208,7 @@ function DoelenInhoud() {
                       width: 44, height: 44, borderRadius: 12,
                       background: score ? c.bg : 'var(--bg-subtle)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      color: score ? c.kleur : '#D1D5DB', margin: '0 auto 6px',
+                      color: score ? c.kleur : 'var(--text-4)', margin: '0 auto 6px',
                       border: `1.5px solid ${score ? c.kleur + '30' : 'var(--border)'}`,
                     }}>
                       <span style={{ transform: 'scale(0.85)', display: 'flex' }}>{c.icon}</span>
@@ -217,7 +217,7 @@ function DoelenInhoud() {
                     {score > 0 ? (
                       <span style={{ fontSize: 12, fontWeight: 700, color: scoreKleur(score) }}>{score}/20</span>
                     ) : (
-                      <span style={{ fontSize: 10, color: '#D1D5DB' }}>—</span>
+                      <span style={{ fontSize: 10, color: 'var(--text-4)' }}>—</span>
                     )}
                   </div>
                 )
@@ -230,7 +230,7 @@ function DoelenInhoud() {
         <div style={{ background: 'var(--bg-card)', borderRadius: 16, border: '1px solid var(--border)', padding: '18px 22px', marginBottom: 20 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <div style={{ width: 28, height: 28, borderRadius: 8, background: '#EEEDFE', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ width: 28, height: 28, borderRadius: 8, background: 'var(--mf-purple-light)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/>
                 </svg>
@@ -243,7 +243,7 @@ function DoelenInhoud() {
                 disabled={adviesBezig}
                 style={{
                   fontSize: 12, fontWeight: 600, padding: '6px 14px', borderRadius: 8,
-                  background: '#8B5CF6', color: 'white', border: 'none', cursor: 'pointer',
+                  background: 'var(--mf-purple)', color: 'white', border: 'none', cursor: 'pointer',
                   opacity: adviesBezig ? 0.6 : 1,
                 }}
               >
@@ -273,7 +273,7 @@ function DoelenInhoud() {
           {adviezen && adviezen.length > 0 && (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
               {adviezen.map((a, i) => {
-                const kleur = DOMEIN_KLEUR[a.domein] ?? '#6366f1'
+                const kleur = DOMEIN_KLEUR[a.domein] ?? 'var(--mf-purple)'
                 return (
                   <div key={i} style={{ borderRadius: 12, padding: '12px 14px', background: `${kleur}0A`, border: `1px solid ${kleur}30` }}>
                     <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: kleur }}>
@@ -359,8 +359,8 @@ function DoelenInhoud() {
                       return streak > 0 ? (
                         <span style={{
                           display: 'inline-flex', alignItems: 'center', gap: 3,
-                          fontSize: 10, fontWeight: 700, color: '#E24B4A',
-                          background: '#FEE2E2', borderRadius: 100, padding: '2px 8px',
+                          fontSize: 10, fontWeight: 700, color: 'var(--mf-red)',
+                          background: 'var(--mf-red-light)', borderRadius: 100, padding: '2px 8px',
                         }}>
                           🔥 {streak} dag{streak !== 1 ? 'en' : ''} op rij
                         </span>
@@ -491,7 +491,7 @@ function DoelenInhoud() {
                   onClick={() => logGehaald(doel, false)}
                   style={{
                     padding: '14px', borderRadius: 14, border: `2px solid ${logEntry?.gehaald === false ? '#DC2626' : 'var(--border)'}`,
-                    background: logEntry?.gehaald === false ? '#DC2626' : 'var(--bg-card)',
+                    background: logEntry?.gehaald === false ? 'var(--mf-red)' : 'var(--bg-card)',
                     color: logEntry?.gehaald === false ? 'white' : 'var(--text-2)',
                     fontSize: 14, fontWeight: 700, cursor: 'pointer',
                     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,

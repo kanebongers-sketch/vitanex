@@ -55,12 +55,12 @@ function beginVanWeek(): string {
 }
 
 const NIVEAU_HEX: Record<string, string> = {
-  gevorderd: '#E24B4A',
-  gemiddeld: '#BA7517',
+  gevorderd: 'var(--mf-red)',
+  gemiddeld: 'var(--mf-amber)',
 }
 
 function NiveauBadge({ niveau }: { niveau: string }) {
-  const kleur = NIVEAU_HEX[niveau] ?? '#1D9E75'
+  const kleur = NIVEAU_HEX[niveau] ?? 'var(--mf-green)'
   return (
     <span style={{
       backgroundColor: kleur + '1A',
@@ -196,7 +196,7 @@ export default function SportPagina() {
 
         {!schema ? (
           <div style={{
-            backgroundColor: '#F97316',
+            backgroundColor: 'var(--mf-orange)',
             borderRadius: 20,
             padding: '32px 24px',
             display: 'flex',
@@ -221,7 +221,7 @@ export default function SportPagina() {
             <Link href="/sport/genereer" style={{ textDecoration: 'none' }}>
               <div style={{
                 backgroundColor: 'white',
-                color: '#F97316',
+                color: 'var(--mf-orange)',
                 fontWeight: 700,
                 fontSize: 15,
                 padding: '12px 24px',
@@ -267,7 +267,7 @@ export default function SportPagina() {
             <Link href="/sport/training" style={{ textDecoration: 'none' }}>
               <div style={{
                 backgroundColor: 'white',
-                color: '#1D9E75',
+                color: 'var(--mf-green)',
                 fontWeight: 700,
                 fontSize: 15,
                 padding: '12px 24px',
@@ -327,7 +327,7 @@ export default function SportPagina() {
         }}>
           <div style={{ padding: '20px 20px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <h2 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-1)', margin: 0 }}>Recente trainingen</h2>
-            <Link href="/sport/geschiedenis" style={{ fontSize: 13, color: '#1D9E75', fontWeight: 600, textDecoration: 'none' }}>
+            <Link href="/sport/geschiedenis" style={{ fontSize: 13, color: 'var(--mf-green)', fontWeight: 600, textDecoration: 'none' }}>
               Bekijk alle →
             </Link>
           </div>
@@ -353,7 +353,7 @@ export default function SportPagina() {
                     width: 36,
                     height: 36,
                     borderRadius: 10,
-                    backgroundColor: '#F97316' + '1A',
+                    backgroundColor: 'var(--mf-orange)' + '1A',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',

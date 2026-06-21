@@ -536,7 +536,7 @@ export default function OnboardingPage() {
           border: '1.5px solid rgba(29,158,117,0.25)',
           borderRadius: 16, padding: '14px 18px', marginBottom: 20, textAlign: 'left',
         }}>
-          <p style={{ fontSize: 12, fontWeight: 700, color: '#0F6E56', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>
+          <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--mf-green-dark)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>
             Bewezen resultaten
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -546,8 +546,8 @@ export default function OnboardingPage() {
               '76% voelt zich energieker na 2 weken',
             ].map(stat => (
               <div key={stat} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ color: '#1D9E75', fontWeight: 700, flexShrink: 0 }}>✓</span>
-                <p style={{ fontSize: 13, color: '#14532d', lineHeight: 1.4, margin: 0 }}>{stat}</p>
+                <span style={{ color: 'var(--mf-green)', fontWeight: 700, flexShrink: 0 }}>✓</span>
+                <p style={{ fontSize: 13, color: 'var(--mf-green-dark)', lineHeight: 1.4, margin: 0 }}>{stat}</p>
               </div>
             ))}
           </div>
@@ -589,7 +589,7 @@ export default function OnboardingPage() {
               <div>
                 <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--mf-heading, #111827)', marginBottom: 2 }}>{item.title}</p>
                 <p style={{ fontSize: 13, color: 'var(--mf-text-muted, #6B7280)', lineHeight: 1.4, marginBottom: 4 }}>{item.desc}</p>
-                <p style={{ fontSize: 11, color: '#1D9E75', fontWeight: 600, fontStyle: 'italic' }}>Waarom: {item.waarom}</p>
+                <p style={{ fontSize: 11, color: 'var(--mf-green)', fontWeight: 600, fontStyle: 'italic' }}>Waarom: {item.waarom}</p>
               </div>
             </div>
           ))}

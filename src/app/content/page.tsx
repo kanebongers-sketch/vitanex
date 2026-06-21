@@ -68,9 +68,9 @@ function uurVanDeDag(): string {
   return 'Goedenavond'
 }
 
-const GROEN = '#1D9E75'
-const ORANJE = '#E8A020'
-const BLAUW = '#185FA5'
+const GROEN = 'var(--mf-green)'
+const ORANJE = 'var(--mf-amber)'
+const BLAUW = 'var(--mf-blue)'
 
 // ── VideoKaart ─────────────────────────────────────────────
 
@@ -94,7 +94,7 @@ function VideoKaart({ video, briefingId, onStatusUpdate }: {
 
   return (
     <div style={{
-      background: gefilmd ? '#F0FDF4' : 'var(--bg-card)',
+      background: gefilmd ? 'var(--mf-green-light)' : 'var(--bg-card)',
       border: `2px solid ${gefilmd ? '#86EFAC' : 'var(--border)'}`,
       borderRadius: 'var(--radius-lg)',
       overflow: 'hidden',
@@ -107,7 +107,7 @@ function VideoKaart({ video, briefingId, onStatusUpdate }: {
           {/* Nummer badge */}
           <div style={{
             width: 44, height: 44, borderRadius: 12,
-            background: gefilmd ? '#1D9E75' : 'var(--bg-subtle)',
+            background: gefilmd ? 'var(--mf-green)' : 'var(--bg-subtle)',
             border: `2px solid ${gefilmd ? '#1D9E75' : 'var(--border)'}`,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontSize: 18, fontWeight: 900, color: gefilmd ? '#fff' : 'var(--text-1)', flexShrink: 0,
@@ -165,7 +165,7 @@ function VideoKaart({ video, briefingId, onStatusUpdate }: {
             onClick={markeerGefilmd}
             style={{
               padding: '10px 20px', borderRadius: 10, border: 'none', cursor: 'pointer',
-              background: gefilmd ? '#1D9E75' : 'var(--bg-subtle)',
+              background: gefilmd ? 'var(--mf-green)' : 'var(--bg-subtle)',
               color: gefilmd ? '#fff' : 'var(--text-2)',
               fontSize: 13, fontWeight: 700, flexShrink: 0,
               transition: 'all 0.15s ease',
@@ -271,7 +271,7 @@ function VideoKaart({ video, briefingId, onStatusUpdate }: {
               {[
                 { label: '📷 Camera', waarde: video.camera_opstelling, kleur: ORANJE },
                 { label: '👕 Kleding', waarde: video.kleding, kleur: BLAUW },
-                { label: '💡 Licht', waarde: video.licht, kleur: '#8B5CF6' },
+                { label: '💡 Licht', waarde: video.licht, kleur: 'var(--mf-purple)' },
               ].map(item => item.waarde ? (
                 <div key={item.label} style={{
                   background: 'var(--bg-subtle)', border: '1px solid var(--border)',
@@ -317,7 +317,7 @@ function VideoKaart({ video, briefingId, onStatusUpdate }: {
             {/* Pro tip */}
             {video.productie_tip && (
               <div style={{
-                background: '#FFF7ED', border: '1px solid #FED7AA',
+                background: 'var(--mf-orange-light)', border: '1px solid #FED7AA',
                 borderRadius: 10, padding: '14px 16px',
                 display: 'flex', gap: 10, alignItems: 'flex-start',
               }}>
@@ -326,7 +326,7 @@ function VideoKaart({ video, briefingId, onStatusUpdate }: {
                   <div style={{ fontSize: 11, fontWeight: 800, color: ORANJE, marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                     Pro tip
                   </div>
-                  <div style={{ fontSize: 13, color: '#92400E', lineHeight: 1.6 }}>
+                  <div style={{ fontSize: 13, color: 'var(--mf-amber-dark)', lineHeight: 1.6 }}>
                     {video.productie_tip}
                   </div>
                 </div>
@@ -492,7 +492,7 @@ export default function ContentPage() {
               disabled={genereren}
               style={{
                 padding: '14px 36px', borderRadius: 12, border: 'none', cursor: 'pointer',
-                background: genereren ? '#9CA3AF' : GROEN,
+                background: genereren ? 'var(--text-3)' : GROEN,
                 color: '#fff', fontSize: 16, fontWeight: 800,
                 boxShadow: genereren ? 'none' : '0 4px 16px rgba(29,158,117,0.4)',
               }}
@@ -528,7 +528,7 @@ export default function ContentPage() {
                   label: 'Platforms',
                   waarde: [...new Set(briefing.videos.flatMap(v => v.platform))].length.toString(),
                   sub: [...new Set(briefing.videos.flatMap(v => v.platform))].join(', '),
-                  kleur: '#8B5CF6', icon: '📱',
+                  kleur: 'var(--mf-purple)', icon: '📱',
                 },
               ].map(stat => (
                 <div key={stat.label} style={{
@@ -578,7 +578,7 @@ export default function ContentPage() {
                 style={{
                   padding: '12px 24px', borderRadius: 10, border: 'none',
                   cursor: pdfLaden ? 'not-allowed' : 'pointer',
-                  background: pdfLaden ? '#9CA3AF' : pdfUrl ? GROEN : BLAUW,
+                  background: pdfLaden ? 'var(--text-3)' : pdfUrl ? GROEN : BLAUW,
                   color: '#fff', fontSize: 13, fontWeight: 700,
                   boxShadow: pdfLaden ? 'none' : '0 2px 10px rgba(24,95,165,0.3)',
                   transition: 'all 0.2s ease',
@@ -611,9 +611,9 @@ export default function ContentPage() {
 
         {error && (
           <div style={{
-            marginTop: 16, padding: '12px 16px', background: '#FEF2F2',
+            marginTop: 16, padding: '12px 16px', background: 'var(--mf-red-light)',
             border: '1px solid #FECACA', borderRadius: 10,
-            fontSize: 14, color: '#E24B4A', fontWeight: 600,
+            fontSize: 14, color: 'var(--mf-red)', fontWeight: 600,
           }}>
             {error}
           </div>

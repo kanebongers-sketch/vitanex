@@ -141,7 +141,7 @@ export default function RoosterDetailPage() {
   if (!geladen || !rooster) {
     return (
       <HrShell>
-        <div style={{ textAlign: 'center', padding: 60, color: '#9CA3AF' }}>Laden...</div>
+        <div style={{ textAlign: 'center', padding: 60, color: 'var(--text-3)' }}>Laden...</div>
       </HrShell>
     )
   }
@@ -153,19 +153,19 @@ export default function RoosterDetailPage() {
       <div style={{ maxWidth: 1000, margin: '0 auto', padding: '28px 16px' }}>
 
         {/* Breadcrumb */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20, fontSize: 13, color: '#6B7280' }}>
-          <button onClick={() => router.push('/hr/roosters')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6B7280', padding: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20, fontSize: 13, color: 'var(--text-2)' }}>
+          <button onClick={() => router.push('/hr/roosters')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-2)', padding: 0 }}>
             Roosters
           </button>
           <span>/</span>
-          <span style={{ color: '#111827', fontWeight: 500 }}>{rooster.naam}</span>
+          <span style={{ color: 'var(--text-1)', fontWeight: 500 }}>{rooster.naam}</span>
         </div>
 
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
           <div>
-            <h1 style={{ fontSize: 22, fontWeight: 700, color: '#111827', margin: 0 }}>{rooster.naam}</h1>
-            <p style={{ color: '#6B7280', fontSize: 13, marginTop: 3 }}>
+            <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-1)', margin: 0 }}>{rooster.naam}</h1>
+            <p style={{ color: 'var(--text-2)', fontSize: 13, marginTop: 3 }}>
               {new Date(rooster.week_start).toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' })}
               {' – '}
               {(() => { const z = new Date(rooster.week_start); z.setDate(z.getDate() + 6); return z.toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' }) })()}
@@ -174,7 +174,7 @@ export default function RoosterDetailPage() {
           <button
             onClick={() => { setFormOpen(true); setFout('') }}
             style={{
-              background: '#1D9E75',
+              background: 'var(--mf-green)',
               color: '#fff',
               padding: '9px 18px',
               borderRadius: 10,
@@ -203,11 +203,11 @@ export default function RoosterDetailPage() {
             const dagDiensten = diensten.filter(d => d.datum === dag)
             return (
               <div key={dag} className="rounded-2xl border border-gray-100" style={{ background: '#fff', padding: '14px 18px' }}>
-                <div style={{ fontWeight: 600, color: '#374151', fontSize: 14, marginBottom: dagDiensten.length > 0 ? 10 : 0 }}>
-                  {DAGAMEN[i]} <span style={{ color: '#9CA3AF', fontWeight: 400, fontSize: 12 }}>{new Date(dag).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' })}</span>
+                <div style={{ fontWeight: 600, color: 'var(--text-2)', fontSize: 14, marginBottom: dagDiensten.length > 0 ? 10 : 0 }}>
+                  {DAGAMEN[i]} <span style={{ color: 'var(--text-3)', fontWeight: 400, fontSize: 12 }}>{new Date(dag).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' })}</span>
                 </div>
                 {dagDiensten.length === 0 ? (
-                  <div style={{ color: '#D1D5DB', fontSize: 12 }}>Geen diensten</div>
+                  <div style={{ color: 'var(--text-4)', fontSize: 12 }}>Geen diensten</div>
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                     {dagDiensten.map(d => (
@@ -217,23 +217,23 @@ export default function RoosterDetailPage() {
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'space-between',
-                          background: '#F9FAFB',
+                          background: 'var(--bg-subtle)',
                           borderRadius: 8,
                           padding: '8px 12px',
                         }}
                       >
                         <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-                          <span style={{ fontWeight: 600, color: '#1D9E75', fontSize: 13, minWidth: 90 }}>
+                          <span style={{ fontWeight: 600, color: 'var(--mf-green)', fontSize: 13, minWidth: 90 }}>
                             {d.start_tijd.slice(0, 5)}–{d.eind_tijd.slice(0, 5)}
                           </span>
-                          <span style={{ color: '#111827', fontSize: 13 }}>{d.user_naam}</span>
-                          {d.rol_label && <span style={{ color: '#9CA3AF', fontSize: 11 }}>{d.rol_label}</span>}
-                          {d.notitie && <span style={{ color: '#9CA3AF', fontSize: 11, fontStyle: 'italic' }}>{d.notitie}</span>}
+                          <span style={{ color: 'var(--text-1)', fontSize: 13 }}>{d.user_naam}</span>
+                          {d.rol_label && <span style={{ color: 'var(--text-3)', fontSize: 11 }}>{d.rol_label}</span>}
+                          {d.notitie && <span style={{ color: 'var(--text-3)', fontSize: 11, fontStyle: 'italic' }}>{d.notitie}</span>}
                         </div>
                         <button
                           onClick={() => verwijderDienst(d.id)}
                           disabled={verwijderBezig === d.id}
-                          style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#EF4444', fontSize: 13, padding: '2px 6px' }}
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--mf-red)', fontSize: 13, padding: '2px 6px' }}
                         >
                           {verwijderBezig === d.id ? '...' : '✕'}
                         </button>
@@ -254,17 +254,17 @@ export default function RoosterDetailPage() {
           }}>
             <div className="rounded-2xl" style={{ background: '#fff', width: '100%', maxWidth: 480, padding: 28, margin: '0 16px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-                <h2 style={{ fontSize: 18, fontWeight: 700, color: '#111827', margin: 0 }}>Dienst toevoegen</h2>
-                <button onClick={() => setFormOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, color: '#9CA3AF' }}>✕</button>
+                <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-1)', margin: 0 }}>Dienst toevoegen</h2>
+                <button onClick={() => setFormOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, color: 'var(--text-3)' }}>✕</button>
               </div>
 
               {/* Medewerker */}
               <div style={{ marginBottom: 14 }}>
-                <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 5 }}>Medewerker</label>
+                <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-2)', marginBottom: 5 }}>Medewerker</label>
                 <select
                   value={form.user_id}
                   onChange={e => setForm(f => ({ ...f, user_id: e.target.value }))}
-                  style={{ width: '100%', padding: '9px 12px', borderRadius: 8, border: '1.5px solid #E5E7EB', fontSize: 14, color: '#111827', outline: 'none', boxSizing: 'border-box' }}
+                  style={{ width: '100%', padding: '9px 12px', borderRadius: 8, border: '1.5px solid #E5E7EB', fontSize: 14, color: 'var(--text-1)', outline: 'none', boxSizing: 'border-box' }}
                 >
                   <option value="">Kies medewerker...</option>
                   {medewerkers.map(m => (
@@ -275,11 +275,11 @@ export default function RoosterDetailPage() {
 
               {/* Datum */}
               <div style={{ marginBottom: 14 }}>
-                <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 5 }}>Datum</label>
+                <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-2)', marginBottom: 5 }}>Datum</label>
                 <select
                   value={form.datum}
                   onChange={e => setForm(f => ({ ...f, datum: e.target.value }))}
-                  style={{ width: '100%', padding: '9px 12px', borderRadius: 8, border: '1.5px solid #E5E7EB', fontSize: 14, color: '#111827', outline: 'none', boxSizing: 'border-box' }}
+                  style={{ width: '100%', padding: '9px 12px', borderRadius: 8, border: '1.5px solid #E5E7EB', fontSize: 14, color: 'var(--text-1)', outline: 'none', boxSizing: 'border-box' }}
                 >
                   <option value="">Kies dag...</option>
                   {dagen.map((d, i) => (
@@ -293,55 +293,55 @@ export default function RoosterDetailPage() {
               {/* Tijden */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 5 }}>Starttijd</label>
+                  <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-2)', marginBottom: 5 }}>Starttijd</label>
                   <input
                     type="time"
                     value={form.start_tijd}
                     onChange={e => setForm(f => ({ ...f, start_tijd: e.target.value }))}
-                    style={{ width: '100%', padding: '9px 12px', borderRadius: 8, border: '1.5px solid #E5E7EB', fontSize: 14, color: '#111827', outline: 'none', boxSizing: 'border-box' }}
+                    style={{ width: '100%', padding: '9px 12px', borderRadius: 8, border: '1.5px solid #E5E7EB', fontSize: 14, color: 'var(--text-1)', outline: 'none', boxSizing: 'border-box' }}
                   />
                 </div>
                 <div>
-                  <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 5 }}>Eindtijd</label>
+                  <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-2)', marginBottom: 5 }}>Eindtijd</label>
                   <input
                     type="time"
                     value={form.eind_tijd}
                     onChange={e => setForm(f => ({ ...f, eind_tijd: e.target.value }))}
-                    style={{ width: '100%', padding: '9px 12px', borderRadius: 8, border: '1.5px solid #E5E7EB', fontSize: 14, color: '#111827', outline: 'none', boxSizing: 'border-box' }}
+                    style={{ width: '100%', padding: '9px 12px', borderRadius: 8, border: '1.5px solid #E5E7EB', fontSize: 14, color: 'var(--text-1)', outline: 'none', boxSizing: 'border-box' }}
                   />
                 </div>
               </div>
 
               {/* Rol label */}
               <div style={{ marginBottom: 14 }}>
-                <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 5 }}>
-                  Rol / label <span style={{ fontWeight: 400, color: '#9CA3AF' }}>(optioneel)</span>
+                <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-2)', marginBottom: 5 }}>
+                  Rol / label <span style={{ fontWeight: 400, color: 'var(--text-3)' }}>(optioneel)</span>
                 </label>
                 <input
                   type="text"
                   value={form.rol_label}
                   onChange={e => setForm(f => ({ ...f, rol_label: e.target.value }))}
                   placeholder="bijv. Kassa, Magazijn, Support..."
-                  style={{ width: '100%', padding: '9px 12px', borderRadius: 8, border: '1.5px solid #E5E7EB', fontSize: 14, color: '#111827', outline: 'none', boxSizing: 'border-box' }}
+                  style={{ width: '100%', padding: '9px 12px', borderRadius: 8, border: '1.5px solid #E5E7EB', fontSize: 14, color: 'var(--text-1)', outline: 'none', boxSizing: 'border-box' }}
                 />
               </div>
 
               {/* Notitie */}
               <div style={{ marginBottom: 20 }}>
-                <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 5 }}>
-                  Notitie <span style={{ fontWeight: 400, color: '#9CA3AF' }}>(optioneel)</span>
+                <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-2)', marginBottom: 5 }}>
+                  Notitie <span style={{ fontWeight: 400, color: 'var(--text-3)' }}>(optioneel)</span>
                 </label>
                 <input
                   type="text"
                   value={form.notitie}
                   onChange={e => setForm(f => ({ ...f, notitie: e.target.value }))}
                   placeholder="Extra info voor de medewerker..."
-                  style={{ width: '100%', padding: '9px 12px', borderRadius: 8, border: '1.5px solid #E5E7EB', fontSize: 14, color: '#111827', outline: 'none', boxSizing: 'border-box' }}
+                  style={{ width: '100%', padding: '9px 12px', borderRadius: 8, border: '1.5px solid #E5E7EB', fontSize: 14, color: 'var(--text-1)', outline: 'none', boxSizing: 'border-box' }}
                 />
               </div>
 
               {fout && (
-                <div style={{ background: '#FCEBEB', color: '#A32D2D', borderRadius: 8, padding: '10px 14px', fontSize: 13, marginBottom: 14 }}>
+                <div style={{ background: 'var(--mf-red-light)', color: 'var(--mf-red)', borderRadius: 8, padding: '10px 14px', fontSize: 13, marginBottom: 14 }}>
                   {fout}
                 </div>
               )}
@@ -349,14 +349,14 @@ export default function RoosterDetailPage() {
               <div style={{ display: 'flex', gap: 10 }}>
                 <button
                   onClick={() => setFormOpen(false)}
-                  style={{ flex: 1, padding: 11, borderRadius: 10, border: '1.5px solid #E5E7EB', background: '#fff', color: '#374151', fontSize: 14, fontWeight: 500, cursor: 'pointer' }}
+                  style={{ flex: 1, padding: 11, borderRadius: 10, border: '1.5px solid #E5E7EB', background: '#fff', color: 'var(--text-2)', fontSize: 14, fontWeight: 500, cursor: 'pointer' }}
                 >
                   Annuleren
                 </button>
                 <button
                   onClick={voegDienstToe}
                   disabled={bezig}
-                  style={{ flex: 2, padding: 11, borderRadius: 10, border: 'none', background: bezig ? '#9CA3AF' : '#1D9E75', color: '#fff', fontSize: 14, fontWeight: 600, cursor: bezig ? 'not-allowed' : 'pointer' }}
+                  style={{ flex: 2, padding: 11, borderRadius: 10, border: 'none', background: bezig ? 'var(--text-3)' : 'var(--mf-green)', color: '#fff', fontSize: 14, fontWeight: 600, cursor: bezig ? 'not-allowed' : 'pointer' }}
                 >
                   {bezig ? 'Opslaan...' : 'Dienst opslaan'}
                 </button>

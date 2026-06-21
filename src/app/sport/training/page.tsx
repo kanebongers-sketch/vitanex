@@ -209,7 +209,7 @@ export default function TrainingLoggerPage() {
 
   if (laden) return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-app)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ color: '#888', fontSize: 16 }}>Laden...</div>
+      <div style={{ color: 'var(--text-3)', fontSize: 16 }}>Laden...</div>
     </div>
   )
 
@@ -217,7 +217,7 @@ export default function TrainingLoggerPage() {
     <div style={{ minHeight: '100vh', background: 'var(--bg-app)', paddingBottom: 80 }}>
       <Navbar />
 
-      {toast && <div style={{ position: 'fixed', top: 80, left: '50%', transform: 'translateX(-50%)', background: '#1D9E75', color: '#fff', padding: '12px 24px', borderRadius: 12, fontWeight: 600, fontSize: 15, zIndex: 9999, boxShadow: '0 4px 20px rgba(0,0,0,0.2)' }}>{toast}</div>}
+      {toast && <div style={{ position: 'fixed', top: 80, left: '50%', transform: 'translateX(-50%)', background: 'var(--mf-green)', color: '#fff', padding: '12px 24px', borderRadius: 12, fontWeight: 600, fontSize: 15, zIndex: 9999, boxShadow: '0 4px 20px rgba(0,0,0,0.2)' }}>{toast}</div>}
 
       <div style={{ maxWidth: 680, margin: '0 auto', padding: '24px 16px' }}>
 
@@ -227,7 +227,7 @@ export default function TrainingLoggerPage() {
               <h1 style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-primary, #111)', margin: 0 }}>
                 Training starten
               </h1>
-              <p style={{ color: '#888', fontSize: 14, marginTop: 6 }}>
+              <p style={{ color: 'var(--text-3)', fontSize: 14, marginTop: 6 }}>
                 {schema.naam} — kies welke training je vandaag doet
               </p>
             </div>
@@ -237,7 +237,7 @@ export default function TrainingLoggerPage() {
                 const isAanbevolen = idx === aanbevolenDag(schema.schema_json)
                 return (
                   <div key={idx} style={{
-                    background: '#fff',
+                    background: 'var(--bg-card)',
                     borderRadius: 16,
                     padding: 20,
                     border: isAanbevolen ? '2px solid #1D9E75' : '1px solid #eee',
@@ -246,7 +246,7 @@ export default function TrainingLoggerPage() {
                     {isAanbevolen && (
                       <div style={{
                         position: 'absolute', top: -12, left: 20,
-                        background: '#1D9E75', color: '#fff',
+                        background: 'var(--mf-green)', color: '#fff',
                         fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20,
                         letterSpacing: '0.5px',
                       }}>
@@ -256,14 +256,14 @@ export default function TrainingLoggerPage() {
 
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
                       <div>
-                        <span style={{ fontSize: 12, color: '#aaa', fontWeight: 500 }}>Dag {training.dag}</span>
-                        <h2 style={{ fontSize: 18, fontWeight: 700, color: '#111', margin: '2px 0 6px' }}>
+                        <span style={{ fontSize: 12, color: 'var(--text-3)', fontWeight: 500 }}>Dag {training.dag}</span>
+                        <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-1)', margin: '2px 0 6px' }}>
                           {training.naam}
                         </h2>
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                           {training.spiergroepen.map((sg, i) => (
                             <span key={i} style={{
-                              background: '#f3f4f6', color: '#555', fontSize: 12,
+                              background: 'var(--bg-subtle)', color: 'var(--text-2)', fontSize: 12,
                               padding: '3px 10px', borderRadius: 20, fontWeight: 500,
                             }}>
                               {sg}
@@ -272,30 +272,30 @@ export default function TrainingLoggerPage() {
                         </div>
                       </div>
                       <div style={{
-                        background: '#f9fafb', borderRadius: 10, padding: '8px 14px',
+                        background: 'var(--bg-subtle)', borderRadius: 10, padding: '8px 14px',
                         textAlign: 'center', flexShrink: 0,
                       }}>
-                        <div style={{ fontSize: 18, fontWeight: 700, color: '#F97316' }}>
+                        <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--mf-orange)' }}>
                           {training.geschatte_duur}
                         </div>
-                        <div style={{ fontSize: 11, color: '#aaa' }}>min</div>
+                        <div style={{ fontSize: 11, color: 'var(--text-3)' }}>min</div>
                       </div>
                     </div>
 
                     {training.coaching_tekst && (
-                      <p style={{ fontSize: 13, color: '#666', fontStyle: 'italic', margin: '0 0 14px', lineHeight: 1.5 }}>
+                      <p style={{ fontSize: 13, color: 'var(--text-2)', fontStyle: 'italic', margin: '0 0 14px', lineHeight: 1.5 }}>
                         &ldquo;{training.coaching_tekst}&rdquo;
                       </p>
                     )}
 
-                    <div style={{ fontSize: 12, color: '#aaa', marginBottom: 14 }}>
+                    <div style={{ fontSize: 12, color: 'var(--text-3)', marginBottom: 14 }}>
                       {training.oefeningen.length} oefeningen
                     </div>
 
                     <button
                       onClick={() => startTraining(training)}
                       style={{
-                        width: '100%', background: isAanbevolen ? '#1D9E75' : '#111',
+                        width: '100%', background: isAanbevolen ? 'var(--mf-green)' : '#111',
                         color: '#fff', border: 'none', borderRadius: 12,
                         padding: '12px 0', fontSize: 15, fontWeight: 600, cursor: 'pointer',
                       }}
@@ -312,30 +312,30 @@ export default function TrainingLoggerPage() {
         {scherm === 'actief' && gekozenTraining && (
           <>
             <div style={{
-              background: '#fff', borderRadius: 16, padding: 20, marginBottom: 20,
+              background: 'var(--bg-card)', borderRadius: 16, padding: 20, marginBottom: 20,
               display: 'flex', justifyContent: 'space-between', alignItems: 'center',
             }}>
               <div>
-                <div style={{ fontSize: 12, color: '#aaa', fontWeight: 500 }}>Actieve training</div>
-                <h1 style={{ fontSize: 20, fontWeight: 700, color: '#111', margin: '2px 0' }}>
+                <div style={{ fontSize: 12, color: 'var(--text-3)', fontWeight: 500 }}>Actieve training</div>
+                <h1 style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-1)', margin: '2px 0' }}>
                   {gekozenTraining.naam}
                 </h1>
-                <div style={{ fontSize: 13, color: '#1D9E75', fontWeight: 500 }}>
+                <div style={{ fontSize: 13, color: 'var(--mf-green)', fontWeight: 500 }}>
                   {oefeningenVoltooid} van {oefeningen.length} oefeningen
                 </div>
               </div>
               <div style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: 28, fontWeight: 700, color: '#F97316', fontVariantNumeric: 'tabular-nums' }}>
+                <div style={{ fontSize: 28, fontWeight: 700, color: 'var(--mf-orange)', fontVariantNumeric: 'tabular-nums' }}>
                   {formatTimer(timerSec)}
                 </div>
-                <div style={{ fontSize: 11, color: '#aaa' }}>verstreken</div>
+                <div style={{ fontSize: 11, color: 'var(--text-3)' }}>verstreken</div>
               </div>
             </div>
 
             <div style={{ marginBottom: 16 }}>
-              <div style={{ height: 6, background: '#f3f4f6', borderRadius: 6, overflow: 'hidden' }}>
+              <div style={{ height: 6, background: 'var(--bg-subtle)', borderRadius: 6, overflow: 'hidden' }}>
                 <div style={{
-                  height: '100%', borderRadius: 6, background: '#1D9E75',
+                  height: '100%', borderRadius: 6, background: 'var(--mf-green)',
                   width: `${oefeningen.length ? (oefeningenVoltooid / oefeningen.length) * 100 : 0}%`,
                   transition: 'width 0.3s ease',
                 }} />
@@ -347,16 +347,16 @@ export default function TrainingLoggerPage() {
                 const alVoltooid = oef.setsGedaan.every(s => s.voltooid)
                 return (
                   <div key={oi} style={{
-                    background: '#fff', borderRadius: 16, padding: 20,
+                    background: 'var(--bg-card)', borderRadius: 16, padding: 20,
                     border: alVoltooid ? '2px solid #1D9E75' : '1px solid #eee',
                     opacity: alVoltooid ? 0.85 : 1,
                   }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-                      <h3 style={{ fontSize: 17, fontWeight: 700, color: '#111', margin: 0 }}>
-                        {alVoltooid && <span style={{ color: '#1D9E75', marginRight: 6 }}>✓</span>}
+                      <h3 style={{ fontSize: 17, fontWeight: 700, color: 'var(--text-1)', margin: 0 }}>
+                        {alVoltooid && <span style={{ color: 'var(--mf-green)', marginRight: 6 }}>✓</span>}
                         {oef.naam}
                       </h3>
-                      <span style={{ fontSize: 12, color: '#aaa' }}>
+                      <span style={{ fontSize: 12, color: 'var(--text-3)' }}>
                         {oef.doelSets}×{oef.doelHerhalingen}
                       </span>
                     </div>
@@ -364,7 +364,7 @@ export default function TrainingLoggerPage() {
                     <button
                       onClick={() => toggleTip(oi)}
                       style={{
-                        background: 'none', border: 'none', color: '#aaa', fontSize: 12,
+                        background: 'none', border: 'none', color: 'var(--text-3)', fontSize: 12,
                         cursor: 'pointer', padding: '4px 0 10px', display: 'block',
                       }}
                     >
@@ -373,8 +373,8 @@ export default function TrainingLoggerPage() {
 
                     {!oef.tipIngeklapt && (
                       <div style={{
-                        background: '#f9fafb', borderRadius: 8, padding: '8px 12px',
-                        fontSize: 13, color: '#666', marginBottom: 12, lineHeight: 1.5,
+                        background: 'var(--bg-subtle)', borderRadius: 8, padding: '8px 12px',
+                        fontSize: 13, color: 'var(--text-2)', marginBottom: 12, lineHeight: 1.5,
                       }}>
                         {oefenImages[oef.naam] && (
                           <img
@@ -385,7 +385,7 @@ export default function TrainingLoggerPage() {
                         )}
                         {oef.uitvoering_tip}
                         {oef.heeft_gewicht && oef.gewicht_tip && (
-                          <div style={{ marginTop: 4, color: '#F97316', fontWeight: 500 }}>
+                          <div style={{ marginTop: 4, color: 'var(--mf-orange)', fontWeight: 500 }}>
                             💡 {oef.gewicht_tip}
                           </div>
                         )}
@@ -395,7 +395,7 @@ export default function TrainingLoggerPage() {
                     {!oef.heeft_gewicht && (
                       <div style={{
                         display: 'inline-flex', alignItems: 'center', gap: 4,
-                        background: '#f0fdf4', color: '#1D9E75', borderRadius: 8,
+                        background: 'var(--mf-green-light)', color: 'var(--mf-green)', borderRadius: 8,
                         padding: '4px 10px', fontSize: 12, fontWeight: 600, marginBottom: 10,
                       }}>
                         💪 Bodyweight oefening
@@ -408,21 +408,21 @@ export default function TrainingLoggerPage() {
                         opacity: set.voltooid ? 0.6 : 1,
                       }}>
                         <div style={{
-                          width: 32, height: 32, borderRadius: 8, background: '#f3f4f6',
+                          width: 32, height: 32, borderRadius: 8, background: 'var(--bg-subtle)',
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          fontSize: 13, fontWeight: 600, color: '#555', flexShrink: 0,
+                          fontSize: 13, fontWeight: 600, color: 'var(--text-2)', flexShrink: 0,
                         }}>
                           {si + 1}
                         </div>
-                        <input type="number" min={1} max={100} value={set.herhalingen || ''} onChange={e => updateSet(oi, si, 'herhalingen', parseInt(e.target.value) || 0)} placeholder={oef.doelHerhalingen} disabled={set.voltooid} style={{ flex: 1, height: 36, borderRadius: 8, border: '1.5px solid #e5e7eb', textAlign: 'center', fontSize: 15, fontWeight: 600, background: set.voltooid ? '#f9fafb' : '#fff' }} />
+                        <input type="number" min={1} max={100} value={set.herhalingen || ''} onChange={e => updateSet(oi, si, 'herhalingen', parseInt(e.target.value) || 0)} placeholder={oef.doelHerhalingen} disabled={set.voltooid} style={{ flex: 1, height: 36, borderRadius: 8, border: '1.5px solid var(--border)', textAlign: 'center', fontSize: 15, fontWeight: 600, background: set.voltooid ? 'var(--bg-subtle)' : '#fff' }} />
                         {oef.heeft_gewicht && (
-                          <input type="number" min={0} step={0.5} value={set.gewicht_kg ?? ''} onChange={e => updateSet(oi, si, 'gewicht_kg', e.target.value === '' ? null : parseFloat(e.target.value))} placeholder="kg" disabled={set.voltooid} style={{ flex: 1, height: 36, borderRadius: 8, border: '1.5px solid #e5e7eb', textAlign: 'center', fontSize: 15, fontWeight: 600, background: set.voltooid ? '#f9fafb' : '#fff' }} />
+                          <input type="number" min={0} step={0.5} value={set.gewicht_kg ?? ''} onChange={e => updateSet(oi, si, 'gewicht_kg', e.target.value === '' ? null : parseFloat(e.target.value))} placeholder="kg" disabled={set.voltooid} style={{ flex: 1, height: 36, borderRadius: 8, border: '1.5px solid var(--border)', textAlign: 'center', fontSize: 15, fontWeight: 600, background: set.voltooid ? 'var(--bg-subtle)' : '#fff' }} />
                         )}
                         <button
                           onClick={() => updateSet(oi, si, 'voltooid', !set.voltooid)}
                           style={{
                             width: 40, height: 36, borderRadius: 8, border: 'none', cursor: 'pointer',
-                            background: set.voltooid ? '#1D9E75' : '#f3f4f6',
+                            background: set.voltooid ? 'var(--mf-green)' : 'var(--bg-subtle)',
                             color: set.voltooid ? '#fff' : '#aaa',
                             fontSize: 16, fontWeight: 700, flexShrink: 0,
                           }}>✓</button>
@@ -431,7 +431,7 @@ export default function TrainingLoggerPage() {
                     <button
                       onClick={() => extraSetToevoegen(oi)}
                       style={{
-                        background: 'none', border: '1.5px dashed #e5e7eb', color: '#aaa',
+                        background: 'none', border: '1.5px dashed var(--border)', color: 'var(--text-3)',
                         borderRadius: 8, width: '100%', padding: '8px 0', fontSize: 13,
                         cursor: 'pointer', marginTop: 4,
                       }}
@@ -446,7 +446,7 @@ export default function TrainingLoggerPage() {
             <button
               onClick={() => { setTimerActive(false); setScherm('afronden') }}
               style={{
-                marginTop: 24, width: '100%', background: '#F97316', color: '#fff',
+                marginTop: 24, width: '100%', background: 'var(--mf-orange)', color: '#fff',
                 border: 'none', borderRadius: 14, padding: '14px 0', fontSize: 16,
                 fontWeight: 700, cursor: 'pointer',
               }}
@@ -459,16 +459,16 @@ export default function TrainingLoggerPage() {
         {scherm === 'afronden' && gekozenTraining && (
           <>
             <div style={{ marginBottom: 24 }}>
-              <h1 style={{ fontSize: 24, fontWeight: 700, color: '#111', margin: 0 }}>
+              <h1 style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-1)', margin: 0 }}>
                 Training afronden
               </h1>
-              <p style={{ color: '#888', fontSize: 14, marginTop: 6 }}>
+              <p style={{ color: 'var(--text-3)', fontSize: 14, marginTop: 6 }}>
                 {gekozenTraining.naam} · {formatTimer(timerSec)}
               </p>
             </div>
 
-            <div style={{ background: '#fff', borderRadius: 16, padding: 20, marginBottom: 20 }}>
-              <h3 style={{ fontSize: 16, fontWeight: 700, color: '#111', marginTop: 0, marginBottom: 14 }}>
+            <div style={{ background: 'var(--bg-card)', borderRadius: 16, padding: 20, marginBottom: 20 }}>
+              <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-1)', marginTop: 0, marginBottom: 14 }}>
                 Samenvatting
               </h3>
               {oefeningen.map((oef, oi) => {
@@ -476,11 +476,11 @@ export default function TrainingLoggerPage() {
                 if (voltooidesets.length === 0) return null
                 return (
                   <div key={oi} style={{ marginBottom: 12, paddingBottom: 12, borderBottom: '1px solid #f3f4f6' }}>
-                    <div style={{ fontSize: 14, fontWeight: 600, color: '#111', marginBottom: 4 }}>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-1)', marginBottom: 4 }}>
                       {oef.naam}
                     </div>
                     {voltooidesets.map((set, si) => (
-                      <div key={si} style={{ fontSize: 13, color: '#666', marginLeft: 12 }}>
+                      <div key={si} style={{ fontSize: 13, color: 'var(--text-2)', marginLeft: 12 }}>
                         Set {si + 1}: {set.herhalingen} herh.
                         {oef.heeft_gewicht
                           ? (set.gewicht_kg !== null ? ` · ${set.gewicht_kg} kg` : '')
@@ -493,8 +493,8 @@ export default function TrainingLoggerPage() {
               })}
             </div>
 
-            <div style={{ background: '#fff', borderRadius: 16, padding: 20, marginBottom: 24 }}>
-              <label style={{ fontSize: 14, fontWeight: 600, color: '#111', display: 'block', marginBottom: 8 }}>
+            <div style={{ background: 'var(--bg-card)', borderRadius: 16, padding: 20, marginBottom: 24 }}>
+              <label style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-1)', display: 'block', marginBottom: 8 }}>
                 Notities (optioneel)
               </label>
               <textarea
@@ -503,9 +503,9 @@ export default function TrainingLoggerPage() {
                 placeholder="Hoe voelde de training? Aandachtspunten voor volgende keer..."
                 rows={4}
                 style={{
-                  width: '100%', border: '1.5px solid #e5e7eb', borderRadius: 10,
+                  width: '100%', border: '1.5px solid var(--border)', borderRadius: 10,
                   padding: '10px 12px', fontSize: 14, resize: 'vertical',
-                  fontFamily: 'inherit', boxSizing: 'border-box', color: '#111',
+                  fontFamily: 'inherit', boxSizing: 'border-box', color: 'var(--text-1)',
                 }}
               />
             </div>
@@ -514,7 +514,7 @@ export default function TrainingLoggerPage() {
               <button
                 onClick={() => { setTimerActive(true); setScherm('actief') }}
                 style={{
-                  flex: 1, background: '#f3f4f6', color: '#555', border: 'none',
+                  flex: 1, background: 'var(--bg-subtle)', color: 'var(--text-2)', border: 'none',
                   borderRadius: 14, padding: '14px 0', fontSize: 15, fontWeight: 600, cursor: 'pointer',
                 }}
               >
@@ -524,7 +524,7 @@ export default function TrainingLoggerPage() {
                 onClick={slaOpTraining}
                 disabled={opslaan}
                 style={{
-                  flex: 2, background: opslaan ? '#aaa' : '#1D9E75', color: '#fff', border: 'none',
+                  flex: 2, background: opslaan ? '#aaa' : 'var(--mf-green)', color: '#fff', border: 'none',
                   borderRadius: 14, padding: '14px 0', fontSize: 16, fontWeight: 700,
                   cursor: opslaan ? 'not-allowed' : 'pointer',
                 }}

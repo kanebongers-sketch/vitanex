@@ -29,7 +29,7 @@ function urenNaarTijd(uren: number) {
 
 function slaapKleur(u: number): string {
   if (u >= 7) return 'var(--mf-green)'
-  if (u >= 5) return '#E8760A'
+  if (u >= 5) return 'var(--mf-orange)'
   return 'var(--mf-red)'
 }
 

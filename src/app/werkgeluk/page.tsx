@@ -20,11 +20,11 @@ interface WerkgelukData {
 }
 
 function scoreKleur(score: number): string {
-  if (score <= 2) return '#EF4444'
-  if (score <= 4) return '#F97316'
-  if (score <= 6) return '#EAB308'
-  if (score <= 8) return '#22C55E'
-  return '#10B981'
+  if (score <= 2) return 'var(--mf-red)'
+  if (score <= 4) return 'var(--mf-orange)'
+  if (score <= 6) return 'var(--mf-amber)'
+  if (score <= 8) return 'var(--mf-green)'
+  return 'var(--mf-green)'
 }
 
 function scoreEmoji(score: number): string {
@@ -243,8 +243,8 @@ export default function WerkgelukPagina() {
                     width: 28, height: 28, borderRadius: 8, border: 'none',
                     cursor: 'pointer', fontSize: 11,
                     fontWeight: score === n ? 800 : 500,
-                    background: score === n ? kleur : '#F3F4F6',
-                    color: score === n ? 'white' : '#6B7280',
+                    background: score === n ? kleur : 'var(--bg-subtle)',
+                    color: score === n ? 'white' : 'var(--text-2)',
                     transition: 'all 0.15s ease', flexShrink: 0, padding: 0,
                   }}
                 >
@@ -264,7 +264,7 @@ export default function WerkgelukPagina() {
             ].map(item => (
               <div key={item.bereik} style={{ textAlign: 'center', flex: 1 }}>
                 <div style={{ fontSize: 16 }}>{String.fromCodePoint(item.cp)}</div>
-                <div style={{ fontSize: 9, color: '#9CA3AF', marginTop: 2, fontWeight: 600 }}>
+                <div style={{ fontSize: 9, color: 'var(--text-3)', marginTop: 2, fontWeight: 600 }}>
                   {item.bereik}
                 </div>
               </div>
@@ -299,8 +299,8 @@ export default function WerkgelukPagina() {
 
         {fout && (
           <div style={{
-            background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 12,
-            padding: '10px 14px', marginBottom: 12, fontSize: 13, color: '#DC2626',
+            background: 'var(--mf-red-light)', border: '1px solid #FECACA', borderRadius: 12,
+            padding: '10px 14px', marginBottom: 12, fontSize: 13, color: 'var(--mf-red)',
           }}>
             {fout}
           </div>
@@ -333,9 +333,9 @@ export default function WerkgelukPagina() {
 
         {succes && aantalDagen > 0 && (
           <div style={{
-            textAlign: 'center', padding: '12px 16px', background: '#F0FDF4',
+            textAlign: 'center', padding: '12px 16px', background: 'var(--mf-green-light)',
             borderRadius: 14, border: '1px solid #BBF7D0', marginBottom: 24,
-            fontSize: 14, color: '#15803D', fontWeight: 600,
+            fontSize: 14, color: 'var(--mf-green-dark)', fontWeight: 600,
           }}>
             Je hebt dit {aantalDagen} {aantalDagen === 1 ? 'dag' : 'dagen'} bijgehouden
           </div>
@@ -350,11 +350,11 @@ export default function WerkgelukPagina() {
               <div>
                 <p style={{
                   fontSize: 11, fontWeight: 700, textTransform: 'uppercase',
-                  letterSpacing: '0.08em', color: '#9CA3AF', marginBottom: 2,
+                  letterSpacing: '0.08em', color: 'var(--text-3)', marginBottom: 2,
                 }}>
                   Afgelopen 30 dagen
                 </p>
-                <p style={{ fontSize: 13, color: '#374151', fontWeight: 600 }}>
+                <p style={{ fontSize: 13, color: 'var(--text-2)', fontWeight: 600 }}>
                   Jouw werkgeluk trend
                 </p>
               </div>
@@ -371,7 +371,7 @@ export default function WerkgelukPagina() {
                   }}>
                     {data.gemiddelde}
                   </div>
-                  <div style={{ fontSize: 10, color: '#9CA3AF', fontWeight: 600, marginTop: 2 }}>
+                  <div style={{ fontSize: 10, color: 'var(--text-3)', fontWeight: 600, marginTop: 2 }}>
                     gemiddeld
                   </div>
                 </div>
@@ -386,10 +386,10 @@ export default function WerkgelukPagina() {
               const laatste = gesorteerd[gesorteerd.length - 1]
               return (
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6 }}>
-                  <span style={{ fontSize: 10, color: '#9CA3AF' }}>
+                  <span style={{ fontSize: 10, color: 'var(--text-3)' }}>
                     {new Date(eerste.datum + 'T12:00:00').toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' })}
                   </span>
-                  <span style={{ fontSize: 10, color: '#9CA3AF' }}>
+                  <span style={{ fontSize: 10, color: 'var(--text-3)' }}>
                     {new Date(laatste.datum + 'T12:00:00').toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' })}
                   </span>
                 </div>

@@ -19,11 +19,11 @@ type NieuwsBericht = {
 }
 
 const TYPE_STIJL: Record<NieuwsType, { emoji: string; bg: string; color: string; label: string }> = {
-  aankondiging: { emoji: '📣', bg: '#E6F1FB', color: '#185FA5', label: 'Aankondiging' },
-  beleid:       { emoji: '📋', bg: '#FAEEDA', color: '#854F0B', label: 'Beleid' },
-  evenement:    { emoji: '🎉', bg: '#EDE9FE', color: '#5B21B6', label: 'Evenement' },
-  resultaten:   { emoji: '📈', bg: '#E1F5EE', color: '#0F6E56', label: 'Resultaten' },
-  overig:       { emoji: '💬', bg: '#F3F4F6', color: '#6b7280', label: 'Overig' },
+  aankondiging: { emoji: '📣', bg: 'var(--mf-blue-light)', color: 'var(--mf-blue)', label: 'Aankondiging' },
+  beleid:       { emoji: '📋', bg: 'var(--mf-amber-light)', color: 'var(--mf-amber-dark)', label: 'Beleid' },
+  evenement:    { emoji: '🎉', bg: 'var(--mf-purple-light)', color: 'var(--mf-purple)', label: 'Evenement' },
+  resultaten:   { emoji: '📈', bg: 'var(--mf-green-light)', color: 'var(--mf-green-dark)', label: 'Resultaten' },
+  overig:       { emoji: '💬', bg: 'var(--bg-subtle)', color: 'var(--text-2)', label: 'Overig' },
 }
 
 export default function NieuwsPage() {
@@ -110,7 +110,7 @@ export default function NieuwsPage() {
           {isHr && (
             <button onClick={() => setFormulier(true)}
               className="px-4 py-2 rounded-xl text-sm font-semibold text-white"
-              style={{ background: '#185FA5' }}>
+              style={{ background: 'var(--mf-blue)' }}>
               + Plaatsen
             </button>
           )}
@@ -137,8 +137,8 @@ export default function NieuwsPage() {
                         className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition"
                         style={{
                           background: type === t ? s.bg : 'white',
-                          borderColor: type === t ? s.color : '#e5e7eb',
-                          color: type === t ? s.color : '#9ca3af',
+                          borderColor: type === t ? s.color : 'var(--border)',
+                          color: type === t ? s.color : 'var(--text-3)',
                         }}>
                         {s.emoji} {s.label}
                       </button>
@@ -165,7 +165,7 @@ export default function NieuwsPage() {
                 <div className="relative">
                   <input type="checkbox" checked={belangrijk} onChange={e => setBelangrijk(e.target.checked)} className="sr-only" />
                   <div className="w-10 h-6 rounded-full transition"
-                    style={{ background: belangrijk ? '#185FA5' : '#D1D5DB' }}>
+                    style={{ background: belangrijk ? 'var(--mf-blue)' : 'var(--text-4)' }}>
                     <div className="absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-transform"
                       style={{ transform: belangrijk ? 'translateX(16px)' : 'translateX(0)' }} />
                   </div>
@@ -175,7 +175,7 @@ export default function NieuwsPage() {
 
               <button onClick={publiceren} disabled={opslaan || !titel.trim() || !inhoud.trim()}
                 className="w-full py-3 rounded-xl text-white font-semibold text-sm disabled:opacity-40 transition"
-                style={{ background: '#185FA5' }}>
+                style={{ background: 'var(--mf-blue)' }}>
                 {opslaan ? 'Plaatsen...' : 'Publiceren'}
               </button>
             </div>
@@ -185,7 +185,7 @@ export default function NieuwsPage() {
         {/* Berichten */}
         {laden ? (
           <div className="flex justify-center py-16">
-            <div className="w-6 h-6 rounded-full border-2 border-gray-200 animate-spin" style={{ borderTopColor: '#185FA5' }} />
+            <div className="w-6 h-6 rounded-full border-2 border-gray-200 animate-spin" style={{ borderTopColor: 'var(--mf-blue)' }} />
           </div>
         ) : berichten.length === 0 ? (
           <div className="bg-white rounded-2xl p-10 text-center" style={{ boxShadow: 'var(--shadow-sm)' }}>
@@ -207,7 +207,7 @@ export default function NieuwsPage() {
                   }}>
                   {b.belangrijk && (
                     <div className="px-4 py-2 text-xs font-bold flex items-center gap-1.5"
-                      style={{ background: '#E6F1FB', color: '#185FA5' }}>
+                      style={{ background: 'var(--mf-blue-light)', color: 'var(--mf-blue)' }}>
                       ⚡ Belangrijk bericht
                     </div>
                   )}
@@ -236,7 +236,7 @@ export default function NieuwsPage() {
                       <button
                         onClick={() => setUitgevouwen(isOpen ? null : b.id)}
                         className="mt-2 ml-9 text-xs font-medium"
-                        style={{ color: '#185FA5' }}>
+                        style={{ color: 'var(--mf-blue)' }}>
                         {isOpen ? 'Minder tonen ↑' : 'Meer lezen →'}
                       </button>
                     )}

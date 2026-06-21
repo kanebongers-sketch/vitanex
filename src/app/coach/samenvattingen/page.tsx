@@ -56,15 +56,15 @@ export default function CoachSamenvattingenPagina() {
       <main style={{ padding: '24px 20px 88px', maxWidth: 600, margin: '0 auto' }}>
         <header style={{ marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
-            <h1 style={{ fontSize: 22, fontWeight: 800, color: '#111827', letterSpacing: '-0.03em', marginBottom: 4 }}>
+            <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 4 }}>
               Coach geheugen
             </h1>
-            <p style={{ fontSize: 13, color: '#9CA3AF' }}>
+            <p style={{ fontSize: 13, color: 'var(--text-3)' }}>
               AI-samenvattingen van jouw gesprekken
             </p>
           </div>
           <Link href="/coach" style={{
-            background: '#111827', color: 'white', textDecoration: 'none',
+            background: 'var(--text-1)', color: 'white', textDecoration: 'none',
             padding: '8px 14px', borderRadius: 10, fontSize: 12, fontWeight: 600,
           }}>
             Naar coach →
@@ -77,10 +77,10 @@ export default function CoachSamenvattingenPagina() {
             textAlign: 'center', border: '1px solid #E5E7EB',
           }}>
             <div style={{ fontSize: 40, marginBottom: 12 }}>🧠</div>
-            <p style={{ fontSize: 15, fontWeight: 600, color: '#374151', marginBottom: 6 }}>
+            <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-2)', marginBottom: 6 }}>
               Nog geen samenvattingen
             </p>
-            <p style={{ fontSize: 13, color: '#9CA3AF', lineHeight: 1.6 }}>
+            <p style={{ fontSize: 13, color: 'var(--text-3)', lineHeight: 1.6 }}>
               Na 6+ berichten met de AI Coach sla ik automatisch<br />een samenvatting op om je beter te helpen.
             </p>
           </div>
@@ -95,23 +95,23 @@ export default function CoachSamenvattingenPagina() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <div style={{
                       width: 8, height: 8, borderRadius: '50%',
-                      background: i === 0 ? '#1D9E75' : '#E5E7EB',
+                      background: i === 0 ? 'var(--mf-green)' : 'var(--border)',
                     }} />
-                    <p style={{ fontSize: 11, fontWeight: 700, color: i === 0 ? '#1D9E75' : '#9CA3AF' }}>
+                    <p style={{ fontSize: 11, fontWeight: 700, color: i === 0 ? 'var(--mf-green)' : 'var(--text-3)' }}>
                       {i === 0 ? 'Meest recent' : `Week ${i + 1}`}
                     </p>
                   </div>
-                  <p style={{ fontSize: 10, color: '#9CA3AF' }}>
+                  <p style={{ fontSize: 10, color: 'var(--text-3)' }}>
                     Week van {formatWeek(s.week_start)}
                   </p>
                 </div>
-                <p style={{ fontSize: 13, color: '#374151', lineHeight: 1.65 }}>
+                <p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.65 }}>
                   {s.samenvatting}
                 </p>
               </div>
             ))}
 
-            <p style={{ fontSize: 11, color: '#9CA3AF', textAlign: 'center', marginTop: 8 }}>
+            <p style={{ fontSize: 11, color: 'var(--text-3)', textAlign: 'center', marginTop: 8 }}>
               Samenvattingen worden automatisch aangemaakt tijdens gesprekken. Ze worden gebruikt om de coach beter te laten aansluiten op jouw situatie.
             </p>
           </div>

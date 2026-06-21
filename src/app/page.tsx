@@ -72,7 +72,7 @@ function Check({ text, color }: { text: string; color: string }) {
 
 function Label({ text }: { text: string }) {
   return (
-    <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: '#1D9E75' }}>{text}</p>
+    <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: 'var(--mf-green)' }}>{text}</p>
   )
 }
 
@@ -183,9 +183,9 @@ function MockDashboard() {
     <div className="w-full rounded-2xl overflow-hidden select-none"
       style={{ maxWidth: 520, boxShadow: '0 48px 120px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.07)' }}>
       {/* Browser chrome */}
-      <div className="px-4 py-3 flex items-center gap-3" style={{ background: '#111827' }}>
+      <div className="px-4 py-3 flex items-center gap-3" style={{ background: 'var(--text-1)' }}>
         <div className="flex gap-1.5">
-          {['#E24B4A', '#BA7517', '#1D9E75'].map(c => <div key={c} className="w-3 h-3 rounded-full" style={{ background: c }} />)}
+          {['var(--mf-red)', 'var(--mf-amber)', 'var(--mf-green)'].map(c => <div key={c} className="w-3 h-3 rounded-full" style={{ background: c }} />)}
         </div>
         <div className="flex-1 rounded-md px-3 py-1 text-xs font-mono text-center"
           style={{ background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.28)' }}>
@@ -194,15 +194,15 @@ function MockDashboard() {
       </div>
 
       {/* Dashboard content */}
-      <div className="p-5" style={{ background: '#F4F6F8' }}>
+      <div className="p-5" style={{ background: 'var(--bg-subtle)' }}>
         <div className="flex items-center justify-between mb-4">
           <div>
             <p className="text-sm font-bold text-gray-900">HR-dashboard</p>
             <p className="text-xs text-gray-400">Maandag, 09:41</p>
           </div>
           <div className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full"
-            style={{ background: '#E1F5EE', color: '#0F6E56' }}>
-            <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: '#1D9E75' }} />
+            style={{ background: 'var(--mf-green-light)', color: 'var(--mf-green-dark)' }}>
+            <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: 'var(--mf-green)' }} />
             Live
           </div>
         </div>
@@ -210,9 +210,9 @@ function MockDashboard() {
         {/* Stats row */}
         <div className="grid grid-cols-3 gap-2 mb-3">
           {[
-            { label: 'Vitaliteitscore', value: '4.1/5', color: '#1D9E75', bg: '#E1F5EE' },
-            { label: 'Participatie', value: '87%', color: '#378ADD', bg: '#E6F1FB' },
-            { label: 'Risicosignalen', value: '2', color: '#E24B4A', bg: '#FCEBEB' },
+            { label: 'Vitaliteitscore', value: '4.1/5', color: 'var(--mf-green)', bg: 'var(--mf-green-light)' },
+            { label: 'Participatie', value: '87%', color: 'var(--mf-blue)', bg: 'var(--mf-blue-light)' },
+            { label: 'Risicosignalen', value: '2', color: 'var(--mf-red)', bg: 'var(--mf-red-light)' },
           ].map(m => (
             <div key={m.label} className="rounded-xl p-3 text-center bg-white border border-gray-100">
               <p className="text-xl font-extrabold tracking-tight" style={{ color: m.color }}>{m.value}</p>
@@ -225,20 +225,20 @@ function MockDashboard() {
         <div className="bg-white rounded-xl p-4 mb-3 border border-gray-100">
           <div className="flex items-center justify-between mb-3">
             <p className="text-xs font-semibold text-gray-600">Vitaliteitstrend — 12 weken</p>
-            <span className="text-xs font-bold" style={{ color: '#1D9E75' }}>↑ +12%</span>
+            <span className="text-xs font-bold" style={{ color: 'var(--mf-green)' }}>↑ +12%</span>
           </div>
           <div className="flex items-end gap-1" style={{ height: 52 }}>
             {[52, 56, 53, 64, 68, 63, 72, 70, 77, 75, 81, 88].map((h, i) => (
               <div key={i} className="flex-1 rounded-t-sm transition-all"
-                style={{ height: `${h}%`, background: i >= 10 ? '#1D9E75' : i >= 6 ? '#6BCBA9' : '#D1F0E5' }} />
+                style={{ height: `${h}%`, background: i >= 10 ? 'var(--mf-green)' : i >= 6 ? 'var(--mf-green-mid)' : 'var(--mf-green-light)' }} />
             ))}
           </div>
         </div>
 
         {/* AI insight */}
-        <div className="rounded-xl p-3.5 mb-3 border" style={{ background: '#0f172a', borderColor: 'rgba(255,255,255,0.06)' }}>
+        <div className="rounded-xl p-3.5 mb-3 border" style={{ background: 'var(--text-1)', borderColor: 'rgba(255,255,255,0.06)' }}>
           <div className="flex items-center gap-2 mb-1.5">
-            <span className="text-xs font-bold px-1.5 py-0.5 rounded" style={{ background: 'rgba(29,158,117,0.3)', color: '#4ECBA5' }}>AI</span>
+            <span className="text-xs font-bold px-1.5 py-0.5 rounded" style={{ background: 'rgba(29,158,117,0.3)', color: 'var(--mf-green)' }}>AI</span>
             <p className="text-xs font-semibold text-white">Inzicht van deze week</p>
           </div>
           <p className="text-xs leading-relaxed" style={{ color: 'rgba(255,255,255,0.5)' }}>
@@ -259,18 +259,18 @@ function MockDashboard() {
               <div className="flex items-center gap-2">
                 <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
                   style={{
-                    background: l.status === 'risico' ? '#FCEBEB' : l.status === 'open' ? '#F3F4F6' : '#E1F5EE',
-                    color: l.status === 'risico' ? '#E24B4A' : l.status === 'open' ? '#9ca3af' : '#1D9E75',
+                    background: l.status === 'risico' ? 'var(--mf-red-light)' : l.status === 'open' ? 'var(--bg-subtle)' : 'var(--mf-green-light)',
+                    color: l.status === 'risico' ? 'var(--mf-red)' : l.status === 'open' ? 'var(--text-3)' : 'var(--mf-green)',
                   }}>
                   {l.naam[0]}
                 </div>
                 <span className="text-xs font-medium text-gray-700">{l.naam}</span>
                 {l.status === 'risico' && (
-                  <span className="text-xs px-1.5 py-0.5 rounded-full font-semibold" style={{ background: '#FCEBEB', color: '#E24B4A' }}>Signaal</span>
+                  <span className="text-xs px-1.5 py-0.5 rounded-full font-semibold" style={{ background: 'var(--mf-red-light)', color: 'var(--mf-red)' }}>Signaal</span>
                 )}
               </div>
               <span className="text-xs font-bold"
-                style={{ color: !l.score ? '#d1d5db' : l.score >= 3.5 ? '#1D9E75' : l.score >= 2.5 ? '#BA7517' : '#E24B4A' }}>
+                style={{ color: !l.score ? 'var(--border-strong)' : l.score >= 3.5 ? 'var(--mf-green)' : l.score >= 2.5 ? 'var(--mf-amber)' : 'var(--mf-red)' }}>
                 {l.score ? `${l.score}/5` : '—'}
               </span>
             </div>
@@ -315,14 +315,14 @@ function Pricing() {
 
   const plans = [
     {
-      naam: 'Starter', maand: 4, kleur: '#374151', populair: false,
+      naam: 'Starter', maand: 4, kleur: 'var(--text-2)', populair: false,
       min: 'Min. 10 medewerkers', sub: 'Ideaal voor kleine teams',
       cta: 'Gratis starten →', href: '/register',
       features: ['Wekelijkse anonieme check-in', 'Persoonlijk medewerkerportaal', 'AI Welzijnscoach', 'Teamchat', 'HR-dashboard (basisoverzicht)'],
       missing: ['Pulse surveys', 'Burn-out detectie', 'AI HR-inzichten'],
     },
     {
-      naam: 'Groei', maand: 7, kleur: '#1D9E75', populair: true,
+      naam: 'Groei', maand: 7, kleur: 'var(--mf-green)', populair: true,
       min: 'Min. 25 medewerkers', sub: 'Voor groeiende organisaties',
       cta: 'Demo aanvragen →', href: '/contact?plan=groei',
       features: ['Alles in Starter', 'Pulse surveys met templates', 'Burn-out risico detectie', 'Anonieme feedback inbox', 'AI HR-inzichten & samenvatting', 'Trends en exporteerbare rapporten', 'Early warning signalen', 'Prioritaire e-mailsupport'],
@@ -338,7 +338,7 @@ function Pricing() {
   ]
 
   return (
-    <section id="prijzen" className="py-28" style={{ background: '#F4F6F8' }}>
+    <section id="prijzen" className="py-28" style={{ background: 'var(--bg-subtle)' }}>
       <div className="max-w-7xl mx-auto px-6 lg:px-12">
         <div className="text-center mb-14">
           <Label text="Prijzen" />
@@ -355,13 +355,13 @@ function Pricing() {
               <button key={String(opt.value)} onClick={() => setAnnual(opt.value)}
                 className="relative flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold transition-all"
                 style={{
-                  background: annual === opt.value ? '#1D9E75' : 'transparent',
-                  color: annual === opt.value ? 'white' : '#6b7280',
+                  background: annual === opt.value ? 'var(--mf-green)' : 'transparent',
+                  color: annual === opt.value ? 'white' : 'var(--text-2)',
                 }}>
                 {opt.label}
                 {opt.value && (
                   <span className="text-xs font-bold px-2 py-0.5 rounded-full"
-                    style={{ background: annual ? 'rgba(255,255,255,0.22)' : '#E1F5EE', color: annual ? 'white' : '#1D9E75' }}>
+                    style={{ background: annual ? 'rgba(255,255,255,0.22)' : 'var(--mf-green-light)', color: annual ? 'white' : 'var(--mf-green)' }}>
                     −20%
                   </span>
                 )}
@@ -375,7 +375,7 @@ function Pricing() {
             const price = p.maand ? (annual ? +(p.maand * 0.8).toFixed(2) : p.maand) : null
             return (
               <div key={p.naam} className="bg-white rounded-2xl p-8 relative flex flex-col"
-                style={{ border: `2px solid ${p.populair ? p.kleur : '#e5e7eb'}`, boxShadow: p.populair ? '0 24px 64px rgba(29,158,117,0.12)' : 'none' }}>
+                style={{ border: `2px solid ${p.populair ? p.kleur : 'var(--border)'}`, boxShadow: p.populair ? '0 24px 64px rgba(29,158,117,0.12)' : 'none' }}>
                 {p.populair && (
                   <div className="absolute -top-4 left-1/2 -translate-x-1/2 whitespace-nowrap">
                     <span className="text-xs font-bold px-5 py-2 rounded-full text-white" style={{ background: p.kleur }}>
@@ -454,13 +454,13 @@ function FAQ() {
         <div className="space-y-2">
           {FAQS.map((faq, i) => (
             <div key={faq.q} className="rounded-2xl border overflow-hidden transition-all"
-              style={{ borderColor: open === i ? 'rgba(29,158,117,0.3)' : '#f3f4f6', background: open === i ? 'rgba(29,158,117,0.02)' : 'white' }}>
+              style={{ borderColor: open === i ? 'rgba(29,158,117,0.3)' : 'var(--bg-subtle)', background: open === i ? 'rgba(29,158,117,0.02)' : 'white' }}>
               <button className="w-full flex items-center justify-between px-6 py-5 text-left gap-4"
                 onClick={() => setOpen(open === i ? null : i)}>
                 <span className="font-semibold text-gray-900 text-sm leading-snug">{faq.q}</span>
                 <span className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center transition-transform"
-                  style={{ transform: open === i ? 'rotate(180deg)' : 'none', background: open === i ? 'rgba(29,158,117,0.1)' : '#f3f4f6' }}>
-                  <Icon name="chevronDown" size={13} color={open === i ? '#1D9E75' : '#9ca3af'} />
+                  style={{ transform: open === i ? 'rotate(180deg)' : 'none', background: open === i ? 'rgba(29,158,117,0.1)' : 'var(--bg-subtle)' }}>
+                  <Icon name="chevronDown" size={13} color={open === i ? 'var(--mf-green)' : 'var(--text-3)'} />
                 </span>
               </button>
               {open === i && (
@@ -473,7 +473,7 @@ function FAQ() {
         </div>
         <p className="text-sm text-center mt-10 text-gray-400">
           Meer vragen?{' '}
-          <Link href="/contact" className="font-semibold hover:opacity-75 transition-opacity" style={{ color: '#1D9E75' }}>
+          <Link href="/contact" className="font-semibold hover:opacity-75 transition-opacity" style={{ color: 'var(--mf-green)' }}>
             Neem contact op →
           </Link>
         </p>
@@ -506,15 +506,15 @@ export default function LandingPage() {
             {/* Copy */}
             <div>
               <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 mb-8 text-xs font-semibold border"
-                style={{ background: 'rgba(29,158,117,0.08)', borderColor: 'rgba(29,158,117,0.2)', color: '#4ECBA5' }}>
-                <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: '#4ECBA5' }} />
+                style={{ background: 'rgba(29,158,117,0.08)', borderColor: 'rgba(29,158,117,0.2)', color: 'var(--mf-green)' }}>
+                <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: 'var(--mf-green)' }} />
                 Voor Nederlandse HR-teams en medewerkers
               </div>
 
               <h1 className="font-extrabold text-white leading-[1.08] mb-6 tracking-tight"
                 style={{ fontSize: 'clamp(2.75rem, 5vw, 4.25rem)' }}>
                 Stop burn-out<br />
-                <span style={{ color: '#1D9E75' }}>voordat het te laat is.</span>
+                <span style={{ color: 'var(--mf-green)' }}>voordat het te laat is.</span>
               </h1>
 
               <p className="mb-10 leading-relaxed" style={{ color: 'rgba(255,255,255,0.6)', fontSize: '1.125rem', maxWidth: 460 }}>
@@ -559,14 +559,14 @@ export default function LandingPage() {
       </section>
 
       {/* ── 2. VERTROUWEN BAR ────────────────────────────────────────────────── */}
-      <section className="py-10 border-y border-gray-100" style={{ background: '#f9fafb' }}>
+      <section className="py-10 border-y border-gray-100" style={{ background: 'var(--bg-subtle)' }}>
         <div className="max-w-5xl mx-auto px-6 lg:px-12">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {[
-              { icon: 'shield',  color: '#1D9E75', bg: '#E1F5EE', titel: 'AVG-conform',       sub: 'Data op EU-servers · verwerkersovereenkomst inbegrepen' },
-              { icon: 'sparkles',color: '#8B5CF6', bg: '#EEEDFE', titel: 'Aangedreven door AI',sub: 'Claude AI analyseert patronen en schrijft HR-adviezen in het Nederlands' },
-              { icon: 'users',   color: '#378ADD', bg: '#E6F1FB', titel: 'Privacy by design',  sub: 'HR ziet nooit individuele scores — alleen groepsgemiddelden' },
-              { icon: 'zap',     color: '#BA7517', bg: '#FAEEDA', titel: 'Gemaakt in Nederland',sub: 'Nederlandstalig platform, support en documentatie' },
+              { icon: 'shield',  color: 'var(--mf-green)', bg: 'var(--mf-green-light)', titel: 'AVG-conform',       sub: 'Data op EU-servers · verwerkersovereenkomst inbegrepen' },
+              { icon: 'sparkles',color: 'var(--mf-purple)', bg: 'var(--mf-purple-light)', titel: 'Aangedreven door AI',sub: 'Claude AI analyseert patronen en schrijft HR-adviezen in het Nederlands' },
+              { icon: 'users',   color: 'var(--mf-blue)', bg: 'var(--mf-blue-light)', titel: 'Privacy by design',  sub: 'HR ziet nooit individuele scores — alleen groepsgemiddelden' },
+              { icon: 'zap',     color: 'var(--mf-amber)', bg: 'var(--mf-amber-light)', titel: 'Gemaakt in Nederland',sub: 'Nederlandstalig platform, support en documentatie' },
             ].map(p => (
               <div key={p.titel} className="flex items-start gap-3">
                 <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5" style={{ background: p.bg }}>
@@ -593,9 +593,9 @@ export default function LandingPage() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-px bg-gray-100 rounded-2xl overflow-hidden">
             {[
-              { stat: '1 op 3', label: 'werknemers ervaart burn-outklachten', bron: 'TNO 2024', color: '#E24B4A', bg: '#FCEBEB', icon: 'users' },
-              { stat: '€15.000', label: 'gemiddelde kosten per langdurig verzuim', bron: 'RIVM 2023', color: '#BA7517', bg: '#FAEEDA', icon: 'zap' },
-              { stat: '68%', label: 'HR-managers mist vroegtijdig inzicht', bron: 'Gallup 2023', color: '#378ADD', bg: '#E6F1FB', icon: 'clock' },
+              { stat: '1 op 3', label: 'werknemers ervaart burn-outklachten', bron: 'TNO 2024', color: 'var(--mf-red)', bg: 'var(--mf-red-light)', icon: 'users' },
+              { stat: '€15.000', label: 'gemiddelde kosten per langdurig verzuim', bron: 'RIVM 2023', color: 'var(--mf-amber)', bg: 'var(--mf-amber-light)', icon: 'zap' },
+              { stat: '68%', label: 'HR-managers mist vroegtijdig inzicht', bron: 'Gallup 2023', color: 'var(--mf-blue)', bg: 'var(--mf-blue-light)', icon: 'clock' },
             ].map(s => (
               <div key={s.label} className="py-14 px-10 text-center bg-white">
                 <div className="w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-5" style={{ background: s.bg }}>
@@ -603,7 +603,7 @@ export default function LandingPage() {
                 </div>
                 <p className="font-black mb-2 tracking-tight leading-none" style={{ fontSize: '3rem', color: s.color }}>{s.stat}</p>
                 <p className="text-sm text-gray-500 mb-3 leading-snug max-w-[180px] mx-auto">{s.label}</p>
-                <p className="text-xs font-semibold" style={{ color: '#d1d5db' }}>*{s.bron}</p>
+                <p className="text-xs font-semibold" style={{ color: 'var(--text-4)' }}>*{s.bron}</p>
               </div>
             ))}
           </div>
@@ -611,7 +611,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── 4. HOE WERKT HET ─────────────────────────────────────────────────── */}
-      <section id="hoe-werkt-het" className="py-28" style={{ background: '#F4F6F8' }}>
+      <section id="hoe-werkt-het" className="py-28" style={{ background: 'var(--bg-subtle)' }}>
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
           <div className="text-center mb-20">
             <Label text="Hoe werkt het" />
@@ -625,9 +625,9 @@ export default function LandingPage() {
             <div className="hidden md:block absolute top-10 left-1/3 right-1/3 h-px" style={{ background: 'linear-gradient(90deg, #1D9E75, #378ADD)' }} />
 
             {[
-              { step: '01', color: '#1D9E75', bg: '#E1F5EE', label: 'Vandaag · 5 minuten', titel: 'Account aanmaken', tekst: "Registreer gratis en nodig collega's uit via e-mail of CSV-import. Geen IT-afdeling nodig. Binnen een dag live." },
-              { step: '02', color: '#378ADD', bg: '#E6F1FB', label: 'Wekelijks · 60 seconden', titel: 'Medewerkers checken in', tekst: 'Een korte anonieme check-in elke maandag. 12 vragen. Medewerkers zien hun eigen trends. HR ziet uitsluitend groepspatronen.' },
-              { step: '03', color: '#8B5CF6', bg: '#EEEDFE', label: 'Continu · Realtime signalen', titel: 'HR handelt proactief', tekst: "Het dashboard markeert risico's. De AI formuleert adviezen. U grijpt in vóórdat iemand uitvalt — gemiddeld 6 weken eerder." },
+              { step: '01', color: 'var(--mf-green)', bg: 'var(--mf-green-light)', label: 'Vandaag · 5 minuten', titel: 'Account aanmaken', tekst: "Registreer gratis en nodig collega's uit via e-mail of CSV-import. Geen IT-afdeling nodig. Binnen een dag live." },
+              { step: '02', color: 'var(--mf-blue)', bg: 'var(--mf-blue-light)', label: 'Wekelijks · 60 seconden', titel: 'Medewerkers checken in', tekst: 'Een korte anonieme check-in elke maandag. 12 vragen. Medewerkers zien hun eigen trends. HR ziet uitsluitend groepspatronen.' },
+              { step: '03', color: 'var(--mf-purple)', bg: 'var(--mf-purple-light)', label: 'Continu · Realtime signalen', titel: 'HR handelt proactief', tekst: "Het dashboard markeert risico's. De AI formuleert adviezen. U grijpt in vóórdat iemand uitvalt — gemiddeld 6 weken eerder." },
             ].map((s, i) => (
               <div key={s.step} className={`relative px-8 py-8 ${i < 2 ? 'md:border-r border-gray-200' : ''}`}>
                 {/* Step indicator */}
@@ -658,7 +658,7 @@ export default function LandingPage() {
           <div className="text-center mt-16">
             <Link href="/register"
               className="inline-flex items-center gap-2 px-8 py-4 rounded-xl font-bold text-white text-sm transition-opacity hover:opacity-90"
-              style={{ background: '#1D9E75', boxShadow: '0 4px 24px rgba(29,158,117,0.35)' }}>
+              style={{ background: 'var(--mf-green)', boxShadow: '0 4px 24px rgba(29,158,117,0.35)' }}>
               Begin vandaag gratis
               <Icon name="arrowRight" size={14} color="white" />
             </Link>
@@ -680,19 +680,19 @@ export default function LandingPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
               {
-                icon: 'dashboard', color: '#1D9E75', bg: '#E1F5EE',
+                icon: 'dashboard', color: 'var(--mf-green)', bg: 'var(--mf-green-light)',
                 titel: 'HR-dashboard',
                 tekst: 'Realtime overzicht van teamwelzijn. Vitaliteitsscores, trends en vroege waarschuwingssignalen op één scherm. Altijd up-to-date, nooit verouderd.',
                 items: ['Vitaliteitscore per team & afdeling', 'Burn-out risico detectie', 'Anonieme feedback inbox', 'AI-gestuurde wekelijkse inzichten'],
               },
               {
-                icon: 'shield', color: '#378ADD', bg: '#E6F1FB',
+                icon: 'shield', color: 'var(--mf-blue)', bg: 'var(--mf-blue-light)',
                 titel: 'Anonieme check-ins',
                 tekst: 'Medewerkers geven eerlijke antwoorden omdat het anoniem is. HR ziet enkel groepsgemiddelden — nooit individuele scores.',
                 items: ['5 kant-en-klare vragenlijsten', 'Kleine-teambeveiliging (< 5 pers.)', 'Volledig AVG-conform', 'Automatische herinneringen & follow-up'],
               },
               {
-                icon: 'sparkles', color: '#8B5CF6', bg: '#EEEDFE',
+                icon: 'sparkles', color: 'var(--mf-purple)', bg: 'var(--mf-purple-light)',
                 titel: 'AI-inzichten',
                 tekst: 'Claude AI analyseert uw teamdata en geeft concrete adviezen in gewone taal. Geen rapporten lezen. Geen jargon. Gewoon actie.',
                 items: ['Wekelijkse AI-samenvatting in Nederlands', 'Concrete HR-gespreksadviezen', 'Trendanalyse over meerdere weken', 'Persoonlijke AI-coach voor medewerkers'],
@@ -717,7 +717,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── 6. VOOR WIE ──────────────────────────────────────────────────────── */}
-      <section className="py-20 border-y border-gray-100" style={{ background: '#F4F6F8' }}>
+      <section className="py-20 border-y border-gray-100" style={{ background: 'var(--bg-subtle)' }}>
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
           <div className="text-center mb-12">
             <Label text="Voor wie" />
@@ -728,21 +728,21 @@ export default function LandingPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
               {
-                color: '#1D9E75', bg: '#E1F5EE',
+                color: 'var(--mf-green)', bg: 'var(--mf-green-light)',
                 icon: 'barChart',
                 titel: 'HR-managers',
                 tekst: 'Krijg realtime inzicht in teamwelzijn zonder privacy te schenden. Herken risico\'s vroeg en handel proactief — niet reactief.',
                 items: ['Dashboard met vitaliteitsscores', 'AI-inzichten elke maandag', 'AVG-conforme rapportages'],
               },
               {
-                color: '#378ADD', bg: '#E6F1FB',
+                color: 'var(--mf-blue)', bg: 'var(--mf-blue-light)',
                 icon: 'users',
                 titel: 'Medewerkers',
                 tekst: 'Check anoniem in, volg uw eigen welzijn en krijg persoonlijke tips van de AI-coach. Veilig, privé en altijd beschikbaar.',
                 items: ['Persoonlijk vitaliteitsdashboard', 'AI Welzijnscoach (24/7)', 'Journal, focus & burn-out scan'],
               },
               {
-                color: '#8B5CF6', bg: '#EEEDFE',
+                color: 'var(--mf-purple)', bg: 'var(--mf-purple-light)',
                 icon: 'zap',
                 titel: 'Leidinggevenden',
                 tekst: 'Voer betere gesprekken op basis van data — zonder details over individuen te kennen. Stuur op cultuur, niet op gevoel.',
@@ -775,14 +775,14 @@ export default function LandingPage() {
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {[
-              { icon: 'checkCircle', color: '#1D9E75', bg: '#E1F5EE', label: 'Wekelijkse check-in', sub: '1 min · 12 metrics' },
-              { icon: 'sparkles',    color: '#378ADD', bg: '#E6F1FB', label: 'AI Welzijnscoach',    sub: '24/7 beschikbaar' },
-              { icon: 'book',        color: '#8B5CF6', bg: '#EEEDFE', label: 'Persoonlijk journal', sub: 'Reflectie & inzicht' },
-              { icon: 'wind',        color: '#1D9E75', bg: '#E1F5EE', label: 'Focus & herstel',     sub: 'Ademhaling & timers' },
-              { icon: 'alert',       color: '#E24B4A', bg: '#FCEBEB', label: 'Burn-out scan',       sub: 'Vroeg detecteren' },
-              { icon: 'message',     color: '#BA7517', bg: '#FAEEDA', label: 'Teamchat',            sub: 'Direct communiceren' },
-              { icon: 'barChart',    color: '#378ADD', bg: '#E6F1FB', label: 'HR-rapporten',        sub: 'Trends & export' },
-              { icon: 'trophy',      color: '#8B5CF6', bg: '#EEEDFE', label: 'Gewoontetracker',     sub: 'Dagelijkse streaks' },
+              { icon: 'checkCircle', color: 'var(--mf-green)', bg: 'var(--mf-green-light)', label: 'Wekelijkse check-in', sub: '1 min · 12 metrics' },
+              { icon: 'sparkles',    color: 'var(--mf-blue)', bg: 'var(--mf-blue-light)', label: 'AI Welzijnscoach',    sub: '24/7 beschikbaar' },
+              { icon: 'book',        color: 'var(--mf-purple)', bg: 'var(--mf-purple-light)', label: 'Persoonlijk journal', sub: 'Reflectie & inzicht' },
+              { icon: 'wind',        color: 'var(--mf-green)', bg: 'var(--mf-green-light)', label: 'Focus & herstel',     sub: 'Ademhaling & timers' },
+              { icon: 'alert',       color: 'var(--mf-red)', bg: 'var(--mf-red-light)', label: 'Burn-out scan',       sub: 'Vroeg detecteren' },
+              { icon: 'message',     color: 'var(--mf-amber)', bg: 'var(--mf-amber-light)', label: 'Teamchat',            sub: 'Direct communiceren' },
+              { icon: 'barChart',    color: 'var(--mf-blue)', bg: 'var(--mf-blue-light)', label: 'HR-rapporten',        sub: 'Trends & export' },
+              { icon: 'trophy',      color: 'var(--mf-purple)', bg: 'var(--mf-purple-light)', label: 'Gewoontetracker',     sub: 'Dagelijkse streaks' },
             ].map(f => (
               <div key={f.label} className="group bg-white rounded-2xl border border-gray-100 p-6 hover:shadow-lg hover:border-gray-200 transition-all duration-200 cursor-default">
                 <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-4 transition-transform group-hover:scale-110" style={{ background: f.bg }}>
@@ -797,7 +797,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── 8. VERGELIJKING ──────────────────────────────────────────────────── */}
-      <section className="py-28" style={{ background: '#F4F6F8' }}>
+      <section className="py-28" style={{ background: 'var(--bg-subtle)' }}>
         <div className="max-w-5xl mx-auto px-6 lg:px-12">
           <div className="text-center mb-16">
             <Label text="Vergelijking" />
@@ -820,7 +820,7 @@ export default function LandingPage() {
                     style={{ background: col.highlight ? 'rgba(29,158,117,0.04)' : 'transparent' }}>
                     {col.highlight && (
                       <span className="inline-block text-xs font-bold px-3 py-1 rounded-full text-white mb-2"
-                        style={{ background: '#1D9E75' }}>Aanbevolen</span>
+                        style={{ background: 'var(--mf-green)' }}>Aanbevolen</span>
                     )}
                     <p className={`text-sm font-bold ${col.highlight ? 'text-gray-900' : 'text-gray-500'}`}>{col.naam}</p>
                     {col.sub && <p className="text-xs text-gray-400">{col.sub}</p>}
@@ -847,16 +847,16 @@ export default function LandingPage() {
                     <div key={ci} className="p-4 text-center border-l border-gray-100 flex items-center justify-center"
                       style={{ background: ci === 0 ? 'rgba(29,158,117,0.03)' : 'transparent' }}>
                       {val === true ? (
-                        <span className="w-6 h-6 rounded-full flex items-center justify-center" style={{ background: '#E1F5EE' }}>
+                        <span className="w-6 h-6 rounded-full flex items-center justify-center" style={{ background: 'var(--mf-green-light)' }}>
                           <Icon name="check" size={12} color="#1D9E75" />
                         </span>
                       ) : val === false ? (
-                        <span className="w-6 h-6 rounded-full flex items-center justify-center" style={{ background: '#f3f4f6' }}>
+                        <span className="w-6 h-6 rounded-full flex items-center justify-center" style={{ background: 'var(--bg-subtle)' }}>
                           <Icon name="x" size={12} color="#d1d5db" />
                         </span>
                       ) : (
                         <span className="text-xs font-semibold px-2 py-1 rounded-lg whitespace-nowrap"
-                          style={{ background: ci === 0 ? '#E1F5EE' : '#f3f4f6', color: ci === 0 ? '#1D9E75' : '#6b7280' }}>
+                          style={{ background: ci === 0 ? 'var(--mf-green-light)' : 'var(--bg-subtle)', color: ci === 0 ? 'var(--mf-green)' : 'var(--text-2)' }}>
                           {val}
                         </span>
                       )}
@@ -870,7 +870,7 @@ export default function LandingPage() {
           <div className="text-center mt-10">
             <Link href="/register"
               className="inline-flex items-center gap-2 px-8 py-4 rounded-xl font-bold text-white text-sm transition-opacity hover:opacity-90"
-              style={{ background: '#1D9E75', boxShadow: '0 4px 24px rgba(29,158,117,0.35)' }}>
+              style={{ background: 'var(--mf-green)', boxShadow: '0 4px 24px rgba(29,158,117,0.35)' }}>
               Probeer MentaForce gratis
               <Icon name="arrowRight" size={14} color="white" />
             </Link>
@@ -887,7 +887,7 @@ export default function LandingPage() {
             <Label text="Twee perspectieven. Één platform." />
             <h2 className="text-4xl lg:text-5xl font-extrabold text-white mb-4 tracking-tight leading-tight">
               Wat iedereen ziet —<br />
-              <span style={{ color: '#1D9E75' }}>en wat verborgen blijft.</span>
+              <span style={{ color: 'var(--mf-green)' }}>en wat verborgen blijft.</span>
             </h2>
             <p className="text-lg max-w-xl mx-auto" style={{ color: 'rgba(255,255,255,0.45)' }}>
               Anonimiteit is niet een instelling die je kunt uitzetten. Het zit ingebakken in hoe het platform werkt.
@@ -909,10 +909,10 @@ export default function LandingPage() {
               </div>
               <div className="p-7 space-y-4">
                 {[
-                  { label: 'Jouw vitaliteitscore', value: '3.8 / 5', color: '#378ADD', sub: 'Alleen zichtbaar voor jou' },
-                  { label: 'Trend afgelopen 8 weken', value: '↑ Stijgend', color: '#1D9E75', sub: 'Jouw persoonlijk verloop' },
-                  { label: 'AI welzijnscoach', value: 'Nieuw advies beschikbaar', color: '#8B5CF6', sub: 'Privé en persoonlijk' },
-                  { label: 'Check-in status', value: 'Voltooid · maandag 09:03', color: '#BA7517', sub: 'Anoniem ingediend' },
+                  { label: 'Jouw vitaliteitscore', value: '3.8 / 5', color: 'var(--mf-blue)', sub: 'Alleen zichtbaar voor jou' },
+                  { label: 'Trend afgelopen 8 weken', value: '↑ Stijgend', color: 'var(--mf-green)', sub: 'Jouw persoonlijk verloop' },
+                  { label: 'AI welzijnscoach', value: 'Nieuw advies beschikbaar', color: 'var(--mf-purple)', sub: 'Privé en persoonlijk' },
+                  { label: 'Check-in status', value: 'Voltooid · maandag 09:03', color: 'var(--mf-amber)', sub: 'Anoniem ingediend' },
                 ].map(r => (
                   <div key={r.label} className="flex items-center justify-between rounded-2xl px-4 py-3.5"
                     style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}>
@@ -924,7 +924,7 @@ export default function LandingPage() {
                   </div>
                 ))}
                 <div className="rounded-2xl px-4 py-3.5 border" style={{ background: 'rgba(255,255,255,0.04)', borderColor: 'rgba(255,255,255,0.06)' }}>
-                  <p className="text-xs font-bold mb-1" style={{ color: '#E24B4A' }}>🔒 Niet beschikbaar voor medewerker</p>
+                  <p className="text-xs font-bold mb-1" style={{ color: 'var(--mf-red)' }}>🔒 Niet beschikbaar voor medewerker</p>
                   <p className="text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>Scores van collega&apos;s, teamgemiddelden, HR-notities</p>
                 </div>
               </div>
@@ -943,10 +943,10 @@ export default function LandingPage() {
               </div>
               <div className="p-7 space-y-4">
                 {[
-                  { label: 'Team vitaliteitscore', value: '4.1 / 5 gem.', color: '#1D9E75', sub: 'Groepsgemiddelde · 18 deelnemers' },
-                  { label: 'Participatiegraad', value: '87%', color: '#378ADD', sub: 'Deze week ingevuld' },
-                  { label: 'Risicosignalen', value: '2 signalen', color: '#E24B4A', sub: 'Patroon in de groep — geen namen' },
-                  { label: 'AI HR-advies', value: 'Nieuw inzicht', color: '#8B5CF6', sub: 'Gebaseerd op anonieme patronen' },
+                  { label: 'Team vitaliteitscore', value: '4.1 / 5 gem.', color: 'var(--mf-green)', sub: 'Groepsgemiddelde · 18 deelnemers' },
+                  { label: 'Participatiegraad', value: '87%', color: 'var(--mf-blue)', sub: 'Deze week ingevuld' },
+                  { label: 'Risicosignalen', value: '2 signalen', color: 'var(--mf-red)', sub: 'Patroon in de groep — geen namen' },
+                  { label: 'AI HR-advies', value: 'Nieuw inzicht', color: 'var(--mf-purple)', sub: 'Gebaseerd op anonieme patronen' },
                 ].map(r => (
                   <div key={r.label} className="flex items-center justify-between rounded-2xl px-4 py-3.5"
                     style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}>
@@ -958,7 +958,7 @@ export default function LandingPage() {
                   </div>
                 ))}
                 <div className="rounded-2xl px-4 py-3.5 border" style={{ background: 'rgba(255,255,255,0.04)', borderColor: 'rgba(255,255,255,0.06)' }}>
-                  <p className="text-xs font-bold mb-1" style={{ color: '#E24B4A' }}>🔒 Niet beschikbaar voor HR</p>
+                  <p className="text-xs font-bold mb-1" style={{ color: 'var(--mf-red)' }}>🔒 Niet beschikbaar voor HR</p>
                   <p className="text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>Individuele scores, namen achter signalen, persoonlijke journaalentries</p>
                 </div>
               </div>

@@ -10,22 +10,22 @@ const sb = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 )
 
-const FF = '#F5A623', DARK = '#0c0c11', CARD = '#131318', CARD2 = '#1a1a22'
+const FF = 'var(--mf-amber)', DARK = '#0c0c11', CARD = '#131318', CARD2 = '#1a1a22'
 const BORDER = 'rgba(255,255,255,0.06)', TEXT = 'rgba(255,255,255,0.88)', MUTED = 'rgba(255,255,255,0.35)'
-const GREEN = '#22C55E', RED = '#EF4444'
+const GREEN = 'var(--mf-green)', RED = 'var(--mf-red)'
 
-const R_COLORS = ['#EAB308','#F97316','#EF4444']
+const R_COLORS = ['var(--mf-amber)','var(--mf-orange)','var(--mf-red)']
 const R_NAMEN  = ['Eerste contact','Follow-up','Afsluitend']
 
 const STATUS_STYLE: Record<string, {bg:string;color:string;label:string}> = {
-  wacht:             {bg:'#1e293b', color:'#94A3B8', label:'⏳ Wacht'},
-  goedgekeurd:       {bg:'#14532d', color:GREEN,     label:'✅ Goed'},
-  overgeslagen:      {bg:'#111',    color:'#6B7280',  label:'❌ Skip'},
-  email_klaar:       {bg:'#1e1a2e', color:'#818CF8',  label:'📧 Email klaar'},
-  email_goedgekeurd: {bg:'#064e3b', color:'#6EE7B7',  label:'✅ Email goed'},
-  email_overgeslagen:{bg:'#111',    color:'#6B7280',  label:'❌ Email skip'},
-  verstuurd:         {bg:'#14532d', color:GREEN,      label:'📤 Verstuurd'},
-  gepland:           {bg:'#111',    color:'#374151',   label:'📅 Gepland'},
+  wacht:             {bg:'var(--text-1)', color:'var(--text-3)', label:'⏳ Wacht'},
+  goedgekeurd:       {bg:'var(--mf-green-dark)', color:GREEN,     label:'✅ Goed'},
+  overgeslagen:      {bg:'#111',    color:'var(--text-2)',  label:'❌ Skip'},
+  email_klaar:       {bg:'#1e1a2e', color:'var(--mf-purple)',  label:'📧 Email klaar'},
+  email_goedgekeurd: {bg:'var(--mf-green-dark)', color:'var(--mf-green-light)',  label:'✅ Email goed'},
+  email_overgeslagen:{bg:'#111',    color:'var(--text-2)',  label:'❌ Email skip'},
+  verstuurd:         {bg:'var(--mf-green-dark)', color:GREEN,      label:'📤 Verstuurd'},
+  gepland:           {bg:'#111',    color:'var(--text-2)',   label:'📅 Gepland'},
 }
 
 type Contact = {
@@ -438,10 +438,10 @@ export default function AgentPage() {
                         <p style={{fontSize:10,color:MUTED,marginBottom:4}}>{R_NAMEN[r-1]}</p>
                         <div style={{display:'flex',gap:6,fontSize:10,flexWrap:'wrap'}}>
                           {s.verstuurd > 0 && <span style={{color:GREEN}}>✓ {s.verstuurd}</span>}
-                          {s.wacht > 0 && <span style={{color:'#94A3B8'}}>⏳ {s.wacht}</span>}
+                          {s.wacht > 0 && <span style={{color:'var(--text-3)'}}>⏳ {s.wacht}</span>}
                           {s.goed > 0 && <span style={{color:GREEN}}>✅ {s.goed}</span>}
-                          {s.klaar > 0 && <span style={{color:'#6EE7B7'}}>📧 {s.klaar}</span>}
-                          {s.skip > 0 && <span style={{color:'#6B7280'}}>❌ {s.skip}</span>}
+                          {s.klaar > 0 && <span style={{color:'var(--mf-green-light)'}}>📧 {s.klaar}</span>}
+                          {s.skip > 0 && <span style={{color:'var(--text-2)'}}>❌ {s.skip}</span>}
                         </div>
                       </button>
                     )
@@ -465,7 +465,7 @@ export default function AgentPage() {
                       </button>
                     )}
                     {heeftEmailKlaar && (
-                      <button onClick={()=>keurAllesGoed(activeRonde,'email')} disabled={approvingAll} style={{background:'rgba(110,231,183,0.1)',border:'1px solid rgba(110,231,183,0.3)',borderRadius:7,color:'#6EE7B7',fontSize:12,padding:'7px 14px',cursor:'pointer',fontWeight:600}}>
+                      <button onClick={()=>keurAllesGoed(activeRonde,'email')} disabled={approvingAll} style={{background:'rgba(110,231,183,0.1)',border:'1px solid rgba(110,231,183,0.3)',borderRadius:7,color:'var(--mf-green-light)',fontSize:12,padding:'7px 14px',cursor:'pointer',fontWeight:600}}>
                         ✅ Alle emails goedkeuren
                       </button>
                     )}
@@ -588,7 +588,7 @@ export default function AgentPage() {
                             )}
                           </div>
                           <p style={{fontSize:11,color:MUTED,margin:0}}>{c.email} · {c.stad} · {c.sector}</p>
-                          {heeftEmail && !isEditing && <p style={{fontSize:11,color:'#818CF8',marginTop:4}}>✉️ {c[onderwerpKey] as string}</p>}
+                          {heeftEmail && !isEditing && <p style={{fontSize:11,color:'var(--mf-purple)',marginTop:4}}>✉️ {c[onderwerpKey] as string}</p>}
                         </div>
 
                         {/* Actie knoppen */}
@@ -629,7 +629,7 @@ export default function AgentPage() {
                                     onderwerpVal: c[onderwerpKey] as string ?? '',
                                   })
                                 }}>✏️</Btn>
-                                <Btn color={'#A78BFA'} onClick={()=>regenereerEmail(c.id, r)} disabled={isRegenerating}>
+                                <Btn color={'var(--mf-purple)'} onClick={()=>regenereerEmail(c.id, r)} disabled={isRegenerating}>
                                   {isRegenerating ? '⏳' : '🔄'}
                                 </Btn>
                               </>
@@ -678,7 +678,7 @@ export default function AgentPage() {
 
                       {/* Regenereer melding */}
                       {isRegenerating && (
-                        <p style={{fontSize:11,color:'#A78BFA',marginTop:8}}>⏳ Email wordt gereset — agent genereert opnieuw bij volgende run...</p>
+                        <p style={{fontSize:11,color:'var(--mf-purple)',marginTop:8}}>⏳ Email wordt gereset — agent genereert opnieuw bij volgende run...</p>
                       )}
                     </div>
                   )

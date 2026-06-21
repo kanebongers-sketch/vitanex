@@ -35,9 +35,9 @@ const UITDAGINGEN: Uitdaging[] = [
 ]
 
 const MOEILIJKHEID_STIJL: Record<Moeilijkheid, { kleur: string; bg: string }> = {
-  Makkelijk: { kleur: '#1D9E75', bg: '#E1F5EE' },
-  Gemiddeld:  { kleur: '#F59E0B', bg: '#FEF3C7' },
-  Uitdagend:  { kleur: '#EF4444', bg: '#FEE2E2' },
+  Makkelijk: { kleur: 'var(--mf-green)', bg: 'var(--mf-green-light)' },
+  Gemiddeld:  { kleur: 'var(--mf-amber)', bg: 'var(--mf-amber-light)' },
+  Uitdagend:  { kleur: 'var(--mf-red)', bg: 'var(--mf-red-light)' },
 }
 
 const STORAGE_KEY = 'mf-uitdagingen'
@@ -132,7 +132,7 @@ export default function UitdagingenPage() {
                         </div>
                       </div>
                       {voltooid ? (
-                        <span style={{ flexShrink: 0, fontSize: 12, fontWeight: 600, padding: '4px 10px', borderRadius: 999, background: '#E1F5EE', color: '#1D9E75' }}>
+                        <span style={{ flexShrink: 0, fontSize: 12, fontWeight: 600, padding: '4px 10px', borderRadius: 999, background: 'var(--mf-green-light)', color: 'var(--mf-green)' }}>
                           ✓ Voltooid!
                         </span>
                       ) : (
@@ -146,7 +146,7 @@ export default function UitdagingenPage() {
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       <div style={{ flex: 1, height: 8, background: 'var(--bg-subtle)', borderRadius: 100, overflow: 'hidden' }}>
-                        <div style={{ height: '100%', width: `${procent}%`, background: '#1D9E75', borderRadius: 100, transition: 'width 0.3s ease' }} />
+                        <div style={{ height: '100%', width: `${procent}%`, background: 'var(--mf-green)', borderRadius: 100, transition: 'width 0.3s ease' }} />
                       </div>
                       <span style={{ fontSize: 12, color: 'var(--text-3)', flexShrink: 0 }}>{verstreken}/{uitdaging.duur} dagen</span>
                     </div>
@@ -194,7 +194,7 @@ export default function UitdagingenPage() {
                   <p style={{ fontSize: 12, color: 'var(--text-4)' }}>👥 {uitdaging.deelnemers} deelnemers</p>
 
                   {isActief ? (
-                    <span style={{ display: 'block', textAlign: 'center', padding: '8px', borderRadius: 12, fontSize: 12, fontWeight: 600, background: '#E1F5EE', color: '#1D9E75' }}>
+                    <span style={{ display: 'block', textAlign: 'center', padding: '8px', borderRadius: 12, fontSize: 12, fontWeight: 600, background: 'var(--mf-green-light)', color: 'var(--mf-green)' }}>
                       Actief ✓
                     </span>
                   ) : (

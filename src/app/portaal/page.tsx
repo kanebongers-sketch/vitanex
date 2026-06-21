@@ -105,9 +105,9 @@ function gem(arr: number[]) {
 }
 
 function scoreKleur(s: number) {
-  if (s >= 4) return '#1D9E75'
-  if (s >= 2.5) return '#BA7517'
-  return '#E24B4A'
+  if (s >= 4) return 'var(--mf-green)'
+  if (s >= 2.5) return 'var(--mf-amber)'
+  return 'var(--mf-red)'
 }
 
 function formatDatum(iso: string) {
@@ -156,7 +156,7 @@ function berekenGewoontStreak(logs: GewoontLog[], gewoonte: string): number {
 
 const categorieMetrics = [
   {
-    label: 'Fysiek', kleur: '#1D9E75', licht: '#E1F5EE', donker: '#0F6E56',
+    label: 'Fysiek', kleur: 'var(--mf-green)', licht: 'var(--mf-green-light)', donker: 'var(--mf-green-dark)',
     keys: ['energie', 'slaap', 'fysiek_pijn', 'fysiek_beweging'] as (keyof Checkin)[],
     items: [
       { key: 'energie' as keyof Checkin, label: 'Energie' },
@@ -166,7 +166,7 @@ const categorieMetrics = [
     ],
   },
   {
-    label: 'Mentaal', kleur: '#378ADD', licht: '#E6F1FB', donker: '#185FA5',
+    label: 'Mentaal', kleur: 'var(--mf-blue)', licht: 'var(--mf-blue-light)', donker: 'var(--mf-blue)',
     keys: ['werkdruk', 'mentaal_focus', 'mentaal_stress', 'mentaal_balans'] as (keyof Checkin)[],
     items: [
       { key: 'werkdruk' as keyof Checkin, label: 'Werkdruk' },
@@ -176,7 +176,7 @@ const categorieMetrics = [
     ],
   },
   {
-    label: 'Sociaal', kleur: '#8B5CF6', licht: '#EEEDFE', donker: '#3C3489',
+    label: 'Sociaal', kleur: 'var(--mf-purple)', licht: 'var(--mf-purple-light)', donker: '#3C3489',
     keys: ['motivatie', 'sociaal_team', 'sociaal_steun', 'herstel'] as (keyof Checkin)[],
     items: [
       { key: 'motivatie' as keyof Checkin, label: 'Motivatie' },
@@ -391,14 +391,14 @@ export default function Portaal() {
   }
 
   return (
-    <div className="min-h-screen" style={{ background: '#F4FBF8' }}>
+    <div className="min-h-screen" style={{ background: 'var(--bg-subtle)' }}>
       <Navbar />
 
       {/* Employee portal identity banner */}
-      <div style={{ background: '#0F3D2E', borderBottom: '1px solid #1a5c42' }}>
+      <div style={{ background: 'var(--mf-green-dark)', borderBottom: '1px solid #1a5c42' }}>
         <div className="px-6 py-3 flex items-center gap-3">
           <div className="w-6 h-6 rounded-md flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
-            style={{ background: '#1D9E75' }}>MW</div>
+            style={{ background: 'var(--mf-green)' }}>MW</div>
           <p className="text-sm font-medium text-white">Mijn Portaal</p>
           <span className="text-gray-500 text-xs">—</span>
           <p className="text-xs text-gray-400">Jouw persoonlijke vitaliteit en welzijn</p>
@@ -421,10 +421,10 @@ export default function Portaal() {
         {/* Quick tool links */}
         <div className="grid grid-cols-4 gap-3 mb-6">
           {[
-            { href: '/coach',   afk: 'AI',  kleur: '#378ADD', bg: '#E6F1FB', label: 'Coach' },
-            { href: '/focus',   afk: 'F',   kleur: '#1D9E75', bg: '#E1F5EE', label: 'Focus' },
-            { href: '/journal', afk: 'J',   kleur: '#8B5CF6', bg: '#EEEDFE', label: 'Journal' },
-            { href: '/burnout', afk: 'BO',  kleur: '#E24B4A', bg: '#FCEBEB', label: 'Burn-out' },
+            { href: '/coach',   afk: 'AI',  kleur: 'var(--mf-blue)', bg: 'var(--mf-blue-light)', label: 'Coach' },
+            { href: '/focus',   afk: 'F',   kleur: 'var(--mf-green)', bg: 'var(--mf-green-light)', label: 'Focus' },
+            { href: '/journal', afk: 'J',   kleur: 'var(--mf-purple)', bg: 'var(--mf-purple-light)', label: 'Journal' },
+            { href: '/burnout', afk: 'BO',  kleur: 'var(--mf-red)', bg: 'var(--mf-red-light)', label: 'Burn-out' },
           ].map(t => (
             <Link key={t.href} href={t.href}
               className="bg-white rounded-2xl border border-gray-100 p-4 flex flex-col items-center gap-2 hover:border-gray-200 hover:shadow-sm transition text-center">
@@ -454,7 +454,7 @@ export default function Portaal() {
                 style={{ borderTop: `3px solid ${totaalScore >= 70 ? '#1D9E75' : totaalScore >= 50 ? '#BA7517' : '#E24B4A'}` }}>
                 <p className="text-xs text-gray-400 mb-1">Vitaliteitsscore</p>
                 <p className="text-4xl font-medium"
-                  style={{ color: totaalScore >= 70 ? '#1D9E75' : totaalScore >= 50 ? '#BA7517' : '#E24B4A' }}>
+                  style={{ color: totaalScore >= 70 ? 'var(--mf-green)' : totaalScore >= 50 ? 'var(--mf-amber)' : 'var(--mf-red)' }}>
                   {totaalScore}%
                 </p>
               </div>
@@ -474,7 +474,7 @@ export default function Portaal() {
             {/* Tip */}
             {tip() && (
               <div className="rounded-2xl p-4 text-sm mb-4 leading-relaxed"
-                style={{ background: '#E6F1FB', borderLeft: '3px solid #378ADD', color: '#185FA5' }}>
+                style={{ background: 'var(--mf-blue-light)', borderLeft: '3px solid var(--mf-blue)', color: 'var(--mf-blue)' }}>
                 {tip()}
               </div>
             )}
@@ -490,9 +490,9 @@ export default function Portaal() {
               if (risico === 0) return null
               const niveau = risico >= 3 ? 'hoog' : risico === 2 ? 'matig' : 'laag'
               const config = {
-                hoog: { bg: '#FCEBEB', border: '#E24B4A', color: '#A32D2D', label: 'Verhoogd burn-out risico', tekst: 'Meerdere signalen wijzen op mogelijke overbelasting. Neem rust serieus en overweeg een gesprek met de coach.' },
-                matig: { bg: '#FAEEDA', border: '#BA7517', color: '#854F0B', label: 'Aandachtspunt', tekst: 'Sommige signalen verdienen aandacht. Gebruik de focus tools of chat met de coach.' },
-                laag: { bg: '#FAEEDA', border: '#BA7517', color: '#854F0B', label: 'Let op', tekst: 'Eén indicator vraagt aandacht. Houd je ritme in de gaten en doe volgende week opnieuw een check-in.' },
+                hoog: { bg: 'var(--mf-red-light)', border: 'var(--mf-red)', color: 'var(--mf-red)', label: 'Verhoogd burn-out risico', tekst: 'Meerdere signalen wijzen op mogelijke overbelasting. Neem rust serieus en overweeg een gesprek met de coach.' },
+                matig: { bg: 'var(--mf-amber-light)', border: 'var(--mf-amber)', color: 'var(--mf-amber-dark)', label: 'Aandachtspunt', tekst: 'Sommige signalen verdienen aandacht. Gebruik de focus tools of chat met de coach.' },
+                laag: { bg: 'var(--mf-amber-light)', border: 'var(--mf-amber)', color: 'var(--mf-amber-dark)', label: 'Let op', tekst: 'Eén indicator vraagt aandacht. Houd je ritme in de gaten en doe volgende week opnieuw een check-in.' },
               }[niveau]
               return (
                 <div className="rounded-2xl p-4 mb-4"
@@ -522,7 +522,7 @@ export default function Portaal() {
                     <div className="flex items-baseline gap-2">
                       <p className="text-3xl font-medium" style={{ color: cat.kleur }}>{score}/5</p>
                       {d !== null && d !== 0 && (
-                        <span className="text-xs font-medium" style={{ color: d > 0 ? '#1D9E75' : '#E24B4A' }}>
+                        <span className="text-xs font-medium" style={{ color: d > 0 ? 'var(--mf-green)' : 'var(--mf-red)' }}>
                           {d > 0 ? `+${d}` : d}
                         </span>
                       )}
@@ -540,7 +540,7 @@ export default function Portaal() {
                             </div>
                             <span className="text-xs font-medium w-4 text-right" style={{ color: scoreKleur(waarde) }}>{waarde}</span>
                             {itemDelta !== null && itemDelta !== 0 && (
-                              <span className="text-xs w-5" style={{ color: itemDelta > 0 ? '#1D9E75' : '#E24B4A' }}>
+                              <span className="text-xs w-5" style={{ color: itemDelta > 0 ? 'var(--mf-green)' : 'var(--mf-red)' }}>
                                 {itemDelta > 0 ? '↑' : '↓'}
                               </span>
                             )}
@@ -568,20 +568,20 @@ export default function Portaal() {
                       key={g.id}
                       onClick={() => toggleGewoonte(g.id)}
                       className="flex items-center gap-3 p-3 rounded-xl transition text-left"
-                      style={{ background: actief ? 'var(--mentaforce-primary-light)' : '#F8F9FA' }}
+                      style={{ background: actief ? 'var(--mentaforce-primary-light)' : 'var(--bg-subtle)' }}
                     >
                       <div
                         className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 transition"
                         style={{
-                          background: actief ? 'var(--mentaforce-primary)' : '#e5e7eb',
-                          color: actief ? 'white' : '#9ca3af',
+                          background: actief ? 'var(--mentaforce-primary)' : 'var(--border)',
+                          color: actief ? 'white' : 'var(--text-3)',
                         }}
                       >
                         {actief ? '✓' : g.afk}
                       </div>
                       <span className="flex-1 text-sm font-medium text-gray-700">{g.label}</span>
                       {s > 1 && (
-                        <span className="text-xs font-medium" style={{ color: '#BA7517' }}>
+                        <span className="text-xs font-medium" style={{ color: 'var(--mf-amber)' }}>
                           {s}x
                         </span>
                       )}
@@ -596,34 +596,34 @@ export default function Portaal() {
               <div className="bg-white rounded-2xl border border-gray-100 p-5 mb-6">
                 <p className="text-sm font-medium text-gray-700 mb-4">Persoonlijke inzichten</p>
                 <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-                  <div className="rounded-xl p-3" style={{ background: '#E1F5EE' }}>
+                  <div className="rounded-xl p-3" style={{ background: 'var(--mf-green-light)' }}>
                     <p className="text-xs text-gray-500 mb-0.5">Beste dag</p>
-                    <p className="text-sm font-semibold capitalize" style={{ color: '#0F6E56' }}>
+                    <p className="text-sm font-semibold capitalize" style={{ color: 'var(--mf-green-dark)' }}>
                       {DAGEN[inzichten.beste.dag]}
                     </p>
-                    <p className="text-xs" style={{ color: '#1D9E75' }}>gem. {inzichten.beste.gem}/5</p>
+                    <p className="text-xs" style={{ color: 'var(--mf-green)' }}>gem. {inzichten.beste.gem}/5</p>
                   </div>
-                  <div className="rounded-xl p-3" style={{ background: '#FCEBEB' }}>
+                  <div className="rounded-xl p-3" style={{ background: 'var(--mf-red-light)' }}>
                     <p className="text-xs text-gray-500 mb-0.5">Moeilijkste dag</p>
-                    <p className="text-sm font-semibold capitalize" style={{ color: '#A32D2D' }}>
+                    <p className="text-sm font-semibold capitalize" style={{ color: 'var(--mf-red)' }}>
                       {DAGEN[inzichten.slechtste.dag]}
                     </p>
-                    <p className="text-xs" style={{ color: '#E24B4A' }}>gem. {inzichten.slechtste.gem}/5</p>
+                    <p className="text-xs" style={{ color: 'var(--mf-red)' }}>gem. {inzichten.slechtste.gem}/5</p>
                   </div>
-                  <div className="rounded-xl p-3" style={{ background: '#E6F1FB' }}>
+                  <div className="rounded-xl p-3" style={{ background: 'var(--mf-blue-light)' }}>
                     <p className="text-xs text-gray-500 mb-0.5">Sterkste punt</p>
-                    <p className="text-sm font-semibold" style={{ color: '#185FA5' }}>
+                    <p className="text-sm font-semibold" style={{ color: 'var(--mf-blue)' }}>
                       {metricLabels[inzichten.beste_metric.k]}
                     </p>
-                    <p className="text-xs" style={{ color: '#378ADD' }}>gem. {inzichten.beste_metric.gem}/5</p>
+                    <p className="text-xs" style={{ color: 'var(--mf-blue)' }}>gem. {inzichten.beste_metric.gem}/5</p>
                   </div>
                   {inzichten.trend !== null && (
-                    <div className="rounded-xl p-3" style={{ background: inzichten.trend >= 0 ? '#E1F5EE' : '#FCEBEB' }}>
+                    <div className="rounded-xl p-3" style={{ background: inzichten.trend >= 0 ? 'var(--mf-green-light)' : 'var(--mf-red-light)' }}>
                       <p className="text-xs text-gray-500 mb-0.5">Trend (4 weken)</p>
-                      <p className="text-sm font-semibold" style={{ color: inzichten.trend >= 0 ? '#0F6E56' : '#A32D2D' }}>
+                      <p className="text-sm font-semibold" style={{ color: inzichten.trend >= 0 ? 'var(--mf-green-dark)' : 'var(--mf-red)' }}>
                         {inzichten.trend > 0 ? '↑ Stijgend' : inzichten.trend < 0 ? '↓ Dalend' : '→ Stabiel'}
                       </p>
-                      <p className="text-xs" style={{ color: inzichten.trend >= 0 ? '#1D9E75' : '#E24B4A' }}>
+                      <p className="text-xs" style={{ color: inzichten.trend >= 0 ? 'var(--mf-green)' : 'var(--mf-red)' }}>
                         {inzichten.trend > 0 ? '+' : ''}{inzichten.trend} vs vorige periode
                       </p>
                     </div>
@@ -647,7 +647,7 @@ export default function Portaal() {
                   </LineChart>
                 </ResponsiveContainer>
                 <div className="flex gap-4 mt-3 justify-center">
-                  {[{ label: 'Fysiek', kleur: '#1D9E75' }, { label: 'Mentaal', kleur: '#378ADD' }, { label: 'Sociaal', kleur: '#8B5CF6' }].map(l => (
+                  {[{ label: 'Fysiek', kleur: 'var(--mf-green)' }, { label: 'Mentaal', kleur: 'var(--mf-blue)' }, { label: 'Sociaal', kleur: 'var(--mf-purple)' }].map(l => (
                     <div key={l.label} className="flex items-center gap-1.5">
                       <div className="w-3 h-0.5 rounded-full" style={{ background: l.kleur }} />
                       <span className="text-xs text-gray-400">{l.label}</span>
@@ -666,7 +666,7 @@ export default function Portaal() {
                     const isOpen = openAnalyse === a.id
                     const datum = new Date(a.aangemaakt_op).toLocaleDateString('nl-BE', { day: 'numeric', month: 'long', year: 'numeric' })
                     const totaal = a.scores?.t ?? 0
-                    const scoreKleur = totaal >= 4 ? '#1D9E75' : totaal >= 3 ? '#BA7517' : '#E24B4A'
+                    const scoreKleur = totaal >= 4 ? 'var(--mf-green)' : totaal >= 3 ? 'var(--mf-amber)' : 'var(--mf-red)'
                     return (
                       <div key={a.id} className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
                         {/* Header rij */}
@@ -704,7 +704,7 @@ export default function Portaal() {
                                 <ul className="space-y-1">
                                   {a.analyse_json.sterke_punten.map((p, i) => (
                                     <li key={i} className="flex items-start gap-2 text-xs text-gray-600">
-                                      <span style={{ color: '#1D9E75' }}>✓</span>{p}
+                                      <span style={{ color: 'var(--mf-green)' }}>✓</span>{p}
                                     </li>
                                   ))}
                                 </ul>
@@ -728,10 +728,10 @@ export default function Portaal() {
 
                             <div className="rounded-xl p-3 mt-2"
                               style={{
-                                background: a.analyse_json.burnout_risico?.niveau === 'hoog' ? '#FCEBEB' : a.analyse_json.burnout_risico?.niveau === 'matig' ? '#FAEEDA' : '#E1F5EE',
+                                background: a.analyse_json.burnout_risico?.niveau === 'hoog' ? 'var(--mf-red-light)' : a.analyse_json.burnout_risico?.niveau === 'matig' ? 'var(--mf-amber-light)' : 'var(--mf-green-light)',
                                 borderLeft: `3px solid ${a.analyse_json.burnout_risico?.niveau === 'hoog' ? '#E24B4A' : a.analyse_json.burnout_risico?.niveau === 'matig' ? '#BA7517' : '#1D9E75'}`,
                               }}>
-                              <p className="text-xs font-semibold" style={{ color: a.analyse_json.burnout_risico?.niveau === 'hoog' ? '#A32D2D' : a.analyse_json.burnout_risico?.niveau === 'matig' ? '#854F0B' : '#0F6E56' }}>
+                              <p className="text-xs font-semibold" style={{ color: a.analyse_json.burnout_risico?.niveau === 'hoog' ? 'var(--mf-red)' : a.analyse_json.burnout_risico?.niveau === 'matig' ? 'var(--mf-amber-dark)' : 'var(--mf-green-dark)' }}>
                                 Burn-out risico: {a.analyse_json.burnout_risico?.niveau ?? '—'}
                               </p>
                             </div>
@@ -761,7 +761,7 @@ export default function Portaal() {
                   </div>
                   {feedbackVerstuurd ? (
                     <div className="text-center py-4">
-                      <p className="text-sm font-medium mb-1" style={{ color: '#0F6E56' }}>Feedback verstuurd.</p>
+                      <p className="text-sm font-medium mb-1" style={{ color: 'var(--mf-green-dark)' }}>Feedback verstuurd.</p>
                       <p className="text-xs text-gray-400">Bedankt voor je bijdrage.</p>
                     </div>
                   ) : (
@@ -773,8 +773,8 @@ export default function Portaal() {
                             className="text-xs px-3 py-1.5 rounded-full border transition"
                             style={{
                               background: feedbackCat === c ? 'var(--mentaforce-primary-light)' : 'transparent',
-                              borderColor: feedbackCat === c ? 'var(--mentaforce-primary)' : '#e5e7eb',
-                              color: feedbackCat === c ? 'var(--mentaforce-primary)' : '#6b7280',
+                              borderColor: feedbackCat === c ? 'var(--mentaforce-primary)' : 'var(--border)',
+                              color: feedbackCat === c ? 'var(--mentaforce-primary)' : 'var(--text-2)',
                             }}>
                             {c}
                           </button>

@@ -23,6 +23,10 @@
   --mf-red-light:    #FCEBEB;
   --mf-rose:         #9D174D;
   --mf-rose-light:   #FDF2F8;
+  --mf-orange:       #EA580C;
+  --mf-orange-mid:   #C2410C;
+  --mf-orange-dark:  #9A3412;
+  --mf-orange-light: #FFF7ED;
 
   /* Legacy aliases kept for existing pages */
   --mentaforce-primary:       #1D9E75;

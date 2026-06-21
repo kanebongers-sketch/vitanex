@@ -53,19 +53,19 @@ const PLATFORM_CONFIG: Record<Platform, { label: string; kleur: string; icon: st
 
 const TYPE_CONFIG: Record<string, { label: string; kleur: string }> = {
   reel:     { label: 'Reel',     kleur: '#E1306C' },
-  carousel: { label: 'Carousel', kleur: '#9333EA' },
-  post:     { label: 'Post',     kleur: '#1D9E75' },
-  story:    { label: 'Story',    kleur: '#F59E0B' },
+  carousel: { label: 'Carousel', kleur: 'var(--mf-purple)' },
+  post:     { label: 'Post',     kleur: 'var(--mf-green)' },
+  story:    { label: 'Story',    kleur: 'var(--mf-amber)' },
 }
 
 const PIJLER_KLEUR: Record<string, string> = {
-  fitness:           '#1D9E75',
-  ondernemen:        '#185FA5',
+  fitness:           'var(--mf-green)',
+  ondernemen:        'var(--mf-blue)',
   discipline:        '#0D1117',
-  leefstijl:         '#8B5CF6',
-  stressmanagement:  '#E24B4A',
-  performance:       '#BA7517',
-  'persoonlijke-groei': '#1D9E75',
+  leefstijl:         'var(--mf-purple)',
+  stressmanagement:  'var(--mf-red)',
+  performance:       'var(--mf-amber)',
+  'persoonlijke-groei': 'var(--mf-green)',
 }
 
 const DAG_KORT = ['ma', 'di', 'wo', 'do', 'vr', 'za', 'zo']
@@ -161,7 +161,7 @@ function DagZoomModal({ dag, kalender, onClose }: {
                 </span>
               )}
               {isMorgen && (
-                <span style={{ fontSize: 11, fontWeight: 800, color: '#185FA5', background: 'rgba(24,95,165,0.12)', borderRadius: 100, padding: '3px 10px' }}>
+                <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--mf-blue)', background: 'rgba(24,95,165,0.12)', borderRadius: 100, padding: '3px 10px' }}>
                   Morgen
                 </span>
               )}
@@ -213,8 +213,8 @@ function DagZoomModal({ dag, kalender, onClose }: {
 }
 
 function ModalItemKaart({ item, platformKleur }: { item: ContentItem; platformKleur: string }) {
-  const typeCfg = TYPE_CONFIG[item.type] ?? { label: item.type, kleur: '#6b7280' }
-  const pijlerKleur = PIJLER_KLEUR[item.pijler] ?? '#6b7280'
+  const typeCfg = TYPE_CONFIG[item.type] ?? { label: item.type, kleur: 'var(--text-2)' }
+  const pijlerKleur = PIJLER_KLEUR[item.pijler] ?? 'var(--text-2)'
 
   return (
     <div style={{
@@ -625,8 +625,8 @@ function PlatformInfo({ platform }: { platform: Platform }) {
 
 function ContentItemKaart({ item }: { item: ContentItem }) {
   const [open, setOpen] = useState(false)
-  const typeCfg = TYPE_CONFIG[item.type] ?? { label: item.type, kleur: '#6b7280' }
-  const pijlerKleur = PIJLER_KLEUR[item.pijler] ?? '#6b7280'
+  const typeCfg = TYPE_CONFIG[item.type] ?? { label: item.type, kleur: 'var(--text-2)' }
+  const pijlerKleur = PIJLER_KLEUR[item.pijler] ?? 'var(--text-2)'
 
   return (
     <div
@@ -723,7 +723,7 @@ function GroeiActiesPanel({
           Dagelijkse Groei Acties
         </h2>
         <span style={{
-          fontSize: 11, fontWeight: 700, color: '#BA7517',
+          fontSize: 11, fontWeight: 700, color: 'var(--mf-amber)',
           background: '#BA751715', borderRadius: 100, padding: '3px 11px',
           textTransform: 'uppercase', letterSpacing: '0.5px',
         }}>
@@ -759,7 +759,7 @@ function GroeiActiesPanel({
                 <span style={{
                   fontSize: 12, fontWeight: 800, textTransform: 'uppercase',
                   letterSpacing: '0.5px',
-                  color: isVandaag ? '#BA7517' : 'var(--text-2)',
+                  color: isVandaag ? 'var(--mf-amber)' : 'var(--text-2)',
                 }}>
                   {DAG_KORT[i]}
                 </span>
@@ -772,7 +772,7 @@ function GroeiActiesPanel({
                 <ul style={{ margin: 0, padding: '10px 12px', listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {entry.acties.map((actie, idx) => (
                     <li key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
-                      <span style={{ color: '#1D9E75', fontWeight: 800, fontSize: 13, flexShrink: 0, marginTop: 1 }}>✓</span>
+                      <span style={{ color: 'var(--mf-green)', fontWeight: 800, fontSize: 13, flexShrink: 0, marginTop: 1 }}>✓</span>
                       <span style={{ fontSize: 12, color: 'var(--text-2)', lineHeight: 1.5 }}>{actie}</span>
                     </li>
                   ))}

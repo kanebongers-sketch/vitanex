@@ -43,9 +43,9 @@ function gem(arr: number[]) {
 }
 
 function scoreKleur(s: number) {
-  if (s >= 4) return '#1D9E75'
-  if (s >= 2.5) return '#BA7517'
-  return '#E24B4A'
+  if (s >= 4) return 'var(--mf-green)'
+  if (s >= 2.5) return 'var(--mf-amber)'
+  return 'var(--mf-red)'
 }
 
 function catScore(checkins: Checkin[], keys: (keyof Checkin)[]) {
@@ -53,9 +53,9 @@ function catScore(checkins: Checkin[], keys: (keyof Checkin)[]) {
 }
 
 const rolBadge: Record<string, { label: string; bg: string; color: string }> = {
-  hr: { label: 'HR', bg: '#E1F5EE', color: '#0F6E56' },
-  admin: { label: 'Staff Vitanex', bg: '#EEEDFE', color: '#3C3489' },
-  medewerker: { label: 'Medewerker', bg: '#E6F1FB', color: '#185FA5' },
+  hr: { label: 'HR', bg: 'var(--mf-green-light)', color: 'var(--mf-green-dark)' },
+  admin: { label: 'Staff Vitanex', bg: 'var(--mf-purple-light)', color: '#3C3489' },
+  medewerker: { label: 'Medewerker', bg: 'var(--mf-blue-light)', color: 'var(--mf-blue)' },
 }
 
 const detailMetrics: { label: string; key: keyof Checkin }[] = [
@@ -227,7 +227,7 @@ export default function ProfielPagina() {
                   {herinneringBezig ? 'Versturen...' : 'Stuur herinnering'}
                 </button>
                 {herinneringMelding && (
-                  <p className="text-xs" style={{ color: herinneringMelding.startsWith('Fout') ? '#A32D2D' : '#0F6E56' }}>
+                  <p className="text-xs" style={{ color: herinneringMelding.startsWith('Fout') ? 'var(--mf-red)' : 'var(--mf-green-dark)' }}>
                     {herinneringMelding}
                   </p>
                 )}
@@ -248,7 +248,7 @@ export default function ProfielPagina() {
                 padding: '9px 16px', fontWeight: 600, border: 'none',
                 background: 'transparent', cursor: 'pointer',
                 borderBottom: `2px solid ${actieveTab === tab ? '#1D9E75' : 'transparent'}`,
-                color: actieveTab === tab ? '#1D9E75' : '#6B7280',
+                color: actieveTab === tab ? 'var(--mf-green)' : 'var(--text-2)',
                 transition: 'all 0.15s',
               }}>{label}</button>
             ))}
@@ -263,17 +263,17 @@ export default function ProfielPagina() {
                 <p className="text-xs text-gray-400 mb-1">Totaal</p>
                 <p className="text-3xl font-medium" style={{ color: scoreKleur(totaalScore) }}>{totaalScore}/5</p>
               </div>
-              <div className="rounded-2xl p-5 text-center" style={{ background: '#E1F5EE' }}>
-                <p className="text-xs mb-1" style={{ color: '#0F6E56' }}>Fysiek</p>
-                <p className="text-2xl font-medium" style={{ color: '#1D9E75' }}>{fysiekScore}/5</p>
+              <div className="rounded-2xl p-5 text-center" style={{ background: 'var(--mf-green-light)' }}>
+                <p className="text-xs mb-1" style={{ color: 'var(--mf-green-dark)' }}>Fysiek</p>
+                <p className="text-2xl font-medium" style={{ color: 'var(--mf-green)' }}>{fysiekScore}/5</p>
               </div>
-              <div className="rounded-2xl p-5 text-center" style={{ background: '#E6F1FB' }}>
-                <p className="text-xs mb-1" style={{ color: '#185FA5' }}>Mentaal</p>
-                <p className="text-2xl font-medium" style={{ color: '#378ADD' }}>{mentaalScore}/5</p>
+              <div className="rounded-2xl p-5 text-center" style={{ background: 'var(--mf-blue-light)' }}>
+                <p className="text-xs mb-1" style={{ color: 'var(--mf-blue)' }}>Mentaal</p>
+                <p className="text-2xl font-medium" style={{ color: 'var(--mf-blue)' }}>{mentaalScore}/5</p>
               </div>
-              <div className="rounded-2xl p-5 text-center" style={{ background: '#EEEDFE' }}>
+              <div className="rounded-2xl p-5 text-center" style={{ background: 'var(--mf-purple-light)' }}>
                 <p className="text-xs mb-1" style={{ color: '#3C3489' }}>Sociaal</p>
-                <p className="text-2xl font-medium" style={{ color: '#8B5CF6' }}>{sociaalScore}/5</p>
+                <p className="text-2xl font-medium" style={{ color: 'var(--mf-purple)' }}>{sociaalScore}/5</p>
               </div>
             </div>
 

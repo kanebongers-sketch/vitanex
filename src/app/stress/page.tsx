@@ -119,7 +119,7 @@ export default function StressPagina() {
   }
 
   const NIVEAU_KLEUR = (n: number) =>
-    n <= 3 ? '#1D9E75' : n <= 6 ? '#F59E0B' : '#EF4444'
+    n <= 3 ? 'var(--mf-green)' : n <= 6 ? 'var(--mf-amber)' : 'var(--mf-red)'
 
   if (laden) return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
@@ -145,7 +145,7 @@ export default function StressPagina() {
         </header>
 
         {succesBericht && (
-          <div style={{ background: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: 12, padding: '10px 14px', marginBottom: 16, fontSize: 13, color: '#15803D', fontWeight: 600 }}>
+          <div style={{ background: 'var(--mf-green-light)', border: '1px solid #BBF7D0', borderRadius: 12, padding: '10px 14px', marginBottom: 16, fontSize: 13, color: 'var(--mf-green-dark)', fontWeight: 600 }}>
             {succesBericht}
           </div>
         )}
@@ -200,7 +200,7 @@ export default function StressPagina() {
               <button key={t.id} onClick={() => setGekozeTechniek(prev => prev === t.id ? null : t.id)} style={{
                 display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                 padding: '10px 14px', borderRadius: 10,
-                background: gekozeTechniek === t.id ? '#F0FDF4' : 'var(--bg-subtle)',
+                background: gekozeTechniek === t.id ? 'var(--mf-green-light)' : 'var(--bg-subtle)',
                 border: `1.5px solid ${gekozeTechniek === t.id ? '#1D9E75' : 'var(--border)'}`,
                 cursor: 'pointer', textAlign: 'left',
               }}>
@@ -208,7 +208,7 @@ export default function StressPagina() {
                   <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-2)' }}>{t.label}</p>
                   <p style={{ fontSize: 11, color: 'var(--text-4)' }}>{t.beschrijving}</p>
                 </div>
-                {gekozeTechniek === t.id && <span style={{ color: '#1D9E75', fontSize: 16 }}>✓</span>}
+                {gekozeTechniek === t.id && <span style={{ color: 'var(--mf-green)', fontSize: 16 }}>✓</span>}
               </button>
             ))}
           </div>
@@ -219,7 +219,7 @@ export default function StressPagina() {
           disabled={opslaan}
           style={{
             width: '100%', padding: '14px', borderRadius: 14, marginBottom: 24,
-            background: opslaan ? '#9CA3AF' : 'linear-gradient(135deg, var(--mf-green) 0%, var(--mf-green-dark) 100%)',
+            background: opslaan ? 'var(--text-3)' : 'linear-gradient(135deg, var(--mf-green) 0%, var(--mf-green-dark) 100%)',
             boxShadow: opslaan ? 'none' : '0 4px 16px rgba(29,158,117,0.35)',
             color: 'white', border: 'none', cursor: 'pointer',
             fontSize: 15, fontWeight: 700,
@@ -249,7 +249,7 @@ export default function StressPagina() {
               <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                 {FASE_TEKST[ademFase]}
               </span>
-              {ademBezig && <span style={{ fontSize: 10, color: '#1D9E75', marginTop: 2 }}>{ademCyclus}/4</span>}
+              {ademBezig && <span style={{ fontSize: 10, color: 'var(--mf-green)', marginTop: 2 }}>{ademCyclus}/4</span>}
             </div>
             <p style={{ fontSize: 12, color: 'var(--text-4)', textAlign: 'center' }}>
               {ademBezig ? 'Tik om te stoppen' : '4 sec inademen · 4 vast · 4 uitademen · 4 rust'}

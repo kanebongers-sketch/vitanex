@@ -26,14 +26,14 @@ const SPIERGROEP_EMOJI: Record<string, string> = {
 }
 
 const SPIERGROEP_KLEUR: Record<string, string> = {
-  borst: '#fee2e2', rug: '#dbeafe', schouders: '#fef3c7', armen: '#f3e8ff',
-  benen: '#dcfce7', core: '#fff7ed', cardio: '#fce7f3'
+  borst: 'var(--mf-red-light)', rug: 'var(--mf-blue-light)', schouders: 'var(--mf-amber-light)', armen: 'var(--mf-purple-light)',
+  benen: 'var(--mf-green-light)', core: 'var(--mf-orange-light)', cardio: 'var(--mf-rose-light)'
 }
 
 const MOEILIJKHEID_KLEUR: Record<string, { bg: string; text: string }> = {
-  beginner: { bg: '#f0fdf4', text: '#1D9E75' },
-  gemiddeld: { bg: '#fff7ed', text: '#F97316' },
-  gevorderd: { bg: '#fef2f2', text: '#ef4444' },
+  beginner: { bg: 'var(--mf-green-light)', text: 'var(--mf-green)' },
+  gemiddeld: { bg: 'var(--mf-orange-light)', text: 'var(--mf-orange)' },
+  gevorderd: { bg: 'var(--mf-red-light)', text: 'var(--mf-red)' },
 }
 
 function spierSleutel(spiergroep: string) {
@@ -43,7 +43,7 @@ function spierSleutel(spiergroep: string) {
 function OefeningPlaceholder({ spiergroep }: { spiergroep: string }) {
   const sleutel = spierSleutel(spiergroep)
   const emoji = SPIERGROEP_EMOJI[sleutel] || '🏃'
-  const achtergrond = SPIERGROEP_KLEUR[sleutel] || '#f3f4f6'
+  const achtergrond = SPIERGROEP_KLEUR[sleutel] || 'var(--bg-subtle)'
   return (
     <div style={{ height: 160, background: achtergrond, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '12px 12px 0 0', fontSize: 48 }}>
       {emoji}
@@ -87,13 +87,13 @@ export default function OefeningenPage() {
     return (
       <div style={{ minHeight: '100vh', background: 'var(--bg-app)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <Navbar />
-        <p style={{ color: '#6b7280', marginTop: 80 }}>Laden...</p>
+        <p style={{ color: 'var(--text-2)', marginTop: 80 }}>Laden...</p>
       </div>
     )
   }
 
   const moeilSleutel = (m: string) => m.toLowerCase() as keyof typeof MOEILIJKHEID_KLEUR
-  const moeilKleur = (m: string) => MOEILIJKHEID_KLEUR[moeilSleutel(m)] || { bg: '#f3f4f6', text: '#6b7280' }
+  const moeilKleur = (m: string) => MOEILIJKHEID_KLEUR[moeilSleutel(m)] || { bg: 'var(--bg-subtle)', text: 'var(--text-2)' }
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-app)', paddingBottom: 48 }}>
@@ -101,10 +101,10 @@ export default function OefeningenPage() {
       <div style={{ maxWidth: 1100, margin: '0 auto', padding: '80px 16px 0' }}>
 
         <div style={{ marginBottom: 28 }}>
-          <h1 style={{ fontSize: 28, fontWeight: 700, color: '#111827', margin: '0 0 4px' }}>
+          <h1 style={{ fontSize: 28, fontWeight: 700, color: 'var(--text-1)', margin: '0 0 4px' }}>
             Oefeningen bibliotheek
           </h1>
-          <p style={{ color: '#6b7280', fontSize: 15 }}>Bekijk uitvoering, spiergroepen en moeilijkheidsgraad per oefening</p>
+          <p style={{ color: 'var(--text-2)', fontSize: 15 }}>Bekijk uitvoering, spiergroepen en moeilijkheidsgraad per oefening</p>
         </div>
 
         <div style={{ background: '#fff', borderRadius: 12, padding: '16px 20px', marginBottom: 28, boxShadow: '0 1px 4px rgba(0,0,0,0.07)' }}>
@@ -117,7 +117,7 @@ export default function OefeningenPage() {
           />
 
           <div style={{ marginBottom: 12 }}>
-            <p style={{ fontSize: 12, color: '#6b7280', marginBottom: 8, fontWeight: 600 }}>SPIERGROEP</p>
+            <p style={{ fontSize: 12, color: 'var(--text-2)', marginBottom: 8, fontWeight: 600 }}>SPIERGROEP</p>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               {SPIERGROEPEN.map(s => (
                 <button
@@ -125,8 +125,8 @@ export default function OefeningenPage() {
                   onClick={() => setSpiergroepFilter(s)}
                   style={{
                     padding: '6px 14px', borderRadius: 20, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 600,
-                    background: spiergroepFilter === s ? '#1D9E75' : '#f3f4f6',
-                    color: spiergroepFilter === s ? '#fff' : '#374151',
+                    background: spiergroepFilter === s ? 'var(--mf-green)' : 'var(--bg-subtle)',
+                    color: spiergroepFilter === s ? '#fff' : 'var(--text-2)',
                     transition: 'background 0.15s'
                   }}
                 >{s}</button>
@@ -135,7 +135,7 @@ export default function OefeningenPage() {
           </div>
 
           <div>
-            <p style={{ fontSize: 12, color: '#6b7280', marginBottom: 8, fontWeight: 600 }}>MOEILIJKHEID</p>
+            <p style={{ fontSize: 12, color: 'var(--text-2)', marginBottom: 8, fontWeight: 600 }}>MOEILIJKHEID</p>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               {MOEILIJKHEDEN.map(m => (
                 <button
@@ -143,8 +143,8 @@ export default function OefeningenPage() {
                   onClick={() => setMoeilijkheidFilter(m)}
                   style={{
                     padding: '6px 14px', borderRadius: 20, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 600,
-                    background: moeilijkheidFilter === m ? '#185FA5' : '#f3f4f6',
-                    color: moeilijkheidFilter === m ? '#fff' : '#374151',
+                    background: moeilijkheidFilter === m ? 'var(--mf-blue)' : 'var(--bg-subtle)',
+                    color: moeilijkheidFilter === m ? '#fff' : 'var(--text-2)',
                     transition: 'background 0.15s'
                   }}
                 >{m}</button>
@@ -156,21 +156,21 @@ export default function OefeningenPage() {
         {oefeningen.length === 0 ? (
           <div style={{ background: '#fff', borderRadius: 12, padding: 48, textAlign: 'center', boxShadow: '0 1px 4px rgba(0,0,0,0.07)' }}>
             <p style={{ fontSize: 40, marginBottom: 16 }}>📚</p>
-            <p style={{ fontSize: 18, fontWeight: 700, color: '#111827', marginBottom: 8 }}>Bibliotheek nog leeg</p>
-            <p style={{ color: '#6b7280', fontSize: 15, maxWidth: 400, margin: '0 auto' }}>
+            <p style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-1)', marginBottom: 8 }}>Bibliotheek nog leeg</p>
+            <p style={{ color: 'var(--text-2)', fontSize: 15, maxWidth: 400, margin: '0 auto' }}>
               De bibliotheek wordt gevuld naarmate je schema&apos;s genereert. Genereer je eerste schema om oefeningen toe te voegen.
             </p>
           </div>
         ) : gefilterd.length === 0 ? (
           <div style={{ background: '#fff', borderRadius: 12, padding: 40, textAlign: 'center', boxShadow: '0 1px 4px rgba(0,0,0,0.07)' }}>
-            <p style={{ color: '#6b7280' }}>Geen oefeningen gevonden voor deze filters.</p>
+            <p style={{ color: 'var(--text-2)' }}>Geen oefeningen gevonden voor deze filters.</p>
           </div>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 20 }}>
             {gefilterd.map(oefening => {
               const mk = moeilKleur(oefening.moeilijkheid)
               const spierSleutelStr = spierSleutel(oefening.spiergroep)
-              const spierAchtergrond = SPIERGROEP_KLEUR[spierSleutelStr] || '#f3f4f6'
+              const spierAchtergrond = SPIERGROEP_KLEUR[spierSleutelStr] || 'var(--bg-subtle)'
               return (
                 <div
                   key={oefening.id}
@@ -186,16 +186,16 @@ export default function OefeningenPage() {
                   )}
                   <div style={{ padding: '14px 16px' }}>
                     <div style={{ display: 'flex', gap: 6, marginBottom: 10, flexWrap: 'wrap' }}>
-                      <span style={{ background: spierAchtergrond, color: '#374151', borderRadius: 20, padding: '3px 10px', fontSize: 11, fontWeight: 600 }}>
+                      <span style={{ background: spierAchtergrond, color: 'var(--text-2)', borderRadius: 20, padding: '3px 10px', fontSize: 11, fontWeight: 600 }}>
                         {oefening.spiergroep}
                       </span>
                       <span style={{ background: mk.bg, color: mk.text, borderRadius: 20, padding: '3px 10px', fontSize: 11, fontWeight: 600 }}>
                         {oefening.moeilijkheid}
                       </span>
                     </div>
-                    <p style={{ fontWeight: 700, color: '#111827', fontSize: 15, marginBottom: 6 }}>{oefening.naam}</p>
+                    <p style={{ fontWeight: 700, color: 'var(--text-1)', fontSize: 15, marginBottom: 6 }}>{oefening.naam}</p>
                     {oefening.beschrijving && (
-                      <p style={{ color: '#6b7280', fontSize: 13, lineHeight: 1.5, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                      <p style={{ color: 'var(--text-2)', fontSize: 13, lineHeight: 1.5, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                         {oefening.beschrijving}
                       </p>
                     )}
@@ -226,15 +226,15 @@ export default function OefeningenPage() {
 
             <div style={{ padding: '20px 24px 28px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
-                <h2 style={{ fontSize: 22, fontWeight: 700, color: '#111827', flex: 1, marginRight: 16 }}>{geselecteerd.naam}</h2>
+                <h2 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-1)', flex: 1, marginRight: 16 }}>{geselecteerd.naam}</h2>
                 <button
                   onClick={() => setGeselecteerd(null)}
-                  style={{ background: '#f3f4f6', border: 'none', borderRadius: 8, width: 36, height: 36, fontSize: 18, cursor: 'pointer', color: '#374151', flexShrink: 0 }}
+                  style={{ background: 'var(--bg-subtle)', border: 'none', borderRadius: 8, width: 36, height: 36, fontSize: 18, cursor: 'pointer', color: 'var(--text-2)', flexShrink: 0 }}
                 >✕</button>
               </div>
 
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16 }}>
-                <span style={{ background: SPIERGROEP_KLEUR[spierSleutel(geselecteerd.spiergroep)] || '#f3f4f6', color: '#374151', borderRadius: 20, padding: '4px 12px', fontSize: 13, fontWeight: 600 }}>
+                <span style={{ background: SPIERGROEP_KLEUR[spierSleutel(geselecteerd.spiergroep)] || 'var(--bg-subtle)', color: 'var(--text-2)', borderRadius: 20, padding: '4px 12px', fontSize: 13, fontWeight: 600 }}>
                   {geselecteerd.spiergroep}
                 </span>
                 <span style={{ background: moeilKleur(geselecteerd.moeilijkheid).bg, color: moeilKleur(geselecteerd.moeilijkheid).text, borderRadius: 20, padding: '4px 12px', fontSize: 13, fontWeight: 600 }}>
@@ -243,15 +243,15 @@ export default function OefeningenPage() {
               </div>
 
               {geselecteerd.beschrijving && (
-                <p style={{ color: '#374151', fontSize: 15, lineHeight: 1.6, marginBottom: 20 }}>{geselecteerd.beschrijving}</p>
+                <p style={{ color: 'var(--text-2)', fontSize: 15, lineHeight: 1.6, marginBottom: 20 }}>{geselecteerd.beschrijving}</p>
               )}
 
               {geselecteerd.uitvoering_stappen && geselecteerd.uitvoering_stappen.length > 0 && (
                 <div style={{ marginBottom: 20 }}>
-                  <h3 style={{ fontSize: 15, fontWeight: 700, color: '#111827', marginBottom: 10 }}>Uitvoering</h3>
+                  <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-1)', marginBottom: 10 }}>Uitvoering</h3>
                   <ol style={{ paddingLeft: 20, margin: 0 }}>
                     {geselecteerd.uitvoering_stappen.map((stap, i) => (
-                      <li key={i} style={{ color: '#374151', fontSize: 14, lineHeight: 1.6, marginBottom: 6 }}>{stap}</li>
+                      <li key={i} style={{ color: 'var(--text-2)', fontSize: 14, lineHeight: 1.6, marginBottom: 6 }}>{stap}</li>
                     ))}
                   </ol>
                 </div>
@@ -259,10 +259,10 @@ export default function OefeningenPage() {
 
               {geselecteerd.benodigdheden && geselecteerd.benodigdheden.length > 0 && (
                 <div>
-                  <h3 style={{ fontSize: 15, fontWeight: 700, color: '#111827', marginBottom: 10 }}>Benodigdheden</h3>
+                  <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-1)', marginBottom: 10 }}>Benodigdheden</h3>
                   <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                     {geselecteerd.benodigdheden.map((item, i) => (
-                      <span key={i} style={{ background: '#f3f4f6', color: '#374151', borderRadius: 20, padding: '4px 12px', fontSize: 13 }}>{item}</span>
+                      <span key={i} style={{ background: 'var(--bg-subtle)', color: 'var(--text-2)', borderRadius: 20, padding: '4px 12px', fontSize: 13 }}>{item}</span>
                     ))}
                   </div>
                 </div>

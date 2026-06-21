@@ -38,9 +38,9 @@ const TYPE_EMOJI: Record<VerlofType, string> = {
 }
 
 const STATUS_STIJL: Record<VerlofStatus, { bg: string; color: string; label: string }> = {
-  aangevraagd: { bg: '#FAEEDA', color: '#854F0B', label: 'In behandeling' },
-  goedgekeurd: { bg: '#E1F5EE', color: '#0F6E56', label: 'Goedgekeurd' },
-  afgewezen:   { bg: '#FCEBEB', color: '#A32D2D', label: 'Afgewezen' },
+  aangevraagd: { bg: 'var(--mf-amber-light)', color: 'var(--mf-amber-dark)', label: 'In behandeling' },
+  goedgekeurd: { bg: 'var(--mf-green-light)', color: 'var(--mf-green-dark)', label: 'Goedgekeurd' },
+  afgewezen:   { bg: 'var(--mf-red-light)', color: 'var(--mf-red)', label: 'Afgewezen' },
 }
 
 function aantalDagen(van: string, tot: string): number {
@@ -150,11 +150,11 @@ export default function VerlofPage() {
             <p className="text-xs mt-0.5" style={{ color: 'var(--text-4)' }}>Totaal</p>
           </div>
           <div className="rounded-2xl p-4 text-center" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-xs)' }}>
-            <p className="text-2xl font-bold" style={{ color: '#E24B4A' }}>{saldo.opgenomen}</p>
+            <p className="text-2xl font-bold" style={{ color: 'var(--mf-red)' }}>{saldo.opgenomen}</p>
             <p className="text-xs mt-0.5" style={{ color: 'var(--text-4)' }}>Opgenomen</p>
           </div>
           <div className="rounded-2xl p-4 text-center" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-xs)' }}>
-            <p className="text-2xl font-bold" style={{ color: '#1D9E75' }}>{resterend}</p>
+            <p className="text-2xl font-bold" style={{ color: 'var(--mf-green)' }}>{resterend}</p>
             <p className="text-xs mt-0.5" style={{ color: 'var(--text-4)' }}>Resterend</p>
           </div>
         </div>
@@ -182,9 +182,9 @@ export default function VerlofPage() {
                       onClick={() => setType(t)}
                       className="flex items-center gap-2 px-3 py-2.5 rounded-xl border text-sm transition"
                       style={{
-                        background: type === t ? '#E1F5EE' : 'var(--bg-subtle)',
-                        borderColor: type === t ? '#1D9E75' : 'var(--border)',
-                        color: type === t ? '#0F6E56' : 'var(--text-3)',
+                        background: type === t ? 'var(--mf-green-light)' : 'var(--bg-subtle)',
+                        borderColor: type === t ? 'var(--mf-green)' : 'var(--border)',
+                        color: type === t ? 'var(--mf-green-dark)' : 'var(--text-3)',
                         fontWeight: type === t ? 600 : 400,
                       }}
                     >
@@ -243,8 +243,8 @@ export default function VerlofPage() {
               </div>
 
               {fout && (
-                <div className="rounded-xl px-4 py-3 mb-3" style={{ background: '#FCEBEB' }}>
-                  <p className="text-sm" style={{ color: '#A32D2D' }}>{fout}</p>
+                <div className="rounded-xl px-4 py-3 mb-3" style={{ background: 'var(--mf-red-light)' }}>
+                  <p className="text-sm" style={{ color: 'var(--mf-red)' }}>{fout}</p>
                 </div>
               )}
 
@@ -306,7 +306,7 @@ export default function VerlofPage() {
                   )}
                   {a.reviewer_notitie && (
                     <div className="mt-2 ml-[52px] text-xs rounded-xl px-3 py-2"
-                      style={{ background: a.status === 'goedgekeurd' ? '#E1F5EE' : '#FCEBEB', color: a.status === 'goedgekeurd' ? '#0F6E56' : '#A32D2D' }}>
+                      style={{ background: a.status === 'goedgekeurd' ? 'var(--mf-green-light)' : 'var(--mf-red-light)', color: a.status === 'goedgekeurd' ? 'var(--mf-green-dark)' : 'var(--mf-red)' }}>
                       <strong>Notitie HR:</strong> {a.reviewer_notitie}
                     </div>
                   )}

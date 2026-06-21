@@ -78,16 +78,16 @@ export default function NieuwRoosterPage() {
       <div style={{ maxWidth: 560, margin: '0 auto', padding: '32px 16px' }}>
         <button
           onClick={() => router.back()}
-          style={{ color: '#6B7280', fontSize: 13, background: 'none', border: 'none', cursor: 'pointer', marginBottom: 20, padding: 0 }}
+          style={{ color: 'var(--text-2)', fontSize: 13, background: 'none', border: 'none', cursor: 'pointer', marginBottom: 20, padding: 0 }}
         >
           ← Terug
         </button>
 
-        <h1 style={{ fontSize: 22, fontWeight: 700, color: '#111827', marginBottom: 24 }}>Nieuw rooster</h1>
+        <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-1)', marginBottom: 24 }}>Nieuw rooster</h1>
 
         <div className="rounded-2xl border border-gray-100" style={{ background: '#fff', padding: 24 }}>
           <div style={{ marginBottom: 18 }}>
-            <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>
+            <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-2)', marginBottom: 6 }}>
               Week
             </label>
             <input
@@ -100,18 +100,18 @@ export default function NieuwRoosterPage() {
                 borderRadius: 8,
                 border: '1.5px solid #E5E7EB',
                 fontSize: 14,
-                color: '#111827',
+                color: 'var(--text-1)',
                 outline: 'none',
                 boxSizing: 'border-box',
               }}
             />
-            <p style={{ fontSize: 11, color: '#9CA3AF', marginTop: 4 }}>
+            <p style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 4 }}>
               De datum wordt automatisch op de maandag van die week gezet.
             </p>
           </div>
 
           <div style={{ marginBottom: 24 }}>
-            <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>
+            <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-2)', marginBottom: 6 }}>
               Naam rooster
             </label>
             <input
@@ -125,7 +125,7 @@ export default function NieuwRoosterPage() {
                 borderRadius: 8,
                 border: '1.5px solid #E5E7EB',
                 fontSize: 14,
-                color: '#111827',
+                color: 'var(--text-1)',
                 outline: 'none',
                 boxSizing: 'border-box',
               }}
@@ -133,7 +133,7 @@ export default function NieuwRoosterPage() {
           </div>
 
           {fout && (
-            <div style={{ background: '#FCEBEB', color: '#A32D2D', borderRadius: 8, padding: '10px 14px', fontSize: 13, marginBottom: 16 }}>
+            <div style={{ background: 'var(--mf-red-light)', color: 'var(--mf-red)', borderRadius: 8, padding: '10px 14px', fontSize: 13, marginBottom: 16 }}>
               {fout}
             </div>
           )}
@@ -143,7 +143,7 @@ export default function NieuwRoosterPage() {
             disabled={bezig}
             style={{
               width: '100%',
-              background: bezig ? '#9CA3AF' : '#1D9E75',
+              background: bezig ? 'var(--text-3)' : 'var(--mf-green)',
               color: '#fff',
               padding: '11px',
               borderRadius: 10,

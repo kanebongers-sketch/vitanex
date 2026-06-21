@@ -51,9 +51,9 @@ function berekenRisico(uitputting: number, cynisme: number, efficaciteit: number
 }
 
 function risicoKleur(niveau: string) {
-  if (niveau === 'hoog') return { bg: '#FCEBEB', border: '#E24B4A', text: '#A32D2D', gauge: '#E24B4A' }
-  if (niveau === 'matig') return { bg: '#FFF8E7', border: '#BA7517', text: '#7A4D0C', gauge: '#BA7517' }
-  return { bg: '#E1F5EE', border: '#1D9E75', text: '#0F6E56', gauge: '#1D9E75' }
+  if (niveau === 'hoog') return { bg: 'var(--mf-red-light)', border: 'var(--mf-red)', text: 'var(--mf-red)', gauge: 'var(--mf-red)' }
+  if (niveau === 'matig') return { bg: 'var(--mf-amber-light)', border: 'var(--mf-amber)', text: 'var(--mf-amber-dark)', gauge: 'var(--mf-amber)' }
+  return { bg: 'var(--mf-green-light)', border: 'var(--mf-green)', text: 'var(--mf-green-dark)', gauge: 'var(--mf-green)' }
 }
 
 function risicoLabel(niveau: string) {
@@ -208,9 +208,9 @@ export default function BurnoutPagina() {
         </div>
 
         {[
-          { label: 'Energie & uitputting', categorie: 'uitputting' as const, kleur: '#E24B4A' },
-          { label: 'Betrokkenheid', categorie: 'cynisme' as const, kleur: '#BA7517' },
-          { label: 'Effectiviteit', categorie: 'efficaciteit' as const, kleur: '#1D9E75' },
+          { label: 'Energie & uitputting', categorie: 'uitputting' as const, kleur: 'var(--mf-red)' },
+          { label: 'Betrokkenheid', categorie: 'cynisme' as const, kleur: 'var(--mf-amber)' },
+          { label: 'Effectiviteit', categorie: 'efficaciteit' as const, kleur: 'var(--mf-green)' },
         ].map(groep => (
           <div key={groep.categorie} className="rounded-2xl p-5 mb-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
             <p className="text-xs font-semibold uppercase tracking-wide mb-4" style={{ color: groep.kleur }}>
@@ -284,9 +284,9 @@ export default function BurnoutPagina() {
           <div className="rounded-2xl p-5 mb-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
             <p className="text-sm font-medium mb-4" style={{ color: 'var(--text-2)' }}>Scores</p>
             {[
-              { label: 'Uitputting', waarde: resultaat.uitputting, kleur: '#E24B4A', info: 'Lager is beter' },
-              { label: 'Distantie', waarde: resultaat.cynisme, kleur: '#BA7517', info: 'Lager is beter' },
-              { label: 'Effectiviteit', waarde: resultaat.efficaciteit, kleur: '#1D9E75', info: 'Hoger is beter' },
+              { label: 'Uitputting', waarde: resultaat.uitputting, kleur: 'var(--mf-red)', info: 'Lager is beter' },
+              { label: 'Distantie', waarde: resultaat.cynisme, kleur: 'var(--mf-amber)', info: 'Lager is beter' },
+              { label: 'Effectiviteit', waarde: resultaat.efficaciteit, kleur: 'var(--mf-green)', info: 'Hoger is beter' },
             ].map(s => (
               <div key={s.label} className="mb-4 last:mb-0">
                 <div className="flex justify-between text-xs mb-1">

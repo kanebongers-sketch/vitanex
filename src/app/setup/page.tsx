@@ -58,15 +58,15 @@ export default function Setup() {
   if (isAdmin === null) {
     controleerToegang()
     return (
-      <main className="min-h-screen flex items-center justify-center" style={{ background: '#F5F3FF' }}>
-        <div className="w-6 h-6 rounded-full border-2 border-gray-200 animate-spin" style={{ borderTopColor: '#8B5CF6' }} />
+      <main className="min-h-screen flex items-center justify-center" style={{ background: 'var(--mf-purple-light)' }}>
+        <div className="w-6 h-6 rounded-full border-2 border-gray-200 animate-spin" style={{ borderTopColor: 'var(--mf-purple)' }} />
       </main>
     )
   }
 
   if (isAdmin === false) {
     return (
-      <main className="min-h-screen flex items-center justify-center p-8" style={{ background: '#F5F3FF' }}>
+      <main className="min-h-screen flex items-center justify-center p-8" style={{ background: 'var(--mf-purple-light)' }}>
         <div className="bg-white rounded-2xl border border-gray-100 p-8 max-w-md w-full text-center">
           <p className="text-gray-700 font-medium mb-2">Geen toegang</p>
           <p className="text-gray-400 text-sm mb-4">Alleen admins kunnen de setup uitvoeren.</p>
@@ -77,13 +77,13 @@ export default function Setup() {
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center p-8" style={{ background: '#F5F3FF' }}>
+    <main className="min-h-screen flex items-center justify-center p-8" style={{ background: 'var(--mf-purple-light)' }}>
       <div className="bg-white rounded-2xl border border-gray-100 p-8 max-w-lg w-full">
 
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
           <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold"
-            style={{ background: '#8B5CF6' }}>⚙️</div>
+            style={{ background: 'var(--mf-purple)' }}>⚙️</div>
           <div>
             <h1 className="text-lg font-semibold text-gray-900">Documenten setup</h1>
             <p className="text-xs text-gray-400">Eenmalig uitvoeren om het dossier-systeem te activeren</p>
@@ -92,7 +92,7 @@ export default function Setup() {
 
         {stap === 'token' && (
           <>
-            <div className="rounded-xl p-4 mb-5" style={{ background: '#EEEDFE', borderLeft: '3px solid #8B5CF6' }}>
+            <div className="rounded-xl p-4 mb-5" style={{ background: 'var(--mf-purple-light)', borderLeft: '3px solid #8B5CF6' }}>
               <p className="text-sm font-semibold mb-1" style={{ color: '#3C3489' }}>Supabase Management Token nodig</p>
               <p className="text-xs leading-relaxed" style={{ color: '#3C3489' }}>
                 Dit token geeft eenmalig toestemming om de database-tabel aan te maken.
@@ -127,7 +127,7 @@ export default function Setup() {
               onClick={uitvoeren}
               disabled={!mgmtToken.trim()}
               className="w-full py-3 rounded-xl text-white text-sm font-semibold transition disabled:opacity-40"
-              style={{ background: '#8B5CF6' }}
+              style={{ background: 'var(--mf-purple)' }}
             >
               Setup uitvoeren
             </button>
@@ -136,22 +136,22 @@ export default function Setup() {
 
         {stap === 'bezig' && (
           <div className="text-center py-8">
-            <div className="w-8 h-8 rounded-full border-2 border-gray-200 animate-spin mx-auto mb-4" style={{ borderTopColor: '#8B5CF6' }} />
+            <div className="w-8 h-8 rounded-full border-2 border-gray-200 animate-spin mx-auto mb-4" style={{ borderTopColor: 'var(--mf-purple)' }} />
             <p className="text-sm text-gray-500">Tabel en bucket aanmaken...</p>
           </div>
         )}
 
         {stap === 'klaar' && (
           <>
-            <div className="rounded-xl p-4 mb-5" style={{ background: '#E1F5EE', borderLeft: '3px solid #1D9E75' }}>
-              <p className="text-sm font-semibold mb-2" style={{ color: '#0F6E56' }}>✓ Setup voltooid!</p>
+            <div className="rounded-xl p-4 mb-5" style={{ background: 'var(--mf-green-light)', borderLeft: '3px solid #1D9E75' }}>
+              <p className="text-sm font-semibold mb-2" style={{ color: 'var(--mf-green-dark)' }}>✓ Setup voltooid!</p>
               {resultaat && Object.entries(resultaat).filter(([k]) => k !== 'ok').map(([k, v]) => (
-                <p key={k} className="text-xs" style={{ color: '#0F6E56' }}>{v}</p>
+                <p key={k} className="text-xs" style={{ color: 'var(--mf-green-dark)' }}>{v}</p>
               ))}
             </div>
             <Link href="/admin"
               className="block w-full py-3 rounded-xl text-white text-sm font-semibold text-center"
-              style={{ background: '#8B5CF6' }}>
+              style={{ background: 'var(--mf-purple)' }}>
               Terug naar admin
             </Link>
           </>
@@ -159,9 +159,9 @@ export default function Setup() {
 
         {stap === 'fout' && (
           <>
-            <div className="rounded-xl p-4 mb-5" style={{ background: '#FCEBEB', borderLeft: '3px solid #E24B4A' }}>
-              <p className="text-sm font-semibold mb-1" style={{ color: '#A32D2D' }}>Er ging iets mis</p>
-              <p className="text-xs" style={{ color: '#A32D2D' }}>{foutmelding}</p>
+            <div className="rounded-xl p-4 mb-5" style={{ background: 'var(--mf-red-light)', borderLeft: '3px solid #E24B4A' }}>
+              <p className="text-sm font-semibold mb-1" style={{ color: 'var(--mf-red)' }}>Er ging iets mis</p>
+              <p className="text-xs" style={{ color: 'var(--mf-red)' }}>{foutmelding}</p>
             </div>
             <button onClick={() => setStap('token')}
               className="w-full py-3 rounded-xl border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 transition">

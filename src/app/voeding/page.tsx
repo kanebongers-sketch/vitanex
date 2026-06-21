@@ -98,7 +98,7 @@ const MICRO_META: Record<string, { label: string; eenheid: string; rdi_key: stri
 
 const MAALTIJD_VOLGORDE: VoedingLog['maaltijd_type'][] = ['ontbijt', 'tussendoortje_1', 'lunch', 'tussendoortje_2', 'diner', 'avondsnack']
 const MAALTIJD_EMOJI: Record<string, string> = { ontbijt: '🌅', tussendoortje_1: '🍌', lunch: '☀️', tussendoortje_2: '🥜', diner: '🌙', avondsnack: '🍫' }
-const MAALTIJD_KLEUR: Record<string, string> = { ontbijt: '#F59E0B', tussendoortje_1: '#FBBF24', lunch: '#1D9E75', tussendoortje_2: '#92400E', diner: '#8B5CF6', avondsnack: '#E24B4A' }
+const MAALTIJD_KLEUR: Record<string, string> = { ontbijt: 'var(--mf-amber)', tussendoortje_1: 'var(--mf-amber)', lunch: 'var(--mf-green)', tussendoortje_2: 'var(--mf-amber-dark)', diner: 'var(--mf-purple)', avondsnack: 'var(--mf-red)' }
 const MAALTIJD_LABEL: Record<string, string> = { ontbijt: 'Ontbijt', tussendoortje_1: 'Tuss. 1', lunch: 'Lunch', tussendoortje_2: 'Tuss. 2', diner: 'Diner', avondsnack: 'Avond' }
 const DOEL_KCAL = 2000
 const WATER_DOEL = 8
