@@ -192,8 +192,8 @@ export default function VoortgangPage() {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 20 }}>
                 {[
                   { label: 'Huidige streak', waarde: streak.huidige_streak, suffix: 'dagen', kleur: 'var(--mf-green, #1D9E75)', icon: '🔥' },
-                  { label: 'Langste streak', waarde: streak.langste_streak, suffix: 'dagen', kleur: '#F59E0B', icon: '🏆' },
-                  { label: 'Totaal actief', waarde: streak.totaal_dagen, suffix: 'dagen', kleur: '#6366f1', icon: '📅' },
+                  { label: 'Langste streak', waarde: streak.langste_streak, suffix: 'dagen', kleur: 'var(--mf-amber)', icon: '🏆' },
+                  { label: 'Totaal actief', waarde: streak.totaal_dagen, suffix: 'dagen', kleur: 'var(--mf-purple)', icon: '📅' },
                 ].map(item => (
                   <div key={item.label} style={{ background: 'var(--bg-card, white)', borderRadius: 16, border: '1px solid var(--border, #E5E7EB)', padding: '20px 22px', boxShadow: 'var(--shadow-xs)' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
@@ -242,17 +242,17 @@ export default function VoortgangPage() {
                         <td style={{ padding: '10px 20px 10px 0', fontSize: 12, color: 'var(--text-2, #6B7280)', fontWeight: 600, whiteSpace: 'nowrap' }}>{w.week}</td>
                         <td style={{ padding: '10px 20px 10px 0' }}>
                           {w.stemming !== null
-                            ? <span style={{ fontSize: 13, fontWeight: 700, color: w.stemming >= 4 ? 'var(--mf-green, #1D9E75)' : w.stemming >= 3 ? '#F59E0B' : 'var(--mf-red, #E24B4A)' }}>{w.stemming}/5</span>
+                            ? <span style={{ fontSize: 13, fontWeight: 700, color: w.stemming >= 4 ? 'var(--mf-green, #1D9E75)' : w.stemming >= 3 ? 'var(--mf-amber)' : 'var(--mf-red, #E24B4A)' }}>{w.stemming}/5</span>
                             : <span style={{ fontSize: 12, color: 'var(--text-4, #D1D5DB)' }}>—</span>}
                         </td>
                         <td style={{ padding: '10px 20px 10px 0' }}>
                           {w.slaap !== null
-                            ? <span style={{ fontSize: 13, fontWeight: 700, color: w.slaap >= 7 ? 'var(--mf-green, #1D9E75)' : w.slaap >= 5 ? '#F59E0B' : 'var(--mf-red, #E24B4A)' }}>{w.slaap}u</span>
+                            ? <span style={{ fontSize: 13, fontWeight: 700, color: w.slaap >= 7 ? 'var(--mf-green, #1D9E75)' : w.slaap >= 5 ? 'var(--mf-amber)' : 'var(--mf-red, #E24B4A)' }}>{w.slaap}u</span>
                             : <span style={{ fontSize: 12, color: 'var(--text-4, #D1D5DB)' }}>—</span>}
                         </td>
                         <td style={{ padding: '10px 20px 10px 0' }}>
                           {w.stress !== null
-                            ? <span style={{ fontSize: 13, fontWeight: 700, color: w.stress <= 4 ? 'var(--mf-green, #1D9E75)' : w.stress <= 6 ? '#F59E0B' : 'var(--mf-red, #E24B4A)' }}>{w.stress}/10</span>
+                            ? <span style={{ fontSize: 13, fontWeight: 700, color: w.stress <= 4 ? 'var(--mf-green, #1D9E75)' : w.stress <= 6 ? 'var(--mf-amber)' : 'var(--mf-red, #E24B4A)' }}>{w.stress}/10</span>
                             : <span style={{ fontSize: 12, color: 'var(--text-4, #D1D5DB)' }}>—</span>}
                         </td>
                         <td style={{ padding: '10px 20px 10px 0' }}>
