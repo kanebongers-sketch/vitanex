@@ -407,6 +407,8 @@ export default function HomePage() {
   })
   const [weekData, setWeekData] = useState<WeekData | null>(null)
   const [xpData, setXpData] = useState<XPData | null>(null)
+  const [waterToast, setWaterToast] = useState(false)
+  const [waterLaden, setWaterLaden] = useState(false)
 
   const [vandaagItems, setVandaagItems] = useState<VandaagItem[]>([
     { key: 'stemming',     label: 'Stemming',    emoji: '😊', href: '/stemming',     gedaan: false },
@@ -416,6 +418,34 @@ export default function HomePage() {
     { key: 'meditatie',    label: 'Meditatie',    emoji: '🧘', href: '/meditatie',    gedaan: false },
     { key: 'dankbaarheid', label: 'Dankbaarheid', emoji: '🙏', href: '/dankbaarheid', gedaan: false },
   ])
+
+  async function logGlas() {
+    if (waterLaden) return
+    setWaterLaden(true)
+    const vorigeWater = scores.water_ml
+    setScores(prev => ({ ...prev, water_ml: prev.water_ml + 250 }))
+    try {
+      const res = await authFetch('/api/water', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ml: 250 }),
+      })
+      if (!res.ok) throw new Error('POST mislukt')
+      const d = await res.json() as { nieuw_totaal?: number }
+      if (typeof d.nieuw_totaal === 'number') {
+        setScores(prev => ({ ...prev, water_ml: d.nieuw_totaal! }))
+        if (d.nieuw_totaal >= (scores.water_doel_ml || WATER_DOEL_ML)) {
+          setVandaagItems(prev => prev.map(i => i.key === 'water' ? { ...i, gedaan: true } : i))
+        }
+      }
+      setWaterToast(true)
+      setTimeout(() => setWaterToast(false), 1800)
+    } catch {
+      setScores(prev => ({ ...prev, water_ml: vorigeWater }))
+    } finally {
+      setWaterLaden(false)
+    }
+  }
 
   const snelLog = [
     { href: '/stemming',  emoji: '😊', label: 'Stemming'  },
@@ -631,45 +661,71 @@ export default function HomePage() {
           </Link>
 
           {/* Fysiek */}
-          <Link href="/slaap" style={{ textDecoration: 'none' }}>
-            <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 20, padding: '14px 14px 12px', boxShadow: 'var(--shadow-sm)', height: '100%', display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>💪 Fysiek</span>
-                <span style={{ fontSize: 13, color: 'var(--text-4)' }}>›</span>
-              </div>
-              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 9 }}>
-                <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                    <span style={{ fontSize: 11, color: 'var(--text-3)', fontWeight: 600 }}>💧 Water</span>
-                    <span style={{ fontSize: 12, fontWeight: 800, color: 'var(--mf-blue-mid)' }}>
+          <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 20, padding: '14px 14px 12px', boxShadow: 'var(--shadow-sm)', height: '100%', display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>💪 Fysiek</span>
+            </div>
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 9 }}>
+              <div style={{ position: 'relative' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                  <span style={{ fontSize: 11, color: 'var(--text-3)', fontWeight: 600 }}>💧 Water</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                    {waterToast && (
+                      <span style={{
+                        fontSize: 9, fontWeight: 700, color: 'var(--mf-blue-mid)',
+                        background: 'rgba(55,138,221,0.12)', padding: '1px 5px', borderRadius: 8,
+                        animation: 'mf-toast-pop 1.8s cubic-bezier(0.34,1.56,0.64,1) forwards',
+                        display: 'inline-block',
+                      }}>
+                        +250ml
+                      </span>
+                    )}
+                    <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--mf-blue-mid)' }}>
                       {scores.water_ml > 0 ? `${Math.round(scores.water_ml / 250)} gl` : '—'}
                     </span>
+                    <button
+                      onClick={logGlas}
+                      disabled={waterLaden}
+                      aria-label="Log 1 glas water"
+                      style={{
+                        width: 22, height: 22, borderRadius: '50%',
+                        background: waterLaden ? 'var(--bg-subtle)' : 'var(--mf-blue-mid)',
+                        border: 'none', color: 'white', fontSize: 13, fontWeight: 700,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        cursor: waterLaden ? 'default' : 'pointer',
+                        flexShrink: 0, lineHeight: 1,
+                        transition: 'transform 0.12s, background 0.15s',
+                        transform: waterLaden ? 'scale(0.88)' : 'scale(1)',
+                      }}
+                    >
+                      +
+                    </button>
                   </div>
-                  <ProgressBar waarde={scores.water_ml} max={scores.water_doel_ml || WATER_DOEL_ML} kleur="var(--mf-blue-mid)" />
                 </div>
-                <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                    <span style={{ fontSize: 11, color: 'var(--text-3)', fontWeight: 600 }}>😴 Slaap</span>
-                    <span style={{ fontSize: 12, fontWeight: 800, color: 'var(--mf-purple)' }}>
-                      {scores.slaap_uren != null ? `${scores.slaap_uren}u` : '—'}
-                    </span>
-                  </div>
-                  <ProgressBar waarde={scores.slaap_uren ?? 0} max={9} kleur="var(--mf-purple)" />
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <span style={{ fontSize: 11, color: 'var(--text-3)', fontWeight: 600 }}>🏃 Sport</span>
-                  <span style={{
-                    fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20,
-                    background: sportGedaan ? 'var(--mf-green-light)' : 'var(--bg-subtle)',
-                    color: sportGedaan ? 'var(--mf-green-dark)' : 'var(--text-4)',
-                  }}>
-                    {sportGedaan ? 'Gedaan ✓' : 'Open'}
+                <ProgressBar waarde={scores.water_ml} max={scores.water_doel_ml || WATER_DOEL_ML} kleur="var(--mf-blue-mid)" />
+              </div>
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                  <span style={{ fontSize: 11, color: 'var(--text-3)', fontWeight: 600 }}>😴 Slaap</span>
+                  <span style={{ fontSize: 12, fontWeight: 800, color: 'var(--mf-purple)' }}>
+                    {scores.slaap_uren != null ? `${scores.slaap_uren}u` : '—'}
                   </span>
                 </div>
+                <ProgressBar waarde={scores.slaap_uren ?? 0} max={9} kleur="var(--mf-purple)" />
               </div>
-              <span style={{ fontSize: 10, color: 'var(--mf-green)', fontWeight: 700 }}>Details →</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ fontSize: 11, color: 'var(--text-3)', fontWeight: 600 }}>🏃 Sport</span>
+                <span style={{
+                  fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20,
+                  background: sportGedaan ? 'var(--mf-green-light)' : 'var(--bg-subtle)',
+                  color: sportGedaan ? 'var(--mf-green-dark)' : 'var(--text-4)',
+                }}>
+                  {sportGedaan ? 'Gedaan ✓' : 'Open'}
+                </span>
+              </div>
             </div>
-          </Link>
+            <Link href="/slaap" style={{ fontSize: 10, color: 'var(--mf-green)', fontWeight: 700, textDecoration: 'none' }}>Details →</Link>
+          </div>
         </div>
 
         {/* ── SECTION 3 — VOEDING ── */}

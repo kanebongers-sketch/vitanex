@@ -966,6 +966,13 @@ body.mf-has-sidebar > * {
   to   { transform: translateY(0); opacity: 1; }
 }
 
+@keyframes mf-toast-pop {
+  0%   { transform: scale(0.7) translateY(4px); opacity: 0; }
+  12%  { transform: scale(1.05) translateY(0); opacity: 1; }
+  70%  { transform: scale(1) translateY(0); opacity: 1; }
+  100% { transform: scale(0.9) translateY(-6px); opacity: 0; }
+}
+
 /* Utility klasses */
 .mf-animate-fade-up   { animation: mf-fade-up 0.4s var(--ease) both; }
 .mf-animate-scale-in  { animation: mf-scale-in-v2 0.3s var(--ease) both; }
