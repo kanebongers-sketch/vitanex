@@ -81,7 +81,7 @@ const SAMENWERKING: Partial<Record<string, { label: string; beschrijving: string
   'I+S': { label: 'Warm en harmonieus', beschrijving: 'I inspireert, S ondersteunt. Mensen voelen zich gewaardeerd in dit team.', kleur: 'var(--mf-green)' },
   'I+C': { label: 'Creativiteit & kwaliteit', beschrijving: 'I genereert ideeën, C verfijnt ze. Complementair als ze elkaars stijl respecteren.', kleur: 'var(--mf-blue)' },
   'S+S': { label: 'Stabiel en betrouwbaar', beschrijving: 'Hoge harmonie en loyaliteit. Sterk in uitvoering, maar pas op voor vermijding van conflict.', kleur: 'var(--mf-green)' },
-  'S+C': { label: 'Stabiel analytisch team', beschrijving: 'Geduldig, grondig en betrouwbaar. Uitstekend voor complexe, zorgvuldige taken.', kleur: '#0EA5E9' },
+  'S+C': { label: 'Stabiel analytisch team', beschrijving: 'Geduldig, grondig en betrouwbaar. Uitstekend voor complexe, zorgvuldige taken.', kleur: 'var(--mf-blue)' },
   'C+C': { label: 'Kwaliteitsgedreven duo', beschrijving: 'Hoge standaarden en precisie. Sterk in analyse, maar bewaar oog voor de grote lijn.', kleur: 'var(--mf-blue)' },
 }
 

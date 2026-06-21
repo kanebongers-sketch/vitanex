@@ -229,11 +229,20 @@ interface WeekStat {
   vorige: number | null
 }
 
+interface DagActiviteit {
+  datum: string
+  slaap: number | null
+  stemming: number | null
+  sport: boolean
+  actief: boolean
+}
+
 interface WeekData {
   slaap: WeekStat
   stemming: WeekStat
   readiness: WeekStat
   actief_dagen: number
+  dagActiviteit?: DagActiviteit[]
 }
 
 function trendLabel(nu: number | null, vorige: number | null): { delta: string; positief: boolean } | null {
@@ -333,6 +342,42 @@ function WeekInzichtenCard({ data }: { data: WeekData | null }) {
           )
         )}
       </div>
+
+      {data.dagActiviteit && data.dagActiviteit.length > 0 && (
+        <div style={{ marginTop: 14, paddingTop: 12, borderTop: '1px solid var(--border)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+            <span style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-4)' }}>
+              7 DAGEN ACTIVITEIT
+            </span>
+          </div>
+          <div style={{ display: 'flex', gap: 6, justifyContent: 'space-between' }}>
+            {data.dagActiviteit.map(dag => {
+              const weekDag = new Date(dag.datum + 'T12:00:00').toLocaleDateString('nl-NL', { weekday: 'narrow' })
+              const kleur = dag.actief
+                ? dag.slaap !== null && dag.slaap >= 7 ? 'var(--mf-green)'
+                : dag.stemming !== null && dag.stemming >= 4 ? 'var(--mf-blue)'
+                : 'var(--mf-amber)'
+                : 'var(--bg-subtle)'
+              const border = dag.actief ? `1.5px solid ${kleur}` : '1.5px solid var(--border)'
+              return (
+                <div key={dag.datum} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+                  <div style={{
+                    width: '100%', aspectRatio: '1', borderRadius: 8,
+                    background: dag.actief ? kleur : 'var(--bg-subtle)',
+                    border,
+                    opacity: dag.actief ? 1 : 0.5,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: 10,
+                  }}>
+                    {dag.sport && dag.actief ? <span style={{ color: 'white' }}>🏃</span> : null}
+                  </div>
+                  <span style={{ fontSize: 9, color: 'var(--text-4)', fontWeight: 600 }}>{weekDag}</span>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
     </section>
   )
 }

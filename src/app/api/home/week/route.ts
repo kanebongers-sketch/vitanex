@@ -10,6 +10,12 @@ function avg(vals: (number | null)[]): number | null {
   return Math.round((filtered.reduce((a, b) => a + b, 0) / filtered.length) * 10) / 10
 }
 
+function dateStr(offsetDays: number): string {
+  const d = new Date()
+  d.setDate(d.getDate() - offsetDays)
+  return d.toISOString().split('T')[0]
+}
+
 export async function GET(req: NextRequest) {
   const user = await getAuthenticatedUser(req)
   if (!user) return NextResponse.json({ error: 'Niet ingelogd.' }, { status: 401 })
@@ -23,6 +29,9 @@ export async function GET(req: NextRequest) {
   const weekStr = weekGeleden.toISOString().split('T')[0]
   const twoWeekStr = twoWeekGeleden.toISOString().split('T')[0]
 
+  // Last 7 days for activity dots
+  const dagStrs = Array.from({ length: 7 }, (_, i) => dateStr(6 - i))
+
   const [
     { data: slaapDezW },
     { data: slaapVorigeW },
@@ -30,6 +39,9 @@ export async function GET(req: NextRequest) {
     { data: stemmingVorigeW },
     { data: checkinDezW },
     { data: checkinVorigeW },
+    { data: slaapDagen },
+    { data: stemmingDagen },
+    { data: sportDagen },
   ] = await Promise.all([
     admin.from('slaap_logs').select('uren_slaap').eq('user_id', user.id).gte('datum', weekStr).lte('datum', vandaagStr),
     admin.from('slaap_logs').select('uren_slaap').eq('user_id', user.id).gte('datum', twoWeekStr).lt('datum', weekStr),
@@ -37,6 +49,10 @@ export async function GET(req: NextRequest) {
     admin.from('stemming_logs').select('stemming').eq('user_id', user.id).gte('aangemaakt_op', twoWeekGeleden.toISOString()).lt('aangemaakt_op', weekGeleden.toISOString()),
     admin.from('checkin_sessies').select('totaal_score').eq('user_id', user.id).gte('aangemaakt_op', weekGeleden.toISOString()),
     admin.from('checkin_sessies').select('totaal_score').eq('user_id', user.id).gte('aangemaakt_op', twoWeekGeleden.toISOString()).lt('aangemaakt_op', weekGeleden.toISOString()),
+    // Per-day activity data for dots
+    admin.from('slaap_logs').select('datum, uren_slaap').eq('user_id', user.id).in('datum', dagStrs),
+    admin.from('stemming_logs').select('aangemaakt_op, stemming').eq('user_id', user.id).gte('aangemaakt_op', weekGeleden.toISOString()),
+    admin.from('gewoontes_logs').select('datum, gedaan').eq('user_id', user.id).eq('gewoonte_key', 'sport').in('datum', dagStrs),
   ])
 
   const slaapGem = avg(slaapDezW?.map(r => r.uren_slaap) ?? [])
@@ -46,10 +62,28 @@ export async function GET(req: NextRequest) {
   const checkinGem = avg(checkinDezW?.map(r => r.totaal_score) ?? [])
   const checkinVorigGem = avg(checkinVorigeW?.map(r => r.totaal_score) ?? [])
 
+  // Build per-day activity summary
+  const slaapByDag = new Map((slaapDagen ?? []).map(r => [r.datum, r.uren_slaap]))
+  const stemmingByDag = new Map(
+    (stemmingDagen ?? []).map(r => [r.aangemaakt_op.split('T')[0], r.stemming])
+  )
+  const sportSet = new Set(
+    (sportDagen ?? []).filter(r => r.gedaan).map(r => r.datum)
+  )
+
+  const dagActiviteit = dagStrs.map(dag => {
+    const slaap = slaapByDag.get(dag) ?? null
+    const stemming = stemmingByDag.get(dag) ?? null
+    const sport = sportSet.has(dag)
+    const actief = slaap !== null || stemming !== null || sport
+    return { datum: dag, slaap, stemming, sport, actief }
+  })
+
   return NextResponse.json({
     slaap: { gem: slaapGem, vorige: slaapVorigGem },
     stemming: { gem: stemmingGem, vorige: stemmingVorigGem },
     readiness: { gem: checkinGem, vorige: checkinVorigGem },
     actief_dagen: slaapDezW?.length ?? 0,
+    dagActiviteit,
   })
 }
