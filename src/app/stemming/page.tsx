@@ -277,7 +277,7 @@ export default function StemmingPagina() {
               Recente check-ins
             </p>
 
-            {/* Mini stemmingsgrafiek */}
+            {/* 7-daagse stemmingsgrafiek */}
             <div style={{
               background: 'var(--bg-card)',
               borderRadius: 'var(--radius-lg)',
@@ -285,26 +285,61 @@ export default function StemmingPagina() {
               padding: '16px 20px',
               marginBottom: 14,
             }}>
-              <div style={{ display: 'flex', gap: 4, alignItems: 'flex-end', height: 48 }}>
-                {[...logs].reverse().map(log => {
-                  const h = (log.stemming / 5) * 44
-                  return (
-                    <div key={log.id} title={STEMMING_OPTIES.find(o => o.waarde === log.stemming)?.label} style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', alignItems: 'center' }}>
-                      <div style={{
-                        width: '60%',
-                        borderRadius: 4,
-                        height: h,
-                        background: stemmingKleur(log.stemming),
-                        opacity: 0.8,
-                        transition: 'height 0.3s',
-                      }} />
-                    </div>
-                  )
-                })}
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6 }}>
-                <span style={{ fontSize: 9, color: 'var(--text-4)' }}>Oudste</span>
-                <span style={{ fontSize: 9, color: 'var(--text-4)' }}>Vandaag</span>
+              {(() => {
+                const vandaag = new Date()
+                const zeven: { datum: string; dag: string; log: StemmingLog | null }[] = Array.from({ length: 7 }, (_, i) => {
+                  const d = new Date(vandaag)
+                  d.setDate(d.getDate() - (6 - i))
+                  const datumStr = d.toISOString().split('T')[0]
+                  const dagLabel = d.toLocaleDateString('nl-NL', { weekday: 'short' }).slice(0, 2)
+                  const log = logs.find(l => l.aangemaakt_op.split('T')[0] === datumStr) ?? null
+                  return { datum: datumStr, dag: dagLabel, log }
+                })
+                const vandaagStr = vandaag.toISOString().split('T')[0]
+                return (
+                  <div style={{ display: 'flex', gap: 6, alignItems: 'flex-end' }}>
+                    {zeven.map(({ datum, dag, log }) => {
+                      const isVandaag = datum === vandaagStr
+                      const h = log ? Math.max(8, (log.stemming / 5) * 52) : 0
+                      const kleur = log ? stemmingKleur(log.stemming) : 'var(--bg-subtle)'
+                      const o = STEMMING_OPTIES.find(o => o.waarde === log?.stemming)
+                      return (
+                        <div key={datum} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+                          {log && <span style={{ fontSize: 12 }} title={o?.label}>{o?.emoji}</span>}
+                          {!log && <span style={{ fontSize: 12, opacity: 0 }}>·</span>}
+                          <div style={{
+                            width: '100%', height: 52, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', alignItems: 'center',
+                          }}>
+                            <div style={{
+                              width: '70%', borderRadius: 4, height: h,
+                              background: kleur, opacity: log ? 0.85 : 0.3,
+                              transition: 'height 0.4s ease',
+                              outline: isVandaag ? `2px solid ${log ? kleur : 'var(--border-strong)'}` : 'none',
+                              outlineOffset: 2,
+                            }} />
+                          </div>
+                          <span style={{
+                            fontSize: 9, fontWeight: isVandaag ? 800 : 500,
+                            color: isVandaag ? 'var(--text-2)' : 'var(--text-4)',
+                            textTransform: 'capitalize',
+                          }}>{dag}</span>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )
+              })()}
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--border)' }}>
+                {[
+                  { kleur: 'var(--mf-green)', label: '≥4 goed' },
+                  { kleur: 'var(--mf-orange)', label: '3 neutraal' },
+                  { kleur: 'var(--mf-red)', label: '≤2 slecht' },
+                ].map(l => (
+                  <span key={l.label} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 9, color: 'var(--text-4)' }}>
+                    <span style={{ width: 8, height: 8, borderRadius: 2, background: l.kleur, display: 'inline-block' }} />
+                    {l.label}
+                  </span>
+                ))}
               </div>
             </div>
 
