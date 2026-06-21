@@ -716,6 +716,50 @@ export default function VandaagPage() {
             </p>
           </section>
 
+          {/* ── Dag-metrics strip ────────────────────────────────────────── */}
+          {(scores.water_ml > 0 || scores.slaap_uren || scores.stemming_waarde || scores.focus_minuten > 0) && (
+            <section style={{ marginBottom: 20 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
+                {[
+                  {
+                    icoon: '💧',
+                    waarde: scores.water_ml > 0 ? `${Math.round(scores.water_ml / 250)}` : '—',
+                    sub: scores.water_ml > 0 ? `/${Math.round(scores.water_doel_ml / 250)} gl` : 'glazen',
+                    kleur: scores.water_ml >= scores.water_doel_ml ? 'var(--mf-blue)' : 'var(--text-3)',
+                  },
+                  {
+                    icoon: '😴',
+                    waarde: scores.slaap_uren ? `${scores.slaap_uren}` : '—',
+                    sub: scores.slaap_uren ? 'uur slaap' : 'slaap',
+                    kleur: scores.slaap_uren && scores.slaap_uren >= 7 ? 'var(--mf-green)' : scores.slaap_uren ? 'var(--mf-amber)' : 'var(--text-3)',
+                  },
+                  {
+                    icoon: ['😫','😔','😐','🙂','😄'][scores.stemming_waarde ? scores.stemming_waarde - 1 : 2],
+                    waarde: scores.stemming_waarde ? `${scores.stemming_waarde}/5` : '—',
+                    sub: 'stemming',
+                    kleur: scores.stemming_waarde && scores.stemming_waarde >= 4 ? 'var(--mf-green)' : scores.stemming_waarde && scores.stemming_waarde <= 2 ? 'var(--mf-red)' : 'var(--text-3)',
+                  },
+                  {
+                    icoon: '🎯',
+                    waarde: scores.focus_minuten > 0 ? `${scores.focus_minuten}` : '—',
+                    sub: scores.focus_minuten > 0 ? 'min focus' : 'focus',
+                    kleur: scores.focus_minuten >= 25 ? 'var(--mf-green)' : 'var(--text-3)',
+                  },
+                ].map((m, i) => (
+                  <div key={i} style={{
+                    background: 'var(--bg-card)', borderRadius: 'var(--radius-md)',
+                    border: '1px solid var(--border)', padding: '12px 10px',
+                    textAlign: 'center', boxShadow: 'var(--shadow-xs)',
+                  }}>
+                    <div style={{ fontSize: 18, marginBottom: 4 }}>{m.icoon}</div>
+                    <div style={{ fontSize: 15, fontWeight: 800, color: m.kleur, lineHeight: 1 }}>{m.waarde}</div>
+                    <div style={{ fontSize: 9, color: 'var(--text-4)', marginTop: 2, fontWeight: 600 }}>{m.sub}</div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
           {/* ── Checklist ────────────────────────────────────────────────── */}
           <section style={{ marginBottom: 20 }}>
             <h2
