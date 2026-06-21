@@ -24,7 +24,7 @@ const ADEM: Record<AdemTab, {
     beschrijving: 'Gebruikt door Navy SEALs en topsporters om stress snel te verlagen en focus te herwinnen.',
     voordelen: ['Verlaagt cortisol', 'Verbetert concentratie', 'Kalmeert het zenuwstelsel'],
     fases: [
-      { label: 'Inademen', duur: 4, kleur: '#1D9E75' },
+      { label: 'Inademen',  duur: 4, kleur: '#1D9E75' },
       { label: 'Vasthouden', duur: 4, kleur: '#378ADD' },
       { label: 'Uitademen', duur: 4, kleur: '#8B5CF6' },
       { label: 'Vasthouden', duur: 4, kleur: '#BA7517' },
@@ -35,7 +35,7 @@ const ADEM: Record<AdemTab, {
     beschrijving: 'Ontwikkeld door Dr. Andrew Weil. Kalmeert het autonome zenuwstelsel en helpt bij angst en inslapen.',
     voordelen: ['Vermindert angst', 'Helpt bij inslapen', 'Verlaagt hartslag'],
     fases: [
-      { label: 'Inademen', duur: 4, kleur: '#1D9E75' },
+      { label: 'Inademen',  duur: 4, kleur: '#1D9E75' },
       { label: 'Vasthouden', duur: 7, kleur: '#378ADD' },
       { label: 'Uitademen', duur: 8, kleur: '#8B5CF6' },
     ],
@@ -45,7 +45,7 @@ const ADEM: Record<AdemTab, {
     beschrijving: 'Synchroniseert de ademhaling met het hart. 5-5 ritme activeert de herstelrespons.',
     voordelen: ['Balanceert hart & geest', 'Verlaagt bloeddruk', 'Verbetert emotieregulatie'],
     fases: [
-      { label: 'Inademen', duur: 5, kleur: '#1D9E75' },
+      { label: 'Inademen',  duur: 5, kleur: '#1D9E75' },
       { label: 'Uitademen', duur: 5, kleur: '#8B5CF6' },
     ],
   },
@@ -54,7 +54,7 @@ const ADEM: Record<AdemTab, {
     beschrijving: 'Dubbele inademing door de neus gevolgd door een lange uitademing. Stamt uit neurowetenschappelijk onderzoek van Stanford.',
     voordelen: ['Snelste stressverlichting', 'Activeert parasympathisch stelsel', 'Werkt binnen 1 minuut'],
     fases: [
-      { label: 'In (neus)', duur: 2, kleur: '#1D9E75' },
+      { label: 'In (neus)',      duur: 2, kleur: '#1D9E75' },
       { label: 'Extra in (neus)', duur: 1, kleur: '#378ADD' },
       { label: 'Lang uitademen', duur: 8, kleur: '#8B5CF6' },
     ],
@@ -63,9 +63,9 @@ const ADEM: Record<AdemTab, {
 
 // --- Timer data ---------------------------------------------------------------
 const TIMERS: Record<TimerTab, { naam: string; duur: number; kleur: string; afk: string; tip: string }> = {
-  focus: { naam: 'Diepe focus',  duur: 25 * 60, kleur: '#1D9E75', afk: '25', tip: 'Leg je telefoon weg, sluit onnodige tabs en zet notificaties op stil.' },
-  pauze: { naam: 'Pauze',        duur: 5 * 60,  kleur: '#378ADD', afk: '5',  tip: 'Sta op, rek je uit, kijk even naar buiten. Geen scherm.' },
-  micro: { naam: 'Micro-break',  duur: 90,       kleur: '#8B5CF6', afk: '90s',tip: 'Sluit je ogen. Adem 3x diep in. Ontspan je kaken en schouders.' },
+  focus: { naam: 'Diepe focus', duur: 25 * 60, kleur: '#1D9E75', afk: '25',  tip: 'Leg je telefoon weg, sluit onnodige tabs en zet notificaties op stil.' },
+  pauze: { naam: 'Pauze',       duur: 5 * 60,  kleur: '#378ADD', afk: '5',   tip: 'Sta op, rek je uit, kijk even naar buiten. Geen scherm.' },
+  micro: { naam: 'Micro-break', duur: 90,       kleur: '#8B5CF6', afk: '90s', tip: 'Sluit je ogen. Adem 3x diep in. Ontspan je kaken en schouders.' },
 }
 
 // --- Movement data ------------------------------------------------------------
@@ -379,9 +379,9 @@ type IntensiteitBadge = 'laag' | 'gemiddeld' | 'hoog'
 
 function IntensiteitLabel({ niveau }: { niveau: IntensiteitBadge }) {
   const map = {
-    laag: { label: 'Laag', bg: '#E1F5EE', kleur: '#0F6E56' },
-    gemiddeld: { label: 'Gemiddeld', bg: '#FEF3C7', kleur: '#92400E' },
-    hoog: { label: 'Hoog', bg: '#FEE2E2', kleur: '#991B1B' },
+    laag: { label: 'Laag', bg: 'var(--mf-green-light)', kleur: 'var(--mf-green-dark)' },
+    gemiddeld: { label: 'Gemiddeld', bg: 'var(--mf-amber-light)', kleur: 'var(--mf-amber-dark)' },
+    hoog: { label: 'Hoog', bg: 'var(--mf-red-light)', kleur: 'var(--mf-red)' },
   }
   const c = map[niveau]
   return (
@@ -553,7 +553,7 @@ export default function FocusPagina() {
                 className="px-4 py-2 rounded-xl text-xs font-medium transition whitespace-nowrap"
                 style={{
                   background: tab === t.id ? 'var(--bg-card)' : 'transparent',
-                  color: tab === t.id ? '#111' : '#888',
+                  color: tab === t.id ? 'var(--text-1)' : 'var(--text-3)',
                   boxShadow: tab === t.id ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
                 }}
               >
@@ -576,9 +576,9 @@ export default function FocusPagina() {
                     disabled={ademActief}
                     className="py-2.5 px-3 rounded-xl text-xs font-medium border transition text-left"
                     style={{
-                      background: ademTab === k ? 'var(--mentaforce-primary-light)' : '#FAFAFA',
+                      background: ademTab === k ? 'var(--mentaforce-primary-light)' : 'var(--bg-subtle)',
                       borderColor: ademTab === k ? 'var(--mentaforce-primary)' : 'var(--border)',
-                      color: ademTab === k ? 'var(--mentaforce-primary)' : '#6b7280',
+                      color: ademTab === k ? 'var(--mentaforce-primary)' : 'var(--text-3)',
                       opacity: ademActief && ademTab !== k ? 0.4 : 1,
                     }}
                   >
@@ -603,7 +603,7 @@ export default function FocusPagina() {
                   <p className="text-xs font-semibold text-gray-400 mb-1.5">Voordelen</p>
                   <div className="flex flex-wrap gap-1.5">
                     {ADEM[ademTab].voordelen.map(v => (
-                      <span key={v} className="text-xs px-2.5 py-1 rounded-full" style={{ background: '#E1F5EE', color: '#0F6E56' }}>
+                      <span key={v} className="text-xs px-2.5 py-1 rounded-full" style={{ background: 'var(--mf-green-light)', color: 'var(--mf-green-dark)' }}>
                         {v}
                       </span>
                     ))}
@@ -637,7 +637,7 @@ export default function FocusPagina() {
               <button
                 onClick={() => ademActief ? stopAdem() : startAdem()}
                 className="w-full py-3.5 rounded-xl text-white font-semibold text-sm transition"
-                style={{ background: ademActief ? '#E24B4A' : 'var(--mentaforce-primary)' }}
+                style={{ background: ademActief ? 'var(--mf-red)' : 'var(--mentaforce-primary)' }}
               >
                 {ademActief ? (<><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg><span>Stop</span></>) : (<><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg><span>Start ademhaling</span></>)}
               </button>
@@ -675,9 +675,9 @@ export default function FocusPagina() {
 
             <div className="flex flex-wrap gap-2 mb-4">
               {[
-                { niveau: 'laag', kleur: '#1D9E75', bg: '#E1F5EE' },
-                { niveau: 'gemiddeld', kleur: '#BA7517', bg: '#FAEEDA' },
-                { niveau: 'hoog', kleur: '#E24B4A', bg: '#FCEBEB' },
+                { niveau: 'laag', kleur: 'var(--mf-green-dark)', bg: 'var(--mf-green-light)' },
+                { niveau: 'gemiddeld', kleur: 'var(--mf-amber-dark)', bg: 'var(--mf-amber-light)' },
+                { niveau: 'hoog', kleur: 'var(--mf-red)', bg: 'var(--mf-red-light)' },
               ].map(({ niveau, kleur, bg }) => {
                 const count = BUREAUOEFENINGEN.filter(o => o.intensiteit === niveau).length
                 return (
@@ -783,9 +783,9 @@ export default function FocusPagina() {
             <div className="mt-5 rounded-2xl border p-5" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Ideale werkdag qua eten</p>
               {[
-                { tijd: 'Ochtend', kleur: '#1D9E75', items: ['Eiwitrijk ontbijt (eieren, kwark)', 'Eerste koffie na 90 min opstaan', '500ml water voor 10:00'] },
-                { tijd: 'Middag', kleur: '#378ADD', items: ['Lichte lunch (proteinen + groenten)', 'Noten of bessen als snack', 'Koffie stop om 14:00'] },
-                { tijd: 'Avond', kleur: '#8B5CF6', items: ['Magnesiumrijke groenten (spinazie)', 'Geen alcohol als je wil slapen', 'Chamomile of valeriaan thee'] },
+                { tijd: 'Ochtend', kleur: 'var(--mf-green)', items: ['Eiwitrijk ontbijt (eieren, kwark)', 'Eerste koffie na 90 min opstaan', '500ml water voor 10:00'] },
+                { tijd: 'Middag', kleur: 'var(--mf-blue)', items: ['Lichte lunch (proteinen + groenten)', 'Noten of bessen als snack', 'Koffie stop om 14:00'] },
+                { tijd: 'Avond', kleur: 'var(--mf-purple)', items: ['Magnesiumrijke groenten (spinazie)', 'Geen alcohol als je wil slapen', 'Chamomile of valeriaan thee'] },
               ].map(b => (
                 <div key={b.tijd} className="mb-4 last:mb-0">
                   <p className="text-xs font-bold mb-2" style={{ color: b.kleur }}>{b.tijd}</p>
@@ -806,9 +806,9 @@ export default function FocusPagina() {
           <>
             <div className="grid grid-cols-3 gap-3 mb-5">
               {[
-                { label: 'Ideale slaapduur', waarde: '79u', kleur: '#8B5CF6', bg: '#EEEDFE' },
-                { label: 'Ideale nap', waarde: '1020m', kleur: '#1D9E75', bg: '#E1F5EE' },
-                { label: 'Geen schermen', waarde: '60m voor bed', kleur: '#378ADD', bg: '#E6F1FB' },
+                { label: 'Ideale slaapduur', waarde: '79u', kleur: 'var(--mf-purple)', bg: 'var(--mf-purple-light)' },
+                { label: 'Ideale nap', waarde: '1020m', kleur: 'var(--mf-green)', bg: 'var(--mf-green-light)' },
+                { label: 'Geen schermen', waarde: '60m voor bed', kleur: 'var(--mf-blue)', bg: 'var(--mf-blue-light)' },
               ].map(s => (
                 <div key={s.label} className="rounded-2xl border p-4 text-center" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
                   <p className="text-sm font-bold mb-0.5" style={{ color: s.kleur }}>{s.waarde}</p>
@@ -849,12 +849,12 @@ export default function FocusPagina() {
             <div className="mt-5 rounded-2xl border p-5" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Slaap-wind-down routine</p>
               {[
-                { tijd: 'T-60 min', kleur: '#8B5CF6', actie: 'Schermen weg of blauwlichtfilter aan' },
-                { tijd: 'T-45 min', kleur: '#8B5CF6', actie: 'Warme douche of bad (kerntemperatuur daalt daarna)' },
-                { tijd: 'T-30 min', kleur: '#378ADD', actie: 'Schrijf morgenlijst + worry dump' },
-                { tijd: 'T-20 min', kleur: '#378ADD', actie: 'Lees boek (geen tablet) of doe lichte stretch' },
-                { tijd: 'T-10 min', kleur: '#1D9E75', actie: 'Verduister de kamer, stel temperatuur in op 17-18°C' },
-                { tijd: 'In bed', kleur: '#1D9E75', actie: 'Diafragmatische ademhaling of 4-7-8 methode' },
+                { tijd: 'T-60 min', kleur: 'var(--mf-purple)', actie: 'Schermen weg of blauwlichtfilter aan' },
+                { tijd: 'T-45 min', kleur: 'var(--mf-purple)', actie: 'Warme douche of bad (kerntemperatuur daalt daarna)' },
+                { tijd: 'T-30 min', kleur: 'var(--mf-blue)', actie: 'Schrijf morgenlijst + worry dump' },
+                { tijd: 'T-20 min', kleur: 'var(--mf-blue)', actie: 'Lees boek (geen tablet) of doe lichte stretch' },
+                { tijd: 'T-10 min', kleur: 'var(--mf-green)', actie: 'Verduister de kamer, stel temperatuur in op 17-18°C' },
+                { tijd: 'In bed', kleur: 'var(--mf-green)', actie: 'Diafragmatische ademhaling of 4-7-8 methode' },
               ].map(r => (
                 <div key={r.tijd} className="flex gap-3 items-start py-2 border-b border-gray-50 last:border-0">
                   <span className="text-xs font-bold w-16 flex-shrink-0 mt-0.5" style={{ color: r.kleur }}>{r.tijd}</span>
@@ -927,7 +927,7 @@ export default function FocusPagina() {
                   'Constant scherm scrollen',
                 ].map(s => (
                   <div key={s} className="flex items-center gap-2 py-1.5">
-                    <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: '#E24B4A' }} />
+                    <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: 'var(--mf-red)' }} />
                     <p className="text-xs text-gray-600">{s}</p>
                   </div>
                 ))}
@@ -946,9 +946,9 @@ export default function FocusPagina() {
                   onClick={() => wisselTimerTab(k)}
                   className="flex-1 py-3 rounded-xl text-xs font-medium border transition flex flex-col items-center gap-1"
                   style={{
-                    background: timerTab === k ? 'var(--mentaforce-primary-light)' : 'white',
+                    background: timerTab === k ? 'var(--mentaforce-primary-light)' : 'var(--bg-card)',
                     borderColor: timerTab === k ? 'var(--mentaforce-primary)' : 'var(--border)',
-                    color: timerTab === k ? 'var(--mentaforce-primary)' : '#6b7280',
+                    color: timerTab === k ? 'var(--mentaforce-primary)' : 'var(--text-3)',
                   }}
                 >
                   <span className="text-xs font-bold opacity-60">{TIMERS[k].afk}</span>
@@ -961,7 +961,7 @@ export default function FocusPagina() {
             <div className="rounded-2xl border p-6 mb-4 flex flex-col items-center" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
               <div className="relative" style={{ width: 200, height: 200 }}>
                 <svg width="200" height="200" viewBox="0 0 200 200" style={{ transform: 'rotate(-90deg)' }}>
-                  <circle cx="100" cy="100" r="88" fill="none" stroke="#f0f0f0" strokeWidth="8" />
+                  <circle cx="100" cy="100" r="88" fill="none" style={{ stroke: 'var(--border-strong)' }} strokeWidth="8" />
                   <circle
                     cx="100" cy="100" r="88"
                     fill="none"
@@ -981,7 +981,7 @@ export default function FocusPagina() {
 
               {timerKlaar && (
                 <div className="mt-4 text-center">
-                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#1D9E75" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" style={{ stroke: 'var(--mf-green)' }} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
                   <p className="text-sm font-medium text-gray-700 mt-1">Klaar!</p>
                 </div>
               )}
@@ -994,7 +994,7 @@ export default function FocusPagina() {
                 onClick={() => setTimerActief(!timerActief)}
                 disabled={timerKlaar}
                 className="flex-1 py-3.5 rounded-xl text-white font-semibold text-sm transition disabled:opacity-40"
-                style={{ background: timerActief ? '#BA7517' : timerConfig.kleur }}
+                style={{ background: timerActief ? 'var(--mf-amber)' : timerConfig.kleur }}
               >
                 {timerActief ? 'Pauzeer' : timerRest === timerConfig.duur ? 'Start' : 'Hervat'}
               </button>
@@ -1019,7 +1019,7 @@ export default function FocusPagina() {
                   'Stuur een berichtje naar iemand die je energie geeft',
                 ].map(s => (
                   <div key={s} className="flex items-center gap-2.5 py-1.5 border-b border-gray-50 last:border-0">
-                    <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: '#8B5CF6' }} />
+                    <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: 'var(--mf-purple)' }} />
                     <p className="text-xs text-gray-600">{s}</p>
                   </div>
                 ))}
@@ -1035,8 +1035,8 @@ export default function FocusPagina() {
                 {['25m focus', '5m pauze', '25m focus', '5m pauze', '25m focus', '5m pauze', '25m focus', '20m pauze'].map((b, i) => (
                   <span key={i} className="text-xs px-2.5 py-1 rounded-lg font-medium"
                     style={{
-                      background: b.includes('focus') ? '#E1F5EE' : b.includes('20') ? '#EDE9FE' : '#EFF6FF',
-                      color: b.includes('focus') ? '#0F6E56' : b.includes('20') ? '#5B21B6' : '#1D4ED8',
+                      background: b.includes('focus') ? 'var(--mf-green-light)' : b.includes('20') ? 'var(--mf-purple-light)' : 'var(--mf-blue-light)',
+                      color: b.includes('focus') ? 'var(--mf-green-dark)' : b.includes('20') ? 'var(--mf-purple)' : 'var(--mf-blue)',
                     }}>
                     {b}
                   </span>

@@ -62,25 +62,25 @@ const BADGES: Badge[] = [
     doel: 7,
     label: '7 dagen',
     emoji: '🌱',
-    kleur: '#1D9E75',
-    achtergrond: '#E1F5EE',
-    rand: '#A7F3D0',
+    kleur: 'var(--mf-green)',
+    achtergrond: 'var(--mf-green-light)',
+    rand: 'rgba(29,158,117,0.3)',
   },
   {
     doel: 30,
     label: '30 dagen',
     emoji: '⚡',
-    kleur: '#7C3AED',
-    achtergrond: '#EDE9FE',
-    rand: '#C4B5FD',
+    kleur: 'var(--mf-purple)',
+    achtergrond: 'var(--mf-purple-light)',
+    rand: 'rgba(139,92,246,0.3)',
   },
   {
     doel: 90,
     label: '90 dagen',
     emoji: '🏆',
-    kleur: '#B45309',
-    achtergrond: '#FEF3C7',
-    rand: '#FCD34D',
+    kleur: 'var(--mf-amber)',
+    achtergrond: 'var(--mf-amber-light)',
+    rand: 'rgba(186,117,23,0.3)',
   },
 ]
 
@@ -575,8 +575,8 @@ export default function StreakPage() {
                 <div
                   className="streak-section"
                   style={{
-                    background: 'var(--mf-green-light, #E1F5EE)',
-                    border: '1.5px solid #A7F3D0',
+                    background: 'var(--mf-green-light)',
+                    border: '1.5px solid rgba(29,158,117,0.25)',
                     borderRadius: 'var(--radius-md, 14px)',
                     padding: '18px 20px',
                     display: 'flex',
