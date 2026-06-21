@@ -29,8 +29,78 @@ function urenNaarTijd(uren: number) {
 
 function slaapKleur(u: number): string {
   if (u >= 7) return 'var(--mf-green)'
-  if (u >= 5) return 'var(--mf-orange)'
+  if (u >= 5) return 'var(--mf-amber)'
   return 'var(--mf-red)'
+}
+
+function SlaapBarchart({ logs }: { logs: SlaapLog[] }) {
+  const vandaag = new Date()
+  const dagen = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(vandaag)
+    d.setDate(d.getDate() - (6 - i))
+    const datum = d.toISOString().split('T')[0]
+    const log = logs.find(l => l.datum === datum)
+    return {
+      datum,
+      dag: d.toLocaleDateString('nl-NL', { weekday: 'narrow' }),
+      uren: log?.uren_slaap ?? null,
+    }
+  })
+
+  const maxUren = 10
+  const barH = 60
+
+  return (
+    <div style={{
+      background: 'var(--bg-card)', borderRadius: 16,
+      border: '1px solid var(--border)', padding: '16px 16px 12px',
+      marginBottom: 16, boxShadow: 'var(--shadow-sm)',
+    }}>
+      <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-4)', marginBottom: 12 }}>
+        7 DAGEN SLAAP
+      </p>
+      <div style={{ display: 'flex', gap: 6, alignItems: 'flex-end', height: barH + 20 }}>
+        {dagen.map(d => {
+          const pct = d.uren !== null ? Math.min(1, d.uren / maxUren) : 0
+          const h = Math.max(4, Math.round(pct * barH))
+          const kleur = d.uren !== null ? slaapKleur(d.uren) : 'var(--bg-subtle)'
+          const isVandaag = d.datum === vandaag.toISOString().split('T')[0]
+          return (
+            <div key={d.datum} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+              {d.uren !== null && (
+                <span style={{ fontSize: 8, color: kleur, fontWeight: 700 }}>
+                  {d.uren % 1 === 0 ? `${d.uren}u` : `${d.uren.toFixed(1)}u`}
+                </span>
+              )}
+              <div style={{
+                width: '100%', height: d.uren !== null ? h : 4, borderRadius: 6,
+                background: kleur,
+                opacity: d.uren !== null ? 1 : 0.25,
+                transition: 'height 0.4s ease',
+                outline: isVandaag ? `2px solid ${kleur}` : 'none',
+                outlineOffset: 2,
+              }} />
+              <span style={{ fontSize: 9, color: isVandaag ? 'var(--mf-green)' : 'var(--text-4)', fontWeight: isVandaag ? 700 : 500 }}>
+                {d.dag}
+              </span>
+            </div>
+          )
+        })}
+      </div>
+      <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
+        {[
+          { kleur: 'var(--mf-green)', label: '≥ 7u' },
+          { kleur: 'var(--mf-amber)', label: '5–7u' },
+          { kleur: 'var(--mf-red)',   label: '< 5u' },
+        ].map(l => (
+          <div key={l.label} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <div style={{ width: 8, height: 8, borderRadius: 2, background: l.kleur }} />
+            <span style={{ fontSize: 9, color: 'var(--text-4)', fontWeight: 600 }}>{l.label}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
 }
 
 export default function SlaapPagina() {
@@ -150,6 +220,8 @@ export default function SlaapPagina() {
             )}
           </div>
         )}
+
+        {logs.length > 0 && <SlaapBarchart logs={logs} />}
 
         {succes && (
           <div style={{
