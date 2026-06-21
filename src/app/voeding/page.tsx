@@ -15,7 +15,7 @@ const AiCoachCard = nextDynamic(() => import('@/components/gezondheid/AiCoachCar
 interface VoedingLog {
   id: string
   datum: string
-  maaltijd_type: 'ontbijt' | 'lunch' | 'diner' | 'snack'
+  maaltijd_type: 'ontbijt' | 'tussendoortje_1' | 'lunch' | 'tussendoortje_2' | 'diner' | 'avondsnack'
   omschrijving: string
   calorieen: number | null
   eiwitten_g: number | null
@@ -96,9 +96,10 @@ const MICRO_META: Record<string, { label: string; eenheid: string; rdi_key: stri
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const MAALTIJD_VOLGORDE: VoedingLog['maaltijd_type'][] = ['ontbijt', 'lunch', 'diner', 'snack']
-const MAALTIJD_EMOJI: Record<string, string> = { ontbijt: '🌅', lunch: '☀️', diner: '🌙', snack: '🍎' }
-const MAALTIJD_KLEUR: Record<string, string> = { ontbijt: '#F59E0B', lunch: '#1D9E75', diner: '#8B5CF6', snack: '#E24B4A' }
+const MAALTIJD_VOLGORDE: VoedingLog['maaltijd_type'][] = ['ontbijt', 'tussendoortje_1', 'lunch', 'tussendoortje_2', 'diner', 'avondsnack']
+const MAALTIJD_EMOJI: Record<string, string> = { ontbijt: '🌅', tussendoortje_1: '🍌', lunch: '☀️', tussendoortje_2: '🥜', diner: '🌙', avondsnack: '🍫' }
+const MAALTIJD_KLEUR: Record<string, string> = { ontbijt: '#F59E0B', tussendoortje_1: '#FBBF24', lunch: '#1D9E75', tussendoortje_2: '#92400E', diner: '#8B5CF6', avondsnack: '#E24B4A' }
+const MAALTIJD_LABEL: Record<string, string> = { ontbijt: 'Ontbijt', tussendoortje_1: 'Tuss. 1', lunch: 'Lunch', tussendoortje_2: 'Tuss. 2', diner: 'Diner', avondsnack: 'Avond' }
 const DOEL_KCAL = 2000
 const WATER_DOEL = 8
 
@@ -431,7 +432,7 @@ export default function VoedingPage() {
 
   function renderMaaltijdSelector() {
     return (
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6 }}>
         {MAALTIJD_VOLGORDE.map(mt => (
           <button key={mt} onClick={() => setForm(prev => ({ ...prev, maaltijd_type: mt }))}
             style={{ padding: '9px 4px', borderRadius: 10,
@@ -441,7 +442,7 @@ export default function VoedingPage() {
               fontSize: 10, fontWeight: 700, cursor: 'pointer',
               display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
             <span style={{ fontSize: 16 }}>{MAALTIJD_EMOJI[mt]}</span>
-            <span style={{ textTransform: 'capitalize' }}>{mt}</span>
+            <span>{MAALTIJD_LABEL[mt]}</span>
           </button>
         ))}
       </div>
@@ -620,7 +621,7 @@ export default function VoedingPage() {
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, padding: '0 2px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
                       <span style={{ fontSize: 16 }}>{MAALTIJD_EMOJI[mt]}</span>
-                      <span style={{ fontSize: 13, fontWeight: 800, color: '#0F172A', textTransform: 'capitalize' }}>{mt}</span>
+                      <span style={{ fontSize: 13, fontWeight: 800, color: '#0F172A' }}>{MAALTIJD_LABEL[mt]}</span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       <span style={{ fontSize: 12, fontWeight: 700, color: MAALTIJD_KLEUR[mt] }}>{mtKcal} kcal</span>
@@ -1050,7 +1051,7 @@ export default function VoedingPage() {
                   color: 'white', border: 'none', borderRadius: 14, padding: '17px',
                   fontSize: 15, fontWeight: 800, cursor: opslaan ? 'not-allowed' : 'pointer',
                   opacity: opslaan ? 0.7 : 1, boxShadow: '0 4px 16px rgba(29,158,117,0.35)' }}>
-                {opslaan ? 'Toevoegen...' : `✅ Toevoegen aan ${form.maaltijd_type} (${Math.round(p.calorieen * factor)} kcal)`}
+                {opslaan ? 'Toevoegen...' : `✅ Toevoegen aan ${MAALTIJD_LABEL[form.maaltijd_type]} (${Math.round(p.calorieen * factor)} kcal)`}
               </button>
             </>
           )
