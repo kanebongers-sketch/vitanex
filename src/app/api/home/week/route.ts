@@ -1,0 +1,55 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { getAuthenticatedUser } from '@/lib/api-auth'
+import { createAdminClient } from '@/lib/supabase-admin'
+
+export const dynamic = 'force-dynamic'
+
+function avg(vals: (number | null)[]): number | null {
+  const filtered = vals.filter((v): v is number => v !== null && v > 0)
+  if (!filtered.length) return null
+  return Math.round((filtered.reduce((a, b) => a + b, 0) / filtered.length) * 10) / 10
+}
+
+export async function GET(req: NextRequest) {
+  const user = await getAuthenticatedUser(req)
+  if (!user) return NextResponse.json({ error: 'Niet ingelogd.' }, { status: 401 })
+
+  const admin = createAdminClient()
+  const nu = new Date()
+  const weekGeleden = new Date(nu.getTime() - 7 * 24 * 60 * 60 * 1000)
+  const twoWeekGeleden = new Date(nu.getTime() - 14 * 24 * 60 * 60 * 1000)
+
+  const vandaagStr = nu.toISOString().split('T')[0]
+  const weekStr = weekGeleden.toISOString().split('T')[0]
+  const twoWeekStr = twoWeekGeleden.toISOString().split('T')[0]
+
+  const [
+    { data: slaapDezW },
+    { data: slaapVorigeW },
+    { data: stemmingDezW },
+    { data: stemmingVorigeW },
+    { data: checkinDezW },
+    { data: checkinVorigeW },
+  ] = await Promise.all([
+    admin.from('slaap_logs').select('uren_slaap').eq('user_id', user.id).gte('datum', weekStr).lte('datum', vandaagStr),
+    admin.from('slaap_logs').select('uren_slaap').eq('user_id', user.id).gte('datum', twoWeekStr).lt('datum', weekStr),
+    admin.from('stemming_logs').select('stemming').eq('user_id', user.id).gte('aangemaakt_op', weekGeleden.toISOString()),
+    admin.from('stemming_logs').select('stemming').eq('user_id', user.id).gte('aangemaakt_op', twoWeekGeleden.toISOString()).lt('aangemaakt_op', weekGeleden.toISOString()),
+    admin.from('checkin_sessies').select('totaal_score').eq('user_id', user.id).gte('aangemaakt_op', weekGeleden.toISOString()),
+    admin.from('checkin_sessies').select('totaal_score').eq('user_id', user.id).gte('aangemaakt_op', twoWeekGeleden.toISOString()).lt('aangemaakt_op', weekGeleden.toISOString()),
+  ])
+
+  const slaapGem = avg(slaapDezW?.map(r => r.uren_slaap) ?? [])
+  const slaapVorigGem = avg(slaapVorigeW?.map(r => r.uren_slaap) ?? [])
+  const stemmingGem = avg(stemmingDezW?.map(r => r.stemming) ?? [])
+  const stemmingVorigGem = avg(stemmingVorigeW?.map(r => r.stemming) ?? [])
+  const checkinGem = avg(checkinDezW?.map(r => r.totaal_score) ?? [])
+  const checkinVorigGem = avg(checkinVorigeW?.map(r => r.totaal_score) ?? [])
+
+  return NextResponse.json({
+    slaap: { gem: slaapGem, vorige: slaapVorigGem },
+    stemming: { gem: stemmingGem, vorige: stemmingVorigGem },
+    readiness: { gem: checkinGem, vorige: checkinVorigGem },
+    actief_dagen: slaapDezW?.length ?? 0,
+  })
+}

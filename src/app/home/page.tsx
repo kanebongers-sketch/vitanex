@@ -184,6 +184,119 @@ interface VoedingLog {
   vetten_g: number | null
 }
 
+interface WeekStat {
+  gem: number | null
+  vorige: number | null
+}
+
+interface WeekData {
+  slaap: WeekStat
+  stemming: WeekStat
+  readiness: WeekStat
+  actief_dagen: number
+}
+
+function trendLabel(nu: number | null, vorige: number | null): { delta: string; positief: boolean } | null {
+  if (nu === null || vorige === null || vorige === 0) return null
+  const diff = nu - vorige
+  if (Math.abs(diff) < 0.1) return null
+  return { delta: `${diff > 0 ? '+' : ''}${diff.toFixed(1)}`, positief: diff > 0 }
+}
+
+// ── WeekInzichten card ────────────────────────────────────────
+
+function WeekInzichtenCard({ data }: { data: WeekData | null }) {
+  if (!data) return null
+
+  const items = [
+    {
+      label: 'Readiness',
+      emoji: '⚡',
+      waarde: data.readiness.gem,
+      max: 100,
+      kleur: 'var(--mf-green)',
+      suffix: '',
+      trend: trendLabel(data.readiness.gem, data.readiness.vorige),
+      formatVal: (v: number) => `${Math.round(v)}`,
+    },
+    {
+      label: 'Stemming',
+      emoji: '😊',
+      waarde: data.stemming.gem,
+      max: 10,
+      kleur: 'var(--mf-blue)',
+      suffix: '',
+      trend: trendLabel(data.stemming.gem, data.stemming.vorige),
+      formatVal: (v: number) => `${v.toFixed(1)}/10`,
+    },
+    {
+      label: 'Slaap',
+      emoji: '😴',
+      waarde: data.slaap.gem,
+      max: 9,
+      kleur: 'var(--mf-purple)',
+      suffix: 'u',
+      trend: trendLabel(data.slaap.gem, data.slaap.vorige),
+      formatVal: (v: number) => `${v.toFixed(1)}u`,
+    },
+  ]
+
+  const hasData = items.some(i => i.waarde !== null)
+  if (!hasData) return null
+
+  return (
+    <section
+      className="mf-animate-slide-up mf-stagger-1"
+      style={{
+        background: 'var(--bg-card)',
+        border: '1px solid var(--border)',
+        borderRadius: 20,
+        padding: '14px 16px',
+        marginBottom: 10,
+        boxShadow: 'var(--shadow-sm)',
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+        <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+          📊 Week inzichten
+        </span>
+        <span style={{ fontSize: 10, color: 'var(--text-4)', fontWeight: 600 }}>
+          {data.actief_dagen > 0 ? `${data.actief_dagen} dagen actief` : 'Nog geen data'}
+        </span>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {items.map(item =>
+          item.waarde === null ? null : (
+            <div key={item.label}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                <span style={{ fontSize: 11, color: 'var(--text-3)', fontWeight: 600 }}>
+                  {item.emoji} {item.label}
+                </span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  {item.trend && (
+                    <span style={{
+                      fontSize: 10, fontWeight: 700,
+                      color: item.trend.positief ? 'var(--mf-green)' : 'var(--mf-red)',
+                      background: item.trend.positief ? 'var(--mf-green-light)' : 'var(--mf-red-light)',
+                      padding: '1px 6px', borderRadius: 20,
+                    }}>
+                      {item.trend.delta}
+                    </span>
+                  )}
+                  <span style={{ fontSize: 12, fontWeight: 800, color: item.kleur }}>
+                    {item.formatVal(item.waarde)}
+                  </span>
+                </div>
+              </div>
+              <ProgressBar waarde={item.waarde} max={item.max} kleur={item.kleur} />
+            </div>
+          )
+        )}
+      </div>
+    </section>
+  )
+}
+
 // ── Component ─────────────────────────────────────────────────
 
 export default function HomePage() {
@@ -207,6 +320,8 @@ export default function HomePage() {
     koolhydraten_g: 0,
     vetten_g: 0,
   })
+  const [weekData, setWeekData] = useState<WeekData | null>(null)
+
   const [vandaagItems, setVandaagItems] = useState<VandaagItem[]>([
     { key: 'stemming',     label: 'Stemming',    emoji: '😊', href: '/stemming',     gedaan: false },
     { key: 'slaap',        label: 'Slaap',       emoji: '😴', href: '/slaap',        gedaan: false },
@@ -240,11 +355,12 @@ export default function HomePage() {
       setNaam(profiel?.naam ?? '')
       setLaden(false)
 
-      const [readinessRes, vandaagRes, gewoontesRes, voedingRes] = await Promise.allSettled([
+      const [readinessRes, vandaagRes, gewoontesRes, voedingRes, weekRes] = await Promise.allSettled([
         authFetch('/api/readiness').then(r => r.ok ? r.json() : null).catch(() => null),
         authFetch('/api/vandaag').then(r => r.ok ? r.json() : null).catch(() => null),
         authFetch('/api/streak').then(r => r.ok ? r.json() : null).catch(() => null),
         authFetch('/api/voeding').then(r => r.ok ? r.json() : null).catch(() => null),
+        authFetch('/api/home/week').then(r => r.ok ? r.json() : null).catch(() => null),
       ])
 
       if (readinessRes.status === 'fulfilled' && readinessRes.value) {
@@ -279,6 +395,10 @@ export default function HomePage() {
           koolhydraten_g: Math.round(logs.reduce((s, l) => s + (l.koolhydraten_g ?? 0), 0)),
           vetten_g: Math.round(logs.reduce((s, l) => s + (l.vetten_g ?? 0), 0)),
         })
+      }
+
+      if (weekRes.status === 'fulfilled' && weekRes.value) {
+        setWeekData(weekRes.value as WeekData)
       }
     }
 
@@ -537,6 +657,9 @@ export default function HomePage() {
           </Link>
         </div>
 
+        {/* ── SECTION 4.5 — WEEK INZICHTEN ── */}
+        <WeekInzichtenCard data={weekData} />
+
         {/* ── SECTION 5 — VANDAAG CHECKLIST ── */}
         <section
           className="mf-animate-slide-up mf-stagger-2"
@@ -551,6 +674,33 @@ export default function HomePage() {
           <div style={{ height: 3, borderRadius: 100, background: 'var(--bg-subtle)', marginBottom: 12, overflow: 'hidden' }}>
             <div style={{ height: '100%', width: `${(gedaanCount / vandaagItems.length) * 100}%`, background: 'linear-gradient(90deg, var(--mf-green), var(--mf-green-mid))', borderRadius: 100, transition: 'width 0.6s cubic-bezier(0.16,1,0.3,1)' }} />
           </div>
+
+          {gedaanCount === vandaagItems.length && vandaagItems.length > 0 && (
+            <div
+              className="mf-grain"
+              style={{
+                background: 'linear-gradient(135deg, var(--mf-green-light), rgba(29,158,117,0.06))',
+                border: '1.5px solid rgba(29,158,117,0.25)',
+                borderRadius: 16,
+                padding: '14px 16px',
+                marginBottom: 12,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 12,
+              }}
+            >
+              <span className="mf-animate-bounce-once" style={{ fontSize: 28, flexShrink: 0 }}>🎉</span>
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--mf-green-dark)', letterSpacing: '-0.01em' }}>
+                  Dag voltooid!
+                </div>
+                <div style={{ fontSize: 11, color: 'var(--mf-green-mid)', marginTop: 2, fontWeight: 500 }}>
+                  Alle {vandaagItems.length} gewoonten afgevinkt. Geweldig gedaan.
+                </div>
+              </div>
+            </div>
+          )}
+
           {vandaagItems.map(item => (
             <Link key={item.key} href={item.href} className={`mf-check-row${item.gedaan ? ' done' : ''}`}>
               <span className="mf-check-bubble">

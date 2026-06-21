@@ -936,6 +936,15 @@ body.mf-has-sidebar > * {
   50%       { transform: scale(1.04); opacity: 0.85; }
 }
 
+@keyframes mf-bounce-once {
+  0%   { transform: scale(1); }
+  30%  { transform: scale(1.35) rotate(-8deg); }
+  55%  { transform: scale(0.9) rotate(4deg); }
+  75%  { transform: scale(1.1) rotate(-3deg); }
+  90%  { transform: scale(0.97); }
+  100% { transform: scale(1); }
+}
+
 @keyframes mf-flame {
   0%, 100% { transform: scale(1) rotate(-2deg); }
   50%       { transform: scale(1.08) rotate(2deg); }
@@ -963,6 +972,7 @@ body.mf-has-sidebar > * {
 .mf-animate-slide-right { animation: mf-slide-right 0.3s var(--ease) both; }
 .mf-animate-flame     { animation: mf-flame 1.5s ease-in-out infinite; }
 .mf-animate-streak    { animation: mf-streak-glow 2s ease-in-out infinite; }
+.mf-animate-bounce-once { animation: mf-bounce-once 0.7s cubic-bezier(0.34,1.56,0.64,1) both; }
 
 /* ═══════════════════════════════════════════
    TYPOGRAFIE UPGRADE
@@ -1089,6 +1099,7 @@ body.mf-has-sidebar > * {
   .mf-animate-slide-right { animation: none; }
   .mf-animate-flame,
   .mf-animate-streak,
+  .mf-animate-bounce-once,
   .mf-streak-flame { animation: none; }
 }
 
