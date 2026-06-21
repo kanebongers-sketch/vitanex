@@ -187,11 +187,11 @@ function KoppelingenInhoud() {
     setToast({ type: 'success', tekst: 'Koppeling verwijderd' })
   }
 
-  const werkLastKleur = (wl: string) => wl === 'laag' ? '#1D9E75' : wl === 'gemiddeld' ? '#F59E0B' : '#EF4444'
+  const werkLastKleur = (wl: string) => wl === 'laag' ? 'var(--mf-green)' : wl === 'gemiddeld' ? 'var(--mf-amber)' : 'var(--mf-red)'
 
   if (laden) return (
     <div className="flex items-center justify-center py-20">
-      <div className="w-8 h-8 rounded-full border-2 border-gray-200 animate-spin" style={{ borderTopColor: '#1D9E75' }} />
+      <div className="w-8 h-8 rounded-full border-2 border-gray-200 animate-spin" style={{ borderTopColor: 'var(--mf-green)' }} />
     </div>
   )
 
@@ -324,7 +324,7 @@ function KoppelingenInhoud() {
                   }}
                   disabled={fitSyncBezig}
                   className="text-xs font-semibold px-3 py-1.5 rounded-lg text-white disabled:opacity-50"
-                  style={{ background: '#1D9E75' }}
+                  style={{ background: 'var(--mf-green)' }}
                 >{fitSyncBezig ? 'Bezig…' : '↻ Sync nu'}</button>
                 <button onClick={() => ontkoppel('google_fit')} className="text-xs text-red-400 hover:text-red-600 transition font-medium">Ontkoppelen</button>
               </div>
@@ -481,7 +481,7 @@ export default function KoppelingenPage() {
       <Navbar />
       <Suspense fallback={
         <div className="flex items-center justify-center py-20">
-          <div className="w-8 h-8 rounded-full border-2 border-gray-200 animate-spin" style={{ borderTopColor: '#1D9E75' }} />
+          <div className="w-8 h-8 rounded-full border-2 border-gray-200 animate-spin" style={{ borderTopColor: 'var(--mf-green)' }} />
         </div>
       }>
         <KoppelingenInhoud />

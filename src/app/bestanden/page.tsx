@@ -12,7 +12,7 @@ interface Bestand { id: string; bestandsnaam: string; aangemaakt_op: string; ged
 interface Rapport { id: string; type: string; titel: string; inhoud: string; aangemaakt_op: string }
 interface DiscInzending { primair_profiel: string; score_d: number; score_i: number; score_s: number; score_c: number; aangemaakt_op: string }
 
-const TYPE_KLEUR: Record<string, string> = { disc: '#3B82F6', checkin: '#10B981', onboarding: '#8B5CF6', algemeen: '#64748b' }
+const TYPE_KLEUR: Record<string, string> = { disc: 'var(--mf-blue)', checkin: 'var(--mf-green)', onboarding: 'var(--mf-purple)', algemeen: 'var(--text-2)' }
 const TYPE_GROEPEN: { key: string; label: string }[] = [
   { key: 'disc', label: 'DISC' },
   { key: 'checkin', label: 'Check-in' },
@@ -20,7 +20,7 @@ const TYPE_GROEPEN: { key: string; label: string }[] = [
   { key: 'algemeen', label: 'Algemeen' },
 ]
 
-const DISC_KLEUR: Record<string, string> = { D: '#ef4444', I: '#f59e0b', S: '#10b981', C: '#3b82f6' }
+const DISC_KLEUR: Record<string, string> = { D: 'var(--mf-red)', I: 'var(--mf-amber)', S: '#10b981', C: '#3b82f6' }
 
 export default function BestandenPage() {
   const router = useRouter()
@@ -106,7 +106,7 @@ export default function BestandenPage() {
 
   if (!geladen) return (
     <div style={{ minHeight: '100vh', background: '#060d1f', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <span style={{ color: '#64748b' }}>Laden...</span>
+      <span style={{ color: 'var(--text-2)' }}>Laden...</span>
     </div>
   )
 
@@ -123,7 +123,7 @@ export default function BestandenPage() {
       <Navbar />
       <div style={{ maxWidth: 800, margin: '0 auto', padding: '32px 20px' }}>
         <h1 style={{ fontSize: 26, fontWeight: 700, color: '#f8fafc', marginBottom: 8 }}>Mijn bestanden &amp; rapporten</h1>
-        <p style={{ color: '#64748b', marginBottom: 28 }}>Beheer je documenten en bekijk je persoonlijke rapporten.</p>
+        <p style={{ color: 'var(--text-2)', marginBottom: 28 }}>Beheer je documenten en bekijk je persoonlijke rapporten.</p>
         {fout && (
           <div style={{ background: '#3f0e0e', border: '1px solid #7f1d1d', borderRadius: 8, padding: 12, color: '#fca5a5', marginBottom: 16 }}>{fout}</div>
         )}
@@ -137,7 +137,7 @@ export default function BestandenPage() {
                 <span style={{ fontSize: 36, fontWeight: 800, color: DISC_KLEUR[discProfiel.primair_profiel] ?? '#f1f5f9' }}>{discProfiel.primair_profiel}</span>
                 <span style={{ fontSize: 15, color: '#94a3b8' }}>primair profiel</span>
               </div>
-              <div style={{ fontSize: 13, color: '#64748b' }}>{datumLabel(discProfiel.aangemaakt_op)}</div>
+              <div style={{ fontSize: 13, color: 'var(--text-2)' }}>{datumLabel(discProfiel.aangemaakt_op)}</div>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 160, flex: 1, maxWidth: 220 }}>
               {discScores.map(s => (
@@ -160,7 +160,7 @@ export default function BestandenPage() {
         {!discProfiel && (
           <div style={{ background: '#0f1e36', border: '1px dashed #1e293b', borderRadius: 16, padding: '20px 24px', marginBottom: 28, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
             <div>
-              <div style={{ fontSize: 13, fontWeight: 600, color: '#64748b', marginBottom: 4 }}>Jouw DISC profiel</div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-2)', marginBottom: 4 }}>Jouw DISC profiel</div>
               <div style={{ color: '#94a3b8' }}>Je hebt de DISC-test nog niet gedaan.</div>
             </div>
             <button onClick={() => router.push('/disc')} style={{ background: '#1e40af', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 18px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
@@ -186,18 +186,18 @@ export default function BestandenPage() {
               </label>
             </div>
             {bestanden.length === 0 ? (
-              <div style={{ background: '#0f1e36', borderRadius: 12, padding: 32, textAlign: 'center', color: '#64748b' }}>Nog geen bestanden geupload.</div>
+              <div style={{ background: '#0f1e36', borderRadius: 12, padding: 32, textAlign: 'center', color: 'var(--text-2)' }}>Nog geen bestanden geupload.</div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {bestanden.map(b => (
                   <div key={b.id} style={{ background: '#0f1e36', border: '1px solid #1e293b', borderRadius: 12, padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontWeight: 600, color: '#f1f5f9', marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{b.bestandsnaam}</div>
-                      <div style={{ fontSize: 13, color: '#64748b' }}>{datumLabel(b.aangemaakt_op)}</div>
+                      <div style={{ fontSize: 13, color: 'var(--text-2)' }}>{datumLabel(b.aangemaakt_op)}</div>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
                       <span style={{ fontSize: 13, color: '#94a3b8' }}>Deel met HR</span>
-                      <button onClick={() => toggleDelen(b.id, b.gedeeld_met_hr)} style={{ width: 44, height: 24, borderRadius: 12, background: b.gedeeld_met_hr ? '#10B981' : '#334155', border: 'none', cursor: 'pointer', position: 'relative', transition: 'background 0.2s' }}>
+                      <button onClick={() => toggleDelen(b.id, b.gedeeld_met_hr)} style={{ width: 44, height: 24, borderRadius: 12, background: b.gedeeld_met_hr ? 'var(--mf-green)' : '#334155', border: 'none', cursor: 'pointer', position: 'relative', transition: 'background 0.2s' }}>
                         <span style={{ display: 'block', width: 18, height: 18, borderRadius: '50%', background: '#fff', position: 'absolute', top: 3, left: b.gedeeld_met_hr ? 23 : 3, transition: 'left 0.2s' }} />
                       </button>
                     </div>
@@ -211,7 +211,7 @@ export default function BestandenPage() {
         {actieveTab === 'rapporten' && (
           <div>
             {rapporten.length === 0 ? (
-              <div style={{ background: '#0f1e36', borderRadius: 12, padding: 32, textAlign: 'center', color: '#64748b' }}>
+              <div style={{ background: '#0f1e36', borderRadius: 12, padding: 32, textAlign: 'center', color: 'var(--text-2)' }}>
                 <div style={{ fontSize: 32, marginBottom: 12 }}>&#128196;</div>
                 <div style={{ fontWeight: 600, marginBottom: 4 }}>Nog geen rapporten</div>
                 <div style={{ fontSize: 14 }}>Je rapporten verschijnen hier na een check-in of DISC-test.</div>
@@ -221,8 +221,8 @@ export default function BestandenPage() {
                 {rapportenPerType.map(groep => (
                   <div key={groep.key}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-                      <span style={{ background: (TYPE_KLEUR[groep.key] ?? '#64748b') + '20', color: TYPE_KLEUR[groep.key] ?? '#64748b', border: '1px solid ' + (TYPE_KLEUR[groep.key] ?? '#64748b') + '40', borderRadius: 6, padding: '3px 10px', fontSize: 13, fontWeight: 700 }}>{groep.label}</span>
-                      <span style={{ color: '#475569', fontSize: 13 }}>{groep.items.length} {groep.items.length === 1 ? 'rapport' : 'rapporten'}</span>
+                      <span style={{ background: (TYPE_KLEUR[groep.key] ?? 'var(--text-2)') + '20', color: TYPE_KLEUR[groep.key] ?? 'var(--text-2)', border: '1px solid ' + (TYPE_KLEUR[groep.key] ?? 'var(--text-2)') + '40', borderRadius: 6, padding: '3px 10px', fontSize: 13, fontWeight: 700 }}>{groep.label}</span>
+                      <span style={{ color: 'var(--text-2)', fontSize: 13 }}>{groep.items.length} {groep.items.length === 1 ? 'rapport' : 'rapporten'}</span>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                       {groep.items.map(r => (
@@ -234,7 +234,7 @@ export default function BestandenPage() {
                 {overige.length > 0 && (
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-                      <span style={{ background: '#64748b20', color: '#64748b', border: '1px solid #64748b40', borderRadius: 6, padding: '3px 10px', fontSize: 13, fontWeight: 700 }}>Overig</span>
+                      <span style={{ background: '#64748b20', color: 'var(--text-2)', border: '1px solid #64748b40', borderRadius: 6, padding: '3px 10px', fontSize: 13, fontWeight: 700 }}>Overig</span>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                       {overige.map(r => (
@@ -253,18 +253,18 @@ export default function BestandenPage() {
 }
 
 function RapportRij({ r, open, onToggle, datumLabel }: { r: Rapport; open: boolean; onToggle: () => void; datumLabel: (d: string) => string }) {
-  const TYPE_KLEUR: Record<string, string> = { disc: '#3B82F6', checkin: '#10B981', onboarding: '#8B5CF6', algemeen: '#64748b' }
+  const TYPE_KLEUR: Record<string, string> = { disc: 'var(--mf-blue)', checkin: 'var(--mf-green)', onboarding: 'var(--mf-purple)', algemeen: 'var(--text-2)' }
   const TYPE_LABEL: Record<string, string> = { disc: 'DISC', checkin: 'Check-in', onboarding: 'Onboarding', algemeen: 'Algemeen' }
   return (
     <div style={{ background: '#0f1e36', border: '1px solid #1e293b', borderRadius: 12, overflow: 'hidden' }}>
       <button onClick={onToggle} style={{ width: '100%', background: 'transparent', border: 'none', padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', gap: 12 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 0 }}>
-          <span style={{ background: (TYPE_KLEUR[r.type] ?? '#64748b') + '20', color: TYPE_KLEUR[r.type] ?? '#64748b', border: '1px solid ' + (TYPE_KLEUR[r.type] ?? '#64748b') + '40', borderRadius: 6, padding: '2px 8px', fontSize: 12, fontWeight: 600, flexShrink: 0 }}>{TYPE_LABEL[r.type] ?? r.type}</span>
+          <span style={{ background: (TYPE_KLEUR[r.type] ?? 'var(--text-2)') + '20', color: TYPE_KLEUR[r.type] ?? 'var(--text-2)', border: '1px solid ' + (TYPE_KLEUR[r.type] ?? 'var(--text-2)') + '40', borderRadius: 6, padding: '2px 8px', fontSize: 12, fontWeight: 600, flexShrink: 0 }}>{TYPE_LABEL[r.type] ?? r.type}</span>
           <span style={{ fontWeight: 600, color: '#f1f5f9', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.titel}</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-          <span style={{ fontSize: 13, color: '#64748b' }}>{datumLabel(r.aangemaakt_op)}</span>
-          <span style={{ color: '#64748b' }}>{open ? '▲' : '▼'}</span>
+          <span style={{ fontSize: 13, color: 'var(--text-2)' }}>{datumLabel(r.aangemaakt_op)}</span>
+          <span style={{ color: 'var(--text-2)' }}>{open ? '▲' : '▼'}</span>
         </div>
       </button>
       {open && (

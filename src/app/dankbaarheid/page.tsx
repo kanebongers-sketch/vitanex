@@ -151,7 +151,7 @@ export default function DankbaarheidPagina() {
             style={{
               width: '100%', padding: '12px', borderRadius: 12, marginTop: 6,
               background: succes
-                ? '#1D9E75'
+                ? 'var(--mf-green)'
                 : 'linear-gradient(135deg, #1D9E75 0%, #16a34a 100%)',
               color: 'white', border: 'none', cursor: 'pointer',
               fontSize: 14, fontWeight: 700,
@@ -178,7 +178,7 @@ export default function DankbaarheidPagina() {
                   <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-4)', marginBottom: 8 }}>
                     {new Date(log.datum).toLocaleDateString('nl-NL', { weekday: 'short', day: 'numeric', month: 'short' })}
                     {log.datum === vandaag && (
-                      <span style={{ marginLeft: 6, color: '#059669', fontWeight: 700 }}>vandaag</span>
+                      <span style={{ marginLeft: 6, color: 'var(--mf-green)', fontWeight: 700 }}>vandaag</span>
                     )}
                   </p>
                   <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 5 }}>

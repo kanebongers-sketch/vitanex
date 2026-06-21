@@ -63,7 +63,7 @@ function SectieKnop({ label, emoji, actief, onClick }: {
       className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl w-full text-left transition text-sm font-medium"
       style={{
         background: actief ? 'var(--mentaforce-primary-light)' : 'transparent',
-        color: actief ? 'var(--mentaforce-primary)' : '#374151',
+        color: actief ? 'var(--mentaforce-primary)' : 'var(--text-2)',
       }}
     >
       <span>{emoji}</span> {label}
@@ -215,7 +215,7 @@ export default function Admin() {
       <div style={{ background: '#1e1340', borderBottom: '1px solid #2d1f60' }}>
         <div className="px-4 py-3 flex items-center gap-3">
           <div className="w-6 h-6 rounded-md flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
-            style={{ background: '#8B5CF6' }}>A</div>
+            style={{ background: 'var(--mf-purple)' }}>A</div>
           <p className="text-sm font-medium text-white">Admin Portaal</p>
           <span className="text-gray-500 text-xs">—</span>
           <p className="text-xs text-gray-400">MentaForce platform beheer</p>
@@ -229,7 +229,7 @@ export default function Admin() {
           <div className="bg-white rounded-2xl border border-gray-200 p-3 sticky top-24">
             <div className="flex items-center gap-2 px-2 py-2 mb-3 border-b border-gray-100 pb-3">
               <div className="w-7 h-7 rounded-lg flex items-center justify-center text-white text-xs font-bold"
-                style={{ background: '#8B5CF6' }}>A</div>
+                style={{ background: 'var(--mf-purple)' }}>A</div>
               <div>
                 <p className="text-xs font-bold text-gray-800">Admin</p>
                 <p className="text-xs text-gray-400">MentaForce Staff</p>
@@ -253,7 +253,7 @@ export default function Admin() {
               </p>
               <div className="flex flex-col gap-1">
                 <div className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold"
-                  style={{ background: '#EEEDFE', color: '#8B5CF6' }}>
+                  style={{ background: 'var(--mf-purple-light)', color: 'var(--mf-purple)' }}>
                   <span>🛡️</span> Admin (huidig)
                 </div>
                 <button
@@ -295,9 +295,9 @@ export default function Admin() {
           {melding && (
             <div className="rounded-2xl border p-4 mb-5 text-sm font-medium"
               style={{
-                background: melding.type === 'success' ? '#E1F5EE' : '#FCEBEB',
+                background: melding.type === 'success' ? 'var(--mf-green-light)' : 'var(--mf-red-light)',
                 borderColor: melding.type === 'success' ? '#A3DECE' : '#F5ABAB',
-                color: melding.type === 'success' ? '#0F6E56' : '#A32D2D',
+                color: melding.type === 'success' ? 'var(--mf-green-dark)' : 'var(--mf-red)',
               }}>
               {melding.type === 'success' ? 'v ' : 'x '}{melding.tekst}
             </div>
@@ -362,8 +362,8 @@ export default function Admin() {
                               </div>
                               <span className="text-xs font-semibold px-2 py-1 rounded-full capitalize"
                                 style={{
-                                  background: b.plan === 'enterprise' ? '#EEEDFE' : b.plan === 'groei' ? '#E1F5EE' : '#F3F4F6',
-                                  color: b.plan === 'enterprise' ? '#3C3489' : b.plan === 'groei' ? '#0F6E56' : '#6b7280',
+                                  background: b.plan === 'enterprise' ? 'var(--mf-purple-light)' : b.plan === 'groei' ? 'var(--mf-green-light)' : 'var(--bg-subtle)',
+                                  color: b.plan === 'enterprise' ? '#3C3489' : b.plan === 'groei' ? 'var(--mf-green-dark)' : 'var(--text-2)',
                                 }}>
                                 {b.plan ?? 'groei'}
                               </span>
@@ -392,8 +392,8 @@ export default function Admin() {
                           <div key={p.id} className="px-5 py-3 flex items-center gap-3">
                             <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
                               style={{
-                                background: p.rol === 'admin' ? '#EEEDFE' : p.rol === 'hr' ? '#E1F5EE' : '#E6F1FB',
-                                color: p.rol === 'admin' ? '#3C3489' : p.rol === 'hr' ? '#0F6E56' : '#185FA5',
+                                background: p.rol === 'admin' ? 'var(--mf-purple-light)' : p.rol === 'hr' ? 'var(--mf-green-light)' : 'var(--mf-blue-light)',
+                                color: p.rol === 'admin' ? '#3C3489' : p.rol === 'hr' ? 'var(--mf-green-dark)' : 'var(--mf-blue)',
                               }}>
                               {(p.naam || '?')[0].toUpperCase()}
                             </div>
@@ -403,8 +403,8 @@ export default function Admin() {
                             </div>
                             <span className="text-xs px-2 py-0.5 rounded-full font-medium capitalize"
                               style={{
-                                background: p.rol === 'hr' ? '#E1F5EE' : p.rol === 'admin' ? '#EEEDFE' : '#E6F1FB',
-                                color: p.rol === 'hr' ? '#0F6E56' : p.rol === 'admin' ? '#3C3489' : '#185FA5',
+                                background: p.rol === 'hr' ? 'var(--mf-green-light)' : p.rol === 'admin' ? 'var(--mf-purple-light)' : 'var(--mf-blue-light)',
+                                color: p.rol === 'hr' ? 'var(--mf-green-dark)' : p.rol === 'admin' ? '#3C3489' : 'var(--mf-blue)',
                               }}>
                               {p.rol}
                             </span>
@@ -446,9 +446,9 @@ export default function Admin() {
                   {/* Plan verdeling */}
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
                     {[
-                      { plan: 'starter', naam: 'Starter', prijs: 4, kleur: '#6b7280', bg: '#F3F4F6' },
-                      { plan: 'groei', naam: 'Groei', prijs: 7, kleur: '#1D9E75', bg: '#E1F5EE' },
-                      { plan: 'enterprise', naam: 'Enterprise', prijs: 15, kleur: '#8B5CF6', bg: '#EEEDFE' },
+                      { plan: 'starter', naam: 'Starter', prijs: 4, kleur: 'var(--text-2)', bg: 'var(--bg-subtle)' },
+                      { plan: 'groei', naam: 'Groei', prijs: 7, kleur: 'var(--mf-green)', bg: 'var(--mf-green-light)' },
+                      { plan: 'enterprise', naam: 'Enterprise', prijs: 15, kleur: 'var(--mf-purple)', bg: 'var(--mf-purple-light)' },
                     ].map(plan => {
                       const aantalBedrijven = planVerdeling[plan.plan] ?? 0
                       const aantalMwd = bedrijven
@@ -501,7 +501,7 @@ export default function Admin() {
                                 <p className="text-xs text-gray-400">{mwd} medewerkers · {plan}</p>
                               </div>
                               <div className="text-right">
-                                <p className="text-sm font-bold" style={{ color: '#1D9E75' }}>€ {mrr}/mnd</p>
+                                <p className="text-sm font-bold" style={{ color: 'var(--mf-green)' }}>€ {mrr}/mnd</p>
                                 <p className="text-xs text-gray-400">€ {arr.toLocaleString('nl-BE')}/jaar</p>
                               </div>
                             </div>
@@ -571,13 +571,13 @@ export default function Admin() {
                             </p>
                           </div>
                           <div className="text-right hidden sm:block">
-                            <p className="text-sm font-semibold" style={{ color: '#1D9E75' }}>€ {mrr}/mnd</p>
+                            <p className="text-sm font-semibold" style={{ color: 'var(--mf-green)' }}>€ {mrr}/mnd</p>
                             <p className="text-xs text-gray-400">{ci} check-ins</p>
                           </div>
                           <span className="text-xs font-semibold px-2 py-1 rounded-full capitalize ml-2"
                             style={{
-                              background: plan === 'enterprise' ? '#EEEDFE' : plan === 'groei' ? '#E1F5EE' : '#F3F4F6',
-                              color: plan === 'enterprise' ? '#3C3489' : plan === 'groei' ? '#0F6E56' : '#6b7280',
+                              background: plan === 'enterprise' ? 'var(--mf-purple-light)' : plan === 'groei' ? 'var(--mf-green-light)' : 'var(--bg-subtle)',
+                              color: plan === 'enterprise' ? '#3C3489' : plan === 'groei' ? 'var(--mf-green-dark)' : 'var(--text-2)',
                             }}>
                             {plan}
                           </span>
@@ -585,12 +585,12 @@ export default function Admin() {
                         </button>
 
                         {isOpen && (
-                          <div className="px-5 pb-4 pt-1 border-t border-gray-50" style={{ background: '#FAFAFA' }}>
+                          <div className="px-5 pb-4 pt-1 border-t border-gray-50" style={{ background: 'var(--bg-subtle)' }}>
                             <div className="grid grid-cols-3 gap-3 mb-4">
                               {[
-                                { label: 'Medewerkers', waarde: mwdAantal, kleur: '#378ADD' },
-                                { label: 'HR-accounts', waarde: hrAantal, kleur: '#1D9E75' },
-                                { label: 'Totaal check-ins', waarde: ci, kleur: '#8B5CF6' },
+                                { label: 'Medewerkers', waarde: mwdAantal, kleur: 'var(--mf-blue)' },
+                                { label: 'HR-accounts', waarde: hrAantal, kleur: 'var(--mf-green)' },
+                                { label: 'Totaal check-ins', waarde: ci, kleur: 'var(--mf-purple)' },
                               ].map(s => (
                                 <div key={s.label} className="bg-white rounded-xl p-3 border border-gray-100 text-center">
                                   <p className="text-xl font-bold" style={{ color: s.kleur }}>{s.waarde}</p>
@@ -604,7 +604,7 @@ export default function Admin() {
                             ) : hrLeden.map(p => (
                               <div key={p.id} className="flex items-center gap-2 py-1">
                                 <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold"
-                                  style={{ background: '#E1F5EE', color: '#0F6E56' }}>
+                                  style={{ background: 'var(--mf-green-light)', color: 'var(--mf-green-dark)' }}>
                                   {(p.naam || '?')[0].toUpperCase()}
                                 </div>
                                 <span className="text-xs text-gray-600">{p.naam}</span>
@@ -635,11 +635,11 @@ export default function Admin() {
                   <p className="text-xs text-gray-500">Totaal</p>
                 </div>
                 <div className="bg-white rounded-2xl border border-gray-100 p-4 text-center">
-                  <p className="text-3xl font-black mb-1" style={{ color: '#1D9E75' }}>{totaalMedewerkers}</p>
+                  <p className="text-3xl font-black mb-1" style={{ color: 'var(--mf-green)' }}>{totaalMedewerkers}</p>
                   <p className="text-xs text-gray-500">Medewerkers</p>
                 </div>
                 <div className="bg-white rounded-2xl border border-gray-100 p-4 text-center">
-                  <p className="text-3xl font-black mb-1" style={{ color: '#378ADD' }}>{totaalHR}</p>
+                  <p className="text-3xl font-black mb-1" style={{ color: 'var(--mf-blue)' }}>{totaalHR}</p>
                   <p className="text-xs text-gray-500">HR-accounts</p>
                 </div>
               </div>
@@ -667,8 +667,8 @@ export default function Admin() {
                       <div key={p.id} className="px-5 py-3 flex items-center gap-3">
                         <div className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
                           style={{
-                            background: p.rol === 'admin' ? '#EEEDFE' : p.rol === 'hr' ? '#E1F5EE' : '#E6F1FB',
-                            color: p.rol === 'admin' ? '#3C3489' : p.rol === 'hr' ? '#0F6E56' : '#185FA5',
+                            background: p.rol === 'admin' ? 'var(--mf-purple-light)' : p.rol === 'hr' ? 'var(--mf-green-light)' : 'var(--mf-blue-light)',
+                            color: p.rol === 'admin' ? '#3C3489' : p.rol === 'hr' ? 'var(--mf-green-dark)' : 'var(--mf-blue)',
                           }}>
                           {(p.naam || '?')[0].toUpperCase()}
                         </div>
@@ -679,8 +679,8 @@ export default function Admin() {
                         <p className="text-xs text-gray-400 hidden sm:block">{userCheckins} check-ins</p>
                         <span className="text-xs px-2 py-0.5 rounded-full font-medium capitalize ml-2"
                           style={{
-                            background: p.rol === 'hr' ? '#E1F5EE' : p.rol === 'admin' ? '#EEEDFE' : '#E6F1FB',
-                            color: p.rol === 'hr' ? '#0F6E56' : p.rol === 'admin' ? '#3C3489' : '#185FA5',
+                            background: p.rol === 'hr' ? 'var(--mf-green-light)' : p.rol === 'admin' ? 'var(--mf-purple-light)' : 'var(--mf-blue-light)',
+                            color: p.rol === 'hr' ? 'var(--mf-green-dark)' : p.rol === 'admin' ? '#3C3489' : 'var(--mf-blue)',
                           }}>
                           {p.rol}
                         </span>
@@ -728,7 +728,7 @@ export default function Admin() {
                       <div key={b.id}>
                         <div className="flex items-center justify-between mb-1">
                           <p className="text-sm font-medium text-gray-700">{b.naam}</p>
-                          <p className="text-sm font-bold" style={{ color: pct >= 70 ? '#1D9E75' : pct >= 40 ? '#BA7517' : '#E24B4A' }}>
+                          <p className="text-sm font-bold" style={{ color: pct >= 70 ? 'var(--mf-green)' : pct >= 40 ? 'var(--mf-amber)' : 'var(--mf-red)' }}>
                             {pct}%
                           </p>
                         </div>
@@ -736,7 +736,7 @@ export default function Admin() {
                           <div className="h-full rounded-full transition-all"
                             style={{
                               width: `${pct}%`,
-                              background: pct >= 70 ? '#1D9E75' : pct >= 40 ? '#BA7517' : '#E24B4A',
+                              background: pct >= 70 ? 'var(--mf-green)' : pct >= 40 ? 'var(--mf-amber)' : 'var(--mf-red)',
                             }} />
                         </div>
                         <p className="text-xs text-gray-400 mt-0.5">{actiefDezeWeek.size}/{medewerkers.length} medewerkers actief</p>

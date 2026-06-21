@@ -12,20 +12,20 @@ const sb = createClient(
 
 const FF = '#F5A623', DARK = '#0c0c11', CARD = '#131318', CARD2 = '#1a1a22'
 const BORDER = 'rgba(255,255,255,0.06)', TEXT = 'rgba(255,255,255,0.88)', MUTED = 'rgba(255,255,255,0.35)'
-const GREEN = '#22C55E', RED = '#EF4444'
+const GREEN = 'var(--mf-green)', RED = 'var(--mf-red)'
 
-const R_COLORS = ['#EAB308','#F97316','#EF4444']
+const R_COLORS = ['var(--mf-amber)','var(--mf-orange)','var(--mf-red)']
 const R_NAMEN  = ['Eerste contact','Follow-up','Afsluitend']
 
 const STATUS_STYLE: Record<string, {bg:string;color:string;label:string}> = {
   wacht:             {bg:'#1e293b', color:'#94A3B8', label:'⏳ Wacht'},
   goedgekeurd:       {bg:'#14532d', color:GREEN,     label:'✅ Goed'},
-  overgeslagen:      {bg:'#111',    color:'#6B7280',  label:'❌ Skip'},
+  overgeslagen:      {bg:'#111',    color:'var(--text-2)',  label:'❌ Skip'},
   email_klaar:       {bg:'#1e1a2e', color:'#818CF8',  label:'📧 Email klaar'},
   email_goedgekeurd: {bg:'#064e3b', color:'#6EE7B7',  label:'✅ Email goed'},
-  email_overgeslagen:{bg:'#111',    color:'#6B7280',  label:'❌ Email skip'},
+  email_overgeslagen:{bg:'#111',    color:'var(--text-2)',  label:'❌ Email skip'},
   verstuurd:         {bg:'#14532d', color:GREEN,      label:'📤 Verstuurd'},
-  gepland:           {bg:'#111',    color:'#374151',   label:'📅 Gepland'},
+  gepland:           {bg:'#111',    color:'var(--text-2)',   label:'📅 Gepland'},
 }
 
 type Contact = {
@@ -441,7 +441,7 @@ export default function AgentPage() {
                           {s.wacht > 0 && <span style={{color:'#94A3B8'}}>⏳ {s.wacht}</span>}
                           {s.goed > 0 && <span style={{color:GREEN}}>✅ {s.goed}</span>}
                           {s.klaar > 0 && <span style={{color:'#6EE7B7'}}>📧 {s.klaar}</span>}
-                          {s.skip > 0 && <span style={{color:'#6B7280'}}>❌ {s.skip}</span>}
+                          {s.skip > 0 && <span style={{color:'var(--text-2)'}}>❌ {s.skip}</span>}
                         </div>
                       </button>
                     )

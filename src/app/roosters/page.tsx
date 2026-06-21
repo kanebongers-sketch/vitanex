@@ -101,24 +101,24 @@ export default function RoosterPage() {
 
   if (!geladen) {
     return (
-      <div style={{ minHeight: '100vh', background: '#F9FAFB' }}>
+      <div style={{ minHeight: '100vh', background: 'var(--bg-subtle)' }}>
         <Navbar />
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 300 }}>
-          <div style={{ color: '#9CA3AF', fontSize: 14 }}>Rooster laden...</div>
+          <div style={{ color: 'var(--text-3)', fontSize: 14 }}>Rooster laden...</div>
         </div>
       </div>
     )
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#F9FAFB' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg-subtle)' }}>
       <Navbar />
       <div style={{ maxWidth: 900, margin: '0 auto', padding: '32px 16px' }}>
 
         {/* Header */}
         <div style={{ marginBottom: 28 }}>
-          <h1 style={{ fontSize: 24, fontWeight: 700, color: '#111827', margin: 0 }}>Mijn Rooster</h1>
-          <p style={{ color: '#6B7280', fontSize: 14, marginTop: 4 }}>Hallo {naam}, hier zijn je geplande diensten.</p>
+          <h1 style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-1)', margin: 0 }}>Mijn Rooster</h1>
+          <p style={{ color: 'var(--text-2)', fontSize: 14, marginTop: 4 }}>Hallo {naam}, hier zijn je geplande diensten.</p>
         </div>
 
         {/* Week tabs */}
@@ -131,8 +131,8 @@ export default function RoosterPage() {
                 padding: '7px 16px',
                 borderRadius: 20,
                 border: weekOffset === i ? '1.5px solid #1D9E75' : '1.5px solid #E5E7EB',
-                background: weekOffset === i ? '#1D9E75' : '#fff',
-                color: weekOffset === i ? '#fff' : '#374151',
+                background: weekOffset === i ? 'var(--mf-green)' : '#fff',
+                color: weekOffset === i ? '#fff' : 'var(--text-2)',
                 fontSize: 13,
                 fontWeight: weekOffset === i ? 600 : 400,
                 cursor: 'pointer',
@@ -151,18 +151,18 @@ export default function RoosterPage() {
           style={{ background: '#fff', padding: '14px 20px', marginBottom: 20, display: 'flex', gap: 32 }}
         >
           <div>
-            <div style={{ fontSize: 22, fontWeight: 700, color: '#1D9E75' }}>{dienstenDezePeriode.length}</div>
-            <div style={{ fontSize: 12, color: '#6B7280' }}>diensten</div>
+            <div style={{ fontSize: 22, fontWeight: 700, color: 'var(--mf-green)' }}>{dienstenDezePeriode.length}</div>
+            <div style={{ fontSize: 12, color: 'var(--text-2)' }}>diensten</div>
           </div>
           <div>
-            <div style={{ fontSize: 22, fontWeight: 700, color: '#1D9E75' }}>{aantalUren.toFixed(1)}</div>
-            <div style={{ fontSize: 12, color: '#6B7280' }}>uur gepland</div>
+            <div style={{ fontSize: 22, fontWeight: 700, color: 'var(--mf-green)' }}>{aantalUren.toFixed(1)}</div>
+            <div style={{ fontSize: 12, color: 'var(--text-2)' }}>uur gepland</div>
           </div>
           <div>
-            <div style={{ fontSize: 22, fontWeight: 700, color: '#1D9E75' }}>
+            <div style={{ fontSize: 22, fontWeight: 700, color: 'var(--mf-green)' }}>
               {weekLabel(gekozenMa).split('–')[0].trim()}
             </div>
-            <div style={{ fontSize: 12, color: '#6B7280' }}>week van</div>
+            <div style={{ fontSize: 12, color: 'var(--text-2)' }}>week van</div>
           </div>
         </div>
 
@@ -173,13 +173,13 @@ export default function RoosterPage() {
 
         {/* Lijst komende diensten */}
         <div>
-          <h2 style={{ fontSize: 16, fontWeight: 600, color: '#111827', marginBottom: 12 }}>
+          <h2 style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-1)', marginBottom: 12 }}>
             Diensten deze periode
           </h2>
           {dienstenDezePeriode.length === 0 ? (
             <div
               className="rounded-2xl border border-gray-100"
-              style={{ background: '#fff', padding: '32px', textAlign: 'center', color: '#9CA3AF' }}
+              style={{ background: '#fff', padding: '32px', textAlign: 'center', color: 'var(--text-3)' }}
             >
               Geen diensten gepland voor deze week.
             </div>

@@ -57,21 +57,21 @@ function StapIndicator({ huidig, type }: { stap: Stap; huidig: Stap; type: Gebru
               <div
                 className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold transition-all"
                 style={{
-                  background: gedaan ? '#1D9E75' : actief ? '#0a0f1e' : '#e5e7eb',
-                  color: gedaan ? 'white' : actief ? 'white' : '#9ca3af',
+                  background: gedaan ? 'var(--mf-green)' : actief ? '#0a0f1e' : 'var(--border)',
+                  color: gedaan ? 'white' : actief ? 'white' : 'var(--text-3)',
                   border: actief ? '2px solid #1D9E75' : 'none',
                 }}
               >
                 {gedaan ? 'v' : i + 1}
               </div>
               <span className="text-xs mt-1.5 font-medium hidden sm:block"
-                style={{ color: actief ? '#1D9E75' : gedaan ? '#374151' : '#9ca3af' }}>
+                style={{ color: actief ? 'var(--mf-green)' : gedaan ? 'var(--text-2)' : 'var(--text-3)' }}>
                 {labels[i]}
               </span>
             </div>
             {i < stappen.length - 1 && (
               <div className="flex-1 h-0.5 mx-2 mt-0 sm:-mt-4 transition-all"
-                style={{ background: gedaan ? '#1D9E75' : '#e5e7eb' }} />
+                style={{ background: gedaan ? 'var(--mf-green)' : 'var(--border)' }} />
             )}
           </div>
         )
@@ -142,7 +142,7 @@ export default function Register() {
 
   const wachtwoordSterkte = wachtwoord.length < 8 ? 0 : wachtwoord.length < 12 ? 1 : wachtwoord.length < 16 ? 2 : 3
   const sterkteTekst = ['Te kort', 'Matig', 'Goed', 'Sterk'][wachtwoordSterkte]
-  const sterkteKleur = ['#E24B4A', '#BA7517', '#1D9E75', '#1D9E75'][wachtwoordSterkte]
+  const sterkteKleur = ['var(--mf-red)', 'var(--mf-amber)', 'var(--mf-green)', 'var(--mf-green)'][wachtwoordSterkte]
 
   const voordelen = type === 'hr' ? VOORDELEN_HR : type === 'zelfstandige' ? VOORDELEN_ZELFSTANDIGE : VOORDELEN_WERKNEMER
 
@@ -211,14 +211,14 @@ export default function Register() {
       {/* Header */}
       <header className="w-full bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: '#1D9E75' }}>
+          <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: 'var(--mf-green)' }}>
             <span className="text-white text-sm font-bold">M</span>
           </div>
           <span className="font-bold text-gray-900 text-lg tracking-tight">MentaForce</span>
         </Link>
         <p className="text-sm text-gray-500">
           Al een account?{' '}
-          <Link href="/login" className="font-semibold transition" style={{ color: '#1D9E75' }}>
+          <Link href="/login" className="font-semibold transition" style={{ color: 'var(--mf-green)' }}>
             Inloggen
           </Link>
         </p>
@@ -253,7 +253,7 @@ export default function Register() {
                   style={{
                     background: 'white',
                     border: '1.5px solid #e5e7eb',
-                    color: '#374151',
+                    color: 'var(--text-2)',
                     fontSize: 15,
                     boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
                   }}
@@ -302,13 +302,13 @@ export default function Register() {
                       onClick={() => setType(o.id)}
                       className="relative text-left p-5 rounded-2xl border-2 transition-all"
                       style={{
-                        borderColor: type === o.id ? '#1D9E75' : '#e5e7eb',
+                        borderColor: type === o.id ? 'var(--mf-green)' : 'var(--border)',
                         background: type === o.id ? '#F0FBF7' : 'white',
                       }}
                     >
                       {o.badge && (
                         <span className="absolute -top-3 left-4 text-xs font-bold px-3 py-1 rounded-full text-white"
-                          style={{ background: '#1D9E75' }}>
+                          style={{ background: 'var(--mf-green)' }}>
                           {o.badge}
                         </span>
                       )}
@@ -319,7 +319,7 @@ export default function Register() {
                             <p className="font-semibold text-gray-900">{o.titel}</p>
                             {type === o.id && (
                               <span className="w-5 h-5 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
-                                style={{ background: '#1D9E75' }}>v</span>
+                                style={{ background: 'var(--mf-green)' }}>v</span>
                             )}
                           </div>
                           <p className="text-sm text-gray-500">{o.beschrijving}</p>
@@ -374,7 +374,7 @@ export default function Register() {
                     autoFocus
                     className="w-full border-2 rounded-xl px-4 py-4 text-2xl font-mono font-bold text-center tracking-[0.3em] outline-none transition"
                     style={{
-                      borderColor: hrCodeFout ? '#E24B4A' : hrCode.length === 7 ? '#1D9E75' : '#e5e7eb',
+                      borderColor: hrCodeFout ? 'var(--mf-red)' : hrCode.length === 7 ? 'var(--mf-green)' : 'var(--border)',
                       color: '#0a0f1e',
                     }}
                     spellCheck={false}
@@ -382,7 +382,7 @@ export default function Register() {
                   />
                   {hrCodeBedrijfsnaam && !hrCodeFout && hrCode.length === 7 && (
                     <div className="mt-3 rounded-xl border border-green-200 bg-green-50 px-4 py-2.5 text-sm font-medium"
-                      style={{ color: '#0F6E56' }}>
+                      style={{ color: 'var(--mf-green-dark)' }}>
                       Bedrijf gevonden: <strong>{hrCodeBedrijfsnaam}</strong>
                     </div>
                   )}
@@ -546,7 +546,7 @@ export default function Register() {
                   style={{
                     background: 'white',
                     border: '1.5px solid #e5e7eb',
-                    color: '#374151',
+                    color: 'var(--text-2)',
                     fontSize: 15,
                     boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
                   }}
@@ -576,10 +576,10 @@ export default function Register() {
                       placeholder="jij@bedrijf.be"
                       autoFocus
                       className="w-full border rounded-xl px-4 py-3 text-sm outline-none transition bg-white"
-                      style={{ borderColor: emailFout ? '#E24B4A' : '#e5e7eb' }}
+                      style={{ borderColor: emailFout ? 'var(--mf-red)' : 'var(--border)' }}
                     />
                     {emailFout && (
-                      <p className="text-xs mt-1" style={{ color: '#E24B4A' }}>{emailFout}</p>
+                      <p className="text-xs mt-1" style={{ color: 'var(--mf-red)' }}>{emailFout}</p>
                     )}
                   </div>
 
@@ -605,7 +605,7 @@ export default function Register() {
                       <div className="mt-2 flex items-center gap-2">
                         {[0, 1, 2].map(i => (
                           <div key={i} className="flex-1 h-1.5 rounded-full transition-all"
-                            style={{ background: wachtwoordSterkte > i ? sterkteKleur : '#e5e7eb' }} />
+                            style={{ background: wachtwoordSterkte > i ? sterkteKleur : 'var(--border)' }} />
                         ))}
                         <span className="text-xs w-10 font-medium" style={{ color: sterkteKleur }}>{sterkteTekst}</span>
                       </div>
@@ -621,7 +621,7 @@ export default function Register() {
                       onKeyDown={e => e.key === 'Enter' && registreer()}
                       placeholder="Herhaal wachtwoord"
                       className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-gray-400 transition bg-white"
-                      style={{ borderColor: bevestigWachtwoord && wachtwoord !== bevestigWachtwoord ? '#E24B4A' : '' }}
+                      style={{ borderColor: bevestigWachtwoord && wachtwoord !== bevestigWachtwoord ? 'var(--mf-red)' : '' }}
                     />
                     {bevestigWachtwoord && wachtwoord !== bevestigWachtwoord && (
                       <p className="text-xs text-red-500 mt-1">Wachtwoorden komen niet overeen</p>
@@ -636,11 +636,11 @@ export default function Register() {
                       checked={akkoord}
                       onChange={e => setAkkoord(e.target.checked)}
                       className="mt-0.5 w-4 h-4 rounded"
-                      style={{ accentColor: '#1D9E75' }}
+                      style={{ accentColor: 'var(--mf-green)' }}
                     />
                     <span className="text-sm text-gray-600">
                       Ik ga akkoord met de{' '}
-                      <Link href="/voorwaarden" target="_blank" className="font-semibold underline" style={{ color: '#1D9E75' }}>
+                      <Link href="/voorwaarden" target="_blank" className="font-semibold underline" style={{ color: 'var(--mf-green)' }}>
                         Algemene Voorwaarden
                       </Link>{' '}
                       en het privacy beleid van MentaForce.
@@ -652,7 +652,7 @@ export default function Register() {
                       checked={nieuwsbrief}
                       onChange={e => setNieuwsbrief(e.target.checked)}
                       className="mt-0.5 w-4 h-4 rounded"
-                      style={{ accentColor: '#1D9E75' }}
+                      style={{ accentColor: 'var(--mf-green)' }}
                     />
                     <span className="text-sm text-gray-600">
                       Stuur mij tips over welzijn op het werk en updates over MentaForce. (optioneel)
@@ -703,7 +703,7 @@ export default function Register() {
             {stap === 'bevestig' && (
               <div className="text-center py-8">
                 <div className="w-24 h-24 rounded-full flex items-center justify-center text-5xl mx-auto mb-8"
-                  style={{ background: '#E1F5EE' }}>
+                  style={{ background: 'var(--mf-green-light)' }}>
                   ✉️
                 </div>
                 <h1 className="text-3xl font-extrabold text-gray-900 mb-3 tracking-tight">Bevestig je e-mail</h1>
@@ -725,7 +725,7 @@ export default function Register() {
                     ].map(s => (
                       <div key={s.icon} className="flex items-center gap-3">
                         <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
-                          style={{ background: '#1D9E75' }}>
+                          style={{ background: 'var(--mf-green)' }}>
                           {s.icon}
                         </div>
                         <p className="text-sm text-gray-600">{s.tekst}</p>
@@ -743,7 +743,7 @@ export default function Register() {
                   Ga naar inloggen
                 </Link>
                 {resendKlaar ? (
-                  <p className="text-xs text-center mt-4" style={{ color: '#0F6E56' }}>
+                  <p className="text-xs text-center mt-4" style={{ color: 'var(--mf-green-dark)' }}>
                     Mail opnieuw verstuurd. Controleer ook je spam-map.
                   </p>
                 ) : (
@@ -836,7 +836,7 @@ export default function Register() {
               <div className="mt-8 flex items-center gap-4">
                 {['Gratis te starten', 'AVG-conform', 'Geen creditcard'].map(t => (
                   <div key={t} className="flex items-center gap-1.5">
-                    <span className="text-xs font-bold" style={{ color: '#1D9E75' }}>✓</span>
+                    <span className="text-xs font-bold" style={{ color: 'var(--mf-green)' }}>✓</span>
                     <span className="text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>{t}</span>
                   </div>
                 ))}

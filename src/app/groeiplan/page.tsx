@@ -24,7 +24,7 @@ interface Groeiplan {
   aangemaakt_op: string
 }
 
-const TERMIJN_KLEUR: Record<string, string> = { week: '#1D9E75', maand: '#6366f1', kwartaal: '#F59E0B' }
+const TERMIJN_KLEUR: Record<string, string> = { week: 'var(--mf-green)', maand: 'var(--mf-purple)', kwartaal: 'var(--mf-amber)' }
 const DOMEIN_EMOJI: Record<string, string> = { slaap: '😴', stress: '🧘', energie: '⚡', focus: '🎯', balans: '⚖️', motivatie: '🔥' }
 
 export default function GroeiplanPagina() {
@@ -133,7 +133,7 @@ export default function GroeiplanPagina() {
               </p>
               {(groeiplan.doelen ?? []).map((d, i) => (
                 <div key={i} style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
-                  <div style={{ width: 22, height: 22, borderRadius: 6, background: '#1D9E7515', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 11, fontWeight: 800, color: '#1D9E75' }}>
+                  <div style={{ width: 22, height: 22, borderRadius: 6, background: '#1D9E7515', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 11, fontWeight: 800, color: 'var(--mf-green)' }}>
                     {i + 1}
                   </div>
                   <p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.5 }}>{d}</p>
@@ -143,8 +143,8 @@ export default function GroeiplanPagina() {
 
             {/* Sterke punten + Aandachtspunten */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
-              <div style={{ background: '#F0FDF4', borderRadius: 16, padding: '16px', border: '1px solid #BBF7D0' }}>
-                <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#15803D', marginBottom: 10 }}>
+              <div style={{ background: 'var(--mf-green-light)', borderRadius: 16, padding: '16px', border: '1px solid #BBF7D0' }}>
+                <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--mf-green-dark)', marginBottom: 10 }}>
                   💪 Sterk
                 </p>
                 {(groeiplan.sterke_punten ?? []).map((s, i) => (
@@ -152,7 +152,7 @@ export default function GroeiplanPagina() {
                 ))}
               </div>
               <div style={{ background: '#FFF7ED', borderRadius: 16, padding: '16px', border: '1px solid #FED7AA' }}>
-                <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#C2410C', marginBottom: 10 }}>
+                <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--mf-orange-mid)', marginBottom: 10 }}>
                   🌱 Groeipunten
                 </p>
                 {(groeiplan.aandachtspunten ?? []).map((a, i) => (
@@ -179,8 +179,8 @@ export default function GroeiplanPagina() {
                     <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-2)', marginBottom: 4, lineHeight: 1.4 }}>{a.actie}</p>
                     <span style={{
                       fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em',
-                      background: (TERMIJN_KLEUR[a.termijn] ?? '#9CA3AF') + '15',
-                      color: TERMIJN_KLEUR[a.termijn] ?? '#9CA3AF',
+                      background: (TERMIJN_KLEUR[a.termijn] ?? 'var(--text-3)') + '15',
+                      color: TERMIJN_KLEUR[a.termijn] ?? 'var(--text-3)',
                       padding: '2px 7px', borderRadius: 99,
                     }}>
                       {a.termijn} · {a.domein}

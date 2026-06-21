@@ -53,7 +53,7 @@ const SECTIES: { id: Sectie; label: string; icon: React.ReactNode; beschrijving:
 
 function Melding({ melding }: { melding: { type: 'success' | 'error'; tekst: string } }) {
   return (
-    <p className="text-sm flex items-center gap-1.5" style={{ color: melding.type === 'success' ? '#0F6E56' : '#A32D2D' }}>
+    <p className="text-sm flex items-center gap-1.5" style={{ color: melding.type === 'success' ? 'var(--mf-green-dark)' : 'var(--mf-red)' }}>
       {melding.type === 'success'
         ? <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
         : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
@@ -75,7 +75,7 @@ function Toggle({ actief, onChange, label, beschrijving }: {
       <button
         onClick={() => onChange(!actief)}
         className="relative w-11 h-6 rounded-full transition-colors flex-shrink-0 mt-0.5"
-        style={{ background: actief ? '#1D9E75' : '#e5e7eb' }}
+        style={{ background: actief ? 'var(--mf-green)' : 'var(--border)' }}
       >
         <span
           className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-sm transition-transform"
@@ -741,7 +741,7 @@ export default function Instellingen() {
                             id: 'medewerker' as const,
                             label: 'Werknemer',
                             emoji: '🌿',
-                            kleur: '#1D9E75',
+                            kleur: 'var(--mf-green)',
                             bg: 'rgba(29,158,117,0.15)',
                             beschrijving: 'Gekoppeld aan bedrijf',
                             detail: 'Check-in · rooster · gesprekken · werkdag',
@@ -750,7 +750,7 @@ export default function Instellingen() {
                             id: 'gebruiker' as const,
                             label: 'Gebruiker',
                             emoji: '👤',
-                            kleur: '#6B7280',
+                            kleur: 'var(--text-2)',
                             bg: 'rgba(107,114,128,0.15)',
                             beschrijving: 'Geen bedrijf gekoppeld',
                             detail: 'Alleen welzijn · coach · journal',
@@ -759,7 +759,7 @@ export default function Instellingen() {
                             id: 'hr' as const,
                             label: 'HR Manager',
                             emoji: '👥',
-                            kleur: '#185FA5',
+                            kleur: 'var(--mf-blue)',
                             bg: 'rgba(24,95,165,0.15)',
                             beschrijving: 'HR portaal',
                             detail: 'Teams · roosters · KPI · gesprekken',
@@ -768,7 +768,7 @@ export default function Instellingen() {
                             id: 'admin' as const,
                             label: 'Admin (terug)',
                             emoji: '🛡️',
-                            kleur: '#7C3AED',
+                            kleur: 'var(--mf-purple)',
                             bg: 'rgba(124,58,237,0.15)',
                             beschrijving: 'Volledige toegang',
                             detail: 'Herstel je eigen account',
@@ -869,7 +869,7 @@ export default function Instellingen() {
                         <div className="flex items-center gap-2">
                           {[0, 1, 2].map(i => (
                             <div key={i} className="flex-1 h-1.5 rounded-full transition-all"
-                              style={{ background: wachtwoordSterkte > i ? ['#E24B4A', '#BA7517', '#1D9E75'][i] : '#e5e7eb' }} />
+                              style={{ background: wachtwoordSterkte > i ? ['var(--mf-red)', 'var(--mf-amber)', 'var(--mf-green)'][i] : 'var(--border)' }} />
                           ))}
                           <span className="text-xs text-gray-400 ml-1 w-12">
                             {['Te kort', 'Matig', 'Goed', 'Sterk'][wachtwoordSterkte]}
@@ -899,7 +899,7 @@ export default function Instellingen() {
                     <p className="text-xs text-gray-400 mb-4">Beheer apparaten waarop je bent ingelogd.</p>
                     <div className="flex items-center justify-between p-4 rounded-xl border border-gray-100" style={{ background: 'var(--bg-app)' }}>
                       <div className="flex items-center gap-3">
-                        <div style={{ width: 36, height: 36, borderRadius: 10, background: '#F3F4F6', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6B7280' }}>
+                        <div style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--bg-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-2)' }}>
                           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
                         </div>
                         <div>
@@ -908,7 +908,7 @@ export default function Instellingen() {
                         </div>
                       </div>
                       <span className="text-xs font-medium px-2.5 py-1 rounded-full"
-                        style={{ background: '#E1F5EE', color: '#0F6E56' }}>Actief</span>
+                        style={{ background: 'var(--mf-green-light)', color: 'var(--mf-green-dark)' }}>Actief</span>
                     </div>
                     <button onClick={uitloggen}
                       className="mt-3 text-sm text-gray-500 hover:text-red-500 transition px-2 py-1">
@@ -929,7 +929,7 @@ export default function Instellingen() {
                         {bedrijfId && (
                           <span
                             className="text-xs font-semibold px-2.5 py-1 rounded-full flex-shrink-0"
-                            style={{ background: '#E1F5EE', color: '#0F6E56' }}
+                            style={{ background: 'var(--mf-green-light)', color: 'var(--mf-green-dark)' }}
                           >
                             Gekoppeld
                           </span>
@@ -960,11 +960,11 @@ export default function Instellingen() {
                         <div>
                           <div
                             className="rounded-xl border border-dashed p-5 flex flex-col items-center text-center gap-3 mb-4"
-                            style={{ borderColor: '#d1d5db' }}
+                            style={{ borderColor: 'var(--text-4)' }}
                           >
                             <div
                               className="w-12 h-12 rounded-2xl flex items-center justify-center text-white font-bold"
-                              style={{ background: 'linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%)', color: '#9ca3af' }}
+                              style={{ background: 'linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%)', color: 'var(--text-3)' }}
                             >
                               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                                 <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
@@ -983,7 +983,7 @@ export default function Instellingen() {
                           <button
                             onClick={() => setToonKoppelModal(true)}
                             className="w-full py-3 rounded-xl text-white font-bold text-sm transition hover:opacity-90"
-                            style={{ background: '#1D9E75' }}
+                            style={{ background: 'var(--mf-green)' }}
                           >
                             Koppel aan werkgever via HR code
                           </button>
@@ -1054,7 +1054,7 @@ export default function Instellingen() {
               {activeSectie === 'privacy' && (
                 <>
                   <div className="rounded-2xl border p-4 flex items-start gap-3"
-                    style={{ background: '#E1F5EE', borderColor: '#A3DECE' }}>
+                    style={{ background: 'var(--mf-green-light)', borderColor: '#A3DECE' }}>
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1D9E75" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 2 }}><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                     <div>
                       <p className="text-sm font-semibold text-green-800 mb-1">Privacy-by-design</p>
@@ -1126,7 +1126,7 @@ export default function Instellingen() {
                             <p className="text-xs text-gray-400">{t.beschrijving}</p>
                           </div>
                           <span className="text-xs font-medium px-2.5 py-1 rounded-full flex-shrink-0"
-                            style={{ background: t.status === 'Vereist' ? '#F3F4F6' : '#E1F5EE', color: t.status === 'Vereist' ? '#6b7280' : '#0F6E56' }}>
+                            style={{ background: t.status === 'Vereist' ? 'var(--bg-subtle)' : 'var(--mf-green-light)', color: t.status === 'Vereist' ? 'var(--text-2)' : 'var(--mf-green-dark)' }}>
                             {t.status}
                           </span>
                         </div>
@@ -1156,9 +1156,9 @@ export default function Instellingen() {
                       </p>
                       <div className="grid grid-cols-3 gap-3">
                         {([
-                          { mode: 'employee' as ViewMode, label: 'Werknemer',  beschrijving: 'Vitaliteit & werkdag',  kleur: '#1D9E75', icon: '🌿' },
-                          { mode: 'hr'       as ViewMode, label: 'HR',         beschrijving: 'Team & beheer',         kleur: '#185FA5', icon: '👥' },
-                          { mode: 'admin'    as ViewMode, label: 'Admin',      beschrijving: 'Volledige toegang',     kleur: '#7C3AED', icon: '🛡️' },
+                          { mode: 'employee' as ViewMode, label: 'Werknemer',  beschrijving: 'Vitaliteit & werkdag',  kleur: 'var(--mf-green)', icon: '🌿' },
+                          { mode: 'hr'       as ViewMode, label: 'HR',         beschrijving: 'Team & beheer',         kleur: 'var(--mf-blue)', icon: '👥' },
+                          { mode: 'admin'    as ViewMode, label: 'Admin',      beschrijving: 'Volledige toegang',     kleur: 'var(--mf-purple)', icon: '🛡️' },
                         ] as const).map(opt => {
                           const actief = huidigPortaal === opt.mode
                           return (
@@ -1201,7 +1201,7 @@ export default function Instellingen() {
                           className="p-3 rounded-xl border text-left transition"
                           style={{
                             background: taal === l.value ? 'var(--mentaforce-primary-light)' : 'transparent',
-                            borderColor: taal === l.value ? 'var(--mentaforce-primary)' : '#e5e7eb',
+                            borderColor: taal === l.value ? 'var(--mentaforce-primary)' : 'var(--border)',
                           }}>
                           <p className="text-sm font-medium text-gray-800">{l.label}</p>
                           <p className="text-xs text-gray-400">{l.sub}</p>
@@ -1223,7 +1223,7 @@ export default function Instellingen() {
                           className="p-3 rounded-xl border text-left transition"
                           style={{
                             background: thema === t.value ? 'var(--mentaforce-primary-light)' : 'transparent',
-                            borderColor: thema === t.value ? 'var(--mentaforce-primary)' : '#e5e7eb',
+                            borderColor: thema === t.value ? 'var(--mentaforce-primary)' : 'var(--border)',
                           }}>
                           <p className="text-sm font-medium text-gray-800">{t.label}</p>
                           <p className="text-xs text-gray-400">{t.sub}</p>
@@ -1241,8 +1241,8 @@ export default function Instellingen() {
                           className="py-2 rounded-xl text-xs font-medium capitalize transition border"
                           style={{
                             background: checkinDag === d ? 'var(--mentaforce-primary)' : 'transparent',
-                            borderColor: checkinDag === d ? 'var(--mentaforce-primary)' : '#e5e7eb',
-                            color: checkinDag === d ? 'white' : '#6b7280',
+                            borderColor: checkinDag === d ? 'var(--mentaforce-primary)' : 'var(--border)',
+                            color: checkinDag === d ? 'white' : 'var(--text-2)',
                           }}>
                           {d.slice(0, 2)}
                         </button>
@@ -1267,12 +1267,12 @@ export default function Instellingen() {
                     <p className="text-xs text-gray-400 mb-5">Een overzicht van de gegevens die MentaForce over jou bijhoudt.</p>
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                       {[
-                        { label: 'Check-ins',        kleur: '#1D9E75', bg: '#E1F5EE', d: 'M9 12l2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0z' },
-                        { label: 'Journal entries',  kleur: '#378ADD', bg: '#E6F1FB', d: 'M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253' },
-                        { label: 'Coach-gesprekken', kleur: '#8B5CF6', bg: '#EEEDFE', d: 'M9.663 17h4.673M12 3v1m6.364 1.636-.707.707M21 12h-1M4 12H3m3.343-5.657-.707-.707m2.828 9.9a5 5 0 1 1 7.072 0l-.548.547A3.374 3.374 0 0 0 14 18.469V19a2 2 0 1 1-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z' },
-                        { label: 'Gewoonte logs',    kleur: '#BA7517', bg: '#FAEEDA', d: 'M13 2L3 14h9l-1 8 10-12h-9l1-8z' },
-                        { label: 'Teamberichten',    kleur: '#E24B4A', bg: '#FCEBEB', d: 'M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z' },
-                        { label: 'Profiel data',     kleur: '#6b7280', bg: '#F3F4F6', d: 'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2 M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z' },
+                        { label: 'Check-ins',        kleur: 'var(--mf-green)', bg: 'var(--mf-green-light)', d: 'M9 12l2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0z' },
+                        { label: 'Journal entries',  kleur: 'var(--mf-blue)', bg: 'var(--mf-blue-light)', d: 'M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253' },
+                        { label: 'Coach-gesprekken', kleur: 'var(--mf-purple)', bg: 'var(--mf-purple-light)', d: 'M9.663 17h4.673M12 3v1m6.364 1.636-.707.707M21 12h-1M4 12H3m3.343-5.657-.707-.707m2.828 9.9a5 5 0 1 1 7.072 0l-.548.547A3.374 3.374 0 0 0 14 18.469V19a2 2 0 1 1-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z' },
+                        { label: 'Gewoonte logs',    kleur: 'var(--mf-amber)', bg: 'var(--mf-amber-light)', d: 'M13 2L3 14h9l-1 8 10-12h-9l1-8z' },
+                        { label: 'Teamberichten',    kleur: 'var(--mf-red)', bg: 'var(--mf-red-light)', d: 'M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z' },
+                        { label: 'Profiel data',     kleur: 'var(--text-2)', bg: 'var(--bg-subtle)', d: 'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2 M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z' },
                       ].map(d => (
                         <div key={d.label} className="rounded-xl p-4 border border-gray-100" style={{ background: d.bg }}>
                           <div style={{ color: d.kleur, marginBottom: 8 }}>
@@ -1376,7 +1376,7 @@ export default function Instellingen() {
                         router.push('/')
                       }}
                       className="w-full py-3 rounded-xl text-white text-sm font-bold transition disabled:opacity-30"
-                      style={{ background: deleteBevestig === 'VERWIJDER' ? '#E24B4A' : '#9ca3af' }}>
+                      style={{ background: deleteBevestig === 'VERWIJDER' ? 'var(--mf-red)' : 'var(--text-3)' }}>
                       {deleteBezig ? 'Verwijderen...' : 'Account definitief verwijderen'}
                     </button>
 

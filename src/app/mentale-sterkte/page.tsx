@@ -83,8 +83,8 @@ export default function MentaleSterktePagina() {
   const klaarVoorVerstuur = antwoorden.every(a => a > 0)
 
   const NIVEAU_KLEUR: Record<string, string> = {
-    'Sterk': '#1D9E75', 'Gemiddeld': '#F59E0B',
-    'Kwetsbaar': '#EA580C', 'Aandacht nodig': '#EF4444',
+    'Sterk': 'var(--mf-green)', 'Gemiddeld': 'var(--mf-amber)',
+    'Kwetsbaar': 'var(--mf-orange)', 'Aandacht nodig': 'var(--mf-red)',
   }
 
   if (laden) return (
@@ -168,7 +168,7 @@ export default function MentaleSterktePagina() {
                 disabled={bezig}
                 style={{
                   width: '100%', padding: '14px', borderRadius: 14, marginTop: 20,
-                  background: bezig ? '#9CA3AF' : 'linear-gradient(135deg, var(--mf-green, #1D9E75) 0%, var(--mf-green-dark, #15785A) 100%)',
+                  background: bezig ? 'var(--text-3)' : 'linear-gradient(135deg, var(--mf-green, #1D9E75) 0%, var(--mf-green-dark, #15785A) 100%)',
                   color: 'white', border: 'none', cursor: 'pointer',
                   fontSize: 15, fontWeight: 700, letterSpacing: '-0.01em',
                   boxShadow: bezig ? 'none' : '0 4px 14px rgba(29,158,117,0.35)',
@@ -213,12 +213,12 @@ export default function MentaleSterktePagina() {
                 <div key={i} style={{ marginBottom: 10 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
                     <p style={{ fontSize: 11, color: 'var(--text-2)', flex: 1, marginRight: 8 }}>{pv.vraag}</p>
-                    <span style={{ fontSize: 11, fontWeight: 700, color: pv.score >= 4 ? '#1D9E75' : pv.score >= 3 ? '#F59E0B' : '#EF4444', flexShrink: 0 }}>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: pv.score >= 4 ? 'var(--mf-green)' : pv.score >= 3 ? 'var(--mf-amber)' : 'var(--mf-red)', flexShrink: 0 }}>
                       {pv.score}/5
                     </span>
                   </div>
                   <div style={{ height: 3, borderRadius: 9999, background: 'var(--border)', overflow: 'hidden' }}>
-                    <div style={{ height: '100%', borderRadius: 9999, width: `${(pv.score / 5) * 100}%`, background: pv.score >= 4 ? '#1D9E75' : pv.score >= 3 ? '#F59E0B' : '#EF4444' }} />
+                    <div style={{ height: '100%', borderRadius: 9999, width: `${(pv.score / 5) * 100}%`, background: pv.score >= 4 ? 'var(--mf-green)' : pv.score >= 3 ? 'var(--mf-amber)' : 'var(--mf-red)' }} />
                   </div>
                 </div>
               ))}

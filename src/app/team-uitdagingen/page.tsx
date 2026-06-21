@@ -105,10 +105,10 @@ export default function TeamUitdagingenPagina() {
 
         <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
           <div>
-            <h1 style={{ fontSize: 22, fontWeight: 800, color: '#111827', letterSpacing: '-0.03em', marginBottom: 4 }}>
+            <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 4 }}>
               Team uitdagingen
             </h1>
-            <p style={{ fontSize: 13, color: '#9CA3AF' }}>
+            <p style={{ fontSize: 13, color: 'var(--text-3)' }}>
               Doe mee met collectieve uitdagingen en boost je teamwelzijn
             </p>
           </div>
@@ -123,10 +123,10 @@ export default function TeamUitdagingenPagina() {
             border: '2px dashed #E5E7EB', textAlign: 'center',
           }}>
             <div style={{ fontSize: 48, marginBottom: 16 }}>🏆</div>
-            <p style={{ fontSize: 15, fontWeight: 700, color: '#374151', marginBottom: 8 }}>
+            <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-2)', marginBottom: 8 }}>
               Geen actieve uitdagingen
             </p>
-            <p style={{ fontSize: 13, color: '#9CA3AF', lineHeight: 1.55 }}>
+            <p style={{ fontSize: 13, color: 'var(--text-3)', lineHeight: 1.55 }}>
               Je HR-team kan uitdagingen aanmaken via het HR-portaal.
             </p>
           </div>
@@ -149,40 +149,40 @@ export default function TeamUitdagingenPagina() {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                        <span style={{ fontSize: 11, color: '#9CA3AF', fontWeight: 600 }}>
+                        <span style={{ fontSize: 11, color: 'var(--text-3)', fontWeight: 600 }}>
                           {TYPE_LABELS[u.type] ?? u.type}
                         </span>
                         {heeftVandaag && (
-                          <span style={{ fontSize: 10, background: '#E1F5EE', color: '#059669', fontWeight: 700, padding: '2px 7px', borderRadius: 20 }}>
+                          <span style={{ fontSize: 10, background: 'var(--mf-green-light)', color: 'var(--mf-green)', fontWeight: 700, padding: '2px 7px', borderRadius: 20 }}>
                             ✓ vandaag gelogd
                           </span>
                         )}
                       </div>
-                      <h2 style={{ fontSize: 15, fontWeight: 800, color: '#111827', marginBottom: 4 }}>{u.naam}</h2>
+                      <h2 style={{ fontSize: 15, fontWeight: 800, color: 'var(--text-1)', marginBottom: 4 }}>{u.naam}</h2>
                       {u.beschrijving && (
-                        <p style={{ fontSize: 12, color: '#6B7280', lineHeight: 1.4 }}>{u.beschrijving}</p>
+                        <p style={{ fontSize: 12, color: 'var(--text-2)', lineHeight: 1.4 }}>{u.beschrijving}</p>
                       )}
                     </div>
                     <div style={{ textAlign: 'right', flexShrink: 0, marginLeft: 12 }}>
-                      <p style={{ fontSize: 20, fontWeight: 800, color: '#111827', lineHeight: 1 }}>{pct}%</p>
-                      <p style={{ fontSize: 10, color: '#9CA3AF' }}>jouw voortgang</p>
+                      <p style={{ fontSize: 20, fontWeight: 800, color: 'var(--text-1)', lineHeight: 1 }}>{pct}%</p>
+                      <p style={{ fontSize: 10, color: 'var(--text-3)' }}>jouw voortgang</p>
                     </div>
                   </div>
 
                   {/* Voortgangsbalk */}
-                  <div style={{ height: 6, borderRadius: 9999, background: '#F3F4F6', marginBottom: 12, overflow: 'hidden' }}>
+                  <div style={{ height: 6, borderRadius: 9999, background: 'var(--bg-subtle)', marginBottom: 12, overflow: 'hidden' }}>
                     <div style={{
                       height: '100%', borderRadius: 9999, width: `${pct}%`,
-                      background: pct >= 100 ? '#1D9E75' : 'linear-gradient(90deg, #6366f1, #8B5CF6)',
+                      background: pct >= 100 ? 'var(--mf-green)' : 'linear-gradient(90deg, #6366f1, #8B5CF6)',
                       transition: 'width 0.8s ease',
                     }} />
                   </div>
 
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
-                    <span style={{ fontSize: 11, color: '#9CA3AF' }}>
+                    <span style={{ fontSize: 11, color: 'var(--text-3)' }}>
                       {deelnemers} deelnemer{deelnemers !== 1 ? 's' : ''}
                     </span>
-                    <span style={{ fontSize: 11, color: dagen <= 3 ? '#EF4444' : '#9CA3AF', fontWeight: dagen <= 3 ? 700 : 400 }}>
+                    <span style={{ fontSize: 11, color: dagen <= 3 ? 'var(--mf-red)' : 'var(--text-3)', fontWeight: dagen <= 3 ? 700 : 400 }}>
                       {dagen === 0 ? 'Vandaag laatste dag!' : `${dagen} dag${dagen !== 1 ? 'en' : ''} resterend`}
                     </span>
                   </div>
@@ -206,7 +206,7 @@ export default function TeamUitdagingenPagina() {
                         disabled={loggen === u.id || !logWaarde}
                         style={{
                           padding: '9px 16px', borderRadius: 10, border: 'none',
-                          background: '#111827', color: 'white', fontWeight: 700, fontSize: 13,
+                          background: 'var(--text-1)', color: 'white', fontWeight: 700, fontSize: 13,
                           cursor: 'pointer', opacity: loggen === u.id || !logWaarde ? 0.5 : 1,
                         }}
                       >
@@ -219,8 +219,8 @@ export default function TeamUitdagingenPagina() {
                       disabled={loggen === u.id || heeftVandaag}
                       style={{
                         width: '100%', padding: '10px', borderRadius: 10, border: 'none',
-                        background: heeftVandaag ? '#F3F4F6' : '#111827',
-                        color: heeftVandaag ? '#9CA3AF' : 'white',
+                        background: heeftVandaag ? 'var(--bg-subtle)' : 'var(--text-1)',
+                        color: heeftVandaag ? 'var(--text-3)' : 'white',
                         fontWeight: 700, fontSize: 13, cursor: heeftVandaag ? 'default' : 'pointer',
                       }}
                     >
