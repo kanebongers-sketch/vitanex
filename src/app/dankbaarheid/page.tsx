@@ -22,6 +22,21 @@ const PLACEHOLDERS = [
   'Een persoon die me hielp…',
 ]
 
+const SUGGESTIE_SETS = [
+  [
+    'Mijn gezondheid', 'Een gesprek met…', 'De rust van vandaag',
+    'Een kleine overwinning', 'Mijn energie',
+  ],
+  [
+    'Iemand die hielp', 'Lekker gegeten', 'Goed geslapen',
+    'Een mooie wandeling', 'Tijd voor mezelf',
+  ],
+  [
+    'Mijn team/collega\'s', 'Buiten zijn geweest', 'Iets geleerd',
+    'Thuis en veiligheid', 'Een grapje of lach',
+  ],
+]
+
 export default function DankbaarheidPagina() {
   const router = useRouter()
   const [logs, setLogs] = useState<DankbaarheidLog[]>([])
@@ -29,6 +44,7 @@ export default function DankbaarheidPagina() {
   const [laden, setLaden] = useState(true)
   const [opslaan, setOpslaan] = useState(false)
   const [succes, setSucces] = useState(false)
+  const [activeFocus, setActiveFocus] = useState<number | null>(null)
 
   useEffect(() => {
     async function laad() {
@@ -122,13 +138,15 @@ export default function DankbaarheidPagina() {
           </div>
 
           {items.map((item, i) => (
-            <div key={i} style={{ marginBottom: 10 }}>
+            <div key={i} style={{ marginBottom: 12 }}>
               <div style={{
                 display: 'flex', alignItems: 'center', gap: 10,
-                background: 'var(--bg-subtle)', borderRadius: 12, padding: '10px 14px',
-                border: '1px solid var(--border)',
+                background: activeFocus === i ? 'var(--bg-card)' : 'var(--bg-subtle)',
+                borderRadius: 12, padding: '10px 14px',
+                border: activeFocus === i ? '1.5px solid var(--mf-green)' : '1px solid var(--border)',
+                transition: 'border-color 0.15s, background 0.15s',
               }}>
-                <span style={{ fontSize: 14, color: 'var(--text-4)', fontWeight: 700, minWidth: 18 }}>{i + 1}.</span>
+                <span style={{ fontSize: 14, color: 'var(--mf-green)', fontWeight: 700, minWidth: 18 }}>{i + 1}.</span>
                 <input
                   type="text"
                   value={item}
@@ -139,9 +157,41 @@ export default function DankbaarheidPagina() {
                     flex: 1, background: 'transparent', border: 'none', outline: 'none',
                     fontSize: 13, color: 'var(--text-2)',
                   }}
+                  onFocus={() => setActiveFocus(i)}
+                  onBlur={() => setActiveFocus(null)}
                   onKeyDown={e => e.key === 'Enter' && slaOp()}
                 />
+                {item && (
+                  <button
+                    onClick={() => setItems(prev => prev.map((v, j) => j === i ? '' : v))}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-4)', fontSize: 14, padding: '0 2px' }}
+                    aria-label="Wis veld"
+                  >
+                    ×
+                  </button>
+                )}
               </div>
+              {activeFocus === i && !item && (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8, paddingLeft: 4 }}>
+                  {SUGGESTIE_SETS[i % SUGGESTIE_SETS.length].map(sug => (
+                    <button
+                      key={sug}
+                      onMouseDown={e => {
+                        e.preventDefault()
+                        setItems(prev => prev.map((v, j) => j === i ? sug : v))
+                      }}
+                      style={{
+                        fontSize: 11, fontWeight: 600, padding: '4px 10px', borderRadius: 20,
+                        background: 'var(--mf-green-light)', color: 'var(--mf-green-dark)',
+                        border: '1px solid rgba(29,158,117,0.2)', cursor: 'pointer',
+                        transition: 'background 0.1s',
+                      }}
+                    >
+                      {sug}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           ))}
 
