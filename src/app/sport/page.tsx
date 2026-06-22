@@ -156,7 +156,7 @@ export default function SportPagina() {
           .select('id, datum, naam, duur_minuten')
           .eq('user_id', user.id)
           .order('datum', { ascending: false })
-          .limit(5),
+          .limit(7),
         supabase
           .from('training_logs')
           .select('id', { count: 'exact', head: true })
@@ -264,6 +264,23 @@ export default function SportPagina() {
                 <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)' }}>gedaan deze week</div>
               </div>
             </div>
+            {schema && (
+              <div style={{ marginBottom: 16 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                  <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)' }}>Deze week</span>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: 'white' }}>{trainingsDezeWeek}/{schema.sessies_per_week}</span>
+                </div>
+                <div style={{ height: 6, borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.2)', overflow: 'hidden' }}>
+                  <div style={{
+                    height: '100%',
+                    borderRadius: 3,
+                    backgroundColor: 'white',
+                    width: `${Math.min(100, (trainingsDezeWeek / schema.sessies_per_week) * 100)}%`,
+                    transition: 'width 0.6s ease',
+                  }} />
+                </div>
+              </div>
+            )}
             <Link href="/sport/training" style={{ textDecoration: 'none' }}>
               <div style={{
                 backgroundColor: 'white',
@@ -331,6 +348,37 @@ export default function SportPagina() {
               Bekijk alle →
             </Link>
           </div>
+
+          {(() => {
+            const vandaag = new Date()
+            const vandaagStr = vandaag.toISOString().split('T')[0]
+            const datumSet = new Set(logs.map(l => l.datum?.split('T')[0]))
+            const strip = Array.from({ length: 7 }, (_, i) => {
+              const d = new Date(vandaag)
+              d.setDate(d.getDate() - (6 - i))
+              const ds = d.toISOString().split('T')[0]
+              return { ds, dag: d.toLocaleDateString('nl-NL', { weekday: 'short' }).slice(0, 2), actief: datumSet.has(ds), isVandaag: ds === vandaagStr }
+            })
+            return (
+              <div style={{ padding: '14px 20px', display: 'flex', gap: 6 }}>
+                {strip.map(({ ds, dag, actief, isVandaag }) => (
+                  <div key={ds} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+                    <div style={{
+                      width: '100%', height: 28, borderRadius: 6,
+                      background: actief ? 'var(--mf-orange)' : 'var(--bg-subtle)',
+                      opacity: actief ? 0.9 : 0.5,
+                      outline: isVandaag ? `2px solid ${actief ? 'var(--mf-orange)' : 'var(--border-strong)'}` : 'none',
+                      outlineOffset: 2,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    }}>
+                      {actief && <span style={{ fontSize: 12 }}>💪</span>}
+                    </div>
+                    <span style={{ fontSize: 8, color: isVandaag ? 'var(--text-2)' : 'var(--text-4)', fontWeight: isVandaag ? 800 : 400, textTransform: 'capitalize' }}>{dag}</span>
+                  </div>
+                ))}
+              </div>
+            )
+          })()}
 
           {logs.length === 0 ? (
             <div style={{ padding: '32px 20px', textAlign: 'center' as const }}>
