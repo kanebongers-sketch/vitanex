@@ -101,7 +101,7 @@ export default function ReflectiePage() {
           </div>
           <button
             onClick={() => setToonHistorie(v => !v)}
-            style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-2, #6B7280)', border: '1px solid var(--border, #E5E7EB)', borderRadius: 10, padding: '7px 14px', background: 'var(--surface-1, white)', cursor: 'pointer' }}
+            style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-2)', border: '1px solid var(--border)', borderRadius: 10, padding: '7px 14px', background: 'var(--bg-card)', cursor: 'pointer' }}
           >
             {toonHistorie ? 'Huidige week' : `Historie (${eerdere.length})`}
           </button>
@@ -117,7 +117,7 @@ export default function ReflectiePage() {
               const datum = new Date(e.week_start).toLocaleDateString('nl-BE', { day: 'numeric', month: 'long' })
               const aantalIngevuld = Object.values(e.antwoorden ?? {}).filter(v => v.trim()).length
               return (
-                <div key={e.id} style={{ background: 'var(--surface-1, white)', borderRadius: 16, border: '1px solid var(--border, #E5E7EB)', padding: '18px 20px' }}>
+                <div key={e.id} style={{ background: 'var(--bg-card)', borderRadius: 16, border: '1px solid var(--border)', padding: '18px 20px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
                     <div>
                       <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-1, #111827)' }}>Week van {datum}</p>
@@ -141,7 +141,7 @@ export default function ReflectiePage() {
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             {REFLECTIE_VRAGEN.map((vraag, i) => (
-              <div key={vraag.id} style={{ background: 'var(--surface-1, white)', borderRadius: 16, border: '1px solid var(--border, #E5E7EB)', padding: '20px 22px' }}>
+              <div key={vraag.id} style={{ background: 'var(--bg-card)', borderRadius: 16, border: '1px solid var(--border)', padding: '20px 22px' }}>
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: 12 }}>
                   <div style={{ width: 24, height: 24, borderRadius: 7, background: antwoorden[vraag.id]?.trim() ? 'var(--mf-green-light, #E1F5EE)' : 'var(--surface-2, #F3F4F6)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: antwoorden[vraag.id]?.trim() ? 'var(--mf-green, #1D9E75)' : 'var(--text-3, #9CA3AF)', flexShrink: 0 }}>
                     {antwoorden[vraag.id]?.trim() ? '✓' : i + 1}
@@ -154,10 +154,10 @@ export default function ReflectiePage() {
                   onChange={e => setAntwoorden(prev => ({ ...prev, [vraag.id]: e.target.value }))}
                   placeholder={vraag.placeholder}
                   style={{
-                    width: '100%', border: '1px solid var(--border, #E5E7EB)', borderRadius: 10,
+                    width: '100%', border: '1px solid var(--border)', borderRadius: 10,
                     padding: '10px 14px', fontSize: 13, outline: 'none', resize: 'vertical',
                     lineHeight: 1.6, boxSizing: 'border-box', color: 'var(--text-1, #374151)',
-                    background: 'var(--surface-1, white)', minHeight: 80,
+                    background: 'var(--bg-card)', minHeight: 80,
                   }}
                 />
               </div>
@@ -181,7 +181,7 @@ export default function ReflectiePage() {
               </button>
               <Link
                 href="/journal"
-                style={{ padding: '14px 18px', borderRadius: 14, fontSize: 14, fontWeight: 600, color: 'var(--text-2, #6B7280)', border: '1px solid var(--border, #E5E7EB)', textDecoration: 'none', background: 'var(--surface-1, white)', display: 'flex', alignItems: 'center' }}
+                style={{ padding: '14px 18px', borderRadius: 14, fontSize: 14, fontWeight: 600, color: 'var(--text-2)', border: '1px solid var(--border)', textDecoration: 'none', background: 'var(--bg-card)', display: 'flex', alignItems: 'center' }}
               >
                 Naar journal
               </Link>

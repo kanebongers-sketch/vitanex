@@ -317,7 +317,7 @@ export default function CheckIn() {
   if (alIngevuld) return (
     <main className="mf-mesh-bg min-h-screen flex flex-col items-center justify-center p-8">
       <div className="max-w-md w-full rounded-2xl border p-10 shadow-sm text-center"
-        style={{ background: 'var(--bg-card, #fff)', borderColor: 'var(--border, rgba(0,0,0,0.07))' }}>
+        style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
         <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-5"
           style={{ background: 'var(--mf-green-light, #E1F5EE)' }}>
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1D9E75" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">

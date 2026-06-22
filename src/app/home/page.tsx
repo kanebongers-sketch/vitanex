@@ -589,7 +589,7 @@ export default function HomePage() {
         <span style={{ fontSize: 12, color: 'var(--text-4)', fontWeight: 600 }}>{nlDatumKort()}</span>
         <div
           aria-label="Profielmenu"
-          style={{ width: 34, height: 34, borderRadius: '50%', background: kleur, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 800, color: '#fff', cursor: 'pointer', flexShrink: 0 }}
+          style={{ width: 34, height: 34, borderRadius: '50%', background: kleur, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 800, color: 'white', cursor: 'pointer', flexShrink: 0 }}
           onClick={() => router.push('/instellingen')}
         >
           {initialen(naam) || '?'}
