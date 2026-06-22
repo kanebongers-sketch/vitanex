@@ -221,7 +221,7 @@ export default function PatronenPage() {
             <>
               {/* ── Samenvatting strip ────────────────────────── */}
               {(data.samenvatting.stemming_30d_gem !== null || data.samenvatting.slaap_30d_gem !== null) && (
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 20 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginBottom: 16 }}>
                   <StatKaart
                     label="Stemming (30d)"
                     waarde={data.samenvatting.stemming_30d_gem !== null ? `${data.samenvatting.stemming_30d_gem}/5` : null}
@@ -234,8 +234,42 @@ export default function PatronenPage() {
                     delta={data.samenvatting.slaap_30d_delta}
                     kleur="var(--mf-blue)"
                   />
+                  <StatKaart
+                    label="Sportdagen (30d)"
+                    waarde={`${data.samenvatting.sport_dagen_30d}d`}
+                    delta={null}
+                    kleur="var(--mf-purple)"
+                  />
                 </div>
               )}
+
+              {/* ── Check-in voortgang naar betrouwbare patronen ── */}
+              {(() => {
+                const totaal = data.samenvatting.totaal_checkins
+                const doel = 21
+                const pct = Math.min(100, Math.round((totaal / doel) * 100))
+                const kleur = totaal >= doel ? 'var(--mf-green)' : totaal >= 10 ? 'var(--mf-amber)' : 'var(--mf-purple)'
+                return (
+                  <div style={{ background: 'var(--bg-card)', borderRadius: 14, padding: '14px 16px', marginBottom: 20, border: '1px solid var(--border)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                      <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-4)' }}>
+                        Patroonbetrouwbaarheid
+                      </p>
+                      <span style={{ fontSize: 11, fontWeight: 700, color: kleur }}>
+                        {totaal >= doel ? 'Sterk ✓' : `${totaal}/${doel} check-ins`}
+                      </span>
+                    </div>
+                    <div style={{ height: 6, borderRadius: 9999, background: 'var(--border)', overflow: 'hidden' }}>
+                      <div style={{ height: '100%', width: `${pct}%`, borderRadius: 9999, background: kleur, transition: 'width 0.8s ease' }} />
+                    </div>
+                    {totaal < doel && (
+                      <p style={{ fontSize: 10, color: 'var(--text-4)', marginTop: 5 }}>
+                        Nog {doel - totaal} check-ins voor betrouwbare patronen
+                      </p>
+                    )}
+                  </div>
+                )
+              })()}
 
               {/* ── Patronen ──────────────────────────────────── */}
               <h2 style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-2)', textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 12px' }}>
