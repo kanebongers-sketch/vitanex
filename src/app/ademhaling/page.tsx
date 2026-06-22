@@ -4,9 +4,12 @@ export const dynamic = 'force-dynamic'
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
+import dynamic from 'next/dynamic'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
+
+const BreathingSphere = dynamic(() => import('@/components/three/BreathingSphere'), { ssr: false })
 
 interface Techniek {
   id: string
@@ -256,14 +259,20 @@ export default function AdemhalingPage() {
               Ronde {ronde + 1} van {gekozen!.rondes}
             </p>
 
-            {/* Cirkel */}
-            <div style={{ position: 'relative', display: 'inline-block', marginBottom: 28, transform: `scale(${schaal.toFixed(3)})`, transition: 'transform 1s linear' }}>
-              <svg width={200} height={200}>
-                <circle cx={100} cy={100} r={r} fill="none" stroke="var(--border-strong)" strokeWidth={8} />
+            {/* Cirkel + 3D bol */}
+            <div style={{ position: 'relative', display: 'inline-block', marginBottom: 28, width: 200, height: 200 }}>
+              {/* 3D ademhalingssphere */}
+              <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
+                <BreathingSphere scale={schaal} phaseName={faseNaam} active={bezig} size={200} />
+              </div>
+
+              {/* SVG voortgangsring + tekst (boven de bol) */}
+              <svg width={200} height={200} style={{ position: 'absolute', inset: 0 }}>
+                <circle cx={100} cy={100} r={r} fill="none" stroke="var(--border-strong)" strokeWidth={6} opacity={0.35} />
                 <circle
                   cx={100} cy={100} r={r} fill="none"
                   stroke={huidigeF?.kleur ?? 'var(--mf-green)'}
-                  strokeWidth={8}
+                  strokeWidth={6}
                   strokeDasharray={circ}
                   strokeDashoffset={offset}
                   strokeLinecap="round"
@@ -273,7 +282,7 @@ export default function AdemhalingPage() {
                 <text x="100" y="90" textAnchor="middle" style={{ fontSize: 40, fontWeight: 800, fill: 'var(--text-1)', dominantBaseline: 'middle' }} dominantBaseline="middle">
                   {countdown}
                 </text>
-                <text x="100" y="125" textAnchor="middle" style={{ fontSize: 13, fill: huidigeF?.kleur, fontWeight: 600 }}>
+                <text x="100" y="125" textAnchor="middle" style={{ fontSize: 13, fill: huidigeF?.kleur, fontWeight: 700 }}>
                   {huidigeF?.naam}
                 </text>
               </svg>
