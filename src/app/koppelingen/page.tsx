@@ -7,6 +7,10 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { authFetch } from '@/lib/auth-fetch'
 import Navbar from '@/components/layout/Navbar'
+import nextDynamic from 'next/dynamic'
+
+const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
+
 import { isAndroidApp, leesHealthData, vraagPermissies, type HealthData } from '@/lib/health-connect'
 import { isIosApp, vraagAppleHealthPermissies } from '@/lib/apple-health'
 import { syncGezondheidsdata } from '@/lib/health-sync'
@@ -414,7 +418,12 @@ function KoppelingenInhoud() {
         <div className={`bg-white rounded-2xl border border-gray-100 p-5 mb-4 ${isIos ? '' : 'opacity-60'}`} style={{ boxShadow: 'var(--shadow-sm)' }}>
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl" style={{ background: '#FF2D55' }}>🍎</div>
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl" style={{ background: '#FF2D55', position: 'relative' }}>
+                <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
+                  <GlowOrb color={[0.886, 0.294, 0.290]} intensity={0.4} size={60} />
+                </div>
+                <span style={{ position: 'relative', zIndex: 1 }}>🍎</span>
+              </div>
               <div>
                 <p className="text-sm font-semibold text-gray-900">Apple Health</p>
                 <p className="text-xs text-gray-400">Apple Watch · iPhone</p>

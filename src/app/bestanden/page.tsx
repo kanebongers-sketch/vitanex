@@ -7,6 +7,9 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { authFetch } from '@/lib/auth-fetch'
 import Navbar from '@/components/layout/Navbar'
+import nextDynamic from 'next/dynamic'
+
+const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
 
 interface Bestand { id: string; bestandsnaam: string; aangemaakt_op: string; gedeeld_met_hr: boolean; categorie: string }
 interface Rapport { id: string; type: string; titel: string; inhoud: string; aangemaakt_op: string }
@@ -134,7 +137,12 @@ export default function BestandenPage() {
             <div style={{ flex: 1, minWidth: 200 }}>
               <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--mf-blue)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>Jouw DISC profiel</div>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 4 }}>
-                <span style={{ fontSize: 36, fontWeight: 800, color: DISC_KLEUR[discProfiel.primair_profiel] ?? 'var(--bg-subtle)' }}>{discProfiel.primair_profiel}</span>
+                <span style={{ fontSize: 36, fontWeight: 800, color: DISC_KLEUR[discProfiel.primair_profiel] ?? 'var(--bg-subtle)', position: 'relative', display: 'inline-block' }}>
+                <span style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
+                  <GlowOrb color={[0.231, 0.510, 0.965]} intensity={0.5} size={80} />
+                </span>
+                <span style={{ position: 'relative', zIndex: 1 }}>{discProfiel.primair_profiel}</span>
+              </span>
                 <span style={{ fontSize: 15, color: 'var(--text-3)' }}>primair profiel</span>
               </div>
               <div style={{ fontSize: 13, color: 'var(--text-2)' }}>{datumLabel(discProfiel.aangemaakt_op)}</div>
