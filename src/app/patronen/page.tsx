@@ -7,6 +7,9 @@ import { useRouter } from 'next/navigation'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
 import { supabase } from '@/lib/supabase'
+import nextDynamic from 'next/dynamic'
+
+const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
 
 interface Patroon {
   id: string
@@ -118,7 +121,12 @@ function LegeStaat() {
         boxShadow: 'var(--shadow-xs)',
       }}
     >
-      <div style={{ fontSize: 48, marginBottom: 16 }}>🔬</div>
+      <div style={{ position: 'relative', display: 'inline-block', marginBottom: 16 }}>
+        <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 0, pointerEvents: 'none' }}>
+          <GlowOrb color={[0.231, 0.510, 0.965]} intensity={0.45} size={100} />
+        </div>
+        <div style={{ fontSize: 48, position: 'relative', zIndex: 1 }}>🔬</div>
+      </div>
       <h2 style={{ fontSize: 18, fontWeight: 800, color: 'var(--text-1)', margin: '0 0 10px' }}>
         Nog geen patronen zichtbaar
       </h2>
@@ -294,7 +302,12 @@ export default function PatronenPage() {
                       }}
                     >
                       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
-                        <span style={{ fontSize: 28, flexShrink: 0, lineHeight: 1 }}>{p.emoji}</span>
+                        <div style={{ position: 'relative', flexShrink: 0, width: 32, height: 32 }}>
+                          <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 0, pointerEvents: 'none' }}>
+                            <GlowOrb color={[0.231, 0.510, 0.965]} intensity={p.betrouwbaarheid === 'hoog' ? 0.5 : p.betrouwbaarheid === 'middel' ? 0.35 : 0.2} size={56} />
+                          </div>
+                          <span style={{ fontSize: 28, lineHeight: 1, position: 'relative', zIndex: 1 }}>{p.emoji}</span>
+                        </div>
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 6 }}>
                             <span style={{ fontSize: 15, fontWeight: 800, color: 'var(--text-1)' }}>
