@@ -198,7 +198,7 @@ export default function AdemhalingPage() {
                   <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-1)', marginBottom: 4 }}>{t.naam}</p>
                   <p style={{ fontSize: 11, color: 'var(--text-4)', lineHeight: 1.4, marginBottom: 8 }}>{t.beschrijving}</p>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--mf-green)', background: '#1D9E7515', padding: '2px 8px', borderRadius: 100 }}>{t.doel}</span>
+                    <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--mf-green)', background: 'var(--mf-green-light)', padding: '2px 8px', borderRadius: 100 }}>{t.doel}</span>
                     <span style={{ fontSize: 11, color: 'var(--text-4)' }}>{t.rondes} rondes · {Math.round((t.fasen.reduce((s, f) => s + f.seconden, 0) * t.rondes) / 60)} min</span>
                   </div>
                 </div>

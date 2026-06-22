@@ -343,7 +343,7 @@ export default function HrDashboardPage() {
                   padding: '28px 20px', textAlign: 'center',
                 }}>
                   <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--bg-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 10px' }}>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--text-4)' }}>
                       <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
                     </svg>
                   </div>
@@ -365,7 +365,7 @@ export default function HrDashboardPage() {
                     transition: 'border-color 0.15s, box-shadow 0.15s, transform 0.15s',
                   }}
                 >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" strokeWidth="2" style={{ flexShrink: 0 }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: 'var(--text-4)', flexShrink: 0 }}>
                     <line x1="8" y1="6" x2="16" y2="6" /><line x1="8" y1="12" x2="16" y2="12" /><line x1="8" y1="18" x2="16" y2="18" />
                   </svg>
                   <div style={{ width: 36, height: 36, borderRadius: 8, flexShrink: 0, background: tile.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>{tile.icon}</div>
@@ -447,7 +447,7 @@ export default function HrDashboardPage() {
               >
                 <div style={{ width: 34, height: 34, borderRadius: 8, flexShrink: 0, background: item.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>{item.icon}</div>
                 <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-2)', flex: 1 }}>{item.label}</p>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" strokeWidth="2.5">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" style={{ color: 'var(--text-4)' }} strokeWidth="2.5">
                   <polyline points="9 18 15 12 9 6" />
                 </svg>
               </Link>
