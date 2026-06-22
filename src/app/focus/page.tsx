@@ -395,6 +395,8 @@ export default function FocusPagina() {
   const router = useRouter()
   const [klaar, setKlaar] = useState(false)
   const [tab, setTab] = useState<HoofdTab>('adem')
+  const [focusMinutenVandaag, setFocusMinutenVandaag] = useState(0)
+  const [focusSessiesVandaag, setFocusSessiesVandaag] = useState(0)
 
   // -- Breathing state ------------------------------------------------------
   const [ademTab, setAdemTab] = useState<AdemTab>('box')
@@ -427,6 +429,19 @@ export default function FocusPagina() {
     async function check() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/login'); return }
+
+      const vandaagStr = new Date().toISOString().split('T')[0]
+      const { data: logs } = await supabase
+        .from('focus_logs')
+        .select('duur_minuten')
+        .eq('user_id', user.id)
+        .gte('aangemaakt_op', vandaagStr)
+
+      if (logs) {
+        setFocusSessiesVandaag(logs.length)
+        setFocusMinutenVandaag(logs.reduce((acc, l) => acc + (l.duur_minuten ?? 0), 0))
+      }
+
       setKlaar(true)
     }
     check()
@@ -538,10 +553,29 @@ export default function FocusPagina() {
       <main className="p-6 pb-20">
 
         {/* Header */}
-        <div className="mb-5">
+        <div className="mb-4">
           <h1 className="text-2xl font-bold text-gray-900">Focus & Welzijn</h1>
           <p className="text-gray-500 text-sm mt-0.5">Ademhaling, beweging, voeding, slaap en mentale reset.</p>
         </div>
+
+        {/* Vandaag strip */}
+        {(focusMinutenVandaag > 0 || focusSessiesVandaag > 0) && (
+          <div style={{
+            display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginBottom: 20,
+          }}>
+            {[
+              { icoon: '🎯', waarde: `${focusMinutenVandaag}`, sub: 'min focus', kleur: focusMinutenVandaag >= 50 ? 'var(--mf-green)' : focusMinutenVandaag >= 25 ? 'var(--mf-amber)' : 'var(--text-3)' },
+              { icoon: '⏱️', waarde: `${focusSessiesVandaag}`, sub: focusSessiesVandaag === 1 ? 'sessie' : 'sessies', kleur: focusSessiesVandaag >= 4 ? 'var(--mf-green)' : 'var(--text-3)' },
+              { icoon: '🔥', waarde: focusMinutenVandaag >= 100 ? 'Top!' : focusMinutenVandaag >= 50 ? 'Goed' : 'Bezig', sub: 'vandaag', kleur: focusMinutenVandaag >= 100 ? 'var(--mf-green)' : focusMinutenVandaag >= 50 ? 'var(--mf-amber)' : 'var(--text-3)' },
+            ].map((m, i) => (
+              <div key={i} style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)', padding: '12px 10px', textAlign: 'center', boxShadow: 'var(--shadow-xs)' }}>
+                <div style={{ fontSize: 18, marginBottom: 4 }}>{m.icoon}</div>
+                <div style={{ fontSize: 15, fontWeight: 800, color: m.kleur, lineHeight: 1 }}>{m.waarde}</div>
+                <div style={{ fontSize: 9, color: 'var(--text-4)', marginTop: 2, fontWeight: 600 }}>{m.sub}</div>
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* Tab bar  scrollable on mobile */}
         <div className="overflow-x-auto pb-1 mb-6">
