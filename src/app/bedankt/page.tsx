@@ -10,6 +10,9 @@ import {
   type WellbeingCat, type WeekDoel, type WeekSelectie,
   getMaandag, slaWeekSelectieOp, scoreKleur, scoreLabel,
 } from '@/lib/weekdoelen'
+import nextDynamic from 'next/dynamic'
+
+const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -302,11 +305,20 @@ function BedanktInhoud() {
 
           {/* Vitaalscore */}
           {vitaalScore > 0 && (
-            <div className="rounded-2xl p-5 mb-5 text-center" style={{ background: 'var(--mf-green-light)' }}>
+            <div className="rounded-2xl p-5 mb-5 text-center" style={{ background: 'var(--mf-green-light)', position: 'relative' }}>
               <p className="text-xs text-gray-500 mb-1">Vitaalscore</p>
-              <div className="flex items-end justify-center gap-1">
-                <span className="text-5xl font-black" style={{ color: scoreKleur(Math.round(gemiddelde)) }}>{vitaalScore}</span>
-                <span className="text-xl font-medium text-gray-400 pb-1">/100</span>
+              <div style={{ position: 'relative', display: 'inline-flex', flexDirection: 'column', alignItems: 'center' }}>
+                <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 0 }}>
+                  <GlowOrb
+                    color={vitaalScore >= 80 ? [0.114, 0.620, 0.459] : vitaalScore >= 60 ? [0.231, 0.510, 0.965] : vitaalScore >= 40 ? [0.949, 0.722, 0.141] : [0.886, 0.294, 0.290]}
+                    intensity={Math.max(0.3, vitaalScore / 100)}
+                    size={160}
+                  />
+                </div>
+                <div className="flex items-end justify-center gap-1" style={{ position: 'relative', zIndex: 1 }}>
+                  <span className="text-5xl font-black" style={{ color: scoreKleur(Math.round(gemiddelde)) }}>{vitaalScore}</span>
+                  <span className="text-xl font-medium text-gray-400 pb-1">/100</span>
+                </div>
               </div>
               <p className="text-xs text-gray-400 mt-1">{scoreLabel(Math.round(gemiddelde))}</p>
             </div>

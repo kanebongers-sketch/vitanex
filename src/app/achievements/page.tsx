@@ -7,6 +7,9 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
+import nextDynamic from 'next/dynamic'
+
+const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
 
 interface Achievement {
   behaald_op: string
@@ -132,13 +135,18 @@ export default function AchievementsPagina() {
           marginBottom: 20,
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 16 }}>
-            <div style={{
-              width: 56, height: 56, borderRadius: 'var(--radius-md)',
-              background: 'var(--mf-amber-light)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 28, flexShrink: 0,
-            }}>
-              {niveau.emoji}
+            <div style={{ position: 'relative', width: 56, height: 56, flexShrink: 0 }}>
+              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 0 }}>
+                <GlowOrb color={[0.949, 0.722, 0.141]} intensity={Math.min(1, 0.3 + levelPct / 100)} size={88} />
+              </div>
+              <div style={{
+                width: 56, height: 56, borderRadius: 'var(--radius-md)',
+                background: 'var(--mf-amber-light)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 28, position: 'relative', zIndex: 1,
+              }}>
+                {niveau.emoji}
+              </div>
             </div>
             <div style={{ flex: 1 }}>
               <p style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-4)', margin: '0 0 2px' }}>
