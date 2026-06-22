@@ -133,7 +133,7 @@ export default function GroeiplanPagina() {
               </p>
               {(groeiplan.doelen ?? []).map((d, i) => (
                 <div key={i} style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
-                  <div style={{ width: 22, height: 22, borderRadius: 6, background: '#1D9E7515', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 11, fontWeight: 800, color: 'var(--mf-green)' }}>
+                  <div style={{ width: 22, height: 22, borderRadius: 6, background: 'var(--mf-green-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 11, fontWeight: 800, color: 'var(--mf-green)' }}>
                     {i + 1}
                   </div>
                   <p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.5 }}>{d}</p>
@@ -143,7 +143,7 @@ export default function GroeiplanPagina() {
 
             {/* Sterke punten + Aandachtspunten */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
-              <div style={{ background: 'var(--mf-green-light)', borderRadius: 16, padding: '16px', border: '1px solid #BBF7D0' }}>
+              <div style={{ background: 'var(--mf-green-light)', borderRadius: 16, padding: '16px', border: '1px solid var(--mf-green-mid, #6EE7B7)' }}>
                 <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--mf-green-dark)', marginBottom: 10 }}>
                   💪 Sterk
                 </p>
@@ -151,8 +151,8 @@ export default function GroeiplanPagina() {
                   <p key={i} style={{ fontSize: 12, color: 'var(--text-2)', marginBottom: 6, lineHeight: 1.4 }}>• {s}</p>
                 ))}
               </div>
-              <div style={{ background: 'var(--mf-orange-light)', borderRadius: 16, padding: '16px', border: '1px solid #FED7AA' }}>
-                <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--mf-orange-mid)', marginBottom: 10 }}>
+              <div style={{ background: 'var(--mf-orange-light)', borderRadius: 16, padding: '16px', border: '1px solid var(--mf-orange-light, #FED7AA)' }}>
+                <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--mf-orange)', marginBottom: 10 }}>
                   🌱 Groeipunten
                 </p>
                 {(groeiplan.aandachtspunten ?? []).map((a, i) => (
@@ -161,34 +161,50 @@ export default function GroeiplanPagina() {
               </div>
             </div>
 
-            {/* Acties */}
-            <div style={{ background: 'var(--bg-card)', borderRadius: 20, padding: '18px', border: '1px solid var(--border)' }}>
-              <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-4)', marginBottom: 12 }}>
-                ✅ Concrete acties
-              </p>
-              {(groeiplan.acties ?? []).map((a, i) => (
-                <div key={i} style={{
-                  display: 'flex', gap: 12, marginBottom: i < (groeiplan.acties?.length ?? 0) - 1 ? 12 : 0,
-                  paddingBottom: i < (groeiplan.acties?.length ?? 0) - 1 ? 12 : 0,
-                  borderBottom: i < (groeiplan.acties?.length ?? 0) - 1 ? '1px solid var(--bg-subtle)' : 'none',
-                }}>
-                  <div style={{ fontSize: 18, flexShrink: 0 }}>
-                    {DOMEIN_EMOJI[a.domein] ?? '📌'}
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-2)', marginBottom: 4, lineHeight: 1.4 }}>{a.actie}</p>
-                    <span style={{
-                      fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em',
-                      background: (TERMIJN_KLEUR[a.termijn] ?? 'var(--text-3)') + '15',
-                      color: TERMIJN_KLEUR[a.termijn] ?? 'var(--text-3)',
-                      padding: '2px 7px', borderRadius: 99,
-                    }}>
-                      {a.termijn} · {a.domein}
-                    </span>
-                  </div>
+            {/* Acties — gegroepeerd per termijn */}
+            {(() => {
+              const TERMIJN_VOLGORDE = ['week', 'maand', 'kwartaal']
+              const TERMIJN_LABELS: Record<string, string> = { week: 'Deze week', maand: 'Deze maand', kwartaal: 'Dit kwartaal' }
+              const TERMIJN_ICONS: Record<string, string> = { week: '⚡', maand: '📅', kwartaal: '🗓️' }
+              const groups = TERMIJN_VOLGORDE
+                .map(t => ({ termijn: t, acties: (groeiplan.acties ?? []).filter(a => a.termijn === t) }))
+                .filter(g => g.acties.length > 0)
+              return (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  {groups.map(g => {
+                    const kleur = TERMIJN_KLEUR[g.termijn] ?? 'var(--text-3)'
+                    return (
+                      <div key={g.termijn} style={{ background: 'var(--bg-card)', borderRadius: 20, padding: '18px', border: `1px solid ${kleur}25` }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                          <div style={{ width: 28, height: 28, borderRadius: 8, background: kleur + '15', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>
+                            {TERMIJN_ICONS[g.termijn]}
+                          </div>
+                          <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: kleur }}>
+                            {TERMIJN_LABELS[g.termijn] ?? g.termijn}
+                          </p>
+                        </div>
+                        {g.acties.map((a, i) => (
+                          <div key={i} style={{
+                            display: 'flex', gap: 12,
+                            marginBottom: i < g.acties.length - 1 ? 10 : 0,
+                            paddingBottom: i < g.acties.length - 1 ? 10 : 0,
+                            borderBottom: i < g.acties.length - 1 ? '1px solid var(--bg-subtle)' : 'none',
+                          }}>
+                            <div style={{ fontSize: 18, flexShrink: 0 }}>{DOMEIN_EMOJI[a.domein] ?? '📌'}</div>
+                            <div style={{ flex: 1 }}>
+                              <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-2)', marginBottom: 4, lineHeight: 1.4 }}>{a.actie}</p>
+                              <span style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', background: kleur + '15', color: kleur, padding: '2px 7px', borderRadius: 99 }}>
+                                {a.domein}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )
+                  })}
                 </div>
-              ))}
-            </div>
+              )
+            })()}
           </>
         ) : null}
       </main>
