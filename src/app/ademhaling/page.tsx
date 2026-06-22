@@ -184,9 +184,9 @@ export default function AdemhalingPage() {
                   onClick={() => setGekozen(t)}
                   style={{
                     background: 'var(--bg-card)', borderRadius: 16, padding: '18px 20px',
-                    border: `1.5px solid ${gekozen?.id === t.id ? '#1D9E75' : 'var(--border)'}`,
+                    border: `1.5px solid ${gekozen?.id === t.id ? 'var(--mf-green)' : 'var(--border)'}`,
                     cursor: 'pointer',
-                    boxShadow: gekozen?.id === t.id ? '0 0 0 3px #1D9E7520' : 'none',
+                    boxShadow: gekozen?.id === t.id ? '0 0 0 3px var(--mf-green-light)' : 'none',
                     transition: 'all 0.15s ease',
                   }}
                 >
