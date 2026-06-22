@@ -290,7 +290,7 @@ function BedanktInhoud() {
         <div className="bg-white rounded-3xl border border-gray-100 p-8 shadow-sm mb-5">
           <div className="flex items-center gap-4 mb-5">
             <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: 'var(--mf-green-light)' }}>
-              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1D9E75" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--mf-green)' }}>
                 <polyline points="20 6 9 17 4 12"/>
               </svg>
             </div>
@@ -529,12 +529,12 @@ function BedanktInhoud() {
       <div style={{
         position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)',
         zIndex: 1000, background: 'var(--bg-card)', borderRadius: 16,
-        border: '1.5px solid #E5E7EB', boxShadow: '0 8px 32px rgba(0,0,0,0.14)',
+        border: '1.5px solid var(--border)', boxShadow: '0 8px 32px rgba(0,0,0,0.14)',
         padding: '16px 20px', minWidth: 280, maxWidth: 360,
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
           <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--mf-purple-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--mf-purple)' }}>
               <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
             </svg>
           </div>

@@ -922,8 +922,8 @@ export default function Dashboard() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
           <div>
-            <h1 className="text-2xl font-medium" style={{ color: 'var(--text-1, #111827)' }}>HR-dashboard</h1>
-            <p className="text-sm mt-0.5" style={{ color: 'var(--text-4, #9CA3AF)' }}>{email}</p>
+            <h1 className="text-2xl font-medium" style={{ color: 'var(--text-1)' }}>HR-dashboard</h1>
+            <p className="text-sm mt-0.5" style={{ color: 'var(--text-4)' }}>{email}</p>
           </div>
           <div className="flex gap-3 flex-wrap items-start">
             {/* Score van de week — prominente kaart */}
@@ -947,16 +947,16 @@ export default function Dashboard() {
                   {weekScore}
                   <span className="text-sm font-semibold opacity-60">/100</span>
                 </p>
-                <p className="text-xs font-semibold mt-1" style={{ color: 'var(--text-4, #9CA3AF)' }}>Score week</p>
+                <p className="text-xs font-semibold mt-1" style={{ color: 'var(--text-4)' }}>Score week</p>
               </div>
             )}
-            <div className="rounded-xl border px-4 py-2.5 text-center" style={{ background: 'var(--bg-card, white)', borderColor: 'var(--border, #F3F4F6)' }}>
-              <p className="text-lg font-semibold" style={{ color: 'var(--text-1, #111827)' }}>{participatieRate}%</p>
-              <p className="text-xs" style={{ color: 'var(--text-4, #9CA3AF)' }}>Participatie</p>
+            <div className="rounded-xl border px-4 py-2.5 text-center" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
+              <p className="text-lg font-semibold" style={{ color: 'var(--text-1)' }}>{participatieRate}%</p>
+              <p className="text-xs" style={{ color: 'var(--text-4)' }}>Participatie</p>
             </div>
-            <div className="rounded-xl border px-4 py-2.5 text-center" style={{ background: 'var(--bg-card, white)', borderColor: 'var(--border, #F3F4F6)' }}>
-              <p className="text-lg font-semibold" style={{ color: 'var(--text-1, #111827)' }}>{ingevuld.length}/{team.length}</p>
-              <p className="text-xs" style={{ color: 'var(--text-4, #9CA3AF)' }}>Check-ins week</p>
+            <div className="rounded-xl border px-4 py-2.5 text-center" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
+              <p className="text-lg font-semibold" style={{ color: 'var(--text-1)' }}>{ingevuld.length}/{team.length}</p>
+              <p className="text-xs" style={{ color: 'var(--text-4)' }}>Check-ins week</p>
             </div>
             {signalen.length > 0 && (
               <div className="rounded-xl border px-4 py-2.5 text-center"

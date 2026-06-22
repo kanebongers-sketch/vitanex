@@ -196,7 +196,7 @@ export default function AchievementsPagina() {
               style={{
                 display: 'inline-block',
                 background: 'var(--mf-green)',
-                color: '#fff',
+                color: 'white',
                 fontWeight: 700,
                 fontSize: 14,
                 padding: '12px 24px',

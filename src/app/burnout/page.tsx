@@ -159,7 +159,7 @@ export default function BurnoutPagina() {
       <Navbar />
       <main className="p-6">
         <div className="rounded-2xl p-8 text-center mt-8" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-          <div className="flex justify-center mb-4"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#E24B4A" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17.657 18.657A8 8 0 0 1 6.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0 1 20 13a7.975 7.975 0 0 1-2.343 5.657z"/><path d="M9.879 16.121A3 3 0 1 0 12.99 12L11 14"/></svg></div>
+          <div className="flex justify-center mb-4"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" style={{ color: 'var(--mf-red)' }} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17.657 18.657A8 8 0 0 1 6.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0 1 20 13a7.975 7.975 0 0 1-2.343 5.657z"/><path d="M9.879 16.121A3 3 0 1 0 12.99 12L11 14"/></svg></div>
           <h1 className="text-xl font-semibold mb-2" style={{ color: 'var(--text-1)' }}>Burn-out risicoscan</h1>
           <p className="text-sm leading-relaxed mb-6" style={{ color: 'var(--text-3)' }}>
             12 vragen over uitputting, betrokkenheid en effectiviteit. Duurt ongeveer 3 minuten.
