@@ -73,12 +73,12 @@ function Sparkline({ data }: { data: GeschiedenisItem[] }) {
     >
       <defs>
         <linearGradient id="sparkGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#6366f1" stopOpacity="0.18" />
-          <stop offset="100%" stopColor="#6366f1" stopOpacity="0" />
+          <stop offset="0%" stopColor="var(--mf-purple, #6366f1)" stopOpacity="0.18" />
+          <stop offset="100%" stopColor="var(--mf-purple, #6366f1)" stopOpacity="0" />
         </linearGradient>
       </defs>
       <path d={vulgebied} fill="url(#sparkGrad)" />
-      <path d={lijn} fill="none" stroke="#6366f1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <path d={lijn} fill="none" stroke="var(--mf-purple, #6366f1)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
       {punten.map((p, i) => (
         <circle key={i} cx={p.x} cy={p.y} r="3" fill={scoreKleur(p.score)} />
       ))}
@@ -377,6 +377,42 @@ export default function WerkgelukPagina() {
                 </div>
               )}
             </div>
+
+            {/* 7-daagse strip */}
+            {(() => {
+              const dagMap = new Map(data.geschiedenis.map(g => [g.datum, g.score]))
+              const vandaagStr = new Date().toISOString().slice(0, 10)
+              const zeven = Array.from({ length: 7 }, (_, i) => {
+                const d = new Date()
+                d.setDate(d.getDate() - (6 - i))
+                return d.toISOString().slice(0, 10)
+              })
+              return (
+                <div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
+                  {zeven.map(dag => {
+                    const s = dagMap.get(dag)
+                    const isVandaag = dag === vandaagStr
+                    const kleur = s !== undefined ? scoreKleur(s) : 'var(--bg-subtle)'
+                    const dagNaam = new Date(dag + 'T12:00:00').toLocaleDateString('nl-NL', { weekday: 'short' }).slice(0, 2)
+                    return (
+                      <div key={dag} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+                        <div style={{
+                          width: '100%', aspectRatio: '1', borderRadius: 8,
+                          background: kleur,
+                          border: isVandaag ? '2px solid var(--mf-purple)' : '1px solid rgba(0,0,0,0.06)',
+                          boxSizing: 'border-box',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          opacity: s !== undefined ? 1 : 0.3,
+                        }}>
+                          {s !== undefined && <span style={{ fontSize: 11, fontWeight: 800, color: 'white' }}>{s}</span>}
+                        </div>
+                        <span style={{ fontSize: 9, color: isVandaag ? 'var(--mf-purple)' : 'var(--text-4)', fontWeight: isVandaag ? 700 : 400 }}>{dagNaam}</span>
+                      </div>
+                    )
+                  })}
+                </div>
+              )
+            })()}
 
             <Sparkline data={data.geschiedenis} />
 
