@@ -143,7 +143,7 @@ export default function GroeiplanPagina() {
 
             {/* Sterke punten + Aandachtspunten */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
-              <div style={{ background: 'var(--mf-green-light)', borderRadius: 16, padding: '16px', border: '1px solid var(--mf-green-mid, #6EE7B7)' }}>
+              <div style={{ background: 'var(--mf-green-light)', borderRadius: 16, padding: '16px', border: '1px solid var(--mf-green-mid)' }}>
                 <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--mf-green-dark)', marginBottom: 10 }}>
                   💪 Sterk
                 </p>
@@ -151,7 +151,7 @@ export default function GroeiplanPagina() {
                   <p key={i} style={{ fontSize: 12, color: 'var(--text-2)', marginBottom: 6, lineHeight: 1.4 }}>• {s}</p>
                 ))}
               </div>
-              <div style={{ background: 'var(--mf-orange-light)', borderRadius: 16, padding: '16px', border: '1px solid var(--mf-orange-light, #FED7AA)' }}>
+              <div style={{ background: 'var(--mf-orange-light)', borderRadius: 16, padding: '16px', border: '1px solid var(--mf-orange-light)' }}>
                 <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--mf-orange)', marginBottom: 10 }}>
                   🌱 Groeipunten
                 </p>

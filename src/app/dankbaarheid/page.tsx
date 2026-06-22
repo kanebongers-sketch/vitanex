@@ -267,7 +267,7 @@ export default function DankbaarheidPagina() {
               {logs.map(log => (
                 <article key={log.id} style={{
                   background: 'var(--bg-card)', borderRadius: 14, padding: '14px 16px',
-                  border: log.datum === vandaag ? '1.5px solid #A7F3D0' : '1px solid var(--border)',
+                  border: log.datum === vandaag ? '1.5px solid var(--mf-green-mid)' : '1px solid var(--border)',
                 }}>
                   <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-4)', marginBottom: 8 }}>
                     {new Date(log.datum).toLocaleDateString('nl-NL', { weekday: 'short', day: 'numeric', month: 'short' })}

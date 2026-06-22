@@ -93,7 +93,7 @@ export default function ENPSPage() {
             <p style={{ fontSize: 12, color: 'var(--text-4)' }}>Je eNPS voor {new Date(huidigeMaand + '-01').toLocaleDateString('nl-BE', { month: 'long', year: 'numeric' })} is al geregistreerd. Kom volgende maand terug.</p>
           </div>
         ) : klaar ? (
-          <div style={{ background: 'var(--mf-green-light)', borderRadius: 16, border: '1px solid #BBF0DC', padding: '20px 22px', marginBottom: 16, textAlign: 'center' }}>
+          <div style={{ background: 'var(--mf-green-light)', borderRadius: 16, border: '1px solid var(--mf-green-mid)', padding: '20px 22px', marginBottom: 16, textAlign: 'center' }}>
             <p style={{ fontSize: 20, marginBottom: 8 }}>✓</p>
             <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--mf-green)' }}>Bedankt voor je eerlijke antwoord!</p>
             <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 4 }}>Jouw respons is volledig anoniem verwerkt.</p>
