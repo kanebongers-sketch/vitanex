@@ -641,9 +641,9 @@ export default function Portaal() {
                     <XAxis dataKey="datum" tick={{ fontSize: 11 }} />
                     <YAxis domain={[1, 5]} tick={{ fontSize: 11 }} />
                     <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid #e5e7eb', fontSize: 12 }} />
-                    <Line type="monotone" dataKey="Fysiek" stroke="#1D9E75" strokeWidth={2} dot={{ r: 3 }} activeDot={{ r: 5 }} />
-                    <Line type="monotone" dataKey="Mentaal" stroke="#378ADD" strokeWidth={2} dot={{ r: 3 }} activeDot={{ r: 5 }} />
-                    <Line type="monotone" dataKey="Sociaal" stroke="#8B5CF6" strokeWidth={2} dot={{ r: 3 }} activeDot={{ r: 5 }} />
+                    <Line type="monotone" dataKey="Fysiek" stroke="var(--mf-green)" strokeWidth={2} dot={{ r: 3 }} activeDot={{ r: 5 }} />
+                    <Line type="monotone" dataKey="Mentaal" stroke="var(--mf-blue-mid)" strokeWidth={2} dot={{ r: 3 }} activeDot={{ r: 5 }} />
+                    <Line type="monotone" dataKey="Sociaal" stroke="var(--mf-purple)" strokeWidth={2} dot={{ r: 3 }} activeDot={{ r: 5 }} />
                   </LineChart>
                 </ResponsiveContainer>
                 <div className="flex gap-4 mt-3 justify-center">

@@ -407,7 +407,7 @@ export default function SportPagina() {
                     justifyContent: 'center',
                     flexShrink: 0,
                   }}>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F97316" strokeWidth="2">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: 'var(--mf-orange)' }}>
                       <path d="M6.5 6.5h11M6.5 17.5h11M4 12h16" strokeLinecap="round" />
                     </svg>
                   </div>

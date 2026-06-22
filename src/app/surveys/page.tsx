@@ -455,7 +455,7 @@ export default function SurveysPagina() {
             borderRadius: 16, boxShadow: '0 8px 24px rgba(0,0,0,0.18)',
             display: 'flex', alignItems: 'center', gap: 8,
           }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1D9E75" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--mf-green)' }}>
               <polyline points="20 6 9 17 4 12"/>
             </svg>
             Antwoord anoniem verstuurd
