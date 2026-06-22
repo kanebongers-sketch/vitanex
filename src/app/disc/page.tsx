@@ -361,9 +361,68 @@ export default function DiscPage() {
           <div>
             <div style={{ background: '#0f1e36', border: '1px solid #1e3a5f', borderRadius: 16, padding: 32, marginBottom: 20 }}>
               <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 4, textAlign: 'center' }}>Jouw DISC-profiel</h2>
-              <p style={{ color: 'var(--text-3)', textAlign: 'center', marginBottom: 28 }}>
+              <p style={{ color: 'var(--text-3)', textAlign: 'center', marginBottom: 24 }}>
                 Primair: <span style={{ color: DIM_KLEUR[primair], fontWeight: 700, fontSize: 18 }}>{primair} – {DIM_LABEL[primair]}</span>
               </p>
+
+              {/* Radar diagram */}
+              {(() => {
+                const cx = 110, cy = 110, r = 80
+                const axisAngles: Record<Dimensie, number> = { D: -90, I: 0, S: 90, C: 180 }
+                const toRad = (deg: number) => (deg * Math.PI) / 180
+                const punkt = (dim: Dimensie, s: number) => ({
+                  x: cx + r * (s / 30) * Math.cos(toRad(axisAngles[dim])),
+                  y: cy + r * (s / 30) * Math.sin(toRad(axisAngles[dim])),
+                })
+                const axPunkt = (dim: Dimensie) => ({
+                  x: cx + (r + 22) * Math.cos(toRad(axisAngles[dim])),
+                  y: cy + (r + 22) * Math.sin(toRad(axisAngles[dim])),
+                })
+                const dims: Dimensie[] = ['D', 'I', 'S', 'C']
+                const punten = dims.map(d => punkt(d, scores[d]))
+                const polyPath = punten.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' ') + ' Z'
+                const maxGridLevels = [10, 20, 30]
+                return (
+                  <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 24 }}>
+                    <svg width={220} height={220} viewBox="0 0 220 220">
+                      {/* Grid rings */}
+                      {maxGridLevels.map(lvl => {
+                        const gridPts = dims.map(d => ({
+                          x: cx + r * (lvl / 30) * Math.cos(toRad(axisAngles[d])),
+                          y: cy + r * (lvl / 30) * Math.sin(toRad(axisAngles[d])),
+                        }))
+                        const gPath = gridPts.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' ') + ' Z'
+                        return <path key={lvl} d={gPath} fill="none" stroke="#1e3a5f" strokeWidth="1" />
+                      })}
+                      {/* Axis lines */}
+                      {dims.map(d => {
+                        const ap = axPunkt(d)
+                        return <line key={d} x1={cx} y1={cy} x2={cx + r * Math.cos(toRad(axisAngles[d]))} y2={cy + r * Math.sin(toRad(axisAngles[d]))} stroke="#1e3a5f" strokeWidth="1" />
+                        void ap
+                      })}
+                      {/* Score polygon */}
+                      <path d={polyPath} fill={DIM_KLEUR[primair] + '30'} stroke={DIM_KLEUR[primair]} strokeWidth="2" strokeLinejoin="round" />
+                      {/* Score dots */}
+                      {dims.map(d => {
+                        const p = punkt(d, scores[d])
+                        return <circle key={d} cx={p.x} cy={p.y} r={5} fill={DIM_KLEUR[d]} />
+                      })}
+                      {/* Axis labels */}
+                      {dims.map(d => {
+                        const ap = axPunkt(d)
+                        const anchor = axisAngles[d] === 0 ? 'start' : axisAngles[d] === 180 ? 'end' : 'middle'
+                        const dy = axisAngles[d] === -90 ? -4 : axisAngles[d] === 90 ? 12 : 4
+                        return (
+                          <text key={d} x={ap.x} y={ap.y + dy} textAnchor={anchor} fontSize={12} fontWeight="700" fill={DIM_KLEUR[d]}>
+                            {d}
+                          </text>
+                        )
+                      })}
+                    </svg>
+                  </div>
+                )
+              })()}
+
               <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 28 }}>
                 {(Object.entries(scores) as [Dimensie, number][]).map(([dim, score]) => (
                   <div key={dim}>
@@ -372,7 +431,7 @@ export default function DiscPage() {
                       <span style={{ color: 'var(--text-3)', fontSize: 14 }}>{score}/30</span>
                     </div>
                     <div style={{ background: 'var(--text-1)', borderRadius: 6, height: 10, overflow: 'hidden' }}>
-                      <div style={{ width: ((score / 30) * 100) + '%', height: '100%', background: DIM_KLEUR[dim], borderRadius: 6 }} />
+                      <div style={{ width: ((score / 30) * 100) + '%', height: '100%', background: DIM_KLEUR[dim], borderRadius: 6, transition: 'width 0.8s ease' }} />
                     </div>
                   </div>
                 ))}

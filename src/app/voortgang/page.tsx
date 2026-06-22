@@ -267,6 +267,17 @@ export default function VoortgangPage() {
                   },
                 ].map(metric => {
                   const latest = [...metric.vals].reverse().find(v => v !== null) ?? null
+                  const geldigVals = metric.vals.filter((v): v is number => v !== null && v > 0)
+                  const huidig = geldigVals[geldigVals.length - 1] ?? null
+                  const vorig = geldigVals[geldigVals.length - 2] ?? null
+                  const delta = huidig !== null && vorig !== null ? huidig - vorig : null
+                  const deltaStr = delta !== null
+                    ? `${delta >= 0 ? '+' : ''}${metric.hMax <= 10 ? delta.toFixed(1) : Math.round(delta)}`
+                    : null
+                  const deltaKleur = delta === null ? 'var(--text-4)'
+                    : metric.label === 'Stress' ? (delta < 0 ? 'var(--mf-green)' : 'var(--mf-red)')
+                    : (delta > 0 ? 'var(--mf-green)' : 'var(--mf-red)')
+                  const deltaArrow = delta === null ? '' : delta > 0 ? '↑' : delta < 0 ? '↓' : '→'
                   return (
                     <div key={metric.label} style={{
                       background: 'var(--bg-card, white)', borderRadius: 16,
@@ -285,12 +296,13 @@ export default function VoortgangPage() {
                         {metric.vals.map((v, i) => {
                           const h = v !== null && v > 0 ? Math.max(4, (v / metric.hMax) * 36) : 4
                           const kleur = metric.kleur(v)
+                          const isLatest = i === metric.vals.length - 1
                           return (
                             <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
                               <div style={{
                                 width: '100%', height: h, borderRadius: 3,
                                 background: v !== null && v > 0 ? kleur : 'var(--bg-subtle)',
-                                opacity: v !== null && v > 0 ? 0.85 : 0.4,
+                                opacity: isLatest ? 1 : v !== null && v > 0 ? 0.5 : 0.25,
                                 transition: 'height 0.5s ease',
                               }} />
                             </div>
@@ -302,6 +314,12 @@ export default function VoortgangPage() {
                           <span key={i} style={{ flex: 1, fontSize: 8, color: 'var(--text-4)', textAlign: 'center', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{w.week}</span>
                         ))}
                       </div>
+                      {deltaStr && (
+                        <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 4 }}>
+                          <span style={{ fontSize: 11, fontWeight: 700, color: deltaKleur }}>{deltaArrow} {deltaStr}</span>
+                          <span style={{ fontSize: 10, color: 'var(--text-4)' }}>vs vorige week</span>
+                        </div>
+                      )}
                     </div>
                   )
                 })}
