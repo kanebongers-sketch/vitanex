@@ -7,6 +7,16 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
+import nextDynamic from 'next/dynamic'
+
+const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
+
+const RAPPORT_LABEL_RGB: Record<string, [number, number, number]> = {
+  Uitstekend: [0.114, 0.620, 0.459],
+  Goed:       [0.486, 0.231, 0.933],
+  Matig:      [0.949, 0.722, 0.141],
+  Lastig:     [0.886, 0.294, 0.290],
+}
 
 interface WeekStats {
   stemming: number | null
@@ -188,7 +198,12 @@ export default function InzichtenPagina() {
             background: 'var(--bg-card)', borderRadius: 20, padding: '40px 24px',
             textAlign: 'center', border: '1px solid var(--border)',
           }}>
-            <div style={{ fontSize: 44, marginBottom: 14 }}>📊</div>
+            <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: 14 }}>
+              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 0 }}>
+                <GlowOrb color={[0.486, 0.231, 0.933]} intensity={0.4} size={80} />
+              </div>
+              <div style={{ fontSize: 44, position: 'relative', zIndex: 1 }}>📊</div>
+            </div>
             <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-1)', marginBottom: 8 }}>Nog geen inzichten</p>
             <p style={{ fontSize: 13, color: 'var(--text-3)', lineHeight: 1.65 }}>
               {data?.bericht ?? 'Doe minimaal 3 check-ins deze week om jouw wekelijkse analyse te ontvangen.'}
@@ -201,14 +216,18 @@ export default function InzichtenPagina() {
             {/* Score label banner */}
             {(() => {
               const kleur = scoreLabelKleur(rapport.score_label)
+              const orbColor = RAPPORT_LABEL_RGB[rapport.score_label] ?? [0.486, 0.231, 0.933]
               return (
                 <div style={{
                   background: kleur + '12',
                   border: `1.5px solid ${kleur}35`,
                   borderRadius: 18, padding: '16px 20px', marginBottom: 18,
-                  textAlign: 'center',
+                  textAlign: 'center', position: 'relative', overflow: 'hidden',
                 }}>
-                  <p style={{ fontSize: 20, fontWeight: 800, color: kleur, margin: 0, letterSpacing: '-0.02em' }}>
+                  <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 0, pointerEvents: 'none' }}>
+                    <GlowOrb color={orbColor} intensity={0.4} size={140} />
+                  </div>
+                  <p style={{ fontSize: 20, fontWeight: 800, color: kleur, margin: 0, letterSpacing: '-0.02em', position: 'relative', zIndex: 1 }}>
                     {rapport.score_label}
                   </p>
                   {data?.week_start && (

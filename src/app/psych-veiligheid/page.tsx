@@ -7,6 +7,9 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
+import nextDynamic from 'next/dynamic'
+
+const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
 
 interface Meting {
   week_start: string
@@ -85,12 +88,28 @@ export default function PsychVeiligheidPagina() {
       <main style={{ padding: '24px 20px 88px', maxWidth: 600, margin: '0 auto' }}>
 
         <header style={{ marginBottom: 24 }}>
-          <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1, #111827)', letterSpacing: '-0.03em', marginBottom: 4 }}>
-            Psychologische veiligheid
-          </h1>
-          <p style={{ fontSize: 13, color: 'var(--text-3, #9CA3AF)', lineHeight: 1.5 }}>
-            Hoe veilig voelt het om jezelf te zijn op je werk? · Wekelijkse meting
-          </p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 4 }}>
+            <div style={{ position: 'relative', width: 44, height: 44, flexShrink: 0 }}>
+              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 0 }}>
+                <GlowOrb
+                  color={gemiddeld ? (Number(gemiddeld) >= 4 ? [0.114, 0.620, 0.459] : Number(gemiddeld) >= 3 ? [0.949, 0.722, 0.141] : [0.886, 0.294, 0.290]) : [0.231, 0.510, 0.965]}
+                  intensity={gemiddeld ? Math.max(0.3, Number(gemiddeld) / 5) : 0.35}
+                  size={72}
+                />
+              </div>
+              <div style={{ width: 44, height: 44, borderRadius: 14, background: 'var(--mf-blue-light, #EFF6FF)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, position: 'relative', zIndex: 1 }}>
+                🛡️
+              </div>
+            </div>
+            <div>
+              <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1, #111827)', letterSpacing: '-0.03em', marginBottom: 2 }}>
+                Psychologische veiligheid
+              </h1>
+              <p style={{ fontSize: 13, color: 'var(--text-3, #9CA3AF)', lineHeight: 1.5 }}>
+                Hoe veilig voelt het om jezelf te zijn op je werk? · Wekelijkse meting
+              </p>
+            </div>
+          </div>
           {gemiddeld && (
             <p style={{ fontSize: 14, fontWeight: 700, color: Number(gemiddeld) >= 4 ? 'var(--mf-green)' : Number(gemiddeld) >= 3 ? 'var(--mf-amber)' : 'var(--mf-red)', marginTop: 6 }}>
               Gemiddeld de afgelopen maand: {gemiddeld}/5
