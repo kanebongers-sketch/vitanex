@@ -174,16 +174,60 @@ export default function MeditatiePagina() {
       <Navbar />
       <main style={{ padding: '24px 20px 88px', maxWidth: 600, margin: '0 auto' }}>
 
-        <header style={{ marginBottom: 24 }}>
+        <header style={{ marginBottom: 16 }}>
           <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 4 }}>
             Mindfulness & Meditatie
           </h1>
-          {logs.length > 0 && (
-            <p style={{ fontSize: 13, color: 'var(--text-4)' }}>
-              {totaalMeditatie} min geoefend deze week
-            </p>
-          )}
         </header>
+
+        {/* 7-daagse activiteitsstrip */}
+        {(() => {
+          const vandaag = new Date()
+          const vandaagStr = vandaag.toISOString().split('T')[0]
+          const datumSet = new Set(logs.map(l => l.aangemaakt_op?.split('T')[0]).filter(Boolean))
+          const strip = Array.from({ length: 7 }, (_, i) => {
+            const d = new Date(vandaag)
+            d.setDate(d.getDate() - (6 - i))
+            const ds = d.toISOString().split('T')[0]
+            return { ds, dag: d.toLocaleDateString('nl-NL', { weekday: 'short' }).slice(0, 2), actief: datumSet.has(ds), isVandaag: ds === vandaagStr }
+          })
+          const sessiesDezeWeek = logs.filter(l => {
+            const d = l.aangemaakt_op?.split('T')[0]
+            return strip.some(s => s.ds === d)
+          }).length
+
+          return (
+            <div style={{ background: 'var(--bg-card)', borderRadius: 16, padding: '14px 16px', marginBottom: 20, border: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 16 }}>
+              <div style={{ flex: 1, display: 'flex', gap: 6 }}>
+                {strip.map(({ ds, dag, actief, isVandaag }) => (
+                  <div key={ds} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+                    <div style={{
+                      width: '100%', height: 28, borderRadius: 6,
+                      background: actief ? 'var(--mf-purple)' : 'var(--bg-subtle)',
+                      opacity: actief ? 0.85 : 0.5,
+                      outline: isVandaag ? `2px solid ${actief ? 'var(--mf-purple)' : 'var(--border-strong)'}` : 'none',
+                      outlineOffset: 2,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    }}>
+                      {actief && <span style={{ fontSize: 12 }}>🧘</span>}
+                    </div>
+                    <span style={{ fontSize: 8, color: isVandaag ? 'var(--text-2)' : 'var(--text-4)', fontWeight: isVandaag ? 800 : 400, textTransform: 'capitalize' }}>{dag}</span>
+                  </div>
+                ))}
+              </div>
+              <div style={{ textAlign: 'center', paddingLeft: 12, borderLeft: '1px solid var(--border)', flexShrink: 0 }}>
+                <p style={{ fontSize: 20, fontWeight: 900, color: 'var(--mf-purple)', margin: 0, lineHeight: 1 }}>{totaalMeditatie}</p>
+                <p style={{ fontSize: 9, color: 'var(--text-4)', margin: '2px 0 0', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>min<br />week</p>
+              </div>
+              {sessiesDezeWeek > 0 && (
+                <div style={{ textAlign: 'center', paddingLeft: 12, borderLeft: '1px solid var(--border)', flexShrink: 0 }}>
+                  <p style={{ fontSize: 20, fontWeight: 900, color: 'var(--mf-green)', margin: 0, lineHeight: 1 }}>{sessiesDezeWeek}</p>
+                  <p style={{ fontSize: 9, color: 'var(--text-4)', margin: '2px 0 0', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>sessies<br />week</p>
+                </div>
+              )}
+            </div>
+          )
+        })()}
 
         {/* Actieve sessie */}
         {bezig && gekozenSessie && (
