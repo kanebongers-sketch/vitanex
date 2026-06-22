@@ -7,6 +7,12 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
+import nextDynamic from 'next/dynamic'
+
+const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
+
+const SK_STEMMING_RGB = (s: number): [number, number, number] =>
+  s >= 4.5 ? [0.082, 0.471, 0.341] : s >= 3.5 ? [0.114, 0.620, 0.459] : s >= 2.5 ? [0.949, 0.722, 0.141] : [0.886, 0.294, 0.290]
 
 interface DagLog {
   datum: string
@@ -148,11 +154,16 @@ export default function StemmingKalenderPagina() {
 
         {/* Stats rij */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 20 }}>
-          <div style={{ background: 'var(--surface-1, white)', borderRadius: 14, padding: '14px', border: '1px solid var(--border, #E5E7EB)', textAlign: 'center' }}>
-            <p style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1, #111827)', marginBottom: 2 }}>
+          <div style={{ background: 'var(--surface-1, white)', borderRadius: 14, padding: '14px', border: '1px solid var(--border, #E5E7EB)', textAlign: 'center', position: 'relative' }}>
+            {gemiddelde && (
+              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 0, pointerEvents: 'none' }}>
+                <GlowOrb color={SK_STEMMING_RGB(Number(gemiddelde))} intensity={0.4} size={80} />
+              </div>
+            )}
+            <p style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1, #111827)', marginBottom: 2, position: 'relative', zIndex: 1 }}>
               {gemiddelde ?? '—'}
             </p>
-            <p style={{ fontSize: 11, color: 'var(--text-3, #9CA3AF)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+            <p style={{ fontSize: 11, color: 'var(--text-3, #9CA3AF)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', position: 'relative', zIndex: 1 }}>
               Gemiddeld
             </p>
           </div>
