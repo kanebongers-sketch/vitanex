@@ -45,7 +45,7 @@ export default function StressPagina() {
     async function laad() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/login'); return }
-      const res = await authFetch('/api/stress?limit=7')
+      const res = await authFetch('/api/stress?limit=30')
       if (res.ok) {
         const json = await res.json() as { logs: StressLog[] }
         setLogs(json.logs ?? [])
@@ -256,6 +256,60 @@ export default function StressPagina() {
             </p>
           </div>
         </div>
+
+        {/* 7-daagse stresstrip */}
+        {logs.length > 0 && (() => {
+          const vandaag = new Date()
+          const vandaagStr = vandaag.toISOString().split('T')[0]
+          const dagMap = new Map<string, number[]>()
+          logs.forEach(l => {
+            const d = l.aangemaakt_op.split('T')[0]
+            if (!dagMap.has(d)) dagMap.set(d, [])
+            dagMap.get(d)!.push(l.stress_niveau)
+          })
+          const strip = Array.from({ length: 7 }, (_, i) => {
+            const d = new Date(vandaag)
+            d.setDate(d.getDate() - (6 - i))
+            const ds = d.toISOString().split('T')[0]
+            const waarden = dagMap.get(ds) ?? []
+            const gem = waarden.length ? Math.round(waarden.reduce((a, b) => a + b, 0) / waarden.length) : null
+            return { ds, dag: d.toLocaleDateString('nl-NL', { weekday: 'short' }).slice(0, 2), gem, isVandaag: ds === vandaagStr }
+          })
+          const gemDezeWeek = (() => {
+            const vals = strip.map(s => s.gem).filter((v): v is number => v !== null)
+            return vals.length ? Math.round(vals.reduce((a, b) => a + b, 0) / vals.length) : null
+          })()
+          return (
+            <div style={{ background: 'var(--bg-card)', borderRadius: 16, padding: '14px 16px', marginBottom: 20, border: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 16 }}>
+              <div style={{ flex: 1, display: 'flex', gap: 6 }}>
+                {strip.map(({ ds, dag, gem, isVandaag }) => {
+                  const kleur = gem === null ? 'var(--bg-subtle)' : gem <= 3 ? 'var(--mf-green)' : gem <= 6 ? 'var(--mf-amber)' : 'var(--mf-red)'
+                  return (
+                    <div key={ds} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+                      <div style={{
+                        width: '100%', height: 32, borderRadius: 6,
+                        background: gem !== null ? kleur : 'var(--bg-subtle)',
+                        opacity: gem !== null ? 0.85 : 0.4,
+                        outline: isVandaag ? `2px solid ${gem !== null ? kleur : 'var(--border-strong)'}` : 'none',
+                        outlineOffset: 2,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      }}>
+                        {gem !== null && <span style={{ fontSize: 11, fontWeight: 800, color: 'white' }}>{gem}</span>}
+                      </div>
+                      <span style={{ fontSize: 8, color: isVandaag ? 'var(--text-2)' : 'var(--text-4)', fontWeight: isVandaag ? 800 : 400, textTransform: 'capitalize' }}>{dag}</span>
+                    </div>
+                  )
+                })}
+              </div>
+              {gemDezeWeek !== null && (
+                <div style={{ textAlign: 'center', paddingLeft: 12, borderLeft: '1px solid var(--border)', flexShrink: 0 }}>
+                  <p style={{ fontSize: 20, fontWeight: 900, color: NIVEAU_KLEUR(gemDezeWeek), margin: 0, lineHeight: 1 }}>{gemDezeWeek}</p>
+                  <p style={{ fontSize: 9, color: 'var(--text-4)', margin: '2px 0 0', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>gem<br />week</p>
+                </div>
+              )}
+            </div>
+          )
+        })()}
 
         {/* Recente logs */}
         {logs.length > 0 && (
