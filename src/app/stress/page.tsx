@@ -7,6 +7,20 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
+import nextDynamic from 'next/dynamic'
+
+const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
+
+const NIVEAU_RGB = (n: number): [number, number, number] =>
+  n <= 3 ? [0.114, 0.620, 0.459] : n <= 6 ? [0.949, 0.722, 0.141] : [0.886, 0.294, 0.290]
+
+const ADEM_FASE_RGB: Record<string, [number, number, number]> = {
+  in:   [0.114, 0.620, 0.459],
+  vast: [0.231, 0.510, 0.965],
+  uit:  [0.486, 0.231, 0.933],
+  rust: [0.949, 0.722, 0.141],
+  idle: [0.114, 0.620, 0.459],
+}
 
 const TECHNIEKEN = [
   { id: 'box', label: 'Box breathing', beschrijving: '4-4-4-4 ritme' },
@@ -156,8 +170,13 @@ export default function StressPagina() {
             Hoe gestrest voel je je nu?
           </p>
           <div style={{ textAlign: 'center', marginBottom: 16 }}>
-            <span style={{ fontSize: 52, fontWeight: 800, color: NIVEAU_KLEUR(niveau) }}>{niveau}</span>
-            <span style={{ fontSize: 18, color: 'var(--text-4)' }}>/10</span>
+            <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'baseline', gap: 2 }}>
+              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 0 }}>
+                <GlowOrb color={NIVEAU_RGB(niveau)} intensity={Math.max(0.2, niveau / 10)} size={120} />
+              </div>
+              <span style={{ fontSize: 52, fontWeight: 800, color: NIVEAU_KLEUR(niveau), position: 'relative', zIndex: 1 }}>{niveau}</span>
+              <span style={{ fontSize: 18, color: 'var(--text-4)', position: 'relative', zIndex: 1 }}>/10</span>
+            </div>
           </div>
           <input
             type="range" min={1} max={10} value={niveau}
@@ -234,22 +253,30 @@ export default function StressPagina() {
             Box breathing — 4×4 cycli
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
-            <div
-              onClick={startBoxBreathing}
-              style={{
-                width: 120, height: 120, borderRadius: '50%',
-                background: ademBezig ? '#1D9E7515' : 'var(--bg-subtle)',
-                border: `3px solid ${ademBezig ? '#1D9E75' : 'var(--border)'}`,
-                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                cursor: 'pointer',
-                transition: 'transform 0.5s ease, border-color 0.3s',
-                transform: ademFase === 'in' ? 'scale(1.15)' : ademFase === 'uit' ? 'scale(0.88)' : 'scale(1)',
-              }}
-            >
-              <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                {FASE_TEKST[ademFase]}
-              </span>
-              {ademBezig && <span style={{ fontSize: 10, color: 'var(--mf-green)', marginTop: 2 }}>{ademCyclus}/4</span>}
+            <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+              {ademBezig && (
+                <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 0 }}>
+                  <GlowOrb color={ADEM_FASE_RGB[ademFase]} intensity={0.55} size={180} />
+                </div>
+              )}
+              <div
+                onClick={startBoxBreathing}
+                style={{
+                  width: 120, height: 120, borderRadius: '50%',
+                  background: ademBezig ? '#1D9E7515' : 'var(--bg-subtle)',
+                  border: `3px solid ${ademBezig ? '#1D9E75' : 'var(--border)'}`,
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                  cursor: 'pointer',
+                  transition: 'transform 0.5s ease, border-color 0.3s',
+                  transform: ademFase === 'in' ? 'scale(1.15)' : ademFase === 'uit' ? 'scale(0.88)' : 'scale(1)',
+                  position: 'relative', zIndex: 1,
+                }}
+              >
+                <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                  {FASE_TEKST[ademFase]}
+                </span>
+                {ademBezig && <span style={{ fontSize: 10, color: 'var(--mf-green)', marginTop: 2 }}>{ademCyclus}/4</span>}
+              </div>
             </div>
             <p style={{ fontSize: 12, color: 'var(--text-4)', textAlign: 'center' }}>
               {ademBezig ? 'Tik om te stoppen' : '4 sec inademen · 4 vast · 4 uitademen · 4 rust'}
