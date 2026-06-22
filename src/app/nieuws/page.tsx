@@ -6,6 +6,9 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
+import nextDynamic from 'next/dynamic'
+
+const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
 
 type NieuwsType = 'aankondiging' | 'beleid' | 'evenement' | 'resultaten' | 'overig'
 type NieuwsBericht = {
@@ -189,7 +192,12 @@ export default function NieuwsPage() {
           </div>
         ) : berichten.length === 0 ? (
           <div className="bg-white rounded-2xl p-10 text-center" style={{ boxShadow: 'var(--shadow-sm)' }}>
-            <p className="text-4xl mb-3">📰</p>
+            <div style={{ position: 'relative', display: 'inline-block', marginBottom: '0.75rem' }}>
+              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
+                <GlowOrb color={[0.231, 0.510, 0.965]} intensity={0.4} size={90} />
+              </div>
+              <p className="text-4xl" style={{ position: 'relative', zIndex: 1 }}>📰</p>
+            </div>
             <p className="text-gray-500 text-sm">Nog geen berichten geplaatst.</p>
             {isHr && <p className="text-gray-400 text-xs mt-1">Klik op &apos;+ Plaatsen&apos; om een bericht toe te voegen.</p>}
           </div>

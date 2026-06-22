@@ -6,6 +6,9 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
+import nextDynamic from 'next/dynamic'
+
+const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
 import type { Loonstrook } from '@/lib/types'
 
 export default function LoonstrokenPage() {
@@ -84,9 +87,12 @@ export default function LoonstrokenPage() {
           >
             <div
               className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"
-              style={{ background: 'var(--bg-subtle)' }}
+              style={{ background: 'var(--bg-subtle)', position: 'relative' }}
             >
-              <span className="text-3xl">💶</span>
+              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
+                <GlowOrb color={[0.114, 0.620, 0.459]} intensity={0.45} size={80} />
+              </div>
+              <span className="text-3xl" style={{ position: 'relative', zIndex: 1 }}>💶</span>
             </div>
             <p className="text-sm font-semibold mb-1" style={{ color: 'var(--text-1)' }}>Nog geen loonstroken</p>
             <p className="text-xs" style={{ color: 'var(--text-3)' }}>Loonstroken worden door HR geüpload.</p>

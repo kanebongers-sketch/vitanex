@@ -5,6 +5,9 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
+import nextDynamic from 'next/dynamic'
+
+const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
 
 type Gesprek = {
   id: string
@@ -108,7 +111,12 @@ export default function MijnGesprekkenPage() {
           </div>
         ) : gesprekken.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '60px 20px', background: 'var(--bg-card)', borderRadius: 20, border: '1px solid var(--border)' }}>
-            <p style={{ fontSize: 32, marginBottom: 12 }}>💬</p>
+            <div style={{ position: 'relative', display: 'inline-block', marginBottom: 12 }}>
+              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
+                <GlowOrb color={[0.231, 0.510, 0.965]} intensity={0.4} size={80} />
+              </div>
+              <p style={{ fontSize: 32, position: 'relative', zIndex: 1 }}>💬</p>
+            </div>
             <p style={{ fontWeight: 700, color: 'var(--text-2)', marginBottom: 6 }}>Nog geen gesprekken gepland</p>
             <p style={{ fontSize: 13, color: 'var(--text-3)' }}>Je HR-manager kan hier 1-op-1 gesprekken inplannen.</p>
           </div>

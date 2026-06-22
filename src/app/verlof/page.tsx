@@ -6,6 +6,9 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
+import nextDynamic from 'next/dynamic'
+
+const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
 
 type VerlofType = 'vakantie' | 'ziekte' | 'bijzonder' | 'onbetaald' | 'overig'
 type VerlofStatus = 'aangevraagd' | 'goedgekeurd' | 'afgewezen'
@@ -269,7 +272,12 @@ export default function VerlofPage() {
           </div>
         ) : aanvragen.length === 0 ? (
           <div className="rounded-2xl p-8 text-center" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-xs)' }}>
-            <p className="text-3xl mb-3">🌴</p>
+            <div style={{ position: 'relative', display: 'inline-block', marginBottom: '0.75rem' }}>
+              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
+                <GlowOrb color={[0.114, 0.620, 0.459]} intensity={0.4} size={80} />
+              </div>
+              <p className="text-3xl" style={{ position: 'relative', zIndex: 1 }}>🌴</p>
+            </div>
             <p className="text-sm font-medium" style={{ color: 'var(--text-2)' }}>Nog geen verlofaanvragen.</p>
             <p className="text-xs mt-1" style={{ color: 'var(--text-4)' }}>Klik op &apos;+ Aanvragen&apos; om te starten.</p>
           </div>

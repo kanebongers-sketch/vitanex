@@ -6,6 +6,9 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
+import nextDynamic from 'next/dynamic'
+
+const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
 import WeekRoosterView from '@/components/rooster/WeekRoosterView'
 import DienstKaart, { type Dienst } from '@/components/rooster/DienstKaart'
 
@@ -151,7 +154,12 @@ export default function RoosterPage() {
           style={{ background: '#fff', padding: '14px 20px', marginBottom: 20, display: 'flex', gap: 32 }}
         >
           <div>
-            <div style={{ fontSize: 22, fontWeight: 700, color: 'var(--mf-green)' }}>{dienstenDezePeriode.length}</div>
+            <div style={{ position: 'relative', display: 'inline-block' }}>
+              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
+                <GlowOrb color={[0.114, 0.620, 0.459]} intensity={0.4} size={60} />
+              </div>
+              <div style={{ fontSize: 22, fontWeight: 700, color: 'var(--mf-green)', position: 'relative', zIndex: 1 }}>{dienstenDezePeriode.length}</div>
+            </div>
             <div style={{ fontSize: 12, color: 'var(--text-2)' }}>diensten</div>
           </div>
           <div>
