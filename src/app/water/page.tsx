@@ -20,6 +20,13 @@ interface WaterData {
   logs: WaterLog[]
 }
 
+interface WaterDag {
+  datum: string
+  dag: string
+  totaal: number
+  isVandaag: boolean
+}
+
 const SNELLE_OPTIES = [150, 250, 500, 750]
 
 function formatTijdstip(iso: string): string {
@@ -116,6 +123,7 @@ export default function WaterPagina() {
   const [bezig, setBezig] = useState(false)
   const [customMl, setCustomMl] = useState('')
   const [fout, setFout] = useState<string | null>(null)
+  const [weekData, setWeekData] = useState<WaterDag[]>([])
   const inputRef = useRef<HTMLInputElement>(null)
 
   const percentage = Math.round((data.vandaag_ml / data.doel_ml) * 100)
@@ -125,11 +133,44 @@ export default function WaterPagina() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/login'); return }
 
-      const res = await authFetch('/api/water')
-      if (res.ok) {
-        const json = await res.json() as WaterData
+      const vandaag = new Date()
+      const vandaagStr = vandaag.toISOString().split('T')[0]
+      const zevenDagenGel = new Date(vandaag)
+      zevenDagenGel.setDate(vandaag.getDate() - 6)
+
+      const [waterRes, weekRes] = await Promise.all([
+        authFetch('/api/water'),
+        supabase
+          .from('water_logs')
+          .select('datum, ml')
+          .eq('user_id', user.id)
+          .gte('datum', zevenDagenGel.toISOString().split('T')[0])
+          .lte('datum', vandaagStr),
+      ])
+
+      if (waterRes.ok) {
+        const json = await waterRes.json() as WaterData
         setData(json)
       }
+
+      const totalsMap = new Map<string, number>()
+      for (const log of (weekRes.data ?? [])) {
+        totalsMap.set(log.datum, (totalsMap.get(log.datum) ?? 0) + log.ml)
+      }
+
+      const strip = Array.from({ length: 7 }, (_, i) => {
+        const d = new Date(vandaag)
+        d.setDate(d.getDate() - (6 - i))
+        const ds = d.toISOString().split('T')[0]
+        return {
+          datum: ds,
+          dag: d.toLocaleDateString('nl-NL', { weekday: 'short' }).slice(0, 2),
+          totaal: totalsMap.get(ds) ?? 0,
+          isVandaag: ds === vandaagStr,
+        }
+      })
+      setWeekData(strip)
+
       setLaden(false)
     }
     laad()
@@ -283,6 +324,38 @@ export default function WaterPagina() {
             }}>
               {percentage >= 100 ? '🎉 ' : '💧 '}{motivatieTekst(percentage)}
             </p>
+
+            {/* 7-daagse barchart */}
+            {weekData.length > 0 && weekData.some(d => d.totaal > 0) && (
+              <div style={{ width: '100%' }}>
+                <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-3)', margin: '0 0 10px' }}>
+                  Afgelopen 7 dagen
+                </p>
+                <div style={{ display: 'flex', gap: 6, alignItems: 'flex-end' }}>
+                  {weekData.map(dag => {
+                    const maxMl = 2000
+                    const h = dag.totaal > 0 ? Math.max(6, (dag.totaal / maxMl) * 48) : 4
+                    const kleur = dag.totaal >= 2000 ? 'var(--mf-green)' : dag.totaal >= 1000 ? 'var(--mf-blue-mid)' : 'var(--mf-blue-light)'
+                    return (
+                      <div key={dag.datum} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+                        <div style={{
+                          width: '100%', height: 48, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', alignItems: 'center',
+                        }}>
+                          <div style={{
+                            width: '70%', borderRadius: 3, height: h,
+                            background: dag.totaal > 0 ? kleur : 'var(--bg-subtle)',
+                            opacity: dag.totaal > 0 ? 0.9 : 0.4,
+                            outline: dag.isVandaag ? `2px solid ${dag.totaal > 0 ? 'var(--mf-blue-mid)' : 'var(--border-strong)'}` : 'none',
+                            outlineOffset: 2,
+                          }} />
+                        </div>
+                        <span style={{ fontSize: 9, fontWeight: dag.isVandaag ? 800 : 500, color: dag.isVandaag ? 'var(--text-2)' : 'var(--text-4)', textTransform: 'capitalize' }}>{dag.dag}</span>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
           </section>
 
           {/* Snelle toevoeg knoppen */}
