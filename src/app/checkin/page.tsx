@@ -8,6 +8,18 @@ import { supabase } from '@/lib/supabase'
 import { authFetch } from '@/lib/auth-fetch'
 import { vandaag } from '@/lib/weekdoelen'
 import Link from 'next/link'
+import nextDynamic from 'next/dynamic'
+
+const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
+
+const SECTIE_RGB: Record<string, [number, number, number]> = {
+  slaap:     [0.486, 0.231, 0.933],
+  stress:    [0.886, 0.294, 0.290],
+  energie:   [0.949, 0.722, 0.141],
+  focus:     [0.114, 0.620, 0.459],
+  balans:    [0.231, 0.510, 0.965],
+  motivatie: [0.953, 0.388, 0.047],
+}
 
 // ─── Types ─────────────────────────────────────────────────────────────────
 
@@ -318,6 +330,9 @@ export default function CheckIn() {
     <main className="mf-mesh-bg min-h-screen flex flex-col items-center justify-center p-8">
       <div className="max-w-md w-full rounded-2xl border p-10 shadow-sm text-center"
         style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8 }}>
+          <GlowOrb color={[0.114, 0.620, 0.459]} intensity={0.85} size={90} />
+        </div>
         <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-5"
           style={{ background: 'var(--mf-green-light)' }}>
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--mf-green)' }}>
@@ -447,9 +462,18 @@ export default function CheckIn() {
         {/* Sectie header */}
         <div className="mb-6">
           <div className="flex items-center gap-3 mb-1">
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-bold"
-              style={{ background: huidigeSectie.licht, color: huidigeSectie.kleur }}>
-              {sectieIdx + 1}
+            <div style={{ position: 'relative', width: 36, height: 36, flexShrink: 0 }}>
+              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 0 }}>
+                <GlowOrb
+                  color={SECTIE_RGB[huidigeSectie.id] ?? [0.114, 0.620, 0.459]}
+                  intensity={0.35 + (voortgangPct / 100) * 0.5}
+                  size={60}
+                />
+              </div>
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-bold"
+                style={{ background: huidigeSectie.licht, color: huidigeSectie.kleur, position: 'relative', zIndex: 1 }}>
+                {sectieIdx + 1}
+              </div>
             </div>
             <div>
               <p className="text-xs text-gray-400">Sectie {sectieIdx + 1} van {totaalSecties}</p>
