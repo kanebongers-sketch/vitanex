@@ -151,6 +151,41 @@ function DoelKeuzeInhoud() {
           </p>
         </div>
 
+        {/* Welzijnscan score overzicht */}
+        {ALLE_VLAKKEN.some(v => scores[v] > 0) && (
+          <div style={{
+            background: 'white', borderRadius: 20, padding: '18px 20px',
+            marginBottom: 20, border: '1px solid #E5E7EB',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+          }}>
+            <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-4)', marginBottom: 12 }}>
+              Jouw welzijnsscan
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {ALLE_VLAKKEN.filter(v => scores[v] > 0).map(vlak => {
+                const c = CAT[vlak]
+                const score = scores[vlak]
+                const pct = Math.round(((score - 4) / 16) * 100)
+                const kleur = pct >= 75 ? 'var(--mf-green)' : pct >= 50 ? 'var(--mf-amber)' : 'var(--mf-red)'
+                const label = pct >= 75 ? 'Goed' : pct >= 50 ? 'Matig' : 'Lastig'
+                const isAandacht = topDrie.includes(vlak)
+                return (
+                  <div key={vlak} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div style={{ width: 70, fontSize: 11, fontWeight: isAandacht ? 700 : 500, color: isAandacht ? c.kleur : 'var(--text-3)', flexShrink: 0 }}>
+                      {c.label}
+                    </div>
+                    <div style={{ flex: 1, height: 6, borderRadius: 3, background: '#F3F4F6', overflow: 'hidden' }}>
+                      <div style={{ height: '100%', width: `${pct}%`, borderRadius: 3, background: kleur, transition: 'width 0.8s ease' }} />
+                    </div>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: kleur, width: 36, textAlign: 'right', flexShrink: 0 }}>{score}/20</span>
+                    <span style={{ fontSize: 10, color: 'var(--text-4)', width: 40, flexShrink: 0 }}>{label}{isAandacht ? ' ⚠' : ''}</span>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
         {/* Domain goal selection */}
         {topDrie.map((vlak, idx) => {
           const c = CAT[vlak]
