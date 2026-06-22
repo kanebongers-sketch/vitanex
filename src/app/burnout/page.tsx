@@ -354,6 +354,62 @@ export default function BurnoutPagina() {
             <p className="text-sm" style={{ color: 'var(--text-4)' }}>Nog geen scans gedaan.</p>
           </div>
         ) : (
+          <>
+            {/* Trend tijdlijn */}
+            {history.length >= 2 && (() => {
+              const chronologisch = [...history].reverse().slice(-6)
+              const scores = (s: Scan) => (s.uitputting + s.cynisme) / 2
+              const eerst = scores(chronologisch[0])
+              const laatste = scores(chronologisch[chronologisch.length - 1])
+              const delta = laatste - eerst
+              const trendLabel = delta < -0.3 ? '↗ Verbetering' : delta > 0.3 ? '↘ Verslechtering' : '→ Stabiel'
+              const trendKleur = delta < -0.3 ? 'var(--mf-green)' : delta > 0.3 ? 'var(--mf-red)' : 'var(--mf-amber)'
+              return (
+                <div style={{ background: 'var(--bg-card)', borderRadius: 16, padding: '16px', marginBottom: 16, border: '1px solid var(--border)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+                    <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-4)' }}>
+                      Trend over tijd
+                    </p>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: trendKleur }}>{trendLabel}</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'flex-end', gap: 0, position: 'relative' }}>
+                    {/* Connecting line */}
+                    <div style={{ position: 'absolute', top: 18, left: 18, right: 18, height: 2, background: 'var(--border)', zIndex: 0 }} />
+                    {chronologisch.map((s, i) => {
+                      const k = risicoKleur(s.risico_niveau)
+                      const datum = new Date(s.aangemaakt_op)
+                      const label = datum.toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' })
+                      return (
+                        <div key={s.id} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, position: 'relative', zIndex: 1 }}>
+                          <div style={{
+                            width: 36, height: 36, borderRadius: '50%',
+                            background: k.bg, border: `2.5px solid ${k.gauge}`,
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            fontSize: 10, fontWeight: 800, color: k.text,
+                          }}>
+                            {s.risico_niveau === 'hoog' ? '!' : s.risico_niveau === 'matig' ? '~' : '✓'}
+                          </div>
+                          <span style={{ fontSize: 8, color: 'var(--text-4)', textAlign: 'center', whiteSpace: 'nowrap' }}>{label}</span>
+                        </div>
+                      )
+                    })}
+                  </div>
+                  <div style={{ display: 'flex', gap: 12, marginTop: 10, paddingTop: 10, borderTop: '1px solid var(--border)' }}>
+                    {[
+                      { kleur: 'var(--mf-green)', label: '✓ Laag' },
+                      { kleur: 'var(--mf-amber)', label: '~ Matig' },
+                      { kleur: 'var(--mf-red)',   label: '! Hoog' },
+                    ].map(l => (
+                      <span key={l.label} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 9, color: 'var(--text-4)' }}>
+                        <span style={{ width: 8, height: 8, borderRadius: '50%', background: l.kleur, display: 'inline-block' }} />
+                        {l.label}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )
+            })()}
+
           <div className="flex flex-col gap-3">
             {history.map(s => {
               const kleur = risicoKleur(s.risico_niveau)
@@ -379,6 +435,7 @@ export default function BurnoutPagina() {
               )
             })}
           </div>
+          </>
         )}
       </main>
     </div>
