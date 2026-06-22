@@ -179,7 +179,7 @@ export default function GenereerSchemaPage() {
                   onClick={() => setDoel(d.value)}
                   style={{
                     display: 'flex', alignItems: 'center', gap: 14, padding: '16px 18px',
-                    background: '#fff', borderRadius: 12,
+                    background: 'var(--bg-card, white)', borderRadius: 12,
                     border: `2px solid ${doel === d.value ? '#1D9E75' : 'transparent'}`,
                     boxShadow: '0 1px 4px rgba(0,0,0,0.06)', cursor: 'pointer', textAlign: 'left',
                     transition: 'border-color 0.15s',
@@ -275,7 +275,7 @@ export default function GenereerSchemaPage() {
                     onClick={() => toggleMateriaal(m.value)}
                     style={{
                       display: 'flex', alignItems: 'center', gap: 12, padding: '13px 16px',
-                      background: '#fff', borderRadius: 10, cursor: 'pointer', textAlign: 'left',
+                      background: 'var(--bg-card, white)', borderRadius: 10, cursor: 'pointer', textAlign: 'left',
                       border: `2px solid ${actief ? '#1D9E75' : 'transparent'}`,
                       boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
                     }}
@@ -304,7 +304,7 @@ export default function GenereerSchemaPage() {
               rows={3}
               style={{
                 width: '100%', padding: '12px 14px', borderRadius: 10, fontSize: 14, color: 'var(--text-2)',
-                border: '1.5px solid #E5E7EB', background: '#fff', resize: 'none', outline: 'none',
+                border: '1.5px solid var(--border)', background: 'var(--bg-card, white)', resize: 'none', outline: 'none',
                 fontFamily: 'inherit', boxSizing: 'border-box',
               }}
             />
@@ -313,7 +313,7 @@ export default function GenereerSchemaPage() {
 
         {/* Stap 4: Genereren */}
         {stap === 4 && (
-          <div style={{ background: '#fff', borderRadius: 16, padding: 28, boxShadow: '0 2px 12px rgba(0,0,0,0.07)' }}>
+          <div style={{ background: 'var(--bg-card, white)', borderRadius: 16, padding: 28, boxShadow: 'var(--shadow-sm, 0 2px 12px rgba(0,0,0,0.07))' }}>
             <div style={{ textAlign: 'center', marginBottom: 28 }}>
               <div style={{ fontSize: 36, marginBottom: 10 }}>🤖</div>
               <h2 style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-1)', margin: 0 }}>Schema wordt gemaakt</h2>

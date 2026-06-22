@@ -107,7 +107,7 @@ export default function OefeningenPage() {
           <p style={{ color: 'var(--text-2)', fontSize: 15 }}>Bekijk uitvoering, spiergroepen en moeilijkheidsgraad per oefening</p>
         </div>
 
-        <div style={{ background: '#fff', borderRadius: 12, padding: '16px 20px', marginBottom: 28, boxShadow: '0 1px 4px rgba(0,0,0,0.07)' }}>
+        <div style={{ background: 'var(--bg-card, white)', borderRadius: 12, padding: '16px 20px', marginBottom: 28, boxShadow: 'var(--shadow-xs, 0 1px 4px rgba(0,0,0,0.07))' }}>
           <input
             type="text"
             placeholder="Zoek een oefening..."
@@ -154,7 +154,7 @@ export default function OefeningenPage() {
         </div>
 
         {oefeningen.length === 0 ? (
-          <div style={{ background: '#fff', borderRadius: 12, padding: 48, textAlign: 'center', boxShadow: '0 1px 4px rgba(0,0,0,0.07)' }}>
+          <div style={{ background: 'var(--bg-card, white)', borderRadius: 12, padding: 48, textAlign: 'center', boxShadow: 'var(--shadow-xs, 0 1px 4px rgba(0,0,0,0.07))' }}>
             <p style={{ fontSize: 40, marginBottom: 16 }}>📚</p>
             <p style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-1)', marginBottom: 8 }}>Bibliotheek nog leeg</p>
             <p style={{ color: 'var(--text-2)', fontSize: 15, maxWidth: 400, margin: '0 auto' }}>
@@ -162,7 +162,7 @@ export default function OefeningenPage() {
             </p>
           </div>
         ) : gefilterd.length === 0 ? (
-          <div style={{ background: '#fff', borderRadius: 12, padding: 40, textAlign: 'center', boxShadow: '0 1px 4px rgba(0,0,0,0.07)' }}>
+          <div style={{ background: 'var(--bg-card, white)', borderRadius: 12, padding: 40, textAlign: 'center', boxShadow: 'var(--shadow-xs, 0 1px 4px rgba(0,0,0,0.07))' }}>
             <p style={{ color: 'var(--text-2)' }}>Geen oefeningen gevonden voor deze filters.</p>
           </div>
         ) : (
@@ -175,7 +175,7 @@ export default function OefeningenPage() {
                 <div
                   key={oefening.id}
                   onClick={() => setGeselecteerd(oefening)}
-                  style={{ background: '#fff', borderRadius: 12, boxShadow: '0 1px 4px rgba(0,0,0,0.07)', cursor: 'pointer', overflow: 'hidden', transition: 'transform 0.15s, box-shadow 0.15s' }}
+                  style={{ background: 'var(--bg-card, white)', borderRadius: 12, boxShadow: 'var(--shadow-xs, 0 1px 4px rgba(0,0,0,0.07))', cursor: 'pointer', overflow: 'hidden', transition: 'transform 0.15s, box-shadow 0.15s' }}
                   onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-2px)'; (e.currentTarget as HTMLDivElement).style.boxShadow = '0 4px 16px rgba(0,0,0,0.12)' }}
                   onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.transform = 'none'; (e.currentTarget as HTMLDivElement).style.boxShadow = '0 1px 4px rgba(0,0,0,0.07)' }}
                 >
@@ -214,7 +214,7 @@ export default function OefeningenPage() {
         >
           <div
             onClick={e => e.stopPropagation()}
-            style={{ background: '#fff', borderRadius: 16, maxWidth: 560, width: '100%', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 8px 40px rgba(0,0,0,0.2)' }}
+            style={{ background: 'var(--bg-card, white)', borderRadius: 16, maxWidth: 560, width: '100%', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 8px 40px rgba(0,0,0,0.2)' }}
           >
             {geselecteerd.image_url ? (
               <img src={geselecteerd.image_url} alt={geselecteerd.naam} style={{ width: '100%', height: 220, objectFit: 'cover', borderRadius: '16px 16px 0 0' }} />
