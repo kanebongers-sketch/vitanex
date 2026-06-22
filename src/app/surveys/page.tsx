@@ -96,7 +96,7 @@ function AnonimBanner() {
     <div style={{ borderRadius: 16, border: '1px solid rgba(55,138,221,0.35)', background: 'var(--mf-blue-light)', marginBottom: 20, overflow: 'hidden' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#185FA5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--mf-blue)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
           </svg>
           <div>
@@ -116,17 +116,17 @@ function AnonimBanner() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10, marginTop: 12 }}>
             {[
               {
-                icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#185FA5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>,
+                icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--mf-blue)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>,
                 titel: 'Wat HR ziet',
                 tekst: 'Alleen groepsgemiddelden en percentages. Nooit individuele antwoorden.',
               },
               {
-                icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#185FA5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>,
+                icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--mf-blue)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>,
                 titel: 'Wat HR niet ziet',
                 tekst: 'Jouw naam, e-mail, of welke antwoorden van jou zijn.',
               },
               {
-                icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#185FA5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
+                icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--mf-blue)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
                 titel: 'Kleine teams',
                 tekst: 'Bij teams < 5 personen worden resultaten niet getoond om herleidbaarheid te voorkomen.',
               },
@@ -188,7 +188,7 @@ function NieuweSurveyForm({ bedrijfId, userId, onGemaakt }: {
   }
 
   return (
-    <div style={{ background: 'white', borderRadius: 20, border: '1px solid #E5E7EB', padding: 24, marginBottom: 20 }}>
+    <div style={{ background: 'var(--bg-card)', borderRadius: 20, border: '1px solid var(--border)', padding: 24, marginBottom: 20 }}>
       <div style={{ display: 'flex', gap: 4, background: 'var(--bg-subtle)', borderRadius: 12, padding: 4, width: 'fit-content', marginBottom: 20 }}>
         {(['template', 'zelf'] as const).map(t => (
           <button
@@ -226,12 +226,12 @@ function NieuweSurveyForm({ bedrijfId, userId, onGemaakt }: {
               <p style={{ fontSize: 11, color: 'var(--text-3)', marginBottom: 8 }}>{tmpl.beschrijving}</p>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
                 {tmpl.vragen.slice(0, 2).map((v, i) => (
-                  <span key={i} style={{ fontSize: 11, padding: '2px 8px', borderRadius: 100, background: 'white', border: '1px solid #E5E7EB', color: 'var(--text-3)', maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <span key={i} style={{ fontSize: 11, padding: '2px 8px', borderRadius: 100, background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--text-3)', maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {v.tekst.slice(0, 30)}{v.tekst.length > 30 ? '...' : ''}
                   </span>
                 ))}
                 {tmpl.vragen.length > 2 && (
-                  <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 100, background: 'white', border: '1px solid #E5E7EB', color: 'var(--text-3)' }}>
+                  <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 100, background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--text-3)' }}>
                     +{tmpl.vragen.length - 2} meer
                   </span>
                 )}
@@ -246,7 +246,7 @@ function NieuweSurveyForm({ bedrijfId, userId, onGemaakt }: {
             placeholder="Titel van de survey"
             value={titel}
             onChange={e => setTitel(e.target.value)}
-            style={{ width: '100%', border: '1px solid #E5E7EB', borderRadius: 12, padding: '10px 14px', fontSize: 13, outline: 'none', marginBottom: 16, boxSizing: 'border-box' }}
+            style={{ width: '100%', border: '1px solid var(--border)', borderRadius: 12, padding: '10px 14px', fontSize: 13, outline: 'none', marginBottom: 16, boxSizing: 'border-box' }}
           />
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 16 }}>
             {vragen.map((v, i) => (
@@ -257,12 +257,12 @@ function NieuweSurveyForm({ bedrijfId, userId, onGemaakt }: {
                   placeholder="Vraag..."
                   value={v.tekst}
                   onChange={e => setVragen(prev => prev.map(q => q.id === v.id ? { ...q, tekst: e.target.value } : q))}
-                  style={{ flex: 1, border: '1px solid #E5E7EB', borderRadius: 10, padding: '9px 12px', fontSize: 13, outline: 'none' }}
+                  style={{ flex: 1, border: '1px solid var(--border)', borderRadius: 10, padding: '9px 12px', fontSize: 13, outline: 'none' }}
                 />
                 <select
                   value={v.type}
                   onChange={e => setVragen(prev => prev.map(q => q.id === v.id ? { ...q, type: e.target.value as Vraag['type'] } : q))}
-                  style={{ border: '1px solid #E5E7EB', borderRadius: 10, padding: '9px 8px', fontSize: 12, outline: 'none', background: 'white' }}
+                  style={{ border: '1px solid var(--border)', borderRadius: 10, padding: '9px 8px', fontSize: 12, outline: 'none', background: 'var(--bg-card)' }}
                 >
                   <option value="schaal">1-5 schaal</option>
                   <option value="ja_nee">Ja / Nee</option>
@@ -476,7 +476,7 @@ export default function SurveysPagina() {
 
         {/* Survey answering form */}
         {activeSurvey && (
-          <div style={{ background: 'white', borderRadius: 20, border: '1px solid #E5E7EB', overflow: 'hidden', marginBottom: 20 }}>
+          <div style={{ background: 'var(--bg-card)', borderRadius: 20, border: '1px solid var(--border)', overflow: 'hidden', marginBottom: 20 }}>
             {/* Progress bar */}
             <div style={{ height: 4, background: 'var(--bg-subtle)' }}>
               <div style={{ height: '100%', width: `${voortgang * 100}%`, background: 'var(--mf-green)', transition: 'width 0.3s' }} />
@@ -513,7 +513,7 @@ export default function SurveysPagina() {
                             onClick={() => setAntwoorden(prev => ({ ...prev, [v.id]: n }))}
                             style={{
                               flex: 1, padding: '12px 0', borderRadius: 12, fontSize: 14, fontWeight: 700,
-                              border: `2px solid ${antwoorden[v.id] === n ? '#1D9E75' : '#E5E7EB'}`,
+                              border: `2px solid ${antwoorden[v.id] === n ? 'var(--mf-green)' : 'var(--border)'}`,
                               background: antwoorden[v.id] === n ? 'var(--mf-green)' : 'transparent',
                               color: antwoorden[v.id] === n ? 'white' : 'var(--text-2)',
                               cursor: 'pointer',
@@ -532,7 +532,7 @@ export default function SurveysPagina() {
                             onClick={() => setAntwoorden(prev => ({ ...prev, [v.id]: b }))}
                             style={{
                               flex: 1, padding: '12px 0', borderRadius: 12, fontSize: 14, fontWeight: 600,
-                              border: `2px solid ${antwoorden[v.id] === b ? '#1D9E75' : '#E5E7EB'}`,
+                              border: `2px solid ${antwoorden[v.id] === b ? 'var(--mf-green)' : 'var(--border)'}`,
                               background: antwoorden[v.id] === b ? 'var(--mf-green)' : 'transparent',
                               color: antwoorden[v.id] === b ? 'white' : 'var(--text-2)',
                               cursor: 'pointer',
@@ -549,7 +549,7 @@ export default function SurveysPagina() {
                         value={(antwoorden[v.id] as string) ?? ''}
                         onChange={e => setAntwoorden(prev => ({ ...prev, [v.id]: e.target.value }))}
                         placeholder="Jouw antwoord (optioneel)..."
-                        style={{ width: 'calc(100% - 28px)', marginLeft: 28, border: '1px solid #E5E7EB', borderRadius: 12, padding: '10px 14px', fontSize: 13, outline: 'none', resize: 'none' }}
+                        style={{ width: 'calc(100% - 28px)', marginLeft: 28, border: '1px solid var(--border)', borderRadius: 12, padding: '10px 14px', fontSize: 13, outline: 'none', resize: 'none' }}
                       />
                     )}
                   </div>
@@ -602,7 +602,7 @@ export default function SurveysPagina() {
             <div className="mf-spinner" />
           </div>
         ) : alleTabSurveys.length === 0 ? (
-          <div style={{ background: 'white', borderRadius: 20, border: '1px solid #E5E7EB', padding: '56px 40px', textAlign: 'center' }}>
+          <div style={{ background: 'var(--bg-card)', borderRadius: 20, border: '1px solid var(--border)', padding: '56px 40px', textAlign: 'center' }}>
             <div style={{ width: 56, height: 56, borderRadius: 16, background: 'var(--bg-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', color: 'var(--text-3)' }}>
               <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
@@ -623,7 +623,7 @@ export default function SurveysPagina() {
               const geschatteMinuten = Math.ceil(s.vragen.length / 3)
 
               return (
-                <div key={s.id} style={{ background: 'white', borderRadius: 16, border: '1px solid #E5E7EB', overflow: 'hidden' }}>
+                <div key={s.id} style={{ background: 'var(--bg-card)', borderRadius: 16, border: '1px solid var(--border)', overflow: 'hidden' }}>
                   <div style={{ padding: '18px 20px' }}>
                     <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
                       <div style={{ flex: 1, minWidth: 0 }}>
@@ -682,7 +682,7 @@ export default function SurveysPagina() {
 
                     {/* HR results */}
                     {isHR && tab === 'resultaten' && (
-                      <div style={{ borderTop: '1px solid #F3F4F6', paddingTop: 16, marginTop: 16 }}>
+                      <div style={{ borderTop: '1px solid var(--bg-subtle)', paddingTop: 16, marginTop: 16 }}>
                         {!res ? (
                           <p style={{ fontSize: 12, color: 'var(--text-3)' }}>Nog geen antwoorden.</p>
                         ) : res.count < 3 ? (
@@ -705,7 +705,7 @@ export default function SurveysPagina() {
                                   {v.type === 'schaal' && res.schaalGems[v.id] !== undefined && (
                                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                                       <div style={{ flex: 1, height: 8, background: 'var(--bg-subtle)', borderRadius: 100, overflow: 'hidden' }}>
-                                        <div style={{ height: '100%', borderRadius: 100, width: `${(res.schaalGems[v.id] / 5) * 100}%`, background: schaalKleur(res.schaalGems[v.id]) }} />
+                                        <div style={{ height: '100%', borderRadius: 100, width: `${(res.schaalGems[v.id] / 5) * 100}%`, background: schaalKleur(res.schaalGems[v.id]), transition: 'width 0.6s ease' }} />
                                       </div>
                                       <span style={{ fontSize: 13, fontWeight: 700, color: schaalKleur(res.schaalGems[v.id]), width: 40, textAlign: 'right' }}>
                                         {res.schaalGems[v.id]}/5
@@ -753,7 +753,7 @@ export default function SurveysPagina() {
 
         {/* Empty state employee */}
         {!isHR && actiefSurveys.length === 0 && !laden && (
-          <div style={{ background: 'white', borderRadius: 20, border: '1px solid #E5E7EB', padding: '56px 40px', textAlign: 'center', marginTop: 16 }}>
+          <div style={{ background: 'var(--bg-card)', borderRadius: 20, border: '1px solid var(--border)', padding: '56px 40px', textAlign: 'center', marginTop: 16 }}>
             <div style={{ width: 56, height: 56, borderRadius: 16, background: 'var(--bg-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', color: 'var(--text-3)' }}>
               <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
