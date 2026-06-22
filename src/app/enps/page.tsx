@@ -170,6 +170,40 @@ export default function ENPSPage() {
         {metingen.length > 0 && (
           <div style={{ background: 'var(--bg-card)', borderRadius: 16, border: '1px solid var(--border)', padding: '18px 20px' }}>
             <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-4)', marginBottom: 12 }}>Mijn historiek</p>
+
+            {/* Mini trend barchart */}
+            {metingen.length >= 2 && (() => {
+              const recente = [...metingen].reverse().slice(-6)
+              const barH = 48
+              const barW = 32
+              const gap = 8
+              const totalW = recente.length * (barW + gap) - gap
+              return (
+                <div style={{ marginBottom: 16, overflowX: 'auto' }}>
+                  <svg width={totalW} height={barH + 24} viewBox={`0 0 ${totalW} ${barH + 24}`} style={{ display: 'block' }}>
+                    {recente.map((m, i) => {
+                      const x = i * (barW + gap)
+                      const h = Math.max(6, Math.round((m.score / 10) * barH))
+                      const y = barH - h
+                      const kleur = m.score >= 9 ? 'var(--mf-green)' : m.score >= 7 ? 'var(--mf-amber)' : 'var(--mf-red)'
+                      const maandLabel = new Date(m.maand + '-01').toLocaleDateString('nl-NL', { month: 'short' }).slice(0, 3)
+                      return (
+                        <g key={m.maand}>
+                          <rect x={x} y={y} width={barW} height={h} rx={5} fill={kleur} fillOpacity={0.85} />
+                          <text x={x + barW / 2} y={y - 3} textAnchor="middle" fontSize={9} fontWeight="700" fill={kleur}>
+                            {m.score}
+                          </text>
+                          <text x={x + barW / 2} y={barH + 16} textAnchor="middle" fontSize={8} fill="var(--text-4)">
+                            {maandLabel}
+                          </text>
+                        </g>
+                      )
+                    })}
+                  </svg>
+                </div>
+              )
+            })()}
+
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {metingen.map((m, i) => (
                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, paddingBottom: 8, borderBottom: i < metingen.length - 1 ? '1px solid var(--bg-subtle)' : 'none' }}>

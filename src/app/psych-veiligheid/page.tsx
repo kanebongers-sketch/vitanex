@@ -157,6 +157,32 @@ export default function PsychVeiligheidPagina() {
             <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-3)', marginBottom: 12 }}>
               Verloop
             </p>
+
+            {/* Sparkline trend */}
+            {(() => {
+              const recente = [...metingen].reverse().slice(-8)
+              if (recente.length < 2) return null
+              const W = 320, H = 44, pad = 8
+              const n = recente.length
+              const punten = recente.map((m, i) => ({
+                x: pad + (i / (n - 1)) * (W - pad * 2),
+                y: H - pad - ((m.score - 1) / 4) * (H - pad * 2),
+                kleur: m.score >= 4 ? 'var(--mf-green)' : m.score >= 3 ? 'var(--mf-amber)' : 'var(--mf-red)',
+                score: m.score,
+              }))
+              const lijn = punten.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' ')
+              return (
+                <div style={{ background: 'var(--surface-1, white)', borderRadius: 12, padding: '14px 16px', marginBottom: 12, border: '1px solid var(--border, #E5E7EB)' }}>
+                  <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: H, display: 'block' }}>
+                    <path d={lijn} fill="none" stroke="var(--mf-blue)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    {punten.map((p, i) => (
+                      <circle key={i} cx={p.x} cy={p.y} r="4" fill={p.kleur} />
+                    ))}
+                  </svg>
+                </div>
+              )
+            })()}
+
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {metingen.map(m => (
                 <div key={m.week_start} style={{ background: 'var(--surface-1, white)', borderRadius: 12, padding: '12px 16px', border: '1px solid var(--border, #E5E7EB)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
