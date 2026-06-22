@@ -155,8 +155,8 @@ export default function VoortgangPage() {
 
         {/* Header */}
         <div style={{ marginBottom: 28 }}>
-          <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1, #111827)', letterSpacing: '-0.03em', marginBottom: 4 }}>Mijn voortgang</h1>
-          <p style={{ fontSize: 13, color: 'var(--text-3, #9CA3AF)' }}>Jouw welzijns-statistieken van de afgelopen 30 dagen</p>
+          <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 4 }}>Mijn voortgang</h1>
+          <p style={{ fontSize: 13, color: 'var(--text-3)' }}>Jouw welzijns-statistieken van de afgelopen 30 dagen</p>
         </div>
 
         {laden ? (
@@ -164,20 +164,20 @@ export default function VoortgangPage() {
         ) : !heeftData ? (
           /* ── Empty state ─────────────────────────────────── */
           <div style={{
-            background: 'var(--bg-card, white)', borderRadius: 24, padding: '56px 32px',
-            border: '2px dashed var(--border, #E5E7EB)', textAlign: 'center',
+            background: 'var(--bg-card)', borderRadius: 24, padding: '56px 32px',
+            border: '2px dashed var(--border)', textAlign: 'center',
             boxShadow: 'var(--shadow-xs)', marginBottom: 20,
           }}>
             <div style={{ fontSize: 56, marginBottom: 16 }}>📈</div>
-            <p style={{ fontSize: 17, fontWeight: 800, color: 'var(--text-1, #111827)', marginBottom: 8 }}>
+            <p style={{ fontSize: 17, fontWeight: 800, color: 'var(--text-1)', marginBottom: 8 }}>
               Je reis begint hier
             </p>
-            <p style={{ fontSize: 14, color: 'var(--text-3, #9CA3AF)', lineHeight: 1.6, maxWidth: 360, margin: '0 auto 24px' }}>
+            <p style={{ fontSize: 14, color: 'var(--text-3)', lineHeight: 1.6, maxWidth: 360, margin: '0 auto 24px' }}>
               Doe je eerste check-in en log je stemming, slaap en focus. Jouw voortgang verschijnt hier zodra je data hebt verzameld.
             </p>
             <Link href="/checkin" style={{
               display: 'inline-block',
-              background: 'linear-gradient(135deg, var(--mf-green-dark, #0F6E56) 0%, var(--mf-green, #1D9E75) 100%)',
+              background: 'linear-gradient(135deg, var(--mf-green-dark) 0%, var(--mf-green) 100%)',
               color: 'white', fontWeight: 700, fontSize: 15,
               padding: '14px 32px', borderRadius: 12, textDecoration: 'none',
               boxShadow: '0 4px 16px rgba(29,158,117,0.35)',
@@ -191,25 +191,25 @@ export default function VoortgangPage() {
             {streak && (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 20 }}>
                 {[
-                  { label: 'Huidige streak', waarde: streak.huidige_streak, suffix: 'dagen', kleur: 'var(--mf-green, #1D9E75)', icon: '🔥' },
+                  { label: 'Huidige streak', waarde: streak.huidige_streak, suffix: 'dagen', kleur: 'var(--mf-green)', icon: '🔥' },
                   { label: 'Langste streak', waarde: streak.langste_streak, suffix: 'dagen', kleur: 'var(--mf-amber)', icon: '🏆' },
                   { label: 'Totaal actief', waarde: streak.totaal_dagen, suffix: 'dagen', kleur: 'var(--mf-purple)', icon: '📅' },
                 ].map(item => (
-                  <div key={item.label} style={{ background: 'var(--bg-card, white)', borderRadius: 16, border: '1px solid var(--border, #E5E7EB)', padding: '20px 22px', boxShadow: 'var(--shadow-xs)' }}>
+                  <div key={item.label} style={{ background: 'var(--bg-card)', borderRadius: 16, border: '1px solid var(--border)', padding: '20px 22px', boxShadow: 'var(--shadow-xs)' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
                       <span style={{ fontSize: 18 }}>{item.icon}</span>
-                      <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-3, #9CA3AF)' }}>{item.label}</p>
+                      <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-3)' }}>{item.label}</p>
                     </div>
                     <p style={{ fontSize: 28, fontWeight: 800, color: item.kleur }}>{item.waarde}</p>
-                    <p style={{ fontSize: 12, color: 'var(--text-3, #9CA3AF)' }}>{item.suffix}</p>
+                    <p style={{ fontSize: 12, color: 'var(--text-3)' }}>{item.suffix}</p>
                   </div>
                 ))}
               </div>
             )}
 
             {/* Totalen grid */}
-            <div style={{ background: 'var(--bg-card, white)', borderRadius: 16, border: '1px solid var(--border, #E5E7EB)', padding: '18px 22px', marginBottom: 20, boxShadow: 'var(--shadow-xs)' }}>
-              <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-3, #9CA3AF)', marginBottom: 16 }}>
+            <div style={{ background: 'var(--bg-card)', borderRadius: 16, border: '1px solid var(--border)', padding: '18px 22px', marginBottom: 20, boxShadow: 'var(--shadow-xs)' }}>
+              <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-3)', marginBottom: 16 }}>
                 Totaal gelogd (30 dagen)
               </p>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
@@ -224,7 +224,7 @@ export default function VoortgangPage() {
 
             {/* Weektrends — visuele mini-charts */}
             <div style={{ marginBottom: 20 }}>
-              <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-3, #9CA3AF)', marginBottom: 12 }}>
+              <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-3)', marginBottom: 12 }}>
                 Weektrend (4 weken)
               </p>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
@@ -280,8 +280,8 @@ export default function VoortgangPage() {
                   const deltaArrow = delta === null ? '' : delta > 0 ? '↑' : delta < 0 ? '↓' : '→'
                   return (
                     <div key={metric.label} style={{
-                      background: 'var(--bg-card, white)', borderRadius: 16,
-                      border: '1px solid var(--border, #E5E7EB)', padding: '16px',
+                      background: 'var(--bg-card)', borderRadius: 16,
+                      border: '1px solid var(--border)', padding: '16px',
                       boxShadow: 'var(--shadow-xs)',
                     }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
@@ -330,19 +330,19 @@ export default function VoortgangPage() {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12 }}>
               {[
                 { href: '/inzichten', label: 'AI Inzichten', tekst: 'Persoonlijke analyse van jouw week', kleur: 'var(--mf-purple)', icon: '✨' },
-                { href: '/groeiplan', label: 'Groeiplan', tekst: 'AI-gegenereerd persoonlijk groeiplan', kleur: 'var(--mf-green, #1D9E75)', icon: '🌱' },
+                { href: '/groeiplan', label: 'Groeiplan', tekst: 'AI-gegenereerd persoonlijk groeiplan', kleur: 'var(--mf-green)', icon: '🌱' },
                 { href: '/mentale-sterkte', label: 'Mentale sterkte', tekst: 'Quiz: hoe sterk ben jij mentaal?', kleur: 'var(--mf-purple)', icon: '🧠' },
                 { href: '/achievements', label: 'Achievements', tekst: 'Bekijk jouw behaalde badges', kleur: 'var(--mf-amber)', icon: '🏅' },
               ].map(item => (
-                <Link key={item.href} href={item.href} style={{ textDecoration: 'none', background: 'var(--bg-card, white)', borderRadius: 16, border: '1px solid var(--border, #E5E7EB)', padding: '18px 20px', display: 'flex', alignItems: 'center', gap: 14, boxShadow: 'var(--shadow-xs)' }}>
+                <Link key={item.href} href={item.href} style={{ textDecoration: 'none', background: 'var(--bg-card)', borderRadius: 16, border: '1px solid var(--border)', padding: '18px 20px', display: 'flex', alignItems: 'center', gap: 14, boxShadow: 'var(--shadow-xs)' }}>
                   <div style={{ width: 40, height: 40, borderRadius: 12, background: `${item.kleur}12`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, flexShrink: 0 }}>
                     {item.icon}
                   </div>
                   <div>
-                    <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-1, #111827)', marginBottom: 2 }}>{item.label}</p>
-                    <p style={{ fontSize: 12, color: 'var(--text-3, #9CA3AF)' }}>{item.tekst}</p>
+                    <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-1)', marginBottom: 2 }}>{item.label}</p>
+                    <p style={{ fontSize: 12, color: 'var(--text-3)' }}>{item.tekst}</p>
                   </div>
-                  <svg style={{ marginLeft: 'auto', flexShrink: 0 }} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-4, #9CA3AF)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginLeft: 'auto', flexShrink: 0, color: 'var(--text-4)' }}><polyline points="9 18 15 12 9 6"/></svg>
                 </Link>
               ))}
             </div>
