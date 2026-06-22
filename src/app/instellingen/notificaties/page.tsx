@@ -97,7 +97,7 @@ export default function NotificatiesPage() {
 
             {/* Toggle opties */}
             {OPTIES.map(opt => (
-              <div key={opt.key} style={{ background: 'white', borderRadius: 16, border: '1px solid #E5E7EB', padding: '18px 20px' }}>
+              <div key={opt.key} style={{ background: 'var(--bg-card)', borderRadius: 16, border: '1px solid var(--border)', padding: '18px 20px' }}>
                 <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
                   <div>
                     <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-1)', marginBottom: 3 }}>{opt.label}</p>
@@ -113,7 +113,7 @@ export default function NotificatiesPage() {
                   >
                     <span style={{
                       position: 'absolute', top: 3, width: 18, height: 18, borderRadius: '50%',
-                      background: 'white', transition: 'left 0.2s',
+                      background: 'var(--bg-card)', transition: 'left 0.2s',
                       left: voorkeuren[opt.key] ? 23 : 3,
                       boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
                     }} />
@@ -123,14 +123,14 @@ export default function NotificatiesPage() {
             ))}
 
             {/* Tijdstip */}
-            <div style={{ background: 'white', borderRadius: 16, border: '1px solid #E5E7EB', padding: '18px 20px' }}>
+            <div style={{ background: 'var(--bg-card)', borderRadius: 16, border: '1px solid var(--border)', padding: '18px 20px' }}>
               <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-1)', marginBottom: 6 }}>Voorkeurstijdstip</p>
               <p style={{ fontSize: 12, color: 'var(--text-3)', marginBottom: 12 }}>Op welk moment wil je herinneringen ontvangen?</p>
               <input
                 type="time"
                 value={voorkeuren.reminder_tijd}
                 onChange={e => setVoorkeuren(prev => ({ ...prev, reminder_tijd: e.target.value }))}
-                style={{ border: '1px solid #E5E7EB', borderRadius: 10, padding: '9px 14px', fontSize: 14, outline: 'none', color: 'var(--text-2)' }}
+                style={{ border: '1px solid var(--border)', borderRadius: 10, padding: '9px 14px', fontSize: 14, outline: 'none', color: 'var(--text-2)' }}
               />
             </div>
 

@@ -251,7 +251,7 @@ export default function Register() {
                   }}
                   className="w-full flex items-center justify-center gap-3 rounded-2xl py-3.5 mb-5 font-semibold transition"
                   style={{
-                    background: 'white',
+                    background: 'var(--bg-card)',
                     border: '1.5px solid #e5e7eb',
                     color: 'var(--text-2)',
                     fontSize: 15,
@@ -544,7 +544,7 @@ export default function Register() {
                   }}
                   className="w-full flex items-center justify-center gap-3 rounded-2xl py-3.5 mb-5 font-semibold transition"
                   style={{
-                    background: 'white',
+                    background: 'var(--bg-card)',
                     border: '1.5px solid #e5e7eb',
                     color: 'var(--text-2)',
                     fontSize: 15,

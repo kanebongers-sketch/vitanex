@@ -127,7 +127,7 @@ export default function HRUitdagingenPagina() {
 
         {/* Aanmaak formulier */}
         {showForm && (
-          <div style={{ background: 'white', borderRadius: 20, padding: '20px', border: '1px solid #E5E7EB', marginBottom: 20 }}>
+          <div style={{ background: 'var(--bg-card)', borderRadius: 20, padding: '20px', border: '1px solid var(--border)', marginBottom: 20 }}>
             <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-3)', marginBottom: 16 }}>
               Nieuwe uitdaging
             </p>
@@ -198,7 +198,7 @@ export default function HRUitdagingenPagina() {
 
         {/* Uitdagingen lijst */}
         {uitdagingen.length === 0 && !showForm ? (
-          <div style={{ background: 'white', borderRadius: 20, padding: '40px 24px', textAlign: 'center', border: '1px solid #E5E7EB' }}>
+          <div style={{ background: 'var(--bg-card)', borderRadius: 20, padding: '40px 24px', textAlign: 'center', border: '1px solid var(--border)' }}>
             <div style={{ fontSize: 40, marginBottom: 12 }}>🏆</div>
             <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-2)', marginBottom: 6 }}>Nog geen uitdagingen</p>
             <p style={{ fontSize: 13, color: 'var(--text-3)' }}>Maak je eerste team uitdaging aan.</p>
@@ -210,7 +210,7 @@ export default function HRUitdagingenPagina() {
               const deelnemers = u.team_uitdaging_logs?.length ?? 0
               return (
                 <div key={u.id} style={{
-                  background: 'white', borderRadius: 16, padding: '16px 18px',
+                  background: 'var(--bg-card)', borderRadius: 16, padding: '16px 18px',
                   border: `1px solid ${u.actief && resterende > 0 ? '#E5E7EB' : '#F3F4F6'}`,
                   opacity: (!u.actief || resterende < 0) ? 0.6 : 1,
                 }}>

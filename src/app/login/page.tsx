@@ -267,7 +267,7 @@ export default function Login() {
           }}
           className="w-full flex items-center justify-center gap-3 rounded-2xl py-3.5 text-sm font-semibold transition mf-pressable"
           style={{
-            background: 'white',
+            background: 'var(--bg-card)',
             border: '1.5px solid rgba(0,0,0,0.10)',
             color: 'var(--text-2)',
             boxShadow: '0 1px 4px rgba(0,0,0,0.06)',

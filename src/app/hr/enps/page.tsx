@@ -75,7 +75,7 @@ export default function HrENPSPage() {
             { label: 'Participatie', waarde: `${data.participatie_pct}%`, kleur: 'var(--text-2)' },
             { label: 'Promoters', waarde: String(data.promoters), kleur: 'var(--mf-green)' },
           ].map(s => (
-            <div key={s.label} style={{ background: 'white', borderRadius: 14, border: '1px solid #E5E7EB', padding: '16px 18px' }}>
+            <div key={s.label} style={{ background: 'var(--bg-card)', borderRadius: 14, border: '1px solid var(--border)', padding: '16px 18px' }}>
               <p style={{ fontSize: 22, fontWeight: 800, color: s.kleur }}>{s.waarde}</p>
               <p style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 4, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{s.label}</p>
             </div>
@@ -84,7 +84,7 @@ export default function HrENPSPage() {
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
           {/* Segmentbalk */}
-          <div style={{ background: 'white', borderRadius: 16, border: '1px solid #E5E7EB', padding: '20px 22px' }}>
+          <div style={{ background: 'var(--bg-card)', borderRadius: 16, border: '1px solid var(--border)', padding: '20px 22px' }}>
             <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-2)', marginBottom: 14 }}>Verdeling respondenten</p>
             {data.totaal_respondenten === 0 ? (
               <p style={{ fontSize: 12, color: 'var(--text-3)' }}>Nog geen data</p>
@@ -118,7 +118,7 @@ export default function HrENPSPage() {
           </div>
 
           {/* Trend */}
-          <div style={{ background: 'white', borderRadius: 16, border: '1px solid #E5E7EB', padding: '20px 22px' }}>
+          <div style={{ background: 'var(--bg-card)', borderRadius: 16, border: '1px solid var(--border)', padding: '20px 22px' }}>
             <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-2)', marginBottom: 14 }}>eNPS trend (6 maanden)</p>
             {data.trend.length === 0 ? (
               <p style={{ fontSize: 12, color: 'var(--text-3)' }}>Nog geen historische data</p>
@@ -149,7 +149,7 @@ export default function HrENPSPage() {
         </div>
 
         {/* Scoredistributie */}
-        <div style={{ background: 'white', borderRadius: 16, border: '1px solid #E5E7EB', padding: '20px 22px' }}>
+        <div style={{ background: 'var(--bg-card)', borderRadius: 16, border: '1px solid var(--border)', padding: '20px 22px' }}>
           <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-2)', marginBottom: 14 }}>Scoredistributie</p>
           {Object.keys(data.distributie).length === 0 ? (
             <p style={{ fontSize: 12, color: 'var(--text-3)' }}>Nog geen data</p>

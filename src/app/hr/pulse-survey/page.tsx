@@ -123,7 +123,7 @@ export default function HrPulseSurveyPage() {
         </div>
 
         {/* Participatie balk */}
-        <div style={{ background: 'white', borderRadius: 14, border: '1px solid #E5E7EB', padding: '16px 20px', marginBottom: 16 }}>
+        <div style={{ background: 'var(--bg-card)', borderRadius: 14, border: '1px solid var(--border)', padding: '16px 20px', marginBottom: 16 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
             <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-2)' }}>Participatie deze week</p>
             <p style={{ fontSize: 14, fontWeight: 800, color: 'var(--mf-green)' }}>{participatie.pct}%</p>
@@ -136,14 +136,14 @@ export default function HrPulseSurveyPage() {
 
         {/* Nieuw vraag formulier */}
         {nieuw && (
-          <div style={{ background: 'white', borderRadius: 16, border: '1.5px solid #1D9E75', padding: '20px 22px', marginBottom: 16 }}>
+          <div style={{ background: 'var(--bg-card)', borderRadius: 16, border: '1.5px solid #1D9E75', padding: '20px 22px', marginBottom: 16 }}>
             <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-2)', marginBottom: 14 }}>Nieuwe vraag</p>
             <textarea
               rows={2}
               value={vraag}
               onChange={e => setVraag(e.target.value)}
               placeholder="Hoe tevreden ben je over...?"
-              style={{ width: '100%', border: '1px solid #E5E7EB', borderRadius: 10, padding: '10px 14px', fontSize: 14, outline: 'none', resize: 'none', boxSizing: 'border-box', marginBottom: 12 }}
+              style={{ width: '100%', border: '1px solid var(--border)', borderRadius: 10, padding: '10px 14px', fontSize: 14, outline: 'none', resize: 'none', boxSizing: 'border-box', marginBottom: 12 }}
             />
             <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
               <div style={{ flex: 1 }}>
@@ -151,7 +151,7 @@ export default function HrPulseSurveyPage() {
                 <select
                   value={type}
                   onChange={e => setType(e.target.value as typeof type)}
-                  style={{ width: '100%', border: '1px solid #E5E7EB', borderRadius: 10, padding: '9px 12px', fontSize: 13, outline: 'none' }}
+                  style={{ width: '100%', border: '1px solid var(--border)', borderRadius: 10, padding: '9px 12px', fontSize: 13, outline: 'none' }}
                 >
                   {Object.entries(TYPE_LABELS).map(([k, v]) => (
                     <option key={k} value={k}>{v}</option>
@@ -167,7 +167,7 @@ export default function HrPulseSurveyPage() {
                   value={optiesRaw}
                   onChange={e => setOptiesRaw(e.target.value)}
                   placeholder={"Altijd\nVaak\nSoms\nNooit"}
-                  style={{ width: '100%', border: '1px solid #E5E7EB', borderRadius: 10, padding: '10px 14px', fontSize: 13, outline: 'none', resize: 'none', boxSizing: 'border-box' }}
+                  style={{ width: '100%', border: '1px solid var(--border)', borderRadius: 10, padding: '10px 14px', fontSize: 13, outline: 'none', resize: 'none', boxSizing: 'border-box' }}
                 />
               </div>
             )}
@@ -189,7 +189,7 @@ export default function HrPulseSurveyPage() {
             </p>
           )}
           {(data?.vragen ?? []).map(v => (
-            <div key={v.id} style={{ background: 'white', borderRadius: 14, border: '1px solid #E5E7EB', overflow: 'hidden' }}>
+            <div key={v.id} style={{ background: 'var(--bg-card)', borderRadius: 14, border: '1px solid var(--border)', overflow: 'hidden' }}>
               <div
                 style={{ padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 14, cursor: 'pointer' }}
                 onClick={() => setUitbreiden(uitbreiden === v.id ? null : v.id)}
@@ -203,7 +203,7 @@ export default function HrPulseSurveyPage() {
                   }}
                 >
                   <div style={{
-                    width: 14, height: 14, borderRadius: '50%', background: 'white',
+                    width: 14, height: 14, borderRadius: '50%', background: 'var(--bg-card)',
                     position: 'absolute', top: 3, left: v.actief ? 19 : 3, transition: 'left 0.2s',
                   }} />
                 </div>

@@ -238,7 +238,7 @@ export default function ProfielPagina() {
 
         {/* Tabs — alleen voor HR */}
         {isHR && (
-          <div style={{ display: 'flex', gap: 0, borderBottom: '1px solid #E5E7EB', marginBottom: 24 }}>
+          <div style={{ display: 'flex', gap: 0, borderBottom: '1px solid var(--border)', marginBottom: 24 }}>
             {([
               ['vitaliteit', '📊 Vitaliteit'],
               ['gesprekken', '💬 Gesprekken'],

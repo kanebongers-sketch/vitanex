@@ -528,7 +528,7 @@ function BedanktInhoud() {
     {xpToast && (
       <div style={{
         position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)',
-        zIndex: 1000, background: 'white', borderRadius: 16,
+        zIndex: 1000, background: 'var(--bg-card)', borderRadius: 16,
         border: '1.5px solid #E5E7EB', boxShadow: '0 8px 32px rgba(0,0,0,0.14)',
         padding: '16px 20px', minWidth: 280, maxWidth: 360,
       }}>

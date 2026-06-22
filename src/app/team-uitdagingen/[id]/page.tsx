@@ -108,7 +108,7 @@ export default function UitdagingDetailPage() {
         </Link>
 
         {/* Header */}
-        <div style={{ background: 'white', borderRadius: 20, border: '1px solid #E5E7EB', padding: '24px', marginBottom: 16 }}>
+        <div style={{ background: 'var(--bg-card)', borderRadius: 20, border: '1px solid var(--border)', padding: '24px', marginBottom: 16 }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14, marginBottom: 16 }}>
             <div style={{ width: 48, height: 48, borderRadius: 14, background: `${cfg.kleur}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0 }}>
               {cfg.icon}
@@ -157,7 +157,7 @@ export default function UitdagingDetailPage() {
         </div>
 
         {/* Log bijdrage */}
-        <div style={{ background: 'white', borderRadius: 16, border: '1px solid #E5E7EB', padding: '20px 22px', marginBottom: 16 }}>
+        <div style={{ background: 'var(--bg-card)', borderRadius: 16, border: '1px solid var(--border)', padding: '20px 22px', marginBottom: 16 }}>
           <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-2)', marginBottom: 14 }}>Mijn bijdrage loggen</p>
           <div style={{ display: 'flex', gap: 10, alignItems: 'flex-end' }}>
             <div style={{ flex: 1 }}>
@@ -168,7 +168,7 @@ export default function UitdagingDetailPage() {
                 value={bijdrage}
                 onChange={e => setBijdrage(e.target.value)}
                 min="0"
-                style={{ width: '100%', border: '1px solid #E5E7EB', borderRadius: 10, padding: '10px 14px', fontSize: 14, outline: 'none', boxSizing: 'border-box' }}
+                style={{ width: '100%', border: '1px solid var(--border)', borderRadius: 10, padding: '10px 14px', fontSize: 14, outline: 'none', boxSizing: 'border-box' }}
               />
             </div>
             <div style={{ flex: 2 }}>
@@ -178,7 +178,7 @@ export default function UitdagingDetailPage() {
                 placeholder="Korte omschrijving..."
                 value={notitie}
                 onChange={e => setNotitie(e.target.value)}
-                style={{ width: '100%', border: '1px solid #E5E7EB', borderRadius: 10, padding: '10px 14px', fontSize: 14, outline: 'none', boxSizing: 'border-box' }}
+                style={{ width: '100%', border: '1px solid var(--border)', borderRadius: 10, padding: '10px 14px', fontSize: 14, outline: 'none', boxSizing: 'border-box' }}
               />
             </div>
           </div>
@@ -198,7 +198,7 @@ export default function UitdagingDetailPage() {
 
         {/* Mijn recente logs */}
         {data.mijn_logs.length > 0 && (
-          <div style={{ background: 'white', borderRadius: 16, border: '1px solid #E5E7EB', padding: '18px 20px' }}>
+          <div style={{ background: 'var(--bg-card)', borderRadius: 16, border: '1px solid var(--border)', padding: '18px 20px' }}>
             <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-3)', marginBottom: 12 }}>Mijn recente bijdragen</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {data.mijn_logs.map((log, i) => (

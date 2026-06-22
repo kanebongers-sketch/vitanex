@@ -107,7 +107,7 @@ export default function MijnGesprekkenPage() {
             <div className="mf-spinner" />
           </div>
         ) : gesprekken.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '60px 20px', background: 'white', borderRadius: 20, border: '1px solid #E5E7EB' }}>
+          <div style={{ textAlign: 'center', padding: '60px 20px', background: 'var(--bg-card)', borderRadius: 20, border: '1px solid var(--border)' }}>
             <p style={{ fontSize: 32, marginBottom: 12 }}>💬</p>
             <p style={{ fontWeight: 700, color: 'var(--text-2)', marginBottom: 6 }}>Nog geen gesprekken gepland</p>
             <p style={{ fontSize: 13, color: 'var(--text-3)' }}>Je HR-manager kan hier 1-op-1 gesprekken inplannen.</p>
@@ -145,8 +145,8 @@ export default function MijnGesprekkenPage() {
         {/* Detail panel */}
         {actief_gesprek && (
           <div style={{
-            marginTop: 24, background: 'white', borderRadius: 20,
-            border: '1px solid #E5E7EB', padding: 24,
+            marginTop: 24, background: 'var(--bg-card)', borderRadius: 20,
+            border: '1px solid var(--border)', padding: 24,
           }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -163,7 +163,7 @@ export default function MijnGesprekkenPage() {
 
             {/* Samenvatting */}
             {actief_gesprek.samenvatting_medewerker ? (
-              <div style={{ marginBottom: 20, padding: 16, borderRadius: 12, background: 'var(--bg-subtle)', border: '1px solid #E5E7EB' }}>
+              <div style={{ marginBottom: 20, padding: 16, borderRadius: 12, background: 'var(--bg-subtle)', border: '1px solid var(--border)' }}>
                 <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-3)', marginBottom: 8 }}>Samenvatting</p>
                 <p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.6 }}>{actief_gesprek.samenvatting_medewerker}</p>
               </div>

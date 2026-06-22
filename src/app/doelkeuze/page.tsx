@@ -154,8 +154,8 @@ function DoelKeuzeInhoud() {
         {/* Welzijnscan score overzicht */}
         {ALLE_VLAKKEN.some(v => scores[v] > 0) && (
           <div style={{
-            background: 'white', borderRadius: 20, padding: '18px 20px',
-            marginBottom: 20, border: '1px solid #E5E7EB',
+            background: 'var(--bg-card)', borderRadius: 20, padding: '18px 20px',
+            marginBottom: 20, border: '1px solid var(--border)',
             boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
           }}>
             <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-4)', marginBottom: 12 }}>
@@ -194,7 +194,7 @@ function DoelKeuzeInhoud() {
 
           return (
             <div key={vlak} style={{
-              background: 'white', borderRadius: 20,
+              background: 'var(--bg-card)', borderRadius: 20,
               border: `1.5px solid ${gekozen !== undefined ? c.kleur + '40' : '#E5E7EB'}`,
               padding: '20px 20px', marginBottom: 16,
               transition: 'border-color 0.2s',

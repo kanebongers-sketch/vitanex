@@ -119,7 +119,7 @@ export default function TeamUitdagingenPagina() {
 
         {uitdagingen.length === 0 ? (
           <div style={{
-            background: 'white', borderRadius: 20, padding: '48px 24px',
+            background: 'var(--bg-card)', borderRadius: 20, padding: '48px 24px',
             border: '2px dashed #E5E7EB', textAlign: 'center',
           }}>
             <div style={{ fontSize: 48, marginBottom: 16 }}>🏆</div>
@@ -142,8 +142,8 @@ export default function TeamUitdagingenPagina() {
 
               return (
                 <article key={u.id} style={{
-                  background: 'white', borderRadius: 20, padding: '20px',
-                  border: '1px solid #E5E7EB',
+                  background: 'var(--bg-card)', borderRadius: 20, padding: '20px',
+                  border: '1px solid var(--border)',
                   boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
                 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
@@ -198,7 +198,7 @@ export default function TeamUitdagingenPagina() {
                         min={0}
                         style={{
                           flex: 1, padding: '9px 12px', borderRadius: 10,
-                          border: '1px solid #E5E7EB', fontSize: 13, outline: 'none',
+                          border: '1px solid var(--border)', fontSize: 13, outline: 'none',
                         }}
                       />
                       <button

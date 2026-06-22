@@ -299,7 +299,7 @@ export default function InzichtenPagina() {
             {/* Tip */}
             <div style={{
               background: 'var(--mf-green-light)', borderRadius: 16, padding: '16px',
-              border: '1px solid #BBF7D0',
+              border: '1px solid var(--mf-green-mid)',
             }}>
               <p style={{
                 fontSize: 11, fontWeight: 700, textTransform: 'uppercase',

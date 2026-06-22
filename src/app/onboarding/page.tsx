@@ -577,7 +577,7 @@ export default function OnboardingPage() {
           ] as const).map(item => (
             <div key={item.title} style={{
               display: 'flex', gap: 14, alignItems: 'flex-start',
-              background: 'white', borderRadius: 16, padding: '14px 16px',
+              background: 'var(--bg-card)', borderRadius: 16, padding: '14px 16px',
               boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
               border: '1px solid rgba(0,0,0,0.05)',
             }}>
@@ -1204,7 +1204,7 @@ export default function OnboardingPage() {
                           }}>
                           <span style={{
                             position: 'absolute', top: 2, left: opt.actief ? 20 : 2, width: 18, height: 18,
-                            borderRadius: '50%', background: 'white', transition: 'left 0.2s',
+                            borderRadius: '50%', background: 'var(--bg-card)', transition: 'left 0.2s',
                             boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
                           }} />
                         </button>

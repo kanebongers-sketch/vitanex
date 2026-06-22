@@ -73,8 +73,8 @@ export default function CoachSamenvattingenPagina() {
 
         {samenvattingen.length === 0 ? (
           <div style={{
-            background: 'white', borderRadius: 20, padding: '40px 24px',
-            textAlign: 'center', border: '1px solid #E5E7EB',
+            background: 'var(--bg-card)', borderRadius: 20, padding: '40px 24px',
+            textAlign: 'center', border: '1px solid var(--border)',
           }}>
             <div style={{ fontSize: 40, marginBottom: 12 }}>🧠</div>
             <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-2)', marginBottom: 6 }}>
@@ -88,8 +88,8 @@ export default function CoachSamenvattingenPagina() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {samenvattingen.map((s, i) => (
               <div key={s.id} style={{
-                background: 'white', borderRadius: 16, padding: '18px',
-                border: '1px solid #E5E7EB',
+                background: 'var(--bg-card)', borderRadius: 16, padding: '18px',
+                border: '1px solid var(--border)',
               }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>

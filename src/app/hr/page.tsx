@@ -170,7 +170,7 @@ export default function HrDashboardPage() {
         </div>
 
         {/* ── TABS ── */}
-        <div style={{ display: 'flex', gap: 0, borderBottom: '1px solid #E5E7EB', marginBottom: 28 }}>
+        <div style={{ display: 'flex', gap: 0, borderBottom: '1px solid var(--border)', marginBottom: 28 }}>
           {([['portaal', 'Portaal beheren'], ['gesprekken', 'HR Gesprekken']] as const).map(([tab, label]) => (
             <button key={tab} onClick={() => setActieveTab(tab)} style={{
               padding: '10px 18px', fontSize: 13, fontWeight: 600, border: 'none',
@@ -199,8 +199,8 @@ export default function HrDashboardPage() {
             { label: 'Gem. vitaalscore', value: stats.gemScore ? `${stats.gemScore}/100` : '—', icon: '💚', color: 'var(--mf-purple)', bg: 'var(--mf-purple-light)' },
           ].map(s => (
             <div key={s.label} style={{
-              background: 'white', borderRadius: 12, padding: '18px 20px',
-              border: '1px solid #E5E7EB', boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
+              background: 'var(--bg-card)', borderRadius: 12, padding: '18px 20px',
+              border: '1px solid var(--border)', boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
               transition: 'transform 0.18s ease, box-shadow 0.18s ease', cursor: 'default',
             }}
               onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-1px)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 6px 18px rgba(0,0,0,0.08)' }}
@@ -224,7 +224,7 @@ export default function HrDashboardPage() {
 
               {/* Burn-out risico */}
               {analytics.burnout_distributie && (
-                <div style={{ background: 'white', borderRadius: 14, padding: '16px', border: '1px solid #E5E7EB' }}>
+                <div style={{ background: 'var(--bg-card)', borderRadius: 14, padding: '16px', border: '1px solid var(--border)' }}>
                   <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 12 }}>Burn-out risico</p>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                     {[
@@ -252,7 +252,7 @@ export default function HrDashboardPage() {
 
               {/* eNPS */}
               {analytics.enps_score !== null && analytics.enps_score !== undefined && (
-                <div style={{ background: 'white', borderRadius: 14, padding: '16px', border: '1px solid #E5E7EB' }}>
+                <div style={{ background: 'var(--bg-card)', borderRadius: 14, padding: '16px', border: '1px solid var(--border)' }}>
                   <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>eNPS score</p>
                   <p style={{ fontSize: 32, fontWeight: 800, color: analytics.enps_score >= 30 ? 'var(--mf-green)' : analytics.enps_score >= 0 ? 'var(--mf-amber)' : 'var(--mf-red)', lineHeight: 1, marginBottom: 4 }}>
                     {analytics.enps_score > 0 ? '+' : ''}{analytics.enps_score}
@@ -266,7 +266,7 @@ export default function HrDashboardPage() {
 
               {/* Werkgeluk */}
               {analytics.werkgeluk_gemiddeld !== null && analytics.werkgeluk_gemiddeld !== undefined && (
-                <div style={{ background: 'white', borderRadius: 14, padding: '16px', border: '1px solid #E5E7EB' }}>
+                <div style={{ background: 'var(--bg-card)', borderRadius: 14, padding: '16px', border: '1px solid var(--border)' }}>
                   <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>Werkgeluk</p>
                   <p style={{ fontSize: 32, fontWeight: 800, color: analytics.werkgeluk_gemiddeld >= 4 ? 'var(--mf-green)' : analytics.werkgeluk_gemiddeld >= 3 ? 'var(--mf-amber)' : 'var(--mf-red)', lineHeight: 1, marginBottom: 4 }}>
                     {analytics.werkgeluk_gemiddeld}/5
@@ -277,7 +277,7 @@ export default function HrDashboardPage() {
 
               {/* Psych veiligheid */}
               {analytics.psych_veiligheid_gemiddeld !== null && analytics.psych_veiligheid_gemiddeld !== undefined && (
-                <div style={{ background: 'white', borderRadius: 14, padding: '16px', border: '1px solid #E5E7EB' }}>
+                <div style={{ background: 'var(--bg-card)', borderRadius: 14, padding: '16px', border: '1px solid var(--border)' }}>
                   <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>Psych. veiligheid</p>
                   <p style={{ fontSize: 32, fontWeight: 800, color: analytics.psych_veiligheid_gemiddeld >= 4 ? 'var(--mf-green)' : analytics.psych_veiligheid_gemiddeld >= 3 ? 'var(--mf-amber)' : 'var(--mf-red)', lineHeight: 1, marginBottom: 4 }}>
                     {analytics.psych_veiligheid_gemiddeld}/5
@@ -288,7 +288,7 @@ export default function HrDashboardPage() {
 
               {/* Top burnout factoren */}
               {analytics.top_burnout_factoren?.length ? (
-                <div style={{ background: 'white', borderRadius: 14, padding: '16px', border: '1px solid #E5E7EB' }}>
+                <div style={{ background: 'var(--bg-card)', borderRadius: 14, padding: '16px', border: '1px solid var(--border)' }}>
                   <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 10 }}>Top aandachtspunten</p>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                     {analytics.top_burnout_factoren.map((f, i) => (
@@ -339,7 +339,7 @@ export default function HrDashboardPage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 20 }}>
               {actiefTiles.length === 0 && (
                 <div style={{
-                  background: 'white', border: '2px dashed #E5E7EB', borderRadius: 14,
+                  background: 'var(--bg-card)', border: '2px dashed #E5E7EB', borderRadius: 14,
                   padding: '28px 20px', textAlign: 'center',
                 }}>
                   <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--bg-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 10px' }}>
@@ -356,7 +356,7 @@ export default function HrDashboardPage() {
                   onDragStart={() => onDragStart(idx)} onDragEnter={() => onDragEnter(idx)}
                   onDragEnd={onDragEnd} onDragOver={e => e.preventDefault()}
                   style={{
-                    background: 'white', borderRadius: 10, padding: '12px 14px',
+                    background: 'var(--bg-card)', borderRadius: 10, padding: '12px 14px',
                     display: 'flex', alignItems: 'center', gap: 12,
                     border: `1.5px solid ${overIdx === idx && dragIdx !== idx ? ACCENT : '#E5E7EB'}`,
                     boxShadow: dragIdx === idx ? '0 4px 16px rgba(0,0,0,0.1)' : '0 1px 3px rgba(0,0,0,0.04)',
@@ -405,13 +405,13 @@ export default function HrDashboardPage() {
                       display: 'flex', alignItems: 'center', gap: 12,
                       border: '1px solid #F3F4F6', opacity: 0.7,
                     }}>
-                      <div style={{ width: 36, height: 36, borderRadius: 8, flexShrink: 0, background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, filter: 'grayscale(1)' }}>{tile.icon}</div>
+                      <div style={{ width: 36, height: 36, borderRadius: 8, flexShrink: 0, background: 'var(--bg-card)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, filter: 'grayscale(1)' }}>{tile.icon}</div>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-2)' }}>{tile.label}</p>
                         <p style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 1 }}>{tile.sublabel}</p>
                       </div>
                       <button onClick={() => toggleTile(tile.id)} style={{
-                        background: 'white', border: `1.5px solid ${ACCENT}`,
+                        background: 'var(--bg-card)', border: `1.5px solid ${ACCENT}`,
                         color: ACCENT, borderRadius: 6, padding: '5px 12px',
                         fontSize: 11, fontWeight: 600, cursor: 'pointer',
                       }}>Inschakelen</button>
@@ -435,8 +435,8 @@ export default function HrDashboardPage() {
             ].map(item => (
               <Link key={item.href} href={item.href} style={{
                 display: 'flex', alignItems: 'center', gap: 12,
-                background: 'white', borderRadius: 10, padding: '12px 14px',
-                border: '1px solid #E5E7EB', textDecoration: 'none',
+                background: 'var(--bg-card)', borderRadius: 10, padding: '12px 14px',
+                border: '1px solid var(--border)', textDecoration: 'none',
                 boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
                 transition: 'box-shadow 0.15s, border-color 0.15s, transform 0.1s ease',
               }}
@@ -456,7 +456,7 @@ export default function HrDashboardPage() {
         </div>
 
         {/* ── INSTELLINGEN ── */}
-        <div style={{ marginTop: 32, background: 'white', borderRadius: 12, padding: '20px 24px', border: '1px solid #E5E7EB', boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
+        <div style={{ marginTop: 32, background: 'var(--bg-card)', borderRadius: 12, padding: '20px 24px', border: '1px solid var(--border)', boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
           <h2 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-1)', marginBottom: 16 }}>Instellingen</h2>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
             <div>
@@ -487,7 +487,7 @@ export default function HrDashboardPage() {
             >
               <span style={{
                 position: 'absolute', top: 3, left: discVerplicht ? 24 : 3,
-                width: 20, height: 20, borderRadius: '50%', background: 'white',
+                width: 20, height: 20, borderRadius: '50%', background: 'var(--bg-card)',
                 boxShadow: '0 1px 3px rgba(0,0,0,0.2)', transition: 'left 0.2s',
               }} />
             </button>

@@ -119,7 +119,7 @@ export default function HrTeamPage() {
                   { label: 'Check-ins', waarde: aggregaat.totaal_checkins, kleur: 'var(--mf-purple)' },
                   { label: 'Gem. burnout', waarde: aggregaat.gem_burnout_risico !== null ? `${aggregaat.gem_burnout_risico}%` : '—', kleur: burnoutKleur(aggregaat.gem_burnout_risico) },
                 ].map(s => (
-                  <div key={s.label} style={{ background: 'white', borderRadius: 14, border: '1px solid #E5E7EB', padding: '16px 18px' }}>
+                  <div key={s.label} style={{ background: 'var(--bg-card)', borderRadius: 14, border: '1px solid var(--border)', padding: '16px 18px' }}>
                     <p style={{ fontSize: 20, fontWeight: 800, color: s.kleur }}>{s.waarde}</p>
                     <p style={{ fontSize: 11, color: 'var(--text-3)', fontWeight: 600, marginTop: 2 }}>{s.label}</p>
                   </div>
@@ -144,7 +144,7 @@ export default function HrTeamPage() {
               <select
                 value={sorteer}
                 onChange={e => setSorteer(e.target.value as typeof sorteer)}
-                style={{ fontSize: 12, border: '1px solid #E5E7EB', borderRadius: 8, padding: '6px 10px', background: 'white', color: 'var(--text-2)', outline: 'none' }}
+                style={{ fontSize: 12, border: '1px solid var(--border)', borderRadius: 8, padding: '6px 10px', background: 'var(--bg-card)', color: 'var(--text-2)', outline: 'none' }}
               >
                 <option value="burnout">Sorteer: burnout risico</option>
                 <option value="naam">Sorteer: naam</option>
@@ -155,7 +155,7 @@ export default function HrTeamPage() {
             </div>
 
             {/* Team tabel */}
-            <div style={{ background: 'white', borderRadius: 16, border: '1px solid #E5E7EB', overflow: 'hidden' }}>
+            <div style={{ background: 'var(--bg-card)', borderRadius: 16, border: '1px solid var(--border)', overflow: 'hidden' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr style={{ borderBottom: '1px solid #F3F4F6' }}>

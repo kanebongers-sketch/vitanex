@@ -343,8 +343,8 @@ export default function HrAnalyticsPage() {
                 <div
                   key={k.label}
                   style={{
-                    background: 'white',
-                    border: '1px solid #E5E7EB',
+                    background: 'var(--bg-card)',
+                    border: '1px solid var(--border)',
                     borderRadius: 16,
                     padding: '20px 22px',
                     borderTop: `3px solid ${k.kleur}`,
@@ -363,7 +363,7 @@ export default function HrAnalyticsPage() {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
 
               {/* Stemming trend */}
-              <div style={{ background: 'white', border: '1px solid #E5E7EB', borderRadius: 16, padding: '20px 22px' }}>
+              <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 16, padding: '20px 22px' }}>
                 <div style={{ marginBottom: 12 }}>
                   <h2 style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-2)' }}>Stemming trend</h2>
                   <p style={{ fontSize: 11, color: 'var(--text-3)' }}>Gemiddelde per week (schaal 1–5)</p>
@@ -378,7 +378,7 @@ export default function HrAnalyticsPage() {
               </div>
 
               {/* Slaap trend */}
-              <div style={{ background: 'white', border: '1px solid #E5E7EB', borderRadius: 16, padding: '20px 22px' }}>
+              <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 16, padding: '20px 22px' }}>
                 <div style={{ marginBottom: 12 }}>
                   <h2 style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-2)' }}>Slaap trend</h2>
                   <p style={{ fontSize: 11, color: 'var(--text-3)' }}>Gem. uren slaap per week</p>
@@ -397,7 +397,7 @@ export default function HrAnalyticsPage() {
             <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 14, marginBottom: 14 }}>
 
               {/* Stress staafgrafiek */}
-              <div style={{ background: 'white', border: '1px solid #E5E7EB', borderRadius: 16, padding: '20px 22px' }}>
+              <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 16, padding: '20px 22px' }}>
                 <div style={{ marginBottom: 12 }}>
                   <h2 style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-2)' }}>Stress trend</h2>
                   <p style={{ fontSize: 11, color: 'var(--text-3)' }}>Gem. stressniveau per week (1–10) — rood = hoog stress</p>
@@ -408,8 +408,8 @@ export default function HrAnalyticsPage() {
               {/* Participatie ring */}
               <div
                 style={{
-                  background: 'white',
-                  border: '1px solid #E5E7EB',
+                  background: 'var(--bg-card)',
+                  border: '1px solid var(--border)',
                   borderRadius: 16,
                   padding: '20px 22px',
                   display: 'flex',
@@ -436,7 +436,7 @@ export default function HrAnalyticsPage() {
 
             {/* Top stressoren */}
             {data.top_stressoren.length > 0 && (
-              <div style={{ background: 'white', border: '1px solid #E5E7EB', borderRadius: 16, padding: '20px 22px' }}>
+              <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 16, padding: '20px 22px' }}>
                 <div style={{ marginBottom: 16 }}>
                   <h2 style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-2)' }}>Top stressoren (30 dagen)</h2>
                   <p style={{ fontSize: 11, color: 'var(--text-3)' }}>Gebruikte technieken bij hoge stress (stress ≥ 7)</p>
