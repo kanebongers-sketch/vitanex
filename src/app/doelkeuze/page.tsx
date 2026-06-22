@@ -174,7 +174,7 @@ function DoelKeuzeInhoud() {
                     <div style={{ width: 70, fontSize: 11, fontWeight: isAandacht ? 700 : 500, color: isAandacht ? c.kleur : 'var(--text-3)', flexShrink: 0 }}>
                       {c.label}
                     </div>
-                    <div style={{ flex: 1, height: 6, borderRadius: 3, background: '#F3F4F6', overflow: 'hidden' }}>
+                    <div style={{ flex: 1, height: 6, borderRadius: 3, background: 'var(--bg-subtle)', overflow: 'hidden' }}>
                       <div style={{ height: '100%', width: `${pct}%`, borderRadius: 3, background: kleur, transition: 'width 0.8s ease' }} />
                     </div>
                     <span style={{ fontSize: 11, fontWeight: 700, color: kleur, width: 36, textAlign: 'right', flexShrink: 0 }}>{score}/20</span>
@@ -195,7 +195,7 @@ function DoelKeuzeInhoud() {
           return (
             <div key={vlak} style={{
               background: 'var(--bg-card)', borderRadius: 20,
-              border: `1.5px solid ${gekozen !== undefined ? c.kleur + '40' : '#E5E7EB'}`,
+              border: `1.5px solid ${gekozen !== undefined ? c.kleur + '40' : 'var(--border)'}`,
               padding: '20px 20px', marginBottom: 16,
               transition: 'border-color 0.2s',
             }}>
@@ -236,7 +236,7 @@ function DoelKeuzeInhoud() {
                       onClick={() => setKeuzes(prev => ({ ...prev, [vlak]: i }))}
                       style={{
                         textAlign: 'left', padding: '13px 15px', borderRadius: 12,
-                        border: `2px solid ${selected ? c.kleur : '#E5E7EB'}`,
+                        border: `2px solid ${selected ? c.kleur : 'var(--border)'}`,
                         background: selected ? c.licht : 'var(--bg-subtle)',
                         cursor: 'pointer', transition: 'all 0.15s', width: '100%',
                       }}>

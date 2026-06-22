@@ -1276,7 +1276,7 @@ export default function Dashboard() {
                     <div className="flex flex-col gap-3">
                       {signalen.map(({ lid, reden, ernst }) => (
                         <div key={lid.id} className="bg-white rounded-2xl border p-4 flex items-center gap-4"
-                          style={{ borderColor: ernst === 'hoog' ? 'var(--mf-red-light)' : 'var(--mf-amber-light)', borderLeft: `4px solid ${ernst === 'hoog' ? '#E24B4A' : '#BA7517'}` }}>
+                          style={{ borderColor: ernst === 'hoog' ? 'var(--mf-red-light)' : 'var(--mf-amber-light)', borderLeft: `4px solid ${ernst === 'hoog' ? 'var(--mf-red)' : 'var(--mf-amber-dark)'}` }}>
                           <div
                             className="flex-shrink-0 w-2.5 h-2.5 rounded-full"
                             style={{ background: ernst === 'hoog' ? 'var(--mf-red)' : 'var(--mf-amber)' }}
@@ -1352,11 +1352,11 @@ export default function Dashboard() {
                       <p className="text-sm font-medium text-gray-700 mb-4">Vitaliteitstrend over tijd</p>
                       <ResponsiveContainer width="100%" height={220}>
                         <LineChart data={trendData}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                          <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                           <XAxis dataKey="week" tick={{ fontSize: 11 }} />
                           <YAxis domain={[0, 100]} tick={{ fontSize: 11 }} unit="%" />
                           <Tooltip formatter={(v) => [`${v}%`, 'Score']} />
-                          <Line type="monotone" dataKey="Score" stroke="#1D9E75" strokeWidth={2.5}
+                          <Line type="monotone" dataKey="Score" stroke="var(--mf-green)" strokeWidth={2.5}
                             dot={{ r: 3 }} activeDot={{ r: 5 }} />
                         </LineChart>
                       </ResponsiveContainer>
@@ -1366,11 +1366,11 @@ export default function Dashboard() {
                       <p className="text-sm font-medium text-gray-700 mb-4">Gemiddelde score per metric</p>
                       <ResponsiveContainer width="100%" height={240}>
                         <BarChart data={vergelijkingData}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                          <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                           <XAxis dataKey="metric" tick={{ fontSize: 10 }} />
                           <YAxis domain={[0, 5]} tick={{ fontSize: 11 }} />
                           <Tooltip formatter={(v) => [`${v}/5`, 'Gemiddelde']} />
-                          <Bar dataKey="Gemiddelde" radius={[6, 6, 0, 0]} fill="#1D9E75" />
+                          <Bar dataKey="Gemiddelde" radius={[6, 6, 0, 0]} fill="var(--mf-green)" />
                         </BarChart>
                       </ResponsiveContainer>
                     </div>

@@ -185,12 +185,12 @@ export default function MijnGesprekkenPage() {
                       display: 'flex', alignItems: 'flex-start', gap: 10,
                       padding: '10px 12px', borderRadius: 10,
                       background: ap.gereed ? 'var(--mf-green-light)' : 'var(--bg-subtle)',
-                      border: `1px solid ${ap.gereed ? '#A3DECE' : '#E5E7EB'}`,
+                      border: `1px solid ${ap.gereed ? 'var(--mf-green-mid)' : 'var(--border)'}`,
                     }}>
                       <div style={{
                         width: 18, height: 18, borderRadius: '50%', flexShrink: 0, marginTop: 1,
                         background: ap.gereed ? 'var(--mf-green)' : 'white',
-                        border: `2px solid ${ap.gereed ? '#1D9E75' : '#D1D5DB'}`,
+                        border: `2px solid ${ap.gereed ? 'var(--mf-green)' : 'var(--border)'}`,
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                       }}>
                         {ap.gereed && <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>}
@@ -230,7 +230,7 @@ function GesprekKaart({ g, actief, onClick }: { g: Gesprek; actief: boolean; onC
     <button onClick={onClick} style={{
       width: '100%', textAlign: 'left', cursor: 'pointer',
       background: actief ? 'var(--mf-green-light)' : 'white',
-      border: `1px solid ${actief ? '#A3DECE' : '#E5E7EB'}`,
+      border: `1px solid ${actief ? 'var(--mf-green-mid)' : 'var(--border)'}`,
       borderRadius: 14, padding: '14px 16px',
       transition: 'all 0.15s',
     }}>

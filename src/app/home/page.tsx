@@ -99,12 +99,12 @@ function ReadinessRing({ score }: { score: number | null }) {
           <text x="80" y="73" textAnchor="middle" fontSize="38" fontWeight="900" fill={kleur}>
             {score}
           </text>
-          <text x="80" y="92" textAnchor="middle" fontSize="12" fill="#9CA3AF" fontWeight="600">
+          <text x="80" y="92" textAnchor="middle" fontSize="12" style={{ fill: 'var(--text-4)' }} fontWeight="600">
             /100
           </text>
         </>
       ) : (
-        <text x="80" y="86" textAnchor="middle" fontSize="14" fill="#9CA3AF" fontWeight="600">
+        <text x="80" y="86" textAnchor="middle" fontSize="14" style={{ fill: 'var(--text-4)' }} fontWeight="600">
           Geen data
         </text>
       )}

@@ -211,7 +211,7 @@ export default function HRUitdagingenPagina() {
               return (
                 <div key={u.id} style={{
                   background: 'var(--bg-card)', borderRadius: 16, padding: '16px 18px',
-                  border: `1px solid ${u.actief && resterende > 0 ? '#E5E7EB' : '#F3F4F6'}`,
+                  border: `1px solid ${u.actief && resterende > 0 ? 'var(--border)' : 'var(--bg-subtle)'}`,
                   opacity: (!u.actief || resterende < 0) ? 0.6 : 1,
                 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>

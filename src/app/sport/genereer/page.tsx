@@ -180,7 +180,7 @@ export default function GenereerSchemaPage() {
                   style={{
                     display: 'flex', alignItems: 'center', gap: 14, padding: '16px 18px',
                     background: 'var(--bg-card, white)', borderRadius: 12,
-                    border: `2px solid ${doel === d.value ? '#1D9E75' : 'transparent'}`,
+                    border: `2px solid ${doel === d.value ? 'var(--mf-green)' : 'transparent'}`,
                     boxShadow: '0 1px 4px rgba(0,0,0,0.06)', cursor: 'pointer', textAlign: 'left',
                     transition: 'border-color 0.15s',
                   }}
@@ -210,7 +210,7 @@ export default function GenereerSchemaPage() {
                     flex: 1, padding: '10px 0', borderRadius: 8, fontSize: 14, fontWeight: 500, cursor: 'pointer',
                     background: niveau === n.toLowerCase() ? 'var(--mf-green)' : '#fff',
                     color: niveau === n.toLowerCase() ? '#fff' : 'var(--text-2)',
-                    border: `1.5px solid ${niveau === n.toLowerCase() ? '#1D9E75' : '#E5E7EB'}`,
+                    border: `1.5px solid ${niveau === n.toLowerCase() ? 'var(--mf-green)' : 'var(--border)'}`,
                   }}
                 >
                   {n}
@@ -230,7 +230,7 @@ export default function GenereerSchemaPage() {
                     flex: 1, padding: '10px 0', borderRadius: 8, fontSize: 15, fontWeight: 600, cursor: 'pointer',
                     background: sessiesPerWeek === s ? 'var(--mf-green)' : '#fff',
                     color: sessiesPerWeek === s ? '#fff' : 'var(--text-2)',
-                    border: `1.5px solid ${sessiesPerWeek === s ? '#1D9E75' : '#E5E7EB'}`,
+                    border: `1.5px solid ${sessiesPerWeek === s ? 'var(--mf-green)' : 'var(--border)'}`,
                   }}
                 >
                   {s}×
@@ -250,7 +250,7 @@ export default function GenereerSchemaPage() {
                     flex: 1, padding: '10px 0', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer',
                     background: beschikbareTijd === t ? 'var(--mf-green)' : '#fff',
                     color: beschikbareTijd === t ? '#fff' : 'var(--text-2)',
-                    border: `1.5px solid ${beschikbareTijd === t ? '#1D9E75' : '#E5E7EB'}`,
+                    border: `1.5px solid ${beschikbareTijd === t ? 'var(--mf-green)' : 'var(--border)'}`,
                   }}
                 >
                   {t}m
@@ -276,14 +276,14 @@ export default function GenereerSchemaPage() {
                     style={{
                       display: 'flex', alignItems: 'center', gap: 12, padding: '13px 16px',
                       background: 'var(--bg-card, white)', borderRadius: 10, cursor: 'pointer', textAlign: 'left',
-                      border: `2px solid ${actief ? '#1D9E75' : 'transparent'}`,
+                      border: `2px solid ${actief ? 'var(--mf-green)' : 'transparent'}`,
                       boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
                     }}
                   >
                     <div style={{
                       width: 18, height: 18, borderRadius: 4, flexShrink: 0,
                       background: actief ? 'var(--mf-green)' : 'var(--bg-subtle)',
-                      border: `2px solid ${actief ? '#1D9E75' : '#D1D5DB'}`,
+                      border: `2px solid ${actief ? 'var(--mf-green)' : '#D1D5DB'}`,
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                     }}>
                       {actief && <span style={{ color: '#fff', fontSize: 11, lineHeight: 1 }}>✓</span>}
@@ -327,7 +327,7 @@ export default function GenereerSchemaPage() {
                   <div key={key} style={{
                     display: 'flex', alignItems: 'center', gap: 14, padding: '14px 16px',
                     borderRadius: 12, background: status === 'klaar' ? 'var(--mf-green-light)' : status === 'bezig' ? 'var(--mf-amber-light)' : 'var(--bg-subtle)',
-                    border: `1.5px solid ${status === 'klaar' ? '#6EE7C7' : status === 'bezig' ? '#FDE68A' : '#F3F4F6'}`,
+                    border: `1.5px solid ${status === 'klaar' ? '#6EE7C7' : status === 'bezig' ? '#FDE68A' : 'var(--bg-subtle)'}`,
                   }}>
                     <div style={{ width: 28, height: 28, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       {status === 'klaar' && (

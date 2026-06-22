@@ -124,7 +124,7 @@ function AchievementBadge({ ach, unlocked }: { ach: Achievement; unlocked: boole
   return (
     <div style={{
       background: unlocked ? ach.kleur + '15' : 'var(--bg-subtle)',
-      border: `1.5px solid ${unlocked ? ach.kleur + '40' : '#E5E7EB'}`,
+      border: `1.5px solid ${unlocked ? ach.kleur + '40' : 'var(--border)'}`,
       borderRadius: 14, padding: '14px 10px 12px',
       display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
       opacity: unlocked ? 1 : 0.5,
