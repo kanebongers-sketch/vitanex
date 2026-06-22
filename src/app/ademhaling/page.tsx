@@ -149,6 +149,23 @@ export default function AdemhalingPage() {
   const circ = 2 * Math.PI * r
   const offset = circ * (1 - cirkelPct)
 
+  const faseNaam = huidigeF?.naam ?? ''
+  const schaal = (() => {
+    if (!huidigeF || !bezig) return 1
+    const ratio = 1 - (countdown / huidigeF.seconden)
+    if (faseNaam.includes('Inademen') || faseNaam.includes('Snel')) return 0.92 + 0.14 * ratio
+    if (faseNaam.includes('Uitademen') || faseNaam.includes('Loslaten')) return 1.06 - 0.14 * ratio
+    return 1.06
+  })()
+
+  const faseBg = bezig
+    ? (faseNaam.includes('Inademen') || faseNaam.includes('Snel'))
+      ? 'linear-gradient(180deg, #E1F5EE 0%, transparent 50%)'
+      : faseNaam.includes('Uitademen') || faseNaam.includes('Loslaten')
+      ? 'linear-gradient(180deg, #EBF4FB 0%, transparent 50%)'
+      : 'linear-gradient(180deg, #F5F3FF 0%, transparent 50%)'
+    : 'none'
+
   return (
     <div className="mf-mesh-bg" style={{ minHeight: '100vh' }}>
       <Navbar />
@@ -234,13 +251,13 @@ export default function AdemhalingPage() {
           </div>
         ) : (
           /* Actieve sessie */
-          <div style={{ textAlign: 'center', paddingTop: 20 }}>
+          <div style={{ textAlign: 'center', paddingTop: 20, borderRadius: 24, background: faseBg, transition: 'background 1.2s ease' }}>
             <p style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-4)', marginBottom: 24 }}>
               Ronde {ronde + 1} van {gekozen!.rondes}
             </p>
 
             {/* Cirkel */}
-            <div style={{ position: 'relative', display: 'inline-block', marginBottom: 28 }}>
+            <div style={{ position: 'relative', display: 'inline-block', marginBottom: 28, transform: `scale(${schaal.toFixed(3)})`, transition: 'transform 1s linear' }}>
               <svg width={200} height={200}>
                 <circle cx={100} cy={100} r={r} fill="none" stroke="var(--border-strong)" strokeWidth={8} />
                 <circle
