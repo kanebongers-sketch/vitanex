@@ -7,6 +7,12 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
+import nextDynamic from 'next/dynamic'
+
+const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
+
+const WG_SCORE_RGB = (n: number): [number, number, number] =>
+  n >= 9 ? [0.082, 0.471, 0.341] : n >= 7 ? [0.114, 0.620, 0.459] : n >= 5 ? [0.949, 0.722, 0.141] : n >= 3 ? [0.953, 0.388, 0.047] : [0.886, 0.294, 0.290]
 
 interface GeschiedenisItem {
   datum: string
@@ -201,21 +207,26 @@ export default function WerkgelukPagina() {
           transition: 'border-color 0.3s ease, box-shadow 0.3s ease',
         }}>
           <div style={{ textAlign: 'center', marginBottom: 20 }}>
-            <div style={{
-              fontSize: 72, lineHeight: 1, fontWeight: 900, color: kleur,
-              fontVariantNumeric: 'tabular-nums', transition: 'color 0.25s ease',
-              letterSpacing: '-0.04em',
-            }}>
-              {score}
-            </div>
-            <div style={{ fontSize: 28, marginTop: 4, lineHeight: 1 }}>
-              {scoreEmoji(score)}
-            </div>
-            <div style={{
-              marginTop: 8, fontSize: 14, fontWeight: 600, color: kleur,
-              transition: 'color 0.25s ease',
-            }}>
-              {scoreLabel(score)}
+            <div style={{ position: 'relative', display: 'inline-flex', flexDirection: 'column', alignItems: 'center' }}>
+              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 0 }}>
+                <GlowOrb color={WG_SCORE_RGB(score)} intensity={Math.max(0.25, score / 10)} size={160} />
+              </div>
+              <div style={{
+                fontSize: 72, lineHeight: 1, fontWeight: 900, color: kleur,
+                fontVariantNumeric: 'tabular-nums', transition: 'color 0.25s ease',
+                letterSpacing: '-0.04em', position: 'relative', zIndex: 1,
+              }}>
+                {score}
+              </div>
+              <div style={{ fontSize: 28, marginTop: 4, lineHeight: 1, position: 'relative', zIndex: 1 }}>
+                {scoreEmoji(score)}
+              </div>
+              <div style={{
+                marginTop: 8, fontSize: 14, fontWeight: 600, color: kleur,
+                transition: 'color 0.25s ease', position: 'relative', zIndex: 1,
+              }}>
+                {scoreLabel(score)}
+              </div>
             </div>
           </div>
 
