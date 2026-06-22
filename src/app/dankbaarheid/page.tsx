@@ -7,6 +7,9 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
+import dynamic from 'next/dynamic'
+
+const GlowOrb = dynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
 
 interface DankbaarheidLog {
   id: string
@@ -162,6 +165,11 @@ export default function DankbaarheidPagina() {
             </div>
           )
         })()}
+
+        {/* Dankbaarheid orb */}
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8 }}>
+          <GlowOrb color={[0.949, 0.722, 0.141]} intensity={heeftVandaag ? 0.9 : 0.35} size={100} />
+        </div>
 
         {/* Invoer sectie */}
         <section style={{

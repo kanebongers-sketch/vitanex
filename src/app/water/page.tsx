@@ -7,6 +7,9 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
+import dynamic from 'next/dynamic'
+
+const GlowOrb = dynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
 
 interface WaterLog {
   id: string
@@ -278,7 +281,18 @@ export default function WaterPagina() {
               gap: '1.25rem',
             }}
           >
-            <WaterGlas percentage={percentage} />
+            <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ position: 'absolute', pointerEvents: 'none' }}>
+                <GlowOrb
+                  color={percentage >= 100 ? [0.114, 0.620, 0.459] : [0.231, 0.510, 0.965]}
+                  intensity={Math.min(1, percentage / 100)}
+                  size={140}
+                />
+              </div>
+              <div style={{ position: 'relative', zIndex: 1 }}>
+                <WaterGlas percentage={percentage} />
+              </div>
+            </div>
 
             <div style={{ textAlign: 'center' }}>
               <p style={{

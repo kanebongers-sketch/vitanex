@@ -7,6 +7,9 @@ import { useRouter } from 'next/navigation'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
 import { supabase } from '@/lib/supabase'
+import dynamic from 'next/dynamic'
+
+const GlowOrb = dynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
 
 interface KalenderDag {
   datum: string
@@ -230,16 +233,27 @@ export default function StreakPage() {
                   boxShadow: 'var(--shadow-md)',
                 }}
               >
-                <div
-                  style={{
-                    fontSize: 64,
-                    display: 'inline-block',
-                    animation: 'vlamSchommelen 1.6s ease-in-out infinite',
-                    marginBottom: 8,
-                  }}
-                  aria-hidden="true"
-                >
-                  🔥
+                <div style={{ position: 'relative', display: 'inline-block', marginBottom: 8 }}>
+                  {/* 3D gloed achter de vlam */}
+                  <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', pointerEvents: 'none', zIndex: 0 }}>
+                    <GlowOrb
+                      color={[0.949, 0.388, 0.047]}
+                      intensity={Math.min(1, (data.streak || 1) / 30)}
+                      size={120}
+                    />
+                  </div>
+                  <div
+                    style={{
+                      fontSize: 64,
+                      display: 'inline-block',
+                      animation: 'vlamSchommelen 1.6s ease-in-out infinite',
+                      position: 'relative',
+                      zIndex: 1,
+                    }}
+                    aria-hidden="true"
+                  >
+                    🔥
+                  </div>
                 </div>
 
                 <div

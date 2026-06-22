@@ -11,6 +11,22 @@ import {
   ALLE_ACHIEVEMENTS, type XPData, type Achievement,
 } from '@/lib/xp'
 import { laadXPVanServer } from '@/lib/xp-sync'
+import dynamic from 'next/dynamic'
+
+const GlowOrb = dynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
+
+const LEVEL_RGB: Record<number, [number, number, number]> = {
+  1:  [0.486, 0.231, 0.933],
+  2:  [0.486, 0.231, 0.933],
+  3:  [0.231, 0.510, 0.965],
+  4:  [0.231, 0.510, 0.965],
+  5:  [0.114, 0.620, 0.459],
+  6:  [0.114, 0.620, 0.459],
+  7:  [0.949, 0.522, 0.141],
+  8:  [0.949, 0.522, 0.141],
+  9:  [0.949, 0.388, 0.047],
+  10: [0.949, 0.388, 0.047],
+}
 
 // ─── Achievement SVG icons ────────────────────────────────────────────────────
 
@@ -269,8 +285,16 @@ export default function NiveauPage() {
           boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 28, flexWrap: 'wrap' }}>
-            <LevelRing level={level} pct={level >= 10 ? 100 : voortgang.pct} kleur={kleur} />
+            <div style={{ position: 'relative', flexShrink: 0 }}>
+              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', pointerEvents: 'none', zIndex: 0 }}>
+                <GlowOrb color={LEVEL_RGB[level] ?? [0.486, 0.231, 0.933]} intensity={voortgang.pct / 100} size={200} />
+              </div>
+              <div style={{ position: 'relative', zIndex: 1 }}>
+                <LevelRing level={level} pct={level >= 10 ? 100 : voortgang.pct} kleur={kleur} />
+              </div>
+            </div>
             <div style={{ flex: 1, minWidth: 200 }}>
+
               <p style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', marginBottom: 2, letterSpacing: '-0.02em' }}>
                 {LEVEL_NAMEN[level]}
               </p>

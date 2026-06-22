@@ -7,6 +7,15 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import Link from 'next/link'
+import dynamic from 'next/dynamic'
+
+const GlowOrb = dynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
+
+const RISICO_RGB: Record<string, [number, number, number]> = {
+  laag:  [0.114, 0.620, 0.459],
+  matig: [0.949, 0.522, 0.141],
+  hoog:  [0.887, 0.294, 0.290],
+}
 
 type Scan = {
   id: string
@@ -269,9 +278,13 @@ export default function BurnoutPagina() {
             className="rounded-2xl border p-6 text-center mb-4"
             style={{ background: kleur.bg, borderColor: kleur.border }}
           >
-            <p className="text-3xl mb-2">
-              {resultaat.risico_niveau === 'laag' ? '✓' : resultaat.risico_niveau === 'matig' ? '!!' : '⚠'}
-            </p>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8 }}>
+              <GlowOrb
+                color={RISICO_RGB[resultaat.risico_niveau]}
+                intensity={resultaat.risico_niveau === 'laag' ? 0.4 : resultaat.risico_niveau === 'matig' ? 0.65 : 0.9}
+                size={120}
+              />
+            </div>
             <p className="text-xl font-semibold" style={{ color: kleur.text }}>
               {risicoLabel(resultaat.risico_niveau)}
             </p>

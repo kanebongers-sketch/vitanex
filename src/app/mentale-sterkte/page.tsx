@@ -7,6 +7,9 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
+import dynamic from 'next/dynamic'
+
+const GlowOrb = dynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
 
 const VRAGEN = [
   'Als ik een tegenslag ervaar, herstel ik me snel.',
@@ -181,8 +184,17 @@ export default function MentaleSterktePagina() {
         ) : (
           <>
             <header style={{ marginBottom: 24, textAlign: 'center' }}>
-              <div style={{ fontSize: 48, marginBottom: 12 }}>
-                {resultaat.score >= 80 ? '💪' : resultaat.score >= 60 ? '🌱' : resultaat.score >= 40 ? '⚠️' : '🏆'}
+              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8 }}>
+                <GlowOrb
+                  color={
+                    resultaat.score >= 80 ? [0.114, 0.620, 0.459] :
+                    resultaat.score >= 60 ? [0.949, 0.522, 0.141] :
+                    resultaat.score >= 40 ? [0.949, 0.388, 0.141] :
+                    [0.887, 0.294, 0.290]
+                  }
+                  intensity={resultaat.score / 100}
+                  size={120}
+                />
               </div>
               <h1 style={{ fontSize: 28, fontWeight: 800, color: NIVEAU_KLEUR[resultaat.niveau] ?? 'var(--text-1)', marginBottom: 4 }}>
                 {resultaat.niveau}

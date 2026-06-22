@@ -7,6 +7,17 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
+import dynamic from 'next/dynamic'
+
+const GlowOrb = dynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
+
+const STEMMING_RGB: Record<number, [number, number, number]> = {
+  1: [0.887, 0.294, 0.290],
+  2: [0.949, 0.522, 0.141],
+  3: [0.55,  0.55,  0.55 ],
+  4: [0.114, 0.620, 0.459],
+  5: [0.082, 0.471, 0.341],
+}
 
 const STEMMING_OPTIES = [
   { waarde: 1, emoji: '😫', label: 'Slecht',   kleur: 'var(--mf-red)',    achtergrond: 'var(--mf-red-light)'    },
@@ -132,6 +143,15 @@ export default function StemmingPagina() {
           <p style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-4)', margin: '0 0 18px' }}>
             Hoe voel je je nu?
           </p>
+
+          {/* 3D stemming orb */}
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }}>
+            <GlowOrb
+              color={STEMMING_RGB[stemming]}
+              intensity={stemming / 5}
+              size={120}
+            />
+          </div>
 
           {/* Grote emoji kiezer */}
           <div style={{ display: 'flex', gap: 10, justifyContent: 'center', marginBottom: 20 }}>

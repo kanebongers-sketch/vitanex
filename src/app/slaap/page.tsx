@@ -7,6 +7,18 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
+import dynamic from 'next/dynamic'
+
+const GlowOrb = dynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
+
+const KWALITEIT_RGB: [number, number, number][] = [
+  [0, 0, 0],
+  [0.887, 0.294, 0.290],
+  [0.887, 0.294, 0.290],
+  [0.949, 0.522, 0.141],
+  [0.114, 0.620, 0.459],
+  [0.082, 0.471, 0.341],
+]
 
 interface SlaapLog {
   id: string
@@ -233,6 +245,15 @@ export default function SlaapPagina() {
             <span>✓</span> Slaap opgeslagen!
           </div>
         )}
+
+        {/* Sleep quality orb */}
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }}>
+          <GlowOrb
+            color={KWALITEIT_RGB[kwaliteit]}
+            intensity={kwaliteit / 5}
+            size={110}
+          />
+        </div>
 
         {/* Form card */}
         <section style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius-xl)', boxShadow: 'var(--shadow-md)', padding: '20px', marginBottom: 20 }}>
