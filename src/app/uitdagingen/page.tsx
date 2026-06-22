@@ -121,34 +121,49 @@ export default function UitdagingenPage() {
                 const procent = Math.round((verstreken / uitdaging.duur) * 100)
                 const voltooid = verstreken >= uitdaging.duur
 
+                const ringR = 20
+                const ringCirc = 2 * Math.PI * ringR
                 return (
-                  <div key={actief.id} style={{ background: 'var(--bg-card)', borderRadius: 16, padding: '16px', border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)' }}>
-                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: 12 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                        <span style={{ fontSize: 24 }}>{uitdaging.emoji}</span>
-                        <div>
-                          <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-1)' }}>{uitdaging.titel}</p>
-                          <p style={{ fontSize: 12, color: 'var(--text-4)', marginTop: 2 }}>{uitdaging.sub}</p>
-                        </div>
-                      </div>
-                      {voltooid ? (
-                        <span style={{ flexShrink: 0, fontSize: 12, fontWeight: 600, padding: '4px 10px', borderRadius: 999, background: 'var(--mf-green-light)', color: 'var(--mf-green)' }}>
-                          ✓ Voltooid!
-                        </span>
-                      ) : (
-                        <button
-                          onClick={() => stopUitdaging(actief.id)}
-                          style={{ flexShrink: 0, fontSize: 12, color: 'var(--text-4)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
-                        >
-                          Stoppen
-                        </button>
-                      )}
+                  <div key={actief.id} style={{ background: 'var(--bg-card)', borderRadius: 16, padding: '16px', border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)', display: 'flex', alignItems: 'center', gap: 16 }}>
+                    {/* Progress ring */}
+                    <div style={{ position: 'relative', flexShrink: 0 }}>
+                      <svg width={52} height={52} viewBox="0 0 52 52">
+                        <circle cx={26} cy={26} r={ringR} fill="none" stroke="var(--bg-subtle)" strokeWidth={5} />
+                        <circle cx={26} cy={26} r={ringR} fill="none"
+                          stroke={voltooid ? 'var(--mf-green)' : 'var(--mf-amber)'}
+                          strokeWidth={5} strokeLinecap="round"
+                          strokeDasharray={`${ringCirc * procent / 100} ${ringCirc}`}
+                          transform="rotate(-90 26 26)"
+                          style={{ transition: 'stroke-dasharray 0.6s ease' }}
+                        />
+                        <text x="26" y="30" textAnchor="middle" fontSize={10} fontWeight="800"
+                          fill={voltooid ? 'var(--mf-green)' : 'var(--text-1)'}>
+                          {voltooid ? '✓' : `${procent}%`}
+                        </text>
+                      </svg>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <div style={{ flex: 1, height: 8, background: 'var(--bg-subtle)', borderRadius: 100, overflow: 'hidden' }}>
-                        <div style={{ height: '100%', width: `${procent}%`, background: 'var(--mf-green)', borderRadius: 100, transition: 'width 0.3s ease' }} />
+                    {/* Content */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, marginBottom: 6 }}>
+                        <div>
+                          <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-1)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                            <span>{uitdaging.emoji}</span>{uitdaging.titel}
+                          </p>
+                          <p style={{ fontSize: 12, color: 'var(--text-4)', marginTop: 2 }}>{verstreken}/{uitdaging.duur} dagen</p>
+                        </div>
+                        {voltooid ? (
+                          <span style={{ flexShrink: 0, fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 999, background: 'var(--mf-green-light)', color: 'var(--mf-green)' }}>
+                            Voltooid!
+                          </span>
+                        ) : (
+                          <button onClick={() => stopUitdaging(actief.id)} style={{ flexShrink: 0, fontSize: 11, color: 'var(--text-4)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                            Stoppen
+                          </button>
+                        )}
                       </div>
-                      <span style={{ fontSize: 12, color: 'var(--text-3)', flexShrink: 0 }}>{verstreken}/{uitdaging.duur} dagen</span>
+                      <div style={{ height: 5, background: 'var(--bg-subtle)', borderRadius: 100, overflow: 'hidden' }}>
+                        <div style={{ height: '100%', width: `${procent}%`, background: voltooid ? 'var(--mf-green)' : 'var(--mf-amber)', borderRadius: 100, transition: 'width 0.6s ease' }} />
+                      </div>
                     </div>
                   </div>
                 )
