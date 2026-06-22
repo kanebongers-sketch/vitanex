@@ -110,15 +110,15 @@ function LijnenGrafiek({
             y1={y}
             x2={breedte - padding.right}
             y2={y}
-            stroke="#F3F4F6"
+            style={{ stroke: 'var(--border)' }}
             strokeWidth={1}
           />
         )
       })}
 
       {/* Y-as labels */}
-      <text x={padding.left - 4} y={padding.top + 4} textAnchor="end" fontSize={9} fill="#9CA3AF">{max}</text>
-      <text x={padding.left - 4} y={padding.top + innerH + 4} textAnchor="end" fontSize={9} fill="#9CA3AF">{min}</text>
+      <text x={padding.left - 4} y={padding.top + 4} textAnchor="end" fontSize={9} style={{ fill: 'var(--text-4)' }}>{max}</text>
+      <text x={padding.left - 4} y={padding.top + innerH + 4} textAnchor="end" fontSize={9} style={{ fill: 'var(--text-4)' }}>{min}</text>
 
       {/* Vulling onder lijn */}
       <path d={vulPad} fill={kleur} fillOpacity={0.08} />
@@ -135,7 +135,7 @@ function LijnenGrafiek({
       {puntenCoords
         .filter((_, i) => i % 3 === 0)
         .map((p, i) => (
-          <text key={i} x={p.x} y={hoogte - 4} textAnchor="middle" fontSize={9} fill="#9CA3AF">
+          <text key={i} x={p.x} y={hoogte - 4} textAnchor="middle" fontSize={9} style={{ fill: 'var(--text-4)' }}>
             {p.week.slice(5)}
           </text>
         ))}
@@ -168,11 +168,11 @@ function StaafGrafiek({ punten, kleur }: { punten: WeekPunt[]; kleur: string }) 
       {[0, 0.5, 1].map((f) => {
         const y = padding.top + innerH - f * innerH
         return (
-          <line key={f} x1={padding.left} y1={y} x2={breedte - padding.right} y2={y} stroke="#F3F4F6" strokeWidth={1} />
+          <line key={f} x1={padding.left} y1={y} x2={breedte - padding.right} y2={y} style={{ stroke: 'var(--border)' }} strokeWidth={1} />
         )
       })}
-      <text x={padding.left - 4} y={padding.top + 4} textAnchor="end" fontSize={9} fill="#9CA3AF">{max}</text>
-      <text x={padding.left - 4} y={padding.top + innerH + 4} textAnchor="end" fontSize={9} fill="#9CA3AF">0</text>
+      <text x={padding.left - 4} y={padding.top + 4} textAnchor="end" fontSize={9} style={{ fill: 'var(--text-4)' }}>{max}</text>
+      <text x={padding.left - 4} y={padding.top + innerH + 4} textAnchor="end" fontSize={9} style={{ fill: 'var(--text-4)' }}>0</text>
 
       {punten.map((p, i) => {
         const x = padding.left + (i / Math.max(punten.length - 1, 1)) * innerB
@@ -199,7 +199,7 @@ function StaafGrafiek({ punten, kleur }: { punten: WeekPunt[]; kleur: string }) 
         .map((p, i) => {
           const x = padding.left + ((punten.findIndex((q) => q.week === p.week)) / Math.max(punten.length - 1, 1)) * innerB
           return (
-            <text key={i} x={x} y={hoogte - 4} textAnchor="middle" fontSize={9} fill="#9CA3AF">
+            <text key={i} x={x} y={hoogte - 4} textAnchor="middle" fontSize={9} style={{ fill: 'var(--text-4)' }}>
               {p.week.slice(5)}
             </text>
           )
@@ -215,7 +215,7 @@ function RingParticipatie({ pct, kleur }: { pct: number; kleur: string }) {
   const gevuld = (pct / 100) * omtrek
   return (
     <svg width={108} height={108} viewBox="0 0 108 108">
-      <circle cx={54} cy={54} r={straal} fill="none" stroke="#F3F4F6" strokeWidth={10} />
+      <circle cx={54} cy={54} r={straal} fill="none" style={{ stroke: 'var(--border)' }} strokeWidth={10} />
       <circle
         cx={54}
         cy={54}
@@ -227,8 +227,8 @@ function RingParticipatie({ pct, kleur }: { pct: number; kleur: string }) {
         strokeDashoffset={omtrek / 4}
         strokeLinecap="round"
       />
-      <text x={54} y={50} textAnchor="middle" fontSize={18} fontWeight={800} fill="#111827">{pct}%</text>
-      <text x={54} y={66} textAnchor="middle" fontSize={10} fill="#9CA3AF">actief</text>
+      <text x={54} y={50} textAnchor="middle" fontSize={18} fontWeight={800} style={{ fill: 'var(--text-1)' }}>{pct}%</text>
+      <text x={54} y={66} textAnchor="middle" fontSize={10} style={{ fill: 'var(--text-4)' }}>actief</text>
     </svg>
   )
 }
@@ -306,7 +306,7 @@ export default function HrAnalyticsPage() {
   ]
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-app, #F9FAFB)' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
       <Navbar />
       <main style={{ padding: '32px 40px 72px', maxWidth: 1100, margin: '0 auto' }}>
 
@@ -332,7 +332,7 @@ export default function HrAnalyticsPage() {
             <div className="mf-spinner" />
           </div>
         ) : fout ? (
-          <div style={{ background: 'var(--mf-red-light)', border: '1px solid #FECACA', borderRadius: 12, padding: '16px 20px', color: 'var(--mf-red)', fontSize: 14 }}>
+          <div style={{ background: 'var(--mf-red-light)', border: '1px solid var(--mf-red-mid)', borderRadius: 12, padding: '16px 20px', color: 'var(--mf-red)', fontSize: 14 }}>
             {fout}
           </div>
         ) : data ? (
@@ -370,7 +370,7 @@ export default function HrAnalyticsPage() {
                 </div>
                 <LijnenGrafiek
                   punten={data.stemming_trend}
-                  kleur="#6366f1"
+                  kleur="var(--mf-purple)"
                   min={1}
                   max={5}
                   label="stemming"
@@ -385,7 +385,7 @@ export default function HrAnalyticsPage() {
                 </div>
                 <LijnenGrafiek
                   punten={data.slaap_trend}
-                  kleur="#1D9E75"
+                  kleur="var(--mf-green)"
                   min={4}
                   max={9}
                   label="slaap"
