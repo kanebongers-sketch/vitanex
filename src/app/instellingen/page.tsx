@@ -9,6 +9,9 @@ import { supabase } from '@/lib/supabase'
 import Navbar, { schakelPortaal, type ViewMode } from '@/components/layout/Navbar'
 import { Avatar } from '@/components/Avatar'
 import HrCodeModal from '@/components/hr/HrCodeModal'
+import nextDynamic from 'next/dynamic'
+
+const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
 
 async function cropToSquareJpeg(file: File, size: number): Promise<Blob> {
   return new Promise((resolve, reject) => {
@@ -428,9 +431,14 @@ export default function Instellingen() {
             {/* Avatar — overlapt de header */}
             <div className="absolute -top-9 left-6">
               <div className="relative">
-                <Avatar naam={naam || 'G'} avatarUrl={avatarUrl} size={72} />
+                <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
+                  <GlowOrb color={[0.114, 0.620, 0.459]} intensity={0.5} size={110} />
+                </div>
+                <div style={{ position: 'relative', zIndex: 1 }}>
+                  <Avatar naam={naam || 'G'} avatarUrl={avatarUrl} size={72} />
+                </div>
                 {/* Online dot */}
-                <span className="absolute bottom-1 right-1 w-3.5 h-3.5 rounded-full border-2" style={{ background: 'var(--mf-green)', borderColor: 'var(--bg-card)' }} />
+                <span className="absolute bottom-1 right-1 w-3.5 h-3.5 rounded-full border-2" style={{ background: 'var(--mf-green)', borderColor: 'var(--bg-card)', zIndex: 2 }} />
               </div>
             </div>
 
