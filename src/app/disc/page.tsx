@@ -7,6 +7,16 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { authFetch } from '@/lib/auth-fetch'
 import Navbar from '@/components/layout/Navbar'
+import nextDynamic from 'next/dynamic'
+
+const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
+
+const DIM_RGB: Record<string, [number, number, number]> = {
+  D: [0.886, 0.294, 0.290],
+  I: [0.949, 0.722, 0.141],
+  S: [0.114, 0.620, 0.459],
+  C: [0.231, 0.510, 0.965],
+}
 
 type Dimensie = 'D' | 'I' | 'S' | 'C'
 interface Vraag { id: number; tekst: string; dimensie: Dimensie }
@@ -215,8 +225,13 @@ export default function DiscPage() {
         {fase === 'eerder' && eerderResultaat && (
           <div style={{ background: '#0f1e36', border: '1px solid #1e3a5f', borderRadius: 16, padding: 32 }}>
             <div style={{ textAlign: 'center', marginBottom: 24 }}>
-              <div style={{ fontSize: 36, marginBottom: 8 }}>
-                {DIM_INTRO[eerderResultaat.primair_profiel as Dimensie]?.emoji ?? '📊'}
+              <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: 8 }}>
+                <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 0 }}>
+                  <GlowOrb color={DIM_RGB[eerderResultaat.primair_profiel] ?? [0.231, 0.510, 0.965]} intensity={0.65} size={80} />
+                </div>
+                <div style={{ fontSize: 36, position: 'relative', zIndex: 1 }}>
+                  {DIM_INTRO[eerderResultaat.primair_profiel as Dimensie]?.emoji ?? '📊'}
+                </div>
               </div>
               <h2 style={{ fontSize: 20, fontWeight: 700, color: 'var(--bg-subtle)', marginBottom: 4 }}>Je hebt deze test al ingevuld</h2>
               <p style={{ color: 'var(--text-2)', fontSize: 14 }}>Gedaan op {formatDatum(eerderResultaat.created_at)}</p>
@@ -383,8 +398,11 @@ export default function DiscPage() {
                 const polyPath = punten.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' ') + ' Z'
                 const maxGridLevels = [10, 20, 30]
                 return (
-                  <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 24 }}>
-                    <svg width={220} height={220} viewBox="0 0 220 220">
+                  <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 24, position: 'relative' }}>
+                    <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 0 }}>
+                      <GlowOrb color={DIM_RGB[primair] ?? [0.231, 0.510, 0.965]} intensity={0.55} size={200} />
+                    </div>
+                    <svg width={220} height={220} viewBox="0 0 220 220" style={{ position: 'relative', zIndex: 1 }}>
                       {/* Grid rings */}
                       {maxGridLevels.map(lvl => {
                         const gridPts = dims.map(d => ({

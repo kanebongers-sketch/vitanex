@@ -7,6 +7,12 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
+import nextDynamic from 'next/dynamic'
+
+const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
+
+const SCORE_RGB = (n: number): [number, number, number] =>
+  n >= 9 ? [0.114, 0.620, 0.459] : n >= 7 ? [0.949, 0.722, 0.141] : [0.886, 0.294, 0.290]
 
 interface Meting {
   maand: string
@@ -131,7 +137,12 @@ export default function ENPSPage() {
             {score !== null && (
               <div style={{ marginBottom: 20 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14, padding: '10px 14px', borderRadius: 10, background: `${CAT_KLEUR(score)}12` }}>
-                  <span style={{ fontSize: 24 }}>{SCORE_LABEL[String(score)]}</span>
+                  <div style={{ position: 'relative', width: 36, height: 36, flexShrink: 0 }}>
+                    <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 0 }}>
+                      <GlowOrb color={SCORE_RGB(score)} intensity={0.5 + score / 20} size={64} />
+                    </div>
+                    <span style={{ fontSize: 24, position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', width: 36, height: 36 }}>{SCORE_LABEL[String(score)]}</span>
+                  </div>
                   <div>
                     <p style={{ fontSize: 13, fontWeight: 700, color: CAT_KLEUR(score) }}>{CATEGORIE(score)}</p>
                     <p style={{ fontSize: 11, color: 'var(--text-3)' }}>
