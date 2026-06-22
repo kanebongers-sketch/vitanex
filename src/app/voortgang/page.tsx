@@ -222,53 +222,89 @@ export default function VoortgangPage() {
               </div>
             </div>
 
-            {/* Weektrends */}
-            <div style={{ background: 'var(--bg-card, white)', borderRadius: 16, border: '1px solid var(--border, #E5E7EB)', padding: '18px 22px', marginBottom: 20, boxShadow: 'var(--shadow-xs)' }}>
-              <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-3, #9CA3AF)', marginBottom: 16 }}>
+            {/* Weektrends — visuele mini-charts */}
+            <div style={{ marginBottom: 20 }}>
+              <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-3, #9CA3AF)', marginBottom: 12 }}>
                 Weektrend (4 weken)
               </p>
-              <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-                  <thead>
-                    <tr>
-                      {['Week', 'Stemming', 'Slaap', 'Stress', 'Focus', 'Check-ins'].map(h => (
-                        <th key={h} style={{ textAlign: 'left', fontSize: 11, fontWeight: 700, color: 'var(--text-3, #9CA3AF)', paddingBottom: 10, whiteSpace: 'nowrap', paddingRight: 20 }}>{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {weekStats.map((w, i) => (
-                      <tr key={i} style={{ borderTop: '1px solid var(--border, #F3F4F6)' }}>
-                        <td style={{ padding: '10px 20px 10px 0', fontSize: 12, color: 'var(--text-2, #6B7280)', fontWeight: 600, whiteSpace: 'nowrap' }}>{w.week}</td>
-                        <td style={{ padding: '10px 20px 10px 0' }}>
-                          {w.stemming !== null
-                            ? <span style={{ fontSize: 13, fontWeight: 700, color: w.stemming >= 4 ? 'var(--mf-green, #1D9E75)' : w.stemming >= 3 ? 'var(--mf-amber)' : 'var(--mf-red, #E24B4A)' }}>{w.stemming}/5</span>
-                            : <span style={{ fontSize: 12, color: 'var(--text-4, #D1D5DB)' }}>—</span>}
-                        </td>
-                        <td style={{ padding: '10px 20px 10px 0' }}>
-                          {w.slaap !== null
-                            ? <span style={{ fontSize: 13, fontWeight: 700, color: w.slaap >= 7 ? 'var(--mf-green, #1D9E75)' : w.slaap >= 5 ? 'var(--mf-amber)' : 'var(--mf-red, #E24B4A)' }}>{w.slaap}u</span>
-                            : <span style={{ fontSize: 12, color: 'var(--text-4, #D1D5DB)' }}>—</span>}
-                        </td>
-                        <td style={{ padding: '10px 20px 10px 0' }}>
-                          {w.stress !== null
-                            ? <span style={{ fontSize: 13, fontWeight: 700, color: w.stress <= 4 ? 'var(--mf-green, #1D9E75)' : w.stress <= 6 ? 'var(--mf-amber)' : 'var(--mf-red, #E24B4A)' }}>{w.stress}/10</span>
-                            : <span style={{ fontSize: 12, color: 'var(--text-4, #D1D5DB)' }}>—</span>}
-                        </td>
-                        <td style={{ padding: '10px 20px 10px 0' }}>
-                          <span style={{ fontSize: 13, fontWeight: 700, color: w.focus >= 60 ? 'var(--mf-purple)' : 'var(--text-3, #9CA3AF)' }}>{w.focus}m</span>
-                        </td>
-                        <td style={{ padding: '10px 20px 10px 0' }}>
-                          <div style={{ display: 'flex', gap: 3 }}>
-                            {Array.from({ length: 5 }, (_, j) => (
-                              <div key={j} style={{ width: 8, height: 8, borderRadius: 2, background: j < w.checkins ? 'var(--mf-green, #1D9E75)' : 'var(--border, #E5E7EB)' }} />
-                            ))}
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
+                {[
+                  {
+                    label: 'Stemming',
+                    icon: '😊',
+                    max: 5,
+                    kleur: (v: number | null) => v === null ? 'var(--bg-subtle)' : v >= 4 ? 'var(--mf-green)' : v >= 3 ? 'var(--mf-amber)' : 'var(--mf-red)',
+                    fmt: (v: number | null) => v !== null ? `${v}/5` : '—',
+                    vals: weekStats.map(w => w.stemming),
+                    hMax: 5,
+                  },
+                  {
+                    label: 'Slaap',
+                    icon: '😴',
+                    max: 9,
+                    kleur: (v: number | null) => v === null ? 'var(--bg-subtle)' : v >= 7 ? 'var(--mf-green)' : v >= 5 ? 'var(--mf-amber)' : 'var(--mf-red)',
+                    fmt: (v: number | null) => v !== null ? `${v}u` : '—',
+                    vals: weekStats.map(w => w.slaap),
+                    hMax: 9,
+                  },
+                  {
+                    label: 'Focus',
+                    icon: '🎯',
+                    max: 120,
+                    kleur: (v: number | null) => v === null ? 'var(--bg-subtle)' : v >= 60 ? 'var(--mf-purple)' : v > 0 ? 'var(--mf-amber)' : 'var(--bg-subtle)',
+                    fmt: (v: number | null) => v !== null && v > 0 ? `${v}m` : '—',
+                    vals: weekStats.map(w => w.focus as number | null),
+                    hMax: 120,
+                  },
+                  {
+                    label: 'Check-ins',
+                    icon: '✅',
+                    max: 7,
+                    kleur: (v: number | null) => v === null ? 'var(--bg-subtle)' : v >= 5 ? 'var(--mf-green)' : v >= 3 ? 'var(--mf-amber)' : v > 0 ? 'var(--mf-red)' : 'var(--bg-subtle)',
+                    fmt: (v: number | null) => v !== null ? `${v}×` : '—',
+                    vals: weekStats.map(w => w.checkins as number | null),
+                    hMax: 7,
+                  },
+                ].map(metric => {
+                  const latest = [...metric.vals].reverse().find(v => v !== null) ?? null
+                  return (
+                    <div key={metric.label} style={{
+                      background: 'var(--bg-card, white)', borderRadius: 16,
+                      border: '1px solid var(--border, #E5E7EB)', padding: '16px',
+                      boxShadow: 'var(--shadow-xs)',
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, fontWeight: 700, color: 'var(--text-2)' }}>
+                          <span style={{ fontSize: 14 }}>{metric.icon}</span>{metric.label}
+                        </span>
+                        <span style={{ fontSize: 13, fontWeight: 800, color: metric.kleur(latest) }}>
+                          {metric.fmt(latest)}
+                        </span>
+                      </div>
+                      <div style={{ display: 'flex', gap: 5, alignItems: 'flex-end', height: 40 }}>
+                        {metric.vals.map((v, i) => {
+                          const h = v !== null && v > 0 ? Math.max(4, (v / metric.hMax) * 36) : 4
+                          const kleur = metric.kleur(v)
+                          return (
+                            <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
+                              <div style={{
+                                width: '100%', height: h, borderRadius: 3,
+                                background: v !== null && v > 0 ? kleur : 'var(--bg-subtle)',
+                                opacity: v !== null && v > 0 ? 0.85 : 0.4,
+                                transition: 'height 0.5s ease',
+                              }} />
+                            </div>
+                          )
+                        })}
+                      </div>
+                      <div style={{ display: 'flex', gap: 5, marginTop: 4 }}>
+                        {weekStats.map((w, i) => (
+                          <span key={i} style={{ flex: 1, fontSize: 8, color: 'var(--text-4)', textAlign: 'center', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{w.week}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )
+                })}
               </div>
             </div>
 
