@@ -15,6 +15,9 @@ import {
 } from '@/lib/weekdoelen'
 import { CAT } from '@/lib/doelen-config'
 import { authFetch } from '@/lib/auth-fetch'
+import nextDynamic from 'next/dynamic'
+
+const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
 
 type DoelenAdvies = { domein: string; doel: string; waarom: string }
 
@@ -137,10 +140,15 @@ function DoelenInhoud() {
       <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
         <Navbar />
         <main style={{ maxWidth: 520, margin: '0 auto', padding: '60px 24px', textAlign: 'center' }}>
-          <div style={{ width: 64, height: 64, borderRadius: 20, background: 'var(--mf-green-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', color: 'var(--mf-green)' }}>
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>
-            </svg>
+          <div style={{ position: 'relative', width: 64, height: 64, margin: '0 auto 20px' }}>
+            <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 0 }}>
+              <GlowOrb color={[0.114, 0.620, 0.459]} intensity={0.5} size={100} />
+            </div>
+            <div style={{ width: 64, height: 64, borderRadius: 20, background: 'var(--mf-green-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--mf-green)', position: 'relative', zIndex: 1 }}>
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>
+              </svg>
+            </div>
           </div>
           <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', marginBottom: 10 }}>Nog geen doelen</h1>
           <p style={{ fontSize: 14, color: 'var(--text-3)', lineHeight: 1.6, marginBottom: 28 }}>
