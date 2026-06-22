@@ -119,6 +119,50 @@ export default function DankbaarheidPagina() {
           </p>
         </header>
 
+        {/* 7-daagse streak strip */}
+        {logs.length > 0 && (() => {
+          const nu = new Date()
+          const datumSet = new Set(logs.map(l => l.datum))
+          const strip = Array.from({ length: 7 }, (_, i) => {
+            const d = new Date(nu)
+            d.setDate(d.getDate() - (6 - i))
+            const ds = d.toISOString().split('T')[0]
+            return { ds, dag: d.toLocaleDateString('nl-NL', { weekday: 'short' }).slice(0, 2), actief: datumSet.has(ds), isVandaag: ds === vandaag }
+          })
+          let streak = 0
+          for (let i = 6; i >= 0; i--) {
+            const d = new Date(nu); d.setDate(d.getDate() - i)
+            if (datumSet.has(d.toISOString().split('T')[0])) streak++; else break
+          }
+          return (
+            <div style={{ background: 'var(--bg-card)', borderRadius: 16, padding: '14px 16px', marginBottom: 20, border: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 16 }}>
+              <div style={{ flex: 1, display: 'flex', gap: 6 }}>
+                {strip.map(({ ds, dag, actief, isVandaag }) => (
+                  <div key={ds} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+                    <div style={{
+                      width: '100%', height: 28, borderRadius: 6,
+                      background: actief ? 'var(--mf-green)' : 'var(--bg-subtle)',
+                      opacity: actief ? 0.85 : 0.5,
+                      outline: isVandaag ? `2px solid ${actief ? 'var(--mf-green)' : 'var(--border-strong)'}` : 'none',
+                      outlineOffset: 2,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    }}>
+                      {actief && <span style={{ fontSize: 12 }}>🙏</span>}
+                    </div>
+                    <span style={{ fontSize: 8, color: isVandaag ? 'var(--text-2)' : 'var(--text-4)', fontWeight: isVandaag ? 800 : 400, textTransform: 'capitalize' }}>{dag}</span>
+                  </div>
+                ))}
+              </div>
+              {streak > 0 && (
+                <div style={{ textAlign: 'center', paddingLeft: 12, borderLeft: '1px solid var(--border)', flexShrink: 0 }}>
+                  <p style={{ fontSize: 20, fontWeight: 900, color: 'var(--mf-green)', margin: 0, lineHeight: 1 }}>{streak}</p>
+                  <p style={{ fontSize: 9, color: 'var(--text-4)', margin: '2px 0 0', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>daagse<br />streak</p>
+                </div>
+              )}
+            </div>
+          )
+        })()}
+
         {/* Invoer sectie */}
         <section style={{
           background: 'var(--bg-card)', borderRadius: 20, padding: '20px',
