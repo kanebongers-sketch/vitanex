@@ -4,9 +4,12 @@ export const dynamic = 'force-dynamic'
 
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import dynamic from 'next/dynamic'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
+
+const MeditationParticles = dynamic(() => import('@/components/three/MeditationParticles'), { ssr: false })
 
 const SESSIES = [
   {
@@ -232,11 +235,13 @@ export default function MeditatiePagina() {
         {/* Actieve sessie */}
         {bezig && gekozenSessie && (
           <div style={{
+            position: 'relative', overflow: 'hidden',
             background: 'linear-gradient(135deg, #111827, #1f2937)',
             borderRadius: 24, padding: '32px 24px',
             textAlign: 'center', marginBottom: 24,
             color: 'white',
           }}>
+            <MeditationParticles active={bezig} />
             <div style={{ fontSize: 44, marginBottom: 12 }}>{gekozenSessie.emoji}</div>
             <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.6)', marginBottom: 20 }}>{gekozenSessie.titel}</p>
 
