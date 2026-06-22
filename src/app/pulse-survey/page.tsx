@@ -7,6 +7,9 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
+import nextDynamic from 'next/dynamic'
+
+const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
 
 interface Vraag {
   id: string
@@ -75,7 +78,12 @@ export default function PulseSurveyPage() {
     <div className="mf-mesh-bg" style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
       <Navbar />
       <main style={{ padding: '72px 40px', maxWidth: 560, margin: '0 auto', textAlign: 'center' }}>
-        <div style={{ fontSize: 48, marginBottom: 20 }}>✓</div>
+        <div style={{ position: 'relative', display: 'inline-block', marginBottom: 20 }}>
+          <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
+            <GlowOrb color={[0.114, 0.620, 0.459]} intensity={0.55} size={100} />
+          </div>
+          <div style={{ fontSize: 48, position: 'relative', zIndex: 1 }}>✓</div>
+        </div>
         <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 10 }}>
           {klaar ? 'Bedankt voor je bijdrage!' : 'Al ingevuld deze week'}
         </h1>
