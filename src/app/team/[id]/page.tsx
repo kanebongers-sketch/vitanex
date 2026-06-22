@@ -304,7 +304,7 @@ export default function ProfielPagina() {
                 <p className="text-sm font-medium text-gray-700 mb-4">Vitaliteitstrend</p>
                 <ResponsiveContainer width="100%" height={200}>
                   <LineChart data={trendData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                     <XAxis dataKey="datum" tick={{ fontSize: 11 }} />
                     <YAxis domain={[0, 100]} tick={{ fontSize: 11 }} unit="%" />
                     <Tooltip formatter={(v) => `${v}%`} />
