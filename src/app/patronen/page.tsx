@@ -130,7 +130,7 @@ function LegeStaat() {
         style={{
           display: 'inline-block',
           background: 'var(--mf-green)',
-          color: '#fff',
+          color: 'white',
           fontWeight: 700,
           fontSize: 14,
           padding: '12px 24px',
@@ -339,7 +339,7 @@ export default function PatronenPage() {
                         key={m.doel}
                         style={{
                           background: m.bereikt ? 'var(--mf-green-light)' : 'var(--bg-subtle)',
-                          border: `1.5px solid ${m.bereikt ? '#A7F3D0' : 'var(--border)'}`,
+                          border: `1.5px solid ${m.bereikt ? 'var(--mf-green-mid)' : 'var(--border)'}`,
                           borderRadius: 'var(--radius-md)',
                           padding: '12px 8px',
                           textAlign: 'center',

@@ -128,7 +128,7 @@ export default function MentaleSterktePagina() {
               {VRAGEN.map((vraag, i) => (
                 <div key={i} style={{
                   background: 'var(--bg-card)', borderRadius: 16, padding: '16px 18px',
-                  border: `1.5px solid ${huidigVraag === i ? 'rgba(29,158,117,0.2)' : antwoorden[i] > 0 ? '#1D9E7520' : 'var(--border)'}`,
+                  border: `1.5px solid ${huidigVraag === i ? 'var(--mf-green-light)' : antwoorden[i] > 0 ? 'var(--mf-green-light)' : 'var(--border)'}`,
                   transition: 'border-color 0.2s ease',
                 }}>
                   <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-2)', marginBottom: 12, lineHeight: 1.5 }}>
@@ -218,7 +218,7 @@ export default function MentaleSterktePagina() {
                     </span>
                   </div>
                   <div style={{ height: 3, borderRadius: 9999, background: 'var(--border)', overflow: 'hidden' }}>
-                    <div style={{ height: '100%', borderRadius: 9999, width: `${(pv.score / 5) * 100}%`, background: pv.score >= 4 ? 'var(--mf-green)' : pv.score >= 3 ? 'var(--mf-amber)' : 'var(--mf-red)' }} />
+                    <div style={{ height: '100%', borderRadius: 9999, width: `${(pv.score / 5) * 100}%`, background: pv.score >= 4 ? 'var(--mf-green)' : pv.score >= 3 ? 'var(--mf-amber)' : 'var(--mf-red)', transition: 'width 0.6s ease' }} />
                   </div>
                 </div>
               ))}

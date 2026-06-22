@@ -80,7 +80,7 @@ export default function CheckInGeschiedenisPage() {
         {laden ? (
           <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 60 }}><div className="mf-spinner" /></div>
         ) : checkIns.length === 0 ? (
-          <div style={{ background: 'white', borderRadius: 20, border: '1px solid #E5E7EB', padding: '56px 40px', textAlign: 'center' }}>
+          <div style={{ background: 'var(--bg-card)', borderRadius: 20, border: '1px solid var(--border)', padding: '56px 40px', textAlign: 'center' }}>
             <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-2)', marginBottom: 8 }}>Nog geen check-ins</p>
             <Link href="/checkin" style={{ fontSize: 14, color: 'white', background: 'var(--mf-green)', borderRadius: 12, padding: '10px 20px', textDecoration: 'none', fontWeight: 600, display: 'inline-block' }}>
               Eerste check-in →
@@ -99,7 +99,7 @@ export default function CheckInGeschiedenisPage() {
                 <div key={ci.id} style={{ display: 'flex', gap: 0 }}>
                   {/* Tijdlijn lijn */}
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: 36, flexShrink: 0 }}>
-                    <div style={{ width: 12, height: 12, borderRadius: '50%', background: vkleur, border: '2px solid white', boxShadow: `0 0 0 2px ${vkleur}40`, flexShrink: 0, marginTop: 20 }} />
+                    <div style={{ width: 12, height: 12, borderRadius: '50%', background: vkleur, border: '2px solid var(--bg-app)', boxShadow: `0 0 0 2px ${vkleur}40`, flexShrink: 0, marginTop: 20 }} />
                     {idx < checkIns.length - 1 && (
                       <div style={{ width: 2, flex: 1, background: 'var(--bg-subtle)', minHeight: 16 }} />
                     )}
@@ -111,7 +111,7 @@ export default function CheckInGeschiedenisPage() {
                       onClick={() => setUitgevouwen(isOpen ? null : ci.id)}
                       style={{ width: '100%', background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left', padding: 0 }}
                     >
-                      <div style={{ background: 'white', borderRadius: 14, border: '1px solid #E5E7EB', padding: '14px 16px' }}>
+                      <div style={{ background: 'var(--bg-card)', borderRadius: 14, border: '1px solid var(--border)', padding: '14px 16px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: isOpen ? 12 : 0 }}>
                           <div>
                             <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-1)' }}>
@@ -126,7 +126,7 @@ export default function CheckInGeschiedenisPage() {
                               <p style={{ fontSize: 20, fontWeight: 800, color: vkleur }}>{vscore}</p>
                               <p style={{ fontSize: 9, color: 'var(--text-3)', fontWeight: 600, textTransform: 'uppercase' }}>score</p>
                             </div>
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--text-3)' }}>
                               <polyline points={isOpen ? '18 15 12 9 6 15' : '6 9 12 15 18 9'} />
                             </svg>
                           </div>
@@ -139,11 +139,11 @@ export default function CheckInGeschiedenisPage() {
                               const score = ci.domein_scores[d]
                               const pct = Math.round(((score - 4) / 16) * 100)
                               return (
-                                <div key={d} style={{ borderRadius: 10, padding: '10px 12px', background: 'var(--bg-subtle)', border: '1px solid #E5E7EB' }}>
+                                <div key={d} style={{ borderRadius: 10, padding: '10px 12px', background: 'var(--bg-subtle)', border: '1px solid var(--border)' }}>
                                   <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: cfg.kleur, marginBottom: 4 }}>{cfg.label}</p>
                                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                                     <div style={{ flex: 1, height: 4, background: 'var(--border)', borderRadius: 100, overflow: 'hidden' }}>
-                                      <div style={{ height: '100%', width: `${pct}%`, background: scoreKleur(score), borderRadius: 100 }} />
+                                      <div style={{ height: '100%', width: `${pct}%`, background: scoreKleur(score), borderRadius: 100, transition: 'width 0.5s ease' }} />
                                     </div>
                                     <span style={{ fontSize: 12, fontWeight: 700, color: scoreKleur(score), width: 28, textAlign: 'right' }}>{score}</span>
                                   </div>

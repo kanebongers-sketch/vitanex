@@ -53,7 +53,7 @@ function ScoreRing({ score }: { score: number }) {
         strokeDasharray={`${(score / 100) * circ} ${circ}`} strokeLinecap="round"
         transform="rotate(-90 70 70)" style={{ transition: 'stroke-dasharray 1.2s cubic-bezier(0.16,1,0.3,1)' }} />
       <text x="70" y="65" textAnchor="middle" fontSize="32" fontWeight="800" fill={kleur}>{score}</text>
-      <text x="70" y="84" textAnchor="middle" fontSize="12" fill="#9CA3AF" fontWeight="600">/100</text>
+      <text x="70" y="84" textAnchor="middle" fontSize="12" fontWeight="600" style={{ fill: 'var(--text-4)' }}>/100</text>
     </svg>
   )
 }
@@ -401,7 +401,7 @@ export default function Rapport() {
                 : 'var(--bg-subtle)',
               border: `1.5px solid ${score !== null
                 ? score >= 70 ? 'rgba(29,158,117,0.20)' : score >= 45 ? 'rgba(245,158,11,0.20)' : 'rgba(239,68,68,0.20)'
-                : '#E5E7EB'}`,
+                : 'var(--border)'}`,
               boxShadow: '0 4px 24px rgba(0,0,0,0.06)',
               display: 'flex', alignItems: 'center', gap: 28,
             }}>
@@ -465,15 +465,15 @@ export default function Rapport() {
               {aj?.sterke_punten && aj.sterke_punten.length > 0 && (
                 <div style={{
                   background: 'var(--mf-green-light)', borderRadius: 16, padding: '20px 24px',
-                  border: '1.5px solid #A7F3D0',
+                  border: '1.5px solid var(--mf-green-mid)',
                 }}>
                   <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--mf-green-dark)', marginBottom: 10 }}>Sterke punten</p>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                     {aj.sterke_punten.map((p, i) => (
                       <span key={i} style={{
-                        fontSize: 12, color: 'var(--mf-green-dark)', background: 'white',
+                        fontSize: 12, color: 'var(--mf-green-dark)', background: 'var(--bg-card)',
                         borderRadius: 100, padding: '4px 12px',
-                        border: '1px solid #A7F3D0', fontWeight: 500,
+                        border: '1px solid var(--mf-green-mid)', fontWeight: 500,
                       }}>✓ {p}</span>
                     ))}
                   </div>
