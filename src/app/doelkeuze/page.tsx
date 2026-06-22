@@ -4,7 +4,10 @@ export const dynamic = 'force-dynamic'
 
 import { Suspense, useState } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
+import nextDynamic from 'next/dynamic'
 import { supabase } from '@/lib/supabase'
+
+const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
 import { CAT, DOELKEUZE_OPTIES } from '@/lib/doelen-config'
 import { verwerkCheckin } from '@/lib/xp'
 import {
@@ -134,14 +137,19 @@ function DoelKeuzeInhoud() {
 
         {/* Header */}
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <div style={{
-            width: 56, height: 56, borderRadius: '50%',
-            background: 'var(--mf-green-light)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            margin: '0 auto 16px',
-          }}>
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--mf-green)' }}>
-              <polyline points="20 6 9 17 4 12"/>
-            </svg>
+          <div style={{ position: 'relative', width: 56, height: 56, margin: '0 auto 16px' }}>
+            <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 0 }}>
+              <GlowOrb color={[0.114, 0.620, 0.459]} intensity={0.65} size={90} />
+            </div>
+            <div style={{
+              width: 56, height: 56, borderRadius: '50%',
+              background: 'var(--mf-green-light)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              position: 'relative', zIndex: 1,
+            }}>
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--mf-green)' }}>
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+            </div>
           </div>
           <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', marginBottom: 8, letterSpacing: '-0.02em' }}>
             Check-in ingevuld!
