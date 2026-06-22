@@ -7,6 +7,22 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
+import nextDynamic from 'next/dynamic'
+
+const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
+
+const ADEM_FASE_RGB: Record<string, [number, number, number]> = {
+  'var(--mf-green)':  [0.114, 0.620, 0.459],
+  'var(--mf-blue)':   [0.231, 0.510, 0.965],
+  'var(--mf-purple)': [0.486, 0.231, 0.933],
+  'var(--mf-amber)':  [0.949, 0.722, 0.141],
+}
+
+const TIMER_RGB: Record<string, [number, number, number]> = {
+  focus: [0.114, 0.620, 0.459],
+  pauze: [0.231, 0.510, 0.965],
+  micro: [0.949, 0.722, 0.141],
+}
 
 type HoofdTab = 'adem' | 'beweging' | 'voeding' | 'slaap' | 'mentaal' | 'timer'
 type AdemTab = 'box' | '478' | 'coherentie' | 'wim'
@@ -647,21 +663,30 @@ export default function FocusPagina() {
 
               {ademActief && huidigeFase && (
                 <div className="flex flex-col items-center py-4">
-                  <svg width="200" height="200" viewBox="0 0 200 200">
-                    <circle cx="100" cy="100" r={pulsR + 12} fill={huidigeFase.kleur} opacity="0.07" />
-                    <circle
-                      cx="100" cy="100" r={pulsR}
-                      fill={huidigeFase.kleur}
-                      opacity="0.88"
-                      style={{ transition: 'r 0.9s ease-in-out' }}
-                    />
-                    <text x="100" y="94" textAnchor="middle" fill="white" fontSize="13" fontWeight="600">
-                      {huidigeFase.label}
-                    </text>
-                    <text x="100" y="118" textAnchor="middle" fill="white" fontSize="28" fontWeight="800">
-                      {ademTeller}
-                    </text>
-                  </svg>
+                  <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 0 }}>
+                      <GlowOrb
+                        color={ADEM_FASE_RGB[huidigeFase.kleur] ?? [0.114, 0.620, 0.459]}
+                        intensity={0.65}
+                        size={220}
+                      />
+                    </div>
+                    <svg width="200" height="200" viewBox="0 0 200 200" style={{ position: 'relative', zIndex: 1 }}>
+                      <circle cx="100" cy="100" r={pulsR + 12} fill={huidigeFase.kleur} opacity="0.07" />
+                      <circle
+                        cx="100" cy="100" r={pulsR}
+                        fill={huidigeFase.kleur}
+                        opacity="0.88"
+                        style={{ transition: 'r 0.9s ease-in-out' }}
+                      />
+                      <text x="100" y="94" textAnchor="middle" fill="white" fontSize="13" fontWeight="600">
+                        {huidigeFase.label}
+                      </text>
+                      <text x="100" y="118" textAnchor="middle" fill="white" fontSize="28" fontWeight="800">
+                        {ademTeller}
+                      </text>
+                    </svg>
+                  </div>
                   <p className="text-sm text-gray-400 mt-1">
                     {ademRonden} ronde{ademRonden !== 1 ? 'n' : ''} voltooid
                   </p>
@@ -993,8 +1018,15 @@ export default function FocusPagina() {
             </div>
 
             <div className="rounded-2xl border p-6 mb-4 flex flex-col items-center" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
-              <div className="relative" style={{ width: 200, height: 200 }}>
-                <svg width="200" height="200" viewBox="0 0 200 200" style={{ transform: 'rotate(-90deg)' }}>
+              <div style={{ position: 'relative', width: 200, height: 200 }}>
+                <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 0 }}>
+                  <GlowOrb
+                    color={TIMER_RGB[timerTab] ?? [0.114, 0.620, 0.459]}
+                    intensity={timerActief ? 0.5 + timerVoortgang * 0.5 : 0.3}
+                    size={220}
+                  />
+                </div>
+                <svg width="200" height="200" viewBox="0 0 200 200" style={{ transform: 'rotate(-90deg)', position: 'relative', zIndex: 1 }}>
                   <circle cx="100" cy="100" r="88" fill="none" style={{ stroke: 'var(--border-strong)' }} strokeWidth="8" />
                   <circle
                     cx="100" cy="100" r="88"
@@ -1007,7 +1039,7 @@ export default function FocusPagina() {
                     style={{ transition: 'stroke-dashoffset 1s linear' }}
                   />
                 </svg>
-                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <div className="absolute inset-0 flex flex-col items-center justify-center" style={{ zIndex: 2 }}>
                   <span className="text-4xl font-bold text-gray-800">{formatTijd(timerRest)}</span>
                   <span className="text-sm text-gray-400 mt-1">{timerConfig.naam}</span>
                 </div>
