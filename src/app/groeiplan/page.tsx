@@ -7,6 +7,9 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
+import dynamic from 'next/dynamic'
+
+const GlowOrb = dynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
 
 interface Actie {
   actie: string
@@ -95,7 +98,9 @@ export default function GroeiplanPagina() {
             background: 'var(--bg-card)', borderRadius: 24, padding: '40px 24px',
             textAlign: 'center', border: '1px solid var(--border)',
           }}>
-            <div style={{ fontSize: 52, marginBottom: 16 }}>🌱</div>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8 }}>
+              <GlowOrb color={[0.114, 0.620, 0.459]} intensity={0.5} size={100} />
+            </div>
             <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-1)', marginBottom: 8 }}>
               Genereer jouw groeiplan
             </h2>
