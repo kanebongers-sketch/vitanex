@@ -7,9 +7,9 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
-import dynamic from 'next/dynamic'
+import nextDynamic from 'next/dynamic'
 
-const GlowOrb = dynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
+const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
 
 interface DankbaarheidLog {
   id: string

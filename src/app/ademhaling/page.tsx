@@ -4,12 +4,12 @@ export const dynamic = 'force-dynamic'
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import dynamic from 'next/dynamic'
+import nextDynamic from 'next/dynamic'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
 
-const BreathingSphere = dynamic(() => import('@/components/three/BreathingSphere'), { ssr: false })
+const BreathingSphere = nextDynamic(() => import('@/components/three/BreathingSphere'), { ssr: false })
 
 interface Techniek {
   id: string

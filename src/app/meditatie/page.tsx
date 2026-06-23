@@ -4,12 +4,12 @@ export const dynamic = 'force-dynamic'
 
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import dynamic from 'next/dynamic'
+import nextDynamic from 'next/dynamic'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
 
-const MeditationParticles = dynamic(() => import('@/components/three/MeditationParticles'), { ssr: false })
+const MeditationParticles = nextDynamic(() => import('@/components/three/MeditationParticles'), { ssr: false })
 
 const SESSIES = [
   {

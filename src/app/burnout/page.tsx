@@ -7,9 +7,9 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import Link from 'next/link'
-import dynamic from 'next/dynamic'
+import nextDynamic from 'next/dynamic'
 
-const GlowOrb = dynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
+const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
 
 const RISICO_RGB: Record<string, [number, number, number]> = {
   laag:  [0.114, 0.620, 0.459],

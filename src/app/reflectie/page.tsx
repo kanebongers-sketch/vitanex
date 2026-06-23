@@ -8,9 +8,9 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
-import dynamic from 'next/dynamic'
+import nextDynamic from 'next/dynamic'
 
-const GlowOrb = dynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
+const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
 
 const REFLECTIE_VRAGEN = [
   { id: 'hoogtepunt', vraag: 'Wat was het hoogtepunt van deze week?', placeholder: 'Het moment dat me het meest energiek maakte...' },

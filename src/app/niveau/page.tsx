@@ -11,9 +11,9 @@ import {
   ALLE_ACHIEVEMENTS, type XPData, type Achievement,
 } from '@/lib/xp'
 import { laadXPVanServer } from '@/lib/xp-sync'
-import dynamic from 'next/dynamic'
+import nextDynamic from 'next/dynamic'
 
-const GlowOrb = dynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
+const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
 
 const LEVEL_RGB: Record<number, [number, number, number]> = {
   1:  [0.486, 0.231, 0.933],
