@@ -9,6 +9,7 @@ import { supabase } from '@/lib/supabase'
 import { authFetch } from '@/lib/auth-fetch'
 import Navbar from '@/components/layout/Navbar'
 import nextDynamic from 'next/dynamic'
+import { WaterfallModal, type WaterfallData } from './WaterfallModal'
 
 const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
 
@@ -69,9 +70,11 @@ function PrioriteitSterren({ waarde }: { waarde: number }) {
 function IdeeKaart({
   idee,
   onStatusUpdate,
+  onWaterfall,
 }: {
   idee: IdeeRecord
   onStatusUpdate: (id: string, status: string) => void
+  onWaterfall: (idee: IdeeRecord) => void
 }) {
   const pijler = PIJLER_MAP[idee.pillar_id]
   const kleur = pijler?.kleur ?? 'var(--mf-green)'
@@ -207,17 +210,18 @@ function IdeeKaart({
           </select>
 
           <button
-            disabled
-            title="Komt bron"
+            onClick={() => onWaterfall(idee)}
             style={{
               padding: '7px 14px', borderRadius: 8,
-              border: '1px solid var(--border)',
-              background: 'var(--bg-subtle)', color: 'var(--text-4)',
-              fontSize: 12, fontWeight: 600, cursor: 'not-allowed',
-              whiteSpace: 'nowrap', opacity: 0.6,
+              border: 'none',
+              background: 'var(--mf-green)', color: '#fff',
+              fontSize: 12, fontWeight: 700, cursor: 'pointer',
+              whiteSpace: 'nowrap',
+              boxShadow: '0 2px 8px rgba(29,158,117,0.3)',
+              transition: 'all 0.15s ease',
             }}
           >
-            📋 Voeg toe aan briefing
+            🌊 Waterfall
           </button>
         </div>
       </div>
@@ -238,6 +242,9 @@ function IdeeBankContent() {
   const [filterStatus, setFilterStatus] = useState<string>('alle')
   const [zoekterm, setZoekterm] = useState('')
   const [error, setError] = useState('')
+  const [waterfallData, setWaterfallData] = useState<WaterfallData | null>(null)
+  const [waterfallLoading, setWaterfallLoading] = useState(false)
+  const [waterfallError, setWaterfallError] = useState('')
 
   // Auth check
   useEffect(() => {
@@ -289,6 +296,30 @@ function IdeeBankContent() {
     setIdeeen(prev => prev.map(i => i.id === id ? { ...i, status } : i))
   }
 
+  async function genereerWaterfallVoor(idee: IdeeRecord) {
+    setWaterfallLoading(true)
+    setWaterfallError('')
+    setWaterfallData(null)
+    try {
+      const res = await authFetch('/api/content/ideas', {
+        method: 'POST',
+        body: JSON.stringify({
+          actie: 'waterfall',
+          titel: idee.titel,
+          hook: idee.hook ?? idee.titel,
+          pijler: idee.pillar_id,
+        }),
+      })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error ?? 'Fout bij waterfall')
+      setWaterfallData(json.waterfall)
+    } catch (e: unknown) {
+      setWaterfallError(e instanceof Error ? e.message : 'Waterfall generatie mislukt')
+    } finally {
+      setWaterfallLoading(false)
+    }
+  }
+
   // Gefilterd op zoekterm
   const gefilterdeIdeeen = ideeen.filter(i => {
     if (!zoekterm) return true
@@ -303,6 +334,38 @@ function IdeeBankContent() {
   return (
     <div className="mf-has-sidebar" style={{ background: 'var(--bg-app)', minHeight: '100vh' }}>
       <Navbar />
+
+      {/* Waterfall loading overlay */}
+      {waterfallLoading && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 8999,
+          background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(4px)',
+          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+          gap: 16,
+        }}>
+          <div style={{ fontSize: 48 }}>🌊</div>
+          <div style={{ fontSize: 20, fontWeight: 900, color: '#fff' }}>Content Waterfall genereren...</div>
+          <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.6)' }}>1 idee → 15+ content assets</div>
+        </div>
+      )}
+
+      {/* Waterfall error toast */}
+      {waterfallError && (
+        <div style={{
+          position: 'fixed', bottom: 80, right: 24, zIndex: 8998,
+          background: 'var(--mf-red)', color: '#fff', borderRadius: 10,
+          padding: '12px 18px', fontSize: 13, fontWeight: 700,
+          boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
+        }}>
+          {waterfallError}
+          <button onClick={() => setWaterfallError('')} style={{ marginLeft: 12, background: 'none', border: 'none', color: '#fff', cursor: 'pointer', fontWeight: 900 }}>✕</button>
+        </div>
+      )}
+
+      {/* Waterfall modal */}
+      {waterfallData && (
+        <WaterfallModal data={waterfallData} onClose={() => setWaterfallData(null)} />
+      )}
 
       <main style={{
         paddingLeft: 280, padding: '32px 40px',
@@ -530,6 +593,7 @@ function IdeeBankContent() {
                   key={idee.id}
                   idee={idee}
                   onStatusUpdate={updateStatus}
+                  onWaterfall={genereerWaterfallVoor}
                 />
               ))}
             </div>
