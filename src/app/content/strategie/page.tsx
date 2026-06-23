@@ -5,6 +5,9 @@ export const dynamic = 'force-dynamic'
 import { useState } from 'react'
 import Link from 'next/link'
 import Navbar from '@/components/layout/Navbar'
+import nextDynamic from 'next/dynamic'
+
+const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
 
 // ── Types ──────────────────────────────────────────────────
 
@@ -264,9 +267,14 @@ export default function ContentStrategiePage() {
               color: 'var(--text-1)',
               margin: '0 0 6px',
               letterSpacing: '-0.5px',
+              position: 'relative',
+              display: 'inline-block',
             }}
           >
-            Content Strategie
+            <span style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
+              <GlowOrb color={[0.231, 0.510, 0.965]} intensity={0.25} size={220} />
+            </span>
+            <span style={{ position: 'relative', zIndex: 1 }}>Content Strategie</span>
           </h1>
           <p
             style={{

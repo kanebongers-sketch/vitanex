@@ -4,6 +4,9 @@ export const dynamic = 'force-dynamic'
 import { useEffect, useState, useCallback } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import Link from 'next/link'
+import nextDynamic from 'next/dynamic'
+
+const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
 
 const sb = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -362,7 +365,12 @@ export default function AgentPage() {
         <main style={{overflowY:'auto',padding:'20px 24px'}}>
           {!batch ? (
             <div style={{textAlign:'center',padding:'60px 20px'}}>
-              <p style={{fontSize:36,marginBottom:12}}>📱</p>
+              <div style={{position:'relative',display:'inline-block',marginBottom:12}}>
+              <div style={{position:'absolute',top:'50%',left:'50%',transform:'translate(-50%,-50%)',zIndex:0,pointerEvents:'none'}}>
+                <GlowOrb color={[0.949, 0.722, 0.141]} intensity={0.4} size={90} />
+              </div>
+              <p style={{fontSize:36,position:'relative',zIndex:1}}>📱</p>
+            </div>
               <p style={{fontSize:16,fontWeight:600,color:TEXT,marginBottom:8}}>Selecteer een batch</p>
               <p style={{fontSize:13,color:MUTED}}>Of wacht op de ochtend selectie via Telegram</p>
             </div>

@@ -6,6 +6,9 @@ import { useEffect, useState, useCallback, useRef } from 'react'
 import Link from 'next/link'
 import { authFetch } from '@/lib/auth-fetch'
 import Navbar from '@/components/layout/Navbar'
+import nextDynamic from 'next/dynamic'
+
+const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
 
 // ── Types ──────────────────────────────────────────────────
 
@@ -427,7 +430,12 @@ export default function ContentKalenderPage() {
             background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)',
             border: '1px solid var(--border)',
           }}>
-            <div style={{ fontSize: 48, marginBottom: 16 }}>📅</div>
+            <div style={{ position: 'relative', display: 'inline-block', marginBottom: 16 }}>
+              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
+                <GlowOrb color={[0.231, 0.510, 0.965]} intensity={0.4} size={110} />
+              </div>
+              <div style={{ fontSize: 48, position: 'relative', zIndex: 1 }}>📅</div>
+            </div>
             <h2 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', margin: '0 0 10px' }}>
               Nog geen kalender voor deze week
             </h2>
