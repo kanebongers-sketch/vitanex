@@ -7,7 +7,10 @@ import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
+import nextDynamic from 'next/dynamic'
 import { authFetch } from '@/lib/auth-fetch'
+
+const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
 
 interface UitdagingData {
   uitdaging: {
@@ -110,8 +113,11 @@ export default function UitdagingDetailPage() {
         {/* Header */}
         <div style={{ background: 'var(--bg-card)', borderRadius: 20, border: '1px solid var(--border)', padding: '24px', marginBottom: 16 }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14, marginBottom: 16 }}>
-            <div style={{ width: 48, height: 48, borderRadius: 14, background: `${cfg.kleur}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0 }}>
-              {cfg.icon}
+            <div style={{ width: 48, height: 48, borderRadius: 14, background: `${cfg.kleur}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0, position: 'relative' }}>
+              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
+                <GlowOrb color={[0.114, 0.620, 0.459]} intensity={0.4} size={70} />
+              </div>
+              <span style={{ position: 'relative', zIndex: 1 }}>{cfg.icon}</span>
             </div>
             <div>
               <h1 style={{ fontSize: 20, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.02em', marginBottom: 4 }}>{data.uitdaging.titel}</h1>

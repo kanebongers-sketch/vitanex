@@ -6,6 +6,9 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
+import nextDynamic from 'next/dynamic'
+
+const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
 
 const BEKIJK_ALS_KEY = 'mentaforce_admin_view_as'
 
@@ -47,7 +50,12 @@ function StatKaart({ label, waarde, sub, kleur, icon }: {
         <span className="text-xs font-semibold px-2 py-1 rounded-full"
           style={{ background: kleur + '15', color: kleur }}>Live</span>
       </div>
-      <p className="text-3xl font-black tracking-tight mb-1" style={{ color: kleur }}>{waarde}</p>
+      <div style={{ position: 'relative', display: 'inline-block', marginBottom: 4 }}>
+        <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
+          <GlowOrb color={[0.231, 0.510, 0.965]} intensity={0.35} size={80} />
+        </div>
+        <p className="text-3xl font-black tracking-tight" style={{ color: kleur, position: 'relative', zIndex: 1 }}>{waarde}</p>
+      </div>
       <p className="text-sm font-medium text-gray-600">{label}</p>
       {sub && <p className="text-xs text-gray-400 mt-0.5">{sub}</p>}
     </div>
@@ -462,9 +470,14 @@ export default function Admin() {
                               style={{ background: plan.bg, color: plan.kleur }}>{plan.naam}</span>
                             <span className="text-xs text-gray-400">€ {plan.prijs}/pp/mnd</span>
                           </div>
-                          <p className="text-3xl font-black mb-1" style={{ color: plan.kleur }}>
-                            € {mrr.toLocaleString('nl-BE')}
-                          </p>
+                          <div style={{ position: 'relative', display: 'inline-block', marginBottom: 4 }}>
+                            <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
+                              <GlowOrb color={[0.114, 0.620, 0.459]} intensity={0.35} size={90} />
+                            </div>
+                            <p className="text-3xl font-black" style={{ color: plan.kleur, position: 'relative', zIndex: 1 }}>
+                              € {mrr.toLocaleString('nl-BE')}
+                            </p>
+                          </div>
                           <p className="text-xs text-gray-500">MRR</p>
                           <div className="mt-4 pt-4 border-t border-gray-100 grid grid-cols-2 gap-3">
                             <div>

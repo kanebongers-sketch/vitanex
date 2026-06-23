@@ -6,7 +6,10 @@ import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
+import nextDynamic from 'next/dynamic'
 import { Avatar } from '@/components/Avatar'
+
+const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
 
 type Bericht = {
   id: string
@@ -513,13 +516,23 @@ export default function Chat() {
               </div>
             ) : isTeam && teamBerichten.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-center gap-3">
-                <div className="w-16 h-16 rounded-full flex items-center justify-center text-3xl" style={{ background: 'var(--mentaforce-primary-light)' }}>💬</div>
+                <div className="w-16 h-16 rounded-full flex items-center justify-center text-3xl" style={{ background: 'var(--mentaforce-primary-light)', position: 'relative' }}>
+                  <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
+                    <GlowOrb color={[0.231, 0.510, 0.965]} intensity={0.4} size={70} />
+                  </div>
+                  <span style={{ position: 'relative', zIndex: 1 }}>💬</span>
+                </div>
                 <p className="text-sm font-semibold text-gray-700">Nog geen berichten</p>
                 <p className="text-xs text-gray-400">Stuur het eerste bericht naar je team!</p>
               </div>
             ) : !isTeam && dmBerichten.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-center gap-3">
-                <div className="w-16 h-16 rounded-full flex items-center justify-center text-3xl" style={{ background: 'var(--mentaforce-primary-light)' }}>✉️</div>
+                <div className="w-16 h-16 rounded-full flex items-center justify-center text-3xl" style={{ background: 'var(--mentaforce-primary-light)', position: 'relative' }}>
+                  <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
+                    <GlowOrb color={[0.486, 0.231, 0.933]} intensity={0.4} size={70} />
+                  </div>
+                  <span style={{ position: 'relative', zIndex: 1 }}>✉️</span>
+                </div>
                 <p className="text-sm font-semibold text-gray-700">Begin een gesprek</p>
                 <p className="text-xs text-gray-400">Stuur {partnerProfiel?.naam ?? 'een collega'} een bericht</p>
               </div>
