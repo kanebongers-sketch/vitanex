@@ -2,10 +2,72 @@
 
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { usePathname } from 'next/navigation'
-import nextDynamic from 'next/dynamic'
 import { authFetch } from '@/lib/auth-fetch'
 
-const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
+function PandaFace({ size = 56, animate = false }: { size?: number; animate?: boolean }) {
+  return (
+    <svg
+      viewBox="0 0 56 56"
+      width={size}
+      height={size}
+      style={{
+        display: 'block',
+        pointerEvents: 'none',
+        animation: animate ? 'panda-blink 4s ease-in-out infinite' : undefined,
+      }}
+    >
+      <style>{`
+        @keyframes panda-blink {
+          0%, 90%, 100% { opacity: 1; }
+          93%, 97% { opacity: 0.85; }
+        }
+        @keyframes panda-wiggle {
+          0%, 100% { transform: rotate(0deg); }
+          20% { transform: rotate(-6deg); }
+          40% { transform: rotate(6deg); }
+          60% { transform: rotate(-4deg); }
+          80% { transform: rotate(4deg); }
+        }
+      `}</style>
+
+      {/* Ears */}
+      <circle cx="13" cy="13" r="10" fill="#1a1a1a" />
+      <circle cx="43" cy="13" r="10" fill="#1a1a1a" />
+      <circle cx="13" cy="13" r="5" fill="#2e2e2e" />
+      <circle cx="43" cy="13" r="5" fill="#2e2e2e" />
+
+      {/* Face */}
+      <circle cx="28" cy="31" r="22" fill="white" />
+      <circle cx="28" cy="31" r="22" fill="none" stroke="#eee" strokeWidth="0.5" />
+
+      {/* Eye patches */}
+      <ellipse cx="19" cy="27" rx="8.5" ry="8" fill="#1a1a1a" />
+      <ellipse cx="37" cy="27" rx="8.5" ry="8" fill="#1a1a1a" />
+
+      {/* Sclera */}
+      <circle cx="20" cy="27" r="4.5" fill="white" />
+      <circle cx="36" cy="27" r="4.5" fill="white" />
+
+      {/* Pupils */}
+      <circle cx="20" cy="28" r="2.8" fill="#111" />
+      <circle cx="36" cy="28" r="2.8" fill="#111" />
+
+      {/* Shine dots */}
+      <circle cx="21.5" cy="26.5" r="1.1" fill="white" />
+      <circle cx="37.5" cy="26.5" r="1.1" fill="white" />
+
+      {/* Nose */}
+      <ellipse cx="28" cy="37" rx="3" ry="2.2" fill="#1a1a1a" />
+
+      {/* Mouth */}
+      <path d="M 23 41 Q 28 45.5 33 41" fill="none" stroke="#bbb" strokeWidth="1.5" strokeLinecap="round" />
+
+      {/* Blush */}
+      <ellipse cx="11" cy="37" rx="5.5" ry="3" fill="#ff8fab" opacity="0.35" />
+      <ellipse cx="45" cy="37" rx="5.5" ry="3" fill="#ff8fab" opacity="0.35" />
+    </svg>
+  )
+}
 
 const HIDDEN_ROUTES = [
   '/login', '/register', '/setup', '/uitnodiging',
@@ -483,7 +545,7 @@ export default function VitaCompanion() {
               justifyContent: 'center',
               position: 'relative',
             }}>
-              <GlowOrb color={color} intensity={intensity + 0.1} size={90} rotate />
+              <PandaFace size={90} />
             </div>
             <div>
               <div style={{
@@ -629,7 +691,7 @@ export default function VitaCompanion() {
           animation: 'vita-orb-appear 0.35s cubic-bezier(0.16,1,0.3,1) both',
         }}
       >
-        <GlowOrb color={color} intensity={intensity} size={56} rotate />
+        <PandaFace size={56} animate />
       </button>
     </div>
   )
