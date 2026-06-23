@@ -7,6 +7,9 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
+import nextDynamic from 'next/dynamic'
+
+const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
 
 interface WeekPunt {
   week: string
@@ -214,7 +217,11 @@ function RingParticipatie({ pct, kleur }: { pct: number; kleur: string }) {
   const omtrek = 2 * Math.PI * straal
   const gevuld = (pct / 100) * omtrek
   return (
-    <svg width={108} height={108} viewBox="0 0 108 108">
+    <div style={{ position: 'relative', display: 'inline-block' }}>
+      <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
+        <GlowOrb color={[0.114, 0.620, 0.459]} intensity={0.35} size={120} />
+      </div>
+    <svg width={108} height={108} viewBox="0 0 108 108" style={{ position: 'relative', zIndex: 1 }}>
       <circle cx={54} cy={54} r={straal} fill="none" style={{ stroke: 'var(--border)' }} strokeWidth={10} />
       <circle
         cx={54}
@@ -230,6 +237,7 @@ function RingParticipatie({ pct, kleur }: { pct: number; kleur: string }) {
       <text x={54} y={50} textAnchor="middle" fontSize={18} fontWeight={800} style={{ fill: 'var(--text-1)' }}>{pct}%</text>
       <text x={54} y={66} textAnchor="middle" fontSize={10} style={{ fill: 'var(--text-4)' }}>actief</text>
     </svg>
+    </div>
   )
 }
 

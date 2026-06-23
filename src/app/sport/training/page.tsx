@@ -4,6 +4,9 @@ import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
+import nextDynamic from 'next/dynamic'
+
+const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
 
 type SetLog = { herhalingen: number; gewicht_kg: number | null; voltooid: boolean }
 type OefeningState = {
@@ -325,8 +328,13 @@ export default function TrainingLoggerPage() {
                 </div>
               </div>
               <div style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: 28, fontWeight: 700, color: 'var(--mf-orange)', fontVariantNumeric: 'tabular-nums' }}>
-                  {formatTimer(timerSec)}
+                <div style={{ position: 'relative', display: 'inline-block' }}>
+                  <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
+                    <GlowOrb color={[0.949, 0.722, 0.141]} intensity={0.35} size={90} />
+                  </div>
+                  <div style={{ fontSize: 28, fontWeight: 700, color: 'var(--mf-orange)', fontVariantNumeric: 'tabular-nums', position: 'relative', zIndex: 1 }}>
+                    {formatTimer(timerSec)}
+                  </div>
                 </div>
                 <div style={{ fontSize: 11, color: 'var(--text-3)' }}>verstreken</div>
               </div>

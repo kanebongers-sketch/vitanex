@@ -2,6 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import nextDynamic from 'next/dynamic'
+
+const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
 
 // ─────────────────────────────────────────────────────────────────────────────
 // SVG ICON LIBRARY
@@ -514,7 +517,12 @@ export default function LandingPage() {
               <h1 className="font-extrabold text-white leading-[1.08] mb-6 tracking-tight"
                 style={{ fontSize: 'clamp(2.75rem, 5vw, 4.25rem)' }}>
                 Stop burn-out<br />
-                <span style={{ color: 'var(--mf-green)' }}>voordat het te laat is.</span>
+                <span style={{ color: 'var(--mf-green)', position: 'relative', display: 'inline-block' }}>
+                  <span style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
+                    <GlowOrb color={[0.114, 0.620, 0.459]} intensity={0.3} size={240} />
+                  </span>
+                  <span style={{ position: 'relative', zIndex: 1 }}>voordat het te laat is.</span>
+                </span>
               </h1>
 
               <p className="mb-10 leading-relaxed" style={{ color: 'rgba(255,255,255,0.6)', fontSize: '1.125rem', maxWidth: 460 }}>
