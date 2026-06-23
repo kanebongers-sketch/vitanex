@@ -76,107 +76,114 @@ export async function DELETE(req: NextRequest) {
 }
 
 async function genereerWaterfall(titel: string, hook: string, pijler: string) {
-  const prompt = `Je bent een content strateeg voor Kane Bongers (personal trainer, krachtsport & physique, Nederland).
+  const prompt = `Je bent een Instagram content strateeg gespecialiseerd in lifestyle content (afvallen, fitter worden, voeding, gezonde gewoontes, mentale gezondheid, energie).
 
 Idee: "${titel}"
 Hook: "${hook}"
 Pijler: ${pijler}
 
-Genereer de CONTENT WATERFALL — 1 idee wordt uitgewerkt naar minimaal 15 concrete content assets.
+Doelgroep: mensen (18-45 jaar) die willen afvallen, fitter worden of een gezondere leefstijl opbouwen. Ze scrollen op hun telefoon en hebben maar 3 seconden om te beslissen of ze doorgaan met kijken.
 
-Retourneer ALLEEN geldig JSON (geen markdown, geen uitleg):
+Genereer een DIEPGAANDE INSTAGRAM CONTENT WATERFALL. Uitsluitend Instagram. Maak elk stuk concreet, persoonlijk en actionable.
+
+Retourneer ALLEEN geldig JSON (geen markdown, geen uitleg buiten de JSON):
 {
-  "kern_boodschap": "De 1 zin die alles samenvat",
-  "virale_hook": "De sterkste hook voor dit idee, max 12 woorden",
-  "instagram": {
-    "carousels": [
-      {
-        "titel": "Carousel titel",
-        "slides": [
-          { "nr": 1, "type": "hook", "tekst": "Openingsslide — stopt het scrollen" },
-          { "nr": 2, "type": "probleem", "tekst": "Het probleem dat de kijker herkent" },
-          { "nr": 3, "type": "waarom", "tekst": "Waarom dit pijn doet of faalt" },
-          { "nr": 4, "type": "oplossing", "tekst": "Stap 1" },
-          { "nr": 5, "type": "oplossing", "tekst": "Stap 2" },
-          { "nr": 6, "type": "oplossing", "tekst": "Stap 3" },
-          { "nr": 7, "type": "oplossing", "tekst": "Stap 4" },
-          { "nr": 8, "type": "oplossing", "tekst": "Stap 5" },
-          { "nr": 9, "type": "samenvatting", "tekst": "De snelle recap" },
-          { "nr": 10, "type": "cta", "tekst": "Concrete actie of lead magnet aanbieding" }
-        ]
-      }
-    ],
-    "reels": [
-      {
-        "titel": "Reel titel",
-        "duur_sec": 60,
-        "structuur": {
-          "s0_3": "Patroononderbreking — visueel of verbaal",
-          "s3_10": "Probleem — dit herken je",
-          "s10_30": "Waarde — Kane demonstreert",
-          "s30_45": "Oplossing — de concrete fix",
-          "s45_60": "CTA — directe actie"
-        },
-        "hook": "Exacte openingszin"
-      },
-      {
-        "titel": "Reel titel 2",
-        "duur_sec": 45,
-        "structuur": {
-          "s0_3": "Patroononderbreking",
-          "s3_10": "Probleem",
-          "s10_30": "Waarde",
-          "s30_45": "Oplossing + CTA"
-        },
-        "hook": "Exacte openingszin"
-      }
-    ]
-  },
-  "linkedin": {
-    "posts": [
-      {
-        "hook": "Eerste zin die stopt met scrollen",
-        "body": "2-3 zinnen waarde",
-        "cta": "Actie of vraag"
-      },
-      {
-        "hook": "Tweede post opening",
-        "body": "Andere invalshoek op hetzelfde thema",
-        "cta": "Actie of vraag"
-      }
-    ]
-  },
-  "x_threads": [
+  "kern_boodschap": "De 1 zin die dit idee samenvat",
+  "virale_hook": "De sterkste Instagram hook, max 12 woorden — raakt de pijn of het verlangen direct",
+  "carousels": [
     {
-      "titel": "Thread onderwerp",
-      "tweets": [
-        "Tweet 1 — hook (max 280 tekens)",
-        "Tweet 2 — punt 1",
-        "Tweet 3 — punt 2",
-        "Tweet 4 — punt 3",
-        "Tweet 5 — conclusie + CTA"
-      ]
+      "titel": "Carousel 1 titel",
+      "doel": "educatief",
+      "slides": [
+        { "nr": 1, "type": "hook", "tekst": "Slide 1 tekst — stopt het scrollen, max 8 woorden", "visueel": "Hoe de slide eruitziet (achtergrond, font, kleur)" },
+        { "nr": 2, "type": "probleem", "tekst": "Het probleem dat iedereen herkent", "visueel": "Visuele beschrijving" },
+        { "nr": 3, "type": "waarom", "tekst": "Waarom het niet lukt — de echte reden", "visueel": "Visuele beschrijving" },
+        { "nr": 4, "type": "oplossing", "tekst": "Stap 1 — concreet en actionable", "visueel": "Visuele beschrijving" },
+        { "nr": 5, "type": "oplossing", "tekst": "Stap 2", "visueel": "Visuele beschrijving" },
+        { "nr": 6, "type": "oplossing", "tekst": "Stap 3", "visueel": "Visuele beschrijving" },
+        { "nr": 7, "type": "oplossing", "tekst": "Stap 4", "visueel": "Visuele beschrijving" },
+        { "nr": 8, "type": "bewijs", "tekst": "Bewijs of resultaat — maakt het geloofwaardig", "visueel": "Visuele beschrijving" },
+        { "nr": 9, "type": "samenvatting", "tekst": "De snelle recap in 1 zin", "visueel": "Visuele beschrijving" },
+        { "nr": 10, "type": "cta", "tekst": "Concrete actie — sla op, stuur door of reageer", "visueel": "Visuele beschrijving" }
+      ],
+      "caption": "Volledige Instagram caption met emoji, 150-200 woorden, conversationele toon, eindigt met vraag aan de lezer",
+      "hashtags": ["#afvallen", "#gezondeleven", "#fitnessmotivatie", "#voeding", "#gezondheid", "#leefstijl", "#workoutstips", "#weightloss", "#fitnesscoach", "#gezondeten", "#bodytransformation", "#fitleven", "#gezondegewoonten", "#lifestylecoach", "#fitnessinspiratie"],
+      "cta": "Concrete call-to-action voor onder de post"
+    },
+    {
+      "titel": "Carousel 2 titel — andere invalshoek",
+      "doel": "inspirerend",
+      "slides": [
+        { "nr": 1, "type": "hook", "tekst": "Andere hook, andere angle", "visueel": "Visuele beschrijving" },
+        { "nr": 2, "type": "mythe", "tekst": "Mythe die mensen geloven", "visueel": "Visuele beschrijving" },
+        { "nr": 3, "type": "waarheid", "tekst": "De werkelijke waarheid", "visueel": "Visuele beschrijving" },
+        { "nr": 4, "type": "tip", "tekst": "Praktische tip 1", "visueel": "Visuele beschrijving" },
+        { "nr": 5, "type": "tip", "tekst": "Praktische tip 2", "visueel": "Visuele beschrijving" },
+        { "nr": 6, "type": "tip", "tekst": "Praktische tip 3", "visueel": "Visuele beschrijving" },
+        { "nr": 7, "type": "tip", "tekst": "Praktische tip 4", "visueel": "Visuele beschrijving" },
+        { "nr": 8, "type": "tip", "tekst": "Praktische tip 5", "visueel": "Visuele beschrijving" },
+        { "nr": 9, "type": "bewijs", "tekst": "Dit werkt omdat...", "visueel": "Visuele beschrijving" },
+        { "nr": 10, "type": "cta", "tekst": "Sla op voor later", "visueel": "Visuele beschrijving" }
+      ],
+      "caption": "Volledige caption 150-200 woorden andere invalshoek",
+      "hashtags": ["#afvallen", "#lifestyle", "#healthylife", "#gezondleven", "#fitness", "#voedingstips", "#motivatie", "#gezondheid", "#fitbody", "#leefstijlverandering", "#gezondgewicht", "#fitnessgoals", "#bodygoals", "#gezondevoeding", "#mindset"],
+      "cta": "CTA voor carousel 2"
     }
   ],
-  "youtube_shorts": [
-    { "titel": "Short 1 titel", "hook": "Opening", "script_kern": "Wat Kane doet en zegt in 60 seconden" },
-    { "titel": "Short 2 titel", "hook": "Opening", "script_kern": "Andere invalshoek" },
-    { "titel": "Short 3 titel", "hook": "Opening", "script_kern": "Praktische variant" }
+  "reels": [
+    {
+      "titel": "Reel 1 titel",
+      "duur_sec": 60,
+      "hook": "Exacte openingszin — de eerste 3 seconden. Stopt het scrollen.",
+      "script": "Volledig script in spreektaal, 90-120 woorden. Geen intro, direct in de waarde. Eindig met micro-CTA.",
+      "shots": [
+        "Shot 1: camera-opstelling, wat je ziet, wat de creator doet",
+        "Shot 2: volgende shot",
+        "Shot 3: volgende shot",
+        "Shot 4: afsluiting"
+      ],
+      "caption": "Caption 80-100 woorden, conversationeel, met emoji",
+      "hashtags": ["#afvallen", "#fitterworden", "#gezondegewoontes", "#lifestyletips", "#weightloss", "#fitnessroutine", "#gezondeleeefstijl", "#dagelijksebewegig", "#workout", "#gezondheid"]
+    },
+    {
+      "titel": "Reel 2 titel — talking head of demonstratie",
+      "duur_sec": 45,
+      "hook": "Andere hook, andere stijl",
+      "script": "Script 70-90 woorden, andere energie dan reel 1",
+      "shots": ["Shot 1", "Shot 2", "Shot 3"],
+      "caption": "Caption 60-80 woorden",
+      "hashtags": ["#leefstijl", "#motivatie", "#gezondheidstips", "#afvaltips", "#fitnesscoach", "#beweging", "#gezondeten", "#wilskracht", "#resultaten", "#verandering"]
+    },
+    {
+      "titel": "Reel 3 — myth bust of quick tip",
+      "duur_sec": 30,
+      "hook": "Korte, punchende hook",
+      "script": "Script 40-60 woorden, supersnel, één punt",
+      "shots": ["Shot 1", "Shot 2"],
+      "caption": "Caption 40-60 woorden",
+      "hashtags": ["#gezondetips", "#fitnessmythe", "#voedingsfeit", "#lifehack", "#sneltip", "#afvallensneller", "#gezondheid", "#fitness", "#leefstijl", "#dagelijksetips"]
+    }
   ],
-  "email": {
-    "onderwerp": "Nieuwsbrief onderwerpregel",
-    "secties": [
-      { "type": "opening", "inhoud": "Persoonlijk haakje" },
-      { "type": "kern", "inhoud": "De hoofdwaarde" },
-      { "type": "praktisch", "inhoud": "Actiebare tip" },
-      { "type": "cta", "inhoud": "Wat de lezer nu doet" }
-    ]
+  "stories": [
+    { "nr": 1, "type": "hook", "tekst": "Openingsstory die nieuwsgierig maakt — stel een vraag of doe een schokkende uitspraak", "visueel": "Achtergrondkleur/foto, tekst positie, sticker gebruik" },
+    { "nr": 2, "type": "probleem", "tekst": "Herkenbaar probleem dat de kijker ervaart", "visueel": "Visuele beschrijving" },
+    { "nr": 3, "type": "tip", "tekst": "Quick tip of feit dat waarde geeft", "visueel": "Visuele beschrijving" },
+    { "nr": 4, "type": "poll", "tekst": "Poll vraag die engagement triggert — twee keuzes", "visueel": "Poll sticker met twee opties" },
+    { "nr": 5, "type": "bewijs", "tekst": "Bewijs of resultaat — foto, getal of quote", "visueel": "Visuele beschrijving" },
+    { "nr": 6, "type": "tip", "tekst": "Diepere tip of vervolgstap", "visueel": "Visuele beschrijving" },
+    { "nr": 7, "type": "swipe", "tekst": "Swipe up of link sticker naar de carousel of reel", "visueel": "Link sticker, pijl, CTA tekst" }
+  ],
+  "hashtag_strategie": {
+    "niche": ["#afvallenmetplezier", "#gezondleven2024", "#lifestylecoachNL", "#gezondlevenNL", "#fitterwordentips"],
+    "medium": ["#afvallen", "#gezondegewoontes", "#gezondleven", "#leefstijlverandering", "#fitnesscoach"],
+    "breed": ["#fitness", "#gezondheid", "#lifestyle", "#motivatie", "#weightloss"],
+    "caption_template": "Korte openingszin die het probleem benoemt. [HOOK]\\n\\nDe 3 dingen die je moet weten:\\n\\n1️⃣ [TIP 1]\\n2️⃣ [TIP 2]\\n3️⃣ [TIP 3]\\n\\n[BEWIJS OF CONTEXT]\\n\\n[CTA — vraag of actie]\\n\\n#afvallen #gezondleven #lifestyle"
   },
-  "lead_magnet": {
-    "type": "checklist|pdf|template|quiz",
-    "titel": "Lead magnet naam",
-    "waarde_belofte": "Wat de lezer concreet krijgt",
-    "onderdelen": ["Punt 1", "Punt 2", "Punt 3", "Punt 4", "Punt 5"]
+  "postplan": {
+    "beste_dag": "dinsdag of woensdag (hoogste Instagram engagement lifestyle niche)",
+    "beste_tijd": "07:00-09:00 of 18:30-20:30 — voor of na werkdag",
+    "volgorde": "Post Reel 1 eerst voor bereik (vrijdag of maandag). 3 dagen later Carousel 1 voor diepgang en opslaan. Stories dagelijks als warm-up voor de posts. Reel 2 en 3 als fill-in content.",
+    "tip": "Specifieke posting tip voor dit type lifestyle content op Instagram in 2025"
   }
 }`
 
@@ -201,29 +208,38 @@ Retourneer ALLEEN geldig JSON (geen markdown, geen uitleg):
 async function genereerIdeeën(pijler: string | null, aantal: number) {
   const pijlerContext = pijler
     ? `Focus UITSLUITEND op de pijler: "${pijler}"`
-    : 'Verdeel de ideeën evenredig over alle 7 pijlers'
+    : 'Verdeel de ideeën evenredig over alle pijlers'
 
-  const prompt = `Genereer ${aantal} unieke, concrete content ideeën voor Kane Bongers (personal trainer gespecialiseerd in krachtsport en physique).
+  const prompt = `Genereer ${aantal} unieke, concrete Instagram content ideeën voor een lifestyle creator (afvallen, fitter worden, gezonde gewoontes, voeding, mentale gezondheid, energie).
 
 ${pijlerContext}
 
-FOCUS: krachtsport en physique. Denk aan spiergroei, techniek bij krachtoefeningen, lichaamscompositie, voeding voor spiermassa, en Kane die zijn eigen lichaam als voorbeeld laat zien. GEEN Hyrox, GEEN cardio-only, GEEN ondernemerscontent.
+Doelgroep: vrouwen en mannen 18-45 jaar die willen afvallen, fitter worden of een gezondere leefstijl opbouwen. Ze scrollen op Instagram. Ze willen praktische tips die echt werken en er niet als "dieet content" uitzien.
+
+FOCUS PIJLERS:
+- afvallen: gewicht verliezen zonder crashdieet, calorieën, vetverbranding, eetpatroon
+- voeding: gezond eten zonder obsessie, maaltijdprep, eiwitten, ontbijt, snacks, uiteten
+- beweging: workouts voor beginners, thuis trainen, stappen, korte trainingen, gym basics
+- gewoontes: ochtendroutine, slaap, consistentie, kleine veranderingen, habit stacking
+- mentaal: mindset, body image, motivatie, zelfvertrouwen, stress, emotioneel eten
+- energie: slaap, hydratatie, herstel, vermoeidheid, dagritme
+- transformatie: voor/na verhalen, mijlpalen, obstakels overwinnen, langetermijn
 
 Elk idee moet:
-- Specifiek zijn (niet "tips over fitness" maar "zo activeer je je lats bij elke pull-up")
-- Een duidelijke hook hebben die stopt met scrollen
-- Actionable zijn voor de doelgroep (20–40 jaar, wil sterker worden en beter eruitzien)
-- Passen bij een short-form video format (Reels/TikTok/YouTube Shorts)
+- Specifiek zijn (niet "afvaltips" maar "waarom je 's avonds altijd trek hebt — en wat je doet")
+- Een hook hebben die pijn of verlangen raakt (max 12 woorden)
+- Geschikt zijn voor Instagram Reels OF Carousels
+- Herkenbaar voelen voor de doelgroep
 
 Retourneer ALLEEN geldig JSON (geen markdown):
 {
   "ideeen": [
     {
       "titel": "Pakkende titel max 10 woorden",
-      "pijler": "kracht|physique|voeding|herstel|techniek|spiergroei|leefstijl",
-      "hook": "Opening die zorgt dat mensen stoppen met scrollen (max 15 woorden)",
-      "format": "reel|carousel|post|video|nieuwsbrief|linkedin",
-      "platform": ["Instagram Reels", "TikTok"],
+      "pijler": "afvallen|voeding|beweging|gewoontes|mentaal|energie|transformatie",
+      "hook": "Opening die scrollen stopt (max 12 woorden)",
+      "format": "reel|carousel|post",
+      "platform": ["Instagram"],
       "prioriteit": 4,
       "tags": ["tag1", "tag2", "tag3"]
     }

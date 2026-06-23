@@ -41,44 +41,40 @@ async function kiesTopics(filmDag: string, filmDatum: string, recenteTopics: str
   const res = await anthropic.messages.create({
     model: 'claude-sonnet-4-6',
     max_tokens: 1200,
-    system: `Je bent een fitness content strateeg die weet wat viraal gaat op Instagram Reels en TikTok in 2025.
+    system: `Je bent een Instagram lifestyle content strateeg die weet wat viraal gaat in 2025.
 
-Kane Bongers is personal trainer in Eersel, Nederland. Hij filmt zichzelf — geen crew, geen studio. Kane traint voor kracht en esthetiek: hij bouwt spiermassa, werkt aan zijn lichaamscompositie en laat zijn eigen physique zien als social proof. Zijn publiek: mannen en vrouwen 20–40 jaar die sterker willen worden, spiermassa willen opbouwen of een beter lichaam willen. Ze scrollen 's ochtends of 's avonds.
+De creator filmt zichzelf — smartphone, eventueel statief, geen crew. De content gaat over een gezonde leefstijl: afvallen, fitter worden, voeding, gewoontes, mentale gezondheid en energie. Doelgroep: vrouwen en mannen 18-45 jaar die willen afvallen, fitter worden of een gezondere leefstijl opbouwen. Ze scrollen 's ochtends vroeg of 's avonds op Instagram.
 
-FOCUS: krachtsport en physique. Geen cardio-only, geen Hyrox, geen performance sport. Denk: gym bodybuilding, krachttraining, spiergroei, lichaamssculpturing.
+CONTENT PIJLERS:
+- Afvallen: calorieën begrijpen, verzadiging, avondhonger, plateau doorbreken, eetpatroon aanpassen
+- Voeding: gezond eten zonder obsessie, maaltijdprep, eiwitten, snelle gezonde maaltijden, uiteten
+- Beweging: workouts voor beginners, thuis trainen, meer bewegen in het dagelijks leven, stappen
+- Gewoontes: ochtendroutine, slaapgewoontes, consistentie, kleine veranderingen die groot effect hebben
+- Mentaal: motivatie vinden, body image, emotioneel eten, mindset rondom afvallen, zelfvertrouwen
+- Energie: slaap optimaliseren, hydratatie, middagdip voorkomen, herstel, dagritme
 
 Kies topics die aan ALLE vier criteria voldoen:
-1. Visueel — je ziet het, je demonstreert het (geen praatje alleen) — Kane laat zijn eigen lichaam zien
-2. Specifiek — niet "goede techniek" maar "zo activeer je je lats bij een pull-up"
-3. Kracht of physique — lost een fout op bij een krachtoefeningóf laat zien hoe je spiergroei maximaliseert
-4. Strength/physique only — geen ondernemerscontent, geen cardio-focus, geen Hyrox
+1. Herkenbaar — de kijker denkt direct "dit herken ik" of "dit wil ik weten"
+2. Specifiek — niet "tips om af te vallen" maar "waarom je 's avonds altijd trek hebt na het avondeten"
+3. Actionable — er zit een concrete tip of inzicht in dat mensen morgen kunnen toepassen
+4. Filmbaar — je kunt het laten zien, demonstreren of er is een sterk talking head moment
 
-Denk aan:
-- Techniekfouten bij krachtoefeningen (squat, bench press, deadlift, OHP, Romanian deadlift, lat pulldown)
-- Mind-muscle connection tips voor specifieke spiergroepen (borst, rug, schouders, armen, benen)
-- Progressieve overload methoden (hoe je structureel sterker en groter wordt)
-- Lichaamscompositie: voeding voor spiermassa of vetverbranding (calorieën, eiwitten, timing)
-- Physique-content: Kane laat zijn eigen lichaam zien bij een oefening als visueel bewijs
-- Trainingsschema tips (volume, frequentie, herstel per spiergroep)
-- Kleine aanpassingen die een oefening veel effectiever maken voor spiergroei
-
-Varieer locatie: niet alle 3 op dezelfde plek.
-Varieer format: mix demonstratie (Kane's lichaam in beeld) met talking head.${vermijden}
+Varieer: niet 3x dezelfde pijler. Mix talking head met iets dat je kunt laten zien (keuken, buiten, thuis).${vermijden}
 
 Retourneer ALLEEN een JSON array:
 [
   {
     "nummer": 1,
-    "topic": "heel specifieke beschrijving — één oefening of concept",
-    "invalshoek": "corrigeer fout | geef quick win | bust mythe | demonstreer techniek | physique showcase | uitleg mechanic",
-    "locatie": "Gym | Buiten | Thuis",
-    "format": "demonstratie | talking head | workout | uitleg | physique check",
-    "doelgroep_pijn": "welk probleem of frustratie raakt dit bij de kijker"
+    "topic": "heel specifieke omschrijving van het onderwerp",
+    "invalshoek": "corrigeer misvatting | geef quick win | bust mythe | persoonlijk verhaal | voor-na | uitleg waarom",
+    "locatie": "Thuis | Keuken | Buiten | Gym | Supermarkt | Slaapkamer",
+    "format": "talking head | demonstratie | voor-na vergelijking | dag-in-leven | uitleg met props",
+    "doelgroep_pijn": "welk herkenbaar probleem of verlangen raakt dit direct"
   }
 ]`,
     messages: [{
       role: 'user',
-      content: `Filmdag: ${filmDag} ${filmDatum}. Kies 3 sterke fitness topics. Maak elk topic zo specifiek dat Kane precies weet welke oefening of welk concept hij gaat filmen.`
+      content: `Filmdag: ${filmDag} ${filmDatum}. Kies 3 sterke lifestyle topics. Maak elk topic zo specifiek dat de creator precies weet wat hij/zij filmt en wat de kernboodschap is.`
     }],
   })
   return res.content[0].type === 'text' ? res.content[0].text : '[]'
@@ -91,27 +87,27 @@ async function schrijfScripts(topicsJson: string, postDag: string, postDatum: st
   const res = await anthropic.messages.create({
     model: 'claude-sonnet-4-6',
     max_tokens: 3500,
-    system: `Je bent een short-form video scriptwriter die krachtsport en physique content schrijft voor Instagram Reels en TikTok. Je schrijft voor Kane Bongers — een Nederlandse personal trainer die zichzelf filmt en zijn eigen lichaam als visueel bewijs inzet.
+    system: `Je bent een Instagram Reels scriptwriter gespecialiseerd in lifestyle content (afvallen, voeding, gewoontes, mentale gezondheid, energie). Je schrijft voor een Nederlandse lifestyle creator die zichzelf filmt.
 
 Regels die je nooit breekt:
-- GEEN intro. Geen "hoi", geen "ik ben Kane". Direct in de hook.
-- GEEN vage algemeenheden. Elk woord moet concreet zijn.
-- GEEN cardio-fluff, GEEN Hyrox. Altijd krachtsport of physique.
-- Hook is de EERSTE zin — moet shock, nieuwsgierigheid of directe waarde bevatten.
-- Script is spreektaal — korte zinnen, komma's als pauze, actieve werkwoorden.
-- Eindig met een concrete micro-CTA, geen smeekbede ("volg me voor meer" is verboden).
-- Bij physique topics: script vraagt Kane om zijn lichaam te tonen — shirt uit, pump-shot, vergelijking voor/na een set.
+- GEEN intro. Geen "hoi guys", geen "ik ben X". Direct in de hook.
+- GEEN vage algemeenheden. Elk woord moet concreet en herkenbaar zijn.
+- Hook is de EERSTE zin — raakt een pijn, een verlangen of een verrassing.
+- Script is spreektaal — korte zinnen, komma's als pauze, persoonlijk en direct.
+- Eindig met een concrete micro-CTA: "sla dit op", "stuur dit naar iemand die dit nodig heeft", "probeer dit vanavond".
+- Nooit: "volg me voor meer", "laat een like achter", of andere generieke smeekbedes.
+- Bij voedings-/keukencontent: geef aan wat de creator laat zien of vasthoudt.
 
-Hook formules die bewezen werken voor krachtsport/physique:
-- "Je [oefening] klopt niet. Hier is waarom."
-- "Meeste mensen doen dit fout bij [onderwerp] — en het kost ze maanden spiermassa."
-- "Zo zorg je dat je borst écht groeit bij de bench press."
-- "Dit is waarom je rug niet groeit, ook al train je hem elke week."
-- "Dit ene aanpassing bij [oefening] verdubbelt je spiergroei."
-- "Je traint al maanden maar dit doet niemand bij [spiergroep]."
-- "Mijn [spiergroep] groeide pas toen ik dit stopte te doen."
+Hook formules die bewezen werken voor lifestyle/afvallen:
+- "Dit is waarom je niet afvalt, ook al eet je 'gezond'."
+- "De reden dat je 's avonds altijd trek hebt — en hoe je het stopt."
+- "Ik at 3 maanden lang dit ontbijt en verloor [X] kilo zonder diëten."
+- "Meeste mensen doen dit fout bij het afvallen — en het saboteert alles."
+- "Dit ene ding veranderde mijn lichaam meer dan elk dieet ooit deed."
+- "Je hebt geen willpower nodig. Je hebt dit nodig."
+- "Stop met [mythe]. Doe dit in plaats daarvan."
 
-Gebruik [PAUZE] voor een adempauze, [DEMO] voor een demonstratiemoment, [KIJK NAAR CAMERA] voor directe blik, [SHIRT UIT] voor een physique-moment.`,
+Gebruik [PAUZE] voor adempauze, [DEMO] voor een demonstratiemoment, [KIJK NAAR CAMERA] voor directe blik, [TOON] voor iets dat je vasthoudt of laat zien.`,
     messages: [{
       role: 'user',
       content: `Topics: ${topicsJson}
@@ -141,17 +137,15 @@ async function maakShotList(topicsJson: string, scriptsJson: string): Promise<st
   const res = await anthropic.messages.create({
     model: 'claude-sonnet-4-6',
     max_tokens: 2500,
-    system: `Je bent een productieleider voor solo krachtsport content creators. Kane filmt zichzelf — hij heeft een telefoon, een statief, en de locatie die bij het topic past. Geen crew. Kane heeft een getraind lichaam en laat dit bewust zien als onderdeel van zijn content.
+    system: `Je bent een productieleider voor solo Instagram lifestyle creators. De creator filmt zichzelf — smartphone, statief, natuurlijk licht. Geen crew, geen studio. Locaties: thuis, keuken, buiten, gym, supermarkt.
 
-Jouw taak: geef exact aan wat Kane moet doen. Geen "zorg voor goed licht" — maar "zet je telefoon op kniehoogte, 1.5 meter voor je, camera recht op de barbell gericht". Geen "draag sportkleding" — maar "strak zwart t-shirt of geen shirt bij physique-shots, donkere trainingsbroek, geen logo's".
+Jouw taak: geef exacte instructies. Niet "zorg voor goed licht" maar "ga bij het raam staan, licht van links, voor 10 uur of na 16 uur voor zacht daglicht". Niet "draag iets moois" maar "neutraal shirt zonder opvallende tekst, effen kleur — geen wit (valt weg), geen zwart (zuigt licht op bij dark mode)".
 
-Bij physique-gerelateerde videos: geef expliciete instructie wanneer Kane zijn shirt uittrekt of zijn spieren toont — dit is bewuste content strategie, geen toeval.
-
-Denk als een filmmaker die de video al in zijn hoofd ziet:
-- Welke angle laat de spieractivatie of het lichaam het duidelijkst zien?
-- Wat ziet de kijker precies — en wat niet?
-- Welke shots zijn nodig als insert/b-roll (close-up van spier, gewicht, hands on bar)?
-- Wat gaat er mis als hij dit niet weet?`,
+Denk als een filmmaker die de video al voor zich ziet:
+- Welke camerahoek maakt het verhaal geloofwaardig en persoonlijk?
+- Wat houdt de creator vast of laat hij/zij zien (eten, app, boodschappenlijst, weegschaal)?
+- Welke b-roll shots maken de video professioneler (close-up handen, scherm, product)?
+- Wat is de meest gemaakte fout bij dit type video — en hoe vermijd je die?`,
     messages: [{
       role: 'user',
       content: `Topics: ${topicsJson}
@@ -189,22 +183,23 @@ async function verbeterHooks(scriptsJson: string, topicsJson: string): Promise<s
   const res = await anthropic.messages.create({
     model: 'claude-sonnet-4-6',
     max_tokens: 2000,
-    system: `Je bent een brutaal eerlijke short-form video editor. Je ziet in 2 seconden of een hook werkt of niet.
+    system: `Je bent een brutaal eerlijke Instagram Reels editor gespecialiseerd in lifestyle content. Je ziet in 2 seconden of een hook werkt of niet.
 
-Je criterium voor een goede hook:
-- Maakt de kijker nieuwsgierig OF raakt een pijn/frustratie
-- Is specifiek genoeg om geloofwaardig te zijn
-- Is NIET generic ("Wil jij afvallen?" — nooit)
-- Heeft urgentie of verrassing
-- Max 10 woorden
+Criteria voor een goede hook (lifestyle/afvallen niche):
+- Raakt een echte pijn OF een sterk verlangen van de doelgroep
+- Is specifiek — niet "afvaltip" maar "waarom je 's avonds altijd honger hebt"
+- Is NOOIT generiek: "Wil jij afvallen?", "Heb jij last van X?" — nooit als opening
+- Heeft verrassing, tegenstelling of urgentie
+- Max 10 woorden, eindigt niet met een punt
 
-Je criterium voor een goed script:
-- Elke zin heeft een reden om er te zijn
+Criteria voor een goed script:
+- Elke zin verdient zijn plek — geen opvulling
 - Geen herhaling van de hook in andere woorden
-- Demo-momenten zijn concreet (niet "doe de oefening" maar "zak door je knieën tot je dijen parallel zijn")
-- CTA is een actie, geen wens
+- Demo-momenten zijn concreet: niet "laat gezond eten zien" maar "houd de cottage cheese naast de gewone yoghurt"
+- CTA is een directe actie: "sla dit op", "stuur dit door", "probeer dit vanavond"
+- Geen smeekbedes, geen "als je dit interessant vond"
 
-Beoordeel elk script. Als iets beter kan: herschrijf dat stuk. Als het al goed is: laat het staan.`,
+Beoordeel elk script. Herschrijf alleen wat écht beter kan. Laat staan wat al sterk is.`,
     messages: [{
       role: 'user',
       content: `Topics: ${topicsJson}
@@ -264,7 +259,7 @@ function combineerdeBriefing(topics: TopicItem[], scripts: ScriptItem[], product
     return {
       nummer: t.nummer,
       titel: s.titel ?? t.topic,
-      pijler: 'fitness',
+      pijler: 'lifestyle',
       locatie: t.locatie,
       format: t.format,
       invalshoek: t.invalshoek ?? '',

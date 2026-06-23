@@ -32,13 +32,13 @@ type IdeeRecord = {
 // ── Helpers ────────────────────────────────────────────────
 
 const PIJLERS = [
-  { id: 'fitness',           label: 'Fitness',           emoji: '💪', kleur: 'var(--mf-green)' },
-  { id: 'ondernemen',        label: 'Ondernemen',        emoji: '🚀', kleur: 'var(--mf-blue)' },
-  { id: 'discipline',        label: 'Discipline',        emoji: '🧱', kleur: 'var(--text-2)' },
-  { id: 'leefstijl',         label: 'Leefstijl',         emoji: '🌿', kleur: 'var(--mf-purple)' },
-  { id: 'stressmanagement',  label: 'Stressmanagement',  emoji: '⚡', kleur: 'var(--mf-red)' },
-  { id: 'performance',       label: 'Performance',       emoji: '📈', kleur: 'var(--mf-amber)' },
-  { id: 'persoonlijke-groei',label: 'Pers. Groei',       emoji: '🧠', kleur: 'var(--mf-green)' },
+  { id: 'afvallen',     label: 'Afvallen',    emoji: '🔥', kleur: 'var(--mf-red)' },
+  { id: 'voeding',      label: 'Voeding',     emoji: '🥗', kleur: 'var(--mf-green)' },
+  { id: 'beweging',     label: 'Beweging',    emoji: '💪', kleur: 'var(--mf-blue)' },
+  { id: 'gewoontes',    label: 'Gewoontes',   emoji: '🧠', kleur: 'var(--mf-purple)' },
+  { id: 'mentaal',      label: 'Mentaal',     emoji: '⚡', kleur: 'var(--mf-amber)' },
+  { id: 'energie',      label: 'Energie',     emoji: '🌿', kleur: 'var(--mf-green)' },
+  { id: 'transformatie',label: 'Transformatie',emoji: '✨', kleur: 'var(--mf-blue)' },
 ]
 
 const PIJLER_MAP = Object.fromEntries(PIJLERS.map(p => [p.id, p]))
