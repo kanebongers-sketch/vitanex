@@ -6,6 +6,9 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Navbar from '@/components/layout/Navbar'
 import { supabase } from '@/lib/supabase'
+import nextDynamic from 'next/dynamic'
+
+const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
 
 type AgentFase = 'wachten' | 'bezig' | 'klaar'
 
@@ -315,7 +318,12 @@ export default function GenereerSchemaPage() {
         {stap === 4 && (
           <div style={{ background: 'var(--bg-card, white)', borderRadius: 16, padding: 28, boxShadow: 'var(--shadow-sm, 0 2px 12px rgba(0,0,0,0.07))' }}>
             <div style={{ textAlign: 'center', marginBottom: 28 }}>
-              <div style={{ fontSize: 36, marginBottom: 10 }}>🤖</div>
+              <div style={{ position: 'relative', display: 'inline-block', marginBottom: 10 }}>
+                <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
+                  <GlowOrb color={[0.114, 0.620, 0.459]} intensity={0.4} size={90} />
+                </div>
+                <div style={{ fontSize: 36, position: 'relative', zIndex: 1 }}>🤖</div>
+              </div>
               <h2 style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-1)', margin: 0 }}>Schema wordt gemaakt</h2>
               <p style={{ color: 'var(--text-2)', fontSize: 14, marginTop: 6 }}>Onze AI agents zijn bezig voor jou</p>
             </div>

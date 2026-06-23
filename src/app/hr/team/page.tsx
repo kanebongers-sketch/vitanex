@@ -7,6 +7,9 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
+import nextDynamic from 'next/dynamic'
+
+const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
 
 interface TeamLid {
   id: string
@@ -120,7 +123,12 @@ export default function HrTeamPage() {
                   { label: 'Gem. burnout', waarde: aggregaat.gem_burnout_risico !== null ? `${aggregaat.gem_burnout_risico}%` : '—', kleur: burnoutKleur(aggregaat.gem_burnout_risico) },
                 ].map(s => (
                   <div key={s.label} style={{ background: 'var(--bg-card)', borderRadius: 14, border: '1px solid var(--border)', padding: '16px 18px' }}>
-                    <p style={{ fontSize: 20, fontWeight: 800, color: s.kleur }}>{s.waarde}</p>
+                    <div style={{ position: 'relative', display: 'inline-block' }}>
+                    <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
+                      <GlowOrb color={[0.231, 0.510, 0.965]} intensity={0.3} size={60} />
+                    </div>
+                    <p style={{ fontSize: 20, fontWeight: 800, color: s.kleur, position: 'relative', zIndex: 1 }}>{s.waarde}</p>
+                  </div>
                     <p style={{ fontSize: 11, color: 'var(--text-3)', fontWeight: 600, marginTop: 2 }}>{s.label}</p>
                   </div>
                 ))}

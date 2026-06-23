@@ -8,6 +8,9 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { authFetch } from '@/lib/auth-fetch'
 import Navbar from '@/components/layout/Navbar'
+import nextDynamic from 'next/dynamic'
+
+const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
 
 // ── Types ──────────────────────────────────────────────────
 
@@ -477,7 +480,12 @@ function IdeeBankContent() {
             borderRadius: 'var(--radius-xl)', padding: '60px 40px', textAlign: 'center',
             boxShadow: 'var(--shadow-md)',
           }}>
-            <div style={{ fontSize: 64, marginBottom: 16 }}>💡</div>
+            <div style={{ position: 'relative', display: 'inline-block', marginBottom: 16 }}>
+              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
+                <GlowOrb color={[0.949, 0.722, 0.141]} intensity={0.45} size={120} />
+              </div>
+              <div style={{ fontSize: 64, position: 'relative', zIndex: 1 }}>💡</div>
+            </div>
             <h2 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', margin: '0 0 8px' }}>
               Geen ideeën gevonden
             </h2>
