@@ -6,7 +6,10 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
+import nextDynamic from 'next/dynamic'
 import { authFetch } from '@/lib/auth-fetch'
+
+const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
 
 interface VraagStat {
   id: string
@@ -126,7 +129,12 @@ export default function HrPulseSurveyPage() {
         <div style={{ background: 'var(--bg-card)', borderRadius: 14, border: '1px solid var(--border)', padding: '16px 20px', marginBottom: 16 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
             <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-2)' }}>Participatie deze week</p>
-            <p style={{ fontSize: 14, fontWeight: 800, color: 'var(--mf-green)' }}>{participatie.pct}%</p>
+            <div style={{ position: 'relative', display: 'inline-block' }}>
+              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
+                <GlowOrb color={[0.114, 0.620, 0.459]} intensity={0.35} size={60} />
+              </div>
+              <p style={{ fontSize: 14, fontWeight: 800, color: 'var(--mf-green)', position: 'relative', zIndex: 1 }}>{participatie.pct}%</p>
+            </div>
           </div>
           <div style={{ height: 8, background: 'var(--bg-subtle)', borderRadius: 100, overflow: 'hidden' }}>
             <div style={{ height: '100%', width: `${participatie.pct}%`, background: 'var(--mf-green)', borderRadius: 100 }} />

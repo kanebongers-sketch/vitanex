@@ -5,7 +5,10 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import HrShell from '@/components/layout/HrShell'
-import GesprekkenTab from '@/components/hr/GesprekkenTab'
+import nextDynamic from 'next/dynamic'
+import GesprekkenTab
+
+const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false }) from '@/components/hr/GesprekkenTab'
 
 export default function HrGesprekkenPage() {
   const router = useRouter()

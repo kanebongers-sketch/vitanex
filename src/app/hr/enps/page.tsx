@@ -6,7 +6,10 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
+import nextDynamic from 'next/dynamic'
 import { authFetch } from '@/lib/auth-fetch'
+
+const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
 
 interface ENPSData {
   nps: number | null
@@ -76,7 +79,12 @@ export default function HrENPSPage() {
             { label: 'Promoters', waarde: String(data.promoters), kleur: 'var(--mf-green)' },
           ].map(s => (
             <div key={s.label} style={{ background: 'var(--bg-card)', borderRadius: 14, border: '1px solid var(--border)', padding: '16px 18px' }}>
-              <p style={{ fontSize: 22, fontWeight: 800, color: s.kleur }}>{s.waarde}</p>
+              <div style={{ position: 'relative', display: 'inline-block', marginBottom: 2 }}>
+                <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
+                  <GlowOrb color={[0.231, 0.510, 0.965]} intensity={0.3} size={70} />
+                </div>
+                <p style={{ fontSize: 22, fontWeight: 800, color: s.kleur, position: 'relative', zIndex: 1 }}>{s.waarde}</p>
+              </div>
               <p style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 4, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{s.label}</p>
             </div>
           ))}

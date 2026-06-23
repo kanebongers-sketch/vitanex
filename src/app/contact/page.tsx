@@ -2,6 +2,9 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import nextDynamic from 'next/dynamic'
+
+const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
 
 function MarketingNav() {
   return (
@@ -97,9 +100,14 @@ export default function Contact() {
             <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: 'var(--mf-green)' }} />
             We antwoorden binnen 24 uur
           </div>
-          <h1 className="text-4xl lg:text-5xl font-extrabold text-white mb-4 tracking-tight">
-            Neem contact op
-          </h1>
+          <div style={{ position: 'relative', display: 'inline-block', width: '100%' }}>
+            <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
+              <GlowOrb color={[0.114, 0.620, 0.459]} intensity={0.4} size={220} />
+            </div>
+            <h1 className="text-4xl lg:text-5xl font-extrabold text-white mb-4 tracking-tight" style={{ position: 'relative', zIndex: 1 }}>
+              Neem contact op
+            </h1>
+          </div>
           <p className="text-lg leading-relaxed" style={{ color: 'rgba(255,255,255,0.5)' }}>
             Vraag een demo aan, bespreek pricing of stel een vraag. We staan klaar om te helpen.
           </p>
