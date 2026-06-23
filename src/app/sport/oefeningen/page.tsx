@@ -6,6 +6,9 @@ import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
+import nextDynamic from 'next/dynamic'
+
+const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
 
 type Oefening = {
   id: string
@@ -45,8 +48,11 @@ function OefeningPlaceholder({ spiergroep }: { spiergroep: string }) {
   const emoji = SPIERGROEP_EMOJI[sleutel] || '🏃'
   const achtergrond = SPIERGROEP_KLEUR[sleutel] || 'var(--bg-subtle)'
   return (
-    <div style={{ height: 160, background: achtergrond, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '12px 12px 0 0', fontSize: 48 }}>
-      {emoji}
+    <div style={{ height: 160, background: achtergrond, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '12px 12px 0 0', fontSize: 48, position: 'relative' }}>
+      <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
+        <GlowOrb color={[0.114, 0.620, 0.459]} intensity={0.35} size={120} />
+      </div>
+      <span style={{ position: 'relative', zIndex: 1 }}>{emoji}</span>
     </div>
   )
 }

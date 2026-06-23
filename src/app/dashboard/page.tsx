@@ -14,6 +14,9 @@ import GesprekkenTab from '@/components/hr/GesprekkenTab'
 import RapportenTab from '@/components/hr/RapportenTab'
 import HRKpiCards from '@/components/hr/HRKpiCards'
 import HRSnelkoppelingen from '@/components/hr/HRSnelkoppelingen'
+import nextDynamic from 'next/dynamic'
+
+const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
 import BedrijfTabComponent, { type BedrijfInfo as BedrijfInfoComponent } from '@/components/hr/BedrijfTab'
 
 const WAARSCHUWING_GRENS = 2.5
@@ -1075,9 +1078,14 @@ export default function Dashboard() {
                     style={{ borderTop: '3px solid #1D9E75' }}
                   >
                     <p className="text-xs text-gray-400 mb-1">Vitaliteitsscore</p>
-                    <p className="text-5xl font-medium" style={{ color: vitaliteitscore > 0 ? scoreKleur(vitaliteitscore) : 'var(--border-strong)' }}>
-                      {vitaliteitscore > 0 ? `${vitaliteitscore}/5` : '—'}
-                    </p>
+                    <div style={{ position: 'relative', display: 'inline-block' }}>
+                      <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
+                        <GlowOrb color={vitaliteitscore >= 4 ? [0.114, 0.620, 0.459] : vitaliteitscore >= 2.5 ? [0.949, 0.722, 0.141] : [0.886, 0.294, 0.290]} intensity={vitaliteitscore > 0 ? 0.45 : 0.2} size={110} />
+                      </div>
+                      <p className="text-5xl font-medium" style={{ color: vitaliteitscore > 0 ? scoreKleur(vitaliteitscore) : 'var(--border-strong)', position: 'relative', zIndex: 1 }}>
+                        {vitaliteitscore > 0 ? `${vitaliteitscore}/5` : '—'}
+                      </p>
+                    </div>
                     {checkins.length > 0 && (
                       <p className="text-xs text-gray-400 mt-2">{checkins.length} check-ins totaal</p>
                     )}
@@ -1582,7 +1590,12 @@ function VerlofTab({ aanvragen, onUpdate }: VerlofTabProps) {
 
       {aanvragen.length === 0 && (
         <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center">
-          <p className="text-3xl mb-2">🌴</p>
+          <div style={{ position: 'relative', display: 'inline-block', marginBottom: '0.5rem' }}>
+            <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
+              <GlowOrb color={[0.114, 0.620, 0.459]} intensity={0.35} size={72} />
+            </div>
+            <p className="text-3xl" style={{ position: 'relative', zIndex: 1 }}>🌴</p>
+          </div>
           <p className="text-sm text-gray-400">Geen verlofaanvragen.</p>
         </div>
       )}
@@ -1707,7 +1720,12 @@ function DeclaratiesTab({ declaraties, onUpdate }: DeclaratiesTabProps) {
 
       {declaraties.length === 0 && (
         <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center">
-          <p className="text-3xl mb-2">💰</p>
+          <div style={{ position: 'relative', display: 'inline-block', marginBottom: '0.5rem' }}>
+            <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
+              <GlowOrb color={[0.949, 0.722, 0.141]} intensity={0.35} size={72} />
+            </div>
+            <p className="text-3xl" style={{ position: 'relative', zIndex: 1 }}>💰</p>
+          </div>
           <p className="text-sm text-gray-400">Geen declaraties ingediend.</p>
         </div>
       )}

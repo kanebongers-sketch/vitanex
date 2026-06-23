@@ -7,6 +7,9 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
+import nextDynamic from 'next/dynamic'
+
+const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
 
 type OefeningLog = {
   id: string
@@ -150,7 +153,12 @@ export default function VoortgangPage() {
 
         {oefeningen.length === 0 ? (
           <div style={{ background: 'var(--bg-card, white)', borderRadius: 12, padding: 40, textAlign: 'center', boxShadow: 'var(--shadow-xs, 0 1px 4px rgba(0,0,0,0.07))' }}>
-            <p style={{ fontSize: 32, marginBottom: 12 }}>📊</p>
+            <div style={{ position: 'relative', display: 'inline-block', marginBottom: 12 }}>
+              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
+                <GlowOrb color={[0.231, 0.510, 0.965]} intensity={0.4} size={80} />
+              </div>
+              <span style={{ fontSize: 32, position: 'relative', zIndex: 1 }}>📊</span>
+            </div>
             <p style={{ color: 'var(--text-2)', fontWeight: 600, marginBottom: 8 }}>Nog geen logs gevonden</p>
             <p style={{ color: 'var(--text-2)', fontSize: 14 }}>Log je eerste training om je voortgang te zien.</p>
           </div>

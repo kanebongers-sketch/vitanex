@@ -7,6 +7,9 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import HrShell from '@/components/layout/HrShell'
+import nextDynamic from 'next/dynamic'
+
+const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
 
 type Rooster = {
   id: string
@@ -101,7 +104,12 @@ export default function HrRoostersPage() {
           <div style={{ color: 'var(--text-3)', textAlign: 'center', padding: 40 }}>Laden...</div>
         ) : roosters.length === 0 ? (
           <div className="rounded-2xl border border-gray-100" style={{ background: '#fff', padding: 48, textAlign: 'center' }}>
-            <div style={{ fontSize: 32, marginBottom: 12 }}>📅</div>
+            <div style={{ position: 'relative', display: 'inline-block', marginBottom: 12 }}>
+              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
+                <GlowOrb color={[0.231, 0.510, 0.965]} intensity={0.4} size={80} />
+              </div>
+              <span style={{ fontSize: 32, position: 'relative', zIndex: 1 }}>📅</span>
+            </div>
             <div style={{ color: 'var(--text-2)', fontWeight: 600, marginBottom: 6 }}>Nog geen roosters</div>
             <div style={{ color: 'var(--text-3)', fontSize: 13, marginBottom: 20 }}>Maak je eerste rooster aan om diensten in te plannen.</div>
             <Link href="/hr/roosters/nieuw" style={{ background: 'var(--mf-green)', color: '#fff', padding: '9px 20px', borderRadius: 10, fontSize: 14, fontWeight: 600, textDecoration: 'none' }}>
