@@ -8,6 +8,9 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { authFetch } from '@/lib/auth-fetch'
 import Navbar from '@/components/layout/Navbar'
+import nextDynamic from 'next/dynamic'
+
+const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
 
 // ── Types ──────────────────────────────────────────────────
 
@@ -456,8 +459,11 @@ export default function ContentPage() {
           <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-3)', marginBottom: 4, textTransform: 'capitalize' }}>
             {vandaagNl()}
           </div>
-          <h1 style={{ fontSize: 32, fontWeight: 900, color: 'var(--text-1)', margin: 0, letterSpacing: '-0.02em', lineHeight: 1.1 }}>
-            {uurVanDeDag()}, Kane
+          <h1 style={{ fontSize: 32, fontWeight: 900, color: 'var(--text-1)', margin: 0, letterSpacing: '-0.02em', lineHeight: 1.1, position: 'relative', display: 'inline-block' }}>
+            <span style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
+              <GlowOrb color={[0.114, 0.620, 0.459]} intensity={0.2} size={280} />
+            </span>
+            <span style={{ position: 'relative', zIndex: 1 }}>{uurVanDeDag()}, Kane</span>
           </h1>
           {briefing?.post_datum && (
             <div style={{
@@ -480,7 +486,12 @@ export default function ContentPage() {
             borderRadius: 'var(--radius-xl)', padding: '60px 40px', textAlign: 'center',
             boxShadow: 'var(--shadow-md)',
           }}>
-            <div style={{ fontSize: 64, marginBottom: 16 }}>💪</div>
+            <div style={{ position: 'relative', display: 'inline-block', marginBottom: 16 }}>
+              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
+                <GlowOrb color={[0.114, 0.620, 0.459]} intensity={0.45} size={140} />
+              </div>
+              <div style={{ fontSize: 64, position: 'relative', zIndex: 1 }}>💪</div>
+            </div>
             <h2 style={{ fontSize: 24, fontWeight: 800, color: 'var(--text-1)', margin: '0 0 8px' }}>
               Klaar om te groeien?
             </h2>
