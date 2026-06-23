@@ -234,6 +234,9 @@ function PersonaSelector({
   )
 }
 
+const ORB_SIZE = 56
+const ORB_POS_KEY = 'vita-orb-pos'
+
 export default function VitaCompanion() {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
@@ -241,6 +244,9 @@ export default function VitaCompanion() {
   const [companion, setCompanion] = useState<CompanionData | null>(null)
   const [personaLoading, setPersonaLoading] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
+  const [pos, setPos] = useState<{ x: number; y: number } | null>(null)
+  const dragRef = useRef<{ startX: number; startY: number; posX: number; posY: number } | null>(null)
+  const didDrag = useRef(false)
 
   const isHidden = HIDDEN_ROUTES.some(r => pathname.startsWith(r))
 
@@ -292,6 +298,48 @@ export default function VitaCompanion() {
     return () => document.removeEventListener('keydown', handler)
   }, [])
 
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(ORB_POS_KEY)
+      if (saved) {
+        const parsed = JSON.parse(saved) as { x: number; y: number }
+        const clampedX = Math.min(Math.max(0, parsed.x), window.innerWidth - ORB_SIZE)
+        const clampedY = Math.min(Math.max(0, parsed.y), window.innerHeight - ORB_SIZE)
+        setPos({ x: clampedX, y: clampedY })
+        return
+      }
+    } catch {}
+    setPos({ x: window.innerWidth - 24 - ORB_SIZE, y: window.innerHeight - 24 - ORB_SIZE })
+  }, [])
+
+  useEffect(() => {
+    const onMove = (e: MouseEvent) => {
+      if (!dragRef.current) return
+      const dx = e.clientX - dragRef.current.startX
+      const dy = e.clientY - dragRef.current.startY
+      if (Math.abs(dx) > 4 || Math.abs(dy) > 4) didDrag.current = true
+      const x = Math.min(Math.max(0, dragRef.current.posX + dx), window.innerWidth - ORB_SIZE)
+      const y = Math.min(Math.max(0, dragRef.current.posY + dy), window.innerHeight - ORB_SIZE)
+      setPos({ x, y })
+    }
+    const onUp = () => {
+      if (!dragRef.current) return
+      dragRef.current = null
+      setPos(prev => {
+        if (prev) {
+          try { localStorage.setItem(ORB_POS_KEY, JSON.stringify(prev)) } catch {}
+        }
+        return prev
+      })
+    }
+    window.addEventListener('mousemove', onMove)
+    window.addEventListener('mouseup', onUp)
+    return () => {
+      window.removeEventListener('mousemove', onMove)
+      window.removeEventListener('mouseup', onUp)
+    }
+  }, [])
+
   const handlePersonaChange = async (persona: Persona) => {
     if (!companion || companion.persona === persona) return
     setPersonaLoading(true)
@@ -327,18 +375,21 @@ export default function VitaCompanion() {
   const accentColor = scoreColor(data.score)
   const message = vitaMessage(data, persona)
 
+  if (!pos) return null
+
   return (
     <div
       ref={containerRef}
       style={{
         position: 'fixed',
-        bottom: 24,
-        right: 24,
+        top: pos.y,
+        left: pos.x,
         zIndex: 9999,
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'flex-end',
         gap: 10,
+        userSelect: 'none',
       }}
     >
       {open && (
@@ -548,10 +599,19 @@ export default function VitaCompanion() {
 
       {/* Orb trigger button */}
       <button
-        onClick={() => setOpen(v => !v)}
+        onMouseDown={(e) => {
+          e.preventDefault()
+          didDrag.current = false
+          dragRef.current = { startX: e.clientX, startY: e.clientY, posX: pos.x, posY: pos.y }
+        }}
+        onClick={() => {
+          if (didDrag.current) return
+          setOpen(v => !v)
+        }}
         title="VITA — jouw gezondheidscompanion"
         aria-label="Open VITA gezondheidscompanion"
         style={{
+          cursor: 'grab',
           width: 56,
           height: 56,
           borderRadius: '50%',
@@ -560,7 +620,6 @@ export default function VitaCompanion() {
           boxShadow: open
             ? `0 8px 32px rgba(0,0,0,0.14), 0 0 24px ${accentColor}33`
             : '0 4px 16px rgba(0,0,0,0.10), 0 1px 4px rgba(0,0,0,0.06)',
-          cursor: 'pointer',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
