@@ -3,6 +3,7 @@ import { Geist, Geist_Mono, Instrument_Serif, Plus_Jakarta_Sans } from "next/fon
 import Script from "next/script";
 import "./globals.css";
 import AndroidBackHandler from "@/components/layout/AndroidBackHandler";
+import VitaCompanion from "@/components/vita/VitaCompanion";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -61,6 +62,7 @@ export default function RootLayout({
         <AndroidBackHandler />
         <Script src="/theme-init.js" strategy="beforeInteractive" />
         {children}
+        <VitaCompanion />
       </body>
     </html>
   );

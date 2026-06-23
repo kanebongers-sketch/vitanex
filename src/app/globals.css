@@ -357,6 +357,16 @@ a:focus:not(:focus-visible) {
   to { transform: rotate(360deg); }
 }
 
+@keyframes vita-slide-up {
+  from { opacity: 0; transform: translateY(10px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes vita-orb-appear {
+  from { opacity: 0; transform: scale(0.7); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
 .mf-animate-up   { animation: mf-fade-up var(--mf-motion-duration, 0.4s) var(--ease) both; }
 .mf-animate-in   { animation: mf-fade-in 0.3s ease both; }
 .mf-animate-scale{ animation: mf-scale-in var(--mf-motion-duration-fast, 0.25s) var(--ease) both; }
