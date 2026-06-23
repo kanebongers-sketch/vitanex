@@ -3,71 +3,10 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { usePathname } from 'next/navigation'
 import { authFetch } from '@/lib/auth-fetch'
-
-function PandaFace({ size = 56, animate = false }: { size?: number; animate?: boolean }) {
-  return (
-    <svg
-      viewBox="0 0 56 56"
-      width={size}
-      height={size}
-      style={{
-        display: 'block',
-        pointerEvents: 'none',
-        animation: animate ? 'panda-blink 4s ease-in-out infinite' : undefined,
-      }}
-    >
-      <style>{`
-        @keyframes panda-blink {
-          0%, 90%, 100% { opacity: 1; }
-          93%, 97% { opacity: 0.85; }
-        }
-        @keyframes panda-wiggle {
-          0%, 100% { transform: rotate(0deg); }
-          20% { transform: rotate(-6deg); }
-          40% { transform: rotate(6deg); }
-          60% { transform: rotate(-4deg); }
-          80% { transform: rotate(4deg); }
-        }
-      `}</style>
-
-      {/* Ears */}
-      <circle cx="13" cy="13" r="10" fill="#1a1a1a" />
-      <circle cx="43" cy="13" r="10" fill="#1a1a1a" />
-      <circle cx="13" cy="13" r="5" fill="#2e2e2e" />
-      <circle cx="43" cy="13" r="5" fill="#2e2e2e" />
-
-      {/* Face */}
-      <circle cx="28" cy="31" r="22" fill="white" />
-      <circle cx="28" cy="31" r="22" fill="none" stroke="#eee" strokeWidth="0.5" />
-
-      {/* Eye patches */}
-      <ellipse cx="19" cy="27" rx="8.5" ry="8" fill="#1a1a1a" />
-      <ellipse cx="37" cy="27" rx="8.5" ry="8" fill="#1a1a1a" />
-
-      {/* Sclera */}
-      <circle cx="20" cy="27" r="4.5" fill="white" />
-      <circle cx="36" cy="27" r="4.5" fill="white" />
-
-      {/* Pupils */}
-      <circle cx="20" cy="28" r="2.8" fill="#111" />
-      <circle cx="36" cy="28" r="2.8" fill="#111" />
-
-      {/* Shine dots */}
-      <circle cx="21.5" cy="26.5" r="1.1" fill="white" />
-      <circle cx="37.5" cy="26.5" r="1.1" fill="white" />
-
-      {/* Nose */}
-      <ellipse cx="28" cy="37" rx="3" ry="2.2" fill="#1a1a1a" />
-
-      {/* Mouth */}
-      <path d="M 23 41 Q 28 45.5 33 41" fill="none" stroke="#bbb" strokeWidth="1.5" strokeLinecap="round" />
-
-      {/* Blush */}
-      <ellipse cx="11" cy="37" rx="5.5" ry="3" fill="#ff8fab" opacity="0.35" />
-      <ellipse cx="45" cy="37" rx="5.5" ry="3" fill="#ff8fab" opacity="0.35" />
-    </svg>
-  )
-}
+import { PandaFace, EmotionState } from '@/components/vita/PandaFace'
+import CompanionBubble from '@/components/vita/CompanionBubble'
+import { emotionFromScore, emotionFromEvent, contextFromPathname, getTimeOfDay } from '@/lib/vita/emotion-engine'
+import type { VitaEventPayload } from '@/lib/vita/events'
 
 const HIDDEN_ROUTES = [
   '/login', '/register', '/setup', '/uitnodiging',
@@ -305,21 +244,30 @@ export default function VitaCompanion() {
   const [data, setData] = useState<ReadinessData | null>(null)
   const [companion, setCompanion] = useState<CompanionData | null>(null)
   const [personaLoading, setPersonaLoading] = useState(false)
+  const [emotion, setEmotion] = useState<EmotionState>('calm')
+  const [bubble, setBubble] = useState<{ message: string; emotion: EmotionState } | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null)
   const dragRef = useRef<{ startX: number; startY: number; posX: number; posY: number } | null>(null)
   const didDrag = useRef(false)
+  const lastNudgeRef = useRef<number>(0)
+  const emotionResetRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const isHidden = HIDDEN_ROUTES.some(r => pathname.startsWith(r))
 
   const loadReadiness = useCallback(async () => {
     const cached = getCache<ReadinessData>(READINESS_CACHE_KEY)
-    if (cached) { setData(cached); return }
+    if (cached) {
+      setData(cached)
+      setEmotion(emotionFromScore(cached.score))
+      return
+    }
     try {
       const res = await authFetch('/api/readiness')
       if (!res.ok) return
       const json = await res.json() as ReadinessData
       setData(json)
+      setEmotion(emotionFromScore(json.score))
       setCache(READINESS_CACHE_KEY, json)
     } catch {}
   }, [])
@@ -402,6 +350,54 @@ export default function VitaCompanion() {
     }
   }, [])
 
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const { type } = (e as CustomEvent<VitaEventPayload>).detail
+      const newEmotion = emotionFromEvent(type)
+      if (newEmotion) {
+        if (emotionResetRef.current) clearTimeout(emotionResetRef.current)
+        setEmotion(newEmotion)
+        emotionResetRef.current = setTimeout(() => {
+          setEmotion(prev => prev)
+        }, 8000)
+      }
+      const now = Date.now()
+      if (now - lastNudgeRef.current < 90000) return
+      const bubbleMessages: Partial<Record<string, string>> = {
+        goal_achieved:      'Yes! Doel bereikt 🎉',
+        streak_milestone:   'Streak milestone! Je bent consistent 🔥',
+        level_up:           'Level up! Je companion groeit met je mee ⬆️',
+        check_in_completed: 'Check-in gedaan! Ik houd je voortgang bij 📊',
+      }
+      if (bubbleMessages[type] && !open) {
+        lastNudgeRef.current = now
+        setBubble({ message: bubbleMessages[type]!, emotion: newEmotion ?? emotion })
+      }
+    }
+    window.addEventListener('vita:event', handler)
+    return () => window.removeEventListener('vita:event', handler)
+  }, [open, emotion])
+
+  useEffect(() => {
+    if (!companion || !data) return
+    const sessionKey = 'vita-nudge-v1'
+    if (sessionStorage.getItem(sessionKey)) return
+    const tod = getTimeOfDay()
+    const nudges: Partial<Record<string, { message: string; emotion: EmotionState }>> = {
+      morning: { message: 'Goedemorgen! Klaar voor een nieuwe dag? 🌅', emotion: 'curious' },
+      evening: { message: 'Hoe was je dag? Vergeet je avond reflectie niet 🌙', emotion: 'supportive' },
+    }
+    const nudge = nudges[tod]
+    if (nudge) {
+      sessionStorage.setItem(sessionKey, '1')
+      const timer = setTimeout(() => {
+        setEmotion(nudge.emotion)
+        setBubble(nudge)
+      }, 3500)
+      return () => clearTimeout(timer)
+    }
+  }, [companion, data])
+
   const handlePersonaChange = async (persona: Persona) => {
     if (!companion || companion.persona === persona) return
     setPersonaLoading(true)
@@ -431,8 +427,6 @@ export default function VitaCompanion() {
   if (isHidden || !data) return null
 
   const persona = companion?.persona ?? 'mentor'
-  const color = orbColor(data.score)
-  const intensity = orbIntensity(data.score)
   const label = scoreLabel(data.score)
   const accentColor = scoreColor(data.score)
   const message = vitaMessage(data, persona)
@@ -454,6 +448,14 @@ export default function VitaCompanion() {
         userSelect: 'none',
       }}
     >
+      {bubble && !open && (
+        <CompanionBubble
+          message={bubble.message}
+          emotion={bubble.emotion}
+          onDismiss={() => setBubble(null)}
+        />
+      )}
+
       {open && (
         <div
           style={{
@@ -545,7 +547,7 @@ export default function VitaCompanion() {
               justifyContent: 'center',
               position: 'relative',
             }}>
-              <PandaFace size={90} />
+              <PandaFace emotion={emotion} size={90} />
             </div>
             <div>
               <div style={{
@@ -691,7 +693,7 @@ export default function VitaCompanion() {
           animation: 'vita-orb-appear 0.35s cubic-bezier(0.16,1,0.3,1) both',
         }}
       >
-        <PandaFace size={56} animate />
+        <PandaFace emotion={emotion} size={56} animate />
       </button>
     </div>
   )
