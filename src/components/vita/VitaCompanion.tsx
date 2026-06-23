@@ -13,8 +13,11 @@ const HIDDEN_ROUTES = [
   '/onboarding', '/bedankt',
 ]
 
-const CACHE_KEY = 'vita-state-v1'
+const READINESS_CACHE_KEY = 'vita-state-v1'
+const COMPANION_CACHE_KEY = 'vita-companion-v1'
 const CACHE_TTL = 5 * 60 * 1000
+
+type Persona = 'stoicijn' | 'optimizer' | 'mentor' | 'challenger' | 'wetenschapper'
 
 interface ReadinessData {
   score: number
@@ -26,22 +29,31 @@ interface ReadinessData {
   heeft_data: boolean
 }
 
-function getCached(): ReadinessData | null {
-  try {
-    const raw = localStorage.getItem(CACHE_KEY)
-    if (!raw) return null
-    const { data, ts } = JSON.parse(raw) as { data: ReadinessData; ts: number }
-    if (Date.now() - ts > CACHE_TTL) return null
-    return data
-  } catch {
-    return null
-  }
+interface CompanionData {
+  persona: Persona
+  level: number
+  xp_total: number
+  onboarding_goal: string | null
 }
 
-function setCache(data: ReadinessData) {
+interface CacheEntry<T> { data: T; ts: number }
+
+function getCache<T>(key: string): T | null {
   try {
-    localStorage.setItem(CACHE_KEY, JSON.stringify({ data, ts: Date.now() }))
-  } catch {}
+    const raw = localStorage.getItem(key)
+    if (!raw) return null
+    const { data, ts } = JSON.parse(raw) as CacheEntry<T>
+    if (Date.now() - ts > CACHE_TTL) return null
+    return data
+  } catch { return null }
+}
+
+function setCache<T>(key: string, data: T) {
+  try { localStorage.setItem(key, JSON.stringify({ data, ts: Date.now() })) } catch {}
+}
+
+function clearCache(key: string) {
+  try { localStorage.removeItem(key) } catch {}
 }
 
 function orbColor(score: number): [number, number, number] {
@@ -70,61 +82,198 @@ function scoreColor(score: number): string {
   return 'var(--mf-red)'
 }
 
-function vitaMessage(d: ReadinessData): string {
+const PERSONA_LABELS: Record<Persona, string> = {
+  stoicijn: 'De Stoïcijn',
+  optimizer: 'De Optimizer',
+  mentor: 'De Mentor',
+  challenger: 'De Challenger',
+  wetenschapper: 'De Wetenschapper',
+}
+
+const PERSONA_COLORS: Record<Persona, string> = {
+  stoicijn: 'rgba(180,180,200,0.12)',
+  optimizer: 'rgba(29,158,117,0.12)',
+  mentor: 'rgba(167,139,250,0.12)',
+  challenger: 'rgba(226,75,74,0.12)',
+  wetenschapper: 'rgba(91,141,240,0.12)',
+}
+
+const PERSONA_ACCENT: Record<Persona, string> = {
+  stoicijn: '#b4b4c8',
+  optimizer: '#1D9E75',
+  mentor: '#A78BFA',
+  challenger: '#E24B4A',
+  wetenschapper: '#5B8DF0',
+}
+
+function vitaMessage(d: ReadinessData, persona: Persona): string {
   if (!d.heeft_data) {
+    if (persona === 'challenger') return 'Geen data. Vul je check-in in — praten helpt niet, actie wel.'
+    if (persona === 'stoicijn') return 'Begin met meten. Wat niet gemeten wordt, kan niet verbeterd worden.'
+    if (persona === 'wetenschapper') return 'Nulpunt vereist. Vul je eerste check-in in voor een baseline.'
+    if (persona === 'optimizer') return 'Geen data = geen optimalisatie. Start je eerste check-in.'
     return 'Vul je eerste check-in in — VITA leert jouw patroon kennen.'
   }
+
   const slaap = d.slaap_uren !== null ? Number(d.slaap_uren) : null
   const stress = d.stress_niveau
-  const stemming = d.stemming_waarde
   const { score, streak } = d
 
   if (slaap !== null && slaap < 6) {
-    return `Slaap van ${slaap.toFixed(1)}u — minder dan optimaal. Herstel staat centraal vandaag.`
+    if (persona === 'stoicijn') return `${slaap.toFixed(1)}u slaap. Onvoldoende. Herstel staat vandaag centraal.`
+    if (persona === 'optimizer') return `${slaap.toFixed(1)}u slaap kost je ~18% cognitieve prestatie. Prioriteit: herstel.`
+    if (persona === 'challenger') return `${slaap.toFixed(1)}u. Dat is structureel onvoldoende. Wanneer pak je dit aan?`
+    if (persona === 'wetenschapper') return `Slaaptekort detecteerd: ${slaap.toFixed(1)}u. Adenosine stapelt — cognitie daalt.`
+    return `Slaap van ${slaap.toFixed(1)}u — herstel staat vandaag centraal.`
   }
+
   if (stress !== null && stress >= 4) {
-    return 'Hoog stressniveau gedetecteerd. Eén herstelmoment vandaag maakt het verschil.'
+    if (persona === 'stoicijn') return 'Hoge stress. Analyseer de bron. Elimineer of accepteer — geen derde optie.'
+    if (persona === 'optimizer') return 'Stressniveau verstoort je HRV-herstel. Eén ademhalingsmoment vandaag.'
+    if (persona === 'challenger') return 'Hoge stress. Dit is niet duurzaam. Wat ga je vandaag anders doen?'
+    if (persona === 'wetenschapper') return 'Verhoogd cortisolniveau verwacht. Parasympathische activatie aanbevolen.'
+    return 'Hoog stressniveau gedetecteerd. Eén herstelmoment maakt het verschil.'
   }
+
   if (score >= 80) {
-    if (streak >= 14) return `${streak} dagen consistentie. Jouw systeem reageert — patronen worden zichtbaar.`
-    if (streak >= 7) return `${streak} dagen op rij. Het moeilijkste punt is al voorbij.`
-    if (slaap !== null && slaap >= 8) return 'Uitstekende slaap. Perfecte dag voor een intensieve sessie.'
+    if (streak >= 14) {
+      if (persona === 'stoicijn') return `${streak} dagen. Dat is discipline worden tot karakter.`
+      if (persona === 'optimizer') return `${streak} dagen consistentie. Je systeem reageert — patronen worden zichtbaar.`
+      if (persona === 'challenger') return `${streak} dagen. Niet slecht. Hoelang hou je het vol?`
+      if (persona === 'wetenschapper') return `${streak} aaneengesloten dagen — neurologische gewoontepaden versterken.`
+      return `${streak} dagen consistentie. Jouw systeem reageert — patronen worden zichtbaar.`
+    }
+    if (persona === 'stoicijn') return 'Alle signalen staan op groen. Gebruik deze dag zoals hij bedoeld is.'
+    if (persona === 'optimizer') return 'Optimale readiness. Ideaal moment voor intensieve sessies of diep werk.'
+    if (persona === 'wetenschapper') return 'HRV-herstel naar verwachting optimaal. Maximale output mogelijk vandaag.'
     return 'Alle signalen staan op groen. Dit is een krachtige dag.'
   }
+
   if (score >= 60) {
-    if (slaap !== null && slaap >= 7) return 'Goed geslapen. Gebruik die energie vandaag doelbewust.'
-    if (stemming !== null && stemming >= 4) return 'Positieve stemming — kleine acties vandaag bouwen morgen\'s resultaat.'
+    if (persona === 'stoicijn') return 'Je staat er goed voor. Doe wat je gepland hebt.'
+    if (persona === 'optimizer') return 'Goede baseline. Kleine acties vandaag bouwen morgen\'s resultaat.'
+    if (persona === 'mentor') return 'Goed geslapen. Gebruik die energie vandaag doelbewust.'
     return 'Je staat er goed voor. VITA houdt jouw patronen in de gaten.'
   }
-  if (score >= 40) {
-    return 'VITA monitort jouw signalen. Check je voortgang voor een persoonlijk inzicht.'
-  }
-  return 'Herstel heeft prioriteit vandaag. Bekijk je inzichten voor context.'
+
+  if (persona === 'stoicijn') return 'Signalen zijn matig. Pas je planning aan — doe wat nodig is.'
+  if (persona === 'mentor') return 'VITA monitort jouw signalen. Check je voortgang voor een persoonlijk inzicht.'
+  return 'VITA monitort jouw signalen. Check je voortgang voor een persoonlijk inzicht.'
+}
+
+function XpBar({ xp, level }: { xp: number; level: number }) {
+  const XP_PER_LEVEL = 500
+  const xpInLevel = xp % XP_PER_LEVEL
+  const pct = Math.round((xpInLevel / XP_PER_LEVEL) * 100)
+
+  return (
+    <div style={{ padding: '0 14px 12px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 5 }}>
+        <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-3)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+          Level {level}
+        </span>
+        <span style={{ fontSize: 10, color: 'var(--text-3)' }}>
+          {xpInLevel}/{XP_PER_LEVEL} XP
+        </span>
+      </div>
+      <div style={{ height: 3, background: 'var(--bg-subtle)', borderRadius: 100, overflow: 'hidden' }}>
+        <div
+          style={{
+            height: '100%',
+            width: `${pct}%`,
+            background: 'linear-gradient(90deg, #5B8DF0, #A78BFA)',
+            borderRadius: 100,
+            transition: 'width 0.6s ease',
+          }}
+        />
+      </div>
+    </div>
+  )
+}
+
+function PersonaSelector({
+  current,
+  onSelect,
+  loading,
+}: {
+  current: Persona
+  onSelect: (p: Persona) => void
+  loading: boolean
+}) {
+  const personas: Persona[] = ['stoicijn', 'optimizer', 'mentor', 'challenger', 'wetenschapper']
+
+  return (
+    <div style={{ padding: '0 14px 14px' }}>
+      <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-3)', marginBottom: 8 }}>
+        Persoonlijkheid
+      </div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+        {personas.map(p => (
+          <button
+            key={p}
+            onClick={() => !loading && onSelect(p)}
+            disabled={loading}
+            style={{
+              padding: '4px 10px',
+              borderRadius: 100,
+              border: `1px solid ${p === current ? PERSONA_ACCENT[p] : 'var(--border)'}`,
+              background: p === current ? PERSONA_COLORS[p] : 'transparent',
+              color: p === current ? PERSONA_ACCENT[p] : 'var(--text-3)',
+              fontSize: 11,
+              fontWeight: 600,
+              cursor: loading ? 'not-allowed' : 'pointer',
+              opacity: loading ? 0.6 : 1,
+              transition: 'all 0.15s ease',
+            }}
+          >
+            {PERSONA_LABELS[p].replace('De ', '')}
+          </button>
+        ))}
+      </div>
+    </div>
+  )
 }
 
 export default function VitaCompanion() {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
   const [data, setData] = useState<ReadinessData | null>(null)
+  const [companion, setCompanion] = useState<CompanionData | null>(null)
+  const [personaLoading, setPersonaLoading] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
 
   const isHidden = HIDDEN_ROUTES.some(r => pathname.startsWith(r))
 
-  const load = useCallback(async () => {
-    const cached = getCached()
+  const loadReadiness = useCallback(async () => {
+    const cached = getCache<ReadinessData>(READINESS_CACHE_KEY)
     if (cached) { setData(cached); return }
     try {
       const res = await authFetch('/api/readiness')
       if (!res.ok) return
       const json = await res.json() as ReadinessData
       setData(json)
-      setCache(json)
+      setCache(READINESS_CACHE_KEY, json)
+    } catch {}
+  }, [])
+
+  const loadCompanion = useCallback(async () => {
+    const cached = getCache<CompanionData>(COMPANION_CACHE_KEY)
+    if (cached) { setCompanion(cached); return }
+    try {
+      const res = await authFetch('/api/vita/companion')
+      if (!res.ok) return
+      const json = await res.json() as CompanionData
+      setCompanion(json)
+      setCache(COMPANION_CACHE_KEY, json)
     } catch {}
   }, [])
 
   useEffect(() => {
-    if (!isHidden) load()
-  }, [isHidden, load])
+    if (!isHidden) {
+      loadReadiness()
+      loadCompanion()
+    }
+  }, [isHidden, loadReadiness, loadCompanion])
 
   useEffect(() => {
     if (!open) return
@@ -143,13 +292,40 @@ export default function VitaCompanion() {
     return () => document.removeEventListener('keydown', handler)
   }, [])
 
+  const handlePersonaChange = async (persona: Persona) => {
+    if (!companion || companion.persona === persona) return
+    setPersonaLoading(true)
+    const prev = companion
+    setCompanion({ ...companion, persona })
+    clearCache(COMPANION_CACHE_KEY)
+    try {
+      const res = await authFetch('/api/vita/companion', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ persona }),
+      })
+      if (res.ok) {
+        const json = await res.json() as CompanionData
+        setCompanion(json)
+        setCache(COMPANION_CACHE_KEY, json)
+      } else {
+        setCompanion(prev)
+      }
+    } catch {
+      setCompanion(prev)
+    } finally {
+      setPersonaLoading(false)
+    }
+  }
+
   if (isHidden || !data) return null
 
+  const persona = companion?.persona ?? 'mentor'
   const color = orbColor(data.score)
   const intensity = orbIntensity(data.score)
   const label = scoreLabel(data.score)
   const accentColor = scoreColor(data.score)
-  const message = vitaMessage(data)
+  const message = vitaMessage(data, persona)
 
   return (
     <div
@@ -165,7 +341,6 @@ export default function VitaCompanion() {
         gap: 10,
       }}
     >
-      {/* ── Expanded card ── */}
       {open && (
         <div
           style={{
@@ -204,6 +379,19 @@ export default function VitaCompanion() {
             }}>
               VITA
             </span>
+            {companion && (
+              <span style={{
+                fontSize: 10,
+                fontWeight: 600,
+                color: PERSONA_ACCENT[persona],
+                background: PERSONA_COLORS[persona],
+                padding: '2px 7px',
+                borderRadius: 100,
+                letterSpacing: '0.04em',
+              }}>
+                {PERSONA_LABELS[persona]}
+              </span>
+            )}
             <button
               onClick={() => setOpen(false)}
               style={{
@@ -220,6 +408,7 @@ export default function VitaCompanion() {
                 fontSize: 12,
                 fontWeight: 700,
                 lineHeight: 1,
+                marginLeft: 4,
               }}
               aria-label="Sluit VITA"
             >
@@ -287,13 +476,13 @@ export default function VitaCompanion() {
             lineHeight: 1.6,
             fontStyle: 'italic',
           }}>
-            "{message}"
+            &ldquo;{message}&rdquo;
           </div>
 
-          {/* Chips */}
+          {/* Data chips */}
           {data.heeft_data && (
             <div style={{
-              padding: '0 14px 14px',
+              padding: '0 14px 12px',
               display: 'flex',
               gap: 6,
               flexWrap: 'wrap',
@@ -339,10 +528,25 @@ export default function VitaCompanion() {
               )}
             </div>
           )}
+
+          {/* XP bar */}
+          {companion && <XpBar xp={companion.xp_total} level={companion.level} />}
+
+          {/* Divider */}
+          <div style={{ borderTop: '1px solid var(--border)', margin: '0 14px' }} />
+
+          {/* Persona selector */}
+          {companion && (
+            <PersonaSelector
+              current={persona}
+              onSelect={handlePersonaChange}
+              loading={personaLoading}
+            />
+          )}
         </div>
       )}
 
-      {/* ── Orb trigger button ── */}
+      {/* Orb trigger button */}
       <button
         onClick={() => setOpen(v => !v)}
         title="VITA — jouw gezondheidscompanion"
