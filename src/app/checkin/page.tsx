@@ -8,17 +8,13 @@ import { supabase } from '@/lib/supabase'
 import { authFetch } from '@/lib/auth-fetch'
 import { vandaag } from '@/lib/weekdoelen'
 import Link from 'next/link'
-import nextDynamic from 'next/dynamic'
-
-const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
-
-const SECTIE_RGB: Record<string, [number, number, number]> = {
-  slaap:     [0.486, 0.231, 0.933],
-  stress:    [0.886, 0.294, 0.290],
-  energie:   [0.949, 0.722, 0.141],
-  focus:     [0.114, 0.620, 0.459],
-  balans:    [0.231, 0.510, 0.965],
-  motivatie: [0.953, 0.388, 0.047],
+const SECTIE_KLEUR: Record<string, string> = {
+  slaap:     'rgba(124,58,237,0.18)',
+  stress:    'rgba(226,75,74,0.18)',
+  energie:   'rgba(242,184,36,0.18)',
+  focus:     'rgba(29,158,117,0.18)',
+  balans:    'rgba(59,130,246,0.18)',
+  motivatie: 'rgba(243,99,12,0.18)',
 }
 
 // ─── Types ─────────────────────────────────────────────────────────────────
@@ -331,7 +327,10 @@ export default function CheckIn() {
       <div className="max-w-md w-full rounded-2xl border p-10 shadow-sm text-center"
         style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8 }}>
-          <GlowOrb color={[0.114, 0.620, 0.459]} intensity={0.85} size={90} />
+          <div style={{
+            width: 90, height: 90, borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(29,158,117,0.22) 0%, transparent 70%)',
+          }} />
         </div>
         <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-5"
           style={{ background: 'var(--mf-green-light)' }}>
@@ -463,13 +462,13 @@ export default function CheckIn() {
         <div className="mb-6">
           <div className="flex items-center gap-3 mb-1">
             <div style={{ position: 'relative', width: 36, height: 36, flexShrink: 0 }}>
-              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 0 }}>
-                <GlowOrb
-                  color={SECTIE_RGB[huidigeSectie.id] ?? [0.114, 0.620, 0.459]}
-                  intensity={0.35 + (voortgangPct / 100) * 0.5}
-                  size={60}
-                />
-              </div>
+              <div style={{
+                position: 'absolute', top: '50%', left: '50%',
+                transform: 'translate(-50%, -50%)',
+                width: 60, height: 60, borderRadius: '50%',
+                background: `radial-gradient(circle, ${SECTIE_KLEUR[huidigeSectie.id] ?? 'rgba(29,158,117,0.18)'} 0%, transparent 70%)`,
+                zIndex: 0,
+              }} />
               <div className="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-bold"
                 style={{ background: huidigeSectie.licht, color: huidigeSectie.kleur, position: 'relative', zIndex: 1 }}>
                 {sectieIdx + 1}

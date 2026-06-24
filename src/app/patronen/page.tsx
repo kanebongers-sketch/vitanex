@@ -7,9 +7,7 @@ import { useRouter } from 'next/navigation'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
 import { supabase } from '@/lib/supabase'
-import nextDynamic from 'next/dynamic'
 
-const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
 
 interface Patroon {
   id: string
@@ -123,7 +121,7 @@ function LegeStaat() {
     >
       <div style={{ position: 'relative', display: 'inline-block', marginBottom: 16 }}>
         <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 0, pointerEvents: 'none' }}>
-          <GlowOrb color={[0.231, 0.510, 0.965]} intensity={0.45} size={100} />
+          <div style={{ width: 100, height: 100, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
         </div>
         <div style={{ fontSize: 48, position: 'relative', zIndex: 1 }}>🔬</div>
       </div>
@@ -199,7 +197,7 @@ export default function PatronenPage() {
       <Navbar />
 
       <main className="mf-mesh-bg" style={{ minHeight: '100vh', paddingBottom: 80 }}>
-        <div style={{ maxWidth: 560, margin: '0 auto', padding: '24px 20px 0' }}>
+        <div style={{ maxWidth: 800, margin: '0 auto', padding: '24px 20px 0' }}>
 
           {/* Header */}
           <div style={{ marginBottom: 24 }}>
@@ -304,7 +302,7 @@ export default function PatronenPage() {
                       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
                         <div style={{ position: 'relative', flexShrink: 0, width: 32, height: 32 }}>
                           <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 0, pointerEvents: 'none' }}>
-                            <GlowOrb color={[0.231, 0.510, 0.965]} intensity={p.betrouwbaarheid === 'hoog' ? 0.5 : p.betrouwbaarheid === 'middel' ? 0.35 : 0.2} size={56} />
+                            <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
                           </div>
                           <span style={{ fontSize: 28, lineHeight: 1, position: 'relative', zIndex: 1 }}>{p.emoji}</span>
                         </div>

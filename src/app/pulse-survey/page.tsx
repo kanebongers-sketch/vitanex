@@ -7,9 +7,7 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
-import nextDynamic from 'next/dynamic'
 
-const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
 
 interface Vraag {
   id: string
@@ -80,7 +78,7 @@ export default function PulseSurveyPage() {
       <main style={{ padding: '72px 40px', maxWidth: 560, margin: '0 auto', textAlign: 'center' }}>
         <div style={{ position: 'relative', display: 'inline-block', marginBottom: 20 }}>
           <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
-            <GlowOrb color={[0.114, 0.620, 0.459]} intensity={0.55} size={100} />
+            <div style={{ width: 100, height: 100, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
           </div>
           <div style={{ fontSize: 48, position: 'relative', zIndex: 1 }}>✓</div>
         </div>

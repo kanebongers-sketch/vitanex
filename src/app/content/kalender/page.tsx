@@ -6,9 +6,7 @@ import { useEffect, useState, useCallback, useRef } from 'react'
 import Link from 'next/link'
 import { authFetch } from '@/lib/auth-fetch'
 import Navbar from '@/components/layout/Navbar'
-import nextDynamic from 'next/dynamic'
 
-const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
 
 // ── Types ──────────────────────────────────────────────────
 
@@ -432,7 +430,7 @@ export default function ContentKalenderPage() {
           }}>
             <div style={{ position: 'relative', display: 'inline-block', marginBottom: 16 }}>
               <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
-                <GlowOrb color={[0.231, 0.510, 0.965]} intensity={0.4} size={110} />
+                <div style={{ width: 110, height: 110, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
               </div>
               <div style={{ fontSize: 48, position: 'relative', zIndex: 1 }}>📅</div>
             </div>

@@ -9,9 +9,8 @@ import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import nextDynamic from 'next/dynamic'
 const AiCoachCard = nextDynamic(() => import('@/components/gezondheid/AiCoachCard'), { ssr: false })
-const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
-const KCAL_RGB = (gegeten: number, doel: number): [number, number, number] =>
-  gegeten > doel * 1.05 ? [0.886, 0.294, 0.290] : gegeten > doel * 0.75 ? [0.114, 0.620, 0.459] : [0.949, 0.722, 0.141]
+const KCAL_KLEUR = (gegeten: number, doel: number): string =>
+  gegeten > doel * 1.05 ? 'rgba(226,75,74,0.18)' : gegeten > doel * 0.75 ? 'rgba(29,158,117,0.18)' : 'rgba(242,184,36,0.18)'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -466,7 +465,7 @@ export default function VoedingPage() {
       <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" onChange={onFotoInput} style={{ display: 'none' }} />
       <input ref={fileInputRef}   type="file" accept="image/*"                        onChange={onFotoInput} style={{ display: 'none' }} />
 
-      <div style={{ maxWidth: 640, margin: '0 auto', padding: '24px 16px 100px' }}>
+      <div style={{ maxWidth: 900, margin: '0 auto', padding: '24px 16px 100px' }}>
 
         {/* ══════════════════════════════════════════════════════════════════════
             OVERZICHT
@@ -496,9 +495,7 @@ export default function VoedingPage() {
               {/* Top: ring + macro rings */}
               <div style={{ padding: '20px 20px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
                 <div style={{ position: 'relative', display: 'inline-block' }}>
-                  <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 0, pointerEvents: 'none' }}>
-                    <GlowOrb color={KCAL_RGB(dagTotaal.calorieen, DOEL_KCAL)} intensity={Math.max(0.2, Math.min(0.8, dagTotaal.calorieen / DOEL_KCAL * 0.7))} size={220} />
-                  </div>
+                  <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 0, pointerEvents: 'none', width: 220, height: 220, borderRadius: '50%', background: `radial-gradient(circle, ${KCAL_KLEUR(dagTotaal.calorieen, DOEL_KCAL)} 0%, transparent 70%)` }} />
                   <div style={{ position: 'relative', zIndex: 1 }}>
                     <CalorieRing gegeten={dagTotaal.calorieen} doel={DOEL_KCAL} kleur={kCalKleur} />
                   </div>

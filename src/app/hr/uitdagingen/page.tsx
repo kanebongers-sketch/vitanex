@@ -6,10 +6,8 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
-import nextDynamic from 'next/dynamic'
 import { authFetch } from '@/lib/auth-fetch'
 
-const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
 
 interface TeamUitdaging {
   id: string
@@ -111,7 +109,7 @@ export default function HRUitdagingenPagina() {
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
       <Navbar />
-      <main style={{ padding: '24px 20px 88px', maxWidth: 600, margin: '0 auto' }}>
+      <main style={{ padding: '24px 20px 88px', maxWidth: 800, margin: '0 auto' }}>
 
         <header style={{ marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
@@ -204,7 +202,7 @@ export default function HRUitdagingenPagina() {
           <div style={{ background: 'var(--bg-card)', borderRadius: 20, padding: '40px 24px', textAlign: 'center', border: '1px solid var(--border)' }}>
             <div style={{ position: 'relative', display: 'inline-block', marginBottom: 12 }}>
               <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
-                <GlowOrb color={[0.949, 0.722, 0.141]} intensity={0.45} size={90} />
+                <div style={{ width: 90, height: 90, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
               </div>
               <span style={{ fontSize: 40, position: 'relative', zIndex: 1 }}>🏆</span>
             </div>

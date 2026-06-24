@@ -11,9 +11,7 @@ import {
   ALLE_ACHIEVEMENTS, type XPData, type Achievement,
 } from '@/lib/xp'
 import { laadXPVanServer } from '@/lib/xp-sync'
-import nextDynamic from 'next/dynamic'
 
-const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
 
 const LEVEL_RGB: Record<number, [number, number, number]> = {
   1:  [0.486, 0.231, 0.933],
@@ -236,7 +234,7 @@ export default function NiveauPage() {
   return (
     <div className="mf-mesh-bg" style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
       <Navbar />
-      <main style={{ maxWidth: 720, margin: '0 auto', padding: '32px 20px 64px' }}>
+      <main style={{ maxWidth: 900, margin: '0 auto', padding: '32px 20px 64px' }}>
 
         {/* ── Page title ── */}
         <div style={{ marginBottom: 24 }}>
@@ -287,7 +285,7 @@ export default function NiveauPage() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 28, flexWrap: 'wrap' }}>
             <div style={{ position: 'relative', flexShrink: 0 }}>
               <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', pointerEvents: 'none', zIndex: 0 }}>
-                <GlowOrb color={LEVEL_RGB[level] ?? [0.486, 0.231, 0.933]} intensity={voortgang.pct / 100} size={200} />
+                <div style={{ width: 200, height: 200, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
               </div>
               <div style={{ position: 'relative', zIndex: 1 }}>
                 <LevelRing level={level} pct={level >= 10 ? 100 : voortgang.pct} kleur={kleur} />

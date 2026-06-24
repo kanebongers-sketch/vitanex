@@ -7,9 +7,7 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
-import nextDynamic from 'next/dynamic'
 
-const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
 
 interface Achievement {
   behaald_op: string
@@ -115,7 +113,7 @@ export default function AchievementsPagina() {
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
       <Navbar />
-      <main style={{ padding: '24px 20px 88px', maxWidth: 600, margin: '0 auto' }}>
+      <main style={{ padding: '24px 20px 88px', maxWidth: 800, margin: '0 auto' }}>
 
         <header style={{ marginBottom: 20 }}>
           <p style={{ fontSize: '0.8rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-4)', margin: '0 0 4px' }}>
@@ -137,7 +135,7 @@ export default function AchievementsPagina() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 16 }}>
             <div style={{ position: 'relative', width: 56, height: 56, flexShrink: 0 }}>
               <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 0 }}>
-                <GlowOrb color={[0.949, 0.722, 0.141]} intensity={Math.min(1, 0.3 + levelPct / 100)} size={88} />
+                <div style={{ width: 88, height: 88, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
               </div>
               <div style={{
                 width: 56, height: 56, borderRadius: 'var(--radius-md)',

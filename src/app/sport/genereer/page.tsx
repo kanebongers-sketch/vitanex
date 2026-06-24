@@ -6,9 +6,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Navbar from '@/components/layout/Navbar'
 import { supabase } from '@/lib/supabase'
-import nextDynamic from 'next/dynamic'
 
-const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
 
 type AgentFase = 'wachten' | 'bezig' | 'klaar'
 
@@ -134,7 +132,7 @@ export default function GenereerSchemaPage() {
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
       <Navbar />
-      <div style={{ maxWidth: 560, margin: '0 auto', padding: '24px 16px 80px' }}>
+      <div style={{ maxWidth: 800, margin: '0 auto', padding: '24px 16px 80px' }}>
         {/* Header */}
         <div style={{ marginBottom: 28 }}>
           <button
@@ -320,7 +318,7 @@ export default function GenereerSchemaPage() {
             <div style={{ textAlign: 'center', marginBottom: 28 }}>
               <div style={{ position: 'relative', display: 'inline-block', marginBottom: 10 }}>
                 <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
-                  <GlowOrb color={[0.114, 0.620, 0.459]} intensity={0.4} size={90} />
+                  <div style={{ width: 90, height: 90, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
                 </div>
                 <div style={{ fontSize: 36, position: 'relative', zIndex: 1 }}>🤖</div>
               </div>

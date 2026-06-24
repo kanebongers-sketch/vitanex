@@ -8,9 +8,6 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
-import nextDynamic from 'next/dynamic'
-
-const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
 
 interface WeekStats {
   week: string
@@ -159,11 +156,12 @@ export default function VoortgangPage() {
         {/* Header */}
         <div style={{ marginBottom: 28 }}>
           <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }}>
-            <GlowOrb
-              color={streak && streak.huidige_streak > 0 ? [0.949, 0.388, 0.047] : [0.114, 0.620, 0.459]}
-              intensity={streak ? Math.min(1, 0.3 + streak.huidige_streak / 10) : 0.4}
-              size={100}
-            />
+            <div style={{
+              width: 100, height: 100, borderRadius: '50%',
+              background: streak && streak.huidige_streak > 0
+                ? 'radial-gradient(circle, rgba(243,99,12,0.18) 0%, transparent 70%)'
+                : 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)',
+            }} />
           </div>
           <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 4 }}>Mijn voortgang</h1>
           <p style={{ fontSize: 13, color: 'var(--text-3)' }}>Jouw welzijns-statistieken van de afgelopen 30 dagen</p>
@@ -179,7 +177,7 @@ export default function VoortgangPage() {
             boxShadow: 'var(--shadow-xs)', marginBottom: 20,
           }}>
             <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
-              <GlowOrb color={[0.114, 0.620, 0.459]} intensity={0.5} size={80} />
+              <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
             </div>
             <p style={{ fontSize: 17, fontWeight: 800, color: 'var(--text-1)', marginBottom: 8 }}>
               Je reis begint hier

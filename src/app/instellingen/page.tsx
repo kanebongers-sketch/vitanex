@@ -9,9 +9,7 @@ import { supabase } from '@/lib/supabase'
 import Navbar, { schakelPortaal, type ViewMode } from '@/components/layout/Navbar'
 import { Avatar } from '@/components/Avatar'
 import HrCodeModal from '@/components/hr/HrCodeModal'
-import nextDynamic from 'next/dynamic'
 
-const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
 
 async function cropToSquareJpeg(file: File, size: number): Promise<Blob> {
   return new Promise((resolve, reject) => {
@@ -417,7 +415,7 @@ export default function Instellingen() {
   return (
     <div className="mf-mesh-bg min-h-screen">
       <Navbar />
-      <main className="px-4 py-8">
+      <main className="px-4 py-8" style={{ maxWidth: 800, margin: '0 auto' }}>
 
         {/* Profiel hero */}
         <div className="mb-6 rounded-2xl overflow-hidden mf-animate-up" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)' }}>
@@ -432,7 +430,7 @@ export default function Instellingen() {
             <div className="absolute -top-9 left-6">
               <div className="relative">
                 <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
-                  <GlowOrb color={[0.114, 0.620, 0.459]} intensity={0.5} size={110} />
+                  <div style={{ width: 110, height: 110, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
                 </div>
                 <div style={{ position: 'relative', zIndex: 1 }}>
                   <Avatar naam={naam || 'G'} avatarUrl={avatarUrl} size={72} />

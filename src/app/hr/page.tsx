@@ -9,9 +9,7 @@ import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { ALLE_TILES, DEFAULT_TILES, type TileId } from '@/lib/tiles'
 import GesprekkenTab from '@/components/hr/GesprekkenTab'
-import nextDynamic from 'next/dynamic'
 
-const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
 
 type HrTab = 'portaal' | 'gesprekken'
 
@@ -259,7 +257,7 @@ export default function HrDashboardPage() {
                   <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>eNPS score</p>
                   <div style={{ position: 'relative', display: 'inline-block', marginBottom: 4 }}>
                     <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
-                      <GlowOrb color={analytics.enps_score >= 30 ? [0.114, 0.620, 0.459] : analytics.enps_score >= 0 ? [0.949, 0.722, 0.141] : [0.886, 0.294, 0.290]} intensity={0.4} size={80} />
+                      <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
                     </div>
                     <p style={{ fontSize: 32, fontWeight: 800, color: analytics.enps_score >= 30 ? 'var(--mf-green)' : analytics.enps_score >= 0 ? 'var(--mf-amber)' : 'var(--mf-red)', lineHeight: 1, position: 'relative', zIndex: 1 }}>
                       {analytics.enps_score > 0 ? '+' : ''}{analytics.enps_score}
@@ -278,7 +276,7 @@ export default function HrDashboardPage() {
                   <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>Werkgeluk</p>
                   <div style={{ position: 'relative', display: 'inline-block', marginBottom: 4 }}>
                     <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
-                      <GlowOrb color={analytics.werkgeluk_gemiddeld >= 4 ? [0.114, 0.620, 0.459] : analytics.werkgeluk_gemiddeld >= 3 ? [0.949, 0.722, 0.141] : [0.886, 0.294, 0.290]} intensity={Math.max(0.25, analytics.werkgeluk_gemiddeld / 6)} size={80} />
+                      <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
                     </div>
                     <p style={{ fontSize: 32, fontWeight: 800, color: analytics.werkgeluk_gemiddeld >= 4 ? 'var(--mf-green)' : analytics.werkgeluk_gemiddeld >= 3 ? 'var(--mf-amber)' : 'var(--mf-red)', lineHeight: 1, position: 'relative', zIndex: 1 }}>
                       {analytics.werkgeluk_gemiddeld}/5
@@ -294,7 +292,7 @@ export default function HrDashboardPage() {
                   <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>Psych. veiligheid</p>
                   <div style={{ position: 'relative', display: 'inline-block', marginBottom: 4 }}>
                     <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
-                      <GlowOrb color={analytics.psych_veiligheid_gemiddeld >= 4 ? [0.114, 0.620, 0.459] : analytics.psych_veiligheid_gemiddeld >= 3 ? [0.949, 0.722, 0.141] : [0.886, 0.294, 0.290]} intensity={Math.max(0.25, analytics.psych_veiligheid_gemiddeld / 6)} size={80} />
+                      <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
                     </div>
                     <p style={{ fontSize: 32, fontWeight: 800, color: analytics.psych_veiligheid_gemiddeld >= 4 ? 'var(--mf-green)' : analytics.psych_veiligheid_gemiddeld >= 3 ? 'var(--mf-amber)' : 'var(--mf-red)', lineHeight: 1, position: 'relative', zIndex: 1 }}>
                       {analytics.psych_veiligheid_gemiddeld}/5

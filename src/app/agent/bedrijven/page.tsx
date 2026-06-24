@@ -4,9 +4,7 @@ export const dynamic = 'force-dynamic'
 import { useEffect, useState, useCallback } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import Link from 'next/link'
-import nextDynamic from 'next/dynamic'
 
-const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
 
 const sb = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -221,7 +219,7 @@ export default function BedrijvenPage() {
             <div style={{textAlign:'center',padding:'40px',color:MUTED}}>
               <div style={{position:'relative',display:'inline-block',marginBottom:8}}>
                 <div style={{position:'absolute',top:'50%',left:'50%',transform:'translate(-50%,-50%)',zIndex:0,pointerEvents:'none'}}>
-                  <GlowOrb color={[0.231, 0.510, 0.965]} intensity={0.4} size={80} />
+                  <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
                 </div>
                 <span style={{fontSize:32,position:'relative',zIndex:1}}>🔍</span>
               </div>

@@ -7,9 +7,6 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
-import nextDynamic from 'next/dynamic'
-
-const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
 
 interface WaterLog {
   id: string
@@ -248,7 +245,7 @@ export default function WaterPagina() {
         background: 'var(--bg-app)',
         paddingBottom: '3rem',
       }}>
-        <div style={{ maxWidth: '520px', margin: '0 auto', padding: '0 1.25rem' }}>
+        <div style={{ maxWidth: '720px', margin: '0 auto', padding: '0 1.25rem' }}>
 
           {/* Header */}
           <header style={{ paddingTop: '2rem', marginBottom: '1.5rem' }}>
@@ -282,13 +279,13 @@ export default function WaterPagina() {
             }}
           >
             <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <div style={{ position: 'absolute', pointerEvents: 'none' }}>
-                <GlowOrb
-                  color={percentage >= 100 ? [0.114, 0.620, 0.459] : [0.231, 0.510, 0.965]}
-                  intensity={Math.min(1, percentage / 100)}
-                  size={140}
-                />
-              </div>
+              <div style={{
+                position: 'absolute', pointerEvents: 'none',
+                width: 140, height: 140, borderRadius: '50%',
+                background: percentage >= 100
+                  ? 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)'
+                  : 'radial-gradient(circle, rgba(59,130,246,0.18) 0%, transparent 70%)',
+              }} />
               <div style={{ position: 'relative', zIndex: 1 }}>
                 <WaterGlas percentage={percentage} />
               </div>

@@ -4,10 +4,8 @@ export const dynamic = 'force-dynamic'
 
 import { Suspense, useState } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
-import nextDynamic from 'next/dynamic'
 import { supabase } from '@/lib/supabase'
 
-const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
 import { CAT, DOELKEUZE_OPTIES } from '@/lib/doelen-config'
 import { verwerkCheckin } from '@/lib/xp'
 import {
@@ -133,13 +131,13 @@ function DoelKeuzeInhoud() {
       background: 'linear-gradient(160deg, #F0FAF6 0%, #EBF4FB 50%, #F5F3FF 100%)',
       padding: '40px 20px 80px',
     }}>
-      <div style={{ maxWidth: 600, margin: '0 auto' }}>
+      <div style={{ maxWidth: 800, margin: '0 auto' }}>
 
         {/* Header */}
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
           <div style={{ position: 'relative', width: 56, height: 56, margin: '0 auto 16px' }}>
             <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 0 }}>
-              <GlowOrb color={[0.114, 0.620, 0.459]} intensity={0.65} size={90} />
+              <div style={{ width: 90, height: 90, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
             </div>
             <div style={{
               width: 56, height: 56, borderRadius: '50%',

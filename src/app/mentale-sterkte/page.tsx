@@ -7,9 +7,7 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
-import nextDynamic from 'next/dynamic'
 
-const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
 
 const VRAGEN = [
   'Als ik een tegenslag ervaar, herstel ik me snel.',
@@ -102,7 +100,7 @@ export default function MentaleSterktePagina() {
   return (
     <div className="mf-mesh-bg" style={{ minHeight: '100vh' }}>
       <Navbar />
-      <main style={{ padding: '24px 20px 88px', maxWidth: 600, margin: '0 auto' }}>
+      <main style={{ padding: '24px 20px 88px', maxWidth: 800, margin: '0 auto' }}>
 
         {!resultaat ? (
           <>
@@ -185,16 +183,7 @@ export default function MentaleSterktePagina() {
           <>
             <header style={{ marginBottom: 24, textAlign: 'center' }}>
               <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8 }}>
-                <GlowOrb
-                  color={
-                    resultaat.score >= 80 ? [0.114, 0.620, 0.459] :
-                    resultaat.score >= 60 ? [0.949, 0.522, 0.141] :
-                    resultaat.score >= 40 ? [0.949, 0.388, 0.141] :
-                    [0.887, 0.294, 0.290]
-                  }
-                  intensity={resultaat.score / 100}
-                  size={120}
-                />
+                <div style={{ width: 120, height: 120, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
               </div>
               <h1 style={{ fontSize: 28, fontWeight: 800, color: NIVEAU_KLEUR[resultaat.niveau] ?? 'var(--text-1)', marginBottom: 4 }}>
                 {resultaat.niveau}

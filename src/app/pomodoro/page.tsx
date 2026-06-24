@@ -7,9 +7,7 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
-import nextDynamic from 'next/dynamic'
 
-const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
 
 const MODUS_RGB: [number, number, number][] = [
   [0.887, 0.294, 0.290], // var(--mf-red) - Klassiek
@@ -149,7 +147,7 @@ export default function PomodoroPage() {
   return (
     <div className="mf-mesh-bg" style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
       <Navbar />
-      <main style={{ padding: '36px 40px 72px', maxWidth: 600, margin: '0 auto' }}>
+      <main style={{ padding: '36px 40px 72px', maxWidth: 800, margin: '0 auto' }}>
 
         <div style={{ marginBottom: 28 }}>
           <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 4 }}>Pomodoro timer</h1>
@@ -183,11 +181,7 @@ export default function PomodoroPage() {
           <div style={{ position: 'relative', display: 'inline-block', marginBottom: 24 }}>
             {/* 3D glow orb achter de ring */}
             <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
-              <GlowOrb
-                color={fase === 'focus' ? MODUS_RGB[modus] : fase === 'lang-pauze' ? [0.486, 0.231, 0.933] : [0.114, 0.620, 0.459]}
-                intensity={fase === 'klaar' ? 0.2 : progress * 0.7 + 0.3}
-                size={r * 2 + 20}
-              />
+              <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
             </div>
             <svg width={r * 2 + 20} height={r * 2 + 20} style={{ transform: 'rotate(-90deg)', position: 'relative' }}>
               <circle cx={r + 10} cy={r + 10} r={r} fill="none" stroke="var(--bg-subtle)" strokeWidth="8" />

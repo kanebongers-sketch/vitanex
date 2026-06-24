@@ -4,10 +4,8 @@ import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
-import nextDynamic from 'next/dynamic'
 import Link from 'next/link'
 
-const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
 import { Avatar } from '@/components/Avatar'
 import DocumentenSectie from '@/components/DocumentenSectie'
@@ -266,7 +264,7 @@ export default function ProfielPagina() {
                 <p className="text-xs text-gray-400 mb-1">Totaal</p>
                 <div style={{ position: 'relative', display: 'inline-block' }}>
                   <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
-                    <GlowOrb color={totaalScore >= 4 ? [0.114, 0.620, 0.459] : totaalScore >= 2.5 ? [0.949, 0.722, 0.141] : [0.886, 0.294, 0.290]} intensity={0.4} size={90} />
+                    <div style={{ width: 90, height: 90, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
                   </div>
                   <p className="text-3xl font-medium" style={{ color: scoreKleur(totaalScore), position: 'relative', zIndex: 1 }}>{totaalScore}/5</p>
                 </div>

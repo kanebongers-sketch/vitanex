@@ -8,9 +8,7 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
-import nextDynamic from 'next/dynamic'
 
-const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
 
 const REFLECTIE_VRAGEN = [
   { id: 'hoogtepunt', vraag: 'Wat was het hoogtepunt van deze week?', placeholder: 'Het moment dat me het meest energiek maakte...' },
@@ -94,16 +92,12 @@ export default function ReflectiePage() {
   return (
     <div className="mf-mesh-bg" style={{ minHeight: '100vh' }}>
       <Navbar />
-      <main style={{ padding: '36px 40px 72px', maxWidth: 720, margin: '0 auto' }}>
+      <main style={{ padding: '36px 40px 72px', maxWidth: 900, margin: '0 auto' }}>
 
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 20 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-            <GlowOrb
-              color={[0.231, 0.510, 0.965]}
-              intensity={ingevuld / REFLECTIE_VRAGEN.length}
-              size={88}
-            />
+            <div style={{ width: 88, height: 88, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
             <div>
               <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1, #111827)', letterSpacing: '-0.03em', marginBottom: 4 }}>Wekelijkse reflectie</h1>
               <p style={{ fontSize: 13, color: 'var(--text-3, #9CA3AF)' }}>Week van {weekLabel} · {ingevuld}/{REFLECTIE_VRAGEN.length} vragen beantwoord</p>

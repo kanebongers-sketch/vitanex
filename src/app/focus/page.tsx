@@ -7,21 +7,17 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
-import nextDynamic from 'next/dynamic'
-
-const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
-
-const ADEM_FASE_RGB: Record<string, [number, number, number]> = {
-  'var(--mf-green)':  [0.114, 0.620, 0.459],
-  'var(--mf-blue)':   [0.231, 0.510, 0.965],
-  'var(--mf-purple)': [0.486, 0.231, 0.933],
-  'var(--mf-amber)':  [0.949, 0.722, 0.141],
+const ADEM_FASE_KLEUR: Record<string, string> = {
+  'var(--mf-green)':  'rgba(29,158,117,0.18)',
+  'var(--mf-blue)':   'rgba(59,130,246,0.18)',
+  'var(--mf-purple)': 'rgba(124,58,237,0.18)',
+  'var(--mf-amber)':  'rgba(242,184,36,0.18)',
 }
 
-const TIMER_RGB: Record<string, [number, number, number]> = {
-  focus: [0.114, 0.620, 0.459],
-  pauze: [0.231, 0.510, 0.965],
-  micro: [0.949, 0.722, 0.141],
+const TIMER_KLEUR: Record<string, string> = {
+  focus: 'rgba(29,158,117,0.18)',
+  pauze: 'rgba(59,130,246,0.18)',
+  micro: 'rgba(242,184,36,0.18)',
 }
 
 type HoofdTab = 'adem' | 'beweging' | 'voeding' | 'slaap' | 'mentaal' | 'timer'
@@ -664,13 +660,7 @@ export default function FocusPagina() {
               {ademActief && huidigeFase && (
                 <div className="flex flex-col items-center py-4">
                   <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 0 }}>
-                      <GlowOrb
-                        color={ADEM_FASE_RGB[huidigeFase.kleur] ?? [0.114, 0.620, 0.459]}
-                        intensity={0.65}
-                        size={220}
-                      />
-                    </div>
+                    <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 0, width: 220, height: 220, borderRadius: '50%', background: `radial-gradient(circle, ${ADEM_FASE_KLEUR[huidigeFase.kleur] ?? 'rgba(29,158,117,0.18)'} 0%, transparent 70%)` }} />
                     <svg width="200" height="200" viewBox="0 0 200 200" style={{ position: 'relative', zIndex: 1 }}>
                       <circle cx="100" cy="100" r={pulsR + 12} fill={huidigeFase.kleur} opacity="0.07" />
                       <circle
@@ -1019,13 +1009,7 @@ export default function FocusPagina() {
 
             <div className="rounded-2xl border p-6 mb-4 flex flex-col items-center" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
               <div style={{ position: 'relative', width: 200, height: 200 }}>
-                <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 0 }}>
-                  <GlowOrb
-                    color={TIMER_RGB[timerTab] ?? [0.114, 0.620, 0.459]}
-                    intensity={timerActief ? 0.5 + timerVoortgang * 0.5 : 0.3}
-                    size={220}
-                  />
-                </div>
+                <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 0, width: 220, height: 220, borderRadius: '50%', background: `radial-gradient(circle, ${TIMER_KLEUR[timerTab] ?? 'rgba(29,158,117,0.18)'} 0%, transparent 70%)` }} />
                 <svg width="200" height="200" viewBox="0 0 200 200" style={{ transform: 'rotate(-90deg)', position: 'relative', zIndex: 1 }}>
                   <circle cx="100" cy="100" r="88" fill="none" style={{ stroke: 'var(--border-strong)' }} strokeWidth="8" />
                   <circle

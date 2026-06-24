@@ -7,9 +7,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
-import nextDynamic from 'next/dynamic'
 
-const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
 
 interface CheckIn {
   id: string
@@ -85,7 +83,7 @@ export default function CheckInGeschiedenisPage() {
         ) : checkIns.length === 0 ? (
           <div style={{ background: 'var(--bg-card)', borderRadius: 20, border: '1px solid var(--border)', padding: '56px 40px', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
             <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
-              <GlowOrb color={[0.114, 0.620, 0.459]} intensity={0.3} size={160} />
+              <div style={{ width: 160, height: 160, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
             </div>
             <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-2)', marginBottom: 8, position: 'relative', zIndex: 1 }}>Nog geen check-ins</p>
             <Link href="/checkin" style={{ fontSize: 14, color: 'white', background: 'var(--mf-green)', borderRadius: 12, padding: '10px 20px', textDecoration: 'none', fontWeight: 600, display: 'inline-block', position: 'relative', zIndex: 1 }}>

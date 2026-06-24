@@ -7,14 +7,12 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import Link from 'next/link'
-import nextDynamic from 'next/dynamic'
 
-const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
 
-const RISICO_RGB: Record<string, [number, number, number]> = {
-  laag:  [0.114, 0.620, 0.459],
-  matig: [0.949, 0.522, 0.141],
-  hoog:  [0.887, 0.294, 0.290],
+const RISICO_GLOW: Record<string, string> = {
+  laag:  'rgba(29,158,117,0.20)',
+  matig: 'rgba(242,133,36,0.20)',
+  hoog:  'rgba(226,75,74,0.20)',
 }
 
 type Scan = {
@@ -166,7 +164,7 @@ export default function BurnoutPagina() {
   if (fase === 'intro') return (
     <div className="mf-mesh-bg min-h-screen" style={{ background: 'var(--bg-app)' }}>
       <Navbar />
-      <main className="p-6">
+      <main className="p-6" style={{ maxWidth: 900, margin: '0 auto' }}>
         <div className="rounded-2xl p-8 text-center mt-8" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
           <div className="flex justify-center mb-4"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" style={{ color: 'var(--mf-red)' }} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17.657 18.657A8 8 0 0 1 6.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0 1 20 13a7.975 7.975 0 0 1-2.343 5.657z"/><path d="M9.879 16.121A3 3 0 1 0 12.99 12L11 14"/></svg></div>
           <h1 className="text-xl font-semibold mb-2" style={{ color: 'var(--text-1)' }}>Burn-out risicoscan</h1>
@@ -198,7 +196,7 @@ export default function BurnoutPagina() {
   if (fase === 'scan') return (
     <div className="mf-mesh-bg min-h-screen" style={{ background: 'var(--bg-app)' }}>
       <Navbar />
-      <main className="p-6">
+      <main className="p-6" style={{ maxWidth: 900, margin: '0 auto' }}>
         <button onClick={() => setFase('intro')} className="text-sm mb-4 inline-flex items-center gap-1" style={{ color: 'var(--text-4)' }}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg> Terug
         </button>
@@ -270,7 +268,7 @@ export default function BurnoutPagina() {
     return (
       <div className="mf-mesh-bg min-h-screen" style={{ background: 'var(--bg-app)' }}>
         <Navbar />
-        <main className="p-6">
+        <main className="p-6" style={{ maxWidth: 900, margin: '0 auto' }}>
           <h1 className="text-xl font-semibold mb-4" style={{ color: 'var(--text-1)' }}>Jouw resultaat</h1>
 
           {/* Risk badge */}
@@ -279,11 +277,7 @@ export default function BurnoutPagina() {
             style={{ background: kleur.bg, borderColor: kleur.border }}
           >
             <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8 }}>
-              <GlowOrb
-                color={RISICO_RGB[resultaat.risico_niveau]}
-                intensity={resultaat.risico_niveau === 'laag' ? 0.4 : resultaat.risico_niveau === 'matig' ? 0.65 : 0.9}
-                size={120}
-              />
+              <div style={{ width: 120, height: 120, borderRadius: '50%', background: `radial-gradient(circle, ${RISICO_GLOW[resultaat.risico_niveau] ?? 'rgba(29,158,117,0.18)'} 0%, transparent 70%)` }} />
             </div>
             <p className="text-xl font-semibold" style={{ color: kleur.text }}>
               {risicoLabel(resultaat.risico_niveau)}
@@ -353,7 +347,7 @@ export default function BurnoutPagina() {
   if (fase === 'history') return (
     <div className="mf-mesh-bg min-h-screen" style={{ background: 'var(--bg-app)' }}>
       <Navbar />
-      <main className="p-6">
+      <main className="p-6" style={{ maxWidth: 900, margin: '0 auto' }}>
         <button onClick={() => setFase('intro')} className="text-sm mb-4 inline-flex items-center gap-1" style={{ color: 'var(--text-4)' }}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg> Terug
         </button>

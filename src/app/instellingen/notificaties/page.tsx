@@ -81,7 +81,7 @@ export default function NotificatiesPage() {
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
       <Navbar />
-      <main style={{ padding: '36px 40px 72px', maxWidth: 600, margin: '0 auto' }}>
+      <main style={{ padding: '36px 40px 72px', maxWidth: 800, margin: '0 auto' }}>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 28 }}>
           <Link href="/instellingen" style={{ color: 'var(--text-3)', textDecoration: 'none', fontSize: 13 }}>â† Instellingen</Link>

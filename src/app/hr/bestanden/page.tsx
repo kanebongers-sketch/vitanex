@@ -6,9 +6,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import HrShell from '@/components/layout/HrShell'
-import nextDynamic from 'next/dynamic'
 
-const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
 
 interface Medewerker { id: string; naam: string; email: string }
 interface GedeeldBestand { id: string; bestandsnaam: string; aangemaakt_op: string; categorie: string; user_id: string }
@@ -106,7 +104,7 @@ export default function HrBestandenPage() {
             <div key={stat.label} style={{ background: '#0a1628', border: `1px solid ${stat.kleur}30`, borderRadius: 12, padding: '14px 20px', flex: 1, minWidth: 140 }}>
               <div style={{ position: 'relative', display: 'inline-block' }}>
                 <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
-                  <GlowOrb color={[0.231, 0.510, 0.965]} intensity={0.35} size={70} />
+                  <div style={{ width: 70, height: 70, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
                 </div>
                 <div style={{ fontSize: 28, fontWeight: 800, color: stat.kleur, lineHeight: 1, position: 'relative', zIndex: 1 }}>{stat.waarde}</div>
               </div>

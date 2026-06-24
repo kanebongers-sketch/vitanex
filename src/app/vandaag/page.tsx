@@ -8,9 +8,6 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
-import nextDynamic from 'next/dynamic'
-
-const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
 
 // ─── MomentumNudge ────────────────────────────────────────────────────────────
 
@@ -582,229 +579,212 @@ export default function VandaagPage() {
           paddingBottom: 48,
         }}
       >
-        <div
-          style={{
-            maxWidth: 560,
-            margin: '0 auto',
-            padding: '0 16px',
-          }}
-        >
-          {/* ── Header ───────────────────────────────────────────────────── */}
-          <header style={{ padding: '32px 0 24px' }}>
-            <Link
-              href="/home"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 4,
-                fontSize: 13,
-                fontWeight: 500,
-                color: 'var(--text-3)',
-                textDecoration: 'none',
-                marginBottom: 12,
-              }}
-            >
-              ← Terug
-            </Link>
-            <p
-              style={{
-                margin: 0,
-                fontSize: 13,
-                fontWeight: 600,
-                color: 'var(--mf-green)',
-                textTransform: 'uppercase',
-                letterSpacing: '0.08em',
-              }}
-            >
-              {dag}
-            </p>
-            <h1
-              style={{
-                margin: '4px 0 6px',
-                fontSize: 26,
-                fontWeight: 800,
-                color: 'var(--text-1)',
-                lineHeight: 1.2,
-              }}
-            >
-              {datum}
-            </h1>
-            <p style={{ margin: 0, fontSize: 14, color: 'var(--text-3)' }}>
-              Hier is je dag op een rij
-            </p>
-          </header>
-
-          {/* ── Voltooiing motivatie banner ───────────────────────────────── */}
-          {scores.score_pct === 100 && (
-            <section
-              style={{
-                background: 'linear-gradient(135deg, #052e16 0%, #14532d 60%, #166534 100%)',
-                borderRadius: 'var(--radius-xl)',
-                padding: '20px 24px',
-                marginBottom: 16,
-                display: 'flex',
-                alignItems: 'center',
-                gap: 14,
-                boxShadow: '0 8px 32px rgba(29,158,117,0.35)',
-              }}
-            >
-              <span style={{ fontSize: 36, flexShrink: 0 }}>🎉</span>
-              <div>
-                <p style={{ margin: 0, fontSize: 16, fontWeight: 800, color: 'var(--bg-card)', marginBottom: 4 }}>
-                  Perfecte dag! Alle taken gedaan.
-                </p>
-                <p style={{ margin: 0, fontSize: 13, color: 'var(--mf-green-light)', lineHeight: 1.4 }}>
-                  Elke dag dat je bijhoudt, investeer je in je eigen welzijn.
-                </p>
-              </div>
-            </section>
-          )}
-          {scores.score_pct >= 80 && scores.score_pct < 100 && (
-            <section
-              style={{
-                background: 'linear-gradient(135deg, #F0FDF4 0%, #DCFCE7 60%, #D1FAE5 100%)',
-                border: '1.5px solid rgba(29,158,117,0.3)',
-                borderRadius: 'var(--radius-xl)',
-                padding: '16px 20px',
-                marginBottom: 16,
-                display: 'flex',
-                alignItems: 'center',
-                gap: 12,
-                boxShadow: '0 4px 16px rgba(29,158,117,0.15)',
-              }}
-            >
-              <span style={{ fontSize: 28, flexShrink: 0 }}>⭐</span>
-              <div>
-                <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: 'var(--mf-green-dark)', marginBottom: 2 }}>
-                  Bijna perfect! Je bent bijna klaar.
-                </p>
-                <p style={{ margin: 0, fontSize: 12, color: 'var(--mf-green-dark)', lineHeight: 1.4 }}>
-                  Elke dag dat je bijhoudt, investeer je in je eigen welzijn.
-                </p>
-              </div>
-            </section>
-          )}
-
-          {/* ── Voortgang ring + teller ───────────────────────────────────── */}
-          <section
+          <div
             style={{
-              background: 'var(--bg-card)',
-              borderRadius: 'var(--radius-xl)',
-              padding: '28px 24px',
-              marginBottom: 20,
-              boxShadow: 'var(--shadow-sm)',
-              border: '1px solid var(--border)',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: 12,
+              maxWidth: 900,
+              margin: '0 auto',
+              padding: '0 16px',
             }}
           >
-            <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 0 }}>
-                <GlowOrb
-                  color={scores.score_pct >= 80 ? [0.114, 0.620, 0.459] : scores.score_pct >= 50 ? [0.949, 0.722, 0.141] : [0.886, 0.294, 0.290]}
-                  intensity={Math.max(0.2, scores.score_pct / 100)}
-                  size={160}
-                />
-              </div>
-              <div style={{ position: 'relative', zIndex: 1 }}>
-                <ProgressRing pct={scores.score_pct} />
-              </div>
-            </div>
+            {/* ── Header ─────────────────────────────────────────────────── */}
+            <header style={{ padding: '32px 0 24px' }}>
+              <p
+                style={{
+                  margin: 0,
+                  fontSize: 12,
+                  fontWeight: 700,
+                  color: 'var(--mf-green)',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.1em',
+                }}
+              >
+                {dag}
+              </p>
+              <h1
+                style={{
+                  margin: '4px 0 4px',
+                  fontSize: 28,
+                  fontWeight: 800,
+                  color: 'var(--text-1)',
+                  lineHeight: 1.2,
+                }}
+              >
+                {datum}
+              </h1>
+              <p style={{ margin: 0, fontSize: 14, color: 'var(--text-3)' }}>
+                Hier is je dag op een rij
+              </p>
+            </header>
 
-            <p
-              style={{
-                margin: 0,
-                fontSize: 16,
-                fontWeight: 700,
-                color: 'var(--text-1)',
-              }}
-            >
-              {scores.gedaan} van {scores.totaal} gedaan
-            </p>
-            <p style={{ margin: 0, fontSize: 13, color: 'var(--text-3)', textAlign: 'center' }}>
-              {scores.gedaan === scores.totaal
-                ? 'Je hebt alles afgerond vandaag! 🎉'
-                : `Nog ${scores.totaal - scores.gedaan} te doen`}
-            </p>
-          </section>
+            {/* ── Voltooiing banner ───────────────────────────────────────── */}
+            {scores.score_pct === 100 && (
+              <section
+                style={{
+                  background: 'linear-gradient(135deg, #052e16 0%, #14532d 60%, #166534 100%)',
+                  borderRadius: 'var(--radius-xl)',
+                  padding: '20px 24px',
+                  marginBottom: 20,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 14,
+                  boxShadow: '0 8px 32px rgba(29,158,117,0.35)',
+                }}
+              >
+                <span style={{ fontSize: 36, flexShrink: 0 }}>🎉</span>
+                <div>
+                  <p style={{ margin: 0, fontSize: 16, fontWeight: 800, color: '#fff', marginBottom: 4 }}>
+                    Perfecte dag! Alle taken gedaan.
+                  </p>
+                  <p style={{ margin: 0, fontSize: 13, color: 'rgba(255,255,255,0.75)', lineHeight: 1.4 }}>
+                    Elke dag dat je bijhoudt, investeer je in je eigen welzijn.
+                  </p>
+                </div>
+              </section>
+            )}
+            {scores.score_pct >= 80 && scores.score_pct < 100 && (
+              <section
+                style={{
+                  background: 'linear-gradient(135deg, #F0FDF4 0%, #DCFCE7 60%, #D1FAE5 100%)',
+                  border: '1.5px solid rgba(29,158,117,0.3)',
+                  borderRadius: 'var(--radius-xl)',
+                  padding: '16px 20px',
+                  marginBottom: 20,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 12,
+                  boxShadow: '0 4px 16px rgba(29,158,117,0.12)',
+                }}
+              >
+                <span style={{ fontSize: 28, flexShrink: 0 }}>⭐</span>
+                <div>
+                  <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: 'var(--mf-green-dark)', marginBottom: 2 }}>
+                    Bijna perfect! Je bent bijna klaar.
+                  </p>
+                  <p style={{ margin: 0, fontSize: 12, color: 'var(--mf-green-dark)', lineHeight: 1.4 }}>
+                    Nog een paar stappen en je dag is compleet.
+                  </p>
+                </div>
+              </section>
+            )}
 
-          {/* ── Dag-metrics strip ────────────────────────────────────────── */}
-          {(scores.water_ml > 0 || scores.slaap_uren || scores.stemming_waarde || scores.focus_minuten > 0) && (
-            <section style={{ marginBottom: 20 }}>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
-                {[
-                  {
-                    icoon: '💧',
-                    waarde: scores.water_ml > 0 ? `${Math.round(scores.water_ml / 250)}` : '—',
-                    sub: scores.water_ml > 0 ? `/${Math.round(scores.water_doel_ml / 250)} gl` : 'glazen',
-                    kleur: scores.water_ml >= scores.water_doel_ml ? 'var(--mf-blue)' : 'var(--text-3)',
-                  },
-                  {
-                    icoon: '😴',
-                    waarde: scores.slaap_uren ? `${scores.slaap_uren}` : '—',
-                    sub: scores.slaap_uren ? 'uur slaap' : 'slaap',
-                    kleur: scores.slaap_uren && scores.slaap_uren >= 7 ? 'var(--mf-green)' : scores.slaap_uren ? 'var(--mf-amber)' : 'var(--text-3)',
-                  },
-                  {
-                    icoon: ['😫','😔','😐','🙂','😄'][scores.stemming_waarde ? scores.stemming_waarde - 1 : 2],
-                    waarde: scores.stemming_waarde ? `${scores.stemming_waarde}/5` : '—',
-                    sub: 'stemming',
-                    kleur: scores.stemming_waarde && scores.stemming_waarde >= 4 ? 'var(--mf-green)' : scores.stemming_waarde && scores.stemming_waarde <= 2 ? 'var(--mf-red)' : 'var(--text-3)',
-                  },
-                  {
-                    icoon: '🎯',
-                    waarde: scores.focus_minuten > 0 ? `${scores.focus_minuten}` : '—',
-                    sub: scores.focus_minuten > 0 ? 'min focus' : 'focus',
-                    kleur: scores.focus_minuten >= 25 ? 'var(--mf-green)' : 'var(--text-3)',
-                  },
-                ].map((m, i) => (
-                  <div key={i} style={{
-                    background: 'var(--bg-card)', borderRadius: 'var(--radius-md)',
-                    border: '1px solid var(--border)', padding: '12px 10px',
-                    textAlign: 'center', boxShadow: 'var(--shadow-xs)',
+            {/* ── 2-kolom layout ─────────────────────────────────────────── */}
+            <div className="mf-home-layout" style={{ marginBottom: 48 }}>
+
+              {/* Linker kolom: checklist + nudge */}
+              <div>
+                <section style={{ marginBottom: 20 }}>
+                  <h2 style={{
+                    fontSize: 11,
+                    fontWeight: 700,
+                    color: 'var(--text-4)',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.1em',
+                    margin: '0 0 12px',
                   }}>
-                    <div style={{ fontSize: 18, marginBottom: 4 }}>{m.icoon}</div>
-                    <div style={{ fontSize: 15, fontWeight: 800, color: m.kleur, lineHeight: 1 }}>{m.waarde}</div>
-                    <div style={{ fontSize: 9, color: 'var(--text-4)', marginTop: 2, fontWeight: 600 }}>{m.sub}</div>
+                    Jouw dag
+                  </h2>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    {checklist.map(taak => (
+                      <TaakKaart
+                        key={taak.id}
+                        taak={taak}
+                        onClick={() => router.push(taak.url)}
+                      />
+                    ))}
                   </div>
-                ))}
+                </section>
+
+                <MomentumNudge checklist={checklist} />
+                <DagdeelSuggestie suggestie={suggestie} />
               </div>
-            </section>
-          )}
 
-          {/* ── Checklist ────────────────────────────────────────────────── */}
-          <section style={{ marginBottom: 20 }}>
-            <h2
-              style={{
-                fontSize: 12,
-                fontWeight: 600,
-                color: 'var(--text-3)',
-                textTransform: 'uppercase',
-                letterSpacing: '0.08em',
-                margin: '0 0 12px',
-              }}
-            >
-              Jouw dag
-            </h2>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {checklist.map(taak => (
-                <TaakKaart
-                  key={taak.id}
-                  taak={taak}
-                  onClick={() => router.push(taak.url)}
-                />
-              ))}
+              {/* Rechter kolom: voortgang + metrics */}
+              <div>
+                {/* Voortgang ring */}
+                <section
+                  style={{
+                    background: 'var(--bg-card)',
+                    borderRadius: 'var(--radius-xl)',
+                    padding: '28px 24px',
+                    marginBottom: 16,
+                    boxShadow: 'var(--shadow-sm)',
+                    border: '1px solid var(--border)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: 12,
+                  }}
+                >
+                  <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div style={{
+                      position: 'absolute',
+                      width: 160,
+                      height: 160,
+                      borderRadius: '50%',
+                      background: scores.score_pct >= 80
+                        ? 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)'
+                        : scores.score_pct >= 50
+                        ? 'radial-gradient(circle, rgba(186,117,23,0.18) 0%, transparent 70%)'
+                        : 'radial-gradient(circle, rgba(226,75,74,0.15) 0%, transparent 70%)',
+                    }} />
+                    <ProgressRing pct={scores.score_pct} />
+                  </div>
+                  <p style={{ margin: 0, fontSize: 16, fontWeight: 700, color: 'var(--text-1)' }}>
+                    {scores.gedaan} van {scores.totaal} gedaan
+                  </p>
+                  <p style={{ margin: 0, fontSize: 13, color: 'var(--text-3)', textAlign: 'center' }}>
+                    {scores.gedaan === scores.totaal
+                      ? 'Je hebt alles afgerond vandaag! 🎉'
+                      : `Nog ${scores.totaal - scores.gedaan} te doen`}
+                  </p>
+                </section>
+
+                {/* Dag-metrics */}
+                {(scores.water_ml > 0 || scores.slaap_uren || scores.stemming_waarde || scores.focus_minuten > 0) && (
+                  <section>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
+                      {[
+                        {
+                          icoon: '💧',
+                          waarde: scores.water_ml > 0 ? `${Math.round(scores.water_ml / 250)}` : '—',
+                          sub: scores.water_ml > 0 ? `/${Math.round(scores.water_doel_ml / 250)} glazen` : 'glazen',
+                          kleur: scores.water_ml >= scores.water_doel_ml ? 'var(--mf-blue)' : 'var(--text-3)',
+                        },
+                        {
+                          icoon: '😴',
+                          waarde: scores.slaap_uren ? `${scores.slaap_uren}u` : '—',
+                          sub: 'slaap',
+                          kleur: scores.slaap_uren && scores.slaap_uren >= 7 ? 'var(--mf-green)' : scores.slaap_uren ? 'var(--mf-amber)' : 'var(--text-3)',
+                        },
+                        {
+                          icoon: ['😫','😔','😐','🙂','😄'][scores.stemming_waarde ? scores.stemming_waarde - 1 : 2],
+                          waarde: scores.stemming_waarde ? `${scores.stemming_waarde}/5` : '—',
+                          sub: 'stemming',
+                          kleur: scores.stemming_waarde && scores.stemming_waarde >= 4 ? 'var(--mf-green)' : scores.stemming_waarde && scores.stemming_waarde <= 2 ? 'var(--mf-red)' : 'var(--text-3)',
+                        },
+                        {
+                          icoon: '🎯',
+                          waarde: scores.focus_minuten > 0 ? `${scores.focus_minuten}m` : '—',
+                          sub: 'focus',
+                          kleur: scores.focus_minuten >= 25 ? 'var(--mf-green)' : 'var(--text-3)',
+                        },
+                      ].map((m, i) => (
+                        <div key={i} style={{
+                          background: 'var(--bg-card)', borderRadius: 'var(--radius-md)',
+                          border: '1px solid var(--border)', padding: '14px 12px',
+                          textAlign: 'center', boxShadow: 'var(--shadow-xs)',
+                        }}>
+                          <div style={{ fontSize: 20, marginBottom: 6 }}>{m.icoon}</div>
+                          <div style={{ fontSize: 16, fontWeight: 800, color: m.kleur, lineHeight: 1 }}>{m.waarde}</div>
+                          <div style={{ fontSize: 10, color: 'var(--text-4)', marginTop: 3, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{m.sub}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                )}
+              </div>
             </div>
-          </section>
-
-          {/* ── Momentum nudge ────────────────────────────────────────────── */}
-          <MomentumNudge checklist={checklist} />
-
-          {/* ── Dagdeel suggestie ─────────────────────────────────────────── */}
-          <DagdeelSuggestie suggestie={suggestie} />
-        </div>
+          </div>
       </main>
     </>
   )

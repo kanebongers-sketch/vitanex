@@ -7,9 +7,7 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { authFetch } from '@/lib/auth-fetch'
 import Navbar from '@/components/layout/Navbar'
-import nextDynamic from 'next/dynamic'
 
-const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
 
 const DIM_RGB: Record<string, [number, number, number]> = {
   D: [0.886, 0.294, 0.290],
@@ -215,7 +213,7 @@ export default function DiscPage() {
   return (
     <div className="mf-mesh-bg" style={{ minHeight: '100vh', color: 'var(--text-1, #f1f5f9)' }}>
       <Navbar />
-      <div style={{ maxWidth: 680, margin: '0 auto', padding: '32px 20px' }}>
+      <div style={{ maxWidth: 900, margin: '0 auto', padding: '32px 20px' }}>
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
           <h1 style={{ fontSize: 28, fontWeight: 700, color: 'var(--text-1, #f8fafc)', marginBottom: 8 }}>DISC Persoonlijkheidstest</h1>
           <p style={{ color: 'var(--text-2, #94a3b8)', fontSize: 15 }}>Ontdek jouw dominante gedragsstijl</p>
@@ -227,7 +225,7 @@ export default function DiscPage() {
             <div style={{ textAlign: 'center', marginBottom: 24 }}>
               <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: 8 }}>
                 <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 0 }}>
-                  <GlowOrb color={DIM_RGB[eerderResultaat.primair_profiel] ?? [0.231, 0.510, 0.965]} intensity={0.65} size={80} />
+                  <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
                 </div>
                 <div style={{ fontSize: 36, position: 'relative', zIndex: 1 }}>
                   {DIM_INTRO[eerderResultaat.primair_profiel as Dimensie]?.emoji ?? '📊'}
@@ -400,7 +398,7 @@ export default function DiscPage() {
                 return (
                   <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 24, position: 'relative' }}>
                     <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 0 }}>
-                      <GlowOrb color={DIM_RGB[primair] ?? [0.231, 0.510, 0.965]} intensity={0.55} size={200} />
+                      <div style={{ width: 200, height: 200, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
                     </div>
                     <svg width={220} height={220} viewBox="0 0 220 220" style={{ position: 'relative', zIndex: 1 }}>
                       {/* Grid rings */}

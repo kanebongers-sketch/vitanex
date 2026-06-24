@@ -7,10 +7,8 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
-import nextDynamic from 'next/dynamic'
 import { authFetch } from '@/lib/auth-fetch'
 
-const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
 
 interface Samenvatting {
   id: string
@@ -56,7 +54,7 @@ export default function CoachSamenvattingenPagina() {
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
       <Navbar />
-      <main style={{ padding: '24px 20px 88px', maxWidth: 600, margin: '0 auto' }}>
+      <main style={{ padding: '24px 20px 88px', maxWidth: 800, margin: '0 auto' }}>
         <header style={{ marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
             <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 4 }}>
@@ -81,7 +79,7 @@ export default function CoachSamenvattingenPagina() {
           }}>
             <div style={{ position: 'relative', display: 'inline-block', marginBottom: 12 }}>
               <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
-                <GlowOrb color={[0.486, 0.231, 0.933]} intensity={0.45} size={90} />
+                <div style={{ width: 90, height: 90, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
               </div>
               <span style={{ fontSize: 40, position: 'relative', zIndex: 1 }}>🧠</span>
             </div>

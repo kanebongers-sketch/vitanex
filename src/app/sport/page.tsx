@@ -7,9 +7,6 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
-import nextDynamic from 'next/dynamic'
-
-const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
 
 type Trainingsdag = {
   dag: number
@@ -244,14 +241,7 @@ export default function SportPagina() {
             position: 'relative',
             overflow: 'hidden',
           }}>
-            {/* 3D glow orb */}
-            <div style={{ position: 'absolute', top: -60, right: -60, pointerEvents: 'none', opacity: 0.6 }}>
-              <GlowOrb
-                color={[1, 1, 1]}
-                intensity={Math.min(1, trainingsDezeWeek / (schema?.sessies_per_week ?? 5))}
-                size={200}
-              />
-            </div>
+            <div style={{ position: 'absolute', top: -60, right: -60, pointerEvents: 'none', borderRadius: '50%', width: 200, height: 200, background: 'radial-gradient(circle, rgba(255,255,255,0.12) 0%, transparent 70%)' }} />
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' as const }}>
               <div>
                 <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)', fontWeight: 600, marginBottom: 4 }}>ACTIEF SCHEMA</div>

@@ -7,9 +7,7 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
-import nextDynamic from 'next/dynamic'
 
-const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
 
 interface WeekPunt {
   week: string
@@ -219,7 +217,7 @@ function RingParticipatie({ pct, kleur }: { pct: number; kleur: string }) {
   return (
     <div style={{ position: 'relative', display: 'inline-block' }}>
       <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
-        <GlowOrb color={[0.114, 0.620, 0.459]} intensity={0.35} size={120} />
+        <div style={{ width: 120, height: 120, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
       </div>
     <svg width={108} height={108} viewBox="0 0 108 108" style={{ position: 'relative', zIndex: 1 }}>
       <circle cx={54} cy={54} r={straal} fill="none" style={{ stroke: 'var(--border)' }} strokeWidth={10} />

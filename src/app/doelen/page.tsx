@@ -15,9 +15,7 @@ import {
 } from '@/lib/weekdoelen'
 import { CAT } from '@/lib/doelen-config'
 import { authFetch } from '@/lib/auth-fetch'
-import nextDynamic from 'next/dynamic'
 
-const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
 
 type DoelenAdvies = { domein: string; doel: string; waarom: string }
 
@@ -139,11 +137,9 @@ function DoelenInhoud() {
     return (
       <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
         <Navbar />
-        <main style={{ maxWidth: 520, margin: '0 auto', padding: '60px 24px', textAlign: 'center' }}>
+        <main style={{ maxWidth: 720, margin: '0 auto', padding: '60px 24px', textAlign: 'center' }}>
           <div style={{ position: 'relative', width: 64, height: 64, margin: '0 auto 20px' }}>
-            <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 0 }}>
-              <GlowOrb color={[0.114, 0.620, 0.459]} intensity={0.5} size={100} />
-            </div>
+            <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 100, height: 100, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)', zIndex: 0 }} />
             <div style={{ width: 64, height: 64, borderRadius: 20, background: 'var(--mf-green-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--mf-green)', position: 'relative', zIndex: 1 }}>
               <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>
@@ -182,7 +178,7 @@ function DoelenInhoud() {
   return (
     <div className="mf-mesh-bg" style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
       <Navbar />
-      <main style={{ padding: '36px 40px 72px' }}>
+      <main style={{ padding: '36px 40px 72px', maxWidth: 1000, margin: '0 auto' }}>
 
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 28 }}>

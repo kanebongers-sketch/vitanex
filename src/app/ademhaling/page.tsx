@@ -172,7 +172,7 @@ export default function AdemhalingPage() {
   return (
     <div className="mf-mesh-bg" style={{ minHeight: '100vh' }}>
       <Navbar />
-      <main style={{ padding: '36px 40px 72px', maxWidth: 680, margin: '0 auto' }}>
+      <main style={{ padding: '36px 40px 72px', maxWidth: 900, margin: '0 auto' }}>
 
         <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 6 }}>Ademhalingsoefeningen</h1>
         <p style={{ fontSize: 13, color: 'var(--text-4)', marginBottom: 28 }}>Bewezen technieken om stress te verminderen en focus te verbeteren.</p>

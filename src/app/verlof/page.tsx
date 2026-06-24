@@ -6,9 +6,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
-import nextDynamic from 'next/dynamic'
 
-const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
 
 type VerlofType = 'vakantie' | 'ziekte' | 'bijzonder' | 'onbetaald' | 'overig'
 type VerlofStatus = 'aangevraagd' | 'goedgekeurd' | 'afgewezen'
@@ -129,7 +127,7 @@ export default function VerlofPage() {
   return (
     <div className="min-h-screen" style={{ background: 'var(--bg-app)' }}>
       <Navbar />
-      <main className="px-6 py-6 mf-safe-bottom">
+      <main className="px-6 py-6 mf-safe-bottom" style={{ maxWidth: 900, margin: '0 auto' }}>
 
         {/* Header */}
         <div className="flex items-center justify-between mb-5">
@@ -274,7 +272,7 @@ export default function VerlofPage() {
           <div className="rounded-2xl p-8 text-center" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-xs)' }}>
             <div style={{ position: 'relative', display: 'inline-block', marginBottom: '0.75rem' }}>
               <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
-                <GlowOrb color={[0.114, 0.620, 0.459]} intensity={0.4} size={80} />
+                <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
               </div>
               <p className="text-3xl" style={{ position: 'relative', zIndex: 1 }}>🌴</p>
             </div>

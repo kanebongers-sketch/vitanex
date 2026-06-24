@@ -7,9 +7,7 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
-import nextDynamic from 'next/dynamic'
 
-const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
 
 interface TeamLid {
   id: string
@@ -125,7 +123,7 @@ export default function HrTeamPage() {
                   <div key={s.label} style={{ background: 'var(--bg-card)', borderRadius: 14, border: '1px solid var(--border)', padding: '16px 18px' }}>
                     <div style={{ position: 'relative', display: 'inline-block' }}>
                     <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
-                      <GlowOrb color={[0.231, 0.510, 0.965]} intensity={0.3} size={60} />
+                      <div style={{ width: 60, height: 60, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
                     </div>
                     <p style={{ fontSize: 20, fontWeight: 800, color: s.kleur, position: 'relative', zIndex: 1 }}>{s.waarde}</p>
                   </div>

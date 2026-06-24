@@ -7,9 +7,6 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { authFetch } from '@/lib/auth-fetch'
 import Navbar from '@/components/layout/Navbar'
-import nextDynamic from 'next/dynamic'
-
-const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
 
 type Bericht = {
   id: string
@@ -191,9 +188,14 @@ export default function CoachPagina() {
           gap: 12, flexShrink: 0,
         }}>
           <div style={{ position: 'relative', width: 44, height: 44, flexShrink: 0 }}>
-            <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 0 }}>
-              <GlowOrb color={[0.114, 0.620, 0.459]} intensity={laden ? 0.8 : 0.5} size={72} />
-            </div>
+            <div style={{
+              position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
+              width: 72, height: 72, borderRadius: '50%',
+              background: laden
+                ? 'radial-gradient(circle, rgba(29,158,117,0.22) 0%, transparent 70%)'
+                : 'radial-gradient(circle, rgba(29,158,117,0.15) 0%, transparent 70%)',
+              zIndex: 0,
+            }} />
             <div style={{
               width: 44, height: 44, borderRadius: '50%',
               display: 'flex', alignItems: 'center', justifyContent: 'center',

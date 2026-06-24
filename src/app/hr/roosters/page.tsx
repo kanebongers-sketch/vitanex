@@ -7,9 +7,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import HrShell from '@/components/layout/HrShell'
-import nextDynamic from 'next/dynamic'
 
-const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
 
 type Rooster = {
   id: string
@@ -106,7 +104,7 @@ export default function HrRoostersPage() {
           <div className="rounded-2xl border border-gray-100" style={{ background: '#fff', padding: 48, textAlign: 'center' }}>
             <div style={{ position: 'relative', display: 'inline-block', marginBottom: 12 }}>
               <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
-                <GlowOrb color={[0.231, 0.510, 0.965]} intensity={0.4} size={80} />
+                <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
               </div>
               <span style={{ fontSize: 32, position: 'relative', zIndex: 1 }}>📅</span>
             </div>

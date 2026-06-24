@@ -4,9 +4,7 @@ export const dynamic = 'force-dynamic'
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
-import nextDynamic from 'next/dynamic'
 
-const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
 
 // ─── HR onboarding stappen ────────────────────────────────────────────────────
 type HrStap = 'welkom' | 'gegevens' | 'bedrijf' | 'details' | 'klaar'
@@ -155,7 +153,7 @@ function ReadinessRing({ score, kleur }: { score: number; kleur: string }) {
   return (
     <div style={{ position: 'relative', display: 'inline-block' }}>
       <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
-        <GlowOrb color={[0.114, 0.620, 0.459]} intensity={0.35} size={160} />
+        <div style={{ width: 160, height: 160, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
       </div>
       <svg width={140} height={140} viewBox="0 0 140 140" style={{ display: 'block', margin: '0 auto', position: 'relative', zIndex: 1 }}>
         <circle cx={70} cy={70} r={radius} fill="none" stroke="var(--mf-border, #F3F4F6)" strokeWidth={12} />
@@ -233,7 +231,7 @@ function EersteMetingStap({
         <div style={{ textAlign: 'center', marginBottom: 28 }}>
           <div style={{ position: 'relative', display: 'inline-block', marginBottom: 8 }}>
             <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
-              <GlowOrb color={[0.114, 0.620, 0.459]} intensity={0.45} size={100} />
+              <div style={{ width: 100, height: 100, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
             </div>
             <div style={{ fontSize: 36, position: 'relative', zIndex: 1 }}>🎯</div>
           </div>
