@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { usePathname } from 'next/navigation'
 import { authFetch } from '@/lib/auth-fetch'
-import { PandaFace, EmotionState } from '@/components/vita/PandaFace'
+import PandaFace, { EmotionState } from '@/components/vita/PandaFace'
 import CompanionBubble from '@/components/vita/CompanionBubble'
 import { emotionFromScore, emotionFromEvent, contextFromPathname, getTimeOfDay } from '@/lib/vita/emotion-engine'
 import type { VitaEventPayload } from '@/lib/vita/events'
