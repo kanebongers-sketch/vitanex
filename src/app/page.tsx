@@ -227,7 +227,7 @@ function MockDashboard() {
         {/* Trend chart */}
         <div className="bg-white rounded-xl p-4 mb-3 border border-gray-100">
           <div className="flex items-center justify-between mb-3">
-            <p className="text-xs font-semibold text-gray-600">Vitaliteitstrend — 12 weken</p>
+            <p className="text-xs font-semibold text-gray-600">Vitaliteitstrend · 12 weken</p>
             <span className="text-xs font-bold" style={{ color: 'var(--mf-green)' }}>↑ +12%</span>
           </div>
           <div className="flex items-end gap-1" style={{ height: 52 }}>
@@ -302,7 +302,7 @@ function MobileSticky() {
       <Link href="/register"
         className="flex items-center justify-center gap-2 w-full py-4 rounded-xl font-bold text-white text-sm"
         style={{ background: 'linear-gradient(135deg, #1D9E75, #15B89A)', boxShadow: '0 4px 24px rgba(29,158,117,0.45)' }}>
-        Gratis starten — geen creditcard vereist
+        Gratis starten, geen creditcard vereist
         <Icon name="arrowRight" size={14} color="white" />
       </Link>
     </div>
@@ -436,8 +436,8 @@ function Pricing() {
 
 const FAQS = [
   { q: 'Hoe snel kan ik starten met MentaForce?', a: 'Na registratie kunt u direct medewerkers uitnodigen via e-mail of CSV-import. Geen IT-afdeling of installatie nodig. De meeste teams zijn binnen 24 uur live.' },
-  { q: 'Is de anonimiteit van medewerkers echt gegarandeerd?', a: 'Ja. HR ziet uitsluitend geaggregeerde groepsgemiddelden — nooit individuele scores. Voor teams kleiner dan 5 personen worden resultaten extra beschermd. Dit is ingebouwd in de architectuur, niet slechts een instelling.' },
-  { q: 'Is er een gratis proefperiode?', a: 'Ja. 14 dagen gratis proberen — geen creditcard vereist. U heeft direct volledige toegang tot het Starter-plan.' },
+  { q: 'Is de anonimiteit van medewerkers echt gegarandeerd?', a: 'Ja. HR ziet uitsluitend geaggregeerde groepsgemiddelden. Nooit individuele scores. Voor teams kleiner dan 5 personen worden resultaten extra beschermd. Dit is ingebouwd in de architectuur, niet slechts een instelling.' },
+  { q: 'Is er een gratis proefperiode?', a: 'Ja. 14 dagen gratis proberen, geen creditcard vereist. U heeft direct volledige toegang tot het Starter-plan.' },
   { q: 'Hoe worden de gegevens beschermd?', a: 'MentaForce is volledig AVG-conform. Data wordt opgeslagen op EU-servers. Wij tekenen een verwerkersovereenkomst met elke organisatie en delen nooit data met derden.' },
   { q: 'Kan MentaForce integreren met ons HR-systeem?', a: 'AFAS en Personio koppelingen zijn beschikbaar op Enterprise. Voor andere systemen bieden wij een open API. Neem contact op voor persoonlijk advies.' },
   { q: 'Wat is het minimale aantal medewerkers?', a: "Starter vereist minimaal 10 medewerkers. Groei minimaal 25. Voor kleinere teams of zzp'ers: neem contact op voor een aangepast voorstel." },
@@ -529,7 +529,7 @@ export default function LandingPage() {
                 MentaForce geeft HR-teams realtime inzicht in welzijn op het werk.
                 Detecteer risico&apos;s gemiddeld{' '}
                 <strong style={{ color: 'rgba(255,255,255,0.9)', fontWeight: 700 }}>6 weken eerder</strong>
-                {' '}— anoniem, AVG-conform en actiegericht.
+                {', '}anoniem, AVG-conform en actiegericht.
               </p>
 
               {/* CTAs */}
@@ -537,7 +537,7 @@ export default function LandingPage() {
                 <Link href="/register"
                   className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl text-white font-bold text-sm transition-opacity hover:opacity-90"
                   style={{ background: 'linear-gradient(135deg, #1D9E75, #17a880)', boxShadow: '0 4px 28px rgba(29,158,117,0.5)' }}>
-                  Start gratis — geen creditcard
+                  Start gratis, geen creditcard
                   <Icon name="arrowRight" size={14} color="white" />
                 </Link>
                 <Link href="/contact"
@@ -573,7 +573,7 @@ export default function LandingPage() {
             {[
               { icon: 'shield',  color: 'var(--mf-green)', bg: 'var(--mf-green-light)', titel: 'AVG-conform',       sub: 'Data op EU-servers · verwerkersovereenkomst inbegrepen' },
               { icon: 'sparkles',color: 'var(--mf-purple)', bg: 'var(--mf-purple-light)', titel: 'Aangedreven door AI',sub: 'Claude AI analyseert patronen en schrijft HR-adviezen in het Nederlands' },
-              { icon: 'users',   color: 'var(--mf-blue)', bg: 'var(--mf-blue-light)', titel: 'Privacy by design',  sub: 'HR ziet nooit individuele scores — alleen groepsgemiddelden' },
+              { icon: 'users',   color: 'var(--mf-blue)', bg: 'var(--mf-blue-light)', titel: 'Privacy by design',  sub: 'HR ziet nooit individuele scores, alleen groepsgemiddelden' },
               { icon: 'zap',     color: 'var(--mf-amber)', bg: 'var(--mf-amber-light)', titel: 'Gemaakt in Nederland',sub: 'Nederlandstalig platform, support en documentatie' },
             ].map(p => (
               <div key={p.titel} className="flex items-start gap-3">
@@ -635,7 +635,7 @@ export default function LandingPage() {
             {[
               { step: '01', color: 'var(--mf-green)', bg: 'var(--mf-green-light)', label: 'Vandaag · 5 minuten', titel: 'Account aanmaken', tekst: "Registreer gratis en nodig collega's uit via e-mail of CSV-import. Geen IT-afdeling nodig. Binnen een dag live." },
               { step: '02', color: 'var(--mf-blue)', bg: 'var(--mf-blue-light)', label: 'Wekelijks · 60 seconden', titel: 'Medewerkers checken in', tekst: 'Een korte anonieme check-in elke maandag. 12 vragen. Medewerkers zien hun eigen trends. HR ziet uitsluitend groepspatronen.' },
-              { step: '03', color: 'var(--mf-purple)', bg: 'var(--mf-purple-light)', label: 'Continu · Realtime signalen', titel: 'HR handelt proactief', tekst: "Het dashboard markeert risico's. De AI formuleert adviezen. U grijpt in vóórdat iemand uitvalt — gemiddeld 6 weken eerder." },
+              { step: '03', color: 'var(--mf-purple)', bg: 'var(--mf-purple-light)', label: 'Continu · Realtime signalen', titel: 'HR handelt proactief', tekst: "Het dashboard markeert risico's. De AI formuleert adviezen. U grijpt in vóórdat iemand uitvalt, gemiddeld 6 weken eerder." },
             ].map((s, i) => (
               <div key={s.step} className={`relative px-8 py-8 ${i < 2 ? 'md:border-r border-gray-200' : ''}`}>
                 {/* Step indicator */}
@@ -680,7 +680,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
           <div className="text-center mb-20">
             <Label text="Functies" />
-            <SectionHeading sub="Van anonieme meting tot AI-gestuurd HR-advies — alles in één platform.">
+            <SectionHeading sub="Van anonieme meting tot AI-gestuurd HR-advies, alles in één platform.">
               Eén platform voor<br />proactief personeelswelzijn.
             </SectionHeading>
           </div>
@@ -696,7 +696,7 @@ export default function LandingPage() {
               {
                 icon: 'shield', color: 'var(--mf-blue)', bg: 'var(--mf-blue-light)',
                 titel: 'Anonieme check-ins',
-                tekst: 'Medewerkers geven eerlijke antwoorden omdat het anoniem is. HR ziet enkel groepsgemiddelden — nooit individuele scores.',
+                tekst: 'Medewerkers geven eerlijke antwoorden omdat het anoniem is. HR ziet enkel groepsgemiddelden. Nooit individuele scores.',
                 items: ['5 kant-en-klare vragenlijsten', 'Kleine-teambeveiliging (< 5 pers.)', 'Volledig AVG-conform', 'Automatische herinneringen & follow-up'],
               },
               {
@@ -739,7 +739,7 @@ export default function LandingPage() {
                 color: 'var(--mf-green)', bg: 'var(--mf-green-light)',
                 icon: 'barChart',
                 titel: 'HR-managers',
-                tekst: 'Krijg realtime inzicht in teamwelzijn zonder privacy te schenden. Herken risico\'s vroeg en handel proactief — niet reactief.',
+                tekst: 'Krijg realtime inzicht in teamwelzijn zonder privacy te schenden. Herken risico\'s vroeg en handel proactief, niet reactief.',
                 items: ['Dashboard met vitaliteitsscores', 'AI-inzichten elke maandag', 'AVG-conforme rapportages'],
               },
               {
@@ -753,7 +753,7 @@ export default function LandingPage() {
                 color: 'var(--mf-purple)', bg: 'var(--mf-purple-light)',
                 icon: 'zap',
                 titel: 'Leidinggevenden',
-                tekst: 'Voer betere gesprekken op basis van data — zonder details over individuen te kennen. Stuur op cultuur, niet op gevoel.',
+                tekst: 'Voer betere gesprekken op basis van data, zonder details over individuen te kennen. Stuur op cultuur, niet op gevoel.',
                 items: ['Teamtrends op teamniveau', 'Gesprekshandvatten via AI', 'Early warning signalen'],
               },
             ].map(card => (
@@ -779,7 +779,7 @@ export default function LandingPage() {
             <h2 className="text-3xl lg:text-4xl font-extrabold text-gray-900 mb-4 tracking-tight">
               Een platform. Alle tools.
             </h2>
-            <p className="text-lg text-gray-400">Voor medewerkers én HR-managers — in één omgeving.</p>
+            <p className="text-lg text-gray-400">Voor medewerkers én HR-managers, in één omgeving.</p>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {[
@@ -894,7 +894,7 @@ export default function LandingPage() {
           <div className="text-center mb-16">
             <Label text="Twee perspectieven. Één platform." />
             <h2 className="text-4xl lg:text-5xl font-extrabold text-white mb-4 tracking-tight leading-tight">
-              Wat iedereen ziet —<br />
+              Wat iedereen ziet:<br />
               <span style={{ color: 'var(--mf-green)' }}>en wat verborgen blijft.</span>
             </h2>
             <p className="text-lg max-w-xl mx-auto" style={{ color: 'rgba(255,255,255,0.45)' }}>
@@ -953,7 +953,7 @@ export default function LandingPage() {
                 {[
                   { label: 'Team vitaliteitscore', value: '4.1 / 5 gem.', color: 'var(--mf-green)', sub: 'Groepsgemiddelde · 18 deelnemers' },
                   { label: 'Participatiegraad', value: '87%', color: 'var(--mf-blue)', sub: 'Deze week ingevuld' },
-                  { label: 'Risicosignalen', value: '2 signalen', color: 'var(--mf-red)', sub: 'Patroon in de groep — geen namen' },
+                  { label: 'Risicosignalen', value: '2 signalen', color: 'var(--mf-red)', sub: 'Patroon in de groep, geen namen' },
                   { label: 'AI HR-advies', value: 'Nieuw inzicht', color: 'var(--mf-purple)', sub: 'Gebaseerd op anonieme patronen' },
                 ].map(r => (
                   <div key={r.label} className="flex items-center justify-between rounded-2xl px-4 py-3.5"
@@ -980,9 +980,9 @@ export default function LandingPage() {
               <Icon name="shield" size={18} color="#1D9E75" />
             </div>
             <div className="flex-1">
-              <p className="text-white font-semibold text-sm mb-1">Privacy by design — geen instelling, maar architectuur</p>
+              <p className="text-white font-semibold text-sm mb-1">Privacy by design: geen instelling, maar architectuur</p>
               <p className="text-xs leading-relaxed" style={{ color: 'rgba(255,255,255,0.4)' }}>
-                Individuele scores worden nooit opgeslagen als herleidbaar gegeven. Het systeem kan ze technisch niet aan een naam koppelen — ook niet als HR dat zou willen. Teams kleiner dan 5 worden extra beschermd: resultaten worden pas getoond zodra voldoende deelnemers hebben ingevuld.
+                Individuele scores worden nooit opgeslagen als herleidbaar gegeven. Het systeem kan ze technisch niet aan een naam koppelen, ook niet als HR dat zou willen. Teams kleiner dan 5 worden extra beschermd: resultaten worden pas getoond zodra voldoende deelnemers hebben ingevuld.
               </p>
             </div>
             <Link href="/register"
