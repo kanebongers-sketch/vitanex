@@ -2,9 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import nextDynamic from 'next/dynamic'
-
-const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
 
 // ─────────────────────────────────────────────────────────────────────────────
 // SVG ICON LIBRARY
@@ -79,15 +76,16 @@ function Label({ text }: { text: string }) {
   )
 }
 
-function SectionHeading({ children, sub, center = true }: {
-  children: React.ReactNode; sub?: string; center?: boolean
+function SectionHeading({ children, sub, center = true, dark = false }: {
+  children: React.ReactNode; sub?: string; center?: boolean; dark?: boolean
 }) {
   return (
     <div className={center ? 'text-center mb-16' : 'mb-12'}>
-      <h2 className="text-4xl lg:text-5xl font-extrabold text-gray-900 mb-4 tracking-tight leading-tight">
+      <h2 className="text-4xl lg:text-5xl font-extrabold mb-4 tracking-tight leading-tight"
+        style={{ color: dark ? 'white' : 'var(--text-1)' }}>
         {children}
       </h2>
-      {sub && <p className="text-xl text-gray-400 max-w-2xl mx-auto">{sub}</p>}
+      {sub && <p className="text-xl max-w-2xl mx-auto" style={{ color: dark ? 'rgba(255,255,255,0.45)' : 'var(--text-4)' }}>{sub}</p>}
     </div>
   )
 }
@@ -435,9 +433,9 @@ function Pricing() {
 // ─────────────────────────────────────────────────────────────────────────────
 
 const FAQS = [
-  { q: 'Hoe snel kan ik starten met MentaForce?', a: 'Na registratie kunt u direct medewerkers uitnodigen via e-mail of CSV-import. Geen IT-afdeling of installatie nodig. De meeste teams zijn binnen 24 uur live.' },
+  { q: 'Hoe snel kan ik starten met MentaForce?', a: 'Na registratie kun je direct medewerkers uitnodigen via e-mail of CSV-import. Geen IT-afdeling of installatie nodig. De meeste teams zijn binnen 24 uur live.' },
   { q: 'Is de anonimiteit van medewerkers echt gegarandeerd?', a: 'Ja. HR ziet uitsluitend geaggregeerde groepsgemiddelden. Nooit individuele scores. Voor teams kleiner dan 5 personen worden resultaten extra beschermd. Dit is ingebouwd in de architectuur, niet slechts een instelling.' },
-  { q: 'Is er een gratis proefperiode?', a: 'Ja. 14 dagen gratis proberen, geen creditcard vereist. U heeft direct volledige toegang tot het Starter-plan.' },
+  { q: 'Is er een gratis proefperiode?', a: 'Ja. 14 dagen gratis proberen, geen creditcard vereist. Je hebt direct volledige toegang tot het Starter-plan.' },
   { q: 'Hoe worden de gegevens beschermd?', a: 'MentaForce is volledig AVG-conform. Data wordt opgeslagen op EU-servers. Wij tekenen een verwerkersovereenkomst met elke organisatie en delen nooit data met derden.' },
   { q: 'Kan MentaForce integreren met ons HR-systeem?', a: 'AFAS en Personio koppelingen zijn beschikbaar op Enterprise. Voor andere systemen bieden wij een open API. Neem contact op voor persoonlijk advies.' },
   { q: 'Wat is het minimale aantal medewerkers?', a: "Starter vereist minimaal 10 medewerkers. Groei minimaal 25. Voor kleinere teams of zzp'ers: neem contact op voor een aangepast voorstel." },
@@ -450,8 +448,8 @@ function FAQ() {
       <div className="max-w-3xl mx-auto px-6 lg:px-12">
         <div className="text-center mb-14">
           <Label text="Veelgestelde vragen" />
-          <SectionHeading sub="Staat uw vraag er niet bij? Neem dan direct contact op.">
-            Alles wat u wilt weten
+          <SectionHeading sub="Staat je vraag er niet bij? Neem dan direct contact op.">
+            Alles wat je wilt weten
           </SectionHeading>
         </div>
         <div className="space-y-2">
@@ -518,10 +516,12 @@ export default function LandingPage() {
                 style={{ fontSize: 'clamp(2.75rem, 5vw, 4.25rem)' }}>
                 Stop burn-out<br />
                 <span style={{ color: 'var(--mf-green)', position: 'relative', display: 'inline-block' }}>
-                  <span style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
-                    <GlowOrb color={[0.114, 0.620, 0.459]} intensity={0.3} size={240} />
-                  </span>
-                  <span style={{ position: 'relative', zIndex: 1 }}>voordat het te laat is.</span>
+                  voordat het te laat is.
+                  <svg aria-hidden="true" viewBox="0 0 340 16" preserveAspectRatio="none"
+                    style={{ position: 'absolute', bottom: '-6px', left: 0, width: '100%', height: 14, overflow: 'visible' }}>
+                    <path d="M3,11 C55,4 120,14 185,8 C245,3 295,12 337,7"
+                      fill="none" stroke="#1D9E75" strokeWidth="3.5" strokeLinecap="round" opacity="0.65"/>
+                  </svg>
                 </span>
               </h1>
 
@@ -591,27 +591,32 @@ export default function LandingPage() {
       </section>
 
       {/* ── 3. PROBLEEM (STATS) ───────────────────────────────────────────────── */}
-      <section className="py-24 bg-white border-b border-gray-100">
-        <div className="max-w-7xl mx-auto px-6 lg:px-12">
-          <div className="text-center mb-16">
+      <section className="py-28 relative overflow-hidden" style={{ background: '#060d1f' }}>
+        <div className="absolute inset-0 pointer-events-none">
+          <div style={{ position: 'absolute', top: '50%', left: '15%', transform: 'translateY(-50%)', width: '35%', height: '120%', background: 'radial-gradient(ellipse, rgba(239,68,68,0.07) 0%, transparent 65%)', borderRadius: '50%' }} />
+          <div style={{ position: 'absolute', top: '50%', right: '10%', transform: 'translateY(-50%)', width: '30%', height: '100%', background: 'radial-gradient(ellipse, rgba(55,138,221,0.06) 0%, transparent 65%)', borderRadius: '50%' }} />
+        </div>
+        <div className="max-w-7xl mx-auto px-6 lg:px-12 relative">
+          <div className="text-center mb-20">
             <Label text="De realiteit" />
-            <SectionHeading sub="Burn-out is geen HR-probleem. Het is een bedrijfsrisico met een concrete prijs.">
-              Waarom uw organisatie dit<br />niet langer kan negeren
+            <SectionHeading dark sub="Burn-out is geen HR-probleem. Het is een bedrijfsrisico met een concrete prijs.">
+              Waarom jouw organisatie dit<br />niet langer kan negeren
             </SectionHeading>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-px bg-gray-100 rounded-2xl overflow-hidden">
+          <div className="grid grid-cols-1 sm:grid-cols-3" style={{ borderTop: '1px solid rgba(255,255,255,0.06)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
             {[
-              { stat: '1 op 3', label: 'werknemers ervaart burn-outklachten', bron: 'TNO 2024', color: 'var(--mf-red)', bg: 'var(--mf-red-light)', icon: 'users' },
-              { stat: '€15.000', label: 'gemiddelde kosten per langdurig verzuim', bron: 'RIVM 2023', color: 'var(--mf-amber)', bg: 'var(--mf-amber-light)', icon: 'zap' },
-              { stat: '68%', label: 'HR-managers mist vroegtijdig inzicht', bron: 'Gallup 2023', color: 'var(--mf-blue)', bg: 'var(--mf-blue-light)', icon: 'clock' },
-            ].map(s => (
-              <div key={s.label} className="py-14 px-10 text-center bg-white">
-                <div className="w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-5" style={{ background: s.bg }}>
-                  <Icon name={s.icon as keyof typeof ICONS} size={22} color={s.color} />
-                </div>
-                <p className="font-black mb-2 tracking-tight leading-none" style={{ fontSize: '3rem', color: s.color }}>{s.stat}</p>
-                <p className="text-sm text-gray-500 mb-3 leading-snug max-w-[180px] mx-auto">{s.label}</p>
-                <p className="text-xs font-semibold" style={{ color: 'var(--text-4)' }}>*{s.bron}</p>
+              { stat: '1 op 3', label: 'werknemers ervaart burn-outklachten', bron: 'TNO 2024', color: '#ef4444', glow: 'rgba(239,68,68,0.3)' },
+              { stat: '€15.000', label: 'gemiddelde kosten per langdurig verzuim', bron: 'RIVM 2023', color: '#f59e0b', glow: 'rgba(245,158,11,0.3)' },
+              { stat: '68%', label: 'HR-managers mist vroegtijdig inzicht', bron: 'Gallup 2023', color: '#378ADD', glow: 'rgba(55,138,221,0.3)' },
+            ].map((s, i) => (
+              <div key={s.label} className="py-16 px-10 text-center"
+                style={{ borderLeft: i > 0 ? '1px solid rgba(255,255,255,0.06)' : 'none' }}>
+                <p className="font-black mb-5 tracking-tighter leading-none"
+                  style={{ fontSize: 'clamp(3.5rem, 7vw, 5.5rem)', color: s.color, textShadow: `0 0 80px ${s.glow}` }}>
+                  {s.stat}
+                </p>
+                <p className="text-base mb-3 leading-snug max-w-[200px] mx-auto" style={{ color: 'rgba(255,255,255,0.55)' }}>{s.label}</p>
+                <p className="text-xs font-semibold" style={{ color: 'rgba(255,255,255,0.2)' }}>*{s.bron}</p>
               </div>
             ))}
           </div>
@@ -619,8 +624,8 @@ export default function LandingPage() {
       </section>
 
       {/* ── 4. HOE WERKT HET ─────────────────────────────────────────────────── */}
-      <section id="hoe-werkt-het" className="py-28" style={{ background: 'var(--bg-subtle)' }}>
-        <div className="max-w-7xl mx-auto px-6 lg:px-12">
+      <section id="hoe-werkt-het" className="py-28 bg-white">
+        <div className="max-w-6xl mx-auto px-6 lg:px-12">
           <div className="text-center mb-20">
             <Label text="Hoe werkt het" />
             <SectionHeading sub="Geen IT-afdeling. Geen training. Geen gedoe.">
@@ -628,36 +633,63 @@ export default function LandingPage() {
             </SectionHeading>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-0 relative">
-            {/* Connector lines (desktop only) */}
-            <div className="hidden md:block absolute top-10 left-1/3 right-1/3 h-px" style={{ background: 'linear-gradient(90deg, #1D9E75, #378ADD)' }} />
+          {/* Desktop tijdlijn */}
+          <div className="hidden md:block relative">
+            {/* Verbindingslijn door knooppunten */}
+            <div className="absolute h-px z-0"
+              style={{
+                top: 24,
+                left: 'calc(100% / 6)',
+                right: 'calc(100% / 6)',
+                background: 'linear-gradient(90deg, #1D9E75 0%, #378ADD 50%, #7c3aed 100%)',
+              }} />
 
-            {[
-              { step: '01', color: 'var(--mf-green)', bg: 'var(--mf-green-light)', label: 'Vandaag · 5 minuten', titel: 'Account aanmaken', tekst: "Registreer gratis en nodig collega's uit via e-mail of CSV-import. Geen IT-afdeling nodig. Binnen een dag live." },
-              { step: '02', color: 'var(--mf-blue)', bg: 'var(--mf-blue-light)', label: 'Wekelijks · 60 seconden', titel: 'Medewerkers checken in', tekst: 'Een korte anonieme check-in elke maandag. 12 vragen. Medewerkers zien hun eigen trends. HR ziet uitsluitend groepspatronen.' },
-              { step: '03', color: 'var(--mf-purple)', bg: 'var(--mf-purple-light)', label: 'Continu · Realtime signalen', titel: 'HR handelt proactief', tekst: "Het dashboard markeert risico's. De AI formuleert adviezen. U grijpt in vóórdat iemand uitvalt, gemiddeld 6 weken eerder." },
-            ].map((s, i) => (
-              <div key={s.step} className={`relative px-8 py-8 ${i < 2 ? 'md:border-r border-gray-200' : ''}`}>
-                {/* Step indicator */}
-                <div className="flex items-center gap-4 mb-8">
-                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center font-black text-xl flex-shrink-0 relative z-10"
-                    style={{ background: s.bg, color: s.color, border: `2px solid ${s.color}30` }}>
+            <div className="grid grid-cols-3">
+              {[
+                { step: '01', dotColor: '#1D9E75', label: 'Vandaag · 5 min', titel: 'Account aanmaken', tekst: "Registreer gratis en nodig collega's uit via e-mail of CSV-import. Geen IT-afdeling nodig. Binnen een dag live." },
+                { step: '02', dotColor: '#378ADD', label: 'Wekelijks · 60 sec', titel: 'Medewerkers checken in', tekst: 'Een korte anonieme check-in elke maandag. 12 vragen. Medewerkers zien hun eigen trends. HR ziet uitsluitend groepspatronen.' },
+                { step: '03', dotColor: '#7c3aed', label: 'Continu · Realtime', titel: 'HR handelt proactief', tekst: "Het dashboard markeert risico's. De AI formuleert adviezen. Je grijpt in vóórdat iemand uitvalt, gemiddeld 6 weken eerder." },
+              ].map(s => (
+                <div key={s.step} className="flex flex-col items-center px-8 pt-1">
+                  {/* Knooppunt */}
+                  <div className="w-12 h-12 rounded-full flex items-center justify-center font-black text-sm mb-8 relative z-10 bg-white flex-shrink-0"
+                    style={{ border: `3px solid ${s.dotColor}`, color: s.dotColor, boxShadow: `0 0 24px ${s.dotColor}30` }}>
                     {s.step}
                   </div>
-                  <span className="text-xs font-semibold px-3 py-1.5 rounded-full"
-                    style={{ background: s.bg, color: s.color }}>
+                  {/* Inhoud */}
+                  <span className="text-xs font-bold px-3 py-1 rounded-full mb-4 inline-block"
+                    style={{ background: s.dotColor + '14', color: s.dotColor }}>
                     {s.label}
                   </span>
+                  <h3 className="text-xl font-bold text-gray-900 mb-3 text-center">{s.titel}</h3>
+                  <p className="text-gray-500 leading-relaxed text-sm text-center">{s.tekst}</p>
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-3">{s.titel}</h3>
-                <p className="text-gray-500 leading-relaxed text-base">{s.tekst}</p>
+              ))}
+            </div>
+          </div>
 
-                {/* Arrow (mobile only) */}
-                {i < 2 && (
-                  <div className="md:hidden flex justify-center mt-8 mb-2">
-                    <div className="w-px h-8 bg-gray-200" />
-                  </div>
-                )}
+          {/* Mobiele tijdlijn */}
+          <div className="md:hidden relative">
+            <div className="absolute left-[23px] top-6 bottom-6 w-px"
+              style={{ background: 'linear-gradient(180deg, #1D9E75, #378ADD, #7c3aed)' }} />
+            {[
+              { step: '01', dotColor: '#1D9E75', label: 'Vandaag · 5 min', titel: 'Account aanmaken', tekst: "Registreer gratis en nodig collega's uit via e-mail of CSV-import. Geen IT-afdeling nodig. Binnen een dag live." },
+              { step: '02', dotColor: '#378ADD', label: 'Wekelijks · 60 sec', titel: 'Medewerkers checken in', tekst: 'Een korte anonieme check-in elke maandag. 12 vragen. Medewerkers zien hun eigen trends. HR ziet uitsluitend groepspatronen.' },
+              { step: '03', dotColor: '#7c3aed', label: 'Continu · Realtime', titel: 'HR handelt proactief', tekst: "Het dashboard markeert risico's. De AI formuleert adviezen. Je grijpt in vóórdat iemand uitvalt, gemiddeld 6 weken eerder." },
+            ].map((s, i) => (
+              <div key={s.step} className={`flex gap-6 ${i < 2 ? 'pb-10' : ''}`}>
+                <div className="w-12 h-12 rounded-full flex items-center justify-center font-black text-sm flex-shrink-0 relative z-10 bg-white"
+                  style={{ border: `3px solid ${s.dotColor}`, color: s.dotColor, boxShadow: `0 0 20px ${s.dotColor}25` }}>
+                  {s.step}
+                </div>
+                <div className="pt-2">
+                  <span className="text-xs font-bold px-3 py-1 rounded-full mb-3 inline-block"
+                    style={{ background: s.dotColor + '14', color: s.dotColor }}>
+                    {s.label}
+                  </span>
+                  <h3 className="text-lg font-bold text-gray-900 mb-2">{s.titel}</h3>
+                  <p className="text-gray-500 leading-relaxed text-sm">{s.tekst}</p>
+                </div>
               </div>
             ))}
           </div>
@@ -676,47 +708,56 @@ export default function LandingPage() {
       </section>
 
       {/* ── 5. FUNCTIES (3 MAIN PILLARS) ─────────────────────────────────────── */}
-      <section id="functies" className="py-28 bg-white">
-        <div className="max-w-7xl mx-auto px-6 lg:px-12">
+      <section id="functies" className="py-28 relative overflow-hidden" style={{ background: '#060d1f' }}>
+        <div className="absolute inset-0 pointer-events-none"
+          style={{ background: 'radial-gradient(ellipse 70% 60% at 50% 100%, rgba(29,158,117,0.07) 0%, transparent 65%)' }} />
+        <div className="max-w-7xl mx-auto px-6 lg:px-12 relative">
           <div className="text-center mb-20">
             <Label text="Functies" />
-            <SectionHeading sub="Van anonieme meting tot AI-gestuurd HR-advies, alles in één platform.">
+            <SectionHeading dark sub="Van anonieme meting tot AI-gestuurd HR-advies, alles in één platform.">
               Eén platform voor<br />proactief personeelswelzijn.
             </SectionHeading>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
               {
-                icon: 'dashboard', color: 'var(--mf-green)', bg: 'var(--mf-green-light)',
+                icon: 'dashboard', color: '#1D9E75', border: 'rgba(29,158,117,0.2)', glow: 'rgba(29,158,117,0.08)',
                 titel: 'HR-dashboard',
                 tekst: 'Realtime overzicht van teamwelzijn. Vitaliteitsscores, trends en vroege waarschuwingssignalen op één scherm. Altijd up-to-date, nooit verouderd.',
                 items: ['Vitaliteitscore per team & afdeling', 'Burn-out risico detectie', 'Anonieme feedback inbox', 'AI-gestuurde wekelijkse inzichten'],
               },
               {
-                icon: 'shield', color: 'var(--mf-blue)', bg: 'var(--mf-blue-light)',
+                icon: 'shield', color: '#378ADD', border: 'rgba(55,138,221,0.2)', glow: 'rgba(55,138,221,0.08)',
                 titel: 'Anonieme check-ins',
                 tekst: 'Medewerkers geven eerlijke antwoorden omdat het anoniem is. HR ziet enkel groepsgemiddelden. Nooit individuele scores.',
                 items: ['5 kant-en-klare vragenlijsten', 'Kleine-teambeveiliging (< 5 pers.)', 'Volledig AVG-conform', 'Automatische herinneringen & follow-up'],
               },
               {
-                icon: 'sparkles', color: 'var(--mf-purple)', bg: 'var(--mf-purple-light)',
+                icon: 'sparkles', color: '#7c3aed', border: 'rgba(124,58,237,0.2)', glow: 'rgba(124,58,237,0.08)',
                 titel: 'AI-inzichten',
-                tekst: 'Claude AI analyseert uw teamdata en geeft concrete adviezen in gewone taal. Geen rapporten lezen. Geen jargon. Gewoon actie.',
+                tekst: 'Claude AI analyseert jouw teamdata en geeft concrete adviezen in gewone taal. Geen rapporten lezen. Geen jargon. Gewoon actie.',
                 items: ['Wekelijkse AI-samenvatting in Nederlands', 'Concrete HR-gespreksadviezen', 'Trendanalyse over meerdere weken', 'Persoonlijke AI-coach voor medewerkers'],
               },
             ].map(f => (
               <div key={f.titel}
-                className="group rounded-3xl border border-gray-100 p-8 hover:shadow-2xl transition-all duration-300 cursor-default"
-                style={{ background: 'linear-gradient(145deg, #fafafa 0%, #ffffff 100%)' }}>
+                className="group rounded-3xl p-8 transition-all duration-300 cursor-default"
+                style={{ background: f.glow, border: `1px solid ${f.border}` }}>
                 <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6 transition-transform group-hover:scale-110"
-                  style={{ background: f.bg }}>
+                  style={{ background: f.color + '20' }}>
                   <Icon name={f.icon as keyof typeof ICONS} size={24} color={f.color} />
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-3">{f.titel}</h3>
-                <p className="text-gray-400 mb-6 leading-relaxed text-sm">{f.tekst}</p>
+                <h3 className="text-xl font-bold text-white mb-3">{f.titel}</h3>
+                <p className="mb-6 leading-relaxed text-sm" style={{ color: 'rgba(255,255,255,0.5)' }}>{f.tekst}</p>
                 <ul className="space-y-3">
-                  {f.items.map(item => <Check key={item} text={item} color={f.color} />)}
+                  {f.items.map(item => (
+                    <li key={item} className="flex items-start gap-3 text-sm" style={{ color: 'rgba(255,255,255,0.65)' }}>
+                      <span className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5" style={{ background: f.color + '25' }}>
+                        <Icon name="check" size={10} color={f.color} />
+                      </span>
+                      {item}
+                    </li>
+                  ))}
                 </ul>
               </div>
             ))}
@@ -730,7 +771,7 @@ export default function LandingPage() {
           <div className="text-center mb-12">
             <Label text="Voor wie" />
             <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight">
-              Gebouwd voor iedereen in uw organisatie
+              Gebouwd voor iedereen in jouw organisatie
             </h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -746,7 +787,7 @@ export default function LandingPage() {
                 color: 'var(--mf-blue)', bg: 'var(--mf-blue-light)',
                 icon: 'users',
                 titel: 'Medewerkers',
-                tekst: 'Check anoniem in, volg uw eigen welzijn en krijg persoonlijke tips van de AI-coach. Veilig, privé en altijd beschikbaar.',
+                tekst: 'Check anoniem in, volg je eigen welzijn en krijg persoonlijke tips van de AI-coach. Veilig, privé en altijd beschikbaar.',
                 items: ['Persoonlijk vitaliteitsdashboard', 'AI Welzijnscoach (24/7)', 'Journal, focus & burn-out scan'],
               },
               {
@@ -1012,7 +1053,7 @@ export default function LandingPage() {
             Iedere week zonder inzicht<br />is een gemiste kans.
           </h2>
           <p className="text-lg mb-12 leading-relaxed" style={{ color: 'rgba(255,255,255,0.5)' }}>
-            Start vandaag gratis. Uw team is operationeel binnen 24 uur.<br />
+            Start vandaag gratis. Je team is operationeel binnen 24 uur.<br />
             Geen creditcard. Geen IT-afdeling. Geen commitment.
           </p>
 
