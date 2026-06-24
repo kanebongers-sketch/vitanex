@@ -7,13 +7,6 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
-import nextDynamic from 'next/dynamic'
-
-const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
-
-const WG_SCORE_RGB = (n: number): [number, number, number] =>
-  n >= 9 ? [0.082, 0.471, 0.341] : n >= 7 ? [0.114, 0.620, 0.459] : n >= 5 ? [0.949, 0.722, 0.141] : n >= 3 ? [0.953, 0.388, 0.047] : [0.886, 0.294, 0.290]
-
 interface GeschiedenisItem {
   datum: string
   score: number
@@ -186,7 +179,7 @@ export default function WerkgelukPagina() {
   return (
     <div className="mf-mesh-bg" style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
       <Navbar />
-      <main style={{ padding: '24px 20px 96px', maxWidth: 560, margin: '0 auto' }}>
+      <main style={{ padding: '24px 20px 96px', maxWidth: 900, margin: '0 auto' }}>
 
         <header style={{ marginBottom: 28 }}>
           <h1 style={{
@@ -200,33 +193,29 @@ export default function WerkgelukPagina() {
           </p>
         </header>
 
+        <div className={data && data.geschiedenis.length > 0 ? 'mf-home-layout' : ''} style={{ alignItems: 'start' }}>
+        <div>{/* form column */}
+
         <section style={{
           background: 'var(--bg-card)', borderRadius: 24, padding: '24px 20px',
           border: `1.5px solid ${kleur}30`, marginBottom: 16,
           boxShadow: `0 4px 24px ${kleur}18`,
           transition: 'border-color 0.3s ease, box-shadow 0.3s ease',
         }}>
-          <div style={{ textAlign: 'center', marginBottom: 20 }}>
-            <div style={{ position: 'relative', display: 'inline-flex', flexDirection: 'column', alignItems: 'center' }}>
-              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 0 }}>
-                <GlowOrb color={WG_SCORE_RGB(score)} intensity={Math.max(0.25, score / 10)} size={160} />
-              </div>
-              <div style={{
-                fontSize: 72, lineHeight: 1, fontWeight: 900, color: kleur,
-                fontVariantNumeric: 'tabular-nums', transition: 'color 0.25s ease',
-                letterSpacing: '-0.04em', position: 'relative', zIndex: 1,
-              }}>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 20 }}>
+            <div style={{
+              width: 128, height: 128, borderRadius: '50%',
+              background: `${kleur}12`,
+              border: `2px solid ${kleur}35`,
+              boxShadow: `0 8px 40px ${kleur}25`,
+              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+              transition: 'background 0.25s ease, box-shadow 0.25s ease',
+            }}>
+              <span style={{ fontSize: 52, fontWeight: 900, color: kleur, lineHeight: 1, letterSpacing: '-0.04em', transition: 'color 0.25s ease' }}>
                 {score}
-              </div>
-              <div style={{ fontSize: 28, marginTop: 4, lineHeight: 1, position: 'relative', zIndex: 1 }}>
-                {scoreEmoji(score)}
-              </div>
-              <div style={{
-                marginTop: 8, fontSize: 14, fontWeight: 600, color: kleur,
-                transition: 'color 0.25s ease', position: 'relative', zIndex: 1,
-              }}>
-                {scoreLabel(score)}
-              </div>
+              </span>
+              <span style={{ fontSize: 22, lineHeight: 1, marginTop: 4 }}>{scoreEmoji(score)}</span>
+              <span style={{ fontSize: 11, fontWeight: 700, color: kleur, marginTop: 3, transition: 'color 0.25s ease' }}>{scoreLabel(score)}</span>
             </div>
           </div>
 
@@ -352,7 +341,10 @@ export default function WerkgelukPagina() {
           </div>
         )}
 
+        </div>{/* end form column */}
+
         {data && data.geschiedenis.length > 0 && (
+          <div>{/* history column */}
           <section style={{
             background: 'var(--bg-card)', borderRadius: 20, padding: '20px',
             border: '1px solid var(--border)', boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
@@ -443,7 +435,9 @@ export default function WerkgelukPagina() {
               )
             })()}
           </section>
+          </div>
         )}
+        </div>{/* end mf-home-layout */}
 
       </main>
 
