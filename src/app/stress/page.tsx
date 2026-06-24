@@ -7,19 +7,12 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
-import nextDynamic from 'next/dynamic'
-
-const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
-
-const NIVEAU_RGB = (n: number): [number, number, number] =>
-  n <= 3 ? [0.114, 0.620, 0.459] : n <= 6 ? [0.949, 0.722, 0.141] : [0.886, 0.294, 0.290]
-
-const ADEM_FASE_RGB: Record<string, [number, number, number]> = {
-  in:   [0.114, 0.620, 0.459],
-  vast: [0.231, 0.510, 0.965],
-  uit:  [0.486, 0.231, 0.933],
-  rust: [0.949, 0.722, 0.141],
-  idle: [0.114, 0.620, 0.459],
+const ADEM_FASE_KLEUR: Record<string, string> = {
+  in:   'var(--mf-green)',
+  vast: 'var(--mf-blue-mid)',
+  uit:  'var(--mf-purple)',
+  rust: 'var(--mf-amber)',
+  idle: 'var(--mf-green)',
 }
 
 const TECHNIEKEN = [
@@ -147,7 +140,7 @@ export default function StressPagina() {
   return (
     <div className="mf-mesh-bg" style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
       <Navbar />
-      <main style={{ padding: '24px 20px 88px', maxWidth: 600, margin: '0 auto' }}>
+      <main style={{ padding: '24px 20px 88px', maxWidth: 900, margin: '0 auto' }}>
 
         <header style={{ marginBottom: 24 }}>
           <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 4 }}>
@@ -164,18 +157,25 @@ export default function StressPagina() {
           </div>
         )}
 
+        <div className="mf-home-layout" style={{ alignItems: 'start' }}>
+        <div>{/* form column */}
+
         {/* Stressniveau slider */}
         <div style={{ background: 'var(--bg-card)', borderRadius: 20, padding: '20px', border: '1px solid var(--border)', marginBottom: 16 }}>
           <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-4)', marginBottom: 16 }}>
             Hoe gestrest voel je je nu?
           </p>
-          <div style={{ textAlign: 'center', marginBottom: 16 }}>
-            <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'baseline', gap: 2 }}>
-              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 0 }}>
-                <GlowOrb color={NIVEAU_RGB(niveau)} intensity={Math.max(0.2, niveau / 10)} size={120} />
-              </div>
-              <span style={{ fontSize: 52, fontWeight: 800, color: NIVEAU_KLEUR(niveau), position: 'relative', zIndex: 1 }}>{niveau}</span>
-              <span style={{ fontSize: 18, color: 'var(--text-4)', position: 'relative', zIndex: 1 }}>/10</span>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
+            <div style={{
+              width: 112, height: 112, borderRadius: '50%',
+              background: `${NIVEAU_KLEUR(niveau)}12`,
+              border: `2px solid ${NIVEAU_KLEUR(niveau)}35`,
+              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+              boxShadow: `0 8px 32px ${NIVEAU_KLEUR(niveau)}25`,
+              transition: 'background 0.3s ease, box-shadow 0.3s ease',
+            }}>
+              <span style={{ fontSize: 48, fontWeight: 900, color: NIVEAU_KLEUR(niveau), lineHeight: 1, letterSpacing: '-0.03em' }}>{niveau}</span>
+              <span style={{ fontSize: 13, color: 'var(--text-4)', fontWeight: 600 }}>/10</span>
             </div>
           </div>
           <input
@@ -247,6 +247,9 @@ export default function StressPagina() {
           {opslaan ? 'Opslaan…' : 'Stress loggen →'}
         </button>
 
+        </div>{/* end form column */}
+        <div>{/* right column: breathing + history */}
+
         {/* Box breathing oefening */}
         <div style={{ background: 'var(--bg-card)', borderRadius: 20, padding: '20px', border: '1px solid var(--border)', marginBottom: 20 }}>
           <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-4)', marginBottom: 16 }}>
@@ -254,22 +257,17 @@ export default function StressPagina() {
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
             <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
-              {ademBezig && (
-                <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 0 }}>
-                  <GlowOrb color={ADEM_FASE_RGB[ademFase]} intensity={0.55} size={180} />
-                </div>
-              )}
               <div
                 onClick={startBoxBreathing}
                 style={{
                   width: 120, height: 120, borderRadius: '50%',
-                  background: ademBezig ? '#1D9E7515' : 'var(--bg-subtle)',
-                  border: `3px solid ${ademBezig ? '#1D9E75' : 'var(--border)'}`,
+                  background: ademBezig ? `${ADEM_FASE_KLEUR[ademFase]}18` : 'var(--bg-subtle)',
+                  border: `3px solid ${ademBezig ? ADEM_FASE_KLEUR[ademFase] : 'var(--border)'}`,
                   display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
                   cursor: 'pointer',
-                  transition: 'transform 0.5s ease, border-color 0.3s',
+                  transition: 'transform 0.5s ease, border-color 0.4s ease, background 0.4s ease, box-shadow 0.4s ease',
                   transform: ademFase === 'in' ? 'scale(1.15)' : ademFase === 'uit' ? 'scale(0.88)' : 'scale(1)',
-                  position: 'relative', zIndex: 1,
+                  boxShadow: ademBezig ? `0 0 40px ${ADEM_FASE_KLEUR[ademFase]}40` : 'none',
                 }}
               >
                 <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
@@ -371,6 +369,8 @@ export default function StressPagina() {
             </div>
           </div>
         )}
+        </div>{/* end right column */}
+        </div>{/* end mf-home-layout */}
       </main>
     </div>
   )
