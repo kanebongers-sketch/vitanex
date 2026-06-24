@@ -7,16 +7,6 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
-import nextDynamic from 'next/dynamic'
-
-const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
-
-const RAPPORT_LABEL_RGB: Record<string, [number, number, number]> = {
-  Uitstekend: [0.114, 0.620, 0.459],
-  Goed:       [0.486, 0.231, 0.933],
-  Matig:      [0.949, 0.722, 0.141],
-  Lastig:     [0.886, 0.294, 0.290],
-}
 
 interface WeekStats {
   stemming: number | null
@@ -161,7 +151,7 @@ export default function InzichtenPagina() {
   return (
     <div className="mf-mesh-bg" style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
       <Navbar />
-      <main style={{ padding: '24px 20px 88px', maxWidth: 600, margin: '0 auto' }}>
+      <main style={{ padding: '24px 20px 88px', maxWidth: 900, margin: '0 auto' }}>
 
         <header style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 24 }}>
           <div>
@@ -198,11 +188,8 @@ export default function InzichtenPagina() {
             background: 'var(--bg-card)', borderRadius: 20, padding: '40px 24px',
             textAlign: 'center', border: '1px solid var(--border)',
           }}>
-            <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: 14 }}>
-              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 0 }}>
-                <GlowOrb color={[0.486, 0.231, 0.933]} intensity={0.4} size={80} />
-              </div>
-              <div style={{ fontSize: 44, position: 'relative', zIndex: 1 }}>📊</div>
+            <div style={{ width: 88, height: 88, borderRadius: '50%', background: '#7c3aed14', border: '2px solid #7c3aed30', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 32px #7c3aed20', margin: '0 auto 14px' }}>
+              <span style={{ fontSize: 44 }}>📊</span>
             </div>
             <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-1)', marginBottom: 8 }}>Nog geen inzichten</p>
             <p style={{ fontSize: 13, color: 'var(--text-3)', lineHeight: 1.65 }}>
@@ -212,123 +199,125 @@ export default function InzichtenPagina() {
         )}
 
         {rapport && (
-          <>
-            {/* Score label banner */}
-            {(() => {
-              const kleur = scoreLabelKleur(rapport.score_label)
-              const orbColor = RAPPORT_LABEL_RGB[rapport.score_label] ?? [0.486, 0.231, 0.933]
-              return (
-                <div style={{
-                  background: kleur + '12',
-                  border: `1.5px solid ${kleur}35`,
-                  borderRadius: 18, padding: '16px 20px', marginBottom: 18,
-                  textAlign: 'center', position: 'relative', overflow: 'hidden',
-                }}>
-                  <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 0, pointerEvents: 'none' }}>
-                    <GlowOrb color={orbColor} intensity={0.4} size={140} />
-                  </div>
-                  <p style={{ fontSize: 20, fontWeight: 800, color: kleur, margin: 0, letterSpacing: '-0.02em', position: 'relative', zIndex: 1 }}>
-                    {rapport.score_label}
-                  </p>
-                  {data?.week_start && (
-                    <p style={{ fontSize: 11, color: kleur + 'aa', marginTop: 4, fontWeight: 500 }}>
-                      Week van {new Date(data.week_start).toLocaleDateString('nl-NL', { day: 'numeric', month: 'long' })}
-                      {data.cached ? ' · gecached' : ''}
+          <div className="mf-home-layout">
+            {/* Left: score + stats */}
+            <div>
+              {/* Score label banner */}
+              {(() => {
+                const kleur = scoreLabelKleur(rapport.score_label)
+                return (
+                  <div style={{
+                    background: kleur + '12',
+                    border: `1.5px solid ${kleur}35`,
+                    borderRadius: 18, padding: '16px 20px', marginBottom: 18,
+                    textAlign: 'center',
+                  }}>
+                    <p style={{ fontSize: 20, fontWeight: 800, color: kleur, margin: 0, letterSpacing: '-0.02em' }}>
+                      {rapport.score_label}
                     </p>
-                  )}
+                    {data?.week_start && (
+                      <p style={{ fontSize: 11, color: kleur + 'aa', marginTop: 4, fontWeight: 500 }}>
+                        Week van {new Date(data.week_start).toLocaleDateString('nl-NL', { day: 'numeric', month: 'long' })}
+                        {data.cached ? ' · gecached' : ''}
+                      </p>
+                    )}
+                  </div>
+                )
+              })()}
+
+              {/* Progress rings */}
+              {stats && (
+                <div style={{
+                  background: 'var(--bg-card)', borderRadius: 20, padding: '22px 16px',
+                  border: '1px solid var(--border)', marginBottom: 14,
+                  display: 'flex', justifyContent: 'space-around', alignItems: 'center',
+                }}>
+                  <ProgressRing
+                    value={stats.stemming ?? 0}
+                    max={5}
+                    kleur={stemmingKleur(stats.stemming)}
+                    label="Stemming"
+                    eenheid="/5"
+                  />
+                  <ProgressRing
+                    value={stats.slaap ?? 0}
+                    max={9}
+                    kleur={slaapKleur(stats.slaap)}
+                    label="Slaap"
+                    eenheid="u"
+                  />
+                  <ProgressRing
+                    value={stats.stress !== null ? 10 - stats.stress : 0}
+                    max={10}
+                    kleur={rustKleur(stats.stress)}
+                    label="Rust"
+                    eenheid="/10"
+                  />
                 </div>
-              )
-            })()}
+              )}
 
-            {/* Progress rings */}
-            {stats && (
+              {/* Stats kaartjes */}
+              {stats && (
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <StatKaart
+                    waarde={stats.aantal_checkins}
+                    label="Check-ins"
+                    kleur={stats.aantal_checkins >= 3 ? 'var(--mf-green)' : 'var(--mf-amber)'}
+                  />
+                  <StatKaart
+                    waarde={stats.dankbaarheid_items}
+                    label="Dankbaarheid"
+                    kleur={stats.dankbaarheid_items >= 5 ? 'var(--mf-green)' : stats.dankbaarheid_items >= 2 ? 'var(--mf-amber)' : 'var(--text-4)'}
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Right: analyse tekst */}
+            <div>
+              {/* Samenvatting */}
               <div style={{
-                background: 'var(--bg-card)', borderRadius: 20, padding: '22px 16px',
+                background: 'var(--bg-card)', borderRadius: 20, padding: '18px',
                 border: '1px solid var(--border)', marginBottom: 14,
-                display: 'flex', justifyContent: 'space-around', alignItems: 'center',
               }}>
-                <ProgressRing
-                  value={stats.stemming ?? 0}
-                  max={5}
-                  kleur={stemmingKleur(stats.stemming)}
-                  label="Stemming"
-                  eenheid="/5"
-                />
-                <ProgressRing
-                  value={stats.slaap ?? 0}
-                  max={9}
-                  kleur={slaapKleur(stats.slaap)}
-                  label="Slaap"
-                  eenheid="u"
-                />
-                <ProgressRing
-                  value={stats.stress !== null ? 10 - stats.stress : 0}
-                  max={10}
-                  kleur={rustKleur(stats.stress)}
-                  label="Rust"
-                  eenheid="/10"
-                />
+                <p style={{
+                  fontSize: 11, fontWeight: 700, textTransform: 'uppercase',
+                  letterSpacing: '0.08em', color: 'var(--text-4)', marginBottom: 10,
+                }}>
+                  Samenvatting
+                </p>
+                <p style={{ fontSize: 14, color: 'var(--text-2)', lineHeight: 1.7 }}>{rapport.samenvatting}</p>
               </div>
-            )}
 
-            {/* Stats kaartjes */}
-            {stats && (
-              <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
-                <StatKaart
-                  waarde={stats.aantal_checkins}
-                  label="Check-ins"
-                  kleur={stats.aantal_checkins >= 3 ? 'var(--mf-green)' : 'var(--mf-amber)'}
-                />
-                <StatKaart
-                  waarde={stats.dankbaarheid_items}
-                  label="Dankbaarheid"
-                  kleur={stats.dankbaarheid_items >= 5 ? 'var(--mf-green)' : stats.dankbaarheid_items >= 2 ? 'var(--mf-amber)' : 'var(--text-4)'}
-                />
+              {/* Patroon */}
+              <div style={{
+                background: 'var(--bg-card)', borderRadius: 16, padding: '16px',
+                border: '1px solid var(--border)', marginBottom: 14,
+              }}>
+                <p style={{
+                  fontSize: 11, fontWeight: 700, textTransform: 'uppercase',
+                  letterSpacing: '0.08em', color: 'var(--text-4)', marginBottom: 8,
+                }}>
+                  Patroon
+                </p>
+                <p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.65 }}>{rapport.patroon}</p>
               </div>
-            )}
 
-            {/* Samenvatting */}
-            <div style={{
-              background: 'var(--bg-card)', borderRadius: 20, padding: '18px',
-              border: '1px solid var(--border)', marginBottom: 14,
-            }}>
-              <p style={{
-                fontSize: 11, fontWeight: 700, textTransform: 'uppercase',
-                letterSpacing: '0.08em', color: 'var(--text-4)', marginBottom: 10,
+              {/* Tip */}
+              <div style={{
+                background: 'var(--mf-green-light)', borderRadius: 16, padding: '16px',
+                border: '1px solid var(--mf-green-mid)',
               }}>
-                Samenvatting
-              </p>
-              <p style={{ fontSize: 14, color: 'var(--text-2)', lineHeight: 1.7 }}>{rapport.samenvatting}</p>
+                <p style={{
+                  fontSize: 11, fontWeight: 700, textTransform: 'uppercase',
+                  letterSpacing: '0.08em', color: 'var(--mf-green-dark)', marginBottom: 8,
+                }}>
+                  Tip van de week
+                </p>
+                <p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.65 }}>{rapport.tip}</p>
+              </div>
             </div>
-
-            {/* Patroon */}
-            <div style={{
-              background: 'var(--bg-card)', borderRadius: 16, padding: '16px',
-              border: '1px solid var(--border)', marginBottom: 14,
-            }}>
-              <p style={{
-                fontSize: 11, fontWeight: 700, textTransform: 'uppercase',
-                letterSpacing: '0.08em', color: 'var(--text-4)', marginBottom: 8,
-              }}>
-                Patroon
-              </p>
-              <p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.65 }}>{rapport.patroon}</p>
-            </div>
-
-            {/* Tip */}
-            <div style={{
-              background: 'var(--mf-green-light)', borderRadius: 16, padding: '16px',
-              border: '1px solid var(--mf-green-mid)',
-            }}>
-              <p style={{
-                fontSize: 11, fontWeight: 700, textTransform: 'uppercase',
-                letterSpacing: '0.08em', color: 'var(--mf-green-dark)', marginBottom: 8,
-              }}>
-                Tip van de week
-              </p>
-              <p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.65 }}>{rapport.tip}</p>
-            </div>
-          </>
+          </div>
         )}
       </main>
     </div>
