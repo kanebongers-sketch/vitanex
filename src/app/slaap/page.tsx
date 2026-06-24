@@ -433,9 +433,9 @@ export default function SlaapPagina() {
                 </div>
               ))}
             </div>
-            </div>{/* end history column */}
+            </div>
         )}
-        </div>{/* end mf-home-layout */}
+        </div>
       </main>
     </div>
   )
