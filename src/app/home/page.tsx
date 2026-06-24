@@ -10,10 +10,6 @@ import { authFetch } from '@/lib/auth-fetch'
 import Navbar from '@/components/layout/Navbar'
 import { laadXPVanServer } from '@/lib/xp-sync'
 import { berekenLevel, xpVoortgang, LEVEL_NAMEN, LEVEL_KLEUREN, LEVEL_BG, type XPData } from '@/lib/xp'
-import nextDynamic from 'next/dynamic'
-
-const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
-
 // ── Helpers ───────────────────────────────────────────────────
 
 function nlDatumKort(): string {
@@ -599,7 +595,9 @@ export default function HomePage() {
         </div>
       </header>
 
-      <main style={{ maxWidth: 480, margin: '0 auto', padding: '72px 16px 120px' }}>
+      <main style={{ maxWidth: 960, margin: '0 auto', padding: '72px 16px 120px' }}>
+        <div className="mf-home-layout">
+        <div>{/* left column */}
 
         {/* ── SECTION 1 — READINESS HERO ── */}
         <section
@@ -626,17 +624,8 @@ export default function HomePage() {
             <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: kleur, opacity: 0.85, marginBottom: 16 }}>
               READINESS VANDAAG
             </p>
-            <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
-              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 0 }}>
-                <GlowOrb
-                  color={readiness !== null && readiness >= 80 ? [0.114, 0.620, 0.459] : readiness !== null && readiness >= 60 ? [0.231, 0.510, 0.965] : readiness !== null && readiness >= 40 ? [0.949, 0.722, 0.141] : [0.886, 0.294, 0.290]}
-                  intensity={readiness !== null ? Math.max(0.25, readiness / 100) : 0.3}
-                  size={190}
-                />
-              </div>
-              <div className="mf-animate-breathe mf-animate-glow" style={{ display: 'inline-block', position: 'relative', zIndex: 1 }}>
-                <ReadinessRing score={readiness} />
-              </div>
+            <div className="mf-animate-breathe mf-animate-glow">
+              <ReadinessRing score={readiness} />
             </div>
             <p className="mf-display" style={{ fontSize: 'clamp(20px, 5vw, 26px)', color: kleur, marginTop: 10, fontStyle: 'italic', letterSpacing: '-0.01em' }}>
               {label}
@@ -888,6 +877,9 @@ export default function HomePage() {
         {/* ── SECTION 4.5 — WEEK INZICHTEN ── */}
         <WeekInzichtenCard data={weekData} />
 
+        </div>{/* end left column */}
+        <div>{/* right column */}
+
         {/* ── SECTION 5 — VANDAAG CHECKLIST ── */}
         <section
           className="mf-animate-slide-up mf-stagger-2"
@@ -1005,6 +997,8 @@ export default function HomePage() {
           </div>
         </section>
 
+        </div>{/* end right column */}
+        </div>{/* end mf-home-layout */}
       </main>
     </div>
   )

@@ -683,6 +683,22 @@ body.mf-has-sidebar > * {
   }
 }
 
+/* ── Home dashboard 2-col layout ────────────────────────── */
+
+.mf-home-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0;
+  align-items: start;
+}
+
+@media (min-width: 768px) {
+  .mf-home-layout {
+    grid-template-columns: 1fr 360px;
+    gap: 16px;
+  }
+}
+
 /* ── Reduced motion ──────────────────────────────────────── */
 
 @media (prefers-reduced-motion: reduce) {
