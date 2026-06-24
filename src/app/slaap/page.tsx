@@ -7,19 +7,6 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
-import nextDynamic from 'next/dynamic'
-
-const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
-
-const KWALITEIT_RGB: [number, number, number][] = [
-  [0, 0, 0],
-  [0.887, 0.294, 0.290],
-  [0.887, 0.294, 0.290],
-  [0.949, 0.522, 0.141],
-  [0.114, 0.620, 0.459],
-  [0.082, 0.471, 0.341],
-]
-
 interface SlaapLog {
   id: string
   datum: string
@@ -192,7 +179,7 @@ export default function SlaapPagina() {
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
       <Navbar />
-      <main style={{ padding: '24px 20px 88px', maxWidth: 600, margin: '0 auto' }}>
+      <main style={{ padding: '24px 20px 88px', maxWidth: 900, margin: '0 auto' }}>
 
         <header style={{ marginBottom: 28 }}>
           <p style={{ fontSize: '0.8rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-4)', margin: '0 0 4px' }}>
@@ -233,7 +220,8 @@ export default function SlaapPagina() {
           </div>
         )}
 
-        {logs.length > 0 && <SlaapBarchart logs={logs} />}
+        <div className={logs.length > 0 ? 'mf-home-layout' : ''} style={{ alignItems: 'start' }}>
+        <div>{/* form column */}
 
         {succes && (
           <div style={{
@@ -246,13 +234,21 @@ export default function SlaapPagina() {
           </div>
         )}
 
-        {/* Sleep quality orb */}
-        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }}>
-          <GlowOrb
-            color={KWALITEIT_RGB[kwaliteit]}
-            intensity={kwaliteit / 5}
-            size={110}
-          />
+        {/* Sleep hero */}
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
+          <div style={{
+            width: 112, height: 112, borderRadius: '50%',
+            background: `${slaapKleur(uren)}12`,
+            border: `2px solid ${slaapKleur(uren)}30`,
+            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+            boxShadow: `0 8px 32px ${slaapKleur(uren)}20`,
+            transition: 'background 0.3s ease, box-shadow 0.3s ease',
+          }}>
+            <span style={{ fontSize: 24, fontWeight: 900, color: slaapKleur(uren), letterSpacing: '-0.03em', lineHeight: 1 }}>
+              {urenNaarTijd(uren)}
+            </span>
+            <span style={{ fontSize: 22, marginTop: 4 }}>{KWALITEIT_EMOJI[kwaliteit]}</span>
+          </div>
         </div>
 
         {/* Form card */}
@@ -366,9 +362,11 @@ export default function SlaapPagina() {
           </button>
         </section>
 
-        {/* Geschiedenis */}
+        </div>{/* end form column */}
+
         {logs.length > 0 && (
-          <>
+          <div>{/* history column */}
+            <SlaapBarchart logs={logs} />
             <p style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-4)', margin: '0 0 12px' }}>
               Laatste 14 dagen
             </p>
@@ -435,8 +433,9 @@ export default function SlaapPagina() {
                 </div>
               ))}
             </div>
-          </>
+            </div>{/* end history column */}
         )}
+        </div>{/* end mf-home-layout */}
       </main>
     </div>
   )
