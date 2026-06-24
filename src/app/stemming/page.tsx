@@ -7,18 +7,6 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
-import nextDynamic from 'next/dynamic'
-
-const GlowOrb = nextDynamic(() => import('@/components/three/GlowOrb'), { ssr: false })
-
-const STEMMING_RGB: Record<number, [number, number, number]> = {
-  1: [0.887, 0.294, 0.290],
-  2: [0.949, 0.522, 0.141],
-  3: [0.55,  0.55,  0.55 ],
-  4: [0.114, 0.620, 0.459],
-  5: [0.082, 0.471, 0.341],
-}
-
 const STEMMING_OPTIES = [
   { waarde: 1, emoji: '😫', label: 'Slecht',   kleur: 'var(--mf-red)',    achtergrond: 'var(--mf-red-light)'    },
   { waarde: 2, emoji: '😔', label: 'Matig',    kleur: 'var(--mf-orange)',          achtergrond: 'var(--mf-amber-light)'  },
@@ -110,7 +98,7 @@ export default function StemmingPagina() {
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
       <Navbar />
-      <main style={{ padding: '24px 20px 88px', maxWidth: 600, margin: '0 auto' }}>
+      <main style={{ padding: '24px 20px 88px', maxWidth: 900, margin: '0 auto' }}>
 
         <header style={{ marginBottom: 28 }}>
           <p style={{ fontSize: '0.8rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-4)', margin: '0 0 4px' }}>
@@ -132,6 +120,9 @@ export default function StemmingPagina() {
           </div>
         )}
 
+        <div className={logs.length > 0 ? 'mf-home-layout' : ''} style={{ alignItems: 'start' }}>
+        <div>{/* form column */}
+
         {/* Stemming hero card */}
         <section style={{
           background: 'var(--bg-card)',
@@ -144,13 +135,20 @@ export default function StemmingPagina() {
             Hoe voel je je nu?
           </p>
 
-          {/* 3D stemming orb */}
-          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }}>
-            <GlowOrb
-              color={STEMMING_RGB[stemming]}
-              intensity={stemming / 5}
-              size={120}
-            />
+          {/* Emoji hero */}
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 20 }}>
+            <div style={{
+              width: 112, height: 112, borderRadius: '50%',
+              background: geselecteerd.achtergrond,
+              border: `2px solid ${geselecteerd.kleur}30`,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              boxShadow: `0 8px 32px ${geselecteerd.kleur}20`,
+              transition: 'background 0.3s ease, box-shadow 0.3s ease',
+            }}>
+              <span style={{ fontSize: 56, lineHeight: 1, display: 'block', transition: 'transform 0.2s cubic-bezier(0.34,1.56,0.64,1)' }}>
+                {geselecteerd.emoji}
+              </span>
+            </div>
           </div>
 
           {/* Grote emoji kiezer */}
@@ -290,9 +288,11 @@ export default function StemmingPagina() {
           {opslaan ? 'Opslaan…' : 'Stemming loggen →'}
         </button>
 
+        </div>{/* end form column */}
+
         {/* Recente stemming */}
         {logs.length > 0 && (
-          <>
+          <div>{/* history column */}
             <p style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-4)', margin: '0 0 12px' }}>
               Recente check-ins
             </p>
@@ -390,8 +390,9 @@ export default function StemmingPagina() {
                 </div>
               ))}
             </div>
-          </>
+          </div>{/* end history column */}
         )}
+        </div>{/* end mf-home-layout */}
       </main>
     </div>
   )
