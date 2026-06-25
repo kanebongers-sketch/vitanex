@@ -6,9 +6,12 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
+import nextDynamic from 'next/dynamic'
 import Navbar from '@/components/layout/Navbar'
 import DocumentenSectie from '@/components/DocumentenSectie'
+
+// recharts lui laden — alleen wanneer de trendgrafiek echt getoond wordt.
+const TrendChart = nextDynamic(() => import('@/components/portaal/TrendChart'), { ssr: false })
 
 
 async function downloadAnalysePDF(analyse: AnalyseRecord) {
@@ -641,16 +644,7 @@ export default function Portaal() {
             {checkins.length > 1 && (
               <div className="bg-white rounded-2xl border border-gray-100 p-6 mb-6">
                 <p className="text-sm font-medium text-gray-700 mb-4">Trend per categorie</p>
-                <ResponsiveContainer width="100%" height={200}>
-                  <LineChart data={grafiekData}>
-                    <XAxis dataKey="datum" tick={{ fontSize: 11 }} />
-                    <YAxis domain={[1, 5]} tick={{ fontSize: 11 }} />
-                    <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid #e5e7eb', fontSize: 12 }} />
-                    <Line type="monotone" dataKey="Fysiek" stroke="var(--mf-green)" strokeWidth={2} dot={{ r: 3 }} activeDot={{ r: 5 }} />
-                    <Line type="monotone" dataKey="Mentaal" stroke="var(--mf-blue-mid)" strokeWidth={2} dot={{ r: 3 }} activeDot={{ r: 5 }} />
-                    <Line type="monotone" dataKey="Sociaal" stroke="var(--mf-purple)" strokeWidth={2} dot={{ r: 3 }} activeDot={{ r: 5 }} />
-                  </LineChart>
-                </ResponsiveContainer>
+                <TrendChart data={grafiekData} />
                 <div className="flex gap-4 mt-3 justify-center">
                   {[{ label: 'Fysiek', kleur: 'var(--mf-green)' }, { label: 'Mentaal', kleur: 'var(--mf-blue)' }, { label: 'Sociaal', kleur: 'var(--mf-purple)' }].map(l => (
                     <div key={l.label} className="flex items-center gap-1.5">

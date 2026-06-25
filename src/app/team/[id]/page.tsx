@@ -6,10 +6,13 @@ import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import Link from 'next/link'
 
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
+import nextDynamic from 'next/dynamic'
 import { Avatar } from '@/components/Avatar'
 import DocumentenSectie from '@/components/DocumentenSectie'
 import GesprekkenTab from '@/components/hr/GesprekkenTab'
+
+// recharts lui laden — alleen wanneer de vitaliteitstrend echt getoond wordt.
+const VitaliteitTrend = nextDynamic(() => import('@/components/team/VitaliteitTrend'), { ssr: false })
 
 type TeamTab = 'vitaliteit' | 'gesprekken' | 'dossier'
 
@@ -308,15 +311,7 @@ export default function ProfielPagina() {
             {checkins.length > 1 && (
               <div className="bg-white rounded-2xl border border-gray-100 p-6 mb-6">
                 <p className="text-sm font-medium text-gray-700 mb-4">Vitaliteitstrend</p>
-                <ResponsiveContainer width="100%" height={200}>
-                  <LineChart data={trendData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                    <XAxis dataKey="datum" tick={{ fontSize: 11 }} />
-                    <YAxis domain={[0, 100]} tick={{ fontSize: 11 }} unit="%" />
-                    <Tooltip formatter={(v) => `${v}%`} />
-                    <Line type="monotone" dataKey="Score" stroke="var(--mentaforce-primary)" strokeWidth={2} dot={{ r: 3 }} activeDot={{ r: 5 }} />
-                  </LineChart>
-                </ResponsiveContainer>
+                <VitaliteitTrend data={trendData} />
               </div>
             )}
 

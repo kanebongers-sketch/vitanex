@@ -9,13 +9,16 @@ import { supabase } from '@/lib/supabase'
 import { authFetch } from '@/lib/auth-fetch'
 import Navbar from '@/components/layout/Navbar'
 import { Avatar } from '@/components/Avatar'
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
+import nextDynamic from 'next/dynamic'
 import GesprekkenTab from '@/components/hr/GesprekkenTab'
 import RapportenTab from '@/components/hr/RapportenTab'
 import HRKpiCards from '@/components/hr/HRKpiCards'
 import HRSnelkoppelingen from '@/components/hr/HRSnelkoppelingen'
 
 import BedrijfTabComponent, { type BedrijfInfo as BedrijfInfoComponent } from '@/components/hr/BedrijfTab'
+
+// recharts lui laden — alleen wanneer de trendgrafieken echt getoond worden.
+const HrCharts = nextDynamic(() => import('@/components/hr/HrCharts'), { ssr: false })
 
 const WAARSCHUWING_GRENS = 2.5
 
@@ -1354,32 +1357,7 @@ export default function Dashboard() {
                   </div>
                 ) : (
                   <>
-                    <div className="bg-white rounded-2xl border border-gray-100 p-6 mb-6">
-                      <p className="text-sm font-medium text-gray-700 mb-4">Vitaliteitstrend over tijd</p>
-                      <ResponsiveContainer width="100%" height={220}>
-                        <LineChart data={trendData}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                          <XAxis dataKey="week" tick={{ fontSize: 11 }} />
-                          <YAxis domain={[0, 100]} tick={{ fontSize: 11 }} unit="%" />
-                          <Tooltip formatter={(v) => [`${v}%`, 'Score']} />
-                          <Line type="monotone" dataKey="Score" stroke="var(--mf-green)" strokeWidth={2.5}
-                            dot={{ r: 3 }} activeDot={{ r: 5 }} />
-                        </LineChart>
-                      </ResponsiveContainer>
-                    </div>
-
-                    <div className="bg-white rounded-2xl border border-gray-100 p-6 mb-6">
-                      <p className="text-sm font-medium text-gray-700 mb-4">Gemiddelde score per metric</p>
-                      <ResponsiveContainer width="100%" height={240}>
-                        <BarChart data={vergelijkingData}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                          <XAxis dataKey="metric" tick={{ fontSize: 10 }} />
-                          <YAxis domain={[0, 5]} tick={{ fontSize: 11 }} />
-                          <Tooltip formatter={(v) => [`${v}/5`, 'Gemiddelde']} />
-                          <Bar dataKey="Gemiddelde" radius={[6, 6, 0, 0]} fill="var(--mf-green)" />
-                        </BarChart>
-                      </ResponsiveContainer>
-                    </div>
+                    <HrCharts trendData={trendData} vergelijkingData={vergelijkingData} />
 
                     {laagsteMetrics.length >= 3 && (
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
