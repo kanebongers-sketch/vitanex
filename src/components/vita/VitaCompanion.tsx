@@ -616,7 +616,10 @@ export default function VitaCompanion() {
           onClick={() => { if (!didDrag.current) setOpen(true) }}
           aria-label="Open VITA — bekijk je dag"
           style={{
-            position: 'relative',
+            position: 'absolute',
+            bottom: '100%',
+            right: 0,
+            marginBottom: 10,
             maxWidth: 224,
             background: 'var(--bg-card)',
             border: '1px solid var(--border-strong)',
@@ -671,6 +674,10 @@ export default function VitaCompanion() {
       {open && (
         <div
           style={{
+            position: 'absolute',
+            bottom: '100%',
+            right: 0,
+            marginBottom: 10,
             width: 292,
             background: 'var(--bg-card)',
             border: '1px solid var(--border-strong)',
