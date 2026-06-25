@@ -2,12 +2,13 @@
 
 export const dynamic = 'force-dynamic'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { authFetch } from '@/lib/auth-fetch'
 import { vandaag } from '@/lib/weekdoelen'
 import Link from 'next/link'
+
 const SECTIE_KLEUR: Record<string, string> = {
   slaap:     'rgba(124,58,237,0.18)',
   stress:    'rgba(226,75,74,0.18)',
@@ -17,16 +18,13 @@ const SECTIE_KLEUR: Record<string, string> = {
   motivatie: 'rgba(243,99,12,0.18)',
 }
 
-// ─── Types ─────────────────────────────────────────────────────────────────
-
 interface Vraag {
-  code:       string
-  label:      string
-  type:       'schaal' | 'tekst'
-  min?:       string
-  max?:       string
-  verplicht:  boolean
-  placeholder?: string
+  code:      string
+  label:     string
+  type:      'schaal'
+  min?:      string
+  max?:      string
+  verplicht: boolean
 }
 
 interface Sectie {
@@ -37,102 +35,65 @@ interface Sectie {
   vragen: Vraag[]
 }
 
-// ─── 6 vaste domeinen, elk 4 schaalvragen + 1 tekstvraag ──────────────────
-
+// 6 domeinen — 2 kernvragen per sectie (was 4+1, nu 2)
 const SECTIES: Sectie[] = [
   {
     id: 'slaap', label: 'Slaap', kleur: 'var(--mf-purple)', licht: 'var(--mf-purple-light)',
     vragen: [
-      { code: 'slaap_kwaliteit', type: 'schaal', verplicht: true, min: 'Zeer slecht',       max: 'Uitstekend',     label: 'Hoe heb je deze week geslapen?' },
-      { code: 'slaap_uren',      type: 'schaal', verplicht: true, min: 'Minder dan 5 uur',  max: '8 uur of meer',  label: 'Hoeveel uur sliep je gemiddeld per nacht?' },
+      { code: 'slaap_kwaliteit', type: 'schaal', verplicht: true, min: 'Zeer slecht',       max: 'Uitstekend',      label: 'Hoe heb je deze week geslapen?' },
       { code: 'slaap_fris',      type: 'schaal', verplicht: true, min: 'Volledig uitgeput', max: 'Fris en energiek', label: 'Hoe uitgerust voelde je je bij het opstaan?' },
-      { code: 'slaap_loslaten',  type: 'schaal', verplicht: true, min: 'Nauwelijks',        max: 'Volledig',       label: "Lukte het om 's avonds echt los te laten van je werk?" },
-      { code: 'slaap_tekst',     type: 'tekst',  verplicht: false, label: 'Wat belemmert je slaap of rust? (optioneel)', placeholder: 'Bijv. stress, piekeren, te laat naar bed...' },
     ],
   },
   {
     id: 'stress', label: 'Stress', kleur: 'var(--mf-red)', licht: 'var(--mf-red-light)',
     vragen: [
-      { code: 'stress_niveau',      type: 'schaal', verplicht: true, min: 'Extreem gestrest', max: 'Volledig ontspannen', label: 'Hoe stressvrij voelde je je deze week?' },
-      { code: 'stress_piekeren',    type: 'schaal', verplicht: true, min: 'Voortdurend',       max: 'Helemaal niet',      label: 'In welke mate piekerde je over je werk?' },
-      { code: 'stress_controle',    type: 'schaal', verplicht: true, min: 'Geen controle',     max: 'Volledig in controle', label: 'Had je het gevoel controle te hebben over je dag?' },
-      { code: 'stress_ontspanning', type: 'schaal', verplicht: true, min: 'Nauwelijks',        max: 'Volledig',           label: 'Lukte het je om te ontspannen buiten werktijd?' },
-      { code: 'stress_tekst',       type: 'tekst',  verplicht: false, label: 'Wat veroorzaakt de meeste stress voor jou? (optioneel)', placeholder: 'Bijv. werkdruk, privé, onzekerheid...' },
+      { code: 'stress_niveau',   type: 'schaal', verplicht: true, min: 'Extreem gestrest', max: 'Volledig ontspannen',  label: 'Hoe stressvrij voelde je je deze week?' },
+      { code: 'stress_controle', type: 'schaal', verplicht: true, min: 'Geen controle',    max: 'Volledig in controle', label: 'Had je het gevoel controle te hebben over je dag?' },
     ],
   },
   {
     id: 'energie', label: 'Energie', kleur: 'var(--mf-amber)', licht: 'var(--mf-amber-light)',
     vragen: [
-      { code: 'energie_niveau',    type: 'schaal', verplicht: true, min: 'Uitgeput',        max: 'Vol energie',   label: 'Hoe was je energieniveau deze week?' },
-      { code: 'energie_beweging',  type: 'schaal', verplicht: true, min: 'Totaal inactief', max: 'Zeer actief',   label: 'Hoe actief was je buiten het werk (sport, wandelen)?' },
-      { code: 'energie_voeding',   type: 'schaal', verplicht: true, min: 'Ongezond',        max: 'Zeer gezond',   label: 'Hoe gezond was je eet- en drinkpatroon?' },
-      { code: 'energie_dip',       type: 'schaal', verplicht: true, min: 'Ernstige dip',    max: 'Geen dip',      label: 'Had je last van een middagdip of energiedaling?' },
-      { code: 'energie_tekst',     type: 'tekst',  verplicht: false, label: 'Wat kost je het meest energie? (optioneel)', placeholder: 'Bijv. vergaderingen, slechte nacht, te weinig beweging...' },
+      { code: 'energie_niveau',   type: 'schaal', verplicht: true, min: 'Uitgeput',        max: 'Vol energie', label: 'Hoe was je energieniveau deze week?' },
+      { code: 'energie_beweging', type: 'schaal', verplicht: true, min: 'Totaal inactief', max: 'Zeer actief', label: 'Hoe actief was je buiten het werk?' },
     ],
   },
   {
     id: 'focus', label: 'Focus', kleur: 'var(--mf-green)', licht: 'var(--mf-green-light)',
     vragen: [
-      { code: 'focus_concentratie', type: 'schaal', verplicht: true, min: 'Totaal niet',       max: 'Uitstekend',        label: 'Hoe goed kon je je concentreren op je werk?' },
-      { code: 'focus_helderheid',   type: 'schaal', verplicht: true, min: 'Wazig en traag',     max: 'Scherp en helder',  label: 'Hoe helder was je hoofd — kon je snel beslissingen nemen?' },
-      { code: 'focus_aanwezig',     type: 'schaal', verplicht: true, min: 'Continu afgeleid',   max: 'Volledig aanwezig', label: 'In welke mate was je echt aanwezig en niet afgeleid?' },
-      { code: 'focus_flow',         type: 'schaal', verplicht: true, min: 'Geen enkele keer',   max: 'Veelvuldig',        label: "Had je momenten van 'flow' — volledig opgaan in je werk?" },
-      { code: 'focus_tekst',        type: 'tekst',  verplicht: false, label: 'Wat leidt je het meeste af? (optioneel)', placeholder: 'Bijv. telefoon, open kantoor, meldingen...' },
+      { code: 'focus_concentratie', type: 'schaal', verplicht: true, min: 'Totaal niet',   max: 'Uitstekend',       label: 'Hoe goed kon je je concentreren op je werk?' },
+      { code: 'focus_helderheid',   type: 'schaal', verplicht: true, min: 'Wazig en traag', max: 'Scherp en helder', label: 'Hoe helder was je hoofd deze week?' },
     ],
   },
   {
-    id: 'balans', label: 'Werk-privé balans', kleur: 'var(--mf-blue-mid)', licht: 'var(--mf-blue-light)',
+    id: 'balans', label: 'Balans', kleur: 'var(--mf-blue-mid)', licht: 'var(--mf-blue-light)',
     vragen: [
-      { code: 'balans_werk_prive', type: 'schaal', verplicht: true, min: 'Helemaal niet',  max: 'Perfecte balans',      label: 'Ervaarde je een goede balans tussen werk en privéleven?' },
-      { code: 'balans_grenzen',    type: 'schaal', verplicht: true, min: 'Nauwelijks',     max: 'Uitstekend',           label: "Hoe goed kon je grenzen stellen en 'nee' zeggen?" },
-      { code: 'balans_tijd',       type: 'schaal', verplicht: true, min: 'Lukt niet',      max: 'Volledig',             label: 'Hoe goed kon je werk en privé tijdelijk loskoppelen?' },
-      { code: 'balans_herstel',    type: 'schaal', verplicht: true, min: 'Nauwelijks',     max: 'Meer dan genoeg',      label: 'Had je voldoende tijd en ruimte voor herstel na het werk?' },
-      { code: 'balans_tekst',      type: 'tekst',  verplicht: false, label: 'Wat maakt het moeilijk om af te schakelen? (optioneel)', placeholder: 'Bijv. e-mails na werktijd, thuiswerk, etc...' },
+      { code: 'balans_werk_prive', type: 'schaal', verplicht: true, min: 'Helemaal niet', max: 'Perfecte balans',   label: 'Ervaarde je een goede werk-privé balans?' },
+      { code: 'balans_herstel',    type: 'schaal', verplicht: true, min: 'Nauwelijks',    max: 'Meer dan genoeg',   label: 'Had je voldoende tijd voor herstel na het werk?' },
     ],
   },
   {
     id: 'motivatie', label: 'Motivatie', kleur: 'var(--mf-rose)', licht: 'var(--mf-rose-light)',
     vragen: [
-      { code: 'motivatie_werk',         type: 'schaal', verplicht: true, min: 'Helemaal niet', max: 'Zeer gemotiveerd',  label: 'Hoe gemotiveerd was je om je werk goed te doen?' },
-      { code: 'motivatie_zinvol',       type: 'schaal', verplicht: true, min: 'Zinloos',        max: 'Zeer zinvol',      label: 'In welke mate vond je je werk zinvol en betekenisvol?' },
-      { code: 'motivatie_enthousiasme', type: 'schaal', verplicht: true, min: 'Met tegenzin',   max: 'Erg enthousiast',  label: 'Hoe enthousiast en energiek ging je naar je werk?' },
-      { code: 'motivatie_waardering',   type: 'schaal', verplicht: true, min: 'Helemaal niet',  max: 'Volledig',         label: 'Voelde je je gewaardeerd voor je inzet?' },
-      { code: 'motivatie_tekst',        type: 'tekst',  verplicht: false, label: 'Wat geeft jou de meeste voldoening in je werk? (optioneel)', placeholder: 'Bijv. samenwerken, resultaat zien, leren...' },
+      { code: 'motivatie_werk',   type: 'schaal', verplicht: true, min: 'Helemaal niet', max: 'Zeer gemotiveerd', label: 'Hoe gemotiveerd was je om je werk goed te doen?' },
+      { code: 'motivatie_zinvol', type: 'schaal', verplicht: true, min: 'Zinloos',       max: 'Zeer zinvol',     label: 'In welke mate vond je je werk zinvol?' },
     ],
   },
 ]
 
-// ─── Domein → scale-vraag codes (voor score berekening) ──────────────────
-
+// 2 codes per domein — scores genormaliseerd ×2 om range 4–20 te houden
 const DOMEIN_CODES: Record<string, string[]> = {
-  slaap:    ['slaap_kwaliteit', 'slaap_uren', 'slaap_fris', 'slaap_loslaten'],
-  stress:   ['stress_niveau',   'stress_piekeren', 'stress_controle', 'stress_ontspanning'],
-  energie:  ['energie_niveau',  'energie_beweging', 'energie_voeding', 'energie_dip'],
-  focus:    ['focus_concentratie', 'focus_helderheid', 'focus_aanwezig', 'focus_flow'],
-  balans:   ['balans_werk_prive', 'balans_grenzen', 'balans_tijd', 'balans_herstel'],
-  motivatie:['motivatie_werk', 'motivatie_zinvol', 'motivatie_enthousiasme', 'motivatie_waardering'],
+  slaap:    ['slaap_kwaliteit', 'slaap_fris'],
+  stress:   ['stress_niveau',   'stress_controle'],
+  energie:  ['energie_niveau',  'energie_beweging'],
+  focus:    ['focus_concentratie', 'focus_helderheid'],
+  balans:   ['balans_werk_prive',  'balans_herstel'],
+  motivatie:['motivatie_werk', 'motivatie_zinvol'],
 }
-
-// ─── Auto-tekst antwoorden per domein ────────────────────────────────────
-
-const AUTO_TEKST: Record<string, string[]> = {
-  slaap:    ['Ik slaap redelijk, maar kan er altijd op letten dat ik eerder naar bed ga.', 'Soms wat veel op mijn hoofd voor het slapen.', 'Over het algemeen goed, af en toe wakker worden.'],
-  stress:   ['Drukke week maar hanteerbaar.', 'Wat meer werkdruk dan normaal, maar under control.', 'Een normale week zonder grote uitschieters.'],
-  energie:  ['Normaal energieniveau, na de lunch soms een dipje.', 'Redelijk energiek, zou meer kunnen bewegen.', 'Goed gevoel, sport helpt om energie op peil te houden.'],
-  focus:    ['Af en toe afgeleid door meldingen, maar over het algemeen goed.', 'Productieve week, goed kunnen focussen op prioriteiten.', 'Soms moeite om aan te komen door vergaderingen.'],
-  balans:   ["Kan soms moeilijk loskomen van werk 's avonds.", 'Goede week voor werk-privé balans, op tijd gestopt.', 'Zou meer pauzes kunnen nemen overdag.'],
-  motivatie:['Werk is zinvol en ik voel waardering van het team.', 'Gedreven week, duidelijke doelen geholpen.', 'Positief gevoel over mijn bijdrage deze week.'],
-}
-
-function pickRandom<T>(arr: T[]): T {
-  return arr[Math.floor(Math.random() * arr.length)]
-}
-
-// ─── Component ────────────────────────────────────────────────────────────
 
 export default function CheckIn() {
-  const router   = useRouter()
-  const topRef   = useRef<HTMLDivElement>(null)
+  const router  = useRouter()
+  const topRef  = useRef<HTMLDivElement>(null)
 
   const [userId,          setUserId]         = useState<string | null>(null)
   const [bedrijfId,       setBedrijfId]      = useState<string | null>(null)
@@ -143,9 +104,10 @@ export default function CheckIn() {
   const [volgendeCheckin, setVolgendeCheckin]= useState('')
 
   const [sectieIdx,  setSectieIdx]  = useState(0)
-  const [antwoorden, setAntwoorden] = useState<Record<string, number | string>>({})
+  const [antwoorden, setAntwoorden] = useState<Record<string, number>>({})
   const [laden,      setLaden]      = useState(false)
   const [fout,       setFout]       = useState<string | null>(null)
+  const [advancing,  setAdvancing]  = useState(false)
 
   const weekStart = vandaag()
 
@@ -159,7 +121,6 @@ export default function CheckIn() {
         .from('profiles').select('bedrijf_id').eq('id', user.id).single()
       setBedrijfId(profiel?.bedrijf_id ?? null)
 
-      // Check for any check-in in the last 7 days
       const zevenDagenGeleden = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
       const { data: sessie } = await supabase
         .from('checkin_sessies')
@@ -202,91 +163,42 @@ export default function CheckIn() {
   const huidigeSectie = SECTIES[sectieIdx]
   const totaalSecties = SECTIES.length
 
-  function sectieCompleet(idx: number) {
+  function sectieCompleet(idx: number, ant: Record<string, number> = antwoorden) {
     return SECTIES[idx].vragen
-      .filter(v => v.verplicht && v.type === 'schaal')
-      .every(v => antwoorden[v.code] !== undefined)
-  }
-
-  function stelIn(code: string, waarde: number | string) {
-    setAntwoorden(prev => ({ ...prev, [code]: waarde }))
+      .filter(v => v.verplicht)
+      .every(v => ant[v.code] !== undefined)
   }
 
   function scrollTop() {
     topRef.current?.scrollIntoView({ behavior: 'smooth' })
   }
 
-  function vulAutomatischIn() {
-    const auto: Record<string, number | string> = {}
-    for (const sectie of SECTIES) {
-      for (const vraag of sectie.vragen) {
-        if (vraag.type === 'schaal') {
-          // Realistische scores: 3-5 (matig tot goed)
-          auto[vraag.code] = Math.floor(Math.random() * 3) + 3
-        } else if (vraag.type === 'tekst') {
-          // Automatisch een realistisch tekst-antwoord kiezen
-          auto[vraag.code] = pickRandom(AUTO_TEKST[sectie.id] ?? ['Geen bijzondere opmerkingen.'])
-        }
-      }
-    }
-    setAntwoorden(auto)
-    setSectieIdx(SECTIES.length - 1)
-    scrollTop()
-  }
-
-  function volgendeSectie() {
-    if (!sectieCompleet(sectieIdx)) return
-    setFout(null)
-    if (sectieIdx < totaalSecties - 1) {
-      setSectieIdx(s => s + 1)
-      scrollTop()
-    } else {
-      submit()
-    }
-  }
-
-  function vorigeSectie() {
-    setSectieIdx(s => Math.max(0, s - 1))
-    scrollTop()
-  }
-
-  async function submit() {
-    if (!userId) return
+  const doSubmit = useCallback(async (ant: Record<string, number>, uid: string) => {
     setLaden(true)
     setFout(null)
-
     try {
-      // Bouw rijen op voor de API
-      const rijen = Object.entries(antwoorden)
-        .filter(([, v]) => v !== '' && v !== undefined)
-        .map(([code, waarde]) => {
-          const sectieObj = SECTIES.find(s => s.vragen.some(v => v.code === code))
-          return {
-            vraag_code:   code,
-            categorie:    sectieObj?.id ?? null,
-            waarde_schaal: typeof waarde === 'number' ? waarde : null,
-            waarde_tekst:  typeof waarde === 'string' && waarde.trim() ? waarde.trim() : null,
-          }
-        })
+      const rijen = Object.entries(ant).map(([code, waarde]) => {
+        const sectieObj = SECTIES.find(s => s.vragen.some(v => v.code === code))
+        return {
+          vraag_code:    code,
+          categorie:     sectieObj?.id ?? null,
+          waarde_schaal: waarde,
+          waarde_tekst:  null,
+        }
+      })
 
       const res  = await authFetch('/api/submit-checkin', {
         method: 'POST',
         body: JSON.stringify({ bedrijf_id: bedrijfId, week_start: weekStart, rijen }),
       })
       const data = await res.json()
-
       if (!res.ok || data.error) throw new Error(data.error ?? `HTTP ${res.status}`)
 
-      const nieuwSessieId = data.sessie_id
-
-      // Bereken domeinscores (som van 4 schaalvragen, range 4-20)
+      // Normaliseer scores: 2 vragen × 2 = zelfde range als voorheen (4–20)
       const vlakScores: Record<string, number> = {}
       for (const [domein, codes] of Object.entries(DOMEIN_CODES)) {
-        const som = codes.reduce((acc, code) => {
-          const w = antwoorden[code]
-          return acc + (typeof w === 'number' ? w : 0)
-        }, 0)
-        vlakScores[domein] = som
+        const som = codes.reduce((acc, code) => acc + (ant[code] ?? 0), 0)
+        vlakScores[domein] = som * 2
       }
 
       const params = new URLSearchParams({
@@ -296,58 +208,86 @@ export default function CheckIn() {
         focus:    String(vlakScores.focus),
         balans:   String(vlakScores.balans),
         motivatie:String(vlakScores.motivatie),
-        sid:      nieuwSessieId ?? '',
+        sid:      data.sessie_id ?? '',
       })
       router.push(`/doelkeuze?${params.toString()}`)
     } catch (err) {
-      console.error('[checkin submit]', err)
       setFout(`Opslaan mislukt: ${err instanceof Error ? err.message : String(err)}`)
       setLaden(false)
     }
+  }, [bedrijfId, weekStart, router])
+
+  function stelIn(code: string, waarde: number) {
+    if (advancing) return
+    setAntwoorden(prev => {
+      const nieuw = { ...prev, [code]: waarde }
+      const isLaatste = sectieIdx === totaalSecties - 1
+      const compleet  = sectieCompleet(sectieIdx, nieuw)
+      if (compleet && !isLaatste) {
+        setAdvancing(true)
+        setTimeout(() => {
+          setSectieIdx(s => s + 1)
+          scrollTop()
+          setAdvancing(false)
+        }, 380)
+      }
+      return nieuw
+    })
   }
 
-  // Voortgang
-  const beantwoord   = SECTIES.slice(0, sectieIdx).reduce((sum, s) => sum + s.vragen.filter(v => v.type === 'schaal').length, 0)
-  const totaalSchaal = SECTIES.reduce((sum, s) => sum + s.vragen.filter(v => v.type === 'schaal').length, 0)
-  const voortgangPct = Math.round((beantwoord / totaalSchaal) * 100)
+  function volgendeSectie() {
+    if (!sectieCompleet(sectieIdx) || laden) return
+    setFout(null)
+    if (sectieIdx < totaalSecties - 1) {
+      setSectieIdx(s => s + 1)
+      scrollTop()
+    } else {
+      if (userId) doSubmit(antwoorden, userId)
+    }
+  }
 
-  // ── Laadscherm ─────────────────────────────────────────────────────────────
+  function vorigeSectie() {
+    setSectieIdx(s => Math.max(0, s - 1))
+    scrollTop()
+  }
+
+  // Voortgang: voltooide secties + vragen in huidige sectie
+  const voltooideVragen  = SECTIES.slice(0, sectieIdx).reduce((sum, s) => sum + s.vragen.length, 0)
+  const totaalVragen     = SECTIES.reduce((sum, s) => sum + s.vragen.length, 0)
+  const huidigBeantwoord = huidigeSectie.vragen.filter(v => antwoorden[v.code] !== undefined).length
+  const voortgangPct     = Math.round(((voltooideVragen + huidigBeantwoord) / totaalVragen) * 100)
+
+  // ── Laadscherm ──────────────────────────────────────────────────────────────
 
   if (checkend) return (
     <main className="mf-mesh-bg min-h-screen flex items-center justify-center">
       <div className="w-8 h-8 rounded-full border-2 border-gray-200 animate-spin"
-        style={{ borderTopColor: 'var(--mf-green, #1D9E75)' }} />
+        style={{ borderTopColor: 'var(--mf-green)' }} />
     </main>
   )
 
-  // ── Al ingevuld ────────────────────────────────────────────────────────────
+  // ── Al ingevuld ──────────────────────────────────────────────────────────────
 
   if (alIngevuld) return (
     <main className="mf-mesh-bg min-h-screen flex flex-col items-center justify-center p-8">
       <div className="max-w-md w-full rounded-2xl border p-10 shadow-sm text-center"
         style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
-        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8 }}>
-          <div style={{
-            width: 90, height: 90, borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(29,158,117,0.22) 0%, transparent 70%)',
-          }} />
-        </div>
         <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-5"
           style={{ background: 'var(--mf-green-light)' }}>
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--mf-green)' }}>
             <polyline points="20 6 9 17 4 12"/>
           </svg>
         </div>
-        <h2 className="text-xl font-medium text-gray-900 mb-2">Al ingevuld deze week</h2>
-        <p className="text-gray-500 text-sm mb-2 leading-relaxed">Je check-in is ontvangen. Bedankt!</p>
-        <p className="text-xs text-gray-400 mb-6">
-          Volgende check-in: <span className="font-medium text-gray-600">{volgendeCheckin}</span>
+        <h2 className="text-xl font-semibold mb-2" style={{ color: 'var(--text-1)' }}>Check-in gedaan!</h2>
+        <p className="text-sm mb-2 leading-relaxed" style={{ color: 'var(--text-3)' }}>Je antwoorden zijn ontvangen. Tot volgende week.</p>
+        <p className="text-xs mb-6" style={{ color: 'var(--text-4)' }}>
+          Volgende check-in: <span className="font-medium" style={{ color: 'var(--text-2)' }}>{volgendeCheckin}</span>
         </p>
 
         {kanOpnieuw && (
           <div className="rounded-xl p-4 mb-4 text-left"
             style={{ background: 'var(--mf-amber-light)', borderLeft: '3px solid #BA7517' }}>
-            <p className="text-xs font-medium mb-1" style={{ color: 'var(--mf-amber-dark)' }}>Wil je je antwoorden aanpassen?</p>
+            <p className="text-xs font-semibold mb-1" style={{ color: 'var(--mf-amber-dark)' }}>Aanpassen?</p>
             <p className="text-xs mb-3" style={{ color: 'var(--mf-amber-dark)' }}>Je kan opnieuw invullen binnen 4 uur na het indienen.</p>
             <button onClick={verwijderSessie} disabled={laden}
               className="w-full py-2 rounded-lg text-xs font-medium disabled:opacity-40"
@@ -357,51 +297,41 @@ export default function CheckIn() {
           </div>
         )}
 
-        {/* Testmodus — alleen in development */}
-        {process.env.NODE_ENV === 'development' && (
-          <div className="rounded-xl p-4 mb-6 text-left" style={{ background: 'var(--bg-subtle)', borderLeft: '3px solid #9ca3af' }}>
-            <p className="text-xs font-medium mb-1 text-gray-500">Testmodus</p>
-            <p className="text-xs mb-3 text-gray-400">Bypass de wekelijkse limiet en vul opnieuw in.</p>
-            <button onClick={verwijderSessie} disabled={laden}
-              className="w-full py-2 rounded-lg text-xs font-medium disabled:opacity-40"
-              style={{ background: 'var(--text-2)', color: 'white' }}>
-              {laden ? 'Bezig...' : 'Opnieuw invullen (test)'}
-            </button>
-          </div>
-        )}
-
         <div className="flex flex-col gap-3">
-          <Link href="/home" className="w-full inline-block text-center text-white rounded-xl py-3 text-sm font-medium"
+          <Link href="/home" className="w-full inline-block text-center text-white rounded-xl py-3.5 text-sm font-semibold"
             style={{ background: 'var(--mf-green)' }}>Naar dashboard</Link>
-          <Link href="/bedankt" className="w-full inline-block text-center border border-gray-200 text-gray-500 rounded-xl py-3 text-sm hover:bg-gray-50 transition">
-            Bekijk laatste analyse</Link>
+          <Link href="/bedankt" className="w-full inline-block text-center rounded-xl py-3 text-sm"
+            style={{ border: '1px solid var(--border)', color: 'var(--text-3)' }}>
+            Bekijk analyse</Link>
         </div>
       </div>
     </main>
   )
 
-  // ── Formulier ──────────────────────────────────────────────────────────────
+  // ── Formulier ────────────────────────────────────────────────────────────────
 
   return (
     <main className="mf-mesh-bg min-h-screen"
       style={{ paddingBottom: 'calc(64px + env(safe-area-inset-bottom, 0px))' }}>
 
-      {/* Verplichte check-in banner */}
+      {/* Gate banner */}
       <div style={{
         background: 'linear-gradient(135deg, #0F6E56, #1D9E75)',
-        padding: '14px 20px',
-        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+        padding: '12px 20px',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
       }}>
-        <span style={{ fontSize: 18 }}>📋</span>
-        <p style={{ color: 'white', fontSize: 13, fontWeight: 600, textAlign: 'center' }}>
-          Vul eerst je wekelijkse check-in in — daarna heb je toegang tot de rest van de app.
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+        </svg>
+        <p style={{ color: 'white', fontSize: 13, fontWeight: 600 }}>
+          Vul eerst je wekelijkse check-in in — daarna heb je toegang tot de app.
         </p>
       </div>
 
       {/* Sticky header */}
       <div ref={topRef} className="sticky top-0 z-20 border-b"
-        style={{ background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(12px)', borderColor: 'var(--border)' }}>
-        <div className="max-w-2xl mx-auto px-5 py-3">
+        style={{ background: 'rgba(255,255,255,0.94)', backdropFilter: 'blur(12px)', borderColor: 'var(--border)' }}>
+        <div className="max-w-lg mx-auto px-5 py-3">
 
           {/* Sectie pills */}
           <div className="flex gap-1.5 overflow-x-auto pb-1 mb-2.5" style={{ scrollbarWidth: 'none' }}>
@@ -410,87 +340,72 @@ export default function CheckIn() {
               const actief = i === sectieIdx
               return (
                 <button key={s.id}
-                  onClick={() => i < sectieIdx && setSectieIdx(i)}
-                  className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition"
+                  onClick={() => { if (i < sectieIdx) setSectieIdx(i) }}
+                  className="flex-shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium transition"
                   style={{
                     background: actief ? s.kleur : klaar ? s.kleur + '20' : 'var(--bg-subtle)',
                     color:      actief ? 'white'  : klaar ? s.kleur        : 'var(--text-3)',
                     cursor:     i < sectieIdx ? 'pointer' : 'default',
                   }}>
                   {klaar && (
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                    <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                       <polyline points="20 6 9 17 4 12"/>
                     </svg>
                   )}
-                  <span>{s.label}</span>
+                  {s.label}
                 </button>
               )
             })}
           </div>
 
-          {/* Voortgangsbalk + auto-knop */}
+          {/* Voortgangsbalk */}
           <div className="flex items-center gap-3">
-            <div
-              className="flex-1 h-2 bg-gray-100 overflow-hidden"
-              style={{ borderRadius: 9999 }}
-              role="progressbar"
-              aria-valuenow={voortgangPct}
-              aria-valuemin={0}
-              aria-valuemax={100}
-              aria-label={`Voortgang check-in: ${voortgangPct}%`}
-            >
+            <div className="flex-1 h-1.5 overflow-hidden" style={{ borderRadius: 9999, background: 'var(--bg-subtle)' }}
+              role="progressbar" aria-valuenow={voortgangPct} aria-valuemin={0} aria-valuemax={100}
+              aria-label={`Voortgang: ${voortgangPct}%`}>
               <div className="h-full transition-all duration-500"
-                style={{ width: `${voortgangPct}%`, background: `linear-gradient(90deg, ${huidigeSectie.kleur}99, ${huidigeSectie.kleur})`, borderRadius: 9999 }} />
+                style={{ width: `${voortgangPct}%`, background: huidigeSectie.kleur, borderRadius: 9999 }} />
             </div>
-            <span className="text-xs font-semibold flex-shrink-0" style={{ color: huidigeSectie.kleur }} aria-hidden="true">{voortgangPct}%</span>
-            {process.env.NODE_ENV === 'development' && (
-              <button
-                onClick={vulAutomatischIn}
-                className="flex-shrink-0 text-xs px-3 py-1 rounded-full font-medium transition"
-                style={{ background: huidigeSectie.licht, color: huidigeSectie.kleur, border: `1px solid ${huidigeSectie.kleur}30` }}
-                title="Auto-invullen — vult alle vragen in met realistische antwoorden">
-                Auto
-              </button>
-            )}
+            <span className="text-xs font-semibold flex-shrink-0 tabular-nums" style={{ color: huidigeSectie.kleur }}>
+              {voortgangPct}%
+            </span>
           </div>
         </div>
       </div>
 
-      <div className="max-w-2xl mx-auto px-5 pt-8">
+      <div className="max-w-lg mx-auto px-5 pt-7">
 
         {/* Sectie header */}
-        <div className="mb-6">
-          <div className="flex items-center gap-3 mb-1">
-            <div style={{ position: 'relative', width: 36, height: 36, flexShrink: 0 }}>
-              <div style={{
-                position: 'absolute', top: '50%', left: '50%',
-                transform: 'translate(-50%, -50%)',
-                width: 60, height: 60, borderRadius: '50%',
-                background: `radial-gradient(circle, ${SECTIE_KLEUR[huidigeSectie.id] ?? 'rgba(29,158,117,0.18)'} 0%, transparent 70%)`,
-                zIndex: 0,
-              }} />
-              <div className="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-bold"
-                style={{ background: huidigeSectie.licht, color: huidigeSectie.kleur, position: 'relative', zIndex: 1 }}>
-                {sectieIdx + 1}
-              </div>
+        <div className="flex items-center gap-3 mb-6">
+          <div style={{ position: 'relative', width: 40, height: 40, flexShrink: 0 }}>
+            <div style={{
+              position: 'absolute', top: '50%', left: '50%',
+              transform: 'translate(-50%, -50%)',
+              width: 64, height: 64, borderRadius: '50%',
+              background: `radial-gradient(circle, ${SECTIE_KLEUR[huidigeSectie.id] ?? 'rgba(29,158,117,0.18)'} 0%, transparent 70%)`,
+            }} />
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold"
+              style={{ background: huidigeSectie.licht, color: huidigeSectie.kleur, position: 'relative' }}>
+              {sectieIdx + 1}
             </div>
-            <div>
-              <p className="text-xs text-gray-400">Sectie {sectieIdx + 1} van {totaalSecties}</p>
-              <h1 className="text-lg font-bold text-gray-900">{huidigeSectie.label}</h1>
-            </div>
+          </div>
+          <div>
+            <p className="text-xs" style={{ color: 'var(--text-4)' }}>{sectieIdx + 1} van {totaalSecties}</p>
+            <h1 className="text-lg font-bold" style={{ color: 'var(--text-1)' }}>{huidigeSectie.label}</h1>
           </div>
         </div>
 
         {/* Vragen */}
         <div className="flex flex-col gap-4">
-          {huidigeSectie.vragen.map((vraag) => (
+          {huidigeSectie.vragen.map((vraag, qi) => (
             <VraagKaart
               key={vraag.code}
               vraag={vraag}
               waarde={antwoorden[vraag.code]}
               kleur={huidigeSectie.kleur}
               licht={huidigeSectie.licht}
-              onChange={(v) => stelIn(vraag.code, v)}
+              nummer={qi + 1}
+              onChange={v => stelIn(vraag.code, v)}
             />
           ))}
         </div>
@@ -498,7 +413,7 @@ export default function CheckIn() {
         {/* Fout */}
         {fout && (
           <div className="mt-5 rounded-xl p-4" style={{ background: 'var(--mf-red-light)', borderLeft: '3px solid #E24B4A' }}>
-            <p className="text-sm text-red-700">{fout}</p>
+            <p className="text-sm" style={{ color: 'var(--mf-red)' }}>{fout}</p>
           </div>
         )}
 
@@ -506,39 +421,33 @@ export default function CheckIn() {
         <div className="flex gap-3 mt-6">
           {sectieIdx > 0 && (
             <button onClick={vorigeSectie}
-              className="px-6 py-3.5 rounded-xl text-sm font-medium border border-gray-200 text-gray-500 hover:bg-gray-50 transition"
-              onMouseDown={e => ((e.currentTarget as HTMLElement).style.transform = 'scale(0.97)')}
-              onMouseUp={e => ((e.currentTarget as HTMLElement).style.transform = 'scale(1)')}
-              onMouseLeave={e => ((e.currentTarget as HTMLElement).style.transform = 'scale(1)')}>
+              className="px-5 py-3.5 rounded-xl text-sm font-medium border transition"
+              style={{ borderColor: 'var(--border)', color: 'var(--text-3)', background: 'var(--bg-card)' }}>
               Vorige
             </button>
           )}
           <button
             onClick={volgendeSectie}
-            disabled={!sectieCompleet(sectieIdx) || laden}
+            disabled={!sectieCompleet(sectieIdx) || laden || advancing}
             className="flex-1 py-3.5 rounded-xl text-white font-semibold text-sm transition disabled:opacity-30 flex items-center justify-center gap-2"
             style={{
               background: sectieIdx === totaalSecties - 1
-                ? 'linear-gradient(135deg, var(--mf-green-dark, #0F6E56) 0%, var(--mf-green, #1D9E75) 100%)'
+                ? 'linear-gradient(135deg, var(--mf-green-dark, #0F6E56), var(--mf-green, #1D9E75))'
                 : huidigeSectie.kleur,
-              boxShadow: sectieIdx === totaalSecties - 1 ? '0 4px 16px rgba(29,158,117,0.35)' : undefined,
-            }}
-            onMouseDown={e => !laden && ((e.currentTarget as HTMLElement).style.transform = 'scale(0.97)')}
-            onMouseUp={e => ((e.currentTarget as HTMLElement).style.transform = 'scale(1)')}
-            onMouseLeave={e => ((e.currentTarget as HTMLElement).style.transform = 'scale(1)')}>
-
+              boxShadow: sectieIdx === totaalSecties - 1 ? '0 4px 16px rgba(29,158,117,0.30)' : undefined,
+            }}>
             {laden && <span className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" />}
-            {laden ? 'Opslaan...' : sectieIdx === totaalSecties - 1 ? 'Afronden en opslaan' : 'Volgende'}
+            {laden ? 'Opslaan...' : advancing ? 'Volgende...' : sectieIdx === totaalSecties - 1 ? 'Afronden' : 'Volgende'}
           </button>
         </div>
 
         {!sectieCompleet(sectieIdx) && (
-          <p className="text-xs text-gray-400 text-center mt-3">
-            Beantwoord alle 4 vragen om door te gaan.
+          <p className="text-xs text-center mt-3" style={{ color: 'var(--text-4)' }}>
+            Beantwoord beide vragen om door te gaan.
           </p>
         )}
 
-        <p className="text-xs text-gray-400 text-center mt-6 pb-4">
+        <p className="text-xs text-center mt-5 pb-6" style={{ color: 'var(--text-4)' }}>
           Alle antwoorden zijn anoniem en beveiligd opgeslagen.
         </p>
       </div>
@@ -546,66 +455,61 @@ export default function CheckIn() {
   )
 }
 
-// ─── VraagKaart ───────────────────────────────────────────────────────────────
+// ─── VraagKaart ──────────────────────────────────────────────────────────────
 
-function VraagKaart({ vraag, waarde, kleur, onChange }: {
+function VraagKaart({ vraag, waarde, kleur, licht, nummer, onChange }: {
   vraag:    Vraag
-  waarde:   number | string | undefined
+  waarde:   number | undefined
   kleur:    string
   licht:    string
-  onChange: (v: number | string) => void
+  nummer:   number
+  onChange: (v: number) => void
 }) {
-  const geselecteerd = typeof waarde === 'number' ? waarde : null
+  const geselecteerd = waarde ?? null
+  const beantwoord   = geselecteerd !== null
 
-  if (vraag.type === 'schaal') {
-    return (
-      <div className="bg-white rounded-2xl border border-gray-100 p-5"
-        style={{ borderLeft: geselecteerd ? `3px solid ${kleur}` : '3px solid transparent' }}>
-        <p className="text-sm font-medium text-gray-900 mb-4 leading-snug">{vraag.label}</p>
-
-        <div className="flex gap-2 mb-2">
-          {[1, 2, 3, 4, 5].map(n => (
-            <button key={n} onClick={() => onChange(n)}
-              className="flex-1 h-11 rounded-xl text-sm font-semibold transition-all border"
-              style={{
-                background:  geselecteerd === n ? kleur : 'var(--bg-subtle)',
-                borderColor: geselecteerd === n ? kleur : 'var(--border)',
-                color:       geselecteerd === n ? 'white' : 'var(--text-3)',
-                transition:  'transform 0.1s ease, background 0.15s ease',
-              }}
-              onMouseDown={e => ((e.currentTarget as HTMLElement).style.transform = 'scale(0.93)')}
-              onMouseUp={e => ((e.currentTarget as HTMLElement).style.transform = 'scale(1)')}
-              onMouseLeave={e => ((e.currentTarget as HTMLElement).style.transform = 'scale(1)')}>
-              {n}
-            </button>
-          ))}
-        </div>
-
-        {(vraag.min || vraag.max) && (
-          <div className="flex justify-between text-xs text-gray-400 mt-1 px-0.5">
-            <span>{vraag.min}</span>
-            <span>{vraag.max}</span>
-          </div>
-        )}
-      </div>
-    )
-  }
-
-  const tekst = typeof waarde === 'string' ? waarde : ''
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 p-5" style={{ opacity: 0.9 }}>
-      <p className="text-sm font-medium text-gray-600 mb-3 leading-snug">{vraag.label}</p>
-      <textarea
-        rows={3}
-        value={tekst}
-        onChange={e => onChange(e.target.value)}
-        placeholder={vraag.placeholder ?? 'Schrijf hier je antwoord...'}
-        className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 outline-none resize-none transition text-gray-700"
-        style={{ fontSize: 16 }}
-        onFocus={e => e.target.style.borderColor = kleur}
-        onBlur={e  => e.target.style.borderColor = 'var(--border)'}
-      />
-      {tekst && <p className="text-xs text-gray-300 text-right mt-1">{tekst.length} tekens</p>}
+    <div className="rounded-2xl border p-5 transition-all"
+      style={{
+        background:  'var(--bg-card)',
+        borderColor: beantwoord ? kleur + '60' : 'var(--border)',
+        borderWidth: beantwoord ? 1.5 : 1,
+      }}>
+
+      {/* Vraagnummer + label */}
+      <div className="flex items-start gap-2.5 mb-4">
+        <div className="flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold mt-0.5"
+          style={{ background: beantwoord ? kleur : licht, color: beantwoord ? 'white' : kleur }}>
+          {beantwoord
+            ? <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            : nummer}
+        </div>
+        <p className="text-sm font-medium leading-snug" style={{ color: 'var(--text-1)' }}>{vraag.label}</p>
+      </div>
+
+      {/* Schaalbuttons */}
+      <div className="flex gap-2 mb-2">
+        {[1, 2, 3, 4, 5].map(n => (
+          <button key={n} onClick={() => onChange(n)}
+            className="flex-1 h-11 rounded-xl text-sm font-semibold transition-all border"
+            style={{
+              background:  geselecteerd === n ? kleur : 'var(--bg-subtle)',
+              borderColor: geselecteerd === n ? kleur : 'var(--border)',
+              color:       geselecteerd === n ? 'white' : 'var(--text-3)',
+              transform:   geselecteerd === n ? 'scale(1.06)' : 'scale(1)',
+              boxShadow:   geselecteerd === n ? `0 2px 8px ${kleur}50` : undefined,
+            }}>
+            {n}
+          </button>
+        ))}
+      </div>
+
+      {(vraag.min || vraag.max) && (
+        <div className="flex justify-between text-xs px-0.5 mt-1" style={{ color: 'var(--text-4)' }}>
+          <span>{vraag.min}</span>
+          <span>{vraag.max}</span>
+        </div>
+      )}
     </div>
   )
 }

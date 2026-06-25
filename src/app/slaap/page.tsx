@@ -367,36 +367,6 @@ export default function SlaapPagina() {
         {logs.length > 0 && (
           <div>{/* history column */}
             <SlaapBarchart logs={logs} />
-            <p style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-4)', margin: '0 0 12px' }}>
-              Laatste 14 dagen
-            </p>
-
-            {/* Bar chart */}
-            <div style={{
-              background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)',
-              boxShadow: 'var(--shadow-sm)', padding: '16px 20px', marginBottom: 14,
-            }}>
-              <div style={{ display: 'flex', gap: 4, alignItems: 'flex-end', height: 60 }}>
-                {logs.slice(0, 14).reverse().map(log => {
-                  const maxU = 10
-                  const h = Math.max(4, (log.uren_slaap / maxU) * 56)
-                  return (
-                    <div key={log.id} title={`${log.datum}: ${urenNaarTijd(log.uren_slaap)}`} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                      <div style={{
-                        width: '100%', borderRadius: 4,
-                        background: slaapKleur(log.uren_slaap),
-                        height: h,
-                        opacity: 0.85,
-                      }} />
-                    </div>
-                  )
-                })}
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6 }}>
-                <span style={{ fontSize: 9, color: 'var(--text-4)' }}>14 dagen geleden</span>
-                <span style={{ fontSize: 9, color: 'var(--text-4)' }}>Vandaag</span>
-              </div>
-            </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {logs.slice(0, 7).map(log => (

@@ -9,13 +9,6 @@ import { authFetch } from '@/lib/auth-fetch'
 import Navbar from '@/components/layout/Navbar'
 
 
-const DIM_RGB: Record<string, [number, number, number]> = {
-  D: [0.886, 0.294, 0.290],
-  I: [0.949, 0.722, 0.141],
-  S: [0.114, 0.620, 0.459],
-  C: [0.231, 0.510, 0.965],
-}
-
 type Dimensie = 'D' | 'I' | 'S' | 'C'
 interface Vraag { id: number; tekst: string; dimensie: Dimensie }
 

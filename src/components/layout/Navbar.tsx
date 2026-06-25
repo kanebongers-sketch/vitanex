@@ -144,7 +144,6 @@ const TOP_ITEMS: TopItem[] = [
       { href: '/voeding',    label: 'Voeding'    },
       { href: '/water',      label: 'Water'       },
       { href: '/gezondheid', label: 'Gezondheid'  },
-      { href: '/gewoontes',  label: 'Gewoontes'   },
       { href: '/focus',      label: 'Focus'       },
     ],
   },

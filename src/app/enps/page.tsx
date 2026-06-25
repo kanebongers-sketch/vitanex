@@ -9,9 +9,6 @@ import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
 
 
-const SCORE_RGB = (n: number): [number, number, number] =>
-  n >= 9 ? [0.114, 0.620, 0.459] : n >= 7 ? [0.949, 0.722, 0.141] : [0.886, 0.294, 0.290]
-
 interface Meting {
   maand: string
   score: number

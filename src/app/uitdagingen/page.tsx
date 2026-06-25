@@ -17,7 +17,6 @@ type Uitdaging = {
   sub: string
   duur: number
   categorie: string
-  deelnemers: number
   moeilijkheid: Moeilijkheid
 }
 
@@ -27,12 +26,12 @@ type ActieveUitdaging = {
 }
 
 const UITDAGINGEN: Uitdaging[] = [
-  { id: '10slaap',    emoji: '😴', titel: '10 dagen beter slapen',    sub: 'Ga elke dag op hetzelfde tijdstip naar bed',   duur: 10, categorie: 'slaap',  deelnemers: 47,  moeilijkheid: 'Makkelijk' },
-  { id: '21beweging', emoji: '🏃', titel: '21 dagen bewegen',         sub: '20 minuten per dag actief zijn',               duur: 21, categorie: 'fysiek', deelnemers: 123, moeilijkheid: 'Gemiddeld' },
-  { id: '7focus',     emoji: '🎯', titel: '7 dagen deep focus',       sub: 'Elke dag 90 min ononderbroken werken',         duur: 7,  categorie: 'werk',   deelnemers: 89,  moeilijkheid: 'Uitdagend' },
-  { id: '14stress',   emoji: '🌿', titel: '14 dagen minder stress',   sub: 'Dagelijkse ademhaling + reflectie',            duur: 14, categorie: 'mentaal',deelnemers: 201, moeilijkheid: 'Makkelijk' },
-  { id: '30water',    emoji: '💧', titel: '30 dagen 2L water',        sub: '2 liter water per dag drinken',               duur: 30, categorie: 'fysiek', deelnemers: 156, moeilijkheid: 'Makkelijk' },
-  { id: '7journaal',  emoji: '📓', titel: '7 dagen journalen',        sub: 'Elke avond 5 minuten schrijven',              duur: 7,  categorie: 'mentaal',deelnemers: 78,  moeilijkheid: 'Makkelijk' },
+  { id: '10slaap',    emoji: '😴', titel: '10 dagen beter slapen',    sub: 'Ga elke dag op hetzelfde tijdstip naar bed',   duur: 10, categorie: 'slaap',   moeilijkheid: 'Makkelijk' },
+  { id: '21beweging', emoji: '🏃', titel: '21 dagen bewegen',         sub: '20 minuten per dag actief zijn',               duur: 21, categorie: 'fysiek',  moeilijkheid: 'Gemiddeld' },
+  { id: '7focus',     emoji: '🎯', titel: '7 dagen deep focus',       sub: 'Elke dag 90 min ononderbroken werken',         duur: 7,  categorie: 'werk',    moeilijkheid: 'Uitdagend' },
+  { id: '14stress',   emoji: '🌿', titel: '14 dagen minder stress',   sub: 'Dagelijkse ademhaling + reflectie',            duur: 14, categorie: 'mentaal', moeilijkheid: 'Makkelijk' },
+  { id: '30water',    emoji: '💧', titel: '30 dagen 2L water',        sub: '2 liter water per dag drinken',               duur: 30, categorie: 'fysiek',  moeilijkheid: 'Makkelijk' },
+  { id: '7journaal',  emoji: '📓', titel: '7 dagen journalen',        sub: 'Elke avond 5 minuten schrijven',              duur: 7,  categorie: 'mentaal', moeilijkheid: 'Makkelijk' },
 ]
 
 const MOEILIJKHEID_STIJL: Record<Moeilijkheid, { kleur: string; bg: string }> = {
@@ -209,8 +208,6 @@ export default function UitdagingenPage() {
                       {uitdaging.moeilijkheid}
                     </span>
                   </div>
-
-                  <p style={{ fontSize: 12, color: 'var(--text-4)' }}>👥 {uitdaging.deelnemers} deelnemers</p>
 
                   {isActief ? (
                     <span style={{ display: 'block', textAlign: 'center', padding: '8px', borderRadius: 12, fontSize: 12, fontWeight: 600, background: 'var(--mf-green-light)', color: 'var(--mf-green)' }}>

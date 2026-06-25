@@ -113,13 +113,6 @@ function ringKleur(pct: number): string {
   return 'var(--mf-red)'
 }
 
-function dagdeel(): 'ochtend' | 'middag' | 'avond' {
-  const uur = new Date().getHours()
-  if (uur < 12) return 'ochtend'
-  if (uur < 18) return 'middag'
-  return 'avond'
-}
-
 // ─── ProgressRing Component ───────────────────────────────────────────────────
 
 function ProgressRing({ pct }: { pct: number }) {
@@ -280,157 +273,24 @@ function TaakKaart({ taak, onClick }: { taak: TaakItem; onClick: () => void }) {
 // ─── DagdeelSuggestie Component ───────────────────────────────────────────────
 
 function DagdeelSuggestie({ suggestie }: { suggestie: string }) {
-  const deel = dagdeel()
-  const items: Array<{ label: string; actief: boolean; beschrijving: string }> = [
-    {
-      label: '🌅 Ochtend',
-      actief: deel === 'ochtend',
-      beschrijving: 'Slaap, water & stemming',
-    },
-    {
-      label: '☀️ Middag',
-      actief: deel === 'middag',
-      beschrijving: 'Meditatie & focus',
-    },
-    {
-      label: '🌙 Avond',
-      actief: deel === 'avond',
-      beschrijving: 'Dankbaarheid & check-in',
-    },
-  ]
-
-  return (
-    <section style={{ marginTop: 8 }}>
-      <h2
-        style={{
-          fontSize: 12,
-          fontWeight: 600,
-          color: 'var(--text-3)',
-          textTransform: 'uppercase',
-          letterSpacing: '0.08em',
-          margin: '0 0 12px',
-        }}
-      >
-        Jouw dag
-      </h2>
-
-      {/* Tijdlijn */}
-      <div
-        style={{
-          display: 'flex',
-          gap: 6,
-          marginBottom: 16,
-          overflowX: 'auto',
-          paddingBottom: 4,
-        }}
-      >
-        {items.map((item, i) => (
-          <div
-            key={i}
-            style={{
-              flex: '1 1 0',
-              minWidth: 100,
-              padding: '10px 12px',
-              borderRadius: 'var(--radius-sm)',
-              background: item.actief ? 'var(--mf-green-light)' : 'var(--bg-card)',
-              border: item.actief
-                ? '1px solid rgba(29, 158, 117, 0.3)'
-                : '1px solid var(--border)',
-              opacity: item.actief ? 1 : 0.65,
-            }}
-          >
-            <p
-              style={{
-                margin: 0,
-                fontSize: 12,
-                fontWeight: 600,
-                color: item.actief ? 'var(--mf-green-dark)' : 'var(--text-2)',
-              }}
-            >
-              {item.label}
-            </p>
-            <p
-              style={{
-                margin: '2px 0 0',
-                fontSize: 11,
-                color: item.actief ? 'var(--mf-green)' : 'var(--text-4)',
-              }}
-            >
-              {item.beschrijving}
-            </p>
-          </div>
-        ))}
-      </div>
-
-      {/* Suggestie */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'flex-start',
-          gap: 10,
-          padding: '12px 14px',
-          background: 'var(--mf-green-light)',
-          borderRadius: 'var(--radius-sm)',
-          border: '1px solid rgba(29, 158, 117, 0.2)',
-        }}
-      >
-        <span style={{ fontSize: 16, flexShrink: 0 }}>💡</span>
-        <p style={{ margin: 0, fontSize: 13, color: 'var(--mf-green-dark)', lineHeight: 1.5 }}>
-          {suggestie}
-        </p>
-      </div>
-    </section>
-  )
-}
-
-// ─── Voortgangsbalk Component ─────────────────────────────────────────────────
-
-function VoortgangsBalk({ pct }: { pct: number }) {
-  const kleur = ringKleur(pct)
+  if (!suggestie) return null
   return (
     <div
       style={{
-        padding: '14px 16px',
-        background: 'var(--bg-card)',
-        borderRadius: 'var(--radius-md)',
-        border: '1px solid var(--border)',
-        boxShadow: 'var(--shadow-xs)',
+        display: 'flex',
+        alignItems: 'flex-start',
+        gap: 10,
+        padding: '12px 14px',
+        background: 'var(--mf-green-light)',
+        borderRadius: 'var(--radius-sm)',
+        border: '1px solid rgba(29, 158, 117, 0.2)',
+        marginTop: 8,
       }}
     >
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'baseline',
-          marginBottom: 8,
-        }}
-      >
-        <p style={{ margin: 0, fontSize: 13, color: 'var(--text-2)' }}>
-          Je bent{' '}
-          <strong style={{ color: kleur }}>{pct}%</strong> compleet met je welzijnsroutine vandaag
-        </p>
-        <span style={{ fontSize: 12, color: 'var(--text-3)', whiteSpace: 'nowrap', marginLeft: 8 }}>
-          {pct >= 70 ? 'Uitstekend!' : pct >= 40 ? 'Goed bezig' : 'Kom op!'}
-        </span>
-      </div>
-      <div
-        style={{
-          height: 8,
-          background: 'var(--bg-subtle)',
-          borderRadius: 99,
-          overflow: 'hidden',
-        }}
-      >
-        <div
-          style={{
-            height: '100%',
-            width: `${pct}%`,
-            background: kleur,
-            borderRadius: 99,
-            transition: 'width 1s cubic-bezier(0.34, 1.56, 0.64, 1)',
-          }}
-        />
-      </div>
+      <span style={{ fontSize: 16, flexShrink: 0 }}>💡</span>
+      <p style={{ margin: 0, fontSize: 13, color: 'var(--mf-green-dark)', lineHeight: 1.5 }}>
+        {suggestie}
+      </p>
     </div>
   )
 }

@@ -7,7 +7,6 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
-import { authFetch } from '@/lib/auth-fetch'
 
 
 const REFLECTIE_VRAGEN = [

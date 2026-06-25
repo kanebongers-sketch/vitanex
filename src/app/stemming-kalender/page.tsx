@@ -9,9 +9,6 @@ import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
 
 
-const SK_STEMMING_RGB = (s: number): [number, number, number] =>
-  s >= 4.5 ? [0.082, 0.471, 0.341] : s >= 3.5 ? [0.114, 0.620, 0.459] : s >= 2.5 ? [0.949, 0.722, 0.141] : [0.886, 0.294, 0.290]
-
 interface DagLog {
   datum: string
   stemming: number

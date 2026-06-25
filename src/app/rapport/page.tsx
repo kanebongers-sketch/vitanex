@@ -124,13 +124,14 @@ export default function Rapport() {
           .eq('sessie_id', sessie.id)
           .not('waarde_schaal', 'is', null)
 
+        // 2 codes per domain × 2 normalization = 4–20 range
         const DOMEIN_CODES: Record<string, string[]> = {
-          slaap:    ['slaap_kwaliteit', 'slaap_uren', 'slaap_fris', 'slaap_loslaten'],
-          stress:   ['stress_niveau', 'stress_piekeren', 'stress_controle', 'stress_ontspanning'],
-          energie:  ['energie_niveau', 'energie_beweging', 'energie_voeding', 'energie_dip'],
-          focus:    ['focus_concentratie', 'focus_helderheid', 'focus_aanwezig', 'focus_flow'],
-          balans:   ['balans_werk_prive', 'balans_grenzen', 'balans_tijd', 'balans_herstel'],
-          motivatie:['motivatie_werk', 'motivatie_zinvol', 'motivatie_enthousiasme', 'motivatie_waardering'],
+          slaap:    ['slaap_kwaliteit', 'slaap_fris'],
+          stress:   ['stress_niveau',   'stress_controle'],
+          energie:  ['energie_niveau',  'energie_beweging'],
+          focus:    ['focus_concentratie', 'focus_helderheid'],
+          balans:   ['balans_werk_prive',  'balans_herstel'],
+          motivatie:['motivatie_werk', 'motivatie_zinvol'],
         }
         const codeMap: Record<string, number> = {}
         for (const row of (schaalRows ?? [])) {
@@ -139,7 +140,7 @@ export default function Rapport() {
         const vlak_scores: Record<string, number> = {}
         for (const [domein, codes] of Object.entries(DOMEIN_CODES)) {
           const som = codes.reduce((acc, c) => acc + (codeMap[c] ?? 0), 0)
-          vlak_scores[domein] = som
+          vlak_scores[domein] = som * 2
         }
 
         const { data: { session: authSession } } = await supabase.auth.getSession()

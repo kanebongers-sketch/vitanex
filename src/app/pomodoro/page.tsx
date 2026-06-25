@@ -9,12 +9,6 @@ import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
 
 
-const MODUS_RGB: [number, number, number][] = [
-  [0.887, 0.294, 0.290], // var(--mf-red) - Klassiek
-  [0.114, 0.620, 0.459], // var(--mf-green) - Deep work
-  [0.486, 0.231, 0.933], // var(--mf-purple) - Quick
-]
-
 type Fase = 'focus' | 'pauze' | 'lang-pauze' | 'klaar'
 type Modus = { label: string; focus: number; pauze: number; langPauze: number; ronden: number; kleur: string }
 

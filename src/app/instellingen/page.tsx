@@ -32,7 +32,7 @@ async function cropToSquareJpeg(file: File, size: number): Promise<Blob> {
   })
 }
 
-type Sectie = 'profiel' | 'account' | 'notificaties' | 'privacy' | 'weergave' | 'data' | 'gevaar'
+type Sectie = 'profiel' | 'account' | 'privacy' | 'weergave' | 'data' | 'gevaar'
 
 function SI({ d, size = 16 }: { d: string | string[]; size?: number }) {
   return (
@@ -45,7 +45,6 @@ function SI({ d, size = 16 }: { d: string | string[]; size?: number }) {
 const SECTIES: { id: Sectie; label: string; icon: React.ReactNode; beschrijving: string }[] = [
   { id: 'profiel',      label: 'Profiel',              icon: <SI d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2 M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" />, beschrijving: 'Naam, foto en persoonlijke informatie' },
   { id: 'account',      label: 'Account & Beveiliging', icon: <SI d={['M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z']} />, beschrijving: 'E-mail, wachtwoord en twee-factor' },
-  { id: 'notificaties', label: 'Notificaties',          icon: <SI d={['M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9', 'M13.73 21a2 2 0 0 1-3.46 0']} />, beschrijving: 'Herinneringen en meldingen beheren' },
   { id: 'privacy',      label: 'Privacy',               icon: <SI d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z" />, beschrijving: 'Anonimiteit en zichtbaarheidsinstellingen' },
   { id: 'weergave',     label: 'Weergave',              icon: <SI d={['M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z']} />, beschrijving: 'Taal, thema en voorkeuren' },
   { id: 'data',         label: 'Mijn gegevens',         icon: <SI d={['M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4', 'M7 10l5 5 5-5', 'M12 15V3']} />, beschrijving: 'Exporteer of bekijk je data' },
@@ -127,30 +126,16 @@ export default function Instellingen() {
   const [emailBezig, setEmailBezig] = useState(false)
   const [emailMelding, setEmailMelding] = useState<{ type: 'success' | 'error'; tekst: string } | null>(null)
 
-  // Notificaties
-  const [notifCheckin, setNotifCheckin] = useState(true)
-  const [notifCoach, setNotifCoach] = useState(true)
-  const [notifTeam, setNotifTeam] = useState(false)
-  const [notifHR, setNotifHR] = useState(false)
-  const [notifNieuws, setNotifNieuws] = useState(false)
-  const [notifPush, setNotifPush] = useState(true)
-  const [notifEmail, setNotifEmail] = useState(true)
 
-  // Privacy
-  const [privacyScore, setPrivacyScore] = useState(false)
-  const [privacyJournal, setPrivacyJournal] = useState(true)
+  // Privacy — HR-inzage toggles (persist naar profiles)
   const [hrInzageRapporten, setHrInzageRapporten] = useState(false)
   const [hrInzageBestanden, setHrInzageBestanden] = useState(false)
-  const [privacyCoach, setPrivacyCoach] = useState(true)
-  const [privacyAnonymous, setPrivacyAnonymous] = useState(true)
 
   // Weergave
   const [taal, setTaal] = useState('nl')
   const [thema, setThema] = useState(() =>
     typeof window !== 'undefined' ? (localStorage.getItem('mf-thema') ?? 'licht') : 'licht'
   )
-  const [checkinDag, setCheckinDag] = useState('maandag')
-  const [compactMode, setCompactMode] = useState(false)
 
   // Werkgever koppeling
   const [bedrijfId, setBedrijfId] = useState<string | null>(null)
@@ -162,9 +147,9 @@ export default function Instellingen() {
   const [rolWisselMelding, setRolWisselMelding] = useState<{ type: 'success' | 'error'; tekst: string } | null>(null)
   const [adminBedrijfId, setAdminBedrijfId] = useState<string | null>(null) // bewaar originele bedrijf_id
 
-  // Account delete
-  const [deleteBevestig, setDeleteBevestig] = useState('')
-  const [deleteBezig, setDeleteBezig] = useState(false)
+  // Data export
+  const [exportBezig, setExportBezig] = useState(false)
+  const [exportMelding, setExportMelding] = useState<{ type: 'success' | 'error'; tekst: string } | null>(null)
 
   useEffect(() => {
     const root = document.documentElement
@@ -408,6 +393,60 @@ export default function Instellingen() {
   async function uitloggen() {
     await supabase.auth.signOut()
     router.push('/login')
+  }
+
+  // Persoonlijke tabellen met een user_id-kolom die we naar de gebruiker exporteren.
+  const CHECKIN_TABELLEN = ['checkin_sessies', 'checkin_antwoorden', 'checkin_analyses'] as const
+  const VOLLEDIGE_TABELLEN = [
+    'checkin_sessies', 'checkin_antwoorden', 'checkin_analyses',
+    'disc_inzendingen', 'journal_entries', 'reflectie_entries',
+    'focus_logs', 'water_logs', 'training_logs', 'fitness_schemas',
+    'oefening_logs', 'gewoonte_logs', 'survey_antwoorden', 'ai_rapporten',
+    'notificatie_voorkeuren',
+  ] as const
+
+  async function exporteerData(tabellen: readonly string[], metProfiel: boolean, bestandsnaam: string) {
+    if (exportBezig) return
+    setExportBezig(true)
+    setExportMelding(null)
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { router.push('/login'); return }
+
+      const resultaat: Record<string, unknown> = {
+        geexporteerd_op: new Date().toISOString(),
+        gebruiker_id: user.id,
+        email: user.email,
+      }
+
+      if (metProfiel) {
+        // profiles gebruikt id als primaire sleutel, niet user_id
+        const { data: profiel } = await supabase.from('profiles').select('*').eq('id', user.id).maybeSingle()
+        if (profiel) resultaat.profiel = profiel
+      }
+
+      // Onbekende of niet-bestaande tabellen falen stil en worden overgeslagen.
+      for (const tabel of tabellen) {
+        const { data, error } = await supabase.from(tabel).select('*').eq('user_id', user.id)
+        if (!error && data) resultaat[tabel] = data
+      }
+
+      const blob = new Blob([JSON.stringify(resultaat, null, 2)], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `${bestandsnaam}-${new Date().toISOString().slice(0, 10)}.json`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(url)
+      setExportMelding({ type: 'success', tekst: 'Je gegevens zijn gedownload als JSON-bestand.' })
+    } catch (err) {
+      console.error('Data-export mislukt:', err)
+      setExportMelding({ type: 'error', tekst: 'Export mislukt. Probeer het later opnieuw.' })
+    } finally {
+      setExportBezig(false)
+    }
   }
 
   const wachtwoordSterkte = nieuwWachtwoord.length < 8 ? 0 : nieuwWachtwoord.length < 12 ? 1 : nieuwWachtwoord.length < 16 ? 2 : 3
@@ -899,29 +938,6 @@ export default function Instellingen() {
                     </div>
                   </section>
 
-                  {/* Sessions */}
-                  <section className="bg-white rounded-2xl border border-gray-200 p-6">
-                    <h2 className="text-base font-semibold text-gray-900 mb-1">Actieve sessies</h2>
-                    <p className="text-xs text-gray-400 mb-4">Beheer apparaten waarop je bent ingelogd.</p>
-                    <div className="flex items-center justify-between p-4 rounded-xl border border-gray-100" style={{ background: 'var(--bg-app)' }}>
-                      <div className="flex items-center gap-3">
-                        <div style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--bg-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-2)' }}>
-                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-800">Huidige sessie</p>
-                          <p className="text-xs text-gray-400">Web browser · Actief nu</p>
-                        </div>
-                      </div>
-                      <span className="text-xs font-medium px-2.5 py-1 rounded-full"
-                        style={{ background: 'var(--mf-green-light)', color: 'var(--mf-green-dark)' }}>Actief</span>
-                    </div>
-                    <button onClick={uitloggen}
-                      className="mt-3 text-sm text-gray-500 hover:text-red-500 transition px-2 py-1">
-                      Alle andere sessies uitloggen
-                    </button>
-                  </section>
-
                   {/* Werkgever koppeling — alleen zichtbaar voor medewerkers */}
                   {(userRol === 'medewerker' || userRol === '') && (
                     <section className="bg-white rounded-2xl border border-gray-100 p-6">
@@ -1000,62 +1016,6 @@ export default function Instellingen() {
                 </>
               )}
 
-              {/* -- NOTIFICATIES -- */}
-              {activeSectie === 'notificaties' && (
-                <>
-                  <section className="bg-white rounded-2xl border border-gray-200 p-6">
-                    <h2 className="text-base font-semibold text-gray-900 mb-1">Kanalen</h2>
-                    <p className="text-xs text-gray-400 mb-4">Kies hoe je meldingen ontvangt.</p>
-                    <Toggle actief={notifEmail} onChange={setNotifEmail}
-                      label="E-mailmeldingen"
-                      beschrijving="Ontvang herinneringen en updates per e-mail" />
-                    <Toggle actief={notifPush} onChange={setNotifPush}
-                      label="Pushmeldingen"
-                      beschrijving="Meldingen in de browser of mobiele app" />
-                  </section>
-
-                  <section className="bg-white rounded-2xl border border-gray-200 p-6">
-                    <h2 className="text-base font-semibold text-gray-900 mb-1">Welzijn & check-ins</h2>
-                    <p className="text-xs text-gray-400 mb-2">Herinneringen voor jouw eigen welzijn.</p>
-                    <Toggle actief={notifCheckin} onChange={setNotifCheckin}
-                      label="Wekelijkse check-in herinnering"
-                      beschrijving="Elke maandag een herinnering om je check-in te doen" />
-                    <Toggle actief={notifCoach} onChange={setNotifCoach}
-                      label="Coach suggesties"
-                      beschrijving="Gepersonaliseerde tips van de AI Welzijnscoach" />
-                  </section>
-
-                  <section className="bg-white rounded-2xl border border-gray-200 p-6">
-                    <h2 className="text-base font-semibold text-gray-900 mb-1">Team & organisatie</h2>
-                    <p className="text-xs text-gray-400 mb-2">Meldingen over je team en bedrijf.</p>
-                    <Toggle actief={notifTeam} onChange={setNotifTeam}
-                      label="Nieuwe teamberichten"
-                      beschrijving="Melding bij nieuwe berichten in de teamchat" />
-                    <Toggle actief={notifHR} onChange={setNotifHR}
-                      label="HR-aankondigingen"
-                      beschrijving="Updates en berichten van je HR-afdeling" />
-                    <Toggle actief={notifNieuws} onChange={setNotifNieuws}
-                      label="MentaForce nieuws & updates"
-                      beschrijving="Nieuwe functies en productnieuws" />
-                  </section>
-
-                  <div className="bg-white rounded-2xl border border-gray-200 p-5 flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-800">Alle notificaties uitschakelen</p>
-                      <p className="text-xs text-gray-400">Tijdelijk alle meldingen pauzeren</p>
-                    </div>
-                    <button
-                      onClick={() => {
-                        setNotifCheckin(false); setNotifCoach(false); setNotifTeam(false)
-                        setNotifHR(false); setNotifNieuws(false); setNotifPush(false); setNotifEmail(false)
-                      }}
-                      className="text-sm border border-gray-200 rounded-xl px-4 py-2 text-gray-600 hover:bg-gray-50 transition">
-                      Alles uit
-                    </button>
-                  </div>
-                </>
-              )}
-
               {/* -- PRIVACY -- */}
               {activeSectie === 'privacy' && (
                 <>
@@ -1069,28 +1029,6 @@ export default function Instellingen() {
                       </p>
                     </div>
                   </div>
-
-                  <section className="bg-white rounded-2xl border border-gray-200 p-6">
-                    <h2 className="text-base font-semibold text-gray-900 mb-1">Zichtbaarheid</h2>
-                    <p className="text-xs text-gray-400 mb-2">Bepaal wat anderen van jou kunnen zien.</p>
-                    <Toggle actief={privacyScore} onChange={setPrivacyScore}
-                      label="Persoonlijke score zichtbaar voor collega's"
-                      beschrijving="Standaard verborgen. Activeer alleen als je dit expliciet wilt delen." />
-                    <Toggle actief={!privacyAnonymous} onChange={v => setPrivacyAnonymous(!v)}
-                      label="Anonieme feedback niet anonimiseren"
-                      beschrijving="Laat je naam meesturen bij anonieme feedback (niet aanbevolen)" />
-                  </section>
-
-                  <section className="bg-white rounded-2xl border border-gray-200 p-6">
-                    <h2 className="text-base font-semibold text-gray-900 mb-1">Persoonlijke tools</h2>
-                    <p className="text-xs text-gray-400 mb-2">Deze gegevens zijn altijd strikt privé.</p>
-                    <Toggle actief={privacyJournal} onChange={setPrivacyJournal}
-                      label="Journal versleuteld opslaan"
-                      beschrijving="Journaalentries worden versleuteld. Niet leesbaar voor MentaForce of HR." />
-                    <Toggle actief={privacyCoach} onChange={setPrivacyCoach}
-                      label="Coach-gesprekken privé houden"
-                      beschrijving="AI-coachgesprekken worden niet gebruikt voor teamanalyses." />
-                  </section>
 
                   {/* HR Inzage — alleen voor werknemers met bedrijf */}
                   {bedrijfId && (
@@ -1238,30 +1176,6 @@ export default function Instellingen() {
                     </div>
                   </section>
 
-                  <section className="bg-white rounded-2xl border border-gray-200 p-6">
-                    <h2 className="text-base font-semibold text-gray-900 mb-1">Check-in voorkeur</h2>
-                    <p className="text-xs text-gray-400 mb-4">Op welke dag wil je aan je check-in herinnerd worden?</p>
-                    <div className="grid grid-cols-4 sm:grid-cols-7 gap-2">
-                      {['maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag', 'zondag'].map(d => (
-                        <button key={d} onClick={() => setCheckinDag(d)}
-                          className="py-2 rounded-xl text-xs font-medium capitalize transition border"
-                          style={{
-                            background: checkinDag === d ? 'var(--mentaforce-primary)' : 'transparent',
-                            borderColor: checkinDag === d ? 'var(--mentaforce-primary)' : 'var(--border)',
-                            color: checkinDag === d ? 'white' : 'var(--text-2)',
-                          }}>
-                          {d.slice(0, 2)}
-                        </button>
-                      ))}
-                    </div>
-                  </section>
-
-                  <section className="bg-white rounded-2xl border border-gray-200 p-6">
-                    <h2 className="text-base font-semibold text-gray-900 mb-2">Interface</h2>
-                    <Toggle actief={compactMode} onChange={setCompactMode}
-                      label="Compacte weergave"
-                      beschrijving="Kleinere marges en compactere lijsten in het dashboard" />
-                  </section>
                 </>
               )}
 
@@ -1287,7 +1201,7 @@ export default function Instellingen() {
                             </svg>
                           </div>
                           <p className="text-sm font-medium" style={{ color: d.kleur }}>{d.label}</p>
-                          <p className="text-xs text-gray-500">Privé & versleuteld</p>
+                          <p className="text-xs text-gray-500">Alleen zichtbaar voor jou</p>
                         </div>
                       ))}
                     </div>
@@ -1295,21 +1209,28 @@ export default function Instellingen() {
 
                   <section className="bg-white rounded-2xl border border-gray-200 p-6">
                     <h2 className="text-base font-semibold text-gray-900 mb-1">Exporteer je data</h2>
-                    <p className="text-xs text-gray-400 mb-4">Download al jouw persoonlijke gegevens als JSON-bestand. Je kunt dit eens per 30 dagen aanvragen.</p>
+                    <p className="text-xs text-gray-400 mb-4">Download direct al jouw persoonlijke gegevens als JSON-bestand. Het bestand wordt lokaal in je browser opgebouwd.</p>
                     <div className="flex flex-col sm:flex-row gap-3">
                       <button
-                        onClick={() => alert('Export aangevraagd. Je ontvangt een e-mail met de downloadlink.')}
-                        className="flex items-center gap-2 border border-gray-200 rounded-xl px-5 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition">
+                        onClick={() => exporteerData(CHECKIN_TABELLEN, false, 'mentaforce-checkins')}
+                        disabled={exportBezig}
+                        className="flex items-center gap-2 border border-gray-200 rounded-xl px-5 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition disabled:opacity-40">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                         Check-in data exporteren
                       </button>
                       <button
-                        onClick={() => alert('Export aangevraagd. Je ontvangt een e-mail met de downloadlink.')}
-                        className="flex items-center gap-2 border border-gray-200 rounded-xl px-5 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition">
+                        onClick={() => exporteerData(VOLLEDIGE_TABELLEN, true, 'mentaforce-volledig')}
+                        disabled={exportBezig}
+                        className="flex items-center gap-2 border border-gray-200 rounded-xl px-5 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition disabled:opacity-40">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                        Volledige data exporteren
+                        {exportBezig ? 'Bezig met exporteren…' : 'Volledige data exporteren'}
                       </button>
                     </div>
+                    {exportMelding && (
+                      <p className="text-xs mt-3" style={{ color: exportMelding.type === 'success' ? 'var(--mf-green-dark)' : 'var(--mf-red)' }}>
+                        {exportMelding.tekst}
+                      </p>
+                    )}
                   </section>
 
                   <section className="bg-white rounded-2xl border border-gray-200 p-6">
@@ -1345,9 +1266,9 @@ export default function Instellingen() {
                     <div className="flex items-start gap-3 mb-4">
                       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 2, color: 'var(--mf-red)' }}><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
                       <div>
-                        <h2 className="text-base font-semibold text-red-600">Account verwijderen</h2>
+                        <h2 className="text-base font-semibold text-red-600">Account & gegevens verwijderen</h2>
                         <p className="text-xs text-gray-500 mt-0.5">
-                          Dit verwijdert definitief al je persoonlijke gegevens: check-ins, journal, coachgesprekken en gewoontes. Deze actie kan niet ongedaan worden gemaakt.
+                          Vraag verwijdering aan van je account en al je persoonlijke gegevens. We verwerken je verzoek conform de AVG (recht op vergetelheid) en bevestigen per e-mail zodra het is uitgevoerd.
                         </p>
                       </div>
                     </div>
@@ -1364,32 +1285,17 @@ export default function Instellingen() {
                       </ul>
                     </div>
 
-                    <div className="mb-4">
-                      <label className="text-xs font-medium text-gray-600 block mb-1.5">
-                        Typ <strong>VERWIJDER</strong> om te bevestigen
-                      </label>
-                      <input type="text" value={deleteBevestig} onChange={e => setDeleteBevestig(e.target.value)}
-                        placeholder="VERWIJDER"
-                        className="w-full border border-red-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-red-400 transition" />
-                    </div>
-
-                    <button
-                      disabled={deleteBevestig !== 'VERWIJDER' || deleteBezig}
-                      onClick={async () => {
-                        setDeleteBezig(true)
-                        // In production: delete user data, then sign out
-                        await supabase.auth.signOut()
-                        router.push('/')
-                      }}
-                      className="w-full py-3 rounded-xl text-white text-sm font-bold transition disabled:opacity-30"
-                      style={{ background: deleteBevestig === 'VERWIJDER' ? 'var(--mf-red)' : 'var(--text-3)' }}>
-                      {deleteBezig ? 'Verwijderen...' : 'Account definitief verwijderen'}
-                    </button>
-
-                    <p className="text-xs text-gray-400 text-center mt-3">
-                      Of stuur een verwijderverzoek naar{' '}
-                      <a href="mailto:info@mentaforce.nl" className="underline">info@mentaforce.nl</a>
+                    <p className="text-xs text-gray-400 mb-3">
+                      Tip: exporteer eerst je gegevens via <strong>Mijn gegevens</strong> als je een kopie wilt bewaren.
                     </p>
+
+                    <a
+                      href={`mailto:info@mentaforce.nl?subject=${encodeURIComponent('Verzoek tot verwijdering van mijn account en gegevens')}&body=${encodeURIComponent('Hallo,\n\nIk wil mijn MentaForce-account en al mijn persoonlijke gegevens definitief laten verwijderen conform de AVG (recht op vergetelheid).\n\nMet vriendelijke groet,')}`}
+                      className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-white text-sm font-bold transition"
+                      style={{ background: 'var(--mf-red)' }}>
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                      Verwijderverzoek indienen
+                    </a>
                   </section>
                 </>
               )}
