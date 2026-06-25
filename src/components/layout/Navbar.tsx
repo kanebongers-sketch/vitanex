@@ -296,6 +296,11 @@ function SidebarContent({
   onClose?: () => void
 }) {
   const isHrOrAdmin = userRol === 'hr' || userRol === 'admin'
+  // Content OS is founder-/admin-tooling (briefings, strategie, ideeën) en hoort
+  // niet in de navigatie van een gewone medewerker.
+  const zichtbareTopItems = TOP_ITEMS.filter(
+    (item) => item.key !== 'content' || userRol === 'admin'
+  )
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
@@ -323,7 +328,7 @@ function SidebarContent({
 
       {/* Nav */}
       <nav style={{ flex: 1, overflowY: 'auto', paddingTop: 8, paddingBottom: 8, scrollbarWidth: 'none' }}>
-        {TOP_ITEMS.map((item) => {
+        {zichtbareTopItems.map((item) => {
           if (item.href) {
             const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
             return (
