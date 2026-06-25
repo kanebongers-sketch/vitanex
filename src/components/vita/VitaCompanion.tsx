@@ -1,12 +1,13 @@
 'use client'
 
 import { useEffect, useState, useRef, useCallback } from 'react'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { authFetch } from '@/lib/auth-fetch'
 import PandaFace, { EmotionState } from '@/components/vita/PandaFace'
 import CompanionBubble from '@/components/vita/CompanionBubble'
 import { emotionFromScore, emotionFromEvent, getTimeOfDay } from '@/lib/vita/emotion-engine'
 import { getPageGuide } from '@/lib/vita/page-guide'
+import { laadXPData, berekenLevel, LEVEL_NAMEN, LEVEL_KLEUREN, xpVoortgang } from '@/lib/xp'
 import type { VitaEventPayload } from '@/lib/vita/events'
 
 const HIDDEN_ROUTES = [
@@ -17,6 +18,7 @@ const HIDDEN_ROUTES = [
 
 const READINESS_CACHE_KEY = 'vita-state-v1'
 const COMPANION_CACHE_KEY = 'vita-companion-v1'
+const VANDAAG_CACHE_KEY = 'vita-vandaag-v1'
 const CACHE_TTL = 5 * 60 * 1000
 
 type Persona = 'stoicijn' | 'optimizer' | 'mentor' | 'challenger' | 'wetenschapper'
@@ -36,6 +38,20 @@ interface CompanionData {
   level: number
   xp_total: number
   onboarding_goal: string | null
+}
+
+interface ChecklistItem {
+  id: string
+  icoon: string
+  titel: string
+  status: 'open' | 'gedaan'
+  detail: string
+  url: string
+}
+
+interface VandaagData {
+  checklist: ChecklistItem[]
+  scores: { gedaan: number; totaal: number; score_pct: number }
 }
 
 interface CacheEntry<T> { data: T; ts: number }
@@ -178,19 +194,21 @@ function vitaMessage(d: ReadinessData, persona: Persona): string {
   return 'VITA monitort jouw signalen. Check je voortgang voor een persoonlijk inzicht.'
 }
 
-function XpBar({ xp, level }: { xp: number; level: number }) {
-  const XP_PER_LEVEL = 500
-  const xpInLevel = xp % XP_PER_LEVEL
-  const pct = Math.round((xpInLevel / XP_PER_LEVEL) * 100)
+// Eén bron van waarheid voor het level: dezelfde Fit Level-logica als /niveau
+// en /achievements, zodat de panda nooit een ander getal toont.
+function XpBar({ xp }: { xp: number }) {
+  const level = berekenLevel(xp)
+  const { pct, nodig } = xpVoortgang(xp, level)
+  const kleur = LEVEL_KLEUREN[level] ?? '#5B8DF0'
 
   return (
     <div style={{ padding: '0 14px 12px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 5 }}>
         <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-3)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-          Level {level}
+          Level {level} · {LEVEL_NAMEN[level]}
         </span>
         <span style={{ fontSize: 10, color: 'var(--text-3)' }}>
-          {xpInLevel}/{XP_PER_LEVEL} XP
+          {level >= 10 ? 'Max' : `nog ${nodig} XP`}
         </span>
       </div>
       <div style={{ height: 3, background: 'var(--bg-subtle)', borderRadius: 100, overflow: 'hidden' }}>
@@ -198,12 +216,87 @@ function XpBar({ xp, level }: { xp: number; level: number }) {
           style={{
             height: '100%',
             width: `${pct}%`,
-            background: 'linear-gradient(90deg, #5B8DF0, #A78BFA)',
+            background: kleur,
             borderRadius: 100,
             transition: 'width 0.6s ease',
           }}
         />
       </div>
+    </div>
+  )
+}
+
+// Dagelijkse quests — de open acties van vandaag, in één tik te starten.
+function QuestList({ checklist, onGo }: { checklist: ChecklistItem[]; onGo: (url: string) => void }) {
+  const open = checklist.filter(i => i.status === 'open')
+  const gedaan = checklist.length - open.length
+
+  return (
+    <div style={{ padding: '0 14px 12px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+        <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-3)' }}>
+          Vandaag
+        </span>
+        <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-3)' }}>
+          {gedaan}/{checklist.length} gedaan
+        </span>
+      </div>
+
+      {open.length === 0 ? (
+        <div style={{
+          padding: '12px 13px',
+          background: 'var(--mf-green-light, #E1F5EE)',
+          borderRadius: 12,
+          fontSize: 12.5,
+          fontWeight: 600,
+          color: 'var(--mf-green-dark, #0F6E56)',
+          textAlign: 'center',
+        }}>
+          Je dag is compleet — sterk gedaan! ✨
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          {open.slice(0, 3).map(item => (
+            <button
+              key={item.id}
+              onClick={() => onGo(item.url)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 10,
+                width: '100%',
+                padding: '9px 11px',
+                background: 'var(--bg-subtle)',
+                border: '1px solid var(--border)',
+                borderRadius: 11,
+                cursor: 'pointer',
+                textAlign: 'left',
+                transition: 'border-color 0.15s ease',
+              }}
+            >
+              <span style={{
+                width: 18, height: 18, flexShrink: 0,
+                borderRadius: '50%',
+                border: '1.5px solid var(--border-strong)',
+              }} />
+              <span style={{ flex: 1, minWidth: 0 }}>
+                <span style={{ display: 'block', fontSize: 12.5, fontWeight: 600, color: 'var(--text-1)' }}>
+                  {item.titel}
+                </span>
+                <span style={{ display: 'block', fontSize: 10.5, color: 'var(--text-3)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {item.detail}
+                </span>
+              </span>
+              <span style={{ fontSize: 13, color: 'var(--text-4)', flexShrink: 0 }}>›</span>
+            </button>
+          ))}
+          {open.length > 3 && (
+            <span style={{ fontSize: 10.5, color: 'var(--text-4)', textAlign: 'center', marginTop: 2 }}>
+              +{open.length - 3} meer
+            </span>
+          )}
+        </div>
+      )}
     </div>
   )
 }
@@ -256,9 +349,12 @@ const ORB_POS_KEY = 'vita-orb-pos'
 
 export default function VitaCompanion() {
   const pathname = usePathname()
+  const router = useRouter()
   const [open, setOpen] = useState(false)
   const [data, setData] = useState<ReadinessData | null>(null)
   const [companion, setCompanion] = useState<CompanionData | null>(null)
+  const [vandaag, setVandaag] = useState<VandaagData | null>(null)
+  const [xp, setXp] = useState<number>(0)
   const [personaLoading, setPersonaLoading] = useState(false)
   const [emotion, setEmotion] = useState<EmotionState>('calm')
   const [bubble, setBubble] = useState<{ message: string; emotion: EmotionState } | null>(null)
@@ -300,12 +396,26 @@ export default function VitaCompanion() {
     } catch {}
   }, [])
 
+  const loadVandaag = useCallback(async () => {
+    const cached = getCache<VandaagData>(VANDAAG_CACHE_KEY)
+    if (cached) { setVandaag(cached); return }
+    try {
+      const res = await authFetch('/api/vandaag')
+      if (!res.ok) return
+      const json = await res.json() as VandaagData
+      setVandaag(json)
+      setCache(VANDAAG_CACHE_KEY, json)
+    } catch {}
+  }, [])
+
   useEffect(() => {
     if (!isHidden) {
       loadReadiness()
       loadCompanion()
+      loadVandaag()
+      setXp(laadXPData().xp)
     }
-  }, [isHidden, loadReadiness, loadCompanion])
+  }, [isHidden, loadReadiness, loadCompanion, loadVandaag])
 
   useEffect(() => {
     if (!open) return
@@ -369,6 +479,12 @@ export default function VitaCompanion() {
   useEffect(() => {
     const handler = (e: Event) => {
       const { type } = (e as CustomEvent<VitaEventPayload>).detail
+      // Houd level en dagquests vers na een actie — directe beloning.
+      setXp(laadXPData().xp)
+      if (['check_in_completed', 'data_logged', 'mood_logged', 'habit_completed', 'goal_achieved'].includes(type)) {
+        clearCache(VANDAAG_CACHE_KEY)
+        loadVandaag()
+      }
       const newEmotion = emotionFromEvent(type)
       if (newEmotion) {
         if (emotionResetRef.current) clearTimeout(emotionResetRef.current)
@@ -392,7 +508,7 @@ export default function VitaCompanion() {
     }
     window.addEventListener('vita:event', handler)
     return () => window.removeEventListener('vita:event', handler)
-  }, [open, emotion])
+  }, [open, emotion, loadVandaag])
 
   useEffect(() => {
     if (!companion || !data) return
@@ -462,6 +578,7 @@ export default function VitaCompanion() {
   const accentColor = scoreColor(data.score)
   const message = vitaMessage(data, persona)
   const guide = getPageGuide(pathname)
+  const gaNaar = (url: string) => { setOpen(false); router.push(url) }
 
   if (!pos) return null
 
@@ -667,6 +784,11 @@ export default function VitaCompanion() {
             </div>
           )}
 
+          {/* Dagelijkse quests */}
+          {vandaag && vandaag.checklist.length > 0 && (
+            <QuestList checklist={vandaag.checklist} onGo={gaNaar} />
+          )}
+
           {/* Data chips */}
           {data.heeft_data && (
             <div style={{
@@ -717,8 +839,8 @@ export default function VitaCompanion() {
             </div>
           )}
 
-          {/* XP bar */}
-          {companion && <XpBar xp={companion.xp_total} level={companion.level} />}
+          {/* XP bar — Fit Level (zelfde bron als /niveau) */}
+          <XpBar xp={xp} />
 
           {/* Divider */}
           <div style={{ borderTop: '1px solid var(--border)', margin: '0 14px' }} />
