@@ -596,6 +596,10 @@ export default function VitaCompanion() {
 
   if (!pos) return null
 
+  // Staat de panda in de bovenste helft van het scherm? Dan is er boven 'm geen
+  // ruimte — klap de ballon en het paneel naar beneden in plaats van naar boven.
+  const flipBelow = pos.y < (typeof window !== 'undefined' ? window.innerHeight : 800) * 0.45
+
   return (
     <div
       ref={containerRef}
@@ -617,9 +621,8 @@ export default function VitaCompanion() {
           aria-label="Open VITA — bekijk je dag"
           style={{
             position: 'absolute',
-            bottom: '100%',
             right: 0,
-            marginBottom: 10,
+            ...(flipBelow ? { top: '100%', marginTop: 10 } : { bottom: '100%', marginBottom: 10 }),
             maxWidth: 224,
             background: 'var(--bg-card)',
             border: '1px solid var(--border-strong)',
@@ -658,14 +661,14 @@ export default function VitaCompanion() {
             aria-hidden="true"
             style={{
               position: 'absolute',
-              bottom: -6,
               right: 22,
               width: 12,
               height: 12,
               background: 'var(--bg-card)',
-              borderRight: '1px solid var(--border-strong)',
-              borderBottom: '1px solid var(--border-strong)',
               transform: 'rotate(45deg)',
+              ...(flipBelow
+                ? { top: -6, borderTop: '1px solid var(--border-strong)', borderLeft: '1px solid var(--border-strong)' }
+                : { bottom: -6, borderRight: '1px solid var(--border-strong)', borderBottom: '1px solid var(--border-strong)' }),
             }}
           />
         </button>
@@ -675,9 +678,8 @@ export default function VitaCompanion() {
         <div
           style={{
             position: 'absolute',
-            bottom: '100%',
             right: 0,
-            marginBottom: 10,
+            ...(flipBelow ? { top: '100%', marginTop: 10 } : { bottom: '100%', marginBottom: 10 }),
             width: 292,
             background: 'var(--bg-card)',
             border: '1px solid var(--border-strong)',
