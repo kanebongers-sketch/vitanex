@@ -479,11 +479,14 @@ export default function VitaCompanion() {
   useEffect(() => {
     const handler = (e: Event) => {
       const { type } = (e as CustomEvent<VitaEventPayload>).detail
-      // Houd level en dagquests vers na een actie — directe beloning.
+      // Houd level, dagquests én readiness vers na een actie. Doordat de persona
+      // uit readiness volgt, past VITA's toon zich zo direct aan je nieuwe status aan.
       setXp(laadXPData().xp)
       if (['check_in_completed', 'data_logged', 'mood_logged', 'habit_completed', 'goal_achieved'].includes(type)) {
         clearCache(VANDAAG_CACHE_KEY)
+        clearCache(READINESS_CACHE_KEY)
         loadVandaag()
+        loadReadiness()
       }
       const newEmotion = emotionFromEvent(type)
       if (newEmotion) {
@@ -508,7 +511,7 @@ export default function VitaCompanion() {
     }
     window.addEventListener('vita:event', handler)
     return () => window.removeEventListener('vita:event', handler)
-  }, [open, emotion, loadVandaag])
+  }, [open, emotion, loadVandaag, loadReadiness])
 
   useEffect(() => {
     if (!data) return
