@@ -99,6 +99,12 @@ const IconLogOut = ({ size }: { size?: number }) => (
   </Svg>
 )
 
+const IconMessage = ({ size }: { size?: number }) => (
+  <Svg size={size}>
+    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8z" />
+  </Svg>
+)
+
 /* ── Types ── */
 type NavItem = { href: string; label: string }
 
@@ -117,7 +123,7 @@ const TOP_ITEMS: TopItem[] = [
     key: 'vandaag',
     label: 'Vandaag',
     icon: <IconCalendar />,
-    href: '/vandaag',
+    href: '/home',
   },
   {
     key: 'welzijn',
@@ -129,6 +135,7 @@ const TOP_ITEMS: TopItem[] = [
       { href: '/slaap',             label: 'Slaap'             },
       { href: '/stress',            label: 'Stress'            },
       { href: '/werkgeluk',         label: 'Werkgeluk'         },
+      { href: '/psych-veiligheid',  label: 'Psych. veiligheid' },
       { href: '/inzichten',         label: 'Inzichten'         },
       { href: '/patronen',          label: 'Mijn patronen'     },
       { href: '/rapport',           label: 'Rapport'           },
@@ -164,10 +171,17 @@ const TOP_ITEMS: TopItem[] = [
     ],
   },
   {
+    key: 'berichten',
+    label: 'Berichten',
+    icon: <IconMessage />,
+    href: '/chat',
+  },
+  {
     key: 'profiel',
     label: 'Profiel',
     icon: <IconUser />,
     items: [
+      { href: '/mijn-gesprekken', label: 'Mijn gesprekken' },
       { href: '/achievements',  label: 'Achievements' },
       { href: '/voortgang',     label: 'Voortgang'    },
       { href: '/instellingen',  label: 'Instellingen' },
@@ -544,7 +558,7 @@ function SidebarContent({
 
 /* ── Mobile bottom bar tabs ── */
 const MOBILE_TABS = [
-  { key: 'vandaag', label: 'Vandaag', icon: <IconCalendar size={20} />, href: '/vandaag' },
+  { key: 'vandaag', label: 'Vandaag', icon: <IconCalendar size={20} />, href: '/home' },
   { key: 'welzijn', label: 'Welzijn', icon: <IconHeart size={20} />,    href: '/stemming' },
   { key: 'actief',  label: 'Actief',  icon: <IconActivity size={20} />, href: '/sport'   },
   { key: 'groeien', label: 'Groeien', icon: <IconLayers size={20} />,   href: '/coach'   },
