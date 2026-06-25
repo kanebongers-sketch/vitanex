@@ -777,6 +777,11 @@ export default function VitaCompanion() {
             </div>
           </div>
 
+          {/* Dagelijkse quests — actie-eerst, direct onder je score */}
+          {vandaag && vandaag.checklist.length > 0 && (
+            <QuestList checklist={vandaag.checklist} onGo={gaNaar} />
+          )}
+
           {/* Message */}
           <div style={{
             margin: '0 14px 14px',
@@ -830,11 +835,6 @@ export default function VitaCompanion() {
                 </div>
               )}
             </div>
-          )}
-
-          {/* Dagelijkse quests */}
-          {vandaag && vandaag.checklist.length > 0 && (
-            <QuestList checklist={vandaag.checklist} onGo={gaNaar} />
           )}
 
           {/* Data chips */}
