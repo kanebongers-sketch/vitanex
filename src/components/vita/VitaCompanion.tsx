@@ -366,6 +366,7 @@ export default function VitaCompanion() {
   const pathname = usePathname()
   const router = useRouter()
   const [open, setOpen] = useState(false)
+  const [toonMeer, setToonMeer] = useState(false)
   const [data, setData] = useState<ReadinessData | null>(null)
   const [vandaag, setVandaag] = useState<VandaagData | null>(null)
   const [xp, setXp] = useState<number>(0)
@@ -782,20 +783,6 @@ export default function VitaCompanion() {
             <QuestList checklist={vandaag.checklist} onGo={gaNaar} />
           )}
 
-          {/* Message */}
-          <div style={{
-            margin: '0 14px 14px',
-            padding: '11px 13px',
-            background: 'var(--bg-subtle)',
-            borderRadius: 12,
-            fontSize: 13,
-            color: 'var(--text-2)',
-            lineHeight: 1.6,
-            fontStyle: 'italic',
-          }}>
-            &ldquo;{message}&rdquo;
-          </div>
-
           {/* Page guide — wat is deze pagina + je volgende stap */}
           {guide && (
             <div style={{
@@ -836,6 +823,43 @@ export default function VitaCompanion() {
               )}
             </div>
           )}
+
+          {/* Meer / minder — secundaire details achter één tik */}
+          <button
+            onClick={() => setToonMeer(v => !v)}
+            style={{
+              width: 'calc(100% - 28px)',
+              margin: '0 14px 12px',
+              padding: '8px',
+              background: 'transparent',
+              border: '1px solid var(--border)',
+              borderRadius: 10,
+              cursor: 'pointer',
+              fontSize: 11,
+              fontWeight: 600,
+              color: 'var(--text-3)',
+              letterSpacing: '0.02em',
+            }}
+            aria-expanded={toonMeer}
+          >
+            {toonMeer ? 'Minder tonen' : 'Meer tonen'}
+          </button>
+
+          {toonMeer && (
+            <>
+              {/* Coach-boodschap */}
+              <div style={{
+                margin: '0 14px 14px',
+                padding: '11px 13px',
+                background: 'var(--bg-subtle)',
+                borderRadius: 12,
+                fontSize: 13,
+                color: 'var(--text-2)',
+                lineHeight: 1.6,
+                fontStyle: 'italic',
+              }}>
+                &ldquo;{message}&rdquo;
+              </div>
 
           {/* Data chips */}
           {data.heeft_data && (
@@ -895,6 +919,8 @@ export default function VitaCompanion() {
 
           {/* Persona — automatisch gekozen op basis van wat je nodig hebt */}
           <PersonaUitleg persona={persona} reden={reden} />
+            </>
+          )}
         </div>
       )}
 
