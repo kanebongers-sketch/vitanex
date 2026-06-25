@@ -4,7 +4,6 @@ import { useEffect, useState, useRef, useCallback } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { authFetch } from '@/lib/auth-fetch'
 import PandaFace, { EmotionState } from '@/components/vita/PandaFace'
-import CompanionBubble from '@/components/vita/CompanionBubble'
 import { emotionFromScore, emotionFromEvent, getTimeOfDay } from '@/lib/vita/emotion-engine'
 import { getPageGuide } from '@/lib/vita/page-guide'
 import { laadXPData, berekenLevel, LEVEL_NAMEN, LEVEL_KLEUREN, xpVoortgang } from '@/lib/xp'
@@ -530,6 +529,14 @@ export default function VitaCompanion() {
     }
   }, [companion, data])
 
+  // Transient bubbels (events, nudges, eerste-bezoek) vallen na een paar tellen
+  // vanzelf terug op de vaste regel die VITA altijd toont.
+  useEffect(() => {
+    if (!bubble) return
+    const t = setTimeout(() => setBubble(null), 6000)
+    return () => clearTimeout(t)
+  }, [bubble])
+
   // Per-pagina uitleg: de eerste keer dat je een nieuwe zone betreedt, legt VITA
   // 'm in één zin uit. Daarna stil — geen genag bij elke navigatie.
   useEffect(() => {
@@ -580,6 +587,13 @@ export default function VitaCompanion() {
   const guide = getPageGuide(pathname)
   const gaNaar = (url: string) => { setOpen(false); router.push(url) }
 
+  // De vaste zin die VITA altijd "zegt" in zijn tekstballon: bij voorkeur je
+  // volgende stap op deze pagina, anders een korte status of uitnodiging.
+  const vasteRegel =
+    guide?.stap
+    ?? (data.heeft_data ? `Je staat op ${data.score} — ${label.toLowerCase()}.` : 'Doe je check-in, dan leer ik je kennen.')
+  const ballonTekst = bubble?.message ?? vasteRegel
+
   if (!pos) return null
 
   return (
@@ -597,12 +611,61 @@ export default function VitaCompanion() {
         userSelect: 'none',
       }}
     >
-      {bubble && !open && (
-        <CompanionBubble
-          message={bubble.message}
-          emotion={bubble.emotion}
-          onDismiss={() => setBubble(null)}
-        />
+      {!open && (
+        <button
+          onClick={() => { if (!didDrag.current) setOpen(true) }}
+          aria-label="Open VITA — bekijk je dag"
+          style={{
+            position: 'relative',
+            maxWidth: 224,
+            background: 'var(--bg-card)',
+            border: '1px solid var(--border-strong)',
+            borderRadius: 16,
+            padding: '10px 14px',
+            boxShadow: '0 8px 24px rgba(0,0,0,0.10), 0 1px 4px rgba(0,0,0,0.06)',
+            fontFamily: 'inherit',
+            fontSize: 13,
+            fontWeight: 500,
+            color: 'var(--text-1)',
+            lineHeight: 1.5,
+            textAlign: 'left',
+            cursor: 'pointer',
+            animation: 'vita-slide-up 0.25s cubic-bezier(0.16,1,0.3,1) both',
+          }}
+        >
+          <span style={{
+            display: '-webkit-box',
+            WebkitLineClamp: 3,
+            WebkitBoxOrient: 'vertical',
+            overflow: 'hidden',
+          }}>
+            {ballonTekst}
+          </span>
+          <span style={{
+            display: 'block',
+            fontSize: 10,
+            fontWeight: 600,
+            color: 'var(--text-4)',
+            marginTop: 5,
+            letterSpacing: '0.02em',
+          }}>
+            Tik voor meer →
+          </span>
+          <span
+            aria-hidden="true"
+            style={{
+              position: 'absolute',
+              bottom: -6,
+              right: 22,
+              width: 12,
+              height: 12,
+              background: 'var(--bg-card)',
+              borderRight: '1px solid var(--border-strong)',
+              borderBottom: '1px solid var(--border-strong)',
+              transform: 'rotate(45deg)',
+            }}
+          />
+        </button>
       )}
 
       {open && (
