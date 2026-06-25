@@ -5,7 +5,8 @@ import { usePathname } from 'next/navigation'
 import { authFetch } from '@/lib/auth-fetch'
 import PandaFace, { EmotionState } from '@/components/vita/PandaFace'
 import CompanionBubble from '@/components/vita/CompanionBubble'
-import { emotionFromScore, emotionFromEvent, contextFromPathname, getTimeOfDay } from '@/lib/vita/emotion-engine'
+import { emotionFromScore, emotionFromEvent, getTimeOfDay } from '@/lib/vita/emotion-engine'
+import { getPageGuide } from '@/lib/vita/page-guide'
 import type { VitaEventPayload } from '@/lib/vita/events'
 
 const HIDDEN_ROUTES = [
@@ -55,6 +56,21 @@ function setCache<T>(key: string, data: T) {
 
 function clearCache(key: string) {
   try { localStorage.removeItem(key) } catch {}
+}
+
+// Bijhouden welke pagina's je al "ontdekt" hebt, zodat VITA elke zone één keer
+// uitlegt — als een game die een nieuw gebied onthult.
+const SEEN_PAGES_KEY = 'vita-seen-pages-v1'
+
+function getSeenPages(): string[] {
+  try { return JSON.parse(localStorage.getItem(SEEN_PAGES_KEY) ?? '[]') as string[] } catch { return [] }
+}
+
+function markPageSeen(path: string) {
+  try {
+    const seen = getSeenPages()
+    if (!seen.includes(path)) localStorage.setItem(SEEN_PAGES_KEY, JSON.stringify([...seen, path]))
+  } catch {}
 }
 
 function orbColor(score: number): [number, number, number] {
@@ -398,6 +414,21 @@ export default function VitaCompanion() {
     }
   }, [companion, data])
 
+  // Per-pagina uitleg: de eerste keer dat je een nieuwe zone betreedt, legt VITA
+  // 'm in één zin uit. Daarna stil — geen genag bij elke navigatie.
+  useEffect(() => {
+    if (isHidden || open) return
+    const guide = getPageGuide(pathname)
+    if (!guide) return
+    if (getSeenPages().includes(pathname)) return
+    const timer = setTimeout(() => {
+      markPageSeen(pathname)
+      setEmotion(guide.emotion)
+      setBubble(prev => prev ?? { message: guide.uitleg, emotion: guide.emotion })
+    }, 1200)
+    return () => clearTimeout(timer)
+  }, [pathname, isHidden, open])
+
   const handlePersonaChange = async (persona: Persona) => {
     if (!companion || companion.persona === persona) return
     setPersonaLoading(true)
@@ -430,6 +461,7 @@ export default function VitaCompanion() {
   const label = scoreLabel(data.score)
   const accentColor = scoreColor(data.score)
   const message = vitaMessage(data, persona)
+  const guide = getPageGuide(pathname)
 
   if (!pos) return null
 
@@ -593,6 +625,47 @@ export default function VitaCompanion() {
           }}>
             &ldquo;{message}&rdquo;
           </div>
+
+          {/* Page guide — wat is deze pagina + je volgende stap */}
+          {guide && (
+            <div style={{
+              margin: '0 14px 14px',
+              padding: '12px 13px',
+              background: 'var(--mf-green-light, #E1F5EE)',
+              borderRadius: 12,
+              border: '1px solid rgba(29,158,117,0.20)',
+            }}>
+              <div style={{
+                fontSize: 10,
+                fontWeight: 700,
+                letterSpacing: '0.07em',
+                textTransform: 'uppercase',
+                color: 'var(--mf-green-dark, #0F6E56)',
+                marginBottom: 5,
+              }}>
+                Op deze pagina · {guide.label}
+              </div>
+              <div style={{ fontSize: 12.5, color: 'var(--text-2)', lineHeight: 1.55 }}>
+                {guide.uitleg}
+              </div>
+              {guide.stap && (
+                <div style={{ marginTop: 9, paddingTop: 9, borderTop: '1px solid rgba(29,158,117,0.18)' }}>
+                  <span style={{
+                    fontSize: 10,
+                    fontWeight: 700,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.06em',
+                    color: 'var(--mf-green-dark, #0F6E56)',
+                  }}>
+                    Volgende stap
+                  </span>
+                  <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--text-1)', lineHeight: 1.5, marginTop: 3 }}>
+                    {guide.stap}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Data chips */}
           {data.heeft_data && (
