@@ -16,7 +16,6 @@ const HIDDEN_ROUTES = [
 ]
 
 const READINESS_CACHE_KEY = 'vita-state-v1'
-const COMPANION_CACHE_KEY = 'vita-companion-v1'
 const VANDAAG_CACHE_KEY = 'vita-vandaag-v1'
 const CACHE_TTL = 5 * 60 * 1000
 
@@ -30,13 +29,6 @@ interface ReadinessData {
   stemming_waarde: number | null
   streak: number
   heeft_data: boolean
-}
-
-interface CompanionData {
-  persona: Persona
-  level: number
-  xp_total: number
-  onboarding_goal: string | null
 }
 
 interface ChecklistItem {
@@ -193,6 +185,37 @@ function vitaMessage(d: ReadinessData, persona: Persona): string {
   return 'VITA monitort jouw signalen. Check je voortgang voor een persoonlijk inzicht.'
 }
 
+// VITA kiest zijn toon op basis van wat je op dit moment nodig hebt — niet via
+// een handmatige keuze. Volgorde van prioriteit: eerst steun bij zwaarte.
+function aanbevolenPersona(d: ReadinessData): { persona: Persona; reden: string } {
+  if (!d.heeft_data) {
+    return { persona: 'mentor', reden: 'Je begint net — ik help je rustig op weg.' }
+  }
+
+  const slaap = d.slaap_uren !== null ? Number(d.slaap_uren) : null
+  const stress = d.stress_niveau
+  const stemming = d.stemming_waarde
+
+  // Onder druk of laag → je hebt steun nodig → Mentor
+  if ((stress !== null && stress >= 4) || (stemming !== null && stemming <= 2) || d.score < 40) {
+    return { persona: 'mentor', reden: 'Het is even zwaar — ik ben er rustig en steunend voor je.' }
+  }
+  // Uitgeput (weinig slaap) → kalmte en herstel → Stoïcijn
+  if (slaap !== null && slaap < 6) {
+    return { persona: 'stoicijn', reden: 'Je bent moe — vandaag draait om herstel, zonder ruis.' }
+  }
+  // Op dreef (hoge score én streak) → je kunt uitdaging aan → Challenger
+  if (d.score >= 80 && d.streak >= 7) {
+    return { persona: 'challenger', reden: 'Je loopt sterk — ik daag je uit om scherp te blijven.' }
+  }
+  // Goed bezig, aan het bouwen → fijnslijpen → Optimizer
+  if (d.score >= 60) {
+    return { persona: 'optimizer', reden: 'Je staat er goed voor — laten we fijnslijpen.' }
+  }
+  // Rest → rustige begeleiding → Mentor
+  return { persona: 'mentor', reden: 'Ik stem mijn toon af op hoe het met je gaat.' }
+}
+
 // Eén bron van waarheid voor het level: dezelfde Fit Level-logica als /niveau
 // en /achievements, zodat de panda nooit een ander getal toont.
 function XpBar({ xp }: { xp: number }) {
@@ -300,44 +323,37 @@ function QuestList({ checklist, onGo }: { checklist: ChecklistItem[]; onGo: (url
   )
 }
 
-function PersonaSelector({
-  current,
-  onSelect,
-  loading,
-}: {
-  current: Persona
-  onSelect: (p: Persona) => void
-  loading: boolean
-}) {
-  const personas: Persona[] = ['stoicijn', 'optimizer', 'mentor', 'challenger', 'wetenschapper']
-
+// Leest uit waaróm VITA nu deze toon kiest — geen handmatige keuze meer.
+function PersonaUitleg({ persona, reden }: { persona: Persona; reden: string }) {
   return (
     <div style={{ padding: '0 14px 14px' }}>
       <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-3)', marginBottom: 8 }}>
-        Persoonlijkheid
+        VITA past zich aan je aan
       </div>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
-        {personas.map(p => (
-          <button
-            key={p}
-            onClick={() => !loading && onSelect(p)}
-            disabled={loading}
-            style={{
-              padding: '4px 10px',
-              borderRadius: 100,
-              border: `1px solid ${p === current ? PERSONA_ACCENT[p] : 'var(--border)'}`,
-              background: p === current ? PERSONA_COLORS[p] : 'transparent',
-              color: p === current ? PERSONA_ACCENT[p] : 'var(--text-3)',
-              fontSize: 11,
-              fontWeight: 600,
-              cursor: loading ? 'not-allowed' : 'pointer',
-              opacity: loading ? 0.6 : 1,
-              transition: 'all 0.15s ease',
-            }}
-          >
-            {PERSONA_LABELS[p].replace('De ', '')}
-          </button>
-        ))}
+      <div style={{
+        display: 'flex',
+        alignItems: 'flex-start',
+        gap: 10,
+        padding: '10px 12px',
+        background: PERSONA_COLORS[persona],
+        border: `1px solid ${PERSONA_ACCENT[persona]}33`,
+        borderRadius: 12,
+      }}>
+        <span style={{
+          fontSize: 11,
+          fontWeight: 700,
+          color: PERSONA_ACCENT[persona],
+          background: 'var(--bg-card)',
+          padding: '2px 8px',
+          borderRadius: 100,
+          whiteSpace: 'nowrap',
+          flexShrink: 0,
+        }}>
+          {PERSONA_LABELS[persona]}
+        </span>
+        <span style={{ fontSize: 12, color: 'var(--text-2)', lineHeight: 1.5 }}>
+          {reden}
+        </span>
       </div>
     </div>
   )
@@ -351,10 +367,8 @@ export default function VitaCompanion() {
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [data, setData] = useState<ReadinessData | null>(null)
-  const [companion, setCompanion] = useState<CompanionData | null>(null)
   const [vandaag, setVandaag] = useState<VandaagData | null>(null)
   const [xp, setXp] = useState<number>(0)
-  const [personaLoading, setPersonaLoading] = useState(false)
   const [emotion, setEmotion] = useState<EmotionState>('calm')
   const [bubble, setBubble] = useState<{ message: string; emotion: EmotionState } | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -383,18 +397,6 @@ export default function VitaCompanion() {
     } catch {}
   }, [])
 
-  const loadCompanion = useCallback(async () => {
-    const cached = getCache<CompanionData>(COMPANION_CACHE_KEY)
-    if (cached) { setCompanion(cached); return }
-    try {
-      const res = await authFetch('/api/vita/companion')
-      if (!res.ok) return
-      const json = await res.json() as CompanionData
-      setCompanion(json)
-      setCache(COMPANION_CACHE_KEY, json)
-    } catch {}
-  }, [])
-
   const loadVandaag = useCallback(async () => {
     const cached = getCache<VandaagData>(VANDAAG_CACHE_KEY)
     if (cached) { setVandaag(cached); return }
@@ -410,11 +412,10 @@ export default function VitaCompanion() {
   useEffect(() => {
     if (!isHidden) {
       loadReadiness()
-      loadCompanion()
       loadVandaag()
       setXp(laadXPData().xp)
     }
-  }, [isHidden, loadReadiness, loadCompanion, loadVandaag])
+  }, [isHidden, loadReadiness, loadVandaag])
 
   useEffect(() => {
     if (!open) return
@@ -510,7 +511,7 @@ export default function VitaCompanion() {
   }, [open, emotion, loadVandaag])
 
   useEffect(() => {
-    if (!companion || !data) return
+    if (!data) return
     const sessionKey = 'vita-nudge-v1'
     if (sessionStorage.getItem(sessionKey)) return
     const tod = getTimeOfDay()
@@ -527,7 +528,7 @@ export default function VitaCompanion() {
       }, 3500)
       return () => clearTimeout(timer)
     }
-  }, [companion, data])
+  }, [data])
 
   // Transient bubbels (events, nudges, eerste-bezoek) vallen na een paar tellen
   // vanzelf terug op de vaste regel die VITA altijd toont.
@@ -552,35 +553,9 @@ export default function VitaCompanion() {
     return () => clearTimeout(timer)
   }, [pathname, isHidden, open])
 
-  const handlePersonaChange = async (persona: Persona) => {
-    if (!companion || companion.persona === persona) return
-    setPersonaLoading(true)
-    const prev = companion
-    setCompanion({ ...companion, persona })
-    clearCache(COMPANION_CACHE_KEY)
-    try {
-      const res = await authFetch('/api/vita/companion', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ persona }),
-      })
-      if (res.ok) {
-        const json = await res.json() as CompanionData
-        setCompanion(json)
-        setCache(COMPANION_CACHE_KEY, json)
-      } else {
-        setCompanion(prev)
-      }
-    } catch {
-      setCompanion(prev)
-    } finally {
-      setPersonaLoading(false)
-    }
-  }
-
   if (isHidden || !data) return null
 
-  const persona = companion?.persona ?? 'mentor'
+  const { persona, reden } = aanbevolenPersona(data)
   const label = scoreLabel(data.score)
   const accentColor = scoreColor(data.score)
   const message = vitaMessage(data, persona)
@@ -715,19 +690,17 @@ export default function VitaCompanion() {
             }}>
               VITA
             </span>
-            {companion && (
-              <span style={{
-                fontSize: 10,
-                fontWeight: 600,
-                color: PERSONA_ACCENT[persona],
-                background: PERSONA_COLORS[persona],
-                padding: '2px 7px',
-                borderRadius: 100,
-                letterSpacing: '0.04em',
-              }}>
-                {PERSONA_LABELS[persona]}
-              </span>
-            )}
+            <span style={{
+              fontSize: 10,
+              fontWeight: 600,
+              color: PERSONA_ACCENT[persona],
+              background: PERSONA_COLORS[persona],
+              padding: '2px 7px',
+              borderRadius: 100,
+              letterSpacing: '0.04em',
+            }}>
+              {PERSONA_LABELS[persona]}
+            </span>
             <button
               onClick={() => setOpen(false)}
               style={{
@@ -917,14 +890,8 @@ export default function VitaCompanion() {
           {/* Divider */}
           <div style={{ borderTop: '1px solid var(--border)', margin: '0 14px' }} />
 
-          {/* Persona selector */}
-          {companion && (
-            <PersonaSelector
-              current={persona}
-              onSelect={handlePersonaChange}
-              loading={personaLoading}
-            />
-          )}
+          {/* Persona — automatisch gekozen op basis van wat je nodig hebt */}
+          <PersonaUitleg persona={persona} reden={reden} />
         </div>
       )}
 
