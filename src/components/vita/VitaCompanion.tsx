@@ -450,7 +450,8 @@ export default function VitaCompanion() {
   }, [])
 
   useEffect(() => {
-    const onMove = (e: MouseEvent) => {
+    // Pointer events i.p.v. muis-events, zodat slepen ook op touch/mobiel werkt.
+    const onMove = (e: PointerEvent) => {
       if (!dragRef.current) return
       const dx = e.clientX - dragRef.current.startX
       const dy = e.clientY - dragRef.current.startY
@@ -469,12 +470,32 @@ export default function VitaCompanion() {
         return prev
       })
     }
-    window.addEventListener('mousemove', onMove)
-    window.addEventListener('mouseup', onUp)
+    window.addEventListener('pointermove', onMove)
+    window.addEventListener('pointerup', onUp)
+    window.addEventListener('pointercancel', onUp)
     return () => {
-      window.removeEventListener('mousemove', onMove)
-      window.removeEventListener('mouseup', onUp)
+      window.removeEventListener('pointermove', onMove)
+      window.removeEventListener('pointerup', onUp)
+      window.removeEventListener('pointercancel', onUp)
     }
+  }, [])
+
+  // Houd de panda binnen beeld bij resize of schermrotatie — anders kan een
+  // opgeslagen positie buiten de nieuwe viewport vallen.
+  useEffect(() => {
+    const onResize = () => {
+      setPos(prev => {
+        if (!prev) return prev
+        const x = Math.min(Math.max(0, prev.x), window.innerWidth - ORB_SIZE)
+        const y = Math.min(Math.max(0, prev.y), window.innerHeight - ORB_SIZE)
+        if (x === prev.x && y === prev.y) return prev
+        const next = { x, y }
+        try { localStorage.setItem(ORB_POS_KEY, JSON.stringify(next)) } catch {}
+        return next
+      })
+    }
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
   }, [])
 
   useEffect(() => {
@@ -926,7 +947,7 @@ export default function VitaCompanion() {
 
       {/* Orb trigger button */}
       <button
-        onMouseDown={(e) => {
+        onPointerDown={(e) => {
           e.preventDefault()
           didDrag.current = false
           dragRef.current = { startX: e.clientX, startY: e.clientY, posX: pos.x, posY: pos.y }
@@ -939,6 +960,7 @@ export default function VitaCompanion() {
         aria-label="Open VITA gezondheidscompanion"
         style={{
           cursor: 'grab',
+          touchAction: 'none',
           width: 56,
           height: 56,
           borderRadius: '50%',
