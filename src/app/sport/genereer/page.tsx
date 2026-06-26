@@ -367,7 +367,7 @@ export default function GenereerSchemaPage() {
               <div style={{ marginTop: 20, padding: '12px 16px', background: 'var(--mf-red-light)', borderRadius: 10, color: 'var(--mf-red)', fontSize: 14 }}>
                 {fout}
                 <button
-                  onClick={() => { setStap(4); setFout(null) }}
+                  onClick={() => { setFout(null); setLaden(false); Promise.resolve().then(startGenereren) }}
                   style={{ display: 'block', marginTop: 8, color: 'var(--mf-red)', fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, padding: 0 }}
                 >
                   Opnieuw proberen
