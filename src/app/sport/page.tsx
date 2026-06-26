@@ -1,5 +1,4 @@
 'use client'
-
 export const dynamic = 'force-dynamic'
 
 import React, { useEffect, useState } from 'react'
@@ -7,6 +6,20 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
+import {
+  Dumbbell, Flame, Clock, ChevronRight, Sparkles, Play,
+  TrendingUp, Calendar, BarChart2, Zap,
+} from 'lucide-react'
+
+// ── Types ────────────────────────────────────────────────────────────────────
+
+type Oefening = {
+  naam: string
+  naam_en?: string
+  sets: number
+  herhalingen: string
+  heeft_gewicht?: boolean
+}
 
 type Trainingsdag = {
   dag: number
@@ -14,14 +27,7 @@ type Trainingsdag = {
   spiergroepen: string[]
   coaching_tekst: string
   geschatte_duur: number
-  oefeningen: Array<{
-    naam: string
-    sets: number
-    herhalingen: string
-    rusttijd_sec: number
-    gewicht_tip: string
-    uitvoering_tip: string
-  }>
+  oefeningen: Oefening[]
 }
 
 type FitnessSchema = {
@@ -40,128 +46,65 @@ type TrainingLog = {
   duur_minuten: number | null
 }
 
-function fmtDatum(d: string): string {
-  const date = new Date(d)
-  return date.toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' })
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
+function fmtDatum(d: string) {
+  return new Date(d).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' })
 }
 
 function beginVanWeek(): string {
   const nu = new Date()
-  const dag = nu.getDay()
-  const diff = dag === 0 ? 6 : dag - 1
-  const maandag = new Date(nu)
-  maandag.setDate(nu.getDate() - diff)
-  return maandag.toISOString().split('T')[0]
+  const diff = nu.getDay() === 0 ? 6 : nu.getDay() - 1
+  const ma = new Date(nu)
+  ma.setDate(nu.getDate() - diff)
+  return ma.toISOString().split('T')[0]
 }
 
-const NIVEAU_HEX: Record<string, string> = {
-  gevorderd: 'var(--mf-red)',
-  gemiddeld: 'var(--mf-amber)',
+const NIVEAU_KLEUR: Record<string, string> = {
+  beginner: '#10B981',
+  gemiddeld: '#F59E0B',
+  gevorderd: '#EF4444',
 }
 
-function NiveauBadge({ niveau }: { niveau: string }) {
-  const kleur = NIVEAU_HEX[niveau] ?? 'var(--mf-green)'
-  return (
-    <span style={{
-      backgroundColor: kleur + '1A',
-      color: kleur,
-      fontSize: 12,
-      fontWeight: 700,
-      padding: '3px 10px',
-      borderRadius: 20,
-      textTransform: 'capitalize' as const,
-    }}>{niveau}</span>
-  )
+const SPIERKLEUR: Record<string, string> = {
+  borst: '#EF4444', schouders: '#F97316', triceps: '#F59E0B',
+  rug: '#3B82F6', biceps: '#6366F1', benen: '#8B5CF6',
+  billen: '#EC4899', core: '#10B981', kuiten: '#06B6D4',
 }
 
-function StatKaart({ label, waarde, icoon }: { label: string; waarde: string | number; icoon: React.ReactNode }) {
-  return (
-    <div style={{
-      backgroundColor: 'var(--bg-card, #FFFFFF)',
-      border: '1px solid var(--border)',
-      borderRadius: 16,
-      padding: '16px',
-      display: 'flex',
-      flexDirection: 'column' as const,
-      gap: 8,
-      flex: 1,
-      minWidth: 0,
-    }}>
-      <div style={{ color: 'var(--text-4)' }}>{icoon}</div>
-      <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)' }}>{waarde}</div>
-      <div style={{ fontSize: 12, color: 'var(--text-3)', fontWeight: 500 }}>{label}</div>
-    </div>
-  )
+function spierKleur(s: string): string {
+  const lc = s.toLowerCase()
+  for (const [k, v] of Object.entries(SPIERKLEUR)) {
+    if (lc.includes(k)) return v
+  }
+  return '#6B7280'
 }
 
-function SnelleActie({ href, label, icoon, kleur }: { href: string; label: string; icoon: React.ReactNode; kleur: string }) {
-  return (
-    <Link href={href} style={{ textDecoration: 'none' }}>
-      <div style={{
-        backgroundColor: 'var(--bg-card, #FFFFFF)',
-        border: '1px solid var(--border)',
-        borderRadius: 16,
-        padding: '20px 16px',
-        display: 'flex',
-        alignItems: 'center',
-        gap: 12,
-        cursor: 'pointer',
-        transition: 'box-shadow 0.15s',
-      }}>
-        <div style={{
-          width: 40,
-          height: 40,
-          borderRadius: 12,
-          backgroundColor: kleur + '1A',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          flexShrink: 0,
-          color: kleur,
-        }}>{icoon}</div>
-        <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-1)' }}>{label}</span>
-        <svg style={{ marginLeft: 'auto', color: 'var(--text-4)' }} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M9 18l6-6-6-6" />
-        </svg>
-      </div>
-    </Link>
-  )
-}
+// ── Component ────────────────────────────────────────────────────────────────
 
 export default function SportPagina() {
   const router = useRouter()
-  const [laden, setLaden] = useState(true)
-  const [schema, setSchema] = useState<FitnessSchema | null>(null)
-  const [logs, setLogs] = useState<TrainingLog[]>([])
+  const [laden, setLaden]                       = useState(true)
+  const [schema, setSchema]                     = useState<FitnessSchema | null>(null)
+  const [logs, setLogs]                         = useState<TrainingLog[]>([])
   const [trainingsDezeWeek, setTrainingsDezeWeek] = useState(0)
 
   useEffect(() => {
-    async function laadData() {
+    async function laad() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/login'); return }
 
-      const weekStart = beginVanWeek()
-
       const [schemaRes, logsRes, weekRes] = await Promise.all([
-        supabase
-          .from('fitness_schemas')
+        supabase.from('fitness_schemas')
           .select('id, naam, doel, niveau, sessies_per_week, schema_json')
-          .eq('user_id', user.id)
-          .eq('actief', true)
-          .order('aangemaakt_op', { ascending: false })
-          .limit(1)
-          .maybeSingle(),
-        supabase
-          .from('training_logs')
+          .eq('user_id', user.id).eq('actief', true)
+          .order('aangemaakt_op', { ascending: false }).limit(1).maybeSingle(),
+        supabase.from('training_logs')
           .select('id, datum, naam, duur_minuten')
-          .eq('user_id', user.id)
-          .order('datum', { ascending: false })
-          .limit(7),
-        supabase
-          .from('training_logs')
+          .eq('user_id', user.id).order('datum', { ascending: false }).limit(10),
+        supabase.from('training_logs')
           .select('id', { count: 'exact', head: true })
-          .eq('user_id', user.id)
-          .gte('datum', weekStart),
+          .eq('user_id', user.id).gte('datum', beginVanWeek()),
       ])
 
       setSchema(schemaRes.data ?? null)
@@ -169,306 +112,225 @@ export default function SportPagina() {
       setTrainingsDezeWeek(weekRes.count ?? 0)
       setLaden(false)
     }
-    laadData()
+    laad()
   }, [router])
 
-  if (laden) {
-    return (
-      <div style={{ minHeight: '100vh', backgroundColor: 'var(--bg-app, #F4F6F8)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div className="mf-spinner" />
-      </div>
-    )
-  }
+  if (laden) return (
+    <div className="mf-mesh-bg" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div className="mf-spinner" />
+    </div>
+  )
 
-  const totaleLogs = logs.length
-  const laatsteDatum = logs[0]?.datum ? fmtDatum(logs[0].datum) : 'Nog niet getraind'
+  const niveauKleur = NIVEAU_KLEUR[schema?.niveau ?? ''] ?? '#10B981'
 
   return (
-    <div className="mf-mesh-bg" style={{ minHeight: '100vh', backgroundColor: 'var(--bg-app, #F4F6F8)', paddingBottom: 72 }}>
+    <div className="mf-mesh-bg" style={{ minHeight: '100vh', paddingBottom: 100 }}>
       <Navbar />
 
-      <div style={{ padding: '28px 20px', maxWidth: 900, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 24 }}>
+      <div style={{ maxWidth: 640, margin: '0 auto', padding: '24px 16px 0' }}>
 
-        <div>
-          <h1 style={{ fontSize: 26, fontWeight: 800, color: 'var(--text-1)', margin: 0 }}>Sport & Fitness</h1>
-          <p style={{ color: 'var(--text-3)', marginTop: 4, fontSize: 15 }}>Beheer je trainingen en schema</p>
+        {/* ── Header ── */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
+          <div style={{ width: 44, height: 44, borderRadius: 14, background: 'rgba(16,185,129,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Dumbbell size={22} strokeWidth={1.8} style={{ color: 'var(--mf-green)' }} />
+          </div>
+          <div>
+            <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', margin: 0, letterSpacing: '-0.03em' }}>Sport & Fitness</h1>
+            <p style={{ fontSize: 13, color: 'var(--text-4)', margin: 0 }}>Jouw trainingen deze week</p>
+          </div>
         </div>
 
+        {/* ── Geen schema: CTA ── */}
         {!schema ? (
-          <div style={{
-            backgroundColor: 'var(--mf-orange)',
-            borderRadius: 20,
-            padding: '32px 24px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 16,
-            position: 'relative',
-            overflow: 'hidden',
-          }}>
+          <Link href="/sport/genereer" style={{ textDecoration: 'none', display: 'block', marginBottom: 20 }}>
             <div style={{
-              position: 'absolute', top: -30, right: -30, width: 160, height: 160,
-              borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.1)',
-            }} />
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
-              <path d="M6.5 6.5h11M6.5 17.5h11M4 12h16M7 4l-3 8 3 8M17 4l3 8-3 8" strokeLinecap="round" />
-            </svg>
-            <div>
-              <div style={{ fontSize: 22, fontWeight: 800, color: 'white' }}>Start jouw fitnessreis</div>
-              <div style={{ color: 'rgba(255,255,255,0.85)', marginTop: 6, fontSize: 14, lineHeight: 1.5 }}>
-                Laat AI een gepersonaliseerd schema voor jou maken op basis van jouw doelen en niveau.
+              background: 'linear-gradient(135deg, #1D9E75, #059669)',
+              borderRadius: 20, padding: '28px 24px', position: 'relative', overflow: 'hidden',
+            }}>
+              <div style={{ position: 'absolute', top: -40, right: -40, width: 160, height: 160, borderRadius: '50%', background: 'rgba(255,255,255,0.08)' }} />
+              <Sparkles size={28} strokeWidth={1.5} style={{ color: 'white', marginBottom: 12 }} />
+              <div style={{ fontSize: 20, fontWeight: 800, color: 'white', marginBottom: 6 }}>Maak jouw AI-schema</div>
+              <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.8)', lineHeight: 1.5, marginBottom: 18 }}>
+                Gepersonaliseerd op jouw doel, niveau en beschikbare tijd.
+              </div>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'white', color: '#059669', fontWeight: 700, fontSize: 14, padding: '10px 20px', borderRadius: 12 }}>
+                <Sparkles size={15} /> Genereer schema
               </div>
             </div>
-            <Link href="/sport/genereer" style={{ textDecoration: 'none' }}>
-              <div style={{
-                backgroundColor: 'white',
-                color: 'var(--mf-orange)',
-                fontWeight: 700,
-                fontSize: 15,
-                padding: '12px 24px',
-                borderRadius: 12,
-                display: 'inline-block',
-              }}>
-                Genereer jouw AI fitnessschema →
-              </div>
-            </Link>
-          </div>
+          </Link>
         ) : (
-          <div style={{
-            background: 'linear-gradient(135deg, #1D9E75 0%, #14795a 100%)',
-            borderRadius: 20,
-            padding: '28px 24px',
-            color: 'white',
-            position: 'relative',
-            overflow: 'hidden',
-          }}>
-            <div style={{ position: 'absolute', top: -60, right: -60, pointerEvents: 'none', borderRadius: '50%', width: 200, height: 200, background: 'radial-gradient(circle, rgba(255,255,255,0.12) 0%, transparent 70%)' }} />
-            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' as const }}>
-              <div>
-                <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)', fontWeight: 600, marginBottom: 4 }}>ACTIEF SCHEMA</div>
-                <div style={{ fontSize: 21, fontWeight: 800 }}>{schema.naam}</div>
-                <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.8)', marginTop: 4 }}>{schema.doel}</div>
+          <>
+            {/* ── Schema hero ── */}
+            <div style={{
+              background: 'linear-gradient(135deg, #1D9E75 0%, #14795a 100%)',
+              borderRadius: 20, padding: '22px 20px', marginBottom: 16, position: 'relative', overflow: 'hidden',
+            }}>
+              <div style={{ position: 'absolute', top: -50, right: -50, width: 180, height: 180, borderRadius: '50%', background: 'radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%)' }} />
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
+                <div>
+                  <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.65)', fontWeight: 600, letterSpacing: '0.06em', marginBottom: 4 }}>ACTIEF SCHEMA</div>
+                  <div style={{ fontSize: 18, fontWeight: 800, color: 'white', letterSpacing: '-0.02em' }}>{schema.naam}</div>
+                </div>
+                <span style={{ background: niveauKleur + '33', color: niveauKleur, fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 20, border: `1px solid ${niveauKleur}55`, textTransform: 'capitalize' }}>
+                  {schema.niveau}
+                </span>
               </div>
-              <NiveauBadge niveau={schema.niveau} />
-            </div>
-            <div style={{ display: 'flex', gap: 20, marginTop: 20, marginBottom: 20 }}>
-              <div>
-                <div style={{ fontSize: 24, fontWeight: 800 }}>{schema.sessies_per_week}×</div>
-                <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)' }}>per week</div>
-              </div>
-              <div style={{ width: 1, backgroundColor: 'rgba(255,255,255,0.2)' }} />
-              <div>
-                <div style={{ fontSize: 24, fontWeight: 800 }}>{trainingsDezeWeek}</div>
-                <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)' }}>gedaan deze week</div>
-              </div>
-            </div>
-            {schema && (
+
+              {/* Voortgang */}
               <div style={{ marginBottom: 16 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                  <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)' }}>Deze week</span>
-                  <span style={{ fontSize: 12, fontWeight: 700, color: 'white' }}>{trainingsDezeWeek}/{schema.sessies_per_week}</span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+                  <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)' }}>Voortgang deze week</span>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: 'white' }}>{trainingsDezeWeek}/{schema.sessies_per_week}×</span>
                 </div>
-                <div style={{ height: 6, borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.2)', overflow: 'hidden' }}>
-                  <div style={{
-                    height: '100%',
-                    borderRadius: 3,
-                    backgroundColor: 'white',
-                    width: `${Math.min(100, (trainingsDezeWeek / schema.sessies_per_week) * 100)}%`,
-                    transition: 'width 0.6s ease',
-                  }} />
+                <div style={{ height: 5, borderRadius: 3, background: 'rgba(255,255,255,0.2)' }}>
+                  <div style={{ height: '100%', borderRadius: 3, background: 'white', width: `${Math.min(100, (trainingsDezeWeek / schema.sessies_per_week) * 100)}%`, transition: 'width 0.6s ease' }} />
                 </div>
               </div>
-            )}
-            <Link href="/sport/training" style={{ textDecoration: 'none' }}>
-              <div style={{
-                backgroundColor: 'white',
-                color: 'var(--mf-green)',
-                fontWeight: 700,
-                fontSize: 15,
-                padding: '12px 24px',
-                borderRadius: 12,
-                display: 'inline-block',
-              }}>
-                Training starten →
-              </div>
-            </Link>
-          </div>
-        )}
 
-        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' as const }}>
-          <StatKaart
-            label="Trainingen deze week"
-            waarde={trainingsDezeWeek}
-            icoon={
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" strokeLinecap="round" />
-              </svg>
-            }
-          />
-          <StatKaart
-            label="Trainingen totaal"
-            waarde={totaleLogs >= 5 ? '5+' : totaleLogs}
-            icoon={
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-              </svg>
-            }
-          />
-          <StatKaart
-            label="Sessies per week"
-            waarde={schema?.sessies_per_week ?? '—'}
-            icoon={
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" strokeLinecap="round" />
-              </svg>
-            }
-          />
-          <StatKaart
-            label="Laatste training"
-            waarde={laatsteDatum}
-            icoon={
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M6.5 6.5h11M6.5 17.5h11M4 12h16" strokeLinecap="round" />
-              </svg>
-            }
-          />
-        </div>
+              <Link href="/sport/training" style={{ textDecoration: 'none' }}>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'white', color: '#14795a', fontWeight: 700, fontSize: 14, padding: '11px 20px', borderRadius: 12 }}>
+                  <Play size={14} fill="#14795a" /> Training starten
+                </div>
+              </Link>
+            </div>
 
-        <div style={{
-          backgroundColor: 'var(--bg-card, #FFFFFF)',
-          border: '1px solid var(--border)',
-          borderRadius: 20,
-          overflow: 'hidden',
-        }}>
-          <div style={{ padding: '20px 20px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <h2 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-1)', margin: 0 }}>Recente trainingen</h2>
-            <Link href="/sport/geschiedenis" style={{ fontSize: 13, color: 'var(--mf-green)', fontWeight: 600, textDecoration: 'none' }}>
-              Bekijk alle →
-            </Link>
-          </div>
-
-          {(() => {
-            const vandaag = new Date()
-            const vandaagStr = vandaag.toISOString().split('T')[0]
-            const datumSet = new Set(logs.map(l => l.datum?.split('T')[0]))
-            const strip = Array.from({ length: 7 }, (_, i) => {
-              const d = new Date(vandaag)
-              d.setDate(d.getDate() - (6 - i))
-              const ds = d.toISOString().split('T')[0]
-              return { ds, dag: d.toLocaleDateString('nl-NL', { weekday: 'short' }).slice(0, 2), actief: datumSet.has(ds), isVandaag: ds === vandaagStr }
-            })
-            return (
-              <div style={{ padding: '14px 20px', display: 'flex', gap: 6 }}>
-                {strip.map(({ ds, dag, actief, isVandaag }) => (
-                  <div key={ds} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+            {/* ── Training dagkaarten ── */}
+            <div style={{ marginBottom: 20 }}>
+              <h2 style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-3)', letterSpacing: '0.05em', textTransform: 'uppercase', margin: '0 0 10px' }}>Jouw schema</h2>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {schema.schema_json.map((dag, i) => (
+                  <Link key={i} href="/sport/training" style={{ textDecoration: 'none' }}>
                     <div style={{
-                      width: '100%', height: 28, borderRadius: 6,
-                      background: actief ? 'var(--mf-orange)' : 'var(--bg-subtle)',
-                      opacity: actief ? 0.9 : 0.5,
-                      outline: isVandaag ? `2px solid ${actief ? 'var(--mf-orange)' : 'var(--border-strong)'}` : 'none',
-                      outlineOffset: 2,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      background: 'var(--bg-card)',
+                      border: '1px solid var(--border)',
+                      borderRadius: 16,
+                      padding: '14px 16px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 14,
+                      transition: 'border-color 0.12s',
                     }}>
-                      {actief && <span style={{ fontSize: 12 }}>💪</span>}
+                      {/* Dag-nummer cirkel */}
+                      <div style={{ width: 40, height: 40, borderRadius: 12, background: 'rgba(16,185,129,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <span style={{ fontSize: 15, fontWeight: 800, color: 'var(--mf-green)' }}>{dag.dag}</span>
+                      </div>
+
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-1)', marginBottom: 5, letterSpacing: '-0.01em' }}>
+                          {dag.naam}
+                        </div>
+                        {/* Spiergroep pills */}
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                          {dag.spiergroepen.map((sg, si) => {
+                            const kleur = spierKleur(sg)
+                            return (
+                              <span key={si} style={{
+                                fontSize: 10, fontWeight: 600, padding: '2px 8px', borderRadius: 20,
+                                background: kleur + '18', color: kleur,
+                                border: `1px solid ${kleur}30`,
+                              }}>
+                                {sg}
+                              </span>
+                            )
+                          })}
+                        </div>
+                      </div>
+
+                      {/* Meta rechts */}
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, flexShrink: 0 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: 'var(--text-4)' }}>
+                          <Clock size={10} />
+                          {dag.geschatte_duur} min
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: 'var(--text-4)' }}>
+                          <Dumbbell size={10} />
+                          {dag.oefeningen.length} oef.
+                        </div>
+                      </div>
+                      <ChevronRight size={14} strokeWidth={2} style={{ color: 'var(--text-4)', flexShrink: 0 }} />
                     </div>
-                    <span style={{ fontSize: 8, color: isVandaag ? 'var(--text-2)' : 'var(--text-4)', fontWeight: isVandaag ? 800 : 400, textTransform: 'capitalize' }}>{dag}</span>
-                  </div>
+                  </Link>
                 ))}
               </div>
-            )
-          })()}
+            </div>
+          </>
+        )}
+
+        {/* ── Stats strip ── */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginBottom: 20 }}>
+          {[
+            { label: 'Deze week', waarde: trainingsDezeWeek, icon: <Flame size={14} />, kleur: '#F97316' },
+            { label: 'Totaal', waarde: logs.length, icon: <BarChart2 size={14} />, kleur: '#8B5CF6' },
+            { label: 'Per week', waarde: schema ? `${schema.sessies_per_week}×` : '—', icon: <Calendar size={14} />, kleur: '#06B6D4' },
+          ].map(({ label, waarde, icon, kleur }) => (
+            <div key={label} style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 14, padding: '14px 12px' }}>
+              <div style={{ color: kleur, marginBottom: 6 }}>{icon}</div>
+              <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.02em' }}>{waarde}</div>
+              <div style={{ fontSize: 11, color: 'var(--text-4)', fontWeight: 500, marginTop: 2 }}>{label}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* ── Recente trainingen ── */}
+        <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 20, overflow: 'hidden', marginBottom: 20 }}>
+          <div style={{ padding: '16px 16px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border)' }}>
+            <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-1)' }}>Recente trainingen</span>
+            <span style={{ fontSize: 12, color: 'var(--text-4)' }}>{logs.length} sessies</span>
+          </div>
 
           {logs.length === 0 ? (
-            <div style={{ padding: '32px 20px', textAlign: 'center' as const }}>
-              <div style={{ fontSize: 36, marginBottom: 8 }}>💪</div>
-              <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-2)' }}>Nog geen trainingen geregistreerd</div>
-              <div style={{ fontSize: 13, color: 'var(--text-4)', marginTop: 4 }}>Start je eerste training en schrijf geschiedenis!</div>
+            <div style={{ padding: '32px 20px', textAlign: 'center' }}>
+              <Dumbbell size={32} strokeWidth={1.2} style={{ color: 'var(--text-4)', marginBottom: 10 }} />
+              <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-2)' }}>Nog geen trainingen</div>
+              <div style={{ fontSize: 12, color: 'var(--text-4)', marginTop: 4 }}>Start je eerste training!</div>
             </div>
           ) : (
-            <div>
-              {logs.map((log, i) => (
-                <div key={log.id} style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 14,
-                  padding: '14px 20px',
-                  borderTop: i === 0 ? '1px solid var(--border)' : undefined,
-                  borderBottom: i < logs.length - 1 ? '1px solid var(--border)' : undefined,
-                }}>
-                  <div style={{
-                    width: 36,
-                    height: 36,
-                    borderRadius: 10,
-                    backgroundColor: 'var(--mf-orange)' + '1A',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexShrink: 0,
-                  }}>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: 'var(--mf-orange)' }}>
-                      <path d="M6.5 6.5h11M6.5 17.5h11M4 12h16" strokeLinecap="round" />
-                    </svg>
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-1)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {log.naam ?? 'Training'}
-                    </div>
-                    <div style={{ fontSize: 12, color: 'var(--text-4)', marginTop: 1 }}>{fmtDatum(log.datum)}</div>
-                  </div>
-                  {log.duur_minuten && (
-                    <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-3)', flexShrink: 0 }}>
-                      {log.duur_minuten} min
-                    </div>
-                  )}
+            logs.map((log, i) => (
+              <div key={log.id} style={{
+                display: 'flex', alignItems: 'center', gap: 12, padding: '13px 16px',
+                borderBottom: i < logs.length - 1 ? '1px solid var(--border)' : 'none',
+              }}>
+                <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(249,115,22,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <Flame size={16} strokeWidth={1.8} style={{ color: '#F97316' }} />
                 </div>
-              ))}
-            </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-1)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {log.naam ?? 'Training'}
+                  </div>
+                  <div style={{ fontSize: 11, color: 'var(--text-4)', marginTop: 1 }}>{fmtDatum(log.datum)}</div>
+                </div>
+                {log.duur_minuten && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: 'var(--text-3)', fontWeight: 600 }}>
+                    <Clock size={11} />
+                    {log.duur_minuten} min
+                  </div>
+                )}
+              </div>
+            ))
           )}
         </div>
 
-        <div>
-          <h2 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-1)', marginBottom: 12 }}>Snelle acties</h2>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-            <SnelleActie
-              href="/sport/genereer"
-              label="AI Schema genereren"
-              kleur="#1D9E75"
-              icoon={
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                </svg>
-              }
-            />
-            <SnelleActie
-              href="/sport/training"
-              label="Training starten"
-              kleur="#F97316"
-              icoon={
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <polygon points="5 3 19 12 5 21 5 3" />
-                </svg>
-              }
-            />
-            <SnelleActie
-              href="/sport/voortgang"
-              label="Voortgang bekijken"
-              kleur="#8B5CF6"
-              icoon={
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-                </svg>
-              }
-            />
-            <SnelleActie
-              href="/sport/oefeningen"
-              label="Oefeningen bekijken"
-              kleur="#EC4899"
-              icoon={
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M6.5 6.5h11M6.5 17.5h11M4 12h16" strokeLinecap="round" />
-                </svg>
-              }
-            />
-          </div>
+        {/* ── Acties ── */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+          {[
+            { href: '/sport/genereer', label: 'Nieuw schema', sub: 'AI-gegenereerd', icon: <Sparkles size={18} />, kleur: '#10B981' },
+            { href: '/sport/voortgang', label: 'Voortgang', sub: 'Statistieken', icon: <TrendingUp size={18} />, kleur: '#8B5CF6' },
+            { href: '/sport/oefeningen', label: 'Oefeningen', sub: 'Bibliotheek', icon: <Dumbbell size={18} />, kleur: '#F97316' },
+            { href: '/sport/training', label: 'Training starten', sub: 'Direct beginnen', icon: <Zap size={18} />, kleur: '#EF4444' },
+          ].map(({ href, label, sub, icon, kleur }) => (
+            <Link key={href} href={href} style={{ textDecoration: 'none' }}>
+              <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 16, padding: '16px 14px', display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{ width: 38, height: 38, borderRadius: 11, background: kleur + '15', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: kleur }}>
+                  {icon}
+                </div>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-1)' }}>{label}</div>
+                  <div style={{ fontSize: 11, color: 'var(--text-4)' }}>{sub}</div>
+                </div>
+              </div>
+            </Link>
+          ))}
         </div>
 
       </div>
