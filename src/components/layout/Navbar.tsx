@@ -169,9 +169,14 @@ function SidebarContent({
           letterSpacing: '0.08em',
           textTransform: 'uppercase',
           color: 'var(--text-4)',
-          margin: '3px 0 8px 0',
+          margin: '3px 0 12px 0',
         }}>Welzijn &amp; Vitaliteit</p>
-        <WeekRingen size={20} />
+        <div style={{ marginBottom: 4 }}>
+          <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--text-4)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+            Week voortgang
+          </span>
+        </div>
+        <WeekRingen size={28} />
       </div>
 
       {/* Nav */}
@@ -562,9 +567,6 @@ export default function Navbar() {
           color: 'var(--mf-green)',
         }}>MentaForce</span>
 
-        {/* Week voortgang rings */}
-        <WeekRingen size={22} />
-
         <button
           onClick={() => setOpenMenu((o) => !o)}
           aria-label={openMenu ? 'Menu sluiten' : 'Menu openen'}
@@ -595,6 +597,30 @@ export default function Navbar() {
             )}
           </svg>
         </button>
+      </div>
+
+      {/* Mobile week-progress balk */}
+      <div
+        className="mf-topbar"
+        style={{
+          position: 'fixed',
+          top: 52,
+          left: 0,
+          right: 0,
+          height: 76,
+          background: 'var(--bg-card)',
+          borderBottom: '1px solid var(--border)',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          padding: '0 16px',
+          zIndex: 29,
+          gap: 4,
+        }}
+      >
+        <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-4)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+          Week voortgang
+        </span>
+        <WeekRingen size={34} />
       </div>
 
       {/* Mobile slide-over */}

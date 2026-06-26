@@ -170,25 +170,24 @@ export default function WeekRingen({ size = 26 }: { size?: number }) {
   }, [])
 
   const cx = size / 2, cy = size / 2
-  const R  = size / 2 - 1.5   // outer radius
-  const r  = size / 2 - R + 2 // inner radius (donut gat ~3px)
-  const vandaag = dagNL(0)
+  const R  = size / 2 - 2      // outer radius
+  const r  = Math.max(2, size * 0.14) // inner donut hole
+  const vandaag  = dagNL(0)
+  const labelSz  = Math.max(7, size * 0.26)
+  const gap      = Math.max(4, size * 0.16)
 
   return (
-    <div style={{ display: 'flex', alignItems: 'flex-end', gap: 4 }}>
+    <div style={{ display: 'flex', alignItems: 'flex-end', gap }}>
       {dagen.map(({ datum, gedaan }) => {
         const isVandaag = datum === vandaag
         const daglabel  = weekdagNaam(datum)
         return (
-          <div key={datum} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+          <div key={datum} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
             <svg
               width={size}
               height={size}
               viewBox={`0 0 ${size} ${size}`}
-              style={{
-                display: 'block',
-                filter: isVandaag ? 'drop-shadow(0 0 3px rgba(255,255,255,0.15))' : undefined,
-              }}
+              style={{ display: 'block' }}
             >
               {ACTIVITEITEN.map(({ key, kleur }, i) => {
                 const vol = gedaan.has(key)
@@ -197,25 +196,25 @@ export default function WeekRingen({ size = 26 }: { size?: number }) {
                     key={key}
                     d={segmentPad(i, cx, cy, R, r)}
                     fill={kleur}
-                    opacity={vol ? 1 : 0.12}
+                    opacity={vol ? 1 : 0.13}
                   />
                 )
               })}
-              {/* Vandaag: subtiele ring eromheen */}
+              {/* Vandaag: witte ring */}
               {isVandaag && (
                 <circle
-                  cx={cx} cy={cy} r={R + 1}
+                  cx={cx} cy={cy} r={R + 1.5}
                   fill="none"
-                  stroke="var(--text-1)"
-                  strokeWidth={0.8}
-                  opacity={0.2}
+                  stroke="var(--mf-green)"
+                  strokeWidth={1.5}
+                  opacity={0.7}
                 />
               )}
             </svg>
             <span style={{
-              fontSize: 6.5,
-              fontWeight: isVandaag ? 700 : 400,
-              color: isVandaag ? 'var(--text-2)' : 'var(--text-4)',
+              fontSize: labelSz,
+              fontWeight: isVandaag ? 800 : 500,
+              color: isVandaag ? 'var(--mf-green)' : 'var(--text-4)',
               lineHeight: 1,
             }}>
               {daglabel}

@@ -551,8 +551,8 @@ a:focus:not(:focus-visible) {
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --safe-left:   env(safe-area-inset-left,   0px);
   --safe-right:  env(safe-area-inset-right,  0px);
-  /* Hoogte van de mobiele topbar incl. status bar */
-  --topbar-h: calc(52px + var(--safe-top));
+  /* Hoogte van de mobiele topbar incl. status bar + week-progress balk */
+  --topbar-h: calc(52px + 76px + var(--safe-top));
 }
 
 .mf-safe-top {
