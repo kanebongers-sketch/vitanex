@@ -4,6 +4,16 @@ import { useState, useEffect } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
+import { CATEGORIEEN } from '@/lib/categorie-nav'
+
+// Een categorie-tab blijft actief als je op een van zijn onderdelen zit
+// (bijv. "Welzijn" oplichten terwijl je op /stemming bent).
+function categorieActief(pathname: string, href: string): boolean {
+  const sleutel = href.slice(1) as keyof typeof CATEGORIEEN
+  const cat = CATEGORIEEN[sleutel]
+  if (!cat) return false
+  return cat.items.some((i) => pathname === i.href || pathname.startsWith(i.href + '/'))
+}
 
 export const SIDEBAR_W = 240
 
@@ -129,46 +139,19 @@ const TOP_ITEMS: TopItem[] = [
     key: 'welzijn',
     label: 'Welzijn',
     icon: <IconHeart />,
-    defaultOpen: true,
-    items: [
-      { href: '/stemming',          label: 'Stemming'          },
-      { href: '/slaap',             label: 'Slaap'             },
-      { href: '/stress',            label: 'Stress'            },
-      { href: '/werkgeluk',         label: 'Werkgeluk'         },
-      { href: '/psych-veiligheid',  label: 'Psych. veiligheid' },
-      { href: '/inzichten',         label: 'Inzichten'         },
-      { href: '/patronen',          label: 'Mijn patronen'     },
-      { href: '/rapport',           label: 'Rapport'           },
-      { href: '/stemming-kalender', label: 'Stemming kalender' },
-    ],
+    href: '/welzijn',
   },
   {
     key: 'actief',
     label: 'Actief',
     icon: <IconActivity />,
-    items: [
-      { href: '/sport',      label: 'Sport'      },
-      { href: '/voeding',    label: 'Voeding'    },
-      { href: '/water',      label: 'Water'       },
-      { href: '/gezondheid', label: 'Gezondheid'  },
-      { href: '/focus',      label: 'Focus'       },
-    ],
+    href: '/actief',
   },
   {
     key: 'groeien',
     label: 'Groeien',
     icon: <IconLayers />,
-    items: [
-      { href: '/coach',        label: 'AI Coach'    },
-      { href: '/doelen',       label: 'Doelen'       },
-      { href: '/journal',      label: 'Journal'      },
-      { href: '/meditatie',    label: 'Meditatie'    },
-      { href: '/ademhaling',   label: 'Ademhaling'   },
-      { href: '/dankbaarheid', label: 'Dankbaarheid' },
-      { href: '/reflectie',    label: 'Reflectie'    },
-      { href: '/groeiplan',    label: 'Groeiplan'    },
-      { href: '/disc',         label: 'DISC'          },
-    ],
+    href: '/groeien',
   },
   {
     key: 'berichten',
@@ -180,14 +163,7 @@ const TOP_ITEMS: TopItem[] = [
     key: 'profiel',
     label: 'Profiel',
     icon: <IconUser />,
-    items: [
-      { href: '/mijn-gesprekken', label: 'Mijn gesprekken' },
-      { href: '/achievements',  label: 'Achievements' },
-      { href: '/voortgang',     label: 'Voortgang'    },
-      { href: '/instellingen',  label: 'Instellingen' },
-      { href: '/koppelingen',   label: 'Koppelingen'  },
-      { href: '/mijn-rapport',  label: 'Mijn rapport' },
-    ],
+    href: '/profiel',
   },
   {
     key: 'content',
@@ -344,7 +320,7 @@ function SidebarContent({
       <nav style={{ flex: 1, overflowY: 'auto', paddingTop: 8, paddingBottom: 8, scrollbarWidth: 'none' }}>
         {zichtbareTopItems.map((item) => {
           if (item.href) {
-            const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
+            const isActive = pathname === item.href || pathname.startsWith(item.href + '/') || categorieActief(pathname, item.href)
             return (
               <Link
                 key={item.key}
@@ -559,10 +535,10 @@ function SidebarContent({
 /* ── Mobile bottom bar tabs ── */
 const MOBILE_TABS = [
   { key: 'vandaag', label: 'Vandaag', icon: <IconCalendar size={20} />, href: '/home' },
-  { key: 'welzijn', label: 'Welzijn', icon: <IconHeart size={20} />,    href: '/stemming' },
-  { key: 'actief',  label: 'Actief',  icon: <IconActivity size={20} />, href: '/sport'   },
-  { key: 'groeien', label: 'Groeien', icon: <IconLayers size={20} />,   href: '/coach'   },
-  { key: 'profiel', label: 'Profiel', icon: <IconUser size={20} />,     href: '/voortgang'},
+  { key: 'welzijn', label: 'Welzijn', icon: <IconHeart size={20} />,    href: '/welzijn' },
+  { key: 'actief',  label: 'Actief',  icon: <IconActivity size={20} />, href: '/actief'  },
+  { key: 'groeien', label: 'Groeien', icon: <IconLayers size={20} />,   href: '/groeien' },
+  { key: 'profiel', label: 'Profiel', icon: <IconUser size={20} />,     href: '/profiel' },
 ]
 
 /* ── Main Navbar ── */
@@ -781,7 +757,7 @@ export default function Navbar() {
         }}
       >
         {MOBILE_TABS.map((tab) => {
-          const isActive = pathname === tab.href || pathname.startsWith(tab.href + '/')
+          const isActive = pathname === tab.href || pathname.startsWith(tab.href + '/') || categorieActief(pathname, tab.href)
           return (
             <Link
               key={tab.key}
