@@ -400,6 +400,7 @@ export async function POST(req: NextRequest) {
         sessies_per_week: body.sessies_per_week,
         schema_json: finaalSchema,
         ai_gegenereerd: true,
+        actief: true,
       })
       .select("id")
       .single()

@@ -188,8 +188,9 @@ function GezondheidBadge({ score }: { score: number }) {
 
 export default function VoedingPage() {
   const router = useRouter()
-  const fileInputRef   = useRef<HTMLInputElement>(null)
-  const cameraInputRef = useRef<HTMLInputElement>(null)
+  const fileInputRef    = useRef<HTMLInputElement>(null)
+  const cameraInputRef  = useRef<HTMLInputElement>(null)
+  const barcodeInputRef = useRef<HTMLInputElement>(null)
 
   const [scherm, setScherm]       = useState<Scherm>('overzicht')
   const [logs, setLogs]           = useState<VoedingLog[]>([])
@@ -313,6 +314,40 @@ export default function VoedingPage() {
     const file = e.target.files?.[0]
     if (file) verwerkFoto(file)
     e.target.value = ''
+  }
+
+  // ── Barcode scan ─────────────────────────────────────────────────────────────
+
+  const onBarcodeInput = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file) return
+
+    // BarcodeDetector is available in Chrome/Safari on modern devices
+    if (!('BarcodeDetector' in window)) {
+      // Fallback: open search so user can type barcode manually
+      setZoekQuery(''); setZoekResultaten([]); setScherm('zoeken')
+      return
+    }
+
+    try {
+      const bitmap = await createImageBitmap(file)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const detector = new (window as any).BarcodeDetector({ formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e'] })
+      const codes: Array<{ rawValue: string }> = await detector.detect(bitmap)
+      if (codes.length > 0) {
+        const ean = codes[0].rawValue
+        setZoekQuery(ean)
+        setZoekResultaten([])
+        setScherm('zoeken')
+        // trigger search after state settles
+        setTimeout(() => zoekVoeding(ean), 50)
+      } else {
+        setZoekQuery(''); setZoekResultaten([]); setScherm('zoeken')
+      }
+    } catch {
+      setZoekQuery(''); setZoekResultaten([]); setScherm('zoeken')
+    }
   }
 
   // ── Opslaan ──────────────────────────────────────────────────────────────────
@@ -462,8 +497,9 @@ export default function VoedingPage() {
   return (
     <div className="mf-mesh-bg" style={{ background: 'var(--bg-app)', minHeight: '100vh' }}>
       <Navbar />
-      <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" onChange={onFotoInput} style={{ display: 'none' }} />
-      <input ref={fileInputRef}   type="file" accept="image/*"                        onChange={onFotoInput} style={{ display: 'none' }} />
+      <input ref={cameraInputRef}  type="file" accept="image/*" capture="environment" onChange={onFotoInput}    style={{ display: 'none' }} />
+      <input ref={fileInputRef}    type="file" accept="image/*"                        onChange={onFotoInput}    style={{ display: 'none' }} />
+      <input ref={barcodeInputRef} type="file" accept="image/*" capture="environment" onChange={onBarcodeInput} style={{ display: 'none' }} />
 
       <div style={{ maxWidth: 900, margin: '0 auto', padding: '24px 16px 100px' }}>
 
@@ -547,7 +583,7 @@ export default function VoedingPage() {
             </div>
 
             {/* ── Actie knoppen ── */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 16 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 16 }}>
               {/* Zoeken */}
               <button onClick={() => { setZoekQuery(''); setZoekResultaten([]); setScherm('zoeken') }}
                 style={{ background: 'linear-gradient(135deg, #185FA5, #2563EB)', color: 'white', border: 'none',
@@ -557,7 +593,7 @@ export default function VoedingPage() {
                 <div style={{ fontSize: 12, fontWeight: 800 }}>Zoeken</div>
                 <div style={{ fontSize: 10, opacity: 0.8, marginTop: 1 }}>3M+ producten</div>
               </button>
-              {/* Foto */}
+              {/* Foto AI */}
               <button onClick={() => cameraInputRef.current?.click()}
                 style={{ background: 'linear-gradient(135deg, #1D9E75, #059669)', color: 'white', border: 'none',
                   borderRadius: 16, padding: '14px 8px', cursor: 'pointer', textAlign: 'center',
@@ -566,19 +602,23 @@ export default function VoedingPage() {
                 <div style={{ fontSize: 12, fontWeight: 800 }}>Foto AI</div>
                 <div style={{ fontSize: 10, opacity: 0.8, marginTop: 1 }}>Auto-analyse</div>
               </button>
-              {/* Manueel + galerij */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                <button onClick={() => fileInputRef.current?.click()}
-                  style={{ flex: 1, background: 'var(--bg-card)', color: 'var(--text-2)', border: '1.5px solid var(--border)', borderRadius: 12, padding: '8px 6px', cursor: 'pointer', textAlign: 'center' }}>
-                  <div style={{ fontSize: 16 }}>🖼️</div>
-                  <div style={{ fontSize: 10, fontWeight: 700, marginTop: 2 }}>Galerij</div>
-                </button>
-                <button onClick={() => { resetForm(); setScherm('manueel') }}
-                  style={{ flex: 1, background: 'var(--bg-card)', color: 'var(--text-2)', border: '1.5px solid var(--border)', borderRadius: 12, padding: '8px 6px', cursor: 'pointer', textAlign: 'center' }}>
-                  <div style={{ fontSize: 16 }}>✏️</div>
-                  <div style={{ fontSize: 10, fontWeight: 700, marginTop: 2 }}>Manueel</div>
-                </button>
-              </div>
+              {/* Barcode */}
+              <button onClick={() => barcodeInputRef.current?.click()}
+                style={{ background: 'linear-gradient(135deg, #7C3AED, #6D28D9)', color: 'white', border: 'none',
+                  borderRadius: 16, padding: '14px 8px', cursor: 'pointer', textAlign: 'center',
+                  boxShadow: '0 4px 14px rgba(124,58,237,0.3)' }}>
+                <div style={{ fontSize: 24, marginBottom: 4 }}>〄</div>
+                <div style={{ fontSize: 12, fontWeight: 800 }}>Barcode</div>
+                <div style={{ fontSize: 10, opacity: 0.8, marginTop: 1 }}>Scan product</div>
+              </button>
+              {/* Manueel */}
+              <button onClick={() => { resetForm(); setScherm('manueel') }}
+                style={{ background: 'var(--bg-card)', color: 'var(--text-2)', border: '1.5px solid var(--border)',
+                  borderRadius: 16, padding: '14px 8px', cursor: 'pointer', textAlign: 'center' }}>
+                <div style={{ fontSize: 24, marginBottom: 4 }}>✏️</div>
+                <div style={{ fontSize: 12, fontWeight: 700 }}>Manueel</div>
+                <div style={{ fontSize: 10, opacity: 0.6, marginTop: 1 }}>Zelf invoeren</div>
+              </button>
             </div>
 
             {/* ── AI Voedingscoach ── */}
