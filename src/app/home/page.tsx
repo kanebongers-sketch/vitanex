@@ -11,7 +11,7 @@ import Navbar from '@/components/layout/Navbar'
 import {
   Smile, Moon, Droplets, Dumbbell, Leaf, Heart,
   CheckCircle2, Circle, BarChart2, ChevronRight,
-  Utensils, Flame,
+  Utensils, Flame, Footprints,
 } from 'lucide-react'
 
 /* ── helpers ── */
@@ -89,6 +89,7 @@ const CHECKLIST_ICONEN: Record<string, React.ElementType> = {
   sport:        Dumbbell,
   meditatie:    Leaf,
   dankbaarheid: Heart,
+  stappen:      Footprints,
 }
 
 interface CheckItem { key: string; label: string; href: string; gedaan: boolean }
@@ -118,6 +119,7 @@ export default function DashboardPage() {
     { key: 'sport',        label: 'Bewegen',      href: '/sport',        gedaan: false },
     { key: 'meditatie',    label: 'Meditatie',    href: '/meditatie',    gedaan: false },
     { key: 'dankbaarheid', label: 'Dankbaarheid', href: '/dankbaarheid', gedaan: false },
+    { key: 'stappen',      label: 'Stappen',      href: '/stappen',      gedaan: false },
   ])
 
   useEffect(() => {

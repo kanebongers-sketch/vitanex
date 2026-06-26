@@ -10,6 +10,9 @@ import {
   Dumbbell, Flame, Clock, ChevronRight, Sparkles, Play,
   TrendingUp, Calendar, BarChart2, Zap,
 } from 'lucide-react'
+import { getActiviteit } from '@/lib/activiteiten'
+
+const ACT = getActiviteit('fysiek')
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -131,10 +134,14 @@ export default function SportPagina() {
 
         {/* ── Header ── */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
-          <div style={{ width: 44, height: 44, borderRadius: 14, background: 'rgba(16,185,129,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Dumbbell size={22} strokeWidth={1.8} style={{ color: 'var(--mf-green)' }} />
+          <div style={{ width: 44, height: 44, borderRadius: 14, background: `${ACT.kleur}1A`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Dumbbell size={22} strokeWidth={1.8} style={{ color: ACT.kleur }} />
           </div>
           <div>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 3 }}>
+              <span style={{ width: 8, height: 8, borderRadius: '50%', background: ACT.kleur, flexShrink: 0 }} />
+              <span style={{ fontSize: 10, fontWeight: 700, color: ACT.kleur, textTransform: 'uppercase', letterSpacing: '0.08em' }}>{ACT.label}</span>
+            </span>
             <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', margin: 0, letterSpacing: '-0.03em' }}>Sport & Fitness</h1>
             <p style={{ fontSize: 13, color: 'var(--text-4)', margin: 0 }}>Jouw trainingen deze week</p>
           </div>

@@ -79,7 +79,7 @@ export async function GET(req: NextRequest) {
   const uur = huidigUurNL()
   const suggestie = bepaalSuggestie(uur)
 
-  let waterResult, stemmingResult, slaapResult, sportResult, focusResult, dankbaarheidResult, meditatieMorgenResult
+  let waterResult, stemmingResult, slaapResult, sportResult, focusResult, dankbaarheidResult, meditatieMorgenResult, stappenResult
 
   try {
     ;[
@@ -90,6 +90,7 @@ export async function GET(req: NextRequest) {
       focusResult,
       dankbaarheidResult,
       meditatieMorgenResult,
+      stappenResult,
     ] = await Promise.all([
       // water vandaag
       admin
@@ -145,6 +146,14 @@ export async function GET(req: NextRequest) {
         .eq('user_id', user.id)
         .gte('aangemaakt_op', dagstartUtc)
         .limit(10),
+
+      // stappen vandaag
+      admin
+        .from('dagmetingen')
+        .select('stappen')
+        .eq('user_id', user.id)
+        .eq('datum', vandaag)
+        .limit(1),
     ])
   } catch (err) {
     console.error('[api/vandaag] DB fout:', err)
@@ -201,6 +210,10 @@ export async function GET(req: NextRequest) {
 
   // Dankbaarheid
   const dankbaarheid_gedaan = (dankbaarheidResult.data?.length ?? 0) > 0
+
+  // Stappen
+  const stappen_vandaag = stappenResult.data?.[0]?.stappen ?? 0
+  const stappen_gedaan = stappen_vandaag >= 8000
 
   // Meditatie/ademhaling
   const meditatie_seconden = (meditatieMorgenResult.data ?? []).reduce(
@@ -265,6 +278,16 @@ export async function GET(req: NextRequest) {
       status: dankbaarheid_gedaan ? 'gedaan' : 'open',
       detail: dankbaarheid_gedaan ? 'Geschreven' : 'Schrijf 3 dingen',
       url: '/dankbaarheid',
+    },
+    {
+      id: 'stappen',
+      icoon: '👣',
+      titel: 'Dagelijkse stappen',
+      status: stappen_gedaan ? 'gedaan' : 'open',
+      detail: stappen_vandaag > 0
+        ? `${stappen_vandaag.toLocaleString('nl-NL')} stappen${stappen_gedaan ? '' : ' (doel: 8.000)'}`
+        : 'Log je stappen',
+      url: '/stappen',
     },
   ]
 

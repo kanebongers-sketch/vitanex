@@ -2,18 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
-
-// ── Activiteiten (vaste volgorde = segmenten in de taart) ──────────────────
-const ACTIVITEITEN = [
-  { key: 'mentaal',      kleur: '#8B5CF6' }, // violet   — stemming
-  { key: 'fysiek',       kleur: '#10B981' }, // groen    — sport
-  { key: 'water',        kleur: '#06B6D4' }, // cyaan    — water
-  { key: 'rust',         kleur: '#6366F1' }, // indigo   — slaap
-  { key: 'meditatie',    kleur: '#F59E0B' }, // amber    — ademhaling
-  { key: 'dankbaarheid', kleur: '#F97316' }, // oranje   — dankbaarheid
-] as const
-
-type AKey = typeof ACTIVITEITEN[number]['key']
+import { ACTIVITEITEN } from '@/lib/activiteiten'
+import type { ActiviteitKey as AKey } from '@/lib/activiteiten'
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
