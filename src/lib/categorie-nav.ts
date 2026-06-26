@@ -4,6 +4,7 @@
 export interface CategorieItem {
   href: string
   label: string
+  icoon?: string
 }
 
 export interface CategorieDef {
@@ -11,6 +12,7 @@ export interface CategorieDef {
   titel: string
   intro: string
   kleur: string
+  icoon: string
   items: CategorieItem[]
 }
 
@@ -20,16 +22,17 @@ export const CATEGORIEEN: Record<'welzijn' | 'actief' | 'groeien' | 'profiel', C
     titel: 'Welzijn',
     intro: 'Hoe gaat het echt met je? Log je gevoel en ontdek je patronen.',
     kleur: 'var(--mf-green)',
+    icoon: 'heart-pulse',
     items: [
-      { href: '/stemming',          label: 'Stemming'          },
-      { href: '/slaap',             label: 'Slaap'             },
-      { href: '/stress',            label: 'Stress'            },
-      { href: '/werkgeluk',         label: 'Werkgeluk'         },
-      { href: '/psych-veiligheid',  label: 'Psych. veiligheid' },
-      { href: '/inzichten',         label: 'Inzichten'         },
-      { href: '/patronen',          label: 'Mijn patronen'     },
-      { href: '/rapport',           label: 'Rapport'           },
-      { href: '/stemming-kalender', label: 'Stemming kalender' },
+      { href: '/stemming',          label: 'Stemming',          icoon: 'smile'          },
+      { href: '/slaap',             label: 'Slaap',             icoon: 'moon'           },
+      { href: '/stress',            label: 'Stress',            icoon: 'zap'            },
+      { href: '/werkgeluk',         label: 'Werkgeluk',         icoon: 'sun'            },
+      { href: '/psych-veiligheid',  label: 'Psych. veiligheid', icoon: 'shield'         },
+      { href: '/inzichten',         label: 'Inzichten',         icoon: 'sparkles'       },
+      { href: '/patronen',          label: 'Mijn patronen',     icoon: 'git-branch'     },
+      { href: '/rapport',           label: 'Rapport',           icoon: 'file-text'      },
+      { href: '/stemming-kalender', label: 'Stemming kalender', icoon: 'calendar'       },
     ],
   },
   actief: {
@@ -37,12 +40,13 @@ export const CATEGORIEEN: Record<'welzijn' | 'actief' | 'groeien' | 'profiel', C
     titel: 'Actief',
     intro: 'Je lichaam in beweging — sport, voeding, water en focus.',
     kleur: 'var(--mf-orange)',
+    icoon: 'activity',
     items: [
-      { href: '/sport',      label: 'Sport'      },
-      { href: '/voeding',    label: 'Voeding'    },
-      { href: '/water',      label: 'Water'      },
-      { href: '/gezondheid', label: 'Gezondheid' },
-      { href: '/focus',      label: 'Focus'      },
+      { href: '/sport',      label: 'Sport',      icoon: 'dumbbell'   },
+      { href: '/voeding',    label: 'Voeding',    icoon: 'apple'      },
+      { href: '/water',      label: 'Water',      icoon: 'droplets'   },
+      { href: '/gezondheid', label: 'Gezondheid', icoon: 'heart'      },
+      { href: '/focus',      label: 'Focus',      icoon: 'target'     },
     ],
   },
   groeien: {
@@ -50,16 +54,17 @@ export const CATEGORIEEN: Record<'welzijn' | 'actief' | 'groeien' | 'profiel', C
     titel: 'Groeien',
     intro: 'Werk aan jezelf — met je coach, je doelen en rustmomenten.',
     kleur: 'var(--mf-purple)',
+    icoon: 'layers',
     items: [
-      { href: '/coach',        label: 'AI Coach'     },
-      { href: '/doelen',       label: 'Doelen'       },
-      { href: '/journal',      label: 'Journal'      },
-      { href: '/meditatie',    label: 'Meditatie'    },
-      { href: '/ademhaling',   label: 'Ademhaling'   },
-      { href: '/dankbaarheid', label: 'Dankbaarheid' },
-      { href: '/reflectie',    label: 'Reflectie'    },
-      { href: '/groeiplan',    label: 'Groeiplan'    },
-      { href: '/disc',         label: 'DISC'         },
+      { href: '/coach',        label: 'AI Coach',     icoon: 'bot'            },
+      { href: '/doelen',       label: 'Doelen',       icoon: 'flag'           },
+      { href: '/journal',      label: 'Journal',      icoon: 'notebook-pen'   },
+      { href: '/meditatie',    label: 'Meditatie',    icoon: 'leaf'           },
+      { href: '/ademhaling',   label: 'Ademhaling',   icoon: 'wind'           },
+      { href: '/dankbaarheid', label: 'Dankbaarheid', icoon: 'hand-heart'     },
+      { href: '/reflectie',    label: 'Reflectie',    icoon: 'telescope'      },
+      { href: '/groeiplan',    label: 'Groeiplan',    icoon: 'trending-up'    },
+      { href: '/disc',         label: 'DISC',         icoon: 'pie-chart'      },
     ],
   },
   profiel: {
@@ -67,13 +72,14 @@ export const CATEGORIEEN: Record<'welzijn' | 'actief' | 'groeien' | 'profiel', C
     titel: 'Profiel',
     intro: 'Jouw account, voortgang en instellingen op één plek.',
     kleur: 'var(--mf-blue)',
+    icoon: 'user',
     items: [
-      { href: '/mijn-gesprekken', label: 'Mijn gesprekken' },
-      { href: '/achievements',    label: 'Achievements'    },
-      { href: '/voortgang',       label: 'Voortgang'       },
-      { href: '/koppelingen',     label: 'Koppelingen'     },
-      { href: '/mijn-rapport',    label: 'Mijn rapport'    },
-      { href: '/instellingen',    label: 'Instellingen'    },
+      { href: '/mijn-gesprekken', label: 'Mijn gesprekken', icoon: 'message-circle'  },
+      { href: '/achievements',    label: 'Achievements',    icoon: 'trophy'          },
+      { href: '/voortgang',       label: 'Voortgang',       icoon: 'bar-chart-2'     },
+      { href: '/koppelingen',     label: 'Koppelingen',     icoon: 'link'            },
+      { href: '/mijn-rapport',    label: 'Mijn rapport',    icoon: 'file-bar-chart'  },
+      { href: '/instellingen',    label: 'Instellingen',    icoon: 'settings'        },
     ],
   },
 }

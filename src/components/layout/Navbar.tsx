@@ -5,6 +5,13 @@ import { usePathname, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { CATEGORIEEN } from '@/lib/categorie-nav'
+import {
+  CalendarDays, HeartPulse, Activity, Layers, User, Clapperboard,
+  MessageSquare, Building2, Users, BarChart3, Star, Trophy,
+  LayoutDashboard, Calendar, Map, Lightbulb,
+  LogOut, ChevronRight, Plus, CheckCircle2,
+} from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 
 // Een categorie-tab blijft actief als je op een van zijn onderdelen zit
 // (bijv. "Welzijn" oplichten terwijl je op /stemming bent).
@@ -26,102 +33,13 @@ export function schakelPortaal(mode: ViewMode) {
   }
 }
 
-/* ── SVG Icons ── */
-function Svg({ children, size = 16 }: { children: React.ReactNode; size?: number }) {
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      style={{ flexShrink: 0 }}
-    >
-      {children}
-    </svg>
-  )
-}
-
-const IconCalendar = ({ size }: { size?: number }) => (
-  <Svg size={size}>
-    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-    <line x1="16" y1="2" x2="16" y2="6" />
-    <line x1="8" y1="2" x2="8" y2="6" />
-    <line x1="3" y1="10" x2="21" y2="10" />
-  </Svg>
-)
-
-const IconHeart = ({ size }: { size?: number }) => (
-  <Svg size={size}>
-    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-  </Svg>
-)
-
-const IconActivity = ({ size }: { size?: number }) => (
-  <Svg size={size}>
-    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-  </Svg>
-)
-
-const IconLayers = ({ size }: { size?: number }) => (
-  <Svg size={size}>
-    <polygon points="12 2 2 7 12 12 22 7 12 2" />
-    <polyline points="2 17 12 22 22 17" />
-    <polyline points="2 12 12 17 22 12" />
-  </Svg>
-)
-
-const IconUser = ({ size }: { size?: number }) => (
-  <Svg size={size}>
-    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-    <circle cx="12" cy="7" r="4" />
-  </Svg>
-)
-
-const IconFilm = ({ size }: { size?: number }) => (
-  <Svg size={size}>
-    <polygon points="23 7 16 12 23 17 23 7" />
-    <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
-  </Svg>
-)
-
-const IconBuilding = ({ size }: { size?: number }) => (
-  <Svg size={size}>
-    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-    <polyline points="9 22 9 12 15 12 15 22" />
-  </Svg>
-)
-
-const IconCheck = ({ size }: { size?: number }) => (
-  <Svg size={size}>
-    <polyline points="20 6 9 17 4 12" />
-  </Svg>
-)
-
-const IconLogOut = ({ size }: { size?: number }) => (
-  <Svg size={size}>
-    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-    <polyline points="16 17 21 12 16 7" />
-    <line x1="21" y1="12" x2="9" y2="12" />
-  </Svg>
-)
-
-const IconMessage = ({ size }: { size?: number }) => (
-  <Svg size={size}>
-    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8z" />
-  </Svg>
-)
-
 /* ── Types ── */
-type NavItem = { href: string; label: string }
+type NavItem = { href: string; label: string; icon?: LucideIcon }
 
 type TopItem = {
   key: string
   label: string
-  icon: React.ReactNode
+  icon: LucideIcon
   href?: string
   items?: NavItem[]
   defaultOpen?: boolean
@@ -129,97 +47,46 @@ type TopItem = {
 
 /* ── Navigatiestructuur ── */
 const TOP_ITEMS: TopItem[] = [
-  {
-    key: 'vandaag',
-    label: 'Vandaag',
-    icon: <IconCalendar />,
-    href: '/home',
-  },
-  {
-    key: 'welzijn',
-    label: 'Welzijn',
-    icon: <IconHeart />,
-    href: '/welzijn',
-  },
-  {
-    key: 'actief',
-    label: 'Actief',
-    icon: <IconActivity />,
-    href: '/actief',
-  },
-  {
-    key: 'groeien',
-    label: 'Groeien',
-    icon: <IconLayers />,
-    href: '/groeien',
-  },
-  {
-    key: 'berichten',
-    label: 'Berichten',
-    icon: <IconMessage />,
-    href: '/chat',
-  },
-  {
-    key: 'profiel',
-    label: 'Profiel',
-    icon: <IconUser />,
-    href: '/profiel',
-  },
+  { key: 'vandaag',   label: 'Dashboard', icon: CalendarDays,  href: '/home'    },
+  { key: 'welzijn',   label: 'Welzijn',   icon: HeartPulse,    href: '/welzijn' },
+  { key: 'actief',    label: 'Actief',    icon: Activity,      href: '/actief'  },
+  { key: 'groeien',   label: 'Groeien',   icon: Layers,        href: '/groeien' },
+  { key: 'berichten', label: 'Berichten', icon: MessageSquare, href: '/chat'    },
+  { key: 'profiel',   label: 'Profiel',   icon: User,          href: '/profiel' },
   {
     key: 'content',
     label: 'Content OS',
-    icon: <IconFilm />,
+    icon: Clapperboard,
     items: [
-      { href: '/content',           label: 'Dagelijkse Briefing' },
-      { href: '/content/kalender',  label: 'Weekkalender'        },
-      { href: '/content/strategie', label: 'Strategie'           },
-      { href: '/content/ideeen',    label: 'Ideeën Bank'         },
+      { href: '/content',           label: 'Dagelijkse Briefing', icon: LayoutDashboard },
+      { href: '/content/kalender',  label: 'Weekkalender',        icon: Calendar        },
+      { href: '/content/strategie', label: 'Strategie',           icon: Map             },
+      { href: '/content/ideeen',    label: 'Ideeën Bank',         icon: Lightbulb       },
     ],
   },
 ]
 
 const HR_ITEMS: NavItem[] = [
-  { href: '/hr/portaal',      label: 'HR Portaal'   },
-  { href: '/hr/team',         label: 'Team'          },
-  { href: '/hr/analytics',    label: 'Analytics'     },
-  { href: '/hr/pulse-survey', label: 'Pulse Survey'  },
-  { href: '/hr/enps',         label: 'eNPS'          },
-  { href: '/hr/uitdagingen',  label: 'Uitdagingen'   },
+  { href: '/hr/portaal',      label: 'HR Portaal',  icon: Building2 },
+  { href: '/hr/team',         label: 'Team',        icon: Users     },
+  { href: '/hr/analytics',    label: 'Analytics',   icon: BarChart3 },
+  { href: '/hr/pulse-survey', label: 'Pulse Survey',icon: Activity  },
+  { href: '/hr/enps',         label: 'eNPS',        icon: Star      },
+  { href: '/hr/uitdagingen',  label: 'Uitdagingen', icon: Trophy    },
 ]
-
-/* ── Chevron ── */
-function Chevron({ open }: { open: boolean }) {
-  return (
-    <svg
-      width="12"
-      height="12"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      style={{
-        transform: open ? 'rotate(90deg)' : 'rotate(0deg)',
-        transition: 'transform 0.18s ease',
-        flexShrink: 0,
-      }}
-    >
-      <path d="M9 18l6-6-6-6" />
-    </svg>
-  )
-}
 
 /* ── NavLink ── */
 function NavLink({
   href,
   label,
+  icon: Icon,
   pathname,
   indent,
   onClick,
 }: {
   href: string
   label: string
+  icon?: LucideIcon
   pathname: string
   indent?: boolean
   onClick?: () => void
@@ -233,35 +100,24 @@ function NavLink({
         display: 'flex',
         alignItems: 'center',
         gap: 8,
-        padding: indent ? '6px 12px 6px 36px' : '7px 12px',
+        padding: indent ? '6px 8px 6px 32px' : '7px 12px',
         fontSize: 13,
         color: isActive ? 'var(--mf-green)' : 'var(--text-3)',
         borderRadius: 7,
         margin: '1px 8px',
         textDecoration: 'none',
-        background: isActive ? 'var(--mf-green-light, #E1F5EE)' : 'transparent',
-        fontWeight: isActive ? 600 : 400,
+        background: isActive ? 'rgba(29,158,117,0.10)' : 'transparent',
+        fontWeight: isActive ? 500 : 400,
         transition: 'background 0.12s, color 0.12s',
-        position: 'relative',
       }}
       onMouseEnter={(e) => {
-        if (!isActive) (e.currentTarget as HTMLAnchorElement).style.background = 'var(--bg-subtle)'
+        if (!isActive) (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(128,128,128,0.07)'
       }}
       onMouseLeave={(e) => {
         if (!isActive) (e.currentTarget as HTMLAnchorElement).style.background = 'transparent'
       }}
     >
-      {indent && (
-        <span style={{
-          position: 'absolute',
-          left: 20,
-          width: 4,
-          height: 4,
-          borderRadius: '50%',
-          background: isActive ? 'var(--mf-green)' : 'var(--text-4)',
-          flexShrink: 0,
-        }} />
-      )}
+      {Icon && <Icon size={13} strokeWidth={isActive ? 2 : 1.7} style={{ flexShrink: 0, opacity: isActive ? 1 : 0.6 }} />}
       {label}
     </Link>
   )
@@ -319,6 +175,7 @@ function SidebarContent({
       {/* Nav */}
       <nav style={{ flex: 1, overflowY: 'auto', paddingTop: 8, paddingBottom: 8, scrollbarWidth: 'none' }}>
         {zichtbareTopItems.map((item) => {
+          const Icon = item.icon
           if (item.href) {
             const isActive = pathname === item.href || pathname.startsWith(item.href + '/') || categorieActief(pathname, item.href)
             return (
@@ -329,28 +186,27 @@ function SidebarContent({
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: 10,
-                  padding: '8px 16px',
-                  fontSize: 14,
-                  fontWeight: isActive ? 700 : 500,
-                  color: isActive ? 'var(--mf-green)' : 'var(--text-1)',
+                  gap: 9,
+                  padding: '7px 8px',
+                  fontSize: 13,
+                  fontWeight: isActive ? 600 : 500,
+                  color: isActive ? 'var(--mf-green)' : 'var(--text-2)',
                   borderRadius: 8,
-                  margin: '1px 8px',
+                  margin: '1px 6px',
                   textDecoration: 'none',
-                  background: isActive ? 'var(--mf-green-light, #E1F5EE)' : 'transparent',
+                  background: isActive ? 'rgba(29,158,117,0.10)' : 'transparent',
                   transition: 'background 0.12s, color 0.12s',
+                  letterSpacing: '-0.01em',
                 }}
                 onMouseEnter={(e) => {
-                  if (!isActive) (e.currentTarget as HTMLAnchorElement).style.background = 'var(--bg-subtle)'
+                  if (!isActive) (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(128,128,128,0.07)'
                 }}
                 onMouseLeave={(e) => {
                   if (!isActive) (e.currentTarget as HTMLAnchorElement).style.background = 'transparent'
                 }}
               >
-                <span style={{ color: isActive ? 'var(--mf-green)' : 'var(--text-3)', display: 'flex' }}>
-                  {item.icon}
-                </span>
-                <span>{item.label}</span>
+                <Icon size={15} strokeWidth={isActive ? 2 : 1.7} style={{ flexShrink: 0, opacity: isActive ? 1 : 0.7 }} />
+                {item.label}
               </Link>
             )
           }
@@ -361,41 +217,52 @@ function SidebarContent({
           ) ?? false
 
           return (
-            <div key={item.key} style={{ marginBottom: 2 }}>
+            <div key={item.key} style={{ marginBottom: 1 }}>
               <button
                 onClick={() => onToggleSection(item.key)}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
-                  padding: '8px 16px',
-                  width: '100%',
+                  padding: '7px 8px',
+                  width: 'calc(100% - 12px)',
                   background: 'none',
                   border: 'none',
-                  borderLeft: hasActiveChild ? '2px solid var(--mf-green)' : '2px solid transparent',
                   cursor: 'pointer',
-                  fontSize: 14,
-                  fontWeight: hasActiveChild ? 700 : 500,
-                  color: hasActiveChild ? 'var(--text-1)' : 'var(--text-2)',
+                  fontSize: 13,
+                  fontWeight: 500,
+                  color: hasActiveChild ? 'var(--mf-green)' : 'var(--text-2)',
                   borderRadius: 8,
-                  margin: '1px 8px',
-                  maxWidth: 'calc(100% - 16px)',
-                  transition: 'color 0.12s',
+                  margin: '1px 6px',
+                  transition: 'color 0.12s, background 0.12s',
+                  letterSpacing: '-0.01em',
+                }}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLButtonElement).style.background = 'rgba(128,128,128,0.07)'
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLButtonElement).style.background = 'none'
                 }}
               >
-                <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <span style={{ color: hasActiveChild ? 'var(--mf-green)' : 'var(--text-3)', display: 'flex' }}>
-                    {item.icon}
-                  </span>
-                  <span>{item.label}</span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+                  <Icon size={15} strokeWidth={hasActiveChild ? 2 : 1.7} style={{ flexShrink: 0, opacity: hasActiveChild ? 1 : 0.7 }} />
+                  {item.label}
                 </span>
-                <Chevron open={isOpen} />
+                <ChevronRight
+                  size={12}
+                  strokeWidth={2}
+                  style={{
+                    transform: isOpen ? 'rotate(90deg)' : 'rotate(0deg)',
+                    transition: 'transform 0.18s cubic-bezier(0.16,1,0.3,1)',
+                    opacity: 0.4,
+                  }}
+                />
               </button>
               <div
                 style={{
                   maxHeight: isOpen ? '600px' : '0px',
                   overflow: 'hidden',
-                  transition: 'max-height 0.2s ease',
+                  transition: 'max-height 0.22s cubic-bezier(0.16,1,0.3,1)',
                 }}
               >
                 {item.items?.map((sub) => (
@@ -403,6 +270,7 @@ function SidebarContent({
                     key={sub.href}
                     href={sub.href}
                     label={sub.label}
+                    icon={sub.icon}
                     pathname={pathname}
                     indent
                     onClick={onClose}
@@ -415,40 +283,52 @@ function SidebarContent({
 
         {/* HR sectie — conditioneel */}
         {isHrOrAdmin && (
-          <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--border)' }}>
+          <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--border)' }}>
             <button
               onClick={() => onToggleSection('hr')}
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                padding: '8px 16px',
-                width: '100%',
+                padding: '7px 8px',
+                width: 'calc(100% - 12px)',
                 background: 'none',
                 border: 'none',
-                borderLeft: '2px solid transparent',
                 cursor: 'pointer',
-                fontSize: 14,
+                fontSize: 13,
                 fontWeight: 500,
                 color: 'var(--text-2)',
                 borderRadius: 8,
-                margin: '1px 8px',
-                maxWidth: 'calc(100% - 16px)',
+                margin: '1px 6px',
+                transition: 'background 0.12s',
+                letterSpacing: '-0.01em',
+              }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.background = 'rgba(128,128,128,0.07)'
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.background = 'none'
               }}
             >
-              <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <span style={{ color: 'var(--text-3)', display: 'flex' }}>
-                  <IconBuilding />
-                </span>
-                <span>HR</span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+                <Building2 size={15} strokeWidth={1.7} style={{ flexShrink: 0, opacity: 0.7 }} />
+                HR
               </span>
-              <Chevron open={openSections['hr'] ?? false} />
+              <ChevronRight
+                size={12}
+                strokeWidth={2}
+                style={{
+                  transform: (openSections['hr'] ?? false) ? 'rotate(90deg)' : 'rotate(0deg)',
+                  transition: 'transform 0.18s cubic-bezier(0.16,1,0.3,1)',
+                  opacity: 0.4,
+                }}
+              />
             </button>
             <div
               style={{
                 maxHeight: (openSections['hr'] ?? false) ? '400px' : '0px',
                 overflow: 'hidden',
-                transition: 'max-height 0.2s ease',
+                transition: 'max-height 0.22s cubic-bezier(0.16,1,0.3,1)',
               }}
             >
               {HR_ITEMS.map((sub) => (
@@ -456,6 +336,7 @@ function SidebarContent({
                   key={sub.href}
                   href={sub.href}
                   label={sub.label}
+                  icon={sub.icon}
                   pathname={pathname}
                   indent
                   onClick={onClose}
@@ -499,7 +380,7 @@ function SidebarContent({
             el.style.boxShadow = '0 2px 10px rgba(29,158,117,0.25)'
           }}
         >
-          <IconCheck size={15} />
+          <CheckCircle2 size={14} strokeWidth={2.5} />
           Start check-in
         </Link>
 
@@ -509,22 +390,29 @@ function SidebarContent({
             display: 'flex',
             alignItems: 'center',
             gap: 8,
-            padding: '7px 12px',
-            marginTop: 4,
-            fontSize: 13,
-            color: 'var(--text-3)',
+            padding: '7px 8px',
+            marginTop: 2,
+            fontSize: 12,
+            color: 'var(--text-4)',
             borderRadius: 8,
             cursor: 'pointer',
             background: 'none',
             border: 'none',
             width: '100%',
             textAlign: 'left',
-            transition: 'color 0.12s',
+            transition: 'color 0.12s, background 0.12s',
+            letterSpacing: '-0.01em',
           }}
-          onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-1)' }}
-          onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-3)' }}
+          onMouseEnter={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-2)'
+            ;(e.currentTarget as HTMLButtonElement).style.background = 'rgba(128,128,128,0.07)'
+          }}
+          onMouseLeave={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-4)'
+            ;(e.currentTarget as HTMLButtonElement).style.background = 'none'
+          }}
         >
-          <IconLogOut size={14} />
+          <LogOut size={13} strokeWidth={1.8} style={{ opacity: 0.6 }} />
           Uitloggen {userName ? `(${userName.split(' ')[0]})` : ''}
         </button>
       </div>
@@ -534,11 +422,11 @@ function SidebarContent({
 
 /* ── Mobile bottom bar tabs ── */
 const MOBILE_TABS = [
-  { key: 'vandaag', label: 'Vandaag', icon: <IconCalendar size={20} />, href: '/home' },
-  { key: 'welzijn', label: 'Welzijn', icon: <IconHeart size={20} />,    href: '/welzijn' },
-  { key: 'actief',  label: 'Actief',  icon: <IconActivity size={20} />, href: '/actief'  },
-  { key: 'groeien', label: 'Groeien', icon: <IconLayers size={20} />,   href: '/groeien' },
-  { key: 'profiel', label: 'Profiel', icon: <IconUser size={20} />,     href: '/profiel' },
+  { key: 'vandaag', label: 'Vandaag', icon: CalendarDays,  href: '/home'    },
+  { key: 'welzijn', label: 'Welzijn', icon: HeartPulse,    href: '/welzijn' },
+  { key: 'actief',  label: 'Actief',  icon: Activity,      href: '/actief'  },
+  { key: 'groeien', label: 'Groeien', icon: Layers,        href: '/groeien' },
+  { key: 'profiel', label: 'Profiel', icon: User,          href: '/profiel' },
 ]
 
 /* ── Main Navbar ── */
@@ -746,17 +634,17 @@ export default function Navbar() {
           left: 0,
           right: 0,
           zIndex: 50,
-          height: 'calc(60px + env(safe-area-inset-bottom, 0px))',
-          backdropFilter: 'blur(12px)',
-          WebkitBackdropFilter: 'blur(12px)',
-          background: 'rgba(255,255,255,0.94)',
-          borderTop: '1px solid rgba(0,0,0,0.06)',
+          height: 'calc(58px + env(safe-area-inset-bottom, 0px))',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          background: 'var(--bg-card)',
+          borderTop: '1px solid var(--border)',
           alignItems: 'stretch',
           paddingBottom: 'env(safe-area-inset-bottom, 0px)',
-          boxShadow: '0 -1px 20px rgba(0,0,0,0.07)',
         }}
       >
         {MOBILE_TABS.map((tab) => {
+          const Icon = tab.icon
           const isActive = pathname === tab.href || pathname.startsWith(tab.href + '/') || categorieActief(pathname, tab.href)
           return (
             <Link
@@ -779,9 +667,8 @@ export default function Navbar() {
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: 3,
-                minHeight: 44,
                 width: '100%',
-                padding: '6px 4px 4px',
+                padding: '8px 4px 4px',
                 position: 'relative',
               }}>
                 {isActive && (
@@ -789,25 +676,26 @@ export default function Navbar() {
                     position: 'absolute',
                     top: 0,
                     width: 20,
-                    height: 2.5,
+                    height: 2,
                     borderRadius: 100,
                     background: 'var(--mf-green)',
                   }} />
                 )}
+                <Icon
+                  size={isActive ? 21 : 19}
+                  strokeWidth={isActive ? 2 : 1.6}
+                  style={{
+                    color: isActive ? 'var(--mf-green)' : 'var(--text-4)',
+                    transition: 'color 0.15s, transform 0.2s cubic-bezier(0.16,1,0.3,1)',
+                    transform: isActive ? 'scale(1.08)' : 'scale(1)',
+                  }}
+                />
                 <span style={{
-                  color: isActive ? 'var(--mf-green)' : 'var(--text-4)',
-                  transform: isActive ? 'scale(1.1)' : 'scale(1)',
-                  transition: 'transform 0.2s cubic-bezier(0.16,1,0.3,1), color 0.15s',
-                  display: 'flex',
-                }}>
-                  {tab.icon}
-                </span>
-                <span style={{
-                  fontSize: 10,
+                  fontSize: 9.5,
                   lineHeight: 1,
-                  fontWeight: isActive ? 700 : 500,
+                  fontWeight: isActive ? 600 : 500,
                   color: isActive ? 'var(--mf-green)' : 'var(--text-4)',
-                  letterSpacing: isActive ? '-0.01em' : '0',
+                  letterSpacing: '0.01em',
                   transition: 'color 0.15s',
                 }}>
                   {tab.label}
