@@ -12,6 +12,7 @@ import {
   LogOut, ChevronRight, Plus, CheckCircle2,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
+import WeekRingen from './WeekRingen'
 
 // Een categorie-tab blijft actief als je op een van zijn onderdelen zit
 // (bijv. "Welzijn" oplichten terwijl je op /stemming bent).
@@ -168,8 +169,9 @@ function SidebarContent({
           letterSpacing: '0.08em',
           textTransform: 'uppercase',
           color: 'var(--text-4)',
-          margin: '3px 0 0 0',
+          margin: '3px 0 8px 0',
         }}>Welzijn &amp; Vitaliteit</p>
+        <WeekRingen size={20} />
       </div>
 
       {/* Nav */}
@@ -559,6 +561,10 @@ export default function Navbar() {
           fontWeight: 400,
           color: 'var(--mf-green)',
         }}>MentaForce</span>
+
+        {/* Week voortgang rings */}
+        <WeekRingen size={22} />
+
         <button
           onClick={() => setOpenMenu((o) => !o)}
           aria-label={openMenu ? 'Menu sluiten' : 'Menu openen'}
