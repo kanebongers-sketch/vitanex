@@ -71,7 +71,13 @@ export default function GenereerSchemaPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/login'); return }
 
+      // Health check — snel checken of de server juist geconfigureerd is
       setAgentStatus({ agent1: 'bezig', agent2: 'wachten', agent3: 'wachten' })
+      const healthRes = await authFetch('/api/fitness/health')
+      if (!healthRes.ok) {
+        const h = await healthRes.json().catch(() => ({}))
+        throw new Error(h.error || 'Server niet beschikbaar')
+      }
 
       const { data: disc } = await supabase
         .from('disc_inzendingen')
@@ -81,37 +87,49 @@ export default function GenereerSchemaPage() {
         .limit(1)
         .maybeSingle()
 
-      await new Promise(r => setTimeout(r, 2000))
+      await new Promise(r => setTimeout(r, 800))
       setAgentStatus({ agent1: 'klaar', agent2: 'bezig', agent3: 'wachten' })
 
-      const res = await authFetch('/api/fitness/genereer-schema', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: user.id,
-          doel,
-          niveau,
-          sessies_per_week: sessiesPerWeek,
-          beschikbare_tijd: beschikbareTijd,
-          benodigdheden,
-          blessures: blessures || undefined,
-          disc_profiel: disc?.primair_profiel || undefined,
-        }),
-      })
+      const abortCtrl = new AbortController()
+      const timeout = setTimeout(() => abortCtrl.abort(), 90_000)
+
+      let res: Response
+      try {
+        res = await authFetch('/api/fitness/genereer-schema', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: user.id,
+            doel,
+            niveau,
+            sessies_per_week: sessiesPerWeek,
+            beschikbare_tijd: beschikbareTijd,
+            benodigdheden,
+            blessures: blessures || undefined,
+            disc_profiel: disc?.primair_profiel || undefined,
+          }),
+          signal: abortCtrl.signal,
+        })
+      } finally {
+        clearTimeout(timeout)
+      }
 
       setAgentStatus({ agent1: 'klaar', agent2: 'klaar', agent3: 'bezig' })
-      await new Promise(r => setTimeout(r, 1500))
+      await new Promise(r => setTimeout(r, 1000))
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}))
-        throw new Error(data.error || 'Genereren mislukt')
+        throw new Error(data.error || `Genereren mislukt (HTTP ${res.status})`)
       }
 
       setAgentStatus({ agent1: 'klaar', agent2: 'klaar', agent3: 'klaar' })
       await new Promise(r => setTimeout(r, 800))
       router.push('/sport')
     } catch (e: unknown) {
-      setFout(e instanceof Error ? e.message : 'Er ging iets mis')
+      const msg = e instanceof Error
+        ? (e.name === 'AbortError' ? 'Tijdsoverschrijding — probeer het opnieuw' : e.message)
+        : 'Er ging iets mis'
+      setFout(msg)
       setLaden(false)
       setAgentStatus({ agent1: 'wachten', agent2: 'wachten', agent3: 'wachten' })
     }
@@ -365,11 +383,20 @@ export default function GenereerSchemaPage() {
             </div>
 
             {fout && (
-              <div style={{ marginTop: 20, padding: '12px 16px', background: 'var(--mf-red-light)', borderRadius: 10, color: 'var(--mf-red)', fontSize: 14 }}>
-                {fout}
+              <div style={{
+                marginTop: 20, padding: '16px 18px',
+                background: '#FEF2F2', border: '1.5px solid #FCA5A5',
+                borderRadius: 12, color: '#B91C1C',
+              }}>
+                <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 4 }}>Fout bij genereren</div>
+                <div style={{ fontSize: 14, lineHeight: 1.5, wordBreak: 'break-word' }}>{fout}</div>
                 <button
                   onClick={() => { setFout(null); setLaden(false); Promise.resolve().then(startGenereren) }}
-                  style={{ display: 'block', marginTop: 8, color: 'var(--mf-red)', fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, padding: 0 }}
+                  style={{
+                    display: 'inline-block', marginTop: 12, padding: '8px 18px',
+                    background: '#B91C1C', color: '#fff', fontWeight: 600,
+                    border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 14,
+                  }}
                 >
                   Opnieuw proberen
                 </button>
