@@ -160,12 +160,13 @@ export default function DashboardPage() {
       }
 
       if (voedingRes.status === 'fulfilled' && voedingRes.value) {
-        const d = voedingRes.value as { logs?: Array<{ calorieen?: number | null; eiwitten_g?: number | null }> }
+        type VLog = { calorieen?: number | null; eiwitten_g?: number | null; koolhydraten_g?: number | null; vetten_g?: number | null }
+        const d = voedingRes.value as { logs?: VLog[] }
         const logs = d.logs ?? []
         setCalorieen(Math.round(logs.reduce((s, l) => s + (l.calorieen ?? 0), 0)))
         setEiwitten(Math.round(logs.reduce((s, l) => s + (l.eiwitten_g ?? 0), 0)))
-        setKoolhydraten(Math.round(logs.reduce((s: number, l: { koolhydraten_g?: number | null }) => s + (l.koolhydraten_g ?? 0), 0)))
-        setVetten(Math.round(logs.reduce((s: number, l: { vetten_g?: number | null }) => s + (l.vetten_g ?? 0), 0)))
+        setKoolhydraten(Math.round(logs.reduce((s, l) => s + (l.koolhydraten_g ?? 0), 0)))
+        setVetten(Math.round(logs.reduce((s, l) => s + (l.vetten_g ?? 0), 0)))
       }
 
       if (streakRes.status === 'fulfilled' && streakRes.value) {
