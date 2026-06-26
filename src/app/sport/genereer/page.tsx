@@ -6,6 +6,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Navbar from '@/components/layout/Navbar'
 import { supabase } from '@/lib/supabase'
+import { authFetch } from '@/lib/auth-fetch'
 
 
 type AgentFase = 'wachten' | 'bezig' | 'klaar'
@@ -83,7 +84,7 @@ export default function GenereerSchemaPage() {
       await new Promise(r => setTimeout(r, 2000))
       setAgentStatus({ agent1: 'klaar', agent2: 'bezig', agent3: 'wachten' })
 
-      const res = await fetch('/api/fitness/genereer-schema', {
+      const res = await authFetch('/api/fitness/genereer-schema', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
