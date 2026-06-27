@@ -79,7 +79,7 @@ export async function GET(req: NextRequest) {
   const uur = huidigUurNL()
   const suggestie = bepaalSuggestie(uur)
 
-  let waterResult, stemmingResult, slaapResult, sportResult, focusResult, dankbaarheidResult, meditatieMorgenResult, stappenResult
+  let waterResult, stemmingResult, slaapResult, sportResult, focusResult, dankbaarheidResult, meditatieMorgenResult
 
   try {
     ;[
@@ -90,7 +90,6 @@ export async function GET(req: NextRequest) {
       focusResult,
       dankbaarheidResult,
       meditatieMorgenResult,
-      stappenResult,
     ] = await Promise.all([
       // water vandaag
       admin
@@ -116,12 +115,12 @@ export async function GET(req: NextRequest) {
         .eq('datum', gisteren)
         .limit(1),
 
-      // sport vandaag
+      // sport vandaag — training_logs is de schrijftabel
       admin
-        .from('sport_logs')
-        .select('id, aangemaakt_op')
+        .from('training_logs')
+        .select('id, datum')
         .eq('user_id', user.id)
-        .gte('aangemaakt_op', dagstartUtc)
+        .eq('datum', vandaag)
         .limit(1),
 
       // focus vandaag (minuten)
@@ -146,14 +145,6 @@ export async function GET(req: NextRequest) {
         .eq('user_id', user.id)
         .gte('aangemaakt_op', dagstartUtc)
         .limit(10),
-
-      // stappen vandaag
-      admin
-        .from('dagmetingen')
-        .select('stappen')
-        .eq('user_id', user.id)
-        .eq('datum', vandaag)
-        .limit(1),
     ])
   } catch (err) {
     console.error('[api/vandaag] DB fout:', err)
@@ -211,10 +202,6 @@ export async function GET(req: NextRequest) {
   // Dankbaarheid
   const dankbaarheid_gedaan = (dankbaarheidResult.data?.length ?? 0) > 0
 
-  // Stappen
-  const stappen_vandaag = stappenResult.data?.[0]?.stappen ?? 0
-  const stappen_gedaan = stappen_vandaag >= 8000
-
   // Meditatie/ademhaling
   const meditatie_seconden = (meditatieMorgenResult.data ?? []).reduce(
     (s, r) => s + (r.duur_seconden ?? 0),
@@ -223,7 +210,7 @@ export async function GET(req: NextRequest) {
   const meditatie_minuten = Math.round(meditatie_seconden / 60)
   const meditatie_gedaan = meditatie_seconden >= 60
 
-  // Checklist samenstellen — altijd 6 items, ook bij 0 data
+  // Checklist samenstellen — 6 items, gelijk aan de 6 taart-segmenten in ACTIVITEITEN
   const checklist = [
     {
       id: 'water',
@@ -278,16 +265,6 @@ export async function GET(req: NextRequest) {
       status: dankbaarheid_gedaan ? 'gedaan' : 'open',
       detail: dankbaarheid_gedaan ? 'Geschreven' : 'Schrijf 3 dingen',
       url: '/dankbaarheid',
-    },
-    {
-      id: 'stappen',
-      icoon: '👣',
-      titel: 'Dagelijkse stappen',
-      status: stappen_gedaan ? 'gedaan' : 'open',
-      detail: stappen_vandaag > 0
-        ? `${stappen_vandaag.toLocaleString('nl-NL')} stappen${stappen_gedaan ? '' : ' (doel: 8.000)'}`
-        : 'Log je stappen',
-      url: '/stappen',
     },
   ]
 

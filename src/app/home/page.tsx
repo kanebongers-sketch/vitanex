@@ -10,8 +10,8 @@ import { authFetch } from '@/lib/auth-fetch'
 import Navbar from '@/components/layout/Navbar'
 import {
   Smile, Moon, Droplets, Dumbbell, Leaf, Heart,
-  CheckCircle2, Circle, BarChart2, ChevronRight,
-  Utensils, Flame, Footprints,
+  Circle, BarChart2, ChevronRight,
+  Utensils, Flame,
 } from 'lucide-react'
 
 /* ── helpers ── */
@@ -89,7 +89,6 @@ const CHECKLIST_ICONEN: Record<string, React.ElementType> = {
   sport:        Dumbbell,
   meditatie:    Leaf,
   dankbaarheid: Heart,
-  stappen:      Footprints,
 }
 
 interface CheckItem { key: string; label: string; href: string; gedaan: boolean }
@@ -119,65 +118,68 @@ export default function DashboardPage() {
     { key: 'sport',        label: 'Bewegen',      href: '/sport',        gedaan: false },
     { key: 'meditatie',    label: 'Meditatie',    href: '/meditatie',    gedaan: false },
     { key: 'dankbaarheid', label: 'Dankbaarheid', href: '/dankbaarheid', gedaan: false },
-    { key: 'stappen',      label: 'Stappen',      href: '/stappen',      gedaan: false },
   ])
 
-  useEffect(() => {
-    async function laad() {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) { router.push('/login'); return }
+  const laad = useCallback(async () => {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) { router.push('/login'); return }
 
-      const { data: profiel } = await supabase
-        .from('profiles').select('naam, onboarding_voltooid').eq('id', user.id).single()
-      if (!profiel?.onboarding_voltooid) { router.replace('/onboarding'); return }
-      setNaam(profiel?.naam ?? '')
-      setLaden(false)
+    const { data: profiel } = await supabase
+      .from('profiles').select('naam, onboarding_voltooid').eq('id', user.id).single()
+    if (!profiel?.onboarding_voltooid) { router.replace('/onboarding'); return }
+    setNaam(profiel?.naam ?? '')
+    setLaden(false)
 
-      const [readinessRes, vandaagRes, streakRes, voedingRes] = await Promise.allSettled([
-        authFetch('/api/readiness').then(r => r.ok ? r.json() : null).catch(() => null),
-        authFetch('/api/vandaag').then(r => r.ok ? r.json() : null).catch(() => null),
-        authFetch('/api/streak').then(r => r.ok ? r.json() : null).catch(() => null),
-        authFetch('/api/voeding').then(r => r.ok ? r.json() : null).catch(() => null),
-      ])
+    const [readinessRes, vandaagRes, streakRes, voedingRes] = await Promise.allSettled([
+      authFetch('/api/readiness').then(r => r.ok ? r.json() : null).catch(() => null),
+      authFetch('/api/vandaag').then(r => r.ok ? r.json() : null).catch(() => null),
+      authFetch('/api/streak').then(r => r.ok ? r.json() : null).catch(() => null),
+      authFetch('/api/voeding').then(r => r.ok ? r.json() : null).catch(() => null),
+    ])
 
-      if (readinessRes.status === 'fulfilled' && readinessRes.value) {
-        const d = readinessRes.value as { score?: number; readiness?: number }
-        const s = d.score ?? d.readiness ?? null
-        if (typeof s === 'number') setReadiness(Math.round(s))
+    if (readinessRes.status === 'fulfilled' && readinessRes.value) {
+      const d = readinessRes.value as { score?: number; readiness?: number }
+      const s = d.score ?? d.readiness ?? null
+      if (typeof s === 'number') setReadiness(Math.round(s))
+    }
+
+    if (vandaagRes.status === 'fulfilled' && vandaagRes.value) {
+      const d = vandaagRes.value as {
+        checklist?: Array<{ id: string; status: string }>
+        scores?: { slaap_uren?: number | null; stemming_waarde?: number | null; sport_minuten?: number | null }
       }
-
-      if (vandaagRes.status === 'fulfilled' && vandaagRes.value) {
-        const d = vandaagRes.value as {
-          checklist?: Array<{ id: string; status: string }>
-          scores?: { slaap_uren?: number | null; stemming_waarde?: number | null; sport_minuten?: number | null }
-        }
-        const gedaanSet = new Set((d.checklist ?? []).filter(i => i.status === 'gedaan').map(i => i.id))
-        setChecklist(prev => prev.map(item => ({ ...item, gedaan: gedaanSet.has(item.key) })))
-        setSportGedaan(gedaanSet.has('sport'))
-        if (d.scores) {
-          setSlaap(d.scores.slaap_uren ?? null)
-          setStemming(d.scores.stemming_waarde ?? null)
-          setSportMinuten(d.scores.sport_minuten ?? 0)
-        }
-      }
-
-      if (voedingRes.status === 'fulfilled' && voedingRes.value) {
-        type VLog = { calorieen?: number | null; eiwitten_g?: number | null; koolhydraten_g?: number | null; vetten_g?: number | null }
-        const d = voedingRes.value as { logs?: VLog[] }
-        const logs = d.logs ?? []
-        setCalorieen(Math.round(logs.reduce((s, l) => s + (l.calorieen ?? 0), 0)))
-        setEiwitten(Math.round(logs.reduce((s, l) => s + (l.eiwitten_g ?? 0), 0)))
-        setKoolhydraten(Math.round(logs.reduce((s, l) => s + (l.koolhydraten_g ?? 0), 0)))
-        setVetten(Math.round(logs.reduce((s, l) => s + (l.vetten_g ?? 0), 0)))
-      }
-
-      if (streakRes.status === 'fulfilled' && streakRes.value) {
-        const d = streakRes.value as { streak?: number }
-        setStreak(d.streak ?? 0)
+      const gedaanSet = new Set((d.checklist ?? []).filter(i => i.status === 'gedaan').map(i => i.id))
+      setChecklist(prev => prev.map(item => ({ ...item, gedaan: gedaanSet.has(item.key) })))
+      setSportGedaan(gedaanSet.has('sport'))
+      if (d.scores) {
+        setSlaap(d.scores.slaap_uren ?? null)
+        setStemming(d.scores.stemming_waarde ?? null)
+        setSportMinuten(d.scores.sport_minuten ?? 0)
       }
     }
-    laad()
+
+    if (voedingRes.status === 'fulfilled' && voedingRes.value) {
+      type VLog = { calorieen?: number | null; eiwitten_g?: number | null; koolhydraten_g?: number | null; vetten_g?: number | null }
+      const d = voedingRes.value as { logs?: VLog[] }
+      const logs = d.logs ?? []
+      setCalorieen(Math.round(logs.reduce((s, l) => s + (l.calorieen ?? 0), 0)))
+      setEiwitten(Math.round(logs.reduce((s, l) => s + (l.eiwitten_g ?? 0), 0)))
+      setKoolhydraten(Math.round(logs.reduce((s, l) => s + (l.koolhydraten_g ?? 0), 0)))
+      setVetten(Math.round(logs.reduce((s, l) => s + (l.vetten_g ?? 0), 0)))
+    }
+
+    if (streakRes.status === 'fulfilled' && streakRes.value) {
+      const d = streakRes.value as { streak?: number }
+      setStreak(d.streak ?? 0)
+    }
   }, [router])
+
+  useEffect(() => {
+    laad()
+    const handleVisibility = () => { if (document.visibilityState === 'visible') laad() }
+    document.addEventListener('visibilitychange', handleVisibility)
+    return () => document.removeEventListener('visibilitychange', handleVisibility)
+  }, [laad])
 
   const voornaam = naam.split(' ')[0] || 'je'
   const gedaanCount = checklist.filter(i => i.gedaan).length
