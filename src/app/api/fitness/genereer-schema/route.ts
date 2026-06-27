@@ -279,7 +279,7 @@ Richtlijnen:
 - Houd de sessieduur binnen ~${body.beschikbare_tijd} minuten
 - Laat coaching_tekst leeg (wordt later ingevuld)
 - BELANGRIJK: heeft_gewicht = false voor bodyweight oefeningen (push-up, pull-up, dip, plank, etc.) of als materiaal = "geen". heeft_gewicht = true alleen als er daadwerkelijk gewichten nodig zijn.
-- naam_en: geef de standaard Engelse naam zoals gebruikt in fitness apps (bijv. "push-up", "barbell squat", "dumbbell curl")`,
+- naam_en: gebruik de EXACTE Engelse naam uit de Free Exercise DB (github.com/yuhonas/free-exercise-db). Voorbeelden van correcte namen: "Barbell Squat", "Dumbbell Bicep Curl", "Push-Up", "Pull-Up", "Bench Press", "Romanian Deadlift", "Dumbbell Shoulder Press", "Plank", "Tricep Dip", "Cable Row". Schrijf altijd Title Case, gebruik "Barbell" of "Dumbbell" als prefix bij gewichtsoefeningen.`,
     },
   ]
 
