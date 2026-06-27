@@ -107,12 +107,12 @@ export async function GET(req: NextRequest) {
         .order('aangemaakt_op', { ascending: false })
         .limit(1),
 
-      // slaap gisteravond
+      // slaap vandaag gelogd (datum = vandaag, ook al betreft het gisteravond)
       admin
         .from('slaap_logs')
         .select('uren_slaap, datum')
         .eq('user_id', user.id)
-        .eq('datum', gisteren)
+        .eq('datum', vandaag)
         .limit(1),
 
       // sport vandaag — training_logs is de schrijftabel
