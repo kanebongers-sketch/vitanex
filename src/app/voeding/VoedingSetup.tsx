@@ -11,17 +11,15 @@ import {
   type Geslacht,
 } from '@/lib/gezondheid-berekeningen'
 
-// ── Berekeningen (inline — client-only, geen geboortedatum nodig) ─────────────
+// ── Berekeningen (inline, geen geboortedatum nodig) ───────────────────────────
 
-function berekenBMRInline(gewicht: number, lengte: number, leeftijd: number, geslacht: string): number {
-  const basis = 10 * gewicht + 6.25 * lengte - 5 * leeftijd
+function berekenBMRInline(g: number, l: number, a: number, geslacht: string): number {
   const offset = geslacht === 'man' ? 5 : geslacht === 'vrouw' ? -161 : -78
-  return Math.round(basis + offset)
+  return Math.round(10 * g + 6.25 * l - 5 * a + offset)
 }
 
-function berekenTDEEInline(gewicht: number, lengte: number, leeftijd: number, geslacht: string, activiteit: Activiteitsniveau): number {
-  const bmr = berekenBMRInline(gewicht, lengte, leeftijd, geslacht)
-  return Math.round(bmr * ACTIVITEIT_CONFIG[activiteit].multiplier)
+function berekenTDEEInline(g: number, l: number, a: number, geslacht: string, act: Activiteitsniveau): number {
+  return Math.round(berekenBMRInline(g, l, a, geslacht) * ACTIVITEIT_CONFIG[act].multiplier)
 }
 
 function bepaalActiviteitsniveau(werktype: string, sport: number): Activiteitsniveau {
@@ -43,15 +41,15 @@ function bepaalActiviteitsniveau(werktype: string, sport: number): Activiteitsni
 // ── Constants ─────────────────────────────────────────────────────────────────
 
 const GESLACHT_OPTIES: { value: Geslacht; label: string }[] = [
-  { value: 'man',   label: 'Man' },
+  { value: 'man', label: 'Man' },
   { value: 'vrouw', label: 'Vrouw' },
   { value: 'anders', label: 'Anders' },
 ]
 
 const WERK_OPTIES = [
   { value: 'kantoor', icon: '💼', label: 'Kantoor / zittend', sub: 'Bureau, auto, weinig bewegen' },
-  { value: 'licht',   icon: '🚶', label: 'Licht actief', sub: 'Leraar, winkelier, verpleging' },
-  { value: 'fysiek',  icon: '🏗️', label: 'Fysiek werk', sub: 'Bouw, horeca, bezorger' },
+  { value: 'licht',   icon: '🚶', label: 'Licht actief',      sub: 'Leraar, winkelier, verpleging' },
+  { value: 'fysiek',  icon: '🏗️', label: 'Fysiek werk',       sub: 'Bouw, horeca, bezorger' },
 ]
 
 const SPORT_OPTIES = [
@@ -64,19 +62,66 @@ const SPORT_OPTIES = [
 interface SchemaOptie {
   id: string
   icon: string
+  bgGlyph: string
   naam: string
-  sub: string
+  beschrijving: string
   fitness_doel: FitnessDoel
   dieetvoorkeur?: string
+  manueel?: true
+  kleur: string
+  kleurLight: string
 }
 
 const SCHEMA_OPTIES: SchemaOptie[] = [
-  { id: 'afvallen',   icon: '🔥', naam: 'Vet verbranden',      sub: 'Calorietekort + hoog eiwit',  fitness_doel: 'afvallen' },
-  { id: 'spiermassa', icon: '💪', naam: 'Spiermassa opbouwen', sub: 'Surplus + maximaal eiwit',    fitness_doel: 'aankomen' },
-  { id: 'cardio',     icon: '❤️', naam: 'Cardio & Conditie',   sub: 'Energie voor uithoudingssport', fitness_doel: 'fitter' },
-  { id: 'onderhouden',icon: '⚖️', naam: 'Gewicht onderhouden', sub: 'Caloriebalans, stabiel blijven', fitness_doel: 'onderhouden' },
-  { id: 'eiwitrijk',  icon: '🥩', naam: 'Eiwitrijk',           sub: 'Hoog eiwit, laag koolhydraat', fitness_doel: 'afvallen', dieetvoorkeur: 'eiwitrijk' },
-  { id: 'clean',      icon: '🌱', naam: 'Clean Eating',        sub: 'Gevarieerd & onbewerkt',       fitness_doel: 'fitter',   dieetvoorkeur: 'gebalanceerd' },
+  {
+    id: 'afvallen', icon: '🔥', bgGlyph: '🔥',
+    naam: 'Vet verbranden',
+    beschrijving: 'Eet 500 kcal onder je dagverbruik. Hoog eiwit voorkomt spierverlies terwijl je effectief vet verbrandt.',
+    fitness_doel: 'afvallen',
+    kleur: '#E24B4A', kleurLight: 'rgba(226,75,74,0.08)',
+  },
+  {
+    id: 'spiermassa', icon: '💪', bgGlyph: '💪',
+    naam: 'Spiermassa opbouwen',
+    beschrijving: 'Een surplus van 350 kcal geeft je lichaam de energie voor spiergroei. Combineer met krachtraining.',
+    fitness_doel: 'aankomen',
+    kleur: '#7C3AED', kleurLight: 'rgba(124,58,237,0.08)',
+  },
+  {
+    id: 'cardio', icon: '❤️', bgGlyph: '❤️',
+    naam: 'Cardio & Conditie',
+    beschrijving: 'Onderhoud je gewicht en voed je spieren optimaal voor uithoudingssport en energieke trainingen.',
+    fitness_doel: 'fitter',
+    kleur: '#E24B4A', kleurLight: 'rgba(226,75,74,0.08)',
+  },
+  {
+    id: 'onderhouden', icon: '⚖️', bgGlyph: '⚖️',
+    naam: 'Gewicht onderhouden',
+    beschrijving: 'Eet precies wat je verbrandt. Gebalanceerde macro\'s houden je gewicht en energieniveau stabiel.',
+    fitness_doel: 'onderhouden',
+    kleur: '#185FA5', kleurLight: 'rgba(24,95,165,0.08)',
+  },
+  {
+    id: 'eiwitrijk', icon: '🥩', bgGlyph: '🥩',
+    naam: 'Eiwitrijk',
+    beschrijving: 'Maximale eiwitinname met een licht tekort. Ideaal voor spierbehoud en verzadiging bij afvallen.',
+    fitness_doel: 'afvallen', dieetvoorkeur: 'eiwitrijk',
+    kleur: '#B45309', kleurLight: 'rgba(180,83,9,0.08)',
+  },
+  {
+    id: 'clean', icon: '🌱', bgGlyph: '🌱',
+    naam: 'Clean Eating',
+    beschrijving: 'Focus op onbewerkte, voedzame producten. Verbetering van energie, huid en algehele gezondheid.',
+    fitness_doel: 'fitter', dieetvoorkeur: 'gebalanceerd',
+    kleur: '#1D9E75', kleurLight: 'rgba(29,158,117,0.08)',
+  },
+  {
+    id: 'manueel', icon: '🎛️', bgGlyph: '🎛️',
+    naam: 'Eigen Macro\'s',
+    beschrijving: 'Stel zelf in hoe je calorieën verdeeld zijn over eiwit, koolhydraten en vet.',
+    fitness_doel: 'onderhouden', manueel: true,
+    kleur: '#6B7280', kleurLight: 'rgba(107,114,128,0.08)',
+  },
 ]
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -87,26 +132,29 @@ interface Props {
 }
 
 export default function VoedingSetup({ onComplete, onOverslaan }: Props) {
-  const [stap, setStap] = useState(1)
-  const [laden, setLaden] = useState(true)
+  const [stap, setStap]     = useState(1)
+  const [laden, setLaden]   = useState(true)
   const [opslaan, setOpslaan] = useState(false)
-  const [fout, setFout] = useState<string | null>(null)
+  const [fout, setFout]     = useState<string | null>(null)
 
   // Stap 1
-  const [gewicht,    setGewicht]    = useState('')
-  const [lengte,     setLengte]     = useState('')
-  const [leeftijd,   setLeeftijd]   = useState('')
-  const [geslacht,   setGeslacht]   = useState<Geslacht>('man')
+  const [gewicht,     setGewicht]     = useState('')
+  const [lengte,      setLengte]      = useState('')
+  const [leeftijd,    setLeeftijd]    = useState('')
+  const [geslacht,    setGeslacht]    = useState<Geslacht>('man')
   const [doelgewicht, setDoelgewicht] = useState('')
 
   // Stap 2
-  const [werktype,    setWerktype]    = useState('kantoor')
+  const [werktype,     setWerktype]     = useState('kantoor')
   const [sportPerWeek, setSportPerWeek] = useState(1)
 
   // Stap 3
   const [gekozenSchema, setGekozenSchema] = useState<string | null>(null)
+  const [eiwitPct,      setEiwitPct]      = useState(30)
+  const [vetPct,        setVetPct]        = useState(30)
+  const koolhPct = Math.max(0, 100 - eiwitPct - vetPct)
 
-  // Prefill vanuit bestaand profiel
+  // Prefill vanuit profiel
   useEffect(() => {
     supabase.auth.getUser().then(async ({ data: { user } }) => {
       if (!user) { setLaden(false); return }
@@ -116,10 +164,10 @@ export default function VoedingSetup({ onComplete, onOverslaan }: Props) {
         .eq('id', user.id)
         .maybeSingle()
       if (data) {
-        if (data.gewicht_kg)    setGewicht(String(data.gewicht_kg))
-        if (data.lengte_cm)     setLengte(String(data.lengte_cm))
+        if (data.gewicht_kg)       setGewicht(String(data.gewicht_kg))
+        if (data.lengte_cm)        setLengte(String(data.lengte_cm))
         if (data.streefgewicht_kg) setDoelgewicht(String(data.streefgewicht_kg))
-        if (data.geslacht)      setGeslacht(data.geslacht as Geslacht)
+        if (data.geslacht)         setGeslacht(data.geslacht as Geslacht)
         if (data.geboortedatum) {
           const jaar = new Date(data.geboortedatum).getFullYear()
           setLeeftijd(String(new Date().getFullYear() - jaar))
@@ -142,24 +190,34 @@ export default function VoedingSetup({ onComplete, onOverslaan }: Props) {
     return berekenTDEEInline(g, l, a, geslacht, activiteitsniveau)
   }, [gewicht, lengte, leeftijd, geslacht, activiteitsniveau])
 
-  const schemaKcal = (s: SchemaOptie): number | null =>
-    tdee ? tdee + DOEL_CONFIG[s.fitness_doel].calorie_aanpassing : null
+  const schemaKcal = (s: SchemaOptie): number | null => {
+    if (!tdee) return null
+    if (s.manueel) return tdee
+    return tdee + DOEL_CONFIG[s.fitness_doel].calorie_aanpassing
+  }
 
   const schemaMacros = (s: SchemaOptie) => {
     const kcal = schemaKcal(s)
     const g = parseFloat(gewicht)
-    if (!kcal || !g) return null
+    if (!kcal) return null
+    if (s.manueel) {
+      return {
+        eiwit: Math.round(kcal * eiwitPct / 100 / 4),
+        koolh: Math.round(kcal * koolhPct / 100 / 4),
+        vet:   Math.round(kcal * vetPct   / 100 / 9),
+      }
+    }
+    if (!g) return null
     const cfg = DOEL_CONFIG[s.fitness_doel]
     const eiwit = Math.round(g * cfg.eiwit_g_per_kg)
     const vet   = Math.round(g * cfg.vet_g_per_kg)
-    const koolh = Math.max(0, Math.round((kcal - eiwit * 4 - vet * 9) / 4))
-    return { eiwit, vet, koolh }
+    return { eiwit, koolh: Math.max(0, Math.round((kcal - eiwit * 4 - vet * 9) / 4)), vet }
   }
 
   const kanVerder = (): boolean => {
     if (stap === 1) return parseFloat(gewicht) > 0 && parseFloat(lengte) > 0 && parseInt(leeftijd) > 0
     if (stap === 2) return true
-    if (stap === 3) return gekozenSchema !== null
+    if (stap === 3) return gekozenSchema !== null && (gekozenSchema !== 'manueel' || koolhPct >= 0)
     return false
   }
 
@@ -170,7 +228,6 @@ export default function VoedingSetup({ onComplete, onOverslaan }: Props) {
     try {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Niet ingelogd')
-
       const geboortejaar = new Date().getFullYear() - parseInt(leeftijd)
       const { error } = await supabase.from('profiles').update({
         gewicht_kg:       parseFloat(gewicht),
@@ -181,6 +238,7 @@ export default function VoedingSetup({ onComplete, onOverslaan }: Props) {
         activiteitsniveau,
         fitness_doel:     schema.fitness_doel,
         dieetvoorkeur:    schema.dieetvoorkeur ?? null,
+        calorie_doel:     schema.manueel && tdee ? tdee : null,
       }).eq('id', user.id)
       if (error) throw error
       onComplete()
@@ -200,9 +258,7 @@ export default function VoedingSetup({ onComplete, onOverslaan }: Props) {
     </div>
   )
 
-  const numInput = (
-    label: string, value: string, onChange: (v: string) => void, suffix: string, placeholder: string,
-  ) => (
+  const numInput = (label: string, value: string, onChange: (v: string) => void, suffix: string, placeholder: string) => (
     <div>
       <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: 'var(--text-3)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
         {label}
@@ -222,7 +278,7 @@ export default function VoedingSetup({ onComplete, onOverslaan }: Props) {
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
       <Navbar />
-      <div style={{ maxWidth: 600, margin: '0 auto', padding: '24px 16px 100px' }}>
+      <div style={{ maxWidth: 640, margin: '0 auto', padding: '24px 16px 100px' }}>
 
         {/* Header */}
         <div style={{ marginBottom: 24 }}>
@@ -331,7 +387,6 @@ export default function VoedingSetup({ onComplete, onOverslaan }: Props) {
                     background: sportPerWeek === s.value ? 'var(--mf-green)' : 'var(--bg-card, #fff)',
                     color: sportPerWeek === s.value ? '#fff' : 'var(--text-2)',
                     border: `1.5px solid ${sportPerWeek === s.value ? 'var(--mf-green)' : 'var(--border)'}`,
-                    transition: 'all 0.12s',
                   }}>
                   <div style={{ fontSize: 14, fontWeight: 700 }}>{s.label}</div>
                   <div style={{ fontSize: 10, opacity: 0.8, marginTop: 2 }}>{s.sub}</div>
@@ -339,14 +394,13 @@ export default function VoedingSetup({ onComplete, onOverslaan }: Props) {
               ))}
             </div>
 
-            {/* Live TDEE preview */}
             {tdee ? (
               <div style={{ background: 'var(--mf-green-light)', border: '1px solid var(--mf-green)', borderRadius: 14, padding: '18px 20px' }}>
                 <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--mf-green-dark)', marginBottom: 6 }}>
                   Jouw dagelijkse energiebehoefte (TDEE)
                 </div>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 6 }}>
-                  <span style={{ fontSize: 36, fontWeight: 900, color: 'var(--mf-green)', letterSpacing: '-0.03em' }}>{tdee}</span>
+                  <span style={{ fontSize: 38, fontWeight: 900, color: 'var(--mf-green)', letterSpacing: '-0.03em' }}>{tdee}</span>
                   <span style={{ fontSize: 15, color: 'var(--mf-green)', fontWeight: 600 }}>kcal/dag</span>
                 </div>
                 <div style={{ fontSize: 12, color: 'var(--text-2)' }}>
@@ -377,40 +431,121 @@ export default function VoedingSetup({ onComplete, onOverslaan }: Props) {
                 const kcal   = schemaKcal(s)
                 const macros = schemaMacros(s)
                 const actief = gekozenSchema === s.id
-                const aanp   = DOEL_CONFIG[s.fitness_doel].calorie_aanpassing
+                const aanp   = s.manueel ? 0 : DOEL_CONFIG[s.fitness_doel].calorie_aanpassing
+                const isVolleBreedte = s.manueel
+
                 return (
-                  <button key={s.id} onClick={() => setGekozenSchema(s.id)}
+                  <button
+                    key={s.id}
+                    onClick={() => setGekozenSchema(s.id)}
                     style={{
-                      display: 'flex', flexDirection: 'column', gap: 6, padding: '16px 14px',
-                      background: actief ? 'var(--mf-green-light)' : 'var(--bg-card, #fff)',
+                      position: 'relative', overflow: 'hidden',
+                      display: 'flex', flexDirection: 'column', gap: 6,
+                      padding: isVolleBreedte ? '20px 20px' : '16px 14px',
+                      background: actief ? s.kleurLight : 'var(--bg-card, #fff)',
                       borderRadius: 14, cursor: 'pointer', textAlign: 'left',
-                      border: `2px solid ${actief ? 'var(--mf-green)' : 'var(--border)'}`,
-                      boxShadow: actief ? '0 0 0 3px rgba(29,158,117,0.12)' : '0 1px 4px rgba(0,0,0,0.05)',
+                      border: `2px solid ${actief ? s.kleur : 'var(--border)'}`,
+                      boxShadow: actief ? `0 0 0 3px ${s.kleur}22` : '0 1px 4px rgba(0,0,0,0.05)',
                       transition: 'all 0.15s',
+                      gridColumn: isVolleBreedte ? 'span 2' : undefined,
+                    }}
+                  >
+                    {/* Transparante achtergrond-watermark */}
+                    <span aria-hidden style={{
+                      position: 'absolute', right: -6, top: -6,
+                      fontSize: 80, lineHeight: 1, opacity: 0.07,
+                      pointerEvents: 'none', userSelect: 'none',
+                      filter: 'grayscale(0.2)',
                     }}>
-                    <div style={{ fontSize: 26 }}>{s.icon}</div>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: actief ? 'var(--mf-green-dark)' : 'var(--text-1)', lineHeight: 1.2 }}>{s.naam}</div>
-                    <div style={{ fontSize: 11, color: 'var(--text-3)', lineHeight: 1.4 }}>{s.sub}</div>
-                    {kcal && (
-                      <div style={{
-                        marginTop: 4, padding: '6px 10px', borderRadius: 8,
-                        background: actief ? 'rgba(29,158,117,0.15)' : 'var(--bg-subtle)',
-                      }}>
-                        <div style={{ fontSize: 14, fontWeight: 800, color: actief ? 'var(--mf-green)' : 'var(--text-1)' }}>
-                          {kcal} kcal
-                          {aanp !== 0 && (
-                            <span style={{ fontSize: 10, color: 'var(--text-3)', marginLeft: 3, fontWeight: 400 }}>
-                              ({aanp > 0 ? '+' : ''}{aanp})
-                            </span>
+                      {s.bgGlyph}
+                    </span>
+
+                    {/* Card content */}
+                    <div style={{ position: 'relative' }}>
+                      <div style={{ fontSize: 26, marginBottom: 4 }}>{s.icon}</div>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: actief ? s.kleur : 'var(--text-1)', lineHeight: 1.2, marginBottom: 4 }}>
+                        {s.naam}
+                      </div>
+                      <div style={{ fontSize: 12, color: 'var(--text-3)', lineHeight: 1.5, marginBottom: 8 }}>
+                        {s.beschrijving}
+                      </div>
+
+                      {/* Manuele macro sliders (alleen als geselecteerd) */}
+                      {s.manueel && actief && (
+                        <div style={{ marginBottom: 12 }}>
+                          {[
+                            { label: 'Eiwit', pct: eiwitPct, setPct: setEiwitPct, kleur: '#E24B4A', kcalPerG: 4 },
+                            { label: 'Vet',   pct: vetPct,   setPct: setVetPct,   kleur: '#7C3AED', kcalPerG: 9 },
+                            { label: 'Koolhydraten', pct: koolhPct, setPct: null,  kleur: '#F59E0B', kcalPerG: 4 },
+                          ].map(m => (
+                            <div key={m.label} style={{ marginBottom: 10 }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                                <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-2)' }}>{m.label}</span>
+                                <span style={{ fontSize: 12, fontWeight: 700, color: m.kleur }}>
+                                  {m.pct}%
+                                  {kcal && <span style={{ fontSize: 11, fontWeight: 400, color: 'var(--text-3)', marginLeft: 6 }}>
+                                    {Math.round(kcal * m.pct / 100 / m.kcalPerG)}g
+                                  </span>}
+                                </span>
+                              </div>
+                              {m.setPct ? (
+                                <input
+                                  type="range" min={10} max={60} step={5} value={m.pct}
+                                  onChange={e => m.setPct!(parseInt(e.target.value))}
+                                  onClick={e => e.stopPropagation()}
+                                  style={{ width: '100%', accentColor: m.kleur, cursor: 'pointer' }}
+                                />
+                              ) : (
+                                <div style={{ height: 4, borderRadius: 4, background: 'var(--bg-subtle)', overflow: 'hidden' }}>
+                                  <div style={{ height: '100%', width: `${Math.max(0, m.pct)}%`, background: m.kleur, borderRadius: 4, transition: 'width 0.2s' }} />
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                          {koolhPct < 0 && (
+                            <p style={{ fontSize: 11, color: '#E24B4A', margin: '4px 0 0', fontWeight: 600 }}>
+                              Eiwit + vet overschrijdt 100% — verlaag één van de twee
+                            </p>
+                          )}
+                          <p style={{ fontSize: 11, color: 'var(--text-3)', margin: '8px 0 0', lineHeight: 1.4 }}>
+                            Calorieën worden opgeslagen als TDEE. Macro-targets zijn indicatief.
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Kcal + macro preview */}
+                      {kcal && !(s.manueel && !actief) && (
+                        <div style={{
+                          padding: '8px 12px', borderRadius: 8,
+                          background: actief ? `${s.kleur}18` : 'var(--bg-subtle)',
+                        }}>
+                          <div style={{ fontSize: 15, fontWeight: 800, color: actief ? s.kleur : 'var(--text-1)', display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                            {kcal} kcal/dag
+                            {aanp !== 0 && (
+                              <span style={{ fontSize: 10, color: 'var(--text-3)', fontWeight: 400 }}>
+                                ({aanp > 0 ? '+' : ''}{aanp})
+                              </span>
+                            )}
+                          </div>
+                          {macros && (
+                            <div style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 3, display: 'flex', gap: 10 }}>
+                              <span>E <strong style={{ color: '#E24B4A' }}>{macros.eiwit}g</strong></span>
+                              <span>K <strong style={{ color: '#F59E0B' }}>{macros.koolh}g</strong></span>
+                              <span>V <strong style={{ color: '#7C3AED' }}>{macros.vet}g</strong></span>
+                            </div>
                           )}
                         </div>
-                        {macros && (
-                          <div style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 2 }}>
-                            E {macros.eiwit}g · K {macros.koolh}g · V {macros.vet}g
+                      )}
+
+                      {/* Manuele kaart: kcal hint als niet geselecteerd */}
+                      {s.manueel && !actief && (
+                        <div style={{ padding: '8px 12px', borderRadius: 8, background: 'var(--bg-subtle)' }}>
+                          <div style={{ fontSize: 13, color: 'var(--text-3)' }}>
+                            {tdee ? `${tdee} kcal/dag · stel macro % zelf in` : 'Selecteer om macros in te stellen'}
                           </div>
-                        )}
-                      </div>
-                    )}
+                        </div>
+                      )}
+                    </div>
                   </button>
                 )
               })}
@@ -438,7 +573,7 @@ export default function VoedingSetup({ onComplete, onOverslaan }: Props) {
                 flex: 2, padding: '14px 0', borderRadius: 12, fontSize: 15, fontWeight: 600, border: 'none',
                 background: kanVerder() ? 'var(--mf-green)' : 'var(--text-4)',
                 color: kanVerder() ? '#fff' : 'var(--text-3)',
-                cursor: kanVerder() ? 'pointer' : 'not-allowed', transition: 'background 0.15s',
+                cursor: kanVerder() ? 'pointer' : 'not-allowed',
               }}>
               Volgende
             </button>
