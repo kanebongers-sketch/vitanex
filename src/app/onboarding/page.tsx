@@ -7,13 +7,14 @@ import { supabase } from '@/lib/supabase'
 import {
   LichaamStap,
   DoelStap,
-  VoedingStap,
   DoelenPayoff,
-  EersteMetingStap,
-  type EersteMeting,
+  BaselineMetingStap,
+  type BaselineMeting,
+  LEGE_BASELINE,
   type GebrForm,
 } from './IntakeStappen'
 import type { GezondheidProfiel } from '@/lib/gezondheid-berekeningen'
+import type { OnboardingAiAnalyse } from '@/app/api/onboarding/analyse/route'
 
 
 // ─── HR onboarding stappen ────────────────────────────────────────────────────
@@ -21,9 +22,8 @@ type HrStap = 'welkom' | 'gegevens' | 'bedrijf' | 'details' | 'klaar'
 const HR_STAPPEN: HrStap[] = ['welkom', 'gegevens', 'bedrijf', 'details', 'klaar']
 
 // ─── Gebruiker onboarding stappen ────────────────────────────────────────────
-type GebrStap = 'welkom' | 'profiel' | 'eerste-meting' | 'klaar'
-type IntakeStap = 'welkom' | 'profiel' | 'eerste-meting' | 'lichaam' | 'doel' | 'voeding' | 'klaar'
-const INTAKE_STAPPEN: IntakeStap[] = ['welkom', 'profiel', 'eerste-meting', 'lichaam', 'doel', 'voeding', 'klaar']
+type IntakeStap = 'welkom' | 'profiel' | 'eerste-meting' | 'lichaam' | 'doel' | 'klaar'
+const INTAKE_STAPPEN: IntakeStap[] = ['welkom', 'profiel', 'eerste-meting', 'lichaam', 'doel', 'klaar']
 
 // ─── Sectoren ────────────────────────────────────────────────────────────────
 const SECTOREN = [
@@ -150,12 +150,14 @@ export default function OnboardingPage() {
   const [hrStap, setHrStap] = useState<HrStap>('welkom')
 
   // Gebruiker stap state
-  const [gebrStap, setGebrStap] = useState<GebrStap | IntakeStap>('welkom')
+  const [gebrStap, setGebrStap] = useState<IntakeStap>('welkom')
 
-  // Eerste meting state
-  const [meting, setMeting] = useState<EersteMeting>({
-    slaap: null, energie: null, stemming: null, geladen: false, score: null,
-  })
+  // Baseline meting state (vervangt de oude EersteMeting)
+  const [baseline, setBaseline] = useState<BaselineMeting>(LEGE_BASELINE)
+
+  // AI analyse state
+  const [aiAnalyse, setAiAnalyse] = useState<OnboardingAiAnalyse | null>(null)
+  const [aiBezig, setAiBezig] = useState(false)
 
   // HR form
   const [hr, setHr] = useState({
@@ -257,25 +259,27 @@ export default function OnboardingPage() {
     setBezig(false)
   }
 
-  // ── Sla eerste meting op ───────────────────────────────────────────────────
-  async function slaEersteMeting() {
-    if (!userId || meting.slaap === null || meting.energie === null || meting.stemming === null) return
-
+  // ── Sla baseline dag-signalen op (stemming + slaap) ─────────────────────
+  async function slaBaselineDagSignalen(session: { access_token?: string } | null) {
+    if (!userId) return
     const vandaag = new Date().toISOString().split('T')[0]
-    const { data: { session } } = await supabase.auth.getSession()
     const headers: Record<string, string> = { 'Content-Type': 'application/json' }
     if (session?.access_token) headers['Authorization'] = `Bearer ${session.access_token}`
 
-    await Promise.allSettled([
-      fetch('/api/stemming', {
+    const taken: Promise<Response>[] = []
+    if (baseline.stemming !== null) {
+      taken.push(fetch('/api/stemming', {
         method: 'POST', headers,
-        body: JSON.stringify({ score: meting.stemming, notitie: 'Ingevoerd tijdens onboarding' }),
-      }),
-      fetch('/api/slaap', {
+        body: JSON.stringify({ score: baseline.stemming, notitie: 'Ingevoerd tijdens onboarding' }),
+      }))
+    }
+    if (baseline.slaap_kwaliteit !== null) {
+      taken.push(fetch('/api/slaap', {
         method: 'POST', headers,
-        body: JSON.stringify({ kwaliteit: meting.slaap, datum: vandaag }),
-      }),
-    ])
+        body: JSON.stringify({ kwaliteit: baseline.slaap_kwaliteit, datum: vandaag }),
+      }))
+    }
+    if (taken.length > 0) await Promise.allSettled(taken)
   }
 
   // ── Numerieke parsers (komma → punt, leeg → null) ──────────────────────────
@@ -314,15 +318,52 @@ export default function OnboardingPage() {
     }
   }
 
+  // ── AI-analyse na baseline meting ────────────────────────────────────────
+  async function rondBaselineAfEnAnalyseer() {
+    if (!userId) return
+    setAiBezig(true)
+    setFout(null)
+
+    const { data: { session } } = await supabase.auth.getSession()
+    await slaBaselineDagSignalen(session)
+
+    try {
+      const res = await fetch('/api/onboarding/analyse', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+        },
+        body: JSON.stringify({
+          antwoorden: baseline,
+          antropometrie: {
+            geslacht: gebr.geslacht || null,
+            geboortedatum: gebr.geboortedatum || null,
+            lengte_cm: gebr.lengte_cm ? parseInt(gebr.lengte_cm) : null,
+            gewicht_kg: parseGewicht(),
+            activiteitsniveau: gebr.activiteitsniveau || null,
+            fitness_doel: gebr.fitness_doel || null,
+            streefgewicht_kg: gebr.streefgewicht_kg ? parseFloat(gebr.streefgewicht_kg.replace(',', '.')) : null,
+          },
+        }),
+      })
+      if (res.ok) {
+        const d = await res.json()
+        setAiAnalyse(d.analyse ?? null)
+      }
+    } catch {
+      // Niet-blokkerend: gebruiker gaat gewoon door
+    } finally {
+      setAiBezig(false)
+      setGebrStap('lichaam')
+    }
+  }
+
   // ── Gebruiker afronden ────────────────────────────────────────────────────
   async function gebruikerAfronden() {
     if (!userId) return
     setBezig(true)
     setFout(null)
-
-    if (meting.slaap !== null && meting.energie !== null && meting.stemming !== null) {
-      await slaEersteMeting()
-    }
 
     const gewicht = parseGewicht()
     const vet = parseVet()
@@ -342,8 +383,8 @@ export default function OnboardingPage() {
     if (gebr.activiteitsniveau) updates.activiteitsniveau = gebr.activiteitsniveau
     if (gebr.fitness_doel) updates.fitness_doel = gebr.fitness_doel
     if (gebr.streefgewicht_kg) updates.streefgewicht_kg = parseFloat(gebr.streefgewicht_kg.replace(',', '.'))
-    if (gebr.dieetvoorkeur) updates.dieetvoorkeur = gebr.dieetvoorkeur
-    updates.allergieen = gebr.allergieen
+    // dieetvoorkeur / allergieen worden in onboarding niet meer ingevuld;
+    // die worden via /voeding ingesteld door de VoedingSetup wizard.
     // water_doel_ml / stappen_doel / calorie_doel blijven NULL (automatisch).
 
     if (gebr.hrCode && hrCodeBedrijf) {
@@ -812,15 +853,15 @@ export default function OnboardingPage() {
               </div>
             )}
 
-            {/* ── EERSTE METING ── */}
+            {/* ── EERSTE METING / BASELINE ── */}
             {gebrStap === 'eerste-meting' && (
-              <EersteMetingStap
-                meting={meting}
-                setMeting={setMeting}
+              <BaselineMetingStap
+                meting={baseline}
+                setMeting={setBaseline}
                 onTerug={() => setGebrStap('profiel')}
-                onVolgende={() => setGebrStap('lichaam')}
+                onVolgende={rondBaselineAfEnAnalyseer}
                 onSlaan={() => setGebrStap('lichaam')}
-                bezig={false}
+                bezig={aiBezig}
               />
             )}
 
@@ -894,33 +935,7 @@ export default function OnboardingPage() {
                 gebr={gebr}
                 setGebr={setGebr}
                 onTerug={() => setGebrStap('lichaam')}
-                onVolgende={() => setGebrStap('voeding')}
-              />
-            )}
-
-            {/* ── VOEDING: dieetvoorkeur + allergieën ── */}
-            {gebrStap === 'voeding' && (
-              <VoedingStap
-                gebr={gebr}
-                setGebr={setGebr}
-                bezig={bezig}
-                onTerug={() => setGebrStap('doel')}
-                onAfronden={gebruikerAfronden}
-                onSlaan={async () => {
-                  if (!userId) return
-                  setBezig(true)
-                  setFout(null)
-                  const { error } = await supabase.from('profiles')
-                    .update({ naam: gebr.naam.trim(), onboarding_voltooid: true, intake_voltooid: true })
-                    .eq('id', userId)
-                  if (error) {
-                    setFout('Opslaan is niet gelukt. Controleer je verbinding en probeer het opnieuw.')
-                    setBezig(false)
-                    return
-                  }
-                  setGebrStap('klaar')
-                  setBezig(false)
-                }}
+                onVolgende={gebruikerAfronden}
               />
             )}
 
@@ -935,11 +950,17 @@ export default function OnboardingPage() {
                   Welkom aan boord{gebrNaamDisplay ? `, ${gebrNaamDisplay}` : ''}. We hebben jouw startdoelen berekend.
                 </p>
 
+                {aiAnalyse?.narratief && (
+                  <p style={{ fontSize: 14, color: 'var(--mf-text, #374151)', lineHeight: 1.6, marginBottom: 20, textAlign: 'left' }}>
+                    {aiAnalyse.narratief}
+                  </p>
+                )}
+
                 <DoelenPayoff profiel={bouwProfiel()} />
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 28, textAlign: 'left' }}>
                   {[
-                    meting.score !== null ? { emoji: '🎯', tekst: `Readiness Score: ${meting.score}/100` } : null,
+                    aiAnalyse ? { emoji: '🌟', tekst: `Vitality Score: ${aiAnalyse.vitality_score}/100` } : null,
                     gebr.gewicht_kg ? { emoji: '⚖️', tekst: 'Startmeting opgeslagen' } : null,
                     hrCodeBedrijf ? { emoji: '🏢', tekst: `Gekoppeld aan ${hrCodeBedrijf}` } : { emoji: '👤', tekst: 'Persoonlijk account' },
                   ].filter(Boolean).map((item, i) => item && (

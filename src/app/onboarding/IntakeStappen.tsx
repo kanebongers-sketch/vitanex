@@ -1,13 +1,17 @@
 'use client'
 
 // ════════════════════════════════════════════════════════════════════════════
-// Intake-stappen voor de gebruiker-onboarding (rol 'other'). Bevat de
-// uitgebreide intake: lichaam + vetpercentage, doel (activiteit/fitnessdoel/
-// streefgewicht) en voeding (dieetvoorkeur + allergieën). De 'klaar'-payoff
-// met berekende doelen leeft ook hier. Hergebruikt de primitieven uit page.tsx.
+// Intake-stappen voor de gebruiker-onboarding (rol 'other'). Bevat:
+//   - LichaamStap  — geboortedatum, lengte, gewicht, vetpercentage
+//   - DoelStap     — activiteitsniveau, fitnessdoel, streefgewicht (+ AI pre-fill)
+//   - DoelenPayoff — berekende dagdoelen voor het klaar-scherm
+//   - EersteMetingStap — legacy readiness (nog gebruikt door page.tsx)
+//
+// BaselineMetingStap leeft in BaselineMetingStap.tsx (afgesplitst om onder 800 regels te blijven).
+// VoedingStap is verwijderd; die wizard leeft op /voeding.
 // ════════════════════════════════════════════════════════════════════════════
 
-import { useState, type Dispatch, type ReactNode, type SetStateAction } from 'react'
+import { useEffect, type Dispatch, type ReactNode, type SetStateAction } from 'react'
 import {
   ACTIVITEIT_CONFIG,
   DOEL_CONFIG,
@@ -20,6 +24,11 @@ import {
   type GezondheidProfiel,
 } from '@/lib/gezondheid-berekeningen'
 import { Veld, Input, Knop, SkipLink } from './page'
+import type { OnboardingAiAnalyse } from '@/app/api/onboarding/analyse/route'
+
+// Re-export types + component from split file so consumers get one import point
+export type { BaselineMeting } from './BaselineMetingStap'
+export { LEGE_BASELINE, BaselineMetingStap } from './BaselineMetingStap'
 
 // ─── Gedeelde gebruiker-formstate ─────────────────────────────────────────────
 export type Dieetvoorkeur =
@@ -45,7 +54,7 @@ export interface GebrForm {
 
 type SetGebr = Dispatch<SetStateAction<GebrForm>>
 
-// ─── Eerste meting (readiness) ────────────────────────────────────────────────
+// ─── Eerste meting (readiness) — bewaard voor dag-readiness elders ──────────
 export interface EersteMeting {
   slaap: number | null
   energie: number | null
@@ -54,6 +63,7 @@ export interface EersteMeting {
   score: number | null
 }
 
+// ─── Readiness helpers ────────────────────────────────────────────────────────
 function berekenReadiness(slaap: number, energie: number, stemming: number): number {
   return 50 + slaap * 20 + energie * 15 + stemming * 15
 }
@@ -71,10 +81,7 @@ function ReadinessRing({ score, kleur }: { score: number; kleur: string }) {
   const voortgang = (score / 100) * omtrek
   return (
     <div style={{ position: 'relative', display: 'inline-block' }}>
-      <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
-        <div style={{ width: 160, height: 160, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
-      </div>
-      <svg width={140} height={140} viewBox="0 0 140 140" style={{ display: 'block', margin: '0 auto', position: 'relative', zIndex: 1 }}>
+      <svg width={140} height={140} viewBox="0 0 140 140" style={{ display: 'block', margin: '0 auto' }}>
         <circle cx={70} cy={70} r={radius} fill="none" stroke="var(--mf-border, #F3F4F6)" strokeWidth={12} />
         <circle
           cx={70} cy={70} r={radius} fill="none"
@@ -130,6 +137,7 @@ const SLAAP_EMOJIS = ['😫', '😕', '😐', '😊', '🤩']
 const ENERGIE_EMOJIS = ['⚡', '⚡⚡', '⚡⚡⚡', '⚡⚡⚡⚡', '⚡⚡⚡⚡⚡']
 const STEMMING_EMOJIS = ['😞', '😔', '😐', '🙂', '😄']
 
+/** @deprecated — gebruik BaselineMetingStap in de nieuwe flow; wordt verwijderd na page.tsx refactor */
 export function EersteMetingStap({
   meting, setMeting, onVolgende, onTerug, onSlaan, bezig,
 }: {
@@ -147,23 +155,16 @@ export function EersteMetingStap({
     return (
       <div className="mf-animate-up">
         <div style={{ textAlign: 'center', marginBottom: 28 }}>
-          <div style={{ position: 'relative', display: 'inline-block', marginBottom: 8 }}>
-            <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
-              <div style={{ width: 100, height: 100, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
-            </div>
-            <div style={{ fontSize: 36, position: 'relative', zIndex: 1 }}>🎯</div>
-          </div>
+          <div style={{ fontSize: 36, marginBottom: 8 }}>🎯</div>
           <h2 style={{ fontSize: 20, fontWeight: 800, color: 'var(--mf-heading, #111827)', marginBottom: 4, letterSpacing: '-0.02em' }}>
             Jouw eerste Readiness Score
           </h2>
           <p style={{ fontSize: 13, color: 'var(--mf-text-muted, #9CA3AF)' }}>Gebaseerd op slaap, energie en stemming</p>
         </div>
-
         <div style={{
           padding: '28px 24px', borderRadius: 20,
           background: 'linear-gradient(135deg, #F0FDF8, #EFF6FF)',
-          border: `2px solid ${kleur}30`,
-          marginBottom: 20, textAlign: 'center',
+          border: `2px solid ${kleur}30`, marginBottom: 20, textAlign: 'center',
         }}>
           <ReadinessRing score={meting.score} kleur={kleur} />
           <div style={{ marginTop: 16 }}>
@@ -174,21 +175,13 @@ export function EersteMetingStap({
             <p style={{ fontSize: 14, color: 'var(--mf-text, #4B5563)', lineHeight: 1.5 }}>{uitleg}</p>
           </div>
         </div>
-
-        <div style={{
-          padding: '14px 16px', borderRadius: 12,
-          background: 'var(--mf-bg-subtle, #F9FAFB)', border: '1px solid var(--mf-border, #E5E7EB)',
-          marginBottom: 24,
-        }}>
+        <div style={{ padding: '14px 16px', borderRadius: 12, background: 'var(--mf-bg-subtle, #F9FAFB)', border: '1px solid var(--mf-border, #E5E7EB)', marginBottom: 24 }}>
           <p style={{ fontSize: 13, color: 'var(--mf-text-muted, #6B7280)', lineHeight: 1.6 }}>
             Morgenvroeg vergelijken we dit. Zo zien we hoe je evolueert.
           </p>
         </div>
-
         <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-          <Knop onClick={onVolgende} disabled={bezig}>
-            {bezig ? 'Opslaan...' : 'Verder →'}
-          </Knop>
+          <Knop onClick={onVolgende} disabled={bezig}>{bezig ? 'Opslaan...' : 'Verder →'}</Knop>
         </div>
       </div>
     )
@@ -205,26 +198,9 @@ export function EersteMetingStap({
           Dit duurt 30 seconden. Dan zien we gelijk hoe je je voelt.
         </p>
       </div>
-
-      <EmojiSchaal
-        vraag="Hoe sliep je gisteravond?"
-        emojis={SLAAP_EMOJIS}
-        waarde={meting.slaap}
-        onChange={v => setMeting(m => ({ ...m, slaap: v }))}
-      />
-      <EmojiSchaal
-        vraag="Hoe is je energieniveau nu?"
-        emojis={ENERGIE_EMOJIS}
-        waarde={meting.energie}
-        onChange={v => setMeting(m => ({ ...m, energie: v }))}
-      />
-      <EmojiSchaal
-        vraag="Hoe voel je je op dit moment?"
-        emojis={STEMMING_EMOJIS}
-        waarde={meting.stemming}
-        onChange={v => setMeting(m => ({ ...m, stemming: v }))}
-      />
-
+      <EmojiSchaal vraag="Hoe sliep je gisteravond?" emojis={SLAAP_EMOJIS} waarde={meting.slaap} onChange={v => setMeting(m => ({ ...m, slaap: v }))} />
+      <EmojiSchaal vraag="Hoe is je energieniveau nu?" emojis={ENERGIE_EMOJIS} waarde={meting.energie} onChange={v => setMeting(m => ({ ...m, energie: v }))} />
+      <EmojiSchaal vraag="Hoe voel je je op dit moment?" emojis={STEMMING_EMOJIS} waarde={meting.stemming} onChange={v => setMeting(m => ({ ...m, stemming: v }))} />
       <div style={{ display: 'flex', gap: 12, justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
         <Knop onClick={onTerug} variant="ghost">← Terug</Knop>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8 }}>
@@ -232,9 +208,7 @@ export function EersteMetingStap({
             onClick={() => {
               if (meting.slaap === null || meting.energie === null || meting.stemming === null) return
               const score = Math.min(100, berekenReadiness(
-                (meting.slaap - 1) / 4,
-                (meting.energie - 1) / 4,
-                (meting.stemming - 1) / 4,
+                (meting.slaap - 1) / 4, (meting.energie - 1) / 4, (meting.stemming - 1) / 4,
               ))
               setMeting(m => ({ ...m, score: Math.round(score), geladen: true }))
             }}
@@ -251,9 +225,9 @@ export function EersteMetingStap({
 
 // ─── Kleine herbruikbare keuzekaart ───────────────────────────────────────────
 function KeuzeKaart({
-  actief, kleur, titel, sub, onClick,
+  actief, kleur, titel, sub, onClick, aanbevolen,
 }: {
-  actief: boolean; kleur: string; titel: string; sub: string; onClick: () => void
+  actief: boolean; kleur: string; titel: string; sub: string; onClick: () => void; aanbevolen?: boolean
 }) {
   return (
     <button
@@ -266,15 +240,23 @@ function KeuzeKaart({
         background: actief ? `${kleur}14` : 'var(--mf-surface, white)',
         transform: actief ? 'translateY(-1px)' : 'none',
         boxShadow: actief ? `0 4px 14px ${kleur}26` : 'none',
+        position: 'relative',
       }}
     >
+      {aanbevolen && (
+        <span style={{
+          position: 'absolute', top: -8, right: 10,
+          fontSize: 10, fontWeight: 800, padding: '2px 8px', borderRadius: 9999,
+          background: 'var(--mf-green, #1D9E75)', color: 'white',
+        }}>Aanbevolen</span>
+      )}
       <p style={{ fontSize: 14, fontWeight: 700, color: actief ? kleur : 'var(--mf-heading, #111827)', marginBottom: 2 }}>{titel}</p>
       <p style={{ fontSize: 12, color: 'var(--mf-text-muted, #9CA3AF)', lineHeight: 1.35 }}>{sub}</p>
     </button>
   )
 }
 
-// ─── BMI-strookje (gedeeld met page.tsx-look) ─────────────────────────────────
+// ─── BMI-strookje ─────────────────────────────────────────────────────────────
 function BmiStrook({ lengteCm, gewichtKg }: { lengteCm: string; gewichtKg: string }) {
   if (!lengteCm || !gewichtKg) return null
   const h = parseInt(lengteCm) / 100
@@ -287,7 +269,11 @@ function BmiStrook({ lengteCm, gewichtKg }: { lengteCm: string; gewichtKg: strin
     bmi < 30   ? { label: 'Overgewicht', k: 'var(--mf-amber, #BA7517)' } :
                  { label: 'Obesitas', k: 'var(--mf-red, #E24B4A)' }
   return (
-    <div style={{ padding: '8px 14px', borderRadius: 10, background: 'var(--mf-bg-subtle, #F9FAFB)', border: '1px solid var(--mf-border, #E5E7EB)', display: 'flex', justifyContent: 'space-between', marginTop: -8, marginBottom: 12 }}>
+    <div style={{
+      padding: '8px 14px', borderRadius: 10,
+      background: 'var(--mf-bg-subtle, #F9FAFB)', border: '1px solid var(--mf-border, #E5E7EB)',
+      display: 'flex', justifyContent: 'space-between', marginTop: -8, marginBottom: 12,
+    }}>
       <span style={{ fontSize: 13, color: 'var(--mf-text-muted, #6B7280)' }}>BMI: <strong>{bmi.toFixed(1)}</strong></span>
       <span style={{ fontSize: 12, fontWeight: 700, color: cat.k, padding: '2px 8px', borderRadius: 20, background: cat.k + '18' }}>{cat.label}</span>
     </div>
@@ -313,7 +299,7 @@ export function LichaamStap({
       </p>
 
       <div style={{ padding: '10px 14px', borderRadius: 10, background: 'var(--mf-green-light, #E1F5EE)', border: '1px solid var(--mf-green, #1D9E75)40', fontSize: 12, color: 'var(--mf-green-dark, #0F6E56)', marginBottom: 20 }}>
-        🔒 Nooit gedeeld met HR — alleen voor jouw persoonlijke dashboard
+        Nooit gedeeld met HR — alleen voor jouw persoonlijke dashboard
       </div>
 
       <Veld label="Geboortedatum">
@@ -347,29 +333,79 @@ export function LichaamStap({
 
 // ════════════════════════════════════════════════════════════════════════════
 // STAP: DOEL — activiteitsniveau, fitnessdoel, conditioneel streefgewicht
+// Accepteert optioneel AI-analyse voor pre-fill en narratief-banner.
 // ════════════════════════════════════════════════════════════════════════════
 const ACTIVITEIT_VOLGORDE: Activiteitsniveau[] = ['sedentair', 'licht', 'gemiddeld', 'actief', 'zeer_actief']
 const DOEL_VOLGORDE: FitnessDoel[] = ['afvallen', 'onderhouden', 'aankomen', 'fitter']
 
 export function DoelStap({
-  gebr, setGebr, onTerug, onVolgende,
+  gebr, setGebr, onTerug, onVolgende, analyse,
 }: {
-  gebr: GebrForm; setGebr: SetGebr; onTerug: () => void; onVolgende: () => void
+  gebr: GebrForm
+  setGebr: SetGebr
+  onTerug: () => void
+  onVolgende: () => void
+  analyse?: OnboardingAiAnalyse | null
 }) {
   const toontStreefgewicht = gebr.fitness_doel === 'afvallen' || gebr.fitness_doel === 'aankomen'
+
+  // Pre-fill AI-suggesties eenmalig als velden nog leeg zijn
+  useEffect(() => {
+    if (!analyse) return
+    setGebr(f => ({
+      ...f,
+      activiteitsniveau: (!f.activiteitsniveau && analyse.activiteitsniveau_suggestie)
+        ? analyse.activiteitsniveau_suggestie
+        : f.activiteitsniveau,
+      fitness_doel: (!f.fitness_doel && analyse.fitness_doel_suggestie)
+        ? analyse.fitness_doel_suggestie
+        : f.fitness_doel,
+    }))
+  // Eenmalig bij mount / wanneer analyse binnenkomt
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [analyse])
+
+  const eersteMotivator = analyse?.voorgestelde_doelen?.[0]?.reden ?? null
 
   return (
     <div className="mf-animate-up">
       <div style={{ fontSize: 28, marginBottom: 10 }}>🎯</div>
       <h2 style={{ fontSize: 20, fontWeight: 800, color: 'var(--mf-heading, #111827)', marginBottom: 4 }}>Jouw doel</h2>
-      <p style={{ fontSize: 13, color: 'var(--mf-text-muted, #9CA3AF)', marginBottom: 22 }}>
+      <p style={{ fontSize: 13, color: 'var(--mf-text-muted, #9CA3AF)', marginBottom: 16 }}>
         Zo stemmen we jouw schema, voeding en coaching op je af
       </p>
+
+      {/* AI motivator-anker banner */}
+      {eersteMotivator && (
+        <div style={{
+          padding: '10px 14px', borderRadius: 12, marginBottom: 18,
+          background: 'var(--mf-green-light, #E1F5EE)', border: '1px solid var(--mf-green, #1D9E75)',
+          fontSize: 13, color: 'var(--mf-green-dark, #0F6E56)', lineHeight: 1.5,
+        }}>
+          <strong>Jouw waarom:</strong> {eersteMotivator}
+        </div>
+      )}
+
+      {/* AI narratief-banner */}
+      {analyse?.narratief && (
+        <div style={{
+          padding: '12px 14px', borderRadius: 12, marginBottom: 20,
+          background: 'linear-gradient(135deg, #F0FDF8, #EFF6FF)',
+          border: '1px solid var(--mf-green, #1D9E75)30',
+          fontSize: 13, color: 'var(--mf-text, #374151)', lineHeight: 1.6,
+        }}>
+          <p style={{ fontSize: 11, fontWeight: 800, color: 'var(--mf-green-dark, #0F6E56)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>
+            Jouw startfoto
+          </p>
+          {analyse.narratief}
+        </div>
+      )}
 
       <Veld label="Hoe actief ben je?" sub="Inclusief werk en sport">
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {ACTIVITEIT_VOLGORDE.map(niveau => {
             const cfg = ACTIVITEIT_CONFIG[niveau]
+            const isAanbevolen = analyse?.activiteitsniveau_suggestie === niveau
             return (
               <KeuzeKaart
                 key={niveau}
@@ -377,6 +413,7 @@ export function DoelStap({
                 kleur="var(--mf-green, #1D9E75)"
                 titel={cfg.label}
                 sub={cfg.sub}
+                aanbevolen={isAanbevolen}
                 onClick={() => setGebr(f => ({ ...f, activiteitsniveau: niveau }))}
               />
             )
@@ -388,6 +425,7 @@ export function DoelStap({
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
           {DOEL_VOLGORDE.map(doel => {
             const cfg = DOEL_CONFIG[doel]
+            const isAanbevolen = analyse?.fitness_doel_suggestie === doel
             return (
               <KeuzeKaart
                 key={doel}
@@ -395,6 +433,7 @@ export function DoelStap({
                 kleur={cfg.kleur}
                 titel={cfg.label}
                 sub={cfg.sub}
+                aanbevolen={isAanbevolen}
                 onClick={() => setGebr(f => ({ ...f, fitness_doel: doel }))}
               />
             )
@@ -408,122 +447,46 @@ export function DoelStap({
             label="Streefgewicht (kg)"
             sub={gebr.fitness_doel === 'afvallen' ? 'Naar welk gewicht wil je toe?' : 'Welk gewicht wil je bereiken?'}
           >
-            <Input type="number" value={gebr.streefgewicht_kg} onChange={e => setGebr(f => ({ ...f, streefgewicht_kg: e.target.value }))} placeholder="bijv. 68" min={30} max={300} step={0.1} />
+            <Input
+              type="number"
+              value={gebr.streefgewicht_kg}
+              onChange={e => setGebr(f => ({ ...f, streefgewicht_kg: e.target.value }))}
+              placeholder="bijv. 68"
+              min={30}
+              max={300}
+              step={0.1}
+            />
           </Veld>
+        </div>
+      )}
+
+      {/* Verbeterpunten-strip */}
+      {analyse?.top_verbeterpunten && analyse.top_verbeterpunten.length > 0 && (
+        <div style={{ marginTop: 8, marginBottom: 16 }}>
+          <p style={{ fontSize: 11, fontWeight: 800, color: 'var(--mf-text-muted, #9CA3AF)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 10 }}>
+            Jouw top verbeterpunten
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {analyse.top_verbeterpunten.map(vp => (
+              <div key={vp.pijler} style={{
+                padding: '10px 12px', borderRadius: 10,
+                background: 'var(--mf-bg-subtle, #F9FAFB)', border: '1px solid var(--mf-border, #E5E7EB)',
+              }}>
+                <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--mf-heading, #111827)', marginBottom: 2, textTransform: 'capitalize' }}>
+                  {vp.pijler}
+                </p>
+                <p style={{ fontSize: 12, color: 'var(--mf-text-muted, #6B7280)', lineHeight: 1.4 }}>
+                  {vp.eerste_stap}
+                </p>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
       <div style={{ display: 'flex', gap: 12, justifyContent: 'space-between', marginTop: 24 }}>
         <Knop onClick={onTerug} variant="ghost">← Terug</Knop>
         <Knop onClick={onVolgende}>Volgende →</Knop>
-      </div>
-    </div>
-  )
-}
-
-// ════════════════════════════════════════════════════════════════════════════
-// STAP: VOEDING — dieetvoorkeur + allergieën (chips)
-// ════════════════════════════════════════════════════════════════════════════
-const DIEET_OPTIES: { val: Dieetvoorkeur; label: string }[] = [
-  { val: 'geen',         label: 'Geen voorkeur' },
-  { val: 'vegetarisch',  label: 'Vegetarisch' },
-  { val: 'veganistisch', label: 'Veganistisch' },
-  { val: 'pescotarisch', label: 'Pescotarisch' },
-  { val: 'keto',         label: 'Keto' },
-  { val: 'mediterraan',  label: 'Mediterraan' },
-  { val: 'glutenvrij',   label: 'Glutenvrij' },
-  { val: 'lactosevrij',  label: 'Lactosevrij' },
-]
-
-export function VoedingStap({
-  gebr, setGebr, onTerug, onAfronden, onSlaan, bezig,
-}: {
-  gebr: GebrForm; setGebr: SetGebr
-  onTerug: () => void; onAfronden: () => void; onSlaan: () => void; bezig: boolean
-}) {
-  const [allergieInput, setAllergieInput] = useState('')
-
-  function voegAllergieToe() {
-    const waarde = allergieInput.trim()
-    if (!waarde) return
-    const bestaat = gebr.allergieen.some(a => a.toLowerCase() === waarde.toLowerCase())
-    if (!bestaat) setGebr(f => ({ ...f, allergieen: [...f.allergieen, waarde] }))
-    setAllergieInput('')
-  }
-
-  function verwijderAllergie(naam: string) {
-    setGebr(f => ({ ...f, allergieen: f.allergieen.filter(a => a !== naam) }))
-  }
-
-  return (
-    <div className="mf-animate-up">
-      <div style={{ fontSize: 28, marginBottom: 10 }}>🥗</div>
-      <h2 style={{ fontSize: 20, fontWeight: 800, color: 'var(--mf-heading, #111827)', marginBottom: 4 }}>Voeding</h2>
-      <p style={{ fontSize: 13, color: 'var(--mf-text-muted, #9CA3AF)', marginBottom: 22 }}>
-        Zo houden we rekening met jouw eetwensen — <em>optioneel</em>
-      </p>
-
-      <Veld label="Dieetvoorkeur">
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-          {DIEET_OPTIES.map(opt => {
-            const actief = gebr.dieetvoorkeur === opt.val
-            return (
-              <button key={opt.val} type="button" onClick={() => setGebr(f => ({ ...f, dieetvoorkeur: opt.val }))}
-                style={{
-                  padding: '10px 12px', borderRadius: 10, fontSize: 13, cursor: 'pointer', textAlign: 'center',
-                  fontWeight: actief ? 700 : 400,
-                  border: `1.5px solid ${actief ? 'var(--mf-green, #1D9E75)' : 'var(--mf-border, #E5E7EB)'}`,
-                  background: actief ? 'var(--mf-green-light, #E1F5EE)' : 'var(--mf-surface, white)',
-                  color: actief ? 'var(--mf-green-dark, #0F6E56)' : 'var(--mf-text-muted, #6B7280)',
-                  transition: 'all 0.12s',
-                }}>
-                {opt.label}
-              </button>
-            )
-          })}
-        </div>
-      </Veld>
-
-      <Veld label="Allergieën of intoleranties" sub="Typ en druk op Enter — voeg er zoveel toe als je wilt">
-        <div style={{ display: 'flex', gap: 8 }}>
-          <Input
-            value={allergieInput}
-            onChange={e => setAllergieInput(e.target.value)}
-            onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); voegAllergieToe() } }}
-            placeholder="bijv. noten, lactose, gluten"
-          />
-          <Knop onClick={voegAllergieToe} variant="ghost">Toevoegen</Knop>
-        </div>
-        {gebr.allergieen.length > 0 && (
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 12 }}>
-            {gebr.allergieen.map(naam => (
-              <span key={naam} style={{
-                display: 'inline-flex', alignItems: 'center', gap: 6,
-                padding: '5px 6px 5px 12px', borderRadius: 9999, fontSize: 13, fontWeight: 600,
-                background: 'var(--mf-amber, #BA7517)18', color: 'var(--mf-amber, #BA7517)',
-                border: '1px solid var(--mf-amber, #BA7517)40',
-              }}>
-                {naam}
-                <button type="button" onClick={() => verwijderAllergie(naam)} aria-label={`Verwijder ${naam}`}
-                  style={{
-                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                    width: 18, height: 18, borderRadius: '50%', border: 'none', cursor: 'pointer',
-                    background: 'var(--mf-amber, #BA7517)22', color: 'var(--mf-amber, #BA7517)', fontSize: 13, lineHeight: 1,
-                  }}>×</button>
-              </span>
-            ))}
-          </div>
-        )}
-      </Veld>
-
-      <div style={{ display: 'flex', gap: 12, justifyContent: 'space-between', alignItems: 'center', marginTop: 24 }}>
-        <Knop onClick={onTerug} variant="ghost">← Terug</Knop>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8 }}>
-          <Knop onClick={onAfronden} disabled={bezig}>
-            {bezig ? 'Opslaan...' : 'Afronden →'}
-          </Knop>
-          <SkipLink onClick={onSlaan} label="Sla over, begin direct" />
-        </div>
       </div>
     </div>
   )
