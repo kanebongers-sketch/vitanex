@@ -20,11 +20,8 @@ import type { GezondheidProfiel } from '@/lib/gezondheid-berekeningen'
 type HrStap = 'welkom' | 'gegevens' | 'bedrijf' | 'details' | 'klaar'
 const HR_STAPPEN: HrStap[] = ['welkom', 'gegevens', 'bedrijf', 'details', 'klaar']
 
-// ─── Gebruiker/werknemer onboarding stappen ───────────────────────────────────
-// Zelfstandige-flow gebruikt de oude, compacte stappen (lichaam = 'extra').
-type GebrStap = 'welkom' | 'profiel' | 'eerste-meting' | 'extra' | 'klaar'
-
-// Werknemer-flow (rol 'other') krijgt de uitgebreide intake met aparte stappen.
+// ─── Gebruiker onboarding stappen ────────────────────────────────────────────
+type GebrStap = 'welkom' | 'profiel' | 'eerste-meting' | 'klaar'
 type IntakeStap = 'welkom' | 'profiel' | 'eerste-meting' | 'lichaam' | 'doel' | 'voeding' | 'klaar'
 const INTAKE_STAPPEN: IntakeStap[] = ['welkom', 'profiel', 'eerste-meting', 'lichaam', 'doel', 'voeding', 'klaar']
 
@@ -143,7 +140,7 @@ export function Knop({ onClick, disabled, children, variant = 'primary', fullWid
 export default function OnboardingPage() {
   const router = useRouter()
   const [stap, setStap] = useState<'welkom' | 'profiel'>('welkom')
-  const [rol, setRol] = useState<'hr' | 'zelfstandige' | 'other' | null>(null)
+  const [rol, setRol] = useState<'hr' | 'gebruiker' | null>(null)
   const [userId, setUserId] = useState<string | null>(null)
   const [bezig, setBezig] = useState(false)
   const [fout, setFout] = useState<string | null>(null)
@@ -152,7 +149,7 @@ export default function OnboardingPage() {
   // HR stap state
   const [hrStap, setHrStap] = useState<HrStap>('welkom')
 
-  // Gebruiker stap state — union dekt zowel zelfstandige- als werknemer-intake.
+  // Gebruiker stap state
   const [gebrStap, setGebrStap] = useState<GebrStap | IntakeStap>('welkom')
 
   // Eerste meting state
@@ -167,7 +164,7 @@ export default function OnboardingPage() {
     sector: '', grootte: '',
   })
 
-  // Gebruiker form — volledige intake (zelfstandige gebruikt subset).
+  // Gebruiker form — volledige intake
   const [gebr, setGebr] = useState<GebrForm>({
     naam: '', geslacht: '',
     geboortedatum: '', lengte_cm: '', gewicht_kg: '', vetpercentage: '',
@@ -203,8 +200,7 @@ export default function OnboardingPage() {
       }
 
       const isHr = profiel?.rol === 'hr'
-      const isZelfstandige = profiel?.rol === 'zelfstandige'
-      setRol(isHr ? 'hr' : isZelfstandige ? 'zelfstandige' : 'other')
+      setRol(isHr ? 'hr' : 'gebruiker')
       if (profiel?.naam) {
         setNaamState(profiel.naam)
         if (isHr) setHr(f => ({ ...f, naam: profiel.naam }))
@@ -318,7 +314,7 @@ export default function OnboardingPage() {
     }
   }
 
-  // ── Gebruiker afronden (uitgebreide intake, rol 'other') ───────────────────
+  // ── Gebruiker afronden ────────────────────────────────────────────────────
   async function gebruikerAfronden() {
     if (!userId) return
     setBezig(true)
@@ -731,191 +727,9 @@ export default function OnboardingPage() {
         )}
 
         {/* ════════════════════════════════════════════════════════════════ */}
-        {/* ZELFSTANDIGE FLOW                                               */}
+        {/* GEBRUIKER FLOW                                                  */}
         {/* ════════════════════════════════════════════════════════════════ */}
-        {rol === 'zelfstandige' && (
-          <>
-            {gebrStap !== 'welkom' && gebrStap !== 'klaar' && (
-              <VoortgangsBalk
-                huidig={['welkom', 'profiel', 'eerste-meting', 'extra', 'klaar'].indexOf(gebrStap)}
-                totaal={5}
-              />
-            )}
-
-            {gebrStap === 'welkom' && (
-              <div className="mf-animate-up">
-                <div style={{ fontSize: 40, marginBottom: 16 }}>💼</div>
-                <h1 style={{ fontSize: 24, fontWeight: 800, color: 'var(--mf-heading, #111827)', marginBottom: 8, letterSpacing: '-0.02em' }}>
-                  {gebrNaamDisplay ? `Welkom, ${gebrNaamDisplay}!` : 'Welkom bij MentaForce'}
-                </h1>
-                <p style={{ fontSize: 14, color: 'var(--mf-text-muted, #6B7280)', lineHeight: 1.7, marginBottom: 28 }}>
-                  Even kennismaken. Duurt minder dan <strong>2 minuten</strong>.
-                </p>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 32 }}>
-                  {[
-                    { emoji: '🎯', tekst: 'Persoonlijke vitaliteitsscores' },
-                    { emoji: '🤖', tekst: 'Betere AI-coach adviezen' },
-                    { emoji: '💪', tekst: 'Sport & fitness schema op maat' },
-                  ].map(({ emoji, tekst }) => (
-                    <div key={tekst} style={{
-                      display: 'flex', alignItems: 'center', gap: 10, fontSize: 13,
-                      color: 'var(--mf-text-muted, #6B7280)', padding: '8px 12px',
-                      borderRadius: 10, background: 'var(--mf-bg-subtle, #F9FAFB)',
-                    }}>
-                      <span style={{ fontSize: 18 }}>{emoji}</span>{tekst}
-                    </div>
-                  ))}
-                </div>
-                <Knop onClick={() => setGebrStap('profiel')}>Beginnen →</Knop>
-              </div>
-            )}
-
-            {gebrStap === 'profiel' && (
-              <div className="mf-animate-up">
-                <div style={{ fontSize: 28, marginBottom: 10 }}>😊</div>
-                <h2 style={{ fontSize: 20, fontWeight: 800, color: 'var(--mf-heading, #111827)', marginBottom: 4 }}>Jouw profiel</h2>
-                <p style={{ fontSize: 13, color: 'var(--mf-text-muted, #9CA3AF)', marginBottom: 24 }}>Hoe mogen we je noemen?</p>
-
-                <Veld label="Naam *">
-                  <Input value={gebr.naam} onChange={e => setGebr(f => ({ ...f, naam: e.target.value }))} placeholder="Jouw naam" autoFocus />
-                </Veld>
-                <Veld label="Geslacht" sub="Optioneel — voor nauwkeurige statistieken">
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                    {([
-                      { val: 'man', label: '♂ Man' }, { val: 'vrouw', label: '♀ Vrouw' },
-                      { val: 'anders', label: '⚧ Anders' }, { val: 'zeg_ik_niet', label: '— Zeg ik niet' },
-                    ] as const).map(opt => (
-                      <button key={opt.val} type="button" onClick={() => setGebr(f => ({ ...f, geslacht: opt.val }))}
-                        style={{
-                          padding: '10px 12px', borderRadius: 10, fontSize: 13, cursor: 'pointer',
-                          fontWeight: gebr.geslacht === opt.val ? 700 : 400,
-                          border: `1.5px solid ${gebr.geslacht === opt.val ? 'var(--mf-green, #1D9E75)' : 'var(--mf-border, #E5E7EB)'}`,
-                          background: gebr.geslacht === opt.val ? 'var(--mf-green-light, #E1F5EE)' : 'var(--mf-surface, white)',
-                          color: gebr.geslacht === opt.val ? 'var(--mf-green-dark, #0F6E56)' : 'var(--mf-text-muted, #6B7280)',
-                          transition: 'all 0.12s',
-                        }}>
-                        {opt.label}
-                      </button>
-                    ))}
-                  </div>
-                </Veld>
-
-                <div style={{ display: 'flex', gap: 12, justifyContent: 'space-between', marginTop: 28 }}>
-                  <Knop onClick={() => setGebrStap('welkom')} variant="ghost">← Terug</Knop>
-                  <Knop onClick={() => setGebrStap('eerste-meting')} disabled={!gebr.naam.trim()}>Volgende →</Knop>
-                </div>
-              </div>
-            )}
-
-            {gebrStap === 'eerste-meting' && (
-              <EersteMetingStap
-                meting={meting}
-                setMeting={setMeting}
-                onTerug={() => setGebrStap('profiel')}
-                onVolgende={() => setGebrStap('extra')}
-                onSlaan={() => setGebrStap('extra')}
-                bezig={false}
-              />
-            )}
-
-            {/* ── EXTRA: lichaam gecombineerd (optionele stap) ── */}
-            {gebrStap === 'extra' && (
-              <div className="mf-animate-up">
-                <div style={{ fontSize: 28, marginBottom: 10 }}>📊</div>
-                <h2 style={{ fontSize: 20, fontWeight: 800, color: 'var(--mf-heading, #111827)', marginBottom: 4 }}>Persoonlijke gegevens</h2>
-                <p style={{ fontSize: 13, color: 'var(--mf-text-muted, #9CA3AF)', marginBottom: 16 }}>
-                  Voor nauwkeurigere vitaliteitsberekeningen — <em>optioneel</em>
-                </p>
-
-                <Veld label="Geboortedatum">
-                  <Input type="date" value={gebr.geboortedatum} onChange={e => setGebr(f => ({ ...f, geboortedatum: e.target.value }))}
-                    max={maxGeboortedatum} />
-                </Veld>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-                  <Veld label="Lengte (cm)">
-                    <Input type="number" value={gebr.lengte_cm} onChange={e => setGebr(f => ({ ...f, lengte_cm: e.target.value }))} placeholder="175" min={100} max={250} />
-                  </Veld>
-                  <Veld label="Gewicht (kg)">
-                    <Input type="number" value={gebr.gewicht_kg} onChange={e => setGebr(f => ({ ...f, gewicht_kg: e.target.value }))} placeholder="70" min={30} max={300} step={0.1} />
-                  </Veld>
-                </div>
-
-                {gebr.lengte_cm && gebr.gewicht_kg && (() => {
-                  const h = parseInt(gebr.lengte_cm) / 100, w = parseFloat(gebr.gewicht_kg)
-                  if (!h || !w) return null
-                  const bmi = w / (h * h)
-                  const cat = bmi < 18.5 ? { label: 'Ondergewicht', k: 'var(--mf-blue, #378ADD)' } : bmi < 25 ? { label: 'Gezond gewicht', k: 'var(--mf-green, #1D9E75)' } : bmi < 30 ? { label: 'Overgewicht', k: 'var(--mf-amber, #BA7517)' } : { label: 'Obesitas', k: 'var(--mf-red, #E24B4A)' }
-                  return (
-                    <div style={{ padding: '8px 14px', borderRadius: 10, background: 'var(--mf-bg-subtle, #F9FAFB)', border: '1px solid var(--mf-border, #E5E7EB)', display: 'flex', justifyContent: 'space-between', marginTop: -8, marginBottom: 12 }}>
-                      <span style={{ fontSize: 13, color: 'var(--mf-text-muted, #6B7280)' }}>BMI: <strong>{bmi.toFixed(1)}</strong></span>
-                      <span style={{ fontSize: 12, fontWeight: 700, color: cat.k, padding: '2px 8px', borderRadius: 20, background: cat.k + '18' }}>{cat.label}</span>
-                    </div>
-                  )
-                })()}
-
-                <p style={{ fontSize: 12, color: 'var(--mf-text-muted, #9CA3AF)', marginBottom: 20 }}>Later invullen kan altijd via Instellingen</p>
-
-                <div style={{ display: 'flex', gap: 12, justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Knop onClick={() => setGebrStap('eerste-meting')} variant="ghost">← Terug</Knop>
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8 }}>
-                    <Knop onClick={async () => {
-                      if (!userId) return
-                      setBezig(true)
-                      if (meting.slaap !== null) await slaEersteMeting()
-                      const updates: Record<string, unknown> = {
-                        naam: gebr.naam.trim(),
-                        onboarding_voltooid: true,
-                      }
-                      if (gebr.geboortedatum) updates.geboortedatum = gebr.geboortedatum
-                      if (gebr.lengte_cm) updates.lengte_cm = parseInt(gebr.lengte_cm)
-                      if (gebr.gewicht_kg) updates.gewicht_kg = parseFloat(gebr.gewicht_kg.replace(',', '.'))
-                      if (gebr.geslacht) updates.geslacht = gebr.geslacht
-                      await supabase.from('profiles').update(updates).eq('id', userId)
-                      setGebrStap('klaar')
-                      setBezig(false)
-                    }} disabled={bezig}>
-                      {bezig ? 'Opslaan...' : 'Account activeren →'}
-                    </Knop>
-                    <SkipLink onClick={async () => {
-                      if (!userId) return
-                      setBezig(true)
-                      await supabase.from('profiles').update({ naam: gebr.naam.trim(), onboarding_voltooid: true }).eq('id', userId)
-                      setGebrStap('klaar')
-                      setBezig(false)
-                    }} label="Sla over, begin direct" />
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {gebrStap === 'klaar' && (
-              <div className="mf-animate-up" style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: 64, marginBottom: 8, lineHeight: 1 }}>🎉</div>
-                <h2 style={{ fontSize: 26, fontWeight: 800, color: 'var(--mf-heading, #111827)', marginBottom: 8, letterSpacing: '-0.02em' }}>
-                  Je bent klaar!
-                </h2>
-                <p style={{ fontSize: 15, color: 'var(--mf-text-muted, #6B7280)', marginBottom: 32, lineHeight: 1.6 }}>
-                  Jouw persoonlijke MentaForce-omgeving staat klaar. Veel succes!
-                </p>
-                <button onClick={() => { window.location.href = '/home' }}
-                  style={{
-                    width: '100%', padding: '16px', borderRadius: 14, fontSize: 15, fontWeight: 800,
-                    background: 'linear-gradient(135deg, var(--mf-green, #1D9E75), var(--mf-teal, #15B89A))',
-                    color: 'white', border: 'none', cursor: 'pointer',
-                    boxShadow: '0 4px 20px rgba(29,158,117,0.35)',
-                  }}>
-                  Naar mijn dashboard 🚀
-                </button>
-              </div>
-            )}
-          </>
-        )}
-
-        {/* ════════════════════════════════════════════════════════════════ */}
-        {/* GEBRUIKER / WERKNEMER FLOW                                      */}
-        {/* ════════════════════════════════════════════════════════════════ */}
-        {rol === 'other' && (
+        {rol === 'gebruiker' && (
           <>
             {gebrStap !== 'welkom' && gebrStap !== 'klaar' && (
               <VoortgangsBalk huidig={INTAKE_STAPPEN.indexOf(gebrStap as IntakeStap)} totaal={INTAKE_STAPPEN.length} />

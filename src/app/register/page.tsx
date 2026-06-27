@@ -7,7 +7,7 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 
 type Stap = 'type' | 'hrcode' | 'info' | 'account' | 'bevestig'
-type GebruikerType = 'werknemer' | 'hr' | 'zelfstandige'
+type GebruikerType = 'gebruiker' | 'hr'
 
 const VOORDELEN_WERKNEMER = [
   { icon: '📈', tekst: 'Zie je eigen vitaliteitsverloop over tijd' },
@@ -27,21 +27,13 @@ const VOORDELEN_HR = [
   { icon: '🛡️', tekst: 'Privacy-by-design - AVG-conform' },
 ]
 
-const VOORDELEN_ZELFSTANDIGE = [
-  { icon: '🏠', tekst: 'Persoonlijk vitaliteitsdashboard' },
-  { icon: '🤖', tekst: 'AI-coach voor welzijn en productiviteit' },
-  { icon: '🔍', tekst: 'Burn-out scan en vroege signalen' },
-  { icon: '📓', tekst: 'Journal en reflectietools' },
-  { icon: '🔥', tekst: 'Gewoontetracker en focus timers' },
-  { icon: '📈', tekst: 'Persoonlijke trendanalyse over tijd' },
-]
 
 function StapIndicator({ huidig, type }: { stap: Stap; huidig: Stap; type: GebruikerType | null }) {
-  // Werknemers krijgen een extra HR-code stap; andere rollen niet
-  const stappen: Stap[] = type === 'werknemer'
+  // Gebruikers krijgen een extra HR-code stap; HR niet
+  const stappen: Stap[] = type === 'gebruiker'
     ? ['type', 'hrcode', 'info', 'account', 'bevestig']
     : ['type', 'info', 'account', 'bevestig']
-  const labels = type === 'werknemer'
+  const labels = type === 'gebruiker'
     ? ['Jouw rol', 'HR Code', 'Gegevens', 'Account', 'Bevestiging']
     : ['Jouw rol', 'Gegevens', 'Account', 'Bevestiging']
   const huidigeIndex = stappen.indexOf(huidig)
@@ -144,7 +136,7 @@ export default function Register() {
   const sterkteTekst = ['Te kort', 'Matig', 'Goed', 'Sterk'][wachtwoordSterkte]
   const sterkteKleur = ['var(--mf-red)', 'var(--mf-amber)', 'var(--mf-green)', 'var(--mf-green)'][wachtwoordSterkte]
 
-  const voordelen = type === 'hr' ? VOORDELEN_HR : type === 'zelfstandige' ? VOORDELEN_ZELFSTANDIGE : VOORDELEN_WERKNEMER
+  const voordelen = type === 'hr' ? VOORDELEN_HR : VOORDELEN_WERKNEMER
 
   async function registreer() {
     if (!email.trim() || !wachtwoord || wachtwoord !== bevestigWachtwoord || !akkoord) return
@@ -157,7 +149,7 @@ export default function Register() {
       options: {
         data: {
           naam: naam.trim(),
-          rol: type === 'hr' ? 'hr' : type === 'zelfstandige' ? 'zelfstandige' : 'medewerker',
+          rol: type === 'hr' ? 'hr' : 'medewerker',
           organisatie: organisatie.trim(),
           functie: functie.trim(),
         },
@@ -185,7 +177,7 @@ export default function Register() {
     }
 
     // Koppel HR code als de werknemer een geldige code heeft ingevoerd
-    if (type === 'werknemer' && hrCodeBedrijfId && signUpData.session?.access_token) {
+    if (type === 'gebruiker' && hrCodeBedrijfId && signUpData.session?.access_token) {
       try {
         await fetch('/api/hr-code/koppel', {
           method: 'POST',
@@ -276,9 +268,9 @@ export default function Register() {
                 <div className="flex flex-col gap-4 mb-8">
                   {[
                     {
-                      id: 'werknemer' as GebruikerType,
+                      id: 'gebruiker' as GebruikerType,
                       icon: '👤',
-                      titel: 'Werknemer',
+                      titel: 'Gebruiker',
                       beschrijving: 'Ik wil mijn eigen welzijn bijhouden en persoonlijke tools gebruiken.',
                       badge: null,
                     },
@@ -288,13 +280,6 @@ export default function Register() {
                       titel: 'HR-manager of leidinggevende',
                       beschrijving: 'Ik wil het welzijn van mijn team monitoren en HR-inzichten ontvangen.',
                       badge: 'Populairste keuze',
-                    },
-                    {
-                      id: 'zelfstandige' as GebruikerType,
-                      icon: '💼',
-                      titel: 'Zelfstandige of freelancer',
-                      beschrijving: 'Ik werk voor mezelf en wil burn-out voorkomen en mijn energie bewaken.',
-                      badge: null,
                     },
                   ].map(o => (
                     <button
@@ -332,8 +317,8 @@ export default function Register() {
                 <button
                   onClick={() => {
                     if (!type) return
-                    // Werknemers krijgen de HR-code stap; andere rollen gaan direct naar info
-                    setStap(type === 'werknemer' ? 'hrcode' : 'info')
+                    // Gebruikers krijgen de HR-code stap; HR gaat direct naar info
+                    setStap(type === 'gebruiker' ? 'hrcode' : 'info')
                   }}
                   disabled={!type}
                   className="w-full py-4 rounded-xl text-white font-bold text-sm transition hover:opacity-90 disabled:opacity-30"
@@ -507,7 +492,7 @@ export default function Register() {
 
                 <div className="flex gap-3">
                   <button
-                    onClick={() => setStap(type === 'werknemer' ? 'hrcode' : 'type')}
+                    onClick={() => setStap(type === 'gebruiker' ? 'hrcode' : 'type')}
                     className="px-6 py-4 rounded-xl text-sm font-medium text-gray-600 border border-gray-200 hover:bg-gray-50 transition"
                   >
                     Terug
@@ -779,20 +764,16 @@ export default function Register() {
             <div className="relative z-10">
               <div className="mb-10">
                 <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: 'var(--mf-green)' }}>
-                  {type === 'hr' ? 'Voor HR-managers' : type === 'zelfstandige' ? 'Voor zelfstandigen' : 'Voor werknemers'}
+                  {type === 'hr' ? 'Voor HR-managers' : 'Voor gebruikers'}
                 </p>
                 <h2 className="text-2xl font-bold text-white mb-3 leading-tight">
                   {type === 'hr'
                     ? 'Houd vinger aan de pols van je team'
-                    : type === 'zelfstandige'
-                    ? 'Jouw welzijn, jouw verantwoordelijkheid'
                     : 'Jouw welzijn in jouw handen'}
                 </h2>
                 <p className="text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.45)' }}>
                   {type === 'hr'
                     ? 'MentaForce geeft je realtime inzicht in het welzijn van je team - zonder de privacy van medewerkers te schenden.'
-                    : type === 'zelfstandige'
-                    ? 'Zelfstandigen missen vaak de HR-structuur van een bedrijf. MentaForce vult dat op met persoonlijke tools.'
                     : 'Volg je eigen vitaliteit, ontvang persoonlijk advies en gebruik tools die je dagelijks beter laten functioneren.'}
                 </p>
               </div>
@@ -809,22 +790,20 @@ export default function Register() {
               <div className="rounded-2xl border p-5" style={{ borderColor: 'rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.03)' }}>
                 <div className="flex items-center gap-2 mb-3">
                   <span className="text-2xl">
-                    {type === 'hr' ? '👥' : type === 'zelfstandige' ? '💼' : '🌿'}
+                    {type === 'hr' ? '👥' : '🌿'}
                   </span>
                   <span className="text-xs font-semibold px-2 py-1 rounded-full"
                     style={{ background: 'rgba(29,158,117,0.2)', color: 'var(--mf-green)' }}>
-                    {type === 'hr' ? 'HR Platform' : type === 'zelfstandige' ? 'Persoonlijk gebruik' : 'Werknemerportaal'}
+                    {type === 'hr' ? 'HR Platform' : 'Gebruikersportaal'}
                   </span>
                 </div>
                 <p className="text-sm leading-relaxed mb-4" style={{ color: 'rgba(255,255,255,0.55)' }}>
                   {type === 'hr'
-                    ? 'Stel in minuten je bedrijfsprofiel in, nodig medewerkers uit via een HR-code en begin direct met het monitoren van teamwelzijn.'
-                    : type === 'zelfstandige'
-                    ? 'Volg je eigen welzijn, gebruik de AI-coach en houd grip op je energie en productiviteit — ook als zelfstandige.'
-                    : 'Doe wekelijks je check-in, gebruik de AI-coach en volg je eigen vitaliteit — volledig anoniem tegenover je werkgever.'}
+                    ? 'Stel in minuten je bedrijfsprofiel in, nodig gebruikers uit via een HR-code en begin direct met het monitoren van teamwelzijn.'
+                    : 'Doe wekelijks je check-in, gebruik de AI-coach en volg je eigen vitaliteit — optioneel koppel je aan je werkgever.'}
                 </p>
                 <div className="flex flex-col gap-1.5">
-                  {(type === 'hr' ? VOORDELEN_HR : type === 'zelfstandige' ? VOORDELEN_ZELFSTANDIGE : VOORDELEN_WERKNEMER).slice(0, 3).map(v => (
+                  {(type === 'hr' ? VOORDELEN_HR : VOORDELEN_WERKNEMER).slice(0, 3).map(v => (
                     <div key={v.tekst} className="flex items-center gap-2">
                       <span className="text-sm">{v.icon}</span>
                       <span className="text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>{v.tekst}</span>
