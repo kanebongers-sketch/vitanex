@@ -94,6 +94,11 @@ export default function SportPagina() {
   const [trainingsDezeWeek, setTrainingsDezeWeek] = useState(0)
   const [fitnessDoel, setFitnessDoel]           = useState<FitnessDoel | null>(null)
 
+  // 0 = maandag … 6 = zondag; roteert over de schemadagen
+  const vandaagDagIndex = schema
+    ? ((new Date().getDay() + 6) % 7) % schema.schema_json.length
+    : -1
+
   useEffect(() => {
     async function laad() {
       const { data: { user } } = await supabase.auth.getUser()
@@ -225,59 +230,82 @@ export default function SportPagina() {
             <div style={{ marginBottom: 20 }}>
               <h2 style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-3)', letterSpacing: '0.05em', textTransform: 'uppercase', margin: '0 0 10px' }}>Jouw schema</h2>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {schema.schema_json.map((dag, i) => (
-                  <Link key={i} href="/sport/training" style={{ textDecoration: 'none' }}>
-                    <div style={{
-                      background: 'var(--bg-card)',
-                      border: '1px solid var(--border)',
-                      borderRadius: 16,
-                      padding: '14px 16px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 14,
-                      transition: 'border-color 0.12s',
-                    }}>
-                      {/* Dag-nummer cirkel */}
-                      <div style={{ width: 40, height: 40, borderRadius: 12, background: 'rgba(16,185,129,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                        <span style={{ fontSize: 15, fontWeight: 800, color: 'var(--mf-green)' }}>{dag.dag}</span>
-                      </div>
+                {schema.schema_json.map((dag, i) => {
+                  const isVandaag = i === vandaagDagIndex
+                  return (
+                    <Link key={i} href="/sport/training" style={{ textDecoration: 'none' }}>
+                      <div style={{
+                        background: isVandaag ? 'rgba(16,185,129,0.04)' : 'var(--bg-card)',
+                        border: `1.5px solid ${isVandaag ? 'var(--mf-green)' : 'var(--border)'}`,
+                        borderRadius: 16,
+                        padding: '14px 16px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 14,
+                        position: 'relative',
+                        transition: 'border-color 0.12s',
+                      }}>
+                        {isVandaag && (
+                          <span style={{
+                            position: 'absolute', top: 10, right: 44,
+                            fontSize: 9, fontWeight: 800, letterSpacing: '0.06em',
+                            color: 'var(--mf-green)', background: 'rgba(16,185,129,0.12)',
+                            borderRadius: 20, padding: '2px 8px', textTransform: 'uppercase',
+                          }}>Vandaag</span>
+                        )}
 
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-1)', marginBottom: 5, letterSpacing: '-0.01em' }}>
-                          {dag.naam}
+                        {/* Dag-nummer cirkel */}
+                        <div style={{
+                          width: 40, height: 40, borderRadius: 12, flexShrink: 0,
+                          background: isVandaag ? 'rgba(16,185,129,0.18)' : 'rgba(16,185,129,0.1)',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        }}>
+                          <span style={{ fontSize: 15, fontWeight: 800, color: 'var(--mf-green)' }}>{dag.dag}</span>
                         </div>
-                        {/* Spiergroep pills */}
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-                          {dag.spiergroepen.map((sg, si) => {
-                            const kleur = spierKleur(sg)
-                            return (
-                              <span key={si} style={{
-                                fontSize: 10, fontWeight: 600, padding: '2px 8px', borderRadius: 20,
-                                background: kleur + '18', color: kleur,
-                                border: `1px solid ${kleur}30`,
-                              }}>
-                                {sg}
-                              </span>
-                            )
-                          })}
-                        </div>
-                      </div>
 
-                      {/* Meta rechts */}
-                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, flexShrink: 0 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: 'var(--text-4)' }}>
-                          <Clock size={10} />
-                          {dag.geschatte_duur} min
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-1)', marginBottom: 4, letterSpacing: '-0.01em' }}>
+                            {dag.naam}
+                          </div>
+                          {/* Spiergroep pills */}
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: dag.oefeningen.length > 0 ? 5 : 0 }}>
+                            {dag.spiergroepen.map((sg, si) => {
+                              const kleur = spierKleur(sg)
+                              return (
+                                <span key={si} style={{
+                                  fontSize: 10, fontWeight: 600, padding: '2px 8px', borderRadius: 20,
+                                  background: kleur + '18', color: kleur, border: `1px solid ${kleur}30`,
+                                }}>
+                                  {sg}
+                                </span>
+                              )
+                            })}
+                          </div>
+                          {/* Oefeningen preview */}
+                          {dag.oefeningen.length > 0 && (
+                            <div style={{ fontSize: 11, color: 'var(--text-4)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {dag.oefeningen.slice(0, 2).map(o => o.naam).join(' · ')}
+                              {dag.oefeningen.length > 2 && ` +${dag.oefeningen.length - 2}`}
+                            </div>
+                          )}
                         </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: 'var(--text-4)' }}>
-                          <Dumbbell size={10} />
-                          {dag.oefeningen.length} oef.
+
+                        {/* Meta rechts */}
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, flexShrink: 0 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: 'var(--text-4)' }}>
+                            <Clock size={10} />
+                            {dag.geschatte_duur} min
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: 'var(--text-4)' }}>
+                            <Dumbbell size={10} />
+                            {dag.oefeningen.length} oef.
+                          </div>
                         </div>
+                        <ChevronRight size={14} strokeWidth={2} style={{ color: isVandaag ? 'var(--mf-green)' : 'var(--text-4)', flexShrink: 0 }} />
                       </div>
-                      <ChevronRight size={14} strokeWidth={2} style={{ color: 'var(--text-4)', flexShrink: 0 }} />
-                    </div>
-                  </Link>
-                ))}
+                    </Link>
+                  )
+                })}
               </div>
             </div>
           </>

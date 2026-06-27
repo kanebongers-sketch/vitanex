@@ -113,7 +113,7 @@ const MAALTIJD_EMOJI: Record<string, string> = { ontbijt: '🌅', tussendoortje_
 const MAALTIJD_KLEUR: Record<string, string> = { ontbijt: 'var(--mf-amber)', tussendoortje_1: 'var(--mf-amber)', lunch: 'var(--mf-green)', tussendoortje_2: 'var(--mf-amber-dark)', diner: 'var(--mf-purple)', avondsnack: 'var(--mf-red)' }
 const MAALTIJD_LABEL: Record<string, string> = { ontbijt: 'Ontbijt', tussendoortje_1: 'Tuss. 1', lunch: 'Lunch', tussendoortje_2: 'Tuss. 2', diner: 'Diner', avondsnack: 'Avond' }
 const DOEL_KCAL = 2000
-const WATER_DOEL = 8
+const ML_PER_GLAS = 250
 
 // ─── SVG Componenten ──────────────────────────────────────────────────────────
 
@@ -131,7 +131,7 @@ function CalorieRing({ gegeten, doel, kleur }: { gegeten: number; doel: number; 
       <text x="90" y="82" textAnchor="middle" fontSize="28" fontWeight="900" style={{ fill: over ? 'var(--mf-red)' : 'var(--text-1)' }}>{gegeten}</text>
       <text x="90" y="100" textAnchor="middle" fontSize="12" style={{ fill: 'var(--text-4)' }} fontWeight="600">kcal</text>
       <text x="90" y="116" textAnchor="middle" fontSize="11" style={{ fill: over ? 'var(--mf-red)' : 'var(--mf-green)' }} fontWeight="700">
-        {over ? `+${gegeten - doel} over` : `${doel - gegeten} over`}
+        {over ? `+${gegeten - doel} over` : `${doel - gegeten} resterend`}
       </text>
     </svg>
   )
@@ -231,6 +231,7 @@ export default function VoedingPage() {
 
   // Water state
   const [water, setWater] = useState(0)
+  const [waterDoelMl, setWaterDoelMl] = useState(2000)
 
   // Session
   const [token, setToken] = useState<string | null>(null)
@@ -252,6 +253,11 @@ export default function VoedingPage() {
       if (!session) { router.replace('/login'); return }
       setToken(session.access_token)
       laadLogs(session.access_token)
+      // Waterdoel ophalen vanuit profiel
+      fetch(`/api/water?datum=${vandaag}`, { headers: { Authorization: `Bearer ${session.access_token}` } })
+        .then(r => r.json())
+        .then((d: { doel_ml?: number }) => { if (d.doel_ml) setWaterDoelMl(d.doel_ml) })
+        .catch(() => { /* fallback op 2000 ml */ })
     })
     // localStorage lezen + setState buiten de synchrone effect-body
     Promise.resolve().then(() => {
@@ -279,8 +285,10 @@ export default function VoedingPage() {
 
   // ── Water ────────────────────────────────────────────────────────────────────
 
+  const waterDoelGlazen = Math.max(4, Math.round(waterDoelMl / ML_PER_GLAS))
+
   const setWaterSave = (n: number) => {
-    const clamped = Math.max(0, Math.min(WATER_DOEL + 4, n))
+    const clamped = Math.max(0, Math.min(waterDoelGlazen + 4, n))
     setWater(clamped)
     try { localStorage.setItem(`water_${vandaag}`, String(clamped)) } catch { /* ok */ }
   }
@@ -618,10 +626,10 @@ export default function VoedingPage() {
               <div style={{ flex: 1 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
                   <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-2)' }}>Water</span>
-                  <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--mf-blue)' }}>{water}/{WATER_DOEL} glazen</span>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--mf-blue)' }}>{water}/{waterDoelGlazen} glazen</span>
                 </div>
                 <div style={{ display: 'flex', gap: 4 }}>
-                  {Array.from({ length: WATER_DOEL }).map((_, i) => (
+                  {Array.from({ length: waterDoelGlazen }).map((_, i) => (
                     <button key={i} onClick={() => setWaterSave(i < water ? i : i + 1)}
                       style={{ flex: 1, height: 8, borderRadius: 4, border: 'none', cursor: 'pointer',
                         background: i < water ? 'var(--mf-blue)' : 'var(--mf-blue-light)',
