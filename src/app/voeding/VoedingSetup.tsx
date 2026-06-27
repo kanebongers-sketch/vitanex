@@ -190,11 +190,7 @@ export default function VoedingSetup({ onComplete, onOverslaan }: Props) {
     return berekenTDEEInline(g, l, a, geslacht, activiteitsniveau)
   }, [gewicht, lengte, leeftijd, geslacht, activiteitsniveau])
 
-  const schemaKcal = (s: SchemaOptie): number | null => {
-    if (!tdee) return null
-    if (s.manueel) return tdee
-    return tdee + DOEL_CONFIG[s.fitness_doel].calorie_aanpassing
-  }
+  const schemaKcal = (_s: SchemaOptie): number | null => tdee
 
   const schemaMacros = (s: SchemaOptie) => {
     const kcal = schemaKcal(s)
@@ -238,7 +234,7 @@ export default function VoedingSetup({ onComplete, onOverslaan }: Props) {
         activiteitsniveau,
         fitness_doel:     schema.fitness_doel,
         dieetvoorkeur:    schema.dieetvoorkeur ?? null,
-        calorie_doel:     schema.manueel && tdee ? tdee : null,
+        calorie_doel:     tdee ?? null,
       }).eq('id', user.id)
       if (error) throw error
       onComplete()
@@ -431,7 +427,6 @@ export default function VoedingSetup({ onComplete, onOverslaan }: Props) {
                 const kcal   = schemaKcal(s)
                 const macros = schemaMacros(s)
                 const actief = gekozenSchema === s.id
-                const aanp   = s.manueel ? 0 : DOEL_CONFIG[s.fitness_doel].calorie_aanpassing
                 const isVolleBreedte = s.manueel
 
                 return (
@@ -519,13 +514,8 @@ export default function VoedingSetup({ onComplete, onOverslaan }: Props) {
                           padding: '8px 12px', borderRadius: 8,
                           background: actief ? `${s.kleur}18` : 'var(--bg-subtle)',
                         }}>
-                          <div style={{ fontSize: 15, fontWeight: 800, color: actief ? s.kleur : 'var(--text-1)', display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                          <div style={{ fontSize: 15, fontWeight: 800, color: actief ? s.kleur : 'var(--text-1)' }}>
                             {kcal} kcal/dag
-                            {aanp !== 0 && (
-                              <span style={{ fontSize: 10, color: 'var(--text-3)', fontWeight: 400 }}>
-                                ({aanp > 0 ? '+' : ''}{aanp})
-                              </span>
-                            )}
                           </div>
                           {macros && (
                             <div style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 3, display: 'flex', gap: 10 }}>
