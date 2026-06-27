@@ -234,8 +234,9 @@ export default function VoedingPage() {
   const [water, setWater] = useState(0)
   const [waterDoelMl, setWaterDoelMl] = useState(2000)
 
-  // Setup wizard: toon wanneer profiel incompleet is, tenzij gebruiker heeft overgeslagen
+  // Setup wizard: toon wanneer profiel incompleet is, of handmatig geopend
   const [heeftSetupGezien, setHeeftSetupGezien] = useState(false)
+  const [toontSetup, setToontSetup] = useState(false)
 
   // Session
   const [token, setToken] = useState<string | null>(null)
@@ -526,11 +527,11 @@ export default function VoedingPage() {
 
   // ── Setup wizard: toon bij incompleet profiel ────────────────────────────────
 
-  if (!heeftSetupGezien && doelen !== null && !doelen.profiel_compleet) {
+  if (toontSetup || (!heeftSetupGezien && doelen !== null && !doelen.profiel_compleet)) {
     return (
       <VoedingSetup
-        onComplete={() => { setHeeftSetupGezien(true); if (token) laadLogs(token) }}
-        onOverslaan={() => setHeeftSetupGezien(true)}
+        onComplete={() => { setToontSetup(false); setHeeftSetupGezien(true); if (token) laadLogs(token) }}
+        onOverslaan={() => { setToontSetup(false); setHeeftSetupGezien(true) }}
       />
     )
   }
@@ -559,8 +560,16 @@ export default function VoedingPage() {
                   {new Date().toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long' })}
                 </p>
               </div>
-              <div style={{ fontSize: logs.length > 0 ? 12 : 11, color: logs.length > 0 ? 'var(--mf-green)' : 'var(--text-4)', fontWeight: 700 }}>
-                {logs.length > 0 ? `${logs.length} maaltijd${logs.length !== 1 ? 'en' : ''}` : 'Nog niets gelogd'}
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6 }}>
+                <div style={{ fontSize: logs.length > 0 ? 12 : 11, color: logs.length > 0 ? 'var(--mf-green)' : 'var(--text-4)', fontWeight: 700 }}>
+                  {logs.length > 0 ? `${logs.length} maaltijd${logs.length !== 1 ? 'en' : ''}` : 'Nog niets gelogd'}
+                </div>
+                <button
+                  onClick={() => setToontSetup(true)}
+                  style={{ background: 'var(--bg-subtle)', border: '1px solid var(--border)', borderRadius: 20, padding: '4px 12px', fontSize: 11, fontWeight: 700, color: 'var(--text-3)', cursor: 'pointer', whiteSpace: 'nowrap' }}
+                >
+                  Wijzig plan ›
+                </button>
               </div>
             </div>
 
