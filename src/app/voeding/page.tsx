@@ -8,6 +8,7 @@ import Image from 'next/image'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import nextDynamic from 'next/dynamic'
+import VoedingSetup from './VoedingSetup'
 const AiCoachCard = nextDynamic(() => import('@/components/gezondheid/AiCoachCard'), { ssr: false })
 const KCAL_KLEUR = (gegeten: number, doel: number): string =>
   gegeten > doel * 1.05 ? 'rgba(226,75,74,0.18)' : gegeten > doel * 0.75 ? 'rgba(29,158,117,0.18)' : 'rgba(242,184,36,0.18)'
@@ -232,6 +233,9 @@ export default function VoedingPage() {
   // Water state
   const [water, setWater] = useState(0)
   const [waterDoelMl, setWaterDoelMl] = useState(2000)
+
+  // Setup wizard: toon wanneer profiel incompleet is, tenzij gebruiker heeft overgeslagen
+  const [heeftSetupGezien, setHeeftSetupGezien] = useState(false)
 
   // Session
   const [token, setToken] = useState<string | null>(null)
@@ -519,6 +523,17 @@ export default function VoedingPage() {
       </div>
     </div>
   )
+
+  // ── Setup wizard: toon bij incompleet profiel ────────────────────────────────
+
+  if (!heeftSetupGezien && doelen !== null && !doelen.profiel_compleet) {
+    return (
+      <VoedingSetup
+        onComplete={() => { setHeeftSetupGezien(true); if (token) laadLogs(token) }}
+        onOverslaan={() => setHeeftSetupGezien(true)}
+      />
+    )
+  }
 
   // ─────────────────────────────────────────────────────────────────────────────
 
