@@ -477,6 +477,14 @@ export async function POST(req: NextRequest) {
   try {
     const supabase = createSupabaseAdmin()
 
+    // Deactiveer alle bestaande schema's van deze gebruiker zodat maybeSingle()
+    // in de training-pagina altijd precies 1 actief schema terugvindt.
+    await supabase
+      .from("fitness_schemas")
+      .update({ actief: false })
+      .eq("user_id", body.userId)
+      .eq("actief", true)
+
     const { data, error } = await supabase
       .from("fitness_schemas")
       .insert({

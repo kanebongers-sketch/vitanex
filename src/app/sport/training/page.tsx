@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import {
-  Dumbbell, Clock, ChevronRight, CheckCircle2, Circle,
+  Dumbbell, Clock, CheckCircle2, Circle,
   Plus, ArrowLeft, Timer, Flame, Trophy,
 } from 'lucide-react'
 
@@ -101,7 +101,8 @@ export default function TrainingLoggerPage() {
       setUserId(user.id)
       const { data } = await supabase
         .from('fitness_schemas').select('id, naam, schema_json')
-        .eq('user_id', user.id).eq('actief', true).maybeSingle()
+        .eq('user_id', user.id).eq('actief', true)
+        .order('aangemaakt_op', { ascending: false }).limit(1).maybeSingle()
       if (!data) { router.push('/sport/genereer'); return }
       setSchema(data as FitnessSchema)
       setLaden(false)
@@ -337,7 +338,6 @@ export default function TrainingLoggerPage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               {oefeningen.map((oef, oi) => {
                 const alles = oef.setsGedaan.every(s => s.voltooid)
-                const deels = !alles && oef.setsGedaan.some(s => s.voltooid)
                 return (
                   <div key={oi} style={{
                     background: 'var(--bg-card)',
