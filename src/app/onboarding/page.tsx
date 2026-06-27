@@ -4,6 +4,16 @@ export const dynamic = 'force-dynamic'
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import {
+  LichaamStap,
+  DoelStap,
+  VoedingStap,
+  DoelenPayoff,
+  EersteMetingStap,
+  type EersteMeting,
+  type GebrForm,
+} from './IntakeStappen'
+import type { GezondheidProfiel } from '@/lib/gezondheid-berekeningen'
 
 
 // ─── HR onboarding stappen ────────────────────────────────────────────────────
@@ -11,29 +21,12 @@ type HrStap = 'welkom' | 'gegevens' | 'bedrijf' | 'details' | 'klaar'
 const HR_STAPPEN: HrStap[] = ['welkom', 'gegevens', 'bedrijf', 'details', 'klaar']
 
 // ─── Gebruiker/werknemer onboarding stappen ───────────────────────────────────
-// Lichaam en privacy zijn gecombineerd tot één stap
+// Zelfstandige-flow gebruikt de oude, compacte stappen (lichaam = 'extra').
 type GebrStap = 'welkom' | 'profiel' | 'eerste-meting' | 'extra' | 'klaar'
-const GEBR_STAPPEN: GebrStap[] = ['welkom', 'profiel', 'eerste-meting', 'extra', 'klaar']
 
-// ─── Eerste meting state ──────────────────────────────────────────────────────
-interface EersteMeting {
-  slaap: number | null
-  energie: number | null
-  stemming: number | null
-  geladen: boolean
-  score: number | null
-}
-
-function berekenReadiness(slaap: number, energie: number, stemming: number): number {
-  return 50 + slaap * 20 + energie * 15 + stemming * 15
-}
-
-function readinessLabel(score: number): { label: string; uitleg: string; kleur: string } {
-  if (score >= 90) return { label: 'Uitstekend', uitleg: 'Je bent top in vorm. Profiteer hiervan.', kleur: 'var(--mf-green, #1D9E75)' }
-  if (score >= 75) return { label: 'Goed', uitleg: 'Je hebt een solide basis. Kleine verbeteringen maken het verschil.', kleur: 'var(--mf-blue, #185FA5)' }
-  if (score >= 60) return { label: 'Matig', uitleg: 'Ruimte voor verbetering. Let op slaap en herstel.', kleur: 'var(--mf-amber, #BA7517)' }
-  return { label: 'Laag', uitleg: 'Je lichaam vraagt aandacht. Neem het rustig aan vandaag.', kleur: 'var(--mf-red, #E24B4A)' }
-}
+// Werknemer-flow (rol 'other') krijgt de uitgebreide intake met aparte stappen.
+type IntakeStap = 'welkom' | 'profiel' | 'eerste-meting' | 'lichaam' | 'doel' | 'voeding' | 'klaar'
+const INTAKE_STAPPEN: IntakeStap[] = ['welkom', 'profiel', 'eerste-meting', 'lichaam', 'doel', 'voeding', 'klaar']
 
 // ─── Sectoren ────────────────────────────────────────────────────────────────
 const SECTOREN = [
@@ -78,7 +71,7 @@ function VoortgangsBalk({ huidig, totaal, label }: { huidig: number; totaal: num
   )
 }
 
-function SkipLink({ onClick, label = 'Sla over →' }: { onClick: () => void; label?: string }) {
+export function SkipLink({ onClick, label = 'Sla over →' }: { onClick: () => void; label?: string }) {
   return (
     <button
       type="button"
@@ -94,7 +87,7 @@ function SkipLink({ onClick, label = 'Sla over →' }: { onClick: () => void; la
   )
 }
 
-function Veld({ label, sub, children }: { label: string; sub?: string; children: React.ReactNode }) {
+export function Veld({ label, sub, children }: { label: string; sub?: string; children: React.ReactNode }) {
   return (
     <div style={{ marginBottom: 18 }}>
       <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--mf-text, #374151)', marginBottom: 4 }}>{label}</label>
@@ -111,7 +104,7 @@ const inputStijl: React.CSSProperties = {
   color: 'var(--mf-text, #111827)',
 }
 
-function Input(props: React.InputHTMLAttributes<HTMLInputElement>) {
+export function Input(props: React.InputHTMLAttributes<HTMLInputElement>) {
   return (
     <input
       {...props}
@@ -122,7 +115,7 @@ function Input(props: React.InputHTMLAttributes<HTMLInputElement>) {
   )
 }
 
-function Knop({ onClick, disabled, children, variant = 'primary', fullWidth }: {
+export function Knop({ onClick, disabled, children, variant = 'primary', fullWidth }: {
   onClick?: () => void; disabled?: boolean; children: React.ReactNode
   variant?: 'primary' | 'ghost'; fullWidth?: boolean
 }) {
@@ -145,191 +138,6 @@ function Knop({ onClick, disabled, children, variant = 'primary', fullWidth }: {
   )
 }
 
-// ─── ReadinessRing SVG ────────────────────────────────────────────────────────
-function ReadinessRing({ score, kleur }: { score: number; kleur: string }) {
-  const radius = 54
-  const omtrek = 2 * Math.PI * radius
-  const voortgang = (score / 100) * omtrek
-  return (
-    <div style={{ position: 'relative', display: 'inline-block' }}>
-      <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
-        <div style={{ width: 160, height: 160, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
-      </div>
-      <svg width={140} height={140} viewBox="0 0 140 140" style={{ display: 'block', margin: '0 auto', position: 'relative', zIndex: 1 }}>
-        <circle cx={70} cy={70} r={radius} fill="none" stroke="var(--mf-border, #F3F4F6)" strokeWidth={12} />
-        <circle
-          cx={70} cy={70} r={radius} fill="none"
-          stroke={kleur} strokeWidth={12}
-          strokeDasharray={`${voortgang} ${omtrek}`}
-          strokeLinecap="round"
-          transform="rotate(-90 70 70)"
-          style={{ transition: 'stroke-dasharray 1s cubic-bezier(0.16,1,0.3,1)' }}
-        />
-        <text x={70} y={65} textAnchor="middle" fontSize={28} fontWeight={800} fill="var(--mf-heading, #111827)">{score}</text>
-        <text x={70} y={85} textAnchor="middle" fontSize={11} fill="var(--mf-text-muted, #9CA3AF)">/100</text>
-      </svg>
-    </div>
-  )
-}
-
-// ─── EersteMeting stap ────────────────────────────────────────────────────────
-function EersteMetingStap({
-  meting, setMeting, onVolgende, onTerug, onSlaan, bezig,
-}: {
-  meting: EersteMeting
-  setMeting: React.Dispatch<React.SetStateAction<EersteMeting>>
-  onVolgende: () => void
-  onTerug: () => void
-  onSlaan: () => void
-  bezig: boolean
-}) {
-  const alleIngevuld = meting.slaap !== null && meting.energie !== null && meting.stemming !== null
-
-  const SLAAP_EMOJIS = ['😫', '😕', '😐', '😊', '🤩']
-  const ENERGIE_EMOJIS = ['⚡', '⚡⚡', '⚡⚡⚡', '⚡⚡⚡⚡', '⚡⚡⚡⚡⚡']
-  const STEMMING_EMOJIS = ['😞', '😔', '😐', '🙂', '😄']
-
-  function EmojiSchaal({
-    vraag, emojis, waarde, onChange,
-  }: {
-    vraag: string; emojis: string[]; waarde: number | null; onChange: (v: number) => void
-  }) {
-    return (
-      <div style={{ marginBottom: 24 }}>
-        <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--mf-text, #374151)', marginBottom: 12 }}>{vraag}</p>
-        <div style={{ display: 'flex', gap: 8, justifyContent: 'space-between' }}>
-          {emojis.map((emoji, i) => {
-            const val = i + 1
-            const geselecteerd = waarde === val
-            return (
-              <button
-                key={val}
-                type="button"
-                onClick={() => onChange(val)}
-                style={{
-                  flex: 1, padding: '10px 4px', borderRadius: 12,
-                  border: `2px solid ${geselecteerd ? 'var(--mf-green, #1D9E75)' : 'var(--mf-border, #E5E7EB)'}`,
-                  background: geselecteerd ? 'var(--mf-green-light, #E1F5EE)' : 'var(--mf-bg-subtle, #F9FAFB)',
-                  cursor: 'pointer', fontSize: 22, transition: 'all 0.15s',
-                  transform: geselecteerd ? 'scale(1.12)' : 'scale(1)',
-                  boxShadow: geselecteerd ? '0 2px 10px rgba(29,158,117,0.22)' : 'none',
-                }}
-              >
-                {emoji}
-              </button>
-            )
-          })}
-        </div>
-      </div>
-    )
-  }
-
-  if (meting.geladen && meting.score !== null) {
-    const { label, uitleg, kleur } = readinessLabel(meting.score)
-    return (
-      <div className="mf-animate-up">
-        <div style={{ textAlign: 'center', marginBottom: 28 }}>
-          <div style={{ position: 'relative', display: 'inline-block', marginBottom: 8 }}>
-            <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
-              <div style={{ width: 100, height: 100, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
-            </div>
-            <div style={{ fontSize: 36, position: 'relative', zIndex: 1 }}>🎯</div>
-          </div>
-          <h2 style={{ fontSize: 20, fontWeight: 800, color: 'var(--mf-heading, #111827)', marginBottom: 4, letterSpacing: '-0.02em' }}>
-            Jouw eerste Readiness Score
-          </h2>
-          <p style={{ fontSize: 13, color: 'var(--mf-text-muted, #9CA3AF)' }}>Gebaseerd op slaap, energie en stemming</p>
-        </div>
-
-        <div style={{
-          padding: '28px 24px', borderRadius: 20,
-          background: 'linear-gradient(135deg, #F0FDF8, #EFF6FF)',
-          border: `2px solid ${kleur}30`,
-          marginBottom: 20, textAlign: 'center',
-        }}>
-          <ReadinessRing score={meting.score} kleur={kleur} />
-          <div style={{ marginTop: 16 }}>
-            <span style={{
-              display: 'inline-block', fontSize: 13, fontWeight: 800, padding: '4px 14px',
-              borderRadius: 20, background: `${kleur}20`, color: kleur, marginBottom: 8,
-            }}>{label}</span>
-            <p style={{ fontSize: 14, color: 'var(--mf-text, #4B5563)', lineHeight: 1.5 }}>{uitleg}</p>
-          </div>
-        </div>
-
-        <div style={{
-          padding: '14px 16px', borderRadius: 12,
-          background: 'var(--mf-bg-subtle, #F9FAFB)', border: '1px solid var(--mf-border, #E5E7EB)',
-          marginBottom: 24,
-        }}>
-          <p style={{ fontSize: 13, color: 'var(--mf-text-muted, #6B7280)', lineHeight: 1.6 }}>
-            Morgenvroeg vergelijken we dit. Zo zien we hoe je evolueert.
-          </p>
-        </div>
-
-        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-          <Knop onClick={onVolgende} disabled={bezig}>
-            {bezig ? 'Opslaan...' : 'Verder →'}
-          </Knop>
-        </div>
-      </div>
-    )
-  }
-
-  return (
-    <div className="mf-animate-up">
-      <div style={{ marginBottom: 28 }}>
-        <div style={{ fontSize: 32, marginBottom: 10 }}>🎯</div>
-        <h2 style={{ fontSize: 20, fontWeight: 800, color: 'var(--mf-heading, #111827)', marginBottom: 4, letterSpacing: '-0.02em' }}>
-          Jouw eerste meting
-        </h2>
-        <p style={{ fontSize: 13, color: 'var(--mf-text-muted, #9CA3AF)', lineHeight: 1.5 }}>
-          Dit duurt 30 seconden. Dan zien we gelijk hoe je je voelt.
-        </p>
-      </div>
-
-      <EmojiSchaal
-        vraag="Hoe sliep je gisteravond?"
-        emojis={SLAAP_EMOJIS}
-        waarde={meting.slaap}
-        onChange={v => setMeting(m => ({ ...m, slaap: v }))}
-      />
-      <EmojiSchaal
-        vraag="Hoe is je energieniveau nu?"
-        emojis={ENERGIE_EMOJIS}
-        waarde={meting.energie}
-        onChange={v => setMeting(m => ({ ...m, energie: v }))}
-      />
-      <EmojiSchaal
-        vraag="Hoe voel je je op dit moment?"
-        emojis={STEMMING_EMOJIS}
-        waarde={meting.stemming}
-        onChange={v => setMeting(m => ({ ...m, stemming: v }))}
-      />
-
-      <div style={{ display: 'flex', gap: 12, justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
-        <Knop onClick={onTerug} variant="ghost">← Terug</Knop>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8 }}>
-          <Knop
-            onClick={() => {
-              if (meting.slaap === null || meting.energie === null || meting.stemming === null) return
-              const score = Math.min(100, berekenReadiness(
-                (meting.slaap - 1) / 4,
-                (meting.energie - 1) / 4,
-                (meting.stemming - 1) / 4,
-              ))
-              setMeting(m => ({ ...m, score: Math.round(score), geladen: true }))
-            }}
-            disabled={!alleIngevuld}
-          >
-            Bereken mijn score →
-          </Knop>
-          <SkipLink onClick={onSlaan} label="Sla meting over" />
-        </div>
-      </div>
-    </div>
-  )
-}
 
 // ─── Hoofd pagina ─────────────────────────────────────────────────────────────
 export default function OnboardingPage() {
@@ -338,13 +146,14 @@ export default function OnboardingPage() {
   const [rol, setRol] = useState<'hr' | 'zelfstandige' | 'other' | null>(null)
   const [userId, setUserId] = useState<string | null>(null)
   const [bezig, setBezig] = useState(false)
+  const [fout, setFout] = useState<string | null>(null)
   const [naam, setNaamState] = useState('')
 
   // HR stap state
   const [hrStap, setHrStap] = useState<HrStap>('welkom')
 
-  // Gebruiker stap state
-  const [gebrStap, setGebrStap] = useState<GebrStap>('welkom')
+  // Gebruiker stap state — union dekt zowel zelfstandige- als werknemer-intake.
+  const [gebrStap, setGebrStap] = useState<GebrStap | IntakeStap>('welkom')
 
   // Eerste meting state
   const [meting, setMeting] = useState<EersteMeting>({
@@ -358,10 +167,13 @@ export default function OnboardingPage() {
     sector: '', grootte: '',
   })
 
-  // Gebruiker form
-  const [gebr, setGebr] = useState({
-    naam: '', geslacht: '' as '' | 'man' | 'vrouw' | 'anders' | 'zeg_ik_niet',
-    geboortedatum: '', lengte_cm: '', gewicht_kg: '', hrCode: '',
+  // Gebruiker form — volledige intake (zelfstandige gebruikt subset).
+  const [gebr, setGebr] = useState<GebrForm>({
+    naam: '', geslacht: '',
+    geboortedatum: '', lengte_cm: '', gewicht_kg: '', vetpercentage: '',
+    activiteitsniveau: '', fitness_doel: '', streefgewicht_kg: '',
+    dieetvoorkeur: '', allergieen: [],
+    hrCode: '',
     hrInzageRapporten: false,
     hrInzageBestanden: false,
   })
@@ -470,25 +282,73 @@ export default function OnboardingPage() {
     ])
   }
 
-  // ── Gebruiker afronden (gecombineerde stap) ────────────────────────────────
+  // ── Numerieke parsers (komma → punt, leeg → null) ──────────────────────────
+  const parseGewicht = () => gebr.gewicht_kg ? parseFloat(gebr.gewicht_kg.replace(',', '.')) : null
+  const parseVet = () => gebr.vetpercentage ? parseFloat(gebr.vetpercentage.replace(',', '.')) : null
+
+  // ── Bouw het gezondheidsprofiel uit de huidige form (voor de payoff) ───────
+  function bouwProfiel(): GezondheidProfiel {
+    return {
+      gewicht_kg: parseGewicht(),
+      lengte_cm: gebr.lengte_cm ? parseInt(gebr.lengte_cm) : null,
+      geboortedatum: gebr.geboortedatum || null,
+      geslacht: gebr.geslacht || null,
+      activiteitsniveau: gebr.activiteitsniveau || null,
+      fitness_doel: gebr.fitness_doel || null,
+    }
+  }
+
+  // ── Sla een startmeting op in lichaamsmetingen (upsert op user_id+datum) ───
+  async function slaStartmeting(gewicht: number, vet: number | null) {
+    if (!userId) return
+    const vandaag = new Date().toISOString().split('T')[0]
+    const { error } = await supabase.from('lichaamsmetingen').upsert(
+      {
+        user_id: userId,
+        datum: vandaag,
+        gewicht_kg: gewicht,
+        vetpercentage: vet,
+        notitie: 'Startmeting bij intake',
+      },
+      { onConflict: 'user_id,datum' },
+    )
+    if (error) {
+      // Niet-blokkerend: het profiel is al opgeslagen. Toon een nette melding.
+      setFout('Je startmeting kon niet worden opgeslagen, maar je profiel staat klaar.')
+    }
+  }
+
+  // ── Gebruiker afronden (uitgebreide intake, rol 'other') ───────────────────
   async function gebruikerAfronden() {
     if (!userId) return
     setBezig(true)
+    setFout(null)
 
     if (meting.slaap !== null && meting.energie !== null && meting.stemming !== null) {
       await slaEersteMeting()
     }
 
+    const gewicht = parseGewicht()
+    const vet = parseVet()
+
     const updates: Record<string, unknown> = {
       naam: gebr.naam.trim(),
       onboarding_voltooid: true,
+      intake_voltooid: true,
       hr_inzage_rapporten: gebr.hrInzageRapporten,
       hr_inzage_bestanden: gebr.hrInzageBestanden,
     }
     if (gebr.geboortedatum) updates.geboortedatum = gebr.geboortedatum
     if (gebr.lengte_cm) updates.lengte_cm = parseInt(gebr.lengte_cm)
-    if (gebr.gewicht_kg) updates.gewicht_kg = parseFloat(gebr.gewicht_kg.replace(',', '.'))
+    if (gewicht !== null) updates.gewicht_kg = gewicht
+    if (vet !== null) updates.vetpercentage = vet
     if (gebr.geslacht) updates.geslacht = gebr.geslacht
+    if (gebr.activiteitsniveau) updates.activiteitsniveau = gebr.activiteitsniveau
+    if (gebr.fitness_doel) updates.fitness_doel = gebr.fitness_doel
+    if (gebr.streefgewicht_kg) updates.streefgewicht_kg = parseFloat(gebr.streefgewicht_kg.replace(',', '.'))
+    if (gebr.dieetvoorkeur) updates.dieetvoorkeur = gebr.dieetvoorkeur
+    updates.allergieen = gebr.allergieen
+    // water_doel_ml / stappen_doel / calorie_doel blijven NULL (automatisch).
 
     if (gebr.hrCode && hrCodeBedrijf) {
       const { data: { session } } = await supabase.auth.getSession()
@@ -500,7 +360,15 @@ export default function OnboardingPage() {
       updates.rol = 'medewerker'
     }
 
-    await supabase.from('profiles').update(updates).eq('id', userId)
+    const { error } = await supabase.from('profiles').update(updates).eq('id', userId)
+    if (error) {
+      setFout('Opslaan is niet gelukt. Controleer je verbinding en probeer het opnieuw.')
+      setBezig(false)
+      return
+    }
+
+    if (gewicht !== null) await slaStartmeting(gewicht, vet)
+
     setGebrStap('klaar')
     setBezig(false)
   }
@@ -1050,7 +918,17 @@ export default function OnboardingPage() {
         {rol === 'other' && (
           <>
             {gebrStap !== 'welkom' && gebrStap !== 'klaar' && (
-              <VoortgangsBalk huidig={GEBR_STAPPEN.indexOf(gebrStap)} totaal={GEBR_STAPPEN.length} />
+              <VoortgangsBalk huidig={INTAKE_STAPPEN.indexOf(gebrStap as IntakeStap)} totaal={INTAKE_STAPPEN.length} />
+            )}
+
+            {fout && (
+              <div role="alert" style={{
+                padding: '10px 14px', borderRadius: 10, marginBottom: 16,
+                background: 'var(--mf-red, #E24B4A)14', border: '1px solid var(--mf-red, #E24B4A)40',
+                fontSize: 13, color: 'var(--mf-red, #E24B4A)', fontWeight: 600,
+              }}>
+                {fout}
+              </div>
             )}
 
             {/* ── WELKOM ── */}
@@ -1061,12 +939,12 @@ export default function OnboardingPage() {
                   {gebrNaamDisplay ? `Welkom, ${gebrNaamDisplay}!` : 'Welkom bij MentaForce'}
                 </h1>
                 <p style={{ fontSize: 14, color: 'var(--mf-text-muted, #6B7280)', lineHeight: 1.7, marginBottom: 28 }}>
-                  Even kennismaken. We stellen je een paar korte vragen om jouw vitaliteitsplatform persoonlijk te maken. Duurt minder dan <strong>2 minuten</strong>.
+                  Even kennismaken. We stellen je een paar korte vragen om jouw vitaliteitsplatform persoonlijk te maken. Duurt minder dan <strong>3 minuten</strong>.
                 </p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 32 }}>
                   {[
                     { emoji: '🎯', tekst: 'Persoonlijke vitaliteitsscores' },
-                    { emoji: '🤖', tekst: 'Betere AI-coach adviezen' },
+                    { emoji: '💧', tekst: 'Water-, stappen- en caloriedoel op maat' },
                     { emoji: '🏢', tekst: 'Optioneel koppelen aan je werkgever' },
                   ].map(({ emoji, tekst }) => (
                     <div key={tekst} style={{
@@ -1126,138 +1004,129 @@ export default function OnboardingPage() {
                 meting={meting}
                 setMeting={setMeting}
                 onTerug={() => setGebrStap('profiel')}
-                onVolgende={() => setGebrStap('extra')}
-                onSlaan={() => setGebrStap('extra')}
+                onVolgende={() => setGebrStap('lichaam')}
+                onSlaan={() => setGebrStap('lichaam')}
                 bezig={false}
               />
             )}
 
-            {/* ── EXTRA: lichaam + HR code gecombineerd (optionele stap) ── */}
-            {gebrStap === 'extra' && (
-              <div className="mf-animate-up">
-                <div style={{ fontSize: 28, marginBottom: 10 }}>📊</div>
-                <h2 style={{ fontSize: 20, fontWeight: 800, color: 'var(--mf-heading, #111827)', marginBottom: 4 }}>Extra gegevens</h2>
-                <p style={{ fontSize: 13, color: 'var(--mf-text-muted, #9CA3AF)', marginBottom: 16 }}>
-                  Allemaal optioneel — later invullen kan altijd
-                </p>
+            {/* ── LICHAAM (incl. HR code als slot) ── */}
+            {gebrStap === 'lichaam' && (
+              <LichaamStap
+                gebr={gebr}
+                setGebr={setGebr}
+                maxGeboortedatum={maxGeboortedatum}
+                onTerug={() => setGebrStap('eerste-meting')}
+                onVolgende={() => setGebrStap('doel')}
+                hrSlot={
+                  <>
+                    <Veld label="HR code" sub="Optioneel — koppel aan jouw werkgever">
+                      <Input
+                        value={gebr.hrCode}
+                        onChange={e => setGebr(f => ({ ...f, hrCode: e.target.value.toUpperCase() }))}
+                        placeholder="Bijv. ABC123"
+                        maxLength={10}
+                      />
+                      {hrCodeBedrijf && (
+                        <p style={{ fontSize: 12, color: 'var(--mf-green-dark, #0F6E56)', marginTop: 6, fontWeight: 600 }}>
+                          ✓ Gekoppeld aan {hrCodeBedrijf}
+                        </p>
+                      )}
+                      {gebr.hrCode.length >= 6 && !hrCodeBedrijf && (
+                        <p style={{ fontSize: 12, color: 'var(--mf-text-muted, #9CA3AF)', marginTop: 6 }}>
+                          Code niet herkend — controleer met je HR-afdeling
+                        </p>
+                      )}
+                    </Veld>
 
-                <div style={{ padding: '10px 14px', borderRadius: 10, background: 'var(--mf-green-light, #E1F5EE)', border: '1px solid var(--mf-green, #1D9E75)40', fontSize: 12, color: 'var(--mf-green-dark, #0F6E56)', marginBottom: 20 }}>
-                  🔒 Nooit gedeeld met HR — alleen voor jouw persoonlijke dashboard
-                </div>
-
-                <Veld label="Geboortedatum">
-                  <Input type="date" value={gebr.geboortedatum} onChange={e => setGebr(f => ({ ...f, geboortedatum: e.target.value }))}
-                    max={maxGeboortedatum} />
-                </Veld>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-                  <Veld label="Lengte (cm)">
-                    <Input type="number" value={gebr.lengte_cm} onChange={e => setGebr(f => ({ ...f, lengte_cm: e.target.value }))} placeholder="175" min={100} max={250} />
-                  </Veld>
-                  <Veld label="Gewicht (kg)">
-                    <Input type="number" value={gebr.gewicht_kg} onChange={e => setGebr(f => ({ ...f, gewicht_kg: e.target.value }))} placeholder="70" min={30} max={300} step={0.1} />
-                  </Veld>
-                </div>
-
-                {gebr.lengte_cm && gebr.gewicht_kg && (() => {
-                  const h = parseInt(gebr.lengte_cm) / 100, w = parseFloat(gebr.gewicht_kg)
-                  if (!h || !w) return null
-                  const bmi = w / (h * h)
-                  const cat = bmi < 18.5 ? { label: 'Ondergewicht', k: 'var(--mf-blue, #378ADD)' } : bmi < 25 ? { label: 'Gezond gewicht', k: 'var(--mf-green, #1D9E75)' } : bmi < 30 ? { label: 'Overgewicht', k: 'var(--mf-amber, #BA7517)' } : { label: 'Obesitas', k: 'var(--mf-red, #E24B4A)' }
-                  return (
-                    <div style={{ padding: '8px 14px', borderRadius: 10, background: 'var(--mf-bg-subtle, #F9FAFB)', border: '1px solid var(--mf-border, #E5E7EB)', display: 'flex', justifyContent: 'space-between', marginTop: -8, marginBottom: 12 }}>
-                      <span style={{ fontSize: 13, color: 'var(--mf-text-muted, #6B7280)' }}>BMI: <strong>{bmi.toFixed(1)}</strong></span>
-                      <span style={{ fontSize: 12, fontWeight: 700, color: cat.k, padding: '2px 8px', borderRadius: 20, background: cat.k + '18' }}>{cat.label}</span>
-                    </div>
-                  )
-                })()}
-
-                {/* HR code veld */}
-                <Veld label="HR code" sub="Optioneel — koppel aan jouw werkgever">
-                  <Input
-                    value={gebr.hrCode}
-                    onChange={e => setGebr(f => ({ ...f, hrCode: e.target.value.toUpperCase() }))}
-                    placeholder="Bijv. ABC123"
-                    maxLength={10}
-                  />
-                  {hrCodeBedrijf && (
-                    <p style={{ fontSize: 12, color: 'var(--mf-green-dark, #0F6E56)', marginTop: 6, fontWeight: 600 }}>
-                      ✓ Gekoppeld aan {hrCodeBedrijf}
-                    </p>
-                  )}
-                  {gebr.hrCode.length >= 6 && !hrCodeBedrijf && (
-                    <p style={{ fontSize: 12, color: 'var(--mf-text-muted, #9CA3AF)', marginTop: 6 }}>
-                      Code niet herkend — controleer met je HR-afdeling
-                    </p>
-                  )}
-                </Veld>
-
-                {/* Privacy toggles (compact) — alleen tonen als HR code geldig is */}
-                {hrCodeBedrijf && (
-                  <div style={{ marginBottom: 20 }}>
-                    {[
-                      { key: 'hrInzageRapporten' as const, label: 'HR mag mijn AI-rapporten inzien', actief: gebr.hrInzageRapporten },
-                      { key: 'hrInzageBestanden' as const, label: 'HR mag mijn gedeelde bestanden bekijken', actief: gebr.hrInzageBestanden },
-                    ].map(opt => (
-                      <div key={opt.key} style={{
-                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                        padding: '12px 14px', borderRadius: 12, marginBottom: 8,
-                        background: opt.actief ? 'var(--mf-green-light, #E1F5EE)' : 'var(--mf-bg-subtle, #F9FAFB)',
-                        border: `1.5px solid ${opt.actief ? 'var(--mf-green, #1D9E75)' : 'var(--mf-border, #E5E7EB)'}`,
-                        transition: 'all 0.15s',
-                      }}>
-                        <p style={{ fontSize: 13, color: 'var(--mf-text, #374151)', fontWeight: opt.actief ? 600 : 400 }}>{opt.label}</p>
-                        <button onClick={() => setGebr(f => ({ ...f, [opt.key]: !f[opt.key] }))}
-                          style={{
-                            width: 40, height: 22, borderRadius: 9999, border: 'none', cursor: 'pointer',
-                            background: opt.actief ? 'var(--mf-green, #1D9E75)' : 'var(--mf-border, #E5E7EB)',
-                            flexShrink: 0, position: 'relative', transition: 'background 0.2s', marginLeft: 12,
+                    {hrCodeBedrijf && (
+                      <div style={{ marginBottom: 4 }}>
+                        {[
+                          { key: 'hrInzageRapporten' as const, label: 'HR mag mijn AI-rapporten inzien', actief: gebr.hrInzageRapporten },
+                          { key: 'hrInzageBestanden' as const, label: 'HR mag mijn gedeelde bestanden bekijken', actief: gebr.hrInzageBestanden },
+                        ].map(opt => (
+                          <div key={opt.key} style={{
+                            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                            padding: '12px 14px', borderRadius: 12, marginBottom: 8,
+                            background: opt.actief ? 'var(--mf-green-light, #E1F5EE)' : 'var(--mf-bg-subtle, #F9FAFB)',
+                            border: `1.5px solid ${opt.actief ? 'var(--mf-green, #1D9E75)' : 'var(--mf-border, #E5E7EB)'}`,
+                            transition: 'all 0.15s',
                           }}>
-                          <span style={{
-                            position: 'absolute', top: 2, left: opt.actief ? 20 : 2, width: 18, height: 18,
-                            borderRadius: '50%', background: 'var(--bg-card)', transition: 'left 0.2s',
-                            boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
-                          }} />
-                        </button>
+                            <p style={{ fontSize: 13, color: 'var(--mf-text, #374151)', fontWeight: opt.actief ? 600 : 400 }}>{opt.label}</p>
+                            <button type="button" onClick={() => setGebr(f => ({ ...f, [opt.key]: !f[opt.key] }))}
+                              style={{
+                                width: 40, height: 22, borderRadius: 9999, border: 'none', cursor: 'pointer',
+                                background: opt.actief ? 'var(--mf-green, #1D9E75)' : 'var(--mf-border, #E5E7EB)',
+                                flexShrink: 0, position: 'relative', transition: 'background 0.2s', marginLeft: 12,
+                              }}>
+                              <span style={{
+                                position: 'absolute', top: 2, left: opt.actief ? 20 : 2, width: 18, height: 18,
+                                borderRadius: '50%', background: 'var(--bg-card)', transition: 'left 0.2s',
+                                boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+                              }} />
+                            </button>
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                )}
-
-                <div style={{ display: 'flex', gap: 12, justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Knop onClick={() => setGebrStap('eerste-meting')} variant="ghost">← Terug</Knop>
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8 }}>
-                    <Knop onClick={gebruikerAfronden} disabled={bezig}>
-                      {bezig ? 'Opslaan...' : 'Afronden →'}
-                    </Knop>
-                    <SkipLink onClick={async () => {
-                      if (!userId) return
-                      setBezig(true)
-                      await supabase.from('profiles').update({ naam: gebr.naam.trim(), onboarding_voltooid: true }).eq('id', userId)
-                      setGebrStap('klaar')
-                      setBezig(false)
-                    }} label="Sla over, begin direct" />
-                  </div>
-                </div>
-              </div>
+                    )}
+                  </>
+                }
+              />
             )}
 
-            {/* ── KLAAR ── */}
+            {/* ── DOEL: activiteit + fitnessdoel + streefgewicht ── */}
+            {gebrStap === 'doel' && (
+              <DoelStap
+                gebr={gebr}
+                setGebr={setGebr}
+                onTerug={() => setGebrStap('lichaam')}
+                onVolgende={() => setGebrStap('voeding')}
+              />
+            )}
+
+            {/* ── VOEDING: dieetvoorkeur + allergieën ── */}
+            {gebrStap === 'voeding' && (
+              <VoedingStap
+                gebr={gebr}
+                setGebr={setGebr}
+                bezig={bezig}
+                onTerug={() => setGebrStap('doel')}
+                onAfronden={gebruikerAfronden}
+                onSlaan={async () => {
+                  if (!userId) return
+                  setBezig(true)
+                  setFout(null)
+                  const { error } = await supabase.from('profiles')
+                    .update({ naam: gebr.naam.trim(), onboarding_voltooid: true, intake_voltooid: true })
+                    .eq('id', userId)
+                  if (error) {
+                    setFout('Opslaan is niet gelukt. Controleer je verbinding en probeer het opnieuw.')
+                    setBezig(false)
+                    return
+                  }
+                  setGebrStap('klaar')
+                  setBezig(false)
+                }}
+              />
+            )}
+
+            {/* ── KLAAR — payoff met berekende doelen ── */}
             {gebrStap === 'klaar' && (
               <div className="mf-animate-up" style={{ textAlign: 'center' }}>
                 <div style={{ fontSize: 64, marginBottom: 8, lineHeight: 1 }}>🎉</div>
                 <h2 style={{ fontSize: 26, fontWeight: 800, color: 'var(--mf-heading, #111827)', marginBottom: 8, letterSpacing: '-0.02em' }}>
                   Je bent klaar!
                 </h2>
-                <p style={{ fontSize: 15, color: 'var(--mf-text-muted, #6B7280)', marginBottom: 28, lineHeight: 1.6 }}>
-                  Welkom aan boord{gebrNaamDisplay ? `, ${gebrNaamDisplay}` : ''}. Jouw platform staat klaar.
+                <p style={{ fontSize: 15, color: 'var(--mf-text-muted, #6B7280)', marginBottom: 24, lineHeight: 1.6 }}>
+                  Welkom aan boord{gebrNaamDisplay ? `, ${gebrNaamDisplay}` : ''}. We hebben jouw startdoelen berekend.
                 </p>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 32, textAlign: 'left' }}>
+                <DoelenPayoff profiel={bouwProfiel()} />
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 28, textAlign: 'left' }}>
                   {[
-                    { emoji: '✅', tekst: `Profiel: ${gebr.naam || gebrNaamDisplay}` },
-                    (gebr.geboortedatum || gebr.lengte_cm) ? { emoji: '📊', tekst: 'Persoonlijke gegevens opgeslagen' } : null,
                     meting.score !== null ? { emoji: '🎯', tekst: `Readiness Score: ${meting.score}/100` } : null,
+                    gebr.gewicht_kg ? { emoji: '⚖️', tekst: 'Startmeting opgeslagen' } : null,
                     hrCodeBedrijf ? { emoji: '🏢', tekst: `Gekoppeld aan ${hrCodeBedrijf}` } : { emoji: '👤', tekst: 'Persoonlijk account' },
                   ].filter(Boolean).map((item, i) => item && (
                     <div key={i} style={{

@@ -2,8 +2,31 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getAuthenticatedUser } from '@/lib/api-auth'
 import { createAdminClient } from '@/lib/supabase-admin'
 import { vandaagNL } from '@/lib/date-nl'
+import { effectieveDoelen } from '@/lib/gezondheid-berekeningen'
+import type { SupabaseClient } from '@supabase/supabase-js'
 
-const STANDAARD_DOEL_ML = 2000
+/**
+ * Lost het effectieve waterdoel (ml) voor een gebruiker op: de handmatige
+ * overschrijving uit Instellingen, of automatisch berekend uit gewicht en
+ * activiteitsniveau. Valt terug op het standaarddoel bij ontbrekend profiel.
+ */
+async function effectiefWaterDoelMl(admin: SupabaseClient, userId: string): Promise<number> {
+  const { data: profiel } = await admin
+    .from('profiles')
+    .select('gewicht_kg, activiteitsniveau, water_doel_ml')
+    .eq('id', userId)
+    .maybeSingle()
+
+  return effectieveDoelen({
+    gewicht_kg: profiel?.gewicht_kg ?? null,
+    lengte_cm: null,
+    geboortedatum: null,
+    geslacht: null,
+    activiteitsniveau: profiel?.activiteitsniveau ?? null,
+    fitness_doel: null,
+    water_doel_ml: profiel?.water_doel_ml ?? null,
+  }).water_doel_ml
+}
 
 export async function GET(req: NextRequest) {
   try {
@@ -32,9 +55,10 @@ export async function GET(req: NextRequest) {
     }))
 
     const vandaag_ml = logs.reduce((sum, l) => sum + l.ml, 0)
+    const doel_ml = await effectiefWaterDoelMl(admin, user.id)
 
     return NextResponse.json(
-      { vandaag_ml, doel_ml: STANDAARD_DOEL_ML, logs },
+      { vandaag_ml, doel_ml, logs },
       { headers: { 'Cache-Control': 'private, max-age=60, stale-while-revalidate=30' } }
     )
   } catch (err) {
@@ -79,8 +103,9 @@ export async function POST(req: NextRequest) {
     }
 
     const nieuw_totaal = (totaalData ?? []).reduce((sum, l) => sum + l.ml, 0)
+    const doel_ml = await effectiefWaterDoelMl(admin, user.id)
 
-    return NextResponse.json({ nieuw_totaal, doel_ml: STANDAARD_DOEL_ML }, { status: 201 })
+    return NextResponse.json({ nieuw_totaal, doel_ml }, { status: 201 })
   } catch (err) {
     console.error('[water POST]', err)
     return NextResponse.json({ error: 'Er is een fout opgetreden.' }, { status: 500 })

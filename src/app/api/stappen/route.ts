@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAuthenticatedUser } from '@/lib/api-auth'
 import { createAdminClient } from '@/lib/supabase-admin'
+import { effectieveDoelen } from '@/lib/gezondheid-berekeningen'
 
 export const dynamic = 'force-dynamic'
 
@@ -28,7 +29,24 @@ export async function GET(req: NextRequest) {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
-  return NextResponse.json({ dagen: data ?? [] })
+  // Effectief stappendoel: handmatige overschrijving > afgeleid van fitnessdoel.
+  const { data: profiel } = await admin
+    .from('profiles')
+    .select('fitness_doel, stappen_doel')
+    .eq('id', user.id)
+    .maybeSingle()
+
+  const { stappen_doel, stappen_handmatig } = effectieveDoelen({
+    gewicht_kg: null,
+    lengte_cm: null,
+    geboortedatum: null,
+    geslacht: null,
+    activiteitsniveau: null,
+    fitness_doel: profiel?.fitness_doel ?? null,
+    stappen_doel: profiel?.stappen_doel ?? null,
+  })
+
+  return NextResponse.json({ dagen: data ?? [], stappen_doel, stappen_handmatig })
 }
 
 /** POST /api/stappen — sla manueel stappen op voor vandaag */

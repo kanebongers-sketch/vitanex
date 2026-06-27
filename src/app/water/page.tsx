@@ -23,6 +23,9 @@ interface WaterData {
   logs: WaterLog[]
 }
 
+/** Doel komt automatisch uit profiel of is handmatig overschreven in Instellingen. */
+type DoelBron = 'auto' | 'handmatig'
+
 interface WaterDag {
   datum: string
   dag: string
@@ -127,6 +130,7 @@ export default function WaterPagina() {
   const [customMl, setCustomMl] = useState('')
   const [fout, setFout] = useState<string | null>(null)
   const [weekData, setWeekData] = useState<WaterDag[]>([])
+  const [doelBron, setDoelBron] = useState<DoelBron>('auto')
   const inputRef = useRef<HTMLInputElement>(null)
 
   const percentage = Math.round((data.vandaag_ml / data.doel_ml) * 100)
@@ -141,7 +145,7 @@ export default function WaterPagina() {
       const zevenDagenGel = new Date(vandaag)
       zevenDagenGel.setDate(vandaag.getDate() - 6)
 
-      const [waterRes, weekRes] = await Promise.all([
+      const [waterRes, weekRes, profielRes] = await Promise.all([
         authFetch('/api/water'),
         supabase
           .from('water_logs')
@@ -149,12 +153,20 @@ export default function WaterPagina() {
           .eq('user_id', user.id)
           .gte('datum', zevenDagenGel.toISOString().split('T')[0])
           .lte('datum', vandaagStr),
+        supabase
+          .from('profiles')
+          .select('water_doel_ml')
+          .eq('id', user.id)
+          .maybeSingle(),
       ])
 
       if (waterRes.ok) {
         const json = await waterRes.json() as WaterData
         setData(json)
       }
+
+      // Niet-NULL water_doel_ml = handmatig overschreven in Instellingen.
+      setDoelBron(profielRes.data?.water_doel_ml != null ? 'handmatig' : 'auto')
 
       const totalsMap = new Map<string, number>()
       for (const log of (weekRes.data ?? [])) {
@@ -315,6 +327,11 @@ export default function WaterPagina() {
               <p style={{ color: 'var(--text-3)', fontSize: '0.875rem', margin: '0.4rem 0 0' }}>
                 {percentage}% van je dagdoel
               </p>
+              <p style={{ color: 'var(--text-4)', fontSize: '0.72rem', margin: '0.3rem 0 0' }}>
+                {doelBron === 'handmatig'
+                  ? 'Doel handmatig ingesteld in Instellingen'
+                  : 'Doel op basis van jouw gewicht & activiteit'}
+              </p>
             </div>
 
             {/* Voortgangsbalk */}
@@ -351,9 +368,9 @@ export default function WaterPagina() {
                 </p>
                 <div style={{ display: 'flex', gap: 6, alignItems: 'flex-end' }}>
                   {weekData.map(dag => {
-                    const maxMl = 2000
-                    const h = dag.totaal > 0 ? Math.max(6, (dag.totaal / maxMl) * 48) : 4
-                    const kleur = dag.totaal >= 2000 ? 'var(--mf-green)' : dag.totaal >= 1000 ? 'var(--mf-blue-mid)' : 'var(--mf-blue-light)'
+                    const maxMl = data.doel_ml
+                    const h = dag.totaal > 0 ? Math.max(6, Math.min(1, dag.totaal / maxMl) * 48) : 4
+                    const kleur = dag.totaal >= data.doel_ml ? 'var(--mf-green)' : dag.totaal >= data.doel_ml / 2 ? 'var(--mf-blue-mid)' : 'var(--mf-blue-light)'
                     return (
                       <div key={dag.datum} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
                         <div style={{

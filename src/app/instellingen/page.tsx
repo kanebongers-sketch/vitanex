@@ -9,6 +9,7 @@ import { supabase } from '@/lib/supabase'
 import Navbar, { schakelPortaal, type ViewMode } from '@/components/layout/Navbar'
 import { Avatar } from '@/components/Avatar'
 import HrCodeModal from '@/components/hr/HrCodeModal'
+import GezondheidDoelen from './GezondheidDoelen'
 
 
 async function cropToSquareJpeg(file: File, size: number): Promise<Blob> {
@@ -32,7 +33,7 @@ async function cropToSquareJpeg(file: File, size: number): Promise<Blob> {
   })
 }
 
-type Sectie = 'profiel' | 'account' | 'privacy' | 'weergave' | 'data' | 'gevaar'
+type Sectie = 'profiel' | 'gezondheid' | 'account' | 'privacy' | 'weergave' | 'data' | 'gevaar'
 
 function SI({ d, size = 16 }: { d: string | string[]; size?: number }) {
   return (
@@ -44,6 +45,7 @@ function SI({ d, size = 16 }: { d: string | string[]; size?: number }) {
 
 const SECTIES: { id: Sectie; label: string; icon: React.ReactNode; beschrijving: string }[] = [
   { id: 'profiel',      label: 'Profiel',              icon: <SI d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2 M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" />, beschrijving: 'Naam, foto en persoonlijke informatie' },
+  { id: 'gezondheid',   label: 'Gezondheid & doelen',  icon: <SI d={['M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z']} />, beschrijving: 'Gewicht, activiteit en dagdoelen' },
   { id: 'account',      label: 'Account & Beveiliging', icon: <SI d={['M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z']} />, beschrijving: 'E-mail, wachtwoord en twee-factor' },
   { id: 'privacy',      label: 'Privacy',               icon: <SI d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z" />, beschrijving: 'Anonimiteit en zichtbaarheidsinstellingen' },
   { id: 'weergave',     label: 'Weergave',              icon: <SI d={['M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z']} />, beschrijving: 'Taal, thema en voorkeuren' },
@@ -722,6 +724,11 @@ export default function Instellingen() {
                     </div>
                   </section>
                 </>
+              )}
+
+              {/* -- GEZONDHEID & DOELEN -- */}
+              {activeSectie === 'gezondheid' && userId && (
+                <GezondheidDoelen userId={userId} />
               )}
 
               {/* -- ACCOUNT & BEVEILIGING -- */}

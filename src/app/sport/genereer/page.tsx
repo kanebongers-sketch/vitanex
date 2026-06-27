@@ -30,6 +30,23 @@ const MATERIAAL_OPTIES = [
   { value: 'volledig', label: 'Volledig gym' },
 ]
 
+// Intake fitness_doel → formulier-doel (de waarden die deze pagina gebruikt).
+const INTAKE_DOEL_NAAR_FORM: Record<string, string> = {
+  afvallen: 'afvallen',
+  aankomen: 'spiermassa',
+  fitter: 'conditie',
+  onderhouden: 'kracht',
+}
+
+// Intake activiteitsniveau → realistisch niveau + sessies per week.
+const INTAKE_ACTIVITEIT_NAAR_TRAINING: Record<string, { niveau: string; sessies: number }> = {
+  sedentair: { niveau: 'beginner', sessies: 2 },
+  licht: { niveau: 'beginner', sessies: 3 },
+  gemiddeld: { niveau: 'gemiddeld', sessies: 3 },
+  actief: { niveau: 'gemiddeld', sessies: 4 },
+  zeer_actief: { niveau: 'gevorderd', sessies: 5 },
+}
+
 export default function GenereerSchemaPage() {
   const router = useRouter()
   const [stap, setStap] = useState(1)
@@ -39,6 +56,7 @@ export default function GenereerSchemaPage() {
   const [beschikbareTijd, setBeschikbareTijd] = useState(45)
   const [benodigdheden, setBenodigdheden] = useState<string[]>(['geen'])
   const [blessures, setBlessures] = useState('')
+  const [vanuitIntake, setVanuitIntake] = useState(false)
   const [laden, setLaden] = useState(false)
   const [fout, setFout] = useState<string | null>(null)
   const [agentStatus, setAgentStatus] = useState<{ agent1: AgentFase; agent2: AgentFase; agent3: AgentFase }>({
@@ -136,6 +154,41 @@ export default function GenereerSchemaPage() {
   }
 
   useEffect(() => {
+    // Prefill de keuzes vanuit het intake-profiel; blijven bewerkbaar.
+    async function prefillVanuitProfiel() {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+
+      const { data: profiel } = await supabase
+        .from('profiles')
+        .select('fitness_doel, activiteitsniveau')
+        .eq('id', user.id)
+        .maybeSingle()
+
+      if (!profiel) return
+      let prefilled = false
+
+      const formDoel = profiel.fitness_doel ? INTAKE_DOEL_NAAR_FORM[profiel.fitness_doel] : undefined
+      if (formDoel) {
+        setDoel(formDoel)
+        prefilled = true
+      }
+
+      const training = profiel.activiteitsniveau
+        ? INTAKE_ACTIVITEIT_NAAR_TRAINING[profiel.activiteitsniveau]
+        : undefined
+      if (training) {
+        setNiveau(training.niveau)
+        setSessiesPerWeek(training.sessies)
+        prefilled = true
+      }
+
+      if (prefilled) setVanuitIntake(true)
+    }
+    prefillVanuitProfiel()
+  }, [])
+
+  useEffect(() => {
     // Start de generatie buiten de synchrone effect-body; bewust alleen
     // afhankelijk van stap — generatie hoort eenmalig te starten bij stap 4
     if (stap === 4 && !laden) Promise.resolve().then(startGenereren)
@@ -167,6 +220,19 @@ export default function GenereerSchemaPage() {
             Beantwoord 3 vragen — wij maken jouw schema
           </p>
         </div>
+
+        {/* Intake-hint */}
+        {stap < 4 && vanuitIntake && (
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20, padding: '12px 14px',
+            background: 'var(--mf-green-light)', border: '1px solid var(--mf-green)', borderRadius: 12,
+          }}>
+            <span style={{ fontSize: 18 }}>✨</span>
+            <span style={{ fontSize: 13, color: 'var(--mf-green-dark)', lineHeight: 1.4 }}>
+              We hebben je doel en niveau alvast ingevuld op basis van je intake. Je kunt alles nog aanpassen.
+            </span>
+          </div>
+        )}
 
         {/* Stap indicator */}
         {stap < 4 && (

@@ -2,8 +2,54 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getAuthenticatedUser } from '@/lib/api-auth'
 import { createAdminClient } from '@/lib/supabase-admin'
 import { vandaagNL, datumMinusDagenNL } from '@/lib/date-nl'
+import { effectieveDoelen } from '@/lib/gezondheid-berekeningen'
+import type { SupabaseClient } from '@supabase/supabase-js'
 
 export const dynamic = 'force-dynamic'
+
+/** Persoonlijke voedingsdoelen + dieetcontext, afgeleid uit het intake-profiel. */
+interface VoedingDoelen {
+  calorie_doel: number | null
+  calorie_handmatig: boolean
+  macros: { eiwit_g: number; koolhydraten_g: number; vet_g: number } | null
+  dieetvoorkeur: string | null
+  allergieen: string[]
+  /** false wanneer er onvoldoende profieldata is om een calorie-doel te bepalen. */
+  profiel_compleet: boolean
+}
+
+/**
+ * Lost de effectieve calorie-/macrodoelen voor een gebruiker op via het gedeelde
+ * contract (effectieveDoelen). Een handmatig calorie_doel wint; anders berekend
+ * uit gewicht, lengte, leeftijd, geslacht, activiteit en fitnessdoel. Geeft ook
+ * dieetvoorkeur en allergieën terug zodat de UI en AI-coach dit kunnen tonen.
+ */
+async function voedingDoelenVoorUser(admin: SupabaseClient, userId: string): Promise<VoedingDoelen> {
+  const { data: profiel } = await admin
+    .from('profiles')
+    .select('gewicht_kg, lengte_cm, geboortedatum, geslacht, activiteitsniveau, fitness_doel, calorie_doel, dieetvoorkeur, allergieen')
+    .eq('id', userId)
+    .maybeSingle()
+
+  const doelen = effectieveDoelen({
+    gewicht_kg: profiel?.gewicht_kg ?? null,
+    lengte_cm: profiel?.lengte_cm ?? null,
+    geboortedatum: profiel?.geboortedatum ?? null,
+    geslacht: profiel?.geslacht ?? null,
+    activiteitsniveau: profiel?.activiteitsniveau ?? null,
+    fitness_doel: profiel?.fitness_doel ?? null,
+    calorie_doel: profiel?.calorie_doel ?? null,
+  })
+
+  return {
+    calorie_doel: doelen.calorie_doel,
+    calorie_handmatig: doelen.calorie_handmatig,
+    macros: doelen.macros,
+    dieetvoorkeur: profiel?.dieetvoorkeur ?? null,
+    allergieen: Array.isArray(profiel?.allergieen) ? profiel.allergieen : [],
+    profiel_compleet: doelen.calorie_doel !== null,
+  }
+}
 
 export async function GET(req: NextRequest) {
   try {
@@ -47,7 +93,9 @@ export async function GET(req: NextRequest) {
       console.error('[voeding GET] DB fout:', error.message)
       return NextResponse.json({ error: 'Er is een fout opgetreden.' }, { status: 500 })
     }
-    return NextResponse.json({ logs: data ?? [] })
+
+    const doelen = await voedingDoelenVoorUser(admin, user.id)
+    return NextResponse.json({ logs: data ?? [], doelen })
   } catch (err) {
     console.error('[voeding GET]', err)
     return NextResponse.json({ error: 'Er is een fout opgetreden.' }, { status: 500 })

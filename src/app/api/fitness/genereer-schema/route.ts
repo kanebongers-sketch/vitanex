@@ -4,6 +4,7 @@ export const maxDuration = 300
 import Anthropic from "@anthropic-ai/sdk"
 import { createClient } from "@supabase/supabase-js"
 import { getAuthenticatedUser } from "@/lib/api-auth"
+import { berekenLeeftijd, type FitnessDoel } from "@/lib/gezondheid-berekeningen"
 
 // ---------------------------------------------------------------------------
 // Types
@@ -12,6 +13,17 @@ import { getAuthenticatedUser } from "@/lib/api-auth"
 type Doel = "spiermassa" | "afvallen" | "conditie" | "flexibiliteit" | "kracht"
 type Niveau = "beginner" | "gemiddeld" | "gevorderd"
 type DiscProfiel = "D" | "I" | "S" | "C"
+
+/** Persoonlijke context uit het intake-profiel, gebruikt om schema's af te stemmen. */
+interface IntakeProfiel {
+  fitness_doel: FitnessDoel | null
+  activiteitsniveau: string | null
+  gewicht_kg: number | null
+  streefgewicht_kg: number | null
+  lengte_cm: number | null
+  leeftijd: number | null
+  geslacht: string | null
+}
 
 interface RequestBody {
   userId: string
@@ -95,6 +107,43 @@ function buildDiscInstructie(disc_profiel?: DiscProfiel): string {
   return stijlen[disc_profiel]
 }
 
+/**
+ * Mapt het intake fitness_doel naar een trainingsfocus-instructie voor de AI.
+ * afvallen → vetverlies + conditie, aankomen → hypertrofie/kracht,
+ * fitter → conditie/full-body, onderhouden → gebalanceerd.
+ */
+function trainingsfocusVoorDoel(fitnessDoel: FitnessDoel | null): string {
+  const focus: Record<FitnessDoel, string> = {
+    afvallen:
+      "Focus op vetverlies en conditie: hoger volume, kortere rusttijden, supersets en cardio-elementen. Houd intensiteit hoog om de verbranding te stimuleren.",
+    aankomen:
+      "Focus op hypertrofie en kracht: samengestelde oefeningen, progressieve overload, 6–12 herhalingen met voldoende rust tussen sets.",
+    fitter:
+      "Focus op algehele conditie en full-body training: gevarieerde oefeningen, functionele bewegingen en een mix van kracht en uithoudingsvermogen.",
+    onderhouden:
+      "Gebalanceerde training: een evenwichtige mix van kracht, conditie en mobiliteit om het huidige niveau te onderhouden.",
+  }
+  if (!fitnessDoel || !(fitnessDoel in focus)) {
+    return "Stem de training af op het gekozen doel met een gebalanceerde opbouw."
+  }
+  return focus[fitnessDoel]
+}
+
+/** Bouwt een leesbaar profielblok voor de AI-prompt. Lege wanneer er geen data is. */
+function buildProfielContext(profiel: IntakeProfiel | null): string {
+  if (!profiel) return ""
+  const regels: string[] = []
+  if (profiel.fitness_doel) regels.push(`- Intake-doel: ${profiel.fitness_doel}`)
+  if (profiel.activiteitsniveau) regels.push(`- Activiteitsniveau: ${profiel.activiteitsniveau}`)
+  if (profiel.geslacht) regels.push(`- Geslacht: ${profiel.geslacht}`)
+  if (profiel.leeftijd !== null) regels.push(`- Leeftijd: ${profiel.leeftijd} jaar`)
+  if (profiel.lengte_cm) regels.push(`- Lengte: ${profiel.lengte_cm} cm`)
+  if (profiel.gewicht_kg) regels.push(`- Huidig gewicht: ${profiel.gewicht_kg} kg`)
+  if (profiel.streefgewicht_kg) regels.push(`- Streefgewicht: ${profiel.streefgewicht_kg} kg`)
+  if (regels.length === 0) return ""
+  return `\nPersoonlijk profiel (uit intake — gebruik dit om het schema af te stemmen):\n${regels.join("\n")}`
+}
+
 function validateBody(body: unknown): body is RequestBody {
   if (typeof body !== "object" || body === null) return false
   const b = body as Record<string, unknown>
@@ -119,7 +168,10 @@ function validateBody(body: unknown): body is RequestBody {
 async function runPlannerAgent(
   anthropic: Anthropic,
   body: RequestBody,
+  profiel: IntakeProfiel | null,
 ): Promise<PlannerOutput> {
+  const profielContext = buildProfielContext(profiel)
+  const trainingsfocus = trainingsfocusVoorDoel(profiel?.fitness_doel ?? null)
   const messages: Anthropic.Messages.MessageParam[] = [
     {
       role: "user",
@@ -132,6 +184,9 @@ Gebruikersparameters:
 - Beschikbare tijd: ${body.beschikbare_tijd} minuten per sessie
 - Beschikbaar materiaal: ${body.benodigdheden.join(", ")}
 ${body.blessures ? `- Blessures/beperkingen: ${body.blessures}` : ""}
+${profielContext}
+
+Trainingsfocus: ${trainingsfocus}
 
 Bepaal:
 1. Het beste splits type (bijv. push/pull/legs, upper/lower, full body, etc.)
@@ -170,7 +225,10 @@ async function runOefeningAgent(
   anthropic: Anthropic,
   body: RequestBody,
   planning: PlannerOutput,
+  profiel: IntakeProfiel | null,
 ): Promise<Trainingsdag[]> {
+  const profielContext = buildProfielContext(profiel)
+  const trainingsfocus = trainingsfocusVoorDoel(profiel?.fitness_doel ?? null)
   const messages: Anthropic.Messages.MessageParam[] = [
     {
       role: "user",
@@ -185,6 +243,9 @@ Gebruikersparameters:
 - Beschikbare tijd: ${body.beschikbare_tijd} minuten per sessie
 - Beschikbaar materiaal: ${body.benodigdheden.join(", ")}
 ${body.blessures ? `- Blessures/beperkingen: ${body.blessures} — vermijd oefeningen die deze belasten` : ""}
+${profielContext}
+
+Trainingsfocus: ${trainingsfocus}
 
 Vul elke trainingsdag in. Geef ALLEEN de JSON terug:
 \`\`\`json
@@ -341,10 +402,41 @@ export async function POST(req: NextRequest) {
 
   const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
+  // Haal het intake-profiel op zodat schema's persoonlijk worden afgestemd.
+  // Faalt dit, dan vallen we netjes terug op de losse formulier-keuzes.
+  let intakeProfiel: IntakeProfiel | null = null
+  let bedrijfId: string | null = null
+  try {
+    const supabase = createSupabaseAdmin()
+    const { data: profiel } = await supabase
+      .from("profiles")
+      .select(
+        "bedrijf_id, fitness_doel, activiteitsniveau, gewicht_kg, streefgewicht_kg, lengte_cm, geboortedatum, geslacht",
+      )
+      .eq("id", body.userId)
+      .maybeSingle()
+
+    if (profiel) {
+      bedrijfId = profiel.bedrijf_id ?? null
+      intakeProfiel = {
+        fitness_doel: (profiel.fitness_doel as FitnessDoel | null) ?? null,
+        activiteitsniveau: profiel.activiteitsniveau ?? null,
+        gewicht_kg: profiel.gewicht_kg ?? null,
+        streefgewicht_kg: profiel.streefgewicht_kg ?? null,
+        lengte_cm: profiel.lengte_cm ?? null,
+        leeftijd: berekenLeeftijd(profiel.geboortedatum),
+        geslacht: profiel.geslacht ?? null,
+      }
+    }
+  } catch (err) {
+    void err
+    // Geen blokkering — schema wordt gegenereerd op basis van de formulier-keuzes.
+  }
+
   // Agent 1 — Schema Planner
   let planning: PlannerOutput
   try {
-    planning = await runPlannerAgent(anthropic, body)
+    planning = await runPlannerAgent(anthropic, body, intakeProfiel)
   } catch (err) {
     console.error("[Agent 1] mislukt:", err)
     return NextResponse.json(
@@ -356,7 +448,7 @@ export async function POST(req: NextRequest) {
   // Agent 2 — Oefening Specialist
   let schema: Trainingsdag[]
   try {
-    schema = await runOefeningAgent(anthropic, body, planning)
+    schema = await runOefeningAgent(anthropic, body, planning, intakeProfiel)
   } catch (err) {
     console.error("[Agent 2] mislukt:", err)
     return NextResponse.json(
@@ -377,25 +469,21 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  // Sla op in Supabase
+  // Sla op in Supabase. Bewaar doel afgeleid van het intake fitness_doel
+  // wanneer beschikbaar; val anders terug op de formulier-doelkeuze.
   const schemaNaam = `${body.doel.charAt(0).toUpperCase() + body.doel.slice(1)} schema — ${body.niveau} — ${body.sessies_per_week}x/week`
+  const opgeslagenDoel = intakeProfiel?.fitness_doel ?? body.doel
 
   try {
     const supabase = createSupabaseAdmin()
-    // Haal company_id op uit profiles (nullable voor zelfstandigen)
-    const { data: profiel } = await supabase
-      .from("profiles")
-      .select("bedrijf_id")
-      .eq("id", body.userId)
-      .maybeSingle()
 
     const { data, error } = await supabase
       .from("fitness_schemas")
       .insert({
         user_id: body.userId,
-        company_id: profiel?.bedrijf_id ?? null,
+        company_id: bedrijfId,
         naam: schemaNaam,
-        doel: body.doel,
+        doel: opgeslagenDoel,
         niveau: body.niveau,
         sessies_per_week: body.sessies_per_week,
         schema_json: finaalSchema,

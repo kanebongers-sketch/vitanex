@@ -77,6 +77,7 @@ export const CATEGORIEEN: Record<'welzijn' | 'actief' | 'groeien' | 'profiel', C
       { href: '/mijn-gesprekken', label: 'Mijn gesprekken', icoon: 'message-circle'  },
       { href: '/achievements',    label: 'Achievements',    icoon: 'trophy'          },
       { href: '/voortgang',       label: 'Voortgang',       icoon: 'bar-chart-2'     },
+      { href: '/prestaties',      label: 'Prestaties',      icoon: 'activity'        },
       { href: '/koppelingen',     label: 'Koppelingen',     icoon: 'link'            },
       { href: '/mijn-rapport',    label: 'Mijn rapport',    icoon: 'file-bar-chart'  },
       { href: '/instellingen',    label: 'Instellingen',    icoon: 'settings'        },

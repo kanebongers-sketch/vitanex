@@ -8,8 +8,8 @@ import { Capacitor } from '@capacitor/core'
 import { supabase } from '@/lib/supabase'
 import { authFetch } from '@/lib/auth-fetch'
 import Navbar from '@/components/layout/Navbar'
+import { STANDAARD_STAPPEN_DOEL } from '@/lib/gezondheid-berekeningen'
 
-const STAP_DOEL = 10_000
 const KLEUR = '#F97316'   // oranje — past bij beweging
 const LICHT  = '#FFF7ED'
 
@@ -66,6 +66,8 @@ export default function StappenPage() {
   const router = useRouter()
   const [laden, setLaden] = useState(true)
   const [vandaag, setVandaag] = useState(0)
+  const [doel, setDoel] = useState(STANDAARD_STAPPEN_DOEL)
+  const [doelHandmatig, setDoelHandmatig] = useState(false)
   const [dagen, setDagen] = useState<DagStap[]>([])
   const [invoer, setInvoer] = useState('')
   const [opslaan, setOpslaan] = useState(false)
@@ -79,15 +81,21 @@ export default function StappenPage() {
 
     const res = await authFetch('/api/stappen')
     if (res.ok) {
-      const json = await res.json() as { dagen: DagStap[] }
+      const json = await res.json() as { dagen: DagStap[]; stappen_doel?: number; stappen_handmatig?: boolean }
       setDagen(json.dagen ?? [])
       const hVandaag = (json.dagen ?? []).find(d => d.datum === vandaagStr())
       setVandaag(hVandaag?.stappen ?? 0)
+      if (typeof json.stappen_doel === 'number') setDoel(json.stappen_doel)
+      setDoelHandmatig(json.stappen_handmatig ?? false)
     }
     setLaden(false)
   }, [router])
 
-  useEffect(() => { laadData() }, [laadData])
+  useEffect(() => {
+    // laadData is stabiel (useCallback); setState volgt pas na await — veilig.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    laadData()
+  }, [laadData])
 
   async function slaOpHandmatig() {
     const n = parseInt(invoer.replace(/\D/g, ''), 10)
@@ -164,8 +172,8 @@ export default function StappenPage() {
     setTrackerLaden(false)
   }
 
-  const pct = Math.min(Math.round((vandaag / STAP_DOEL) * 100), 100)
-  const maxStappen = Math.max(...dagen.map(d => d.stappen ?? 0), STAP_DOEL)
+  const pct = Math.min(Math.round((vandaag / doel) * 100), 100)
+  const maxStappen = Math.max(...dagen.map(d => d.stappen ?? 0), doel)
 
   if (laden) return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
@@ -191,7 +199,12 @@ export default function StappenPage() {
             Dagelijkse stappen
           </h1>
           <p style={{ fontSize: 13, color: 'var(--text-4)', marginTop: 4 }}>
-            Doel: {STAP_DOEL.toLocaleString('nl-NL')} stappen per dag
+            Doel: {doel.toLocaleString('nl-NL')} stappen per dag
+          </p>
+          <p style={{ fontSize: 11, color: 'var(--text-4)', marginTop: 2 }}>
+            {doelHandmatig
+              ? 'Handmatig ingesteld in Instellingen'
+              : 'Op basis van jouw fitnessdoel'}
           </p>
         </header>
 
@@ -201,15 +214,15 @@ export default function StappenPage() {
           boxShadow: 'var(--shadow-sm)', marginBottom: 16, textAlign: 'center',
           border: `1px solid ${KLEUR}22`,
         }}>
-          <StappenRing stappen={vandaag} doel={STAP_DOEL} />
-          {vandaag >= STAP_DOEL && (
+          <StappenRing stappen={vandaag} doel={doel} />
+          {vandaag >= doel && (
             <p style={{ marginTop: 10, fontSize: 14, fontWeight: 700, color: '#22C55E' }}>
               🎉 Dagdoel behaald! Geweldig!
             </p>
           )}
-          {vandaag > 0 && vandaag < STAP_DOEL && (
+          {vandaag > 0 && vandaag < doel && (
             <p style={{ marginTop: 10, fontSize: 13, color: 'var(--text-3)' }}>
-              Nog {(STAP_DOEL - vandaag).toLocaleString('nl-NL')} stappen te gaan ({pct}%)
+              Nog {(doel - vandaag).toLocaleString('nl-NL')} stappen te gaan ({pct}%)
             </p>
           )}
           {vandaag === 0 && (
@@ -341,7 +354,7 @@ export default function StappenPage() {
                 })
                 return rijen.map(({ datum, stappen: s, isVandaag }) => {
                   const hoogte = Math.max(4, ((s ?? 0) / maxStappen) * 72)
-                  const bereikt = (s ?? 0) >= STAP_DOEL
+                  const bereikt = (s ?? 0) >= doel
                   return (
                     <div key={datum} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
                       <div style={{

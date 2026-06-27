@@ -11,6 +11,7 @@ import {
   TrendingUp, Calendar, BarChart2, Zap,
 } from 'lucide-react'
 import { getActiviteit } from '@/lib/activiteiten'
+import { DOEL_CONFIG, type FitnessDoel } from '@/lib/gezondheid-berekeningen'
 
 const ACT = getActiviteit('fysiek')
 
@@ -91,13 +92,14 @@ export default function SportPagina() {
   const [schema, setSchema]                     = useState<FitnessSchema | null>(null)
   const [logs, setLogs]                         = useState<TrainingLog[]>([])
   const [trainingsDezeWeek, setTrainingsDezeWeek] = useState(0)
+  const [fitnessDoel, setFitnessDoel]           = useState<FitnessDoel | null>(null)
 
   useEffect(() => {
     async function laad() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/login'); return }
 
-      const [schemaRes, logsRes, weekRes] = await Promise.all([
+      const [schemaRes, logsRes, weekRes, profielRes] = await Promise.all([
         supabase.from('fitness_schemas')
           .select('id, naam, doel, niveau, sessies_per_week, schema_json')
           .eq('user_id', user.id).eq('actief', true)
@@ -108,11 +110,15 @@ export default function SportPagina() {
         supabase.from('training_logs')
           .select('id', { count: 'exact', head: true })
           .eq('user_id', user.id).gte('datum', beginVanWeek()),
+        supabase.from('profiles')
+          .select('fitness_doel')
+          .eq('id', user.id).maybeSingle(),
       ])
 
       setSchema(schemaRes.data ?? null)
       setLogs(logsRes.data ?? [])
       setTrainingsDezeWeek(weekRes.count ?? 0)
+      setFitnessDoel((profielRes.data?.fitness_doel as FitnessDoel | null) ?? null)
       setLaden(false)
     }
     laad()
@@ -145,6 +151,19 @@ export default function SportPagina() {
             <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', margin: 0, letterSpacing: '-0.03em' }}>Sport & Fitness</h1>
             <p style={{ fontSize: 13, color: 'var(--text-4)', margin: 0 }}>Jouw trainingen deze week</p>
           </div>
+          {fitnessDoel && DOEL_CONFIG[fitnessDoel] && (
+            <span style={{
+              marginLeft: 'auto', alignSelf: 'flex-start',
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              fontSize: 11, fontWeight: 700, padding: '5px 11px', borderRadius: 20,
+              color: DOEL_CONFIG[fitnessDoel].kleur,
+              background: `color-mix(in srgb, ${DOEL_CONFIG[fitnessDoel].kleur} 12%, transparent)`,
+              border: `1px solid color-mix(in srgb, ${DOEL_CONFIG[fitnessDoel].kleur} 35%, transparent)`,
+            }}>
+              <span style={{ width: 7, height: 7, borderRadius: '50%', background: DOEL_CONFIG[fitnessDoel].kleur, flexShrink: 0 }} />
+              {DOEL_CONFIG[fitnessDoel].label}
+            </span>
+          )}
         </div>
 
         {/* ── Geen schema: CTA ── */}

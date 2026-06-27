@@ -69,6 +69,16 @@ interface DagTotaal {
   calorieen: number; eiwitten_g: number; koolhydraten_g: number; vetten_g: number; vezels_g: number
 }
 
+/** Persoonlijke voedingsdoelen + dieetcontext uit het intake-profiel (via /api/voeding). */
+interface VoedingDoelen {
+  calorie_doel: number | null
+  calorie_handmatig: boolean
+  macros: { eiwit_g: number; koolhydraten_g: number; vet_g: number } | null
+  dieetvoorkeur: string | null
+  allergieen: string[]
+  profiel_compleet: boolean
+}
+
 type Scherm = 'overzicht' | 'analyseren' | 'bevestigen' | 'manueel' | 'zoeken' | 'detail'
 
 // ─── RDI (EU aanbevolen dagelijkse inname) ────────────────────────────────────
@@ -194,6 +204,7 @@ export default function VoedingPage() {
 
   const [scherm, setScherm]       = useState<Scherm>('overzicht')
   const [logs, setLogs]           = useState<VoedingLog[]>([])
+  const [doelen, setDoelen]       = useState<VoedingDoelen | null>(null)
   const [laden, setLaden]         = useState(true)
   const [opslaan, setOpslaan]     = useState(false)
   const [fout, setFout]           = useState<string | null>(null)
@@ -230,8 +241,9 @@ export default function VoedingPage() {
   const laadLogs = useCallback(async (tok: string) => {
     setLaden(true)
     const res = await fetch(`/api/voeding?datum=${vandaag}`, { headers: { Authorization: `Bearer ${tok}` } })
-    const data = await res.json() as { logs: VoedingLog[] }
+    const data = await res.json() as { logs: VoedingLog[]; doelen?: VoedingDoelen }
     setLogs(data.logs || [])
+    setDoelen(data.doelen ?? null)
     setLaden(false)
   }, [vandaag])
 
@@ -444,7 +456,15 @@ export default function VoedingPage() {
 
   // ── Render helpers ────────────────────────────────────────────────────────────
 
-  const kCalKleur = dagTotaal.calorieen > DOEL_KCAL * 1.05 ? 'var(--mf-red)' : dagTotaal.calorieen > DOEL_KCAL * 0.75 ? 'var(--mf-green)' : 'var(--mf-amber)'
+  // Effectief calorie-doel: persoonlijk doel uit het profiel, anders RDI-fallback.
+  const heeftPersoonlijkDoel = doelen?.calorie_doel != null
+  const calorieDoel = doelen?.calorie_doel ?? DOEL_KCAL
+  // Macrotargets: persoonlijk berekend (eiwit/koolhydraten/vet), vezels blijft RDI.
+  const eiwitDoel = doelen?.macros?.eiwit_g ?? RDI.eiwitten_g
+  const koolhDoel = doelen?.macros?.koolhydraten_g ?? RDI.koolhydraten_g
+  const vetDoel   = doelen?.macros?.vet_g ?? RDI.vetten_g
+  const vezelsDoel = RDI.vezels_g
+  const kCalKleur = dagTotaal.calorieen > calorieDoel * 1.05 ? 'var(--mf-red)' : dagTotaal.calorieen > calorieDoel * 0.75 ? 'var(--mf-green)' : 'var(--mf-amber)'
   const logsByMaaltijd = MAALTIJD_VOLGORDE.reduce((acc, mt) => { acc[mt] = logs.filter(l => l.maaltijd_type === mt); return acc }, {} as Record<string, VoedingLog[]>)
 
   function renderInputVeld({ label, veld, type = 'text', suffix = '' }: { label: string; veld: keyof typeof form; type?: string; suffix?: string }) {
@@ -531,31 +551,66 @@ export default function VoedingPage() {
               {/* Top: ring + macro rings */}
               <div style={{ padding: '20px 20px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
                 <div style={{ position: 'relative', display: 'inline-block' }}>
-                  <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 0, pointerEvents: 'none', width: 220, height: 220, borderRadius: '50%', background: `radial-gradient(circle, ${KCAL_KLEUR(dagTotaal.calorieen, DOEL_KCAL)} 0%, transparent 70%)` }} />
+                  <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 0, pointerEvents: 'none', width: 220, height: 220, borderRadius: '50%', background: `radial-gradient(circle, ${KCAL_KLEUR(dagTotaal.calorieen, calorieDoel)} 0%, transparent 70%)` }} />
                   <div style={{ position: 'relative', zIndex: 1 }}>
-                    <CalorieRing gegeten={dagTotaal.calorieen} doel={DOEL_KCAL} kleur={kCalKleur} />
+                    <CalorieRing gegeten={dagTotaal.calorieen} doel={calorieDoel} kleur={kCalKleur} />
                   </div>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                  <MacroRing waarde={dagTotaal.eiwitten_g}     max={RDI.eiwitten_g}     kleur="#E24B4A" label="Eiwit"   eenheid="g" />
-                  <MacroRing waarde={dagTotaal.koolhydraten_g} max={RDI.koolhydraten_g} kleur="#F59E0B" label="Koolh."  eenheid="g" />
-                  <MacroRing waarde={dagTotaal.vetten_g}       max={RDI.vetten_g}       kleur="#8B5CF6" label="Vet"     eenheid="g" />
-                  <MacroRing waarde={dagTotaal.vezels_g}       max={RDI.vezels_g}       kleur="#1D9E75" label="Vezels"  eenheid="g" />
+                  <MacroRing waarde={dagTotaal.eiwitten_g}     max={eiwitDoel}  kleur="#E24B4A" label="Eiwit"   eenheid="g" />
+                  <MacroRing waarde={dagTotaal.koolhydraten_g} max={koolhDoel}  kleur="#F59E0B" label="Koolh."  eenheid="g" />
+                  <MacroRing waarde={dagTotaal.vetten_g}       max={vetDoel}    kleur="#8B5CF6" label="Vet"     eenheid="g" />
+                  <MacroRing waarde={dagTotaal.vezels_g}       max={vezelsDoel} kleur="#1D9E75" label="Vezels"  eenheid="g" />
                 </div>
               </div>
 
-              {/* RDI bars for macros */}
+              {/* Doel-context: persoonlijk doel of uitnodiging om intake af te ronden */}
+              <div style={{ padding: '0 20px 12px' }}>
+                {heeftPersoonlijkDoel ? (
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontSize: 12, color: 'var(--text-4)', fontWeight: 600 }}>
+                    <span>🎯</span>
+                    <span>Persoonlijk doel: <strong style={{ color: 'var(--text-2)' }}>{calorieDoel} kcal</strong>{doelen?.calorie_handmatig ? ' (handmatig ingesteld)' : ' (berekend uit je profiel)'}</span>
+                  </div>
+                ) : (
+                  <button onClick={() => router.push('/instellingen')}
+                    style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, background: 'var(--mf-amber-light)', border: '1px solid var(--mf-amber)', borderRadius: 12, padding: '10px 14px', cursor: 'pointer', textAlign: 'left' }}>
+                    <span style={{ fontSize: 18 }}>⚙️</span>
+                    <span style={{ flex: 1, fontSize: 12, color: 'var(--mf-amber-dark, var(--text-2))', fontWeight: 600, lineHeight: 1.4 }}>
+                      Rond je intake af voor een persoonlijk calorie- en macrodoel. Nu tonen we het standaarddoel ({DOEL_KCAL} kcal).
+                    </span>
+                    <span style={{ fontSize: 16, color: 'var(--mf-amber)' }}>›</span>
+                  </button>
+                )}
+              </div>
+
+              {/* Macro-voortgang t.o.v. persoonlijke targets */}
               <div style={{ padding: '0 20px 16px' }}>
                 {[
-                  { label: 'Eiwit',        waarde: dagTotaal.eiwitten_g,     rdi: RDI.eiwitten_g,     kleur: 'var(--mf-red)',    eenheid: 'g' },
-                  { label: 'Koolhydraten', waarde: dagTotaal.koolhydraten_g, rdi: RDI.koolhydraten_g, kleur: 'var(--mf-amber)',  eenheid: 'g' },
-                  { label: 'Vet',          waarde: dagTotaal.vetten_g,       rdi: RDI.vetten_g,       kleur: 'var(--mf-purple)', eenheid: 'g' },
-                  { label: 'Vezels',       waarde: dagTotaal.vezels_g,       rdi: RDI.vezels_g,       kleur: 'var(--mf-green)',  eenheid: 'g' },
+                  { label: 'Eiwit',        waarde: dagTotaal.eiwitten_g,     rdi: eiwitDoel,  kleur: 'var(--mf-red)',    eenheid: 'g' },
+                  { label: 'Koolhydraten', waarde: dagTotaal.koolhydraten_g, rdi: koolhDoel,  kleur: 'var(--mf-amber)',  eenheid: 'g' },
+                  { label: 'Vet',          waarde: dagTotaal.vetten_g,       rdi: vetDoel,    kleur: 'var(--mf-purple)', eenheid: 'g' },
+                  { label: 'Vezels',       waarde: dagTotaal.vezels_g,       rdi: vezelsDoel, kleur: 'var(--mf-green)',  eenheid: 'g' },
                 ].map(m => (
                   <RdiBalk key={m.label} label={m.label} waarde={m.waarde} eenheid={m.eenheid} rdi={m.rdi} kleur={m.kleur} />
                 ))}
               </div>
             </div>
+
+            {/* ── Dieetvoorkeur & allergieën ── */}
+            {doelen && ((doelen.dieetvoorkeur && doelen.dieetvoorkeur !== 'geen') || doelen.allergieen.length > 0) && (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 14 }}>
+                {doelen.dieetvoorkeur && doelen.dieetvoorkeur !== 'geen' && (
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: 'var(--mf-green-light)', color: 'var(--mf-green)', borderRadius: 20, padding: '4px 11px', fontSize: 12, fontWeight: 700, textTransform: 'capitalize' }}>
+                    🥗 {doelen.dieetvoorkeur}
+                  </span>
+                )}
+                {doelen.allergieen.map(a => (
+                  <span key={a} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: 'var(--mf-red-light)', color: 'var(--mf-red)', borderRadius: 20, padding: '4px 11px', fontSize: 12, fontWeight: 700, textTransform: 'capitalize' }}>
+                    ⚠️ {a}
+                  </span>
+                ))}
+              </div>
+            )}
 
             {/* ── Water tracker ── */}
             <div style={{ background: 'var(--bg-card)', borderRadius: 18, border: '1px solid var(--border)', padding: '12px 16px', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 12 }}>
