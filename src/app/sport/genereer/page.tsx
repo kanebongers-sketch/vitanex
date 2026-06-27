@@ -20,7 +20,21 @@ const DOELEN = [
 ]
 
 const NIVEAUS = ['Beginner', 'Gemiddeld', 'Gevorderd']
-const SESSIES_OPTIES = [2, 3, 4, 5]
+const TRAININGSDAGEN = [
+  { value: 'maandag', label: 'Ma' },
+  { value: 'dinsdag', label: 'Di' },
+  { value: 'woensdag', label: 'Wo' },
+  { value: 'donderdag', label: 'Do' },
+  { value: 'vrijdag', label: 'Vr' },
+  { value: 'zaterdag', label: 'Za' },
+  { value: 'zondag', label: 'Zo' },
+]
+const SESSIES_NAAR_DAGEN: Record<number, string[]> = {
+  2: ['maandag', 'donderdag'],
+  3: ['maandag', 'woensdag', 'vrijdag'],
+  4: ['maandag', 'dinsdag', 'donderdag', 'vrijdag'],
+  5: ['maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag'],
+}
 const TIJD_OPTIES = [30, 45, 60, 90]
 const MATERIAAL_OPTIES = [
   { value: 'geen', label: 'Geen (bodyweight)' },
@@ -38,7 +52,7 @@ const INTAKE_DOEL_NAAR_FORM: Record<string, string> = {
   onderhouden: 'kracht',
 }
 
-// Intake activiteitsniveau → realistisch niveau + sessies per week.
+// Intake activiteitsniveau → realistisch niveau + standaard trainingsdagen.
 const INTAKE_ACTIVITEIT_NAAR_TRAINING: Record<string, { niveau: string; sessies: number }> = {
   sedentair: { niveau: 'beginner', sessies: 2 },
   licht: { niveau: 'beginner', sessies: 3 },
@@ -52,7 +66,7 @@ export default function GenereerSchemaPage() {
   const [stap, setStap] = useState(1)
   const [doel, setDoel] = useState('')
   const [niveau, setNiveau] = useState('beginner')
-  const [sessiesPerWeek, setSessiesPerWeek] = useState(3)
+  const [gekozenDagen, setGekozenDagen] = useState<string[]>(['maandag', 'woensdag', 'vrijdag'])
   const [beschikbareTijd, setBeschikbareTijd] = useState(45)
   const [benodigdheden, setBenodigdheden] = useState<string[]>(['geen'])
   const [blessures, setBlessures] = useState('')
@@ -62,6 +76,12 @@ export default function GenereerSchemaPage() {
   const [agentStatus, setAgentStatus] = useState<{ agent1: AgentFase; agent2: AgentFase; agent3: AgentFase }>({
     agent1: 'wachten', agent2: 'wachten', agent3: 'wachten',
   })
+
+  const toggleDag = (dag: string) => {
+    setGekozenDagen(prev =>
+      prev.includes(dag) ? prev.filter(d => d !== dag) : [...prev, dag]
+    )
+  }
 
   const toggleMateriaal = (value: string) => {
     if (value === 'geen') {
@@ -76,7 +96,7 @@ export default function GenereerSchemaPage() {
 
   const kanVerder = () => {
     if (stap === 1) return doel !== ''
-    if (stap === 2) return true
+    if (stap === 2) return gekozenDagen.length >= 2
     if (stap === 3) return true
     return false
   }
@@ -120,7 +140,7 @@ export default function GenereerSchemaPage() {
             userId: user.id,
             doel,
             niveau,
-            sessies_per_week: sessiesPerWeek,
+            trainingsdagen: gekozenDagen,
             beschikbare_tijd: beschikbareTijd,
             benodigdheden,
             blessures: blessures || undefined,
@@ -179,7 +199,7 @@ export default function GenereerSchemaPage() {
         : undefined
       if (training) {
         setNiveau(training.niveau)
-        setSessiesPerWeek(training.sessies)
+        setGekozenDagen(SESSIES_NAAR_DAGEN[training.sessies] ?? ['maandag', 'woensdag', 'vrijdag'])
         prefilled = true
       }
 
@@ -305,24 +325,33 @@ export default function GenereerSchemaPage() {
             </div>
 
             <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: 'var(--text-2)', marginBottom: 10 }}>
-              Sessies per week
+              Welke dagen train je? <span style={{ fontWeight: 400, color: 'var(--text-3)' }}>({gekozenDagen.length} geselecteerd)</span>
             </label>
-            <div style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
-              {SESSIES_OPTIES.map(s => (
-                <button
-                  key={s}
-                  onClick={() => setSessiesPerWeek(s)}
-                  style={{
-                    flex: 1, padding: '10px 0', borderRadius: 8, fontSize: 15, fontWeight: 600, cursor: 'pointer',
-                    background: sessiesPerWeek === s ? 'var(--mf-green)' : '#fff',
-                    color: sessiesPerWeek === s ? '#fff' : 'var(--text-2)',
-                    border: `1.5px solid ${sessiesPerWeek === s ? 'var(--mf-green)' : 'var(--border)'}`,
-                  }}
-                >
-                  {s}×
-                </button>
-              ))}
+            <div style={{ display: 'flex', gap: 8, marginBottom: gekozenDagen.length < 2 ? 4 : 24 }}>
+              {TRAININGSDAGEN.map(dag => {
+                const actief = gekozenDagen.includes(dag.value)
+                return (
+                  <button
+                    key={dag.value}
+                    onClick={() => toggleDag(dag.value)}
+                    style={{
+                      flex: 1, padding: '12px 0', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                      background: actief ? 'var(--mf-green)' : 'var(--bg-card, #fff)',
+                      color: actief ? '#fff' : 'var(--text-2)',
+                      border: `1.5px solid ${actief ? 'var(--mf-green)' : 'var(--border)'}`,
+                      transition: 'background 0.12s, color 0.12s, border-color 0.12s',
+                    }}
+                  >
+                    {dag.label}
+                  </button>
+                )
+              })}
             </div>
+            {gekozenDagen.length < 2 && (
+              <p style={{ fontSize: 12, color: 'var(--mf-red, #dc2626)', marginBottom: 24, marginTop: 0 }}>
+                Kies minimaal 2 trainingsdagen
+              </p>
+            )}
 
             <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: 'var(--text-2)', marginBottom: 10 }}>
               Tijd per sessie

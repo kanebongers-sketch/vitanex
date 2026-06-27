@@ -29,7 +29,7 @@ interface RequestBody {
   userId: string
   doel: Doel
   niveau: Niveau
-  sessies_per_week: number
+  trainingsdagen: string[]
   beschikbare_tijd: number
   benodigdheden: string[]
   blessures?: string
@@ -154,7 +154,7 @@ function validateBody(body: unknown): body is RequestBody {
   if (typeof b.userId !== "string" || b.userId.trim() === "") return false
   if (!doelen.includes(b.doel as Doel)) return false
   if (!niveaus.includes(b.niveau as Niveau)) return false
-  if (typeof b.sessies_per_week !== "number" || b.sessies_per_week < 2 || b.sessies_per_week > 5) return false
+  if (!Array.isArray(b.trainingsdagen) || b.trainingsdagen.length < 1 || b.trainingsdagen.length > 7) return false
   if (typeof b.beschikbare_tijd !== "number" || b.beschikbare_tijd <= 0) return false
   if (!Array.isArray(b.benodigdheden)) return false
 
@@ -180,7 +180,7 @@ async function runPlannerAgent(
 Gebruikersparameters:
 - Doel: ${body.doel}
 - Niveau: ${body.niveau}
-- Sessies per week: ${body.sessies_per_week}
+- Trainingsdagen: ${body.trainingsdagen.join(", ")} (${body.trainingsdagen.length} sessies per week)
 - Beschikbare tijd: ${body.beschikbare_tijd} minuten per sessie
 - Beschikbaar materiaal: ${body.benodigdheden.join(", ")}
 ${body.blessures ? `- Blessures/beperkingen: ${body.blessures}` : ""}
@@ -190,8 +190,8 @@ Trainingsfocus: ${trainingsfocus}
 
 Bepaal:
 1. Het beste splits type (bijv. push/pull/legs, upper/lower, full body, etc.)
-2. Welke spiergroepen op welke dag getraind worden
-3. Optimale herstelindeling
+2. Welke spiergroepen op welke dag getraind worden — stem dit af op de gekozen dagen
+3. Optimale herstelindeling gegeven de specifieke dagindeling
 
 Geef ALLEEN de structuur terug als JSON in dit formaat:
 \`\`\`json
@@ -203,7 +203,7 @@ Geef ALLEEN de structuur terug als JSON in dit formaat:
 }
 \`\`\`
 
-Gebruik maximaal ${body.sessies_per_week} trainingsdagen.`,
+Maak precies ${body.trainingsdagen.length} trainingsdagen.`,
     },
   ]
 
@@ -389,7 +389,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       {
         error:
-          "Ongeldige invoer. Vereist: userId (string), doel, niveau, sessies_per_week (2-5), beschikbare_tijd, benodigdheden (array)",
+          "Ongeldige invoer. Vereist: userId (string), doel, niveau, trainingsdagen (array 1-7 dagen), beschikbare_tijd, benodigdheden (array)",
       },
       { status: 400 },
     )
@@ -471,7 +471,10 @@ export async function POST(req: NextRequest) {
 
   // Sla op in Supabase. Bewaar doel afgeleid van het intake fitness_doel
   // wanneer beschikbaar; val anders terug op de formulier-doelkeuze.
-  const schemaNaam = `${body.doel.charAt(0).toUpperCase() + body.doel.slice(1)} schema — ${body.niveau} — ${body.sessies_per_week}x/week`
+  const dagAfkortingen = body.trainingsdagen
+    .map(d => d.slice(0, 2).charAt(0).toUpperCase() + d.slice(1, 2))
+    .join('/')
+  const schemaNaam = `${body.doel.charAt(0).toUpperCase() + body.doel.slice(1)} schema — ${body.niveau} — ${dagAfkortingen}`
   const opgeslagenDoel = intakeProfiel?.fitness_doel ?? body.doel
 
   try {
@@ -493,7 +496,7 @@ export async function POST(req: NextRequest) {
         naam: schemaNaam,
         doel: opgeslagenDoel,
         niveau: body.niveau,
-        sessies_per_week: body.sessies_per_week,
+        sessies_per_week: body.trainingsdagen.length,
         schema_json: finaalSchema,
         ai_gegenereerd: true,
         actief: true,
