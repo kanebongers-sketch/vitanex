@@ -219,11 +219,18 @@ export default function SportPagina() {
                 </div>
               </div>
 
-              <Link href="/sport/training" style={{ textDecoration: 'none' }}>
-                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'white', color: '#14795a', fontWeight: 700, fontSize: 14, padding: '11px 20px', borderRadius: 12 }}>
-                  <Play size={14} fill="#14795a" /> Training starten
-                </div>
-              </Link>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                <Link href="/sport/training" style={{ textDecoration: 'none' }}>
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'white', color: '#14795a', fontWeight: 700, fontSize: 14, padding: '11px 20px', borderRadius: 12 }}>
+                    <Play size={14} fill="#14795a" /> Training starten
+                  </div>
+                </Link>
+                <Link href="/sport/genereer" style={{ textDecoration: 'none' }}>
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,0.15)', color: 'white', fontWeight: 600, fontSize: 13, padding: '11px 16px', borderRadius: 12, border: '1px solid rgba(255,255,255,0.3)' }}>
+                    <Sparkles size={13} /> Wijzig plan
+                  </div>
+                </Link>
+              </div>
             </div>
 
             {/* ── Training dagkaarten ── */}
