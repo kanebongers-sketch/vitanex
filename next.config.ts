@@ -14,6 +14,7 @@ while (
 
 const nextConfig: NextConfig = {
   serverExternalPackages: ['pdfkit'],
+  transpilePackages: ['three'],
 
   turbopack: {
     root: turbopackRoot,
