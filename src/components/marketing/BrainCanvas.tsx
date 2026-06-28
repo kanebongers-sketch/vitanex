@@ -16,20 +16,26 @@ const PILLAR_COLORS = [
   '#34D399', // voeding
 ]
 
+const HOTSPOT_FRAC = [
+  [0.50, 0.22],
+  [0.74, 0.38],
+  [0.30, 0.40],
+  [0.62, 0.58],
+  [0.38, 0.66],
+  [0.52, 0.78],
+]
+
+const PARTICLE_COLORS = ['#2DD4BF', '#3B82F6', '#8B5CF6']
+
 export default function BrainCanvas({ activePillar, scrollProgress }: BrainCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const animRef = useRef<number>(0)
-  const stateRef = useRef({
-    brainY: 0,
-    brainRotation: 0,
-    time: 0,
-    particles: [] as Array<{
-      x: number; y: number; vx: number; vy: number
-      opacity: number; size: number; speed: number
-      offset: number; colorIdx: number
-      ox: number; oy: number
-    }>,
-  })
+  const imgRef = useRef<HTMLImageElement | null>(null)
+  const activePillarRef = useRef(activePillar)
+  const scrollRef = useRef(scrollProgress)
+
+  useEffect(() => { activePillarRef.current = activePillar }, [activePillar])
+  useEffect(() => { scrollRef.current = scrollProgress }, [scrollProgress])
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -37,172 +43,90 @@ export default function BrainCanvas({ activePillar, scrollProgress }: BrainCanva
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
-    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-
     const W = 700
     const H = 700
     canvas.width = W
     canvas.height = H
 
-    // Init particles
-    const count = 500
-    const colorWeights = [0, 0, 0, 1, 1, 1, 1, 1, 1, 2, 2]
-    stateRef.current.particles = Array.from({ length: count }, () => {
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+    // Load brain image
+    const img = new Image()
+    img.src = '/Brain.png'
+    imgRef.current = img
+
+    // Init particles — scattered around the brain area
+    type Particle = {
+      x: number; y: number; vx: number; vy: number
+      size: number; speed: number; offset: number; colorIdx: number
+    }
+
+    const particles: Particle[] = Array.from({ length: 500 }, () => {
       const angle = Math.random() * Math.PI * 2
-      const r = Math.random() * 280 + 60
-      const x = W / 2 + Math.cos(angle) * r
-      const y = H / 2 + Math.sin(angle) * r
+      const r = Math.random() * 260 + 80
       return {
-        x, y,
-        ox: x, oy: y,
-        vx: (Math.random() - 0.5) * 0.6,
-        vy: (Math.random() - 0.5) * 0.6,
-        opacity: Math.random(),
-        size: Math.random() * 1.8 + 0.4,
-        speed: Math.random() * 0.008 + 0.002,
+        x: W / 2 + Math.cos(angle) * r,
+        y: H / 2 + Math.sin(angle) * r,
+        vx: (Math.random() - 0.5) * 0.5,
+        vy: (Math.random() - 0.5) * 0.5,
+        size: Math.random() * 1.6 + 0.3,
+        speed: Math.random() * 0.006 + 0.002,
         offset: Math.random() * Math.PI * 2,
-        colorIdx: colorWeights[Math.floor(Math.random() * colorWeights.length)],
+        colorIdx: [0, 0, 0, 1, 1, 1, 1, 2, 2][Math.floor(Math.random() * 9)],
       }
     })
 
-    const PARTICLE_COLORS = ['#2DD4BF', '#3B82F6', '#8B5CF6']
-
-    function drawBrain(
-      ctx: CanvasRenderingContext2D,
-      cx: number, cy: number,
-      rotation: number, floatY: number,
-      active: number
-    ) {
-      ctx.save()
-      ctx.translate(cx, cy + floatY)
-
-      // Outer glow
-      const accentColor = PILLAR_COLORS[active]
-      const grd = ctx.createRadialGradient(0, 0, 60, 0, 0, 240)
-      grd.addColorStop(0, `${accentColor}22`)
-      grd.addColorStop(0.5, 'rgba(45,212,191,0.06)')
-      grd.addColorStop(1, 'transparent')
-      ctx.fillStyle = grd
-      ctx.beginPath()
-      ctx.arc(0, 0, 240, 0, Math.PI * 2)
-      ctx.fill()
-
-      // Brain silhouette — left hemisphere
-      const skew = Math.sin(rotation) * 18
-      ctx.save()
-      ctx.translate(skew, 0)
-
-      const brainGrd = ctx.createRadialGradient(-30, -20, 20, 0, 0, 180)
-      brainGrd.addColorStop(0, 'rgba(45,212,191,0.18)')
-      brainGrd.addColorStop(0.4, 'rgba(59,130,246,0.12)')
-      brainGrd.addColorStop(0.8, 'rgba(139,92,246,0.08)')
-      brainGrd.addColorStop(1, 'rgba(5,7,13,0)')
-
-      ctx.fillStyle = brainGrd
-      ctx.strokeStyle = `rgba(45,212,191,${0.15 + Math.abs(Math.sin(rotation)) * 0.1})`
-      ctx.lineWidth = 1.2
-
-      // Left lobe
-      ctx.beginPath()
-      ctx.moveTo(-10, 60)
-      ctx.bezierCurveTo(-80, 50, -160, -10, -140, -80)
-      ctx.bezierCurveTo(-130, -140, -60, -160, 0, -150)
-      ctx.bezierCurveTo(10, -148, 10, -140, 5, -130)
-      ctx.bezierCurveTo(-50, -120, -100, -80, -90, -30)
-      ctx.bezierCurveTo(-80, 20, -30, 50, -10, 60)
-      ctx.fill()
-      ctx.stroke()
-
-      // Right lobe
-      ctx.beginPath()
-      ctx.moveTo(10, 60)
-      ctx.bezierCurveTo(80, 50, 160, -10, 140, -80)
-      ctx.bezierCurveTo(130, -140, 60, -160, 0, -150)
-      ctx.bezierCurveTo(-10, -148, -10, -140, -5, -130)
-      ctx.bezierCurveTo(50, -120, 100, -80, 90, -30)
-      ctx.bezierCurveTo(80, 20, 30, 50, 10, 60)
-      ctx.fill()
-      ctx.stroke()
-
-      // Corpus callosum divider
-      ctx.beginPath()
-      ctx.moveTo(0, -150)
-      ctx.lineTo(0, 60)
-      ctx.strokeStyle = 'rgba(45,212,191,0.12)'
-      ctx.lineWidth = 1
-      ctx.stroke()
-
-      // Brain stem
-      ctx.beginPath()
-      ctx.moveTo(-15, 60)
-      ctx.bezierCurveTo(-20, 100, -10, 130, 0, 140)
-      ctx.bezierCurveTo(10, 130, 20, 100, 15, 60)
-      ctx.fillStyle = 'rgba(45,212,191,0.06)'
-      ctx.fill()
-      ctx.strokeStyle = 'rgba(45,212,191,0.1)'
-      ctx.lineWidth = 1
-      ctx.stroke()
-
-      // Active zone glow
-      const hotspots = [
-        { lx: 0, ly: -120 },
-        { lx: 90, ly: -40 },
-        { lx: -80, ly: -30 },
-        { lx: 60, ly: 30 },
-        { lx: -60, ly: 50 },
-        { lx: 10, ly: 90 },
-      ]
-      const hs = hotspots[active]
-      const zoneGrd = ctx.createRadialGradient(hs.lx, hs.ly, 0, hs.lx, hs.ly, 80)
-      zoneGrd.addColorStop(0, `${accentColor}40`)
-      zoneGrd.addColorStop(0.5, `${accentColor}15`)
-      zoneGrd.addColorStop(1, 'transparent')
-      ctx.fillStyle = zoneGrd
-      ctx.beginPath()
-      ctx.arc(hs.lx, hs.ly, 80, 0, Math.PI * 2)
-      ctx.fill()
-
-      ctx.restore()
-      ctx.restore()
-    }
+    let time = 0
+    let rotation = 0
 
     function tick() {
       if (!ctx || !canvas) return
-      const s = stateRef.current
 
-      if (!prefersReduced) {
-        s.time += 0.016
-      }
+      const ap = activePillarRef.current
+      const sp = scrollRef.current
 
-      // Lerp rotation toward scroll-driven target
-      const targetRotation = (scrollProgress - 0.5) * 0.52
-      s.brainRotation += (targetRotation - s.brainRotation) * 0.06
+      if (!prefersReduced) time += 0.016
 
-      const floatY = prefersReduced ? 0 : Math.sin(s.time * 0.5) * 12
+      // Smooth rotation driven by scroll (±15°)
+      const targetRot = (sp - 0.5) * 0.52
+      rotation += (targetRot - rotation) * 0.06
+      const floatY = prefersReduced ? 0 : Math.sin(time * 0.5) * 10
 
       ctx.clearRect(0, 0, W, H)
 
-      // Background gradient
-      const bgGrd = ctx.createRadialGradient(W / 2, H / 2, 0, W / 2, H / 2, W / 2)
-      bgGrd.addColorStop(0, 'rgba(15,21,36,0.4)')
-      bgGrd.addColorStop(1, 'transparent')
-      ctx.fillStyle = bgGrd
-      ctx.fillRect(0, 0, W, H)
+      // ── Draw brain image with rotation ──────────────────────────────────────
+      if (imgRef.current?.complete && imgRef.current.naturalWidth > 0) {
+        ctx.save()
+        ctx.translate(W / 2, H / 2 + floatY)
+        ctx.rotate(rotation)
+        ctx.drawImage(imgRef.current, -W / 2, -H / 2, W, H)
+        ctx.restore()
+      }
 
-      // Particles
-      const activeColor = PILLAR_COLORS[activePillar]
-      s.particles.forEach((p, i) => {
+      // ── Active zone glow over the brain ─────────────────────────────────────
+      const accentColor = PILLAR_COLORS[ap]
+      const [hx, hy] = HOTSPOT_FRAC[ap]
+      const gx = hx * W
+      const gy = hy * H + floatY
+      const zoneGrd = ctx.createRadialGradient(gx, gy, 0, gx, gy, 90)
+      zoneGrd.addColorStop(0, accentColor + '55')
+      zoneGrd.addColorStop(0.5, accentColor + '18')
+      zoneGrd.addColorStop(1, 'transparent')
+      ctx.fillStyle = zoneGrd
+      ctx.beginPath()
+      ctx.arc(gx, gy, 90, 0, Math.PI * 2)
+      ctx.fill()
+
+      // ── Particles ───────────────────────────────────────────────────────────
+      particles.forEach((p, i) => {
         if (!prefersReduced) {
           if (i < 40) {
-            // Pull toward active hotspot region
-            const hotspotX = W * [0.5, 0.74, 0.3, 0.62, 0.38, 0.52][activePillar]
-            const hotspotY = H * [0.22, 0.38, 0.40, 0.58, 0.66, 0.78][activePillar]
-            p.x += (hotspotX - p.x) * 0.008
-            p.y += (hotspotY - p.y) * 0.008
+            // Pull toward active hotspot
+            p.x += (gx - p.x) * 0.007
+            p.y += (gy - p.y) * 0.007
           } else {
             p.x += p.vx
             p.y += p.vy
-            // Wrap
             if (p.x < 0) p.x = W
             if (p.x > W) p.x = 0
             if (p.y < 0) p.y = H
@@ -210,31 +134,33 @@ export default function BrainCanvas({ activePillar, scrollProgress }: BrainCanva
           }
         }
 
-        const twinkle = 0.3 + 0.7 * Math.sin(s.time * p.speed * 100 + p.offset)
-        const color = i < 40 ? activeColor : PARTICLE_COLORS[p.colorIdx]
+        const twinkle = 0.3 + 0.7 * Math.sin(time * p.speed * 100 + p.offset)
+        const color = i < 40 ? accentColor : PARTICLE_COLORS[p.colorIdx]
+        const alpha = Math.floor(twinkle * 200).toString(16).padStart(2, '0')
         ctx.beginPath()
         ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2)
-        ctx.fillStyle = color + Math.floor(twinkle * 180).toString(16).padStart(2, '0')
+        ctx.fillStyle = color + alpha
         ctx.fill()
       })
-
-      drawBrain(ctx, W / 2, H / 2, s.brainRotation, floatY, activePillar)
 
       animRef.current = requestAnimationFrame(tick)
     }
 
-    animRef.current = requestAnimationFrame(tick)
+    // Start loop; wait for image so first frame isn't blank
+    if (img.complete) {
+      animRef.current = requestAnimationFrame(tick)
+    } else {
+      img.onload = () => { animRef.current = requestAnimationFrame(tick) }
+      img.onerror = () => { animRef.current = requestAnimationFrame(tick) }
+    }
+
     return () => cancelAnimationFrame(animRef.current)
-  }, [activePillar, scrollProgress])
+  }, [])
 
   return (
     <canvas
       ref={canvasRef}
-      style={{
-        width: '100%',
-        height: '100%',
-        display: 'block',
-      }}
+      style={{ width: '100%', height: '100%', display: 'block' }}
     />
   )
 }
