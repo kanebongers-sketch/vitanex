@@ -52,7 +52,7 @@ export default function BrainCanvas({ activePillar, scrollProgress }: BrainCanva
 
     // Load brain image
     const img = new Image()
-    img.src = '/Brain.png'
+    img.src = '/brain.png'
     imgRef.current = img
 
     // Init particles — scattered around the brain area
