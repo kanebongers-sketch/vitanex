@@ -325,143 +325,105 @@ function BrainSection() {
 
   return (
     <section id="brein" aria-label="6 vlakken van welzijn" style={{ position: 'relative', background: lp.bgDeep }}>
-      {/* Tall scroll wrapper */}
       <div ref={wrapperRef} style={{ height: '720vh' }}>
-        {/* Sticky viewport */}
-        <div style={{ position: 'sticky', top: 0, height: '100vh', overflow: 'hidden', display: 'flex', alignItems: 'center' }}>
-          {/* Ambient */}
-          <div aria-hidden style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
-            <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: '60%', height: '60%', background: `radial-gradient(ellipse, ${pillar.color}12 0%, transparent 65%)`, transition: 'background 0.8s ease', borderRadius: '50%' }} />
+        {/* Sticky fullscreen viewport */}
+        <div style={{ position: 'sticky', top: 0, height: '100vh', overflow: 'hidden' }}>
+
+          {/* Brain canvas — fills entire viewport */}
+          <div style={{ position: 'absolute', inset: 0 }}>
+            <BrainCanvas activePillar={activePillar} scrollProgress={scrollProgress} />
           </div>
 
-          <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 32px', width: '100%', display: 'flex', alignItems: 'center', gap: 48, position: 'relative' }}>
+          {/* Ambient colour overlay */}
+          <div aria-hidden style={{ position: 'absolute', inset: 0, pointerEvents: 'none',
+            background: `radial-gradient(ellipse 55% 55% at 50% 50%, ${pillar.color}0d 0%, transparent 65%)`,
+            transition: 'background 0.9s ease' }} />
 
-            {/* LEFT: pillar list */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flexShrink: 0 }}>
-              {PILLARS.map((p, i) => (
-                <button
-                  key={p.key}
-                  onClick={() => setActivePillar(i)}
-                  style={{
-                    background: 'none', border: 'none', cursor: 'pointer',
-                    display: 'flex', alignItems: 'center', gap: 10,
-                    padding: '8px 14px', borderRadius: 10,
-                    transition: 'all 0.25s var(--ease)',
-                    opacity: activePillar === i ? 1 : 0.4,
-                    transform: activePillar === i ? 'translateX(0)' : 'translateX(-4px)',
-                  }}
-                >
-                  <span style={{ fontSize: 18 }}>{p.emoji}</span>
-                  <span style={{
-                    fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 15,
-                    color: activePillar === i ? p.color : lp.text3,
-                    transition: 'color 0.3s',
-                    letterSpacing: '-0.01em',
-                  }}>
-                    {p.naam}
-                  </span>
-                  {activePillar === i && (
-                    <span style={{ marginLeft: 'auto', width: 6, height: 6, borderRadius: '50%', background: p.color, boxShadow: `0 0 8px ${p.color}` }} />
-                  )}
-                </button>
-              ))}
+          {/* LEFT — glass pillar nav */}
+          <div style={{
+            position: 'absolute', left: 32, top: '50%', transform: 'translateY(-50%)',
+            display: 'flex', flexDirection: 'column', gap: 2,
+            background: 'rgba(5,7,13,0.60)', backdropFilter: 'blur(18px) saturate(1.4)',
+            borderRadius: 18, padding: '14px 6px',
+            border: '1px solid rgba(255,255,255,0.07)',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+          }}>
+            {PILLARS.map((p, i) => (
+              <button
+                key={p.key}
+                onClick={() => setActivePillar(i)}
+                style={{
+                  background: activePillar === i ? `${p.color}14` : 'none',
+                  border: 'none', cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', gap: 10,
+                  padding: '9px 14px', borderRadius: 12,
+                  transition: 'all 0.25s var(--ease)',
+                  opacity: activePillar === i ? 1 : 0.38,
+                }}
+              >
+                <span style={{ fontSize: 17 }}>{p.emoji}</span>
+                <span style={{
+                  fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 14,
+                  color: activePillar === i ? p.color : lp.text3,
+                  transition: 'color 0.3s', letterSpacing: '-0.01em',
+                }}>
+                  {p.naam}
+                </span>
+                {activePillar === i && (
+                  <span style={{ width: 5, height: 5, borderRadius: '50%', background: p.color, boxShadow: `0 0 6px ${p.color}`, flexShrink: 0 }} />
+                )}
+              </button>
+            ))}
+          </div>
+
+          {/* RIGHT — glass info panel */}
+          <div style={{
+            position: 'absolute', right: 32, top: '50%', transform: 'translateY(-50%)',
+            ...glass.hotspot,
+            width: 268, padding: '26px 22px',
+            opacity: panelVisible ? 1 : 0,
+            transition: 'opacity 0.5s cubic-bezier(0.16,1,0.3,1), transform 0.5s cubic-bezier(0.16,1,0.3,1)',
+          }}>
+            <p style={{ fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: pillar.color, marginBottom: 14 }}>
+              Vlak 0{activePillar + 1}
+            </p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+              <span style={{ fontSize: 32 }}>{pillar.emoji}</span>
+              <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 20, color: lp.text1, letterSpacing: '-0.02em', margin: 0 }}>
+                {pillar.naam}
+              </h3>
             </div>
-
-            {/* CENTER: brain canvas + hotspots */}
-            <div style={{ flex: 1, position: 'relative', aspectRatio: '1', maxWidth: 480, maxHeight: 480 }}>
-              <BrainCanvas activePillar={activePillar} scrollProgress={scrollProgress} />
-
-              {/* Hotspot pins */}
-              {PILLARS.map((p, i) => (
-                <button
-                  key={p.key}
-                  onClick={() => setActivePillar(i)}
-                  aria-label={p.naam}
-                  style={{
-                    position: 'absolute',
-                    left: HOTSPOT_POS[i].left,
-                    top: HOTSPOT_POS[i].top,
-                    transform: 'translate(-50%,-50%)',
-                    background: 'none', border: 'none', cursor: 'pointer', padding: 0,
-                  }}
-                >
-                  <span
-                    style={{
-                      display: 'block',
-                      width: activePillar === i ? 20 : 12,
-                      height: activePillar === i ? 20 : 12,
-                      borderRadius: '50%',
-                      background: p.color,
-                      boxShadow: activePillar === i
-                        ? `0 0 0 6px ${p.color}30, 0 0 20px ${p.color}60`
-                        : `0 0 8px ${p.color}60`,
-                      transition: 'all 0.4s var(--ease)',
-                      animation: activePillar === i ? 'none' : 'lp-pulse 2.4s ease-in-out infinite',
-                    }}
-                  />
-                </button>
-              ))}
-            </div>
-
-            {/* RIGHT: glass info panel */}
-            <div
-              style={{
-                ...glass.hotspot,
-                width: 280,
-                flexShrink: 0,
-                padding: '28px 24px',
-                opacity: panelVisible ? 1 : 0,
-                transform: panelVisible ? 'translateX(0) blur(0)' : 'translateX(24px)',
-                transition: 'opacity 0.55s cubic-bezier(0.16,1,0.3,1), transform 0.55s cubic-bezier(0.16,1,0.3,1)',
-              }}
-            >
-              <p style={{ fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', color: pillar.color, marginBottom: 16 }}>
-                Vlak 0{activePillar + 1}
+            <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, lineHeight: 1.6, color: lp.text2, marginBottom: 18 }}>
+              {pillar.zin}
+            </p>
+            <div style={{ background: `${pillar.color}18`, border: `1px solid ${pillar.color}30`, borderRadius: 10, padding: '9px 13px' }}>
+              <p style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: pillar.color, fontWeight: 600, margin: 0 }}>
+                {pillar.stat}
               </p>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
-                <span style={{ fontSize: 36 }}>{pillar.emoji}</span>
-                <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 22, color: lp.text1, letterSpacing: '-0.02em', margin: 0 }}>
-                  {pillar.naam}
-                </h3>
-              </div>
-              <p style={{ fontFamily: 'var(--font-body)', fontSize: 15, lineHeight: 1.6, color: lp.text2, marginBottom: 20 }}>
-                {pillar.zin}
-              </p>
-              {/* Mini stat chip */}
-              <div style={{
-                background: `${pillar.color}18`,
-                border: `1px solid ${pillar.color}30`,
-                borderRadius: 10,
-                padding: '10px 14px',
-              }}>
-                <p style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: pillar.color, fontWeight: 600, margin: 0 }}>
-                  {pillar.stat}
-                </p>
-              </div>
-            </div>
-
-            {/* Progress indicator (right edge) */}
-            <div style={{ position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)', display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {PILLARS.map((p, i) => (
-                <button
-                  key={p.key}
-                  onClick={() => setActivePillar(i)}
-                  aria-label={p.naam}
-                  style={{
-                    width: 3, height: activePillar === i ? 28 : 14,
-                    background: activePillar === i ? p.color : lp.borderSoft,
-                    borderRadius: 2, border: 'none', cursor: 'pointer', padding: 0,
-                    transition: 'all 0.3s var(--ease)',
-                    boxShadow: activePillar === i ? `0 0 8px ${p.color}` : 'none',
-                  }}
-                />
-              ))}
             </div>
           </div>
+
+          {/* Progress dots — right edge */}
+          <div style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {PILLARS.map((p, i) => (
+              <button
+                key={p.key}
+                onClick={() => setActivePillar(i)}
+                aria-label={p.naam}
+                style={{
+                  width: 3, height: activePillar === i ? 28 : 12,
+                  background: activePillar === i ? p.color : lp.borderSoft,
+                  borderRadius: 2, border: 'none', cursor: 'pointer', padding: 0,
+                  transition: 'all 0.3s var(--ease)',
+                  boxShadow: activePillar === i ? `0 0 8px ${p.color}` : 'none',
+                }}
+              />
+            ))}
+          </div>
+
         </div>
       </div>
 
-      {/* Keyframe for pulse */}
       <style>{`
         @keyframes lp-pulse {
           0%, 100% { transform: translate(-50%,-50%) scale(1); }

@@ -20,150 +20,92 @@ const PILLAR_COLORS = [
   new THREE.Color('#34D399'),
 ]
 
-// 3D hotspot positions on brain surface (world space, unrotated)
+// Hotspot positions on brain surface (world space, brain at rest)
 const HOTSPOT_3D: [number, number, number][] = [
-  [ 0.05,  0.70,  0.35],  // energie   — top
-  [ 1.15,  0.10,  0.00],  // slaap     — right
-  [-1.15,  0.10,  0.00],  // stress    — left
-  [ 0.60, -0.35,  0.55],  // stemming  — front right
-  [-0.60, -0.45,  0.20],  // beweging  — front left
-  [ 0.05, -0.72, -0.30],  // voeding   — bottom back
+  [ 0.05,  0.92,  0.35],  // energie  — top
+  [ 1.38,  0.12,  0.00],  // slaap    — right
+  [-1.38,  0.12,  0.00],  // stress   — left
+  [ 0.80, -0.42,  0.60],  // stemming — front-right
+  [-0.80, -0.52,  0.22],  // beweging — front-left
+  [ 0.05, -0.88, -0.32],  // voeding  — bottom
 ]
 
-// ── Brain point cloud ──────────────────────────────────────────────────────────
+// ── Brain mesh ─────────────────────────────────────────────────────────────────
 
-function pseudoFold(x: number, y: number, z: number): number {
-  return (
-    Math.sin(x * 8.31 + y * 4.13 + z * 2.71) * 0.5 +
-    Math.sin(y * 10.73 + z * 5.37 + x * 3.17) * 0.3 +
-    Math.sin(z * 6.91 + x * 7.13 + y * 9.29) * 0.2
-  ) * 0.095
+// Multi-octave sine noise → simulates gyri / sulci
+function foldNoise(x: number, y: number, z: number): number {
+  const a = Math.sin(x * 4.13 + z * 2.71 + y * 1.37) * Math.cos(y * 3.91 + x * 1.13)
+  const b = Math.sin(y * 7.33 + x * 3.17) * Math.cos(z * 5.73 + y * 2.31) * 0.50
+  const c = Math.cos(z * 11.13 + x * 5.37) * Math.sin(x * 8.71 + z * 4.13) * 0.25
+  const d = Math.sin(x * 19.31 + y * 7.13 + z * 9.37) * 0.125
+  return a + b + c + d   // ≈ [-1, 1]
 }
 
-function generateBrainCloud(total: number) {
-  const TEAL  = new THREE.Color('#2DD4BF')
-  const CYAN  = new THREE.Color('#67E8F9')
-  const BLUE  = new THREE.Color('#6366F1')
-  const WHITE = new THREE.Color('#BAE6FD')
+function buildBrainGeo(): THREE.BufferGeometry {
+  // IcosahedronGeometry detail 6 → 40 962 vertices, 81 920 faces
+  const geo = new THREE.IcosahedronGeometry(1.0, 6)
+  const pos = geo.attributes.position as THREE.BufferAttribute
 
-  const positions: number[] = []
-  const colors: number[]    = []
+  for (let i = 0; i < pos.count; i++) {
+    const ox = pos.getX(i)
+    const oy = pos.getY(i)
+    const oz = pos.getZ(i)
 
-  const surfaceTarget = Math.round(total * 0.82)
+    // Stretch unit sphere to brain proportions
+    const bx = ox * 1.52
+    const by = oy * 0.87
+    const bz = oz * 1.05
 
-  // ─ Surface particles: two-lobe brain shape ─
-  let placed = 0
-  while (placed < surfaceTarget) {
-    const side  = Math.random() < 0.5 ? -1.0 : 1.0
-    const theta = Math.random() * Math.PI * 2
-    const phi   = Math.acos(2 * Math.random() - 1)
+    // Surface normal from center
+    const bl = Math.sqrt(bx * bx + by * by + bz * bz) || 1
+    const nx = bx / bl, ny = by / bl, nz = bz / bl
 
-    const sx = Math.sin(phi) * Math.cos(theta)
-    const sy = Math.sin(phi) * Math.sin(theta)
-    const sz = Math.cos(phi)
+    // Cortical fold displacement — applied radially
+    const fold = foldNoise(nx * 2.9, ny * 2.9, nz * 2.9) * 0.115
 
-    // Large lobe offset so two hemispheres are clearly visible
-    let x = sx * 0.88 + side * 0.64
-    let y = sy * 0.82 - 0.04
-    let z = sz * 0.96
+    // Interhemispheric fissure: groove at top center (narrow Gaussian in x)
+    const fis = Math.max(0, ny - 0.20) * Math.exp(-nx * nx / 0.028) * 0.42
 
-    // Interhemispheric fissure: reject particles near midline at upper half
-    const fissureW = 0.14 * Math.max(0, (y + 0.10) / 0.90)
-    if (Math.abs(x) < fissureW) continue
+    // Combined displacement (outward = positive, inward = negative)
+    const d = fold - fis
 
-    // Flat bottom
-    if (y < -0.80) continue
-
-    // Cortical folding displacement
-    const fold = pseudoFold(x, y, z)
-    const len  = Math.sqrt(x * x + y * y + z * z) || 1
-    x += (x / len) * fold
-    y += (y / len) * fold
-    z += (z / len) * fold
-
-    positions.push(x, y, z)
-
-    // Color gradient by height + lateral position
-    const t   = (y + 0.90) / 1.80       // 0=bottom, 1=top
-    const lat = Math.abs(x) / 1.55      // 0=center, 1=edge
-    const rnd = Math.random()
-    let c: THREE.Color
-    if      (rnd < 0.52) c = TEAL.clone().lerp(CYAN, t)
-    else if (rnd < 0.80) c = BLUE.clone().lerp(TEAL, lat)
-    else                 c = WHITE.clone().multiplyScalar(0.75 + Math.random() * 0.25)
-
-    colors.push(c.r, c.g, c.b)
-    placed++
+    pos.setXYZ(i, bx + nx * d, by + ny * d, bz + nz * d)
   }
 
-  // ─ Volume particles (dim interior depth) ─
-  let vp = 0
-  const volumeTarget = total - surfaceTarget
-  while (vp < volumeTarget) {
-    const x = (Math.random() - 0.5) * 3.0
-    const y = (Math.random() - 0.5) * 1.85
-    const z = (Math.random() - 0.5) * 2.10
-    if ((x / 1.48) ** 2 + (y / 0.93) ** 2 + (z / 1.05) ** 2 > 0.88) continue
-    positions.push(x, y, z)
-    const c = BLUE.clone().multiplyScalar(0.22)
-    colors.push(c.r, c.g, c.b)
-    vp++
-  }
-
-  return {
-    positions: new Float32Array(positions),
-    colors:    new Float32Array(colors),
-  }
+  pos.needsUpdate = true
+  geo.computeVertexNormals()
+  return geo
 }
 
-// ── Neural connection lines ────────────────────────────────────────────────────
+// ── Synapse particle cloud on brain surface ────────────────────────────────────
 
-function generateConnections(positions: Float32Array, maxConn: number): Float32Array {
-  const n       = positions.length / 3
-  const THRESH  = 0.38
-  const TSQR    = THRESH * THRESH
-  const CS      = THRESH
+function buildSynapses(brainGeo: THREE.BufferGeometry, count: number): THREE.Points {
+  const src  = brainGeo.attributes.position as THREE.BufferAttribute
+  const step = Math.max(1, Math.floor(src.count / count))
+  const arr  = new Float32Array(count * 3)
 
-  const grid = new Map<string, number[]>()
-  for (let i = 0; i < n; i++) {
-    const key = `${Math.floor(positions[i * 3] / CS)},${Math.floor(positions[i * 3 + 1] / CS)},${Math.floor(positions[i * 3 + 2] / CS)}`
-    const b = grid.get(key)
-    if (b) b.push(i)
-    else grid.set(key, [i])
+  let written = 0
+  for (let i = 0; written < count && i < src.count; i += step) {
+    const vx = src.getX(i), vy = src.getY(i)
+    if (Math.abs(vx) < 0.08 && vy > 0.4) continue  // skip fissure interior
+    arr[written * 3]     = vx + (Math.random() - 0.5) * 0.025
+    arr[written * 3 + 1] = vy + (Math.random() - 0.5) * 0.025
+    arr[written * 3 + 2] = src.getZ(i) + (Math.random() - 0.5) * 0.025
+    written++
   }
 
-  const out: number[] = []
-  let conn = 0
+  const geo = new THREE.BufferGeometry()
+  geo.setAttribute('position', new THREE.BufferAttribute(arr.slice(0, written * 3), 3))
 
-  const order = Array.from({ length: n }, (_, i) => i).sort(() => Math.random() - 0.5)
-
-  for (const i of order) {
-    if (conn >= maxConn) break
-    const ax = positions[i * 3], ay = positions[i * 3 + 1], az = positions[i * 3 + 2]
-    const cx = Math.floor(ax / CS), cy = Math.floor(ay / CS), cz = Math.floor(az / CS)
-    let pc = 0
-
-    outer:
-    for (let dx = -1; dx <= 1; dx++) {
-      for (let dy = -1; dy <= 1; dy++) {
-        for (let dz = -1; dz <= 1; dz++) {
-          const nb = grid.get(`${cx + dx},${cy + dy},${cz + dz}`)
-          if (!nb) continue
-          for (const j of nb) {
-            if (j <= i) continue
-            const d2 = (ax - positions[j * 3]) ** 2 + (ay - positions[j * 3 + 1]) ** 2 + (az - positions[j * 3 + 2]) ** 2
-            if (d2 > TSQR) continue
-            out.push(ax, ay, az, positions[j * 3], positions[j * 3 + 1], positions[j * 3 + 2])
-            conn++
-            pc++
-            if (pc >= 3 || conn >= maxConn) break outer
-          }
-        }
-      }
-    }
-  }
-
-  return new Float32Array(out)
+  return new THREE.Points(geo, new THREE.PointsMaterial({
+    color: 0x40e8ff,
+    size: 0.018,
+    transparent: true,
+    opacity: 0.65,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+    sizeAttenuation: true,
+  }))
 }
 
 // ── Component ──────────────────────────────────────────────────────────────────
@@ -180,88 +122,86 @@ export default function BrainCanvas({ activePillar, scrollProgress }: BrainCanva
     const mount = mountRef.current
     if (!mount) return
 
-    const W       = mount.clientWidth  || 800
-    const H       = mount.clientHeight || 800
-    const noMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    const W  = mount.clientWidth  || 800
+    const H  = mount.clientHeight || 800
+    const nm = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
     // ── Renderer ──────────────────────────────────────────────────────────────
-    const renderer = new THREE.WebGLRenderer({
-      antialias: true,
-      powerPreference: 'high-performance',
-    })
+    const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' })
     renderer.setSize(W, H)
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
-    renderer.setClearColor(0x0A0E1A, 1)   // matches lp.bgDeep (brain section bg)
+    renderer.setClearColor(0x0A0E1A, 1)
     renderer.toneMapping = THREE.ACESFilmicToneMapping
-    renderer.toneMappingExposure = 1.15
+    renderer.toneMappingExposure = 1.25
     mount.appendChild(renderer.domElement)
 
     // ── Scene + Camera ────────────────────────────────────────────────────────
     const scene  = new THREE.Scene()
-    const camera = new THREE.PerspectiveCamera(52, W / H, 0.1, 100)
-    camera.position.set(0, 0, 3.7)
+    const camera = new THREE.PerspectiveCamera(48, W / H, 0.1, 100)
+    camera.position.set(0, 0.15, 3.8)
 
-    // ── Brain particles ───────────────────────────────────────────────────────
-    const { positions, colors } = generateBrainCloud(15000)
+    // ── Lights ────────────────────────────────────────────────────────────────
+    scene.add(new THREE.AmbientLight(0x061525, 7))
 
-    const brainGeo = new THREE.BufferGeometry()
-    brainGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3))
-    brainGeo.setAttribute('color',    new THREE.BufferAttribute(colors,    3))
+    const mainLight = new THREE.DirectionalLight(0xa8dff8, 5.5)
+    mainLight.position.set(3, 4, 2)
+    scene.add(mainLight)
 
-    const brainMat = new THREE.PointsMaterial({
-      size: 0.027,
-      vertexColors: true,
-      transparent: true,
-      opacity: 0.92,
-      blending: THREE.AdditiveBlending,
-      depthWrite: false,
-      sizeAttenuation: true,
+    // Orbiting rim light (teal) — creates the "scanning" glow
+    const rimLight = new THREE.PointLight(0x00ccff, 14, 14)
+    rimLight.position.set(-3.5, 0.5, -2.5)
+    scene.add(rimLight)
+
+    // Blue-purple fill from below
+    const fillLight = new THREE.PointLight(0x4428ee, 5, 10)
+    fillLight.position.set(1.0, -4, 2)
+    scene.add(fillLight)
+
+    // Soft forward fill so frontal surface is readable
+    const frontLight = new THREE.PointLight(0x70c8e8, 2.5, 8)
+    frontLight.position.set(0, 0.5, 4)
+    scene.add(frontLight)
+
+    // ── Brain mesh ────────────────────────────────────────────────────────────
+    const brainGeo = buildBrainGeo()
+    const brainMat = new THREE.MeshPhongMaterial({
+      color:     new THREE.Color('#0d2a3d'),
+      emissive:  new THREE.Color('#040f1a'),
+      specular:  new THREE.Color('#55c8e0'),
+      shininess: 110,
     })
-    const brain = new THREE.Points(brainGeo, brainMat)
+    const brain = new THREE.Mesh(brainGeo, brainMat)
     scene.add(brain)
 
-    // ── Neural connection lines ───────────────────────────────────────────────
-    const linePositions = generateConnections(positions, 2400)
-    const lineGeo = new THREE.BufferGeometry()
-    lineGeo.setAttribute('position', new THREE.BufferAttribute(linePositions, 3))
+    // ── Synapse particles ─────────────────────────────────────────────────────
+    const synapses = buildSynapses(brainGeo, 900)
+    scene.add(synapses)
 
-    const lineMat = new THREE.LineBasicMaterial({
-      color: 0x0ea5e9,
-      transparent: true,
-      opacity: 0.10,
-      blending: THREE.AdditiveBlending,
-      depthWrite: false,
-    })
-    const lines = new THREE.LineSegments(lineGeo, lineMat)
-    scene.add(lines)
-
-    // ── Hotspot glow sprite ───────────────────────────────────────────────────
+    // ── Active pillar glow sprite ─────────────────────────────────────────────
     const gc  = Object.assign(document.createElement('canvas'), { width: 128, height: 128 })
     const ctx = gc.getContext('2d')!
     const g   = ctx.createRadialGradient(64, 64, 0, 64, 64, 64)
     g.addColorStop(0,    'rgba(255,255,255,1)')
     g.addColorStop(0.18, 'rgba(255,255,255,0.75)')
-    g.addColorStop(0.45, 'rgba(255,255,255,0.22)')
+    g.addColorStop(0.50, 'rgba(255,255,255,0.20)')
     g.addColorStop(1,    'rgba(255,255,255,0)')
     ctx.fillStyle = g
     ctx.fillRect(0, 0, 128, 128)
     const glowTex = new THREE.CanvasTexture(gc)
 
     const glowMat = new THREE.SpriteMaterial({
-      map: glowTex,
-      color: PILLAR_COLORS[0],
-      transparent: true,
-      blending: THREE.AdditiveBlending,
-      depthWrite: false,
+      map: glowTex, color: PILLAR_COLORS[0],
+      transparent: true, blending: THREE.AdditiveBlending, depthWrite: false,
     })
     const glowSprite = new THREE.Sprite(glowMat)
-    glowSprite.scale.set(0.7, 0.7, 1)
+    glowSprite.scale.set(0.55, 0.55, 1)
     scene.add(glowSprite)
 
-    // ── Post-processing: Bloom ────────────────────────────────────────────────
+    // ── Post-processing ───────────────────────────────────────────────────────
     const composer = new EffectComposer(renderer)
     composer.addPass(new RenderPass(scene, camera))
-    const bloom = new UnrealBloomPass(new THREE.Vector2(W, H), 1.2, 0.6, 0.05)
+    // Threshold 0.28 → only specular highlights + glows bloom
+    const bloom = new UnrealBloomPass(new THREE.Vector2(W, H), 0.9, 0.55, 0.28)
     composer.addPass(bloom)
 
     // ── Animation state ───────────────────────────────────────────────────────
@@ -278,56 +218,57 @@ export default function BrainCanvas({ activePillar, scrollProgress }: BrainCanva
       camX = (e.clientX / window.innerWidth  - 0.5) * 2
       camY = (e.clientY / window.innerHeight - 0.5) * 2
     }
-    if (!noMotion) window.addEventListener('mousemove', onMouse)
+    if (!nm) window.addEventListener('mousemove', onMouse)
 
     // ── Render loop ───────────────────────────────────────────────────────────
     function animate() {
       animId = requestAnimationFrame(animate)
-      if (!noMotion) time += 0.007
+      if (!nm) time += 0.006
 
       const sp = spRef.current
       const ap = apRef.current
 
-      // Rotation: slow auto-drift + scroll-driven
-      const targetRotY = time * 0.10 + sp * Math.PI * 1.3
-      rotY += (targetRotY - rotY) * 0.022
+      // Slow auto-drift + scroll-driven rotation
+      const targetRotY = time * 0.08 + sp * Math.PI * 1.4
+      rotY += (targetRotY - rotY) * 0.018
 
-      brain.rotation.y = rotY
-      lines.rotation.y = rotY
-      brain.rotation.x = camY * 0.14
-      lines.rotation.x = camY * 0.14
+      brain.rotation.y    = rotY
+      synapses.rotation.y = rotY
+      brain.rotation.x    = camY * 0.10
+      synapses.rotation.x = camY * 0.10
 
-      // Subtle breathing scale
-      const breathe = 1 + Math.sin(time * 0.75) * 0.007
-      brain.scale.setScalar(breathe)
-      lines.scale.setScalar(breathe)
+      // Rim light orbits around brain
+      const rimAngle = time * 0.28
+      rimLight.position.set(
+        -3.8 * Math.cos(rimAngle),
+        0.5 + Math.sin(rimAngle * 0.6) * 0.8,
+        -2.8 * Math.sin(rimAngle),
+      )
 
-      // Camera parallax + scroll zoom
-      camera.position.x += (camX * 0.40 - camera.position.x) * 0.04
-      camera.position.y += (-camY * 0.28 - camera.position.y) * 0.04
-      camera.position.z  = 3.7 - sp * 1.0
+      // Camera: parallax + scroll zoom
+      camera.position.x += (camX * 0.32 - camera.position.x) * 0.04
+      camera.position.y += (-camY * 0.18 + 0.15 - camera.position.y) * 0.04
+      camera.position.z  = 3.8 - sp * 0.95
       camera.lookAt(0, 0, 0)
 
       // Hotspot: rotate with brain, float gently
       const [hx, hy, hz] = HOTSPOT_3D[ap]
       const cosR = Math.cos(rotY), sinR = Math.sin(rotY)
-      const wx = hx * cosR - hz * sinR
-      const wz = hx * sinR + hz * cosR
-      gx += (wx - gx) * 0.09
-      gy += (hy - gy) * 0.09
-      gz += (wz - gz) * 0.09
-      glowSprite.position.set(gx, gy + Math.sin(time * 2.4) * 0.05, gz)
+      gx += (hx * cosR - hz * sinR - gx) * 0.08
+      gy += (hy + Math.sin(time * 2.2) * 0.05 - gy) * 0.08
+      gz += (hx * sinR + hz * cosR - gz) * 0.08
+      glowSprite.position.set(gx, gy, gz)
 
       glowMat.color = PILLAR_COLORS[ap]
-      const pulse = 0.62 + Math.sin(time * 3.8) * 0.38
-      glowMat.opacity = 0.88 * pulse
-      glowSprite.scale.setScalar(0.48 + pulse * 0.44)
+      const pulse = 0.65 + Math.sin(time * 3.6) * 0.35
+      glowMat.opacity = 0.85 * pulse
+      glowSprite.scale.setScalar(0.45 + pulse * 0.40)
 
-      // Line neural pulse
-      lineMat.opacity = 0.065 + Math.sin(time * 1.6) * 0.045
+      // Synapse opacity twinkle
+      ;(synapses.material as THREE.PointsMaterial).opacity = 0.45 + Math.sin(time * 2.3) * 0.30
 
-      // Bloom intensifies as you scroll deeper
-      bloom.strength = 1.1 + sp * 0.7
+      // Bloom intensifies slightly on scroll
+      bloom.strength = 0.85 + sp * 0.55
 
       composer.render()
     }
@@ -335,8 +276,7 @@ export default function BrainCanvas({ activePillar, scrollProgress }: BrainCanva
 
     // ── Resize ────────────────────────────────────────────────────────────────
     const onResize = () => {
-      const nW = mount.clientWidth
-      const nH = mount.clientHeight
+      const nW = mount.clientWidth, nH = mount.clientHeight
       if (!nW || !nH) return
       camera.aspect = nW / nH
       camera.updateProjectionMatrix()
@@ -353,8 +293,8 @@ export default function BrainCanvas({ activePillar, scrollProgress }: BrainCanva
       window.removeEventListener('resize', onResize)
       brainGeo.dispose()
       brainMat.dispose()
-      lineGeo.dispose()
-      lineMat.dispose()
+      synapses.geometry.dispose()
+      ;(synapses.material as THREE.PointsMaterial).dispose()
       glowTex.dispose()
       glowMat.dispose()
       composer.dispose()
