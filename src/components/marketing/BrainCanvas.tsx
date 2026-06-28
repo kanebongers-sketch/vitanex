@@ -5,16 +5,32 @@ import { Canvas, useFrame } from '@react-three/fiber'
 import { EffectComposer, Bloom } from '@react-three/postprocessing'
 import * as THREE from 'three'
 
-const PILLAR_REGIONS: readonly [number, number, number][] = [
-  [0,    0.25,  0.68],
-  [0,   -0.20,  0.12],
-  [0.18,-0.08,  0.14],
-  [0,    0.48,  0.82],
-  [0,    0.80,  0.06],
-  [0,   -0.28, -0.08],
+const PILLAR_COLORS = ['#F97316', '#6366F1', '#2DD4BF', '#A78BFA', '#FB7185', '#34D399']
+
+// 6 eerlijk verdeelde spots op het brein (lokale sphere-assen)
+const SPOT_NORMALS: [number, number, number][] = [
+  [ 0,  0,  1],  // Energie   — voorkant
+  [-1,  0,  0],  // Slaap     — linkerkant
+  [ 1,  0,  0],  // Stress    — rechterkant
+  [ 0,  1,  0],  // Stemming  — bovenkant
+  [ 0,  0, -1],  // Beweging  — achterkant
+  [ 0, -1,  0],  // Voeding   — onderkant
 ]
 
-const PILLAR_COLORS = ['#F97316', '#6366F1', '#2DD4BF', '#A78BFA', '#FB7185', '#34D399']
+// Brein-oppervlak positie voor elke spot (proporties x*1.35, y*0.82, z*1.02)
+const SPOT_POSITIONS: [number, number, number][] = SPOT_NORMALS.map(
+  ([nx, ny, nz]) => [nx * 1.35 * 1.08, ny * 0.82 * 1.08, nz * 1.02 * 1.08]
+) as [number, number, number][]
+
+// Rotaties zodat elke spot de camera (op +Z) aankijkt
+const TARGET_ROTATIONS: [number, number][] = [
+  [0,  0],                   // voor
+  [0, -Math.PI / 2],         // links
+  [0,  Math.PI / 2],         // rechts
+  [-Math.PI / 2, 0],         // boven
+  [0,  Math.PI],             // achter
+  [Math.PI / 2, 0],          // onder
+]
 
 function gyriJS(nx: number, ny: number, nz: number): number {
   const n = { x: nx * 2.7, y: ny * 2.7, z: nz * 2.7 }
@@ -29,6 +45,11 @@ function gyriJS(nx: number, ny: number, nz: number): number {
   return g1 * 0.28 + g2 * 0.15 + g3 * 0.07 + g4 * 0.018
 }
 
+function ss(edge0: number, edge1: number, x: number): number {
+  const t = Math.min(1, Math.max(0, (x - edge0) / (edge1 - edge0)))
+  return t * t * (3 - 2 * t)
+}
+
 function buildBrainGeometry(): THREE.BufferGeometry {
   const geo = new THREE.IcosahedronGeometry(1.0, 6)
   const pos = geo.attributes.position as THREE.BufferAttribute
@@ -40,26 +61,24 @@ function buildBrainGeometry(): THREE.BufferGeometry {
     const bl = Math.sqrt(bx * bx + by * by + bz * bz) || 1
     const nx = bx / bl, ny = by / bl, nz = bz / bl
 
-    let dy2 = by - Math.max(0, -ny - 0.05) * 0.22
-    const tBulge = smoothStep(0.48, 0.90, Math.abs(nx)) *
-                   smoothStep(0.38, -0.28, ny) * 0.18
+    const dy2 = by - Math.max(0, -ny - 0.05) * 0.22
+    const tBulge = ss(0.48, 0.90, Math.abs(nx)) * ss(0.38, -0.28, ny) * 0.18
     const dx2 = bx + Math.sign(bx) * tBulge
 
-    const topRegion = Math.max(0, ny - 0.08)
-    const fis = topRegion * (0.92 - 0.30 * nz * nz) *
+    const fis = Math.max(0, ny - 0.08) * (0.92 - 0.30 * nz * nz) *
                 Math.exp(-nx * nx / 0.011) * 0.55
 
-    const foldDisplace = gyriJS(nx, ny, nz)
-    const d = foldDisplace * 0.18 - fis * 0.7
-
+    const fold = gyriJS(nx, ny, nz)
+    const d = fold * 0.18 - fis * 0.7
     pos.setXYZ(i, dx2 + nx * d, dy2 + ny * d, bz + nz * d)
 
-    // Kleur gebruikt alle octaven voor rijke detail
-    const fNorm = Math.min(1, Math.max(0, (foldDisplace + 0.05) / 0.52))
-    const t = Math.sqrt(fNorm)
-    colors[i * 3]     = 0.52 + (0.80 - 0.52) * t + (0.96 - 0.80) * fNorm * fNorm
-    colors[i * 3 + 1] = 0.22 + (0.46 - 0.22) * t + (0.70 - 0.46) * fNorm * fNorm
-    colors[i * 3 + 2] = 0.20 + (0.40 - 0.20) * t + (0.62 - 0.40) * fNorm * fNorm
+    // Zwarte sulci-lijnen: alleen de diepste groeven zijn donker, gyri zijn helder roze
+    const fNorm = Math.min(1, Math.max(0, (fold + 0.04) / 0.50))
+    // Steile overgang: donker < 0.18, snel naar helder roze boven 0.32
+    const c = ss(0.18, 0.38, fNorm)
+    colors[i * 3]     = 0.04 + 0.93 * c   // 0.04 (bijna zwart) → 0.97 (helder roze)
+    colors[i * 3 + 1] = 0.02 + 0.63 * c
+    colors[i * 3 + 2] = 0.02 + 0.55 * c
   }
 
   pos.needsUpdate = true
@@ -68,104 +87,97 @@ function buildBrainGeometry(): THREE.BufferGeometry {
   return geo
 }
 
-function smoothStep(edge0: number, edge1: number, x: number): number {
-  const t = Math.min(1, Math.max(0, (x - edge0) / (edge1 - edge0)))
-  return t * t * (3 - 2 * t)
-}
-
-const HIGHLIGHT_VERT = /* glsl */`
-uniform vec3  uRegionPos;
-uniform float uTransition;
-uniform float uTime;
-varying float vHL;
-varying vec3  vWorldPos;
-void main() {
-  vec3 p = vec3(position.x * 1.40, position.y * 0.86, position.z * 1.06);
-  float bl = length(p);
-  vec3 n = p / max(bl, 0.001);
-  float dist = length(n - uRegionPos);
-  vHL = (1.0 - smoothstep(0.3, 1.5, dist)) * uTransition;
-  vec4 wp = modelMatrix * vec4(p * 1.012, 1.0);
-  vWorldPos = wp.xyz;
-  gl_Position = projectionMatrix * viewMatrix * wp;
-}
-`
-
-const HIGHLIGHT_FRAG = /* glsl */`
-uniform vec3  uRegionColor;
-uniform float uTime;
-varying float vHL;
-varying vec3  vWorldPos;
-void main() {
-  float pulse = sin(uTime * 3.2) * 0.5 + 0.5;
-  float alpha = vHL * (0.18 + 0.22 * pulse);
-  if (alpha < 0.01) discard;
-  gl_FragColor = vec4(uRegionColor, alpha);
-}
-`
-
 interface BrainMeshProps {
   activePillar: number
 }
 
 function BrainMesh({ activePillar }: BrainMeshProps) {
-  const meshRef = useRef<THREE.Group>(null)
-  const hlMatRef = useRef<THREE.ShaderMaterial>(null)
-  const transitionRef = useRef(0)
-  const prevPillar = useRef(activePillar)
+  const groupRef  = useRef<THREE.Group>(null)
+  const spotRefs  = useRef<(THREE.Mesh | null)[]>([])
+  const rotRef    = useRef({ x: 0.18, y: 0.3 })
+  const autoRef   = useRef(true)
+  const timerRef  = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const prevPillar = useRef(-1)
 
   const brainGeo = useMemo(() => buildBrainGeometry(), [])
 
-  const hlUniforms = useMemo(() => ({
-    uRegionPos:   { value: new THREE.Vector3(...PILLAR_REGIONS[0]) },
-    uRegionColor: { value: new THREE.Color(PILLAR_COLORS[0]) },
-    uTransition:  { value: 0 },
-    uTime:        { value: 0 },
-  }), [])
-
+  // Wanneer activePillar verandert: roteer brein naar die spot
   useEffect(() => {
-    if (prevPillar.current !== activePillar) {
-      transitionRef.current = 0
-      prevPillar.current = activePillar
-    }
+    if (prevPillar.current === activePillar) return
+    prevPillar.current = activePillar
+
+    autoRef.current = false
+    if (timerRef.current) clearTimeout(timerRef.current)
+    // Na 6 seconden kijken: hervatten auto-rotatie
+    timerRef.current = setTimeout(() => { autoRef.current = true }, 6000)
   }, [activePillar])
 
-  useFrame((state, delta) => {
-    if (meshRef.current) meshRef.current.rotation.y += delta * 0.10
-    if (!hlMatRef.current) return
-    const u = hlMatRef.current.uniforms
-    u.uTime.value = state.clock.elapsedTime
-    u.uRegionPos.value.set(...PILLAR_REGIONS[activePillar])
-    u.uRegionColor.value.set(PILLAR_COLORS[activePillar])
-    transitionRef.current = THREE.MathUtils.lerp(
-      transitionRef.current, 1, 1 - Math.exp(-delta * 1.8)
-    )
-    u.uTransition.value = transitionRef.current
+  useFrame((_, delta) => {
+    if (!groupRef.current) return
+
+    if (autoRef.current) {
+      rotRef.current.y += delta * 0.10
+      groupRef.current.rotation.x = THREE.MathUtils.lerp(
+        groupRef.current.rotation.x, 0.18, delta * 1.2
+      )
+    } else {
+      const [tx, ty] = TARGET_ROTATIONS[activePillar]
+      // Kortste pad voor Y-rotatie (wrap-around)
+      let dy = ty - rotRef.current.y
+      while (dy >  Math.PI) dy -= 2 * Math.PI
+      while (dy < -Math.PI) dy += 2 * Math.PI
+
+      const speed = 1 - Math.exp(-delta * 2.8)
+      rotRef.current.x += (tx - rotRef.current.x) * speed
+      rotRef.current.y += dy * speed
+    }
+
+    groupRef.current.rotation.x = rotRef.current.x
+    groupRef.current.rotation.y = rotRef.current.y
+
+    // Spot-bollletjes: pulseren bij actieve pillar
+    spotRefs.current.forEach((mesh, i) => {
+      if (!mesh) return
+      const mat = mesh.material as THREE.MeshStandardMaterial
+      const isActive = i === activePillar
+      mat.emissiveIntensity = THREE.MathUtils.lerp(
+        mat.emissiveIntensity,
+        isActive ? 0.6 : 0.08,
+        delta * 3
+      )
+      const targetScale = isActive ? 1.4 : 1.0
+      mesh.scale.setScalar(THREE.MathUtils.lerp(mesh.scale.x, targetScale, delta * 3))
+    })
   })
 
   return (
-    <group ref={meshRef} rotation={[0.18, 0.3, 0]}>
-      {/* Brain met correcte normals en vertex colours */}
+    <group ref={groupRef} rotation={[0.18, 0.3, 0]}>
+      {/* Hersenvlees */}
       <mesh geometry={brainGeo}>
         <meshStandardMaterial
           vertexColors
-          roughness={0.62}
+          roughness={0.58}
           metalness={0.0}
-          envMapIntensity={0.4}
         />
       </mesh>
-      {/* Transparante highlight-laag over het brein */}
-      <mesh geometry={brainGeo}>
-        <shaderMaterial
-          ref={hlMatRef}
-          vertexShader={HIGHLIGHT_VERT}
-          fragmentShader={HIGHLIGHT_FRAG}
-          uniforms={hlUniforms}
-          transparent
-          depthWrite={false}
-          blending={THREE.AdditiveBlending}
-        />
-      </mesh>
+
+      {/* 6 gekleurde spots op het brein */}
+      {SPOT_POSITIONS.map((pos, i) => (
+        <mesh
+          key={i}
+          position={pos}
+          ref={(el) => { spotRefs.current[i] = el }}
+        >
+          <sphereGeometry args={[0.075, 16, 16]} />
+          <meshStandardMaterial
+            color={PILLAR_COLORS[i]}
+            emissive={PILLAR_COLORS[i]}
+            emissiveIntensity={i === activePillar ? 0.6 : 0.08}
+            roughness={0.15}
+            metalness={0.1}
+          />
+        </mesh>
+      ))}
     </group>
   )
 }
@@ -184,12 +196,12 @@ function CameraRig() {
 
   useFrame((state) => {
     state.camera.position.x = THREE.MathUtils.lerp(
-      state.camera.position.x, mouse.current.x * 0.28, 0.05
+      state.camera.position.x, mouse.current.x * 0.22, 0.05
     )
     state.camera.position.y = THREE.MathUtils.lerp(
-      state.camera.position.y, 0.75 - mouse.current.y * 0.18, 0.05
+      state.camera.position.y, 0.6 - mouse.current.y * 0.15, 0.05
     )
-    state.camera.lookAt(0, 0.15, 0)
+    state.camera.lookAt(0, 0.1, 0)
   })
 
   return null
@@ -203,7 +215,7 @@ interface BrainCanvasProps {
 export default function BrainCanvas({ activePillar }: BrainCanvasProps) {
   return (
     <Canvas
-      camera={{ position: [1.4, 0.5, 5.2], fov: 46, near: 0.1, far: 100 }}
+      camera={{ position: [1.2, 0.5, 5.0], fov: 46, near: 0.1, far: 100 }}
       gl={{
         antialias: true,
         preserveDrawingBuffer: true,
@@ -213,16 +225,15 @@ export default function BrainCanvas({ activePillar }: BrainCanvasProps) {
       }}
       style={{ width: '100%', height: '100%' }}
     >
-      {/* Verlichting voor MeshStandardMaterial */}
-      <ambientLight color="#ffcdc0" intensity={1.4} />
-      <directionalLight position={[2, 4, 5]} intensity={2.2} color="#ffe8e0" />
-      <directionalLight position={[-3, 2, 2]} intensity={0.8} color="#ffddd5" />
-      <pointLight position={[0, -3, 3]} intensity={2.5} color="#ff9977" distance={12} />
+      <ambientLight color="#ffd5c8" intensity={1.6} />
+      <directionalLight position={[2, 4, 5]} intensity={2.4} color="#ffe8e0" />
+      <directionalLight position={[-3, 2, 2]} intensity={0.9} color="#ffddd5" />
+      <pointLight position={[0, -3, 3]} intensity={2.0} color="#ff9977" distance={12} />
 
       <BrainMesh activePillar={activePillar} />
       <CameraRig />
       <EffectComposer>
-        <Bloom intensity={0.45} radius={0.45} luminanceThreshold={0.70} />
+        <Bloom intensity={0.30} radius={0.40} luminanceThreshold={0.90} />
       </EffectComposer>
     </Canvas>
   )
