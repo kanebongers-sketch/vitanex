@@ -10,27 +10,53 @@ import { buildSurfacePoints } from './brainDisplace'
 // ── GLSL shaders ─────────────────────────────────────────────────────────────
 
 const VERTEX = /* glsl */`
-varying vec3 vBrainPos;
-varying vec3 vWorldPos;
-varying vec3 vNorm;
+varying vec3  vBrainPos;
+varying vec3  vWorldPos;
+varying vec3  vNorm;
+varying float vFold;
 
-float foldNoise(vec3 p) {
-  float a = sin(p.x*4.13+p.z*2.71+p.y*1.37)*cos(p.y*3.91+p.x*1.13);
-  float b = sin(p.y*7.33+p.x*3.17)*cos(p.z*5.73+p.y*2.31)*0.5;
-  float c = cos(p.z*11.13+p.x*5.37)*sin(p.x*8.71+p.z*4.13)*0.25;
-  return a+b+c;
+// abs(sin)*abs(cos) creates rounded gyri ridges with narrow sulci valleys
+float gyriPattern(vec3 n) {
+  // Layer 1: primary gyri — 4-5 large ridges per lobe
+  float g1 = abs(sin(n.x * 3.4 + n.z * 2.2 + n.y * 0.8)) *
+             abs(cos(n.y * 4.7 + n.x * 1.9 + n.z * 0.5));
+
+  // Layer 2: secondary gyri — 7-9 medium ridges
+  float g2 = abs(sin(n.x * 7.8 + n.z * 6.1 + n.y * 2.4)) *
+             abs(cos(n.y * 8.9 + n.z * 7.3 + n.x * 3.6));
+
+  // Layer 3: fine tertiary sulci texture
+  float g3 = sin(n.x * 15.2 + n.z * 12.8 + n.y * 6.1) *
+             cos(n.y * 17.3 + n.x * 9.7  + n.z * 13.4);
+
+  return g1 * 0.20 + g2 * 0.11 + g3 * 0.038;
 }
 
 void main() {
-  vec3 b = vec3(position.x*1.52, position.y*0.87, position.z*1.05);
+  // Realistic brain proportions: wider than tall, elongated anterior-posterior
+  vec3 b = vec3(position.x * 1.35, position.y * 0.82, position.z * 1.02);
   float bl = length(b);
-  vec3 n = b/max(bl,0.001);
-  float fold = foldNoise(n*2.9)*0.10;
-  float fis = max(0.0,n.y-0.20)*exp(-n.x*n.x/0.028)*0.42;
-  vBrainPos = b + n*(fold-fis);
-  vNorm = n;
+  vec3 n = b / max(bl, 0.001);
+
+  // Inferior surface flattening (brain base sits flat)
+  b.y -= max(0.0, -n.y - 0.05) * 0.28;
+
+  // Interhemispheric fissure — deep median sagittal groove along vertex
+  float topRegion = max(0.0, n.y - 0.08);
+  float fis = topRegion * (0.92 - 0.30 * n.z * n.z) * exp(-n.x * n.x / 0.011) * 0.72;
+
+  // Temporal pole bulge — lateral protrusion below equator (visible from sides)
+  float tBulge = smoothstep(0.48, 0.90, abs(n.x)) *
+                 smoothstep(0.38, -0.28, n.y) * 0.22;
+  b.x += sign(b.x) * tBulge;
+
+  float fold = gyriPattern(n * 2.8);
+
+  vFold     = fold;
+  vBrainPos = b + n * (fold - fis);
+  vNorm     = normalize(n);
   vec4 worldP = modelMatrix * vec4(vBrainPos, 1.0);
-  vWorldPos = worldP.xyz;
+  vWorldPos   = worldP.xyz;
   gl_Position = projectionMatrix * viewMatrix * worldP;
 }
 `
@@ -38,30 +64,45 @@ void main() {
 const FRAGMENT = /* glsl */`
 uniform vec3  uRegionPos;
 uniform vec3  uRegionColor;
+uniform float uRegionRadius;
 uniform float uTime;
 uniform float uTransition;
 
-varying vec3 vBrainPos;
-varying vec3 vWorldPos;
-varying vec3 vNorm;
+varying vec3  vBrainPos;
+varying vec3  vWorldPos;
+varying vec3  vNorm;
+varying float vFold;
 
 void main() {
-  vec3 base = vec3(0.038, 0.115, 0.210);
+  vec3 base = vec3(0.030, 0.095, 0.195);
 
-  // Highlight distance in local brain space (stays glued to anatomical region)
+  // Fake directional light — creates depth perception without Three.js lights
+  vec3  lightDir = normalize(vec3(-0.45, 0.75, 0.65));
+  float diffuse  = clamp(dot(vNorm, lightDir), 0.0, 1.0);
+
+  // Ridge/sulci contrast: peaks bright, valleys dark
+  float fNorm     = clamp((vFold + 0.04) / 0.32, 0.0, 1.0);
+  float ridgeBright = smoothstep(0.42, 1.0, fNorm) * 0.58;
+  float sulciDark   = (1.0 - smoothstep(0.0, 0.55, fNorm)) * 0.42;
+
+  // Region highlight in local brain space
   float dist = length(vBrainPos - uRegionPos);
-  float hl = (1.0 - smoothstep(0.5, 1.85, dist)) * uTransition;
-  float pulse = sin(uTime*3.5)*0.5+0.5;
+  float hl   = (1.0 - smoothstep(uRegionRadius * 0.30, uRegionRadius * 1.35, dist)) * uTransition;
+  float pulse = sin(uTime * 3.5) * 0.5 + 0.5;
 
   // Fresnel edge glow
-  vec3 viewDir = normalize(cameraPosition - vWorldPos);
-  float ndotv = max(dot(vNorm, viewDir), 0.0);
-  float fresnel = pow(1.0 - ndotv, 2.5);
+  vec3  viewDir = normalize(cameraPosition - vWorldPos);
+  float ndotv   = max(dot(vNorm, viewDir), 0.0);
+  float fresnel  = pow(1.0 - ndotv, 2.8);
 
-  vec3 col = mix(base, uRegionColor*0.65, hl);
-  col += uRegionColor * hl * pulse * 0.20;
-  col += vec3(0.04,0.14,0.30) * fresnel * 0.55;
-  col += uRegionColor * fresnel * hl * 0.32;
+  // Base with diffuse shading, ridge contrast, region highlight
+  vec3 baseShaded = base * (0.32 + 0.68 * diffuse);
+  vec3 col = mix(baseShaded, uRegionColor * 0.68, hl);
+  col += ridgeBright * vec3(0.05, 0.20, 0.44);              // gyri peak brightening
+  col  = max(vec3(0.0), col - sulciDark * vec3(0.01, 0.04, 0.09)); // sulci shadowing
+  col += uRegionColor * hl * pulse * 0.22;                   // region pulse
+  col += vec3(0.03, 0.11, 0.28) * fresnel * 0.55;           // cool silhouette glow
+  col += uRegionColor * fresnel * hl * 0.38;                  // colored region edge
 
   gl_FragColor = vec4(col, 1.0);
 }
@@ -78,10 +119,11 @@ function BrainMesh({ activeIdx, transitionRef }: BrainMeshProps) {
   const matRef = useRef<THREE.ShaderMaterial>(null)
 
   const uniforms = useMemo(() => ({
-    uRegionPos:   { value: new THREE.Vector3(...STRUCTURES[0].regionPos) },
-    uRegionColor: { value: new THREE.Color(STRUCTURES[0].color) },
-    uTime:        { value: 0 },
-    uTransition:  { value: 0 },
+    uRegionPos:    { value: new THREE.Vector3(...STRUCTURES[0].regionPos) },
+    uRegionColor:  { value: new THREE.Color(STRUCTURES[0].color) },
+    uRegionRadius: { value: STRUCTURES[0].regionRadius },
+    uTime:         { value: 0 },
+    uTransition:   { value: 0 },
   }), [])
 
   useFrame((state) => {
@@ -92,8 +134,8 @@ function BrainMesh({ activeIdx, transitionRef }: BrainMeshProps) {
     const s = STRUCTURES[activeIdx]
     u.uRegionPos.value.set(...s.regionPos)
     u.uRegionColor.value.set(s.color)
+    u.uRegionRadius.value = s.regionRadius
 
-    // Smooth transition in
     transitionRef.current = THREE.MathUtils.lerp(transitionRef.current, 1, 0.04)
     u.uTransition.value = transitionRef.current
   })
