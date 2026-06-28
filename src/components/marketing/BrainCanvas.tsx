@@ -74,38 +74,26 @@ function buildBrainGeometry(activePillar: number): THREE.BufferGeometry {
     const d = fold * 0.18 - fis * 0.7
     pos.setXYZ(i, dx2 + nx * d, dy2 + ny * d, bz + nz * d)
 
-    // Soft voronoi: gewichten op basis van dot-product met regio-richtingen (macht 5)
-    const weights = REGION_DIRS.map(([rx, ry, rz]) => {
+    // Harde regio-toewijzing: winnaar pakt alles, geen menging
+    let maxDot = -Infinity, region = 0
+    for (let k = 0; k < 6; k++) {
+      const [rx, ry, rz] = REGION_DIRS[k]
       const dot = nx * rx + ny * ry + nz * rz
-      return Math.max(0, dot) ** 5
-    })
-    const totalW = weights.reduce((a, b) => a + b, 0) || 1
-
-    // Dominante regio bepalen voor de actief-boost
-    let maxW = -1, dominantRegion = 0
-    for (let k = 0; k < 6; k++) {
-      if (weights[k] > maxW) { maxW = weights[k]; dominantRegion = k }
+      if (dot > maxDot) { maxDot = dot; region = k }
     }
 
-    // Gewogen mix van pillar-kleuren
-    let r = 0, g = 0, b = 0
-    for (let k = 0; k < 6; k++) {
-      const w = weights[k] / totalW
-      r += PILLAR_RGB[k][0] * w
-      g += PILLAR_RGB[k][1] * w
-      b += PILLAR_RGB[k][2] * w
-    }
+    const [pr, pg, pb] = PILLAR_RGB[region]
 
-    // Sulci-verduistering: groeven donker, gyri-pieken helder
-    const fNorm = Math.min(1, Math.max(0, (fold + 0.04) / 0.50))
-    const sulci = 0.10 + 0.90 * ss(0.15, 0.40, fNorm)
+    // Scherpe sulci: puur zwart in groeven, volle kleur op gyri-pieken
+    const fNorm = Math.min(1, Math.max(0, fold / 0.30))
+    const sulci = ss(0.18, 0.28, fNorm)  // smalle overgang = duidelijke zwarte lijnen
 
-    // Actieve regio 35% helderder
-    const activeMult = dominantRegion === activePillar ? 1.35 : 1.0
+    // Actieve regio 30% helderder
+    const activeMult = region === activePillar ? 1.30 : 1.0
 
-    colors[i * 3]     = r * sulci * activeMult
-    colors[i * 3 + 1] = g * sulci * activeMult
-    colors[i * 3 + 2] = b * sulci * activeMult
+    colors[i * 3]     = pr * sulci * activeMult
+    colors[i * 3 + 1] = pg * sulci * activeMult
+    colors[i * 3 + 2] = pb * sulci * activeMult
   }
 
   pos.needsUpdate = true
@@ -162,7 +150,7 @@ function BrainMesh({ activePillar }: BrainMeshProps) {
   return (
     <group ref={groupRef} rotation={[0.18, 0.3, 0]}>
       <mesh geometry={brainGeo}>
-        <meshStandardMaterial vertexColors roughness={0.55} metalness={0.0} />
+        <meshStandardMaterial vertexColors roughness={0.35} metalness={0.05} />
       </mesh>
     </group>
   )
@@ -205,21 +193,21 @@ export default function BrainCanvas({ activePillar }: BrainCanvasProps) {
       gl={{
         antialias: true,
         preserveDrawingBuffer: true,
-        toneMapping: THREE.ACESFilmicToneMapping,
-        toneMappingExposure: 1.1,
+        toneMapping: THREE.LinearToneMapping,
+        toneMappingExposure: 1.0,
         powerPreference: 'high-performance',
       }}
       style={{ width: '100%', height: '100%' }}
     >
-      <ambientLight color="#ffffff" intensity={1.2} />
-      <directionalLight position={[2, 4, 5]} intensity={2.0} color="#ffffff" />
-      <directionalLight position={[-3, 2, 2]} intensity={0.8} color="#ffffff" />
-      <pointLight position={[0, -3, 3]} intensity={1.5} color="#ffffff" distance={12} />
+      <ambientLight color="#ffffff" intensity={0.6} />
+      <directionalLight position={[2, 4, 5]} intensity={2.5} color="#ffffff" />
+      <directionalLight position={[-3, 2, 2]} intensity={1.0} color="#ffffff" />
+      <pointLight position={[0, -3, 3]} intensity={1.2} color="#ffffff" distance={12} />
 
       <BrainMesh activePillar={activePillar} />
       <CameraRig />
       <EffectComposer>
-        <Bloom intensity={0.35} radius={0.45} luminanceThreshold={0.80} />
+        <Bloom intensity={0.15} radius={0.30} luminanceThreshold={0.95} />
       </EffectComposer>
     </Canvas>
   )
