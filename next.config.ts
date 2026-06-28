@@ -1,10 +1,22 @@
 import type { NextConfig } from 'next'
+import path from 'path'
+import fs from 'fs'
+
+// Walk up from __dirname until we find node_modules/next.
+// This makes the config work in both the main checkout and git worktrees.
+let turbopackRoot = __dirname
+while (
+  !fs.existsSync(path.join(turbopackRoot, 'node_modules', 'next')) &&
+  path.dirname(turbopackRoot) !== turbopackRoot
+) {
+  turbopackRoot = path.dirname(turbopackRoot)
+}
 
 const nextConfig: NextConfig = {
   serverExternalPackages: ['pdfkit'],
 
   turbopack: {
-    root: __dirname,
+    root: turbopackRoot,
   },
 
   images: {
