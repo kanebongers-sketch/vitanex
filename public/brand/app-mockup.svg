@@ -1,0 +1,53 @@
+<svg width="380" height="580" viewBox="0 0 380 580" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="MentaForce app preview">
+  <defs>
+    <linearGradient id="aScreen" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0F2347"/>
+      <stop offset="100%" stop-color="#071228"/>
+    </linearGradient>
+    <linearGradient id="aTrend" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#00E5FF" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#00E5FF"/>
+    </linearGradient>
+    <linearGradient id="aFill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#00E5FF" stop-opacity="0.28"/>
+      <stop offset="100%" stop-color="#00E5FF" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <!-- toestel -->
+  <rect x="8" y="8" width="364" height="564" rx="44" fill="url(#aScreen)" stroke="#15315C" stroke-width="1.5"/>
+  <rect x="8" y="8" width="364" height="564" rx="44" fill="none" stroke="#00E5FF" stroke-opacity="0.12" stroke-width="1.5"/>
+  <rect x="150" y="26" width="80" height="7" rx="3.5" fill="#15315C"/>
+
+  <!-- header -->
+  <text x="36" y="86" font-family="'Space Grotesk', sans-serif" font-size="13" letter-spacing="2" fill="#00E5FF" font-weight="600">MENTAFORCE</text>
+  <text x="36" y="120" font-family="'Space Grotesk', sans-serif" font-size="22" fill="#EAF2FF" font-weight="600">Goedemorgen</text>
+  <text x="36" y="142" font-family="'Space Grotesk', sans-serif" font-size="12" fill="#8AA0C4">Hoe voel je je vandaag?</text>
+
+  <!-- check-in stip-schaal -->
+  <g>
+    <circle cx="52" cy="180" r="13" fill="none" stroke="#15315C" stroke-width="2"/>
+    <circle cx="92" cy="180" r="13" fill="none" stroke="#15315C" stroke-width="2"/>
+    <circle cx="132" cy="180" r="14" fill="#00E5FF"/>
+    <circle cx="172" cy="180" r="13" fill="none" stroke="#15315C" stroke-width="2"/>
+    <circle cx="212" cy="180" r="13" fill="none" stroke="#15315C" stroke-width="2"/>
+  </g>
+
+  <!-- trend-kaart -->
+  <rect x="28" y="220" width="324" height="170" rx="20" fill="#0B1B3A" stroke="#15315C" stroke-width="1.5"/>
+  <text x="48" y="252" font-family="'Space Grotesk', sans-serif" font-size="12" letter-spacing="1.5" fill="#8AA0C4" font-weight="600">WEERBAARHEID · 30 DAGEN</text>
+  <path d="M48 350 C 90 330, 120 360, 150 332 S 220 300, 250 312 S 312 268, 332 276 L332 372 L48 372 Z" fill="url(#aFill)"/>
+  <path d="M48 350 C 90 330, 120 360, 150 332 S 220 300, 250 312 S 312 268, 332 276" fill="none" stroke="url(#aTrend)" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="332" cy="276" r="4.5" fill="#00E5FF"/>
+
+  <!-- 6 vlakken -->
+  <text x="36" y="430" font-family="'Space Grotesk', sans-serif" font-size="12" letter-spacing="1.5" fill="#8AA0C4" font-weight="600">6 VLAKKEN</text>
+  <g>
+    <rect x="28" y="444" width="104" height="44" rx="12" fill="#0B1B3A" stroke="#15315C" stroke-width="1.2"/>
+    <rect x="138" y="444" width="104" height="44" rx="12" fill="#0B1B3A" stroke="#15315C" stroke-width="1.2"/>
+    <rect x="248" y="444" width="104" height="44" rx="12" fill="#0B1B3A" stroke="#00E5FF" stroke-opacity="0.4" stroke-width="1.2"/>
+    <rect x="28" y="496" width="104" height="44" rx="12" fill="#0B1B3A" stroke="#15315C" stroke-width="1.2"/>
+    <rect x="138" y="496" width="104" height="44" rx="12" fill="#0B1B3A" stroke="#15315C" stroke-width="1.2"/>
+    <rect x="248" y="496" width="104" height="44" rx="12" fill="#0B1B3A" stroke="#15315C" stroke-width="1.2"/>
+  </g>
+</svg>

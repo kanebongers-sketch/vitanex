@@ -1,5 +1,5 @@
 ﻿import type { Viewport } from "next";
-import { Geist, Geist_Mono, Instrument_Serif, Plus_Jakarta_Sans } from "next/font/google";
+import { Geist, Geist_Mono, Instrument_Serif, Plus_Jakarta_Sans, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -25,6 +25,12 @@ const plusJakarta = Plus_Jakarta_Sans({
   weight: ['400', '500', '600', '700', '800'],
 });
 
+const spaceGrotesk = Space_Grotesk({
+  variable: '--font-grotesk',
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+});
+
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
@@ -41,7 +47,7 @@ export default function RootLayout({
   return (
     <html
       lang="nl"
-      className={`${geistSans.variable} ${geistMono.variable} ${instrumentSerif.variable} ${plusJakarta.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${instrumentSerif.variable} ${plusJakarta.variable} ${spaceGrotesk.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         {children}
