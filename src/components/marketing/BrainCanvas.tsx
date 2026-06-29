@@ -109,9 +109,26 @@ function prepareBrain(scene: THREE.Object3D): PreparedBrain {
 
   const box = new THREE.Box3().setFromObject(root)
   const center = box.getCenter(new THREE.Vector3())
-  const xMin = box.min.x, xSpan = (box.max.x - box.min.x) || 1
+  const xSpan = (box.max.x - box.min.x) || 1
   const yMin = box.min.y, ySpan = (box.max.y - box.min.y) || 1
   const v = new THREE.Vector3()
+
+  // Gelijke band-grenzen (voor/midden/achter) via X-kwantielen van de bovenkant,
+  // zodat de zes vlakken ongeveer even groot zijn (de achterkant is smaller).
+  const yTopThresh = box.min.y + 0.45 * (box.max.y - box.min.y)
+  const topXs: number[] = []
+  root.traverse((obj) => {
+    const mesh = obj as THREE.Mesh
+    if (!mesh.isMesh) return
+    const pos = mesh.geometry.attributes.position as THREE.BufferAttribute
+    for (let i = 0; i < pos.count; i++) {
+      v.set(pos.getX(i), pos.getY(i), pos.getZ(i)).applyMatrix4(mesh.matrixWorld)
+      if (v.y >= yTopThresh) topXs.push(v.x)
+    }
+  })
+  topXs.sort((a, b) => a - b)
+  const xB1 = topXs.length ? topXs[Math.floor(topXs.length * 0.3333)] : box.min.x + xSpan / 3
+  const xB2 = topXs.length ? topXs[Math.floor(topXs.length * 0.6667)] : box.min.x + (2 * xSpan) / 3
 
   root.traverse((obj) => {
     const mesh = obj as THREE.Mesh
@@ -127,7 +144,7 @@ function prepareBrain(scene: THREE.Object3D): PreparedBrain {
     for (let i = 0; i < pos.count; i++) {
       v.set(pos.getX(i), pos.getY(i), pos.getZ(i)).applyMatrix4(mesh.matrixWorld)
       const hemi = v.z >= center.z ? 1 : 0
-      const band = Math.min(2, Math.max(0, Math.floor(((v.x - xMin) / xSpan) * 3)))
+      const band = v.x < xB1 ? 0 : v.x < xB2 ? 1 : 2
       const region = hemi * 3 + band
       regions[i] = region
       const c = PILLAR_COLORS[region]
