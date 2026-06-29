@@ -18,7 +18,7 @@ const TILT = 0.62
 
 const BASE_DIST = 2.5    // afstand tot het vlak (ingezoomd)
 const ZOOM_EXTRA = 1.6   // extra afstand halverwege de overgang (uitzoomen)
-const CLIP_FRAC = 0.38   // onderste deel (stam/onderkant) wegknippen
+const CLIP_FRAC = 0.48   // onderste deel (stam/onderkant) wegknippen
 
 const ORBIT_H = 1.0     // hoeveel vanaf de zijkant van het vlak (horizontale outward)
 const ORBIT_ELEV = 1.2  // hoeveel van bovenaf (hoger = steiler) → schuin-boven
