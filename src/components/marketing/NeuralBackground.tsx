@@ -5,11 +5,17 @@
 // tussen nabije nodes. Rendert BINNEN een bestaande <Canvas> (geen eigen Canvas).
 // Strikt 2-kleurig: alleen cyaan-tinten op de navy achtergrond.
 //
+// Nodes liggen op een jittered grid (gestratificeerd), zodat ze egaal verdeeld
+// zijn en er geen felle clusters/hub-nodes ontstaan. Verbindingen alleen tussen
+// nodes die ECHT dichtbij liggen (lage linkDistance, max 2 per node): korte,
+// lokale synapsen i.p.v. lange spaken door het beeld.
+//
 // Diepte: nodes dichter bij de camera zijn iets groter én feller; nodes ver weg
 // zijn kleiner en zwakker (per-vertex alpha o.b.v. z, in een onBeforeCompile-shader).
-// Lijnen vervagen met afstand via per-vertex alpha. Een hele subtiele cyaan
-// radial-glow geeft atmosfeer/diepte-fade. Twinkel = heel langzame opacity-
-// variatie per node via een tijd-uniform. Geen flikkering.
+// Lijnen vervagen met afstand via per-vertex alpha en zijn bewust heel subtiel
+// (fluistering, geen lijnenspel). Geen atmosfeer-glow-sprite: die gaf een waas
+// over de navy. Twinkel = heel langzame opacity-variatie per node via een
+// tijd-uniform. Geen flikkering.
 //
 // Beweging is bewust traag (Lando-niveau): heel langzame rotatie + subtiele
 // drift, plus lichte parallax die met de muis meebeweegt. Geen flashy effecten.
@@ -21,7 +27,7 @@ import * as THREE from 'three'
 import { COLORS } from './theme'
 
 interface NeuralBackgroundProps {
-  /** Aantal nodes in de wolk (geclamped 120–320). */
+  /** Aantal nodes in de wolk (geclamped 120–300). */
   nodeCount?: number
   /** Maximaal aantal synaps-verbindingen per node. */
   maxLinksPerNode?: number
@@ -36,6 +42,39 @@ const SPREAD_X = 10
 const SPREAD_Y = 6
 const Z_NEAR = -2
 const Z_FAR = -10
+
+// Gelijkmatige spreiding: leg de nodes op een jittered grid (gestratificeerd)
+// i.p.v. puur willekeurig. Dat voorkomt felle clusters/hubs en houdt het web
+// egaal verdeeld. We kiezen een raster dat het aantal nodes benadert.
+function buildJitteredGrid(nodeCount: number): Float32Array {
+  const aspect = SPREAD_X / SPREAD_Y
+  // cols * rows ≈ nodeCount, met cols/rows ≈ aspect.
+  const rows = Math.max(1, Math.round(Math.sqrt(nodeCount / aspect)))
+  const cols = Math.max(1, Math.ceil(nodeCount / rows))
+
+  const positions = new Float32Array(nodeCount * 3)
+  // Cel-jitter: ~70% van een cel, zodat cellen elkaar net niet overlappen maar
+  // het raster onzichtbaar wordt (organisch, niet geometrisch).
+  const cellW = (SPREAD_X * 2) / cols
+  const cellH = (SPREAD_Y * 2) / rows
+  const jitter = 0.7
+
+  let i = 0
+  for (let r = 0; r < rows && i < nodeCount; r++) {
+    for (let c = 0; c < cols && i < nodeCount; c++) {
+      const cx = -SPREAD_X + (c + 0.5) * cellW
+      const cy = -SPREAD_Y + (r + 0.5) * cellH
+      const x = cx + (Math.random() - 0.5) * cellW * jitter
+      const y = cy + (Math.random() - 0.5) * cellH * jitter
+      const z = Z_NEAR + Math.random() * (Z_FAR - Z_NEAR)
+      positions[i * 3] = x
+      positions[i * 3 + 1] = y
+      positions[i * 3 + 2] = z
+      i++
+    }
+  }
+  return positions
+}
 
 interface NeuralGeometry {
   points: THREE.BufferGeometry
@@ -58,16 +97,13 @@ function buildNeuralGeometry(
   maxLinksPerNode: number,
   linkDistance: number,
 ): NeuralGeometry {
-  const positions = new Float32Array(nodeCount * 3)
+  // Gelijkmatige, jittered-grid spreiding (geen clusters/hubs).
+  const positions = buildJitteredGrid(nodeCount)
   const nodeDepth = new Float32Array(nodeCount)
   const nodeSeed = new Float32Array(nodeCount)
 
   for (let i = 0; i < nodeCount; i++) {
-    const z = Z_NEAR + Math.random() * (Z_FAR - Z_NEAR)
-    positions[i * 3] = (Math.random() - 0.5) * SPREAD_X * 2
-    positions[i * 3 + 1] = (Math.random() - 0.5) * SPREAD_Y * 2
-    positions[i * 3 + 2] = z
-    nodeDepth[i] = depthFromZ(z)
+    nodeDepth[i] = depthFromZ(positions[i * 3 + 2])
     nodeSeed[i] = Math.random() * Math.PI * 2
   }
 
@@ -79,6 +115,10 @@ function buildNeuralGeometry(
 
   // Synaps-paren: voor elke node de dichtstbijzijnde buren binnen de drempel,
   // beperkt tot maxLinksPerNode. Een paar wordt maar één keer toegevoegd.
+  // De afstand weegt Z licht (Z_WEIGHT): nodes die in BEELD dichtbij liggen
+  // verbinden, terwijl de grote Z-spreiding niet onnodig lijnen blokkeert. Zo
+  // ontstaan korte, lokale synapsen i.p.v. lange spaken dwars over het scherm.
+  const Z_WEIGHT = 0.35
   const linkVerts: number[] = []
   const linkDepth: number[] = []
   const seen = new Set<string>()
@@ -94,7 +134,7 @@ function buildNeuralGeometry(
       if (j === i) continue
       const dx = ix - positions[j * 3]
       const dy = iy - positions[j * 3 + 1]
-      const dz = iz - positions[j * 3 + 2]
+      const dz = (iz - positions[j * 3 + 2]) * Z_WEIGHT
       const distSq = dx * dx + dy * dy + dz * dz
       if (distSq <= thresholdSq) neighbours.push({ j, distSq })
     }
@@ -127,9 +167,9 @@ interface TimeUniform {
 }
 
 export default function NeuralBackground({
-  nodeCount = 280,
-  maxLinksPerNode = 3,
-  linkDistance = 2.6,
+  nodeCount = 240,
+  maxLinksPerNode = 2,
+  linkDistance = 1.4,
   parallaxStrength = 0.6,
 }: NeuralBackgroundProps = {}) {
   const groupRef = useRef<THREE.Group>(null)
@@ -140,7 +180,7 @@ export default function NeuralBackground({
     return window.matchMedia('(prefers-reduced-motion: reduce)').matches
   }, [])
 
-  const safeNodeCount = Math.max(120, Math.min(320, Math.round(nodeCount)))
+  const safeNodeCount = Math.max(120, Math.min(300, Math.round(nodeCount)))
 
   const { points, lines } = useMemo(
     () => buildNeuralGeometry(safeNodeCount, maxLinksPerNode, linkDistance),
@@ -156,7 +196,7 @@ export default function NeuralBackground({
   const pointsMaterial = useMemo(() => {
     const mat = new THREE.PointsMaterial({
       color: new THREE.Color(COLORS.cyan),
-      size: 0.16,
+      size: 0.12,
       sizeAttenuation: true,
       transparent: true,
       depthWrite: false,
@@ -180,17 +220,19 @@ export default function NeuralBackground({
         .replace(
           '#include <begin_vertex>',
           `#include <begin_vertex>
-           // Diepte 0 (ver) … 1 (dichtbij): grootte 0.55x → 1.35x.
-           float depthScale = mix(0.55, 1.35, aDepth);
+           // Diepte 0 (ver) … 1 (dichtbij): grootte 0.6x → 1.15x (ingetogen,
+           // geen grote nodes vooraan die afleiden).
+           float depthScale = mix(0.6, 1.15, aDepth);
            // Twinkel: heel langzame, kleine opacity-ademhaling (uit bij reduced).
            float tw = mix(1.0, 0.78 + 0.22 * sin(uTime * 0.5 + aSeed), 1.0 - uReduced);
            // Alpha: ver weg zwakker, dichtbij feller, plus twinkel.
-           vAlpha = mix(0.18, 0.95, aDepth) * tw;`,
+           vAlpha = mix(0.16, 0.8, aDepth) * tw;`,
         )
-        // Grootte schalen ná de standaard gl_PointSize-berekening.
+        // Grootte schalen ná de standaard gl_PointSize-berekening; harde cap in
+        // px zodat near-nodes nooit groot/fel uitslaan.
         .replace(
           'gl_PointSize = size;',
-          'gl_PointSize = size * depthScale;',
+          'gl_PointSize = min(size * depthScale, 3.5);',
         )
 
       shader.fragmentShader = shader.fragmentShader
@@ -231,8 +273,8 @@ export default function NeuralBackground({
         .replace(
           '#include <begin_vertex>',
           `#include <begin_vertex>
-           // Ver weg ~0.05, dichtbij ~0.24 — ingetogen, premium.
-           vLineAlpha = mix(0.05, 0.24, aDepth);`,
+           // Fluistering: ver weg ~0.04, dichtbij ~0.11. Diepte-fade blijft.
+           vLineAlpha = mix(0.04, 0.11, aDepth);`,
         )
 
       shader.fragmentShader = shader.fragmentShader
@@ -250,21 +292,9 @@ export default function NeuralBackground({
     return mat
   }, [])
 
-  // Atmosfeer: één grote, zeer lage-opacity additieve cyaan radial-glow ver achter
-  // de wolk. Geeft diepte-fade zonder heldere waas. Textuur één keer gemaakt.
-  const glowTexture = useMemo(() => makeRadialGlow(), [])
-  const glowMaterial = useMemo(
-    () =>
-      new THREE.SpriteMaterial({
-        map: glowTexture,
-        color: new THREE.Color(COLORS.cyan),
-        transparent: true,
-        opacity: 0.1,
-        depthWrite: false,
-        blending: THREE.AdditiveBlending,
-      }),
-    [glowTexture],
-  )
+  // Bewust GEEN atmosfeer-glow-sprite: een grote additieve radial-glow gaf een
+  // zichtbare cyaan waas/halo waardoor de navy "mistig" werd. De diepte-fade
+  // komt nu volledig uit de per-vertex alpha op nodes en lijnen. Navy blijft navy.
 
   // Vooraf gealloceerde doel-vector — geen allocaties per frame in useFrame.
   const parallaxTarget = useRef(new THREE.Vector3())
@@ -302,32 +332,8 @@ export default function NeuralBackground({
 
   return (
     <group ref={groupRef}>
-      {/* Atmosferische cyaan glow, ver achter de wolk. Decoratief. */}
-      <sprite position={[0, 0, Z_FAR - 2]} scale={[26, 18, 1]} material={glowMaterial} />
       <lineSegments geometry={lines} material={linesMaterial} frustumCulled={false} />
       <points geometry={points} material={pointsMaterial} frustumCulled={false} />
     </group>
   )
-}
-
-// Bouwt een zachte radial-gradient textuur (wit→transparant) voor de glow-sprite.
-// De kleur komt uit het SpriteMaterial; de textuur levert alleen de alpha-fade.
-function makeRadialGlow(): THREE.Texture {
-  const size = 128
-  const canvas = document.createElement('canvas')
-  canvas.width = size
-  canvas.height = size
-  const ctx = canvas.getContext('2d')
-  if (ctx) {
-    const half = size / 2
-    const gradient = ctx.createRadialGradient(half, half, 0, half, half, half)
-    gradient.addColorStop(0, 'rgba(255,255,255,0.9)')
-    gradient.addColorStop(0.4, 'rgba(255,255,255,0.25)')
-    gradient.addColorStop(1, 'rgba(255,255,255,0)')
-    ctx.fillStyle = gradient
-    ctx.fillRect(0, 0, size, size)
-  }
-  const texture = new THREE.CanvasTexture(canvas)
-  texture.needsUpdate = true
-  return texture
 }
