@@ -15,16 +15,19 @@ const PILLAR_COLORS = BRAIN_COLORS.map((hex) => new THREE.Color(hex))
 const NAVY = new THREE.Color(COLORS.navyDeep)
 const DISPLAY_SIZE = 2.8
 const TILT = 0.62
-const OVERVIEW0 = new THREE.Vector3(0, 0, 0)
 
-const BASE_DIST = 2.05   // afstand tot het vlak (ingezoomd)
-const ZOOM_EXTRA = 1.7   // extra afstand halverwege de overgang (uitzoomen)
+const BASE_DIST = 2.5    // afstand tot het vlak (ingezoomd)
+const ZOOM_EXTRA = 1.6   // extra afstand halverwege de overgang (uitzoomen)
 const CLIP_FRAC = 0.38   // onderste deel (stam/onderkant) wegknippen
 
 const ORBIT_H = 1.0     // hoeveel vanaf de zijkant van het vlak (horizontale outward)
 const ORBIT_ELEV = 1.2  // hoeveel van bovenaf (hoger = steiler) → schuin-boven
 const WORLD_UP = new THREE.Vector3(0, 1, 0)
-const CARD_SHIFT = 0.75 // vlak naar rechts schuiven (desktop) langs de info-kaart
+const CARD_SHIFT = 0.18 // vlak licht naar rechts schuiven (desktop) langs de info-kaart
+// Intro/startbeeld: vóór het brein, schuin van boven, uitgezoomd en gecentreerd.
+const INTRO_H = 1.5
+const INTRO_ELEV = 1.05
+const INTRO_DIST = 6.2
 
 // Kijkrichting per vlak: vanaf de eigen kant van het brein, schuin van bovenaf.
 // Horizontaal wijst naar buiten (rondom de perimeter), met een vaste elevatie
@@ -80,11 +83,12 @@ function addHighlight(mat: THREE.MeshStandardMaterial) {
     shader.uniforms.uRegionA = { value: 0 }
     shader.uniforms.uRegionB = { value: 0 }
     shader.uniforms.uMix = { value: 0 }
+    shader.uniforms.uIntro = { value: 1 }
     shader.vertexShader =
-      'attribute float aRegion;\nuniform float uRegionA;\nuniform float uRegionB;\nuniform float uMix;\nvarying float vFactor;\n' +
+      'attribute float aRegion;\nuniform float uRegionA;\nuniform float uRegionB;\nuniform float uMix;\nuniform float uIntro;\nvarying float vFactor;\n' +
       shader.vertexShader.replace(
         '#include <begin_vertex>',
-        '#include <begin_vertex>\n  float mA = 1.0 - step(0.5, abs(aRegion - uRegionA));\n  float mB = 1.0 - step(0.5, abs(aRegion - uRegionB));\n  float w = clamp(mA * (1.0 - uMix) + mB * uMix, 0.0, 1.0);\n  vFactor = mix(0.22, 1.25, w);',
+        '#include <begin_vertex>\n  float mA = 1.0 - step(0.5, abs(aRegion - uRegionA));\n  float mB = 1.0 - step(0.5, abs(aRegion - uRegionB));\n  float w = clamp(mA * (1.0 - uMix) + mB * uMix, 0.0, 1.0);\n  vFactor = mix(mix(0.22, 1.0, uIntro), 1.25, w);',
       )
     shader.fragmentShader =
       'varying float vFactor;\n' +
@@ -275,12 +279,27 @@ function BrainModel({ progressRef }: BrainModelProps) {
     root.traverse((o) => { const m = o as THREE.Mesh; if (m.isMesh) list.push(m.material as THREE.MeshStandardMaterial) })
     return list
   }, [root])
-  const camDirs = useMemo(() => buildCamDirs(centroids), [centroids])
+  const waypoints = useMemo(() => {
+    const camDirs = buildCamDirs(centroids)
+    const center = new THREE.Vector3()
+    centroids.forEach((c) => center.add(c))
+    center.multiplyScalar(1 / (centroids.length || 1))
+    // Front = de twee voorste vlakken (band 0: regio 0 & 3). Camera kijkt vandaar.
+    const frontPt = centroids[0].clone().add(centroids[3]).multiplyScalar(0.5)
+    const fh = new THREE.Vector3(frontPt.x - center.x, 0, frontPt.z - center.z)
+    if (fh.lengthSq() < 1e-6) fh.set(0, 0, 1)
+    fh.normalize()
+    const introDir = new THREE.Vector3(fh.x * INTRO_H, INTRO_ELEV, fh.z * INTRO_H).normalize()
+    // Waypoint 0 = uitgezoomd front-overzicht; daarna de zes vlakken.
+    const wps: { look: THREE.Vector3; dir: THREE.Vector3; dist: number; region: number }[] = [
+      { look: center, dir: introDir, dist: INTRO_DIST, region: -1 },
+    ]
+    STEP_REGION.forEach((r) => wps.push({ look: centroids[r].clone(), dir: camDirs[r].clone(), dist: BASE_DIST, region: r }))
+    return wps
+  }, [centroids])
 
   const camPos = useRef(new THREE.Vector3(0, 0.35, 5))
   const lookAt = useRef(new THREE.Vector3(0, 0, 0))
-  const tA = useRef(new THREE.Vector3())
-  const tB = useRef(new THREE.Vector3())
   const tLook = useRef(new THREE.Vector3())
   const tLookShift = useRef(new THREE.Vector3())
   const tPos = useRef(new THREE.Vector3())
@@ -289,29 +308,23 @@ function BrainModel({ progressRef }: BrainModelProps) {
 
   useFrame((state, delta) => {
     const p = Math.max(0, Math.min(1, progressRef.current))
-    const seg = p * 5                       // 6 regio's → 5 segmenten
-    const idx = Math.min(4, Math.floor(seg))
-    const frac = seg - idx                  // 0..1 binnen het segment
-
+    const N = waypoints.length - 1          // 6 segmenten (intro-overzicht + 6 vlakken)
+    const seg = p * N
+    const idx = Math.min(N - 1, Math.floor(seg))
+    const frac = seg - idx
     const fs = frac * frac * (3 - 2 * frac)
+    const A = waypoints[idx]
+    const B = waypoints[idx + 1]
 
-    // Volgorde-mapping: welke regio hoort bij deze (en de volgende) stap
-    const rA = STEP_REGION[idx]
-    const rB = STEP_REGION[Math.min(5, idx + 1)]
-
-    // lookAt = interpolatie tussen de twee regio-zwaartepunten
-    tA.current.copy(centroids[rA] || OVERVIEW0)
-    tB.current.copy(centroids[rB] || OVERVIEW0)
-    tLook.current.copy(tA.current).lerp(tB.current, fs)
-
-    // Kijkhoek per vlak (schuin van bovenaf, vanaf de eigen kant); interpoleert mee
-    tDir.current.copy(camDirs[rA]).lerp(camDirs[rB], fs).normalize()
-    // Sterker uit/in-zoomen tijdens de overgang (ver weg in het midden)
-    const dist = BASE_DIST + Math.sin(frac * Math.PI) * ZOOM_EXTRA
+    tLook.current.copy(A.look).lerp(B.look, fs)
+    tDir.current.copy(A.dir).lerp(B.dir, fs).normalize()
+    const baseDist = THREE.MathUtils.lerp(A.dist, B.dist, fs)
+    const dist = baseDist + Math.sin(frac * Math.PI) * ZOOM_EXTRA
     tPos.current.copy(tLook.current).addScaledVector(tDir.current, dist)
 
-    // Vlak naar rechts schuiven op desktop, zodat de info-kaart (links) het niet bedekt
-    const shift = state.size.width >= 900 ? CARD_SHIFT : 0
+    // Vlak naar rechts schuiven op desktop (niet tijdens het intro-overzicht)
+    const introF = Math.max(0, 1 - seg)     // 1 bij het startbeeld (waypoint 0)
+    const shift = (state.size.width >= 900 ? CARD_SHIFT : 0) * Math.min(1, seg)
     tRight.current.crossVectors(tDir.current, WORLD_UP).normalize()
     tLookShift.current.copy(tLook.current).addScaledVector(tRight.current, shift)
 
@@ -322,8 +335,8 @@ function BrainModel({ progressRef }: BrainModelProps) {
     state.camera.lookAt(lookAt.current)
 
     for (const m of materials) {
-      const s = m.userData.shader as { uniforms: { uRegionA: { value: number }, uRegionB: { value: number }, uMix: { value: number } } } | undefined
-      if (s) { s.uniforms.uRegionA.value = rA; s.uniforms.uRegionB.value = rB; s.uniforms.uMix.value = fs }
+      const s = m.userData.shader as { uniforms: { uRegionA: { value: number }, uRegionB: { value: number }, uMix: { value: number }, uIntro: { value: number } } } | undefined
+      if (s) { s.uniforms.uRegionA.value = A.region; s.uniforms.uRegionB.value = B.region; s.uniforms.uMix.value = fs; s.uniforms.uIntro.value = introF }
     }
   })
 

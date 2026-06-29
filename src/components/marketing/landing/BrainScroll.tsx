@@ -31,7 +31,8 @@ export default function BrainScroll() {
       if (total <= 0) return
       const p = Math.max(0, Math.min(1, -rect.top / total))
       progressRef.current = p
-      const s = Math.min(STEPS.length - 1, Math.round(p * (STEPS.length - 1)))
+      // 7 waypoints: 0 = intro-overzicht, 1..6 = de zes vlakken
+      const s = Math.min(STEPS.length, Math.round(p * STEPS.length))
       setStep((prev) => (prev === s ? prev : s))
     }
     // capture: vangt ook scroll op een scrollende <body> (html heeft overflow:hidden)
@@ -40,13 +41,14 @@ export default function BrainScroll() {
     return () => window.removeEventListener('scroll', onScroll, { capture: true } as EventListenerOptions)
   }, [])
 
-  const cur = STEPS[step]
-  const color = BRAIN_COLORS[STEP_REGION[step]]
+  const isIntro = step === 0
+  const cur = isIntro ? null : STEPS[step - 1]
+  const color = isIntro ? COLORS.cyan : BRAIN_COLORS[STEP_REGION[step - 1]]
 
   return (
     <section id="brein" style={{ fontFamily: FONT.grotesk, borderTop: `1px solid ${COLORS.line}` }}>
       <style>{`
-        .bs-wrap { position: relative; height: 600vh; }
+        .bs-wrap { position: relative; height: 700vh; }
         .bs-sticky { position: sticky; top: 0; height: 100vh; overflow: hidden; }
         .bs-canvas { position: absolute; inset: 0; }
         .bs-info {
@@ -80,38 +82,59 @@ export default function BrainScroll() {
           {/* info-kaart */}
           <div className="bs-info">
             <div className="bs-card">
-              <div key={step} className="bs-anim">
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
-                  <span style={{ width: 12, height: 12, borderRadius: '50%', background: color, boxShadow: `0 0 12px ${color}` }} />
-                  <span style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.22em', textTransform: 'uppercase', color: COLORS.cyan }}>
-                    Vlak 0{step + 1} / 06
-                  </span>
-                </div>
-                <h3 style={{ fontWeight: 700, fontSize: 'clamp(30px, 4vw, 46px)', letterSpacing: '-0.03em', lineHeight: 1.02, color: COLORS.ink, margin: '0 0 14px' }}>
-                  {cur.naam}
-                </h3>
-                <p style={{ fontSize: 17, lineHeight: 1.5, color: COLORS.ink, margin: '0 0 10px', fontWeight: 500 }}>{cur.zin}</p>
-                <p style={{ fontSize: 15, lineHeight: 1.6, color: COLORS.inkDim, margin: '0 0 16px' }}>{cur.info}</p>
-                <div style={{ borderTop: `1px solid ${COLORS.line}`, paddingTop: 14 }}>
-                  <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.16em', textTransform: 'uppercase', color: COLORS.cyan, margin: '0 0 6px' }}>
-                    Hoe MentaForce helpt
+              {isIntro || !cur ? (
+                <div key="intro" className="bs-anim">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+                    <span style={{ width: 12, height: 12, borderRadius: '50%', background: COLORS.cyan, boxShadow: `0 0 12px ${COLORS.cyan}` }} />
+                    <span style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.22em', textTransform: 'uppercase', color: COLORS.cyan }}>
+                      De zes vlakken
+                    </span>
+                  </div>
+                  <h3 style={{ fontWeight: 700, fontSize: 'clamp(30px, 4vw, 46px)', letterSpacing: '-0.03em', lineHeight: 1.02, color: COLORS.ink, margin: '0 0 14px' }}>
+                    Eén brein,<br />zes vlakken.
+                  </h3>
+                  <p style={{ fontSize: 16, lineHeight: 1.6, color: COLORS.inkDim, margin: 0 }}>
+                    Welzijn, anoniem gemeten over zes vlakken. Scroll om elk vlak te ontdekken.
                   </p>
-                  <p style={{ fontSize: 14, lineHeight: 1.6, color: COLORS.inkDim, margin: 0 }}>{cur.help}</p>
                 </div>
-              </div>
+              ) : (
+                <div key={step} className="bs-anim">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+                    <span style={{ width: 12, height: 12, borderRadius: '50%', background: color, boxShadow: `0 0 12px ${color}` }} />
+                    <span style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.22em', textTransform: 'uppercase', color: COLORS.cyan }}>
+                      Vlak 0{step} / 06
+                    </span>
+                  </div>
+                  <h3 style={{ fontWeight: 700, fontSize: 'clamp(30px, 4vw, 46px)', letterSpacing: '-0.03em', lineHeight: 1.02, color: COLORS.ink, margin: '0 0 14px' }}>
+                    {cur.naam}
+                  </h3>
+                  <p style={{ fontSize: 17, lineHeight: 1.5, color: COLORS.ink, margin: '0 0 10px', fontWeight: 500 }}>{cur.zin}</p>
+                  <p style={{ fontSize: 15, lineHeight: 1.6, color: COLORS.inkDim, margin: '0 0 16px' }}>{cur.info}</p>
+                  <div style={{ borderTop: `1px solid ${COLORS.line}`, paddingTop: 14 }}>
+                    <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.16em', textTransform: 'uppercase', color: COLORS.cyan, margin: '0 0 6px' }}>
+                      Hoe MentaForce helpt
+                    </p>
+                    <p style={{ fontSize: 14, lineHeight: 1.6, color: COLORS.inkDim, margin: 0 }}>{cur.help}</p>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
-          {/* voortgang */}
+          {/* voortgang — intro-overzicht + zes vlakken */}
           <div className="bs-dots">
-            {STEPS.map((s, i) => (
-              <span key={s.naam} aria-hidden style={{
-                width: i === step ? 10 : 8, height: i === step ? 10 : 8, borderRadius: '50%',
-                background: i === step ? BRAIN_COLORS[STEP_REGION[i]] : COLORS.lineStrong,
-                boxShadow: i === step ? `0 0 10px ${BRAIN_COLORS[STEP_REGION[i]]}` : 'none',
-                transition: `all .3s ${EASE}`,
-              }} />
-            ))}
+            {Array.from({ length: STEPS.length + 1 }).map((_, i) => {
+              const dotColor = i === 0 ? COLORS.cyan : BRAIN_COLORS[STEP_REGION[i - 1]]
+              const active = i === step
+              return (
+                <span key={i} aria-hidden style={{
+                  width: active ? 10 : 8, height: active ? 10 : 8, borderRadius: '50%',
+                  background: active ? dotColor : COLORS.lineStrong,
+                  boxShadow: active ? `0 0 10px ${dotColor}` : 'none',
+                  transition: `all .3s ${EASE}`,
+                }} />
+              )
+            })}
           </div>
 
           {/* sectiekop — onder de nav */}
