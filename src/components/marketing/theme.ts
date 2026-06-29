@@ -36,10 +36,10 @@ export const BRAIN_COLORS: readonly string[] = [
 ]
 
 // Scroll-volgorde → regio-index van het brein.
-// Regio = hemisfeer(0=links,1=rechts)*3 + band(0=achter,1=midden,2=voor).
+// Regio = hemisfeer(0=links,1=rechts)*3 + band(0=voor,1=midden,2=achter).
 // Gewenste volgorde: voor-links, voor-rechts, midden-links, midden-rechts,
 // achter-links, achter-rechts.
-export const STEP_REGION: readonly number[] = [2, 5, 1, 4, 0, 3]
+export const STEP_REGION: readonly number[] = [0, 3, 1, 4, 2, 5]
 
 export const FONT = {
   // Space Grotesk voor de hele landingspagina (kop + tekst)

@@ -17,26 +17,27 @@ const DISPLAY_SIZE = 2.8
 const TILT = 0.62
 const OVERVIEW0 = new THREE.Vector3(0, 0, 0)
 
-const BASE_DIST = 2.4    // afstand tot het vlak (ingezoomd)
-const ZOOM_EXTRA = 2.1   // extra afstand halverwege de overgang (uitzoomen)
-const ANGLE_H = 1.35     // horizontale overdrijving van de kijkhoek
-const FIXED_ELEV = 1.9   // vaste hoogte: camera hangt hoog boven het brein (meer top-down)
-const CLIP_FRAC = 0.44   // onderste deel (stam/onderkant) wegknippen
+const BASE_DIST = 2.05   // afstand tot het vlak (ingezoomd)
+const ZOOM_EXTRA = 1.7   // extra afstand halverwege de overgang (uitzoomen)
+const CLIP_FRAC = 0.38   // onderste deel (stam/onderkant) wegknippen
 
-// Kijkrichting per vlak afgeleid uit de positie van het vlak t.o.v. een vast
-// centraal punt — horizontaal volgt de positie (links-voor → van links-voor),
-// de hoogte is voor élk vlak gelijk zodat de onderkant nooit zichtbaar is.
+const ORBIT_H = 1.0     // hoeveel vanaf de zijkant van het vlak (horizontale outward)
+const ORBIT_ELEV = 1.2  // hoeveel van bovenaf (hoger = steiler) → schuin-boven
+const WORLD_UP = new THREE.Vector3(0, 1, 0)
+const CARD_SHIFT = 0.75 // vlak naar rechts schuiven (desktop) langs de info-kaart
+
+// Kijkrichting per vlak: vanaf de eigen kant van het brein, schuin van bovenaf.
+// Horizontaal wijst naar buiten (rondom de perimeter), met een vaste elevatie
+// zodat elk vlak vanuit zijn eigen hoek schuin-boven goed in beeld komt.
 function buildCamDirs(centroids: THREE.Vector3[]): THREE.Vector3[] {
   const center = new THREE.Vector3()
   centroids.forEach((c) => center.add(c))
   center.multiplyScalar(1 / (centroids.length || 1))
-  return centroids.map((c) =>
-    new THREE.Vector3(
-      (c.x - center.x) * ANGLE_H,
-      FIXED_ELEV,
-      (c.z - center.z) * ANGLE_H,
-    ).normalize(),
-  )
+  return centroids.map((c) => {
+    const hx = c.x - center.x, hz = c.z - center.z
+    const hlen = Math.hypot(hx, hz) || 1
+    return new THREE.Vector3((hx / hlen) * ORBIT_H, ORBIT_ELEV, (hz / hlen) * ORBIT_H).normalize()
+  })
 }
 
 function smooth(edge0: number, edge1: number, x: number): number {
@@ -83,7 +84,7 @@ function addHighlight(mat: THREE.MeshStandardMaterial) {
       'attribute float aRegion;\nuniform float uRegionA;\nuniform float uRegionB;\nuniform float uMix;\nvarying float vFactor;\n' +
       shader.vertexShader.replace(
         '#include <begin_vertex>',
-        '#include <begin_vertex>\n  float mA = 1.0 - step(0.5, abs(aRegion - uRegionA));\n  float mB = 1.0 - step(0.5, abs(aRegion - uRegionB));\n  float w = clamp(mA * (1.0 - uMix) + mB * uMix, 0.0, 1.0);\n  vFactor = mix(0.3, 1.22, w);',
+        '#include <begin_vertex>\n  float mA = 1.0 - step(0.5, abs(aRegion - uRegionA));\n  float mB = 1.0 - step(0.5, abs(aRegion - uRegionB));\n  float w = clamp(mA * (1.0 - uMix) + mB * uMix, 0.0, 1.0);\n  vFactor = mix(0.22, 1.25, w);',
       )
     shader.fragmentShader =
       'varying float vFactor;\n' +
@@ -109,26 +110,30 @@ function prepareBrain(scene: THREE.Object3D): PreparedBrain {
 
   const box = new THREE.Box3().setFromObject(root)
   const center = box.getCenter(new THREE.Vector3())
-  const xSpan = (box.max.x - box.min.x) || 1
   const yMin = box.min.y, ySpan = (box.max.y - box.min.y) || 1
   const v = new THREE.Vector3()
 
-  // Gelijke band-grenzen (voor/midden/achter) via X-kwantielen van de bovenkant,
-  // zodat de zes vlakken ongeveer even groot zijn (de achterkant is smaller).
-  const yTopThresh = box.min.y + 0.45 * (box.max.y - box.min.y)
-  const topXs: number[] = []
+  // Zes even grote vlakken: eerst links/rechts op de Z-mediaan (twee gelijke
+  // helften), daarna per helft voor/midden/achter op X-terciles. Zo bevat elk
+  // van de zes vlakken ~1/6 van de bovenkant-vertices.
+  const yTopThresh = box.min.y + 0.50 * (box.max.y - box.min.y)
+  const topX: number[] = [], topZ: number[] = []
   root.traverse((obj) => {
     const mesh = obj as THREE.Mesh
     if (!mesh.isMesh) return
     const pos = mesh.geometry.attributes.position as THREE.BufferAttribute
     for (let i = 0; i < pos.count; i++) {
       v.set(pos.getX(i), pos.getY(i), pos.getZ(i)).applyMatrix4(mesh.matrixWorld)
-      if (v.y >= yTopThresh) topXs.push(v.x)
+      if (v.y >= yTopThresh) { topX.push(v.x); topZ.push(v.z) }
     }
   })
-  topXs.sort((a, b) => a - b)
-  const xB1 = topXs.length ? topXs[Math.floor(topXs.length * 0.3333)] : box.min.x + xSpan / 3
-  const xB2 = topXs.length ? topXs[Math.floor(topXs.length * 0.6667)] : box.min.x + (2 * xSpan) / 3
+  const q = (arr: number[], f: number) => arr.length ? arr[Math.min(arr.length - 1, Math.floor(arr.length * f))] : 0
+  const zMedian = q([...topZ].sort((a, b) => a - b), 0.5) || center.z
+  const leftX: number[] = [], rightX: number[] = []
+  for (let i = 0; i < topX.length; i++) (topZ[i] < zMedian ? leftX : rightX).push(topX[i])
+  leftX.sort((a, b) => a - b); rightX.sort((a, b) => a - b)
+  const xL1 = q(leftX, 0.3333), xL2 = q(leftX, 0.6667)
+  const xR1 = q(rightX, 0.3333), xR2 = q(rightX, 0.6667)
 
   root.traverse((obj) => {
     const mesh = obj as THREE.Mesh
@@ -143,8 +148,10 @@ function prepareBrain(scene: THREE.Object3D): PreparedBrain {
 
     for (let i = 0; i < pos.count; i++) {
       v.set(pos.getX(i), pos.getY(i), pos.getZ(i)).applyMatrix4(mesh.matrixWorld)
-      const hemi = v.z >= center.z ? 1 : 0
-      const band = v.x < xB1 ? 0 : v.x < xB2 ? 1 : 2
+      const hemi = v.z >= zMedian ? 1 : 0
+      const b1 = hemi === 1 ? xR1 : xL1
+      const b2 = hemi === 1 ? xR2 : xL2
+      const band = v.x < b1 ? 0 : v.x < b2 ? 1 : 2
       const region = hemi * 3 + band
       regions[i] = region
       const c = PILLAR_COLORS[region]
@@ -244,11 +251,9 @@ function NeuralBackground() {
     return g
   }, [])
 
-  useFrame((state, delta) => {
+  useFrame((_, delta) => {
     if (!ref.current) return
     ref.current.rotation.y += delta * 0.025
-    ref.current.position.x = THREE.MathUtils.lerp(ref.current.position.x, state.pointer.x * 1.1, delta * 2)
-    ref.current.position.y = THREE.MathUtils.lerp(ref.current.position.y, state.pointer.y * 0.7, delta * 2)
   })
 
   return (
@@ -277,8 +282,10 @@ function BrainModel({ progressRef }: BrainModelProps) {
   const tA = useRef(new THREE.Vector3())
   const tB = useRef(new THREE.Vector3())
   const tLook = useRef(new THREE.Vector3())
+  const tLookShift = useRef(new THREE.Vector3())
   const tPos = useRef(new THREE.Vector3())
   const tDir = useRef(new THREE.Vector3())
+  const tRight = useRef(new THREE.Vector3())
 
   useFrame((state, delta) => {
     const p = Math.max(0, Math.min(1, progressRef.current))
@@ -297,17 +304,20 @@ function BrainModel({ progressRef }: BrainModelProps) {
     tB.current.copy(centroids[rB] || OVERVIEW0)
     tLook.current.copy(tA.current).lerp(tB.current, fs)
 
-    // Eigen kijkhoek per vlak; richting interpoleert mee tussen de vlakken
+    // Kijkhoek per vlak (schuin van bovenaf, vanaf de eigen kant); interpoleert mee
     tDir.current.copy(camDirs[rA]).lerp(camDirs[rB], fs).normalize()
     // Sterker uit/in-zoomen tijdens de overgang (ver weg in het midden)
     const dist = BASE_DIST + Math.sin(frac * Math.PI) * ZOOM_EXTRA
     tPos.current.copy(tLook.current).addScaledVector(tDir.current, dist)
-    tPos.current.x += state.pointer.x * 0.18
-    tPos.current.y += state.pointer.y * 0.12
+
+    // Vlak naar rechts schuiven op desktop, zodat de info-kaart (links) het niet bedekt
+    const shift = state.size.width >= 900 ? CARD_SHIFT : 0
+    tRight.current.crossVectors(tDir.current, WORLD_UP).normalize()
+    tLookShift.current.copy(tLook.current).addScaledVector(tRight.current, shift)
 
     const k = 1 - Math.exp(-delta * 6)
     camPos.current.lerp(tPos.current, k)
-    lookAt.current.lerp(tLook.current, k)
+    lookAt.current.lerp(tLookShift.current, k)
     state.camera.position.copy(camPos.current)
     state.camera.lookAt(lookAt.current)
 
