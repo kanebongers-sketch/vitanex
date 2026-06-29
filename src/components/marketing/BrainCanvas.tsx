@@ -15,17 +15,32 @@ useGLTF.preload(MODEL_URL)
 const PILLAR_COLORS = BRAIN_COLORS.map((hex) => new THREE.Color(hex))
 const NAVY = new THREE.Color(COLORS.navyDeep)
 const DISPLAY_SIZE = 2.8
-const TILT = 0.16
+const TILT = 0.62
 
-const BASE_DIST = 3.4    // afstand tot het vlak (ingezoomd, heel brein in beeld)
+const BASE_DIST = 2.5    // afstand tot het vlak (ingezoomd)
 const ZOOM_EXTRA = 1.6   // extra afstand halverwege de overgang (uitzoomen)
 const CLIP_FRAC = 0.56   // onderste deel wegknippen langs de eigen kroon-as
 
-// Camera recht van boven met lichte voor-bias → de zes vlakken als een plat
-// "wiel"; voor- en achterkant even hoog, onderkant onzichtbaar. Hogere bias =
-// schuiner (meer 3D), lagere = vlakker/recht van boven.
-const FRONT_BIAS = 0.26
-const INTRO_DIST = 6.2   // uitgezoomd intro-overzicht
+const ORBIT_H = 1.0     // hoeveel vanaf de zijkant van het vlak (horizontale outward)
+const ORBIT_ELEV = 1.2  // hoeveel van bovenaf (hoger = steiler) → schuin-boven
+// Intro/startbeeld: vóór het brein, schuin van boven, uitgezoomd en gecentreerd.
+const INTRO_H = 1.5
+const INTRO_ELEV = 1.05
+const INTRO_DIST = 6.2
+
+// Kijkrichting per vlak: vanaf de eigen kant van het brein, schuin van bovenaf.
+// Horizontaal wijst naar buiten (rondom de perimeter), met een vaste elevatie
+// zodat elk vlak vanuit zijn eigen hoek schuin-boven goed in beeld komt.
+function buildCamDirs(centroids: THREE.Vector3[]): THREE.Vector3[] {
+  const center = new THREE.Vector3()
+  centroids.forEach((c) => center.add(c))
+  center.multiplyScalar(1 / (centroids.length || 1))
+  return centroids.map((c) => {
+    const hx = c.x - center.x, hz = c.z - center.z
+    const hlen = Math.hypot(hx, hz) || 1
+    return new THREE.Vector3((hx / hlen) * ORBIT_H, ORBIT_ELEV, (hz / hlen) * ORBIT_H).normalize()
+  })
+}
 
 function smooth(edge0: number, edge1: number, x: number): number {
   const t = Math.min(1, Math.max(0, (x - edge0) / (edge1 - edge0)))
@@ -280,28 +295,23 @@ function BrainModel({ progressRef }: BrainModelProps) {
     root.traverse((o) => { const m = o as THREE.Mesh; if (m.isMesh) list.push(m.material as THREE.MeshStandardMaterial) })
     return list
   }, [root])
-  const { waypoints, camUp } = useMemo(() => {
+  const waypoints = useMemo(() => {
+    const camDirs = buildCamDirs(centroids)
     const center = new THREE.Vector3()
     centroids.forEach((c) => center.add(c))
     center.multiplyScalar(1 / (centroids.length || 1))
-    // Front = de twee voorste vlakken (band 0: regio 0 & 3) → de voor-achter-as.
+    // Front = de twee voorste vlakken (band 0: regio 0 & 3). Camera kijkt vandaar.
     const frontPt = centroids[0].clone().add(centroids[3]).multiplyScalar(0.5)
     const fh = new THREE.Vector3(frontPt.x - center.x, 0, frontPt.z - center.z)
     if (fh.lengthSq() < 1e-6) fh.set(0, 0, 1)
     fh.normalize()
-    // Eén vaste kijkrichting: recht van boven met lichte voor-bias. Camera-up =
-    // links-rechts-as (loodrecht op de voor-achter-as), zodat het brein NOOIT
-    // scheef/diagonaal kantelt: voor- en achterkant liggen even hoog (horizontaal)
-    // en de onderkant blijft onzichtbaar. Per stap schuift/zoomt de camera alleen.
-    const lrAxis = new THREE.Vector3(fh.z, 0, -fh.x).normalize()
-    const faceDir = new THREE.Vector3(fh.x * FRONT_BIAS, 1, fh.z * FRONT_BIAS).normalize()
+    const introDir = new THREE.Vector3(fh.x * INTRO_H, INTRO_ELEV, fh.z * INTRO_H).normalize()
+    // Waypoint 0 = uitgezoomd front-overzicht; daarna de zes vlakken.
     const wps: { look: THREE.Vector3; dir: THREE.Vector3; dist: number; region: number }[] = [
-      { look: center, dir: faceDir.clone(), dist: INTRO_DIST, region: -1 },
+      { look: center, dir: introDir, dist: INTRO_DIST, region: -1 },
     ]
-    // Zachte pan richting het actieve vlak, maar het brein blijft grotendeels in
-    // beeld en gecentreerd (niet helemaal op het vlak-zwaartepunt = randafsnijding).
-    STEP_REGION.forEach((r) => wps.push({ look: center.clone().lerp(centroids[r], 0.4), dir: faceDir.clone(), dist: BASE_DIST, region: r }))
-    return { waypoints: wps, camUp: lrAxis }
+    STEP_REGION.forEach((r) => wps.push({ look: centroids[r].clone(), dir: camDirs[r].clone(), dist: BASE_DIST, region: r }))
+    return wps
   }, [centroids])
 
   const camPos = useRef(new THREE.Vector3(0, 0.35, 5))
@@ -333,7 +343,6 @@ function BrainModel({ progressRef }: BrainModelProps) {
     camPos.current.lerp(tPos.current, k)
     lookAt.current.lerp(tLook.current, k)
     state.camera.position.copy(camPos.current)
-    state.camera.up.copy(camUp)               // vaste up → brein altijd recht, geen roll
     state.camera.lookAt(lookAt.current)
 
     for (const m of materials) {
