@@ -1,7 +1,7 @@
 'use client'
 
-import { Suspense, useMemo, useRef } from 'react'
-import { Canvas, useFrame, type ThreeEvent } from '@react-three/fiber'
+import { Suspense, useMemo, useRef, type MutableRefObject } from 'react'
+import { Canvas, useFrame } from '@react-three/fiber'
 import { useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
 import { BRAIN_COLORS, COLORS } from './theme'
@@ -14,10 +14,8 @@ useGLTF.preload(MODEL_URL)
 const PILLAR_COLORS = BRAIN_COLORS.map((hex) => new THREE.Color(hex))
 const NAVY = new THREE.Color(COLORS.navyDeep)
 const DISPLAY_SIZE = 2.8
-const TILT = 0.62 // kantelhoek voor schuin bovenaanzicht
-
-const OVERVIEW_POS = new THREE.Vector3(0, 0.35, 5)
-const OVERVIEW_TARGET = new THREE.Vector3(0, 0, 0)
+const TILT = 0.62
+const OVERVIEW0 = new THREE.Vector3(0, 0, 0)
 
 function smooth(edge0: number, edge1: number, x: number): number {
   const t = Math.min(1, Math.max(0, (x - edge0) / (edge1 - edge0)))
@@ -52,6 +50,7 @@ function computeStemDir(root: THREE.Object3D): THREE.Vector3 {
   return new THREE.Vector3(fx - cx, fy - cy, fz - cz).normalize()
 }
 
+// Continue highlight: helderheid op basis van afstand tot de (float) actieve regio.
 function addHighlight(mat: THREE.MeshStandardMaterial) {
   mat.onBeforeCompile = (shader) => {
     shader.uniforms.uActive = { value: -1 }
@@ -59,7 +58,7 @@ function addHighlight(mat: THREE.MeshStandardMaterial) {
       'attribute float aRegion;\nuniform float uActive;\nvarying float vFactor;\n' +
       shader.vertexShader.replace(
         '#include <begin_vertex>',
-        '#include <begin_vertex>\n  vFactor = (uActive < 0.0) ? 1.0 : ((abs(aRegion - uActive) < 0.5) ? 1.28 : 0.28);',
+        '#include <begin_vertex>\n  float d = abs(aRegion - uActive);\n  float tt = clamp((d - 0.2) / 0.6, 0.0, 1.0);\n  vFactor = (uActive < -0.5) ? 1.0 : mix(1.22, 0.3, tt);',
       )
     shader.fragmentShader =
       'varying float vFactor;\n' +
@@ -76,11 +75,8 @@ interface PreparedBrain {
   centroids: THREE.Vector3[]
 }
 
-// Kleurt het brein in 6 delen, schrijft aRegion (highlight + klik), dempt de
-// onderkant naar navy, centreert/schaalt en berekent de zwaartepunten per deel.
 function prepareBrain(scene: THREE.Object3D): PreparedBrain {
   const root = scene.clone(true)
-
   const stemDir = computeStemDir(root)
   const qLateral = new THREE.Quaternion().setFromUnitVectors(stemDir, new THREE.Vector3(0, -1, 0))
   root.quaternion.copy(qLateral)
@@ -90,13 +86,11 @@ function prepareBrain(scene: THREE.Object3D): PreparedBrain {
   const center = box.getCenter(new THREE.Vector3())
   const xMin = box.min.x, xSpan = (box.max.x - box.min.x) || 1
   const yMin = box.min.y, ySpan = (box.max.y - box.min.y) || 1
-
   const v = new THREE.Vector3()
 
   root.traverse((obj) => {
     const mesh = obj as THREE.Mesh
     if (!mesh.isMesh) return
-
     const geo = mesh.geometry.clone()
     const pos = geo.attributes.position as THREE.BufferAttribute
     const nrm = geo.attributes.normal as THREE.BufferAttribute | undefined
@@ -121,7 +115,6 @@ function prepareBrain(scene: THREE.Object3D): PreparedBrain {
         const ao = (vn.x * dx + vn.y * dy + vn.z * dz) / l
         shade = 0.34 + 0.66 * smooth(0.05, 0.9, ao)
       }
-
       const heightF = smooth(0.34, 0.62, (v.y - yMin) / ySpan)
       colors[i * 3]     = THREE.MathUtils.lerp(NAVY.r, c.r * shade, heightF)
       colors[i * 3 + 1] = THREE.MathUtils.lerp(NAVY.g, c.g * shade, heightF)
@@ -156,7 +149,6 @@ function prepareBrain(scene: THREE.Object3D): PreparedBrain {
   root.position.set(-c2.x * scale, -c2.y * scale, -c2.z * scale)
   root.updateMatrixWorld(true)
 
-  // Zwaartepunten per regio in de uiteindelijke wereldruimte (alleen bovenkant).
   const sums = Array.from({ length: 6 }, () => new THREE.Vector3())
   const counts = new Array(6).fill(0)
   root.traverse((obj) => {
@@ -166,22 +158,51 @@ function prepareBrain(scene: THREE.Object3D): PreparedBrain {
     const reg = mesh.geometry.attributes.aRegion as THREE.BufferAttribute
     for (let i = 0; i < pos.count; i++) {
       v.set(pos.getX(i), pos.getY(i), pos.getZ(i)).applyMatrix4(mesh.matrixWorld)
-      if (v.y < 0) continue // onderkant negeren — focus op de zichtbare bovenkant
+      if (v.y < 0) continue
       const r = Math.round(reg.getX(i))
       sums[r].add(v); counts[r]++
     }
   })
   const centroids = sums.map((s, i) => (counts[i] ? s.multiplyScalar(1 / counts[i]) : new THREE.Vector3()))
-
   return { root, centroids }
 }
 
-interface BrainModelProps {
-  activeRegion: number | null
-  onRegionChange?: (region: number | null) => void
+// Interactief neuraal deeltjesveld achter het brein (reageert op de muis).
+function NeuralBackground() {
+  const ref = useRef<THREE.Points>(null)
+  const geom = useMemo(() => {
+    const N = 360
+    const arr = new Float32Array(N * 3)
+    for (let i = 0; i < N; i++) {
+      arr[i * 3]     = (Math.random() - 0.5) * 20
+      arr[i * 3 + 1] = (Math.random() - 0.5) * 12
+      arr[i * 3 + 2] = -1.5 - Math.random() * 8
+    }
+    const g = new THREE.BufferGeometry()
+    g.setAttribute('position', new THREE.BufferAttribute(arr, 3))
+    g.computeBoundingSphere()
+    return g
+  }, [])
+
+  useFrame((state, delta) => {
+    if (!ref.current) return
+    ref.current.rotation.y += delta * 0.025
+    ref.current.position.x = THREE.MathUtils.lerp(ref.current.position.x, state.pointer.x * 1.1, delta * 2)
+    ref.current.position.y = THREE.MathUtils.lerp(ref.current.position.y, state.pointer.y * 0.7, delta * 2)
+  })
+
+  return (
+    <points ref={ref} geometry={geom} frustumCulled={false}>
+      <pointsMaterial color={COLORS.cyan} size={0.13} sizeAttenuation transparent opacity={0.9} depthWrite={false} blending={THREE.AdditiveBlending} />
+    </points>
+  )
 }
 
-function BrainModel({ activeRegion, onRegionChange }: BrainModelProps) {
+interface BrainModelProps {
+  progressRef: MutableRefObject<number>
+}
+
+function BrainModel({ progressRef }: BrainModelProps) {
   const { scene } = useGLTF(MODEL_URL)
   const { root, centroids } = useMemo(() => prepareBrain(scene), [scene])
   const materials = useMemo(() => {
@@ -190,63 +211,57 @@ function BrainModel({ activeRegion, onRegionChange }: BrainModelProps) {
     return list
   }, [root])
 
-  const activeRef = useRef<number>(-1)
-  activeRef.current = activeRegion ?? -1
-
-  const desiredPos = useRef(new THREE.Vector3().copy(OVERVIEW_POS))
-  const lookAt = useRef(new THREE.Vector3().copy(OVERVIEW_TARGET))
-  const tmpPos = useRef(new THREE.Vector3())
-  const tmpTarget = useRef(new THREE.Vector3())
+  const camPos = useRef(new THREE.Vector3(0, 0.35, 5))
+  const lookAt = useRef(new THREE.Vector3(0, 0, 0))
+  const tA = useRef(new THREE.Vector3())
+  const tB = useRef(new THREE.Vector3())
+  const tLook = useRef(new THREE.Vector3())
+  const tPos = useRef(new THREE.Vector3())
 
   useFrame((state, delta) => {
-    // Highlight
+    const p = Math.max(0, Math.min(1, progressRef.current))
+    const seg = p * 5                       // 6 regio's → 5 segmenten
+    const idx = Math.min(4, Math.floor(seg))
+    const frac = seg - idx                  // 0..1 binnen het segment
+
+    // Continu interpoleren tussen twee regio-zwaartepunten
+    tA.current.copy(centroids[idx] || OVERVIEW0)
+    tB.current.copy(centroids[Math.min(5, idx + 1)] || OVERVIEW0)
+    const fs = frac * frac * (3 - 2 * frac)
+    tLook.current.copy(tA.current).lerp(tB.current, fs)
+
+    // Sterker uit/in-zoomen tijdens de overgang (ver weg in het midden)
+    const zoomOut = Math.sin(frac * Math.PI)
+    const z = 2.3 + zoomOut * 2.4
+    tPos.current.set(
+      tLook.current.x * 0.6 + state.pointer.x * 0.18,
+      tLook.current.y * 0.6 + 0.15 + state.pointer.y * 0.12,
+      z,
+    )
+
+    const k = 1 - Math.exp(-delta * 6)
+    camPos.current.lerp(tPos.current, k)
+    lookAt.current.lerp(tLook.current, k)
+    state.camera.position.copy(camPos.current)
+    state.camera.lookAt(lookAt.current)
+
     for (const m of materials) {
       const s = m.userData.shader as { uniforms: { uActive: { value: number } } } | undefined
-      if (s) s.uniforms.uActive.value = activeRef.current
+      if (s) s.uniforms.uActive.value = seg
     }
-
-    // Camera: inzoomen op het actieve deel, anders overzicht
-    const r = activeRef.current
-    if (r >= 0 && centroids[r]) {
-      const c = centroids[r]
-      tmpPos.current.set(c.x * 0.6, c.y * 0.6 + 0.15, 2.7)
-      tmpTarget.current.copy(c)
-    } else {
-      tmpPos.current.copy(OVERVIEW_POS)
-      tmpTarget.current.copy(OVERVIEW_TARGET)
-    }
-    const k = 1 - Math.exp(-delta * 3.2)
-    desiredPos.current.lerp(tmpPos.current, k)
-    lookAt.current.lerp(tmpTarget.current, k)
-    state.camera.position.copy(desiredPos.current)
-    state.camera.lookAt(lookAt.current)
   })
 
-  const regionFromEvent = (e: ThreeEvent<PointerEvent>): number | null => {
-    const mesh = e.object as THREE.Mesh
-    const aRegion = mesh.geometry?.attributes?.aRegion as THREE.BufferAttribute | undefined
-    if (!aRegion || !e.face) return null
-    return Math.round(aRegion.getX(e.face.a))
-  }
-
-  return (
-    <group
-      onPointerDown={(e) => { if (!onRegionChange) return; const r = regionFromEvent(e); if (r != null) { e.stopPropagation(); onRegionChange(r) } }}
-    >
-      <primitive object={root} />
-    </group>
-  )
+  return <primitive object={root} />
 }
 
 interface BrainCanvasProps {
-  activeRegion?: number | null
-  onRegionChange?: (region: number | null) => void
+  progressRef: MutableRefObject<number>
 }
 
-export default function BrainCanvas({ activeRegion = null, onRegionChange }: BrainCanvasProps) {
+export default function BrainCanvas({ progressRef }: BrainCanvasProps) {
   return (
     <Canvas
-      camera={{ position: [0, 0.35, 5.0], fov: 40, near: 0.1, far: 100 }}
+      camera={{ position: [0, 0.35, 5.0], fov: 42, near: 0.1, far: 100 }}
       gl={{
         antialias: true,
         preserveDrawingBuffer: true,
@@ -262,8 +277,9 @@ export default function BrainCanvas({ activeRegion = null, onRegionChange }: Bra
       <directionalLight position={[-4, 3, 1]} intensity={0.7} color={COLORS.cyan} />
       <pointLight position={[0, 1, 5]} intensity={0.5} color="#ffffff" distance={16} />
 
+      <NeuralBackground />
       <Suspense fallback={null}>
-        <BrainModel activeRegion={activeRegion} onRegionChange={onRegionChange} />
+        <BrainModel progressRef={progressRef} />
       </Suspense>
     </Canvas>
   )

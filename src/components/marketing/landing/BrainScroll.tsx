@@ -19,7 +19,8 @@ const STEPS: Step[] = [
 
 export default function BrainScroll() {
   const wrapRef = useRef<HTMLDivElement>(null)
-  const [step, setStep] = useState(0)
+  const progressRef = useRef(0)               // continue 0..1 — stuurt de camera elke frame
+  const [step, setStep] = useState(0)          // discreet — alleen voor info-kaart + stippen
 
   useEffect(() => {
     const onScroll = () => {
@@ -28,8 +29,9 @@ export default function BrainScroll() {
       const rect = el.getBoundingClientRect()
       const total = el.offsetHeight - window.innerHeight
       if (total <= 0) return
-      const p = Math.max(0, Math.min(0.999, -rect.top / total))
-      const s = Math.min(STEPS.length - 1, Math.floor(p * STEPS.length))
+      const p = Math.max(0, Math.min(1, -rect.top / total))
+      progressRef.current = p
+      const s = Math.min(STEPS.length - 1, Math.round(p * (STEPS.length - 1)))
       setStep((prev) => (prev === s ? prev : s))
     }
     // capture: vangt ook scroll op een scrollende <body> (html heeft overflow:hidden)
@@ -69,7 +71,7 @@ export default function BrainScroll() {
       <div ref={wrapRef} className="bs-wrap">
         <div className="bs-sticky">
           <div className="bs-canvas">
-            <BrainCanvas activeRegion={step} />
+            <BrainCanvas progressRef={progressRef} />
           </div>
 
           {/* ambient kleurgloed van het actieve deel */}
