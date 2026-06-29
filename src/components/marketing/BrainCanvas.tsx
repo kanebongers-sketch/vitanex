@@ -19,24 +19,24 @@ const OVERVIEW0 = new THREE.Vector3(0, 0, 0)
 
 const BASE_DIST = 2.4    // afstand tot het vlak (ingezoomd)
 const ZOOM_EXTRA = 2.1   // extra afstand halverwege de overgang (uitzoomen)
-const ANGLE_H = 1.6      // horizontale overdrijving van de kijkhoek
-const ANGLE_ELEV = 0.5   // opwaartse bias zodat we van schuin-boven kijken
+const ANGLE_H = 1.5      // horizontale overdrijving van de kijkhoek
+const FIXED_ELEV = 1.0   // vaste hoogte: camera kijkt altijd van schuin-boven (geen onderkant)
+const CLIP_FRAC = 0.34   // onderste deel (stam/onderkant) wegknippen
 
 // Kijkrichting per vlak afgeleid uit de positie van het vlak t.o.v. een vast
-// centraal punt: links-voor → van links-voor, rechts-achter → van rechts-achter.
+// centraal punt — horizontaal volgt de positie (links-voor → van links-voor),
+// de hoogte is voor élk vlak gelijk zodat de onderkant nooit zichtbaar is.
 function buildCamDirs(centroids: THREE.Vector3[]): THREE.Vector3[] {
   const center = new THREE.Vector3()
   centroids.forEach((c) => center.add(c))
   center.multiplyScalar(1 / (centroids.length || 1))
-  return centroids.map((c) => {
-    const d = new THREE.Vector3(
+  return centroids.map((c) =>
+    new THREE.Vector3(
       (c.x - center.x) * ANGLE_H,
-      (c.y - center.y) + ANGLE_ELEV,
+      FIXED_ELEV,
       (c.z - center.z) * ANGLE_H,
-    )
-    if (d.y < 0.28) d.y = 0.28 // niet te laag, blijf op de gekleurde bovenkant kijken
-    return d.normalize()
-  })
+    ).normalize(),
+  )
 }
 
 function smooth(edge0: number, edge1: number, x: number): number {
@@ -171,16 +171,34 @@ function prepareBrain(scene: THREE.Object3D): PreparedBrain {
   root.position.set(-c2.x * scale, -c2.y * scale, -c2.z * scale)
   root.updateMatrixWorld(true)
 
+  // Wereld-hoogtebereik bepalen om de onderkant (stam) weg te knippen.
+  let yMinW = Infinity, yMaxW = -Infinity
+  root.traverse((obj) => {
+    const mesh = obj as THREE.Mesh
+    if (!mesh.isMesh) return
+    const pos = mesh.geometry.attributes.position as THREE.BufferAttribute
+    for (let i = 0; i < pos.count; i++) {
+      v.set(pos.getX(i), pos.getY(i), pos.getZ(i)).applyMatrix4(mesh.matrixWorld)
+      if (v.y < yMinW) yMinW = v.y
+      if (v.y > yMaxW) yMaxW = v.y
+    }
+  })
+  const clipY = yMinW + CLIP_FRAC * (yMaxW - yMinW)
+  const clipPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -clipY)
+
+  // Zwaartepunten per regio (alleen het zichtbare, bovenste deel) + clip-plane
+  // op elk materiaal zetten zodat de onderkant niet meer rendert.
   const sums = Array.from({ length: 6 }, () => new THREE.Vector3())
   const counts = new Array(6).fill(0)
   root.traverse((obj) => {
     const mesh = obj as THREE.Mesh
     if (!mesh.isMesh) return
+    ;(mesh.material as THREE.Material).clippingPlanes = [clipPlane]
     const pos = mesh.geometry.attributes.position as THREE.BufferAttribute
     const reg = mesh.geometry.attributes.aRegion as THREE.BufferAttribute
     for (let i = 0; i < pos.count; i++) {
       v.set(pos.getX(i), pos.getY(i), pos.getZ(i)).applyMatrix4(mesh.matrixWorld)
-      if (v.y < 0) continue
+      if (v.y < clipY) continue
       const r = Math.round(reg.getX(i))
       sums[r].add(v); counts[r]++
     }
@@ -293,7 +311,7 @@ export default function BrainCanvas({ progressRef }: BrainCanvasProps) {
         toneMappingExposure: 1.1,
         powerPreference: 'high-performance',
       }}
-      onCreated={({ gl }) => gl.setClearColor(new THREE.Color(COLORS.navy), 1)}
+      onCreated={({ gl }) => { gl.setClearColor(new THREE.Color(COLORS.navy), 1); gl.localClippingEnabled = true }}
       style={{ width: '100%', height: '100%' }}
     >
       <ambientLight intensity={0.6} color="#ffffff" />
