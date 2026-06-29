@@ -16,12 +16,14 @@ const NAVY = new THREE.Color(COLORS.navyDeep)
 const DISPLAY_SIZE = 2.8
 const TILT = 0.62 // kantelhoek voor schuin bovenaanzicht
 
+const OVERVIEW_POS = new THREE.Vector3(0, 0.35, 5)
+const OVERVIEW_TARGET = new THREE.Vector3(0, 0, 0)
+
 function smooth(edge0: number, edge1: number, x: number): number {
   const t = Math.min(1, Math.max(0, (x - edge0) / (edge1 - edge0)))
   return t * t * (3 - 2 * t)
 }
 
-// Meet de hersenstam-richting: het verst gelegen punt vanaf het zwaartepunt.
 function computeStemDir(root: THREE.Object3D): THREE.Vector3 {
   root.updateMatrixWorld(true)
   const v = new THREE.Vector3()
@@ -50,7 +52,6 @@ function computeStemDir(root: THREE.Object3D): THREE.Vector3 {
   return new THREE.Vector3(fx - cx, fy - cy, fz - cz).normalize()
 }
 
-// Highlight-shader: actief deel feller, andere delen gedimd (uActive = -1 → neutraal).
 function addHighlight(mat: THREE.MeshStandardMaterial) {
   mat.onBeforeCompile = (shader) => {
     shader.uniforms.uActive = { value: -1 }
@@ -70,9 +71,14 @@ function addHighlight(mat: THREE.MeshStandardMaterial) {
   }
 }
 
-// Kleurt het brein in 6 delen, schrijft een aRegion-attribuut (voor highlight +
-// klikdetectie), dempt de onderkant naar navy en centreert/schaalt.
-function prepareBrain(scene: THREE.Object3D): THREE.Object3D {
+interface PreparedBrain {
+  root: THREE.Object3D
+  centroids: THREE.Vector3[]
+}
+
+// Kleurt het brein in 6 delen, schrijft aRegion (highlight + klik), dempt de
+// onderkant naar navy, centreert/schaalt en berekent de zwaartepunten per deel.
+function prepareBrain(scene: THREE.Object3D): PreparedBrain {
   const root = scene.clone(true)
 
   const stemDir = computeStemDir(root)
@@ -82,8 +88,8 @@ function prepareBrain(scene: THREE.Object3D): THREE.Object3D {
 
   const box = new THREE.Box3().setFromObject(root)
   const center = box.getCenter(new THREE.Vector3())
-  const xMin = box.min.x, xSpan = (box.max.x - box.min.x) || 1  // voor-achter
-  const yMin = box.min.y, ySpan = (box.max.y - box.min.y) || 1  // hoogte
+  const xMin = box.min.x, xSpan = (box.max.x - box.min.x) || 1
+  const yMin = box.min.y, ySpan = (box.max.y - box.min.y) || 1
 
   const v = new THREE.Vector3()
 
@@ -101,7 +107,6 @@ function prepareBrain(scene: THREE.Object3D): THREE.Object3D {
 
     for (let i = 0; i < pos.count; i++) {
       v.set(pos.getX(i), pos.getY(i), pos.getZ(i)).applyMatrix4(mesh.matrixWorld)
-
       const hemi = v.z >= center.z ? 1 : 0
       const band = Math.min(2, Math.max(0, Math.floor(((v.x - xMin) / xSpan) * 3)))
       const region = hemi * 3 + band
@@ -131,7 +136,6 @@ function prepareBrain(scene: THREE.Object3D): THREE.Object3D {
     mesh.material = mat
   })
 
-  // Kantelen naar schuin bovenaanzicht (L-R → horizontaal, kruin → naar camera).
   const ca = Math.cos(TILT), sa = Math.sin(TILT)
   const qTilt = new THREE.Quaternion().setFromRotationMatrix(
     new THREE.Matrix4().makeBasis(
@@ -150,7 +154,26 @@ function prepareBrain(scene: THREE.Object3D): THREE.Object3D {
   const scale = DISPLAY_SIZE / maxDim
   root.scale.setScalar(scale)
   root.position.set(-c2.x * scale, -c2.y * scale, -c2.z * scale)
-  return root
+  root.updateMatrixWorld(true)
+
+  // Zwaartepunten per regio in de uiteindelijke wereldruimte (alleen bovenkant).
+  const sums = Array.from({ length: 6 }, () => new THREE.Vector3())
+  const counts = new Array(6).fill(0)
+  root.traverse((obj) => {
+    const mesh = obj as THREE.Mesh
+    if (!mesh.isMesh) return
+    const pos = mesh.geometry.attributes.position as THREE.BufferAttribute
+    const reg = mesh.geometry.attributes.aRegion as THREE.BufferAttribute
+    for (let i = 0; i < pos.count; i++) {
+      v.set(pos.getX(i), pos.getY(i), pos.getZ(i)).applyMatrix4(mesh.matrixWorld)
+      if (v.y < 0) continue // onderkant negeren — focus op de zichtbare bovenkant
+      const r = Math.round(reg.getX(i))
+      sums[r].add(v); counts[r]++
+    }
+  })
+  const centroids = sums.map((s, i) => (counts[i] ? s.multiplyScalar(1 / counts[i]) : new THREE.Vector3()))
+
+  return { root, centroids }
 }
 
 interface BrainModelProps {
@@ -160,26 +183,43 @@ interface BrainModelProps {
 
 function BrainModel({ activeRegion, onRegionChange }: BrainModelProps) {
   const { scene } = useGLTF(MODEL_URL)
-  const brain = useMemo(() => prepareBrain(scene), [scene])
+  const { root, centroids } = useMemo(() => prepareBrain(scene), [scene])
   const materials = useMemo(() => {
     const list: THREE.MeshStandardMaterial[] = []
-    brain.traverse((o) => { const m = o as THREE.Mesh; if (m.isMesh) list.push(m.material as THREE.MeshStandardMaterial) })
+    root.traverse((o) => { const m = o as THREE.Mesh; if (m.isMesh) list.push(m.material as THREE.MeshStandardMaterial) })
     return list
-  }, [brain])
+  }, [root])
 
-  const groupRef = useRef<THREE.Group>(null)
   const activeRef = useRef<number>(-1)
   activeRef.current = activeRegion ?? -1
 
-  // Vaste schuine-bovenaanzicht-oriëntatie; alleen een heel subtiele yaw-wieg.
-  useFrame((state) => {
-    if (groupRef.current) {
-      groupRef.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.15) * 0.04
-    }
+  const desiredPos = useRef(new THREE.Vector3().copy(OVERVIEW_POS))
+  const lookAt = useRef(new THREE.Vector3().copy(OVERVIEW_TARGET))
+  const tmpPos = useRef(new THREE.Vector3())
+  const tmpTarget = useRef(new THREE.Vector3())
+
+  useFrame((state, delta) => {
+    // Highlight
     for (const m of materials) {
       const s = m.userData.shader as { uniforms: { uActive: { value: number } } } | undefined
       if (s) s.uniforms.uActive.value = activeRef.current
     }
+
+    // Camera: inzoomen op het actieve deel, anders overzicht
+    const r = activeRef.current
+    if (r >= 0 && centroids[r]) {
+      const c = centroids[r]
+      tmpPos.current.set(c.x * 0.6, c.y * 0.6 + 0.15, 2.7)
+      tmpTarget.current.copy(c)
+    } else {
+      tmpPos.current.copy(OVERVIEW_POS)
+      tmpTarget.current.copy(OVERVIEW_TARGET)
+    }
+    const k = 1 - Math.exp(-delta * 3.2)
+    desiredPos.current.lerp(tmpPos.current, k)
+    lookAt.current.lerp(tmpTarget.current, k)
+    state.camera.position.copy(desiredPos.current)
+    state.camera.lookAt(lookAt.current)
   })
 
   const regionFromEvent = (e: ThreeEvent<PointerEvent>): number | null => {
@@ -191,11 +231,9 @@ function BrainModel({ activeRegion, onRegionChange }: BrainModelProps) {
 
   return (
     <group
-      ref={groupRef}
-      onPointerMove={(e) => { if (!onRegionChange) return; const r = regionFromEvent(e); if (r != null) { e.stopPropagation(); onRegionChange(r) } }}
       onPointerDown={(e) => { if (!onRegionChange) return; const r = regionFromEvent(e); if (r != null) { e.stopPropagation(); onRegionChange(r) } }}
     >
-      <primitive object={brain} />
+      <primitive object={root} />
     </group>
   )
 }
