@@ -60,6 +60,10 @@ Systeem/
 !CLAUDE.md
 !AGENTS.md
 !PATCHNOTES.md
+# MentaForce: .claude kennisbestanden wél tracken (ondanks *.md ignore hierboven)
+!.claude/rules/*.md
+!.claude/knowledge/*.md
+!.claude/prompts/*.md
 
 # Tijdelijke scripts
 test.ps1
