@@ -5,6 +5,7 @@ import { Canvas, useFrame } from '@react-three/fiber'
 import { useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
 import { BRAIN_COLORS, COLORS, STEP_REGION } from './theme'
+import NeuralBackground from './NeuralBackground'
 
 // Anatomisch hersenmodel (70k vertices, geometry-only). Herkomst: Justin0Brien/Brain
 // (MIT-repo); oorspronkelijke modelbron niet sluitend te verifiëren.
@@ -18,12 +19,10 @@ const TILT = 0.62
 
 const BASE_DIST = 2.5    // afstand tot het vlak (ingezoomd)
 const ZOOM_EXTRA = 1.6   // extra afstand halverwege de overgang (uitzoomen)
-const CLIP_FRAC = 0.48   // onderste deel (stam/onderkant) wegknippen
+const CLIP_FRAC = 0.56   // onderste deel wegknippen langs de eigen kroon-as
 
 const ORBIT_H = 1.0     // hoeveel vanaf de zijkant van het vlak (horizontale outward)
 const ORBIT_ELEV = 1.2  // hoeveel van bovenaf (hoger = steiler) → schuin-boven
-const WORLD_UP = new THREE.Vector3(0, 1, 0)
-const CARD_SHIFT = 0.18 // vlak licht naar rechts schuiven (desktop) langs de info-kaart
 // Intro/startbeeld: vóór het brein, schuin van boven, uitgezoomd en gecentreerd.
 const INTRO_H = 1.5
 const INTRO_ELEV = 1.05
@@ -117,10 +116,13 @@ function prepareBrain(scene: THREE.Object3D): PreparedBrain {
   const yMin = box.min.y, ySpan = (box.max.y - box.min.y) || 1
   const v = new THREE.Vector3()
 
-  // Zes even grote vlakken: eerst links/rechts op de Z-mediaan (twee gelijke
-  // helften), daarna per helft voor/midden/achter op X-terciles. Zo bevat elk
-  // van de zes vlakken ~1/6 van de bovenkant-vertices.
-  const yTopThresh = box.min.y + 0.50 * (box.max.y - box.min.y)
+  // Zes even grote vlakken via PCA: vind de horizontale hoofd-assen van de
+  // bovenkant (A-P = lange as, L-R = korte as), ongeacht de oriëntatie-roll.
+  // Splits L/R op de mediaan en per helft voor/midden/achter op terciles → elk
+  // vlak bevat ~1/6 van de bovenkant-vertices (eerlijk verdeeld).
+  // Zelfde drempel als de clip (CLIP_FRAC), zodat de zes vlakken worden verdeeld
+  // over EXACT het zichtbare deel → elk vlak even groot (gelijk vertex-aandeel).
+  const yTopThresh = box.min.y + CLIP_FRAC * (box.max.y - box.min.y)
   const topX: number[] = [], topZ: number[] = []
   root.traverse((obj) => {
     const mesh = obj as THREE.Mesh
@@ -131,13 +133,29 @@ function prepareBrain(scene: THREE.Object3D): PreparedBrain {
       if (v.y >= yTopThresh) { topX.push(v.x); topZ.push(v.z) }
     }
   })
+  const nTop = topX.length || 1
+  let mx = 0, mz = 0
+  for (let i = 0; i < topX.length; i++) { mx += topX[i]; mz += topZ[i] }
+  mx /= nTop; mz /= nTop
+  let cxx = 0, czz = 0, cxz = 0
+  for (let i = 0; i < topX.length; i++) { const dx = topX[i] - mx, dz = topZ[i] - mz; cxx += dx * dx; czz += dz * dz; cxz += dx * dz }
+  // Hoofd-as (A-P); oriënteer zo dat 'voor' bij lage projectie ligt
+  let ang = 0.5 * Math.atan2(2 * cxz, cxx - czz)
+  let ax = Math.cos(ang), az = Math.sin(ang)
+  if (ax < 0) { ax = -ax; az = -az }
+  const lx = -az, lz = ax           // L-R as (loodrecht op A-P)
   const q = (arr: number[], f: number) => arr.length ? arr[Math.min(arr.length - 1, Math.floor(arr.length * f))] : 0
-  const zMedian = q([...topZ].sort((a, b) => a - b), 0.5) || center.z
-  const leftX: number[] = [], rightX: number[] = []
-  for (let i = 0; i < topX.length; i++) (topZ[i] < zMedian ? leftX : rightX).push(topX[i])
-  leftX.sort((a, b) => a - b); rightX.sort((a, b) => a - b)
-  const xL1 = q(leftX, 0.3333), xL2 = q(leftX, 0.6667)
-  const xR1 = q(rightX, 0.3333), xR2 = q(rightX, 0.6667)
+  const aAll: number[] = [], lAll: number[] = []
+  for (let i = 0; i < topX.length; i++) {
+    const dx = topX[i] - mx, dz = topZ[i] - mz
+    aAll.push(dx * ax + dz * az); lAll.push(dx * lx + dz * lz)
+  }
+  const lMed = q([...lAll].sort((a, b) => a - b), 0.5)
+  const aLeft: number[] = [], aRight: number[] = []
+  for (let i = 0; i < aAll.length; i++) (lAll[i] < lMed ? aLeft : aRight).push(aAll[i])
+  aLeft.sort((a, b) => a - b); aRight.sort((a, b) => a - b)
+  const aL1 = q(aLeft, 0.3333), aL2 = q(aLeft, 0.6667)
+  const aR1 = q(aRight, 0.3333), aR2 = q(aRight, 0.6667)
 
   root.traverse((obj) => {
     const mesh = obj as THREE.Mesh
@@ -152,10 +170,13 @@ function prepareBrain(scene: THREE.Object3D): PreparedBrain {
 
     for (let i = 0; i < pos.count; i++) {
       v.set(pos.getX(i), pos.getY(i), pos.getZ(i)).applyMatrix4(mesh.matrixWorld)
-      const hemi = v.z >= zMedian ? 1 : 0
-      const b1 = hemi === 1 ? xR1 : xL1
-      const b2 = hemi === 1 ? xR2 : xL2
-      const band = v.x < b1 ? 0 : v.x < b2 ? 1 : 2
+      const pdx = v.x - mx, pdz = v.z - mz
+      const ap = pdx * ax + pdz * az      // voor↔achter langs hoofd-as
+      const lp = pdx * lx + pdz * lz      // links↔rechts langs zij-as
+      const hemi = lp >= lMed ? 1 : 0
+      const b1 = hemi === 1 ? aR1 : aL1
+      const b2 = hemi === 1 ? aR2 : aL2
+      const band = ap < b1 ? 0 : ap < b2 ? 1 : 2
       const region = hemi * 3 + band
       regions[i] = region
       const c = PILLAR_COLORS[region]
@@ -202,23 +223,47 @@ function prepareBrain(scene: THREE.Object3D): PreparedBrain {
   root.position.set(-c2.x * scale, -c2.y * scale, -c2.z * scale)
   root.updateMatrixWorld(true)
 
-  // Wereld-hoogtebereik bepalen om de onderkant (stam) weg te knippen.
-  let yMinW = Infinity, yMaxW = -Infinity
+  // Onderkant wegknippen LANGS het eigen horizontale vlak van het gekantelde
+  // brein (kroon-as = qTilt·(0,1,0) = (0, sa, ca)). Een wereld-horizontaal vlak
+  // snijdt door de kanteling schuin door de anatomie en laat de voorste kwab
+  // staan; deze as-uitgelijnde snede haalt de onderkant gelijkmatig weg.
+  const clipNormal = new THREE.Vector3(0, sa, ca).normalize()
+  let dMin = Infinity, dMax = -Infinity
   root.traverse((obj) => {
     const mesh = obj as THREE.Mesh
     if (!mesh.isMesh) return
     const pos = mesh.geometry.attributes.position as THREE.BufferAttribute
     for (let i = 0; i < pos.count; i++) {
       v.set(pos.getX(i), pos.getY(i), pos.getZ(i)).applyMatrix4(mesh.matrixWorld)
-      if (v.y < yMinW) yMinW = v.y
-      if (v.y > yMaxW) yMaxW = v.y
+      const d = v.dot(clipNormal)
+      if (d < dMin) dMin = d
+      if (d > dMax) dMax = d
     }
   })
-  const clipY = yMinW + CLIP_FRAC * (yMaxW - yMinW)
-  const clipPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -clipY)
+  let clipD = dMin + CLIP_FRAC * (dMax - dMin)
 
-  // Zwaartepunten per regio (alleen het zichtbare, bovenste deel) + clip-plane
-  // op elk materiaal zetten zodat de onderkant niet meer rendert.
+  // Nieuw middelpunt: zwaartepunt van ALLEEN het zichtbare (geclipte) deel.
+  // Hercentreer de geometrie zodat dit middelpunt op de oorsprong ligt — zo staat
+  // het brein na het wegknippen strak gecentreerd en orbiteert de camera er rond.
+  const visSum = new THREE.Vector3()
+  let visCount = 0
+  root.traverse((obj) => {
+    const mesh = obj as THREE.Mesh
+    if (!mesh.isMesh) return
+    const pos = mesh.geometry.attributes.position as THREE.BufferAttribute
+    for (let i = 0; i < pos.count; i++) {
+      v.set(pos.getX(i), pos.getY(i), pos.getZ(i)).applyMatrix4(mesh.matrixWorld)
+      if (v.dot(clipNormal) >= clipD) { visSum.add(v); visCount++ }
+    }
+  })
+  const visCenter = visSum.multiplyScalar(1 / (visCount || 1)).clone()
+  root.position.sub(visCenter)
+  root.updateMatrixWorld(true)
+  clipD -= clipNormal.dot(visCenter)          // clip-vlak meeschuiven met de hercentrering
+  const clipPlane = new THREE.Plane(clipNormal.clone(), -clipD)
+
+  // Zwaartepunten per regio (alleen het zichtbare deel, in het nieuwe gecentreerde
+  // frame) + clip-plane op elk materiaal zodat de onderkant niet meer rendert.
   const sums = Array.from({ length: 6 }, () => new THREE.Vector3())
   const counts = new Array(6).fill(0)
   root.traverse((obj) => {
@@ -229,42 +274,13 @@ function prepareBrain(scene: THREE.Object3D): PreparedBrain {
     const reg = mesh.geometry.attributes.aRegion as THREE.BufferAttribute
     for (let i = 0; i < pos.count; i++) {
       v.set(pos.getX(i), pos.getY(i), pos.getZ(i)).applyMatrix4(mesh.matrixWorld)
-      if (v.y < clipY) continue
+      if (v.dot(clipNormal) < clipD) continue
       const r = Math.round(reg.getX(i))
       sums[r].add(v); counts[r]++
     }
   })
   const centroids = sums.map((s, i) => (counts[i] ? s.multiplyScalar(1 / counts[i]) : new THREE.Vector3()))
   return { root, centroids }
-}
-
-// Interactief neuraal deeltjesveld achter het brein (reageert op de muis).
-function NeuralBackground() {
-  const ref = useRef<THREE.Points>(null)
-  const geom = useMemo(() => {
-    const N = 360
-    const arr = new Float32Array(N * 3)
-    for (let i = 0; i < N; i++) {
-      arr[i * 3]     = (Math.random() - 0.5) * 20
-      arr[i * 3 + 1] = (Math.random() - 0.5) * 12
-      arr[i * 3 + 2] = -1.5 - Math.random() * 8
-    }
-    const g = new THREE.BufferGeometry()
-    g.setAttribute('position', new THREE.BufferAttribute(arr, 3))
-    g.computeBoundingSphere()
-    return g
-  }, [])
-
-  useFrame((_, delta) => {
-    if (!ref.current) return
-    ref.current.rotation.y += delta * 0.025
-  })
-
-  return (
-    <points ref={ref} geometry={geom} frustumCulled={false}>
-      <pointsMaterial color={COLORS.cyan} size={0.13} sizeAttenuation transparent opacity={0.9} depthWrite={false} blending={THREE.AdditiveBlending} />
-    </points>
-  )
 }
 
 interface BrainModelProps {
@@ -301,10 +317,8 @@ function BrainModel({ progressRef }: BrainModelProps) {
   const camPos = useRef(new THREE.Vector3(0, 0.35, 5))
   const lookAt = useRef(new THREE.Vector3(0, 0, 0))
   const tLook = useRef(new THREE.Vector3())
-  const tLookShift = useRef(new THREE.Vector3())
   const tPos = useRef(new THREE.Vector3())
   const tDir = useRef(new THREE.Vector3())
-  const tRight = useRef(new THREE.Vector3())
 
   useFrame((state, delta) => {
     const p = Math.max(0, Math.min(1, progressRef.current))
@@ -322,15 +336,12 @@ function BrainModel({ progressRef }: BrainModelProps) {
     const dist = baseDist + Math.sin(frac * Math.PI) * ZOOM_EXTRA
     tPos.current.copy(tLook.current).addScaledVector(tDir.current, dist)
 
-    // Vlak naar rechts schuiven op desktop (niet tijdens het intro-overzicht)
+    // Brein staat strak gecentreerd op het nieuwe middelpunt (geen per-vlak shift).
     const introF = Math.max(0, 1 - seg)     // 1 bij het startbeeld (waypoint 0)
-    const shift = (state.size.width >= 900 ? CARD_SHIFT : 0) * Math.min(1, seg)
-    tRight.current.crossVectors(tDir.current, WORLD_UP).normalize()
-    tLookShift.current.copy(tLook.current).addScaledVector(tRight.current, shift)
 
     const k = 1 - Math.exp(-delta * 6)
     camPos.current.lerp(tPos.current, k)
-    lookAt.current.lerp(tLookShift.current, k)
+    lookAt.current.lerp(tLook.current, k)
     state.camera.position.copy(camPos.current)
     state.camera.lookAt(lookAt.current)
 
