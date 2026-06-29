@@ -17,19 +17,27 @@ const DISPLAY_SIZE = 2.8
 const TILT = 0.62
 const OVERVIEW0 = new THREE.Vector3(0, 0, 0)
 
-// Eigen kijkrichting per regio (genormaliseerd). Volgorde = regio-index
-// (links: 0=achter,1=midden,2=voor | rechts: 3=achter,4=midden,5=voor).
-// Links/rechts vanaf die zijde, voorste vlakken meer frontaal, middelste van bovenaf.
-const CAM_DIRS = [
-  new THREE.Vector3(-0.62, 1.00, 0.35), // links-achter — van boven-links
-  new THREE.Vector3(-0.55, 1.20, 0.55), // links-midden — van bovenaf, links
-  new THREE.Vector3(-0.68, 0.50, 1.05), // links-voor — van voor-links
-  new THREE.Vector3(0.62, 1.00, 0.35),  // rechts-achter — van boven-rechts
-  new THREE.Vector3(0.55, 1.20, 0.55),  // rechts-midden — van bovenaf, rechts
-  new THREE.Vector3(0.68, 0.50, 1.05),  // rechts-voor — van voor-rechts
-].map((v) => v.normalize())
-const BASE_DIST = 2.4   // afstand tot het vlak (ingezoomd)
-const ZOOM_EXTRA = 2.1  // extra afstand halverwege de overgang (uitzoomen)
+const BASE_DIST = 2.4    // afstand tot het vlak (ingezoomd)
+const ZOOM_EXTRA = 2.1   // extra afstand halverwege de overgang (uitzoomen)
+const ANGLE_H = 1.6      // horizontale overdrijving van de kijkhoek
+const ANGLE_ELEV = 0.5   // opwaartse bias zodat we van schuin-boven kijken
+
+// Kijkrichting per vlak afgeleid uit de positie van het vlak t.o.v. een vast
+// centraal punt: links-voor → van links-voor, rechts-achter → van rechts-achter.
+function buildCamDirs(centroids: THREE.Vector3[]): THREE.Vector3[] {
+  const center = new THREE.Vector3()
+  centroids.forEach((c) => center.add(c))
+  center.multiplyScalar(1 / (centroids.length || 1))
+  return centroids.map((c) => {
+    const d = new THREE.Vector3(
+      (c.x - center.x) * ANGLE_H,
+      (c.y - center.y) + ANGLE_ELEV,
+      (c.z - center.z) * ANGLE_H,
+    )
+    if (d.y < 0.28) d.y = 0.28 // niet te laag, blijf op de gekleurde bovenkant kijken
+    return d.normalize()
+  })
+}
 
 function smooth(edge0: number, edge1: number, x: number): number {
   const t = Math.min(1, Math.max(0, (x - edge0) / (edge1 - edge0)))
@@ -224,6 +232,7 @@ function BrainModel({ progressRef }: BrainModelProps) {
     root.traverse((o) => { const m = o as THREE.Mesh; if (m.isMesh) list.push(m.material as THREE.MeshStandardMaterial) })
     return list
   }, [root])
+  const camDirs = useMemo(() => buildCamDirs(centroids), [centroids])
 
   const camPos = useRef(new THREE.Vector3(0, 0.35, 5))
   const lookAt = useRef(new THREE.Vector3(0, 0, 0))
@@ -247,7 +256,7 @@ function BrainModel({ progressRef }: BrainModelProps) {
     tLook.current.copy(tA.current).lerp(tB.current, fs)
 
     // Eigen kijkhoek per vlak; richting interpoleert mee tussen de vlakken
-    tDir.current.copy(CAM_DIRS[idx]).lerp(CAM_DIRS[Math.min(5, idx + 1)], fs).normalize()
+    tDir.current.copy(camDirs[idx]).lerp(camDirs[Math.min(5, idx + 1)], fs).normalize()
     // Sterker uit/in-zoomen tijdens de overgang (ver weg in het midden)
     const dist = BASE_DIST + Math.sin(frac * Math.PI) * ZOOM_EXTRA
     tPos.current.copy(tLook.current).addScaledVector(tDir.current, dist)
