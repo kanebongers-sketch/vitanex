@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import dynamic from 'next/dynamic'
-import { COLORS, FONT, MAXW, EASE, BRAIN_COLORS } from '../theme'
+import { COLORS, FONT, MAXW, EASE, BRAIN_COLORS, STEP_REGION } from '../theme'
 
 const BrainCanvas = dynamic(() => import('../BrainCanvas'), { ssr: false, loading: () => null })
 
@@ -41,7 +41,7 @@ export default function BrainScroll() {
   }, [])
 
   const cur = STEPS[step]
-  const color = BRAIN_COLORS[step]
+  const color = BRAIN_COLORS[STEP_REGION[step]]
 
   return (
     <section id="brein" style={{ fontFamily: FONT.grotesk, borderTop: `1px solid ${COLORS.line}` }}>
@@ -107,8 +107,8 @@ export default function BrainScroll() {
             {STEPS.map((s, i) => (
               <span key={s.naam} aria-hidden style={{
                 width: i === step ? 10 : 8, height: i === step ? 10 : 8, borderRadius: '50%',
-                background: i === step ? BRAIN_COLORS[i] : COLORS.lineStrong,
-                boxShadow: i === step ? `0 0 10px ${BRAIN_COLORS[i]}` : 'none',
+                background: i === step ? BRAIN_COLORS[STEP_REGION[i]] : COLORS.lineStrong,
+                boxShadow: i === step ? `0 0 10px ${BRAIN_COLORS[STEP_REGION[i]]}` : 'none',
                 transition: `all .3s ${EASE}`,
               }} />
             ))}

@@ -4,7 +4,7 @@ import { Suspense, useMemo, useRef, type MutableRefObject } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
 import { useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
-import { BRAIN_COLORS, COLORS } from './theme'
+import { BRAIN_COLORS, COLORS, STEP_REGION } from './theme'
 
 // Anatomisch hersenmodel (70k vertices, geometry-only). Herkomst: Justin0Brien/Brain
 // (MIT-repo); oorspronkelijke modelbron niet sluitend te verifiëren.
@@ -19,9 +19,9 @@ const OVERVIEW0 = new THREE.Vector3(0, 0, 0)
 
 const BASE_DIST = 2.4    // afstand tot het vlak (ingezoomd)
 const ZOOM_EXTRA = 2.1   // extra afstand halverwege de overgang (uitzoomen)
-const ANGLE_H = 1.5      // horizontale overdrijving van de kijkhoek
-const FIXED_ELEV = 1.0   // vaste hoogte: camera kijkt altijd van schuin-boven (geen onderkant)
-const CLIP_FRAC = 0.34   // onderste deel (stam/onderkant) wegknippen
+const ANGLE_H = 1.35     // horizontale overdrijving van de kijkhoek
+const FIXED_ELEV = 1.9   // vaste hoogte: camera hangt hoog boven het brein (meer top-down)
+const CLIP_FRAC = 0.44   // onderste deel (stam/onderkant) wegknippen
 
 // Kijkrichting per vlak afgeleid uit de positie van het vlak t.o.v. een vast
 // centraal punt — horizontaal volgt de positie (links-voor → van links-voor),
@@ -72,15 +72,18 @@ function computeStemDir(root: THREE.Object3D): THREE.Vector3 {
   return new THREE.Vector3(fx - cx, fy - cy, fz - cz).normalize()
 }
 
-// Continue highlight: helderheid op basis van afstand tot de (float) actieve regio.
+// Continue highlight: crossfade tussen twee actieve regio's (uRegionA→uRegionB),
+// zodat de volgorde willekeurig mag zijn zonder tussenliggende regio's te raken.
 function addHighlight(mat: THREE.MeshStandardMaterial) {
   mat.onBeforeCompile = (shader) => {
-    shader.uniforms.uActive = { value: -1 }
+    shader.uniforms.uRegionA = { value: 0 }
+    shader.uniforms.uRegionB = { value: 0 }
+    shader.uniforms.uMix = { value: 0 }
     shader.vertexShader =
-      'attribute float aRegion;\nuniform float uActive;\nvarying float vFactor;\n' +
+      'attribute float aRegion;\nuniform float uRegionA;\nuniform float uRegionB;\nuniform float uMix;\nvarying float vFactor;\n' +
       shader.vertexShader.replace(
         '#include <begin_vertex>',
-        '#include <begin_vertex>\n  float d = abs(aRegion - uActive);\n  float tt = clamp((d - 0.2) / 0.6, 0.0, 1.0);\n  vFactor = (uActive < -0.5) ? 1.0 : mix(1.22, 0.3, tt);',
+        '#include <begin_vertex>\n  float mA = 1.0 - step(0.5, abs(aRegion - uRegionA));\n  float mB = 1.0 - step(0.5, abs(aRegion - uRegionB));\n  float w = clamp(mA * (1.0 - uMix) + mB * uMix, 0.0, 1.0);\n  vFactor = mix(0.3, 1.22, w);',
       )
     shader.fragmentShader =
       'varying float vFactor;\n' +
@@ -268,13 +271,17 @@ function BrainModel({ progressRef }: BrainModelProps) {
 
     const fs = frac * frac * (3 - 2 * frac)
 
-    // lookAt = interpolatie tussen twee regio-zwaartepunten
-    tA.current.copy(centroids[idx] || OVERVIEW0)
-    tB.current.copy(centroids[Math.min(5, idx + 1)] || OVERVIEW0)
+    // Volgorde-mapping: welke regio hoort bij deze (en de volgende) stap
+    const rA = STEP_REGION[idx]
+    const rB = STEP_REGION[Math.min(5, idx + 1)]
+
+    // lookAt = interpolatie tussen de twee regio-zwaartepunten
+    tA.current.copy(centroids[rA] || OVERVIEW0)
+    tB.current.copy(centroids[rB] || OVERVIEW0)
     tLook.current.copy(tA.current).lerp(tB.current, fs)
 
     // Eigen kijkhoek per vlak; richting interpoleert mee tussen de vlakken
-    tDir.current.copy(camDirs[idx]).lerp(camDirs[Math.min(5, idx + 1)], fs).normalize()
+    tDir.current.copy(camDirs[rA]).lerp(camDirs[rB], fs).normalize()
     // Sterker uit/in-zoomen tijdens de overgang (ver weg in het midden)
     const dist = BASE_DIST + Math.sin(frac * Math.PI) * ZOOM_EXTRA
     tPos.current.copy(tLook.current).addScaledVector(tDir.current, dist)
@@ -288,8 +295,8 @@ function BrainModel({ progressRef }: BrainModelProps) {
     state.camera.lookAt(lookAt.current)
 
     for (const m of materials) {
-      const s = m.userData.shader as { uniforms: { uActive: { value: number } } } | undefined
-      if (s) s.uniforms.uActive.value = seg
+      const s = m.userData.shader as { uniforms: { uRegionA: { value: number }, uRegionB: { value: number }, uMix: { value: number } } } | undefined
+      if (s) { s.uniforms.uRegionA.value = rA; s.uniforms.uRegionB.value = rB; s.uniforms.uMix.value = fs }
     }
   })
 
