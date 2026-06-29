@@ -1,16 +1,13 @@
 'use client'
 
-import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import { COLORS, FONT, MAXW, EASE } from '../theme'
-
-const BrainCanvas = dynamic(() => import('../BrainCanvas'), { ssr: false })
 
 const TRUST = ['Anoniem', 'AVG-conform', 'EU-hosting', '6 vlakken']
 
 export default function Hero() {
   return (
-    <section style={{ position: 'relative', overflow: 'hidden', fontFamily: FONT.grotesk, paddingTop: 40, paddingBottom: 64 }}>
+    <section style={{ position: 'relative', overflow: 'hidden', fontFamily: FONT.grotesk, paddingTop: 72, paddingBottom: 120 }}>
       {/* cyan-glow achtergrond */}
       <div aria-hidden style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
         <div style={{ position: 'absolute', top: '-20%', left: '50%', transform: 'translateX(-50%)', width: '70%', height: '90%', background: `radial-gradient(ellipse at center, ${COLORS.cyanSoft} 0%, transparent 60%)` }} />
@@ -49,18 +46,13 @@ export default function Hero() {
           </a>
         </div>
 
-        <div style={{ display: 'flex', gap: 22, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 8 }}>
+        <div style={{ display: 'flex', gap: 22, justifyContent: 'center', flexWrap: 'wrap' }}>
           {TRUST.map((t) => (
             <span key={t} style={{ fontSize: 13, color: COLORS.inkFaint, display: 'flex', alignItems: 'center', gap: 6 }}>
               <span style={{ color: COLORS.cyan }}>✓</span> {t}
             </span>
           ))}
         </div>
-      </div>
-
-      {/* Brein centerpiece — het enige meerkleurige element */}
-      <div id="brein" style={{ position: 'relative', height: 'clamp(360px, 52vw, 620px)', marginTop: 8 }}>
-        <BrainCanvas />
       </div>
     </section>
   )

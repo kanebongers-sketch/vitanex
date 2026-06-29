@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect, useMemo, useRef } from 'react'
-import { Canvas, useFrame } from '@react-three/fiber'
+import { Suspense, useMemo, useRef } from 'react'
+import { Canvas, useFrame, type ThreeEvent } from '@react-three/fiber'
 import { useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
 import { BRAIN_COLORS, COLORS } from './theme'
@@ -14,17 +14,14 @@ useGLTF.preload(MODEL_URL)
 const PILLAR_COLORS = BRAIN_COLORS.map((hex) => new THREE.Color(hex))
 const NAVY = new THREE.Color(COLORS.navyDeep)
 const DISPLAY_SIZE = 2.8
-
-// Kantelhoek voor het schuine bovenaanzicht (groter = meer recht van boven).
-const TILT = 0.62
+const TILT = 0.62 // kantelhoek voor schuin bovenaanzicht
 
 function smooth(edge0: number, edge1: number, x: number): number {
   const t = Math.min(1, Math.max(0, (x - edge0) / (edge1 - edge0)))
   return t * t * (3 - 2 * t)
 }
 
-// Meet de hersenstam-richting in de huidige ruimte: het verst gelegen punt vanaf
-// het zwaartepunt is de stam-tip (= inferior). Houdt rekening met node-transforms.
+// Meet de hersenstam-richting: het verst gelegen punt vanaf het zwaartepunt.
 function computeStemDir(root: THREE.Object3D): THREE.Vector3 {
   root.updateMatrixWorld(true)
   const v = new THREE.Vector3()
@@ -53,23 +50,40 @@ function computeStemDir(root: THREE.Object3D): THREE.Vector3 {
   return new THREE.Vector3(fx - cx, fy - cy, fz - cz).normalize()
 }
 
-// Kleurt het brein in 6 delen (links/rechts × voor/midden/achter), dempt de
-// onderkant naar navy zodat alleen de bovenkant zichtbaar is, en centreert/schaalt.
+// Highlight-shader: actief deel feller, andere delen gedimd (uActive = -1 → neutraal).
+function addHighlight(mat: THREE.MeshStandardMaterial) {
+  mat.onBeforeCompile = (shader) => {
+    shader.uniforms.uActive = { value: -1 }
+    shader.vertexShader =
+      'attribute float aRegion;\nuniform float uActive;\nvarying float vFactor;\n' +
+      shader.vertexShader.replace(
+        '#include <begin_vertex>',
+        '#include <begin_vertex>\n  vFactor = (uActive < 0.0) ? 1.0 : ((abs(aRegion - uActive) < 0.5) ? 1.28 : 0.28);',
+      )
+    shader.fragmentShader =
+      'varying float vFactor;\n' +
+      shader.fragmentShader.replace(
+        '#include <color_fragment>',
+        '#include <color_fragment>\n  diffuseColor.rgb *= vFactor;',
+      )
+    mat.userData.shader = shader
+  }
+}
+
+// Kleurt het brein in 6 delen, schrijft een aRegion-attribuut (voor highlight +
+// klikdetectie), dempt de onderkant naar navy en centreert/schaalt.
 function prepareBrain(scene: THREE.Object3D): THREE.Object3D {
   const root = scene.clone(true)
 
-  // Stap 1 — rechtop in een schoon assenstelsel: stam naar beneden draaien.
-  // Resultaat: +Y = kruin, +X = voor-achter (A-P), +Z = links-rechts (zijkant).
   const stemDir = computeStemDir(root)
   const qLateral = new THREE.Quaternion().setFromUnitVectors(stemDir, new THREE.Vector3(0, -1, 0))
   root.quaternion.copy(qLateral)
   root.updateMatrixWorld(true)
 
-  // 6-delen-kleuring berekenen in dit schone frame (vóór de kanteling).
   const box = new THREE.Box3().setFromObject(root)
   const center = box.getCenter(new THREE.Vector3())
-  const xMin = box.min.x, xSpan = (box.max.x - box.min.x) || 1   // voor-achter (A-P)
-  const yMin = box.min.y, ySpan = (box.max.y - box.min.y) || 1   // hoogte (onder→kruin)
+  const xMin = box.min.x, xSpan = (box.max.x - box.min.x) || 1  // voor-achter
+  const yMin = box.min.y, ySpan = (box.max.y - box.min.y) || 1  // hoogte
 
   const v = new THREE.Vector3()
 
@@ -83,18 +97,17 @@ function prepareBrain(scene: THREE.Object3D): THREE.Object3D {
     const normalMat = new THREE.Matrix3().getNormalMatrix(mesh.matrixWorld)
     const vn = new THREE.Vector3()
     const colors = new Float32Array(pos.count * 3)
+    const regions = new Float32Array(pos.count)
 
     for (let i = 0; i < pos.count; i++) {
       v.set(pos.getX(i), pos.getY(i), pos.getZ(i)).applyMatrix4(mesh.matrixWorld)
 
-      // 6 delen: hemisfeer (links/rechts, Z-as) × band (voor/midden/achter, X-as)
       const hemi = v.z >= center.z ? 1 : 0
-      const bandT = (v.x - xMin) / xSpan
-      const band = Math.min(2, Math.max(0, Math.floor(bandT * 3)))
+      const band = Math.min(2, Math.max(0, Math.floor(((v.x - xMin) / xSpan) * 3)))
       const region = hemi * 3 + band
+      regions[i] = region
       const c = PILLAR_COLORS[region]
 
-      // Cavity-shading: groeven donker, gyri helder
       let shade = 1
       if (nrm) {
         const dx = v.x - center.x, dy = v.y - center.y, dz = v.z - center.z
@@ -104,38 +117,32 @@ function prepareBrain(scene: THREE.Object3D): THREE.Object3D {
         shade = 0.34 + 0.66 * smooth(0.05, 0.9, ao)
       }
 
-      // Onderkant (lage Y = stam/onderkant) wegfaden naar navy → alleen bovenkant
       const heightF = smooth(0.34, 0.62, (v.y - yMin) / ySpan)
-
       colors[i * 3]     = THREE.MathUtils.lerp(NAVY.r, c.r * shade, heightF)
       colors[i * 3 + 1] = THREE.MathUtils.lerp(NAVY.g, c.g * shade, heightF)
       colors[i * 3 + 2] = THREE.MathUtils.lerp(NAVY.b, c.b * shade, heightF)
     }
 
     geo.setAttribute('color', new THREE.BufferAttribute(colors, 3))
+    geo.setAttribute('aRegion', new THREE.BufferAttribute(regions, 1))
     mesh.geometry = geo
-    mesh.material = new THREE.MeshStandardMaterial({
-      vertexColors: true,
-      roughness: 0.6,
-      metalness: 0.0,
-    })
+    const mat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.6, metalness: 0.0 })
+    addHighlight(mat)
+    mesh.material = mat
   })
 
-  // Stap 2 — kantel naar schuin bovenaanzicht. In het schone frame is
-  // X = A-P, Y = kruin, Z = L-R. We willen: L-R → scherm-horizontaal,
-  // kruin → naar de camera (gekanteld omhoog), A-P → verticaal/diepte.
+  // Kantelen naar schuin bovenaanzicht (L-R → horizontaal, kruin → naar camera).
   const ca = Math.cos(TILT), sa = Math.sin(TILT)
   const qTilt = new THREE.Quaternion().setFromRotationMatrix(
     new THREE.Matrix4().makeBasis(
-      new THREE.Vector3(0, ca, -sa),  // A-P  (+X) → grotendeels omhoog/diepte
-      new THREE.Vector3(0, sa, ca),   // kruin (+Y) → naar camera, gekanteld
-      new THREE.Vector3(1, 0, 0),     // L-R  (+Z) → scherm-horizontaal
+      new THREE.Vector3(0, ca, -sa),
+      new THREE.Vector3(0, sa, ca),
+      new THREE.Vector3(1, 0, 0),
     ),
   )
   root.quaternion.premultiply(qTilt)
   root.updateMatrixWorld(true)
 
-  // Centreren + schalen na de definitieve oriëntatie.
   const box2 = new THREE.Box3().setFromObject(root)
   const c2 = box2.getCenter(new THREE.Vector3())
   const size2 = box2.getSize(new THREE.Vector3())
@@ -146,39 +153,59 @@ function prepareBrain(scene: THREE.Object3D): THREE.Object3D {
   return root
 }
 
-function BrainModel() {
+interface BrainModelProps {
+  activeRegion: number | null
+  onRegionChange?: (region: number | null) => void
+}
+
+function BrainModel({ activeRegion, onRegionChange }: BrainModelProps) {
   const { scene } = useGLTF(MODEL_URL)
   const brain = useMemo(() => prepareBrain(scene), [scene])
+  const materials = useMemo(() => {
+    const list: THREE.MeshStandardMaterial[] = []
+    brain.traverse((o) => { const m = o as THREE.Mesh; if (m.isMesh) list.push(m.material as THREE.MeshStandardMaterial) })
+    return list
+  }, [brain])
+
   const groupRef = useRef<THREE.Group>(null)
-  const mouse = useRef({ x: 0, y: 0 })
+  const activeRef = useRef<number>(-1)
+  activeRef.current = activeRegion ?? -1
 
-  useEffect(() => {
-    const onMove = (e: MouseEvent) => {
-      mouse.current.x = (e.clientX / window.innerWidth - 0.5) * 2
-      mouse.current.y = (e.clientY / window.innerHeight - 0.5) * 2
+  // Vaste schuine-bovenaanzicht-oriëntatie; alleen een heel subtiele yaw-wieg.
+  useFrame((state) => {
+    if (groupRef.current) {
+      groupRef.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.15) * 0.04
     }
-    window.addEventListener('mousemove', onMove)
-    return () => window.removeEventListener('mousemove', onMove)
-  }, [])
-
-  useFrame((state, delta) => {
-    if (!groupRef.current) return
-    const t = state.clock.elapsedTime
-    // Rustige idle-drift + subtiele muis-parallax (compositor-vriendelijk)
-    const targetY = Math.sin(t * 0.18) * 0.14 + mouse.current.x * 0.12
-    const targetX = mouse.current.y * 0.06
-    groupRef.current.rotation.y = THREE.MathUtils.lerp(groupRef.current.rotation.y, targetY, delta * 1.6)
-    groupRef.current.rotation.x = THREE.MathUtils.lerp(groupRef.current.rotation.x, targetX, delta * 1.6)
+    for (const m of materials) {
+      const s = m.userData.shader as { uniforms: { uActive: { value: number } } } | undefined
+      if (s) s.uniforms.uActive.value = activeRef.current
+    }
   })
 
+  const regionFromEvent = (e: ThreeEvent<PointerEvent>): number | null => {
+    const mesh = e.object as THREE.Mesh
+    const aRegion = mesh.geometry?.attributes?.aRegion as THREE.BufferAttribute | undefined
+    if (!aRegion || !e.face) return null
+    return Math.round(aRegion.getX(e.face.a))
+  }
+
   return (
-    <group ref={groupRef}>
+    <group
+      ref={groupRef}
+      onPointerMove={(e) => { if (!onRegionChange) return; const r = regionFromEvent(e); if (r != null) { e.stopPropagation(); onRegionChange(r) } }}
+      onPointerDown={(e) => { if (!onRegionChange) return; const r = regionFromEvent(e); if (r != null) { e.stopPropagation(); onRegionChange(r) } }}
+    >
       <primitive object={brain} />
     </group>
   )
 }
 
-export default function BrainCanvas() {
+interface BrainCanvasProps {
+  activeRegion?: number | null
+  onRegionChange?: (region: number | null) => void
+}
+
+export default function BrainCanvas({ activeRegion = null, onRegionChange }: BrainCanvasProps) {
   return (
     <Canvas
       camera={{ position: [0, 0.35, 5.0], fov: 40, near: 0.1, far: 100 }}
@@ -197,7 +224,9 @@ export default function BrainCanvas() {
       <directionalLight position={[-4, 3, 1]} intensity={0.7} color={COLORS.cyan} />
       <pointLight position={[0, 1, 5]} intensity={0.5} color="#ffffff" distance={16} />
 
-      <BrainModel />
+      <Suspense fallback={null}>
+        <BrainModel activeRegion={activeRegion} onRegionChange={onRegionChange} />
+      </Suspense>
     </Canvas>
   )
 }

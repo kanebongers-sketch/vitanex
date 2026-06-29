@@ -6,7 +6,6 @@ import { COLORS, FONT, MAXW, EASE } from '../theme'
 
 const LINKS: [string, string][] = [
   ['#brein', 'Het brein'],
-  ['#pijlers', 'Pijlers'],
   ['#aanpak', 'Aanpak'],
   ['#contact', 'Contact'],
 ]

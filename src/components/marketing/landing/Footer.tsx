@@ -7,7 +7,7 @@ type Item = [string, string]
 interface Col { titel: string; items: Item[] }
 
 const COLS: Col[] = [
-  { titel: 'Product', items: [['#brein', 'Het brein'], ['#pijlers', 'Pijlers'], ['#aanpak', 'Aanpak']] },
+  { titel: 'Product', items: [['#brein', 'Het brein'], ['#brein', 'De 6 vlakken'], ['#aanpak', 'Aanpak']] },
   { titel: 'Bedrijf', items: [['/contact', 'Contact'], ['/voorwaarden', 'Voorwaarden']] },
   { titel: 'Juridisch', items: [['/voorwaarden', 'Privacy'], ['/voorwaarden', 'AVG'], ['/voorwaarden', 'Voorwaarden']] },
 ]
