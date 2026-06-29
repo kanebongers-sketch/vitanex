@@ -6,15 +6,15 @@ import { COLORS, FONT, MAXW, EASE, BRAIN_COLORS } from '../theme'
 
 const BrainCanvas = dynamic(() => import('../BrainCanvas'), { ssr: false, loading: () => null })
 
-interface Step { naam: string; zin: string; info: string }
+interface Step { naam: string; zin: string; info: string; help: string }
 
 const STEPS: Step[] = [
-  { naam: 'Energie', zin: 'Dagelijkse vitaliteit en herstel inzichtelijk.', info: 'We volgen hoe energie zich over de week ontwikkelt, zodat dips opvallen voordat ze doorwerken.' },
-  { naam: 'Slaap', zin: 'Slaapkwaliteit en herstel, nacht na nacht.', info: 'Inzicht in slaap en herstel als basis voor focus en humeur overdag.' },
-  { naam: 'Stress', zin: 'Vroege signalen van overbelasting.', info: 'Spanning wordt zichtbaar in trends, zodat je er op tijd over kunt praten.' },
-  { naam: 'Stemming', zin: 'Mentaal welzijn en motivatie.', info: 'Anoniem peilen hoe het écht met het team gaat, zonder ongemakkelijk gesprek.' },
-  { naam: 'Beweging', zin: 'Lichamelijke activiteit die energie voedt.', info: 'Hoe beweging samenhangt met hoe mensen zich voelen en presteren.' },
-  { naam: 'Voeding', zin: 'Voeding en hydratatie als fundament.', info: 'De kleine gewoontes die veerkracht dragen, inzichtelijk gemaakt.' },
+  { naam: 'Energie', zin: 'Dagelijkse vitaliteit en herstel inzichtelijk.', info: 'We volgen hoe energie zich over de week ontwikkelt, zodat dips opvallen voordat ze doorwerken.', help: 'Dagelijkse check-ins tonen je energietrend; de app geeft kleine, haalbare hersteltips wanneer je structureel onder je niveau zit.' },
+  { naam: 'Slaap', zin: 'Slaapkwaliteit en herstel, nacht na nacht.', info: 'Inzicht in slaap en herstel als basis voor focus en humeur overdag.', help: 'Houd je slaap bij en krijg routines aangereikt die je nachtrust stap voor stap verbeteren.' },
+  { naam: 'Stress', zin: 'Vroege signalen van overbelasting.', info: 'Spanning wordt zichtbaar in trends, zodat je er op tijd over kunt praten.', help: 'De app reikt adem- en ontspanoefeningen aan precies wanneer de spanning oploopt.' },
+  { naam: 'Stemming', zin: 'Mentaal welzijn en motivatie.', info: 'Anoniem peilen hoe het écht met het team gaat, zonder ongemakkelijk gesprek.', help: 'Anonieme stemmingsmeting met een teamoverzicht en korte reflecties maken het makkelijker om te praten over hoe het gaat.' },
+  { naam: 'Beweging', zin: 'Lichamelijke activiteit die energie voedt.', info: 'Hoe beweging samenhangt met hoe mensen zich voelen en presteren.', help: 'Koppel je activiteit en zet haalbare beweegdoelen die in je werkdag passen.' },
+  { naam: 'Voeding', zin: 'Voeding en hydratatie als fundament.', info: 'De kleine gewoontes die veerkracht dragen, inzichtelijk gemaakt.', help: 'Voedings- en hydratatie-check-ins met simpele, volhoudbare gewoontes die je veerkracht versterken.' },
 ]
 
 export default function BrainScroll() {
@@ -91,7 +91,13 @@ export default function BrainScroll() {
                   {cur.naam}
                 </h3>
                 <p style={{ fontSize: 17, lineHeight: 1.5, color: COLORS.ink, margin: '0 0 10px', fontWeight: 500 }}>{cur.zin}</p>
-                <p style={{ fontSize: 15, lineHeight: 1.6, color: COLORS.inkDim, margin: 0 }}>{cur.info}</p>
+                <p style={{ fontSize: 15, lineHeight: 1.6, color: COLORS.inkDim, margin: '0 0 16px' }}>{cur.info}</p>
+                <div style={{ borderTop: `1px solid ${COLORS.line}`, paddingTop: 14 }}>
+                  <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.16em', textTransform: 'uppercase', color: COLORS.cyan, margin: '0 0 6px' }}>
+                    Hoe MentaForce helpt
+                  </p>
+                  <p style={{ fontSize: 14, lineHeight: 1.6, color: COLORS.inkDim, margin: 0 }}>{cur.help}</p>
+                </div>
               </div>
             </div>
           </div>

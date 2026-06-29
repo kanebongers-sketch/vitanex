@@ -17,6 +17,20 @@ const DISPLAY_SIZE = 2.8
 const TILT = 0.62
 const OVERVIEW0 = new THREE.Vector3(0, 0, 0)
 
+// Eigen kijkrichting per regio (genormaliseerd). Volgorde = regio-index
+// (links: 0=achter,1=midden,2=voor | rechts: 3=achter,4=midden,5=voor).
+// Links/rechts vanaf die zijde, voorste vlakken meer frontaal, middelste van bovenaf.
+const CAM_DIRS = [
+  new THREE.Vector3(-0.62, 1.00, 0.35), // links-achter — van boven-links
+  new THREE.Vector3(-0.55, 1.20, 0.55), // links-midden — van bovenaf, links
+  new THREE.Vector3(-0.68, 0.50, 1.05), // links-voor — van voor-links
+  new THREE.Vector3(0.62, 1.00, 0.35),  // rechts-achter — van boven-rechts
+  new THREE.Vector3(0.55, 1.20, 0.55),  // rechts-midden — van bovenaf, rechts
+  new THREE.Vector3(0.68, 0.50, 1.05),  // rechts-voor — van voor-rechts
+].map((v) => v.normalize())
+const BASE_DIST = 2.4   // afstand tot het vlak (ingezoomd)
+const ZOOM_EXTRA = 2.1  // extra afstand halverwege de overgang (uitzoomen)
+
 function smooth(edge0: number, edge1: number, x: number): number {
   const t = Math.min(1, Math.max(0, (x - edge0) / (edge1 - edge0)))
   return t * t * (3 - 2 * t)
@@ -217,6 +231,7 @@ function BrainModel({ progressRef }: BrainModelProps) {
   const tB = useRef(new THREE.Vector3())
   const tLook = useRef(new THREE.Vector3())
   const tPos = useRef(new THREE.Vector3())
+  const tDir = useRef(new THREE.Vector3())
 
   useFrame((state, delta) => {
     const p = Math.max(0, Math.min(1, progressRef.current))
@@ -224,20 +239,20 @@ function BrainModel({ progressRef }: BrainModelProps) {
     const idx = Math.min(4, Math.floor(seg))
     const frac = seg - idx                  // 0..1 binnen het segment
 
-    // Continu interpoleren tussen twee regio-zwaartepunten
+    const fs = frac * frac * (3 - 2 * frac)
+
+    // lookAt = interpolatie tussen twee regio-zwaartepunten
     tA.current.copy(centroids[idx] || OVERVIEW0)
     tB.current.copy(centroids[Math.min(5, idx + 1)] || OVERVIEW0)
-    const fs = frac * frac * (3 - 2 * frac)
     tLook.current.copy(tA.current).lerp(tB.current, fs)
 
+    // Eigen kijkhoek per vlak; richting interpoleert mee tussen de vlakken
+    tDir.current.copy(CAM_DIRS[idx]).lerp(CAM_DIRS[Math.min(5, idx + 1)], fs).normalize()
     // Sterker uit/in-zoomen tijdens de overgang (ver weg in het midden)
-    const zoomOut = Math.sin(frac * Math.PI)
-    const z = 2.3 + zoomOut * 2.4
-    tPos.current.set(
-      tLook.current.x * 0.6 + state.pointer.x * 0.18,
-      tLook.current.y * 0.6 + 0.15 + state.pointer.y * 0.12,
-      z,
-    )
+    const dist = BASE_DIST + Math.sin(frac * Math.PI) * ZOOM_EXTRA
+    tPos.current.copy(tLook.current).addScaledVector(tDir.current, dist)
+    tPos.current.x += state.pointer.x * 0.18
+    tPos.current.y += state.pointer.y * 0.12
 
     const k = 1 - Math.exp(-delta * 6)
     camPos.current.lerp(tPos.current, k)
