@@ -22,7 +22,8 @@ const ZOOM_EXTRA = 1.6   // extra afstand halverwege de overgang (uitzoomen)
 const CLIP_FRAC = 0.56   // onderste deel wegknippen langs de eigen kroon-as
 
 const ORBIT_H = 1.0     // hoeveel vanaf de zijkant van het vlak (horizontale outward)
-const ORBIT_ELEV = 1.2  // hoeveel van bovenaf (hoger = steiler) → schuin-boven
+const ORBIT_ELEV = 0.08 // voorste/middelste vlakken: bijna recht van opzij (0°)
+const ORBIT_ELEV_BACK = 0.95 // achterste band hoger van bovenaf → onderkant nooit zichtbaar
 // Intro/startbeeld: vóór het brein, schuin van boven, uitgezoomd en gecentreerd.
 const INTRO_H = 1.5
 const INTRO_ELEV = 1.05
@@ -35,10 +36,13 @@ function buildCamDirs(centroids: THREE.Vector3[]): THREE.Vector3[] {
   const center = new THREE.Vector3()
   centroids.forEach((c) => center.add(c))
   center.multiplyScalar(1 / (centroids.length || 1))
-  return centroids.map((c) => {
+  return centroids.map((c, r) => {
     const hx = c.x - center.x, hz = c.z - center.z
     const hlen = Math.hypot(hx, hz) || 1
-    return new THREE.Vector3((hx / hlen) * ORBIT_H, ORBIT_ELEV, (hz / hlen) * ORBIT_H).normalize()
+    // Achterste band (band 2 = regio 2 & 5) hoger van bovenaf bekijken; bij de
+    // lage hoek kijk je daar anders onder de geclipte rand door (onderkant zichtbaar).
+    const elev = (r % 3 === 2) ? ORBIT_ELEV_BACK : ORBIT_ELEV
+    return new THREE.Vector3((hx / hlen) * ORBIT_H, elev, (hz / hlen) * ORBIT_H).normalize()
   })
 }
 
