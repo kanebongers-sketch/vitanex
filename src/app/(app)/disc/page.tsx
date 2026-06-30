@@ -149,7 +149,7 @@ function RadarDiagram({ scores, primair }: RadarProps) {
     }))
     const labels = DIMS.map(d => {
       const ap = axPunkt(d)
-      const anchor = axisAngles[d] === 0 ? 'start' : axisAngles[d] === 180 ? 'end' : 'middle'
+      const anchor: 'start' | 'end' | 'middle' = axisAngles[d] === 0 ? 'start' : axisAngles[d] === 180 ? 'end' : 'middle'
       const dy = axisAngles[d] === -90 ? -4 : axisAngles[d] === 90 ? 12 : 4
       return { dim: d, x: ap.x, y: ap.y + dy, anchor }
     })
