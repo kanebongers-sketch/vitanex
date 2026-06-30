@@ -1,13 +1,19 @@
-﻿'use client'
+'use client'
 
 export const dynamic = 'force-dynamic'
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import {
+  Flame, Trophy, CalendarDays, Smile, Moon, Target, CheckCircle2,
+  Sparkles, Sprout, Brain, Award, ChevronRight, type LucideIcon,
+} from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
+import { Card } from '@/components/ui/Card'
+import { Chart } from '@/components/ui/Chart'
 
 interface WeekStats {
   week: string
@@ -22,6 +28,43 @@ interface StreakData {
   huidige_streak: number
   langste_streak: number
   totaal_dagen: number
+}
+
+/**
+ * Bereken huidige + langste streak in één enkele pass over de
+ * (aflopend gesorteerde) check-in datums. Vervangt de eerdere
+ * dubbele O(n) lus met herhaalde Date-allocaties.
+ */
+function berekenStreaks(datumsAflopend: readonly string[]): StreakData {
+  const totaal = datumsAflopend.length
+  if (totaal === 0) return { huidige_streak: 0, langste_streak: 0, totaal_dagen: 0 }
+
+  const vandaagStr = new Date().toISOString().slice(0, 10)
+  const gisterStr = new Date(Date.now() - 86400000).toISOString().slice(0, 10)
+  const startTeltVoorHuidig = datumsAflopend[0] === vandaagStr || datumsAflopend[0] === gisterStr
+
+  let langst = 1
+  let lopend = 1
+  let huidig = startTeltVoorHuidig ? 1 : 0
+  let huidigNogActief = startTeltVoorHuidig
+
+  for (let i = 1; i < totaal; i++) {
+    const prevMs = new Date(datumsAflopend[i - 1]).getTime()
+    const currMs = new Date(datumsAflopend[i]).getTime()
+    const diff = Math.round((prevMs - currMs) / 86400000)
+
+    if (diff <= 1) {
+      lopend++
+      if (huidigNogActief) huidig++
+    } else {
+      if (lopend > langst) langst = lopend
+      lopend = 1
+      huidigNogActief = false
+    }
+  }
+  if (lopend > langst) langst = lopend
+
+  return { huidige_streak: huidig, langste_streak: langst, totaal_dagen: totaal }
 }
 
 export default function VoortgangPage() {
@@ -69,42 +112,13 @@ export default function VoortgangPage() {
         stress_logs: (stressData.logs ?? []).length,
       })
 
-      // Streak berekening op basis van check-ins
+      // Streak berekening op basis van check-ins (één pass)
       const checkinDatums = checkins
         .map((c: { aangemaakt_op: string }) => c.aangemaakt_op.slice(0, 10))
         .sort()
         .reverse()
 
-      let huidig = 0
-      let langst = 0
-      let huidigTeller = 0
-      const vandaagStr = new Date().toISOString().slice(0, 10)
-      const gisterStr = new Date(Date.now() - 86400000).toISOString().slice(0, 10)
-
-      if (checkinDatums.length > 0 && (checkinDatums[0] === vandaagStr || checkinDatums[0] === gisterStr)) {
-        huidigTeller = 1
-        for (let i = 1; i < checkinDatums.length; i++) {
-          const prev = new Date(checkinDatums[i - 1])
-          const curr = new Date(checkinDatums[i])
-          const diff = Math.round((prev.getTime() - curr.getTime()) / 86400000)
-          if (diff <= 1) huidigTeller++
-          else break
-        }
-        huidig = huidigTeller
-      }
-
-      let tempStreak = 0
-      for (let i = 0; i < checkinDatums.length; i++) {
-        if (i === 0) { tempStreak = 1; continue }
-        const prev = new Date(checkinDatums[i - 1])
-        const curr = new Date(checkinDatums[i])
-        const diff = Math.round((prev.getTime() - curr.getTime()) / 86400000)
-        if (diff <= 1) tempStreak++
-        else { langst = Math.max(langst, tempStreak); tempStreak = 1 }
-      }
-      langst = Math.max(langst, tempStreak)
-
-      setStreak({ huidige_streak: huidig, langste_streak: langst, totaal_dagen: checkinDatums.length })
+      setStreak(berekenStreaks(checkinDatums))
 
       // Weekgemiddelden (laatste 4 weken)
       const weeks: WeekStats[] = []
@@ -138,9 +152,9 @@ export default function VoortgangPage() {
   }, [router])
 
   const METRICS = [
-    { label: 'Check-ins', waarde: totalen.checkins, eenheid: 'keer', kleur: 'var(--mf-green)', bg: 'var(--mf-green-light)', href: '/checkin' },
+    { label: 'Check-ins', waarde: totalen.checkins, eenheid: 'keer', kleur: 'var(--mentaforce-primary)', bg: 'var(--mentaforce-primary-light)', href: '/checkin' },
     { label: 'Focus', waarde: totalen.focus_minuten, eenheid: 'min', kleur: 'var(--mf-purple)', bg: 'var(--mf-purple-light)', href: '/focus' },
-    { label: 'Dankbaar', waarde: totalen.dankbaarheid, eenheid: '×', kleur: 'var(--mf-rose)', bg: 'var(--mf-rose-light)', href: '/dankbaarheid' },
+    { label: 'Dankbaar', waarde: totalen.dankbaarheid, eenheid: '×', kleur: 'var(--mf-red)', bg: 'var(--mf-red-light)', href: '/dankbaarheid' },
     { label: 'Stemming', waarde: totalen.stemming_logs, eenheid: 'logs', kleur: 'var(--mf-amber)', bg: 'var(--mf-amber-light)', href: '/stemming' },
     { label: 'Slaap', waarde: totalen.slaap_logs, eenheid: 'nachten', kleur: 'var(--mf-purple)', bg: 'var(--mf-purple-light)', href: '/slaap' },
     { label: 'Stress', waarde: totalen.stress_logs, eenheid: 'logs', kleur: 'var(--mf-red)', bg: 'var(--mf-red-light)', href: '/stress' },
@@ -148,8 +162,37 @@ export default function VoortgangPage() {
 
   const heeftData = totalen.checkins > 0 || totalen.stemming_logs > 0 || totalen.slaap_logs > 0
 
+  // Trend-metrieken met label/icoon (niet kleur-only) + één-pass delta.
+  const TRENDS: Array<{
+    label: string
+    Icon: LucideIcon
+    eenheid: string
+    kleur: string
+    decimalen: boolean
+    vals: (number | null)[]
+    yMax: number
+  }> = [
+    { label: 'Stemming', Icon: Smile, eenheid: '/5', kleur: 'var(--mf-amber)', decimalen: true, vals: weekStats.map(w => w.stemming), yMax: 5 },
+    { label: 'Slaap', Icon: Moon, eenheid: 'u', kleur: 'var(--mf-purple)', decimalen: true, vals: weekStats.map(w => w.slaap), yMax: 9 },
+    { label: 'Focus', Icon: Target, eenheid: 'm', kleur: 'var(--mentaforce-primary)', decimalen: false, vals: weekStats.map(w => (w.focus as number | null)), yMax: 120 },
+    { label: 'Check-ins', Icon: CheckCircle2, eenheid: '×', kleur: 'var(--mf-green)', decimalen: false, vals: weekStats.map(w => (w.checkins as number | null)), yMax: 7 },
+  ]
+
+  const STREAK_KAARTEN = streak ? [
+    { label: 'Huidige streak', waarde: streak.huidige_streak, suffix: 'dagen', kleur: 'var(--mentaforce-primary)', Icon: Flame },
+    { label: 'Langste streak', waarde: streak.langste_streak, suffix: 'dagen', kleur: 'var(--mf-amber)', Icon: Trophy },
+    { label: 'Totaal actief', waarde: streak.totaal_dagen, suffix: 'dagen', kleur: 'var(--mf-purple)', Icon: CalendarDays },
+  ] : []
+
+  const QUICK_LINKS: Array<{ href: string; label: string; tekst: string; kleur: string; Icon: LucideIcon }> = [
+    { href: '/inzichten', label: 'AI Inzichten', tekst: 'Persoonlijke analyse van jouw week', kleur: 'var(--mf-purple)', Icon: Sparkles },
+    { href: '/groeiplan', label: 'Groeiplan', tekst: 'AI-gegenereerd persoonlijk groeiplan', kleur: 'var(--mentaforce-primary)', Icon: Sprout },
+    { href: '/mentale-sterkte', label: 'Mentale sterkte', tekst: 'Quiz: hoe sterk ben jij mentaal?', kleur: 'var(--mf-purple)', Icon: Brain },
+    { href: '/achievements', label: 'Achievements', tekst: 'Bekijk jouw behaalde badges', kleur: 'var(--mf-amber)', Icon: Award },
+  ]
+
   return (
-    <div className="mf-mesh-bg" style={{ minHeight: '100vh' }}>
+    <div className="mf-mesh-bg" style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
       <Navbar />
       <main style={{ padding: '36px 20px 72px', maxWidth: 900, margin: '0 auto' }}>
 
@@ -159,8 +202,8 @@ export default function VoortgangPage() {
             <div style={{
               width: 100, height: 100, borderRadius: '50%',
               background: streak && streak.huidige_streak > 0
-                ? 'radial-gradient(circle, rgba(243,99,12,0.18) 0%, transparent 70%)'
-                : 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)',
+                ? 'radial-gradient(circle, color-mix(in srgb, var(--mf-amber) 22%, transparent) 0%, transparent 70%)'
+                : 'radial-gradient(circle, var(--mentaforce-primary-light) 0%, transparent 70%)',
             }} />
           </div>
           <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 4 }}>Mijn voortgang</h1>
@@ -171,13 +214,15 @@ export default function VoortgangPage() {
           <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 60 }}><div className="mf-spinner" /></div>
         ) : !heeftData ? (
           /* ── Empty state ─────────────────────────────────── */
-          <div style={{
-            background: 'var(--bg-card)', borderRadius: 24, padding: '56px 32px',
-            border: '2px dashed var(--border)', textAlign: 'center',
+          <Card style={{
+            borderRadius: 24, padding: '56px 32px',
+            border: '2px dashed var(--border-strong)', textAlign: 'center',
             boxShadow: 'var(--shadow-xs)', marginBottom: 20,
           }}>
             <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
-              <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
+              <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'var(--mentaforce-primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--mentaforce-primary)' }}>
+                <Sprout size={32} aria-hidden />
+              </div>
             </div>
             <p style={{ fontSize: 17, fontWeight: 800, color: 'var(--text-1)', marginBottom: 8 }}>
               Je reis begint hier
@@ -186,173 +231,121 @@ export default function VoortgangPage() {
               Doe je eerste check-in en log je stemming, slaap en focus. Jouw voortgang verschijnt hier zodra je data hebt verzameld.
             </p>
             <Link href="/checkin" style={{
-              display: 'inline-block',
-              background: 'linear-gradient(135deg, var(--mf-green-dark) 0%, var(--mf-green) 100%)',
-              color: 'white', fontWeight: 700, fontSize: 15,
-              padding: '14px 32px', borderRadius: 12, textDecoration: 'none',
-              boxShadow: '0 4px 16px rgba(29,158,117,0.35)',
+              display: 'inline-flex', alignItems: 'center', gap: 8,
+              background: 'var(--mentaforce-primary)',
+              color: 'var(--bg-app)', fontWeight: 700, fontSize: 15,
+              padding: '14px 32px', borderRadius: 'var(--radius-btn)', textDecoration: 'none',
             }}>
-              Start je eerste check-in →
+              Start je eerste check-in
+              <ChevronRight size={16} aria-hidden />
             </Link>
-          </div>
+          </Card>
         ) : (
           <>
             {/* Streak */}
             {streak && (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 20 }}>
-                {[
-                  { label: 'Huidige streak', waarde: streak.huidige_streak, suffix: 'dagen', kleur: 'var(--mf-green)', icon: '🔥' },
-                  { label: 'Langste streak', waarde: streak.langste_streak, suffix: 'dagen', kleur: 'var(--mf-amber)', icon: '🏆' },
-                  { label: 'Totaal actief', waarde: streak.totaal_dagen, suffix: 'dagen', kleur: 'var(--mf-purple)', icon: '📅' },
-                ].map(item => (
-                  <div key={item.label} style={{ background: 'var(--bg-card)', borderRadius: 16, border: '1px solid var(--border)', padding: '20px 22px', boxShadow: 'var(--shadow-xs)' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12, marginBottom: 20 }}>
+                {STREAK_KAARTEN.map(item => (
+                  <Card key={item.label} style={{ padding: '20px 22px', boxShadow: 'var(--shadow-xs)' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                      <span style={{ fontSize: 18 }}>{item.icon}</span>
+                      <span style={{ display: 'inline-flex', color: item.kleur }}><item.Icon size={18} aria-hidden /></span>
                       <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-3)' }}>{item.label}</p>
                     </div>
                     <p style={{ fontSize: 28, fontWeight: 800, color: item.kleur }}>{item.waarde}</p>
                     <p style={{ fontSize: 12, color: 'var(--text-3)' }}>{item.suffix}</p>
-                  </div>
+                  </Card>
                 ))}
               </div>
             )}
 
             {/* Totalen grid */}
-            <div style={{ background: 'var(--bg-card)', borderRadius: 16, border: '1px solid var(--border)', padding: '18px 22px', marginBottom: 20, boxShadow: 'var(--shadow-xs)' }}>
+            <Card style={{ padding: '18px 22px', marginBottom: 20, boxShadow: 'var(--shadow-xs)' }}>
               <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-3)', marginBottom: 16 }}>
                 Totaal gelogd (30 dagen)
               </p>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 12 }}>
                 {METRICS.map(m => (
-                  <Link key={m.label} href={m.href} style={{ textDecoration: 'none', borderRadius: 12, padding: '14px 16px', background: m.bg, border: `1px solid ${m.kleur}20`, display: 'block' }}>
+                  <Link key={m.label} href={m.href} style={{ textDecoration: 'none', borderRadius: 'var(--radius-md)', padding: '14px 16px', background: m.bg, border: `1px solid color-mix(in srgb, ${m.kleur} 30%, transparent)`, display: 'block' }}>
                     <p style={{ fontSize: 20, fontWeight: 800, color: m.kleur }}>{m.waarde} <span style={{ fontSize: 12, fontWeight: 500 }}>{m.eenheid}</span></p>
                     <p style={{ fontSize: 11, color: m.kleur, fontWeight: 600, marginTop: 2 }}>{m.label}</p>
                   </Link>
                 ))}
               </div>
-            </div>
+            </Card>
 
-            {/* Weektrends — visuele mini-charts */}
+            {/* Weektrends — Chart-primitive (lazy + sr-only datatabel) */}
             <div style={{ marginBottom: 20 }}>
               <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-3)', marginBottom: 12 }}>
                 Weektrend (4 weken)
               </p>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
-                {[
-                  {
-                    label: 'Stemming',
-                    icon: '😊',
-                    max: 5,
-                    kleur: (v: number | null) => v === null ? 'var(--bg-subtle)' : v >= 4 ? 'var(--mf-green)' : v >= 3 ? 'var(--mf-amber)' : 'var(--mf-red)',
-                    fmt: (v: number | null) => v !== null ? `${v}/5` : '—',
-                    vals: weekStats.map(w => w.stemming),
-                    hMax: 5,
-                  },
-                  {
-                    label: 'Slaap',
-                    icon: '😴',
-                    max: 9,
-                    kleur: (v: number | null) => v === null ? 'var(--bg-subtle)' : v >= 7 ? 'var(--mf-green)' : v >= 5 ? 'var(--mf-amber)' : 'var(--mf-red)',
-                    fmt: (v: number | null) => v !== null ? `${v}u` : '—',
-                    vals: weekStats.map(w => w.slaap),
-                    hMax: 9,
-                  },
-                  {
-                    label: 'Focus',
-                    icon: '🎯',
-                    max: 120,
-                    kleur: (v: number | null) => v === null ? 'var(--bg-subtle)' : v >= 60 ? 'var(--mf-purple)' : v > 0 ? 'var(--mf-amber)' : 'var(--bg-subtle)',
-                    fmt: (v: number | null) => v !== null && v > 0 ? `${v}m` : '—',
-                    vals: weekStats.map(w => w.focus as number | null),
-                    hMax: 120,
-                  },
-                  {
-                    label: 'Check-ins',
-                    icon: '✅',
-                    max: 7,
-                    kleur: (v: number | null) => v === null ? 'var(--bg-subtle)' : v >= 5 ? 'var(--mf-green)' : v >= 3 ? 'var(--mf-amber)' : v > 0 ? 'var(--mf-red)' : 'var(--bg-subtle)',
-                    fmt: (v: number | null) => v !== null ? `${v}×` : '—',
-                    vals: weekStats.map(w => w.checkins as number | null),
-                    hMax: 7,
-                  },
-                ].map(metric => {
-                  const latest = [...metric.vals].reverse().find(v => v !== null) ?? null
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 10 }}>
+                {TRENDS.map(metric => {
                   const geldigVals = metric.vals.filter((v): v is number => v !== null && v > 0)
-                  const huidig = geldigVals[geldigVals.length - 1] ?? null
+                  const latest = geldigVals[geldigVals.length - 1] ?? null
                   const vorig = geldigVals[geldigVals.length - 2] ?? null
-                  const delta = huidig !== null && vorig !== null ? huidig - vorig : null
+                  const delta = latest !== null && vorig !== null ? latest - vorig : null
                   const deltaStr = delta !== null
-                    ? `${delta >= 0 ? '+' : ''}${metric.hMax <= 10 ? delta.toFixed(1) : Math.round(delta)}`
+                    ? `${delta >= 0 ? '+' : ''}${metric.decimalen ? delta.toFixed(1) : Math.round(delta)}`
                     : null
-                  const deltaKleur = delta === null ? 'var(--text-4)'
-                    : metric.label === 'Stress' ? (delta < 0 ? 'var(--mf-green)' : 'var(--mf-red)')
-                    : (delta > 0 ? 'var(--mf-green)' : 'var(--mf-red)')
-                  const deltaArrow = delta === null ? '' : delta > 0 ? '↑' : delta < 0 ? '↓' : '→'
+                  // Stress is hier niet aanwezig; hogere waarde = beter voor alle trends.
+                  const deltaKleur = delta === null ? 'var(--text-4)' : (delta > 0 ? 'var(--mf-green)' : delta < 0 ? 'var(--mf-red)' : 'var(--text-4)')
+                  const deltaArrow = delta === null ? '→' : delta > 0 ? '↑' : delta < 0 ? '↓' : '→'
+                  const latestLabel = latest !== null ? `${metric.decimalen ? latest : Math.round(latest)}${metric.eenheid}` : '—'
+
+                  const chartData = weekStats.map(w => {
+                    const raw = metric.label === 'Stemming' ? w.stemming
+                      : metric.label === 'Slaap' ? w.slaap
+                      : metric.label === 'Focus' ? w.focus
+                      : w.checkins
+                    return { week: w.week, [metric.label]: raw }
+                  })
+
                   return (
-                    <div key={metric.label} style={{
-                      background: 'var(--bg-card)', borderRadius: 16,
-                      border: '1px solid var(--border)', padding: '16px',
-                      boxShadow: 'var(--shadow-xs)',
-                    }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, fontWeight: 700, color: 'var(--text-2)' }}>
-                          <span style={{ fontSize: 14 }}>{metric.icon}</span>{metric.label}
+                    <Card key={metric.label} style={{ padding: '16px', boxShadow: 'var(--shadow-xs)' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 700, color: 'var(--text-2)' }}>
+                          <span style={{ display: 'inline-flex', color: metric.kleur }}><metric.Icon size={14} aria-hidden /></span>
+                          {metric.label}
                         </span>
-                        <span style={{ fontSize: 13, fontWeight: 800, color: metric.kleur(latest) }}>
-                          {metric.fmt(latest)}
+                        <span style={{ fontSize: 13, fontWeight: 800, color: metric.kleur }}>
+                          {latestLabel}
                         </span>
                       </div>
-                      <div style={{ display: 'flex', gap: 5, alignItems: 'flex-end', height: 40 }}>
-                        {metric.vals.map((v, i) => {
-                          const h = v !== null && v > 0 ? Math.max(4, (v / metric.hMax) * 36) : 4
-                          const kleur = metric.kleur(v)
-                          const isLatest = i === metric.vals.length - 1
-                          return (
-                            <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
-                              <div style={{
-                                width: '100%', height: h, borderRadius: 3,
-                                background: v !== null && v > 0 ? kleur : 'var(--bg-subtle)',
-                                opacity: isLatest ? 1 : v !== null && v > 0 ? 0.5 : 0.25,
-                                transition: 'height 0.5s ease',
-                              }} />
-                            </div>
-                          )
-                        })}
-                      </div>
-                      <div style={{ display: 'flex', gap: 5, marginTop: 4 }}>
-                        {weekStats.map((w, i) => (
-                          <span key={i} style={{ flex: 1, fontSize: 8, color: 'var(--text-4)', textAlign: 'center', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{w.week}</span>
-                        ))}
-                      </div>
+                      <Chart
+                        type="bar"
+                        data={chartData}
+                        xKey="week"
+                        series={[{ key: metric.label, label: metric.label, color: metric.kleur }]}
+                        summary={`${metric.label} per week over de laatste 4 weken${metric.eenheid ? `, in ${metric.eenheid}` : ''}.`}
+                        yDomain={[0, metric.yMax]}
+                        height={120}
+                      />
                       {deltaStr && (
                         <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 4 }}>
                           <span style={{ fontSize: 11, fontWeight: 700, color: deltaKleur }}>{deltaArrow} {deltaStr}</span>
                           <span style={{ fontSize: 10, color: 'var(--text-4)' }}>vs vorige week</span>
                         </div>
                       )}
-                    </div>
+                    </Card>
                   )
                 })}
               </div>
             </div>
 
             {/* Quick links */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12 }}>
-              {[
-                { href: '/inzichten', label: 'AI Inzichten', tekst: 'Persoonlijke analyse van jouw week', kleur: 'var(--mf-purple)', icon: '✨' },
-                { href: '/groeiplan', label: 'Groeiplan', tekst: 'AI-gegenereerd persoonlijk groeiplan', kleur: 'var(--mf-green)', icon: '🌱' },
-                { href: '/mentale-sterkte', label: 'Mentale sterkte', tekst: 'Quiz: hoe sterk ben jij mentaal?', kleur: 'var(--mf-purple)', icon: '🧠' },
-                { href: '/achievements', label: 'Achievements', tekst: 'Bekijk jouw behaalde badges', kleur: 'var(--mf-amber)', icon: '🏅' },
-              ].map(item => (
-                <Link key={item.href} href={item.href} style={{ textDecoration: 'none', background: 'var(--bg-card)', borderRadius: 16, border: '1px solid var(--border)', padding: '18px 20px', display: 'flex', alignItems: 'center', gap: 14, boxShadow: 'var(--shadow-xs)' }}>
-                  <div style={{ width: 40, height: 40, borderRadius: 12, background: `${item.kleur}12`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, flexShrink: 0 }}>
-                    {item.icon}
-                  </div>
-                  <div>
-                    <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-1)', marginBottom: 2 }}>{item.label}</p>
-                    <p style={{ fontSize: 12, color: 'var(--text-3)' }}>{item.tekst}</p>
-                  </div>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginLeft: 'auto', flexShrink: 0, color: 'var(--text-4)' }}><polyline points="9 18 15 12 9 6"/></svg>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 12 }}>
+              {QUICK_LINKS.map(item => (
+                <Link key={item.href} href={item.href} className="mf-lift" style={{ textDecoration: 'none' }}>
+                  <Card style={{ padding: '18px 20px', display: 'flex', alignItems: 'center', gap: 14, boxShadow: 'var(--shadow-xs)' }}>
+                    <div style={{ width: 40, height: 40, borderRadius: 12, background: `color-mix(in srgb, ${item.kleur} 14%, transparent)`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: item.kleur, flexShrink: 0 }}>
+                      <item.Icon size={20} aria-hidden />
+                    </div>
+                    <div>
+                      <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-1)', marginBottom: 2 }}>{item.label}</p>
+                      <p style={{ fontSize: 12, color: 'var(--text-3)' }}>{item.tekst}</p>
+                    </div>
+                    <ChevronRight size={14} aria-hidden style={{ marginLeft: 'auto', flexShrink: 0, color: 'var(--text-4)' }} />
+                  </Card>
                 </Link>
               ))}
             </div>
@@ -362,4 +355,3 @@ export default function VoortgangPage() {
     </div>
   )
 }
-

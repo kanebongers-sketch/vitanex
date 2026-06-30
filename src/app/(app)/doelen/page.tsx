@@ -2,12 +2,12 @@
 
 export const dynamic = 'force-dynamic'
 
-import React, { useEffect, useRef, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { Target, Sparkles, Plus, Check, X, Flame, ChevronRight } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
-import { Suspense } from 'react'
-import { verwerkGoalLog, LEVEL_KLEUREN, LEVEL_NAMEN, type Achievement } from '@/lib/xp'
+import { verwerkGoalLog, LEVEL_NAMEN, type Achievement } from '@/lib/xp'
 import {
   type WellbeingCat, type WeekDoel, type WeekSelectie,
   vandaag, laadWeekSelectie, slaWeekSelectieOp, isVandaagGelogd, logVandaag,
@@ -15,29 +15,36 @@ import {
 } from '@/lib/weekdoelen'
 import { CAT } from '@/lib/doelen-config'
 import { authFetch } from '@/lib/auth-fetch'
+import { vitaEvent } from '@/lib/vita/events'
+import { Card } from '@/components/ui/Card'
+import { Button } from '@/components/ui/Button'
+import { Badge } from '@/components/ui/Badge'
+import { Field } from '@/components/ui/Field'
+import { Textarea } from '@/components/ui/Textarea'
+import { useToast } from '@/components/ui/Toast'
+import {
+  DialogRoot, DialogContent, DialogTitle, DialogDescription,
+} from '@/components/ui/Dialog'
 
 
 type DoelenAdvies = { domein: string; doel: string; waarom: string }
 
 const DOMEIN_KLEUR: Record<string, string> = {
   slaap: 'var(--mf-purple)', stress: 'var(--mf-red)', energie: 'var(--mf-amber)',
-  focus: 'var(--mf-green)', balans: 'var(--mf-purple)', motivatie: 'var(--mf-rose)',
+  focus: 'var(--mf-green)', balans: 'var(--mf-purple)', motivatie: 'var(--mf-red)',
 }
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 function DoelenInhoud() {
   const router = useRouter()
+  const { toast } = useToast()
   const [klaar, setKlaar]         = useState(false)
   const [selectie, setSelectie]   = useState<WeekSelectie | null>(null)
 
   // Log modal
   const [logModal, setLogModal]   = useState<{ doel: WeekDoel } | null>(null)
   const [logNotitie, setLogNotitie] = useState('')
-
-  // XP toast
-  const [xpToast, setXpToast]     = useState<{ xp: number; level?: number; achievements: Achievement[] } | null>(null)
-  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // AI doelen-advies
   const [adviezen, setAdviezen] = useState<DoelenAdvies[] | null>(null)
@@ -51,8 +58,12 @@ function DoelenInhoud() {
       if (res.ok) {
         const data = await res.json() as { adviezen: DoelenAdvies[] }
         setAdviezen(data.adviezen ?? [])
+      } else {
+        toast({ title: 'Suggesties laden mislukt', description: 'Probeer het later opnieuw.', variant: 'error' })
       }
-    } catch { /* stil */ } finally {
+    } catch {
+      toast({ title: 'Suggesties laden mislukt', description: 'Controleer je verbinding en probeer opnieuw.', variant: 'error' })
+    } finally {
       setAdviesBezig(false)
     }
   }
@@ -68,9 +79,11 @@ function DoelenInhoud() {
   }, [router])
 
   function toonXPToast(xp: number, level: number | undefined, achievements: Achievement[]) {
-    if (toastTimer.current) clearTimeout(toastTimer.current)
-    setXpToast({ xp, level, achievements })
-    toastTimer.current = setTimeout(() => setXpToast(null), 4000)
+    const titel = level ? `Level ${level} — ${LEVEL_NAMEN[level]}!` : `+${xp} XP verdiend!`
+    const beschrijving = achievements.length > 0
+      ? `Nieuwe badge: ${achievements.map(a => a.naam).join(', ')}`
+      : level ? `+${xp} XP verdiend` : undefined
+    toast({ title: titel, description: beschrijving, variant: 'success' })
   }
 
   // ── Log opslaan (boolean) ────────────────────────────────────────────────
@@ -92,6 +105,15 @@ function DoelenInhoud() {
     setLogNotitie('')
 
     if (gehaald) {
+      vitaEvent('habit_completed', { kind: 'doel' })
+
+      // Volledig doel behaald wanneer alle 7 dagen gehaald zijn voor dit doel.
+      const bijgewerktDoel = bijgewerkt.doelen.find(d => d.vlak === doel.vlak)
+      const aantalGehaald = bijgewerktDoel?.logs.filter(l => l.gehaald === true).length ?? 0
+      if (aantalGehaald >= 7) {
+        vitaEvent('goal_achieved')
+      }
+
       const xpResult = verwerkGoalLog(1)
       if (xpResult.xpGewonnen > 0 || xpResult.nieuweAchievements.length > 0) {
         toonXPToast(xpResult.xpGewonnen, xpResult.levelOmhoog ? xpResult.nieuwLevel : undefined, xpResult.nieuweAchievements)
@@ -111,26 +133,6 @@ function DoelenInhoud() {
     </div>
   )
 
-  // ── XP Toast ─────────────────────────────────────────────────────────────
-
-  const XPToastUI = xpToast && (
-    <div style={{
-      position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)',
-      zIndex: 1000, background: 'var(--bg-card)', borderRadius: 16, border: '1.5px solid var(--border)',
-      boxShadow: '0 8px 32px rgba(0,0,0,0.14)', padding: '14px 20px', minWidth: 240,
-    }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-        <div style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--mf-green-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--mf-green)' }}><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-        </div>
-        <div>
-          <p style={{ fontSize: 14, fontWeight: 800, color: 'var(--mf-green)' }}>+{xpToast.xp} XP verdiend!</p>
-          {xpToast.level && <p style={{ fontSize: 11, color: LEVEL_KLEUREN[xpToast.level] }}>Level {xpToast.level} — {LEVEL_NAMEN[xpToast.level]}!</p>}
-        </div>
-      </div>
-    </div>
-  )
-
   // ── Geen doelen (nog geen check-in) ──────────────────────────────────────
 
   if (!selectie || !selectie.doelen.length) {
@@ -139,11 +141,9 @@ function DoelenInhoud() {
         <Navbar />
         <main style={{ maxWidth: 720, margin: '0 auto', padding: '60px 24px', textAlign: 'center' }}>
           <div style={{ position: 'relative', width: 64, height: 64, margin: '0 auto 20px' }}>
-            <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 100, height: 100, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)', zIndex: 0 }} />
-            <div style={{ width: 64, height: 64, borderRadius: 20, background: 'var(--mf-green-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--mf-green)', position: 'relative', zIndex: 1 }}>
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>
-              </svg>
+            <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 100, height: 100, borderRadius: '50%', background: 'radial-gradient(circle, var(--mentaforce-primary-light) 0%, transparent 70%)', zIndex: 0 }} />
+            <div style={{ width: 64, height: 64, borderRadius: 20, background: 'var(--mentaforce-primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--mentaforce-primary)', position: 'relative', zIndex: 1 }}>
+              <Target size={28} aria-hidden />
             </div>
           </div>
           <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', marginBottom: 10 }}>Nog geen doelen</h1>
@@ -152,11 +152,11 @@ function DoelenInhoud() {
           </p>
           <a href="/checkin" style={{
             display: 'inline-flex', alignItems: 'center', gap: 8,
-            background: 'var(--mf-green)', color: 'white', borderRadius: 14,
+            background: 'var(--mentaforce-primary)', color: 'var(--bg-app)', borderRadius: 'var(--radius-btn)',
             padding: '14px 28px', fontSize: 15, fontWeight: 700, textDecoration: 'none',
           }}>
             Start check-in
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            <ChevronRight size={16} aria-hidden />
           </a>
         </main>
       </div>
@@ -187,8 +187,8 @@ function DoelenInhoud() {
             <p style={{ fontSize: 13, color: 'var(--text-4)' }}>{weekLabel} · AI-geselecteerde doelen</p>
           </div>
           <a href="/checkin" style={{
-            fontSize: 13, color: 'var(--mf-green)', padding: '8px 16px', borderRadius: 10,
-            background: 'var(--mf-green-light)', border: '1px solid #A7F3D0',
+            fontSize: 13, color: 'var(--mentaforce-primary)', padding: '8px 16px', borderRadius: 'var(--radius-btn)',
+            background: 'var(--mentaforce-primary-light)', border: '1px solid var(--mentaforce-primary)',
             cursor: 'pointer', fontWeight: 600, textDecoration: 'none',
             display: 'inline-flex', alignItems: 'center', gap: 6,
           }}>
@@ -198,11 +198,11 @@ function DoelenInhoud() {
 
         {/* Domein scores */}
         {selectie.vlak_scores && Object.keys(selectie.vlak_scores).length > 0 && (
-          <div style={{ background: 'var(--bg-card)', borderRadius: 16, padding: '18px 22px', border: '1px solid var(--border)', marginBottom: 20 }}>
+          <Card style={{ padding: '18px 22px', marginBottom: 20 }}>
             <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-4)', marginBottom: 12 }}>
               Jouw scores deze week
             </p>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 10 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(80px, 1fr))', gap: 10 }}>
               {(Object.keys(CAT) as WellbeingCat[]).map(vlak => {
                 const c = CAT[vlak]
                 const score = selectie.vlak_scores?.[vlak] ?? 0
@@ -213,7 +213,7 @@ function DoelenInhoud() {
                       background: score ? c.bg : 'var(--bg-subtle)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       color: score ? c.kleur : 'var(--text-4)', margin: '0 auto 6px',
-                      border: `1.5px solid ${score ? c.kleur + '30' : 'var(--border)'}`,
+                      border: `1.5px solid ${score ? 'color-mix(in srgb, ' + c.kleur + ' 30%, transparent)' : 'var(--border)'}`,
                     }}>
                       <span style={{ transform: 'scale(0.85)', display: 'flex' }}>{c.icon}</span>
                     </div>
@@ -227,37 +227,27 @@ function DoelenInhoud() {
                 )
               })}
             </div>
-          </div>
+          </Card>
         )}
 
         {/* AI Doelen-advies */}
-        <div style={{ background: 'var(--bg-card)', borderRadius: 16, border: '1px solid var(--border)', padding: '18px 22px', marginBottom: 20 }}>
+        <Card style={{ padding: '18px 22px', marginBottom: 20 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <div style={{ width: 28, height: 28, borderRadius: 8, background: 'var(--mf-purple-light)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--mf-purple)' }}>
-                  <circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/>
-                </svg>
+              <div style={{ width: 28, height: 28, borderRadius: 8, background: 'var(--mentaforce-primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--mentaforce-primary)' }}>
+                <Sparkles size={14} aria-hidden />
               </div>
               <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-2)' }}>AI Weekdoel-suggesties</p>
             </div>
             {!adviezen && (
-              <button
-                onClick={laadAdviezen}
-                disabled={adviesBezig}
-                style={{
-                  fontSize: 12, fontWeight: 600, padding: '6px 14px', borderRadius: 8,
-                  background: 'var(--mf-purple)', color: 'white', border: 'none', cursor: 'pointer',
-                  opacity: adviesBezig ? 0.6 : 1,
-                }}
-              >
+              <Button size="sm" onClick={laadAdviezen} loading={adviesBezig} disabled={adviesBezig}>
                 {adviesBezig ? 'Laden...' : 'Genereer suggesties'}
-              </button>
+              </Button>
             )}
             {adviezen && (
-              <button onClick={() => setAdviezen(null)} style={{ fontSize: 11, color: 'var(--text-4)', background: 'none', border: 'none', cursor: 'pointer' }}>
+              <Button size="sm" variant="ghost" onClick={() => setAdviezen(null)}>
                 Verbergen
-              </button>
+              </Button>
             )}
           </div>
 
@@ -275,11 +265,11 @@ function DoelenInhoud() {
           )}
 
           {adviezen && adviezen.length > 0 && (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 10 }}>
               {adviezen.map((a, i) => {
-                const kleur = DOMEIN_KLEUR[a.domein] ?? 'var(--mf-purple)'
+                const kleur = DOMEIN_KLEUR[a.domein] ?? 'var(--mentaforce-primary)'
                 return (
-                  <div key={i} style={{ borderRadius: 12, padding: '12px 14px', background: `${kleur}0A`, border: `1px solid ${kleur}30` }}>
+                  <div key={i} style={{ borderRadius: 'var(--radius-md)', padding: '12px 14px', background: `color-mix(in srgb, ${kleur} 6%, transparent)`, border: `1px solid color-mix(in srgb, ${kleur} 30%, transparent)` }}>
                     <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: kleur }}>
                       {a.domein}
                     </span>
@@ -294,10 +284,10 @@ function DoelenInhoud() {
           {adviezen && adviezen.length === 0 && (
             <p style={{ fontSize: 12, color: 'var(--text-4)' }}>Geen suggesties beschikbaar. Doe eerst een check-in.</p>
           )}
-        </div>
+        </Card>
 
         {/* 3 doelkaarten */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 20 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16, marginBottom: 20 }}>
           {selectie.doelen.map(doel => {
             const c = CAT[doel.vlak] ?? { label: doel.vlak, kleur: 'var(--text-3)', bg: 'var(--bg-subtle)', licht: 'var(--bg-subtle)', icon: null }
             const gelogd = isVandaagGelogd(doel)
@@ -310,11 +300,11 @@ function DoelenInhoud() {
             }).length
 
             return (
-              <div key={doel.vlak} style={{
-                background: 'var(--bg-card)', borderRadius: 20,
-                border: `2px solid ${gelogd ? c.kleur + '40' : 'var(--border)'}`,
+              <Card key={doel.vlak} style={{
+                borderRadius: 20,
+                border: `2px solid ${gelogd ? 'color-mix(in srgb, ' + c.kleur + ' 40%, transparent)' : 'var(--border)'}`,
                 padding: '22px 22px 20px',
-                boxShadow: gelogd ? `0 4px 20px ${c.kleur}12` : '0 1px 4px rgba(0,0,0,0.04)',
+                boxShadow: gelogd ? `0 4px 20px color-mix(in srgb, ${c.kleur} 12%, transparent)` : 'var(--shadow-card)',
                 display: 'flex', flexDirection: 'column', gap: 14,
               }}>
                 {/* Vlak badge */}
@@ -331,10 +321,11 @@ function DoelenInhoud() {
                       background: gehaaldVandaag ? c.kleur : 'var(--bg-subtle)',
                       border: `2px solid ${gehaaldVandaag ? c.kleur : 'var(--border)'}`,
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      color: gehaaldVandaag ? 'var(--bg-app)' : 'var(--text-3)',
                     }}>
                       {gehaaldVandaag
-                        ? <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                        : <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--text-3)' }}><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        ? <Check size={12} strokeWidth={3} aria-hidden />
+                        : <X size={12} strokeWidth={3} aria-hidden />
                       }
                     </div>
                   )}
@@ -361,13 +352,9 @@ function DoelenInhoud() {
                         else break
                       }
                       return streak > 0 ? (
-                        <span style={{
-                          display: 'inline-flex', alignItems: 'center', gap: 3,
-                          fontSize: 10, fontWeight: 700, color: 'var(--mf-red)',
-                          background: 'var(--mf-red-light)', borderRadius: 100, padding: '2px 8px',
-                        }}>
-                          🔥 {streak} dag{streak !== 1 ? 'en' : ''} op rij
-                        </span>
+                        <Badge variant="danger">
+                          <Flame size={11} aria-hidden /> {streak} dag{streak !== 1 ? 'en' : ''} op rij
+                        </Badge>
                       ) : null
                     })()}
                   </div>
@@ -379,7 +366,7 @@ function DoelenInhoud() {
                     <span style={{ fontSize: 11, color: 'var(--text-4)' }}>Deze week</span>
                     <span style={{ fontSize: 11, fontWeight: 700, color: c.kleur }}>{aantalGehaald}/7 dagen</span>
                   </div>
-                  <div style={{ display: 'flex', gap: 3 }}>
+                  <div style={{ display: 'flex', gap: 3 }} role="img" aria-label={`${aantalGehaald} van 7 dagen gehaald deze week`}>
                     {weekDagen.map((dag, i) => {
                       const log = doel.logs.find(l => l.datum === dag)
                       const gehaald = log?.gehaald === true
@@ -387,7 +374,7 @@ function DoelenInhoud() {
                       return (
                         <div key={i} style={{
                           flex: 1, height: 20, borderRadius: 4,
-                          background: gehaald ? c.kleur : log ? 'var(--bg-subtle)' : 'var(--bg-subtle)',
+                          background: gehaald ? c.kleur : 'var(--bg-subtle)',
                           border: isVandaagDag && !gelogd ? `1.5px dashed ${c.kleur}` : 'none',
                         }} />
                       )
@@ -397,47 +384,49 @@ function DoelenInhoud() {
 
                 {/* Log knop */}
                 {gelogd ? (
-                  <div style={{ borderRadius: 10, padding: '10px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: c.licht }}>
-                    <span style={{ fontSize: 13, fontWeight: 600, color: c.kleur }}>
-                      {gehaaldVandaag ? '✓ Doel gehaald!' : '✗ Niet gehaald'}
+                  <div style={{ borderRadius: 'var(--radius-md)', padding: '10px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: c.licht }}>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: c.kleur }}>
+                      {gehaaldVandaag
+                        ? <><Check size={14} strokeWidth={3} aria-hidden /> Doel gehaald!</>
+                        : <><X size={14} strokeWidth={3} aria-hidden /> Niet gehaald</>}
                     </span>
-                    <button
+                    <Button
+                      size="sm"
+                      variant="ghost"
                       onClick={() => openLog(doel)}
-                      style={{ fontSize: 11, color: c.kleur, background: 'transparent', border: `1px solid ${c.kleur}40`, borderRadius: 6, padding: '4px 10px', cursor: 'pointer', fontWeight: 600 }}
+                      style={{ color: c.kleur, border: `1px solid color-mix(in srgb, ${c.kleur} 40%, transparent)` }}
                     >
                       Aanpassen
-                    </button>
+                    </Button>
                   </div>
                 ) : (
-                  <button
+                  <Button
                     onClick={() => openLog(doel)}
+                    leftIcon={<Plus size={14} strokeWidth={2.5} aria-hidden />}
                     style={{
-                      width: '100%', padding: '12px', borderRadius: 12,
-                      background: `linear-gradient(135deg, ${c.kleur}, ${c.kleur}cc)`,
-                      color: 'white', fontSize: 14, fontWeight: 700, border: 'none', cursor: 'pointer',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                      boxShadow: `0 4px 12px ${c.kleur}40`,
-                      transition: 'transform 0.15s ease, box-shadow 0.15s ease',
+                      width: '100%',
+                      background: c.kleur,
+                      color: 'var(--bg-app)',
+                      boxShadow: `0 4px 12px color-mix(in srgb, ${c.kleur} 40%, transparent)`,
                     }}
                   >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                     Log vandaag (+15 XP)
-                  </button>
+                  </Button>
                 )}
-              </div>
+              </Card>
             )
           })}
         </div>
 
         {/* Samenvatting strip */}
-        <div style={{ background: 'var(--bg-card)', borderRadius: 16, padding: '16px 20px', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 16 }}>
-          <div style={{ flex: 1, display: 'flex', gap: 24 }}>
+        <Card style={{ padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+          <div style={{ flex: 1, display: 'flex', gap: 24, flexWrap: 'wrap' }}>
             {selectie.doelen.map(d => {
               const c = CAT[d.vlak]
               const gelogd = isVandaagGelogd(d)
               return (
                 <div key={d.vlak} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: gelogd ? c.kleur : 'var(--border)' }} />
+                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: gelogd ? c.kleur : 'var(--border-strong)' }} />
                   <span style={{ fontSize: 12, color: gelogd ? 'var(--text-2)' : 'var(--text-4)', fontWeight: gelogd ? 600 : 400 }}>{c.label}</span>
                 </div>
               )
@@ -446,85 +435,73 @@ function DoelenInhoud() {
           <p style={{ fontSize: 12, color: 'var(--text-4)' }}>
             {selectie.doelen.filter(d => isVandaagGelogd(d)).length}/3 vandaag gelogd
           </p>
-        </div>
+        </Card>
       </main>
 
       {/* Log modal */}
-      {logModal && (() => {
-        const { doel } = logModal
-        const c = CAT[doel.vlak] ?? { label: doel.vlak, kleur: 'var(--text-3)', bg: 'var(--bg-subtle)', licht: 'var(--bg-subtle)', icon: null }
-        const logEntry = logVandaag(doel)
-        return (
-          <div
-            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 50, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}
-            onClick={e => { if (e.target === e.currentTarget) setLogModal(null) }}
-          >
-            <div style={{ background: 'var(--bg-card)', width: '100%', maxWidth: 480, borderRadius: '24px 24px 0 0', padding: '24px 20px 40px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-                <div>
-                  <p style={{ fontSize: 11, color: c.kleur, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>{c.label}</p>
-                  <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-1)' }}>{doel.doel_titel}</h3>
-                </div>
-                <button onClick={() => setLogModal(null)} style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--bg-subtle)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" strokeWidth="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                </button>
-              </div>
+      <DialogRoot open={!!logModal} onOpenChange={(open) => { if (!open) setLogModal(null) }}>
+        {logModal && (() => {
+          const { doel } = logModal
+          const c = CAT[doel.vlak] ?? { label: doel.vlak, kleur: 'var(--text-3)', bg: 'var(--bg-subtle)', licht: 'var(--bg-subtle)', icon: null }
+          const logEntry = logVandaag(doel)
+          return (
+            <DialogContent>
+              <p style={{ fontSize: 11, color: c.kleur, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', margin: 0 }}>{c.label}</p>
+              <DialogTitle style={{ fontSize: 16, marginTop: 2 }}>{doel.doel_titel}</DialogTitle>
 
-              <p style={{ fontSize: 13, color: 'var(--text-3)', marginBottom: 16, lineHeight: 1.5 }}>{doel.doel_beschrijving}</p>
+              <DialogDescription>{doel.doel_beschrijving}</DialogDescription>
 
-              <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-2)', marginBottom: 12 }}>
+              <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-2)', margin: '16px 0 12px' }}>
                 Heb je vandaag <strong style={{ color: c.kleur }}>{doel.target_waarde} {doel.eenheid}</strong> gehaald?
               </p>
 
               {/* Gehaald / Niet gehaald knoppen */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
-                <button
+                <Button
                   onClick={() => logGehaald(doel, true)}
+                  leftIcon={<Check size={16} strokeWidth={3} aria-hidden />}
                   style={{
-                    padding: '14px', borderRadius: 14, border: `2px solid ${logEntry?.gehaald === true ? c.kleur : 'var(--border)'}`,
-                    background: logEntry?.gehaald === true ? c.kleur : 'var(--bg-card)',
-                    color: logEntry?.gehaald === true ? 'white' : 'var(--text-2)',
-                    fontSize: 14, fontWeight: 700, cursor: 'pointer',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                    padding: '14px', borderRadius: 'var(--radius-md)',
+                    border: `2px solid ${logEntry?.gehaald === true ? c.kleur : 'var(--border-strong)'}`,
+                    background: logEntry?.gehaald === true ? c.kleur : 'var(--bg-subtle)',
+                    color: logEntry?.gehaald === true ? 'var(--bg-app)' : 'var(--text-2)',
                   }}
                 >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                   Ja, gehaald
-                </button>
-                <button
+                </Button>
+                <Button
                   onClick={() => logGehaald(doel, false)}
+                  leftIcon={<X size={16} strokeWidth={3} aria-hidden />}
                   style={{
-                    padding: '14px', borderRadius: 14, border: `2px solid ${logEntry?.gehaald === false ? '#DC2626' : 'var(--border)'}`,
-                    background: logEntry?.gehaald === false ? 'var(--mf-red)' : 'var(--bg-card)',
-                    color: logEntry?.gehaald === false ? 'white' : 'var(--text-2)',
-                    fontSize: 14, fontWeight: 700, cursor: 'pointer',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                    padding: '14px', borderRadius: 'var(--radius-md)',
+                    border: `2px solid ${logEntry?.gehaald === false ? 'var(--mf-red)' : 'var(--border-strong)'}`,
+                    background: logEntry?.gehaald === false ? 'var(--mf-red)' : 'var(--bg-subtle)',
+                    color: logEntry?.gehaald === false ? 'var(--bg-app)' : 'var(--text-2)',
                   }}
                 >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                   Niet gehaald
-                </button>
+                </Button>
               </div>
 
-              <textarea
-                placeholder="Optionele notitie (hoe ging het?)"
-                value={logNotitie} onChange={e => setLogNotitie(e.target.value)}
-                rows={2}
-                style={{ width: '100%', border: '1px solid var(--border)', borderRadius: 10, padding: '10px 12px', fontSize: 13, outline: 'none', resize: 'none', boxSizing: 'border-box', background: 'var(--bg-card)', color: 'var(--text-2)' }}
-              />
-            </div>
-          </div>
-        )
-      })()}
-
-      {XPToastUI}
+              <Field label="Notitie (optioneel)">
+                <Textarea
+                  placeholder="Hoe ging het vandaag?"
+                  value={logNotitie}
+                  onChange={e => setLogNotitie(e.target.value)}
+                  rows={2}
+                />
+              </Field>
+            </DialogContent>
+          )
+        })()}
+      </DialogRoot>
     </div>
   )
 }
 
 export default function DoelenPage() {
   return (
-    <Suspense fallback={<div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><div className="mf-spinner" /></div>}>
+    <Suspense fallback={<div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-app)' }}><div className="mf-spinner" /></div>}>
       <DoelenInhoud />
     </Suspense>
   )
