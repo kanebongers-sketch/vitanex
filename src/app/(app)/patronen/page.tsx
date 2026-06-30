@@ -4,9 +4,15 @@ export const dynamic = 'force-dynamic'
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { ArrowLeft, FlaskConical, Lock } from 'lucide-react'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
 import { supabase } from '@/lib/supabase'
+import { Card } from '@/components/ui/Card'
+import { Badge } from '@/components/ui/Badge'
+import { EmptyState } from '@/components/ui/EmptyState'
+import { Progress } from '@/components/ui/Progress'
+import { Button } from '@/components/ui/Button'
 
 
 interface Patroon {
@@ -43,29 +49,18 @@ interface PatronenData {
   mijlpalen: Mijlpaal[]
 }
 
-function BetrouwbaarheidBadge({ niveau }: { niveau: 'laag' | 'middel' | 'hoog' }) {
-  const config = {
-    laag:   { label: 'Weinig data',    bg: 'var(--mf-amber-light)',  kleur: 'var(--mf-amber-dark)'  },
-    middel: { label: 'Groeiend beeld', bg: 'var(--mf-purple-light)', kleur: 'var(--mf-purple)'      },
-    hoog:   { label: 'Sterk patroon', bg: 'var(--mf-green-light)',  kleur: 'var(--mf-green-dark)'  },
-  }[niveau]
+const BETROUWBAARHEID_VARIANT: Record<
+  Patroon['betrouwbaarheid'],
+  { label: string; variant: 'warning' | 'accent' | 'success' }
+> = {
+  laag: { label: 'Weinig data', variant: 'warning' },
+  middel: { label: 'Groeiend beeld', variant: 'accent' },
+  hoog: { label: 'Sterk patroon', variant: 'success' },
+}
 
-  return (
-    <span
-      style={{
-        fontSize: 10,
-        fontWeight: 700,
-        padding: '2px 8px',
-        borderRadius: 20,
-        background: config.bg,
-        color: config.kleur,
-        textTransform: 'uppercase' as const,
-        letterSpacing: '0.06em',
-      }}
-    >
-      {config.label}
-    </span>
-  )
+function BetrouwbaarheidBadge({ niveau }: { niveau: Patroon['betrouwbaarheid'] }) {
+  const config = BETROUWBAARHEID_VARIANT[niveau]
+  return <Badge variant={config.variant}>{config.label}</Badge>
 }
 
 function StatKaart({ label, waarde, delta, kleur }: {
@@ -78,15 +73,7 @@ function StatKaart({ label, waarde, delta, kleur }: {
   const isNegatief = delta?.startsWith('-')
 
   return (
-    <div
-      style={{
-        background: 'var(--bg-card)',
-        border: '1px solid var(--border)',
-        borderRadius: 'var(--radius-md)',
-        padding: '16px 14px',
-        boxShadow: 'var(--shadow-xs)',
-      }}
-    >
+    <Card style={{ padding: '16px 14px' }}>
       <div style={{ fontSize: 11, color: 'var(--text-4)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 6 }}>
         {label}
       </div>
@@ -103,51 +90,7 @@ function StatKaart({ label, waarde, delta, kleur }: {
           {delta} vs. vorige periode
         </div>
       )}
-    </div>
-  )
-}
-
-function LegeStaat() {
-  return (
-    <div
-      style={{
-        textAlign: 'center',
-        padding: '56px 24px',
-        background: 'var(--bg-card)',
-        border: '1px solid var(--border)',
-        borderRadius: 'var(--radius-xl)',
-        boxShadow: 'var(--shadow-xs)',
-      }}
-    >
-      <div style={{ position: 'relative', display: 'inline-block', marginBottom: 16 }}>
-        <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 0, pointerEvents: 'none' }}>
-          <div style={{ width: 100, height: 100, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
-        </div>
-        <div style={{ fontSize: 48, position: 'relative', zIndex: 1 }}>🔬</div>
-      </div>
-      <h2 style={{ fontSize: 18, fontWeight: 800, color: 'var(--text-1)', margin: '0 0 10px' }}>
-        Nog geen patronen zichtbaar
-      </h2>
-      <p style={{ fontSize: 14, color: 'var(--text-3)', lineHeight: 1.6, maxWidth: 320, margin: '0 auto 24px' }}>
-        Log minimaal 7 dagen je stemming, slaap en sport. Dan ontdekken we wat jou écht meer energie en geluk geeft.
-      </p>
-      <a
-        href="/vandaag"
-        style={{
-          display: 'inline-block',
-          background: 'var(--mf-green)',
-          color: 'white',
-          fontWeight: 700,
-          fontSize: 14,
-          padding: '12px 24px',
-          borderRadius: 'var(--radius-btn)',
-          textDecoration: 'none',
-          boxShadow: '0 4px 12px rgba(29,158,117,0.3)',
-        }}
-      >
-        Start vandaag →
-      </a>
-    </div>
+    </Card>
   )
 }
 
@@ -192,6 +135,10 @@ export default function PatronenPage() {
         .patroon-kaart:nth-child(4) { animation-delay: 0.22s; }
         .patroon-kaart:nth-child(5) { animation-delay: 0.28s; }
         .patroon-kaart:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+        @media (prefers-reduced-motion: reduce) {
+          .patroon-kaart { animation: none; transition: none; }
+          .patroon-kaart:hover { transform: none; }
+        }
       `}</style>
 
       <Navbar />
@@ -202,7 +149,7 @@ export default function PatronenPage() {
           {/* Header */}
           <div style={{ marginBottom: 24 }}>
             <a href="/home" style={{ fontSize: 13, color: 'var(--text-4)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 4, marginBottom: 12 }}>
-              ← Terug
+              <ArrowLeft size={14} aria-hidden /> Terug
             </a>
             <h1 style={{ fontSize: 26, fontWeight: 800, color: 'var(--text-1)', margin: '0 0 6px', letterSpacing: '-0.5px' }}>
               Jouw patronen
@@ -253,10 +200,9 @@ export default function PatronenPage() {
               {(() => {
                 const totaal = data.samenvatting.totaal_checkins
                 const doel = 21
-                const pct = Math.min(100, Math.round((totaal / doel) * 100))
                 const kleur = totaal >= doel ? 'var(--mf-green)' : totaal >= 10 ? 'var(--mf-amber)' : 'var(--mf-purple)'
                 return (
-                  <div style={{ background: 'var(--bg-card)', borderRadius: 14, padding: '14px 16px', marginBottom: 20, border: '1px solid var(--border)' }}>
+                  <Card style={{ padding: '14px 16px', marginBottom: 20 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                       <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-4)' }}>
                         Patroonbetrouwbaarheid
@@ -265,15 +211,19 @@ export default function PatronenPage() {
                         {totaal >= doel ? 'Sterk ✓' : `${totaal}/${doel} check-ins`}
                       </span>
                     </div>
-                    <div style={{ height: 6, borderRadius: 9999, background: 'var(--border)', overflow: 'hidden' }}>
-                      <div style={{ height: '100%', width: `${pct}%`, borderRadius: 9999, background: kleur, transition: 'width 0.8s ease' }} />
-                    </div>
+                    <Progress
+                      value={totaal}
+                      max={doel}
+                      color={kleur}
+                      thickness={6}
+                      ariaLabel={`Patroonbetrouwbaarheid: ${totaal} van ${doel} check-ins`}
+                    />
                     {totaal < doel && (
                       <p style={{ fontSize: 10, color: 'var(--text-4)', marginTop: 5 }}>
                         Nog {doel - totaal} check-ins voor betrouwbare patronen
                       </p>
                     )}
-                  </div>
+                  </Card>
                 )
               })()}
 
@@ -283,28 +233,30 @@ export default function PatronenPage() {
               </h2>
 
               {data.patronen.length === 0 ? (
-                <LegeStaat />
+                <Card style={{ padding: 0 }}>
+                  <EmptyState
+                    icon={FlaskConical}
+                    title="Nog geen patronen zichtbaar"
+                    description="Log minimaal 7 dagen je stemming, slaap en sport. Dan ontdekken we wat jou écht meer energie en geluk geeft."
+                    action={
+                      <Button onClick={() => router.push('/vandaag')}>Start vandaag</Button>
+                    }
+                  />
+                </Card>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 24 }}>
                   {data.patronen.map((p) => (
-                    <div
+                    <Card
                       key={p.id}
                       className="patroon-kaart"
                       style={{
-                        background: 'var(--bg-card)',
-                        border: '1px solid var(--border)',
                         borderLeft: `4px solid ${p.kleur}`,
-                        borderRadius: 'var(--radius-card)',
                         padding: '18px 18px 16px',
-                        boxShadow: 'var(--shadow-xs)',
                       }}
                     >
                       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
-                        <div style={{ position: 'relative', flexShrink: 0, width: 32, height: 32 }}>
-                          <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 0, pointerEvents: 'none' }}>
-                            <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
-                          </div>
-                          <span style={{ fontSize: 28, lineHeight: 1, position: 'relative', zIndex: 1 }}>{p.emoji}</span>
+                        <div style={{ flexShrink: 0, width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <span style={{ fontSize: 28, lineHeight: 1 }} aria-hidden>{p.emoji}</span>
                         </div>
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 6 }}>
@@ -312,7 +264,7 @@ export default function PatronenPage() {
                               {p.titel}
                             </span>
                             {p.waarde && (
-                              <span style={{ fontSize: 12, fontWeight: 800, color: p.kleur, background: `${p.kleur}15`, padding: '2px 8px', borderRadius: 20 }}>
+                              <span style={{ fontSize: 12, fontWeight: 800, color: p.kleur, background: `${p.kleur}26`, padding: '2px 8px', borderRadius: 20 }}>
                                 {p.waarde}
                               </span>
                             )}
@@ -333,7 +285,7 @@ export default function PatronenPage() {
                           </div>
                         </div>
                       </div>
-                    </div>
+                    </Card>
                   ))}
                 </div>
               )}
@@ -354,11 +306,14 @@ export default function PatronenPage() {
                           borderRadius: 'var(--radius-md)',
                           padding: '12px 8px',
                           textAlign: 'center',
-                          opacity: m.bereikt ? 1 : 0.45,
-                          filter: m.bereikt ? 'none' : 'grayscale(0.5)',
+                          opacity: m.bereikt ? 1 : 0.55,
                         }}
                       >
-                        <div style={{ fontSize: 24, marginBottom: 4 }}>{m.bereikt ? m.emoji : '🔒'}</div>
+                        <div style={{ fontSize: 24, marginBottom: 4, display: 'flex', justifyContent: 'center' }}>
+                          {m.bereikt
+                            ? <span aria-hidden>{m.emoji}</span>
+                            : <Lock size={22} color="var(--text-4)" aria-hidden />}
+                        </div>
                         <div style={{ fontSize: 10, fontWeight: 700, color: m.bereikt ? 'var(--mf-green-dark)' : 'var(--text-4)', lineHeight: 1.3 }}>
                           {m.label}
                         </div>
@@ -372,7 +327,7 @@ export default function PatronenPage() {
               <div
                 style={{
                   background: 'var(--mf-green-light)',
-                  border: '1.5px solid rgba(29,158,117,0.25)',
+                  border: '1.5px solid var(--mf-green-mid)',
                   borderRadius: 'var(--radius-xl)',
                   padding: '20px',
                   textAlign: 'center',
