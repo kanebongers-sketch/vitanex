@@ -24,7 +24,7 @@ interface ENPSData {
 
 const NPS_KLEUR = (score: number | null) => {
   if (score === null) return 'var(--text-3)'
-  if (score >= 30) return 'var(--mf-green)'
+  if (score >= 20) return 'var(--mf-green)'
   if (score >= 0) return 'var(--mf-amber)'
   return 'var(--mf-red)'
 }
