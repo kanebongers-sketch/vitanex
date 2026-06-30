@@ -4,8 +4,11 @@ export const dynamic = 'force-dynamic'
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { CalendarRange } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
+import { Card } from '@/components/ui/Card'
+import { EmptyState } from '@/components/ui/EmptyState'
 
 import WeekRoosterView from '@/components/rooster/WeekRoosterView'
 import DienstKaart, { type Dienst } from '@/components/rooster/DienstKaart'
@@ -27,6 +30,8 @@ function weekLabel(ma: Date): string {
   zo.setDate(ma.getDate() + 6)
   return `${ma.toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' })} – ${zo.toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' })}`
 }
+
+const WEEK_TITELS = ['Deze week', 'Volgende week', 'Over 2 weken']
 
 export default function RoosterPage() {
   const router = useRouter()
@@ -102,100 +107,107 @@ export default function RoosterPage() {
 
   if (!geladen) {
     return (
-      <div style={{ minHeight: '100vh', background: 'var(--bg-subtle)' }}>
+      <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
         <Navbar />
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 300 }}>
-          <div style={{ color: 'var(--text-3)', fontSize: 14 }}>Rooster laden...</div>
+          <p style={{ color: 'var(--text-3)', fontSize: 14 }}>Rooster laden…</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-subtle)' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
       <Navbar />
       <div style={{ maxWidth: 900, margin: '0 auto', padding: '32px 16px' }}>
 
         {/* Header */}
-        <div style={{ marginBottom: 28 }}>
-          <h1 style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-1)', margin: 0 }}>Mijn Rooster</h1>
+        <header style={{ marginBottom: 28 }}>
+          <h1 style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-1)', margin: 0 }}>Mijn rooster</h1>
           <p style={{ color: 'var(--text-2)', fontSize: 14, marginTop: 4 }}>Hallo {naam}, hier zijn je geplande diensten.</p>
-        </div>
+        </header>
 
-        {/* Week tabs */}
-        <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
-          {wekenLabels.map((label, i) => (
-            <button
-              key={i}
-              onClick={() => setWeekOffset(i)}
-              style={{
-                padding: '7px 16px',
-                borderRadius: 20,
-                border: weekOffset === i ? '1.5px solid #1D9E75' : '1.5px solid #E5E7EB',
-                background: weekOffset === i ? 'var(--mf-green)' : '#fff',
-                color: weekOffset === i ? '#fff' : 'var(--text-2)',
-                fontSize: 13,
-                fontWeight: weekOffset === i ? 600 : 400,
-                cursor: 'pointer',
-                transition: 'all 0.15s',
-              }}
-            >
-              {i === 0 ? 'Deze week' : i === 1 ? 'Volgende week' : 'Over 2 weken'}
-              <span style={{ display: 'block', fontSize: 10, opacity: 0.8 }}>{label}</span>
-            </button>
-          ))}
+        {/* Week-keuze */}
+        <div role="group" aria-label="Week kiezen" style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
+          {WEEK_TITELS.map((titel, i) => {
+            const actief = weekOffset === i
+            return (
+              <button
+                key={i}
+                type="button"
+                aria-pressed={actief}
+                onClick={() => setWeekOffset(i)}
+                className="mf-pressable mf-week-tab"
+                style={{
+                  padding: '8px 16px',
+                  borderRadius: '100px',
+                  border: `1px solid ${actief ? 'var(--mentaforce-primary)' : 'var(--border-strong)'}`,
+                  background: actief ? 'var(--mentaforce-primary)' : 'var(--bg-card)',
+                  color: actief ? 'var(--bg-app)' : 'var(--text-2)',
+                  fontSize: 13,
+                  fontWeight: actief ? 600 : 500,
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                  transition: 'opacity 0.15s var(--ease)',
+                }}
+              >
+                {titel}
+                <span style={{ display: 'block', fontSize: 10, opacity: 0.8 }}>{wekenLabels[i]}</span>
+              </button>
+            )
+          })}
         </div>
 
         {/* Statistiek strip */}
-        <div
-          className="rounded-2xl border border-gray-100"
-          style={{ background: '#fff', padding: '14px 20px', marginBottom: 20, display: 'flex', gap: 32 }}
-        >
+        <Card style={{ padding: '14px 20px', marginBottom: 20, display: 'flex', gap: 32, flexWrap: 'wrap' }}>
           <div>
-            <div style={{ position: 'relative', display: 'inline-block' }}>
-              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
-                <div style={{ width: 60, height: 60, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
-              </div>
-              <div style={{ fontSize: 22, fontWeight: 700, color: 'var(--mf-green)', position: 'relative', zIndex: 1 }}>{dienstenDezePeriode.length}</div>
-            </div>
+            <div style={{ fontSize: 22, fontWeight: 700, color: 'var(--mentaforce-primary)' }}>{dienstenDezePeriode.length}</div>
             <div style={{ fontSize: 12, color: 'var(--text-2)' }}>diensten</div>
           </div>
           <div>
-            <div style={{ fontSize: 22, fontWeight: 700, color: 'var(--mf-green)' }}>{aantalUren.toFixed(1)}</div>
+            <div style={{ fontSize: 22, fontWeight: 700, color: 'var(--mentaforce-primary)' }}>{aantalUren.toFixed(1)}</div>
             <div style={{ fontSize: 12, color: 'var(--text-2)' }}>uur gepland</div>
           </div>
           <div>
-            <div style={{ fontSize: 22, fontWeight: 700, color: 'var(--mf-green)' }}>
+            <div style={{ fontSize: 22, fontWeight: 700, color: 'var(--mentaforce-primary)' }}>
               {weekLabel(gekozenMa).split('–')[0].trim()}
             </div>
             <div style={{ fontSize: 12, color: 'var(--text-2)' }}>week van</div>
           </div>
-        </div>
+        </Card>
 
         {/* Week grid */}
-        <div className="rounded-2xl border border-gray-100" style={{ background: '#fff', padding: 20, marginBottom: 24 }}>
+        <Card style={{ padding: 20, marginBottom: 24 }}>
           <WeekRoosterView diensten={diensten} weekStart={gekozenMa} toonNaam={false} />
-        </div>
+        </Card>
 
         {/* Lijst komende diensten */}
-        <div>
+        <section>
           <h2 style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-1)', marginBottom: 12 }}>
             Diensten deze periode
           </h2>
           {dienstenDezePeriode.length === 0 ? (
-            <div
-              className="rounded-2xl border border-gray-100"
-              style={{ background: '#fff', padding: '32px', textAlign: 'center', color: 'var(--text-3)' }}
-            >
-              Geen diensten gepland voor deze week.
-            </div>
+            <Card>
+              <EmptyState
+                icon={CalendarRange}
+                title="Geen diensten gepland"
+                description="Er zijn geen diensten gepland voor deze week."
+              />
+            </Card>
           ) : (
             dienstenDezePeriode.map(d => (
               <DienstKaart key={d.id} dienst={d} toonNaam={false} />
             ))
           )}
-        </div>
+        </section>
       </div>
+      <style>{`
+        .mf-week-tab:hover { opacity: 0.88; }
+        .mf-week-tab:focus-visible {
+          outline: 2px solid var(--mentaforce-primary);
+          outline-offset: 2px;
+        }
+      `}</style>
     </div>
   )
 }

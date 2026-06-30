@@ -4,8 +4,14 @@ export const dynamic = 'force-dynamic'
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { ArrowLeft, ArrowRight } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import HrShell from '@/components/layout/HrShell'
+import { Button } from '@/components/ui/Button'
+import { Card } from '@/components/ui/Card'
+import { Field } from '@/components/ui/Field'
+import { Input } from '@/components/ui/Input'
+import { useToast } from '@/components/ui/Toast'
 
 function maandag(datum: Date): Date {
   const d = new Date(datum)
@@ -21,6 +27,7 @@ function toYMD(d: Date): string {
 
 export default function NieuwRoosterPage() {
   const router = useRouter()
+  const { toast } = useToast()
   const [bedrijfId, setBedrijfId] = useState('')
   const [userId, setUserId] = useState('')
   const [naam, setNaam] = useState('')
@@ -66,7 +73,11 @@ export default function NieuwRoosterPage() {
       .select('id')
       .single()
     if (error || !data) {
-      setFout('Opslaan mislukt: ' + (error?.message ?? 'onbekende fout'))
+      toast({
+        title: 'Opslaan mislukt',
+        description: error?.message ?? 'Onbekende fout. Probeer het later opnieuw.',
+        variant: 'error',
+      })
       setBezig(false)
       return
     }
@@ -76,86 +87,49 @@ export default function NieuwRoosterPage() {
   return (
     <HrShell>
       <div style={{ maxWidth: 560, margin: '0 auto', padding: '32px 16px' }}>
-        <button
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={() => router.back()}
-          style={{ color: 'var(--text-2)', fontSize: 13, background: 'none', border: 'none', cursor: 'pointer', marginBottom: 20, padding: 0 }}
+          leftIcon={<ArrowLeft size={15} aria-hidden />}
+          style={{ marginBottom: 20, paddingLeft: 0 }}
         >
-          ← Terug
-        </button>
+          Terug
+        </Button>
 
         <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-1)', marginBottom: 24 }}>Nieuw rooster</h1>
 
-        <div className="rounded-2xl border border-gray-100" style={{ background: '#fff', padding: 24 }}>
+        <Card style={{ padding: 24 }}>
           <div style={{ marginBottom: 18 }}>
-            <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-2)', marginBottom: 6 }}>
-              Week
-            </label>
-            <input
-              type="date"
-              value={weekStart}
-              onChange={e => handleWeekChange(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '9px 12px',
-                borderRadius: 8,
-                border: '1.5px solid #E5E7EB',
-                fontSize: 14,
-                color: 'var(--text-1)',
-                outline: 'none',
-                boxSizing: 'border-box',
-              }}
-            />
-            <p style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 4 }}>
-              De datum wordt automatisch op de maandag van die week gezet.
-            </p>
+            <Field label="Week" hint="De datum wordt automatisch op de maandag van die week gezet.">
+              <Input
+                type="date"
+                value={weekStart}
+                onChange={e => handleWeekChange(e.target.value)}
+              />
+            </Field>
           </div>
 
           <div style={{ marginBottom: 24 }}>
-            <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-2)', marginBottom: 6 }}>
-              Naam rooster
-            </label>
-            <input
-              type="text"
-              value={naam}
-              onChange={e => setNaam(e.target.value)}
-              placeholder="bijv. Week 23 - Team A"
-              style={{
-                width: '100%',
-                padding: '9px 12px',
-                borderRadius: 8,
-                border: '1.5px solid #E5E7EB',
-                fontSize: 14,
-                color: 'var(--text-1)',
-                outline: 'none',
-                boxSizing: 'border-box',
-              }}
-            />
+            <Field label="Naam rooster" error={fout || undefined}>
+              <Input
+                type="text"
+                value={naam}
+                onChange={e => { setNaam(e.target.value); if (fout) setFout('') }}
+                placeholder="bijv. Week 23 - Team A"
+              />
+            </Field>
           </div>
 
-          {fout && (
-            <div style={{ background: 'var(--mf-red-light)', color: 'var(--mf-red)', borderRadius: 8, padding: '10px 14px', fontSize: 13, marginBottom: 16 }}>
-              {fout}
-            </div>
-          )}
-
-          <button
+          <Button
             onClick={opslaan}
-            disabled={bezig}
-            style={{
-              width: '100%',
-              background: bezig ? 'var(--text-3)' : 'var(--mf-green)',
-              color: '#fff',
-              padding: '11px',
-              borderRadius: 10,
-              border: 'none',
-              fontSize: 15,
-              fontWeight: 600,
-              cursor: bezig ? 'not-allowed' : 'pointer',
-            }}
+            loading={bezig}
+            rightIcon={<ArrowRight size={16} aria-hidden />}
+            style={{ width: '100%' }}
           >
-            {bezig ? 'Aanmaken...' : 'Rooster aanmaken →'}
-          </button>
-        </div>
+            {bezig ? 'Aanmaken…' : 'Rooster aanmaken'}
+          </Button>
+        </Card>
       </div>
     </HrShell>
   )

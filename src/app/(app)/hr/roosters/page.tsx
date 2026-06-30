@@ -5,8 +5,16 @@ export const dynamic = 'force-dynamic'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { CalendarDays, Plus, Pencil, Trash2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import HrShell from '@/components/layout/HrShell'
+import { Button } from '@/components/ui/Button'
+import { Card } from '@/components/ui/Card'
+import { EmptyState } from '@/components/ui/EmptyState'
+import { useToast } from '@/components/ui/Toast'
+import {
+  DialogRoot, DialogContent, DialogTitle, DialogDescription, DialogClose,
+} from '@/components/ui/Dialog'
 
 
 type Rooster = {
@@ -27,9 +35,11 @@ function weekLabel(weekStart: string): string {
 
 export default function HrRoostersPage() {
   const router = useRouter()
+  const { toast } = useToast()
   const [roosters, setRoosters] = useState<Rooster[]>([])
   const [geladen, setGeladen] = useState(false)
   const [verwijderBezig, setVerwijderBezig] = useState<string | null>(null)
+  const [teVerwijderen, setTeVerwijderen] = useState<Rooster | null>(null)
 
   useEffect(() => {
     async function laad() {
@@ -64,107 +74,110 @@ export default function HrRoostersPage() {
     laad()
   }, [router])
 
-  async function verwijder(id: string) {
-    if (!confirm('Rooster en alle diensten verwijderen?')) return
-    setVerwijderBezig(id)
-    await supabase.from('roosters').delete().eq('id', id)
-    setRoosters(prev => prev.filter(r => r.id !== id))
+  async function bevestigVerwijderen() {
+    const doel = teVerwijderen
+    if (!doel) return
+    setVerwijderBezig(doel.id)
+    const { error } = await supabase.from('roosters').delete().eq('id', doel.id)
+    if (error) {
+      toast({ title: 'Verwijderen mislukt', description: 'Probeer het later opnieuw.', variant: 'error' })
+      setVerwijderBezig(null)
+      return
+    }
+    setRoosters(prev => prev.filter(r => r.id !== doel.id))
     setVerwijderBezig(null)
+    setTeVerwijderen(null)
+    toast({ title: 'Rooster verwijderd', description: `"${doel.naam}" en alle diensten zijn verwijderd.`, variant: 'success' })
   }
 
   return (
     <HrShell>
       <div style={{ maxWidth: 860, margin: '0 auto', padding: '32px 16px' }}>
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 28 }}>
+        <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, marginBottom: 28 }}>
           <div>
             <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-1)', margin: 0 }}>Roosters</h1>
             <p style={{ color: 'var(--text-2)', fontSize: 13, marginTop: 4 }}>Beheer werkroosters per week</p>
           </div>
-          <Link
-            href="/hr/roosters/nieuw"
-            style={{
-              background: 'var(--mf-green)',
-              color: '#fff',
-              padding: '9px 20px',
-              borderRadius: 10,
-              fontSize: 14,
-              fontWeight: 600,
-              textDecoration: 'none',
-              display: 'inline-block',
-            }}
-          >
-            + Nieuw rooster
+          <Link href="/hr/roosters/nieuw" style={{ textDecoration: 'none' }}>
+            <Button leftIcon={<Plus size={16} aria-hidden />}>Nieuw rooster</Button>
           </Link>
-        </div>
+        </header>
 
         {!geladen ? (
-          <div style={{ color: 'var(--text-3)', textAlign: 'center', padding: 40 }}>Laden...</div>
+          <p style={{ color: 'var(--text-3)', textAlign: 'center', padding: 40 }}>Laden…</p>
         ) : roosters.length === 0 ? (
-          <div className="rounded-2xl border border-gray-100" style={{ background: '#fff', padding: 48, textAlign: 'center' }}>
-            <div style={{ position: 'relative', display: 'inline-block', marginBottom: 12 }}>
-              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
-                <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
-              </div>
-              <span style={{ fontSize: 32, position: 'relative', zIndex: 1 }}>📅</span>
-            </div>
-            <div style={{ color: 'var(--text-2)', fontWeight: 600, marginBottom: 6 }}>Nog geen roosters</div>
-            <div style={{ color: 'var(--text-3)', fontSize: 13, marginBottom: 20 }}>Maak je eerste rooster aan om diensten in te plannen.</div>
-            <Link href="/hr/roosters/nieuw" style={{ background: 'var(--mf-green)', color: '#fff', padding: '9px 20px', borderRadius: 10, fontSize: 14, fontWeight: 600, textDecoration: 'none' }}>
-              + Nieuw rooster
-            </Link>
-          </div>
+          <Card>
+            <EmptyState
+              icon={CalendarDays}
+              title="Nog geen roosters"
+              description="Maak je eerste rooster aan om diensten in te plannen."
+              action={
+                <Link href="/hr/roosters/nieuw" style={{ textDecoration: 'none' }}>
+                  <Button leftIcon={<Plus size={16} aria-hidden />}>Nieuw rooster</Button>
+                </Link>
+              }
+            />
+          </Card>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 10 }}>
             {roosters.map(r => (
-              <div
-                key={r.id}
-                className="rounded-2xl border border-gray-100"
-                style={{ background: '#fff', padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}
-              >
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 600, color: 'var(--text-1)', fontSize: 15 }}>{r.naam}</div>
-                  <div style={{ fontSize: 12, color: 'var(--text-2)', marginTop: 2 }}>
-                    {weekLabel(r.week_start)}
-                    <span style={{ marginLeft: 12, color: 'var(--text-3)' }}>{r.dienst_count} diensten</span>
+              <li key={r.id}>
+                <Card style={{ padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontWeight: 600, color: 'var(--text-1)', fontSize: 15 }}>{r.naam}</div>
+                    <div style={{ fontSize: 12, color: 'var(--text-2)', marginTop: 2 }}>
+                      {weekLabel(r.week_start)}
+                      <span style={{ marginLeft: 12, color: 'var(--text-3)' }}>{r.dienst_count} diensten</span>
+                    </div>
                   </div>
-                </div>
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <Link
-                    href={`/hr/roosters/${r.id}`}
-                    style={{
-                      padding: '6px 14px',
-                      borderRadius: 8,
-                      border: '1.5px solid #1D9E75',
-                      color: 'var(--mf-green)',
-                      fontSize: 13,
-                      fontWeight: 500,
-                      textDecoration: 'none',
-                    }}
-                  >
-                    Bewerken
-                  </Link>
-                  <button
-                    onClick={() => verwijder(r.id)}
-                    disabled={verwijderBezig === r.id}
-                    style={{
-                      padding: '6px 14px',
-                      borderRadius: 8,
-                      border: '1.5px solid #E5E7EB',
-                      color: 'var(--mf-red)',
-                      fontSize: 13,
-                      background: 'transparent',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    {verwijderBezig === r.id ? '...' : 'Verwijder'}
-                  </button>
-                </div>
-              </div>
+                  <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+                    <Link href={`/hr/roosters/${r.id}`} style={{ textDecoration: 'none' }}>
+                      <Button variant="secondary" size="sm" leftIcon={<Pencil size={15} aria-hidden />}>
+                        Bewerken
+                      </Button>
+                    </Link>
+                    <Button
+                      variant="danger"
+                      size="sm"
+                      onClick={() => setTeVerwijderen(r)}
+                      leftIcon={<Trash2 size={15} aria-hidden />}
+                      aria-label={`Rooster "${r.naam}" verwijderen`}
+                    >
+                      Verwijder
+                    </Button>
+                  </div>
+                </Card>
+              </li>
             ))}
-          </div>
+          </ul>
         )}
       </div>
+
+      {/* Verwijderbevestiging */}
+      <DialogRoot open={!!teVerwijderen} onOpenChange={(open) => { if (!open) setTeVerwijderen(null) }}>
+        <DialogContent>
+          <DialogTitle>Rooster verwijderen?</DialogTitle>
+          <DialogDescription>
+            {teVerwijderen
+              ? `"${teVerwijderen.naam}" en alle bijbehorende diensten worden definitief verwijderd. Dit kan niet ongedaan worden gemaakt.`
+              : ''}
+          </DialogDescription>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 22 }}>
+            <DialogClose asChild>
+              <Button variant="ghost">Annuleren</Button>
+            </DialogClose>
+            <Button
+              variant="danger"
+              loading={verwijderBezig === teVerwijderen?.id}
+              onClick={bevestigVerwijderen}
+              leftIcon={<Trash2 size={15} aria-hidden />}
+            >
+              Definitief verwijderen
+            </Button>
+          </div>
+        </DialogContent>
+      </DialogRoot>
     </HrShell>
   )
 }
