@@ -4,6 +4,7 @@ export const dynamic = 'force-dynamic'
 
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { Users, MessageCircle, Mail, ChevronLeft, Send } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { Avatar } from '@/components/Avatar'
@@ -333,9 +334,9 @@ export default function Chat() {
         <div key={b.id}>
           {showDag && (
             <div className="flex items-center gap-3 my-5">
-              <div className="flex-1 h-px bg-gray-300" />
-              <span className="text-xs text-gray-500 font-medium bg-gray-100 px-3 py-1 rounded-full">{dagLabel(b.aangemaakt_op)}</span>
-              <div className="flex-1 h-px bg-gray-300" />
+              <div className="flex-1 h-px" style={{ background: 'var(--border)' }} />
+              <span className="text-xs font-medium px-3 py-1 rounded-full" style={{ color: 'var(--text-3)', background: 'var(--bg-subtle)' }}>{dagLabel(b.aangemaakt_op)}</span>
+              <div className="flex-1 h-px" style={{ background: 'var(--border)' }} />
             </div>
           )}
           <div
@@ -348,15 +349,15 @@ export default function Chat() {
             </div>
             <div className={`flex flex-col gap-0.5 max-w-[70%] ${isIk ? 'items-end' : 'items-start'}`}>
               {showHeader && !isIk && (
-                <span className="text-xs font-semibold text-gray-600 px-1 mb-0.5">{naam}</span>
+                <span className="text-xs font-semibold px-1 mb-0.5" style={{ color: 'var(--text-2)' }}>{naam}</span>
               )}
               <div
                 className="px-3.5 py-2 text-sm leading-relaxed break-words whitespace-pre-wrap"
                 style={{
-                  background: isIk ? 'var(--mentaforce-primary)' : 'white',
-                  color: isIk ? 'white' : 'var(--text-1)',
+                  background: isIk ? 'var(--mentaforce-primary)' : 'var(--bg-card)',
+                  color: isIk ? 'var(--bg-app)' : 'var(--text-1)',
                   borderRadius,
-                  boxShadow: isIk ? 'none' : '0 1px 2px rgba(0,0,0,0.08)',
+                  boxShadow: isIk ? 'none' : 'var(--shadow-card)',
                   opacity: isOptimistic ? 0.55 : 1,
                   transition: 'opacity 0.15s',
                   maxWidth: '100%',
@@ -366,7 +367,7 @@ export default function Chat() {
                 {b.inhoud}
               </div>
               {hoverId === b.id && (
-                <span className="text-xs text-gray-400 px-1">{formatTijd(b.aangemaakt_op)}</span>
+                <span className="text-xs px-1" style={{ color: 'var(--text-3)' }}>{formatTijd(b.aangemaakt_op)}</span>
               )}
             </div>
             <div className="w-8 flex-shrink-0" />
@@ -376,9 +377,6 @@ export default function Chat() {
     })
   }
 
-  const teamBerichtenNormalized = teamBerichten.map(b => ({ ...b, inhoud: b.inhoud }))
-  const dmBerichtenNormalized = dmBerichten.map(b => ({ ...b, inhoud: b.inhoud }))
-
   return (
     <div className="h-screen flex flex-col">
       <Navbar />
@@ -386,15 +384,17 @@ export default function Chat() {
 
         {/* Sidebar */}
         <div
-          className="flex-shrink-0 flex flex-col bg-white border-r border-gray-200"
+          className="flex-shrink-0 flex flex-col"
           style={{
             width: 280,
             display: mobielZijbalk ? 'flex' : undefined,
+            background: 'var(--bg-card)',
+            borderRight: '1px solid var(--border)',
           }}
           // On desktop always show; on mobile toggle
         >
-          <div className="px-4 py-4 border-b border-gray-100">
-            <p className="text-sm font-semibold text-gray-800">Berichten</p>
+          <div className="px-4 py-4" style={{ borderBottom: '1px solid var(--border)' }}>
+            <p className="text-sm font-semibold" style={{ color: 'var(--text-1)' }}>Berichten</p>
           </div>
 
           <div className="flex-1 overflow-y-auto">
@@ -407,14 +407,14 @@ export default function Chat() {
               onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = actieveChat === 'team' ? 'var(--mentaforce-primary-light)' : 'transparent' }}
             >
               <div
-                className="w-10 h-10 rounded-full flex items-center justify-center text-lg flex-shrink-0"
+                className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
                 style={{ background: 'var(--mentaforce-primary-light)', color: 'var(--mentaforce-primary)' }}
               >
-                👥
+                <Users size={20} aria-hidden />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 truncate">Teamchat</p>
-                <p className="text-xs text-gray-400 truncate">
+                <p className="text-sm font-medium truncate" style={{ color: 'var(--text-1)' }}>Teamchat</p>
+                <p className="text-xs truncate" style={{ color: 'var(--text-3)' }}>
                   {onlineAanwezig.length > 0 ? `${onlineAanwezig.length + 1} online` : `${profielenMap.size} leden`}
                 </p>
               </div>
@@ -422,13 +422,13 @@ export default function Chat() {
 
             {/* Divider */}
             <div className="px-4 pt-4 pb-1">
-              <p className="text-xs font-medium text-gray-400 uppercase tracking-wide">Directe berichten</p>
+              <p className="text-xs font-medium uppercase tracking-wide" style={{ color: 'var(--text-3)' }}>Directe berichten</p>
             </div>
 
             {/* Team members */}
             {laden ? (
               <div className="flex justify-center py-6">
-                <div className="w-5 h-5 rounded-full border-2 border-gray-200 animate-spin" style={{ borderTopColor: 'var(--mentaforce-primary)' }} />
+                <div className="w-5 h-5 rounded-full border-2 animate-spin" style={{ borderColor: 'var(--border)', borderTopColor: 'var(--mentaforce-primary)' }} />
               </div>
             ) : teamleden.map(lid => (
               <button
@@ -441,7 +441,7 @@ export default function Chat() {
               >
                 <Avatar naam={lid.naam} avatarUrl={lid.avatar_url} size={40} online={onlineSet.has(lid.id)} />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 truncate">{lid.naam}</p>
+                  <p className="text-sm font-medium truncate" style={{ color: 'var(--text-1)' }}>{lid.naam}</p>
                   <p className="text-xs truncate" style={{ color: onlineSet.has(lid.id) ? 'var(--mf-green)' : 'var(--text-3)' }}>
                     {onlineSet.has(lid.id) ? 'Online' : 'Offline'}
                   </p>
@@ -455,26 +455,26 @@ export default function Chat() {
         <div className="flex-1 flex flex-col overflow-hidden" style={{ background: 'var(--bg-subtle)' }}>
 
           {/* Conversation header */}
-          <div className="px-5 py-3.5 border-b border-gray-200 bg-white flex items-center gap-3 flex-shrink-0">
+          <div className="px-5 py-3.5 flex items-center gap-3 flex-shrink-0" style={{ borderBottom: '1px solid var(--border)', background: 'var(--bg-card)' }}>
             {/* Mobile back */}
             <button
               onClick={() => setMobielZijbalk(true)}
-              className="sm:hidden p-1 -ml-1 text-gray-400 hover:text-gray-600 transition"
+              aria-label="Terug naar gesprekken"
+              className="sm:hidden p-1 -ml-1 transition"
+              style={{ color: 'var(--text-3)' }}
             >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="15 18 9 12 15 6" />
-              </svg>
+              <ChevronLeft size={20} aria-hidden />
             </button>
 
             {isTeam ? (
               <>
-                <div className="w-10 h-10 rounded-full flex items-center justify-center text-lg flex-shrink-0"
+                <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
                   style={{ background: 'var(--mentaforce-primary-light)', color: 'var(--mentaforce-primary)' }}>
-                  👥
+                  <Users size={20} aria-hidden />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-gray-900">Teamchat</p>
-                  <p className="text-xs text-gray-400">
+                  <p className="text-sm font-semibold" style={{ color: 'var(--text-1)' }}>Teamchat</p>
+                  <p className="text-xs" style={{ color: 'var(--text-3)' }}>
                     {onlineAanwezig.length > 0 ? `${onlineAanwezig.length + 1} online` : `${profielenMap.size} leden`}
                   </p>
                 </div>
@@ -485,7 +485,7 @@ export default function Chat() {
                       const p = profielenMap.get(id)
                       if (!p) return null
                       return (
-                        <div key={id} title={id === ikId ? 'Jij' : p.naam} className="ring-2 ring-white rounded-full">
+                        <div key={id} title={id === ikId ? 'Jij' : p.naam} className="rounded-full" style={{ boxShadow: '0 0 0 2px var(--bg-card)' }}>
                           <Avatar naam={p.naam} avatarUrl={p.avatar_url} size={28} online />
                         </div>
                       )
@@ -497,7 +497,7 @@ export default function Chat() {
               <>
                 <Avatar naam={partnerProfiel.naam} avatarUrl={partnerProfiel.avatar_url} size={40} online={onlineSet.has(partnerProfiel.id)} />
                 <div>
-                  <p className="text-sm font-semibold text-gray-900">{partnerProfiel.naam}</p>
+                  <p className="text-sm font-semibold" style={{ color: 'var(--text-1)' }}>{partnerProfiel.naam}</p>
                   <p className="text-xs font-medium" style={{ color: onlineSet.has(partnerProfiel.id) ? 'var(--mf-green)' : 'var(--text-3)' }}>
                     {onlineSet.has(partnerProfiel.id) ? 'Online' : 'Offline'}
                   </p>
@@ -510,45 +510,45 @@ export default function Chat() {
           <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-0.5">
             {laden || (!isTeam && dmLaden) ? (
               <div className="flex justify-center items-center h-full">
-                <div className="w-8 h-8 rounded-full border-2 border-gray-300 animate-spin" style={{ borderTopColor: 'var(--mentaforce-primary)' }} />
+                <div className="w-8 h-8 rounded-full border-2 animate-spin" style={{ borderColor: 'var(--border)', borderTopColor: 'var(--mentaforce-primary)' }} />
               </div>
             ) : isTeam && teamBerichten.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-center gap-3">
-                <div className="w-16 h-16 rounded-full flex items-center justify-center text-3xl" style={{ background: 'var(--mentaforce-primary-light)', position: 'relative' }}>
+                <div className="w-16 h-16 rounded-full flex items-center justify-center" style={{ background: 'var(--mentaforce-primary-light)', color: 'var(--mentaforce-primary)', position: 'relative' }}>
                   <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
-                    <div style={{ width: 70, height: 70, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
+                    <div style={{ width: 70, height: 70, borderRadius: '50%', background: 'radial-gradient(circle, color-mix(in srgb, var(--mentaforce-primary) 18%, transparent) 0%, transparent 70%)' }} />
                   </div>
-                  <span style={{ position: 'relative', zIndex: 1 }}>💬</span>
+                  <MessageCircle size={30} aria-hidden style={{ position: 'relative', zIndex: 1 }} />
                 </div>
-                <p className="text-sm font-semibold text-gray-700">Nog geen berichten</p>
-                <p className="text-xs text-gray-400">Stuur het eerste bericht naar je team!</p>
+                <p className="text-sm font-semibold" style={{ color: 'var(--text-2)' }}>Nog geen berichten</p>
+                <p className="text-xs" style={{ color: 'var(--text-3)' }}>Stuur het eerste bericht naar je team!</p>
               </div>
             ) : !isTeam && dmBerichten.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-center gap-3">
-                <div className="w-16 h-16 rounded-full flex items-center justify-center text-3xl" style={{ background: 'var(--mentaforce-primary-light)', position: 'relative' }}>
+                <div className="w-16 h-16 rounded-full flex items-center justify-center" style={{ background: 'var(--mentaforce-primary-light)', color: 'var(--mentaforce-primary)', position: 'relative' }}>
                   <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
-                    <div style={{ width: 70, height: 70, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
+                    <div style={{ width: 70, height: 70, borderRadius: '50%', background: 'radial-gradient(circle, color-mix(in srgb, var(--mentaforce-primary) 18%, transparent) 0%, transparent 70%)' }} />
                   </div>
-                  <span style={{ position: 'relative', zIndex: 1 }}>✉️</span>
+                  <Mail size={30} aria-hidden style={{ position: 'relative', zIndex: 1 }} />
                 </div>
-                <p className="text-sm font-semibold text-gray-700">Begin een gesprek</p>
-                <p className="text-xs text-gray-400">Stuur {partnerProfiel?.naam ?? 'een collega'} een bericht</p>
+                <p className="text-sm font-semibold" style={{ color: 'var(--text-2)' }}>Begin een gesprek</p>
+                <p className="text-xs" style={{ color: 'var(--text-3)' }}>Stuur {partnerProfiel?.naam ?? 'een collega'} een bericht</p>
               </div>
             ) : isTeam ? (
-              renderBubbles(teamBerichtenNormalized, b => (b as Bericht).user_id)
+              renderBubbles(teamBerichten, b => (b as Bericht).user_id)
             ) : (
-              renderBubbles(dmBerichtenNormalized, b => (b as DmBericht).zender_id)
+              renderBubbles(dmBerichten, b => (b as DmBericht).zender_id)
             )}
             <div ref={onderRef} />
           </div>
 
           {/* Input bar */}
-          <div className="px-4 py-3 bg-white border-t border-gray-200 flex-shrink-0">
+          <div className="px-4 py-3 flex-shrink-0" style={{ background: 'var(--bg-card)', borderTop: '1px solid var(--border)' }}>
             <div className="flex items-end gap-2">
               {mijnProfiel && (
                 <Avatar naam={mijnProfiel.naam} avatarUrl={mijnProfiel.avatar_url} size={36} className="mb-0.5" />
               )}
-              <div className="flex-1 flex items-end gap-2 rounded-2xl border border-gray-200 px-3 py-2" style={{ background: 'var(--bg-subtle)' }}>
+              <div className="flex-1 flex items-end gap-2 rounded-2xl px-3 py-2" style={{ background: 'var(--bg-subtle)', border: '1px solid var(--border)' }}>
                 <textarea
                   ref={isTeam ? teamInputRef : dmInputRef}
                   rows={1}
@@ -568,20 +568,20 @@ export default function Chat() {
                   }}
                   placeholder={isTeam ? 'Stuur een bericht…' : `Stuur ${partnerProfiel?.naam ?? 'een bericht'}…`}
                   className="flex-1 bg-transparent text-sm outline-none resize-none leading-relaxed"
-                  style={{ minHeight: 24, maxHeight: 120 }}
+                  style={{ minHeight: 24, maxHeight: 120, color: 'var(--text-1)' }}
                 />
                 <button
                   onClick={isTeam ? verstuurTeam : verstuurDm}
                   disabled={isTeam ? (!teamInput.trim() || teamVerzenden) : (!dmInput.trim() || dmVerzenden)}
+                  aria-label="Bericht verzenden"
                   className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition disabled:opacity-30"
                   style={{ background: (isTeam ? teamInput.trim() : dmInput.trim()) ? 'var(--mentaforce-primary)' : 'var(--border)' }}
                 >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                    stroke={(isTeam ? teamInput.trim() : dmInput.trim()) ? 'white' : 'var(--text-3)'}
-                    strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="22" y1="2" x2="11" y2="13" />
-                    <polygon points="22 2 15 22 11 13 2 9 22 2" />
-                  </svg>
+                  <Send
+                    size={14}
+                    aria-hidden
+                    style={{ color: (isTeam ? teamInput.trim() : dmInput.trim()) ? 'var(--bg-app)' : 'var(--text-3)' }}
+                  />
                 </button>
               </div>
             </div>

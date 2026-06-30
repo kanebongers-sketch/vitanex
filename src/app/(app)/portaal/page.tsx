@@ -5,6 +5,7 @@ export const dynamic = 'force-dynamic'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { Check, X, Download, ChevronUp, ChevronDown, ArrowUp, ArrowDown } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import nextDynamic from 'next/dynamic'
 import Navbar from '@/components/layout/Navbar'
@@ -31,7 +32,7 @@ async function downloadAnalysePDF(analyse: AnalyseRecord) {
   function rule() { doc.setDrawColor(220,220,220); doc.line(MARGIN, y, PAGE_W-MARGIN, y); y += 5 }
 
   const datum = new Date(analyse.aangemaakt_op).toLocaleDateString('nl-BE', { day:'numeric', month:'long', year:'numeric' })
-  write('VITANEX', 8, [29,158,117], true); y++
+  write('MentaForce', 8, [29,158,117], true); y++
   write('Persoonlijke Vitaliteitsanalyse', 20, [17,24,39], true); y++
   write(`Week van ${datum}`, 10, [107,114,128]); y += 4; rule()
 
@@ -58,8 +59,8 @@ async function downloadAnalysePDF(analyse: AnalyseRecord) {
   write(`BURN-OUT RISICO: ${a.burnout_risico.niveau.toUpperCase()}`, 11, rKleur[a.burnout_risico.niveau]??[55,65,81], true)
   y += 2; write(a.burnout_risico.uitleg, 10, [55,65,81]); y += 4; rule()
   write('PERSOONLIJK BERICHT', 11, [17,24,39], true); y += 2; write(a.bericht, 10, [55,65,81]); y += 10
-  write('Vitanex — Vitaliteit op de werkplek  |  Vertrouwelijk document', 8, [156,163,175])
-  doc.save(`vitanex-analyse-${datum.replace(/\s+/g,'-')}.pdf`)
+  write('MentaForce — Vitaliteit op de werkplek  |  Vertrouwelijk document', 8, [156,163,175])
+  doc.save(`mentaforce-analyse-${datum.replace(/\s+/g,'-')}.pdf`)
 }
 
 type Checkin = {
@@ -180,7 +181,7 @@ const categorieMetrics = [
     ],
   },
   {
-    label: 'Sociaal', kleur: 'var(--mf-purple)', licht: 'var(--mf-purple-light)', donker: '#3C3489',
+    label: 'Sociaal', kleur: 'var(--mf-purple)', licht: 'var(--mf-purple-light)', donker: 'var(--mf-purple)',
     keys: ['motivatie', 'sociaal_team', 'sociaal_steun', 'herstel'] as (keyof Checkin)[],
     items: [
       { key: 'motivatie' as keyof Checkin, label: 'Motivatie' },
@@ -399,13 +400,13 @@ export default function Portaal() {
       <Navbar />
 
       {/* Employee portal identity banner */}
-      <div style={{ background: 'var(--mf-green-dark)', borderBottom: '1px solid #1a5c42' }}>
+      <div style={{ background: 'var(--mf-green-dark)', borderBottom: '1px solid var(--border)' }}>
         <div className="px-6 py-3 flex items-center gap-3">
           <div className="w-6 h-6 rounded-md flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
             style={{ background: 'var(--mf-green)' }}>MW</div>
           <p className="text-sm font-medium text-white">Mijn Portaal</p>
-          <span className="text-gray-500 text-xs">—</span>
-          <p className="text-xs text-gray-400">Jouw persoonlijke vitaliteit en welzijn</p>
+          <span className="text-xs" style={{ color: 'color-mix(in srgb, white 60%, transparent)' }}>—</span>
+          <p className="text-xs" style={{ color: 'color-mix(in srgb, white 80%, transparent)' }}>Jouw persoonlijke vitaliteit en welzijn</p>
         </div>
       </div>
 
@@ -413,8 +414,8 @@ export default function Portaal() {
 
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-medium text-gray-900">Mijn portaal</h1>
-            <p className="text-gray-500 text-sm mt-0.5">Jouw persoonlijke vitaliteitstrend</p>
+            <h1 className="text-2xl font-medium" style={{ color: 'var(--text-1)' }}>Mijn portaal</h1>
+            <p className="text-sm mt-0.5" style={{ color: 'var(--text-3)' }}>Jouw persoonlijke vitaliteitstrend</p>
           </div>
           <Link href="/checkin" className="text-sm font-medium text-white px-4 py-2 rounded-xl transition"
             style={{ background: 'var(--mentaforce-primary)' }}>
@@ -431,20 +432,21 @@ export default function Portaal() {
             { href: '/burnout', afk: 'BO',  kleur: 'var(--mf-red)', bg: 'var(--mf-red-light)', label: 'Burn-out' },
           ].map(t => (
             <Link key={t.href} href={t.href}
-              className="bg-white rounded-2xl border border-gray-100 p-4 flex flex-col items-center gap-2 hover:border-gray-200 hover:shadow-sm transition text-center">
+              className="rounded-2xl border p-4 flex flex-col items-center gap-2 hover:shadow-sm transition text-center"
+              style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
               <div className="w-9 h-9 rounded-xl flex items-center justify-center text-xs font-bold" style={{ background: t.bg, color: t.kleur }}>{t.afk}</div>
-              <span className="text-xs text-gray-600 font-medium leading-tight">{t.label}</span>
+              <span className="text-xs font-medium leading-tight" style={{ color: 'var(--text-2)' }}>{t.label}</span>
             </Link>
           ))}
         </div>
 
         {laden ? (
           <div className="flex justify-center py-16">
-            <div className="w-8 h-8 rounded-full border-2 border-gray-200 animate-spin" style={{ borderTopColor: 'var(--mentaforce-primary)' }} />
+            <div className="w-8 h-8 rounded-full border-2 animate-spin" style={{ borderColor: 'var(--border)', borderTopColor: 'var(--mentaforce-primary)' }} />
           </div>
         ) : checkins.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-gray-200 p-12 text-center">
-            <p className="text-gray-400 text-sm mb-4">Nog geen check-ins gedaan.</p>
+          <div className="rounded-2xl border p-12 text-center" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
+            <p className="text-sm mb-4" style={{ color: 'var(--text-3)' }}>Nog geen check-ins gedaan.</p>
             <Link href="/checkin" className="text-sm font-medium text-white px-5 py-3 rounded-xl inline-block"
               style={{ background: 'var(--mentaforce-primary)' }}>
               Doe je eerste check-in
@@ -454,28 +456,28 @@ export default function Portaal() {
           <>
             {/* Top scores */}
             <div className="grid grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 mb-6">
-              <div className="bg-white rounded-2xl border border-gray-100 p-5"
-                style={{ borderTop: `3px solid ${totaalScore >= 70 ? '#1D9E75' : totaalScore >= 50 ? '#BA7517' : '#E24B4A'}` }}>
-                <p className="text-xs text-gray-400 mb-1">Vitaliteitsscore</p>
+              <div className="rounded-2xl border p-5"
+                style={{ background: 'var(--bg-card)', borderColor: 'var(--border)', borderTop: `3px solid ${totaalScore >= 70 ? 'var(--mf-green)' : totaalScore >= 50 ? 'var(--mf-amber)' : 'var(--mf-red)'}` }}>
+                <p className="text-xs mb-1" style={{ color: 'var(--text-3)' }}>Vitaliteitsscore</p>
                 <div style={{ position: 'relative', display: 'inline-block' }}>
                   <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
-                    <div style={{ width: 90, height: 90, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
+                    <div style={{ width: 90, height: 90, borderRadius: '50%', background: 'radial-gradient(circle, color-mix(in srgb, var(--mf-green) 18%, transparent) 0%, transparent 70%)' }} />
                   </div>
                   <p className="text-4xl font-medium" style={{ color: totaalScore >= 70 ? 'var(--mf-green)' : totaalScore >= 50 ? 'var(--mf-amber)' : 'var(--mf-red)', position: 'relative', zIndex: 1 }}>
                     {totaalScore}%
                   </p>
                 </div>
               </div>
-              <div className="bg-white rounded-2xl border border-gray-100 p-5">
-                <p className="text-xs text-gray-400 mb-1">Weken op rij</p>
+              <div className="rounded-2xl border p-5" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
+                <p className="text-xs mb-1" style={{ color: 'var(--text-3)' }}>Weken op rij</p>
                 <div className="flex items-baseline gap-1.5">
-                  <p className="text-4xl font-medium text-gray-900">{streak}</p>
-                  <p className="text-xs text-gray-400 font-medium">weken</p>
+                  <p className="text-4xl font-medium" style={{ color: 'var(--text-1)' }}>{streak}</p>
+                  <p className="text-xs font-medium" style={{ color: 'var(--text-3)' }}>weken</p>
                 </div>
               </div>
-              <div className="bg-white rounded-2xl border border-gray-100 p-5">
-                <p className="text-xs text-gray-400 mb-1">Totaal check-ins</p>
-                <p className="text-4xl font-medium text-gray-900">{checkins.length}</p>
+              <div className="rounded-2xl border p-5" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
+                <p className="text-xs mb-1" style={{ color: 'var(--text-3)' }}>Totaal check-ins</p>
+                <p className="text-4xl font-medium" style={{ color: 'var(--text-1)' }}>{checkins.length}</p>
               </div>
             </div>
 
@@ -509,9 +511,9 @@ export default function Portaal() {
                     <p className="text-sm font-semibold mb-0.5" style={{ color: config.color }}>{config.label}</p>
                     <p className="text-xs leading-relaxed" style={{ color: config.color }}>{config.tekst}</p>
                     <div className="flex gap-1.5 mt-2 flex-wrap">
-                      {avgStress <= 2 && <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: 'rgba(255,255,255,0.6)', color: config.color }}>Stress ↓</span>}
-                      {avgEnergie <= 2 && <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: 'rgba(255,255,255,0.6)', color: config.color }}>Energie ↓</span>}
-                      {avgHerstel <= 2 && <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: 'rgba(255,255,255,0.6)', color: config.color }}>Herstel ↓</span>}
+                      {avgStress <= 2 && <span className="text-xs px-2 py-0.5 rounded-full font-medium inline-flex items-center gap-1" style={{ background: 'color-mix(in srgb, var(--bg-card) 60%, transparent)', color: config.color }}>Stress <ArrowDown size={11} aria-hidden="true" /></span>}
+                      {avgEnergie <= 2 && <span className="text-xs px-2 py-0.5 rounded-full font-medium inline-flex items-center gap-1" style={{ background: 'color-mix(in srgb, var(--bg-card) 60%, transparent)', color: config.color }}>Energie <ArrowDown size={11} aria-hidden="true" /></span>}
+                      {avgHerstel <= 2 && <span className="text-xs px-2 py-0.5 rounded-full font-medium inline-flex items-center gap-1" style={{ background: 'color-mix(in srgb, var(--bg-card) 60%, transparent)', color: config.color }}>Herstel <ArrowDown size={11} aria-hidden="true" /></span>}
                     </div>
                   </div>
                 </div>
@@ -524,8 +526,8 @@ export default function Portaal() {
                 const score = laatste ? catGem(laatste, cat.keys) : 0
                 const d = catDelta(cat.keys)
                 return (
-                  <div key={cat.label} className="bg-white rounded-2xl border border-gray-100 p-5"
-                    style={{ borderTop: `3px solid ${cat.kleur}` }}>
+                  <div key={cat.label} className="rounded-2xl border p-5"
+                    style={{ background: 'var(--bg-card)', borderColor: 'var(--border)', borderTop: `3px solid ${cat.kleur}` }}>
                     <p className="text-xs mb-1" style={{ color: cat.donker }}>{cat.label}</p>
                     <div className="flex items-baseline gap-2">
                       <p className="text-3xl font-medium" style={{ color: cat.kleur }}>{score}/5</p>
@@ -541,15 +543,17 @@ export default function Portaal() {
                         const itemDelta = delta(item.key)
                         return (
                           <div key={item.key as string} className="flex items-center gap-1.5">
-                            <span className="text-xs text-gray-400 w-16 truncate">{item.label}</span>
-                            <div className="flex-1 h-1 rounded-full bg-gray-100 overflow-hidden">
+                            <span className="text-xs w-16 truncate" style={{ color: 'var(--text-3)' }}>{item.label}</span>
+                            <div className="flex-1 h-1 rounded-full overflow-hidden" style={{ background: 'var(--border)' }}>
                               <div className="h-full rounded-full transition-all"
                                 style={{ width: `${(waarde / 5) * 100}%`, background: scoreKleur(waarde) }} />
                             </div>
                             <span className="text-xs font-medium w-4 text-right" style={{ color: scoreKleur(waarde) }}>{waarde}</span>
                             {itemDelta !== null && itemDelta !== 0 && (
-                              <span className="text-xs w-5" style={{ color: itemDelta > 0 ? 'var(--mf-green)' : 'var(--mf-red)' }}>
-                                {itemDelta > 0 ? '↑' : '↓'}
+                              <span className="w-5 inline-flex items-center" style={{ color: itemDelta > 0 ? 'var(--mf-green)' : 'var(--mf-red)' }}>
+                                {itemDelta > 0
+                                  ? <ArrowUp size={12} aria-label="gestegen" />
+                                  : <ArrowDown size={12} aria-label="gedaald" />}
                               </span>
                             )}
                           </div>
@@ -562,10 +566,10 @@ export default function Portaal() {
             </div>
 
             {/* Habit tracker */}
-            <div className="bg-white rounded-2xl border border-gray-100 p-5 mb-6">
+            <div className="rounded-2xl border p-5 mb-6" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
               <div className="flex items-center justify-between mb-4">
-                <p className="text-sm font-medium text-gray-700">Gewoontes vandaag</p>
-                <p className="text-xs text-gray-400">{vandaagLogs.size}/{GEWOONTES.length} voltooid</p>
+                <p className="text-sm font-medium" style={{ color: 'var(--text-2)' }}>Gewoontes vandaag</p>
+                <p className="text-xs" style={{ color: 'var(--text-3)' }}>{vandaagLogs.size}/{GEWOONTES.length} voltooid</p>
               </div>
               <div className="flex flex-col gap-2">
                 {GEWOONTES.map(g => {
@@ -585,9 +589,9 @@ export default function Portaal() {
                           color: actief ? 'white' : 'var(--text-3)',
                         }}
                       >
-                        {actief ? '✓' : g.afk}
+                        {actief ? <Check size={16} aria-label="voltooid" /> : g.afk}
                       </div>
-                      <span className="flex-1 text-sm font-medium text-gray-700">{g.label}</span>
+                      <span className="flex-1 text-sm font-medium" style={{ color: 'var(--text-2)' }}>{g.label}</span>
                       {s > 1 && (
                         <span className="text-xs font-medium" style={{ color: 'var(--mf-amber)' }}>
                           {s}x
@@ -601,25 +605,25 @@ export default function Portaal() {
 
             {/* Personal insights */}
             {inzichten && (
-              <div className="bg-white rounded-2xl border border-gray-100 p-5 mb-6">
-                <p className="text-sm font-medium text-gray-700 mb-4">Persoonlijke inzichten</p>
+              <div className="rounded-2xl border p-5 mb-6" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
+                <p className="text-sm font-medium mb-4" style={{ color: 'var(--text-2)' }}>Persoonlijke inzichten</p>
                 <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                   <div className="rounded-xl p-3" style={{ background: 'var(--mf-green-light)' }}>
-                    <p className="text-xs text-gray-500 mb-0.5">Beste dag</p>
+                    <p className="text-xs mb-0.5" style={{ color: 'var(--text-3)' }}>Beste dag</p>
                     <p className="text-sm font-semibold capitalize" style={{ color: 'var(--mf-green-dark)' }}>
                       {DAGEN[inzichten.beste.dag]}
                     </p>
                     <p className="text-xs" style={{ color: 'var(--mf-green)' }}>gem. {inzichten.beste.gem}/5</p>
                   </div>
                   <div className="rounded-xl p-3" style={{ background: 'var(--mf-red-light)' }}>
-                    <p className="text-xs text-gray-500 mb-0.5">Moeilijkste dag</p>
+                    <p className="text-xs mb-0.5" style={{ color: 'var(--text-3)' }}>Moeilijkste dag</p>
                     <p className="text-sm font-semibold capitalize" style={{ color: 'var(--mf-red)' }}>
                       {DAGEN[inzichten.slechtste.dag]}
                     </p>
                     <p className="text-xs" style={{ color: 'var(--mf-red)' }}>gem. {inzichten.slechtste.gem}/5</p>
                   </div>
                   <div className="rounded-xl p-3" style={{ background: 'var(--mf-blue-light)' }}>
-                    <p className="text-xs text-gray-500 mb-0.5">Sterkste punt</p>
+                    <p className="text-xs mb-0.5" style={{ color: 'var(--text-3)' }}>Sterkste punt</p>
                     <p className="text-sm font-semibold" style={{ color: 'var(--mf-blue)' }}>
                       {metricLabels[inzichten.beste_metric.k]}
                     </p>
@@ -627,9 +631,13 @@ export default function Portaal() {
                   </div>
                   {inzichten.trend !== null && (
                     <div className="rounded-xl p-3" style={{ background: inzichten.trend >= 0 ? 'var(--mf-green-light)' : 'var(--mf-red-light)' }}>
-                      <p className="text-xs text-gray-500 mb-0.5">Trend (4 weken)</p>
-                      <p className="text-sm font-semibold" style={{ color: inzichten.trend >= 0 ? 'var(--mf-green-dark)' : 'var(--mf-red)' }}>
-                        {inzichten.trend > 0 ? '↑ Stijgend' : inzichten.trend < 0 ? '↓ Dalend' : '→ Stabiel'}
+                      <p className="text-xs mb-0.5" style={{ color: 'var(--text-3)' }}>Trend (4 weken)</p>
+                      <p className="text-sm font-semibold inline-flex items-center gap-1" style={{ color: inzichten.trend >= 0 ? 'var(--mf-green-dark)' : 'var(--mf-red)' }}>
+                        {inzichten.trend > 0
+                          ? <><ArrowUp size={14} aria-hidden="true" /> Stijgend</>
+                          : inzichten.trend < 0
+                            ? <><ArrowDown size={14} aria-hidden="true" /> Dalend</>
+                            : <>Stabiel</>}
                       </p>
                       <p className="text-xs" style={{ color: inzichten.trend >= 0 ? 'var(--mf-green)' : 'var(--mf-red)' }}>
                         {inzichten.trend > 0 ? '+' : ''}{inzichten.trend} vs vorige periode
@@ -642,14 +650,14 @@ export default function Portaal() {
 
             {/* Trend chart */}
             {checkins.length > 1 && (
-              <div className="bg-white rounded-2xl border border-gray-100 p-6 mb-6">
-                <p className="text-sm font-medium text-gray-700 mb-4">Trend per categorie</p>
+              <div className="rounded-2xl border p-6 mb-6" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
+                <p className="text-sm font-medium mb-4" style={{ color: 'var(--text-2)' }}>Trend per categorie</p>
                 <TrendChart data={grafiekData} />
                 <div className="flex gap-4 mt-3 justify-center">
                   {[{ label: 'Fysiek', kleur: 'var(--mf-green)' }, { label: 'Mentaal', kleur: 'var(--mf-blue)' }, { label: 'Sociaal', kleur: 'var(--mf-purple)' }].map(l => (
                     <div key={l.label} className="flex items-center gap-1.5">
                       <div className="w-3 h-0.5 rounded-full" style={{ background: l.kleur }} />
-                      <span className="text-xs text-gray-400">{l.label}</span>
+                      <span className="text-xs" style={{ color: 'var(--text-3)' }}>{l.label}</span>
                     </div>
                   ))}
                 </div>
@@ -659,7 +667,7 @@ export default function Portaal() {
             {/* AI Analyses */}
             {analyses.length > 0 && (
               <div className="mb-6">
-                <p className="text-sm font-medium text-gray-700 mb-3">Mijn AI-analyses</p>
+                <p className="text-sm font-medium mb-3" style={{ color: 'var(--text-2)' }}>Mijn AI-analyses</p>
                 <div className="flex flex-col gap-3">
                   {analyses.map(a => {
                     const isOpen = openAnalyse === a.id
@@ -667,43 +675,47 @@ export default function Portaal() {
                     const totaal = a.scores?.t ?? 0
                     const scoreKleur = totaal >= 4 ? 'var(--mf-green)' : totaal >= 3 ? 'var(--mf-amber)' : 'var(--mf-red)'
                     return (
-                      <div key={a.id} className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+                      <div key={a.id} className="rounded-2xl border overflow-hidden" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
                         {/* Header rij */}
                         <button
                           onClick={() => setOpenAnalyse(isOpen ? null : a.id)}
-                          className="w-full flex items-center justify-between p-5 text-left hover:bg-gray-50 transition"
+                          className="w-full flex items-center justify-between p-5 text-left transition hover:bg-[var(--bg-subtle)]"
                         >
                           <div>
-                            <p className="text-sm font-medium text-gray-900">Analyse — {datum}</p>
+                            <p className="text-sm font-medium" style={{ color: 'var(--text-1)' }}>Analyse — {datum}</p>
                             <p className="text-xs mt-0.5" style={{ color: scoreKleur }}>
                               Score {Number(totaal).toFixed(1)}/5
-                              {a.gedeeld_met_hr && <span className="ml-2 text-gray-400">· Gedeeld met HR</span>}
+                              {a.gedeeld_met_hr && <span className="ml-2" style={{ color: 'var(--text-3)' }}>· Gedeeld met HR</span>}
                             </p>
                           </div>
                           <div className="flex items-center gap-2">
                             <button
                               onClick={e => { e.stopPropagation(); setPdfBezig(a.id); downloadAnalysePDF(a).finally(() => setPdfBezig(null)) }}
                               disabled={pdfBezig === a.id}
-                              className="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-100 transition disabled:opacity-40"
+                              aria-label="Download analyse als PDF"
+                              className="text-xs px-3 py-1.5 rounded-lg border transition disabled:opacity-40 inline-flex items-center gap-1.5"
+                              style={{ borderColor: 'var(--border)', color: 'var(--text-3)' }}
                             >
-                              {pdfBezig === a.id ? '...' : '↓ PDF'}
+                              {pdfBezig === a.id ? '...' : <><Download size={12} aria-hidden="true" /> PDF</>}
                             </button>
-                            <span className="text-gray-400 text-sm">{isOpen ? '▲' : '▼'}</span>
+                            <span style={{ color: 'var(--text-3)' }} className="inline-flex">
+                              {isOpen ? <ChevronUp size={16} aria-label="inklappen" /> : <ChevronDown size={16} aria-label="uitklappen" />}
+                            </span>
                           </div>
                         </button>
 
                         {/* Uitklap detail */}
                         {isOpen && a.analyse_json && (
-                          <div className="px-5 pb-5 border-t border-gray-100 pt-4">
-                            <p className="text-xs text-gray-500 mb-3 leading-relaxed">{a.analyse_json.samenvatting}</p>
+                          <div className="px-5 pb-5 border-t pt-4" style={{ borderColor: 'var(--border)' }}>
+                            <p className="text-xs mb-3 leading-relaxed" style={{ color: 'var(--text-3)' }}>{a.analyse_json.samenvatting}</p>
 
                             {a.analyse_json.sterke_punten?.length > 0 && (
                               <div className="mb-3">
-                                <p className="text-xs font-semibold text-gray-700 mb-1.5">Sterke punten</p>
+                                <p className="text-xs font-semibold mb-1.5" style={{ color: 'var(--text-2)' }}>Sterke punten</p>
                                 <ul className="space-y-1">
                                   {a.analyse_json.sterke_punten.map((p, i) => (
-                                    <li key={i} className="flex items-start gap-2 text-xs text-gray-600">
-                                      <span style={{ color: 'var(--mf-green)' }}>✓</span>{p}
+                                    <li key={i} className="flex items-start gap-2 text-xs" style={{ color: 'var(--text-2)' }}>
+                                      <Check size={13} aria-hidden="true" style={{ color: 'var(--mf-green)', flexShrink: 0, marginTop: 1 }} />{p}
                                     </li>
                                   ))}
                                 </ul>
@@ -712,13 +724,13 @@ export default function Portaal() {
 
                             {a.analyse_json.actieplan?.length > 0 && (
                               <div className="mb-3">
-                                <p className="text-xs font-semibold text-gray-700 mb-1.5">Actieplan</p>
+                                <p className="text-xs font-semibold mb-1.5" style={{ color: 'var(--text-2)' }}>Actieplan</p>
                                 {a.analyse_json.actieplan.map((item, i) => (
                                   <div key={i} className="flex gap-2 mb-1.5">
-                                    <span className="text-xs font-bold text-gray-400">{i + 1}.</span>
+                                    <span className="text-xs font-bold" style={{ color: 'var(--text-3)' }}>{i + 1}.</span>
                                     <div>
-                                      <p className="text-xs font-medium text-gray-800">{item.actie}</p>
-                                      <p className="text-xs text-gray-400">{item.wanneer}</p>
+                                      <p className="text-xs font-medium" style={{ color: 'var(--text-1)' }}>{item.actie}</p>
+                                      <p className="text-xs" style={{ color: 'var(--text-3)' }}>{item.wanneer}</p>
                                     </div>
                                   </div>
                                 ))}
@@ -728,7 +740,7 @@ export default function Portaal() {
                             <div className="rounded-xl p-3 mt-2"
                               style={{
                                 background: a.analyse_json.burnout_risico?.niveau === 'hoog' ? 'var(--mf-red-light)' : a.analyse_json.burnout_risico?.niveau === 'matig' ? 'var(--mf-amber-light)' : 'var(--mf-green-light)',
-                                borderLeft: `3px solid ${a.analyse_json.burnout_risico?.niveau === 'hoog' ? '#E24B4A' : a.analyse_json.burnout_risico?.niveau === 'matig' ? '#BA7517' : '#1D9E75'}`,
+                                borderLeft: `3px solid ${a.analyse_json.burnout_risico?.niveau === 'hoog' ? 'var(--mf-red)' : a.analyse_json.burnout_risico?.niveau === 'matig' ? 'var(--mf-amber)' : 'var(--mf-green)'}`,
                               }}>
                               <p className="text-xs font-semibold" style={{ color: a.analyse_json.burnout_risico?.niveau === 'hoog' ? 'var(--mf-red)' : a.analyse_json.burnout_risico?.niveau === 'matig' ? 'var(--mf-amber-dark)' : 'var(--mf-green-dark)' }}>
                                 Burn-out risico: {a.analyse_json.burnout_risico?.niveau ?? '—'}
@@ -748,24 +760,25 @@ export default function Portaal() {
               {!feedbackOpen ? (
                 <button
                   onClick={() => setFeedbackOpen(true)}
-                  className="w-full py-3 rounded-2xl border border-dashed border-gray-300 text-sm text-gray-400 hover:text-gray-600 hover:border-gray-400 transition"
+                  className="w-full py-3 rounded-2xl border border-dashed text-sm transition hover:opacity-80"
+                  style={{ borderColor: 'var(--border-strong)', color: 'var(--text-3)' }}
                 >
                   Anonieme feedback sturen naar HR
                 </button>
               ) : (
-                <div className="bg-white rounded-2xl border border-gray-200 p-5">
+                <div className="rounded-2xl border p-5" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
                   <div className="flex items-center justify-between mb-3">
-                    <p className="text-sm font-medium text-gray-700">Anonieme feedback</p>
-                    <button onClick={() => setFeedbackOpen(false)} className="text-gray-400 hover:text-gray-600 text-xs">✕</button>
+                    <p className="text-sm font-medium" style={{ color: 'var(--text-2)' }}>Anonieme feedback</p>
+                    <button onClick={() => setFeedbackOpen(false)} aria-label="Sluiten" className="inline-flex hover:opacity-70 transition" style={{ color: 'var(--text-3)' }}><X size={16} /></button>
                   </div>
                   {feedbackVerstuurd ? (
                     <div className="text-center py-4">
                       <p className="text-sm font-medium mb-1" style={{ color: 'var(--mf-green-dark)' }}>Feedback verstuurd.</p>
-                      <p className="text-xs text-gray-400">Bedankt voor je bijdrage.</p>
+                      <p className="text-xs" style={{ color: 'var(--text-3)' }}>Bedankt voor je bijdrage.</p>
                     </div>
                   ) : (
                     <>
-                      <p className="text-xs text-gray-400 mb-3">Jouw naam wordt nooit gedeeld met HR. Volledig anoniem.</p>
+                      <p className="text-xs mb-3" style={{ color: 'var(--text-3)' }}>Jouw naam wordt nooit gedeeld met HR. Volledig anoniem.</p>
                       <div className="flex flex-wrap gap-2 mb-3">
                         {FEEDBACK_CATS.map(c => (
                           <button key={c} onClick={() => setFeedbackCat(c)}
@@ -784,7 +797,7 @@ export default function Portaal() {
                         value={feedbackTekst}
                         onChange={e => setFeedbackTekst(e.target.value)}
                         placeholder="Schrijf je feedback..."
-                        className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-gray-400 resize-none"
+                        className="mf-input w-full rounded-xl resize-none"
                       />
                       <button
                         onClick={stuurFeedback}
@@ -801,7 +814,7 @@ export default function Portaal() {
             </div>
 
             {laatste && (
-              <p className="text-xs text-gray-400 text-center">
+              <p className="text-xs text-center" style={{ color: 'var(--text-3)' }}>
                 Laatste check-in: {new Date(laatste.created_at).toLocaleDateString('nl-BE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
               </p>
             )}

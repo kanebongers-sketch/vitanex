@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
+import { Shield, Check } from 'lucide-react'
 
 
 interface Meting {
@@ -89,17 +90,17 @@ export default function PsychVeiligheidPagina() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 4 }}>
             <div style={{ position: 'relative', width: 44, height: 44, flexShrink: 0 }}>
               <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 0 }}>
-                <div style={{ width: 72, height: 72, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
+                <div style={{ width: 72, height: 72, borderRadius: '50%', background: 'radial-gradient(circle, color-mix(in srgb, var(--mentaforce-primary) 18%, transparent) 0%, transparent 70%)' }} />
               </div>
-              <div style={{ width: 44, height: 44, borderRadius: 14, background: 'var(--mf-blue-light, #EFF6FF)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, position: 'relative', zIndex: 1 }}>
-                🛡️
+              <div style={{ width: 44, height: 44, borderRadius: 14, background: 'var(--mf-blue-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', zIndex: 1 }}>
+                <Shield size={22} strokeWidth={2} color="var(--mf-blue)" aria-hidden="true" />
               </div>
             </div>
             <div>
-              <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1, #111827)', letterSpacing: '-0.03em', marginBottom: 2 }}>
+              <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 2 }}>
                 Psychologische veiligheid
               </h1>
-              <p style={{ fontSize: 13, color: 'var(--text-3, #9CA3AF)', lineHeight: 1.5 }}>
+              <p style={{ fontSize: 13, color: 'var(--text-3)', lineHeight: 1.5 }}>
                 Hoe veilig voelt het om jezelf te zijn op je werk? · Wekelijkse meting
               </p>
             </div>
@@ -111,15 +112,15 @@ export default function PsychVeiligheidPagina() {
           )}
         </header>
 
-        <section style={{ background: 'var(--surface-1, white)', borderRadius: 20, padding: '20px', border: '1px solid var(--border, #E5E7EB)', marginBottom: 24 }}>
-          <p style={{ fontSize: 12, color: 'var(--text-2, #6B7280)', lineHeight: 1.5, marginBottom: 20, padding: '10px 14px', background: 'var(--surface-2, #F9FAFB)', borderRadius: 10 }}>
+        <section style={{ background: 'var(--bg-card)', borderRadius: 20, padding: '20px', border: '1px solid var(--border)', marginBottom: 24 }}>
+          <p style={{ fontSize: 12, color: 'var(--text-2)', lineHeight: 1.5, marginBottom: 20, padding: '10px 14px', background: 'var(--bg-subtle)', borderRadius: 10 }}>
             Psychologische veiligheid is de mate waarin medewerkers zich vrij voelen om risico&apos;s te nemen zonder bang te zijn voor vernedering of afwijzing.
           </p>
 
           {VRAGEN.map(v => (
             <div key={v.key} style={{ marginBottom: 20 }}>
-              <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-1, #111827)', marginBottom: 2 }}>{v.label}</p>
-              <p style={{ fontSize: 11, color: 'var(--text-3, #9CA3AF)', marginBottom: 8 }}>{v.beschrijving}</p>
+              <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-1)', marginBottom: 2 }}>{v.label}</p>
+              <p style={{ fontSize: 11, color: 'var(--text-3)', marginBottom: 8 }}>{v.beschrijving}</p>
               <div style={{ display: 'flex', gap: 8 }}>
                 {[1, 2, 3, 4, 5].map(n => {
                   const kleur = n >= 4 ? 'var(--mf-green)' : n === 3 ? 'var(--mf-amber)' : 'var(--mf-red)'
@@ -129,8 +130,8 @@ export default function PsychVeiligheidPagina() {
                       onClick={() => setScores(prev => ({ ...prev, [v.key]: n }))}
                       style={{
                         flex: 1, height: 40, borderRadius: 10, border: 'none', cursor: 'pointer',
-                        background: scores[v.key] === n ? kleur : 'var(--surface-2, #F3F4F6)',
-                        color: scores[v.key] === n ? 'white' : 'var(--text-3, #9CA3AF)',
+                        background: scores[v.key] === n ? kleur : 'var(--bg-subtle)',
+                        color: scores[v.key] === n ? 'var(--bg-app)' : 'var(--text-3)',
                         fontWeight: 700, fontSize: 13,
                         transition: 'background 0.15s ease',
                       }}
@@ -152,16 +153,19 @@ export default function PsychVeiligheidPagina() {
             disabled={opslaan || Object.values(scores).some(v => v === 0)}
             style={{
               width: '100%', padding: '12px', borderRadius: 12,
-              background: succes
-                ? 'var(--mf-green, #1D9E75)'
-                : 'linear-gradient(135deg, var(--mf-green, #1D9E75) 0%, var(--mf-green-dark, #0F6E56) 100%)',
-              color: 'white',
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+              background: 'var(--mentaforce-primary)',
+              color: 'var(--bg-app)',
               border: 'none', cursor: 'pointer', fontSize: 14, fontWeight: 700,
               opacity: opslaan || Object.values(scores).some(v => v === 0) ? 0.5 : 1,
               transition: 'background 0.3s ease',
             }}
           >
-            {succes ? '✓ Opgeslagen!' : opslaan ? 'Opslaan…' : 'Meting opslaan'}
+            {succes ? (
+              <>
+                <Check size={16} strokeWidth={2.5} aria-hidden="true" /> Opgeslagen!
+              </>
+            ) : opslaan ? 'Opslaan…' : 'Meting opslaan'}
           </button>
         </section>
 
@@ -185,7 +189,7 @@ export default function PsychVeiligheidPagina() {
               }))
               const lijn = punten.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' ')
               return (
-                <div style={{ background: 'var(--surface-1, white)', borderRadius: 12, padding: '14px 16px', marginBottom: 12, border: '1px solid var(--border, #E5E7EB)' }}>
+                <div style={{ background: 'var(--bg-card)', borderRadius: 12, padding: '14px 16px', marginBottom: 12, border: '1px solid var(--border)' }}>
                   <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: H, display: 'block' }}>
                     <path d={lijn} fill="none" stroke="var(--mf-blue)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                     {punten.map((p, i) => (
@@ -198,8 +202,8 @@ export default function PsychVeiligheidPagina() {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {metingen.map(m => (
-                <div key={m.week_start} style={{ background: 'var(--surface-1, white)', borderRadius: 12, padding: '12px 16px', border: '1px solid var(--border, #E5E7EB)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <p style={{ fontSize: 12, color: 'var(--text-2, #6B7280)' }}>
+                <div key={m.week_start} style={{ background: 'var(--bg-card)', borderRadius: 12, padding: '12px 16px', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <p style={{ fontSize: 12, color: 'var(--text-2)' }}>
                     Week {new Date(m.week_start).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' })}
                   </p>
                   <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>

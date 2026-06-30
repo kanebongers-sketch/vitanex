@@ -12,18 +12,6 @@ import { useToast } from '@/components/ui/Toast'
 import { vitaEvent } from '@/lib/vita/events'
 import { TabsRoot, TabsList, TabsTrigger, TabsContent } from '@/components/ui/Tabs'
 import { CollapsibleRoot, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/Collapsible'
-const ADEM_FASE_KLEUR: Record<string, string> = {
-  'var(--mf-green)':  'rgba(29,158,117,0.18)',
-  'var(--mf-blue)':   'rgba(59,130,246,0.18)',
-  'var(--mf-purple)': 'rgba(124,58,237,0.18)',
-  'var(--mf-amber)':  'rgba(242,184,36,0.18)',
-}
-
-const TIMER_KLEUR: Record<string, string> = {
-  focus: 'rgba(29,158,117,0.18)',
-  pauze: 'rgba(59,130,246,0.18)',
-  micro: 'rgba(242,184,36,0.18)',
-}
 
 type HoofdTab = 'adem' | 'beweging' | 'voeding' | 'slaap' | 'mentaal' | 'timer'
 type AdemTab = 'box' | '478' | 'coherentie' | 'wim'
@@ -677,7 +665,7 @@ export default function FocusPagina() {
                   <div className="flex gap-2 flex-wrap mb-3">
                     {ADEM[ademTab].fases.map((f, i) => (
                       <div key={i} className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg"
-                        style={{ background: f.kleur + '20', color: f.kleur }}>
+                        style={{ background: `color-mix(in srgb, ${f.kleur} 12%, transparent)`, color: f.kleur }}>
                         <span className="font-bold">{f.duur}s</span>
                         <span>{f.label}</span>
                       </div>
@@ -701,7 +689,7 @@ export default function FocusPagina() {
                     aria-label={`${huidigeFase.label}, nog ${ademTeller} seconden`}
                     style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
                   >
-                    <div aria-hidden style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 0, width: 220, height: 220, borderRadius: '50%', background: `radial-gradient(circle, ${ADEM_FASE_KLEUR[huidigeFase.kleur] ?? 'rgba(0,229,255,0.18)'} 0%, transparent 70%)` }} />
+                    <div aria-hidden style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 0, width: 220, height: 220, borderRadius: '50%', background: `radial-gradient(circle, color-mix(in srgb, ${huidigeFase.kleur} 18%, transparent) 0%, transparent 70%)` }} />
                     <svg width="200" height="200" viewBox="0 0 200 200" aria-hidden focusable="false" style={{ position: 'relative', zIndex: 1 }}>
                       <circle cx="100" cy="100" r={pulsR + 12} fill={huidigeFase.kleur} opacity="0.07" />
                       <circle
@@ -710,10 +698,10 @@ export default function FocusPagina() {
                         opacity="0.88"
                         style={{ transition: 'r 0.9s ease-in-out' }}
                       />
-                      <text x="100" y="94" textAnchor="middle" fill="white" fontSize="13" fontWeight="600">
+                      <text x="100" y="94" textAnchor="middle" fill="var(--bg-app)" fontSize="13" fontWeight="600">
                         {huidigeFase.label}
                       </text>
-                      <text x="100" y="118" textAnchor="middle" fill="white" fontSize="28" fontWeight="800">
+                      <text x="100" y="118" textAnchor="middle" fill="var(--bg-app)" fontSize="28" fontWeight="800">
                         {ademTeller}
                       </text>
                     </svg>
@@ -729,7 +717,7 @@ export default function FocusPagina() {
                 onClick={() => ademActief ? stopAdem() : startAdem()}
                 aria-label={ademActief ? 'Ademhaling stoppen' : 'Ademhaling starten'}
                 className="mf-pressable w-full py-3.5 rounded-xl font-semibold text-sm transition"
-                style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: ademActief ? 'var(--mf-red)' : 'var(--mentaforce-primary)', color: ademActief ? 'white' : 'var(--bg-app)' }}
+                style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: ademActief ? 'var(--mf-red)' : 'var(--mentaforce-primary)', color: 'var(--bg-app)' }}
               >
                 {ademActief
                   ? (<><Square size={14} aria-hidden /><span>Stop</span></>)
@@ -763,7 +751,7 @@ export default function FocusPagina() {
           <>
             <div className="rounded-2xl border p-4 mb-4" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
               <p className="text-sm" style={{ color: 'var(--text-2)' }}>
-                Elke 50-90 minuten bewegen verhoogt productiviteit met <strong>13%</strong> en verlaagt rugklachten significant.
+                Elke 50-90 minuten even bewegen <strong>kan helpen je focus te verbeteren</strong> en rugklachten te verlichten.
               </p>
             </div>
 
@@ -845,8 +833,8 @@ export default function FocusPagina() {
         <TabsContent value="voeding" style={{ paddingTop: 0 }}>
           <>
             <div className="rounded-2xl border p-4 mb-4" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
-              <p className="text-sm text-gray-600">
-                Voeding heeft een direct effect op cortisol, serotonine en dopamine  de stofjes die je stress en energie bepalen.
+              <p className="text-sm" style={{ color: 'var(--text-2)' }}>
+                Voeding kan invloed hebben op cortisol, serotonine en dopamine  de stofjes die meespelen bij je stress en energie.
               </p>
             </div>
 
@@ -858,7 +846,7 @@ export default function FocusPagina() {
                   <CollapsibleTrigger asChild>
                     <button type="button" className="mf-acc-trigger w-full px-5 py-4 flex items-center gap-4 text-left transition">
                       <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold flex-shrink-0"
-                        style={{ background: cat.kleur + '18', color: cat.kleur }}>{(cat as {afk: string}).afk}</div>
+                        style={{ background: `color-mix(in srgb, ${cat.kleur} 12%, transparent)`, color: cat.kleur }}>{(cat as {afk: string}).afk}</div>
                       <div className="flex-1">
                         <p className="text-sm font-semibold" style={{ color: 'var(--text-1)' }}>{cat.titel}</p>
                         <p className="text-xs" style={{ color: 'var(--text-4)' }}>{cat.tips.length} tips</p>
@@ -882,7 +870,7 @@ export default function FocusPagina() {
             </div>
 
             <div className="mt-5 rounded-2xl border p-5" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Ideale werkdag qua eten</p>
+              <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: 'var(--text-3)' }}>Ideale werkdag qua eten</p>
               {[
                 { tijd: 'Ochtend', kleur: 'var(--mf-green)', items: ['Eiwitrijk ontbijt (eieren, kwark)', 'Eerste koffie na 90 min opstaan', '500ml water voor 10:00'] },
                 { tijd: 'Middag', kleur: 'var(--mf-blue)', items: ['Lichte lunch (proteinen + groenten)', 'Noten of bessen als snack', 'Koffie stop om 14:00'] },
@@ -893,7 +881,7 @@ export default function FocusPagina() {
                   {b.items.map(i => (
                     <div key={i} className="flex items-center gap-2 py-1">
                       <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: b.kleur }} />
-                      <p className="text-sm text-gray-700">{i}</p>
+                      <p className="text-sm" style={{ color: 'var(--text-2)' }}>{i}</p>
                     </div>
                   ))}
                 </div>
@@ -913,7 +901,7 @@ export default function FocusPagina() {
               ].map(s => (
                 <div key={s.label} className="rounded-2xl border p-4 text-center" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
                   <p className="text-sm font-bold mb-0.5" style={{ color: s.kleur }}>{s.waarde}</p>
-                  <p className="text-xs text-gray-400">{s.label}</p>
+                  <p className="text-xs" style={{ color: 'var(--text-3)' }}>{s.label}</p>
                 </div>
               ))}
             </div>
@@ -926,7 +914,7 @@ export default function FocusPagina() {
                   <CollapsibleTrigger asChild>
                     <button type="button" className="mf-acc-trigger w-full px-5 py-4 flex items-center gap-4 text-left transition">
                       <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold flex-shrink-0"
-                        style={{ background: sec.kleur + '18', color: sec.kleur }}>{(sec as {afk: string}).afk}</div>
+                        style={{ background: `color-mix(in srgb, ${sec.kleur} 12%, transparent)`, color: sec.kleur }}>{(sec as {afk: string}).afk}</div>
                       <div className="flex-1">
                         <p className="text-sm font-semibold" style={{ color: 'var(--text-1)' }}>{sec.titel}</p>
                         <p className="text-xs" style={{ color: 'var(--text-4)' }}>{sec.items.length} tips</p>
@@ -972,8 +960,8 @@ export default function FocusPagina() {
         <TabsContent value="mentaal" style={{ paddingTop: 0 }}>
           <>
             <div className="rounded-2xl border p-4 mb-4" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
-              <p className="text-sm text-gray-600">
-                Mentale technieken veranderen aantoonbaar de activiteit in de prefrontale cortex en verlagen de amygdala-respons.
+              <p className="text-sm" style={{ color: 'var(--text-2)' }}>
+                Mentale technieken kunnen je helpen rustiger te worden en stress te verlagen door je aandacht bewust te sturen.
               </p>
             </div>
 
@@ -985,12 +973,12 @@ export default function FocusPagina() {
                   <CollapsibleTrigger asChild>
                     <button type="button" className="mf-acc-trigger w-full px-5 py-4 flex items-center gap-4 text-left transition">
                       <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold flex-shrink-0"
-                        style={{ background: tech.kleur + '18', color: tech.kleur }}>{(tech as {afk: string}).afk}</div>
+                        style={{ background: `color-mix(in srgb, ${tech.kleur} 12%, transparent)`, color: tech.kleur }}>{(tech as {afk: string}).afk}</div>
                       <div className="flex-1">
                         <p className="text-sm font-semibold" style={{ color: 'var(--text-1)' }}>{tech.naam}</p>
                         <p className="text-xs" style={{ color: 'var(--text-4)' }}>{tech.duur} · {tech.stappen.length} stappen</p>
                       </div>
-                      <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: tech.kleur + '20', color: tech.kleur }}>
+                      <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: `color-mix(in srgb, ${tech.kleur} 12%, transparent)`, color: tech.kleur }}>
                         {tech.duur}
                       </span>
                       <span className="ml-2" style={{ color: 'var(--text-3)' }}>{open ? <ChevronUp size={14} aria-hidden /> : <ChevronDown size={14} aria-hidden />}</span>
@@ -1003,7 +991,7 @@ export default function FocusPagina() {
                         {tech.stappen.map((s, i) => (
                           <li key={i} className="flex gap-3 items-start">
                             <span className="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5"
-                              style={{ background: tech.kleur + '20', color: tech.kleur }}>
+                              style={{ background: `color-mix(in srgb, ${tech.kleur} 12%, transparent)`, color: tech.kleur }}>
                               {i + 1}
                             </span>
                             <p className="text-sm" style={{ color: 'var(--text-2)' }}>{s}</p>
@@ -1033,7 +1021,7 @@ export default function FocusPagina() {
                 ].map(s => (
                   <div key={s} className="flex items-center gap-2 py-1.5">
                     <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: 'var(--mf-red)' }} />
-                    <p className="text-xs text-gray-600">{s}</p>
+                    <p className="text-xs" style={{ color: 'var(--text-2)' }}>{s}</p>
                   </div>
                 ))}
               </div>
@@ -1072,7 +1060,7 @@ export default function FocusPagina() {
                 aria-label={`${timerConfig.naam}: ${formatTijd(timerRest)} resterend`}
                 style={{ position: 'relative', width: 200, height: 200 }}
               >
-                <div aria-hidden style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 0, width: 220, height: 220, borderRadius: '50%', background: `radial-gradient(circle, ${TIMER_KLEUR[timerTab] ?? 'rgba(0,229,255,0.18)'} 0%, transparent 70%)` }} />
+                <div aria-hidden style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 0, width: 220, height: 220, borderRadius: '50%', background: `radial-gradient(circle, color-mix(in srgb, ${timerConfig.kleur} 18%, transparent) 0%, transparent 70%)` }} />
                 <svg width="200" height="200" viewBox="0 0 200 200" aria-hidden focusable="false" style={{ transform: 'rotate(-90deg)', position: 'relative', zIndex: 1 }}>
                   <circle cx="100" cy="100" r="88" fill="none" style={{ stroke: 'var(--border-strong)' }} strokeWidth="8" />
                   <circle
@@ -1111,7 +1099,7 @@ export default function FocusPagina() {
                 disabled={timerKlaar}
                 aria-label={timerActief ? 'Timer pauzeren' : timerRest === timerConfig.duur ? 'Timer starten' : 'Timer hervatten'}
                 className="mf-pressable flex-1 py-3.5 rounded-xl font-semibold text-sm transition disabled:opacity-40"
-                style={{ background: timerActief ? 'var(--mf-amber)' : timerConfig.kleur, color: timerActief ? 'white' : 'var(--bg-app)' }}
+                style={{ background: timerActief ? 'var(--mf-amber)' : timerConfig.kleur, color: 'var(--bg-app)' }}
               >
                 {timerActief ? 'Pauzeer' : timerRest === timerConfig.duur ? 'Start' : 'Hervat'}
               </button>
@@ -1147,8 +1135,8 @@ export default function FocusPagina() {
             )}
 
             <div className="rounded-2xl border p-5" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Pomodoro methode</p>
-              <p className="text-sm text-gray-600 mb-4">
+              <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: 'var(--text-3)' }}>Pomodoro methode</p>
+              <p className="text-sm mb-4" style={{ color: 'var(--text-2)' }}>
                 Werk in blokken van 25 minuten gefocust werk, gevolgd door 5 minuten pauze. Na 4 blokken een lange pauze van 15-30 minuten.
               </p>
               <div className="flex gap-2 items-center flex-wrap">

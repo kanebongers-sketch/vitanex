@@ -72,12 +72,12 @@ function Sparkline({ data }: { data: GeschiedenisItem[] }) {
     >
       <defs>
         <linearGradient id="sparkGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="var(--mf-purple, #6366f1)" stopOpacity="0.18" />
-          <stop offset="100%" stopColor="var(--mf-purple, #6366f1)" stopOpacity="0" />
+          <stop offset="0%" stopColor="var(--mf-purple)" stopOpacity="0.18" />
+          <stop offset="100%" stopColor="var(--mf-purple)" stopOpacity="0" />
         </linearGradient>
       </defs>
       <path d={vulgebied} fill="url(#sparkGrad)" />
-      <path d={lijn} fill="none" stroke="var(--mf-purple, #6366f1)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <path d={lijn} fill="none" stroke="var(--mf-purple)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
       {punten.map((p, i) => (
         <circle key={i} cx={p.x} cy={p.y} r="3" fill={scoreKleur(p.score)} />
       ))}
@@ -229,7 +229,7 @@ export default function WerkgelukPagina() {
               onChange={e => setScore(Number(e.target.value))}
               style={{
                 width: '100%', height: 6, appearance: 'none',
-                background: `linear-gradient(to right, ${kleur} ${(score - 1) / 9 * 100}%, #E5E7EB ${(score - 1) / 9 * 100}%)`,
+                background: `linear-gradient(to right, ${kleur} ${(score - 1) / 9 * 100}%, var(--bg-subtle) ${(score - 1) / 9 * 100}%)`,
                 borderRadius: 99, outline: 'none', cursor: 'pointer',
                 transition: 'background 0.25s ease', color: kleur,
               }}
@@ -244,7 +244,7 @@ export default function WerkgelukPagina() {
                     cursor: 'pointer', fontSize: 11,
                     fontWeight: score === n ? 800 : 500,
                     background: score === n ? kleur : 'var(--bg-subtle)',
-                    color: score === n ? 'white' : 'var(--text-2)',
+                    color: score === n ? 'var(--bg-app)' : 'var(--text-2)',
                     transition: 'all 0.15s ease', flexShrink: 0, padding: 0,
                   }}
                 >
@@ -290,7 +290,7 @@ export default function WerkgelukPagina() {
             maxLength={500}
             rows={3}
             style={{
-              width: '100%', background: 'var(--bg-subtle, #F9FAFB)', border: '1px solid var(--border)',
+              width: '100%', background: 'var(--bg-subtle)', border: '1px solid var(--border)',
               borderRadius: 10, padding: '10px 12px', fontSize: 13, color: 'var(--text-2)',
               resize: 'none', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box',
             }}
@@ -299,7 +299,7 @@ export default function WerkgelukPagina() {
 
         {fout && (
           <div style={{
-            background: 'var(--mf-red-light)', border: '1px solid #FECACA', borderRadius: 12,
+            background: 'var(--mf-red-light)', border: '1px solid color-mix(in srgb, var(--mf-red) 30%, transparent)', borderRadius: 12,
             padding: '10px 14px', marginBottom: 12, fontSize: 13, color: 'var(--mf-red)',
           }}>
             {fout}
@@ -312,14 +312,12 @@ export default function WerkgelukPagina() {
           style={{
             width: '100%', padding: '14px', borderRadius: 14, border: 'none',
             cursor: opslaan ? 'not-allowed' : 'pointer', fontSize: 15, fontWeight: 700,
-            background: succes
-              ? 'linear-gradient(135deg, #10B981, #059669)'
-              : 'linear-gradient(135deg, #1D9E75, #0ea872)',
-            color: 'white',
+            background: 'var(--mentaforce-primary)',
+            color: 'var(--bg-app)',
             opacity: opslaan ? 0.7 : 1,
             transition: 'background 0.3s ease, opacity 0.15s ease',
             letterSpacing: '-0.01em', marginBottom: 16,
-            boxShadow: '0 4px 14px rgba(29,158,117,0.35)',
+            boxShadow: '0 4px 14px color-mix(in srgb, var(--mentaforce-primary) 35%, transparent)',
           }}
         >
           {succes
@@ -334,7 +332,7 @@ export default function WerkgelukPagina() {
         {succes && aantalDagen > 0 && (
           <div style={{
             textAlign: 'center', padding: '12px 16px', background: 'var(--mf-green-light)',
-            borderRadius: 14, border: '1px solid #BBF7D0', marginBottom: 24,
+            borderRadius: 14, border: '1px solid color-mix(in srgb, var(--mf-green) 30%, transparent)', marginBottom: 24,
             fontSize: 14, color: 'var(--mf-green-dark)', fontWeight: 600,
           }}>
             Je hebt dit {aantalDagen} {aantalDagen === 1 ? 'dag' : 'dagen'} bijgehouden
@@ -347,7 +345,7 @@ export default function WerkgelukPagina() {
           <div>{/* history column */}
           <section style={{
             background: 'var(--bg-card)', borderRadius: 20, padding: '20px',
-            border: '1px solid var(--border)', boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
+            border: '1px solid var(--border)', boxShadow: 'var(--shadow-card)',
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
               <div>
@@ -402,12 +400,12 @@ export default function WerkgelukPagina() {
                         <div style={{
                           width: '100%', aspectRatio: '1', borderRadius: 8,
                           background: kleur,
-                          border: isVandaag ? '2px solid var(--mf-purple)' : '1px solid rgba(0,0,0,0.06)',
+                          border: isVandaag ? '2px solid var(--mf-purple)' : '1px solid var(--border)',
                           boxSizing: 'border-box',
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
                           opacity: s !== undefined ? 1 : 0.3,
                         }}>
-                          {s !== undefined && <span style={{ fontSize: 11, fontWeight: 800, color: 'white' }}>{s}</span>}
+                          {s !== undefined && <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--bg-app)' }}>{s}</span>}
                         </div>
                         <span style={{ fontSize: 9, color: isVandaag ? 'var(--mf-purple)' : 'var(--text-4)', fontWeight: isVandaag ? 700 : 400 }}>{dagNaam}</span>
                       </div>
@@ -447,19 +445,19 @@ export default function WerkgelukPagina() {
           width: 22px;
           height: 22px;
           border-radius: 50%;
-          background: white;
+          background: var(--text-1);
           border: 3px solid currentColor;
           cursor: pointer;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+          box-shadow: var(--shadow-sm);
         }
         input[type=range]::-moz-range-thumb {
           width: 22px;
           height: 22px;
           border-radius: 50%;
-          background: white;
+          background: var(--text-1);
           border: 3px solid currentColor;
           cursor: pointer;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+          box-shadow: var(--shadow-sm);
         }
       `}</style>
     </div>

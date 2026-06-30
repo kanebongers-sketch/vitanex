@@ -173,16 +173,16 @@ export async function GET(req: NextRequest) {
     // ── MIJLPALEN ─────────────────────────────────────────────────
     const totaalCheckins = stemmingLogs.length
     const mijlpalen = [
-      { bereikt: totaalCheckins >= 1,  label: 'Eerste check-in', emoji: '🌱', doel: 1 },
-      { bereikt: totaalCheckins >= 7,  label: '7 check-ins',     emoji: '⚡', doel: 7 },
-      { bereikt: totaalCheckins >= 21, label: '21 check-ins',    emoji: '🔥', doel: 21 },
-      { bereikt: totaalCheckins >= 50, label: '50 check-ins',    emoji: '🏆', doel: 50 },
+      { bereikt: totaalCheckins >= 1,  label: 'Eerste check-in', icon: 'milestone-1',  doel: 1 },
+      { bereikt: totaalCheckins >= 7,  label: '7 check-ins',     icon: 'milestone-7',  doel: 7 },
+      { bereikt: totaalCheckins >= 21, label: '21 check-ins',    icon: 'milestone-21', doel: 21 },
+      { bereikt: totaalCheckins >= 50, label: '50 check-ins',    icon: 'milestone-50', doel: 50 },
     ]
 
     // ── BOUW PATRONEN LIJST ───────────────────────────────────────
     type Patroon = {
       id: string
-      emoji: string
+      icon: string
       titel: string
       beschrijving: string
       waarde?: string
@@ -200,7 +200,7 @@ export async function GET(req: NextRequest) {
       if (Math.abs(verschil) >= 0.2) {
         patronen.push({
           id: 'sport_stemming',
-          emoji: '🏃',
+          icon: 'sport',
           titel: verschil > 0
             ? 'Sport maakt jou gelukkiger'
             : 'Sport en stemming bij jou ontkoppeld',
@@ -208,7 +208,7 @@ export async function GET(req: NextRequest) {
             ? `Op dagen dat je beweegt scoort jouw stemming gemiddeld ${verschil} punten hoger (${avgMetSport}/5 vs ${avgZonderSport}/5).`
             : `Je stemmingsscores verschillen weinig op sport- vs. rustdagen (${avgMetSport}/5 vs ${avgZonderSport}/5).`,
           waarde: verschil > 0 ? `+${verschil} stemming` : `${verschil} stemming`,
-          kleur: verschil > 0 ? '#1D9E75' : '#BA7517',
+          kleur: verschil > 0 ? 'var(--mf-green)' : 'var(--mf-amber)',
           betrouwbaarheid: stemmingMetSport.length >= 5 ? 'hoog' : 'middel',
           datapunten: stemmingMetSport.length + stemmingZonderSport.length,
         })
@@ -221,12 +221,12 @@ export async function GET(req: NextRequest) {
       if (verschil > 0.2) {
         patronen.push({
           id: 'slaap_stemming',
-          emoji: '😴',
+          icon: 'slaap',
           titel: 'Goede slaap = betere dag',
           beschrijving: `Na 7+ uur slaap is jouw stemming gemiddeld ${verschil} punten hoger (${avgNaGoedeslaap}/5). Na minder dan 6 uur slaap zak je naar ${avgNaSlaaptekort}/5.`,
           waarde: `+${verschil} stemming`,
           vergelijking: `7u+ slaap → ${avgNaGoedeslaap}/5 · <6u slaap → ${avgNaSlaaptekort}/5`,
-          kleur: '#185FA5',
+          kleur: 'var(--mf-blue)',
           betrouwbaarheid: stemmingNaGoedeslaap.length >= 4 ? 'hoog' : 'middel',
           datapunten: stemmingNaGoedeslaap.length + stemmingNaSlaaptekort.length,
         })
@@ -238,11 +238,11 @@ export async function GET(req: NextRequest) {
       const dagNaam = DAGEN_NL[besteDagIndex]
       patronen.push({
         id: 'beste_dag',
-        emoji: '📅',
+        icon: 'kalender',
         titel: `${dagNaam.charAt(0).toUpperCase() + dagNaam.slice(1)} is jouw beste dag`,
         beschrijving: `Je gemiddelde stemming op ${dagNaam} is ${Math.round(besteDagGem * 10) / 10}/5 — consistent je hoogste van de week. Plan uitdagende taken en gesprekken op ${dagNaam}.`,
         waarde: `${Math.round(besteDagGem * 10) / 10}/5`,
-        kleur: '#7C3AED',
+        kleur: 'var(--mf-purple)',
         betrouwbaarheid: 'middel',
         datapunten: (stemmingPerDag[besteDagIndex] ?? []).length,
       })
@@ -254,11 +254,11 @@ export async function GET(req: NextRequest) {
       if (verschil > 0.2) {
         patronen.push({
           id: 'water_energie',
-          emoji: '💧',
+          icon: 'water',
           titel: 'Gehydrateerd = meer energie',
           beschrijving: `Op dagen dat je 1,5L+ drinkt, is je energieniveau gemiddeld ${verschil} punten hoger (${avgEnergieMetWater}/5 vs ${avgEnergieZonderWater}/5).`,
           waarde: `+${verschil} energie`,
-          kleur: '#0EA5E9',
+          kleur: 'var(--mf-blue)',
           betrouwbaarheid: energieMetWater.length >= 4 ? 'hoog' : 'middel',
           datapunten: energieMetWater.length + energieZonderWater.length,
         })
@@ -272,13 +272,13 @@ export async function GET(req: NextRequest) {
         const stijgt = gemStemmingNu > gemStemmingVorig
         patronen.push({
           id: 'stemming_trend',
-          emoji: stijgt ? '📈' : '📉',
+          icon: stijgt ? 'trend-up' : 'trend-down',
           titel: stijgt ? 'Je stemming verbetert' : 'Je stemming daalt',
           beschrijving: stijgt
             ? `De afgelopen 30 dagen scoorde je gemiddeld ${gemStemmingNu}/5 — dat is ${Math.abs(gemStemmingNu - (gemStemmingVorig ?? 0)).toFixed(1)} punt meer dan de 30 dagen daarvoor (${gemStemmingVorig}/5).`
             : `De afgelopen 30 dagen scoorde je gemiddeld ${gemStemmingNu}/5. De vorige periode was dit ${gemStemmingVorig}/5. Let op signalen van vermoeidheid of stress.`,
           waarde: `${delta} stemming`,
-          kleur: stijgt ? '#1D9E75' : '#E24B4A',
+          kleur: stijgt ? 'var(--mf-green)' : 'var(--mf-red)',
           betrouwbaarheid: recentStemmingScores.length >= 7 ? 'hoog' : 'middel',
           datapunten: recentStemmingScores.length,
         })

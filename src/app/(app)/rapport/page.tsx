@@ -5,6 +5,7 @@ export const dynamic = 'force-dynamic'
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { CalendarClock } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { laadXPData, berekenLevel, LEVEL_NAMEN } from '@/lib/xp'
@@ -48,7 +49,11 @@ const VLAK_VOLGORDE = ['slaap', 'stress', 'energie', 'focus', 'balans', 'motivat
 function ScoreRing({ score }: { score: number }) {
   const r = 56, circ = 2 * Math.PI * r
   const kleur = score >= 70 ? 'var(--mf-green)' : score >= 45 ? 'var(--mf-amber)' : 'var(--mf-red)'
-  const trackKleur = score >= 70 ? 'rgba(29,158,117,0.12)' : score >= 45 ? 'rgba(245,158,11,0.12)' : 'rgba(239,68,68,0.12)'
+  const trackKleur = score >= 70
+    ? 'color-mix(in srgb, var(--mf-green) 12%, transparent)'
+    : score >= 45
+    ? 'color-mix(in srgb, var(--mf-amber) 12%, transparent)'
+    : 'color-mix(in srgb, var(--mf-red) 12%, transparent)'
   return (
     <svg width="140" height="140" viewBox="0 0 140 140">
       <circle cx="70" cy="70" r={r} fill="none" stroke={trackKleur} strokeWidth="11" />
@@ -373,7 +378,7 @@ export default function Rapport() {
                 <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-1)', marginBottom: 8 }}>Analyse mislukt</h2>
                 <p style={{ fontSize: 14, color: 'var(--text-3)', marginBottom: 24 }}>Er ging iets mis bij het genereren van je rapport. Probeer het opnieuw.</p>
                 <button onClick={() => { setAnalyseFout(false); setLaden(true); setTimeout(() => window.location.reload(), 50) }}
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'linear-gradient(135deg, #1D9E75, #0ea872)', color: 'white', borderRadius: 12, padding: '12px 28px', fontSize: 15, fontWeight: 700, border: 'none', cursor: 'pointer' }}>
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'var(--mentaforce-primary)', color: 'white', borderRadius: 12, padding: '12px 28px', fontSize: 15, fontWeight: 700, border: 'none', cursor: 'pointer' }}>
                   Opnieuw proberen →
                 </button>
               </>
@@ -399,20 +404,22 @@ export default function Rapport() {
             <div style={{
               borderRadius: 20, padding: '28px 32px', flexWrap: 'wrap',
               background: score !== null
-                ? score >= 70 ? 'linear-gradient(135deg, #E1F5EE 0%, #D1FAE5 60%, #EBF4FB 100%)'
-                  : score >= 45 ? 'linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 60%, #FFF7ED 100%)'
-                  : 'linear-gradient(135deg, #FEF2F2 0%, #FCEBEB 60%, #FEF3C7 100%)'
+                ? score >= 70 ? 'color-mix(in srgb, var(--mf-green) 14%, transparent)'
+                  : score >= 45 ? 'color-mix(in srgb, var(--mf-amber) 14%, transparent)'
+                  : 'color-mix(in srgb, var(--mf-red) 14%, transparent)'
                 : 'var(--bg-subtle)',
               border: `1.5px solid ${score !== null
-                ? score >= 70 ? 'rgba(29,158,117,0.20)' : score >= 45 ? 'rgba(245,158,11,0.20)' : 'rgba(239,68,68,0.20)'
+                ? score >= 70 ? 'color-mix(in srgb, var(--mf-green) 20%, transparent)'
+                  : score >= 45 ? 'color-mix(in srgb, var(--mf-amber) 20%, transparent)'
+                  : 'color-mix(in srgb, var(--mf-red) 20%, transparent)'
                 : 'var(--border)'}`,
-              boxShadow: '0 4px 24px rgba(0,0,0,0.06)',
+              boxShadow: '0 4px 24px color-mix(in srgb, var(--text-1) 6%, transparent)',
               display: 'flex', alignItems: 'center', gap: 28,
             }}>
               {score !== null && (
                 <div style={{ position: 'relative', flexShrink: 0 }}>
                   <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
-                    <div style={{ width: 200, height: 200, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
+                    <div style={{ width: 200, height: 200, borderRadius: '50%', background: 'radial-gradient(circle, color-mix(in srgb, var(--mf-green) 18%, transparent) 0%, transparent 70%)' }} />
                   </div>
                   <div style={{ position: 'relative', zIndex: 1 }}>
                     <ScoreRing score={score} />
@@ -545,9 +552,9 @@ export default function Rapport() {
             {/* Actieplan */}
             {aj?.actieplan && aj.actieplan.length > 0 && (
               <div style={{
-                background: 'linear-gradient(135deg, #E1F5EE 0%, #D1FAE5 100%)',
+                background: 'color-mix(in srgb, var(--mf-green) 14%, transparent)',
                 borderRadius: 16, padding: '20px 24px',
-                border: '1.5px solid rgba(29,158,117,0.20)',
+                border: '1.5px solid color-mix(in srgb, var(--mf-green) 20%, transparent)',
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
                   <div style={{ width: 28, height: 28, borderRadius: 8, background: 'var(--mf-green)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -566,8 +573,8 @@ export default function Rapport() {
                       <div style={{ flex: 1 }}>
                         <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--mf-green-dark)', marginBottom: 4 }}>{item.actie}</p>
                         <p style={{ fontSize: 12, color: 'var(--mf-green-dark)', lineHeight: 1.5, marginBottom: 6 }}>{item.waarom}</p>
-                        <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--mf-green-dark)', background: 'rgba(255,255,255,0.6)', borderRadius: 100, padding: '3px 10px', border: '1px solid rgba(29,158,117,0.20)' }}>
-                          📅 {item.wanneer}
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11, fontWeight: 700, color: 'var(--mf-green-dark)', background: 'color-mix(in srgb, var(--bg-card) 60%, transparent)', borderRadius: 100, padding: '3px 10px', border: '1px solid color-mix(in srgb, var(--mf-green) 20%, transparent)' }}>
+                          <CalendarClock size={12} aria-hidden /> {item.wanneer}
                         </span>
                       </div>
                     </div>

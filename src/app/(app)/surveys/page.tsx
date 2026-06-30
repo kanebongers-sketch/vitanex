@@ -94,7 +94,7 @@ function maakVragen(vragen: Omit<Vraag, 'id'>[]): Vraag[] {
 function AnonimBanner() {
   const [open, setOpen] = useState(false)
   return (
-    <div style={{ borderRadius: 16, border: '1px solid rgba(55,138,221,0.35)', background: 'var(--mf-blue-light)', marginBottom: 20, overflow: 'hidden' }}>
+    <div style={{ borderRadius: 16, border: '1px solid color-mix(in srgb, var(--mf-blue) 35%, transparent)', background: 'var(--mf-blue-light)', marginBottom: 20, overflow: 'hidden' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--mf-blue)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -107,13 +107,13 @@ function AnonimBanner() {
         </div>
         <button
           onClick={() => setOpen(o => !o)}
-          style={{ fontSize: 12, fontWeight: 500, padding: '6px 12px', borderRadius: 8, color: 'var(--mf-blue)', background: 'rgba(55,138,221,0.12)', border: 'none', cursor: 'pointer' }}
+          style={{ fontSize: 12, fontWeight: 500, padding: '6px 12px', borderRadius: 8, color: 'var(--mf-blue)', background: 'color-mix(in srgb, var(--mf-blue) 12%, transparent)', border: 'none', cursor: 'pointer' }}
         >
           {open ? 'Verbergen' : 'Hoe werkt dit?'}
         </button>
       </div>
       {open && (
-        <div style={{ padding: '0 20px 16px', borderTop: '1px solid rgba(55,138,221,0.25)' }}>
+        <div style={{ padding: '0 20px 16px', borderTop: '1px solid color-mix(in srgb, var(--mf-blue) 25%, transparent)' }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10, marginTop: 12 }}>
             {[
               {
@@ -132,7 +132,7 @@ function AnonimBanner() {
                 tekst: 'Bij teams < 5 personen worden resultaten niet getoond om herleidbaarheid te voorkomen.',
               },
             ].map(item => (
-              <div key={item.titel} style={{ borderRadius: 12, padding: 12, background: 'rgba(255,255,255,0.6)' }}>
+              <div key={item.titel} style={{ borderRadius: 12, padding: 12, background: 'var(--bg-card)' }}>
                 <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--mf-blue)', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 5 }}>
                   {item.icon} {item.titel}
                 </p>
@@ -197,10 +197,10 @@ function NieuweSurveyForm({ bedrijfId, userId, onGemaakt }: {
             onClick={() => setTemplateTab(t)}
             style={{
               padding: '8px 16px', borderRadius: 8, fontSize: 13, border: 'none', cursor: 'pointer',
-              background: templateTab === t ? 'white' : 'transparent',
+              background: templateTab === t ? 'var(--bg-card)' : 'transparent',
               color: templateTab === t ? 'var(--text-1)' : 'var(--text-3)',
               fontWeight: templateTab === t ? 600 : 400,
-              boxShadow: templateTab === t ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+              boxShadow: templateTab === t ? 'var(--shadow-card)' : 'none',
             }}
           >
             {t === 'template' ? 'Kies template' : 'Zelf maken'}
@@ -287,7 +287,7 @@ function NieuweSurveyForm({ bedrijfId, userId, onGemaakt }: {
             <button
               onClick={maakAan}
               disabled={bezig || !titel.trim() || vragen.some(v => !v.tekst.trim())}
-              style={{ padding: '9px 20px', borderRadius: 10, fontSize: 13, color: 'white', fontWeight: 600, border: 'none', cursor: 'pointer', background: 'var(--mf-green)', opacity: (bezig || !titel.trim() || vragen.some(v => !v.tekst.trim())) ? 0.4 : 1 }}
+              style={{ padding: '9px 20px', borderRadius: 10, fontSize: 13, color: 'var(--bg-app)', fontWeight: 600, border: 'none', cursor: 'pointer', background: 'var(--mf-green)', opacity: (bezig || !titel.trim() || vragen.some(v => !v.tekst.trim())) ? 0.4 : 1 }}
             >
               {bezig ? 'Aanmaken...' : 'Survey aanmaken'}
             </button>
@@ -435,7 +435,7 @@ export default function SurveysPagina() {
               onClick={() => setNieuwTonen(v => !v)}
               style={{
                 display: 'inline-flex', alignItems: 'center', gap: 6,
-                background: nieuwTonen ? 'var(--text-3)' : 'var(--mf-green)', color: 'white',
+                background: nieuwTonen ? 'var(--text-3)' : 'var(--mf-green)', color: 'var(--bg-app)',
                 borderRadius: 12, padding: '10px 18px',
                 fontSize: 14, fontWeight: 600, border: 'none', cursor: 'pointer',
               }}
@@ -452,8 +452,8 @@ export default function SurveysPagina() {
         {verzondSuccess && (
           <div style={{
             position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)', zIndex: 50,
-            background: 'var(--text-1)', color: 'white', fontSize: 13, padding: '12px 20px',
-            borderRadius: 16, boxShadow: '0 8px 24px rgba(0,0,0,0.18)',
+            background: 'var(--text-1)', color: 'var(--bg-app)', fontSize: 13, padding: '12px 20px',
+            borderRadius: 16, boxShadow: 'var(--shadow-elevated)',
             display: 'flex', alignItems: 'center', gap: 8,
           }}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--mf-green)' }}>
@@ -516,7 +516,7 @@ export default function SurveysPagina() {
                               flex: 1, padding: '12px 0', borderRadius: 12, fontSize: 14, fontWeight: 700,
                               border: `2px solid ${antwoorden[v.id] === n ? 'var(--mf-green)' : 'var(--border)'}`,
                               background: antwoorden[v.id] === n ? 'var(--mf-green)' : 'transparent',
-                              color: antwoorden[v.id] === n ? 'white' : 'var(--text-2)',
+                              color: antwoorden[v.id] === n ? 'var(--bg-app)' : 'var(--text-2)',
                               cursor: 'pointer',
                             }}
                           >
@@ -535,7 +535,7 @@ export default function SurveysPagina() {
                               flex: 1, padding: '12px 0', borderRadius: 12, fontSize: 14, fontWeight: 600,
                               border: `2px solid ${antwoorden[v.id] === b ? 'var(--mf-green)' : 'var(--border)'}`,
                               background: antwoorden[v.id] === b ? 'var(--mf-green)' : 'transparent',
-                              color: antwoorden[v.id] === b ? 'white' : 'var(--text-2)',
+                              color: antwoorden[v.id] === b ? 'var(--bg-app)' : 'var(--text-2)',
                               cursor: 'pointer',
                             }}
                           >
@@ -563,7 +563,7 @@ export default function SurveysPagina() {
                   disabled={verzenden || activeSurvey.vragen.some(v => v.type !== 'tekst' && antwoorden[v.id] === undefined)}
                   style={{
                     width: '100%', padding: '14px 0', borderRadius: 12, fontSize: 14, fontWeight: 600,
-                    color: 'white', border: 'none', cursor: 'pointer', background: 'var(--mf-green)',
+                    color: 'var(--bg-app)', border: 'none', cursor: 'pointer', background: 'var(--mf-green)',
                     opacity: (verzenden || activeSurvey.vragen.some(v => v.type !== 'tekst' && antwoorden[v.id] === undefined)) ? 0.4 : 1,
                   }}
                 >
@@ -586,10 +586,10 @@ export default function SurveysPagina() {
                 onClick={() => setTab(t)}
                 style={{
                   padding: '8px 16px', borderRadius: 8, fontSize: 13, border: 'none', cursor: 'pointer',
-                  background: tab === t ? 'white' : 'transparent',
+                  background: tab === t ? 'var(--bg-card)' : 'transparent',
                   color: tab === t ? 'var(--text-1)' : 'var(--text-3)',
                   fontWeight: tab === t ? 600 : 400,
-                  boxShadow: tab === t ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                  boxShadow: tab === t ? 'var(--shadow-card)' : 'none',
                 }}
               >
                 {t === 'actief' ? 'Actieve surveys' : 'Resultaten'}
@@ -606,7 +606,7 @@ export default function SurveysPagina() {
           <div style={{ background: 'var(--bg-card)', borderRadius: 20, border: '1px solid var(--border)', padding: '56px 40px', textAlign: 'center' }}>
             <div style={{ position: 'relative', width: 56, height: 56, margin: '0 auto 16px' }}>
               <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
-                <div style={{ width: 90, height: 90, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
+                <div style={{ width: 90, height: 90, borderRadius: '50%', background: 'radial-gradient(circle, color-mix(in srgb, var(--mentaforce-primary) 18%, transparent) 0%, transparent 70%)' }} />
               </div>
               <div style={{ width: 56, height: 56, borderRadius: 16, background: 'var(--bg-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-3)', position: 'relative', zIndex: 1 }}>
                 <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -670,7 +670,7 @@ export default function SurveysPagina() {
                         {!isHR && s.actief && !alBeantwoord && (
                           <button
                             onClick={() => { setActiveSurveyId(s.id); setAntwoorden({}) }}
-                            style={{ fontSize: 13, padding: '8px 16px', borderRadius: 10, color: 'white', fontWeight: 600, border: 'none', cursor: 'pointer', background: 'var(--mf-green)' }}
+                            style={{ fontSize: 13, padding: '8px 16px', borderRadius: 10, color: 'var(--bg-app)', fontWeight: 600, border: 'none', cursor: 'pointer', background: 'var(--mf-green)' }}
                           >
                             Invullen
                           </button>

@@ -4,7 +4,12 @@ export const dynamic = 'force-dynamic'
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, FlaskConical, Lock } from 'lucide-react'
+import {
+  ArrowLeft, FlaskConical, Lock,
+  Activity, Moon, CalendarDays, Droplet, TrendingUp, TrendingDown,
+  Trophy, Star, Flame, Sprout, Sparkles,
+  type LucideIcon,
+} from 'lucide-react'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
 import { supabase } from '@/lib/supabase'
@@ -17,7 +22,7 @@ import { Button } from '@/components/ui/Button'
 
 interface Patroon {
   id: string
-  emoji: string
+  icon: string
   titel: string
   beschrijving: string
   waarde?: string
@@ -39,7 +44,7 @@ interface Samenvatting {
 interface Mijlpaal {
   bereikt: boolean
   label: string
-  emoji: string
+  icon: string
   doel: number
 }
 
@@ -56,6 +61,31 @@ const BETROUWBAARHEID_VARIANT: Record<
   laag: { label: 'Weinig data', variant: 'warning' },
   middel: { label: 'Groeiend beeld', variant: 'accent' },
   hoog: { label: 'Sterk patroon', variant: 'success' },
+}
+
+/** Stabiele icon-keys uit /api/patronen → lucide-componenten. */
+const PATROON_ICON: Record<string, LucideIcon> = {
+  sport: Activity,
+  slaap: Moon,
+  kalender: CalendarDays,
+  water: Droplet,
+  'trend-up': TrendingUp,
+  'trend-down': TrendingDown,
+}
+
+const MIJLPAAL_ICON: Record<string, LucideIcon> = {
+  'milestone-1': Sprout,
+  'milestone-7': Star,
+  'milestone-21': Flame,
+  'milestone-50': Trophy,
+}
+
+function patroonIcon(key: string): LucideIcon {
+  return PATROON_ICON[key] ?? Sparkles
+}
+
+function mijlpaalIcon(key: string): LucideIcon {
+  return MIJLPAAL_ICON[key] ?? Trophy
 }
 
 function BetrouwbaarheidBadge({ niveau }: { niveau: Patroon['betrouwbaarheid'] }) {
@@ -245,7 +275,9 @@ export default function PatronenPage() {
                 </Card>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 24 }}>
-                  {data.patronen.map((p) => (
+                  {data.patronen.map((p) => {
+                    const PatroonIcon = patroonIcon(p.icon)
+                    return (
                     <Card
                       key={p.id}
                       className="patroon-kaart"
@@ -255,8 +287,12 @@ export default function PatronenPage() {
                       }}
                     >
                       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
-                        <div style={{ flexShrink: 0, width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          <span style={{ fontSize: 28, lineHeight: 1 }} aria-hidden>{p.emoji}</span>
+                        <div style={{
+                          flexShrink: 0, width: 32, height: 32, borderRadius: 'var(--radius-md)',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          background: `color-mix(in srgb, ${p.kleur} 14%, transparent)`,
+                        }}>
+                          <PatroonIcon size={18} color={p.kleur} strokeWidth={2.2} aria-hidden />
                         </div>
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 6 }}>
@@ -264,7 +300,7 @@ export default function PatronenPage() {
                               {p.titel}
                             </span>
                             {p.waarde && (
-                              <span style={{ fontSize: 12, fontWeight: 800, color: p.kleur, background: `${p.kleur}26`, padding: '2px 8px', borderRadius: 20 }}>
+                              <span style={{ fontSize: 12, fontWeight: 800, color: p.kleur, background: `color-mix(in srgb, ${p.kleur} 15%, transparent)`, padding: '2px 8px', borderRadius: 20 }}>
                                 {p.waarde}
                               </span>
                             )}
@@ -286,7 +322,8 @@ export default function PatronenPage() {
                         </div>
                       </div>
                     </Card>
-                  ))}
+                    )
+                  })}
                 </div>
               )}
 
@@ -297,7 +334,9 @@ export default function PatronenPage() {
                     Behaald
                   </h2>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8, marginBottom: 24 }}>
-                    {data.mijlpalen.map((m) => (
+                    {data.mijlpalen.map((m) => {
+                      const MijlpaalIcon = mijlpaalIcon(m.icon)
+                      return (
                       <div
                         key={m.doel}
                         style={{
@@ -309,16 +348,17 @@ export default function PatronenPage() {
                           opacity: m.bereikt ? 1 : 0.55,
                         }}
                       >
-                        <div style={{ fontSize: 24, marginBottom: 4, display: 'flex', justifyContent: 'center' }}>
+                        <div style={{ marginBottom: 4, display: 'flex', justifyContent: 'center' }}>
                           {m.bereikt
-                            ? <span aria-hidden>{m.emoji}</span>
+                            ? <MijlpaalIcon size={22} color="var(--mf-green)" strokeWidth={2.2} aria-hidden />
                             : <Lock size={22} color="var(--text-4)" aria-hidden />}
                         </div>
                         <div style={{ fontSize: 10, fontWeight: 700, color: m.bereikt ? 'var(--mf-green-dark)' : 'var(--text-4)', lineHeight: 1.3 }}>
                           {m.label}
                         </div>
                       </div>
-                    ))}
+                      )
+                    })}
                   </div>
                 </>
               )}
