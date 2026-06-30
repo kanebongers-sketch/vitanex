@@ -18,15 +18,23 @@ export async function laadXPVanServer(): Promise<XPData | null> {
     if (!res.ok) return null
 
     const serverData: XPData | null = await res.json()
-    if (!serverData) return null
 
-    // Neem de hoogste XP (beschermt tegen regressie als localStorage voorloopt)
     const lokaal = laadXPData()
-    if (serverData.xp >= lokaal.xp) {
+
+    // Server is de duurzame bron van waarheid. Maar omdat XP op sommige plekken
+    // lokaal verdiend werd zonder direct te syncen, kan localStorage vóórlopen.
+    // We reconciliëren verliesvrij op basis van de hoogste XP:
+    //  • server ≥ lokaal  → adopteer de server (cross-device correct)
+    //  • lokaal  > server  → haal de server bij (push), zodat voortgang nooit
+    //                        alleen in de browser blijft hangen.
+    if (serverData && serverData.xp >= lokaal.xp) {
       slaXPOp({ ...lokaal, ...serverData })
+      return serverData
     }
 
-    return serverData
+    // Lokaal loopt voor (of server is leeg): persisteer lokaal naar de server.
+    await syncXPNaarServer(lokaal)
+    return lokaal
   } catch {
     return null
   }

@@ -9,6 +9,7 @@ import { supabase } from '@/lib/supabase'
 
 import { CAT, DOELKEUZE_OPTIES } from '@/lib/doelen-config'
 import { verwerkCheckin } from '@/lib/xp'
+import { syncXPNaarServer } from '@/lib/xp-sync'
 import {
   type WellbeingCat, type WeekDoel, type WeekSelectie,
   vandaag, slaWeekSelectieOp,
@@ -130,7 +131,11 @@ function DoelKeuzeInhoud() {
         gedeeld_met_hr: false,
       })
 
-      try { verwerkCheckin(vitaalScore) } catch { /* non-critical */ }
+      try {
+        const xpResult = verwerkCheckin(vitaalScore)
+        // Direct doorschrijven naar de server zodat check-in-XP nooit alleen lokaal blijft.
+        syncXPNaarServer(xpResult.xpData).catch(() => { /* stil falen — lokaal blijft intact */ })
+      } catch { /* non-critical */ }
     } catch {
       toast({ title: 'Analyse niet beschikbaar', description: 'Je doelen zijn opgeslagen, maar de AI-analyse kon niet worden gemaakt.', variant: 'warning' })
     }

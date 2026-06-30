@@ -8,6 +8,7 @@ import { Target, Sparkles, Plus, Check, X, Flame, ChevronRight } from 'lucide-re
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { verwerkGoalLog, LEVEL_NAMEN, type Achievement } from '@/lib/xp'
+import { syncXPNaarServer } from '@/lib/xp-sync'
 import {
   type WellbeingCat, type WeekDoel, type WeekSelectie,
   vandaag, laadWeekSelectie, slaWeekSelectieOp, isVandaagGelogd, logVandaag,
@@ -118,6 +119,8 @@ function DoelenInhoud() {
       if (xpResult.xpGewonnen > 0 || xpResult.nieuweAchievements.length > 0) {
         toonXPToast(xpResult.xpGewonnen, xpResult.levelOmhoog ? xpResult.nieuwLevel : undefined, xpResult.nieuweAchievements)
       }
+      // Schrijf de verdiende XP direct door naar de server (duurzame bron van waarheid).
+      syncXPNaarServer(xpResult.xpData).catch(() => { /* stil falen — lokaal blijft intact */ })
     }
   }
 
