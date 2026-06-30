@@ -2,11 +2,15 @@
 
 export const dynamic = 'force-dynamic'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { authFetch } from '@/lib/auth-fetch'
 import Navbar from '@/components/layout/Navbar'
+import { Card } from '@/components/ui/Card'
+import { Button } from '@/components/ui/Button'
+import { Crown, Sparkles, HeartHandshake, Microscope, CheckCircle2 } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 
 
 type Dimensie = 'D' | 'I' | 'S' | 'C'
@@ -58,11 +62,16 @@ const DIM_BESCHR: Record<Dimensie, string> = {
   S: 'Betrouwbaar, geduldig en samenwerkingsgericht. Je zorgt voor stabiliteit en harmonie.',
   C: 'Nauwkeurig, analytisch en kwaliteitsgericht. Je werkt systematisch en grondig.',
 }
-const DIM_INTRO: Record<Dimensie, { emoji: string; kernwoorden: string[] }> = {
-  D: { emoji: '🔴', kernwoorden: ['Leidend', 'Besluitvaardig', 'Resultaatgericht', 'Direct'] },
-  I: { emoji: '🟡', kernwoorden: ['Enthousiast', 'Sociaal', 'Overtuigend', 'Inspirerend'] },
-  S: { emoji: '🟢', kernwoorden: ['Betrouwbaar', 'Geduldig', 'Harmonieus', 'Teamgericht'] },
-  C: { emoji: '🔵', kernwoorden: ['Nauwkeurig', 'Analytisch', 'Systematisch', 'Kwaliteitsgericht'] },
+// Icoon per dimensie (vervangt de gekleurde emoji-bollen). Kleur blijft via DIM_KLEUR,
+// maar het icoon + label dragen de betekenis, niet enkel de kleur.
+const DIM_ICOON: Record<Dimensie, LucideIcon> = {
+  D: Crown, I: Sparkles, S: HeartHandshake, C: Microscope,
+}
+const DIM_KERNWOORDEN: Record<Dimensie, string[]> = {
+  D: ['Leidend', 'Besluitvaardig', 'Resultaatgericht', 'Direct'],
+  I: ['Enthousiast', 'Sociaal', 'Overtuigend', 'Inspirerend'],
+  S: ['Betrouwbaar', 'Geduldig', 'Harmonieus', 'Teamgericht'],
+  C: ['Nauwkeurig', 'Analytisch', 'Systematisch', 'Kwaliteitsgericht'],
 }
 
 const SCHAAL = ['Helemaal niet', 'Nauwelijks', 'Soms', 'Vaak', 'Volledig']
@@ -101,6 +110,99 @@ function formatDatum(iso: string): string {
   return d.toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' })
 }
 
+const DIMS: Dimensie[] = ['D', 'I', 'S', 'C']
+
+// ── Radar-diagram (memo'd presentational component) ───────────────────────────
+interface RadarProps {
+  scores: Record<Dimensie, number>
+  primair: Dimensie
+}
+
+function RadarDiagram({ scores, primair }: RadarProps) {
+  // Geometrie is puur afhankelijk van scores/primair; memo'iseren voorkomt
+  // herberekening van paden bij elke parent-render.
+  const geom = useMemo(() => {
+    const cx = 110, cy = 110, r = 80
+    const axisAngles: Record<Dimensie, number> = { D: -90, I: 0, S: 90, C: 180 }
+    const toRad = (deg: number) => (deg * Math.PI) / 180
+    const punkt = (dim: Dimensie, s: number) => ({
+      x: cx + r * (s / 30) * Math.cos(toRad(axisAngles[dim])),
+      y: cy + r * (s / 30) * Math.sin(toRad(axisAngles[dim])),
+    })
+    const axPunkt = (dim: Dimensie) => ({
+      x: cx + (r + 22) * Math.cos(toRad(axisAngles[dim])),
+      y: cy + (r + 22) * Math.sin(toRad(axisAngles[dim])),
+    })
+    const punten = DIMS.map(d => punkt(d, scores[d]))
+    const polyPath = punten.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' ') + ' Z'
+    const grids = [10, 20, 30].map(lvl => {
+      const gridPts = DIMS.map(d => ({
+        x: cx + r * (lvl / 30) * Math.cos(toRad(axisAngles[d])),
+        y: cy + r * (lvl / 30) * Math.sin(toRad(axisAngles[d])),
+      }))
+      return gridPts.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' ') + ' Z'
+    })
+    const assen = DIMS.map(d => ({
+      dim: d,
+      x2: cx + r * Math.cos(toRad(axisAngles[d])),
+      y2: cy + r * Math.sin(toRad(axisAngles[d])),
+    }))
+    const labels = DIMS.map(d => {
+      const ap = axPunkt(d)
+      const anchor = axisAngles[d] === 0 ? 'start' : axisAngles[d] === 180 ? 'end' : 'middle'
+      const dy = axisAngles[d] === -90 ? -4 : axisAngles[d] === 90 ? 12 : 4
+      return { dim: d, x: ap.x, y: ap.y + dy, anchor }
+    })
+    const dots = DIMS.map(d => ({ dim: d, ...punkt(d, scores[d]) }))
+    return { cx, cy, polyPath, grids, assen, labels, dots }
+  }, [scores, primair])
+
+  const beschrijving = DIMS.map(d => `${DIM_LABEL[d]} ${scores[d]} van 30`).join(', ')
+
+  return (
+    <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 24, position: 'relative' }}>
+      <div aria-hidden style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 0 }}>
+        <div style={{ width: 200, height: 200, borderRadius: '50%', background: 'var(--mentaforce-primary-light)' }} />
+      </div>
+      <svg
+        width={220}
+        height={220}
+        viewBox="0 0 220 220"
+        role="img"
+        aria-label={`Radar-diagram van jouw DISC-scores: ${beschrijving}.`}
+        style={{ position: 'relative', zIndex: 1 }}
+      >
+        {/* Grid rings */}
+        {geom.grids.map((d, i) => (
+          <path key={i} d={d} fill="none" stroke="var(--border-strong)" strokeWidth="1" />
+        ))}
+        {/* Axis lines */}
+        {geom.assen.map(a => (
+          <line key={a.dim} x1={geom.cx} y1={geom.cy} x2={a.x2} y2={a.y2} stroke="var(--border-strong)" strokeWidth="1" />
+        ))}
+        {/* Score polygon */}
+        <path
+          d={geom.polyPath}
+          fill={`color-mix(in srgb, ${DIM_KLEUR[primair]} 19%, transparent)`}
+          stroke={DIM_KLEUR[primair]}
+          strokeWidth="2"
+          strokeLinejoin="round"
+        />
+        {/* Score dots */}
+        {geom.dots.map(p => (
+          <circle key={p.dim} cx={p.x} cy={p.y} r={5} fill={DIM_KLEUR[p.dim]} />
+        ))}
+        {/* Axis labels */}
+        {geom.labels.map(l => (
+          <text key={l.dim} x={l.x} y={l.y} textAnchor={l.anchor} fontSize={12} fontWeight="700" fill={DIM_KLEUR[l.dim]}>
+            {l.dim}
+          </text>
+        ))}
+      </svg>
+    </div>
+  )
+}
+
 export default function DiscPage() {
   const router = useRouter()
   const [geladen, setGeladen] = useState(false)
@@ -113,6 +215,8 @@ export default function DiscPage() {
   const [fout, setFout] = useState('')
   const [bedrijfId, setBedrijfId] = useState<string | null>(null)
   const [eerderResultaat, setEerderResultaat] = useState<EerderResultaat | null>(null)
+  // Stuurt de auto-advance aan: id van de zojuist beantwoorde vraag, of null.
+  const [zojuistBeantwoord, setZojuistBeantwoord] = useState<number | null>(null)
 
   useEffect(() => {
     async function init() {
@@ -140,11 +244,23 @@ export default function DiscPage() {
     init()
   }, [router])
 
+  // Auto-advance 300ms na een antwoord (behalve op de laatste vraag — dan
+  // berekent `antwoord` direct). Effect met cleanup ruimt de timer op.
+  useEffect(() => {
+    if (zojuistBeantwoord === null) return
+    if (huidigIdx >= VRAGEN.length - 1) return
+    const t = setTimeout(() => {
+      setHuidigIdx(v => v + 1)
+      setZojuistBeantwoord(null)
+    }, 300)
+    return () => clearTimeout(t)
+  }, [zojuistBeantwoord, huidigIdx])
+
   function antwoord(vraagId: number, waarde: number) {
     const nieuw = { ...antwoorden, [vraagId]: waarde }
     setAntwoorden(nieuw)
     if (huidigIdx < VRAGEN.length - 1) {
-      setTimeout(() => setHuidigIdx(v => v + 1), 300)
+      setZojuistBeantwoord(vraagId)
     } else { bereken(nieuw) }
   }
 
@@ -163,6 +279,7 @@ export default function DiscPage() {
     setScores({ D: 0, I: 0, S: 0, C: 0 })
     setPrimair('D')
     setFout('')
+    setZojuistBeantwoord(null)
     setFase('intro')
   }
 
@@ -191,7 +308,7 @@ export default function DiscPage() {
   )
 
   const hv = VRAGEN[huidigIdx]
-  const dims: Dimensie[] = ['D', 'I', 'S', 'C']
+  const HvIcoon = DIM_ICOON[hv.dimensie]
 
   // Voortgang per dimensie berekenen
   function dimVoortgang(dim: Dimensie) {
@@ -204,32 +321,33 @@ export default function DiscPage() {
   }
 
   return (
-    <div className="mf-mesh-bg" style={{ minHeight: '100vh', color: 'var(--text-1, #f1f5f9)' }}>
+    <div className="mf-mesh-bg" style={{ minHeight: '100vh', color: 'var(--text-1)' }}>
       <Navbar />
-      <div style={{ maxWidth: 900, margin: '0 auto', padding: '32px 20px' }}>
-        <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <h1 style={{ fontSize: 28, fontWeight: 700, color: 'var(--text-1, #f8fafc)', marginBottom: 8 }}>DISC Persoonlijkheidstest</h1>
-          <p style={{ color: 'var(--text-2, #94a3b8)', fontSize: 15 }}>Ontdek jouw dominante gedragsstijl</p>
-        </div>
+      <main style={{ maxWidth: 900, margin: '0 auto', padding: '32px 20px' }}>
+        <header style={{ textAlign: 'center', marginBottom: 32 }}>
+          <h1 style={{ fontSize: 28, fontWeight: 700, color: 'var(--text-1)', marginBottom: 8 }}>DISC Persoonlijkheidstest</h1>
+          <p style={{ color: 'var(--text-3)', fontSize: 15 }}>Ontdek jouw dominante gedragsstijl</p>
+        </header>
 
         {/* FASE: eerder gedaan */}
         {fase === 'eerder' && eerderResultaat && (
-          <div style={{ background: '#0f1e36', border: '1px solid #1e3a5f', borderRadius: 16, padding: 32 }}>
+          <Card style={{ padding: 32 }}>
             <div style={{ textAlign: 'center', marginBottom: 24 }}>
-              <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: 8 }}>
-                <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 0 }}>
-                  <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
+              <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
+                <div aria-hidden style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 0 }}>
+                  <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'var(--mentaforce-primary-light)' }} />
                 </div>
-                <div style={{ fontSize: 36, position: 'relative', zIndex: 1 }}>
-                  {DIM_INTRO[eerderResultaat.primair_profiel as Dimensie]?.emoji ?? '📊'}
-                </div>
+                {(() => {
+                  const Icoon = DIM_ICOON[eerderResultaat.primair_profiel as Dimensie] ?? Sparkles
+                  return <Icoon size={36} strokeWidth={1.5} aria-hidden style={{ position: 'relative', zIndex: 1, color: DIM_KLEUR[eerderResultaat.primair_profiel as Dimensie] ?? 'var(--mentaforce-primary)' }} />
+                })()}
               </div>
-              <h2 style={{ fontSize: 20, fontWeight: 700, color: 'var(--bg-subtle)', marginBottom: 4 }}>Je hebt deze test al ingevuld</h2>
-              <p style={{ color: 'var(--text-2)', fontSize: 14 }}>Gedaan op {formatDatum(eerderResultaat.created_at)}</p>
+              <h2 style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-1)', marginBottom: 4 }}>Je hebt deze test al ingevuld</h2>
+              <p style={{ color: 'var(--text-3)', fontSize: 14 }}>Gedaan op {formatDatum(eerderResultaat.created_at)}</p>
             </div>
 
-            <div style={{ background: 'var(--text-1)', borderRadius: 12, padding: 20, marginBottom: 24 }}>
-              <p style={{ color: 'var(--text-3)', fontSize: 13, marginBottom: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 1 }}>Jouw laatste resultaat</p>
+            <div style={{ background: 'var(--bg-subtle)', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: 20, marginBottom: 24 }}>
+              <p className="mf-overline" style={{ marginBottom: 12 }}>Jouw laatste resultaat</p>
               <p style={{ color: DIM_KLEUR[eerderResultaat.primair_profiel as Dimensie], fontSize: 22, fontWeight: 700, marginBottom: 4 }}>
                 {eerderResultaat.primair_profiel} – {DIM_LABEL[eerderResultaat.primair_profiel as Dimensie]}
               </p>
@@ -243,58 +361,60 @@ export default function DiscPage() {
                   ['S', eerderResultaat.s_score],
                   ['C', eerderResultaat.c_score],
                 ] as [Dimensie, number][]).map(([dim, score]) => (
-                  <div key={dim}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                      <span style={{ color: DIM_KLEUR[dim], fontWeight: 600, fontSize: 13 }}>{dim} – {DIM_LABEL[dim]}</span>
-                      <span style={{ color: 'var(--text-2)', fontSize: 13 }}>{score}/30</span>
-                    </div>
-                    <div style={{ background: '#0f1e36', borderRadius: 6, height: 8, overflow: 'hidden' }}>
-                      <div style={{ width: ((score / 30) * 100) + '%', height: '100%', background: DIM_KLEUR[dim], borderRadius: 6 }} />
-                    </div>
-                  </div>
+                  <ScoreBalk key={dim} dim={dim} score={score} />
                 ))}
               </div>
             </div>
 
             <div style={{ display: 'flex', gap: 12, flexDirection: 'column' }}>
-              <button onClick={() => router.push('/bestanden')} style={{ background: 'var(--mf-blue)', color: '#fff', border: 'none', borderRadius: 10, padding: '12px 0', fontSize: 15, fontWeight: 600, cursor: 'pointer' }}>
+              <Button onClick={() => router.push('/bestanden')} style={{ width: '100%' }}>
                 Bekijk je rapport
-              </button>
-              <button onClick={startOpnieuw} style={{ background: 'transparent', color: 'var(--text-3)', border: '1px solid #334155', borderRadius: 10, padding: '12px 0', fontSize: 15, cursor: 'pointer' }}>
+              </Button>
+              <Button variant="ghost" onClick={startOpnieuw} style={{ width: '100%', border: '1px solid var(--border-strong)' }}>
                 Doe de test opnieuw
-              </button>
+              </Button>
             </div>
-          </div>
+          </Card>
         )}
 
         {/* FASE: intro */}
         {fase === 'intro' && (
           <div>
-            <div style={{ background: '#0f1e36', border: '1px solid #1e3a5f', borderRadius: 16, padding: 32, marginBottom: 20 }}>
-              <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--bg-subtle)', marginBottom: 8 }}>Wat is DISC?</h2>
+            <Card style={{ padding: 32, marginBottom: 20 }}>
+              <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-1)', marginBottom: 8 }}>Wat is DISC?</h2>
               <p style={{ color: 'var(--text-3)', fontSize: 15, lineHeight: 1.7, margin: 0 }}>
                 DISC is een model dat gedragsstijlen beschrijft aan de hand van vier dimensies. Er is geen goed of fout profiel — elke stijl heeft unieke sterke punten. De test bestaat uit 24 stellingen en duurt ongeveer 5 minuten.
               </p>
+            </Card>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12, marginBottom: 24 }}>
+              {DIMS.map(dim => {
+                const Icoon = DIM_ICOON[dim]
+                return (
+                  <Card key={dim} style={{
+                    padding: 20,
+                    background: `color-mix(in srgb, ${DIM_KLEUR[dim]} 7%, var(--bg-card))`,
+                    border: `1px solid color-mix(in srgb, ${DIM_KLEUR[dim]} 30%, transparent)`,
+                  }}>
+                    <Icoon size={26} strokeWidth={1.6} aria-hidden style={{ color: DIM_KLEUR[dim], marginBottom: 8 }} />
+                    <div style={{ color: DIM_KLEUR[dim], fontWeight: 700, fontSize: 16, marginBottom: 4 }}>
+                      {dim} – {DIM_LABEL[dim]}
+                    </div>
+                    <p style={{ color: 'var(--text-3)', fontSize: 13, lineHeight: 1.5, margin: '0 0 12px' }}>{DIM_BESCHR[dim]}</p>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                      {DIM_KERNWOORDEN[dim].map(k => (
+                        <span key={k} style={{
+                          background: `color-mix(in srgb, ${DIM_KLEUR[dim]} 18%, transparent)`,
+                          color: DIM_KLEUR[dim], borderRadius: 20, padding: '2px 10px', fontSize: 12, fontWeight: 600,
+                        }}>{k}</span>
+                      ))}
+                    </div>
+                  </Card>
+                )
+              })}
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 24 }}>
-              {dims.map(dim => (
-                <div key={dim} style={{ background: DIM_KLEUR[dim] + '12', border: '1px solid ' + DIM_KLEUR[dim] + '30', borderRadius: 12, padding: 20 }}>
-                  <div style={{ fontSize: 28, marginBottom: 8 }}>{DIM_INTRO[dim].emoji}</div>
-                  <div style={{ color: DIM_KLEUR[dim], fontWeight: 700, fontSize: 16, marginBottom: 4 }}>
-                    {dim} – {DIM_LABEL[dim]}
-                  </div>
-                  <p style={{ color: 'var(--text-3)', fontSize: 13, lineHeight: 1.5, margin: '0 0 12px' }}>{DIM_BESCHR[dim]}</p>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                    {DIM_INTRO[dim].kernwoorden.map(k => (
-                      <span key={k} style={{ background: DIM_KLEUR[dim] + '20', color: DIM_KLEUR[dim], borderRadius: 20, padding: '2px 10px', fontSize: 12, fontWeight: 600 }}>{k}</span>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-            <button onClick={() => setFase('test')} style={{ width: '100%', background: 'var(--mf-blue)', color: '#fff', border: 'none', borderRadius: 12, padding: '16px 0', fontSize: 16, fontWeight: 700, cursor: 'pointer' }}>
-              Start de test →
-            </button>
+            <Button onClick={() => setFase('test')} size="lg" style={{ width: '100%' }}>
+              Start de test
+            </Button>
           </div>
         )}
 
@@ -303,15 +423,18 @@ export default function DiscPage() {
           <>
             {/* Voortgang per dimensie */}
             <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
-              {dims.map(dim => {
+              {DIMS.map(dim => {
                 const vg = dimVoortgang(dim)
                 return (
-                  <div key={dim} style={{ flex: 1, background: '#0f1e36', borderRadius: 8, padding: '8px 10px', border: '1px solid ' + (vg.actief ? DIM_KLEUR[dim] + '60' : 'var(--text-1)') }}>
-                    <div style={{ color: vg.actief ? DIM_KLEUR[dim] : 'var(--text-2)', fontWeight: 700, fontSize: 13, marginBottom: 4 }}>{dim}</div>
-                    <div style={{ background: 'var(--text-1)', borderRadius: 4, height: 4, overflow: 'hidden' }}>
-                      <div style={{ width: ((vg.beantwoord / vg.totaal) * 100) + '%', height: '100%', background: DIM_KLEUR[dim], borderRadius: 4, transition: 'width 0.3s' }} />
+                  <div key={dim} style={{
+                    flex: 1, background: 'var(--bg-subtle)', borderRadius: 'var(--radius-sm)', padding: '8px 10px',
+                    border: `1px solid ${vg.actief ? `color-mix(in srgb, ${DIM_KLEUR[dim]} 60%, transparent)` : 'var(--border)'}`,
+                  }}>
+                    <div style={{ color: vg.actief ? DIM_KLEUR[dim] : 'var(--text-3)', fontWeight: 700, fontSize: 13, marginBottom: 4 }}>{dim}</div>
+                    <div style={{ background: 'var(--bg-app)', borderRadius: 4, height: 4, overflow: 'hidden' }}>
+                      <div style={{ width: ((vg.beantwoord / vg.totaal) * 100) + '%', height: '100%', background: DIM_KLEUR[dim], borderRadius: 4, transition: 'width 0.3s var(--ease)' }} />
                     </div>
-                    <div style={{ color: 'var(--text-2)', fontSize: 11, marginTop: 3 }}>{vg.beantwoord}/{vg.totaal}</div>
+                    <div style={{ color: 'var(--text-3)', fontSize: 11, marginTop: 3 }}>{vg.beantwoord}/{vg.totaal}</div>
                   </div>
                 )
               })}
@@ -320,24 +443,52 @@ export default function DiscPage() {
             {/* Algemene voortgangsbalk */}
             <div style={{ marginBottom: 24 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-                <span style={{ color: 'var(--text-2)', fontSize: 13 }}>Vraag {huidigIdx + 1} van {VRAGEN.length}</span>
-                <span style={{ color: 'var(--text-2)', fontSize: 13 }}>{Math.round(((huidigIdx + 1) / VRAGEN.length) * 100)}%</span>
+                <span style={{ color: 'var(--text-3)', fontSize: 13 }}>Vraag {huidigIdx + 1} van {VRAGEN.length}</span>
+                <span style={{ color: 'var(--text-3)', fontSize: 13 }}>{Math.round(((huidigIdx + 1) / VRAGEN.length) * 100)}%</span>
               </div>
-              <div style={{ background: 'var(--text-1)', borderRadius: 6, height: 6 }}>
-                <div style={{ width: (((huidigIdx + 1) / VRAGEN.length) * 100) + '%', height: '100%', background: DIM_KLEUR[hv.dimensie], borderRadius: 6, transition: 'width 0.3s ease' }} />
+              <div
+                role="progressbar"
+                aria-valuenow={huidigIdx + 1}
+                aria-valuemin={1}
+                aria-valuemax={VRAGEN.length}
+                aria-label="Voortgang DISC-test"
+                style={{ background: 'var(--bg-subtle)', borderRadius: 6, height: 6, overflow: 'hidden' }}
+              >
+                <div style={{ width: (((huidigIdx + 1) / VRAGEN.length) * 100) + '%', height: '100%', background: DIM_KLEUR[hv.dimensie], borderRadius: 6, transition: 'width 0.3s var(--ease)' }} />
               </div>
             </div>
 
-            <div style={{ background: '#0f1e36', border: '1px solid ' + DIM_KLEUR[hv.dimensie] + '40', borderRadius: 16, padding: 32 }}>
-              <div style={{ display: 'inline-block', background: DIM_KLEUR[hv.dimensie] + '20', color: DIM_KLEUR[hv.dimensie], borderRadius: 6, padding: '4px 12px', fontSize: 13, fontWeight: 600, marginBottom: 20 }}>
-                {DIM_INTRO[hv.dimensie].emoji} {DIM_LABEL[hv.dimensie]}
+            <Card style={{ padding: 32, border: `1px solid color-mix(in srgb, ${DIM_KLEUR[hv.dimensie]} 40%, transparent)` }}>
+              <div style={{
+                display: 'inline-flex', alignItems: 'center', gap: 6,
+                background: `color-mix(in srgb, ${DIM_KLEUR[hv.dimensie]} 20%, transparent)`,
+                color: DIM_KLEUR[hv.dimensie], borderRadius: 'var(--radius-xs)', padding: '4px 12px',
+                fontSize: 13, fontWeight: 600, marginBottom: 20,
+              }}>
+                <HvIcoon size={14} aria-hidden /> {DIM_LABEL[hv.dimensie]}
               </div>
-              <p style={{ fontSize: 20, fontWeight: 600, color: 'var(--bg-subtle)', lineHeight: 1.5, marginBottom: 32 }}>{hv.tekst}</p>
-              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+              <p style={{ fontSize: 20, fontWeight: 600, color: 'var(--text-1)', lineHeight: 1.5, marginBottom: 32 }}>{hv.tekst}</p>
+              <div role="radiogroup" aria-label={hv.tekst} style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                 {[1, 2, 3, 4, 5].map(w => {
                   const g = antwoorden[hv.id] === w
                   return (
-                    <button key={w} onClick={() => antwoord(hv.id, w)} style={{ flex: 1, minWidth: 80, background: g ? DIM_KLEUR[hv.dimensie] : 'var(--text-1)', border: '1px solid ' + (g ? DIM_KLEUR[hv.dimensie] : 'var(--text-1)'), borderRadius: 10, padding: '14px 8px', color: g ? '#fff' : 'var(--text-3)', cursor: 'pointer', fontSize: 13, fontWeight: 600, textAlign: 'center', transition: 'all 0.15s' }}>
+                    <button
+                      key={w}
+                      type="button"
+                      role="radio"
+                      aria-checked={g}
+                      aria-label={`${w} – ${SCHAAL[w - 1]}`}
+                      onClick={() => antwoord(hv.id, w)}
+                      className="mf-disc-opt"
+                      style={{
+                        flex: 1, minWidth: 80,
+                        background: g ? DIM_KLEUR[hv.dimensie] : 'var(--bg-subtle)',
+                        border: `1px solid ${g ? DIM_KLEUR[hv.dimensie] : 'var(--border)'}`,
+                        borderRadius: 'var(--radius-sm)', padding: '14px 8px',
+                        color: g ? 'var(--bg-app)' : 'var(--text-2)', cursor: 'pointer',
+                        fontSize: 13, fontWeight: 600, textAlign: 'center', transition: 'background 0.15s var(--ease), border-color 0.15s var(--ease)',
+                      }}
+                    >
                       <div style={{ fontSize: 18, marginBottom: 4 }}>{w}</div>
                       <div style={{ fontSize: 11, lineHeight: 1.2 }}>{SCHAAL[w - 1]}</div>
                     </button>
@@ -345,149 +496,137 @@ export default function DiscPage() {
                 })}
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 24 }}>
-                <button
+                <Button
+                  variant="ghost"
                   onClick={() => setHuidigIdx(v => Math.max(0, v - 1))}
                   disabled={huidigIdx === 0}
-                  style={{ background: 'transparent', border: '1px solid #334155', borderRadius: 8, padding: '8px 20px', color: huidigIdx === 0 ? 'var(--text-1)' : 'var(--text-3)', cursor: huidigIdx === 0 ? 'not-allowed' : 'pointer', fontSize: 14 }}
+                  style={{ border: '1px solid var(--border-strong)' }}
                 >
                   ← Vorige vraag
-                </button>
+                </Button>
                 {huidigIdx < VRAGEN.length - 1 && antwoorden[hv.id] !== undefined && (
-                  <button onClick={() => setHuidigIdx(v => v + 1)} style={{ background: 'var(--text-1)', border: '1px solid #334155', borderRadius: 8, padding: '8px 20px', color: 'var(--text-3)', cursor: 'pointer', fontSize: 14 }}>
+                  <Button variant="secondary" onClick={() => setHuidigIdx(v => v + 1)}>
                     Volgende →
-                  </button>
+                  </Button>
                 )}
               </div>
-            </div>
+            </Card>
+
+            <style>{`
+              .mf-disc-opt:focus-visible {
+                outline: 2px solid var(--mentaforce-primary);
+                outline-offset: 2px;
+              }
+            `}</style>
           </>
         )}
 
         {/* FASE: resultaat */}
         {fase === 'resultaat' && (
           <div>
-            <div style={{ background: '#0f1e36', border: '1px solid #1e3a5f', borderRadius: 16, padding: 32, marginBottom: 20 }}>
-              <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 4, textAlign: 'center' }}>Jouw DISC-profiel</h2>
+            <Card style={{ padding: 32, marginBottom: 20 }}>
+              <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 4, textAlign: 'center', color: 'var(--text-1)' }}>Jouw DISC-profiel</h2>
               <p style={{ color: 'var(--text-3)', textAlign: 'center', marginBottom: 24 }}>
                 Primair: <span style={{ color: DIM_KLEUR[primair], fontWeight: 700, fontSize: 18 }}>{primair} – {DIM_LABEL[primair]}</span>
               </p>
 
-              {/* Radar diagram */}
-              {(() => {
-                const cx = 110, cy = 110, r = 80
-                const axisAngles: Record<Dimensie, number> = { D: -90, I: 0, S: 90, C: 180 }
-                const toRad = (deg: number) => (deg * Math.PI) / 180
-                const punkt = (dim: Dimensie, s: number) => ({
-                  x: cx + r * (s / 30) * Math.cos(toRad(axisAngles[dim])),
-                  y: cy + r * (s / 30) * Math.sin(toRad(axisAngles[dim])),
-                })
-                const axPunkt = (dim: Dimensie) => ({
-                  x: cx + (r + 22) * Math.cos(toRad(axisAngles[dim])),
-                  y: cy + (r + 22) * Math.sin(toRad(axisAngles[dim])),
-                })
-                const dims: Dimensie[] = ['D', 'I', 'S', 'C']
-                const punten = dims.map(d => punkt(d, scores[d]))
-                const polyPath = punten.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' ') + ' Z'
-                const maxGridLevels = [10, 20, 30]
-                return (
-                  <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 24, position: 'relative' }}>
-                    <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 0 }}>
-                      <div style={{ width: 200, height: 200, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
-                    </div>
-                    <svg width={220} height={220} viewBox="0 0 220 220" style={{ position: 'relative', zIndex: 1 }}>
-                      {/* Grid rings */}
-                      {maxGridLevels.map(lvl => {
-                        const gridPts = dims.map(d => ({
-                          x: cx + r * (lvl / 30) * Math.cos(toRad(axisAngles[d])),
-                          y: cy + r * (lvl / 30) * Math.sin(toRad(axisAngles[d])),
-                        }))
-                        const gPath = gridPts.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' ') + ' Z'
-                        return <path key={lvl} d={gPath} fill="none" stroke="#1e3a5f" strokeWidth="1" />
-                      })}
-                      {/* Axis lines */}
-                      {dims.map(d => {
-                        const ap = axPunkt(d)
-                        return <line key={d} x1={cx} y1={cy} x2={cx + r * Math.cos(toRad(axisAngles[d]))} y2={cy + r * Math.sin(toRad(axisAngles[d]))} stroke="#1e3a5f" strokeWidth="1" />
-                        void ap
-                      })}
-                      {/* Score polygon */}
-                      <path d={polyPath} fill={DIM_KLEUR[primair] + '30'} stroke={DIM_KLEUR[primair]} strokeWidth="2" strokeLinejoin="round" />
-                      {/* Score dots */}
-                      {dims.map(d => {
-                        const p = punkt(d, scores[d])
-                        return <circle key={d} cx={p.x} cy={p.y} r={5} fill={DIM_KLEUR[d]} />
-                      })}
-                      {/* Axis labels */}
-                      {dims.map(d => {
-                        const ap = axPunkt(d)
-                        const anchor = axisAngles[d] === 0 ? 'start' : axisAngles[d] === 180 ? 'end' : 'middle'
-                        const dy = axisAngles[d] === -90 ? -4 : axisAngles[d] === 90 ? 12 : 4
-                        return (
-                          <text key={d} x={ap.x} y={ap.y + dy} textAnchor={anchor} fontSize={12} fontWeight="700" fill={DIM_KLEUR[d]}>
-                            {d}
-                          </text>
-                        )
-                      })}
-                    </svg>
-                  </div>
-                )
-              })()}
+              <RadarDiagram scores={scores} primair={primair} />
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 28 }}>
                 {(Object.entries(scores) as [Dimensie, number][]).map(([dim, score]) => (
-                  <div key={dim}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                      <span style={{ color: DIM_KLEUR[dim], fontWeight: 600 }}>{dim} – {DIM_LABEL[dim]}</span>
-                      <span style={{ color: 'var(--text-3)', fontSize: 14 }}>{score}/30</span>
-                    </div>
-                    <div style={{ background: 'var(--text-1)', borderRadius: 6, height: 10, overflow: 'hidden' }}>
-                      <div style={{ width: ((score / 30) * 100) + '%', height: '100%', background: DIM_KLEUR[dim], borderRadius: 6, transition: 'width 0.8s ease' }} />
-                    </div>
-                  </div>
+                  <ScoreBalk key={dim} dim={dim} score={score} thick />
                 ))}
               </div>
-              <div style={{ background: DIM_KLEUR[primair] + '18', border: '1px solid ' + DIM_KLEUR[primair] + '40', borderRadius: 12, padding: 20, marginBottom: 24 }}>
-                <h3 style={{ color: DIM_KLEUR[primair], fontWeight: 700, marginBottom: 8 }}>{DIM_INTRO[primair].emoji} {DIM_LABEL[primair]}</h3>
-                <p style={{ color: 'var(--border)', fontSize: 15, lineHeight: 1.6, margin: 0 }}>{DIM_BESCHR[primair]}</p>
-              </div>
-              {fout && <div style={{ background: '#3f0e0e', border: '1px solid #7f1d1d', borderRadius: 8, padding: 12, color: 'var(--mf-red-light)', marginBottom: 16 }}>{fout}</div>}
-              <button onClick={verzend} disabled={bezig} style={{ width: '100%', background: bezig ? 'var(--text-1)' : DIM_KLEUR[primair], color: '#fff', border: 'none', borderRadius: 12, padding: '14px 0', fontSize: 16, fontWeight: 700, cursor: bezig ? 'not-allowed' : 'pointer' }}>
-                {bezig ? 'Opslaan...' : 'Resultaat opslaan & rapport genereren'}
-              </button>
-            </div>
+              {(() => {
+                const Icoon = DIM_ICOON[primair]
+                return (
+                  <div style={{
+                    background: `color-mix(in srgb, ${DIM_KLEUR[primair]} 14%, transparent)`,
+                    border: `1px solid color-mix(in srgb, ${DIM_KLEUR[primair]} 40%, transparent)`,
+                    borderRadius: 'var(--radius-md)', padding: 20, marginBottom: 24,
+                  }}>
+                    <h3 style={{ color: DIM_KLEUR[primair], fontWeight: 700, marginBottom: 8, display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                      <Icoon size={18} aria-hidden /> {DIM_LABEL[primair]}
+                    </h3>
+                    <p style={{ color: 'var(--text-2)', fontSize: 15, lineHeight: 1.6, margin: 0 }}>{DIM_BESCHR[primair]}</p>
+                  </div>
+                )
+              })()}
+              {fout && (
+                <div role="alert" style={{ background: 'var(--mf-red-light)', border: '1px solid var(--mf-red)', borderRadius: 'var(--radius-sm)', padding: 12, color: 'var(--mf-red)', marginBottom: 16 }}>
+                  {fout}
+                </div>
+              )}
+              <Button onClick={verzend} loading={bezig} size="lg" style={{ width: '100%' }}>
+                {bezig ? 'Opslaan…' : 'Resultaat opslaan & rapport genereren'}
+              </Button>
+            </Card>
 
             {/* Samenwerkingtabel */}
-            <div style={{ background: '#0f1e36', border: '1px solid #1e3a5f', borderRadius: 16, padding: 32 }}>
-              <h3 style={{ fontSize: 18, fontWeight: 700, color: 'var(--bg-subtle)', marginBottom: 6 }}>Samenwerking met andere profielen</h3>
-              <p style={{ color: 'var(--text-2)', fontSize: 14, marginBottom: 20 }}>Hoe werkt jouw {primair}-profiel samen met andere DISC-typen?</p>
+            <Card style={{ padding: 32 }}>
+              <h3 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-1)', marginBottom: 6 }}>Samenwerking met andere profielen</h3>
+              <p style={{ color: 'var(--text-3)', fontSize: 14, marginBottom: 20 }}>Hoe werkt jouw {primair}-profiel samen met andere DISC-typen?</p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                {getSamenwerking(primair).map(({ andere, data }) => (
-                  <div key={andere} style={{ background: 'var(--text-1)', borderRadius: 10, padding: 16, display: 'flex', gap: 14, alignItems: 'flex-start' }}>
-                    <div style={{ minWidth: 48, textAlign: 'center' }}>
-                      <div style={{ fontSize: 20 }}>{DIM_INTRO[andere].emoji}</div>
-                      <div style={{ color: DIM_KLEUR[andere], fontWeight: 700, fontSize: 13 }}>{primair}+{andere}</div>
+                {getSamenwerking(primair).map(({ andere, data }) => {
+                  const Icoon = DIM_ICOON[andere]
+                  return (
+                    <div key={andere} style={{ background: 'var(--bg-subtle)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', padding: 16, display: 'flex', gap: 14, alignItems: 'flex-start' }}>
+                      <div style={{ minWidth: 48, textAlign: 'center' }}>
+                        <Icoon size={20} aria-hidden style={{ color: DIM_KLEUR[andere] }} />
+                        <div style={{ color: DIM_KLEUR[andere], fontWeight: 700, fontSize: 13, marginTop: 2 }}>{primair}+{andere}</div>
+                      </div>
+                      <div>
+                        <div style={{ color: data?.kleur ?? 'var(--text-2)', fontWeight: 700, fontSize: 15, marginBottom: 4 }}>{data?.label ?? '–'}</div>
+                        <p style={{ color: 'var(--text-3)', fontSize: 14, lineHeight: 1.5, margin: 0 }}>{data?.beschrijving ?? ''}</p>
+                      </div>
                     </div>
-                    <div>
-                      <div style={{ color: data?.kleur ?? 'var(--text-3)', fontWeight: 700, fontSize: 15, marginBottom: 4 }}>{data?.label ?? '–'}</div>
-                      <p style={{ color: 'var(--text-3)', fontSize: 14, lineHeight: 1.5, margin: 0 }}>{data?.beschrijving ?? ''}</p>
-                    </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
-            </div>
+            </Card>
           </div>
         )}
 
         {/* FASE: opgeslagen */}
         {fase === 'opgeslagen' && (
-          <div style={{ background: '#0f1e36', border: '1px solid #1e3a5f', borderRadius: 16, padding: 40, textAlign: 'center' }}>
-            <div style={{ fontSize: 48, marginBottom: 16 }}>✓</div>
+          <Card style={{ padding: 40, textAlign: 'center' }}>
+            <CheckCircle2 size={48} strokeWidth={1.5} aria-hidden style={{ color: 'var(--mf-green)', marginBottom: 16 }} />
             <h2 style={{ fontSize: 22, fontWeight: 700, color: 'var(--mf-green)', marginBottom: 8 }}>Resultaat opgeslagen!</h2>
             <p style={{ color: 'var(--text-3)', marginBottom: 24 }}>Je DISC-profiel en rapport zijn opgeslagen.</p>
-            <button onClick={() => router.push('/bestanden')} style={{ background: 'var(--mf-blue)', color: '#fff', border: 'none', borderRadius: 10, padding: '12px 28px', fontSize: 15, fontWeight: 600, cursor: 'pointer' }}>
+            <Button onClick={() => router.push('/bestanden')}>
               Bekijk je rapport
-            </button>
-          </div>
+            </Button>
+          </Card>
         )}
+      </main>
+    </div>
+  )
+}
+
+// ── Score-balk (gedeeld tussen 'eerder' en 'resultaat') ───────────────────────
+interface ScoreBalkProps {
+  dim: Dimensie
+  score: number
+  thick?: boolean
+}
+
+function ScoreBalk({ dim, score, thick = false }: ScoreBalkProps) {
+  const pct = Math.round((score / 30) * 100)
+  return (
+    <div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+        <span style={{ color: DIM_KLEUR[dim], fontWeight: 600, fontSize: thick ? 15 : 13 }}>{dim} – {DIM_LABEL[dim]}</span>
+        <span style={{ color: 'var(--text-3)', fontSize: thick ? 14 : 13 }}>{score}/30</span>
+      </div>
+      <div
+        role="progressbar"
+        aria-valuenow={score}
+        aria-valuemin={0}
+        aria-valuemax={30}
+        aria-label={`${DIM_LABEL[dim]}: ${score} van 30`}
+        style={{ background: 'var(--bg-app)', borderRadius: 6, height: thick ? 10 : 8, overflow: 'hidden' }}
+      >
+        <div style={{ width: pct + '%', height: '100%', background: DIM_KLEUR[dim], borderRadius: 6, transition: 'width 0.8s var(--ease)' }} />
       </div>
     </div>
   )

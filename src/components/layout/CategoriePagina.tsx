@@ -79,31 +79,42 @@ export default function CategoriePagina({ categorie }: { categorie: CategorieDef
   if (!klaar) return <Laden />
 
   const Icon = ICOON_MAP[categorie.icoon] ?? Layers
+  // De categorie-kleur komt altijd als token binnen (var(--mf-*)); we mengen
+  // hem via color-mix met tokens, nooit met hardcoded hex of var()+hex-alpha.
+  const accentVars = {
+    '--cat-kleur': categorie.kleur,
+    '--cat-zacht': `color-mix(in srgb, ${categorie.kleur} 12%, transparent)`,
+    '--cat-rand': `color-mix(in srgb, ${categorie.kleur} 25%, transparent)`,
+    '--cat-icoon-bg': `color-mix(in srgb, ${categorie.kleur} 10%, transparent)`,
+    '--cat-hover-rand': `color-mix(in srgb, ${categorie.kleur} 40%, transparent)`,
+    '--cat-hover-bg': `color-mix(in srgb, ${categorie.kleur} 4%, var(--bg-card))`,
+  } as React.CSSProperties
 
   return (
     <div className="mf-mesh-bg" style={{ minHeight: '100vh' }}>
       <Navbar />
-      <main style={{ padding: '48px 20px 100px', maxWidth: 560, margin: '0 auto' }}>
+      <main className="mf-cat-page" style={{ padding: '48px 20px 100px', maxWidth: 560, margin: '0 auto', ...accentVars }}>
 
         {/* Hero embleem */}
-        <div style={{ textAlign: 'center', marginBottom: 40 }}>
-          <div style={{
+        <header style={{ textAlign: 'center', marginBottom: 40 }}>
+          <span style={{
             display: 'inline-flex',
             alignItems: 'center',
             justifyContent: 'center',
             width: 72,
             height: 72,
-            borderRadius: 20,
-            background: `color-mix(in srgb, ${categorie.kleur} 12%, transparent)`,
-            border: `1px solid color-mix(in srgb, ${categorie.kleur} 25%, transparent)`,
+            borderRadius: 'var(--radius-xl)',
+            background: 'var(--cat-zacht)',
+            border: '1px solid var(--cat-rand)',
             marginBottom: 16,
           }}>
             <Icon
               size={32}
               strokeWidth={1.5}
-              style={{ color: categorie.kleur }}
+              style={{ color: 'var(--cat-kleur)' }}
+              aria-hidden
             />
-          </div>
+          </span>
           <h1 style={{
             fontSize: 28,
             fontWeight: 700,
@@ -113,61 +124,63 @@ export default function CategoriePagina({ categorie }: { categorie: CategorieDef
           }}>
             {categorie.titel}
           </h1>
-        </div>
+        </header>
 
         {/* Items */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        <nav aria-label={categorie.titel} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           {categorie.items.map((item) => {
             const ItemIcon = item.icoon ? ICOON_MAP[item.icoon] : null
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 12,
-                  padding: '13px 16px',
-                  background: 'var(--bg-card)',
-                  border: '1px solid var(--border)',
-                  borderRadius: 12,
-                  textDecoration: 'none',
-                  transition: 'border-color 0.12s, background 0.12s',
-                }}
-                onMouseEnter={(e) => {
-                  const el = e.currentTarget as HTMLAnchorElement
-                  el.style.borderColor = `color-mix(in srgb, ${categorie.kleur} 40%, transparent)`
-                  el.style.background = `color-mix(in srgb, ${categorie.kleur} 4%, var(--bg-card))`
-                }}
-                onMouseLeave={(e) => {
-                  const el = e.currentTarget as HTMLAnchorElement
-                  el.style.borderColor = 'var(--border)'
-                  el.style.background = 'var(--bg-card)'
-                }}
+                className="mf-cat-item"
               >
                 {ItemIcon && (
-                  <div style={{
-                    width: 32,
-                    height: 32,
-                    borderRadius: 8,
-                    background: `color-mix(in srgb, ${categorie.kleur} 10%, transparent)`,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexShrink: 0,
-                  }}>
-                    <ItemIcon size={15} strokeWidth={1.8} style={{ color: categorie.kleur }} />
-                  </div>
+                  <span className="mf-cat-item-icoon" aria-hidden>
+                    <ItemIcon size={15} strokeWidth={1.8} style={{ color: 'var(--cat-kleur)' }} />
+                  </span>
                 )}
                 <span style={{ flex: 1, fontSize: 14, fontWeight: 500, color: 'var(--text-1)', letterSpacing: '-0.01em' }}>
                   {item.label}
                 </span>
-                <ChevronRight size={14} strokeWidth={2} style={{ color: 'var(--text-4)', flexShrink: 0 }} />
+                <ChevronRight size={14} strokeWidth={2} style={{ color: 'var(--text-4)', flexShrink: 0 }} aria-hidden />
               </Link>
             )
           })}
-        </div>
+        </nav>
 
+        <style>{`
+          .mf-cat-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 13px 16px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-card);
+            text-decoration: none;
+            transition: border-color 0.12s var(--ease), background 0.12s var(--ease);
+          }
+          .mf-cat-item:hover {
+            border-color: var(--cat-hover-rand);
+            background: var(--cat-hover-bg);
+          }
+          .mf-cat-item:focus-visible {
+            outline: 2px solid var(--cat-kleur);
+            outline-offset: 2px;
+          }
+          .mf-cat-item-icoon {
+            width: 32px;
+            height: 32px;
+            border-radius: var(--radius-sm);
+            background: var(--cat-icoon-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+          }
+        `}</style>
       </main>
     </div>
   )
