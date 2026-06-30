@@ -9,7 +9,7 @@ import { supabase } from '@/lib/supabase'
 import { authFetch } from '@/lib/auth-fetch'
 import Navbar from '@/components/layout/Navbar'
 import nextDynamic from 'next/dynamic'
-import { Salad, Dumbbell, ClipboardCheck, Watch, ChevronRight, type LucideIcon } from 'lucide-react'
+import { Salad, Dumbbell, ClipboardCheck, Watch, ChevronRight, Activity, type LucideIcon } from 'lucide-react'
 import { Ring } from '@/components/ui/Ring'
 import MetricTile from '@/components/gezondheid/MetricTile'
 import HighlightCard from '@/components/gezondheid/HighlightCard'
@@ -53,6 +53,15 @@ const CATEGORIEEN: { icoon: LucideIcon; label: string; href: string }[] = [
   { icoon: ClipboardCheck, label: 'Check-in', href: '/checkin' },
   { icoon: Watch, label: 'Koppelingen', href: '/koppelingen' },
 ]
+
+/**
+ * Correlatie-labels uit de API komen als "😴 Slaap & Energie" — strip een
+ * eventueel emoji-voorvoegsel zodat we het volledige label tonen naast een
+ * lucide-icoon i.p.v. de emoji als pseudo-icoon.
+ */
+function schoonLabel(label: string): string {
+  return label.replace(/^[^\p{L}\p{N}]+/u, '').trim()
+}
 
 function SectieKop({ children }: { children: React.ReactNode }) {
   return (
@@ -254,22 +263,31 @@ function GezondheidInhoud() {
               <SectieKop>Hoogtepunten</SectieKop>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 {vergelijkingen.map((v, i) => <HighlightCard key={i} vergelijking={v} />)}
-                {data.correlaties.map((c, i) => (
-                  <article key={i} style={{
-                    background: 'var(--bg-card)', border: '1px solid var(--border)',
-                    borderRadius: 'var(--radius-lg)', padding: '14px 16px',
-                    boxShadow: 'var(--shadow-card)',
-                    display: 'flex', alignItems: 'flex-start', gap: 11,
-                  }}>
-                    <span role="img" aria-label={c.label.split(' ').slice(1).join(' ')} style={{ fontSize: 17, flexShrink: 0, marginTop: 1 }}>{c.label.split(' ')[0]}</span>
-                    <div>
-                      <h3 style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-1)', margin: '0 0 3px' }}>
-                        {c.label.split(' ').slice(1).join(' ')}
-                      </h3>
-                      <p style={{ fontSize: 12.5, color: 'var(--text-3)', margin: 0, lineHeight: 1.5 }}>{c.tip}</p>
-                    </div>
-                  </article>
-                ))}
+                {data.correlaties.map((c, i) => {
+                  const titel = schoonLabel(c.label)
+                  return (
+                    <article key={i} style={{
+                      background: 'var(--bg-card)', border: '1px solid var(--border)',
+                      borderRadius: 'var(--radius-lg)', padding: '14px 16px',
+                      boxShadow: 'var(--shadow-card)',
+                      display: 'flex', alignItems: 'flex-start', gap: 11,
+                    }}>
+                      <span aria-hidden="true" style={{
+                        width: 28, height: 28, borderRadius: 8, flexShrink: 0, marginTop: 1,
+                        background: 'var(--mentaforce-primary-light)',
+                        display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                      }}>
+                        <Activity size={15} strokeWidth={2.25} style={{ color: 'var(--mentaforce-primary)' }} />
+                      </span>
+                      <div>
+                        <h3 style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-1)', margin: '0 0 3px' }}>
+                          {titel}
+                        </h3>
+                        <p style={{ fontSize: 12.5, color: 'var(--text-3)', margin: 0, lineHeight: 1.5 }}>{c.tip}</p>
+                      </div>
+                    </article>
+                  )
+                })}
               </div>
             </section>
           )}

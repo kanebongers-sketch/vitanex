@@ -2,9 +2,19 @@
  * Apple Health-stijl metriek-tegel: gekleurd label met icoon,
  * grote waarde met eenheid, sparkline rechts en datum onderaan.
  */
-import { ChevronRight } from 'lucide-react'
+import { ChevronRight, Footprints, Moon, HeartPulse, Sparkles, Smile, Flame, type LucideIcon } from 'lucide-react'
 import { METRICS, STEMMING_INFO, datumLang, type MetricKey, type MetricSamenvatting, type TrendPunt } from '@/lib/gezondheid-metrics'
 import Sparkline from './Sparkline'
+
+/** Lucide-icoon + navy/cyan-token per metriek — vervangt de emoji + hardcoded hex uit METRICS. */
+const VISUAL: Record<MetricKey, { Icon: LucideIcon; kleur: string; kleurLicht: string }> = {
+  stappen:   { Icon: Footprints, kleur: 'var(--mf-green)',           kleurLicht: 'var(--mf-green-light)' },
+  slaap:     { Icon: Moon,       kleur: 'var(--mf-purple)',          kleurLicht: 'var(--mf-purple-light)' },
+  hartslag:  { Icon: HeartPulse, kleur: 'var(--mf-red)',             kleurLicht: 'var(--mf-red-light)' },
+  welzijn:   { Icon: Sparkles,   kleur: 'var(--mentaforce-primary)', kleurLicht: 'var(--mentaforce-primary-light)' },
+  stemming:  { Icon: Smile,      kleur: 'var(--mf-blue)',            kleurLicht: 'var(--mf-blue-light)' },
+  calorieen: { Icon: Flame,      kleur: 'var(--mf-amber)',           kleurLicht: 'var(--mf-amber-light)' },
+}
 
 interface MetricTileProps {
   metricKey: MetricKey
@@ -15,6 +25,8 @@ interface MetricTileProps {
 
 export default function MetricTile({ metricKey, samenvatting, trend, onOpen }: MetricTileProps) {
   const cfg = METRICS[metricKey]
+  const visual = VISUAL[metricKey]
+  const Icon = visual.Icon
 
   // Stemming toont emoji + label in plaats van een getal
   let waardeTekst = cfg.formatWaarde(samenvatting.laatste)
@@ -38,11 +50,13 @@ export default function MetricTile({ metricKey, samenvatting, trend, onOpen }: M
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, fontSize: 13, fontWeight: 700, color: cfg.kleur }}>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, fontSize: 13, fontWeight: 700, color: visual.kleur }}>
           <span aria-hidden="true" style={{
-            width: 26, height: 26, borderRadius: 8, background: cfg.kleurLicht,
-            display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 13,
-          }}>{cfg.emoji}</span>
+            width: 26, height: 26, borderRadius: 8, background: visual.kleurLicht,
+            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <Icon size={15} strokeWidth={2.25} style={{ color: visual.kleur }} />
+          </span>
           {cfg.label}
         </span>
         <ChevronRight size={14} strokeWidth={2.5} aria-hidden="true" style={{ color: 'var(--text-4)' }} />
@@ -62,7 +76,7 @@ export default function MetricTile({ metricKey, samenvatting, trend, onOpen }: M
             {datumLang(samenvatting.laatsteDatum)}
           </p>
         </div>
-        <Sparkline waarden={samenvatting.spark} kleur={cfg.kleur} />
+        <Sparkline waarden={samenvatting.spark} kleur={visual.kleur} />
       </div>
     </button>
   )

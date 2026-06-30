@@ -18,7 +18,17 @@ import {
   SheetRoot, SheetPortal, SheetOverlay, SheetTitle,
 } from '@/components/ui/Sheet'
 import * as RadixDialog from '@radix-ui/react-dialog'
-import { X } from 'lucide-react'
+import { X, Footprints, Moon, HeartPulse, Sparkles, Smile, Flame, type LucideIcon } from 'lucide-react'
+
+/** Lucide-icoon + navy/cyan-token per metriek — vervangt de emoji + hardcoded hex uit METRICS. */
+const VISUAL: Record<MetricKey, { Icon: LucideIcon; kleur: string; kleurLicht: string }> = {
+  stappen:   { Icon: Footprints, kleur: 'var(--mf-green)',           kleurLicht: 'var(--mf-green-light)' },
+  slaap:     { Icon: Moon,       kleur: 'var(--mf-purple)',          kleurLicht: 'var(--mf-purple-light)' },
+  hartslag:  { Icon: HeartPulse, kleur: 'var(--mf-red)',             kleurLicht: 'var(--mf-red-light)' },
+  welzijn:   { Icon: Sparkles,   kleur: 'var(--mentaforce-primary)', kleurLicht: 'var(--mentaforce-primary-light)' },
+  stemming:  { Icon: Smile,      kleur: 'var(--mf-blue)',            kleurLicht: 'var(--mf-blue-light)' },
+  calorieen: { Icon: Flame,      kleur: 'var(--mf-amber)',           kleurLicht: 'var(--mf-amber-light)' },
+}
 
 /** Bottom-sheet slide-in (alleen transform/opacity, reduced-motion-aware). */
 function SheetStyles() {
@@ -78,6 +88,8 @@ function GrafiekTooltip({ active, payload, label, eenheid }: {
 
 export default function MetricDetailSheet({ metricKey, trend, onClose }: MetricDetailSheetProps) {
   const cfg = METRICS[metricKey]
+  const visual = VISUAL[metricKey]
+  const Icon = visual.Icon
   const [periode, setPeriode] = useState<Periode>(14)
 
   const punten = useMemo(() => (
@@ -131,9 +143,11 @@ export default function MetricDetailSheet({ metricKey, trend, onClose }: MetricD
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <SheetTitle style={{ margin: 0, fontSize: 20, fontWeight: 800, color: 'var(--text-1)', display: 'flex', alignItems: 'center', gap: 9, paddingRight: 0 }}>
               <span aria-hidden="true" style={{
-                width: 30, height: 30, borderRadius: 9, background: cfg.kleurLicht,
-                display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 15,
-              }}>{cfg.emoji}</span>
+                width: 30, height: 30, borderRadius: 9, background: visual.kleurLicht,
+                display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <Icon size={17} strokeWidth={2.25} style={{ color: visual.kleur }} />
+              </span>
               {cfg.label}
             </SheetTitle>
             <RadixDialog.Close
@@ -176,7 +190,7 @@ export default function MetricDetailSheet({ metricKey, trend, onClose }: MetricD
               background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', padding: '36px 20px',
               textAlign: 'center', border: '1px solid var(--border)',
             }}>
-              <p aria-hidden="true" style={{ fontSize: 30, margin: '0 0 8px' }}>{cfg.emoji}</p>
+              <Icon size={30} strokeWidth={1.75} aria-hidden="true" style={{ color: visual.kleur, margin: '0 auto 8px' }} />
               <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-2)', margin: '0 0 4px' }}>Nog geen metingen</p>
               <p style={{ fontSize: 13, color: 'var(--text-4)', margin: 0 }}>Koppel een wearable of vul je check-in in.</p>
             </div>
@@ -194,7 +208,7 @@ export default function MetricDetailSheet({ metricKey, trend, onClose }: MetricD
                     padding: '11px 12px', border: '1px solid var(--border)',
                   }}>
                     <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 4px' }}>{s.label}</p>
-                    <p style={{ fontSize: 17, fontWeight: 800, color: cfg.kleur, margin: 0, lineHeight: 1.1 }}>
+                    <p style={{ fontSize: 17, fontWeight: 800, color: visual.kleur, margin: 0, lineHeight: 1.1 }}>
                       {formatStat(s.waarde)}
                       {cfg.eenheid && !cfg.eenheidInWaarde && (
                         <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-4)', marginLeft: 3 }}>{cfg.eenheid}</span>
@@ -220,9 +234,9 @@ export default function MetricDetailSheet({ metricKey, trend, onClose }: MetricD
                         <ReferenceLine y={10000} stroke="var(--text-4)" strokeDasharray="6 4" label={{ value: 'Doel', position: 'insideTopRight', fontSize: 10, fill: 'var(--text-3)' }} />
                       )}
                       {stats && (
-                        <ReferenceLine y={stats.gemiddeld} stroke={cfg.kleur} strokeOpacity={0.45} strokeDasharray="4 4" label={{ value: 'Gem.', position: 'insideTopLeft', fontSize: 10, fill: cfg.kleur }} />
+                        <ReferenceLine y={stats.gemiddeld} stroke={visual.kleur} strokeOpacity={0.45} strokeDasharray="4 4" label={{ value: 'Gem.', position: 'insideTopLeft', fontSize: 10, fill: visual.kleur }} />
                       )}
-                      <Bar dataKey="waarde" fill={cfg.kleur} radius={[5, 5, 0, 0]} />
+                      <Bar dataKey="waarde" fill={visual.kleur} radius={[5, 5, 0, 0]} />
                     </BarChart>
                   ) : (
                     <LineChart data={punten}>
@@ -231,9 +245,9 @@ export default function MetricDetailSheet({ metricKey, trend, onClose }: MetricD
                       <YAxis tick={{ fontSize: 10, fill: 'var(--text-3)' }} axisLine={false} tickLine={false} width={36} domain={cfg.domein} />
                       <Tooltip content={<GrafiekTooltip eenheid={cfg.eenheid} />} />
                       {stats && metricKey !== 'stemming' && (
-                        <ReferenceLine y={stats.gemiddeld} stroke={cfg.kleur} strokeOpacity={0.45} strokeDasharray="4 4" label={{ value: 'Gem.', position: 'insideTopLeft', fontSize: 10, fill: cfg.kleur }} />
+                        <ReferenceLine y={stats.gemiddeld} stroke={visual.kleur} strokeOpacity={0.45} strokeDasharray="4 4" label={{ value: 'Gem.', position: 'insideTopLeft', fontSize: 10, fill: visual.kleur }} />
                       )}
-                      <Line dataKey="waarde" stroke={cfg.kleur} strokeWidth={2.5} dot={{ r: 3.5, fill: cfg.kleur, strokeWidth: 0 }} connectNulls />
+                      <Line dataKey="waarde" stroke={visual.kleur} strokeWidth={2.5} dot={{ r: 3.5, fill: visual.kleur, strokeWidth: 0 }} connectNulls />
                     </LineChart>
                   )}
                 </ResponsiveContainer>
@@ -241,9 +255,9 @@ export default function MetricDetailSheet({ metricKey, trend, onClose }: MetricD
 
               {/* Uitleg */}
               <div style={{
-                background: cfg.kleurLicht, borderRadius: 'var(--radius-lg)', padding: '14px 16px',
+                background: visual.kleurLicht, borderRadius: 'var(--radius-lg)', padding: '14px 16px',
               }}>
-                <p style={{ fontSize: 11, fontWeight: 800, color: cfg.kleur, textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 6px' }}>
+                <p style={{ fontSize: 11, fontWeight: 800, color: visual.kleur, textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 6px' }}>
                   Over {cfg.label.toLowerCase()}
                 </p>
                 <p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.6, margin: 0 }}>{cfg.uitleg}</p>
