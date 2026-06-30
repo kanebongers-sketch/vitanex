@@ -39,7 +39,7 @@ function scoreKleur(score: number | null): string {
 }
 
 /* Her-fetch op tab-focus enkel als de data ouder is dan deze TTL (perf). */
-const REFETCH_TTL_MS = 30_000
+const REFETCH_TTL_MS = 2_000
 
 /* ── readiness ring ── */
 function ReadinessRing({ score }: { score: number | null }) {

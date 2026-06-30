@@ -224,7 +224,9 @@ export async function GET(req: NextRequest) {
       suggestie,
     },
     {
-      headers: { 'Cache-Control': 'private, max-age=60, stale-while-revalidate=30' },
+      // Per-gebruiker dagdata moet vers zijn: na het loggen van een activiteit
+      // moet de checklist meteen bijwerken (net als de week-ringen). Geen cache.
+      headers: { 'Cache-Control': 'no-store' },
     }
   )
 }
