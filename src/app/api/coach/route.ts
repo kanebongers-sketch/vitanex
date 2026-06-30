@@ -98,9 +98,10 @@ export async function POST(req: NextRequest) {
     // Cap maxTokens: client mag nooit meer dan 600 tokens vragen (voorkomt hoge AI-kosten)
     const safeMaxTokens = Math.min(Math.max(100, maxTokens ?? 400), 600)
 
-    const response = await anthropic.messages.create({
+    const aiStream = await anthropic.messages.create({
       model: 'claude-sonnet-4-5',
       max_tokens: safeMaxTokens,
+      stream: true,
       system: [
         {
           type: 'text',
@@ -119,9 +120,32 @@ export async function POST(req: NextRequest) {
       }),
     })
 
-    const tekst = response.content[0].type === 'text' ? response.content[0].text : ''
+    // Stream de tokens incrementeel naar de client als platte tekst, zodat de
+    // coach live "typt" i.p.v. seconden te wachten op het volledige antwoord.
+    const encoder = new TextEncoder()
+    const readable = new ReadableStream<Uint8Array>({
+      async start(controller) {
+        try {
+          for await (const event of aiStream) {
+            if (event.type === 'content_block_delta' && event.delta.type === 'text_delta') {
+              controller.enqueue(encoder.encode(event.delta.text))
+            }
+          }
+        } catch (streamErr) {
+          console.error('[coach] stream onderbroken:', streamErr)
+        } finally {
+          controller.close()
+        }
+      },
+    })
 
-    return NextResponse.json({ tekst })
+    return new Response(readable, {
+      headers: {
+        'Content-Type': 'text/plain; charset=utf-8',
+        'Cache-Control': 'no-store',
+        'X-Accel-Buffering': 'no',
+      },
+    })
   } catch (err) {
     console.error('[coach]', err)
     return NextResponse.json({ error: 'Kon de coach niet bereiken.' }, { status: 500 })

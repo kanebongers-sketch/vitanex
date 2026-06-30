@@ -4,6 +4,11 @@ export const dynamic = 'force-dynamic'
 
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import {
+  Brain, Send, BatteryLow, Moon, AlertTriangle, Scale, Lightbulb, Target, Wind, Frown,
+  MessageCircleMore, ListChecks, Compass,
+} from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { authFetch } from '@/lib/auth-fetch'
 import Navbar from '@/components/layout/Navbar'
@@ -18,19 +23,25 @@ const WELKOM = `Hallo! Ik ben jouw MentaForce Coach.
 
 Ik ben hier om je te helpen met alles rondom welzijn op het werk  stress, energie, werk-privébalans, motivatie, slaap of gewoon even lucht geven.
 
-Alles wat je hier deelt is puur voor jou. Geen manager, geen HR die meeleest.
+Alles wat je hier deelt is vertrouwelijk. Geen manager, geen HR die meeleest.
 
 Waar kan ik je vandaag mee helpen?`
 
-const SUGGESTIES = [
-  { emoji: '😰', tekst: 'Ik voel me gestrest' },
-  { emoji: '⚡', tekst: 'Mijn energie is op' },
-  { emoji: '😴', tekst: 'Ik slaap slecht' },
-  { emoji: '🚨', tekst: 'Ik wil tips tegen burn-out' },
-  { emoji: '⚖️', tekst: 'Werk en privé in balans' },
-  { emoji: '💡', tekst: 'Ik mis motivatie' },
-  { emoji: '🎯', tekst: 'Hoe blijf ik gemotiveerd?' },
-  { emoji: '🧘', tekst: 'Ik wil rustiger worden' },
+const SUGGESTIES: { icon: LucideIcon; tekst: string }[] = [
+  { icon: Frown, tekst: 'Ik voel me gestrest' },
+  { icon: BatteryLow, tekst: 'Mijn energie is op' },
+  { icon: Moon, tekst: 'Ik slaap slecht' },
+  { icon: AlertTriangle, tekst: 'Ik wil tips tegen burn-out' },
+  { icon: Scale, tekst: 'Werk en privé in balans' },
+  { icon: Lightbulb, tekst: 'Ik mis motivatie' },
+  { icon: Target, tekst: 'Hoe blijf ik gemotiveerd?' },
+  { icon: Wind, tekst: 'Ik wil rustiger worden' },
+]
+
+const VERVOLGVRAGEN: { icon: LucideIcon; tekst: string }[] = [
+  { icon: MessageCircleMore, tekst: 'Vertel me meer' },
+  { icon: ListChecks, tekst: 'Wat kan ik vandaag doen?' },
+  { icon: Compass, tekst: 'Hoe pak ik dit het beste aan?' },
 ]
 
 type GebruikerContext = {
@@ -120,16 +131,18 @@ export default function CoachPagina() {
     setInput('')
     if (inputRef.current) inputRef.current.style.height = 'auto'
 
-    // Index-gebaseerd id: puur, en uniek binnen de lijst (deze groeit alleen)
     const gebruikerBericht: Bericht = { id: `u-${berichten.length}`, role: 'user', content: invoer }
-    const nieuweLijst = [...berichten, gebruikerBericht]
+    const assistentId = `a-${berichten.length + 1}`
+    const nieuweLijst = [...berichten, gebruikerBericht, { id: assistentId, role: 'assistant' as const, content: '' }]
     setBerichten(nieuweLijst)
     setLaden(true)
 
-    // Strip the welcome message (hardcoded, not sent to API)
+    // Strip the welcome message en de lege assistent-placeholder (puur lokaal, niet naar de API)
     const api = nieuweLijst
-      .filter(b => b.id !== 'welkom')
+      .filter(b => b.id !== 'welkom' && b.id !== assistentId)
       .map(b => ({ role: b.role, content: b.content }))
+
+    let volledigAntwoord = ''
 
     try {
       const res = await authFetch('/api/coach', {
@@ -139,33 +152,52 @@ export default function CoachPagina() {
           ...(gebruikerContext ? { gebruiker_context: gebruikerContext } : {}),
         }),
       })
-      const json = await res.json()
-      if (json.tekst) {
-        setBerichten(prev => [...prev, { id: `a-${Date.now()}`, role: 'assistant', content: json.tekst }])
-      } else if (json.error) {
-        setBerichten(prev => [...prev, {
-          id: `err-${Date.now()}`, role: 'assistant',
-          content: `Helaas kan ik je nu niet helpen. ${json.error}`,
-        }])
+
+      if (!res.ok || !res.body) {
+        let foutmelding = 'Kon de coach niet bereiken.'
+        try {
+          const json = await res.json()
+          if (json.error) foutmelding = json.error
+        } catch { /* geen JSON-body beschikbaar */ }
+        setBerichten(prev => prev.map(b => b.id === assistentId
+          ? { ...b, content: `Helaas kan ik je nu niet helpen. ${foutmelding}` }
+          : b))
+      } else {
+        // De coach streamt platte tekst-tokens; lees ze incrementeel en
+        // laat het antwoord live "typen" in de bestaande bubbel.
+        const reader = res.body.getReader()
+        const decoder = new TextDecoder()
+        while (true) {
+          const { done, value } = await reader.read()
+          if (done) break
+          volledigAntwoord += decoder.decode(value, { stream: true })
+          setBerichten(prev => prev.map(b => b.id === assistentId ? { ...b, content: volledigAntwoord } : b))
+        }
       }
     } catch {
-      setBerichten(prev => [...prev, {
-        id: `err-${Date.now()}`, role: 'assistant',
-        content: 'Er ging iets mis. Probeer het opnieuw.',
-      }])
+      setBerichten(prev => prev.map(b => b.id === assistentId
+        ? { ...b, content: 'Er ging iets mis. Probeer het opnieuw.' }
+        : b))
     }
+
     setLaden(false)
     inputRef.current?.focus()
 
-    // Sla samenvatting op na elk 6e bericht (niet-blokkerend)
-    const updatedBerichten = berichten.filter(b => b.id !== 'welkom')
-    if (updatedBerichten.length > 0 && updatedBerichten.length % 6 === 0) {
-      authFetch('/api/coach/samenvatting', {
-        method: 'POST',
-        body: JSON.stringify({ berichten: updatedBerichten.map(b => ({ role: b.role, content: b.content })) }),
-      }).catch(() => { /* stil falen */ })
+    // Sla samenvatting op na elk 6e bericht, zodat de coach context onthoudt (niet-blokkerend)
+    if (volledigAntwoord) {
+      const voltooid = [...api, { role: 'assistant' as const, content: volledigAntwoord }]
+      if (voltooid.length % 6 === 0) {
+        authFetch('/api/coach/samenvatting', {
+          method: 'POST',
+          body: JSON.stringify({ berichten: voltooid }),
+        }).catch(() => { /* stil falen */ })
+      }
     }
   }
+
+  const laatsteBericht = berichten[berichten.length - 1]
+  const toonVervolgvragen = !laden && berichten.length > 1 && laatsteBericht?.role === 'assistant' && laatsteBericht.content.length > 0
+  const heeftGeheugen = Boolean(gebruikerContext?.discPrimair || gebruikerContext?.domeinScores)
 
   if (!klaar) return (
     <div className="mf-mesh-bg" style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
@@ -192,82 +224,78 @@ export default function CoachPagina() {
               position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
               width: 72, height: 72, borderRadius: '50%',
               background: laden
-                ? 'radial-gradient(circle, rgba(29,158,117,0.22) 0%, transparent 70%)'
-                : 'radial-gradient(circle, rgba(29,158,117,0.15) 0%, transparent 70%)',
+                ? 'radial-gradient(circle, color-mix(in srgb, var(--mentaforce-primary) 22%, transparent) 0%, transparent 70%)'
+                : 'radial-gradient(circle, color-mix(in srgb, var(--mentaforce-primary) 15%, transparent) 0%, transparent 70%)',
               zIndex: 0,
             }} />
             <div style={{
               width: 44, height: 44, borderRadius: '50%',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 20, background: 'var(--mentaforce-primary-light)', color: 'var(--mentaforce-primary)',
+              background: 'var(--mentaforce-primary-light)', color: 'var(--mentaforce-primary)',
               position: 'relative', zIndex: 1,
             }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.44-4.24z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.44-4.24z"/></svg>
+              <Brain size={20} strokeWidth={1.5} aria-hidden />
             </div>
           </div>
           <div>
             <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-1)' }}>MentaForce Coach</p>
-            <p style={{ fontSize: 12, color: 'var(--text-4)' }}>AI-coach · Vertrouwelijk · 24/7 beschikbaar</p>
+            <p style={{ fontSize: 12, color: 'var(--text-4)' }}>
+              AI-coach · Vertrouwelijk · 24/7 beschikbaar
+              {heeftGeheugen && ' · Kent jouw profiel'}
+            </p>
           </div>
           <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6 }}>
-            <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--mf-green)' }} />
+            <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--mentaforce-primary)' }} />
             <span style={{ fontSize: 12, color: 'var(--text-4)' }}>Online</span>
           </div>
         </div>
 
         {/* Messages */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '20px 16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {berichten.map((b) => (
-            <div key={b.id} style={{ display: 'flex', justifyContent: b.role === 'user' ? 'flex-end' : 'flex-start', gap: 10 }}>
-              {b.role === 'assistant' && (
-                <div style={{
-                  width: 32, height: 32, borderRadius: '50%',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  flexShrink: 0, marginTop: 2,
-                  background: 'var(--mentaforce-primary-light)', color: 'var(--mentaforce-primary)',
-                }}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.44-4.24z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.44-4.24z"/></svg>
-                </div>
-              )}
-              <div style={{
-                maxWidth: '78%', padding: '12px 16px',
-                fontSize: 14, lineHeight: 1.6, whiteSpace: 'pre-wrap',
-                background: b.role === 'user' ? 'var(--mentaforce-primary)' : 'var(--bg-card)',
-                color: b.role === 'user' ? 'white' : 'var(--text-1)',
-                boxShadow: b.role === 'assistant' ? '0 1px 3px rgba(0,0,0,0.07)' : 'none',
-                borderRadius: b.role === 'user' ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
-              }}>
-                {b.content}
+          {berichten.map((b) => {
+            const isStreamendLeeg = laden && b.id === berichten[berichten.length - 1].id && b.role === 'assistant' && b.content.length === 0
+            return (
+              <div key={b.id} style={{ display: 'flex', justifyContent: b.role === 'user' ? 'flex-end' : 'flex-start', gap: 10 }}>
+                {b.role === 'assistant' && (
+                  <div style={{
+                    width: 32, height: 32, borderRadius: '50%',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    flexShrink: 0, marginTop: 2,
+                    background: 'var(--mentaforce-primary-light)', color: 'var(--mentaforce-primary)',
+                  }}>
+                    <Brain size={16} strokeWidth={1.5} aria-hidden />
+                  </div>
+                )}
+                {isStreamendLeeg ? (
+                  <div style={{
+                    background: 'var(--bg-card)', padding: '12px 16px',
+                    borderRadius: '18px 18px 18px 4px',
+                    boxShadow: 'var(--shadow-card)',
+                    display: 'flex', alignItems: 'center', gap: 8,
+                  }}>
+                    <div className="mf-spinner" style={{ width: 14, height: 14 }} />
+                    <span style={{ fontSize: 13, color: 'var(--text-3)' }}>denkt na…</span>
+                  </div>
+                ) : (
+                  <div style={{
+                    maxWidth: '78%', padding: '12px 16px',
+                    fontSize: 14, lineHeight: 1.6, whiteSpace: 'pre-wrap',
+                    background: b.role === 'user' ? 'var(--mentaforce-primary)' : 'var(--bg-card)',
+                    color: b.role === 'user' ? 'var(--bg-app)' : 'var(--text-1)',
+                    boxShadow: b.role === 'assistant' ? 'var(--shadow-card)' : 'none',
+                    borderRadius: b.role === 'user' ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
+                  }}>
+                    {b.content}
+                    {laden && b.id === berichten[berichten.length - 1].id && b.role === 'assistant' && (
+                      <span className="mf-coach-cursor" aria-hidden />
+                    )}
+                  </div>
+                )}
               </div>
-            </div>
-          ))}
+            )
+          })}
 
-          {/* Typing indicator */}
-          {laden && (
-            <div style={{ display: 'flex', justifyContent: 'flex-start', gap: 10 }}>
-              <div style={{
-                width: 32, height: 32, borderRadius: '50%',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                flexShrink: 0,
-                background: 'var(--mentaforce-primary-light)', color: 'var(--mentaforce-primary)',
-              }}>
-                <div className="mf-spinner" style={{ width: 16, height: 16 }} />
-              </div>
-              <div style={{
-                background: 'var(--bg-card)', padding: '12px 16px',
-                borderRadius: '18px 18px 18px 4px',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.07)',
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <div className="w-2 h-2 rounded-full bg-gray-300 animate-bounce" style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--border)', animationDelay: '0ms' }} />
-                  <div className="w-2 h-2 rounded-full bg-gray-300 animate-bounce" style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--border)', animationDelay: '150ms' }} />
-                  <div className="w-2 h-2 rounded-full bg-gray-300 animate-bounce" style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--border)', animationDelay: '300ms' }} />
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Suggestions — only before first user message */}
+          {/* Suggestions — alleen vóór het eerste bericht */}
           {berichten.length === 1 && !laden && (
             <div style={{ marginTop: 8 }}>
               <p style={{ fontSize: 12, color: 'var(--text-4)', marginBottom: 8, textAlign: 'center' }}>Kies een onderwerp om te beginnen</p>
@@ -283,10 +311,30 @@ export default function CoachPagina() {
                       cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6,
                     }}
                   >
-                    <span>{s.emoji}</span>{s.tekst}
+                    <s.icon size={13} strokeWidth={1.75} aria-hidden />{s.tekst}
                   </button>
                 ))}
               </div>
+            </div>
+          )}
+
+          {/* Vervolgvragen — na elk antwoord van de coach */}
+          {toonVervolgvragen && (
+            <div style={{ marginTop: 4, display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'flex-start', paddingLeft: 42 }}>
+              {VERVOLGVRAGEN.map(s => (
+                <button
+                  key={s.tekst}
+                  onClick={() => verstuur(s.tekst)}
+                  className="mf-pressable"
+                  style={{
+                    fontSize: 12, border: '1px solid var(--border)', borderRadius: 999,
+                    padding: '6px 14px', color: 'var(--text-2)', background: 'var(--bg-card)',
+                    cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6,
+                  }}
+                >
+                  <s.icon size={13} strokeWidth={1.75} aria-hidden />{s.tekst}
+                </button>
+              ))}
             </div>
           )}
 
@@ -295,7 +343,9 @@ export default function CoachPagina() {
 
         {/* Privacy note */}
         <div style={{ padding: '4px 16px', textAlign: 'center', flexShrink: 0 }}>
-          <p style={{ fontSize: 12, color: 'var(--text-4)', opacity: 0.6 }}>Gesprekken worden niet opgeslagen · Alleen zichtbaar voor jou</p>
+          <p style={{ fontSize: 12, color: 'var(--text-4)', opacity: 0.6 }}>
+            Je coach onthoudt context tussen gesprekken om je beter te helpen · Nooit zichtbaar voor manager of HR
+          </p>
         </div>
 
         {/* Input */}
@@ -332,28 +382,45 @@ export default function CoachPagina() {
             <button
               onClick={() => verstuur()}
               disabled={!input.trim() || laden}
+              aria-label="Verstuur bericht"
               style={{
                 flexShrink: 0, width: 32, height: 32, borderRadius: '50%',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 border: 'none', cursor: input.trim() && !laden ? 'pointer' : 'default',
-                background: input.trim() && !laden
-                  ? 'linear-gradient(135deg, #1D9E75 0%, #16a34a 100%)'
-                  : 'var(--border)',
+                background: input.trim() && !laden ? 'var(--mentaforce-primary)' : 'var(--border)',
                 opacity: !input.trim() || laden ? 0.4 : 1,
                 transition: 'background 0.15s ease, opacity 0.15s ease',
               }}
             >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                stroke={input.trim() && !laden ? 'white' : 'var(--text-4)'}
-                strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="22" y1="2" x2="11" y2="13" />
-                <polygon points="22 2 15 22 11 13 2 9 22 2" />
-              </svg>
+              <Send
+                size={14}
+                strokeWidth={2.5}
+                color={input.trim() && !laden ? 'var(--bg-app)' : 'var(--text-4)'}
+                aria-hidden
+              />
             </button>
           </div>
         </div>
 
       </main>
+      <style>{`
+        .mf-coach-cursor {
+          display: inline-block;
+          width: 2px;
+          height: 14px;
+          margin-left: 2px;
+          vertical-align: text-bottom;
+          background: var(--mentaforce-primary);
+          animation: mf-coach-blink 0.9s step-end infinite;
+        }
+        @keyframes mf-coach-blink {
+          0%, 50% { opacity: 1; }
+          51%, 100% { opacity: 0; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .mf-coach-cursor { animation: none; opacity: 0.6; }
+        }
+      `}</style>
     </div>
   )
 }

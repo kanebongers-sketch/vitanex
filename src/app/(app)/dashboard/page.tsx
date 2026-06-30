@@ -160,8 +160,12 @@ Geef 2-3 zinnen concreet advies. Wat moet HR nu doen?`,
           }],
         }),
       })
-      const data = await resp.json()
-      setInzicht(data.tekst || 'Geen inzicht beschikbaar.')
+      if (!resp.ok) {
+        setInzicht('Kon het inzicht niet laden. Probeer opnieuw.')
+      } else {
+        const tekst = await resp.text()
+        setInzicht(tekst || 'Geen inzicht beschikbaar.')
+      }
     } catch {
       setInzicht('Kon het inzicht niet laden. Probeer opnieuw.')
     }
