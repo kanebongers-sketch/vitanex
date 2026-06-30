@@ -5,7 +5,7 @@
  * periode-keuze, kerngetallen en een volledige grafiek — zoals de
  * detailschermen in Apple Health.
  */
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import {
   BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip,
   ResponsiveContainer, CartesianGrid, ReferenceLine,
@@ -14,6 +14,36 @@ import {
   METRICS, STEMMING_INFO, dagKort, metricWaarde,
   type MetricKey, type TrendPunt,
 } from '@/lib/gezondheid-metrics'
+import {
+  SheetRoot, SheetPortal, SheetOverlay, SheetTitle,
+} from '@/components/ui/Sheet'
+import * as RadixDialog from '@radix-ui/react-dialog'
+import { X } from 'lucide-react'
+
+/** Bottom-sheet slide-in (alleen transform/opacity, reduced-motion-aware). */
+function SheetStyles() {
+  return (
+    <style>{`
+      @keyframes mf-metric-sheet-in { from { transform: translateY(40px); opacity: 0; } to { transform: none; opacity: 1; } }
+      @keyframes mf-metric-sheet-out { from { transform: none; opacity: 1; } to { transform: translateY(40px); opacity: 0; } }
+      .metric-sheet-content[data-state='open'] { animation: mf-metric-sheet-in 0.3s var(--ease); }
+      .metric-sheet-content[data-state='closed'] { animation: mf-metric-sheet-out 0.22s var(--ease); }
+      @media (min-width: 640px) {
+        .metric-sheet-content {
+          left: 50% !important; right: auto !important; bottom: 50% !important;
+          transform: translate(-50%, 50%) !important;
+          border-radius: var(--radius-xl) !important;
+          border-bottom: 1px solid var(--border-strong) !important;
+        }
+        @keyframes mf-metric-sheet-in { from { transform: translate(-50%, calc(50% + 24px)); opacity: 0; } to { transform: translate(-50%, 50%); opacity: 1; } }
+        @keyframes mf-metric-sheet-out { from { transform: translate(-50%, 50%); opacity: 1; } to { transform: translate(-50%, calc(50% + 24px)); opacity: 0; } }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .metric-sheet-content { animation: none !important; }
+      }
+    `}</style>
+  )
+}
 
 type Periode = 7 | 14 | 30
 const PERIODES: { dagen: Periode; label: string }[] = [
@@ -50,18 +80,6 @@ export default function MetricDetailSheet({ metricKey, trend, onClose }: MetricD
   const cfg = METRICS[metricKey]
   const [periode, setPeriode] = useState<Periode>(14)
 
-  useEffect(() => {
-    function opToets(e: KeyboardEvent) {
-      if (e.key === 'Escape') onClose()
-    }
-    window.addEventListener('keydown', opToets)
-    document.body.style.overflow = 'hidden'
-    return () => {
-      window.removeEventListener('keydown', opToets)
-      document.body.style.overflow = ''
-    }
-  }, [onClose])
-
   const punten = useMemo(() => (
     trend.slice(-periode).map(p => {
       const waarde = metricWaarde(p, metricKey)
@@ -92,51 +110,49 @@ export default function MetricDetailSheet({ metricKey, trend, onClose }: MetricD
     : cfg.formatWaarde(v)
 
   return (
-    <div
-      role="dialog" aria-modal="true" aria-label={`${cfg.label} details`}
-      onClick={onClose}
-      style={{
-        position: 'fixed', inset: 0, zIndex: 60,
-        background: 'rgba(13, 17, 23, 0.45)', backdropFilter: 'blur(3px)',
-        display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
-      }}
-      className="metric-sheet-backdrop"
-    >
-      <div
-        onClick={e => e.stopPropagation()}
-        className="metric-sheet"
-        style={{
-          width: '100%', maxWidth: 560, maxHeight: '88dvh', overflowY: 'auto',
-          background: 'var(--bg-app)', borderRadius: '24px 24px 0 0',
-          boxShadow: 'var(--shadow-xl)',
-        }}
-      >
+    <SheetRoot open onOpenChange={(open) => { if (!open) onClose() }}>
+      <SheetPortal>
+        <SheetOverlay />
+        <RadixDialog.Content
+          aria-describedby={undefined}
+          className="metric-sheet-content"
+          style={{
+            position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 101,
+            width: '100%', maxWidth: 560, margin: '0 auto', maxHeight: '88dvh', overflowY: 'auto',
+            background: 'var(--bg-app)', borderRadius: 'var(--radius-xl) var(--radius-xl) 0 0',
+            border: '1px solid var(--border-strong)', borderBottom: 'none',
+            boxShadow: 'var(--shadow-xl)',
+            paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+          }}
+        >
         {/* Sheet-handgreep + header */}
-        <div style={{ position: 'sticky', top: 0, background: 'var(--bg-app)', padding: '10px 20px 12px', borderRadius: '24px 24px 0 0', zIndex: 1 }}>
-          <div style={{ width: 36, height: 4, borderRadius: 2, background: 'var(--border-strong)', margin: '0 auto 14px' }} />
+        <div style={{ position: 'sticky', top: 0, background: 'var(--bg-app)', padding: '10px 20px 12px', borderRadius: 'var(--radius-xl) var(--radius-xl) 0 0', zIndex: 1 }}>
+          <div aria-hidden="true" style={{ width: 36, height: 4, borderRadius: 2, background: 'var(--border-strong)', margin: '0 auto 14px' }} />
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <h2 style={{ margin: 0, fontSize: 20, fontWeight: 800, color: 'var(--text-1)', display: 'flex', alignItems: 'center', gap: 9 }}>
-              <span style={{
+            <SheetTitle style={{ margin: 0, fontSize: 20, fontWeight: 800, color: 'var(--text-1)', display: 'flex', alignItems: 'center', gap: 9, paddingRight: 0 }}>
+              <span aria-hidden="true" style={{
                 width: 30, height: 30, borderRadius: 9, background: cfg.kleurLicht,
                 display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 15,
               }}>{cfg.emoji}</span>
               {cfg.label}
-            </h2>
-            <button
-              onClick={onClose} aria-label="Sluiten"
+            </SheetTitle>
+            <RadixDialog.Close
+              aria-label="Sluiten"
+              className="mf-pressable"
               style={{
+                display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                 width: 30, height: 30, borderRadius: '50%', border: 'none', cursor: 'pointer',
-                background: 'var(--bg-card)', color: 'var(--text-3)', fontSize: 15, fontWeight: 700,
+                background: 'var(--bg-card)', color: 'var(--text-3)',
                 boxShadow: 'var(--shadow-xs)',
               }}
-            >✕</button>
+            ><X size={16} aria-hidden /></RadixDialog.Close>
           </div>
         </div>
 
         <div style={{ padding: '4px 20px 28px' }}>
           {/* Periode-keuze */}
           <div role="tablist" aria-label="Periode" style={{
-            display: 'flex', background: 'rgba(0,0,0,0.05)', borderRadius: 11, padding: 3, marginBottom: 18,
+            display: 'flex', background: 'var(--bg-subtle)', border: '1px solid var(--border)', borderRadius: 11, padding: 3, marginBottom: 18,
           }}>
             {PERIODES.map(p => (
               <button
@@ -160,7 +176,7 @@ export default function MetricDetailSheet({ metricKey, trend, onClose }: MetricD
               background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', padding: '36px 20px',
               textAlign: 'center', border: '1px solid var(--border)',
             }}>
-              <p style={{ fontSize: 30, margin: '0 0 8px' }}>{cfg.emoji}</p>
+              <p aria-hidden="true" style={{ fontSize: 30, margin: '0 0 8px' }}>{cfg.emoji}</p>
               <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-2)', margin: '0 0 4px' }}>Nog geen metingen</p>
               <p style={{ fontSize: 13, color: 'var(--text-4)', margin: 0 }}>Koppel een wearable of vul je check-in in.</p>
             </div>
@@ -196,12 +212,12 @@ export default function MetricDetailSheet({ metricKey, trend, onClose }: MetricD
                 <ResponsiveContainer width="100%" height={220}>
                   {cfg.grafiek === 'staaf' ? (
                     <BarChart data={punten} barSize={periode === 30 ? 8 : 16}>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(0,0,0,0.05)" />
-                      <XAxis dataKey="dagLabel" tick={{ fontSize: 10, fill: '#9CA3AF' }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
-                      <YAxis tick={{ fontSize: 10, fill: '#9CA3AF' }} axisLine={false} tickLine={false} width={42} domain={cfg.domein} />
-                      <Tooltip content={<GrafiekTooltip eenheid={cfg.eenheid} />} cursor={{ fill: 'rgba(0,0,0,0.04)' }} />
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
+                      <XAxis dataKey="dagLabel" tick={{ fontSize: 10, fill: 'var(--text-3)' }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
+                      <YAxis tick={{ fontSize: 10, fill: 'var(--text-3)' }} axisLine={false} tickLine={false} width={42} domain={cfg.domein} />
+                      <Tooltip content={<GrafiekTooltip eenheid={cfg.eenheid} />} cursor={{ fill: 'var(--border)' }} />
                       {metricKey === 'stappen' && (
-                        <ReferenceLine y={10000} stroke="#9CA3AF" strokeDasharray="6 4" label={{ value: 'Doel', position: 'insideTopRight', fontSize: 10, fill: '#9CA3AF' }} />
+                        <ReferenceLine y={10000} stroke="var(--text-4)" strokeDasharray="6 4" label={{ value: 'Doel', position: 'insideTopRight', fontSize: 10, fill: 'var(--text-3)' }} />
                       )}
                       {stats && (
                         <ReferenceLine y={stats.gemiddeld} stroke={cfg.kleur} strokeOpacity={0.45} strokeDasharray="4 4" label={{ value: 'Gem.', position: 'insideTopLeft', fontSize: 10, fill: cfg.kleur }} />
@@ -210,9 +226,9 @@ export default function MetricDetailSheet({ metricKey, trend, onClose }: MetricD
                     </BarChart>
                   ) : (
                     <LineChart data={punten}>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(0,0,0,0.05)" />
-                      <XAxis dataKey="dagLabel" tick={{ fontSize: 10, fill: '#9CA3AF' }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
-                      <YAxis tick={{ fontSize: 10, fill: '#9CA3AF' }} axisLine={false} tickLine={false} width={36} domain={cfg.domein} />
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
+                      <XAxis dataKey="dagLabel" tick={{ fontSize: 10, fill: 'var(--text-3)' }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
+                      <YAxis tick={{ fontSize: 10, fill: 'var(--text-3)' }} axisLine={false} tickLine={false} width={36} domain={cfg.domein} />
                       <Tooltip content={<GrafiekTooltip eenheid={cfg.eenheid} />} />
                       {stats && metricKey !== 'stemming' && (
                         <ReferenceLine y={stats.gemiddeld} stroke={cfg.kleur} strokeOpacity={0.45} strokeDasharray="4 4" label={{ value: 'Gem.', position: 'insideTopLeft', fontSize: 10, fill: cfg.kleur }} />
@@ -235,7 +251,9 @@ export default function MetricDetailSheet({ metricKey, trend, onClose }: MetricD
             </>
           )}
         </div>
-      </div>
-    </div>
+        <SheetStyles />
+        </RadixDialog.Content>
+      </SheetPortal>
+    </SheetRoot>
   )
 }

@@ -43,7 +43,7 @@ export default function HighlightCard({ vergelijking }: HighlightCardProps) {
       boxShadow: 'var(--shadow-card)',
     }}>
       <header style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-        <span style={{
+        <span aria-hidden="true" style={{
           width: 24, height: 24, borderRadius: 7, background: cfg.kleurLicht,
           display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 12,
         }}>{cfg.emoji}</span>

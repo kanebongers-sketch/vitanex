@@ -9,6 +9,8 @@ import { supabase } from '@/lib/supabase'
 import { authFetch } from '@/lib/auth-fetch'
 import Navbar from '@/components/layout/Navbar'
 import nextDynamic from 'next/dynamic'
+import { Salad, Dumbbell, ClipboardCheck, Watch, ChevronRight, type LucideIcon } from 'lucide-react'
+import { Ring } from '@/components/ui/Ring'
 import MetricTile from '@/components/gezondheid/MetricTile'
 import HighlightCard from '@/components/gezondheid/HighlightCard'
 import VandaagHero from '@/components/gezondheid/VandaagHero'
@@ -45,11 +47,11 @@ const RISICO_STIJL = {
   hoog:  { kleur: 'var(--mf-red)', label: 'Hoog risico' },
 }
 
-const CATEGORIEEN = [
-  { emoji: '🥗', label: 'Voeding', href: '/voeding', kleur: 'var(--mf-green)' },
-  { emoji: '🏋️', label: 'Sport', href: '/sport', kleur: 'var(--mf-blue)' },
-  { emoji: '✅', label: 'Check-in', href: '/checkin', kleur: 'var(--mf-purple)' },
-  { emoji: '⌚', label: 'Koppelingen', href: '/koppelingen', kleur: 'var(--mf-amber)' },
+const CATEGORIEEN: { icoon: LucideIcon; label: string; href: string }[] = [
+  { icoon: Salad, label: 'Voeding', href: '/voeding' },
+  { icoon: Dumbbell, label: 'Sport', href: '/sport' },
+  { icoon: ClipboardCheck, label: 'Check-in', href: '/checkin' },
+  { icoon: Watch, label: 'Koppelingen', href: '/koppelingen' },
 ]
 
 function SectieKop({ children }: { children: React.ReactNode }) {
@@ -71,21 +73,23 @@ function RisicoRing({ risico }: { risico: Risico }) {
       boxShadow: 'var(--shadow-card)',
       display: 'flex', alignItems: 'center', gap: 18,
     }}>
-      <div style={{ position: 'relative', flexShrink: 0, width: 76, height: 76 }}>
-        <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 0 }}>
-          <div style={{ width: 110, height: 110, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
-        </div>
-        <svg width="76" height="76" viewBox="0 0 76 76" aria-hidden="true" style={{ position: 'relative', zIndex: 1 }}>
-        <circle cx="38" cy="38" r="30" fill="none" stroke="rgba(0,0,0,0.06)" strokeWidth="7" />
-        <circle
-          cx="38" cy="38" r="30" fill="none" stroke={stijl.kleur} strokeWidth="7"
-          strokeDasharray={`${(risico.score / 100) * 188.5} 188.5`}
-          strokeLinecap="round" transform="rotate(-90 38 38)"
-          style={{ transition: 'stroke-dasharray 1.2s var(--ease)' }}
-        />
-        <text x="38" y="36" textAnchor="middle" fontSize="19" fontWeight="900" fill={stijl.kleur}>{risico.score}</text>
-        <text x="38" y="49" textAnchor="middle" fontSize="9" fill="var(--text-4)">/100</text>
-        </svg>
+      <div style={{ position: 'relative', flexShrink: 0 }}>
+        <div aria-hidden="true" style={{
+          position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 0,
+          width: 110, height: 110, borderRadius: '50%',
+          background: `radial-gradient(circle, color-mix(in srgb, ${stijl.kleur} 20%, transparent) 0%, transparent 70%)`,
+        }} />
+        <Ring
+          value={risico.score} max={100}
+          ariaLabel={`Burn-out risico ${risico.score} van 100, ${stijl.label.toLowerCase()}`}
+          size={76} thickness={7} color={stijl.kleur} trackColor="var(--bg-subtle)"
+          style={{ position: 'relative', zIndex: 1 }}
+        >
+          <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', lineHeight: 1 }}>
+            <span style={{ fontSize: 19, fontWeight: 900, color: stijl.kleur }}>{risico.score}</span>
+            <span style={{ fontSize: 9, fontWeight: 600, color: 'var(--text-4)', marginTop: 2 }}>/100</span>
+          </span>
+        </Ring>
       </div>
       <div style={{ minWidth: 0 }}>
         <p style={{ fontSize: 11, fontWeight: 800, color: stijl.kleur, textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 5px' }}>
@@ -102,7 +106,7 @@ function RisicoRing({ risico }: { risico: Risico }) {
             ))}
           </div>
         ) : (
-          <p style={{ fontSize: 13, color: 'var(--text-3)', margin: 0 }}>Geen risicosignalen — ga zo door! 💪</p>
+          <p style={{ fontSize: 13, color: 'var(--text-3)', margin: 0 }}>Geen risicosignalen — ga zo door.</p>
         )}
       </div>
     </section>
@@ -199,7 +203,7 @@ function GezondheidInhoud() {
           border: '1px solid var(--border)', boxShadow: 'var(--shadow-card)',
           padding: '44px 24px', textAlign: 'center',
         }}>
-          <p style={{ fontSize: 44, margin: '0 0 12px' }}>⌚</p>
+          <Watch size={44} strokeWidth={1.5} aria-hidden="true" style={{ color: 'var(--mentaforce-primary)', margin: '0 auto 14px' }} />
           <p style={{ fontSize: 17, fontWeight: 800, color: 'var(--text-1)', margin: '0 0 6px' }}>
             Hier komt jouw gezondheidsbeeld
           </p>
@@ -209,13 +213,13 @@ function GezondheidInhoud() {
           </p>
           <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
             <Link href="/koppelingen" style={{
-              background: 'var(--mf-green)', color: 'white', textDecoration: 'none',
-              padding: '11px 22px', borderRadius: 12, fontSize: 13, fontWeight: 700,
+              background: 'var(--mentaforce-primary)', color: 'var(--bg-app)', textDecoration: 'none',
+              padding: '11px 22px', borderRadius: 'var(--radius-md)', fontSize: 13, fontWeight: 700,
             }}>Wearable koppelen</Link>
             <Link href="/checkin" style={{
-              background: 'var(--bg-subtle)', color: 'var(--text-2)', textDecoration: 'none',
-              border: '1px solid var(--border)',
-              padding: '11px 22px', borderRadius: 12, fontSize: 13, fontWeight: 700,
+              background: 'var(--bg-subtle)', color: 'var(--text-1)', textDecoration: 'none',
+              border: '1px solid var(--border-strong)',
+              padding: '11px 22px', borderRadius: 'var(--radius-md)', fontSize: 13, fontWeight: 700,
             }}>Check-in doen</Link>
           </div>
         </div>
@@ -257,7 +261,7 @@ function GezondheidInhoud() {
                     boxShadow: 'var(--shadow-card)',
                     display: 'flex', alignItems: 'flex-start', gap: 11,
                   }}>
-                    <span style={{ fontSize: 17, flexShrink: 0, marginTop: 1 }} aria-hidden="true">{c.label.split(' ')[0]}</span>
+                    <span role="img" aria-label={c.label.split(' ').slice(1).join(' ')} style={{ fontSize: 17, flexShrink: 0, marginTop: 1 }}>{c.label.split(' ')[0]}</span>
                     <div>
                       <h3 style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-1)', margin: '0 0 3px' }}>
                         {c.label.split(' ').slice(1).join(' ')}
@@ -285,20 +289,21 @@ function GezondheidInhoud() {
           <section className="gz-sectie" style={{ animationDelay: '0.33s' }} aria-label="Ontdek meer">
             <SectieKop>Ontdek meer</SectieKop>
             <nav style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(150px, 100%), 1fr))', gap: 10 }}>
-              {CATEGORIEEN.map(c => (
-                <Link key={c.href} href={c.href} className="gz-categorie" style={{
-                  display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none',
-                  background: 'var(--bg-card)', border: '1px solid var(--border)',
-                  borderRadius: 'var(--radius-md)', padding: '12px 14px',
-                  boxShadow: 'var(--shadow-xs)',
-                }}>
-                  <span style={{ fontSize: 17 }} aria-hidden="true">{c.emoji}</span>
-                  <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-2)' }}>{c.label}</span>
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text-4)" strokeWidth="2.5" strokeLinecap="round" style={{ marginLeft: 'auto' }} aria-hidden="true">
-                    <path d="M9 18l6-6-6-6" />
-                  </svg>
-                </Link>
-              ))}
+              {CATEGORIEEN.map(c => {
+                const Icoon = c.icoon
+                return (
+                  <Link key={c.href} href={c.href} className="gz-categorie" style={{
+                    display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none',
+                    background: 'var(--bg-card)', border: '1px solid var(--border)',
+                    borderRadius: 'var(--radius-md)', padding: '12px 14px',
+                    boxShadow: 'var(--shadow-xs)',
+                  }}>
+                    <Icoon size={17} aria-hidden="true" style={{ color: 'var(--mentaforce-primary)', flexShrink: 0 }} />
+                    <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-2)' }}>{c.label}</span>
+                    <ChevronRight size={14} strokeWidth={2.5} aria-hidden="true" style={{ marginLeft: 'auto', color: 'var(--text-4)' }} />
+                  </Link>
+                )
+              })}
             </nav>
           </section>
         </div>
@@ -331,7 +336,7 @@ export default function GezondheidPage() {
         }
         .gz-spinner {
           width: 32px; height: 32px; border-radius: 50%;
-          border: 2px solid rgba(0,0,0,0.08); border-top-color: var(--mf-green);
+          border: 2px solid var(--border); border-top-color: var(--mentaforce-primary);
           animation: gz-draai 0.8s linear infinite;
         }
         .gz-intro, .gz-sectie {
@@ -347,22 +352,14 @@ export default function GezondheidPage() {
         }
         .gz-categorie { transition: transform 0.18s var(--ease), box-shadow 0.18s var(--ease); }
         .gz-categorie:hover { transform: translateY(-1px); box-shadow: var(--shadow-sm); }
-        .metric-sheet { animation: gz-sheet 0.32s var(--ease) both; }
-        .metric-sheet-backdrop { animation: gz-fade 0.25s ease both; }
         .highlight-balk { animation: gz-balk 0.7s var(--ease) both; transform-origin: left; }
         @keyframes gz-puls { 0%, 100% { opacity: 1 } 50% { opacity: 0.5 } }
         @keyframes gz-draai { to { transform: rotate(360deg) } }
         @keyframes gz-op { from { opacity: 0; transform: translateY(10px) } to { opacity: 1; transform: none } }
-        @keyframes gz-sheet { from { transform: translateY(40px); opacity: 0 } to { transform: none; opacity: 1 } }
-        @keyframes gz-fade { from { opacity: 0 } to { opacity: 1 } }
         @keyframes gz-balk { from { transform: scaleX(0.3); opacity: 0 } to { transform: none; opacity: 1 } }
         @media (prefers-reduced-motion: reduce) {
-          .gz-intro, .gz-sectie, .metric-sheet, .metric-sheet-backdrop, .highlight-balk { animation: none }
+          .gz-intro, .gz-sectie, .highlight-balk { animation: none }
           .metric-tile, .gz-categorie { transition: none }
-        }
-        @media (min-width: 640px) {
-          .metric-sheet-backdrop { align-items: center !important; padding: 24px; }
-          .metric-sheet { border-radius: 24px !important; }
         }
       `}</style>
     </div>

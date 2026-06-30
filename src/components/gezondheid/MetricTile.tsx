@@ -2,6 +2,7 @@
  * Apple Health-stijl metriek-tegel: gekleurd label met icoon,
  * grote waarde met eenheid, sparkline rechts en datum onderaan.
  */
+import { ChevronRight } from 'lucide-react'
 import { METRICS, STEMMING_INFO, datumLang, type MetricKey, type MetricSamenvatting, type TrendPunt } from '@/lib/gezondheid-metrics'
 import Sparkline from './Sparkline'
 
@@ -38,15 +39,13 @@ export default function MetricTile({ metricKey, samenvatting, trend, onOpen }: M
     >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, fontSize: 13, fontWeight: 700, color: cfg.kleur }}>
-          <span style={{
+          <span aria-hidden="true" style={{
             width: 26, height: 26, borderRadius: 8, background: cfg.kleurLicht,
             display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 13,
           }}>{cfg.emoji}</span>
           {cfg.label}
         </span>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-4)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-          <path d="M9 18l6-6-6-6" />
-        </svg>
+        <ChevronRight size={14} strokeWidth={2.5} aria-hidden="true" style={{ color: 'var(--text-4)' }} />
       </div>
 
       <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 12 }}>
