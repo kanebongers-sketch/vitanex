@@ -4,17 +4,23 @@ export const dynamic = 'force-dynamic'
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { CheckCircle2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
 import { getActiviteit } from '@/lib/activiteiten'
+import { Field } from '@/components/ui/Field'
+import { Textarea } from '@/components/ui/Textarea'
+import { Button } from '@/components/ui/Button'
+import { useToast } from '@/components/ui/Toast'
+import { vitaEvent } from '@/lib/vita/events'
 
 const ACT = getActiviteit('mentaal')
 const STEMMING_OPTIES = [
-  { waarde: 1, emoji: '😫', label: 'Slecht',   kleur: 'var(--mf-red)',    achtergrond: 'var(--mf-red-light)'    },
-  { waarde: 2, emoji: '😔', label: 'Matig',    kleur: 'var(--mf-orange)',          achtergrond: 'var(--mf-amber-light)'  },
-  { waarde: 3, emoji: '😐', label: 'Neutraal', kleur: 'var(--text-3)',    achtergrond: 'var(--bg-subtle)'       },
-  { waarde: 4, emoji: '🙂', label: 'Goed',     kleur: 'var(--mf-green)',  achtergrond: 'var(--mf-green-light)'  },
+  { waarde: 1, emoji: '😫', label: 'Slecht',   kleur: 'var(--mf-red)',       achtergrond: 'var(--mf-red-light)'    },
+  { waarde: 2, emoji: '😔', label: 'Matig',    kleur: 'var(--mf-orange)',    achtergrond: 'var(--mf-amber-light)'  },
+  { waarde: 3, emoji: '😐', label: 'Neutraal', kleur: 'var(--text-3)',       achtergrond: 'var(--bg-subtle)'       },
+  { waarde: 4, emoji: '🙂', label: 'Goed',     kleur: 'var(--mf-green)',     achtergrond: 'var(--mf-green-light)'  },
   { waarde: 5, emoji: '😄', label: 'Super!',   kleur: 'var(--mf-green-dark)', achtergrond: 'var(--mf-green-light)' },
 ]
 
@@ -43,6 +49,7 @@ function stemmingKleur(s: number): string {
 
 export default function StemmingPagina() {
   const router = useRouter()
+  const { toast } = useToast()
   const [laden, setLaden] = useState(true)
   const [logs, setLogs] = useState<StemmingLog[]>([])
   const [stemming, setStemming] = useState<number>(3)
@@ -83,10 +90,24 @@ export default function StemmingPagina() {
         setLogs(prev => [json.log, ...prev.slice(0, 9)])
         setNotitie('')
         setSucces(true)
+        vitaEvent('mood_logged')
         setTimeout(() => router.push('/vandaag'), 1500)
+      } else {
+        toast({
+          title: 'Opslaan mislukt',
+          description: 'Je stemming kon niet worden opgeslagen. Probeer het opnieuw.',
+          variant: 'error',
+        })
       }
-    } catch { /* stil falen */ }
-    setOpslaan(false)
+    } catch {
+      toast({
+        title: 'Geen verbinding',
+        description: 'Controleer je internetverbinding en probeer het opnieuw.',
+        variant: 'error',
+      })
+    } finally {
+      setOpslaan(false)
+    }
   }
 
   const geselecteerd = STEMMING_OPTIES.find(o => o.waarde === stemming)!
@@ -108,7 +129,7 @@ export default function StemmingPagina() {
             {new Date().toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long' })}
           </p>
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
-            <span style={{ width: 10, height: 10, borderRadius: '50%', background: ACT.kleur, flexShrink: 0 }} />
+            <span style={{ width: 10, height: 10, borderRadius: '50%', background: ACT.kleur, flexShrink: 0 }} aria-hidden />
             <span style={{ fontSize: 11, fontWeight: 700, color: ACT.kleur, textTransform: 'uppercase', letterSpacing: '0.08em' }}>{ACT.label}</span>
           </span>
           <h1 style={{ fontSize: 24, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', margin: 0 }}>
@@ -117,13 +138,13 @@ export default function StemmingPagina() {
         </header>
 
         {succes && (
-          <div style={{
-            background: 'var(--mf-green-light)', border: '1px solid rgba(29,158,117,0.25)',
+          <div role="status" style={{
+            background: 'var(--mf-green-light)', border: '1px solid var(--border-strong)',
             borderRadius: 'var(--radius-md)', padding: '12px 16px', marginBottom: 20,
-            fontSize: 13, color: 'var(--mf-green-dark)', fontWeight: 600,
+            fontSize: 13, color: 'var(--text-1)', fontWeight: 600,
             display: 'flex', alignItems: 'center', gap: 8,
           }}>
-            <span>✓</span> Stemming opgeslagen — goed bezig!
+            <CheckCircle2 size={16} aria-hidden style={{ color: 'var(--mf-green)', flexShrink: 0 }} /> Stemming opgeslagen — goed bezig!
           </div>
         )}
 
@@ -135,10 +156,11 @@ export default function StemmingPagina() {
           background: 'var(--bg-card)',
           borderRadius: 'var(--radius-xl)',
           boxShadow: 'var(--shadow-md)',
+          border: '1px solid var(--border)',
           padding: '24px 20px',
           marginBottom: 14,
         }}>
-          <p style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-4)', margin: '0 0 18px' }}>
+          <p id="stemming-label" style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-4)', margin: '0 0 18px' }}>
             Hoe voel je je nu?
           </p>
 
@@ -152,36 +174,39 @@ export default function StemmingPagina() {
               boxShadow: `0 8px 32px ${geselecteerd.kleur}20`,
               transition: 'background 0.3s ease, box-shadow 0.3s ease',
             }}>
-              <span style={{ fontSize: 56, lineHeight: 1, display: 'block', transition: 'transform 0.2s cubic-bezier(0.34,1.56,0.64,1)' }}>
+              <span aria-hidden style={{ fontSize: 56, lineHeight: 1, display: 'block', transition: 'transform 0.2s cubic-bezier(0.34,1.56,0.64,1)' }}>
                 {geselecteerd.emoji}
               </span>
             </div>
           </div>
 
           {/* Grote emoji kiezer */}
-          <div style={{ display: 'flex', gap: 10, justifyContent: 'center', marginBottom: 20 }}>
+          <div role="radiogroup" aria-labelledby="stemming-label" style={{ display: 'flex', gap: 10, justifyContent: 'center', marginBottom: 20 }}>
             {STEMMING_OPTIES.map(o => (
               <button
                 key={o.waarde}
                 onClick={() => setStemming(o.waarde)}
+                role="radio"
+                aria-checked={stemming === o.waarde}
+                aria-label={`Stemming: ${o.label}`}
                 style={{
                   flex: 1,
                   height: 68,
                   borderRadius: 'var(--radius-md)',
                   cursor: 'pointer',
                   background: stemming === o.waarde ? o.achtergrond : 'var(--bg-subtle)',
-                  border: stemming === o.waarde ? `2px solid ${o.kleur}` : '2px solid transparent',
+                  border: stemming === o.waarde ? `2px solid ${o.kleur}` : '2px solid var(--border)',
                   fontSize: 30,
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: 2,
-                  transition: 'all var(--transition-fast)',
+                  transition: 'background var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast)',
                   transform: stemming === o.waarde ? 'scale(1.08)' : 'scale(1)',
                 }}
               >
-                {o.emoji}
+                <span aria-hidden>{o.emoji}</span>
               </button>
             ))}
           </div>
@@ -193,8 +218,8 @@ export default function StemmingPagina() {
             borderRadius: 'var(--radius-sm)',
             background: geselecteerd.achtergrond,
           }}>
-            <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: geselecteerd.kleur }}>
-              {geselecteerd.emoji} {geselecteerd.label}
+            <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: 'var(--text-1)' }}>
+              <span aria-hidden>{geselecteerd.emoji} </span>{geselecteerd.label}
             </p>
           </div>
         </section>
@@ -204,38 +229,45 @@ export default function StemmingPagina() {
           background: 'var(--bg-card)',
           borderRadius: 'var(--radius-lg)',
           boxShadow: 'var(--shadow-sm)',
+          border: '1px solid var(--border)',
           padding: '16px 20px',
           marginBottom: 14,
         }}>
-          <p style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-4)', margin: '0 0 12px' }}>
+          <p id="energie-label" style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-4)', margin: '0 0 12px' }}>
             Energieniveau
           </p>
-          <div style={{ display: 'flex', gap: 8 }}>
-            {ENERGIE_OPTIES.map(o => (
-              <button
-                key={o.waarde}
-                onClick={() => setEnergie(o.waarde)}
-                style={{
-                  flex: 1,
-                  borderRadius: 'var(--radius-sm)',
-                  border: 'none',
-                  cursor: 'pointer',
-                  padding: '10px 4px 8px',
-                  background: energie === o.waarde ? 'var(--mf-green)' : 'var(--bg-subtle)',
-                  color: energie === o.waarde ? 'white' : 'var(--text-3)',
-                  fontWeight: 600,
-                  fontSize: 11,
-                  transition: 'background var(--transition-fast), color var(--transition-fast)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  gap: 3,
-                }}
-              >
-                <span style={{ fontSize: 18 }}>{o.emoji}</span>
-                <span style={{ fontSize: 9, letterSpacing: '0.01em' }}>{o.label}</span>
-              </button>
-            ))}
+          <div role="radiogroup" aria-labelledby="energie-label" style={{ display: 'flex', gap: 8 }}>
+            {ENERGIE_OPTIES.map(o => {
+              const actief = energie === o.waarde
+              return (
+                <button
+                  key={o.waarde}
+                  onClick={() => setEnergie(o.waarde)}
+                  role="radio"
+                  aria-checked={actief}
+                  aria-label={`Energie: ${o.label}`}
+                  style={{
+                    flex: 1,
+                    borderRadius: 'var(--radius-sm)',
+                    border: actief ? '1px solid var(--mentaforce-primary)' : '1px solid var(--border)',
+                    cursor: 'pointer',
+                    padding: '10px 4px 8px',
+                    background: actief ? 'var(--mf-green-light)' : 'var(--bg-subtle)',
+                    color: actief ? 'var(--text-1)' : 'var(--text-3)',
+                    fontWeight: 600,
+                    fontSize: 11,
+                    transition: 'background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: 3,
+                  }}
+                >
+                  <span aria-hidden style={{ fontSize: 18 }}>{o.emoji}</span>
+                  <span style={{ fontSize: 9, letterSpacing: '0.01em' }}>{o.label}</span>
+                </button>
+              )
+            })}
           </div>
         </section>
 
@@ -244,56 +276,32 @@ export default function StemmingPagina() {
           background: 'var(--bg-card)',
           borderRadius: 'var(--radius-lg)',
           boxShadow: 'var(--shadow-sm)',
+          border: '1px solid var(--border)',
           padding: '14px 20px',
           marginBottom: 20,
         }}>
-          <textarea
-            value={notitie}
-            onChange={e => setNotitie(e.target.value)}
-            placeholder="Wat speelt er vandaag? (optioneel)"
-            maxLength={150}
-            rows={2}
-            style={{
-              width: '100%',
-              border: 'none',
-              outline: 'none',
-              resize: 'none',
-              fontSize: 13,
-              color: 'var(--text-2)',
-              fontFamily: 'inherit',
-              background: 'transparent',
-              boxSizing: 'border-box',
-              lineHeight: 1.6,
-            }}
-          />
-          {notitie.length > 100 && (
-            <p style={{ fontSize: 10, color: 'var(--text-4)', textAlign: 'right', margin: '4px 0 0' }}>
-              {notitie.length}/150
-            </p>
-          )}
+          <Field
+            label="Notitie (optioneel)"
+            hint={notitie.length > 100 ? `${notitie.length}/150` : undefined}
+          >
+            <Textarea
+              value={notitie}
+              onChange={e => setNotitie(e.target.value)}
+              placeholder="Wat speelt er vandaag?"
+              maxLength={150}
+              rows={2}
+            />
+          </Field>
         </section>
 
-        <button
+        <Button
           onClick={verstuur}
-          disabled={opslaan}
-          style={{
-            width: '100%',
-            padding: '15px',
-            borderRadius: 'var(--radius-md)',
-            marginBottom: 32,
-            background: opslaan ? 'var(--text-4)' : 'linear-gradient(135deg, var(--mf-green) 0%, var(--mf-green-dark) 100%)',
-            boxShadow: opslaan ? 'none' : '0 4px 16px rgba(29,158,117,0.35)',
-            color: 'white',
-            border: 'none',
-            cursor: opslaan ? 'not-allowed' : 'pointer',
-            fontSize: 15,
-            fontWeight: 700,
-            letterSpacing: '-0.01em',
-            transition: 'opacity var(--transition-fast)',
-          }}
+          loading={opslaan}
+          size="lg"
+          style={{ width: '100%', marginBottom: 32 }}
         >
           {opslaan ? 'Opslaan…' : 'Stemming loggen →'}
-        </button>
+        </Button>
 
         </div>{/* end form column */}
 
@@ -309,6 +317,7 @@ export default function StemmingPagina() {
               background: 'var(--bg-card)',
               borderRadius: 'var(--radius-lg)',
               boxShadow: 'var(--shadow-sm)',
+              border: '1px solid var(--border)',
               padding: '16px 20px',
               marginBottom: 14,
             }}>
@@ -327,23 +336,30 @@ export default function StemmingPagina() {
                   <div style={{ display: 'flex', gap: 6, alignItems: 'flex-end' }}>
                     {zeven.map(({ datum, dag, log }) => {
                       const isVandaag = datum === vandaagStr
-                      const h = log ? Math.max(8, (log.stemming / 5) * 52) : 0
+                      // Schaal 0..1 voor scaleY; 8px minimum vertaald naar een vloer van ~0.15.
+                      const schaal = log ? Math.max(0.15, log.stemming / 5) : 0
                       const kleur = log ? stemmingKleur(log.stemming) : 'var(--bg-subtle)'
                       const o = STEMMING_OPTIES.find(o => o.waarde === log?.stemming)
                       return (
                         <div key={datum} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-                          {log && <span style={{ fontSize: 12 }} title={o?.label}>{o?.emoji}</span>}
-                          {!log && <span style={{ fontSize: 12, opacity: 0 }}>·</span>}
-                          <div style={{
-                            width: '100%', height: 52, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', alignItems: 'center',
-                          }}>
-                            <div style={{
-                              width: '70%', borderRadius: 4, height: h,
-                              background: kleur, opacity: log ? 0.85 : 0.3,
-                              transition: 'height 0.4s ease',
-                              outline: isVandaag ? `2px solid ${log ? kleur : 'var(--border-strong)'}` : 'none',
-                              outlineOffset: 2,
-                            }} />
+                          {log
+                            ? <span aria-hidden style={{ fontSize: 12 }}>{o?.emoji}</span>
+                            : <span aria-hidden style={{ fontSize: 12, opacity: 0 }}>·</span>}
+                          <div
+                            style={{ width: '100%', height: 52, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', alignItems: 'center' }}
+                            title={log ? `${dag}: ${o?.label}` : `${dag}: geen check-in`}
+                          >
+                            <div
+                              className="mf-stemming-bar"
+                              style={{
+                                width: '70%', borderRadius: 4, height: 52,
+                                background: kleur, opacity: log ? 0.85 : 0.3,
+                                transformOrigin: 'bottom',
+                                transform: `scaleY(${schaal})`,
+                                outline: isVandaag ? `2px solid ${log ? kleur : 'var(--border-strong)'}` : 'none',
+                                outlineOffset: 2,
+                              } as React.CSSProperties}
+                            />
                           </div>
                           <span style={{
                             fontSize: 9, fontWeight: isVandaag ? 800 : 500,
@@ -358,12 +374,12 @@ export default function StemmingPagina() {
               })()}
               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--border)' }}>
                 {[
-                  { kleur: 'var(--mf-green)', label: '≥4 goed' },
-                  { kleur: 'var(--mf-orange)', label: '3 neutraal' },
-                  { kleur: 'var(--mf-red)', label: '≤2 slecht' },
+                  { kleur: 'var(--mf-green)',  label: '≥4 goed',     vorm: '50%' },
+                  { kleur: 'var(--mf-orange)', label: '3 neutraal',  vorm: '2px' },
+                  { kleur: 'var(--mf-red)',    label: '≤2 slecht',   vorm: '0' },
                 ].map(l => (
-                  <span key={l.label} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 9, color: 'var(--text-4)' }}>
-                    <span style={{ width: 8, height: 8, borderRadius: 2, background: l.kleur, display: 'inline-block' }} />
+                  <span key={l.label} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 9, color: 'var(--text-3)' }}>
+                    <span aria-hidden style={{ width: 8, height: 8, borderRadius: l.vorm, background: l.kleur, display: 'inline-block', flexShrink: 0 }} />
                     {l.label}
                   </span>
                 ))}
@@ -376,12 +392,13 @@ export default function StemmingPagina() {
                   background: 'var(--bg-card)',
                   borderRadius: 'var(--radius-md)',
                   boxShadow: 'var(--shadow-xs)',
+                  border: '1px solid var(--border)',
                   padding: '12px 16px',
                   display: 'flex',
                   alignItems: 'center',
                   gap: 12,
                 }}>
-                  <span style={{ fontSize: 24, flexShrink: 0 }}>
+                  <span aria-hidden style={{ fontSize: 24, flexShrink: 0 }}>
                     {STEMMING_OPTIES.find(o => o.waarde === log.stemming)?.emoji ?? '😐'}
                   </span>
                   <div style={{ flex: 1 }}>
@@ -401,6 +418,15 @@ export default function StemmingPagina() {
         )}
         </div>
       </main>
+
+      <style>{`
+        .mf-stemming-bar {
+          transition: transform 0.4s var(--ease, cubic-bezier(0.16, 1, 0.3, 1));
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .mf-stemming-bar { transition: none; }
+        }
+      `}</style>
     </div>
   )
 }

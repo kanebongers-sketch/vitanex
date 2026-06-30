@@ -2,15 +2,17 @@
 
 export const dynamic = 'force-dynamic'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef, type ElementType, type FocusEvent, type MouseEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { authFetch } from '@/lib/auth-fetch'
 import Navbar from '@/components/layout/Navbar'
+import { Card } from '@/components/ui/Card'
+import { Ring } from '@/components/ui/Ring'
 import {
   Smile, Moon, Droplets, Dumbbell, Leaf, Heart,
-  Circle, BarChart2, ChevronRight,
+  Circle, BarChart2, ChevronRight, Check,
   Utensils, Flame,
 } from 'lucide-react'
 
@@ -35,32 +37,26 @@ function scoreKleur(score: number | null): string {
   return 'var(--mf-red)'
 }
 
+/* Her-fetch op tab-focus enkel als de data ouder is dan deze TTL (perf). */
+const REFETCH_TTL_MS = 30_000
+
 /* ── readiness ring ── */
 function ReadinessRing({ score }: { score: number | null }) {
-  const r = 52
-  const circ = 2 * Math.PI * r
-  const pct = score ?? 0
   const kleur = scoreKleur(score)
+  const label = score !== null
+    ? `Readiness ${score} van 100 — ${scoreLabel(score)}`
+    : 'Readiness: geen data'
   return (
-    <svg width="128" height="128" viewBox="0 0 128 128">
-      <circle cx="64" cy="64" r={r} fill="none" stroke={`${kleur}20`} strokeWidth="10" />
-      <circle
-        cx="64" cy="64" r={r} fill="none"
-        stroke={kleur} strokeWidth="10"
-        strokeDasharray={`${(pct / 100) * circ} ${circ}`}
-        strokeLinecap="round"
-        transform="rotate(-90 64 64)"
-        style={{ transition: 'stroke-dasharray 1.2s cubic-bezier(0.16,1,0.3,1)' }}
-      />
+    <Ring value={score ?? 0} ariaLabel={label} size={128} thickness={10} color={kleur}>
       {score !== null ? (
-        <>
-          <text x="64" y="59" textAnchor="middle" fontSize="30" fontWeight="700" fill={kleur}>{score}</text>
-          <text x="64" y="74" textAnchor="middle" fontSize="10" fill="var(--text-4)" fontWeight="500">/100</text>
-        </>
+        <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', lineHeight: 1 }}>
+          <span style={{ fontSize: 30, fontWeight: 700, color: kleur }}>{score}</span>
+          <span style={{ fontSize: 10, fontWeight: 500, color: 'var(--text-4)', marginTop: 2 }}>/100</span>
+        </span>
       ) : (
-        <text x="64" y="68" textAnchor="middle" fontSize="11" fill="var(--text-4)">Geen data</text>
+        <span style={{ fontSize: 11, color: 'var(--text-4)' }}>Geen data</span>
       )}
-    </svg>
+    </Ring>
   )
 }
 
@@ -70,7 +66,7 @@ function StatPill({ label, waarde, kleur }: { label: string; waarde: string; kle
     <div style={{
       display: 'flex', flexDirection: 'column', gap: 3,
       padding: '10px 14px',
-      background: 'var(--bg-app)',
+      background: 'var(--bg-subtle)',
       borderRadius: 10,
       border: '1px solid var(--border)',
       flex: 1,
@@ -82,7 +78,7 @@ function StatPill({ label, waarde, kleur }: { label: string; waarde: string; kle
 }
 
 /* ── check item ── */
-const CHECKLIST_ICONEN: Record<string, React.ElementType> = {
+const CHECKLIST_ICONEN: Record<string, ElementType> = {
   stemming:     Smile,
   slaap:        Moon,
   water:        Droplets,
@@ -92,6 +88,11 @@ const CHECKLIST_ICONEN: Record<string, React.ElementType> = {
 }
 
 interface CheckItem { key: string; label: string; href: string; gedaan: boolean }
+
+/* Hover + focus geven dezelfde, ontworpen randkleur — ook per toetsenbord. */
+function setBorder(target: EventTarget & HTMLElement, kleur: string) {
+  target.style.borderColor = kleur
+}
 
 /* ── main ── */
 export default function DashboardPage() {
@@ -110,6 +111,9 @@ export default function DashboardPage() {
   const [sportMinuten, setSportMinuten] = useState(0)
 
   const CALORIE_DOEL = 2000
+
+  /* Tijdstip van de laatste succesvolle data-load — voor de TTL-debounce. */
+  const laatsteLoad = useRef(0)
 
   const [checklist, setChecklist] = useState<CheckItem[]>([
     { key: 'stemming',     label: 'Stemming',     href: '/stemming',     gedaan: false },
@@ -172,11 +176,18 @@ export default function DashboardPage() {
       const d = streakRes.value as { streak?: number }
       setStreak(d.streak ?? 0)
     }
+
+    laatsteLoad.current = Date.now()
   }, [router])
 
   useEffect(() => {
     laad()
-    const handleVisibility = () => { if (document.visibilityState === 'visible') laad() }
+    const handleVisibility = () => {
+      // Alleen her-fetchen bij terugkeer als de data ouder is dan de TTL.
+      if (document.visibilityState === 'visible' && Date.now() - laatsteLoad.current > REFETCH_TTL_MS) {
+        laad()
+      }
+    }
     document.addEventListener('visibilitychange', handleVisibility)
     return () => document.removeEventListener('visibilitychange', handleVisibility)
   }, [laad])
@@ -200,7 +211,7 @@ export default function DashboardPage() {
 
         {/* Header */}
         <div style={{ marginBottom: 28 }}>
-          <p style={{ fontSize: 12, color: 'var(--text-4)', fontWeight: 500, marginBottom: 4, letterSpacing: '0.01em' }}>
+          <p style={{ fontSize: 12, color: 'var(--text-3)', fontWeight: 500, marginBottom: 4, letterSpacing: '0.01em' }}>
             {nlDatum()}
           </p>
           <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-1)', letterSpacing: '-0.03em', margin: 0 }}>
@@ -209,10 +220,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Readiness card */}
-        <div style={{
-          background: 'var(--bg-card)',
-          border: '1px solid var(--border)',
-          borderRadius: 16,
+        <Card style={{
           padding: '20px 20px',
           marginBottom: 10,
           display: 'flex',
@@ -233,35 +241,30 @@ export default function DashboardPage() {
               <StatPill label="Stemming" waarde={stemming !== null ? `${stemming}/5` : '—'} kleur="var(--mf-blue)" />
             </div>
           </div>
-        </div>
+        </Card>
 
         {/* CTA */}
         <Link
           href="/checkin"
+          className="mf-pressable mf-cta"
           style={{
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             padding: '14px 18px',
-            background: 'var(--mf-green)',
-            borderRadius: 12,
+            background: 'var(--mentaforce-primary)',
+            borderRadius: 'var(--radius-btn)',
             textDecoration: 'none',
             marginBottom: 24,
-            boxShadow: '0 2px 12px rgba(29,158,117,0.28)',
+            boxShadow: 'var(--shadow-sm)',
           }}
         >
-          <span style={{ fontSize: 14, fontWeight: 600, color: 'white', letterSpacing: '-0.01em' }}>
+          <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--bg-app)', letterSpacing: '-0.01em' }}>
             {readiness === null ? 'Log vandaag om je score te berekenen' : 'Start check-in'}
           </span>
-          <ChevronRight size={16} strokeWidth={2} style={{ color: 'white', opacity: 0.8 }} />
+          <ChevronRight size={16} strokeWidth={2} aria-hidden style={{ color: 'var(--bg-app)', opacity: 0.8 }} />
         </Link>
 
         {/* Vandaag checklist */}
-        <div style={{
-          background: 'var(--bg-card)',
-          border: '1px solid var(--border)',
-          borderRadius: 16,
-          overflow: 'hidden',
-          marginBottom: 10,
-        }}>
+        <Card style={{ overflow: 'hidden', marginBottom: 10 }}>
           <div style={{
             padding: '14px 16px 10px',
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -272,20 +275,32 @@ export default function DashboardPage() {
             </span>
             <span style={{
               fontSize: 11, fontWeight: 600,
-              color: gedaanCount === checklist.length ? 'var(--mf-green)' : 'var(--text-4)',
+              color: gedaanCount === checklist.length ? 'var(--mf-green)' : 'var(--text-3)',
             }}>
               {gedaanCount}/{checklist.length}
             </span>
           </div>
 
           {/* Progress bar */}
-          <div style={{ height: 2, background: 'var(--border)' }}>
-            <div style={{
-              height: '100%',
-              width: `${(gedaanCount / checklist.length) * 100}%`,
-              background: 'var(--mf-green)',
-              transition: 'width 0.5s cubic-bezier(0.16,1,0.3,1)',
-            }} />
+          <div
+            role="progressbar"
+            aria-label="Voltooide taken vandaag"
+            aria-valuenow={gedaanCount}
+            aria-valuemin={0}
+            aria-valuemax={checklist.length}
+            aria-valuetext={`${gedaanCount} van ${checklist.length} voltooid`}
+            style={{ height: 2, background: 'var(--border)' }}
+          >
+            <div
+              className="mf-checklist-fill"
+              style={{
+                height: '100%',
+                width: '100%',
+                transformOrigin: 'left center',
+                transform: `scaleX(${gedaanCount / checklist.length})`,
+                background: 'var(--mentaforce-primary)',
+              }}
+            />
           </div>
 
           {checklist.map((item, i) => {
@@ -294,34 +309,35 @@ export default function DashboardPage() {
               <Link
                 key={item.key}
                 href={item.href}
+                className="mf-row"
                 style={{
                   display: 'flex', alignItems: 'center', gap: 12,
                   padding: '11px 16px',
                   borderBottom: i < checklist.length - 1 ? '1px solid var(--border)' : 'none',
                   textDecoration: 'none',
-                  transition: 'background 0.1s',
                 }}
-                onMouseEnter={e => (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(128,128,128,0.05)'}
-                onMouseLeave={e => (e.currentTarget as HTMLAnchorElement).style.background = 'transparent'}
               >
                 {/* Icoon embleem met transparant vinkje overlay */}
                 <div style={{
                   position: 'relative', width: 32, height: 32, borderRadius: 9, flexShrink: 0,
-                  background: item.gedaan ? 'rgba(29,158,117,0.12)' : 'rgba(128,128,128,0.08)',
+                  background: item.gedaan ? 'var(--mentaforce-primary-light)' : 'var(--bg-subtle)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  transition: 'background 0.15s',
                 }}>
-                  <Icon size={15} strokeWidth={1.8} style={{ color: item.gedaan ? 'var(--mf-green)' : 'var(--text-3)', opacity: item.gedaan ? 0.3 : 1 }} />
+                  <Icon size={15} strokeWidth={1.8} aria-hidden style={{ color: item.gedaan ? 'var(--mentaforce-primary)' : 'var(--text-3)', opacity: item.gedaan ? 0.3 : 1 }} />
                   {item.gedaan && (
-                    <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }} viewBox="0 0 32 32" fill="none">
-                      <polyline points="8,16 13,21 24,11" stroke="var(--mf-green)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
+                    <Check
+                      size={18}
+                      strokeWidth={2.4}
+                      role="img"
+                      aria-label="Voltooid"
+                      style={{ position: 'absolute', color: 'var(--mentaforce-primary)' }}
+                    />
                   )}
                 </div>
 
                 <span style={{
                   fontSize: 13, fontWeight: 500,
-                  color: item.gedaan ? 'var(--text-4)' : 'var(--text-1)',
+                  color: item.gedaan ? 'var(--text-3)' : 'var(--text-1)',
                   flex: 1,
                   textDecoration: item.gedaan ? 'line-through' : 'none',
                   textDecorationColor: 'var(--text-4)',
@@ -330,30 +346,29 @@ export default function DashboardPage() {
                   {item.label}
                 </span>
                 {!item.gedaan && (
-                  <ChevronRight size={13} strokeWidth={2} style={{ color: 'var(--text-4)', flexShrink: 0 }} />
+                  <ChevronRight size={13} strokeWidth={2} aria-hidden style={{ color: 'var(--text-4)', flexShrink: 0 }} />
                 )}
               </Link>
             )
           })}
-        </div>
+        </Card>
 
         {/* Voeding + Training */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
 
           {/* Voeding */}
           <Link href="/voeding" style={{ textDecoration: 'none' }}>
-            <div
-              style={{
-                background: 'var(--bg-card)', border: '1px solid var(--border)',
-                borderRadius: 14, padding: '14px 16px',
-                transition: 'border-color 0.12s',
-              }}
-              onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(29,158,117,0.3)'}
-              onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--border)'}
+            <Card
+              interactive
+              style={{ padding: '14px 16px', transition: 'border-color 0.12s var(--ease)' }}
+              onMouseEnter={(e: MouseEvent<HTMLDivElement>) => setBorder(e.currentTarget, 'var(--mentaforce-primary)')}
+              onMouseLeave={(e: MouseEvent<HTMLDivElement>) => setBorder(e.currentTarget, 'var(--border)')}
+              onFocus={(e: FocusEvent<HTMLDivElement>) => setBorder(e.currentTarget, 'var(--mentaforce-primary)')}
+              onBlur={(e: FocusEvent<HTMLDivElement>) => setBorder(e.currentTarget, 'var(--border)')}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                <div style={{ width: 28, height: 28, borderRadius: 7, background: 'rgba(29,158,117,0.10)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Utensils size={13} strokeWidth={1.8} style={{ color: 'var(--mf-green)' }} />
+                <div style={{ width: 28, height: 28, borderRadius: 7, background: 'var(--mentaforce-primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Utensils size={13} strokeWidth={1.8} aria-hidden style={{ color: 'var(--mentaforce-primary)' }} />
                 </div>
                 <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-2)', letterSpacing: '-0.01em' }}>Voeding</span>
               </div>
@@ -365,7 +380,7 @@ export default function DashboardPage() {
               </p>
               {calorieen > 0 && (
                 <div style={{ height: 3, background: 'var(--border)', borderRadius: 100, overflow: 'hidden', marginBottom: 10 }}>
-                  <div style={{ height: '100%', width: `${Math.min(100, (calorieen / CALORIE_DOEL) * 100)}%`, background: 'var(--mf-green)', borderRadius: 100 }} />
+                  <div style={{ height: '100%', width: `${Math.min(100, (calorieen / CALORIE_DOEL) * 100)}%`, background: 'var(--mentaforce-primary)', borderRadius: 100 }} />
                 </div>
               )}
               <div style={{ display: 'flex', gap: 6 }}>
@@ -374,7 +389,7 @@ export default function DashboardPage() {
                   { label: 'Koolh.', waarde: koolhydraten, kleur: 'var(--mf-amber)'  },
                   { label: 'Vet',    waarde: vetten,       kleur: 'var(--mf-purple)' },
                 ].map(m => (
-                  <div key={m.label} style={{ flex: 1, background: 'var(--bg-app)', borderRadius: 6, padding: '5px 6px', textAlign: 'center' }}>
+                  <div key={m.label} style={{ flex: 1, background: 'var(--bg-subtle)', borderRadius: 6, padding: '5px 6px', textAlign: 'center' }}>
                     <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: m.waarde > 0 ? m.kleur : 'var(--text-4)' }}>
                       {m.waarde > 0 ? `${m.waarde}g` : '—'}
                     </p>
@@ -382,72 +397,87 @@ export default function DashboardPage() {
                   </div>
                 ))}
               </div>
-            </div>
+            </Card>
           </Link>
 
           {/* Training */}
           <Link href="/sport" style={{ textDecoration: 'none' }}>
-            <div
-              style={{
-                background: 'var(--bg-card)', border: '1px solid var(--border)',
-                borderRadius: 14, padding: '14px 16px',
-                transition: 'border-color 0.12s',
-              }}
-              onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.borderColor = sportGedaan ? 'rgba(29,158,117,0.4)' : 'rgba(128,128,128,0.3)'}
-              onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--border)'}
+            <Card
+              interactive
+              style={{ padding: '14px 16px', transition: 'border-color 0.12s var(--ease)' }}
+              onMouseEnter={(e: MouseEvent<HTMLDivElement>) => setBorder(e.currentTarget, sportGedaan ? 'var(--mentaforce-primary)' : 'var(--border-strong)')}
+              onMouseLeave={(e: MouseEvent<HTMLDivElement>) => setBorder(e.currentTarget, 'var(--border)')}
+              onFocus={(e: FocusEvent<HTMLDivElement>) => setBorder(e.currentTarget, sportGedaan ? 'var(--mentaforce-primary)' : 'var(--border-strong)')}
+              onBlur={(e: FocusEvent<HTMLDivElement>) => setBorder(e.currentTarget, 'var(--border)')}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                <div style={{ width: 28, height: 28, borderRadius: 7, background: sportGedaan ? 'rgba(29,158,117,0.10)' : 'rgba(128,128,128,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Dumbbell size={13} strokeWidth={1.8} style={{ color: sportGedaan ? 'var(--mf-green)' : 'var(--text-4)' }} />
+                <div style={{ width: 28, height: 28, borderRadius: 7, background: sportGedaan ? 'var(--mentaforce-primary-light)' : 'var(--bg-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Dumbbell size={13} strokeWidth={1.8} aria-hidden style={{ color: sportGedaan ? 'var(--mentaforce-primary)' : 'var(--text-4)' }} />
                 </div>
                 <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-2)', letterSpacing: '-0.01em' }}>Training</span>
               </div>
-              <p style={{ margin: '0 0 2px', fontSize: 22, fontWeight: 700, color: sportGedaan ? 'var(--mf-green)' : 'var(--text-4)', letterSpacing: '-0.03em' }}>
-                {sportMinuten > 0 ? `${sportMinuten}m` : sportGedaan ? '✓' : '—'}
+              <p style={{ margin: '0 0 2px', fontSize: 22, fontWeight: 700, color: sportGedaan ? 'var(--mentaforce-primary)' : 'var(--text-4)', letterSpacing: '-0.03em' }}>
+                {sportMinuten > 0
+                  ? `${sportMinuten}m`
+                  : sportGedaan
+                    ? <Check size={22} strokeWidth={2.6} role="img" aria-label="Voltooid" />
+                    : '—'}
               </p>
               <p style={{ margin: 0, fontSize: 10, color: 'var(--text-4)', fontWeight: 500 }}>
                 {sportGedaan ? 'voltooid vandaag' : 'nog niet gelogd'}
               </p>
               {sportGedaan && (
                 <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <Flame size={11} strokeWidth={2} style={{ color: 'var(--mf-amber)' }} />
+                  <Flame size={11} strokeWidth={2} aria-hidden style={{ color: 'var(--mf-amber)' }} />
                   <span style={{ fontSize: 10, color: 'var(--mf-amber)', fontWeight: 600 }}>Actief</span>
                 </div>
               )}
-            </div>
+            </Card>
           </Link>
         </div>
 
         {/* Week snapshot */}
         <Link href="/inzichten" style={{ textDecoration: 'none' }}>
-          <div style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            padding: '14px 16px',
-            background: 'var(--bg-card)',
-            border: '1px solid var(--border)',
-            borderRadius: 12,
-          }}
-          onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(29,158,117,0.3)'}
-          onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--border)'}
+          <Card
+            interactive
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              padding: '14px 16px',
+              transition: 'border-color 0.12s var(--ease)',
+            }}
+            onMouseEnter={(e: MouseEvent<HTMLDivElement>) => setBorder(e.currentTarget, 'var(--mentaforce-primary)')}
+            onMouseLeave={(e: MouseEvent<HTMLDivElement>) => setBorder(e.currentTarget, 'var(--border)')}
+            onFocus={(e: FocusEvent<HTMLDivElement>) => setBorder(e.currentTarget, 'var(--mentaforce-primary)')}
+            onBlur={(e: FocusEvent<HTMLDivElement>) => setBorder(e.currentTarget, 'var(--border)')}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <div style={{
                 width: 32, height: 32, borderRadius: 8,
-                background: 'rgba(29,158,117,0.10)',
+                background: 'var(--mentaforce-primary-light)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}>
-                <BarChart2 size={15} strokeWidth={1.8} style={{ color: 'var(--mf-green)' }} />
+                <BarChart2 size={15} strokeWidth={1.8} aria-hidden style={{ color: 'var(--mentaforce-primary)' }} />
               </div>
               <div>
                 <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: 'var(--text-1)', letterSpacing: '-0.01em' }}>Week inzichten</p>
-                <p style={{ margin: 0, fontSize: 11, color: 'var(--text-4)' }}>Trends & patronen</p>
+                <p style={{ margin: 0, fontSize: 11, color: 'var(--text-3)' }}>Trends &amp; patronen</p>
               </div>
             </div>
-            <ChevronRight size={14} strokeWidth={2} style={{ color: 'var(--text-4)' }} />
-          </div>
+            <ChevronRight size={14} strokeWidth={2} aria-hidden style={{ color: 'var(--text-4)' }} />
+          </Card>
         </Link>
 
       </main>
+
+      <style>{`
+        .mf-row { transition: background 0.12s var(--ease); }
+        .mf-row:hover, .mf-row:focus-visible { background: var(--bg-subtle); }
+        .mf-checklist-fill { transition: transform 0.5s var(--ease); transform-origin: left center; }
+        @media (prefers-reduced-motion: reduce) {
+          .mf-row { transition: none; }
+          .mf-checklist-fill { transition: none; }
+        }
+      `}</style>
     </div>
   )
 }
