@@ -149,10 +149,10 @@ export default function StemmingKalenderPagina() {
 
         {/* Stats rij */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 20 }}>
-          <div style={{ background: 'var(--surface-1, white)', borderRadius: 14, padding: '14px', border: '1px solid var(--border, #E5E7EB)', textAlign: 'center', position: 'relative' }}>
+          <div style={{ background: 'var(--bg-card)', borderRadius: 14, padding: '14px', border: '1px solid var(--border, #E5E7EB)', textAlign: 'center', position: 'relative' }}>
             {gemiddelde && (
               <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 0, pointerEvents: 'none' }}>
-                <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
+                <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'radial-gradient(circle, color-mix(in srgb, var(--mentaforce-primary) 18%, transparent) 0%, transparent 70%)' }} />
               </div>
             )}
             <p style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1, #111827)', marginBottom: 2, position: 'relative', zIndex: 1 }}>
@@ -162,7 +162,7 @@ export default function StemmingKalenderPagina() {
               Gemiddeld
             </p>
           </div>
-          <div style={{ background: 'var(--surface-1, white)', borderRadius: 14, padding: '14px', border: '1px solid var(--border, #E5E7EB)', textAlign: 'center' }}>
+          <div style={{ background: 'var(--bg-card)', borderRadius: 14, padding: '14px', border: '1px solid var(--border, #E5E7EB)', textAlign: 'center' }}>
             <p style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1, #111827)', marginBottom: 2 }}>
               {besteEntry ? besteEntry.stemming.toFixed(1) : '—'}
             </p>
@@ -175,7 +175,7 @@ export default function StemmingKalenderPagina() {
               </p>
             )}
           </div>
-          <div style={{ background: 'var(--surface-1, white)', borderRadius: 14, padding: '14px', border: '1px solid var(--border, #E5E7EB)', textAlign: 'center' }}>
+          <div style={{ background: 'var(--bg-card)', borderRadius: 14, padding: '14px', border: '1px solid var(--border, #E5E7EB)', textAlign: 'center' }}>
             <p style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1, #111827)', marginBottom: 2 }}>
               {streak}
             </p>
@@ -186,7 +186,7 @@ export default function StemmingKalenderPagina() {
         </div>
 
         {/* Heatmap */}
-        <div style={{ background: 'var(--surface-1, white)', borderRadius: 20, padding: '20px', border: '1px solid var(--border, #E5E7EB)', marginBottom: 16, overflowX: 'auto' }}>
+        <div style={{ background: 'var(--bg-card)', borderRadius: 20, padding: '20px', border: '1px solid var(--border, #E5E7EB)', marginBottom: 16, overflowX: 'auto' }}>
           <div style={{ display: 'flex', gap: 4, marginBottom: 8 }}>
             {/* Weekdag labels kolom */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginRight: 4 }}>
@@ -223,7 +223,7 @@ export default function StemmingKalenderPagina() {
                           height: 20,
                           borderRadius: 4,
                           background: kleur,
-                          border: isVandaag ? '2px solid #6366F1' : '1px solid rgba(0,0,0,0.06)',
+                          border: isVandaag ? '2px solid var(--mentaforce-primary)' : '1px solid var(--border)',
                           boxSizing: 'border-box',
                           cursor: log ? 'pointer' : 'default',
                           transition: 'transform 0.1s',
@@ -244,18 +244,18 @@ export default function StemmingKalenderPagina() {
         </div>
 
         {/* Legenda */}
-        <div style={{ background: 'var(--surface-1, white)', borderRadius: 14, padding: '14px 16px', border: '1px solid var(--border, #E5E7EB)' }}>
+        <div style={{ background: 'var(--bg-card)', borderRadius: 14, padding: '14px 16px', border: '1px solid var(--border, #E5E7EB)' }}>
           <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-3, #9CA3AF)', marginBottom: 10 }}>
             Legenda
           </p>
           <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <div style={{ width: 16, height: 16, borderRadius: 3, background: 'var(--bg-subtle)', border: '1px solid rgba(0,0,0,0.08)' }} />
+              <div style={{ width: 16, height: 16, borderRadius: 3, background: 'var(--bg-subtle)', border: '1px solid var(--border)' }} />
               <span style={{ fontSize: 11, color: 'var(--text-2, #6B7280)' }}>Geen data</span>
             </div>
             {[1, 2, 3, 4, 5].map(n => (
               <div key={n} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <div style={{ width: 16, height: 16, borderRadius: 3, background: KLEUR_MAP[n], border: '1px solid rgba(0,0,0,0.08)' }} />
+                <div style={{ width: 16, height: 16, borderRadius: 3, background: KLEUR_MAP[n], border: '1px solid var(--border)' }} />
                 <span style={{ fontSize: 11, color: 'var(--text-2, #6B7280)' }}>{n} – {STEMMING_LABEL[n]}</span>
               </div>
             ))}
