@@ -4,8 +4,19 @@ export const dynamic = 'force-dynamic'
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { Plus, Trash2, Check, Clock } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
+import { Button } from '@/components/ui/Button'
+import { Card } from '@/components/ui/Card'
+import { Field } from '@/components/ui/Field'
+import { Input } from '@/components/ui/Input'
+import { Textarea } from '@/components/ui/Textarea'
+import { Badge } from '@/components/ui/Badge'
+import { EmptyState } from '@/components/ui/EmptyState'
+import { Table, THead, TBody, Tr, Th, Td } from '@/components/ui/Table'
+import { DialogRoot, DialogContent, DialogTitle } from '@/components/ui/Dialog'
+import { useToast } from '@/components/ui/Toast'
 
 
 type Registratie = {
@@ -38,6 +49,7 @@ function dagNaam(d: Date): string {
 
 export default function UrenPage() {
   const router = useRouter()
+  const { toast } = useToast()
   const [laden, setLaden] = useState(true)
   const [registraties, setRegistraties] = useState<Registratie[]>([])
   const [userId, setUserId] = useState('')
@@ -104,17 +116,24 @@ export default function UrenPage() {
 
     if (error) {
       setFout('Opslaan mislukt: ' + error.message)
+      toast({ title: 'Opslaan mislukt', description: error.message, variant: 'error' })
     } else {
       setRegistraties(prev => [data as Registratie, ...prev])
       setFormulier(false)
       setUren(''); setBeschrijving('')
+      toast({ title: 'Uren opgeslagen', variant: 'success' })
     }
     setOpslaan(false)
   }
 
   async function verwijder(id: string) {
-    await supabase.from('tijdregistraties').delete().eq('id', id)
+    const vorige = registraties
     setRegistraties(prev => prev.filter(r => r.id !== id))
+    const { error } = await supabase.from('tijdregistraties').delete().eq('id', id)
+    if (error) {
+      setRegistraties(vorige)
+      toast({ title: 'Verwijderen mislukt', description: error.message, variant: 'error' })
+    }
   }
 
   const huidigeWeekDatums = new Set(dagen.map(d => d.toISOString().slice(0, 10)))
@@ -127,6 +146,9 @@ export default function UrenPage() {
     dagUren.set(r.datum, (dagUren.get(r.datum) ?? 0) + r.uren)
   }
 
+  const haaltDoel = totaalUren >= doelUren
+  const voortgangKleur = haaltDoel ? 'var(--mentaforce-primary)' : 'var(--mf-blue)'
+
   return (
     <div className="min-h-screen" style={{ background: 'var(--bg-app)' }}>
       <Navbar />
@@ -135,49 +157,51 @@ export default function UrenPage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-5">
           <div>
-            <h1 className="text-xl font-bold text-gray-900">Urenregistratie</h1>
-            <p className="text-sm text-gray-400 mt-0.5">Log je werkuren</p>
+            <h1 className="text-xl font-bold tracking-tight" style={{ color: 'var(--text-1)', letterSpacing: '-0.02em' }}>Urenregistratie</h1>
+            <p className="text-sm mt-0.5" style={{ color: 'var(--text-3)' }}>Log je werkuren</p>
           </div>
-          <button
-            onClick={() => setFormulier(true)}
-            className="px-4 py-2 rounded-xl text-sm font-semibold text-white"
-            style={{ background: 'var(--mf-blue)' }}
-          >
-            + Loggen
-          </button>
+          <Button size="sm" leftIcon={<Plus size={16} aria-hidden />} onClick={() => { setFout(''); setFormulier(true) }}>
+            Loggen
+          </Button>
         </div>
 
         {/* Week-overzicht kaart */}
-        <div className="bg-white rounded-2xl p-5 mb-5" style={{ boxShadow: 'var(--shadow-sm)' }}>
+        <Card style={{ padding: 20, marginBottom: 20 }}>
           <div className="flex items-center justify-between mb-3">
-            <p className="text-sm font-semibold text-gray-700">Deze week</p>
-            <p className="text-sm font-bold" style={{ color: totaalUren >= doelUren ? 'var(--mf-green)' : 'var(--mf-blue)' }}>
+            <p className="text-sm font-semibold" style={{ color: 'var(--text-2)' }}>Deze week</p>
+            <p className="text-sm font-bold" style={{ color: voortgangKleur }}>
               {totaalUren}/{doelUren} uur
             </p>
           </div>
-          <div className="h-2 bg-gray-100 rounded-full overflow-hidden mb-4">
-            <div className="h-full rounded-full transition-all"
-              style={{
-                width: `${Math.min(100, (totaalUren / doelUren) * 100)}%`,
-                background: totaalUren >= doelUren ? 'var(--mf-green)' : 'var(--mf-blue)',
-              }} />
+          <div
+            role="img"
+            aria-label={`${totaalUren} van ${doelUren} uur geregistreerd deze week`}
+            className="rounded-full overflow-hidden mb-4"
+            style={{ height: 8, background: 'var(--bg-subtle)' }}
+          >
+            <div style={{
+              height: '100%',
+              borderRadius: 9999,
+              width: `${Math.min(100, (totaalUren / doelUren) * 100)}%`,
+              background: voortgangKleur,
+              transition: 'width 0.4s var(--ease)',
+            }} />
           </div>
           <div className="grid grid-cols-7 gap-1">
             {dagen.map(dag => {
               const sleutel = dag.toISOString().slice(0, 10)
               const u = dagUren.get(sleutel) ?? 0
               const isVandaag = sleutel === new Date().toISOString().slice(0, 10)
-              const isWeekend = dag.getDay() === 0 || dag.getDay() === 6
               return (
                 <div key={sleutel} className="flex flex-col items-center gap-1">
-                  <p className="text-xs" style={{ color: isVandaag ? 'var(--mf-blue)' : 'var(--text-3)', fontWeight: isVandaag ? 700 : 400 }}>
+                  <p className="text-xs" style={{ color: isVandaag ? 'var(--mentaforce-primary)' : 'var(--text-3)', fontWeight: isVandaag ? 700 : 400 }}>
                     {dagNaam(dag)}
                   </p>
                   <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-semibold"
                     style={{
-                      background: u > 0 ? 'var(--mf-blue-light)' : isWeekend ? 'var(--bg-subtle)' : 'var(--bg-subtle)',
-                      color: u > 0 ? 'var(--mf-blue)' : 'var(--text-4)',
-                      border: isVandaag ? '2px solid #378ADD' : '2px solid transparent',
+                      background: u > 0 ? 'var(--mentaforce-primary-light)' : 'var(--bg-subtle)',
+                      color: u > 0 ? 'var(--mentaforce-primary)' : 'var(--text-4)',
+                      border: isVandaag ? '2px solid var(--mentaforce-primary)' : '2px solid transparent',
                     }}>
                     {u > 0 ? u : '—'}
                   </div>
@@ -185,107 +209,118 @@ export default function UrenPage() {
               )
             })}
           </div>
-        </div>
+        </Card>
 
         {/* Formulier */}
-        {formulier && (
-          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center"
-            style={{ background: 'rgba(0,0,0,0.4)' }}>
-            <div className="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-2xl p-6 pb-10"
-              style={{ boxShadow: '0 -4px 30px rgba(0,0,0,0.15)' }}>
-              <div className="flex items-center justify-between mb-5">
-                <h2 className="text-lg font-semibold text-gray-900">Uren loggen</h2>
-                <button onClick={() => setFormulier(false)} className="text-gray-400 hover:text-gray-600 text-xl">✕</button>
-              </div>
+        <DialogRoot open={formulier} onOpenChange={(open) => { if (!open) setFormulier(false) }}>
+          <DialogContent>
+            <DialogTitle>Uren loggen</DialogTitle>
 
-              <div className="mb-4">
-                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Datum</label>
-                <input type="date" value={datum} onChange={e => setDatum(e.target.value)}
-                  className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-blue-400" />
-              </div>
+            <div className="flex flex-col gap-4" style={{ marginTop: 18 }}>
+              <Field label="Datum">
+                <Input type="date" value={datum} onChange={e => setDatum(e.target.value)} />
+              </Field>
 
-              <div className="mb-4">
-                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Aantal uren</label>
-                <input type="number" min="0.5" max="24" step="0.5" value={uren}
+              <Field label="Aantal uren" error={fout || undefined}>
+                <Input
+                  type="number"
+                  inputMode="decimal"
+                  min="0.5"
+                  max="24"
+                  step="0.5"
+                  value={uren}
                   onChange={e => setUren(e.target.value)}
                   placeholder="bijv. 8"
-                  className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-blue-400" />
-              </div>
+                />
+              </Field>
 
-              <div className="mb-4">
-                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Project</label>
+              <Field label="Project">
                 <select value={project} onChange={e => setProject(e.target.value)}
-                  className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-blue-400 bg-white">
+                  className="mf-ui-control"
+                  style={{
+                    width: '100%',
+                    padding: '10px 14px',
+                    fontSize: 16,
+                    lineHeight: 1.4,
+                    color: 'var(--text-1)',
+                    background: 'var(--bg-subtle)',
+                    border: '1px solid var(--border-strong)',
+                    borderRadius: 'var(--radius-md)',
+                    outline: 'none',
+                  }}>
                   {PROJECTEN.map(p => <option key={p}>{p}</option>)}
                 </select>
-              </div>
+              </Field>
 
-              <div className="mb-5">
-                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">
-                  Omschrijving <span className="text-gray-300 font-normal">(optioneel)</span>
-                </label>
-                <textarea rows={2} value={beschrijving} onChange={e => setBeschrijving(e.target.value)}
+              <Field label="Omschrijving" hint="Optioneel">
+                <Textarea
+                  rows={2}
+                  value={beschrijving}
+                  onChange={e => setBeschrijving(e.target.value)}
                   placeholder="Wat heb je gedaan?"
-                  className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm outline-none resize-none focus:border-blue-400" />
-              </div>
+                />
+              </Field>
 
-              {fout && <p className="text-sm text-red-500 mb-3">{fout}</p>}
-
-              <button onClick={opslaanRegistratie} disabled={opslaan || !uren}
-                className="w-full py-3 rounded-xl text-white font-semibold text-sm disabled:opacity-40 transition"
-                style={{ background: 'var(--mf-blue)' }}>
+              <Button onClick={opslaanRegistratie} loading={opslaan} disabled={!uren} style={{ width: '100%' }}>
                 {opslaan ? 'Opslaan...' : 'Opslaan'}
-              </button>
+              </Button>
             </div>
-          </div>
-        )}
+          </DialogContent>
+        </DialogRoot>
 
         {/* Recente registraties */}
-        <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Recente registraties</p>
+        <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: 'var(--text-4)' }}>Recente registraties</p>
 
         {laden ? (
           <div className="flex justify-center py-10">
-            <div className="w-6 h-6 rounded-full border-2 border-gray-200 animate-spin" style={{ borderTopColor: 'var(--mf-blue)' }} />
+            <div className="mf-spinner" />
           </div>
         ) : registraties.length === 0 ? (
-          <div className="bg-white rounded-2xl p-8 text-center" style={{ boxShadow: 'var(--shadow-sm)' }}>
-            <div style={{ position: 'relative', display: 'inline-block', marginBottom: '0.75rem' }}>
-              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
-                <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
-              </div>
-              <p className="text-3xl" style={{ position: 'relative', zIndex: 1 }}>⏱️</p>
-            </div>
-            <p className="text-gray-500 text-sm">Nog geen uren geregistreerd.</p>
-          </div>
+          <Card>
+            <EmptyState icon={Clock} title="Nog geen uren geregistreerd" description="Log je werkuren via de knop bovenaan." />
+          </Card>
         ) : (
-          <div className="flex flex-col gap-2">
-            {registraties.slice(0, 20).map(r => (
-              <div key={r.id} className="bg-white rounded-2xl px-4 py-3 flex items-center justify-between gap-3"
-                style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold flex-shrink-0"
-                    style={{ background: 'var(--mf-blue-light)', color: 'var(--mf-blue)' }}>
-                    {r.uren}
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium text-gray-800 truncate">{r.project}</p>
-                    <p className="text-xs text-gray-400">
-                      {new Date(r.datum).toLocaleDateString('nl-BE', { weekday: 'short', day: 'numeric', month: 'short' })}
-                      {r.beschrijving ? ` · ${r.beschrijving}` : ''}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  {r.goedgekeurd && (
-                    <span className="text-xs px-2 py-0.5 rounded-full font-medium"
-                      style={{ background: 'var(--mf-green-light)', color: 'var(--mf-green-dark)' }}>✓</span>
-                  )}
-                  <button onClick={() => verwijder(r.id)}
-                    className="text-gray-300 hover:text-red-400 transition text-sm">🗑</button>
-                </div>
-              </div>
-            ))}
-          </div>
+          <Table caption="Recente urenregistraties">
+            <THead>
+              <Tr>
+                <Th scope="col">Project</Th>
+                <Th scope="col">Datum</Th>
+                <Th scope="col" align="right">Uren</Th>
+                <Th scope="col" align="right">Status</Th>
+                <Th scope="col" align="right"><span className="sr-only">Acties</span></Th>
+              </Tr>
+            </THead>
+            <TBody>
+              {registraties.slice(0, 20).map(r => (
+                <Tr key={r.id}>
+                  <Td>
+                    <p style={{ fontWeight: 600, color: 'var(--text-1)' }}>{r.project}</p>
+                    {r.beschrijving && <p className="text-xs" style={{ color: 'var(--text-4)' }}>{r.beschrijving}</p>}
+                  </Td>
+                  <Td style={{ whiteSpace: 'nowrap', color: 'var(--text-3)' }}>
+                    {new Date(r.datum).toLocaleDateString('nl-BE', { weekday: 'short', day: 'numeric', month: 'short' })}
+                  </Td>
+                  <Td align="right" style={{ whiteSpace: 'nowrap', fontWeight: 700, color: 'var(--text-1)' }}>{r.uren}</Td>
+                  <Td align="right">
+                    {r.goedgekeurd
+                      ? <Badge variant="success"><Check size={12} aria-hidden /> Goedgekeurd</Badge>
+                      : <Badge variant="neutral">In behandeling</Badge>}
+                  </Td>
+                  <Td align="right">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => verwijder(r.id)}
+                      aria-label={`Verwijder registratie ${r.project} op ${new Date(r.datum).toLocaleDateString('nl-BE')}`}
+                      style={{ padding: 8, color: 'var(--text-3)' }}
+                    >
+                      <Trash2 size={16} aria-hidden />
+                    </Button>
+                  </Td>
+                </Tr>
+              ))}
+            </TBody>
+          </Table>
         )}
       </main>
     </div>

@@ -4,8 +4,20 @@ export const dynamic = 'force-dynamic'
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { Plus, Palmtree, Thermometer, Star, Briefcase, ClipboardList } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
+import { Button } from '@/components/ui/Button'
+import { Card } from '@/components/ui/Card'
+import { Field } from '@/components/ui/Field'
+import { Input } from '@/components/ui/Input'
+import { Textarea } from '@/components/ui/Textarea'
+import { Badge } from '@/components/ui/Badge'
+import { EmptyState } from '@/components/ui/EmptyState'
+import { Table, THead, TBody, Tr, Th, Td } from '@/components/ui/Table'
+import { DialogRoot, DialogContent, DialogTitle } from '@/components/ui/Dialog'
+import { useToast } from '@/components/ui/Toast'
 
 
 type VerlofType = 'vakantie' | 'ziekte' | 'bijzonder' | 'onbetaald' | 'overig'
@@ -30,18 +42,20 @@ const TYPE_LABELS: Record<VerlofType, string> = {
   overig: 'Overig',
 }
 
-const TYPE_EMOJI: Record<VerlofType, string> = {
-  vakantie: '🌴',
-  ziekte: '🤒',
-  bijzonder: '⭐',
-  onbetaald: '💼',
-  overig: '📋',
+const TYPE_ICON: Record<VerlofType, LucideIcon> = {
+  vakantie: Palmtree,
+  ziekte: Thermometer,
+  bijzonder: Star,
+  onbetaald: Briefcase,
+  overig: ClipboardList,
 }
 
-const STATUS_STIJL: Record<VerlofStatus, { bg: string; color: string; label: string }> = {
-  aangevraagd: { bg: 'var(--mf-amber-light)', color: 'var(--mf-amber-dark)', label: 'In behandeling' },
-  goedgekeurd: { bg: 'var(--mf-green-light)', color: 'var(--mf-green-dark)', label: 'Goedgekeurd' },
-  afgewezen:   { bg: 'var(--mf-red-light)', color: 'var(--mf-red)', label: 'Afgewezen' },
+type BadgeVariant = 'neutral' | 'accent' | 'success' | 'warning' | 'danger'
+
+const STATUS_STIJL: Record<VerlofStatus, { variant: BadgeVariant; label: string }> = {
+  aangevraagd: { variant: 'warning', label: 'In behandeling' },
+  goedgekeurd: { variant: 'success', label: 'Goedgekeurd' },
+  afgewezen:   { variant: 'danger',  label: 'Afgewezen' },
 }
 
 function aantalDagen(van: string, tot: string): number {
@@ -52,6 +66,7 @@ function aantalDagen(van: string, tot: string): number {
 
 export default function VerlofPage() {
   const router = useRouter()
+  const { toast } = useToast()
   const [laden, setLaden] = useState(true)
   const [aanvragen, setAanvragen] = useState<VerlofAanvraag[]>([])
   const [formulier, setFormulier] = useState(false)
@@ -113,10 +128,12 @@ export default function VerlofPage() {
 
     if (error) {
       setFout('Opslaan mislukt: ' + error.message)
+      toast({ title: 'Opslaan mislukt', description: error.message, variant: 'error' })
     } else {
       setAanvragen(prev => [data as VerlofAanvraag, ...prev])
       setFormulier(false)
       setType('vakantie'); setDatumVan(''); setDatumTot(''); setReden('')
+      toast({ title: 'Aanvraag ingediend', variant: 'success' })
     }
     setOpslaan(false)
   }
@@ -135,131 +152,108 @@ export default function VerlofPage() {
             <h1 className="text-xl font-bold tracking-tight" style={{ color: 'var(--text-1)', letterSpacing: '-0.02em' }}>Verlof</h1>
             <p className="text-sm mt-0.5" style={{ color: 'var(--text-3)' }}>Aanvragen en overzicht</p>
           </div>
-          <button
-            onClick={() => setFormulier(true)}
-            className="mf-btn mf-btn-primary"
-            style={{ padding: '8px 16px', fontSize: 13 }}
-          >
-            + Aanvragen
-          </button>
+          <Button size="sm" leftIcon={<Plus size={16} aria-hidden />} onClick={() => { setFout(''); setFormulier(true) }}>
+            Aanvragen
+          </Button>
         </div>
 
         {/* Saldo kaarten */}
         <div className="grid grid-cols-3 gap-3 mb-6">
-          <div className="rounded-2xl p-4 text-center" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-xs)' }}>
+          <Card style={{ padding: 16, textAlign: 'center' }}>
             <p className="text-2xl font-bold" style={{ color: 'var(--text-1)' }}>{saldo.vakantie}</p>
             <p className="text-xs mt-0.5" style={{ color: 'var(--text-4)' }}>Totaal</p>
-          </div>
-          <div className="rounded-2xl p-4 text-center" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-xs)' }}>
-            <p className="text-2xl font-bold" style={{ color: 'var(--mf-red)' }}>{saldo.opgenomen}</p>
+          </Card>
+          <Card style={{ padding: 16, textAlign: 'center' }}>
+            <p className="text-2xl font-bold" style={{ color: 'var(--mf-amber)' }}>{saldo.opgenomen}</p>
             <p className="text-xs mt-0.5" style={{ color: 'var(--text-4)' }}>Opgenomen</p>
-          </div>
-          <div className="rounded-2xl p-4 text-center" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-xs)' }}>
-            <p className="text-2xl font-bold" style={{ color: 'var(--mf-green)' }}>{resterend}</p>
+          </Card>
+          <Card style={{ padding: 16, textAlign: 'center' }}>
+            <p className="text-2xl font-bold" style={{ color: 'var(--mentaforce-primary)' }}>{resterend}</p>
             <p className="text-xs mt-0.5" style={{ color: 'var(--text-4)' }}>Resterend</p>
-          </div>
+          </Card>
         </div>
 
-        {/* Formulier overlay */}
-        {formulier && (
-          <div className="mf-backdrop" onClick={e => { if (e.target === e.currentTarget) setFormulier(false) }}>
-            <div className="mf-modal p-6 pb-10">
-              <div className="flex items-center justify-between mb-5">
-                <h2 className="text-lg font-semibold" style={{ color: 'var(--text-1)' }}>Verlof aanvragen</h2>
-                <button
-                  onClick={() => setFormulier(false)}
-                  className="w-8 h-8 flex items-center justify-center rounded-full text-sm font-bold transition"
-                  style={{ background: 'var(--bg-subtle)', color: 'var(--text-3)' }}
-                >✕</button>
-              </div>
+        {/* Formulier */}
+        <DialogRoot open={formulier} onOpenChange={(open) => { if (!open) setFormulier(false) }}>
+          <DialogContent>
+            <DialogTitle>Verlof aanvragen</DialogTitle>
 
+            <div className="flex flex-col gap-4" style={{ marginTop: 18 }}>
               {/* Type */}
-              <div className="mb-4">
-                <label className="text-xs font-semibold uppercase tracking-wide mb-2 block" style={{ color: 'var(--text-4)' }}>Type verlof</label>
+              <div role="group" aria-label="Type verlof">
+                <p className="text-xs font-semibold uppercase tracking-wide mb-2" style={{ color: 'var(--text-4)' }}>Type verlof</p>
                 <div className="grid grid-cols-2 gap-2">
-                  {(Object.keys(TYPE_LABELS) as VerlofType[]).map(t => (
-                    <button
-                      key={t}
-                      onClick={() => setType(t)}
-                      className="flex items-center gap-2 px-3 py-2.5 rounded-xl border text-sm transition"
-                      style={{
-                        background: type === t ? 'var(--mf-green-light)' : 'var(--bg-subtle)',
-                        borderColor: type === t ? 'var(--mf-green)' : 'var(--border)',
-                        color: type === t ? 'var(--mf-green-dark)' : 'var(--text-3)',
-                        fontWeight: type === t ? 600 : 400,
-                      }}
-                    >
-                      <span>{TYPE_EMOJI[t]}</span>
-                      <span>{TYPE_LABELS[t]}</span>
-                    </button>
-                  ))}
+                  {(Object.keys(TYPE_LABELS) as VerlofType[]).map(t => {
+                    const Icoon = TYPE_ICON[t]
+                    const actief = type === t
+                    return (
+                      <button key={t} type="button" onClick={() => setType(t)}
+                        aria-pressed={actief}
+                        className="flex items-center gap-2 px-3 py-2.5 text-sm transition"
+                        style={{
+                          minHeight: 44,
+                          borderRadius: 'var(--radius-md)',
+                          background: actief ? 'var(--mentaforce-primary-light)' : 'var(--bg-subtle)',
+                          border: `1px solid ${actief ? 'var(--mentaforce-primary)' : 'var(--border-strong)'}`,
+                          color: actief ? 'var(--mentaforce-primary)' : 'var(--text-3)',
+                          fontWeight: actief ? 600 : 400,
+                          cursor: 'pointer',
+                        }}>
+                        <Icoon size={16} aria-hidden strokeWidth={1.75} />
+                        <span>{TYPE_LABELS[t]}</span>
+                      </button>
+                    )
+                  })}
                 </div>
               </div>
 
               {/* Datums */}
-              <div className="grid grid-cols-2 gap-3 mb-4">
-                <div>
-                  <label className="text-xs font-semibold uppercase tracking-wide mb-1.5 block" style={{ color: 'var(--text-4)' }}>Van</label>
-                  <input
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="Van">
+                  <Input
                     type="date"
                     value={datumVan}
                     min={vandaag}
                     onChange={e => { setDatumVan(e.target.value); if (!datumTot) setDatumTot(e.target.value) }}
-                    className="mf-input"
-                    style={{ borderRadius: 12, padding: '10px 12px', fontSize: 14 }}
                   />
-                </div>
-                <div>
-                  <label className="text-xs font-semibold uppercase tracking-wide mb-1.5 block" style={{ color: 'var(--text-4)' }}>Tot en met</label>
-                  <input
+                </Field>
+                <Field label="Tot en met">
+                  <Input
                     type="date"
                     value={datumTot}
                     min={datumVan || vandaag}
                     onChange={e => setDatumTot(e.target.value)}
-                    className="mf-input"
-                    style={{ borderRadius: 12, padding: '10px 12px', fontSize: 14 }}
                   />
-                </div>
+                </Field>
               </div>
 
               {datumVan && datumTot && (
-                <p className="text-xs mb-3" style={{ color: 'var(--text-4)' }}>
+                <p className="text-xs" style={{ color: 'var(--text-4)', marginTop: -8 }}>
                   {aantalDagen(datumVan, datumTot)} dag{aantalDagen(datumVan, datumTot) !== 1 ? 'en' : ''}
                 </p>
               )}
 
               {/* Reden */}
-              <div className="mb-5">
-                <label className="text-xs font-semibold uppercase tracking-wide mb-1.5 block" style={{ color: 'var(--text-4)' }}>
-                  Reden <span className="font-normal" style={{ color: 'var(--text-4)', opacity: 0.6 }}>(optioneel)</span>
-                </label>
-                <textarea
+              <Field label="Reden" hint="Optioneel" error={fout || undefined}>
+                <Textarea
                   rows={2}
                   value={reden}
                   onChange={e => setReden(e.target.value)}
                   placeholder="Beschrijf de reden..."
-                  className="mf-input resize-none"
-                  style={{ borderRadius: 12 }}
                 />
-              </div>
+              </Field>
 
-              {fout && (
-                <div className="rounded-xl px-4 py-3 mb-3" style={{ background: 'var(--mf-red-light)' }}>
-                  <p className="text-sm" style={{ color: 'var(--mf-red)' }}>{fout}</p>
-                </div>
-              )}
-
-              <button
+              <Button
                 onClick={indienen}
-                disabled={opslaan || !datumVan || !datumTot}
-                className="mf-btn mf-btn-primary w-full"
-                style={{ fontSize: 14, padding: '12px' }}
+                loading={opslaan}
+                disabled={!datumVan || !datumTot}
+                style={{ width: '100%' }}
               >
                 {opslaan ? 'Versturen...' : 'Aanvraag indienen'}
-              </button>
+              </Button>
             </div>
-          </div>
-        )}
+          </DialogContent>
+        </DialogRoot>
 
         {/* Aanvragen lijst */}
         <p className="text-xs font-bold uppercase tracking-widest mb-3 px-1" style={{ color: 'var(--text-4)' }}>Mijn aanvragen</p>
@@ -269,57 +263,65 @@ export default function VerlofPage() {
             <div className="mf-spinner" />
           </div>
         ) : aanvragen.length === 0 ? (
-          <div className="rounded-2xl p-8 text-center" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-xs)' }}>
-            <div style={{ position: 'relative', display: 'inline-block', marginBottom: '0.75rem' }}>
-              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
-                <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
-              </div>
-              <p className="text-3xl" style={{ position: 'relative', zIndex: 1 }}>🌴</p>
-            </div>
-            <p className="text-sm font-medium" style={{ color: 'var(--text-2)' }}>Nog geen verlofaanvragen.</p>
-            <p className="text-xs mt-1" style={{ color: 'var(--text-4)' }}>Klik op &apos;+ Aanvragen&apos; om te starten.</p>
-          </div>
+          <Card>
+            <EmptyState
+              icon={Palmtree}
+              title="Nog geen verlofaanvragen"
+              description="Klik op '+ Aanvragen' om te starten."
+            />
+          </Card>
         ) : (
-          <div className="flex flex-col gap-3">
-            {aanvragen.map(a => {
-              const stijl = STATUS_STIJL[a.status]
-              const dagen = aantalDagen(a.datum_van, a.datum_tot)
-              return (
-                <div key={a.id} className="rounded-2xl p-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-xs)' }}>
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'var(--bg-subtle)' }}>
-                        <span className="text-xl">{TYPE_EMOJI[a.type as VerlofType]}</span>
+          <Table caption="Mijn verlofaanvragen">
+            <THead>
+              <Tr>
+                <Th scope="col">Type</Th>
+                <Th scope="col">Periode</Th>
+                <Th scope="col" align="right">Dagen</Th>
+                <Th scope="col" align="right">Status</Th>
+              </Tr>
+            </THead>
+            <TBody>
+              {aanvragen.map(a => {
+                const stijl = STATUS_STIJL[a.status]
+                const dagen = aantalDagen(a.datum_van, a.datum_tot)
+                const Icoon = TYPE_ICON[a.type as VerlofType]
+                return (
+                  <Tr key={a.id}>
+                    <Td>
+                      <div className="flex items-center gap-2.5">
+                        <span aria-hidden style={{
+                          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                          width: 34, height: 34, borderRadius: 'var(--radius-md)',
+                          background: 'var(--bg-subtle)', color: 'var(--text-2)', flexShrink: 0,
+                        }}>
+                          <Icoon size={17} strokeWidth={1.75} />
+                        </span>
+                        <div>
+                          <p style={{ fontWeight: 600, color: 'var(--text-1)' }}>{TYPE_LABELS[a.type as VerlofType]}</p>
+                          {a.reden && <p className="text-xs italic" style={{ color: 'var(--text-4)' }}>&quot;{a.reden}&quot;</p>}
+                          {a.reviewer_notitie && (
+                            <p className="text-xs" style={{ marginTop: 2, color: a.status === 'goedgekeurd' ? 'var(--mentaforce-primary)' : 'var(--mf-red)' }}>
+                              <strong>Notitie HR:</strong> {a.reviewer_notitie}
+                            </p>
+                          )}
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-sm font-semibold" style={{ color: 'var(--text-1)' }}>{TYPE_LABELS[a.type as VerlofType]}</p>
-                        <p className="text-xs" style={{ color: 'var(--text-3)' }}>
-                          {new Date(a.datum_van).toLocaleDateString('nl-BE', { day: 'numeric', month: 'short' })}
-                          {a.datum_van !== a.datum_tot ? (
-                            <> – {new Date(a.datum_tot).toLocaleDateString('nl-BE', { day: 'numeric', month: 'short' })}</>
-                          ) : null}
-                          <span className="ml-1.5">· {dagen} dag{dagen !== 1 ? 'en' : ''}</span>
-                        </p>
-                      </div>
-                    </div>
-                    <span className="mf-badge flex-shrink-0"
-                      style={{ background: stijl.bg, color: stijl.color }}>
-                      {stijl.label}
-                    </span>
-                  </div>
-                  {a.reden && (
-                    <p className="text-xs mt-2 ml-[52px] italic" style={{ color: 'var(--text-3)' }}>&quot;{a.reden}&quot;</p>
-                  )}
-                  {a.reviewer_notitie && (
-                    <div className="mt-2 ml-[52px] text-xs rounded-xl px-3 py-2"
-                      style={{ background: a.status === 'goedgekeurd' ? 'var(--mf-green-light)' : 'var(--mf-red-light)', color: a.status === 'goedgekeurd' ? 'var(--mf-green-dark)' : 'var(--mf-red)' }}>
-                      <strong>Notitie HR:</strong> {a.reviewer_notitie}
-                    </div>
-                  )}
-                </div>
-              )
-            })}
-          </div>
+                    </Td>
+                    <Td style={{ whiteSpace: 'nowrap', color: 'var(--text-3)' }}>
+                      {new Date(a.datum_van).toLocaleDateString('nl-BE', { day: 'numeric', month: 'short' })}
+                      {a.datum_van !== a.datum_tot && (
+                        <> – {new Date(a.datum_tot).toLocaleDateString('nl-BE', { day: 'numeric', month: 'short' })}</>
+                      )}
+                    </Td>
+                    <Td align="right" style={{ whiteSpace: 'nowrap', fontWeight: 700, color: 'var(--text-1)' }}>{dagen}</Td>
+                    <Td align="right">
+                      <Badge variant={stijl.variant}>{stijl.label}</Badge>
+                    </Td>
+                  </Tr>
+                )
+              })}
+            </TBody>
+          </Table>
         )}
       </main>
     </div>

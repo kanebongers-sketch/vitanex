@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 export const dynamic = 'force-dynamic'
 
@@ -7,6 +7,15 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
+import { Plus, X, Trophy, Calendar, Target, Users } from 'lucide-react'
+import { Card } from '@/components/ui/Card'
+import { Button } from '@/components/ui/Button'
+import { Badge } from '@/components/ui/Badge'
+import { Field } from '@/components/ui/Field'
+import { Input } from '@/components/ui/Input'
+import { Textarea } from '@/components/ui/Textarea'
+import { EmptyState } from '@/components/ui/EmptyState'
+import { useToast } from '@/components/ui/Toast'
 
 
 interface TeamUitdaging {
@@ -31,8 +40,21 @@ const TYPES = [
   { id: 'custom', label: 'Anders' },
 ]
 
+const SELECT_STYLE: React.CSSProperties = {
+  width: '100%',
+  padding: '10px 14px',
+  borderRadius: 'var(--radius-md)',
+  border: '1px solid var(--border-strong)',
+  fontSize: 14,
+  boxSizing: 'border-box',
+  background: 'var(--bg-subtle)',
+  color: 'var(--text-1)',
+  outline: 'none',
+}
+
 export default function HRUitdagingenPagina() {
   const router = useRouter()
+  const { toast } = useToast()
   const [laden, setLaden] = useState(true)
   const [uitdagingen, setUitdagingen] = useState<TeamUitdaging[]>([])
   const [showForm, setShowForm] = useState(false)
@@ -89,8 +111,14 @@ export default function HRUitdagingenPagina() {
         setUitdagingen(prev => [json.uitdaging, ...prev])
         setShowForm(false)
         setForm({ titel: '', beschrijving: '', type: 'stappen', doel_waarde: '', eenheid: '', start_datum: new Date().toISOString().split('T')[0], eind_datum: '' })
+        toast({ title: 'Uitdaging aangemaakt', variant: 'success' })
+      } else {
+        toast({ title: 'Aanmaken mislukt', description: 'Probeer het opnieuw.', variant: 'error' })
       }
-    } catch { /* stil falen */ }
+    } catch (err: unknown) {
+      const bericht = err instanceof Error ? err.message : 'Onbekende fout'
+      toast({ title: 'Aanmaken mislukt', description: bericht, variant: 'error' })
+    }
     setOpslaan(false)
   }
 
@@ -118,131 +146,126 @@ export default function HRUitdagingenPagina() {
             </h1>
             <p style={{ fontSize: 13, color: 'var(--text-3)' }}>Maak en beheer team wellbeing challenges</p>
           </div>
-          <button onClick={() => setShowForm(!showForm)} style={{
-            background: 'var(--text-1)', color: 'white', border: 'none', borderRadius: 10,
-            padding: '8px 14px', fontSize: 12, fontWeight: 600, cursor: 'pointer',
-          }}>
-            {showForm ? '✕ Annuleer' : '+ Nieuw'}
-          </button>
+          <Button
+            variant={showForm ? 'secondary' : 'primary'}
+            size="sm"
+            leftIcon={showForm ? <X size={15} aria-hidden /> : <Plus size={15} aria-hidden />}
+            onClick={() => setShowForm(!showForm)}
+          >
+            {showForm ? 'Annuleer' : 'Nieuw'}
+          </Button>
         </header>
 
         {/* Aanmaak formulier */}
         {showForm && (
-          <div style={{ background: 'var(--bg-card)', borderRadius: 20, padding: '20px', border: '1px solid var(--border)', marginBottom: 20 }}>
+          <Card style={{ borderRadius: 'var(--radius-lg)', padding: '20px', marginBottom: 20 }}>
             <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-3)', marginBottom: 16 }}>
               Nieuwe uitdaging
             </p>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <div>
-                <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-2)', display: 'block', marginBottom: 4 }}>Titel *</label>
-                <input value={form.titel} onChange={e => setForm(p => ({ ...p, titel: e.target.value }))}
-                  placeholder="30 minuten bewegen per dag"
-                  style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid #E5E7EB', fontSize: 13, boxSizing: 'border-box' }} />
-              </div>
+              <Field label="Titel" required>
+                <Input value={form.titel} onChange={e => setForm(p => ({ ...p, titel: e.target.value }))}
+                  placeholder="30 minuten bewegen per dag" />
+              </Field>
 
-              <div>
-                <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-2)', display: 'block', marginBottom: 4 }}>Beschrijving</label>
-                <textarea value={form.beschrijving} onChange={e => setForm(p => ({ ...p, beschrijving: e.target.value }))}
+              <Field label="Beschrijving">
+                <Textarea value={form.beschrijving} onChange={e => setForm(p => ({ ...p, beschrijving: e.target.value }))}
                   placeholder="Extra context voor deelnemers..."
                   rows={2}
-                  style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid #E5E7EB', fontSize: 13, boxSizing: 'border-box', resize: 'none', fontFamily: 'inherit' }} />
-              </div>
+                  style={{ resize: 'none', minHeight: 0 }} />
+              </Field>
 
-              <div>
-                <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-2)', display: 'block', marginBottom: 4 }}>Type</label>
+              <Field label="Type">
                 <select value={form.type} onChange={e => setForm(p => ({ ...p, type: e.target.value }))}
-                  style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid #E5E7EB', fontSize: 13, boxSizing: 'border-box' }}>
+                  style={SELECT_STYLE}>
                   {TYPES.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}
                 </select>
+              </Field>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                <Field label="Doelwaarde">
+                  <Input type="number" value={form.doel_waarde} onChange={e => setForm(p => ({ ...p, doel_waarde: e.target.value }))}
+                    placeholder="10000" />
+                </Field>
+                <Field label="Eenheid">
+                  <Input value={form.eenheid} onChange={e => setForm(p => ({ ...p, eenheid: e.target.value }))}
+                    placeholder="stappen" />
+                </Field>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                <div>
-                  <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-2)', display: 'block', marginBottom: 4 }}>Doelwaarde</label>
-                  <input type="number" value={form.doel_waarde} onChange={e => setForm(p => ({ ...p, doel_waarde: e.target.value }))}
-                    placeholder="10000"
-                    style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid #E5E7EB', fontSize: 13, boxSizing: 'border-box' }} />
-                </div>
-                <div>
-                  <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-2)', display: 'block', marginBottom: 4 }}>Eenheid</label>
-                  <input value={form.eenheid} onChange={e => setForm(p => ({ ...p, eenheid: e.target.value }))}
-                    placeholder="stappen"
-                    style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid #E5E7EB', fontSize: 13, boxSizing: 'border-box' }} />
-                </div>
+                <Field label="Startdatum">
+                  <Input type="date" value={form.start_datum} onChange={e => setForm(p => ({ ...p, start_datum: e.target.value }))} />
+                </Field>
+                <Field label="Einddatum" required>
+                  <Input type="date" value={form.eind_datum} onChange={e => setForm(p => ({ ...p, eind_datum: e.target.value }))} />
+                </Field>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                <div>
-                  <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-2)', display: 'block', marginBottom: 4 }}>Startdatum</label>
-                  <input type="date" value={form.start_datum} onChange={e => setForm(p => ({ ...p, start_datum: e.target.value }))}
-                    style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid #E5E7EB', fontSize: 13, boxSizing: 'border-box' }} />
-                </div>
-                <div>
-                  <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-2)', display: 'block', marginBottom: 4 }}>Einddatum *</label>
-                  <input type="date" value={form.eind_datum} onChange={e => setForm(p => ({ ...p, eind_datum: e.target.value }))}
-                    style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid #E5E7EB', fontSize: 13, boxSizing: 'border-box' }} />
-                </div>
-              </div>
-
-              <button onClick={aanmaken} disabled={opslaan || !form.titel.trim() || !form.eind_datum} style={{
-                width: '100%', padding: '12px', borderRadius: 12,
-                background: opslaan ? 'var(--text-3)' : 'var(--mf-green)',
-                color: 'white', border: 'none', cursor: 'pointer',
-                fontSize: 14, fontWeight: 700,
-              }}>
-                {opslaan ? 'Aanmaken…' : 'Uitdaging aanmaken →'}
-              </button>
+              <Button onClick={aanmaken} disabled={!form.titel.trim() || !form.eind_datum} loading={opslaan} style={{ width: '100%' }}>
+                {opslaan ? 'Aanmaken…' : 'Uitdaging aanmaken'}
+              </Button>
             </div>
-          </div>
+          </Card>
         )}
 
         {/* Uitdagingen lijst */}
         {uitdagingen.length === 0 && !showForm ? (
-          <div style={{ background: 'var(--bg-card)', borderRadius: 20, padding: '40px 24px', textAlign: 'center', border: '1px solid var(--border)' }}>
-            <div style={{ position: 'relative', display: 'inline-block', marginBottom: 12 }}>
-              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
-                <div style={{ width: 90, height: 90, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
-              </div>
-              <span style={{ fontSize: 40, position: 'relative', zIndex: 1 }}>🏆</span>
-            </div>
-            <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-2)', marginBottom: 6 }}>Nog geen uitdagingen</p>
-            <p style={{ fontSize: 13, color: 'var(--text-3)' }}>Maak je eerste team uitdaging aan.</p>
-          </div>
+          <Card style={{ borderRadius: 'var(--radius-lg)' }}>
+            <EmptyState
+              icon={Trophy}
+              title="Nog geen uitdagingen"
+              description="Maak je eerste team uitdaging aan."
+              action={
+                <Button size="sm" leftIcon={<Plus size={15} aria-hidden />} onClick={() => setShowForm(true)}>
+                  Nieuwe uitdaging
+                </Button>
+              }
+            />
+          </Card>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {uitdagingen.map(u => {
               const resterende = dagenResterend(u.eind_datum)
               const deelnemers = u.team_uitdaging_logs?.length ?? 0
+              const isAfgelopen = !u.actief || resterende < 0
               return (
-                <div key={u.id} style={{
-                  background: 'var(--bg-card)', borderRadius: 16, padding: '16px 18px',
-                  border: `1px solid ${u.actief && resterende > 0 ? 'var(--border)' : 'var(--bg-subtle)'}`,
-                  opacity: (!u.actief || resterende < 0) ? 0.6 : 1,
+                <Card key={u.id} style={{
+                  padding: '16px 18px',
+                  border: `1px solid ${u.actief && resterende > 0 ? 'var(--border)' : 'var(--border-strong)'}`,
+                  opacity: isAfgelopen ? 0.6 : 1,
                 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
                     <div style={{ flex: 1 }}>
                       <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-1)', marginBottom: 2 }}>{u.titel}</p>
                       {u.beschrijving && <p style={{ fontSize: 12, color: 'var(--text-3)' }}>{u.beschrijving}</p>}
                     </div>
-                    <div style={{ flexShrink: 0, textAlign: 'right', marginLeft: 12 }}>
+                    <div style={{ flexShrink: 0, marginLeft: 12 }}>
                       {resterende > 0 ? (
-                        <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--mf-green)', background: 'var(--mf-green-light)', padding: '2px 8px', borderRadius: 99 }}>
-                          {resterende}d resterend
-                        </span>
+                        <Badge variant="success" style={{ fontSize: 10 }}>{resterende}d resterend</Badge>
                       ) : (
-                        <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-3)', background: 'var(--bg-subtle)', padding: '2px 8px', borderRadius: 99 }}>
-                          Afgelopen
-                        </span>
+                        <Badge variant="neutral" style={{ fontSize: 10 }}>Afgelopen</Badge>
                       )}
                     </div>
                   </div>
-                  <div style={{ display: 'flex', gap: 12, fontSize: 11, color: 'var(--text-3)' }}>
-                    <span>📅 {new Date(u.start_datum).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' })} → {new Date(u.eind_datum).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' })}</span>
-                    {u.doel_waarde && <span>🎯 {u.doel_waarde} {u.eenheid}</span>}
-                    <span>👥 {deelnemers} deelnemers</span>
+                  <div style={{ display: 'flex', gap: 14, fontSize: 11, color: 'var(--text-3)', flexWrap: 'wrap' }}>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                      <Calendar size={12} aria-hidden />
+                      {new Date(u.start_datum).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' })} → {new Date(u.eind_datum).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' })}
+                    </span>
+                    {u.doel_waarde && (
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                        <Target size={12} aria-hidden />
+                        {u.doel_waarde} {u.eenheid}
+                      </span>
+                    )}
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                      <Users size={12} aria-hidden />
+                      {deelnemers} deelnemers
+                    </span>
                   </div>
-                </div>
+                </Card>
               )
             })}
           </div>
@@ -251,4 +274,3 @@ export default function HRUitdagingenPagina() {
     </div>
   )
 }
-

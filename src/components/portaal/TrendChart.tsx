@@ -1,6 +1,6 @@
 'use client'
 
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
+import { Chart } from '@/components/ui/Chart'
 
 export interface TrendPunt {
   datum: string
@@ -10,18 +10,24 @@ export interface TrendPunt {
 }
 
 // Apart component zodat recharts (zwaar, ~honderden KB) via next/dynamic lui
-// geladen wordt en niet in de initiële bundle van het portaal zit.
+// geladen wordt en niet in de initiële bundle van het portaal zit. De
+// Chart-primitive verzorgt het lazy-laden, het tekstalternatief (role="img" +
+// sr-only datatabel) en de token-gestuurde styling.
 export default function TrendChart({ data }: { data: TrendPunt[] }) {
   return (
-    <ResponsiveContainer width="100%" height={200}>
-      <LineChart data={data}>
-        <XAxis dataKey="datum" tick={{ fontSize: 11 }} />
-        <YAxis domain={[1, 5]} tick={{ fontSize: 11 }} />
-        <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid #e5e7eb', fontSize: 12 }} />
-        <Line type="monotone" dataKey="Fysiek" stroke="var(--mf-green)" strokeWidth={2} dot={{ r: 3 }} activeDot={{ r: 5 }} />
-        <Line type="monotone" dataKey="Mentaal" stroke="var(--mf-blue-mid)" strokeWidth={2} dot={{ r: 3 }} activeDot={{ r: 5 }} />
-        <Line type="monotone" dataKey="Sociaal" stroke="var(--mf-purple)" strokeWidth={2} dot={{ r: 3 }} activeDot={{ r: 5 }} />
-      </LineChart>
-    </ResponsiveContainer>
+    <Chart
+      type="line"
+      data={data}
+      xKey="datum"
+      series={[
+        { key: 'Fysiek', label: 'Fysiek', color: 'var(--mentaforce-primary)' },
+        { key: 'Mentaal', label: 'Mentaal', color: 'var(--mf-blue-mid)' },
+        { key: 'Sociaal', label: 'Sociaal', color: 'var(--mf-purple)' },
+      ]}
+      summary="Welzijnstrend per datum voor fysiek, mentaal en sociaal welbevinden, op een schaal van 1 tot 5."
+      yDomain={[1, 5]}
+      height={200}
+      showLegend
+    />
   )
 }

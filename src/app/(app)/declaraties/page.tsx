@@ -4,8 +4,24 @@ export const dynamic = 'force-dynamic'
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import {
+  Plus, Car, UtensilsCrossed, Package, GraduationCap, Handshake, Wallet,
+} from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
+import { Button } from '@/components/ui/Button'
+import { Card } from '@/components/ui/Card'
+import { Field } from '@/components/ui/Field'
+import { Input } from '@/components/ui/Input'
+import { Textarea } from '@/components/ui/Textarea'
+import { Badge } from '@/components/ui/Badge'
+import { EmptyState } from '@/components/ui/EmptyState'
+import { Table, THead, TBody, Tr, Th, Td } from '@/components/ui/Table'
+import {
+  DialogRoot, DialogContent, DialogTitle,
+} from '@/components/ui/Dialog'
+import { useToast } from '@/components/ui/Toast'
 
 
 type DeclaratieStatus = 'ingediend' | 'goedgekeurd' | 'afgewezen'
@@ -31,23 +47,30 @@ const CAT_LABELS: Record<DeclaratieCategorie, string> = {
   overig: 'Overig',
 }
 
-const CAT_EMOJI: Record<DeclaratieCategorie, string> = {
-  reiskosten: '🚗',
-  maaltijd: '🍽️',
-  materiaal: '📦',
-  training: '🎓',
-  representatie: '🤝',
-  overig: '💰',
+const CAT_ICON: Record<DeclaratieCategorie, LucideIcon> = {
+  reiskosten: Car,
+  maaltijd: UtensilsCrossed,
+  materiaal: Package,
+  training: GraduationCap,
+  representatie: Handshake,
+  overig: Wallet,
 }
 
-const STATUS_STIJL: Record<DeclaratieStatus, { bg: string; color: string; label: string }> = {
-  ingediend:   { bg: 'var(--mf-amber-light)', color: 'var(--mf-amber-dark)', label: 'In behandeling' },
-  goedgekeurd: { bg: 'var(--mf-green-light)', color: 'var(--mf-green-dark)', label: 'Goedgekeurd' },
-  afgewezen:   { bg: 'var(--mf-red-light)', color: 'var(--mf-red)', label: 'Afgewezen' },
+type BadgeVariant = 'neutral' | 'accent' | 'success' | 'warning' | 'danger'
+
+const STATUS_STIJL: Record<DeclaratieStatus, { variant: BadgeVariant; label: string }> = {
+  ingediend:   { variant: 'warning', label: 'In behandeling' },
+  goedgekeurd: { variant: 'success', label: 'Goedgekeurd' },
+  afgewezen:   { variant: 'danger',  label: 'Afgewezen' },
+}
+
+function euro(bedrag: number): string {
+  return `€${bedrag.toLocaleString('nl-BE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 }
 
 export default function DeclaratiesPage() {
   const router = useRouter()
+  const { toast } = useToast()
   const [laden, setLaden] = useState(true)
   const [declaraties, setDeclaraties] = useState<Declaratie[]>([])
   const [userId, setUserId] = useState('')
@@ -101,10 +124,12 @@ export default function DeclaratiesPage() {
 
     if (error) {
       setFout('Opslaan mislukt: ' + error.message)
+      toast({ title: 'Opslaan mislukt', description: error.message, variant: 'error' })
     } else {
       setDeclaraties(prev => [data as Declaratie, ...prev])
       setFormulier(false)
       setBedrag(''); setBeschrijving(''); setCategorie('reiskosten')
+      toast({ title: 'Declaratie ingediend', variant: 'success' })
     }
     setOpslaan(false)
   }
@@ -120,152 +145,154 @@ export default function DeclaratiesPage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-5">
           <div>
-            <h1 className="text-xl font-bold text-gray-900">Declaraties</h1>
-            <p className="text-sm text-gray-400 mt-0.5">Onkostenvergoedingen</p>
+            <h1 className="text-xl font-bold tracking-tight" style={{ color: 'var(--text-1)', letterSpacing: '-0.02em' }}>Declaraties</h1>
+            <p className="text-sm mt-0.5" style={{ color: 'var(--text-3)' }}>Onkostenvergoedingen</p>
           </div>
-          <button
-            onClick={() => setFormulier(true)}
-            className="px-4 py-2 rounded-xl text-sm font-semibold text-white"
-            style={{ background: 'var(--mf-purple)' }}
-          >
-            + Indienen
-          </button>
+          <Button size="sm" leftIcon={<Plus size={16} aria-hidden />} onClick={() => { setFout(''); setFormulier(true) }}>
+            Indienen
+          </Button>
         </div>
 
         {/* Statistieken */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mb-6">
-          <div className="bg-white rounded-2xl p-4" style={{ boxShadow: 'var(--shadow-sm)' }}>
-            <p className="text-xs text-gray-400 mb-1">Openstaand</p>
-            <p className="text-xl font-bold" style={{ color: 'var(--mf-amber)' }}>
-              €{openstaand.toLocaleString('nl-BE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-            </p>
-          </div>
-          <div className="bg-white rounded-2xl p-4" style={{ boxShadow: 'var(--shadow-sm)' }}>
-            <p className="text-xs text-gray-400 mb-1">Goedgekeurd</p>
-            <p className="text-xl font-bold" style={{ color: 'var(--mf-green)' }}>
-              €{totaalGoedgekeurd.toLocaleString('nl-BE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-            </p>
-          </div>
+          <Card style={{ padding: 16 }}>
+            <p className="text-xs mb-1" style={{ color: 'var(--text-4)' }}>Openstaand</p>
+            <p className="text-xl font-bold" style={{ color: 'var(--mf-amber)' }}>{euro(openstaand)}</p>
+          </Card>
+          <Card style={{ padding: 16 }}>
+            <p className="text-xs mb-1" style={{ color: 'var(--text-4)' }}>Goedgekeurd</p>
+            <p className="text-xl font-bold" style={{ color: 'var(--mentaforce-primary)' }}>{euro(totaalGoedgekeurd)}</p>
+          </Card>
         </div>
 
         {/* Formulier */}
-        {formulier && (
-          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center"
-            style={{ background: 'rgba(0,0,0,0.4)' }}>
-            <div className="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-2xl p-6 pb-10"
-              style={{ boxShadow: '0 -4px 30px rgba(0,0,0,0.15)' }}>
-              <div className="flex items-center justify-between mb-5">
-                <h2 className="text-lg font-semibold text-gray-900">Declaratie indienen</h2>
-                <button onClick={() => setFormulier(false)} className="text-gray-400 hover:text-gray-600 text-xl">✕</button>
-              </div>
+        <DialogRoot open={formulier} onOpenChange={(open) => { if (!open) setFormulier(false) }}>
+          <DialogContent>
+            <DialogTitle>Declaratie indienen</DialogTitle>
 
+            <div className="flex flex-col gap-4" style={{ marginTop: 18 }}>
               {/* Categorie */}
-              <div className="mb-4">
-                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 block">Categorie</label>
+              <div role="group" aria-label="Categorie">
+                <p className="text-xs font-semibold uppercase tracking-wide mb-2" style={{ color: 'var(--text-4)' }}>Categorie</p>
                 <div className="grid grid-cols-3 gap-2">
-                  {(Object.keys(CAT_LABELS) as DeclaratieCategorie[]).map(c => (
-                    <button key={c} onClick={() => setCategorie(c)}
-                      className="flex flex-col items-center gap-1 px-2 py-3 rounded-xl border text-xs transition"
-                      style={{
-                        background: categorie === c ? 'var(--mf-purple-light)' : 'white',
-                        borderColor: categorie === c ? 'var(--mf-purple)' : 'var(--border)',
-                        color: categorie === c ? 'var(--mf-purple)' : 'var(--text-2)',
-                        fontWeight: categorie === c ? 600 : 400,
-                      }}>
-                      <span className="text-xl">{CAT_EMOJI[c]}</span>
-                      <span>{CAT_LABELS[c]}</span>
-                    </button>
-                  ))}
+                  {(Object.keys(CAT_LABELS) as DeclaratieCategorie[]).map(c => {
+                    const Icoon = CAT_ICON[c]
+                    const actief = categorie === c
+                    return (
+                      <button key={c} type="button" onClick={() => setCategorie(c)}
+                        aria-pressed={actief}
+                        className="flex flex-col items-center gap-1 px-2 py-3 text-xs transition"
+                        style={{
+                          minHeight: 44,
+                          borderRadius: 'var(--radius-md)',
+                          background: actief ? 'var(--mentaforce-primary-light)' : 'var(--bg-subtle)',
+                          border: `1px solid ${actief ? 'var(--mentaforce-primary)' : 'var(--border-strong)'}`,
+                          color: actief ? 'var(--mentaforce-primary)' : 'var(--text-3)',
+                          fontWeight: actief ? 600 : 400,
+                          cursor: 'pointer',
+                        }}>
+                        <Icoon size={18} aria-hidden strokeWidth={1.75} />
+                        <span>{CAT_LABELS[c]}</span>
+                      </button>
+                    )
+                  })}
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3 mb-4">
-                <div>
-                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Datum</label>
-                  <input type="date" value={datum} onChange={e => setDatum(e.target.value)}
-                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-purple-400" />
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Bedrag (€)</label>
-                  <input type="text" inputMode="decimal" value={bedrag}
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="Datum">
+                  <Input type="date" value={datum} onChange={e => setDatum(e.target.value)} />
+                </Field>
+                <Field label="Bedrag (€)">
+                  <Input
+                    type="text"
+                    inputMode="decimal"
+                    value={bedrag}
                     onChange={e => setBedrag(e.target.value)}
                     placeholder="0,00"
-                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-purple-400" />
-                </div>
+                  />
+                </Field>
               </div>
 
-              <div className="mb-5">
-                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">Omschrijving</label>
-                <textarea rows={2} value={beschrijving} onChange={e => setBeschrijving(e.target.value)}
+              <Field label="Omschrijving" error={fout || undefined}>
+                <Textarea
+                  rows={2}
+                  value={beschrijving}
+                  onChange={e => setBeschrijving(e.target.value)}
                   placeholder="Beschrijf de declaratie..."
-                  className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm outline-none resize-none focus:border-purple-400" />
-              </div>
+                />
+              </Field>
 
-              {fout && <p className="text-sm text-red-500 mb-3">{fout}</p>}
-
-              <button onClick={indienen} disabled={opslaan}
-                className="w-full py-3 rounded-xl text-white font-semibold text-sm disabled:opacity-40 transition"
-                style={{ background: 'var(--mf-purple)' }}>
+              <Button onClick={indienen} loading={opslaan} style={{ width: '100%' }}>
                 {opslaan ? 'Indienen...' : 'Declaratie indienen'}
-              </button>
+              </Button>
             </div>
-          </div>
-        )}
+          </DialogContent>
+        </DialogRoot>
 
         {/* Lijst */}
-        <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Mijn declaraties</p>
+        <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: 'var(--text-4)' }}>Mijn declaraties</p>
 
         {laden ? (
           <div className="flex justify-center py-10">
-            <div className="w-6 h-6 rounded-full border-2 border-gray-200 animate-spin" style={{ borderTopColor: 'var(--mf-purple)' }} />
+            <div className="mf-spinner" />
           </div>
         ) : declaraties.length === 0 ? (
-          <div className="bg-white rounded-2xl p-8 text-center" style={{ boxShadow: 'var(--shadow-sm)' }}>
-            <div style={{ position: 'relative', display: 'inline-block', marginBottom: '0.75rem' }}>
-              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
-                <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
-              </div>
-              <p className="text-3xl" style={{ position: 'relative', zIndex: 1 }}>💰</p>
-            </div>
-            <p className="text-gray-500 text-sm">Nog geen declaraties.</p>
-          </div>
+          <Card>
+            <EmptyState icon={Wallet} title="Nog geen declaraties" description="Dien je eerste onkostenvergoeding in." />
+          </Card>
         ) : (
-          <div className="flex flex-col gap-3">
-            {declaraties.map(d => {
-              const stijl = STATUS_STIJL[d.status]
-              return (
-                <div key={d.id} className="bg-white rounded-2xl p-4" style={{ boxShadow: 'var(--shadow-sm)' }}>
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                      <span className="text-2xl">{CAT_EMOJI[d.categorie as DeclaratieCategorie]}</span>
-                      <div>
-                        <p className="text-sm font-semibold text-gray-900">{CAT_LABELS[d.categorie as DeclaratieCategorie]}</p>
-                        <p className="text-xs text-gray-400">
-                          {new Date(d.datum).toLocaleDateString('nl-BE', { day: 'numeric', month: 'short', year: 'numeric' })}
-                        </p>
+          <Table caption="Mijn declaraties">
+            <THead>
+              <Tr>
+                <Th scope="col">Categorie</Th>
+                <Th scope="col">Datum</Th>
+                <Th scope="col" align="right">Bedrag</Th>
+                <Th scope="col" align="right">Status</Th>
+              </Tr>
+            </THead>
+            <TBody>
+              {declaraties.map(d => {
+                const stijl = STATUS_STIJL[d.status]
+                const Icoon = CAT_ICON[d.categorie as DeclaratieCategorie]
+                return (
+                  <Tr key={d.id}>
+                    <Td>
+                      <div className="flex items-center gap-2.5">
+                        <span aria-hidden style={{
+                          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                          width: 34, height: 34, borderRadius: 'var(--radius-md)',
+                          background: 'var(--bg-subtle)', color: 'var(--text-2)', flexShrink: 0,
+                        }}>
+                          <Icoon size={17} strokeWidth={1.75} />
+                        </span>
+                        <div>
+                          <p style={{ fontWeight: 600, color: 'var(--text-1)' }}>{CAT_LABELS[d.categorie as DeclaratieCategorie]}</p>
+                          {d.beschrijving && (
+                            <p className="text-xs" style={{ color: 'var(--text-4)' }}>{d.beschrijving}</p>
+                          )}
+                          {d.reviewer_notitie && (
+                            <p className="text-xs" style={{ marginTop: 2, color: d.status === 'goedgekeurd' ? 'var(--mentaforce-primary)' : 'var(--mf-red)' }}>
+                              <strong>Notitie:</strong> {d.reviewer_notitie}
+                            </p>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                    <div className="flex flex-col items-end gap-1.5">
-                      <p className="text-sm font-bold text-gray-900">
-                        €{d.bedrag.toLocaleString('nl-BE', { minimumFractionDigits: 2 })}
-                      </p>
-                      <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full"
-                        style={{ background: stijl.bg, color: stijl.color }}>
-                        {stijl.label}
-                      </span>
-                    </div>
-                  </div>
-                  <p className="text-xs text-gray-500 mt-2 ml-11">{d.beschrijving}</p>
-                  {d.reviewer_notitie && (
-                    <div className="mt-2 ml-11 text-xs rounded-lg px-3 py-2"
-                      style={{ background: d.status === 'goedgekeurd' ? 'var(--mf-green-light)' : 'var(--mf-red-light)', color: d.status === 'goedgekeurd' ? 'var(--mf-green-dark)' : 'var(--mf-red)' }}>
-                      <strong>Notitie:</strong> {d.reviewer_notitie}
-                    </div>
-                  )}
-                </div>
-              )
-            })}
-          </div>
+                    </Td>
+                    <Td style={{ whiteSpace: 'nowrap', color: 'var(--text-3)' }}>
+                      {new Date(d.datum).toLocaleDateString('nl-BE', { day: 'numeric', month: 'short', year: 'numeric' })}
+                    </Td>
+                    <Td align="right" style={{ whiteSpace: 'nowrap', fontWeight: 700, color: 'var(--text-1)' }}>
+                      {euro(d.bedrag)}
+                    </Td>
+                    <Td align="right">
+                      <Badge variant={stijl.variant}>{stijl.label}</Badge>
+                    </Td>
+                  </Tr>
+                )
+              })}
+            </TBody>
+          </Table>
         )}
       </main>
     </div>

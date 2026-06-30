@@ -7,6 +7,15 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
+import { Card } from '@/components/ui/Card'
+import { Button } from '@/components/ui/Button'
+import { Badge } from '@/components/ui/Badge'
+import { EmptyState } from '@/components/ui/EmptyState'
+import {
+  DialogRoot, DialogContent, DialogTitle, DialogDescription,
+} from '@/components/ui/Dialog'
+import { useToast } from '@/components/ui/Toast'
+import { FileText, Plus, Pencil, Eye, EyeOff, Trash2 } from 'lucide-react'
 
 
 type Protocol = {
@@ -28,6 +37,7 @@ const CAT_LABELS: Record<string, string> = {
 
 export default function HrProtokollenPage() {
   const router = useRouter()
+  const { toast } = useToast()
   const [protocollen, setProtocollen] = useState<Protocol[]>([])
   const [laden, setLaden] = useState(true)
   const [verwijderModal, setVerwijderModal] = useState<string | null>(null)
@@ -60,6 +70,7 @@ export default function HrProtokollenPage() {
     await supabase.from('protocollen').delete().eq('id', id)
     setProtocollen(prev => prev.filter(p => p.id !== id))
     setVerwijderModal(null)
+    toast({ title: 'Protocol verwijderd', variant: 'success' })
   }
 
   return (
@@ -70,11 +81,17 @@ export default function HrProtokollenPage() {
 
         <div className="flex items-start justify-between mb-6">
           <div>
-            <div className="flex items-center gap-2 mb-1">
-              <Link href="/hr" className="text-sm" style={{ color: 'var(--text-4)' }}>HR</Link>
-              <span style={{ color: 'var(--text-4)' }}>/</span>
+            <nav aria-label="Kruimelpad" className="flex items-center gap-2 mb-1">
+              <Link
+                href="/hr"
+                className="text-sm"
+                style={{ color: 'var(--text-4)', borderRadius: 'var(--radius-sm)' }}
+              >
+                HR
+              </Link>
+              <span aria-hidden style={{ color: 'var(--text-4)' }}>/</span>
               <span className="text-sm" style={{ color: 'var(--text-2)' }}>Protocollen</span>
-            </div>
+            </nav>
             <h1 className="text-xl font-bold tracking-tight" style={{ color: 'var(--text-1)', letterSpacing: '-0.02em' }}>
               Protocollen beheren
             </h1>
@@ -82,111 +99,113 @@ export default function HrProtokollenPage() {
               {protocollen.length} protocol{protocollen.length !== 1 ? 'len' : ''}
             </p>
           </div>
-          <Link href="/hr/protocollen/nieuw" className="mf-btn mf-btn-primary"
-            style={{ padding: '8px 16px', fontSize: 13 }}>
-            + Nieuw
-          </Link>
+          <Button
+            size="sm"
+            onClick={() => router.push('/hr/protocollen/nieuw')}
+            leftIcon={<Plus size={16} aria-hidden />}
+          >
+            Nieuw
+          </Button>
         </div>
 
         {laden ? (
           <div className="flex justify-center py-16"><div className="mf-spinner" /></div>
         ) : protocollen.length === 0 ? (
-          <div className="rounded-2xl p-10 text-center"
-            style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-            <div style={{ position: 'relative', display: 'inline-block', marginBottom: '0.75rem' }}>
-              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
-                <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
-              </div>
-              <p className="text-3xl" style={{ position: 'relative', zIndex: 1 }}>📋</p>
-            </div>
-            <p className="text-sm font-medium mb-4" style={{ color: 'var(--text-2)' }}>Nog geen protocollen.</p>
-            <Link href="/hr/protocollen/nieuw" className="mf-btn mf-btn-primary"
-              style={{ fontSize: 13, padding: '10px 20px' }}>
-              Eerste protocol aanmaken
-            </Link>
-          </div>
+          <Card>
+            <EmptyState
+              icon={FileText}
+              title="Nog geen protocollen"
+              description="Maak je eerste protocol aan om beleid en procedures te delen met je team."
+              action={
+                <Button
+                  onClick={() => router.push('/hr/protocollen/nieuw')}
+                  leftIcon={<Plus size={16} aria-hidden />}
+                >
+                  Eerste protocol aanmaken
+                </Button>
+              }
+            />
+          </Card>
         ) : (
-          <div className="flex flex-col gap-3">
+          <ul className="flex flex-col gap-3" style={{ listStyle: 'none', margin: 0, padding: 0 }}>
             {protocollen.map(p => (
-              <div key={p.id} className="rounded-2xl p-4"
-                style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-xs)' }}>
-                <div className="flex items-start gap-4">
-                  <div className="w-11 h-11 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
-                    style={{ background: p.kleur + '18' }}>
-                    {p.icoon}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <p className="text-sm font-semibold" style={{ color: 'var(--text-1)' }}>{p.titel}</p>
-                        <p className="text-xs mt-0.5" style={{ color: 'var(--text-4)' }}>
-                          {CAT_LABELS[p.categorie] ?? p.categorie} · {new Date(p.bijgewerkt_op).toLocaleDateString('nl-BE', { day: 'numeric', month: 'short' })}
-                        </p>
+              <li key={p.id}>
+                <Card style={{ padding: '16px' }}>
+                  <div className="flex items-start gap-4">
+                    <div
+                      className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
+                      style={{ background: 'var(--mentaforce-primary-light)', color: 'var(--mentaforce-primary)' }}
+                      aria-hidden
+                    >
+                      <FileText size={20} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <p className="text-sm font-semibold" style={{ color: 'var(--text-1)' }}>{p.titel}</p>
+                          <p className="text-xs mt-0.5" style={{ color: 'var(--text-4)' }}>
+                            {CAT_LABELS[p.categorie] ?? p.categorie} · {new Date(p.bijgewerkt_op).toLocaleDateString('nl-BE', { day: 'numeric', month: 'short' })}
+                          </p>
+                        </div>
+                        <Badge variant={p.gepubliceerd ? 'success' : 'warning'} style={{ flexShrink: 0 }}>
+                          {p.gepubliceerd ? 'Gepubliceerd' : 'Concept'}
+                        </Badge>
                       </div>
-                      <span
-                        className="text-[11px] px-2 py-0.5 rounded-full font-semibold flex-shrink-0"
-                        style={{
-                          background: p.gepubliceerd ? 'var(--mf-green-light)' : 'var(--mf-amber-light)',
-                          color: p.gepubliceerd ? 'var(--mf-green-dark)' : 'var(--mf-amber-dark)',
-                        }}
-                      >
-                        {p.gepubliceerd ? 'Gepubliceerd' : 'Concept'}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2 mt-3 flex-wrap">
-                      <Link href={`/hr/protocollen/${p.id}/bewerken`}
-                        className="mf-btn text-xs"
-                        style={{ padding: '5px 12px', fontSize: 12, background: 'var(--bg-subtle)', color: 'var(--text-2)', border: '1px solid var(--border)' }}>
-                        Bewerken
-                      </Link>
-                      <button
-                        onClick={() => togglePublicatie(p.id, p.gepubliceerd)}
-                        className="mf-btn text-xs"
-                        style={{
-                          padding: '5px 12px', fontSize: 12,
-                          background: p.gepubliceerd ? 'var(--mf-amber-light)' : 'var(--mf-green-light)',
-                          color: p.gepubliceerd ? 'var(--mf-amber-dark)' : 'var(--mf-green-dark)',
-                          border: 'none',
-                        }}
-                      >
-                        {p.gepubliceerd ? 'Als concept opslaan' : 'Publiceren'}
-                      </button>
-                      <button
-                        onClick={() => setVerwijderModal(p.id)}
-                        className="mf-btn text-xs"
-                        style={{ padding: '5px 12px', fontSize: 12, background: 'var(--mf-red-light)', color: 'var(--mf-red)', border: 'none' }}>
-                        Verwijderen
-                      </button>
+                      <div className="flex items-center gap-2 mt-3 flex-wrap">
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => router.push(`/hr/protocollen/${p.id}/bewerken`)}
+                          leftIcon={<Pencil size={15} aria-hidden />}
+                        >
+                          Bewerken
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => togglePublicatie(p.id, p.gepubliceerd)}
+                          leftIcon={p.gepubliceerd ? <EyeOff size={15} aria-hidden /> : <Eye size={15} aria-hidden />}
+                        >
+                          {p.gepubliceerd ? 'Als concept opslaan' : 'Publiceren'}
+                        </Button>
+                        <Button
+                          variant="danger"
+                          size="sm"
+                          onClick={() => setVerwijderModal(p.id)}
+                          leftIcon={<Trash2 size={15} aria-hidden />}
+                        >
+                          Verwijderen
+                        </Button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </div>
+                </Card>
+              </li>
             ))}
-          </div>
+          </ul>
         )}
       </div>
 
-      {/* Verwijder bevestiging modal */}
-      {verwijderModal && (
-        <div className="mf-backdrop" onClick={() => setVerwijderModal(null)}>
-          <div className="mf-modal p-6">
-            <h2 className="text-lg font-bold mb-2" style={{ color: 'var(--text-1)' }}>Protocol verwijderen?</h2>
-            <p className="text-sm mb-6" style={{ color: 'var(--text-3)' }}>
-              Dit kan niet ongedaan worden gemaakt.
-            </p>
-            <div className="flex gap-3">
-              <button onClick={() => setVerwijderModal(null)} className="mf-btn flex-1"
-                style={{ background: 'var(--bg-subtle)', color: 'var(--text-2)', border: '1px solid var(--border)' }}>
-                Annuleren
-              </button>
-              <button onClick={() => verwijder(verwijderModal)} className="mf-btn flex-1"
-                style={{ background: 'var(--mf-red)', color: 'white' }}>
-                Verwijderen
-              </button>
-            </div>
+      {/* Verwijder bevestiging */}
+      <DialogRoot open={verwijderModal !== null} onOpenChange={(open) => { if (!open) setVerwijderModal(null) }}>
+        <DialogContent>
+          <DialogTitle>Protocol verwijderen?</DialogTitle>
+          <DialogDescription>Dit kan niet ongedaan worden gemaakt.</DialogDescription>
+          <div className="flex gap-3" style={{ marginTop: 24 }}>
+            <Button variant="secondary" onClick={() => setVerwijderModal(null)} style={{ flex: 1 }}>
+              Annuleren
+            </Button>
+            <Button
+              variant="danger"
+              onClick={() => { if (verwijderModal) verwijder(verwijderModal) }}
+              style={{ flex: 1 }}
+              leftIcon={<Trash2 size={16} aria-hidden />}
+            >
+              Verwijderen
+            </Button>
           </div>
-        </div>
-      )}
+        </DialogContent>
+      </DialogRoot>
       </main>
     </div>
   )

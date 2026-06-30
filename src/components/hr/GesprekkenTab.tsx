@@ -1,7 +1,11 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
+import { Plus, Search, MessageSquare } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { Button } from '@/components/ui/Button'
+import { Input } from '@/components/ui/Input'
+import { EmptyState } from '@/components/ui/EmptyState'
 import GesprekKaart from './GesprekKaart'
 import GesprekModal, { type Gesprek } from './GesprekModal'
 
@@ -15,10 +19,19 @@ type Props = {
   gefilterdOpMedewerker?: string
 }
 
-const ACCENT = '#1D9E75'
-
 type FilterStatus = 'alle' | 'aankomend' | 'afgerond' | 'geannuleerd'
 type FilterType = 'alle' | 'functionering' | 'beoordeling' | 'welzijn' | 'overig'
+
+const selectStijl: React.CSSProperties = {
+  padding: '8px 12px',
+  fontSize: 13,
+  border: '1px solid var(--border-strong)',
+  borderRadius: 'var(--radius-md)',
+  background: 'var(--bg-subtle)',
+  color: 'var(--text-1)',
+  cursor: 'pointer',
+  outline: 'none',
+}
 
 export default function GesprekkenTab({ bedrijfId, hrUserId, gefilterdOpMedewerker }: Props) {
   const [gesprekken, setGesprekken] = useState<GesprekMet[]>([])
@@ -91,61 +104,61 @@ export default function GesprekkenTab({ bedrijfId, hrUserId, gefilterdOpMedewerk
     .sort((a, b) => new Date(a.datum).getTime() - new Date(b.datum).getTime())
   const overig = gefilterd.filter(g => !(g.status === 'gepland' && new Date(g.datum) >= nu))
 
-  const chipStijl = (actief: boolean) => ({
-    padding: '5px 12px', borderRadius: 20, fontSize: 12, fontWeight: 600,
-    border: `1.5px solid ${actief ? ACCENT : '#E5E7EB'}`,
-    background: actief ? '#E1F5EE' : 'white',
-    color: actief ? ACCENT : '#6B7280',
+  const chipStijl = (actief: boolean): React.CSSProperties => ({
+    padding: '6px 12px', borderRadius: 100, fontSize: 12, fontWeight: 600,
+    border: `1px solid ${actief ? 'var(--mentaforce-primary)' : 'var(--border-strong)'}`,
+    background: actief ? 'var(--mentaforce-primary-light)' : 'var(--bg-subtle)',
+    color: actief ? 'var(--mentaforce-primary)' : 'var(--text-3)',
     cursor: 'pointer',
-  } as React.CSSProperties)
+  })
 
   return (
     <div>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, gap: 12, flexWrap: 'wrap' }}>
         <div>
-          <h2 style={{ fontSize: 16, fontWeight: 700, color: '#111', margin: 0 }}>HR Gesprekken</h2>
-          <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2 }}>
+          <h2 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-1)', margin: 0 }}>HR Gesprekken</h2>
+          <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 2 }}>
             {gesprekken.length} gesprek{gesprekken.length !== 1 ? 'ken' : ''} in totaal
           </p>
         </div>
-        <button onClick={nieuwGesprek} style={{
-          background: ACCENT, color: 'white', border: 'none', borderRadius: 8,
-          padding: '9px 16px', fontSize: 13, fontWeight: 600, cursor: 'pointer',
-          display: 'flex', alignItems: 'center', gap: 6,
-        }}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-            <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
-          </svg>
+        <Button onClick={nieuwGesprek} size="sm" leftIcon={<Plus size={15} aria-hidden />}>
           Nieuw gesprek
-        </button>
+        </Button>
       </div>
 
       {/* Filters */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 20 }}>
         {/* Zoekbalk */}
         <div style={{ position: 'relative' }}>
-          <svg style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#9CA3AF' }}
-            width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
-          </svg>
-          <input
+          <Search
+            size={15}
+            aria-hidden
+            style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-3)', pointerEvents: 'none', zIndex: 1 }}
+          />
+          <Input
             type="text"
             value={zoeken}
             onChange={e => setZoeken(e.target.value)}
             placeholder="Zoek op onderwerp of medewerker..."
-            style={{
-              width: '100%', paddingLeft: 34, paddingRight: 12, paddingTop: 9, paddingBottom: 9,
-              fontSize: 13, border: '1.5px solid #E5E7EB', borderRadius: 8, background: 'white',
-              color: '#111', outline: 'none', boxSizing: 'border-box',
-            }}
+            aria-label="Zoek gesprekken"
+            style={{ paddingLeft: 36, fontSize: 13 }}
           />
         </div>
 
         {/* Status chips */}
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+        <div role="group" aria-label="Filter op status" style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
           {([['alle', 'Alle'], ['aankomend', 'Aankomend'], ['afgerond', 'Afgerond'], ['geannuleerd', 'Geannuleerd']] as const).map(([val, label]) => (
-            <button key={val} style={chipStijl(filterStatus === val)} onClick={() => setFilterStatus(val)}>{label}</button>
+            <button
+              key={val}
+              type="button"
+              className="mf-pressable"
+              aria-pressed={filterStatus === val}
+              style={chipStijl(filterStatus === val)}
+              onClick={() => setFilterStatus(val)}
+            >
+              {label}
+            </button>
           ))}
         </div>
 
@@ -154,10 +167,8 @@ export default function GesprekkenTab({ bedrijfId, hrUserId, gefilterdOpMedewerk
           <select
             value={filterType}
             onChange={e => setFilterType(e.target.value as FilterType)}
-            style={{
-              padding: '7px 10px', fontSize: 12, border: '1.5px solid #E5E7EB',
-              borderRadius: 8, background: 'white', color: '#374151', cursor: 'pointer',
-            }}
+            aria-label="Filter op type gesprek"
+            style={selectStijl}
           >
             <option value="alle">Alle types</option>
             <option value="functionering">Functionering</option>
@@ -170,10 +181,8 @@ export default function GesprekkenTab({ bedrijfId, hrUserId, gefilterdOpMedewerk
             <select
               value={filterMedewerker}
               onChange={e => setFilterMedewerker(e.target.value)}
-              style={{
-                padding: '7px 10px', fontSize: 12, border: '1.5px solid #E5E7EB',
-                borderRadius: 8, background: 'white', color: '#374151', cursor: 'pointer',
-              }}
+              aria-label="Filter op medewerker"
+              style={selectStijl}
             >
               <option value="alle">Alle medewerkers</option>
               {medewerkers.map(m => (
@@ -190,30 +199,26 @@ export default function GesprekkenTab({ bedrijfId, hrUserId, gefilterdOpMedewerk
           <div className="mf-spinner" />
         </div>
       ) : gefilterd.length === 0 ? (
-        <div style={{
-          background: 'white', borderRadius: 12, border: '2px dashed #E5E7EB',
-          padding: '40px 24px', textAlign: 'center',
-        }}>
-          <p style={{ fontSize: 32, marginBottom: 8 }}>💬</p>
-          <p style={{ fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 4 }}>Geen gesprekken gevonden</p>
-          <p style={{ fontSize: 13, color: '#9CA3AF', marginBottom: 16 }}>
-            {zoeken || filterStatus !== 'alle' || filterType !== 'alle'
+        <EmptyState
+          icon={MessageSquare}
+          title="Geen gesprekken gevonden"
+          description={
+            zoeken || filterStatus !== 'alle' || filterType !== 'alle'
               ? 'Pas je filters aan of wis de zoekopdracht.'
-              : 'Plan het eerste gesprek met een medewerker.'}
-          </p>
-          {!zoeken && filterStatus === 'alle' && filterType === 'alle' && (
-            <button onClick={nieuwGesprek} style={{
-              background: ACCENT, color: 'white', border: 'none', borderRadius: 8,
-              padding: '9px 18px', fontSize: 13, fontWeight: 600, cursor: 'pointer',
-            }}>Gesprek plannen</button>
-          )}
-        </div>
+              : 'Plan het eerste gesprek met een medewerker.'
+          }
+          action={
+            !zoeken && filterStatus === 'alle' && filterType === 'alle'
+              ? <Button onClick={nieuwGesprek} size="sm">Gesprek plannen</Button>
+              : undefined
+          }
+        />
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
           {/* Aankomend */}
           {aankomend.length > 0 && (
             <div>
-              <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#9CA3AF', marginBottom: 10 }}>
+              <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-3)', marginBottom: 10 }}>
                 Aankomend ({aankomend.length})
               </p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -227,7 +232,7 @@ export default function GesprekkenTab({ bedrijfId, hrUserId, gefilterdOpMedewerk
           {/* Recent / overig */}
           {overig.length > 0 && (
             <div>
-              <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#9CA3AF', marginBottom: 10 }}>
+              <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-3)', marginBottom: 10 }}>
                 {aankomend.length > 0 ? `Recent & overig (${overig.length})` : `Gesprekken (${overig.length})`}
               </p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>

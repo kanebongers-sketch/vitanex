@@ -1,6 +1,6 @@
 'use client'
 
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
+import { Chart } from '@/components/ui/Chart'
 
 export interface TrendPunt {
   datum: string
@@ -8,17 +8,19 @@ export interface TrendPunt {
 }
 
 // Apart component zodat recharts via next/dynamic lui geladen wordt en niet in
-// de initiële bundle van de teampagina zit.
+// de initiële bundle van de teampagina zit. De Chart-primitive verzorgt het
+// lazy-laden van recharts, het tekstalternatief (role="img" + sr-only tabel) en
+// de token-gestuurde styling.
 export default function VitaliteitTrend({ data }: { data: TrendPunt[] }) {
   return (
-    <ResponsiveContainer width="100%" height={200}>
-      <LineChart data={data}>
-        <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-        <XAxis dataKey="datum" tick={{ fontSize: 11 }} />
-        <YAxis domain={[0, 100]} tick={{ fontSize: 11 }} unit="%" />
-        <Tooltip formatter={(v) => `${v}%`} />
-        <Line type="monotone" dataKey="Score" stroke="var(--mentaforce-primary)" strokeWidth={2} dot={{ r: 3 }} activeDot={{ r: 5 }} />
-      </LineChart>
-    </ResponsiveContainer>
+    <Chart
+      type="line"
+      data={data}
+      xKey="datum"
+      series={[{ key: 'Score', label: 'Vitaliteitsscore', color: 'var(--mentaforce-primary)' }]}
+      summary="Vitaliteitsscore van het team per datum, op een schaal van 0 tot 100 procent."
+      yDomain={[0, 100]}
+      height={200}
+    />
   )
 }

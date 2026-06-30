@@ -6,14 +6,41 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import HrShell from '@/components/layout/HrShell'
+import { ChevronDown, ChevronUp, FileText } from 'lucide-react'
+import { Card } from '@/components/ui/Card'
+import { Field } from '@/components/ui/Field'
+import { Input } from '@/components/ui/Input'
+import { EmptyState } from '@/components/ui/EmptyState'
+import { Table, THead, TBody, Tr, Th, Td } from '@/components/ui/Table'
+import { TabsRoot, TabsList, TabsTrigger, TabsContent } from '@/components/ui/Tabs'
 
 
 interface Medewerker { id: string; naam: string; email: string }
 interface GedeeldBestand { id: string; bestandsnaam: string; aangemaakt_op: string; categorie: string; user_id: string }
 interface Rapport { id: string; type: string; titel: string; inhoud: string; aangemaakt_op: string; user_id: string }
 
-const TYPE_KLEUR: Record<string, string> = { disc: 'var(--mf-blue)', checkin: 'var(--mf-green)', onboarding: 'var(--mf-purple)', algemeen: 'var(--text-2)' }
+// Token-kleuren + bijbehorende lichte achtergrond (geen hex-alpha concatenatie).
+const TYPE_STYLE: Record<string, { kleur: string; bg: string }> = {
+  disc: { kleur: 'var(--mf-blue)', bg: 'var(--mf-blue-light)' },
+  checkin: { kleur: 'var(--mf-green)', bg: 'var(--mf-green-light)' },
+  onboarding: { kleur: 'var(--mf-purple)', bg: 'var(--mf-purple-light)' },
+  algemeen: { kleur: 'var(--text-2)', bg: 'var(--bg-subtle)' },
+}
 const TYPE_LABEL: Record<string, string> = { disc: 'DISC', checkin: 'Check-in', onboarding: 'Onboarding', algemeen: 'Algemeen' }
+
+const STAT_KLEUR: Record<string, string> = { blue: 'var(--mf-blue)', green: 'var(--mf-green)', purple: 'var(--mf-purple)' }
+
+const SELECT_STYLE: React.CSSProperties = {
+  width: '100%',
+  background: 'var(--bg-subtle)',
+  border: '1px solid var(--border-strong)',
+  borderRadius: 'var(--radius-md)',
+  padding: '10px 14px',
+  color: 'var(--text-1)',
+  fontSize: 14,
+  cursor: 'pointer',
+  outline: 'none',
+}
 
 export default function HrBestandenPage() {
   const router = useRouter()
@@ -91,97 +118,126 @@ export default function HrBestandenPage() {
   return (
     <HrShell>
       <div style={{ maxWidth: 900, margin: '0 auto', padding: '32px 20px' }}>
-        <h1 style={{ fontSize: 24, fontWeight: 700, color: 'var(--bg-subtle)', marginBottom: 8 }}>Bestanden &amp; Rapporten</h1>
-        <p style={{ color: 'var(--text-2)', marginBottom: 20 }}>Gedeelde bestanden en AI-rapporten van medewerkers.</p>
+        <h1 style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-1)', marginBottom: 8 }}>Bestanden &amp; Rapporten</h1>
+        <p style={{ color: 'var(--text-3)', marginBottom: 20 }}>Gedeelde bestanden en AI-rapporten van medewerkers.</p>
 
         {/* Samenvatting balk */}
         <div style={{ display: 'flex', gap: 12, marginBottom: 28, flexWrap: 'wrap' }}>
           {[
-            { label: 'Medewerkers gedeeld', waarde: aantalMedewerkersGedeeld, kleur: 'var(--mf-blue)' },
-            { label: 'Bestanden totaal', waarde: aantalBestanden, kleur: 'var(--mf-green)' },
-            { label: 'Rapporten', waarde: aantalRapporten, kleur: 'var(--mf-purple)' },
+            { label: 'Medewerkers gedeeld', waarde: aantalMedewerkersGedeeld, kleur: STAT_KLEUR.blue },
+            { label: 'Bestanden totaal', waarde: aantalBestanden, kleur: STAT_KLEUR.green },
+            { label: 'Rapporten', waarde: aantalRapporten, kleur: STAT_KLEUR.purple },
           ].map(stat => (
-            <div key={stat.label} style={{ background: '#0a1628', border: `1px solid ${stat.kleur}30`, borderRadius: 12, padding: '14px 20px', flex: 1, minWidth: 140 }}>
-              <div style={{ position: 'relative', display: 'inline-block' }}>
-                <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
-                  <div style={{ width: 70, height: 70, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
-                </div>
-                <div style={{ fontSize: 28, fontWeight: 800, color: stat.kleur, lineHeight: 1, position: 'relative', zIndex: 1 }}>{stat.waarde}</div>
-              </div>
-              <div style={{ fontSize: 13, color: 'var(--text-2)', marginTop: 4 }}>{stat.label}</div>
-            </div>
+            <Card key={stat.label} style={{ padding: '14px 20px', flex: 1, minWidth: 140, borderTop: `3px solid ${stat.kleur}` }}>
+              <div style={{ fontSize: 28, fontWeight: 800, color: stat.kleur, lineHeight: 1 }}>{stat.waarde}</div>
+              <div style={{ fontSize: 13, color: 'var(--text-3)', marginTop: 4 }}>{stat.label}</div>
+            </Card>
           ))}
         </div>
 
-        <div style={{ display: 'flex', gap: 4, marginBottom: 28, background: '#0a1628', borderRadius: 10, padding: 4, width: 'fit-content' }}>
-          {(['bestanden', 'rapporten'] as const).map(tab => (
-            <button key={tab} onClick={() => setActieveTab(tab)} style={{ background: actieveTab === tab ? 'var(--mf-blue)' : 'transparent', color: actieveTab === tab ? '#fff' : 'var(--text-2)', border: 'none', borderRadius: 8, padding: '8px 20px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
-              {tab === 'bestanden' ? 'Gedeelde bestanden' : 'AI Rapporten'}
-            </button>
-          ))}
-        </div>
+        <TabsRoot value={actieveTab} onValueChange={(v) => setActieveTab(v as 'bestanden' | 'rapporten')}>
+          <TabsList style={{ marginBottom: 12 }}>
+            <TabsTrigger value="bestanden">Gedeelde bestanden</TabsTrigger>
+            <TabsTrigger value="rapporten">AI Rapporten</TabsTrigger>
+          </TabsList>
 
-        {actieveTab === 'bestanden' && (
-          <div>
+          <TabsContent value="bestanden">
             {gesorteerdeBestandenEntries.length === 0 ? (
-              <div style={{ background: '#0a1628', borderRadius: 12, padding: 32, textAlign: 'center', color: 'var(--text-2)' }}>Geen gedeelde bestanden.</div>
+              <Card>
+                <EmptyState icon={FileText} title="Geen gedeelde bestanden" description="Er zijn nog geen bestanden met HR gedeeld." />
+              </Card>
             ) : (
               gesorteerdeBestandenEntries.map(([uid, docs]) => (
                 <div key={uid} style={{ marginBottom: 24 }}>
                   <div style={{ fontWeight: 600, color: 'var(--text-3)', fontSize: 13, marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{medewerkers[uid]?.naam ?? 'Onbekend'}</div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                    {docs.map(b => (
-                      <div key={b.id} style={{ background: '#0a1628', border: '1px solid #1e293b', borderRadius: 10, padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <div style={{ color: 'var(--border)', fontWeight: 500 }}>{b.bestandsnaam}</div>
-                        <div style={{ color: 'var(--text-2)', fontSize: 13 }}>{datumLabel(b.aangemaakt_op)}</div>
-                      </div>
-                    ))}
-                  </div>
+                  <Table caption={`Gedeelde bestanden van ${medewerkers[uid]?.naam ?? 'onbekende medewerker'}`}>
+                    <THead>
+                      <Tr>
+                        <Th scope="col">Bestandsnaam</Th>
+                        <Th scope="col" align="right">Gedeeld op</Th>
+                      </Tr>
+                    </THead>
+                    <TBody>
+                      {docs.map(b => (
+                        <Tr key={b.id}>
+                          <Td style={{ color: 'var(--text-1)', fontWeight: 500 }}>{b.bestandsnaam}</Td>
+                          <Td align="right" style={{ color: 'var(--text-3)', fontSize: 13 }}>{datumLabel(b.aangemaakt_op)}</Td>
+                        </Tr>
+                      ))}
+                    </TBody>
+                  </Table>
                 </div>
               ))
             )}
-          </div>
-        )}
+          </TabsContent>
 
-        {actieveTab === 'rapporten' && (
-          <div>
-            <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
-              <select value={filterType} onChange={e => setFilterType(e.target.value)} style={{ background: '#0a1628', border: '1px solid #1e293b', borderRadius: 8, padding: '8px 12px', color: 'var(--border)', fontSize: 14, cursor: 'pointer' }}>
-                <option value='alle'>Alle types</option>
-                <option value='disc'>DISC</option>
-                <option value='checkin'>Check-in</option>
-                <option value='onboarding'>Onboarding</option>
-              </select>
-              <input placeholder='Medewerker zoeken...' value={filterMedewerker} onChange={e => setFilterMedewerker(e.target.value)} style={{ background: '#0a1628', border: '1px solid #1e293b', borderRadius: 8, padding: '8px 12px', color: 'var(--border)', fontSize: 14, flex: 1, minWidth: 160 }} />
+          <TabsContent value="rapporten">
+            <div style={{ display: 'flex', gap: 12, marginBottom: 16, flexWrap: 'wrap', alignItems: 'flex-end' }}>
+              <div style={{ minWidth: 160 }}>
+                <Field label="Type rapport">
+                  <select value={filterType} onChange={e => setFilterType(e.target.value)} style={SELECT_STYLE}>
+                    <option value='alle'>Alle types</option>
+                    <option value='disc'>DISC</option>
+                    <option value='checkin'>Check-in</option>
+                    <option value='onboarding'>Onboarding</option>
+                  </select>
+                </Field>
+              </div>
+              <div style={{ flex: 1, minWidth: 180 }}>
+                <Field label="Medewerker zoeken">
+                  <Input placeholder='Naam medewerker…' value={filterMedewerker} onChange={e => setFilterMedewerker(e.target.value)} />
+                </Field>
+              </div>
             </div>
             {gefilterdeRapporten.length === 0 ? (
-              <div style={{ background: '#0a1628', borderRadius: 12, padding: 32, textAlign: 'center', color: 'var(--text-2)' }}>Geen rapporten gevonden.</div>
+              <Card>
+                <EmptyState icon={FileText} title="Geen rapporten gevonden" description="Pas de filters aan of wacht tot er rapporten gedeeld worden." />
+              </Card>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {gefilterdeRapporten.map(r => (
-                  <div key={r.id} style={{ background: '#0a1628', border: '1px solid #1e293b', borderRadius: 12, overflow: 'hidden' }}>
-                    <button onClick={() => setOpenRapport(openRapport === r.id ? null : r.id)} style={{ width: '100%', background: 'transparent', border: 'none', padding: '14px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', gap: 10 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0 }}>
-                        <span style={{ background: (TYPE_KLEUR[r.type] ?? 'var(--text-2)') + '20', color: TYPE_KLEUR[r.type] ?? 'var(--text-2)', border: '1px solid ' + (TYPE_KLEUR[r.type] ?? 'var(--text-2)') + '40', borderRadius: 5, padding: '2px 7px', fontSize: 11, fontWeight: 700, flexShrink: 0 }}>{TYPE_LABEL[r.type] ?? r.type}</span>
-                        <span style={{ color: 'var(--text-3)', fontSize: 12, flexShrink: 0 }}>{medewerkers[r.user_id]?.naam ?? 'Onbekend'}</span>
-                        <span style={{ fontWeight: 600, color: 'var(--border)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.titel}</span>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
-                        <span style={{ fontSize: 12, color: 'var(--text-2)' }}>{datumLabel(r.aangemaakt_op)}</span>
-                        <span style={{ color: 'var(--text-2)' }}>{openRapport === r.id ? '▲' : '▼'}</span>
-                      </div>
-                    </button>
-                    {openRapport === r.id && (
-                      <div style={{ padding: '0 18px 18px', borderTop: '1px solid #1e293b' }}>
-                        <div style={{ paddingTop: 14, color: 'var(--border)', fontSize: 14, lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>{r.inhoud}</div>
-                      </div>
-                    )}
-                  </div>
-                ))}
+                {gefilterdeRapporten.map(r => {
+                  const isOpen = openRapport === r.id
+                  const ts = TYPE_STYLE[r.type] ?? TYPE_STYLE.algemeen
+                  const panelId = `rapport-panel-${r.id}`
+                  return (
+                    <Card key={r.id} style={{ overflow: 'hidden' }}>
+                      <button
+                        type="button"
+                        aria-expanded={isOpen}
+                        aria-controls={panelId}
+                        onClick={() => setOpenRapport(isOpen ? null : r.id)}
+                        className="mf-rapport-trigger"
+                        style={{ width: '100%', background: 'transparent', border: 'none', padding: '14px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', gap: 10, textAlign: 'left' }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0 }}>
+                          <span style={{ background: ts.bg, color: ts.kleur, border: `1px solid ${ts.kleur}`, borderRadius: 'var(--radius-xs)', padding: '2px 7px', fontSize: 11, fontWeight: 700, flexShrink: 0 }}>{TYPE_LABEL[r.type] ?? r.type}</span>
+                          <span style={{ color: 'var(--text-3)', fontSize: 12, flexShrink: 0 }}>{medewerkers[r.user_id]?.naam ?? 'Onbekend'}</span>
+                          <span style={{ fontWeight: 600, color: 'var(--text-1)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.titel}</span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+                          <span style={{ fontSize: 12, color: 'var(--text-3)' }}>{datumLabel(r.aangemaakt_op)}</span>
+                          {isOpen ? <ChevronUp size={16} aria-hidden style={{ color: 'var(--text-3)' }} /> : <ChevronDown size={16} aria-hidden style={{ color: 'var(--text-3)' }} />}
+                        </div>
+                      </button>
+                      {isOpen && (
+                        <div id={panelId} style={{ padding: '0 18px 18px', borderTop: '1px solid var(--border)' }}>
+                          <div style={{ paddingTop: 14, color: 'var(--text-2)', fontSize: 14, lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>{r.inhoud}</div>
+                        </div>
+                      )}
+                    </Card>
+                  )
+                })}
               </div>
             )}
-          </div>
-        )}
+          </TabsContent>
+        </TabsRoot>
+        <style>{`
+          .mf-rapport-trigger:focus-visible {
+            outline: 2px solid var(--mentaforce-primary);
+            outline-offset: -2px;
+            border-radius: var(--radius-sm);
+          }
+        `}</style>
       </div>
     </HrShell>
   )

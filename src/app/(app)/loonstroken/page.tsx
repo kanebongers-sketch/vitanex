@@ -4,13 +4,25 @@ export const dynamic = 'force-dynamic'
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { Download, FileText, Info, Lock } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
+import { Button } from '@/components/ui/Button'
+import { Card } from '@/components/ui/Card'
+import { Badge } from '@/components/ui/Badge'
+import { EmptyState } from '@/components/ui/EmptyState'
+import { Table, THead, TBody, Tr, Th, Td } from '@/components/ui/Table'
+import { useToast } from '@/components/ui/Toast'
 
 import type { Loonstrook } from '@/lib/types'
 
+function euro(bedrag: number): string {
+  return `€${bedrag.toLocaleString('nl-BE', { minimumFractionDigits: 2 })}`
+}
+
 export default function LoonstrokenPage() {
   const router = useRouter()
+  const { toast } = useToast()
   const [laden,       setLaden]       = useState(true)
   const [loonstroken, setLoonstroken] = useState<Loonstrook[]>([])
   const [isHr,        setIsHr]        = useState(false)
@@ -38,10 +50,14 @@ export default function LoonstrokenPage() {
   }, [router])
 
   async function download(strook: Loonstrook) {
-    const { data } = await supabase.storage
+    const { data, error } = await supabase.storage
       .from('loonstroken')
       .createSignedUrl(strook.opslag_pad, 60)
-    if (data?.signedUrl) window.open(data.signedUrl, '_blank')
+    if (data?.signedUrl) {
+      window.open(data.signedUrl, '_blank')
+    } else {
+      toast({ title: 'Downloaden mislukt', description: error?.message ?? 'Probeer het later opnieuw.', variant: 'error' })
+    }
   }
 
   const jaarGroepen = loonstroken.reduce<Record<string, Loonstrook[]>>((acc, s) => {
@@ -64,14 +80,7 @@ export default function LoonstrokenPage() {
             </h1>
             <p className="text-sm mt-0.5" style={{ color: 'var(--text-3)' }}>Jouw salarisoverzicht</p>
           </div>
-          {isHr && (
-            <span
-              className="mf-badge text-xs"
-              style={{ background: 'var(--mf-blue-light, #E6F1FB)', color: 'var(--mf-blue, #185FA5)' }}
-            >
-              HR-beheer
-            </span>
-          )}
+          {isHr && <Badge variant="accent">HR-beheer</Badge>}
         </div>
 
         {laden ? (
@@ -79,117 +88,97 @@ export default function LoonstrokenPage() {
             <div className="mf-spinner" />
           </div>
         ) : loonstroken.length === 0 ? (
-          <div
-            className="rounded-2xl p-10 text-center"
-            style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)' }}
-          >
-            <div
-              className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"
-              style={{ background: 'var(--bg-subtle)', position: 'relative' }}
-            >
-              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
-                <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
-              </div>
-              <span className="text-3xl" style={{ position: 'relative', zIndex: 1 }}>💶</span>
-            </div>
-            <p className="text-sm font-semibold mb-1" style={{ color: 'var(--text-1)' }}>Nog geen loonstroken</p>
-            <p className="text-xs" style={{ color: 'var(--text-3)' }}>Loonstroken worden door HR geüpload.</p>
-          </div>
+          <Card>
+            <EmptyState
+              icon={FileText}
+              title="Nog geen loonstroken"
+              description="Loonstroken worden door HR geüpload."
+            />
+          </Card>
         ) : (
           <div className="flex flex-col gap-6">
             {Object.entries(jaarGroepen)
               .sort(([a], [b]) => Number(b) - Number(a))
               .map(([jaar, stroken]) => (
-                <div key={jaar}>
+                <section key={jaar}>
                   <p
                     className="text-xs font-bold uppercase tracking-widest mb-3 px-1"
                     style={{ color: 'var(--text-4)' }}
                   >
                     {jaar}
                   </p>
-                  <div className="flex flex-col gap-2">
-                    {stroken.map(s => (
-                      <div
-                        key={s.id}
-                        className="rounded-2xl px-4 py-4 flex items-center justify-between gap-3"
-                        style={{
-                          background: 'var(--bg-card)',
-                          border: '1px solid var(--border)',
-                          boxShadow: 'var(--shadow-xs)',
-                        }}
-                      >
-                        <div className="flex items-center gap-3">
-                          <div
-                            className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
-                            style={{ background: 'var(--mf-green-light, #E1F5EE)' }}
-                          >
-                            <span className="text-xl">💶</span>
-                          </div>
-                          <div>
-                            <p className="text-sm font-semibold" style={{ color: 'var(--text-1)' }}>{s.periode}</p>
-                            {s.netto_loon && (
-                              <p className="text-xs mt-0.5" style={{ color: 'var(--text-3)' }}>
-                                Netto:{' '}
-                                <strong style={{ color: 'var(--text-2)' }}>
-                                  €{s.netto_loon.toLocaleString('nl-BE', { minimumFractionDigits: 2 })}
-                                </strong>
-                                {s.bruto_loon && (
-                                  <span className="ml-2">
-                                    Bruto: €{s.bruto_loon.toLocaleString('nl-BE', { minimumFractionDigits: 2 })}
-                                  </span>
-                                )}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                        <button
-                          onClick={() => download(s)}
-                          className="mf-btn flex-shrink-0"
-                          style={{
-                            background: 'var(--mf-green-light, #E1F5EE)',
-                            color: 'var(--mf-green-dark, #0F6E56)',
-                            padding: '7px 14px',
-                            fontSize: 12,
-                            fontWeight: 600,
-                          }}
-                        >
-                          ↓ PDF
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                  <Table caption={`Loonstroken ${jaar}`}>
+                    <THead>
+                      <Tr>
+                        <Th scope="col">Periode</Th>
+                        <Th scope="col" align="right">Netto</Th>
+                        <Th scope="col" align="right">Bruto</Th>
+                        <Th scope="col" align="right">PDF</Th>
+                      </Tr>
+                    </THead>
+                    <TBody>
+                      {stroken.map(s => (
+                        <Tr key={s.id}>
+                          <Td>
+                            <div className="flex items-center gap-2.5">
+                              <span aria-hidden style={{
+                                display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                                width: 34, height: 34, borderRadius: 'var(--radius-md)',
+                                background: 'var(--mentaforce-primary-light)', color: 'var(--mentaforce-primary)', flexShrink: 0,
+                              }}>
+                                <FileText size={17} strokeWidth={1.75} />
+                              </span>
+                              <span style={{ fontWeight: 600, color: 'var(--text-1)' }}>{s.periode}</span>
+                            </div>
+                          </Td>
+                          <Td align="right" style={{ whiteSpace: 'nowrap', fontWeight: 700, color: 'var(--text-1)' }}>
+                            {s.netto_loon != null ? euro(s.netto_loon) : '—'}
+                          </Td>
+                          <Td align="right" style={{ whiteSpace: 'nowrap', color: 'var(--text-3)' }}>
+                            {s.bruto_loon != null ? euro(s.bruto_loon) : '—'}
+                          </Td>
+                          <Td align="right">
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              leftIcon={<Download size={15} aria-hidden />}
+                              onClick={() => download(s)}
+                              aria-label={`Download loonstrook ${s.periode} (PDF)`}
+                            >
+                              PDF
+                            </Button>
+                          </Td>
+                        </Tr>
+                      ))}
+                    </TBody>
+                  </Table>
+                </section>
               ))}
           </div>
         )}
 
         {/* Info block */}
-        <div
-          className="mt-6 rounded-2xl p-4"
-          style={{ background: 'var(--bg-subtle)', border: '1px solid var(--border)' }}
-        >
-          <p className="text-xs leading-relaxed" style={{ color: 'var(--text-3)' }}>
-            📌 Loonstroken zijn beveiligd en alleen zichtbaar voor jou.
-            Neem contact op met HR als er een fout staat of een strook ontbreekt.
+        <Card style={{ marginTop: 24, padding: 16 }}>
+          <p className="text-xs leading-relaxed flex items-start gap-2" style={{ color: 'var(--text-3)' }}>
+            <Lock size={14} aria-hidden style={{ flexShrink: 0, marginTop: 1, color: 'var(--mentaforce-primary)' }} />
+            <span>
+              Loonstroken zijn beveiligd en alleen zichtbaar voor jou.
+              Neem contact op met HR als er een fout staat of een strook ontbreekt.
+            </span>
           </p>
-        </div>
+        </Card>
 
         {isHr && (
-          <div
-            className="mt-3 rounded-2xl p-4"
-            style={{
-              background: 'var(--mf-blue-light, #E6F1FB)',
-              border: '1px solid rgba(24,95,165,0.2)',
-            }}
-          >
-            <p className="text-xs font-semibold mb-1" style={{ color: 'var(--mf-blue, #185FA5)' }}>
+          <Card style={{ marginTop: 12, padding: 16, borderColor: 'var(--mentaforce-primary)' }}>
+            <p className="text-xs font-semibold mb-1 flex items-center gap-2" style={{ color: 'var(--mentaforce-primary)' }}>
+              <Info size={14} aria-hidden style={{ flexShrink: 0 }} />
               HR: Loonstroken uploaden
             </p>
-            <p className="text-xs leading-relaxed" style={{ color: 'var(--mf-blue, #185FA5)', opacity: 0.8 }}>
+            <p className="text-xs leading-relaxed" style={{ color: 'var(--text-3)' }}>
               Upload PDF-bestanden via het Supabase Storage-dashboard in de bucket <code>loonstroken</code>.
               Het bestandspad moet het formaat <code>&#123;user_id&#125;/&#123;bestandsnaam&#125;.pdf</code> volgen.
             </p>
-          </div>
+          </Card>
         )}
       </main>
     </div>

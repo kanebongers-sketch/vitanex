@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 export const dynamic = 'force-dynamic'
 
@@ -7,6 +7,13 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
+import { Plus, X, ChevronDown, ChevronUp } from 'lucide-react'
+import { Card } from '@/components/ui/Card'
+import { Button } from '@/components/ui/Button'
+import { Field } from '@/components/ui/Field'
+import { Textarea } from '@/components/ui/Textarea'
+import { Progress } from '@/components/ui/Progress'
+import { useToast } from '@/components/ui/Toast'
 
 
 interface VraagStat {
@@ -37,8 +44,20 @@ const TYPE_LABELS: Record<string, string> = {
 
 const NPS_KLEUR = (score: number) => score >= 30 ? 'var(--mf-green)' : score >= 0 ? 'var(--mf-amber)' : 'var(--mf-red)'
 
+const SELECT_STYLE: React.CSSProperties = {
+  width: '100%',
+  border: '1px solid var(--border-strong)',
+  borderRadius: 'var(--radius-md)',
+  padding: '10px 14px',
+  fontSize: 14,
+  outline: 'none',
+  background: 'var(--bg-subtle)',
+  color: 'var(--text-1)',
+}
+
 export default function HrPulseSurveyPage() {
   const router = useRouter()
+  const { toast } = useToast()
   const [laden, setLaden] = useState(true)
   const [data, setData] = useState<SurveyData | null>(null)
   const [nieuw, setNieuw] = useState(false)
@@ -79,16 +98,22 @@ export default function HrPulseSurveyPage() {
       setType('scale')
       setNieuw(false)
       await laadData()
+      toast({ title: 'Vraag toegevoegd', variant: 'success' })
+    } else {
+      toast({ title: 'Toevoegen mislukt', description: 'Probeer het opnieuw.', variant: 'error' })
     }
     setToevoegen(false)
   }
 
   async function toggleActief(id: string, huidig: boolean) {
-    await authFetch('/api/hr/pulse-survey', {
+    const res = await authFetch('/api/hr/pulse-survey', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id, actief: !huidig }),
     })
+    if (!res.ok) {
+      toast({ title: 'Wijzigen mislukt', description: 'De status kon niet worden bijgewerkt.', variant: 'error' })
+    }
     await laadData()
   }
 
@@ -115,188 +140,208 @@ export default function HrPulseSurveyPage() {
               {participatie.respondenten} van {participatie.totaal} ingevuld ({participatie.pct}%)
             </p>
           </div>
-          <button
+          <Button
+            variant={nieuw ? 'secondary' : 'primary'}
+            size="sm"
+            leftIcon={nieuw ? <X size={15} aria-hidden /> : <Plus size={15} aria-hidden />}
             onClick={() => setNieuw(v => !v)}
-            style={{ padding: '10px 18px', borderRadius: 12, background: 'var(--mf-green)', color: 'white', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 13 }}
           >
-            {nieuw ? '✕ Annuleer' : '+ Vraag toevoegen'}
-          </button>
+            {nieuw ? 'Annuleer' : 'Vraag toevoegen'}
+          </Button>
         </div>
 
         {/* Participatie balk */}
-        <div style={{ background: 'var(--bg-card)', borderRadius: 14, border: '1px solid var(--border)', padding: '16px 20px', marginBottom: 16 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-            <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-2)' }}>Participatie deze week</p>
-            <div style={{ position: 'relative', display: 'inline-block' }}>
-              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
-                <div style={{ width: 60, height: 60, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
-              </div>
-              <p style={{ fontSize: 14, fontWeight: 800, color: 'var(--mf-green)', position: 'relative', zIndex: 1 }}>{participatie.pct}%</p>
-            </div>
-          </div>
-          <div style={{ height: 8, background: 'var(--bg-subtle)', borderRadius: 100, overflow: 'hidden' }}>
-            <div style={{ height: '100%', width: `${participatie.pct}%`, background: 'var(--mf-green)', borderRadius: 100 }} />
-          </div>
-          <p style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 5 }}>{participatie.respondenten} respondenten van {participatie.totaal} medewerkers</p>
-        </div>
+        <Card style={{ padding: '16px 20px', marginBottom: 16 }}>
+          <Progress
+            value={participatie.pct}
+            label="Participatie deze week"
+            showValue
+            color="var(--mf-green)"
+          />
+          <p style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 8 }}>{participatie.respondenten} respondenten van {participatie.totaal} medewerkers</p>
+        </Card>
 
         {/* Nieuw vraag formulier */}
         {nieuw && (
-          <div style={{ background: 'var(--bg-card)', borderRadius: 16, border: '1.5px solid #1D9E75', padding: '20px 22px', marginBottom: 16 }}>
+          <Card style={{ border: '1.5px solid var(--mentaforce-primary)', padding: '20px 22px', marginBottom: 16 }}>
             <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-2)', marginBottom: 14 }}>Nieuwe vraag</p>
-            <textarea
-              rows={2}
-              value={vraag}
-              onChange={e => setVraag(e.target.value)}
-              placeholder="Hoe tevreden ben je over...?"
-              style={{ width: '100%', border: '1px solid var(--border)', borderRadius: 10, padding: '10px 14px', fontSize: 14, outline: 'none', resize: 'none', boxSizing: 'border-box', marginBottom: 12 }}
-            />
-            <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
-              <div style={{ flex: 1 }}>
-                <p style={{ fontSize: 11, color: 'var(--text-3)', marginBottom: 5 }}>Type vraag</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <Field label="Vraag" required>
+                <Textarea
+                  rows={2}
+                  value={vraag}
+                  onChange={e => setVraag(e.target.value)}
+                  placeholder="Hoe tevreden ben je over...?"
+                  style={{ resize: 'none', minHeight: 0 }}
+                />
+              </Field>
+              <Field label="Type vraag">
                 <select
                   value={type}
                   onChange={e => setType(e.target.value as typeof type)}
-                  style={{ width: '100%', border: '1px solid var(--border)', borderRadius: 10, padding: '9px 12px', fontSize: 13, outline: 'none' }}
+                  style={SELECT_STYLE}
                 >
                   {Object.entries(TYPE_LABELS).map(([k, v]) => (
                     <option key={k} value={k}>{v}</option>
                   ))}
                 </select>
-              </div>
+              </Field>
+              {type === 'multiple_choice' && (
+                <Field label="Opties" hint="Eén optie per regel">
+                  <Textarea
+                    rows={4}
+                    value={optiesRaw}
+                    onChange={e => setOptiesRaw(e.target.value)}
+                    placeholder={"Altijd\nVaak\nSoms\nNooit"}
+                    style={{ resize: 'none' }}
+                  />
+                </Field>
+              )}
+              <Button
+                onClick={voegToe}
+                disabled={!vraag.trim()}
+                loading={toevoegen}
+                style={{ width: '100%' }}
+              >
+                {toevoegen ? 'Toevoegen…' : 'Vraag toevoegen'}
+              </Button>
             </div>
-            {type === 'multiple_choice' && (
-              <div style={{ marginBottom: 12 }}>
-                <p style={{ fontSize: 11, color: 'var(--text-3)', marginBottom: 5 }}>Opties (één per regel)</p>
-                <textarea
-                  rows={4}
-                  value={optiesRaw}
-                  onChange={e => setOptiesRaw(e.target.value)}
-                  placeholder={"Altijd\nVaak\nSoms\nNooit"}
-                  style={{ width: '100%', border: '1px solid var(--border)', borderRadius: 10, padding: '10px 14px', fontSize: 13, outline: 'none', resize: 'none', boxSizing: 'border-box' }}
-                />
-              </div>
-            )}
-            <button
-              onClick={voegToe}
-              disabled={!vraag.trim() || toevoegen}
-              style={{ width: '100%', padding: '11px', borderRadius: 12, background: 'var(--mf-green)', color: 'white', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 14, opacity: !vraag.trim() || toevoegen ? 0.5 : 1 }}
-            >
-              {toevoegen ? 'Toevoegen...' : 'Vraag toevoegen'}
-            </button>
-          </div>
+          </Card>
         )}
 
         {/* Vragenlijst */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {(data?.vragen ?? []).length === 0 && (
             <p style={{ fontSize: 13, color: 'var(--text-3)', textAlign: 'center', paddingTop: 40 }}>
-              Nog geen pulse survey vragen aangemaakt. Klik op "Vraag toevoegen" om te beginnen.
+              Nog geen pulse survey vragen aangemaakt. Klik op &quot;Vraag toevoegen&quot; om te beginnen.
             </p>
           )}
-          {(data?.vragen ?? []).map(v => (
-            <div key={v.id} style={{ background: 'var(--bg-card)', borderRadius: 14, border: '1px solid var(--border)', overflow: 'hidden' }}>
-              <div
-                style={{ padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 14, cursor: 'pointer' }}
-                onClick={() => setUitbreiden(uitbreiden === v.id ? null : v.id)}
-              >
-                {/* Toggle actief */}
-                <div
-                  onClick={e => { e.stopPropagation(); toggleActief(v.id, v.actief) }}
-                  style={{
-                    width: 36, height: 20, borderRadius: 100, position: 'relative', cursor: 'pointer', flexShrink: 0,
-                    background: v.actief ? 'var(--mf-green)' : 'var(--border)', transition: 'background 0.2s',
-                  }}
-                >
-                  <div style={{
-                    width: 14, height: 14, borderRadius: '50%', background: 'var(--bg-card)',
-                    position: 'absolute', top: 3, left: v.actief ? 19 : 3, transition: 'left 0.2s',
-                  }} />
-                </div>
+          {(data?.vragen ?? []).map(v => {
+            const isOpen = uitbreiden === v.id
+            return (
+              <Card key={v.id} style={{ overflow: 'hidden' }}>
+                <div style={{ padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 14 }}>
+                  {/* Toggle actief */}
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={v.actief}
+                    aria-label={`Vraag ${v.actief ? 'actief' : 'inactief'} — klik om te wisselen`}
+                    onClick={() => toggleActief(v.id, v.actief)}
+                    className="mf-pulse-switch"
+                    style={{
+                      width: 36, height: 20, borderRadius: 100, position: 'relative', cursor: 'pointer', flexShrink: 0,
+                      border: 'none', padding: 0,
+                      background: v.actief ? 'var(--mf-green)' : 'var(--border-strong)', transition: 'background 0.2s var(--ease)',
+                    }}
+                  >
+                    <span aria-hidden style={{
+                      display: 'block',
+                      width: 14, height: 14, borderRadius: '50%', background: 'var(--bg-card)',
+                      position: 'absolute', top: 3, left: v.actief ? 19 : 3, transition: 'left 0.2s var(--ease)',
+                    }} />
+                  </button>
 
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-1)', marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{v.vraag}</p>
-                  <p style={{ fontSize: 11, color: 'var(--text-3)' }}>{TYPE_LABELS[v.type]} · {v.aantal_antwoorden} antwoorden</p>
-                </div>
+                  <button
+                    type="button"
+                    aria-expanded={isOpen}
+                    onClick={() => setUitbreiden(isOpen ? null : v.id)}
+                    className="mf-pulse-expand"
+                    style={{
+                      flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 14,
+                      background: 'transparent', border: 'none', padding: 0, cursor: 'pointer', textAlign: 'left',
+                    }}
+                  >
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-1)', marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{v.vraag}</p>
+                      <p style={{ fontSize: 11, color: 'var(--text-3)' }}>{TYPE_LABELS[v.type]} · {v.aantal_antwoorden} antwoorden</p>
+                    </div>
 
-                {v.type === 'nps' && v.nps !== null && (
-                  <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                    <p style={{ fontSize: 14, fontWeight: 800, color: NPS_KLEUR(v.nps) }}>{v.nps > 0 ? '+' : ''}{v.nps}</p>
-                    <p style={{ fontSize: 10, color: 'var(--text-3)' }}>NPS</p>
-                  </div>
-                )}
-                {(v.type === 'scale') && v.gemiddelde !== null && (
-                  <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                    <p style={{ fontSize: 14, fontWeight: 800, color: 'var(--mf-green)' }}>{v.gemiddelde}/5</p>
-                    <p style={{ fontSize: 10, color: 'var(--text-3)' }}>gem.</p>
-                  </div>
-                )}
-
-                <span style={{ fontSize: 12, color: 'var(--text-3)', flexShrink: 0 }}>{uitbreiden === v.id ? '▲' : '▼'}</span>
-              </div>
-
-              {uitbreiden === v.id && v.aantal_antwoorden > 0 && (
-                <div style={{ borderTop: '1px solid #F3F4F6', padding: '16px 20px' }}>
-                  {v.type === 'scale' || v.type === 'nps' ? (
-                    <div>
-                      {v.type === 'nps' && v.nps !== null && (
-                        <div style={{ marginBottom: 14 }}>
-                          <div style={{ display: 'flex', gap: 12, marginBottom: 8 }}>
-                            {[
-                              { label: 'Detractors (0—6)', count: Object.entries(v.distributie).filter(([k]) => parseInt(k) <= 6).reduce((s, [, c]) => s + c, 0), kleur: 'var(--mf-red)' },
-                              { label: 'Passives (7—8)', count: Object.entries(v.distributie).filter(([k]) => [7, 8].includes(parseInt(k))).reduce((s, [, c]) => s + c, 0), kleur: 'var(--mf-amber)' },
-                              { label: 'Promoters (9—10)', count: Object.entries(v.distributie).filter(([k]) => parseInt(k) >= 9).reduce((s, [, c]) => s + c, 0), kleur: 'var(--mf-green)' },
-                            ].map(g => (
-                              <div key={g.label} style={{ flex: 1, background: `${g.kleur}12`, borderRadius: 10, padding: '10px 12px', textAlign: 'center' }}>
-                                <p style={{ fontSize: 16, fontWeight: 800, color: g.kleur }}>{g.count}</p>
-                                <p style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 2 }}>{g.label}</p>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                        {Object.entries(v.distributie)
-                          .sort((a, b) => parseInt(a[0]) - parseInt(b[0]))
-                          .map(([waarde, aantal]) => {
-                            const max = Math.max(...Object.values(v.distributie))
-                            return (
-                              <div key={waarde} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                                <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-2)', width: 24, textAlign: 'right' }}>{waarde}</span>
-                                <div style={{ flex: 1, height: 8, background: 'var(--bg-subtle)', borderRadius: 100, overflow: 'hidden' }}>
-                                  <div style={{ height: '100%', width: `${(aantal / max) * 100}%`, background: 'var(--mf-green)', borderRadius: 100 }} />
-                                </div>
-                                <span style={{ fontSize: 11, color: 'var(--text-3)', width: 24 }}>{aantal}</span>
-                              </div>
-                            )
-                          })}
+                    {v.type === 'nps' && v.nps !== null && (
+                      <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                        <p style={{ fontSize: 14, fontWeight: 800, color: NPS_KLEUR(v.nps) }}>{v.nps > 0 ? '+' : ''}{v.nps}</p>
+                        <p style={{ fontSize: 10, color: 'var(--text-3)' }}>NPS</p>
                       </div>
-                    </div>
-                  ) : v.type === 'multiple_choice' ? (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                      {Object.entries(v.distributie).map(([optie, aantal]) => {
-                        const max = Math.max(...Object.values(v.distributie))
-                        return (
-                          <div key={optie} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                            <span style={{ fontSize: 12, color: 'var(--text-2)', flex: 1 }}>{optie}</span>
-                            <div style={{ width: 120, height: 8, background: 'var(--bg-subtle)', borderRadius: 100, overflow: 'hidden' }}>
-                              <div style={{ height: '100%', width: `${(aantal / max) * 100}%`, background: 'var(--mf-green)', borderRadius: 100 }} />
-                            </div>
-                            <span style={{ fontSize: 11, color: 'var(--text-3)', width: 24 }}>{aantal}</span>
-                          </div>
-                        )
-                      })}
-                    </div>
-                  ) : (
-                    <p style={{ fontSize: 12, color: 'var(--text-3)' }}>Open antwoorden worden niet weergegeven om anonimiteit te bewaren.</p>
-                  )}
+                    )}
+                    {(v.type === 'scale') && v.gemiddelde !== null && (
+                      <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                        <p style={{ fontSize: 14, fontWeight: 800, color: 'var(--mf-green)' }}>{v.gemiddelde}/5</p>
+                        <p style={{ fontSize: 10, color: 'var(--text-3)' }}>gem.</p>
+                      </div>
+                    )}
+
+                    {isOpen ? <ChevronUp size={16} aria-hidden style={{ color: 'var(--text-3)', flexShrink: 0 }} /> : <ChevronDown size={16} aria-hidden style={{ color: 'var(--text-3)', flexShrink: 0 }} />}
+                  </button>
                 </div>
-              )}
-            </div>
-          ))}
+
+                {isOpen && v.aantal_antwoorden > 0 && (
+                  <div style={{ borderTop: '1px solid var(--border)', padding: '16px 20px' }}>
+                    {v.type === 'scale' || v.type === 'nps' ? (
+                      <div>
+                        {v.type === 'nps' && v.nps !== null && (
+                          <div style={{ marginBottom: 14 }}>
+                            <div style={{ display: 'flex', gap: 12, marginBottom: 8 }}>
+                              {[
+                                { label: 'Detractors (0—6)', count: Object.entries(v.distributie).filter(([k]) => parseInt(k) <= 6).reduce((s, [, c]) => s + c, 0), kleur: 'var(--mf-red)', bg: 'var(--mf-red-light)' },
+                                { label: 'Passives (7—8)', count: Object.entries(v.distributie).filter(([k]) => [7, 8].includes(parseInt(k))).reduce((s, [, c]) => s + c, 0), kleur: 'var(--mf-amber)', bg: 'var(--mf-amber-light)' },
+                                { label: 'Promoters (9—10)', count: Object.entries(v.distributie).filter(([k]) => parseInt(k) >= 9).reduce((s, [, c]) => s + c, 0), kleur: 'var(--mf-green)', bg: 'var(--mf-green-light)' },
+                              ].map(g => (
+                                <div key={g.label} style={{ flex: 1, background: g.bg, borderRadius: 'var(--radius-sm)', padding: '10px 12px', textAlign: 'center' }}>
+                                  <p style={{ fontSize: 16, fontWeight: 800, color: g.kleur }}>{g.count}</p>
+                                  <p style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 2 }}>{g.label}</p>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                          {Object.entries(v.distributie)
+                            .sort((a, b) => parseInt(a[0]) - parseInt(b[0]))
+                            .map(([waarde, aantal]) => {
+                              const max = Math.max(...Object.values(v.distributie))
+                              return (
+                                <div key={waarde} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                                  <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-2)', width: 24, textAlign: 'right' }}>{waarde}</span>
+                                  <Progress value={aantal} max={max || 1} ariaLabel={`Score ${waarde}: ${aantal} antwoorden`} color="var(--mf-green)" style={{ flex: 1 }} />
+                                  <span style={{ fontSize: 11, color: 'var(--text-3)', width: 24 }}>{aantal}</span>
+                                </div>
+                              )
+                            })}
+                        </div>
+                      </div>
+                    ) : v.type === 'multiple_choice' ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                        {Object.entries(v.distributie).map(([optie, aantal]) => {
+                          const max = Math.max(...Object.values(v.distributie))
+                          return (
+                            <div key={optie} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                              <span style={{ fontSize: 12, color: 'var(--text-2)', flex: 1 }}>{optie}</span>
+                              <Progress value={aantal} max={max || 1} ariaLabel={`${optie}: ${aantal} antwoorden`} color="var(--mf-green)" style={{ width: 120 }} />
+                              <span style={{ fontSize: 11, color: 'var(--text-3)', width: 24 }}>{aantal}</span>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    ) : (
+                      <p style={{ fontSize: 12, color: 'var(--text-3)' }}>Open antwoorden worden niet weergegeven om anonimiteit te bewaren.</p>
+                    )}
+                  </div>
+                )}
+              </Card>
+            )
+          })}
         </div>
+        <style>{`
+          .mf-pulse-switch:focus-visible, .mf-pulse-expand:focus-visible {
+            outline: 2px solid var(--mentaforce-primary);
+            outline-offset: 2px;
+            border-radius: var(--radius-xs);
+          }
+          @media (prefers-reduced-motion: reduce) {
+            .mf-pulse-switch, .mf-pulse-switch span { transition: none; }
+          }
+        `}</style>
       </main>
     </div>
   )
 }
-

@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 export const dynamic = 'force-dynamic'
 
@@ -7,6 +7,8 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
+import { Card } from '@/components/ui/Card'
+import { Chart, type ChartDatum } from '@/components/ui/Chart'
 
 
 interface ENPSData {
@@ -61,6 +63,12 @@ export default function HrENPSPage() {
   const npsKleur = NPS_KLEUR(data.nps)
   const totaal = data.promoters + data.passives + data.detractors || 1
 
+  const distributieData: ChartDatum[] = Array.from({ length: 11 }, (_, i) => ({
+    score: String(i),
+    aantal: data.distributie[String(i)] ?? 0,
+  }))
+  const heeftDistributie = Object.keys(data.distributie).length > 0
+
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
       <Navbar />
@@ -72,31 +80,26 @@ export default function HrENPSPage() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 16 }}>
           {[
             { label: 'eNPS score', waarde: data.nps !== null ? (data.nps > 0 ? '+' : '') + data.nps : '—', kleur: npsKleur },
-            { label: 'Respondenten', waarde: String(data.totaal_respondenten), kleur: 'var(--text-2)' },
-            { label: 'Participatie', waarde: `${data.participatie_pct}%`, kleur: 'var(--text-2)' },
+            { label: 'Respondenten', waarde: String(data.totaal_respondenten), kleur: 'var(--text-1)' },
+            { label: 'Participatie', waarde: `${data.participatie_pct}%`, kleur: 'var(--text-1)' },
             { label: 'Promoters', waarde: String(data.promoters), kleur: 'var(--mf-green)' },
           ].map(s => (
-            <div key={s.label} style={{ background: 'var(--bg-card)', borderRadius: 14, border: '1px solid var(--border)', padding: '16px 18px' }}>
-              <div style={{ position: 'relative', display: 'inline-block', marginBottom: 2 }}>
-                <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
-                  <div style={{ width: 70, height: 70, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
-                </div>
-                <p style={{ fontSize: 22, fontWeight: 800, color: s.kleur, position: 'relative', zIndex: 1 }}>{s.waarde}</p>
-              </div>
+            <Card key={s.label} style={{ padding: '16px 18px' }}>
+              <p style={{ fontSize: 22, fontWeight: 800, color: s.kleur }}>{s.waarde}</p>
               <p style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 4, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{s.label}</p>
-            </div>
+            </Card>
           ))}
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
           {/* Segmentbalk */}
-          <div style={{ background: 'var(--bg-card)', borderRadius: 16, border: '1px solid var(--border)', padding: '20px 22px' }}>
+          <Card style={{ padding: '20px 22px' }}>
             <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-2)', marginBottom: 14 }}>Verdeling respondenten</p>
             {data.totaal_respondenten === 0 ? (
               <p style={{ fontSize: 12, color: 'var(--text-3)' }}>Nog geen data</p>
             ) : (
               <>
-                <div style={{ height: 12, display: 'flex', borderRadius: 100, overflow: 'hidden', marginBottom: 14 }}>
+                <div role="img" aria-label={`Verdeling: ${data.detractors} detractors, ${data.passives} passives, ${data.promoters} promoters`} style={{ height: 12, display: 'flex', borderRadius: 100, overflow: 'hidden', marginBottom: 14 }}>
                   {[
                     { label: 'Detractors', count: data.detractors, kleur: 'var(--mf-red)' },
                     { label: 'Passives',   count: data.passives,   kleur: 'var(--mf-amber)' },
@@ -112,7 +115,7 @@ export default function HrENPSPage() {
                     { label: 'Detractors (0—6)', count: data.detractors, kleur: 'var(--mf-red)' },
                   ].map(g => (
                     <div key={g.label} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <div style={{ width: 10, height: 10, borderRadius: 3, background: g.kleur, flexShrink: 0 }} />
+                      <div aria-hidden style={{ width: 10, height: 10, borderRadius: 3, background: g.kleur, flexShrink: 0 }} />
                       <span style={{ fontSize: 12, color: 'var(--text-2)', flex: 1 }}>{g.label}</span>
                       <span style={{ fontSize: 13, fontWeight: 700, color: g.kleur }}>{g.count}</span>
                       <span style={{ fontSize: 11, color: 'var(--text-3)', width: 32, textAlign: 'right' }}>{Math.round((g.count / totaal) * 100)}%</span>
@@ -121,10 +124,10 @@ export default function HrENPSPage() {
                 </div>
               </>
             )}
-          </div>
+          </Card>
 
           {/* Trend */}
-          <div style={{ background: 'var(--bg-card)', borderRadius: 16, border: '1px solid var(--border)', padding: '20px 22px' }}>
+          <Card style={{ padding: '20px 22px' }}>
             <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-2)', marginBottom: 14 }}>eNPS trend (6 maanden)</p>
             {data.trend.length === 0 ? (
               <p style={{ fontSize: 12, color: 'var(--text-3)' }}>Nog geen historische data</p>
@@ -132,12 +135,13 @@ export default function HrENPSPage() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {data.trend.map(t => {
                   const kleur = NPS_KLEUR(t.nps)
+                  const maandLabel = new Date(t.maand + '-01').toLocaleDateString('nl-BE', { month: 'short' })
                   return (
                     <div key={t.maand} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                       <span style={{ fontSize: 11, color: 'var(--text-3)', width: 48, flexShrink: 0 }}>
-                        {new Date(t.maand + '-01').toLocaleDateString('nl-BE', { month: 'short' })}
+                        {maandLabel}
                       </span>
-                      <div style={{ flex: 1, height: 8, background: 'var(--bg-subtle)', borderRadius: 100, overflow: 'hidden' }}>
+                      <div role="img" aria-label={`${maandLabel}: eNPS ${t.nps !== null ? t.nps : 'geen data'}, ${t.respondenten} respondenten`} style={{ flex: 1, height: 8, background: 'var(--bg-subtle)', borderRadius: 100, overflow: 'hidden' }}>
                         {t.nps !== null && (
                           <div style={{ height: '100%', width: `${Math.min(100, ((t.nps + 100) / 200) * 100)}%`, background: kleur, borderRadius: 100 }} />
                         )}
@@ -151,36 +155,29 @@ export default function HrENPSPage() {
                 })}
               </div>
             )}
-          </div>
+          </Card>
         </div>
 
         {/* Scoredistributie */}
-        <div style={{ background: 'var(--bg-card)', borderRadius: 16, border: '1px solid var(--border)', padding: '20px 22px' }}>
+        <Card style={{ padding: '20px 22px' }}>
           <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-2)', marginBottom: 14 }}>Scoredistributie</p>
-          {Object.keys(data.distributie).length === 0 ? (
+          {!heeftDistributie ? (
             <p style={{ fontSize: 12, color: 'var(--text-3)' }}>Nog geen data</p>
           ) : (
-            <div style={{ display: 'flex', gap: 6, alignItems: 'flex-end', height: 80 }}>
-              {Array.from({ length: 11 }, (_, i) => {
-                const count = data.distributie[String(i)] ?? 0
-                const max = Math.max(...Object.values(data.distributie), 1)
-                const kleur = i >= 9 ? 'var(--mf-green)' : i >= 7 ? 'var(--mf-amber)' : 'var(--mf-red)'
-                return (
-                  <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-                    <div style={{ width: '100%', background: kleur, borderRadius: '3px 3px 0 0', height: count > 0 ? `${(count / max) * 60}px` : 2, opacity: count > 0 ? 1 : 0.2 }} />
-                    <span style={{ fontSize: 10, color: 'var(--text-3)', fontWeight: 600 }}>{i}</span>
-                    {count > 0 && <span style={{ fontSize: 9, color: kleur, fontWeight: 700 }}>{count}</span>}
-                  </div>
-                )
-              })}
-            </div>
+            <Chart
+              type="bar"
+              data={distributieData}
+              xKey="score"
+              series={[{ key: 'aantal', label: 'Aantal antwoorden', color: 'var(--mentaforce-primary)' }]}
+              height={140}
+              summary="Aantal antwoorden per eNPS-score van 0 tot 10."
+            />
           )}
           <p style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 12 }}>
             eNPS benchmarks: Excellent ≥ 50 · Goed ≥ 20 · Matig ≥ 0 · Negatief &lt; 0
           </p>
-        </div>
+        </Card>
       </main>
     </div>
   )
 }
-

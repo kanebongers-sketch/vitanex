@@ -4,37 +4,47 @@ export const dynamic = 'force-dynamic'
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
+import { Card } from '@/components/ui/Card'
+import { Button } from '@/components/ui/Button'
+import { Field } from '@/components/ui/Field'
+import { Input } from '@/components/ui/Input'
+import { Textarea } from '@/components/ui/Textarea'
+import { useToast } from '@/components/ui/Toast'
+import {
+  DialogRoot, DialogContent, DialogTitle, DialogDescription,
+} from '@/components/ui/Dialog'
+import { ArrowLeft, Check } from 'lucide-react'
 
 const CATEGORIEEN = [
-  { value: 'algemeen', label: 'Algemeen', icon: '📋' },
-  { value: 'arbo', label: 'Arbo & Veiligheid', icon: '🦺' },
-  { value: 'verzuim', label: 'Verzuim', icon: '🤒' },
-  { value: 'it', label: 'IT & Systemen', icon: '💻' },
-  { value: 'hr', label: 'HR & Onboarding', icon: '🚀' },
-  { value: 'veiligheid', label: 'Veiligheid', icon: '🛡️' },
-  { value: 'overig', label: 'Overig', icon: '🗂️' },
+  { value: 'algemeen', label: 'Algemeen' },
+  { value: 'arbo', label: 'Arbo & Veiligheid' },
+  { value: 'verzuim', label: 'Verzuim' },
+  { value: 'it', label: 'IT & Systemen' },
+  { value: 'hr', label: 'HR & Onboarding' },
+  { value: 'veiligheid', label: 'Veiligheid' },
+  { value: 'overig', label: 'Overig' },
 ]
-
-const ICONEN = ['📋', '🦺', '🤒', '💻', '🚀', '🛡️', '🗂️', '📌', '⚠️', '🔒', '📞', '🏥', '🚛', '🎓', '📱', '🔑', '📄', '✅']
-const KLEUREN = ['var(--mf-green)', 'var(--mf-red)', 'var(--mf-blue)', 'var(--mf-purple)', 'var(--mf-amber-dark)', 'var(--mf-blue)', 'var(--mf-rose)', 'var(--mf-green-dark)', 'var(--mf-amber-dark)', 'var(--text-2)']
 
 export default function NieuwProtocolPage() {
   const router = useRouter()
+  const { toast } = useToast()
   const [bedrijfId, setBedrijfId] = useState('')
   const [userId, setUserId] = useState('')
   const [bezig, setBezig] = useState(false)
   const [fout, setFout] = useState('')
+  const [bevestigVerlaten, setBevestigVerlaten] = useState(false)
 
   const [titel, setTitel] = useState('')
   const [beschrijving, setBeschrijving] = useState('')
   const [inhoud, setInhoud] = useState('# Titel\n\n## Sectie\n\nSchrijf hier de inhoud van het protocol...')
   const [categorie, setCategorie] = useState('algemeen')
-  const [icoon, setIcoon] = useState('📋')
-  const [kleur, setKleur] = useState('var(--mf-green)')
+  const [icoon] = useState('📋')
+  const [kleur] = useState('var(--mf-green)')
   const [gepubliceerd, setGepubliceerd] = useState(true)
+
+  const isAangepast = titel.trim() !== '' || beschrijving.trim() !== ''
 
   useEffect(() => {
     async function check() {
@@ -60,9 +70,25 @@ export default function NieuwProtocolPage() {
       titel: titel.trim(), beschrijving: beschrijving.trim() || null,
       inhoud: inhoud.trim(), categorie, icoon, kleur, gepubliceerd,
     })
-    if (error) { setFout('Opslaan mislukt: ' + error.message); setBezig(false); return }
+    if (error) {
+      setFout('Opslaan mislukt: ' + error.message)
+      toast({ title: 'Opslaan mislukt', description: error.message, variant: 'error' })
+      setBezig(false)
+      return
+    }
+    toast({ title: gepubliceerd ? 'Protocol gepubliceerd' : 'Concept opgeslagen', variant: 'success' })
     router.push('/hr/protocollen')
   }
+
+  function probeerAnnuleren() {
+    if (isAangepast) { setBevestigVerlaten(true); return }
+    router.push('/hr/protocollen')
+  }
+
+  // Fout-melding bepalen per veld voor aria-koppeling.
+  const titelFout = fout === 'Vul een titel in.' ? fout : undefined
+  const inhoudFout = fout === 'Vul de inhoud in.' ? fout : undefined
+  const algemeneFout = fout && !titelFout && !inhoudFout ? fout : undefined
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
@@ -71,138 +97,155 @@ export default function NieuwProtocolPage() {
       <div style={{ maxWidth: 680 }}>
 
         <div className="mb-6">
-          <div className="flex items-center gap-2 mb-1">
-            <Link href="/hr/protocollen" className="text-sm" style={{ color: 'var(--text-4)' }}>Protocollen</Link>
-            <span style={{ color: 'var(--text-4)' }}>/</span>
-            <span className="text-sm" style={{ color: 'var(--text-2)' }}>Nieuw</span>
-          </div>
+          <button
+            type="button"
+            onClick={probeerAnnuleren}
+            className="mf-pressable inline-flex items-center gap-1.5 text-sm mb-2"
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-3)', padding: 0, borderRadius: 'var(--radius-sm)' }}
+          >
+            <ArrowLeft size={15} aria-hidden />
+            Terug naar protocollen
+          </button>
           <h1 className="text-xl font-bold tracking-tight" style={{ color: 'var(--text-1)', letterSpacing: '-0.02em' }}>
             Protocol aanmaken
           </h1>
         </div>
 
         <div className="flex flex-col gap-4">
-          {/* Titel */}
-          <div className="rounded-2xl p-5" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-            <label className="text-xs font-bold uppercase tracking-wide block mb-2" style={{ color: 'var(--text-4)' }}>Titel *</label>
-            <input value={titel} onChange={e => setTitel(e.target.value)}
-              placeholder="bv. Verzuimprotocol 2026" className="mf-input w-full"
-              style={{ borderRadius: 12, fontSize: 15 }} />
-
-            <label className="text-xs font-bold uppercase tracking-wide block mb-2 mt-4" style={{ color: 'var(--text-4)' }}>
-              Korte beschrijving
-            </label>
-            <input value={beschrijving} onChange={e => setBeschrijving(e.target.value)}
-              placeholder="Wat staat er in dit protocol?" className="mf-input w-full"
-              style={{ borderRadius: 12, fontSize: 14 }} />
-          </div>
+          {/* Titel & beschrijving */}
+          <Card style={{ padding: '20px' }}>
+            <div className="flex flex-col gap-4">
+              <Field label="Titel" required error={titelFout}>
+                <Input
+                  value={titel}
+                  onChange={e => setTitel(e.target.value)}
+                  placeholder="bv. Verzuimprotocol 2026"
+                />
+              </Field>
+              <Field label="Korte beschrijving">
+                <Input
+                  value={beschrijving}
+                  onChange={e => setBeschrijving(e.target.value)}
+                  placeholder="Wat staat er in dit protocol?"
+                />
+              </Field>
+            </div>
+          </Card>
 
           {/* Categorie */}
-          <div className="rounded-2xl p-5" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-            <label className="text-xs font-bold uppercase tracking-wide block mb-3" style={{ color: 'var(--text-4)' }}>Categorie</label>
-            <div className="grid grid-cols-2 gap-2">
-              {CATEGORIEEN.map(cat => (
-                <button key={cat.value} onClick={() => setCategorie(cat.value)}
-                  className="flex items-center gap-2 px-3 py-2.5 rounded-xl border text-sm text-left transition"
-                  style={{
-                    background: categorie === cat.value ? kleur + '15' : 'var(--bg-subtle)',
-                    borderColor: categorie === cat.value ? kleur : 'var(--border)',
-                    color: categorie === cat.value ? kleur : 'var(--text-3)',
-                    fontWeight: categorie === cat.value ? 600 : 400,
-                  }}>
-                  <span>{cat.icon}</span><span>{cat.label}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Icoon & kleur */}
-          <div className="rounded-2xl p-5" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-            <label className="text-xs font-bold uppercase tracking-wide block mb-3" style={{ color: 'var(--text-4)' }}>Icoon</label>
-            <div className="flex flex-wrap gap-2 mb-5">
-              {ICONEN.map(ic => (
-                <button key={ic} onClick={() => setIcoon(ic)}
-                  className="w-10 h-10 rounded-xl text-xl flex items-center justify-center transition"
-                  style={{
-                    background: icoon === ic ? kleur + '18' : 'var(--bg-subtle)',
-                    border: icoon === ic ? `2px solid ${kleur}` : '1.5px solid var(--border)',
-                  }}>
-                  {ic}
-                </button>
-              ))}
-            </div>
-
-            <label className="text-xs font-bold uppercase tracking-wide block mb-3" style={{ color: 'var(--text-4)' }}>Kleur</label>
-            <div className="flex flex-wrap gap-2">
-              {KLEUREN.map(k => (
-                <button key={k} onClick={() => setKleur(k)}
-                  className="w-9 h-9 rounded-full transition"
-                  style={{
-                    background: k,
-                    border: kleur === k ? `3px solid ${k}` : '3px solid transparent',
-                    outline: kleur === k ? `2px solid ${k}40` : 'none',
-                    outlineOffset: 2,
-                  }} />
-              ))}
-            </div>
-          </div>
+          <Card style={{ padding: '20px' }}>
+            <fieldset style={{ border: 'none', margin: 0, padding: 0 }}>
+              <legend className="text-sm font-semibold mb-3" style={{ color: 'var(--text-2)' }}>Categorie</legend>
+              <div className="grid grid-cols-2 gap-2">
+                {CATEGORIEEN.map(cat => {
+                  const actief = categorie === cat.value
+                  return (
+                    <button
+                      key={cat.value}
+                      type="button"
+                      onClick={() => setCategorie(cat.value)}
+                      aria-pressed={actief}
+                      className="mf-pressable flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl text-sm text-left"
+                      style={{
+                        background: actief ? 'var(--mentaforce-primary-light)' : 'var(--bg-subtle)',
+                        border: `1px solid ${actief ? 'var(--mentaforce-primary)' : 'var(--border)'}`,
+                        color: actief ? 'var(--mentaforce-primary)' : 'var(--text-3)',
+                        fontWeight: actief ? 600 : 400,
+                        transition: 'background 0.15s var(--ease), border-color 0.15s var(--ease)',
+                      }}
+                    >
+                      <span>{cat.label}</span>
+                      {actief && <Check size={15} aria-hidden />}
+                    </button>
+                  )
+                })}
+              </div>
+            </fieldset>
+          </Card>
 
           {/* Inhoud (Markdown) */}
-          <div className="rounded-2xl p-5" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-            <div className="flex items-center justify-between mb-3">
-              <label className="text-xs font-bold uppercase tracking-wide" style={{ color: 'var(--text-4)' }}>
-                Inhoud (Markdown)
-              </label>
-              <span className="text-[11px] px-2 py-0.5 rounded-full" style={{ background: 'var(--bg-subtle)', color: 'var(--text-4)' }}>
-                # H1 &nbsp;## H2 &nbsp;**vet** &nbsp;- lijst
-              </span>
-            </div>
-            <textarea
-              value={inhoud}
-              onChange={e => setInhoud(e.target.value)}
-              rows={16}
-              className="mf-input resize-none w-full font-mono"
-              style={{ borderRadius: 12, fontSize: 13, lineHeight: 1.6 }}
-            />
-          </div>
+          <Card style={{ padding: '20px' }}>
+            <Field
+              label="Inhoud (Markdown)"
+              required
+              hint="Opmaak: # H1 · ## H2 · **vet** · - lijst"
+              error={inhoudFout}
+            >
+              <Textarea
+                value={inhoud}
+                onChange={e => setInhoud(e.target.value)}
+                rows={16}
+                style={{ fontFamily: 'var(--font-mono, ui-monospace, monospace)', fontSize: 14, lineHeight: 1.6, resize: 'none' }}
+              />
+            </Field>
+          </Card>
 
           {/* Publicatie */}
-          <div className="rounded-2xl p-5 flex items-center justify-between"
-            style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-            <div>
-              <p className="text-sm font-semibold" style={{ color: 'var(--text-1)' }}>Publiceren</p>
-              <p className="text-xs mt-0.5" style={{ color: 'var(--text-3)' }}>
-                {gepubliceerd ? 'Zichtbaar voor alle medewerkers' : 'Alleen zichtbaar voor HR (concept)'}
-              </p>
+          <Card style={{ padding: '20px' }}>
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="text-sm font-semibold" style={{ color: 'var(--text-1)' }}>Publiceren</p>
+                <p className="text-xs mt-0.5" style={{ color: 'var(--text-3)' }}>
+                  {gepubliceerd ? 'Zichtbaar voor alle medewerkers' : 'Alleen zichtbaar voor HR (concept)'}
+                </p>
+              </div>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={gepubliceerd}
+                aria-label="Protocol publiceren"
+                onClick={() => setGepubliceerd(!gepubliceerd)}
+                className="relative w-12 h-6 rounded-full flex-shrink-0"
+                style={{
+                  background: gepubliceerd ? 'var(--mentaforce-primary)' : 'var(--border-strong)',
+                  transition: 'background 0.15s var(--ease)',
+                  border: 'none', cursor: 'pointer',
+                }}
+              >
+                <span
+                  className="absolute top-0.5 w-5 h-5 rounded-full"
+                  style={{
+                    background: 'var(--bg-app)',
+                    transform: gepubliceerd ? 'translateX(26px)' : 'translateX(2px)',
+                    transition: 'transform 0.18s var(--ease)',
+                  }}
+                />
+              </button>
             </div>
-            <button
-              onClick={() => setGepubliceerd(!gepubliceerd)}
-              className="relative w-12 h-6 rounded-full transition-colors flex-shrink-0"
-              style={{ background: gepubliceerd ? 'var(--mf-green)' : 'var(--text-4)' }}
-            >
-              <span className="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform"
-                style={{ transform: gepubliceerd ? 'translateX(26px)' : 'translateX(2px)' }} />
-            </button>
-          </div>
+          </Card>
 
-          {fout && (
-            <div className="rounded-xl px-4 py-3" style={{ background: 'var(--mf-red-light)' }}>
-              <p className="text-sm" style={{ color: 'var(--mf-red)' }}>{fout}</p>
-            </div>
+          {algemeneFout && (
+            <p role="alert" aria-live="polite" className="text-sm" style={{ color: 'var(--mf-red)' }}>
+              {algemeneFout}
+            </p>
           )}
 
           <div className="flex gap-3">
-            <Link href="/hr/protocollen" className="mf-btn flex-1 text-center"
-              style={{ padding: '13px', background: 'var(--bg-subtle)', color: 'var(--text-2)', border: '1px solid var(--border)' }}>
+            <Button variant="secondary" onClick={probeerAnnuleren} style={{ flex: 1 }}>
               Annuleren
-            </Link>
-            <button onClick={opslaan} disabled={bezig} className="mf-btn mf-btn-primary flex-1"
-              style={{ padding: '13px', fontSize: 15 }}>
-              {bezig ? 'Opslaan...' : gepubliceerd ? 'Publiceren' : 'Als concept opslaan'}
-            </button>
+            </Button>
+            <Button onClick={opslaan} loading={bezig} disabled={bezig} style={{ flex: 1 }}>
+              {gepubliceerd ? 'Publiceren' : 'Als concept opslaan'}
+            </Button>
           </div>
         </div>
       </div>
+
+      {/* Niet-opgeslagen wijzigingen */}
+      <DialogRoot open={bevestigVerlaten} onOpenChange={setBevestigVerlaten}>
+        <DialogContent>
+          <DialogTitle>Pagina verlaten?</DialogTitle>
+          <DialogDescription>Je hebt niet-opgeslagen wijzigingen. Deze gaan verloren als je nu weggaat.</DialogDescription>
+          <div className="flex gap-3" style={{ marginTop: 24 }}>
+            <Button variant="secondary" onClick={() => setBevestigVerlaten(false)} style={{ flex: 1 }}>
+              Blijven
+            </Button>
+            <Button variant="danger" onClick={() => router.push('/hr/protocollen')} style={{ flex: 1 }}>
+              Verlaten
+            </Button>
+          </div>
+        </DialogContent>
+      </DialogRoot>
       </main>
     </div>
   )

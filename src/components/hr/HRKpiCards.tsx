@@ -1,11 +1,15 @@
 'use client'
 
+import { Card } from '@/components/ui/Card'
+import { Badge } from '@/components/ui/Badge'
+
+type BadgeVariant = 'neutral' | 'accent' | 'success' | 'warning' | 'danger'
+
 type KpiDef = {
   label: string
   value: string
   sub: string
-  color: string
-  bg: string
+  variant: BadgeVariant
   tab: string | null
 }
 
@@ -37,50 +41,44 @@ export default function HRKpiCards({
       label: 'Participatie',
       value: `${participatieRate}%`,
       sub: `${ingevuld}/${teamGrootte} check-ins`,
-      color: participatieRate >= 70 ? '#1D9E75' : participatieRate >= 40 ? '#BA7517' : '#E24B4A',
-      bg: participatieRate >= 70 ? '#E1F5EE' : participatieRate >= 40 ? '#FAEEDA' : '#FCEBEB',
+      variant: participatieRate >= 70 ? 'success' : participatieRate >= 40 ? 'warning' : 'danger',
       tab: null,
     },
     {
       label: 'Team signalen',
       value: String(signaalCount),
       sub: signaalCount === 0 ? 'Geen aandachtspunten' : `${signaalCount} risico${signaalCount !== 1 ? "'s" : ''}`,
-      color: signaalCount > 0 ? '#E24B4A' : '#1D9E75',
-      bg: signaalCount > 0 ? '#FCEBEB' : '#E1F5EE',
+      variant: signaalCount > 0 ? 'danger' : 'success',
       tab: 'signalen',
     },
     {
       label: 'Open verlof',
       value: String(pendingVerlof),
       sub: pendingVerlof === 0 ? 'Alles behandeld' : `${pendingVerlof} te behandelen`,
-      color: pendingVerlof > 0 ? '#BA7517' : '#1D9E75',
-      bg: pendingVerlof > 0 ? '#FAEEDA' : '#E1F5EE',
+      variant: pendingVerlof > 0 ? 'warning' : 'success',
       tab: 'verlof',
     },
     {
       label: 'Open declaraties',
       value: String(pendingDeclaraties),
       sub: pendingDeclaraties === 0 ? 'Alles behandeld' : `${pendingDeclaraties} te behandelen`,
-      color: pendingDeclaraties > 0 ? '#8B5CF6' : '#1D9E75',
-      bg: pendingDeclaraties > 0 ? '#EDE9FE' : '#E1F5EE',
+      variant: pendingDeclaraties > 0 ? 'accent' : 'success',
       tab: 'declaraties',
     },
     {
       label: 'Gesprekken',
       value: String(gesprekkenDezeMaand),
       sub: 'deze maand gepland',
-      color: gesprekkenDezeMaand > 0 ? '#185FA5' : '#9CA3AF',
-      bg: gesprekkenDezeMaand > 0 ? '#E6F1FB' : '#F3F4F6',
+      variant: gesprekkenDezeMaand > 0 ? 'accent' : 'neutral',
       tab: 'gesprekken',
     },
     ...(discIngevuld !== undefined ? [{
       label: 'DISC ingevuld',
       value: teamGrootte > 0 ? `${Math.round((discIngevuld / teamGrootte) * 100)}%` : '—',
       sub: `${discIngevuld}/${teamGrootte} medewerkers`,
-      color: teamGrootte > 0 && discIngevuld / teamGrootte >= 0.7 ? '#1D9E75' : discIngevuld > 0 ? '#BA7517' : '#9CA3AF',
-      bg: teamGrootte > 0 && discIngevuld / teamGrootte >= 0.7 ? '#E1F5EE' : discIngevuld > 0 ? '#FAEEDA' : '#F3F4F6',
+      variant: (teamGrootte > 0 && discIngevuld / teamGrootte >= 0.7 ? 'success' : discIngevuld > 0 ? 'warning' : 'neutral') as BadgeVariant,
       tab: null,
-    }] : []),
+    } satisfies KpiDef] : []),
   ]
 
   return (
@@ -88,23 +86,55 @@ export default function HRKpiCards({
       className="flex gap-3 mb-6 overflow-x-auto pb-1"
       style={{ WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' }}
     >
-      {kpis.map(kpi => (
-        <div
-          key={kpi.label}
-          onClick={() => kpi.tab && onTabSwitch(kpi.tab)}
-          className="bg-white rounded-2xl border border-gray-100 p-4 flex-shrink-0"
-          style={{
-            cursor: kpi.tab ? 'pointer' : 'default',
-            borderTop: `3px solid ${kpi.color}`,
-            minWidth: 140,
-            flex: '1 1 0',
-          }}
-        >
-          <p className="text-xs text-gray-400 mb-1 whitespace-nowrap">{kpi.label}</p>
-          <p className="text-2xl font-bold" style={{ color: kpi.color }}>{kpi.value}</p>
-          <p className="text-xs mt-1 leading-tight" style={{ color: kpi.color }}>{kpi.sub}</p>
-        </div>
-      ))}
+      {kpis.map(kpi => {
+        const clickable = kpi.tab !== null
+        const accessibleValue = `${kpi.label}: ${kpi.value}, ${kpi.sub}`
+
+        const inner = (
+          <>
+            <p style={{ fontSize: 12, color: 'var(--text-3)', marginBottom: 4, whiteSpace: 'nowrap' }}>
+              {kpi.label}
+            </p>
+            <p style={{ fontSize: 26, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.02em', lineHeight: 1.1 }}>
+              {kpi.value}
+            </p>
+            <div style={{ marginTop: 8 }}>
+              <Badge variant={kpi.variant}>{kpi.sub}</Badge>
+            </div>
+          </>
+        )
+
+        if (clickable) {
+          return (
+            <Card
+              key={kpi.label}
+              interactive
+              role="button"
+              aria-label={`${accessibleValue}. Open tabblad.`}
+              onClick={() => onTabSwitch(kpi.tab as string)}
+              onKeyDown={e => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  onTabSwitch(kpi.tab as string)
+                }
+              }}
+              style={{ padding: 16, minWidth: 150, flex: '1 1 0' }}
+            >
+              {inner}
+            </Card>
+          )
+        }
+
+        return (
+          <Card
+            key={kpi.label}
+            aria-label={accessibleValue}
+            style={{ padding: 16, minWidth: 150, flex: '1 1 0' }}
+          >
+            {inner}
+          </Card>
+        )
+      })}
     </div>
   )
 }

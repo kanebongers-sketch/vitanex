@@ -1,7 +1,20 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
+import { Lock, Plus, Trash2, Check } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { Button } from '@/components/ui/Button'
+import { Badge } from '@/components/ui/Badge'
+import { Field } from '@/components/ui/Field'
+import { Input } from '@/components/ui/Input'
+import { Textarea } from '@/components/ui/Textarea'
+import {
+  DialogRoot,
+  DialogContent,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/Dialog'
+import { TabsRoot, TabsList, TabsTrigger, TabsContent } from '@/components/ui/Tabs'
 
 export type Actiepunt = {
   tekst: string
@@ -33,13 +46,25 @@ type Props = {
   onSaved: () => void
 }
 
-const ACCENT = '#1D9E75'
 const TYPE_OPTIES = [
   { value: 'functionering', label: 'Functioneringsgesprek' },
   { value: 'beoordeling',   label: 'Beoordelingsgesprek' },
   { value: 'welzijn',       label: 'Welzijnsgesprek' },
   { value: 'overig',        label: 'Overig' },
 ]
+
+const selectStijl: React.CSSProperties = {
+  width: '100%',
+  padding: '10px 14px',
+  fontSize: 16,
+  lineHeight: 1.4,
+  color: 'var(--text-1)',
+  background: 'var(--bg-subtle)',
+  border: '1px solid var(--border-strong)',
+  borderRadius: 'var(--radius-md)',
+  outline: 'none',
+  boxSizing: 'border-box',
+}
 
 export default function GesprekModal({ gesprek, bedrijfId, hrUserId, medewerkers, onClose, onSaved }: Props) {
   const isNieuw = !gesprek?.id
@@ -57,12 +82,6 @@ export default function GesprekModal({ gesprek, bedrijfId, hrUserId, medewerkers
   const [bezig, setBezig] = useState(false)
   const [fout, setFout] = useState<string | null>(null)
   const [actieveTab, setActieveTab] = useState<'algemeen' | 'notities' | 'actiepunten'>('algemeen')
-
-  useEffect(() => {
-    function onKey(e: KeyboardEvent) { if (e.key === 'Escape') onClose() }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [onClose])
 
   function voegActiepuntToe() {
     if (!nieuwActiepunt.trim()) return
@@ -114,320 +133,266 @@ export default function GesprekModal({ gesprek, bedrijfId, hrUserId, medewerkers
     onSaved()
   }
 
-  const tabStijl = (tab: typeof actieveTab) => ({
-    padding: '8px 14px',
-    fontSize: 13,
-    fontWeight: 600,
-    border: 'none',
-    background: 'transparent',
-    cursor: 'pointer',
-    borderBottom: `2px solid ${actieveTab === tab ? ACCENT : 'transparent'}`,
-    color: actieveTab === tab ? ACCENT : '#6B7280',
-    transition: 'all 0.15s',
-  } as React.CSSProperties)
-
   return (
-    <div style={{
-      position: 'fixed', inset: 0, zIndex: 9999,
-      background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(3px)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      padding: 16,
-    }} onClick={e => { if (e.target === e.currentTarget) onClose() }}>
-      <div style={{
-        background: 'white', borderRadius: 16, width: '100%', maxWidth: 600,
-        maxHeight: '90vh', display: 'flex', flexDirection: 'column',
-        boxShadow: '0 24px 80px rgba(0,0,0,0.2)',
-      }}>
-
-        {/* Header */}
-        <div style={{ padding: '20px 24px 0', flexShrink: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-            <div>
-              <h2 style={{ fontSize: 17, fontWeight: 700, color: '#111', margin: 0 }}>
+    <DialogRoot open onOpenChange={(o) => { if (!o) onClose() }}>
+      <DialogContent
+        style={{
+          width: 'min(92vw, 600px)',
+          maxHeight: '90vh',
+          padding: 0,
+          display: 'flex',
+          flexDirection: 'column',
+        }}
+      >
+        <TabsRoot
+          value={actieveTab}
+          onValueChange={(v) => setActieveTab(v as typeof actieveTab)}
+          style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}
+        >
+          {/* Header */}
+          <div style={{ padding: '24px 24px 0', flexShrink: 0 }}>
+            <div style={{ marginBottom: 16, paddingRight: 40 }}>
+              <DialogTitle style={{ fontSize: 17, paddingRight: 0 }}>
                 {isNieuw ? 'Nieuw gesprek plannen' : 'Gesprek bewerken'}
-              </h2>
-              <p style={{ fontSize: 12, color: '#9CA3AF', marginTop: 2 }}>
+              </DialogTitle>
+              <DialogDescription style={{ fontSize: 12, marginTop: 4 }}>
                 {isNieuw ? 'Plan een 1-on-1 met een medewerker' : 'Pas de gespreksgegevens aan'}
-              </p>
+              </DialogDescription>
             </div>
-            <button onClick={onClose} style={{
-              width: 32, height: 32, borderRadius: '50%', border: 'none',
-              background: '#F3F4F6', cursor: 'pointer', display: 'flex',
-              alignItems: 'center', justifyContent: 'center', color: '#6B7280',
-            }}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-              </svg>
-            </button>
+
+            <TabsList>
+              <TabsTrigger value="algemeen">Algemeen</TabsTrigger>
+              <TabsTrigger value="notities">Notities</TabsTrigger>
+              <TabsTrigger value="actiepunten">
+                {`Actiepunten${actiepunten.length ? ` (${actiepunten.length})` : ''}`}
+              </TabsTrigger>
+            </TabsList>
           </div>
 
-          {/* Tabs */}
-          <div style={{ display: 'flex', gap: 0, borderBottom: '1px solid #E5E7EB' }}>
-            {(['algemeen', 'notities', 'actiepunten'] as const).map(tab => (
-              <button key={tab} style={tabStijl(tab)} onClick={() => setActieveTab(tab)}>
-                {tab === 'algemeen' ? 'Algemeen' : tab === 'notities' ? 'Notities' : `Actiepunten${actiepunten.length ? ` (${actiepunten.length})` : ''}`}
-              </button>
-            ))}
-          </div>
-        </div>
+          {/* Body */}
+          <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px', minHeight: 0 }}>
 
-        {/* Body */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px' }}>
-
-          {/* Tab: Algemeen */}
-          {actieveTab === 'algemeen' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              {/* Medewerker */}
-              <div>
-                <label style={labelStijl}>Medewerker *</label>
-                <select value={medewerkerId} onChange={e => setMedewerkerId(e.target.value)} style={inputStijl}>
-                  <option value="">Selecteer medewerker...</option>
-                  {medewerkers.map(m => (
-                    <option key={m.id} value={m.id}>{m.naam}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Datum + Type rij */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                <div>
-                  <label style={labelStijl}>Datum *</label>
-                  <input type="date" value={datum} onChange={e => setDatum(e.target.value)} style={inputStijl} />
-                </div>
-                <div>
-                  <label style={labelStijl}>Type gesprek *</label>
-                  <select value={type} onChange={e => setType(e.target.value as Gesprek['type'])} style={inputStijl}>
-                    {TYPE_OPTIES.map(o => (
-                      <option key={o.value} value={o.value}>{o.label}</option>
+            {/* Tab: Algemeen */}
+            <TabsContent value="algemeen" style={{ paddingTop: 0 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                {/* Medewerker */}
+                <Field label="Medewerker" required>
+                  <select value={medewerkerId} onChange={e => setMedewerkerId(e.target.value)} style={selectStijl}>
+                    <option value="">Selecteer medewerker...</option>
+                    {medewerkers.map(m => (
+                      <option key={m.id} value={m.id}>{m.naam}</option>
                     ))}
                   </select>
+                </Field>
+
+                {/* Datum + Type rij */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                  <Field label="Datum" required>
+                    <Input type="date" value={datum} onChange={e => setDatum(e.target.value)} />
+                  </Field>
+                  <Field label="Type gesprek" required>
+                    <select value={type} onChange={e => setType(e.target.value as Gesprek['type'])} style={selectStijl}>
+                      {TYPE_OPTIES.map(o => (
+                        <option key={o.value} value={o.value}>{o.label}</option>
+                      ))}
+                    </select>
+                  </Field>
+                </div>
+
+                {/* Onderwerp */}
+                <Field label="Onderwerp" required>
+                  <Input
+                    type="text"
+                    value={onderwerp}
+                    onChange={e => setOnderwerp(e.target.value)}
+                    placeholder="Bijv. Jaargesprek Q4, Terugkeer na ziekte..."
+                  />
+                </Field>
+
+                {/* Status + Follow-up rij */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                  <Field label="Status">
+                    <select value={status} onChange={e => setStatus(e.target.value as Gesprek['status'])} style={selectStijl}>
+                      <option value="gepland">Gepland</option>
+                      <option value="afgerond">Afgerond</option>
+                      <option value="geannuleerd">Geannuleerd</option>
+                    </select>
+                  </Field>
+                  <Field label="Follow-up datum">
+                    <Input type="date" value={followupDatum ?? ''} onChange={e => setFollowupDatum(e.target.value)} />
+                  </Field>
+                </div>
+
+                {/* Status badge preview */}
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                  <span style={{ fontSize: 12, color: 'var(--text-3)' }}>Status:</span>
+                  <StatusBadge status={status} />
                 </div>
               </div>
+            </TabsContent>
 
-              {/* Onderwerp */}
-              <div>
-                <label style={labelStijl}>Onderwerp *</label>
-                <input
-                  type="text"
-                  value={onderwerp}
-                  onChange={e => setOnderwerp(e.target.value)}
-                  placeholder="Bijv. Jaargesprek Q4, Terugkeer na ziekte..."
-                  style={inputStijl}
-                />
-              </div>
-
-              {/* Status + Follow-up rij */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                <div>
-                  <label style={labelStijl}>Status</label>
-                  <select value={status} onChange={e => setStatus(e.target.value as Gesprek['status'])} style={inputStijl}>
-                    <option value="gepland">Gepland</option>
-                    <option value="afgerond">Afgerond</option>
-                    <option value="geannuleerd">Geannuleerd</option>
-                  </select>
-                </div>
-                <div>
-                  <label style={labelStijl}>Follow-up datum</label>
-                  <input type="date" value={followupDatum ?? ''} onChange={e => setFollowupDatum(e.target.value)} style={inputStijl} />
-                </div>
-              </div>
-
-              {/* Status badge preview */}
-              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                <span style={{ fontSize: 12, color: '#9CA3AF' }}>Status:</span>
-                <StatusBadge status={status} />
-              </div>
-            </div>
-          )}
-
-          {/* Tab: Notities */}
-          {actieveTab === 'notities' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              <div style={{
-                background: '#FEF3C7', borderRadius: 8, padding: '10px 14px',
-                display: 'flex', gap: 8, alignItems: 'flex-start',
-              }}>
-                <span style={{ fontSize: 16 }}>🔒</span>
-                <div>
-                  <p style={{ fontSize: 12, fontWeight: 600, color: '#92400E', margin: 0 }}>Interne notities zijn alleen zichtbaar voor HR</p>
-                  <p style={{ fontSize: 11, color: '#B45309', marginTop: 2 }}>De samenvatting voor de medewerker is wel zichtbaar voor hen.</p>
-                </div>
-              </div>
-
-              <div>
-                <label style={labelStijl}>Interne notities (alleen HR)</label>
-                <textarea
-                  value={notitiesIntern}
-                  onChange={e => setNotitiesIntern(e.target.value)}
-                  placeholder="Vertrouwelijke aantekeningen, observaties, context..."
-                  rows={5}
-                  style={{ ...inputStijl, resize: 'vertical', fontFamily: 'inherit' }}
-                />
-              </div>
-
-              <div>
-                <label style={labelStijl}>Samenvatting voor medewerker</label>
-                <textarea
-                  value={samenvattingMedewerker}
-                  onChange={e => setSamenvattingMedewerker(e.target.value)}
-                  placeholder="Gedeelde samenvatting — medewerker kan dit lezen in hun app..."
-                  rows={4}
-                  style={{ ...inputStijl, resize: 'vertical', fontFamily: 'inherit' }}
-                />
-              </div>
-            </div>
-          )}
-
-          {/* Tab: Actiepunten */}
-          {actieveTab === 'actiepunten' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {actiepunten.length === 0 && (
+            {/* Tab: Notities */}
+            <TabsContent value="notities" style={{ paddingTop: 0 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                 <div style={{
-                  background: '#F9FAFB', borderRadius: 10, border: '2px dashed #E5E7EB',
-                  padding: '32px 24px', textAlign: 'center', color: '#9CA3AF', fontSize: 13,
+                  background: 'var(--mf-amber-light)', borderRadius: 'var(--radius-md)', padding: '10px 14px',
+                  border: '1px solid var(--mf-amber)',
+                  display: 'flex', gap: 10, alignItems: 'flex-start',
                 }}>
-                  Nog geen actiepunten. Voeg er een toe hieronder.
-                </div>
-              )}
-
-              {actiepunten.map((ap, idx) => (
-                <div key={idx} style={{
-                  background: '#FAFAFA', borderRadius: 10, padding: '12px 14px',
-                  border: `1.5px solid ${ap.gedaan ? '#D1FAE5' : '#E5E7EB'}`,
-                  display: 'flex', flexDirection: 'column', gap: 8,
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <button
-                      onClick={() => toggleActiepunt(idx)}
-                      style={{
-                        width: 20, height: 20, borderRadius: 5, flexShrink: 0,
-                        border: `2px solid ${ap.gedaan ? ACCENT : '#D1D5DB'}`,
-                        background: ap.gedaan ? ACCENT : 'white',
-                        cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      }}
-                    >
-                      {ap.gedaan && (
-                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3">
-                          <polyline points="20 6 9 17 4 12" />
-                        </svg>
-                      )}
-                    </button>
-                    <span style={{
-                      flex: 1, fontSize: 13, color: ap.gedaan ? '#9CA3AF' : '#374151',
-                      textDecoration: ap.gedaan ? 'line-through' : 'none',
-                    }}>{ap.tekst}</span>
-                    <button onClick={() => verwijderActiepunt(idx)} style={{
-                      width: 24, height: 24, borderRadius: 6, border: 'none',
-                      background: '#FEE2E2', cursor: 'pointer', display: 'flex',
-                      alignItems: 'center', justifyContent: 'center', color: '#DC2626', flexShrink: 0,
-                    }}>
-                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                        <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-                      </svg>
-                    </button>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, paddingLeft: 30 }}>
-                    <span style={{ fontSize: 11, color: '#9CA3AF' }}>Deadline:</span>
-                    <input
-                      type="date"
-                      value={ap.deadline ?? ''}
-                      onChange={e => stelDeadlineIn(idx, e.target.value)}
-                      style={{
-                        fontSize: 11, border: '1px solid #E5E7EB', borderRadius: 6,
-                        padding: '3px 8px', color: '#374151', background: 'white',
-                      }}
-                    />
-                    {ap.deadline && (
-                      <button onClick={() => stelDeadlineIn(idx, '')} style={{
-                        fontSize: 10, color: '#9CA3AF', background: 'none', border: 'none', cursor: 'pointer',
-                      }}>Wis</button>
-                    )}
+                  <Lock size={16} aria-hidden style={{ color: 'var(--mf-amber)', flexShrink: 0, marginTop: 1 }} />
+                  <div>
+                    <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-1)', margin: 0 }}>Interne notities zijn alleen zichtbaar voor HR</p>
+                    <p style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 2 }}>De samenvatting voor de medewerker is wel zichtbaar voor hen.</p>
                   </div>
                 </div>
-              ))}
 
-              {/* Nieuw actiepunt */}
-              <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
-                <input
-                  type="text"
-                  value={nieuwActiepunt}
-                  onChange={e => setNieuwActiepunt(e.target.value)}
-                  onKeyDown={e => { if (e.key === 'Enter') voegActiepuntToe() }}
-                  placeholder="Nieuw actiepunt toevoegen..."
-                  style={{ ...inputStijl, flex: 1, margin: 0 }}
-                />
-                <button
-                  onClick={voegActiepuntToe}
-                  disabled={!nieuwActiepunt.trim()}
-                  style={{
-                    background: ACCENT, color: 'white', border: 'none',
-                    borderRadius: 8, padding: '0 16px', cursor: 'pointer',
-                    fontSize: 13, fontWeight: 600, opacity: nieuwActiepunt.trim() ? 1 : 0.4,
-                  }}
-                >Toevoegen</button>
+                <Field label="Interne notities (alleen HR)">
+                  <Textarea
+                    value={notitiesIntern}
+                    onChange={e => setNotitiesIntern(e.target.value)}
+                    placeholder="Vertrouwelijke aantekeningen, observaties, context..."
+                    rows={5}
+                  />
+                </Field>
+
+                <Field label="Samenvatting voor medewerker">
+                  <Textarea
+                    value={samenvattingMedewerker}
+                    onChange={e => setSamenvattingMedewerker(e.target.value)}
+                    placeholder="Gedeelde samenvatting — medewerker kan dit lezen in hun app..."
+                    rows={4}
+                  />
+                </Field>
               </div>
-            </div>
-          )}
+            </TabsContent>
 
-          {fout && (
-            <div style={{
-              marginTop: 12, background: '#FEF2F2', border: '1px solid #FECACA',
-              borderRadius: 8, padding: '10px 14px', fontSize: 13, color: '#DC2626',
-            }}>{fout}</div>
-          )}
-        </div>
+            {/* Tab: Actiepunten */}
+            <TabsContent value="actiepunten" style={{ paddingTop: 0 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                {actiepunten.length === 0 && (
+                  <div style={{
+                    background: 'var(--bg-subtle)', borderRadius: 'var(--radius-md)', border: '1px dashed var(--border-strong)',
+                    padding: '32px 24px', textAlign: 'center', color: 'var(--text-3)', fontSize: 13,
+                  }}>
+                    Nog geen actiepunten. Voeg er een toe hieronder.
+                  </div>
+                )}
 
-        {/* Footer */}
-        <div style={{
-          padding: '16px 24px', borderTop: '1px solid #E5E7EB',
-          display: 'flex', gap: 10, justifyContent: 'flex-end', flexShrink: 0,
-        }}>
-          <button onClick={onClose} style={{
-            background: 'white', border: '1.5px solid #E5E7EB', borderRadius: 8,
-            padding: '9px 18px', fontSize: 13, fontWeight: 600, color: '#374151', cursor: 'pointer',
-          }}>Annuleren</button>
-          <button onClick={opslaan} disabled={bezig} style={{
-            background: ACCENT, color: 'white', border: 'none', borderRadius: 8,
-            padding: '9px 18px', fontSize: 13, fontWeight: 600, cursor: bezig ? 'default' : 'pointer',
-            opacity: bezig ? 0.7 : 1, minWidth: 100,
+                {actiepunten.map((ap, idx) => (
+                  <div key={idx} style={{
+                    background: 'var(--bg-subtle)', borderRadius: 'var(--radius-md)', padding: '12px 14px',
+                    border: `1px solid ${ap.gedaan ? 'var(--mentaforce-primary)' : 'var(--border-strong)'}`,
+                    display: 'flex', flexDirection: 'column', gap: 8,
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <button
+                        type="button"
+                        onClick={() => toggleActiepunt(idx)}
+                        aria-pressed={ap.gedaan}
+                        aria-label={ap.gedaan ? `Markeer "${ap.tekst}" als niet gedaan` : `Markeer "${ap.tekst}" als gedaan`}
+                        className="mf-pressable"
+                        style={{
+                          width: 20, height: 20, borderRadius: 5, flexShrink: 0,
+                          border: `2px solid ${ap.gedaan ? 'var(--mentaforce-primary)' : 'var(--border-strong)'}`,
+                          background: ap.gedaan ? 'var(--mentaforce-primary)' : 'transparent',
+                          cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        }}
+                      >
+                        {ap.gedaan && <Check size={12} aria-hidden style={{ color: 'var(--bg-app)' }} strokeWidth={3} />}
+                      </button>
+                      <span style={{
+                        flex: 1, fontSize: 13, color: ap.gedaan ? 'var(--text-3)' : 'var(--text-2)',
+                        textDecoration: ap.gedaan ? 'line-through' : 'none',
+                      }}>{ap.tekst}</span>
+                      <button
+                        type="button"
+                        onClick={() => verwijderActiepunt(idx)}
+                        aria-label={`Verwijder actiepunt "${ap.tekst}"`}
+                        className="mf-pressable"
+                        style={{
+                          width: 24, height: 24, borderRadius: 6, border: '1px solid var(--mf-red)',
+                          background: 'var(--mf-red-light)', cursor: 'pointer', display: 'flex',
+                          alignItems: 'center', justifyContent: 'center', color: 'var(--mf-red)', flexShrink: 0,
+                        }}
+                      >
+                        <Trash2 size={12} aria-hidden />
+                      </button>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, paddingLeft: 30 }}>
+                      <span style={{ fontSize: 11, color: 'var(--text-3)' }}>Deadline:</span>
+                      <Input
+                        type="date"
+                        value={ap.deadline ?? ''}
+                        onChange={e => stelDeadlineIn(idx, e.target.value)}
+                        aria-label={`Deadline voor "${ap.tekst}"`}
+                        style={{ width: 'auto', fontSize: 13, padding: '4px 10px' }}
+                      />
+                      {ap.deadline && (
+                        <Button variant="ghost" size="sm" onClick={() => stelDeadlineIn(idx, '')} style={{ padding: '4px 8px', fontSize: 11 }}>
+                          Wis
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+
+                {/* Nieuw actiepunt */}
+                <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+                  <Input
+                    type="text"
+                    value={nieuwActiepunt}
+                    onChange={e => setNieuwActiepunt(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter') voegActiepuntToe() }}
+                    placeholder="Nieuw actiepunt toevoegen..."
+                    aria-label="Nieuw actiepunt"
+                    style={{ flex: 1 }}
+                  />
+                  <Button
+                    onClick={voegActiepuntToe}
+                    disabled={!nieuwActiepunt.trim()}
+                    leftIcon={<Plus size={15} aria-hidden />}
+                  >
+                    Toevoegen
+                  </Button>
+                </div>
+              </div>
+            </TabsContent>
+
+            {fout && (
+              <div role="alert" style={{
+                marginTop: 12, background: 'var(--mf-red-light)', border: '1px solid var(--mf-red)',
+                borderRadius: 'var(--radius-md)', padding: '10px 14px', fontSize: 13, color: 'var(--mf-red)',
+              }}>{fout}</div>
+            )}
+          </div>
+
+          {/* Footer */}
+          <div style={{
+            padding: '16px 24px', borderTop: '1px solid var(--border)',
+            display: 'flex', gap: 10, justifyContent: 'flex-end', flexShrink: 0,
           }}>
-            {bezig ? 'Opslaan...' : isNieuw ? 'Gesprek plannen' : 'Wijzigingen opslaan'}
-          </button>
-        </div>
-      </div>
-    </div>
+            <Button variant="secondary" onClick={onClose}>Annuleren</Button>
+            <Button onClick={opslaan} loading={bezig} style={{ minWidth: 100 }}>
+              {isNieuw ? 'Gesprek plannen' : 'Wijzigingen opslaan'}
+            </Button>
+          </div>
+        </TabsRoot>
+      </DialogContent>
+    </DialogRoot>
   )
 }
 
 export function StatusBadge({ status }: { status: Gesprek['status'] }) {
-  const map = {
-    gepland:     { label: 'Gepland',     bg: '#EFF6FF', color: '#1D4ED8' },
-    afgerond:    { label: 'Afgerond',    bg: '#E1F5EE', color: '#0F6E56' },
-    geannuleerd: { label: 'Geannuleerd', bg: '#F3F4F6', color: '#6B7280' },
+  const map: Record<Gesprek['status'], { label: string; variant: 'accent' | 'success' | 'neutral'; dot: string }> = {
+    gepland:     { label: 'Gepland',     variant: 'accent',  dot: 'var(--mentaforce-primary)' },
+    afgerond:    { label: 'Afgerond',    variant: 'success', dot: 'var(--mf-green)' },
+    geannuleerd: { label: 'Geannuleerd', variant: 'neutral', dot: 'var(--text-3)' },
   }
   const s = map[status]
   return (
-    <span style={{
-      display: 'inline-flex', alignItems: 'center', gap: 4,
-      background: s.bg, color: s.color,
-      borderRadius: 20, padding: '3px 10px', fontSize: 11, fontWeight: 600,
-    }}>
-      <span style={{
-        width: 5, height: 5, borderRadius: '50%', background: s.color, flexShrink: 0,
-      }} />
+    <Badge variant={s.variant}>
+      <span aria-hidden style={{ width: 5, height: 5, borderRadius: '50%', background: s.dot, flexShrink: 0 }} />
       {s.label}
-    </span>
+    </Badge>
   )
-}
-
-const labelStijl: React.CSSProperties = {
-  display: 'block', fontSize: 12, fontWeight: 600, color: '#374151',
-  marginBottom: 6, letterSpacing: '0.01em',
-}
-
-const inputStijl: React.CSSProperties = {
-  width: '100%', padding: '9px 12px', fontSize: 13, color: '#111',
-  border: '1.5px solid #E5E7EB', borderRadius: 8, background: 'white',
-  outline: 'none', boxSizing: 'border-box',
-  transition: 'border-color 0.15s',
 }

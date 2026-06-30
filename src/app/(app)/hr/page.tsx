@@ -5,16 +5,28 @@ export const dynamic = 'force-dynamic'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import {
+  Home, MessageSquare, Users, CheckCircle2, HeartPulse,
+  FileText, FolderOpen, Palmtree, Banknote, TrendingUp,
+  GripVertical, X, LayoutGrid, ChevronRight, Check,
+  type LucideIcon,
+} from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { ALLE_TILES, DEFAULT_TILES, type TileId } from '@/lib/tiles'
 import GesprekkenTab from '@/components/hr/GesprekkenTab'
+import { Card } from '@/components/ui/Card'
+import { Button } from '@/components/ui/Button'
+import { Progress } from '@/components/ui/Progress'
+import { EmptyState } from '@/components/ui/EmptyState'
+import { useToast } from '@/components/ui/Toast'
 
 
 type HrTab = 'portaal' | 'gesprekken'
 
 export default function HrDashboardPage() {
   const router = useRouter()
+  const { toast } = useToast()
   const [naam, setNaam] = useState<string>('')
   const [bedrijfId, setBedrijfId] = useState<string | null>(null)
   const [hrUserId, setHrUserId] = useState<string | null>(null)
@@ -134,17 +146,24 @@ export default function HrDashboardPage() {
 
   async function opslaan() {
     setBezig(true)
-    await supabase.from('portaal_config').upsert(
+    const { error } = await supabase.from('portaal_config').upsert(
       { bedrijf_id: bedrijfId, tiles: volgorde.filter(t => actief.has(t)), updated_at: new Date().toISOString() },
       { onConflict: 'bedrijf_id' }
     )
-    setOpgeslagen(true); setBezig(false)
+    if (error) {
+      toast({ title: 'Opslaan mislukt', description: 'Probeer het opnieuw.', variant: 'error' })
+      setBezig(false)
+      return
+    }
+    setOpgeslagen(true)
+    setBezig(false)
+    toast({ title: 'Portaal opgeslagen', variant: 'success' })
   }
 
   const actiefTiles = volgorde.filter(id => actief.has(id)).map(id => ALLE_TILES.find(t => t.id === id)).filter((t): t is typeof ALLE_TILES[number] => t !== undefined)
   const inactiefTiles = ALLE_TILES.filter(t => !actief.has(t.id))
 
-  const ACCENT = 'var(--mf-green)'
+  const ACCENT = 'var(--mentaforce-primary)'
 
   if (!geladen) return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
@@ -163,7 +182,7 @@ export default function HrDashboardPage() {
         {/* ── PAGE HEADER ── */}
         <div style={{ marginBottom: 20 }}>
           <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-1)', letterSpacing: '-0.02em', marginBottom: 4 }}>
-            Goedendag, {naam.split(' ')[0]} 👋
+            Goedendag, {naam.split(' ')[0]}
           </h1>
           <p style={{ color: 'var(--text-2)', fontSize: 14 }}>
             Beheer het portaal en volg de vitaliteit van je team.
@@ -171,18 +190,24 @@ export default function HrDashboardPage() {
         </div>
 
         {/* ── TABS ── */}
-        <div style={{ display: 'flex', gap: 0, borderBottom: '1px solid var(--border)', marginBottom: 28 }}>
-          {([['portaal', 'Portaal beheren'], ['gesprekken', 'HR Gesprekken']] as const).map(([tab, label]) => (
-            <button key={tab} onClick={() => setActieveTab(tab)} style={{
-              padding: '10px 18px', fontSize: 13, fontWeight: 600, border: 'none',
-              background: 'transparent', cursor: 'pointer',
-              borderBottom: `2px solid ${actieveTab === tab ? ACCENT : 'transparent'}`,
-              color: actieveTab === tab ? ACCENT : 'var(--text-2)',
-              transition: 'all 0.15s',
-            }}>
-              {tab === 'gesprekken' ? '💬 ' : '🏠 '}{label}
-            </button>
-          ))}
+        <div role="tablist" aria-label="HR weergave" style={{ display: 'flex', gap: 0, borderBottom: '1px solid var(--border)', marginBottom: 28 }}>
+          {([['portaal', 'Portaal beheren', Home], ['gesprekken', 'HR Gesprekken', MessageSquare]] as const).map(([tab, label, Icon]) => {
+            const isActief = actieveTab === tab
+            return (
+              <button key={tab} role="tab" aria-selected={isActief} onClick={() => setActieveTab(tab)}
+                className="mf-hr-tab"
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 6,
+                  padding: '10px 18px', fontSize: 13, fontWeight: 600, border: 'none',
+                  background: 'transparent', cursor: 'pointer',
+                  borderBottom: `2px solid ${isActief ? ACCENT : 'transparent'}`,
+                  color: isActief ? ACCENT : 'var(--text-2)',
+                  transition: 'color 0.15s var(--ease), border-color 0.15s var(--ease)',
+                }}>
+                <Icon size={15} aria-hidden />{label}
+              </button>
+            )
+          })}
         </div>
 
         {/* ── GESPREKKEN TAB ── */}
@@ -194,25 +219,24 @@ export default function HrDashboardPage() {
 
         {/* ── STATS ROW ── */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 32 }}>
-          {[
-            { label: 'Medewerkers',    value: stats.medewerkers, icon: '👥', color: 'var(--mf-blue)', bg: 'var(--mf-blue-light)' },
-            { label: 'Check-ins (7d)', value: stats.checkins,    icon: '✅', color: 'var(--mf-green)', bg: 'var(--mf-green-light)' },
-            { label: 'Gem. vitaalscore', value: stats.gemScore ? `${stats.gemScore}/100` : '—', icon: '💚', color: 'var(--mf-purple)', bg: 'var(--mf-purple-light)' },
-          ].map(s => (
-            <div key={s.label} style={{
-              background: 'var(--bg-card)', borderRadius: 12, padding: '18px 20px',
-              border: '1px solid var(--border)', boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
-              transition: 'transform 0.18s ease, box-shadow 0.18s ease', cursor: 'default',
-            }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-1px)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 6px 18px rgba(0,0,0,0.08)' }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(0)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 1px 4px rgba(0,0,0,0.05)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                <p style={{ fontSize: 12, color: 'var(--text-3)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{s.label}</p>
-                <div style={{ width: 32, height: 32, borderRadius: 8, background: s.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>{s.icon}</div>
-              </div>
-              <p style={{ fontSize: 26, fontWeight: 800, letterSpacing: '-0.02em', background: `linear-gradient(135deg, ${s.color}cc, ${s.color})`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{s.value}</p>
-            </div>
-          ))}
+          {([
+            { label: 'Medewerkers',    value: stats.medewerkers, icon: Users, iconBg: 'var(--mf-blue-light)', iconColor: 'var(--mf-blue)' },
+            { label: 'Check-ins (7d)', value: stats.checkins,    icon: CheckCircle2, iconBg: 'var(--mentaforce-primary-light)', iconColor: 'var(--mentaforce-primary)' },
+            { label: 'Gem. vitaalscore', value: stats.gemScore ? `${stats.gemScore}/100` : '—', icon: HeartPulse, iconBg: 'var(--mf-purple-light)', iconColor: 'var(--mf-purple)' },
+          ] as const).map(s => {
+            const Icon = s.icon
+            return (
+              <Card key={s.label} interactive aria-label={`${s.label}: ${s.value}`} style={{ padding: '18px 20px', cursor: 'default' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                  <p style={{ fontSize: 12, color: 'var(--text-3)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{s.label}</p>
+                  <div style={{ width: 32, height: 32, borderRadius: 'var(--radius-sm)', background: s.iconBg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Icon size={17} aria-hidden style={{ color: s.iconColor }} />
+                  </div>
+                </div>
+                <p style={{ fontSize: 26, fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--text-1)' }}>{s.value}</p>
+              </Card>
+            )
+          })}
         </div>
 
         {/* ── ANALYTICS SECTIE ── */}
@@ -225,41 +249,45 @@ export default function HrDashboardPage() {
 
               {/* Burn-out risico */}
               {analytics.burnout_distributie && (
-                <div style={{ background: 'var(--bg-card)', borderRadius: 14, padding: '16px', border: '1px solid var(--border)' }}>
+                <Card style={{ padding: 16 }}>
                   <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 12 }}>Burn-out risico</p>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                     {[
-                      { label: 'Laag', count: analytics.burnout_distributie.laag, kleur: 'var(--mf-green)' },
+                      { label: 'Laag', count: analytics.burnout_distributie.laag, kleur: 'var(--mentaforce-primary)' },
                       { label: 'Matig', count: analytics.burnout_distributie.matig, kleur: 'var(--mf-amber)' },
                       { label: 'Hoog', count: analytics.burnout_distributie.hoog, kleur: 'var(--mf-red)' },
                     ].map(b => {
                       const totaal = analytics.burnout_distributie!.laag + analytics.burnout_distributie!.matig + analytics.burnout_distributie!.hoog
                       const pct = totaal > 0 ? Math.round((b.count / totaal) * 100) : 0
                       return (
-                        <div key={b.label}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 2 }}>
-                            <span style={{ fontSize: 11, color: 'var(--text-2)' }}>{b.label}</span>
-                            <span style={{ fontSize: 11, fontWeight: 700, color: b.kleur }}>{b.count} ({pct}%)</span>
-                          </div>
-                          <div style={{ height: 4, borderRadius: 9999, background: 'var(--bg-subtle)', overflow: 'hidden' }}>
-                            <div style={{ height: '100%', borderRadius: 9999, background: b.kleur, width: `${pct}%` }} />
-                          </div>
-                        </div>
+                        <Progress
+                          key={b.label}
+                          value={pct}
+                          color={b.kleur}
+                          thickness={6}
+                          ariaLabel={`Burn-out risico ${b.label}: ${b.count} medewerkers, ${pct} procent`}
+                          label={
+                            <span style={{ fontSize: 11, color: 'var(--text-2)' }}>
+                              {b.label}{' '}
+                              <span style={{ fontWeight: 700, color: b.kleur }}>{b.count} ({pct}%)</span>
+                            </span>
+                          }
+                        />
                       )
                     })}
                   </div>
-                </div>
+                </Card>
               )}
 
               {/* eNPS */}
               {analytics.enps_score !== null && analytics.enps_score !== undefined && (
-                <div style={{ background: 'var(--bg-card)', borderRadius: 14, padding: '16px', border: '1px solid var(--border)' }}>
+                <Card style={{ padding: 16 }}>
                   <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>eNPS score</p>
                   <div style={{ position: 'relative', display: 'inline-block', marginBottom: 4 }}>
-                    <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
-                      <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
+                    <div aria-hidden style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
+                      <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'radial-gradient(circle, var(--mentaforce-primary-light) 0%, transparent 70%)' }} />
                     </div>
-                    <p style={{ fontSize: 32, fontWeight: 800, color: analytics.enps_score >= 30 ? 'var(--mf-green)' : analytics.enps_score >= 0 ? 'var(--mf-amber)' : 'var(--mf-red)', lineHeight: 1, position: 'relative', zIndex: 1 }}>
+                    <p style={{ fontSize: 32, fontWeight: 800, color: analytics.enps_score >= 30 ? 'var(--mentaforce-primary)' : analytics.enps_score >= 0 ? 'var(--mf-amber)' : 'var(--mf-red)', lineHeight: 1, position: 'relative', zIndex: 1 }}>
                       {analytics.enps_score > 0 ? '+' : ''}{analytics.enps_score}
                     </p>
                   </div>
@@ -267,44 +295,44 @@ export default function HrDashboardPage() {
                   <p style={{ fontSize: 11, color: 'var(--text-2)', marginTop: 6 }}>
                     {analytics.enps_score >= 30 ? 'Uitstekend!' : analytics.enps_score >= 0 ? 'Verbetering mogelijk' : 'Actie vereist'}
                   </p>
-                </div>
+                </Card>
               )}
 
               {/* Werkgeluk */}
               {analytics.werkgeluk_gemiddeld !== null && analytics.werkgeluk_gemiddeld !== undefined && (
-                <div style={{ background: 'var(--bg-card)', borderRadius: 14, padding: '16px', border: '1px solid var(--border)' }}>
+                <Card style={{ padding: 16 }}>
                   <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>Werkgeluk</p>
                   <div style={{ position: 'relative', display: 'inline-block', marginBottom: 4 }}>
-                    <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
-                      <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
+                    <div aria-hidden style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
+                      <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'radial-gradient(circle, var(--mentaforce-primary-light) 0%, transparent 70%)' }} />
                     </div>
-                    <p style={{ fontSize: 32, fontWeight: 800, color: analytics.werkgeluk_gemiddeld >= 4 ? 'var(--mf-green)' : analytics.werkgeluk_gemiddeld >= 3 ? 'var(--mf-amber)' : 'var(--mf-red)', lineHeight: 1, position: 'relative', zIndex: 1 }}>
+                    <p style={{ fontSize: 32, fontWeight: 800, color: analytics.werkgeluk_gemiddeld >= 4 ? 'var(--mentaforce-primary)' : analytics.werkgeluk_gemiddeld >= 3 ? 'var(--mf-amber)' : 'var(--mf-red)', lineHeight: 1, position: 'relative', zIndex: 1 }}>
                       {analytics.werkgeluk_gemiddeld}/5
                     </p>
                   </div>
                   <p style={{ fontSize: 11, color: 'var(--text-3)' }}>Gemiddeld team</p>
-                </div>
+                </Card>
               )}
 
               {/* Psych veiligheid */}
               {analytics.psych_veiligheid_gemiddeld !== null && analytics.psych_veiligheid_gemiddeld !== undefined && (
-                <div style={{ background: 'var(--bg-card)', borderRadius: 14, padding: '16px', border: '1px solid var(--border)' }}>
+                <Card style={{ padding: 16 }}>
                   <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>Psych. veiligheid</p>
                   <div style={{ position: 'relative', display: 'inline-block', marginBottom: 4 }}>
-                    <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
-                      <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
+                    <div aria-hidden style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
+                      <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'radial-gradient(circle, var(--mentaforce-primary-light) 0%, transparent 70%)' }} />
                     </div>
-                    <p style={{ fontSize: 32, fontWeight: 800, color: analytics.psych_veiligheid_gemiddeld >= 4 ? 'var(--mf-green)' : analytics.psych_veiligheid_gemiddeld >= 3 ? 'var(--mf-amber)' : 'var(--mf-red)', lineHeight: 1, position: 'relative', zIndex: 1 }}>
+                    <p style={{ fontSize: 32, fontWeight: 800, color: analytics.psych_veiligheid_gemiddeld >= 4 ? 'var(--mentaforce-primary)' : analytics.psych_veiligheid_gemiddeld >= 3 ? 'var(--mf-amber)' : 'var(--mf-red)', lineHeight: 1, position: 'relative', zIndex: 1 }}>
                       {analytics.psych_veiligheid_gemiddeld}/5
                     </p>
                   </div>
                   <p style={{ fontSize: 11, color: 'var(--text-3)' }}>Gemiddeld team</p>
-                </div>
+                </Card>
               )}
 
               {/* Top burnout factoren */}
               {analytics.top_burnout_factoren?.length ? (
-                <div style={{ background: 'var(--bg-card)', borderRadius: 14, padding: '16px', border: '1px solid var(--border)' }}>
+                <Card style={{ padding: 16 }}>
                   <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 10 }}>Top aandachtspunten</p>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                     {analytics.top_burnout_factoren.map((f, i) => (
@@ -315,7 +343,7 @@ export default function HrDashboardPage() {
                       </div>
                     ))}
                   </div>
-                </div>
+                </Card>
               ) : null}
 
             </div>
@@ -332,20 +360,15 @@ export default function HrDashboardPage() {
                 <h2 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-1)' }}>Portaal inrichten</h2>
                 <p style={{ fontSize: 13, color: 'var(--text-3)', marginTop: 2 }}>Sleep tegels om volgorde te wijzigen</p>
               </div>
-              <button
-                onClick={opslaan} disabled={bezig}
-                style={{
-                  background: opgeslagen ? 'var(--mf-green-light)' : ACCENT, color: opgeslagen ? ACCENT : 'white',
-                  border: 'none', borderRadius: 8, padding: '8px 18px',
-                  fontSize: 13, fontWeight: 600, cursor: bezig ? 'default' : 'pointer',
-                  transition: 'all 0.2s',
-                }}
-                onMouseDown={e => !bezig && ((e.currentTarget as HTMLElement).style.transform = 'scale(0.97)')}
-                onMouseUp={e => ((e.currentTarget as HTMLElement).style.transform = 'scale(1)')}
-                onMouseLeave={e => ((e.currentTarget as HTMLElement).style.transform = 'scale(1)')}
+              <Button
+                onClick={opslaan}
+                loading={bezig}
+                variant={opgeslagen ? 'secondary' : 'primary'}
+                size="sm"
+                leftIcon={opgeslagen && !bezig ? <Check size={15} aria-hidden /> : undefined}
               >
-                {bezig ? 'Opslaan...' : opgeslagen ? '✓ Opgeslagen' : 'Opslaan'}
-              </button>
+                {bezig ? 'Opslaan...' : opgeslagen ? 'Opgeslagen' : 'Opslaan'}
+              </Button>
             </div>
 
             {/* Actieve tegels */}
@@ -354,58 +377,55 @@ export default function HrDashboardPage() {
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 20 }}>
               {actiefTiles.length === 0 && (
-                <div style={{
-                  background: 'var(--bg-card)', border: '2px dashed #E5E7EB', borderRadius: 14,
-                  padding: '28px 20px', textAlign: 'center',
-                }}>
-                  <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--bg-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 10px' }}>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--text-4)' }}>
-                      <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
-                    </svg>
-                  </div>
-                  <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-2)', marginBottom: 4 }}>Geen actieve tegels</p>
-                  <p style={{ fontSize: 12, color: 'var(--text-3)' }}>Schakel hieronder tegels in om ze te tonen in het portaal.</p>
-                </div>
+                <Card style={{ border: '1px dashed var(--border-strong)' }}>
+                  <EmptyState
+                    icon={LayoutGrid}
+                    title="Geen actieve tegels"
+                    description="Schakel hieronder tegels in om ze te tonen in het portaal."
+                  />
+                </Card>
               )}
-              {actiefTiles.map((tile, idx) => (
-                <div key={tile.id} draggable
-                  onDragStart={() => onDragStart(idx)} onDragEnter={() => onDragEnter(idx)}
-                  onDragEnd={onDragEnd} onDragOver={e => e.preventDefault()}
-                  style={{
-                    background: 'var(--bg-card)', borderRadius: 10, padding: '12px 14px',
-                    display: 'flex', alignItems: 'center', gap: 12,
-                    border: `1.5px solid ${overIdx === idx && dragIdx !== idx ? ACCENT : '#E5E7EB'}`,
-                    boxShadow: dragIdx === idx ? '0 4px 16px rgba(0,0,0,0.1)' : '0 1px 3px rgba(0,0,0,0.04)',
-                    cursor: 'grab', opacity: dragIdx === idx ? 0.5 : 1,
-                    transform: overIdx === idx && dragIdx !== idx ? 'scale(1.01)' : 'scale(1)',
-                    transition: 'border-color 0.15s, box-shadow 0.15s, transform 0.15s',
-                  }}
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: 'var(--text-4)', flexShrink: 0 }}>
-                    <line x1="8" y1="6" x2="16" y2="6" /><line x1="8" y1="12" x2="16" y2="12" /><line x1="8" y1="18" x2="16" y2="18" />
-                  </svg>
-                  <div style={{ width: 36, height: 36, borderRadius: 8, flexShrink: 0, background: tile.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>{tile.icon}</div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-1)' }}>{tile.label}</p>
-                    <p style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tile.sublabel}</p>
+              {actiefTiles.map((tile, idx) => {
+                const isDropTarget = overIdx === idx && dragIdx !== idx
+                return (
+                  <div key={tile.id} draggable
+                    onDragStart={() => onDragStart(idx)} onDragEnter={() => onDragEnter(idx)}
+                    onDragEnd={onDragEnd} onDragOver={e => e.preventDefault()}
+                    style={{
+                      background: 'var(--bg-card)', borderRadius: 'var(--radius-sm)', padding: '12px 14px',
+                      display: 'flex', alignItems: 'center', gap: 12,
+                      border: `1.5px solid ${isDropTarget ? ACCENT : 'var(--border)'}`,
+                      boxShadow: dragIdx === idx ? 'var(--shadow-md)' : 'var(--shadow-card)',
+                      cursor: 'grab', opacity: dragIdx === idx ? 0.5 : 1,
+                      transform: isDropTarget ? 'scale(1.01)' : 'scale(1)',
+                      transition: 'border-color 0.15s var(--ease), box-shadow 0.15s var(--ease), transform 0.15s var(--ease)',
+                    }}
+                  >
+                    <GripVertical size={16} aria-hidden style={{ color: 'var(--text-4)', flexShrink: 0 }} />
+                    <div style={{ width: 36, height: 36, borderRadius: 'var(--radius-xs)', flexShrink: 0, background: 'var(--bg-subtle)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: 'var(--mentaforce-primary)' }}>{tile.icon}</div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-1)' }}>{tile.label}</p>
+                      <p style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tile.sublabel}</p>
+                    </div>
+                    <span style={{
+                      minWidth: 22, height: 22, borderRadius: '50%', flexShrink: 0,
+                      background: 'var(--mentaforce-primary-light)', color: 'var(--mentaforce-primary)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: 10, fontWeight: 700, fontVariantNumeric: 'tabular-nums',
+                    }}>{idx + 1}</span>
+                    <button onClick={() => toggleTile(tile.id)}
+                      aria-label={`${tile.label} uitschakelen`}
+                      className="mf-hr-tile-remove"
+                      style={{
+                        width: 26, height: 26, borderRadius: '50%', flexShrink: 0,
+                        background: 'var(--mf-red-light)', border: 'none', cursor: 'pointer',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--mf-red)',
+                      }}>
+                      <X size={12} aria-hidden />
+                    </button>
                   </div>
-                  <span style={{
-                    minWidth: 22, height: 22, borderRadius: '50%', flexShrink: 0,
-                    background: tile.kleur + '18', color: tile.kleur,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 10, fontWeight: 700,
-                  }}>{idx + 1}</span>
-                  <button onClick={() => toggleTile(tile.id)} style={{
-                    width: 26, height: 26, borderRadius: '50%', flexShrink: 0,
-                    background: 'var(--mf-red-light)', border: 'none', cursor: 'pointer',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--mf-red)',
-                  }}>
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                      <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-                    </svg>
-                  </button>
-                </div>
-              ))}
+                )
+              })}
             </div>
 
             {/* Uitgeschakeld */}
@@ -417,20 +437,18 @@ export default function HrDashboardPage() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   {inactiefTiles.map(tile => (
                     <div key={tile.id} style={{
-                      background: 'var(--bg-subtle)', borderRadius: 10, padding: '10px 14px',
+                      background: 'var(--bg-subtle)', borderRadius: 'var(--radius-sm)', padding: '10px 14px',
                       display: 'flex', alignItems: 'center', gap: 12,
-                      border: '1px solid #F3F4F6', opacity: 0.7,
+                      border: '1px solid var(--border)', opacity: 0.75,
                     }}>
-                      <div style={{ width: 36, height: 36, borderRadius: 8, flexShrink: 0, background: 'var(--bg-card)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, filter: 'grayscale(1)' }}>{tile.icon}</div>
+                      <div style={{ width: 36, height: 36, borderRadius: 'var(--radius-xs)', flexShrink: 0, background: 'var(--bg-card)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: 'var(--text-3)' }}>{tile.icon}</div>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-2)' }}>{tile.label}</p>
                         <p style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 1 }}>{tile.sublabel}</p>
                       </div>
-                      <button onClick={() => toggleTile(tile.id)} style={{
-                        background: 'var(--bg-card)', border: `1.5px solid ${ACCENT}`,
-                        color: ACCENT, borderRadius: 6, padding: '5px 12px',
-                        fontSize: 11, fontWeight: 600, cursor: 'pointer',
-                      }}>Inschakelen</button>
+                      <Button onClick={() => toggleTile(tile.id)} variant="secondary" size="sm" aria-label={`${tile.label} inschakelen`}>
+                        Inschakelen
+                      </Button>
                     </div>
                   ))}
                 </div>
@@ -441,38 +459,36 @@ export default function HrDashboardPage() {
           {/* Right: quick links */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             <h2 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-1)', marginBottom: 6 }}>Snelle acties</h2>
-            {[
-              { href: '/hr/protocollen/nieuw', label: 'Nieuw protocol aanmaken', icon: '📋', color: 'var(--mf-amber-dark)', bg: 'var(--mf-amber-light)' },
-              { href: '/hr/protocollen',       label: 'Protocollen beheren',     icon: '📂', color: 'var(--mf-blue)', bg: 'var(--mf-blue-light)' },
-              { href: '/team',                 label: 'Team bekijken',           icon: '👥', color: 'var(--mf-blue)', bg: 'var(--mf-blue-light)' },
-              { href: '/verlof',               label: 'Verlof beheren',          icon: '🌴', color: 'var(--mf-green-dark)', bg: 'var(--mf-green-light)' },
-              { href: '/loonstroken',          label: 'Loonstroken uploaden',    icon: '💶', color: 'var(--mf-green-dark)', bg: 'var(--mf-green-light)' },
-              { href: '/rapport',              label: 'Rapporten bekijken',      icon: '📈', color: 'var(--mf-purple)', bg: 'var(--mf-purple-light)' },
-            ].map(item => (
-              <Link key={item.href} href={item.href} style={{
-                display: 'flex', alignItems: 'center', gap: 12,
-                background: 'var(--bg-card)', borderRadius: 10, padding: '12px 14px',
-                border: '1px solid var(--border)', textDecoration: 'none',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
-                transition: 'box-shadow 0.15s, border-color 0.15s, transform 0.1s ease',
-              }}
-                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.boxShadow = '0 4px 12px rgba(0,0,0,0.08)'; (e.currentTarget as HTMLElement).style.borderColor = 'var(--border-strong)'; (e.currentTarget as HTMLElement).style.transform = 'translateY(-1px)' }}
-                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.boxShadow = '0 1px 3px rgba(0,0,0,0.04)'; (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'; (e.currentTarget as HTMLElement).style.transform = 'translateY(0)' }}
-                onMouseDown={e => ((e.currentTarget as HTMLElement).style.transform = 'scale(0.97)')}
-                onMouseUp={e => ((e.currentTarget as HTMLElement).style.transform = 'translateY(-1px)')}
-              >
-                <div style={{ width: 34, height: 34, borderRadius: 8, flexShrink: 0, background: item.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>{item.icon}</div>
-                <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-2)', flex: 1 }}>{item.label}</p>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" style={{ color: 'var(--text-4)' }} strokeWidth="2.5">
-                  <polyline points="9 18 15 12 9 6" />
-                </svg>
-              </Link>
-            ))}
+            {([
+              { href: '/hr/protocollen/nieuw', label: 'Nieuw protocol aanmaken', icon: FileText },
+              { href: '/hr/protocollen',       label: 'Protocollen beheren',     icon: FolderOpen },
+              { href: '/team',                 label: 'Team bekijken',           icon: Users },
+              { href: '/verlof',               label: 'Verlof beheren',          icon: Palmtree },
+              { href: '/loonstroken',          label: 'Loonstroken uploaden',    icon: Banknote },
+              { href: '/rapport',              label: 'Rapporten bekijken',      icon: TrendingUp },
+            ] as const).map(item => {
+              const Icon = item.icon
+              return (
+                <Link key={item.href} href={item.href} className="mf-hr-quicklink" style={{
+                  display: 'flex', alignItems: 'center', gap: 12,
+                  background: 'var(--bg-card)', borderRadius: 'var(--radius-sm)', padding: '12px 14px',
+                  border: '1px solid var(--border)', textDecoration: 'none',
+                  boxShadow: 'var(--shadow-card)',
+                  transition: 'box-shadow 0.15s var(--ease), border-color 0.15s var(--ease), transform 0.1s var(--ease)',
+                }}>
+                  <div style={{ width: 34, height: 34, borderRadius: 'var(--radius-xs)', flexShrink: 0, background: 'var(--mentaforce-primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Icon size={16} aria-hidden style={{ color: 'var(--mentaforce-primary)' }} />
+                  </div>
+                  <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-2)', flex: 1 }}>{item.label}</p>
+                  <ChevronRight size={14} aria-hidden style={{ color: 'var(--text-4)', flexShrink: 0 }} />
+                </Link>
+              )
+            })}
           </div>
         </div>
 
         {/* ── INSTELLINGEN ── */}
-        <div style={{ marginTop: 32, background: 'var(--bg-card)', borderRadius: 12, padding: '20px 24px', border: '1px solid var(--border)', boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
+        <Card style={{ marginTop: 32, padding: '20px 24px' }}>
           <h2 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-1)', marginBottom: 16 }}>Instellingen</h2>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
             <div>
@@ -480,6 +496,10 @@ export default function HrDashboardPage() {
               <p style={{ fontSize: 12, color: 'var(--text-3)' }}>Medewerkers moeten de DISC-persoonlijkheidstest invullen voordat ze toegang krijgen tot het portaal.</p>
             </div>
             <button
+              type="button"
+              role="switch"
+              aria-checked={discVerplicht}
+              aria-label="DISC test verplicht voor alle medewerkers"
               onClick={async () => {
                 if (!bedrijfId || discBezig) return
                 setDiscBezig(true)
@@ -488,30 +508,60 @@ export default function HrDashboardPage() {
                   .from('bedrijven')
                   .update({ disc_verplicht: nieuweWaarde })
                   .eq('id', bedrijfId)
-                if (!error) setDiscVerplicht(nieuweWaarde)
+                if (error) {
+                  toast({ title: 'Wijziging mislukt', description: 'De instelling is niet opgeslagen.', variant: 'error' })
+                } else {
+                  setDiscVerplicht(nieuweWaarde)
+                }
                 setDiscBezig(false)
               }}
               disabled={discBezig}
+              className="mf-hr-switch"
               style={{
                 flexShrink: 0,
-                width: 48, height: 26, borderRadius: 13, border: 'none', cursor: discBezig ? 'default' : 'pointer',
-                background: discVerplicht ? ACCENT : 'var(--border-strong)',
-                position: 'relative', transition: 'background 0.2s',
+                width: 48, height: 26, borderRadius: 13, border: '1px solid var(--border-strong)',
+                cursor: discBezig ? 'default' : 'pointer',
+                background: discVerplicht ? ACCENT : 'var(--bg-subtle)',
+                position: 'relative', transition: 'background 0.2s var(--ease)',
                 opacity: discBezig ? 0.6 : 1,
+                padding: 0,
               }}
-              aria-label="DISC test verplicht toggle"
             >
-              <span style={{
-                position: 'absolute', top: 3, left: discVerplicht ? 24 : 3,
-                width: 20, height: 20, borderRadius: '50%', background: 'var(--bg-card)',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.2)', transition: 'left 0.2s',
+              <span aria-hidden className="mf-hr-switch-knob" style={{
+                position: 'absolute', top: 2, left: 2,
+                width: 20, height: 20, borderRadius: '50%',
+                background: discVerplicht ? 'var(--bg-app)' : 'var(--text-3)',
+                transform: discVerplicht ? 'translateX(22px)' : 'translateX(0)',
+                transition: 'transform 0.2s var(--ease)',
               }} />
             </button>
           </div>
-        </div>
+        </Card>
 
         </>)}
       </main>
+
+      <style>{`
+        .mf-hr-tab:focus-visible,
+        .mf-hr-tile-remove:focus-visible,
+        .mf-hr-quicklink:focus-visible,
+        .mf-hr-switch:focus-visible {
+          outline: 2px solid var(--mentaforce-primary);
+          outline-offset: 2px;
+        }
+        .mf-hr-tab:hover { color: var(--text-1); }
+        .mf-hr-tile-remove { transition: opacity 0.15s var(--ease); }
+        .mf-hr-tile-remove:hover { opacity: 0.8; }
+        .mf-hr-quicklink:hover {
+          box-shadow: var(--shadow-md);
+          border-color: var(--border-strong);
+          transform: translateY(-1px);
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .mf-hr-quicklink:hover { transform: none; }
+          .mf-hr-switch-knob { transition: none; }
+        }
+      `}</style>
     </div>
   )
 }

@@ -23,7 +23,10 @@
  */
 
 import { useEffect, useRef, useState } from 'react'
+import { Loader2, CheckCircle2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { Button } from '@/components/ui/Button'
+import { DialogRoot, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/Dialog'
 
 interface Props {
   open: boolean
@@ -137,193 +140,169 @@ export default function HrCodeModal({ open, onSluit, onGekoppeld, sessieToken }:
     }
   }
 
-  if (!open) return null
+  const toonInvoer = fase === 'invoer' || fase === 'valideren' || fase === 'fout'
 
   return (
-    // Backdrop
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ background: 'rgba(10,15,30,0.6)', backdropFilter: 'blur(4px)' }}
-      onClick={e => { if (e.target === e.currentTarget) onSluit() }}
-    >
-      <div
-        className="w-full max-w-md rounded-2xl bg-white shadow-2xl overflow-hidden"
-        role="dialog"
-        aria-modal="true"
-        aria-label="HR code koppeling"
+    <DialogRoot open={open} onOpenChange={(o) => { if (!o) onSluit() }}>
+      <DialogContent
+        style={{ width: 'min(92vw, 448px)' }}
       >
         {/* Header */}
-        <div className="px-6 pt-6 pb-0 flex items-start justify-between">
-          <div className="flex items-center gap-3">
-            <div
-              className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-lg flex-shrink-0"
-              style={{ background: 'linear-gradient(135deg, #1D9E75 0%, #185FA5 100%)' }}
-            >
-              HR
-            </div>
-            <div>
-              <h2 className="font-bold text-gray-900 text-lg leading-tight">Koppel aan werkgever</h2>
-              <p className="text-xs text-gray-400 mt-0.5">Voer de HR code in die je van je werkgever hebt ontvangen</p>
-            </div>
-          </div>
-          <button
-            onClick={onSluit}
-            className="text-gray-300 hover:text-gray-500 transition ml-4 mt-0.5"
-            aria-label="Sluiten"
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: 20, paddingRight: 24 }}>
+          <div
+            aria-hidden
+            style={{
+              width: 40, height: 40, borderRadius: 'var(--radius-md)', flexShrink: 0,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: 'var(--mentaforce-primary)', color: 'var(--bg-app)',
+              fontWeight: 700, fontSize: 16,
+            }}
           >
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <path d="M5 5l10 10M15 5L5 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-            </svg>
-          </button>
+            HR
+          </div>
+          <div>
+            <DialogTitle style={{ fontSize: 18, paddingRight: 0, lineHeight: 1.3 }}>Koppel aan werkgever</DialogTitle>
+            <DialogDescription style={{ fontSize: 12, marginTop: 2 }}>
+              Voer de HR code in die je van je werkgever hebt ontvangen
+            </DialogDescription>
+          </div>
         </div>
 
-        {/* Body */}
-        <div className="px-6 py-6">
-
-          {/* FASE: invoer / valideren / fout */}
-          {(fase === 'invoer' || fase === 'valideren' || fase === 'fout') && (
-            <div>
-              <label className="text-xs font-semibold text-gray-600 block mb-2">
-                HR Code
-              </label>
-              <div className="relative">
-                <input
-                  ref={inputRef}
-                  type="text"
-                  value={invoer}
-                  onChange={e => handleInvoer(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && fase !== 'valideren' && valideerCode()}
-                  placeholder="FIT-X2K"
-                  maxLength={7}
-                  disabled={fase === 'valideren'}
-                  className="w-full border-2 rounded-xl px-4 py-3.5 text-xl font-mono font-bold text-center tracking-[0.3em] outline-none transition disabled:opacity-50"
-                  style={{
-                    borderColor: fase === 'fout' ? '#E24B4A' : invoer.length === 7 ? '#1D9E75' : '#e5e7eb',
-                    color: '#0a0f1e',
-                    letterSpacing: '0.25em',
-                  }}
-                  spellCheck={false}
-                  autoComplete="off"
-                />
-                {fase === 'valideren' && (
-                  <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                    <div
-                      className="w-5 h-5 rounded-full border-2 border-t-transparent animate-spin"
-                      style={{ borderColor: '#1D9E75', borderTopColor: 'transparent' }}
-                    />
-                  </div>
-                )}
-              </div>
-
-              {foutTekst && (
-                <div className="mt-3 rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-sm text-red-700">
-                  {foutTekst}
+        {/* FASE: invoer / valideren / fout */}
+        {toonInvoer && (
+          <div>
+            <label htmlFor="hr-code-invoer" style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-2)', display: 'block', marginBottom: 8 }}>
+              HR Code
+            </label>
+            <div style={{ position: 'relative' }}>
+              <input
+                id="hr-code-invoer"
+                ref={inputRef}
+                type="text"
+                value={invoer}
+                onChange={e => handleInvoer(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && fase !== 'valideren' && valideerCode()}
+                placeholder="FIT-X2K"
+                maxLength={7}
+                disabled={fase === 'valideren'}
+                aria-invalid={fase === 'fout' || undefined}
+                aria-describedby={foutTekst ? 'hr-code-fout' : 'hr-code-hint'}
+                className="mf-ui-control"
+                style={{
+                  width: '100%',
+                  padding: '14px 16px',
+                  fontSize: 22,
+                  fontFamily: 'monospace',
+                  fontWeight: 700,
+                  textAlign: 'center',
+                  letterSpacing: '0.25em',
+                  color: 'var(--text-1)',
+                  background: 'var(--bg-subtle)',
+                  border: `1px solid ${fase === 'fout' ? 'var(--mf-red)' : invoer.length === 7 ? 'var(--mentaforce-primary)' : 'var(--border-strong)'}`,
+                  borderRadius: 'var(--radius-md)',
+                  outline: 'none',
+                  boxSizing: 'border-box',
+                  opacity: fase === 'valideren' ? 0.5 : 1,
+                }}
+                spellCheck={false}
+                autoComplete="off"
+              />
+              {fase === 'valideren' && (
+                <div style={{ position: 'absolute', right: 16, top: '50%', transform: 'translateY(-50%)' }}>
+                  <Loader2 size={20} aria-hidden style={{ color: 'var(--mentaforce-primary)', animation: 'mf-spin 0.7s linear infinite' }} />
                 </div>
               )}
-
-              <p className="text-xs text-gray-400 mt-3 text-center">
-                Je werkgever vindt de HR code op het HR-dashboard van MentaForce.
-              </p>
-
-              <div className="flex gap-3 mt-6">
-                <button
-                  onClick={onSluit}
-                  className="px-5 py-3 rounded-xl text-sm font-medium text-gray-600 border border-gray-200 hover:bg-gray-50 transition"
-                >
-                  Annuleren
-                </button>
-                <button
-                  onClick={() => {
-                    setFoutTekst(null)
-                    if (fase === 'fout') setFase('invoer')
-                    else valideerCode()
-                  }}
-                  disabled={fase === 'valideren' || invoer.length < 7}
-                  className="flex-1 py-3 rounded-xl text-white font-bold text-sm transition hover:opacity-90 disabled:opacity-30"
-                  style={{ background: '#1D9E75' }}
-                >
-                  {fase === 'fout' ? 'Opnieuw proberen' : fase === 'valideren' ? 'Controleren...' : 'Controleer code'}
-                </button>
-              </div>
             </div>
-          )}
 
-          {/* FASE: bevestig */}
-          {fase === 'bevestig' && (
-            <div>
-              <div
-                className="rounded-2xl border-2 p-5 mb-5 text-center"
-                style={{ borderColor: '#1D9E75', background: '#F0FBF7' }}
+            {foutTekst && (
+              <div id="hr-code-fout" role="alert" style={{
+                marginTop: 12, borderRadius: 'var(--radius-md)', border: '1px solid var(--mf-red)',
+                background: 'var(--mf-red-light)', padding: '10px 14px', fontSize: 14, color: 'var(--mf-red)',
+              }}>
+                {foutTekst}
+              </div>
+            )}
+
+            <p id="hr-code-hint" style={{ fontSize: 12, color: 'var(--text-4)', marginTop: 12, textAlign: 'center' }}>
+              Je werkgever vindt de HR code op het HR-dashboard van MentaForce.
+            </p>
+
+            <div style={{ display: 'flex', gap: 12, marginTop: 24 }}>
+              <Button variant="secondary" onClick={onSluit}>Annuleren</Button>
+              <Button
+                onClick={() => {
+                  setFoutTekst(null)
+                  if (fase === 'fout') setFase('invoer')
+                  else valideerCode()
+                }}
+                loading={fase === 'valideren'}
+                disabled={invoer.length < 7}
+                style={{ flex: 1 }}
               >
-                <p className="text-xs font-semibold uppercase tracking-widest mb-1" style={{ color: '#1D9E75' }}>
-                  Bedrijf gevonden
-                </p>
-                <p className="text-2xl font-extrabold text-gray-900">{bedrijfsnaam}</p>
-                <p className="text-sm text-gray-500 mt-1">Code: <span className="font-mono font-bold">{invoer}</span></p>
-              </div>
+                {fase === 'fout' ? 'Opnieuw proberen' : fase === 'valideren' ? 'Controleren...' : 'Controleer code'}
+              </Button>
+            </div>
+          </div>
+        )}
 
-              <p className="text-sm text-gray-600 mb-6 leading-relaxed">
-                Wil je je account koppelen aan <strong>{bedrijfsnaam}</strong>?
-                Je HR-afdeling krijgt toegang tot anonieme welzijnsdata van jouw team — nooit persoonsgebonden inzichten.
+        {/* FASE: bevestig */}
+        {fase === 'bevestig' && (
+          <div>
+            <div style={{
+              borderRadius: 'var(--radius-md)', border: '1px solid var(--mentaforce-primary)',
+              background: 'var(--mentaforce-primary-light)', padding: 20, marginBottom: 20, textAlign: 'center',
+            }}>
+              <p style={{ fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4, color: 'var(--mentaforce-primary)' }}>
+                Bedrijf gevonden
               </p>
-
-              <div className="flex gap-3">
-                <button
-                  onClick={() => setFase('invoer')}
-                  className="px-5 py-3 rounded-xl text-sm font-medium text-gray-600 border border-gray-200 hover:bg-gray-50 transition"
-                >
-                  Terug
-                </button>
-                <button
-                  onClick={koppelAanBedrijf}
-                  className="flex-1 py-3 rounded-xl text-white font-bold text-sm transition hover:opacity-90"
-                  style={{ background: '#185FA5' }}
-                >
-                  Ja, koppel mij aan {bedrijfsnaam}
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* FASE: koppelen (laden) */}
-          {fase === 'koppelen' && (
-            <div className="flex flex-col items-center py-6 gap-4">
-              <div
-                className="w-12 h-12 rounded-full border-4 border-t-transparent animate-spin"
-                style={{ borderColor: '#1D9E75', borderTopColor: 'transparent' }}
-              />
-              <p className="text-sm text-gray-500">Koppeling verwerken...</p>
-            </div>
-          )}
-
-          {/* FASE: klaar */}
-          {fase === 'klaar' && (
-            <div className="flex flex-col items-center py-4 text-center">
-              <div
-                className="w-16 h-16 rounded-full flex items-center justify-center mb-5 text-2xl"
-                style={{ background: '#E1F5EE' }}
-              >
-                <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-                  <circle cx="16" cy="16" r="16" fill="#1D9E75" />
-                  <path d="M9 17l5 5 9-10" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </div>
-              <h3 className="font-extrabold text-gray-900 text-xl mb-2">Gekoppeld!</h3>
-              <p className="text-sm text-gray-500 mb-6">
-                Je account is succesvol gekoppeld aan <strong>{bedrijfsnaam}</strong>.
+              <p style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)' }}>{bedrijfsnaam}</p>
+              <p style={{ fontSize: 14, color: 'var(--text-3)', marginTop: 4 }}>
+                Code: <span style={{ fontFamily: 'monospace', fontWeight: 700 }}>{invoer}</span>
               </p>
-              <button
-                onClick={onSluit}
-                className="w-full py-3 rounded-xl text-white font-bold text-sm transition hover:opacity-90"
-                style={{ background: '#1D9E75' }}
-              >
-                Sluiten
-              </button>
             </div>
-          )}
 
-        </div>
-      </div>
-    </div>
+            <p style={{ fontSize: 14, color: 'var(--text-2)', marginBottom: 24, lineHeight: 1.6 }}>
+              Wil je je account koppelen aan <strong>{bedrijfsnaam}</strong>?
+              Je HR-afdeling krijgt toegang tot anonieme welzijnsdata van jouw team — nooit persoonsgebonden inzichten.
+            </p>
+
+            <div style={{ display: 'flex', gap: 12 }}>
+              <Button variant="secondary" onClick={() => setFase('invoer')}>Terug</Button>
+              <Button onClick={koppelAanBedrijf} style={{ flex: 1 }}>
+                Ja, koppel mij aan {bedrijfsnaam}
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* FASE: koppelen (laden) */}
+        {fase === 'koppelen' && (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '24px 0', gap: 16 }}>
+            <Loader2 size={48} aria-hidden style={{ color: 'var(--mentaforce-primary)', animation: 'mf-spin 0.7s linear infinite' }} />
+            <p style={{ fontSize: 14, color: 'var(--text-3)' }}>Koppeling verwerken...</p>
+          </div>
+        )}
+
+        {/* FASE: klaar */}
+        {fase === 'klaar' && (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '16px 0', textAlign: 'center' }}>
+            <div
+              aria-hidden
+              style={{
+                width: 64, height: 64, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                marginBottom: 20, background: 'var(--mentaforce-primary-light)',
+              }}
+            >
+              <CheckCircle2 size={36} style={{ color: 'var(--mentaforce-primary)' }} />
+            </div>
+            <h3 style={{ fontWeight: 800, color: 'var(--text-1)', fontSize: 20, marginBottom: 8 }}>Gekoppeld!</h3>
+            <p style={{ fontSize: 14, color: 'var(--text-3)', marginBottom: 24 }}>
+              Je account is succesvol gekoppeld aan <strong>{bedrijfsnaam}</strong>.
+            </p>
+            <Button onClick={onSluit} style={{ width: '100%' }}>Sluiten</Button>
+          </div>
+        )}
+      </DialogContent>
+    </DialogRoot>
   )
 }

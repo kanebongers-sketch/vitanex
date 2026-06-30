@@ -7,6 +7,13 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
+import { Card } from '@/components/ui/Card'
+import { Button } from '@/components/ui/Button'
+import { Badge } from '@/components/ui/Badge'
+import { Label } from '@/components/ui/Label'
+import { Input } from '@/components/ui/Input'
+import { EmptyState } from '@/components/ui/EmptyState'
+import { FileText, Plus, Search, ChevronRight } from 'lucide-react'
 
 
 type Protocol = {
@@ -30,16 +37,6 @@ const CAT_LABELS: Record<string, string> = {
   hr: 'HR & Onboarding',
   veiligheid: 'Veiligheid',
   overig: 'Overig',
-}
-
-const CAT_KLEUREN: Record<string, { bg: string; color: string }> = {
-  algemeen:  { bg: 'var(--bg-subtle)', color: 'var(--text-2)' },
-  arbo:      { bg: 'var(--mf-amber-light)', color: 'var(--mf-amber-dark)' },
-  verzuim:   { bg: 'var(--mf-red-light)', color: 'var(--mf-red)' },
-  it:        { bg: 'var(--mf-blue-light)', color: 'var(--mf-blue)' },
-  hr:        { bg: 'var(--mf-green-light)', color: 'var(--mf-green-dark)' },
-  veiligheid:{ bg: 'var(--mf-amber-light)', color: 'var(--mf-amber-dark)' },
-  overig:    { bg: 'var(--mf-purple-light)', color: 'var(--mf-purple)' },
 }
 
 export default function ProtokollenPage() {
@@ -102,42 +99,56 @@ export default function ProtokollenPage() {
             </p>
           </div>
           {isHr && (
-            <Link
-              href="/hr/protocollen/nieuw"
-              className="mf-btn mf-btn-primary"
-              style={{ padding: '8px 16px', fontSize: 13 }}
+            <Button
+              size="sm"
+              onClick={() => router.push('/hr/protocollen/nieuw')}
+              leftIcon={<Plus size={16} aria-hidden />}
             >
-              + Toevoegen
-            </Link>
+              Toevoegen
+            </Button>
           )}
         </div>
 
         {/* Zoeken */}
-        <div className="relative mb-4">
-          <svg className="absolute left-3 top-1/2 -translate-y-1/2" width="16" height="16" viewBox="0 0 24 24"
-            fill="none" stroke="var(--text-4)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
-          </svg>
-          <input
-            type="text"
-            placeholder="Zoek protocol..."
-            value={zoek}
-            onChange={e => setZoek(e.target.value)}
-            className="mf-input w-full"
-            style={{ paddingLeft: 38, borderRadius: 14, fontSize: 14 }}
-          />
+        <div className="mb-4" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <Label htmlFor="protocol-zoek">Zoek protocol</Label>
+          <div style={{ position: 'relative' }}>
+            <Search
+              size={16}
+              aria-hidden
+              style={{
+                position: 'absolute', left: 12, top: '50%',
+                transform: 'translateY(-50%)', color: 'var(--text-4)', pointerEvents: 'none',
+              }}
+            />
+            <Input
+              id="protocol-zoek"
+              type="text"
+              placeholder="Zoek op titel of omschrijving..."
+              value={zoek}
+              onChange={e => setZoek(e.target.value)}
+              style={{ paddingLeft: 38 }}
+            />
+          </div>
         </div>
 
         {/* Categorie filter */}
         {categorieen.length > 1 && (
-          <div className="flex gap-2 overflow-x-auto pb-2 mb-5 scrollbar-hide">
+          <div
+            className="flex gap-2 overflow-x-auto pb-2 mb-5 scrollbar-hide"
+            role="group"
+            aria-label="Filter op categorie"
+          >
             <button
+              type="button"
               onClick={() => setFilter('alle')}
-              className="flex-shrink-0 text-xs px-3 py-1.5 rounded-full font-medium transition"
+              aria-pressed={filter === 'alle'}
+              className="mf-pressable flex-shrink-0 text-xs px-3 py-1.5 rounded-full font-medium"
               style={{
-                background: filter === 'alle' ? 'var(--mf-green)' : 'var(--bg-card)',
-                color: filter === 'alle' ? 'white' : 'var(--text-3)',
+                background: filter === 'alle' ? 'var(--mentaforce-primary)' : 'var(--bg-card)',
+                color: filter === 'alle' ? 'var(--bg-app)' : 'var(--text-3)',
                 border: '1px solid var(--border)',
+                transition: 'opacity 0.15s var(--ease)',
               }}
             >
               Alle
@@ -145,12 +156,15 @@ export default function ProtokollenPage() {
             {categorieen.map(cat => (
               <button
                 key={cat}
+                type="button"
                 onClick={() => setFilter(cat)}
-                className="flex-shrink-0 text-xs px-3 py-1.5 rounded-full font-medium transition"
+                aria-pressed={filter === cat}
+                className="mf-pressable flex-shrink-0 text-xs px-3 py-1.5 rounded-full font-medium"
                 style={{
-                  background: filter === cat ? CAT_KLEUREN[cat]?.color ?? 'var(--text-2)' : 'var(--bg-card)',
-                  color: filter === cat ? 'white' : 'var(--text-3)',
+                  background: filter === cat ? 'var(--mentaforce-primary)' : 'var(--bg-card)',
+                  color: filter === cat ? 'var(--bg-app)' : 'var(--text-3)',
                   border: '1px solid var(--border)',
+                  transition: 'opacity 0.15s var(--ease)',
                 }}
               >
                 {CAT_LABELS[cat] ?? cat}
@@ -165,42 +179,41 @@ export default function ProtokollenPage() {
             <div className="mf-spinner" />
           </div>
         ) : gefilterd.length === 0 ? (
-          <div className="rounded-2xl p-10 text-center"
-            style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-            <div style={{ position: 'relative', display: 'inline-block', marginBottom: '0.75rem' }}>
-              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
-                <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
-              </div>
-              <p className="text-3xl" style={{ position: 'relative', zIndex: 1 }}>📋</p>
-            </div>
-            <p className="text-sm font-medium" style={{ color: 'var(--text-2)' }}>
-              {protocollen.length === 0
-                ? isHr ? 'Nog geen protocollen. Klik op + Toevoegen.' : 'Nog geen protocollen gepubliceerd.'
-                : 'Geen resultaten voor deze zoekopdracht.'}
-            </p>
-          </div>
+          <Card>
+            <EmptyState
+              icon={FileText}
+              title={protocollen.length === 0
+                ? isHr ? 'Nog geen protocollen' : 'Nog geen protocollen gepubliceerd'
+                : 'Geen resultaten'}
+              description={protocollen.length === 0
+                ? isHr ? 'Klik op Toevoegen om je eerste protocol aan te maken.' : 'Er zijn nog geen protocollen gedeeld door je organisatie.'
+                : 'Pas je zoekopdracht of filter aan om meer te zien.'}
+            />
+          </Card>
         ) : (
-          <div className="flex flex-col gap-3">
-            {gefilterd.map(p => {
-              const cat = CAT_KLEUREN[p.categorie] ?? CAT_KLEUREN.algemeen
-              return (
+          <ul className="flex flex-col gap-3" style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+            {gefilterd.map(p => (
+              <li key={p.id}>
                 <Link
-                  key={p.id}
                   href={`/protocollen/${p.id}`}
-                  className="block rounded-2xl p-4 transition active:scale-[0.99]"
+                  className="mf-lift block"
                   style={{
+                    display: 'block',
                     background: 'var(--bg-card)',
                     border: '1px solid var(--border)',
-                    boxShadow: 'var(--shadow-xs)',
+                    borderRadius: 'var(--radius-card)',
+                    boxShadow: 'var(--shadow-card)',
+                    padding: '16px',
                   }}
                 >
                   <div className="flex items-start gap-4">
                     {/* Icoon */}
                     <div
-                      className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 text-2xl"
-                      style={{ background: p.kleur + '18' }}
+                      className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
+                      style={{ background: 'var(--mentaforce-primary-light)', color: 'var(--mentaforce-primary)' }}
+                      aria-hidden
                     >
-                      {p.icoon}
+                      <FileText size={22} />
                     </div>
 
                     {/* Content */}
@@ -211,15 +224,9 @@ export default function ProtokollenPage() {
                         </p>
                         <div className="flex items-center gap-2 flex-shrink-0">
                           {isHr && !p.gepubliceerd && (
-                            <span className="text-[10px] px-2 py-0.5 rounded-full font-medium"
-                              style={{ background: 'var(--mf-amber-light)', color: 'var(--mf-amber-dark)' }}>
-                              Concept
-                            </span>
+                            <Badge variant="warning">Concept</Badge>
                           )}
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                            stroke="var(--text-4)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                            <polyline points="9 18 15 12 9 6" />
-                          </svg>
+                          <ChevronRight size={16} aria-hidden style={{ color: 'var(--text-4)' }} />
                         </div>
                       </div>
                       {p.beschrijving && (
@@ -228,10 +235,7 @@ export default function ProtokollenPage() {
                         </p>
                       )}
                       <div className="flex items-center gap-2 mt-2">
-                        <span className="text-[11px] px-2 py-0.5 rounded-full font-medium"
-                          style={{ background: cat.bg, color: cat.color }}>
-                          {CAT_LABELS[p.categorie] ?? p.categorie}
-                        </span>
+                        <Badge variant="neutral">{CAT_LABELS[p.categorie] ?? p.categorie}</Badge>
                         <span className="text-[11px]" style={{ color: 'var(--text-4)' }}>
                           {new Date(p.bijgewerkt_op).toLocaleDateString('nl-BE', { day: 'numeric', month: 'short', year: 'numeric' })}
                         </span>
@@ -239,26 +243,30 @@ export default function ProtokollenPage() {
                     </div>
                   </div>
                 </Link>
-              )
-            })}
-          </div>
+              </li>
+            ))}
+          </ul>
         )}
 
         {/* HR beheer link */}
         {isHr && protocollen.length > 0 && (
-          <div className="mt-6 rounded-2xl p-4 flex items-center justify-between"
-            style={{ background: 'var(--bg-subtle)', border: '1px solid var(--border)' }}>
-            <div>
-              <p className="text-xs font-semibold" style={{ color: 'var(--text-2)' }}>HR Beheer</p>
-              <p className="text-xs mt-0.5" style={{ color: 'var(--text-4)' }}>
-                Protocollen toevoegen, bewerken en verbergen
-              </p>
+          <Card style={{ marginTop: 24, padding: '16px' }}>
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-xs font-semibold" style={{ color: 'var(--text-2)' }}>HR Beheer</p>
+                <p className="text-xs mt-0.5" style={{ color: 'var(--text-4)' }}>
+                  Protocollen toevoegen, bewerken en verbergen
+                </p>
+              </div>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => router.push('/hr/protocollen')}
+              >
+                Beheren
+              </Button>
             </div>
-            <Link href="/hr/protocollen" className="mf-btn text-xs"
-              style={{ padding: '7px 14px', background: 'var(--bg-card)', color: 'var(--text-2)', border: '1px solid var(--border)' }}>
-              Beheren
-            </Link>
-          </div>
+          </Card>
         )}
       </main>
     </div>

@@ -2,6 +2,12 @@
 
 import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
+import { Card } from '@/components/ui/Card'
+import { Button } from '@/components/ui/Button'
+import { Badge } from '@/components/ui/Badge'
+import { Field } from '@/components/ui/Field'
+import { Input } from '@/components/ui/Input'
+import { useToast } from '@/components/ui/Toast'
 
 export type BedrijfInfo = {
   id: string
@@ -32,20 +38,30 @@ function gemiddelde(arr: number[]) {
   return Math.round((arr.reduce((a, b) => a + b, 0) / arr.length) * 10) / 10
 }
 
+const infoRijStijl: React.CSSProperties = {
+  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+  padding: '8px 0', borderBottom: '1px solid var(--border)',
+}
+
 export default function BedrijfTab({ bedrijf, team, onCodeVernieuwd }: Props) {
+  const { toast } = useToast()
   const [gekopieerd, setGekopieerd] = useState(false)
   const [vernieuwBezig, setVernieuwBezig] = useState(false)
   const [bewerkenActief, setBewerkenActief] = useState(false)
   const [bedrijfsnaam, setBedrijfsnaam] = useState(bedrijf?.naam || '')
   const [opslaanBezig, setOpslaanBezig] = useState(false)
-  const [opslaanFeedback, setOpslaanFeedback] = useState<string | null>(null)
 
   function kopieerCode() {
     if (!bedrijf?.hr_code) return
-    navigator.clipboard.writeText(bedrijf.hr_code).then(() => {
-      setGekopieerd(true)
-      setTimeout(() => setGekopieerd(false), 2000)
-    })
+    navigator.clipboard.writeText(bedrijf.hr_code).then(
+      () => {
+        setGekopieerd(true)
+        setTimeout(() => setGekopieerd(false), 2000)
+      },
+      () => {
+        toast({ title: 'Kopiëren mislukt', description: 'Kopieer de code handmatig.', variant: 'error' })
+      },
+    )
   }
 
   async function vernieuwCode() {
@@ -56,8 +72,13 @@ export default function BedrijfTab({ bedrijf, team, onCodeVernieuwd }: Props) {
       .from('bedrijven')
       .update({ hr_code: nieuweCode })
       .eq('id', bedrijf.id)
-    if (!error) onCodeVernieuwd(nieuweCode)
     setVernieuwBezig(false)
+    if (error) {
+      toast({ title: 'Vernieuwen mislukt', description: error.message, variant: 'error' })
+      return
+    }
+    onCodeVernieuwd(nieuweCode)
+    toast({ title: 'Nieuwe HR-code gegenereerd', variant: 'success' })
   }
 
   async function slaaNaamOp(e: React.FormEvent) {
@@ -68,12 +89,13 @@ export default function BedrijfTab({ bedrijf, team, onCodeVernieuwd }: Props) {
       .from('bedrijven')
       .update({ naam: bedrijfsnaam.trim() })
       .eq('id', bedrijf.id)
-    if (!error) {
-      setOpslaanFeedback('Naam opgeslagen.')
-      setBewerkenActief(false)
-      setTimeout(() => setOpslaanFeedback(null), 3000)
-    }
     setOpslaanBezig(false)
+    if (error) {
+      toast({ title: 'Opslaan mislukt', description: error.message, variant: 'error' })
+      return
+    }
+    setBewerkenActief(false)
+    toast({ title: 'Naam opgeslagen', variant: 'success' })
   }
 
   // Bereken stats uit team data
@@ -89,168 +111,139 @@ export default function BedrijfTab({ bedrijf, team, onCodeVernieuwd }: Props) {
       .filter((a): a is string => !!a && a.trim() !== '')
   )].sort()
 
+  const stats: { label: string; value: string }[] = [
+    { label: 'Medewerkers', value: String(team.length) },
+    { label: 'Gem. score', value: gemScore > 0 ? `${gemScore}/5` : '—' },
+    { label: 'Participatie', value: `${participatie}%` },
+  ]
+
   return (
-    <div className="flex flex-col gap-4 max-w-lg">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 512 }}>
 
       {/* Quick Stats row */}
-      <div className="grid grid-cols-3 gap-3">
-        {[
-          { label: 'Medewerkers', value: String(team.length), color: '#185FA5', bg: '#E6F1FB' },
-          { label: 'Gem. score', value: gemScore > 0 ? `${gemScore}/5` : '—', color: '#1D9E75', bg: '#E1F5EE' },
-          { label: 'Participatie', value: `${participatie}%`, color: participatie >= 70 ? '#1D9E75' : '#BA7517', bg: participatie >= 70 ? '#E1F5EE' : '#FAEEDA' },
-        ].map(stat => (
-          <div key={stat.label} className="bg-white rounded-2xl border border-gray-100 p-4 text-center"
-            style={{ borderTop: `3px solid ${stat.color}` }}>
-            <p className="text-xl font-bold" style={{ color: stat.color }}>{stat.value}</p>
-            <p className="text-xs text-gray-400 mt-0.5">{stat.label}</p>
-          </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+        {stats.map(stat => (
+          <Card key={stat.label} style={{ padding: 16, textAlign: 'center', borderTop: '2px solid var(--mentaforce-primary)' }}>
+            <p style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-1)' }}>{stat.value}</p>
+            <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 2 }}>{stat.label}</p>
+          </Card>
         ))}
       </div>
 
       {/* HR Code card */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-6">
-        <p className="text-sm font-semibold text-gray-700 mb-1">HR-code</p>
-        <p className="text-xs text-gray-400 mb-4">
+      <Card style={{ padding: 24 }}>
+        <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-1)', marginBottom: 4 }}>HR-code</p>
+        <p style={{ fontSize: 12, color: 'var(--text-3)', marginBottom: 16 }}>
           Medewerkers gebruiken deze code om lid te worden van jouw bedrijf in MentaForce.
         </p>
-        <div className="flex items-center gap-3 mb-4">
-          <div className="flex-1 rounded-xl border-2 border-dashed border-gray-200 px-4 py-3 text-center">
-            <p className="text-3xl font-bold tracking-widest" style={{ color: '#1D9E75', fontFamily: 'monospace' }}>
+        <div style={{ marginBottom: 16 }}>
+          <div style={{ borderRadius: 'var(--radius-md)', border: '1px dashed var(--border-strong)', background: 'var(--bg-subtle)', padding: '12px 16px', textAlign: 'center' }}>
+            <p style={{ fontSize: 30, fontWeight: 700, letterSpacing: '0.15em', color: 'var(--mentaforce-primary)', fontFamily: 'monospace' }}>
               {bedrijf?.hr_code || '......'}
             </p>
           </div>
         </div>
-        <div className="flex gap-2">
-          <button
-            onClick={kopieerCode}
-            className="flex-1 py-2 rounded-xl text-sm font-medium transition"
-            style={{ background: '#E1F5EE', color: '#0F6E56' }}
-          >
+        <div style={{ display: 'flex', gap: 8 }}>
+          <Button onClick={kopieerCode} variant="secondary" style={{ flex: 1 }}>
             {gekopieerd ? 'Gekopieerd!' : 'Kopieer code'}
-          </button>
-          <button
-            onClick={vernieuwCode}
-            disabled={vernieuwBezig}
-            className="px-4 py-2 rounded-xl text-sm font-medium border border-gray-200 hover:bg-gray-50 transition disabled:opacity-40"
-            style={{ color: '#6b7280' }}
-          >
-            {vernieuwBezig ? '...' : 'Vernieuwen'}
-          </button>
+          </Button>
+          <Button onClick={vernieuwCode} variant="ghost" loading={vernieuwBezig}>
+            Vernieuwen
+          </Button>
         </div>
-        <p className="text-xs text-gray-400 mt-3">
+        <p style={{ fontSize: 12, color: 'var(--text-4)', marginTop: 12 }}>
           Let op: bij vernieuwen werkt de oude code niet meer.
         </p>
-      </div>
+      </Card>
 
       {/* Bedrijfsinfo */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-6">
-        <div className="flex items-center justify-between mb-4">
-          <p className="text-sm font-semibold text-gray-700">Bedrijfsinformatie</p>
-          <button
-            onClick={() => setBewerkenActief(a => !a)}
-            className="text-xs px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 transition"
-            style={{ color: '#6b7280' }}
-          >
+      <Card style={{ padding: 24 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+          <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-1)' }}>Bedrijfsinformatie</p>
+          <Button onClick={() => setBewerkenActief(a => !a)} variant="ghost" size="sm">
             {bewerkenActief ? 'Annuleren' : 'Bewerken'}
-          </button>
+          </Button>
         </div>
 
         {bewerkenActief ? (
-          <form onSubmit={slaaNaamOp}>
-            <label className="text-xs font-medium text-gray-500 block mb-1">Bedrijfsnaam</label>
-            <input
-              value={bedrijfsnaam}
-              onChange={e => setBedrijfsnaam(e.target.value)}
-              className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-gray-400 mb-3"
-            />
-            <button
-              type="submit"
-              disabled={opslaanBezig}
-              className="w-full py-2 rounded-xl text-sm font-semibold text-white disabled:opacity-40"
-              style={{ background: '#1D9E75' }}
-            >
-              {opslaanBezig ? 'Opslaan...' : 'Opslaan'}
-            </button>
+          <form onSubmit={slaaNaamOp} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <Field label="Bedrijfsnaam">
+              <Input value={bedrijfsnaam} onChange={e => setBedrijfsnaam(e.target.value)} />
+            </Field>
+            <Button type="submit" loading={opslaanBezig} style={{ width: '100%' }}>
+              Opslaan
+            </Button>
           </form>
         ) : (
-          <div className="flex flex-col gap-3">
-            <div className="flex items-center justify-between py-2 border-b border-gray-50">
-              <span className="text-xs text-gray-400">Naam</span>
-              <span className="text-sm font-medium text-gray-700">{bedrijf?.naam || '—'}</span>
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <div style={infoRijStijl}>
+              <span style={{ fontSize: 12, color: 'var(--text-3)' }}>Naam</span>
+              <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-1)' }}>{bedrijf?.naam || '—'}</span>
             </div>
             {bedrijf?.sector && (
-              <div className="flex items-center justify-between py-2 border-b border-gray-50">
-                <span className="text-xs text-gray-400">Sector</span>
-                <span className="text-sm font-medium text-gray-700">{bedrijf.sector}</span>
+              <div style={infoRijStijl}>
+                <span style={{ fontSize: 12, color: 'var(--text-3)' }}>Sector</span>
+                <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-1)' }}>{bedrijf.sector}</span>
               </div>
             )}
             {bedrijf?.grootte && (
-              <div className="flex items-center justify-between py-2 border-b border-gray-50">
-                <span className="text-xs text-gray-400">Teamgrootte</span>
-                <span className="text-sm font-medium text-gray-700">{bedrijf.grootte} medewerkers</span>
+              <div style={infoRijStijl}>
+                <span style={{ fontSize: 12, color: 'var(--text-3)' }}>Teamgrootte</span>
+                <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-1)' }}>{bedrijf.grootte} medewerkers</span>
               </div>
             )}
             {bedrijf?.stad && (
-              <div className="flex items-center justify-between py-2 border-b border-gray-50">
-                <span className="text-xs text-gray-400">Stad</span>
-                <span className="text-sm font-medium text-gray-700">{bedrijf.stad}</span>
+              <div style={infoRijStijl}>
+                <span style={{ fontSize: 12, color: 'var(--text-3)' }}>Stad</span>
+                <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-1)' }}>{bedrijf.stad}</span>
               </div>
             )}
             {bedrijf?.website && (
-              <div className="flex items-center justify-between py-2 border-b border-gray-50">
-                <span className="text-xs text-gray-400">Website</span>
+              <div style={infoRijStijl}>
+                <span style={{ fontSize: 12, color: 'var(--text-3)' }}>Website</span>
                 <a
                   href={bedrijf.website.startsWith('http') ? bedrijf.website : `https://${bedrijf.website}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-sm font-medium"
-                  style={{ color: '#1D9E75' }}
+                  style={{ fontSize: 14, fontWeight: 500, color: 'var(--mentaforce-primary)' }}
                 >
                   {bedrijf.website}
                 </a>
               </div>
             )}
-            <div className="flex items-center justify-between py-2 border-b border-gray-50">
-              <span className="text-xs text-gray-400">Actieve medewerkers</span>
-              <span className="text-sm font-medium text-gray-700">{team.length}</span>
+            <div style={infoRijStijl}>
+              <span style={{ fontSize: 12, color: 'var(--text-3)' }}>Actieve medewerkers</span>
+              <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-1)' }}>{team.length}</span>
             </div>
-            <div className="flex items-center justify-between py-2">
-              <span className="text-xs text-gray-400">Bedrijf-ID</span>
-              <span className="text-xs font-mono text-gray-400">{bedrijf?.id?.slice(0, 8)}...</span>
+            <div style={{ ...infoRijStijl, borderBottom: 'none' }}>
+              <span style={{ fontSize: 12, color: 'var(--text-3)' }}>Bedrijf-ID</span>
+              <span style={{ fontSize: 12, fontFamily: 'monospace', color: 'var(--text-3)' }}>{bedrijf?.id?.slice(0, 8)}...</span>
             </div>
           </div>
         )}
-
-        {opslaanFeedback && (
-          <div className="mt-3 rounded-xl p-2 text-xs font-medium" style={{ background: '#E1F5EE', color: '#0F6E56' }}>
-            {opslaanFeedback}
-          </div>
-        )}
-      </div>
+      </Card>
 
       {/* Afdelingen overzicht */}
       {afdelingen.length > 0 && (
-        <div className="bg-white rounded-2xl border border-gray-100 p-6">
-          <p className="text-sm font-semibold text-gray-700 mb-3">Afdelingen ({afdelingen.length})</p>
-          <div className="flex flex-wrap gap-2">
+        <Card style={{ padding: 24 }}>
+          <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-1)', marginBottom: 12 }}>Afdelingen ({afdelingen.length})</p>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
             {afdelingen.map(afd => {
               const aantalInAfd = team.filter(l => l.afdeling === afd).length
               return (
-                <div
-                  key={afd}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium"
-                  style={{ background: '#F3F4F6', color: '#374151' }}
-                >
+                <Badge key={afd} variant="neutral">
                   <span>{afd}</span>
-                  <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold"
-                    style={{ background: '#E6F1FB', color: '#185FA5' }}>
+                  <span style={{
+                    padding: '1px 6px', borderRadius: 100, fontSize: 10, fontWeight: 700,
+                    background: 'var(--mentaforce-primary-light)', color: 'var(--mentaforce-primary)',
+                  }}>
                     {aantalInAfd}
                   </span>
-                </div>
+                </Badge>
               )
             })}
           </div>
-        </div>
+        </Card>
       )}
     </div>
   )

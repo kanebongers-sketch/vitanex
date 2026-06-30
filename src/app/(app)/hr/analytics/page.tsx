@@ -7,6 +7,10 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
+import { Card } from '@/components/ui/Card'
+import { Ring } from '@/components/ui/Ring'
+import { Badge } from '@/components/ui/Badge'
+import { Chart, type ChartDatum } from '@/components/ui/Chart'
 
 
 interface WeekPunt {
@@ -53,190 +57,9 @@ function recenteWeekRange(): string {
   return `${fmt(maandag)} – ${fmt(zondag)}`
 }
 
-// Eenvoudige SVG lijnengrafiek
-function LijnenGrafiek({
-  punten,
-  kleur,
-  min,
-  max,
-  label,
-}: {
-  punten: WeekPunt[]
-  kleur: string
-  min: number
-  max: number
-  label: string
-}) {
-  const breedte = 480
-  const hoogte = 120
-  const padding = { left: 32, right: 16, top: 12, bottom: 24 }
-  const innerB = breedte - padding.left - padding.right
-  const innerH = hoogte - padding.top - padding.bottom
-
-  if (!punten.length) {
-    return (
-      <div style={{ height: hoogte, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-4)', fontSize: 13 }}>
-        Geen data beschikbaar
-      </div>
-    )
-  }
-
-  const bereik = max - min || 1
-  const xStap = innerB / Math.max(punten.length - 1, 1)
-
-  const puntenCoords = punten.map((p, i) => {
-    const x = padding.left + i * xStap
-    const y = padding.top + innerH - ((( p.gemiddelde ?? min) - min) / bereik) * innerH
-    return { x, y, waarde: p.gemiddelde, week: p.week }
-  })
-
-  const pad = puntenCoords
-    .map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x.toFixed(1)},${p.y.toFixed(1)}`)
-    .join(' ')
-
-  const vulPad =
-    pad +
-    ` L${puntenCoords[puntenCoords.length - 1].x.toFixed(1)},${(padding.top + innerH).toFixed(1)}` +
-    ` L${padding.left.toFixed(1)},${(padding.top + innerH).toFixed(1)} Z`
-
-  return (
-    <svg viewBox={`0 0 ${breedte} ${hoogte}`} style={{ width: '100%', height: hoogte, overflow: 'visible' }}>
-      {/* Grid lijnen */}
-      {[0, 0.5, 1].map((f) => {
-        const y = padding.top + innerH - f * innerH
-        return (
-          <line
-            key={f}
-            x1={padding.left}
-            y1={y}
-            x2={breedte - padding.right}
-            y2={y}
-            style={{ stroke: 'var(--border)' }}
-            strokeWidth={1}
-          />
-        )
-      })}
-
-      {/* Y-as labels */}
-      <text x={padding.left - 4} y={padding.top + 4} textAnchor="end" fontSize={9} style={{ fill: 'var(--text-4)' }}>{max}</text>
-      <text x={padding.left - 4} y={padding.top + innerH + 4} textAnchor="end" fontSize={9} style={{ fill: 'var(--text-4)' }}>{min}</text>
-
-      {/* Vulling onder lijn */}
-      <path d={vulPad} fill={kleur} fillOpacity={0.08} />
-
-      {/* Hoofdlijn */}
-      <path d={pad} fill="none" stroke={kleur} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-
-      {/* Datapunten */}
-      {puntenCoords.map((p, i) => (
-        <circle key={i} cx={p.x} cy={p.y} r={3} fill={kleur} />
-      ))}
-
-      {/* X-as labels (elke 3e week) */}
-      {puntenCoords
-        .filter((_, i) => i % 3 === 0)
-        .map((p, i) => (
-          <text key={i} x={p.x} y={hoogte - 4} textAnchor="middle" fontSize={9} style={{ fill: 'var(--text-4)' }}>
-            {p.week.slice(5)}
-          </text>
-        ))}
-    </svg>
-  )
-}
-
-// Staafgrafiek voor stress
-function StaafGrafiek({ punten, kleur }: { punten: WeekPunt[]; kleur: string }) {
-  const breedte = 480
-  const hoogte = 120
-  const padding = { left: 32, right: 16, top: 12, bottom: 24 }
-  const innerB = breedte - padding.left - padding.right
-  const innerH = hoogte - padding.top - padding.bottom
-  const max = 10
-
-  if (!punten.length) {
-    return (
-      <div style={{ height: hoogte, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-4)', fontSize: 13 }}>
-        Geen data beschikbaar
-      </div>
-    )
-  }
-
-  const staafBreedte = Math.max(4, (innerB / punten.length) * 0.6)
-
-  return (
-    <svg viewBox={`0 0 ${breedte} ${hoogte}`} style={{ width: '100%', height: hoogte, overflow: 'visible' }}>
-      {/* Grid */}
-      {[0, 0.5, 1].map((f) => {
-        const y = padding.top + innerH - f * innerH
-        return (
-          <line key={f} x1={padding.left} y1={y} x2={breedte - padding.right} y2={y} style={{ stroke: 'var(--border)' }} strokeWidth={1} />
-        )
-      })}
-      <text x={padding.left - 4} y={padding.top + 4} textAnchor="end" fontSize={9} style={{ fill: 'var(--text-4)' }}>{max}</text>
-      <text x={padding.left - 4} y={padding.top + innerH + 4} textAnchor="end" fontSize={9} style={{ fill: 'var(--text-4)' }}>0</text>
-
-      {punten.map((p, i) => {
-        const x = padding.left + (i / Math.max(punten.length - 1, 1)) * innerB
-        const val = p.gemiddelde ?? 0
-        const staafH = (val / max) * innerH
-        const y = padding.top + innerH - staafH
-        const stressKleur = val >= 7 ? 'var(--mf-red)' : val >= 5 ? 'var(--mf-amber)' : kleur
-        return (
-          <rect
-            key={i}
-            x={x - staafBreedte / 2}
-            y={y}
-            width={staafBreedte}
-            height={staafH}
-            fill={stressKleur}
-            fillOpacity={0.85}
-            rx={2}
-          />
-        )
-      })}
-
-      {punten
-        .filter((_, i) => i % 3 === 0)
-        .map((p, i) => {
-          const x = padding.left + ((punten.findIndex((q) => q.week === p.week)) / Math.max(punten.length - 1, 1)) * innerB
-          return (
-            <text key={i} x={x} y={hoogte - 4} textAnchor="middle" fontSize={9} style={{ fill: 'var(--text-4)' }}>
-              {p.week.slice(5)}
-            </text>
-          )
-        })}
-    </svg>
-  )
-}
-
-// Ring-percentage voor participatie
-function RingParticipatie({ pct, kleur }: { pct: number; kleur: string }) {
-  const straal = 44
-  const omtrek = 2 * Math.PI * straal
-  const gevuld = (pct / 100) * omtrek
-  return (
-    <div style={{ position: 'relative', display: 'inline-block' }}>
-      <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
-        <div style={{ width: 120, height: 120, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
-      </div>
-    <svg width={108} height={108} viewBox="0 0 108 108" style={{ position: 'relative', zIndex: 1 }}>
-      <circle cx={54} cy={54} r={straal} fill="none" style={{ stroke: 'var(--border)' }} strokeWidth={10} />
-      <circle
-        cx={54}
-        cy={54}
-        r={straal}
-        fill="none"
-        stroke={kleur}
-        strokeWidth={10}
-        strokeDasharray={`${gevuld} ${omtrek - gevuld}`}
-        strokeDashoffset={omtrek / 4}
-        strokeLinecap="round"
-      />
-      <text x={54} y={50} textAnchor="middle" fontSize={18} fontWeight={800} style={{ fill: 'var(--text-1)' }}>{pct}%</text>
-      <text x={54} y={66} textAnchor="middle" fontSize={10} style={{ fill: 'var(--text-4)' }}>actief</text>
-    </svg>
-    </div>
-  )
+// Maakt van een week-trend de generieke Chart-data: { week, waarde }.
+function naarChartData(punten: WeekPunt[]): ChartDatum[] {
+  return punten.map((p) => ({ week: p.week.slice(5), waarde: p.gemiddelde ?? null }))
 }
 
 export default function HrAnalyticsPage() {
@@ -283,6 +106,9 @@ export default function HrAnalyticsPage() {
   const gemStemming = data ? gemiddelde(data.stemming_trend) : null
   const gemSlaap = data ? gemiddelde(data.slaap_trend) : null
   const gemStress = data ? gemiddelde(data.stress_trend) : null
+
+  const ringKleur =
+    participatiePct >= 70 ? 'var(--mf-green)' : participatiePct >= 40 ? 'var(--mf-amber)' : 'var(--mf-red)'
 
   const kpiKaarten = [
     {
@@ -338,7 +164,7 @@ export default function HrAnalyticsPage() {
             <div className="mf-spinner" />
           </div>
         ) : fout ? (
-          <div style={{ background: 'var(--mf-red-light)', border: '1px solid var(--mf-red-mid)', borderRadius: 12, padding: '16px 20px', color: 'var(--mf-red)', fontSize: 14 }}>
+          <div role="alert" style={{ background: 'var(--mf-red-light)', border: '1px solid var(--mf-red)', borderRadius: 'var(--radius-md)', padding: '16px 20px', color: 'var(--mf-red)', fontSize: 14 }}>
             {fout}
           </div>
         ) : data ? (
@@ -346,12 +172,9 @@ export default function HrAnalyticsPage() {
             {/* KPI kaartjes */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 28 }}>
               {kpiKaarten.map((k) => (
-                <div
+                <Card
                   key={k.label}
                   style={{
-                    background: 'var(--bg-card)',
-                    border: '1px solid var(--border)',
-                    borderRadius: 16,
                     padding: '20px 22px',
                     borderTop: `3px solid ${k.kleur}`,
                   }}
@@ -361,7 +184,7 @@ export default function HrAnalyticsPage() {
                   </p>
                   <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-2)', marginTop: 6 }}>{k.label}</p>
                   <p style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 2 }}>{k.sub}</p>
-                </div>
+                </Card>
               ))}
             </div>
 
@@ -369,54 +192,75 @@ export default function HrAnalyticsPage() {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
 
               {/* Stemming trend */}
-              <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 16, padding: '20px 22px' }}>
+              <Card style={{ padding: '20px 22px' }}>
                 <div style={{ marginBottom: 12 }}>
                   <h2 style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-2)' }}>Stemming trend</h2>
                   <p style={{ fontSize: 11, color: 'var(--text-3)' }}>Gemiddelde per week (schaal 1–5)</p>
                 </div>
-                <LijnenGrafiek
-                  punten={data.stemming_trend}
-                  kleur="var(--mf-purple)"
-                  min={1}
-                  max={5}
-                  label="stemming"
-                />
-              </div>
+                {data.stemming_trend.length === 0 ? (
+                  <p style={{ fontSize: 13, color: 'var(--text-4)', padding: '32px 0', textAlign: 'center' }}>Geen data beschikbaar</p>
+                ) : (
+                  <Chart
+                    type="area"
+                    data={naarChartData(data.stemming_trend)}
+                    xKey="week"
+                    series={[{ key: 'waarde', label: 'Stemming', color: 'var(--mf-purple)' }]}
+                    yDomain={[1, 5]}
+                    height={140}
+                    summary="Gemiddelde stemming per week op een schaal van 1 tot 5, over de afgelopen weken."
+                  />
+                )}
+              </Card>
 
               {/* Slaap trend */}
-              <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 16, padding: '20px 22px' }}>
+              <Card style={{ padding: '20px 22px' }}>
                 <div style={{ marginBottom: 12 }}>
                   <h2 style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-2)' }}>Slaap trend</h2>
                   <p style={{ fontSize: 11, color: 'var(--text-3)' }}>Gem. uren slaap per week</p>
                 </div>
-                <LijnenGrafiek
-                  punten={data.slaap_trend}
-                  kleur="var(--mf-green)"
-                  min={4}
-                  max={9}
-                  label="slaap"
-                />
-              </div>
+                {data.slaap_trend.length === 0 ? (
+                  <p style={{ fontSize: 13, color: 'var(--text-4)', padding: '32px 0', textAlign: 'center' }}>Geen data beschikbaar</p>
+                ) : (
+                  <Chart
+                    type="area"
+                    data={naarChartData(data.slaap_trend)}
+                    xKey="week"
+                    series={[{ key: 'waarde', label: 'Slaap (uren)', color: 'var(--mf-green)' }]}
+                    yDomain={[4, 9]}
+                    height={140}
+                    summary="Gemiddeld aantal uren slaap per week over de afgelopen weken."
+                  />
+                )}
+              </Card>
             </div>
 
             {/* Grafieken rij 2: Stress + Participatie */}
             <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 14, marginBottom: 14 }}>
 
               {/* Stress staafgrafiek */}
-              <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 16, padding: '20px 22px' }}>
+              <Card style={{ padding: '20px 22px' }}>
                 <div style={{ marginBottom: 12 }}>
                   <h2 style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-2)' }}>Stress trend</h2>
-                  <p style={{ fontSize: 11, color: 'var(--text-3)' }}>Gem. stressniveau per week (1–10) — rood = hoog stress</p>
+                  <p style={{ fontSize: 11, color: 'var(--text-3)' }}>Gem. stressniveau per week (schaal 1–10)</p>
                 </div>
-                <StaafGrafiek punten={data.stress_trend} kleur="#1D9E75" />
-              </div>
+                {data.stress_trend.length === 0 ? (
+                  <p style={{ fontSize: 13, color: 'var(--text-4)', padding: '32px 0', textAlign: 'center' }}>Geen data beschikbaar</p>
+                ) : (
+                  <Chart
+                    type="bar"
+                    data={naarChartData(data.stress_trend)}
+                    xKey="week"
+                    series={[{ key: 'waarde', label: 'Stress', color: 'var(--mentaforce-primary)' }]}
+                    yDomain={[0, 10]}
+                    height={140}
+                    summary="Gemiddeld stressniveau per week op een schaal van 1 tot 10 over de afgelopen weken."
+                  />
+                )}
+              </Card>
 
               {/* Participatie ring */}
-              <div
+              <Card
                 style={{
-                  background: 'var(--bg-card)',
-                  border: '1px solid var(--border)',
-                  borderRadius: 16,
                   padding: '20px 22px',
                   display: 'flex',
                   flexDirection: 'column',
@@ -429,20 +273,28 @@ export default function HrAnalyticsPage() {
                   <h2 style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-2)' }}>Participatie</h2>
                   <p style={{ fontSize: 11, color: 'var(--text-3)' }}>Check-ins deze week</p>
                 </div>
-                <RingParticipatie
-                  pct={participatiePct}
-                  kleur={participatiePct >= 70 ? 'var(--mf-green)' : participatiePct >= 40 ? 'var(--mf-amber)' : 'var(--mf-red)'}
-                />
+                <Ring
+                  value={participatiePct}
+                  ariaLabel={`Participatie deze week: ${participatiePct} procent actief`}
+                  size={108}
+                  thickness={10}
+                  color={ringKleur}
+                >
+                  <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', lineHeight: 1.1 }}>
+                    <strong style={{ fontSize: 18, fontWeight: 800, color: 'var(--text-1)' }}>{participatiePct}%</strong>
+                    <span style={{ fontSize: 10, color: 'var(--text-3)' }}>actief</span>
+                  </span>
+                </Ring>
                 <p style={{ fontSize: 12, color: 'var(--text-2)', textAlign: 'center' }}>
                   <strong style={{ color: 'var(--text-1)' }}>{data.actief_deze_week}</strong> van{' '}
                   <strong style={{ color: 'var(--text-1)' }}>{data.totaal_medewerkers}</strong> actief
                 </p>
-              </div>
+              </Card>
             </div>
 
             {/* Top stressoren */}
             {data.top_stressoren.length > 0 && (
-              <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 16, padding: '20px 22px' }}>
+              <Card style={{ padding: '20px 22px' }}>
                 <div style={{ marginBottom: 16 }}>
                   <h2 style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-2)' }}>Top stressoren (30 dagen)</h2>
                   <p style={{ fontSize: 11, color: 'var(--text-3)' }}>Gebruikte technieken bij hoge stress (stress ≥ 7)</p>
@@ -457,27 +309,14 @@ export default function HrAnalyticsPage() {
                       geen_techniek: 'Geen techniek',
                     }
                     return (
-                      <div
-                        key={s.naam}
-                        style={{
-                          background: 'var(--mf-amber-light)',
-                          border: '1px solid #FDE68A',
-                          borderRadius: 10,
-                          padding: '10px 16px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 10,
-                        }}
-                      >
-                        <span style={{ fontSize: 18, fontWeight: 900, color: 'var(--mf-amber-dark)' }}>{s.count}</span>
-                        <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--mf-amber-dark)' }}>
-                          {labelMap[s.naam] ?? s.naam}
-                        </span>
-                      </div>
+                      <Badge key={s.naam} variant="warning" style={{ padding: '8px 14px', fontSize: 12 }}>
+                        <strong style={{ fontSize: 15, fontWeight: 900 }}>{s.count}</strong>
+                        <span style={{ fontWeight: 600 }}>{labelMap[s.naam] ?? s.naam}</span>
+                      </Badge>
                     )
                   })}
                 </div>
-              </div>
+              </Card>
             )}
 
             <p style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 16, textAlign: 'center' }}>

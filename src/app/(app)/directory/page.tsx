@@ -4,9 +4,13 @@ export const dynamic = 'force-dynamic'
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { Search, Building2, Mail, Phone, MapPin, Users } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
-
+import { Card } from '@/components/ui/Card'
+import { Badge } from '@/components/ui/Badge'
+import { EmptyState } from '@/components/ui/EmptyState'
+import { DialogRoot, DialogContent, DialogTitle } from '@/components/ui/Dialog'
 import { Avatar } from '@/components/Avatar'
 
 type Medewerker = {
@@ -27,10 +31,16 @@ const ROL_LABELS: Record<string, string> = {
   medewerker: 'Medewerker',
 }
 
-const ROL_KLEUR: Record<string, { bg: string; color: string }> = {
-  admin:      { bg: 'var(--mf-purple-light)', color: 'var(--mf-purple)' },
-  hr:         { bg: 'var(--mf-blue-light)', color: 'var(--mf-blue)' },
-  medewerker: { bg: 'var(--bg-subtle)', color: 'var(--text-2)' },
+type BadgeVariant = 'neutral' | 'accent' | 'success' | 'warning' | 'danger'
+
+const ROL_VARIANT: Record<string, BadgeVariant> = {
+  admin: 'accent',
+  hr: 'accent',
+  medewerker: 'neutral',
+}
+
+function rolVariant(rol: string): BadgeVariant {
+  return ROL_VARIANT[rol] ?? 'neutral'
 }
 
 export default function DirectoryPage() {
@@ -84,166 +94,179 @@ export default function DirectoryPage() {
 
         {/* Header */}
         <div className="mb-5">
-          <h1 className="text-xl font-bold text-gray-900">Medewerkersgids</h1>
-          <p className="text-sm text-gray-400 mt-0.5">{medewerkers.length} collega{medewerkers.length !== 1 ? "'s" : ''}</p>
+          <h1 className="text-xl font-bold tracking-tight" style={{ color: 'var(--text-1)', letterSpacing: '-0.02em' }}>Medewerkersgids</h1>
+          <p className="text-sm mt-0.5" style={{ color: 'var(--text-3)' }}>{medewerkers.length} collega{medewerkers.length !== 1 ? "'s" : ''}</p>
         </div>
 
         {/* Zoekbalk */}
         <div className="relative mb-3">
-          <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400">🔍</span>
+          <label htmlFor="directory-zoek" className="sr-only">Zoek collega</label>
+          <Search size={17} aria-hidden style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-4)', pointerEvents: 'none' }} />
           <input
-            type="text"
+            id="directory-zoek"
+            type="search"
             placeholder="Zoek op naam, functie of afdeling..."
             value={zoekterm}
             onChange={e => setZoekterm(e.target.value)}
-            className="w-full bg-white border border-gray-200 rounded-xl pl-10 pr-4 py-2.5 text-sm outline-none focus:border-gray-400"
-            style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}
+            className="mf-ui-control w-full"
+            style={{
+              padding: '10px 14px 10px 40px',
+              fontSize: 16,
+              lineHeight: 1.4,
+              color: 'var(--text-1)',
+              background: 'var(--bg-subtle)',
+              border: '1px solid var(--border-strong)',
+              borderRadius: 'var(--radius-md)',
+              outline: 'none',
+            }}
           />
         </div>
 
         {/* Rol filter pills */}
-        <div className="flex gap-2 mb-5 overflow-x-auto pb-1">
-          {rollen.map(r => (
-            <button
-              key={r}
-              onClick={() => setRolFilter(r)}
-              className="flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition"
-              style={{
-                background: rolFilter === r ? '#0F172A' : 'white',
-                color: rolFilter === r ? 'white' : 'var(--text-2)',
-                borderColor: rolFilter === r ? '#0F172A' : 'var(--border)',
-              }}>
-              {r === 'alle' ? 'Alle' : ROL_LABELS[r] ?? r}
-            </button>
-          ))}
+        <div role="group" aria-label="Filter op rol" className="flex gap-2 mb-5 overflow-x-auto pb-1">
+          {rollen.map(r => {
+            const actief = rolFilter === r
+            return (
+              <button
+                key={r}
+                type="button"
+                onClick={() => setRolFilter(r)}
+                aria-pressed={actief}
+                className="flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition"
+                style={{
+                  background: actief ? 'var(--mentaforce-primary)' : 'var(--bg-subtle)',
+                  color: actief ? 'var(--bg-app)' : 'var(--text-2)',
+                  border: `1px solid ${actief ? 'var(--mentaforce-primary)' : 'var(--border-strong)'}`,
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap',
+                }}>
+                {r === 'alle' ? 'Alle' : ROL_LABELS[r] ?? r}
+              </button>
+            )
+          })}
         </div>
 
         {/* Profiel detail overlay */}
-        {geselecteerd && (
-          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center"
-            style={{ background: 'rgba(0,0,0,0.4)' }}
-            onClick={() => setGeselecteerd(null)}>
-            <div className="bg-white w-full sm:max-w-sm rounded-t-3xl sm:rounded-2xl p-6 pb-10"
-              style={{ boxShadow: '0 -4px 30px rgba(0,0,0,0.15)' }}
-              onClick={e => e.stopPropagation()}>
-              <div className="flex justify-end mb-2">
-                <button onClick={() => setGeselecteerd(null)} className="text-gray-400 hover:text-gray-600 text-xl">✕</button>
-              </div>
-
-              <div className="flex flex-col items-center mb-5">
-                <Avatar naam={geselecteerd.naam || '?'} avatarUrl={geselecteerd.avatar_url} size={72} />
-                <h2 className="text-xl font-bold text-gray-900 mt-3">{geselecteerd.naam}</h2>
-                {geselecteerd.functie && <p className="text-sm text-gray-500 mt-0.5">{geselecteerd.functie}</p>}
-                <span className="mt-2 text-xs font-semibold px-3 py-1 rounded-full"
-                  style={ROL_KLEUR[geselecteerd.rol] ?? { bg: 'var(--bg-subtle)', color: 'var(--text-2)' }}>
-                  {ROL_LABELS[geselecteerd.rol] ?? geselecteerd.rol}
-                </span>
-              </div>
-
-              <div className="flex flex-col gap-3">
-                {geselecteerd.afdeling && (
-                  <div className="flex items-center gap-3 py-2.5 border-b border-gray-100">
-                    <span className="text-xl w-8">🏢</span>
-                    <div>
-                      <p className="text-xs text-gray-400">Afdeling</p>
-                      <p className="text-sm font-medium text-gray-800">{geselecteerd.afdeling}</p>
-                    </div>
+        <DialogRoot open={!!geselecteerd} onOpenChange={(open) => { if (!open) setGeselecteerd(null) }}>
+          <DialogContent>
+            {geselecteerd && (
+              <>
+                <DialogTitle className="sr-only">{geselecteerd.naam}</DialogTitle>
+                <div className="flex flex-col items-center mb-5">
+                  <Avatar naam={geselecteerd.naam || '?'} avatarUrl={geselecteerd.avatar_url} size={72} />
+                  <p className="text-xl font-bold mt-3" style={{ color: 'var(--text-1)' }}>{geselecteerd.naam}</p>
+                  {geselecteerd.functie && <p className="text-sm mt-0.5" style={{ color: 'var(--text-3)' }}>{geselecteerd.functie}</p>}
+                  <div className="mt-2">
+                    <Badge variant={rolVariant(geselecteerd.rol)}>{ROL_LABELS[geselecteerd.rol] ?? geselecteerd.rol}</Badge>
                   </div>
-                )}
-                {geselecteerd.email && (
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  {geselecteerd.afdeling && (
+                    <div className="flex items-center gap-3 py-2.5" style={{ borderBottom: '1px solid var(--border)' }}>
+                      <Building2 size={18} aria-hidden style={{ color: 'var(--text-3)', flexShrink: 0 }} />
+                      <div>
+                        <p className="text-xs" style={{ color: 'var(--text-4)' }}>Afdeling</p>
+                        <p className="text-sm font-medium" style={{ color: 'var(--text-1)' }}>{geselecteerd.afdeling}</p>
+                      </div>
+                    </div>
+                  )}
+                  {geselecteerd.email && (
+                    <a href={`mailto:${geselecteerd.email}`}
+                      className="flex items-center gap-3 py-2.5"
+                      style={{ borderBottom: '1px solid var(--border)' }}>
+                      <Mail size={18} aria-hidden style={{ color: 'var(--text-3)', flexShrink: 0 }} />
+                      <div>
+                        <p className="text-xs" style={{ color: 'var(--text-4)' }}>E-mail</p>
+                        <p className="text-sm font-medium" style={{ color: 'var(--mentaforce-primary)' }}>{geselecteerd.email}</p>
+                      </div>
+                    </a>
+                  )}
+                  {geselecteerd.telefoon && (
+                    <a href={`tel:${geselecteerd.telefoon}`}
+                      className="flex items-center gap-3 py-2.5"
+                      style={{ borderBottom: '1px solid var(--border)' }}>
+                      <Phone size={18} aria-hidden style={{ color: 'var(--text-3)', flexShrink: 0 }} />
+                      <div>
+                        <p className="text-xs" style={{ color: 'var(--text-4)' }}>Telefoon</p>
+                        <p className="text-sm font-medium" style={{ color: 'var(--mentaforce-primary)' }}>{geselecteerd.telefoon}</p>
+                      </div>
+                    </a>
+                  )}
+                  {geselecteerd.locatie && (
+                    <div className="flex items-center gap-3 py-2.5">
+                      <MapPin size={18} aria-hidden style={{ color: 'var(--text-3)', flexShrink: 0 }} />
+                      <div>
+                        <p className="text-xs" style={{ color: 'var(--text-4)' }}>Locatie</p>
+                        <p className="text-sm font-medium" style={{ color: 'var(--text-1)' }}>{geselecteerd.locatie}</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {geselecteerd.id !== mijnId && geselecteerd.email && (
                   <a href={`mailto:${geselecteerd.email}`}
-                    className="flex items-center gap-3 py-2.5 border-b border-gray-100 hover:bg-gray-50 rounded-xl transition">
-                    <span className="text-xl w-8">✉️</span>
-                    <div>
-                      <p className="text-xs text-gray-400">E-mail</p>
-                      <p className="text-sm font-medium text-blue-600">{geselecteerd.email}</p>
-                    </div>
+                    className="mf-pressable mt-5 w-full flex items-center justify-center gap-2"
+                    style={{
+                      padding: '12px',
+                      borderRadius: 'var(--radius-btn)',
+                      background: 'var(--mentaforce-primary)',
+                      color: 'var(--bg-app)',
+                      fontWeight: 600,
+                      fontSize: 14,
+                    }}>
+                    <Mail size={16} aria-hidden /> E-mail sturen
                   </a>
                 )}
-                {geselecteerd.telefoon && (
-                  <a href={`tel:${geselecteerd.telefoon}`}
-                    className="flex items-center gap-3 py-2.5 border-b border-gray-100 hover:bg-gray-50 rounded-xl transition">
-                    <span className="text-xl w-8">📞</span>
-                    <div>
-                      <p className="text-xs text-gray-400">Telefoon</p>
-                      <p className="text-sm font-medium text-blue-600">{geselecteerd.telefoon}</p>
-                    </div>
-                  </a>
-                )}
-                {geselecteerd.locatie && (
-                  <div className="flex items-center gap-3 py-2.5">
-                    <span className="text-xl w-8">📍</span>
-                    <div>
-                      <p className="text-xs text-gray-400">Locatie</p>
-                      <p className="text-sm font-medium text-gray-800">{geselecteerd.locatie}</p>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {geselecteerd.id !== mijnId && (
-                <a href={`mailto:${geselecteerd.email}`}
-                  className="mt-5 w-full flex items-center justify-center py-3 rounded-xl text-white font-semibold text-sm"
-                  style={{ background: 'var(--mf-green)' }}>
-                  ✉️ E-mail sturen
-                </a>
-              )}
-            </div>
-          </div>
-        )}
+              </>
+            )}
+          </DialogContent>
+        </DialogRoot>
 
         {/* Medewerkers lijst */}
         {laden ? (
           <div className="flex justify-center py-16">
-            <div className="w-6 h-6 rounded-full border-2 border-gray-200 animate-spin" style={{ borderTopColor: 'var(--mf-green)' }} />
+            <div className="mf-spinner" />
           </div>
         ) : gefilterd.length === 0 ? (
-          <div className="bg-white rounded-2xl p-8 text-center" style={{ boxShadow: 'var(--shadow-sm)' }}>
-            <div style={{ position: 'relative', display: 'inline-block', marginBottom: '0.75rem' }}>
-              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
-                <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
-              </div>
-              <p className="text-3xl" style={{ position: 'relative', zIndex: 1 }}>👥</p>
-            </div>
-            <p className="text-gray-500 text-sm">
-              {zoekterm ? `Geen resultaten voor "${zoekterm}"` : 'Geen collega\'s gevonden.'}
-            </p>
-          </div>
+          <Card>
+            <EmptyState
+              icon={Users}
+              title={zoekterm ? `Geen resultaten voor "${zoekterm}"` : 'Geen collega\'s gevonden'}
+              description={zoekterm ? 'Probeer een andere zoekterm.' : undefined}
+            />
+          </Card>
         ) : (
-          <div className="flex flex-col gap-2">
-            {gefilterd.map(m => {
-              const rolStijl = ROL_KLEUR[m.rol] ?? { bg: 'var(--bg-subtle)', color: 'var(--text-2)' }
-              return (
-                <button
-                  key={m.id}
+          <ul className="flex flex-col gap-2" style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+            {gefilterd.map(m => (
+              <li key={m.id}>
+                <Card
+                  interactive
+                  role="button"
+                  aria-label={`Bekijk profiel van ${m.naam || 'collega'}`}
                   onClick={() => setGeselecteerd(m)}
-                  className="bg-white rounded-2xl px-4 py-3 flex items-center gap-3 text-left w-full transition active:scale-[0.99]"
-                  style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setGeselecteerd(m) } }}
+                  className="flex items-center gap-3"
+                  style={{ padding: '12px 16px', width: '100%' }}
+                >
                   <Avatar naam={m.naam || '?'} avatarUrl={m.avatar_url} size={44} />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <p className="text-sm font-semibold text-gray-900">{m.naam || 'Onbekend'}</p>
-                      {m.id === mijnId && (
-                        <span className="text-xs px-1.5 py-0.5 rounded font-medium" style={{ background: 'var(--mf-green-light)', color: 'var(--mf-green-dark)' }}>
-                          jij
-                        </span>
-                      )}
+                      <p className="text-sm font-semibold" style={{ color: 'var(--text-1)' }}>{m.naam || 'Onbekend'}</p>
+                      {m.id === mijnId && <Badge variant="accent">jij</Badge>}
                     </div>
-                    <p className="text-xs text-gray-400 truncate">
+                    <p className="text-xs truncate" style={{ color: 'var(--text-4)' }}>
                       {m.functie ?? m.afdeling ?? m.email ?? '—'}
                     </p>
                   </div>
-                  <span className="text-xs font-medium px-2 py-0.5 rounded-full flex-shrink-0"
-                    style={rolStijl}>
-                    {ROL_LABELS[m.rol] ?? m.rol}
-                  </span>
-                </button>
-              )
-            })}
+                  <Badge variant={rolVariant(m.rol)}>{ROL_LABELS[m.rol] ?? m.rol}</Badge>
+                </Card>
+              </li>
+            ))}
             {(zoekterm || rolFilter !== 'alle') && (
-              <p className="text-xs text-gray-400 text-center pt-2">{gefilterd.length} van {medewerkers.length} collega&apos;s</p>
+              <p className="text-xs text-center pt-2" style={{ color: 'var(--text-4)' }}>{gefilterd.length} van {medewerkers.length} collega&apos;s</p>
             )}
-          </div>
+          </ul>
         )}
       </main>
     </div>
