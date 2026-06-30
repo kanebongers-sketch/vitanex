@@ -7,16 +7,23 @@ import { useRouter } from 'next/navigation'
 import Navbar from '@/components/layout/Navbar'
 import { supabase } from '@/lib/supabase'
 import { authFetch } from '@/lib/auth-fetch'
+import {
+  ArrowLeft, Sparkles, Check, Dumbbell, Flame, Heart, Zap, Star,
+  Bot, AlertTriangle, Loader2,
+} from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
+import { Field } from '@/components/ui/Field'
+import { Textarea } from '@/components/ui/Textarea'
 
 
 type AgentFase = 'wachten' | 'bezig' | 'klaar'
 
-const DOELEN = [
-  { value: 'spiermassa', label: 'Spiermassa opbouwen', icon: '🏋️' },
-  { value: 'afvallen', label: 'Afvallen / vet verbranden', icon: '🔥' },
-  { value: 'conditie', label: 'Conditie verbeteren', icon: '❤️' },
-  { value: 'kracht', label: 'Kracht opbouwen', icon: '⚡' },
-  { value: 'flexibiliteit', label: 'Flexibiliteit', icon: '⭐' },
+const DOELEN: { value: string; label: string; icon: LucideIcon }[] = [
+  { value: 'spiermassa', label: 'Spiermassa opbouwen', icon: Dumbbell },
+  { value: 'afvallen', label: 'Afvallen / vet verbranden', icon: Flame },
+  { value: 'conditie', label: 'Conditie verbeteren', icon: Heart },
+  { value: 'kracht', label: 'Kracht opbouwen', icon: Zap },
+  { value: 'flexibiliteit', label: 'Flexibiliteit', icon: Star },
 ]
 
 const NIVEAUS = ['Beginner', 'Gemiddeld', 'Gevorderd']
@@ -216,39 +223,40 @@ export default function GenereerSchemaPage() {
   }, [stap])
 
   const agentLabels = [
-    { key: 'agent1', label: 'Schema planner aan het werk...' },
-    { key: 'agent2', label: 'Oefeningen worden samengesteld...' },
-    { key: 'agent3', label: 'Coach voegt persoonlijk advies toe...' },
+    { key: 'agent1', label: 'Schema planner aan het werk…' },
+    { key: 'agent2', label: 'Oefeningen worden samengesteld…' },
+    { key: 'agent3', label: 'Coach voegt persoonlijk advies toe…' },
   ] as const
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
       <Navbar />
-      <div style={{ maxWidth: 800, margin: '0 auto', padding: '24px 16px 80px' }}>
+      <main style={{ maxWidth: 800, margin: '0 auto', padding: '24px 16px 80px' }}>
         {/* Header */}
-        <div style={{ marginBottom: 28 }}>
+        <header style={{ marginBottom: 28 }}>
           <button
+            type="button"
             onClick={() => router.push('/sport')}
-            style={{ background: 'none', border: 'none', color: 'var(--text-2)', cursor: 'pointer', fontSize: 14, padding: 0, marginBottom: 16 }}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', color: 'var(--text-2)', cursor: 'pointer', fontSize: 14, padding: 0, marginBottom: 16 }}
           >
-            ← Annuleren
+            <ArrowLeft size={15} aria-hidden /> Annuleren
           </button>
-          <h1 style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-1)', margin: 0 }}>
+          <h1 style={{ fontSize: 24, fontWeight: 800, color: 'var(--text-1)', margin: 0, letterSpacing: '-0.03em' }}>
             AI Schema Generator
           </h1>
-          <p style={{ color: 'var(--text-2)', marginTop: 4, fontSize: 14 }}>
+          <p style={{ color: 'var(--text-3)', marginTop: 4, fontSize: 14 }}>
             Beantwoord 3 vragen — wij maken jouw schema
           </p>
-        </div>
+        </header>
 
         {/* Intake-hint */}
         {stap < 4 && vanuitIntake && (
           <div style={{
             display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20, padding: '12px 14px',
-            background: 'var(--mf-green-light)', border: '1px solid var(--mf-green)', borderRadius: 12,
+            background: 'var(--mentaforce-primary-light)', border: '1px solid var(--mentaforce-primary)', borderRadius: 'var(--radius-md)',
           }}>
-            <span style={{ fontSize: 18 }}>✨</span>
-            <span style={{ fontSize: 13, color: 'var(--mf-green-dark)', lineHeight: 1.4 }}>
+            <Sparkles size={18} aria-hidden style={{ color: 'var(--mentaforce-primary)', flexShrink: 0 }} />
+            <span style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.4 }}>
               We hebben je doel en niveau alvast ingevuld op basis van je intake. Je kunt alles nog aanpassen.
             </span>
           </div>
@@ -261,42 +269,58 @@ export default function GenereerSchemaPage() {
               <div key={n} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <div style={{
                   width: 28, height: 28, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 13, fontWeight: 600,
-                  background: stap === n ? 'var(--mf-green)' : stap > n ? 'var(--mf-green-light)' : 'var(--bg-subtle)',
-                  color: stap === n ? '#fff' : stap > n ? 'var(--mf-green)' : 'var(--text-3)',
+                  fontSize: 13, fontWeight: 700,
+                  background: stap === n ? 'var(--mentaforce-primary)' : stap > n ? 'var(--mentaforce-primary-light)' : 'var(--bg-subtle)',
+                  color: stap === n ? 'var(--bg-app)' : stap > n ? 'var(--mentaforce-primary)' : 'var(--text-3)',
+                  border: stap > n ? '1px solid var(--mentaforce-primary)' : '1px solid var(--border)',
                 }}>
-                  {stap > n ? '✓' : n}
+                  {stap > n ? <Check size={14} aria-hidden /> : n}
                 </div>
-                {n < 3 && <div style={{ height: 2, width: 32, background: stap > n ? 'var(--mf-green)' : 'var(--border)' }} />}
+                {n < 3 && <div style={{ height: 2, width: 32, background: stap > n ? 'var(--mentaforce-primary)' : 'var(--border)' }} />}
               </div>
             ))}
-            <span style={{ marginLeft: 8, fontSize: 13, color: 'var(--text-2)' }}>Stap {stap} van 3</span>
+            <span style={{ marginLeft: 8, fontSize: 13, color: 'var(--text-3)' }}>Stap {stap} van 3</span>
           </div>
         )}
 
         {/* Stap 1: Doel */}
         {stap === 1 && (
           <div>
-            <h2 style={{ fontSize: 18, fontWeight: 600, color: 'var(--text-1)', marginBottom: 16 }}>Wat is jouw doel?</h2>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {DOELEN.map(d => (
-                <button
-                  key={d.value}
-                  onClick={() => setDoel(d.value)}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: 14, padding: '16px 18px',
-                    background: 'var(--bg-card, white)', borderRadius: 12,
-                    border: `2px solid ${doel === d.value ? 'var(--mf-green)' : 'transparent'}`,
-                    boxShadow: '0 1px 4px rgba(0,0,0,0.06)', cursor: 'pointer', textAlign: 'left',
-                    transition: 'border-color 0.15s',
-                  }}
-                >
-                  <span style={{ fontSize: 24 }}>{d.icon}</span>
-                  <span style={{ fontSize: 15, fontWeight: doel === d.value ? 600 : 500, color: doel === d.value ? 'var(--mf-green)' : 'var(--text-2)' }}>
-                    {d.label}
-                  </span>
-                </button>
-              ))}
+            <h2 id="doel-label" style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-1)', marginBottom: 16 }}>Wat is jouw doel?</h2>
+            <div role="radiogroup" aria-labelledby="doel-label" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {DOELEN.map(d => {
+                const actief = doel === d.value
+                const Icon = d.icon
+                return (
+                  <button
+                    key={d.value}
+                    type="button"
+                    role="radio"
+                    aria-checked={actief}
+                    onClick={() => setDoel(d.value)}
+                    className="mf-pressable"
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 14, padding: '16px 18px',
+                      background: actief ? 'var(--mentaforce-primary-light)' : 'var(--bg-card)', borderRadius: 'var(--radius-md)',
+                      border: `1.5px solid ${actief ? 'var(--mentaforce-primary)' : 'var(--border)'}`,
+                      cursor: 'pointer', textAlign: 'left',
+                      transition: 'border-color 0.15s var(--ease), background 0.15s var(--ease)',
+                    }}
+                  >
+                    <span style={{
+                      width: 40, height: 40, borderRadius: 11, flexShrink: 0,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      background: actief ? 'var(--mentaforce-primary)' : 'var(--bg-subtle)',
+                      color: actief ? 'var(--bg-app)' : 'var(--text-3)',
+                    }}>
+                      <Icon size={20} aria-hidden />
+                    </span>
+                    <span style={{ fontSize: 15, fontWeight: actief ? 700 : 600, color: actief ? 'var(--text-1)' : 'var(--text-2)' }}>
+                      {d.label}
+                    </span>
+                  </button>
+                )
+              })}
             </div>
           </div>
         )}
@@ -304,42 +328,53 @@ export default function GenereerSchemaPage() {
         {/* Stap 2: Niveau & Tijd */}
         {stap === 2 && (
           <div>
-            <h2 style={{ fontSize: 18, fontWeight: 600, color: 'var(--text-1)', marginBottom: 20 }}>Niveau en beschikbaarheid</h2>
+            <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-1)', marginBottom: 20 }}>Niveau en beschikbaarheid</h2>
 
-            <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: 'var(--text-2)', marginBottom: 10 }}>Jouw niveau</label>
-            <div style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
-              {NIVEAUS.map(n => (
-                <button
-                  key={n}
-                  onClick={() => setNiveau(n.toLowerCase())}
-                  style={{
-                    flex: 1, padding: '10px 0', borderRadius: 8, fontSize: 14, fontWeight: 500, cursor: 'pointer',
-                    background: niveau === n.toLowerCase() ? 'var(--mf-green)' : '#fff',
-                    color: niveau === n.toLowerCase() ? '#fff' : 'var(--text-2)',
-                    border: `1.5px solid ${niveau === n.toLowerCase() ? 'var(--mf-green)' : 'var(--border)'}`,
-                  }}
-                >
-                  {n}
-                </button>
-              ))}
+            <p id="niveau-label" style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-2)', marginBottom: 10 }}>Jouw niveau</p>
+            <div role="radiogroup" aria-labelledby="niveau-label" style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
+              {NIVEAUS.map(n => {
+                const actief = niveau === n.toLowerCase()
+                return (
+                  <button
+                    key={n}
+                    type="button"
+                    role="radio"
+                    aria-checked={actief}
+                    onClick={() => setNiveau(n.toLowerCase())}
+                    className="mf-pressable"
+                    style={{
+                      flex: 1, padding: '10px 0', borderRadius: 'var(--radius-sm)', fontSize: 14, fontWeight: 600, cursor: 'pointer',
+                      background: actief ? 'var(--mentaforce-primary)' : 'var(--bg-card)',
+                      color: actief ? 'var(--bg-app)' : 'var(--text-2)',
+                      border: `1.5px solid ${actief ? 'var(--mentaforce-primary)' : 'var(--border-strong)'}`,
+                    }}
+                  >
+                    {n}
+                  </button>
+                )
+              })}
             </div>
 
-            <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: 'var(--text-2)', marginBottom: 10 }}>
-              Welke dagen train je? <span style={{ fontWeight: 400, color: 'var(--text-3)' }}>({gekozenDagen.length} geselecteerd)</span>
-            </label>
-            <div style={{ display: 'flex', gap: 8, marginBottom: gekozenDagen.length < 2 ? 4 : 24 }}>
+            <p id="dagen-label" style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-2)', marginBottom: 10 }}>
+              Welke dagen train je? <span style={{ fontWeight: 400, color: 'var(--text-4)' }}>({gekozenDagen.length} geselecteerd)</span>
+            </p>
+            <div role="group" aria-labelledby="dagen-label" style={{ display: 'flex', gap: 8, marginBottom: gekozenDagen.length < 2 ? 4 : 24 }}>
               {TRAININGSDAGEN.map(dag => {
                 const actief = gekozenDagen.includes(dag.value)
                 return (
                   <button
                     key={dag.value}
+                    type="button"
+                    aria-pressed={actief}
+                    aria-label={dag.value}
                     onClick={() => toggleDag(dag.value)}
+                    className="mf-pressable"
                     style={{
-                      flex: 1, padding: '12px 0', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer',
-                      background: actief ? 'var(--mf-green)' : 'var(--bg-card, #fff)',
-                      color: actief ? '#fff' : 'var(--text-2)',
-                      border: `1.5px solid ${actief ? 'var(--mf-green)' : 'var(--border)'}`,
-                      transition: 'background 0.12s, color 0.12s, border-color 0.12s',
+                      flex: 1, padding: '12px 0', borderRadius: 'var(--radius-sm)', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                      background: actief ? 'var(--mentaforce-primary)' : 'var(--bg-card)',
+                      color: actief ? 'var(--bg-app)' : 'var(--text-2)',
+                      border: `1.5px solid ${actief ? 'var(--mentaforce-primary)' : 'var(--border-strong)'}`,
+                      transition: 'background 0.12s var(--ease), color 0.12s var(--ease), border-color 0.12s var(--ease)',
                     }}
                   >
                     {dag.label}
@@ -348,29 +383,37 @@ export default function GenereerSchemaPage() {
               })}
             </div>
             {gekozenDagen.length < 2 && (
-              <p style={{ fontSize: 12, color: 'var(--mf-red, #dc2626)', marginBottom: 24, marginTop: 0 }}>
+              <p role="alert" style={{ fontSize: 12, color: 'var(--mf-red)', marginBottom: 24, marginTop: 0 }}>
                 Kies minimaal 2 trainingsdagen
               </p>
             )}
 
-            <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: 'var(--text-2)', marginBottom: 10 }}>
+            <p id="tijd-label" style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-2)', marginBottom: 10 }}>
               Tijd per sessie
-            </label>
-            <div style={{ display: 'flex', gap: 8 }}>
-              {TIJD_OPTIES.map(t => (
-                <button
-                  key={t}
-                  onClick={() => setBeschikbareTijd(t)}
-                  style={{
-                    flex: 1, padding: '10px 0', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer',
-                    background: beschikbareTijd === t ? 'var(--mf-green)' : '#fff',
-                    color: beschikbareTijd === t ? '#fff' : 'var(--text-2)',
-                    border: `1.5px solid ${beschikbareTijd === t ? 'var(--mf-green)' : 'var(--border)'}`,
-                  }}
-                >
-                  {t}m
-                </button>
-              ))}
+            </p>
+            <div role="radiogroup" aria-labelledby="tijd-label" style={{ display: 'flex', gap: 8 }}>
+              {TIJD_OPTIES.map(t => {
+                const actief = beschikbareTijd === t
+                return (
+                  <button
+                    key={t}
+                    type="button"
+                    role="radio"
+                    aria-checked={actief}
+                    aria-label={`${t} minuten`}
+                    onClick={() => setBeschikbareTijd(t)}
+                    className="mf-pressable"
+                    style={{
+                      flex: 1, padding: '10px 0', borderRadius: 'var(--radius-sm)', fontSize: 14, fontWeight: 600, cursor: 'pointer',
+                      background: actief ? 'var(--mentaforce-primary)' : 'var(--bg-card)',
+                      color: actief ? 'var(--bg-app)' : 'var(--text-2)',
+                      border: `1.5px solid ${actief ? 'var(--mentaforce-primary)' : 'var(--border-strong)'}`,
+                    }}
+                  >
+                    {t}m
+                  </button>
+                )
+              })}
             </div>
           </div>
         )}
@@ -378,97 +421,96 @@ export default function GenereerSchemaPage() {
         {/* Stap 3: Materiaal */}
         {stap === 3 && (
           <div>
-            <h2 style={{ fontSize: 18, fontWeight: 600, color: 'var(--text-1)', marginBottom: 6 }}>Materiaal & beperkingen</h2>
-            <p style={{ fontSize: 14, color: 'var(--text-2)', marginBottom: 18 }}>Selecteer wat je beschikbaar hebt</p>
+            <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-1)', marginBottom: 6 }}>Materiaal & beperkingen</h2>
+            <p style={{ fontSize: 14, color: 'var(--text-3)', marginBottom: 18 }}>Selecteer wat je beschikbaar hebt</p>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 24 }}>
+            <div role="group" aria-label="Beschikbaar materiaal" style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 24 }}>
               {MATERIAAL_OPTIES.map(m => {
                 const actief = benodigdheden.includes(m.value)
                 return (
                   <button
                     key={m.value}
+                    type="button"
+                    role="checkbox"
+                    aria-checked={actief}
                     onClick={() => toggleMateriaal(m.value)}
+                    className="mf-pressable"
                     style={{
                       display: 'flex', alignItems: 'center', gap: 12, padding: '13px 16px',
-                      background: 'var(--bg-card, white)', borderRadius: 10, cursor: 'pointer', textAlign: 'left',
-                      border: `2px solid ${actief ? 'var(--mf-green)' : 'transparent'}`,
-                      boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+                      background: actief ? 'var(--mentaforce-primary-light)' : 'var(--bg-card)', borderRadius: 'var(--radius-md)', cursor: 'pointer', textAlign: 'left',
+                      border: `1.5px solid ${actief ? 'var(--mentaforce-primary)' : 'var(--border)'}`,
                     }}
                   >
-                    <div style={{
-                      width: 18, height: 18, borderRadius: 4, flexShrink: 0,
-                      background: actief ? 'var(--mf-green)' : 'var(--bg-subtle)',
-                      border: `2px solid ${actief ? 'var(--mf-green)' : '#D1D5DB'}`,
+                    <span aria-hidden style={{
+                      width: 20, height: 20, borderRadius: 5, flexShrink: 0,
+                      background: actief ? 'var(--mentaforce-primary)' : 'var(--bg-subtle)',
+                      border: `2px solid ${actief ? 'var(--mentaforce-primary)' : 'var(--border-strong)'}`,
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      color: 'var(--bg-app)',
                     }}>
-                      {actief && <span style={{ color: '#fff', fontSize: 11, lineHeight: 1 }}>✓</span>}
-                    </div>
-                    <span style={{ fontSize: 14, fontWeight: 500, color: actief ? 'var(--mf-green)' : 'var(--text-2)' }}>{m.label}</span>
+                      {actief && <Check size={13} strokeWidth={3} />}
+                    </span>
+                    <span style={{ fontSize: 14, fontWeight: 600, color: actief ? 'var(--text-1)' : 'var(--text-2)' }}>{m.label}</span>
                   </button>
                 )
               })}
             </div>
 
-            <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: 'var(--text-2)', marginBottom: 8 }}>
-              Blessures of beperkingen <span style={{ fontWeight: 400, color: 'var(--text-3)' }}>(optioneel)</span>
-            </label>
-            <textarea
-              value={blessures}
-              onChange={e => setBlessures(e.target.value)}
-              placeholder="bijv. knieklachten, rugproblemen"
-              rows={3}
-              style={{
-                width: '100%', padding: '12px 14px', borderRadius: 10, fontSize: 14, color: 'var(--text-2)',
-                border: '1.5px solid var(--border)', background: 'var(--bg-card, white)', resize: 'none', outline: 'none',
-                fontFamily: 'inherit', boxSizing: 'border-box',
-              }}
-            />
+            <Field label="Blessures of beperkingen" hint="Optioneel — bijv. knieklachten, rugproblemen" htmlFor="blessures">
+              <Textarea
+                id="blessures"
+                value={blessures}
+                onChange={e => setBlessures(e.target.value)}
+                placeholder="bijv. knieklachten, rugproblemen"
+                rows={3}
+                style={{ resize: 'none' }}
+              />
+            </Field>
           </div>
         )}
 
         {/* Stap 4: Genereren */}
         {stap === 4 && (
-          <div style={{ background: 'var(--bg-card, white)', borderRadius: 16, padding: 28, boxShadow: 'var(--shadow-sm, 0 2px 12px rgba(0,0,0,0.07))' }}>
+          <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: 28, boxShadow: 'var(--shadow-card)' }}>
             <div style={{ textAlign: 'center', marginBottom: 28 }}>
-              <div style={{ position: 'relative', display: 'inline-block', marginBottom: 10 }}>
-                <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
-                  <div style={{ width: 90, height: 90, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
+              <div style={{ position: 'relative', display: 'inline-flex', marginBottom: 10 }}>
+                <div aria-hidden style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
+                  <div style={{ width: 90, height: 90, borderRadius: '50%', background: 'radial-gradient(circle, var(--mentaforce-primary-light) 0%, transparent 70%)' }} />
                 </div>
-                <div style={{ fontSize: 36, position: 'relative', zIndex: 1 }}>🤖</div>
+                <Bot size={36} aria-hidden style={{ color: 'var(--mentaforce-primary)', position: 'relative', zIndex: 1 }} />
               </div>
-              <h2 style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-1)', margin: 0 }}>Schema wordt gemaakt</h2>
-              <p style={{ color: 'var(--text-2)', fontSize: 14, marginTop: 6 }}>Onze AI agents zijn bezig voor jou</p>
+              <h2 style={{ fontSize: 20, fontWeight: 800, color: 'var(--text-1)', margin: 0, letterSpacing: '-0.02em' }}>Schema wordt gemaakt</h2>
+              <p style={{ color: 'var(--text-3)', fontSize: 14, marginTop: 6 }}>Onze AI agents zijn bezig voor jou</p>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <div role="status" aria-live="polite" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               {agentLabels.map(({ key, label }) => {
                 const status = agentStatus[key]
+                const isKlaar = status === 'klaar'
+                const isBezig = status === 'bezig'
                 return (
                   <div key={key} style={{
                     display: 'flex', alignItems: 'center', gap: 14, padding: '14px 16px',
-                    borderRadius: 12, background: status === 'klaar' ? 'var(--mf-green-light)' : status === 'bezig' ? 'var(--mf-amber-light)' : 'var(--bg-subtle)',
-                    border: `1.5px solid ${status === 'klaar' ? '#6EE7C7' : status === 'bezig' ? '#FDE68A' : 'var(--bg-subtle)'}`,
+                    borderRadius: 'var(--radius-md)',
+                    background: isKlaar ? 'var(--mentaforce-primary-light)' : isBezig ? 'var(--mf-amber-light)' : 'var(--bg-subtle)',
+                    border: `1.5px solid ${isKlaar ? 'var(--mentaforce-primary)' : isBezig ? 'var(--mf-amber)' : 'var(--border)'}`,
                   }}>
                     <div style={{ width: 28, height: 28, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      {status === 'klaar' && (
-                        <div style={{ width: 24, height: 24, borderRadius: '50%', background: 'var(--mf-green)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          <span style={{ color: '#fff', fontSize: 13 }}>✓</span>
+                      {isKlaar && (
+                        <div style={{ width: 24, height: 24, borderRadius: '50%', background: 'var(--mentaforce-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <Check size={14} strokeWidth={3} aria-hidden style={{ color: 'var(--bg-app)' }} />
                         </div>
                       )}
-                      {status === 'bezig' && (
-                        <div style={{
-                          width: 22, height: 22, borderRadius: '50%',
-                          border: '3px solid #FDE68A', borderTopColor: 'var(--mf-orange)',
-                          animation: 'spin 0.8s linear infinite',
-                        }} />
+                      {isBezig && (
+                        <Loader2 size={22} aria-hidden className="mf-gen-spin" style={{ color: 'var(--mf-amber)' }} />
                       )}
                       {status === 'wachten' && (
-                        <div style={{ width: 20, height: 20, borderRadius: '50%', background: 'var(--border)' }} />
+                        <div aria-hidden style={{ width: 20, height: 20, borderRadius: '50%', background: 'var(--border-strong)' }} />
                       )}
                     </div>
                     <span style={{
-                      fontSize: 14, fontWeight: status === 'bezig' ? 600 : 500,
-                      color: status === 'klaar' ? 'var(--mf-green-dark)' : status === 'bezig' ? 'var(--mf-amber-dark)' : 'var(--text-3)',
+                      fontSize: 14, fontWeight: isBezig ? 600 : 500,
+                      color: isKlaar ? 'var(--mentaforce-primary)' : isBezig ? 'var(--mf-amber)' : 'var(--text-3)',
                     }}>
                       {label}
                     </span>
@@ -478,25 +520,33 @@ export default function GenereerSchemaPage() {
             </div>
 
             {fout && (
-              <div style={{
+              <div role="alert" style={{
                 marginTop: 20, padding: '16px 18px',
-                background: '#FEF2F2', border: '1.5px solid #FCA5A5',
-                borderRadius: 12, color: '#B91C1C',
+                background: 'var(--mf-red-light)', border: '1.5px solid var(--mf-red)',
+                borderRadius: 'var(--radius-md)', color: 'var(--text-1)',
               }}>
-                <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 4 }}>Fout bij genereren</div>
-                <div style={{ fontSize: 14, lineHeight: 1.5, wordBreak: 'break-word' }}>{fout}</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 700, fontSize: 15, marginBottom: 4, color: 'var(--mf-red)' }}>
+                  <AlertTriangle size={16} aria-hidden /> Fout bij genereren
+                </div>
+                <div style={{ fontSize: 14, lineHeight: 1.5, wordBreak: 'break-word', color: 'var(--text-2)' }}>{fout}</div>
                 <button
+                  type="button"
                   onClick={() => { setFout(null); setLaden(false); Promise.resolve().then(startGenereren) }}
+                  className="mf-pressable"
                   style={{
                     display: 'inline-block', marginTop: 12, padding: '8px 18px',
-                    background: '#B91C1C', color: '#fff', fontWeight: 600,
-                    border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 14,
+                    background: 'var(--mf-red)', color: 'var(--bg-app)', fontWeight: 600,
+                    border: 'none', borderRadius: 'var(--radius-sm)', cursor: 'pointer', fontSize: 14,
                   }}
                 >
                   Opnieuw proberen
                 </button>
               </div>
             )}
+            <style>{`
+              .mf-gen-spin { animation: mf-spin 0.8s linear infinite; }
+              @media (prefers-reduced-motion: reduce) { .mf-gen-spin { animation: none; } }
+            `}</style>
           </div>
         )}
 
@@ -505,35 +555,36 @@ export default function GenereerSchemaPage() {
           <div style={{ display: 'flex', gap: 12, marginTop: 32 }}>
             {stap > 1 && (
               <button
+                type="button"
                 onClick={() => setStap(s => s - 1)}
+                className="mf-pressable"
                 style={{
-                  flex: 1, padding: '14px 0', borderRadius: 12, fontSize: 15, fontWeight: 600,
-                  background: 'var(--bg-subtle)', color: 'var(--text-2)', border: 'none', cursor: 'pointer',
+                  flex: 1, padding: '14px 0', borderRadius: 'var(--radius-md)', fontSize: 15, fontWeight: 600,
+                  background: 'var(--bg-subtle)', color: 'var(--text-2)', border: '1px solid var(--border-strong)', cursor: 'pointer',
                 }}
               >
                 Vorige
               </button>
             )}
             <button
+              type="button"
               onClick={() => setStap(s => s + 1)}
               disabled={!kanVerder()}
+              className="mf-pressable"
               style={{
-                flex: 2, padding: '14px 0', borderRadius: 12, fontSize: 15, fontWeight: 600,
-                background: kanVerder() ? 'var(--mf-green)' : 'var(--text-4)',
-                color: kanVerder() ? '#fff' : 'var(--text-3)',
+                flex: 2, padding: '14px 0', borderRadius: 'var(--radius-md)', fontSize: 15, fontWeight: 700,
+                display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                background: kanVerder() ? 'var(--mentaforce-primary)' : 'var(--bg-subtle)',
+                color: kanVerder() ? 'var(--bg-app)' : 'var(--text-4)',
                 border: 'none', cursor: kanVerder() ? 'pointer' : 'not-allowed',
-                transition: 'background 0.15s',
+                transition: 'background 0.15s var(--ease)',
               }}
             >
-              {stap === 3 ? '✨ Schema genereren' : 'Volgende'}
+              {stap === 3 ? <><Sparkles size={16} aria-hidden /> Schema genereren</> : 'Volgende'}
             </button>
           </div>
         )}
-      </div>
-
-      <style>{`
-        @keyframes spin { to { transform: rotate(360deg); } }
-      `}</style>
+      </main>
     </div>
   )
 }

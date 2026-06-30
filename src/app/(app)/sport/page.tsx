@@ -10,10 +10,11 @@ import {
   Dumbbell, Flame, Clock, ChevronRight, Sparkles, Play,
   TrendingUp, Calendar, BarChart2, Zap,
 } from 'lucide-react'
-import { getActiviteit } from '@/lib/activiteiten'
+import { Card } from '@/components/ui/Card'
+import { Badge } from '@/components/ui/Badge'
+import { Progress } from '@/components/ui/Progress'
+import { EmptyState } from '@/components/ui/EmptyState'
 import { DOEL_CONFIG, type FitnessDoel } from '@/lib/gezondheid-berekeningen'
-
-const ACT = getActiviteit('fysiek')
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -64,25 +65,14 @@ function beginVanWeek(): string {
   return ma.toISOString().split('T')[0]
 }
 
-const NIVEAU_KLEUR: Record<string, string> = {
-  beginner: '#10B981',
-  gemiddeld: '#F59E0B',
-  gevorderd: '#EF4444',
+// Niveau → status-token (data/status-kleur, geen decoratief gebruik).
+type NiveauTone = { kleur: string; achtergrond: string; rand: string }
+const NIVEAU_TONE: Record<string, NiveauTone> = {
+  beginner:  { kleur: 'var(--mf-green)', achtergrond: 'var(--mf-green-light)', rand: 'color-mix(in srgb, var(--mf-green) 35%, transparent)' },
+  gemiddeld: { kleur: 'var(--mf-amber)', achtergrond: 'var(--mf-amber-light)', rand: 'color-mix(in srgb, var(--mf-amber) 35%, transparent)' },
+  gevorderd: { kleur: 'var(--mf-red)',   achtergrond: 'var(--mf-red-light)',   rand: 'color-mix(in srgb, var(--mf-red) 35%, transparent)' },
 }
-
-const SPIERKLEUR: Record<string, string> = {
-  borst: '#EF4444', schouders: '#F97316', triceps: '#F59E0B',
-  rug: '#3B82F6', biceps: '#6366F1', benen: '#8B5CF6',
-  billen: '#EC4899', core: '#10B981', kuiten: '#06B6D4',
-}
-
-function spierKleur(s: string): string {
-  const lc = s.toLowerCase()
-  for (const [k, v] of Object.entries(SPIERKLEUR)) {
-    if (lc.includes(k)) return v
-  }
-  return '#6B7280'
-}
+const NIVEAU_FALLBACK: NiveauTone = { kleur: 'var(--text-2)', achtergrond: 'var(--bg-subtle)', rand: 'var(--border-strong)' }
 
 // ── Component ────────────────────────────────────────────────────────────────
 
@@ -131,143 +121,130 @@ export default function SportPagina() {
 
   if (laden) return (
     <div className="mf-mesh-bg" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div className="mf-spinner" />
+      <div className="mf-spinner" role="status" aria-label="Laden" />
     </div>
   )
 
-  const niveauKleur = NIVEAU_KLEUR[schema?.niveau ?? ''] ?? '#10B981'
+  const niveauTone = NIVEAU_TONE[schema?.niveau ?? ''] ?? NIVEAU_FALLBACK
+  const weekPct = schema ? Math.min(100, (trainingsDezeWeek / schema.sessies_per_week) * 100) : 0
 
   return (
     <div className="mf-mesh-bg" style={{ minHeight: '100vh', paddingBottom: 100 }}>
       <Navbar />
 
-      <div style={{ maxWidth: 640, margin: '0 auto', padding: '24px 16px 0' }}>
+      <main style={{ maxWidth: 640, margin: '0 auto', padding: '24px 16px 0' }}>
 
         {/* ── Header ── */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
-          <div style={{ width: 44, height: 44, borderRadius: 14, background: `${ACT.kleur}1A`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Dumbbell size={22} strokeWidth={1.8} style={{ color: ACT.kleur }} />
+        <header style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
+          <div style={{ width: 44, height: 44, borderRadius: 14, background: 'var(--mentaforce-primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Dumbbell size={22} strokeWidth={1.8} style={{ color: 'var(--mentaforce-primary)' }} aria-hidden />
           </div>
           <div>
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 3 }}>
-              <span style={{ width: 8, height: 8, borderRadius: '50%', background: ACT.kleur, flexShrink: 0 }} />
-              <span style={{ fontSize: 10, fontWeight: 700, color: ACT.kleur, textTransform: 'uppercase', letterSpacing: '0.08em' }}>{ACT.label}</span>
+              <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--mentaforce-primary)', flexShrink: 0 }} aria-hidden />
+              <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--mentaforce-primary)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Fysiek</span>
             </span>
             <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', margin: 0, letterSpacing: '-0.03em' }}>Sport & Fitness</h1>
-            <p style={{ fontSize: 13, color: 'var(--text-4)', margin: 0 }}>Jouw trainingen deze week</p>
+            <p style={{ fontSize: 13, color: 'var(--text-3)', margin: 0 }}>Jouw trainingen deze week</p>
           </div>
           {fitnessDoel && DOEL_CONFIG[fitnessDoel] && (
-            <span style={{
-              marginLeft: 'auto', alignSelf: 'flex-start',
-              display: 'inline-flex', alignItems: 'center', gap: 6,
-              fontSize: 11, fontWeight: 700, padding: '5px 11px', borderRadius: 20,
-              color: DOEL_CONFIG[fitnessDoel].kleur,
-              background: `color-mix(in srgb, ${DOEL_CONFIG[fitnessDoel].kleur} 12%, transparent)`,
-              border: `1px solid color-mix(in srgb, ${DOEL_CONFIG[fitnessDoel].kleur} 35%, transparent)`,
-            }}>
-              <span style={{ width: 7, height: 7, borderRadius: '50%', background: DOEL_CONFIG[fitnessDoel].kleur, flexShrink: 0 }} />
+            <Badge variant="neutral" style={{ marginLeft: 'auto', alignSelf: 'flex-start' }}>
+              <span style={{ width: 7, height: 7, borderRadius: '50%', background: DOEL_CONFIG[fitnessDoel].kleur, flexShrink: 0 }} aria-hidden />
               {DOEL_CONFIG[fitnessDoel].label}
-            </span>
+            </Badge>
           )}
-        </div>
+        </header>
 
         {/* ── Geen schema: CTA ── */}
         {!schema ? (
           <Link href="/sport/genereer" style={{ textDecoration: 'none', display: 'block', marginBottom: 20 }}>
-            <div style={{
-              background: 'linear-gradient(135deg, #1D9E75, #059669)',
-              borderRadius: 20, padding: '28px 24px', position: 'relative', overflow: 'hidden',
+            <Card interactive style={{
+              padding: '28px 24px', position: 'relative', overflow: 'hidden',
+              borderColor: 'color-mix(in srgb, var(--mentaforce-primary) 30%, var(--border))',
             }}>
-              <div style={{ position: 'absolute', top: -40, right: -40, width: 160, height: 160, borderRadius: '50%', background: 'rgba(255,255,255,0.08)' }} />
-              <Sparkles size={28} strokeWidth={1.5} style={{ color: 'white', marginBottom: 12 }} />
-              <div style={{ fontSize: 20, fontWeight: 800, color: 'white', marginBottom: 6 }}>Maak jouw AI-schema</div>
-              <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.8)', lineHeight: 1.5, marginBottom: 18 }}>
+              <div aria-hidden style={{ position: 'absolute', top: -40, right: -40, width: 160, height: 160, borderRadius: '50%', background: 'var(--mentaforce-primary-light)' }} />
+              <Sparkles size={28} strokeWidth={1.5} style={{ color: 'var(--mentaforce-primary)', marginBottom: 12, position: 'relative' }} aria-hidden />
+              <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--text-1)', marginBottom: 6, position: 'relative' }}>Maak jouw AI-schema</div>
+              <div style={{ fontSize: 14, color: 'var(--text-3)', lineHeight: 1.5, marginBottom: 18, position: 'relative' }}>
                 Gepersonaliseerd op jouw doel, niveau en beschikbare tijd.
               </div>
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'white', color: '#059669', fontWeight: 700, fontSize: 14, padding: '10px 20px', borderRadius: 12 }}>
-                <Sparkles size={15} /> Genereer schema
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'var(--mentaforce-primary)', color: 'var(--bg-app)', fontWeight: 700, fontSize: 14, padding: '10px 20px', borderRadius: 'var(--radius-btn)', position: 'relative' }}>
+                <Sparkles size={15} aria-hidden /> Genereer schema
               </div>
-            </div>
+            </Card>
           </Link>
         ) : (
           <>
             {/* ── Schema hero ── */}
-            <div style={{
-              background: 'linear-gradient(135deg, #1D9E75 0%, #14795a 100%)',
-              borderRadius: 20, padding: '22px 20px', marginBottom: 16, position: 'relative', overflow: 'hidden',
-            }}>
-              <div style={{ position: 'absolute', top: -50, right: -50, width: 180, height: 180, borderRadius: '50%', background: 'radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%)' }} />
+            <Card style={{ padding: '22px 20px', marginBottom: 16, position: 'relative', overflow: 'hidden' }}>
+              <div aria-hidden style={{ position: 'absolute', top: -50, right: -50, width: 180, height: 180, borderRadius: '50%', background: 'radial-gradient(circle, var(--mentaforce-primary-light) 0%, transparent 70%)' }} />
 
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16, position: 'relative' }}>
                 <div>
-                  <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.65)', fontWeight: 600, letterSpacing: '0.06em', marginBottom: 4 }}>ACTIEF SCHEMA</div>
-                  <div style={{ fontSize: 18, fontWeight: 800, color: 'white', letterSpacing: '-0.02em' }}>{schema.naam}</div>
+                  <div className="mf-overline" style={{ marginBottom: 4 }}>Actief schema</div>
+                  <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.02em' }}>{schema.naam}</div>
                 </div>
-                <span style={{ background: niveauKleur + '33', color: niveauKleur, fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 20, border: `1px solid ${niveauKleur}55`, textTransform: 'capitalize' }}>
+                <span style={{ background: niveauTone.achtergrond, color: niveauTone.kleur, fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 20, border: `1px solid ${niveauTone.rand}`, textTransform: 'capitalize' }}>
                   {schema.niveau}
                 </span>
               </div>
 
               {/* Voortgang */}
-              <div style={{ marginBottom: 16 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-                  <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)' }}>Voortgang deze week</span>
-                  <span style={{ fontSize: 12, fontWeight: 700, color: 'white' }}>{trainingsDezeWeek}/{schema.sessies_per_week}×</span>
-                </div>
-                <div style={{ height: 5, borderRadius: 3, background: 'rgba(255,255,255,0.2)' }}>
-                  <div style={{ height: '100%', borderRadius: 3, background: 'white', width: `${Math.min(100, (trainingsDezeWeek / schema.sessies_per_week) * 100)}%`, transition: 'width 0.6s ease' }} />
+              <div style={{ marginBottom: 16, position: 'relative' }}>
+                <Progress
+                  value={weekPct}
+                  label={`Voortgang deze week`}
+                  ariaLabel={`Voortgang deze week: ${trainingsDezeWeek} van ${schema.sessies_per_week} trainingen`}
+                  thickness={6}
+                />
+                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 4 }}>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-2)' }}>{trainingsDezeWeek}/{schema.sessies_per_week}×</span>
                 </div>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', position: 'relative' }}>
                 <Link href="/sport/training" style={{ textDecoration: 'none' }}>
-                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'white', color: '#14795a', fontWeight: 700, fontSize: 14, padding: '11px 20px', borderRadius: 12 }}>
-                    <Play size={14} fill="#14795a" /> Training starten
+                  <div className="mf-pressable" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'var(--mentaforce-primary)', color: 'var(--bg-app)', fontWeight: 700, fontSize: 14, padding: '11px 20px', borderRadius: 'var(--radius-btn)' }}>
+                    <Play size={14} fill="currentColor" aria-hidden /> Training starten
                   </div>
                 </Link>
                 <Link href="/sport/genereer" style={{ textDecoration: 'none' }}>
-                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,0.15)', color: 'white', fontWeight: 600, fontSize: 13, padding: '11px 16px', borderRadius: 12, border: '1px solid rgba(255,255,255,0.3)' }}>
-                    <Sparkles size={13} /> Wijzig plan
+                  <div className="mf-pressable" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'var(--bg-subtle)', color: 'var(--text-1)', fontWeight: 600, fontSize: 13, padding: '11px 16px', borderRadius: 'var(--radius-btn)', border: '1px solid var(--border-strong)' }}>
+                    <Sparkles size={13} aria-hidden /> Wijzig plan
                   </div>
                 </Link>
               </div>
-            </div>
+            </Card>
 
             {/* ── Training dagkaarten ── */}
-            <div style={{ marginBottom: 20 }}>
-              <h2 style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-3)', letterSpacing: '0.05em', textTransform: 'uppercase', margin: '0 0 10px' }}>Jouw schema</h2>
+            <section style={{ marginBottom: 20 }}>
+              <h2 className="mf-overline" style={{ margin: '0 0 10px' }}>Jouw schema</h2>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {schema.schema_json.map((dag, i) => {
                   const isVandaag = i === vandaagDagIndex
                   return (
                     <Link key={i} href="/sport/training" style={{ textDecoration: 'none' }}>
-                      <div style={{
-                        background: isVandaag ? 'rgba(16,185,129,0.04)' : 'var(--bg-card)',
-                        border: `1.5px solid ${isVandaag ? 'var(--mf-green)' : 'var(--border)'}`,
-                        borderRadius: 16,
+                      <Card interactive style={{
+                        background: isVandaag ? 'var(--mentaforce-primary-light)' : 'var(--bg-card)',
+                        borderColor: isVandaag ? 'var(--mentaforce-primary)' : 'var(--border)',
+                        borderWidth: 1.5, borderStyle: 'solid',
                         padding: '14px 16px',
                         display: 'flex',
                         alignItems: 'center',
                         gap: 14,
                         position: 'relative',
-                        transition: 'border-color 0.12s',
                       }}>
                         {isVandaag && (
-                          <span style={{
-                            position: 'absolute', top: 10, right: 44,
-                            fontSize: 9, fontWeight: 800, letterSpacing: '0.06em',
-                            color: 'var(--mf-green)', background: 'rgba(16,185,129,0.12)',
-                            borderRadius: 20, padding: '2px 8px', textTransform: 'uppercase',
-                          }}>Vandaag</span>
+                          <Badge variant="accent" style={{ position: 'absolute', top: 10, right: 44, fontSize: 9, padding: '2px 8px', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Vandaag</Badge>
                         )}
 
                         {/* Dag-nummer cirkel */}
                         <div style={{
                           width: 40, height: 40, borderRadius: 12, flexShrink: 0,
-                          background: isVandaag ? 'rgba(16,185,129,0.18)' : 'rgba(16,185,129,0.1)',
+                          background: 'var(--mentaforce-primary-light)',
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
                         }}>
-                          <span style={{ fontSize: 15, fontWeight: 800, color: 'var(--mf-green)' }}>{dag.dag}</span>
+                          <span style={{ fontSize: 15, fontWeight: 800, color: 'var(--mentaforce-primary)' }}>{dag.dag}</span>
                         </div>
 
                         <div style={{ flex: 1, minWidth: 0 }}>
@@ -276,21 +253,18 @@ export default function SportPagina() {
                           </div>
                           {/* Spiergroep pills */}
                           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: dag.oefeningen.length > 0 ? 5 : 0 }}>
-                            {dag.spiergroepen.map((sg, si) => {
-                              const kleur = spierKleur(sg)
-                              return (
-                                <span key={si} style={{
-                                  fontSize: 10, fontWeight: 600, padding: '2px 8px', borderRadius: 20,
-                                  background: kleur + '18', color: kleur, border: `1px solid ${kleur}30`,
-                                }}>
-                                  {sg}
-                                </span>
-                              )
-                            })}
+                            {dag.spiergroepen.map((sg, si) => (
+                              <span key={si} style={{
+                                fontSize: 10, fontWeight: 600, padding: '2px 8px', borderRadius: 20,
+                                background: 'var(--bg-subtle)', color: 'var(--text-2)', border: '1px solid var(--border)',
+                              }}>
+                                {sg}
+                              </span>
+                            ))}
                           </div>
                           {/* Oefeningen preview */}
                           {dag.oefeningen.length > 0 && (
-                            <div style={{ fontSize: 11, color: 'var(--text-4)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            <div style={{ fontSize: 11, color: 'var(--text-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                               {dag.oefeningen.slice(0, 2).map(o => o.naam).join(' · ')}
                               {dag.oefeningen.length > 2 && ` +${dag.oefeningen.length - 2}`}
                             </div>
@@ -299,102 +273,102 @@ export default function SportPagina() {
 
                         {/* Meta rechts */}
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, flexShrink: 0 }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: 'var(--text-4)' }}>
-                            <Clock size={10} />
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: 'var(--text-3)' }}>
+                            <Clock size={10} aria-hidden />
                             {dag.geschatte_duur} min
                           </div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: 'var(--text-4)' }}>
-                            <Dumbbell size={10} />
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: 'var(--text-3)' }}>
+                            <Dumbbell size={10} aria-hidden />
                             {dag.oefeningen.length} oef.
                           </div>
                         </div>
-                        <ChevronRight size={14} strokeWidth={2} style={{ color: isVandaag ? 'var(--mf-green)' : 'var(--text-4)', flexShrink: 0 }} />
-                      </div>
+                        <ChevronRight size={14} strokeWidth={2} style={{ color: isVandaag ? 'var(--mentaforce-primary)' : 'var(--text-4)', flexShrink: 0 }} aria-hidden />
+                      </Card>
                     </Link>
                   )
                 })}
               </div>
-            </div>
+            </section>
           </>
         )}
 
         {/* ── Stats strip ── */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginBottom: 20 }}>
           {[
-            { label: 'Deze week', waarde: trainingsDezeWeek, icon: <Flame size={14} />, kleur: '#F97316' },
-            { label: 'Totaal', waarde: logs.length, icon: <BarChart2 size={14} />, kleur: '#8B5CF6' },
-            { label: 'Per week', waarde: schema ? `${schema.sessies_per_week}×` : '—', icon: <Calendar size={14} />, kleur: '#06B6D4' },
+            { label: 'Deze week', waarde: trainingsDezeWeek, icon: <Flame size={14} aria-hidden />, kleur: 'var(--mf-orange)' },
+            { label: 'Totaal', waarde: logs.length, icon: <BarChart2 size={14} aria-hidden />, kleur: 'var(--mf-purple)' },
+            { label: 'Per week', waarde: schema ? `${schema.sessies_per_week}×` : '—', icon: <Calendar size={14} aria-hidden />, kleur: 'var(--mf-blue)' },
           ].map(({ label, waarde, icon, kleur }) => (
-            <div key={label} style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 14, padding: '14px 12px' }}>
+            <Card key={label} style={{ padding: '14px 12px' }}>
               <div style={{ color: kleur, marginBottom: 6 }}>{icon}</div>
               <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.02em' }}>{waarde}</div>
-              <div style={{ fontSize: 11, color: 'var(--text-4)', fontWeight: 500, marginTop: 2 }}>{label}</div>
-            </div>
+              <div style={{ fontSize: 11, color: 'var(--text-3)', fontWeight: 500, marginTop: 2 }}>{label}</div>
+            </Card>
           ))}
         </div>
 
         {/* ── Recente trainingen ── */}
-        <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 20, overflow: 'hidden', marginBottom: 20 }}>
+        <Card style={{ overflow: 'hidden', marginBottom: 20 }}>
           <div style={{ padding: '16px 16px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border)' }}>
             <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-1)' }}>Recente trainingen</span>
-            <span style={{ fontSize: 12, color: 'var(--text-4)' }}>{logs.length} sessies</span>
+            <span style={{ fontSize: 12, color: 'var(--text-3)' }}>{logs.length} sessies</span>
           </div>
 
           {logs.length === 0 ? (
-            <div style={{ padding: '32px 20px', textAlign: 'center' }}>
-              <Dumbbell size={32} strokeWidth={1.2} style={{ color: 'var(--text-4)', marginBottom: 10 }} />
-              <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-2)' }}>Nog geen trainingen</div>
-              <div style={{ fontSize: 12, color: 'var(--text-4)', marginTop: 4 }}>Start je eerste training!</div>
-            </div>
+            <EmptyState
+              icon={Dumbbell}
+              title="Nog geen trainingen"
+              description="Start je eerste training!"
+            />
           ) : (
             logs.map((log, i) => (
               <div key={log.id} style={{
                 display: 'flex', alignItems: 'center', gap: 12, padding: '13px 16px',
                 borderBottom: i < logs.length - 1 ? '1px solid var(--border)' : 'none',
               }}>
-                <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(249,115,22,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <Flame size={16} strokeWidth={1.8} style={{ color: '#F97316' }} />
+                <div style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--mf-orange-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <Flame size={16} strokeWidth={1.8} style={{ color: 'var(--mf-orange)' }} aria-hidden />
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-1)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {log.naam ?? 'Training'}
                   </div>
-                  <div style={{ fontSize: 11, color: 'var(--text-4)', marginTop: 1 }}>{fmtDatum(log.datum)}</div>
+                  <div style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 1 }}>{fmtDatum(log.datum)}</div>
                 </div>
                 {log.duur_minuten && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: 'var(--text-3)', fontWeight: 600 }}>
-                    <Clock size={11} />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: 'var(--text-2)', fontWeight: 600 }}>
+                    <Clock size={11} aria-hidden />
                     {log.duur_minuten} min
                   </div>
                 )}
               </div>
             ))
           )}
-        </div>
+        </Card>
 
         {/* ── Acties ── */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+        <nav aria-label="Sport-acties" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
           {[
-            { href: '/sport/genereer', label: 'Nieuw schema', sub: 'AI-gegenereerd', icon: <Sparkles size={18} />, kleur: '#10B981' },
-            { href: '/sport/voortgang', label: 'Voortgang', sub: 'Statistieken', icon: <TrendingUp size={18} />, kleur: '#8B5CF6' },
-            { href: '/sport/oefeningen', label: 'Oefeningen', sub: 'Bibliotheek', icon: <Dumbbell size={18} />, kleur: '#F97316' },
-            { href: '/sport/training', label: 'Training starten', sub: 'Direct beginnen', icon: <Zap size={18} />, kleur: '#EF4444' },
-          ].map(({ href, label, sub, icon, kleur }) => (
+            { href: '/sport/genereer', label: 'Nieuw schema', sub: 'AI-gegenereerd', icon: <Sparkles size={18} aria-hidden /> },
+            { href: '/sport/voortgang', label: 'Voortgang', sub: 'Statistieken', icon: <TrendingUp size={18} aria-hidden /> },
+            { href: '/sport/oefeningen', label: 'Oefeningen', sub: 'Bibliotheek', icon: <Dumbbell size={18} aria-hidden /> },
+            { href: '/sport/training', label: 'Training starten', sub: 'Direct beginnen', icon: <Zap size={18} aria-hidden /> },
+          ].map(({ href, label, sub, icon }) => (
             <Link key={href} href={href} style={{ textDecoration: 'none' }}>
-              <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 16, padding: '16px 14px', display: 'flex', alignItems: 'center', gap: 12 }}>
-                <div style={{ width: 38, height: 38, borderRadius: 11, background: kleur + '15', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: kleur }}>
+              <Card interactive style={{ padding: '16px 14px', display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{ width: 38, height: 38, borderRadius: 11, background: 'var(--mentaforce-primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: 'var(--mentaforce-primary)' }}>
                   {icon}
                 </div>
                 <div style={{ minWidth: 0 }}>
                   <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-1)' }}>{label}</div>
-                  <div style={{ fontSize: 11, color: 'var(--text-4)' }}>{sub}</div>
+                  <div style={{ fontSize: 11, color: 'var(--text-3)' }}>{sub}</div>
                 </div>
-              </div>
+              </Card>
             </Link>
           ))}
-        </div>
+        </nav>
 
-      </div>
+      </main>
     </div>
   )
 }

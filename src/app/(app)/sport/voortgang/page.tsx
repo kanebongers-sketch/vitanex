@@ -2,11 +2,17 @@
 
 export const dynamic = 'force-dynamic'
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useId } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
+import { ArrowLeft, BarChart2 } from 'lucide-react'
+import { Card } from '@/components/ui/Card'
+import { Badge } from '@/components/ui/Badge'
+import { Chart, type ChartDatum } from '@/components/ui/Chart'
+import { Table, THead, TBody, Tr, Th, Td } from '@/components/ui/Table'
+import { EmptyState } from '@/components/ui/EmptyState'
 
 
 type OefeningLog = {
@@ -67,6 +73,7 @@ function verwerk(data: OefeningLog[]): OefeningGroep[] {
 
 export default function VoortgangPage() {
   const router = useRouter()
+  const selectId = useId()
   const [loading, setLoading] = useState(true)
   const [logs, setLogs] = useState<OefeningLog[]>([])
   const [geselecteerdeOefening, setGeselecteerdeOefening] = useState<string>('')
@@ -109,13 +116,16 @@ export default function VoortgangPage() {
     : []
 
   const chartSessies = actieveGroep ? actieveGroep.sessies.slice(-8) : []
-  const chartMax = chartSessies.length > 0 ? Math.max(...chartSessies.map(s => s.maxGewicht)) : 1
+  const chartData: ChartDatum[] = chartSessies.map(s => ({
+    datum: s.datum.slice(5),
+    'Max. gewicht': s.maxGewicht,
+  }))
 
   if (loading) {
     return (
       <div style={{ minHeight: '100vh', background: 'var(--bg-app)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <Navbar />
-        <p style={{ color: 'var(--text-2)', marginTop: 80 }}>Laden...</p>
+        <p style={{ color: 'var(--text-3)', marginTop: 80 }}>Laden…</p>
       </div>
     )
   }
@@ -123,140 +133,117 @@ export default function VoortgangPage() {
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-app)', paddingBottom: 48 }}>
       <Navbar />
-      <div style={{ maxWidth: 900, margin: '0 auto', padding: '80px 16px 0' }}>
+      <main style={{ maxWidth: 900, margin: '0 auto', padding: '80px 16px 0' }}>
 
-        <div style={{ marginBottom: 24 }}>
-          <Link href="/sport" style={{ color: 'var(--mf-green)', fontSize: 14, textDecoration: 'none' }}>
-            ← Terug naar sport
+        <header style={{ marginBottom: 24 }}>
+          <Link href="/sport" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: 'var(--mentaforce-primary)', fontSize: 14, textDecoration: 'none' }}>
+            <ArrowLeft size={15} aria-hidden /> Terug naar sport
           </Link>
-          <h1 style={{ fontSize: 28, fontWeight: 700, color: 'var(--text-1)', margin: '8px 0 4px' }}>
+          <h1 style={{ fontSize: 28, fontWeight: 800, color: 'var(--text-1)', margin: '8px 0 4px', letterSpacing: '-0.03em' }}>
             Mijn voortgang
           </h1>
-          <p style={{ color: 'var(--text-2)', fontSize: 15 }}>Volg je gewichtsprogressie per oefening</p>
-        </div>
+          <p style={{ color: 'var(--text-3)', fontSize: 15 }}>Volg je gewichtsprogressie per oefening</p>
+        </header>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 32 }}>
           {[
             { label: 'Trainingen', waarde: totaalTrainingen, kleur: 'var(--mf-blue)' },
-            { label: 'Sets gelogd', waarde: totaalSets, kleur: 'var(--mf-green)' },
+            { label: 'Sets gelogd', waarde: totaalSets, kleur: 'var(--mentaforce-primary)' },
             { label: 'Beste oefening', waarde: besteOefening ? `+${besteOefening.progressieProcent}%` : '—', kleur: 'var(--mf-orange)', sub: besteOefening?.naam },
           ].map((stat, i) => (
-            <div key={i} style={{ background: 'var(--bg-card, white)', borderRadius: 12, padding: '20px 16px', boxShadow: 'var(--shadow-xs, 0 1px 4px rgba(0,0,0,0.07))' }}>
-              <p style={{ fontSize: 12, color: 'var(--text-2)', marginBottom: 4 }}>{stat.label}</p>
-              <p style={{ fontSize: 26, fontWeight: 700, color: stat.kleur }}>{stat.waarde}</p>
-              {stat.sub && <p style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{stat.sub}</p>}
-            </div>
+            <Card key={i} style={{ padding: '20px 16px' }}>
+              <p style={{ fontSize: 12, color: 'var(--text-3)', marginBottom: 4 }}>{stat.label}</p>
+              <p style={{ fontSize: 26, fontWeight: 800, color: stat.kleur, letterSpacing: '-0.02em' }}>{stat.waarde}</p>
+              {stat.sub && <p style={{ fontSize: 11, color: 'var(--text-4)', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{stat.sub}</p>}
+            </Card>
           ))}
         </div>
 
         {oefeningen.length === 0 ? (
-          <div style={{ background: 'var(--bg-card, white)', borderRadius: 12, padding: 40, textAlign: 'center', boxShadow: 'var(--shadow-xs, 0 1px 4px rgba(0,0,0,0.07))' }}>
-            <div style={{ position: 'relative', display: 'inline-block', marginBottom: 12 }}>
-              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
-                <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
-              </div>
-              <span style={{ fontSize: 32, position: 'relative', zIndex: 1 }}>📊</span>
-            </div>
-            <p style={{ color: 'var(--text-2)', fontWeight: 600, marginBottom: 8 }}>Nog geen logs gevonden</p>
-            <p style={{ color: 'var(--text-2)', fontSize: 14 }}>Log je eerste training om je voortgang te zien.</p>
-          </div>
+          <Card>
+            <EmptyState
+              icon={BarChart2}
+              title="Nog geen logs gevonden"
+              description="Log je eerste training om je voortgang te zien."
+            />
+          </Card>
         ) : (
           <>
-            <div style={{ background: 'var(--bg-card, white)', borderRadius: 12, padding: '16px 20px', marginBottom: 24, boxShadow: 'var(--shadow-xs, 0 1px 4px rgba(0,0,0,0.07))' }}>
-              <label style={{ fontSize: 13, color: 'var(--text-2)', display: 'block', marginBottom: 8 }}>Selecteer oefening</label>
+            <Card style={{ padding: '16px 20px', marginBottom: 24 }}>
+              <label htmlFor={selectId} style={{ fontSize: 13, color: 'var(--text-2)', fontWeight: 600, display: 'block', marginBottom: 8 }}>Selecteer oefening</label>
               <select
+                id={selectId}
                 value={geselecteerdeOefening}
                 onChange={e => setGeselecteerdeOefening(e.target.value)}
-                style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid var(--border)', fontSize: 15, color: 'var(--text-1)', background: 'var(--bg-subtle)', outline: 'none' }}
+                style={{ width: '100%', padding: '10px 12px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-strong)', fontSize: 15, color: 'var(--text-1)', background: 'var(--bg-subtle)', outline: 'none' }}
               >
                 {oefeningen.map(o => (
                   <option key={o.naam} value={o.naam}>{o.naam}</option>
                 ))}
               </select>
-            </div>
+            </Card>
 
             {actieveGroep && (
               <>
-                <div style={{ background: 'var(--bg-card, white)', borderRadius: 12, padding: '20px', marginBottom: 24, boxShadow: 'var(--shadow-xs, 0 1px 4px rgba(0,0,0,0.07))' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+                <Card style={{ padding: '20px', marginBottom: 24 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, flexWrap: 'wrap', gap: 8 }}>
                     <h2 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-1)' }}>{actieveGroep.naam}</h2>
-                    <div style={{ display: 'flex', gap: 8 }}>
-                      <span style={{ background: 'var(--mf-green-light)', color: 'var(--mf-green)', borderRadius: 20, padding: '4px 12px', fontSize: 13, fontWeight: 600 }}>
-                        Start: {actieveGroep.beginGewicht} kg
-                      </span>
-                      <span style={{ background: 'var(--mf-blue-light)', color: 'var(--mf-blue)', borderRadius: 20, padding: '4px 12px', fontSize: 13, fontWeight: 600 }}>
-                        Nu: {actieveGroep.huidigGewicht} kg
-                      </span>
-                      <span style={{
-                        background: actieveGroep.progressieProcent >= 0 ? 'var(--mf-green-light)' : 'var(--mf-red-light)',
-                        color: actieveGroep.progressieProcent >= 0 ? 'var(--mf-green)' : 'var(--mf-red)',
-                        borderRadius: 20, padding: '4px 12px', fontSize: 13, fontWeight: 600
-                      }}>
+                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                      <Badge variant="success">Start: {actieveGroep.beginGewicht} kg</Badge>
+                      <Badge variant="accent">Nu: {actieveGroep.huidigGewicht} kg</Badge>
+                      <Badge variant={actieveGroep.progressieProcent >= 0 ? 'success' : 'danger'}>
                         {actieveGroep.progressieProcent >= 0 ? '+' : ''}{actieveGroep.progressieProcent}%
-                      </span>
+                      </Badge>
                     </div>
                   </div>
 
-                  {chartSessies.length < 2 ? (
+                  {chartData.length < 2 ? (
                     <p style={{ color: 'var(--text-3)', fontSize: 14, textAlign: 'center', padding: '24px 0' }}>Log meer sessies om een grafiek te zien.</p>
                   ) : (
-                    <svg width="100%" height="180" viewBox={`0 0 ${chartSessies.length * 72} 180`} preserveAspectRatio="none">
-                      {chartSessies.map((sessie, i) => {
-                        const barH = chartMax > 0 ? Math.max(8, (sessie.maxGewicht / chartMax) * 130) : 8
-                        const x = i * 72 + 8
-                        const y = 140 - barH
-                        const pct = chartMax > 0 ? sessie.maxGewicht / chartMax : 0
-                        const barKleur = pct >= 0.9 ? 'var(--mf-green)' : pct >= 0.7 ? 'var(--mf-amber)' : 'var(--mf-blue)'
-                        const isLaatste = i === chartSessies.length - 1
+                    <Chart
+                      type="bar"
+                      data={chartData}
+                      xKey="datum"
+                      series={[{ key: 'Max. gewicht', label: 'Max. gewicht (kg)' }]}
+                      summary={`Gewichtsprogressie voor ${actieveGroep.naam}: maximaal gewicht per sessie in kilogram over de laatste ${chartData.length} sessies.`}
+                      height={180}
+                    />
+                  )}
+                </Card>
+
+                <Card style={{ padding: '20px' }}>
+                  <h2 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-1)', marginBottom: 16 }}>Recente sets</h2>
+                  <Table caption={`Recente sets voor ${actieveGroep.naam}`}>
+                    <THead>
+                      <Tr>
+                        <Th scope="col">Datum</Th>
+                        <Th scope="col">Set</Th>
+                        <Th scope="col">Reps</Th>
+                        <Th scope="col">Gewicht</Th>
+                        <Th scope="col" align="right">Volume</Th>
+                      </Tr>
+                    </THead>
+                    <TBody>
+                      {recenteLogs.map((log) => {
+                        const volume = log.herhalingen * (log.gewicht_kg ?? 0)
                         return (
-                          <g key={sessie.datum}>
-                            <rect x={x} y={y} width={56} height={barH} rx={6} fill={barKleur} opacity={isLaatste ? 1 : 0.6} />
-                            <text x={x + 28} y={y - 5} textAnchor="middle" fontSize={11} fill={barKleur} fontWeight="700">
-                              {sessie.maxGewicht}kg
-                            </text>
-                            <text x={x + 28} y={158} textAnchor="middle" fontSize={9} fill="var(--text-4)">
-                              {sessie.datum.slice(5)}
-                            </text>
-                          </g>
+                          <Tr key={log.id}>
+                            <Td>{log.training_logs.datum}</Td>
+                            <Td>{log.set_nummer}</Td>
+                            <Td>{log.herhalingen}</Td>
+                            <Td>{log.gewicht_kg ?? '—'} kg</Td>
+                            <Td align="right" style={{ color: 'var(--mentaforce-primary)', fontWeight: 600 }}>{volume > 0 ? `${volume} kg` : '—'}</Td>
+                          </Tr>
                         )
                       })}
-                    </svg>
-                  )}
-                </div>
-
-                <div style={{ background: 'var(--bg-card, white)', borderRadius: 12, padding: '20px', boxShadow: 'var(--shadow-xs, 0 1px 4px rgba(0,0,0,0.07))' }}>
-                  <h2 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-1)', marginBottom: 16 }}>Recente sets</h2>
-                  <div style={{ overflowX: 'auto' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
-                      <thead>
-                        <tr style={{ borderBottom: '2px solid var(--bg-subtle)' }}>
-                          {['Datum', 'Set', 'Reps', 'Gewicht', 'Volume'].map(h => (
-                            <th key={h} style={{ padding: '8px 12px', textAlign: 'left', color: 'var(--text-2)', fontWeight: 600, fontSize: 12 }}>{h}</th>
-                          ))}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {recenteLogs.map((log, i) => {
-                          const volume = log.herhalingen * (log.gewicht_kg ?? 0)
-                          return (
-                            <tr key={log.id} style={{ borderBottom: '1px solid #f9fafb', background: i % 2 === 0 ? 'var(--bg-card, white)' : 'var(--bg-subtle)' }}>
-                              <td style={{ padding: '10px 12px', color: 'var(--text-2)' }}>{log.training_logs.datum}</td>
-                              <td style={{ padding: '10px 12px', color: 'var(--text-2)' }}>{log.set_nummer}</td>
-                              <td style={{ padding: '10px 12px', color: 'var(--text-2)' }}>{log.herhalingen}</td>
-                              <td style={{ padding: '10px 12px', color: 'var(--text-2)' }}>{log.gewicht_kg ?? '—'} kg</td>
-                              <td style={{ padding: '10px 12px', color: 'var(--mf-green)', fontWeight: 600 }}>{volume > 0 ? `${volume} kg` : '—'}</td>
-                            </tr>
-                          )
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
+                    </TBody>
+                  </Table>
+                </Card>
               </>
             )}
           </>
         )}
-      </div>
+      </main>
     </div>
   )
 }

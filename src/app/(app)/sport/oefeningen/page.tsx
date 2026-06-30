@@ -6,6 +6,14 @@ import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
+import { Dumbbell, Search, BookOpen } from 'lucide-react'
+import { Card } from '@/components/ui/Card'
+import { Badge } from '@/components/ui/Badge'
+import { Input } from '@/components/ui/Input'
+import { EmptyState } from '@/components/ui/EmptyState'
+import {
+  DialogRoot, DialogContent, DialogTitle, DialogDescription,
+} from '@/components/ui/Dialog'
 
 
 type Oefening = {
@@ -22,35 +30,36 @@ type Oefening = {
 const SPIERGROEPEN = ['Alle', 'Borst', 'Rug', 'Schouders', 'Armen', 'Benen', 'Core', 'Cardio']
 const MOEILIJKHEDEN = ['Alle', 'Beginner', 'Gemiddeld', 'Gevorderd']
 
-const SPIERGROEP_EMOJI: Record<string, string> = {
-  borst: '💪', rug: '🏋️', schouders: '🔼', armen: '💪', benen: '🦵', core: '⭕', cardio: '❤️'
-}
-
-const SPIERGROEP_KLEUR: Record<string, string> = {
-  borst: 'var(--mf-red-light)', rug: 'var(--mf-blue-light)', schouders: 'var(--mf-amber-light)', armen: 'var(--mf-purple-light)',
-  benen: 'var(--mf-green-light)', core: 'var(--mf-orange-light)', cardio: 'var(--mf-rose-light)'
-}
-
-const MOEILIJKHEID_KLEUR: Record<string, { bg: string; text: string }> = {
-  beginner: { bg: 'var(--mf-green-light)', text: 'var(--mf-green)' },
-  gemiddeld: { bg: 'var(--mf-orange-light)', text: 'var(--mf-orange)' },
-  gevorderd: { bg: 'var(--mf-red-light)', text: 'var(--mf-red)' },
+type MoeilijkheidTone = 'success' | 'warning' | 'danger' | 'neutral'
+const MOEILIJKHEID_TONE: Record<string, MoeilijkheidTone> = {
+  beginner: 'success',
+  gemiddeld: 'warning',
+  gevorderd: 'danger',
 }
 
 function spierSleutel(spiergroep: string) {
   return spiergroep.toLowerCase()
 }
 
-function OefeningPlaceholder({ spiergroep }: { spiergroep: string }) {
-  const sleutel = spierSleutel(spiergroep)
-  const emoji = SPIERGROEP_EMOJI[sleutel] || '🏃'
-  const achtergrond = SPIERGROEP_KLEUR[sleutel] || 'var(--bg-subtle)'
+function moeilijkheidTone(m: string): MoeilijkheidTone {
+  return MOEILIJKHEID_TONE[m.toLowerCase()] ?? 'neutral'
+}
+
+function OefeningPlaceholder({ rounded }: { rounded?: boolean }) {
   return (
-    <div style={{ height: 160, background: achtergrond, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '12px 12px 0 0', fontSize: 48, position: 'relative' }}>
-      <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
-        <div style={{ width: 120, height: 120, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
-      </div>
-      <span style={{ position: 'relative', zIndex: 1 }}>{emoji}</span>
+    <div
+      aria-hidden
+      style={{
+        height: 160,
+        background: 'var(--bg-subtle)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderRadius: rounded ? 'var(--radius-card) var(--radius-card) 0 0' : 0,
+        borderBottom: '1px solid var(--border)',
+      }}
+    >
+      <Dumbbell size={40} strokeWidth={1.2} style={{ color: 'var(--text-4)' }} />
     </div>
   )
 }
@@ -91,163 +100,166 @@ export default function OefeningenPage() {
     return (
       <div style={{ minHeight: '100vh', background: 'var(--bg-app)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <Navbar />
-        <p style={{ color: 'var(--text-2)', marginTop: 80 }}>Laden...</p>
+        <p style={{ color: 'var(--text-3)', marginTop: 80 }}>Laden…</p>
       </div>
     )
   }
 
-  const moeilSleutel = (m: string) => m.toLowerCase() as keyof typeof MOEILIJKHEID_KLEUR
-  const moeilKleur = (m: string) => MOEILIJKHEID_KLEUR[moeilSleutel(m)] || { bg: 'var(--bg-subtle)', text: 'var(--text-2)' }
-
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-app)', paddingBottom: 48 }}>
       <Navbar />
-      <div style={{ maxWidth: 1100, margin: '0 auto', padding: '80px 16px 0' }}>
+      <main style={{ maxWidth: 1100, margin: '0 auto', padding: '80px 16px 0' }}>
 
-        <div style={{ marginBottom: 28 }}>
-          <h1 style={{ fontSize: 28, fontWeight: 700, color: 'var(--text-1)', margin: '0 0 4px' }}>
+        <header style={{ marginBottom: 28 }}>
+          <h1 style={{ fontSize: 28, fontWeight: 800, color: 'var(--text-1)', margin: '0 0 4px', letterSpacing: '-0.03em' }}>
             Oefeningen bibliotheek
           </h1>
-          <p style={{ color: 'var(--text-2)', fontSize: 15 }}>Bekijk uitvoering, spiergroepen en moeilijkheidsgraad per oefening</p>
-        </div>
+          <p style={{ color: 'var(--text-3)', fontSize: 15 }}>Bekijk uitvoering, spiergroepen en moeilijkheidsgraad per oefening</p>
+        </header>
 
-        <div style={{ background: 'var(--bg-card, white)', borderRadius: 12, padding: '16px 20px', marginBottom: 28, boxShadow: 'var(--shadow-xs, 0 1px 4px rgba(0,0,0,0.07))' }}>
-          <input
-            type="text"
-            placeholder="Zoek een oefening..."
-            value={zoekterm}
-            onChange={e => setZoekterm(e.target.value)}
-            style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 15, outline: 'none', marginBottom: 16, boxSizing: 'border-box' }}
-          />
+        <Card style={{ padding: '16px 20px', marginBottom: 28 }}>
+          <label htmlFor="oefening-zoek" style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-2)', marginBottom: 6 }}>
+            Zoek een oefening
+          </label>
+          <div style={{ position: 'relative', marginBottom: 16 }}>
+            <Search size={16} aria-hidden style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-4)', pointerEvents: 'none' }} />
+            <Input
+              id="oefening-zoek"
+              type="search"
+              placeholder="bijv. bankdrukken"
+              value={zoekterm}
+              onChange={e => setZoekterm(e.target.value)}
+              style={{ paddingLeft: 36 }}
+            />
+          </div>
 
           <div style={{ marginBottom: 12 }}>
-            <p style={{ fontSize: 12, color: 'var(--text-2)', marginBottom: 8, fontWeight: 600 }}>SPIERGROEP</p>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              {SPIERGROEPEN.map(s => (
-                <button
-                  key={s}
-                  onClick={() => setSpiergroepFilter(s)}
-                  style={{
-                    padding: '6px 14px', borderRadius: 20, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 600,
-                    background: spiergroepFilter === s ? 'var(--mf-green)' : 'var(--bg-subtle)',
-                    color: spiergroepFilter === s ? '#fff' : 'var(--text-2)',
-                    transition: 'background 0.15s'
-                  }}
-                >{s}</button>
-              ))}
+            <p id="filter-spiergroep" style={{ fontSize: 12, color: 'var(--text-3)', marginBottom: 8, fontWeight: 700, letterSpacing: '0.04em' }}>SPIERGROEP</p>
+            <div role="group" aria-labelledby="filter-spiergroep" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              {SPIERGROEPEN.map(s => {
+                const actief = spiergroepFilter === s
+                return (
+                  <button
+                    key={s}
+                    type="button"
+                    aria-pressed={actief}
+                    onClick={() => setSpiergroepFilter(s)}
+                    className="mf-pressable"
+                    style={{
+                      padding: '6px 14px', borderRadius: 20, cursor: 'pointer', fontSize: 13, fontWeight: 600,
+                      background: actief ? 'var(--mentaforce-primary)' : 'var(--bg-subtle)',
+                      color: actief ? 'var(--bg-app)' : 'var(--text-2)',
+                      border: `1px solid ${actief ? 'var(--mentaforce-primary)' : 'var(--border-strong)'}`,
+                      transition: 'background 0.15s var(--ease)',
+                    }}
+                  >{s}</button>
+                )
+              })}
             </div>
           </div>
 
           <div>
-            <p style={{ fontSize: 12, color: 'var(--text-2)', marginBottom: 8, fontWeight: 600 }}>MOEILIJKHEID</p>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              {MOEILIJKHEDEN.map(m => (
-                <button
-                  key={m}
-                  onClick={() => setMoeilijkheidFilter(m)}
-                  style={{
-                    padding: '6px 14px', borderRadius: 20, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 600,
-                    background: moeilijkheidFilter === m ? 'var(--mf-blue)' : 'var(--bg-subtle)',
-                    color: moeilijkheidFilter === m ? '#fff' : 'var(--text-2)',
-                    transition: 'background 0.15s'
-                  }}
-                >{m}</button>
-              ))}
+            <p id="filter-moeilijkheid" style={{ fontSize: 12, color: 'var(--text-3)', marginBottom: 8, fontWeight: 700, letterSpacing: '0.04em' }}>MOEILIJKHEID</p>
+            <div role="group" aria-labelledby="filter-moeilijkheid" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              {MOEILIJKHEDEN.map(m => {
+                const actief = moeilijkheidFilter === m
+                return (
+                  <button
+                    key={m}
+                    type="button"
+                    aria-pressed={actief}
+                    onClick={() => setMoeilijkheidFilter(m)}
+                    className="mf-pressable"
+                    style={{
+                      padding: '6px 14px', borderRadius: 20, cursor: 'pointer', fontSize: 13, fontWeight: 600,
+                      background: actief ? 'var(--mentaforce-primary)' : 'var(--bg-subtle)',
+                      color: actief ? 'var(--bg-app)' : 'var(--text-2)',
+                      border: `1px solid ${actief ? 'var(--mentaforce-primary)' : 'var(--border-strong)'}`,
+                      transition: 'background 0.15s var(--ease)',
+                    }}
+                  >{m}</button>
+                )
+              })}
             </div>
           </div>
-        </div>
+        </Card>
 
         {oefeningen.length === 0 ? (
-          <div style={{ background: 'var(--bg-card, white)', borderRadius: 12, padding: 48, textAlign: 'center', boxShadow: 'var(--shadow-xs, 0 1px 4px rgba(0,0,0,0.07))' }}>
-            <p style={{ fontSize: 40, marginBottom: 16 }}>📚</p>
-            <p style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-1)', marginBottom: 8 }}>Bibliotheek nog leeg</p>
-            <p style={{ color: 'var(--text-2)', fontSize: 15, maxWidth: 400, margin: '0 auto' }}>
-              De bibliotheek wordt gevuld naarmate je schema&apos;s genereert. Genereer je eerste schema om oefeningen toe te voegen.
-            </p>
-          </div>
+          <Card>
+            <EmptyState
+              icon={BookOpen}
+              title="Bibliotheek nog leeg"
+              description="De bibliotheek wordt gevuld naarmate je schema's genereert. Genereer je eerste schema om oefeningen toe te voegen."
+            />
+          </Card>
         ) : gefilterd.length === 0 ? (
-          <div style={{ background: 'var(--bg-card, white)', borderRadius: 12, padding: 40, textAlign: 'center', boxShadow: 'var(--shadow-xs, 0 1px 4px rgba(0,0,0,0.07))' }}>
-            <p style={{ color: 'var(--text-2)' }}>Geen oefeningen gevonden voor deze filters.</p>
-          </div>
+          <Card>
+            <EmptyState
+              icon={Search}
+              title="Geen oefeningen gevonden"
+              description="Geen oefeningen gevonden voor deze filters."
+            />
+          </Card>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 20 }}>
-            {gefilterd.map(oefening => {
-              const mk = moeilKleur(oefening.moeilijkheid)
-              const spierSleutelStr = spierSleutel(oefening.spiergroep)
-              const spierAchtergrond = SPIERGROEP_KLEUR[spierSleutelStr] || 'var(--bg-subtle)'
-              return (
-                <div
-                  key={oefening.id}
-                  onClick={() => setGeselecteerd(oefening)}
-                  style={{ background: 'var(--bg-card, white)', borderRadius: 12, boxShadow: 'var(--shadow-xs, 0 1px 4px rgba(0,0,0,0.07))', cursor: 'pointer', overflow: 'hidden', transition: 'transform 0.15s, box-shadow 0.15s' }}
-                  onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-2px)'; (e.currentTarget as HTMLDivElement).style.boxShadow = '0 4px 16px rgba(0,0,0,0.12)' }}
-                  onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.transform = 'none'; (e.currentTarget as HTMLDivElement).style.boxShadow = '0 1px 4px rgba(0,0,0,0.07)' }}
-                >
-                  {oefening.image_url ? (
-                    <img src={oefening.image_url} alt={oefening.naam} style={{ width: '100%', height: 160, objectFit: 'cover' }} />
-                  ) : (
-                    <OefeningPlaceholder spiergroep={oefening.spiergroep} />
-                  )}
-                  <div style={{ padding: '14px 16px' }}>
-                    <div style={{ display: 'flex', gap: 6, marginBottom: 10, flexWrap: 'wrap' }}>
-                      <span style={{ background: spierAchtergrond, color: 'var(--text-2)', borderRadius: 20, padding: '3px 10px', fontSize: 11, fontWeight: 600 }}>
-                        {oefening.spiergroep}
-                      </span>
-                      <span style={{ background: mk.bg, color: mk.text, borderRadius: 20, padding: '3px 10px', fontSize: 11, fontWeight: 600 }}>
-                        {oefening.moeilijkheid}
-                      </span>
-                    </div>
-                    <p style={{ fontWeight: 700, color: 'var(--text-1)', fontSize: 15, marginBottom: 6 }}>{oefening.naam}</p>
-                    {oefening.beschrijving && (
-                      <p style={{ color: 'var(--text-2)', fontSize: 13, lineHeight: 1.5, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                        {oefening.beschrijving}
-                      </p>
-                    )}
+            {gefilterd.map(oefening => (
+              <Card
+                key={oefening.id}
+                interactive
+                onClick={() => setGeselecteerd(oefening)}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setGeselecteerd(oefening) } }}
+                role="button"
+                aria-label={`Bekijk oefening ${oefening.naam}`}
+                style={{ overflow: 'hidden' }}
+              >
+                {oefening.image_url ? (
+                  <img src={oefening.image_url} alt="" style={{ width: '100%', height: 160, objectFit: 'cover' }} />
+                ) : (
+                  <OefeningPlaceholder rounded />
+                )}
+                <div style={{ padding: '14px 16px' }}>
+                  <div style={{ display: 'flex', gap: 6, marginBottom: 10, flexWrap: 'wrap' }}>
+                    <Badge variant="neutral">{oefening.spiergroep}</Badge>
+                    <Badge variant={moeilijkheidTone(oefening.moeilijkheid)}>{oefening.moeilijkheid}</Badge>
                   </div>
+                  <p style={{ fontWeight: 700, color: 'var(--text-1)', fontSize: 15, marginBottom: 6 }}>{oefening.naam}</p>
+                  {oefening.beschrijving && (
+                    <p style={{ color: 'var(--text-3)', fontSize: 13, lineHeight: 1.5, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                      {oefening.beschrijving}
+                    </p>
+                  )}
                 </div>
-              )
-            })}
+              </Card>
+            ))}
           </div>
         )}
-      </div>
+      </main>
 
-      {geselecteerd && (
-        <div
-          onClick={() => setGeselecteerd(null)}
-          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
-        >
-          <div
-            onClick={e => e.stopPropagation()}
-            style={{ background: 'var(--bg-card, white)', borderRadius: 16, maxWidth: 560, width: '100%', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 8px 40px rgba(0,0,0,0.2)' }}
-          >
+      <DialogRoot open={geselecteerd !== null} onOpenChange={(open) => { if (!open) setGeselecteerd(null) }}>
+        {geselecteerd && (
+          <DialogContent closeLabel="Sluiten" style={{ width: 'min(92vw, 560px)', padding: 0 }}>
             {geselecteerd.image_url ? (
-              <img src={geselecteerd.image_url} alt={geselecteerd.naam} style={{ width: '100%', height: 220, objectFit: 'cover', borderRadius: '16px 16px 0 0' }} />
+              <img src={geselecteerd.image_url} alt="" style={{ width: '100%', height: 220, objectFit: 'cover', borderRadius: 'var(--radius-card) var(--radius-card) 0 0' }} />
             ) : (
-              <div style={{ borderRadius: '16px 16px 0 0', overflow: 'hidden' }}>
-                <OefeningPlaceholder spiergroep={geselecteerd.spiergroep} />
+              <div style={{ borderRadius: 'var(--radius-card) var(--radius-card) 0 0', overflow: 'hidden' }}>
+                <OefeningPlaceholder />
               </div>
             )}
 
             <div style={{ padding: '20px 24px 28px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
-                <h2 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-1)', flex: 1, marginRight: 16 }}>{geselecteerd.naam}</h2>
-                <button
-                  onClick={() => setGeselecteerd(null)}
-                  style={{ background: 'var(--bg-subtle)', border: 'none', borderRadius: 8, width: 36, height: 36, fontSize: 18, cursor: 'pointer', color: 'var(--text-2)', flexShrink: 0 }}
-                >✕</button>
-              </div>
+              <DialogTitle style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.02em' }}>
+                {geselecteerd.naam}
+              </DialogTitle>
 
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16 }}>
-                <span style={{ background: SPIERGROEP_KLEUR[spierSleutel(geselecteerd.spiergroep)] || 'var(--bg-subtle)', color: 'var(--text-2)', borderRadius: 20, padding: '4px 12px', fontSize: 13, fontWeight: 600 }}>
-                  {geselecteerd.spiergroep}
-                </span>
-                <span style={{ background: moeilKleur(geselecteerd.moeilijkheid).bg, color: moeilKleur(geselecteerd.moeilijkheid).text, borderRadius: 20, padding: '4px 12px', fontSize: 13, fontWeight: 600 }}>
-                  {geselecteerd.moeilijkheid}
-                </span>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', margin: '12px 0 16px' }}>
+                <Badge variant="neutral">{geselecteerd.spiergroep}</Badge>
+                <Badge variant={moeilijkheidTone(geselecteerd.moeilijkheid)}>{geselecteerd.moeilijkheid}</Badge>
               </div>
 
               {geselecteerd.beschrijving && (
-                <p style={{ color: 'var(--text-2)', fontSize: 15, lineHeight: 1.6, marginBottom: 20 }}>{geselecteerd.beschrijving}</p>
+                <DialogDescription style={{ color: 'var(--text-2)', fontSize: 15, lineHeight: 1.6, margin: '0 0 20px' }}>
+                  {geselecteerd.beschrijving}
+                </DialogDescription>
               )}
 
               {geselecteerd.uitvoering_stappen && geselecteerd.uitvoering_stappen.length > 0 && (
@@ -266,15 +278,15 @@ export default function OefeningenPage() {
                   <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-1)', marginBottom: 10 }}>Benodigdheden</h3>
                   <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                     {geselecteerd.benodigdheden.map((item, i) => (
-                      <span key={i} style={{ background: 'var(--bg-subtle)', color: 'var(--text-2)', borderRadius: 20, padding: '4px 12px', fontSize: 13 }}>{item}</span>
+                      <Badge key={i} variant="neutral">{item}</Badge>
                     ))}
                   </div>
                 </div>
               )}
             </div>
-          </div>
-        </div>
-      )}
+          </DialogContent>
+        )}
+      </DialogRoot>
     </div>
   )
 }
