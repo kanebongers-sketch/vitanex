@@ -2,20 +2,24 @@
 
 export const dynamic = 'force-dynamic'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
+import { Check } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { authFetch } from '@/lib/auth-fetch'
 import { vandaag } from '@/lib/weekdoelen'
+import { vitaEvent } from '@/lib/vita/events'
+import { useToast } from '@/components/ui/Toast'
 import Link from 'next/link'
 
+// Decoratieve glow per sectie — verwijst naar de -light pijler-tokens (rgba met lage alpha).
 const SECTIE_KLEUR: Record<string, string> = {
-  slaap:     'rgba(124,58,237,0.18)',
-  stress:    'rgba(226,75,74,0.18)',
-  energie:   'rgba(242,184,36,0.18)',
-  focus:     'rgba(29,158,117,0.18)',
-  balans:    'rgba(59,130,246,0.18)',
-  motivatie: 'rgba(243,99,12,0.18)',
+  slaap:     'var(--mf-purple-light)',
+  stress:    'var(--mf-red-light)',
+  energie:   'var(--mf-amber-light)',
+  focus:     'var(--mf-green-light)',
+  balans:    'var(--mf-blue-light)',
+  motivatie: 'var(--mf-rose-light)',
 }
 
 interface Vraag {
@@ -93,6 +97,7 @@ const DOMEIN_CODES: Record<string, string[]> = {
 
 export default function CheckIn() {
   const router  = useRouter()
+  const { toast } = useToast()
   const topRef  = useRef<HTMLDivElement>(null)
 
   const [userId,          setUserId]         = useState<string | null>(null)
@@ -149,15 +154,25 @@ export default function CheckIn() {
   async function verwijderSessie() {
     if (!sessieId) return
     setLaden(true)
-    await authFetch('/api/reset-sessie', {
-      method: 'POST',
-      body: JSON.stringify({ sessie_id: sessieId }),
-    })
-    setAlIngevuld(false)
-    setSessieId(null)
-    setSectieIdx(0)
-    setAntwoorden({})
-    setLaden(false)
+    try {
+      const res = await authFetch('/api/reset-sessie', {
+        method: 'POST',
+        body: JSON.stringify({ sessie_id: sessieId }),
+      })
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      setAlIngevuld(false)
+      setSessieId(null)
+      setSectieIdx(0)
+      setAntwoorden({})
+    } catch {
+      toast({
+        variant: 'error',
+        title: 'Opnieuw invullen mislukt',
+        description: 'Probeer het zo nog eens. Je antwoorden blijven bewaard.',
+      })
+    } finally {
+      setLaden(false)
+    }
   }
 
   const huidigeSectie = SECTIES[sectieIdx]
@@ -193,6 +208,9 @@ export default function CheckIn() {
       })
       const data = await res.json()
       if (!res.ok || data.error) throw new Error(data.error ?? `HTTP ${res.status}`)
+
+      // Sluit de VITA-retentie-loop: check-in is succesvol opgeslagen.
+      vitaEvent('check_in_completed')
 
       // Normaliseer scores: 2 vragen × 2 = zelfde range als voorheen (4–20)
       const vlakScores: Record<string, number> = {}
@@ -252,17 +270,19 @@ export default function CheckIn() {
   }
 
   // Voortgang: voltooide secties + vragen in huidige sectie
-  const voltooideVragen  = SECTIES.slice(0, sectieIdx).reduce((sum, s) => sum + s.vragen.length, 0)
-  const totaalVragen     = SECTIES.reduce((sum, s) => sum + s.vragen.length, 0)
-  const huidigBeantwoord = huidigeSectie.vragen.filter(v => antwoorden[v.code] !== undefined).length
-  const voortgangPct     = Math.round(((voltooideVragen + huidigBeantwoord) / totaalVragen) * 100)
+  const voortgangPct = useMemo(() => {
+    const voltooideVragen  = SECTIES.slice(0, sectieIdx).reduce((sum, s) => sum + s.vragen.length, 0)
+    const totaalVragen     = SECTIES.reduce((sum, s) => sum + s.vragen.length, 0)
+    const huidigBeantwoord = huidigeSectie.vragen.filter(v => antwoorden[v.code] !== undefined).length
+    return Math.round(((voltooideVragen + huidigBeantwoord) / totaalVragen) * 100)
+  }, [sectieIdx, huidigeSectie, antwoorden])
 
   // ── Laadscherm ──────────────────────────────────────────────────────────────
 
   if (checkend) return (
     <main className="mf-mesh-bg min-h-screen flex items-center justify-center">
-      <div className="w-8 h-8 rounded-full border-2 border-gray-200 animate-spin"
-        style={{ borderTopColor: 'var(--mf-green)' }} />
+      <div className="w-8 h-8 rounded-full border-2 animate-spin" role="status" aria-label="Laden"
+        style={{ borderColor: 'var(--border)', borderTopColor: 'var(--mentaforce-primary)' }} />
     </main>
   )
 
@@ -274,9 +294,7 @@ export default function CheckIn() {
         style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
         <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-5"
           style={{ background: 'var(--mf-green-light)' }}>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--mf-green)' }}>
-            <polyline points="20 6 9 17 4 12"/>
-          </svg>
+          <Check size={24} strokeWidth={2.5} aria-hidden="true" style={{ color: 'var(--mf-green)' }} />
         </div>
         <h2 className="text-xl font-semibold mb-2" style={{ color: 'var(--text-1)' }}>Check-in gedaan!</h2>
         <p className="text-sm mb-2 leading-relaxed" style={{ color: 'var(--text-3)' }}>Je antwoorden zijn ontvangen. Tot volgende week.</p>
@@ -286,20 +304,20 @@ export default function CheckIn() {
 
         {kanOpnieuw && (
           <div className="rounded-xl p-4 mb-4 text-left"
-            style={{ background: 'var(--mf-amber-light)', borderLeft: '3px solid #BA7517' }}>
-            <p className="text-xs font-semibold mb-1" style={{ color: 'var(--mf-amber-dark)' }}>Aanpassen?</p>
-            <p className="text-xs mb-3" style={{ color: 'var(--mf-amber-dark)' }}>Je kan opnieuw invullen binnen 4 uur na het indienen.</p>
+            style={{ background: 'var(--mf-amber-light)', borderLeft: '3px solid var(--mf-amber)' }}>
+            <p className="text-xs font-semibold mb-1" style={{ color: 'var(--mf-amber)' }}>Aanpassen?</p>
+            <p className="text-xs mb-3" style={{ color: 'var(--text-2)' }}>Je kan opnieuw invullen binnen 4 uur na het indienen.</p>
             <button onClick={verwijderSessie} disabled={laden}
               className="w-full py-2 rounded-lg text-xs font-medium disabled:opacity-40"
-              style={{ background: 'var(--mf-amber-dark)', color: 'white' }}>
+              style={{ background: 'var(--mf-amber)', color: 'var(--bg-app)' }}>
               {laden ? 'Bezig...' : 'Opnieuw invullen'}
             </button>
           </div>
         )}
 
         <div className="flex flex-col gap-3">
-          <Link href="/home" className="w-full inline-block text-center text-white rounded-xl py-3.5 text-sm font-semibold"
-            style={{ background: 'var(--mf-green)' }}>Naar dashboard</Link>
+          <Link href="/home" className="w-full inline-block text-center rounded-xl py-3.5 text-sm font-semibold"
+            style={{ background: 'var(--mentaforce-primary)', color: 'var(--bg-app)' }}>Naar dashboard</Link>
           <Link href="/bedankt" className="w-full inline-block text-center rounded-xl py-3 text-sm"
             style={{ border: '1px solid var(--border)', color: 'var(--text-3)' }}>
             Bekijk analyse</Link>
@@ -316,21 +334,19 @@ export default function CheckIn() {
 
       {/* Gate banner */}
       <div style={{
-        background: 'linear-gradient(135deg, #0F6E56, #1D9E75)',
+        background: 'linear-gradient(135deg, var(--mf-green-dark), var(--mf-green))',
         padding: '12px 20px',
         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
       }}>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-          <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
-        </svg>
-        <p style={{ color: 'white', fontSize: 13, fontWeight: 600 }}>
+        <Check size={16} strokeWidth={2.5} aria-hidden="true" style={{ color: 'var(--bg-app)' }} />
+        <p style={{ color: 'var(--bg-app)', fontSize: 13, fontWeight: 600 }}>
           Vul eerst je wekelijkse check-in in — daarna heb je toegang tot de app.
         </p>
       </div>
 
       {/* Sticky header */}
       <div ref={topRef} className="sticky top-0 z-20 border-b"
-        style={{ background: 'rgba(255,255,255,0.94)', backdropFilter: 'blur(12px)', borderColor: 'var(--border)' }}>
+        style={{ background: 'var(--bg-app)', backdropFilter: 'blur(12px)', borderColor: 'var(--border)' }}>
         <div className="max-w-lg mx-auto px-5 py-3">
 
           {/* Sectie pills */}
@@ -344,14 +360,10 @@ export default function CheckIn() {
                   className="flex-shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium transition"
                   style={{
                     background: actief ? s.kleur : klaar ? s.kleur + '20' : 'var(--bg-subtle)',
-                    color:      actief ? 'white'  : klaar ? s.kleur        : 'var(--text-3)',
+                    color:      actief ? 'var(--bg-app)' : klaar ? s.kleur : 'var(--text-3)',
                     cursor:     i < sectieIdx ? 'pointer' : 'default',
                   }}>
-                  {klaar && (
-                    <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                      <polyline points="20 6 9 17 4 12"/>
-                    </svg>
-                  )}
+                  {klaar && <Check size={11} strokeWidth={3} aria-hidden="true" />}
                   {s.label}
                 </button>
               )
@@ -382,7 +394,7 @@ export default function CheckIn() {
               position: 'absolute', top: '50%', left: '50%',
               transform: 'translate(-50%, -50%)',
               width: 64, height: 64, borderRadius: '50%',
-              background: `radial-gradient(circle, ${SECTIE_KLEUR[huidigeSectie.id] ?? 'rgba(29,158,117,0.18)'} 0%, transparent 70%)`,
+              background: `radial-gradient(circle, ${SECTIE_KLEUR[huidigeSectie.id] ?? 'var(--mf-green-light)'} 0%, transparent 70%)`,
             }} />
             <div className="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold"
               style={{ background: huidigeSectie.licht, color: huidigeSectie.kleur, position: 'relative' }}>
@@ -412,7 +424,7 @@ export default function CheckIn() {
 
         {/* Fout */}
         {fout && (
-          <div className="mt-5 rounded-xl p-4" style={{ background: 'var(--mf-red-light)', borderLeft: '3px solid #E24B4A' }}>
+          <div className="mt-5 rounded-xl p-4" role="alert" style={{ background: 'var(--mf-red-light)', borderLeft: '3px solid var(--mf-red)' }}>
             <p className="text-sm" style={{ color: 'var(--mf-red)' }}>{fout}</p>
           </div>
         )}
@@ -429,14 +441,15 @@ export default function CheckIn() {
           <button
             onClick={volgendeSectie}
             disabled={!sectieCompleet(sectieIdx) || laden || advancing}
-            className="flex-1 py-3.5 rounded-xl text-white font-semibold text-sm transition disabled:opacity-30 flex items-center justify-center gap-2"
+            className="flex-1 py-3.5 rounded-xl font-semibold text-sm transition disabled:opacity-30 flex items-center justify-center gap-2"
             style={{
+              color: sectieIdx === totaalSecties - 1 ? 'var(--bg-app)' : 'white',
               background: sectieIdx === totaalSecties - 1
-                ? 'linear-gradient(135deg, var(--mf-green-dark, #0F6E56), var(--mf-green, #1D9E75))'
+                ? 'linear-gradient(135deg, var(--mf-green-dark), var(--mf-green))'
                 : huidigeSectie.kleur,
-              boxShadow: sectieIdx === totaalSecties - 1 ? '0 4px 16px rgba(29,158,117,0.30)' : undefined,
+              boxShadow: sectieIdx === totaalSecties - 1 ? 'var(--shadow-md)' : undefined,
             }}>
-            {laden && <span className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" />}
+            {laden && <span className="w-4 h-4 rounded-full border-2 border-current border-t-transparent animate-spin" />}
             {laden ? 'Opslaan...' : advancing ? 'Volgende...' : sectieIdx === totaalSecties - 1 ? 'Afronden' : 'Volgende'}
           </button>
         </div>
@@ -479,9 +492,9 @@ function VraagKaart({ vraag, waarde, kleur, licht, nummer, onChange }: {
       {/* Vraagnummer + label */}
       <div className="flex items-start gap-2.5 mb-4">
         <div className="flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold mt-0.5"
-          style={{ background: beantwoord ? kleur : licht, color: beantwoord ? 'white' : kleur }}>
+          style={{ background: beantwoord ? kleur : licht, color: beantwoord ? 'var(--bg-app)' : kleur }}>
           {beantwoord
-            ? <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            ? <Check size={11} strokeWidth={3} aria-hidden="true" />
             : nummer}
         </div>
         <p className="text-sm font-medium leading-snug" style={{ color: 'var(--text-1)' }}>{vraag.label}</p>
@@ -491,11 +504,13 @@ function VraagKaart({ vraag, waarde, kleur, licht, nummer, onChange }: {
       <div className="flex gap-2 mb-2">
         {[1, 2, 3, 4, 5].map(n => (
           <button key={n} onClick={() => onChange(n)}
+            aria-label={`${vraag.label}: ${n} van 5`}
+            aria-pressed={geselecteerd === n}
             className="flex-1 h-11 rounded-xl text-sm font-semibold transition-all border"
             style={{
               background:  geselecteerd === n ? kleur : 'var(--bg-subtle)',
               borderColor: geselecteerd === n ? kleur : 'var(--border)',
-              color:       geselecteerd === n ? 'white' : 'var(--text-3)',
+              color:       geselecteerd === n ? 'var(--bg-app)' : 'var(--text-3)',
               transform:   geselecteerd === n ? 'scale(1.06)' : 'scale(1)',
               boxShadow:   geselecteerd === n ? `0 2px 8px ${kleur}50` : undefined,
             }}>

@@ -5,8 +5,11 @@ export const dynamic = 'force-dynamic'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { ArrowLeft, ChevronDown } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
+import { CollapsibleRoot, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/Collapsible'
+import { useToast } from '@/components/ui/Toast'
 
 
 interface CheckIn {
@@ -39,6 +42,7 @@ function vitaalScore(scores: Record<string, number>) {
 
 export default function CheckInGeschiedenisPage() {
   const router = useRouter()
+  const { toast } = useToast()
   const [laden, setLaden] = useState(true)
   const [checkIns, setCheckIns] = useState<CheckIn[]>([])
   const [uitgevouwen, setUitgevouwen] = useState<string | null>(null)
@@ -47,17 +51,24 @@ export default function CheckInGeschiedenisPage() {
     async function laad() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/login'); return }
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('checkin_sessies')
         .select('id, aangemaakt_op, domein_scores')
         .eq('user_id', user.id)
         .order('aangemaakt_op', { ascending: false })
         .limit(52)
+      if (error) {
+        toast({
+          variant: 'error',
+          title: 'Geschiedenis laden mislukt',
+          description: 'We konden je check-ins niet ophalen. Probeer het later opnieuw.',
+        })
+      }
       setCheckIns(data ?? [])
       setLaden(false)
     }
     laad()
-  }, [router])
+  }, [router, toast])
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
@@ -65,7 +76,9 @@ export default function CheckInGeschiedenisPage() {
       <main style={{ padding: '36px 40px 72px', maxWidth: 800, margin: '0 auto' }}>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
-          <Link href="/checkin" style={{ color: 'var(--text-3)', textDecoration: 'none', fontSize: 13 }}>â† Check-in</Link>
+          <Link href="/checkin" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: 'var(--text-3)', textDecoration: 'none', fontSize: 13 }}>
+            <ArrowLeft size={14} aria-hidden="true" /> Check-in
+          </Link>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
@@ -83,10 +96,10 @@ export default function CheckInGeschiedenisPage() {
         ) : checkIns.length === 0 ? (
           <div style={{ background: 'var(--bg-card)', borderRadius: 20, border: '1px solid var(--border)', padding: '56px 40px', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
             <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
-              <div style={{ width: 160, height: 160, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
+              <div style={{ width: 160, height: 160, borderRadius: '50%', background: 'radial-gradient(circle, var(--mf-green-light) 0%, transparent 70%)' }} />
             </div>
             <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-2)', marginBottom: 8, position: 'relative', zIndex: 1 }}>Nog geen check-ins</p>
-            <Link href="/checkin" style={{ fontSize: 14, color: 'white', background: 'var(--mf-green)', borderRadius: 12, padding: '10px 20px', textDecoration: 'none', fontWeight: 600, display: 'inline-block', position: 'relative', zIndex: 1 }}>
+            <Link href="/checkin" style={{ fontSize: 14, color: 'var(--bg-app)', background: 'var(--mentaforce-primary)', borderRadius: 12, padding: '10px 20px', textDecoration: 'none', fontWeight: 600, display: 'inline-block', position: 'relative', zIndex: 1 }}>
               Eerste check-in →
             </Link>
           </div>
@@ -98,6 +111,7 @@ export default function CheckInGeschiedenisPage() {
               const vkleur = vscore >= 70 ? 'var(--mf-green)' : vscore >= 40 ? 'var(--mf-amber)' : 'var(--mf-red)'
               const isOpen = uitgevouwen === ci.id
               const domeinen = Object.keys(DOMEIN_CONFIG).filter(d => ci.domein_scores?.[d] !== undefined)
+              const datumLabel = datum.toLocaleDateString('nl-BE', { weekday: 'long', day: 'numeric', month: 'long' })
 
               return (
                 <div key={ci.id} style={{ display: 'flex', gap: 0 }}>
@@ -111,43 +125,68 @@ export default function CheckInGeschiedenisPage() {
 
                   {/* Inhoud */}
                   <div style={{ flex: 1, paddingBottom: 12, paddingLeft: 12 }}>
-                    <button
-                      onClick={() => setUitgevouwen(isOpen ? null : ci.id)}
-                      style={{ width: '100%', background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left', padding: 0 }}
+                    <CollapsibleRoot
+                      open={isOpen}
+                      onOpenChange={(open) => setUitgevouwen(open ? ci.id : null)}
                     >
                       <div style={{ background: 'var(--bg-card)', borderRadius: 14, border: '1px solid var(--border)', padding: '14px 16px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: isOpen ? 12 : 0 }}>
-                          <div>
-                            <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-1)' }}>
-                              {datum.toLocaleDateString('nl-BE', { weekday: 'long', day: 'numeric', month: 'long' })}
-                            </p>
-                            <p style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 1 }}>
-                              {datum.toLocaleTimeString('nl-BE', { hour: '2-digit', minute: '2-digit' })} · {domeinen.length} domeinen
-                            </p>
-                          </div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                            <div style={{ textAlign: 'right' }}>
-                              <p style={{ fontSize: 20, fontWeight: 800, color: vkleur }}>{vscore}</p>
-                              <p style={{ fontSize: 9, color: 'var(--text-3)', fontWeight: 600, textTransform: 'uppercase' }}>score</p>
+                        <CollapsibleTrigger asChild>
+                          <button
+                            type="button"
+                            aria-label={`Details ${datumLabel}, score ${vscore} van 100`}
+                            className="mf-pressable"
+                            style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', gap: 12, background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left', padding: 0 }}
+                          >
+                            <div>
+                              <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-1)' }}>
+                                {datumLabel}
+                              </p>
+                              <p style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 1 }}>
+                                {datum.toLocaleTimeString('nl-BE', { hour: '2-digit', minute: '2-digit' })} · {domeinen.length} domeinen
+                              </p>
                             </div>
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--text-3)' }}>
-                              <polyline points={isOpen ? '18 15 12 9 6 15' : '6 9 12 15 18 9'} />
-                            </svg>
-                          </div>
-                        </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                              <div style={{ textAlign: 'right' }}>
+                                <p style={{ fontSize: 20, fontWeight: 800, color: vkleur }}>{vscore}</p>
+                                <p style={{ fontSize: 9, color: 'var(--text-3)', fontWeight: 600, textTransform: 'uppercase' }}>score</p>
+                              </div>
+                              <ChevronDown
+                                size={16}
+                                aria-hidden="true"
+                                style={{
+                                  color: 'var(--text-3)',
+                                  transition: 'transform 0.24s var(--ease)',
+                                  transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                                }}
+                              />
+                            </div>
+                          </button>
+                        </CollapsibleTrigger>
 
-                        {isOpen && (
-                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+                        <CollapsibleContent>
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginTop: 12 }}>
                             {domeinen.map(d => {
                               const cfg = DOMEIN_CONFIG[d]
                               const score = ci.domein_scores[d]
                               const pct = Math.round(((score - 4) / 16) * 100)
+                              const fractie = Math.min(Math.max(pct, 0), 100) / 100
                               return (
                                 <div key={d} style={{ borderRadius: 10, padding: '10px 12px', background: 'var(--bg-subtle)', border: '1px solid var(--border)' }}>
                                   <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: cfg.kleur, marginBottom: 4 }}>{cfg.label}</p>
                                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                    <div style={{ flex: 1, height: 4, background: 'var(--border)', borderRadius: 100, overflow: 'hidden' }}>
-                                      <div style={{ height: '100%', width: `${pct}%`, background: scoreKleur(score), borderRadius: 100, transition: 'width 0.5s ease' }} />
+                                    <div
+                                      role="progressbar"
+                                      aria-valuenow={score}
+                                      aria-valuemin={4}
+                                      aria-valuemax={20}
+                                      aria-valuetext={`${pct}%`}
+                                      aria-label={`${cfg.label}: ${score} van 20`}
+                                      style={{ flex: 1, height: 4, background: 'var(--border)', borderRadius: 100, overflow: 'hidden' }}
+                                    >
+                                      <div
+                                        className="mf-hist-bar"
+                                        style={{ height: '100%', width: '100%', transformOrigin: 'left center', transform: `scaleX(${fractie})`, background: scoreKleur(score), borderRadius: 100 }}
+                                      />
                                     </div>
                                     <span style={{ fontSize: 12, fontWeight: 700, color: scoreKleur(score), width: 28, textAlign: 'right' }}>{score}</span>
                                   </div>
@@ -155,9 +194,9 @@ export default function CheckInGeschiedenisPage() {
                               )
                             })}
                           </div>
-                        )}
+                        </CollapsibleContent>
                       </div>
-                    </button>
+                    </CollapsibleRoot>
                   </div>
                 </div>
               )
@@ -165,6 +204,12 @@ export default function CheckInGeschiedenisPage() {
           </div>
         )}
       </main>
+      <style>{`
+        .mf-hist-bar { transition: transform 0.5s var(--ease, ease); will-change: transform; }
+        @media (prefers-reduced-motion: reduce) {
+          .mf-hist-bar { transition: none; will-change: auto; }
+        }
+      `}</style>
     </div>
   )
 }

@@ -1,7 +1,8 @@
 'use client'
 
-import { useEffect, useState, useRef, useCallback } from 'react'
+import { useEffect, useState, useRef, useCallback, type CSSProperties } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
+import { X, Flame, Moon, Zap, Smile, Sparkles, ChevronRight } from 'lucide-react'
 import { authFetch } from '@/lib/auth-fetch'
 import PandaFace, { EmotionState } from '@/components/vita/PandaFace'
 import { emotionFromScore, emotionFromEvent, getTimeOfDay } from '@/lib/vita/emotion-engine'
@@ -80,17 +81,6 @@ function markPageSeen(path: string) {
   } catch {}
 }
 
-function orbColor(score: number): [number, number, number] {
-  if (score >= 80) return [0.114, 0.620, 0.459]
-  if (score >= 60) return [0.231, 0.510, 0.965]
-  if (score >= 40) return [0.949, 0.722, 0.141]
-  return [0.886, 0.294, 0.290]
-}
-
-function orbIntensity(score: number): number {
-  return 0.25 + (score / 100) * 0.45
-}
-
 function scoreLabel(score: number): string {
   if (score >= 85) return 'Uitstekend'
   if (score >= 70) return 'Vitaal'
@@ -99,9 +89,11 @@ function scoreLabel(score: number): string {
   return 'Herstel'
 }
 
+// Status-accent volgt het navy/cyan-systeem: cyaan = goed, inkt-grijs = neutraal,
+// amber = aandacht, rood = herstel. Geen losse hex — alles via tokens.
 function scoreColor(score: number): string {
-  if (score >= 70) return 'var(--mf-green)'
-  if (score >= 55) return '#5B8DF0'
+  if (score >= 70) return 'var(--mentaforce-primary)'
+  if (score >= 55) return 'var(--text-2)'
   if (score >= 40) return 'var(--mf-amber)'
   return 'var(--mf-red)'
 }
@@ -114,21 +106,11 @@ const PERSONA_LABELS: Record<Persona, string> = {
   wetenschapper: 'De Wetenschapper',
 }
 
-const PERSONA_COLORS: Record<Persona, string> = {
-  stoicijn: 'rgba(180,180,200,0.12)',
-  optimizer: 'rgba(29,158,117,0.12)',
-  mentor: 'rgba(167,139,250,0.12)',
-  challenger: 'rgba(226,75,74,0.12)',
-  wetenschapper: 'rgba(91,141,240,0.12)',
-}
-
-const PERSONA_ACCENT: Record<Persona, string> = {
-  stoicijn: '#b4b4c8',
-  optimizer: '#1D9E75',
-  mentor: '#A78BFA',
-  challenger: '#E24B4A',
-  wetenschapper: '#5B8DF0',
-}
+// Strikt twee-tonig: persona's worden onderscheiden via hun tekstlabel, niet via
+// een eigen kleur (zie accessibility.md — niet op kleur alleen leunen). De badge
+// gebruikt het cyaan-accent + een subtiele cyaan-tint; alles via tokens.
+const PERSONA_TINT = 'var(--mentaforce-primary-light)'
+const PERSONA_ACCENT_COLOR = 'var(--mentaforce-primary)'
 
 function vitaMessage(d: ReadinessData, persona: Persona): string {
   if (!d.heeft_data) {
@@ -221,7 +203,7 @@ function aanbevolenPersona(d: ReadinessData): { persona: Persona; reden: string 
 function XpBar({ xp }: { xp: number }) {
   const level = berekenLevel(xp)
   const { pct, nodig } = xpVoortgang(xp, level)
-  const kleur = LEVEL_KLEUREN[level] ?? '#5B8DF0'
+  const kleur = LEVEL_KLEUREN[level] ?? 'var(--mentaforce-primary)'
 
   return (
     <div style={{ padding: '0 14px 12px' }}>
@@ -266,21 +248,26 @@ function QuestList({ checklist, onGo }: { checklist: ChecklistItem[]; onGo: (url
 
       {open.length === 0 ? (
         <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 7,
           padding: '12px 13px',
-          background: 'var(--mf-green-light, #E1F5EE)',
+          background: 'var(--mentaforce-primary-light)',
           borderRadius: 12,
           fontSize: 12.5,
           fontWeight: 600,
-          color: 'var(--mf-green-dark, #0F6E56)',
-          textAlign: 'center',
+          color: 'var(--mentaforce-primary-dark)',
         }}>
-          Je dag is compleet — sterk gedaan! ✨
+          <Sparkles size={15} aria-hidden="true" strokeWidth={2} />
+          Je dag is compleet — sterk gedaan!
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           {open.slice(0, 3).map(item => (
             <button
               key={item.id}
+              className="vita-focusable"
               onClick={() => onGo(item.url)}
               style={{
                 display: 'flex',
@@ -309,7 +296,7 @@ function QuestList({ checklist, onGo }: { checklist: ChecklistItem[]; onGo: (url
                   {item.detail}
                 </span>
               </span>
-              <span style={{ fontSize: 13, color: 'var(--text-4)', flexShrink: 0 }}>›</span>
+              <ChevronRight size={16} color="var(--text-4)" aria-hidden="true" style={{ flexShrink: 0 }} />
             </button>
           ))}
           {open.length > 3 && (
@@ -335,14 +322,14 @@ function PersonaUitleg({ persona, reden }: { persona: Persona; reden: string }) 
         alignItems: 'flex-start',
         gap: 10,
         padding: '10px 12px',
-        background: PERSONA_COLORS[persona],
-        border: `1px solid ${PERSONA_ACCENT[persona]}33`,
+        background: PERSONA_TINT,
+        border: '1px solid var(--border)',
         borderRadius: 12,
       }}>
         <span style={{
           fontSize: 11,
           fontWeight: 700,
-          color: PERSONA_ACCENT[persona],
+          color: PERSONA_ACCENT_COLOR,
           background: 'var(--bg-card)',
           padding: '2px 8px',
           borderRadius: 100,
@@ -362,6 +349,21 @@ function PersonaUitleg({ persona, reden }: { persona: Persona; reden: string }) 
 const ORB_SIZE = 56
 const ORB_POS_KEY = 'vita-orb-pos'
 
+// Gedeelde stijl voor de data-chips (slaap/stress/stemming) — één bron, geen
+// duplicatie. Icoon + label naast elkaar, alles via tokens.
+const dataChipStyle: CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: 5,
+  fontSize: 11,
+  fontWeight: 600,
+  padding: '3px 9px',
+  borderRadius: 100,
+  background: 'var(--bg-subtle)',
+  border: '1px solid var(--border)',
+  color: 'var(--text-3)',
+}
+
 export default function VitaCompanion() {
   const pathname = usePathname()
   const router = useRouter()
@@ -373,6 +375,7 @@ export default function VitaCompanion() {
   const [emotion, setEmotion] = useState<EmotionState>('calm')
   const [bubble, setBubble] = useState<{ message: string; emotion: EmotionState } | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
+  const orbRef = useRef<HTMLButtonElement>(null)
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null)
   const dragRef = useRef<{ startX: number; startY: number; posX: number; posY: number } | null>(null)
   const didDrag = useRef(false)
@@ -430,7 +433,15 @@ export default function VitaCompanion() {
   }, [open])
 
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false) }
+    const handler = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return
+      // Sluit het paneel én geef de focus terug aan de orb-knop, zodat
+      // toetsenbordgebruikers niet de focus kwijtraken (WCAG focus-management).
+      setOpen(prev => {
+        if (prev) orbRef.current?.focus()
+        return false
+      })
+    }
     document.addEventListener('keydown', handler)
     return () => document.removeEventListener('keydown', handler)
   }, [])
@@ -615,8 +626,20 @@ export default function VitaCompanion() {
         userSelect: 'none',
       }}
     >
+      {/* Zichtbare focus-ring (cyaan) voor toetsenbordnavigatie — alle knoppen
+          in VITA delen 'm via .vita-focusable. */}
+      <style>{`
+        .vita-focusable:focus-visible {
+          outline: 2px solid var(--mentaforce-primary);
+          outline-offset: 2px;
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .vita-anim { animation: none !important; }
+        }
+      `}</style>
       {!open && (
         <button
+          className="vita-focusable vita-anim"
           onClick={() => { if (!didDrag.current) setOpen(true) }}
           aria-label="Open VITA — bekijk je dag"
           style={{
@@ -676,6 +699,10 @@ export default function VitaCompanion() {
 
       {open && (
         <div
+          role="dialog"
+          aria-modal="false"
+          aria-label="VITA — jouw dag in één oogopslag"
+          className="vita-anim"
           style={{
             position: 'absolute',
             right: 0,
@@ -718,8 +745,8 @@ export default function VitaCompanion() {
             <span style={{
               fontSize: 10,
               fontWeight: 600,
-              color: PERSONA_ACCENT[persona],
-              background: PERSONA_COLORS[persona],
+              color: PERSONA_ACCENT_COLOR,
+              background: PERSONA_TINT,
               padding: '2px 7px',
               borderRadius: 100,
               letterSpacing: '0.04em',
@@ -727,7 +754,8 @@ export default function VitaCompanion() {
               {PERSONA_LABELS[persona]}
             </span>
             <button
-              onClick={() => setOpen(false)}
+              className="vita-focusable"
+              onClick={() => { setOpen(false); orbRef.current?.focus() }}
               style={{
                 width: 24,
                 height: 24,
@@ -739,14 +767,12 @@ export default function VitaCompanion() {
                 alignItems: 'center',
                 justifyContent: 'center',
                 color: 'var(--text-3)',
-                fontSize: 12,
-                fontWeight: 700,
                 lineHeight: 1,
                 marginLeft: 4,
               }}
               aria-label="Sluit VITA"
             >
-              ✕
+              <X size={14} strokeWidth={2.5} aria-hidden="true" />
             </button>
           </div>
 
@@ -788,12 +814,16 @@ export default function VitaCompanion() {
               </div>
               {data.streak > 0 && (
                 <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 5,
                   fontSize: 11,
                   color: 'var(--text-3)',
                   marginTop: 5,
                   fontWeight: 500,
                 }}>
-                  🔥 {data.streak} {data.streak === 1 ? 'dag' : 'dagen'} op rij
+                  <Flame size={13} color="var(--mentaforce-primary)" aria-hidden="true" strokeWidth={2} />
+                  {data.streak} {data.streak === 1 ? 'dag' : 'dagen'} op rij
                 </div>
               )}
             </div>
@@ -809,16 +839,16 @@ export default function VitaCompanion() {
             <div style={{
               margin: '0 14px 14px',
               padding: '12px 13px',
-              background: 'var(--mf-green-light, #E1F5EE)',
+              background: 'var(--mentaforce-primary-light)',
               borderRadius: 12,
-              border: '1px solid rgba(29,158,117,0.20)',
+              border: '1px solid var(--border)',
             }}>
               <div style={{
                 fontSize: 10,
                 fontWeight: 700,
                 letterSpacing: '0.07em',
                 textTransform: 'uppercase',
-                color: 'var(--mf-green-dark, #0F6E56)',
+                color: 'var(--mentaforce-primary-dark)',
                 marginBottom: 5,
               }}>
                 Op deze pagina · {guide.label}
@@ -827,13 +857,13 @@ export default function VitaCompanion() {
                 {guide.uitleg}
               </div>
               {guide.stap && (
-                <div style={{ marginTop: 9, paddingTop: 9, borderTop: '1px solid rgba(29,158,117,0.18)' }}>
+                <div style={{ marginTop: 9, paddingTop: 9, borderTop: '1px solid var(--border)' }}>
                   <span style={{
                     fontSize: 10,
                     fontWeight: 700,
                     textTransform: 'uppercase',
                     letterSpacing: '0.06em',
-                    color: 'var(--mf-green-dark, #0F6E56)',
+                    color: 'var(--mentaforce-primary-dark)',
                   }}>
                     Volgende stap
                   </span>
@@ -847,6 +877,7 @@ export default function VitaCompanion() {
 
           {/* Meer / minder — secundaire details achter één tik */}
           <button
+            className="vita-focusable"
             onClick={() => setToonMeer(v => !v)}
             style={{
               width: 'calc(100% - 28px)',
@@ -891,42 +922,21 @@ export default function VitaCompanion() {
               flexWrap: 'wrap',
             }}>
               {data.slaap_uren !== null && (
-                <span style={{
-                  fontSize: 11,
-                  fontWeight: 600,
-                  padding: '3px 9px',
-                  borderRadius: 100,
-                  background: 'var(--bg-subtle)',
-                  border: '1px solid var(--border)',
-                  color: 'var(--text-3)',
-                }}>
-                  😴 {Number(data.slaap_uren).toFixed(1)}u slaap
+                <span style={dataChipStyle}>
+                  <Moon size={12} aria-hidden="true" strokeWidth={2} />
+                  {Number(data.slaap_uren).toFixed(1)}u slaap
                 </span>
               )}
               {data.stress_niveau !== null && (
-                <span style={{
-                  fontSize: 11,
-                  fontWeight: 600,
-                  padding: '3px 9px',
-                  borderRadius: 100,
-                  background: 'var(--bg-subtle)',
-                  border: '1px solid var(--border)',
-                  color: 'var(--text-3)',
-                }}>
-                  ⚡ Stress {data.stress_niveau}/5
+                <span style={dataChipStyle}>
+                  <Zap size={12} aria-hidden="true" strokeWidth={2} />
+                  Stress {data.stress_niveau}/5
                 </span>
               )}
               {data.stemming_waarde !== null && (
-                <span style={{
-                  fontSize: 11,
-                  fontWeight: 600,
-                  padding: '3px 9px',
-                  borderRadius: 100,
-                  background: 'var(--bg-subtle)',
-                  border: '1px solid var(--border)',
-                  color: 'var(--text-3)',
-                }}>
-                  😊 Stemming {data.stemming_waarde}/5
+                <span style={dataChipStyle}>
+                  <Smile size={12} aria-hidden="true" strokeWidth={2} />
+                  Stemming {data.stemming_waarde}/5
                 </span>
               )}
             </div>
@@ -947,6 +957,8 @@ export default function VitaCompanion() {
 
       {/* Orb trigger button */}
       <button
+        ref={orbRef}
+        className="vita-focusable vita-anim"
         onPointerDown={(e) => {
           e.preventDefault()
           didDrag.current = false
@@ -958,6 +970,7 @@ export default function VitaCompanion() {
         }}
         title="VITA — jouw gezondheidscompanion"
         aria-label="Open VITA gezondheidscompanion"
+        aria-expanded={open}
         style={{
           cursor: 'grab',
           touchAction: 'none',
@@ -967,7 +980,7 @@ export default function VitaCompanion() {
           border: `1.5px solid ${open ? accentColor : 'var(--border-strong)'}`,
           background: 'var(--bg-card)',
           boxShadow: open
-            ? `0 8px 32px rgba(0,0,0,0.14), 0 0 24px ${accentColor}33`
+            ? '0 8px 32px rgba(0,0,0,0.14), 0 0 24px color-mix(in srgb, var(--mentaforce-primary) 30%, transparent)'
             : '0 4px 16px rgba(0,0,0,0.10), 0 1px 4px rgba(0,0,0,0.06)',
           display: 'flex',
           alignItems: 'center',
