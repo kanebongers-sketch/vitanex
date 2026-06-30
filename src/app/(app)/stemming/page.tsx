@@ -4,7 +4,8 @@ export const dynamic = 'force-dynamic'
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { CheckCircle2 } from 'lucide-react'
+import { CheckCircle2, Angry, Frown, Meh, Smile, Laugh, BatteryLow, BatteryMedium, Zap, Rocket } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
@@ -16,20 +17,36 @@ import { useToast } from '@/components/ui/Toast'
 import { vitaEvent } from '@/lib/vita/events'
 
 const ACT = getActiviteit('mentaal')
-const STEMMING_OPTIES = [
-  { waarde: 1, emoji: '😫', label: 'Slecht',   kleur: 'var(--mf-red)',       achtergrond: 'var(--mf-red-light)'    },
-  { waarde: 2, emoji: '😔', label: 'Matig',    kleur: 'var(--mf-orange)',    achtergrond: 'var(--mf-amber-light)'  },
-  { waarde: 3, emoji: '😐', label: 'Neutraal', kleur: 'var(--text-3)',       achtergrond: 'var(--bg-subtle)'       },
-  { waarde: 4, emoji: '🙂', label: 'Goed',     kleur: 'var(--mf-green)',     achtergrond: 'var(--mf-green-light)'  },
-  { waarde: 5, emoji: '😄', label: 'Super!',   kleur: 'var(--mf-green-dark)', achtergrond: 'var(--mf-green-light)' },
+
+interface StemmingOptie {
+  waarde: number
+  emoji: string
+  icoon: LucideIcon
+  label: string
+  kleur: string
+  achtergrond: string
+}
+
+const STEMMING_OPTIES: StemmingOptie[] = [
+  { waarde: 1, emoji: '😫', icoon: Angry, label: 'Slecht',   kleur: 'var(--mf-red)',       achtergrond: 'var(--mf-red-light)'    },
+  { waarde: 2, emoji: '😔', icoon: Frown, label: 'Matig',    kleur: 'var(--mf-orange)',    achtergrond: 'var(--mf-amber-light)'  },
+  { waarde: 3, emoji: '😐', icoon: Meh,   label: 'Neutraal', kleur: 'var(--text-3)',       achtergrond: 'var(--bg-subtle)'       },
+  { waarde: 4, emoji: '🙂', icoon: Smile, label: 'Goed',     kleur: 'var(--mf-green)',     achtergrond: 'var(--mf-green-light)'  },
+  { waarde: 5, emoji: '😄', icoon: Laugh, label: 'Super!',   kleur: 'var(--mf-green-dark)', achtergrond: 'var(--mf-green-light)' },
 ]
 
-const ENERGIE_OPTIES = [
-  { waarde: 1, emoji: '🔋', label: 'Leeg'   },
-  { waarde: 2, emoji: '🔋', label: 'Laag'   },
-  { waarde: 3, emoji: '⚡', label: 'Normaal' },
-  { waarde: 4, emoji: '⚡', label: 'Goed'    },
-  { waarde: 5, emoji: '🚀', label: 'Vol!'    },
+interface EnergieOptie {
+  waarde: number
+  icoon: LucideIcon
+  label: string
+}
+
+const ENERGIE_OPTIES: EnergieOptie[] = [
+  { waarde: 1, icoon: BatteryLow,    label: 'Leeg'   },
+  { waarde: 2, icoon: BatteryMedium, label: 'Laag'   },
+  { waarde: 3, icoon: Zap,           label: 'Normaal' },
+  { waarde: 4, icoon: Zap,           label: 'Goed'    },
+  { waarde: 5, icoon: Rocket,        label: 'Vol!'    },
 ]
 
 interface StemmingLog {
@@ -111,6 +128,7 @@ export default function StemmingPagina() {
   }
 
   const geselecteerd = STEMMING_OPTIES.find(o => o.waarde === stemming)!
+  const GeselecteerdIcoon = geselecteerd.icoon
 
   if (laden) return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
@@ -164,7 +182,7 @@ export default function StemmingPagina() {
             Hoe voel je je nu?
           </p>
 
-          {/* Emoji hero */}
+          {/* Stemming hero — gekozen lucide-icoon, groot */}
           <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 20 }}>
             <div style={{
               width: 112, height: 112, borderRadius: '50%',
@@ -174,52 +192,54 @@ export default function StemmingPagina() {
               boxShadow: `0 8px 32px color-mix(in srgb, ${geselecteerd.kleur} 13%, transparent)`,
               transition: 'background 0.3s ease, box-shadow 0.3s ease',
             }}>
-              <span aria-hidden style={{ fontSize: 56, lineHeight: 1, display: 'block', transition: 'transform 0.2s cubic-bezier(0.34,1.56,0.64,1)' }}>
-                {geselecteerd.emoji}
-              </span>
+              <GeselecteerdIcoon size={56} aria-hidden strokeWidth={1.75} style={{ color: geselecteerd.kleur, display: 'block', transition: 'transform 0.2s cubic-bezier(0.34,1.56,0.64,1)' }} />
             </div>
           </div>
 
-          {/* Grote emoji kiezer */}
+          {/* Grote icoon-kiezer */}
           <div role="radiogroup" aria-labelledby="stemming-label" style={{ display: 'flex', gap: 10, justifyContent: 'center', marginBottom: 20 }}>
-            {STEMMING_OPTIES.map(o => (
-              <button
-                key={o.waarde}
-                onClick={() => setStemming(o.waarde)}
-                role="radio"
-                aria-checked={stemming === o.waarde}
-                aria-label={`Stemming: ${o.label}`}
-                style={{
-                  flex: 1,
-                  height: 68,
-                  borderRadius: 'var(--radius-md)',
-                  cursor: 'pointer',
-                  background: stemming === o.waarde ? o.achtergrond : 'var(--bg-subtle)',
-                  border: stemming === o.waarde ? `2px solid ${o.kleur}` : '2px solid var(--border)',
-                  fontSize: 30,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 2,
-                  transition: 'background var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast)',
-                  transform: stemming === o.waarde ? 'scale(1.08)' : 'scale(1)',
-                }}
-              >
-                <span aria-hidden>{o.emoji}</span>
-              </button>
-            ))}
+            {STEMMING_OPTIES.map(o => {
+              const Icoon = o.icoon
+              const actief = stemming === o.waarde
+              return (
+                <button
+                  key={o.waarde}
+                  onClick={() => setStemming(o.waarde)}
+                  role="radio"
+                  aria-checked={actief}
+                  aria-label={`Stemming: ${o.label}`}
+                  style={{
+                    flex: 1,
+                    height: 68,
+                    borderRadius: 'var(--radius-md)',
+                    cursor: 'pointer',
+                    background: actief ? o.achtergrond : 'var(--bg-subtle)',
+                    border: actief ? `2px solid ${o.kleur}` : '2px solid var(--border)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 2,
+                    transition: 'background var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast)',
+                    transform: actief ? 'scale(1.08)' : 'scale(1)',
+                  }}
+                >
+                  <Icoon size={26} aria-hidden strokeWidth={1.75} style={{ color: actief ? o.kleur : 'var(--text-3)' }} />
+                </button>
+              )
+            })}
           </div>
 
           {/* Geselecteerd label */}
           <div style={{
-            textAlign: 'center',
             padding: '10px 16px',
             borderRadius: 'var(--radius-sm)',
             background: geselecteerd.achtergrond,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
           }}>
+            <GeselecteerdIcoon size={18} aria-hidden strokeWidth={1.75} style={{ color: geselecteerd.kleur, flexShrink: 0 }} />
             <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: 'var(--text-1)' }}>
-              <span aria-hidden>{geselecteerd.emoji} </span>{geselecteerd.label}
+              {geselecteerd.label}
             </p>
           </div>
         </section>
@@ -239,6 +259,7 @@ export default function StemmingPagina() {
           <div role="radiogroup" aria-labelledby="energie-label" style={{ display: 'flex', gap: 8 }}>
             {ENERGIE_OPTIES.map(o => {
               const actief = energie === o.waarde
+              const Icoon = o.icoon
               return (
                 <button
                   key={o.waarde}
@@ -263,7 +284,7 @@ export default function StemmingPagina() {
                     gap: 3,
                   }}
                 >
-                  <span aria-hidden style={{ fontSize: 18 }}>{o.emoji}</span>
+                  <Icoon size={18} aria-hidden strokeWidth={1.75} style={{ color: actief ? 'var(--mf-green)' : 'var(--text-3)' }} />
                   <span style={{ fontSize: 9, letterSpacing: '0.01em' }}>{o.label}</span>
                 </button>
               )
@@ -340,11 +361,12 @@ export default function StemmingPagina() {
                       const schaal = log ? Math.max(0.15, log.stemming / 5) : 0
                       const kleur = log ? stemmingKleur(log.stemming) : 'var(--bg-subtle)'
                       const o = STEMMING_OPTIES.find(o => o.waarde === log?.stemming)
+                      const DagIcoon = o?.icoon
                       return (
                         <div key={datum} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-                          {log
-                            ? <span aria-hidden style={{ fontSize: 12 }}>{o?.emoji}</span>
-                            : <span aria-hidden style={{ fontSize: 12, opacity: 0 }}>·</span>}
+                          {log && DagIcoon
+                            ? <DagIcoon size={13} aria-hidden strokeWidth={1.75} style={{ color: kleur }} />
+                            : <span aria-hidden style={{ fontSize: 12, opacity: 0, height: 13 }}>·</span>}
                           <div
                             style={{ width: '100%', height: 52, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', alignItems: 'center' }}
                             title={log ? `${dag}: ${o?.label}` : `${dag}: geen check-in`}
@@ -387,7 +409,10 @@ export default function StemmingPagina() {
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {logs.slice(0, 7).map(log => (
+              {logs.slice(0, 7).map(log => {
+                const optie = STEMMING_OPTIES.find(o => o.waarde === log.stemming)
+                const LogIcoon = optie?.icoon ?? Meh
+                return (
                 <div key={log.id} style={{
                   background: 'var(--bg-card)',
                   borderRadius: 'var(--radius-md)',
@@ -398,9 +423,7 @@ export default function StemmingPagina() {
                   alignItems: 'center',
                   gap: 12,
                 }}>
-                  <span aria-hidden style={{ fontSize: 24, flexShrink: 0 }}>
-                    {STEMMING_OPTIES.find(o => o.waarde === log.stemming)?.emoji ?? '😐'}
-                  </span>
+                  <LogIcoon size={24} aria-hidden strokeWidth={1.75} style={{ color: stemmingKleur(log.stemming), flexShrink: 0 }} />
                   <div style={{ flex: 1 }}>
                     <p style={{ fontSize: 13, fontWeight: 600, color: stemmingKleur(log.stemming), margin: 0 }}>
                       {STEMMING_OPTIES.find(o => o.waarde === log.stemming)?.label}
@@ -412,7 +435,8 @@ export default function StemmingPagina() {
                     {new Date(log.aangemaakt_op).toLocaleDateString('nl-NL', { weekday: 'short', day: 'numeric', month: 'short' })}
                   </p>
                 </div>
-              ))}
+                )
+              })}
             </div>
           </div>
         )}

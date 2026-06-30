@@ -4,7 +4,8 @@ export const dynamic = 'force-dynamic'
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Moon } from 'lucide-react'
+import { Moon, Check, Angry, Frown, Meh, Smile, Laugh } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
@@ -29,7 +30,14 @@ interface SlaapLog {
 }
 
 const KWALITEIT_LABELS = ['', 'Heel slecht', 'Slecht', 'Gemiddeld', 'Goed', 'Uitstekend']
-const KWALITEIT_EMOJI  = ['', '😫', '😴', '😐', '🙂', '😄']
+// Index 0 is leeg (kwaliteit start bij 1); lucide-iconen volgen dezelfde 5-puntsschaal als stemming.
+const KWALITEIT_ICOON: (LucideIcon | null)[] = [null, Angry, Frown, Meh, Smile, Laugh]
+
+function kwaliteitKleur(k: number): string {
+  if (k >= 4) return 'var(--mf-green)'
+  if (k === 3) return 'var(--mf-amber)'
+  return 'var(--mf-red)'
+}
 
 function urenNaarTijd(uren: number) {
   const h = Math.floor(uren)
@@ -230,19 +238,21 @@ export default function SlaapPagina() {
                 <p style={{ fontSize: '0.7rem', color: 'var(--text-4)', margin: '3px 0 0' }}>afgelopen 2 weken</p>
               </div>
             )}
-            {gemiddeldKwaliteit !== null && (
+            {gemiddeldKwaliteit !== null && (() => {
+              const gemRond = Math.round(gemiddeldKwaliteit)
+              const GemIcoon = KWALITEIT_ICOON[gemRond] ?? Meh
+              return (
               <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)', padding: '16px' }}>
                 <p style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-4)', margin: '0 0 6px' }}>
                   Gem. kwaliteit
                 </p>
-                <p style={{ fontSize: 26, fontWeight: 800, color: 'var(--text-1)', margin: 0 }}>
-                  {KWALITEIT_EMOJI[Math.round(gemiddeldKwaliteit)]}
-                </p>
-                <p style={{ fontSize: '0.7rem', color: 'var(--text-4)', margin: '3px 0 0' }}>
-                  {gemiddeldKwaliteit.toFixed(1)}/5 — {KWALITEIT_LABELS[Math.round(gemiddeldKwaliteit)]}
+                <GemIcoon size={28} aria-hidden strokeWidth={1.75} style={{ color: kwaliteitKleur(gemRond), display: 'block' }} />
+                <p style={{ fontSize: '0.7rem', color: 'var(--text-4)', margin: '6px 0 0' }}>
+                  {gemiddeldKwaliteit.toFixed(1)}/5 — {KWALITEIT_LABELS[gemRond]}
                 </p>
               </div>
-            )}
+              )
+            })()}
           </div>
         )}
 
@@ -256,7 +266,7 @@ export default function SlaapPagina() {
             fontSize: 13, color: 'var(--mf-green)', fontWeight: 600,
             display: 'flex', alignItems: 'center', gap: 8,
           }}>
-            <span aria-hidden>✓</span> Slaap opgeslagen!
+            <Check size={16} aria-hidden style={{ color: 'var(--mf-green)', flexShrink: 0 }} /> Slaap opgeslagen!
           </div>
         )}
 
@@ -273,7 +283,10 @@ export default function SlaapPagina() {
             <span style={{ fontSize: 24, fontWeight: 900, color: slaapKleur(uren), letterSpacing: '-0.03em', lineHeight: 1 }}>
               {urenNaarTijd(uren)}
             </span>
-            <span style={{ fontSize: 22, marginTop: 4 }}>{KWALITEIT_EMOJI[kwaliteit]}</span>
+            {(() => {
+              const HeroIcoon = KWALITEIT_ICOON[kwaliteit] ?? Meh
+              return <HeroIcoon size={22} aria-hidden strokeWidth={1.75} style={{ color: kwaliteitKleur(kwaliteit), marginTop: 4 }} />
+            })()}
           </div>
         </div>
 
@@ -313,24 +326,29 @@ export default function SlaapPagina() {
           <div style={{ marginBottom: 16 }}>
             <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-2)', marginBottom: 8 }} id="slaap-kwaliteit-label">Kwaliteit</p>
             <div style={{ display: 'flex', gap: 8 }} role="group" aria-labelledby="slaap-kwaliteit-label">
-              {[1, 2, 3, 4, 5].map(k => (
+              {[1, 2, 3, 4, 5].map(k => {
+                const actief = kwaliteit === k
+                const KwIcoon = KWALITEIT_ICOON[k] ?? Meh
+                return (
                 <button
                   key={k}
                   type="button"
                   onClick={() => setKwaliteit(k)}
-                  aria-pressed={kwaliteit === k}
+                  aria-pressed={actief}
                   aria-label={KWALITEIT_LABELS[k]}
                   style={{
                     flex: 1, height: 44, minWidth: 44, borderRadius: 'var(--radius-sm)',
-                    border: kwaliteit === k ? '1px solid transparent' : '1px solid var(--border-strong)',
+                    border: actief ? '1px solid transparent' : '1px solid var(--border-strong)',
                     cursor: 'pointer',
-                    background: kwaliteit === k ? 'var(--mentaforce-primary)' : 'var(--bg-subtle)',
-                    fontSize: 18, transition: 'background var(--transition-fast)',
+                    background: actief ? 'var(--mentaforce-primary)' : 'var(--bg-subtle)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    transition: 'background var(--transition-fast)',
                   }}
                 >
-                  {KWALITEIT_EMOJI[k]}
+                  <KwIcoon size={20} aria-hidden strokeWidth={1.75} style={{ color: actief ? 'var(--bg-app)' : 'var(--text-3)' }} />
                 </button>
-              ))}
+                )
+              })}
             </div>
             <p style={{ fontSize: 11, color: 'var(--text-4)', marginTop: 6, textAlign: 'center' }}>
               {KWALITEIT_LABELS[kwaliteit]}
@@ -395,11 +413,14 @@ export default function SlaapPagina() {
                     <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-2)', margin: 0 }}>
                       {new Date(log.datum + 'T12:00:00').toLocaleDateString('nl-NL', { weekday: 'short', day: 'numeric', month: 'short' })}
                     </p>
-                    {log.kwaliteit ? (
-                      <p style={{ fontSize: 11, color: 'var(--text-4)', margin: '2px 0 0' }}>
-                        {KWALITEIT_EMOJI[log.kwaliteit]} {KWALITEIT_LABELS[log.kwaliteit]}
+                    {log.kwaliteit ? (() => {
+                      const LogKwIcoon = KWALITEIT_ICOON[log.kwaliteit] ?? Meh
+                      return (
+                      <p style={{ fontSize: 11, color: 'var(--text-4)', margin: '2px 0 0', display: 'flex', alignItems: 'center', gap: 5 }}>
+                        <LogKwIcoon size={13} aria-hidden strokeWidth={1.75} style={{ color: kwaliteitKleur(log.kwaliteit), flexShrink: 0 }} /> {KWALITEIT_LABELS[log.kwaliteit]}
                       </p>
-                    ) : null}
+                      )
+                    })() : null}
                   </div>
                   {log.bedtijd ? (
                     <p style={{ fontSize: 10, color: 'var(--text-4)', margin: 0, flexShrink: 0 }}>
