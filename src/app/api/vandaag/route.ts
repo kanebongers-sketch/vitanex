@@ -79,136 +79,70 @@ export async function GET(req: NextRequest) {
   const uur = huidigUurNL()
   const suggestie = bepaalSuggestie(uur)
 
-  let waterResult, stemmingResult, slaapResult, sportResult, focusResult, dankbaarheidResult, meditatieMorgenResult
+  // Elke detectie-query apart afhandelen (allSettled): één falende query mag
+  // NOOIT de hele checklist op 'open' zetten. Tabellen afgestemd op waar elke
+  // activiteit écht naartoe schrijft.
+  const settled = await Promise.allSettled([
+    // 0 water vandaag (water_logs)
+    admin.from('water_logs').select('ml').eq('user_id', user.id).eq('datum', vandaag),
+    // 1 stemming vandaag (stemming_logs, aangemaakt_op = timestamp)
+    admin.from('stemming_logs').select('stemming, energie, aangemaakt_op').eq('user_id', user.id).gte('aangemaakt_op', dagstartUtc).order('aangemaakt_op', { ascending: false }).limit(1),
+    // 2 slaap vandaag (slaap_logs)
+    admin.from('slaap_logs').select('uren_slaap, datum').eq('user_id', user.id).eq('datum', vandaag).limit(1),
+    // 3 bewegen vandaag (training_logs)
+    admin.from('training_logs').select('id, datum').eq('user_id', user.id).eq('datum', vandaag).limit(1),
+    // 4 focus vandaag (focus_timer_logs, datum)
+    admin.from('focus_timer_logs').select('duur_minuten, type').eq('user_id', user.id).eq('datum', vandaag),
+    // 5 dankbaarheid vandaag (dankbaarheid_logs)
+    admin.from('dankbaarheid_logs').select('id').eq('user_id', user.id).eq('datum', vandaag).limit(1),
+    // 6 meditatie vandaag (focus_timer_logs, type 'adem' — de meditatie-pagina schrijft hier)
+    admin.from('focus_timer_logs').select('duur_minuten').eq('user_id', user.id).eq('datum', vandaag).eq('type', 'adem'),
+    // 7 ademhaling vandaag (focus_sessies — de ademhaling-pagina schrijft hier)
+    admin.from('focus_sessies').select('id, duur_minuten, aangemaakt_op').eq('user_id', user.id).gte('aangemaakt_op', dagstartUtc),
+  ])
 
-  try {
-    ;[
-      waterResult,
-      stemmingResult,
-      slaapResult,
-      sportResult,
-      focusResult,
-      dankbaarheidResult,
-      meditatieMorgenResult,
-    ] = await Promise.all([
-      // water vandaag
-      admin
-        .from('water_logs')
-        .select('ml')
-        .eq('user_id', user.id)
-        .eq('datum', vandaag),
-
-      // stemming vandaag (aangemaakt_op is timestamp)
-      admin
-        .from('stemming_logs')
-        .select('stemming, energie, aangemaakt_op')
-        .eq('user_id', user.id)
-        .gte('aangemaakt_op', dagstartUtc)
-        .order('aangemaakt_op', { ascending: false })
-        .limit(1),
-
-      // slaap vandaag gelogd (datum = vandaag, ook al betreft het gisteravond)
-      admin
-        .from('slaap_logs')
-        .select('uren_slaap, datum')
-        .eq('user_id', user.id)
-        .eq('datum', vandaag)
-        .limit(1),
-
-      // sport vandaag — training_logs is de schrijftabel
-      admin
-        .from('training_logs')
-        .select('id, datum')
-        .eq('user_id', user.id)
-        .eq('datum', vandaag)
-        .limit(1),
-
-      // focus vandaag (minuten)
-      admin
-        .from('focus_timer_logs')
-        .select('duur_minuten')
-        .eq('user_id', user.id)
-        .gte('aangemaakt_op', dagstartUtc),
-
-      // dankbaarheid vandaag
-      admin
-        .from('dankbaarheid_logs')
-        .select('id')
-        .eq('user_id', user.id)
-        .eq('datum', vandaag)
-        .limit(1),
-
-      // meditatie/ademhaling vandaag (ademhaling_sessies als indicator)
-      admin
-        .from('ademhaling_sessies')
-        .select('id, duur_seconden')
-        .eq('user_id', user.id)
-        .gte('aangemaakt_op', dagstartUtc)
-        .limit(10),
-    ])
-  } catch (err) {
-    console.error('[api/vandaag] DB fout:', err)
-    const checklist = defaultChecklist()
-    return NextResponse.json(
-      {
-        checklist,
-        scores: {
-          gedaan: 0,
-          totaal: checklist.length,
-          score_pct: 0,
-          water_ml: 0,
-          water_doel_ml: DOEL_WATER_ML,
-          slaap_uren: null,
-          stemming_waarde: null,
-          focus_minuten: 0,
-          meditatie_minuten: 0,
-        },
-        suggestie,
-      },
-      {
-        status: 200,
-        headers: { 'Cache-Control': 'private, max-age=60, stale-while-revalidate=30' },
-      }
-    )
+  const rows = (i: number): Array<Record<string, unknown>> => {
+    const r = settled[i]
+    if (r.status !== 'fulfilled') {
+      console.error('[api/vandaag] query', i, 'faalde:', r.reason)
+      return []
+    }
+    const v = r.value as { data?: unknown[] | null }
+    return (v?.data as Array<Record<string, unknown>> | null) ?? []
   }
 
   // Water
-  const water_ml = (waterResult.data ?? []).reduce((s, r) => s + (r.ml ?? 0), 0)
+  const water_ml = rows(0).reduce((s, r) => s + (Number(r.ml) || 0), 0)
   const water_gedaan = water_ml >= DOEL_WATER_ML * 0.5
 
   // Stemming
-  const stemmingLog = stemmingResult.data?.[0] ?? null
+  const stemmingLog = rows(1)[0] ?? null
   const stemming_gedaan = !!stemmingLog
   const stemming_tijdstip = stemmingLog
-    ? new Date(stemmingLog.aangemaakt_op).toLocaleTimeString('nl-NL', {
-        hour: '2-digit',
-        minute: '2-digit',
-      })
+    ? new Date(String(stemmingLog.aangemaakt_op)).toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })
     : null
-  const stemming_waarde = stemmingLog?.stemming ?? null
+  const stemming_waarde = (stemmingLog?.stemming as number | undefined) ?? null
 
   // Slaap
-  const slaapLog = slaapResult.data?.[0] ?? null
+  const slaapLog = rows(2)[0] ?? null
   const slaap_gedaan = !!slaapLog
-  const slaap_uren = slaapLog?.uren_slaap ?? null
+  const slaap_uren = (slaapLog?.uren_slaap as number | undefined) ?? null
 
-  // Sport
-  const sport_gedaan = (sportResult.data?.length ?? 0) > 0
+  // Bewegen
+  const sport_gedaan = rows(3).length > 0
 
-  // Focus
-  const focus_minuten = (focusResult.data ?? []).reduce((s, r) => s + (r.duur_minuten ?? 0), 0)
-  const focus_gedaan = focus_minuten >= 5
+  // Focus (minuten, ademhaling-type uitgezonderd)
+  const focus_minuten = rows(4).filter(r => r.type !== 'adem').reduce((s, r) => s + (Number(r.duur_minuten) || 0), 0)
 
   // Dankbaarheid
-  const dankbaarheid_gedaan = (dankbaarheidResult.data?.length ?? 0) > 0
+  const dankbaarheid_gedaan = rows(5).length > 0
 
-  // Meditatie/ademhaling
-  const meditatie_seconden = (meditatieMorgenResult.data ?? []).reduce(
-    (s, r) => s + (r.duur_seconden ?? 0),
-    0
-  )
-  const meditatie_minuten = Math.round(meditatie_seconden / 60)
-  const meditatie_gedaan = meditatie_seconden >= 60
+  // Meditatie / ademhaling — gedaan als óf een meditatie (focus_timer_logs type 'adem')
+  // óf een ademhalingssessie (focus_sessies) vandaag is gelogd.
+  const meditatie_minuten =
+    rows(6).reduce((s, r) => s + (Number(r.duur_minuten) || 0), 0) +
+    rows(7).reduce((s, r) => s + (Number(r.duur_minuten) || 0), 0)
+  const meditatie_gedaan = rows(6).length > 0 || rows(7).length > 0
 
   // Checklist samenstellen — 6 items, gelijk aan de 6 taart-segmenten in ACTIVITEITEN
   const checklist = [

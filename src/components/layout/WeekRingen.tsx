@@ -82,28 +82,34 @@ export default function WeekRingen({ size = 26 }: { size?: number }) {
       const zesDagen = dagNL(6)
       const dagstartUtc = new Date(`${zesDagen}T00:00:00+01:00`).toISOString()
 
-      const [waterRes, stemmingRes, slaapRes, sportRes, dankRes, meditRes] = await Promise.all([
-        supabase.from('water_logs')
-          .select('datum, ml').eq('user_id', user.id)
-          .gte('datum', zesDagen).lte('datum', vandaag),
-        supabase.from('stemming_logs')
-          .select('aangemaakt_op').eq('user_id', user.id)
-          .gte('aangemaakt_op', dagstartUtc),
-        supabase.from('slaap_logs')
-          .select('datum').eq('user_id', user.id)
-          .gte('datum', zesDagen).lte('datum', vandaag),
-        supabase.from('sport_logs')
-          .select('aangemaakt_op').eq('user_id', user.id)
-          .gte('aangemaakt_op', dagstartUtc),
-        supabase.from('dankbaarheid_logs')
-          .select('datum').eq('user_id', user.id)
-          .gte('datum', zesDagen).lte('datum', vandaag),
-        supabase.from('ademhaling_sessies')
-          .select('aangemaakt_op, duur_seconden').eq('user_id', user.id)
-          .gte('aangemaakt_op', dagstartUtc),
+      // allSettled + juiste schrijf-tabellen, zodat één missende tabel niet de
+      // hele week leeg laat (bewegen = training_logs; meditatie = focus_timer_logs
+      // type 'adem'; ademhaling = focus_sessies).
+      const settled = await Promise.allSettled([
+        // 0 water
+        supabase.from('water_logs').select('datum, ml').eq('user_id', user.id).gte('datum', zesDagen).lte('datum', vandaag),
+        // 1 stemming
+        supabase.from('stemming_logs').select('aangemaakt_op').eq('user_id', user.id).gte('aangemaakt_op', dagstartUtc),
+        // 2 slaap
+        supabase.from('slaap_logs').select('datum').eq('user_id', user.id).gte('datum', zesDagen).lte('datum', vandaag),
+        // 3 bewegen (training_logs, datum)
+        supabase.from('training_logs').select('datum').eq('user_id', user.id).gte('datum', zesDagen).lte('datum', vandaag),
+        // 4 dankbaarheid
+        supabase.from('dankbaarheid_logs').select('datum').eq('user_id', user.id).gte('datum', zesDagen).lte('datum', vandaag),
+        // 5 meditatie (focus_timer_logs, type 'adem')
+        supabase.from('focus_timer_logs').select('datum, duur_minuten').eq('user_id', user.id).eq('type', 'adem').gte('datum', zesDagen).lte('datum', vandaag),
+        // 6 ademhaling (focus_sessies)
+        supabase.from('focus_sessies').select('aangemaakt_op, duur_minuten').eq('user_id', user.id).gte('aangemaakt_op', dagstartUtc),
       ])
 
       if (!mounted) return
+
+      const rows = (i: number): Array<Record<string, unknown>> => {
+        const res = settled[i]
+        if (res.status !== 'fulfilled') return []
+        const v = res.value as { data?: unknown[] | null }
+        return (v?.data as Array<Record<string, unknown>> | null) ?? []
+      }
 
       // Bouw dagMap: datum → Set<AKey>
       const dagMap = new Map<string, Set<AKey>>()
@@ -111,41 +117,46 @@ export default function WeekRingen({ size = 26 }: { size?: number }) {
 
       // Water — per dag ml optellen, ≥1000ml = gedaan
       const waterPerDag: Record<string, number> = {}
-      for (const r of waterRes.data ?? []) {
-        waterPerDag[r.datum] = (waterPerDag[r.datum] ?? 0) + (r.ml ?? 0)
+      for (const r of rows(0)) {
+        const d = String(r.datum)
+        waterPerDag[d] = (waterPerDag[d] ?? 0) + (Number(r.ml) || 0)
       }
       for (const [d, ml] of Object.entries(waterPerDag)) {
         if (ml >= 1000) dagMap.get(d)?.add('water')
       }
 
       // Stemming
-      for (const r of stemmingRes.data ?? []) {
-        dagMap.get(tsNaarNlDatum(r.aangemaakt_op))?.add('mentaal')
+      for (const r of rows(1)) {
+        dagMap.get(tsNaarNlDatum(String(r.aangemaakt_op)))?.add('mentaal')
       }
 
       // Slaap
-      for (const r of slaapRes.data ?? []) {
-        dagMap.get(r.datum)?.add('rust')
+      for (const r of rows(2)) {
+        dagMap.get(String(r.datum))?.add('rust')
       }
 
-      // Sport
-      for (const r of sportRes.data ?? []) {
-        dagMap.get(tsNaarNlDatum(r.aangemaakt_op))?.add('fysiek')
+      // Bewegen (training_logs.datum)
+      for (const r of rows(3)) {
+        dagMap.get(String(r.datum))?.add('fysiek')
       }
 
       // Dankbaarheid
-      for (const r of dankRes.data ?? []) {
-        dagMap.get(r.datum)?.add('dankbaarheid')
+      for (const r of rows(4)) {
+        dagMap.get(String(r.datum))?.add('dankbaarheid')
       }
 
-      // Meditatie — ≥60s per dag
+      // Meditatie / ademhaling — ≥1 min per dag
       const meditPerDag: Record<string, number> = {}
-      for (const r of meditRes.data ?? []) {
-        const d = tsNaarNlDatum(r.aangemaakt_op)
-        meditPerDag[d] = (meditPerDag[d] ?? 0) + (r.duur_seconden ?? 0)
+      for (const r of rows(5)) {
+        const d = String(r.datum)
+        meditPerDag[d] = (meditPerDag[d] ?? 0) + (Number(r.duur_minuten) || 0)
       }
-      for (const [d, sec] of Object.entries(meditPerDag)) {
-        if (sec >= 60) dagMap.get(d)?.add('meditatie')
+      for (const r of rows(6)) {
+        const d = tsNaarNlDatum(String(r.aangemaakt_op))
+        meditPerDag[d] = (meditPerDag[d] ?? 0) + (Number(r.duur_minuten) || 0)
+      }
+      for (const [d, min] of Object.entries(meditPerDag)) {
+        if (min >= 1) dagMap.get(d)?.add('meditatie')
       }
 
       const result: DagData[] = Array.from(dagMap.entries())
