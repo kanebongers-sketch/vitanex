@@ -16,6 +16,7 @@ import {
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { useToast } from '@/components/ui/Toast'
+import { CheckinInsight } from '@/components/checkin/CheckinInsight'
 
 const ALLE_VLAKKEN: WellbeingCat[] = ['slaap', 'stress', 'energie', 'focus', 'balans', 'motivatie']
 
@@ -197,6 +198,9 @@ function DoelKeuzeInhoud() {
             </div>
           </Card>
         )}
+
+        {/* Persoonlijk inzicht — het beloningsmoment ná de check-in */}
+        <CheckinInsight scores={scores} />
 
         {/* Domain goal selection */}
         {topDrie.map((vlak, idx) => {
