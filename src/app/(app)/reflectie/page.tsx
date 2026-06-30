@@ -1,12 +1,17 @@
-﻿'use client'
+'use client'
 
 export const dynamic = 'force-dynamic'
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { Check, History, BookOpen } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
+import { Card } from '@/components/ui/Card'
+import { Button } from '@/components/ui/Button'
+import { Field } from '@/components/ui/Field'
+import { Textarea } from '@/components/ui/Textarea'
 
 
 const REFLECTIE_VRAGEN = [
@@ -74,10 +79,19 @@ export default function ReflectiePage() {
     setOpgeslagen(true)
     setOpslaan(false)
 
-    const { data: bijgewerkt } = await supabase
-      .from('reflectie_entries').select('id, week_start, antwoorden, aangemaakt_op')
-      .eq('user_id', userId).order('week_start', { ascending: false }).limit(8)
-    setEerdere(bijgewerkt ?? [])
+    // Lokale patch: werk de historie-lijst in-place bij i.p.v. een re-fetch,
+    // zodat de huidige week meteen bovenaan verschijnt of wordt vervangen.
+    setEerdere(prev => {
+      const zonderHuidig = prev.filter(e => e.week_start !== weekStart)
+      const bestaand = prev.find(e => e.week_start === weekStart)
+      const bijgewerkt: ReflectieEntry = {
+        id: bestaand?.id ?? `local-${weekStart}`,
+        week_start: weekStart,
+        antwoorden,
+        aangemaakt_op: bestaand?.aangemaakt_op ?? new Date().toISOString(),
+      }
+      return [bijgewerkt, ...zonderHuidig].slice(0, 8)
+    })
 
     setTimeout(() => {
       setOpgeslagen(false)
@@ -89,25 +103,27 @@ export default function ReflectiePage() {
   const ingevuld = Object.values(antwoorden).filter(v => v.trim()).length
 
   return (
-    <div className="mf-mesh-bg" style={{ minHeight: '100vh' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
       <Navbar />
       <main style={{ padding: '36px 40px 72px', maxWidth: 900, margin: '0 auto' }}>
 
         {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 20 }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 20, gap: 14 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-            <div style={{ width: 88, height: 88, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
+            <div style={{ width: 88, height: 88, borderRadius: '50%', background: 'radial-gradient(circle, color-mix(in srgb, var(--mentaforce-primary) 18%, transparent) 0%, transparent 70%)' }} />
             <div>
-              <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1, #111827)', letterSpacing: '-0.03em', marginBottom: 4 }}>Wekelijkse reflectie</h1>
-              <p style={{ fontSize: 13, color: 'var(--text-3, #9CA3AF)' }}>Week van {weekLabel} · {ingevuld}/{REFLECTIE_VRAGEN.length} vragen beantwoord</p>
+              <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 4 }}>Wekelijkse reflectie</h1>
+              <p style={{ fontSize: 13, color: 'var(--text-3)' }}>Week van {weekLabel} · {ingevuld}/{REFLECTIE_VRAGEN.length} vragen beantwoord</p>
             </div>
           </div>
-          <button
+          <Button
+            variant="secondary"
+            size="sm"
+            leftIcon={<History size={15} aria-hidden />}
             onClick={() => setToonHistorie(v => !v)}
-            style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-2)', border: '1px solid var(--border)', borderRadius: 10, padding: '7px 14px', background: 'var(--bg-card)', cursor: 'pointer' }}
           >
             {toonHistorie ? 'Huidige week' : `Historie (${eerdere.length})`}
-          </button>
+          </Button>
         </div>
 
         {laden ? (
@@ -120,79 +136,95 @@ export default function ReflectiePage() {
               const datum = new Date(e.week_start).toLocaleDateString('nl-BE', { day: 'numeric', month: 'long' })
               const aantalIngevuld = Object.values(e.antwoorden ?? {}).filter(v => v.trim()).length
               return (
-                <div key={e.id} style={{ background: 'var(--bg-card)', borderRadius: 16, border: '1px solid var(--border)', padding: '18px 20px' }}>
+                <Card key={e.id} style={{ padding: '18px 20px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
                     <div>
-                      <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-1, #111827)' }}>Week van {datum}</p>
-                      <p style={{ fontSize: 11, color: 'var(--text-3, #9CA3AF)' }}>{aantalIngevuld} van 6 vragen</p>
+                      <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-1)' }}>Week van {datum}</p>
+                      <p style={{ fontSize: 11, color: 'var(--text-3)' }}>{aantalIngevuld} van 6 vragen</p>
                     </div>
-                    <div style={{ display: 'flex', gap: 3 }}>
+                    <div style={{ display: 'flex', gap: 3 }} aria-hidden>
                       {Array.from({ length: 6 }, (_, i) => (
-                        <div key={i} style={{ width: 6, height: 6, borderRadius: 2, background: i < aantalIngevuld ? 'var(--mf-green)' : 'var(--border)' }} />
+                        <div key={i} style={{ width: 6, height: 6, borderRadius: 2, background: i < aantalIngevuld ? 'var(--mentaforce-primary)' : 'var(--border-strong)' }} />
                       ))}
                     </div>
                   </div>
                   {e.antwoorden?.hoogtepunt && (
-                    <p style={{ fontSize: 12, color: 'var(--text-2)', lineHeight: 1.5, fontStyle: 'italic', borderLeft: '2px solid #1D9E75', paddingLeft: 10 }}>
-                      "{e.antwoorden.hoogtepunt.slice(0, 120)}{e.antwoorden.hoogtepunt.length > 120 ? '...' : ''}"
+                    <p style={{ fontSize: 12, color: 'var(--text-2)', lineHeight: 1.5, fontStyle: 'italic', borderLeft: '2px solid var(--mentaforce-primary)', paddingLeft: 10 }}>
+                      &ldquo;{e.antwoorden.hoogtepunt.slice(0, 120)}{e.antwoorden.hoogtepunt.length > 120 ? '...' : ''}&rdquo;
                     </p>
                   )}
-                </div>
+                </Card>
               )
             })}
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            {REFLECTIE_VRAGEN.map((vraag, i) => (
-              <div key={vraag.id} style={{ background: 'var(--bg-card)', borderRadius: 16, border: '1px solid var(--border)', padding: '20px 22px' }}>
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: 12 }}>
-                  <div style={{ width: 24, height: 24, borderRadius: 7, background: antwoorden[vraag.id]?.trim() ? 'var(--mf-green-light, #E1F5EE)' : 'var(--surface-2, #F3F4F6)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: antwoorden[vraag.id]?.trim() ? 'var(--mf-green, #1D9E75)' : 'var(--text-3, #9CA3AF)', flexShrink: 0 }}>
-                    {antwoorden[vraag.id]?.trim() ? '✓' : i + 1}
+            {REFLECTIE_VRAGEN.map((vraag, i) => {
+              const isIngevuld = Boolean(antwoorden[vraag.id]?.trim())
+              return (
+                <Card key={vraag.id} style={{ padding: '20px 22px' }}>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: 12 }}>
+                    <div style={{ width: 24, height: 24, borderRadius: 7, background: isIngevuld ? 'var(--mentaforce-primary-light)' : 'var(--bg-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: isIngevuld ? 'var(--mentaforce-primary)' : 'var(--text-3)', flexShrink: 0 }} aria-hidden>
+                      {isIngevuld ? <Check size={14} aria-hidden /> : i + 1}
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <Field label={vraag.vraag} htmlFor={`reflectie-${vraag.id}`}>
+                        <Textarea
+                          id={`reflectie-${vraag.id}`}
+                          rows={3}
+                          value={antwoorden[vraag.id] ?? ''}
+                          onChange={e => setAntwoorden(prev => ({ ...prev, [vraag.id]: e.target.value }))}
+                          placeholder={vraag.placeholder}
+                        />
+                      </Field>
+                    </div>
                   </div>
-                  <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-1, #1F2937)', lineHeight: 1.4 }}>{vraag.vraag}</p>
-                </div>
-                <textarea
-                  rows={3}
-                  value={antwoorden[vraag.id] ?? ''}
-                  onChange={e => setAntwoorden(prev => ({ ...prev, [vraag.id]: e.target.value }))}
-                  placeholder={vraag.placeholder}
-                  style={{
-                    width: '100%', border: '1px solid var(--border)', borderRadius: 10,
-                    padding: '10px 14px', fontSize: 13, outline: 'none', resize: 'vertical',
-                    lineHeight: 1.6, boxSizing: 'border-box', color: 'var(--text-1, #374151)',
-                    background: 'var(--bg-card)', minHeight: 80,
-                  }}
-                />
-              </div>
-            ))}
+                </Card>
+              )
+            })}
 
             <div style={{ display: 'flex', gap: 10 }}>
-              <button
+              <Button
                 onClick={slaOp}
+                loading={opslaan}
                 disabled={opslaan || Object.values(antwoorden).every(v => !v.trim())}
-                style={{
-                  flex: 1, padding: '14px', borderRadius: 14, fontSize: 14, fontWeight: 600,
-                  color: 'white', border: 'none', cursor: 'pointer',
-                  background: opgeslagen
-                    ? 'var(--mf-green, #1D9E75)'
-                    : 'linear-gradient(135deg, var(--mf-green, #1D9E75) 0%, var(--mf-green-dark, #0F6E56) 100%)',
-                  opacity: (opslaan || Object.values(antwoorden).every(v => !v.trim())) ? 0.5 : 1,
-                  transition: 'background 0.3s ease',
-                }}
+                leftIcon={opgeslagen ? <Check size={16} aria-hidden /> : undefined}
+                style={{ flex: 1 }}
               >
-                {opslaan ? 'Opslaan...' : opgeslagen ? '✓ Opgeslagen!' : 'Reflectie opslaan'}
-              </button>
+                {opslaan ? 'Opslaan...' : opgeslagen ? 'Opgeslagen!' : 'Reflectie opslaan'}
+              </Button>
               <Link
                 href="/journal"
-                style={{ padding: '14px 18px', borderRadius: 14, fontSize: 14, fontWeight: 600, color: 'var(--text-2)', border: '1px solid var(--border)', textDecoration: 'none', background: 'var(--bg-card)', display: 'flex', alignItems: 'center' }}
+                className="mf-reflectie-link"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  padding: '13px 22px',
+                  borderRadius: 'var(--radius-btn)',
+                  fontSize: 14,
+                  fontWeight: 600,
+                  color: 'var(--text-1)',
+                  border: '1px solid var(--border-strong)',
+                  background: 'var(--bg-subtle)',
+                  textDecoration: 'none',
+                  whiteSpace: 'nowrap',
+                }}
               >
+                <BookOpen size={16} aria-hidden />
                 Naar journal
               </Link>
             </div>
+            <style>{`
+              .mf-reflectie-link:hover { opacity: 0.88; }
+              .mf-reflectie-link:focus-visible {
+                outline: 2px solid var(--mentaforce-primary);
+                outline-offset: 2px;
+              }
+            `}</style>
           </div>
         )}
       </main>
     </div>
   )
 }
-

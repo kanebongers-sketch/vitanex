@@ -3,8 +3,22 @@ export const dynamic = 'force-dynamic'
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import {
+  BarChart3,
+  Star,
+  HeartHandshake,
+  Hand,
+  MessageCircle,
+  Check,
+  CalendarClock,
+  X,
+  MessageSquare,
+  type LucideIcon,
+} from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
+import { Card } from '@/components/ui/Card'
+import { EmptyState } from '@/components/ui/EmptyState'
 
 
 type Gesprek = {
@@ -19,12 +33,12 @@ type Gesprek = {
   hr_naam?: string
 }
 
-const TYPE_STIJL: Record<Gesprek['type'], { label: string; kleur: string; bg: string; emoji: string }> = {
-  functionering: { label: 'Functionering', kleur: 'var(--mf-blue)', bg: 'var(--mf-blue-light)', emoji: '📊' },
-  beoordeling:   { label: 'Beoordeling',   kleur: 'var(--mf-purple)', bg: 'var(--mf-purple-light)', emoji: '⭐' },
-  welzijn:       { label: 'Welzijn',       kleur: 'var(--mf-green)', bg: 'var(--mf-green-light)', emoji: '💚' },
-  onboarding:    { label: 'Onboarding',    kleur: 'var(--mf-amber)', bg: 'var(--mf-amber-light)', emoji: '👋' },
-  overig:        { label: 'Overig',        kleur: 'var(--text-2)', bg: 'var(--bg-subtle)', emoji: '💬' },
+const TYPE_STIJL: Record<Gesprek['type'], { label: string; kleur: string; bg: string; icon: LucideIcon }> = {
+  functionering: { label: 'Functionering', kleur: 'var(--mf-blue)', bg: 'var(--mf-blue-light)', icon: BarChart3 },
+  beoordeling:   { label: 'Beoordeling',   kleur: 'var(--mf-purple)', bg: 'var(--mf-purple-light)', icon: Star },
+  welzijn:       { label: 'Welzijn',       kleur: 'var(--mf-green)', bg: 'var(--mf-green-light)', icon: HeartHandshake },
+  onboarding:    { label: 'Onboarding',    kleur: 'var(--mf-amber)', bg: 'var(--mf-amber-light)', icon: Hand },
+  overig:        { label: 'Overig',        kleur: 'var(--text-2)', bg: 'var(--bg-subtle)', icon: MessageCircle },
 }
 
 const STATUS_STIJL: Record<Gesprek['status'], { label: string; kleur: string; bg: string }> = {
@@ -90,7 +104,7 @@ export default function MijnGesprekkenPage() {
   const afgerond = gesprekken.filter(g => g.status === 'afgerond')
 
   return (
-    <div className="min-h-screen" style={{ background: 'var(--bg-app, #F9FAFB)' }}>
+    <div className="min-h-screen" style={{ background: 'var(--bg-app)' }}>
       <Navbar />
       <main style={{ maxWidth: 800, margin: '0 auto', padding: '32px 20px 80px' }}>
 
@@ -108,16 +122,13 @@ export default function MijnGesprekkenPage() {
             <div className="mf-spinner" />
           </div>
         ) : gesprekken.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '60px 20px', background: 'var(--bg-card)', borderRadius: 20, border: '1px solid var(--border)' }}>
-            <div style={{ position: 'relative', display: 'inline-block', marginBottom: 12 }}>
-              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
-                <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
-              </div>
-              <p style={{ fontSize: 32, position: 'relative', zIndex: 1 }}>💬</p>
-            </div>
-            <p style={{ fontWeight: 700, color: 'var(--text-2)', marginBottom: 6 }}>Nog geen gesprekken gepland</p>
-            <p style={{ fontSize: 13, color: 'var(--text-3)' }}>Je HR-manager kan hier 1-op-1 gesprekken inplannen.</p>
-          </div>
+          <Card>
+            <EmptyState
+              icon={MessageSquare}
+              title="Nog geen gesprekken gepland"
+              description="Je HR-manager kan hier 1-op-1 gesprekken inplannen."
+            />
+          </Card>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
 
@@ -150,13 +161,12 @@ export default function MijnGesprekkenPage() {
 
         {/* Detail panel */}
         {actief_gesprek && (
-          <div style={{
-            marginTop: 24, background: 'var(--bg-card)', borderRadius: 20,
-            border: '1px solid var(--border)', padding: 24,
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+          <Card style={{ marginTop: 24, padding: 24 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, gap: 12 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <span style={{ fontSize: 24 }}>{TYPE_STIJL[actief_gesprek.type].emoji}</span>
+                <span style={{ color: TYPE_STIJL[actief_gesprek.type].kleur }} aria-hidden>
+                  {(() => { const Icon = TYPE_STIJL[actief_gesprek.type].icon; return <Icon size={22} /> })()}
+                </span>
                 <div>
                   <p style={{ fontWeight: 700, fontSize: 15, color: 'var(--text-1)' }}>{actief_gesprek.onderwerp}</p>
                   <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 2 }}>
@@ -164,7 +174,14 @@ export default function MijnGesprekkenPage() {
                   </p>
                 </div>
               </div>
-              <button onClick={() => setActief(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-3)', fontSize: 20, lineHeight: 1 }}>×</button>
+              <button
+                onClick={() => setActief(null)}
+                aria-label="Detail sluiten"
+                className="mf-gesprek-close"
+                style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 32, height: 32, borderRadius: 'var(--radius-sm)', background: 'transparent', border: '1px solid transparent', cursor: 'pointer', color: 'var(--text-3)', lineHeight: 1 }}
+              >
+                <X size={18} aria-hidden />
+              </button>
             </div>
 
             {/* Samenvatting */}
@@ -174,7 +191,7 @@ export default function MijnGesprekkenPage() {
                 <p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.6 }}>{actief_gesprek.samenvatting_medewerker}</p>
               </div>
             ) : (
-              <div style={{ marginBottom: 20, padding: 16, borderRadius: 12, background: 'var(--bg-subtle)', border: '1px dashed #E5E7EB' }}>
+              <div style={{ marginBottom: 20, padding: 16, borderRadius: 12, background: 'var(--bg-subtle)', border: '1px dashed var(--border-strong)' }}>
                 <p style={{ fontSize: 13, color: 'var(--text-3)', textAlign: 'center' }}>Nog geen samenvatting beschikbaar</p>
               </div>
             )}
@@ -195,11 +212,11 @@ export default function MijnGesprekkenPage() {
                     }}>
                       <div style={{
                         width: 18, height: 18, borderRadius: '50%', flexShrink: 0, marginTop: 1,
-                        background: ap.gereed ? 'var(--mf-green)' : 'white',
-                        border: `2px solid ${ap.gereed ? 'var(--mf-green)' : 'var(--border)'}`,
+                        background: ap.gereed ? 'var(--mf-green)' : 'var(--bg-card)',
+                        border: `2px solid ${ap.gereed ? 'var(--mf-green)' : 'var(--border-strong)'}`,
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                       }}>
-                        {ap.gereed && <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>}
+                        {ap.gereed && <Check size={11} aria-hidden style={{ color: 'var(--bg-app)' }} />}
                       </div>
                       <div style={{ flex: 1 }}>
                         <p style={{ fontSize: 13, color: ap.gereed ? 'var(--mf-green-dark)' : 'var(--text-2)', textDecoration: ap.gereed ? 'line-through' : 'none' }}>{ap.tekst}</p>
@@ -213,14 +230,21 @@ export default function MijnGesprekkenPage() {
 
             {/* Follow-up */}
             {actief_gesprek.follow_up_datum && (
-              <div style={{ marginTop: 16, padding: '10px 14px', borderRadius: 10, background: 'var(--mf-amber-light)', border: '1px solid #F3C98A', display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ fontSize: 16 }}>📅</span>
+              <div style={{ marginTop: 16, padding: '10px 14px', borderRadius: 10, background: 'var(--mf-amber-light)', border: '1px solid var(--mf-amber)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <CalendarClock size={16} aria-hidden style={{ color: 'var(--mf-amber-dark)', flexShrink: 0 }} />
                 <p style={{ fontSize: 13, color: 'var(--mf-amber-dark)' }}>
                   Vervolggesprek gepland op <strong>{formatDatum(actief_gesprek.follow_up_datum)}</strong>
                 </p>
               </div>
             )}
-          </div>
+            <style>{`
+              .mf-gesprek-close:hover { color: var(--text-1); background: var(--bg-subtle); }
+              .mf-gesprek-close:focus-visible {
+                outline: 2px solid var(--mentaforce-primary);
+                outline-offset: 2px;
+              }
+            `}</style>
+          </Card>
         )}
       </main>
     </div>
@@ -230,20 +254,21 @@ export default function MijnGesprekkenPage() {
 function GesprekKaart({ g, actief, onClick }: { g: Gesprek; actief: boolean; onClick: () => void }) {
   const type = TYPE_STIJL[g.type]
   const status = STATUS_STIJL[g.status]
+  const Icon = type.icon
   const openAp = g.actiepunten.filter(a => !a.gereed).length
 
   return (
-    <button onClick={onClick} style={{
+    <button onClick={onClick} aria-expanded={actief} className="mf-gesprek-kaart" style={{
       width: '100%', textAlign: 'left', cursor: 'pointer',
-      background: actief ? 'var(--mf-green-light)' : 'white',
-      border: `1px solid ${actief ? 'var(--mf-green-mid)' : 'var(--border)'}`,
+      background: actief ? 'var(--mentaforce-primary-light)' : 'var(--bg-card)',
+      border: `1px solid ${actief ? 'var(--mentaforce-primary)' : 'var(--border)'}`,
       borderRadius: 14, padding: '14px 16px',
-      transition: 'all 0.15s',
+      transition: 'background 0.15s var(--ease), border-color 0.15s var(--ease)',
     }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 0 }}>
-          <div style={{ width: 36, height: 36, borderRadius: 10, background: type.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0 }}>
-            {type.emoji}
+          <div style={{ width: 36, height: 36, borderRadius: 10, background: type.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: type.kleur }}>
+            <Icon size={18} aria-hidden />
           </div>
           <div style={{ minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
@@ -261,6 +286,13 @@ function GesprekKaart({ g, actief, onClick }: { g: Gesprek; actief: boolean; onC
           {g.status === 'gepland' && <DagenTot datum={g.datum} />}
         </div>
       </div>
+      <style>{`
+        .mf-gesprek-kaart:hover { border-color: var(--border-strong); }
+        .mf-gesprek-kaart:focus-visible {
+          outline: 2px solid var(--mentaforce-primary);
+          outline-offset: 2px;
+        }
+      `}</style>
     </button>
   )
 }

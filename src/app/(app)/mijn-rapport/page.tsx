@@ -5,6 +5,11 @@ export const dynamic = 'force-dynamic'
 import { useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useState } from 'react'
 import Link from 'next/link'
+import { Download, Send, Loader2 } from 'lucide-react'
+import { Card } from '@/components/ui/Card'
+import { Progress } from '@/components/ui/Progress'
+import { Ring } from '@/components/ui/Ring'
+import { useToast } from '@/components/ui/Toast'
 
 
 // ─── Types ────────────────────────────────────────────────────────────────
@@ -56,92 +61,104 @@ function RapportWeergave({ data, totaal, catAvgs }: {
   const catsMetScore = HOOFDCATS.filter(c => catAvgs[c] !== undefined)
 
   return (
-    <div className="space-y-4">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
       {/* Score block */}
-      <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-        <div className="p-6 pb-5" style={{ background: 'linear-gradient(135deg, #E1F5EE 0%, #E6F1FB 100%)' }}>
-          <p className="text-xs text-gray-500 mb-1">Vitaliteitsscore deze week</p>
-          <div className="flex items-end gap-2 mb-1">
-            <span className="text-5xl font-black" style={{ color: scoreKleur(totaal), position: 'relative', display: 'inline-block' }}>
-              <span style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
-                <div style={{ width: 100, height: 100, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
-              </span>
-              <span style={{ position: 'relative', zIndex: 1 }}>{totaal.toFixed(1)}</span>
-            </span>
-            <span className="text-xl text-gray-400 font-medium pb-1">/5</span>
-            <span className="pb-1 text-sm font-semibold" style={{ color: scoreKleur(totaal) }}>
-              — {scoreLabel(totaal)}
-            </span>
+      <Card style={{ overflow: 'hidden' }}>
+        <div style={{
+          padding: '24px 24px 20px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 20,
+          background: 'linear-gradient(135deg, var(--mentaforce-primary-light) 0%, var(--mf-blue-light) 100%)',
+        }}>
+          <Ring
+            value={totaal}
+            max={5}
+            size={92}
+            thickness={9}
+            color={scoreKleur(totaal)}
+            ariaLabel={`Vitaliteitsscore ${totaal.toFixed(1)} van 5 — ${scoreLabel(totaal)}`}
+          >
+            <span style={{ fontSize: 22, fontWeight: 800, color: scoreKleur(totaal) }}>{totaal.toFixed(1)}</span>
+          </Ring>
+          <div>
+            <p style={{ fontSize: 12, color: 'var(--text-3)', marginBottom: 2 }}>Vitaliteitsscore deze week</p>
+            <p style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+              <span style={{ fontSize: 32, fontWeight: 800, color: scoreKleur(totaal), lineHeight: 1 }}>{totaal.toFixed(1)}</span>
+              <span style={{ fontSize: 16, color: 'var(--text-3)', fontWeight: 500 }}>/5</span>
+            </p>
+            <p style={{ fontSize: 13, fontWeight: 600, color: scoreKleur(totaal), marginTop: 4 }}>{scoreLabel(totaal)}</p>
           </div>
         </div>
 
         {catsMetScore.length > 0 && (
-          <div className="px-6 py-4 space-y-3">
+          <div style={{ padding: '16px 24px', display: 'flex', flexDirection: 'column', gap: 14 }}>
             {catsMetScore.map(c => {
               const score = catAvgs[c]
-              const kleur = CAT_KLEUREN[c]
               return (
-                <div key={c}>
-                  <div className="flex justify-between text-xs mb-1">
-                    <span className="font-medium text-gray-700">{CAT_LABELS[c]}</span>
-                    <span className="font-bold" style={{ color: scoreKleur(score) }}>{score.toFixed(1)}</span>
-                  </div>
-                  <div className="h-1.5 rounded-full bg-gray-100 overflow-hidden">
-                    <div className="h-full rounded-full transition-all"
-                      style={{ width: `${(score / 5) * 100}%`, background: kleur }} />
-                  </div>
-                </div>
+                <Progress
+                  key={c}
+                  value={score}
+                  max={5}
+                  color={CAT_KLEUREN[c]}
+                  thickness={6}
+                  label={
+                    <span style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                      <span style={{ color: 'var(--text-2)' }}>{CAT_LABELS[c]}</span>
+                      <span style={{ fontWeight: 700, color: scoreKleur(score), fontVariantNumeric: 'tabular-nums' }}>{score.toFixed(1)}</span>
+                    </span>
+                  }
+                  ariaLabel={`${CAT_LABELS[c]}: ${score.toFixed(1)} van 5`}
+                />
               )
             })}
           </div>
         )}
-      </div>
+      </Card>
 
       {/* Samenvatting */}
       {data.samenvatting && (
-        <div className="bg-white rounded-2xl border border-gray-100 p-6"
-          style={{ borderLeft: '3px solid #1D9E75' }}>
-          <p className="text-xs font-bold uppercase tracking-wide text-gray-400 mb-2">Samenvatting van jouw week</p>
-          <p className="text-sm text-gray-700 leading-relaxed">{data.samenvatting}</p>
-        </div>
+        <Card style={{ padding: 24, borderLeft: '3px solid var(--mentaforce-primary)' }}>
+          <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--text-3)', marginBottom: 8 }}>Samenvatting van jouw week</p>
+          <p style={{ fontSize: 14, color: 'var(--text-2)', lineHeight: 1.6 }}>{data.samenvatting}</p>
+        </Card>
       )}
 
       {/* Sterke punten */}
       {data.sterkePunten && (
-        <div className="rounded-2xl p-6" style={{ background: 'var(--mf-green-light)', borderLeft: '3px solid #1D9E75' }}>
-          <p className="text-xs font-bold uppercase tracking-wide mb-2" style={{ color: 'var(--mf-green)' }}>Sterke punten</p>
-          <p className="text-sm text-gray-700 leading-relaxed">{data.sterkePunten}</p>
-        </div>
+        <Card style={{ padding: 24, background: 'var(--mf-green-light)', borderLeft: '3px solid var(--mf-green)' }}>
+          <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 8, color: 'var(--mf-green)' }}>Sterke punten</p>
+          <p style={{ fontSize: 14, color: 'var(--text-2)', lineHeight: 1.6 }}>{data.sterkePunten}</p>
+        </Card>
       )}
 
       {/* Aandachtspunten */}
       {data.aandachtspunten && (
-        <div className="rounded-2xl p-6" style={{ background: 'var(--mf-amber-light)', borderLeft: '3px solid #BA7517' }}>
-          <p className="text-xs font-bold uppercase tracking-wide mb-2" style={{ color: 'var(--mf-amber)' }}>Aandachtspunten</p>
-          <p className="text-sm text-gray-700 leading-relaxed">{data.aandachtspunten}</p>
-        </div>
+        <Card style={{ padding: 24, background: 'var(--mf-amber-light)', borderLeft: '3px solid var(--mf-amber-dark)' }}>
+          <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 8, color: 'var(--mf-amber)' }}>Aandachtspunten</p>
+          <p style={{ fontSize: 14, color: 'var(--text-2)', lineHeight: 1.6 }}>{data.aandachtspunten}</p>
+        </Card>
       )}
 
       {/* Tips */}
       {data.tips?.length > 0 && (
-        <div className="bg-white rounded-2xl border border-gray-100 p-6">
-          <p className="text-xs font-bold uppercase tracking-wide text-gray-400 mb-4">Tips voor deze week</p>
-          <div className="space-y-3">
+        <Card style={{ padding: 24 }}>
+          <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--text-3)', marginBottom: 16 }}>Tips voor deze week</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             {data.tips.map((tip, i) => (
-              <div key={i} className="flex gap-3">
-                <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5"
-                  style={{ background: 'var(--mf-green)', color: 'white' }}>
+              <div key={i} style={{ display: 'flex', gap: 12 }}>
+                <div style={{ width: 24, height: 24, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, flexShrink: 0, marginTop: 2, background: 'var(--mentaforce-primary)', color: 'var(--bg-app)' }} aria-hidden>
                   {i + 1}
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-gray-900 mb-0.5">{tip.titel}</p>
-                  <p className="text-xs text-gray-500 leading-relaxed">{tip.beschrijving}</p>
+                  <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-1)', marginBottom: 2 }}>{tip.titel}</p>
+                  <p style={{ fontSize: 13, color: 'var(--text-3)', lineHeight: 1.6 }}>{tip.beschrijving}</p>
                 </div>
               </div>
             ))}
           </div>
-        </div>
+        </Card>
       )}
     </div>
   )
@@ -357,6 +374,7 @@ async function buildPdf(data: RapportData, totaal: number, catAvgs: Record<strin
 function MijnRapportInhoud() {
   const params    = useSearchParams()
   const sessieId  = params.get('sessie')
+  const { toast } = useToast()
 
   const [rapportData, setRapportData] = useState<RapportData | null>(null)
   const [totaal,      setTotaal]      = useState(0)
@@ -392,8 +410,8 @@ function MijnRapportInhoud() {
     setPdfBezig(true)
     try {
       await buildPdf(rapportData, totaal, catAvgs)
-    } catch (err) {
-      console.error('[pdf]', err)
+    } catch {
+      toast({ title: 'PDF mislukt', description: 'Het rapport kon niet worden gedownload. Probeer het opnieuw.', variant: 'error' })
     } finally {
       setPdfBezig(false)
     }
@@ -428,35 +446,40 @@ function MijnRapportInhoud() {
 
   // ── Loading ─────────────────────────────────────────
   if (laden) return (
-    <main className="mf-mesh-bg min-h-screen flex flex-col items-center justify-center gap-4"
+    <main className="min-h-screen flex flex-col items-center justify-center gap-4"
       style={{ background: 'var(--bg-app)' }}>
-      <div className="w-8 h-8 rounded-full border-2 border-gray-200 animate-spin"
-        style={{ borderTopColor: 'var(--mf-green)' }} />
+      <div className="mf-spinner" />
       <p className="text-sm" style={{ color: 'var(--text-4)' }}>AI analyseert je check-in...</p>
     </main>
   )
 
   if (fout) return (
-    <main className="mf-mesh-bg min-h-screen flex items-center justify-center p-8"
+    <main className="min-h-screen flex items-center justify-center p-8"
       style={{ background: 'var(--bg-app)' }}>
-      <div className="max-w-sm w-full rounded-2xl p-8 text-center shadow-sm"
-        style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-        <p className="text-sm mb-4" style={{ color: 'var(--text-3)' }}>{fout}</p>
-        <Link href="/portaal" className="text-sm font-medium" style={{ color: 'var(--mf-green)' }}>
+      <Card style={{ maxWidth: 384, width: '100%', padding: 32, textAlign: 'center' }}>
+        <p style={{ fontSize: 14, marginBottom: 16, color: 'var(--text-3)' }}>{fout}</p>
+        <Link href="/portaal" className="mf-rapport-link" style={{ fontSize: 14, fontWeight: 600, color: 'var(--mentaforce-primary)' }}>
           Terug naar portaal
         </Link>
-      </div>
+        <style>{`
+          .mf-rapport-link:focus-visible {
+            outline: 2px solid var(--mentaforce-primary);
+            outline-offset: 2px;
+            border-radius: 4px;
+          }
+        `}</style>
+      </Card>
     </main>
   )
 
   return (
-    <main className="mf-mesh-bg min-h-screen pb-16"
+    <main className="min-h-screen pb-16"
       style={{ background: 'var(--bg-app)' }}>
       <div className="max-w-2xl mx-auto px-5 pt-10">
 
         <div className="mb-5">
-          <p className="text-xs mb-1" style={{ color: 'var(--text-4)' }}>Persoonlijk welzijnsrapport</p>
-          <h1 className="text-2xl font-bold" style={{ color: 'var(--text-1)' }}>Jouw week in beeld</h1>
+          <p style={{ fontSize: 12, marginBottom: 4, color: 'var(--text-4)' }}>Persoonlijk welzijnsrapport</p>
+          <h1 style={{ fontSize: 24, fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--text-1)' }}>Jouw week in beeld</h1>
         </div>
 
         {rapportData && (
@@ -464,51 +487,96 @@ function MijnRapportInhoud() {
         )}
 
         {/* Actieknoppen */}
-        <div className="space-y-3 mt-5">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 20 }}>
           <button
             onClick={downloadPdf}
             disabled={pdfBezig || !rapportData}
-            className="w-full py-3.5 rounded-xl text-white font-semibold text-sm transition disabled:opacity-50 flex items-center justify-center gap-2"
-            style={{ background: 'linear-gradient(135deg, #1D9E75, #0ea872)', boxShadow: '0 4px 14px rgba(29,158,117,0.30)' }}>
+            className="mf-rapport-btn-primary"
+            style={{
+              width: '100%',
+              padding: '14px',
+              borderRadius: 'var(--radius-btn)',
+              color: 'var(--bg-app)',
+              fontWeight: 600,
+              fontSize: 14,
+              border: '1px solid transparent',
+              background: 'var(--mentaforce-primary)',
+              cursor: (pdfBezig || !rapportData) ? 'not-allowed' : 'pointer',
+              opacity: (pdfBezig || !rapportData) ? 0.5 : 1,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 8,
+              transition: 'opacity 0.15s var(--ease)',
+            }}>
             {pdfBezig
-              ? <><span className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" />PDF wordt aangemaakt...</>
-              : 'Download als PDF'}
+              ? <><Loader2 size={16} aria-hidden className="mf-rapport-spin" />PDF wordt aangemaakt...</>
+              : <><Download size={16} aria-hidden />Download als PDF</>}
           </button>
 
           {hrVerstuurd
-            ? <div className="w-full py-3.5 rounded-xl text-center text-sm font-medium"
-                style={{ background: 'var(--color-green-bg, #E1F5EE)', color: 'var(--mf-green)' }}>
+            ? <div style={{ width: '100%', padding: '14px', borderRadius: 'var(--radius-btn)', textAlign: 'center', fontSize: 14, fontWeight: 600, background: 'var(--mf-green-light)', color: 'var(--mf-green)' }}>
                 Rapport verstuurd naar HR
               </div>
             : <button
                 onClick={stuurNaarHr}
                 disabled={hrBezig || !rapportData}
-                className="w-full py-3.5 rounded-xl font-semibold text-sm transition disabled:opacity-50 border flex items-center justify-center gap-2"
-                style={{ borderColor: 'var(--border)', color: 'var(--text-2)', background: 'var(--bg-card)' }}>
+                className="mf-rapport-btn-secondary"
+                style={{
+                  width: '100%',
+                  padding: '14px',
+                  borderRadius: 'var(--radius-btn)',
+                  fontWeight: 600,
+                  fontSize: 14,
+                  border: '1px solid var(--border-strong)',
+                  color: 'var(--text-1)',
+                  background: 'var(--bg-subtle)',
+                  cursor: (hrBezig || !rapportData) ? 'not-allowed' : 'pointer',
+                  opacity: (hrBezig || !rapportData) ? 0.5 : 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8,
+                  transition: 'opacity 0.15s var(--ease)',
+                }}>
                 {hrBezig
-                  ? <><span className="w-4 h-4 rounded-full border-2 border-current border-t-transparent animate-spin" />Versturen...</>
-                  : 'Stuur naar HR'}
+                  ? <><Loader2 size={16} aria-hidden className="mf-rapport-spin" />Versturen...</>
+                  : <><Send size={16} aria-hidden />Stuur naar HR</>}
               </button>
           }
 
-          {hrFout && <p className="text-xs text-red-500 text-center">{hrFout}</p>}
+          {hrFout && <p role="alert" style={{ fontSize: 12, textAlign: 'center', color: 'var(--mf-red)' }}>{hrFout}</p>}
 
           {!hrVerstuurd && (
-            <p className="text-xs text-center" style={{ color: 'var(--text-4)' }}>
+            <p style={{ fontSize: 12, textAlign: 'center', color: 'var(--text-4)' }}>
               Je naam en rapport worden per e-mail naar je HR-team gestuurd.
             </p>
           )}
 
           <Link href="/portaal"
-            className="w-full inline-block text-center rounded-xl py-3 text-sm transition"
-            style={{ border: '1px solid var(--border)', color: 'var(--text-3)' }}>
+            className="mf-rapport-terug"
+            style={{ width: '100%', display: 'inline-block', textAlign: 'center', borderRadius: 'var(--radius-btn)', padding: '12px', fontSize: 14, border: '1px solid var(--border)', color: 'var(--text-3)', textDecoration: 'none' }}>
             Terug naar portaal
           </Link>
         </div>
 
-        <p className="text-xs text-center mt-6 pb-4" style={{ color: 'var(--text-4)' }}>
+        <p style={{ fontSize: 12, textAlign: 'center', marginTop: 24, paddingBottom: 16, color: 'var(--text-4)' }}>
           Dit rapport is persoonlijk en vertrouwelijk.
         </p>
+
+        <style>{`
+          .mf-rapport-spin { animation: mf-spin 0.7s linear infinite; }
+          @media (prefers-reduced-motion: reduce) { .mf-rapport-spin { animation: none; } }
+          .mf-rapport-btn-primary:hover:not(:disabled),
+          .mf-rapport-btn-secondary:hover:not(:disabled) { opacity: 0.88; }
+          .mf-rapport-btn-primary:focus-visible,
+          .mf-rapport-btn-secondary:focus-visible,
+          .mf-rapport-terug:focus-visible {
+            outline: 2px solid var(--mentaforce-primary);
+            outline-offset: 2px;
+          }
+          .mf-rapport-terug:hover { border-color: var(--border-strong); color: var(--text-2); }
+        `}</style>
       </div>
     </main>
   )
@@ -517,10 +585,9 @@ function MijnRapportInhoud() {
 export default function MijnRapport() {
   return (
     <Suspense fallback={
-      <main className="mf-mesh-bg min-h-screen flex items-center justify-center"
+      <main className="min-h-screen flex items-center justify-center"
         style={{ background: 'var(--bg-app)' }}>
-        <div className="w-8 h-8 rounded-full border-2 border-gray-200 animate-spin"
-          style={{ borderTopColor: 'var(--mf-green)' }} />
+        <div className="mf-spinner" />
       </main>
     }>
       <MijnRapportInhoud />
