@@ -27,6 +27,28 @@ Alles wat je hier deelt is vertrouwelijk. Geen manager, geen HR die meeleest.
 
 Waar kan ik je vandaag mee helpen?`
 
+// Wanneer de gebruiker via een proactieve nudge binnenkomt (/coach?start=<type>),
+// opent de coach zelf het gesprek over wat hij opmerkte — i.p.v. het generieke welkom.
+const NUDGE_OPENERS: Record<string, string> = {
+  burnout_stijgend: 'Hey, fijn dat je er bent. Ik zag dat je scores de laatste weken wat teruglopen. Geen zorgen — vertel eens, hoe gaat het op dit moment écht met je?',
+  stemming_omlaag: 'Fijn dat je er bent. Ik merkte dat je stemming deze week wat lager lag dan je gewend bent. Wil je vertellen wat er speelt?',
+  slaap_omlaag: 'Goed dat je er bent. Je sliep deze week wat minder dan normaal. Zullen we samen kijken wat je nachtrust in de weg zit?',
+  streak_mijlpaal: 'Wat een mooie reeks — je hebt een flink aantal dagen op rij ingecheckt! Hoe voelt het om hier zo bewust mee bezig te zijn?',
+  slaap_omhoog: 'Goed nieuws: je slaap zit duidelijk in de lift deze week. Wil je weten hoe je dit ritme vasthoudt?',
+  stemming_omhoog: 'Mooi om te zien dat je beter in je vel zit deze week! Wat denk je dat het verschil maakte?',
+  burnout_dalend: 'Goed nieuws — je welzijnsscores gaan de laatste weken vooruit. Zullen we kijken wat daaraan bijdraagt, zodat je het kunt vasthouden?',
+  dankbaarheid_gap: 'Fijn dat je er bent. Je hield een tijdje dagelijks bij waar je dankbaar voor was. Zullen we dat samen weer oppakken?',
+  heractivatie: 'Hey, fijn dat je er weer bent. Geen druk — vertel eens, hoe gaat het op dit moment met je?',
+}
+
+// SSR-veilig: leest de start-parameter alleen in de browser. Zo continueert de
+// coach het gesprek dat de nudge startte, zonder flikkering bij het laden.
+function beginBericht(): string {
+  if (typeof window === 'undefined') return WELKOM
+  const start = new URLSearchParams(window.location.search).get('start')
+  return (start && NUDGE_OPENERS[start]) || WELKOM
+}
+
 const SUGGESTIES: { icon: LucideIcon; tekst: string }[] = [
   { icon: Frown, tekst: 'Ik voel me gestrest' },
   { icon: BatteryLow, tekst: 'Mijn energie is op' },
@@ -63,7 +85,7 @@ const DOMEIN_CODES: Record<string, string[]> = {
 export default function CoachPagina() {
   const router = useRouter()
   const [berichten, setBerichten] = useState<Bericht[]>([
-    { id: 'welkom', role: 'assistant', content: WELKOM },
+    { id: 'welkom', role: 'assistant', content: beginBericht() },
   ])
   const [input, setInput] = useState('')
   const [laden, setLaden] = useState(false)

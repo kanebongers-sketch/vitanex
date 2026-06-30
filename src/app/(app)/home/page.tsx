@@ -10,6 +10,7 @@ import { authFetch } from '@/lib/auth-fetch'
 import Navbar from '@/components/layout/Navbar'
 import { Card } from '@/components/ui/Card'
 import { Ring } from '@/components/ui/Ring'
+import { CoachNudgeBanner } from '@/components/coach/CoachNudgeBanner'
 import type { LucideIcon } from 'lucide-react'
 import {
   Smile, Moon, Droplets, Dumbbell, Leaf, Heart,
@@ -219,6 +220,9 @@ export default function DashboardPage() {
             Goedemorgen, {voornaam}
           </h1>
         </div>
+
+        {/* Proactieve coach-nudge */}
+        <CoachNudgeBanner />
 
         {/* Readiness card */}
         <Card style={{
