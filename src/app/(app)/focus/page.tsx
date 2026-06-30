@@ -4,9 +4,14 @@ export const dynamic = 'force-dynamic'
 
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { ChevronDown, ChevronUp, Play, Square, CheckCircle2, Target, Timer as TimerIcon, Flame } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
+import { useToast } from '@/components/ui/Toast'
+import { vitaEvent } from '@/lib/vita/events'
+import { TabsRoot, TabsList, TabsTrigger, TabsContent } from '@/components/ui/Tabs'
+import { CollapsibleRoot, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/Collapsible'
 const ADEM_FASE_KLEUR: Record<string, string> = {
   'var(--mf-green)':  'rgba(29,158,117,0.18)',
   'var(--mf-blue)':   'rgba(59,130,246,0.18)',
@@ -405,6 +410,7 @@ function IntensiteitLabel({ niveau }: { niveau: IntensiteitBadge }) {
 
 export default function FocusPagina() {
   const router = useRouter()
+  const { toast } = useToast()
   const [klaar, setKlaar] = useState(false)
   const [tab, setTab] = useState<HoofdTab>('adem')
   const [focusMinutenVandaag, setFocusMinutenVandaag] = useState(0)
@@ -439,25 +445,29 @@ export default function FocusPagina() {
 
   useEffect(() => {
     async function check() {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) { router.push('/login'); return }
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) { router.push('/login'); return }
 
-      const vandaagStr = new Date().toISOString().split('T')[0]
-      const { data: logs } = await supabase
-        .from('focus_logs')
-        .select('duur_minuten')
-        .eq('user_id', user.id)
-        .gte('aangemaakt_op', vandaagStr)
+        const vandaagStr = new Date().toISOString().split('T')[0]
+        const { data: logs } = await supabase
+          .from('focus_logs')
+          .select('duur_minuten')
+          .eq('user_id', user.id)
+          .gte('aangemaakt_op', vandaagStr)
 
-      if (logs) {
-        setFocusSessiesVandaag(logs.length)
-        setFocusMinutenVandaag(logs.reduce((acc, l) => acc + (l.duur_minuten ?? 0), 0))
+        if (logs) {
+          setFocusSessiesVandaag(logs.length)
+          setFocusMinutenVandaag(logs.reduce((acc, l) => acc + (l.duur_minuten ?? 0), 0))
+        }
+      } catch {
+        toast({ title: 'Kon je focus-statistieken niet laden', description: 'Probeer het later opnieuw.', variant: 'warning' })
+      } finally {
+        setKlaar(true)
       }
-
-      setKlaar(true)
     }
     check()
-  }, [router])
+  }, [router, toast])
 
   // -- Breathing engine ------------------------------------------------------
   useEffect(() => {
@@ -499,12 +509,15 @@ export default function FocusPagina() {
           setTimerKlaar(true)
 
           // Log voltooide sessie (niet-blokkerend)
+          vitaEvent('habit_completed', { kind: 'focus' })
           const duur = Math.round(TIMERS[timerTab as TimerTab]?.duur / 60) || 25
           const apiType = timerTab === 'focus' ? 'deep_work' : timerTab === 'pauze' ? 'pauze' : 'pomodoro'
           authFetch('/api/focus/log', {
             method: 'POST',
             body: JSON.stringify({ duur_minuten: duur, type: apiType }),
-          }).catch(() => { /* stil falen */ })
+          }).catch(() => {
+            toast({ title: 'Sessie niet opgeslagen', description: 'Je focusblok telt nog steeds — we konden hem alleen niet vastleggen.', variant: 'warning' })
+          })
 
           return 0
         }
@@ -566,8 +579,8 @@ export default function FocusPagina() {
 
         {/* Header */}
         <div className="mb-4">
-          <h1 className="text-2xl font-bold text-gray-900">Focus & Welzijn</h1>
-          <p className="text-gray-500 text-sm mt-0.5">Ademhaling, beweging, voeding, slaap en mentale reset.</p>
+          <h1 className="text-2xl font-bold" style={{ color: 'var(--text-1)' }}>Focus & Welzijn</h1>
+          <p className="text-sm mt-0.5" style={{ color: 'var(--text-3)' }}>Ademhaling, beweging, voeding, slaap en mentale reset.</p>
         </div>
 
         {/* Vandaag strip */}
@@ -576,12 +589,12 @@ export default function FocusPagina() {
             display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginBottom: 20,
           }}>
             {[
-              { icoon: '🎯', waarde: `${focusMinutenVandaag}`, sub: 'min focus', kleur: focusMinutenVandaag >= 50 ? 'var(--mf-green)' : focusMinutenVandaag >= 25 ? 'var(--mf-amber)' : 'var(--text-3)' },
-              { icoon: '⏱️', waarde: `${focusSessiesVandaag}`, sub: focusSessiesVandaag === 1 ? 'sessie' : 'sessies', kleur: focusSessiesVandaag >= 4 ? 'var(--mf-green)' : 'var(--text-3)' },
-              { icoon: '🔥', waarde: focusMinutenVandaag >= 100 ? 'Top!' : focusMinutenVandaag >= 50 ? 'Goed' : 'Bezig', sub: 'vandaag', kleur: focusMinutenVandaag >= 100 ? 'var(--mf-green)' : focusMinutenVandaag >= 50 ? 'var(--mf-amber)' : 'var(--text-3)' },
+              { Icon: Target, waarde: `${focusMinutenVandaag}`, sub: 'min focus', kleur: focusMinutenVandaag >= 50 ? 'var(--mf-green)' : focusMinutenVandaag >= 25 ? 'var(--mf-amber)' : 'var(--text-3)' },
+              { Icon: TimerIcon, waarde: `${focusSessiesVandaag}`, sub: focusSessiesVandaag === 1 ? 'sessie' : 'sessies', kleur: focusSessiesVandaag >= 4 ? 'var(--mf-green)' : 'var(--text-3)' },
+              { Icon: Flame, waarde: focusMinutenVandaag >= 100 ? 'Top!' : focusMinutenVandaag >= 50 ? 'Goed' : 'Bezig', sub: 'vandaag', kleur: focusMinutenVandaag >= 100 ? 'var(--mf-green)' : focusMinutenVandaag >= 50 ? 'var(--mf-amber)' : 'var(--text-3)' },
             ].map((m, i) => (
               <div key={i} style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)', padding: '12px 10px', textAlign: 'center', boxShadow: 'var(--shadow-xs)' }}>
-                <div style={{ fontSize: 18, marginBottom: 4 }}>{m.icoon}</div>
+                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 4, color: m.kleur }}><m.Icon size={18} aria-hidden /></div>
                 <div style={{ fontSize: 15, fontWeight: 800, color: m.kleur, lineHeight: 1 }}>{m.waarde}</div>
                 <div style={{ fontSize: 9, color: 'var(--text-4)', marginTop: 2, fontWeight: 600 }}>{m.sub}</div>
               </div>
@@ -590,37 +603,61 @@ export default function FocusPagina() {
         )}
 
         {/* Tab bar  scrollable on mobile */}
+        <TabsRoot value={tab} onValueChange={(v) => setTab(v as HoofdTab)}>
         <div className="overflow-x-auto pb-1 mb-6">
-          <div className="flex gap-1.5 min-w-max bg-gray-100 rounded-2xl p-1.5">
+          <TabsList
+            aria-label="Welzijnscategorieën"
+            className="mf-focus-tabs"
+            style={{
+              display: 'flex', gap: 6, minWidth: 'max-content',
+              background: 'var(--bg-subtle)', borderRadius: 16, padding: 6, border: 'none',
+            }}
+          >
             {TABS.map(t => (
-              <button
+              <TabsTrigger
                 key={t.id}
-                onClick={() => setTab(t.id)}
-                className="px-4 py-2 rounded-xl text-xs font-medium transition whitespace-nowrap"
+                value={t.id}
+                className="mf-focus-tab"
                 style={{
-                  background: tab === t.id ? 'var(--bg-card)' : 'transparent',
-                  color: tab === t.id ? 'var(--text-1)' : 'var(--text-3)',
-                  boxShadow: tab === t.id ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                  padding: '8px 16px', borderRadius: 12, fontSize: 12, fontWeight: 500,
+                  whiteSpace: 'nowrap', color: 'var(--text-3)',
                 }}
               >
                 {t.label}
-              </button>
+              </TabsTrigger>
             ))}
-          </div>
+          </TabsList>
+          <style>{`
+            .mf-focus-tabs .mf-focus-tab[data-state='active'] {
+              background: var(--bg-card);
+              color: var(--text-1);
+              box-shadow: var(--shadow-xs);
+            }
+            .mf-focus-tabs .mf-focus-tab .mf-tabs-indicator { display: none; }
+            .mf-collapsible-card { background: var(--bg-card); border-color: var(--border); }
+            .mf-acc-trigger { background: transparent; cursor: pointer; appearance: none; border: none; }
+            .mf-acc-trigger:hover { background: var(--bg-subtle); }
+            .mf-divider-row { border-bottom: 1px solid var(--border); }
+            .mf-divider-row:last-child { border-bottom: 0; }
+            .mf-reset-btn:hover { background: var(--bg-subtle); }
+          `}</style>
         </div>
 
         {/* -------------- ADEMHALING -------------- */}
-        {tab === 'adem' && (
+        <TabsContent value="adem" style={{ paddingTop: 0 }}>
           <>
             <div className="rounded-2xl border p-5 mb-4" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Kies techniek</p>
+              <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: 'var(--text-4)' }}>Kies techniek</p>
               <div className="grid grid-cols-2 gap-2 mb-4">
                 {(Object.keys(ADEM) as AdemTab[]).map(k => (
                   <button
                     key={k}
+                    type="button"
                     onClick={() => { if (!ademActief) setAdemTab(k) }}
                     disabled={ademActief}
-                    className="py-2.5 px-3 rounded-xl text-xs font-medium border transition text-left"
+                    aria-pressed={ademTab === k}
+                    aria-label={`Kies ${ADEM[k].naam}`}
+                    className="mf-pressable py-2.5 px-3 rounded-xl text-xs font-medium border transition text-left"
                     style={{
                       background: ademTab === k ? 'var(--mentaforce-primary-light)' : 'var(--bg-subtle)',
                       borderColor: ademTab === k ? 'var(--mentaforce-primary)' : 'var(--border)',
@@ -635,8 +672,8 @@ export default function FocusPagina() {
               </div>
 
               {!ademActief && (
-                <div className="rounded-xl p-4 mb-4" style={{ background: 'var(--bg-app)' }}>
-                  <p className="text-sm text-gray-600 mb-3">{ADEM[ademTab].beschrijving}</p>
+                <div className="rounded-xl p-4 mb-4" style={{ background: 'var(--bg-subtle)' }}>
+                  <p className="text-sm mb-3" style={{ color: 'var(--text-2)' }}>{ADEM[ademTab].beschrijving}</p>
                   <div className="flex gap-2 flex-wrap mb-3">
                     {ADEM[ademTab].fases.map((f, i) => (
                       <div key={i} className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg"
@@ -646,7 +683,7 @@ export default function FocusPagina() {
                       </div>
                     ))}
                   </div>
-                  <p className="text-xs font-semibold text-gray-400 mb-1.5">Voordelen</p>
+                  <p className="text-xs font-semibold mb-1.5" style={{ color: 'var(--text-4)' }}>Voordelen</p>
                   <div className="flex flex-wrap gap-1.5">
                     {ADEM[ademTab].voordelen.map(v => (
                       <span key={v} className="text-xs px-2.5 py-1 rounded-full" style={{ background: 'var(--mf-green-light)', color: 'var(--mf-green-dark)' }}>
@@ -659,9 +696,13 @@ export default function FocusPagina() {
 
               {ademActief && huidigeFase && (
                 <div className="flex flex-col items-center py-4">
-                  <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 0, width: 220, height: 220, borderRadius: '50%', background: `radial-gradient(circle, ${ADEM_FASE_KLEUR[huidigeFase.kleur] ?? 'rgba(29,158,117,0.18)'} 0%, transparent 70%)` }} />
-                    <svg width="200" height="200" viewBox="0 0 200 200" style={{ position: 'relative', zIndex: 1 }}>
+                  <div
+                    role="img"
+                    aria-label={`${huidigeFase.label}, nog ${ademTeller} seconden`}
+                    style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+                  >
+                    <div aria-hidden style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 0, width: 220, height: 220, borderRadius: '50%', background: `radial-gradient(circle, ${ADEM_FASE_KLEUR[huidigeFase.kleur] ?? 'rgba(0,229,255,0.18)'} 0%, transparent 70%)` }} />
+                    <svg width="200" height="200" viewBox="0 0 200 200" aria-hidden focusable="false" style={{ position: 'relative', zIndex: 1 }}>
                       <circle cx="100" cy="100" r={pulsR + 12} fill={huidigeFase.kleur} opacity="0.07" />
                       <circle
                         cx="100" cy="100" r={pulsR}
@@ -677,47 +718,51 @@ export default function FocusPagina() {
                       </text>
                     </svg>
                   </div>
-                  <p className="text-sm text-gray-400 mt-1">
+                  <p className="text-sm mt-1" style={{ color: 'var(--text-3)' }} aria-live="polite">
                     {ademRonden} ronde{ademRonden !== 1 ? 'n' : ''} voltooid
                   </p>
                 </div>
               )}
 
               <button
+                type="button"
                 onClick={() => ademActief ? stopAdem() : startAdem()}
-                className="w-full py-3.5 rounded-xl text-white font-semibold text-sm transition"
-                style={{ background: ademActief ? 'var(--mf-red)' : 'var(--mentaforce-primary)' }}
+                aria-label={ademActief ? 'Ademhaling stoppen' : 'Ademhaling starten'}
+                className="mf-pressable w-full py-3.5 rounded-xl font-semibold text-sm transition"
+                style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: ademActief ? 'var(--mf-red)' : 'var(--mentaforce-primary)', color: ademActief ? 'white' : 'var(--bg-app)' }}
               >
-                {ademActief ? (<><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg><span>Stop</span></>) : (<><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg><span>Start ademhaling</span></>)}
+                {ademActief
+                  ? (<><Square size={14} aria-hidden /><span>Stop</span></>)
+                  : (<><Play size={14} aria-hidden /><span>Start ademhaling</span></>)}
               </button>
             </div>
 
             <div className="rounded-2xl border p-5" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Wanneer gebruik je wat?</p>
+              <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: 'var(--text-4)' }}>Wanneer gebruik je wat?</p>
               {[
                 { when: 'Acuut gestrest of overprikkeld', use: 'Fysiologische snik', reden: 'Snelste resultaat, werkt in 1-2 ademhalingen' },
                 { when: 'Aankomende presentatie of gesprek', use: 'Box breathing', reden: '5 minuten voor een stressvolle situatie' },
                 { when: 'Niet kunnen slapen', use: '4-7-8 methode', reden: '3-4 rondes ontspant het parasympathisch stelsel' },
                 { when: 'Mentale vermoeidheid overdag', use: 'Hartcoherentie', reden: 'Herstelt energiebalans bij langdurige stress' },
               ].map(r => (
-                <div key={r.when} className="flex gap-3 py-3 border-b border-gray-50 last:border-0">
+                <div key={r.when} className="mf-divider-row flex gap-3 py-3">
                   <div className="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0" style={{ background: 'var(--mentaforce-primary)' }} />
                   <div>
-                    <p className="text-xs text-gray-400 mb-0.5">{r.when}</p>
-                    <p className="text-sm font-semibold text-gray-800">{r.use}</p>
-                    <p className="text-xs text-gray-500">{r.reden}</p>
+                    <p className="text-xs mb-0.5" style={{ color: 'var(--text-4)' }}>{r.when}</p>
+                    <p className="text-sm font-semibold" style={{ color: 'var(--text-1)' }}>{r.use}</p>
+                    <p className="text-xs" style={{ color: 'var(--text-3)' }}>{r.reden}</p>
                   </div>
                 </div>
               ))}
             </div>
           </>
-        )}
+        </TabsContent>
 
         {/* -------------- BEWEGING -------------- */}
-        {tab === 'beweging' && (
+        <TabsContent value="beweging" style={{ paddingTop: 0 }}>
           <>
             <div className="rounded-2xl border p-4 mb-4" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm" style={{ color: 'var(--text-2)' }}>
                 Elke 50-90 minuten bewegen verhoogt productiviteit met <strong>13%</strong> en verlaagt rugklachten significant.
               </p>
             </div>
@@ -738,24 +783,28 @@ export default function FocusPagina() {
             </div>
 
             <div className="space-y-3">
-              {BUREAUOEFENINGEN.map((oe, idx) => (
-                <div key={idx} className="rounded-2xl border overflow-hidden" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
-                  <button
-                    onClick={() => setOpenOefening(openOefening === idx ? null : idx)}
-                    className="w-full px-5 py-4 flex items-center gap-4 text-left hover:bg-gray-50 transition"
-                  >
-                    <div className="w-9 h-9 rounded-xl flex items-center justify-center text-xs font-bold flex-shrink-0"
-                      style={{ background: 'var(--bg-subtle)', color: 'var(--text-3)' }}>{(oe as {afk: string}).afk}</div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-gray-900">{oe.naam}</p>
-                      <p className="text-xs text-gray-400">{oe.duur} · {oe.stappen.length} stappen</p>
-                    </div>
-                    <IntensiteitLabel niveau={oe.intensiteit as IntensiteitBadge} />
-                    <span className="text-gray-300 ml-1">{openOefening === idx ? <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="18 15 12 9 6 15"/></svg> : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>}</span>
-                  </button>
-                  {openOefening === idx && (
-                    <div className="px-5 pb-5 border-t border-gray-50">
-                      <p className="text-xs text-gray-500 italic mt-3 mb-3">{oe.waarom}</p>
+              {BUREAUOEFENINGEN.map((oe, idx) => {
+                const open = openOefening === idx
+                return (
+                <CollapsibleRoot key={idx} open={open} onOpenChange={(o) => setOpenOefening(o ? idx : null)} className="rounded-2xl border overflow-hidden mf-collapsible-card">
+                  <CollapsibleTrigger asChild>
+                    <button
+                      type="button"
+                      className="mf-acc-trigger w-full px-5 py-4 flex items-center gap-4 text-left transition"
+                    >
+                      <div className="w-9 h-9 rounded-xl flex items-center justify-center text-xs font-bold flex-shrink-0"
+                        style={{ background: 'var(--bg-subtle)', color: 'var(--text-3)' }}>{(oe as {afk: string}).afk}</div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold" style={{ color: 'var(--text-1)' }}>{oe.naam}</p>
+                        <p className="text-xs" style={{ color: 'var(--text-4)' }}>{oe.duur} · {oe.stappen.length} stappen</p>
+                      </div>
+                      <IntensiteitLabel niveau={oe.intensiteit as IntensiteitBadge} />
+                      <span className="ml-1" style={{ color: 'var(--text-3)' }}>{open ? <ChevronUp size={14} aria-hidden /> : <ChevronDown size={14} aria-hidden />}</span>
+                    </button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <div className="px-5 pb-5" style={{ borderTop: '1px solid var(--border)' }}>
+                      <p className="text-xs italic mt-3 mb-3" style={{ color: 'var(--text-3)' }}>{oe.waarom}</p>
                       <ol className="space-y-2">
                         {oe.stappen.map((s, i) => (
                           <li key={i} className="flex gap-3 items-start">
@@ -763,18 +812,19 @@ export default function FocusPagina() {
                               style={{ background: 'var(--mentaforce-primary-light)', color: 'var(--mentaforce-primary)' }}>
                               {i + 1}
                             </span>
-                            <p className="text-sm text-gray-700">{s}</p>
+                            <p className="text-sm" style={{ color: 'var(--text-2)' }}>{s}</p>
                           </li>
                         ))}
                       </ol>
                     </div>
-                  )}
-                </div>
-              ))}
+                  </CollapsibleContent>
+                </CollapsibleRoot>
+                )
+              })}
             </div>
 
             <div className="mt-5 rounded-2xl border p-5" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Snel bewegingsschema</p>
+              <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: 'var(--text-4)' }}>Snel bewegingsschema</p>
               {[
                 { tijd: '09:00', actie: 'Sta op, doe 10 squats voor je begint' },
                 { tijd: '10:30', actie: 'Sta 10 min (of loop naar collega ipv mailen)' },
@@ -782,17 +832,17 @@ export default function FocusPagina() {
                 { tijd: '14:30', actie: 'Snelle energieboost (4 min desk workout)' },
                 { tijd: '16:00', actie: 'Rek & strek: nek, schouders, polsen (2 min)' },
               ].map(r => (
-                <div key={r.tijd} className="flex gap-3 items-center py-2 border-b border-gray-50 last:border-0">
-                  <span className="text-xs font-bold text-gray-400 w-12 flex-shrink-0">{r.tijd}</span>
-                  <p className="text-sm text-gray-700">{r.actie}</p>
+                <div key={r.tijd} className="mf-divider-row flex gap-3 items-center py-2">
+                  <span className="text-xs font-bold w-12 flex-shrink-0" style={{ color: 'var(--text-4)' }}>{r.tijd}</span>
+                  <p className="text-sm" style={{ color: 'var(--text-2)' }}>{r.actie}</p>
                 </div>
               ))}
             </div>
           </>
-        )}
+        </TabsContent>
 
         {/* -------------- VOEDING -------------- */}
-        {tab === 'voeding' && (
+        <TabsContent value="voeding" style={{ paddingTop: 0 }}>
           <>
             <div className="rounded-2xl border p-4 mb-4" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
               <p className="text-sm text-gray-600">
@@ -801,32 +851,34 @@ export default function FocusPagina() {
             </div>
 
             <div className="space-y-3">
-              {VOEDING_CATEGORIEEN.map((cat, idx) => (
-                <div key={idx} className="rounded-2xl border overflow-hidden" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
-                  <button
-                    onClick={() => setOpenVoedingCat(openVoedingCat === idx ? null : idx)}
-                    className="w-full px-5 py-4 flex items-center gap-4 text-left hover:bg-gray-50 transition"
-                  >
-                    <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold flex-shrink-0"
-                      style={{ background: cat.kleur + '18', color: cat.kleur }}>{(cat as {afk: string}).afk}</div>
-                    <div className="flex-1">
-                      <p className="text-sm font-semibold text-gray-900">{cat.titel}</p>
-                      <p className="text-xs text-gray-400">{cat.tips.length} tips</p>
-                    </div>
-                    <span className="text-gray-300 ml-1">{openVoedingCat === idx ? <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="18 15 12 9 6 15"/></svg> : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>}</span>
-                  </button>
-                  {openVoedingCat === idx && (
-                    <div className="border-t border-gray-50">
+              {VOEDING_CATEGORIEEN.map((cat, idx) => {
+                const open = openVoedingCat === idx
+                return (
+                <CollapsibleRoot key={idx} open={open} onOpenChange={(o) => setOpenVoedingCat(o ? idx : null)} className="rounded-2xl border overflow-hidden mf-collapsible-card">
+                  <CollapsibleTrigger asChild>
+                    <button type="button" className="mf-acc-trigger w-full px-5 py-4 flex items-center gap-4 text-left transition">
+                      <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold flex-shrink-0"
+                        style={{ background: cat.kleur + '18', color: cat.kleur }}>{(cat as {afk: string}).afk}</div>
+                      <div className="flex-1">
+                        <p className="text-sm font-semibold" style={{ color: 'var(--text-1)' }}>{cat.titel}</p>
+                        <p className="text-xs" style={{ color: 'var(--text-4)' }}>{cat.tips.length} tips</p>
+                      </div>
+                      <span className="ml-1" style={{ color: 'var(--text-3)' }}>{open ? <ChevronUp size={14} aria-hidden /> : <ChevronDown size={14} aria-hidden />}</span>
+                    </button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <div style={{ borderTop: '1px solid var(--border)' }}>
                       {cat.tips.map((tip, ti) => (
-                        <div key={ti} className="px-5 py-4 border-b border-gray-50 last:border-0">
-                          <p className="text-sm font-semibold text-gray-800 mb-1">{tip.titel}</p>
-                          <p className="text-sm text-gray-600 leading-relaxed">{tip.tekst}</p>
+                        <div key={ti} className="mf-divider-row px-5 py-4">
+                          <p className="text-sm font-semibold mb-1" style={{ color: 'var(--text-1)' }}>{tip.titel}</p>
+                          <p className="text-sm leading-relaxed" style={{ color: 'var(--text-2)' }}>{tip.tekst}</p>
                         </div>
                       ))}
                     </div>
-                  )}
-                </div>
-              ))}
+                  </CollapsibleContent>
+                </CollapsibleRoot>
+                )
+              })}
             </div>
 
             <div className="mt-5 rounded-2xl border p-5" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
@@ -848,10 +900,10 @@ export default function FocusPagina() {
               ))}
             </div>
           </>
-        )}
+        </TabsContent>
 
         {/* -------------- SLAAP -------------- */}
-        {tab === 'slaap' && (
+        <TabsContent value="slaap" style={{ paddingTop: 0 }}>
           <>
             <div className="grid grid-cols-3 gap-3 mb-5">
               {[
@@ -867,36 +919,38 @@ export default function FocusPagina() {
             </div>
 
             <div className="space-y-3">
-              {SLAAP_SECTIES.map((sec, idx) => (
-                <div key={idx} className="rounded-2xl border overflow-hidden" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
-                  <button
-                    onClick={() => setOpenSlaapSectie(openSlaapSectie === idx ? null : idx)}
-                    className="w-full px-5 py-4 flex items-center gap-4 text-left hover:bg-gray-50 transition"
-                  >
-                    <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold flex-shrink-0"
-                      style={{ background: sec.kleur + '18', color: sec.kleur }}>{(sec as {afk: string}).afk}</div>
-                    <div className="flex-1">
-                      <p className="text-sm font-semibold text-gray-900">{sec.titel}</p>
-                      <p className="text-xs text-gray-400">{sec.items.length} tips</p>
-                    </div>
-                    <span className="text-gray-300 ml-1">{openSlaapSectie === idx ? <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="18 15 12 9 6 15"/></svg> : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>}</span>
-                  </button>
-                  {openSlaapSectie === idx && (
-                    <div className="border-t border-gray-50">
+              {SLAAP_SECTIES.map((sec, idx) => {
+                const open = openSlaapSectie === idx
+                return (
+                <CollapsibleRoot key={idx} open={open} onOpenChange={(o) => setOpenSlaapSectie(o ? idx : null)} className="rounded-2xl border overflow-hidden mf-collapsible-card">
+                  <CollapsibleTrigger asChild>
+                    <button type="button" className="mf-acc-trigger w-full px-5 py-4 flex items-center gap-4 text-left transition">
+                      <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold flex-shrink-0"
+                        style={{ background: sec.kleur + '18', color: sec.kleur }}>{(sec as {afk: string}).afk}</div>
+                      <div className="flex-1">
+                        <p className="text-sm font-semibold" style={{ color: 'var(--text-1)' }}>{sec.titel}</p>
+                        <p className="text-xs" style={{ color: 'var(--text-4)' }}>{sec.items.length} tips</p>
+                      </div>
+                      <span className="ml-1" style={{ color: 'var(--text-3)' }}>{open ? <ChevronUp size={14} aria-hidden /> : <ChevronDown size={14} aria-hidden />}</span>
+                    </button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <div style={{ borderTop: '1px solid var(--border)' }}>
                       {sec.items.map((item, ii) => (
-                        <div key={ii} className="px-5 py-4 border-b border-gray-50 last:border-0">
-                          <p className="text-sm font-semibold text-gray-800 mb-1">{item.titel}</p>
-                          <p className="text-sm text-gray-600 leading-relaxed">{item.tekst}</p>
+                        <div key={ii} className="mf-divider-row px-5 py-4">
+                          <p className="text-sm font-semibold mb-1" style={{ color: 'var(--text-1)' }}>{item.titel}</p>
+                          <p className="text-sm leading-relaxed" style={{ color: 'var(--text-2)' }}>{item.tekst}</p>
                         </div>
                       ))}
                     </div>
-                  )}
-                </div>
-              ))}
+                  </CollapsibleContent>
+                </CollapsibleRoot>
+                )
+              })}
             </div>
 
             <div className="mt-5 rounded-2xl border p-5" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Slaap-wind-down routine</p>
+              <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: 'var(--text-4)' }}>Slaap-wind-down routine</p>
               {[
                 { tijd: 'T-60 min', kleur: 'var(--mf-purple)', actie: 'Schermen weg of blauwlichtfilter aan' },
                 { tijd: 'T-45 min', kleur: 'var(--mf-purple)', actie: 'Warme douche of bad (kerntemperatuur daalt daarna)' },
@@ -905,17 +959,17 @@ export default function FocusPagina() {
                 { tijd: 'T-10 min', kleur: 'var(--mf-green)', actie: 'Verduister de kamer, stel temperatuur in op 17-18°C' },
                 { tijd: 'In bed', kleur: 'var(--mf-green)', actie: 'Diafragmatische ademhaling of 4-7-8 methode' },
               ].map(r => (
-                <div key={r.tijd} className="flex gap-3 items-start py-2 border-b border-gray-50 last:border-0">
+                <div key={r.tijd} className="mf-divider-row flex gap-3 items-start py-2">
                   <span className="text-xs font-bold w-16 flex-shrink-0 mt-0.5" style={{ color: r.kleur }}>{r.tijd}</span>
-                  <p className="text-sm text-gray-700">{r.actie}</p>
+                  <p className="text-sm" style={{ color: 'var(--text-2)' }}>{r.actie}</p>
                 </div>
               ))}
             </div>
           </>
-        )}
+        </TabsContent>
 
         {/* -------------- MENTAAL -------------- */}
-        {tab === 'mentaal' && (
+        <TabsContent value="mentaal" style={{ paddingTop: 0 }}>
           <>
             <div className="rounded-2xl border p-4 mb-4" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
               <p className="text-sm text-gray-600">
@@ -924,26 +978,27 @@ export default function FocusPagina() {
             </div>
 
             <div className="space-y-3">
-              {MENTAAL_TECHNIEKEN.map((tech, idx) => (
-                <div key={idx} className="rounded-2xl border overflow-hidden" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
-                  <button
-                    onClick={() => setOpenTechniek(openTechniek === idx ? null : idx)}
-                    className="w-full px-5 py-4 flex items-center gap-4 text-left hover:bg-gray-50 transition"
-                  >
-                    <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold flex-shrink-0"
-                      style={{ background: tech.kleur + '18', color: tech.kleur }}>{(tech as {afk: string}).afk}</div>
-                    <div className="flex-1">
-                      <p className="text-sm font-semibold text-gray-900">{tech.naam}</p>
-                      <p className="text-xs text-gray-400">{tech.duur} · {tech.stappen.length} stappen</p>
-                    </div>
-                    <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: tech.kleur + '20', color: tech.kleur }}>
-                      {tech.duur}
-                    </span>
-                    <span className="text-gray-300 ml-2">{openTechniek === idx ? <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="18 15 12 9 6 15"/></svg> : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>}</span>
-                  </button>
-                  {openTechniek === idx && (
-                    <div className="px-5 pb-5 border-t border-gray-50">
-                      <p className="text-xs text-gray-500 italic mt-3 mb-3">{tech.beschrijving}</p>
+              {MENTAAL_TECHNIEKEN.map((tech, idx) => {
+                const open = openTechniek === idx
+                return (
+                <CollapsibleRoot key={idx} open={open} onOpenChange={(o) => setOpenTechniek(o ? idx : null)} className="rounded-2xl border overflow-hidden mf-collapsible-card">
+                  <CollapsibleTrigger asChild>
+                    <button type="button" className="mf-acc-trigger w-full px-5 py-4 flex items-center gap-4 text-left transition">
+                      <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold flex-shrink-0"
+                        style={{ background: tech.kleur + '18', color: tech.kleur }}>{(tech as {afk: string}).afk}</div>
+                      <div className="flex-1">
+                        <p className="text-sm font-semibold" style={{ color: 'var(--text-1)' }}>{tech.naam}</p>
+                        <p className="text-xs" style={{ color: 'var(--text-4)' }}>{tech.duur} · {tech.stappen.length} stappen</p>
+                      </div>
+                      <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: tech.kleur + '20', color: tech.kleur }}>
+                        {tech.duur}
+                      </span>
+                      <span className="ml-2" style={{ color: 'var(--text-3)' }}>{open ? <ChevronUp size={14} aria-hidden /> : <ChevronDown size={14} aria-hidden />}</span>
+                    </button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <div className="px-5 pb-5" style={{ borderTop: '1px solid var(--border)' }}>
+                      <p className="text-xs italic mt-3 mb-3" style={{ color: 'var(--text-3)' }}>{tech.beschrijving}</p>
                       <ol className="space-y-2">
                         {tech.stappen.map((s, i) => (
                           <li key={i} className="flex gap-3 items-start">
@@ -951,19 +1006,20 @@ export default function FocusPagina() {
                               style={{ background: tech.kleur + '20', color: tech.kleur }}>
                               {i + 1}
                             </span>
-                            <p className="text-sm text-gray-700">{s}</p>
+                            <p className="text-sm" style={{ color: 'var(--text-2)' }}>{s}</p>
                           </li>
                         ))}
                       </ol>
                     </div>
-                  )}
-                </div>
-              ))}
+                  </CollapsibleContent>
+                </CollapsibleRoot>
+                )
+              })}
             </div>
 
             <div className="mt-5 rounded-2xl border p-5" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Stress signalen herkennen</p>
-              <p className="text-xs text-gray-400 mb-3">Fysieke en mentale tekenen dat je een reset nodig hebt:</p>
+              <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: 'var(--text-4)' }}>Stress signalen herkennen</p>
+              <p className="text-xs mb-3" style={{ color: 'var(--text-4)' }}>Fysieke en mentale tekenen dat je een reset nodig hebt:</p>
               <div className="grid grid-cols-2 gap-2">
                 {[
                   'Kortaf reageren op collega\'s',
@@ -983,17 +1039,20 @@ export default function FocusPagina() {
               </div>
             </div>
           </>
-        )}
+        </TabsContent>
 
         {/* -------------- TIMER -------------- */}
-        {tab === 'timer' && (
+        <TabsContent value="timer" style={{ paddingTop: 0 }}>
           <>
             <div className="flex gap-2 mb-5">
               {(Object.keys(TIMERS) as TimerTab[]).map(k => (
                 <button
                   key={k}
+                  type="button"
                   onClick={() => wisselTimerTab(k)}
-                  className="flex-1 py-3 rounded-xl text-xs font-medium border transition flex flex-col items-center gap-1"
+                  aria-pressed={timerTab === k}
+                  aria-label={`${TIMERS[k].naam}, ${formatTijd(TIMERS[k].duur)}`}
+                  className="mf-pressable flex-1 py-3 rounded-xl text-xs font-medium border transition flex flex-col items-center gap-1"
                   style={{
                     background: timerTab === k ? 'var(--mentaforce-primary-light)' : 'var(--bg-card)',
                     borderColor: timerTab === k ? 'var(--mentaforce-primary)' : 'var(--border)',
@@ -1008,9 +1067,13 @@ export default function FocusPagina() {
             </div>
 
             <div className="rounded-2xl border p-6 mb-4 flex flex-col items-center" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
-              <div style={{ position: 'relative', width: 200, height: 200 }}>
-                <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 0, width: 220, height: 220, borderRadius: '50%', background: `radial-gradient(circle, ${TIMER_KLEUR[timerTab] ?? 'rgba(29,158,117,0.18)'} 0%, transparent 70%)` }} />
-                <svg width="200" height="200" viewBox="0 0 200 200" style={{ transform: 'rotate(-90deg)', position: 'relative', zIndex: 1 }}>
+              <div
+                role="img"
+                aria-label={`${timerConfig.naam}: ${formatTijd(timerRest)} resterend`}
+                style={{ position: 'relative', width: 200, height: 200 }}
+              >
+                <div aria-hidden style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 0, width: 220, height: 220, borderRadius: '50%', background: `radial-gradient(circle, ${TIMER_KLEUR[timerTab] ?? 'rgba(0,229,255,0.18)'} 0%, transparent 70%)` }} />
+                <svg width="200" height="200" viewBox="0 0 200 200" aria-hidden focusable="false" style={{ transform: 'rotate(-90deg)', position: 'relative', zIndex: 1 }}>
                   <circle cx="100" cy="100" r="88" fill="none" style={{ stroke: 'var(--border-strong)' }} strokeWidth="8" />
                   <circle
                     cx="100" cy="100" r="88"
@@ -1023,34 +1086,41 @@ export default function FocusPagina() {
                     style={{ transition: 'stroke-dashoffset 1s linear' }}
                   />
                 </svg>
-                <div className="absolute inset-0 flex flex-col items-center justify-center" style={{ zIndex: 2 }}>
-                  <span className="text-4xl font-bold text-gray-800">{formatTijd(timerRest)}</span>
-                  <span className="text-sm text-gray-400 mt-1">{timerConfig.naam}</span>
+                <div className="absolute inset-0 flex flex-col items-center justify-center" style={{ zIndex: 2 }} aria-hidden>
+                  <span className="text-4xl font-bold" style={{ color: 'var(--text-1)' }}>{formatTijd(timerRest)}</span>
+                  <span className="text-sm mt-1" style={{ color: 'var(--text-3)' }}>{timerConfig.naam}</span>
                 </div>
               </div>
 
               {timerKlaar && (
-                <div className="mt-4 text-center">
-                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" style={{ stroke: 'var(--mf-green)' }} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                  <p className="text-sm font-medium text-gray-700 mt-1">Klaar!</p>
+                <div className="mt-4 text-center" role="status">
+                  <div className="flex justify-center" style={{ color: 'var(--mf-green)' }}>
+                    <CheckCircle2 size={40} aria-hidden strokeWidth={2} />
+                  </div>
+                  <p className="text-sm font-medium mt-1" style={{ color: 'var(--text-2)' }}>Klaar!</p>
                 </div>
               )}
 
-              <p className="text-xs text-gray-400 text-center mt-4 max-w-xs">{timerConfig.tip}</p>
+              <p className="text-xs text-center mt-4 max-w-xs" style={{ color: 'var(--text-4)' }}>{timerConfig.tip}</p>
             </div>
 
             <div className="flex gap-3 mb-5">
               <button
+                type="button"
                 onClick={() => setTimerActief(!timerActief)}
                 disabled={timerKlaar}
-                className="flex-1 py-3.5 rounded-xl text-white font-semibold text-sm transition disabled:opacity-40"
-                style={{ background: timerActief ? 'var(--mf-amber)' : timerConfig.kleur }}
+                aria-label={timerActief ? 'Timer pauzeren' : timerRest === timerConfig.duur ? 'Timer starten' : 'Timer hervatten'}
+                className="mf-pressable flex-1 py-3.5 rounded-xl font-semibold text-sm transition disabled:opacity-40"
+                style={{ background: timerActief ? 'var(--mf-amber)' : timerConfig.kleur, color: timerActief ? 'white' : 'var(--bg-app)' }}
               >
                 {timerActief ? 'Pauzeer' : timerRest === timerConfig.duur ? 'Start' : 'Hervat'}
               </button>
               <button
+                type="button"
                 onClick={() => { setTimerActief(false); setTimerKlaar(false); setTimerRest(timerConfig.duur) }}
-                className="px-5 py-3.5 rounded-xl text-sm border text-gray-500 hover:bg-gray-50 transition" style={{ borderColor: 'var(--border)' }}
+                aria-label="Timer resetten"
+                className="mf-pressable mf-reset-btn px-5 py-3.5 rounded-xl text-sm border transition"
+                style={{ borderColor: 'var(--border-strong)', color: 'var(--text-3)' }}
               >
                 Reset
               </button>
@@ -1058,7 +1128,7 @@ export default function FocusPagina() {
 
             {timerTab === 'micro' && (
               <div className="rounded-2xl border p-5 mb-4" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Ideeën voor je micro-break</p>
+                <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: 'var(--text-4)' }}>Ideeën voor je micro-break</p>
                 {[
                   'Kijk 20 sec naar iets op 6 meter (20-20-20 regel)',
                   'Rek je nek links en rechts, 3x per kant',
@@ -1068,9 +1138,9 @@ export default function FocusPagina() {
                   'Schud je handen en polsen los',
                   'Stuur een berichtje naar iemand die je energie geeft',
                 ].map(s => (
-                  <div key={s} className="flex items-center gap-2.5 py-1.5 border-b border-gray-50 last:border-0">
+                  <div key={s} className="mf-divider-row flex items-center gap-2.5 py-1.5">
                     <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: 'var(--mf-purple)' }} />
-                    <p className="text-xs text-gray-600">{s}</p>
+                    <p className="text-xs" style={{ color: 'var(--text-2)' }}>{s}</p>
                   </div>
                 ))}
               </div>
@@ -1094,7 +1164,8 @@ export default function FocusPagina() {
               </div>
             </div>
           </>
-        )}
+        </TabsContent>
+        </TabsRoot>
 
       </main>
     </div>

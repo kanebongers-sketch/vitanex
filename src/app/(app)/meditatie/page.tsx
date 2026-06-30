@@ -5,10 +5,13 @@ export const dynamic = 'force-dynamic'
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import nextDynamic from 'next/dynamic'
+import { Sparkles, Square } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
 import { getActiviteit } from '@/lib/activiteiten'
+import { useToast } from '@/components/ui/Toast'
+import { vitaEvent } from '@/lib/vita/events'
 
 const ACT = getActiviteit('meditatie')
 
@@ -85,6 +88,7 @@ interface MeditatieSessie {
 
 export default function MeditatiePagina() {
   const router = useRouter()
+  const { toast } = useToast()
   const [laden, setLaden] = useState(true)
   const [gekozenSessie, setGekozenSessie] = useState<typeof SESSIES[0] | null>(null)
   const [bezig, setBezig] = useState(false)
@@ -100,10 +104,14 @@ export default function MeditatiePagina() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/login'); return }
 
-      const res = await authFetch('/api/focus/log?limit=10')
-      if (res.ok) {
-        const json = await res.json() as { logs: MeditatieSessie[] }
-        setLogs((json.logs ?? []).filter((l: MeditatieSessie) => l.sessie_type === 'adem'))
+      try {
+        const res = await authFetch('/api/focus/log?limit=10')
+        if (res.ok) {
+          const json = await res.json() as { logs: MeditatieSessie[] }
+          setLogs((json.logs ?? []).filter((l: MeditatieSessie) => l.sessie_type === 'adem'))
+        }
+      } catch {
+        toast({ title: 'Kon je geschiedenis niet laden', description: 'Probeer het later opnieuw.', variant: 'warning' })
       }
       setLaden(false)
     }
@@ -112,7 +120,17 @@ export default function MeditatiePagina() {
       if (timerRef.current) clearInterval(timerRef.current)
       if (stapTimerRef.current) clearTimeout(stapTimerRef.current)
     }
-  }, [router])
+  }, [router, toast])
+
+  // Escape sluit een actieve sessie af (geen toetsenbordval).
+  useEffect(() => {
+    if (!bezig) return
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') stopSessie()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [bezig])
 
   function startSessie(sessie: typeof SESSIES[0]) {
     setGekozenSessie(sessie)
@@ -149,10 +167,13 @@ export default function MeditatiePagina() {
     setBezig(false)
     setKlaar(true)
     setSecondsLeft(0)
+    vitaEvent('habit_completed', { kind: 'meditatie' })
     authFetch('/api/focus/log', {
       method: 'POST',
       body: JSON.stringify({ duur_minuten: sessie.duur, type: 'adem' }),
-    }).catch(() => { /* niet-kritisch */ })
+    }).catch(() => {
+      toast({ title: 'Sessie niet opgeslagen', description: 'Je oefening telt nog steeds — we konden hem alleen niet vastleggen.', variant: 'warning' })
+    })
   }
 
   function stopSessie() {
@@ -241,90 +262,132 @@ export default function MeditatiePagina() {
 
         {/* Actieve sessie */}
         {bezig && gekozenSessie && (
-          <div style={{
-            position: 'relative', overflow: 'hidden',
-            background: 'linear-gradient(135deg, #111827, #1f2937)',
-            borderRadius: 24, padding: '32px 24px',
-            textAlign: 'center', marginBottom: 24,
-            color: 'white',
-          }}>
+          <section
+            aria-label={`Actieve sessie: ${gekozenSessie.titel}`}
+            style={{
+              position: 'relative', overflow: 'hidden',
+              background: 'var(--bg-subtle)',
+              border: '1px solid var(--border-strong)',
+              borderRadius: 24, padding: '32px 24px',
+              textAlign: 'center', marginBottom: 24,
+              color: 'var(--text-1)',
+            }}
+          >
             <MeditationParticles active={bezig} />
-            <div style={{ fontSize: 44, marginBottom: 12 }}>{gekozenSessie.emoji}</div>
-            <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.6)', marginBottom: 20 }}>{gekozenSessie.titel}</p>
+            <div style={{ fontSize: 44, marginBottom: 12 }} role="img" aria-label={gekozenSessie.titel}>{gekozenSessie.emoji}</div>
+            <p style={{ fontSize: 14, color: 'var(--text-3)', marginBottom: 20 }}>{gekozenSessie.titel}</p>
 
-            <div style={{ fontSize: 48, fontWeight: 800, fontVariantNumeric: 'tabular-nums', marginBottom: 8 }}>
+            <div
+              role="timer"
+              aria-label={`Resterende tijd: ${secNaarMinSec(secondsLeft)}`}
+              style={{ fontSize: 48, fontWeight: 800, fontVariantNumeric: 'tabular-nums', marginBottom: 8 }}
+            >
               {secNaarMinSec(secondsLeft)}
             </div>
 
             <div style={{
-              background: 'rgba(255,255,255,0.08)', borderRadius: 16,
+              background: 'var(--bg-card)', borderRadius: 16,
+              border: '1px solid var(--border)',
               padding: '16px 20px', margin: '20px 0',
               fontSize: 15, fontWeight: 600, lineHeight: 1.5,
-              color: 'rgba(255,255,255,0.92)',
+              color: 'var(--text-2)',
             }}>
               {gekozenSessie.stappen[stapIndex]?.tekst ?? ''}
             </div>
 
             {/* Voortgangsdots */}
-            <div style={{ display: 'flex', justifyContent: 'center', gap: 6, marginBottom: 20 }}>
+            <div
+              role="img"
+              aria-label={`Stap ${stapIndex + 1} van ${gekozenSessie.stappen.length}`}
+              style={{ display: 'flex', justifyContent: 'center', gap: 6, marginBottom: 20 }}
+            >
               {gekozenSessie.stappen.map((_, i) => (
-                <div key={i} style={{
+                <div key={i} aria-hidden style={{
                   width: 6, height: 6, borderRadius: '50%',
-                  background: i <= stapIndex ? 'var(--mf-green)' : 'rgba(255,255,255,0.2)',
+                  background: i <= stapIndex ? 'var(--mentaforce-primary)' : 'var(--border-strong)',
                   transition: 'background 0.3s',
                 }} />
               ))}
             </div>
 
-            <button onClick={stopSessie} style={{
-              background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)',
-              borderRadius: 10, padding: '10px 20px', color: 'rgba(255,255,255,0.6)',
-              fontSize: 12, cursor: 'pointer',
-            }}>
+            <button
+              type="button"
+              onClick={stopSessie}
+              aria-label="Sessie stoppen (of druk op Escape)"
+              className="mf-pressable"
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 8,
+                background: 'var(--bg-card)', border: '1px solid var(--border-strong)',
+                borderRadius: 10, padding: '10px 20px', color: 'var(--text-3)',
+                fontSize: 12, fontWeight: 600, cursor: 'pointer',
+              }}
+            >
+              <Square size={13} aria-hidden />
               Stoppen
             </button>
-          </div>
+          </section>
         )}
 
         {/* Klaar scherm */}
         {klaar && gekozenSessie && (
-          <div style={{
-            background: 'var(--mf-green-light)', borderRadius: 24, padding: '32px 24px',
-            textAlign: 'center', marginBottom: 24,
-            border: '1px solid #BBF7D0',
-          }}>
-            <div style={{ fontSize: 48, marginBottom: 12 }}>🌟</div>
+          <section
+            aria-label="Sessie voltooid"
+            style={{
+              background: 'var(--mf-green-light)', borderRadius: 24, padding: '32px 24px',
+              textAlign: 'center', marginBottom: 24,
+              border: '1px solid var(--mentaforce-primary)',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 12, color: 'var(--mentaforce-primary)' }}>
+              <Sparkles size={44} aria-hidden strokeWidth={1.75} />
+            </div>
             <h2 style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-1)', marginBottom: 8 }}>Goed gedaan!</h2>
             <p style={{ fontSize: 14, color: 'var(--text-3)', marginBottom: 20 }}>
               Je hebt {gekozenSessie.duur} minuten {gekozenSessie.titel.toLowerCase()} geoefend.
             </p>
-            <button onClick={() => { setKlaar(false); setGekozenSessie(null) }} style={{
-              background: 'linear-gradient(135deg, #1D9E75 0%, #16a34a 100%)',
-              color: 'white', border: 'none',
-              borderRadius: 12, padding: '12px 24px', fontSize: 14, fontWeight: 600, cursor: 'pointer',
-            }}>
+            <button
+              type="button"
+              onClick={() => { setKlaar(false); setGekozenSessie(null) }}
+              className="mf-pressable"
+              style={{
+                background: 'var(--mentaforce-primary)',
+                color: 'var(--bg-app)', border: 'none',
+                borderRadius: 12, padding: '12px 24px', fontSize: 14, fontWeight: 600, cursor: 'pointer',
+              }}
+            >
               Nieuwe sessie
             </button>
-          </div>
+          </section>
         )}
 
         {/* Sessiekeuze (niet bezig) */}
         {!bezig && !klaar && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {SESSIES.map(sessie => (
-              <button key={sessie.id} onClick={() => startSessie(sessie)} style={{
-                display: 'flex', alignItems: 'center', gap: 14,
-                background: 'var(--bg-card)', border: '1.5px solid var(--border)',
-                borderRadius: 16, padding: '16px 18px',
-                cursor: 'pointer', textAlign: 'left',
-                transition: 'border-color 0.15s, box-shadow 0.15s',
-              }}>
-                <div style={{
-                  width: 48, height: 48, borderRadius: 14, flexShrink: 0,
-                  background: 'var(--mf-green-light)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 22,
-                }}>
+              <button
+                key={sessie.id}
+                type="button"
+                onClick={() => startSessie(sessie)}
+                aria-label={`Start ${sessie.titel}, ${sessie.duur} minuten`}
+                className="mf-pressable"
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 14,
+                  background: 'var(--bg-card)', border: '1.5px solid var(--border)',
+                  borderRadius: 16, padding: '16px 18px',
+                  cursor: 'pointer', textAlign: 'left',
+                  transition: 'border-color 0.15s, box-shadow 0.15s',
+                }}
+              >
+                <div
+                  role="img"
+                  aria-label={sessie.titel}
+                  style={{
+                    width: 48, height: 48, borderRadius: 14, flexShrink: 0,
+                    background: 'var(--mf-green-light)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: 22,
+                  }}
+                >
                   {sessie.emoji}
                 </div>
                 <div style={{ flex: 1 }}>
@@ -332,7 +395,7 @@ export default function MeditatiePagina() {
                   <p style={{ fontSize: 12, color: 'var(--text-4)' }}>{sessie.beschrijving}</p>
                 </div>
                 <div style={{ flexShrink: 0, textAlign: 'right' }}>
-                  <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--mf-green)' }}>{sessie.duur} min</p>
+                  <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--mentaforce-primary)' }}>{sessie.duur} min</p>
                 </div>
               </button>
             ))}

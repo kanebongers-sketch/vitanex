@@ -5,9 +5,12 @@ export const dynamic = 'force-dynamic'
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import nextDynamic from 'next/dynamic'
+import { Sparkles, Square, ArrowRight } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
+import { useToast } from '@/components/ui/Toast'
+import { vitaEvent } from '@/lib/vita/events'
 
 const BreathingSphere = nextDynamic(() => import('@/components/three/BreathingSphere'), { ssr: false })
 
@@ -73,6 +76,7 @@ const TECHNIEKEN: Techniek[] = [
 
 export default function AdemhalingPage() {
   const router = useRouter()
+  const { toast } = useToast()
   const [gekozen, setGekozen] = useState<Techniek | null>(null)
   const [bezig, setBezig] = useState(false)
   const [klaar, setKlaar] = useState(false)
@@ -91,6 +95,16 @@ export default function AdemhalingPage() {
   useEffect(() => {
     return () => { if (timerRef.current) clearInterval(timerRef.current) }
   }, [])
+
+  // Escape sluit een actieve oefening af (geen toetsenbordval).
+  useEffect(() => {
+    if (!bezig) return
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') stop()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [bezig])
 
   function start() {
     if (!gekozen) return
@@ -112,12 +126,15 @@ export default function AdemhalingPage() {
                   clearInterval(timerRef.current!)
                   setBezig(false)
                   setKlaar(true)
+                  vitaEvent('habit_completed', { kind: 'ademhaling' })
                   const duur = Math.round((new Date().getTime() - startRef.current!.getTime()) / 60000)
                   authFetch('/api/focus/sessie', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ type: 'adem', duur_minuten: Math.max(1, duur) }),
-                  }).catch(() => {})
+                  }).catch(() => {
+                    toast({ title: 'Sessie niet opgeslagen', description: 'Je oefening telt nog steeds — we konden hem alleen niet vastleggen.', variant: 'warning' })
+                  })
                   return volgendeRonde
                 }
                 return volgendeRonde
@@ -163,10 +180,10 @@ export default function AdemhalingPage() {
 
   const faseBg = bezig
     ? (faseNaam.includes('Inademen') || faseNaam.includes('Snel'))
-      ? 'linear-gradient(180deg, #E1F5EE 0%, transparent 50%)'
+      ? 'linear-gradient(180deg, var(--mf-green-light) 0%, transparent 50%)'
       : faseNaam.includes('Uitademen') || faseNaam.includes('Loslaten')
-      ? 'linear-gradient(180deg, #EBF4FB 0%, transparent 50%)'
-      : 'linear-gradient(180deg, #F5F3FF 0%, transparent 50%)'
+      ? 'linear-gradient(180deg, var(--mf-blue-light) 0%, transparent 50%)'
+      : 'linear-gradient(180deg, var(--mf-purple-light) 0%, transparent 50%)'
     : 'none'
 
   return (
@@ -181,31 +198,39 @@ export default function AdemhalingPage() {
           <>
             {/* Technieken grid */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12, marginBottom: 24 }}>
-              {TECHNIEKEN.map(t => (
-                <div
-                  key={t.id}
-                  onClick={() => setGekozen(t)}
-                  style={{
-                    background: 'var(--bg-card)', borderRadius: 16, padding: '18px 20px',
-                    border: `1.5px solid ${gekozen?.id === t.id ? 'var(--mf-green)' : 'var(--border)'}`,
-                    cursor: 'pointer',
-                    boxShadow: gekozen?.id === t.id ? '0 0 0 3px var(--mf-green-light)' : 'none',
-                    transition: 'all 0.15s ease',
-                  }}
-                >
-                  <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
-                    {t.fasen.map(f => (
-                      <div key={f.naam} style={{ height: 4, flex: f.seconden, borderRadius: 100, background: f.kleur }} />
-                    ))}
-                  </div>
-                  <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-1)', marginBottom: 4 }}>{t.naam}</p>
-                  <p style={{ fontSize: 11, color: 'var(--text-4)', lineHeight: 1.4, marginBottom: 8 }}>{t.beschrijving}</p>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--mf-green)', background: 'var(--mf-green-light)', padding: '2px 8px', borderRadius: 100 }}>{t.doel}</span>
-                    <span style={{ fontSize: 11, color: 'var(--text-4)' }}>{t.rondes} rondes · {Math.round((t.fasen.reduce((s, f) => s + f.seconden, 0) * t.rondes) / 60)} min</span>
-                  </div>
-                </div>
-              ))}
+              {TECHNIEKEN.map(t => {
+                const isGekozen = gekozen?.id === t.id
+                return (
+                  <button
+                    key={t.id}
+                    type="button"
+                    onClick={() => setGekozen(t)}
+                    aria-pressed={isGekozen}
+                    aria-label={`Kies ${t.naam} — ${t.doel}`}
+                    className="mf-pressable"
+                    style={{
+                      display: 'block', width: '100%', textAlign: 'left',
+                      background: 'var(--bg-card)', borderRadius: 16, padding: '18px 20px',
+                      border: `1.5px solid ${isGekozen ? 'var(--mentaforce-primary)' : 'var(--border)'}`,
+                      cursor: 'pointer',
+                      boxShadow: isGekozen ? '0 0 0 3px var(--mentaforce-primary-light)' : 'none',
+                      transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
+                    }}
+                  >
+                    <div style={{ display: 'flex', gap: 6, marginBottom: 8 }} aria-hidden>
+                      {t.fasen.map((f, fi) => (
+                        <div key={fi} style={{ height: 4, flex: f.seconden, borderRadius: 100, background: f.kleur }} />
+                      ))}
+                    </div>
+                    <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-1)', marginBottom: 4 }}>{t.naam}</p>
+                    <p style={{ fontSize: 11, color: 'var(--text-4)', lineHeight: 1.4, marginBottom: 8 }}>{t.beschrijving}</p>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--mentaforce-primary)', background: 'var(--mentaforce-primary-light)', padding: '2px 8px', borderRadius: 100 }}>{t.doel}</span>
+                      <span style={{ fontSize: 11, color: 'var(--text-4)' }}>{t.rondes} rondes · {Math.round((t.fasen.reduce((s, f) => s + f.seconden, 0) * t.rondes) / 60)} min</span>
+                    </div>
+                  </button>
+                )
+              })}
             </div>
 
             {gekozen && (
@@ -224,50 +249,61 @@ export default function AdemhalingPage() {
             )}
 
             <button
+              type="button"
               onClick={start}
               disabled={!gekozen}
+              aria-label={gekozen ? `Start ${gekozen.naam}` : 'Kies eerst een techniek'}
+              className="mf-pressable"
               style={{
-                width: '100%', padding: '14px', borderRadius: 14, background: 'var(--mf-green)',
-                color: 'white', border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: 15,
+                display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                width: '100%', padding: '14px', borderRadius: 14, background: 'var(--mentaforce-primary)',
+                color: 'var(--bg-app)', border: 'none', cursor: gekozen ? 'pointer' : 'not-allowed', fontWeight: 700, fontSize: 15,
                 opacity: gekozen ? 1 : 0.4,
               }}
             >
-              Start oefening →
+              Start oefening
+              <ArrowRight size={17} aria-hidden />
             </button>
           </>
         ) : klaar ? (
-          <div style={{ textAlign: 'center', padding: '40px 0' }}>
-            <div style={{ fontSize: 48, marginBottom: 16 }}>🧘</div>
+          <section aria-label="Oefening voltooid" style={{ textAlign: 'center', padding: '40px 0' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16, color: 'var(--mentaforce-primary)' }}>
+              <Sparkles size={48} aria-hidden strokeWidth={1.75} />
+            </div>
             <h2 style={{ fontSize: 20, fontWeight: 800, color: 'var(--text-1)', marginBottom: 8 }}>Goed gedaan!</h2>
             <p style={{ fontSize: 14, color: 'var(--text-3)', marginBottom: 28 }}>
               Je hebt {gekozen?.rondes} rondes {gekozen?.naam} voltooid.<br/>
               Neem even de tijd om de rust te voelen.
             </p>
             <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
-              <button onClick={() => { setKlaar(false); setGekozen(null) }} style={{ padding: '12px 24px', borderRadius: 12, border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text-2)', fontWeight: 600, fontSize: 14, cursor: 'pointer' }}>
+              <button type="button" onClick={() => { setKlaar(false); setGekozen(null) }} className="mf-pressable" style={{ padding: '12px 24px', borderRadius: 12, border: '1px solid var(--border-strong)', background: 'var(--bg-card)', color: 'var(--text-2)', fontWeight: 600, fontSize: 14, cursor: 'pointer' }}>
                 Andere oefening
               </button>
-              <button onClick={start} style={{ padding: '12px 24px', borderRadius: 12, background: 'var(--mf-green)', color: 'white', border: 'none', fontWeight: 600, fontSize: 14, cursor: 'pointer' }}>
+              <button type="button" onClick={start} className="mf-pressable" style={{ padding: '12px 24px', borderRadius: 12, background: 'var(--mentaforce-primary)', color: 'var(--bg-app)', border: 'none', fontWeight: 600, fontSize: 14, cursor: 'pointer' }}>
                 Herhalen
               </button>
             </div>
-          </div>
+          </section>
         ) : (
           /* Actieve sessie */
-          <div style={{ textAlign: 'center', paddingTop: 20, borderRadius: 24, background: faseBg, transition: 'background 1.2s ease' }}>
+          <section aria-label={`Actieve oefening: ${gekozen!.naam}`} style={{ textAlign: 'center', paddingTop: 20, borderRadius: 24, background: faseBg, transition: 'background 1.2s ease' }}>
             <p style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-4)', marginBottom: 24 }}>
               Ronde {ronde + 1} van {gekozen!.rondes}
             </p>
 
             {/* Cirkel + 3D bol */}
-            <div style={{ position: 'relative', display: 'inline-block', marginBottom: 28, width: 200, height: 200 }}>
+            <div
+              role="img"
+              aria-label={`${faseNaam}, nog ${countdown} seconden — ronde ${ronde + 1} van ${gekozen!.rondes}`}
+              style={{ position: 'relative', display: 'inline-block', marginBottom: 28, width: 200, height: 200 }}
+            >
               {/* 3D ademhalingssphere */}
-              <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
+              <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }} aria-hidden>
                 <BreathingSphere scale={schaal} phaseName={faseNaam} active={bezig} size={200} />
               </div>
 
               {/* SVG voortgangsring + tekst (boven de bol) */}
-              <svg width={200} height={200} style={{ position: 'absolute', inset: 0 }}>
+              <svg width={200} height={200} style={{ position: 'absolute', inset: 0 }} aria-hidden focusable="false">
                 <circle cx={100} cy={100} r={r} fill="none" stroke="var(--border-strong)" strokeWidth={6} opacity={0.35} />
                 <circle
                   cx={100} cy={100} r={r} fill="none"
@@ -288,19 +324,27 @@ export default function AdemhalingPage() {
               </svg>
             </div>
 
-            <div style={{ display: 'flex', gap: 6, justifyContent: 'center', marginBottom: 28 }}>
+            <div
+              role="img"
+              aria-label={`Fase ${fase + 1} van ${gekozen!.fasen.length}`}
+              style={{ display: 'flex', gap: 6, justifyContent: 'center', marginBottom: 28 }}
+            >
               {gekozen!.fasen.map((f, i) => (
-                <div key={i} style={{ height: 6, width: 32, borderRadius: 100, background: i === fase ? f.kleur : 'var(--border)', transition: 'background 0.3s' }} />
+                <div key={i} aria-hidden style={{ height: 6, width: 32, borderRadius: 100, background: i === fase ? f.kleur : 'var(--border-strong)', transition: 'background 0.3s' }} />
               ))}
             </div>
 
             <button
+              type="button"
               onClick={stop}
-              style={{ padding: '12px 28px', borderRadius: 12, border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text-3)', fontWeight: 600, fontSize: 14, cursor: 'pointer' }}
+              aria-label="Oefening stoppen (of druk op Escape)"
+              className="mf-pressable"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '12px 28px', borderRadius: 12, border: '1px solid var(--border-strong)', background: 'var(--bg-card)', color: 'var(--text-3)', fontWeight: 600, fontSize: 14, cursor: 'pointer' }}
             >
+              <Square size={14} aria-hidden />
               Stoppen
             </button>
-          </div>
+          </section>
         )}
       </main>
     </div>
