@@ -1,61 +1,83 @@
 @import "tailwindcss";
 
+/* Token → Tailwind-utility brug (v4). Stelt o.a. bg-app, bg-card, text-ink,
+   border-line, rounded-card en font-grotesk beschikbaar als utilities, zodat
+   componenten tokens gebruiken i.p.v. hardcoded hex. */
+@theme inline {
+  --color-app: var(--bg-app);
+  --color-card: var(--bg-card);
+  --color-subtle: var(--bg-subtle);
+  --color-ink: var(--text-1);
+  --color-ink-2: var(--text-2);
+  --color-ink-3: var(--text-3);
+  --color-ink-4: var(--text-4);
+  --color-accent: var(--mentaforce-primary);
+  --color-line: var(--border);
+  --color-line-strong: var(--border-strong);
+  --radius-card: var(--radius-card);
+  --radius-btn: var(--radius-btn);
+  --font-grotesk: var(--font-grotesk);
+}
+
 /* ═══════════════════════════════════════════════════════════
-   MentaForce — Premium Design System
+   MentaForce — Premium Design System (navy/cyan, donker)
    ═══════════════════════════════════════════════════════════ */
 
 :root {
   /* Brand */
-  --mf-green:        #1D9E75;
-  --mf-green-light:  #E1F5EE;
-  --mf-green-dark:   #0F6E56;
-  --mf-green-mid:    #15785A;
-  --mf-blue:         #185FA5;
-  --mf-blue-mid:     #378ADD;
-  --mf-blue-light:   #E6F1FB;
-  --mf-purple:       #8B5CF6;
-  --mf-purple-light: #EDE9FE;
-  --mf-amber:        #BA7517;
-  --mf-amber-mid:    #B45309;
-  --mf-amber-dark:   #92400E;
-  --mf-amber-light:  #FAEEDA;
-  --mf-red:          #E24B4A;
-  --mf-red-light:    #FCEBEB;
-  --mf-rose:         #9D174D;
-  --mf-rose-light:   #FDF2F8;
-  --mf-orange:       #EA580C;
-  --mf-orange-mid:   #C2410C;
-  --mf-orange-dark:  #9A3412;
-  --mf-orange-light: #FFF7ED;
+  /* Primair accent = cyaan. Status/data-kleuren gedempt en afgestemd op de
+     donkere navy (alleen voor echte status/datavisualisatie, niet decoratief). */
+  --mf-green:        #00E5FF;
+  --mf-green-light:  rgba(0, 229, 255, 0.14);
+  --mf-green-dark:   #16B6CC;
+  --mf-green-mid:    #00C8E0;
+  --mf-blue:         #5AA2FF;
+  --mf-blue-mid:     #7FB6FF;
+  --mf-blue-light:   rgba(90, 162, 255, 0.14);
+  --mf-purple:       #A78BFA;
+  --mf-purple-light: rgba(167, 139, 250, 0.14);
+  --mf-amber:        #F5B544;
+  --mf-amber-mid:    #E0A02E;
+  --mf-amber-dark:   #C8861A;
+  --mf-amber-light:  rgba(245, 181, 68, 0.14);
+  --mf-red:          #FF6B6B;
+  --mf-red-light:    rgba(255, 107, 107, 0.14);
+  --mf-rose:         #FB7185;
+  --mf-rose-light:   rgba(251, 113, 133, 0.12);
+  --mf-orange:       #FB923C;
+  --mf-orange-mid:   #F08334;
+  --mf-orange-dark:  #D9722A;
+  --mf-orange-light: rgba(251, 146, 60, 0.12);
 
-  /* Legacy aliases kept for existing pages */
-  --mentaforce-primary:       #1D9E75;
-  --mentaforce-primary-light: #E1F5EE;
-  --mentaforce-primary-dark:  #0F6E56;
-  --mentaforce-accent:        #185FA5;
-  --mentaforce-accent-light:  #E6F1FB;
+  /* Legacy aliases kept for existing pages — nu cyaan-accent */
+  --mentaforce-primary:       #00E5FF;
+  --mentaforce-primary-light: rgba(0, 229, 255, 0.14);
+  --mentaforce-primary-dark:  #16B6CC;
+  --mentaforce-accent:        #00E5FF;
+  --mentaforce-accent-light:  rgba(0, 229, 255, 0.12);
 
-  /* Surface */
-  --bg-app:    #F4F6F8;
-  --bg-card:   #FFFFFF;
-  --bg-subtle: #F9FAFB;
+  /* Surface — gelaagd donker navy */
+  --bg-app:    #060E1C;
+  --bg-card:   #0E1F3D;
+  --bg-subtle: #0A1730;
+  --bg-card-border: rgba(234, 242, 255, 0.10);
 
-  /* Text */
-  --text-1: #0D1117;
-  --text-2: #374151;
-  --text-3: #6B7280;
-  --text-4: #9CA3AF;
+  /* Text — inkt op navy */
+  --text-1: #EAF2FF;
+  --text-2: rgba(234, 242, 255, 0.74);
+  --text-3: rgba(234, 242, 255, 0.52);
+  --text-4: rgba(234, 242, 255, 0.36);
 
   /* Border */
-  --border:       rgba(0, 0, 0, 0.07);
-  --border-strong: rgba(0, 0, 0, 0.12);
+  --border:        rgba(234, 242, 255, 0.10);
+  --border-strong: rgba(234, 242, 255, 0.18);
 
-  /* Shadows — premium, layered */
-  --shadow-xs:  0 1px 2px rgba(0,0,0,0.04), 0 0 0 1px rgba(0,0,0,0.04);
-  --shadow-sm:  0 1px 4px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04);
-  --shadow-md:  0 4px 16px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04);
-  --shadow-lg:  0 8px 32px rgba(0,0,0,0.10), 0 2px 8px rgba(0,0,0,0.06);
-  --shadow-xl:  0 20px 60px rgba(0,0,0,0.14), 0 4px 16px rgba(0,0,0,0.06);
+  /* Shadows — diep voor donker thema, met subtiele licht-lift */
+  --shadow-xs:  0 1px 2px rgba(0,0,0,0.40), 0 0 0 1px rgba(234,242,255,0.04);
+  --shadow-sm:  0 1px 4px rgba(0,0,0,0.45), 0 0 0 1px rgba(234,242,255,0.04);
+  --shadow-md:  0 4px 16px rgba(0,0,0,0.55), 0 1px 4px rgba(0,0,0,0.30);
+  --shadow-lg:  0 8px 32px rgba(0,0,0,0.60), 0 2px 8px rgba(0,0,0,0.40);
+  --shadow-xl:  0 20px 60px rgba(0,0,0,0.70), 0 4px 16px rgba(0,0,0,0.40);
 
   /* Radius */
   --radius-xs: 6px;
@@ -67,8 +89,8 @@
   --radius-btn: 10px;
 
   /* Shadows — semantic aliases */
-  --shadow-card:     0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
-  --shadow-elevated: 0 4px 16px rgba(0,0,0,0.10);
+  --shadow-card:     0 1px 3px rgba(0,0,0,0.45), 0 0 0 1px rgba(234,242,255,0.05);
+  --shadow-elevated: 0 8px 28px rgba(0,0,0,0.55);
 
   /* Transition */
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
@@ -211,7 +233,7 @@ html {
 body {
   background: var(--bg-app, #F4F6F8);
   color: var(--text-1, #0D1117);
-  font-family: var(--font-geist-sans), -apple-system, BlinkMacSystemFont,
+  font-family: var(--font-grotesk), -apple-system, BlinkMacSystemFont,
     'Inter', 'Segoe UI', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -1073,9 +1095,9 @@ body.mf-has-sidebar > * {
   --shadow-green-glow: 0 0 0 1px rgba(31,189,136,0.18), 0 4px 28px rgba(31,189,136,0.22), 0 1px 8px rgba(31,189,136,0.12);
 }
 
-/* Update body font to use Plus Jakarta Sans */
+/* App-font: Space Grotesk (merk) */
 body {
-  font-family: var(--font-sans);
+  font-family: var(--font-grotesk), system-ui, sans-serif;
 }
 
 /* ── Display typography (Instrument Serif) ──────────────────────── */
