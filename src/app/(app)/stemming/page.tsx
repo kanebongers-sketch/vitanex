@@ -169,9 +169,9 @@ export default function StemmingPagina() {
             <div style={{
               width: 112, height: 112, borderRadius: '50%',
               background: geselecteerd.achtergrond,
-              border: `2px solid ${geselecteerd.kleur}30`,
+              border: `2px solid color-mix(in srgb, ${geselecteerd.kleur} 19%, transparent)`,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: `0 8px 32px ${geselecteerd.kleur}20`,
+              boxShadow: `0 8px 32px color-mix(in srgb, ${geselecteerd.kleur} 13%, transparent)`,
               transition: 'background 0.3s ease, box-shadow 0.3s ease',
             }}>
               <span aria-hidden style={{ fontSize: 56, lineHeight: 1, display: 'block', transition: 'transform 0.2s cubic-bezier(0.34,1.56,0.64,1)' }}>

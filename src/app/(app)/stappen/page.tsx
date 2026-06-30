@@ -422,7 +422,11 @@ export default function StappenPage() {
             })()}
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 10, paddingTop: 10, borderTop: '1px solid var(--border)' }}>
               <span style={{ fontSize: 11, color: 'var(--text-4)' }}>
-                Gem: {dagen.length ? Math.round(dagen.reduce((s, d) => s + (d.stappen ?? 0), 0) / dagen.filter(d => (d.stappen ?? 0) > 0).length || 0).toLocaleString('nl-NL') : '–'} stappen
+                Gem: {(() => {
+                  const actief = dagen.filter(d => (d.stappen ?? 0) > 0).length
+                  if (!actief) return '–'
+                  return Math.round(dagen.reduce((s, d) => s + (d.stappen ?? 0), 0) / actief).toLocaleString('nl-NL')
+                })()} stappen
               </span>
               <span style={{ fontSize: 11, color: 'var(--text-4)' }}>
                 Totaal: {dagen.reduce((s, d) => s + (d.stappen ?? 0), 0).toLocaleString('nl-NL')}

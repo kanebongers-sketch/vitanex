@@ -381,6 +381,7 @@ export default function VitaCompanion() {
   const didDrag = useRef(false)
   const lastNudgeRef = useRef<number>(0)
   const emotionResetRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const restEmotionRef = useRef<EmotionState>('calm')   // score-gebaseerde rust-emotie om naar terug te keren
 
   const isHidden = HIDDEN_ROUTES.some(r => pathname.startsWith(r))
 
@@ -388,7 +389,9 @@ export default function VitaCompanion() {
     const cached = getCache<ReadinessData>(READINESS_CACHE_KEY)
     if (cached) {
       setData(cached)
-      setEmotion(emotionFromScore(cached.score))
+      const rust = emotionFromScore(cached.score)
+      restEmotionRef.current = rust
+      setEmotion(rust)
       return
     }
     try {
@@ -396,7 +399,9 @@ export default function VitaCompanion() {
       if (!res.ok) return
       const json = await res.json() as ReadinessData
       setData(json)
-      setEmotion(emotionFromScore(json.score))
+      const rust = emotionFromScore(json.score)
+      restEmotionRef.current = rust
+      setEmotion(rust)
       setCache(READINESS_CACHE_KEY, json)
     } catch {}
   }, [])
@@ -526,7 +531,7 @@ export default function VitaCompanion() {
         if (emotionResetRef.current) clearTimeout(emotionResetRef.current)
         setEmotion(newEmotion)
         emotionResetRef.current = setTimeout(() => {
-          setEmotion(prev => prev)
+          setEmotion(restEmotionRef.current)
         }, 8000)
       }
       const now = Date.now()
