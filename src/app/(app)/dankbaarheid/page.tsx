@@ -2,12 +2,15 @@
 
 export const dynamic = 'force-dynamic'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useId, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { Heart, Sparkle, X, Check } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
 import { getActiviteit } from '@/lib/activiteiten'
+import { useToast } from '@/components/ui/Toast'
+import { vitaEvent } from '@/lib/vita/events'
 
 const ACT = getActiviteit('dankbaarheid')
 
@@ -43,6 +46,8 @@ const SUGGESTIE_SETS = [
 
 export default function DankbaarheidPagina() {
   const router = useRouter()
+  const { toast } = useToast()
+  const veldId = useId()
   const [logs, setLogs] = useState<DankbaarheidLog[]>([])
   const [items, setItems] = useState(['', '', ''])
   const [laden, setLaden] = useState(true)
@@ -64,12 +69,16 @@ export default function DankbaarheidPagina() {
           const vandaag = new Date().toISOString().split('T')[0]
           const vandaagLog = json.logs.find(l => l.datum === vandaag)
           if (vandaagLog) setItems([...vandaagLog.items, '', ''].slice(0, 3))
+        } else {
+          toast({ title: 'Laden mislukt', description: 'Je eerdere entries konden niet worden opgehaald.', variant: 'error' })
         }
-      } catch { /* niet-kritiek */ }
+      } catch {
+        toast({ title: 'Geen verbinding', description: 'Je eerdere entries konden niet worden opgehaald.', variant: 'error' })
+      }
       setLaden(false)
     }
     laad()
-  }, [router])
+  }, [router, toast])
 
   async function slaOp() {
     const geldig = items.map(i => i.trim()).filter(Boolean)
@@ -87,13 +96,18 @@ export default function DankbaarheidPagina() {
           const rest = prev.filter(l => l.datum !== json.log.datum)
           return [json.log, ...rest]
         })
+        vitaEvent('habit_completed', { kind: 'dankbaarheid' })
         setSucces(true)
         setTimeout(() => {
           setSucces(false)
           router.push('/vandaag')
         }, 1200)
+      } else {
+        toast({ title: 'Opslaan mislukt', description: 'Je dankbaarheid kon niet worden opgeslagen. Probeer het opnieuw.', variant: 'error' })
       }
-    } catch { /* toon geen fout, stil falen */ }
+    } catch {
+      toast({ title: 'Opslaan mislukt', description: 'Je dankbaarheid kon niet worden opgeslagen. Controleer je verbinding.', variant: 'error' })
+    }
     setOpslaan(false)
   }
 
@@ -116,14 +130,14 @@ export default function DankbaarheidPagina() {
 
         <header style={{ marginBottom: 24 }}>
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
-            <span style={{ width: 10, height: 10, borderRadius: '50%', background: ACT.kleur, flexShrink: 0 }} />
-            <span style={{ fontSize: 11, fontWeight: 700, color: ACT.kleur, textTransform: 'uppercase', letterSpacing: '0.08em' }}>{ACT.label}</span>
+            <span aria-hidden style={{ width: 10, height: 10, borderRadius: '50%', background: 'var(--mentaforce-primary)', flexShrink: 0 }} />
+            <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--mentaforce-primary)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{ACT.label}</span>
           </span>
           <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 4 }}>
             Dankbaarheidslogboek
           </h1>
           <p style={{ fontSize: 13, color: 'var(--text-4)' }}>
-            Drie dingen per dag. Wetenschappelijk bewezen positief effect op welzijn.
+            Drie dingen per dag. Een gewoonte uit de positieve psychologie.
           </p>
         </header>
 
@@ -155,7 +169,7 @@ export default function DankbaarheidPagina() {
                       outlineOffset: 2,
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                     }}>
-                      {actief && <span style={{ fontSize: 12 }}>🙏</span>}
+                      {actief && <Heart size={12} aria-label="Dankbaarheid genoteerd op deze dag" fill="var(--bg-app)" style={{ color: 'var(--bg-app)' }} />}
                     </div>
                     <span style={{ fontSize: 8, color: isVandaag ? 'var(--text-2)' : 'var(--text-4)', fontWeight: isVandaag ? 800 : 400, textTransform: 'capitalize' }}>{dag}</span>
                   </div>
@@ -172,18 +186,18 @@ export default function DankbaarheidPagina() {
         })()}
 
         {/* Dankbaarheid orb */}
-        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8 }}>
-          <div style={{ width: 100, height: 100, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
+        <div aria-hidden style={{ display: 'flex', justifyContent: 'center', marginBottom: 8 }}>
+          <div style={{ width: 100, height: 100, borderRadius: '50%', background: 'radial-gradient(circle, var(--mf-green-light) 0%, transparent 70%)' }} />
         </div>
 
         {/* Invoer sectie */}
         <section style={{
           background: 'var(--bg-card)', borderRadius: 20, padding: '20px',
           border: '1px solid var(--border)', marginBottom: 24,
-          boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
+          boxShadow: 'var(--shadow-md)',
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-            <span style={{ fontSize: 20 }}>🙏</span>
+            <Heart size={20} aria-hidden style={{ color: 'var(--mf-green)' }} />
             <div>
               <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-1)' }}>
                 {heeftVandaag ? 'Aanpassen' : 'Vandaag dankbaar voor…'}
@@ -194,79 +208,92 @@ export default function DankbaarheidPagina() {
             </div>
           </div>
 
-          {items.map((item, i) => (
-            <div key={i} style={{ marginBottom: 12 }}>
-              <div style={{
-                display: 'flex', alignItems: 'center', gap: 10,
-                background: activeFocus === i ? 'var(--bg-card)' : 'var(--bg-subtle)',
-                borderRadius: 12, padding: '10px 14px',
-                border: activeFocus === i ? '1.5px solid var(--mf-green)' : '1px solid var(--border)',
-                transition: 'border-color 0.15s, background 0.15s',
-              }}>
-                <span style={{ fontSize: 14, color: 'var(--mf-green)', fontWeight: 700, minWidth: 18 }}>{i + 1}.</span>
-                <input
-                  type="text"
-                  value={item}
-                  onChange={e => setItems(prev => prev.map((v, j) => j === i ? e.target.value : v))}
-                  placeholder={PLACEHOLDERS[i % PLACEHOLDERS.length]}
-                  maxLength={200}
-                  style={{
-                    flex: 1, background: 'transparent', border: 'none', outline: 'none',
-                    fontSize: 13, color: 'var(--text-2)',
-                  }}
-                  onFocus={() => setActiveFocus(i)}
-                  onBlur={() => setActiveFocus(null)}
-                  onKeyDown={e => e.key === 'Enter' && slaOp()}
-                />
-                {item && (
-                  <button
-                    onClick={() => setItems(prev => prev.map((v, j) => j === i ? '' : v))}
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-4)', fontSize: 14, padding: '0 2px' }}
-                    aria-label="Wis veld"
-                  >
-                    ×
-                  </button>
+          {items.map((item, i) => {
+            const inputId = `${veldId}-item-${i}`
+            const suggestiesId = `${veldId}-suggesties-${i}`
+            const toonSuggesties = activeFocus === i && !item
+            return (
+              <div key={i} style={{ marginBottom: 12 }}>
+                <label htmlFor={inputId} style={{
+                  display: 'flex', alignItems: 'center', gap: 10,
+                  background: 'var(--bg-subtle)',
+                  borderRadius: 12, padding: '10px 14px',
+                  border: activeFocus === i ? '1.5px solid var(--mf-green)' : '1px solid var(--border)',
+                  transition: 'border-color 0.15s var(--ease)',
+                  cursor: 'text',
+                }}>
+                  <span aria-hidden style={{ fontSize: 14, color: 'var(--mf-green)', fontWeight: 700, minWidth: 18 }}>{i + 1}.</span>
+                  <span className="sr-only">Dankbaar voor, item {i + 1}</span>
+                  <input
+                    id={inputId}
+                    type="text"
+                    value={item}
+                    onChange={e => setItems(prev => prev.map((v, j) => j === i ? e.target.value : v))}
+                    placeholder={PLACEHOLDERS[i % PLACEHOLDERS.length]}
+                    maxLength={200}
+                    aria-describedby={toonSuggesties ? suggestiesId : undefined}
+                    style={{
+                      flex: 1, background: 'transparent', border: 'none', outline: 'none',
+                      fontSize: 13, color: 'var(--text-1)',
+                    }}
+                    onFocus={() => setActiveFocus(i)}
+                    onBlur={() => setActiveFocus(null)}
+                    onKeyDown={e => e.key === 'Enter' && slaOp()}
+                  />
+                  {item && (
+                    <button
+                      type="button"
+                      onClick={() => setItems(prev => prev.map((v, j) => j === i ? '' : v))}
+                      style={{ display: 'inline-flex', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-4)', padding: '0 2px' }}
+                      aria-label="Wis veld"
+                    >
+                      <X size={14} aria-hidden />
+                    </button>
+                  )}
+                </label>
+                {toonSuggesties && (
+                  <div id={suggestiesId} style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8, paddingLeft: 4 }}>
+                    {SUGGESTIE_SETS[i % SUGGESTIE_SETS.length].map(sug => (
+                      <button
+                        key={sug}
+                        type="button"
+                        onMouseDown={e => {
+                          e.preventDefault()
+                          setItems(prev => prev.map((v, j) => j === i ? sug : v))
+                        }}
+                        style={{
+                          fontSize: 11, fontWeight: 600, padding: '4px 10px', borderRadius: 20,
+                          background: 'var(--mf-green-light)', color: 'var(--mf-green)',
+                          border: '1px solid var(--border-strong)', cursor: 'pointer',
+                        }}
+                      >
+                        {sug}
+                      </button>
+                    ))}
+                  </div>
                 )}
               </div>
-              {activeFocus === i && !item && (
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8, paddingLeft: 4 }}>
-                  {SUGGESTIE_SETS[i % SUGGESTIE_SETS.length].map(sug => (
-                    <button
-                      key={sug}
-                      onMouseDown={e => {
-                        e.preventDefault()
-                        setItems(prev => prev.map((v, j) => j === i ? sug : v))
-                      }}
-                      style={{
-                        fontSize: 11, fontWeight: 600, padding: '4px 10px', borderRadius: 20,
-                        background: 'var(--mf-green-light)', color: 'var(--mf-green-dark)',
-                        border: '1px solid rgba(29,158,117,0.2)', cursor: 'pointer',
-                        transition: 'background 0.1s',
-                      }}
-                    >
-                      {sug}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
+            )
+          })}
 
           <button
+            type="button"
             onClick={slaOp}
             disabled={opslaan || !items.some(i => i.trim())}
             style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
               width: '100%', padding: '12px', borderRadius: 12, marginTop: 6,
               background: succes
                 ? 'var(--mf-green)'
-                : 'linear-gradient(135deg, #1D9E75 0%, #16a34a 100%)',
-              color: 'white', border: 'none', cursor: 'pointer',
+                : 'linear-gradient(135deg, var(--mf-green) 0%, var(--mf-green-dark) 100%)',
+              color: 'var(--bg-app)', border: 'none',
+              cursor: opslaan || !items.some(i => i.trim()) ? 'default' : 'pointer',
               fontSize: 14, fontWeight: 700,
               opacity: opslaan || !items.some(i => i.trim()) ? 0.6 : 1,
-              transition: 'background 0.3s ease, opacity 0.15s ease',
+              transition: 'opacity 0.15s var(--ease)',
             }}
           >
-            {succes ? '✓ Opgeslagen!' : opslaan ? 'Opslaan…' : heeftVandaag ? 'Bijwerken' : 'Opslaan'}
+            {succes ? <><Check size={16} aria-hidden /> Opgeslagen!</> : opslaan ? 'Opslaan…' : heeftVandaag ? 'Bijwerken' : 'Opslaan'}
           </button>
         </section>
 
@@ -291,7 +318,7 @@ export default function DankbaarheidPagina() {
                   <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 5 }}>
                     {log.items.map((item, i) => (
                       <li key={i} style={{ fontSize: 13, color: 'var(--text-2)', display: 'flex', gap: 8, alignItems: 'flex-start' }}>
-                        <span style={{ color: 'var(--mf-green-light)', fontWeight: 700, flexShrink: 0, marginTop: 1 }}>✦</span>
+                        <Sparkle size={12} aria-hidden style={{ color: 'var(--mf-green)', flexShrink: 0, marginTop: 2 }} />
                         {item}
                       </li>
                     ))}
