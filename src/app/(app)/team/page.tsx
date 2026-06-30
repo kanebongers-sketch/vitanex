@@ -8,6 +8,7 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { Avatar } from '@/components/Avatar'
+import { Check, AlertCircle, Copy } from 'lucide-react'
 
 type Token = {
   id: string
@@ -154,7 +155,7 @@ export default function Team() {
 
   const rolBadge: Record<string, { label: string; bg: string; color: string }> = {
     hr: { label: 'HR', bg: 'var(--mf-green-light)', color: 'var(--mf-green-dark)' },
-    admin: { label: 'Admin', bg: 'var(--mf-purple-light)', color: '#3C3489' },
+    admin: { label: 'Admin', bg: 'var(--mf-purple-light)', color: 'var(--mf-purple)' },
     medewerker: { label: 'Medewerker', bg: 'var(--mf-blue-light)', color: 'var(--mf-blue)' },
   }
 
@@ -168,26 +169,29 @@ export default function Team() {
       <Navbar />
       <main className="p-8">
         <div className="mb-8">
-          <h1 className="text-2xl font-medium text-gray-900">Team beheren</h1>
-          <p className="text-gray-500 text-sm mt-1">Beheer leden en stuur uitnodigingen.</p>
+          <h1 className="text-2xl font-medium" style={{ color: 'var(--text-1)' }}>Team beheren</h1>
+          <p className="text-sm mt-1" style={{ color: 'var(--text-3)' }}>Beheer leden en stuur uitnodigingen.</p>
         </div>
 
         {melding && (
           <div
-            className="rounded-2xl border p-4 mb-6 text-sm"
+            className="rounded-2xl border p-4 mb-6 text-sm flex items-center gap-2"
             style={{
               background: melding.type === 'success' ? 'var(--mf-green-light)' : 'var(--mf-red-light)',
               borderColor: melding.type === 'success' ? 'var(--mf-green)' : 'var(--mf-red)',
               color: melding.type === 'success' ? 'var(--mf-green-dark)' : 'var(--mf-red)',
             }}
           >
-            {melding.type === 'success' ? '? ' : '? '}{melding.tekst}
+            {melding.type === 'success'
+              ? <Check size={16} aria-hidden="true" className="shrink-0" />
+              : <AlertCircle size={16} aria-hidden="true" className="shrink-0" />}
+            <span>{melding.tekst}</span>
           </div>
         )}
 
         {/* Uitnodigen */}
-        <div className="bg-white rounded-2xl border border-gray-200 p-6 mb-6">
-          <p className="text-sm font-medium text-gray-700 mb-3">Medewerker uitnodigen</p>
+        <div className="rounded-2xl border p-6 mb-6" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
+          <p className="text-sm font-medium mb-3" style={{ color: 'var(--text-2)' }}>Medewerker uitnodigen</p>
           <div className="flex gap-3">
             <input
               type="email"
@@ -195,12 +199,16 @@ export default function Team() {
               value={email}
               onChange={e => setEmail(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && uitnodigen()}
-              className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-gray-400"
+              className="flex-1 rounded-xl px-4 py-3 text-sm outline-none transition"
+              style={{ background: 'var(--bg-subtle)', border: '1px solid var(--border)', color: 'var(--text-1)' }}
+              onFocus={e => { e.currentTarget.style.borderColor = 'var(--mentaforce-primary)' }}
+              onBlur={e => { e.currentTarget.style.borderColor = 'var(--border)' }}
             />
             <button
               onClick={uitnodigen}
               disabled={laden || !email}
-              className="bg-gray-900 text-white rounded-xl px-5 py-3 text-sm font-medium hover:bg-gray-700 transition disabled:opacity-30"
+              className="rounded-xl px-5 py-3 text-sm font-medium transition disabled:opacity-30"
+              style={{ background: 'var(--mentaforce-primary)', color: 'var(--bg-app)' }}
             >
               {laden ? 'Bezig...' : 'Uitnodigen'}
             </button>
@@ -208,17 +216,17 @@ export default function Team() {
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-1 bg-gray-100 rounded-xl p-1 mb-4 w-fit">
+        <div className="flex gap-1 rounded-xl p-1 mb-4 w-fit" style={{ background: 'var(--bg-subtle)' }}>
           {tabs.map(t => (
             <button
               key={t.key}
               onClick={() => { setActieveTab(t.key as typeof actieveTab); setZoekterm('') }}
               className="px-4 py-2 rounded-lg text-sm transition"
               style={{
-                background: actieveTab === t.key ? 'white' : 'transparent',
-                color: actieveTab === t.key ? '#111' : '#888',
+                background: actieveTab === t.key ? 'var(--bg-card)' : 'transparent',
+                color: actieveTab === t.key ? 'var(--text-1)' : 'var(--text-3)',
                 fontWeight: actieveTab === t.key ? 500 : 400,
-                boxShadow: actieveTab === t.key ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                boxShadow: actieveTab === t.key ? 'var(--shadow-card)' : 'none',
               }}
             >
               {t.label}
@@ -233,32 +241,35 @@ export default function Team() {
             placeholder={actieveTab === 'leden' ? 'Zoek op naam...' : 'Zoek op e-mail...'}
             value={zoekterm}
             onChange={e => setZoekterm(e.target.value)}
-            className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-gray-400 bg-white"
+            className="w-full rounded-xl px-4 py-2.5 text-sm outline-none transition"
+            style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--text-1)' }}
+            onFocus={e => { e.currentTarget.style.borderColor = 'var(--mentaforce-primary)' }}
+            onBlur={e => { e.currentTarget.style.borderColor = 'var(--border)' }}
           />
         </div>
 
-        <div className="bg-white rounded-2xl border border-gray-200 p-6">
+        <div className="rounded-2xl border p-6" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
           {bezig ? (
             <div className="flex justify-center py-4">
-              <div className="w-6 h-6 rounded-full border-2 border-gray-200 animate-spin" style={{ borderTopColor: 'var(--mentaforce-primary)' }} />
+              <div className="w-6 h-6 rounded-full border-2 animate-spin" style={{ borderColor: 'var(--border)', borderTopColor: 'var(--mentaforce-primary)' }} />
             </div>
           ) : actieveTab === 'leden' ? (
             <>
-              <p className="text-sm font-medium text-gray-700 mb-4">Teamleden</p>
+              <p className="text-sm font-medium mb-4" style={{ color: 'var(--text-2)' }}>Teamleden</p>
               {gefilterdeLeden.length === 0 ? (
-                <p className="text-gray-400 text-sm">{zoekterm ? 'Geen resultaten.' : 'Nog geen leden. Nodig medewerkers uit via het formulier hierboven.'}</p>
+                <p className="text-sm" style={{ color: 'var(--text-3)' }}>{zoekterm ? 'Geen resultaten.' : 'Nog geen leden. Nodig medewerkers uit via het formulier hierboven.'}</p>
               ) : (
                 <div className="flex flex-col gap-2">
                   {gefilterdeLeden.map(lid => {
                     const badge = rolBadge[lid.rol] ?? rolBadge.medewerker
                     return (
                       <div key={lid.id}>
-                        <div className="flex justify-between items-center py-3 border-b border-gray-100 last:border-0">
+                        <div className="flex justify-between items-center py-3 border-b last:border-0" style={{ borderColor: 'var(--border)' }}>
                           <div className="flex items-center gap-3">
                             <Avatar naam={lid.naam || '?'} avatarUrl={lid.avatar_url} size={32} />
                             <div>
                               <div className="flex items-center gap-2">
-                                <p className="text-sm text-gray-700 font-medium">{lid.naam || 'Onbekend'}</p>
+                                <p className="text-sm font-medium" style={{ color: 'var(--text-2)' }}>{lid.naam || 'Onbekend'}</p>
                                 <span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{ background: badge.bg, color: badge.color }}>
                                   {badge.label}
                                 </span>
@@ -268,7 +279,8 @@ export default function Team() {
                           <div className="flex items-center gap-2">
                             <Link
                               href={`/team/${lid.id}`}
-                              className="text-xs border border-gray-200 rounded-lg px-3 py-1.5 text-gray-600 hover:bg-gray-50 transition"
+                              className="text-xs rounded-lg px-3 py-1.5 transition"
+                              style={{ border: '1px solid var(--border)', color: 'var(--text-2)' }}
                             >
                               Profiel
                             </Link>
@@ -284,7 +296,8 @@ export default function Team() {
                                   </button>
                                   <button
                                     onClick={() => setVerwijderBevestig(null)}
-                                    className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 text-gray-400 hover:bg-gray-50 transition"
+                                    className="text-xs rounded-lg px-2 py-1.5 transition"
+                                    style={{ border: '1px solid var(--border)', color: 'var(--text-3)' }}
                                   >
                                     Annuleer
                                   </button>
@@ -292,7 +305,8 @@ export default function Team() {
                               ) : (
                                 <button
                                   onClick={() => setVerwijderBevestig(lid.id)}
-                                  className="text-xs border border-gray-200 rounded-lg px-3 py-1.5 text-gray-400 hover:text-red-500 hover:border-red-200 transition"
+                                  className="text-xs rounded-lg px-3 py-1.5 transition"
+                                  style={{ border: '1px solid var(--border)', color: 'var(--text-3)' }}
                                 >
                                   Verwijder
                                 </button>
@@ -308,20 +322,20 @@ export default function Team() {
             </>
           ) : (
             <>
-              <p className="text-sm font-medium text-gray-700 mb-4">Uitnodigingen</p>
+              <p className="text-sm font-medium mb-4" style={{ color: 'var(--text-2)' }}>Uitnodigingen</p>
               {gefilterdTokens.length === 0 ? (
-                <p className="text-gray-400 text-sm">{zoekterm ? 'Geen resultaten.' : 'Nog geen uitnodigingen verstuurd.'}</p>
+                <p className="text-sm" style={{ color: 'var(--text-3)' }}>{zoekterm ? 'Geen resultaten.' : 'Nog geen uitnodigingen verstuurd.'}</p>
               ) : (
                 <div className="flex flex-col gap-2">
                   {gefilterdTokens.map(t => (
-                    <div key={t.id} className="flex justify-between items-center py-3 border-b border-gray-100 last:border-0">
+                    <div key={t.id} className="flex justify-between items-center py-3 border-b last:border-0" style={{ borderColor: 'var(--border)' }}>
                       <div>
-                        <p className="text-sm text-gray-700">{t.email}</p>
-                        <p className="text-xs text-gray-400 mt-0.5">
+                        <p className="text-sm" style={{ color: 'var(--text-2)' }}>{t.email}</p>
+                        <p className="text-xs mt-0.5" style={{ color: 'var(--text-3)' }}>
                           {new Date(t.aangemaakt_op).toLocaleDateString('nl-BE')} ·{' '}
                           {t.gebruikt
-                            ? <span className="text-green-600">Geactiveerd</span>
-                            : <span className="text-amber-600">Nog niet gebruikt</span>
+                            ? <span style={{ color: 'var(--mf-green)' }}>Geactiveerd</span>
+                            : <span style={{ color: 'var(--mf-amber)' }}>Nog niet gebruikt</span>
                           }
                         </p>
                       </div>
@@ -329,19 +343,23 @@ export default function Team() {
                         <div className="flex items-center gap-2">
                           <button
                             onClick={() => kopieerLink(t.token)}
-                            className="text-xs border border-gray-200 rounded-lg px-3 py-1.5 text-gray-600 hover:bg-gray-50 transition"
+                            className="text-xs rounded-lg px-3 py-1.5 transition inline-flex items-center gap-1.5"
+                            style={{ border: '1px solid var(--border)', color: 'var(--text-2)' }}
                           >
-                            {gekopieerd === t.token ? '? Gekopieerd' : 'Kopieer link'}
+                            {gekopieerd === t.token
+                              ? <><Check size={13} aria-hidden="true" /> Gekopieerd</>
+                              : <><Copy size={13} aria-hidden="true" /> Kopieer link</>}
                           </button>
                           <button
                             onClick={() => intrekkenToken(t.id)}
-                            className="text-xs border border-gray-200 rounded-lg px-3 py-1.5 text-gray-400 hover:text-red-500 hover:border-red-200 transition"
+                            className="text-xs rounded-lg px-3 py-1.5 transition"
+                            style={{ border: '1px solid var(--border)', color: 'var(--text-3)' }}
                           >
                             Intrekken
                           </button>
                         </div>
                       ) : (
-                        <span className="text-xs text-green-600">?</span>
+                        <Check size={16} aria-label="Geactiveerd" style={{ color: 'var(--mf-green)' }} />
                       )}
                     </div>
                   ))}

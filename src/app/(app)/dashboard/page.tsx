@@ -5,6 +5,11 @@ export const dynamic = 'force-dynamic'
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import {
+  Hand, Check, Circle, X, ChevronRight, Download, Bot,
+  TreePalm, Thermometer, Star, Briefcase, ClipboardList,
+  Car, Utensils, Package, GraduationCap, Handshake, Wallet,
+} from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { authFetch } from '@/lib/auth-fetch'
 import Navbar from '@/components/layout/Navbar'
@@ -176,18 +181,21 @@ Geef 2-3 zinnen concreet advies. Wat moet HR nu doen?`,
     <div className="mf-card rounded-2xl p-5 mb-6" style={{ borderLeft: '3px solid var(--mf-green)' }}>
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <span className="text-xs font-bold px-2 py-0.5 rounded" style={{ background: 'rgba(29,158,117,0.3)', color: 'var(--mf-green)' }}>AI</span>
-          <p className="text-sm font-semibold text-white">Teamanalyse</p>
+          <span className="text-xs font-bold px-2 py-0.5 rounded" style={{ background: 'color-mix(in srgb, var(--mf-green) 18%, transparent)', color: 'var(--mf-green)' }}>AI</span>
+          <p className="text-sm font-semibold" style={{ color: 'var(--text-1)' }}>Teamanalyse</p>
         </div>
         <button
           onClick={genereer}
           disabled={laden}
           className="text-xs font-medium px-3 py-1.5 rounded-lg transition disabled:opacity-50 flex items-center gap-1.5"
-          style={{ background: 'rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.8)' }}
+          style={{ background: 'var(--bg-subtle)', color: 'var(--text-2)', border: '1px solid var(--border)' }}
         >
           {laden ? (
             <>
-              <span className="w-3 h-3 rounded-full border border-white/30 border-t-white animate-spin inline-block" />
+              <span
+                className="w-3 h-3 rounded-full animate-spin inline-block"
+                style={{ border: '1px solid var(--border-strong)', borderTopColor: 'var(--text-1)' }}
+              />
               Analyseren...
             </>
           ) : (
@@ -197,11 +205,11 @@ Geef 2-3 zinnen concreet advies. Wat moet HR nu doen?`,
       </div>
 
       {inzicht ? (
-        <p className="text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.85)' }}>
+        <p className="text-sm leading-relaxed" style={{ color: 'var(--text-2)' }}>
           {inzicht}
         </p>
       ) : (
-        <p className="text-sm" style={{ color: 'rgba(255,255,255,0.35)' }}>
+        <p className="text-sm" style={{ color: 'var(--text-3)' }}>
           Klik op &quot;Analyseer team&quot; voor een AI-analyse van jouw teamdata.
         </p>
       )}
@@ -222,14 +230,14 @@ function AankomendeGesprekken({ gesprekken }: { gesprekken: Gesprek[] }) {
     .slice(0, 3)
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 p-5">
-      <p className="text-sm font-medium text-gray-700 mb-3">Aankomende gesprekken</p>
+    <div className="rounded-2xl border p-5" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
+      <p className="text-sm font-medium mb-3" style={{ color: 'var(--text-2)' }}>Aankomende gesprekken</p>
       {aankomend.length === 0 ? (
-        <p className="text-xs text-gray-400 py-2">Geen geplande gesprekken.</p>
+        <p className="text-xs py-2" style={{ color: 'var(--text-3)' }}>Geen geplande gesprekken.</p>
       ) : (
         <div className="flex flex-col gap-2">
           {aankomend.map(g => (
-            <div key={g.id} className="flex items-center gap-3 py-2 border-b border-gray-50 last:border-0">
+            <div key={g.id} className="flex items-center gap-3 py-2 border-b last:border-0" style={{ borderColor: 'var(--border)' }}>
               <div className="w-9 h-9 rounded-xl flex flex-col items-center justify-center flex-shrink-0"
                 style={{ background: 'var(--mf-blue-light)' }}>
                 <span className="text-xs font-bold leading-none" style={{ color: 'var(--mf-blue)' }}>
@@ -240,10 +248,10 @@ function AankomendeGesprekken({ gesprekken }: { gesprekken: Gesprek[] }) {
                 </span>
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-800 truncate">{g.medewerker_naam}</p>
-                <p className="text-xs text-gray-400">{g.type}</p>
+                <p className="text-sm font-medium truncate" style={{ color: 'var(--text-1)' }}>{g.medewerker_naam}</p>
+                <p className="text-xs" style={{ color: 'var(--text-3)' }}>{g.type}</p>
               </div>
-              <p className="text-xs text-gray-400 flex-shrink-0">
+              <p className="text-xs flex-shrink-0" style={{ color: 'var(--text-3)' }}>
                 {new Date(g.datum).toLocaleTimeString('nl-BE', { hour: '2-digit', minute: '2-digit' })}
               </p>
             </div>
@@ -278,13 +286,13 @@ function VerlofKalenderWidget({ verlofAanvragen }: { verlofAanvragen: VerlofHR[]
   const dagletters = ['Ma', 'Di', 'Wo', 'Do', 'Vr', 'Za', 'Zo']
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 p-5">
-      <p className="text-sm font-medium text-gray-700 mb-3">
+    <div className="rounded-2xl border p-5" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
+      <p className="text-sm font-medium mb-3" style={{ color: 'var(--text-2)' }}>
         Verlofkalender — {now.toLocaleDateString('nl-BE', { month: 'long', year: 'numeric' })}
       </p>
       <div className="grid grid-cols-7 gap-1 mb-1">
         {dagletters.map(d => (
-          <p key={d} className="text-center text-[10px] font-medium text-gray-400">{d}</p>
+          <p key={d} className="text-center text-[10px] font-medium" style={{ color: 'var(--text-3)' }}>{d}</p>
         ))}
       </div>
       <div className="grid grid-cols-7 gap-1">
@@ -301,7 +309,7 @@ function VerlofKalenderWidget({ verlofAanvragen }: { verlofAanvragen: VerlofHR[]
               className="aspect-square flex items-center justify-center rounded-md text-[11px] font-medium"
               style={{
                 background: isVerlof ? 'var(--mf-green-light)' : isVandaag ? 'var(--text-1)' : 'transparent',
-                color: isVerlof ? 'var(--mf-green)' : isVandaag ? 'white' : 'var(--text-3)',
+                color: isVerlof ? 'var(--mf-green)' : isVandaag ? 'var(--bg-app)' : 'var(--text-3)',
               }}
             >
               {dag}
@@ -310,7 +318,7 @@ function VerlofKalenderWidget({ verlofAanvragen }: { verlofAanvragen: VerlofHR[]
         })}
       </div>
       {goedgekeurdVerlof.length > 0 && (
-        <p className="text-xs text-gray-400 mt-2">
+        <p className="text-xs mt-2" style={{ color: 'var(--text-3)' }}>
           {goedgekeurdVerlof.length} goedgekeurd verlof{goedgekeurdVerlof.length !== 1 ? 'en' : ''} actief
         </p>
       )}
@@ -401,17 +409,17 @@ function BulkActies({
       <div className="flex items-center gap-2 flex-wrap mb-3">
         <button
           onClick={exporteerCSV}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-gray-200 bg-white hover:bg-gray-50 transition"
-          style={{ color: 'var(--text-2)' }}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition"
+          style={{ color: 'var(--text-2)', background: 'var(--bg-card)', borderColor: 'var(--border)' }}
         >
-          ↓ Exporteer CSV
+          <Download size={13} aria-hidden="true" /> Exporteer CSV
         </button>
         <button
           onClick={() => setUitgevouwen(u => !u)}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition"
           style={{
             background: uitgevouwen ? 'var(--text-1)' : 'var(--bg-card)',
-            color: uitgevouwen ? 'white' : 'var(--text-2)',
+            color: uitgevouwen ? 'var(--bg-app)' : 'var(--text-2)',
             borderColor: uitgevouwen ? 'var(--text-1)' : 'var(--border)',
           }}
         >
@@ -421,7 +429,7 @@ function BulkActies({
           <button
             onClick={() => { selecteerGroep(laagScorendeLeden); setUitgevouwen(true) }}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition"
-            style={{ background: 'var(--mf-red-light)', color: 'var(--mf-red)', border: '1px solid rgba(226,75,74,0.4)' }}
+            style={{ background: 'var(--mf-red-light)', color: 'var(--mf-red)', border: '1px solid color-mix(in srgb, var(--mf-red) 40%, transparent)' }}
           >
             Selecteer lage scores ({laagScorendeLeden.length})
           </button>
@@ -430,7 +438,7 @@ function BulkActies({
           <button
             onClick={() => { selecteerGroep(nietIngevuld); setUitgevouwen(true) }}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition"
-            style={{ background: 'var(--mf-amber-light)', color: 'var(--mf-amber-dark)', border: '1px solid rgba(186,117,23,0.4)' }}
+            style={{ background: 'var(--mf-amber-light)', color: 'var(--mf-amber-dark)', border: '1px solid color-mix(in srgb, var(--mf-amber) 40%, transparent)' }}
           >
             Selecteer niet ingevuld ({nietIngevuld.length})
           </button>
@@ -438,21 +446,23 @@ function BulkActies({
       </div>
 
       {uitgevouwen && (
-        <div className="rounded-xl border border-gray-100 bg-gray-50 p-4 mb-4">
+        <div className="rounded-xl border p-4 mb-4" style={{ borderColor: 'var(--border)', background: 'var(--bg-subtle)' }}>
           <div className="flex items-center justify-between mb-3">
-            <p className="text-xs font-medium text-gray-600">
+            <p className="text-xs font-medium" style={{ color: 'var(--text-2)' }}>
               {geselecteerd.size} medewerker{geselecteerd.size !== 1 ? 's' : ''} geselecteerd
             </p>
             <div className="flex gap-2">
               <button
                 onClick={() => setGeselecteerd(new Set(gefilterdTeam.map(l => l.id)))}
-                className="text-xs text-gray-400 hover:text-gray-600"
+                className="text-xs transition-colors"
+                style={{ color: 'var(--text-3)' }}
               >
                 Alles
               </button>
               <button
                 onClick={() => setGeselecteerd(new Set())}
-                className="text-xs text-gray-400 hover:text-gray-600"
+                className="text-xs transition-colors"
+                style={{ color: 'var(--text-3)' }}
               >
                 Wis
               </button>
@@ -466,7 +476,7 @@ function BulkActies({
                 className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs transition"
                 style={{
                   background: geselecteerd.has(lid.id) ? 'var(--text-1)' : 'var(--bg-card)',
-                  color: geselecteerd.has(lid.id) ? 'white' : 'var(--text-2)',
+                  color: geselecteerd.has(lid.id) ? 'var(--bg-app)' : 'var(--text-2)',
                   border: `1px solid ${geselecteerd.has(lid.id) ? 'var(--text-1)' : 'var(--border)'}`,
                 }}
               >
@@ -477,8 +487,8 @@ function BulkActies({
           <button
             onClick={stuurHerinnering}
             disabled={geselecteerd.size === 0 || bezig}
-            className="w-full py-2 rounded-xl text-xs font-semibold text-white disabled:opacity-40 transition"
-            style={{ background: 'var(--mf-amber)' }}
+            className="w-full py-2 rounded-xl text-xs font-semibold disabled:opacity-40 transition"
+            style={{ background: 'var(--mf-amber)', color: 'var(--bg-app)' }}
           >
             {bezig ? 'Versturen...' : `Stuur herinnering (${geselecteerd.size})`}
           </button>
@@ -526,24 +536,28 @@ function MedewerkerUitnodigenModal({ onSluit, hrCode }: { onSluit: () => void; h
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.5)' }}>
-      <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl">
+      <div className="rounded-2xl p-6 w-full max-w-sm shadow-xl border" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
         <div className="flex items-center justify-between mb-4">
-          <p className="font-semibold text-gray-900">Medewerker uitnodigen</p>
-          <button onClick={onSluit} className="text-gray-400 hover:text-gray-600 text-xl leading-none">×</button>
+          <p className="font-semibold" style={{ color: 'var(--text-1)' }}>Medewerker uitnodigen</p>
+          <button onClick={onSluit} aria-label="Sluiten" className="leading-none transition-colors" style={{ color: 'var(--text-3)' }}>
+            <X size={18} aria-hidden="true" />
+          </button>
         </div>
         {resultaat ? (
           <div className="text-center py-4">
-            <p className="text-3xl mb-3">{resultaat.ok ? '✉️' : '❌'}</p>
-            <p className="text-sm text-gray-700">{resultaat.bericht}</p>
+            <div className="flex justify-center mb-3" style={{ color: resultaat.ok ? 'var(--mf-green)' : 'var(--mf-red)' }}>
+              {resultaat.ok ? <Check size={32} aria-hidden="true" /> : <X size={32} aria-hidden="true" />}
+            </div>
+            <p className="text-sm" style={{ color: 'var(--text-2)' }}>{resultaat.bericht}</p>
             {resultaat.ok && (
-              <p className="text-xs text-gray-400 mt-2">
+              <p className="text-xs mt-2" style={{ color: 'var(--text-3)' }}>
                 De medewerker ontvangt een e-mail met HR-code <strong>{hrCode}</strong> om in te loggen.
               </p>
             )}
             <button
               onClick={onSluit}
-              className="mt-4 px-4 py-2 rounded-xl text-sm font-medium text-white"
-              style={{ background: 'var(--mf-green)' }}
+              className="mt-4 px-4 py-2 rounded-xl text-sm font-medium"
+              style={{ background: 'var(--mf-green)', color: 'var(--bg-app)' }}
             >
               Sluiten
             </button>
@@ -551,24 +565,24 @@ function MedewerkerUitnodigenModal({ onSluit, hrCode }: { onSluit: () => void; h
         ) : (
           <form onSubmit={stuurUitnodiging}>
             <div className="mb-3">
-              <label className="text-xs font-medium text-gray-600 block mb-1">Naam</label>
+              <label className="text-xs font-medium block mb-1" style={{ color: 'var(--text-2)' }}>Naam</label>
               <input
                 type="text"
                 value={naamInput}
                 onChange={e => setNaamInput(e.target.value)}
                 placeholder="Jan de Vries"
-                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-gray-400"
+                className="mf-input w-full rounded-xl px-3 py-2 text-sm outline-none"
               />
             </div>
             <div className="mb-4">
-              <label className="text-xs font-medium text-gray-600 block mb-1">E-mailadres *</label>
+              <label className="text-xs font-medium block mb-1" style={{ color: 'var(--text-2)' }}>E-mailadres *</label>
               <input
                 type="email"
                 value={emailInput}
                 onChange={e => setEmailInput(e.target.value)}
                 placeholder="jan@bedrijf.nl"
                 required
-                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-gray-400"
+                className="mf-input w-full rounded-xl px-3 py-2 text-sm outline-none"
               />
             </div>
             <div className="rounded-xl p-3 mb-4 text-xs" style={{ background: 'var(--mf-green-light)', color: 'var(--mf-green-dark)' }}>
@@ -577,8 +591,8 @@ function MedewerkerUitnodigenModal({ onSluit, hrCode }: { onSluit: () => void; h
             <button
               type="submit"
               disabled={bezig || !emailInput.trim()}
-              className="w-full py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-40"
-              style={{ background: 'var(--mf-green)' }}
+              className="w-full py-2.5 rounded-xl text-sm font-semibold disabled:opacity-40"
+              style={{ background: 'var(--mf-green)', color: 'var(--bg-app)' }}
             >
               {bezig ? 'Versturen...' : 'Stuur uitnodiging'}
             </button>
@@ -657,8 +671,8 @@ export default function Dashboard() {
           .eq('id', profiel.bedrijf_id)
           .single()
         if (bedrijfData) setBedrijf(bedrijfData as BedrijfInfo)
-      } catch (err) {
-        console.error('[Dashboard] Bedrijf ophalen mislukt:', err)
+      } catch {
+        // Bedrijf ophalen mislukt — stilletjes negeren, UI toont fallback.
       }
 
       // DISC ingevuld: distinct user_ids in disc_inzendingen voor dit bedrijf
@@ -712,7 +726,9 @@ export default function Dashboard() {
             naam: v.profiles?.naam ?? 'Onbekend',
           })))
         }
-      } catch (err) { console.error('[dashboard] verlof_aanvragen ophalen mislukt:', err) }
+      } catch {
+        // verlof_aanvragen ophalen mislukt — stilletjes negeren.
+      }
 
       // Declaraties
       try {
@@ -728,7 +744,9 @@ export default function Dashboard() {
             naam: d.profiles?.naam ?? 'Onbekend',
           })))
         }
-      } catch (err) { console.error('[dashboard] declaraties ophalen mislukt:', err) }
+      } catch {
+        // declaraties ophalen mislukt — stilletjes negeren.
+      }
 
       // Aankomende gesprekken voor het overzicht widget
       try {
@@ -748,7 +766,9 @@ export default function Dashboard() {
             medewerker_naam: g.medewerker?.naam ?? 'Onbekend',
           })))
         }
-      } catch (err) { console.error('[dashboard] hr_gesprekken ophalen mislukt:', err) }
+      } catch {
+        // hr_gesprekken ophalen mislukt — stilletjes negeren.
+      }
 
       setLaden(false)
     }
@@ -876,7 +896,7 @@ export default function Dashboard() {
   }).length
   const burnoutRisico = team.length > 0 ? Math.round((waarschuwingen.length / team.length) * 100) : 0
 
-  const tabs: { key: TabKey; label: string; badge?: number; badgeKleur?: string }[] = [
+  const tabs: { key: TabKey; label: string; badge?: number; badgeKleur?: string; icon?: boolean }[] = [
     { key: 'overzicht', label: 'Overzicht' },
     { key: 'team', label: `Team (${team.length})` },
     { key: 'trends', label: 'Trends' },
@@ -899,7 +919,7 @@ export default function Dashboard() {
       badgeKleur: 'var(--mf-purple)',
     },
     { key: 'gesprekken', label: 'Gesprekken' },
-    { key: 'rapporten', label: '🤖 Rapporten' },
+    { key: 'rapporten', label: 'Rapporten', icon: true },
     { key: 'bedrijf', label: 'Bedrijf' },
   ]
 
@@ -911,17 +931,17 @@ export default function Dashboard() {
     : null
 
   return (
-    <div className="min-h-screen mf-mesh-bg" style={{ background: 'var(--bg-main, #F0F4FF)' }}>
+    <div className="min-h-screen mf-mesh-bg" style={{ background: 'var(--bg-app)' }}>
       <Navbar />
 
       {/* HR portal identity banner */}
-      <div style={{ background: 'var(--color-dark, #0F172A)', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+      <div style={{ background: 'var(--bg-card)', borderBottom: '1px solid var(--border)' }}>
         <div className="px-6 sm:px-8 py-3 flex items-center gap-3">
-          <div className="w-6 h-6 rounded-md flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
-            style={{ background: 'var(--mf-blue)' }}>HR</div>
-          <p className="text-sm font-medium text-white">HR Portaal</p>
-          <span className="text-gray-500 text-xs">—</span>
-          <p className="text-xs text-gray-400">Teamwelzijn en vitaliteitsdata van jouw organisatie</p>
+          <div className="w-6 h-6 rounded-md flex items-center justify-center text-xs font-bold flex-shrink-0"
+            style={{ background: 'var(--mf-blue)', color: 'var(--bg-app)' }}>HR</div>
+          <p className="text-sm font-medium" style={{ color: 'var(--text-1)' }}>HR Portaal</p>
+          <span className="text-xs" style={{ color: 'var(--text-3)' }}>—</span>
+          <p className="text-xs" style={{ color: 'var(--text-3)' }}>Teamwelzijn en vitaliteitsdata van jouw organisatie</p>
         </div>
       </div>
 
@@ -940,12 +960,12 @@ export default function Dashboard() {
                 className="rounded-2xl px-5 py-3 text-center"
                 style={{
                   background: weekScore >= 70
-                    ? 'linear-gradient(135deg, #E1F5EE 0%, #D1FAE5 100%)'
+                    ? 'color-mix(in srgb, var(--mf-green) 14%, transparent)'
                     : weekScore >= 45
-                    ? 'linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%)'
-                    : 'linear-gradient(135deg, #FEF2F2 0%, #FCEBEB 100%)',
-                  border: `1.5px solid ${weekScore >= 70 ? '#1D9E7530' : weekScore >= 45 ? '#BA751730' : '#E24B4A30'}`,
-                  boxShadow: `0 4px 20px ${weekScore >= 70 ? '#1D9E7520' : weekScore >= 45 ? '#BA751720' : '#E24B4A20'}`,
+                    ? 'color-mix(in srgb, var(--mf-amber) 14%, transparent)'
+                    : 'color-mix(in srgb, var(--mf-red) 14%, transparent)',
+                  border: `1.5px solid ${weekScore >= 70 ? 'color-mix(in srgb, var(--mf-green) 18%, transparent)' : weekScore >= 45 ? 'color-mix(in srgb, var(--mf-amber) 18%, transparent)' : 'color-mix(in srgb, var(--mf-red) 18%, transparent)'}`,
+                  boxShadow: `0 4px 20px ${weekScore >= 70 ? 'color-mix(in srgb, var(--mf-green) 12%, transparent)' : weekScore >= 45 ? 'color-mix(in srgb, var(--mf-amber) 12%, transparent)' : 'color-mix(in srgb, var(--mf-red) 12%, transparent)'}`,
                 }}
               >
                 <p
@@ -968,7 +988,7 @@ export default function Dashboard() {
             </div>
             {signalen.length > 0 && (
               <div className="rounded-xl border px-4 py-2.5 text-center"
-                style={{ background: 'var(--mf-red-light)', borderColor: 'rgba(226,75,74,0.4)' }}>
+                style={{ background: 'var(--mf-red-light)', borderColor: 'color-mix(in srgb, var(--mf-red) 40%, transparent)' }}>
                 <p className="text-lg font-semibold" style={{ color: 'var(--mf-red)' }}>{signalen.length}</p>
                 <p className="text-xs" style={{ color: 'var(--mf-red)' }}>Signalen</p>
               </div>
@@ -978,8 +998,8 @@ export default function Dashboard() {
 
         {/* Tabs — scrollable on mobile with badges */}
         <div
-          className="flex gap-1 bg-gray-100 rounded-xl p-1 mb-6 overflow-x-auto"
-          style={{ WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' }}
+          className="flex gap-1 rounded-xl p-1 mb-6 overflow-x-auto"
+          style={{ background: 'var(--bg-subtle)', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' }}
         >
           {tabs.map(t => (
             <button
@@ -987,17 +1007,18 @@ export default function Dashboard() {
               onClick={() => setActieveTab(t.key)}
               className="px-4 py-2 rounded-lg text-sm transition whitespace-nowrap flex items-center gap-1.5 flex-shrink-0"
               style={{
-                background: actieveTab === t.key ? 'white' : 'transparent',
+                background: actieveTab === t.key ? 'var(--bg-card)' : 'transparent',
                 color: actieveTab === t.key ? 'var(--text-1)' : 'var(--text-3)',
                 fontWeight: actieveTab === t.key ? 500 : 400,
-                boxShadow: actieveTab === t.key ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                boxShadow: actieveTab === t.key ? '0 1px 3px rgba(0,0,0,0.25)' : 'none',
               }}
             >
+              {t.icon && <Bot size={14} aria-hidden="true" />}
               {t.label}
               {t.badge !== undefined && (
                 <span
-                  className="text-[10px] font-bold px-1.5 py-0.5 rounded-full text-white min-w-[18px] text-center leading-none"
-                  style={{ background: t.badgeKleur ?? 'var(--mf-red)' }}
+                  className="text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center leading-none"
+                  style={{ background: t.badgeKleur ?? 'var(--mf-red)', color: 'var(--bg-app)' }}
                 >
                   {t.badge}
                 </span>
@@ -1008,8 +1029,8 @@ export default function Dashboard() {
 
         {laden ? (
           <div className="flex justify-center py-16">
-            <div className="w-7 h-7 rounded-full border-2 border-gray-200 animate-spin"
-              style={{ borderTopColor: 'var(--mf-green)' }} />
+            <div className="w-7 h-7 rounded-full border-2 animate-spin"
+              style={{ borderColor: 'var(--border)', borderTopColor: 'var(--mf-green)' }} />
           </div>
         ) : (
           <>
@@ -1079,28 +1100,28 @@ export default function Dashboard() {
                 {/* Scores grid */}
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-6">
                   <div
-                    className="bg-white rounded-2xl border border-gray-100 p-6 col-span-2 sm:col-span-1"
-                    style={{ borderTop: '3px solid #1D9E75' }}
+                    className="rounded-2xl border p-6 col-span-2 sm:col-span-1"
+                    style={{ background: 'var(--bg-card)', borderColor: 'var(--border)', borderTop: '3px solid var(--mf-green)' }}
                   >
-                    <p className="text-xs text-gray-400 mb-1">Vitaliteitsscore</p>
+                    <p className="text-xs mb-1" style={{ color: 'var(--text-3)' }}>Vitaliteitsscore</p>
                     <div style={{ position: 'relative', display: 'inline-block' }}>
                       <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
-                        <div style={{ width: 110, height: 110, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
+                        <div style={{ width: 110, height: 110, borderRadius: '50%', background: 'radial-gradient(circle, color-mix(in srgb, var(--mf-green) 18%, transparent) 0%, transparent 70%)' }} />
                       </div>
                       <p className="text-5xl font-medium" style={{ color: vitaliteitscore > 0 ? scoreKleur(vitaliteitscore) : 'var(--border-strong)', position: 'relative', zIndex: 1 }}>
                         {vitaliteitscore > 0 ? `${vitaliteitscore}/5` : '—'}
                       </p>
                     </div>
                     {checkins.length > 0 && (
-                      <p className="text-xs text-gray-400 mt-2">{checkins.length} check-ins totaal</p>
+                      <p className="text-xs mt-2" style={{ color: 'var(--text-3)' }}>{checkins.length} check-ins totaal</p>
                     )}
                   </div>
                   {metricCards.map(m => {
                     const waarde = gemiddelde(checkins.map(c => c[m.key as keyof Checkin] as number))
                     const badge = waarde > 0 ? scoreBadge(waarde) : null
                     return (
-                      <div key={m.label} className="bg-white rounded-2xl border border-gray-100 p-5">
-                        <p className="text-xs text-gray-400 mb-1">{m.label}</p>
+                      <div key={m.label} className="rounded-2xl border p-5" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
+                        <p className="text-xs mb-1" style={{ color: 'var(--text-3)' }}>{m.label}</p>
                         <p className="text-2xl font-medium" style={{ color: waarde > 0 ? scoreKleur(waarde) : 'var(--border-strong)' }}>
                           {waarde > 0 ? waarde : '—'}
                         </p>
@@ -1117,14 +1138,14 @@ export default function Dashboard() {
 
                 {/* Participation visual */}
                 {team.length > 0 && (
-                  <div className="bg-white rounded-2xl border border-gray-100 p-6">
+                  <div className="rounded-2xl border p-6" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
                     <div className="flex items-center justify-between mb-4">
-                      <p className="text-sm font-medium text-gray-700">Participatie deze week</p>
+                      <p className="text-sm font-medium" style={{ color: 'var(--text-2)' }}>Participatie deze week</p>
                       <span className="text-sm font-semibold" style={{ color: participatieRate >= 70 ? 'var(--mf-green)' : participatieRate >= 40 ? 'var(--mf-amber)' : 'var(--mf-red)' }}>
                         {ingevuld.length}/{team.length}
                       </span>
                     </div>
-                    <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden mb-3">
+                    <div className="h-2.5 rounded-full overflow-hidden mb-3" style={{ background: 'var(--bg-subtle)' }}>
                       <div
                         className="h-full rounded-full transition-all"
                         style={{
@@ -1133,7 +1154,7 @@ export default function Dashboard() {
                         }}
                       />
                     </div>
-                    <p className="text-xs text-gray-400">
+                    <p className="text-xs" style={{ color: 'var(--text-3)' }}>
                       {participatieRate >= 80 ? 'Uitstekende participatie' :
                         participatieRate >= 50 ? 'Goede participatie, ruimte voor verbetering' :
                           'Lage participatie — overweeg een herinnering te sturen'}
@@ -1142,14 +1163,14 @@ export default function Dashboard() {
                 )}
 
                 {team.length === 0 && (
-                  <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center mt-4">
+                  <div className="rounded-2xl border p-8 text-center mt-4" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
                     <div className="max-w-sm mx-auto">
-                      <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl mx-auto mb-4"
-                        style={{ background: 'var(--mf-blue-light)' }}>
-                        👋
+                      <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4"
+                        style={{ background: 'var(--mf-blue-light)', color: 'var(--mf-blue)' }}>
+                        <Hand size={26} aria-hidden="true" />
                       </div>
-                      <p className="text-base font-semibold text-gray-800 mb-1">Nodig je eerste medewerker uit</p>
-                      <p className="text-sm text-gray-400 mb-5">
+                      <p className="text-base font-semibold mb-1" style={{ color: 'var(--text-1)' }}>Nodig je eerste medewerker uit</p>
+                      <p className="text-sm mb-5" style={{ color: 'var(--text-3)' }}>
                         Je hebt nog geen medewerkers gekoppeld. Deel je HR-code of stuur een directe uitnodiging.
                       </p>
                       {bedrijf?.hr_code && (
@@ -1160,8 +1181,8 @@ export default function Dashboard() {
                       )}
                       <button
                         onClick={() => setUitnodigenOpen(true)}
-                        className="px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition hover:opacity-90"
-                        style={{ background: 'var(--mf-green)' }}
+                        className="px-5 py-2.5 rounded-xl text-sm font-semibold transition hover:opacity-90"
+                        style={{ background: 'var(--mf-green)', color: 'var(--bg-app)' }}
                       >
                         Medewerker uitnodigen
                       </button>
@@ -1169,8 +1190,8 @@ export default function Dashboard() {
                   </div>
                 )}
                 {team.length > 0 && checkins.length === 0 && (
-                  <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center mt-4">
-                    <p className="text-gray-400 text-sm">Nog geen check-ins beschikbaar. Medewerkers kunnen inloggen en een check-in invullen.</p>
+                  <div className="rounded-2xl border p-8 text-center mt-4" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
+                    <p className="text-sm" style={{ color: 'var(--text-3)' }}>Nog geen check-ins beschikbaar. Medewerkers kunnen inloggen en een check-in invullen.</p>
                   </div>
                 )}
               </>
@@ -1178,13 +1199,13 @@ export default function Dashboard() {
 
             {/* ── TEAM TAB ── */}
             {actieveTab === 'team' && (
-              <div className="bg-white rounded-2xl border border-gray-100 p-6">
+              <div className="rounded-2xl border p-6" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
                 <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
-                  <p className="text-sm font-medium text-gray-700 flex-1">Teamoverzicht</p>
+                  <p className="text-sm font-medium flex-1" style={{ color: 'var(--text-2)' }}>Teamoverzicht</p>
                   <button
                     onClick={() => setUitnodigenOpen(true)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white transition"
-                    style={{ background: 'var(--mf-green)' }}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition"
+                    style={{ background: 'var(--mf-green)', color: 'var(--bg-app)' }}
                   >
                     + Medewerker uitnodigen
                   </button>
@@ -1196,12 +1217,12 @@ export default function Dashboard() {
                     placeholder="Zoek op naam..."
                     value={teamZoekterm}
                     onChange={e => setTeamZoekterm(e.target.value)}
-                    className="border border-gray-200 rounded-lg px-3 py-1.5 text-xs outline-none focus:border-gray-400 w-36"
+                    className="mf-input rounded-lg px-3 py-1.5 text-xs outline-none w-36"
                   />
                   <select
                     value={teamFilter}
                     onChange={e => setTeamFilter(e.target.value as typeof teamFilter)}
-                    className="border border-gray-200 rounded-lg px-2 py-1.5 text-xs outline-none focus:border-gray-400 bg-white"
+                    className="mf-input rounded-lg px-2 py-1.5 text-xs outline-none"
                   >
                     <option value="alle">Alle</option>
                     <option value="ingevuld">Ingevuld</option>
@@ -1211,7 +1232,7 @@ export default function Dashboard() {
                   <select
                     value={teamSorteer}
                     onChange={e => setTeamSorteer(e.target.value as typeof teamSorteer)}
-                    className="border border-gray-200 rounded-lg px-2 py-1.5 text-xs outline-none focus:border-gray-400 bg-white"
+                    className="mf-input rounded-lg px-2 py-1.5 text-xs outline-none"
                   >
                     <option value="naam">Sorteer: naam</option>
                     <option value="score">Sorteer: score</option>
@@ -1225,9 +1246,9 @@ export default function Dashboard() {
                 />
 
                 {team.length === 0 ? (
-                  <p className="text-gray-400 text-sm">Nog geen medewerkers.</p>
+                  <p className="text-sm" style={{ color: 'var(--text-3)' }}>Nog geen medewerkers.</p>
                 ) : gefilterdTeam.length === 0 ? (
-                  <p className="text-gray-400 text-sm">Geen leden gevonden.</p>
+                  <p className="text-sm" style={{ color: 'var(--text-3)' }}>Geen leden gevonden.</p>
                 ) : (
                   <div className="flex flex-col gap-1">
                     {gefilterdTeam.map(lid => {
@@ -1236,13 +1257,14 @@ export default function Dashboard() {
                         <Link
                           key={lid.id}
                           href={`/team/${lid.id}`}
-                          className="flex items-center justify-between py-3 border-b border-gray-50 last:border-0 hover:bg-gray-50 rounded-xl px-2 -mx-2 transition"
+                          className="flex items-center justify-between py-3 border-b last:border-0 hover:bg-[var(--bg-subtle)] rounded-xl px-2 -mx-2 transition"
+                          style={{ borderColor: 'var(--border)' }}
                         >
                           <div className="flex items-center gap-3">
                             <Avatar naam={lid.naam || '?'} avatarUrl={lid.avatar_url} size={32} />
                             <div>
-                              <p className="text-sm font-medium text-gray-700">{lid.naam || 'Onbekend'}</p>
-                              <p className="text-xs text-gray-400">
+                              <p className="text-sm font-medium" style={{ color: 'var(--text-2)' }}>{lid.naam || 'Onbekend'}</p>
+                              <p className="text-xs" style={{ color: 'var(--text-3)' }}>
                                 {lid.laatste_checkin
                                   ? `Laatst: ${new Date(lid.laatste_checkin).toLocaleDateString('nl-BE')}`
                                   : 'Nog nooit ingevuld'}
@@ -1256,20 +1278,22 @@ export default function Dashboard() {
                                 {lid.laatste_score}/5
                               </span>
                             )}
-                            <span className="text-xs font-medium px-2.5 py-1 rounded-full"
+                            <span className="flex items-center justify-center w-7 h-7 rounded-full"
                               style={{
                                 background: lid.deze_week_ingevuld ? 'var(--mf-green-light)' : 'var(--mf-amber-light)',
                                 color: lid.deze_week_ingevuld ? 'var(--mf-green-dark)' : 'var(--mf-amber-dark)',
                               }}>
-                              {lid.deze_week_ingevuld ? '✓' : '○'}
+                              {lid.deze_week_ingevuld
+                                ? <Check size={14} aria-label="Ingevuld deze week" />
+                                : <Circle size={12} aria-label="Niet ingevuld deze week" />}
                             </span>
-                            <span className="text-gray-300 text-sm">›</span>
+                            <ChevronRight size={16} aria-hidden="true" style={{ color: 'var(--text-3)' }} />
                           </div>
                         </Link>
                       )
                     })}
                     {(teamZoekterm || teamFilter !== 'alle') && (
-                      <p className="text-xs text-gray-400 pt-2">{gefilterdTeam.length} van {team.length} leden</p>
+                      <p className="text-xs pt-2" style={{ color: 'var(--text-3)' }}>{gefilterdTeam.length} van {team.length} leden</p>
                     )}
                   </div>
                 )}
@@ -1280,16 +1304,16 @@ export default function Dashboard() {
             {actieveTab === 'signalen' && (
               <>
                 <div className="mb-6">
-                  <p className="text-sm font-medium text-gray-700 mb-3">Vroege waarschuwingssignalen</p>
+                  <p className="text-sm font-medium mb-3" style={{ color: 'var(--text-2)' }}>Vroege waarschuwingssignalen</p>
                   {signalen.length === 0 ? (
-                    <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center">
-                      <p className="text-sm text-gray-500">Geen alarmsignalen gedetecteerd.</p>
+                    <div className="rounded-2xl border p-8 text-center" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
+                      <p className="text-sm" style={{ color: 'var(--text-3)' }}>Geen alarmsignalen gedetecteerd.</p>
                     </div>
                   ) : (
                     <div className="flex flex-col gap-3">
                       {signalen.map(({ lid, reden, ernst }) => (
-                        <div key={lid.id} className="bg-white rounded-2xl border p-4 flex items-center gap-4"
-                          style={{ borderColor: ernst === 'hoog' ? 'var(--mf-red-light)' : 'var(--mf-amber-light)', borderLeft: `4px solid ${ernst === 'hoog' ? 'var(--mf-red)' : 'var(--mf-amber-dark)'}` }}>
+                        <div key={lid.id} className="rounded-2xl border p-4 flex items-center gap-4"
+                          style={{ background: 'var(--bg-card)', borderColor: ernst === 'hoog' ? 'var(--mf-red-light)' : 'var(--mf-amber-light)', borderLeft: `4px solid ${ernst === 'hoog' ? 'var(--mf-red)' : 'var(--mf-amber-dark)'}` }}>
                           <div
                             className="flex-shrink-0 w-2.5 h-2.5 rounded-full"
                             style={{ background: ernst === 'hoog' ? 'var(--mf-red)' : 'var(--mf-amber)' }}
@@ -1297,7 +1321,7 @@ export default function Dashboard() {
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-0.5">
                               <Avatar naam={lid.naam || '?'} avatarUrl={lid.avatar_url} size={22} />
-                              <p className="text-sm font-medium text-gray-800">{lid.naam}</p>
+                              <p className="text-sm font-medium" style={{ color: 'var(--text-1)' }}>{lid.naam}</p>
                               <span className="text-xs px-2 py-0.5 rounded-full font-medium"
                                 style={{
                                   background: ernst === 'hoog' ? 'var(--mf-red-light)' : 'var(--mf-amber-light)',
@@ -1306,11 +1330,12 @@ export default function Dashboard() {
                                 {ernst === 'hoog' ? 'Hoog risico' : 'Let op'}
                               </span>
                             </div>
-                            <p className="text-xs text-gray-500">{reden}</p>
+                            <p className="text-xs" style={{ color: 'var(--text-3)' }}>{reden}</p>
                           </div>
                           <Link
                             href={`/team/${lid.id}`}
-                            className="flex-shrink-0 text-xs border border-gray-200 rounded-lg px-3 py-1.5 text-gray-600 hover:bg-gray-50 transition"
+                            className="flex-shrink-0 text-xs border rounded-lg px-3 py-1.5 hover:bg-[var(--bg-subtle)] transition"
+                            style={{ borderColor: 'var(--border)', color: 'var(--text-2)' }}
                           >
                             Profiel
                           </Link>
@@ -1322,28 +1347,28 @@ export default function Dashboard() {
 
                 {/* Anonymous feedback */}
                 <div>
-                  <p className="text-sm font-medium text-gray-700 mb-3">
+                  <p className="text-sm font-medium mb-3" style={{ color: 'var(--text-2)' }}>
                     Anonieme feedback ({feedback.length})
                   </p>
                   {feedback.length === 0 ? (
-                    <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center">
-                      <p className="text-sm text-gray-400">Nog geen anonieme feedback.</p>
+                    <div className="rounded-2xl border p-8 text-center" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
+                      <p className="text-sm" style={{ color: 'var(--text-3)' }}>Nog geen anonieme feedback.</p>
                     </div>
                   ) : (
                     <div className="flex flex-col gap-3">
                       {feedback.map(f => (
-                        <div key={f.id} className="bg-white rounded-2xl border border-gray-100 p-4"
-                          style={{ borderLeft: '3px solid #1D9E75' }}>
+                        <div key={f.id} className="rounded-2xl border p-4"
+                          style={{ background: 'var(--bg-card)', borderColor: 'var(--border)', borderLeft: '3px solid var(--mf-green)' }}>
                           <div className="flex items-center justify-between mb-2">
                             <span className="text-xs font-medium px-2.5 py-0.5 rounded-full"
                               style={{ background: 'var(--mf-blue-light)', color: 'var(--mf-blue)' }}>
                               {f.categorie}
                             </span>
-                            <span className="text-xs text-gray-400">
+                            <span className="text-xs" style={{ color: 'var(--text-3)' }}>
                               {new Date(f.aangemaakt_op).toLocaleDateString('nl-BE')}
                             </span>
                           </div>
-                          <p className="text-sm text-gray-700 leading-relaxed">&quot;{f.inhoud}&quot;</p>
+                          <p className="text-sm leading-relaxed" style={{ color: 'var(--text-2)' }}>&quot;{f.inhoud}&quot;</p>
                         </div>
                       ))}
                     </div>
@@ -1356,8 +1381,8 @@ export default function Dashboard() {
             {actieveTab === 'trends' && (
               <>
                 {checkins.length === 0 ? (
-                  <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center">
-                    <p className="text-sm text-gray-400">Nog geen data voor trends.</p>
+                  <div className="rounded-2xl border p-8 text-center" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
+                    <p className="text-sm" style={{ color: 'var(--text-3)' }}>Nog geen data voor trends.</p>
                   </div>
                 ) : (
                   <>
@@ -1374,7 +1399,7 @@ export default function Dashboard() {
                             <p className="text-xs font-semibold mb-2" style={{ color: groep.kleur }}>{groep.label}</p>
                             {groep.items.map(item => (
                               <div key={item.metric} className="flex items-center justify-between py-1">
-                                <span className="text-xs text-gray-700">{item.metric}</span>
+                                <span className="text-xs" style={{ color: 'var(--text-2)' }}>{item.metric}</span>
                                 <span className="text-xs font-bold" style={{ color: groep.kleur }}>{item.Gemiddelde}/5</span>
                               </div>
                             ))}
@@ -1415,8 +1440,8 @@ export default function Dashboard() {
               />
             )}
             {actieveTab === 'gesprekken' && !bedrijfId && (
-              <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center">
-                <p className="text-sm text-gray-400">Bedrijf niet gevonden. Koppel eerst een bedrijf aan je account.</p>
+              <div className="rounded-2xl border p-8 text-center" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
+                <p className="text-sm" style={{ color: 'var(--text-3)' }}>Bedrijf niet gevonden. Koppel eerst een bedrijf aan je account.</p>
               </div>
             )}
 
@@ -1427,8 +1452,8 @@ export default function Dashboard() {
 
             {/* ── BEDRIJF TAB ── */}
             {actieveTab === 'bedrijf' && !bedrijf && (
-              <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center">
-                <p className="text-sm text-gray-500">Bedrijfsdata kon niet worden geladen. Ververs de pagina of neem contact op met support.</p>
+              <div className="rounded-2xl border p-8 text-center" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
+                <p className="text-sm" style={{ color: 'var(--text-3)' }}>Bedrijfsdata kon niet worden geladen. Ververs de pagina of neem contact op met support.</p>
               </div>
             )}
             {actieveTab === 'bedrijf' && bedrijf && (
@@ -1465,9 +1490,23 @@ type VerlofTabProps = {
   onUpdate: (id: string, status: 'goedgekeurd' | 'afgewezen', notitie: string) => void
 }
 
-const VERLOF_TYPE_LABELS: Record<string, string> = {
-  vakantie: '🌴 Vakantie', ziekte: '🤒 Ziekte', bijzonder: '⭐ Bijzonder',
-  onbetaald: '💼 Onbetaald', overig: '📋 Overig',
+const VERLOF_TYPE_LABELS: Record<string, { icon: typeof TreePalm; label: string }> = {
+  vakantie: { icon: TreePalm, label: 'Vakantie' },
+  ziekte: { icon: Thermometer, label: 'Ziekte' },
+  bijzonder: { icon: Star, label: 'Bijzonder' },
+  onbetaald: { icon: Briefcase, label: 'Onbetaald' },
+  overig: { icon: ClipboardList, label: 'Overig' },
+}
+
+function VerlofTypeLabel({ type }: { type: string }) {
+  const entry = VERLOF_TYPE_LABELS[type]
+  if (!entry) return <>{type}</>
+  const Icon = entry.icon
+  return (
+    <span className="inline-flex items-center gap-1 align-middle">
+      <Icon size={12} aria-hidden="true" /> {entry.label}
+    </span>
+  )
 }
 
 function VerlofTab({ aanvragen, onUpdate }: VerlofTabProps) {
@@ -1496,21 +1535,21 @@ function VerlofTab({ aanvragen, onUpdate }: VerlofTabProps) {
     <div>
       {pending.length > 0 && (
         <div className="mb-6">
-          <p className="text-sm font-medium text-gray-700 mb-3">In behandeling ({pending.length})</p>
+          <p className="text-sm font-medium mb-3" style={{ color: 'var(--text-2)' }}>In behandeling ({pending.length})</p>
           <div className="flex flex-col gap-3">
             {pending.map(v => (
-              <div key={v.id} className="bg-white rounded-2xl border border-gray-100 p-4"
-                style={{ borderLeft: '4px solid #BA7517' }}>
+              <div key={v.id} className="rounded-2xl border p-4"
+                style={{ background: 'var(--bg-card)', borderColor: 'var(--border)', borderLeft: '4px solid var(--mf-amber)' }}>
                 <div className="flex items-start justify-between gap-2 mb-2">
                   <div>
-                    <p className="text-sm font-semibold text-gray-900">{v.naam}</p>
-                    <p className="text-xs text-gray-500">
-                      {VERLOF_TYPE_LABELS[v.type] ?? v.type} ·{' '}
+                    <p className="text-sm font-semibold" style={{ color: 'var(--text-1)' }}>{v.naam}</p>
+                    <p className="text-xs" style={{ color: 'var(--text-3)' }}>
+                      <VerlofTypeLabel type={v.type} /> ·{' '}
                       {new Date(v.datum_van).toLocaleDateString('nl-BE', { day: 'numeric', month: 'short' })}
                       {v.datum_van !== v.datum_tot ? ` – ${new Date(v.datum_tot).toLocaleDateString('nl-BE', { day: 'numeric', month: 'short' })}` : ''}
                       {' '}· {dagenTekst(v.datum_van, v.datum_tot)}
                     </p>
-                    {v.reden && <p className="text-xs text-gray-400 mt-1">&quot;{v.reden}&quot;</p>}
+                    {v.reden && <p className="text-xs mt-1" style={{ color: 'var(--text-3)' }}>&quot;{v.reden}&quot;</p>}
                   </div>
                   <span className="text-xs font-semibold px-2 py-0.5 rounded-full flex-shrink-0"
                     style={{ background: 'var(--mf-amber-light)', color: 'var(--mf-amber-dark)' }}>In behandeling</span>
@@ -1520,20 +1559,20 @@ function VerlofTab({ aanvragen, onUpdate }: VerlofTabProps) {
                   placeholder="Optionele notitie voor medewerker..."
                   value={notities[v.id] ?? ''}
                   onChange={e => setNotities(prev => ({ ...prev, [v.id]: e.target.value }))}
-                  className="w-full border border-gray-200 rounded-xl px-3 py-2 text-xs outline-none mb-3"
+                  className="mf-input w-full rounded-xl px-3 py-2 text-xs outline-none mb-3"
                 />
                 <div className="flex gap-2">
                   <button onClick={() => behandel(v.id, 'goedgekeurd')}
                     disabled={verwerking === v.id}
-                    className="flex-1 py-2 rounded-xl text-xs font-semibold text-white disabled:opacity-40"
-                    style={{ background: 'var(--mf-green)' }}>
-                    ✓ Goedkeuren
+                    className="flex-1 py-2 rounded-xl text-xs font-semibold disabled:opacity-40 inline-flex items-center justify-center gap-1.5"
+                    style={{ background: 'var(--mf-green)', color: 'var(--bg-app)' }}>
+                    <Check size={14} aria-hidden="true" /> Goedkeuren
                   </button>
                   <button onClick={() => behandel(v.id, 'afgewezen')}
                     disabled={verwerking === v.id}
-                    className="flex-1 py-2 rounded-xl text-xs font-semibold text-white disabled:opacity-40"
-                    style={{ background: 'var(--mf-red)' }}>
-                    ✗ Afwijzen
+                    className="flex-1 py-2 rounded-xl text-xs font-semibold disabled:opacity-40 inline-flex items-center justify-center gap-1.5"
+                    style={{ background: 'var(--mf-red)', color: 'var(--bg-app)' }}>
+                    <X size={14} aria-hidden="true" /> Afwijzen
                   </button>
                 </div>
               </div>
@@ -1544,23 +1583,25 @@ function VerlofTab({ aanvragen, onUpdate }: VerlofTabProps) {
 
       {behandeld.length > 0 && (
         <div>
-          <p className="text-sm font-medium text-gray-700 mb-3">Behandeld ({behandeld.length})</p>
+          <p className="text-sm font-medium mb-3" style={{ color: 'var(--text-2)' }}>Behandeld ({behandeld.length})</p>
           <div className="flex flex-col gap-2">
             {behandeld.map(v => (
-              <div key={v.id} className="bg-white rounded-2xl border border-gray-100 px-4 py-3 flex items-center justify-between gap-3">
+              <div key={v.id} className="rounded-2xl border px-4 py-3 flex items-center justify-between gap-3" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
                 <div className="min-w-0">
-                  <p className="text-sm font-medium text-gray-800">{v.naam}</p>
-                  <p className="text-xs text-gray-400">
-                    {VERLOF_TYPE_LABELS[v.type] ?? v.type} ·{' '}
+                  <p className="text-sm font-medium" style={{ color: 'var(--text-1)' }}>{v.naam}</p>
+                  <p className="text-xs" style={{ color: 'var(--text-3)' }}>
+                    <VerlofTypeLabel type={v.type} /> ·{' '}
                     {new Date(v.datum_van).toLocaleDateString('nl-BE', { day: 'numeric', month: 'short' })}
                     {v.datum_van !== v.datum_tot ? ` – ${new Date(v.datum_tot).toLocaleDateString('nl-BE', { day: 'numeric', month: 'short' })}` : ''}
                   </p>
                 </div>
-                <span className="text-xs font-semibold px-2.5 py-1 rounded-full flex-shrink-0"
+                <span className="text-xs font-semibold px-2.5 py-1 rounded-full flex-shrink-0 inline-flex items-center gap-1"
                   style={v.status === 'goedgekeurd'
                     ? { background: 'var(--mf-green-light)', color: 'var(--mf-green-dark)' }
                     : { background: 'var(--mf-red-light)', color: 'var(--mf-red)' }}>
-                  {v.status === 'goedgekeurd' ? '✓ Goedgekeurd' : '✗ Afgewezen'}
+                  {v.status === 'goedgekeurd'
+                    ? <><Check size={12} aria-hidden="true" /> Goedgekeurd</>
+                    : <><X size={12} aria-hidden="true" /> Afgewezen</>}
                 </span>
               </div>
             ))}
@@ -1569,14 +1610,14 @@ function VerlofTab({ aanvragen, onUpdate }: VerlofTabProps) {
       )}
 
       {aanvragen.length === 0 && (
-        <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center">
-          <div style={{ position: 'relative', display: 'inline-block', marginBottom: '0.5rem' }}>
+        <div className="rounded-2xl border p-8 text-center" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
+          <div style={{ position: 'relative', display: 'inline-flex', marginBottom: '0.5rem' }}>
             <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
-              <div style={{ width: 72, height: 72, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
+              <div style={{ width: 72, height: 72, borderRadius: '50%', background: 'radial-gradient(circle, color-mix(in srgb, var(--mf-green) 18%, transparent) 0%, transparent 70%)' }} />
             </div>
-            <p className="text-3xl" style={{ position: 'relative', zIndex: 1 }}>🌴</p>
+            <span style={{ position: 'relative', zIndex: 1, color: 'var(--mf-green)' }}><TreePalm size={32} aria-hidden="true" /></span>
           </div>
-          <p className="text-sm text-gray-400">Geen verlofaanvragen.</p>
+          <p className="text-sm" style={{ color: 'var(--text-3)' }}>Geen verlofaanvragen.</p>
         </div>
       )}
     </div>
@@ -1590,9 +1631,24 @@ type DeclaratiesTabProps = {
   onUpdate: (id: string, status: 'goedgekeurd' | 'afgewezen', notitie: string) => void
 }
 
-const DECL_CAT_LABELS: Record<string, string> = {
-  reiskosten: '🚗 Reiskosten', maaltijd: '🍽️ Maaltijd', materiaal: '📦 Materiaal',
-  training: '🎓 Training', representatie: '🤝 Representatie', overig: '💰 Overig',
+const DECL_CAT_LABELS: Record<string, { icon: typeof Car; label: string }> = {
+  reiskosten: { icon: Car, label: 'Reiskosten' },
+  maaltijd: { icon: Utensils, label: 'Maaltijd' },
+  materiaal: { icon: Package, label: 'Materiaal' },
+  training: { icon: GraduationCap, label: 'Training' },
+  representatie: { icon: Handshake, label: 'Representatie' },
+  overig: { icon: Wallet, label: 'Overig' },
+}
+
+function DeclCatLabel({ categorie }: { categorie: string }) {
+  const entry = DECL_CAT_LABELS[categorie]
+  if (!entry) return <>{categorie}</>
+  const Icon = entry.icon
+  return (
+    <span className="inline-flex items-center gap-1 align-middle">
+      <Icon size={12} aria-hidden="true" /> {entry.label}
+    </span>
+  )
 }
 
 function DeclaratiesTab({ declaraties, onUpdate }: DeclaratiesTabProps) {
@@ -1616,8 +1672,8 @@ function DeclaratiesTab({ declaraties, onUpdate }: DeclaratiesTabProps) {
   return (
     <div>
       {totaalOpenstaand > 0 && (
-        <div className="bg-white rounded-2xl border border-gray-100 p-4 mb-5 flex items-center justify-between">
-          <p className="text-sm text-gray-600">Totaal openstaand</p>
+        <div className="rounded-2xl border p-4 mb-5 flex items-center justify-between" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
+          <p className="text-sm" style={{ color: 'var(--text-2)' }}>Totaal openstaand</p>
           <p className="text-lg font-bold" style={{ color: 'var(--mf-purple)' }}>
             €{totaalOpenstaand.toLocaleString('nl-BE', { minimumFractionDigits: 2 })}
           </p>
@@ -1626,21 +1682,21 @@ function DeclaratiesTab({ declaraties, onUpdate }: DeclaratiesTabProps) {
 
       {pending.length > 0 && (
         <div className="mb-6">
-          <p className="text-sm font-medium text-gray-700 mb-3">In behandeling ({pending.length})</p>
+          <p className="text-sm font-medium mb-3" style={{ color: 'var(--text-2)' }}>In behandeling ({pending.length})</p>
           <div className="flex flex-col gap-3">
             {pending.map(d => (
-              <div key={d.id} className="bg-white rounded-2xl border border-gray-100 p-4"
-                style={{ borderLeft: '4px solid #8B5CF6' }}>
+              <div key={d.id} className="rounded-2xl border p-4"
+                style={{ background: 'var(--bg-card)', borderColor: 'var(--border)', borderLeft: '4px solid var(--mf-purple)' }}>
                 <div className="flex items-start justify-between gap-2 mb-2">
                   <div>
-                    <p className="text-sm font-semibold text-gray-900">{d.naam}</p>
-                    <p className="text-xs text-gray-500">
-                      {DECL_CAT_LABELS[d.categorie] ?? d.categorie} ·{' '}
+                    <p className="text-sm font-semibold" style={{ color: 'var(--text-1)' }}>{d.naam}</p>
+                    <p className="text-xs" style={{ color: 'var(--text-3)' }}>
+                      <DeclCatLabel categorie={d.categorie} /> ·{' '}
                       {new Date(d.datum).toLocaleDateString('nl-BE', { day: 'numeric', month: 'short', year: 'numeric' })}
                     </p>
-                    <p className="text-xs text-gray-400 mt-0.5">{d.beschrijving}</p>
+                    <p className="text-xs mt-0.5" style={{ color: 'var(--text-3)' }}>{d.beschrijving}</p>
                   </div>
-                  <p className="text-lg font-bold text-gray-900 flex-shrink-0">
+                  <p className="text-lg font-bold flex-shrink-0" style={{ color: 'var(--text-1)' }}>
                     €{d.bedrag.toLocaleString('nl-BE', { minimumFractionDigits: 2 })}
                   </p>
                 </div>
@@ -1649,20 +1705,20 @@ function DeclaratiesTab({ declaraties, onUpdate }: DeclaratiesTabProps) {
                   placeholder="Optionele notitie..."
                   value={notities[d.id] ?? ''}
                   onChange={e => setNotities(prev => ({ ...prev, [d.id]: e.target.value }))}
-                  className="w-full border border-gray-200 rounded-xl px-3 py-2 text-xs outline-none mb-3"
+                  className="mf-input w-full rounded-xl px-3 py-2 text-xs outline-none mb-3"
                 />
                 <div className="flex gap-2">
                   <button onClick={() => behandel(d.id, 'goedgekeurd')}
                     disabled={verwerking === d.id}
-                    className="flex-1 py-2 rounded-xl text-xs font-semibold text-white disabled:opacity-40"
-                    style={{ background: 'var(--mf-green)' }}>
-                    ✓ Goedkeuren
+                    className="flex-1 py-2 rounded-xl text-xs font-semibold disabled:opacity-40 inline-flex items-center justify-center gap-1.5"
+                    style={{ background: 'var(--mf-green)', color: 'var(--bg-app)' }}>
+                    <Check size={14} aria-hidden="true" /> Goedkeuren
                   </button>
                   <button onClick={() => behandel(d.id, 'afgewezen')}
                     disabled={verwerking === d.id}
-                    className="flex-1 py-2 rounded-xl text-xs font-semibold text-white disabled:opacity-40"
-                    style={{ background: 'var(--mf-red)' }}>
-                    ✗ Afwijzen
+                    className="flex-1 py-2 rounded-xl text-xs font-semibold disabled:opacity-40 inline-flex items-center justify-center gap-1.5"
+                    style={{ background: 'var(--mf-red)', color: 'var(--bg-app)' }}>
+                    <X size={14} aria-hidden="true" /> Afwijzen
                   </button>
                 </div>
               </div>
@@ -1673,23 +1729,25 @@ function DeclaratiesTab({ declaraties, onUpdate }: DeclaratiesTabProps) {
 
       {behandeld.length > 0 && (
         <div>
-          <p className="text-sm font-medium text-gray-700 mb-3">Behandeld ({behandeld.length})</p>
+          <p className="text-sm font-medium mb-3" style={{ color: 'var(--text-2)' }}>Behandeld ({behandeld.length})</p>
           <div className="flex flex-col gap-2">
             {behandeld.map(d => (
-              <div key={d.id} className="bg-white rounded-2xl border border-gray-100 px-4 py-3 flex items-center justify-between gap-3">
+              <div key={d.id} className="rounded-2xl border px-4 py-3 flex items-center justify-between gap-3" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
                 <div className="min-w-0">
-                  <p className="text-sm font-medium text-gray-800">{d.naam}</p>
-                  <p className="text-xs text-gray-400">
-                    {DECL_CAT_LABELS[d.categorie] ?? d.categorie} · {d.beschrijving}
+                  <p className="text-sm font-medium" style={{ color: 'var(--text-1)' }}>{d.naam}</p>
+                  <p className="text-xs" style={{ color: 'var(--text-3)' }}>
+                    <DeclCatLabel categorie={d.categorie} /> · {d.beschrijving}
                   </p>
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
-                  <p className="text-sm font-bold text-gray-700">€{d.bedrag.toLocaleString('nl-BE', { minimumFractionDigits: 2 })}</p>
-                  <span className="text-xs font-semibold px-2.5 py-1 rounded-full"
+                  <p className="text-sm font-bold" style={{ color: 'var(--text-2)' }}>€{d.bedrag.toLocaleString('nl-BE', { minimumFractionDigits: 2 })}</p>
+                  <span className="flex items-center justify-center w-6 h-6 rounded-full"
                     style={d.status === 'goedgekeurd'
                       ? { background: 'var(--mf-green-light)', color: 'var(--mf-green-dark)' }
                       : { background: 'var(--mf-red-light)', color: 'var(--mf-red)' }}>
-                    {d.status === 'goedgekeurd' ? '✓' : '✗'}
+                    {d.status === 'goedgekeurd'
+                      ? <Check size={13} aria-label="Goedgekeurd" />
+                      : <X size={13} aria-label="Afgewezen" />}
                   </span>
                 </div>
               </div>
@@ -1699,14 +1757,14 @@ function DeclaratiesTab({ declaraties, onUpdate }: DeclaratiesTabProps) {
       )}
 
       {declaraties.length === 0 && (
-        <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center">
-          <div style={{ position: 'relative', display: 'inline-block', marginBottom: '0.5rem' }}>
+        <div className="rounded-2xl border p-8 text-center" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
+          <div style={{ position: 'relative', display: 'inline-flex', marginBottom: '0.5rem' }}>
             <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
-              <div style={{ width: 72, height: 72, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
+              <div style={{ width: 72, height: 72, borderRadius: '50%', background: 'radial-gradient(circle, color-mix(in srgb, var(--mf-green) 18%, transparent) 0%, transparent 70%)' }} />
             </div>
-            <p className="text-3xl" style={{ position: 'relative', zIndex: 1 }}>💰</p>
+            <span style={{ position: 'relative', zIndex: 1, color: 'var(--mf-green)' }}><Wallet size={32} aria-hidden="true" /></span>
           </div>
-          <p className="text-sm text-gray-400">Geen declaraties ingediend.</p>
+          <p className="text-sm" style={{ color: 'var(--text-3)' }}>Geen declaraties ingediend.</p>
         </div>
       )}
     </div>
