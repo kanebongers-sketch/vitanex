@@ -3,12 +3,12 @@
 import { Card } from '@/components/ui/Card'
 import { Chart } from '@/components/ui/Chart'
 
-export interface TrendPunt {
+export type TrendPunt = {
   week: string
   Score: number
 }
 
-export interface VergelijkingPunt {
+export type VergelijkingPunt = {
   metric: string
   Gemiddelde: number
 }

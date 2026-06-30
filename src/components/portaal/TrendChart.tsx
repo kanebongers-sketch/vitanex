@@ -2,7 +2,7 @@
 
 import { Chart } from '@/components/ui/Chart'
 
-export interface TrendPunt {
+export type TrendPunt = {
   datum: string
   Fysiek: number
   Mentaal: number
