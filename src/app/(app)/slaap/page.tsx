@@ -4,10 +4,18 @@ export const dynamic = 'force-dynamic'
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { Moon } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
 import { getActiviteit } from '@/lib/activiteiten'
+import { vitaEvent } from '@/lib/vita/events'
+import { Button } from '@/components/ui/Button'
+import { Field } from '@/components/ui/Field'
+import { Input } from '@/components/ui/Input'
+import { Textarea } from '@/components/ui/Textarea'
+import { EmptyState } from '@/components/ui/EmptyState'
+import { useToast } from '@/components/ui/Toast'
 
 const ACT = getActiviteit('rust')
 interface SlaapLog {
@@ -61,7 +69,13 @@ function SlaapBarchart({ logs }: { logs: SlaapLog[] }) {
       <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-4)', marginBottom: 12 }}>
         7 DAGEN SLAAP
       </p>
-      <div style={{ display: 'flex', gap: 6, alignItems: 'flex-end', height: barH + 20 }}>
+      <div
+        role="img"
+        aria-label={`Slaap afgelopen 7 dagen: ${dagen
+          .map(d => `${d.dag} ${d.uren !== null ? `${d.uren} uur` : 'geen data'}`)
+          .join(', ')}`}
+        style={{ display: 'flex', gap: 6, alignItems: 'flex-end', height: barH + 20 }}
+      >
         {dagen.map(d => {
           const pct = d.uren !== null ? Math.min(1, d.uren / maxUren) : 0
           const h = Math.max(4, Math.round(pct * barH))
@@ -78,7 +92,6 @@ function SlaapBarchart({ logs }: { logs: SlaapLog[] }) {
                 width: '100%', height: d.uren !== null ? h : 4, borderRadius: 6,
                 background: kleur,
                 opacity: d.uren !== null ? 1 : 0.25,
-                transition: 'height 0.4s ease',
                 outline: isVandaag ? `2px solid ${kleur}` : 'none',
                 outlineOffset: 2,
               }} />
@@ -107,6 +120,7 @@ function SlaapBarchart({ logs }: { logs: SlaapLog[] }) {
 
 export default function SlaapPagina() {
   const router = useRouter()
+  const { toast } = useToast()
   const [laden, setLaden] = useState(true)
   const [logs, setLogs] = useState<SlaapLog[]>([])
   const [gemiddeldUren, setGemiddeldUren] = useState<number | null>(null)
@@ -166,9 +180,14 @@ export default function SlaapPagina() {
           return [json.log, ...prev.slice(0, 13)]
         })
         setSucces(true)
+        vitaEvent('data_logged', { kind: 'slaap' })
         setTimeout(() => router.push('/vandaag'), 1500)
+      } else {
+        toast({ title: 'Opslaan mislukt', description: 'Kon je slaap niet opslaan. Probeer het opnieuw.', variant: 'error' })
       }
-    } catch { /* stil falen */ }
+    } catch {
+      toast({ title: 'Opslaan mislukt', description: 'Er ging iets mis. Probeer het opnieuw.', variant: 'error' })
+    }
     setOpslaan(false)
   }
 
@@ -182,7 +201,7 @@ export default function SlaapPagina() {
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
       <Navbar />
-      <main style={{ padding: '24px 20px 88px', maxWidth: 900, margin: '0 auto' }}>
+      <main style={{ padding: '24px 20px calc(88px + var(--safe-bottom, 0px))', maxWidth: 900, margin: '0 auto' }}>
 
         <header style={{ marginBottom: 28 }}>
           <p style={{ fontSize: '0.8rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-4)', margin: '0 0 4px' }}>
@@ -231,13 +250,13 @@ export default function SlaapPagina() {
         <div>{/* form column */}
 
         {succes && (
-          <div style={{
-            background: 'var(--mf-green-light)', border: '1px solid rgba(29,158,117,0.25)',
+          <div role="status" style={{
+            background: 'var(--mf-green-light)', border: '1px solid var(--mentaforce-primary)',
             borderRadius: 'var(--radius-md)', padding: '12px 16px', marginBottom: 20,
-            fontSize: 13, color: 'var(--mf-green-dark)', fontWeight: 600,
+            fontSize: 13, color: 'var(--mf-green)', fontWeight: 600,
             display: 'flex', alignItems: 'center', gap: 8,
           }}>
-            <span>✓</span> Slaap opgeslagen!
+            <span aria-hidden>✓</span> Slaap opgeslagen!
           </div>
         )}
 
@@ -245,11 +264,11 @@ export default function SlaapPagina() {
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
           <div style={{
             width: 112, height: 112, borderRadius: '50%',
-            background: `${slaapKleur(uren)}12`,
-            border: `2px solid ${slaapKleur(uren)}30`,
+            background: `color-mix(in srgb, ${slaapKleur(uren)} 10%, transparent)`,
+            border: `2px solid color-mix(in srgb, ${slaapKleur(uren)} 28%, transparent)`,
             display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-            boxShadow: `0 8px 32px ${slaapKleur(uren)}20`,
-            transition: 'background 0.3s ease, box-shadow 0.3s ease',
+            boxShadow: 'var(--shadow-md)',
+            transition: 'background 0.3s ease',
           }}>
             <span style={{ fontSize: 24, fontWeight: 900, color: slaapKleur(uren), letterSpacing: '-0.03em', lineHeight: 1 }}>
               {urenNaarTijd(uren)}
@@ -265,26 +284,24 @@ export default function SlaapPagina() {
           </p>
 
           <div style={{ marginBottom: 16 }}>
-            <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-3)', display: 'block', marginBottom: 6 }}>Datum</label>
-            <input
-              type="date"
-              value={datum}
-              onChange={e => setDatum(e.target.value)}
-              style={{
-                width: '100%', padding: '10px 12px', borderRadius: 'var(--radius-sm)',
-                border: '1.5px solid var(--border)', fontSize: 13, boxSizing: 'border-box',
-                background: 'var(--bg-subtle)', color: 'var(--text-1)', outline: 'none',
-              }}
-            />
+            <Field label="Datum">
+              <Input
+                type="date"
+                value={datum}
+                onChange={e => setDatum(e.target.value)}
+              />
+            </Field>
           </div>
 
           <div style={{ marginBottom: 16 }}>
-            <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-3)', display: 'block', marginBottom: 6 }}>
+            <label htmlFor="slaap-uren" style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-2)', display: 'block', marginBottom: 6 }}>
               Uren geslapen:{' '}
               <strong style={{ color: slaapKleur(uren) }}>{urenNaarTijd(uren)}</strong>
             </label>
             <input
+              id="slaap-uren"
               type="range" min={0} max={12} step={0.5} value={uren}
+              aria-valuetext={urenNaarTijd(uren)}
               onChange={e => setUren(parseFloat(e.target.value))}
               style={{ width: '100%', accentColor: slaapKleur(uren) }}
             />
@@ -294,15 +311,20 @@ export default function SlaapPagina() {
           </div>
 
           <div style={{ marginBottom: 16 }}>
-            <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-3)', display: 'block', marginBottom: 8 }}>Kwaliteit</label>
-            <div style={{ display: 'flex', gap: 8 }}>
+            <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-2)', marginBottom: 8 }} id="slaap-kwaliteit-label">Kwaliteit</p>
+            <div style={{ display: 'flex', gap: 8 }} role="group" aria-labelledby="slaap-kwaliteit-label">
               {[1, 2, 3, 4, 5].map(k => (
                 <button
                   key={k}
+                  type="button"
                   onClick={() => setKwaliteit(k)}
+                  aria-pressed={kwaliteit === k}
+                  aria-label={KWALITEIT_LABELS[k]}
                   style={{
-                    flex: 1, height: 44, borderRadius: 'var(--radius-sm)', border: 'none', cursor: 'pointer',
-                    background: kwaliteit === k ? 'var(--mf-green)' : 'var(--bg-subtle)',
+                    flex: 1, height: 44, minWidth: 44, borderRadius: 'var(--radius-sm)',
+                    border: kwaliteit === k ? '1px solid transparent' : '1px solid var(--border-strong)',
+                    cursor: 'pointer',
+                    background: kwaliteit === k ? 'var(--mentaforce-primary)' : 'var(--bg-subtle)',
                     fontSize: 18, transition: 'background var(--transition-fast)',
                   }}
                 >
@@ -316,57 +338,34 @@ export default function SlaapPagina() {
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 16 }}>
-            <div>
-              <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-3)', display: 'block', marginBottom: 6 }}>Bedtijd</label>
-              <input
-                type="time" value={bedtijd} onChange={e => setBedtijd(e.target.value)}
-                style={{
-                  width: '100%', padding: '10px 12px', borderRadius: 'var(--radius-sm)',
-                  border: '1.5px solid var(--border)', fontSize: 13, boxSizing: 'border-box',
-                  background: 'var(--bg-subtle)', color: 'var(--text-1)', outline: 'none',
-                }}
-              />
-            </div>
-            <div>
-              <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-3)', display: 'block', marginBottom: 6 }}>Wektijd</label>
-              <input
-                type="time" value={wektijd} onChange={e => setWektijd(e.target.value)}
-                style={{
-                  width: '100%', padding: '10px 12px', borderRadius: 'var(--radius-sm)',
-                  border: '1.5px solid var(--border)', fontSize: 13, boxSizing: 'border-box',
-                  background: 'var(--bg-subtle)', color: 'var(--text-1)', outline: 'none',
-                }}
-              />
-            </div>
+            <Field label="Bedtijd">
+              <Input type="time" value={bedtijd} onChange={e => setBedtijd(e.target.value)} />
+            </Field>
+            <Field label="Wektijd">
+              <Input type="time" value={wektijd} onChange={e => setWektijd(e.target.value)} />
+            </Field>
           </div>
 
-          <textarea
-            value={notitie}
-            onChange={e => setNotitie(e.target.value)}
-            placeholder="Notitie (nachtmerrie, stress, cafeïne...)"
-            maxLength={200}
-            rows={2}
-            style={{
-              width: '100%', border: '1.5px solid var(--border)', borderRadius: 'var(--radius-sm)',
-              padding: '10px 12px', fontSize: 13, color: 'var(--text-2)',
-              outline: 'none', resize: 'none', fontFamily: 'inherit',
-              boxSizing: 'border-box', marginBottom: 16, background: 'var(--bg-subtle)',
-            }}
-          />
+          <div style={{ marginBottom: 16 }}>
+            <Field label="Notitie">
+              <Textarea
+                value={notitie}
+                onChange={e => setNotitie(e.target.value)}
+                placeholder="Notitie (nachtmerrie, stress, cafeïne...)"
+                maxLength={200}
+                rows={2}
+              />
+            </Field>
+          </div>
 
-          <button
+          <Button
             onClick={verstuur}
-            disabled={opslaan}
-            style={{
-              width: '100%', padding: '14px', borderRadius: 'var(--radius-md)',
-              background: opslaan ? 'var(--text-4)' : 'linear-gradient(135deg, var(--mf-green) 0%, var(--mf-green-dark) 100%)',
-              boxShadow: opslaan ? 'none' : '0 4px 16px rgba(29,158,117,0.35)',
-              color: 'white', border: 'none', cursor: opslaan ? 'not-allowed' : 'pointer',
-              fontSize: 15, fontWeight: 700, letterSpacing: '-0.01em',
-            }}
+            loading={opslaan}
+            style={{ width: '100%' }}
+            size="lg"
           >
-            {opslaan ? 'Opslaan…' : 'Slaap loggen →'}
-          </button>
+            {opslaan ? 'Opslaan…' : 'Slaap loggen'}
+          </Button>
         </section>
 
         </div>{/* end form column */}
@@ -411,6 +410,16 @@ export default function SlaapPagina() {
               ))}
             </div>
             </div>
+        )}
+
+        {logs.length === 0 && (
+          <section style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius-xl)', boxShadow: 'var(--shadow-sm)', border: '1px solid var(--border)' }}>
+            <EmptyState
+              icon={Moon}
+              title="Nog geen slaap gelogd"
+              description="Log je eerste nacht om je 7-daagse trend en gemiddelden te zien."
+            />
+          </section>
         )}
         </div>
       </main>

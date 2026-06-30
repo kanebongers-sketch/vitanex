@@ -4,10 +4,17 @@ export const dynamic = 'force-dynamic'
 
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { Droplet, Trash2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
 import { getActiviteit } from '@/lib/activiteiten'
+import { vitaEvent } from '@/lib/vita/events'
+import { Button } from '@/components/ui/Button'
+import { Field } from '@/components/ui/Field'
+import { Input } from '@/components/ui/Input'
+import { EmptyState } from '@/components/ui/EmptyState'
+import { useToast } from '@/components/ui/Toast'
 
 const ACT = getActiviteit('water')
 
@@ -124,6 +131,7 @@ function WaterGlas({ percentage }: { percentage: number }) {
 
 export default function WaterPagina() {
   const router = useRouter()
+  const { toast } = useToast()
   const [laden, setLaden] = useState(true)
   const [data, setData] = useState<WaterData>({ vandaag_ml: 0, doel_ml: 2000, logs: [] })
   const [bezig, setBezig] = useState(false)
@@ -209,9 +217,12 @@ export default function WaterPagina() {
         logs: [...prev.logs, { id: crypto.randomUUID(), ml, tijdstip: new Date().toISOString() }],
       }))
       setCustomMl('')
+      vitaEvent('data_logged', { kind: 'water' })
     } else {
       const json = await res.json() as { error: string }
-      setFout(json.error ?? 'Fout bij toevoegen.')
+      const melding = json.error ?? 'Fout bij toevoegen.'
+      setFout(melding)
+      toast({ title: 'Toevoegen mislukt', description: melding, variant: 'error' })
     }
 
     setBezig(false)
@@ -229,6 +240,8 @@ export default function WaterPagina() {
         vandaag_ml: Math.max(0, prev.vandaag_ml - log.ml),
         logs: prev.logs.filter(l => l.id !== id),
       }))
+    } else {
+      toast({ title: 'Verwijderen mislukt', description: 'Kon deze invoer niet verwijderen. Probeer het opnieuw.', variant: 'error' })
     }
   }
 
@@ -258,7 +271,7 @@ export default function WaterPagina() {
       <main style={{
         minHeight: '100vh',
         background: 'var(--bg-app)',
-        paddingBottom: '3rem',
+        paddingBottom: 'calc(3rem + var(--safe-bottom, 0px))',
       }}>
         <div style={{ maxWidth: '720px', margin: '0 auto', padding: '0 1.25rem' }}>
 
@@ -302,8 +315,8 @@ export default function WaterPagina() {
                 position: 'absolute', pointerEvents: 'none',
                 width: 140, height: 140, borderRadius: '50%',
                 background: percentage >= 100
-                  ? 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)'
-                  : 'radial-gradient(circle, rgba(59,130,246,0.18) 0%, transparent 70%)',
+                  ? 'radial-gradient(circle, color-mix(in srgb, var(--mf-green) 22%, transparent) 0%, transparent 70%)'
+                  : 'radial-gradient(circle, color-mix(in srgb, var(--mf-blue-mid) 22%, transparent) 0%, transparent 70%)',
               }} />
               <div style={{ position: 'relative', zIndex: 1 }}>
                 <WaterGlas percentage={percentage} />
@@ -366,7 +379,13 @@ export default function WaterPagina() {
                 <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-3)', margin: '0 0 10px' }}>
                   Afgelopen 7 dagen
                 </p>
-                <div style={{ display: 'flex', gap: 6, alignItems: 'flex-end' }}>
+                <div
+                  role="img"
+                  aria-label={`Waterinname afgelopen 7 dagen: ${weekData
+                    .map(dag => `${dag.dag} ${dag.totaal} milliliter`)
+                    .join(', ')}`}
+                  style={{ display: 'flex', gap: 6, alignItems: 'flex-end' }}
+                >
                   {weekData.map(dag => {
                     const maxMl = data.doel_ml
                     const h = dag.totaal > 0 ? Math.max(6, Math.min(1, dag.totaal / maxMl) * 48) : 4
@@ -391,6 +410,16 @@ export default function WaterPagina() {
                 </div>
               </div>
             )}
+
+            {weekData.length > 0 && !weekData.some(d => d.totaal > 0) && (
+              <div style={{ width: '100%' }}>
+                <EmptyState
+                  icon={Droplet}
+                  title="Nog geen weekgeschiedenis"
+                  description="Log je eerste glas water om je 7-daagse trend op te bouwen."
+                />
+              </div>
+            )}
           </section>
 
           {/* Snelle toevoeg knoppen */}
@@ -408,9 +437,13 @@ export default function WaterPagina() {
               {SNELLE_OPTIES.map(ml => (
                 <button
                   key={ml}
+                  type="button"
                   onClick={() => voegToe(ml)}
                   disabled={bezig}
+                  aria-label={`Voeg ${ml} milliliter water toe`}
+                  className="mf-water-quick"
                   style={{
+                    minHeight: 44,
                     padding: '0.75rem 0.5rem',
                     borderRadius: 'var(--radius-md)',
                     border: '1.5px solid var(--mf-blue-light)',
@@ -423,18 +456,6 @@ export default function WaterPagina() {
                     transition: 'background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast)',
                     textAlign: 'center',
                   }}
-                  onMouseEnter={e => {
-                    if (!bezig) {
-                      (e.currentTarget as HTMLButtonElement).style.background = 'var(--mf-blue-mid)'
-                      ;(e.currentTarget as HTMLButtonElement).style.color = 'white'
-                      ;(e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--mf-blue-mid)'
-                    }
-                  }}
-                  onMouseLeave={e => {
-                    ;(e.currentTarget as HTMLButtonElement).style.background = 'var(--mf-blue-light)'
-                    ;(e.currentTarget as HTMLButtonElement).style.color = 'var(--mf-blue)'
-                    ;(e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--mf-blue-light)'
-                  }}
                 >
                   +{ml}
                   <span style={{ display: 'block', fontSize: '0.7rem', fontWeight: 400, opacity: 0.7 }}>ml</span>
@@ -442,47 +463,42 @@ export default function WaterPagina() {
               ))}
             </div>
 
+            <style>{`
+              .mf-water-quick:hover:not(:disabled) {
+                background: var(--mf-blue-mid);
+                color: var(--bg-app);
+                border-color: var(--mf-blue-mid);
+              }
+              .mf-water-quick:focus-visible {
+                outline: 2px solid var(--mentaforce-primary);
+                outline-offset: 2px;
+              }
+            `}</style>
+
             {/* Custom ml */}
-            <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.875rem' }}>
-              <input
-                ref={inputRef}
-                type="number"
-                min={1}
-                max={2000}
-                value={customMl}
-                onChange={e => setCustomMl(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && handleCustomToevoegen()}
-                placeholder="Aangepast (ml)"
-                style={{
-                  flex: 1,
-                  padding: '0.7rem 1rem',
-                  borderRadius: 'var(--radius-sm)',
-                  border: '1.5px solid var(--border-strong)',
-                  background: 'var(--bg-subtle)',
-                  color: 'var(--text-1)',
-                  fontSize: '0.9rem',
-                  outline: 'none',
-                }}
-              />
-              <button
+            <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.875rem', alignItems: 'flex-end' }}>
+              <div style={{ flex: 1 }}>
+                <Field label="Aangepaste hoeveelheid (ml)" htmlFor="water-custom-ml">
+                  <Input
+                    ref={inputRef}
+                    id="water-custom-ml"
+                    type="number"
+                    min={1}
+                    max={2000}
+                    value={customMl}
+                    onChange={e => setCustomMl(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && handleCustomToevoegen()}
+                    placeholder="bijv. 300"
+                  />
+                </Field>
+              </div>
+              <Button
                 onClick={handleCustomToevoegen}
                 disabled={bezig || !customMl}
-                style={{
-                  padding: '0.7rem 1.1rem',
-                  borderRadius: 'var(--radius-sm)',
-                  border: 'none',
-                  background: 'var(--mf-blue-mid)',
-                  color: 'white',
-                  fontWeight: 700,
-                  fontSize: '0.875rem',
-                  cursor: bezig || !customMl ? 'not-allowed' : 'pointer',
-                  opacity: bezig || !customMl ? 0.5 : 1,
-                  transition: 'opacity var(--transition-fast)',
-                  whiteSpace: 'nowrap',
-                }}
+                style={{ whiteSpace: 'nowrap' }}
               >
                 Toevoegen
-              </button>
+              </Button>
             </div>
 
             {fout && (
@@ -531,28 +547,39 @@ export default function WaterPagina() {
                       </span>
                     </span>
                     <button
+                      type="button"
                       onClick={() => verwijder(log.id)}
                       aria-label={`Verwijder ${log.ml}ml om ${formatTijdstip(log.tijdstip)}`}
+                      className="mf-water-delete"
                       style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
                         background: 'none',
-                        border: 'none',
+                        border: '1px solid transparent',
                         color: 'var(--text-4)',
-                        fontSize: '1.1rem',
                         cursor: 'pointer',
-                        padding: '0.2rem 0.4rem',
-                        borderRadius: 'var(--radius-xs)',
+                        width: 44,
+                        height: 44,
+                        borderRadius: 'var(--radius-sm)',
                         lineHeight: 1,
                         transition: 'color var(--transition-fast)',
                       }}
-                      onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--mf-red)' }}
-                      onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-4)' }}
                     >
-                      ×
+                      <Trash2 size={16} aria-hidden />
                     </button>
                   </li>
                 ))}
               </ul>
             )}
+            <style>{`
+              .mf-water-delete:hover { color: var(--mf-red); }
+              .mf-water-delete:focus-visible {
+                outline: 2px solid var(--mentaforce-primary);
+                outline-offset: 2px;
+                color: var(--mf-red);
+              }
+            `}</style>
           </section>
         </div>
       </main>
