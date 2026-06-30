@@ -4,15 +4,30 @@ export const dynamic = 'force-dynamic'
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import {
+  Moon,
+  Footprints,
+  Target,
+  Leaf,
+  Droplets,
+  NotebookPen,
+  CalendarDays,
+  Check,
+  type LucideIcon,
+} from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
-
+import { Card } from '@/components/ui/Card'
+import { Button } from '@/components/ui/Button'
+import { Badge } from '@/components/ui/Badge'
+import { Ring } from '@/components/ui/Ring'
+import { Progress } from '@/components/ui/Progress'
 
 type Moeilijkheid = 'Makkelijk' | 'Gemiddeld' | 'Uitdagend'
 
 type Uitdaging = {
   id: string
-  emoji: string
+  icon: LucideIcon
   titel: string
   sub: string
   duur: number
@@ -26,18 +41,20 @@ type ActieveUitdaging = {
 }
 
 const UITDAGINGEN: Uitdaging[] = [
-  { id: '10slaap',    emoji: '😴', titel: '10 dagen beter slapen',    sub: 'Ga elke dag op hetzelfde tijdstip naar bed',   duur: 10, categorie: 'slaap',   moeilijkheid: 'Makkelijk' },
-  { id: '21beweging', emoji: '🏃', titel: '21 dagen bewegen',         sub: '20 minuten per dag actief zijn',               duur: 21, categorie: 'fysiek',  moeilijkheid: 'Gemiddeld' },
-  { id: '7focus',     emoji: '🎯', titel: '7 dagen deep focus',       sub: 'Elke dag 90 min ononderbroken werken',         duur: 7,  categorie: 'werk',    moeilijkheid: 'Uitdagend' },
-  { id: '14stress',   emoji: '🌿', titel: '14 dagen minder stress',   sub: 'Dagelijkse ademhaling + reflectie',            duur: 14, categorie: 'mentaal', moeilijkheid: 'Makkelijk' },
-  { id: '30water',    emoji: '💧', titel: '30 dagen 2L water',        sub: '2 liter water per dag drinken',               duur: 30, categorie: 'fysiek',  moeilijkheid: 'Makkelijk' },
-  { id: '7journaal',  emoji: '📓', titel: '7 dagen journalen',        sub: 'Elke avond 5 minuten schrijven',              duur: 7,  categorie: 'mentaal', moeilijkheid: 'Makkelijk' },
+  { id: '10slaap',    icon: Moon,        titel: '10 dagen beter slapen',  sub: 'Ga elke dag op hetzelfde tijdstip naar bed',  duur: 10, categorie: 'slaap',   moeilijkheid: 'Makkelijk' },
+  { id: '21beweging', icon: Footprints,  titel: '21 dagen bewegen',       sub: '20 minuten per dag actief zijn',              duur: 21, categorie: 'fysiek',  moeilijkheid: 'Gemiddeld' },
+  { id: '7focus',     icon: Target,      titel: '7 dagen deep focus',     sub: 'Elke dag 90 min ononderbroken werken',        duur: 7,  categorie: 'werk',    moeilijkheid: 'Uitdagend' },
+  { id: '14stress',   icon: Leaf,        titel: '14 dagen minder stress', sub: 'Dagelijkse ademhaling + reflectie',           duur: 14, categorie: 'mentaal', moeilijkheid: 'Makkelijk' },
+  { id: '30water',    icon: Droplets,    titel: '30 dagen 2L water',      sub: '2 liter water per dag drinken',               duur: 30, categorie: 'fysiek',  moeilijkheid: 'Makkelijk' },
+  { id: '7journaal',  icon: NotebookPen, titel: '7 dagen journalen',      sub: 'Elke avond 5 minuten schrijven',              duur: 7,  categorie: 'mentaal', moeilijkheid: 'Makkelijk' },
 ]
 
-const MOEILIJKHEID_STIJL: Record<Moeilijkheid, { kleur: string; bg: string }> = {
-  Makkelijk: { kleur: 'var(--mf-green)', bg: 'var(--mf-green-light)' },
-  Gemiddeld:  { kleur: 'var(--mf-amber)', bg: 'var(--mf-amber-light)' },
-  Uitdagend:  { kleur: 'var(--mf-red)', bg: 'var(--mf-red-light)' },
+// Moeilijkheid is nooit kleur-alleen: elke graad krijgt ook een Badge-variant
+// én het label blijft zichtbaar. Variant geeft enkel extra (niet-essentiële) hint.
+const MOEILIJKHEID_VARIANT: Record<Moeilijkheid, 'success' | 'warning' | 'danger'> = {
+  Makkelijk: 'success',
+  Gemiddeld: 'warning',
+  Uitdagend: 'danger',
 }
 
 const STORAGE_KEY = 'mf-uitdagingen'
@@ -76,17 +93,24 @@ export default function UitdagingenPage() {
     check()
   }, [router])
 
+  // Functionele updater voorkomt de localStorage-race bij snel achter elkaar
+  // klikken: we lezen telkens de meest recente lijst i.p.v. een verouderde
+  // closure-snapshot, en persisteren in dezelfde stap.
   function startUitdaging(id: string) {
-    if (actieven.find(a => a.id === id)) return
-    const bijgewerkt = [...actieven, { id, startDatum: new Date().toISOString() }]
-    setActieven(bijgewerkt)
-    slaActief(bijgewerkt)
+    setActieven(prev => {
+      if (prev.find(a => a.id === id)) return prev
+      const bijgewerkt = [...prev, { id, startDatum: new Date().toISOString() }]
+      slaActief(bijgewerkt)
+      return bijgewerkt
+    })
   }
 
   function stopUitdaging(id: string) {
-    const bijgewerkt = actieven.filter(a => a.id !== id)
-    setActieven(bijgewerkt)
-    slaActief(bijgewerkt)
+    setActieven(prev => {
+      const bijgewerkt = prev.filter(a => a.id !== id)
+      slaActief(bijgewerkt)
+      return bijgewerkt
+    })
   }
 
   const actieveIds = new Set(actieven.map(a => a.id))
@@ -104,10 +128,10 @@ export default function UitdagingenPage() {
       <main style={{ padding: '24px 24px 72px', maxWidth: 900, margin: '0 auto' }}>
 
         {/* Header */}
-        <div style={{ marginBottom: 24 }}>
+        <header style={{ marginBottom: 24 }}>
           <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 4 }}>Uitdagingen</h1>
           <p style={{ fontSize: 13, color: 'var(--text-4)' }}>Doe mee aan een wellness-uitdaging</p>
-        </div>
+        </header>
 
         {/* Active challenges */}
         {actieven.length > 0 && (
@@ -117,58 +141,56 @@ export default function UitdagingenPage() {
               {actieven.map(actief => {
                 const uitdaging = UITDAGINGEN.find(u => u.id === actief.id)
                 if (!uitdaging) return null
+                const Icon = uitdaging.icon
                 const verstreken = Math.min(dagenVerstreken(actief.startDatum), uitdaging.duur)
                 const procent = Math.round((verstreken / uitdaging.duur) * 100)
                 const voltooid = verstreken >= uitdaging.duur
 
-                const ringR = 20
-                const ringCirc = 2 * Math.PI * ringR
                 return (
-                  <div key={actief.id} style={{ background: 'var(--bg-card)', borderRadius: 16, padding: '16px', border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)', display: 'flex', alignItems: 'center', gap: 16 }}>
+                  <Card key={actief.id} style={{ padding: '16px', display: 'flex', alignItems: 'center', gap: 16 }}>
                     {/* Progress ring */}
-                    <div style={{ position: 'relative', flexShrink: 0, width: 52, height: 52 }}>
-                      <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 0 }}>
-                        <div style={{ width: 76, height: 76, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
-                      </div>
-                      <svg width={52} height={52} viewBox="0 0 52 52" style={{ position: 'relative', zIndex: 1 }}>
-                        <circle cx={26} cy={26} r={ringR} fill="none" stroke="var(--bg-subtle)" strokeWidth={5} />
-                        <circle cx={26} cy={26} r={ringR} fill="none"
-                          stroke={voltooid ? 'var(--mf-green)' : 'var(--mf-amber)'}
-                          strokeWidth={5} strokeLinecap="round"
-                          strokeDasharray={`${ringCirc * procent / 100} ${ringCirc}`}
-                          transform="rotate(-90 26 26)"
-                          style={{ transition: 'stroke-dasharray 0.6s ease' }}
-                        />
-                        <text x="26" y="30" textAnchor="middle" fontSize={10} fontWeight="800"
-                          fill={voltooid ? 'var(--mf-green)' : 'var(--text-1)'}>
-                          {voltooid ? '✓' : `${procent}%`}
-                        </text>
-                      </svg>
-                    </div>
+                    <Ring
+                      value={procent}
+                      ariaLabel={`${uitdaging.titel}: ${verstreken} van ${uitdaging.duur} dagen (${procent}%)`}
+                      size={52}
+                      thickness={5}
+                      color={voltooid ? 'var(--mf-green)' : 'var(--mf-amber)'}
+                      style={{ flexShrink: 0 }}
+                    >
+                      {voltooid ? (
+                        <Check size={18} aria-hidden style={{ color: 'var(--mf-green)' }} />
+                      ) : (
+                        <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--text-1)' }}>{procent}%</span>
+                      )}
+                    </Ring>
                     {/* Content */}
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, marginBottom: 6 }}>
+                      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, marginBottom: 8 }}>
                         <div>
-                          <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-1)', display: 'flex', alignItems: 'center', gap: 6 }}>
-                            <span>{uitdaging.emoji}</span>{uitdaging.titel}
+                          <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-1)', display: 'flex', alignItems: 'center', gap: 7 }}>
+                            <Icon size={16} aria-hidden style={{ color: 'var(--text-3)', flexShrink: 0 }} />
+                            {uitdaging.titel}
                           </p>
                           <p style={{ fontSize: 12, color: 'var(--text-4)', marginTop: 2 }}>{verstreken}/{uitdaging.duur} dagen</p>
                         </div>
                         {voltooid ? (
-                          <span style={{ flexShrink: 0, fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 999, background: 'var(--mf-green-light)', color: 'var(--mf-green)' }}>
-                            Voltooid!
-                          </span>
+                          <Badge variant="success" style={{ flexShrink: 0 }}>
+                            <Check size={12} aria-hidden /> Voltooid
+                          </Badge>
                         ) : (
-                          <button onClick={() => stopUitdaging(actief.id)} style={{ flexShrink: 0, fontSize: 11, color: 'var(--text-4)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                          <Button variant="ghost" size="sm" onClick={() => stopUitdaging(actief.id)} style={{ flexShrink: 0, padding: '4px 8px' }}>
                             Stoppen
-                          </button>
+                          </Button>
                         )}
                       </div>
-                      <div style={{ height: 5, background: 'var(--bg-subtle)', borderRadius: 100, overflow: 'hidden' }}>
-                        <div style={{ height: '100%', width: `${procent}%`, background: voltooid ? 'var(--mf-green)' : 'var(--mf-amber)', borderRadius: 100, transition: 'width 0.6s ease' }} />
-                      </div>
+                      <Progress
+                        value={procent}
+                        ariaLabel={`Voortgang ${uitdaging.titel}`}
+                        thickness={5}
+                        color={voltooid ? 'var(--mf-green)' : 'var(--mf-amber)'}
+                      />
                     </div>
-                  </div>
+                  </Card>
                 )
               })}
             </div>
@@ -178,22 +200,31 @@ export default function UitdagingenPage() {
         {/* Available challenges */}
         <section>
           <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 12 }}>Beschikbare uitdagingen</p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(200px, 100%), 1fr))', gap: 16 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(220px, 100%), 1fr))', gap: 16 }}>
             {UITDAGINGEN.map(uitdaging => {
               const isActief = actieveIds.has(uitdaging.id)
-              const stijl = MOEILIJKHEID_STIJL[uitdaging.moeilijkheid]
+              const Icon = uitdaging.icon
 
               return (
-                <div
+                <Card
                   key={uitdaging.id}
                   style={{
-                    background: 'var(--bg-card)', borderRadius: 16, padding: '16px',
-                    border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)',
+                    padding: '16px',
                     display: 'flex', flexDirection: 'column', gap: 12,
                     opacity: isActief ? 0.85 : 1,
                   }}
                 >
-                  <div style={{ fontSize: 28, lineHeight: 1 }}>{uitdaging.emoji}</div>
+                  <span
+                    aria-hidden
+                    style={{
+                      display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                      width: 40, height: 40, borderRadius: 'var(--radius-md)',
+                      background: 'var(--bg-subtle)', border: '1px solid var(--border)',
+                      color: 'var(--mentaforce-primary)',
+                    }}
+                  >
+                    <Icon size={20} />
+                  </span>
                   <div style={{ flex: 1 }}>
                     <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-1)', lineHeight: 1.3 }}>{uitdaging.titel}</p>
                     <p style={{ fontSize: 12, color: 'var(--text-4)', marginTop: 4, lineHeight: 1.4 }}>{uitdaging.sub}</p>
@@ -201,27 +232,24 @@ export default function UitdagingenPage() {
 
                   {/* Badges */}
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                    <span style={{ fontSize: 11, fontWeight: 500, padding: '2px 8px', borderRadius: 999, background: 'var(--bg-subtle)', color: 'var(--text-3)' }}>
-                      📅 {uitdaging.duur} dagen
-                    </span>
-                    <span style={{ fontSize: 11, fontWeight: 500, padding: '2px 8px', borderRadius: 999, background: stijl.bg, color: stijl.kleur }}>
+                    <Badge variant="neutral">
+                      <CalendarDays size={12} aria-hidden /> {uitdaging.duur} dagen
+                    </Badge>
+                    <Badge variant={MOEILIJKHEID_VARIANT[uitdaging.moeilijkheid]}>
                       {uitdaging.moeilijkheid}
-                    </span>
+                    </Badge>
                   </div>
 
                   {isActief ? (
-                    <span style={{ display: 'block', textAlign: 'center', padding: '8px', borderRadius: 12, fontSize: 12, fontWeight: 600, background: 'var(--mf-green-light)', color: 'var(--mf-green)' }}>
-                      Actief ✓
-                    </span>
+                    <Badge variant="success" style={{ justifyContent: 'center', padding: '8px' }}>
+                      <Check size={14} aria-hidden /> Actief
+                    </Badge>
                   ) : (
-                    <button
-                      onClick={() => startUitdaging(uitdaging.id)}
-                      style={{ width: '100%', padding: '8px', borderRadius: 12, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 600, color: 'white', background: 'linear-gradient(135deg, var(--mf-green) 0%, var(--mf-green-dark) 100%)', transition: 'transform 0.15s ease', }}
-                    >
+                    <Button onClick={() => startUitdaging(uitdaging.id)} style={{ width: '100%' }}>
                       Starten
-                    </button>
+                    </Button>
                   )}
-                </div>
+                </Card>
               )
             })}
           </div>
