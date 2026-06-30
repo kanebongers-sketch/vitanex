@@ -10,6 +10,7 @@ import { authFetch } from '@/lib/auth-fetch'
 import Navbar from '@/components/layout/Navbar'
 import { Card } from '@/components/ui/Card'
 import { Ring } from '@/components/ui/Ring'
+import type { LucideIcon } from 'lucide-react'
 import {
   Smile, Moon, Droplets, Dumbbell, Leaf, Heart,
   Circle, BarChart2, ChevronRight, Check,
@@ -78,7 +79,7 @@ function StatPill({ label, waarde, kleur }: { label: string; waarde: string; kle
 }
 
 /* ── check item ── */
-const CHECKLIST_ICONEN: Record<string, ElementType> = {
+const CHECKLIST_ICONEN: Record<string, LucideIcon> = {
   stemming:     Smile,
   slaap:        Moon,
   water:        Droplets,
