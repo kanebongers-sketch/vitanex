@@ -4,19 +4,16 @@ export const dynamic = 'force-dynamic'
 
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Legend,
-} from 'recharts'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
+import { Card } from '@/components/ui/Card'
+import { Ring } from '@/components/ui/Ring'
+import { Chart } from '@/components/ui/Chart'
+import { Field } from '@/components/ui/Field'
+import { Input } from '@/components/ui/Input'
+import { Button } from '@/components/ui/Button'
+import { useToast } from '@/components/ui/Toast'
 import {
   berekenLeeftijd,
   berekenBMR,
@@ -82,11 +79,11 @@ function Kaart({
   span?: 1 | 2
 }) {
   return (
-    <section
+    <Card
+      role="group"
+      aria-label={titel}
       style={{
         gridColumn: span === 2 ? '1 / -1' : 'auto',
-        background: 'var(--bg-card)',
-        borderRadius: 'var(--radius-xl)',
         boxShadow: 'var(--shadow-sm)',
         padding: '1.25rem 1.5rem',
       }}
@@ -104,53 +101,7 @@ function Kaart({
         {titel}
       </h2>
       {children}
-    </section>
-  )
-}
-
-function StatRing({
-  percentage,
-  kleur,
-  binnen,
-}: {
-  percentage: number
-  kleur: string
-  binnen: React.ReactNode
-}) {
-  const omtrek = 2 * Math.PI * 52
-  const gevuld = Math.max(0, Math.min(100, percentage))
-  return (
-    <div style={{ position: 'relative', width: 132, height: 132 }}>
-      <svg viewBox="0 0 120 120" width="132" height="132" role="img" aria-label={`${gevuld}%`}>
-        <circle cx="60" cy="60" r="52" fill="none" stroke="var(--bg-subtle)" strokeWidth="11" />
-        <circle
-          cx="60"
-          cy="60"
-          r="52"
-          fill="none"
-          stroke={kleur}
-          strokeWidth="11"
-          strokeLinecap="round"
-          strokeDasharray={omtrek}
-          strokeDashoffset={omtrek - (gevuld / 100) * omtrek}
-          transform="rotate(-90 60 60)"
-          style={{ transition: 'stroke-dashoffset 0.7s cubic-bezier(0.34, 1.56, 0.64, 1)' }}
-        />
-      </svg>
-      <div
-        style={{
-          position: 'absolute',
-          inset: 0,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          textAlign: 'center',
-        }}
-      >
-        {binnen}
-      </div>
-    </div>
+    </Card>
   )
 }
 
@@ -168,7 +119,7 @@ function MetriekTegel({
   kleur?: string
 }) {
   return (
-    <div style={{ background: 'var(--bg-subtle)', borderRadius: 'var(--radius-md)', padding: '0.875rem 1rem' }}>
+    <div style={{ background: 'var(--bg-subtle)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)', padding: '0.875rem 1rem' }}>
       <p style={{ fontSize: '0.7rem', fontWeight: 600, color: 'var(--text-3)', margin: 0, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
         {label}
       </p>
@@ -187,6 +138,7 @@ function MetriekTegel({
 
 export default function PrestatiesPagina() {
   const router = useRouter()
+  const { toast } = useToast()
   const [laden, setLaden] = useState(true)
   const [profiel, setProfiel] = useState<ProfielRij | null>(null)
   const [metingen, setMetingen] = useState<Meting[]>([])
@@ -195,7 +147,7 @@ export default function PrestatiesPagina() {
   const [vetInput, setVetInput] = useState('')
   const [bezig, setBezig] = useState(false)
   const [fout, setFout] = useState<string | null>(null)
-  const [gelukt, setGelukt] = useState(false)
+  const [veldFout, setVeldFout] = useState<'gewicht' | 'vet' | null>(null)
 
   async function laadData() {
     const { data: { user } } = await supabase.auth.getUser()
@@ -272,11 +224,12 @@ export default function PrestatiesPagina() {
   async function logMeting() {
     if (bezig) return
     setFout(null)
-    setGelukt(false)
+    setVeldFout(null)
 
     const gewicht = parseFloat(gewichtInput.replace(',', '.'))
     if (!Number.isFinite(gewicht) || gewicht < 20 || gewicht > 400) {
       setFout('Voer een gewicht in tussen 20 en 400 kg.')
+      setVeldFout('gewicht')
       return
     }
 
@@ -285,6 +238,7 @@ export default function PrestatiesPagina() {
       const v = parseFloat(vetInput.replace(',', '.'))
       if (!Number.isFinite(v) || v < 0 || v > 70) {
         setFout('Vetpercentage moet tussen 0 en 70% liggen.')
+        setVeldFout('vet')
         return
       }
       vet = v
@@ -300,11 +254,13 @@ export default function PrestatiesPagina() {
     if (res.ok) {
       setGewichtInput('')
       setVetInput('')
-      setGelukt(true)
+      toast({ title: 'Meting opgeslagen', variant: 'success' })
       await laadData()
     } else {
       const json = await res.json() as { error?: string }
-      setFout(json.error ?? 'Opslaan mislukt. Probeer opnieuw.')
+      const melding = json.error ?? 'Opslaan mislukt. Probeer opnieuw.'
+      setFout(melding)
+      toast({ title: 'Opslaan mislukt', description: melding, variant: 'error' })
     }
 
     setBezig(false)
@@ -324,6 +280,7 @@ export default function PrestatiesPagina() {
   }
 
   const profielOnvolledig = bmr === null || tdee === null || calorieDoel === null
+  const ringKleur = voortgang !== null ? (doelCfg?.kleur ?? 'var(--mf-green)') : 'var(--bg-subtle)'
 
   return (
     <>
@@ -362,11 +319,9 @@ export default function PrestatiesPagina() {
           </header>
 
           {/* Hero — gewicht + streefgewicht-ring */}
-          <section
+          <Card
             aria-label="Gewicht en streefdoel"
             style={{
-              background: 'var(--bg-card)',
-              borderRadius: 'var(--radius-xl)',
               boxShadow: 'var(--shadow-md)',
               padding: '1.75rem 1.5rem',
               marginBottom: '1rem',
@@ -376,18 +331,24 @@ export default function PrestatiesPagina() {
               gap: '1.5rem',
             }}
           >
-            <StatRing
-              percentage={voortgang ?? 0}
-              kleur={voortgang !== null ? (doelCfg?.kleur ?? 'var(--mf-green)') : 'var(--bg-subtle)'}
-              binnen={
-                <>
-                  <span style={{ fontSize: '1.9rem', fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', lineHeight: 1 }}>
-                    {huidigGewicht !== null ? huidigGewicht : '–'}
-                  </span>
-                  <span style={{ fontSize: '0.72rem', color: 'var(--text-3)', fontWeight: 600 }}>kg</span>
-                </>
+            <Ring
+              value={voortgang ?? 0}
+              ariaLabel={
+                voortgang !== null
+                  ? `Voortgang richting streefgewicht: ${voortgang}%. Huidig gewicht ${huidigGewicht ?? '–'} kg.`
+                  : `Huidig gewicht ${huidigGewicht ?? '–'} kg`
               }
-            />
+              size={132}
+              thickness={11}
+              color={ringKleur}
+            >
+              <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <span style={{ fontSize: '1.9rem', fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', lineHeight: 1 }}>
+                  {huidigGewicht !== null ? huidigGewicht : '–'}
+                </span>
+                <span style={{ fontSize: '0.72rem', color: 'var(--text-3)', fontWeight: 600 }}>kg</span>
+              </span>
+            </Ring>
 
             <div style={{ flex: 1, minWidth: 200 }}>
               {profiel?.streefgewicht_kg && huidigGewicht !== null ? (
@@ -399,7 +360,7 @@ export default function PrestatiesPagina() {
                     {huidigGewicht} kg{' '}
                     <span style={{ color: 'var(--text-3)', fontWeight: 500 }}>→ {profiel.streefgewicht_kg} kg</span>
                   </p>
-                  <div style={{ marginTop: 12, height: 8, background: 'var(--bg-subtle)', borderRadius: 100, overflow: 'hidden' }}>
+                  <div style={{ marginTop: 12, height: 8, background: 'var(--bg-subtle)', border: '1px solid var(--border)', borderRadius: 100, overflow: 'hidden' }}>
                     <div
                       style={{
                         height: '100%',
@@ -427,7 +388,7 @@ export default function PrestatiesPagina() {
                 </>
               )}
             </div>
-          </section>
+          </Card>
 
           {/* Metriek-grid */}
           <section
@@ -462,7 +423,7 @@ export default function PrestatiesPagina() {
                   activiteitsniveau in bij Instellingen om je verbranding te berekenen.
                 </p>
               ) : (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '0.75rem' }}>
                   <MetriekTegel label="BMR" waarde={String(bmr)} eenheid="kcal" sub="In rust" kleur="var(--mf-blue)" />
                   <MetriekTegel label="TDEE" waarde={String(tdee)} eenheid="kcal" sub="Met activiteit" kleur="var(--mf-purple)" />
                   <MetriekTegel label="Caloriedoel" waarde={String(calorieDoel)} eenheid="kcal" sub={doelCfg?.label ?? 'Doel'} kleur="var(--mf-green)" />
@@ -479,67 +440,26 @@ export default function PrestatiesPagina() {
                   Log minstens twee metingen om je trend te zien.
                 </p>
               ) : (
-                <div style={{ width: '100%', height: 260 }}>
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={trend} margin={{ top: 8, right: 8, bottom: 0, left: -16 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
-                      <XAxis dataKey="datum" tick={{ fontSize: 11, fill: 'var(--text-3)' }} tickLine={false} axisLine={false} />
-                      <YAxis
-                        yAxisId="gewicht"
-                        domain={['auto', 'auto']}
-                        tick={{ fontSize: 11, fill: 'var(--text-3)' }}
-                        tickLine={false}
-                        axisLine={false}
-                        width={44}
-                      />
-                      {heeftVet && (
-                        <YAxis
-                          yAxisId="vet"
-                          orientation="right"
-                          domain={['auto', 'auto']}
-                          tick={{ fontSize: 11, fill: 'var(--text-3)' }}
-                          tickLine={false}
-                          axisLine={false}
-                          width={36}
-                        />
-                      )}
-                      <Tooltip
-                        contentStyle={{
-                          background: 'var(--bg-card)',
-                          border: '1px solid var(--border)',
-                          borderRadius: 'var(--radius-sm)',
-                          fontSize: '0.8rem',
-                        }}
-                        labelStyle={{ color: 'var(--text-2)', fontWeight: 700 }}
-                      />
-                      <Legend wrapperStyle={{ fontSize: '0.78rem' }} />
-                      <Line
-                        yAxisId="gewicht"
-                        type="monotone"
-                        dataKey="gewicht"
-                        name="Gewicht (kg)"
-                        stroke="var(--mf-blue-mid)"
-                        strokeWidth={2.5}
-                        dot={{ r: 3, fill: 'var(--mf-blue-mid)' }}
-                        activeDot={{ r: 5 }}
-                        connectNulls
-                      />
-                      {heeftVet && (
-                        <Line
-                          yAxisId="vet"
-                          type="monotone"
-                          dataKey="vet"
-                          name="Vet (%)"
-                          stroke="var(--mf-amber)"
-                          strokeWidth={2.5}
-                          dot={{ r: 3, fill: 'var(--mf-amber)' }}
-                          activeDot={{ r: 5 }}
-                          connectNulls
-                        />
-                      )}
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
+                <Chart
+                  type="line"
+                  data={trend}
+                  xKey="datum"
+                  series={
+                    heeftVet
+                      ? [
+                          { key: 'gewicht', label: 'Gewicht (kg)', color: 'var(--mf-blue-mid)' },
+                          { key: 'vet', label: 'Vet (%)', color: 'var(--mf-amber)' },
+                        ]
+                      : [{ key: 'gewicht', label: 'Gewicht (kg)', color: 'var(--mf-blue-mid)' }]
+                  }
+                  summary={
+                    heeftVet
+                      ? 'Trend van gewicht in kilogram en vetpercentage per meetdatum.'
+                      : 'Trend van gewicht in kilogram per meetdatum.'
+                  }
+                  height={260}
+                  showLegend
+                />
               )}
             </Kaart>
           </div>
@@ -547,67 +467,44 @@ export default function PrestatiesPagina() {
           {/* Nieuwe meting */}
           <Kaart titel="Nieuwe meting loggen">
             <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-              <label style={{ flex: '1 1 140px', display: 'flex', flexDirection: 'column', gap: 6 }}>
-                <span style={{ fontSize: '0.78rem', color: 'var(--text-3)', fontWeight: 600 }}>Gewicht (kg)</span>
-                <input
-                  type="number"
-                  inputMode="decimal"
-                  min={20}
-                  max={400}
-                  step="0.1"
-                  value={gewichtInput}
-                  onChange={e => setGewichtInput(e.target.value)}
-                  placeholder="bijv. 78.5"
-                  className="mf-input"
-                />
-              </label>
-              <label style={{ flex: '1 1 140px', display: 'flex', flexDirection: 'column', gap: 6 }}>
-                <span style={{ fontSize: '0.78rem', color: 'var(--text-3)', fontWeight: 600 }}>Vetpercentage (%) · optioneel</span>
-                <input
-                  type="number"
-                  inputMode="decimal"
-                  min={0}
-                  max={70}
-                  step="0.1"
-                  value={vetInput}
-                  onChange={e => setVetInput(e.target.value)}
-                  placeholder="bijv. 18"
-                  className="mf-input"
-                />
-              </label>
+              <div style={{ flex: '1 1 140px' }}>
+                <Field label="Gewicht (kg)" error={veldFout === 'gewicht' ? (fout ?? undefined) : undefined}>
+                  <Input
+                    type="number"
+                    inputMode="decimal"
+                    min={20}
+                    max={400}
+                    step="0.1"
+                    value={gewichtInput}
+                    onChange={e => setGewichtInput(e.target.value)}
+                    placeholder="bijv. 78.5"
+                  />
+                </Field>
+              </div>
+              <div style={{ flex: '1 1 140px' }}>
+                <Field label="Vetpercentage (%) · optioneel" error={veldFout === 'vet' ? (fout ?? undefined) : undefined}>
+                  <Input
+                    type="number"
+                    inputMode="decimal"
+                    min={0}
+                    max={70}
+                    step="0.1"
+                    value={vetInput}
+                    onChange={e => setVetInput(e.target.value)}
+                    placeholder="bijv. 18"
+                  />
+                </Field>
+              </div>
             </div>
 
-            {fout && (
-              <p role="alert" style={{ color: 'var(--mf-red)', fontSize: '0.85rem', margin: '0.75rem 0 0' }}>
-                {fout}
-              </p>
-            )}
-            {gelukt && !fout && (
-              <p style={{ color: 'var(--mf-green)', fontSize: '0.85rem', margin: '0.75rem 0 0', fontWeight: 600 }}>
-                Meting opgeslagen.
-              </p>
-            )}
-
-            <button
+            <Button
               onClick={logMeting}
+              loading={bezig}
               disabled={bezig || !gewichtInput}
-              style={{
-                marginTop: '1rem',
-                width: '100%',
-                padding: '0.8rem 1rem',
-                borderRadius: 'var(--radius-btn)',
-                border: 'none',
-                background: 'var(--mf-green)',
-                color: 'white',
-                fontWeight: 700,
-                fontSize: '0.95rem',
-                cursor: bezig || !gewichtInput ? 'not-allowed' : 'pointer',
-                opacity: bezig || !gewichtInput ? 0.55 : 1,
-                transition: 'opacity var(--transition-fast)',
-              }}
+              style={{ marginTop: '1rem', width: '100%' }}
             >
               {bezig ? 'Opslaan…' : 'Meting opslaan'}
-            </button>
+            </Button>
 
             {metingen.length > 0 && (
               <p style={{ fontSize: '0.78rem', color: 'var(--text-4)', margin: '0.875rem 0 0', textAlign: 'center' }}>

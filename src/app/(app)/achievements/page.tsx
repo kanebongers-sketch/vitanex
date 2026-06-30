@@ -4,9 +4,15 @@ export const dynamic = 'force-dynamic'
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { Trophy } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
+import { Card } from '@/components/ui/Card'
+import { Badge } from '@/components/ui/Badge'
+import { Progress } from '@/components/ui/Progress'
+import { EmptyState } from '@/components/ui/EmptyState'
+import { Button } from '@/components/ui/Button'
 
 
 interface Achievement {
@@ -125,26 +131,16 @@ export default function AchievementsPagina() {
         </header>
 
         {/* XP Level card */}
-        <section style={{
-          background: 'var(--bg-card)',
-          borderRadius: 'var(--radius-xl)',
-          boxShadow: 'var(--shadow-md)',
-          padding: '20px',
-          marginBottom: 20,
-        }}>
+        <Card style={{ padding: 20, marginBottom: 20, boxShadow: 'var(--shadow-md)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 16 }}>
-            <div style={{ position: 'relative', width: 56, height: 56, flexShrink: 0 }}>
-              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 0 }}>
-                <div style={{ width: 88, height: 88, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
-              </div>
-              <div style={{
-                width: 56, height: 56, borderRadius: 'var(--radius-md)',
-                background: 'var(--mf-amber-light)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 28, position: 'relative', zIndex: 1,
-              }}>
-                {niveau.emoji}
-              </div>
+            <div style={{
+              width: 56, height: 56, borderRadius: 'var(--radius-md)',
+              background: 'var(--mf-amber-light)',
+              border: '1px solid var(--border)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 28, flexShrink: 0,
+            }}>
+              <span role="img" aria-label={`Niveau ${niveau.naam}`}>{niveau.emoji}</span>
             </div>
             <div style={{ flex: 1 }}>
               <p style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-4)', margin: '0 0 2px' }}>
@@ -160,60 +156,36 @@ export default function AchievementsPagina() {
           </div>
 
           {/* Level voortgangsbalk */}
-          <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-              <span style={{ fontSize: 11, color: 'var(--text-4)', fontWeight: 600 }}>
-                {niveau.min} XP
-              </span>
-              <span style={{ fontSize: 11, color: 'var(--text-4)', fontWeight: 600 }}>
-                {volgend ? `${volgend.min} XP — ${volgend.naam} ${volgend.emoji}` : 'Max niveau!'}
-              </span>
-            </div>
-            <div style={{ height: 8, background: 'var(--bg-subtle)', borderRadius: 100, overflow: 'hidden' }}>
-              <div style={{
-                height: '100%',
-                width: `${Math.min(100, levelPct)}%`,
-                background: 'linear-gradient(90deg, var(--mf-amber) 0%, var(--mf-amber-mid) 100%)',
-                borderRadius: 100,
-                transition: 'width 1s cubic-bezier(0.34,1.56,0.64,1)',
-              }} />
-            </div>
+          <Progress
+            value={Math.min(100, levelPct)}
+            ariaLabel={`Voortgang naar ${volgend ? volgend.naam : 'maximaal niveau'}: ${Math.round(Math.min(100, levelPct))}%`}
+            color="var(--mentaforce-primary)"
+          />
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6 }}>
+            <span style={{ fontSize: 11, color: 'var(--text-4)', fontWeight: 600 }}>
+              {niveau.min} XP
+            </span>
+            <span style={{ fontSize: 11, color: 'var(--text-4)', fontWeight: 600 }}>
+              {volgend
+                ? `${volgend.min} XP — ${volgend.naam} ${volgend.emoji}`
+                : 'Max niveau!'}
+            </span>
           </div>
-        </section>
+        </Card>
 
         {achievements.length === 0 ? (
-          <div style={{
-            background: 'var(--bg-card)',
-            borderRadius: 'var(--radius-xl)',
-            padding: '56px 24px',
-            border: '2px dashed var(--border-strong)',
-            textAlign: 'center',
-            boxShadow: 'var(--shadow-xs)',
-          }}>
-            <div style={{ fontSize: 48, marginBottom: 16 }}>🎯</div>
-            <p style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-1)', marginBottom: 8 }}>
-              Nog geen prestaties behaald
-            </p>
-            <p style={{ fontSize: 13, color: 'var(--text-3)', lineHeight: 1.6, maxWidth: 320, margin: '0 auto 24px' }}>
-              Doe check-ins, gebruik de AI Coach en log trainingen om je eerste badges te verdienen.
-            </p>
-            <a
-              href="/vandaag"
-              style={{
-                display: 'inline-block',
-                background: 'var(--mf-green)',
-                color: 'white',
-                fontWeight: 700,
-                fontSize: 14,
-                padding: '12px 24px',
-                borderRadius: 'var(--radius-btn)',
-                textDecoration: 'none',
-                boxShadow: '0 4px 12px rgba(29,158,117,0.3)',
-              }}
-            >
-              Start vandaag →
-            </a>
-          </div>
+          <Card style={{ padding: '16px 24px' }}>
+            <EmptyState
+              icon={Trophy}
+              title="Nog geen prestaties behaald"
+              description="Doe check-ins, gebruik de AI Coach en log trainingen om je eerste badges te verdienen."
+              action={
+                <Button onClick={() => router.push('/vandaag')}>
+                  Start vandaag
+                </Button>
+              }
+            />
+          </Card>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
             {Array.from(perCategorie.entries()).map(([cat, items]) => {
@@ -228,25 +200,26 @@ export default function AchievementsPagina() {
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                     {items.map(a => (
-                      <article key={a.achievements.slug} style={{
-                        background: 'var(--bg-card)',
-                        borderRadius: 'var(--radius-md)',
-                        boxShadow: 'var(--shadow-xs)',
-                        padding: '14px 16px',
-                        border: `1.5px solid ${kleur}20`,
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 14,
-                      }}>
+                      <Card
+                        key={a.achievements.slug}
+                        style={{
+                          padding: '14px 16px',
+                          borderColor: `color-mix(in srgb, ${kleur} 25%, transparent)`,
+                          boxShadow: 'var(--shadow-xs)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 14,
+                        }}
+                      >
                         <div style={{
                           width: 48, height: 48,
                           borderRadius: 'var(--radius-md)',
-                          background: `${kleur}12`,
-                          border: `1.5px solid ${kleur}25`,
+                          background: `color-mix(in srgb, ${kleur} 12%, transparent)`,
+                          border: `1.5px solid color-mix(in srgb, ${kleur} 25%, transparent)`,
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
                           flexShrink: 0, fontSize: 22,
                         }}>
-                          {a.achievements.icon}
+                          <span role="img" aria-label={a.achievements.naam}>{a.achievements.icon}</span>
                         </div>
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-1)', margin: '0 0 2px' }}>
@@ -263,7 +236,7 @@ export default function AchievementsPagina() {
                           <p style={{ fontSize: 15, fontWeight: 800, color: kleur, margin: 0 }}>{a.achievements.xp_beloning}</p>
                           <p style={{ fontSize: 9, color: 'var(--text-4)', fontWeight: 600, margin: '2px 0 0' }}>XP</p>
                         </div>
-                      </article>
+                      </Card>
                     ))}
                   </div>
                 </section>
