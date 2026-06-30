@@ -4,9 +4,14 @@ export const dynamic = 'force-dynamic'
 
 import { Suspense, useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { RefreshCw, Settings, HeartPulse, Watch, Activity, Calendar, Mail, Heart, Check } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { authFetch } from '@/lib/auth-fetch'
 import Navbar from '@/components/layout/Navbar'
+import { Card } from '@/components/ui/Card'
+import { Button } from '@/components/ui/Button'
+import { Badge } from '@/components/ui/Badge'
+import { useToast } from '@/components/ui/Toast'
 
 
 import { isAndroidApp, leesHealthData, vraagPermissies, type HealthData } from '@/lib/health-connect'
@@ -31,21 +36,40 @@ type CalendarData = {
 
 function StatusBadge({ connected }: { connected: boolean }) {
   return (
-    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
-      connected ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
-    }`}>
+    <Badge variant={connected ? 'success' : 'neutral'}>
       {connected ? '● Gekoppeld' : '○ Niet gekoppeld'}
-    </span>
+    </Badge>
   )
 }
 
 function DataRij({ label, waarde, eenheid }: { label: string; waarde: string | number | null; eenheid?: string }) {
   return (
-    <div className="flex justify-between items-center py-2 border-b border-gray-50 last:border-0">
-      <span className="text-sm text-gray-500">{label}</span>
-      <span className="text-sm font-semibold text-gray-900">
+    <div
+      style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid var(--border)' }}
+      className="mf-datarij"
+    >
+      <span style={{ fontSize: 13, color: 'var(--text-3)' }}>{label}</span>
+      <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-1)' }}>
         {waarde !== null ? `${waarde}${eenheid ? ' ' + eenheid : ''}` : '—'}
       </span>
+    </div>
+  )
+}
+
+/** Neutrale logo-tegel (navy surface, cyaan accent) — strikt navy/cyan, geen externe merkkleuren in de UI. */
+function ProviderLogo({ children }: { children: React.ReactNode }) {
+  return (
+    <div
+      style={{
+        width: 40, height: 40, borderRadius: 'var(--radius-sm)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        flexShrink: 0,
+        background: 'var(--bg-subtle)',
+        border: '1px solid var(--border)',
+        color: 'var(--mentaforce-primary)',
+      }}
+    >
+      {children}
     </div>
   )
 }
@@ -53,9 +77,9 @@ function DataRij({ label, waarde, eenheid }: { label: string; waarde: string | n
 function KoppelingenInhoud() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { toast } = useToast()
   const [userId, setUserId] = useState<string | null>(null)
   const [laden, setLaden] = useState(true)
-  const [toast, setToast] = useState<{ type: 'success' | 'error'; tekst: string } | null>(null)
 
   const [isAndroid, setIsAndroid] = useState(false)
   const [isIos, setIsIos] = useState(false)
@@ -95,20 +119,20 @@ function KoppelingenInhoud() {
           : error === 'fit_denied' ? 'Google Fit koppeling geweigerd'
           : error.endsWith('_state') ? 'Koppeling verlopen — probeer opnieuw'
           : 'Koppeling mislukt'
-        setToast({ type: 'error', tekst })
+        toast({ title: tekst, variant: 'error' })
       }
 
       if (fitbitConnected) {
-        setToast({ type: 'success', tekst: 'Fitbit succesvol gekoppeld!' })
+        toast({ title: 'Fitbit succesvol gekoppeld!', variant: 'success' })
       }
 
       if (googleConnected) {
-        setToast({ type: 'success', tekst: 'Google Agenda succesvol gekoppeld!' })
+        toast({ title: 'Google Agenda succesvol gekoppeld!', variant: 'success' })
       }
 
       if (fitConnected) {
         setFitVerbonden(true)
-        setToast({ type: 'success', tekst: 'Google Fit succesvol gekoppeld!' })
+        toast({ title: 'Google Fit succesvol gekoppeld!', variant: 'success' })
       }
 
       // Check of Google Fit al gekoppeld is
@@ -160,23 +184,17 @@ function KoppelingenInhoud() {
     init()
   }, [router, searchParams])
 
-  useEffect(() => {
-    if (!toast) return
-    const t = setTimeout(() => setToast(null), 4000)
-    return () => clearTimeout(t)
-  }, [toast])
-
   async function startKoppeling(provider: 'fitbit' | 'google-fit' | 'google-calendar') {
     try {
       const res = await authFetch(`/api/${provider}/auth`)
       const data = await res.json() as { url?: string; error?: string }
       if (!res.ok || !data.url) {
-        setToast({ type: 'error', tekst: data.error ?? 'Koppeling starten mislukt' })
+        toast({ title: data.error ?? 'Koppeling starten mislukt', variant: 'error' })
         return
       }
       window.location.href = data.url
     } catch {
-      setToast({ type: 'error', tekst: 'Koppeling starten mislukt' })
+      toast({ title: 'Koppeling starten mislukt', variant: 'error' })
     }
   }
 
@@ -186,309 +204,297 @@ function KoppelingenInhoud() {
     if (provider === 'fitbit') { setFitbitVerbonden(false); setFitbitData(null) }
     else if (provider === 'google_fit') { setFitVerbonden(false); setFitData(null) }
     else { setCalVerbonden(false); setCalData(null) }
-    setToast({ type: 'success', tekst: 'Koppeling verwijderd' })
+    toast({ title: 'Koppeling verwijderd', variant: 'success' })
   }
 
-  const werkLastKleur = (wl: string) => wl === 'laag' ? 'var(--mf-green)' : wl === 'gemiddeld' ? 'var(--mf-amber)' : 'var(--mf-red)'
+  const werkLastVariant = (wl: string): 'success' | 'warning' | 'danger' =>
+    wl === 'laag' ? 'success' : wl === 'gemiddeld' ? 'warning' : 'danger'
 
   if (laden) return (
-    <div className="flex items-center justify-center py-20">
-      <div className="w-8 h-8 rounded-full border-2 border-gray-200 animate-spin" style={{ borderTopColor: 'var(--mf-green)' }} />
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '80px 0' }}>
+      <div className="mf-spinner" />
     </div>
   )
 
   return (
-    <>
-      {toast && (
-        <div className={`fixed top-16 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-2xl text-sm font-semibold shadow-lg ${
-          toast.type === 'success' ? 'bg-green-600 text-white' : 'bg-red-500 text-white'
-        }`}>
-          {toast.tekst}
-        </div>
+    <main style={{ padding: '24px', maxWidth: 900, margin: '0 auto' }}>
+      <style>{`.mf-datarij:last-child { border-bottom: none; }`}</style>
+      <div style={{ marginBottom: 24 }}>
+        <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.02em' }}>Koppelingen</h1>
+        <p style={{ fontSize: 14, color: 'var(--text-3)', marginTop: 2 }}>Verbind je wearables en agenda voor persoonlijke inzichten</p>
+      </div>
+
+      {/* Health Connect — alleen zichtbaar in Android app */}
+      {isAndroid && (
+        <Card style={{ padding: 20, marginBottom: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <ProviderLogo><HeartPulse size={20} aria-hidden /></ProviderLogo>
+              <div>
+                <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-1)' }}>Health Connect</p>
+                <p style={{ fontSize: 12, color: 'var(--text-4)' }}>Fitbit · Samsung Health · Google Fit</p>
+                <div style={{ marginTop: 4 }}><StatusBadge connected={hcVerbonden} /></div>
+              </div>
+            </div>
+            {!hcVerbonden && (
+              <Button
+                size="sm"
+                loading={hcLaden}
+                onClick={async () => {
+                  setHcLaden(true)
+                  const ok = await vraagPermissies()
+                  if (ok) {
+                    const d = await leesHealthData()
+                    setHcData(d)
+                    setHcVerbonden(true)
+                    // Stuur direct 14 dagen historie naar je gezondheidslog
+                    const uitkomst = await syncGezondheidsdata({ forceer: true })
+                    if (uitkomst) toast({ title: `${uitkomst.opgeslagen} dagen gesynchroniseerd!`, variant: 'success' })
+                  }
+                  setHcLaden(false)
+                }}
+              >
+                Koppelen
+              </Button>
+            )}
+          </div>
+          {hcLaden ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 0' }}>
+              <div className="mf-spinner" style={{ width: 16, height: 16 }} />
+              <span style={{ fontSize: 12, color: 'var(--text-4)' }}>Data ophalen…</span>
+            </div>
+          ) : hcData ? (
+            <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--border)' }}>
+              <DataRij label="Stappen vandaag" waarde={hcData.stappen?.toLocaleString('nl-BE') ?? null} />
+              <DataRij label="Slaap" waarde={hcData.slaapMinuten !== null ? Math.round(hcData.slaapMinuten / 60 * 10) / 10 : null} eenheid="uur" />
+              <DataRij label="Gemiddelde hartslag" waarde={hcData.hartslag} eenheid="bpm" />
+              <DataRij label="Verbrande calorieën" waarde={hcData.calorieën} eenheid="kcal" />
+            </div>
+          ) : (
+            <p style={{ fontSize: 12, color: 'var(--text-4)', marginTop: 8 }}>Koppel Health Connect om stappen, slaap en hartslag te zien van je Fitbit of Samsung Health.</p>
+          )}
+        </Card>
       )}
 
-      <main className="px-6 py-6" style={{ maxWidth: 900, margin: '0 auto' }}>
-        <div className="mb-6">
-          <h2 className="text-xl font-bold text-gray-900">Koppelingen</h2>
-          <p className="text-sm text-gray-400 mt-0.5">Verbind je wearables en agenda voor persoonlijke inzichten</p>
-        </div>
-
-        {/* Health Connect — alleen zichtbaar in Android app */}
-        {isAndroid && (
-          <div className="bg-white rounded-2xl border border-gray-100 p-5 mb-4" style={{ boxShadow: 'var(--shadow-sm)' }}>
-            <div className="flex items-start justify-between mb-3">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl" style={{ background: '#4CAF50' }}>💚</div>
-                <div>
-                  <p className="text-sm font-semibold text-gray-900">Health Connect</p>
-                  <p className="text-xs text-gray-400">Fitbit · Samsung Health · Google Fit</p>
-                  <StatusBadge connected={hcVerbonden} />
-                </div>
-              </div>
-              {!hcVerbonden && (
-                <button
-                  onClick={async () => {
-                    setHcLaden(true)
-                    const ok = await vraagPermissies()
-                    if (ok) {
-                      const d = await leesHealthData()
-                      setHcData(d)
-                      setHcVerbonden(true)
-                      // Stuur direct 14 dagen historie naar je gezondheidslog
-                      const uitkomst = await syncGezondheidsdata({ forceer: true })
-                      if (uitkomst) setToast({ type: 'success', tekst: `${uitkomst.opgeslagen} dagen gesynchroniseerd!` })
-                    }
-                    setHcLaden(false)
-                  }}
-                  className="text-xs font-semibold px-4 py-2 rounded-xl text-white"
-                  style={{ background: '#4CAF50' }}
-                >
-                  Koppelen
-                </button>
-              )}
+      {/* Fitbit */}
+      <Card style={{ padding: 20, marginBottom: 16 }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <ProviderLogo><Watch size={20} aria-hidden /></ProviderLogo>
+            <div>
+              <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-1)' }}>Fitbit</p>
+              <div style={{ marginTop: 4 }}><StatusBadge connected={fitbitVerbonden} /></div>
             </div>
-            {hcLaden ? (
-              <div className="flex items-center gap-2 py-2">
-                <div className="w-4 h-4 rounded-full border-2 border-gray-200 animate-spin" style={{ borderTopColor: '#4CAF50' }} />
-                <span className="text-xs text-gray-400">Data ophalen…</span>
-              </div>
-            ) : hcData ? (
-              <div className="mt-3 pt-3 border-t border-gray-50">
-                <DataRij label="Stappen vandaag" waarde={hcData.stappen?.toLocaleString('nl-BE') ?? null} />
-                <DataRij label="Slaap" waarde={hcData.slaapMinuten !== null ? Math.round(hcData.slaapMinuten / 60 * 10) / 10 : null} eenheid="uur" />
-                <DataRij label="Gemiddelde hartslag" waarde={hcData.hartslag} eenheid="bpm" />
-                <DataRij label="Verbrande calorieën" waarde={hcData.calorieën} eenheid="kcal" />
-              </div>
-            ) : (
-              <p className="text-xs text-gray-400 mt-2">Koppel Health Connect om stappen, slaap en hartslag te zien van je Fitbit of Samsung Health.</p>
-            )}
           </div>
+          {fitbitVerbonden ? (
+            <Button variant="ghost" size="sm" onClick={() => ontkoppel('fitbit')} style={{ color: 'var(--mf-red)' }}>Ontkoppelen</Button>
+          ) : (
+            <Button size="sm" onClick={() => startKoppeling('fitbit')}>Koppelen</Button>
+          )}
+        </div>
+        {fitbitLaden ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 0' }}>
+            <div className="mf-spinner" style={{ width: 16, height: 16 }} />
+            <span style={{ fontSize: 12, color: 'var(--text-4)' }}>Data ophalen…</span>
+          </div>
+        ) : fitbitData ? (
+          <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--border)' }}>
+            <DataRij label="Stappen vandaag" waarde={fitbitData.stappen?.toLocaleString('nl-BE') ?? null} />
+            <DataRij label="Slaap" waarde={fitbitData.slaapMinuten !== null ? Math.round(fitbitData.slaapMinuten / 60 * 10) / 10 : null} eenheid="uur" />
+            <DataRij label="Slaapkwaliteit" waarde={fitbitData.slaapKwaliteit} eenheid="%" />
+            <DataRij label="Rusthartslag" waarde={fitbitData.hartslag} eenheid="bpm" />
+          </div>
+        ) : (
+          <p style={{ fontSize: 12, color: 'var(--text-4)', marginTop: 8 }}>Koppel je Fitbit om stappen, slaap en hartslag te zien.</p>
         )}
+      </Card>
 
-        {/* Fitbit */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-5 mb-4" style={{ boxShadow: 'var(--shadow-sm)' }}>
-          <div className="flex items-start justify-between mb-3">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl" style={{ background: '#00B0B9' }}>⌚</div>
-              <div>
-                <p className="text-sm font-semibold text-gray-900">Fitbit</p>
-                <StatusBadge connected={fitbitVerbonden} />
-              </div>
+      {/* Google Fit */}
+      <Card style={{ padding: 20, marginBottom: 16 }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <ProviderLogo><Activity size={20} aria-hidden /></ProviderLogo>
+            <div>
+              <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-1)' }}>Google Fit</p>
+              <p style={{ fontSize: 12, color: 'var(--text-4)' }}>Stappen · Slaap · Hartslag</p>
+              <div style={{ marginTop: 4 }}><StatusBadge connected={fitVerbonden} /></div>
             </div>
-            {fitbitVerbonden ? (
-              <button onClick={() => ontkoppel('fitbit')} className="text-xs text-red-400 hover:text-red-600 transition font-medium">Ontkoppelen</button>
-            ) : (
-              <button onClick={() => startKoppeling('fitbit')} className="text-xs font-semibold px-4 py-2 rounded-xl text-white" style={{ background: '#00B0B9' }}>Koppelen</button>
-            )}
           </div>
-          {fitbitLaden ? (
-            <div className="flex items-center gap-2 py-2">
-              <div className="w-4 h-4 rounded-full border-2 border-gray-200 animate-spin" style={{ borderTopColor: '#00B0B9' }} />
-              <span className="text-xs text-gray-400">Data ophalen…</span>
-            </div>
-          ) : fitbitData ? (
-            <div className="mt-3 pt-3 border-t border-gray-50">
-              <DataRij label="Stappen vandaag" waarde={fitbitData.stappen?.toLocaleString('nl-BE') ?? null} />
-              <DataRij label="Slaap" waarde={fitbitData.slaapMinuten !== null ? Math.round(fitbitData.slaapMinuten / 60 * 10) / 10 : null} eenheid="uur" />
-              <DataRij label="Slaapkwaliteit" waarde={fitbitData.slaapKwaliteit} eenheid="%" />
-              <DataRij label="Rusthartslag" waarde={fitbitData.hartslag} eenheid="bpm" />
+          {fitVerbonden ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Button
+                size="sm"
+                loading={fitSyncBezig}
+                leftIcon={<RefreshCw size={14} aria-hidden />}
+                onClick={() => {
+                  setFitSyncBezig(true)
+                  syncGezondheidsdata({ forceer: true })
+                    .then(u => toast(u
+                      ? { title: `${u.opgeslagen} dagen gesynchroniseerd!`, variant: 'success' }
+                      : { title: 'Synchroniseren mislukt', variant: 'error' }))
+                    .finally(() => setFitSyncBezig(false))
+                }}
+              >{fitSyncBezig ? 'Bezig…' : 'Sync nu'}</Button>
+              <Button variant="ghost" size="sm" onClick={() => ontkoppel('google_fit')} style={{ color: 'var(--mf-red)' }}>Ontkoppelen</Button>
             </div>
           ) : (
-            <p className="text-xs text-gray-400 mt-2">Koppel je Fitbit om stappen, slaap en hartslag te zien.</p>
+            <Button size="sm" onClick={() => startKoppeling('google-fit')}>Koppelen</Button>
           )}
         </div>
+        {fitLaden ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 0' }}>
+            <div className="mf-spinner" style={{ width: 16, height: 16 }} />
+            <span style={{ fontSize: 12, color: 'var(--text-4)' }}>Status ophalen…</span>
+          </div>
+        ) : fitData ? (
+          <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--border)' }}>
+            <DataRij label="Stappen vandaag" waarde={fitData.stappen?.toLocaleString('nl-BE') ?? null} />
+            <DataRij label="Slaap" waarde={fitData.slaapMinuten !== null ? Math.round(fitData.slaapMinuten / 60 * 10) / 10 : null} eenheid="uur" />
+            <DataRij label="Gemiddelde hartslag" waarde={fitData.hartslag} eenheid="bpm" />
+          </div>
+        ) : fitVerbonden ? (
+          <p style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, color: 'var(--text-4)', marginTop: 8 }}><Check size={13} aria-hidden style={{ color: 'var(--mentaforce-primary)' }} /> Gekoppeld — data wordt opgehaald bij je volgende check-in.</p>
+        ) : (
+          <p style={{ fontSize: 12, color: 'var(--text-4)', marginTop: 8 }}>Koppel Google Fit om je stappen, slaap en hartslag automatisch mee te nemen in je check-in.</p>
+        )}
+      </Card>
 
-        {/* Google Fit */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-5 mb-4" style={{ boxShadow: 'var(--shadow-sm)' }}>
-          <div className="flex items-start justify-between mb-3">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: '#EA4335' }}>
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z" fill="white"/>
-                </svg>
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-gray-900">Google Fit</p>
-                <p className="text-xs text-gray-400">Stappen · Slaap · Hartslag</p>
-                <StatusBadge connected={fitVerbonden} />
-              </div>
+      {/* Google Calendar */}
+      <Card style={{ padding: 20, marginBottom: 16 }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <ProviderLogo><Calendar size={20} aria-hidden /></ProviderLogo>
+            <div>
+              <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-1)' }}>Google Agenda</p>
+              <div style={{ marginTop: 4 }}><StatusBadge connected={calVerbonden} /></div>
             </div>
-            {fitVerbonden ? (
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => {
-                    setFitSyncBezig(true)
-                    syncGezondheidsdata({ forceer: true })
-                      .then(u => setToast(u
-                        ? { type: 'success', tekst: `${u.opgeslagen} dagen gesynchroniseerd!` }
-                        : { type: 'error', tekst: 'Synchroniseren mislukt' }))
-                      .finally(() => setFitSyncBezig(false))
-                  }}
-                  disabled={fitSyncBezig}
-                  className="text-xs font-semibold px-3 py-1.5 rounded-lg text-white disabled:opacity-50"
-                  style={{ background: 'var(--mf-green)' }}
-                >{fitSyncBezig ? 'Bezig…' : '↻ Sync nu'}</button>
-                <button onClick={() => ontkoppel('google_fit')} className="text-xs text-red-400 hover:text-red-600 transition font-medium">Ontkoppelen</button>
+          </div>
+          {calVerbonden ? (
+            <Button variant="ghost" size="sm" onClick={() => ontkoppel('google_calendar')} style={{ color: 'var(--mf-red)' }}>Ontkoppelen</Button>
+          ) : (
+            <Button size="sm" onClick={() => startKoppeling('google-calendar')}>Koppelen</Button>
+          )}
+        </div>
+        {calLaden ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 0' }}>
+            <div className="mf-spinner" style={{ width: 16, height: 16 }} />
+            <span style={{ fontSize: 12, color: 'var(--text-4)' }}>Agenda ophalen…</span>
+          </div>
+        ) : calData ? (
+          <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--border)' }}>
+            <DataRij label="Afspraken deze week" waarde={calData.aantalAfspraken} />
+            <DataRij label="Vergadertijd" waarde={Math.round(calData.totalMeetingMinuten / 60 * 10) / 10} eenheid="uur" />
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid var(--border)' }}>
+              <span style={{ fontSize: 13, color: 'var(--text-3)' }}>Werkdruk indicator</span>
+              <Badge variant={werkLastVariant(calData.werkLast)}>
+                {calData.werkLast.charAt(0).toUpperCase() + calData.werkLast.slice(1)}
+              </Badge>
+            </div>
+            {calData.vandaagAfspraken.length > 0 && (
+              <div style={{ marginTop: 8 }}>
+                <p style={{ fontSize: 12, color: 'var(--text-4)', marginBottom: 4 }}>Vandaag:</p>
+                {calData.vandaagAfspraken.slice(0, 3).map((a, i) => (
+                  <p key={i} style={{ fontSize: 12, color: 'var(--text-2)', padding: '2px 0' }}>• {a}</p>
+                ))}
+                {calData.vandaagAfspraken.length > 3 && (
+                  <p style={{ fontSize: 12, color: 'var(--text-4)' }}>+{calData.vandaagAfspraken.length - 3} meer</p>
+                )}
               </div>
-            ) : (
-              <button onClick={() => startKoppeling('google-fit')} className="text-xs font-semibold px-4 py-2 rounded-xl text-white" style={{ background: '#EA4335' }}>Koppelen</button>
             )}
           </div>
-          {fitLaden ? (
-            <div className="flex items-center gap-2 py-2">
-              <div className="w-4 h-4 rounded-full border-2 border-gray-200 animate-spin" style={{ borderTopColor: '#EA4335' }} />
-              <span className="text-xs text-gray-400">Status ophalen…</span>
-            </div>
-          ) : fitData ? (
-            <div className="mt-3 pt-3 border-t border-gray-50">
-              <DataRij label="Stappen vandaag" waarde={fitData.stappen?.toLocaleString('nl-BE') ?? null} />
-              <DataRij label="Slaap" waarde={fitData.slaapMinuten !== null ? Math.round(fitData.slaapMinuten / 60 * 10) / 10 : null} eenheid="uur" />
-              <DataRij label="Gemiddelde hartslag" waarde={fitData.hartslag} eenheid="bpm" />
-            </div>
-          ) : fitVerbonden ? (
-            <p className="text-xs text-gray-400 mt-2">✓ Gekoppeld — data wordt opgehaald bij je volgende check-in.</p>
-          ) : (
-            <p className="text-xs text-gray-400 mt-2">Koppel Google Fit om je stappen, slaap en hartslag automatisch mee te nemen in je check-in.</p>
-          )}
-        </div>
+        ) : (
+          <p style={{ fontSize: 12, color: 'var(--text-4)', marginTop: 8 }}>Koppel je Google Agenda voor werk-privébalans inzichten.</p>
+        )}
+      </Card>
 
-        {/* Google Calendar */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-5 mb-4" style={{ boxShadow: 'var(--shadow-sm)' }}>
-          <div className="flex items-start justify-between mb-3">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl" style={{ background: '#EA4335' }}>📅</div>
-              <div>
-                <p className="text-sm font-semibold text-gray-900">Google Agenda</p>
-                <StatusBadge connected={calVerbonden} />
-              </div>
-            </div>
-            {calVerbonden ? (
-              <button onClick={() => ontkoppel('google_calendar')} className="text-xs text-red-400 hover:text-red-600 transition font-medium">Ontkoppelen</button>
-            ) : (
-              <button onClick={() => startKoppeling('google-calendar')} className="text-xs font-semibold px-4 py-2 rounded-xl text-white" style={{ background: '#EA4335' }}>Koppelen</button>
-            )}
+      {/* Microsoft Outlook — binnenkort */}
+      <Card style={{ padding: 20, marginBottom: 16, opacity: 0.6 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <ProviderLogo><Mail size={20} aria-hidden /></ProviderLogo>
+          <div style={{ flex: 1 }}>
+            <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-1)' }}>Microsoft Outlook</p>
+            <div style={{ marginTop: 4 }}><Badge variant="accent">Binnenkort</Badge></div>
           </div>
-          {calLaden ? (
-            <div className="flex items-center gap-2 py-2">
-              <div className="w-4 h-4 rounded-full border-2 border-gray-200 animate-spin" style={{ borderTopColor: '#EA4335' }} />
-              <span className="text-xs text-gray-400">Agenda ophalen…</span>
-            </div>
-          ) : calData ? (
-            <div className="mt-3 pt-3 border-t border-gray-50">
-              <DataRij label="Afspraken deze week" waarde={calData.aantalAfspraken} />
-              <DataRij label="Vergadertijd" waarde={Math.round(calData.totalMeetingMinuten / 60 * 10) / 10} eenheid="uur" />
-              <div className="flex justify-between items-center py-2 border-b border-gray-50">
-                <span className="text-sm text-gray-500">Werkdruk indicator</span>
-                <span className="text-xs font-bold px-2.5 py-1 rounded-full text-white" style={{ background: werkLastKleur(calData.werkLast) }}>
-                  {calData.werkLast.charAt(0).toUpperCase() + calData.werkLast.slice(1)}
-                </span>
-              </div>
-              {calData.vandaagAfspraken.length > 0 && (
-                <div className="mt-2">
-                  <p className="text-xs text-gray-400 mb-1">Vandaag:</p>
-                  {calData.vandaagAfspraken.slice(0, 3).map((a, i) => (
-                    <p key={i} className="text-xs text-gray-700 py-0.5">• {a}</p>
-                  ))}
-                  {calData.vandaagAfspraken.length > 3 && (
-                    <p className="text-xs text-gray-400">+{calData.vandaagAfspraken.length - 3} meer</p>
-                  )}
-                </div>
-              )}
-            </div>
-          ) : (
-            <p className="text-xs text-gray-400 mt-2">Koppel je Google Agenda voor werk-privébalans inzichten.</p>
-          )}
         </div>
+        <p style={{ fontSize: 12, color: 'var(--text-4)', marginTop: 12 }}>Outlook agenda-integratie via Microsoft Graph API — binnenkort beschikbaar.</p>
+      </Card>
 
-        {/* Microsoft Outlook — binnenkort */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-5 mb-4 opacity-60" style={{ boxShadow: 'var(--shadow-sm)' }}>
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl" style={{ background: '#0078D4' }}>📧</div>
-            <div className="flex-1">
-              <p className="text-sm font-semibold text-gray-900">Microsoft Outlook</p>
-              <span className="text-xs bg-blue-50 text-blue-500 font-semibold px-2 py-0.5 rounded-full">Binnenkort</span>
-            </div>
-          </div>
-          <p className="text-xs text-gray-400 mt-3">Outlook agenda-integratie via Microsoft Graph API — binnenkort beschikbaar.</p>
-        </div>
-
-        {/* Apple Health — actief in de iOS-app, informatief daarbuiten */}
-        <div className={`bg-white rounded-2xl border border-gray-100 p-5 mb-4 ${isIos ? '' : 'opacity-60'}`} style={{ boxShadow: 'var(--shadow-sm)' }}>
-          <div className="flex items-start justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl" style={{ background: '#FF2D55', position: 'relative' }}>
-                <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
-                  <div style={{ width: 60, height: 60, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
-                </div>
-                <span style={{ position: 'relative', zIndex: 1 }}>🍎</span>
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-gray-900">Apple Health</p>
-                <p className="text-xs text-gray-400">Apple Watch · iPhone</p>
+      {/* Apple Health — actief in de iOS-app, informatief daarbuiten */}
+      <Card style={{ padding: 20, marginBottom: 16, opacity: isIos ? 1 : 0.6 }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <ProviderLogo><Heart size={20} aria-hidden /></ProviderLogo>
+            <div>
+              <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-1)' }}>Apple Health</p>
+              <p style={{ fontSize: 12, color: 'var(--text-4)' }}>Apple Watch · iPhone</p>
+              <div style={{ marginTop: 4 }}>
                 {isIos ? (
                   <StatusBadge connected={ahVerbonden} />
                 ) : (
-                  <span className="text-xs bg-pink-50 text-pink-500 font-semibold px-2 py-0.5 rounded-full">iOS app vereist</span>
+                  <Badge variant="accent">iOS app vereist</Badge>
                 )}
               </div>
             </div>
-            {isIos && !ahVerbonden && (
-              <button
-                onClick={async () => {
-                  setAhLaden(true)
-                  const ok = await vraagAppleHealthPermissies()
-                  if (ok) {
-                    const uitkomst = await syncGezondheidsdata({ forceer: true })
-                    setAhVerbonden(true)
-                    try { localStorage.setItem('mf-apple-health-verbonden', '1') } catch { /* ok */ }
-                    setToast({ type: 'success', tekst: uitkomst ? `Apple Health gekoppeld — ${uitkomst.opgeslagen} dagen gesynchroniseerd!` : 'Apple Health gekoppeld!' })
-                  } else {
-                    setToast({ type: 'error', tekst: 'Geen toegang tot Apple Health' })
-                  }
-                  setAhLaden(false)
-                }}
-                className="text-xs font-semibold px-4 py-2 rounded-xl text-white"
-                style={{ background: '#FF2D55' }}
-              >
-                {ahLaden ? 'Bezig…' : 'Koppelen'}
-              </button>
-            )}
           </div>
-          <p className="text-xs text-gray-400 mt-3">
-            {isIos
-              ? ahVerbonden
-                ? '✓ Stappen en verbranding van je Apple Watch worden automatisch gesynchroniseerd.'
-                : 'Koppel Apple Health om stappen en verbranding van je Apple Watch automatisch mee te nemen.'
-              : 'Apple Health koppeling is beschikbaar via de MentaForce iOS-app (HealthKit).'}
-          </p>
+          {isIos && !ahVerbonden && (
+            <Button
+              size="sm"
+              loading={ahLaden}
+              onClick={async () => {
+                setAhLaden(true)
+                const ok = await vraagAppleHealthPermissies()
+                if (ok) {
+                  const uitkomst = await syncGezondheidsdata({ forceer: true })
+                  setAhVerbonden(true)
+                  try { localStorage.setItem('mf-apple-health-verbonden', '1') } catch { /* ok */ }
+                  toast({ title: uitkomst ? `Apple Health gekoppeld — ${uitkomst.opgeslagen} dagen gesynchroniseerd!` : 'Apple Health gekoppeld!', variant: 'success' })
+                } else {
+                  toast({ title: 'Geen toegang tot Apple Health', variant: 'error' })
+                }
+                setAhLaden(false)
+              }}
+            >
+              Koppelen
+            </Button>
+          )}
         </div>
+        <p style={{ fontSize: 12, color: 'var(--text-4)', marginTop: 12 }}>
+          {isIos
+            ? ahVerbonden
+              ? 'Stappen en verbranding van je Apple Watch worden automatisch gesynchroniseerd.'
+              : 'Koppel Apple Health om stappen en verbranding van je Apple Watch automatisch mee te nemen.'
+            : 'Apple Health koppeling is beschikbaar via de MentaForce iOS-app (HealthKit).'}
+        </p>
+      </Card>
 
-        {/* Admin info */}
-        <div className="bg-blue-50 border border-blue-100 rounded-2xl p-5 mt-2">
-          <p className="text-xs font-semibold text-blue-700 mb-2">⚙️ Voor beheerders: API-sleutels instellen</p>
-          <div className="space-y-1">
-            {[
-              'FITBIT_CLIENT_ID + FITBIT_CLIENT_SECRET → developer.fitbit.com',
-              'GOOGLE_CLIENT_ID + GOOGLE_CLIENT_SECRET → Supabase Google Login',
-              'GOOGLE_FIT_CLIENT_ID + GOOGLE_FIT_CLIENT_SECRET → Google Fit OAuth',
-              'NEXT_PUBLIC_APP_URL=https://mentaforce.nl',
-            ].map(t => (
-              <p key={t} className="text-xs text-blue-600 font-mono">{t}</p>
-            ))}
-          </div>
+      {/* Admin info */}
+      <div style={{ background: 'var(--mentaforce-primary-light)', border: '1px solid color-mix(in srgb, var(--mentaforce-primary) 35%, transparent)', borderRadius: 'var(--radius-card)', padding: 20, marginTop: 8 }}>
+        <p style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 600, color: 'var(--text-1)', marginBottom: 8 }}>
+          <Settings size={14} aria-hidden style={{ color: 'var(--mentaforce-primary)' }} />
+          Voor beheerders: API-sleutels instellen
+        </p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          {[
+            'FITBIT_CLIENT_ID + FITBIT_CLIENT_SECRET → developer.fitbit.com',
+            'GOOGLE_CLIENT_ID + GOOGLE_CLIENT_SECRET → Supabase Google Login',
+            'GOOGLE_FIT_CLIENT_ID + GOOGLE_FIT_CLIENT_SECRET → Google Fit OAuth',
+            'NEXT_PUBLIC_APP_URL=https://mentaforce.nl',
+          ].map(t => (
+            <p key={t} style={{ fontSize: 12, color: 'var(--text-2)', fontFamily: 'monospace' }}>{t}</p>
+          ))}
         </div>
-      </main>
-    </>
+      </div>
+    </main>
   )
 }
 
 export default function KoppelingenPage() {
   return (
-    <div className="min-h-screen" style={{ background: 'var(--bg-app)' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
       <Navbar />
       <Suspense fallback={
-        <div className="flex items-center justify-center py-20">
-          <div className="w-8 h-8 rounded-full border-2 border-gray-200 animate-spin" style={{ borderTopColor: 'var(--mf-green)' }} />
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '80px 0' }}>
+          <div className="mf-spinner" />
         </div>
       }>
         <KoppelingenInhoud />

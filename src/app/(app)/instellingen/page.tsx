@@ -5,11 +5,19 @@ export const dynamic = 'force-dynamic'
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { Shield, Users, Leaf, User as UserIcon, AlertTriangle, LogOut, Camera, Mail, Download, Trash2, UserPlus, Eye, X } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import Navbar, { schakelPortaal, type ViewMode } from '@/components/layout/Navbar'
 import { Avatar } from '@/components/Avatar'
 import HrCodeModal from '@/components/hr/HrCodeModal'
 import GezondheidDoelen from './GezondheidDoelen'
+import { Card } from '@/components/ui/Card'
+import { Button } from '@/components/ui/Button'
+import { Badge } from '@/components/ui/Badge'
+import { Field } from '@/components/ui/Field'
+import { Input } from '@/components/ui/Input'
+import { Textarea } from '@/components/ui/Textarea'
+import { useToast } from '@/components/ui/Toast'
 
 
 async function cropToSquareJpeg(file: File, size: number): Promise<Blob> {
@@ -69,19 +77,23 @@ function Toggle({ actief, onChange, label, beschrijving }: {
   actief: boolean; onChange: (v: boolean) => void; label: string; beschrijving?: string
 }) {
   return (
-    <div className="flex items-start justify-between gap-4 py-4 border-b border-gray-100 last:border-0">
+    <div className="mf-toggle-row flex items-start justify-between gap-4 py-4" style={{ borderBottom: '1px solid var(--border)' }}>
       <div className="flex-1">
-        <p className="text-sm font-medium text-gray-800">{label}</p>
-        {beschrijving && <p className="text-xs text-gray-400 mt-0.5">{beschrijving}</p>}
+        <p className="text-sm font-medium" style={{ color: 'var(--text-1)' }}>{label}</p>
+        {beschrijving && <p className="text-xs mt-0.5" style={{ color: 'var(--text-4)' }}>{beschrijving}</p>}
       </div>
       <button
+        type="button"
+        role="switch"
+        aria-checked={actief}
+        aria-label={label}
         onClick={() => onChange(!actief)}
-        className="relative w-11 h-6 rounded-full transition-colors flex-shrink-0 mt-0.5"
-        style={{ background: actief ? 'var(--mf-green)' : 'var(--border)' }}
+        className="relative w-11 h-6 rounded-full flex-shrink-0 mt-0.5"
+        style={{ background: actief ? 'var(--mentaforce-primary)' : 'var(--border-strong)', transition: 'background 0.2s var(--ease)' }}
       >
         <span
-          className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-sm transition-transform"
-          style={{ transform: actief ? 'translateX(20px)' : 'translateX(0)' }}
+          className="absolute top-0.5 w-5 h-5 rounded-full"
+          style={{ background: 'var(--bg-card)', boxShadow: '0 1px 3px rgba(0,0,0,0.4)', left: 2, transition: 'transform 0.2s var(--ease)', transform: actief ? 'translateX(20px)' : 'translateX(0)' }}
         />
       </button>
     </div>
@@ -90,6 +102,7 @@ function Toggle({ actief, onChange, label, beschrijving }: {
 
 export default function Instellingen() {
   const router = useRouter()
+  const { toast } = useToast()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [activeSectie, setActiveSectie] = useState<Sectie>('profiel')
@@ -242,7 +255,9 @@ export default function Instellingen() {
       const urlMetCacheBust = `${publicUrl}?t=${Date.now()}`
       await supabase.from('profiles').update({ avatar_url: urlMetCacheBust }).eq('id', userId)
       setAvatarUrl(urlMetCacheBust)
-    } catch (err) { console.error('Avatar upload mislukt:', err) }
+    } catch {
+      toast({ title: 'Uploaden mislukt', description: 'Probeer een andere afbeelding.', variant: 'error' })
+    }
     setAvatarBezig(false)
     if (fileInputRef.current) fileInputRef.current.value = ''
   }
@@ -443,8 +458,7 @@ export default function Instellingen() {
       document.body.removeChild(link)
       URL.revokeObjectURL(url)
       setExportMelding({ type: 'success', tekst: 'Je gegevens zijn gedownload als JSON-bestand.' })
-    } catch (err) {
-      console.error('Data-export mislukt:', err)
+    } catch {
       setExportMelding({ type: 'error', tekst: 'Export mislukt. Probeer het later opnieuw.' })
     } finally {
       setExportBezig(false)
@@ -462,7 +476,7 @@ export default function Instellingen() {
         <div className="mb-6 rounded-2xl overflow-hidden mf-animate-up" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)' }}>
           {/* Gradient header */}
           <div className="h-20 relative" style={{ background: 'linear-gradient(135deg, var(--mf-green-dark) 0%, var(--mf-blue) 100%)' }}>
-            <div className="absolute inset-0 opacity-30" style={{ backgroundImage: 'radial-gradient(circle at 80% 50%, rgba(255,255,255,0.15) 0%, transparent 60%)' }} />
+            <div className="absolute inset-0 opacity-30" style={{ backgroundImage: 'radial-gradient(circle at 80% 50%, color-mix(in srgb, var(--text-1) 15%, transparent) 0%, transparent 60%)' }} />
           </div>
 
           {/* Info rij */}
@@ -471,7 +485,7 @@ export default function Instellingen() {
             <div className="absolute -top-9 left-6">
               <div className="relative">
                 <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
-                  <div style={{ width: 110, height: 110, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
+                  <div style={{ width: 110, height: 110, borderRadius: '50%', background: 'radial-gradient(circle, color-mix(in srgb, var(--mentaforce-primary) 18%, transparent) 0%, transparent 70%)' }} />
                 </div>
                 <div style={{ position: 'relative', zIndex: 1 }}>
                   <Avatar naam={naam || 'G'} avatarUrl={avatarUrl} size={72} />
@@ -508,30 +522,12 @@ export default function Instellingen() {
 
               {/* Acties */}
               <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setActiveSectie('profiel')}
-                  className="text-sm font-medium px-4 py-2 rounded-xl transition"
-                  style={{ background: 'var(--bg-subtle)', color: 'var(--text-2)', border: '1px solid var(--border)' }}
-                >
+                <Button variant="secondary" size="sm" onClick={() => setActiveSectie('profiel')}>
                   Profiel bewerken
-                </button>
-                <button
-                  onClick={uitloggen}
-                  className="text-sm font-bold px-4 py-2 rounded-xl transition flex items-center gap-1.5"
-                  style={{
-                    background: 'linear-gradient(135deg, #DC2626 0%, var(--mf-red, #E24B4A) 100%)',
-                    color: 'white',
-                    border: '1px solid rgba(220,38,38,0.35)',
-                    boxShadow: '0 2px 10px rgba(220,38,38,0.25)',
-                  }}
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-                    <polyline points="16 17 21 12 16 7"/>
-                    <line x1="21" y1="12" x2="9" y2="12"/>
-                  </svg>
+                </Button>
+                <Button variant="danger" size="sm" onClick={uitloggen} leftIcon={<LogOut size={14} aria-hidden />}>
                   Uitloggen
-                </button>
+                </Button>
               </div>
             </div>
 
@@ -570,7 +566,7 @@ export default function Instellingen() {
 
         {laden ? (
           <div className="flex justify-center py-16">
-            <div className="w-8 h-8 rounded-full border-2 border-gray-200 animate-spin" style={{ borderTopColor: 'var(--mentaforce-primary)' }} />
+            <div className="mf-spinner" style={{ width: 32, height: 32 }} />
           </div>
         ) : (
           <div className="flex flex-col lg:flex-row gap-6">
@@ -602,23 +598,14 @@ export default function Instellingen() {
               </nav>
 
               {/* Uitloggen knop — rode warning look */}
-              <button
+              <Button
+                variant="danger"
                 onClick={uitloggen}
-                className="w-full mt-3 flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-bold transition"
-                style={{
-                  background: 'linear-gradient(135deg, #DC2626 0%, var(--mf-red, #E24B4A) 100%)',
-                  border: '1px solid rgba(220,38,38,0.4)',
-                  color: 'white',
-                  boxShadow: '0 4px 14px rgba(220,38,38,0.3)',
-                }}
+                leftIcon={<LogOut size={15} aria-hidden />}
+                style={{ width: '100%', marginTop: 12 }}
               >
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-                  <polyline points="16 17 21 12 16 7"/>
-                  <line x1="21" y1="12" x2="9" y2="12"/>
-                </svg>
                 Uitloggen
-              </button>
+              </Button>
 
               {/* App versie */}
               <p className="text-center text-xs mt-4" style={{ color: 'var(--text-4)' }}>MentaForce v0.9.0</p>
@@ -631,11 +618,11 @@ export default function Instellingen() {
               {activeSectie === 'profiel' && (
                 <>
                   {/* Avatar */}
-                  <section className="bg-white rounded-2xl border border-gray-200 p-6">
+                  <Card style={{ padding: 24 }}>
                     <div className="flex items-center justify-between mb-5">
                       <div>
-                        <h2 className="text-base font-semibold text-gray-900">Profielfoto</h2>
-                        <p className="text-xs text-gray-400 mt-0.5">Wordt getoond in de app en teamoverzichten.</p>
+                        <h2 className="text-base font-semibold" style={{ color: 'var(--text-1)' }}>Profielfoto</h2>
+                        <p className="text-xs mt-0.5" style={{ color: 'var(--text-4)' }}>Wordt getoond in de app en teamoverzichten.</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-6">
@@ -644,85 +631,64 @@ export default function Instellingen() {
                         <button
                           onClick={() => fileInputRef.current?.click()}
                           disabled={avatarBezig}
+                          aria-label={avatarUrl ? 'Foto wijzigen' : 'Foto uploaden'}
                           className="absolute inset-0 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
-                          style={{ background: 'rgba(0,0,0,0.45)' }}
+                          style={{ background: 'color-mix(in srgb, var(--bg-app) 55%, transparent)' }}
                         >
                           {avatarBezig
-                            ? <div className="w-5 h-5 rounded-full border-2 border-white border-t-transparent animate-spin" />
-                            : <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
-                                <circle cx="12" cy="13" r="4" />
-                              </svg>
+                            ? <div className="mf-spinner" style={{ width: 20, height: 20 }} />
+                            : <Camera size={20} aria-hidden style={{ color: 'var(--text-1)' }} />
                           }
                         </button>
                         <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={uploadAvatar} />
                       </div>
-                      <div className="flex flex-col gap-2">
-                        <button onClick={() => fileInputRef.current?.click()} disabled={avatarBezig}
-                          className="text-sm border border-gray-200 rounded-xl px-4 py-2 text-gray-700 hover:bg-gray-50 transition disabled:opacity-40">
+                      <div className="flex flex-col gap-2 items-start">
+                        <Button variant="secondary" size="sm" onClick={() => fileInputRef.current?.click()} disabled={avatarBezig}>
                           {avatarUrl ? 'Foto wijzigen' : 'Foto uploaden'}
-                        </button>
+                        </Button>
                         {avatarUrl && (
-                          <button onClick={verwijderAvatar} disabled={avatarBezig}
-                            className="text-sm text-gray-400 hover:text-red-500 transition disabled:opacity-40 text-left px-1">
+                          <Button variant="ghost" size="sm" onClick={verwijderAvatar} disabled={avatarBezig} style={{ color: 'var(--mf-red)' }}>
                             Foto verwijderen
-                          </button>
+                          </Button>
                         )}
-                        <p className="text-xs text-gray-400">JPG, PNG of WebP. Max 5 MB. Wordt bijgesneden naar vierkant.</p>
+                        <p className="text-xs" style={{ color: 'var(--text-4)' }}>JPG, PNG of WebP. Max 5 MB. Wordt bijgesneden naar vierkant.</p>
                       </div>
                     </div>
-                  </section>
+                  </Card>
 
                   {/* Personal info */}
-                  <section className="bg-white rounded-2xl border border-gray-200 p-6">
-                    <h2 className="text-base font-semibold text-gray-900 mb-1">Persoonlijke informatie</h2>
-                    <p className="text-xs text-gray-400 mb-5">Je naam is zichtbaar voor collega&apos;s in de teamchat.</p>
+                  <Card style={{ padding: 24 }}>
+                    <h2 className="text-base font-semibold mb-1" style={{ color: 'var(--text-1)' }}>Persoonlijke informatie</h2>
+                    <p className="text-xs mb-5" style={{ color: 'var(--text-4)' }}>Je naam is zichtbaar voor collega&apos;s in de teamchat.</p>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-                      <div>
-                        <label className="text-xs font-medium text-gray-600 block mb-1.5">Weergavenaam *</label>
-                        <input type="text" value={naam} onChange={e => setNaam(e.target.value)}
-                          placeholder="Jouw naam"
-                          className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-gray-400 transition" />
-                      </div>
-                      <div>
-                        <label className="text-xs font-medium text-gray-600 block mb-1.5">Functietitel</label>
-                        <input type="text" value={functie} onChange={e => setFunctie(e.target.value)}
-                          placeholder="bijv. Software Engineer"
-                          className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-gray-400 transition" />
-                      </div>
-                      <div>
-                        <label className="text-xs font-medium text-gray-600 block mb-1.5">Afdeling</label>
-                        <input type="text" value={afdeling} onChange={e => setAfdeling(e.target.value)}
-                          placeholder="bijv. Technologie"
-                          className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-gray-400 transition" />
-                      </div>
-                      <div>
-                        <label className="text-xs font-medium text-gray-600 block mb-1.5">Telefoonnummer</label>
-                        <input type="tel" value={telefoon} onChange={e => setTelefoon(e.target.value)}
-                          placeholder="+32 4xx xx xx xx"
-                          className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-gray-400 transition" />
-                      </div>
+                      <Field label="Weergavenaam" required>
+                        <Input type="text" value={naam} onChange={e => setNaam(e.target.value)} placeholder="Jouw naam" />
+                      </Field>
+                      <Field label="Functietitel">
+                        <Input type="text" value={functie} onChange={e => setFunctie(e.target.value)} placeholder="bijv. Software Engineer" />
+                      </Field>
+                      <Field label="Afdeling">
+                        <Input type="text" value={afdeling} onChange={e => setAfdeling(e.target.value)} placeholder="bijv. Technologie" />
+                      </Field>
+                      <Field label="Telefoonnummer">
+                        <Input type="tel" value={telefoon} onChange={e => setTelefoon(e.target.value)} placeholder="+32 4xx xx xx xx" />
+                      </Field>
                     </div>
 
                     <div className="mb-5">
-                      <label className="text-xs font-medium text-gray-600 block mb-1.5">
-                        Bio <span className="text-gray-400 font-normal">(optioneel)</span>
-                      </label>
-                      <textarea rows={3} value={bio} onChange={e => setBio(e.target.value)}
-                        placeholder="Vertel iets over jezelf..."
-                        className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-gray-400 transition resize-none" />
-                      <p className="text-xs text-gray-400 mt-1">{bio.length}/200 tekens</p>
+                      <Field label="Bio (optioneel)" hint={`${bio.length}/200 tekens`}>
+                        <Textarea rows={3} value={bio} onChange={e => setBio(e.target.value)} placeholder="Vertel iets over jezelf..." />
+                      </Field>
                     </div>
 
                     <div className="flex items-center gap-3">
-                      <button onClick={slaProfielOp} disabled={profielBezig || !naam.trim() || !profielGewijzigd}
-                        className="bg-gray-900 text-white rounded-xl px-5 py-2.5 text-sm font-medium hover:bg-gray-700 transition disabled:opacity-30">
-                        {profielBezig ? 'Opslaan...' : 'Wijzigingen opslaan'}
-                      </button>
+                      <Button onClick={slaProfielOp} loading={profielBezig} disabled={profielBezig || !naam.trim() || !profielGewijzigd}>
+                        Wijzigingen opslaan
+                      </Button>
                       {profielMelding && <Melding melding={profielMelding} />}
                     </div>
-                  </section>
+                  </Card>
                 </>
               )}
 
@@ -735,54 +701,58 @@ export default function Instellingen() {
               {activeSectie === 'account' && (
                 <>
                   {/* Current account info */}
-                  <section className="bg-white rounded-2xl border border-gray-200 p-6">
-                    <h2 className="text-base font-semibold text-gray-900 mb-4">Accountoverzicht</h2>
+                  <Card style={{ padding: 24 }}>
+                    <h2 className="text-base font-semibold mb-4" style={{ color: 'var(--text-1)' }}>Accountoverzicht</h2>
                     <div className="grid grid-cols-2 gap-4">
-                      <div className="rounded-xl p-4 border border-gray-100" style={{ background: 'var(--bg-app)' }}>
-                        <p className="text-xs text-gray-400 mb-1">Huidig e-mailadres</p>
-                        <p className="text-sm font-medium text-gray-800">{userEmail || ''}</p>
+                      <div className="rounded-xl p-4" style={{ background: 'var(--bg-subtle)', border: '1px solid var(--border)' }}>
+                        <p className="text-xs mb-1" style={{ color: 'var(--text-4)' }}>Huidig e-mailadres</p>
+                        <p className="text-sm font-medium" style={{ color: 'var(--text-1)' }}>{userEmail || ''}</p>
                       </div>
-                      <div className="rounded-xl p-4 border border-gray-100" style={{ background: 'var(--bg-app)' }}>
-                        <p className="text-xs text-gray-400 mb-1">Account aangemaakt</p>
-                        <p className="text-sm font-medium text-gray-800">Via uitnodiging</p>
+                      <div className="rounded-xl p-4" style={{ background: 'var(--bg-subtle)', border: '1px solid var(--border)' }}>
+                        <p className="text-xs mb-1" style={{ color: 'var(--text-4)' }}>Account aangemaakt</p>
+                        <p className="text-sm font-medium" style={{ color: 'var(--text-1)' }}>Via uitnodiging</p>
                       </div>
                     </div>
-                  </section>
+                  </Card>
 
                   {/* Testmodus rolwissel — alleen admin */}
                   {userRol === 'admin' && (
-                    <section className="rounded-2xl border p-6" style={{ background: '#0f0f1a', borderColor: 'rgba(124,58,237,0.3)' }}>
+                    <Card style={{ padding: 24, borderColor: 'color-mix(in srgb, var(--mf-purple) 30%, transparent)' }}>
                       <div className="flex items-start gap-3 mb-5">
                         <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5"
-                          style={{ background: 'rgba(124,58,237,0.2)' }}>
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--mf-purple)' }}>
-                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                          </svg>
+                          style={{ background: 'color-mix(in srgb, var(--mf-purple) 18%, transparent)' }}>
+                          <Shield size={16} aria-hidden style={{ color: 'var(--mf-purple)' }} />
                         </div>
                         <div>
-                          <h2 className="text-base font-semibold" style={{ color: 'rgba(255,255,255,0.9)' }}>
+                          <h2 className="text-base font-semibold" style={{ color: 'var(--text-1)' }}>
                             Testmodus — rol wisselen
                           </h2>
-                          <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                          <p className="text-xs mt-0.5" style={{ color: 'var(--text-3)' }}>
                             Wissel tijdelijk naar een andere rol om functies te testen. Je kunt altijd terugwisselen via instellingen.
                           </p>
                         </div>
                       </div>
 
                       {/* Huidige rol badge */}
-                      <div className="flex items-center gap-2 mb-5 px-4 py-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
-                        <span className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>Nu actief als:</span>
-                        <span className="text-xs font-bold px-2.5 py-1 rounded-full"
+                      <div className="flex items-center gap-2 mb-5 px-4 py-3 rounded-xl" style={{ background: 'var(--bg-subtle)', border: '1px solid var(--border)' }}>
+                        <span className="text-xs" style={{ color: 'var(--text-3)' }}>Nu actief als:</span>
+                        <Badge
                           style={{
-                            background: userRol === 'admin' ? 'rgba(124,58,237,0.25)' : userRol === 'hr' ? 'rgba(24,95,165,0.25)' : 'rgba(29,158,117,0.25)',
-                            color: userRol === 'admin' ? 'var(--mf-purple)' : userRol === 'hr' ? 'var(--mf-blue-light)' : 'var(--mf-green)',
-                          }}>
-                          {userRol === 'admin' ? '🛡️ Admin' : userRol === 'hr' ? '👥 HR Manager' : bedrijfId ? '🌿 Werknemer' : '👤 Gebruiker'}
-                        </span>
+                            background: `color-mix(in srgb, ${userRol === 'admin' ? 'var(--mf-purple)' : userRol === 'hr' ? 'var(--mf-blue)' : 'var(--mentaforce-primary)'} 22%, transparent)`,
+                            color: userRol === 'admin' ? 'var(--mf-purple)' : userRol === 'hr' ? 'var(--mf-blue)' : 'var(--mentaforce-primary)',
+                            border: 'none',
+                          }}
+                        >
+                          {userRol === 'admin'
+                            ? <><Shield size={12} aria-hidden /> Admin</>
+                            : userRol === 'hr'
+                            ? <><Users size={12} aria-hidden /> HR Manager</>
+                            : bedrijfId
+                            ? <><Leaf size={12} aria-hidden /> Werknemer</>
+                            : <><UserIcon size={12} aria-hidden /> Gebruiker</>}
+                        </Badge>
                         {userRol !== 'admin' && (
-                          <span className="text-xs px-2 py-0.5 rounded-full animate-pulse" style={{ background: 'rgba(234,179,8,0.2)', color: 'var(--mf-amber)' }}>
-                            Testmodus
-                          </span>
+                          <Badge variant="warning">Testmodus</Badge>
                         )}
                       </div>
 
@@ -792,36 +762,32 @@ export default function Instellingen() {
                           {
                             id: 'medewerker' as const,
                             label: 'Werknemer',
-                            emoji: '🌿',
-                            kleur: 'var(--mf-green)',
-                            bg: 'rgba(29,158,117,0.15)',
+                            Icon: Leaf,
+                            kleur: 'var(--mentaforce-primary)',
                             beschrijving: 'Gekoppeld aan bedrijf',
                             detail: 'Check-in · rooster · gesprekken · werkdag',
                           },
                           {
                             id: 'gebruiker' as const,
                             label: 'Gebruiker',
-                            emoji: '👤',
+                            Icon: UserIcon,
                             kleur: 'var(--text-2)',
-                            bg: 'rgba(107,114,128,0.15)',
                             beschrijving: 'Geen bedrijf gekoppeld',
                             detail: 'Alleen welzijn · coach · journal',
                           },
                           {
                             id: 'hr' as const,
                             label: 'HR Manager',
-                            emoji: '👥',
+                            Icon: Users,
                             kleur: 'var(--mf-blue)',
-                            bg: 'rgba(24,95,165,0.15)',
                             beschrijving: 'HR portaal',
                             detail: 'Teams · roosters · KPI · gesprekken',
                           },
                           {
                             id: 'admin' as const,
                             label: 'Admin (terug)',
-                            emoji: '🛡️',
+                            Icon: Shield,
                             kleur: 'var(--mf-purple)',
-                            bg: 'rgba(124,58,237,0.15)',
                             beschrijving: 'Volledige toegang',
                             detail: 'Herstel je eigen account',
                           },
@@ -831,34 +797,36 @@ export default function Instellingen() {
                             : bedrijfId ? 'medewerker' : 'gebruiker'
                           const isActief = (opt.id as string) === actieveOptie
 
+                          const OptIcon = opt.Icon
                           return (
                             <button
                               key={opt.id}
                               onClick={() => !isActief && schakelNaarRol(opt.id)}
                               disabled={rolWisselBezig || isActief}
+                              className="mf-pressable"
                               style={{
                                 display: 'flex', flexDirection: 'column', alignItems: 'flex-start',
-                                gap: 8, padding: '14px 16px', borderRadius: 14,
-                                border: `2px solid ${isActief ? opt.kleur : 'rgba(255,255,255,0.1)'}`,
-                                background: isActief ? opt.bg : 'rgba(255,255,255,0.03)',
+                                gap: 8, padding: '14px 16px', borderRadius: 'var(--radius-md)',
+                                border: `2px solid ${isActief ? opt.kleur : 'var(--border)'}`,
+                                background: isActief ? `color-mix(in srgb, ${opt.kleur} 14%, transparent)` : 'var(--bg-subtle)',
                                 cursor: isActief ? 'default' : rolWisselBezig ? 'wait' : 'pointer',
                                 opacity: rolWisselBezig && !isActief ? 0.4 : 1,
-                                transition: 'all 0.15s', textAlign: 'left', width: '100%',
+                                transition: 'border-color 0.15s var(--ease), background 0.15s var(--ease)', textAlign: 'left', width: '100%',
                               }}
                             >
                               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                                <span style={{ fontSize: 20 }}>{opt.emoji}</span>
+                                <OptIcon size={20} aria-hidden style={{ color: isActief ? opt.kleur : 'var(--text-2)' }} />
                                 {isActief && (
-                                  <span style={{ fontSize: 9, fontWeight: 800, background: opt.kleur + '30', color: opt.kleur, borderRadius: 4, padding: '2px 6px' }}>
+                                  <span style={{ fontSize: 9, fontWeight: 800, background: `color-mix(in srgb, ${opt.kleur} 20%, transparent)`, color: opt.kleur, borderRadius: 4, padding: '2px 6px' }}>
                                     ACTIEF
                                   </span>
                                 )}
                               </div>
                               <div>
-                                <p style={{ fontSize: 13, fontWeight: 700, color: isActief ? opt.kleur : 'rgba(255,255,255,0.85)', marginBottom: 2 }}>
+                                <p style={{ fontSize: 13, fontWeight: 700, color: isActief ? opt.kleur : 'var(--text-1)', marginBottom: 2 }}>
                                   {opt.label}
                                 </p>
-                                <p style={{ fontSize: 10, color: isActief ? opt.kleur + 'aa' : 'rgba(255,255,255,0.4)', lineHeight: 1.4 }}>
+                                <p style={{ fontSize: 10, color: isActief ? `color-mix(in srgb, ${opt.kleur} 70%, transparent)` : 'var(--text-3)', lineHeight: 1.4 }}>
                                   {opt.detail}
                                 </p>
                               </div>
@@ -870,155 +838,142 @@ export default function Instellingen() {
                       {rolWisselMelding && (
                         <div className="px-4 py-2.5 rounded-xl text-xs font-medium"
                           style={{
-                            background: rolWisselMelding.type === 'success' ? 'rgba(29,158,117,0.15)' : 'rgba(226,75,74,0.15)',
+                            background: `color-mix(in srgb, ${rolWisselMelding.type === 'success' ? 'var(--mf-green)' : 'var(--mf-red)'} 15%, transparent)`,
                             color: rolWisselMelding.type === 'success' ? 'var(--mf-green)' : 'var(--mf-red)',
-                            border: `1px solid ${rolWisselMelding.type === 'success' ? 'rgba(29,158,117,0.3)' : 'rgba(226,75,74,0.3)'}`,
+                            border: `1px solid color-mix(in srgb, ${rolWisselMelding.type === 'success' ? 'var(--mf-green)' : 'var(--mf-red)'} 30%, transparent)`,
                           }}>
                           {rolWisselMelding.tekst}
                         </div>
                       )}
 
-                      <p className="text-xs mt-3 leading-relaxed" style={{ color: 'rgba(255,255,255,0.2)' }}>
-                        ⚠️ Elke optie wijzigt je <strong style={{ color: 'rgba(255,255,255,0.35)' }}>echte rol én bedrijfskoppeling</strong> in de database — je ziet precies wat een echte gebruiker ziet, inclusief alle RLS-policies. &quot;Admin (terug)&quot; herstelt alles naar je originele staat.
+                      <p className="text-xs mt-3 leading-relaxed flex items-start gap-1.5" style={{ color: 'var(--text-4)' }}>
+                        <AlertTriangle size={13} aria-hidden style={{ flexShrink: 0, marginTop: 1, color: 'var(--mf-amber)' }} />
+                        <span>Elke optie wijzigt je <strong style={{ color: 'var(--text-3)' }}>echte rol én bedrijfskoppeling</strong> in de database — je ziet precies wat een echte gebruiker ziet, inclusief alle RLS-policies. &quot;Admin (terug)&quot; herstelt alles naar je originele staat.</span>
                       </p>
-                    </section>
+                    </Card>
                   )}
 
                   {/* Change email */}
-                  <section className="bg-white rounded-2xl border border-gray-200 p-6">
-                    <h2 className="text-base font-semibold text-gray-900 mb-1">E-mailadres wijzigen</h2>
-                    <p className="text-xs text-gray-400 mb-4">Je ontvangt een bevestigingsmail op het nieuwe adres.</p>
-                    <div className="flex gap-3">
-                      <input type="email" value={nieuwEmail} onChange={e => setNieuwEmail(e.target.value)}
-                        placeholder="Nieuw e-mailadres"
-                        className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-gray-400 transition" />
-                      <button onClick={wijzigEmail} disabled={emailBezig || !nieuwEmail.trim()}
-                        className="bg-gray-900 text-white rounded-xl px-5 py-3 text-sm font-medium hover:bg-gray-700 transition disabled:opacity-30 flex-shrink-0">
-                        {emailBezig ? 'Versturen...' : 'Wijzigen'}
-                      </button>
+                  <Card style={{ padding: 24 }}>
+                    <h2 className="text-base font-semibold mb-1" style={{ color: 'var(--text-1)' }}>E-mailadres wijzigen</h2>
+                    <p className="text-xs mb-4" style={{ color: 'var(--text-4)' }}>Je ontvangt een bevestigingsmail op het nieuwe adres.</p>
+                    <div className="flex gap-3 items-start">
+                      <div style={{ flex: 1 }}>
+                        <Field label="Nieuw e-mailadres">
+                          <Input type="email" value={nieuwEmail} onChange={e => setNieuwEmail(e.target.value)} placeholder="naam@bedrijf.nl" />
+                        </Field>
+                      </div>
+                      <Button onClick={wijzigEmail} loading={emailBezig} disabled={emailBezig || !nieuwEmail.trim()} style={{ marginTop: 25, flexShrink: 0 }}>
+                        Wijzigen
+                      </Button>
                     </div>
                     {emailMelding && <div className="mt-3"><Melding melding={emailMelding} /></div>}
-                  </section>
+                  </Card>
 
                   {/* Change password */}
-                  <section className="bg-white rounded-2xl border border-gray-200 p-6">
-                    <h2 className="text-base font-semibold text-gray-900 mb-1">Wachtwoord wijzigen</h2>
-                    <p className="text-xs text-gray-400 mb-4">Minimaal 8 tekens. Gebruik letters, cijfers en symbolen voor meer veiligheid.</p>
+                  <Card style={{ padding: 24 }}>
+                    <h2 className="text-base font-semibold mb-1" style={{ color: 'var(--text-1)' }}>Wachtwoord wijzigen</h2>
+                    <p className="text-xs mb-4" style={{ color: 'var(--text-4)' }}>Minimaal 8 tekens. Gebruik letters, cijfers en symbolen voor meer veiligheid.</p>
                     <div className="flex flex-col gap-3">
                       <div className="relative">
-                        <input type={toonWachtwoord ? 'text' : 'password'} value={huidigWachtwoord}
+                        <Input type={toonWachtwoord ? 'text' : 'password'} value={huidigWachtwoord}
                           onChange={e => setHuidigWachtwoord(e.target.value)} placeholder="Huidig wachtwoord"
-                          className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-gray-400 transition pr-16" />
+                          aria-label="Huidig wachtwoord" style={{ paddingRight: 64 }} />
                         <button type="button" onClick={() => setToonWachtwoord(t => !t)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 hover:text-gray-600 transition px-1">
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-xs px-1"
+                          style={{ color: 'var(--text-3)', background: 'transparent', border: 'none', cursor: 'pointer' }}>
                           {toonWachtwoord ? 'Verberg' : 'Toon'}
                         </button>
                       </div>
-                      <input type={toonWachtwoord ? 'text' : 'password'} value={nieuwWachtwoord}
-                        onChange={e => setNieuwWachtwoord(e.target.value)} placeholder="Nieuw wachtwoord"
-                        className="border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-gray-400 transition" />
+                      <Input type={toonWachtwoord ? 'text' : 'password'} value={nieuwWachtwoord}
+                        onChange={e => setNieuwWachtwoord(e.target.value)} placeholder="Nieuw wachtwoord" aria-label="Nieuw wachtwoord" />
                       {nieuwWachtwoord && (
                         <div className="flex items-center gap-2">
                           {[0, 1, 2].map(i => (
-                            <div key={i} className="flex-1 h-1.5 rounded-full transition-all"
-                              style={{ background: wachtwoordSterkte > i ? ['var(--mf-red)', 'var(--mf-amber)', 'var(--mf-green)'][i] : 'var(--border)' }} />
+                            <div key={i} className="flex-1 h-1.5 rounded-full"
+                              style={{ background: wachtwoordSterkte > i ? ['var(--mf-red)', 'var(--mf-amber)', 'var(--mentaforce-primary)'][i] : 'var(--border-strong)', transition: 'background 0.15s var(--ease)' }} />
                           ))}
-                          <span className="text-xs text-gray-400 ml-1 w-12">
+                          <span className="text-xs ml-1 w-12" style={{ color: 'var(--text-4)' }}>
                             {['Te kort', 'Matig', 'Goed', 'Sterk'][wachtwoordSterkte]}
                           </span>
                         </div>
                       )}
-                      <input type={toonWachtwoord ? 'text' : 'password'} value={bevestigWachtwoord}
+                      <Input type={toonWachtwoord ? 'text' : 'password'} value={bevestigWachtwoord}
                         onChange={e => setBevestigWachtwoord(e.target.value)} placeholder="Bevestig nieuw wachtwoord"
-                        onKeyDown={e => e.key === 'Enter' && wijzigWachtwoord()}
-                        className="border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-gray-400 transition" />
+                        aria-label="Bevestig nieuw wachtwoord"
+                        onKeyDown={e => e.key === 'Enter' && wijzigWachtwoord()} />
                       {bevestigWachtwoord && nieuwWachtwoord !== bevestigWachtwoord && (
-                        <p className="text-xs text-red-500">Wachtwoorden komen niet overeen</p>
+                        <p className="text-xs" style={{ color: 'var(--mf-red)' }}>Wachtwoorden komen niet overeen</p>
                       )}
                       <div className="flex items-center gap-3">
-                        <button onClick={wijzigWachtwoord} disabled={wachtwoordBezig || !nieuwWachtwoord || !bevestigWachtwoord}
-                          className="bg-gray-900 text-white rounded-xl px-5 py-2.5 text-sm font-medium hover:bg-gray-700 transition disabled:opacity-30">
-                          {wachtwoordBezig ? 'Opslaan...' : 'Wachtwoord wijzigen'}
-                        </button>
+                        <Button onClick={wijzigWachtwoord} loading={wachtwoordBezig} disabled={wachtwoordBezig || !nieuwWachtwoord || !bevestigWachtwoord}>
+                          Wachtwoord wijzigen
+                        </Button>
                         {wachtwoordMelding && <Melding melding={wachtwoordMelding} />}
                       </div>
                     </div>
-                  </section>
+                  </Card>
 
                   {/* Werkgever koppeling — alleen zichtbaar voor medewerkers */}
                   {(userRol === 'medewerker' || userRol === '') && (
-                    <section className="bg-white rounded-2xl border border-gray-100 p-6">
+                    <Card style={{ padding: 24 }}>
                       <div className="flex items-start justify-between gap-4 mb-4">
                         <div>
-                          <h2 className="text-base font-semibold text-gray-900">Werkgever</h2>
-                          <p className="text-xs text-gray-400 mt-0.5">
+                          <h2 className="text-base font-semibold" style={{ color: 'var(--text-1)' }}>Werkgever</h2>
+                          <p className="text-xs mt-0.5" style={{ color: 'var(--text-4)' }}>
                             Koppel je account aan je werkgever via een HR code.
                           </p>
                         </div>
                         {bedrijfId && (
-                          <span
-                            className="text-xs font-semibold px-2.5 py-1 rounded-full flex-shrink-0"
-                            style={{ background: 'var(--mf-green-light)', color: 'var(--mf-green-dark)' }}
-                          >
-                            Gekoppeld
-                          </span>
+                          <Badge variant="success" style={{ flexShrink: 0 }}>Gekoppeld</Badge>
                         )}
                       </div>
 
                       {bedrijfId ? (
                         /* Al gekoppeld */
                         <div
-                          className="rounded-xl border px-4 py-3 flex items-center gap-3"
-                          style={{ borderColor: 'var(--mf-green-light)', background: 'var(--mf-green-light)' }}
+                          className="rounded-xl px-4 py-3 flex items-center gap-3"
+                          style={{ border: '1px solid color-mix(in srgb, var(--mentaforce-primary) 30%, transparent)', background: 'var(--mentaforce-primary-light)' }}
                         >
                           <div
-                            className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 text-white font-bold text-xs"
-                            style={{ background: 'linear-gradient(135deg, #1D9E75 0%, #185FA5 100%)' }}
+                            className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 font-bold text-xs"
+                            style={{ background: 'var(--mentaforce-primary)', color: 'var(--bg-app)' }}
                           >
                             HR
                           </div>
                           <div className="min-w-0">
-                            <p className="text-sm font-semibold text-gray-900 truncate">
+                            <p className="text-sm font-semibold truncate" style={{ color: 'var(--text-1)' }}>
                               {bedrijfsnaam ?? 'Jouw werkgever'}
                             </p>
-                            <p className="text-xs text-gray-500">Account is gekoppeld</p>
+                            <p className="text-xs" style={{ color: 'var(--text-3)' }}>Account is gekoppeld</p>
                           </div>
                         </div>
                       ) : (
                         /* Nog niet gekoppeld */
                         <div>
                           <div
-                            className="rounded-xl border border-dashed p-5 flex flex-col items-center text-center gap-3 mb-4"
-                            style={{ borderColor: 'var(--text-4)' }}
+                            className="rounded-xl p-5 flex flex-col items-center text-center gap-3 mb-4"
+                            style={{ border: '1px dashed var(--border-strong)' }}
                           >
                             <div
-                              className="w-12 h-12 rounded-2xl flex items-center justify-center text-white font-bold"
-                              style={{ background: 'linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%)', color: 'var(--text-3)' }}
+                              className="w-12 h-12 rounded-2xl flex items-center justify-center"
+                              style={{ background: 'var(--bg-subtle)', color: 'var(--text-3)' }}
                             >
-                              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                                <circle cx="9" cy="7" r="4" />
-                                <line x1="19" y1="8" x2="19" y2="14" />
-                                <line x1="22" y1="11" x2="16" y2="11" />
-                              </svg>
+                              <UserPlus size={24} aria-hidden />
                             </div>
                             <div>
-                              <p className="text-sm font-medium text-gray-700">Nog niet gekoppeld aan een werkgever</p>
-                              <p className="text-xs text-gray-400 mt-0.5">
+                              <p className="text-sm font-medium" style={{ color: 'var(--text-2)' }}>Nog niet gekoppeld aan een werkgever</p>
+                              <p className="text-xs mt-0.5" style={{ color: 'var(--text-4)' }}>
                                 Vraag de HR code op bij je werkgever en koppel je account.
                               </p>
                             </div>
                           </div>
-                          <button
-                            onClick={() => setToonKoppelModal(true)}
-                            className="w-full py-3 rounded-xl text-white font-bold text-sm transition hover:opacity-90"
-                            style={{ background: 'var(--mf-green)' }}
-                          >
+                          <Button onClick={() => setToonKoppelModal(true)} style={{ width: '100%' }}>
                             Koppel aan werkgever via HR code
-                          </button>
+                          </Button>
                         </div>
                       )}
-                    </section>
+                    </Card>
                   )}
                 </>
               )}
@@ -1026,12 +981,12 @@ export default function Instellingen() {
               {/* -- PRIVACY -- */}
               {activeSectie === 'privacy' && (
                 <>
-                  <div className="rounded-2xl border p-4 flex items-start gap-3"
-                    style={{ background: 'var(--mf-green-light)', borderColor: 'var(--mf-green-light)' }}>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 2, color: 'var(--mf-green)' }}><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                  <div className="rounded-2xl p-4 flex items-start gap-3"
+                    style={{ background: 'var(--mentaforce-primary-light)', border: '1px solid color-mix(in srgb, var(--mentaforce-primary) 35%, transparent)' }}>
+                    <Eye size={20} aria-hidden style={{ flexShrink: 0, marginTop: 2, color: 'var(--mentaforce-primary)' }} />
                     <div>
-                      <p className="text-sm font-semibold text-green-800 mb-1">Privacy-by-design</p>
-                      <p className="text-xs leading-relaxed text-green-700">
+                      <p className="text-sm font-semibold mb-1" style={{ color: 'var(--text-1)' }}>Privacy-by-design</p>
+                      <p className="text-xs leading-relaxed" style={{ color: 'var(--text-2)' }}>
                         MentaForce deelt nooit jouw individuele check-in antwoorden met HR. HR ziet uitsluitend geaggregeerde teamgemiddelden. Jouw persoonlijke data blijft van jou.
                       </p>
                     </div>
@@ -1039,9 +994,9 @@ export default function Instellingen() {
 
                   {/* HR Inzage — alleen voor werknemers met bedrijf */}
                   {bedrijfId && (
-                    <section className="bg-white rounded-2xl border border-gray-200 p-6">
-                      <h2 className="text-base font-semibold text-gray-900 mb-1">Wat HR van jou kan zien</h2>
-                      <p className="text-xs text-gray-400 mb-4">Jij bepaalt wat jouw HR-afdeling mag inzien. Standaard staat alles uit.</p>
+                    <Card style={{ padding: 24 }}>
+                      <h2 className="text-base font-semibold mb-1" style={{ color: 'var(--text-1)' }}>Wat HR van jou kan zien</h2>
+                      <p className="text-xs mb-4" style={{ color: 'var(--text-4)' }}>Jij bepaalt wat jouw HR-afdeling mag inzien. Standaard staat alles uit.</p>
                       <Toggle
                         actief={hrInzageRapporten}
                         onChange={async (v) => {
@@ -1060,38 +1015,37 @@ export default function Instellingen() {
                         label="HR mag mijn gedeelde bestanden bekijken"
                         beschrijving="Alleen bestanden die jij markeert als 'Deel met HR' in Mijn bestanden"
                       />
-                    </section>
+                    </Card>
                   )}
 
-                  <section className="bg-white rounded-2xl border border-gray-200 p-6">
-                    <h2 className="text-base font-semibold text-gray-900 mb-4">Toestemmingen</h2>
+                  <Card style={{ padding: 24 }}>
+                    <h2 className="text-base font-semibold mb-4" style={{ color: 'var(--text-1)' }}>Toestemmingen</h2>
                     <div className="flex flex-col gap-3">
                       {[
                         { label: 'Gegevensverwerking voor welzijnsanalyse', status: 'Vereist', beschrijving: 'Noodzakelijk voor de werking van het platform' },
                         { label: 'AVG-verwerkersovereenkomst', status: 'Actief', beschrijving: 'Aanvaard bij registratie van je organisatie' },
                         { label: 'Analytische cookies', status: 'Actief', beschrijving: 'Helpt ons de app te verbeteren' },
                       ].map(t => (
-                        <div key={t.label} className="flex items-start justify-between gap-4 p-3 rounded-xl border border-gray-100">
+                        <div key={t.label} className="flex items-start justify-between gap-4 p-3 rounded-xl" style={{ border: '1px solid var(--border)' }}>
                           <div>
-                            <p className="text-sm font-medium text-gray-800">{t.label}</p>
-                            <p className="text-xs text-gray-400">{t.beschrijving}</p>
+                            <p className="text-sm font-medium" style={{ color: 'var(--text-1)' }}>{t.label}</p>
+                            <p className="text-xs" style={{ color: 'var(--text-4)' }}>{t.beschrijving}</p>
                           </div>
-                          <span className="text-xs font-medium px-2.5 py-1 rounded-full flex-shrink-0"
-                            style={{ background: t.status === 'Vereist' ? 'var(--bg-subtle)' : 'var(--mf-green-light)', color: t.status === 'Vereist' ? 'var(--text-2)' : 'var(--mf-green-dark)' }}>
+                          <Badge variant={t.status === 'Vereist' ? 'neutral' : 'success'} style={{ flexShrink: 0 }}>
                             {t.status}
-                          </span>
+                          </Badge>
                         </div>
                       ))}
                     </div>
                     <div className="mt-4 flex gap-3 flex-wrap">
-                      <Link href="/voorwaarden" className="text-xs text-gray-500 hover:text-gray-700 transition underline">
+                      <Link href="/voorwaarden" className="text-xs underline" style={{ color: 'var(--text-3)' }}>
                         Algemene voorwaarden
                       </Link>
-                      <Link href="/contact" className="text-xs text-gray-500 hover:text-gray-700 transition underline">
+                      <Link href="/contact" className="text-xs underline" style={{ color: 'var(--text-3)' }}>
                         Privacy-verzoek indienen
                       </Link>
                     </div>
-                  </section>
+                  </Card>
                 </>
               )}
 
@@ -1100,48 +1054,50 @@ export default function Instellingen() {
                 <>
                   {/* ── Portaal wisselen (alleen admin) ── */}
                   {userRol === 'admin' && (
-                    <section className="rounded-2xl border p-6" style={{ background: '#14151f', borderColor: 'rgba(255,255,255,0.08)' }}>
-                      <h2 className="text-base font-semibold mb-1" style={{ color: 'rgba(255,255,255,0.9)' }}>Portaal wisselen</h2>
-                      <p className="text-xs mb-5" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                    <Card style={{ padding: 24 }}>
+                      <h2 className="text-base font-semibold mb-1" style={{ color: 'var(--text-1)' }}>Portaal wisselen</h2>
+                      <p className="text-xs mb-5" style={{ color: 'var(--text-3)' }}>
                         Kies welk portaal je wilt bekijken. Dit is de enige plek waar je kunt wisselen.
                       </p>
                       <div className="grid grid-cols-3 gap-3">
                         {([
-                          { mode: 'employee' as ViewMode, label: 'Werknemer',  beschrijving: 'Vitaliteit & werkdag',  kleur: 'var(--mf-green)', icon: '🌿' },
-                          { mode: 'hr'       as ViewMode, label: 'HR',         beschrijving: 'Team & beheer',         kleur: 'var(--mf-blue)', icon: '👥' },
-                          { mode: 'admin'    as ViewMode, label: 'Admin',      beschrijving: 'Volledige toegang',     kleur: 'var(--mf-purple)', icon: '🛡️' },
+                          { mode: 'employee' as ViewMode, label: 'Werknemer',  beschrijving: 'Vitaliteit & werkdag',  kleur: 'var(--mentaforce-primary)', Icon: Leaf },
+                          { mode: 'hr'       as ViewMode, label: 'HR',         beschrijving: 'Team & beheer',         kleur: 'var(--mf-blue)', Icon: Users },
+                          { mode: 'admin'    as ViewMode, label: 'Admin',      beschrijving: 'Volledige toegang',     kleur: 'var(--mf-purple)', Icon: Shield },
                         ] as const).map(opt => {
                           const actief = huidigPortaal === opt.mode
+                          const OptIcon = opt.Icon
                           return (
                             <button
                               key={opt.mode}
                               onClick={() => { setHuidigPortaal(opt.mode); schakelPortaal(opt.mode) }}
+                              className="mf-pressable"
                               style={{
                                 display: 'flex', flexDirection: 'column', alignItems: 'flex-start',
                                 gap: 8, padding: '14px 16px',
-                                borderRadius: 12, border: `2px solid ${actief ? opt.kleur : 'rgba(255,255,255,0.1)'}`,
-                                background: actief ? opt.kleur + '20' : 'rgba(255,255,255,0.04)',
+                                borderRadius: 'var(--radius-md)', border: `2px solid ${actief ? opt.kleur : 'var(--border)'}`,
+                                background: actief ? `color-mix(in srgb, ${opt.kleur} 14%, transparent)` : 'var(--bg-subtle)',
                                 cursor: actief ? 'default' : 'pointer',
-                                transition: 'all 0.15s', textAlign: 'left',
+                                transition: 'border-color 0.15s var(--ease), background 0.15s var(--ease)', textAlign: 'left',
                               }}
                             >
-                              <span style={{ fontSize: 22 }}>{opt.icon}</span>
+                              <OptIcon size={22} aria-hidden style={{ color: actief ? opt.kleur : 'var(--text-2)' }} />
                               <div>
-                                <p style={{ fontSize: 13, fontWeight: 700, color: actief ? opt.kleur : 'rgba(255,255,255,0.8)' }}>
+                                <p style={{ fontSize: 13, fontWeight: 700, color: actief ? opt.kleur : 'var(--text-1)' }}>
                                   {opt.label}
-                                  {actief && <span style={{ marginLeft: 6, fontSize: 10, background: opt.kleur + '30', color: opt.kleur, borderRadius: 4, padding: '1px 6px' }}>Actief</span>}
+                                  {actief && <span style={{ marginLeft: 6, fontSize: 10, background: `color-mix(in srgb, ${opt.kleur} 20%, transparent)`, color: opt.kleur, borderRadius: 4, padding: '1px 6px' }}>Actief</span>}
                                 </p>
-                                <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', marginTop: 2 }}>{opt.beschrijving}</p>
+                                <p style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 2 }}>{opt.beschrijving}</p>
                               </div>
                             </button>
                           )
                         })}
                       </div>
-                    </section>
+                    </Card>
                   )}
 
-                  <section className="bg-white rounded-2xl border border-gray-200 p-6">
-                    <h2 className="text-base font-semibold text-gray-900 mb-4">Taal</h2>
+                  <Card style={{ padding: 24 }}>
+                    <h2 className="text-base font-semibold mb-4" style={{ color: 'var(--text-1)' }}>Taal</h2>
                     <div className="grid grid-cols-3 gap-2.5">
                       {[
                         { value: 'nl', label: 'Nederlands', sub: 'Standaard' },
@@ -1149,20 +1105,21 @@ export default function Instellingen() {
                         { value: 'en', label: 'English', sub: 'Binnenkort' },
                       ].map(l => (
                         <button key={l.value} onClick={() => setTaal(l.value)}
-                          className="p-3 rounded-xl border text-left transition"
+                          className="mf-pressable p-3 rounded-xl text-left"
                           style={{
                             background: taal === l.value ? 'var(--mentaforce-primary-light)' : 'transparent',
-                            borderColor: taal === l.value ? 'var(--mentaforce-primary)' : 'var(--border)',
+                            border: `1px solid ${taal === l.value ? 'var(--mentaforce-primary)' : 'var(--border)'}`,
+                            transition: 'border-color 0.15s var(--ease), background 0.15s var(--ease)',
                           }}>
-                          <p className="text-sm font-medium text-gray-800">{l.label}</p>
-                          <p className="text-xs text-gray-400">{l.sub}</p>
+                          <p className="text-sm font-medium" style={{ color: 'var(--text-1)' }}>{l.label}</p>
+                          <p className="text-xs" style={{ color: 'var(--text-4)' }}>{l.sub}</p>
                         </button>
                       ))}
                     </div>
-                  </section>
+                  </Card>
 
-                  <section className="bg-white rounded-2xl border border-gray-200 p-6">
-                    <h2 className="text-base font-semibold text-gray-900 mb-4">Thema</h2>
+                  <Card style={{ padding: 24 }}>
+                    <h2 className="text-base font-semibold mb-4" style={{ color: 'var(--text-1)' }}>Thema</h2>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                       {[
                         { value: 'licht',      label: 'Licht',      sub: 'Helder en fris' },
@@ -1171,17 +1128,18 @@ export default function Instellingen() {
                         { value: 'systeem',    label: 'Systeem',    sub: 'Volgt je OS' },
                       ].map(t => (
                         <button key={t.value} onClick={() => setThema(t.value)}
-                          className="p-3 rounded-xl border text-left transition"
+                          className="mf-pressable p-3 rounded-xl text-left"
                           style={{
                             background: thema === t.value ? 'var(--mentaforce-primary-light)' : 'transparent',
-                            borderColor: thema === t.value ? 'var(--mentaforce-primary)' : 'var(--border)',
+                            border: `1px solid ${thema === t.value ? 'var(--mentaforce-primary)' : 'var(--border)'}`,
+                            transition: 'border-color 0.15s var(--ease), background 0.15s var(--ease)',
                           }}>
-                          <p className="text-sm font-medium text-gray-800">{t.label}</p>
-                          <p className="text-xs text-gray-400">{t.sub}</p>
+                          <p className="text-sm font-medium" style={{ color: 'var(--text-1)' }}>{t.label}</p>
+                          <p className="text-xs" style={{ color: 'var(--text-4)' }}>{t.sub}</p>
                         </button>
                       ))}
                     </div>
-                  </section>
+                  </Card>
 
                 </>
               )}
@@ -1189,9 +1147,9 @@ export default function Instellingen() {
               {/* -- DATA -- */}
               {activeSectie === 'data' && (
                 <>
-                  <section className="bg-white rounded-2xl border border-gray-200 p-6">
-                    <h2 className="text-base font-semibold text-gray-900 mb-1">Gegevensoverzicht</h2>
-                    <p className="text-xs text-gray-400 mb-5">Een overzicht van de gegevens die MentaForce over jou bijhoudt.</p>
+                  <Card style={{ padding: 24 }}>
+                    <h2 className="text-base font-semibold mb-1" style={{ color: 'var(--text-1)' }}>Gegevensoverzicht</h2>
+                    <p className="text-xs mb-5" style={{ color: 'var(--text-4)' }}>Een overzicht van de gegevens die MentaForce over jou bijhoudt.</p>
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                       {[
                         { label: 'Check-ins',        kleur: 'var(--mf-green)', bg: 'var(--mf-green-light)', d: 'M9 12l2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0z' },
@@ -1201,109 +1159,110 @@ export default function Instellingen() {
                         { label: 'Teamberichten',    kleur: 'var(--mf-red)', bg: 'var(--mf-red-light)', d: 'M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z' },
                         { label: 'Profiel data',     kleur: 'var(--text-2)', bg: 'var(--bg-subtle)', d: 'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2 M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z' },
                       ].map(d => (
-                        <div key={d.label} className="rounded-xl p-4 border border-gray-100" style={{ background: d.bg }}>
+                        <div key={d.label} className="rounded-xl p-4" style={{ background: d.bg, border: '1px solid var(--border)' }}>
                           <div style={{ color: d.kleur, marginBottom: 8 }}>
                             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                               <path d={d.d} />
                             </svg>
                           </div>
                           <p className="text-sm font-medium" style={{ color: d.kleur }}>{d.label}</p>
-                          <p className="text-xs text-gray-500">Alleen zichtbaar voor jou</p>
+                          <p className="text-xs" style={{ color: 'var(--text-4)' }}>Alleen zichtbaar voor jou</p>
                         </div>
                       ))}
                     </div>
-                  </section>
+                  </Card>
 
-                  <section className="bg-white rounded-2xl border border-gray-200 p-6">
-                    <h2 className="text-base font-semibold text-gray-900 mb-1">Exporteer je data</h2>
-                    <p className="text-xs text-gray-400 mb-4">Download direct al jouw persoonlijke gegevens als JSON-bestand. Het bestand wordt lokaal in je browser opgebouwd.</p>
+                  <Card style={{ padding: 24 }}>
+                    <h2 className="text-base font-semibold mb-1" style={{ color: 'var(--text-1)' }}>Exporteer je data</h2>
+                    <p className="text-xs mb-4" style={{ color: 'var(--text-4)' }}>Download direct al jouw persoonlijke gegevens als JSON-bestand. Het bestand wordt lokaal in je browser opgebouwd.</p>
                     <div className="flex flex-col sm:flex-row gap-3">
-                      <button
+                      <Button
+                        variant="secondary"
                         onClick={() => exporteerData(CHECKIN_TABELLEN, false, 'mentaforce-checkins')}
                         disabled={exportBezig}
-                        className="flex items-center gap-2 border border-gray-200 rounded-xl px-5 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition disabled:opacity-40">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                        leftIcon={<Download size={15} aria-hidden />}>
                         Check-in data exporteren
-                      </button>
-                      <button
+                      </Button>
+                      <Button
+                        variant="secondary"
                         onClick={() => exporteerData(VOLLEDIGE_TABELLEN, true, 'mentaforce-volledig')}
+                        loading={exportBezig}
                         disabled={exportBezig}
-                        className="flex items-center gap-2 border border-gray-200 rounded-xl px-5 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition disabled:opacity-40">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                        leftIcon={<Download size={15} aria-hidden />}>
                         {exportBezig ? 'Bezig met exporteren…' : 'Volledige data exporteren'}
-                      </button>
+                      </Button>
                     </div>
                     {exportMelding && (
-                      <p className="text-xs mt-3" style={{ color: exportMelding.type === 'success' ? 'var(--mf-green-dark)' : 'var(--mf-red)' }}>
+                      <p className="text-xs mt-3" style={{ color: exportMelding.type === 'success' ? 'var(--mentaforce-primary)' : 'var(--mf-red)' }}>
                         {exportMelding.tekst}
                       </p>
                     )}
-                  </section>
+                  </Card>
 
-                  <section className="bg-white rounded-2xl border border-gray-200 p-6">
-                    <h2 className="text-base font-semibold text-gray-900 mb-1">Recht op inzage (AVG)</h2>
-                    <p className="text-xs text-gray-400 mb-4">Je hebt het recht om al je persoonlijke gegevens in te zien, te corrigeren of te laten verwijderen.</p>
+                  <Card style={{ padding: 24 }}>
+                    <h2 className="text-base font-semibold mb-1" style={{ color: 'var(--text-1)' }}>Recht op inzage (AVG)</h2>
+                    <p className="text-xs mb-4" style={{ color: 'var(--text-4)' }}>Je hebt het recht om al je persoonlijke gegevens in te zien, te corrigeren of te laten verwijderen.</p>
                     <a href="mailto:info@mentaforce.nl?subject=AVG-verzoek"
-                      className="inline-flex items-center gap-2 border border-gray-200 rounded-xl px-5 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition">
-                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                      className="mf-pressable inline-flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-medium"
+                      style={{ border: '1px solid var(--border-strong)', color: 'var(--text-1)', background: 'var(--bg-subtle)', textDecoration: 'none' }}>
+                      <Mail size={15} aria-hidden />
                       AVG-verzoek indienen
                     </a>
-                  </section>
+                  </Card>
                 </>
               )}
 
               {/* -- GEVARENZONE -- */}
               {activeSectie === 'gevaar' && (
                 <>
-                  <section className="bg-white rounded-2xl border border-gray-200 p-6">
-                    <h2 className="text-base font-semibold text-gray-900 mb-4">Sessie</h2>
+                  <Card style={{ padding: 24 }}>
+                    <h2 className="text-base font-semibold mb-4" style={{ color: 'var(--text-1)' }}>Sessie</h2>
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-gray-800">Uitloggen op dit apparaat</p>
-                        <p className="text-xs text-gray-400">Je wordt doorgestuurd naar de inlogpagina.</p>
+                        <p className="text-sm" style={{ color: 'var(--text-1)' }}>Uitloggen op dit apparaat</p>
+                        <p className="text-xs" style={{ color: 'var(--text-4)' }}>Je wordt doorgestuurd naar de inlogpagina.</p>
                       </div>
-                      <button onClick={uitloggen}
-                        className="text-sm border border-gray-200 rounded-xl px-4 py-2 text-gray-600 hover:bg-gray-50 transition">
+                      <Button variant="secondary" size="sm" onClick={uitloggen}>
                         Uitloggen
-                      </button>
+                      </Button>
                     </div>
-                  </section>
+                  </Card>
 
-                  <section className="bg-white rounded-2xl border border-red-100 p-6">
+                  <Card style={{ padding: 24, borderColor: 'color-mix(in srgb, var(--mf-red) 30%, transparent)' }}>
                     <div className="flex items-start gap-3 mb-4">
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 2, color: 'var(--mf-red)' }}><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+                      <Trash2 size={20} aria-hidden style={{ flexShrink: 0, marginTop: 2, color: 'var(--mf-red)' }} />
                       <div>
-                        <h2 className="text-base font-semibold text-red-600">Account & gegevens verwijderen</h2>
-                        <p className="text-xs text-gray-500 mt-0.5">
+                        <h2 className="text-base font-semibold" style={{ color: 'var(--mf-red)' }}>Account &amp; gegevens verwijderen</h2>
+                        <p className="text-xs mt-0.5" style={{ color: 'var(--text-3)' }}>
                           Vraag verwijdering aan van je account en al je persoonlijke gegevens. We verwerken je verzoek conform de AVG (recht op vergetelheid) en bevestigen per e-mail zodra het is uitgevoerd.
                         </p>
                       </div>
                     </div>
 
-                    <div className="rounded-xl border border-red-100 p-4 mb-4" style={{ background: 'var(--mf-red-light)' }}>
-                      <p className="text-sm text-gray-600 mb-1">Wat er verwijderd wordt:</p>
-                      <ul className="text-xs text-gray-500 space-y-1 ml-3">
+                    <div className="rounded-xl p-4 mb-4" style={{ background: 'var(--mf-red-light)', border: '1px solid color-mix(in srgb, var(--mf-red) 25%, transparent)' }}>
+                      <p className="text-sm mb-1" style={{ color: 'var(--text-2)' }}>Wat er verwijderd wordt:</p>
+                      <ul className="text-xs space-y-1 ml-3" style={{ color: 'var(--text-3)' }}>
                         {['Alle check-in antwoorden', 'Journal entries en notities', 'AI coach-gesprekken', 'Gewoonte-logs', 'Profielfoto en persoonlijke info'].map(i => (
                           <li key={i} className="flex items-center gap-2">
-                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--mf-red)', flexShrink: 0 }}><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                            <X size={10} aria-hidden style={{ color: 'var(--mf-red)', flexShrink: 0 }} />
                             {i}
                           </li>
                         ))}
                       </ul>
                     </div>
 
-                    <p className="text-xs text-gray-400 mb-3">
-                      Tip: exporteer eerst je gegevens via <strong>Mijn gegevens</strong> als je een kopie wilt bewaren.
+                    <p className="text-xs mb-3" style={{ color: 'var(--text-4)' }}>
+                      Tip: exporteer eerst je gegevens via <strong style={{ color: 'var(--text-2)' }}>Mijn gegevens</strong> als je een kopie wilt bewaren.
                     </p>
 
                     <a
                       href={`mailto:info@mentaforce.nl?subject=${encodeURIComponent('Verzoek tot verwijdering van mijn account en gegevens')}&body=${encodeURIComponent('Hallo,\n\nIk wil mijn MentaForce-account en al mijn persoonlijke gegevens definitief laten verwijderen conform de AVG (recht op vergetelheid).\n\nMet vriendelijke groet,')}`}
-                      className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-white text-sm font-bold transition"
-                      style={{ background: 'var(--mf-red)' }}>
-                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                      className="mf-pressable w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold"
+                      style={{ background: 'var(--mf-red)', color: 'var(--bg-app)', textDecoration: 'none' }}>
+                      <Mail size={15} aria-hidden />
                       Verwijderverzoek indienen
                     </a>
-                  </section>
+                  </Card>
                 </>
               )}
 

@@ -1,12 +1,18 @@
-﻿'use client'
+'use client'
 
 export const dynamic = 'force-dynamic'
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { ArrowLeft, Check, Lightbulb } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
+import { Card } from '@/components/ui/Card'
+import { Button } from '@/components/ui/Button'
+import { Field } from '@/components/ui/Field'
+import { Input } from '@/components/ui/Input'
+import { useToast } from '@/components/ui/Toast'
 
 interface Voorkeuren {
   checkin_reminder: boolean
@@ -17,6 +23,7 @@ interface Voorkeuren {
 
 export default function NotificatiesPage() {
   const router = useRouter()
+  const { toast } = useToast()
   const [laden, setLaden] = useState(true)
   const [voorkeuren, setVoorkeuren] = useState<Voorkeuren>({
     checkin_reminder: true,
@@ -47,12 +54,16 @@ export default function NotificatiesPage() {
   async function slaOp() {
     if (!userId) return
     setBezig(true)
-    await supabase.from('notificatie_voorkeuren').upsert({
+    const { error } = await supabase.from('notificatie_voorkeuren').upsert({
       user_id: userId,
       ...voorkeuren,
       bijgewerkt_op: new Date().toISOString(),
     }, { onConflict: 'user_id' })
     setBezig(false)
+    if (error) {
+      toast({ title: 'Opslaan mislukt', description: 'Probeer het later opnieuw.', variant: 'error' })
+      return
+    }
     setOpgeslagen(true)
     setTimeout(() => setOpgeslagen(false), 2500)
   }
@@ -62,19 +73,16 @@ export default function NotificatiesPage() {
       key: 'checkin_reminder' as const,
       label: 'Wekelijkse check-in herinnering',
       beschrijving: 'Ontvang een herinnering om je wekelijkse check-in te doen',
-      kleur: 'var(--mf-green)',
     },
     {
       key: 'stemming_reminder' as const,
       label: 'Dagelijkse stemming herinnering',
       beschrijving: 'Dagelijkse nudge om je stemming en energie te loggen',
-      kleur: 'var(--mf-amber)',
     },
     {
       key: 'slaap_reminder' as const,
       label: 'Slaap logging herinnering',
       beschrijving: 'Herinnering om je slaap bij te houden',
-      kleur: 'var(--mf-purple)',
     },
   ]
 
@@ -84,7 +92,13 @@ export default function NotificatiesPage() {
       <main style={{ padding: '36px 40px 72px', maxWidth: 800, margin: '0 auto' }}>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 28 }}>
-          <Link href="/instellingen" style={{ color: 'var(--text-3)', textDecoration: 'none', fontSize: 13 }}>â† Instellingen</Link>
+          <Link
+            href="/instellingen"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: 'var(--text-3)', textDecoration: 'none', fontSize: 13 }}
+          >
+            <ArrowLeft size={15} aria-hidden />
+            Instellingen
+          </Link>
         </div>
 
         <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 4 }}>Notificaties</h1>
@@ -96,72 +110,76 @@ export default function NotificatiesPage() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
 
             {/* Toggle opties */}
-            {OPTIES.map(opt => (
-              <div key={opt.key} style={{ background: 'var(--bg-card)', borderRadius: 16, border: '1px solid var(--border)', padding: '18px 20px' }}>
-                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
-                  <div>
-                    <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-1)', marginBottom: 3 }}>{opt.label}</p>
-                    <p style={{ fontSize: 12, color: 'var(--text-3)', lineHeight: 1.5 }}>{opt.beschrijving}</p>
+            {OPTIES.map(opt => {
+              const actief = voorkeuren[opt.key]
+              return (
+                <Card key={opt.key} style={{ padding: '18px 20px' }}>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
+                    <div>
+                      <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-1)', marginBottom: 3 }}>{opt.label}</p>
+                      <p style={{ fontSize: 12, color: 'var(--text-3)', lineHeight: 1.5 }}>{opt.beschrijving}</p>
+                    </div>
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={actief}
+                      aria-label={opt.label}
+                      onClick={() => setVoorkeuren(prev => ({ ...prev, [opt.key]: !prev[opt.key] }))}
+                      className="mf-switch"
+                      style={{
+                        width: 44, height: 24, borderRadius: 100, border: 'none', cursor: 'pointer',
+                        background: actief ? 'var(--mentaforce-primary)' : 'var(--border-strong)',
+                        position: 'relative', flexShrink: 0, transition: 'background 0.2s var(--ease)',
+                      }}
+                    >
+                      <span style={{
+                        position: 'absolute', top: 3, width: 18, height: 18, borderRadius: '50%',
+                        background: 'var(--bg-card)', transition: 'transform 0.2s var(--ease)',
+                        transform: actief ? 'translateX(23px)' : 'translateX(3px)',
+                        boxShadow: '0 1px 3px rgba(0,0,0,0.4)',
+                      }} />
+                    </button>
                   </div>
-                  <button
-                    onClick={() => setVoorkeuren(prev => ({ ...prev, [opt.key]: !prev[opt.key] }))}
-                    style={{
-                      width: 44, height: 24, borderRadius: 100, border: 'none', cursor: 'pointer',
-                      background: voorkeuren[opt.key] ? opt.kleur : 'var(--border)',
-                      position: 'relative', flexShrink: 0, transition: 'background 0.2s',
-                    }}
-                  >
-                    <span style={{
-                      position: 'absolute', top: 3, width: 18, height: 18, borderRadius: '50%',
-                      background: 'var(--bg-card)', transition: 'left 0.2s',
-                      left: voorkeuren[opt.key] ? 23 : 3,
-                      boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
-                    }} />
-                  </button>
-                </div>
-              </div>
-            ))}
+                </Card>
+              )
+            })}
 
             {/* Tijdstip */}
-            <div style={{ background: 'var(--bg-card)', borderRadius: 16, border: '1px solid var(--border)', padding: '18px 20px' }}>
-              <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-1)', marginBottom: 6 }}>Voorkeurstijdstip</p>
-              <p style={{ fontSize: 12, color: 'var(--text-3)', marginBottom: 12 }}>Op welk moment wil je herinneringen ontvangen?</p>
-              <input
-                type="time"
-                value={voorkeuren.reminder_tijd}
-                onChange={e => setVoorkeuren(prev => ({ ...prev, reminder_tijd: e.target.value }))}
-                style={{ border: '1px solid var(--border)', borderRadius: 10, padding: '9px 14px', fontSize: 14, outline: 'none', color: 'var(--text-2)' }}
-              />
-            </div>
+            <Card style={{ padding: '18px 20px' }}>
+              <Field label="Voorkeurstijdstip" hint="Op welk moment wil je herinneringen ontvangen?">
+                <Input
+                  type="time"
+                  value={voorkeuren.reminder_tijd}
+                  onChange={e => setVoorkeuren(prev => ({ ...prev, reminder_tijd: e.target.value }))}
+                  style={{ width: 'auto' }}
+                />
+              </Field>
+            </Card>
 
             {/* Push notificaties info */}
-            <div style={{ background: 'var(--mf-green-light)', borderRadius: 16, border: '1px solid #BBF7D0', padding: '16px 18px' }}>
+            <div style={{ background: 'var(--mentaforce-primary-light)', borderRadius: 'var(--radius-card)', border: '1px solid color-mix(in srgb, var(--mentaforce-primary) 35%, transparent)', padding: '16px 18px' }}>
               <div style={{ display: 'flex', gap: 10 }}>
-                <span style={{ fontSize: 16, flexShrink: 0 }}>💡</span>
+                <Lightbulb size={16} aria-hidden style={{ flexShrink: 0, color: 'var(--mentaforce-primary)', marginTop: 1 }} />
                 <div>
-                  <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--mf-green-dark)', marginBottom: 3 }}>Push notificaties via de app</p>
-                  <p style={{ fontSize: 12, color: 'var(--mf-green-dark)', lineHeight: 1.5 }}>
+                  <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-1)', marginBottom: 3 }}>Push notificaties via de app</p>
+                  <p style={{ fontSize: 12, color: 'var(--text-2)', lineHeight: 1.5 }}>
                     Voor push notificaties op je telefoon, download de Vitaal app. In de app kun je notificaties inschakelen via je telefooninstellingen.
                   </p>
                 </div>
               </div>
             </div>
 
-            <button
+            <Button
               onClick={slaOp}
-              disabled={bezig}
-              style={{
-                width: '100%', padding: '14px', borderRadius: 14, fontSize: 14, fontWeight: 600,
-                color: 'white', border: 'none', cursor: 'pointer', background: 'var(--mf-green)',
-                opacity: bezig ? 0.7 : 1, marginTop: 4,
-              }}
+              loading={bezig}
+              leftIcon={opgeslagen ? <Check size={16} aria-hidden /> : undefined}
+              style={{ width: '100%', marginTop: 4 }}
             >
-              {bezig ? 'Opslaan...' : opgeslagen ? '✓ Opgeslagen!' : 'Voorkeuren opslaan'}
-            </button>
+              {bezig ? 'Opslaan...' : opgeslagen ? 'Opgeslagen!' : 'Voorkeuren opslaan'}
+            </Button>
           </div>
         )}
       </main>
     </div>
   )
 }
-
