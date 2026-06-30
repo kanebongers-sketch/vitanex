@@ -5,7 +5,7 @@ export const dynamic = 'force-dynamic'
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { Capacitor } from '@capacitor/core'
-import { Footprints, Smartphone, ChevronRight } from 'lucide-react'
+import { Footprints, Smartphone, ChevronRight, Check, PartyPopper } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { authFetch } from '@/lib/auth-fetch'
 import Navbar from '@/components/layout/Navbar'
@@ -244,8 +244,9 @@ export default function StappenPage() {
         }}>
           <StappenRing stappen={vandaag} doel={doel} />
           {vandaag >= doel && (
-            <p style={{ marginTop: 10, fontSize: 14, fontWeight: 700, color: DOEL_BEREIKT }}>
-              🎉 Dagdoel behaald! Geweldig!
+            <p style={{ marginTop: 10, fontSize: 14, fontWeight: 700, color: DOEL_BEREIKT, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+              <PartyPopper size={16} aria-hidden style={{ flexShrink: 0 }} />
+              Dagdoel behaald! Geweldig!
             </p>
           )}
           {vandaag > 0 && vandaag < doel && (
@@ -268,7 +269,7 @@ export default function StappenPage() {
             fontSize: 14, color: KLEUR, fontWeight: 600,
             display: 'flex', alignItems: 'center', gap: 8,
           }}>
-            <span aria-hidden>✓</span> Stappen opgeslagen!
+            <Check size={16} aria-hidden style={{ flexShrink: 0 }} /> Stappen opgeslagen!
           </div>
         )}
 

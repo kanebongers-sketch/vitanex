@@ -5,7 +5,7 @@ export const dynamic = 'force-dynamic'
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import nextDynamic from 'next/dynamic'
-import { Sparkles, Square } from 'lucide-react'
+import { Sparkles, Square, Wind, Brain, Heart, Target, type LucideIcon } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
@@ -23,7 +23,7 @@ const SESSIES = [
     titel: 'Korte adem reset',
     duur: 3,
     beschrijving: 'Kalm je zenuwstelsel in 3 minuten',
-    emoji: '🌬️',
+    Icon: Wind as LucideIcon,
     stappen: [
       { tekst: 'Ga comfortabel zitten. Sluit je ogen.', duur: 15 },
       { tekst: 'Adem diep in door je neus, 4 tellen.', duur: 20 },
@@ -37,7 +37,7 @@ const SESSIES = [
     titel: 'Body scan',
     duur: 5,
     beschrijving: 'Scan je lichaam op spanning',
-    emoji: '🧘',
+    Icon: Brain as LucideIcon,
     stappen: [
       { tekst: 'Leg je handen op je knieën. Sluit je ogen.', duur: 15 },
       { tekst: 'Voel je voeten op de grond. Ontspan.', duur: 30 },
@@ -53,7 +53,7 @@ const SESSIES = [
     titel: 'Dankbaarheidsmeditatie',
     duur: 3,
     beschrijving: 'Focus op wat goed gaat',
-    emoji: '🙏',
+    Icon: Heart as LucideIcon,
     stappen: [
       { tekst: 'Sluit je ogen. Haal diep adem.', duur: 15 },
       { tekst: 'Denk aan iemand voor wie je dankbaar bent.', duur: 40 },
@@ -67,7 +67,7 @@ const SESSIES = [
     titel: 'Focus reset',
     duur: 5,
     beschrijving: 'Herstel je concentratie',
-    emoji: '🎯',
+    Icon: Target as LucideIcon,
     stappen: [
       { tekst: 'Sluit alle tabs in je hoofd.', duur: 20 },
       { tekst: 'Adem in, tél: 1. Uit, tél: 2.', duur: 30 },
@@ -240,7 +240,7 @@ export default function MeditatiePagina() {
                       outlineOffset: 2,
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                     }}>
-                      {actief && <span style={{ fontSize: 12 }}>🧘</span>}
+                      {actief && <Brain size={12} aria-hidden style={{ color: 'var(--bg-app)' }} />}
                     </div>
                     <span style={{ fontSize: 8, color: isVandaag ? 'var(--text-2)' : 'var(--text-4)', fontWeight: isVandaag ? 800 : 400, textTransform: 'capitalize' }}>{dag}</span>
                   </div>
@@ -274,7 +274,9 @@ export default function MeditatiePagina() {
             }}
           >
             <MeditationParticles active={bezig} />
-            <div style={{ fontSize: 44, marginBottom: 12 }} role="img" aria-label={gekozenSessie.titel}>{gekozenSessie.emoji}</div>
+            <div style={{ marginBottom: 12, display: 'flex', justifyContent: 'center', color: 'var(--mentaforce-primary)' }}>
+              <gekozenSessie.Icon size={44} strokeWidth={1.75} aria-label={gekozenSessie.titel} />
+            </div>
             <p style={{ fontSize: 14, color: 'var(--text-3)', marginBottom: 20 }}>{gekozenSessie.titel}</p>
 
             <div
@@ -379,16 +381,14 @@ export default function MeditatiePagina() {
                 }}
               >
                 <div
-                  role="img"
-                  aria-label={sessie.titel}
                   style={{
                     width: 48, height: 48, borderRadius: 14, flexShrink: 0,
                     background: 'var(--mf-green-light)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 22,
+                    color: 'var(--mentaforce-primary)',
                   }}
                 >
-                  {sessie.emoji}
+                  <sessie.Icon size={22} aria-label={sessie.titel} />
                 </div>
                 <div style={{ flex: 1 }}>
                   <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-1)', marginBottom: 2 }}>{sessie.titel}</p>

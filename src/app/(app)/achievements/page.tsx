@@ -4,7 +4,7 @@ export const dynamic = 'force-dynamic'
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Trophy } from 'lucide-react'
+import { Trophy, Sprout, Leaf, TreeDeciduous, Star, Gem, Award, type LucideIcon } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
@@ -47,13 +47,20 @@ const CAT_KLEUREN: Record<string, string> = {
   mijlpaal:   'var(--mf-rose)',
 }
 
-const LEVELS = [
-  { min: 0,    max: 100,  naam: 'Beginner',    emoji: '🌱' },
-  { min: 100,  max: 300,  naam: 'Groeier',     emoji: '🌿' },
-  { min: 300,  max: 600,  naam: 'Gevorderd',   emoji: '🌳' },
-  { min: 600,  max: 1000, naam: 'Expert',      emoji: '⭐' },
-  { min: 1000, max: 2000, naam: 'Meester',     emoji: '🏆' },
-  { min: 2000, max: Infinity, naam: 'Legende', emoji: '💎' },
+interface Level {
+  min: number
+  max: number
+  naam: string
+  Icon: LucideIcon
+}
+
+const LEVELS: Level[] = [
+  { min: 0,    max: 100,  naam: 'Beginner',    Icon: Sprout },
+  { min: 100,  max: 300,  naam: 'Groeier',     Icon: Leaf },
+  { min: 300,  max: 600,  naam: 'Gevorderd',   Icon: TreeDeciduous },
+  { min: 600,  max: 1000, naam: 'Expert',      Icon: Star },
+  { min: 1000, max: 2000, naam: 'Meester',     Icon: Trophy },
+  { min: 2000, max: Infinity, naam: 'Legende', Icon: Gem },
 ]
 
 function huidigLevel(xp: number) {
@@ -138,9 +145,9 @@ export default function AchievementsPagina() {
               background: 'var(--mf-amber-light)',
               border: '1px solid var(--border)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 28, flexShrink: 0,
+              color: 'var(--mf-amber-dark)', flexShrink: 0,
             }}>
-              <span role="img" aria-label={`Niveau ${niveau.naam}`}>{niveau.emoji}</span>
+              <niveau.Icon size={28} aria-label={`Niveau ${niveau.naam}`} />
             </div>
             <div style={{ flex: 1 }}>
               <p style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-4)', margin: '0 0 2px' }}>
@@ -165,10 +172,13 @@ export default function AchievementsPagina() {
             <span style={{ fontSize: 11, color: 'var(--text-4)', fontWeight: 600 }}>
               {niveau.min} XP
             </span>
-            <span style={{ fontSize: 11, color: 'var(--text-4)', fontWeight: 600 }}>
-              {volgend
-                ? `${volgend.min} XP — ${volgend.naam} ${volgend.emoji}`
-                : 'Max niveau!'}
+            <span style={{ fontSize: 11, color: 'var(--text-4)', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+              {volgend ? (
+                <>
+                  {volgend.min} XP — {volgend.naam}
+                  <volgend.Icon size={12} aria-hidden style={{ flexShrink: 0 }} />
+                </>
+              ) : 'Max niveau!'}
             </span>
           </div>
         </Card>
@@ -217,9 +227,9 @@ export default function AchievementsPagina() {
                           background: `color-mix(in srgb, ${kleur} 12%, transparent)`,
                           border: `1.5px solid color-mix(in srgb, ${kleur} 25%, transparent)`,
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          flexShrink: 0, fontSize: 22,
+                          flexShrink: 0, color: kleur,
                         }}>
-                          <span role="img" aria-label={a.achievements.naam}>{a.achievements.icon}</span>
+                          <Award size={22} aria-label={a.achievements.naam} />
                         </div>
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-1)', margin: '0 0 2px' }}>

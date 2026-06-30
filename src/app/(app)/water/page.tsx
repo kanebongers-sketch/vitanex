@@ -4,7 +4,7 @@ export const dynamic = 'force-dynamic'
 
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Droplet, Trash2 } from 'lucide-react'
+import { Droplet, PartyPopper, Trash2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
@@ -55,7 +55,7 @@ function formatDatum(): string {
 }
 
 function motivatieTekst(percentage: number): string {
-  if (percentage >= 100) return '🎉 Dagdoel behaald! Super!'
+  if (percentage >= 100) return 'Dagdoel behaald! Super!'
   if (percentage >= 75) return 'Bijna! Nog een glas en je bent er!'
   if (percentage >= 50) return 'Halverwege je doel!'
   if (percentage >= 25) return 'Goed bezig, drink nog meer!'
@@ -369,8 +369,15 @@ export default function WaterPagina() {
               margin: 0,
               textAlign: 'center',
               width: '100%',
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 8,
             }}>
-              {percentage >= 100 ? '🎉 ' : '💧 '}{motivatieTekst(percentage)}
+              {percentage >= 100
+                ? <PartyPopper size={16} aria-hidden style={{ flexShrink: 0 }} />
+                : <Droplet size={16} aria-hidden style={{ flexShrink: 0 }} />}
+              {motivatieTekst(percentage)}
             </p>
 
             {/* 7-daagse barchart */}
@@ -538,7 +545,7 @@ export default function WaterPagina() {
                     }}
                   >
                     <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <span style={{ fontSize: '1rem' }}>💧</span>
+                      <Droplet size={16} aria-hidden style={{ color: 'var(--mf-blue-mid)', flexShrink: 0 }} />
                       <span style={{ color: 'var(--text-1)', fontSize: '0.9rem', fontWeight: 600 }}>
                         {log.ml}ml
                       </span>

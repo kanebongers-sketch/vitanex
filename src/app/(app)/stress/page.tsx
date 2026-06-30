@@ -4,9 +4,11 @@ export const dynamic = 'force-dynamic'
 
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { Check } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
+import { useToast } from '@/components/ui/Toast'
 const ADEM_FASE_KLEUR: Record<string, string> = {
   in:   'var(--mf-green)',
   vast: 'var(--mf-blue-mid)',
@@ -34,6 +36,7 @@ type AtemFase = 'in' | 'vast' | 'uit' | 'rust' | 'idle'
 
 export default function StressPagina() {
   const router = useRouter()
+  const { toast } = useToast()
   const [laden, setLaden] = useState(true)
   const [niveau, setNiveau] = useState<number>(5)
   const [notitie, setNotitie] = useState('')
@@ -110,10 +113,14 @@ export default function StressPagina() {
         const json = await res.json() as { log: StressLog }
         setLogs(prev => [json.log, ...prev.slice(0, 6)])
         setNotitie('')
-        setSuccesBericht('Stress niveau opgeslagen ✓')
+        setSuccesBericht('Stress niveau opgeslagen')
         setTimeout(() => router.push('/vandaag'), 1500)
+      } else {
+        toast({ title: 'Opslaan mislukt', description: 'Kon je stressniveau niet opslaan. Probeer het opnieuw.', variant: 'error' })
       }
-    } catch { /* stil falen */ }
+    } catch {
+      toast({ title: 'Opslaan mislukt', description: 'Er ging iets mis. Probeer het opnieuw.', variant: 'error' })
+    }
     setOpslaan(false)
   }
 
@@ -152,7 +159,7 @@ export default function StressPagina() {
         </header>
 
         {succesBericht && (
-          <div style={{ background: 'var(--mf-green-light)', border: '1px solid #BBF7D0', borderRadius: 12, padding: '10px 14px', marginBottom: 16, fontSize: 13, color: 'var(--mf-green-dark)', fontWeight: 600 }}>
+          <div style={{ background: 'var(--mf-green-light)', border: '1px solid color-mix(in srgb, var(--mf-green) 30%, transparent)', borderRadius: 12, padding: '10px 14px', marginBottom: 16, fontSize: 13, color: 'var(--mf-green-dark)', fontWeight: 600 }}>
             {succesBericht}
           </div>
         )}
@@ -220,14 +227,14 @@ export default function StressPagina() {
                 display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                 padding: '10px 14px', borderRadius: 10,
                 background: gekozeTechniek === t.id ? 'var(--mf-green-light)' : 'var(--bg-subtle)',
-                border: `1.5px solid ${gekozeTechniek === t.id ? '#1D9E75' : 'var(--border)'}`,
+                border: `1.5px solid ${gekozeTechniek === t.id ? 'var(--mf-green)' : 'var(--border)'}`,
                 cursor: 'pointer', textAlign: 'left',
               }}>
                 <div>
                   <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-2)' }}>{t.label}</p>
                   <p style={{ fontSize: 11, color: 'var(--text-4)' }}>{t.beschrijving}</p>
                 </div>
-                {gekozeTechniek === t.id && <span style={{ color: 'var(--mf-green)', fontSize: 16 }}>✓</span>}
+                {gekozeTechniek === t.id && <Check size={14} aria-hidden style={{ color: 'var(--mf-green)', flexShrink: 0 }} />}
               </button>
             ))}
           </div>
@@ -239,7 +246,7 @@ export default function StressPagina() {
           style={{
             width: '100%', padding: '14px', borderRadius: 14, marginBottom: 24,
             background: opslaan ? 'var(--text-3)' : 'linear-gradient(135deg, var(--mf-green) 0%, var(--mf-green-dark) 100%)',
-            boxShadow: opslaan ? 'none' : '0 4px 16px rgba(29,158,117,0.35)',
+            boxShadow: opslaan ? 'none' : '0 4px 16px color-mix(in srgb, var(--mentaforce-primary) 35%, transparent)',
             color: 'white', border: 'none', cursor: 'pointer',
             fontSize: 15, fontWeight: 700,
           }}

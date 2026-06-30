@@ -4,6 +4,7 @@ export const dynamic = 'force-dynamic'
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { Check } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
@@ -76,11 +77,13 @@ export default function PulseSurveyPage() {
     <div className="mf-mesh-bg" style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
       <Navbar />
       <main style={{ padding: '72px 40px', maxWidth: 560, margin: '0 auto', textAlign: 'center' }}>
-        <div style={{ position: 'relative', display: 'inline-block', marginBottom: 20 }}>
+        <div style={{ position: 'relative', display: 'inline-flex', marginBottom: 20 }}>
           <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
-            <div style={{ width: 100, height: 100, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
+            <div style={{ width: 100, height: 100, borderRadius: '50%', background: 'radial-gradient(circle, color-mix(in srgb, var(--mentaforce-primary) 18%, transparent) 0%, transparent 70%)' }} />
           </div>
-          <div style={{ fontSize: 48, position: 'relative', zIndex: 1 }}>✓</div>
+          <div style={{ position: 'relative', zIndex: 1, color: 'var(--mf-green)' }}>
+            <Check size={48} aria-hidden />
+          </div>
         </div>
         <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 10 }}>
           {klaar ? 'Bedankt voor je bijdrage!' : 'Al ingevuld deze week'}
@@ -92,7 +95,7 @@ export default function PulseSurveyPage() {
         </p>
         <button
           onClick={() => router.push('/home')}
-          style={{ marginTop: 28, padding: '12px 28px', borderRadius: 12, background: 'linear-gradient(135deg, var(--mf-green) 0%, var(--mf-green-dark) 100%)', color: 'white', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 14 }}
+          style={{ marginTop: 28, padding: '12px 28px', borderRadius: 12, background: 'linear-gradient(135deg, var(--mf-green) 0%, var(--mf-green-dark) 100%)', color: 'var(--bg-app)', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 14 }}
         >
           Terug naar home
         </button>
@@ -148,7 +151,7 @@ export default function PulseSurveyPage() {
                     style={{
                       width: 56, height: 56, borderRadius: 14, border: 'none', cursor: 'pointer', fontSize: 18, fontWeight: 700,
                       background: huidigeAntwoord === n ? 'var(--mf-green)' : 'var(--bg-subtle)',
-                      color: huidigeAntwoord === n ? 'white' : 'var(--text-2)',
+                      color: huidigeAntwoord === n ? 'var(--bg-app)' : 'var(--text-2)',
                       transition: 'all 0.15s ease',
                     }}
                   >{n}</button>
@@ -172,7 +175,7 @@ export default function PulseSurveyPage() {
                     style={{
                       width: 46, height: 46, borderRadius: 10, border: 'none', cursor: 'pointer', fontSize: 14, fontWeight: 700,
                       background: huidigeAntwoord === n ? 'var(--mf-green)' : 'var(--bg-subtle)',
-                      color: huidigeAntwoord === n ? 'white' : 'var(--text-2)',
+                      color: huidigeAntwoord === n ? 'var(--bg-app)' : 'var(--text-2)',
                       transition: 'all 0.15s ease',
                     }}
                   >{n}</button>
@@ -237,7 +240,7 @@ export default function PulseSurveyPage() {
             style={{
               flex: 1, padding: '13px', borderRadius: 12, border: 'none', cursor: 'pointer',
               background: 'linear-gradient(135deg, var(--mf-green) 0%, var(--mf-green-dark) 100%)',
-              color: 'white', fontWeight: 600, fontSize: 14,
+              color: 'var(--bg-app)', fontWeight: 600, fontSize: 14,
               opacity: !isBeantwoord || verzenden ? 0.4 : 1,
             }}
           >

@@ -216,7 +216,7 @@ function NieuweSurveyForm({ bedrijfId, userId, onGemaakt }: {
               onClick={() => laadTemplate(tmpl)}
               style={{
                 textAlign: 'left', padding: 16, borderRadius: 16,
-                border: `2px solid ${tmpl.kleur}40`, background: `${tmpl.kleur}08`,
+                border: `2px solid color-mix(in srgb, ${tmpl.kleur} 25%, transparent)`, background: `color-mix(in srgb, ${tmpl.kleur} 4%, transparent)`,
                 cursor: 'pointer',
               }}
             >

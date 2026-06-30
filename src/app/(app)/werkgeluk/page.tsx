@@ -198,16 +198,16 @@ export default function WerkgelukPagina() {
 
         <section style={{
           background: 'var(--bg-card)', borderRadius: 24, padding: '24px 20px',
-          border: `1.5px solid ${kleur}30`, marginBottom: 16,
-          boxShadow: `0 4px 24px ${kleur}18`,
+          border: `1.5px solid color-mix(in srgb, ${kleur} 18%, transparent)`, marginBottom: 16,
+          boxShadow: `0 4px 24px color-mix(in srgb, ${kleur} 10%, transparent)`,
           transition: 'border-color 0.3s ease, box-shadow 0.3s ease',
         }}>
           <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 20 }}>
             <div style={{
               width: 128, height: 128, borderRadius: '50%',
-              background: `${kleur}12`,
-              border: `2px solid ${kleur}35`,
-              boxShadow: `0 8px 40px ${kleur}25`,
+              background: `color-mix(in srgb, ${kleur} 8%, transparent)`,
+              border: `2px solid color-mix(in srgb, ${kleur} 20%, transparent)`,
+              boxShadow: `0 8px 40px color-mix(in srgb, ${kleur} 15%, transparent)`,
               display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
               transition: 'background 0.25s ease, box-shadow 0.25s ease',
             }}>

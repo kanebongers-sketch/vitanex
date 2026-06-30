@@ -4,6 +4,7 @@ export const dynamic = 'force-dynamic'
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { Check, Frown, Meh, Smile, Laugh, type LucideIcon } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
@@ -15,10 +16,9 @@ interface Meting {
   reden: string | null
 }
 
-const SCORE_LABEL: Record<string, string> = {
-  '0': '😰', '1': '😰', '2': '😤', '3': '😤', '4': '😐',
-  '5': '😐', '6': '😐', '7': '🙂', '8': '🙂', '9': '😄', '10': '😄',
-}
+// Score-band → gezichtsuitdrukking (lucide), houdt de bestaande tekstlabels intact.
+const SCORE_ICON = (score: number): LucideIcon =>
+  score <= 3 ? Frown : score <= 6 ? Meh : score <= 8 ? Smile : Laugh
 
 const CATEGORIE = (score: number) => score >= 9 ? 'Promoter' : score >= 7 ? 'Passief' : 'Detractor'
 const CAT_KLEUR = (score: number) => score >= 9 ? 'var(--mf-green)' : score >= 7 ? 'var(--mf-amber)' : 'var(--mf-red)'
@@ -95,7 +95,9 @@ export default function ENPSPage() {
           </div>
         ) : klaar ? (
           <div style={{ background: 'var(--mf-green-light)', borderRadius: 16, border: '1px solid var(--mf-green-mid)', padding: '20px 22px', marginBottom: 16, textAlign: 'center' }}>
-            <p style={{ fontSize: 20, marginBottom: 8 }}>✓</p>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8, color: 'var(--mf-green)' }}>
+              <Check size={24} aria-hidden />
+            </div>
             <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--mf-green)' }}>Bedankt voor je eerlijke antwoord!</p>
             <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 4 }}>Jouw respons is volledig anoniem verwerkt.</p>
           </div>
@@ -117,7 +119,7 @@ export default function ENPSPage() {
                     background: score === n
                       ? CAT_KLEUR(n)
                       : 'var(--bg-subtle)',
-                    color: score === n ? 'white' : 'var(--text-2)',
+                    color: score === n ? 'var(--bg-app)' : 'var(--text-2)',
                     transition: 'all 0.15s ease',
                   }}
                 >{n}</button>
@@ -134,9 +136,11 @@ export default function ENPSPage() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14, padding: '10px 14px', borderRadius: 10, background: `${CAT_KLEUR(score)}12` }}>
                   <div style={{ position: 'relative', width: 36, height: 36, flexShrink: 0 }}>
                     <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 0 }}>
-                      <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
+                      <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'radial-gradient(circle, color-mix(in srgb, var(--mentaforce-primary) 18%, transparent) 0%, transparent 70%)' }} />
                     </div>
-                    <span style={{ fontSize: 24, position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', width: 36, height: 36 }}>{SCORE_LABEL[String(score)]}</span>
+                    <span style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', width: 36, height: 36, color: CAT_KLEUR(score) }}>
+                      {(() => { const Icon = SCORE_ICON(score); return <Icon size={24} aria-hidden /> })()}
+                    </span>
                   </div>
                   <div>
                     <p style={{ fontSize: 13, fontWeight: 700, color: CAT_KLEUR(score) }}>{CATEGORIE(score)}</p>
@@ -162,7 +166,7 @@ export default function ENPSPage() {
               disabled={score === null || verzenden}
               style={{
                 width: '100%', padding: '13px', borderRadius: 12, fontSize: 14, fontWeight: 600,
-                color: 'white', border: 'none', cursor: 'pointer',
+                color: 'var(--bg-app)', border: 'none', cursor: 'pointer',
                 background: 'linear-gradient(135deg, var(--mf-green) 0%, var(--mf-green-dark) 100%)',
                 opacity: score === null || verzenden ? 0.4 : 1,
               }}
@@ -213,8 +217,8 @@ export default function ENPSPage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {metingen.map((m, i) => (
                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, paddingBottom: 8, borderBottom: i < metingen.length - 1 ? '1px solid var(--bg-subtle)' : 'none' }}>
-                  <div style={{ width: 36, height: 36, borderRadius: 10, background: `${CAT_KLEUR(m.score)}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>
-                    {SCORE_LABEL[String(m.score)]}
+                  <div style={{ width: 36, height: 36, borderRadius: 10, background: `${CAT_KLEUR(m.score)}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: CAT_KLEUR(m.score) }}>
+                    {(() => { const Icon = SCORE_ICON(m.score); return <Icon size={18} aria-hidden /> })()}
                   </div>
                   <div style={{ flex: 1 }}>
                     <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-2)' }}>

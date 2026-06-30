@@ -465,7 +465,7 @@ export default function Rapport() {
               {burnoutCfg && burnout && (
                 <div style={{
                   background: burnoutCfg.bg, borderRadius: 16, padding: '20px 24px',
-                  border: `1.5px solid ${burnoutCfg.kleur}30`,
+                  border: `1.5px solid color-mix(in srgb, ${burnoutCfg.kleur} 18%, transparent)`,
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
                     <div style={{ width: 8, height: 8, borderRadius: '50%', background: burnoutCfg.kleur, flexShrink: 0 }} />
