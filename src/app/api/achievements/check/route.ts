@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
     { data: focusData },
   ] = await Promise.all([
     admin.from('checkin_sessies').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
-    admin.from('berichten').select('*', { count: 'exact', head: true }).eq('user_id', user.id).eq('rol', 'user'),
+    admin.from('coach_rate_limits').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
     admin.from('training_logs').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
     admin.from('dankbaarheid_logs').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
     admin.from('disc_inzendingen').select('id').eq('user_id', user.id).limit(1),
