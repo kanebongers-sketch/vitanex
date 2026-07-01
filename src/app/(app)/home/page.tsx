@@ -229,7 +229,7 @@ export default function DashboardPage() {
   return (
     <div className="mf-mesh-bg" style={{ minHeight: '100vh' }}>
       <Navbar />
-      <main style={{ maxWidth: 600, margin: '0 auto', padding: '40px 20px 100px' }}>
+      <main className="mf-dash">
 
         {/* Header */}
         <div style={{ marginBottom: 24 }}>
@@ -246,6 +246,9 @@ export default function DashboardPage() {
 
         {/* Proactieve coach-nudge */}
         <CoachNudgeBanner />
+
+        <div className="mf-dash-grid">
+          <div>
 
         {/* Readiness card */}
         <Card style={{
@@ -384,6 +387,9 @@ export default function DashboardPage() {
           })}
         </Card>
 
+          </div>
+          <div>
+
         {/* Voeding + Training */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
 
@@ -498,9 +504,17 @@ export default function DashboardPage() {
           </Card>
         </Link>
 
+          </div>
+        </div>
+
       </main>
 
       <style>{`
+        .mf-dash { max-width: 600px; margin: 0 auto; padding: 40px 20px 100px; }
+        @media (min-width: 1024px) {
+          .mf-dash { max-width: 960px; padding-top: 48px; }
+          .mf-dash-grid { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 16px; align-items: start; }
+        }
         .mf-row { transition: background 0.12s var(--ease); }
         .mf-row:hover, .mf-row:focus-visible { background: var(--bg-subtle); }
         .mf-checklist-fill { transition: transform 0.5s var(--ease); transform-origin: left center; }
