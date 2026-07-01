@@ -439,10 +439,10 @@ export default function FocusPagina() {
 
         const vandaagStr = new Date().toISOString().split('T')[0]
         const { data: logs } = await supabase
-          .from('focus_logs')
+          .from('focus_timer_logs')
           .select('duur_minuten')
           .eq('user_id', user.id)
-          .gte('aangemaakt_op', vandaagStr)
+          .eq('datum', vandaagStr)
 
         if (logs) {
           setFocusSessiesVandaag(logs.length)

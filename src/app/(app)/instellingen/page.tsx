@@ -417,7 +417,7 @@ export default function Instellingen() {
   const VOLLEDIGE_TABELLEN = [
     'checkin_sessies', 'checkin_antwoorden', 'checkin_analyses',
     'disc_inzendingen', 'journal_entries', 'reflectie_entries',
-    'focus_logs', 'water_logs', 'training_logs', 'fitness_schemas',
+    'focus_timer_logs', 'water_logs', 'training_logs', 'fitness_schemas',
     'oefening_logs', 'gewoonte_logs', 'survey_antwoorden', 'ai_rapporten',
     'notificatie_voorkeuren',
   ] as const
