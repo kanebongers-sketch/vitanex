@@ -33,7 +33,7 @@ export async function GET(request: Request) {
   const [wearablesResult, checkinsResult] = await Promise.all([
     supabaseAdmin.from('health_native_logs').select('datum, stappen, slaap_minuten, hartslag_gemiddeld')
       .eq('user_id', user.id).gte('datum', veertienStr).order('datum', { ascending: false }).limit(14),
-    supabaseAdmin.from('checkins').select('scores, aangemaakt_op')
+    supabaseAdmin.from('checkin_analyses').select('scores, aangemaakt_op')
       .eq('user_id', user.id).gte('aangemaakt_op', `${veertienStr}T00:00:00Z`)
       .order('aangemaakt_op', { ascending: false }).limit(4),
   ])

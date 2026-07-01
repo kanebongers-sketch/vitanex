@@ -15,7 +15,7 @@ import { useToast } from '@/components/ui/Toast'
 interface CheckIn {
   id: string
   aangemaakt_op: string
-  domein_scores: Record<string, number>
+  scores: Record<string, number>
 }
 
 const DOMEIN_CONFIG: Record<string, { label: string; kleur: string }> = {
@@ -52,8 +52,8 @@ export default function CheckInGeschiedenisPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/login'); return }
       const { data, error } = await supabase
-        .from('checkin_sessies')
-        .select('id, aangemaakt_op, domein_scores')
+        .from('checkin_analyses')
+        .select('id, aangemaakt_op, scores')
         .eq('user_id', user.id)
         .order('aangemaakt_op', { ascending: false })
         .limit(52)
@@ -107,10 +107,10 @@ export default function CheckInGeschiedenisPage() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
             {checkIns.map((ci, idx) => {
               const datum = new Date(ci.aangemaakt_op)
-              const vscore = vitaalScore(ci.domein_scores ?? {})
+              const vscore = vitaalScore(ci.scores ?? {})
               const vkleur = vscore >= 70 ? 'var(--mf-green)' : vscore >= 40 ? 'var(--mf-amber)' : 'var(--mf-red)'
               const isOpen = uitgevouwen === ci.id
-              const domeinen = Object.keys(DOMEIN_CONFIG).filter(d => ci.domein_scores?.[d] !== undefined)
+              const domeinen = Object.keys(DOMEIN_CONFIG).filter(d => ci.scores?.[d] !== undefined)
               const datumLabel = datum.toLocaleDateString('nl-BE', { weekday: 'long', day: 'numeric', month: 'long' })
 
               return (
@@ -167,7 +167,7 @@ export default function CheckInGeschiedenisPage() {
                           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginTop: 12 }}>
                             {domeinen.map(d => {
                               const cfg = DOMEIN_CONFIG[d]
-                              const score = ci.domein_scores[d]
+                              const score = ci.scores[d]
                               const pct = Math.round(((score - 4) / 16) * 100)
                               const fractie = Math.min(Math.max(pct, 0), 100) / 100
                               return (

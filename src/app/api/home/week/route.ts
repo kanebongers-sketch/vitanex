@@ -10,6 +10,14 @@ function avg(vals: (number | null)[]): number | null {
   return Math.round((filtered.reduce((a, b) => a + b, 0) / filtered.length) * 10) / 10
 }
 
+// checkin_analyses heeft geen totaal_score-kolom; leid een totaalscore per rij af
+// als het gemiddelde van de numerieke domeinwaarden in `scores`.
+function totaalScore(scores: unknown): number {
+  const values = Object.values((scores ?? {}) as Record<string, number>)
+  if (!values.length) return 0
+  return values.reduce((a, b) => a + b, 0) / values.length
+}
+
 function dateStr(offsetDays: number): string {
   const d = new Date()
   d.setDate(d.getDate() - offsetDays)
@@ -47,8 +55,8 @@ export async function GET(req: NextRequest) {
     admin.from('slaap_logs').select('uren_slaap').eq('user_id', user.id).gte('datum', twoWeekStr).lt('datum', weekStr),
     admin.from('stemming_logs').select('stemming').eq('user_id', user.id).gte('aangemaakt_op', weekGeleden.toISOString()),
     admin.from('stemming_logs').select('stemming').eq('user_id', user.id).gte('aangemaakt_op', twoWeekGeleden.toISOString()).lt('aangemaakt_op', weekGeleden.toISOString()),
-    admin.from('checkin_sessies').select('totaal_score').eq('user_id', user.id).gte('aangemaakt_op', weekGeleden.toISOString()),
-    admin.from('checkin_sessies').select('totaal_score').eq('user_id', user.id).gte('aangemaakt_op', twoWeekGeleden.toISOString()).lt('aangemaakt_op', weekGeleden.toISOString()),
+    admin.from('checkin_analyses').select('scores').eq('user_id', user.id).gte('aangemaakt_op', weekGeleden.toISOString()),
+    admin.from('checkin_analyses').select('scores').eq('user_id', user.id).gte('aangemaakt_op', twoWeekGeleden.toISOString()).lt('aangemaakt_op', weekGeleden.toISOString()),
     // Per-day activity data for dots
     admin.from('slaap_logs').select('datum, uren_slaap').eq('user_id', user.id).in('datum', dagStrs),
     admin.from('stemming_logs').select('aangemaakt_op, stemming').eq('user_id', user.id).gte('aangemaakt_op', weekGeleden.toISOString()),
@@ -59,8 +67,8 @@ export async function GET(req: NextRequest) {
   const slaapVorigGem = avg(slaapVorigeW?.map(r => r.uren_slaap) ?? [])
   const stemmingGem = avg(stemmingDezW?.map(r => r.stemming) ?? [])
   const stemmingVorigGem = avg(stemmingVorigeW?.map(r => r.stemming) ?? [])
-  const checkinGem = avg(checkinDezW?.map(r => r.totaal_score) ?? [])
-  const checkinVorigGem = avg(checkinVorigeW?.map(r => r.totaal_score) ?? [])
+  const checkinGem = avg(checkinDezW?.map(r => totaalScore(r.scores)) ?? [])
+  const checkinVorigGem = avg(checkinVorigeW?.map(r => totaalScore(r.scores)) ?? [])
 
   // Build per-day activity summary
   const slaapByDag = new Map((slaapDagen ?? []).map(r => [r.datum, r.uren_slaap]))

@@ -23,8 +23,8 @@ export async function GET(req: NextRequest) {
     { data: stress },
     { data: disc },
   ] = await Promise.all([
-    admin.from('profiles').select('naam, email, aangemaakt_op').eq('id', user.id).single(),
-    admin.from('checkin_sessies').select('aangemaakt_op, domein_scores')
+    admin.from('profiles').select('naam, email').eq('id', user.id).single(),
+    admin.from('checkin_analyses').select('aangemaakt_op, scores')
       .eq('user_id', user.id).order('aangemaakt_op', { ascending: false }).limit(8),
     admin.from('burnout_predictor_scores').select('risico_score, trending, dominante_factor')
       .eq('user_id', user.id).order('week_start', { ascending: false }).limit(1).maybeSingle(),
@@ -41,7 +41,7 @@ export async function GET(req: NextRequest) {
   ])
 
   const laasteCi = checkIns?.[0]
-  const domeinScores = laasteCi?.domein_scores as Record<string, number> | null
+  const domeinScores = laasteCi?.scores as Record<string, number> | null
 
   const gemStemming = stemming?.length
     ? Math.round(stemming.reduce((s, l) => s + l.stemming, 0) / stemming.length * 10) / 10

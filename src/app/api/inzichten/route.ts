@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
     { data: dankbaarheidLogs },
     { data: focusLogs },
   ] = await Promise.all([
-    admin.from('checkin_sessies').select('domein_scores, aangemaakt_op').eq('user_id', user.id).gte('aangemaakt_op', zevenDagenGeleden).order('aangemaakt_op', { ascending: false }),
+    admin.from('checkin_analyses').select('scores, aangemaakt_op').eq('user_id', user.id).gte('aangemaakt_op', zevenDagenGeleden).order('aangemaakt_op', { ascending: false }),
     admin.from('stemming_logs').select('stemming, energie, aangemaakt_op').eq('user_id', user.id).gte('aangemaakt_op', zevenDagenGeleden),
     admin.from('slaap_logs').select('uren_slaap, kwaliteit, datum').eq('user_id', user.id).gte('datum', zevenDagenGeleden.split('T')[0]),
     admin.from('stress_logs').select('stress_niveau, techniek, aangemaakt_op').eq('user_id', user.id).gte('aangemaakt_op', zevenDagenGeleden),

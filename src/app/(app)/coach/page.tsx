@@ -108,9 +108,9 @@ export default function CoachPagina() {
         if (profiel?.naam) ctx.naam = profiel.naam as string
 
         const { data: disc } = await supabase
-          .from('disc_inzendingen').select('primair').eq('user_id', user.id)
+          .from('disc_inzendingen').select('primair_profiel').eq('user_id', user.id)
           .order('aangemaakt_op', { ascending: false }).limit(1).maybeSingle()
-        if (disc?.primair) ctx.discPrimair = disc.primair as string
+        if (disc?.primair_profiel) ctx.discPrimair = disc.primair_profiel as string
 
         const { data: sessie } = await supabase
           .from('checkin_sessies').select('id')

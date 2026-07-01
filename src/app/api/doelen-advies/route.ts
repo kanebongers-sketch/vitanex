@@ -16,8 +16,8 @@ export async function GET(req: NextRequest) {
   const admin = createAdminClient()
 
   const [{ data: checkIns }, { data: burnout }] = await Promise.all([
-    admin.from('checkin_sessies')
-      .select('domein_scores')
+    admin.from('checkin_analyses')
+      .select('scores')
       .eq('user_id', user.id)
       .order('aangemaakt_op', { ascending: false })
       .limit(2),
@@ -29,8 +29,8 @@ export async function GET(req: NextRequest) {
       .maybeSingle(),
   ])
 
-  const scores = checkIns?.[0]?.domein_scores as Record<string, number> | null
-  const prevScores = checkIns?.[1]?.domein_scores as Record<string, number> | null
+  const scores = checkIns?.[0]?.scores as Record<string, number> | null
+  const prevScores = checkIns?.[1]?.scores as Record<string, number> | null
 
   if (!scores) return NextResponse.json({ adviezen: [] })
 

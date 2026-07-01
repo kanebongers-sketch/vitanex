@@ -47,7 +47,7 @@ export async function GET(req: NextRequest) {
       .eq('user_id', user.id).gte('aangemaakt_op', `${weekStart}T00:00:00Z`),
     admin.from('dankbaarheid_logs').select('items, datum')
       .eq('user_id', user.id).gte('datum', weekStart),
-    admin.from('checkin_sessies').select('domein_scores, aangemaakt_op')
+    admin.from('checkin_analyses').select('scores, aangemaakt_op')
       .eq('user_id', user.id).gte('aangemaakt_op', `${weekStart}T00:00:00Z`),
   ])
 

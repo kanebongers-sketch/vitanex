@@ -34,18 +34,18 @@ export async function POST(req: NextRequest) {
   // Verzamel context
   const [{ data: profiel }, { data: checkIns }, { data: burnoutScore }, { data: discInzending }] = await Promise.all([
     admin.from('profiles').select('naam, geboortedatum').eq('id', user.id).single(),
-    admin.from('checkin_sessies').select('domein_scores, aangemaakt_op').eq('user_id', user.id).order('aangemaakt_op', { ascending: false }).limit(4),
+    admin.from('checkin_analyses').select('scores, aangemaakt_op').eq('user_id', user.id).order('aangemaakt_op', { ascending: false }).limit(4),
     admin.from('burnout_predictor_scores').select('risico_score, dominante_factor').eq('user_id', user.id).order('week_start', { ascending: false }).limit(1).maybeSingle(),
-    admin.from('disc_inzendingen').select('resultaat').eq('user_id', user.id).order('aangemaakt_op', { ascending: false }).limit(1).maybeSingle(),
+    admin.from('disc_inzendingen').select('primair_profiel').eq('user_id', user.id).order('aangemaakt_op', { ascending: false }).limit(1).maybeSingle(),
   ])
 
   const naam = profiel?.naam ?? 'medewerker'
-  const disc = discInzending?.resultaat ? `DISC-profiel: ${JSON.stringify(discInzending.resultaat)}` : ''
+  const disc = discInzending?.primair_profiel ? `DISC-profiel: ${discInzending.primair_profiel}` : ''
   const burnoutInfo = burnoutScore ? `Burnout risico: ${burnoutScore.risico_score}% (dominante factor: ${burnoutScore.dominante_factor ?? 'onbekend'})` : ''
 
   let domeinInfo = ''
   if (checkIns?.length) {
-    const latest = checkIns[0].domein_scores as Record<string, number> | null
+    const latest = checkIns[0].scores as Record<string, number> | null
     if (latest) {
       domeinInfo = `Huidige domeinscores: ${Object.entries(latest).map(([k, v]) => `${k}=${v}`).join(', ')}`
     }

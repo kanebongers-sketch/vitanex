@@ -31,7 +31,7 @@ export async function GET(request: Request) {
   const cacheData = cached?.analyse_json as Record<string, unknown> | null
   if (cacheData?.checkin_trend) return NextResponse.json(cacheData.checkin_trend)
 
-  const { data: checkins } = await supabaseAdmin.from('checkins')
+  const { data: checkins } = await supabaseAdmin.from('checkin_analyses')
     .select('scores, aangemaakt_op').eq('user_id', user.id)
     .order('aangemaakt_op', { ascending: false }).limit(4)
 

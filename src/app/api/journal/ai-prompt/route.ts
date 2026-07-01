@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
       .order('aangemaakt_op', { ascending: false }).limit(3),
     admin.from('stress_logs').select('stress_niveau').eq('user_id', user.id)
       .order('aangemaakt_op', { ascending: false }).limit(1).maybeSingle(),
-    admin.from('checkin_sessies').select('domein_scores').eq('user_id', user.id)
+    admin.from('checkin_analyses').select('scores').eq('user_id', user.id)
       .order('aangemaakt_op', { ascending: false }).limit(1).maybeSingle(),
   ])
 
@@ -29,7 +29,7 @@ export async function GET(req: NextRequest) {
     : null
 
   const stressNiveau = stress?.stress_niveau ?? null
-  const scores = checkin?.domein_scores as Record<string, number> | null
+  const scores = checkin?.scores as Record<string, number> | null
 
   const context = [
     gemStemming !== null ? `Gemiddelde stemming recent: ${gemStemming}/5` : null,

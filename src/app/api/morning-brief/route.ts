@@ -43,7 +43,7 @@ export async function GET(request: Request) {
 
   // Fetch last check-in scores
   const { data: checkin } = await supabaseAdmin
-    .from('checkins')
+    .from('checkin_analyses')
     .select('scores, aangemaakt_op')
     .eq('user_id', user.id)
     .order('aangemaakt_op', { ascending: false })
@@ -69,11 +69,11 @@ export async function GET(request: Request) {
   // Fetch profile name
   const { data: profile } = await supabaseAdmin
     .from('profiles')
-    .select('voornaam')
+    .select('naam')
     .eq('id', user.id)
     .maybeSingle()
 
-  const naam = profile?.voornaam || 'je'
+  const naam = profile?.naam || 'je'
   const scores = checkin.scores as Record<string, number> || {}
 
   const wearableContext = wearable

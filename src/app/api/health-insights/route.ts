@@ -98,7 +98,7 @@ export async function GET(request: Request) {
       .order('datum', { ascending: false })
       .limit(30),
     supabaseAdmin
-      .from('checkins')
+      .from('checkin_analyses')
       .select('scores, aangemaakt_op')
       .eq('user_id', user.id)
       .gte('aangemaakt_op', `${dertigStr}T00:00:00Z`)

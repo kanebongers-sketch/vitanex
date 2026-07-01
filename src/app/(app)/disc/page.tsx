@@ -24,7 +24,7 @@ interface EerderResultaat {
   s_score: number
   c_score: number
   primair_profiel: string
-  created_at: string
+  aangemaakt_op: string
 }
 
 const VRAGEN: Vraag[] = [
@@ -228,9 +228,9 @@ export default function DiscPage() {
       // Check of er al eerder een inzending is
       const { data: eerder } = await supabase
         .from('disc_inzendingen')
-        .select('d_score, i_score, s_score, c_score, primair_profiel, created_at')
+        .select('d_score, i_score, s_score, c_score, primair_profiel, aangemaakt_op')
         .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
+        .order('aangemaakt_op', { ascending: false })
         .limit(1)
         .single()
 
@@ -343,7 +343,7 @@ export default function DiscPage() {
                 })()}
               </div>
               <h2 style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-1)', marginBottom: 4 }}>Je hebt deze test al ingevuld</h2>
-              <p style={{ color: 'var(--text-3)', fontSize: 14 }}>Gedaan op {formatDatum(eerderResultaat.created_at)}</p>
+              <p style={{ color: 'var(--text-3)', fontSize: 14 }}>Gedaan op {formatDatum(eerderResultaat.aangemaakt_op)}</p>
             </div>
 
             <div style={{ background: 'var(--bg-subtle)', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: 20, marginBottom: 24 }}>

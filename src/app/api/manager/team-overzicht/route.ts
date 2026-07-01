@@ -31,8 +31,8 @@ export async function GET(req: NextRequest) {
       .select('id, naam, email, rol')
       .eq('bedrijf_id', profiel.bedrijf_id)
       .eq('rol', 'medewerker'),
-    admin.from('checkin_sessies')
-      .select('user_id, aangemaakt_op, domein_scores')
+    admin.from('checkin_analyses')
+      .select('user_id, aangemaakt_op, scores')
       .eq('bedrijf_id', profiel.bedrijf_id)
       .gte('aangemaakt_op', cutoff)
       .order('aangemaakt_op', { ascending: false }),
@@ -52,10 +52,10 @@ export async function GET(req: NextRequest) {
 
     const gemiddelden: Record<string, number> = {}
     if (mCheckIns.length > 0) {
-      const domeinen = Object.keys(mCheckIns[0]?.domein_scores ?? {})
+      const domeinen = Object.keys(mCheckIns[0]?.scores ?? {})
       for (const d of domeinen) {
         const scores = mCheckIns
-          .map(c => (c.domein_scores as Record<string, number>)?.[d])
+          .map(c => (c.scores as Record<string, number>)?.[d])
           .filter((s): s is number => typeof s === 'number')
         if (scores.length > 0) {
           gemiddelden[d] = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length * 10) / 10

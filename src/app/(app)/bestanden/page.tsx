@@ -12,7 +12,7 @@ import { FileText } from 'lucide-react'
 
 interface Bestand { id: string; bestandsnaam: string; aangemaakt_op: string; gedeeld_met_hr: boolean; categorie: string }
 interface Rapport { id: string; type: string; titel: string; inhoud: string; aangemaakt_op: string }
-interface DiscInzending { primair_profiel: string; score_d: number; score_i: number; score_s: number; score_c: number; aangemaakt_op: string }
+interface DiscInzending { primair_profiel: string; d_score: number; i_score: number; s_score: number; c_score: number; aangemaakt_op: string }
 
 const TYPE_KLEUR: Record<string, string> = { disc: 'var(--mf-blue)', checkin: 'var(--mf-green)', onboarding: 'var(--mf-purple)', algemeen: 'var(--text-2)' }
 const TYPE_GROEPEN: { key: string; label: string }[] = [
@@ -68,7 +68,7 @@ export default function BestandenPage() {
     try {
       const { data } = await supabase
         .from('disc_inzendingen')
-        .select('primair_profiel, score_d, score_i, score_s, score_c, aangemaakt_op')
+        .select('primair_profiel, d_score, i_score, s_score, c_score, aangemaakt_op')
         .eq('user_id', uid)
         .order('aangemaakt_op', { ascending: false })
         .limit(1)
@@ -113,10 +113,10 @@ export default function BestandenPage() {
   )
 
   const discScores: { key: string; label: string; score: number }[] = discProfiel ? [
-    { key: 'D', label: 'D', score: discProfiel.score_d },
-    { key: 'I', label: 'I', score: discProfiel.score_i },
-    { key: 'S', label: 'S', score: discProfiel.score_s },
-    { key: 'C', label: 'C', score: discProfiel.score_c },
+    { key: 'D', label: 'D', score: discProfiel.d_score },
+    { key: 'I', label: 'I', score: discProfiel.i_score },
+    { key: 'S', label: 'S', score: discProfiel.s_score },
+    { key: 'C', label: 'C', score: discProfiel.c_score },
   ] : []
   const maxScore = discScores.length > 0 ? Math.max(...discScores.map(s => s.score), 1) : 1
 
