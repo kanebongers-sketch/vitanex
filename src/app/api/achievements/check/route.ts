@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAuthenticatedUser } from '@/lib/api-auth'
 import { createAdminClient } from '@/lib/supabase-admin'
+import { berekenLevel } from '@/lib/xp'
+import { datumMinusDagenNL } from '@/lib/date-nl'
 
 interface Achievement {
   id: string
@@ -8,6 +10,19 @@ interface Achievement {
   naam: string
   icon: string
   xp_beloning: number
+}
+
+/** Aaneengesloten dagen (eindigend vandaag/gisteren) met een gewoonte-log. */
+function berekenDagStreak(datums: string[]): number {
+  const set = new Set(datums)
+  let streak = 0
+  for (let i = 0; i < 60; i++) {
+    const d = datumMinusDagenNL(i)
+    if (set.has(d)) streak++
+    else if (i === 0) continue // vandaag nog niet gelogd telt niet als breuk
+    else break
+  }
+  return streak
 }
 
 export async function POST(req: NextRequest) {
@@ -105,6 +120,29 @@ export async function POST(req: NextRequest) {
   if (dankbaarheden >= 7) slugsToKennen.push('dankbaarheid_7')
   if (focusMinuten >= 100) slugsToKennen.push('focus_100')
   if (vierWekenLaag) slugsToKennen.push('burnout_laag')
+
+  // ── Extra checks (defensief) ────────────────────────────────────────────────
+  // Deze queries staan bewust in een eigen try/catch zodat een ontbrekende
+  // tabel/kolom NOOIT het bestaande awarden hierboven kan breken.
+  try {
+    // Fit Level-mijlpalen uit de duurzame XP-bron (user_xp.xp).
+    const { data: xpRow } = await admin
+      .from('user_xp').select('xp').eq('user_id', user.id).maybeSingle()
+    const level = berekenLevel(xpRow?.xp ?? 0)
+    if (level >= 5) slugsToKennen.push('level_5')
+    if (level >= 8) slugsToKennen.push('level_8')
+    if (level >= 10) slugsToKennen.push('level_10')
+
+    // Dagelijkse gewoonte-streak (aaneengesloten dagen in gewoonte_logs).
+    const { data: gewoonteRows } = await admin
+      .from('gewoonte_logs').select('datum')
+      .eq('user_id', user.id).gte('datum', datumMinusDagenNL(59))
+    const dagStreak = berekenDagStreak((gewoonteRows ?? []).map(r => String(r.datum)))
+    if (dagStreak >= 7) slugsToKennen.push('streak_dag_7')
+    if (dagStreak >= 30) slugsToKennen.push('streak_dag_30')
+  } catch (extraErr) {
+    console.error('[achievements/check] extra checks overgeslagen:', extraErr)
+  }
 
   // Filter al behaalde
   const nieuweAchievements: Achievement[] = []
