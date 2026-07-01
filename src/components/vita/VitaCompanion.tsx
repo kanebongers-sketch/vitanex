@@ -5,10 +5,15 @@ import { usePathname, useRouter } from 'next/navigation'
 import { X, Flame, Moon, Zap, Smile, Sparkles, ChevronRight } from 'lucide-react'
 import { authFetch } from '@/lib/auth-fetch'
 import PandaFace, { EmotionState } from '@/components/vita/PandaFace'
-import { emotionFromScore, emotionFromEvent, getTimeOfDay } from '@/lib/vita/emotion-engine'
+import TalkToVita from '@/components/vita/TalkToVita'
+import CelebrationBurst from '@/components/vita/CelebrationBurst'
+import { emotionFromScore, emotionFromEvent, getTimeOfDay, celebrationMessage } from '@/lib/vita/emotion-engine'
 import { getPageGuide } from '@/lib/vita/page-guide'
 import { laadXPData, berekenLevel, LEVEL_NAMEN, LEVEL_KLEUREN, xpVoortgang } from '@/lib/xp'
-import type { VitaEventPayload } from '@/lib/vita/events'
+import { isCelebrationEvent, type VitaEventPayload } from '@/lib/vita/events'
+
+// Route waar het echte VITA-gesprek leeft. Companion deeplinkt ernaartoe.
+const COACH_ROUTE = '/coach'
 
 const HIDDEN_ROUTES = [
   '/login', '/register', '/setup', '/uitnodiging',
@@ -374,6 +379,9 @@ export default function VitaCompanion() {
   const [xp, setXp] = useState<number>(0)
   const [emotion, setEmotion] = useState<EmotionState>('calm')
   const [bubble, setBubble] = useState<{ message: string; emotion: EmotionState } | null>(null)
+  // Viering-moment: telkens een nieuw id, zodat de glow-puls opnieuw afspeelt.
+  const [celebrateId, setCelebrateId] = useState<number>(0)
+  const celebrateResetRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const orbRef = useRef<HTMLButtonElement>(null)
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null)
@@ -526,7 +534,17 @@ export default function VitaCompanion() {
         loadVandaag()
         loadReadiness()
       }
-      const newEmotion = emotionFromEvent(type)
+      // Echte mijlpaal → viering: 'proud'-gezicht + een rustige cyan glow-puls
+      // over de orb. Bij prefers-reduced-motion toont de burst een statische
+      // eindstaat (zie CelebrationBurst).
+      const isCelebration = isCelebrationEvent(type)
+      if (isCelebration) {
+        if (celebrateResetRef.current) clearTimeout(celebrateResetRef.current)
+        setCelebrateId(Date.now())
+        celebrateResetRef.current = setTimeout(() => setCelebrateId(0), 1800)
+      }
+
+      const newEmotion = isCelebration ? 'proud' : emotionFromEvent(type)
       if (newEmotion) {
         if (emotionResetRef.current) clearTimeout(emotionResetRef.current)
         setEmotion(newEmotion)
@@ -536,20 +554,26 @@ export default function VitaCompanion() {
       }
       const now = Date.now()
       if (now - lastNudgeRef.current < 90000) return
-      const bubbleMessages: Partial<Record<string, string>> = {
-        goal_achieved:      'Yes! Doel bereikt 🎉',
-        streak_milestone:   'Streak milestone! Je bent consistent 🔥',
-        level_up:           'Level up! Je companion groeit met je mee ⬆️',
-        check_in_completed: 'Check-in gedaan! Ik houd je voortgang bij 📊',
-      }
-      if (bubbleMessages[type] && !open) {
+      // Warme, eerlijke bubbeltekst zonder emoji-spam voor de mijlpalen;
+      // daarnaast één rustige status-bubbel voor de afgeronde check-in.
+      const bubbleText =
+        celebrationMessage(type)
+        ?? (type === 'check_in_completed' ? 'Check-in gedaan — ik houd je voortgang bij.' : null)
+      if (bubbleText && !open) {
         lastNudgeRef.current = now
-        setBubble({ message: bubbleMessages[type]!, emotion: newEmotion ?? emotion })
+        setBubble({ message: bubbleText, emotion: newEmotion ?? emotion })
       }
     }
     window.addEventListener('vita:event', handler)
     return () => window.removeEventListener('vita:event', handler)
   }, [open, emotion, loadVandaag, loadReadiness])
+
+  // Ruim de emotie- en viering-timers op bij unmount, zodat er nooit een
+  // setState op een verdwenen component valt.
+  useEffect(() => () => {
+    if (emotionResetRef.current) clearTimeout(emotionResetRef.current)
+    if (celebrateResetRef.current) clearTimeout(celebrateResetRef.current)
+  }, [])
 
   useEffect(() => {
     if (!data) return
@@ -638,8 +662,19 @@ export default function VitaCompanion() {
           outline: 2px solid var(--mentaforce-primary);
           outline-offset: 2px;
         }
+        /* Ontworpen states voor de "Praat met VITA"-actie: rustige lift op
+           hover, indrukken op active. Alleen transform — geen layout. */
+        .vita-talk:hover {
+          border-color: color-mix(in srgb, var(--mentaforce-primary) 70%, transparent);
+          background: color-mix(in srgb, var(--mentaforce-primary) 20%, transparent);
+          transform: translateY(-1px);
+        }
+        .vita-talk:active {
+          transform: translateY(0) scale(0.99);
+        }
         @media (prefers-reduced-motion: reduce) {
           .vita-anim { animation: none !important; }
+          .vita-talk:hover, .vita-talk:active { transform: none; }
         }
       `}</style>
       {!open && (
@@ -839,6 +874,9 @@ export default function VitaCompanion() {
             <QuestList checklist={vandaag.checklist} onGo={gaNaar} />
           )}
 
+          {/* Praat met VITA — de companion conversationeel bereikbaar maken */}
+          <TalkToVita onStart={() => gaNaar(COACH_ROUTE)} />
+
           {/* Page guide — wat is deze pagina + je volgende stap */}
           {guide && (
             <div style={{
@@ -960,44 +998,50 @@ export default function VitaCompanion() {
         </div>
       )}
 
-      {/* Orb trigger button */}
-      <button
-        ref={orbRef}
-        className="vita-focusable vita-anim"
-        onPointerDown={(e) => {
-          e.preventDefault()
-          didDrag.current = false
-          dragRef.current = { startX: e.clientX, startY: e.clientY, posX: pos.x, posY: pos.y }
-        }}
-        onClick={() => {
-          if (didDrag.current) return
-          setOpen(v => !v)
-        }}
-        title="VITA — jouw gezondheidscompanion"
-        aria-label="Open VITA gezondheidscompanion"
-        aria-expanded={open}
-        style={{
-          cursor: 'grab',
-          touchAction: 'none',
-          width: 56,
-          height: 56,
-          borderRadius: '50%',
-          border: `1.5px solid ${open ? accentColor : 'var(--border-strong)'}`,
-          background: 'var(--bg-card)',
-          boxShadow: open
-            ? '0 8px 32px rgba(0,0,0,0.14), 0 0 24px color-mix(in srgb, var(--mentaforce-primary) 30%, transparent)'
-            : '0 4px 16px rgba(0,0,0,0.10), 0 1px 4px rgba(0,0,0,0.06)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          overflow: 'hidden',
-          padding: 0,
-          transition: 'border-color 0.3s ease, box-shadow 0.3s ease',
-          animation: 'vita-orb-appear 0.35s cubic-bezier(0.16,1,0.3,1) both',
-        }}
-      >
-        <PandaFace emotion={emotion} size={56} animate />
-      </button>
+      {/* Orb trigger button — de burst valt eromheen, dus in een relatieve
+          wrapper zodat de uitdijende ring niet door overflow: hidden wordt
+          afgesneden. */}
+      <div style={{ position: 'relative', width: ORB_SIZE, height: ORB_SIZE, flexShrink: 0 }}>
+        {celebrateId > 0 && <CelebrationBurst key={celebrateId} size={ORB_SIZE} />}
+        <button
+          ref={orbRef}
+          className="vita-focusable vita-anim"
+          onPointerDown={(e) => {
+            e.preventDefault()
+            didDrag.current = false
+            dragRef.current = { startX: e.clientX, startY: e.clientY, posX: pos.x, posY: pos.y }
+          }}
+          onClick={() => {
+            if (didDrag.current) return
+            setOpen(v => !v)
+          }}
+          title="VITA — jouw gezondheidscompanion"
+          aria-label="Open VITA gezondheidscompanion"
+          aria-expanded={open}
+          style={{
+            cursor: 'grab',
+            touchAction: 'none',
+            width: ORB_SIZE,
+            height: ORB_SIZE,
+            borderRadius: '50%',
+            border: `1.5px solid ${open ? accentColor : 'var(--border-strong)'}`,
+            background: 'var(--bg-card)',
+            boxShadow: open
+              ? '0 8px 32px rgba(0,0,0,0.14), 0 0 24px color-mix(in srgb, var(--mentaforce-primary) 30%, transparent)'
+              : '0 4px 16px rgba(0,0,0,0.10), 0 1px 4px rgba(0,0,0,0.06)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            overflow: 'hidden',
+            padding: 0,
+            position: 'relative',
+            transition: 'border-color 0.3s ease, box-shadow 0.3s ease',
+            animation: 'vita-orb-appear 0.35s cubic-bezier(0.16,1,0.3,1) both',
+          }}
+        >
+          <PandaFace emotion={emotion} size={ORB_SIZE} animate />
+        </button>
+      </div>
     </div>
   )
 }

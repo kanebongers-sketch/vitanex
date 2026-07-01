@@ -14,6 +14,7 @@ import {
   ALLE_ACHIEVEMENTS, type XPData, type Achievement,
 } from '@/lib/xp'
 import { laadXPVanServer } from '@/lib/xp-sync'
+import VitaVoortgangViering from '@/components/vita/VitaVoortgangViering'
 
 
 // ─── Achievement SVG icons ────────────────────────────────────────────────────
@@ -239,6 +240,18 @@ export default function NiveauPage() {
           <p style={{ fontSize: 13, color: 'var(--text-3)', marginTop: 3 }}>
             Doe check-ins, haal doelen en klim naar Level 10 — Legende.
           </p>
+        </div>
+
+        {/* ── Vita viert je huidige niveau (echte level/XP uit deze pagina) ── */}
+        <div style={{ marginBottom: 16 }}>
+          <VitaVoortgangViering
+            variant="level"
+            level={level}
+            levelNaam={LEVEL_NAMEN[level]}
+            volgendeNaam={level < 10 ? LEVEL_NAMEN[level + 1] : null}
+            xpTotVolgende={level >= 10 ? 0 : voortgang.nodig}
+            isMax={level >= 10}
+          />
         </div>
 
         {/* ── Check-in herinnering (positieve framing) ── */}

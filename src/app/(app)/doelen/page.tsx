@@ -4,7 +4,7 @@ export const dynamic = 'force-dynamic'
 
 import { Suspense, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Target, Sparkles, Plus, Check, X, Flame, ChevronRight } from 'lucide-react'
+import { Sparkles, Plus, Check, X, Flame } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { verwerkGoalLog, LEVEL_NAMEN, type Achievement } from '@/lib/xp'
@@ -17,6 +17,9 @@ import {
 import { CAT } from '@/lib/doelen-config'
 import { authFetch } from '@/lib/auth-fetch'
 import { vitaEvent } from '@/lib/vita/events'
+import VitaLeegScherm from '@/components/vita/VitaLeegScherm'
+import VitaDoelenBegroeting from '@/components/vita/VitaDoelenBegroeting'
+import VitaBubbel from '@/components/vita/VitaBubbel'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
@@ -50,6 +53,31 @@ function DoelenInhoud() {
   // AI doelen-advies
   const [adviezen, setAdviezen] = useState<DoelenAdvies[] | null>(null)
   const [adviesBezig, setAdviesBezig] = useState(false)
+
+  // Vita's korte, oprechte erkenning ná het afvinken. Verdwijnt vanzelf zodat
+  // ze niet blijft "hangen" (geen spam) — de begroeting bovenaan blijft altijd.
+  const [vitaReactie, setVitaReactie] = useState<{ tekst: string; vieren: boolean } | null>(null)
+
+  // Reduced-motion: zet de ademhaling op Vita's gezicht uit bij voorkeur.
+  const [reduceMotion, setReduceMotion] = useState<boolean>(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return false
+    return window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  })
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
+    setReduceMotion(mq.matches)
+    const onChange = (e: MediaQueryListEvent) => setReduceMotion(e.matches)
+    mq.addEventListener('change', onChange)
+    return () => mq.removeEventListener('change', onChange)
+  }, [])
+
+  useEffect(() => {
+    if (!vitaReactie) return
+    const t = window.setTimeout(() => setVitaReactie(null), 6000)
+    return () => window.clearTimeout(t)
+  }, [vitaReactie])
 
   async function laadAdviezen() {
     if (adviesBezig) return
@@ -105,6 +133,20 @@ function DoelenInhoud() {
     setLogModal(null)
     setLogNotitie('')
 
+    // Vita's korte, oprechte erkenning — meebewegend met wat er nét gebeurde.
+    if (gehaald) {
+      const allesVandaagGehaald = bijgewerkt.doelen.every(
+        d => d.logs.find(l => l.datum === vandaag())?.gehaald === true,
+      )
+      setVitaReactie(
+        allesVandaagGehaald && bijgewerkt.doelen.length > 1
+          ? { tekst: 'Alle doelen van vandaag afgevinkt — dat is een sterke dag. Trots op je.', vieren: true }
+          : { tekst: 'Fijn, afgevinkt. Kleine stappen, echte vooruitgang.', vieren: false },
+      )
+    } else {
+      setVitaReactie({ tekst: 'Geen zorgen — morgen een nieuwe kans. Ik hou het bij, jij hoeft alleen te verschijnen.', vieren: false })
+    }
+
     if (gehaald) {
       vitaEvent('habit_completed', { kind: 'doel' })
 
@@ -142,25 +184,14 @@ function DoelenInhoud() {
     return (
       <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
         <Navbar />
-        <main style={{ maxWidth: 720, margin: '0 auto', padding: '60px 24px', textAlign: 'center' }}>
-          <div style={{ position: 'relative', width: 64, height: 64, margin: '0 auto 20px' }}>
-            <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 100, height: 100, borderRadius: '50%', background: 'radial-gradient(circle, var(--mentaforce-primary-light) 0%, transparent 70%)', zIndex: 0 }} />
-            <div style={{ width: 64, height: 64, borderRadius: 20, background: 'var(--mentaforce-primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--mentaforce-primary)', position: 'relative', zIndex: 1 }}>
-              <Target size={28} aria-hidden />
-            </div>
-          </div>
-          <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', marginBottom: 10 }}>Nog geen doelen</h1>
-          <p style={{ fontSize: 14, color: 'var(--text-3)', lineHeight: 1.6, marginBottom: 28 }}>
-            Doe een wekelijkse check-in en de AI kiest automatisch 3 doelen die perfect passen bij jouw situatie.
-          </p>
-          <a href="/checkin" style={{
-            display: 'inline-flex', alignItems: 'center', gap: 8,
-            background: 'var(--mentaforce-primary)', color: 'var(--bg-app)', borderRadius: 'var(--radius-btn)',
-            padding: '14px 28px', fontSize: 15, fontWeight: 700, textDecoration: 'none',
-          }}>
-            Start check-in
-            <ChevronRight size={16} aria-hidden />
-          </a>
+        <main style={{ maxWidth: 640, margin: '0 auto', padding: '60px 24px' }}>
+          <VitaLeegScherm
+            titel="Nog geen doelen deze week"
+            boodschap="Doe een korte wekelijkse check-in, dan stel ik samen met jou een paar haalbare doelen op die passen bij hoe het nú met je gaat. Ik verzin niks — ik werk met wat je me vertelt."
+            actieLabel="Start check-in"
+            actieHref="/checkin"
+            emotion="supportive"
+          />
         </main>
       </div>
     )
@@ -177,6 +208,11 @@ function DoelenInhoud() {
     d.setDate(d.getDate() + i)
     return d.toISOString().slice(0, 10)
   })
+
+  // Échte voortgang van vandaag — voedt Vita's begroeting (geen verzonnen data).
+  const aantalGelogdVandaag = selectie.doelen.filter(d => isVandaagGelogd(d)).length
+  const aantalGehaaldVandaag = selectie.doelen.filter(d => logVandaag(d)?.gehaald === true).length
+  const vlakLabels = selectie.doelen.map(d => CAT[d.vlak]?.label ?? d.vlak)
 
   return (
     <div className="mf-mesh-bg" style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
@@ -198,6 +234,42 @@ function DoelenInhoud() {
             Nieuwe check-in
           </a>
         </div>
+
+        {/* Vita — begroet je weekdoelen en beweegt mee met je voortgang */}
+        <div style={{ marginBottom: 20 }}>
+          <VitaDoelenBegroeting
+            aantalDoelen={selectie.doelen.length}
+            aantalGelogd={aantalGelogdVandaag}
+            aantalGehaald={aantalGehaaldVandaag}
+            vlakLabels={vlakLabels}
+          />
+        </div>
+
+        {/* Vita's korte erkenning ná het afvinken (verdwijnt vanzelf) */}
+        {vitaReactie && (
+          <div
+            className="mf-fade-in"
+            role="status"
+            aria-live="polite"
+            style={{ marginBottom: 20, position: 'relative' }}
+          >
+            {vitaReactie.vieren && (
+              <div
+                aria-hidden
+                style={{
+                  position: 'absolute', inset: -6, borderRadius: 20, zIndex: 0,
+                  background: 'radial-gradient(circle at 24px 50%, color-mix(in srgb, var(--mentaforce-primary) 14%, transparent) 0%, transparent 62%)',
+                  pointerEvents: 'none',
+                }}
+              />
+            )}
+            <div style={{ position: 'relative', zIndex: 1 }}>
+              <VitaBubbel emotion={vitaReactie.vieren ? 'proud' : 'motivated'} animate={!reduceMotion}>
+                {vitaReactie.tekst}
+              </VitaBubbel>
+            </div>
+          </div>
+        )}
 
         {/* Domein scores */}
         {selectie.vlak_scores && Object.keys(selectie.vlak_scores).length > 0 && (

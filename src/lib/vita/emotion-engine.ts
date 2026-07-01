@@ -46,6 +46,19 @@ export function emotionFromEvent(type: string): EmotionState | null {
   return EVENT_EMOTIONS[type] ?? null
 }
 
+// Warme, eerlijke viering-teksten voor de echte mijlpalen. Bewust zonder
+// emoji-spam: rustig en premium (zie animation.md / branding.md). Eén korte
+// zin die de gebruiker écht ziet en waarmaakt wat er gebeurde.
+const CELEBRATION_MESSAGES: Partial<Record<string, string>> = {
+  goal_achieved:    'Doel bereikt. Precies zo bouw je vooruitgang op.',
+  streak_milestone: 'Je streak houdt stand — consistentie die telt.',
+  level_up:         'Nieuw level. Je companion groeit met je mee.',
+}
+
+export function celebrationMessage(type: string): string | null {
+  return CELEBRATION_MESSAGES[type] ?? null
+}
+
 const ROUTE_MAP: Array<[string, RouteContext]> = [
   ['/content',   { label: 'Content Studio', suggestedEmotion: 'focused'   }],
   ['/check-in',  { label: 'Check-in',       suggestedEmotion: 'curious'   }],

@@ -11,6 +11,7 @@ import Navbar from '@/components/layout/Navbar'
 import { Card } from '@/components/ui/Card'
 import { Ring } from '@/components/ui/Ring'
 import { CoachNudgeBanner } from '@/components/coach/CoachNudgeBanner'
+import VitaDagstart from '@/components/vita/VitaDagstart'
 import type { LucideIcon } from 'lucide-react'
 import {
   Smile, Moon, Droplets, Dumbbell, Leaf, Heart,
@@ -21,15 +22,6 @@ import {
 /* ── helpers ── */
 function nlDatum(): string {
   return new Date().toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long' })
-}
-
-/* Tijdsbewuste begroeting i.p.v. altijd "Goedemorgen". */
-function begroeting(): string {
-  const u = new Date().getHours()
-  if (u < 6) return 'Goedenacht'
-  if (u < 12) return 'Goedemorgen'
-  if (u < 18) return 'Goedemiddag'
-  return 'Goedenavond'
 }
 
 function scoreLabel(score: number | null): string {
@@ -208,15 +200,9 @@ export default function DashboardPage() {
   const alGedaan = gedaanCount === checklist.length
   const kleur = scoreKleur(readiness)
 
-  /* Warme, eerlijke subline op basis van echte voortgang — geen verzonnen data. */
-  const subline =
-    alGedaan
-      ? 'Alles afgerond voor vandaag. Sterk gedaan.'
-      : gedaanCount > 0
-        ? `Goed bezig — ${gedaanCount}/${checklist.length} taken vandaag afgerond.`
-        : readiness !== null
-          ? 'Klaar voor een nieuwe dag. Begin met één kleine stap.'
-          : 'Begin met je check-in om je dag te meten.'
+  /* Het dagafsluit-ritueel (dankbaarheid/reflectie) — echte data uit de checklist,
+     niet verzonnen. Vita gebruikt dit om 's avonds gepast uit te nodigen. */
+  const reflectieGedaan = checklist.find(i => i.key === 'dankbaarheid')?.gedaan ?? false
 
   if (laden) {
     return (
@@ -231,18 +217,20 @@ export default function DashboardPage() {
       <Navbar />
       <main className="mf-dash">
 
-        {/* Header */}
-        <div style={{ marginBottom: 24 }}>
-          <p style={{ fontSize: 11, color: 'var(--text-4)', fontWeight: 600, marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-            {nlDatum()}
-          </p>
-          <h1 style={{ fontSize: 26, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', margin: 0, lineHeight: 1.1 }}>
-            {begroeting()}, {voornaam}
-          </h1>
-          <p style={{ fontSize: 14, color: 'var(--text-3)', margin: '6px 0 0', lineHeight: 1.4 }}>
-            {subline}
-          </p>
-        </div>
+        {/* Datum */}
+        <p style={{ fontSize: 11, color: 'var(--text-4)', fontWeight: 600, margin: '0 0 12px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+          {nlDatum()}
+        </p>
+
+        {/* Vita's tijdsbewuste dagstart/dagafsluiting — draagt de begroeting */}
+        <VitaDagstart
+          voornaam={voornaam}
+          readiness={readiness}
+          gedaanCount={gedaanCount}
+          totaal={checklist.length}
+          streak={streak}
+          reflectieGedaan={reflectieGedaan}
+        />
 
         {/* Proactieve coach-nudge */}
         <CoachNudgeBanner />

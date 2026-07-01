@@ -2,12 +2,15 @@
 
 // ════════════════════════════════════════════════════════════════════════════
 // BaselineMetingStap — 15 baseline-vragen verdeeld over 4 blokken.
-// Opgeslitst uit IntakeStappen.tsx om onder de 800-regelgrens te blijven.
+// Onderdeel van het Vita-intakegesprek: Vita stelt de vragen, de gebruiker
+// antwoordt via branded schalen en chips (navy + cyan, tokens uit globals.css).
 // Exporteert: BaselineMetingStap (component), BaselineMeting (type), LEGE_BASELINE.
 // ════════════════════════════════════════════════════════════════════════════
 
 import { type Dispatch, type SetStateAction } from 'react'
-import { Veld, Knop, SkipLink } from './page'
+import { Activity, Moon, ShieldCheck, Leaf } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
+import { VitaVeld, VitaChips, VitaSchaal, GesprekKnoppen } from './VitaKeuze'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 export interface BaselineMeting {
@@ -62,96 +65,26 @@ const MOTIVATOR_OPTIES = [
 const SLAAP_DUUR_OPTIES = ['<5u', '5-6u', '6-7u', '7-8u', '8-9u', '>9u']
 const BEWEGING_OPTIES = ['0', '1', '2', '3', '4', '5+']
 
-// ─── Primitieven ──────────────────────────────────────────────────────────────
-function EmojiSchaal({
-  vraag, emojis, waarde, onChange,
-}: {
-  vraag: string; emojis: string[]; waarde: number | null; onChange: (v: number) => void
-}) {
+const SCHAAL_LABELS = ['Heel laag', 'Laag', 'Gemiddeld', 'Goed', 'Heel goed']
+
+// ─── Blok-kop met lucide-icoon (geen emoji) ───────────────────────────────────
+function BlokKop({ Icon, titel, sub }: { Icon: LucideIcon; titel: string; sub: string }) {
   return (
-    <div style={{ marginBottom: 20 }}>
-      <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--mf-text, #374151)', marginBottom: 10 }}>{vraag}</p>
-      <div style={{ display: 'flex', gap: 6, justifyContent: 'space-between' }}>
-        {emojis.map((emoji, i) => {
-          const val = i + 1
-          const geselecteerd = waarde === val
-          return (
-            <button
-              key={val}
-              type="button"
-              onClick={() => onChange(val)}
-              style={{
-                flex: 1, padding: '9px 4px', borderRadius: 10,
-                border: `2px solid ${geselecteerd ? 'var(--mf-green, #1D9E75)' : 'var(--mf-border, #E5E7EB)'}`,
-                background: geselecteerd ? 'var(--mf-green-light, #E1F5EE)' : 'var(--mf-bg-subtle, #F9FAFB)',
-                cursor: 'pointer', fontSize: 20, transition: 'all 0.15s',
-                transform: geselecteerd ? 'scale(1.1)' : 'scale(1)',
-                boxShadow: geselecteerd ? '0 2px 8px rgba(29,158,117,0.2)' : 'none',
-              }}
-            >
-              {emoji}
-            </button>
-          )
-        })}
+    <div style={{ marginTop: 4, marginBottom: 14, paddingBottom: 12, borderBottom: '1px solid var(--border)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 3 }}>
+        <span
+          aria-hidden
+          style={{
+            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+            width: 30, height: 30, borderRadius: 9,
+            background: 'var(--mentaforce-primary-light)', color: 'var(--mentaforce-primary)',
+          }}
+        >
+          <Icon size={16} strokeWidth={1.75} />
+        </span>
+        <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-1)' }}>{titel}</p>
       </div>
-    </div>
-  )
-}
-
-function ChipSelectie({
-  opties, geselecteerd, onToggle, multi = false, max,
-}: {
-  opties: string[]
-  geselecteerd: string | string[] | number | null
-  onToggle: (waarde: string) => void
-  multi?: boolean
-  max?: number
-}) {
-  function isActief(opt: string, index: number): boolean {
-    if (multi) return Array.isArray(geselecteerd) && geselecteerd.includes(opt)
-    if (typeof geselecteerd === 'number') return geselecteerd === index
-    return geselecteerd === opt
-  }
-
-  return (
-    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-      {opties.map((opt, i) => {
-        const actief = isActief(opt, i)
-        const limietBereikt = multi && max !== undefined && Array.isArray(geselecteerd) && geselecteerd.length >= max && !actief
-        return (
-          <button
-            key={opt}
-            type="button"
-            onClick={() => { if (!limietBereikt) onToggle(opt) }}
-            disabled={limietBereikt}
-            style={{
-              padding: '7px 14px', borderRadius: 9999, fontSize: 13, cursor: limietBereikt ? 'not-allowed' : 'pointer',
-              fontWeight: actief ? 700 : 400, transition: 'all 0.12s', opacity: limietBereikt ? 0.4 : 1,
-              border: `1.5px solid ${actief ? 'var(--mf-green, #1D9E75)' : 'var(--mf-border, #E5E7EB)'}`,
-              background: actief ? 'var(--mf-green-light, #E1F5EE)' : 'var(--mf-surface, white)',
-              color: actief ? 'var(--mf-green-dark, #0F6E56)' : 'var(--mf-text-muted, #6B7280)',
-            }}
-          >
-            {opt}
-          </button>
-        )
-      })}
-    </div>
-  )
-}
-
-function BlokKop({ nummer, titel, sub }: { nummer: string; titel: string; sub: string }) {
-  return (
-    <div style={{ marginBottom: 16, paddingBottom: 12, borderBottom: '1px solid var(--mf-border, #E5E7EB)' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
-        <span style={{
-          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-          width: 22, height: 22, borderRadius: '50%', fontSize: 11, fontWeight: 800,
-          background: 'var(--mf-green, #1D9E75)', color: 'white',
-        }}>{nummer}</span>
-        <p style={{ fontSize: 14, fontWeight: 800, color: 'var(--mf-heading, #111827)' }}>{titel}</p>
-      </div>
-      <p style={{ fontSize: 12, color: 'var(--mf-text-muted, #9CA3AF)', paddingLeft: 30 }}>{sub}</p>
+      <p style={{ fontSize: 12.5, color: 'var(--text-3)', paddingLeft: 40 }}>{sub}</p>
     </div>
   )
 }
@@ -202,151 +135,170 @@ export function BaselineMetingStap({
   }
 
   return (
-    <div className="mf-animate-up">
-      <div style={{ marginBottom: 24 }}>
-        <div style={{ fontSize: 28, marginBottom: 8 }}>📊</div>
-        <h2 style={{ fontSize: 20, fontWeight: 800, color: 'var(--mf-heading, #111827)', marginBottom: 4, letterSpacing: '-0.02em' }}>
-          Jouw startfoto
-        </h2>
-        <p style={{ fontSize: 13, color: 'var(--mf-text-muted, #9CA3AF)', lineHeight: 1.5 }}>
-          15 korte vragen. We gebruiken deze om een persoonlijk Vitality Score en actieplan voor je te maken.
-          Duurt circa 3-4 minuten.
-        </p>
-      </div>
+    <div className="mf-animate-up" style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+      <BlokKop Icon={Activity} titel="Hoe voel je je?" sub="Denk aan de afgelopen 2 weken, gemiddeld" />
 
-      <BlokKop nummer="1" titel="Hoe voel je je?" sub="De afgelopen 2 weken gemiddeld" />
+      <VitaVeld label="Hoeveel energie had je gemiddeld?">
+        <VitaSchaal
+          legenda="Energie de afgelopen 2 weken"
+          emojis={['😴', '😕', '😐', '😊', '⚡']}
+          labels={SCHAAL_LABELS}
+          waarde={meting.energie_niveau}
+          onKies={v => setMeting(m => ({ ...m, energie_niveau: v }))}
+        />
+      </VitaVeld>
+      <VitaVeld label="Hoe was je stemming?">
+        <VitaSchaal
+          legenda="Stemming de afgelopen 2 weken"
+          emojis={['😞', '😔', '😐', '🙂', '😄']}
+          labels={SCHAAL_LABELS}
+          waarde={meting.stemming}
+          onKies={v => setMeting(m => ({ ...m, stemming: v }))}
+        />
+      </VitaVeld>
+      <VitaVeld label="Had je plezier in dingen die je normaal leuk vindt?">
+        <VitaSchaal
+          legenda="Plezier de afgelopen 2 weken"
+          emojis={['😶', '😕', '😐', '😊', '🤩']}
+          labels={SCHAAL_LABELS}
+          waarde={meting.interesse_plezier}
+          onKies={v => setMeting(m => ({ ...m, interesse_plezier: v }))}
+        />
+      </VitaVeld>
+      <VitaVeld label="Hoe voelt je lichaam zich fysiek? (uitgeput → fit)">
+        <VitaSchaal
+          legenda="Lichaamsgevoel de afgelopen 2 weken"
+          emojis={['🥵', '😮‍💨', '😐', '💪', '🔥']}
+          labels={SCHAAL_LABELS}
+          waarde={meting.lichaam_gevoel}
+          onKies={v => setMeting(m => ({ ...m, lichaam_gevoel: v }))}
+        />
+      </VitaVeld>
 
-      <EmojiSchaal
-        vraag="Hoeveel energie had je de afgelopen 2 weken gemiddeld?"
-        emojis={['😴', '😕', '😐', '😊', '⚡']}
-        waarde={meting.energie_niveau}
-        onChange={v => setMeting(m => ({ ...m, energie_niveau: v }))}
-      />
-      <EmojiSchaal
-        vraag="Hoe was je stemming de afgelopen 2 weken?"
-        emojis={['😞', '😔', '😐', '🙂', '😄']}
-        waarde={meting.stemming}
-        onChange={v => setMeting(m => ({ ...m, stemming: v }))}
-      />
-      <EmojiSchaal
-        vraag="Had je plezier in dingen die je normaal leuk vindt?"
-        emojis={['😶', '😕', '😐', '😊', '🤩']}
-        waarde={meting.interesse_plezier}
-        onChange={v => setMeting(m => ({ ...m, interesse_plezier: v }))}
-      />
-      <EmojiSchaal
-        vraag="Hoe voelt je lichaam zich fysiek? (fit ↔ uitgeput)"
-        emojis={['🥵', '😮‍💨', '😐', '💪', '🔥']}
-        waarde={meting.lichaam_gevoel}
-        onChange={v => setMeting(m => ({ ...m, lichaam_gevoel: v }))}
-      />
+      <BlokKop Icon={Moon} titel="Slaap & herstel" sub="De basis onder alles" />
 
-      <div style={{ marginTop: 24 }}>
-        <BlokKop nummer="2" titel="Slaap & herstel" sub="De basis onder alles" />
-      </div>
-
-      <EmojiSchaal
-        vraag="Hoe goed slaap je doorgaans?"
-        emojis={['😫', '😕', '😐', '😊', '🤩']}
-        waarde={meting.slaap_kwaliteit}
-        onChange={v => setMeting(m => ({ ...m, slaap_kwaliteit: v }))}
-      />
-      <Veld label="Hoeveel uur slaap je gemiddeld per nacht?">
-        <ChipSelectie
+      <VitaVeld label="Hoe goed slaap je doorgaans?">
+        <VitaSchaal
+          legenda="Slaapkwaliteit"
+          emojis={['😫', '😕', '😐', '😊', '🤩']}
+          labels={SCHAAL_LABELS}
+          waarde={meting.slaap_kwaliteit}
+          onKies={v => setMeting(m => ({ ...m, slaap_kwaliteit: v }))}
+        />
+      </VitaVeld>
+      <VitaVeld label="Hoeveel uur slaap je gemiddeld per nacht?">
+        <VitaChips
+          legenda="Slaapduur per nacht"
           opties={SLAAP_DUUR_OPTIES}
           geselecteerd={meting.slaap_duur}
-          onToggle={opt => setMeting(m => ({ ...m, slaap_duur: SLAAP_DUUR_OPTIES.indexOf(opt) }))}
+          onToggle={(_, i) => setMeting(m => ({ ...m, slaap_duur: i }))}
         />
-      </Veld>
-      <EmojiSchaal
-        vraag="Val je overdag soms ongewild in slaap of vecht je tegen vermoeidheid?"
-        emojis={['🚫', '🙂', '😐', '😪', '😴']}
-        waarde={meting.slaperigheid_overdag}
-        onChange={v => setMeting(m => ({ ...m, slaperigheid_overdag: v }))}
-      />
+      </VitaVeld>
+      <VitaVeld label="Val je overdag soms ongewild in slaap of vecht je tegen vermoeidheid?">
+        <VitaSchaal
+          legenda="Slaperigheid overdag"
+          emojis={['🚫', '🙂', '😐', '😪', '😴']}
+          labels={['Nooit', 'Zelden', 'Soms', 'Vaak', 'Constant']}
+          waarde={meting.slaperigheid_overdag}
+          onKies={v => setMeting(m => ({ ...m, slaperigheid_overdag: v }))}
+        />
+      </VitaVeld>
 
-      <div style={{ marginTop: 24 }}>
-        <BlokKop nummer="3" titel="Stress & veerkracht" sub="De afgelopen 2 weken" />
-      </div>
+      <BlokKop Icon={ShieldCheck} titel="Stress & veerkracht" sub="De afgelopen 2 weken" />
 
-      <EmojiSchaal
-        vraag="Hoe vaak voelde je dat je de belangrijke dingen in je leven onder controle had?"
-        emojis={['😟', '😕', '😐', '🙂', '😌']}
-        waarde={meting.stress_controle}
-        onChange={v => setMeting(m => ({ ...m, stress_controle: v }))}
-      />
-      <EmojiSchaal
-        vraag="Hoe vaak voelden problemen zich zo opstapelen dat je ze niet de baas kon?"
-        emojis={['🚫', '😕', '😐', '😓', '😵']}
-        waarde={meting.stress_overweldigd}
-        onChange={v => setMeting(m => ({ ...m, stress_overweldigd: v }))}
-      />
-      <EmojiSchaal
-        vraag="Lukt het je om écht te ontspannen en te herstellen op een dag?"
-        emojis={['🚫', '😕', '😐', '😊', '🧘']}
-        waarde={meting.herstel_ontspanning}
-        onChange={v => setMeting(m => ({ ...m, herstel_ontspanning: v }))}
-      />
+      <VitaVeld label="Hoe vaak had je het gevoel de belangrijke dingen onder controle te hebben?">
+        <VitaSchaal
+          legenda="Gevoel van controle"
+          emojis={['😟', '😕', '😐', '🙂', '😌']}
+          labels={['Nooit', 'Zelden', 'Soms', 'Vaak', 'Bijna altijd']}
+          waarde={meting.stress_controle}
+          onKies={v => setMeting(m => ({ ...m, stress_controle: v }))}
+        />
+      </VitaVeld>
+      <VitaVeld label="Hoe vaak stapelden problemen zich zo op dat je ze niet de baas kon?">
+        <VitaSchaal
+          legenda="Overweldiging"
+          emojis={['🚫', '😕', '😐', '😓', '😵']}
+          labels={['Nooit', 'Zelden', 'Soms', 'Vaak', 'Bijna altijd']}
+          waarde={meting.stress_overweldigd}
+          onKies={v => setMeting(m => ({ ...m, stress_overweldigd: v }))}
+        />
+      </VitaVeld>
+      <VitaVeld label="Lukt het je om écht te ontspannen en te herstellen op een dag?">
+        <VitaSchaal
+          legenda="Herstel en ontspanning"
+          emojis={['🚫', '😕', '😐', '😊', '🧘']}
+          labels={['Nooit', 'Zelden', 'Soms', 'Vaak', 'Bijna altijd']}
+          waarde={meting.herstel_ontspanning}
+          onKies={v => setMeting(m => ({ ...m, herstel_ontspanning: v }))}
+        />
+      </VitaVeld>
 
-      <div style={{ marginTop: 24 }}>
-        <BlokKop nummer="4" titel="Leefstijl & gedrag" sub="Wat doe je al?" />
-      </div>
+      <BlokKop Icon={Leaf} titel="Leefstijl & gedrag" sub="Wat doe je al?" />
 
-      <Veld label="Op hoeveel dagen per week beweeg je intensief? (zweten / buiten adem)">
-        <ChipSelectie
+      <VitaVeld label="Op hoeveel dagen per week beweeg je intensief? (zweten / buiten adem)">
+        <VitaChips
+          legenda="Dagen intensief bewegen per week"
           opties={BEWEGING_OPTIES}
           geselecteerd={meting.beweging_dagen}
-          onToggle={opt => setMeting(m => ({ ...m, beweging_dagen: BEWEGING_OPTIES.indexOf(opt) }))}
+          onToggle={(_, i) => setMeting(m => ({ ...m, beweging_dagen: i }))}
         />
-      </Veld>
-      <EmojiSchaal
-        vraag="Hoe gezond eet je doorgaans?"
-        emojis={['🍔', '🍕', '😐', '🥙', '🥗']}
-        waarde={meting.voeding_kwaliteit}
-        onChange={v => setMeting(m => ({ ...m, voeding_kwaliteit: v }))}
-      />
-      <Veld label="Wat speelt nu mee in jouw dag?" sub="Kies wat past — mag meerdere zijn">
-        <ChipSelectie
+      </VitaVeld>
+      <VitaVeld label="Hoe gezond eet je doorgaans?">
+        <VitaSchaal
+          legenda="Voedingskwaliteit"
+          emojis={['🍔', '🍕', '😐', '🥙', '🥗']}
+          labels={SCHAAL_LABELS}
+          waarde={meting.voeding_kwaliteit}
+          onKies={v => setMeting(m => ({ ...m, voeding_kwaliteit: v }))}
+        />
+      </VitaVeld>
+      <VitaVeld label="Wat speelt nu mee in jouw dag?" sub="Kies wat past — mag meerdere zijn">
+        <VitaChips
+          legenda="Gewoontes die meespelen"
           opties={GEWOONTE_OPTIES}
           geselecteerd={meting.gewoontes}
           onToggle={toggleGewoonte}
           multi
         />
-      </Veld>
-      <Veld
+      </VitaVeld>
+      <VitaVeld
         label="Wat is voor jou de belangrijkste reden om hiermee bezig te zijn?"
         sub={`Kies maximaal 3 (${meting.motivatoren.length}/3)`}
       >
-        <ChipSelectie
+        <VitaChips
+          legenda="Jouw motivatoren"
           opties={MOTIVATOR_OPTIES}
           geselecteerd={meting.motivatoren}
           onToggle={toggleMotivator}
           multi
           max={3}
         />
-      </Veld>
-      <EmojiSchaal
-        vraag="Hoeveel vertrouwen heb je dat je dit kunt volhouden?"
-        emojis={['😟', '😕', '😐', '🙂', '💪']}
-        waarde={meting.zelfvertrouwen_verandering}
-        onChange={v => setMeting(m => ({ ...m, zelfvertrouwen_verandering: v }))}
-      />
+      </VitaVeld>
+      <VitaVeld label="Hoeveel vertrouwen heb je dat je dit kunt volhouden?">
+        <VitaSchaal
+          legenda="Zelfvertrouwen in verandering"
+          emojis={['😟', '😕', '😐', '🙂', '💪']}
+          labels={['Heel weinig', 'Weinig', 'Redelijk', 'Veel', 'Heel veel']}
+          waarde={meting.zelfvertrouwen_verandering}
+          onKies={v => setMeting(m => ({ ...m, zelfvertrouwen_verandering: v }))}
+        />
+      </VitaVeld>
 
       {!kanVerder && (
-        <p style={{ fontSize: 12, color: 'var(--mf-text-muted, #9CA3AF)', marginBottom: 12, textAlign: 'center' }}>
-          Vul blok 1 en 2 volledig in om door te gaan
+        <p style={{ fontSize: 12.5, color: 'var(--text-3)', textAlign: 'center' }}>
+          Vul de eerste twee blokken volledig in om verder te gaan
         </p>
       )}
 
-      <div style={{ display: 'flex', gap: 12, justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
-        <Knop onClick={onTerug} variant="ghost">← Terug</Knop>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8 }}>
-          <Knop onClick={onVolgende} disabled={!kanVerder || bezig}>
-            {bezig ? 'Analyseren...' : 'Analyseer mijn startfoto →'}
-          </Knop>
-          <SkipLink onClick={onSlaan} label="Sla meting over" />
-        </div>
-      </div>
+      <GesprekKnoppen
+        onTerug={onTerug}
+        onVolgende={onVolgende}
+        volgendeLabel={bezig ? 'Vita denkt na…' : 'Analyseer mijn startfoto'}
+        volgendeDisabled={!kanVerder || bezig}
+        bezig={bezig}
+        overslaan={{ onClick: onSlaan, label: 'Sla deze vragen over' }}
+      />
     </div>
   )
 }

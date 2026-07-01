@@ -120,6 +120,16 @@ export default function PandaFace({ emotion = 'calm', size = 56, animate = false
           0%, 92%, 100% { transform: scaleY(1); }
           95%           { transform: scaleY(0.08); }
         }
+        /* Zachte idle-blik: de pupillen dwalen heel subtiel — geeft leven,
+           zonder af te leiden. Alleen transform, en uit bij reduced-motion. */
+        @keyframes panda-gaze {
+          0%, 100% { transform: translate(0, 0); }
+          30%      { transform: translate(0.6px, 0.3px); }
+          65%      { transform: translate(-0.6px, 0.2px); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .panda-gaze { animation: none !important; }
+        }
       `}</style>
 
       <g
@@ -163,15 +173,29 @@ export default function PandaFace({ emotion = 'calm', size = 56, animate = false
           </>
         ) : (
           <>
-            {/* Left eye */}
+            {/* Sclera's blijven staan; alleen de pupillen + catchlight dwalen mee
+                in de idle-blik, zodat de blik nooit buiten het oog valt. */}
             <ellipse cx={lx} cy={ly} rx={lrx} ry={lry} fill="white" />
-            <circle cx={lx} cy={ly + exp.leftPupil.dy} r={exp.leftPupil.r} fill="#1a1a1a" />
-            <circle cx={lx + 1.5} cy={ly + exp.leftPupil.dy - 1.5} r={1.1} fill="white" />
-
-            {/* Right eye */}
             <ellipse cx={rx} cy={ry} rx={rrx} ry={rry} fill="white" />
-            <circle cx={rx} cy={ry + exp.rightPupil.dy} r={exp.rightPupil.r} fill="#1a1a1a" />
-            <circle cx={rx + 1.5} cy={ry + exp.rightPupil.dy - 1.5} r={1.1} fill="white" />
+
+            <g
+              className={animate ? 'panda-gaze' : undefined}
+              style={
+                animate
+                  ? { animation: 'panda-gaze 7s ease-in-out infinite', transformOrigin: '28px 27px' }
+                  : undefined
+              }
+            >
+              {/* Left pupil + catchlight */}
+              <circle cx={lx} cy={ly + exp.leftPupil.dy} r={exp.leftPupil.r} fill="#1a1a1a" />
+              <circle cx={lx + 1.5} cy={ly + exp.leftPupil.dy - 1.5} r={1.1} fill="white" />
+              <circle cx={lx - 1} cy={ly + exp.leftPupil.dy + 1.2} r={0.5} fill="white" opacity={0.6} />
+
+              {/* Right pupil + catchlight */}
+              <circle cx={rx} cy={ry + exp.rightPupil.dy} r={exp.rightPupil.r} fill="#1a1a1a" />
+              <circle cx={rx + 1.5} cy={ry + exp.rightPupil.dy - 1.5} r={1.1} fill="white" />
+              <circle cx={rx - 1} cy={ry + exp.rightPupil.dy + 1.2} r={0.5} fill="white" opacity={0.6} />
+            </g>
           </>
         )}
 

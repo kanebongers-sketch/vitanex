@@ -150,9 +150,10 @@ export async function buildCoachSystemPrompt(
   } catch { /* niet-kritiek */ }
 
   context += `\n════════════════════════════════════════════\n`
-  context += `Gebruik bovenstaande context voor persoonlijke, relevante coaching.\n`
-  context += `Verwijs NIET letterlijk naar getallen tenzij de gebruiker er zelf naar vraagt.\n`
-  context += `Stel open vragen, wees empathisch, geef concrete tips gebaseerd op de scores.\n`
+  context += `Dit is wat jij, Vita, al over deze persoon weet — je kent ze, dus praat ook zo.\n`
+  context += `Laat merken dat je meeleeft en hun situatie kent, zonder de cijfers letterlijk op te sommen (tenzij ze er zelf naar vragen).\n`
+  context += `Luister eerst, spiegel wat je oppikt, stel af en toe één open vraag, en geef concrete tips die passen bij hun scores en toestand.\n`
+  context += `Blijf warm, menselijk en in de ik-vorm — je bent Vita, hun companion, niet een anonieme coach.\n`
 
   return context
 }

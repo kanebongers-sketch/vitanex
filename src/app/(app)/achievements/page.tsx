@@ -15,6 +15,7 @@ import { EmptyState } from '@/components/ui/EmptyState'
 import { Button } from '@/components/ui/Button'
 import { berekenLevel, LEVEL_NAMEN, xpVoortgang, laadXPData } from '@/lib/xp'
 import { laadXPVanServer } from '@/lib/xp-sync'
+import VitaVoortgangViering from '@/components/vita/VitaVoortgangViering'
 
 
 interface Achievement {
@@ -123,6 +124,11 @@ export default function AchievementsPagina() {
             Jouw prestaties
           </h1>
         </header>
+
+        {/* Vita erkent je badges (echte behaalde-status uit de server) */}
+        <div style={{ marginBottom: 20 }}>
+          <VitaVoortgangViering variant="badges" behaald={achievements.length} />
+        </div>
 
         {/* Fit Level card — dezelfde bron als /niveau (user_xp.xp) */}
         <Card style={{ padding: 20, marginBottom: 20, boxShadow: 'var(--shadow-md)' }}>

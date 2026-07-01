@@ -12,6 +12,7 @@ import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Field } from '@/components/ui/Field'
 import { Textarea } from '@/components/ui/Textarea'
+import VitaReflectieBegeleider from '@/components/vita/VitaReflectieBegeleider'
 
 
 const REFLECTIE_VRAGEN = [
@@ -159,6 +160,10 @@ export default function ReflectiePage() {
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            {/* Vita opent het reflectiemoment — of viert de afronding. Additief:
+                de reflectie-logica en opslag hieronder blijven ongewijzigd. */}
+            <VitaReflectieBegeleider fase={opgeslagen ? 'afronden' : 'opening'} />
+
             {REFLECTIE_VRAGEN.map((vraag, i) => {
               const isIngevuld = Boolean(antwoorden[vraag.id]?.trim())
               return (
@@ -168,6 +173,10 @@ export default function ReflectiePage() {
                       {isIngevuld ? <Check size={14} aria-hidden /> : i + 1}
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
+                      {/* Vita begeleidt kort per vraag — een menselijke zin bij het moment. */}
+                      <div style={{ marginBottom: 12 }}>
+                        <VitaReflectieBegeleider fase="vraag" vraagId={vraag.id} size={40} />
+                      </div>
                       <Field label={vraag.vraag} htmlFor={`reflectie-${vraag.id}`}>
                         <Textarea
                           id={`reflectie-${vraag.id}`}

@@ -13,10 +13,13 @@ import { Badge } from '@/components/ui/Badge'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { useToast } from '@/components/ui/Toast'
 import {
-  RefreshCw, Sparkles, Target, TrendingUp, Leaf,
+  RefreshCw, Sparkles, Target, Leaf,
   Moon, Brain, Zap, Crosshair, Scale, Flame, CalendarDays, CalendarRange, Pin,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
+import VitaLeegScherm from '@/components/vita/VitaLeegScherm'
+import VitaGroeiplanBegroeting from '@/components/vita/VitaGroeiplanBegroeting'
+import VitaBubbel from '@/components/vita/VitaBubbel'
 
 
 interface Actie {
@@ -125,27 +128,15 @@ export default function GroeiplanPagina() {
         </header>
 
         {!groeiplan && !genereren ? (
-          <Card style={{ padding: '40px 24px', textAlign: 'center' }}>
-            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
-              <span style={{
-                display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                width: 84, height: 84, borderRadius: '50%',
-                background: 'var(--mentaforce-primary-light)',
-                border: '1px solid var(--border-strong)',
-              }}>
-                <TrendingUp size={36} strokeWidth={1.5} aria-hidden style={{ color: 'var(--mentaforce-primary)' }} />
-              </span>
-            </div>
-            <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-1)', marginBottom: 8 }}>
-              Genereer jouw groeiplan
-            </h2>
-            <p style={{ fontSize: 13, color: 'var(--text-3)', lineHeight: 1.6, marginBottom: 24 }}>
-              Op basis van je check-ins, DISC-profiel en burnout-data maakt de AI een persoonlijk groeiplan voor jou.
-            </p>
+          <VitaLeegScherm
+            titel="Laten we jouw groeiplan opbouwen"
+            boodschap="Op basis van je check-ins, DISC-profiel en burnout-data stel ik samen met jou een persoonlijk plan op — sterke punten, aandachtspunten en concrete acties. Ik pas het aan naarmate ik je beter leer kennen."
+            emotion="motivated"
+          >
             <Button onClick={genereerNieuwPlan} size="lg" leftIcon={<Sparkles size={18} aria-hidden />}>
               Plan genereren
             </Button>
-          </Card>
+          </VitaLeegScherm>
         ) : genereren ? (
           <Card style={{ padding: '32px 24px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20, justifyContent: 'center' }}>
@@ -167,6 +158,14 @@ export default function GroeiplanPagina() {
           </Card>
         ) : groeiplan ? (
           <>
+            {/* Vita introduceert het plan warm en persoonlijk. */}
+            <div style={{ marginBottom: 20 }}>
+              <VitaGroeiplanBegroeting
+                aantalDoelen={(groeiplan.doelen ?? []).length}
+                aantalActies={(groeiplan.acties ?? []).length}
+              />
+            </div>
+
             <p style={{ fontSize: 11, color: 'var(--text-4)', marginBottom: 20, textAlign: 'right' }}>
               Gegenereerd op {new Date(groeiplan.aangemaakt_op).toLocaleDateString('nl-NL', { day: 'numeric', month: 'long' })}
             </p>
@@ -227,8 +226,15 @@ export default function GroeiplanPagina() {
               const groups = TERMIJN_VOLGORDE
                 .map(t => ({ termijn: t, acties: (groeiplan.acties ?? []).filter(a => a.termijn === t) }))
                 .filter(g => g.acties.length > 0)
+              if (groups.length === 0) return null
               return (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  {/* Vita moedigt de concrete acties aan — steunend, zonder druk. */}
+                  <VitaBubbel emotion="motivated" size={44} naam={null}>
+                    Deze acties koos ik samen met jou uit jouw data. Pak er één op
+                    die vandaag haalbaar voelt — de rest wacht rustig op je.
+                  </VitaBubbel>
+
                   {groups.map(g => {
                     const meta = TERMIJN_META[g.termijn]
                     const TermijnIcoon = meta?.icoon ?? CalendarDays

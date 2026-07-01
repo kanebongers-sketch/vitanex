@@ -4,15 +4,15 @@ export const dynamic = 'force-dynamic'
 
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { RefreshCw, BarChart3 } from 'lucide-react'
+import { RefreshCw } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
 import { Card } from '@/components/ui/Card'
 import { Ring } from '@/components/ui/Ring'
 import { Button } from '@/components/ui/Button'
-import { EmptyState } from '@/components/ui/EmptyState'
 import { useToast } from '@/components/ui/Toast'
+import VitaLeegScherm from '@/components/vita/VitaLeegScherm'
 
 interface WeekStats {
   stemming: number | null
@@ -172,13 +172,13 @@ export default function InzichtenPagina() {
 
         {/* Lege staat */}
         {!rapport && (
-          <Card style={{ padding: 0 }}>
-            <EmptyState
-              icon={BarChart3}
-              title="Nog geen inzichten"
-              description={data?.bericht ?? 'Doe minimaal 3 check-ins deze week om jouw wekelijkse analyse te ontvangen.'}
-            />
-          </Card>
+          <VitaLeegScherm
+            emotion="curious"
+            titel="Je inzichten groeien met je mee"
+            boodschap={data?.bericht ?? 'Doe deze week een paar check-ins, dan maak ik voor jou een analyse van hoe je week ervoor stond. Hoe meer je bijhoudt, hoe scherper het beeld.'}
+            actieLabel="Doe een check-in"
+            actieHref="/vandaag"
+          />
         )}
 
         {rapport && (

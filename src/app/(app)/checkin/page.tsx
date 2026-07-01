@@ -10,6 +10,7 @@ import { authFetch } from '@/lib/auth-fetch'
 import { vandaag } from '@/lib/weekdoelen'
 import { vitaEvent } from '@/lib/vita/events'
 import { useToast } from '@/components/ui/Toast'
+import VitaCheckinBegeleider from '@/components/vita/VitaCheckinBegeleider'
 import Link from 'next/link'
 
 // Decoratieve glow per sectie — verwijst naar de -light pijler-tokens (rgba met lage alpha).
@@ -113,6 +114,8 @@ export default function CheckIn() {
   const [laden,      setLaden]      = useState(false)
   const [fout,       setFout]       = useState<string | null>(null)
   const [advancing,  setAdvancing]  = useState(false)
+  // Toont heel even Vita's bemoedigende reactie terwijl de flow doorschuift.
+  const [toonReactie, setToonReactie] = useState(false)
 
   const weekStart = vandaag()
 
@@ -243,10 +246,12 @@ export default function CheckIn() {
       const compleet  = sectieCompleet(sectieIdx, nieuw)
       if (compleet && !isLaatste) {
         setAdvancing(true)
+        setToonReactie(true)
         setTimeout(() => {
           setSectieIdx(s => s + 1)
           scrollTop()
           setAdvancing(false)
+          setToonReactie(false)
         }, 380)
       }
       return nieuw
@@ -292,6 +297,16 @@ export default function CheckIn() {
     <main className="mf-mesh-bg min-h-screen flex flex-col items-center justify-center p-8">
       <div className="max-w-md w-full rounded-2xl border p-10 shadow-sm text-center"
         style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
+        {/* Vita viert de afronding — warm en oprecht, geen valse claims */}
+        <div className="mb-6 text-left">
+          <VitaCheckinBegeleider
+            fase="afronden"
+            pijlerId={huidigeSectie.id}
+            pijlerLabel={huidigeSectie.label}
+            sectieIdx={sectieIdx}
+            totaalSecties={totaalSecties}
+          />
+        </div>
         <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-5"
           style={{ background: 'var(--mf-green-light)' }}>
           <Check size={24} strokeWidth={2.5} aria-hidden="true" style={{ color: 'var(--mf-green)' }} />
@@ -386,6 +401,18 @@ export default function CheckIn() {
       </div>
 
       <div className="max-w-lg mx-auto px-5 pt-7">
+
+        {/* Vita loopt mee: rustige aanmoediging per pijler, korte reactie bij doorschuiven */}
+        <div className="mb-6">
+          <VitaCheckinBegeleider
+            key={toonReactie ? `reactie-${huidigeSectie.id}` : `vraag-${huidigeSectie.id}`}
+            fase={toonReactie ? 'reactie' : 'vraag'}
+            pijlerId={huidigeSectie.id}
+            pijlerLabel={huidigeSectie.label}
+            sectieIdx={sectieIdx}
+            totaalSecties={totaalSecties}
+          />
+        </div>
 
         {/* Sectie header */}
         <div className="flex items-center gap-3 mb-6">

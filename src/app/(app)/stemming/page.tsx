@@ -15,6 +15,7 @@ import { Textarea } from '@/components/ui/Textarea'
 import { Button } from '@/components/ui/Button'
 import { useToast } from '@/components/ui/Toast'
 import { vitaEvent } from '@/lib/vita/events'
+import VitaStemmingBegeleider from '@/components/vita/VitaStemmingBegeleider'
 
 const ACT = getActiviteit('mentaal')
 
@@ -74,6 +75,9 @@ export default function StemmingPagina() {
   const [notitie, setNotitie] = useState('')
   const [opslaan, setOpslaan] = useState(false)
   const [succes, setSucces] = useState(false)
+  // De stemming zoals die daadwerkelijk is opgeslagen — stuurt Vita's reactie.
+  // Losgekoppeld van `stemming` zodat een latere kiezer-wijziging Vita niet verschuift.
+  const [gelogdeStemming, setGelogdeStemming] = useState<number | null>(null)
 
   useEffect(() => {
     async function laad() {
@@ -106,6 +110,7 @@ export default function StemmingPagina() {
         const json = await res.json() as { log: StemmingLog }
         setLogs(prev => [json.log, ...prev.slice(0, 9)])
         setNotitie('')
+        setGelogdeStemming(stemming)
         setSucces(true)
         vitaEvent('mood_logged')
         setTimeout(() => router.push('/vandaag'), 1500)
@@ -155,7 +160,12 @@ export default function StemmingPagina() {
           </h1>
         </header>
 
-        {succes && (
+        {/* Vita reageert empathisch op de zojuist opgeslagen stemming. */}
+        {succes && gelogdeStemming !== null ? (
+          <div role="status" style={{ marginBottom: 20 }}>
+            <VitaStemmingBegeleider fase="reactie" stemming={gelogdeStemming} />
+          </div>
+        ) : succes ? (
           <div role="status" style={{
             background: 'var(--mf-green-light)', border: '1px solid var(--border-strong)',
             borderRadius: 'var(--radius-md)', padding: '12px 16px', marginBottom: 20,
@@ -163,6 +173,11 @@ export default function StemmingPagina() {
             display: 'flex', alignItems: 'center', gap: 8,
           }}>
             <CheckCircle2 size={16} aria-hidden style={{ color: 'var(--mf-green)', flexShrink: 0 }} /> Stemming opgeslagen — goed bezig!
+          </div>
+        ) : (
+          /* Vóór het loggen: Vita nodigt kort en warm uit. */
+          <div style={{ marginBottom: 20 }}>
+            <VitaStemmingBegeleider fase="uitnodiging" />
           </div>
         )}
 

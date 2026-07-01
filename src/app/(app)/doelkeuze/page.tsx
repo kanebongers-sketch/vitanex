@@ -18,6 +18,7 @@ import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { useToast } from '@/components/ui/Toast'
 import { CheckinInsight } from '@/components/checkin/CheckinInsight'
+import VitaDoelbegeleider from '@/components/vita/VitaDoelbegeleider'
 
 const ALLE_VLAKKEN: WellbeingCat[] = ['slaap', 'stress', 'energie', 'focus', 'balans', 'motivatie']
 
@@ -48,6 +49,10 @@ function DoelKeuzeInhoud() {
 
   const resterend = topDrie.filter(v => keuzes[v] === undefined).length
   const alleGekozen = resterend === 0 && topDrie.length > 0
+
+  // Laagst scorende vlak uit de check-in (topDrie is oplopend gesorteerd) — voor
+  // Vita's persoonlijke intro. `null` als er geen geldige scores binnenkwamen.
+  const focusLabel = topDrie.length > 0 ? CAT[topDrie[0]].label : null
 
   async function slaatOp() {
     if (!alleGekozen) return
@@ -169,6 +174,15 @@ function DoelKeuzeInhoud() {
           <p style={{ fontSize: 14, color: 'var(--text-2)', lineHeight: 1.5 }}>
             Kies voor elk aandachtsgebied één doel dat je deze week wil aanpakken.
           </p>
+        </div>
+
+        {/* Vita introduceert het moment — companion die je check-in kent */}
+        <div style={{ marginBottom: 24 }}>
+          <VitaDoelbegeleider
+            fase={opgeslagen ? 'bevestigd' : 'intro'}
+            focusLabel={focusLabel}
+            aantalGebieden={topDrie.length}
+          />
         </div>
 
         {/* Welzijnscan score overzicht */}

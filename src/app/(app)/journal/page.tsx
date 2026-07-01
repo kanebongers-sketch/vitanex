@@ -24,6 +24,7 @@ import { useToast } from '@/components/ui/Toast'
 import { Field } from '@/components/ui/Field'
 import { Textarea } from '@/components/ui/Textarea'
 import { vitaEvent } from '@/lib/vita/events'
+import VitaLeegScherm from '@/components/vita/VitaLeegScherm'
 
 const STEMMING_GLOW: Record<number, string> = {
   1: 'var(--mf-red-light)',
@@ -375,22 +376,25 @@ export default function JournalPagina() {
             <div className="mf-spinner" />
           </div>
         ) : entries.length === 0 ? (
-          <div style={{
-            background: 'var(--bg-card)', borderRadius: 20, border: '1px solid var(--border)',
-            padding: '56px 40px', textAlign: 'center',
-          }}>
-            <div style={{ width: 56, height: 56, borderRadius: 16, background: 'var(--bg-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', color: 'var(--text-4)' }}>
-              <BookOpen size={26} strokeWidth={1.8} aria-hidden />
-            </div>
-            <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-2)', marginBottom: 6 }}>Nog geen aantekeningen</p>
-            <p style={{ fontSize: 13, color: 'var(--text-4)', marginBottom: 20 }}>Schrijf je eerste gedachten neer. Het helpt echt.</p>
+          <VitaLeegScherm
+            emotion="curious"
+            titel="Je eerste paar regels"
+            boodschap="Schrijf gewoon op wat er in je opkomt — een gedachte, je dag, waar je mee zit. Alleen jij leest dit terug."
+          >
             <button
               onClick={() => setNieuwTonen(true)}
-              style={{ background: 'linear-gradient(135deg, var(--mf-green) 0%, var(--mf-green-dark) 100%)', color: 'var(--bg-app)', border: 'none', borderRadius: 12, padding: '10px 20px', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 6,
+                background: 'var(--mentaforce-primary)', color: 'var(--bg-app)',
+                border: 'none', borderRadius: 12, padding: '11px 20px',
+                fontSize: 14, fontWeight: 700, cursor: 'pointer',
+                transition: 'transform 0.15s var(--ease), opacity 0.15s var(--ease)',
+              }}
             >
+              <Plus size={15} strokeWidth={2.5} aria-hidden />
               Begin nu
             </button>
-          </div>
+          </VitaLeegScherm>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {entries.map(e => {

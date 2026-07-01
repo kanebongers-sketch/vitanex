@@ -5,7 +5,7 @@ export const dynamic = 'force-dynamic'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import {
-  ArrowLeft, FlaskConical, Lock,
+  ArrowLeft, Lock,
   Activity, Moon, CalendarDays, Droplet, TrendingUp, TrendingDown,
   Trophy, Star, Flame, Sprout, Sparkles,
   type LucideIcon,
@@ -15,9 +15,9 @@ import { authFetch } from '@/lib/auth-fetch'
 import { supabase } from '@/lib/supabase'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
-import { EmptyState } from '@/components/ui/EmptyState'
 import { Progress } from '@/components/ui/Progress'
 import { Button } from '@/components/ui/Button'
+import VitaLeegScherm from '@/components/vita/VitaLeegScherm'
 
 
 interface Patroon {
@@ -267,16 +267,13 @@ export default function PatronenPage() {
               </h2>
 
               {data.patronen.length === 0 ? (
-                <Card style={{ padding: 0 }}>
-                  <EmptyState
-                    icon={FlaskConical}
-                    title="Nog geen patronen zichtbaar"
-                    description="Log minimaal 7 dagen je stemming, slaap en sport. Dan ontdekken we wat jou écht meer energie en geluk geeft."
-                    action={
-                      <Button onClick={() => router.push('/vandaag')}>Start vandaag</Button>
-                    }
-                  />
-                </Card>
+                <VitaLeegScherm
+                  emotion="curious"
+                  titel="Ik zoek nog naar jouw patronen"
+                  boodschap="Zodra je een tijdje je stemming, slaap en beweging bijhoudt, laat ik je zien wat jou écht meer energie en rust geeft. Elke check-in brengt dat dichterbij."
+                  actieLabel="Doe een check-in"
+                  actieHref="/vandaag"
+                />
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 24 }}>
                   {data.patronen.map((p) => {

@@ -5,30 +5,27 @@ export const dynamic = 'force-dynamic'
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import {
-  Brain, Send, BatteryLow, Moon, AlertTriangle, Scale, Lightbulb, Target, Wind, Frown,
+  Send, BatteryLow, Moon, AlertTriangle, Scale, Lightbulb, Target, Wind, Frown,
   MessageCircleMore, ListChecks, Compass,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { authFetch } from '@/lib/auth-fetch'
 import Navbar from '@/components/layout/Navbar'
+import VitaChatHeader from '@/components/vita/VitaChatHeader'
+import VitaChatBubble, { type ChatBericht } from '@/components/vita/VitaChatBubble'
+import type { EmotionState } from '@/components/vita/PandaFace'
 
-type Bericht = {
-  id: string
-  role: 'user' | 'assistant'
-  content: string
-}
+const WELKOM = `Hoi, ik ben Vita.
 
-const WELKOM = `Hallo! Ik ben jouw MentaForce Coach.
+Ik ben er voor alles rondom je welzijn op het werk — stress, energie, werk-privébalans, motivatie, slaap, of gewoon even je hoofd leegmaken.
 
-Ik ben hier om je te helpen met alles rondom welzijn op het werk  stress, energie, werk-privébalans, motivatie, slaap of gewoon even lucht geven.
+Wat je hier deelt blijft tussen ons. Geen manager, geen HR die meeleest.
 
-Alles wat je hier deelt is vertrouwelijk. Geen manager, geen HR die meeleest.
-
-Waar kan ik je vandaag mee helpen?`
+Waar zal ik je vandaag mee helpen?`
 
 // Wanneer de gebruiker via een proactieve nudge binnenkomt (/coach?start=<type>),
-// opent de coach zelf het gesprek over wat hij opmerkte — i.p.v. het generieke welkom.
+// opent Vita zelf het gesprek over wat ze opmerkte — i.p.v. het generieke welkom.
 const NUDGE_OPENERS: Record<string, string> = {
   burnout_stijgend: 'Hey, fijn dat je er bent. Ik zag dat je scores de laatste weken wat teruglopen. Geen zorgen — vertel eens, hoe gaat het op dit moment écht met je?',
   stemming_omlaag: 'Fijn dat je er bent. Ik merkte dat je stemming deze week wat lager lag dan je gewend bent. Wil je vertellen wat er speelt?',
@@ -41,8 +38,8 @@ const NUDGE_OPENERS: Record<string, string> = {
   heractivatie: 'Hey, fijn dat je er weer bent. Geen druk — vertel eens, hoe gaat het op dit moment met je?',
 }
 
-// SSR-veilig: leest de start-parameter alleen in de browser. Zo continueert de
-// coach het gesprek dat de nudge startte, zonder flikkering bij het laden.
+// SSR-veilig: leest de start-parameter alleen in de browser. Zo continueert Vita
+// het gesprek dat de nudge startte, zonder flikkering bij het laden.
 function beginBericht(): string {
   if (typeof window === 'undefined') return WELKOM
   const start = new URLSearchParams(window.location.search).get('start')
@@ -84,7 +81,7 @@ const DOMEIN_CODES: Record<string, string[]> = {
 
 export default function CoachPagina() {
   const router = useRouter()
-  const [berichten, setBerichten] = useState<Bericht[]>([
+  const [berichten, setBerichten] = useState<ChatBericht[]>([
     { id: 'welkom', role: 'assistant', content: beginBericht() },
   ])
   const [input, setInput] = useState('')
@@ -99,7 +96,7 @@ export default function CoachPagina() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/login'); return }
 
-      // Laad context voor coach (non-blocking)
+      // Laad context voor Vita (non-blocking)
       try {
         const ctx: GebruikerContext = { naam: 'je' }
 
@@ -153,13 +150,17 @@ export default function CoachPagina() {
     setInput('')
     if (inputRef.current) inputRef.current.style.height = 'auto'
 
-    const gebruikerBericht: Bericht = { id: `u-${berichten.length}`, role: 'user', content: invoer }
+    const gebruikerBericht: ChatBericht = { id: `u-${berichten.length}`, role: 'user', content: invoer }
     const assistentId = `a-${berichten.length + 1}`
-    const nieuweLijst = [...berichten, gebruikerBericht, { id: assistentId, role: 'assistant' as const, content: '' }]
+    const nieuweLijst: ChatBericht[] = [
+      ...berichten,
+      gebruikerBericht,
+      { id: assistentId, role: 'assistant', content: '' },
+    ]
     setBerichten(nieuweLijst)
     setLaden(true)
 
-    // Strip the welcome message en de lege assistent-placeholder (puur lokaal, niet naar de API)
+    // Strip het welkomstbericht en de lege assistent-placeholder (puur lokaal, niet naar de API)
     const api = nieuweLijst
       .filter(b => b.id !== 'welkom' && b.id !== assistentId)
       .map(b => ({ role: b.role, content: b.content }))
@@ -176,17 +177,17 @@ export default function CoachPagina() {
       })
 
       if (!res.ok || !res.body) {
-        let foutmelding = 'Kon de coach niet bereiken.'
+        let foutmelding = 'Ik kon je even niet bereiken.'
         try {
           const json = await res.json()
           if (json.error) foutmelding = json.error
         } catch { /* geen JSON-body beschikbaar */ }
         setBerichten(prev => prev.map(b => b.id === assistentId
-          ? { ...b, content: `Helaas kan ik je nu niet helpen. ${foutmelding}` }
+          ? { ...b, content: `Sorry, het lukt me nu even niet. ${foutmelding}` }
           : b))
       } else {
-        // De coach streamt platte tekst-tokens; lees ze incrementeel en
-        // laat het antwoord live "typen" in de bestaande bubbel.
+        // Vita streamt platte tekst-tokens; lees ze incrementeel en laat het
+        // antwoord live "typen" in de bestaande bubbel.
         const reader = res.body.getReader()
         const decoder = new TextDecoder()
         while (true) {
@@ -205,7 +206,7 @@ export default function CoachPagina() {
     setLaden(false)
     inputRef.current?.focus()
 
-    // Sla samenvatting op na elk 6e bericht, zodat de coach context onthoudt (niet-blokkerend)
+    // Sla samenvatting op na elk 6e bericht, zodat Vita context onthoudt (niet-blokkerend)
     if (volledigAntwoord) {
       const voltooid = [...api, { role: 'assistant' as const, content: volledigAntwoord }]
       if (voltooid.length % 6 === 0) {
@@ -221,6 +222,13 @@ export default function CoachPagina() {
   const toonVervolgvragen = !laden && berichten.length > 1 && laatsteBericht?.role === 'assistant' && laatsteBericht.content.length > 0
   const heeftGeheugen = Boolean(gebruikerContext?.discPrimair || gebruikerContext?.domeinScores)
 
+  // Vita's gezicht beweegt mee met het gesprek: 'focused' terwijl ze antwoordt,
+  // 'curious' vlak nadat de gebruiker iets stuurde, en 'supportive' in rust.
+  const wachtOpAntwoord = laden && laatsteBericht?.role === 'assistant' && laatsteBericht.content.length === 0
+  const vitaEmotion: EmotionState = laden
+    ? (wachtOpAntwoord ? 'curious' : 'focused')
+    : 'supportive'
+
   if (!klaar) return (
     <div className="mf-mesh-bg" style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
       <Navbar />
@@ -235,91 +243,27 @@ export default function CoachPagina() {
       <Navbar />
       <main style={{ flex: 1, display: 'flex', flexDirection: 'column', width: '100%', overflow: 'hidden' }}>
 
-        {/* Header */}
-        <div style={{
-          padding: '16px 20px', borderBottom: '1px solid var(--border)',
-          background: 'var(--bg-card)', flexShrink: 0,
-        }}>
-          <div style={{ maxWidth: 760, margin: '0 auto', display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div style={{ position: 'relative', width: 44, height: 44, flexShrink: 0 }}>
-            <div style={{
-              position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
-              width: 72, height: 72, borderRadius: '50%',
-              background: laden
-                ? 'radial-gradient(circle, color-mix(in srgb, var(--mentaforce-primary) 22%, transparent) 0%, transparent 70%)'
-                : 'radial-gradient(circle, color-mix(in srgb, var(--mentaforce-primary) 15%, transparent) 0%, transparent 70%)',
-              zIndex: 0,
-            }} />
-            <div style={{
-              width: 44, height: 44, borderRadius: '50%',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              background: 'var(--mentaforce-primary-light)', color: 'var(--mentaforce-primary)',
-              position: 'relative', zIndex: 1,
-            }}>
-              <Brain size={20} strokeWidth={1.5} aria-hidden />
-            </div>
-          </div>
-          <div>
-            <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-1)' }}>MentaForce Coach</p>
-            <p style={{ fontSize: 12, color: 'var(--text-4)' }}>
-              AI-coach · Vertrouwelijk · 24/7 beschikbaar
-              {heeftGeheugen && ' · Kent jouw profiel'}
-            </p>
-          </div>
-          <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6 }}>
-            <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--mentaforce-primary)' }} />
-            <span style={{ fontSize: 12, color: 'var(--text-4)' }}>Online</span>
-          </div>
-          </div>
-        </div>
+        <VitaChatHeader emotion={vitaEmotion} kentProfiel={heeftGeheugen} aanHetTypen={laden} />
 
-        {/* Messages */}
+        {/* Berichten */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '20px 16px' }}>
           <div style={{ maxWidth: 760, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 12 }}>
           {berichten.map((b) => {
-            const isStreamendLeeg = laden && b.id === berichten[berichten.length - 1].id && b.role === 'assistant' && b.content.length === 0
+            const isLaatste = b.id === laatsteBericht?.id
+            const toonDenken = laden && isLaatste && b.role === 'assistant' && b.content.length === 0
+            const toonCursor = laden && isLaatste && b.role === 'assistant' && b.content.length > 0
             return (
-              <div key={b.id} style={{ display: 'flex', justifyContent: b.role === 'user' ? 'flex-end' : 'flex-start', gap: 10 }}>
-                {b.role === 'assistant' && (
-                  <div style={{
-                    width: 32, height: 32, borderRadius: '50%',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    flexShrink: 0, marginTop: 2,
-                    background: 'var(--mentaforce-primary-light)', color: 'var(--mentaforce-primary)',
-                  }}>
-                    <Brain size={16} strokeWidth={1.5} aria-hidden />
-                  </div>
-                )}
-                {isStreamendLeeg ? (
-                  <div style={{
-                    background: 'var(--bg-card)', padding: '12px 16px',
-                    borderRadius: '18px 18px 18px 4px',
-                    boxShadow: 'var(--shadow-card)',
-                    display: 'flex', alignItems: 'center', gap: 8,
-                  }}>
-                    <div className="mf-spinner" style={{ width: 14, height: 14 }} />
-                    <span style={{ fontSize: 13, color: 'var(--text-3)' }}>denkt na…</span>
-                  </div>
-                ) : (
-                  <div style={{
-                    maxWidth: '78%', padding: '12px 16px',
-                    fontSize: 14, lineHeight: 1.6, whiteSpace: 'pre-wrap',
-                    background: b.role === 'user' ? 'var(--mentaforce-primary)' : 'var(--bg-card)',
-                    color: b.role === 'user' ? 'var(--bg-app)' : 'var(--text-1)',
-                    boxShadow: b.role === 'assistant' ? 'var(--shadow-card)' : 'none',
-                    borderRadius: b.role === 'user' ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
-                  }}>
-                    {b.content}
-                    {laden && b.id === berichten[berichten.length - 1].id && b.role === 'assistant' && (
-                      <span className="mf-coach-cursor" aria-hidden />
-                    )}
-                  </div>
-                )}
-              </div>
+              <VitaChatBubble
+                key={b.id}
+                bericht={b}
+                avatarEmotion={vitaEmotion}
+                toonCursor={toonCursor}
+                toonDenken={toonDenken}
+              />
             )
           })}
 
-          {/* Suggestions — alleen vóór het eerste bericht */}
+          {/* Suggesties — alleen vóór het eerste bericht */}
           {berichten.length === 1 && !laden && (
             <div style={{ marginTop: 8 }}>
               <p style={{ fontSize: 12, color: 'var(--text-4)', marginBottom: 8, textAlign: 'center' }}>Kies een onderwerp om te beginnen</p>
@@ -342,9 +286,9 @@ export default function CoachPagina() {
             </div>
           )}
 
-          {/* Vervolgvragen — na elk antwoord van de coach */}
+          {/* Vervolgvragen — na elk antwoord van Vita */}
           {toonVervolgvragen && (
-            <div style={{ marginTop: 4, display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'flex-start', paddingLeft: 42 }}>
+            <div style={{ marginTop: 4, display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'flex-start', paddingLeft: 44 }}>
               {VERVOLGVRAGEN.map(s => (
                 <button
                   key={s.tekst}
@@ -366,14 +310,14 @@ export default function CoachPagina() {
           </div>
         </div>
 
-        {/* Privacy note */}
+        {/* Privacy-notitie */}
         <div style={{ padding: '4px 16px', textAlign: 'center', flexShrink: 0 }}>
-          <p style={{ fontSize: 12, color: 'var(--text-4)', opacity: 0.6 }}>
-            Je coach onthoudt context tussen gesprekken om je beter te helpen · Nooit zichtbaar voor manager of HR
+          <p style={{ fontSize: 12, color: 'var(--text-4)' }}>
+            Vita onthoudt context tussen gesprekken om je beter te helpen · Nooit zichtbaar voor manager of HR
           </p>
         </div>
 
-        {/* Input */}
+        {/* Invoer */}
         <div style={{
           padding: '12px 16px', background: 'var(--bg-card)',
           borderTop: '1px solid var(--border)', flexShrink: 0,
@@ -384,7 +328,9 @@ export default function CoachPagina() {
             padding: '8px 12px', background: 'var(--bg-subtle)',
             maxWidth: 760, margin: '0 auto',
           }}>
+            <label htmlFor="vita-invoer" className="mf-sr-only">Bericht aan Vita</label>
             <textarea
+              id="vita-invoer"
               ref={inputRef}
               rows={1}
               value={input}
@@ -396,7 +342,7 @@ export default function CoachPagina() {
               onKeyDown={e => {
                 if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); verstuur() }
               }}
-              placeholder="Typ je bericht"
+              placeholder="Typ je bericht aan Vita"
               disabled={laden}
               style={{
                 flex: 1, background: 'transparent', border: 'none', outline: 'none',
@@ -408,7 +354,8 @@ export default function CoachPagina() {
             <button
               onClick={() => verstuur()}
               disabled={!input.trim() || laden}
-              aria-label="Verstuur bericht"
+              className="mf-vita-verstuur"
+              aria-label="Verstuur bericht aan Vita"
               style={{
                 flexShrink: 0, width: 32, height: 32, borderRadius: '50%',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -430,6 +377,17 @@ export default function CoachPagina() {
 
       </main>
       <style>{`
+        .mf-sr-only {
+          position: absolute;
+          width: 1px;
+          height: 1px;
+          padding: 0;
+          margin: -1px;
+          overflow: hidden;
+          clip: rect(0, 0, 0, 0);
+          white-space: nowrap;
+          border: 0;
+        }
         .mf-coach-cursor {
           display: inline-block;
           width: 2px;
@@ -457,6 +415,13 @@ export default function CoachPagina() {
         .mf-suggestie-chip:focus-visible {
           outline: 2px solid var(--mentaforce-primary);
           outline-offset: 2px;
+        }
+        .mf-vita-verstuur:focus-visible {
+          outline: 2px solid var(--mentaforce-primary);
+          outline-offset: 2px;
+        }
+        #vita-invoer:focus-visible {
+          outline: none;
         }
       `}</style>
     </div>
