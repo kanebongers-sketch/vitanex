@@ -238,9 +238,9 @@ export default function CoachPagina() {
         {/* Header */}
         <div style={{
           padding: '16px 20px', borderBottom: '1px solid var(--border)',
-          background: 'var(--bg-card)', display: 'flex', alignItems: 'center',
-          gap: 12, flexShrink: 0,
+          background: 'var(--bg-card)', flexShrink: 0,
         }}>
+          <div style={{ maxWidth: 760, margin: '0 auto', display: 'flex', alignItems: 'center', gap: 12 }}>
           <div style={{ position: 'relative', width: 44, height: 44, flexShrink: 0 }}>
             <div style={{
               position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
@@ -270,10 +270,12 @@ export default function CoachPagina() {
             <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--mentaforce-primary)' }} />
             <span style={{ fontSize: 12, color: 'var(--text-4)' }}>Online</span>
           </div>
+          </div>
         </div>
 
         {/* Messages */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '20px 16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div style={{ flex: 1, overflowY: 'auto', padding: '20px 16px' }}>
+          <div style={{ maxWidth: 760, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 12 }}>
           {berichten.map((b) => {
             const isStreamendLeeg = laden && b.id === berichten[berichten.length - 1].id && b.role === 'assistant' && b.content.length === 0
             return (
@@ -361,6 +363,7 @@ export default function CoachPagina() {
           )}
 
           <div ref={onderRef} />
+          </div>
         </div>
 
         {/* Privacy note */}
@@ -379,6 +382,7 @@ export default function CoachPagina() {
             display: 'flex', alignItems: 'flex-end', gap: 8,
             borderRadius: 20, border: '1px solid var(--border)',
             padding: '8px 12px', background: 'var(--bg-subtle)',
+            maxWidth: 760, margin: '0 auto',
           }}>
             <textarea
               ref={inputRef}
