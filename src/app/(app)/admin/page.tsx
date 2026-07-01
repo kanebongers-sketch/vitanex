@@ -19,6 +19,7 @@ import {
   TrendingUp,
   Target,
   Calendar,
+  X,
   type LucideIcon,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
