@@ -84,6 +84,10 @@ export default function AchievementsPagina() {
       if (!user) { router.push('/login'); return }
 
       try {
+        // Eerst awarden: de server berekent op basis van echte statistieken
+        // welke achievements behaald zijn en kent ze toe (+ XP naar je Fit Level).
+        // Faalt dit zacht, dan tonen we gewoon de reeds behaalde lijst.
+        await authFetch('/api/achievements/check', { method: 'POST' }).catch(() => {})
         const res = await authFetch('/api/achievements/check')
         if (res.ok) {
           const json = await res.json() as { achievements: Achievement[] }

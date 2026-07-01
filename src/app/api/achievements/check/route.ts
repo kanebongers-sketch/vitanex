@@ -119,12 +119,30 @@ export async function POST(req: NextRequest) {
   }
 
   // Sla op
-  await admin.from('achievements_behaald').insert(
+  const { error: insertErr } = await admin.from('achievements_behaald').insert(
     nieuweAchievements.map(a => ({
       user_id: user.id,
       achievement_id: a.id,
     })),
   )
+  if (insertErr) {
+    console.error('[achievements/check] opslaan mislukt:', insertErr.message)
+    return NextResponse.json({ nieuw: [] })
+  }
+
+  // Wire de XP-beloning van nieuw behaalde achievements door naar de duurzame
+  // XP-bron (user_xp.xp), zodat een behaald achievement ook echt je Fit Level
+  // laat stijgen. Idempotent: alleen NIEUW toegekende achievements tellen mee
+  // (reeds behaalde zijn hierboven uitgefilterd), dus dit dubbeltelt nooit.
+  const bonusXP = nieuweAchievements.reduce((s, a) => s + (a.xp_beloning ?? 0), 0)
+  if (bonusXP > 0) {
+    const { data: huidig } = await admin
+      .from('user_xp').select('xp').eq('user_id', user.id).maybeSingle()
+    await admin.from('user_xp').upsert(
+      { user_id: user.id, xp: (huidig?.xp ?? 0) + bonusXP, bijgewerkt_op: new Date().toISOString() },
+      { onConflict: 'user_id' },
+    )
+  }
 
   return NextResponse.json({
     nieuw: nieuweAchievements.map(a => ({
