@@ -65,7 +65,7 @@ export default function CoachSamenvattingenPagina() {
             </p>
           </div>
           <Link href="/coach" style={{
-            background: 'var(--text-1)', color: 'white', textDecoration: 'none',
+            background: 'var(--text-1)', color: 'var(--bg-app)', textDecoration: 'none',
             padding: '8px 14px', borderRadius: 10, fontSize: 12, fontWeight: 600,
           }}>
             Naar coach →

@@ -231,7 +231,7 @@ export default function Admin() {
   }, {} as Record<string, number>)
 
   return (
-    <div className="min-h-screen" style={{ background: 'var(--mf-purple-light)' }}>
+    <div className="min-h-screen" style={{ background: 'var(--bg-app)' }}>
       <style>{`
         .mf-rol-knop-hr:hover {
           background: color-mix(in srgb, var(--mf-blue) 12%, transparent);

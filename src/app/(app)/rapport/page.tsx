@@ -339,7 +339,7 @@ export default function Rapport() {
             {analyse && (
               <button onClick={downloadPDF} disabled={downloading} style={{
                 display: 'inline-flex', alignItems: 'center', gap: 8,
-                background: 'var(--text-1)', color: 'white',
+                background: 'var(--text-1)', color: 'var(--bg-app)',
                 borderRadius: 12, padding: '11px 20px',
                 fontSize: 14, fontWeight: 600, border: 'none', cursor: downloading ? 'wait' : 'pointer',
                 opacity: downloading ? 0.7 : 1,
@@ -352,7 +352,7 @@ export default function Rapport() {
             )}
             <Link href="/checkin" style={{
               display: 'inline-flex', alignItems: 'center', gap: 8,
-              background: 'var(--mf-green)', color: 'white',
+              background: 'var(--mf-green)', color: 'var(--bg-app)',
               borderRadius: 12, padding: '11px 20px',
               fontSize: 14, fontWeight: 600, textDecoration: 'none',
             }}>
@@ -378,7 +378,7 @@ export default function Rapport() {
                 <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-1)', marginBottom: 8 }}>Analyse mislukt</h2>
                 <p style={{ fontSize: 14, color: 'var(--text-3)', marginBottom: 24 }}>Er ging iets mis bij het genereren van je rapport. Probeer het opnieuw.</p>
                 <button onClick={() => { setAnalyseFout(false); setLaden(true); setTimeout(() => window.location.reload(), 50) }}
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'var(--mentaforce-primary)', color: 'white', borderRadius: 12, padding: '12px 28px', fontSize: 15, fontWeight: 700, border: 'none', cursor: 'pointer' }}>
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'var(--mentaforce-primary)', color: 'var(--bg-app)', borderRadius: 12, padding: '12px 28px', fontSize: 15, fontWeight: 700, border: 'none', cursor: 'pointer' }}>
                   Opnieuw proberen →
                 </button>
               </>
@@ -388,7 +388,7 @@ export default function Rapport() {
                 <p style={{ fontSize: 14, color: 'var(--text-3)', marginBottom: 24 }}>Doe je eerste check-in om een persoonlijk rapport te krijgen.</p>
                 <Link href="/checkin" style={{
                   display: 'inline-flex', alignItems: 'center', gap: 8,
-                  background: 'var(--mf-green)', color: 'white',
+                  background: 'var(--mf-green)', color: 'var(--bg-app)',
                   borderRadius: 12, padding: '12px 28px',
                   fontSize: 15, fontWeight: 700, textDecoration: 'none',
                 }}>
@@ -567,7 +567,7 @@ export default function Rapport() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                   {aj.actieplan.map((item, i) => (
                     <div key={i} style={{ display: 'flex', gap: 14 }}>
-                      <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'var(--mf-green)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 13, fontWeight: 800 }}>
+                      <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'var(--mf-green)', color: 'var(--bg-app)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 13, fontWeight: 800 }}>
                         {i + 1}
                       </div>
                       <div style={{ flex: 1 }}>

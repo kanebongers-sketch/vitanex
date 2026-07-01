@@ -247,7 +247,7 @@ export default function StressPagina() {
             width: '100%', padding: '14px', borderRadius: 14, marginBottom: 24,
             background: opslaan ? 'var(--text-3)' : 'linear-gradient(135deg, var(--mf-green) 0%, var(--mf-green-dark) 100%)',
             boxShadow: opslaan ? 'none' : '0 4px 16px color-mix(in srgb, var(--mentaforce-primary) 35%, transparent)',
-            color: 'white', border: 'none', cursor: 'pointer',
+            color: 'var(--bg-app)', border: 'none', cursor: 'pointer',
             fontSize: 15, fontWeight: 700,
           }}
         >
