@@ -3,6 +3,8 @@
 export const dynamic = 'force-dynamic'
 
 import { useEffect, useState, useCallback, useRef } from 'react'
+import type { LucideIcon } from 'lucide-react'
+import { Camera, Users, Briefcase, Calendar, Sparkles, Check, Clock } from 'lucide-react'
 import Link from 'next/link'
 import { authFetch } from '@/lib/auth-fetch'
 import Navbar from '@/components/layout/Navbar'
@@ -46,14 +48,16 @@ type Platform = 'instagram' | 'facebook' | 'linkedin'
 
 // ── Helpers ────────────────────────────────────────────────
 
-const PLATFORM_CONFIG: Record<Platform, { label: string; kleur: string; icon: string }> = {
-  instagram: { label: 'Instagram', kleur: '#E1306C', icon: '📸' },
-  facebook:  { label: 'Facebook',  kleur: '#1877F2', icon: '👥' },
-  linkedin:  { label: 'LinkedIn',  kleur: '#0A66C2', icon: '💼' },
+const PLATFORM_CONFIG: Record<Platform, { label: string; kleur: string; Icon: LucideIcon }> = {
+  // Platform-brand hex behouden als merkidentiteit (zoals het brein-uitzonderingsbeleid):
+  // Instagram #E1306C, Facebook #1877F2, LinkedIn #0A66C2.
+  instagram: { label: 'Instagram', kleur: '#E1306C', Icon: Camera },
+  facebook:  { label: 'Facebook',  kleur: '#1877F2', Icon: Users },
+  linkedin:  { label: 'LinkedIn',  kleur: '#0A66C2', Icon: Briefcase },
 }
 
 const TYPE_CONFIG: Record<string, { label: string; kleur: string }> = {
-  reel:     { label: 'Reel',     kleur: '#E1306C' },
+  reel:     { label: 'Reel',     kleur: 'var(--mf-red)' },
   carousel: { label: 'Carousel', kleur: 'var(--mf-purple)' },
   post:     { label: 'Post',     kleur: 'var(--mf-green)' },
   story:    { label: 'Story',    kleur: 'var(--mf-amber)' },
@@ -62,7 +66,7 @@ const TYPE_CONFIG: Record<string, { label: string; kleur: string }> = {
 const PIJLER_KLEUR: Record<string, string> = {
   fitness:           'var(--mf-green)',
   ondernemen:        'var(--mf-blue)',
-  discipline:        '#0D1117',
+  discipline:        'var(--bg-subtle)',
   leefstijl:         'var(--mf-purple)',
   stressmanagement:  'var(--mf-red)',
   performance:       'var(--mf-amber)',
@@ -126,7 +130,7 @@ function DagZoomModal({ dag, kalender, onClose }: {
       onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
       style={{
         position: 'fixed', inset: 0, zIndex: 1000,
-        background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)',
+        background: 'color-mix(in srgb, var(--bg-app) 65%, transparent)', backdropFilter: 'blur(4px)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         padding: '20px',
       }}
@@ -137,7 +141,7 @@ function DagZoomModal({ dag, kalender, onClose }: {
           background: 'var(--bg-card)',
           borderRadius: 'var(--radius-xl)',
           border: '1px solid var(--border)',
-          boxShadow: '0 24px 80px rgba(0,0,0,0.35)',
+          boxShadow: '0 24px 80px color-mix(in srgb, var(--bg-app) 35%, transparent)',
           width: '100%', maxWidth: 780,
           maxHeight: '90vh',
           overflow: 'hidden',
@@ -157,12 +161,12 @@ function DagZoomModal({ dag, kalender, onClose }: {
                 {dag.dagNaam.charAt(0).toUpperCase() + dag.dagNaam.slice(1)}
               </h2>
               {isVandaag && (
-                <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--mf-green)', background: 'rgba(29,158,117,0.12)', borderRadius: 100, padding: '3px 10px' }}>
+                <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--mentaforce-primary)', background: 'color-mix(in srgb, var(--mentaforce-primary) 12%, transparent)', borderRadius: 100, padding: '3px 10px' }}>
                   Vandaag
                 </span>
               )}
               {isMorgen && (
-                <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--mf-blue)', background: 'rgba(24,95,165,0.12)', borderRadius: 100, padding: '3px 10px' }}>
+                <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--mf-blue)', background: 'color-mix(in srgb, var(--mf-blue) 12%, transparent)', borderRadius: 100, padding: '3px 10px' }}>
                   Morgen
                 </span>
               )}
@@ -189,7 +193,7 @@ function DagZoomModal({ dag, kalender, onClose }: {
             return (
               <div key={key}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
-                  <span style={{ fontSize: 18 }}>{cfg.icon}</span>
+                  <cfg.Icon size={18} color={cfg.kleur} aria-hidden="true" />
                   <h3 style={{ fontSize: 16, fontWeight: 800, color: cfg.kleur, margin: 0 }}>{cfg.label}</h3>
                   <span style={{ fontSize: 12, color: 'var(--text-4)', fontWeight: 600 }}>
                     {items.length} {items.length === 1 ? 'post' : 'posts'}
@@ -220,7 +224,7 @@ function ModalItemKaart({ item, platformKleur }: { item: ContentItem; platformKl
   return (
     <div style={{
       background: 'var(--bg-app)',
-      border: `1px solid ${typeCfg.kleur}30`,
+      border: `1px solid color-mix(in srgb, ${typeCfg.kleur} 19%, transparent)`,
       borderRadius: 'var(--radius-md)',
       padding: '16px 18px',
     }}>
@@ -228,19 +232,19 @@ function ModalItemKaart({ item, platformKleur }: { item: ContentItem; platformKl
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
         <span style={{
           fontSize: 11, fontWeight: 800, color: typeCfg.kleur,
-          background: typeCfg.kleur + '18', borderRadius: 100, padding: '3px 10px',
+          background: `color-mix(in srgb, ${typeCfg.kleur} 10%, transparent)`, borderRadius: 100, padding: '3px 10px',
           textTransform: 'uppercase', letterSpacing: '0.4px',
         }}>
           {typeCfg.label}
         </span>
         <span style={{
           fontSize: 11, fontWeight: 700, color: pijlerKleur,
-          background: pijlerKleur + '15', borderRadius: 100, padding: '3px 10px',
+          background: `color-mix(in srgb, ${pijlerKleur} 9%, transparent)`, borderRadius: 100, padding: '3px 10px',
         }}>
           {item.pijler}
         </span>
-        <span style={{ fontSize: 12, color: 'var(--text-3)', fontWeight: 600, marginLeft: 'auto' }}>
-          ⏰ {item.beste_tijd}
+        <span style={{ fontSize: 12, color: 'var(--text-3)', fontWeight: 600, marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+          <Clock size={13} aria-hidden="true" /> {item.beste_tijd}
         </span>
       </div>
 
@@ -258,7 +262,7 @@ function ModalItemKaart({ item, platformKleur }: { item: ContentItem; platformKl
           <p style={{
             fontSize: 13, color: platformKleur, fontStyle: 'italic', fontWeight: 600,
             margin: 0, lineHeight: 1.45,
-            background: platformKleur + '08', borderRadius: 8, padding: '8px 12px',
+            background: `color-mix(in srgb, ${platformKleur} 4%, transparent)`, borderRadius: 8, padding: '8px 12px',
             borderLeft: `3px solid ${platformKleur}`,
           }}>
             "{item.hook}"
@@ -282,7 +286,7 @@ function ModalItemKaart({ item, platformKleur }: { item: ContentItem; platformKl
           {item.hashtags.map((tag, i) => (
             <span key={i} style={{
               fontSize: 11, color: platformKleur, fontWeight: 600,
-              background: platformKleur + '10', borderRadius: 6, padding: '3px 8px',
+              background: `color-mix(in srgb, ${platformKleur} 6%, transparent)`, borderRadius: 6, padding: '3px 8px',
             }}>
               #{tag.replace(/^#/, '')}
             </span>
@@ -360,7 +364,7 @@ export default function ContentKalenderPage() {
                 fontSize: 14, fontWeight: 600,
                 textDecoration: 'none',
                 background: isActive ? 'var(--mf-green)' : 'var(--bg-card)',
-                color: isActive ? '#fff' : 'var(--text-2)',
+                color: isActive ? 'var(--bg-app)' : 'var(--text-2)',
                 border: isActive ? 'none' : '1px solid var(--border)',
                 boxShadow: isActive ? 'var(--shadow-sm)' : 'none',
                 transition: 'all 0.18s var(--ease)',
@@ -403,7 +407,7 @@ export default function ContentKalenderPage() {
                 disabled={genereren}
                 style={{
                   padding: '11px 24px', borderRadius: 'var(--radius-md)',
-                  background: 'var(--mf-green)', color: '#fff',
+                  background: 'var(--mf-green)', color: 'var(--bg-app)',
                   border: 'none', cursor: genereren ? 'default' : 'pointer',
                   fontSize: 14, fontWeight: 700, opacity: genereren ? 0.7 : 1,
                 }}
@@ -428,11 +432,11 @@ export default function ContentKalenderPage() {
             background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)',
             border: '1px solid var(--border)',
           }}>
-            <div style={{ position: 'relative', display: 'inline-block', marginBottom: 16 }}>
-              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
-                <div style={{ width: 110, height: 110, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
+            <div style={{ position: 'relative', display: 'inline-flex', marginBottom: 16 }}>
+              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }} aria-hidden="true">
+                <div style={{ width: 110, height: 110, borderRadius: '50%', background: 'radial-gradient(circle, color-mix(in srgb, var(--mentaforce-primary) 18%, transparent) 0%, transparent 70%)' }} />
               </div>
-              <div style={{ fontSize: 48, position: 'relative', zIndex: 1 }}>📅</div>
+              <Calendar size={48} strokeWidth={1.5} color="var(--mentaforce-primary)" style={{ position: 'relative', zIndex: 1 }} aria-hidden="true" />
             </div>
             <h2 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', margin: '0 0 10px' }}>
               Nog geen kalender voor deze week
@@ -445,7 +449,7 @@ export default function ContentKalenderPage() {
               disabled={genereren}
               style={{
                 padding: '13px 32px', borderRadius: 'var(--radius-md)',
-                background: 'var(--mf-green)', color: '#fff',
+                background: 'var(--mf-green)', color: 'var(--bg-app)',
                 border: 'none', cursor: 'pointer', fontSize: 15, fontWeight: 700,
               }}
             >
@@ -457,7 +461,9 @@ export default function ContentKalenderPage() {
         {/* ── Genereren ────────────────────────────────────── */}
         {genereren && (
           <div style={{ textAlign: 'center', padding: '80px 40px' }}>
-            <div style={{ fontSize: 40, marginBottom: 20 }}>✨</div>
+            <div style={{ marginBottom: 20, display: 'flex', justifyContent: 'center' }}>
+              <Sparkles size={40} strokeWidth={1.5} color="var(--mentaforce-primary)" aria-hidden="true" />
+            </div>
             <p style={{ fontSize: 16, color: 'var(--text-2)', fontWeight: 600 }}>
               AI maakt jouw content kalender...
             </p>
@@ -483,13 +489,13 @@ export default function ContentKalenderPage() {
                       fontSize: 14, fontWeight: 700, cursor: 'pointer',
                       border: isActive ? 'none' : '1px solid var(--border)',
                       background: isActive ? cfg.kleur : 'var(--bg-card)',
-                      color: isActive ? '#fff' : 'var(--text-2)',
-                      boxShadow: isActive ? '0 2px 8px ' + cfg.kleur + '40' : 'none',
+                      color: isActive ? 'var(--bg-app)' : 'var(--text-2)',
+                      boxShadow: isActive ? `0 2px 8px color-mix(in srgb, ${cfg.kleur} 25%, transparent)` : 'none',
                       transition: 'all 0.18s var(--ease)',
                       display: 'flex', alignItems: 'center', gap: 7,
                     }}
                   >
-                    <span>{cfg.icon}</span>
+                    <cfg.Icon size={16} aria-hidden="true" />
                     {cfg.label}
                   </button>
                 )
@@ -523,34 +529,34 @@ export default function ContentKalenderPage() {
                     onClick={() => setZoomDag({ dagNr, dagNaam: dagNamen[i], datum: entry?.datum })}
                     style={{
                       borderRadius: 'var(--radius-lg)',
-                      border: `1px solid ${isVandaag ? 'var(--mf-green)' : 'var(--border)'}`,
-                      background: isVandaag ? 'rgba(29,158,117,0.04)' : 'var(--bg-card)',
+                      border: `1px solid ${isVandaag ? 'var(--mentaforce-primary)' : 'var(--border)'}`,
+                      background: isVandaag ? 'color-mix(in srgb, var(--mentaforce-primary) 4%, transparent)' : 'var(--bg-card)',
                       overflow: 'hidden',
-                      boxShadow: isVandaag ? '0 0 0 2px rgba(29,158,117,0.15)' : 'var(--shadow-sm)',
+                      boxShadow: isVandaag ? '0 0 0 2px color-mix(in srgb, var(--mentaforce-primary) 15%, transparent)' : 'var(--shadow-sm)',
                       cursor: 'pointer',
                       transition: 'box-shadow 0.15s ease',
                     }}
-                    onMouseEnter={e => (e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.12)')}
-                    onMouseLeave={e => (e.currentTarget.style.boxShadow = isVandaag ? '0 0 0 2px rgba(29,158,117,0.15)' : 'var(--shadow-sm)')}
+                    onMouseEnter={e => (e.currentTarget.style.boxShadow = '0 4px 16px color-mix(in srgb, var(--bg-app) 50%, transparent)')}
+                    onMouseLeave={e => (e.currentTarget.style.boxShadow = isVandaag ? '0 0 0 2px color-mix(in srgb, var(--mentaforce-primary) 15%, transparent)' : 'var(--shadow-sm)')}
                   >
                     {/* Dag header */}
                     <div style={{
                       padding: '10px 12px 8px',
                       borderBottom: '1px solid var(--border)',
-                      background: isVandaag ? 'rgba(29,158,117,0.08)' : 'var(--bg-subtle)',
+                      background: isVandaag ? 'color-mix(in srgb, var(--mentaforce-primary) 8%, transparent)' : 'var(--bg-subtle)',
                     }}>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <span style={{
                           fontSize: 12, fontWeight: 800,
-                          color: isVandaag ? 'var(--mf-green)' : 'var(--text-2)',
+                          color: isVandaag ? 'var(--mentaforce-primary)' : 'var(--text-2)',
                           textTransform: 'uppercase', letterSpacing: '0.5px',
                         }}>
                           {DAG_KORT[i]}
                         </span>
                         {isVandaag && (
                           <span style={{
-                            fontSize: 9, fontWeight: 800, color: 'var(--mf-green)',
-                            background: 'rgba(29,158,117,0.15)', borderRadius: 100,
+                            fontSize: 9, fontWeight: 800, color: 'var(--mentaforce-primary)',
+                            background: 'color-mix(in srgb, var(--mentaforce-primary) 15%, transparent)', borderRadius: 100,
                             padding: '2px 7px', textTransform: 'uppercase', letterSpacing: '0.4px',
                           }}>
                             Vandaag
@@ -618,8 +624,8 @@ function PlatformInfo({ platform }: { platform: Platform }) {
   return (
     <div style={{
       marginBottom: 20, padding: '10px 16px',
-      background: kleur + '0D', borderRadius: 'var(--radius-md)',
-      border: `1px solid ${kleur}25`,
+      background: `color-mix(in srgb, ${kleur} 5%, transparent)`, borderRadius: 'var(--radius-md)',
+      border: `1px solid color-mix(in srgb, ${kleur} 15%, transparent)`,
       fontSize: 13, color: 'var(--text-2)', lineHeight: 1.55,
     }}>
       <span style={{ fontWeight: 700, color: kleur }}>Tip: </span>{tip}
@@ -639,8 +645,8 @@ function ContentItemKaart({ item }: { item: ContentItem }) {
       onClick={() => setOpen(o => !o)}
       style={{
         borderRadius: 8,
-        border: `1px solid ${typeCfg.kleur}25`,
-        background: typeCfg.kleur + '08',
+        border: `1px solid color-mix(in srgb, ${typeCfg.kleur} 15%, transparent)`,
+        background: `color-mix(in srgb, ${typeCfg.kleur} 4%, transparent)`,
         cursor: 'pointer',
         overflow: 'hidden',
         transition: 'all 0.15s ease',
@@ -650,7 +656,7 @@ function ContentItemKaart({ item }: { item: ContentItem }) {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 5 }}>
           <span style={{
             fontSize: 10, fontWeight: 800, color: typeCfg.kleur,
-            background: typeCfg.kleur + '18', borderRadius: 100, padding: '2px 8px',
+            background: `color-mix(in srgb, ${typeCfg.kleur} 10%, transparent)`, borderRadius: 100, padding: '2px 8px',
             textTransform: 'uppercase', letterSpacing: '0.4px',
           }}>
             {typeCfg.label}
@@ -695,7 +701,7 @@ function ContentItemKaart({ item }: { item: ContentItem }) {
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <span style={{
               fontSize: 10, fontWeight: 700, color: pijlerKleur,
-              background: pijlerKleur + '15', borderRadius: 100, padding: '2px 9px',
+              background: `color-mix(in srgb, ${pijlerKleur} 9%, transparent)`, borderRadius: 100, padding: '2px 9px',
             }}>
               {item.pijler}
             </span>
@@ -730,7 +736,7 @@ function GroeiActiesPanel({
         </h2>
         <span style={{
           fontSize: 11, fontWeight: 700, color: 'var(--mf-amber)',
-          background: '#BA751715', borderRadius: 100, padding: '3px 11px',
+          background: 'color-mix(in srgb, var(--mf-amber) 9%, transparent)', borderRadius: 100, padding: '3px 11px',
           textTransform: 'uppercase', letterSpacing: '0.5px',
         }}>
           Organische groei
@@ -750,8 +756,8 @@ function GroeiActiesPanel({
               onClick={() => setOpenDag(isOpen ? null : dagNr)}
               style={{
                 borderRadius: 'var(--radius-lg)',
-                border: `1px solid ${isVandaag ? '#BA751740' : 'var(--border)'}`,
-                background: isVandaag ? '#BA751708' : 'var(--bg-card)',
+                border: `1px solid ${isVandaag ? 'color-mix(in srgb, var(--mf-amber) 25%, transparent)' : 'var(--border)'}`,
+                background: isVandaag ? 'color-mix(in srgb, var(--mf-amber) 4%, transparent)' : 'var(--bg-card)',
                 cursor: 'pointer',
                 overflow: 'hidden',
                 transition: 'all 0.15s ease',
@@ -778,7 +784,7 @@ function GroeiActiesPanel({
                 <ul style={{ margin: 0, padding: '10px 12px', listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {entry.acties.map((actie, idx) => (
                     <li key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
-                      <span style={{ color: 'var(--mf-green)', fontWeight: 800, fontSize: 13, flexShrink: 0, marginTop: 1 }}>✓</span>
+                      <Check size={14} strokeWidth={3} color="var(--mf-green)" style={{ flexShrink: 0, marginTop: 1 }} aria-hidden="true" />
                       <span style={{ fontSize: 12, color: 'var(--text-2)', lineHeight: 1.5 }}>{actie}</span>
                     </li>
                   ))}

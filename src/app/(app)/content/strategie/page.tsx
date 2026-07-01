@@ -3,6 +3,22 @@
 export const dynamic = 'force-dynamic'
 
 import { useState } from 'react'
+import type { LucideIcon } from 'lucide-react'
+import {
+  Dumbbell,
+  Rocket,
+  Blocks,
+  Leaf,
+  Zap,
+  TrendingUp,
+  Brain,
+  Landmark,
+  Radio,
+  Target,
+  Lightbulb,
+  ArrowRight,
+  ChevronDown,
+} from 'lucide-react'
 import Link from 'next/link'
 import Navbar from '@/components/layout/Navbar'
 
@@ -12,7 +28,7 @@ import Navbar from '@/components/layout/Navbar'
 type Pijler = {
   id: string
   label: string
-  emoji: string
+  Icon: LucideIcon
   kleur: string
   doelgroep: string
   problemen: string[]
@@ -27,7 +43,7 @@ const PIJLERS: Pijler[] = [
   {
     id: 'fitness',
     label: 'Fitness',
-    emoji: '💪',
+    Icon: Dumbbell,
     kleur: 'var(--mf-green)',
     doelgroep: 'Ambitieuze ondernemers 28-45 jaar die te weinig bewegen',
     problemen: ['Geen tijd voor sport', 'Onweet hoe te beginnen', 'Snel opbranden na drukke dag', 'Motivatiegebrek'],
@@ -50,7 +66,7 @@ const PIJLERS: Pijler[] = [
   {
     id: 'ondernemen',
     label: 'Ondernemen',
-    emoji: '🚀',
+    Icon: Rocket,
     kleur: 'var(--mf-blue)',
     doelgroep: 'Ondernemers en freelancers die willen schalen',
     problemen: ['Stress door werkdruk', 'Gebrek aan systeem', 'Werk-privé onbalans', 'Plateau in groei'],
@@ -73,8 +89,8 @@ const PIJLERS: Pijler[] = [
   {
     id: 'discipline',
     label: 'Discipline',
-    emoji: '🧱',
-    kleur: '#1a1a2e',
+    Icon: Blocks,
+    kleur: 'var(--bg-subtle)',
     doelgroep: 'Professionals die consistentie willen bouwen',
     problemen: ['Uitstellen en procrastineren', 'Geen vaste routine', 'Wilskrachtproblemen', 'Geen accountability'],
     ideeen: [
@@ -96,7 +112,7 @@ const PIJLERS: Pijler[] = [
   {
     id: 'leefstijl',
     label: 'Leefstijl',
-    emoji: '🌿',
+    Icon: Leaf,
     kleur: 'var(--mf-purple)',
     doelgroep: 'Mensen die duurzaam gezond willen leven',
     problemen: ['Slechte slaapkwaliteit', 'Ongezonde voedingspatronen', 'Chronische vermoeidheid', 'Te weinig herstel'],
@@ -119,7 +135,7 @@ const PIJLERS: Pijler[] = [
   {
     id: 'stressmanagement',
     label: 'Stressmanagement',
-    emoji: '⚡',
+    Icon: Zap,
     kleur: 'var(--mf-red)',
     doelgroep: 'Ondernemers met hoge prestatiedruk',
     problemen: ['Chronische stress', 'Burn-out risico', 'Piekeren en slecht slapen', 'Lichamelijke stressklachten'],
@@ -142,7 +158,7 @@ const PIJLERS: Pijler[] = [
   {
     id: 'performance',
     label: 'Performance',
-    emoji: '📈',
+    Icon: TrendingUp,
     kleur: 'var(--mf-amber)',
     doelgroep: 'High performers die hun top willen bereiken',
     problemen: ['Energietekort na lunch', 'Focusproblemen', 'Suboptimale resultaten', 'Mentale vermoeidheid'],
@@ -165,7 +181,7 @@ const PIJLERS: Pijler[] = [
   {
     id: 'persoonlijke-groei',
     label: 'Persoonlijke Groei',
-    emoji: '🧠',
+    Icon: Brain,
     kleur: 'var(--mf-green)',
     doelgroep: 'Professionals die zichzelf willen ontwikkelen',
     problemen: ['Vastlopen in patronen', 'Identiteits- en richtingvragen', 'Gebrek aan zelfinzicht', 'Niet weten wat je wilt'],
@@ -244,7 +260,7 @@ export default function ContentStrategiePage() {
                   fontWeight: 600,
                   textDecoration: 'none',
                   background: isActive ? 'var(--mf-green)' : 'var(--bg-card)',
-                  color: isActive ? '#fff' : 'var(--text-2)',
+                  color: isActive ? 'var(--bg-app)' : 'var(--text-2)',
                   border: isActive ? 'none' : '1px solid var(--border)',
                   boxShadow: isActive ? 'var(--shadow-sm)' : 'none',
                   transition: 'all 0.18s var(--ease)',
@@ -269,8 +285,8 @@ export default function ContentStrategiePage() {
               display: 'inline-block',
             }}
           >
-            <span style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
-              <div style={{ width: 220, height: 220, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
+            <span style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }} aria-hidden="true">
+              <div style={{ width: 220, height: 220, borderRadius: '50%', background: 'radial-gradient(circle, color-mix(in srgb, var(--mentaforce-primary) 18%, transparent) 0%, transparent 70%)' }} />
             </span>
             <span style={{ position: 'relative', zIndex: 1 }}>Content Strategie</span>
           </h1>
@@ -285,9 +301,9 @@ export default function ContentStrategiePage() {
           </p>
           <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
             {[
-              { label: '7 Pijlers', icon: '🏛️' },
-              { label: '4+ Platforms', icon: '📡' },
-              { label: '100K+ Volgers doel', icon: '🎯' },
+              { label: '7 Pijlers', Icon: Landmark },
+              { label: '4+ Platforms', Icon: Radio },
+              { label: '100K+ Volgers doel', Icon: Target },
             ].map((chip) => (
               <div
                 key={chip.label}
@@ -305,7 +321,7 @@ export default function ContentStrategiePage() {
                   boxShadow: 'var(--shadow-sm)',
                 }}
               >
-                <span>{chip.icon}</span>
+                <chip.Icon size={15} strokeWidth={2.5} color="var(--mentaforce-primary)" aria-hidden="true" />
                 {chip.label}
               </div>
             ))}
@@ -375,21 +391,20 @@ function PijlerKaart({
           textAlign: 'left',
         }}
       >
-        {/* Emoji bubble */}
+        {/* Icon bubble */}
         <div
           style={{
             width: 48,
             height: 48,
             borderRadius: 14,
-            background: pijler.kleur + '18',
+            background: `color-mix(in srgb, ${pijler.kleur} 10%, transparent)`,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            fontSize: 22,
             flexShrink: 0,
           }}
         >
-          {pijler.emoji}
+          <pijler.Icon size={22} strokeWidth={2.25} color={pijler.kleur} aria-hidden="true" />
         </div>
 
         {/* Labels */}
@@ -409,7 +424,7 @@ function PijlerKaart({
                 fontSize: 11,
                 fontWeight: 700,
                 color: pijler.kleur,
-                background: pijler.kleur + '18',
+                background: `color-mix(in srgb, ${pijler.kleur} 10%, transparent)`,
                 borderRadius: 100,
                 padding: '2px 10px',
                 letterSpacing: '0.3px',
@@ -436,14 +451,14 @@ function PijlerKaart({
         {/* Chevron */}
         <div
           style={{
-            fontSize: 13,
+            display: 'flex',
             color: 'var(--text-4)',
             transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
             transition: 'transform 0.22s var(--ease)',
             flexShrink: 0,
           }}
         >
-          ▼
+          <ChevronDown size={16} aria-hidden="true" />
         </div>
       </button>
 
@@ -461,7 +476,7 @@ function PijlerKaart({
                     fontSize: 12,
                     fontWeight: 600,
                     color: 'var(--mf-red)',
-                    background: '#E24B4A18',
+                    background: 'color-mix(in srgb, var(--mf-red) 9%, transparent)',
                     borderRadius: 100,
                     padding: '4px 12px',
                   }}
@@ -533,7 +548,7 @@ function PijlerKaart({
                     lineHeight: 1.5,
                   }}
                 >
-                  <span style={{ color: pijler.kleur, fontWeight: 800, flexShrink: 0 }}>→</span>
+                  <ArrowRight size={15} strokeWidth={2.5} color={pijler.kleur} style={{ flexShrink: 0, marginTop: 2 }} aria-hidden="true" />
                   {cta}
                 </li>
               ))}
@@ -550,7 +565,7 @@ function PijlerKaart({
               gap: 8,
               padding: '11px 20px',
               background: pijler.kleur,
-              color: '#fff',
+              color: 'var(--bg-app)',
               borderRadius: 'var(--radius-md)',
               fontSize: 13,
               fontWeight: 700,
@@ -559,7 +574,8 @@ function PijlerKaart({
               alignSelf: 'flex-start',
             }}
           >
-            💡 Genereer ideeën
+            <Lightbulb size={16} strokeWidth={2.5} aria-hidden="true" />
+            Genereer ideeën
           </Link>
         </div>
       )}

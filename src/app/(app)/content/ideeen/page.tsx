@@ -9,6 +9,11 @@ import { supabase } from '@/lib/supabase'
 import { authFetch } from '@/lib/auth-fetch'
 import Navbar from '@/components/layout/Navbar'
 import { WaterfallModal, type WaterfallData } from './WaterfallModal'
+import {
+  Flame, Salad, Dumbbell, Brain, Zap, Leaf, Sparkles, Smartphone,
+  Lightbulb, Calendar, Rocket, ClipboardList,
+  MapPin, Waves, X, Star, type LucideIcon,
+} from 'lucide-react'
 
 
 // ── Types ──────────────────────────────────────────────────
@@ -29,14 +34,14 @@ type IdeeRecord = {
 
 // ── Helpers ────────────────────────────────────────────────
 
-const PIJLERS = [
-  { id: 'afvallen',     label: 'Afvallen',    emoji: '🔥', kleur: 'var(--mf-red)' },
-  { id: 'voeding',      label: 'Voeding',     emoji: '🥗', kleur: 'var(--mf-green)' },
-  { id: 'beweging',     label: 'Beweging',    emoji: '💪', kleur: 'var(--mf-blue)' },
-  { id: 'gewoontes',    label: 'Gewoontes',   emoji: '🧠', kleur: 'var(--mf-purple)' },
-  { id: 'mentaal',      label: 'Mentaal',     emoji: '⚡', kleur: 'var(--mf-amber)' },
-  { id: 'energie',      label: 'Energie',     emoji: '🌿', kleur: 'var(--mf-green)' },
-  { id: 'transformatie',label: 'Transformatie',emoji: '✨', kleur: 'var(--mf-blue)' },
+const PIJLERS: { id: string; label: string; icon: LucideIcon; kleur: string }[] = [
+  { id: 'afvallen',     label: 'Afvallen',    icon: Flame,    kleur: 'var(--mf-red)' },
+  { id: 'voeding',      label: 'Voeding',     icon: Salad,    kleur: 'var(--mf-green)' },
+  { id: 'beweging',     label: 'Beweging',    icon: Dumbbell, kleur: 'var(--mf-blue)' },
+  { id: 'gewoontes',    label: 'Gewoontes',   icon: Brain,    kleur: 'var(--mf-purple)' },
+  { id: 'mentaal',      label: 'Mentaal',     icon: Zap,      kleur: 'var(--mf-amber)' },
+  { id: 'energie',      label: 'Energie',     icon: Leaf,     kleur: 'var(--mf-green)' },
+  { id: 'transformatie',label: 'Transformatie',icon: Sparkles,kleur: 'var(--mf-blue)' },
 ]
 
 const PIJLER_MAP = Object.fromEntries(PIJLERS.map(p => [p.id, p]))
@@ -52,12 +57,15 @@ const FORMAT_KLEUR: Record<string, string> = {
 
 function PrioriteitSterren({ waarde }: { waarde: number }) {
   return (
-    <div style={{ display: 'flex', gap: 2 }}>
+    <div style={{ display: 'flex', gap: 2 }} aria-label={`Prioriteit ${waarde} van 5`}>
       {Array.from({ length: 5 }).map((_, i) => (
-        <span key={i} style={{
-          fontSize: 12,
-          color: i < waarde ? 'var(--mf-amber)' : 'var(--text-4)',
-        }}>★</span>
+        <Star
+          key={i}
+          size={12}
+          aria-hidden
+          fill={i < waarde ? 'var(--mf-amber)' : 'none'}
+          style={{ color: i < waarde ? 'var(--mf-amber)' : 'var(--text-4)' }}
+        />
       ))}
     </div>
   )
@@ -106,16 +114,17 @@ function IdeeKaart({
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
           {pijler && (
             <span style={{
+              display: 'inline-flex', alignItems: 'center', gap: 4,
               fontSize: 11, fontWeight: 700, letterSpacing: '0.05em',
-              background: `${kleur}15`, color: kleur,
+              background: `color-mix(in srgb, ${kleur} 9%, transparent)`, color: kleur,
               padding: '3px 10px', borderRadius: 20,
             }}>
-              {pijler.emoji} {pijler.label}
+              <pijler.icon size={12} aria-hidden /> {pijler.label}
             </span>
           )}
           <span style={{
             fontSize: 11, fontWeight: 700, letterSpacing: '0.05em',
-            background: `${formatKleur}12`, color: formatKleur,
+            background: `color-mix(in srgb, ${formatKleur} 7%, transparent)`, color: formatKleur,
             padding: '3px 10px', borderRadius: 20,
             textTransform: 'uppercase',
           }}>
@@ -139,12 +148,13 @@ function IdeeKaart({
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
             {idee.platform.map(p => (
               <span key={p} style={{
+                display: 'inline-flex', alignItems: 'center', gap: 4,
                 fontSize: 11, fontWeight: 600,
                 background: 'var(--bg-subtle)', color: 'var(--text-3)',
                 border: '1px solid var(--border)',
                 padding: '2px 8px', borderRadius: 6,
               }}>
-                📱 {p}
+                <Smartphone size={11} aria-hidden /> {p}
               </span>
             ))}
           </div>
@@ -153,8 +163,8 @@ function IdeeKaart({
         {/* Hook */}
         {idee.hook && (
           <div style={{
-            background: `${kleur}08`,
-            border: `1px solid ${kleur}20`,
+            background: `color-mix(in srgb, ${kleur} 4%, transparent)`,
+            border: `1px solid color-mix(in srgb, ${kleur} 12%, transparent)`,
             borderLeft: `3px solid ${kleur}`,
             borderRadius: 8, padding: '10px 14px',
             fontSize: 13, fontStyle: 'italic',
@@ -199,27 +209,28 @@ function IdeeKaart({
               outline: 'none',
             }}
           >
-            <option value="idee">💡 Idee</option>
-            <option value="gepland">📅 Gepland</option>
-            <option value="te_filmen">🎬 Te filmen</option>
-            <option value="opgenomen">✅ Opgenomen</option>
-            <option value="gepubliceerd">🚀 Gepubliceerd</option>
-            <option value="gearchiveerd">📦 Gearchiveerd</option>
+            <option value="idee">Idee</option>
+            <option value="gepland">Gepland</option>
+            <option value="te_filmen">Te filmen</option>
+            <option value="opgenomen">Opgenomen</option>
+            <option value="gepubliceerd">Gepubliceerd</option>
+            <option value="gearchiveerd">Gearchiveerd</option>
           </select>
 
           <button
             onClick={() => onWaterfall(idee)}
             style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6,
               padding: '7px 14px', borderRadius: 8,
               border: 'none',
-              background: 'var(--mf-green)', color: '#fff',
+              background: 'var(--mf-green)', color: 'var(--bg-app)',
               fontSize: 12, fontWeight: 700, cursor: 'pointer',
               whiteSpace: 'nowrap',
-              boxShadow: '0 2px 8px rgba(29,158,117,0.3)',
+              boxShadow: '0 2px 8px color-mix(in srgb, var(--mf-green) 30%, transparent)',
               transition: 'all 0.15s ease',
             }}
           >
-            🌊 Waterfall
+            <Waves size={14} aria-hidden /> Waterfall
           </button>
         </div>
       </div>
@@ -337,26 +348,36 @@ function IdeeBankContent() {
       {waterfallLoading && (
         <div style={{
           position: 'fixed', inset: 0, zIndex: 8999,
-          background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(4px)',
+          background: 'color-mix(in srgb, var(--bg-app) 80%, transparent)', backdropFilter: 'blur(4px)',
           display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
           gap: 16,
         }}>
-          <div style={{ fontSize: 48 }}>🌊</div>
-          <div style={{ fontSize: 20, fontWeight: 900, color: '#fff' }}>Content Waterfall genereren...</div>
-          <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.6)' }}>1 idee → 15+ content assets</div>
+          <Waves size={48} aria-hidden style={{ color: 'var(--mentaforce-primary)' }} />
+          <div style={{ fontSize: 20, fontWeight: 900, color: 'var(--text-1)' }}>Content Waterfall genereren...</div>
+          <div style={{ fontSize: 14, color: 'var(--text-3)' }}>1 idee → 15+ content assets</div>
         </div>
       )}
 
       {/* Waterfall error toast */}
       {waterfallError && (
         <div style={{
+          display: 'inline-flex', alignItems: 'center', gap: 10,
           position: 'fixed', bottom: 80, right: 24, zIndex: 8998,
-          background: 'var(--mf-red)', color: '#fff', borderRadius: 10,
+          background: 'var(--mf-red)', color: 'var(--bg-app)', borderRadius: 10,
           padding: '12px 18px', fontSize: 13, fontWeight: 700,
-          boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
+          boxShadow: '0 8px 32px color-mix(in srgb, var(--bg-app) 30%, transparent)',
         }}>
           {waterfallError}
-          <button onClick={() => setWaterfallError('')} style={{ marginLeft: 12, background: 'none', border: 'none', color: '#fff', cursor: 'pointer', fontWeight: 900 }}>✕</button>
+          <button
+            onClick={() => setWaterfallError('')}
+            aria-label="Sluit melding"
+            style={{
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+              background: 'none', border: 'none', color: 'var(--bg-app)', cursor: 'pointer', padding: 0,
+            }}
+          >
+            <X size={15} strokeWidth={3} aria-hidden />
+          </button>
         </div>
       )}
 
@@ -373,10 +394,11 @@ function IdeeBankContent() {
         {/* Header */}
         <div style={{ marginBottom: 28 }}>
           <h1 style={{
+            display: 'inline-flex', alignItems: 'center', gap: 10,
             fontSize: 30, fontWeight: 900, color: 'var(--text-1)',
             margin: 0, letterSpacing: '-0.02em', lineHeight: 1.15,
           }}>
-            💡 Ideeën Bank
+            <Lightbulb size={28} aria-hidden style={{ color: 'var(--mf-amber)' }} /> Ideeën Bank
           </h1>
           <p style={{ fontSize: 14, color: 'var(--text-3)', margin: '6px 0 0', fontWeight: 500 }}>
             AI-gegenereerde content ideeën voor jouw personal brand
@@ -386,20 +408,21 @@ function IdeeBankContent() {
         {/* Navigatie tabs */}
         <div style={{ display: 'flex', gap: 8, marginBottom: 28, flexWrap: 'wrap' }}>
           {[
-            { href: '/content',          label: '📋 Briefing',     actief: false },
-            { href: '/content/strategie',label: '🗺 Strategie',    actief: false },
-            { href: '/content/ideeen',   label: '💡 Ideeën bank',  actief: true  },
-            { href: '/content/kalender', label: '📅 Kalender',     actief: false },
+            { href: '/content',          label: 'Briefing',     icon: ClipboardList, actief: false },
+            { href: '/content/strategie',label: 'Strategie',    icon: MapPin,        actief: false },
+            { href: '/content/ideeen',   label: 'Ideeën bank',  icon: Lightbulb,     actief: true  },
+            { href: '/content/kalender', label: 'Kalender',     icon: Calendar,      actief: false },
           ].map(tab => (
             <Link key={tab.href} href={tab.href} style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6,
               padding: '8px 18px', borderRadius: 10, textDecoration: 'none',
               fontSize: 13, fontWeight: 700,
               background: tab.actief ? 'var(--mf-green)' : 'var(--bg-card)',
-              color: tab.actief ? '#fff' : 'var(--text-2)',
+              color: tab.actief ? 'var(--bg-app)' : 'var(--text-2)',
               border: tab.actief ? 'none' : '1px solid var(--border)',
-              boxShadow: tab.actief ? '0 2px 8px rgba(29,158,117,0.3)' : 'var(--shadow-xs)',
+              boxShadow: tab.actief ? '0 2px 8px color-mix(in srgb, var(--mf-green) 30%, transparent)' : 'var(--shadow-xs)',
             }}>
-              {tab.label}
+              <tab.icon size={15} aria-hidden /> {tab.label}
             </Link>
           ))}
         </div>
@@ -407,16 +430,16 @@ function IdeeBankContent() {
         {/* Stats row */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14, marginBottom: 28 }}>
           {[
-            { label: 'Totaal ideeën',       waarde: totaalIdeeen,       icon: '💡', kleur: 'var(--mf-blue)' },
-            { label: 'Klaar voor planning', waarde: klaarVoorPlanning,  icon: '📅', kleur: 'var(--mf-amber)' },
-            { label: 'Gepubliceerd',        waarde: gepubliceerd,       icon: '🚀', kleur: 'var(--mf-green)' },
+            { label: 'Totaal ideeën',       waarde: totaalIdeeen,       icon: Lightbulb, kleur: 'var(--mf-blue)' },
+            { label: 'Klaar voor planning', waarde: klaarVoorPlanning,  icon: Calendar,  kleur: 'var(--mf-amber)' },
+            { label: 'Gepubliceerd',        waarde: gepubliceerd,       icon: Rocket,    kleur: 'var(--mf-green)' },
           ].map(stat => (
             <div key={stat.label} style={{
               background: 'var(--bg-card)', border: '1px solid var(--border)',
               borderRadius: 'var(--radius-md)', padding: '18px 22px',
               boxShadow: 'var(--shadow-xs)',
             }}>
-              <div style={{ fontSize: 20, marginBottom: 4 }}>{stat.icon}</div>
+              <div style={{ marginBottom: 4, color: stat.kleur }}><stat.icon size={20} aria-hidden /></div>
               <div style={{ fontSize: 28, fontWeight: 900, color: stat.kleur, letterSpacing: '-0.02em' }}>
                 {stat.waarde}
               </div>
@@ -441,8 +464,8 @@ function IdeeBankContent() {
               onClick={() => setFilterPijler('alle')}
               style={{
                 padding: '6px 14px', borderRadius: 20, border: 'none', cursor: 'pointer',
-                background: filterPijler === 'alle' ? '#0D1117' : 'var(--bg-subtle)',
-                color: filterPijler === 'alle' ? '#fff' : 'var(--text-2)',
+                background: filterPijler === 'alle' ? 'var(--text-1)' : 'var(--bg-subtle)',
+                color: filterPijler === 'alle' ? 'var(--bg-app)' : 'var(--text-2)',
                 fontSize: 12, fontWeight: 700, transition: 'all 0.15s ease',
               }}
             >
@@ -453,14 +476,15 @@ function IdeeBankContent() {
                 key={p.id}
                 onClick={() => setFilterPijler(filterPijler === p.id ? 'alle' : p.id)}
                 style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 5,
                   padding: '6px 14px', borderRadius: 20, border: 'none', cursor: 'pointer',
                   background: filterPijler === p.id ? p.kleur : 'var(--bg-subtle)',
-                  color: filterPijler === p.id ? '#fff' : 'var(--text-2)',
+                  color: filterPijler === p.id ? 'var(--bg-app)' : 'var(--text-2)',
                   fontSize: 12, fontWeight: 700, transition: 'all 0.15s ease',
-                  boxShadow: filterPijler === p.id ? `0 2px 8px ${p.kleur}40` : 'none',
+                  boxShadow: filterPijler === p.id ? `0 2px 8px color-mix(in srgb, ${p.kleur} 25%, transparent)` : 'none',
                 }}
               >
-                {p.emoji} {p.label}
+                <p.icon size={13} aria-hidden /> {p.label}
               </button>
             ))}
           </div>
@@ -478,10 +502,10 @@ function IdeeBankContent() {
               }}
             >
               <option value="alle">Alle statussen</option>
-              <option value="idee">💡 Idee</option>
-              <option value="gepland">📅 Gepland</option>
-              <option value="opgenomen">✅ Opgenomen</option>
-              <option value="gepubliceerd">🚀 Gepubliceerd</option>
+              <option value="idee">Idee</option>
+              <option value="gepland">Gepland</option>
+              <option value="opgenomen">Opgenomen</option>
+              <option value="gepubliceerd">Gepubliceerd</option>
             </select>
 
             <input
@@ -501,16 +525,17 @@ function IdeeBankContent() {
               onClick={() => genereerIdeeeen(filterPijler !== 'alle' ? filterPijler : null)}
               disabled={genereren}
               style={{
+                display: 'inline-flex', alignItems: 'center', gap: 7,
                 padding: '8px 20px', borderRadius: 8, border: 'none',
                 cursor: genereren ? 'not-allowed' : 'pointer',
                 background: genereren ? 'var(--text-3)' : 'var(--mf-green)',
-                color: '#fff', fontSize: 13, fontWeight: 800,
-                boxShadow: genereren ? 'none' : '0 2px 10px rgba(29,158,117,0.35)',
+                color: 'var(--bg-app)', fontSize: 13, fontWeight: 800,
+                boxShadow: genereren ? 'none' : '0 2px 10px color-mix(in srgb, var(--mf-green) 35%, transparent)',
                 transition: 'all 0.15s ease', whiteSpace: 'nowrap',
                 opacity: genereren ? 0.7 : 1,
               }}
             >
-              {genereren ? '⚡ Genereren...' : '⚡ Genereer 5 nieuwe ideeën'}
+              <Zap size={15} aria-hidden /> {genereren ? 'Genereren...' : 'Genereer 5 nieuwe ideeën'}
             </button>
           </div>
         </div>
@@ -519,7 +544,7 @@ function IdeeBankContent() {
         {error && (
           <div style={{
             marginBottom: 20, padding: '12px 16px', background: 'var(--mf-red-light)',
-            border: '1px solid #FECACA', borderRadius: 10,
+            border: '1px solid color-mix(in srgb, var(--mf-red) 30%, transparent)', borderRadius: 10,
             fontSize: 14, color: 'var(--mf-red)', fontWeight: 600,
           }}>
             {error}
@@ -529,7 +554,7 @@ function IdeeBankContent() {
         {/* Loading */}
         {loading && (
           <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--text-3)' }}>
-            <div style={{ fontSize: 32, marginBottom: 12 }}>💡</div>
+            <Lightbulb size={32} aria-hidden style={{ marginBottom: 12, color: 'var(--mf-amber)' }} />
             <div style={{ fontSize: 15, fontWeight: 600 }}>Ideeën laden...</div>
           </div>
         )}
@@ -543,9 +568,9 @@ function IdeeBankContent() {
           }}>
             <div style={{ position: 'relative', display: 'inline-block', marginBottom: 16 }}>
               <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
-                <div style={{ width: 120, height: 120, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
+                <div style={{ width: 120, height: 120, borderRadius: '50%', background: 'radial-gradient(circle, color-mix(in srgb, var(--mf-green) 18%, transparent) 0%, transparent 70%)' }} />
               </div>
-              <div style={{ fontSize: 64, position: 'relative', zIndex: 1 }}>💡</div>
+              <Lightbulb size={64} aria-hidden style={{ position: 'relative', zIndex: 1, color: 'var(--mf-amber)' }} />
             </div>
             <h2 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', margin: '0 0 8px' }}>
               Geen ideeën gevonden
@@ -559,15 +584,16 @@ function IdeeBankContent() {
               onClick={() => genereerIdeeeen(filterPijler !== 'alle' ? filterPijler : null)}
               disabled={genereren}
               style={{
+                display: 'inline-flex', alignItems: 'center', gap: 8,
                 padding: '13px 28px', borderRadius: 10, border: 'none', cursor: 'pointer',
                 background: genereren ? 'var(--text-3)' : 'var(--mf-green)',
-                color: '#fff', fontSize: 15, fontWeight: 800,
-                boxShadow: genereren ? 'none' : '0 4px 16px rgba(29,158,117,0.4)',
+                color: 'var(--bg-app)', fontSize: 15, fontWeight: 800,
+                boxShadow: genereren ? 'none' : '0 4px 16px color-mix(in srgb, var(--mf-green) 40%, transparent)',
                 transition: 'all 0.2s ease',
                 opacity: genereren ? 0.7 : 1,
               }}
             >
-              {genereren ? '⚡ Genereren...' : '⚡ Genereer 5 ideeën'}
+              <Zap size={17} aria-hidden /> {genereren ? 'Genereren...' : 'Genereer 5 ideeën'}
             </button>
           </div>
         )}

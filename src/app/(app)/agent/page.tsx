@@ -4,6 +4,11 @@ export const dynamic = 'force-dynamic'
 import { useEffect, useState, useCallback } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import Link from 'next/link'
+import {
+  Bot, FolderOpen, ClipboardList, Search, Check, X, Mail, Send,
+  Calendar, Clock, RefreshCw, Pencil, Rocket, ChevronDown, ChevronUp,
+  Save, Smartphone, type LucideIcon,
+} from 'lucide-react'
 
 
 const sb = createClient(
@@ -11,22 +16,22 @@ const sb = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 )
 
-const FF = 'var(--mf-amber)', DARK = '#0c0c11', CARD = '#131318', CARD2 = '#1a1a22'
-const BORDER = 'rgba(255,255,255,0.06)', TEXT = 'rgba(255,255,255,0.88)', MUTED = 'rgba(255,255,255,0.35)'
+const FF = 'var(--mentaforce-primary)', DARK = 'var(--bg-app)', CARD = 'var(--bg-card)', CARD2 = 'var(--bg-subtle)'
+const BORDER = 'var(--border)', TEXT = 'var(--text-1)', MUTED = 'var(--text-3)'
 const GREEN = 'var(--mf-green)', RED = 'var(--mf-red)'
 
 const R_COLORS = ['var(--mf-amber)','var(--mf-orange)','var(--mf-red)']
 const R_NAMEN  = ['Eerste contact','Follow-up','Afsluitend']
 
-const STATUS_STYLE: Record<string, {bg:string;color:string;label:string}> = {
-  wacht:             {bg:'var(--text-1)', color:'var(--text-3)', label:'⏳ Wacht'},
-  goedgekeurd:       {bg:'var(--mf-green-dark)', color:GREEN,     label:'✅ Goed'},
-  overgeslagen:      {bg:'#111',    color:'var(--text-2)',  label:'❌ Skip'},
-  email_klaar:       {bg:'#1e1a2e', color:'var(--mf-purple)',  label:'📧 Email klaar'},
-  email_goedgekeurd: {bg:'var(--mf-green-dark)', color:'var(--mf-green-light)',  label:'✅ Email goed'},
-  email_overgeslagen:{bg:'#111',    color:'var(--text-2)',  label:'❌ Email skip'},
-  verstuurd:         {bg:'var(--mf-green-dark)', color:GREEN,      label:'📤 Verstuurd'},
-  gepland:           {bg:'#111',    color:'var(--text-2)',   label:'📅 Gepland'},
+const STATUS_STYLE: Record<string, {bg:string;color:string;label:string;Icon:LucideIcon}> = {
+  wacht:             {bg:'var(--text-1)', color:'var(--text-3)', label:'Wacht', Icon:Clock},
+  goedgekeurd:       {bg:'var(--mf-green-dark)', color:GREEN,     label:'Goed', Icon:Check},
+  overgeslagen:      {bg:'var(--bg-app)',    color:'var(--text-2)',  label:'Skip', Icon:X},
+  email_klaar:       {bg:'color-mix(in srgb, var(--mf-purple) 16%, transparent)', color:'var(--mf-purple)',  label:'Email klaar', Icon:Mail},
+  email_goedgekeurd: {bg:'var(--mf-green-dark)', color:'var(--mf-green-light)',  label:'Email goed', Icon:Check},
+  email_overgeslagen:{bg:'var(--bg-app)',    color:'var(--text-2)',  label:'Email skip', Icon:X},
+  verstuurd:         {bg:'var(--mf-green-dark)', color:GREEN,      label:'Verstuurd', Icon:Send},
+  gepland:           {bg:'var(--bg-app)',    color:'var(--text-2)',   label:'Gepland', Icon:Calendar},
 }
 
 type Contact = {
@@ -192,7 +197,7 @@ export default function AgentPage() {
       }).eq('id', contactId)
 
       if (error) {
-        console.error('Supabase fout:', error)
+        // Update mislukt — toon geen reset-melding, laat de huidige staat staan.
         setRegenerating(null)
         return
       }
@@ -205,10 +210,10 @@ export default function AgentPage() {
 
       setExpandedBody(null)
       setEdit(null)
-      setZoekMelding({ ok: true, tekst: '🔄 Email wordt opnieuw gegenereerd door de agent — duurt ~1 min.' })
+      setZoekMelding({ ok: true, tekst: 'Email wordt opnieuw gegenereerd door de agent — duurt ~1 min.' })
       setTimeout(() => { setZoekMelding(null); laad() }, 8000)
-    } catch (e) {
-      console.error(e)
+    } catch {
+      // Netwerk-/agentfout stil opvangen; de lijst wordt hieronder ververst.
     }
     setRegenerating(null)
     laad()
@@ -239,13 +244,13 @@ export default function AgentPage() {
       })
       const data = await res.json()
       if (data.ok) {
-        setZoekMelding({ok:true, tekst:'✅ Agent gestart! Nieuwe bedrijven worden gezocht. Pagina vernieuwt automatisch.'})
+        setZoekMelding({ok:true, tekst:'Agent gestart! Nieuwe bedrijven worden gezocht. Pagina vernieuwt automatisch.'})
         setTimeout(()=>{ setZoekMelding(null); laad() }, 5000)
       } else {
-        setZoekMelding({ok:false, tekst:`❌ Fout: ${data.error ?? 'Onbekende fout'}`})
+        setZoekMelding({ok:false, tekst:`Fout: ${data.error ?? 'Onbekende fout'}`})
       }
     } catch {
-      setZoekMelding({ok:false, tekst:'❌ Kan agent niet bereiken'})
+      setZoekMelding({ok:false, tekst:'Kan agent niet bereiken'})
     }
     setZoekBezig(false)
   }
@@ -265,7 +270,7 @@ export default function AgentPage() {
 
   if (!toegang) return (
     <div style={{minHeight:'100vh',background:DARK,display:'flex',alignItems:'center',justifyContent:'center'}}>
-      <div style={{width:32,height:32,borderRadius:'50%',border:'3px solid #333',borderTopColor:FF,animation:'spin 0.8s linear infinite'}} />
+      <div style={{width:32,height:32,borderRadius:'50%',border:'3px solid var(--border-strong)',borderTopColor:FF,animation:'spin 0.8s linear infinite'}} />
     </div>
   )
 
@@ -275,31 +280,31 @@ export default function AgentPage() {
       {/* HEADER */}
       <header style={{height:54,borderBottom:`1px solid ${BORDER}`,display:'flex',alignItems:'center',justifyContent:'space-between',padding:'0 24px',position:'sticky',top:0,background:DARK,zIndex:100}}>
         <div style={{display:'flex',alignItems:'center',gap:10}}>
-          <div style={{width:30,height:30,borderRadius:8,background:FF,display:'flex',alignItems:'center',justifyContent:'center',fontSize:15}}>🤖</div>
+          <div style={{width:30,height:30,borderRadius:8,background:FF,display:'flex',alignItems:'center',justifyContent:'center'}}><Bot size={16} color="var(--bg-app)" aria-hidden /></div>
           <div>
-            <p style={{fontWeight:700,fontSize:13,color:'white',lineHeight:1}}>Fit Factory Agent</p>
+            <p style={{fontWeight:700,fontSize:13,color:TEXT,lineHeight:1}}>Fit Factory Agent</p>
             <p style={{fontSize:10,color:MUTED,marginTop:2}}>3 rondes · 2 dagen apart · Eersel 15km</p>
           </div>
         </div>
         <div style={{display:'flex',gap:8,alignItems:'center'}}>
-          <div style={{width:7,height:7,borderRadius:'50%',background:GREEN,boxShadow:'0 0 5px #22C55E'}}/>
+          <div style={{width:7,height:7,borderRadius:'50%',background:GREEN,boxShadow:'0 0 5px color-mix(in srgb, var(--mf-green) 60%, transparent)'}}/>
           <span style={{fontSize:10,color:MUTED}}>{nu.toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'})}</span>
           <button
             onClick={voegBedrijvenToe}
             disabled={zoekBezig}
-            style={{background:zoekBezig?'rgba(245,166,35,0.05)':'rgba(245,166,35,0.12)',border:`1px solid ${FF}40`,borderRadius:6,color:zoekBezig?MUTED:FF,fontSize:11,padding:'5px 12px',cursor:zoekBezig?'not-allowed':'pointer',fontWeight:600,transition:'all 0.2s'}}
+            style={{background:zoekBezig?'color-mix(in srgb, var(--mentaforce-primary) 5%, transparent)':'color-mix(in srgb, var(--mentaforce-primary) 12%, transparent)',border:'1px solid color-mix(in srgb, var(--mentaforce-primary) 40%, transparent)',borderRadius:6,color:zoekBezig?MUTED:FF,fontSize:11,padding:'5px 12px',cursor:zoekBezig?'not-allowed':'pointer',fontWeight:600,transition:'all 0.2s',display:'inline-flex',alignItems:'center',gap:6}}
           >
-            {zoekBezig ? '⏳ Zoeken...' : '+ 10 bedrijven'}
+            {zoekBezig ? <><Clock size={12} aria-hidden /> Zoeken...</> : '+ 10 bedrijven'}
           </button>
-          <button onClick={laad} style={{background:CARD2,border:`1px solid ${BORDER}`,borderRadius:6,color:MUTED,fontSize:11,padding:'5px 10px',cursor:'pointer'}}>↻</button>
+          <button onClick={laad} aria-label="Vernieuwen" style={{background:CARD2,border:`1px solid ${BORDER}`,borderRadius:6,color:MUTED,fontSize:11,padding:'5px 10px',cursor:'pointer',display:'inline-flex',alignItems:'center'}}><RefreshCw size={13} aria-hidden /></button>
         </div>
       </header>
 
       {/* Melding banner */}
       {zoekMelding && (
-        <div style={{padding:'10px 24px',background:zoekMelding.ok?'rgba(34,197,94,0.1)':'rgba(239,68,68,0.1)',borderBottom:`1px solid ${zoekMelding.ok?'rgba(34,197,94,0.3)':'rgba(239,68,68,0.3)'}`,fontSize:12,color:zoekMelding.ok?GREEN:RED,display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+        <div style={{padding:'10px 24px',background:zoekMelding.ok?'color-mix(in srgb, var(--mf-green) 10%, transparent)':'color-mix(in srgb, var(--mf-red) 10%, transparent)',borderBottom:`1px solid ${zoekMelding.ok?'color-mix(in srgb, var(--mf-green) 30%, transparent)':'color-mix(in srgb, var(--mf-red) 30%, transparent)'}`,fontSize:12,color:zoekMelding.ok?GREEN:RED,display:'flex',justifyContent:'space-between',alignItems:'center'}}>
           <span>{zoekMelding.tekst}</span>
-          <button onClick={()=>setZoekMelding(null)} style={{background:'none',border:'none',color:MUTED,cursor:'pointer',fontSize:14}}>✕</button>
+          <button onClick={()=>setZoekMelding(null)} aria-label="Melding sluiten" style={{background:'none',border:'none',color:MUTED,cursor:'pointer',display:'inline-flex',alignItems:'center'}}><X size={14} aria-hidden /></button>
         </div>
       )}
 
@@ -309,11 +314,11 @@ export default function AgentPage() {
         <aside style={{borderRight:`1px solid ${BORDER}`,overflowY:'auto',padding:'12px 0',display:'flex',flexDirection:'column'}}>
           {/* Nav links */}
           <div style={{padding:'0 12px 12px',borderBottom:`1px solid ${BORDER}`,marginBottom:8}}>
-            <Link href="/agent" style={{display:'flex',alignItems:'center',gap:8,padding:'8px 10px',borderRadius:8,background:'rgba(245,166,35,0.1)',color:FF,fontSize:12,fontWeight:600,textDecoration:'none',marginBottom:4}}>
-              🗂️ Campagne batches
+            <Link href="/agent" style={{display:'flex',alignItems:'center',gap:8,padding:'8px 10px',borderRadius:8,background:'color-mix(in srgb, var(--mentaforce-primary) 10%, transparent)',color:FF,fontSize:12,fontWeight:600,textDecoration:'none',marginBottom:4}}>
+              <FolderOpen size={14} aria-hidden /> Campagne batches
             </Link>
             <Link href="/agent/bedrijven" style={{display:'flex',alignItems:'center',gap:8,padding:'8px 10px',borderRadius:8,color:MUTED,fontSize:12,textDecoration:'none',transition:'all 0.15s'}}>
-              📋 Alle bedrijven
+              <ClipboardList size={14} aria-hidden /> Alle bedrijven
             </Link>
           </div>
 
@@ -333,20 +338,20 @@ export default function AgentPage() {
             const isVandaag = [b.start_datum, b.ronde_2_datum, b.ronde_3_datum].includes(vandaag)
             return (
               <button key={b.id} onClick={()=>setActiveBatch(b.id)} style={{
-                width:'100%',textAlign:'left',background:isActief?'rgba(245,166,35,0.08)':'transparent',
+                width:'100%',textAlign:'left',background:isActief?'color-mix(in srgb, var(--mentaforce-primary) 8%, transparent)':'transparent',
                 border:'none',borderLeft:isActief?`3px solid ${FF}`:'3px solid transparent',
                 padding:'10px 16px',cursor:'pointer',transition:'all 0.15s',
               }}>
                 <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:4}}>
                   <p style={{fontSize:12,fontWeight:isActief?600:400,color:isActief?FF:TEXT,lineHeight:1.3,flex:1,marginRight:6}}>{b.naam}</p>
-                  {isVandaag && <span style={{background:'rgba(245,166,35,0.2)',color:FF,borderRadius:4,padding:'1px 6px',fontSize:10,flexShrink:0}}>Vandaag</span>}
+                  {isVandaag && <span style={{background:'color-mix(in srgb, var(--mentaforce-primary) 20%, transparent)',color:FF,borderRadius:4,padding:'1px 6px',fontSize:10,flexShrink:0}}>Vandaag</span>}
                 </div>
                 {/* Progress bars per ronde */}
                 <div style={{display:'flex',flexDirection:'column',gap:3,marginBottom:4}}>
                   {[r1v,r2v,r3v].map((v,i)=>(
                     <div key={i} style={{display:'flex',alignItems:'center',gap:6}}>
                       <span style={{fontSize:9,color:v>0?R_COLORS[i]:MUTED,width:18}}>R{i+1}</span>
-                      <div style={{flex:1,height:3,background:'rgba(255,255,255,0.06)',borderRadius:2}}>
+                      <div style={{flex:1,height:3,background:'var(--border)',borderRadius:2}}>
                         <div style={{width:`${cs.length?v/cs.length*100:0}%`,height:'100%',background:v>0?R_COLORS[i]:'transparent',borderRadius:2,transition:'width 0.3s'}}/>
                       </div>
                       <span style={{fontSize:9,color:MUTED,width:24,textAlign:'right'}}>{v}/{cs.length}</span>
@@ -365,9 +370,9 @@ export default function AgentPage() {
             <div style={{textAlign:'center',padding:'60px 20px'}}>
               <div style={{position:'relative',display:'inline-block',marginBottom:12}}>
               <div style={{position:'absolute',top:'50%',left:'50%',transform:'translate(-50%,-50%)',zIndex:0,pointerEvents:'none'}}>
-                <div style={{ width: 90, height: 90, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
+                <div style={{ width: 90, height: 90, borderRadius: '50%', background: 'radial-gradient(circle, color-mix(in srgb, var(--mentaforce-primary) 18%, transparent) 0%, transparent 70%)' }} />
               </div>
-              <p style={{fontSize:36,position:'relative',zIndex:1}}>📱</p>
+              <Smartphone size={36} color={MUTED} aria-hidden style={{position:'relative',zIndex:1}} />
             </div>
               <p style={{fontSize:16,fontWeight:600,color:TEXT,marginBottom:8}}>Selecteer een batch</p>
               <p style={{fontSize:13,color:MUTED}}>Of wacht op de ochtend selectie via Telegram</p>
@@ -378,7 +383,7 @@ export default function AgentPage() {
               <div style={{marginBottom:20}}>
                 <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:10}}>
                   <div>
-                    <h1 style={{fontSize:18,fontWeight:700,color:'white',margin:0}}>{batch.naam}</h1>
+                    <h1 style={{fontSize:18,fontWeight:700,color:TEXT,margin:0}}>{batch.naam}</h1>
                     <p style={{fontSize:12,color:MUTED,marginTop:4}}>
                       Status: <span style={{color:batch.status==='voltooid'?GREEN:FF}}>{batch.status}</span>
                     </p>
@@ -397,20 +402,20 @@ export default function AgentPage() {
                   <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:8,marginBottom:14}}>
                     <div style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:8,padding:'10px 14px'}}>
                       <p style={{fontSize:10,color:MUTED,margin:'0 0 3px',textTransform:'uppercase',letterSpacing:'0.08em'}}>Totaal</p>
-                      <p style={{fontSize:20,fontWeight:700,color:'white',margin:0,lineHeight:1}}>{batchStats.totaal}</p>
+                      <p style={{fontSize:20,fontWeight:700,color:TEXT,margin:0,lineHeight:1}}>{batchStats.totaal}</p>
                       <p style={{fontSize:10,color:MUTED,margin:'2px 0 0'}}>contacten</p>
                     </div>
-                    <div style={{background:CARD,border:`1px solid rgba(34,197,94,0.15)`,borderRadius:8,padding:'10px 14px'}}>
+                    <div style={{background:CARD,border:`1px solid color-mix(in srgb, var(--mf-green) 15%, transparent)`,borderRadius:8,padding:'10px 14px'}}>
                       <p style={{fontSize:10,color:MUTED,margin:'0 0 3px',textTransform:'uppercase',letterSpacing:'0.08em'}}>Verstuurd R{activeRonde}</p>
                       <p style={{fontSize:20,fontWeight:700,color:GREEN,margin:0,lineHeight:1}}>{batchStats.verstuurd}</p>
                       <p style={{fontSize:10,color:MUTED,margin:'2px 0 0'}}>{batchStats.pct}% van batch</p>
                     </div>
-                    <div style={{background:CARD,border:`1px solid rgba(245,166,35,0.15)`,borderRadius:8,padding:'10px 14px'}}>
+                    <div style={{background:CARD,border:`1px solid color-mix(in srgb, var(--mentaforce-primary) 15%, transparent)`,borderRadius:8,padding:'10px 14px'}}>
                       <p style={{fontSize:10,color:MUTED,margin:'0 0 3px',textTransform:'uppercase',letterSpacing:'0.08em'}}>Te reviewen</p>
                       <p style={{fontSize:20,fontWeight:700,color:batchStats.teReviewen>0?FF:MUTED,margin:0,lineHeight:1}}>{batchStats.teReviewen}</p>
                       <p style={{fontSize:10,color:MUTED,margin:'2px 0 0'}}>wacht op actie</p>
                     </div>
-                    <div style={{background:CARD,border:`1px solid ${batchStats.zwarteLijst>0?'rgba(239,68,68,0.2)':BORDER}`,borderRadius:8,padding:'10px 14px'}}>
+                    <div style={{background:CARD,border:`1px solid ${batchStats.zwarteLijst>0?'color-mix(in srgb, var(--mf-red) 20%, transparent)':BORDER}`,borderRadius:8,padding:'10px 14px'}}>
                       <p style={{fontSize:10,color:MUTED,margin:'0 0 3px',textTransform:'uppercase',letterSpacing:'0.08em'}}>Zwarte lijst</p>
                       <p style={{fontSize:20,fontWeight:700,color:batchStats.zwarteLijst>0?RED:MUTED,margin:0,lineHeight:1}}>{batchStats.zwarteLijst}</p>
                       <p style={{fontSize:10,color:MUTED,margin:'2px 0 0'}}>geblokkeerd</p>
@@ -427,27 +432,27 @@ export default function AgentPage() {
                     return (
                       <button key={r} onClick={()=>wisselRonde(r)} style={{
                         flex:1,padding:'10px',borderRadius:10,cursor:'pointer',transition:'all 0.15s',
-                        background: activeRonde===r ? `rgba(${R_COLORS[r-1].slice(1).match(/.{2}/g)!.map(h=>parseInt(h,16)).join(',')},0.15)` : CARD2,
-                        border: `1px solid ${activeRonde===r ? R_COLORS[r-1]+'44' : BORDER}`,
+                        background: activeRonde===r ? `color-mix(in srgb, ${R_COLORS[r-1]} 15%, transparent)` : CARD2,
+                        border: `1px solid ${activeRonde===r ? `color-mix(in srgb, ${R_COLORS[r-1]} 27%, transparent)` : BORDER}`,
                       }}>
                         <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:4}}>
                           <span style={{fontSize:12,fontWeight:600,color:activeRonde===r?R_COLORS[r-1]:TEXT}}>Ronde {r}</span>
                           <div style={{display:'flex',gap:4,alignItems:'center'}}>
-                            {isVandaag && <span style={{background:'rgba(245,166,35,0.2)',color:FF,borderRadius:3,padding:'1px 5px',fontSize:9}}>Vandaag</span>}
+                            {isVandaag && <span style={{background:'color-mix(in srgb, var(--mentaforce-primary) 20%, transparent)',color:FF,borderRadius:3,padding:'1px 5px',fontSize:9}}>Vandaag</span>}
                             <span style={{fontSize:9,color:s.verstuurd>0?GREEN:MUTED}}>{s.verstuurd}/{totaal}</span>
                           </div>
                         </div>
                         {/* Progress bar */}
-                        <div style={{height:3,background:'rgba(255,255,255,0.06)',borderRadius:2,marginBottom:6}}>
+                        <div style={{height:3,background:'var(--border)',borderRadius:2,marginBottom:6}}>
                           <div style={{width:`${pct}%`,height:'100%',background:R_COLORS[r-1],borderRadius:2,transition:'width 0.4s'}}/>
                         </div>
                         <p style={{fontSize:10,color:MUTED,marginBottom:4}}>{R_NAMEN[r-1]}</p>
                         <div style={{display:'flex',gap:6,fontSize:10,flexWrap:'wrap'}}>
-                          {s.verstuurd > 0 && <span style={{color:GREEN}}>✓ {s.verstuurd}</span>}
-                          {s.wacht > 0 && <span style={{color:'var(--text-3)'}}>⏳ {s.wacht}</span>}
-                          {s.goed > 0 && <span style={{color:GREEN}}>✅ {s.goed}</span>}
-                          {s.klaar > 0 && <span style={{color:'var(--mf-green-light)'}}>📧 {s.klaar}</span>}
-                          {s.skip > 0 && <span style={{color:'var(--text-2)'}}>❌ {s.skip}</span>}
+                          {s.verstuurd > 0 && <span style={{display:'inline-flex',alignItems:'center',gap:2,color:GREEN}}><Check size={11} aria-hidden /> {s.verstuurd}</span>}
+                          {s.wacht > 0 && <span style={{display:'inline-flex',alignItems:'center',gap:2,color:'var(--text-3)'}}><Clock size={11} aria-hidden /> {s.wacht}</span>}
+                          {s.goed > 0 && <span style={{display:'inline-flex',alignItems:'center',gap:2,color:GREEN}}><Check size={11} aria-hidden /> {s.goed}</span>}
+                          {s.klaar > 0 && <span style={{display:'inline-flex',alignItems:'center',gap:2,color:'var(--mf-green-light)'}}><Mail size={11} aria-hidden /> {s.klaar}</span>}
+                          {s.skip > 0 && <span style={{display:'inline-flex',alignItems:'center',gap:2,color:'var(--text-2)'}}><X size={11} aria-hidden /> {s.skip}</span>}
                         </div>
                       </button>
                     )
@@ -466,13 +471,13 @@ export default function AgentPage() {
                   <div style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:10,padding:'12px 16px',marginBottom:16,display:'flex',gap:10,alignItems:'center',flexWrap:'wrap'}}>
                     <span style={{fontSize:12,color:MUTED,flex:1}}>Bulk acties voor ronde {activeRonde}:</span>
                     {heeftWacht && (
-                      <button onClick={()=>keurAllesGoed(activeRonde,'bedrijf')} disabled={approvingAll} style={{background:'rgba(34,197,94,0.1)',border:'1px solid rgba(34,197,94,0.3)',borderRadius:7,color:GREEN,fontSize:12,padding:'7px 14px',cursor:'pointer',fontWeight:600}}>
-                        ✅ Alle {s.wacht} bedrijven goedkeuren
+                      <button onClick={()=>keurAllesGoed(activeRonde,'bedrijf')} disabled={approvingAll} style={{background:'color-mix(in srgb, var(--mf-green) 10%, transparent)',border:'1px solid color-mix(in srgb, var(--mf-green) 30%, transparent)',borderRadius:7,color:GREEN,fontSize:12,padding:'7px 14px',cursor:'pointer',fontWeight:600,display:'inline-flex',alignItems:'center',gap:6}}>
+                        <Check size={14} aria-hidden /> Alle {s.wacht} bedrijven goedkeuren
                       </button>
                     )}
                     {heeftEmailKlaar && (
-                      <button onClick={()=>keurAllesGoed(activeRonde,'email')} disabled={approvingAll} style={{background:'rgba(110,231,183,0.1)',border:'1px solid rgba(110,231,183,0.3)',borderRadius:7,color:'var(--mf-green-light)',fontSize:12,padding:'7px 14px',cursor:'pointer',fontWeight:600}}>
-                        ✅ Alle emails goedkeuren
+                      <button onClick={()=>keurAllesGoed(activeRonde,'email')} disabled={approvingAll} style={{background:'color-mix(in srgb, var(--mf-green) 10%, transparent)',border:'1px solid color-mix(in srgb, var(--mf-green) 30%, transparent)',borderRadius:7,color:'var(--mf-green-light)',fontSize:12,padding:'7px 14px',cursor:'pointer',fontWeight:600,display:'inline-flex',alignItems:'center',gap:6}}>
+                        <Check size={14} aria-hidden /> Alle emails goedkeuren
                       </button>
                     )}
                     {heeftEmailGoed && (
@@ -487,16 +492,16 @@ export default function AgentPage() {
                             })
                             const data = await res.json()
                             setZoekMelding(data.ok
-                              ? {ok:true, tekst:`🚀 Verstuur gestart voor ronde ${activeRonde}! Agent verwerkt de emails.`}
-                              : {ok:false, tekst:`❌ Fout: ${data.error ?? 'Onbekende fout'}`}
+                              ? {ok:true, tekst:`Verstuur gestart voor ronde ${activeRonde}! Agent verwerkt de emails.`}
+                              : {ok:false, tekst:`Fout: ${data.error ?? 'Onbekende fout'}`}
                             )
-                          } catch { setZoekMelding({ok:false, tekst:'❌ Kan agent niet bereiken'}) }
+                          } catch { setZoekMelding({ok:false, tekst:'Kan agent niet bereiken'}) }
                           setApprovingAll(false)
                         }}
                         disabled={approvingAll}
-                        style={{background:'rgba(34,197,94,0.12)',border:'1px solid rgba(34,197,94,0.4)',borderRadius:7,color:GREEN,fontSize:12,padding:'7px 14px',cursor:'pointer',fontWeight:600}}
+                        style={{background:'color-mix(in srgb, var(--mf-green) 12%, transparent)',border:'1px solid color-mix(in srgb, var(--mf-green) 40%, transparent)',borderRadius:7,color:GREEN,fontSize:12,padding:'7px 14px',cursor:'pointer',fontWeight:600,display:'inline-flex',alignItems:'center',gap:6}}
                       >
-                        🚀 Verstuur {s.klaar} emails (ronde {activeRonde})
+                        <Rocket size={14} aria-hidden /> Verstuur {s.klaar} emails (ronde {activeRonde})
                       </button>
                     )}
                   </div>
@@ -507,7 +512,7 @@ export default function AgentPage() {
               <div style={{marginBottom:12}}>
                 {/* Zoekbalk */}
                 <div style={{position:'relative',marginBottom:8}}>
-                  <span style={{position:'absolute',left:10,top:'50%',transform:'translateY(-50%)',fontSize:13,color:MUTED,pointerEvents:'none'}}>🔍</span>
+                  <Search size={14} color={MUTED} aria-hidden style={{position:'absolute',left:10,top:'50%',transform:'translateY(-50%)',pointerEvents:'none'}} />
                   <input
                     type="text"
                     placeholder="Zoek op naam, email, stad of sector..."
@@ -516,30 +521,31 @@ export default function AgentPage() {
                     style={{width:'100%',background:CARD2,border:`1px solid ${BORDER}`,borderRadius:7,color:TEXT,fontSize:12,padding:'8px 10px 8px 32px',outline:'none',fontFamily:'inherit'}}
                   />
                   {zoekTerm && (
-                    <button onClick={()=>setZoekTerm('')} style={{position:'absolute',right:8,top:'50%',transform:'translateY(-50%)',background:'none',border:'none',color:MUTED,cursor:'pointer',fontSize:13,padding:0}}>✕</button>
+                    <button onClick={()=>setZoekTerm('')} aria-label="Zoekterm wissen" style={{position:'absolute',right:8,top:'50%',transform:'translateY(-50%)',background:'none',border:'none',color:MUTED,cursor:'pointer',padding:0,display:'inline-flex',alignItems:'center'}}><X size={13} aria-hidden /></button>
                   )}
                 </div>
 
                 {/* Status filter pills */}
                 <div style={{display:'flex',gap:6,flexWrap:'wrap',alignItems:'center'}}>
-                  {[
-                    {key:'actie', label:'🎯 Actie vereist'},
-                    {key:'alle',  label:'Alle'},
-                    {key:'wacht', label:'⏳ Wacht'},
-                    {key:'email_klaar', label:'📧 Email klaar'},
-                    {key:'verstuurd', label:'📤 Verstuurd'},
-                    {key:'overgeslagen', label:'❌ Skip'},
-                  ].map(f => {
+                  {([
+                    {key:'actie', label:'Actie vereist', Icon:Rocket},
+                    {key:'alle',  label:'Alle', Icon:null},
+                    {key:'wacht', label:'Wacht', Icon:Clock},
+                    {key:'email_klaar', label:'Email klaar', Icon:Mail},
+                    {key:'verstuurd', label:'Verstuurd', Icon:Send},
+                    {key:'overgeslagen', label:'Skip', Icon:X},
+                  ] as {key:string;label:string;Icon:LucideIcon|null}[]).map(f => {
                     const count = f.key === 'alle' || f.key === 'actie' ? null
                       : alleContacten.filter(c => (c[`r${activeRonde}_status` as keyof Contact] as string) === f.key).length
                     return (
                       <button key={f.key} onClick={()=>setFilterStatus(f.key)} style={{
-                        background: filterStatus===f.key ? 'rgba(245,166,35,0.15)' : CARD2,
-                        border: `1px solid ${filterStatus===f.key ? FF+'66' : BORDER}`,
+                        background: filterStatus===f.key ? 'color-mix(in srgb, var(--mentaforce-primary) 15%, transparent)' : CARD2,
+                        border: `1px solid ${filterStatus===f.key ? 'color-mix(in srgb, var(--mentaforce-primary) 40%, transparent)' : BORDER}`,
                         borderRadius:6, color: filterStatus===f.key ? FF : MUTED,
                         fontSize:11, padding:'5px 10px', cursor:'pointer',
+                        display:'inline-flex', alignItems:'center', gap:5,
                       }}>
-                        {f.label}{count !== null ? ` (${count})` : ''}
+                        {f.Icon && <f.Icon size={12} aria-hidden />}{f.label}{count !== null ? ` (${count})` : ''}
                       </button>
                     )
                   })}
@@ -573,7 +579,7 @@ export default function AgentPage() {
                   return (
                     <div key={c.id} style={{
                       background:CARD2,
-                      border:`1px solid ${opZwarteLijst?'rgba(239,68,68,0.35)':isGepland?BORDER:st.bg+'44'}`,
+                      border:`1px solid ${opZwarteLijst?'color-mix(in srgb, var(--mf-red) 35%, transparent)':isGepland?BORDER:`color-mix(in srgb, ${st.color} 27%, transparent)`}`,
                       borderRadius:10,
                       padding:'12px 14px',
                       opacity:isGepland?0.5:1,
@@ -587,14 +593,14 @@ export default function AgentPage() {
                         <div style={{flex:1,minWidth:0}}>
                           <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:3,flexWrap:'wrap'}}>
                             <p style={{fontSize:13,fontWeight:600,color:TEXT,margin:0}}>{c.naam}</p>
-                            <span style={{background:st.bg,color:st.color,borderRadius:5,padding:'2px 8px',fontSize:10}}>{st.label}</span>
-                            <span style={{background:'rgba(245,166,35,0.1)',color:FF,borderRadius:5,padding:'2px 7px',fontSize:10}}>{c.score}pts</span>
+                            <span style={{background:st.bg,color:st.color,borderRadius:5,padding:'2px 8px',fontSize:10,display:'inline-flex',alignItems:'center',gap:4}}><st.Icon size={11} aria-hidden /> {st.label}</span>
+                            <span style={{background:'color-mix(in srgb, var(--mentaforce-primary) 10%, transparent)',color:FF,borderRadius:5,padding:'2px 7px',fontSize:10}}>{c.score}pts</span>
                             {opZwarteLijst && (
-                              <span style={{background:'rgba(239,68,68,0.15)',color:RED,borderRadius:5,padding:'2px 7px',fontSize:10,fontWeight:700,border:'1px solid rgba(239,68,68,0.3)'}}>ZL</span>
+                              <span style={{background:'color-mix(in srgb, var(--mf-red) 15%, transparent)',color:RED,borderRadius:5,padding:'2px 7px',fontSize:10,fontWeight:700,border:'1px solid color-mix(in srgb, var(--mf-red) 30%, transparent)'}}>ZL</span>
                             )}
                           </div>
                           <p style={{fontSize:11,color:MUTED,margin:0}}>{c.email} · {c.stad} · {c.sector}</p>
-                          {heeftEmail && !isEditing && <p style={{fontSize:11,color:'var(--mf-purple)',marginTop:4}}>✉️ {c[onderwerpKey] as string}</p>}
+                          {heeftEmail && !isEditing && <p style={{fontSize:11,color:'var(--mf-purple)',marginTop:4,display:'flex',alignItems:'center',gap:5}}><Mail size={12} aria-hidden /> {c[onderwerpKey] as string}</p>}
                         </div>
 
                         {/* Actie knoppen */}
@@ -602,30 +608,30 @@ export default function AgentPage() {
                           <div style={{display:'flex',gap:6,flexShrink:0,marginLeft:10,flexWrap:'wrap',justifyContent:'flex-end'}}>
                             {status === 'wacht' && <>
                               <div style={{position:'relative',display:'inline-flex'}}>
-                                <Btn color={GREEN} onClick={()=>keurGoed(c.id,r,'bedrijf')}>✅</Btn>
+                                <Btn color={GREEN} ariaLabel="Bedrijf goedkeuren" onClick={()=>keurGoed(c.id,r,'bedrijf')}><Check size={13} aria-hidden /></Btn>
                                 <span style={{position:'absolute',bottom:-18,left:'50%',transform:'translateX(-50%)',fontSize:9,color:MUTED,whiteSpace:'nowrap',pointerEvents:'none'}}>A</span>
                               </div>
                               <div style={{position:'relative',display:'inline-flex'}}>
-                                <Btn color={RED}   onClick={()=>slaOver(c.id,r,'bedrijf')}>❌</Btn>
+                                <Btn color={RED} ariaLabel="Bedrijf overslaan" onClick={()=>slaOver(c.id,r,'bedrijf')}><X size={13} aria-hidden /></Btn>
                                 <span style={{position:'absolute',bottom:-18,left:'50%',transform:'translateX(-50%)',fontSize:9,color:MUTED,whiteSpace:'nowrap',pointerEvents:'none'}}>S</span>
                               </div>
                             </>}
                             {status === 'email_klaar' && <>
                               <div style={{position:'relative',display:'inline-flex'}}>
-                                <Btn color={GREEN} onClick={()=>keurGoed(c.id,r,'email')}>✅ Email</Btn>
+                                <Btn color={GREEN} onClick={()=>keurGoed(c.id,r,'email')}><Check size={13} aria-hidden /> Email</Btn>
                                 <span style={{position:'absolute',bottom:-18,left:'50%',transform:'translateX(-50%)',fontSize:9,color:MUTED,whiteSpace:'nowrap',pointerEvents:'none'}}>A</span>
                               </div>
                               <div style={{position:'relative',display:'inline-flex'}}>
-                                <Btn color={RED}   onClick={()=>slaOver(c.id,r,'email')}>❌</Btn>
+                                <Btn color={RED} ariaLabel="Email overslaan" onClick={()=>slaOver(c.id,r,'email')}><X size={13} aria-hidden /></Btn>
                                 <span style={{position:'absolute',bottom:-18,left:'50%',transform:'translateX(-50%)',fontSize:9,color:MUTED,whiteSpace:'nowrap',pointerEvents:'none'}}>S</span>
                               </div>
                             </>}
                             {heeftEmail && !isEditing && (
                               <>
-                                <Btn color={MUTED} onClick={()=>{ setExpandedBody(isExpanded?null:c.id); setEdit(null) }}>
-                                  {isExpanded?'▲':'▼'}
+                                <Btn color={MUTED} ariaLabel={isExpanded?'Email inklappen':'Email uitklappen'} onClick={()=>{ setExpandedBody(isExpanded?null:c.id); setEdit(null) }}>
+                                  {isExpanded? <ChevronUp size={13} aria-hidden /> : <ChevronDown size={13} aria-hidden />}
                                 </Btn>
-                                <Btn color={FF} onClick={()=>{
+                                <Btn color={FF} ariaLabel="Email bewerken" onClick={()=>{
                                   setExpandedBody(c.id)
                                   setEdit({
                                     id: c.id,
@@ -634,9 +640,9 @@ export default function AgentPage() {
                                     onderwerpKey: onderwerpKey as string,
                                     onderwerpVal: c[onderwerpKey] as string ?? '',
                                   })
-                                }}>✏️</Btn>
-                                <Btn color={'var(--mf-purple)'} onClick={()=>regenereerEmail(c.id, r)} disabled={isRegenerating}>
-                                  {isRegenerating ? '⏳' : '🔄'}
+                                }}><Pencil size={13} aria-hidden /></Btn>
+                                <Btn color={'var(--mf-purple)'} ariaLabel="Email opnieuw genereren" onClick={()=>regenereerEmail(c.id, r)} disabled={isRegenerating}>
+                                  {isRegenerating ? <Clock size={13} aria-hidden /> : <RefreshCw size={13} aria-hidden />}
                                 </Btn>
                               </>
                             )}
@@ -646,7 +652,7 @@ export default function AgentPage() {
 
                       {/* Email preview / edit */}
                       {isExpanded && (c[bodyKey] || isEditing) && (
-                        <div style={{marginTop:12,background:'rgba(0,0,0,0.3)',borderRadius:8,padding:'12px 14px',borderLeft:`3px solid ${FF}`}}>
+                        <div style={{marginTop:12,background:'color-mix(in srgb, var(--bg-app) 60%, transparent)',borderRadius:8,padding:'12px 14px',borderLeft:`3px solid ${FF}`}}>
                           {isEditing ? (
                             <>
                               {/* Onderwerp edit */}
@@ -654,28 +660,28 @@ export default function AgentPage() {
                               <input
                                 value={edit!.onderwerpVal}
                                 onChange={e=>setEdit({...edit!, onderwerpVal:e.target.value})}
-                                style={{width:'100%',background:'rgba(255,255,255,0.06)',color:TEXT,border:'1px solid rgba(255,255,255,0.15)',borderRadius:6,padding:'8px 10px',fontSize:12,fontFamily:'inherit',outline:'none',marginBottom:10}}
+                                style={{width:'100%',background:'var(--bg-subtle)',color:TEXT,border:'1px solid var(--border-strong)',borderRadius:6,padding:'8px 10px',fontSize:12,fontFamily:'inherit',outline:'none',marginBottom:10}}
                               />
                               {/* Body edit */}
                               <p style={{fontSize:10,color:MUTED,margin:'0 0 4px'}}>Email tekst</p>
                               <textarea
                                 value={edit!.bodyVal}
                                 onChange={e=>setEdit({...edit!, bodyVal:e.target.value})}
-                                style={{width:'100%',minHeight:220,background:'rgba(255,255,255,0.06)',color:TEXT,border:'1px solid rgba(255,255,255,0.15)',borderRadius:6,padding:'10px',fontSize:12,fontFamily:'inherit',lineHeight:1.7,resize:'vertical',outline:'none'}}
+                                style={{width:'100%',minHeight:220,background:'var(--bg-subtle)',color:TEXT,border:'1px solid var(--border-strong)',borderRadius:6,padding:'10px',fontSize:12,fontFamily:'inherit',lineHeight:1.7,resize:'vertical',outline:'none'}}
                               />
                               <div style={{display:'flex',gap:8,marginTop:10}}>
                                 <button onClick={slaEmailOp} disabled={saving}
-                                  style={{background:'rgba(34,197,94,0.15)',border:'1px solid rgba(34,197,94,0.4)',borderRadius:6,color:GREEN,fontSize:12,padding:'6px 14px',cursor:'pointer',fontWeight:600}}>
-                                  {saving ? 'Opslaan...' : '💾 Opslaan'}
+                                  style={{background:'color-mix(in srgb, var(--mf-green) 15%, transparent)',border:'1px solid color-mix(in srgb, var(--mf-green) 40%, transparent)',borderRadius:6,color:GREEN,fontSize:12,padding:'6px 14px',cursor:'pointer',fontWeight:600,display:'inline-flex',alignItems:'center',gap:6}}>
+                                  {saving ? 'Opslaan...' : <><Save size={13} aria-hidden /> Opslaan</>}
                                 </button>
                                 <button onClick={()=>setEdit(null)}
-                                  style={{background:'rgba(239,68,68,0.1)',border:'1px solid rgba(239,68,68,0.3)',borderRadius:6,color:RED,fontSize:12,padding:'6px 14px',cursor:'pointer'}}>
+                                  style={{background:'color-mix(in srgb, var(--mf-red) 10%, transparent)',border:'1px solid color-mix(in srgb, var(--mf-red) 30%, transparent)',borderRadius:6,color:RED,fontSize:12,padding:'6px 14px',cursor:'pointer'}}>
                                   Annuleren
                                 </button>
                               </div>
                             </>
                           ) : (
-                            <pre style={{fontSize:12,color:'rgba(255,255,255,0.7)',whiteSpace:'pre-wrap',fontFamily:'inherit',margin:0,lineHeight:1.7}}>
+                            <pre style={{fontSize:12,color:'var(--text-2)',whiteSpace:'pre-wrap',fontFamily:'inherit',margin:0,lineHeight:1.7}}>
                               {c[bodyKey] as string}
                             </pre>
                           )}
@@ -684,7 +690,7 @@ export default function AgentPage() {
 
                       {/* Regenereer melding */}
                       {isRegenerating && (
-                        <p style={{fontSize:11,color:'var(--mf-purple)',marginTop:8}}>⏳ Email wordt gereset — agent genereert opnieuw bij volgende run...</p>
+                        <p style={{fontSize:11,color:'var(--mf-purple)',marginTop:8,display:'flex',alignItems:'center',gap:5}}><Clock size={12} aria-hidden /> Email wordt gereset — agent genereert opnieuw bij volgende run...</p>
                       )}
                     </div>
                   )
@@ -699,16 +705,16 @@ export default function AgentPage() {
         * { box-sizing: border-box; }
         ::-webkit-scrollbar { width: 5px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 3px; }
         @keyframes spin { to { transform: rotate(360deg); } }
       `}</style>
     </div>
   )
 }
 
-function Btn({color,onClick,children,disabled}:{color:string;onClick:()=>void;children:React.ReactNode;disabled?:boolean}) {
+function Btn({color,onClick,children,disabled,ariaLabel}:{color:string;onClick:()=>void;children:React.ReactNode;disabled?:boolean;ariaLabel?:string}) {
   return (
-    <button onClick={onClick} disabled={disabled} style={{background:`${color}15`,border:`1px solid ${color}40`,borderRadius:6,color,fontSize:11,padding:'5px 10px',cursor:disabled?'not-allowed':'pointer',fontWeight:600,whiteSpace:'nowrap',opacity:disabled?0.5:1}}>
+    <button onClick={onClick} disabled={disabled} aria-label={ariaLabel} style={{background:`color-mix(in srgb, ${color} 13%, transparent)`,border:`1px solid color-mix(in srgb, ${color} 25%, transparent)`,borderRadius:6,color,fontSize:11,padding:'5px 10px',cursor:disabled?'not-allowed':'pointer',fontWeight:600,whiteSpace:'nowrap',opacity:disabled?0.5:1,display:'inline-flex',alignItems:'center',gap:4}}>
       {children}
     </button>
   )

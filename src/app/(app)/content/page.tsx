@@ -8,6 +8,11 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { authFetch } from '@/lib/auth-fetch'
 import Navbar from '@/components/layout/Navbar'
+import {
+  MapPin, Timer, PenLine, Clapperboard, Smartphone, Check, Zap, Camera,
+  Shirt, Lightbulb, ChevronRight, Dumbbell, Calendar, RefreshCw, FileText,
+  PartyPopper,
+} from 'lucide-react'
 
 
 // ── Types ──────────────────────────────────────────────────
@@ -96,7 +101,7 @@ function VideoKaart({ video, briefingId, onStatusUpdate }: {
   return (
     <div style={{
       background: gefilmd ? 'var(--mf-green-light)' : 'var(--bg-card)',
-      border: `2px solid ${gefilmd ? '#86EFAC' : 'var(--border)'}`,
+      border: `2px solid ${gefilmd ? 'color-mix(in srgb, var(--mf-green) 30%, transparent)' : 'var(--border)'}`,
       borderRadius: 'var(--radius-lg)',
       overflow: 'hidden',
       transition: 'all 0.2s ease',
@@ -109,22 +114,23 @@ function VideoKaart({ video, briefingId, onStatusUpdate }: {
           <div style={{
             width: 44, height: 44, borderRadius: 12,
             background: gefilmd ? 'var(--mf-green)' : 'var(--bg-subtle)',
-            border: `2px solid ${gefilmd ? '#1D9E75' : 'var(--border)'}`,
+            border: `2px solid ${gefilmd ? 'var(--mf-green)' : 'var(--border)'}`,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 18, fontWeight: 900, color: gefilmd ? '#fff' : 'var(--text-1)', flexShrink: 0,
+            fontSize: 18, fontWeight: 900, color: gefilmd ? 'var(--bg-app)' : 'var(--text-1)', flexShrink: 0,
           }}>
-            {gefilmd ? '✓' : video.nummer}
+            {gefilmd ? <Check size={20} strokeWidth={3} aria-hidden /> : video.nummer}
           </div>
 
           <div style={{ flex: 1, minWidth: 0 }}>
             {/* Locatie + format chips */}
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 8 }}>
               <span style={{
+                display: 'inline-flex', alignItems: 'center', gap: 4,
                 fontSize: 11, fontWeight: 700, letterSpacing: '0.05em',
-                background: `${GROEN}15`, color: GROEN,
+                background: `color-mix(in srgb, ${GROEN} 9%, transparent)`, color: GROEN,
                 padding: '3px 10px', borderRadius: 20,
               }}>
-                📍 {video.locatie}
+                <MapPin size={12} aria-hidden /> {video.locatie}
               </span>
               {video.format && (
                 <span style={{
@@ -136,11 +142,12 @@ function VideoKaart({ video, briefingId, onStatusUpdate }: {
                 </span>
               )}
               <span style={{
+                display: 'inline-flex', alignItems: 'center', gap: 4,
                 fontSize: 11, fontWeight: 700,
                 background: 'var(--bg-subtle)', color: 'var(--text-3)',
                 padding: '3px 10px', borderRadius: 20,
               }}>
-                ⏱ {secNaarMinuten(video.duur_sec)}
+                <Timer size={12} aria-hidden /> {secNaarMinuten(video.duur_sec)}
               </span>
             </div>
 
@@ -165,22 +172,23 @@ function VideoKaart({ video, briefingId, onStatusUpdate }: {
           <button
             onClick={markeerGefilmd}
             style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6,
               padding: '10px 20px', borderRadius: 10, border: 'none', cursor: 'pointer',
               background: gefilmd ? 'var(--mf-green)' : 'var(--bg-subtle)',
-              color: gefilmd ? '#fff' : 'var(--text-2)',
+              color: gefilmd ? 'var(--bg-app)' : 'var(--text-2)',
               fontSize: 13, fontWeight: 700, flexShrink: 0,
               transition: 'all 0.15s ease',
             }}
           >
-            {gefilmd ? '✓ Gefilmd' : 'Gefilmd'}
+            {gefilmd ? <><Check size={15} strokeWidth={3} aria-hidden /> Gefilmd</> : 'Gefilmd'}
           </button>
         </div>
 
         {/* Hook — altijd zichtbaar */}
         <div style={{
           marginTop: 16,
-          background: `${GROEN}08`,
-          border: `1px solid ${GROEN}25`,
+          background: `color-mix(in srgb, ${GROEN} 4%, transparent)`,
+          border: `1px solid color-mix(in srgb, ${GROEN} 15%, transparent)`,
           borderLeft: `4px solid ${GROEN}`,
           borderRadius: 10, padding: '12px 16px',
           fontSize: 16, fontWeight: 700, color: 'var(--text-1)',
@@ -197,14 +205,15 @@ function VideoKaart({ video, briefingId, onStatusUpdate }: {
         background: 'var(--bg-subtle)',
       }}>
         {([
-          { id: 'script', label: '📝 Script' },
-          { id: 'productie', label: '🎬 Productie' },
-          { id: 'caption', label: '📱 Caption' },
+          { id: 'script', label: 'Script', icon: PenLine },
+          { id: 'productie', label: 'Productie', icon: Clapperboard },
+          { id: 'caption', label: 'Caption', icon: Smartphone },
         ] as const).map(t => (
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
             style={{
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6,
               flex: 1, padding: '10px', border: 'none', cursor: 'pointer',
               background: tab === t.id ? 'var(--bg-card)' : 'transparent',
               color: tab === t.id ? 'var(--text-1)' : 'var(--text-3)',
@@ -213,7 +222,7 @@ function VideoKaart({ video, briefingId, onStatusUpdate }: {
               transition: 'all 0.15s',
             }}
           >
-            {t.label}
+            <t.icon size={15} aria-hidden /> {t.label}
           </button>
         ))}
       </div>
@@ -241,8 +250,8 @@ function VideoKaart({ video, briefingId, onStatusUpdate }: {
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
                   {(video.broll ?? []).map((b, i) => (
-                    <div key={i} style={{ display: 'flex', gap: 8, fontSize: 13, color: 'var(--text-2)' }}>
-                      <span style={{ color: GROEN, fontWeight: 800, flexShrink: 0 }}>▸</span>
+                    <div key={i} style={{ display: 'flex', gap: 8, fontSize: 13, color: 'var(--text-2)', alignItems: 'flex-start' }}>
+                      <ChevronRight size={16} aria-hidden style={{ color: GROEN, flexShrink: 0, marginTop: 2 }} />
                       {b}
                     </div>
                   ))}
@@ -253,7 +262,7 @@ function VideoKaart({ video, briefingId, onStatusUpdate }: {
                   Call to action
                 </div>
                 <div style={{
-                  background: `${GROEN}10`, border: `1px solid ${GROEN}25`,
+                  background: `color-mix(in srgb, ${GROEN} 6%, transparent)`, border: `1px solid color-mix(in srgb, ${GROEN} 15%, transparent)`,
                   borderRadius: 10, padding: '12px 14px',
                   fontSize: 13, fontWeight: 700, color: GROEN,
                 }}>
@@ -270,16 +279,16 @@ function VideoKaart({ video, briefingId, onStatusUpdate }: {
             {/* Camera / Kleding / Licht */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginBottom: 16 }}>
               {[
-                { label: '📷 Camera', waarde: video.camera_opstelling, kleur: ORANJE },
-                { label: '👕 Kleding', waarde: video.kleding, kleur: BLAUW },
-                { label: '💡 Licht', waarde: video.licht, kleur: 'var(--mf-purple)' },
+                { label: 'Camera', icon: Camera, waarde: video.camera_opstelling, kleur: ORANJE },
+                { label: 'Kleding', icon: Shirt, waarde: video.kleding, kleur: BLAUW },
+                { label: 'Licht', icon: Lightbulb, waarde: video.licht, kleur: 'var(--mf-purple)' },
               ].map(item => item.waarde ? (
                 <div key={item.label} style={{
                   background: 'var(--bg-subtle)', border: '1px solid var(--border)',
                   borderRadius: 10, padding: '14px',
                 }}>
-                  <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.06em', color: item.kleur, marginBottom: 6, textTransform: 'uppercase' }}>
-                    {item.label}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, fontWeight: 800, letterSpacing: '0.06em', color: item.kleur, marginBottom: 6, textTransform: 'uppercase' }}>
+                    <item.icon size={13} aria-hidden /> {item.label}
                   </div>
                   <div style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.6 }}>
                     {item.waarde}
@@ -302,7 +311,7 @@ function VideoKaart({ video, briefingId, onStatusUpdate }: {
                     }}>
                       <div style={{
                         width: 24, height: 24, borderRadius: 6, flexShrink: 0,
-                        background: ORANJE, color: '#fff',
+                        background: ORANJE, color: 'var(--bg-app)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         fontSize: 12, fontWeight: 800,
                       }}>
@@ -318,11 +327,11 @@ function VideoKaart({ video, briefingId, onStatusUpdate }: {
             {/* Pro tip */}
             {video.productie_tip && (
               <div style={{
-                background: 'var(--mf-orange-light)', border: '1px solid #FED7AA',
+                background: 'var(--mf-orange-light)', border: '1px solid color-mix(in srgb, var(--mf-amber) 30%, transparent)',
                 borderRadius: 10, padding: '14px 16px',
                 display: 'flex', gap: 10, alignItems: 'flex-start',
               }}>
-                <span style={{ fontSize: 18, flexShrink: 0 }}>⚡</span>
+                <Zap size={18} aria-hidden style={{ flexShrink: 0, color: ORANJE }} />
                 <div>
                   <div style={{ fontSize: 11, fontWeight: 800, color: ORANJE, marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                     Pro tip
@@ -351,7 +360,7 @@ function VideoKaart({ video, briefingId, onStatusUpdate }: {
               {(video.platform ?? []).map(p => (
                 <span key={p} style={{
                   fontSize: 12, fontWeight: 700, padding: '4px 12px', borderRadius: 20,
-                  background: `${BLAUW}12`, color: BLAUW,
+                  background: `color-mix(in srgb, ${BLAUW} 7%, transparent)`, color: BLAUW,
                 }}>
                   {p}
                 </span>
@@ -459,18 +468,18 @@ export default function ContentPage() {
           </div>
           <h1 style={{ fontSize: 32, fontWeight: 900, color: 'var(--text-1)', margin: 0, letterSpacing: '-0.02em', lineHeight: 1.1, position: 'relative', display: 'inline-block' }}>
             <span style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
-              <div style={{ width: 280, height: 280, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
+              <div style={{ width: 280, height: 280, borderRadius: '50%', background: 'radial-gradient(circle, color-mix(in srgb, var(--mf-green) 18%, transparent) 0%, transparent 70%)' }} />
             </span>
-            <span style={{ position: 'relative', zIndex: 1 }}>{uurVanDeDag()}, Kane</span>
+            <span style={{ position: 'relative', zIndex: 1 }}>{uurVanDeDag()}, welkom terug</span>
           </h1>
           {briefing?.post_datum && (
             <div style={{
               display: 'inline-flex', alignItems: 'center', gap: 8, marginTop: 12,
               padding: '6px 14px', borderRadius: 8,
-              background: 'rgba(29,158,117,0.1)', border: '1px solid rgba(29,158,117,0.25)',
+              background: 'color-mix(in srgb, var(--mf-green) 10%, transparent)', border: '1px solid color-mix(in srgb, var(--mf-green) 25%, transparent)',
             }}>
-              <span style={{ fontSize: 13, fontWeight: 700, color: GROEN }}>
-                🎬 Film vandaag &middot; 📅 Post morgen{' '}
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 700, color: GROEN }}>
+                <Clapperboard size={15} aria-hidden /> Film vandaag &middot; <Calendar size={15} aria-hidden /> Post morgen{' '}
                 {new Date(briefing.post_datum).toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long' })}
               </span>
             </div>
@@ -486,9 +495,9 @@ export default function ContentPage() {
           }}>
             <div style={{ position: 'relative', display: 'inline-block', marginBottom: 16 }}>
               <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
-                <div style={{ width: 140, height: 140, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
+                <div style={{ width: 140, height: 140, borderRadius: '50%', background: 'radial-gradient(circle, color-mix(in srgb, var(--mf-green) 18%, transparent) 0%, transparent 70%)' }} />
               </div>
-              <div style={{ fontSize: 64, position: 'relative', zIndex: 1 }}>💪</div>
+              <Dumbbell size={64} aria-hidden style={{ position: 'relative', zIndex: 1, color: GROEN }} />
             </div>
             <h2 style={{ fontSize: 24, fontWeight: 800, color: 'var(--text-1)', margin: '0 0 8px' }}>
               Klaar om te groeien?
@@ -500,13 +509,14 @@ export default function ContentPage() {
               onClick={() => genereerBriefing(false)}
               disabled={genereren}
               style={{
+                display: 'inline-flex', alignItems: 'center', gap: 8,
                 padding: '14px 36px', borderRadius: 12, border: 'none', cursor: 'pointer',
                 background: genereren ? 'var(--text-3)' : GROEN,
-                color: '#fff', fontSize: 16, fontWeight: 800,
-                boxShadow: genereren ? 'none' : '0 4px 16px rgba(29,158,117,0.4)',
+                color: 'var(--bg-app)', fontSize: 16, fontWeight: 800,
+                boxShadow: genereren ? 'none' : '0 4px 16px color-mix(in srgb, var(--mf-green) 40%, transparent)',
               }}
             >
-              {genereren ? '⚡ 4 agents aan het werk...' : '⚡ Genereer vandaag briefing'}
+              <Zap size={18} aria-hidden /> {genereren ? '4 agents aan het werk...' : 'Genereer vandaag briefing'}
             </button>
           </div>
         )}
@@ -514,7 +524,7 @@ export default function ContentPage() {
         {/* Loading */}
         {loading && (
           <div style={{ textAlign: 'center', padding: '80px 0', color: 'var(--text-3)' }}>
-            <div style={{ fontSize: 32, marginBottom: 12 }}>⚡</div>
+            <Zap size={32} aria-hidden style={{ marginBottom: 12, color: GROEN }} />
             <div style={{ fontSize: 15, fontWeight: 600 }}>Briefing laden...</div>
           </div>
         )}
@@ -527,17 +537,18 @@ export default function ContentPage() {
               {[
                 {
                   label: 'Opnametijd', waarde: secNaarMinuten(briefing.totale_opnametijd_sec),
-                  sub: 'vandaag filmen', kleur: GROEN, icon: '⏱',
+                  sub: 'vandaag filmen', kleur: GROEN, icon: Timer, subIcon: null,
                 },
                 {
                   label: 'Voortgang', waarde: `${gefilmdTeller} / ${videosTotaal}`,
-                  sub: volledigKlaar ? '🎉 Alles gefilmd!' : 'videos gefilmd', kleur: volledigKlaar ? GROEN : BLAUW, icon: '🎬',
+                  sub: volledigKlaar ? 'Alles gefilmd!' : 'videos gefilmd', kleur: volledigKlaar ? GROEN : BLAUW, icon: Clapperboard,
+                  subIcon: volledigKlaar ? PartyPopper : null,
                 },
                 {
                   label: 'Platforms',
                   waarde: [...new Set(briefing.videos.flatMap(v => v.platform))].length.toString(),
                   sub: [...new Set(briefing.videos.flatMap(v => v.platform))].join(', '),
-                  kleur: 'var(--mf-purple)', icon: '📱',
+                  kleur: 'var(--mf-purple)', icon: Smartphone, subIcon: null,
                 },
               ].map(stat => (
                 <div key={stat.label} style={{
@@ -545,10 +556,12 @@ export default function ContentPage() {
                   borderRadius: 'var(--radius-md)', padding: '20px',
                   boxShadow: 'var(--shadow-xs)',
                 }}>
-                  <div style={{ fontSize: 22, marginBottom: 6 }}>{stat.icon}</div>
+                  <div style={{ marginBottom: 6, color: stat.kleur }}><stat.icon size={22} aria-hidden /></div>
                   <div style={{ fontSize: 26, fontWeight: 900, color: stat.kleur, letterSpacing: '-0.02em' }}>{stat.waarde}</div>
                   <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-3)', marginTop: 2 }}>{stat.label}</div>
-                  <div style={{ fontSize: 11, color: 'var(--text-4)', marginTop: 2 }}>{stat.sub}</div>
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, color: 'var(--text-4)', marginTop: 2 }}>
+                    {stat.subIcon ? <stat.subIcon size={12} aria-hidden /> : null}{stat.sub}
+                  </div>
                 </div>
               ))}
             </div>
@@ -585,34 +598,43 @@ export default function ContentPage() {
                 onClick={downloadPDF}
                 disabled={pdfLaden}
                 style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 7,
                   padding: '12px 24px', borderRadius: 10, border: 'none',
                   cursor: pdfLaden ? 'not-allowed' : 'pointer',
                   background: pdfLaden ? 'var(--text-3)' : pdfUrl ? GROEN : BLAUW,
-                  color: '#fff', fontSize: 13, fontWeight: 700,
-                  boxShadow: pdfLaden ? 'none' : '0 2px 10px rgba(24,95,165,0.3)',
+                  color: 'var(--bg-app)', fontSize: 13, fontWeight: 700,
+                  boxShadow: pdfLaden ? 'none' : '0 2px 10px color-mix(in srgb, var(--mf-blue) 30%, transparent)',
                   transition: 'all 0.2s ease',
                 }}
               >
-                {pdfLaden ? '⏳ PDF genereren...' : pdfUrl ? '📄 Open PDF' : '📄 Download PDF'}
+                {pdfLaden
+                  ? <><Timer size={15} aria-hidden /> PDF genereren...</>
+                  : pdfUrl
+                    ? <><FileText size={15} aria-hidden /> Open PDF</>
+                    : <><FileText size={15} aria-hidden /> Download PDF</>}
               </button>
               <button
                 onClick={() => genereerBriefing(true)}
                 disabled={genereren}
                 style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 7,
                   padding: '12px 24px', borderRadius: 10, border: '1px solid var(--border)',
                   cursor: genereren ? 'not-allowed' : 'pointer',
                   background: 'var(--bg-card)', color: 'var(--text-2)',
                   fontSize: 13, fontWeight: 700, opacity: genereren ? 0.6 : 1,
                 }}
               >
-                {genereren ? '⚡ 4 agents...' : '🔄 Hergeneer briefing'}
+                {genereren
+                  ? <><Zap size={15} aria-hidden /> 4 agents...</>
+                  : <><RefreshCw size={15} aria-hidden /> Hergeneer briefing</>}
               </button>
               <Link href="/content/kalender" style={{
+                display: 'inline-flex', alignItems: 'center', gap: 7,
                 padding: '12px 24px', borderRadius: 10, border: '1px solid var(--border)',
                 background: 'var(--bg-card)', color: 'var(--text-2)',
                 fontSize: 13, fontWeight: 700, textDecoration: 'none',
               }}>
-                📅 Weekkalender
+                <Calendar size={15} aria-hidden /> Weekkalender
               </Link>
             </div>
           </>
@@ -621,7 +643,7 @@ export default function ContentPage() {
         {error && (
           <div style={{
             marginTop: 16, padding: '12px 16px', background: 'var(--mf-red-light)',
-            border: '1px solid #FECACA', borderRadius: 10,
+            border: '1px solid color-mix(in srgb, var(--mf-red) 30%, transparent)', borderRadius: 10,
             fontSize: 14, color: 'var(--mf-red)', fontWeight: 600,
           }}>
             {error}
