@@ -118,7 +118,7 @@ export default function Contact() {
         <div className="lg:col-span-3">
 
           {verzonden ? (
-            <div className="rounded-3xl border p-14 text-center"
+            <div role="status" aria-live="polite" className="rounded-3xl border p-14 text-center"
               style={{ borderColor: 'rgba(255,255,255,0.08)', background: 'rgba(29,158,117,0.06)' }}>
               <div className="w-20 h-20 rounded-full flex items-center justify-center text-4xl mx-auto mb-6"
                 style={{ background: 'rgba(29,158,117,0.15)' }}>
@@ -144,7 +144,7 @@ export default function Contact() {
               <h2 className="text-xl font-bold text-white mb-6">Stuur ons een bericht</h2>
 
               {/* Subject select */}
-              <div className="mb-6">
+              <div className="mb-6" role="group" aria-label="Onderwerp">
                 <p className="text-sm font-medium mb-3" style={{ color: 'rgba(255,255,255,0.6)' }}>Onderwerp</p>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
                   {ONDERWERPEN.map(o => (
@@ -152,6 +152,7 @@ export default function Contact() {
                       key={o.id}
                       type="button"
                       onClick={() => setGeselecteerd(o.id)}
+                      aria-pressed={geselecteerd === o.id}
                       className="text-left p-3 rounded-xl border transition"
                       style={{
                         background: geselecteerd === o.id ? 'rgba(29,158,117,0.12)' : 'rgba(255,255,255,0.03)',
@@ -168,10 +169,11 @@ export default function Contact() {
               {/* Name + email */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                 <div>
-                  <label className="text-xs font-medium block mb-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>
+                  <label htmlFor="contact-naam" className="text-xs font-medium block mb-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>
                     Naam *
                   </label>
                   <input
+                    id="contact-naam"
                     type="text"
                     value={naam}
                     onChange={e => setNaam(e.target.value)}
@@ -188,10 +190,11 @@ export default function Contact() {
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-medium block mb-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>
+                  <label htmlFor="contact-email" className="text-xs font-medium block mb-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>
                     E-mailadres *
                   </label>
                   <input
+                    id="contact-email"
                     type="email"
                     value={email}
                     onChange={e => setEmail(e.target.value)}
@@ -212,10 +215,11 @@ export default function Contact() {
               {/* Organisation + team size */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                 <div>
-                  <label className="text-xs font-medium block mb-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>
+                  <label htmlFor="contact-organisatie" className="text-xs font-medium block mb-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>
                     Organisatie
                   </label>
                   <input
+                    id="contact-organisatie"
                     type="text"
                     value={organisatie}
                     onChange={e => setOrganisatie(e.target.value)}
@@ -231,10 +235,11 @@ export default function Contact() {
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-medium block mb-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>
+                  <label htmlFor="contact-teamgrootte" className="text-xs font-medium block mb-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>
                     Teamgrootte
                   </label>
                   <select
+                    id="contact-teamgrootte"
                     value={teamgrootte}
                     onChange={e => setTeamgrootte(e.target.value)}
                     className="w-full rounded-xl px-4 py-3 text-sm outline-none transition appearance-none"
@@ -256,10 +261,11 @@ export default function Contact() {
 
               {/* Message */}
               <div className="mb-6">
-                <label className="text-xs font-medium block mb-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>
+                <label htmlFor="contact-bericht" className="text-xs font-medium block mb-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>
                   Bericht *
                 </label>
                 <textarea
+                  id="contact-bericht"
                   rows={5}
                   value={bericht}
                   onChange={e => setBericht(e.target.value)}
@@ -392,6 +398,7 @@ export default function Contact() {
               >
                 <button
                   onClick={() => setFaqOpen(faqOpen === i ? null : i)}
+                  aria-expanded={faqOpen === i}
                   className="w-full flex items-center justify-between px-6 py-4 text-left"
                 >
                   <span className="text-sm font-medium text-white">{item.vraag}</span>

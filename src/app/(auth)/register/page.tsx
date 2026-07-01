@@ -342,9 +342,11 @@ export default function Register() {
                 </p>
 
                 <div className="mb-6">
-                  <label className="text-xs font-semibold text-gray-600 block mb-2">HR Code</label>
+                  <label htmlFor="reg-hrcode" className="text-xs font-semibold text-gray-600 block mb-2">HR Code</label>
                   <input
+                    id="reg-hrcode"
                     type="text"
+                    aria-describedby={hrCodeFout ? 'reg-hrcode-fout' : undefined}
                     value={hrCode}
                     onChange={e => {
                       let v = e.target.value.toUpperCase().replace(/[^A-Z0-9-]/g, '')
@@ -366,13 +368,14 @@ export default function Register() {
                     autoComplete="off"
                   />
                   {hrCodeBedrijfsnaam && !hrCodeFout && hrCode.length === 7 && (
-                    <div className="mt-3 rounded-xl border border-green-200 bg-green-50 px-4 py-2.5 text-sm font-medium"
-                      style={{ color: 'var(--mf-green-dark)' }}>
+                    <div aria-live="polite" className="mt-3 rounded-xl px-4 py-2.5 text-sm font-medium"
+                      style={{ background: 'var(--mf-green-light)', border: '1px solid var(--mf-green)', color: 'var(--mf-green-dark)' }}>
                       Bedrijf gevonden: <strong>{hrCodeBedrijfsnaam}</strong>
                     </div>
                   )}
                   {hrCodeFout && (
-                    <div className="mt-3 rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-sm text-red-700">
+                    <div id="reg-hrcode-fout" role="alert" aria-live="assertive" className="mt-3 rounded-xl px-4 py-2.5 text-sm"
+                      style={{ background: 'var(--mf-red-light)', border: '1px solid var(--mf-red)', color: 'var(--mf-red)' }}>
                       {hrCodeFout}
                     </div>
                   )}
@@ -426,13 +429,15 @@ export default function Register() {
 
                 <div className="flex flex-col gap-4 mb-8">
                   <div>
-                    <label className="text-xs font-semibold text-gray-600 block mb-1.5">Jouw naam *</label>
+                    <label htmlFor="reg-naam" className="text-xs font-semibold text-gray-600 block mb-1.5">Jouw naam *</label>
                     <input
+                      id="reg-naam"
                       type="text"
                       value={naam}
                       onChange={e => setNaam(e.target.value)}
                       placeholder="Jan Janssen"
                       autoFocus
+                      autoComplete="name"
                       className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-gray-400 transition bg-white"
                     />
                   </div>
@@ -440,18 +445,21 @@ export default function Register() {
                   {(type === 'hr') && (
                     <>
                       <div>
-                        <label className="text-xs font-semibold text-gray-600 block mb-1.5">Organisatie</label>
+                        <label htmlFor="reg-organisatie" className="text-xs font-semibold text-gray-600 block mb-1.5">Organisatie</label>
                         <input
+                          id="reg-organisatie"
                           type="text"
                           value={organisatie}
                           onChange={e => setOrganisatie(e.target.value)}
                           placeholder="Naam van je bedrijf"
+                          autoComplete="organization"
                           className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-gray-400 transition bg-white"
                         />
                       </div>
                       <div>
-                        <label className="text-xs font-semibold text-gray-600 block mb-1.5">Teamgrootte</label>
+                        <label htmlFor="reg-teamgrootte" className="text-xs font-semibold text-gray-600 block mb-1.5">Teamgrootte</label>
                         <select
+                          id="reg-teamgrootte"
                           value={teamgrootte}
                           onChange={e => setTeamgrootte(e.target.value)}
                           className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-gray-400 transition bg-white appearance-none"
@@ -468,8 +476,9 @@ export default function Register() {
                   )}
 
                   <div>
-                    <label className="text-xs font-semibold text-gray-600 block mb-1.5">Functie (optioneel)</label>
+                    <label htmlFor="reg-functie" className="text-xs font-semibold text-gray-600 block mb-1.5">Functie (optioneel)</label>
                     <input
+                      id="reg-functie"
                       type="text"
                       value={functie}
                       onChange={e => setFunctie(e.target.value)}
@@ -479,10 +488,12 @@ export default function Register() {
                   </div>
 
                   <div>
-                    <label className="text-xs font-semibold text-gray-600 block mb-1.5">Telefoonnummer (optioneel)</label>
+                    <label htmlFor="reg-telefoon" className="text-xs font-semibold text-gray-600 block mb-1.5">Telefoonnummer (optioneel)</label>
                     <input
+                      id="reg-telefoon"
                       type="tel"
                       value={telefoon}
+                      autoComplete="tel"
                       onChange={e => setTelefoon(e.target.value)}
                       placeholder="+32 4xx xx xx xx"
                       className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-gray-400 transition bg-white"
@@ -553,29 +564,34 @@ export default function Register() {
 
                 <div className="flex flex-col gap-4 mb-6">
                   <div>
-                    <label className="text-xs font-semibold text-gray-600 block mb-1.5">E-mailadres *</label>
+                    <label htmlFor="reg-email" className="text-xs font-semibold text-gray-600 block mb-1.5">E-mailadres *</label>
                     <input
+                      id="reg-email"
                       type="email"
                       value={email}
                       onChange={e => { setEmail(e.target.value); setFout(null) }}
                       placeholder="jij@bedrijf.be"
                       autoFocus
+                      autoComplete="email"
+                      aria-describedby={emailFout ? 'reg-email-fout' : undefined}
                       className="w-full border rounded-xl px-4 py-3 text-sm outline-none transition bg-white"
                       style={{ borderColor: emailFout ? 'var(--mf-red)' : 'var(--border)' }}
                     />
                     {emailFout && (
-                      <p className="text-xs mt-1" style={{ color: 'var(--mf-red)' }}>{emailFout}</p>
+                      <p id="reg-email-fout" className="text-xs mt-1" style={{ color: 'var(--mf-red)' }}>{emailFout}</p>
                     )}
                   </div>
 
                   <div>
-                    <label className="text-xs font-semibold text-gray-600 block mb-1.5">Wachtwoord *</label>
+                    <label htmlFor="reg-wachtwoord" className="text-xs font-semibold text-gray-600 block mb-1.5">Wachtwoord *</label>
                     <div className="relative">
                       <input
+                        id="reg-wachtwoord"
                         type={toonWachtwoord ? 'text' : 'password'}
                         value={wachtwoord}
                         onChange={e => setWachtwoord(e.target.value)}
                         placeholder="Minimaal 8 tekens"
+                        autoComplete="new-password"
                         className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-gray-400 transition bg-white pr-16"
                       />
                       <button
@@ -598,18 +614,21 @@ export default function Register() {
                   </div>
 
                   <div>
-                    <label className="text-xs font-semibold text-gray-600 block mb-1.5">Wachtwoord bevestigen *</label>
+                    <label htmlFor="reg-bevestig" className="text-xs font-semibold text-gray-600 block mb-1.5">Wachtwoord bevestigen *</label>
                     <input
+                      id="reg-bevestig"
                       type={toonWachtwoord ? 'text' : 'password'}
                       value={bevestigWachtwoord}
                       onChange={e => setBevestigWachtwoord(e.target.value)}
                       onKeyDown={e => e.key === 'Enter' && registreer()}
                       placeholder="Herhaal wachtwoord"
+                      autoComplete="new-password"
+                      aria-describedby={bevestigWachtwoord && wachtwoord !== bevestigWachtwoord ? 'reg-mismatch' : undefined}
                       className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-gray-400 transition bg-white"
                       style={{ borderColor: bevestigWachtwoord && wachtwoord !== bevestigWachtwoord ? 'var(--mf-red)' : '' }}
                     />
                     {bevestigWachtwoord && wachtwoord !== bevestigWachtwoord && (
-                      <p className="text-xs text-red-500 mt-1">Wachtwoorden komen niet overeen</p>
+                      <p id="reg-mismatch" className="text-xs mt-1" style={{ color: 'var(--mf-red)' }}>Wachtwoorden komen niet overeen</p>
                     )}
                   </div>
                 </div>
@@ -646,7 +665,8 @@ export default function Register() {
                 </div>
 
                 {fout && (
-                  <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 mb-4">
+                  <div role="alert" aria-live="assertive" className="rounded-xl px-4 py-3 text-sm mb-4"
+                    style={{ background: 'var(--mf-red-light)', border: '1px solid var(--mf-red)', color: 'var(--mf-red)' }}>
                     {fout}
                   </div>
                 )}

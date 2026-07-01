@@ -99,7 +99,7 @@ export default function WachtwoordReset() {
   return (
     <main className="min-h-screen flex items-center justify-center p-8"
       style={{ background: 'linear-gradient(135deg, #E1F5EE 0%, #E6F1FB 100%)' }}>
-      <div className="max-w-md w-full bg-white rounded-2xl border border-gray-100 p-10 shadow-sm">
+      <div className="max-w-md w-full bg-white rounded-2xl border border-gray-100 p-10 shadow-sm mf-animate-up">
 
         <Link href="/" className="flex items-center gap-2 mb-8">
           <div className="w-8 h-8 rounded-lg flex items-center justify-center"
@@ -113,19 +113,24 @@ export default function WachtwoordReset() {
         <p className="text-gray-400 text-sm mb-8">Kies een sterk wachtwoord van minimaal 8 tekens.</p>
 
         {status === 'fout_opslaan' && (
-          <div className="rounded-xl border border-red-100 bg-red-50 px-4 py-3 mb-5">
-            <p className="text-sm text-red-700 font-medium">Opslaan mislukt.</p>
-            <p className="text-xs text-red-500 mt-0.5">Probeer opnieuw of vraag een nieuwe link aan.</p>
+          <div id="reset-fout" role="alert" aria-live="assertive" className="rounded-xl px-4 py-3 mb-5"
+            style={{ background: 'var(--mf-red-light)', border: '1px solid var(--mf-red)' }}>
+            <p className="text-sm font-medium" style={{ color: 'var(--mf-red)' }}>Opslaan mislukt.</p>
+            <p className="text-xs mt-0.5" style={{ color: 'var(--mf-red)' }}>Probeer opnieuw of vraag een nieuwe link aan.</p>
           </div>
         )}
 
         <div className="flex flex-col gap-3 mb-6">
           <div className="relative">
+            <label htmlFor="reset-wachtwoord" className="sr-only">Nieuw wachtwoord</label>
             <input
+              id="reset-wachtwoord"
               type={toon ? 'text' : 'password'}
               placeholder="Nieuw wachtwoord"
               value={wachtwoord}
               autoFocus
+              autoComplete="new-password"
+              aria-describedby={status === 'fout_opslaan' ? 'reset-fout' : undefined}
               onChange={e => setWachtwoord(e.target.value)}
               className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-gray-400 transition pr-16"
             />
@@ -147,17 +152,21 @@ export default function WachtwoordReset() {
             </div>
           )}
 
+          <label htmlFor="reset-bevestig" className="sr-only">Bevestig nieuw wachtwoord</label>
           <input
+            id="reset-bevestig"
             type={toon ? 'text' : 'password'}
             placeholder="Bevestig nieuw wachtwoord"
             value={bevestig}
+            autoComplete="new-password"
+            aria-describedby={bevestig && wachtwoord !== bevestig ? 'reset-mismatch' : undefined}
             onChange={e => setBevestig(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && slaOp()}
             className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none transition"
             style={{ borderColor: bevestig && wachtwoord !== bevestig ? 'var(--mf-red)' : '' }}
           />
           {bevestig && wachtwoord !== bevestig && (
-            <p className="text-xs text-red-500 -mt-1">Wachtwoorden komen niet overeen</p>
+            <p id="reset-mismatch" className="text-xs -mt-1" style={{ color: 'var(--mf-red)' }}>Wachtwoorden komen niet overeen</p>
           )}
         </div>
 

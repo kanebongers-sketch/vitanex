@@ -225,7 +225,7 @@ function BedanktInhoud() {
   if (status === 'laden' || status === 'analyse') return (
     <main className="min-h-screen flex flex-col items-center justify-center p-8"
       style={{ background: 'linear-gradient(135deg, #E1F5EE 0%, #E6F1FB 100%)' }}>
-      <div className="max-w-md w-full bg-white rounded-2xl border border-gray-100 p-10 shadow-sm text-center">
+      <div role="status" aria-live="polite" className="max-w-md w-full bg-white rounded-2xl border border-gray-100 p-10 shadow-sm text-center">
         <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-5" style={{ background: 'var(--mf-green-light)' }}>
           <div className="w-6 h-6 rounded-full border-2 border-gray-200 animate-spin" style={{ borderTopColor: 'var(--mf-green)' }} />
         </div>
@@ -488,6 +488,9 @@ function BedanktInhoud() {
           <button
             onClick={toggleDelen}
             disabled={deelBezig}
+            role="switch"
+            aria-checked={gedeeld}
+            aria-label="Deel je analyse met HR"
             className="w-full flex items-center justify-between p-4 rounded-xl border transition"
             style={{ background: gedeeld ? 'var(--mf-green-light)' : 'var(--bg-subtle)', borderColor: gedeeld ? 'var(--mf-green)' : 'var(--border)' }}
           >

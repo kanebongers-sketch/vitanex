@@ -115,10 +115,13 @@ export default function Setup() {
               </li>
             </ol>
 
+            <label htmlFor="setup-token" className="sr-only">Supabase Management Token</label>
             <input
+              id="setup-token"
               type="password"
               placeholder="sbp_xxxxxxxxxxxxxxxx"
               value={mgmtToken}
+              autoComplete="off"
               onChange={e => setMgmtToken(e.target.value)}
               className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-purple-400 mb-4"
             />
@@ -159,7 +162,7 @@ export default function Setup() {
 
         {stap === 'fout' && (
           <>
-            <div className="rounded-xl p-4 mb-5" style={{ background: 'var(--mf-red-light)', borderLeft: '3px solid #E24B4A' }}>
+            <div role="alert" aria-live="assertive" className="rounded-xl p-4 mb-5" style={{ background: 'var(--mf-red-light)', borderLeft: '3px solid var(--mf-red)' }}>
               <p className="text-sm font-semibold mb-1" style={{ color: 'var(--mf-red)' }}>Er ging iets mis</p>
               <p className="text-xs" style={{ color: 'var(--mf-red)' }}>{foutmelding}</p>
             </div>

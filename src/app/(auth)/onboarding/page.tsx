@@ -446,20 +446,20 @@ export default function OnboardingPage() {
           </>
         )}
 
-        {/* Bewezen resultaten */}
+        {/* Wat je krijgt */}
         <div style={{
           background: 'linear-gradient(135deg, #E1F5EE, #D1FAE5)',
           border: '1.5px solid rgba(29,158,117,0.25)',
           borderRadius: 16, padding: '14px 18px', marginBottom: 20, textAlign: 'left',
         }}>
           <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--mf-green-dark)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>
-            Bewezen resultaten
+            Waar MentaForce je bij helpt
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             {[
-              '40% minder stresssymptomen bij dagelijkse gebruikers',
-              '3× betere slaapkwaliteit na 4 weken bijhouden',
-              '76% voelt zich energieker na 2 weken',
+              'Zie in één oogopslag hoe je slaapt, herstelt en presteert',
+              'Merk trends op voordat ze uitmonden in klachten of uitval',
+              'Werk aan rust, energie en focus met concrete weekdoelen',
             ].map(stat => (
               <div key={stat} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <span style={{ color: 'var(--mf-green)', fontWeight: 700, flexShrink: 0 }}>✓</span>
@@ -482,7 +482,7 @@ export default function OnboardingPage() {
               icon: '🤖',
               title: 'Persoonlijk AI-rapport',
               desc: 'AI analyseert jouw antwoorden en geeft gerichte tips.',
-              waarom: 'Gepersonaliseerd advies werkt 2× beter dan generiek.',
+              waarom: 'Advies dat past bij jouw situatie is makkelijker vol te houden.',
             },
             {
               icon: '🎯',
@@ -909,6 +909,7 @@ export default function OnboardingPage() {
                           }}>
                             <p style={{ fontSize: 13, color: 'var(--mf-text, #374151)', fontWeight: opt.actief ? 600 : 400 }}>{opt.label}</p>
                             <button type="button" onClick={() => setGebr(f => ({ ...f, [opt.key]: !f[opt.key] }))}
+                              role="switch" aria-checked={opt.actief} aria-label={opt.label}
                               style={{
                                 width: 40, height: 22, borderRadius: 9999, border: 'none', cursor: 'pointer',
                                 background: opt.actief ? 'var(--mf-green, #1D9E75)' : 'var(--mf-border, #E5E7EB)',

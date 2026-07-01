@@ -36,7 +36,7 @@ export default function WachtwoordVergeten() {
   return (
     <main className="min-h-screen flex flex-col items-center justify-center p-8"
       style={{ background: 'linear-gradient(135deg, #E1F5EE 0%, #E6F1FB 100%)' }}>
-      <div className="max-w-md w-full bg-white rounded-2xl border border-gray-100 p-10 shadow-sm">
+      <div className="max-w-md w-full bg-white rounded-2xl border border-gray-100 p-10 shadow-sm mf-animate-up">
 
         <Link href="/login" className="flex items-center gap-2 mb-8">
           <div className="w-8 h-8 rounded-lg flex items-center justify-center"
@@ -74,9 +74,10 @@ export default function WachtwoordVergeten() {
             </p>
 
             {status === 'not_found' && (
-              <div className="rounded-xl border border-red-100 bg-red-50 px-4 py-3 mb-5">
-                <p className="text-sm text-red-700 font-medium">Geen account gevonden.</p>
-                <p className="text-xs text-red-500 mt-0.5">
+              <div id="reset-fout" role="alert" aria-live="assertive" className="rounded-xl px-4 py-3 mb-5"
+                style={{ background: 'var(--mf-red-light)', border: '1px solid var(--mf-red)' }}>
+                <p className="text-sm font-medium" style={{ color: 'var(--mf-red)' }}>Geen account gevonden.</p>
+                <p className="text-xs mt-0.5" style={{ color: 'var(--mf-red)' }}>
                   Dit e-mailadres is niet geregistreerd.{' '}
                   <Link href="/register" className="underline font-medium">Registreer je</Link>.
                 </p>
@@ -84,22 +85,27 @@ export default function WachtwoordVergeten() {
             )}
 
             {status === 'error' && (
-              <div className="rounded-xl border border-red-100 bg-red-50 px-4 py-3 mb-5">
-                <p className="text-sm text-red-700 font-medium">Er ging iets mis.</p>
-                <p className="text-xs text-red-500 mt-0.5">Probeer het opnieuw.</p>
+              <div id="reset-fout" role="alert" aria-live="assertive" className="rounded-xl px-4 py-3 mb-5"
+                style={{ background: 'var(--mf-red-light)', border: '1px solid var(--mf-red)' }}>
+                <p className="text-sm font-medium" style={{ color: 'var(--mf-red)' }}>Er ging iets mis.</p>
+                <p className="text-xs mt-0.5" style={{ color: 'var(--mf-red)' }}>Probeer het opnieuw.</p>
               </div>
             )}
 
             <div className="flex flex-col gap-3 mb-6">
+              <label htmlFor="reset-email" className="text-xs font-semibold" style={{ color: 'var(--text-2)' }}>E-mailadres</label>
               <input
+                id="reset-email"
                 type="email"
-                placeholder="E-mailadres"
+                placeholder="jij@bedrijf.be"
                 value={email}
                 autoFocus
                 autoComplete="email"
+                aria-describedby={status === 'not_found' || status === 'error' ? 'reset-fout' : undefined}
                 onChange={e => { setEmail(e.target.value); if (status !== 'idle') setStatus('idle') }}
                 onKeyDown={e => e.key === 'Enter' && stuurResetMail()}
-                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-gray-400 transition"
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-gray-400 focus-visible:ring-2 transition"
+                style={{ ['--tw-ring-color' as string]: 'var(--mentaforce-primary)' }}
               />
             </div>
 

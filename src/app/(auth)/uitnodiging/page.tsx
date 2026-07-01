@@ -188,7 +188,7 @@ function UitnodigingForm() {
   return (
     <main className="min-h-screen flex items-center justify-center p-8"
       style={{ background: 'linear-gradient(135deg, #E1F5EE 0%, #E6F1FB 100%)' }}>
-      <div className="max-w-md w-full bg-white rounded-2xl border border-gray-200 p-8">
+      <div className="max-w-md w-full bg-white rounded-2xl border border-gray-200 p-8 mf-animate-up">
 
         <div className="flex items-center gap-2 mb-6">
           <div className="w-8 h-8 rounded-lg flex items-center justify-center"
@@ -211,19 +211,26 @@ function UitnodigingForm() {
         )}
 
         <div className="flex flex-col gap-3 mb-2">
+          <label htmlFor="uitn-naam" className="sr-only">Jouw naam</label>
           <input
+            id="uitn-naam"
             type="text"
             placeholder="Jouw naam"
             value={naam}
             autoFocus
+            autoComplete="name"
             onChange={e => setNaam(e.target.value)}
             className="border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-gray-400 transition"
           />
           <div className="relative">
+            <label htmlFor="uitn-wachtwoord" className="sr-only">Wachtwoord</label>
             <input
+              id="uitn-wachtwoord"
               type={toonWachtwoord ? 'text' : 'password'}
               placeholder="Kies een wachtwoord (min. 8 tekens)"
               value={wachtwoord}
+              autoComplete="new-password"
+              aria-describedby={foutMelding ? 'uitn-fout' : undefined}
               onChange={e => setWachtwoord(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && registreren()}
               className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-gray-400 transition pr-16"
@@ -247,7 +254,7 @@ function UitnodigingForm() {
         </div>
 
         {foutMelding && (
-          <p className="text-red-500 text-sm mt-3 mb-1">{foutMelding}</p>
+          <p id="uitn-fout" role="alert" aria-live="assertive" className="text-sm mt-3 mb-1" style={{ color: 'var(--mf-red)' }}>{foutMelding}</p>
         )}
 
         <button
