@@ -84,10 +84,10 @@ function CopyButton({ tekst }: { tekst: string }) {
     <button onClick={kopieer} style={{
       padding: '4px 10px', borderRadius: 6, border: '1px solid var(--border)',
       background: gekopieerd ? 'var(--mf-green)' : 'var(--bg-subtle)',
-      color: gekopieerd ? '#fff' : 'var(--text-3)',
+      color: gekopieerd ? 'var(--bg-app)' : 'var(--text-3)',
       fontSize: 11, fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s',
     }}>
-      {gekopieerd ? '✓ Gekopieerd' : '⎘ Kopieer'}
+      {gekopieerd ? 'Gekopieerd' : 'Kopieer'}
     </button>
   )
 }

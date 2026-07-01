@@ -298,7 +298,7 @@ export default function VoedingSetup({ onComplete, onOverslaan }: Props) {
                 width: 28, height: 28, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontSize: 12, fontWeight: 700,
                 background: stap === n ? 'var(--mf-green)' : stap > n ? 'var(--mf-green-light)' : 'var(--bg-subtle)',
-                color: stap === n ? '#fff' : stap > n ? 'var(--mf-green)' : 'var(--text-3)',
+                color: stap === n ? 'var(--bg-app)' : stap > n ? 'var(--mf-green)' : 'var(--text-3)',
               }}>
                 {stap > n ? '✓' : n}
               </div>
@@ -322,7 +322,7 @@ export default function VoedingSetup({ onComplete, onOverslaan }: Props) {
                   style={{
                     flex: 1, padding: '10px 0', borderRadius: 8, fontSize: 14, fontWeight: 500, cursor: 'pointer',
                     background: geslacht === g.value ? 'var(--mf-green)' : 'var(--bg-card, #fff)',
-                    color: geslacht === g.value ? '#fff' : 'var(--text-2)',
+                    color: geslacht === g.value ? 'var(--bg-app)' : 'var(--text-2)',
                     border: `1.5px solid ${geslacht === g.value ? 'var(--mf-green)' : 'var(--border)'}`,
                   }}>
                   {g.label}
@@ -381,7 +381,7 @@ export default function VoedingSetup({ onComplete, onOverslaan }: Props) {
                   style={{
                     flex: 1, padding: '12px 4px', borderRadius: 10, cursor: 'pointer', textAlign: 'center',
                     background: sportPerWeek === s.value ? 'var(--mf-green)' : 'var(--bg-card, #fff)',
-                    color: sportPerWeek === s.value ? '#fff' : 'var(--text-2)',
+                    color: sportPerWeek === s.value ? 'var(--bg-app)' : 'var(--text-2)',
                     border: `1.5px solid ${sportPerWeek === s.value ? 'var(--mf-green)' : 'var(--border)'}`,
                   }}>
                   <div style={{ fontSize: 14, fontWeight: 700 }}>{s.label}</div>
@@ -562,7 +562,7 @@ export default function VoedingSetup({ onComplete, onOverslaan }: Props) {
               style={{
                 flex: 2, padding: '14px 0', borderRadius: 12, fontSize: 15, fontWeight: 600, border: 'none',
                 background: kanVerder() ? 'var(--mf-green)' : 'var(--text-4)',
-                color: kanVerder() ? '#fff' : 'var(--text-3)',
+                color: kanVerder() ? 'var(--bg-app)' : 'var(--text-3)',
                 cursor: kanVerder() ? 'pointer' : 'not-allowed',
               }}>
               Volgende
@@ -572,7 +572,7 @@ export default function VoedingSetup({ onComplete, onOverslaan }: Props) {
               style={{
                 flex: 2, padding: '14px 0', borderRadius: 12, fontSize: 15, fontWeight: 700, border: 'none',
                 background: kanVerder() ? 'var(--mf-green)' : 'var(--text-4)',
-                color: kanVerder() ? '#fff' : 'var(--text-3)',
+                color: kanVerder() ? 'var(--bg-app)' : 'var(--text-3)',
                 cursor: kanVerder() ? 'pointer' : 'not-allowed',
               }}>
               {opslaan ? 'Opslaan...' : '✅ Start met tracken'}
