@@ -10,7 +10,17 @@ import { COLORS } from '@/components/marketing/theme'
 
 export default function MarketingPage() {
   return (
-    <div style={{ background: COLORS.navy, color: COLORS.ink, minHeight: '100vh', flex: '1 0 auto', overflowX: 'clip' }}>
+    <div data-mf-landing style={{ background: COLORS.navy, color: COLORS.ink, minHeight: '100vh', flex: '1 0 auto', overflowX: 'clip' }}>
+      <style>{`
+        [data-mf-landing] a:focus-visible,
+        [data-mf-landing] button:focus-visible {
+          outline: 2px solid ${COLORS.cyan};
+          outline-offset: 3px;
+          border-radius: 6px;
+        }
+        [data-mf-landing] footer a { transition: color .15s ease; }
+        [data-mf-landing] footer a:hover { color: ${COLORS.ink}; }
+      `}</style>
       <Nav />
       <main>
         <Hero />
