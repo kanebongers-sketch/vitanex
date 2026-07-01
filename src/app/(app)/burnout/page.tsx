@@ -149,7 +149,6 @@ export default function BurnoutPagina() {
         cynisme: Math.round(c * 10) / 10,
         efficaciteit: Math.round(e * 10) / 10,
         risico_niveau: risico,
-        antwoorden,
       })
       .select('id, uitputting, cynisme, efficaciteit, risico_niveau, aangemaakt_op')
       .single()

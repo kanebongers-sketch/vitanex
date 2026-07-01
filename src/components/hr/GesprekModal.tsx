@@ -118,7 +118,7 @@ export default function GesprekModal({ gesprek, bedrijfId, hrUserId, medewerkers
       samenvatting_medewerker: samenvattingMedewerker.trim() || null,
       actiepunten,
       status,
-      followup_datum: followupDatum || null,
+      follow_up_datum: followupDatum || null,
     }
 
     let error

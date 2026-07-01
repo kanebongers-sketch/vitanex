@@ -14,7 +14,7 @@ export async function GET(
 
   const { data: uitdaging } = await admin
     .from('team_uitdagingen')
-    .select('id, titel, type, doel_waarde, eenheid, start_datum, eind_datum, bedrijf_id')
+    .select('id, naam, type, doel_waarde, eenheid, start_datum, eind_datum, bedrijf_id')
     .eq('id', id)
     .single()
 
