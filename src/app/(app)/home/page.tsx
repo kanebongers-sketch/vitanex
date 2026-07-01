@@ -23,6 +23,15 @@ function nlDatum(): string {
   return new Date().toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long' })
 }
 
+/* Tijdsbewuste begroeting i.p.v. altijd "Goedemorgen". */
+function begroeting(): string {
+  const u = new Date().getHours()
+  if (u < 6) return 'Goedenacht'
+  if (u < 12) return 'Goedemorgen'
+  if (u < 18) return 'Goedemiddag'
+  return 'Goedenavond'
+}
+
 function scoreLabel(score: number | null): string {
   if (score === null) return 'Geen data'
   if (score >= 80) return 'Uitstekend'
@@ -196,7 +205,18 @@ export default function DashboardPage() {
 
   const voornaam = naam.split(' ')[0] || 'je'
   const gedaanCount = checklist.filter(i => i.gedaan).length
+  const alGedaan = gedaanCount === checklist.length
   const kleur = scoreKleur(readiness)
+
+  /* Warme, eerlijke subline op basis van echte voortgang — geen verzonnen data. */
+  const subline =
+    alGedaan
+      ? 'Alles afgerond voor vandaag. Sterk gedaan.'
+      : gedaanCount > 0
+        ? `Goed bezig — ${gedaanCount}/${checklist.length} taken vandaag afgerond.`
+        : readiness !== null
+          ? 'Klaar voor een nieuwe dag. Begin met één kleine stap.'
+          : 'Begin met je check-in om je dag te meten.'
 
   if (laden) {
     return (
@@ -212,13 +232,16 @@ export default function DashboardPage() {
       <main style={{ maxWidth: 600, margin: '0 auto', padding: '40px 20px 100px' }}>
 
         {/* Header */}
-        <div style={{ marginBottom: 28 }}>
-          <p style={{ fontSize: 12, color: 'var(--text-3)', fontWeight: 500, marginBottom: 4, letterSpacing: '0.01em' }}>
+        <div style={{ marginBottom: 24 }}>
+          <p style={{ fontSize: 11, color: 'var(--text-4)', fontWeight: 600, marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
             {nlDatum()}
           </p>
-          <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-1)', letterSpacing: '-0.03em', margin: 0 }}>
-            Goedemorgen, {voornaam}
+          <h1 style={{ fontSize: 26, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', margin: 0, lineHeight: 1.1 }}>
+            {begroeting()}, {voornaam}
           </h1>
+          <p style={{ fontSize: 14, color: 'var(--text-3)', margin: '6px 0 0', lineHeight: 1.4 }}>
+            {subline}
+          </p>
         </div>
 
         {/* Proactieve coach-nudge */}
@@ -278,12 +301,15 @@ export default function DashboardPage() {
             <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-1)', letterSpacing: '-0.01em' }}>
               Vandaag
             </span>
-            <span style={{
-              fontSize: 11, fontWeight: 600,
-              color: gedaanCount === checklist.length ? 'var(--mf-green)' : 'var(--text-3)',
-            }}>
-              {gedaanCount}/{checklist.length}
-            </span>
+            {alGedaan ? (
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, fontWeight: 700, color: 'var(--mf-green)' }}>
+                <Check size={13} strokeWidth={2.6} aria-hidden /> Klaar
+              </span>
+            ) : (
+              <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-3)' }}>
+                {gedaanCount}/{checklist.length}
+              </span>
+            )}
           </div>
 
           {/* Progress bar */}
