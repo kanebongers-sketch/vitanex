@@ -17,8 +17,8 @@ export function LogoIcon({ size = 36 }: { size?: number }) {
     >
       <defs>
         <linearGradient id={id} x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse">
-          <stop offset="0%"   stopColor="#27D497" />
-          <stop offset="100%" stopColor="#0A5C3E" />
+          <stop offset="0%"   stopColor="var(--mf-green)" />
+          <stop offset="100%" stopColor="var(--mf-green-dark)" />
         </linearGradient>
       </defs>
 
@@ -57,11 +57,11 @@ export function LogoFull({
           fontSize: iconSize * 0.44,
           fontWeight: 700,
           letterSpacing: '-0.02em',
-          color: '#111827',
+          color: 'var(--text-1)',
           lineHeight: 1,
         }}
       >
-        Menta<span style={{ color: '#1D9E75' }}>Force</span>
+        Menta<span style={{ color: 'var(--mf-green)' }}>Force</span>
       </span>
     </div>
   )

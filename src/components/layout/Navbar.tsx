@@ -107,12 +107,12 @@ function NavLink({
         borderRadius: 7,
         margin: '1px 8px',
         textDecoration: 'none',
-        background: isActive ? 'rgba(29,158,117,0.10)' : 'transparent',
+        background: isActive ? 'color-mix(in srgb, var(--mf-green) 10%, transparent)' : 'transparent',
         fontWeight: isActive ? 500 : 400,
         transition: 'background 0.12s, color 0.12s',
       }}
       onMouseEnter={(e) => {
-        if (!isActive) (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(128,128,128,0.07)'
+        if (!isActive) (e.currentTarget as HTMLAnchorElement).style.background = 'color-mix(in srgb, var(--text-1) 6%, transparent)'
       }}
       onMouseLeave={(e) => {
         if (!isActive) (e.currentTarget as HTMLAnchorElement).style.background = 'transparent'
@@ -201,12 +201,12 @@ function SidebarContent({
                   borderRadius: 8,
                   margin: '1px 6px',
                   textDecoration: 'none',
-                  background: isActive ? 'rgba(29,158,117,0.10)' : 'transparent',
+                  background: isActive ? 'color-mix(in srgb, var(--mf-green) 10%, transparent)' : 'transparent',
                   transition: 'background 0.12s, color 0.12s',
                   letterSpacing: '-0.01em',
                 }}
                 onMouseEnter={(e) => {
-                  if (!isActive) (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(128,128,128,0.07)'
+                  if (!isActive) (e.currentTarget as HTMLAnchorElement).style.background = 'color-mix(in srgb, var(--text-1) 6%, transparent)'
                 }}
                 onMouseLeave={(e) => {
                   if (!isActive) (e.currentTarget as HTMLAnchorElement).style.background = 'transparent'
@@ -245,7 +245,7 @@ function SidebarContent({
                   letterSpacing: '-0.01em',
                 }}
                 onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLButtonElement).style.background = 'rgba(128,128,128,0.07)'
+                  (e.currentTarget as HTMLButtonElement).style.background = 'color-mix(in srgb, var(--text-1) 6%, transparent)'
                 }}
                 onMouseLeave={(e) => {
                   (e.currentTarget as HTMLButtonElement).style.background = 'none'
@@ -311,7 +311,7 @@ function SidebarContent({
                 letterSpacing: '-0.01em',
               }}
               onMouseEnter={(e) => {
-                (e.currentTarget as HTMLButtonElement).style.background = 'rgba(128,128,128,0.07)'
+                (e.currentTarget as HTMLButtonElement).style.background = 'color-mix(in srgb, var(--text-1) 6%, transparent)'
               }}
               onMouseLeave={(e) => {
                 (e.currentTarget as HTMLButtonElement).style.background = 'none'
@@ -367,24 +367,24 @@ function SidebarContent({
             height: 44,
             width: '100%',
             background: 'var(--mf-green)',
-            color: 'white',
+            color: 'var(--bg-app)',
             borderRadius: 10,
             fontSize: 14,
             fontWeight: 700,
             letterSpacing: '-0.01em',
             textDecoration: 'none',
             transition: 'background 0.15s, box-shadow 0.15s',
-            boxShadow: '0 2px 10px rgba(29,158,117,0.25)',
+            boxShadow: '0 2px 10px color-mix(in srgb, var(--mf-green) 25%, transparent)',
           }}
           onMouseEnter={(e) => {
             const el = e.currentTarget as HTMLAnchorElement
             el.style.background = 'var(--mf-green-dark)'
-            el.style.boxShadow = '0 4px 16px rgba(29,158,117,0.35)'
+            el.style.boxShadow = '0 4px 16px color-mix(in srgb, var(--mf-green) 35%, transparent)'
           }}
           onMouseLeave={(e) => {
             const el = e.currentTarget as HTMLAnchorElement
             el.style.background = 'var(--mf-green)'
-            el.style.boxShadow = '0 2px 10px rgba(29,158,117,0.25)'
+            el.style.boxShadow = '0 2px 10px color-mix(in srgb, var(--mf-green) 25%, transparent)'
           }}
         >
           <CheckCircle2 size={14} strokeWidth={2.5} />
@@ -412,7 +412,7 @@ function SidebarContent({
           }}
           onMouseEnter={(e) => {
             (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-2)'
-            ;(e.currentTarget as HTMLButtonElement).style.background = 'rgba(128,128,128,0.07)'
+            ;(e.currentTarget as HTMLButtonElement).style.background = 'color-mix(in srgb, var(--text-1) 6%, transparent)'
           }}
           onMouseLeave={(e) => {
             (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-4)'

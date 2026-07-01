@@ -45,11 +45,12 @@ export function Avatar({ naam, avatarUrl, size = 32, online, className = '', sty
 
       {online !== undefined && (
         <span
-          className="absolute rounded-full border-2 border-white"
+          className="absolute rounded-full"
           style={{
             width: dotSize,
             height: dotSize,
-            background: online ? '#22c55e' : '#d1d5db',
+            border: '2px solid var(--bg-card)',
+            background: online ? 'var(--mf-green)' : 'var(--text-4)',
             bottom: dotOffset,
             right: dotOffset,
           }}

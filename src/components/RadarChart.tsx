@@ -65,7 +65,7 @@ export default function RadarChart({ scores, size = 220 }: RadarChartProps) {
           key={i}
           d={path}
           fill="none"
-          stroke="var(--color-border, #e5e7eb)"
+          stroke="var(--border)"
           strokeWidth={0.75}
           opacity={0.6}
         />
@@ -81,7 +81,7 @@ export default function RadarChart({ scores, size = 220 }: RadarChartProps) {
             y1={cy}
             x2={x.toFixed(1)}
             y2={y.toFixed(1)}
-            stroke="var(--color-border, #e5e7eb)"
+            stroke="var(--border)"
             strokeWidth={0.75}
             opacity={0.6}
           />
@@ -91,9 +91,9 @@ export default function RadarChart({ scores, size = 220 }: RadarChartProps) {
       {/* Data vlak */}
       <path
         d={dataPath}
-        fill="var(--mf-green, #1D9E75)"
+        fill="var(--mf-green)"
         fillOpacity={0.18}
-        stroke="var(--mf-green, #1D9E75)"
+        stroke="var(--mf-green)"
         strokeWidth={1.75}
         strokeLinejoin="round"
       />
@@ -105,7 +105,7 @@ export default function RadarChart({ scores, size = 220 }: RadarChartProps) {
           cx={x.toFixed(1)}
           cy={y.toFixed(1)}
           r={3}
-          fill="var(--mf-green, #1D9E75)"
+          fill="var(--mf-green)"
         />
       ))}
 
@@ -122,7 +122,7 @@ export default function RadarChart({ scores, size = 220 }: RadarChartProps) {
             dominantBaseline="middle"
             fontSize={9.5}
             fontWeight={500}
-            fill="var(--color-text-secondary, #6b7280)"
+            fill="var(--text-3)"
           >
             {d.label}
           </text>
