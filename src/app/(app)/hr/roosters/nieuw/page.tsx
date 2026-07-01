@@ -25,6 +25,13 @@ function toYMD(d: Date): string {
   return d.toISOString().slice(0, 10)
 }
 
+function weekBereik(weekStart: string): string {
+  const ma = new Date(weekStart)
+  const zo = new Date(ma)
+  zo.setDate(ma.getDate() + 6)
+  return `${ma.toLocaleDateString('nl-NL', { day: 'numeric', month: 'long' })} t/m ${zo.toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' })}`
+}
+
 export default function NieuwRoosterPage() {
   const router = useRouter()
   const { toast } = useToast()
@@ -108,6 +115,9 @@ export default function NieuwRoosterPage() {
                 onChange={e => handleWeekChange(e.target.value)}
               />
             </Field>
+            <p style={{ marginTop: 8, fontSize: 12.5, color: 'var(--text-3)' }}>
+              Rooster loopt van <strong style={{ color: 'var(--text-2)', fontWeight: 600 }}>{weekBereik(weekStart)}</strong>.
+            </p>
           </div>
 
           <div style={{ marginBottom: 24 }}>

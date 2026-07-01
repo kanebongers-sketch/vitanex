@@ -108,11 +108,13 @@ export default function ENPSPage() {
             </p>
 
             {/* Score grid */}
-            <div style={{ display: 'flex', gap: 6, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 12 }}>
+            <div role="group" aria-label="Kies een score van 0 tot 10" style={{ display: 'flex', gap: 6, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 12 }}>
               {Array.from({ length: 11 }, (_, i) => i).map(n => (
                 <button
                   key={n}
                   onClick={() => setScore(n)}
+                  aria-label={`Score ${n} van 10`}
+                  aria-pressed={score === n}
                   style={{
                     width: 48, height: 48, borderRadius: 12, fontSize: 15, fontWeight: 700,
                     cursor: 'pointer', border: 'none',
@@ -133,7 +135,7 @@ export default function ENPSPage() {
 
             {score !== null && (
               <div style={{ marginBottom: 20 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14, padding: '10px 14px', borderRadius: 10, background: `${CAT_KLEUR(score)}12` }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14, padding: '10px 14px', borderRadius: 10, background: `color-mix(in srgb, ${CAT_KLEUR(score)} 8%, transparent)` }}>
                   <div style={{ position: 'relative', width: 36, height: 36, flexShrink: 0 }}>
                     <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 0 }}>
                       <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'radial-gradient(circle, color-mix(in srgb, var(--mentaforce-primary) 18%, transparent) 0%, transparent 70%)' }} />
@@ -150,8 +152,9 @@ export default function ENPSPage() {
                   </div>
                 </div>
 
-                <p style={{ fontSize: 12, color: 'var(--text-4)', marginBottom: 6 }}>Optionele toelichting (anoniem)</p>
+                <label htmlFor="enps-reden" style={{ display: 'block', fontSize: 12, color: 'var(--text-4)', marginBottom: 6 }}>Optionele toelichting (anoniem)</label>
                 <textarea
+                  id="enps-reden"
                   rows={3}
                   value={reden}
                   onChange={e => setReden(e.target.value)}
@@ -190,7 +193,7 @@ export default function ENPSPage() {
               const totalW = recente.length * (barW + gap) - gap
               return (
                 <div style={{ marginBottom: 16, overflowX: 'auto' }}>
-                  <svg width={totalW} height={barH + 24} viewBox={`0 0 ${totalW} ${barH + 24}`} style={{ display: 'block' }}>
+                  <svg role="img" aria-label="Trend van je laatste eNPS-scores" width={totalW} height={barH + 24} viewBox={`0 0 ${totalW} ${barH + 24}`} style={{ display: 'block' }}>
                     {recente.map((m, i) => {
                       const x = i * (barW + gap)
                       const h = Math.max(6, Math.round((m.score / 10) * barH))
@@ -217,7 +220,7 @@ export default function ENPSPage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {metingen.map((m, i) => (
                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, paddingBottom: 8, borderBottom: i < metingen.length - 1 ? '1px solid var(--bg-subtle)' : 'none' }}>
-                  <div style={{ width: 36, height: 36, borderRadius: 10, background: `${CAT_KLEUR(m.score)}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: CAT_KLEUR(m.score) }}>
+                  <div style={{ width: 36, height: 36, borderRadius: 10, background: `color-mix(in srgb, ${CAT_KLEUR(m.score)} 12%, transparent)`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: CAT_KLEUR(m.score) }}>
                     {(() => { const Icon = SCORE_ICON(m.score); return <Icon size={18} aria-hidden /> })()}
                   </div>
                   <div style={{ flex: 1 }}>

@@ -105,7 +105,19 @@ export default function HrRoostersPage() {
         </header>
 
         {!geladen ? (
-          <p style={{ color: 'var(--text-3)', textAlign: 'center', padding: 40 }}>Laden…</p>
+          <ul aria-hidden style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {[0, 1, 2].map(i => (
+              <li key={i}>
+                <Card style={{ padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
+                  <div style={{ flex: 1 }}>
+                    <div className="mf-skel" style={{ width: '38%', height: 15, borderRadius: 6 }} />
+                    <div className="mf-skel" style={{ width: '24%', height: 11, borderRadius: 6, marginTop: 8 }} />
+                  </div>
+                  <div className="mf-skel" style={{ width: 140, height: 32, borderRadius: 8 }} />
+                </Card>
+              </li>
+            ))}
+          </ul>
         ) : roosters.length === 0 ? (
           <Card>
             <EmptyState
@@ -123,7 +135,7 @@ export default function HrRoostersPage() {
           <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 10 }}>
             {roosters.map(r => (
               <li key={r.id}>
-                <Card style={{ padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
+                <Card interactive style={{ padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontWeight: 600, color: 'var(--text-1)', fontSize: 15 }}>{r.naam}</div>
                     <div style={{ fontSize: 12, color: 'var(--text-2)', marginTop: 2 }}>

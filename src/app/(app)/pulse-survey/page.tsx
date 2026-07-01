@@ -129,7 +129,14 @@ export default function PulseSurveyPage() {
             <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-4)' }}>Vraag {stap + 1} van {vragen.length}</p>
             <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--mf-green)' }}>{Math.round(voortgang)}%</p>
           </div>
-          <div style={{ height: 5, background: 'var(--bg-subtle)', borderRadius: 100, overflow: 'hidden' }}>
+          <div
+            role="progressbar"
+            aria-valuenow={Math.round(voortgang)}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-label={`Voortgang: vraag ${stap + 1} van ${vragen.length}`}
+            style={{ height: 5, background: 'var(--bg-subtle)', borderRadius: 100, overflow: 'hidden' }}
+          >
             <div style={{ height: '100%', width: `${voortgang}%`, background: 'var(--mf-green)', borderRadius: 100, transition: 'width 0.3s ease' }} />
           </div>
         </div>
@@ -148,6 +155,8 @@ export default function PulseSurveyPage() {
                   <button
                     key={n}
                     onClick={() => stelAntwoord(huidigeVraag.id, n)}
+                    aria-label={`Score ${n} van 5`}
+                    aria-pressed={huidigeAntwoord === n}
                     style={{
                       width: 56, height: 56, borderRadius: 14, border: 'none', cursor: 'pointer', fontSize: 18, fontWeight: 700,
                       background: huidigeAntwoord === n ? 'var(--mf-green)' : 'var(--bg-subtle)',
@@ -172,6 +181,8 @@ export default function PulseSurveyPage() {
                   <button
                     key={n}
                     onClick={() => stelAntwoord(huidigeVraag.id, n)}
+                    aria-label={`Score ${n} van 10`}
+                    aria-pressed={huidigeAntwoord === n}
                     style={{
                       width: 46, height: 46, borderRadius: 10, border: 'none', cursor: 'pointer', fontSize: 14, fontWeight: 700,
                       background: huidigeAntwoord === n ? 'var(--mf-green)' : 'var(--bg-subtle)',
@@ -195,6 +206,8 @@ export default function PulseSurveyPage() {
                 <button
                   key={optie}
                   onClick={() => stelAntwoord(huidigeVraag.id, optie)}
+                  aria-label={optie}
+                  aria-pressed={huidigeAntwoord === optie}
                   style={{
                     padding: '13px 18px', borderRadius: 12, textAlign: 'left', fontSize: 14, fontWeight: 500,
                     cursor: 'pointer', border: '1.5px solid',
@@ -209,7 +222,13 @@ export default function PulseSurveyPage() {
 
           {/* Open tekst */}
           {huidigeVraag.type === 'text' && (
+            <>
+            <label
+              htmlFor={`open-${huidigeVraag.id}`}
+              style={{ position: 'absolute', width: 1, height: 1, padding: 0, margin: -1, overflow: 'hidden', clip: 'rect(0,0,0,0)', whiteSpace: 'nowrap', border: 0 }}
+            >{huidigeVraag.vraag}</label>
             <textarea
+              id={`open-${huidigeVraag.id}`}
               rows={4}
               value={(huidigeAntwoord as string) ?? ''}
               onChange={e => stelAntwoord(huidigeVraag.id, e.target.value)}
@@ -221,6 +240,7 @@ export default function PulseSurveyPage() {
                 background: 'var(--bg-card)',
               }}
             />
+            </>
           )}
         </div>
 

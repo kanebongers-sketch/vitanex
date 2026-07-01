@@ -55,7 +55,7 @@ function ScoreRing({ score }: { score: number }) {
     ? 'color-mix(in srgb, var(--mf-amber) 12%, transparent)'
     : 'color-mix(in srgb, var(--mf-red) 12%, transparent)'
   return (
-    <svg width="140" height="140" viewBox="0 0 140 140">
+    <svg width="140" height="140" viewBox="0 0 140 140" role="img" aria-label={`Vitaliteitsscore ${score} van 100`}>
       <circle cx="70" cy="70" r={r} fill="none" stroke={trackKleur} strokeWidth="11" />
       <circle cx="70" cy="70" r={r} fill="none" stroke={kleur} strokeWidth="11"
         strokeDasharray={`${(score / 100) * circ} ${circ}`} strokeLinecap="round"
@@ -302,7 +302,7 @@ export default function Rapport() {
     <div className="mf-mesh-bg" style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
       <Navbar />
       <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 80 }}>
-        <div className="mf-spinner" />
+        <div className="mf-spinner" role="status" aria-label="Rapport laden" />
       </div>
     </div>
   )
@@ -363,13 +363,13 @@ export default function Rapport() {
 
         {/* Geen data / aan het laden */}
         {!analyse ? (
-          <div style={{
+          <div aria-live="polite" style={{
             background: 'var(--bg-card)', borderRadius: 20, padding: '60px 40px',
             border: '1px solid var(--border)', textAlign: 'center',
           }}>
             {analyseAanMaken ? (
               <>
-                <div className="mf-spinner" style={{ margin: '0 auto 20px' }} />
+                <div className="mf-spinner" style={{ margin: '0 auto 20px' }} role="status" aria-label="Analyse wordt opgesteld" />
                 <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-1)', marginBottom: 8 }}>Analyse wordt opgesteld…</h2>
                 <p style={{ fontSize: 14, color: 'var(--text-3)' }}>De AI analyseert jouw check-in. Dit duurt een paar seconden.</p>
               </>
@@ -440,7 +440,15 @@ export default function Rapport() {
                     return (
                       <div key={k} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                         <span style={{ fontSize: 11, color: 'var(--text-3)', width: 72, flexShrink: 0 }}>{CAT_LABEL[k]}</span>
-                        <div style={{ flex: 1, height: 6, borderRadius: 3, background: 'var(--bg-subtle)', overflow: 'hidden' }}>
+                        <div
+                          role="progressbar"
+                          aria-label={CAT_LABEL[k]}
+                          aria-valuenow={v}
+                          aria-valuemin={4}
+                          aria-valuemax={20}
+                          aria-valuetext={`${v} van 20`}
+                          style={{ flex: 1, height: 6, borderRadius: 3, background: 'var(--bg-subtle)', overflow: 'hidden' }}
+                        >
                           <div style={{ height: '100%', borderRadius: 3, background: CAT_KLEUR[k], width: `${pct}%`, transition: 'width 0.8s ease' }} />
                         </div>
                         <span style={{ fontSize: 11, fontWeight: 700, color: CAT_KLEUR[k], width: 32 }}>{v}/20</span>

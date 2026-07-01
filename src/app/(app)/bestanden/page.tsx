@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { authFetch } from '@/lib/auth-fetch'
 import Navbar from '@/components/layout/Navbar'
-import { FileText } from 'lucide-react'
+import { FileText, ChevronDown, ChevronUp, Upload, Printer } from 'lucide-react'
 
 
 interface Bestand { id: string; bestandsnaam: string; aangemaakt_op: string; gedeeld_met_hr: boolean; categorie: string }
@@ -121,7 +121,15 @@ export default function BestandenPage() {
   const maxScore = discScores.length > 0 ? Math.max(...discScores.map(s => s.score), 1) : 1
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-app)', color: 'var(--text-1)' }}>
+    <div className="mf-bestanden" style={{ minHeight: '100vh', background: 'var(--bg-app)', color: 'var(--text-1)' }}>
+      <style>{`
+        .mf-bestanden button:focus-visible,
+        .mf-bestanden label:focus-within {
+          outline: 2px solid var(--mentaforce-primary);
+          outline-offset: 2px;
+          border-radius: 8px;
+        }
+      `}</style>
       <Navbar />
       <div style={{ maxWidth: 800, margin: '0 auto', padding: '32px 20px' }}>
         <h1 style={{ fontSize: 26, fontWeight: 700, color: 'var(--text-1)', marginBottom: 8 }}>Mijn bestanden &amp; rapporten</h1>
@@ -158,7 +166,7 @@ export default function BestandenPage() {
               ))}
             </div>
             <div style={{ flexShrink: 0 }}>
-              <button onClick={() => router.push('/disc')} style={{ background: 'var(--mentaforce-primary)', color: 'var(--bg-app)', border: 'none', borderRadius: 8, padding: '10px 18px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
+              <button onClick={() => router.push('/disc')} className="mf-pressable" style={{ background: 'var(--mentaforce-primary)', color: 'var(--bg-app)', border: 'none', borderRadius: 8, padding: '10px 18px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
                 Test opnieuw doen
               </button>
             </div>
@@ -170,7 +178,7 @@ export default function BestandenPage() {
               <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-2)', marginBottom: 4 }}>Jouw DISC profiel</div>
               <div style={{ color: 'var(--text-3)' }}>Je hebt de DISC-test nog niet gedaan.</div>
             </div>
-            <button onClick={() => router.push('/disc')} style={{ background: 'var(--mentaforce-primary)', color: 'var(--bg-app)', border: 'none', borderRadius: 8, padding: '10px 18px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
+            <button onClick={() => router.push('/disc')} className="mf-pressable" style={{ background: 'var(--mentaforce-primary)', color: 'var(--bg-app)', border: 'none', borderRadius: 8, padding: '10px 18px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
               Test doen
             </button>
           </div>
@@ -187,13 +195,17 @@ export default function BestandenPage() {
         {actieveTab === 'bestanden' && (
           <div>
             <div style={{ marginBottom: 16 }}>
-              <label style={{ display: 'inline-block', background: 'var(--mentaforce-primary)', color: 'var(--bg-app)', borderRadius: 8, padding: '10px 20px', fontSize: 14, fontWeight: 600, cursor: uploaden ? 'not-allowed' : 'pointer' }}>
-                {uploaden ? 'Uploaden...' : '+ Bestand uploaden'}
+              <label className="mf-pressable" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'var(--mentaforce-primary)', color: 'var(--bg-app)', borderRadius: 8, padding: '10px 20px', fontSize: 14, fontWeight: 600, cursor: uploaden ? 'not-allowed' : 'pointer' }}>
+                <Upload size={16} aria-hidden /> {uploaden ? 'Uploaden...' : 'Bestand uploaden'}
                 <input type="file" onChange={uploadBestand} style={{ display: "none" }} disabled={uploaden} />
               </label>
             </div>
             {bestanden.length === 0 ? (
-              <div style={{ background: 'var(--bg-card)', borderRadius: 12, padding: 32, textAlign: 'center', color: 'var(--text-2)' }}>Nog geen bestanden geupload.</div>
+              <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 12, padding: 32, textAlign: 'center', color: 'var(--text-2)' }}>
+                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }} aria-hidden="true"><Upload size={32} strokeWidth={1.5} color="var(--text-3)" /></div>
+                <div style={{ fontWeight: 600, color: 'var(--text-1)', marginBottom: 4 }}>Nog geen bestanden</div>
+                <div style={{ fontSize: 14 }}>Upload je eerste document via de knop hierboven.</div>
+              </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {bestanden.map(b => (
@@ -271,14 +283,14 @@ function RapportRij({ r, open, onToggle, datumLabel }: { r: Rapport; open: boole
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
           <span style={{ fontSize: 13, color: 'var(--text-2)' }}>{datumLabel(r.aangemaakt_op)}</span>
-          <span style={{ color: 'var(--text-2)' }}>{open ? '▲' : '▼'}</span>
+          <span style={{ color: 'var(--text-2)', display: 'inline-flex' }}>{open ? <ChevronUp size={16} aria-label="Inklappen" /> : <ChevronDown size={16} aria-label="Uitklappen" />}</span>
         </div>
       </button>
       {open && (
         <div style={{ padding: '0 20px 20px', borderTop: '1px solid var(--border)' }}>
           <div style={{ paddingTop: 16, color: 'var(--text-2)', fontSize: 15, lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>{r.inhoud}</div>
-          <button onClick={() => window.print()} style={{ marginTop: 14, background: 'transparent', border: '1px solid var(--border-strong)', color: 'var(--text-3)', borderRadius: 7, padding: '7px 16px', fontSize: 13, cursor: 'pointer', fontWeight: 500 }}>
-            Download als PDF
+          <button onClick={() => window.print()} className="mf-pressable" style={{ marginTop: 14, display: 'inline-flex', alignItems: 'center', gap: 6, background: 'transparent', border: '1px solid var(--border-strong)', color: 'var(--text-3)', borderRadius: 7, padding: '7px 16px', fontSize: 13, cursor: 'pointer', fontWeight: 500 }}>
+            <Printer size={14} aria-hidden /> Download als PDF
           </button>
         </div>
       )}

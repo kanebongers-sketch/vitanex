@@ -417,7 +417,7 @@ export default function Portaal() {
             <h1 className="text-2xl font-medium" style={{ color: 'var(--text-1)' }}>Mijn portaal</h1>
             <p className="text-sm mt-0.5" style={{ color: 'var(--text-3)' }}>Jouw persoonlijke vitaliteitstrend</p>
           </div>
-          <Link href="/checkin" className="text-sm font-medium text-white px-4 py-2 rounded-xl transition"
+          <Link href="/checkin" className="mf-pressable text-sm font-medium text-white px-4 py-2 rounded-xl transition"
             style={{ background: 'var(--mentaforce-primary)' }}>
             Check-in doen
           </Link>
@@ -447,7 +447,7 @@ export default function Portaal() {
         ) : checkins.length === 0 ? (
           <div className="rounded-2xl border p-12 text-center" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
             <p className="text-sm mb-4" style={{ color: 'var(--text-3)' }}>Nog geen check-ins gedaan.</p>
-            <Link href="/checkin" className="text-sm font-medium text-white px-5 py-3 rounded-xl inline-block"
+            <Link href="/checkin" className="mf-pressable text-sm font-medium text-white px-5 py-3 rounded-xl inline-block"
               style={{ background: 'var(--mentaforce-primary)' }}>
               Doe je eerste check-in
             </Link>

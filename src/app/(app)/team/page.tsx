@@ -175,6 +175,8 @@ export default function Team() {
 
         {melding && (
           <div
+            role={melding.type === 'error' ? 'alert' : 'status'}
+            aria-live="polite"
             className="rounded-2xl border p-4 mb-6 text-sm flex items-center gap-2"
             style={{
               background: melding.type === 'success' ? 'var(--mf-green-light)' : 'var(--mf-red-light)',
@@ -205,9 +207,10 @@ export default function Team() {
               onBlur={e => { e.currentTarget.style.borderColor = 'var(--border)' }}
             />
             <button
+              type="button"
               onClick={uitnodigen}
               disabled={laden || !email}
-              className="rounded-xl px-5 py-3 text-sm font-medium transition disabled:opacity-30"
+              className="rounded-xl px-5 py-3 text-sm font-medium transition disabled:opacity-30 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2"
               style={{ background: 'var(--mentaforce-primary)', color: 'var(--bg-app)' }}
             >
               {laden ? 'Bezig...' : 'Uitnodigen'}
@@ -216,12 +219,14 @@ export default function Team() {
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-1 rounded-xl p-1 mb-4 w-fit" style={{ background: 'var(--bg-subtle)' }}>
+        <nav className="flex gap-1 rounded-xl p-1 mb-4 w-fit" style={{ background: 'var(--bg-subtle)' }} aria-label="Team-secties">
           {tabs.map(t => (
             <button
               key={t.key}
+              type="button"
+              aria-pressed={actieveTab === t.key}
               onClick={() => { setActieveTab(t.key as typeof actieveTab); setZoekterm('') }}
-              className="px-4 py-2 rounded-lg text-sm transition"
+              className="px-4 py-2 rounded-lg text-sm transition focus-visible:outline-none focus-visible:ring-2"
               style={{
                 background: actieveTab === t.key ? 'var(--bg-card)' : 'transparent',
                 color: actieveTab === t.key ? 'var(--text-1)' : 'var(--text-3)',
@@ -232,7 +237,7 @@ export default function Team() {
               {t.label}
             </button>
           ))}
-        </div>
+        </nav>
 
         {/* Zoekbalk */}
         <div className="mb-4">
@@ -250,7 +255,7 @@ export default function Team() {
 
         <div className="rounded-2xl border p-6" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
           {bezig ? (
-            <div className="flex justify-center py-4">
+            <div className="flex justify-center py-4" role="status" aria-label="Team laden">
               <div className="w-6 h-6 rounded-full border-2 animate-spin" style={{ borderColor: 'var(--border)', borderTopColor: 'var(--mentaforce-primary)' }} />
             </div>
           ) : actieveTab === 'leden' ? (
@@ -288,15 +293,17 @@ export default function Team() {
                               verwijderBevestig === lid.id ? (
                                 <div className="flex items-center gap-1">
                                   <button
+                                    type="button"
                                     onClick={() => verwijderLid(lid.id)}
-                                    className="text-xs px-3 py-1.5 rounded-lg transition font-medium"
+                                    className="text-xs px-3 py-2 rounded-lg transition font-medium focus-visible:outline-none focus-visible:ring-2"
                                     style={{ background: 'var(--mf-red-light)', color: 'var(--mf-red)' }}
                                   >
                                     Bevestig
                                   </button>
                                   <button
+                                    type="button"
                                     onClick={() => setVerwijderBevestig(null)}
-                                    className="text-xs rounded-lg px-2 py-1.5 transition"
+                                    className="text-xs rounded-lg px-2 py-2 transition focus-visible:outline-none focus-visible:ring-2"
                                     style={{ border: '1px solid var(--border)', color: 'var(--text-3)' }}
                                   >
                                     Annuleer
@@ -304,8 +311,9 @@ export default function Team() {
                                 </div>
                               ) : (
                                 <button
+                                  type="button"
                                   onClick={() => setVerwijderBevestig(lid.id)}
-                                  className="text-xs rounded-lg px-3 py-1.5 transition"
+                                  className="text-xs rounded-lg px-3 py-2 transition focus-visible:outline-none focus-visible:ring-2"
                                   style={{ border: '1px solid var(--border)', color: 'var(--text-3)' }}
                                 >
                                   Verwijder
@@ -342,8 +350,10 @@ export default function Team() {
                       {!t.gebruikt ? (
                         <div className="flex items-center gap-2">
                           <button
+                            type="button"
                             onClick={() => kopieerLink(t.token)}
-                            className="text-xs rounded-lg px-3 py-1.5 transition inline-flex items-center gap-1.5"
+                            aria-label={`Uitnodigingslink kopiëren voor ${t.email}`}
+                            className="text-xs rounded-lg px-3 py-2 transition inline-flex items-center gap-1.5 focus-visible:outline-none focus-visible:ring-2"
                             style={{ border: '1px solid var(--border)', color: 'var(--text-2)' }}
                           >
                             {gekopieerd === t.token
@@ -351,8 +361,10 @@ export default function Team() {
                               : <><Copy size={13} aria-hidden="true" /> Kopieer link</>}
                           </button>
                           <button
+                            type="button"
                             onClick={() => intrekkenToken(t.id)}
-                            className="text-xs rounded-lg px-3 py-1.5 transition"
+                            aria-label={`Uitnodiging intrekken voor ${t.email}`}
+                            className="text-xs rounded-lg px-3 py-2 transition focus-visible:outline-none focus-visible:ring-2"
                             style={{ border: '1px solid var(--border)', color: 'var(--text-3)' }}
                           >
                             Intrekken

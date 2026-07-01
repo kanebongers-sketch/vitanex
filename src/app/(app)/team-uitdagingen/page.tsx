@@ -126,7 +126,7 @@ export default function TeamUitdagingenPagina() {
   if (laden) return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
       <Navbar />
-      <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 80 }}>
+      <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 80 }} role="status" aria-label="Uitdagingen laden">
         <div className="mf-spinner" />
       </div>
     </div>

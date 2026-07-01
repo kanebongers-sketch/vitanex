@@ -226,6 +226,7 @@ export default function WerkgelukPagina() {
               max={10}
               step={1}
               value={score}
+              aria-label={`Werkgeluk score: ${score} van 10, ${scoreLabel(score)}`}
               onChange={e => setScore(Number(e.target.value))}
               style={{
                 width: '100%', height: 6, appearance: 'none',
@@ -234,11 +235,13 @@ export default function WerkgelukPagina() {
                 transition: 'background 0.25s ease', color: kleur,
               }}
             />
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8 }}>
+            <div role="group" aria-label="Kies een werkgeluk score van 1 tot 10" style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8 }}>
               {Array.from({ length: 10 }, (_, i) => i + 1).map(n => (
                 <button
                   key={n}
                   onClick={() => setScore(n)}
+                  aria-label={`Score ${n} van 10`}
+                  aria-pressed={score === n}
                   style={{
                     width: 28, height: 28, borderRadius: 8, border: 'none',
                     cursor: 'pointer', fontSize: 11,
@@ -298,7 +301,7 @@ export default function WerkgelukPagina() {
         </section>
 
         {fout && (
-          <div style={{
+          <div role="alert" style={{
             background: 'var(--mf-red-light)', border: '1px solid color-mix(in srgb, var(--mf-red) 30%, transparent)', borderRadius: 12,
             padding: '10px 14px', marginBottom: 12, fontSize: 13, color: 'var(--mf-red)',
           }}>
@@ -361,8 +364,8 @@ export default function WerkgelukPagina() {
               </div>
               {data.gemiddelde !== null && (
                 <div style={{
-                  background: `${scoreKleur(Math.round(data.gemiddelde))}18`,
-                  border: `1.5px solid ${scoreKleur(Math.round(data.gemiddelde))}50`,
+                  background: `color-mix(in srgb, ${scoreKleur(Math.round(data.gemiddelde))} 15%, transparent)`,
+                  border: `1.5px solid color-mix(in srgb, ${scoreKleur(Math.round(data.gemiddelde))} 45%, transparent)`,
                   borderRadius: 12, padding: '8px 14px', textAlign: 'center',
                 }}>
                   <div style={{

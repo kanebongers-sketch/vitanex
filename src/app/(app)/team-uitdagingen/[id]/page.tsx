@@ -121,7 +121,7 @@ export default function UitdagingDetailPage() {
   if (laden) return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
       <Navbar />
-      <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 80 }}><div className="mf-spinner" /></div>
+      <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 80 }} role="status" aria-label="Uitdaging laden"><div className="mf-spinner" /></div>
     </div>
   )
 

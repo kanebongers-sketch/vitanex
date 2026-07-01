@@ -205,7 +205,15 @@ export default function BurnoutPagina() {
             <span>{voortgang} van {VRAGEN.length} beantwoord</span>
             <span>{Math.round((voortgang / VRAGEN.length) * 100)}%</span>
           </div>
-          <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--bg-subtle)' }}>
+          <div
+            className="h-1.5 rounded-full overflow-hidden"
+            role="progressbar"
+            aria-valuenow={voortgang}
+            aria-valuemin={0}
+            aria-valuemax={VRAGEN.length}
+            aria-label={`Voortgang: ${voortgang} van ${VRAGEN.length} beantwoord`}
+            style={{ background: 'var(--bg-subtle)' }}
+          >
             <div
               className="h-full rounded-full transition-all"
               style={{ width: `${(voortgang / VRAGEN.length) * 100}%`, background: 'var(--mentaforce-primary)' }}
@@ -231,8 +239,11 @@ export default function BurnoutPagina() {
                       <button
                         key={s.waarde}
                         onClick={() => setAntwoorden(prev => ({ ...prev, [vraag.id]: s.waarde }))}
-                        className="flex-1 py-1.5 rounded-lg text-xs font-medium transition border"
+                        aria-label={`${s.waarde} — ${s.label}`}
+                        aria-pressed={antwoorden[vraag.id] === s.waarde}
+                        className="flex-1 rounded-lg text-xs font-medium transition border"
                         style={{
+                          minHeight: 44,
                           background: antwoorden[vraag.id] === s.waarde ? groep.kleur : 'transparent',
                           borderColor: antwoorden[vraag.id] === s.waarde ? groep.kleur : 'var(--border)',
                           color: antwoorden[vraag.id] === s.waarde ? 'white' : 'var(--text-3)',

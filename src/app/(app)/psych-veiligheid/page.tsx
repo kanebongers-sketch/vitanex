@@ -76,7 +76,7 @@ export default function PsychVeiligheidPagina() {
     <div className="mf-mesh-bg" style={{ minHeight: '100vh' }}>
       <Navbar />
       <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 80 }}>
-        <div className="mf-spinner" />
+        <div className="mf-spinner" role="status" aria-label="Metingen laden" />
       </div>
     </div>
   )
@@ -118,22 +118,28 @@ export default function PsychVeiligheidPagina() {
           </p>
 
           {VRAGEN.map(v => (
-            <div key={v.key} style={{ marginBottom: 20 }}>
-              <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-1)', marginBottom: 2 }}>{v.label}</p>
+            <fieldset key={v.key} style={{ marginBottom: 20, border: 'none', padding: 0, margin: '0 0 20px' }}>
+              <legend style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-1)', marginBottom: 2, padding: 0 }}>{v.label}</legend>
               <p style={{ fontSize: 11, color: 'var(--text-3)', marginBottom: 8 }}>{v.beschrijving}</p>
-              <div style={{ display: 'flex', gap: 8 }}>
+              <div role="radiogroup" aria-label={v.label} style={{ display: 'flex', gap: 8 }}>
                 {[1, 2, 3, 4, 5].map(n => {
                   const kleur = n >= 4 ? 'var(--mf-green)' : n === 3 ? 'var(--mf-amber)' : 'var(--mf-red)'
+                  const gekozen = scores[v.key] === n
                   return (
                     <button
                       key={n}
+                      type="button"
+                      role="radio"
+                      aria-checked={gekozen}
+                      aria-label={`${v.label}: ${n} van 5`}
                       onClick={() => setScores(prev => ({ ...prev, [v.key]: n }))}
                       style={{
-                        flex: 1, height: 40, borderRadius: 10, border: 'none', cursor: 'pointer',
-                        background: scores[v.key] === n ? kleur : 'var(--bg-subtle)',
-                        color: scores[v.key] === n ? 'var(--bg-app)' : 'var(--text-3)',
+                        flex: 1, minHeight: 40, height: 40, borderRadius: 10, border: 'none', cursor: 'pointer',
+                        background: gekozen ? kleur : 'var(--bg-subtle)',
+                        color: gekozen ? 'var(--bg-app)' : 'var(--text-3)',
                         fontWeight: 700, fontSize: 13,
-                        transition: 'background 0.15s ease',
+                        transition: 'background 0.15s var(--ease), transform 0.15s var(--ease)',
+                        transform: gekozen ? 'scale(1)' : 'scale(0.98)',
                       }}
                     >
                       {n}
@@ -145,20 +151,22 @@ export default function PsychVeiligheidPagina() {
                 <span style={{ fontSize: 9, color: 'var(--text-3)' }}>Zelden</span>
                 <span style={{ fontSize: 9, color: 'var(--text-3)' }}>Altijd</span>
               </div>
-            </div>
+            </fieldset>
           ))}
 
           <button
+            type="button"
             onClick={slaOp}
             disabled={opslaan || Object.values(scores).some(v => v === 0)}
+            aria-live="polite"
             style={{
-              width: '100%', padding: '12px', borderRadius: 12,
+              width: '100%', minHeight: 44, padding: '12px', borderRadius: 12,
               display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6,
               background: 'var(--mentaforce-primary)',
               color: 'var(--bg-app)',
-              border: 'none', cursor: 'pointer', fontSize: 14, fontWeight: 700,
+              border: 'none', cursor: opslaan || Object.values(scores).some(v => v === 0) ? 'not-allowed' : 'pointer', fontSize: 14, fontWeight: 700,
               opacity: opslaan || Object.values(scores).some(v => v === 0) ? 0.5 : 1,
-              transition: 'background 0.3s ease',
+              transition: 'background 0.3s var(--ease), opacity 0.3s var(--ease)',
             }}
           >
             {succes ? (
@@ -190,7 +198,7 @@ export default function PsychVeiligheidPagina() {
               const lijn = punten.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' ')
               return (
                 <div style={{ background: 'var(--bg-card)', borderRadius: 12, padding: '14px 16px', marginBottom: 12, border: '1px solid var(--border)' }}>
-                  <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: H, display: 'block' }}>
+                  <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`Verloop van je scores over de laatste ${recente.length} metingen, van ${recente[0].score}/5 naar ${recente[recente.length - 1].score}/5`} style={{ width: '100%', height: H, display: 'block' }}>
                     <path d={lijn} fill="none" stroke="var(--mf-blue)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                     {punten.map((p, i) => (
                       <circle key={i} cx={p.x} cy={p.y} r="4" fill={p.kleur} />

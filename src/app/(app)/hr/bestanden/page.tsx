@@ -113,13 +113,15 @@ export default function HrBestandenPage() {
   const aantalRapporten = rapporten.length
 
   if (!geladen) return (
-    <HrShell><div style={{ padding: 32, color: 'var(--text-3)' }}>Laden...</div></HrShell>
+    <HrShell>
+      <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 80 }}><div className="mf-spinner" /></div>
+    </HrShell>
   )
   return (
     <HrShell>
       <div style={{ maxWidth: 900, margin: '0 auto', padding: '32px 20px' }}>
-        <h1 style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-1)', marginBottom: 8 }}>Bestanden &amp; Rapporten</h1>
-        <p style={{ color: 'var(--text-3)', marginBottom: 20 }}>Gedeelde bestanden en AI-rapporten van medewerkers.</p>
+        <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 4 }}>Bestanden &amp; Rapporten</h1>
+        <p style={{ fontSize: 13, color: 'var(--text-3)', marginBottom: 20 }}>Gedeelde bestanden en AI-rapporten van medewerkers.</p>
 
         {/* Samenvatting balk */}
         <div style={{ display: 'flex', gap: 12, marginBottom: 28, flexWrap: 'wrap' }}>

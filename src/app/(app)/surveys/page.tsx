@@ -107,7 +107,8 @@ function AnonimBanner() {
         </div>
         <button
           onClick={() => setOpen(o => !o)}
-          style={{ fontSize: 12, fontWeight: 500, padding: '6px 12px', borderRadius: 8, color: 'var(--mf-blue)', background: 'color-mix(in srgb, var(--mf-blue) 12%, transparent)', border: 'none', cursor: 'pointer' }}
+          aria-expanded={open}
+          style={{ fontSize: 12, fontWeight: 500, padding: '8px 12px', minHeight: 40, borderRadius: 8, color: 'var(--mf-blue)', background: 'color-mix(in srgb, var(--mf-blue) 12%, transparent)', border: 'none', cursor: 'pointer' }}
         >
           {open ? 'Verbergen' : 'Hoe werkt dit?'}
         </button>
@@ -195,8 +196,9 @@ function NieuweSurveyForm({ bedrijfId, userId, onGemaakt }: {
           <button
             key={t}
             onClick={() => setTemplateTab(t)}
+            aria-pressed={templateTab === t}
             style={{
-              padding: '8px 16px', borderRadius: 8, fontSize: 13, border: 'none', cursor: 'pointer',
+              padding: '9px 16px', minHeight: 40, borderRadius: 8, fontSize: 13, border: 'none', cursor: 'pointer',
               background: templateTab === t ? 'var(--bg-card)' : 'transparent',
               color: templateTab === t ? 'var(--text-1)' : 'var(--text-3)',
               fontWeight: templateTab === t ? 600 : 400,
@@ -242,7 +244,9 @@ function NieuweSurveyForm({ bedrijfId, userId, onGemaakt }: {
         </div>
       ) : (
         <>
+          <label htmlFor="survey-titel" style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--text-3)', marginBottom: 6 }}>Titel van de survey</label>
           <input
+            id="survey-titel"
             type="text"
             placeholder="Titel van de survey"
             value={titel}
@@ -256,12 +260,14 @@ function NieuweSurveyForm({ bedrijfId, userId, onGemaakt }: {
                 <input
                   type="text"
                   placeholder="Vraag..."
+                  aria-label={`Vraag ${i + 1}`}
                   value={v.tekst}
                   onChange={e => setVragen(prev => prev.map(q => q.id === v.id ? { ...q, tekst: e.target.value } : q))}
                   style={{ flex: 1, border: '1px solid var(--border)', borderRadius: 10, padding: '9px 12px', fontSize: 13, outline: 'none' }}
                 />
                 <select
                   value={v.type}
+                  aria-label={`Type voor vraag ${i + 1}`}
                   onChange={e => setVragen(prev => prev.map(q => q.id === v.id ? { ...q, type: e.target.value as Vraag['type'] } : q))}
                   style={{ border: '1px solid var(--border)', borderRadius: 10, padding: '9px 8px', fontSize: 12, outline: 'none', background: 'var(--bg-card)' }}
                 >
@@ -272,7 +278,8 @@ function NieuweSurveyForm({ bedrijfId, userId, onGemaakt }: {
                 {vragen.length > 1 && (
                   <button
                     onClick={() => verwijderVraag(v.id)}
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-4)', padding: 4, display: 'flex', alignItems: 'center' }}
+                    aria-label={`Vraag ${i + 1} verwijderen`}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-4)', padding: 8, minWidth: 40, minHeight: 40, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                   >
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>
@@ -479,7 +486,14 @@ export default function SurveysPagina() {
         {activeSurvey && (
           <div style={{ background: 'var(--bg-card)', borderRadius: 20, border: '1px solid var(--border)', overflow: 'hidden', marginBottom: 20 }}>
             {/* Progress bar */}
-            <div style={{ height: 4, background: 'var(--bg-subtle)' }}>
+            <div
+              role="progressbar"
+              aria-valuenow={aantalBeantwoord}
+              aria-valuemin={0}
+              aria-valuemax={activeSurvey.vragen.length}
+              aria-label="Voortgang enquête"
+              style={{ height: 4, background: 'var(--bg-subtle)' }}
+            >
               <div style={{ height: '100%', width: `${voortgang * 100}%`, background: 'var(--mf-green)', transition: 'width 0.3s' }} />
             </div>
 
@@ -491,7 +505,8 @@ export default function SurveysPagina() {
                 </div>
                 <button
                   onClick={() => { setActiveSurveyId(null); setAntwoorden({}) }}
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-3)', padding: 6, display: 'flex', alignItems: 'center' }}
+                  aria-label="Enquête sluiten"
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-3)', padding: 8, minWidth: 40, minHeight: 40, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
@@ -507,13 +522,15 @@ export default function SurveysPagina() {
                       <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-1)' }}>{v.tekst}</p>
                     </div>
                     {v.type === 'schaal' && (
-                      <div style={{ display: 'flex', gap: 8, paddingLeft: 28 }}>
+                      <div role="group" aria-label={v.tekst} style={{ display: 'flex', gap: 8, paddingLeft: 28 }}>
                         {[1, 2, 3, 4, 5].map(n => (
                           <button
                             key={n}
                             onClick={() => setAntwoorden(prev => ({ ...prev, [v.id]: n }))}
+                            aria-label={`${n} van 5`}
+                            aria-pressed={antwoorden[v.id] === n}
                             style={{
-                              flex: 1, padding: '12px 0', borderRadius: 12, fontSize: 14, fontWeight: 700,
+                              flex: 1, padding: '12px 0', minHeight: 44, borderRadius: 12, fontSize: 14, fontWeight: 700,
                               border: `2px solid ${antwoorden[v.id] === n ? 'var(--mf-green)' : 'var(--border)'}`,
                               background: antwoorden[v.id] === n ? 'var(--mf-green)' : 'transparent',
                               color: antwoorden[v.id] === n ? 'var(--bg-app)' : 'var(--text-2)',
@@ -526,13 +543,15 @@ export default function SurveysPagina() {
                       </div>
                     )}
                     {v.type === 'ja_nee' && (
-                      <div style={{ display: 'flex', gap: 12, paddingLeft: 28 }}>
+                      <div role="group" aria-label={v.tekst} style={{ display: 'flex', gap: 12, paddingLeft: 28 }}>
                         {([true, false] as const).map(b => (
                           <button
                             key={String(b)}
                             onClick={() => setAntwoorden(prev => ({ ...prev, [v.id]: b }))}
+                            aria-label={b ? 'Ja' : 'Nee'}
+                            aria-pressed={antwoorden[v.id] === b}
                             style={{
-                              flex: 1, padding: '12px 0', borderRadius: 12, fontSize: 14, fontWeight: 600,
+                              flex: 1, padding: '12px 0', minHeight: 44, borderRadius: 12, fontSize: 14, fontWeight: 600,
                               border: `2px solid ${antwoorden[v.id] === b ? 'var(--mf-green)' : 'var(--border)'}`,
                               background: antwoorden[v.id] === b ? 'var(--mf-green)' : 'transparent',
                               color: antwoorden[v.id] === b ? 'var(--bg-app)' : 'var(--text-2)',
@@ -547,6 +566,7 @@ export default function SurveysPagina() {
                     {v.type === 'tekst' && (
                       <textarea
                         rows={3}
+                        aria-label={v.tekst}
                         value={(antwoorden[v.id] as string) ?? ''}
                         onChange={e => setAntwoorden(prev => ({ ...prev, [v.id]: e.target.value }))}
                         placeholder="Jouw antwoord (optioneel)..."
@@ -584,8 +604,9 @@ export default function SurveysPagina() {
               <button
                 key={t}
                 onClick={() => setTab(t)}
+                aria-pressed={tab === t}
                 style={{
-                  padding: '8px 16px', borderRadius: 8, fontSize: 13, border: 'none', cursor: 'pointer',
+                  padding: '9px 16px', minHeight: 40, borderRadius: 8, fontSize: 13, border: 'none', cursor: 'pointer',
                   background: tab === t ? 'var(--bg-card)' : 'transparent',
                   color: tab === t ? 'var(--text-1)' : 'var(--text-3)',
                   fontWeight: tab === t ? 600 : 400,
@@ -710,7 +731,7 @@ export default function SurveysPagina() {
                                   <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-2)', marginBottom: 8 }}>{v.tekst}</p>
                                   {v.type === 'schaal' && res.schaalGems[v.id] !== undefined && (
                                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                                      <div style={{ flex: 1, height: 8, background: 'var(--bg-subtle)', borderRadius: 100, overflow: 'hidden' }}>
+                                      <div role="progressbar" aria-valuenow={res.schaalGems[v.id]} aria-valuemin={0} aria-valuemax={5} aria-label={`Gemiddelde score: ${res.schaalGems[v.id]} van 5`} style={{ flex: 1, height: 8, background: 'var(--bg-subtle)', borderRadius: 100, overflow: 'hidden' }}>
                                         <div style={{ height: '100%', borderRadius: 100, width: `${(res.schaalGems[v.id] / 5) * 100}%`, background: schaalKleur(res.schaalGems[v.id]), transition: 'width 0.6s ease' }} />
                                       </div>
                                       <span style={{ fontSize: 13, fontWeight: 700, color: schaalKleur(res.schaalGems[v.id]), width: 40, textAlign: 'right' }}>

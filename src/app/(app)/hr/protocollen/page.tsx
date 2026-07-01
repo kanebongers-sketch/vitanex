@@ -132,7 +132,7 @@ export default function HrProtokollenPage() {
           <ul className="flex flex-col gap-3" style={{ listStyle: 'none', margin: 0, padding: 0 }}>
             {protocollen.map(p => (
               <li key={p.id}>
-                <Card style={{ padding: '16px' }}>
+                <Card interactive style={{ padding: '16px' }}>
                   <div className="flex items-start gap-4">
                     <div
                       className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"

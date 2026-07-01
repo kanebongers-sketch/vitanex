@@ -9,6 +9,8 @@ import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
 import { Card } from '@/components/ui/Card'
 import { Chart, type ChartDatum } from '@/components/ui/Chart'
+import { EmptyState } from '@/components/ui/EmptyState'
+import { BarChart3 } from 'lucide-react'
 
 
 interface ENPSData {
@@ -54,8 +56,14 @@ export default function HrENPSPage() {
   if (!data) return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
       <Navbar />
-      <main style={{ padding: '36px 40px', textAlign: 'center' }}>
-        <p style={{ color: 'var(--text-3)' }}>Geen toegang of fout bij laden.</p>
+      <main style={{ padding: '36px 40px 72px', maxWidth: 780, margin: '0 auto' }}>
+        <Card>
+          <EmptyState
+            icon={BarChart3}
+            title="Geen eNPS-gegevens"
+            description="Er is nog geen data beschikbaar, of je hebt geen toegang tot dit overzicht."
+          />
+        </Card>
       </main>
     </div>
   )
@@ -74,7 +82,10 @@ export default function HrENPSPage() {
       <Navbar />
       <main style={{ padding: '36px 40px 72px', maxWidth: 780, margin: '0 auto' }}>
 
-        <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 24 }}>eNPS Dashboard</h1>
+        <div style={{ marginBottom: 24 }}>
+          <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 4 }}>eNPS Dashboard</h1>
+          <p style={{ fontSize: 13, color: 'var(--text-3)' }}>Employee Net Promoter Score — anoniem, over alle deelnemers.</p>
+        </div>
 
         {/* Top stats */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 16 }}>

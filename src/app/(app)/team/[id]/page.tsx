@@ -176,7 +176,7 @@ export default function ProfielPagina() {
   if (laden) return (
     <div className="min-h-screen" style={{ background: 'var(--bg-app)' }}>
       <Navbar />
-      <main className="max-w-3xl mx-auto p-8 flex justify-center mt-16">
+      <main className="max-w-3xl mx-auto p-8 flex justify-center mt-16" role="status" aria-label="Profiel laden">
         <div className="w-8 h-8 rounded-full border-2 animate-spin" style={{ borderColor: 'var(--border)', borderTopColor: 'var(--mentaforce-primary)' }} />
       </main>
     </div>
@@ -225,15 +225,21 @@ export default function ProfielPagina() {
             {isHR && profiel?.rol === 'medewerker' && (
               <div className="flex flex-col items-end gap-1">
                 <button
+                  type="button"
                   onClick={stuurHerinnering}
                   disabled={herinneringBezig}
-                  className="text-sm rounded-xl px-4 py-2 transition disabled:opacity-40"
+                  className="text-sm rounded-xl px-4 py-2 transition disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2"
                   style={{ border: '1px solid var(--border)', color: 'var(--text-2)' }}
                 >
                   {herinneringBezig ? 'Versturen...' : 'Stuur herinnering'}
                 </button>
                 {herinneringMelding && (
-                  <p className="text-xs" style={{ color: herinneringMelding.startsWith('Fout') ? 'var(--mf-red)' : 'var(--mf-green-dark)' }}>
+                  <p
+                    role={herinneringMelding.startsWith('Fout') ? 'alert' : 'status'}
+                    aria-live="polite"
+                    className="text-xs"
+                    style={{ color: herinneringMelding.startsWith('Fout') ? 'var(--mf-red)' : 'var(--mf-green-dark)' }}
+                  >
                     {herinneringMelding}
                   </p>
                 )}
@@ -244,13 +250,13 @@ export default function ProfielPagina() {
 
         {/* Tabs — alleen voor HR */}
         {isHR && (
-          <div style={{ display: 'flex', gap: 0, borderBottom: '1px solid var(--border)', marginBottom: 24 }}>
+          <nav aria-label="Profiel-secties" style={{ display: 'flex', gap: 0, borderBottom: '1px solid var(--border)', marginBottom: 24 }}>
             {([
               ['vitaliteit', 'Vitaliteit', BarChart3],
               ['gesprekken', 'Gesprekken', MessageCircle],
               ['dossier', 'Dossier', FolderOpen],
             ] as const).map(([tab, label, Icon]) => (
-              <button key={tab} onClick={() => setActieveTab(tab)} className="text-sm inline-flex items-center gap-1.5" style={{
+              <button key={tab} type="button" aria-pressed={actieveTab === tab} onClick={() => setActieveTab(tab)} className="text-sm inline-flex items-center gap-1.5 focus-visible:outline-none focus-visible:ring-2" style={{
                 padding: '9px 16px', fontWeight: 600, border: 'none',
                 background: 'transparent', cursor: 'pointer',
                 borderBottom: `2px solid ${actieveTab === tab ? 'var(--mf-green)' : 'transparent'}`,
@@ -261,7 +267,7 @@ export default function ProfielPagina() {
                 {label}
               </button>
             ))}
-          </div>
+          </nav>
         )}
 
         {/* HR-only: scores + detail + trend + toelichtingen */}
@@ -300,7 +306,16 @@ export default function ProfielPagina() {
                     <div key={m.label} className="flex items-center justify-between py-2 px-3 rounded-xl" style={{ background: 'var(--bg-app)' }}>
                       <span className="text-sm" style={{ color: 'var(--text-2)' }}>{m.label}</span>
                       <div className="flex items-center gap-2">
-                        <div className="w-20 h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--bg-subtle)' }}>
+                        <div
+                          className="w-20 h-1.5 rounded-full overflow-hidden"
+                          style={{ background: 'var(--bg-subtle)' }}
+                          role="progressbar"
+                          aria-label={`${m.label}-score`}
+                          aria-valuenow={waarde}
+                          aria-valuemin={0}
+                          aria-valuemax={5}
+                          aria-valuetext={waarde > 0 ? `${waarde} van 5` : 'Geen data'}
+                        >
                           <div className="h-full rounded-full" style={{ width: `${(waarde / 5) * 100}%`, background: scoreKleur(waarde) }} />
                         </div>
                         <span className="text-sm font-medium w-8 text-right" style={{ color: waarde > 0 ? scoreKleur(waarde) : 'var(--border)' }}>
