@@ -62,12 +62,14 @@ export default function HrProtokollenPage() {
   }, [router])
 
   async function togglePublicatie(id: string, huidig: boolean) {
-    await supabase.from('protocollen').update({ gepubliceerd: !huidig }).eq('id', id)
+    const { error } = await supabase.from('protocollen').update({ gepubliceerd: !huidig }).eq('id', id)
+    if (error) { toast({ title: 'Kon publicatie niet wijzigen', variant: 'error' }); return }
     setProtocollen(prev => prev.map(p => p.id === id ? { ...p, gepubliceerd: !huidig } : p))
   }
 
   async function verwijder(id: string) {
-    await supabase.from('protocollen').delete().eq('id', id)
+    const { error } = await supabase.from('protocollen').delete().eq('id', id)
+    if (error) { toast({ title: 'Verwijderen mislukt', variant: 'error' }); return }
     setProtocollen(prev => prev.filter(p => p.id !== id))
     setVerwijderModal(null)
     toast({ title: 'Protocol verwijderd', variant: 'success' })
