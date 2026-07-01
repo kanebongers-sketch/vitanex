@@ -98,7 +98,8 @@ export default function CheckInGeschiedenisPage() {
             <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
               <div style={{ width: 160, height: 160, borderRadius: '50%', background: 'radial-gradient(circle, var(--mf-green-light) 0%, transparent 70%)' }} />
             </div>
-            <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-2)', marginBottom: 8, position: 'relative', zIndex: 1 }}>Nog geen check-ins</p>
+            <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-2)', marginBottom: 6, position: 'relative', zIndex: 1 }}>Nog geen check-ins</p>
+            <p style={{ fontSize: 13, color: 'var(--text-3)', marginBottom: 20, position: 'relative', zIndex: 1, maxWidth: 320, marginLeft: 'auto', marginRight: 'auto', lineHeight: 1.5 }}>Je wekelijkse check-ins verschijnen hier als tijdlijn — zodat je je welzijn over de weken kunt volgen.</p>
             <Link href="/checkin" style={{ fontSize: 14, color: 'var(--bg-app)', background: 'var(--mentaforce-primary)', borderRadius: 12, padding: '10px 20px', textDecoration: 'none', fontWeight: 600, display: 'inline-block', position: 'relative', zIndex: 1 }}>
               Eerste check-in →
             </Link>
@@ -111,7 +112,7 @@ export default function CheckInGeschiedenisPage() {
               const vkleur = vscore >= 70 ? 'var(--mf-green)' : vscore >= 40 ? 'var(--mf-amber)' : 'var(--mf-red)'
               const isOpen = uitgevouwen === ci.id
               const domeinen = Object.keys(DOMEIN_CONFIG).filter(d => ci.scores?.[d] !== undefined)
-              const datumLabel = datum.toLocaleDateString('nl-BE', { weekday: 'long', day: 'numeric', month: 'long' })
+              const datumLabel = datum.toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long' })
 
               return (
                 <div key={ci.id} style={{ display: 'flex', gap: 0 }}>
@@ -142,7 +143,7 @@ export default function CheckInGeschiedenisPage() {
                                 {datumLabel}
                               </p>
                               <p style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 1 }}>
-                                {datum.toLocaleTimeString('nl-BE', { hour: '2-digit', minute: '2-digit' })} · {domeinen.length} domeinen
+                                {datum.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })} · {domeinen.length} domeinen
                               </p>
                             </div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>

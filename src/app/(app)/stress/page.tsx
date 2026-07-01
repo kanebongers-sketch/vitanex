@@ -202,6 +202,7 @@ export default function StressPagina() {
             Wat speelt er? (optioneel)
           </p>
           <textarea
+            className="mf-stress-notitie"
             value={notitie}
             onChange={e => setNotitie(e.target.value)}
             placeholder="Werklast, gesprek, deadline..."
@@ -212,8 +213,15 @@ export default function StressPagina() {
               padding: '10px 12px', fontSize: 13, color: 'var(--text-1)',
               outline: 'none', resize: 'none', fontFamily: 'inherit',
               boxSizing: 'border-box', background: 'var(--bg-card)',
+              transition: 'border-color var(--transition-fast)',
             }}
           />
+          <style>{`
+            .mf-stress-notitie:focus-visible {
+              border-color: var(--mentaforce-primary);
+              box-shadow: 0 0 0 3px var(--mentaforce-primary-light);
+            }
+          `}</style>
         </div>
 
         {/* Technieken */}
@@ -326,7 +334,7 @@ export default function StressPagina() {
                         outlineOffset: 2,
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                       }}>
-                        {gem !== null && <span style={{ fontSize: 11, fontWeight: 800, color: 'white' }}>{gem}</span>}
+                        {gem !== null && <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--bg-app)' }}>{gem}</span>}
                       </div>
                       <span style={{ fontSize: 8, color: isVandaag ? 'var(--text-2)' : 'var(--text-4)', fontWeight: isVandaag ? 800 : 400, textTransform: 'capitalize' }}>{dag}</span>
                     </div>

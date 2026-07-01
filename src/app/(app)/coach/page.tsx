@@ -328,7 +328,7 @@ export default function CoachPagina() {
                   <button
                     key={s.tekst}
                     onClick={() => verstuur(s.tekst)}
-                    className="mf-pressable"
+                    className="mf-pressable mf-suggestie-chip"
                     style={{
                       fontSize: 12, border: '1px solid var(--border)', borderRadius: 999,
                       padding: '6px 14px', color: 'var(--text-2)', background: 'var(--bg-card)',
@@ -349,7 +349,7 @@ export default function CoachPagina() {
                 <button
                   key={s.tekst}
                   onClick={() => verstuur(s.tekst)}
-                  className="mf-pressable"
+                  className="mf-pressable mf-suggestie-chip"
                   style={{
                     fontSize: 12, border: '1px solid var(--border)', borderRadius: 999,
                     padding: '6px 14px', color: 'var(--text-2)', background: 'var(--bg-card)',
@@ -445,6 +445,18 @@ export default function CoachPagina() {
         }
         @media (prefers-reduced-motion: reduce) {
           .mf-coach-cursor { animation: none; opacity: 0.6; }
+        }
+        .mf-suggestie-chip {
+          transition: border-color 0.15s var(--ease), color 0.15s var(--ease), background 0.15s var(--ease);
+        }
+        .mf-suggestie-chip:hover {
+          border-color: var(--mentaforce-primary);
+          color: var(--text-1);
+          background: var(--mentaforce-primary-light);
+        }
+        .mf-suggestie-chip:focus-visible {
+          outline: 2px solid var(--mentaforce-primary);
+          outline-offset: 2px;
         }
       `}</style>
     </div>

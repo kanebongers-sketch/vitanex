@@ -172,6 +172,10 @@ export default function JournalPagina() {
   return (
     <div className="mf-mesh-bg" style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
       <Navbar />
+      <style>{`
+        .mf-journal-del:hover { color: var(--mf-red); background: var(--mf-red-light); }
+        .mf-journal-del:focus-visible { outline: 2px solid var(--mentaforce-primary); outline-offset: 2px; }
+      `}</style>
       <main style={{ padding: '24px 20px 88px', maxWidth: 800, margin: '0 auto' }}>
 
         {/* Header */}
@@ -402,7 +406,8 @@ export default function JournalPagina() {
                     </div>
                     <button
                       onClick={() => verwijder(e.id)}
-                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-4)', padding: 4, display: 'flex' }}
+                      className="mf-journal-del"
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-4)', padding: 9, margin: -5, display: 'flex', borderRadius: 8, transition: 'color 0.15s var(--ease), background 0.15s var(--ease)' }}
                       aria-label="Aantekening verwijderen"
                       title="Verwijder"
                     >

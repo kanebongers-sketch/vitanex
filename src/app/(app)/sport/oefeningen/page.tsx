@@ -98,9 +98,11 @@ export default function OefeningenPage() {
 
   if (loading) {
     return (
-      <div style={{ minHeight: '100vh', background: 'var(--bg-app)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
         <Navbar />
-        <p style={{ color: 'var(--text-3)', marginTop: 80 }}>Laden…</p>
+        <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 96 }}>
+          <div className="mf-spinner" role="status" aria-label="Oefeningen laden" />
+        </div>
       </div>
     )
   }

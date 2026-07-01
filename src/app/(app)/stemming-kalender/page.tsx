@@ -141,58 +141,58 @@ export default function StemmingKalenderPagina() {
       <main style={{ padding: '24px 20px 88px', maxWidth: 800, margin: '0 auto' }}>
 
         <header style={{ marginBottom: 24 }}>
-          <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1, #111827)', letterSpacing: '-0.03em', marginBottom: 4 }}>
+          <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 4 }}>
             Stemming kalender
           </h1>
-          <p style={{ fontSize: 13, color: 'var(--text-3, #9CA3AF)' }}>{datumRange}</p>
+          <p style={{ fontSize: 13, color: 'var(--text-3)' }}>{datumRange}</p>
         </header>
 
         {/* Stats rij */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 20 }}>
-          <div style={{ background: 'var(--bg-card)', borderRadius: 14, padding: '14px', border: '1px solid var(--border, #E5E7EB)', textAlign: 'center', position: 'relative' }}>
+          <div style={{ background: 'var(--bg-card)', borderRadius: 14, padding: '14px', border: '1px solid var(--border)', textAlign: 'center', position: 'relative' }}>
             {gemiddelde && (
               <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 0, pointerEvents: 'none' }}>
                 <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'radial-gradient(circle, color-mix(in srgb, var(--mentaforce-primary) 18%, transparent) 0%, transparent 70%)' }} />
               </div>
             )}
-            <p style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1, #111827)', marginBottom: 2, position: 'relative', zIndex: 1 }}>
+            <p style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', marginBottom: 2, position: 'relative', zIndex: 1 }}>
               {gemiddelde ?? '—'}
             </p>
-            <p style={{ fontSize: 11, color: 'var(--text-3, #9CA3AF)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', position: 'relative', zIndex: 1 }}>
+            <p style={{ fontSize: 11, color: 'var(--text-3)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', position: 'relative', zIndex: 1 }}>
               Gemiddeld
             </p>
           </div>
-          <div style={{ background: 'var(--bg-card)', borderRadius: 14, padding: '14px', border: '1px solid var(--border, #E5E7EB)', textAlign: 'center' }}>
-            <p style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1, #111827)', marginBottom: 2 }}>
+          <div style={{ background: 'var(--bg-card)', borderRadius: 14, padding: '14px', border: '1px solid var(--border)', textAlign: 'center' }}>
+            <p style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', marginBottom: 2 }}>
               {besteEntry ? besteEntry.stemming.toFixed(1) : '—'}
             </p>
-            <p style={{ fontSize: 11, color: 'var(--text-3, #9CA3AF)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+            <p style={{ fontSize: 11, color: 'var(--text-3)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
               Beste dag
             </p>
             {besteEntry && (
-              <p style={{ fontSize: 10, color: 'var(--text-3, #D1D5DB)', marginTop: 2 }}>
+              <p style={{ fontSize: 10, color: 'var(--text-4)', marginTop: 2 }}>
                 {new Date(besteEntry.datum + 'T12:00:00').toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' })}
               </p>
             )}
           </div>
-          <div style={{ background: 'var(--bg-card)', borderRadius: 14, padding: '14px', border: '1px solid var(--border, #E5E7EB)', textAlign: 'center' }}>
-            <p style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1, #111827)', marginBottom: 2 }}>
+          <div style={{ background: 'var(--bg-card)', borderRadius: 14, padding: '14px', border: '1px solid var(--border)', textAlign: 'center' }}>
+            <p style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', marginBottom: 2 }}>
               {streak}
             </p>
-            <p style={{ fontSize: 11, color: 'var(--text-3, #9CA3AF)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+            <p style={{ fontSize: 11, color: 'var(--text-3)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
               Langste streak
             </p>
           </div>
         </div>
 
         {/* Heatmap */}
-        <div style={{ background: 'var(--bg-card)', borderRadius: 20, padding: '20px', border: '1px solid var(--border, #E5E7EB)', marginBottom: 16, overflowX: 'auto' }}>
+        <div style={{ background: 'var(--bg-card)', borderRadius: 20, padding: '20px', border: '1px solid var(--border)', marginBottom: 16, overflowX: 'auto' }}>
           <div style={{ display: 'flex', gap: 4, marginBottom: 8 }}>
             {/* Weekdag labels kolom */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginRight: 4 }}>
               {WEEKDAGEN.map(dag => (
                 <div key={dag} style={{ height: 20, width: 20, display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
-                  <span style={{ fontSize: 9, color: 'var(--text-3, #9CA3AF)', fontWeight: 600 }}>{dag}</span>
+                  <span style={{ fontSize: 9, color: 'var(--text-3)', fontWeight: 600 }}>{dag}</span>
                 </div>
               ))}
             </div>
@@ -238,25 +238,25 @@ export default function StemmingKalenderPagina() {
             </div>
           </div>
 
-          <p style={{ fontSize: 10, color: 'var(--text-3, #D1D5DB)', marginTop: 4 }}>
+          <p style={{ fontSize: 10, color: 'var(--text-4)', marginTop: 4 }}>
             {logMap.size} van 90 dagen bijgehouden
           </p>
         </div>
 
         {/* Legenda */}
-        <div style={{ background: 'var(--bg-card)', borderRadius: 14, padding: '14px 16px', border: '1px solid var(--border, #E5E7EB)' }}>
-          <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-3, #9CA3AF)', marginBottom: 10 }}>
+        <div style={{ background: 'var(--bg-card)', borderRadius: 14, padding: '14px 16px', border: '1px solid var(--border)' }}>
+          <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-3)', marginBottom: 10 }}>
             Legenda
           </p>
           <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               <div style={{ width: 16, height: 16, borderRadius: 3, background: 'var(--bg-subtle)', border: '1px solid var(--border)' }} />
-              <span style={{ fontSize: 11, color: 'var(--text-2, #6B7280)' }}>Geen data</span>
+              <span style={{ fontSize: 11, color: 'var(--text-2)' }}>Geen data</span>
             </div>
             {[1, 2, 3, 4, 5].map(n => (
               <div key={n} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <div style={{ width: 16, height: 16, borderRadius: 3, background: KLEUR_MAP[n], border: '1px solid var(--border)' }} />
-                <span style={{ fontSize: 11, color: 'var(--text-2, #6B7280)' }}>{n} – {STEMMING_LABEL[n]}</span>
+                <span style={{ fontSize: 11, color: 'var(--text-2)' }}>{n} – {STEMMING_LABEL[n]}</span>
               </div>
             ))}
           </div>

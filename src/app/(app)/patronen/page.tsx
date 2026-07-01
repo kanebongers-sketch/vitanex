@@ -197,7 +197,11 @@ export default function PatronenPage() {
           )}
 
           {fout && (
-            <p style={{ color: 'var(--mf-red)', textAlign: 'center', marginTop: 40 }}>{fout}</p>
+            <Card style={{ padding: '32px 24px', textAlign: 'center', marginTop: 24 }}>
+              <p style={{ fontSize: 14, color: 'var(--text-2)', marginBottom: 4, fontWeight: 600 }}>Patronen niet geladen</p>
+              <p style={{ fontSize: 13, color: 'var(--text-4)', marginBottom: 20, lineHeight: 1.5 }}>{fout}</p>
+              <Button onClick={() => location.reload()}>Opnieuw proberen</Button>
+            </Card>
           )}
 
           {data && (

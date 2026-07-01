@@ -180,6 +180,12 @@ export default function NotificatiesPage() {
           </div>
         )}
       </main>
+      <style>{`
+        .mf-switch:focus-visible {
+          outline: 2px solid var(--mentaforce-primary);
+          outline-offset: 3px;
+        }
+      `}</style>
     </div>
   )
 }

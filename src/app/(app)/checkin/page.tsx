@@ -464,6 +464,16 @@ export default function CheckIn() {
           Alle antwoorden zijn anoniem en beveiligd opgeslagen.
         </p>
       </div>
+
+      <style>{`
+        .mf-schaal-btn:focus-visible {
+          outline: 2px solid var(--mentaforce-primary);
+          outline-offset: 2px;
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .mf-schaal-btn { transition: none !important; }
+        }
+      `}</style>
     </main>
   )
 }
@@ -506,7 +516,7 @@ function VraagKaart({ vraag, waarde, kleur, licht, nummer, onChange }: {
           <button key={n} onClick={() => onChange(n)}
             aria-label={`${vraag.label}: ${n} van 5`}
             aria-pressed={geselecteerd === n}
-            className="flex-1 h-11 rounded-xl text-sm font-semibold transition-all border"
+            className="mf-schaal-btn flex-1 h-11 rounded-xl text-sm font-semibold transition-all border"
             style={{
               background:  geselecteerd === n ? kleur : 'var(--bg-subtle)',
               borderColor: geselecteerd === n ? kleur : 'var(--border)',

@@ -5,6 +5,7 @@ export const dynamic = 'force-dynamic'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { Brain } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
@@ -77,11 +78,18 @@ export default function CoachSamenvattingenPagina() {
             background: 'var(--bg-card)', borderRadius: 20, padding: '40px 24px',
             textAlign: 'center', border: '1px solid var(--border)',
           }}>
-            <div style={{ position: 'relative', display: 'inline-block', marginBottom: 12 }}>
+            <div style={{ position: 'relative', display: 'inline-flex', marginBottom: 12 }}>
               <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
-                <div style={{ width: 90, height: 90, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
+                <div style={{ width: 90, height: 90, borderRadius: '50%', background: 'radial-gradient(circle, color-mix(in srgb, var(--mentaforce-primary) 18%, transparent) 0%, transparent 70%)' }} />
               </div>
-              <span style={{ fontSize: 40, position: 'relative', zIndex: 1 }}>🧠</span>
+              <span style={{
+                position: 'relative', zIndex: 1,
+                width: 64, height: 64, borderRadius: '50%',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                background: 'var(--mentaforce-primary-light)', color: 'var(--mentaforce-primary)',
+              }}>
+                <Brain size={30} strokeWidth={1.5} aria-hidden />
+              </span>
             </div>
             <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-2)', marginBottom: 6 }}>
               Nog geen samenvattingen
