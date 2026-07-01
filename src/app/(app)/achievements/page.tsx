@@ -4,7 +4,7 @@ export const dynamic = 'force-dynamic'
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Trophy, Sprout, Leaf, TreeDeciduous, Star, Gem, Award, type LucideIcon } from 'lucide-react'
+import { Trophy, Award } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
@@ -13,6 +13,8 @@ import { Badge } from '@/components/ui/Badge'
 import { Progress } from '@/components/ui/Progress'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { Button } from '@/components/ui/Button'
+import { berekenLevel, LEVEL_NAMEN, xpVoortgang, laadXPData } from '@/lib/xp'
+import { laadXPVanServer } from '@/lib/xp-sync'
 
 
 interface Achievement {
@@ -47,41 +49,20 @@ const CAT_KLEUREN: Record<string, string> = {
   mijlpaal:   'var(--mf-rose)',
 }
 
-interface Level {
-  min: number
-  max: number
-  naam: string
-  Icon: LucideIcon
-}
-
-const LEVELS: Level[] = [
-  { min: 0,    max: 100,  naam: 'Beginner',    Icon: Sprout },
-  { min: 100,  max: 300,  naam: 'Groeier',     Icon: Leaf },
-  { min: 300,  max: 600,  naam: 'Gevorderd',   Icon: TreeDeciduous },
-  { min: 600,  max: 1000, naam: 'Expert',      Icon: Star },
-  { min: 1000, max: 2000, naam: 'Meester',     Icon: Trophy },
-  { min: 2000, max: Infinity, naam: 'Legende', Icon: Gem },
-]
-
-function huidigLevel(xp: number) {
-  return LEVELS.find(l => xp >= l.min && xp < l.max) ?? LEVELS[LEVELS.length - 1]
-}
-
-function volgendLevel(xp: number) {
-  const idx = LEVELS.findIndex(l => xp >= l.min && xp < l.max)
-  return idx >= 0 && idx < LEVELS.length - 1 ? LEVELS[idx + 1] : null
-}
-
 export default function AchievementsPagina() {
   const router = useRouter()
   const [achievements, setAchievements] = useState<Achievement[]>([])
   const [laden, setLaden] = useState(true)
-  const [totaalXP, setTotaalXP] = useState(0)
+  // Eén canonieke voortgang: de Fit Level-XP uit user_xp (dezelfde als /niveau).
+  const [fitXP, setFitXP] = useState(0)
 
   useEffect(() => {
     async function laad() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/login'); return }
+
+      // Toon direct de lokale Fit-XP; de server overschrijft zo nodig.
+      setFitXP(laadXPData().xp)
 
       try {
         // Eerst awarden: de server berekent op basis van echte statistieken
@@ -91,11 +72,15 @@ export default function AchievementsPagina() {
         const res = await authFetch('/api/achievements/check')
         if (res.ok) {
           const json = await res.json() as { achievements: Achievement[] }
-          const lijst = json.achievements ?? []
-          setAchievements(lijst)
-          setTotaalXP(lijst.reduce((sum, a) => sum + (a.achievements?.xp_beloning ?? 0), 0))
+          setAchievements(json.achievements ?? [])
         }
       } catch { /* niet-kritiek */ }
+
+      // Fit Level-XP als bron van waarheid ophalen — ná het awarden, dus incl. de
+      // zojuist toegekende achievement-XP.
+      const server = await laadXPVanServer()
+      if (server) setFitXP(server.xp)
+
       setLaden(false)
     }
     laad()
@@ -121,11 +106,9 @@ export default function AchievementsPagina() {
   )
 
   const perCategorie = groeperenOpCategorie()
-  const niveau = huidigLevel(totaalXP)
-  const volgend = volgendLevel(totaalXP)
-  const levelPct = volgend
-    ? ((totaalXP - niveau.min) / (volgend.min - niveau.min)) * 100
-    : 100
+  const niveau = berekenLevel(fitXP)
+  const niveauNaam = LEVEL_NAMEN[niveau] ?? 'Starter'
+  const vg = xpVoortgang(fitXP, niveau)
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
@@ -141,48 +124,43 @@ export default function AchievementsPagina() {
           </h1>
         </header>
 
-        {/* XP Level card */}
+        {/* Fit Level card — dezelfde bron als /niveau (user_xp.xp) */}
         <Card style={{ padding: 20, marginBottom: 20, boxShadow: 'var(--shadow-md)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 16 }}>
             <div style={{
               width: 56, height: 56, borderRadius: 'var(--radius-md)',
-              background: 'var(--mf-amber-light)',
+              background: 'var(--mentaforce-primary-light)',
               border: '1px solid var(--border)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: 'var(--mf-amber-dark)', flexShrink: 0,
+              color: 'var(--mentaforce-primary)', flexShrink: 0,
             }}>
-              <niveau.Icon size={28} aria-label={`Niveau ${niveau.naam}`} />
+              <Award size={28} aria-hidden />
             </div>
             <div style={{ flex: 1 }}>
               <p style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-4)', margin: '0 0 2px' }}>
-                Huidig niveau
+                Fit Level {niveau}
               </p>
               <p style={{ fontSize: 18, fontWeight: 800, color: 'var(--text-1)', margin: '0 0 2px', letterSpacing: '-0.02em' }}>
-                {niveau.naam}
+                {niveauNaam}
               </p>
               <p style={{ fontSize: 12, color: 'var(--text-3)', margin: 0 }}>
-                {totaalXP} XP · {achievements.length} badges
+                {fitXP} XP · {achievements.length} badges
               </p>
             </div>
           </div>
 
           {/* Level voortgangsbalk */}
           <Progress
-            value={Math.min(100, levelPct)}
-            ariaLabel={`Voortgang naar ${volgend ? volgend.naam : 'maximaal niveau'}: ${Math.round(Math.min(100, levelPct))}%`}
+            value={vg.pct}
+            ariaLabel={`Voortgang naar het volgende niveau: ${vg.pct}%`}
             color="var(--mentaforce-primary)"
           />
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6 }}>
             <span style={{ fontSize: 11, color: 'var(--text-4)', fontWeight: 600 }}>
-              {niveau.min} XP
+              {fitXP} XP
             </span>
-            <span style={{ fontSize: 11, color: 'var(--text-4)', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-              {volgend ? (
-                <>
-                  {volgend.min} XP — {volgend.naam}
-                  <volgend.Icon size={12} aria-hidden style={{ flexShrink: 0 }} />
-                </>
-              ) : 'Max niveau!'}
+            <span style={{ fontSize: 11, color: 'var(--text-4)', fontWeight: 600 }}>
+              {niveau >= 10 ? 'Max niveau!' : `nog ${vg.nodig} XP tot Fit Level ${niveau + 1}`}
             </span>
           </div>
         </Card>
