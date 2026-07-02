@@ -2,14 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getAuthenticatedUser } from '@/lib/api-auth'
 import { createAdminClient } from '@/lib/supabase-admin'
 import type { XPData } from '@/lib/xp'
+import { isVerdachteXpSprong, MAX_XP_DELTA_PER_SYNC } from '@/lib/xp-guard'
 
 export const dynamic = 'force-dynamic'
-
-// Anti-cheat: het maximum dat een gebruiker op één dag legitiem kan verdienen.
-// Check-in 75 + topscore 25 + doellog 15 + doel voltooid 150 + streak-bonus 250
-// + een stapel achievement-bonussen. Ruim genomen: alles daarboven is geen
-// normale dag maar een handmatige POST.
-const MAX_XP_DELTA_PER_SYNC = 1000
 
 export async function GET(req: NextRequest) {
   try {
@@ -63,7 +58,8 @@ export async function POST(req: NextRequest) {
 
     // Anti-cheat: vergelijk met de huidige server-XP en weiger onmogelijk grote
     // sprongen. Een legitieme sync stijgt hooguit met wat er die dag te verdienen
-    // valt; alles daarboven wijst op een handmatig geknutselde POST.
+    // valt; alles daarboven wijst op een handmatig geknutselde POST. Alleen de
+    // allereerste sync (geen server-rij) mag opgebouwde localStorage-XP meenemen.
     const { data: huidig, error: leesFout } = await admin
       .from('user_xp')
       .select('xp')
@@ -75,8 +71,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Kon XP niet opslaan.' }, { status: 500 })
     }
 
-    const delta = body.xp - (huidig?.xp ?? 0)
-    if (delta > MAX_XP_DELTA_PER_SYNC) {
+    if (isVerdachteXpSprong(huidig?.xp ?? null, body.xp)) {
+      const delta = body.xp - (huidig?.xp ?? 0)
       console.error(`[xp POST] geweigerd: user ${user.id} probeerde +${delta} XP te syncen (max ${MAX_XP_DELTA_PER_SYNC})`)
       return NextResponse.json({ error: 'XP-toename is onwaarschijnlijk groot en is geweigerd.' }, { status: 400 })
     }
