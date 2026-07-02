@@ -8,7 +8,7 @@ import Link from 'next/link'
 import {
   Home, MessageSquare, Users, CheckCircle2, HeartPulse,
   FileText, FolderOpen, Palmtree, Banknote, TrendingUp,
-  GripVertical, X, LayoutGrid, ChevronRight, Check,
+  GripVertical, X, LayoutGrid, ChevronRight, Check, CreditCard,
   type LucideIcon,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
@@ -468,6 +468,7 @@ export default function HrDashboardPage() {
               { href: '/dashboard',            label: 'Verlof beheren',          icon: Palmtree },
               { href: '/loonstroken',          label: 'Loonstroken uploaden',    icon: Banknote },
               { href: '/rapport',              label: 'Rapporten bekijken',      icon: TrendingUp },
+              { href: '/hr/abonnement',        label: 'Abonnement beheren',      icon: CreditCard },
             ] as const).map(item => {
               const Icon = item.icon
               return (

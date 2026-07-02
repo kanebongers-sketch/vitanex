@@ -24,6 +24,7 @@ import {
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
+import { normaliseerPlan, PLAN_INFO } from '@/lib/plan'
 
 
 const BEKIJK_ALS_KEY = 'mentaforce_admin_view_as'
@@ -48,12 +49,6 @@ type Profiel = {
 type CheckinStat = {
   user_id: string
   created_at: string
-}
-
-const PLAN_PRIJS: Record<string, number> = {
-  starter: 4,
-  groei: 7,
-  enterprise: 15,
 }
 
 function StatKaart({ label, waarde, sub, kleur, icon: Icon }: {
@@ -204,11 +199,11 @@ export default function Admin() {
     return checkins.filter(c => userIds.has(c.user_id)).length
   }
 
-  // MRR berekening: schatting op basis van medewerkercount per bedrijf
+  // MRR berekening: schatting op basis van medewerkercount per bedrijf.
+  // Onbekend/leeg plan telt als starter — liever te laag geschat dan te hoog.
   function mrrBedrijf(b: Bedrijf) {
     const medewerkers = aantalPerBedrijf(b.id, 'medewerker')
-    const plan = b.plan ?? 'groei'
-    return medewerkers * (PLAN_PRIJS[plan] ?? 7)
+    return medewerkers * PLAN_INFO[normaliseerPlan(b.plan)].prijsPerGebruiker
   }
 
   const totalMRR = bedrijven.reduce((sum, b) => sum + mrrBedrijf(b), 0)
