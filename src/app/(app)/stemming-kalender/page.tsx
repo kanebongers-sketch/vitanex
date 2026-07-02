@@ -17,7 +17,7 @@ interface DagLog {
 
 const KLEUR_MAP: Record<number, string> = {
   0: 'var(--bg-subtle)',
-  1: 'var(--mf-red-light)',
+  1: 'var(--mf-red)',
   2: 'var(--mf-red-light)',
   3: 'var(--mf-amber-light)',
   4: 'var(--mf-green-light)',
@@ -187,9 +187,13 @@ export default function StemmingKalenderPagina() {
 
         {/* Heatmap */}
         <div style={{ background: 'var(--bg-card)', borderRadius: 20, padding: '20px', border: '1px solid var(--border)', marginBottom: 16, overflowX: 'auto' }}>
-          <div style={{ display: 'flex', gap: 4, marginBottom: 8 }}>
+          <div
+            role="img"
+            aria-label={`Stemmingsheatmap van de afgelopen 90 dagen: ${logMap.size} ${logMap.size === 1 ? 'dag' : 'dagen'} gelogd${gemiddelde ? `, gemiddelde stemming ${gemiddelde} van 5` : ''}`}
+            style={{ display: 'flex', gap: 4, marginBottom: 8 }}
+          >
             {/* Weekdag labels kolom */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginRight: 4 }}>
+            <div aria-hidden="true" style={{ display: 'flex', flexDirection: 'column', gap: 4, marginRight: 4 }}>
               {WEEKDAGEN.map(dag => (
                 <div key={dag} style={{ height: 20, width: 20, display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
                   <span style={{ fontSize: 9, color: 'var(--text-3)', fontWeight: 600 }}>{dag}</span>
@@ -197,8 +201,8 @@ export default function StemmingKalenderPagina() {
               ))}
             </div>
 
-            {/* Grid: kolommen = weken */}
-            <div style={{ display: 'flex', gap: 4 }}>
+            {/* Grid: kolommen = weken (decoratief binnen de role="img" wrapper) */}
+            <div aria-hidden="true" style={{ display: 'flex', gap: 4 }}>
               {Array.from({ length: Math.ceil(rasterItems.length / 7) }).map((_, weekIdx) => (
                 <div key={weekIdx} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                   {Array.from({ length: 7 }).map((_, dagIdx) => {

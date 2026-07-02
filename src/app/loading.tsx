@@ -1,3 +1,5 @@
+import { Wordmark } from '@/components/layout/Logo'
+
 export default function Loading() {
   return (
     <div
@@ -11,17 +13,8 @@ export default function Loading() {
         gap: 20,
       }}
     >
-      <span
-        style={{
-          fontFamily: 'var(--font-display)',
-          fontStyle: 'italic',
-          fontSize: 20,
-          fontWeight: 400,
-          color: 'var(--mf-green)',
-          marginBottom: 8,
-        }}
-      >
-        MentaForce
+      <span style={{ marginBottom: 8 }}>
+        <Wordmark size={16} />
       </span>
 
       <div className="mf-spinner" />

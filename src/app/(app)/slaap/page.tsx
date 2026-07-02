@@ -189,7 +189,7 @@ export default function SlaapPagina() {
         })
         setSucces(true)
         vitaEvent('data_logged', { kind: 'slaap' })
-        setTimeout(() => router.push('/vandaag'), 1500)
+        setTimeout(() => router.push('/home'), 1500)
       } else {
         toast({ title: 'Opslaan mislukt', description: 'Kon je slaap niet opslaan. Probeer het opnieuw.', variant: 'error' })
       }

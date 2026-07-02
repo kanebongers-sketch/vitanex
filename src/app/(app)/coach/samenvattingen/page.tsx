@@ -59,7 +59,7 @@ export default function CoachSamenvattingenPagina() {
         <header style={{ marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
             <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 4 }}>
-              Coach geheugen
+              Wat Vita onthoudt
             </h1>
             <p style={{ fontSize: 13, color: 'var(--text-3)' }}>
               AI-samenvattingen van jouw gesprekken
@@ -69,7 +69,7 @@ export default function CoachSamenvattingenPagina() {
             background: 'var(--text-1)', color: 'var(--bg-app)', textDecoration: 'none',
             padding: '8px 14px', borderRadius: 10, fontSize: 12, fontWeight: 600,
           }}>
-            Naar coach →
+            Naar Vita →
           </Link>
         </header>
 
@@ -95,7 +95,7 @@ export default function CoachSamenvattingenPagina() {
               Nog geen samenvattingen
             </p>
             <p style={{ fontSize: 13, color: 'var(--text-3)', lineHeight: 1.6 }}>
-              Na 6+ berichten met de AI Coach sla ik automatisch<br />een samenvatting op om je beter te helpen.
+              Na een paar berichten met Vita wordt er automatisch<br />een samenvatting opgeslagen om je beter te helpen.
             </p>
           </div>
         ) : (
@@ -126,7 +126,7 @@ export default function CoachSamenvattingenPagina() {
             ))}
 
             <p style={{ fontSize: 11, color: 'var(--text-3)', textAlign: 'center', marginTop: 8 }}>
-              Samenvattingen worden automatisch aangemaakt tijdens gesprekken. Ze worden gebruikt om de coach beter te laten aansluiten op jouw situatie.
+              Samenvattingen worden automatisch aangemaakt tijdens gesprekken. Ze helpen Vita beter aan te sluiten op jouw situatie.
             </p>
           </div>
         )}

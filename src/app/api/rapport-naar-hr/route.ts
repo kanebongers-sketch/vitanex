@@ -2,6 +2,7 @@
 import { Resend } from 'resend'
 import { createAdminClient } from '@/lib/supabase-admin'
 import { getAuthenticatedUser } from '@/lib/api-auth'
+import { renderEmail, escapeHtml, EMAIL_KLEUREN } from '@/lib/email-template'
 
 export async function POST(req: NextRequest) {
   try {
@@ -65,10 +66,10 @@ export async function POST(req: NextRequest) {
       weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
     })
 
-    // Convert plain text rapport to basic HTML
-    const rapportHtml = rapport_tekst
+    // Platte rapporttekst veilig (ge-escaped) omzetten naar eenvoudige HTML
+    const rapportHtml = String(rapport_tekst)
       .split('\n\n')
-      .map((p: string) => `<p style="margin: 0 0 12px;">${p.replace(/\n/g, '<br/>')}</p>`)
+      .map((p: string) => `<p style="margin: 0 0 12px;">${escapeHtml(p).replace(/\n/g, '<br/>')}</p>`)
       .join('')
 
     const resend = new Resend(process.env.RESEND_API_KEY)
@@ -77,25 +78,22 @@ export async function POST(req: NextRequest) {
       from: 'MentaForce <onboarding@resend.dev>',
       to: hrEmails,
       subject: `${naam} deelt zijn/haar welzijnsrapport — week van ${weekLabel}`,
-      html: `
-        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 32px;">
-          <div style="background: #1D9E75; color: white; padding: 20px 24px; border-radius: 12px 12px 0 0;">
-            <h2 style="margin: 0; font-size: 18px; font-weight: 600;">Persoonlijk welzijnsrapport ontvangen</h2>
-            <p style="margin: 6px 0 0; font-size: 13px; opacity: 0.85;">Week van ${weekLabel}</p>
+      html: renderEmail({
+        maxBreedte: 600,
+        inhoudHtml: `
+          <h2 style="margin:0; font-size:18px; font-weight:600; color:${EMAIL_KLEUREN.ink};">Persoonlijk welzijnsrapport ontvangen</h2>
+          <p style="margin:6px 0 0; font-size:13px; color:${EMAIL_KLEUREN.inkDim};">Week van ${weekLabel}</p>
+          <p style="color:${EMAIL_KLEUREN.inkDim}; font-size:13px; margin:20px 0 16px;">
+            <strong style="color:${EMAIL_KLEUREN.ink};">${escapeHtml(naam)}</strong> heeft zijn/haar persoonlijk welzijnsrapport met jou gedeeld via MentaForce.
+          </p>
+          <div style="background:${EMAIL_KLEUREN.navyDeep}; border-left:3px solid ${EMAIL_KLEUREN.cyan}; padding:16px 20px; border-radius:4px; color:${EMAIL_KLEUREN.inkDim}; font-size:14px; line-height:1.75;">
+            ${rapportHtml}
           </div>
-          <div style="background: white; border: 1px solid #e5e7eb; border-top: none; padding: 24px; border-radius: 0 0 12px 12px;">
-            <p style="color: #6b7280; font-size: 13px; margin-top: 0;">
-              <strong style="color: #111;">${naam}</strong> heeft zijn/haar persoonlijk welzijnsrapport met jou gedeeld via MentaForce.
-            </p>
-            <div style="background: #F9FAFB; border-left: 3px solid #1D9E75; padding: 16px 20px; border-radius: 4px; color: #374151; font-size: 14px; line-height: 1.75;">
-              ${rapportHtml}
-            </div>
-            <p style="color: #9ca3af; font-size: 11px; margin-top: 20px; margin-bottom: 0; line-height: 1.5;">
-              Dit rapport is gegenereerd door MentaForce op basis van de wekelijkse check-in van de medewerker. Behandel de inhoud vertrouwelijk.
-            </p>
-          </div>
-        </div>
-      `,
+          <p style="color:${EMAIL_KLEUREN.inkFaint}; font-size:11px; margin-top:20px; margin-bottom:0; line-height:1.5;">
+            Dit rapport is gegenereerd door MentaForce op basis van de wekelijkse check-in van de medewerker. Behandel de inhoud vertrouwelijk.
+          </p>
+        `,
+      }),
     })
 
     return NextResponse.json({ success: true })

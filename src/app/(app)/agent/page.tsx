@@ -2,7 +2,7 @@
 export const dynamic = 'force-dynamic'
 
 import { useEffect, useState, useCallback } from 'react'
-import { createClient } from '@supabase/supabase-js'
+import { supabase as sb } from '@/lib/supabase'
 import Link from 'next/link'
 import {
   Bot, FolderOpen, ClipboardList, Search, Check, X, Mail, Send,
@@ -10,11 +10,6 @@ import {
   Save, Smartphone, type LucideIcon,
 } from 'lucide-react'
 
-
-const sb = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
 
 const FF = 'var(--mentaforce-primary)', DARK = 'var(--bg-app)', CARD = 'var(--bg-card)', CARD2 = 'var(--bg-subtle)'
 const BORDER = 'var(--border)', TEXT = 'var(--text-1)', MUTED = 'var(--text-3)'
@@ -70,11 +65,12 @@ export default function AgentPage() {
   const [filterStatus, setFilterStatus] = useState<string>('actie')
 
   useEffect(() => {
-    sb.auth.getUser().then(({ data: { user } }) => {
+    sb.auth.getUser().then(async ({ data: { user } }) => {
       if (!user) { window.location.href = '/login'; return }
-      if (user.email?.toLowerCase() !== 'kanebongers@gmail.com') {
-        window.location.href = '/home'; return
-      }
+      // Founder-CRM: alleen admins — zelfde gating als Content OS in de Navbar.
+      const { data: profiel } = await sb
+        .from('profiles').select('rol').eq('id', user.id).single()
+      if (profiel?.rol !== 'admin') { window.location.href = '/home'; return }
       setToegang(true)
     })
   }, [])

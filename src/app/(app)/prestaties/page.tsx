@@ -364,10 +364,12 @@ export default function PrestatiesPagina() {
                     <div
                       style={{
                         height: '100%',
-                        width: `${voortgang ?? 0}%`,
+                        width: '100%',
+                        transform: `scaleX(${(voortgang ?? 0) / 100})`,
+                        transformOrigin: 'left center',
                         background: doelCfg?.kleur ?? 'var(--mf-green)',
                         borderRadius: 100,
-                        transition: 'width 0.7s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                        transition: 'transform 0.7s var(--ease)',
                       }}
                     />
                   </div>

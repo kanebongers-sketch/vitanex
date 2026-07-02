@@ -17,12 +17,45 @@ import { ALLE_TILES, DEFAULT_TILES, type TileId } from '@/lib/tiles'
 import GesprekkenTab from '@/components/hr/GesprekkenTab'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
-import { Progress } from '@/components/ui/Progress'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { useToast } from '@/components/ui/Toast'
 
 
 type HrTab = 'portaal' | 'gesprekken'
+
+// Contract van /api/hr/analytics (k-anoniem: gemiddelde is null onder de drempel).
+interface TrendPunt {
+  week: string
+  gemiddelde: number | null
+  aantal: number
+}
+
+interface HrAnalytics {
+  stemming_trend: TrendPunt[]
+  slaap_trend: TrendPunt[]
+  stress_trend: TrendPunt[]
+  checkin_trend: { week: string; unieke_users: number; participatie_pct: number }[]
+  top_technieken?: { naam: string; count: number }[]
+  totaal_medewerkers: number
+  actief_deze_week: number
+  drempel?: number
+}
+
+function trendGemiddelde(punten: TrendPunt[] | undefined): number | null {
+  const vals = (punten ?? [])
+    .map(p => p.gemiddelde)
+    .filter((v): v is number => typeof v === 'number')
+  if (!vals.length) return null
+  return Math.round((vals.reduce((s, v) => s + v, 0) / vals.length) * 10) / 10
+}
+
+const TECHNIEK_LABELS: Record<string, string> = {
+  box: 'Box breathing',
+  '478': '4-7-8 methode',
+  grounding: 'Grounding',
+  pmr: 'Progressieve spierontspanning',
+  geen_techniek: 'Geen techniek',
+}
 
 export default function HrDashboardPage() {
   const router = useRouter()
@@ -41,15 +74,7 @@ export default function HrDashboardPage() {
   const [stats, setStats] = useState({ medewerkers: 0, checkins: 0, gemScore: 0 })
   const [discVerplicht, setDiscVerplicht] = useState(false)
   const [discBezig, setDiscBezig] = useState(false)
-  const [analytics, setAnalytics] = useState<{
-    burnout_distributie?: { laag: number; matig: number; hoog: number }
-    enps_score?: number | null
-    enps_responses?: number
-    werkgeluk_gemiddeld?: number | null
-    psych_veiligheid_gemiddeld?: number | null
-    top_burnout_factoren?: { factor: string; count: number }[]
-    participatie_pct?: number
-  } | null>(null)
+  const [analytics, setAnalytics] = useState<HrAnalytics | null>(null)
 
   useEffect(() => {
     async function laad() {
@@ -109,8 +134,7 @@ export default function HrDashboardPage() {
             headers: { authorization: `Bearer ${session.access_token}` },
           })
           if (res.ok) {
-            const json = await res.json()
-            setAnalytics(json)
+            setAnalytics(await res.json() as HrAnalytics)
           }
         }
       } catch { /* niet-kritiek */ }
@@ -164,6 +188,18 @@ export default function HrDashboardPage() {
   const inactiefTiles = ALLE_TILES.filter(t => !actief.has(t.id))
 
   const ACCENT = 'var(--mentaforce-primary)'
+
+  // Afgeleide analytics-waarden — alleen kaarten tonen die echt data hebben.
+  const gemStemming = trendGemiddelde(analytics?.stemming_trend)
+  const gemSlaap = trendGemiddelde(analytics?.slaap_trend)
+  const gemStress = trendGemiddelde(analytics?.stress_trend)
+  const topTechnieken = analytics?.top_technieken ?? []
+  const analyticsParticipatie = analytics && analytics.totaal_medewerkers > 0
+    ? Math.round((analytics.actief_deze_week / analytics.totaal_medewerkers) * 100)
+    : null
+  const heeftAnalyse =
+    gemStemming !== null || gemSlaap !== null || gemStress !== null ||
+    analyticsParticipatie !== null || topTechnieken.length > 0
 
   if (!geladen) return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
@@ -240,113 +276,79 @@ export default function HrDashboardPage() {
         </div>
 
         {/* ── ANALYTICS SECTIE ── */}
-        {analytics && (
+        {analytics && heeftAnalyse && (
           <div style={{ marginBottom: 32 }}>
             <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-3)', marginBottom: 12 }}>
-              Team welzijn analyse (afgelopen 4 weken)
+              Team welzijn (afgelopen 12 weken)
             </p>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
 
-              {/* Burn-out risico */}
-              {analytics.burnout_distributie && (
+              {/* Gem. stemming */}
+              {gemStemming !== null && (
                 <Card style={{ padding: 16 }}>
-                  <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 12 }}>Burn-out risico</p>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                    {[
-                      { label: 'Laag', count: analytics.burnout_distributie.laag, kleur: 'var(--mentaforce-primary)' },
-                      { label: 'Matig', count: analytics.burnout_distributie.matig, kleur: 'var(--mf-amber)' },
-                      { label: 'Hoog', count: analytics.burnout_distributie.hoog, kleur: 'var(--mf-red)' },
-                    ].map(b => {
-                      const totaal = analytics.burnout_distributie!.laag + analytics.burnout_distributie!.matig + analytics.burnout_distributie!.hoog
-                      const pct = totaal > 0 ? Math.round((b.count / totaal) * 100) : 0
-                      return (
-                        <Progress
-                          key={b.label}
-                          value={pct}
-                          color={b.kleur}
-                          thickness={6}
-                          ariaLabel={`Burn-out risico ${b.label}: ${b.count} medewerkers, ${pct} procent`}
-                          label={
-                            <span style={{ fontSize: 11, color: 'var(--text-2)' }}>
-                              {b.label}{' '}
-                              <span style={{ fontWeight: 700, color: b.kleur }}>{b.count} ({pct}%)</span>
-                            </span>
-                          }
-                        />
-                      )
-                    })}
-                  </div>
+                  <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>Gem. stemming</p>
+                  <p style={{ fontSize: 32, fontWeight: 800, color: gemStemming >= 3.5 ? 'var(--mf-green)' : 'var(--mf-amber)', lineHeight: 1, marginBottom: 4 }}>
+                    {gemStemming}/5
+                  </p>
+                  <p style={{ fontSize: 11, color: 'var(--text-3)' }}>Weekgemiddelden, anoniem</p>
                 </Card>
               )}
 
-              {/* eNPS */}
-              {analytics.enps_score !== null && analytics.enps_score !== undefined && (
+              {/* Gem. slaap */}
+              {gemSlaap !== null && (
                 <Card style={{ padding: 16 }}>
-                  <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>eNPS score</p>
-                  <div style={{ position: 'relative', display: 'inline-block', marginBottom: 4 }}>
-                    <div aria-hidden style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
-                      <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'radial-gradient(circle, var(--mentaforce-primary-light) 0%, transparent 70%)' }} />
-                    </div>
-                    <p style={{ fontSize: 32, fontWeight: 800, color: analytics.enps_score >= 30 ? 'var(--mentaforce-primary)' : analytics.enps_score >= 0 ? 'var(--mf-amber)' : 'var(--mf-red)', lineHeight: 1, position: 'relative', zIndex: 1 }}>
-                      {analytics.enps_score > 0 ? '+' : ''}{analytics.enps_score}
-                    </p>
-                  </div>
-                  <p style={{ fontSize: 11, color: 'var(--text-3)' }}>{analytics.enps_responses} responses</p>
-                  <p style={{ fontSize: 11, color: 'var(--text-2)', marginTop: 6 }}>
-                    {analytics.enps_score >= 30 ? 'Uitstekend!' : analytics.enps_score >= 0 ? 'Verbetering mogelijk' : 'Actie vereist'}
+                  <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>Gem. slaap</p>
+                  <p style={{ fontSize: 32, fontWeight: 800, color: gemSlaap >= 7 ? 'var(--mf-green)' : 'var(--mf-amber)', lineHeight: 1, marginBottom: 4 }}>
+                    {gemSlaap}u
+                  </p>
+                  <p style={{ fontSize: 11, color: 'var(--text-3)' }}>Uren per nacht</p>
+                </Card>
+              )}
+
+              {/* Gem. stress */}
+              {gemStress !== null && (
+                <Card style={{ padding: 16 }}>
+                  <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>Gem. stress</p>
+                  <p style={{ fontSize: 32, fontWeight: 800, color: gemStress >= 7 ? 'var(--mf-red)' : gemStress >= 5 ? 'var(--mf-amber)' : 'var(--mf-green)', lineHeight: 1, marginBottom: 4 }}>
+                    {gemStress}/10
+                  </p>
+                  <p style={{ fontSize: 11, color: 'var(--text-3)' }}>Lager is beter</p>
+                </Card>
+              )}
+
+              {/* Participatie deze week */}
+              {analyticsParticipatie !== null && (
+                <Card style={{ padding: 16 }}>
+                  <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>Actief deze week</p>
+                  <p style={{ fontSize: 32, fontWeight: 800, color: analyticsParticipatie >= 70 ? 'var(--mf-green)' : analyticsParticipatie >= 40 ? 'var(--mf-amber)' : 'var(--mf-red)', lineHeight: 1, marginBottom: 4 }}>
+                    {analyticsParticipatie}%
+                  </p>
+                  <p style={{ fontSize: 11, color: 'var(--text-3)' }}>
+                    {analytics.actief_deze_week} van {analytics.totaal_medewerkers} medewerkers
                   </p>
                 </Card>
               )}
 
-              {/* Werkgeluk */}
-              {analytics.werkgeluk_gemiddeld !== null && analytics.werkgeluk_gemiddeld !== undefined && (
+              {/* Technieken bij hoge stress */}
+              {topTechnieken.length > 0 && (
                 <Card style={{ padding: 16 }}>
-                  <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>Werkgeluk</p>
-                  <div style={{ position: 'relative', display: 'inline-block', marginBottom: 4 }}>
-                    <div aria-hidden style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
-                      <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'radial-gradient(circle, var(--mentaforce-primary-light) 0%, transparent 70%)' }} />
-                    </div>
-                    <p style={{ fontSize: 32, fontWeight: 800, color: analytics.werkgeluk_gemiddeld >= 4 ? 'var(--mentaforce-primary)' : analytics.werkgeluk_gemiddeld >= 3 ? 'var(--mf-amber)' : 'var(--mf-red)', lineHeight: 1, position: 'relative', zIndex: 1 }}>
-                      {analytics.werkgeluk_gemiddeld}/5
-                    </p>
-                  </div>
-                  <p style={{ fontSize: 11, color: 'var(--text-3)' }}>Gemiddeld team</p>
-                </Card>
-              )}
-
-              {/* Psych veiligheid */}
-              {analytics.psych_veiligheid_gemiddeld !== null && analytics.psych_veiligheid_gemiddeld !== undefined && (
-                <Card style={{ padding: 16 }}>
-                  <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>Psych. veiligheid</p>
-                  <div style={{ position: 'relative', display: 'inline-block', marginBottom: 4 }}>
-                    <div aria-hidden style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
-                      <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'radial-gradient(circle, var(--mentaforce-primary-light) 0%, transparent 70%)' }} />
-                    </div>
-                    <p style={{ fontSize: 32, fontWeight: 800, color: analytics.psych_veiligheid_gemiddeld >= 4 ? 'var(--mentaforce-primary)' : analytics.psych_veiligheid_gemiddeld >= 3 ? 'var(--mf-amber)' : 'var(--mf-red)', lineHeight: 1, position: 'relative', zIndex: 1 }}>
-                      {analytics.psych_veiligheid_gemiddeld}/5
-                    </p>
-                  </div>
-                  <p style={{ fontSize: 11, color: 'var(--text-3)' }}>Gemiddeld team</p>
-                </Card>
-              )}
-
-              {/* Top burnout factoren */}
-              {analytics.top_burnout_factoren?.length ? (
-                <Card style={{ padding: 16 }}>
-                  <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 10 }}>Top aandachtspunten</p>
+                  <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 10 }}>Technieken bij hoge stress</p>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                    {analytics.top_burnout_factoren.map((f, i) => (
-                      <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    {topTechnieken.map((t, i) => (
+                      <div key={t.naam} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                         <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-3)', minWidth: 16 }}>{i + 1}.</span>
-                        <span style={{ fontSize: 12, color: 'var(--text-2)', fontWeight: 600, textTransform: 'capitalize' }}>{f.factor}</span>
-                        <span style={{ fontSize: 10, color: 'var(--text-3)', marginLeft: 'auto' }}>{f.count}×</span>
+                        <span style={{ fontSize: 12, color: 'var(--text-2)', fontWeight: 600 }}>{TECHNIEK_LABELS[t.naam] ?? t.naam}</span>
+                        <span style={{ fontSize: 10, color: 'var(--text-3)', marginLeft: 'auto' }}>{t.count}×</span>
                       </div>
                     ))}
                   </div>
                 </Card>
-              ) : null}
+              )}
 
             </div>
+            <p style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 10 }}>
+              Geanonimiseerd — resultaten worden alleen getoond vanaf {analytics.drempel ?? 5} deelnemers.
+            </p>
           </div>
         )}
 
@@ -463,7 +465,7 @@ export default function HrDashboardPage() {
               { href: '/hr/protocollen/nieuw', label: 'Nieuw protocol aanmaken', icon: FileText },
               { href: '/hr/protocollen',       label: 'Protocollen beheren',     icon: FolderOpen },
               { href: '/team',                 label: 'Team bekijken',           icon: Users },
-              { href: '/verlof',               label: 'Verlof beheren',          icon: Palmtree },
+              { href: '/dashboard',            label: 'Verlof beheren',          icon: Palmtree },
               { href: '/loonstroken',          label: 'Loonstroken uploaden',    icon: Banknote },
               { href: '/rapport',              label: 'Rapporten bekijken',      icon: TrendingUp },
             ] as const).map(item => {

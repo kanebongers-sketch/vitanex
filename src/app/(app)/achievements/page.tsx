@@ -45,9 +45,9 @@ const CAT_KLEUREN: Record<string, string> = {
   coaching:   'var(--mf-purple)',
   sport:      'var(--mf-amber-dark)',
   voeding:    'var(--mf-green)',
-  streak:     'var(--mf-orange)',
+  streak:     'var(--mf-amber)',
   team:       'var(--mf-blue)',
-  mijlpaal:   'var(--mf-rose)',
+  mijlpaal:   'var(--mf-red)',
 }
 
 export default function AchievementsPagina() {

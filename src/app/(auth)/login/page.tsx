@@ -6,6 +6,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
+import { Check } from 'lucide-react'
 import { LogoFull } from '@/components/layout/Logo'
 
 type LoginStatus =
@@ -84,24 +85,22 @@ export default function Login() {
         <div style={{
           position: 'absolute', top: '-10%', right: '-5%',
           width: 400, height: 400, borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(29,158,117,0.12) 0%, transparent 70%)',
+          background: 'radial-gradient(circle, var(--mf-green-light) 0%, transparent 70%)',
         }} />
         <div style={{
           position: 'absolute', bottom: '-10%', left: '-5%',
           width: 350, height: 350, borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(56,132,221,0.10) 0%, transparent 70%)',
+          background: 'radial-gradient(circle, color-mix(in srgb, var(--mf-green) 8%, transparent) 0%, transparent 70%)',
         }} />
       </div>
 
       <div
         className="w-full max-w-sm relative mf-animate-up"
         style={{
-          background: 'rgba(255,255,255,0.92)',
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
-          border: '1px solid rgba(255,255,255,0.8)',
+          background: 'var(--bg-card)',
+          border: '1px solid var(--border)',
           borderRadius: 24,
-          boxShadow: '0 20px 60px rgba(0,0,0,0.10), 0 4px 20px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04)',
+          boxShadow: '0 20px 60px rgba(0,0,0,0.35)',
           padding: '36px 32px',
         }}
       >
@@ -112,10 +111,10 @@ export default function Login() {
           </Link>
         </div>
 
-        <h1 className="text-[22px] font-bold text-center mb-1" style={{ color: 'var(--text-primary)', letterSpacing: '-0.03em' }}>
+        <h1 className="text-[22px] font-bold text-center mb-1" style={{ color: 'var(--text-1)', letterSpacing: '-0.03em' }}>
           Welkom terug
         </h1>
-        <p className="text-sm text-center mb-7" style={{ color: 'var(--text-secondary)' }}>
+        <p className="text-sm text-center mb-7" style={{ color: 'var(--text-2)' }}>
           Log in met je e-mailadres en wachtwoord.
         </p>
 
@@ -125,7 +124,7 @@ export default function Login() {
             role="alert"
             aria-live="assertive"
             className="rounded-2xl p-4 mb-5"
-            style={{ background: 'var(--mf-amber-light)', border: '1px solid #FAC775' }}
+            style={{ background: 'var(--mf-amber-light)', border: '1px solid var(--mf-amber)' }}
           >
             <p className="text-sm font-semibold mb-1" style={{ color: 'var(--mf-amber-dark)' }}>E-mail nog niet bevestigd</p>
             <p className="text-xs leading-relaxed mb-3" style={{ color: 'var(--mf-amber-dark)' }}>
@@ -143,14 +142,16 @@ export default function Login() {
         )}
 
         {status === 'resent' && (
-          <div role="alert" aria-live="assertive" className="rounded-2xl p-4 mb-5" style={{ background: 'var(--mf-green-light)', border: '1px solid #A3DECE' }}>
-            <p className="text-sm font-semibold" style={{ color: 'var(--mf-green-dark)' }}>✓ Bevestigingsmail verstuurd</p>
+          <div role="alert" aria-live="assertive" className="rounded-2xl p-4 mb-5" style={{ background: 'var(--mf-green-light)', border: '1px solid var(--mf-green)' }}>
+            <p className="text-sm font-semibold flex items-center gap-1.5" style={{ color: 'var(--mf-green-dark)' }}>
+              <Check size={14} strokeWidth={3} aria-hidden /> Bevestigingsmail verstuurd
+            </p>
             <p className="text-xs mt-0.5" style={{ color: 'var(--mf-green-mid)' }}>Klik op de link in je inbox om je account te activeren.</p>
           </div>
         )}
 
         {status === 'wrong_credentials' && (
-          <div role="alert" aria-live="assertive" className="rounded-2xl p-4 mb-5" style={{ background: 'var(--mf-red-light)', border: '1px solid #FBBFBF' }}>
+          <div role="alert" aria-live="assertive" className="rounded-2xl p-4 mb-5" style={{ background: 'var(--mf-red-light)', border: '1px solid var(--mf-red)' }}>
             <p className="text-sm font-semibold" style={{ color: 'var(--mf-red)' }}>E-mail of wachtwoord klopt niet</p>
             <p className="text-xs mt-0.5" style={{ color: 'var(--mf-red)' }}>
               Controleer je gegevens of{' '}
@@ -160,14 +161,14 @@ export default function Login() {
         )}
 
         {status === 'too_many_requests' && (
-          <div role="alert" aria-live="assertive" className="rounded-2xl p-4 mb-5" style={{ background: 'var(--mf-red-light)', border: '1px solid #FBBFBF' }}>
+          <div role="alert" aria-live="assertive" className="rounded-2xl p-4 mb-5" style={{ background: 'var(--mf-red-light)', border: '1px solid var(--mf-red)' }}>
             <p className="text-sm font-semibold" style={{ color: 'var(--mf-red)' }}>Te veel pogingen</p>
             <p className="text-xs mt-0.5" style={{ color: 'var(--mf-red)' }}>Wacht een paar minuten en probeer opnieuw.</p>
           </div>
         )}
 
         {status === 'unknown_error' && (
-          <div role="alert" aria-live="assertive" className="rounded-2xl p-4 mb-5" style={{ background: 'var(--mf-red-light)', border: '1px solid #FBBFBF' }}>
+          <div role="alert" aria-live="assertive" className="rounded-2xl p-4 mb-5" style={{ background: 'var(--mf-red-light)', border: '1px solid var(--mf-red)' }}>
             <p className="text-sm font-semibold" style={{ color: 'var(--mf-red)' }}>Er ging iets mis</p>
             <p className="text-xs mt-0.5" style={{ color: 'var(--mf-red)' }}>
               Probeer opnieuw of neem contact op via{' '}
@@ -192,9 +193,6 @@ export default function Login() {
             style={{
               borderRadius: 14,
               padding: '12px 16px',
-              fontSize: 15,
-              border: '1.5px solid rgba(0,0,0,0.1)',
-              background: 'rgba(255,255,255,0.8)',
             }}
           />
           <div className="relative">
@@ -212,9 +210,6 @@ export default function Login() {
                 width: '100%',
                 borderRadius: 14,
                 padding: '12px 60px 12px 16px',
-                fontSize: 15,
-                border: '1.5px solid rgba(0,0,0,0.1)',
-                background: 'rgba(255,255,255,0.8)',
               }}
             />
             <button
@@ -229,7 +224,7 @@ export default function Login() {
         </div>
 
         <div className="flex justify-end mb-5">
-          <Link href="/wachtwoord-vergeten" className="text-xs font-medium transition hover:opacity-70" style={{ color: 'var(--color-primary, #1D9E75)' }}>
+          <Link href="/wachtwoord-vergeten" className="text-xs font-medium transition hover:opacity-70" style={{ color: 'var(--mf-green)' }}>
             Wachtwoord vergeten?
           </Link>
         </div>
@@ -237,22 +232,34 @@ export default function Login() {
         <button
           onClick={inloggen}
           disabled={isLeeg || laden}
-          className="w-full text-white rounded-2xl py-3.5 text-sm font-semibold transition flex items-center justify-center gap-2 disabled:opacity-40"
+          className="w-full rounded-2xl py-3.5 text-sm font-semibold transition flex items-center justify-center gap-2 disabled:opacity-40"
           style={{
-            background: isLeeg ? 'var(--text-muted, #9CA3AF)' : 'linear-gradient(135deg, var(--color-primary, #1D9E75) 0%, var(--color-primary-dark, #15785A) 100%)',
-            boxShadow: isLeeg ? 'none' : '0 4px 16px rgba(29,158,117,0.35)',
+            background: isLeeg ? 'var(--border-strong)' : 'var(--mf-green)',
+            color: isLeeg ? 'var(--text-3)' : 'var(--bg-app)',
+            boxShadow: isLeeg ? 'none' : '0 4px 16px color-mix(in srgb, var(--mf-green) 30%, transparent)',
             fontSize: 15,
           }}
         >
-          {laden && <div className="mf-spinner-white" />}
+          {laden && (
+            <span
+              className="mf-spinner"
+              aria-hidden
+              style={{
+                width: 16,
+                height: 16,
+                borderColor: 'color-mix(in srgb, var(--bg-app) 25%, transparent)',
+                borderTopColor: 'var(--bg-app)',
+              }}
+            />
+          )}
           {laden ? 'Bezig...' : 'Inloggen'}
         </button>
 
         {/* Divider */}
         <div className="flex items-center gap-3 my-4">
-          <div className="flex-1 h-px" style={{ background: 'rgba(0,0,0,0.08)' }} />
+          <div className="flex-1 h-px" style={{ background: 'var(--border)' }} />
           <span className="text-xs font-medium" style={{ color: 'var(--text-3)' }}>of</span>
-          <div className="flex-1 h-px" style={{ background: 'rgba(0,0,0,0.08)' }} />
+          <div className="flex-1 h-px" style={{ background: 'var(--border)' }} />
         </div>
 
         {/* Google SSO */}
@@ -261,16 +268,15 @@ export default function Login() {
             await import('@/lib/supabase').then(({ supabase }) =>
               supabase.auth.signInWithOAuth({
                 provider: 'google',
-                options: { redirectTo: window.location.origin + '/home' },
+                options: { redirectTo: window.location.origin + '/onboarding' },
               })
             )
           }}
           className="w-full flex items-center justify-center gap-3 rounded-2xl py-3.5 text-sm font-semibold transition mf-pressable"
           style={{
             background: 'var(--bg-card)',
-            border: '1.5px solid rgba(0,0,0,0.10)',
+            border: '1.5px solid var(--border-strong)',
             color: 'var(--text-2)',
-            boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
             fontSize: 15,
           }}
         >
@@ -292,7 +298,7 @@ export default function Login() {
       </div>
 
       {/* Footer */}
-      <p className="text-[11px] mt-6 text-center" style={{ color: 'rgba(0,0,0,0.35)' }}>
+      <p className="text-[11px] mt-6 text-center" style={{ color: 'var(--text-4)' }}>
         AVG-conform · Anoniem · Veilig versleuteld
       </p>
     </main>

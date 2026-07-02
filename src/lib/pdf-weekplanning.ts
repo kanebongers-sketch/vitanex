@@ -1,6 +1,6 @@
 // pdfkit is loaded via webpackIgnore dynamic import — prevents Turbopack from bundling it
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type PDFDocumentConstructor = new (options?: Record<string, unknown>) => any
+type PDFDoc = PDFKit.PDFDocument
+type PDFDocumentConstructor = new (options?: PDFKit.PDFDocumentOptions) => PDFDoc
 
 import type {
   WeekPlanning,
@@ -13,11 +13,17 @@ import type {
 } from '@/app/api/content/weekplanning/route'
 
 // ── Kleuren ───────────────────────────────────────────────────────────────
-const ZWART    = '#0A0A0A'
-const WIT      = '#FFFFFF'
-const GROEN    = '#22C55E'
-const GROEN_BG = '#F0FDF4'
-const PAARS    = '#7C3AED'
+// PDFKit kent geen CSS-variabelen; deze waarden spiegelen theme.ts:
+// CYAAN = COLORS.cyan (#00E5FF, grote accenten op donker), CYAAN_D =
+// --mf-green-dark (#16B6CC, kleine tekst op wit i.v.m. contrast),
+// NAVY = COLORS.navy (#0B1B3A, vlakvulling achter witte tekst).
+const ZWART   = '#0A0A0A'
+const WIT     = '#FFFFFF'
+const CYAAN   = '#00E5FF'
+const CYAAN_D = '#16B6CC'
+const NAVY    = '#0B1B3A'
+const NAVY_BG = '#EDF2FB'
+const PAARS   = '#7C3AED'
 const ORANJE   = '#F97316'
 const GRIJS_L  = '#F4F4F5'
 const GRIJS_M  = '#A1A1AA'
@@ -36,35 +42,31 @@ function kap(str: string | undefined, max: number): string {
 }
 
 // ── Chip ──────────────────────────────────────────────────────────────────
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function chip(doc: any, label: string, x: number, y: number, bg: string, fg = WIT): number {
+function chip(doc: PDFDoc, label: string, x: number, y: number, bg: string, fg = WIT): number {
   const w = Math.min(doc.widthOfString(label) + 14, 160)
   doc.roundedRect(x, y, w, 16, 3).fill(bg)
   doc.fillColor(fg).font('Helvetica-Bold').fontSize(7).text(label, x + 7, y + 5, { width: w - 10, lineBreak: false })
   return w + 4
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function lijn(doc: any, y: number, kleur = GRIJS_L): void {
+function lijn(doc: PDFDoc, y: number, kleur = GRIJS_L): void {
   doc.moveTo(MAR, y).lineTo(A4_W - MAR, y).strokeColor(kleur).lineWidth(0.5).stroke()
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function label(doc: any, tekst: string, x: number, y: number, kleur = GROEN): void {
+function label(doc: PDFDoc, tekst: string, x: number, y: number, kleur = CYAAN_D): void {
   doc.fillColor(kleur).font('Helvetica-Bold').fontSize(7).text(tekst, x, y, { lineBreak: false })
 }
 
 // ── Kaft ──────────────────────────────────────────────────────────────────
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function maakKaft(doc: any, wp: WeekPlanning): void {
+function maakKaft(doc: PDFDoc, wp: WeekPlanning): void {
   doc.addPage()
   doc.rect(0, 0, A4_W, A4_H).fill(ZWART)
-  doc.rect(0, 0, 6, A4_H).fill(GROEN)
+  doc.rect(0, 0, 6, A4_H).fill(CYAAN)
 
   // Titel
-  doc.fillColor(GROEN).font('Helvetica-Bold').fontSize(10).text('MENTAFORCE', MAR, 55, { lineBreak: false })
+  doc.fillColor(CYAAN).font('Helvetica-Bold').fontSize(10).text('MENTAFORCE', MAR, 55, { lineBreak: false })
   doc.fillColor(WIT).font('Helvetica-Bold').fontSize(36).text('WEEK', MAR, 78, { lineBreak: false })
-  doc.fillColor(GROEN).font('Helvetica-Bold').fontSize(36).text('PLANNING', MAR, 114, { lineBreak: false })
+  doc.fillColor(CYAAN).font('Helvetica-Bold').fontSize(36).text('PLANNING', MAR, 114, { lineBreak: false })
 
   const s = new Date(wp.week_start)
   const e = new Date(wp.week_start); e.setDate(e.getDate() + 6)
@@ -72,14 +74,14 @@ function maakKaft(doc: any, wp: WeekPlanning): void {
      .text(`${s.toLocaleDateString('nl-NL', { day: 'numeric', month: 'long' })} – ${e.toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' })}`, MAR, 158, { lineBreak: false })
 
   // Badge
-  doc.roundedRect(MAR, 180, 148, 20, 4).fill(GROEN)
+  doc.roundedRect(MAR, 180, 148, 20, 4).fill(CYAAN)
   doc.fillColor(ZWART).font('Helvetica-Bold').fontSize(10).text('🎬  18 REELS DEZE WEEK', MAR + 8, 186, { lineBreak: false })
 
   doc.moveTo(MAR, 212).lineTo(A4_W - MAR, 212).strokeColor(GRIJS_D).lineWidth(0.5).stroke()
 
   // Trends
   const trends: TrendData = wp.trends
-  doc.fillColor(GROEN).font('Helvetica-Bold').fontSize(13).text('TRENDING DEZE WEEK', MAR, 224, { lineBreak: false })
+  doc.fillColor(CYAAN).font('Helvetica-Bold').fontSize(13).text('TRENDING DEZE WEEK', MAR, 224, { lineBreak: false })
   doc.fillColor(GRIJS_M).font('Helvetica').fontSize(8).text('Live opgehaald via web search', MAR, 241, { lineBreak: false })
 
   if (trends.samenvatting) {
@@ -107,7 +109,7 @@ function maakKaft(doc: any, wp: WeekPlanning): void {
     doc.fillColor(GRIJS_M).font('Helvetica-Bold').fontSize(8).text('VIRAL FORMATS', MAR, tY, { lineBreak: false })
     tY += 12
     for (const f of trends.viral_formats.slice(0, 3)) {
-      doc.fillColor(GROEN).font('Helvetica').fontSize(8).text('▸', MAR, tY, { lineBreak: false })
+      doc.fillColor(CYAAN).font('Helvetica').fontSize(8).text('▸', MAR, tY, { lineBreak: false })
       doc.fillColor(WIT).font('Helvetica').fontSize(8).text(kap(f, 90), MAR + 12, tY, { lineBreak: false })
       tY += 14
     }
@@ -116,7 +118,7 @@ function maakKaft(doc: any, wp: WeekPlanning): void {
 
   // Weekoverzicht tabel
   const tabelY = Math.max(tY + 20, 560)
-  doc.fillColor(GROEN).font('Helvetica-Bold').fontSize(13).text('WEEKOVERZICHT', MAR, tabelY, { lineBreak: false })
+  doc.fillColor(CYAAN).font('Helvetica-Bold').fontSize(13).text('WEEKOVERZICHT', MAR, tabelY, { lineBreak: false })
 
   const kol = CON_W / 7
   const rijH = 56
@@ -128,8 +130,8 @@ function maakKaft(doc: any, wp: WeekPlanning): void {
     const dag = wp.dagen[i]
     const actief = dag?.reels?.length > 0
 
-    doc.rect(x, y, kol - 2, rijH).fill(actief ? '#14532d' : GRIJS_D)
-    doc.fillColor(actief ? GROEN : GRIJS_M).font('Helvetica-Bold').fontSize(8)
+    doc.rect(x, y, kol - 2, rijH).fill(actief ? NAVY : GRIJS_D)
+    doc.fillColor(actief ? CYAAN : GRIJS_M).font('Helvetica-Bold').fontSize(8)
        .text(dagNamen[i], x + 4, y + 5, { lineBreak: false })
 
     if (actief && dag) {
@@ -137,7 +139,7 @@ function maakKaft(doc: any, wp: WeekPlanning): void {
       const topic = kap(dag.reels[0]?.strategie?.topic, 22)
       doc.fillColor(GRIJS_M).font('Helvetica').fontSize(5.5).text(topic, x + 4, y + 30, { width: kol - 8, lineBreak: false })
       const tijden = dag.reels.map(r => r.strategie?.posttijd ?? '').filter(Boolean).join('·')
-      doc.fillColor(GROEN).font('Helvetica').fontSize(5).text(tijden, x + 4, y + 43, { lineBreak: false })
+      doc.fillColor(CYAAN).font('Helvetica').fontSize(5).text(tijden, x + 4, y + 43, { lineBreak: false })
     } else {
       doc.fillColor(GRIJS_M).font('Helvetica').fontSize(7).text('Rust', x + 4, y + 24, { lineBreak: false })
     }
@@ -152,8 +154,7 @@ function maakKaft(doc: any, wp: WeekPlanning): void {
 
 // ── Reel pagina (compact, overflow-safe) ─────────────────────────────────
 function maakReelPagina(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  doc: any,
+  doc: PDFDoc,
   strategie: WeekStrategieItem,
   reel: ReelContent,
   reelNr: number,
@@ -165,18 +166,18 @@ function maakReelPagina(
   doc.addPage()
 
   // Header balk
-  doc.rect(0, 0, A4_W, 50).fill(GROEN)
+  doc.rect(0, 0, A4_W, 50).fill(NAVY)
   doc.fillColor(WIT).font('Helvetica-Bold').fontSize(8)
      .text('MENTAFORCE WEEKPLANNING', MAR, 10, { lineBreak: false })
   doc.fillColor(WIT).font('Helvetica-Bold').fontSize(15)
      .text(`${kap(strategie.dag_naam, 20).toUpperCase()} ${strategie.datum} — REEL ${reelNr}/3`, MAR, 24, { lineBreak: false })
-  doc.fillColor(GRIJS_D).font('Helvetica').fontSize(8)
+  doc.fillColor(GRIJS_M).font('Helvetica').fontSize(8)
      .text(`${pagNr}/${totaal}`, A4_W - MAR - 30, 38, { lineBreak: false })
 
   let y = 60
 
   // Reel badge + chips
-  doc.roundedRect(MAR, y, 56, 22, 3).fill(GROEN)
+  doc.roundedRect(MAR, y, 56, 22, 3).fill(CYAAN)
   doc.fillColor(ZWART).font('Helvetica-Bold').fontSize(12)
      .text(`REEL ${reelNr}`, MAR + 6, y + 6, { lineBreak: false })
 
@@ -192,7 +193,7 @@ function maakReelPagina(
   y += 22
 
   // Hook blok
-  doc.rect(MAR, y, CON_W, 38).fill(GROEN_BG)
+  doc.rect(MAR, y, CON_W, 38).fill(NAVY_BG)
   label(doc, 'OPENING HOOK', MAR + 8, y + 5)
   doc.fillColor(ZWART).font('Helvetica-Bold').fontSize(10)
      .text(`"${kap(reel.hook, 100)}"`, MAR + 8, y + 16, { width: CON_W - 16, lineBreak: false })
@@ -245,7 +246,7 @@ function maakReelPagina(
     label(doc, 'OPNAME VOLGORDE', MAR, y)
     y += 11
     for (const [i, shot] of reel.opname_volgorde.slice(0, 4).entries()) {
-      doc.roundedRect(MAR, y, 16, 13, 2).fill(GROEN)
+      doc.roundedRect(MAR, y, 16, 13, 2).fill(NAVY)
       doc.fillColor(WIT).font('Helvetica-Bold').fontSize(7).text(String(i + 1), MAR + 5, y + 4, { lineBreak: false })
       doc.fillColor(ZWART).font('Helvetica').fontSize(8)
          .text(kap(shot, 90), MAR + 20, y + 3, { width: CON_W - 20, lineBreak: false })
@@ -273,7 +274,7 @@ function maakReelPagina(
   // CTA + Hashtags naast elkaar
   if (reel.cta) {
     label(doc, 'CTA', MAR, y)
-    doc.fillColor(GROEN).font('Helvetica-Bold').fontSize(9)
+    doc.fillColor(CYAAN_D).font('Helvetica-Bold').fontSize(9)
        .text(kap(reel.cta, 80), MAR + 24, y - 1, { lineBreak: false })
     y += 16
   }
@@ -319,7 +320,7 @@ function maakReelPagina(
       doc.fillColor(WIT).font('Helvetica-Bold').fontSize(6.5)
          .text(String(s.frame), sx + 10, y + 9, { lineBreak: false })
 
-      const tKleur = s.type === 'poll' ? ORANJE : s.type === 'cta' ? GROEN : BLAUW
+      const tKleur = s.type === 'poll' ? ORANJE : s.type === 'cta' ? NAVY : BLAUW
       doc.roundedRect(sx + 26, y + 5, 40, 13, 2).fill(tKleur)
       doc.fillColor(WIT).font('Helvetica-Bold').fontSize(6)
          .text(s.type.toUpperCase(), sx + 30, y + 9, { lineBreak: false })
@@ -346,8 +347,7 @@ function maakReelPagina(
 }
 
 // ── Rustdag ───────────────────────────────────────────────────────────────
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function maakRustdag(doc: any, dagNaam: string, datum: string, pagNr: number, totaal: number): void {
+function maakRustdag(doc: PDFDoc, dagNaam: string, datum: string, pagNr: number, totaal: number): void {
   doc.addPage()
   doc.rect(0, 0, A4_W, 50).fill(GRIJS_D)
   doc.fillColor(WIT).font('Helvetica-Bold').fontSize(8).text('MENTAFORCE WEEKPLANNING', MAR, 10, { lineBreak: false })

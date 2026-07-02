@@ -82,7 +82,7 @@ const SESSIES = [
 interface MeditatieSessie {
   id: string
   duur_minuten: number
-  sessie_type: string
+  type: string
   aangemaakt_op: string
 }
 
@@ -108,7 +108,7 @@ export default function MeditatiePagina() {
         const res = await authFetch('/api/focus/log?limit=10')
         if (res.ok) {
           const json = await res.json() as { logs: MeditatieSessie[] }
-          setLogs((json.logs ?? []).filter((l: MeditatieSessie) => l.sessie_type === 'adem'))
+          setLogs((json.logs ?? []).filter((l: MeditatieSessie) => l.type === 'adem'))
         }
       } catch {
         toast({ title: 'Kon je geschiedenis niet laden', description: 'Probeer het later opnieuw.', variant: 'warning' })
@@ -229,9 +229,13 @@ export default function MeditatiePagina() {
 
           return (
             <div style={{ background: 'var(--bg-card)', borderRadius: 16, padding: '14px 16px', marginBottom: 20, border: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 16 }}>
-              <div style={{ flex: 1, display: 'flex', gap: 6 }}>
+              <div
+                role="img"
+                aria-label={`Meditatie afgelopen 7 dagen: op ${strip.filter(s => s.actief).length} van de 7 dagen geoefend`}
+                style={{ flex: 1, display: 'flex', gap: 6 }}
+              >
                 {strip.map(({ ds, dag, actief, isVandaag }) => (
-                  <div key={ds} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+                  <div key={ds} aria-hidden="true" style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
                     <div style={{
                       width: '100%', height: 28, borderRadius: 6,
                       background: actief ? 'var(--mf-purple)' : 'var(--bg-subtle)',
@@ -287,7 +291,7 @@ export default function MeditatiePagina() {
               {secNaarMinSec(secondsLeft)}
             </div>
 
-            <div style={{
+            <div role="status" aria-live="polite" style={{
               background: 'var(--bg-card)', borderRadius: 16,
               border: '1px solid var(--border)',
               padding: '16px 20px', margin: '20px 0',

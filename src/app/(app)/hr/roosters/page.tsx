@@ -110,10 +110,10 @@ export default function HrRoostersPage() {
               <li key={i}>
                 <Card style={{ padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
                   <div style={{ flex: 1 }}>
-                    <div className="mf-skel" style={{ width: '38%', height: 15, borderRadius: 6 }} />
-                    <div className="mf-skel" style={{ width: '24%', height: 11, borderRadius: 6, marginTop: 8 }} />
+                    <div className="mf-skeleton" style={{ width: '38%', height: 15, borderRadius: 6 }} />
+                    <div className="mf-skeleton" style={{ width: '24%', height: 11, borderRadius: 6, marginTop: 8 }} />
                   </div>
-                  <div className="mf-skel" style={{ width: 140, height: 32, borderRadius: 8 }} />
+                  <div className="mf-skeleton" style={{ width: 140, height: 32, borderRadius: 8 }} />
                 </Card>
               </li>
             ))}

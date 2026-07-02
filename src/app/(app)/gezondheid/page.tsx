@@ -76,10 +76,10 @@ function SectieKop({ children }: { children: React.ReactNode }) {
 function RisicoRing({ risico }: { risico: Risico }) {
   const stijl = RISICO_STIJL[risico.niveau]
   return (
-    <section aria-label="Burn-out risico" style={{
+    <Link href="/burnout" className="gz-risico" style={{
       background: 'var(--bg-card)', border: '1px solid var(--border)',
       borderRadius: 'var(--radius-xl)', padding: '18px 20px',
-      boxShadow: 'var(--shadow-card)',
+      boxShadow: 'var(--shadow-card)', textDecoration: 'none',
       display: 'flex', alignItems: 'center', gap: 18,
     }}>
       <div style={{ position: 'relative', flexShrink: 0 }}>
@@ -117,8 +117,15 @@ function RisicoRing({ risico }: { risico: Risico }) {
         ) : (
           <p style={{ fontSize: 13, color: 'var(--text-3)', margin: 0 }}>Geen risicosignalen — ga zo door.</p>
         )}
+        <span style={{
+          display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 8,
+          fontSize: 12, fontWeight: 700, color: 'var(--mentaforce-primary)',
+        }}>
+          Doe de volledige scan
+          <ChevronRight size={14} strokeWidth={2.5} aria-hidden="true" />
+        </span>
       </div>
-    </section>
+    </Link>
   )
 }
 
@@ -365,11 +372,12 @@ export default function GezondheidPage() {
         }
         .metric-tile:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
         .metric-tile:active { transform: scale(0.98); }
-        .metric-tile:focus-visible, .gz-categorie:focus-visible {
+        .metric-tile:focus-visible, .gz-categorie:focus-visible, .gz-risico:focus-visible {
           outline: 2px solid var(--mf-green); outline-offset: 2px;
         }
-        .gz-categorie { transition: transform 0.18s var(--ease), box-shadow 0.18s var(--ease); }
+        .gz-categorie, .gz-risico { transition: transform 0.18s var(--ease), box-shadow 0.18s var(--ease); }
         .gz-categorie:hover { transform: translateY(-1px); box-shadow: var(--shadow-sm); }
+        .gz-risico:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
         .highlight-balk { animation: gz-balk 0.7s var(--ease) both; transform-origin: left; }
         @keyframes gz-puls { 0%, 100% { opacity: 1 } 50% { opacity: 0.5 } }
         @keyframes gz-draai { to { transform: rotate(360deg) } }
@@ -377,7 +385,7 @@ export default function GezondheidPage() {
         @keyframes gz-balk { from { transform: scaleX(0.3); opacity: 0 } to { transform: none; opacity: 1 } }
         @media (prefers-reduced-motion: reduce) {
           .gz-intro, .gz-sectie, .highlight-balk { animation: none }
-          .metric-tile, .gz-categorie { transition: none }
+          .metric-tile, .gz-categorie, .gz-risico { transition: none }
         }
       `}</style>
     </div>

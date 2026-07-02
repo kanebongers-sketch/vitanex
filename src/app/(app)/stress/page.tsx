@@ -9,12 +9,15 @@ import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
 import { useToast } from '@/components/ui/Toast'
+import { vitaEvent } from '@/lib/vita/events'
+
+// Eén kleurfamilie (cyaan) voor de ademfasen — geen vier losse accentkleuren.
 const ADEM_FASE_KLEUR: Record<string, string> = {
-  in:   'var(--mf-green)',
-  vast: 'var(--mf-blue-mid)',
-  uit:  'var(--mf-purple)',
-  rust: 'var(--mf-amber)',
-  idle: 'var(--mf-green)',
+  in:   'var(--mentaforce-primary)',
+  vast: 'var(--mf-green-dark)',
+  uit:  'var(--mf-green-mid)',
+  rust: 'var(--mentaforce-primary-light)',
+  idle: 'var(--mentaforce-primary)',
 }
 
 const TECHNIEKEN = [
@@ -113,8 +116,9 @@ export default function StressPagina() {
         const json = await res.json() as { log: StressLog }
         setLogs(prev => [json.log, ...prev.slice(0, 6)])
         setNotitie('')
+        vitaEvent('data_logged', { kind: 'stress' })
         setSuccesBericht('Stress niveau opgeslagen')
-        setTimeout(() => router.push('/vandaag'), 1500)
+        setTimeout(() => router.push('/home'), 1500)
       } else {
         toast({ title: 'Opslaan mislukt', description: 'Kon je stressniveau niet opslaan. Probeer het opnieuw.', variant: 'error' })
       }
@@ -175,10 +179,10 @@ export default function StressPagina() {
           <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
             <div style={{
               width: 112, height: 112, borderRadius: '50%',
-              background: `${NIVEAU_KLEUR(niveau)}12`,
-              border: `2px solid ${NIVEAU_KLEUR(niveau)}35`,
+              background: `color-mix(in srgb, ${NIVEAU_KLEUR(niveau)} 7%, transparent)`,
+              border: `2px solid color-mix(in srgb, ${NIVEAU_KLEUR(niveau)} 21%, transparent)`,
               display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-              boxShadow: `0 8px 32px ${NIVEAU_KLEUR(niveau)}25`,
+              boxShadow: `0 8px 32px color-mix(in srgb, ${NIVEAU_KLEUR(niveau)} 15%, transparent)`,
               transition: 'background 0.3s ease, box-shadow 0.3s ease',
             }}>
               <span style={{ fontSize: 48, fontWeight: 900, color: NIVEAU_KLEUR(niveau), lineHeight: 1, letterSpacing: '-0.03em' }}>{niveau}</span>
@@ -276,13 +280,13 @@ export default function StressPagina() {
                 onClick={startBoxBreathing}
                 style={{
                   width: 120, height: 120, borderRadius: '50%',
-                  background: ademBezig ? `${ADEM_FASE_KLEUR[ademFase]}18` : 'var(--bg-subtle)',
+                  background: ademBezig ? `color-mix(in srgb, ${ADEM_FASE_KLEUR[ademFase]} 10%, transparent)` : 'var(--bg-subtle)',
                   border: `3px solid ${ademBezig ? ADEM_FASE_KLEUR[ademFase] : 'var(--border)'}`,
                   display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
                   cursor: 'pointer',
                   transition: 'transform 0.5s ease, border-color 0.4s ease, background 0.4s ease, box-shadow 0.4s ease',
                   transform: ademFase === 'in' ? 'scale(1.15)' : ademFase === 'uit' ? 'scale(0.88)' : 'scale(1)',
-                  boxShadow: ademBezig ? `0 0 40px ${ADEM_FASE_KLEUR[ademFase]}40` : 'none',
+                  boxShadow: ademBezig ? `0 0 40px color-mix(in srgb, ${ADEM_FASE_KLEUR[ademFase]} 25%, transparent)` : 'none',
                 }}
               >
                 <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>

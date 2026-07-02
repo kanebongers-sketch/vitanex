@@ -38,6 +38,12 @@ export default function Hero() {
             onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)' }}>
             Demo aanvragen <span aria-hidden>→</span>
           </Link>
+          <Link href="/register"
+            style={{ fontSize: 15, fontWeight: 500, color: COLORS.ink, background: 'transparent', border: `1px solid ${COLORS.lineStrong}`, padding: '15px 30px', borderRadius: 12, textDecoration: 'none', transition: `border-color .2s ${EASE}` }}
+            onMouseEnter={(e) => { e.currentTarget.style.borderColor = COLORS.cyan }}
+            onMouseLeave={(e) => { e.currentTarget.style.borderColor = COLORS.lineStrong }}>
+            Zelf starten
+          </Link>
           <a href="#brein"
             style={{ fontSize: 15, fontWeight: 500, color: COLORS.ink, background: 'transparent', border: `1px solid ${COLORS.lineStrong}`, padding: '15px 30px', borderRadius: 12, textDecoration: 'none', transition: `border-color .2s ${EASE}` }}
             onMouseEnter={(e) => { e.currentTarget.style.borderColor = COLORS.cyan }}

@@ -3,7 +3,7 @@
 import { MessageCircle, ChevronRight } from 'lucide-react'
 
 // Rustige, duidelijke affordance om vanuit de companion een echt gesprek met
-// VITA te starten (navigeert naar /coach). Zo is de companion op elke pagina
+// Vita te starten (navigeert naar /coach). Zo is de companion op elke pagina
 // conversationeel bereikbaar. Strikt navy + cyan via tokens; ontworpen
 // hover/focus/active states, zichtbare focus-ring via .vita-focusable.
 
@@ -29,7 +29,7 @@ export default function TalkToVita({ onStart }: TalkToVitaProps) {
           cursor: 'pointer',
           textAlign: 'left',
           fontFamily: 'inherit',
-          transition: 'transform 0.15s cubic-bezier(0.16,1,0.3,1), border-color 0.15s ease, background 0.15s ease',
+          transition: 'transform 0.15s var(--ease), border-color 0.15s ease, background 0.15s ease',
         }}
       >
         <span
@@ -51,7 +51,7 @@ export default function TalkToVita({ onStart }: TalkToVitaProps) {
         </span>
         <span style={{ flex: 1, minWidth: 0 }}>
           <span style={{ display: 'block', fontSize: 13, fontWeight: 700, color: 'var(--text-1)' }}>
-            Praat met VITA
+            Praat met Vita
           </span>
           <span style={{ display: 'block', fontSize: 11, color: 'var(--text-3)', marginTop: 1 }}>
             Stel een vraag over jouw welzijn

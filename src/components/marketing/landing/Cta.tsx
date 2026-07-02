@@ -24,11 +24,11 @@ export default function Cta() {
             onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)' }}>
             Demo aanvragen <span aria-hidden>→</span>
           </Link>
-          <Link href="/contact"
+          <Link href="/register"
             style={{ fontSize: 15, fontWeight: 500, color: COLORS.ink, background: 'transparent', border: `1px solid ${COLORS.lineStrong}`, padding: '16px 34px', borderRadius: 12, textDecoration: 'none', transition: `border-color .2s ${EASE}` }}
             onMouseEnter={(e) => { e.currentTarget.style.borderColor = COLORS.cyan }}
             onMouseLeave={(e) => { e.currentTarget.style.borderColor = COLORS.lineStrong }}>
-            Neem contact op
+            Of start zelf
           </Link>
         </div>
       </div>

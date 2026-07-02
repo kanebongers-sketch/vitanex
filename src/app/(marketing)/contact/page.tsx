@@ -1,67 +1,78 @@
-﻿'use client'
+'use client'
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import Link from 'next/link'
+import {
+  Presentation, Euro, Wrench, Lock, Handshake, MessageCircle,
+  Mail, Clock, MapPin, Check, ShieldCheck, Server, type LucideIcon,
+} from 'lucide-react'
+import Nav from '@/components/marketing/landing/Nav'
+import Footer from '@/components/marketing/landing/Footer'
+import { COLORS, FONT, MAXW, EASE, glassPanel } from '@/components/marketing/theme'
 
+interface Onderwerp { id: string; label: string; beschrijving: string; icoon: LucideIcon }
 
-function MarketingNav() {
-  return (
-    <nav className="sticky top-0 z-50 border-b"
-      style={{ background: 'rgba(10,15,30,0.96)', borderColor: 'rgba(255,255,255,0.07)', backdropFilter: 'blur(16px)' }}>
-      <div className="max-w-7xl mx-auto px-6 lg:px-12 py-4 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: 'var(--mf-green)' }}>
-            <span className="text-white text-sm font-bold">M</span>
-          </div>
-          <span className="font-bold text-white text-lg tracking-tight">MentaForce</span>
-        </Link>
-        <div className="flex items-center gap-4">
-          <Link href="/voorwaarden" className="text-sm transition" style={{ color: 'rgba(255,255,255,0.45)' }}>Voorwaarden</Link>
-          <Link href="/login" className="text-sm font-bold text-white px-5 py-2.5 rounded-xl transition hover:opacity-90"
-            style={{ background: 'var(--mf-green)' }}>
-            Inloggen
-          </Link>
-        </div>
-      </div>
-    </nav>
-  )
-}
-
-const ONDERWERPEN = [
-  { id: 'demo', label: '🎯 Demo aanvragen', beschrijving: 'Ontdek hoe MentaForce werkt voor jouw team' },
-  { id: 'pricing', label: '💰 Prijsinformatie', beschrijving: 'Maatwerk offerte voor jouw organisatie' },
-  { id: 'technisch', label: '🔧 Technische vraag', beschrijving: 'Support, integraties en API' },
-  { id: 'privacy', label: '🔒 Privacy & AVG', beschrijving: 'Vragen over gegevensverwerking' },
-  { id: 'partnership', label: '🤝 Partnership', beschrijving: 'Samenwerking en reseller-programma' },
-  { id: 'anders', label: '💬 Overig', beschrijving: 'Een andere vraag of opmerking' },
+const ONDERWERPEN: Onderwerp[] = [
+  { id: 'demo', label: 'Demo aanvragen', beschrijving: 'Ontdek hoe MentaForce werkt voor jouw team', icoon: Presentation },
+  { id: 'pricing', label: 'Prijsinformatie', beschrijving: 'Maatwerk offerte voor jouw organisatie', icoon: Euro },
+  { id: 'technisch', label: 'Technische vraag', beschrijving: 'Support, integraties en API', icoon: Wrench },
+  { id: 'privacy', label: 'Privacy & AVG', beschrijving: 'Vragen over gegevensverwerking', icoon: Lock },
+  { id: 'partnership', label: 'Partnership', beschrijving: 'Samenwerking en reseller-programma', icoon: Handshake },
+  { id: 'anders', label: 'Overig', beschrijving: 'Een andere vraag of opmerking', icoon: MessageCircle },
 ]
 
 const FAQ = [
   {
-    vraag: 'Hoe snel kan ik starten met MentaForce?',
-    antwoord: 'Na het aanmaken van een account is MentaForce binnen één werkdag operationeel. Medewerkers ontvangen automatisch een uitnodigingsmail.',
-  },
-  {
-    vraag: 'Is er een gratis proefperiode?',
-    antwoord: 'Ja, we bieden een 30-daagse gratis proefperiode aan voor teams tot 50 medewerkers. Geen creditcard vereist.',
+    vraag: 'Ziet HR de individuele antwoorden van medewerkers?',
+    antwoord: 'Nee. HR ziet uitsluitend geaggregeerde teamdata — gemiddelden en trends. Individuele check-in antwoorden zijn nooit zichtbaar voor HR.',
   },
   {
     vraag: 'Hoe worden de gegevens van medewerkers beschermd?',
-    antwoord: 'MentaForce is volledig AVG-conform. HR ziet nooit individuele antwoorden, enkel geaggregeerde teamdata. Alle data wordt opgeslagen binnen de EU.',
+    antwoord: 'MentaForce is volledig AVG-conform. Check-ins zijn anoniem en alle data wordt opgeslagen binnen de EU.',
+  },
+  {
+    vraag: 'Wat kost MentaForce?',
+    antwoord: 'Neem contact op voor prijzen en mogelijkheden — we denken graag mee op basis van de grootte en wensen van jouw organisatie.',
   },
   {
     vraag: 'Kan MentaForce integreren met ons HR-systeem?',
-    antwoord: 'Enterprise-klanten kunnen integreren met AFAS, Personio en andere HR-systemen. Neem contact op voor de mogelijkheden.',
-  },
-  {
-    vraag: 'Wat zijn de minimale teamvereisten?',
-    antwoord: 'Het Starter-plan vereist minimaal 10 medewerkers. Het Groei-plan vereist minimaal 25 medewerkers. Enterprise is beschikbaar vanaf 100 medewerkers.',
-  },
-  {
-    vraag: 'Bieden jullie training of onboarding aan?',
-    antwoord: 'Enterprise-klanten ontvangen persoonlijke onboarding begeleiding. Voor Starter en Groei is uitgebreide documentatie en videogidsen beschikbaar.',
+    antwoord: 'Neem contact op voor prijzen en mogelijkheden. We bespreken graag wat er voor jouw organisatie kan.',
   },
 ]
+
+const TRUST: { icoon: LucideIcon; tekst: string }[] = [
+  { icoon: Lock, tekst: 'Anonieme check-ins' },
+  { icoon: ShieldCheck, tekst: 'Volledig AVG-conform' },
+  { icoon: Server, tekst: 'Data opgeslagen in de EU' },
+]
+
+const veldStijl: React.CSSProperties = {
+  width: '100%',
+  background: COLORS.navyElev,
+  border: `1px solid ${COLORS.line}`,
+  borderRadius: 12,
+  padding: '12px 16px',
+  fontSize: 14,
+  color: COLORS.ink,
+  fontFamily: FONT.grotesk,
+  outline: 'none',
+  transition: `border-color .2s ${EASE}`,
+}
+
+const labelStijl: React.CSSProperties = {
+  display: 'block',
+  fontSize: 12,
+  fontWeight: 500,
+  color: COLORS.inkDim,
+  marginBottom: 6,
+}
+
+function veldFocus(e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
+  e.currentTarget.style.borderColor = COLORS.cyan
+}
+function veldBlur(e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
+  e.currentTarget.style.borderColor = COLORS.line
+}
 
 export default function Contact() {
   const [geselecteerd, setGeselecteerd] = useState<string | null>(null)
@@ -72,369 +83,333 @@ export default function Contact() {
   const [bericht, setBericht] = useState('')
   const [verzonden, setVerzonden] = useState(false)
   const [bezig, setBezig] = useState(false)
+  const [fout, setFout] = useState<string | null>(null)
   const [faqOpen, setFaqOpen] = useState<number | null>(null)
+
+  const formRef = useRef<HTMLDivElement>(null)
+  const naamRef = useRef<HTMLInputElement>(null)
 
   async function verstuur(e: React.FormEvent) {
     e.preventDefault()
     if (!naam.trim() || !email.trim() || !bericht.trim()) return
     setBezig(true)
-    // Simulate send delay
-    await new Promise(r => setTimeout(r, 1200))
-    setBezig(false)
-    setVerzonden(true)
+    setFout(null)
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ onderwerp: geselecteerd ?? '', naam, email, organisatie, teamgrootte, bericht }),
+      })
+      if (res.ok) {
+        setVerzonden(true)
+      } else {
+        const json: unknown = await res.json().catch(() => null)
+        const melding = typeof json === 'object' && json !== null && 'error' in json && typeof (json as { error: unknown }).error === 'string'
+          ? (json as { error: string }).error
+          : 'Je bericht kon niet worden verstuurd.'
+        setFout(melding)
+      }
+    } catch {
+      setFout('Je bericht kon niet worden verstuurd. Controleer je verbinding en probeer het opnieuw.')
+    } finally {
+      setBezig(false)
+    }
+  }
+
+  function kiesDemo() {
+    setGeselecteerd('demo')
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    formRef.current?.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' })
+    naamRef.current?.focus({ preventScroll: true })
   }
 
   return (
-    <div className="min-h-screen" style={{ background: '#0a0f1e', fontFamily: 'var(--font-geist-sans)' }}>
-      <MarketingNav />
+    <div style={{ minHeight: '100vh', background: COLORS.navy, color: COLORS.ink, fontFamily: FONT.grotesk }}>
+      <Nav />
 
-      {/* Hero */}
-      <section className="relative overflow-hidden py-20 border-b" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
-        <div className="absolute inset-0 pointer-events-none"
-          style={{ background: 'radial-gradient(ellipse 70% 80% at 50% 0%, rgba(29,158,117,0.1) 0%, transparent 60%)' }} />
-        <div className="max-w-3xl mx-auto px-6 text-center relative z-10">
-          <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 mb-6 text-xs font-semibold border"
-            style={{ background: 'rgba(29,158,117,0.1)', borderColor: 'rgba(29,158,117,0.25)', color: 'var(--mf-green)' }}>
-            <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: 'var(--mf-green)' }} />
-            We antwoorden binnen 24 uur
-          </div>
-          <div style={{ position: 'relative', display: 'inline-block', width: '100%' }}>
-            <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 0, pointerEvents: 'none' }}>
-              <div style={{ width: 220, height: 220, borderRadius: '50%', background: 'radial-gradient(circle, rgba(29,158,117,0.18) 0%, transparent 70%)' }} />
-            </div>
-            <h1 className="text-4xl lg:text-5xl font-extrabold text-white mb-4 tracking-tight" style={{ position: 'relative', zIndex: 1 }}>
+      <main>
+        {/* Hero */}
+        <section style={{ position: 'relative', overflow: 'hidden', padding: '72px 0 80px', borderBottom: `1px solid ${COLORS.line}` }}>
+          <div aria-hidden style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: `radial-gradient(ellipse 70% 80% at 50% 0%, ${COLORS.cyanSoft} 0%, transparent 60%)` }} />
+          <div style={{ maxWidth: 720, margin: '0 auto', padding: '0 28px', textAlign: 'center', position: 'relative' }}>
+            <p style={{ display: 'inline-flex', alignItems: 'center', gap: 8, borderRadius: 999, padding: '6px 16px', margin: '0 0 24px', fontSize: 12, fontWeight: 600, border: `1px solid ${COLORS.lineStrong}`, background: COLORS.cyanSoft, color: COLORS.ink }}>
+              <span aria-hidden style={{ width: 6, height: 6, borderRadius: '50%', background: COLORS.cyan }} />
+              Reactie binnen 24 uur op werkdagen
+            </p>
+            <h1 style={{ fontWeight: 700, fontSize: 'clamp(34px, 6vw, 56px)', lineHeight: 1.04, letterSpacing: '-0.035em', color: COLORS.ink, margin: '0 0 18px' }}>
               Neem contact op
             </h1>
-          </div>
-          <p className="text-lg leading-relaxed" style={{ color: 'rgba(255,255,255,0.5)' }}>
-            Vraag een demo aan, bespreek pricing of stel een vraag. We staan klaar om te helpen.
-          </p>
-        </div>
-      </section>
-
-      <div className="max-w-6xl mx-auto px-6 py-16 grid grid-cols-1 lg:grid-cols-5 gap-16">
-
-        {/* Left: form */}
-        <div className="lg:col-span-3">
-
-          {verzonden ? (
-            <div role="status" aria-live="polite" className="rounded-3xl border p-14 text-center"
-              style={{ borderColor: 'rgba(255,255,255,0.08)', background: 'rgba(29,158,117,0.06)' }}>
-              <div className="w-20 h-20 rounded-full flex items-center justify-center text-4xl mx-auto mb-6"
-                style={{ background: 'rgba(29,158,117,0.15)' }}>
-                ✅
-              </div>
-              <h2 className="text-2xl font-bold text-white mb-3">Bericht verstuurd!</h2>
-              <p className="mb-2" style={{ color: 'rgba(255,255,255,0.5)' }}>
-                We hebben je bericht ontvangen en nemen zo snel mogelijk contact op.
-              </p>
-              <p className="text-sm mb-8" style={{ color: 'rgba(255,255,255,0.3)' }}>
-                Verwacht een reactie op <span style={{ color: 'var(--mf-green)' }}>{email}</span> binnen 24 uur.
-              </p>
-              <button
-                onClick={() => { setVerzonden(false); setNaam(''); setEmail(''); setOrganisatie(''); setBericht(''); setGeselecteerd(null) }}
-                className="text-sm font-medium px-6 py-3 rounded-xl transition"
-                style={{ background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.6)' }}
-              >
-                Nieuw bericht sturen
-              </button>
-            </div>
-          ) : (
-            <form onSubmit={verstuur}>
-              <h2 className="text-xl font-bold text-white mb-6">Stuur ons een bericht</h2>
-
-              {/* Subject select */}
-              <div className="mb-6" role="group" aria-label="Onderwerp">
-                <p className="text-sm font-medium mb-3" style={{ color: 'rgba(255,255,255,0.6)' }}>Onderwerp</p>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-                  {ONDERWERPEN.map(o => (
-                    <button
-                      key={o.id}
-                      type="button"
-                      onClick={() => setGeselecteerd(o.id)}
-                      aria-pressed={geselecteerd === o.id}
-                      className="text-left p-3 rounded-xl border transition"
-                      style={{
-                        background: geselecteerd === o.id ? 'rgba(29,158,117,0.12)' : 'rgba(255,255,255,0.03)',
-                        borderColor: geselecteerd === o.id ? 'rgba(29,158,117,0.5)' : 'rgba(255,255,255,0.08)',
-                      }}
-                    >
-                      <p className="text-sm font-medium text-white mb-0.5">{o.label}</p>
-                      <p className="text-xs" style={{ color: 'rgba(255,255,255,0.35)' }}>{o.beschrijving}</p>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Name + email */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-                <div>
-                  <label htmlFor="contact-naam" className="text-xs font-medium block mb-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>
-                    Naam *
-                  </label>
-                  <input
-                    id="contact-naam"
-                    type="text"
-                    value={naam}
-                    onChange={e => setNaam(e.target.value)}
-                    placeholder="Jan Janssen"
-                    required
-                    className="w-full rounded-xl px-4 py-3 text-sm outline-none transition"
-                    style={{
-                      background: 'rgba(255,255,255,0.05)',
-                      border: '1px solid rgba(255,255,255,0.1)',
-                      color: 'white',
-                    }}
-                    onFocus={e => (e.currentTarget.style.borderColor = 'rgba(29,158,117,0.5)')}
-                    onBlur={e => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)')}
-                  />
-                </div>
-                <div>
-                  <label htmlFor="contact-email" className="text-xs font-medium block mb-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>
-                    E-mailadres *
-                  </label>
-                  <input
-                    id="contact-email"
-                    type="email"
-                    value={email}
-                    onChange={e => setEmail(e.target.value)}
-                    placeholder="jan@bedrijf.nl"
-                    required
-                    className="w-full rounded-xl px-4 py-3 text-sm outline-none transition"
-                    style={{
-                      background: 'rgba(255,255,255,0.05)',
-                      border: '1px solid rgba(255,255,255,0.1)',
-                      color: 'white',
-                    }}
-                    onFocus={e => (e.currentTarget.style.borderColor = 'rgba(29,158,117,0.5)')}
-                    onBlur={e => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)')}
-                  />
-                </div>
-              </div>
-
-              {/* Organisation + team size */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-                <div>
-                  <label htmlFor="contact-organisatie" className="text-xs font-medium block mb-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>
-                    Organisatie
-                  </label>
-                  <input
-                    id="contact-organisatie"
-                    type="text"
-                    value={organisatie}
-                    onChange={e => setOrganisatie(e.target.value)}
-                    placeholder="Bedrijfsnaam"
-                    className="w-full rounded-xl px-4 py-3 text-sm outline-none transition"
-                    style={{
-                      background: 'rgba(255,255,255,0.05)',
-                      border: '1px solid rgba(255,255,255,0.1)',
-                      color: 'white',
-                    }}
-                    onFocus={e => (e.currentTarget.style.borderColor = 'rgba(29,158,117,0.5)')}
-                    onBlur={e => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)')}
-                  />
-                </div>
-                <div>
-                  <label htmlFor="contact-teamgrootte" className="text-xs font-medium block mb-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>
-                    Teamgrootte
-                  </label>
-                  <select
-                    id="contact-teamgrootte"
-                    value={teamgrootte}
-                    onChange={e => setTeamgrootte(e.target.value)}
-                    className="w-full rounded-xl px-4 py-3 text-sm outline-none transition appearance-none"
-                    style={{
-                      background: 'rgba(255,255,255,0.05)',
-                      border: '1px solid rgba(255,255,255,0.1)',
-                      color: teamgrootte ? 'white' : 'rgba(255,255,255,0.35)',
-                    }}
-                  >
-                    <option value="" disabled>Selecteer grootte</option>
-                    <option value="10-24">10 – 24 medewerkers</option>
-                    <option value="25-49">25 – 49 medewerkers</option>
-                    <option value="50-99">50 – 99 medewerkers</option>
-                    <option value="100-249">100 – 249 medewerkers</option>
-                    <option value="250+">250+ medewerkers</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Message */}
-              <div className="mb-6">
-                <label htmlFor="contact-bericht" className="text-xs font-medium block mb-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>
-                  Bericht *
-                </label>
-                <textarea
-                  id="contact-bericht"
-                  rows={5}
-                  value={bericht}
-                  onChange={e => setBericht(e.target.value)}
-                  placeholder="Beschrijf je vraag of verzoek..."
-                  required
-                  className="w-full rounded-xl px-4 py-3 text-sm outline-none transition resize-none"
-                  style={{
-                    background: 'rgba(255,255,255,0.05)',
-                    border: '1px solid rgba(255,255,255,0.1)',
-                    color: 'white',
-                  }}
-                  onFocus={e => (e.currentTarget.style.borderColor = 'rgba(29,158,117,0.5)')}
-                  onBlur={e => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)')}
-                />
-              </div>
-
-              <button
-                type="submit"
-                disabled={bezig || !naam.trim() || !email.trim() || !bericht.trim()}
-                className="w-full py-4 rounded-xl text-white font-bold text-sm transition hover:opacity-90 disabled:opacity-40 flex items-center justify-center gap-2"
-                style={{ background: 'var(--mf-green)', boxShadow: '0 4px 24px rgba(29,158,117,0.35)' }}
-              >
-                {bezig ? (
-                  <>
-                    <div className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
-                    Versturen...
-                  </>
-                ) : (
-                  'Bericht versturen →'
-                )}
-              </button>
-
-              <p className="text-xs text-center mt-4" style={{ color: 'rgba(255,255,255,0.2)' }}>
-                Door te versturen ga je akkoord met onze{' '}
-                <Link href="/voorwaarden" className="underline hover:opacity-70">Voorwaarden</Link>.
-              </p>
-            </form>
-          )}
-        </div>
-
-        {/* Right: info */}
-        <div className="lg:col-span-2 flex flex-col gap-8">
-
-          {/* Direct contact */}
-          <div className="rounded-2xl border p-6" style={{ borderColor: 'rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.02)' }}>
-            <p className="text-sm font-bold text-white mb-4">Direct bereikbaar</p>
-            <div className="flex flex-col gap-4">
-              <a href="mailto:info@mentaforce.nl" className="flex items-start gap-3 group">
-                <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-                  style={{ background: 'rgba(29,158,117,0.15)' }}>
-                  <span className="text-base">✉️</span>
-                </div>
-                <div>
-                  <p className="text-xs font-medium mb-0.5" style={{ color: 'rgba(255,255,255,0.4)' }}>E-mail</p>
-                  <p className="text-sm font-medium text-white group-hover:underline">info@mentaforce.nl</p>
-                </div>
-              </a>
-              <div className="flex items-start gap-3">
-                <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-                  style={{ background: 'rgba(55,138,221,0.15)' }}>
-                  <span className="text-base">⏱️</span>
-                </div>
-                <div>
-                  <p className="text-xs font-medium mb-0.5" style={{ color: 'rgba(255,255,255,0.4)' }}>Reactietijd</p>
-                  <p className="text-sm text-white">Binnen 24 uur op werkdagen</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-                  style={{ background: 'rgba(139,92,246,0.15)' }}>
-                  <span className="text-base">🇳🇱</span>
-                </div>
-                <div>
-                  <p className="text-xs font-medium mb-0.5" style={{ color: 'rgba(255,255,255,0.4)' }}>Locatie</p>
-                  <p className="text-sm text-white">Amsterdam, Nederland</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Demo CTA */}
-          <div className="rounded-2xl border p-6 text-center"
-            style={{ borderColor: 'rgba(29,158,117,0.2)', background: 'rgba(29,158,117,0.06)' }}>
-            <div className="text-3xl mb-3">🎯</div>
-            <p className="text-white font-semibold mb-2">Gratis demo van 30 min</p>
-            <p className="text-sm mb-4" style={{ color: 'rgba(255,255,255,0.45)' }}>
-              We tonen het platform live en beantwoorden al je vragen.
-            </p>
-            <button
-              onClick={() => setGeselecteerd('demo')}
-              className="w-full py-3 rounded-xl text-white text-sm font-bold transition hover:opacity-90"
-              style={{ background: 'var(--mf-green)' }}
-            >
-              Demo aanvragen
-            </button>
-          </div>
-
-          {/* Trust signals */}
-          <div className="flex flex-col gap-2.5">
-            {[
-              { icon: '🔒', tekst: 'Volledig AVG-conform' },
-              { icon: '🇳🇱', tekst: 'Data opgeslagen in de EU' },
-              { icon: '⚡', tekst: 'Operationeel in 1 dag' },
-              { icon: '🤝', tekst: 'Geen commitments vereist' },
-            ].map(t => (
-              <div key={t.tekst} className="flex items-center gap-2.5">
-                <span className="text-base">{t.icon}</span>
-                <span className="text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>{t.tekst}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* FAQ */}
-      <section className="border-t py-20" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
-        <div className="max-w-3xl mx-auto px-6">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-extrabold text-white mb-3">Veelgestelde vragen</h2>
-            <p className="text-base" style={{ color: 'rgba(255,255,255,0.4)' }}>
-              Vind je het antwoord niet? Stuur ons een bericht.
+            <p style={{ fontSize: 17, lineHeight: 1.6, color: COLORS.inkDim, margin: 0 }}>
+              Vraag een demo aan, bespreek de mogelijkheden of stel een vraag. We staan klaar om te helpen.
             </p>
           </div>
-          <div className="flex flex-col gap-3">
-            {FAQ.map((item, i) => (
-              <div
-                key={i}
-                className="rounded-2xl border overflow-hidden"
-                style={{ borderColor: 'rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.02)' }}
-              >
+        </section>
+
+        {/* Formulier + info */}
+        <section style={{ maxWidth: MAXW, margin: '0 auto', padding: '64px 28px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 48 }}>
+
+          {/* Links: formulier */}
+          <div ref={formRef} style={{ scrollMarginTop: 96 }}>
+            {verzonden ? (
+              <div role="status" aria-live="polite" style={{ ...glassPanel, padding: '56px 40px', textAlign: 'center' }}>
+                <span style={{ width: 72, height: 72, borderRadius: '50%', background: COLORS.cyanSoft, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: 24 }}>
+                  <Check aria-hidden size={32} style={{ color: COLORS.cyan }} />
+                </span>
+                <h2 style={{ fontSize: 24, fontWeight: 700, color: COLORS.ink, margin: '0 0 12px' }}>Bericht verstuurd</h2>
+                <p style={{ color: COLORS.inkDim, margin: '0 0 8px', lineHeight: 1.6 }}>
+                  We hebben je bericht ontvangen en nemen zo snel mogelijk contact op.
+                </p>
+                <p style={{ fontSize: 14, color: COLORS.inkDim, margin: '0 0 32px' }}>
+                  Verwacht een reactie op <span style={{ color: COLORS.cyan }}>{email}</span> binnen 24 uur op werkdagen.
+                </p>
                 <button
-                  onClick={() => setFaqOpen(faqOpen === i ? null : i)}
-                  aria-expanded={faqOpen === i}
-                  className="w-full flex items-center justify-between px-6 py-4 text-left"
+                  onClick={() => { setVerzonden(false); setFout(null); setNaam(''); setEmail(''); setOrganisatie(''); setTeamgrootte(''); setBericht(''); setGeselecteerd(null) }}
+                  style={{ fontSize: 14, fontWeight: 500, color: COLORS.ink, background: 'transparent', border: `1px solid ${COLORS.lineStrong}`, padding: '12px 24px', borderRadius: 12, cursor: 'pointer', fontFamily: FONT.grotesk, transition: `border-color .2s ${EASE}` }}
+                  onMouseEnter={(e) => { e.currentTarget.style.borderColor = COLORS.cyan }}
+                  onMouseLeave={(e) => { e.currentTarget.style.borderColor = COLORS.lineStrong }}
                 >
-                  <span className="text-sm font-medium text-white">{item.vraag}</span>
-                  <span className="text-white/40 text-lg ml-4 flex-shrink-0 transition-transform"
-                    style={{ transform: faqOpen === i ? 'rotate(45deg)' : 'rotate(0deg)' }}>
-                    +
-                  </span>
+                  Nieuw bericht sturen
                 </button>
-                {faqOpen === i && (
-                  <div className="px-6 pb-5 text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.5)' }}>
-                    {item.antwoord}
+              </div>
+            ) : (
+              <form onSubmit={verstuur}>
+                <h2 style={{ fontSize: 20, fontWeight: 700, color: COLORS.ink, margin: '0 0 24px' }}>Stuur ons een bericht</h2>
+
+                {/* Onderwerp */}
+                <div role="group" aria-label="Onderwerp" style={{ marginBottom: 24 }}>
+                  <p style={{ ...labelStijl, marginBottom: 12 }}>Onderwerp</p>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 10 }}>
+                    {ONDERWERPEN.map((o) => {
+                      const actief = geselecteerd === o.id
+                      const Icoon = o.icoon
+                      return (
+                        <button
+                          key={o.id}
+                          type="button"
+                          onClick={() => setGeselecteerd(o.id)}
+                          aria-pressed={actief}
+                          style={{
+                            textAlign: 'left', padding: 12, borderRadius: 12, cursor: 'pointer',
+                            fontFamily: FONT.grotesk,
+                            background: actief ? COLORS.cyanSoft : COLORS.navyElev,
+                            border: `1px solid ${actief ? COLORS.cyan : COLORS.line}`,
+                            transition: `border-color .2s ${EASE}, background .2s ${EASE}`,
+                          }}
+                        >
+                          <span style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                            <Icoon aria-hidden size={15} style={{ color: actief ? COLORS.cyan : COLORS.inkDim, flexShrink: 0 }} />
+                            <span style={{ fontSize: 13, fontWeight: 600, color: COLORS.ink }}>{o.label}</span>
+                          </span>
+                          <span style={{ fontSize: 12, lineHeight: 1.4, color: COLORS.inkDim }}>{o.beschrijving}</span>
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+
+                {/* Naam + e-mail */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16, marginBottom: 16 }}>
+                  <div>
+                    <label htmlFor="contact-naam" style={labelStijl}>Naam *</label>
+                    <input
+                      id="contact-naam" ref={naamRef} type="text" value={naam}
+                      onChange={(e) => setNaam(e.target.value)} placeholder="Jan Janssen" required
+                      style={veldStijl} onFocus={veldFocus} onBlur={veldBlur}
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="contact-email" style={labelStijl}>E-mailadres *</label>
+                    <input
+                      id="contact-email" type="email" value={email}
+                      onChange={(e) => setEmail(e.target.value)} placeholder="jan@bedrijf.nl" required
+                      style={veldStijl} onFocus={veldFocus} onBlur={veldBlur}
+                    />
+                  </div>
+                </div>
+
+                {/* Organisatie + teamgrootte */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16, marginBottom: 16 }}>
+                  <div>
+                    <label htmlFor="contact-organisatie" style={labelStijl}>Organisatie</label>
+                    <input
+                      id="contact-organisatie" type="text" value={organisatie}
+                      onChange={(e) => setOrganisatie(e.target.value)} placeholder="Bedrijfsnaam"
+                      style={veldStijl} onFocus={veldFocus} onBlur={veldBlur}
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="contact-teamgrootte" style={labelStijl}>Teamgrootte</label>
+                    <select
+                      id="contact-teamgrootte" value={teamgrootte}
+                      onChange={(e) => setTeamgrootte(e.target.value)}
+                      style={{ ...veldStijl, appearance: 'none', color: teamgrootte ? COLORS.ink : COLORS.inkDim }}
+                      onFocus={veldFocus} onBlur={veldBlur}
+                    >
+                      <option value="" disabled>Selecteer grootte</option>
+                      <option value="10-24">10 – 24 medewerkers</option>
+                      <option value="25-49">25 – 49 medewerkers</option>
+                      <option value="50-99">50 – 99 medewerkers</option>
+                      <option value="100-249">100 – 249 medewerkers</option>
+                      <option value="250+">250+ medewerkers</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Bericht */}
+                <div style={{ marginBottom: 24 }}>
+                  <label htmlFor="contact-bericht" style={labelStijl}>Bericht *</label>
+                  <textarea
+                    id="contact-bericht" rows={5} value={bericht}
+                    onChange={(e) => setBericht(e.target.value)} placeholder="Beschrijf je vraag of verzoek..." required
+                    style={{ ...veldStijl, resize: 'none' }} onFocus={veldFocus} onBlur={veldBlur}
+                  />
+                </div>
+
+                {fout && (
+                  <div role="alert" style={{ marginBottom: 20, padding: '14px 18px', borderRadius: 12, border: `1px solid ${COLORS.lineStrong}`, background: COLORS.navyElev, fontSize: 14, lineHeight: 1.6, color: COLORS.ink }}>
+                    {fout}{' '}
+                    Of mail ons direct op{' '}
+                    <a href="mailto:info@mentaforce.nl" style={{ color: COLORS.cyan, textDecorationColor: COLORS.cyan }}>info@mentaforce.nl</a>.
                   </div>
                 )}
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
-      {/* Footer */}
-      <footer style={{ background: '#060c18', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-        <div className="max-w-7xl mx-auto px-6 lg:px-12 py-10 flex flex-col md:flex-row items-center justify-between gap-6">
-          <Link href="/" className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: 'var(--mf-green)' }}>
-              <span className="text-white text-xs font-bold">M</span>
-            </div>
-            <span className="font-bold text-white">MentaForce</span>
-          </Link>
-          <div className="flex items-center gap-6 text-xs flex-wrap justify-center" style={{ color: 'rgba(255,255,255,0.2)' }}>
-            <Link href="/voorwaarden" className="transition hover:text-white/50">Voorwaarden</Link>
-            <Link href="/contact" className="transition hover:text-white/50" style={{ color: 'var(--mf-green)' }}>Contact</Link>
-            <Link href="/login" className="transition hover:text-white/50">Inloggen</Link>
+                <button
+                  type="submit"
+                  disabled={bezig || !naam.trim() || !email.trim() || !bericht.trim()}
+                  style={{
+                    width: '100%', padding: '15px 0', borderRadius: 12, border: 'none', cursor: bezig ? 'wait' : 'pointer',
+                    fontFamily: FONT.grotesk, fontSize: 15, fontWeight: 600,
+                    color: COLORS.navyDeep, background: COLORS.cyan,
+                    boxShadow: `0 10px 36px ${COLORS.cyanSoft}`,
+                    opacity: bezig || !naam.trim() || !email.trim() || !bericht.trim() ? 0.5 : 1,
+                    transition: `opacity .2s ${EASE}, transform .2s ${EASE}`,
+                  }}
+                >
+                  {bezig ? 'Versturen...' : 'Bericht versturen →'}
+                </button>
+
+                <p style={{ fontSize: 12, textAlign: 'center', marginTop: 16, color: COLORS.inkDim }}>
+                  Door te versturen ga je akkoord met onze{' '}
+                  <Link href="/voorwaarden" style={{ color: COLORS.inkDim, textDecoration: 'underline' }}>Voorwaarden</Link>.
+                </p>
+              </form>
+            )}
           </div>
-          <p className="text-xs" style={{ color: 'rgba(255,255,255,0.18)' }}>© 2025 MentaForce · Gemaakt in Nederland 🇳🇱</p>
-        </div>
-      </footer>
+
+          {/* Rechts: info */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 28, maxWidth: 420 }}>
+
+            {/* Direct bereikbaar */}
+            <div style={{ ...glassPanel, padding: 24 }}>
+              <p style={{ fontSize: 14, fontWeight: 700, color: COLORS.ink, margin: '0 0 16px' }}>Direct bereikbaar</p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                <a href="mailto:info@mentaforce.nl" style={{ display: 'flex', alignItems: 'flex-start', gap: 12, textDecoration: 'none' }}>
+                  <span style={{ width: 36, height: 36, borderRadius: 10, background: COLORS.cyanSoft, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <Mail aria-hidden size={16} style={{ color: COLORS.cyan }} />
+                  </span>
+                  <span>
+                    <span style={{ display: 'block', fontSize: 12, color: COLORS.inkDim, marginBottom: 2 }}>E-mail</span>
+                    <span style={{ fontSize: 14, fontWeight: 500, color: COLORS.ink }}>info@mentaforce.nl</span>
+                  </span>
+                </a>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+                  <span style={{ width: 36, height: 36, borderRadius: 10, background: COLORS.cyanSoft, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <Clock aria-hidden size={16} style={{ color: COLORS.cyan }} />
+                  </span>
+                  <span>
+                    <span style={{ display: 'block', fontSize: 12, color: COLORS.inkDim, marginBottom: 2 }}>Reactietijd</span>
+                    <span style={{ fontSize: 14, color: COLORS.ink }}>Binnen 24 uur op werkdagen</span>
+                  </span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+                  <span style={{ width: 36, height: 36, borderRadius: 10, background: COLORS.cyanSoft, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <MapPin aria-hidden size={16} style={{ color: COLORS.cyan }} />
+                  </span>
+                  <span>
+                    <span style={{ display: 'block', fontSize: 12, color: COLORS.inkDim, marginBottom: 2 }}>Locatie</span>
+                    <span style={{ fontSize: 14, color: COLORS.ink }}>Amsterdam, Nederland</span>
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Demo CTA */}
+            <div style={{ ...glassPanel, padding: 24, textAlign: 'center', borderColor: COLORS.lineStrong }}>
+              <span style={{ width: 44, height: 44, borderRadius: 12, background: COLORS.cyanSoft, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
+                <Presentation aria-hidden size={20} style={{ color: COLORS.cyan }} />
+              </span>
+              <p style={{ fontSize: 15, fontWeight: 600, color: COLORS.ink, margin: '0 0 8px' }}>Demo van 30 minuten</p>
+              <p style={{ fontSize: 14, lineHeight: 1.5, color: COLORS.inkDim, margin: '0 0 16px' }}>
+                We tonen het platform live en beantwoorden al je vragen.
+              </p>
+              <button
+                onClick={kiesDemo}
+                style={{
+                  width: '100%', padding: '12px 0', borderRadius: 12, border: 'none', cursor: 'pointer',
+                  fontFamily: FONT.grotesk, fontSize: 14, fontWeight: 600,
+                  color: COLORS.navyDeep, background: COLORS.cyan,
+                  transition: `transform .2s ${EASE}`,
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)' }}
+                onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)' }}
+              >
+                Demo aanvragen
+              </button>
+            </div>
+
+            {/* Vertrouwen */}
+            <ul style={{ display: 'flex', flexDirection: 'column', gap: 10, listStyle: 'none', margin: 0, padding: '0 4px' }}>
+              {TRUST.map(({ icoon: Icoon, tekst }) => (
+                <li key={tekst} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <Icoon aria-hidden size={15} style={{ color: COLORS.cyan, flexShrink: 0 }} />
+                  <span style={{ fontSize: 14, color: COLORS.inkDim }}>{tekst}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+
+        {/* FAQ */}
+        <section style={{ borderTop: `1px solid ${COLORS.line}`, padding: '80px 0' }}>
+          <div style={{ maxWidth: 720, margin: '0 auto', padding: '0 28px' }}>
+            <div style={{ textAlign: 'center', marginBottom: 48 }}>
+              <h2 style={{ fontWeight: 700, fontSize: 'clamp(26px, 4vw, 36px)', letterSpacing: '-0.03em', color: COLORS.ink, margin: '0 0 12px' }}>
+                Veelgestelde vragen
+              </h2>
+              <p style={{ fontSize: 15, color: COLORS.inkDim, margin: 0 }}>
+                Vind je het antwoord niet? Stuur ons een bericht.
+              </p>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {FAQ.map((item, i) => (
+                <div key={item.vraag} style={{ ...glassPanel, overflow: 'hidden' }}>
+                  <button
+                    onClick={() => setFaqOpen(faqOpen === i ? null : i)}
+                    aria-expanded={faqOpen === i}
+                    style={{
+                      width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                      padding: '18px 24px', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer',
+                      fontFamily: FONT.grotesk,
+                    }}
+                  >
+                    <span style={{ fontSize: 14, fontWeight: 500, color: COLORS.ink }}>{item.vraag}</span>
+                    <span aria-hidden style={{ color: COLORS.cyan, fontSize: 18, marginLeft: 16, flexShrink: 0, transform: faqOpen === i ? 'rotate(45deg)' : 'rotate(0deg)', transition: `transform .2s ${EASE}` }}>
+                      +
+                    </span>
+                  </button>
+                  {faqOpen === i && (
+                    <p style={{ padding: '0 24px 20px', margin: 0, fontSize: 14, lineHeight: 1.7, color: COLORS.inkDim }}>
+                      {item.antwoord}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <Footer />
     </div>
   )
 }

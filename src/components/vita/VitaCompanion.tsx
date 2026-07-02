@@ -12,7 +12,7 @@ import { getPageGuide } from '@/lib/vita/page-guide'
 import { laadXPData, berekenLevel, LEVEL_NAMEN, LEVEL_KLEUREN, xpVoortgang } from '@/lib/xp'
 import { isCelebrationEvent, type VitaEventPayload } from '@/lib/vita/events'
 
-// Route waar het echte VITA-gesprek leeft. Companion deeplinkt ernaartoe.
+// Route waar het echte Vita-gesprek leeft. Companion deeplinkt ernaartoe.
 const COACH_ROUTE = '/coach'
 
 const HIDDEN_ROUTES = [
@@ -71,7 +71,7 @@ function clearCache(key: string) {
   try { localStorage.removeItem(key) } catch {}
 }
 
-// Bijhouden welke pagina's je al "ontdekt" hebt, zodat VITA elke zone één keer
+// Bijhouden welke pagina's je al "ontdekt" hebt, zodat Vita elke zone één keer
 // uitlegt — als een game die een nieuw gebied onthult.
 const SEEN_PAGES_KEY = 'vita-seen-pages-v1'
 
@@ -117,13 +117,15 @@ const PERSONA_LABELS: Record<Persona, string> = {
 const PERSONA_TINT = 'var(--mentaforce-primary-light)'
 const PERSONA_ACCENT_COLOR = 'var(--mentaforce-primary)'
 
+// Warme ik-vorm: Vita praat als companion die je kent, niet als monitor.
+// Geen verzonnen percentages of jargon — alleen wat we echt uit de data weten.
 function vitaMessage(d: ReadinessData, persona: Persona): string {
   if (!d.heeft_data) {
-    if (persona === 'challenger') return 'Geen data. Vul je check-in in — praten helpt niet, actie wel.'
-    if (persona === 'stoicijn') return 'Begin met meten. Wat niet gemeten wordt, kan niet verbeterd worden.'
-    if (persona === 'wetenschapper') return 'Nulpunt vereist. Vul je eerste check-in in voor een baseline.'
-    if (persona === 'optimizer') return 'Geen data = geen optimalisatie. Start je eerste check-in.'
-    return 'Vul je eerste check-in in — VITA leert jouw patroon kennen.'
+    if (persona === 'challenger') return 'Ik heb nog geen data van je. Doe je eerste check-in — dan kan ik je echt uitdagen.'
+    if (persona === 'stoicijn') return 'Ik begin graag bij het begin: doe je eerste check-in, dan weten we waar je staat.'
+    if (persona === 'wetenschapper') return 'Ik heb een nulpunt nodig. Vul je eerste check-in in, dan bouw ik jouw baseline op.'
+    if (persona === 'optimizer') return 'Zonder data kan ik nog niets voor je fijnslijpen. Start met je eerste check-in.'
+    return 'Vul je eerste check-in in — dan leer ik jouw patroon kennen.'
   }
 
   const slaap = d.slaap_uren !== null ? Number(d.slaap_uren) : null
@@ -131,48 +133,47 @@ function vitaMessage(d: ReadinessData, persona: Persona): string {
   const { score, streak } = d
 
   if (slaap !== null && slaap < 6) {
-    if (persona === 'stoicijn') return `${slaap.toFixed(1)}u slaap. Onvoldoende. Herstel staat vandaag centraal.`
-    if (persona === 'optimizer') return `${slaap.toFixed(1)}u slaap kost je ~18% cognitieve prestatie. Prioriteit: herstel.`
-    if (persona === 'challenger') return `${slaap.toFixed(1)}u. Dat is structureel onvoldoende. Wanneer pak je dit aan?`
-    if (persona === 'wetenschapper') return `Slaaptekort detecteerd: ${slaap.toFixed(1)}u. Adenosine stapelt — cognitie daalt.`
-    return `Slaap van ${slaap.toFixed(1)}u — herstel staat vandaag centraal.`
+    if (persona === 'stoicijn') return `Ik zie dat je maar ${slaap.toFixed(1)}u sliep — vandaag draait om herstel, zonder ruis.`
+    if (persona === 'optimizer') return `${slaap.toFixed(1)}u slaap ga je merken in je focus. Ik zou vandaag inzetten op herstel.`
+    if (persona === 'challenger') return `${slaap.toFixed(1)}u slaap — dat houd je niet vol. Wat doe je vanavond anders?`
+    if (persona === 'wetenschapper') return `Slaaptekort gedetecteerd: ${slaap.toFixed(1)}u. Ik zou herstel vandaag voorrang geven.`
+    return `Ik zie dat je maar ${slaap.toFixed(1)}u sliep — vandaag draait om herstel.`
   }
 
   if (stress !== null && stress >= 4) {
-    if (persona === 'stoicijn') return 'Hoge stress. Analyseer de bron. Elimineer of accepteer — geen derde optie.'
-    if (persona === 'optimizer') return 'Stressniveau verstoort je HRV-herstel. Eén ademhalingsmoment vandaag.'
-    if (persona === 'challenger') return 'Hoge stress. Dit is niet duurzaam. Wat ga je vandaag anders doen?'
-    if (persona === 'wetenschapper') return 'Verhoogd cortisolniveau verwacht. Parasympathische activatie aanbevolen.'
-    return 'Hoog stressniveau gedetecteerd. Eén herstelmoment maakt het verschil.'
+    if (persona === 'stoicijn') return 'Ik zie hoge stress bij je. Kijk rustig wat de bron is — en wat je vandaag kunt loslaten.'
+    if (persona === 'optimizer') return 'Je stress staat hoog. Eén bewust ademhalingsmoment vandaag helpt je al herstellen.'
+    if (persona === 'challenger') return 'Ik zie hoge stress bij je. Wat ga je vandaag anders doen?'
+    if (persona === 'wetenschapper') return 'Je stressniveau is hoog — ik zou vandaag bewust een herstelmoment inplannen.'
+    return 'Ik zie een hoog stressniveau bij je. Eén herstelmoment maakt vandaag het verschil.'
   }
 
   if (score >= 80) {
     if (streak >= 14) {
-      if (persona === 'stoicijn') return `${streak} dagen. Dat is discipline worden tot karakter.`
-      if (persona === 'optimizer') return `${streak} dagen consistentie. Je systeem reageert — patronen worden zichtbaar.`
-      if (persona === 'challenger') return `${streak} dagen. Niet slecht. Hoelang hou je het vol?`
-      if (persona === 'wetenschapper') return `${streak} aaneengesloten dagen — neurologische gewoontepaden versterken.`
-      return `${streak} dagen consistentie. Jouw systeem reageert — patronen worden zichtbaar.`
+      if (persona === 'stoicijn') return `${streak} dagen op rij — dat is discipline die karakter wordt.`
+      if (persona === 'optimizer') return `${streak} dagen consistentie. Ik zie je patronen steeds duidelijker worden.`
+      if (persona === 'challenger') return `${streak} dagen op rij. Sterk — hoelang houd je dit vol?`
+      if (persona === 'wetenschapper') return `${streak} dagen op rij — zo wordt een gewoonte echt onderdeel van je routine.`
+      return `${streak} dagen consistentie. Ik zie je patronen steeds duidelijker worden.`
     }
-    if (persona === 'stoicijn') return 'Alle signalen staan op groen. Gebruik deze dag zoals hij bedoeld is.'
-    if (persona === 'optimizer') return 'Optimale readiness. Ideaal moment voor intensieve sessies of diep werk.'
-    if (persona === 'wetenschapper') return 'HRV-herstel naar verwachting optimaal. Maximale output mogelijk vandaag.'
-    return 'Alle signalen staan op groen. Dit is een krachtige dag.'
+    if (persona === 'stoicijn') return 'Al je signalen staan goed. Gebruik deze dag zoals je hem bedoeld hebt.'
+    if (persona === 'optimizer') return 'Je zit vandaag op je best — een mooi moment voor diep werk of een stevige sessie.'
+    if (persona === 'wetenschapper') return 'Al je signalen staan goed — vandaag kun je veel aan.'
+    return 'Al je signalen staan op groen. Ik zie een krachtige dag voor je.'
   }
 
   if (score >= 60) {
     if (persona === 'stoicijn') return 'Je staat er goed voor. Doe wat je gepland hebt.'
-    if (persona === 'optimizer') return 'Goede baseline. Kleine acties vandaag bouwen morgen\'s resultaat.'
-    if (persona === 'mentor') return 'Goed geslapen. Gebruik die energie vandaag doelbewust.'
-    return 'Je staat er goed voor. VITA houdt jouw patronen in de gaten.'
+    if (persona === 'optimizer') return 'Een goede basis vandaag. Kleine acties nu bouwen aan morgen.'
+    if (persona === 'mentor') return 'Je staat er goed voor — gebruik die energie vandaag doelbewust.'
+    return 'Je staat er goed voor. Ik houd je patronen voor je in de gaten.'
   }
 
-  if (persona === 'stoicijn') return 'Signalen zijn matig. Pas je planning aan — doe wat nodig is.'
-  if (persona === 'mentor') return 'VITA monitort jouw signalen. Check je voortgang voor een persoonlijk inzicht.'
-  return 'VITA monitort jouw signalen. Check je voortgang voor een persoonlijk inzicht.'
+  if (persona === 'stoicijn') return 'Je signalen zijn vandaag matig. Pas je planning aan — doe wat nodig is, niet meer.'
+  return 'Ik zie dat het wat minder loopt. Kijk bij je voortgang — ik denk met je mee.'
 }
 
-// VITA kiest zijn toon op basis van wat je op dit moment nodig hebt — niet via
+// Vita kiest zijn toon op basis van wat je op dit moment nodig hebt — niet via
 // een handmatige keuze. Volgorde van prioriteit: eerst steun bij zwaarte.
 function aanbevolenPersona(d: ReadinessData): { persona: Persona; reden: string } {
   if (!d.heeft_data) {
@@ -221,13 +222,16 @@ function XpBar({ xp }: { xp: number }) {
         </span>
       </div>
       <div style={{ height: 3, background: 'var(--bg-subtle)', borderRadius: 100, overflow: 'hidden' }}>
+        {/* scaleX i.p.v. width: alleen compositor-vriendelijke properties animeren */}
         <div
           style={{
             height: '100%',
-            width: `${pct}%`,
+            width: '100%',
             background: kleur,
             borderRadius: 100,
-            transition: 'width 0.6s ease',
+            transform: `scaleX(${pct / 100})`,
+            transformOrigin: 'left',
+            transition: 'transform 0.6s var(--ease)',
           }}
         />
       </div>
@@ -315,12 +319,12 @@ function QuestList({ checklist, onGo }: { checklist: ChecklistItem[]; onGo: (url
   )
 }
 
-// Leest uit waaróm VITA nu deze toon kiest — geen handmatige keuze meer.
+// Leest uit waaróm Vita nu deze toon kiest — geen handmatige keuze meer.
 function PersonaUitleg({ persona, reden }: { persona: Persona; reden: string }) {
   return (
     <div style={{ padding: '0 14px 14px' }}>
       <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-3)', marginBottom: 8 }}>
-        VITA past zich aan je aan
+        Vita past zich aan je aan
       </div>
       <div style={{
         display: 'flex',
@@ -526,7 +530,7 @@ export default function VitaCompanion() {
     const handler = (e: Event) => {
       const { type } = (e as CustomEvent<VitaEventPayload>).detail
       // Houd level, dagquests én readiness vers na een actie. Doordat de persona
-      // uit readiness volgt, past VITA's toon zich zo direct aan je nieuwe status aan.
+      // uit readiness volgt, past Vita's toon zich zo direct aan je nieuwe status aan.
       setXp(laadXPData().xp)
       if (['check_in_completed', 'data_logged', 'mood_logged', 'habit_completed', 'goal_achieved'].includes(type)) {
         clearCache(VANDAAG_CACHE_KEY)
@@ -577,12 +581,14 @@ export default function VitaCompanion() {
 
   useEffect(() => {
     if (!data) return
+    // Op /home zegt VitaDagstart al goedemorgen — daar geen dubbele nudge.
+    if (pathname === '/home') return
     const sessionKey = 'vita-nudge-v1'
     if (sessionStorage.getItem(sessionKey)) return
     const tod = getTimeOfDay()
     const nudges: Partial<Record<string, { message: string; emotion: EmotionState }>> = {
-      morning: { message: 'Goedemorgen! Klaar voor een nieuwe dag? 🌅', emotion: 'curious' },
-      evening: { message: 'Hoe was je dag? Vergeet je avond reflectie niet 🌙', emotion: 'supportive' },
+      morning: { message: 'Goedemorgen! Klaar voor een nieuwe dag?', emotion: 'curious' },
+      evening: { message: 'Hoe was je dag? Vergeet je avondreflectie niet.', emotion: 'supportive' },
     }
     const nudge = nudges[tod]
     if (nudge) {
@@ -593,17 +599,17 @@ export default function VitaCompanion() {
       }, 3500)
       return () => clearTimeout(timer)
     }
-  }, [data])
+  }, [data, pathname])
 
   // Transient bubbels (events, nudges, eerste-bezoek) vallen na een paar tellen
-  // vanzelf terug op de vaste regel die VITA altijd toont.
+  // vanzelf terug op de vaste regel die Vita altijd toont.
   useEffect(() => {
     if (!bubble) return
     const t = setTimeout(() => setBubble(null), 6000)
     return () => clearTimeout(t)
   }, [bubble])
 
-  // Per-pagina uitleg: de eerste keer dat je een nieuwe zone betreedt, legt VITA
+  // Per-pagina uitleg: de eerste keer dat je een nieuwe zone betreedt, legt Vita
   // 'm in één zin uit. Daarna stil — geen genag bij elke navigatie.
   useEffect(() => {
     if (isHidden || open) return
@@ -627,7 +633,7 @@ export default function VitaCompanion() {
   const guide = getPageGuide(pathname)
   const gaNaar = (url: string) => { setOpen(false); router.push(url) }
 
-  // De vaste zin die VITA altijd "zegt" in zijn tekstballon: bij voorkeur je
+  // De vaste zin die Vita altijd "zegt" in zijn tekstballon: bij voorkeur je
   // volgende stap op deze pagina, anders een korte status of uitnodiging.
   const vasteRegel =
     guide?.stap
@@ -656,13 +662,13 @@ export default function VitaCompanion() {
       }}
     >
       {/* Zichtbare focus-ring (cyaan) voor toetsenbordnavigatie — alle knoppen
-          in VITA delen 'm via .vita-focusable. */}
+          in Vita delen 'm via .vita-focusable. */}
       <style>{`
         .vita-focusable:focus-visible {
           outline: 2px solid var(--mentaforce-primary);
           outline-offset: 2px;
         }
-        /* Ontworpen states voor de "Praat met VITA"-actie: rustige lift op
+        /* Ontworpen states voor de "Praat met Vita"-actie: rustige lift op
            hover, indrukken op active. Alleen transform — geen layout. */
         .vita-talk:hover {
           border-color: color-mix(in srgb, var(--mentaforce-primary) 70%, transparent);
@@ -681,7 +687,7 @@ export default function VitaCompanion() {
         <button
           className="vita-focusable vita-anim"
           onClick={() => { if (!didDrag.current) setOpen(true) }}
-          aria-label="Open VITA — bekijk je dag"
+          aria-label="Open Vita — bekijk je dag"
           style={{
             position: 'absolute',
             right: 0,
@@ -699,7 +705,7 @@ export default function VitaCompanion() {
             lineHeight: 1.5,
             textAlign: 'left',
             cursor: 'pointer',
-            animation: 'vita-slide-up 0.25s cubic-bezier(0.16,1,0.3,1) both',
+            animation: 'vita-slide-up 0.25s var(--ease) both',
           }}
         >
           <span style={{
@@ -741,7 +747,7 @@ export default function VitaCompanion() {
         <div
           role="dialog"
           aria-modal="false"
-          aria-label="VITA — jouw dag in één oogopslag"
+          aria-label="Vita — jouw dag in één oogopslag"
           className="vita-anim"
           style={{
             position: 'absolute',
@@ -753,7 +759,7 @@ export default function VitaCompanion() {
             borderRadius: 20,
             boxShadow: '0 20px 60px rgba(0,0,0,0.14), 0 4px 16px rgba(0,0,0,0.08)',
             overflow: 'hidden',
-            animation: 'vita-slide-up 0.22s cubic-bezier(0.16,1,0.3,1) both',
+            animation: 'vita-slide-up 0.22s var(--ease) both',
           }}
         >
           {/* Header */}
@@ -773,14 +779,13 @@ export default function VitaCompanion() {
               flexShrink: 0,
             }} />
             <span style={{
-              fontSize: 11,
+              fontSize: 12,
               fontWeight: 700,
               color: 'var(--text-3)',
-              letterSpacing: '0.1em',
-              textTransform: 'uppercase',
+              letterSpacing: '0.02em',
               flex: 1,
             }}>
-              VITA
+              Vita
             </span>
             <span style={{
               fontSize: 10,
@@ -810,7 +815,7 @@ export default function VitaCompanion() {
                 lineHeight: 1,
                 marginLeft: 4,
               }}
-              aria-label="Sluit VITA"
+              aria-label="Sluit Vita"
             >
               <X size={14} strokeWidth={2.5} aria-hidden="true" />
             </button>
@@ -874,7 +879,7 @@ export default function VitaCompanion() {
             <QuestList checklist={vandaag.checklist} onGo={gaNaar} />
           )}
 
-          {/* Praat met VITA — de companion conversationeel bereikbaar maken */}
+          {/* Praat met Vita — de companion conversationeel bereikbaar maken */}
           <TalkToVita onStart={() => gaNaar(COACH_ROUTE)} />
 
           {/* Page guide — wat is deze pagina + je volgende stap */}
@@ -1015,8 +1020,8 @@ export default function VitaCompanion() {
             if (didDrag.current) return
             setOpen(v => !v)
           }}
-          title="VITA — jouw gezondheidscompanion"
-          aria-label="Open VITA gezondheidscompanion"
+          title="Vita — jouw gezondheidscompanion"
+          aria-label="Open Vita, jouw gezondheidscompanion"
           aria-expanded={open}
           style={{
             cursor: 'grab',
@@ -1036,7 +1041,7 @@ export default function VitaCompanion() {
             padding: 0,
             position: 'relative',
             transition: 'border-color 0.3s ease, box-shadow 0.3s ease',
-            animation: 'vita-orb-appear 0.35s cubic-bezier(0.16,1,0.3,1) both',
+            animation: 'vita-orb-appear 0.35s var(--ease) both',
           }}
         >
           <PandaFace emotion={emotion} size={ORB_SIZE} animate />

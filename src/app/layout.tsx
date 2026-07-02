@@ -1,41 +1,19 @@
 ﻿import type { Viewport } from "next";
-import { Geist, Geist_Mono, Instrument_Serif, Plus_Jakarta_Sans, Space_Grotesk } from "next/font/google";
+import { Space_Grotesk } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
-const instrumentSerif = Instrument_Serif({
-  variable: '--font-display',
-  subsets: ['latin'],
-  weight: '400',
-  style: ['normal', 'italic'],
-});
-
-const plusJakarta = Plus_Jakarta_Sans({
-  variable: '--font-body',
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700', '800'],
-});
-
+// Eén font-familie: Space Grotesk (merk). Geist, Instrument Serif en
+// Plus Jakarta Sans zijn verwijderd, inclusief hun tokens in globals.css.
 const spaceGrotesk = Space_Grotesk({
   variable: '--font-grotesk',
   subsets: ['latin'],
   weight: ['400', '500', '600', '700'],
 });
 
+// WCAG 1.4.4: geen maximumScale/userScalable — gebruikers moeten kunnen zoomen.
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
   viewportFit: 'cover',
 }
 
@@ -47,7 +25,7 @@ export default function RootLayout({
   return (
     <html
       lang="nl"
-      className={`${geistSans.variable} ${geistMono.variable} ${instrumentSerif.variable} ${plusJakarta.variable} ${spaceGrotesk.variable} h-full antialiased`}
+      className={`${spaceGrotesk.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         {children}

@@ -5,26 +5,38 @@ export const dynamic = 'force-dynamic'
 import { useState } from 'react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
+import { LogoFull } from '@/components/layout/Logo'
+import {
+  TrendingUp, Bot, NotebookPen, Lock, Flame, Target,
+  BarChart3, AlertTriangle, Lightbulb, ClipboardList, FileText, ShieldCheck,
+  Check, User, Users, Leaf, MailCheck,
+} from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 
 type Stap = 'type' | 'hrcode' | 'info' | 'account' | 'bevestig'
 type GebruikerType = 'gebruiker' | 'hr'
 
-const VOORDELEN_WERKNEMER = [
-  { icon: '📈', tekst: 'Zie je eigen vitaliteitsverloop over tijd' },
-  { icon: '🤖', tekst: 'AI-coach beschikbaar voor persoonlijk advies' },
-  { icon: '📓', tekst: 'Privé journal voor reflectie en notities' },
-  { icon: '🔒', tekst: 'Volledig anoniem tegenover je werkgever' },
-  { icon: '🔥', tekst: 'Gewoontetracker met dagelijkse streaks' },
-  { icon: '🎯', tekst: 'Focus- en hersteltools voor op het werk' },
+interface Voordeel {
+  icon: LucideIcon
+  tekst: string
+}
+
+const VOORDELEN_WERKNEMER: Voordeel[] = [
+  { icon: TrendingUp,  tekst: 'Zie je eigen vitaliteitsverloop over tijd' },
+  { icon: Bot,         tekst: 'AI-coach beschikbaar voor persoonlijk advies' },
+  { icon: NotebookPen, tekst: 'Privé journal voor reflectie en notities' },
+  { icon: Lock,        tekst: 'Volledig anoniem tegenover je werkgever' },
+  { icon: Flame,       tekst: 'Gewoontetracker met dagelijkse streaks' },
+  { icon: Target,      tekst: 'Focus- en hersteltools voor op het werk' },
 ]
 
-const VOORDELEN_HR = [
-  { icon: '📊', tekst: 'Realtime welzijnsdata van je hele team' },
-  { icon: '⚠️', tekst: 'Vroege signalen bij burn-out risicos' },
-  { icon: '💡', tekst: 'AI-inzichten en concrete HR-adviezen' },
-  { icon: '📋', tekst: 'Anonieme pulse surveys met templates' },
-  { icon: '📄', tekst: 'Exporteerbare rapporten voor management' },
-  { icon: '🛡️', tekst: 'Privacy-by-design - AVG-conform' },
+const VOORDELEN_HR: Voordeel[] = [
+  { icon: BarChart3,     tekst: 'Realtime welzijnsdata van je hele team' },
+  { icon: AlertTriangle, tekst: 'Vroege signalen bij burn-out-risico’s' },
+  { icon: Lightbulb,     tekst: 'AI-inzichten en concrete HR-adviezen' },
+  { icon: ClipboardList, tekst: 'Anonieme pulse surveys met templates' },
+  { icon: FileText,      tekst: 'Exporteerbare rapporten voor management' },
+  { icon: ShieldCheck,   tekst: 'Privacy-by-design - AVG-conform' },
 ]
 
 
@@ -49,12 +61,12 @@ function StapIndicator({ huidig, type }: { stap: Stap; huidig: Stap; type: Gebru
               <div
                 className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold transition-all"
                 style={{
-                  background: gedaan ? 'var(--mf-green)' : actief ? '#0a0f1e' : 'var(--border)',
-                  color: gedaan ? 'white' : actief ? 'white' : 'var(--text-3)',
-                  border: actief ? '2px solid #1D9E75' : 'none',
+                  background: gedaan ? 'var(--mf-green)' : actief ? 'var(--bg-subtle)' : 'var(--border)',
+                  color: gedaan ? 'var(--bg-app)' : actief ? 'var(--text-1)' : 'var(--text-3)',
+                  border: actief ? '2px solid var(--mf-green)' : 'none',
                 }}
               >
-                {gedaan ? 'v' : i + 1}
+                {gedaan ? <Check size={16} strokeWidth={3} aria-hidden /> : i + 1}
               </div>
               <span className="text-xs mt-1.5 font-medium hidden sm:block"
                 style={{ color: actief ? 'var(--mf-green)' : gedaan ? 'var(--text-2)' : 'var(--text-3)' }}>
@@ -152,6 +164,13 @@ export default function Register() {
           rol: type === 'hr' ? 'hr' : 'medewerker',
           organisatie: organisatie.trim(),
           functie: functie.trim(),
+          nieuwsbrief,
+          // Bewaar de gevalideerde HR-code in de user-metadata, zodat de
+          // koppeling niet verloren gaat als de sessie pas na
+          // e-mailbevestiging ontstaat (signUpData.session is dan null).
+          ...(type === 'gebruiker' && hrCodeBedrijfId
+            ? { hr_code: hrCode.toUpperCase().trim() }
+            : {}),
         },
       },
     })
@@ -198,17 +217,17 @@ export default function Register() {
   }
 
   return (
-    <div className="mf-mesh-bg min-h-screen flex flex-col" style={{ fontFamily: 'var(--font-geist-sans)' }}>
+    <div className="mf-mesh-bg min-h-screen flex flex-col">
 
       {/* Header */}
-      <header className="w-full bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: 'var(--mf-green)' }}>
-            <span className="text-white text-sm font-bold">M</span>
-          </div>
-          <span className="font-bold text-gray-900 text-lg tracking-tight">MentaForce</span>
+      <header
+        className="w-full px-6 py-4 flex items-center justify-between"
+        style={{ background: 'var(--bg-card)', borderBottom: '1px solid var(--border)' }}
+      >
+        <Link href="/" aria-label="MentaForce home">
+          <LogoFull iconSize={32} />
         </Link>
-        <p className="text-sm text-gray-500">
+        <p className="text-sm" style={{ color: 'var(--text-3)' }}>
           Al een account?{' '}
           <Link href="/login" className="font-semibold transition" style={{ color: 'var(--mf-green)' }}>
             Inloggen
@@ -216,7 +235,7 @@ export default function Register() {
         </p>
       </header>
 
-      <div className="flex flex-1 flex-col lg:flex-row">
+      <main className="flex flex-1 flex-col lg:flex-row">
 
         {/* Left panel - form */}
         <div className="flex-1 flex items-start justify-center px-6 py-12">
@@ -229,8 +248,8 @@ export default function Register() {
             {/* STAP 1: Kies type */}
             {stap === 'type' && (
               <div>
-                <h1 className="text-3xl font-extrabold text-gray-900 mb-2 tracking-tight">Wie ben je?</h1>
-                <p className="text-gray-500 mb-6">We passen MentaForce aan op basis van jouw rol.</p>
+                <h1 className="text-3xl font-extrabold mb-2 tracking-tight" style={{ color: 'var(--text-1)' }}>Wie ben je?</h1>
+                <p className="mb-6" style={{ color: 'var(--text-3)' }}>We passen MentaForce aan op basis van jouw rol.</p>
 
                 {/* Google SSO shortcut */}
                 <button
@@ -244,10 +263,9 @@ export default function Register() {
                   className="w-full flex items-center justify-center gap-3 rounded-2xl py-3.5 mb-5 font-semibold transition"
                   style={{
                     background: 'var(--bg-card)',
-                    border: '1.5px solid #e5e7eb',
+                    border: '1.5px solid var(--border-strong)',
                     color: 'var(--text-2)',
                     fontSize: 15,
-                    boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
                   }}
                 >
                   <svg width="18" height="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -260,26 +278,26 @@ export default function Register() {
                 </button>
 
                 <div className="flex items-center gap-3 mb-6">
-                  <div className="flex-1 h-px bg-gray-200" />
-                  <span className="text-xs font-medium text-gray-400">of kies je rol</span>
-                  <div className="flex-1 h-px bg-gray-200" />
+                  <div className="flex-1 h-px" style={{ background: 'var(--border)' }} />
+                  <span className="text-xs font-medium" style={{ color: 'var(--text-4)' }}>of kies je rol</span>
+                  <div className="flex-1 h-px" style={{ background: 'var(--border)' }} />
                 </div>
 
                 <div className="flex flex-col gap-4 mb-8">
                   {[
                     {
                       id: 'gebruiker' as GebruikerType,
-                      icon: '👤',
+                      icon: User,
                       titel: 'Gebruiker',
                       beschrijving: 'Ik wil mijn eigen welzijn bijhouden en persoonlijke tools gebruiken.',
-                      badge: null,
+                      badge: null as string | null,
                     },
                     {
                       id: 'hr' as GebruikerType,
-                      icon: '👥',
+                      icon: Users,
                       titel: 'HR-manager of leidinggevende',
                       beschrijving: 'Ik wil het welzijn van mijn team monitoren en HR-inzichten ontvangen.',
-                      badge: 'Populairste keuze',
+                      badge: 'Voor teams & organisaties',
                     },
                   ].map(o => (
                     <button
@@ -288,26 +306,34 @@ export default function Register() {
                       className="relative text-left p-5 rounded-2xl border-2 transition-all"
                       style={{
                         borderColor: type === o.id ? 'var(--mf-green)' : 'var(--border)',
-                        background: type === o.id ? 'var(--mf-green-light)' : 'white',
+                        background: type === o.id ? 'var(--mf-green-light)' : 'var(--bg-card)',
                       }}
                     >
                       {o.badge && (
-                        <span className="absolute -top-3 left-4 text-xs font-bold px-3 py-1 rounded-full text-white"
-                          style={{ background: 'var(--mf-green)' }}>
+                        <span className="absolute -top-3 left-4 text-xs font-bold px-3 py-1 rounded-full"
+                          style={{ background: 'var(--mf-green)', color: 'var(--bg-app)' }}>
                           {o.badge}
                         </span>
                       )}
                       <div className="flex items-start gap-4">
-                        <span className="text-3xl mt-0.5">{o.icon}</span>
+                        <span
+                          aria-hidden
+                          className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
+                          style={{ background: 'var(--mf-green-light)' }}
+                        >
+                          <o.icon size={18} style={{ color: 'var(--mf-green)' }} />
+                        </span>
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
-                            <p className="font-semibold text-gray-900">{o.titel}</p>
+                            <p className="font-semibold" style={{ color: 'var(--text-1)' }}>{o.titel}</p>
                             {type === o.id && (
-                              <span className="w-5 h-5 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
-                                style={{ background: 'var(--mf-green)' }}>v</span>
+                              <span className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
+                                style={{ background: 'var(--mf-green)', color: 'var(--bg-app)' }}>
+                                <Check size={12} strokeWidth={3} aria-hidden />
+                              </span>
                             )}
                           </div>
-                          <p className="text-sm text-gray-500">{o.beschrijving}</p>
+                          <p className="text-sm" style={{ color: 'var(--text-3)' }}>{o.beschrijving}</p>
                         </div>
                       </div>
                     </button>
@@ -321,10 +347,10 @@ export default function Register() {
                     setStap(type === 'gebruiker' ? 'hrcode' : 'info')
                   }}
                   disabled={!type}
-                  className="w-full py-4 rounded-xl text-white font-bold text-sm transition hover:opacity-90 disabled:opacity-30"
+                  className="w-full py-4 rounded-xl font-bold text-sm transition hover:opacity-90 disabled:opacity-30"
                   style={{
-                    background: 'linear-gradient(135deg, var(--color-primary, #1D9E75) 0%, var(--color-primary-dark, #15785A) 100%)',
-                    boxShadow: '0 4px 16px rgba(29,158,117,0.35)',
+                    background: 'var(--mf-green)', color: 'var(--bg-app)',
+                    boxShadow: '0 4px 16px color-mix(in srgb, var(--mf-green) 30%, transparent)',
                   }}
                 >
                   Verder
@@ -335,14 +361,14 @@ export default function Register() {
             {/* STAP 1b: HR Code invoer (alleen voor werknemers) */}
             {stap === 'hrcode' && (
               <div>
-                <h1 className="text-3xl font-extrabold text-gray-900 mb-2 tracking-tight">HR Code van je werkgever</h1>
-                <p className="text-gray-500 mb-8">
+                <h1 className="text-3xl font-extrabold mb-2 tracking-tight" style={{ color: 'var(--text-1)' }}>HR Code van je werkgever</h1>
+                <p className="mb-8" style={{ color: 'var(--text-3)' }}>
                   Voer de 7-tekens HR code in die je van je werkgever of HR-afdeling hebt ontvangen.
                   Geen code? Je kunt deze stap overslaan en later koppelen via Instellingen.
                 </p>
 
                 <div className="mb-6">
-                  <label htmlFor="reg-hrcode" className="text-xs font-semibold text-gray-600 block mb-2">HR Code</label>
+                  <label htmlFor="reg-hrcode" className="text-xs font-semibold block mb-2" style={{ color: 'var(--text-2)' }}>HR Code</label>
                   <input
                     id="reg-hrcode"
                     type="text"
@@ -362,7 +388,8 @@ export default function Register() {
                     className="w-full border-2 rounded-xl px-4 py-4 text-2xl font-mono font-bold text-center tracking-[0.3em] outline-none transition"
                     style={{
                       borderColor: hrCodeFout ? 'var(--mf-red)' : hrCode.length === 7 ? 'var(--mf-green)' : 'var(--border)',
-                      color: '#0a0f1e',
+                      background: 'var(--bg-card)',
+                      color: 'var(--text-1)',
                     }}
                     spellCheck={false}
                     autoComplete="off"
@@ -384,22 +411,27 @@ export default function Register() {
                 <div className="flex gap-3">
                   <button
                     onClick={() => setStap('type')}
-                    className="px-6 py-4 rounded-xl text-sm font-medium text-gray-600 border border-gray-200 hover:bg-gray-50 transition"
+                    className="px-6 py-4 rounded-xl text-sm font-medium transition hover:opacity-80"
+                    style={{ color: 'var(--text-2)', border: '1px solid var(--border-strong)' }}
                   >
                     Terug
                   </button>
                   <button
                     onClick={valideerHrCode}
                     disabled={hrCodeBezig || hrCode.length < 7}
-                    className="flex-1 py-4 rounded-xl text-white font-bold text-sm transition hover:opacity-90 disabled:opacity-30 flex items-center justify-center gap-2"
+                    className="flex-1 py-4 rounded-xl font-bold text-sm transition hover:opacity-90 disabled:opacity-30 flex items-center justify-center gap-2"
                     style={{
-                      background: 'linear-gradient(135deg, var(--color-primary, #1D9E75) 0%, var(--color-primary-dark, #15785A) 100%)',
-                      boxShadow: '0 4px 16px rgba(29,158,117,0.35)',
+                      background: 'var(--mf-green)', color: 'var(--bg-app)',
+                      boxShadow: '0 4px 16px color-mix(in srgb, var(--mf-green) 30%, transparent)',
                     }}
                   >
                     {hrCodeBezig ? (
                       <>
-                        <div className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                        <div
+                          aria-hidden
+                          className="w-4 h-4 rounded-full border-2 animate-spin"
+                          style={{ borderColor: 'color-mix(in srgb, var(--bg-app) 30%, transparent)', borderTopColor: 'var(--bg-app)' }}
+                        />
                         Controleren...
                       </>
                     ) : (
@@ -414,7 +446,8 @@ export default function Register() {
                     setHrCodeBedrijfsnaam('')
                     setStap('info')
                   }}
-                  className="w-full mt-4 text-sm text-gray-400 hover:text-gray-600 transition underline"
+                  className="w-full mt-4 text-sm transition underline hover:opacity-80"
+                  style={{ color: 'var(--text-3)' }}
                 >
                   Ik heb geen HR code, overslaan
                 </button>
@@ -424,12 +457,12 @@ export default function Register() {
             {/* STAP 2: Persoonlijke info */}
             {stap === 'info' && (
               <div>
-                <h1 className="text-3xl font-extrabold text-gray-900 mb-2 tracking-tight">Vertel ons iets over jezelf</h1>
-                <p className="text-gray-500 mb-8">Alleen je naam is verplicht. De rest is optioneel.</p>
+                <h1 className="text-3xl font-extrabold mb-2 tracking-tight" style={{ color: 'var(--text-1)' }}>Vertel ons iets over jezelf</h1>
+                <p className="mb-8" style={{ color: 'var(--text-3)' }}>Alleen je naam is verplicht. De rest is optioneel.</p>
 
                 <div className="flex flex-col gap-4 mb-8">
                   <div>
-                    <label htmlFor="reg-naam" className="text-xs font-semibold text-gray-600 block mb-1.5">Jouw naam *</label>
+                    <label htmlFor="reg-naam" className="text-xs font-semibold block mb-1.5" style={{ color: 'var(--text-2)' }}>Jouw naam *</label>
                     <input
                       id="reg-naam"
                       type="text"
@@ -438,14 +471,14 @@ export default function Register() {
                       placeholder="Jan Janssen"
                       autoFocus
                       autoComplete="name"
-                      className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-gray-400 transition bg-white"
+                      className="mf-input"
                     />
                   </div>
 
                   {(type === 'hr') && (
                     <>
                       <div>
-                        <label htmlFor="reg-organisatie" className="text-xs font-semibold text-gray-600 block mb-1.5">Organisatie</label>
+                        <label htmlFor="reg-organisatie" className="text-xs font-semibold block mb-1.5" style={{ color: 'var(--text-2)' }}>Organisatie</label>
                         <input
                           id="reg-organisatie"
                           type="text"
@@ -453,16 +486,16 @@ export default function Register() {
                           onChange={e => setOrganisatie(e.target.value)}
                           placeholder="Naam van je bedrijf"
                           autoComplete="organization"
-                          className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-gray-400 transition bg-white"
+                          className="mf-input"
                         />
                       </div>
                       <div>
-                        <label htmlFor="reg-teamgrootte" className="text-xs font-semibold text-gray-600 block mb-1.5">Teamgrootte</label>
+                        <label htmlFor="reg-teamgrootte" className="text-xs font-semibold block mb-1.5" style={{ color: 'var(--text-2)' }}>Teamgrootte</label>
                         <select
                           id="reg-teamgrootte"
                           value={teamgrootte}
                           onChange={e => setTeamgrootte(e.target.value)}
-                          className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-gray-400 transition bg-white appearance-none"
+                          className="mf-input appearance-none"
                         >
                           <option value="" disabled>Selecteer aantal medewerkers</option>
                           <option value="10-24">10 tot 24 medewerkers</option>
@@ -476,19 +509,19 @@ export default function Register() {
                   )}
 
                   <div>
-                    <label htmlFor="reg-functie" className="text-xs font-semibold text-gray-600 block mb-1.5">Functie (optioneel)</label>
+                    <label htmlFor="reg-functie" className="text-xs font-semibold block mb-1.5" style={{ color: 'var(--text-2)' }}>Functie (optioneel)</label>
                     <input
                       id="reg-functie"
                       type="text"
                       value={functie}
                       onChange={e => setFunctie(e.target.value)}
                       placeholder={type === 'hr' ? 'bijv. HR Manager' : 'bijv. Software Developer'}
-                      className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-gray-400 transition bg-white"
+                      className="mf-input"
                     />
                   </div>
 
                   <div>
-                    <label htmlFor="reg-telefoon" className="text-xs font-semibold text-gray-600 block mb-1.5">Telefoonnummer (optioneel)</label>
+                    <label htmlFor="reg-telefoon" className="text-xs font-semibold block mb-1.5" style={{ color: 'var(--text-2)' }}>Telefoonnummer (optioneel)</label>
                     <input
                       id="reg-telefoon"
                       type="tel"
@@ -496,7 +529,7 @@ export default function Register() {
                       autoComplete="tel"
                       onChange={e => setTelefoon(e.target.value)}
                       placeholder="+32 4xx xx xx xx"
-                      className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-gray-400 transition bg-white"
+                      className="mf-input"
                     />
                   </div>
                 </div>
@@ -504,17 +537,18 @@ export default function Register() {
                 <div className="flex gap-3">
                   <button
                     onClick={() => setStap(type === 'gebruiker' ? 'hrcode' : 'type')}
-                    className="px-6 py-4 rounded-xl text-sm font-medium text-gray-600 border border-gray-200 hover:bg-gray-50 transition"
+                    className="px-6 py-4 rounded-xl text-sm font-medium transition hover:opacity-80"
+                    style={{ color: 'var(--text-2)', border: '1px solid var(--border-strong)' }}
                   >
                     Terug
                   </button>
                   <button
                     onClick={() => naam.trim() && setStap('account')}
                     disabled={!naam.trim()}
-                    className="flex-1 py-4 rounded-xl text-white font-bold text-sm transition hover:opacity-90 disabled:opacity-30"
+                    className="flex-1 py-4 rounded-xl font-bold text-sm transition hover:opacity-90 disabled:opacity-30"
                     style={{
-                      background: 'linear-gradient(135deg, var(--color-primary, #1D9E75) 0%, var(--color-primary-dark, #15785A) 100%)',
-                      boxShadow: '0 4px 16px rgba(29,158,117,0.35)',
+                      background: 'var(--mf-green)', color: 'var(--bg-app)',
+                      boxShadow: '0 4px 16px color-mix(in srgb, var(--mf-green) 30%, transparent)',
                     }}
                   >
                     Verder
@@ -526,8 +560,8 @@ export default function Register() {
             {/* STAP 3: Account aanmaken */}
             {stap === 'account' && (
               <div>
-                <h1 className="text-3xl font-extrabold text-gray-900 mb-2 tracking-tight">Maak je account aan</h1>
-                <p className="text-gray-500 mb-6">Kies een sterk wachtwoord, of gebruik Google voor snelle toegang.</p>
+                <h1 className="text-3xl font-extrabold mb-2 tracking-tight" style={{ color: 'var(--text-1)' }}>Maak je account aan</h1>
+                <p className="mb-6" style={{ color: 'var(--text-3)' }}>Kies een sterk wachtwoord, of gebruik Google voor snelle toegang.</p>
 
                 {/* Google SSO */}
                 <button
@@ -541,10 +575,9 @@ export default function Register() {
                   className="w-full flex items-center justify-center gap-3 rounded-2xl py-3.5 mb-5 font-semibold transition"
                   style={{
                     background: 'var(--bg-card)',
-                    border: '1.5px solid #e5e7eb',
+                    border: '1.5px solid var(--border-strong)',
                     color: 'var(--text-2)',
                     fontSize: 15,
-                    boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
                   }}
                 >
                   <svg width="18" height="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -557,14 +590,14 @@ export default function Register() {
                 </button>
 
                 <div className="flex items-center gap-3 mb-6">
-                  <div className="flex-1 h-px bg-gray-200" />
-                  <span className="text-xs font-medium text-gray-400">of met e-mail</span>
-                  <div className="flex-1 h-px bg-gray-200" />
+                  <div className="flex-1 h-px" style={{ background: 'var(--border)' }} />
+                  <span className="text-xs font-medium" style={{ color: 'var(--text-4)' }}>of met e-mail</span>
+                  <div className="flex-1 h-px" style={{ background: 'var(--border)' }} />
                 </div>
 
                 <div className="flex flex-col gap-4 mb-6">
                   <div>
-                    <label htmlFor="reg-email" className="text-xs font-semibold text-gray-600 block mb-1.5">E-mailadres *</label>
+                    <label htmlFor="reg-email" className="text-xs font-semibold block mb-1.5" style={{ color: 'var(--text-2)' }}>E-mailadres *</label>
                     <input
                       id="reg-email"
                       type="email"
@@ -574,8 +607,8 @@ export default function Register() {
                       autoFocus
                       autoComplete="email"
                       aria-describedby={emailFout ? 'reg-email-fout' : undefined}
-                      className="w-full border rounded-xl px-4 py-3 text-sm outline-none transition bg-white"
-                      style={{ borderColor: emailFout ? 'var(--mf-red)' : 'var(--border)' }}
+                      className="mf-input"
+                      style={{ borderColor: emailFout ? 'var(--mf-red)' : undefined }}
                     />
                     {emailFout && (
                       <p id="reg-email-fout" className="text-xs mt-1" style={{ color: 'var(--mf-red)' }}>{emailFout}</p>
@@ -583,7 +616,7 @@ export default function Register() {
                   </div>
 
                   <div>
-                    <label htmlFor="reg-wachtwoord" className="text-xs font-semibold text-gray-600 block mb-1.5">Wachtwoord *</label>
+                    <label htmlFor="reg-wachtwoord" className="text-xs font-semibold block mb-1.5" style={{ color: 'var(--text-2)' }}>Wachtwoord *</label>
                     <div className="relative">
                       <input
                         id="reg-wachtwoord"
@@ -592,12 +625,13 @@ export default function Register() {
                         onChange={e => setWachtwoord(e.target.value)}
                         placeholder="Minimaal 8 tekens"
                         autoComplete="new-password"
-                        className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-gray-400 transition bg-white pr-16"
+                        className="mf-input pr-16"
                       />
                       <button
                         type="button"
                         onClick={() => setToonWachtwoord(t => !t)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 hover:text-gray-600 px-1"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-xs px-1 transition hover:opacity-70"
+                        style={{ color: 'var(--text-3)' }}
                       >
                         {toonWachtwoord ? 'Verberg' : 'Toon'}
                       </button>
@@ -614,7 +648,7 @@ export default function Register() {
                   </div>
 
                   <div>
-                    <label htmlFor="reg-bevestig" className="text-xs font-semibold text-gray-600 block mb-1.5">Wachtwoord bevestigen *</label>
+                    <label htmlFor="reg-bevestig" className="text-xs font-semibold block mb-1.5" style={{ color: 'var(--text-2)' }}>Wachtwoord bevestigen *</label>
                     <input
                       id="reg-bevestig"
                       type={toonWachtwoord ? 'text' : 'password'}
@@ -624,7 +658,7 @@ export default function Register() {
                       placeholder="Herhaal wachtwoord"
                       autoComplete="new-password"
                       aria-describedby={bevestigWachtwoord && wachtwoord !== bevestigWachtwoord ? 'reg-mismatch' : undefined}
-                      className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-gray-400 transition bg-white"
+                      className="mf-input"
                       style={{ borderColor: bevestigWachtwoord && wachtwoord !== bevestigWachtwoord ? 'var(--mf-red)' : '' }}
                     />
                     {bevestigWachtwoord && wachtwoord !== bevestigWachtwoord && (
@@ -642,7 +676,7 @@ export default function Register() {
                       className="mt-0.5 w-4 h-4 rounded"
                       style={{ accentColor: 'var(--mf-green)' }}
                     />
-                    <span className="text-sm text-gray-600">
+                    <span className="text-sm" style={{ color: 'var(--text-2)' }}>
                       Ik ga akkoord met de{' '}
                       <Link href="/voorwaarden" target="_blank" className="font-semibold underline" style={{ color: 'var(--mf-green)' }}>
                         Algemene Voorwaarden
@@ -658,7 +692,7 @@ export default function Register() {
                       className="mt-0.5 w-4 h-4 rounded"
                       style={{ accentColor: 'var(--mf-green)' }}
                     />
-                    <span className="text-sm text-gray-600">
+                    <span className="text-sm" style={{ color: 'var(--text-2)' }}>
                       Stuur mij tips over welzijn op het werk en updates over MentaForce. (optioneel)
                     </span>
                   </label>
@@ -674,22 +708,27 @@ export default function Register() {
                 <div className="flex gap-3">
                   <button
                     onClick={() => setStap('info')}
-                    className="px-6 py-4 rounded-xl text-sm font-medium text-gray-600 border border-gray-200 hover:bg-gray-50 transition"
+                    className="px-6 py-4 rounded-xl text-sm font-medium transition hover:opacity-80"
+                    style={{ color: 'var(--text-2)', border: '1px solid var(--border-strong)' }}
                   >
                     Terug
                   </button>
                   <button
                     onClick={registreer}
                     disabled={bezig || !email || !emailGeldig || !wachtwoord || wachtwoord.length < 8 || wachtwoord !== bevestigWachtwoord || !akkoord}
-                    className="flex-1 py-4 rounded-xl text-white font-bold text-sm transition hover:opacity-90 disabled:opacity-30 flex items-center justify-center gap-2"
+                    className="flex-1 py-4 rounded-xl font-bold text-sm transition hover:opacity-90 disabled:opacity-30 flex items-center justify-center gap-2"
                     style={{
-                      background: 'linear-gradient(135deg, var(--color-primary, #1D9E75) 0%, var(--color-primary-dark, #15785A) 100%)',
-                      boxShadow: '0 4px 16px rgba(29,158,117,0.35)',
+                      background: 'var(--mf-green)', color: 'var(--bg-app)',
+                      boxShadow: '0 4px 16px color-mix(in srgb, var(--mf-green) 30%, transparent)',
                     }}
                   >
                     {bezig ? (
                       <>
-                        <div className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                        <div
+                          aria-hidden
+                          className="w-4 h-4 rounded-full border-2 animate-spin"
+                          style={{ borderColor: 'color-mix(in srgb, var(--bg-app) 30%, transparent)', borderTopColor: 'var(--bg-app)' }}
+                        />
                         Bezig...
                       </>
                     ) : (
@@ -698,7 +737,7 @@ export default function Register() {
                   </button>
                 </div>
 
-                <p className="text-xs text-gray-400 text-center mt-4">
+                <p className="text-xs text-center mt-4" style={{ color: 'var(--text-4)' }}>
                   Je kunt altijd op elk moment je account verwijderen via Instellingen.
                 </p>
               </div>
@@ -707,21 +746,22 @@ export default function Register() {
             {/* STAP 4: Bevestiging */}
             {stap === 'bevestig' && (
               <div className="text-center py-8">
-                <div className="w-24 h-24 rounded-full flex items-center justify-center text-5xl mx-auto mb-8"
-                  style={{ background: 'var(--mf-green-light)' }}>
-                  ✉️
+                <div className="w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-8"
+                  style={{ background: 'var(--mf-green-light)' }} aria-hidden>
+                  <MailCheck size={40} strokeWidth={1.75} style={{ color: 'var(--mf-green)' }} />
                 </div>
-                <h1 className="text-3xl font-extrabold text-gray-900 mb-3 tracking-tight">Bevestig je e-mail</h1>
-                <p className="text-gray-500 mb-2 text-base leading-relaxed">
+                <h1 className="text-3xl font-extrabold mb-3 tracking-tight" style={{ color: 'var(--text-1)' }}>Bevestig je e-mail</h1>
+                <p className="mb-2 text-base leading-relaxed" style={{ color: 'var(--text-3)' }}>
                   We hebben een bevestigingsmail gestuurd naar
                 </p>
-                <p className="font-semibold text-gray-900 mb-6 text-lg">{email}</p>
-                <p className="text-sm text-gray-400 mb-10 leading-relaxed max-w-sm mx-auto">
+                <p className="font-semibold mb-6 text-lg" style={{ color: 'var(--text-1)' }}>{email}</p>
+                <p className="text-sm mb-10 leading-relaxed max-w-sm mx-auto" style={{ color: 'var(--text-4)' }}>
                   Klik op de link in de mail om je account te activeren. Check ook je spam-map als je niets ontvangt.
                 </p>
 
-                <div className="bg-gray-50 rounded-2xl border border-gray-100 p-6 mb-8 text-left">
-                  <p className="text-xs font-bold text-gray-400 mb-4 uppercase tracking-widest">Wat nu?</p>
+                <div className="rounded-2xl p-6 mb-8 text-left"
+                  style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+                  <p className="text-xs font-bold mb-4 uppercase tracking-widest" style={{ color: 'var(--text-4)' }}>Wat nu?</p>
                   <div className="flex flex-col gap-3">
                     {[
                       { icon: '1', tekst: 'Open je e-mail en klik op de bevestigingslink' },
@@ -729,21 +769,21 @@ export default function Register() {
                       { icon: '3', tekst: 'Log in en doe je eerste check-in' },
                     ].map(s => (
                       <div key={s.icon} className="flex items-center gap-3">
-                        <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
-                          style={{ background: 'var(--mf-green)' }}>
+                        <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
+                          style={{ background: 'var(--mf-green)', color: 'var(--bg-app)' }}>
                           {s.icon}
                         </div>
-                        <p className="text-sm text-gray-600">{s.tekst}</p>
+                        <p className="text-sm" style={{ color: 'var(--text-2)' }}>{s.tekst}</p>
                       </div>
                     ))}
                   </div>
                 </div>
 
                 <Link href="/login"
-                  className="inline-flex items-center justify-center w-full py-4 rounded-xl text-white font-bold text-sm transition hover:opacity-90"
+                  className="inline-flex items-center justify-center w-full py-4 rounded-xl font-bold text-sm transition hover:opacity-90"
                   style={{
-                    background: 'linear-gradient(135deg, var(--color-primary, #1D9E75) 0%, var(--color-primary-dark, #15785A) 100%)',
-                    boxShadow: '0 4px 16px rgba(29,158,117,0.35)',
+                    background: 'var(--mf-green)', color: 'var(--bg-app)',
+                    boxShadow: '0 4px 16px color-mix(in srgb, var(--mf-green) 30%, transparent)',
                   }}>
                   Ga naar inloggen
                 </Link>
@@ -752,7 +792,7 @@ export default function Register() {
                     Mail opnieuw verstuurd. Controleer ook je spam-map.
                   </p>
                 ) : (
-                  <p className="text-xs text-gray-400 text-center mt-4">
+                  <p className="text-xs text-center mt-4" style={{ color: 'var(--text-4)' }}>
                     Geen mail ontvangen?{' '}
                     <button
                       disabled={resendBezig}
@@ -763,7 +803,8 @@ export default function Register() {
                         setResendBezig(false)
                         setResendKlaar(true)
                       }}
-                      className="underline hover:text-gray-600 transition disabled:opacity-50"
+                      className="underline transition hover:opacity-70 disabled:opacity-50"
+                      style={{ color: 'var(--text-2)' }}
                     >
                       {resendBezig ? 'Versturen...' : 'Opnieuw versturen'}
                     </button>
@@ -777,21 +818,21 @@ export default function Register() {
         {/* Right panel - info */}
         {stap !== 'bevestig' && (
           <div className="hidden lg:flex flex-col justify-center px-14 py-12 lg:w-[440px] xl:w-[500px] relative overflow-hidden"
-            style={{ background: '#0a0f1e' }}>
+            style={{ background: 'var(--bg-subtle)', borderLeft: '1px solid var(--border)' }}>
             <div className="absolute inset-0 pointer-events-none"
-              style={{ background: 'radial-gradient(ellipse 80% 70% at 80% 30%, rgba(29,158,117,0.12) 0%, transparent 60%)' }} />
+              style={{ background: 'radial-gradient(ellipse 80% 70% at 80% 30%, color-mix(in srgb, var(--mf-green) 12%, transparent) 0%, transparent 60%)' }} />
 
             <div className="relative z-10">
               <div className="mb-10">
                 <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: 'var(--mf-green)' }}>
                   {type === 'hr' ? 'Voor HR-managers' : 'Voor gebruikers'}
                 </p>
-                <h2 className="text-2xl font-bold text-white mb-3 leading-tight">
+                <h2 className="text-2xl font-bold mb-3 leading-tight" style={{ color: 'var(--text-1)' }}>
                   {type === 'hr'
                     ? 'Houd vinger aan de pols van je team'
                     : 'Jouw welzijn in jouw handen'}
                 </h2>
-                <p className="text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.45)' }}>
+                <p className="text-sm leading-relaxed" style={{ color: 'var(--text-3)' }}>
                   {type === 'hr'
                     ? 'MentaForce geeft je realtime inzicht in het welzijn van je team - zonder de privacy van medewerkers te schenden.'
                     : 'Volg je eigen vitaliteit, ontvang persoonlijk advies en gebruik tools die je dagelijks beter laten functioneren.'}
@@ -801,23 +842,35 @@ export default function Register() {
               <div className="flex flex-col gap-3 mb-10">
                 {voordelen.map(v => (
                   <div key={v.tekst} className="flex items-center gap-3">
-                    <span className="text-xl w-8 text-center flex-shrink-0">{v.icon}</span>
-                    <span className="text-sm" style={{ color: 'rgba(255,255,255,0.65)' }}>{v.tekst}</span>
+                    <span
+                      aria-hidden
+                      className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+                      style={{ background: 'var(--mf-green-light)' }}
+                    >
+                      <v.icon size={18} style={{ color: 'var(--mf-green)' }} />
+                    </span>
+                    <span className="text-sm" style={{ color: 'var(--text-2)' }}>{v.tekst}</span>
                   </div>
                 ))}
               </div>
 
-              <div className="rounded-2xl border p-5" style={{ borderColor: 'rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.03)' }}>
+              <div className="rounded-2xl border p-5" style={{ borderColor: 'var(--border)', background: 'var(--bg-card)' }}>
                 <div className="flex items-center gap-2 mb-3">
-                  <span className="text-2xl">
-                    {type === 'hr' ? '👥' : '🌿'}
+                  <span
+                    aria-hidden
+                    className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+                    style={{ background: 'var(--mf-green-light)' }}
+                  >
+                    {type === 'hr'
+                      ? <Users size={18} style={{ color: 'var(--mf-green)' }} />
+                      : <Leaf size={18} style={{ color: 'var(--mf-green)' }} />}
                   </span>
                   <span className="text-xs font-semibold px-2 py-1 rounded-full"
-                    style={{ background: 'rgba(29,158,117,0.2)', color: 'var(--mf-green)' }}>
+                    style={{ background: 'color-mix(in srgb, var(--mf-green) 15%, transparent)', color: 'var(--mf-green)' }}>
                     {type === 'hr' ? 'HR Platform' : 'Gebruikersportaal'}
                   </span>
                 </div>
-                <p className="text-sm leading-relaxed mb-4" style={{ color: 'rgba(255,255,255,0.55)' }}>
+                <p className="text-sm leading-relaxed mb-4" style={{ color: 'var(--text-3)' }}>
                   {type === 'hr'
                     ? 'Stel in minuten je bedrijfsprofiel in, nodig gebruikers uit via een HR-code en begin direct met het monitoren van teamwelzijn.'
                     : 'Doe wekelijks je check-in, gebruik de AI-coach en volg je eigen vitaliteit — optioneel koppel je aan je werkgever.'}
@@ -825,8 +878,8 @@ export default function Register() {
                 <div className="flex flex-col gap-1.5">
                   {(type === 'hr' ? VOORDELEN_HR : VOORDELEN_WERKNEMER).slice(0, 3).map(v => (
                     <div key={v.tekst} className="flex items-center gap-2">
-                      <span className="text-sm">{v.icon}</span>
-                      <span className="text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>{v.tekst}</span>
+                      <v.icon size={14} aria-hidden style={{ color: 'var(--mf-green)', flexShrink: 0 }} />
+                      <span className="text-xs" style={{ color: 'var(--text-3)' }}>{v.tekst}</span>
                     </div>
                   ))}
                 </div>
@@ -835,15 +888,15 @@ export default function Register() {
               <div className="mt-8 flex items-center gap-4">
                 {['Gratis te starten', 'AVG-conform', 'Geen creditcard'].map(t => (
                   <div key={t} className="flex items-center gap-1.5">
-                    <span className="text-xs font-bold" style={{ color: 'var(--mf-green)' }}>✓</span>
-                    <span className="text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>{t}</span>
+                    <Check size={12} strokeWidth={3} aria-hidden style={{ color: 'var(--mf-green)', flexShrink: 0 }} />
+                    <span className="text-xs" style={{ color: 'var(--text-4)' }}>{t}</span>
                   </div>
                 ))}
               </div>
             </div>
           </div>
         )}
-      </div>
+      </main>
     </div>
   )
 }

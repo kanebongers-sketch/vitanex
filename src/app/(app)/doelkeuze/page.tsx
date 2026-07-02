@@ -8,7 +8,7 @@ import { Check, AlertTriangle } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
 import { CAT, DOELKEUZE_OPTIES } from '@/lib/doelen-config'
-import { verwerkCheckin } from '@/lib/xp'
+import { verwerkCheckin, LEVEL_NAMEN, type Achievement } from '@/lib/xp'
 import { syncXPNaarServer } from '@/lib/xp-sync'
 import {
   type WellbeingCat, type WeekDoel, type WeekSelectie,
@@ -19,6 +19,7 @@ import { Card } from '@/components/ui/Card'
 import { useToast } from '@/components/ui/Toast'
 import { CheckinInsight } from '@/components/checkin/CheckinInsight'
 import VitaDoelbegeleider from '@/components/vita/VitaDoelbegeleider'
+import VitaLeegScherm from '@/components/vita/VitaLeegScherm'
 
 const ALLE_VLAKKEN: WellbeingCat[] = ['slaap', 'stress', 'energie', 'focus', 'balans', 'motivatie']
 
@@ -54,6 +55,14 @@ function DoelKeuzeInhoud() {
   // Vita's persoonlijke intro. `null` als er geen geldige scores binnenkwamen.
   const focusLabel = topDrie.length > 0 ? CAT[topDrie[0]].label : null
 
+  function toonXPToast(xp: number, level: number | undefined, achievements: Achievement[]) {
+    const titel = level ? `Level ${level} — ${LEVEL_NAMEN[level]}!` : `+${xp} XP verdiend!`
+    const beschrijving = achievements.length > 0
+      ? `Nieuwe badge: ${achievements.map(a => a.naam).join(', ')}`
+      : level ? `+${xp} XP verdiend` : undefined
+    toast({ title: titel, description: beschrijving, variant: 'success' })
+  }
+
   async function slaatOp() {
     if (!alleGekozen) return
     const doelen: WeekDoel[] = topDrie.map(vlak => {
@@ -75,6 +84,20 @@ function DoelKeuzeInhoud() {
     }
     slaWeekSelectieOp(ws)
     setOpgeslagen(true)
+
+    // Check-in-XP direct hier toekennen (niet pas na de analyse) zodat de
+    // beloning zichtbaar is vóór de navigatie. De sameISOWeek-dedupe in
+    // verwerkCheckin voorkomt dubbele toekenning binnen dezelfde week.
+    try {
+      const scoreVals = Object.values(scores).filter(v => v > 0)
+      const gem = scoreVals.reduce((a, b) => a + b, 0) / (scoreVals.length || 1)
+      // Vlak-scores lopen 4–20 (4 vragen × 1–5) → deel door 4 voor de 1–5-schaal.
+      const xpResult = verwerkCheckin(gem / 4)
+      if (xpResult.xpGewonnen > 0 || xpResult.nieuweAchievements.length > 0) {
+        toonXPToast(xpResult.xpGewonnen, xpResult.levelOmhoog ? xpResult.nieuwLevel : undefined, xpResult.nieuweAchievements)
+      }
+      syncXPNaarServer(xpResult.xpData).catch(() => { /* stil falen — lokaal blijft intact */ })
+    } catch { /* niet-kritiek — doelen zijn opgeslagen */ }
 
     // Redirect immediately — analysis runs in background for the rapport page
     router.push('/home')
@@ -123,10 +146,6 @@ function DoelKeuzeInhoud() {
       const json = await res.json()
       if (!json.analyse) return
 
-      const scoreVals = Object.values(vlak_scores).filter(v => v > 0)
-      const gem = scoreVals.reduce((a, b) => a + b, 0) / (scoreVals.length || 1)
-      const vitaalScore = Math.round(((gem - 4) / 16) * 100)
-
       await supabase.from('checkin_analyses').insert({
         sessie_id:      sessieId,
         user_id:        user.id,
@@ -135,15 +154,31 @@ function DoelKeuzeInhoud() {
         analyse_json:   json.analyse,
         gedeeld_met_hr: false,
       })
-
-      try {
-        const xpResult = verwerkCheckin(vitaalScore)
-        // Direct doorschrijven naar de server zodat check-in-XP nooit alleen lokaal blijft.
-        syncXPNaarServer(xpResult.xpData).catch(() => { /* stil falen — lokaal blijft intact */ })
-      } catch { /* non-critical */ }
     } catch {
       toast({ title: 'Analyse niet beschikbaar', description: 'Je doelen zijn opgeslagen, maar de AI-analyse kon niet worden gemaakt.', variant: 'warning' })
     }
+  }
+
+  // Guard tegen een doodlopende flow: zonder scores (refresh of directe
+  // navigatie) is er niets te kiezen — stuur eerlijk terug naar de check-in.
+  if (topDrie.length === 0) {
+    return (
+      <main className="mf-mesh-bg" style={{
+        minHeight: '100vh',
+        background: 'var(--bg-app)',
+        padding: '40px 20px 80px',
+      }}>
+        <div style={{ maxWidth: 640, margin: '0 auto', paddingTop: 40 }}>
+          <VitaLeegScherm
+            titel="Geen check-in gevonden"
+            boodschap="Ik kan hier alleen doelen voorstellen direct na je check-in. Doe (of hervat) eerst je wekelijkse check-in, dan gaan we samen verder."
+            actieLabel="Start check-in"
+            actieHref="/checkin"
+            emotion="supportive"
+          />
+        </div>
+      </main>
+    )
   }
 
   return (
@@ -205,7 +240,7 @@ function DoelKeuzeInhoud() {
                       {c.label}
                     </div>
                     <div style={{ flex: 1, height: 6, borderRadius: 3, background: 'var(--bg-subtle)', overflow: 'hidden' }}>
-                      <div style={{ height: '100%', width: `${pct}%`, borderRadius: 3, background: kleur, transition: 'width 0.8s var(--ease)' }} />
+                      <div style={{ height: '100%', width: '100%', borderRadius: 3, background: kleur, transform: `scaleX(${pct / 100})`, transformOrigin: 'left', transition: 'transform 0.8s var(--ease)' }} />
                     </div>
                     <span style={{ fontSize: 11, fontWeight: 700, color: kleur, width: 36, textAlign: 'right', flexShrink: 0 }}>{score}/20</span>
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 10, color: 'var(--text-4)', width: 52, flexShrink: 0 }}>
@@ -316,7 +351,7 @@ function DoelKeuzeInhoud() {
           size="lg"
           style={{ width: '100%', marginTop: 4 }}
         >
-          {opgeslagen ? 'Bezig...' : alleGekozen ? 'Start deze week →' : `Kies nog ${resterend} doel${resterend > 1 ? 'en' : ''}`}
+          {opgeslagen ? 'Bezig...' : alleGekozen ? 'Start deze week →' : resterend > 0 ? `Kies nog ${resterend} doel${resterend > 1 ? 'en' : ''}` : 'Kies je doelen'}
         </Button>
 
         <p style={{ textAlign: 'center', fontSize: 12, color: 'var(--text-3)', marginTop: 14 }}>

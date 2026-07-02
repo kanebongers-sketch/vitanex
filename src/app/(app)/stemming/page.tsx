@@ -113,7 +113,7 @@ export default function StemmingPagina() {
         setGelogdeStemming(stemming)
         setSucces(true)
         vitaEvent('mood_logged')
-        setTimeout(() => router.push('/vandaag'), 1500)
+        setTimeout(() => router.push('/home'), 1500)
       } else {
         toast({
           title: 'Opslaan mislukt',
@@ -207,7 +207,7 @@ export default function StemmingPagina() {
               boxShadow: `0 8px 32px color-mix(in srgb, ${geselecteerd.kleur} 13%, transparent)`,
               transition: 'background 0.3s ease, box-shadow 0.3s ease',
             }}>
-              <GeselecteerdIcoon size={56} aria-hidden strokeWidth={1.75} style={{ color: geselecteerd.kleur, display: 'block', transition: 'transform 0.2s cubic-bezier(0.34,1.56,0.64,1)' }} />
+              <GeselecteerdIcoon size={56} aria-hidden strokeWidth={1.75} style={{ color: geselecteerd.kleur, display: 'block', transition: 'transform 0.2s var(--ease)' }} />
             </div>
           </div>
 

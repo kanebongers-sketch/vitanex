@@ -94,21 +94,27 @@ function WaterGlas({ percentage }: { percentage: number }) {
         </clipPath>
       </defs>
       <g clipPath="url(#glasClip)">
-        <rect
-          x="0"
-          y={240 - waterHoogte}
-          width="160"
-          height={waterHoogte + 10}
-          fill="var(--mf-blue-mid)"
-          opacity="0.82"
-          style={{ transition: 'y 0.8s cubic-bezier(0.34, 1.56, 0.64, 1), height 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)' }}
-        />
-        <path
-          d={`M0 ${240 - waterHoogte} q20 -8 40 0 q20 8 40 0 q20 -8 40 0 q20 8 40 0 v10 H0 Z`}
-          fill="var(--mf-blue-light)"
-          opacity="0.7"
-          style={{ transition: 'd 0.8s ease' }}
-        />
+        {/* Vaste geometrie op de 100%-stand; alleen de groep schuift via
+            translateY — transform animeert compositor-vriendelijk, in
+            tegenstelling tot y/height/d-attributen. */}
+        <g style={{
+          transform: `translateY(${200 - waterHoogte}px)`,
+          transition: 'transform 0.8s var(--ease)',
+        }}>
+          <rect
+            x="0"
+            y="40"
+            width="160"
+            height="210"
+            fill="var(--mf-blue-mid)"
+            opacity="0.82"
+          />
+          <path
+            d="M0 40 q20 -8 40 0 q20 8 40 0 q20 -8 40 0 q20 8 40 0 v10 H0 Z"
+            fill="var(--mf-blue-light)"
+            opacity="0.7"
+          />
+        </g>
       </g>
       {[25, 50, 75].map(pct => {
         const y = 240 - (pct / 100) * 200
@@ -348,13 +354,15 @@ export default function WaterPagina() {
             </div>
 
             {/* Voortgangsbalk */}
-            <div style={{ width: '100%', maxWidth: 280, height: 8, background: 'var(--mf-blue-light)', borderRadius: 100 }}>
+            <div style={{ width: '100%', maxWidth: 280, height: 8, background: 'var(--mf-blue-light)', borderRadius: 100, overflow: 'hidden' }}>
               <div style={{
                 height: '100%',
-                width: `${Math.min(percentage, 100)}%`,
+                width: '100%',
+                transform: `scaleX(${Math.min(percentage, 100) / 100})`,
+                transformOrigin: 'left center',
                 background: percentage >= 100 ? 'var(--mf-green)' : 'var(--mf-blue-mid)',
                 borderRadius: 100,
-                transition: 'width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                transition: 'transform 0.6s var(--ease)',
               }} />
             </div>
 

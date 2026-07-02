@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import WeekRingen from './WeekRingen'
+import { Wordmark } from './Logo'
 
 // Een categorie-tab blijft actief als je op een van zijn onderdelen zit
 // (bijv. "Welzijn" oplichten terwijl je op /stemming bent).
@@ -153,16 +154,7 @@ function SidebarContent({
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       {/* Logo */}
       <div style={{ padding: '18px 16px 14px', borderBottom: '1px solid var(--border)' }}>
-        <span style={{
-          fontFamily: 'var(--font-display, Georgia, serif)',
-          fontStyle: 'italic',
-          fontSize: 20,
-          fontWeight: 400,
-          color: 'var(--mf-green)',
-          display: 'block',
-        }}>
-          MentaForce
-        </span>
+        <Wordmark size={15} className="block" />
         <p style={{
           fontSize: 10,
           fontWeight: 600,
@@ -260,7 +252,7 @@ function SidebarContent({
                   strokeWidth={2}
                   style={{
                     transform: isOpen ? 'rotate(90deg)' : 'rotate(0deg)',
-                    transition: 'transform 0.18s cubic-bezier(0.16,1,0.3,1)',
+                    transition: 'transform 0.18s var(--ease)',
                     opacity: 0.4,
                   }}
                 />
@@ -269,7 +261,7 @@ function SidebarContent({
                 style={{
                   maxHeight: isOpen ? '600px' : '0px',
                   overflow: 'hidden',
-                  transition: 'max-height 0.22s cubic-bezier(0.16,1,0.3,1)',
+                  transition: 'max-height 0.22s var(--ease)',
                 }}
               >
                 {item.items?.map((sub) => (
@@ -326,7 +318,7 @@ function SidebarContent({
                 strokeWidth={2}
                 style={{
                   transform: (openSections['hr'] ?? false) ? 'rotate(90deg)' : 'rotate(0deg)',
-                  transition: 'transform 0.18s cubic-bezier(0.16,1,0.3,1)',
+                  transition: 'transform 0.18s var(--ease)',
                   opacity: 0.4,
                 }}
               />
@@ -335,7 +327,7 @@ function SidebarContent({
               style={{
                 maxHeight: (openSections['hr'] ?? false) ? '400px' : '0px',
                 overflow: 'hidden',
-                transition: 'max-height 0.22s cubic-bezier(0.16,1,0.3,1)',
+                transition: 'max-height 0.22s var(--ease)',
               }}
             >
               {HR_ITEMS.map((sub) => (
@@ -559,13 +551,7 @@ export default function Navbar() {
           zIndex: 30,
         }}
       >
-        <span style={{
-          fontFamily: 'var(--font-display, Georgia, serif)',
-          fontStyle: 'italic',
-          fontSize: 17,
-          fontWeight: 400,
-          color: 'var(--mf-green)',
-        }}>MentaForce</span>
+        <Wordmark size={14} />
 
         <button
           onClick={() => setOpenMenu((o) => !o)}
@@ -718,7 +704,7 @@ export default function Navbar() {
                   strokeWidth={isActive ? 2 : 1.6}
                   style={{
                     color: isActive ? 'var(--mf-green)' : 'var(--text-4)',
-                    transition: 'color 0.15s, transform 0.2s cubic-bezier(0.16,1,0.3,1)',
+                    transition: 'color 0.15s, transform 0.2s var(--ease)',
                     transform: isActive ? 'scale(1.08)' : 'scale(1)',
                   }}
                 />

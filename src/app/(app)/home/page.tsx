@@ -262,9 +262,12 @@ export default function DashboardPage() {
           </div>
         </Card>
 
-        {/* CTA */}
+        {/* CTA — zonder readiness-score komt de score uit dagelijkse logs,
+            dus verwijst de knop naar het eerste onvoltooide checklist-item. */}
         <Link
-          href="/checkin"
+          href={readiness === null
+            ? (checklist.find(i => !i.gedaan)?.href ?? '/checkin')
+            : '/checkin'}
           className="mf-pressable mf-cta"
           style={{
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -277,7 +280,7 @@ export default function DashboardPage() {
           }}
         >
           <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--bg-app)', letterSpacing: '-0.01em' }}>
-            {readiness === null ? 'Log vandaag om je score te berekenen' : 'Start check-in'}
+            {readiness === null ? 'Log je dag om je score te berekenen' : 'Start check-in'}
           </span>
           <ChevronRight size={16} strokeWidth={2} aria-hidden style={{ color: 'var(--bg-app)', opacity: 0.8 }} />
         </Link>

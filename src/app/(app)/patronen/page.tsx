@@ -4,6 +4,7 @@ export const dynamic = 'force-dynamic'
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import {
   ArrowLeft, Lock,
   Activity, Moon, CalendarDays, Droplet, TrendingUp, TrendingDown,
@@ -156,8 +157,8 @@ export default function PatronenPage() {
           to   { opacity: 1; transform: translateY(0); }
         }
         .patroon-kaart {
-          animation: fadein 0.4s cubic-bezier(0.16,1,0.3,1) both;
-          transition: transform 0.15s ease, box-shadow 0.15s ease;
+          animation: fadein 0.4s var(--ease) both;
+          transition: transform 0.15s var(--ease), box-shadow 0.15s var(--ease);
         }
         .patroon-kaart:nth-child(1) { animation-delay: 0.04s; }
         .patroon-kaart:nth-child(2) { animation-delay: 0.10s; }
@@ -178,9 +179,9 @@ export default function PatronenPage() {
 
           {/* Header */}
           <div style={{ marginBottom: 24 }}>
-            <a href="/home" style={{ fontSize: 13, color: 'var(--text-4)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 4, marginBottom: 12 }}>
+            <Link href="/home" style={{ fontSize: 13, color: 'var(--text-4)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 4, marginBottom: 12 }}>
               <ArrowLeft size={14} aria-hidden /> Terug
-            </a>
+            </Link>
             <h1 style={{ fontSize: 26, fontWeight: 800, color: 'var(--text-1)', margin: '0 0 6px', letterSpacing: '-0.5px' }}>
               Jouw patronen
             </h1>
@@ -272,7 +273,7 @@ export default function PatronenPage() {
                   titel="Ik zoek nog naar jouw patronen"
                   boodschap="Zodra je een tijdje je stemming, slaap en beweging bijhoudt, laat ik je zien wat jou écht meer energie en rust geeft. Elke check-in brengt dat dichterbij."
                   actieLabel="Doe een check-in"
-                  actieHref="/vandaag"
+                  actieHref="/home"
                 />
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 24 }}>

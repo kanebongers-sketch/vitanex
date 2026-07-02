@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   Send, BatteryLow, Moon, AlertTriangle, Scale, Lightbulb, Target, Wind, Frown,
-  MessageCircleMore, ListChecks, Compass,
+  MessageCircleMore, ListChecks, Compass, RotateCcw,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
@@ -38,14 +38,6 @@ const NUDGE_OPENERS: Record<string, string> = {
   heractivatie: 'Hey, fijn dat je er weer bent. Geen druk — vertel eens, hoe gaat het op dit moment met je?',
 }
 
-// SSR-veilig: leest de start-parameter alleen in de browser. Zo continueert Vita
-// het gesprek dat de nudge startte, zonder flikkering bij het laden.
-function beginBericht(): string {
-  if (typeof window === 'undefined') return WELKOM
-  const start = new URLSearchParams(window.location.search).get('start')
-  return (start && NUDGE_OPENERS[start]) || WELKOM
-}
-
 const SUGGESTIES: { icon: LucideIcon; tekst: string }[] = [
   { icon: Frown, tekst: 'Ik voel me gestrest' },
   { icon: BatteryLow, tekst: 'Mijn energie is op' },
@@ -56,6 +48,8 @@ const SUGGESTIES: { icon: LucideIcon; tekst: string }[] = [
   { icon: Target, tekst: 'Hoe blijf ik gemotiveerd?' },
   { icon: Wind, tekst: 'Ik wil rustiger worden' },
 ]
+
+const FOUT_FALLBACK = 'Sorry, ik kan je nu even niet bereiken. Probeer het zo opnieuw.'
 
 const VERVOLGVRAGEN: { icon: LucideIcon; tekst: string }[] = [
   { icon: MessageCircleMore, tekst: 'Vertel me meer' },
@@ -82,14 +76,29 @@ const DOMEIN_CODES: Record<string, string[]> = {
 export default function CoachPagina() {
   const router = useRouter()
   const [berichten, setBerichten] = useState<ChatBericht[]>([
-    { id: 'welkom', role: 'assistant', content: beginBericht() },
+    { id: 'welkom', role: 'assistant', content: WELKOM },
   ])
   const [input, setInput] = useState('')
   const [laden, setLaden] = useState(false)
   const [klaar, setKlaar] = useState(false)
   const [gebruikerContext, setGebruikerContext] = useState<GebruikerContext | null>(null)
+  const [herstelTekst, setHerstelTekst] = useState<string | null>(null)
   const onderRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
+
+  // Hydration-veilig: de ?start-param wordt pas ná mount gelezen (server en
+  // client renderen beide eerst het welkom). Komt de gebruiker via een nudge
+  // binnen, dan vervangt Vita's eigen opener het welkom vóór de eerste interactie.
+  useEffect(() => {
+    const start = new URLSearchParams(window.location.search).get('start')
+    const opener = start ? NUDGE_OPENERS[start] : undefined
+    if (!opener) return
+    setBerichten(prev =>
+      prev.length === 1 && prev[0].id === 'welkom'
+        ? [{ id: 'opener', role: 'assistant', content: opener }]
+        : prev,
+    )
+  }, [])
 
   useEffect(() => {
     async function check() {
@@ -143,29 +152,40 @@ export default function CoachPagina() {
     onderRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [berichten])
 
-  async function verstuur(tekst?: string) {
+  async function verstuur(tekst?: string, basis?: ChatBericht[]) {
     const invoer = (tekst ?? input).trim()
     if (!invoer || laden) return
 
     setInput('')
+    setHerstelTekst(null)
     if (inputRef.current) inputRef.current.style.height = 'auto'
 
-    const gebruikerBericht: ChatBericht = { id: `u-${berichten.length}`, role: 'user', content: invoer }
-    const assistentId = `a-${berichten.length + 1}`
+    const huidige = basis ?? berichten
+    const gebruikerBericht: ChatBericht = { id: `u-${huidige.length}`, role: 'user', content: invoer }
+    const assistentId = `a-${huidige.length + 1}`
     const nieuweLijst: ChatBericht[] = [
-      ...berichten,
+      ...huidige,
       gebruikerBericht,
       { id: assistentId, role: 'assistant', content: '' },
     ]
     setBerichten(nieuweLijst)
     setLaden(true)
 
-    // Strip het welkomstbericht en de lege assistent-placeholder (puur lokaal, niet naar de API)
+    // Alleen het generieke welkom en de lege assistent-placeholder blijven lokaal.
+    // Een nudge-opener (id 'opener') gaat wél mee, zodat het model weet waarover
+    // Vita zelf het gesprek begon.
     const api = nieuweLijst
       .filter(b => b.id !== 'welkom' && b.id !== assistentId)
       .map(b => ({ role: b.role, content: b.content }))
 
     let volledigAntwoord = ''
+    let mislukt = false
+
+    function toonFout(melding: string) {
+      mislukt = true
+      setBerichten(prev => prev.map(b => b.id === assistentId ? { ...b, content: melding } : b))
+      setHerstelTekst(invoer)
+    }
 
     try {
       const res = await authFetch('/api/coach', {
@@ -177,14 +197,12 @@ export default function CoachPagina() {
       })
 
       if (!res.ok || !res.body) {
-        let foutmelding = 'Ik kon je even niet bereiken.'
+        let foutmelding = FOUT_FALLBACK
         try {
           const json = await res.json()
           if (json.error) foutmelding = json.error
         } catch { /* geen JSON-body beschikbaar */ }
-        setBerichten(prev => prev.map(b => b.id === assistentId
-          ? { ...b, content: `Sorry, het lukt me nu even niet. ${foutmelding}` }
-          : b))
+        toonFout(foutmelding)
       } else {
         // Vita streamt platte tekst-tokens; lees ze incrementeel en laat het
         // antwoord live "typen" in de bestaande bubbel.
@@ -196,20 +214,25 @@ export default function CoachPagina() {
           volledigAntwoord += decoder.decode(value, { stream: true })
           setBerichten(prev => prev.map(b => b.id === assistentId ? { ...b, content: volledigAntwoord } : b))
         }
+        // Lege stream (bv. verbinding halverwege weggevallen) → eerlijke melding
+        // in plaats van een lege bubbel.
+        if (!volledigAntwoord.trim()) {
+          volledigAntwoord = ''
+          toonFout('Er ging iets mis bij het antwoorden. Probeer het opnieuw.')
+        }
       }
     } catch {
-      setBerichten(prev => prev.map(b => b.id === assistentId
-        ? { ...b, content: 'Er ging iets mis. Probeer het opnieuw.' }
-        : b))
+      toonFout(FOUT_FALLBACK)
     }
 
     setLaden(false)
-    inputRef.current?.focus()
+    if (!mislukt) inputRef.current?.focus()
 
-    // Sla samenvatting op na elk 6e bericht, zodat Vita context onthoudt (niet-blokkerend)
+    // Sla na elk voltooid antwoord een weeksamenvatting op zodra het gesprek
+    // inhoud heeft (upsert per week maakt dubbele calls onschadelijk).
     if (volledigAntwoord) {
       const voltooid = [...api, { role: 'assistant' as const, content: volledigAntwoord }]
-      if (voltooid.length % 6 === 0) {
+      if (voltooid.length >= 4) {
         authFetch('/api/coach/samenvatting', {
           method: 'POST',
           body: JSON.stringify({ berichten: voltooid }),
@@ -218,8 +241,15 @@ export default function CoachPagina() {
     }
   }
 
+  // Herstelt een mislukte beurt: verwijder het gestrande user+assistent-paar
+  // en verstuur hetzelfde bericht opnieuw op basis van de lijst dáárvoor.
+  function opnieuwProberen() {
+    if (!herstelTekst || laden) return
+    verstuur(herstelTekst, berichten.slice(0, -2))
+  }
+
   const laatsteBericht = berichten[berichten.length - 1]
-  const toonVervolgvragen = !laden && berichten.length > 1 && laatsteBericht?.role === 'assistant' && laatsteBericht.content.length > 0
+  const toonVervolgvragen = !laden && !herstelTekst && berichten.length > 1 && laatsteBericht?.role === 'assistant' && laatsteBericht.content.length > 0
   const heeftGeheugen = Boolean(gebruikerContext?.discPrimair || gebruikerContext?.domeinScores)
 
   // Vita's gezicht beweegt mee met het gesprek: 'focused' terwijl ze antwoordt,
@@ -283,6 +313,23 @@ export default function CoachPagina() {
                   </button>
                 ))}
               </div>
+            </div>
+          )}
+
+          {/* Opnieuw proberen — na een mislukt antwoord */}
+          {herstelTekst && !laden && (
+            <div style={{ marginTop: 4, display: 'flex', justifyContent: 'flex-start', paddingLeft: 44 }}>
+              <button
+                onClick={opnieuwProberen}
+                className="mf-pressable mf-suggestie-chip"
+                style={{
+                  fontSize: 12, border: '1px solid var(--border)', borderRadius: 999,
+                  padding: '6px 14px', color: 'var(--text-2)', background: 'var(--bg-card)',
+                  cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6,
+                }}
+              >
+                <RotateCcw size={13} strokeWidth={1.75} aria-hidden />Opnieuw proberen
+              </button>
             </div>
           )}
 

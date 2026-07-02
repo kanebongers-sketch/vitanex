@@ -50,7 +50,7 @@ export async function GET(req: NextRequest) {
 
   const { data } = await admin
     .from('focus_timer_logs')
-    .select('duur_minuten, type, datum')
+    .select('id, duur_minuten, type, datum, aangemaakt_op')
     .eq('user_id', user.id)
     .gte('datum', weekGeledenStr)
     .order('datum', { ascending: false })

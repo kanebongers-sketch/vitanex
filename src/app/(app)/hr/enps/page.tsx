@@ -68,6 +68,29 @@ export default function HrENPSPage() {
     </div>
   )
 
+  // k-anonimiteit: onder de drempel geeft de API nps: null terug.
+  if (data.nps === null) return (
+    <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
+      <Navbar />
+      <main style={{ padding: '36px 40px 72px', maxWidth: 780, margin: '0 auto' }}>
+        <div style={{ marginBottom: 24 }}>
+          <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 4 }}>eNPS Dashboard</h1>
+          <p style={{ fontSize: 13, color: 'var(--text-3)' }}>Employee Net Promoter Score — anoniem, over alle deelnemers.</p>
+        </div>
+        <Card>
+          <EmptyState
+            icon={BarChart3}
+            title="Nog te weinig respondenten"
+            description="Resultaten worden getoond vanaf 5 respondenten om anonimiteit te garanderen."
+          />
+          <p style={{ fontSize: 12, color: 'var(--text-3)', textAlign: 'center', paddingBottom: 20 }}>
+            Tot nu toe {data.totaal_respondenten} respondent{data.totaal_respondenten !== 1 ? 'en' : ''} ({data.participatie_pct}% van het team).
+          </p>
+        </Card>
+      </main>
+    </div>
+  )
+
   const npsKleur = NPS_KLEUR(data.nps)
   const totaal = data.promoters + data.passives + data.detractors || 1
 

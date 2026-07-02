@@ -2,9 +2,9 @@
 
 export interface XPEvent {
   datum: string   // YYYY-MM-DD
-  xp: number      // positive = earned, negative = decay
+  xp: number      // verdiende XP (altijd positief — er is geen straf/decay)
   reden: string
-  type: 'checkin' | 'goal' | 'streak' | 'achievement' | 'decay'
+  type: 'checkin' | 'goal' | 'streak' | 'achievement'
 }
 
 export interface XPData {
@@ -16,7 +16,6 @@ export interface XPData {
   streakRecord: number
   achievements: string[]
   history: XPEvent[]
-  lastDecayCheck: string | null
 }
 
 export interface Achievement {
@@ -46,21 +45,21 @@ export const LEVEL_NAMEN = [
 export const LEVEL_DREMPELS = [0, 0, 150, 375, 675, 1050, 1525, 2125, 2875, 3800, 5000]
 
 export const LEVEL_KLEUREN = [
-  '', '#9CA3AF', '#6B7280',
-  '#1D9E75', '#059669',
-  '#185FA5', '#378ADD',
-  '#7C3AED', '#6D28D9',
-  '#B45309',
-  '#DC2626',
+  '', 'var(--text-3)', 'var(--text-2)',
+  'var(--mf-green)', 'var(--mf-green-dark)',
+  'var(--mf-blue)', 'var(--mf-blue-mid)',
+  'var(--mf-purple)', 'var(--mf-purple)',
+  'var(--mf-amber)',
+  'var(--mf-red)',
 ]
 
 export const LEVEL_BG = [
-  '', '#F3F4F6', '#F9FAFB',
-  '#E1F5EE', '#D1FAE5',
-  '#E6F1FB', '#EFF6FF',
-  '#EDE9FE', '#F5F3FF',
-  '#FEF3C7',
-  '#FEE2E2',
+  '', 'var(--bg-subtle)', 'var(--bg-subtle)',
+  'var(--mf-green-light)', 'var(--mf-green-light)',
+  'var(--mf-blue-light)', 'var(--mf-blue-light)',
+  'var(--mf-purple-light)', 'var(--mf-purple-light)',
+  'var(--mf-amber-light)',
+  'var(--mf-red-light)',
 ]
 
 export function berekenLevel(xp: number): number {
@@ -87,18 +86,18 @@ export function xpVoortgang(xp: number, level: number): { inLevel: number; level
 // ─── Achievements ─────────────────────────────────────────────────────────────
 
 export const ALLE_ACHIEVEMENTS: Achievement[] = [
-  { id: 'eerste_checkin', naam: 'Eerste stap',    beschrijving: 'Eerste wekelijkse check-in gedaan',       xpBonus: 50,  kleur: '#1D9E75' },
-  { id: 'drie_checkins',  naam: 'Op weg',          beschrijving: '3 wekelijkse check-ins ingevuld',         xpBonus: 75,  kleur: '#059669' },
-  { id: 'tien_checkins',  naam: 'Consistent',      beschrijving: '10 wekelijkse check-ins ingevuld',        xpBonus: 200, kleur: '#BA7517' },
-  { id: 'eerste_doel',    naam: 'Doelgericht',     beschrijving: 'Eerste doel succesvol bereikt',           xpBonus: 100, kleur: '#185FA5' },
-  { id: 'drie_doelen',    naam: 'Veelzijdig',      beschrijving: '3 doelen bereikt',                        xpBonus: 200, kleur: '#378ADD' },
-  { id: 'vijf_doelen',    naam: 'Doorzetter',      beschrijving: '5 doelen bereikt',                        xpBonus: 350, kleur: '#7C3AED' },
-  { id: 'streek_7',       naam: 'Streekheld',      beschrijving: '7 aaneengesloten dagen gelogd',           xpBonus: 75,  kleur: '#E24B4A' },
-  { id: 'streek_30',      naam: 'IJzerdiscipline', beschrijving: '30 aaneengesloten dagen gelogd',          xpBonus: 300, kleur: '#6D28D9' },
-  { id: 'hoge_score',     naam: 'Topweek',         beschrijving: 'Check-in met gemiddelde score ≥ 4.5',     xpBonus: 100, kleur: '#F59E0B' },
-  { id: 'level_5',        naam: 'Halverwege',      beschrijving: 'Fit Level 5 — Gedreven bereikt',          xpBonus: 150, kleur: '#059669' },
-  { id: 'level_8',        naam: 'Bijna top',       beschrijving: 'Fit Level 8 — Elite bereikt',             xpBonus: 250, kleur: '#7C3AED' },
-  { id: 'level_10',       naam: 'Legende',         beschrijving: 'Fit Level 10 bereikt — het maximum',      xpBonus: 500, kleur: '#DC2626' },
+  { id: 'eerste_checkin', naam: 'Eerste stap',    beschrijving: 'Eerste wekelijkse check-in gedaan',       xpBonus: 50,  kleur: 'var(--mf-green)' },
+  { id: 'drie_checkins',  naam: 'Op weg',          beschrijving: '3 wekelijkse check-ins ingevuld',         xpBonus: 75,  kleur: 'var(--mf-green-dark)' },
+  { id: 'tien_checkins',  naam: 'Consistent',      beschrijving: '10 wekelijkse check-ins ingevuld',        xpBonus: 200, kleur: 'var(--mf-amber-dark)' },
+  { id: 'eerste_doel',    naam: 'Doelgericht',     beschrijving: 'Eerste doel succesvol bereikt',           xpBonus: 100, kleur: 'var(--mf-blue)' },
+  { id: 'drie_doelen',    naam: 'Veelzijdig',      beschrijving: '3 doelen bereikt',                        xpBonus: 200, kleur: 'var(--mf-blue-mid)' },
+  { id: 'vijf_doelen',    naam: 'Doorzetter',      beschrijving: '5 doelen bereikt',                        xpBonus: 350, kleur: 'var(--mf-purple)' },
+  { id: 'streek_7',       naam: 'Reeks van 7',     beschrijving: '7 aaneengesloten dagen gelogd',           xpBonus: 75,  kleur: 'var(--mf-red)' },
+  { id: 'streek_30',      naam: 'IJzerdiscipline', beschrijving: '30 aaneengesloten dagen gelogd',          xpBonus: 300, kleur: 'var(--mf-purple)' },
+  { id: 'hoge_score',     naam: 'Topweek',         beschrijving: 'Check-in met gemiddelde score ≥ 4.5',     xpBonus: 100, kleur: 'var(--mf-amber)' },
+  { id: 'level_5',        naam: 'Halverwege',      beschrijving: 'Fit Level 5 — Gedreven bereikt',          xpBonus: 150, kleur: 'var(--mf-green)' },
+  { id: 'level_8',        naam: 'Bijna top',       beschrijving: 'Fit Level 8 — Elite bereikt',             xpBonus: 250, kleur: 'var(--mf-purple)' },
+  { id: 'level_10',       naam: 'Legende',         beschrijving: 'Fit Level 10 bereikt — het maximum',      xpBonus: 500, kleur: 'var(--mf-red)' },
 ]
 
 // ─── Storage ──────────────────────────────────────────────────────────────────
@@ -108,7 +107,7 @@ const STORAGE_KEY = 'mf-xp-v1'
 const DEFAULT_DATA: XPData = {
   xp: 0, lastCheckinDatum: null, lastGoalLogDatum: null,
   checkinCount: 0, goalsCompleted: 0, streakRecord: 0,
-  achievements: [], history: [], lastDecayCheck: null,
+  achievements: [], history: [],
 }
 
 export function laadXPData(): XPData {
@@ -179,42 +178,11 @@ function checkAndAwardAchievements(data: XPData): { data: XPData; nieuw: Achieve
   return { data: current, nieuw: verdiend }
 }
 
-// ─── Decay ────────────────────────────────────────────────────────────────────
-
-export function pasDecayToe(data: XPData): XPData {
-  const vandaag = new Date().toISOString().slice(0, 10)
-  if (data.lastDecayCheck === vandaag) return data
-
-  let result: XPData = { ...data, lastDecayCheck: vandaag }
-
-  if (data.lastCheckinDatum) {
-    const dagen = Math.floor((Date.now() - new Date(data.lastCheckinDatum).getTime()) / 86400000)
-    if (dagen > 14) {
-      const weken = Math.floor((dagen - 14) / 7)
-      const verlies = weken * 25
-      if (verlies > 0) result = verdienXP(result, -verlies, `Geen check-in in ${dagen} dagen (−${verlies} XP)`, 'decay')
-    }
-  }
-
-  if (data.lastGoalLogDatum) {
-    const dagen = Math.floor((Date.now() - new Date(data.lastGoalLogDatum).getTime()) / 86400000)
-    if (dagen > 14) {
-      const weken = Math.floor((dagen - 14) / 7)
-      const verlies = weken * 15
-      if (verlies > 0) result = verdienXP(result, -verlies, `Geen doellog in ${dagen} dagen (−${verlies} XP)`, 'decay')
-    }
-  }
-
-  result.xp = Math.max(0, result.xp)
-  return result
-}
-
 // ─── Public API ───────────────────────────────────────────────────────────────
 
 export function verwerkCheckin(gemiddeldeScore: number): XPResult {
   let data = laadXPData()
   const oudLevel = berekenLevel(data.xp)
-  data = pasDecayToe(data)
 
   const vandaag = new Date().toISOString().slice(0, 10)
   const alAl = data.lastCheckinDatum && sameISOWeek(data.lastCheckinDatum, vandaag)

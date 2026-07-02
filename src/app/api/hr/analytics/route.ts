@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getAuthenticatedUser } from '@/lib/api-auth'
 import { createAdminClient } from '@/lib/supabase-admin'
 
+// k-anonimiteit: gemiddelden alleen tonen bij ≥ 5 unieke deelnemers,
+// anders zijn individuele waarden herleidbaar.
+const MIN_DEELNEMERS = 5
+
 function weekLabel(date: Date): string {
   const d = new Date(date)
   d.setHours(0, 0, 0, 0)
@@ -9,25 +13,30 @@ function weekLabel(date: Date): string {
   return d.toISOString().split('T')[0]
 }
 
-function groepeerPerWeek<T extends { aangemaakt_op?: string; datum?: string }>(
+function groepeerPerWeek<T extends { user_id: string; aangemaakt_op?: string; datum?: string }>(
   rijen: T[],
   waarde: (r: T) => number,
-): { week: string; gemiddelde: number; aantal: number }[] {
-  const groepen = new Map<string, number[]>()
+): { week: string; gemiddelde: number | null; aantal: number }[] {
+  const groepen = new Map<string, { vals: number[]; users: Set<string> }>()
   for (const r of rijen) {
     const datumStr = r.aangemaakt_op ?? r.datum ?? null
     if (!datumStr) continue
     const week = weekLabel(new Date(datumStr))
-    const arr = groepen.get(week) ?? []
-    arr.push(waarde(r))
-    groepen.set(week, arr)
+    const groep = groepen.get(week) ?? { vals: [], users: new Set<string>() }
+    groep.vals.push(waarde(r))
+    groep.users.add(r.user_id)
+    groepen.set(week, groep)
   }
   return [...groepen.entries()]
     .sort(([a], [b]) => a.localeCompare(b))
-    .map(([week, vals]) => ({
+    .map(([week, { vals, users }]) => ({
       week,
-      gemiddelde: Math.round((vals.reduce((s, v) => s + v, 0) / vals.length) * 10) / 10,
-      aantal: vals.length,
+      // Onder de anonimiteitsdrempel geen gemiddelde teruggeven.
+      gemiddelde:
+        users.size >= MIN_DEELNEMERS
+          ? Math.round((vals.reduce((s, v) => s + v, 0) / vals.length) * 10) / 10
+          : null,
+      aantal: users.size,
     }))
 }
 
@@ -65,8 +74,10 @@ export async function GET(req: NextRequest) {
       slaap_trend: [],
       stress_trend: [],
       checkin_trend: [],
+      top_technieken: [],
       totaal_medewerkers: 0,
       actief_deze_week: 0,
+      drempel: MIN_DEELNEMERS,
     })
   }
 
@@ -113,7 +124,7 @@ export async function GET(req: NextRequest) {
 
     admin
       .from('stress_logs')
-      .select('stress_niveau, notitie, techniek, aangemaakt_op')
+      .select('user_id, stress_niveau, notitie, techniek, aangemaakt_op')
       .in('user_id', mwIds)
       .gte('aangemaakt_op', dertigStr)
       .gte('stress_niveau', 7),
@@ -144,24 +155,30 @@ export async function GET(req: NextRequest) {
   // Actief deze week
   const actiefDezeWeek = checkinGroepen.get(dezeWeekStart)?.size ?? 0
 
-  // Top stressoren (techniek of notitie categorieën bij hoge stress)
+  // Meest gebruikte ademhalings-/ontspanningstechnieken bij hoge stress.
+  // Alleen tonen bij voldoende unieke gebruikers (k-anonimiteit).
+  const uniekeHogeStressUsers = new Set((hogeStressRijen ?? []).map((r) => r.user_id)).size
   const technieken: Record<string, number> = {}
   for (const r of hogeStressRijen ?? []) {
     const key = r.techniek ?? 'geen_techniek'
     technieken[key] = (technieken[key] ?? 0) + 1
   }
-  const top_stressoren = Object.entries(technieken)
-    .sort(([, a], [, b]) => b - a)
-    .slice(0, 5)
-    .map(([naam, count]) => ({ naam, count }))
+  const top_technieken =
+    uniekeHogeStressUsers >= MIN_DEELNEMERS
+      ? Object.entries(technieken)
+          .sort(([, a], [, b]) => b - a)
+          .slice(0, 5)
+          .map(([naam, count]) => ({ naam, count }))
+      : []
 
   return NextResponse.json({
     stemming_trend,
     slaap_trend,
     stress_trend,
     checkin_trend,
-    top_stressoren,
+    top_technieken,
     totaal_medewerkers: totaalMedewerkers,
     actief_deze_week: actiefDezeWeek,
+    drempel: MIN_DEELNEMERS,
   })
 }

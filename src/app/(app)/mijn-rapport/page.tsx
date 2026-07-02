@@ -380,7 +380,7 @@ function MijnRapportInhoud() {
   const [totaal,      setTotaal]      = useState(0)
   const [catAvgs,     setCatAvgs]     = useState<Record<string, number>>({})
   const [laden,       setLaden]       = useState(() => Boolean(sessieId))
-  const [fout,        setFout]        = useState(() => sessieId ? '' : 'Geen sessie-ID gevonden.')
+  const [fout,        setFout]        = useState(() => sessieId ? '' : 'We konden dit rapport niet vinden.')
   const [pdfBezig,    setPdfBezig]    = useState(false)
   const [hrBezig,     setHrBezig]     = useState(false)
   const [hrVerstuurd, setHrVerstuurd] = useState(false)
@@ -457,16 +457,29 @@ function MijnRapportInhoud() {
     <main className="min-h-screen flex items-center justify-center p-8"
       style={{ background: 'var(--bg-app)' }}>
       <Card style={{ maxWidth: 384, width: '100%', padding: 32, textAlign: 'center' }}>
-        <p style={{ fontSize: 14, marginBottom: 16, color: 'var(--text-3)' }}>{fout}</p>
-        <Link href="/portaal" className="mf-rapport-link" style={{ fontSize: 14, fontWeight: 600, color: 'var(--mentaforce-primary)' }}>
-          Terug naar portaal
-        </Link>
+        <p style={{ fontSize: 14, marginBottom: 20, color: 'var(--text-3)' }}>{fout}</p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <Link href="/rapport" className="mf-rapport-link" style={{
+            display: 'inline-block', padding: '12px', borderRadius: 'var(--radius-btn)',
+            fontSize: 14, fontWeight: 600, textDecoration: 'none',
+            background: 'var(--mentaforce-primary)', color: 'var(--bg-app)',
+          }}>
+            Bekijk mijn laatste rapport
+          </Link>
+          <Link href="/checkin" className="mf-rapport-link" style={{
+            display: 'inline-block', padding: '12px', borderRadius: 'var(--radius-btn)',
+            fontSize: 14, fontWeight: 600, textDecoration: 'none',
+            border: '1px solid var(--border)', color: 'var(--text-3)',
+          }}>
+            Doe een nieuwe check-in
+          </Link>
+        </div>
         <style>{`
           .mf-rapport-link:focus-visible {
             outline: 2px solid var(--mentaforce-primary);
             outline-offset: 2px;
-            border-radius: 4px;
           }
+          .mf-rapport-link:hover { opacity: 0.88; }
         `}</style>
       </Card>
     </main>

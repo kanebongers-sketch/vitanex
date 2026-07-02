@@ -33,6 +33,8 @@ export const CATEGORIEEN: Record<'welzijn' | 'actief' | 'groeien' | 'profiel', C
       { href: '/patronen',          label: 'Mijn patronen',     icoon: 'git-branch'     },
       { href: '/rapport',           label: 'Rapport',           icoon: 'file-text'      },
       { href: '/stemming-kalender', label: 'Stemming kalender', icoon: 'calendar'       },
+      { href: '/burnout',           label: 'Burn-out scan',     icoon: 'activity'       },
+      { href: '/mentale-sterkte',   label: 'Mentale sterkte',   icoon: 'trending-up'    },
     ],
   },
   actief: {
@@ -47,6 +49,8 @@ export const CATEGORIEEN: Record<'welzijn' | 'actief' | 'groeien' | 'profiel', C
       { href: '/water',      label: 'Water',      icoon: 'droplets'   },
       { href: '/gezondheid', label: 'Gezondheid', icoon: 'heart'      },
       { href: '/focus',      label: 'Focus',      icoon: 'target'     },
+      { href: '/stappen',    label: 'Stappen',    icoon: 'activity'   },
+      { href: '/uitdagingen',label: 'Uitdagingen',icoon: 'trophy'     },
     ],
   },
   groeien: {

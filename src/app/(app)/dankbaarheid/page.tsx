@@ -100,7 +100,7 @@ export default function DankbaarheidPagina() {
         setSucces(true)
         setTimeout(() => {
           setSucces(false)
-          router.push('/vandaag')
+          router.push('/home')
         }, 1200)
       } else {
         toast({ title: 'Opslaan mislukt', description: 'Je dankbaarheid kon niet worden opgeslagen. Probeer het opnieuw.', variant: 'error' })
@@ -158,9 +158,13 @@ export default function DankbaarheidPagina() {
           }
           return (
             <div style={{ background: 'var(--bg-card)', borderRadius: 16, padding: '14px 16px', marginBottom: 20, border: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 16 }}>
-              <div style={{ flex: 1, display: 'flex', gap: 6 }}>
+              <div
+                role="img"
+                aria-label={`Dankbaarheid afgelopen 7 dagen: op ${strip.filter(s => s.actief).length} van de 7 dagen ingevuld`}
+                style={{ flex: 1, display: 'flex', gap: 6 }}
+              >
                 {strip.map(({ ds, dag, actief, isVandaag }) => (
-                  <div key={ds} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+                  <div key={ds} aria-hidden="true" style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
                     <div style={{
                       width: '100%', height: 28, borderRadius: 6,
                       background: actief ? 'var(--mf-green)' : 'var(--bg-subtle)',
@@ -169,7 +173,7 @@ export default function DankbaarheidPagina() {
                       outlineOffset: 2,
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                     }}>
-                      {actief && <Heart size={12} aria-label="Dankbaarheid genoteerd op deze dag" fill="var(--bg-app)" style={{ color: 'var(--bg-app)' }} />}
+                      {actief && <Heart size={12} aria-hidden fill="var(--bg-app)" style={{ color: 'var(--bg-app)' }} />}
                     </div>
                     <span style={{ fontSize: 8, color: isVandaag ? 'var(--text-2)' : 'var(--text-4)', fontWeight: isVandaag ? 800 : 400, textTransform: 'capitalize' }}>{dag}</span>
                   </div>
@@ -213,7 +217,17 @@ export default function DankbaarheidPagina() {
             const suggestiesId = `${veldId}-suggesties-${i}`
             const toonSuggesties = activeFocus === i && !item
             return (
-              <div key={i} style={{ marginBottom: 12 }}>
+              <div
+                key={i}
+                style={{ marginBottom: 12 }}
+                onFocus={() => setActiveFocus(i)}
+                onBlur={e => {
+                  // Suggesties blijven zichtbaar zolang de focus binnen dit item
+                  // blijft (input óf chip), zodat ze met het toetsenbord bereikbaar zijn.
+                  const naar = e.relatedTarget as Node | null
+                  if (!naar || !e.currentTarget.contains(naar)) setActiveFocus(null)
+                }}
+              >
                 <label htmlFor={inputId} style={{
                   display: 'flex', alignItems: 'center', gap: 10,
                   background: 'var(--bg-subtle)',
@@ -236,15 +250,17 @@ export default function DankbaarheidPagina() {
                       flex: 1, background: 'transparent', border: 'none', outline: 'none',
                       fontSize: 13, color: 'var(--text-1)',
                     }}
-                    onFocus={() => setActiveFocus(i)}
-                    onBlur={() => setActiveFocus(null)}
                     onKeyDown={e => e.key === 'Enter' && slaOp()}
                   />
                   {item && (
                     <button
                       type="button"
                       onClick={() => setItems(prev => prev.map((v, j) => j === i ? '' : v))}
-                      style={{ display: 'inline-flex', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-4)', padding: '0 2px' }}
+                      style={{
+                        display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                        width: 28, height: 28, flexShrink: 0,
+                        background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-4)', padding: 0,
+                      }}
                       aria-label="Wis veld"
                     >
                       <X size={14} aria-hidden />
@@ -257,10 +273,10 @@ export default function DankbaarheidPagina() {
                       <button
                         key={sug}
                         type="button"
-                        onMouseDown={e => {
-                          e.preventDefault()
-                          setItems(prev => prev.map((v, j) => j === i ? sug : v))
-                        }}
+                        // preventDefault houdt de focus op het input tijdens een muisklik
+                        // (Safari focust knoppen niet bij klikken); de actie zit in onClick.
+                        onMouseDown={e => e.preventDefault()}
+                        onClick={() => setItems(prev => prev.map((v, j) => j === i ? sug : v))}
                         style={{
                           fontSize: 11, fontWeight: 600, padding: '4px 10px', borderRadius: 20,
                           background: 'var(--mf-green-light)', color: 'var(--mf-green)',
@@ -300,9 +316,9 @@ export default function DankbaarheidPagina() {
         {/* Geschiedenis */}
         {logs.length > 0 && (
           <section>
-            <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-4)', marginBottom: 12 }}>
+            <h2 style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-4)', margin: '0 0 12px' }}>
               Recente entries ({logs.length})
-            </p>
+            </h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {logs.map(log => (
                 <article key={log.id} style={{

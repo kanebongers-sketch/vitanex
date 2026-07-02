@@ -15,7 +15,7 @@ import { Chart, type ChartDatum } from '@/components/ui/Chart'
 
 interface WeekPunt {
   week: string
-  gemiddelde?: number
+  gemiddelde?: number | null
   aantal?: number
 }
 
@@ -25,7 +25,7 @@ interface CheckinPunt {
   participatie_pct: number
 }
 
-interface Stressor {
+interface Techniek {
   naam: string
   count: number
 }
@@ -35,15 +35,22 @@ interface AnalyticsData {
   slaap_trend: WeekPunt[]
   stress_trend: WeekPunt[]
   checkin_trend: CheckinPunt[]
-  top_stressoren: Stressor[]
+  top_technieken: Techniek[]
   totaal_medewerkers: number
   actief_deze_week: number
+  drempel?: number
 }
 
 function gemiddelde(punten: WeekPunt[]): number | null {
-  const vals = punten.map((p) => p.gemiddelde).filter((v): v is number => v !== undefined)
+  const vals = punten.map((p) => p.gemiddelde).filter((v): v is number => typeof v === 'number')
   if (!vals.length) return null
   return Math.round((vals.reduce((s, v) => s + v, 0) / vals.length) * 10) / 10
+}
+
+// Een trend is pas toonbaar als minstens één week een echt gemiddelde heeft
+// (weken onder de anonimiteitsdrempel krijgen gemiddelde: null van de API).
+function heeftToonbareData(punten: WeekPunt[]): boolean {
+  return punten.some((p) => typeof p.gemiddelde === 'number')
 }
 
 function recenteWeekRange(): string {
@@ -109,6 +116,9 @@ export default function HrAnalyticsPage() {
 
   const ringKleur =
     participatiePct >= 70 ? 'var(--mf-green)' : participatiePct >= 40 ? 'var(--mf-amber)' : 'var(--mf-red)'
+
+  const drempel = data?.drempel ?? 5
+  const anonimiteitsUitleg = `Resultaten zichtbaar vanaf ${drempel} deelnemers om anonimiteit te garanderen.`
 
   const kpiKaarten = [
     {
@@ -197,8 +207,8 @@ export default function HrAnalyticsPage() {
                   <h2 style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-2)' }}>Stemming trend</h2>
                   <p style={{ fontSize: 11, color: 'var(--text-3)' }}>Gemiddelde per week (schaal 1–5)</p>
                 </div>
-                {data.stemming_trend.length === 0 ? (
-                  <p style={{ fontSize: 13, color: 'var(--text-4)', padding: '32px 0', textAlign: 'center' }}>Geen data beschikbaar</p>
+                {!heeftToonbareData(data.stemming_trend) ? (
+                  <p style={{ fontSize: 13, color: 'var(--text-4)', padding: '32px 0', textAlign: 'center' }}>{anonimiteitsUitleg}</p>
                 ) : (
                   <Chart
                     type="area"
@@ -218,8 +228,8 @@ export default function HrAnalyticsPage() {
                   <h2 style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-2)' }}>Slaap trend</h2>
                   <p style={{ fontSize: 11, color: 'var(--text-3)' }}>Gem. uren slaap per week</p>
                 </div>
-                {data.slaap_trend.length === 0 ? (
-                  <p style={{ fontSize: 13, color: 'var(--text-4)', padding: '32px 0', textAlign: 'center' }}>Geen data beschikbaar</p>
+                {!heeftToonbareData(data.slaap_trend) ? (
+                  <p style={{ fontSize: 13, color: 'var(--text-4)', padding: '32px 0', textAlign: 'center' }}>{anonimiteitsUitleg}</p>
                 ) : (
                   <Chart
                     type="area"
@@ -243,8 +253,8 @@ export default function HrAnalyticsPage() {
                   <h2 style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-2)' }}>Stress trend</h2>
                   <p style={{ fontSize: 11, color: 'var(--text-3)' }}>Gem. stressniveau per week (schaal 1–10)</p>
                 </div>
-                {data.stress_trend.length === 0 ? (
-                  <p style={{ fontSize: 13, color: 'var(--text-4)', padding: '32px 0', textAlign: 'center' }}>Geen data beschikbaar</p>
+                {!heeftToonbareData(data.stress_trend) ? (
+                  <p style={{ fontSize: 13, color: 'var(--text-4)', padding: '32px 0', textAlign: 'center' }}>{anonimiteitsUitleg}</p>
                 ) : (
                   <Chart
                     type="bar"
@@ -292,15 +302,15 @@ export default function HrAnalyticsPage() {
               </Card>
             </div>
 
-            {/* Top stressoren */}
-            {data.top_stressoren.length > 0 && (
+            {/* Technieken bij hoge stress */}
+            {data.top_technieken.length > 0 && (
               <Card style={{ padding: '20px 22px' }}>
                 <div style={{ marginBottom: 16 }}>
-                  <h2 style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-2)' }}>Top stressoren (30 dagen)</h2>
+                  <h2 style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-2)' }}>Technieken bij hoge stress (30 dagen)</h2>
                   <p style={{ fontSize: 11, color: 'var(--text-3)' }}>Gebruikte technieken bij hoge stress (stress ≥ 7)</p>
                 </div>
                 <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                  {data.top_stressoren.map((s) => {
+                  {data.top_technieken.map((s) => {
                     const labelMap: Record<string, string> = {
                       box: 'Box breathing',
                       '478': '4-7-8 methode',

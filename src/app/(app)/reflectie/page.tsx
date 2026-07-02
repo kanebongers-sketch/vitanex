@@ -7,11 +7,13 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Check, History, BookOpen } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { vitaEvent } from '@/lib/vita/events'
 import Navbar from '@/components/layout/Navbar'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Field } from '@/components/ui/Field'
 import { Textarea } from '@/components/ui/Textarea'
+import { useToast } from '@/components/ui/Toast'
 import VitaReflectieBegeleider from '@/components/vita/VitaReflectieBegeleider'
 
 
@@ -33,6 +35,7 @@ interface ReflectieEntry {
 
 export default function ReflectiePage() {
   const router = useRouter()
+  const { toast } = useToast()
   const [laden, setLaden] = useState(true)
   const [antwoorden, setAntwoorden] = useState<Record<string, string>>({})
   const [opslaan, setOpslaan] = useState(false)
@@ -43,7 +46,8 @@ export default function ReflectiePage() {
 
   const weekStart = (() => {
     const d = new Date()
-    d.setDate(d.getDate() - d.getDay() + 1)
+    // Maandag van de HUIDIGE week — ook op zondag (getDay() === 0).
+    d.setDate(d.getDate() - ((d.getDay() + 6) % 7))
     return d.toISOString().slice(0, 10)
   })()
 
@@ -71,14 +75,24 @@ export default function ReflectiePage() {
     if (!userId || Object.values(antwoorden).every(v => !v.trim())) return
     setOpslaan(true)
 
-    await supabase.from('reflectie_entries').upsert({
+    const { error } = await supabase.from('reflectie_entries').upsert({
       user_id: userId,
       week_start: weekStart,
       antwoorden,
     }, { onConflict: 'user_id,week_start' })
 
-    setOpgeslagen(true)
     setOpslaan(false)
+    if (error) {
+      toast({
+        variant: 'error',
+        title: 'Opslaan mislukt',
+        description: 'Je reflectie kon niet worden opgeslagen. Probeer het opnieuw — je antwoorden staan er nog.',
+      })
+      return
+    }
+
+    setOpgeslagen(true)
+    vitaEvent('data_logged', { kind: 'reflectie' })
 
     // Lokale patch: werk de historie-lijst in-place bij i.p.v. een re-fetch,
     // zodat de huidige week meteen bovenaan verschijnt of wordt vervangen.
@@ -93,11 +107,6 @@ export default function ReflectiePage() {
       }
       return [bijgewerkt, ...zonderHuidig].slice(0, 8)
     })
-
-    setTimeout(() => {
-      setOpgeslagen(false)
-      router.push('/vandaag')
-    }, 1500)
   }
 
   const weekLabel = new Date(weekStart).toLocaleDateString('nl-BE', { day: 'numeric', month: 'long' })
@@ -160,9 +169,24 @@ export default function ReflectiePage() {
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            {/* Vita opent het reflectiemoment — of viert de afronding. Additief:
-                de reflectie-logica en opslag hieronder blijven ongewijzigd. */}
+            {/* Vita opent het reflectiemoment — of viert de afronding. Geen
+                automatische redirect: de gebruiker kiest zelf wanneer die verder gaat. */}
             <VitaReflectieBegeleider fase={opgeslagen ? 'afronden' : 'opening'} />
+            {opgeslagen && (
+              <Link
+                href="/home"
+                className="mf-reflectie-link"
+                style={{
+                  alignSelf: 'flex-start',
+                  fontSize: 13,
+                  fontWeight: 600,
+                  color: 'var(--mentaforce-primary)',
+                  textDecoration: 'none',
+                }}
+              >
+                Naar home →
+              </Link>
+            )}
 
             {REFLECTIE_VRAGEN.map((vraag, i) => {
               const isIngevuld = Boolean(antwoorden[vraag.id]?.trim())
@@ -182,7 +206,12 @@ export default function ReflectiePage() {
                           id={`reflectie-${vraag.id}`}
                           rows={3}
                           value={antwoorden[vraag.id] ?? ''}
-                          onChange={e => setAntwoorden(prev => ({ ...prev, [vraag.id]: e.target.value }))}
+                          onChange={e => {
+                            // Nieuwe wijziging → 'Opgeslagen!'-staat is niet meer waar.
+                            setOpgeslagen(false)
+                            const waarde = e.target.value
+                            setAntwoorden(prev => ({ ...prev, [vraag.id]: waarde }))
+                          }}
                           placeholder={vraag.placeholder}
                         />
                       </Field>

@@ -14,6 +14,7 @@ import { supabase } from '@/lib/supabase'
 import { authFetch } from '@/lib/auth-fetch'
 import Navbar from '@/components/layout/Navbar'
 import { Avatar } from '@/components/Avatar'
+import { useToast } from '@/components/ui/Toast'
 import nextDynamic from 'next/dynamic'
 import GesprekkenTab from '@/components/hr/GesprekkenTab'
 import RapportenTab from '@/components/hr/RapportenTab'
@@ -607,6 +608,7 @@ function MedewerkerUitnodigenModal({ onSluit, hrCode }: { onSluit: () => void; h
 
 export default function Dashboard() {
   const router = useRouter()
+  const { toast } = useToast()
   const [checkins, setCheckins] = useState<Checkin[]>([])
   const [team, setTeam] = useState<TeamLid[]>([])
   const [laden, setLaden] = useState(true)
@@ -643,137 +645,157 @@ export default function Dashboard() {
         .eq('id', user.id)
         .single()
 
-      if (!profiel?.bedrijf_id) { setLaden(false); return }
+      // Alleen HR en admins hebben toegang tot het HR-dashboard.
+      if (!profiel || !['hr', 'admin'].includes(profiel.rol ?? '')) {
+        router.push('/home')
+        return
+      }
+
+      if (!profiel.bedrijf_id) { setLaden(false); return }
       setBedrijfId(profiel.bedrijf_id)
 
-      const { data: checkinData } = await supabase
-        .from('checkins')
-        .select('*, profiles!inner(bedrijf_id)')
-        .eq('profiles.bedrijf_id', profiel.bedrijf_id)
-        .order('created_at', { ascending: true })
-        .limit(100)
-
-      setCheckins(checkinData || [])
-
-      const [{ data: teamData }, { data: avatarData }] = await Promise.all([
-        supabase.from('checkin_status').select('id, naam, deze_week_ingevuld, laatste_score, laatste_checkin').eq('bedrijf_id', profiel.bedrijf_id),
-        supabase.from('profiles').select('id, avatar_url').eq('bedrijf_id', profiel.bedrijf_id),
-      ])
-
-      const avatarMap = new Map((avatarData ?? []).map(p => [p.id, p.avatar_url as string | null]))
-      setTeam((teamData ?? []).map(lid => ({ ...lid, avatar_url: avatarMap.get(lid.id) ?? null })))
-
-      // Bedrijf info
-      try {
-        const { data: bedrijfData } = await supabase
+      // Alle bedrijf-queries hangen alleen van bedrijf_id af — parallel laden.
+      const [
+        checkinRes,
+        teamRes,
+        avatarRes,
+        bedrijfRes,
+        discRes,
+        perUserRes,
+        feedbackRes,
+        verlofRes,
+        declRes,
+        gesprekRes,
+      ] = await Promise.all([
+        supabase
+          .from('checkins')
+          .select('*, profiles!inner(bedrijf_id)')
+          .eq('profiles.bedrijf_id', profiel.bedrijf_id)
+          .order('created_at', { ascending: true })
+          .limit(100),
+        supabase
+          .from('checkin_status')
+          .select('id, naam, deze_week_ingevuld, laatste_score, laatste_checkin')
+          .eq('bedrijf_id', profiel.bedrijf_id),
+        supabase
+          .from('profiles')
+          .select('id, avatar_url')
+          .eq('bedrijf_id', profiel.bedrijf_id),
+        supabase
           .from('bedrijven')
           .select('id, naam, hr_code, sector, grootte, stad, website')
           .eq('id', profiel.bedrijf_id)
-          .single()
-        if (bedrijfData) setBedrijf(bedrijfData as BedrijfInfo)
-      } catch {
-        // Bedrijf ophalen mislukt — stilletjes negeren, UI toont fallback.
-      }
-
-      // DISC ingevuld: distinct user_ids in disc_inzendingen voor dit bedrijf
-      try {
-        const { data: discData } = await supabase
+          .maybeSingle(),
+        supabase
           .from('disc_inzendingen')
           .select('user_id')
+          .eq('bedrijf_id', profiel.bedrijf_id),
+        supabase
+          .from('checkins')
+          .select('*, profiles!inner(bedrijf_id)')
+          .eq('profiles.bedrijf_id', profiel.bedrijf_id)
+          .order('created_at', { ascending: false })
+          .limit(200),
+        supabase
+          .from('feedback_hr')
+          .select('id, inhoud, categorie, aangemaakt_op')
           .eq('bedrijf_id', profiel.bedrijf_id)
-        if (discData) {
-          const uniqueUsers = new Set(discData.map((r: { user_id: string }) => r.user_id))
-          setDiscIngevuld(uniqueUsers.size)
-        }
-      } catch {
-        // disc_inzendingen tabel mogelijk niet aanwezig, stilletjes negeren
-      }
-
-      const { data: perUserData } = await supabase
-        .from('checkins')
-        .select('*, profiles!inner(bedrijf_id)')
-        .eq('profiles.bedrijf_id', profiel.bedrijf_id)
-        .order('created_at', { ascending: false })
-        .limit(200)
-
-      const ucMap = new Map<string, UserCheckin[]>()
-      for (const c of (perUserData ?? []) as UserCheckin[]) {
-        const arr = ucMap.get(c.user_id) ?? []
-        ucMap.set(c.user_id, arr)
-        if (arr.length < 4) arr.push(c)
-      }
-      setUserCheckinsMap(ucMap)
-
-      const { data: fb } = await supabase
-        .from('feedback_hr')
-        .select('id, inhoud, categorie, aangemaakt_op')
-        .eq('bedrijf_id', profiel.bedrijf_id)
-        .order('aangemaakt_op', { ascending: false })
-        .limit(50)
-      setFeedback(fb || [])
-
-      // Verlof aanvragen
-      try {
-        const { data: verlofData } = await supabase
+          .order('aangemaakt_op', { ascending: false })
+          .limit(50),
+        supabase
           .from('verlof_aanvragen')
           .select('*, profiles!user_id(naam)')
           .eq('bedrijf_id', profiel.bedrijf_id)
           .order('created_at', { ascending: false })
-          .limit(100)
-        if (verlofData) {
-          setVerlofAanvragen((verlofData as unknown as (VerlofHR & { profiles: { naam: string } | null })[]).map(v => ({
-            ...v,
-            naam: v.profiles?.naam ?? 'Onbekend',
-          })))
-        }
-      } catch {
-        // verlof_aanvragen ophalen mislukt — stilletjes negeren.
-      }
-
-      // Declaraties
-      try {
-        const { data: declData } = await supabase
+          .limit(100),
+        supabase
           .from('declaraties')
           .select('*, profiles!user_id(naam)')
           .eq('bedrijf_id', profiel.bedrijf_id)
           .order('created_at', { ascending: false })
-          .limit(100)
-        if (declData) {
-          setDeclaratiesHR((declData as unknown as (DeclaratieHR & { profiles: { naam: string } | null })[]).map(d => ({
-            ...d,
-            naam: d.profiles?.naam ?? 'Onbekend',
-          })))
-        }
-      } catch {
-        // declaraties ophalen mislukt — stilletjes negeren.
-      }
-
-      // Aankomende gesprekken voor het overzicht widget
-      try {
-        const { data: gesprekData } = await supabase
+          .limit(100),
+        supabase
           .from('hr_gesprekken')
           .select('id, datum, type, medewerker:profiles!hr_gesprekken_medewerker_id_fkey(naam)')
           .eq('bedrijf_id', profiel.bedrijf_id)
           .eq('status', 'gepland')
           .gte('datum', new Date().toISOString())
           .order('datum', { ascending: true })
-          .limit(10)
-        if (gesprekData) {
-          setGesprekken((gesprekData as unknown as { id: string; datum: string; type: string; medewerker: { naam: string } | null }[]).map(g => ({
-            id: g.id,
-            datum: g.datum,
-            type: g.type,
-            medewerker_naam: g.medewerker?.naam ?? 'Onbekend',
-          })))
-        }
-      } catch {
-        // hr_gesprekken ophalen mislukt — stilletjes negeren.
+          .limit(10),
+      ])
+
+      setCheckins(checkinRes.data || [])
+
+      const avatarMap = new Map((avatarRes.data ?? []).map(p => [p.id, p.avatar_url as string | null]))
+      setTeam((teamRes.data ?? []).map(lid => ({ ...lid, avatar_url: avatarMap.get(lid.id) ?? null })))
+
+      if (bedrijfRes.data) setBedrijf(bedrijfRes.data as BedrijfInfo)
+
+      // DISC ingevuld: distinct user_ids in disc_inzendingen voor dit bedrijf
+      if (discRes.data) {
+        const uniqueUsers = new Set(discRes.data.map((r: { user_id: string }) => r.user_id))
+        setDiscIngevuld(uniqueUsers.size)
+      }
+
+      const ucMap = new Map<string, UserCheckin[]>()
+      for (const c of (perUserRes.data ?? []) as UserCheckin[]) {
+        const arr = ucMap.get(c.user_id) ?? []
+        ucMap.set(c.user_id, arr)
+        if (arr.length < 4) arr.push(c)
+      }
+      setUserCheckinsMap(ucMap)
+
+      setFeedback(feedbackRes.data || [])
+
+      if (verlofRes.data) {
+        setVerlofAanvragen((verlofRes.data as unknown as (VerlofHR & { profiles: { naam: string } | null })[]).map(v => ({
+          ...v,
+          naam: v.profiles?.naam ?? 'Onbekend',
+        })))
+      }
+
+      if (declRes.data) {
+        setDeclaratiesHR((declRes.data as unknown as (DeclaratieHR & { profiles: { naam: string } | null })[]).map(d => ({
+          ...d,
+          naam: d.profiles?.naam ?? 'Onbekend',
+        })))
+      }
+
+      if (gesprekRes.data) {
+        setGesprekken((gesprekRes.data as unknown as { id: string; datum: string; type: string; medewerker: { naam: string } | null }[]).map(g => ({
+          id: g.id,
+          datum: g.datum,
+          type: g.type,
+          medewerker_naam: g.medewerker?.naam ?? 'Onbekend',
+        })))
+      }
+
+      // Fouten niet stil inslikken: benoem zichtbaar welke onderdelen misten.
+      const bronnen: { error: unknown; label: string }[] = [
+        { error: checkinRes.error, label: 'check-ins' },
+        { error: teamRes.error, label: 'teamoverzicht' },
+        { error: avatarRes.error, label: 'avatars' },
+        { error: bedrijfRes.error, label: 'bedrijfsgegevens' },
+        { error: discRes.error, label: 'DISC-status' },
+        { error: perUserRes.error, label: 'check-in-historie' },
+        { error: feedbackRes.error, label: 'feedback' },
+        { error: verlofRes.error, label: 'verlofaanvragen' },
+        { error: declRes.error, label: 'declaraties' },
+        { error: gesprekRes.error, label: 'gesprekken' },
+      ]
+      const mislukt = bronnen.filter(b => b.error).map(b => b.label)
+      if (mislukt.length > 0) {
+        toast({
+          title: 'Niet alle gegevens geladen',
+          description: `Kon ${mislukt.join(', ')} niet ophalen. Vernieuw de pagina om het opnieuw te proberen.`,
+          variant: 'error',
+        })
       }
 
       setLaden(false)
     }
     laadData()
-  }, [router])
+  }, [router, toast])
 
   const metricCards = [
     { label: 'Energie', key: 'energie' },

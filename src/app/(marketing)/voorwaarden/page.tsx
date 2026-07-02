@@ -1,29 +1,9 @@
-﻿'use client'
+'use client'
 
-import Link from 'next/link'
-
-function MarketingNav() {
-  return (
-    <nav className="sticky top-0 z-50 border-b"
-      style={{ background: 'rgba(10,15,30,0.96)', borderColor: 'rgba(255,255,255,0.07)', backdropFilter: 'blur(16px)' }}>
-      <div className="max-w-7xl mx-auto px-6 lg:px-12 py-4 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: 'var(--mf-green)' }}>
-            <span className="text-white text-sm font-bold">M</span>
-          </div>
-          <span className="font-bold text-white text-lg tracking-tight">MentaForce</span>
-        </Link>
-        <div className="flex items-center gap-4">
-          <Link href="/contact" className="text-sm transition" style={{ color: 'rgba(255,255,255,0.45)' }}>Contact</Link>
-          <Link href="/login" className="text-sm font-bold text-white px-5 py-2.5 rounded-xl transition hover:opacity-90"
-            style={{ background: 'var(--mf-green)' }}>
-            Inloggen
-          </Link>
-        </div>
-      </div>
-    </nav>
-  )
-}
+import { Mail } from 'lucide-react'
+import Nav from '@/components/marketing/landing/Nav'
+import Footer from '@/components/marketing/landing/Footer'
+import { COLORS, FONT, EASE, glassPanel } from '@/components/marketing/theme'
 
 const SECTIONS = [
   {
@@ -71,7 +51,7 @@ MentaForce behoudt zich het recht voor accounts te deactiveren bij schending van
 • Persoonlijke journaalentries en coachgesprekken zijn strikt privé
 • Anonieme feedback bevat geen traceerbare metadata
 
-Alle gegevensverwerking vindt plaats conform de AVG (Algemene Verordening Gegevensbescherming). De volledige Privacyverklaring is beschikbaar op MentaForce.app/privacy.`,
+Alle gegevensverwerking vindt plaats conform de AVG (Algemene Verordening Gegevensbescherming). Vragen over privacy kunt u stellen via info@mentaforce.nl.`,
   },
   {
     id: 'gegevens',
@@ -85,7 +65,7 @@ MentaForce verwerkt persoonsgegevens uitsluitend:
 
 Gegevens worden opgeslagen op beveiligde servers binnen de Europese Economische Ruimte. MentaForce maakt gebruik van Supabase (data hosting) en Anthropic Claude (AI-analyse), met passende verwerkersovereenkomsten.
 
-Medewerkers hebben te allen tijde het recht op inzage, correctie en verwijdering van hun persoonsgegevens via instellingen@MentaForce.app.`,
+Medewerkers hebben te allen tijde het recht op inzage, correctie en verwijdering van hun persoonsgegevens via info@mentaforce.nl.`,
   },
   {
     id: 'gebruik',
@@ -114,7 +94,7 @@ Feedback, suggesties of ideeën die u deelt over de Dienst kunnen door MentaForc
     titel: '8. Abonnement en betalingen',
     inhoud: `De Dienst wordt aangeboden via een maandelijks of jaarlijks abonnement per medewerker. Facturering vindt plaats vooraf op basis van het aantal actieve gebruikers.
 
-• Minimumabonnement: zie actuele prijzenpagina op MentaForce.app/#prijzen
+• Prijzen en mogelijkheden: op aanvraag via info@mentaforce.nl
 • Betalingstermijn: 30 dagen na factuurdatum
 • Automatische verlenging tenzij 30 dagen voor het einde van de looptijd opgezegd
 • Prijswijzigingen worden minimaal 60 dagen vooraf gecommuniceerd
@@ -154,53 +134,48 @@ MentaForce kan het account onmiddellijk beëindigen bij ernstige schending van d
 Indien een bepaling van deze Voorwaarden ongeldig of niet-afdwingbaar wordt verklaard, blijven de overige bepalingen onverminderd van kracht.
 
 MentaForce BV
-Amsterdam, Nederland
-KVK: [registratienummer]
-BTW: NL [btw-nummer]`,
+Amsterdam, Nederland`,
   },
 ]
 
 export default function Voorwaarden() {
   return (
-    <div className="min-h-screen" style={{ background: '#0a0f1e', fontFamily: 'var(--font-geist-sans)' }}>
-      <MarketingNav />
+    <div style={{ minHeight: '100vh', background: COLORS.navy, color: COLORS.ink, fontFamily: FONT.grotesk }}>
+      <Nav />
 
       {/* Hero */}
-      <section className="relative overflow-hidden py-20 border-b" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
-        <div className="absolute inset-0 pointer-events-none"
-          style={{ background: 'radial-gradient(ellipse 60% 80% at 50% 0%, rgba(29,158,117,0.08) 0%, transparent 60%)' }} />
-        <div className="max-w-4xl mx-auto px-6 text-center relative z-10">
-          <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 mb-6 text-xs font-semibold border"
-            style={{ background: 'rgba(29,158,117,0.1)', borderColor: 'rgba(29,158,117,0.25)', color: 'var(--mf-green)' }}>
+      <section style={{ position: 'relative', overflow: 'hidden', padding: '72px 0 80px', borderBottom: `1px solid ${COLORS.line}` }}>
+        <div aria-hidden style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: `radial-gradient(ellipse 60% 80% at 50% 0%, ${COLORS.cyanSoft} 0%, transparent 60%)` }} />
+        <div style={{ maxWidth: 720, margin: '0 auto', padding: '0 28px', textAlign: 'center', position: 'relative' }}>
+          <p style={{ display: 'inline-flex', alignItems: 'center', borderRadius: 999, padding: '6px 16px', margin: '0 0 24px', fontSize: 12, fontWeight: 600, border: `1px solid ${COLORS.lineStrong}`, background: COLORS.cyanSoft, color: COLORS.ink }}>
             Juridisch
-          </div>
-          <h1 className="text-4xl lg:text-5xl font-extrabold text-white mb-4 tracking-tight">
+          </p>
+          <h1 style={{ fontWeight: 700, fontSize: 'clamp(34px, 6vw, 56px)', lineHeight: 1.04, letterSpacing: '-0.035em', color: COLORS.ink, margin: '0 0 18px' }}>
             Algemene Voorwaarden
           </h1>
-          <p className="text-lg" style={{ color: 'rgba(255,255,255,0.45)' }}>
+          <p style={{ fontSize: 17, color: COLORS.inkDim, margin: 0 }}>
             Laatst bijgewerkt: 1 mei 2025 · Van kracht vanaf 1 juni 2025
           </p>
         </div>
       </section>
 
-      {/* Content */}
-      <div className="max-w-4xl mx-auto px-6 py-16 grid grid-cols-1 lg:grid-cols-4 gap-12">
+      {/* Inhoud */}
+      <div style={{ maxWidth: 960, margin: '0 auto', padding: '64px 28px', display: 'flex', flexWrap: 'wrap', gap: 48, alignItems: 'flex-start' }}>
 
-        {/* Table of contents */}
-        <aside className="lg:col-span-1">
-          <div className="sticky top-24">
-            <p className="text-xs font-bold uppercase tracking-widest mb-4" style={{ color: 'rgba(255,255,255,0.3)' }}>
+        {/* Inhoudsopgave */}
+        <aside style={{ flex: '0 1 220px', minWidth: 200 }}>
+          <div style={{ position: 'sticky', top: 96 }}>
+            <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.16em', textTransform: 'uppercase', color: COLORS.inkFaint, marginBottom: 16 }}>
               Inhoud
             </p>
-            <nav className="flex flex-col gap-1">
-              {SECTIONS.map(s => (
+            <nav aria-label="Inhoudsopgave" style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              {SECTIONS.map((s) => (
                 <a
                   key={s.id}
                   href={`#${s.id}`}
-                  className="text-sm py-1.5 transition leading-tight"
-                  style={{ color: 'rgba(255,255,255,0.4)' }}
-                  onMouseEnter={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.85)')}
-                  onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.4)')}
+                  style={{ fontSize: 14, padding: '6px 0', lineHeight: 1.3, color: COLORS.inkDim, textDecoration: 'none', transition: `color .2s ${EASE}` }}
+                  onMouseEnter={(e) => { e.currentTarget.style.color = COLORS.ink }}
+                  onMouseLeave={(e) => { e.currentTarget.style.color = COLORS.inkDim }}
                 >
                   {s.titel}
                 </a>
@@ -209,53 +184,42 @@ export default function Voorwaarden() {
           </div>
         </aside>
 
-        {/* Sections */}
-        <main className="lg:col-span-3 flex flex-col gap-12">
-          {SECTIONS.map(s => (
-            <section key={s.id} id={s.id} className="scroll-mt-28">
-              <h2 className="text-xl font-bold text-white mb-4">{s.titel}</h2>
-              <div className="text-base leading-relaxed whitespace-pre-line"
-                style={{ color: 'rgba(255,255,255,0.55)' }}>
+        {/* Secties */}
+        <main style={{ flex: '1 1 480px', display: 'flex', flexDirection: 'column', gap: 48, minWidth: 0 }}>
+          {SECTIONS.map((s) => (
+            <section key={s.id} id={s.id} style={{ scrollMarginTop: 112 }}>
+              <h2 style={{ fontSize: 20, fontWeight: 700, color: COLORS.ink, margin: '0 0 16px' }}>{s.titel}</h2>
+              <div style={{ fontSize: 15, lineHeight: 1.7, whiteSpace: 'pre-line', color: COLORS.inkDim }}>
                 {s.inhoud}
               </div>
-              <div className="mt-8 border-t" style={{ borderColor: 'rgba(255,255,255,0.06)' }} />
+              <div aria-hidden style={{ marginTop: 32, borderTop: `1px solid ${COLORS.line}` }} />
             </section>
           ))}
 
           {/* Contact */}
-          <div className="rounded-2xl border p-8 text-center" style={{ borderColor: 'rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.03)' }}>
-            <p className="text-white font-semibold mb-2">Vragen over deze voorwaarden?</p>
-            <p className="text-sm mb-5" style={{ color: 'rgba(255,255,255,0.45)' }}>
+          <div style={{ ...glassPanel, padding: 32, textAlign: 'center' }}>
+            <p style={{ fontSize: 15, fontWeight: 600, color: COLORS.ink, margin: '0 0 8px' }}>Vragen over deze voorwaarden?</p>
+            <p style={{ fontSize: 14, color: COLORS.inkDim, margin: '0 0 20px' }}>
               Neem contact op met ons via onderstaand e-mailadres.
             </p>
             <a
               href="mailto:info@mentaforce.nl"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-white text-sm font-bold transition hover:opacity-90"
-              style={{ background: 'var(--mf-green)' }}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 8,
+                padding: '13px 26px', borderRadius: 12, textDecoration: 'none',
+                fontSize: 14, fontWeight: 600, color: COLORS.navyDeep, background: COLORS.cyan,
+                boxShadow: `0 6px 24px ${COLORS.cyanSoft}`, transition: `transform .2s ${EASE}`,
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)' }}
+              onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)' }}
             >
-              ✉️ info@mentaforce.nl
+              <Mail aria-hidden size={16} /> info@mentaforce.nl
             </a>
           </div>
         </main>
       </div>
 
-      {/* Footer */}
-      <footer style={{ background: '#060c18', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-        <div className="max-w-7xl mx-auto px-6 lg:px-12 py-10 flex flex-col md:flex-row items-center justify-between gap-6">
-          <Link href="/" className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: 'var(--mf-green)' }}>
-              <span className="text-white text-xs font-bold">M</span>
-            </div>
-            <span className="font-bold text-white">MentaForce</span>
-          </Link>
-          <div className="flex items-center gap-6 text-xs flex-wrap justify-center" style={{ color: 'rgba(255,255,255,0.2)' }}>
-            <Link href="/voorwaarden" className="transition hover:text-white/50" style={{ color: 'var(--mf-green)' }}>Voorwaarden</Link>
-            <Link href="/contact" className="transition hover:text-white/50">Contact</Link>
-            <Link href="/login" className="transition hover:text-white/50">Inloggen</Link>
-          </div>
-          <p className="text-xs" style={{ color: 'rgba(255,255,255,0.18)' }}>© 2025 MentaForce · Gemaakt in Nederland 🇳🇱</p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   )
 }

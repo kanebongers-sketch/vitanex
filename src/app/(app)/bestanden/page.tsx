@@ -159,7 +159,7 @@ export default function BestandenPage() {
                 <div key={s.key} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <span style={{ fontSize: 13, fontWeight: 700, color: DISC_KLEUR[s.key], width: 16 }}>{s.key}</span>
                   <div style={{ flex: 1, background: 'var(--border-strong)', borderRadius: 4, height: 8, overflow: 'hidden' }}>
-                    <div style={{ width: `${Math.round((s.score / maxScore) * 100)}%`, height: '100%', background: DISC_KLEUR[s.key], borderRadius: 4, transition: 'width 0.4s' }} />
+                    <div style={{ width: '100%', transform: `scaleX(${s.score / maxScore})`, transformOrigin: 'left center', height: '100%', background: DISC_KLEUR[s.key], borderRadius: 4, transition: 'transform 0.4s var(--ease)' }} />
                   </div>
                   <span style={{ fontSize: 12, color: 'var(--text-3)', width: 28, textAlign: 'right' }}>{s.score}</span>
                 </div>
@@ -217,7 +217,7 @@ export default function BestandenPage() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
                       <span style={{ fontSize: 13, color: 'var(--text-3)' }}>Deel met HR</span>
                       <button onClick={() => toggleDelen(b.id, b.gedeeld_met_hr)} role="switch" aria-checked={b.gedeeld_met_hr} aria-label={`Deel "${b.bestandsnaam}" met HR`} style={{ width: 44, height: 24, borderRadius: 12, background: b.gedeeld_met_hr ? 'var(--mentaforce-primary)' : 'var(--border-strong)', border: 'none', cursor: 'pointer', position: 'relative', transition: 'background 0.2s' }}>
-                        <span style={{ display: 'block', width: 18, height: 18, borderRadius: '50%', background: b.gedeeld_met_hr ? 'var(--bg-app)' : 'var(--text-1)', position: 'absolute', top: 3, left: b.gedeeld_met_hr ? 23 : 3, transition: 'left 0.2s' }} />
+                        <span style={{ display: 'block', width: 18, height: 18, borderRadius: '50%', background: b.gedeeld_met_hr ? 'var(--bg-app)' : 'var(--text-1)', position: 'absolute', top: 3, left: 3, transform: b.gedeeld_met_hr ? 'translateX(20px)' : 'translateX(0)', transition: 'transform 0.2s var(--ease)' }} />
                       </button>
                     </div>
                   </div>

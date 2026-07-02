@@ -6,27 +6,27 @@ export const CAT: Record<WellbeingCat, {
   icon: React.ReactNode
 }> = {
   slaap: {
-    label: 'Slaap', kleur: '#8B5CF6', bg: '#EEEDFE', licht: '#F5F3FF',
+    label: 'Slaap', kleur: 'var(--mf-purple)', bg: 'var(--mf-purple-light)', licht: 'color-mix(in srgb, var(--mf-purple) 8%, transparent)',
     icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>,
   },
   stress: {
-    label: 'Stress', kleur: '#E24B4A', bg: '#FCEBEB', licht: '#FFF5F5',
+    label: 'Stress', kleur: 'var(--mf-red)', bg: 'var(--mf-red-light)', licht: 'color-mix(in srgb, var(--mf-red) 8%, transparent)',
     icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>,
   },
   energie: {
-    label: 'Energie', kleur: '#BA7517', bg: '#FEF3C7', licht: '#FFFBEB',
+    label: 'Energie', kleur: 'var(--mf-amber)', bg: 'var(--mf-amber-light)', licht: 'color-mix(in srgb, var(--mf-amber) 8%, transparent)',
     icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>,
   },
   focus: {
-    label: 'Focus', kleur: '#1D9E75', bg: '#E1F5EE', licht: '#F0FDF4',
+    label: 'Focus', kleur: 'var(--mf-green)', bg: 'var(--mf-green-light)', licht: 'color-mix(in srgb, var(--mf-green) 8%, transparent)',
     icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>,
   },
   balans: {
-    label: 'Werk-privé', kleur: '#378ADD', bg: '#E6F1FB', licht: '#EFF6FF',
+    label: 'Werk-privé', kleur: 'var(--mf-blue)', bg: 'var(--mf-blue-light)', licht: 'color-mix(in srgb, var(--mf-blue) 8%, transparent)',
     icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22V12M12 12L2 7M12 12l10-5M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>,
   },
   motivatie: {
-    label: 'Motivatie', kleur: '#9D174D', bg: '#FCE7F3', licht: '#FDF2F8',
+    label: 'Motivatie', kleur: 'var(--mf-rose)', bg: 'var(--mf-rose-light)', licht: 'color-mix(in srgb, var(--mf-rose) 8%, transparent)',
     icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>,
   },
 }

@@ -207,9 +207,11 @@ function RdiBalk({ label, waarde, eenheid, rdi, kleur = 'var(--mentaforce-primar
       <div role="img" aria-label={`${label}: ${waarde.toFixed(1)} ${eenheid}, ${pctRaw}% van de dagelijkse behoefte`}
         style={{ height: 4, borderRadius: 9999, background: 'var(--bg-subtle)', overflow: 'hidden' }}>
         <div style={{
-          height: '100%', borderRadius: 9999, width: `${Math.min(100, pct)}%`,
+          height: '100%', borderRadius: 9999, width: '100%',
+          transform: `scaleX(${Math.min(100, pct) / 100})`,
+          transformOrigin: 'left center',
           background: overRdi ? 'var(--mf-red)' : kleur,
-          transition: 'width 0.8s ease',
+          transition: 'transform 0.8s var(--ease)',
         }} />
       </div>
     </div>
@@ -433,7 +435,7 @@ export default function VoedingPage() {
       vitaEvent('data_logged', { kind: 'voeding' })
       toast({ title: 'Maaltijd opgeslagen', variant: 'success' })
       resetForm(); setScherm('overzicht')
-      router.push('/vandaag')
+      router.push('/home')
     } catch (e) {
       const msg = (e as Error).message || 'Opslaan mislukt.'
       setFout(msg)

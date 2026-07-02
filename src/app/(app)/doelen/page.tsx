@@ -4,15 +4,16 @@ export const dynamic = 'force-dynamic'
 
 import { Suspense, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { Sparkles, Plus, Check, X, Flame } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
-import { verwerkGoalLog, LEVEL_NAMEN, type Achievement } from '@/lib/xp'
+import { verwerkGoalLog, verwerkGoalVoltooid, LEVEL_NAMEN, type Achievement } from '@/lib/xp'
 import { syncXPNaarServer } from '@/lib/xp-sync'
 import {
   type WellbeingCat, type WeekDoel, type WeekSelectie,
   vandaag, laadWeekSelectie, slaWeekSelectieOp, isVandaagGelogd, logVandaag,
-  scoreKleur,
+  scoreKleur, berekenStreak,
 } from '@/lib/weekdoelen'
 import { CAT } from '@/lib/doelen-config'
 import { authFetch } from '@/lib/auth-fetch'
@@ -38,6 +39,15 @@ const DOMEIN_KLEUR: Record<string, string> = {
   focus: 'var(--mf-green)', balans: 'var(--mf-purple)', motivatie: 'var(--mf-red)',
 }
 
+/** De 7 dagen (YYYY-MM-DD) van de actieve doelenweek. */
+function maakWeekDagen(weekStart: string): string[] {
+  return Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(weekStart)
+    d.setDate(d.getDate() + i)
+    return d.toISOString().slice(0, 10)
+  })
+}
+
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 function DoelenInhoud() {
@@ -45,6 +55,9 @@ function DoelenInhoud() {
   const { toast } = useToast()
   const [klaar, setKlaar]         = useState(false)
   const [selectie, setSelectie]   = useState<WeekSelectie | null>(null)
+  // Cross-device eerlijkheid: staat er op de server al een check-in van deze week,
+  // ook al zijn de doelen op dít apparaat niet lokaal bekend?
+  const [heeftCheckinDezeWeek, setHeeftCheckinDezeWeek] = useState(false)
 
   // Log modal
   const [logModal, setLogModal]   = useState<{ doel: WeekDoel } | null>(null)
@@ -101,7 +114,21 @@ function DoelenInhoud() {
     async function check() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/login'); return }
-      setSelectie(laadWeekSelectie())
+      const sel = laadWeekSelectie()
+      setSelectie(sel)
+      if (!sel || !sel.doelen.length) {
+        // Zelfde venster als checkin/page.tsx: bestaat er al een sessie deze week?
+        const zevenDagenGeleden = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+        const { data: sessie } = await supabase
+          .from('checkin_sessies')
+          .select('id')
+          .eq('user_id', user.id)
+          .gte('aangemaakt_op', zevenDagenGeleden)
+          .order('aangemaakt_op', { ascending: false })
+          .limit(1)
+          .maybeSingle()
+        setHeeftCheckinDezeWeek(Boolean(sessie))
+      }
       setKlaar(true)
     }
     check()
@@ -150,14 +177,30 @@ function DoelenInhoud() {
     if (gehaald) {
       vitaEvent('habit_completed', { kind: 'doel' })
 
-      // Volledig doel behaald wanneer alle 7 dagen gehaald zijn voor dit doel.
+      const weekDagen = maakWeekDagen(bijgewerkt.weekStart)
       const bijgewerktDoel = bijgewerkt.doelen.find(d => d.vlak === doel.vlak)
+
+      // Volledig doel behaald wanneer alle 7 dagen gehaald zijn voor dit doel.
+      // De beloning triggert één keer per doel: precies op het moment dat de
+      // teller van 6 naar 7 gaat (heropslaan van een al gehaalde dag telt niet).
+      const aantalGehaaldVoorheen = doel.logs.filter(l => l.gehaald === true).length
       const aantalGehaald = bijgewerktDoel?.logs.filter(l => l.gehaald === true).length ?? 0
       if (aantalGehaald >= 7) {
         vitaEvent('goal_achieved')
       }
+      if (aantalGehaald === 7 && aantalGehaaldVoorheen < 7) {
+        const doelResult = verwerkGoalVoltooid()
+        if (doelResult.xpGewonnen > 0 || doelResult.nieuweAchievements.length > 0) {
+          toonXPToast(doelResult.xpGewonnen, doelResult.levelOmhoog ? doelResult.nieuwLevel : undefined, doelResult.nieuweAchievements)
+        }
+        // Geen aparte sync hier: de sync na verwerkGoalLog hieronder bevat deze
+        // XP al (localStorage is cumulatief) — zo voorkomen we een race tussen
+        // twee gelijktijdige POSTs.
+      }
 
-      const xpResult = verwerkGoalLog(1)
+      // Echte streak i.p.v. hardcoded 1 — zo zijn de streak-bonussen echt haalbaar.
+      const streak = bijgewerktDoel ? berekenStreak(bijgewerktDoel, weekDagen) : 1
+      const xpResult = verwerkGoalLog(streak)
       if (xpResult.xpGewonnen > 0 || xpResult.nieuweAchievements.length > 0) {
         toonXPToast(xpResult.xpGewonnen, xpResult.levelOmhoog ? xpResult.nieuwLevel : undefined, xpResult.nieuweAchievements)
       }
@@ -185,13 +228,23 @@ function DoelenInhoud() {
       <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
         <Navbar />
         <main style={{ maxWidth: 640, margin: '0 auto', padding: '60px 24px' }}>
-          <VitaLeegScherm
-            titel="Nog geen doelen deze week"
-            boodschap="Doe een korte wekelijkse check-in, dan stel ik samen met jou een paar haalbare doelen op die passen bij hoe het nú met je gaat. Ik verzin niks — ik werk met wat je me vertelt."
-            actieLabel="Start check-in"
-            actieHref="/checkin"
-            emotion="supportive"
-          />
+          {heeftCheckinDezeWeek ? (
+            <VitaLeegScherm
+              titel="Je check-in staat er al"
+              boodschap="Je hebt deze week al een check-in gedaan — waarschijnlijk op een ander apparaat. Je doelen van die keuze staan alleen op dat apparaat, maar je rapport kun je hier gewoon bekijken."
+              actieLabel="Bekijk je rapport"
+              actieHref="/rapport"
+              emotion="supportive"
+            />
+          ) : (
+            <VitaLeegScherm
+              titel="Nog geen doelen deze week"
+              boodschap="Doe een korte wekelijkse check-in, dan stel ik samen met jou een paar haalbare doelen op die passen bij hoe het nú met je gaat. Ik verzin niks — ik werk met wat je me vertelt."
+              actieLabel="Start check-in"
+              actieHref="/checkin"
+              emotion="supportive"
+            />
+          )}
         </main>
       </div>
     )
@@ -203,11 +256,7 @@ function DoelenInhoud() {
   const zondag = new Date(maandag); zondag.setDate(maandag.getDate() + 6)
   const weekLabel = `${maandag.getDate()} – ${zondag.toLocaleDateString('nl-BE', { day: 'numeric', month: 'long' })}`
 
-  const weekDagen = Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(selectie.weekStart)
-    d.setDate(d.getDate() + i)
-    return d.toISOString().slice(0, 10)
-  })
+  const weekDagen = maakWeekDagen(selectie.weekStart)
 
   // Échte voortgang van vandaag — voedt Vita's begroeting (geen verzonnen data).
   const aantalGelogdVandaag = selectie.doelen.filter(d => isVandaagGelogd(d)).length
@@ -225,14 +274,14 @@ function DoelenInhoud() {
             <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 4 }}>Mijn doelen deze week</h1>
             <p style={{ fontSize: 13, color: 'var(--text-4)' }}>{weekLabel} · AI-geselecteerde doelen</p>
           </div>
-          <a href="/checkin" style={{
+          <Link href="/checkin" style={{
             fontSize: 13, color: 'var(--mentaforce-primary)', padding: '8px 16px', borderRadius: 'var(--radius-btn)',
             background: 'var(--mentaforce-primary-light)', border: '1px solid var(--mentaforce-primary)',
             cursor: 'pointer', fontWeight: 600, textDecoration: 'none',
             display: 'inline-flex', alignItems: 'center', gap: 6,
           }}>
             Nieuwe check-in
-          </a>
+          </Link>
         </div>
 
         {/* Vita — begroet je weekdoelen en beweegt mee met je voortgang */}
@@ -416,18 +465,9 @@ function DoelenInhoud() {
                     </p>
                     {/* Streak indicator */}
                     {(() => {
-                      // Calculate streak for this goal
-                      const vandaagStr = vandaag()
-                      let streak = 0
-                      const sortedDagen = [...weekDagen].reverse()
-                      for (const dag of sortedDagen) {
-                        if (dag > vandaagStr) continue
-                        const log = doel.logs.find(l => l.datum === dag)
-                        if (log?.gehaald === true) streak++
-                        else break
-                      }
+                      const streak = berekenStreak(doel, weekDagen)
                       return streak > 0 ? (
-                        <Badge variant="danger">
+                        <Badge variant="success">
                           <Flame size={11} aria-hidden /> {streak} dag{streak !== 1 ? 'en' : ''} op rij
                         </Badge>
                       ) : null
@@ -485,7 +525,7 @@ function DoelenInhoud() {
                       boxShadow: `0 4px 12px color-mix(in srgb, ${c.kleur} 40%, transparent)`,
                     }}
                   >
-                    Log vandaag (+15 XP)
+                    Log vandaag
                   </Button>
                 )}
               </Card>

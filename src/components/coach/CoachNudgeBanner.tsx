@@ -2,15 +2,16 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Sparkles, Lightbulb, HeartHandshake, ArrowRight, X } from 'lucide-react'
-import type { LucideIcon } from 'lucide-react'
+import { ArrowRight, X } from 'lucide-react'
 import { authFetch } from '@/lib/auth-fetch'
+import PandaFace, { type EmotionState } from '@/components/vita/PandaFace'
 import type { CoachNudge, NudgeToon } from '@/lib/coach/nudges'
 
-const TOON_ICOON: Record<NudgeToon, LucideIcon> = {
-  zorg: HeartHandshake,
-  viering: Sparkles,
-  aanmoediging: Lightbulb,
+// De banner is een bericht van Vita zelf — haar gezicht draagt de toon.
+const TOON_EMOTIE: Record<NudgeToon, EmotionState> = {
+  zorg: 'supportive',
+  viering: 'proud',
+  aanmoediging: 'motivated',
 }
 
 // Hoe lang een weggeklikte/aangetikte nudge van hetzelfde type wegblijft,
@@ -63,8 +64,6 @@ export function CoachNudgeBanner() {
 
   if (!nudge) return null
 
-  const Icoon = TOON_ICOON[nudge.toon]
-
   function sluit() {
     if (nudge) zetCooldown(nudge.type, COOLDOWN_DAGEN[nudge.toon])
     setNudge(null)
@@ -77,7 +76,7 @@ export function CoachNudgeBanner() {
   return (
     <section
       className="mf-nudge"
-      aria-label="Bericht van je coach"
+      aria-label="Bericht van Vita"
       style={{
         position: 'relative',
         marginBottom: 16,
@@ -91,15 +90,8 @@ export function CoachNudgeBanner() {
         gap: 14,
       }}
     >
-      <div
-        aria-hidden
-        style={{
-          flexShrink: 0, width: 38, height: 38, borderRadius: '50%',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          background: 'var(--mentaforce-primary-light)', color: 'var(--mentaforce-primary)',
-        }}
-      >
-        <Icoon size={19} strokeWidth={1.75} />
+      <div aria-hidden style={{ flexShrink: 0, width: 38, height: 38 }}>
+        <PandaFace emotion={TOON_EMOTIE[nudge.toon]} size={38} />
       </div>
 
       <div style={{ flex: 1, minWidth: 0 }}>
@@ -108,7 +100,7 @@ export function CoachNudgeBanner() {
             fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em',
             color: 'var(--mentaforce-primary)',
           }}>
-            Je coach
+            Vita
           </span>
         </div>
         <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-1)', margin: '0 0 4px', letterSpacing: '-0.01em' }}>

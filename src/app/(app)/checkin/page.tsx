@@ -114,8 +114,17 @@ export default function CheckIn() {
   const [laden,      setLaden]      = useState(false)
   const [fout,       setFout]       = useState<string | null>(null)
   const [advancing,  setAdvancing]  = useState(false)
-  // Toont heel even Vita's bemoedigende reactie terwijl de flow doorschuift.
+  // Toont Vita's bemoedigende reactie terwijl de flow doorschuift. De reactie
+  // hoort bij de nét afgeronde pijler en blijft langer staan dan de sectie-wissel.
   const [toonReactie, setToonReactie] = useState(false)
+  const [reactieSectie, setReactieSectie] = useState<Sectie | null>(null)
+  const advanceTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const reactieTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => () => {
+    if (advanceTimer.current) clearTimeout(advanceTimer.current)
+    if (reactieTimer.current) clearTimeout(reactieTimer.current)
+  }, [])
 
   const weekStart = vandaag()
 
@@ -240,22 +249,39 @@ export default function CheckIn() {
 
   function stelIn(code: string, waarde: number) {
     if (advancing) return
-    setAntwoorden(prev => {
-      const nieuw = { ...prev, [code]: waarde }
-      const isLaatste = sectieIdx === totaalSecties - 1
-      const compleet  = sectieCompleet(sectieIdx, nieuw)
-      if (compleet && !isLaatste) {
-        setAdvancing(true)
-        setToonReactie(true)
-        setTimeout(() => {
-          setSectieIdx(s => s + 1)
-          scrollTop()
-          setAdvancing(false)
-          setToonReactie(false)
-        }, 380)
-      }
-      return nieuw
-    })
+    const nieuw = { ...antwoorden, [code]: waarde }
+    setAntwoorden(nieuw)
+
+    const isLaatste = sectieIdx === totaalSecties - 1
+    if (!sectieCompleet(sectieIdx, nieuw) || isLaatste) return
+
+    // Bij reduced motion: reactie-fase overslaan en direct doorschakelen.
+    const reduceMotion = typeof window !== 'undefined'
+      && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    if (reduceMotion) {
+      setSectieIdx(s => s + 1)
+      scrollTop()
+      return
+    }
+
+    // Twee losse timers: de sectie schuift snel door (380ms), maar Vita's
+    // reactie blijft lang genoeg staan om te lezen (~1800ms). Eerst eventuele
+    // lopende timers van de vorige sectie opruimen, anders klikt een stale
+    // reactieTimer de nieuwe reactie voortijdig weg.
+    if (advanceTimer.current) clearTimeout(advanceTimer.current)
+    if (reactieTimer.current) clearTimeout(reactieTimer.current)
+    setAdvancing(true)
+    setToonReactie(true)
+    setReactieSectie(SECTIES[sectieIdx])
+    advanceTimer.current = setTimeout(() => {
+      setSectieIdx(s => s + 1)
+      scrollTop()
+      setAdvancing(false)
+    }, 380)
+    reactieTimer.current = setTimeout(() => {
+      setToonReactie(false)
+      setReactieSectie(null)
+    }, 1800)
   }
 
   function volgendeSectie() {
@@ -333,9 +359,9 @@ export default function CheckIn() {
         <div className="flex flex-col gap-3">
           <Link href="/home" className="w-full inline-block text-center rounded-xl py-3.5 text-sm font-semibold"
             style={{ background: 'var(--mentaforce-primary)', color: 'var(--bg-app)' }}>Naar dashboard</Link>
-          <Link href="/bedankt" className="w-full inline-block text-center rounded-xl py-3 text-sm"
+          <Link href="/rapport" className="w-full inline-block text-center rounded-xl py-3 text-sm"
             style={{ border: '1px solid var(--border)', color: 'var(--text-3)' }}>
-            Bekijk analyse</Link>
+            Bekijk mijn rapport</Link>
         </div>
       </div>
     </main>
@@ -355,7 +381,7 @@ export default function CheckIn() {
       }}>
         <Check size={16} strokeWidth={2.5} aria-hidden="true" style={{ color: 'var(--bg-app)' }} />
         <p style={{ color: 'var(--bg-app)', fontSize: 13, fontWeight: 600 }}>
-          Vul eerst je wekelijkse check-in in — daarna heb je toegang tot de app.
+          Je wekelijkse check-in — 12 vragen, klaar in ±2 minuten.
         </p>
       </div>
 
@@ -372,9 +398,12 @@ export default function CheckIn() {
               return (
                 <button key={s.id}
                   onClick={() => { if (i < sectieIdx) setSectieIdx(i) }}
+                  aria-disabled={i >= sectieIdx}
+                  tabIndex={i < sectieIdx ? 0 : -1}
+                  aria-current={actief ? 'step' : undefined}
                   className="flex-shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium transition"
                   style={{
-                    background: actief ? s.kleur : klaar ? s.kleur + '20' : 'var(--bg-subtle)',
+                    background: actief ? s.kleur : klaar ? `color-mix(in srgb, ${s.kleur} 13%, transparent)` : 'var(--bg-subtle)',
                     color:      actief ? 'var(--bg-app)' : klaar ? s.kleur : 'var(--text-3)',
                     cursor:     i < sectieIdx ? 'pointer' : 'default',
                   }}>
@@ -402,16 +431,22 @@ export default function CheckIn() {
 
       <div className="max-w-lg mx-auto px-5 pt-7">
 
-        {/* Vita loopt mee: rustige aanmoediging per pijler, korte reactie bij doorschuiven */}
+        {/* Vita loopt mee: rustige aanmoediging per pijler, korte reactie bij doorschuiven.
+            Tijdens de reactie-fase blijft de zin bij de nét afgeronde pijler horen. */}
         <div className="mb-6">
-          <VitaCheckinBegeleider
-            key={toonReactie ? `reactie-${huidigeSectie.id}` : `vraag-${huidigeSectie.id}`}
-            fase={toonReactie ? 'reactie' : 'vraag'}
-            pijlerId={huidigeSectie.id}
-            pijlerLabel={huidigeSectie.label}
-            sectieIdx={sectieIdx}
-            totaalSecties={totaalSecties}
-          />
+          {(() => {
+            const vitaSectie = toonReactie && reactieSectie ? reactieSectie : huidigeSectie
+            return (
+              <VitaCheckinBegeleider
+                key={toonReactie ? `reactie-${vitaSectie.id}` : `vraag-${huidigeSectie.id}`}
+                fase={toonReactie ? 'reactie' : 'vraag'}
+                pijlerId={vitaSectie.id}
+                pijlerLabel={vitaSectie.label}
+                sectieIdx={sectieIdx}
+                totaalSecties={totaalSecties}
+              />
+            )
+          })()}
         </div>
 
         {/* Sectie header */}
@@ -488,7 +523,7 @@ export default function CheckIn() {
         )}
 
         <p className="text-xs text-center mt-5 pb-6" style={{ color: 'var(--text-4)' }}>
-          Alle antwoorden zijn anoniem en beveiligd opgeslagen.
+          Je antwoorden worden beveiligd opgeslagen.
         </p>
       </div>
 
@@ -522,7 +557,7 @@ function VraagKaart({ vraag, waarde, kleur, licht, nummer, onChange }: {
     <div className="rounded-2xl border p-5 transition-all"
       style={{
         background:  'var(--bg-card)',
-        borderColor: beantwoord ? kleur + '60' : 'var(--border)',
+        borderColor: beantwoord ? `color-mix(in srgb, ${kleur} 38%, transparent)` : 'var(--border)',
         borderWidth: beantwoord ? 1.5 : 1,
       }}>
 
@@ -549,7 +584,7 @@ function VraagKaart({ vraag, waarde, kleur, licht, nummer, onChange }: {
               borderColor: geselecteerd === n ? kleur : 'var(--border)',
               color:       geselecteerd === n ? 'var(--bg-app)' : 'var(--text-3)',
               transform:   geselecteerd === n ? 'scale(1.06)' : 'scale(1)',
-              boxShadow:   geselecteerd === n ? `0 2px 8px ${kleur}50` : undefined,
+              boxShadow:   geselecteerd === n ? `0 2px 8px color-mix(in srgb, ${kleur} 31%, transparent)` : undefined,
             }}>
             {n}
           </button>

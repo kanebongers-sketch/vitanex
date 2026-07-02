@@ -7,9 +7,9 @@ type Item = [string, string]
 interface Col { titel: string; items: Item[] }
 
 const COLS: Col[] = [
-  { titel: 'Product', items: [['#brein', 'Het brein'], ['#brein', 'De 6 vlakken'], ['#aanpak', 'Aanpak']] },
+  { titel: 'Product', items: [['/#brein', 'Het brein'], ['/#aanpak', 'Aanpak']] },
   { titel: 'Bedrijf', items: [['/contact', 'Contact'], ['/voorwaarden', 'Voorwaarden']] },
-  { titel: 'Juridisch', items: [['/voorwaarden', 'Privacy'], ['/voorwaarden', 'AVG'], ['/voorwaarden', 'Voorwaarden']] },
+  { titel: 'Juridisch', items: [['/voorwaarden#privacy', 'Voorwaarden & privacy']] },
 ]
 
 export default function Footer() {
@@ -43,7 +43,7 @@ export default function Footer() {
         </div>
 
         <div style={{ borderTop: `1px solid ${COLORS.line}`, paddingTop: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
-          <p style={{ fontSize: 12, color: COLORS.inkFaint, margin: 0 }}>© 2026 MentaForce</p>
+          <p style={{ fontSize: 12, color: COLORS.inkFaint, margin: 0 }}>© {new Date().getFullYear()} MentaForce</p>
           <p style={{ fontSize: 12, color: COLORS.inkFaint, margin: 0 }}>Gemaakt in Nederland</p>
         </div>
       </div>

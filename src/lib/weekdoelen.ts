@@ -66,11 +66,24 @@ export function logVandaag(doel: WeekDoel): GoalLog | undefined {
   return doel.logs.find(l => l.datum === vandaag())
 }
 
+/** Aaneengesloten reeks gehaalde dagen t/m vandaag (dagen in de toekomst tellen niet mee). */
+export function berekenStreak(doel: WeekDoel, weekDagen: string[]): number {
+  const vandaagStr = vandaag()
+  let streak = 0
+  for (const dag of [...weekDagen].reverse()) {
+    if (dag > vandaagStr) continue
+    const log = doel.logs.find(l => l.datum === dag)
+    if (log?.gehaald === true) streak++
+    else break
+  }
+  return streak
+}
+
 export function scoreKleur(score: number): string {
-  if (score >= 16) return '#1D9E75'
-  if (score >= 12) return '#B45309'
-  if (score >= 8)  return '#E26B4A'
-  return '#E24B4A'
+  if (score >= 16) return 'var(--mf-green)'
+  if (score >= 12) return 'var(--mf-amber)'
+  if (score >= 8)  return 'var(--mf-amber-dark)'
+  return 'var(--mf-red)'
 }
 
 export function scoreLabel(score: number): string {

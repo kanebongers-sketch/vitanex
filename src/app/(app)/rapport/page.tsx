@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic'
 
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { CalendarClock } from 'lucide-react'
@@ -59,7 +59,7 @@ function ScoreRing({ score }: { score: number }) {
       <circle cx="70" cy="70" r={r} fill="none" stroke={trackKleur} strokeWidth="11" />
       <circle cx="70" cy="70" r={r} fill="none" stroke={kleur} strokeWidth="11"
         strokeDasharray={`${(score / 100) * circ} ${circ}`} strokeLinecap="round"
-        transform="rotate(-90 70 70)" style={{ transition: 'stroke-dasharray 1.2s cubic-bezier(0.16,1,0.3,1)' }} />
+        transform="rotate(-90 70 70)" style={{ transition: 'stroke-dasharray 1.2s var(--ease)' }} />
       <text x="70" y="65" textAnchor="middle" fontSize="32" fontWeight="800" fill={kleur}>{score}</text>
       <text x="70" y="84" textAnchor="middle" fontSize="12" fontWeight="600" style={{ fill: 'var(--text-4)' }}>/100</text>
     </svg>
@@ -76,8 +76,9 @@ export default function Rapport() {
   const [analyseAanMaken, setAnalyseAanMaken] = useState(false)
   const [analyseFout, setAnalyseFout]         = useState(false)
 
-  useEffect(() => {
-    async function laad() {
+  // Laad-logica als aanroepbare functie, zodat 'Opnieuw proberen' geen
+  // window.location.reload() nodig heeft.
+  const laad = useCallback(async () => {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/login'); return }
 
@@ -185,9 +186,9 @@ export default function Rapport() {
       }
 
       try { setXpLevel(berekenLevel(laadXPData().xp)) } catch { /* ok */ }
-    }
-    laad()
   }, [router])
+
+  useEffect(() => { laad() }, [laad])
 
   async function downloadPDF() {
     if (!analyse) return
@@ -377,7 +378,7 @@ export default function Rapport() {
               <>
                 <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-1)', marginBottom: 8 }}>Analyse mislukt</h2>
                 <p style={{ fontSize: 14, color: 'var(--text-3)', marginBottom: 24 }}>Er ging iets mis bij het genereren van je rapport. Probeer het opnieuw.</p>
-                <button onClick={() => { setAnalyseFout(false); setLaden(true); setTimeout(() => window.location.reload(), 50) }}
+                <button onClick={() => { setAnalyseFout(false); setLaden(true); laad() }}
                   style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'var(--mentaforce-primary)', color: 'var(--bg-app)', borderRadius: 12, padding: '12px 28px', fontSize: 15, fontWeight: 700, border: 'none', cursor: 'pointer' }}>
                   Opnieuw proberen →
                 </button>
@@ -449,7 +450,7 @@ export default function Rapport() {
                           aria-valuetext={`${v} van 20`}
                           style={{ flex: 1, height: 6, borderRadius: 3, background: 'var(--bg-subtle)', overflow: 'hidden' }}
                         >
-                          <div style={{ height: '100%', borderRadius: 3, background: CAT_KLEUR[k], width: `${pct}%`, transition: 'width 0.8s ease' }} />
+                          <div style={{ height: '100%', width: '100%', borderRadius: 3, background: CAT_KLEUR[k], transformOrigin: 'left center', transform: `scaleX(${pct / 100})`, transition: 'transform 0.8s var(--ease)' }} />
                         </div>
                         <span style={{ fontSize: 11, fontWeight: 700, color: CAT_KLEUR[k], width: 32 }}>{v}/20</span>
                       </div>

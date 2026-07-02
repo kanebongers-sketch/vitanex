@@ -23,6 +23,10 @@ import { authFetch } from '@/lib/auth-fetch'
 import { useToast } from '@/components/ui/Toast'
 import { Field } from '@/components/ui/Field'
 import { Textarea } from '@/components/ui/Textarea'
+import { Button } from '@/components/ui/Button'
+import {
+  DialogRoot, DialogContent, DialogTitle, DialogDescription,
+} from '@/components/ui/Dialog'
 import { vitaEvent } from '@/lib/vita/events'
 import VitaLeegScherm from '@/components/vita/VitaLeegScherm'
 
@@ -102,6 +106,8 @@ export default function JournalPagina() {
   const [uitgevouwen, setUitgevouwen] = useState<string | null>(null)
   const [aiPrompt, setAiPrompt] = useState<string | null>(null)
   const [aiPromptLaden, setAiPromptLaden] = useState(false)
+  // Aantekening die om verwijder-bevestiging vraagt (toegankelijke dialog i.p.v. confirm()).
+  const [verwijderId, setVerwijderId] = useState<string | null>(null)
 
   useEffect(() => {
     async function laad() {
@@ -144,13 +150,13 @@ export default function JournalPagina() {
   }
 
   async function verwijder(id: string) {
-    if (!confirm('Aantekening verwijderen?')) return
     const { error } = await supabase.from('journal_entries').delete().eq('id', id)
     if (!error) {
       setEntries(prev => prev.filter(e => e.id !== id))
     } else {
       toast({ title: 'Verwijderen mislukt', description: 'De aantekening kon niet worden verwijderd.', variant: 'error' })
     }
+    setVerwijderId(null)
   }
 
   async function genereerPrompt() {
@@ -333,13 +339,23 @@ export default function JournalPagina() {
             const ds = d.toISOString().split('T')[0]
             return { ds, dag: d.toLocaleDateString('nl-NL', { weekday: 'short' }).slice(0, 2), actief: datumSet.has(ds), isVandaag: ds === vandaagStr }
           })
-          const streak = (() => {
+          // Streak los van de 7-daagse strip: loop vanaf vandaag terug zolang er
+          // op elke dag een entry staat. We laden max 50 entries; reikt de reeks
+          // tot aan de oudst geladen entry, dan kan ze in werkelijkheid langer
+          // zijn — dat tonen we eerlijk als "N+".
+          const { streak, streakAfgekapt } = (() => {
             let n = 0
-            for (let i = 6; i >= 0; i--) {
-              const d = new Date(vandaag); d.setDate(d.getDate() - i)
-              if (datumSet.has(d.toISOString().split('T')[0])) n++; else break
+            const d = new Date(vandaag)
+            while (datumSet.has(d.toISOString().split('T')[0])) {
+              n++
+              d.setDate(d.getDate() - 1)
             }
-            return n
+            const oudsteGeladen = entries[entries.length - 1]?.aangemaakt_op.split('T')[0]
+            const oudsteInStreak = new Date(vandaag)
+            oudsteInStreak.setDate(oudsteInStreak.getDate() - (n - 1))
+            const afgekapt = n > 0 && entries.length >= 50 && oudsteGeladen !== undefined
+              && oudsteInStreak.toISOString().split('T')[0] <= oudsteGeladen
+            return { streak: n, streakAfgekapt: afgekapt }
           })()
           return (
             <div style={{ background: 'var(--bg-card)', borderRadius: 16, padding: '14px 16px', marginBottom: 20, border: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 16 }}>
@@ -362,7 +378,7 @@ export default function JournalPagina() {
               </div>
               {streak > 0 && (
                 <div style={{ textAlign: 'center', paddingLeft: 12, borderLeft: '1px solid var(--border)', flexShrink: 0 }}>
-                  <p style={{ fontSize: 20, fontWeight: 900, color: 'var(--mf-green)', margin: 0, lineHeight: 1 }}>{streak}</p>
+                  <p style={{ fontSize: 20, fontWeight: 900, color: 'var(--mf-green)', margin: 0, lineHeight: 1 }}>{streakAfgekapt ? `${Math.min(streak, 30)}+` : streak}</p>
                   <p style={{ fontSize: 9, color: 'var(--text-4)', margin: '2px 0 0', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>daagse<br />streak</p>
                 </div>
               )}
@@ -409,7 +425,7 @@ export default function JournalPagina() {
                       <p style={{ fontSize: 12, color: 'var(--text-4)', textTransform: 'capitalize' }}>{formatDatum(e.aangemaakt_op)}</p>
                     </div>
                     <button
-                      onClick={() => verwijder(e.id)}
+                      onClick={() => setVerwijderId(e.id)}
                       className="mf-journal-del"
                       style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-4)', padding: 9, margin: -5, display: 'flex', borderRadius: 8, transition: 'color 0.15s var(--ease), background 0.15s var(--ease)' }}
                       aria-label="Aantekening verwijderen"
@@ -435,6 +451,22 @@ export default function JournalPagina() {
           </div>
         )}
       </main>
+
+      {/* Verwijder-bevestiging — toegankelijke dialog i.p.v. native confirm() */}
+      <DialogRoot open={!!verwijderId} onOpenChange={(open) => { if (!open) setVerwijderId(null) }}>
+        <DialogContent>
+          <DialogTitle>Aantekening verwijderen?</DialogTitle>
+          <DialogDescription>Dit kan niet ongedaan worden gemaakt.</DialogDescription>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 20 }}>
+            <Button variant="secondary" onClick={() => setVerwijderId(null)}>
+              Behouden
+            </Button>
+            <Button variant="danger" onClick={() => { if (verwijderId) verwijder(verwijderId) }}>
+              Verwijderen
+            </Button>
+          </div>
+        </DialogContent>
+      </DialogRoot>
     </div>
   )
 }

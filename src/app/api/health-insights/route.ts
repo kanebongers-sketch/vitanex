@@ -31,16 +31,25 @@ function burnoutRisico(checkins: CheckinScore[], wearables: HealthLog[]): {
   let risicoScore = 0
 
   if (checkins.length > 0) {
-    const recentScores = checkins[0].scores
-    const stressScore = recentScores?.stress_niveau ? (recentScores.stress_niveau / 5) : 0
-    const energieScore = recentScores?.energie_niveau ? (recentScores.energie_niveau / 5) : 1
-    const slaapScore = recentScores?.slaap_kwaliteit ? (recentScores.slaap_kwaliteit / 5) : 1
-    const motivatieScore = recentScores?.motivatie_werk ? (recentScores.motivatie_werk / 5) : 1
+    // checkin_analyses.scores gebruikt de sleutels stress/energie/slaap/motivatie
+    // op een schaal van 4-20 (hoger = beter). Een factor telt alléén mee als de
+    // sleutel daadwerkelijk aanwezig is — nooit op basis van een default.
+    const recentScores = checkins[0].scores ?? {}
+    const LAGE_SCORE_DREMPEL = 10
+    const SCORE_FACTOREN = [
+      { sleutel: 'stress', punten: 25, label: 'Hoog stressniveau' },
+      { sleutel: 'energie', punten: 20, label: 'Lage energieniveaus' },
+      { sleutel: 'slaap', punten: 20, label: 'Slaapproblemen' },
+      { sleutel: 'motivatie', punten: 15, label: 'Verminderde motivatie' },
+    ] as const
 
-    if (stressScore <= 2) { risicoScore += 25; factoren.push('Hoog stressniveau') }
-    if (energieScore <= 2) { risicoScore += 20; factoren.push('Lage energieniveaus') }
-    if (slaapScore <= 2)   { risicoScore += 20; factoren.push('Slaapproblemen') }
-    if (motivatieScore <= 2) { risicoScore += 15; factoren.push('Verminderde motivatie') }
+    for (const factor of SCORE_FACTOREN) {
+      const waarde = recentScores[factor.sleutel]
+      if (typeof waarde === 'number' && waarde > 0 && waarde <= LAGE_SCORE_DREMPEL) {
+        risicoScore += factor.punten
+        factoren.push(factor.label)
+      }
+    }
 
     // Trend check: 3+ consecutive low scores
     if (checkins.length >= 3) {
@@ -170,7 +179,9 @@ export async function GET(request: Request) {
     .sort((a, b) => a.datum.localeCompare(b.datum))
     .slice(-30)
 
-  // Correlaties berekenen
+  // Generieke tips op basis van waargenomen patronen. We claimen géén
+  // persoonlijke correlatie die we niet echt berekenen — de tekst blijft
+  // daarom algemeen, zonder 'jou/jouw' of 'significant'.
   const correlaties: { label: string; tip: string }[] = []
 
   const goedeSlaapDagen = wearables.filter(w => w.slaap_minuten && w.slaap_minuten >= 420)
@@ -178,15 +189,15 @@ export async function GET(request: Request) {
 
   if (goedeSlaapDagen.length >= 2 && slechteSlaapDagen.length >= 2) {
     correlaties.push({
-      label: '😴 Slaap & Energie',
-      tip: 'Meer dan 7u slaap geeft jou significant meer energie de volgende dag.',
+      label: 'Slaap & Energie',
+      tip: 'De slaapduur wisselt de laatste tijd. Consistent 7+ uur slaap hangt in het algemeen samen met meer energie de volgende dag.',
     })
   }
 
   if (wearables.some(w => w.stappen && w.stappen > 8000)) {
     correlaties.push({
-      label: '🚶 Beweging & Stress',
-      tip: 'Op dagen met 8000+ stappen is jouw stressniveau gemiddeld lager.',
+      label: 'Beweging & Stress',
+      tip: 'Regelmatig bewegen — zoals dagen met 8000+ stappen — helpt in het algemeen om stress te verlagen.',
     })
   }
 

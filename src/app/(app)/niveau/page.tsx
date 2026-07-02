@@ -9,7 +9,7 @@ import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Progress } from '@/components/ui/Progress'
 import {
-  laadXPData, pasDecayToe, slaXPOp, berekenLevel, xpVoortgang,
+  laadXPData, berekenLevel, xpVoortgang,
   LEVEL_NAMEN, LEVEL_KLEUREN, LEVEL_BG,
   ALLE_ACHIEVEMENTS, type XPData, type Achievement,
 } from '@/lib/xp'
@@ -103,11 +103,12 @@ function LevelRing({ level, pct, kleur }: { level: number; pct: number; kleur: s
     >
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} aria-hidden="true" focusable="false"
         style={{ transform: 'rotate(-90deg)', position: 'absolute', top: 0, left: 0 }}>
-        <circle cx={size/2} cy={size/2} r={r} fill={bg} style={{ stroke: 'var(--border)' }} strokeWidth="10" />
-        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={kleur} strokeWidth="10"
+        {/* var() werkt niet in SVG-presentatie-attributen (fill/stroke) — daarom via style. */}
+        <circle cx={size/2} cy={size/2} r={r} strokeWidth="10" style={{ fill: bg, stroke: 'var(--border)' }} />
+        <circle cx={size/2} cy={size/2} r={r} strokeWidth="10"
           strokeLinecap="round" strokeDasharray={`${circ}`}
           strokeDashoffset={`${circ * (1 - pct / 100)}`}
-          style={{ transition: 'stroke-dashoffset 1.2s cubic-bezier(.4,0,.2,1)' }} />
+          style={{ fill: 'none', stroke: kleur, transition: 'stroke-dashoffset 1.2s var(--ease)' }} />
       </svg>
       <div aria-hidden="true" style={{
         position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column',
@@ -160,6 +161,7 @@ function AchievementBadge({ ach, unlocked }: { ach: Achievement; unlocked: boole
       </div>
       <p style={{ fontSize: 10, fontWeight: 700, color: unlocked ? 'var(--text-1)' : 'var(--text-4)', textAlign: 'center', lineHeight: 1.3 }}>
         {ach.naam}
+        <span className="sr-only">{unlocked ? ' — behaald' : ' — nog niet behaald'}</span>
       </p>
       {unlocked && (
         <p style={{ fontSize: 9, color: ach.kleur, fontWeight: 700 }}>+{ach.xpBonus} XP</p>
@@ -182,9 +184,7 @@ export default function NiveauPage() {
   useEffect(() => {
     Promise.resolve().then(async () => {
       // Lokaal eerst tonen — geen wachttijd
-      let data = laadXPData()
-      data = pasDecayToe(data)
-      slaXPOp(data)
+      const data = laadXPData()
       setXpData(data)
 
       // Server daarna laden (hogere XP wint — cross-device correctheid)
@@ -220,11 +220,11 @@ export default function NiveauPage() {
 
   const typeKleur: Record<string, string> = {
     checkin: 'var(--mf-green)', goal: 'var(--mf-blue)', streak: 'var(--mf-red)',
-    achievement: 'var(--mf-amber)', decay: 'var(--text-3)',
+    achievement: 'var(--mf-amber)',
   }
   const typeLabel: Record<string, string> = {
     checkin: 'Check-in', goal: 'Doel', streak: 'Streak',
-    achievement: 'Achievement', decay: 'Inactiviteit',
+    achievement: 'Achievement',
   }
 
   return (
@@ -266,10 +266,10 @@ export default function NiveauPage() {
             </svg>
             <div style={{ flex: 1, minWidth: 0 }}>
               <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-1)' }}>
-                Doe je wekelijkse check-in om je niveau te behouden
+                Verdien elke week +75 XP met je check-in
               </p>
               <p style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 1 }}>
-                Een korte check-in per week houdt je XP en niveau op peil.
+                Een korte check-in per week en je groeit gestaag door.
               </p>
             </div>
             <Link href="/checkin" style={{
@@ -354,17 +354,21 @@ export default function NiveauPage() {
 
         {/* ── Level progression track ── */}
         <Card style={{ padding: 20, marginBottom: 16 }}>
-          <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-4)', marginBottom: 14 }}>
+          <h2 style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-4)', margin: '0 0 14px' }}>
             Niveau-ladder
-          </p>
-          <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+          </h2>
+          <div
+            role="img"
+            aria-label={`Niveau-ladder: je bent nu niveau ${level} van 10`}
+            style={{ display: 'flex', gap: 6, alignItems: 'center' }}
+          >
             {[1,2,3,4,5,6,7,8,9,10].map(l => {
               const isHuidige = l === level
               const isPast    = l < level
               const lKleur    = LEVEL_KLEUREN[l]
               const lBg       = LEVEL_BG[l]
               return (
-                <div key={l} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+                <div key={l} aria-hidden="true" style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
                   <div style={{
                     width: '100%', height: isHuidige ? 38 : 30,
                     borderRadius: 8,
@@ -395,9 +399,9 @@ export default function NiveauPage() {
         {/* ── Achievements grid ── */}
         <Card style={{ padding: 20, marginBottom: 16 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-            <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-4)' }}>
+            <h2 style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-4)', margin: 0 }}>
               Achievements
-            </p>
+            </h2>
             <Badge variant="accent">{behaald} / {totaal}</Badge>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(78px, 1fr))', gap: 10 }}>
@@ -434,9 +438,9 @@ export default function NiveauPage() {
         {/* ── XP History ── */}
         {xpData.history.length > 0 && (
           <Card style={{ padding: 20, marginBottom: 16 }}>
-            <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-4)', marginBottom: 14 }}>
+            <h2 style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-4)', margin: '0 0 14px' }}>
               Recente XP-activiteit
-            </p>
+            </h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {xpData.history.slice(0, 12).map((evt, i) => {
                 const isPos = evt.xp > 0
@@ -469,9 +473,9 @@ export default function NiveauPage() {
 
         {/* ── XP uitleg ── */}
         <Card style={{ background: 'var(--bg-subtle)', padding: 20 }}>
-          <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-4)', marginBottom: 14 }}>
+          <h2 style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-4)', margin: '0 0 14px' }}>
             Hoe verdien je XP?
-          </p>
+          </h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {[
               { label: 'Wekelijkse check-in',       xp: 75,  kleur: 'var(--mf-green)' },
@@ -491,7 +495,7 @@ export default function NiveauPage() {
             ))}
             <div style={{ borderTop: '1px solid var(--border)', paddingTop: 8, marginTop: 4 }}>
               <p style={{ fontSize: 12, color: 'var(--text-3)', lineHeight: 1.5, margin: 0 }}>
-                Doe je wekelijkse check-in om je niveau te behouden — zo blijft je XP behouden, ook bij een rustige week.
+                Verdien elke week +75 XP met je check-in — je XP raak je nooit kwijt, ook niet in een rustige week.
               </p>
             </div>
           </div>

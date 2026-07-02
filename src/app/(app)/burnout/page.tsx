@@ -7,12 +7,14 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import Link from 'next/link'
+import { Button } from '@/components/ui/Button'
+import { useToast } from '@/components/ui/Toast'
 
 
 const RISICO_GLOW: Record<string, string> = {
-  laag:  'rgba(29,158,117,0.20)',
-  matig: 'rgba(242,133,36,0.20)',
-  hoog:  'rgba(226,75,74,0.20)',
+  laag:  'var(--mf-green-light)',
+  matig: 'var(--mf-amber-light)',
+  hoog:  'var(--mf-red-light)',
 }
 
 type Scan = {
@@ -73,7 +75,7 @@ function risicoAdvies(niveau: string, uitputting: number, cynisme: number, effic
   const tips: string[] = []
   if (niveau === 'hoog') {
     tips.push('Overweeg een gesprek met je leidinggevende of HR over je werkbelasting.')
-    tips.push('Zoek professionele begeleiding  een coach of psycholoog kan goed helpen.')
+    tips.push('Zoek professionele begeleiding — een coach of psycholoog kan goed helpen.')
     tips.push('Plan bewust rustmomenten in je dag en week.')
   } else if (niveau === 'matig') {
     tips.push('Let op je energiepeil en kaart knelpunten aan bij je team of leidinggevende.')
@@ -81,14 +83,15 @@ function risicoAdvies(niveau: string, uitputting: number, cynisme: number, effic
   } else {
     tips.push('Goed bezig! Blijf inzetten op je herstel en energie.')
   }
-  if (uitputting >= 3.5) tips.push('Je scoort hoog op uitputting  slaap en herstel zijn extra belangrijk voor jou.')
-  if (cynisme >= 3.5) tips.push('Je voelt wat distantie  praten met de coach of een collega kan helpen die motivatie terug te vinden.')
-  if (efficaciteit <= 2.5) tips.push('Je twijfelt aan je effectiviteit  bespreek dit eens met je leidinggevende voor wat erkenning en helderheid.')
+  if (uitputting >= 3.5) tips.push('Je scoort hoog op uitputting — slaap en herstel zijn extra belangrijk voor jou.')
+  if (cynisme >= 3.5) tips.push('Je voelt wat distantie — praten met de coach of een collega kan helpen die motivatie terug te vinden.')
+  if (efficaciteit <= 2.5) tips.push('Je twijfelt aan je effectiviteit — bespreek dit eens met je leidinggevende voor wat erkenning en helderheid.')
   return tips
 }
 
 export default function BurnoutPagina() {
   const router = useRouter()
+  const { toast } = useToast()
   const [fase, setFase] = useState<'intro' | 'scan' | 'resultaat' | 'history'>('intro')
   const [antwoorden, setAntwoorden] = useState<Record<string, number>>({})
   const [opslaan, setOpslaan] = useState(false)
@@ -130,7 +133,7 @@ export default function BurnoutPagina() {
   }
 
   async function submit() {
-    if (!userId || !bedrijfId) return
+    if (!userId) return
     const volledig = VRAGEN.every(v => antwoorden[v.id] !== undefined)
     if (!volledig) return
 
@@ -139,22 +142,55 @@ export default function BurnoutPagina() {
     const e = gem('efficaciteit')
     const risico = berekenRisico(u, c, e)
 
+    // Lokaal resultaat, zodat de gebruiker altijd een uitslag ziet — ook als
+    // opslaan niet lukt.
+    const lokaalResultaat: Scan = {
+      id: 'lokaal',
+      uitputting: Math.round(u * 10) / 10,
+      cynisme: Math.round(c * 10) / 10,
+      efficaciteit: Math.round(e * 10) / 10,
+      risico_niveau: risico,
+      aangemaakt_op: new Date().toISOString(),
+    }
+
+    if (!bedrijfId) {
+      toast({
+        title: 'Scan niet opgeslagen',
+        description: 'Je account is nog niet aan een bedrijf gekoppeld. Je resultaat zie je wel hieronder.',
+        variant: 'warning',
+      })
+      setResultaat(lokaalResultaat)
+      setFase('resultaat')
+      return
+    }
+
     setOpslaan(true)
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('burnout_scans')
       .insert({
         user_id: userId,
         bedrijf_id: bedrijfId,
-        uitputting: Math.round(u * 10) / 10,
-        cynisme: Math.round(c * 10) / 10,
-        efficaciteit: Math.round(e * 10) / 10,
+        uitputting: lokaalResultaat.uitputting,
+        cynisme: lokaalResultaat.cynisme,
+        efficaciteit: lokaalResultaat.efficaciteit,
         risico_niveau: risico,
       })
       .select('id, uitputting, cynisme, efficaciteit, risico_niveau, aangemaakt_op')
       .single()
 
     setOpslaan(false)
-    if (data) { setResultaat(data); setFase('resultaat') }
+    if (error || !data) {
+      toast({
+        title: 'Scan niet opgeslagen',
+        description: 'Opslaan lukte niet. Je resultaat zie je wel — probeer het later opnieuw.',
+        variant: 'error',
+      })
+      setResultaat(lokaalResultaat)
+      setFase('resultaat')
+      return
+    }
+    setResultaat(data)
+    setFase('resultaat')
   }
 
   const voortgang = VRAGEN.filter(v => antwoorden[v.id] !== undefined).length
@@ -169,16 +205,17 @@ export default function BurnoutPagina() {
           <h1 className="text-xl font-semibold mb-2" style={{ color: 'var(--text-1)' }}>Burn-out risicoscan</h1>
           <p className="text-sm leading-relaxed mb-6" style={{ color: 'var(--text-3)' }}>
             12 vragen over uitputting, betrokkenheid en effectiviteit. Duurt ongeveer 3 minuten.
-            Resultaten zijn alleen voor jou  niet zichtbaar voor HR of je leidinggevende.
+            Resultaten zijn alleen voor jou — niet zichtbaar voor HR of je leidinggevende.
           </p>
           <div className="flex flex-col gap-3">
-            <button
+            <Button
+              variant="primary"
+              size="lg"
               onClick={() => setFase('scan')}
-              className="w-full py-3 rounded-xl text-white font-medium text-sm transition"
-              style={{ background: 'var(--mentaforce-primary)' }}
+              style={{ width: '100%' }}
             >
               Start de scan
-            </button>
+            </Button>
             <button
               onClick={laadHistory}
               className="w-full py-3 rounded-xl text-sm transition"
@@ -260,14 +297,16 @@ export default function BurnoutPagina() {
           </div>
         ))}
 
-        <button
+        <Button
+          variant="primary"
+          size="lg"
           onClick={submit}
-          disabled={!volledig || opslaan}
-          className="w-full py-3.5 rounded-xl text-white font-medium text-sm transition disabled:opacity-40"
-          style={{ background: 'linear-gradient(135deg, var(--mf-green) 0%, var(--mf-green-dark) 100%)' }}
+          disabled={!volledig}
+          loading={opslaan}
+          style={{ width: '100%' }}
         >
-          {opslaan ? 'Bezig...' : 'Bekijk mijn resultaat'}
-        </button>
+          {opslaan ? 'Bezig…' : 'Bekijk mijn resultaat'}
+        </Button>
       </main>
     </div>
   )
@@ -287,7 +326,7 @@ export default function BurnoutPagina() {
             style={{ background: kleur.bg, borderColor: kleur.border }}
           >
             <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8 }}>
-              <div style={{ width: 120, height: 120, borderRadius: '50%', background: `radial-gradient(circle, ${RISICO_GLOW[resultaat.risico_niveau] ?? 'rgba(29,158,117,0.18)'} 0%, transparent 70%)` }} />
+              <div style={{ width: 120, height: 120, borderRadius: '50%', background: `radial-gradient(circle, ${RISICO_GLOW[resultaat.risico_niveau] ?? 'var(--mf-green-light)'} 0%, transparent 70%)` }} />
             </div>
             <p className="text-xl font-semibold" style={{ color: kleur.text }}>
               {risicoLabel(resultaat.risico_niveau)}
@@ -336,8 +375,8 @@ export default function BurnoutPagina() {
           <div className="flex gap-3">
             <Link
               href="/coach"
-              className="flex-1 py-3 rounded-xl text-sm font-medium text-center text-white transition"
-              style={{ background: 'linear-gradient(135deg, var(--mf-green) 0%, var(--mf-green-dark) 100%)' }}
+              className="flex-1 py-3 rounded-xl text-sm font-medium text-center transition"
+              style={{ background: 'var(--mentaforce-primary)', color: 'var(--bg-app)' }}
             >
               Praat met de coach
             </Link>

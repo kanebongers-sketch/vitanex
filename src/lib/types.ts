@@ -173,11 +173,11 @@ export interface BedrijfsNieuws {
 }
 
 export const NIEUWS_TYPE_STIJL: Record<NieuwsType, { emoji: string; bg: string; color: string; label: string }> = {
-  aankondiging: { emoji: '📣', bg: '#E6F1FB', color: '#185FA5', label: 'Aankondiging' },
-  beleid:       { emoji: '📋', bg: '#FAEEDA', color: '#854F0B', label: 'Beleid' },
-  evenement:    { emoji: '🎉', bg: '#EDE9FE', color: '#5B21B6', label: 'Evenement' },
-  resultaten:   { emoji: '📈', bg: '#E1F5EE', color: '#0F6E56', label: 'Resultaten' },
-  overig:       { emoji: '💬', bg: '#F3F4F6', color: '#6b7280', label: 'Overig' },
+  aankondiging: { emoji: '📣', bg: 'var(--mf-blue-light)',   color: 'var(--mf-blue)',   label: 'Aankondiging' },
+  beleid:       { emoji: '📋', bg: 'var(--mf-amber-light)',  color: 'var(--mf-amber)',  label: 'Beleid' },
+  evenement:    { emoji: '🎉', bg: 'var(--mf-purple-light)', color: 'var(--mf-purple)', label: 'Evenement' },
+  resultaten:   { emoji: '📈', bg: 'var(--mf-green-light)',  color: 'var(--mf-green)',  label: 'Resultaten' },
+  overig:       { emoji: '💬', bg: 'var(--bg-subtle)',       color: 'var(--text-3)',    label: 'Overig' },
 }
 
 // ── Loonstroken ────────────────────────────────────────────────────────────
@@ -198,15 +198,15 @@ export interface Loonstrook {
 // ── Score helpers ──────────────────────────────────────────────────────────
 
 export function scoreKleur(score: number): string {
-  if (score >= 4) return '#1D9E75'
-  if (score >= 2.5) return '#BA7517'
-  return '#E24B4A'
+  if (score >= 4) return 'var(--mf-green)'
+  if (score >= 2.5) return 'var(--mf-amber)'
+  return 'var(--mf-red)'
 }
 
 export function scoreBadge(score: number): { bg: string; color: string; label: string } {
-  if (score >= 4) return { bg: '#E1F5EE', color: '#0F6E56', label: 'Goed' }
-  if (score >= 2.5) return { bg: '#FAEEDA', color: '#854F0B', label: 'Matig' }
-  return { bg: '#FCEBEB', color: '#A32D2D', label: 'Laag' }
+  if (score >= 4) return { bg: 'var(--mf-green-light)', color: 'var(--mf-green)', label: 'Goed' }
+  if (score >= 2.5) return { bg: 'var(--mf-amber-light)', color: 'var(--mf-amber)', label: 'Matig' }
+  return { bg: 'var(--mf-red-light)', color: 'var(--mf-red)', label: 'Laag' }
 }
 
 export function gemiddelde(arr: number[]): number {
@@ -225,13 +225,13 @@ export function aantalDagen(van: string, tot: string): number {
 // ── Status badge helpers ───────────────────────────────────────────────────
 
 export const VERLOF_STATUS_STIJL: Record<VerlofStatus, { bg: string; color: string; label: string }> = {
-  aangevraagd: { bg: '#FAEEDA', color: '#854F0B', label: 'In behandeling' },
-  goedgekeurd: { bg: '#E1F5EE', color: '#0F6E56', label: 'Goedgekeurd' },
-  afgewezen:   { bg: '#FCEBEB', color: '#A32D2D', label: 'Afgewezen' },
+  aangevraagd: { bg: 'var(--mf-amber-light)', color: 'var(--mf-amber)', label: 'In behandeling' },
+  goedgekeurd: { bg: 'var(--mf-green-light)', color: 'var(--mf-green)', label: 'Goedgekeurd' },
+  afgewezen:   { bg: 'var(--mf-red-light)',   color: 'var(--mf-red)',   label: 'Afgewezen' },
 }
 
 export const DECLARATIE_STATUS_STIJL: Record<DeclaratieStatus, { bg: string; color: string; label: string }> = {
-  ingediend:   { bg: '#FAEEDA', color: '#854F0B', label: 'In behandeling' },
-  goedgekeurd: { bg: '#E1F5EE', color: '#0F6E56', label: 'Goedgekeurd' },
-  afgewezen:   { bg: '#FCEBEB', color: '#A32D2D', label: 'Afgewezen' },
+  ingediend:   { bg: 'var(--mf-amber-light)', color: 'var(--mf-amber)', label: 'In behandeling' },
+  goedgekeurd: { bg: 'var(--mf-green-light)', color: 'var(--mf-green)', label: 'Goedgekeurd' },
+  afgewezen:   { bg: 'var(--mf-red-light)',   color: 'var(--mf-red)',   label: 'Afgewezen' },
 }

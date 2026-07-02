@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
+import { Button } from '@/components/ui/Button'
 import {
   ACTIVITEIT_CONFIG,
   DOEL_CONFIG,
@@ -46,6 +47,11 @@ const VELD_STIJL: React.CSSProperties = {
   outline: 'none',
   background: 'var(--bg-app)',
   color: 'var(--text-1)',
+}
+
+const SECTIE_STIJL: React.CSSProperties = {
+  background: 'var(--bg-card)',
+  border: '1px solid var(--border)',
 }
 
 const LABEL_STIJL: React.CSSProperties = {
@@ -140,7 +146,7 @@ export default function GezondheidDoelen({ userId }: Props) {
 
   if (laden) {
     return (
-      <section className="bg-white rounded-2xl border border-gray-200 p-6">
+      <section className="rounded-2xl p-6" style={SECTIE_STIJL}>
         <div className="flex justify-center py-6">
           <div className="mf-spinner" />
         </div>
@@ -151,9 +157,9 @@ export default function GezondheidDoelen({ userId }: Props) {
   return (
     <>
       {/* Profiel & lichaam */}
-      <section className="bg-white rounded-2xl border border-gray-200 p-6">
-        <h2 className="text-base font-semibold text-gray-900 mb-1">Gezondheidsprofiel</h2>
-        <p className="text-xs text-gray-400 mb-5">
+      <section className="rounded-2xl p-6" style={SECTIE_STIJL}>
+        <h2 className="text-base font-semibold mb-1" style={{ color: 'var(--text-1)' }}>Gezondheidsprofiel</h2>
+        <p className="text-xs mb-5" style={{ color: 'var(--text-3)' }}>
           Deze gegevens bepalen automatisch je water-, stappen- en calorie-doelen.
         </p>
 
@@ -227,9 +233,9 @@ export default function GezondheidDoelen({ userId }: Props) {
       </section>
 
       {/* Doelen overschrijven */}
-      <section className="bg-white rounded-2xl border border-gray-200 p-6">
-        <h2 className="text-base font-semibold text-gray-900 mb-1">Dagdoelen</h2>
-        <p className="text-xs text-gray-400 mb-5">
+      <section className="rounded-2xl p-6" style={SECTIE_STIJL}>
+        <h2 className="text-base font-semibold mb-1" style={{ color: 'var(--text-1)' }}>Dagdoelen</h2>
+        <p className="text-xs mb-5" style={{ color: 'var(--text-3)' }}>
           Laat leeg om automatisch te berekenen, of vul een eigen waarde in om te overschrijven.
         </p>
 
@@ -275,10 +281,9 @@ export default function GezondheidDoelen({ userId }: Props) {
         </div>
 
         <div className="flex items-center gap-3 mt-6">
-          <button onClick={opslaan} disabled={bezig}
-            className="bg-gray-900 text-white rounded-xl px-5 py-2.5 text-sm font-medium hover:bg-gray-700 transition disabled:opacity-30">
+          <Button variant="primary" onClick={opslaan} loading={bezig}>
             {bezig ? 'Opslaan...' : 'Wijzigingen opslaan'}
-          </button>
+          </Button>
           {melding && (
             <p className="text-sm" style={{ color: melding.type === 'success' ? 'var(--mf-green-dark)' : 'var(--mf-red)' }}>
               {melding.tekst}

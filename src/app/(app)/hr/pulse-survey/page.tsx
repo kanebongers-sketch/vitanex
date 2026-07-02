@@ -27,6 +27,7 @@ interface VraagStat {
   gemiddelde: number | null
   distributie: Record<string, number>
   nps: number | null
+  verborgen_wegens_anonimiteit?: boolean
 }
 
 interface SurveyData {
@@ -232,13 +233,14 @@ export default function HrPulseSurveyPage() {
                     style={{
                       width: 36, height: 20, borderRadius: 100, position: 'relative', cursor: 'pointer', flexShrink: 0,
                       border: 'none', padding: 0,
-                      background: v.actief ? 'var(--mf-green)' : 'var(--border-strong)', transition: 'background 0.2s var(--ease)',
+                      background: v.actief ? 'var(--mf-green)' : 'var(--border-strong)',
                     }}
                   >
                     <span aria-hidden style={{
                       display: 'block',
                       width: 14, height: 14, borderRadius: '50%', background: 'var(--bg-card)',
-                      position: 'absolute', top: 3, left: v.actief ? 19 : 3, transition: 'left 0.2s var(--ease)',
+                      position: 'absolute', top: 3, left: 3,
+                      transform: v.actief ? 'translateX(16px)' : 'translateX(0)',
                     }} />
                   </button>
 
@@ -276,7 +278,11 @@ export default function HrPulseSurveyPage() {
 
                 {isOpen && v.aantal_antwoorden > 0 && (
                   <div style={{ borderTop: '1px solid var(--border)', padding: '16px 20px' }}>
-                    {v.type === 'scale' || v.type === 'nps' ? (
+                    {v.verborgen_wegens_anonimiteit ? (
+                      <p style={{ fontSize: 12, color: 'var(--text-3)' }}>
+                        Resultaten zichtbaar vanaf 5 antwoorden — zo blijft elke respondent anoniem.
+                      </p>
+                    ) : v.type === 'scale' || v.type === 'nps' ? (
                       <div>
                         {v.type === 'nps' && v.nps !== null && (
                           <div style={{ marginBottom: 14 }}>
@@ -337,6 +343,8 @@ export default function HrPulseSurveyPage() {
             outline-offset: 2px;
             border-radius: var(--radius-xs);
           }
+          .mf-pulse-switch { transition: background 0.2s var(--ease); }
+          .mf-pulse-switch span { transition: transform 0.2s var(--ease); }
           @media (prefers-reduced-motion: reduce) {
             .mf-pulse-switch, .mf-pulse-switch span { transition: none; }
           }

@@ -34,6 +34,17 @@ Je grenzen (blijven altijd gelden):
 
 type Bericht = { role: 'user' | 'assistant'; content: string }
 
+// Handmatige validatie op de systeemgrens (bewust zonder schema-library):
+// elk bericht heeft role 'user' | 'assistant' en content van 1–4000 tekens.
+function valideerBericht(b: unknown): b is Bericht {
+  if (typeof b !== 'object' || b === null) return false
+  const { role, content } = b as Record<string, unknown>
+  return (role === 'user' || role === 'assistant')
+    && typeof content === 'string'
+    && content.length >= 1
+    && content.length <= 4000
+}
+
 type GebruikerContext = {
   naam: string
   discPrimair?: string
@@ -85,7 +96,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const { berichten, gebruiker_context, maxTokens }: {
-      berichten: Bericht[]
+      berichten: unknown
       gebruiker_context?: GebruikerContext
       maxTokens?: number
     } = await req.json()
@@ -96,10 +107,34 @@ export async function POST(req: NextRequest) {
     if (berichten.length > 50) {
       return NextResponse.json({ error: 'Te veel berichten in de context.' }, { status: 400 })
     }
+    for (const b of berichten) {
+      if (!valideerBericht(b)) {
+        const contentTeLang = typeof b === 'object' && b !== null
+          && typeof (b as Record<string, unknown>).content === 'string'
+          && ((b as Record<string, unknown>).content as string).length > 4000
+        return NextResponse.json(
+          { error: contentTeLang ? 'Bericht is te lang.' : 'Ongeldig bericht.' },
+          { status: 400 },
+        )
+      }
+    }
+
+    // De Messages API vereist dat het eerste bericht van de gebruiker komt.
+    // Opende Vita zelf (nudge-opener als eerste assistant-bericht)? Vouw die
+    // opener dan in het systeem-prompt, zodat het model weet waarover ze begon.
+    let chatBerichten: Bericht[] = berichten
+    let openerContext = ''
+    if (chatBerichten[0].role === 'assistant') {
+      openerContext = `\n\nJe opende dit gesprek zelf proactief met: "${chatBerichten[0].content}" — bouw daarop voort.`
+      chatBerichten = chatBerichten.slice(1)
+    }
+    if (chatBerichten.length === 0 || chatBerichten[0].role !== 'user') {
+      return NextResponse.json({ error: 'Geen berichten meegegeven.' }, { status: 400 })
+    }
 
     // Bouw gepersonaliseerd systeem-prompt met gebruikerscontext
     const defaultContext: GebruikerContext = { naam: 'je', ...gebruiker_context }
-    const systeemTekst = await buildCoachSystemPrompt(BASIS_SYSTEEM, user.id, defaultContext)
+    const systeemTekst = await buildCoachSystemPrompt(BASIS_SYSTEEM, user.id, defaultContext) + openerContext
 
     // Cap maxTokens: client mag nooit meer dan 600 tokens vragen (voorkomt hoge AI-kosten)
     const safeMaxTokens = Math.min(Math.max(100, maxTokens ?? 400), 600)
@@ -115,8 +150,8 @@ export async function POST(req: NextRequest) {
           cache_control: { type: 'ephemeral' },
         },
       ],
-      messages: berichten.map((b, i) => {
-        if (i === berichten.length - 2 && b.role === 'user' && b.content.length > 200) {
+      messages: chatBerichten.map((b, i) => {
+        if (i === chatBerichten.length - 2 && b.role === 'user' && b.content.length > 200) {
           return {
             role: b.role,
             content: [{ type: 'text' as const, text: b.content, cache_control: { type: 'ephemeral' as const } }],

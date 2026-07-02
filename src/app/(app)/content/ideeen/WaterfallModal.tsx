@@ -198,7 +198,7 @@ export function WaterfallModal({ data, onClose }: { data: WaterfallData; onClose
                       const kleur = SLIDE_KLEUR[s.type] ?? 'var(--text-3)'
                       return (
                         <div key={s.nr} style={{
-                          background: 'var(--bg-card)', border: `1px solid ${kleur}20`,
+                          background: 'var(--bg-card)', border: `1px solid color-mix(in srgb, ${kleur} 13%, transparent)`,
                           borderLeft: `3px solid ${kleur}`,
                           borderRadius: 8, padding: '10px 13px',
                         }}>
@@ -347,11 +347,11 @@ export function WaterfallModal({ data, onClose }: { data: WaterfallData; onClose
                   return (
                     <div key={s.nr} style={{
                       display: 'grid', gridTemplateColumns: '160px 1fr',
-                      background: 'var(--bg-app)', border: `1px solid ${kleur}25`,
+                      background: 'var(--bg-app)', border: `1px solid color-mix(in srgb, ${kleur} 15%, transparent)`,
                       borderRadius: 10, overflow: 'hidden',
                     }}>
                       <div style={{
-                        background: `${kleur}12`, borderRight: `1px solid ${kleur}20`,
+                        background: `color-mix(in srgb, ${kleur} 7%, transparent)`, borderRight: `1px solid color-mix(in srgb, ${kleur} 13%, transparent)`,
                         padding: '14px 16px', display: 'flex', flexDirection: 'column',
                         justifyContent: 'center', alignItems: 'flex-start', gap: 4,
                       }}>
@@ -407,8 +407,8 @@ export function WaterfallModal({ data, onClose }: { data: WaterfallData; onClose
                       {tags.map(tag => (
                         <span key={tag} style={{
                           fontSize: 12, fontWeight: 700, padding: '5px 12px', borderRadius: 20,
-                          background: `${tier.kleur}12`, color: tier.kleur,
-                          border: `1px solid ${tier.kleur}30`, cursor: 'pointer',
+                          background: `color-mix(in srgb, ${tier.kleur} 7%, transparent)`, color: tier.kleur,
+                          border: `1px solid color-mix(in srgb, ${tier.kleur} 19%, transparent)`, cursor: 'pointer',
                         }} onClick={() => navigator.clipboard.writeText(tag)}>
                           {tag}
                         </span>
@@ -446,7 +446,7 @@ export function WaterfallModal({ data, onClose }: { data: WaterfallData; onClose
                 { label: '💡 Pro tip', waarde: data.postplan?.tip, kleur: 'var(--mf-amber)' },
               ].map(item => (
                 <div key={item.label} style={{
-                  background: 'var(--bg-app)', border: `1px solid ${item.kleur}20`,
+                  background: 'var(--bg-app)', border: `1px solid color-mix(in srgb, ${item.kleur} 13%, transparent)`,
                   borderLeft: `3px solid ${item.kleur}`,
                   borderRadius: 'var(--radius-lg)', padding: '16px 18px',
                 }}>

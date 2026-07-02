@@ -74,7 +74,9 @@ export default function VerlofPage() {
   const [fout, setFout] = useState('')
   const [userId, setUserId] = useState('')
   const [bedrijfId, setBedrijfId] = useState<string | null>(null)
-  const [saldo, setSaldo] = useState({ vakantie: 20, opgenomen: 0 })
+  // Alleen écht opgenomen dagen (uit goedgekeurde aanvragen) — het totale
+  // verlofsaldo kennen we hier niet, dat wordt beheerd door HR.
+  const [opgenomen, setOpgenomen] = useState(0)
 
   const [type, setType] = useState<VerlofType>('vakantie')
   const [datumVan, setDatumVan] = useState('')
@@ -103,7 +105,7 @@ export default function VerlofPage() {
         const opgenomenDagen = data
           .filter(a => a.status === 'goedgekeurd' && a.type === 'vakantie')
           .reduce((sum, a) => sum + aantalDagen(a.datum_van, a.datum_tot), 0)
-        setSaldo(s => ({ ...s, opgenomen: opgenomenDagen }))
+        setOpgenomen(opgenomenDagen)
       }
 
       setLaden(false)
@@ -138,7 +140,6 @@ export default function VerlofPage() {
     setOpslaan(false)
   }
 
-  const resterend = saldo.vakantie - saldo.opgenomen
   const vandaag = new Date().toISOString().slice(0, 10)
 
   return (
@@ -157,21 +158,16 @@ export default function VerlofPage() {
           </Button>
         </div>
 
-        {/* Saldo kaarten */}
-        <div className="grid grid-cols-3 gap-3 mb-6">
-          <Card style={{ padding: 16, textAlign: 'center' }}>
-            <p className="text-2xl font-bold" style={{ color: 'var(--text-1)' }}>{saldo.vakantie}</p>
-            <p className="text-xs mt-0.5" style={{ color: 'var(--text-4)' }}>Totaal</p>
-          </Card>
-          <Card style={{ padding: 16, textAlign: 'center' }}>
-            <p className="text-2xl font-bold" style={{ color: 'var(--mf-amber)' }}>{saldo.opgenomen}</p>
-            <p className="text-xs mt-0.5" style={{ color: 'var(--text-4)' }}>Opgenomen</p>
-          </Card>
-          <Card style={{ padding: 16, textAlign: 'center' }}>
-            <p className="text-2xl font-bold" style={{ color: 'var(--mentaforce-primary)' }}>{resterend}</p>
-            <p className="text-xs mt-0.5" style={{ color: 'var(--text-4)' }}>Resterend</p>
-          </Card>
-        </div>
+        {/* Opgenomen verlof — uit echte, goedgekeurde aanvragen */}
+        <Card className="mb-6" style={{ padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
+          <div>
+            <p className="text-2xl font-bold" style={{ color: 'var(--text-1)' }}>{opgenomen}</p>
+            <p className="text-xs mt-0.5" style={{ color: 'var(--text-4)' }}>Opgenomen vakantiedag{opgenomen !== 1 ? 'en' : ''}</p>
+          </div>
+          <p className="text-xs" style={{ color: 'var(--text-3)', textAlign: 'right', maxWidth: 240 }}>
+            Je verlofsaldo wordt beheerd door HR.
+          </p>
+        </Card>
 
         {/* Formulier */}
         <DialogRoot open={formulier} onOpenChange={(open) => { if (!open) setFormulier(false) }}>

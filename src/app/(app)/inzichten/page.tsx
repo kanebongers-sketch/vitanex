@@ -177,7 +177,7 @@ export default function InzichtenPagina() {
             titel="Je inzichten groeien met je mee"
             boodschap={data?.bericht ?? 'Doe deze week een paar check-ins, dan maak ik voor jou een analyse van hoe je week ervoor stond. Hoe meer je bijhoudt, hoe scherper het beeld.'}
             actieLabel="Doe een check-in"
-            actieHref="/vandaag"
+            actieHref="/home"
           />
         )}
 
@@ -201,7 +201,6 @@ export default function InzichtenPagina() {
                     {data?.week_start && (
                       <p style={{ fontSize: 11, color: 'var(--text-4)', marginTop: 4, fontWeight: 500 }}>
                         Week van {new Date(data.week_start).toLocaleDateString('nl-NL', { day: 'numeric', month: 'long' })}
-                        {data.cached ? ' · gecached' : ''}
                       </p>
                     )}
                   </div>

@@ -1,8 +1,10 @@
 import Link from 'next/link'
+import { Compass } from 'lucide-react'
+import { Wordmark } from '@/components/layout/Logo'
 
 export default function NietGevonden() {
   return (
-    <div
+    <main
       className="mf-mesh-bg"
       style={{
         minHeight: '100vh',
@@ -15,36 +17,25 @@ export default function NietGevonden() {
       }}
     >
       {/* MentaForce branding */}
-      <span
-        style={{
-          fontFamily: 'var(--font-display)',
-          fontStyle: 'italic',
-          fontSize: 22,
-          fontWeight: 400,
-          color: 'var(--mf-green)',
-          marginBottom: 40,
-          display: 'block',
-        }}
-      >
-        MentaForce
+      <span style={{ marginBottom: 40 }}>
+        <Wordmark size={16} />
       </span>
 
       {/* 404 illustratie */}
       <div
+        aria-hidden
         style={{
           width: 100,
           height: 100,
           borderRadius: '50%',
-          background: 'linear-gradient(135deg, var(--mf-green-light, #E1F5EE) 0%, rgba(29,158,117,0.08) 100%)',
+          background: 'var(--mf-green-light)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          fontSize: 48,
           marginBottom: 28,
-          boxShadow: '0 8px 32px rgba(29,158,117,0.12)',
         }}
       >
-        🗺️
+        <Compass size={40} strokeWidth={1.75} style={{ color: 'var(--mf-green)' }} />
       </div>
 
       <h1
@@ -87,22 +78,22 @@ export default function NietGevonden() {
       </p>
 
       <Link
-        href="/home"
+        href="/"
         style={{
           background: 'var(--mf-green)',
-          color: 'white',
+          color: 'var(--bg-app)',
           borderRadius: 14,
           padding: '14px 32px',
           fontSize: 15,
           fontWeight: 700,
           textDecoration: 'none',
-          boxShadow: '0 4px 20px rgba(29,158,117,0.35)',
+          boxShadow: '0 4px 20px color-mix(in srgb, var(--mf-green) 30%, transparent)',
           letterSpacing: '-0.01em',
           display: 'inline-block',
           transition: 'opacity 0.15s',
         }}
       >
-        Terug naar home
+        Terug naar de startpagina
       </Link>
 
       <p
@@ -125,6 +116,6 @@ export default function NietGevonden() {
           inloggen
         </Link>
       </p>
-    </div>
+    </main>
   )
 }

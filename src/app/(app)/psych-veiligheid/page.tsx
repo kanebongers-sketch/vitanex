@@ -7,6 +7,8 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
+import { useToast } from '@/components/ui/Toast'
+import { vitaEvent } from '@/lib/vita/events'
 import { Shield, Check } from 'lucide-react'
 
 
@@ -26,6 +28,7 @@ const VRAGEN = [
 
 export default function PsychVeiligheidPagina() {
   const router = useRouter()
+  const { toast } = useToast()
   const [metingen, setMetingen] = useState<Meting[]>([])
   const [scores, setScores] = useState<Record<string, number>>({ vrijheid_spreken: 0, fouten_ok: 0, idee_delen: 0 })
   const [laden, setLaden] = useState(true)
@@ -61,10 +64,15 @@ export default function PsychVeiligheidPagina() {
       if (res.ok) {
         const json = await res.json() as { meting: Meting }
         setMetingen(prev => [json.meting, ...prev.filter(m => m.week_start !== json.meting.week_start)])
+        vitaEvent('data_logged', { kind: 'psych-veiligheid' })
         setSucces(true)
         setTimeout(() => setSucces(false), 2500)
+      } else {
+        toast({ title: 'Meting niet opgeslagen', description: 'Probeer het opnieuw.', variant: 'error' })
       }
-    } catch { /* stil falen */ }
+    } catch {
+      toast({ title: 'Meting niet opgeslagen', description: 'Probeer het opnieuw.', variant: 'error' })
+    }
     setOpslaan(false)
   }
 

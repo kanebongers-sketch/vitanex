@@ -59,6 +59,11 @@ export const TabsTrigger = forwardRef<ElementRef<typeof RadixTabs.Trigger>, Trig
         <style>{`
           .mf-tabs-trigger[data-state='active'] { color: var(--text-1); }
           .mf-tabs-trigger:hover { color: var(--text-2); }
+          .mf-tabs-trigger:focus-visible {
+            outline: 2px solid var(--mentaforce-primary);
+            outline-offset: -2px;
+            border-radius: var(--radius-xs);
+          }
           .mf-tabs-trigger .mf-tabs-indicator {
             position: absolute;
             left: 14px;

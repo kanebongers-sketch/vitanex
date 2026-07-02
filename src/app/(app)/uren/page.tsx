@@ -29,7 +29,7 @@ type Registratie = {
   created_at: string
 }
 
-const PROJECTEN = ['Intern', 'Klant A', 'Klant B', 'Training', 'Overleg', 'Administratie', 'Overig']
+const PROJECTEN = ['Intern', 'Algemeen', 'Training', 'Overleg', 'Administratie', 'Overig']
 
 function weekDagen(): Date[] {
   const vandaag = new Date()
@@ -57,7 +57,6 @@ export default function UrenPage() {
   const [formulier, setFormulier] = useState(false)
   const [opslaan, setOpslaan] = useState(false)
   const [fout, setFout] = useState('')
-  const [actieveWeek] = useState<'huidig' | 'vorig'>('huidig')
 
   const [datum, setDatum] = useState(new Date().toISOString().slice(0, 10))
   const [uren, setUren] = useState('')
@@ -75,11 +74,10 @@ export default function UrenPage() {
       const { data: profiel } = await supabase.from('profiles').select('bedrijf_id').eq('id', user.id).single()
       setBedrijfId(profiel?.bedrijf_id ?? null)
 
-      const vanDatum = new Date()
-      vanDatum.setDate(vanDatum.getDate() - (actieveWeek === 'vorig' ? 14 : 0))
-      const van = new Date(vanDatum)
+      // Huidige week: maandag t/m zondag
+      const van = new Date()
       const dag = van.getDay() === 0 ? 6 : van.getDay() - 1
-      van.setDate(van.getDate() - dag - (actieveWeek === 'vorig' ? 7 : 0))
+      van.setDate(van.getDate() - dag)
       const tot = new Date(van)
       tot.setDate(van.getDate() + 6)
       const startDatum = van.toISOString().split('T')[0]
@@ -97,7 +95,7 @@ export default function UrenPage() {
       setLaden(false)
     }
     laad()
-  }, [router, actieveWeek])
+  }, [router])
 
   async function opslaanRegistratie() {
     const u = parseFloat(uren)
@@ -179,12 +177,13 @@ export default function UrenPage() {
             className="rounded-full overflow-hidden mb-4"
             style={{ height: 8, background: 'var(--bg-subtle)' }}
           >
-            <div style={{
+            <div className="mf-uren-fill" style={{
               height: '100%',
+              width: '100%',
               borderRadius: 9999,
-              width: `${Math.min(100, (totaalUren / doelUren) * 100)}%`,
+              transformOrigin: 'left center',
+              transform: `scaleX(${Math.min(1, totaalUren / doelUren)})`,
               background: voortgangKleur,
-              transition: 'width 0.4s var(--ease)',
             }} />
           </div>
           <div className="grid grid-cols-7 gap-1">
@@ -323,6 +322,12 @@ export default function UrenPage() {
           </Table>
         )}
       </main>
+      <style>{`
+        .mf-uren-fill { transition: transform 0.4s var(--ease); transform-origin: left center; }
+        @media (prefers-reduced-motion: reduce) {
+          .mf-uren-fill { transition: none; }
+        }
+      `}</style>
     </div>
   )
 }

@@ -84,7 +84,9 @@ export default function CheckInGeschiedenisPage() {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
           <div>
             <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 4 }}>Check-in geschiedenis</h1>
-            <p style={{ fontSize: 13, color: 'var(--text-3)' }}>{checkIns.length} check-ins in de afgelopen tijd</p>
+            <p style={{ fontSize: 13, color: 'var(--text-3)' }}>
+              {laden ? 'Geschiedenis laden…' : `${checkIns.length} check-ins in de afgelopen tijd`}
+            </p>
           </div>
           <Link href="/voortgang" style={{ fontSize: 13, fontWeight: 600, color: 'var(--mf-purple)', textDecoration: 'none', padding: '8px 16px', borderRadius: 10, background: 'var(--mf-purple-light)' }}>
             Voortgang →
@@ -118,7 +120,7 @@ export default function CheckInGeschiedenisPage() {
                 <div key={ci.id} style={{ display: 'flex', gap: 0 }}>
                   {/* Tijdlijn lijn */}
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: 36, flexShrink: 0 }}>
-                    <div style={{ width: 12, height: 12, borderRadius: '50%', background: vkleur, border: '2px solid var(--bg-app)', boxShadow: `0 0 0 2px ${vkleur}40`, flexShrink: 0, marginTop: 20 }} />
+                    <div style={{ width: 12, height: 12, borderRadius: '50%', background: vkleur, border: '2px solid var(--bg-app)', boxShadow: `0 0 0 2px color-mix(in srgb, ${vkleur} 25%, transparent)`, flexShrink: 0, marginTop: 20 }} />
                     {idx < checkIns.length - 1 && (
                       <div style={{ width: 2, flex: 1, background: 'var(--bg-subtle)', minHeight: 16 }} />
                     )}

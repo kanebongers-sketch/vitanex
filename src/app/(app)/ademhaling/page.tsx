@@ -21,6 +21,7 @@ interface Techniek {
   fasen: { naam: string; seconden: number; kleur: string }[]
   rondes: number
   doel: string
+  waarschuwing?: string
 }
 
 const TECHNIEKEN: Techniek[] = [
@@ -39,7 +40,7 @@ const TECHNIEKEN: Techniek[] = [
   {
     id: 'box',
     naam: 'Box breathing',
-    beschrijving: 'Gebruikt door Navy SEALs. Verbetert focus en kalmte onder druk.',
+    beschrijving: 'Gelijkmatig 4-4-4-4 ritme. Verbetert focus en kalmte onder druk.',
     doel: 'Focus & stressreductie',
     rondes: 4,
     fasen: [
@@ -52,7 +53,7 @@ const TECHNIEKEN: Techniek[] = [
   {
     id: 'coherent',
     naam: 'Coherente ademhaling',
-    beschrijving: '5 ademhalingen per minuut voor maximale HRV en balans.',
+    beschrijving: '5 ademhalingen per minuut; ondersteunt hartritmevariabiliteit en balans.',
     doel: 'Hart-brein coherentie',
     rondes: 5,
     fasen: [
@@ -66,6 +67,7 @@ const TECHNIEKEN: Techniek[] = [
     beschrijving: 'Energiegevende hyperventilatie gevolgd door retentie.',
     doel: 'Energie & vitaliteit',
     rondes: 3,
+    waarschuwing: 'Doe deze oefening altijd zittend of liggend, nooit in het water of achter het stuur. Niet doen bij zwangerschap, epilepsie of hartklachten. Stop direct als je je duizelig voelt.',
     fasen: [
       { naam: 'Snel inademen', seconden: 2, kleur: 'var(--mf-amber)' },
       { naam: 'Loslaten', seconden: 2, kleur: 'var(--mf-red)' },
@@ -248,6 +250,18 @@ export default function AdemhalingPage() {
               </div>
             )}
 
+            {gekozen?.waarschuwing && (
+              <div role="note" style={{
+                background: 'var(--mf-amber-light)',
+                border: '1px solid color-mix(in srgb, var(--mf-amber) 45%, transparent)',
+                borderRadius: 14, padding: '12px 16px', marginBottom: 16,
+                fontSize: 12, color: 'var(--text-2)', lineHeight: 1.55,
+              }}>
+                <strong style={{ color: 'var(--mf-amber-dark)' }}>Veiligheid: </strong>
+                {gekozen.waarschuwing}
+              </div>
+            )}
+
             <button
               type="button"
               onClick={start}
@@ -287,6 +301,10 @@ export default function AdemhalingPage() {
         ) : (
           /* Actieve sessie */
           <section aria-label={`Actieve oefening: ${gekozen!.naam}`} style={{ textAlign: 'center', paddingTop: 20, borderRadius: 24, background: faseBg, transition: 'background 1.2s ease' }}>
+            {/* Meldt alléén de fasewissel aan screenreaders (tekst verandert enkel bij een nieuwe fase). */}
+            <div aria-live="polite" className="sr-only">
+              {huidigeF ? `${faseNaam}, ${huidigeF.seconden} seconden` : ''}
+            </div>
             <p style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-4)', marginBottom: 24 }}>
               Ronde {ronde + 1} van {gekozen!.rondes}
             </p>

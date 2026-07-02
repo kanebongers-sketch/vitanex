@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth-fetch'
+import { Angry, Frown, Meh, Smile, Laugh, type LucideIcon } from 'lucide-react'
 interface GeschiedenisItem {
   datum: string
   score: number
@@ -26,12 +27,13 @@ function scoreKleur(score: number): string {
   return 'var(--mf-green)'
 }
 
-function scoreEmoji(score: number): string {
-  if (score <= 2) return String.fromCodePoint(0x1F61E)
-  if (score <= 4) return String.fromCodePoint(0x1F615)
-  if (score <= 6) return String.fromCodePoint(0x1F610)
-  if (score <= 8) return String.fromCodePoint(0x1F60A)
-  return String.fromCodePoint(0x1F929)
+// Zelfde lucide-schaal als slaap/page.tsx — geen emoji als icoon.
+function scoreIcoon(score: number): LucideIcon {
+  if (score <= 2) return Angry
+  if (score <= 4) return Frown
+  if (score <= 6) return Meh
+  if (score <= 8) return Smile
+  return Laugh
 }
 
 function scoreLabel(score: number): string {
@@ -150,7 +152,7 @@ export default function WerkgelukPagina() {
         setSucces(true)
         setTimeout(() => {
           setSucces(false)
-          router.push('/vandaag')
+          router.push('/home')
         }, 2000)
       } else {
         const json = await res.json() as { error?: string }
@@ -214,7 +216,10 @@ export default function WerkgelukPagina() {
               <span style={{ fontSize: 52, fontWeight: 900, color: kleur, lineHeight: 1, letterSpacing: '-0.04em', transition: 'color 0.25s ease' }}>
                 {score}
               </span>
-              <span style={{ fontSize: 22, lineHeight: 1, marginTop: 4 }}>{scoreEmoji(score)}</span>
+              {(() => {
+                const Icoon = scoreIcoon(score)
+                return <Icoon size={22} strokeWidth={1.75} aria-hidden="true" style={{ color: kleur, marginTop: 4, transition: 'color 0.25s ease' }} />
+              })()}
               <span style={{ fontSize: 11, fontWeight: 700, color: kleur, marginTop: 3, transition: 'color 0.25s ease' }}>{scoreLabel(score)}</span>
             </div>
           </div>
@@ -248,7 +253,7 @@ export default function WerkgelukPagina() {
                     fontWeight: score === n ? 800 : 500,
                     background: score === n ? kleur : 'var(--bg-subtle)',
                     color: score === n ? 'var(--bg-app)' : 'var(--text-2)',
-                    transition: 'all 0.15s ease', flexShrink: 0, padding: 0,
+                    transition: 'background 0.15s var(--ease), color 0.15s var(--ease)', flexShrink: 0, padding: 0,
                   }}
                 >
                   {n}
@@ -259,14 +264,14 @@ export default function WerkgelukPagina() {
 
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 12, padding: '0 2px' }}>
             {[
-              { bereik: '1-2', cp: 0x1F61E, omschrijving: 'Heel slecht' },
-              { bereik: '3-4', cp: 0x1F615, omschrijving: 'Niet goed' },
-              { bereik: '5-6', cp: 0x1F610, omschrijving: 'Oké' },
-              { bereik: '7-8', cp: 0x1F60A, omschrijving: 'Goed' },
-              { bereik: '9-10', cp: 0x1F929, omschrijving: 'Super!' },
+              { bereik: '1-2', Icoon: Angry, omschrijving: 'Heel slecht' },
+              { bereik: '3-4', Icoon: Frown, omschrijving: 'Niet goed' },
+              { bereik: '5-6', Icoon: Meh, omschrijving: 'Oké' },
+              { bereik: '7-8', Icoon: Smile, omschrijving: 'Goed' },
+              { bereik: '9-10', Icoon: Laugh, omschrijving: 'Super!' },
             ].map(item => (
               <div key={item.bereik} style={{ textAlign: 'center', flex: 1 }}>
-                <div style={{ fontSize: 16 }}>{String.fromCodePoint(item.cp)}</div>
+                <item.Icoon size={16} strokeWidth={1.75} role="img" aria-label={item.omschrijving} style={{ color: 'var(--text-3)', display: 'inline-block' }} />
                 <div style={{ fontSize: 9, color: 'var(--text-3)', marginTop: 2, fontWeight: 600 }}>
                   {item.bereik}
                 </div>
@@ -324,7 +329,7 @@ export default function WerkgelukPagina() {
           }}
         >
           {succes
-            ? `Opgeslagen! ${scoreEmoji(score)}`
+            ? 'Opgeslagen!'
             : opslaan
             ? 'Opslaan...'
             : isNieuw

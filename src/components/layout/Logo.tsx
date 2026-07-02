@@ -41,6 +41,29 @@ export function LogoIcon({ size = 36 }: { size?: number }) {
   )
 }
 
+/**
+ * Canoniek woordmerk (zie branding.md): MENTAFORCE in kapitaal, Space Grotesk,
+ * royale letterspacing en een cyaan punt als visueel kenmerk.
+ */
+export function Wordmark({ size = 15, className = '' }: { size?: number; className?: string }) {
+  return (
+    <span
+      className={className}
+      style={{
+        fontFamily: 'var(--font-grotesk), system-ui, sans-serif',
+        fontSize: size,
+        fontWeight: 700,
+        letterSpacing: '0.14em',
+        color: 'var(--text-1)',
+        lineHeight: 1,
+        whiteSpace: 'nowrap',
+      }}
+    >
+      MENTAFORCE<span style={{ color: 'var(--mf-green)' }}>.</span>
+    </span>
+  )
+}
+
 /** Icon + wordmark side by side */
 export function LogoFull({
   iconSize = 36,

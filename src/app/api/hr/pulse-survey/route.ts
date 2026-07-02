@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getAuthenticatedUser } from '@/lib/api-auth'
 import { createAdminClient } from '@/lib/supabase-admin'
 
+// k-anonimiteit: resultaten per vraag pas tonen bij ≥ 5 unieke respondenten,
+// anders zijn individuele antwoorden herleidbaar.
+const MIN_RESPONDENTEN = 5
+
 export async function GET(req: NextRequest) {
   const user = await getAuthenticatedUser(req)
   if (!user) return NextResponse.json({ error: 'Niet ingelogd.' }, { status: 401 })
@@ -49,16 +53,23 @@ export async function GET(req: NextRequest) {
 
   const vraagStats = (vragen ?? []).map(vraag => {
     const antwoordenVoorVraag = (antwoorden ?? []).filter(a => a.vraag_id === vraag.id)
+    const uniekeRespondenten = new Set(antwoordenVoorVraag.map(a => a.user_id)).size
+    const voldoende = uniekeRespondenten >= MIN_RESPONDENTEN
     const numeriek = antwoordenVoorVraag.map(a => parseFloat(a.antwoord)).filter(n => !isNaN(n))
-    const gemiddelde = numeriek.length ? Math.round(numeriek.reduce((s, n) => s + n, 0) / numeriek.length * 10) / 10 : null
+    const gemiddelde = voldoende && numeriek.length
+      ? Math.round(numeriek.reduce((s, n) => s + n, 0) / numeriek.length * 10) / 10
+      : null
 
+    // Open antwoorden nooit teruggeven; overige distributies alleen boven de drempel.
     const distributie: Record<string, number> = {}
-    antwoordenVoorVraag.forEach(a => {
-      distributie[a.antwoord] = (distributie[a.antwoord] ?? 0) + 1
-    })
+    if (voldoende && vraag.type !== 'text') {
+      antwoordenVoorVraag.forEach(a => {
+        distributie[a.antwoord] = (distributie[a.antwoord] ?? 0) + 1
+      })
+    }
 
     let nps: number | null = null
-    if (vraag.type === 'nps' && numeriek.length > 0) {
+    if (voldoende && vraag.type === 'nps' && numeriek.length > 0) {
       const promoters = numeriek.filter(n => n >= 9).length
       const detractors = numeriek.filter(n => n <= 6).length
       nps = Math.round(((promoters - detractors) / numeriek.length) * 100)
@@ -75,6 +86,7 @@ export async function GET(req: NextRequest) {
       gemiddelde,
       distributie,
       nps,
+      verborgen_wegens_anonimiteit: !voldoende,
     }
   })
 

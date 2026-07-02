@@ -1,7 +1,6 @@
 // pdfkit is loaded via webpackIgnore dynamic import — prevents Turbopack from bundling
 // it (which replaces __dirname with /ROOT/ and breaks AFM font file loading)
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type PDFDocumentConstructor = new (options?: Record<string, unknown>) => any
+type PDFDocumentConstructor = new (options?: PDFKit.PDFDocumentOptions) => PDFKit.PDFDocument
 
 interface Video {
   nummer: number
@@ -67,8 +66,10 @@ interface BriefingData {
   kalender_morgen?: KalenderDag[]
 }
 
-const GROEN = '#1D9E75'
-const GROEN_DARK = '#15785A'
+// PDFKit kent geen CSS-variabelen; deze waarden spiegelen theme.ts
+// (--mf-green-dark #16B6CC — cyaan met voldoende contrast op wit).
+const GROEN = '#16B6CC'
+const GROEN_DARK = '#0E8FA3'
 const DONKER = '#0D1117'
 const GRIJS = '#6b7280'
 const LICHTGRIJS = '#f3f4f6'

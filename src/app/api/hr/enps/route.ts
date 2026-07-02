@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getAuthenticatedUser } from '@/lib/api-auth'
 import { createAdminClient } from '@/lib/supabase-admin'
 
+// k-anonimiteit: scores pas tonen bij ≥ 5 unieke respondenten,
+// anders zijn individuele antwoorden herleidbaar.
+const MIN_RESPONDENTEN = 5
+
 export async function GET(req: NextRequest) {
   const user = await getAuthenticatedUser(req)
   if (!user) return NextResponse.json({ error: 'Niet ingelogd.' }, { status: 401 })
@@ -26,20 +30,28 @@ export async function GET(req: NextRequest) {
     .eq('bedrijf_id', bedrijfId)
     .order('aangemaakt_op', { ascending: false })
 
+  const uniekRespondenten = new Set((antwoorden ?? []).map(a => a.user_id)).size
+  const voldoendeRespondenten = uniekRespondenten >= MIN_RESPONDENTEN
+
   const scores = (antwoorden ?? []).map(a => a.score)
   const promoters = scores.filter(s => s >= 9).length
   const detractors = scores.filter(s => s <= 6).length
   const passives = scores.filter(s => s > 6 && s < 9).length
-  const nps = scores.length > 0 ? Math.round(((promoters - detractors) / scores.length) * 100) : null
+  const nps = voldoendeRespondenten && scores.length > 0
+    ? Math.round(((promoters - detractors) / scores.length) * 100)
+    : null
 
   const distributie: Record<number, number> = {}
-  scores.forEach(s => { distributie[s] = (distributie[s] ?? 0) + 1 })
+  if (voldoendeRespondenten) {
+    scores.forEach(s => { distributie[s] = (distributie[s] ?? 0) + 1 })
+  }
 
-  const maandGroepen: Record<string, { scores: number[] }> = {}
+  const maandGroepen: Record<string, { scores: number[]; users: Set<string> }> = {}
   ;(antwoorden ?? []).forEach(a => {
     const maand = a.aangemaakt_op?.slice(0, 7) ?? 'onbekend'
-    if (!maandGroepen[maand]) maandGroepen[maand] = { scores: [] }
+    if (!maandGroepen[maand]) maandGroepen[maand] = { scores: [], users: new Set<string>() }
     maandGroepen[maand].scores.push(a.score)
+    maandGroepen[maand].users.add(a.user_id)
   })
 
   const trend = Object.entries(maandGroepen)
@@ -50,7 +62,10 @@ export async function GET(req: NextRequest) {
       const d = g.scores.filter(s => s <= 6).length
       return {
         maand,
-        nps: g.scores.length > 0 ? Math.round(((p - d) / g.scores.length) * 100) : null,
+        // Maanden onder de anonimiteitsdrempel krijgen geen score.
+        nps: g.users.size >= MIN_RESPONDENTEN && g.scores.length > 0
+          ? Math.round(((p - d) / g.scores.length) * 100)
+          : null,
         respondenten: g.scores.length,
       }
     })
@@ -62,14 +77,13 @@ export async function GET(req: NextRequest) {
     .eq('rol', 'medewerker')
 
   const totaalMedewerkers = medewerkers?.length ?? 0
-  const uniekRespondenten = new Set((antwoorden ?? []).map(a => a.user_id)).size
 
   return NextResponse.json({
     nps,
     totaal_respondenten: uniekRespondenten,
-    promoters,
-    passives,
-    detractors,
+    promoters: voldoendeRespondenten ? promoters : 0,
+    passives: voldoendeRespondenten ? passives : 0,
+    detractors: voldoendeRespondenten ? detractors : 0,
     participatie_pct: totaalMedewerkers > 0 ? Math.round((uniekRespondenten / totaalMedewerkers) * 100) : 0,
     distributie,
     trend,
