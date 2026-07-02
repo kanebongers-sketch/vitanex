@@ -123,6 +123,14 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    if (!customerId) {
+      console.error(`[stripe checkout] geen customer-id voor bedrijf ${bedrijf.id}`)
+      return NextResponse.json(
+        { error: 'Het abonnement kon niet worden gestart. Probeer het later opnieuw.' },
+        { status: 500 },
+      )
+    }
+
     const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
     const sessie = await stripe.checkout.sessions.create(
       {
