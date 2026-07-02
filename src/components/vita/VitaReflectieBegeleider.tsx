@@ -92,8 +92,8 @@ export default function VitaReflectieBegeleider({
   }
 
   if (fase === 'vraag') {
-    const zin = (vraagId && VRAAG_ZINNEN[vraagId]) ?? 'Neem even de tijd voor deze.'
-    const emotie = (vraagId && VRAAG_EMOTIE[vraagId]) ?? 'supportive'
+    const zin = (vraagId ? VRAAG_ZINNEN[vraagId] : undefined) ?? 'Neem even de tijd voor deze.'
+    const emotie = (vraagId ? VRAAG_EMOTIE[vraagId] : undefined) ?? 'supportive'
     return (
       <VitaBubbel emotion={emotie} animate={!reduceMotion} size={size}>
         {zin}

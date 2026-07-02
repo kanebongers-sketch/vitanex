@@ -82,8 +82,8 @@ export default function VitaStemmingBegeleider({
   }, [])
 
   if (fase === 'reactie') {
-    const zin = (stemming && REACTIE_ZIN[stemming]) ?? 'Fijn dat je even incheckte.'
-    const emotie = (stemming && REACTIE_EMOTIE[stemming]) ?? 'supportive'
+    const zin = (stemming ? REACTIE_ZIN[stemming] : undefined) ?? 'Fijn dat je even incheckte.'
+    const emotie = (stemming ? REACTIE_EMOTIE[stemming] : undefined) ?? 'supportive'
     return (
       <VitaBubbel emotion={emotie} animate={!reduceMotion} size={size + 8}>
         {zin}
