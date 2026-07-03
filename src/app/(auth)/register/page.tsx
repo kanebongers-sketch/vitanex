@@ -4,6 +4,7 @@ export const dynamic = 'force-dynamic'
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { LogoFull } from '@/components/layout/Logo'
 import { Check, User, Users } from 'lucide-react'
@@ -161,8 +162,9 @@ export default function Register() {
   const [functie, setFunctie] = useState('')
   const [telefoon, setTelefoon] = useState('')
 
-  // Stap 3 - account
-  const [email, setEmail] = useState('')
+  // Stap 3 - account (e-mail evt. vooraf ingevuld vanaf de landingspagina)
+  const searchParams = useSearchParams()
+  const [email, setEmail] = useState(searchParams.get('email')?.trim() ?? '')
   const [wachtwoord, setWachtwoord] = useState('')
   const [bevestigWachtwoord, setBevestigWachtwoord] = useState('')
   const [toonWachtwoord, setToonWachtwoord] = useState(false)

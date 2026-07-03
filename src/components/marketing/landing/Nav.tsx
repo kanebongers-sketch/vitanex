@@ -5,9 +5,9 @@ import Link from 'next/link'
 import { COLORS, FONT, MAXW, EASE } from '../theme'
 
 const LINKS: [string, string][] = [
-  ['/#brein', 'Het brein'],
+  ['/#pijlers', 'De pijlers'],
   ['/#aanpak', 'Aanpak'],
-  ['/#contact', 'Contact'],
+  ['/#platform', 'Platform'],
 ]
 
 export default function Nav() {
