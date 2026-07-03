@@ -4,6 +4,7 @@ export const dynamic = 'force-dynamic'
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import {
   Home,
   Wallet,
@@ -116,8 +117,8 @@ export default function Admin() {
       if (!user) { router.push('/login'); return }
       const { data: profiel } = await supabase.from('profiles').select('rol').eq('id', user.id).single()
       if (profiel?.rol === 'hr') { router.push('/dashboard'); return }
-      if (profiel?.rol === 'medewerker') { router.push('/portaal'); return }
-      if (profiel?.rol !== 'admin') { router.push('/portaal'); return }
+      if (profiel?.rol === 'medewerker') { router.push('/home'); return }
+      if (profiel?.rol !== 'admin') { router.push('/home'); return }
       await laadAlles()
     }
     check()
@@ -125,7 +126,7 @@ export default function Admin() {
 
   function schakelNaarRol(rol: 'hr' | 'medewerker') {
     localStorage.setItem(BEKIJK_ALS_KEY, rol)
-    router.push(rol === 'hr' ? '/dashboard' : '/portaal')
+    router.push(rol === 'hr' ? '/dashboard' : '/home')
   }
 
   async function laadAlles() {
@@ -745,9 +746,17 @@ export default function Admin() {
           {/* ── PLATFORM ── */}
           {sectie === 'platform' && (
             <>
-              <div className="mb-6">
-                <h1 className="text-2xl font-bold" style={{ color: 'var(--text-1)' }}>Platform statistieken</h1>
-                <p className="text-sm mt-1" style={{ color: 'var(--text-3)' }}>Activiteit en gezondheid van het platform.</p>
+              <div className="mb-6 flex items-start justify-between gap-4 flex-wrap">
+                <div>
+                  <h1 className="text-2xl font-bold" style={{ color: 'var(--text-1)' }}>Platform statistieken</h1>
+                  <p className="text-sm mt-1" style={{ color: 'var(--text-3)' }}>Activiteit en gezondheid van het platform.</p>
+                </div>
+                <Link href="/admin/metrics" style={{
+                  fontSize: 13, color: 'var(--mentaforce-primary)', textDecoration: 'none',
+                  border: '1px solid var(--border)', borderRadius: 'var(--radius-btn)', padding: '8px 14px',
+                }}>
+                  Retentie & events →
+                </Link>
               </div>
 
               <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-6">

@@ -566,10 +566,10 @@ function MijnRapportInhoud() {
             </p>
           )}
 
-          <Link href="/portaal"
+          <Link href="/home"
             className="mf-rapport-terug"
             style={{ width: '100%', display: 'inline-block', textAlign: 'center', borderRadius: 'var(--radius-btn)', padding: '12px', fontSize: 14, border: '1px solid var(--border)', color: 'var(--text-3)', textDecoration: 'none' }}>
-            Terug naar portaal
+            Terug naar home
           </Link>
         </div>
 

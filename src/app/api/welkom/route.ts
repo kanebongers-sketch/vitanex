@@ -34,8 +34,8 @@ export async function POST(request: NextRequest) {
         ${renderEmailKnop({ label: 'Doe je eerste check-in', url: `${appUrl}/checkin` })}
 
         <div style="margin-top:32px; padding-top:24px; border-top:1px solid ${EMAIL_KLEUREN.line};">
-          <p style="color:${EMAIL_KLEUREN.inkFaint}; font-size:12px; margin:0 0 4px;">Via je portaal kun je jouw vitaliteitstrend volgen:</p>
-          <a href="${appUrl}/portaal" style="color:${EMAIL_KLEUREN.cyan}; font-size:12px;">${appUrl}/portaal</a>
+          <p style="color:${EMAIL_KLEUREN.inkFaint}; font-size:12px; margin:0 0 4px;">In de app volg je jouw vitaliteitstrend:</p>
+          <a href="${appUrl}/home" style="color:${EMAIL_KLEUREN.cyan}; font-size:12px;">${appUrl}/home</a>
         </div>
       `,
     }),
