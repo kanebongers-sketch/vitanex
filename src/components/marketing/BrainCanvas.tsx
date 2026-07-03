@@ -144,7 +144,7 @@ function prepareBrain(scene: THREE.Object3D): PreparedBrain {
   let cxx = 0, czz = 0, cxz = 0
   for (let i = 0; i < topX.length; i++) { const dx = topX[i] - mx, dz = topZ[i] - mz; cxx += dx * dx; czz += dz * dz; cxz += dx * dz }
   // Hoofd-as (A-P); oriënteer zo dat 'voor' bij lage projectie ligt
-  let ang = 0.5 * Math.atan2(2 * cxz, cxx - czz)
+  const ang = 0.5 * Math.atan2(2 * cxz, cxx - czz)
   let ax = Math.cos(ang), az = Math.sin(ang)
   if (ax < 0) { ax = -ax; az = -az }
   const lx = -az, lz = ax           // L-R as (loodrecht op A-P)
@@ -360,15 +360,17 @@ function BrainModel({ progressRef }: BrainModelProps) {
 
 interface BrainCanvasProps {
   progressRef: MutableRefObject<number>
+  /** Zet de renderlus stil (bv. wanneer de canvas buiten beeld is). */
+  paused?: boolean
 }
 
-export default function BrainCanvas({ progressRef }: BrainCanvasProps) {
+export default function BrainCanvas({ progressRef, paused = false }: BrainCanvasProps) {
   return (
     <Canvas
+      frameloop={paused ? 'never' : 'always'}
       camera={{ position: [0, 0.35, 5.0], fov: 42, near: 0.1, far: 100 }}
       gl={{
         antialias: true,
-        preserveDrawingBuffer: true,
         toneMapping: THREE.ACESFilmicToneMapping,
         toneMappingExposure: 1.1,
         powerPreference: 'high-performance',

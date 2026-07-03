@@ -51,6 +51,17 @@ export default function LiquidStyles() {
         outline-offset: 3px;
       }
 
+      /* De input in de glas-pill: eigen ring zou door overflow:hidden clippen,
+         dus de pill zelf toont de focus-ring (zichtbare vervanging). */
+      [data-mf-liquid] form.liquid-glass:focus-within {
+        outline: 2px solid ${COLORS.cyan};
+        outline-offset: 3px;
+      }
+      [data-mf-liquid] form.liquid-glass input:focus-visible {
+        outline: none;
+        box-shadow: none;
+      }
+
       /* Zachte puls-ringen voor de aanpak-visual (alleen transform/opacity). */
       @keyframes lq-ring {
         0%   { transform: scale(0.55); opacity: 0.55; }

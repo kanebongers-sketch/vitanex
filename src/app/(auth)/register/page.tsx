@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic'
 
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
@@ -151,7 +151,7 @@ function StapKiesType({ type, onKies, onVerder, onGoogle }: StapKiesTypeProps) {
   )
 }
 
-export default function Register() {
+function RegisterForm() {
   const [stap, setStap] = useState<Stap>('type')
   const [type, setType] = useState<GebruikerType | null>(null)
 
@@ -409,5 +409,18 @@ export default function Register() {
         {stap !== 'bevestig' && <RegisterZijpaneel type={type} />}
       </main>
     </div>
+  )
+}
+
+// useSearchParams vereist een Suspense-boundary (zie uitnodiging/page.tsx).
+export default function Register() {
+  return (
+    <Suspense fallback={
+      <main className="mf-mesh-bg min-h-screen flex items-center justify-center">
+        <span className="mf-spinner" aria-hidden style={{ width: 32, height: 32 }} />
+      </main>
+    }>
+      <RegisterForm />
+    </Suspense>
   )
 }

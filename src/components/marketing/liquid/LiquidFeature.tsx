@@ -58,7 +58,11 @@ export default function LiquidFeature() {
           className="relative aspect-video overflow-hidden rounded-3xl"
         >
           <PulseVisual />
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0"
+            style={{ background: `linear-gradient(to top, ${COLORS.navyDeep}99, transparent 55%)` }}
+          />
 
           <div className="absolute bottom-0 left-0 right-0 flex flex-col items-start gap-6 p-6 md:flex-row md:items-end md:justify-between md:p-10">
             <div className="liquid-glass max-w-md rounded-2xl p-6 md:p-8">
@@ -68,7 +72,11 @@ export default function LiquidFeature() {
                 pijlers, zodat signalen bespreekbaar worden vóór ze verzuim worden.
               </p>
             </div>
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              transition={{ duration: 0.2, ease: EASE }}
+            >
               <Link href="/contact" className="liquid-glass inline-block rounded-full px-8 py-3 text-sm font-medium text-white">
                 Ontdek meer
               </Link>

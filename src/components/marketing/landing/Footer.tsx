@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { COLORS, FONT, MAXW } from '../theme'
+import Wordmark from '../Wordmark'
 
 type Item = [string, string]
 interface Col { titel: string; items: Item[] }
@@ -18,19 +19,18 @@ export default function Footer() {
       <div style={{ maxWidth: MAXW, margin: '0 auto', padding: '64px 28px 32px' }}>
         <div style={{ display: 'flex', gap: 56, flexWrap: 'wrap', marginBottom: 48 }}>
           <div style={{ minWidth: 220, flex: 1 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-              <span style={{ width: 10, height: 10, borderRadius: 3, background: COLORS.cyan, boxShadow: `0 0 12px ${COLORS.cyanGlow}` }} />
-              <span style={{ fontWeight: 700, fontSize: 16, letterSpacing: '0.14em', color: COLORS.ink }}>MENTAFORCE</span>
+            <div style={{ marginBottom: 16 }}>
+              <Wordmark size={16} />
             </div>
-            <p style={{ fontSize: 13, lineHeight: 1.6, color: COLORS.inkFaint, maxWidth: 260 }}>
-              Welzijn op de werkplek, anoniem en meetbaar over zes vlakken.
+            <p style={{ fontSize: 13, lineHeight: 1.6, color: COLORS.inkDim, maxWidth: 260 }}>
+              Welzijn op de werkplek, anoniem en meetbaar over zes pijlers.
             </p>
-            <p style={{ fontSize: 12, color: COLORS.inkFaint, marginTop: 12 }}>AVG-conform · EU-hosting · Gemaakt in Nederland</p>
+            <p style={{ fontSize: 12, color: COLORS.inkDim, marginTop: 12 }}>AVG-conform · EU-hosting · Gemaakt in Nederland</p>
           </div>
 
           {COLS.map((col) => (
             <div key={col.titel}>
-              <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.16em', textTransform: 'uppercase', color: COLORS.inkFaint, marginBottom: 16 }}>{col.titel}</p>
+              <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.16em', textTransform: 'uppercase', color: COLORS.inkDim, marginBottom: 16 }}>{col.titel}</p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {col.items.map(([href, label]) => (
                   href.startsWith('#')
@@ -43,8 +43,8 @@ export default function Footer() {
         </div>
 
         <div style={{ borderTop: `1px solid ${COLORS.line}`, paddingTop: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
-          <p style={{ fontSize: 12, color: COLORS.inkFaint, margin: 0 }}>© {new Date().getFullYear()} MentaForce</p>
-          <p style={{ fontSize: 12, color: COLORS.inkFaint, margin: 0 }}>Gemaakt in Nederland</p>
+          <p style={{ fontSize: 12, color: COLORS.inkDim, margin: 0 }}>© {new Date().getFullYear()} MentaForce</p>
+          <p style={{ fontSize: 12, color: COLORS.inkDim, margin: 0 }}>Gemaakt in Nederland</p>
         </div>
       </div>
     </footer>

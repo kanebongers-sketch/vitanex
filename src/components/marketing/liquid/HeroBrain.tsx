@@ -14,12 +14,25 @@ const TOUR_SECONDS = 56
 // stilstaan op het uitgezoomde overzichtsbeeld (progress 0).
 export default function HeroBrain() {
   const progressRef = useRef(0)
+  const wrapRef = useRef<HTMLDivElement>(null)
   const [visible, setVisible] = useState(false)
+  const [paused, setPaused] = useState(false)
+
+  // Renderlus stilzetten zodra de hero (ruim) uit beeld is — scheelt GPU/batterij.
+  useEffect(() => {
+    const el = wrapRef.current
+    if (!el) return
+    const io = new IntersectionObserver(
+      ([entry]) => setPaused(!entry.isIntersecting),
+      { rootMargin: '160px' },
+    )
+    io.observe(el)
+    return () => io.disconnect()
+  }, [])
 
   useEffect(() => {
     const frame = requestAnimationFrame(() => setVisible(true))
-    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    if (reduce) return () => cancelAnimationFrame(frame)
+    const media = window.matchMedia('(prefers-reduced-motion: reduce)')
 
     let raf = 0
     let start: number | null = null
@@ -29,20 +42,34 @@ export default function HeroBrain() {
       progressRef.current = 0.5 - 0.5 * Math.cos(phase * Math.PI * 2)
       raf = requestAnimationFrame(tick)
     }
-    raf = requestAnimationFrame(tick)
+    // Volg de systeemvoorkeur live: tour stoppen (terug naar het statische
+    // overzichtsbeeld) of hervatten zodra de gebruiker de instelling wijzigt.
+    const zetTour = () => {
+      cancelAnimationFrame(raf)
+      start = null
+      if (media.matches) {
+        progressRef.current = 0
+      } else {
+        raf = requestAnimationFrame(tick)
+      }
+    }
+    zetTour()
+    media.addEventListener('change', zetTour)
     return () => {
       cancelAnimationFrame(frame)
       cancelAnimationFrame(raf)
+      media.removeEventListener('change', zetTour)
     }
   }, [])
 
   return (
     <div
+      ref={wrapRef}
       aria-hidden
       className="absolute inset-0 transition-opacity duration-500"
       style={{ opacity: visible ? 1 : 0 }}
     >
-      <BrainCanvas progressRef={progressRef} />
+      <BrainCanvas progressRef={progressRef} paused={paused} />
     </div>
   )
 }

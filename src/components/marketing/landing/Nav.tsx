@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { COLORS, FONT, MAXW, EASE } from '../theme'
+import Wordmark from '../Wordmark'
 
 const LINKS: [string, string][] = [
   ['/#pijlers', 'De pijlers'],
@@ -34,9 +35,8 @@ export default function Nav() {
       }}
     >
       <div style={{ maxWidth: MAXW, margin: '0 auto', padding: '0 28px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span style={{ width: 10, height: 10, borderRadius: 3, background: COLORS.cyan, boxShadow: `0 0 12px ${COLORS.cyanGlow}` }} />
-          <span style={{ fontWeight: 700, fontSize: 17, letterSpacing: '0.14em', color: COLORS.ink }}>MENTAFORCE</span>
+        <Link href="/" aria-label="MentaForce home" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
+          <Wordmark size={17} />
         </Link>
 
         <div className="hidden md:flex" style={{ gap: 34, alignItems: 'center' }}>

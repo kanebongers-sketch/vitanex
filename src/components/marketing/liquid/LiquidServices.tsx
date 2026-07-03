@@ -102,7 +102,7 @@ export default function LiquidServices() {
           transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
         >
           <h2 className="text-3xl md:text-5xl text-white tracking-tight">Wat MentaForce doet</h2>
-          <span className="hidden md:block text-white/40 text-sm">Het platform</span>
+          <span className="hidden md:block text-white/60 text-sm">Het platform</span>
         </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
@@ -116,7 +116,11 @@ export default function LiquidServices() {
             >
               <div className="relative aspect-video overflow-hidden">
                 <Visual />
-                <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+                <div
+                  aria-hidden
+                  className="pointer-events-none absolute inset-0"
+                  style={{ background: `linear-gradient(to top, ${COLORS.navyDeep}66, transparent 60%)` }}
+                />
               </div>
 
               <div className="p-6 md:p-8">
@@ -127,7 +131,7 @@ export default function LiquidServices() {
                   </span>
                 </div>
                 <h3 className="text-white text-xl md:text-2xl mb-3 tracking-tight">{titel}</h3>
-                <p className="text-white/50 text-sm leading-relaxed">{beschrijving}</p>
+                <p className="text-white/60 text-sm leading-relaxed">{beschrijving}</p>
               </div>
             </motion.article>
           ))}
