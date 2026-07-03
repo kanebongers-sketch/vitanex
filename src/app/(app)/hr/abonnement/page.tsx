@@ -12,7 +12,7 @@ import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { PLAN_INFO, PLAN_VOLGORDE, type Plan } from '@/lib/plan'
-import { CheckCircle2, CreditCard, Mail } from 'lucide-react'
+import { Check, CheckCircle2, CreditCard, Mail } from 'lucide-react'
 
 interface BedrijfAbonnement {
   naam: string
@@ -136,9 +136,17 @@ export default function HrAbonnementPage() {
                     <h2 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-1)' }}>{info.naam}</h2>
                     {isHuidig && <Badge variant="success">Huidig plan</Badge>}
                   </div>
-                  <p style={{ fontSize: 13, color: 'var(--text-3)', lineHeight: 1.6, flexGrow: 1 }}>
+                  <p style={{ fontSize: 13, color: 'var(--text-3)', lineHeight: 1.6 }}>
                     {info.omschrijving}
                   </p>
+                  <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 6, flexGrow: 1 }}>
+                    {info.kenmerken.map((kenmerk) => (
+                      <li key={kenmerk} style={{ display: 'flex', gap: 8, fontSize: 12.5, color: 'var(--text-2)', lineHeight: 1.5 }}>
+                        <Check size={14} aria-hidden style={{ flexShrink: 0, marginTop: 2, color: 'var(--mentaforce-primary)' }} />
+                        {kenmerk}
+                      </li>
+                    ))}
+                  </ul>
                   <div>
                     {info.zelfService ? (
                       <>

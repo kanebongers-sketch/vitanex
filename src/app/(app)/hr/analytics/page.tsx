@@ -10,6 +10,7 @@ import { authFetch } from '@/lib/auth-fetch'
 import { Card } from '@/components/ui/Card'
 import { Ring } from '@/components/ui/Ring'
 import { Badge } from '@/components/ui/Badge'
+import { PremiumSlot } from '@/components/ui/PremiumSlot'
 import { Chart, type ChartDatum } from '@/components/ui/Chart'
 
 
@@ -74,6 +75,7 @@ export default function HrAnalyticsPage() {
   const [laden, setLaden] = useState(true)
   const [data, setData] = useState<AnalyticsData | null>(null)
   const [fout, setFout] = useState<string | null>(null)
+  const [premiumNodig, setPremiumNodig] = useState(false)
 
   useEffect(() => {
     async function laad() {
@@ -94,6 +96,13 @@ export default function HrAnalyticsPage() {
         return
       }
       const res = await authFetch('/api/hr/analytics')
+      if (res.status === 403) {
+        const json = (await res.json().catch(() => null)) as { code?: string } | null
+        if (json?.code === 'premium') setPremiumNodig(true)
+        else setFout('Je hebt geen toegang tot dit overzicht.')
+        setLaden(false)
+        return
+      }
       if (!res.ok) {
         setFout('Data kon niet worden opgehaald.')
         setLaden(false)
@@ -173,6 +182,12 @@ export default function HrAnalyticsPage() {
           <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 80 }}>
             <div className="mf-spinner" />
           </div>
+        ) : premiumNodig ? (
+          <PremiumSlot
+            kanUpgraden
+            titel="Team-analytics"
+            omschrijving="Anonieme wellbeing-trends van je team: stemming, slaap en stress per week, top-stressoren en participatie — altijd met k-anonimiteit (≥ 5 deelnemers)."
+          />
         ) : fout ? (
           <div role="alert" style={{ background: 'var(--mf-red-light)', border: '1px solid var(--mf-red)', borderRadius: 'var(--radius-md)', padding: '16px 20px', color: 'var(--mf-red)', fontSize: 14 }}>
             {fout}

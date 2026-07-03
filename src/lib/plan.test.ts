@@ -1,5 +1,12 @@
 import { describe, expect, test } from 'vitest'
-import { heeftMinimaalPlan, normaliseerPlan, PLAN_INFO, PLAN_VOLGORDE } from './plan'
+import {
+  heeftFeature,
+  heeftMinimaalPlan,
+  normaliseerPlan,
+  PLAN_INFO,
+  PLAN_VOLGORDE,
+  VITA_GRATIS_BERICHTEN_PER_DAG,
+} from './plan'
 
 describe('normaliseerPlan', () => {
   test('laat geldige plannen door', () => {
@@ -28,6 +35,26 @@ describe('heeftMinimaalPlan', () => {
     expect(heeftMinimaalPlan('enterprise', 'groei')).toBe(true)
     expect(heeftMinimaalPlan('starter', 'groei')).toBe(false)
     expect(heeftMinimaalPlan('groei', 'enterprise')).toBe(false)
+  })
+})
+
+describe('heeftFeature', () => {
+  test('starter (gratis) heeft geen premium-features', () => {
+    expect(heeftFeature('starter', 'vita_onbeperkt')).toBe(false)
+    expect(heeftFeature('starter', 'persoonlijke_patronen')).toBe(false)
+    expect(heeftFeature('starter', 'hr_analytics')).toBe(false)
+  })
+
+  test('groei en enterprise hebben alle premium-features', () => {
+    for (const plan of ['groei', 'enterprise'] as const) {
+      expect(heeftFeature(plan, 'vita_onbeperkt')).toBe(true)
+      expect(heeftFeature(plan, 'persoonlijke_patronen')).toBe(true)
+      expect(heeftFeature(plan, 'hr_analytics')).toBe(true)
+    }
+  })
+
+  test('de gratis Vita-daglimiet is een werkbaar aantal', () => {
+    expect(VITA_GRATIS_BERICHTEN_PER_DAG).toBeGreaterThanOrEqual(5)
   })
 })
 

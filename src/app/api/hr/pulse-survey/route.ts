@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAuthenticatedUser } from '@/lib/api-auth'
 import { createAdminClient } from '@/lib/supabase-admin'
+import { getPlanVoorBedrijf } from '@/lib/plan-server'
+import { heeftFeature } from '@/lib/plan'
 
 // k-anonimiteit: resultaten per vraag pas tonen bij ≥ 5 unieke respondenten,
 // anders zijn individuele antwoorden herleidbaar.
@@ -23,6 +25,14 @@ export async function GET(req: NextRequest) {
   }
 
   const bedrijfId = profiel.bedrijf_id
+
+  const plan = await getPlanVoorBedrijf(admin, bedrijfId)
+  if (!heeftFeature(plan, 'hr_analytics')) {
+    return NextResponse.json(
+      { error: 'Pulse-resultaten zijn onderdeel van het Groei-plan.', code: 'premium' },
+      { status: 403 },
+    )
+  }
 
   const weekStart = (() => {
     const d = new Date()
@@ -126,6 +136,14 @@ export async function POST(req: NextRequest) {
 
   if (!profiel?.bedrijf_id || !['hr', 'admin'].includes(profiel.rol)) {
     return NextResponse.json({ error: 'Geen toegang.' }, { status: 403 })
+  }
+
+  const plan = await getPlanVoorBedrijf(admin, profiel.bedrijf_id)
+  if (!heeftFeature(plan, 'hr_analytics')) {
+    return NextResponse.json(
+      { error: 'Pulse-surveys zijn onderdeel van het Groei-plan.', code: 'premium' },
+      { status: 403 },
+    )
   }
 
   const { data, error } = await admin

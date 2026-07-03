@@ -3,6 +3,8 @@ import Anthropic from '@anthropic-ai/sdk'
 import { getAuthenticatedUser } from '@/lib/api-auth'
 import { buildCoachSystemPrompt } from '@/lib/coach-context'
 import { createAdminClient } from '@/lib/supabase-admin'
+import { getPlanVoorUser } from '@/lib/plan-server'
+import { heeftFeature, VITA_GRATIS_BERICHTEN_PER_DAG } from '@/lib/plan'
 
 if (!process.env.ANTHROPIC_API_KEY) {
   console.error('[coach] ANTHROPIC_API_KEY is niet ingesteld')
@@ -52,28 +54,58 @@ type GebruikerContext = {
   actieveDoelen?: string[]
 }
 
-async function checkRateLimit(userId: string): Promise<boolean> {
+type CoachToegang =
+  | { toegestaan: true }
+  | { toegestaan: false; status: number; melding: string }
+
+/**
+ * Anti-misbruik (30/uur, elk plan) + gratis-plan-daglimiet. Telt op de
+ * kolom `aangemaakt_op` (de eerdere `created_at`-query faalde stil, waardoor
+ * de uurlimiet nooit werd toegepast).
+ */
+async function checkCoachToegang(userId: string): Promise<CoachToegang> {
   try {
     const supabase = createAdminClient()
-    const windowStart = new Date(Date.now() - 3600 * 1000).toISOString()
+    const uurStart = new Date(Date.now() - 3600 * 1000).toISOString()
 
-    const { count, error: countError } = await supabase
+    const { count: uurCount, error: uurFout } = await supabase
       .from('coach_rate_limits')
       .select('*', { count: 'exact', head: true })
       .eq('user_id', userId)
-      .gte('created_at', windowStart)
+      .gte('aangemaakt_op', uurStart)
 
-    if (countError) return true
-    if ((count ?? 0) >= 30) return false
+    if (!uurFout && (uurCount ?? 0) >= 30) {
+      return {
+        toegestaan: false,
+        status: 429,
+        melding: 'Te veel berichten. Probeer het over een uur opnieuw.',
+      }
+    }
 
-    const { error: insertError } = await supabase
-      .from('coach_rate_limits')
-      .insert({ user_id: userId })
+    const plan = await getPlanVoorUser(supabase, userId)
+    if (!heeftFeature(plan, 'vita_onbeperkt')) {
+      const dagStart = new Date()
+      dagStart.setHours(0, 0, 0, 0)
+      const { count: dagCount, error: dagFout } = await supabase
+        .from('coach_rate_limits')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', userId)
+        .gte('aangemaakt_op', dagStart.toISOString())
 
-    if (insertError) return true
-    return true
+      if (!dagFout && (dagCount ?? 0) >= VITA_GRATIS_BERICHTEN_PER_DAG) {
+        return {
+          toegestaan: false,
+          status: 403,
+          melding: `Je hebt je ${VITA_GRATIS_BERICHTEN_PER_DAG} gratis Vita-gesprekken voor vandaag gebruikt. Morgen praat ik graag verder — of vraag je HR-team naar het Groei-plan voor onbeperkte gesprekken.`,
+        }
+      }
+    }
+
+    await supabase.from('coach_rate_limits').insert({ user_id: userId })
+    return { toegestaan: true }
   } catch {
-    return true
+    // Telling mag Vita nooit platleggen — bij twijfel doorlaten.
+    return { toegestaan: true }
   }
 }
 
@@ -87,11 +119,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Niet ingelogd.' }, { status: 401 })
   }
 
-  if (!await checkRateLimit(user.id)) {
-    return NextResponse.json(
-      { error: 'Te veel berichten. Probeer het over een uur opnieuw.' },
-      { status: 429 },
-    )
+  const toegang = await checkCoachToegang(user.id)
+  if (!toegang.toegestaan) {
+    return NextResponse.json({ error: toegang.melding }, { status: toegang.status })
   }
 
   try {

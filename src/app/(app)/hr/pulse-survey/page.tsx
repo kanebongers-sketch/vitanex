@@ -10,6 +10,7 @@ import { authFetch } from '@/lib/auth-fetch'
 import { Plus, X, ChevronDown, ChevronUp } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
+import { PremiumSlot } from '@/components/ui/PremiumSlot'
 import { Field } from '@/components/ui/Field'
 import { Textarea } from '@/components/ui/Textarea'
 import { Progress } from '@/components/ui/Progress'
@@ -67,10 +68,16 @@ export default function HrPulseSurveyPage() {
   const [optiesRaw, setOptiesRaw] = useState('')
   const [toevoegen, setToevoegen] = useState(false)
   const [uitbreiden, setUitbreiden] = useState<string | null>(null)
+  const [premiumNodig, setPremiumNodig] = useState(false)
 
   async function laadData() {
     const res = await authFetch('/api/hr/pulse-survey')
-    if (res.ok) setData(await res.json() as SurveyData)
+    if (res.status === 403) {
+      const json = (await res.json().catch(() => null)) as { code?: string } | null
+      if (json?.code === 'premium') setPremiumNodig(true)
+    } else if (res.ok) {
+      setData(await res.json() as SurveyData)
+    }
     setLaden(false)
   }
 
@@ -122,6 +129,19 @@ export default function HrPulseSurveyPage() {
     <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
       <Navbar />
       <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 80 }}><div className="mf-spinner" /></div>
+    </div>
+  )
+
+  if (premiumNodig) return (
+    <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
+      <Navbar />
+      <main style={{ padding: '36px 40px 72px', maxWidth: 760, margin: '0 auto' }}>
+        <PremiumSlot
+          kanUpgraden
+          titel="Pulse-surveys"
+          omschrijving="Stel je team elke week één korte vraag en zie anoniem (≥ 5 respondenten) hoe de organisatie ervoor staat — met trends per vraag."
+        />
+      </main>
     </div>
   )
 

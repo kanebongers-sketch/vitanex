@@ -16,6 +16,7 @@ import { authFetch } from '@/lib/auth-fetch'
 import { supabase } from '@/lib/supabase'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
+import { PremiumSlot } from '@/components/ui/PremiumSlot'
 import { Progress } from '@/components/ui/Progress'
 import { Button } from '@/components/ui/Button'
 import VitaLeegScherm from '@/components/vita/VitaLeegScherm'
@@ -130,6 +131,7 @@ export default function PatronenPage() {
   const [data, setData] = useState<PatronenData | null>(null)
   const [laden, setLaden] = useState(true)
   const [fout, setFout] = useState<string | null>(null)
+  const [premiumNodig, setPremiumNodig] = useState(false)
 
   useEffect(() => {
     async function init() {
@@ -138,6 +140,7 @@ export default function PatronenPage() {
 
       try {
         const res = await authFetch('/api/patronen')
+        if (res.status === 403) { setPremiumNodig(true); return }
         if (!res.ok) throw new Error()
         setData(await res.json())
       } catch {
@@ -189,6 +192,13 @@ export default function PatronenPage() {
               Wat verandert er écht in jouw leven? Gebaseerd op jouw eigen data.
             </p>
           </div>
+
+          {premiumNodig && (
+            <PremiumSlot
+              titel="Ontdek je persoonlijke patronen"
+              omschrijving="Vita legt verbanden in jouw eigen data: hoe je slaap, beweging en stemming elkaar beïnvloeden, en wat er over 30 dagen écht verandert."
+            />
+          )}
 
           {laden && (
             <div style={{ textAlign: 'center', paddingTop: 80 }}>

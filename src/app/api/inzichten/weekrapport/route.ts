@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 import { getAuthenticatedUser } from '@/lib/api-auth'
 import { createAdminClient } from '@/lib/supabase-admin'
+import { getPlanVoorUser } from '@/lib/plan-server'
+import { heeftFeature } from '@/lib/plan'
 
 const anthropic = process.env.ANTHROPIC_API_KEY
   ? new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
@@ -12,6 +14,14 @@ export async function GET(req: NextRequest) {
   if (!user) return NextResponse.json({ error: 'Niet ingelogd.' }, { status: 401 })
 
   const admin = createAdminClient()
+
+  const plan = await getPlanVoorUser(admin, user.id)
+  if (!heeftFeature(plan, 'persoonlijke_patronen')) {
+    return NextResponse.json(
+      { error: 'AI-weekinzichten zijn onderdeel van het Groei-plan.', code: 'premium' },
+      { status: 403 },
+    )
+  }
 
   const weekStart = (() => {
     const d = new Date()

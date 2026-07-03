@@ -13,6 +13,7 @@ import { Ring } from '@/components/ui/Ring'
 import { Button } from '@/components/ui/Button'
 import { useToast } from '@/components/ui/Toast'
 import VitaLeegScherm from '@/components/vita/VitaLeegScherm'
+import { PremiumSlot } from '@/components/ui/PremiumSlot'
 
 interface WeekStats {
   stemming: number | null
@@ -96,6 +97,7 @@ export default function InzichtenPagina() {
   const [laden, setLaden] = useState(true)
   const [vernieuwen, setVernieuwen] = useState(false)
   const [data, setData] = useState<WeekRapportResponse | null>(null)
+  const [premiumNodig, setPremiumNodig] = useState(false)
 
   const laadRapport = useCallback(async (forceer = false) => {
     const { data: { user } } = await supabase.auth.getUser()
@@ -107,7 +109,9 @@ export default function InzichtenPagina() {
     try {
       const url = forceer ? '/api/inzichten/weekrapport?refresh=1' : '/api/inzichten/weekrapport'
       const res = await authFetch(url)
-      if (res.ok) {
+      if (res.status === 403) {
+        setPremiumNodig(true)
+      } else if (res.ok) {
         const json = await res.json() as WeekRapportResponse
         setData(json)
       } else {
@@ -170,8 +174,15 @@ export default function InzichtenPagina() {
           </Button>
         </header>
 
+        {premiumNodig && (
+          <PremiumSlot
+            titel="Wekelijkse AI-inzichten"
+            omschrijving="Vita analyseert elke week jouw check-ins, slaap, stemming en beweging en vertaalt ze naar één helder verhaal met een concrete tip."
+          />
+        )}
+
         {/* Lege staat */}
-        {!rapport && (
+        {!premiumNodig && !rapport && (
           <VitaLeegScherm
             emotion="curious"
             titel="Je inzichten groeien met je mee"

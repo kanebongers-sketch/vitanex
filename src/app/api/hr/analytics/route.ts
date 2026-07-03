@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAuthenticatedUser } from '@/lib/api-auth'
 import { createAdminClient } from '@/lib/supabase-admin'
+import { getPlanVoorBedrijf } from '@/lib/plan-server'
+import { heeftFeature } from '@/lib/plan'
 
 // k-anonimiteit: gemiddelden alleen tonen bij ≥ 5 unieke deelnemers,
 // anders zijn individuele waarden herleidbaar.
@@ -57,6 +59,14 @@ export async function GET(req: NextRequest) {
   }
 
   const bedrijfId = profiel.bedrijf_id as string
+
+  const plan = await getPlanVoorBedrijf(admin, bedrijfId)
+  if (!heeftFeature(plan, 'hr_analytics')) {
+    return NextResponse.json(
+      { error: 'Team-analytics is onderdeel van het Groei-plan.', code: 'premium' },
+      { status: 403 },
+    )
+  }
 
   // Medewerkers ophalen
   const { data: medewerkers } = await admin

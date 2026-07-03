@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getAuthenticatedUser } from '@/lib/api-auth'
 import { createAdminClient } from '@/lib/supabase-admin'
 import { datumMinusDagenNL, vandaagNL } from '@/lib/date-nl'
+import { getPlanVoorUser } from '@/lib/plan-server'
+import { heeftFeature } from '@/lib/plan'
 
 export const dynamic = 'force-dynamic'
 
@@ -25,6 +27,15 @@ export async function GET(req: NextRequest) {
     if (!user) return NextResponse.json({ error: 'Niet ingelogd.' }, { status: 401 })
 
     const admin = createAdminClient()
+
+    const plan = await getPlanVoorUser(admin, user.id)
+    if (!heeftFeature(plan, 'persoonlijke_patronen')) {
+      return NextResponse.json(
+        { error: 'Persoonlijke patronen zijn onderdeel van het Groei-plan.', code: 'premium' },
+        { status: 403 },
+      )
+    }
+
     const vandaag = vandaagNL()
     const dertigDagenGeleden = datumMinusDagenNL(29)
     const zestigDagenGeleden = datumMinusDagenNL(59)

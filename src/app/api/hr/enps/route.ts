@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAuthenticatedUser } from '@/lib/api-auth'
 import { createAdminClient } from '@/lib/supabase-admin'
+import { getPlanVoorBedrijf } from '@/lib/plan-server'
+import { heeftFeature } from '@/lib/plan'
 
 // k-anonimiteit: scores pas tonen bij ≥ 5 unieke respondenten,
 // anders zijn individuele antwoorden herleidbaar.
@@ -23,6 +25,14 @@ export async function GET(req: NextRequest) {
   }
 
   const bedrijfId = profiel.bedrijf_id
+
+  const plan = await getPlanVoorBedrijf(admin, bedrijfId)
+  if (!heeftFeature(plan, 'hr_analytics')) {
+    return NextResponse.json(
+      { error: 'eNPS-resultaten zijn onderdeel van het Groei-plan.', code: 'premium' },
+      { status: 403 },
+    )
+  }
 
   const { data: antwoorden } = await admin
     .from('enps_antwoorden')

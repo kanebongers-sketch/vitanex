@@ -10,6 +10,7 @@ import { authFetch } from '@/lib/auth-fetch'
 import { Card } from '@/components/ui/Card'
 import { Chart, type ChartDatum } from '@/components/ui/Chart'
 import { EmptyState } from '@/components/ui/EmptyState'
+import { PremiumSlot } from '@/components/ui/PremiumSlot'
 import { BarChart3 } from 'lucide-react'
 
 
@@ -35,13 +36,19 @@ export default function HrENPSPage() {
   const router = useRouter()
   const [laden, setLaden] = useState(true)
   const [data, setData] = useState<ENPSData | null>(null)
+  const [premiumNodig, setPremiumNodig] = useState(false)
 
   useEffect(() => {
     supabase.auth.getUser().then(async ({ data: { user } }) => {
       if (!user) { router.push('/login'); return }
 
       const res = await authFetch('/api/hr/enps')
-      if (res.ok) setData(await res.json() as ENPSData)
+      if (res.status === 403) {
+        const json = (await res.json().catch(() => null)) as { code?: string } | null
+        if (json?.code === 'premium') setPremiumNodig(true)
+      } else if (res.ok) {
+        setData(await res.json() as ENPSData)
+      }
       setLaden(false)
     })
   }, [router])
@@ -50,6 +57,19 @@ export default function HrENPSPage() {
     <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
       <Navbar />
       <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 80 }}><div className="mf-spinner" /></div>
+    </div>
+  )
+
+  if (premiumNodig) return (
+    <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
+      <Navbar />
+      <main style={{ padding: '36px 40px 72px', maxWidth: 780, margin: '0 auto' }}>
+        <PremiumSlot
+          kanUpgraden
+          titel="eNPS-dashboard"
+          omschrijving="Meet hoe waarschijnlijk het is dat medewerkers jullie organisatie aanbevelen — anoniem (≥ 5 respondenten), met trend per maand en verdeling."
+        />
+      </main>
     </div>
   )
 
