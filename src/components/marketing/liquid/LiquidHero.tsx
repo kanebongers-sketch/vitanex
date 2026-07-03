@@ -1,21 +1,23 @@
 'use client'
 
+import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState, type FormEvent } from 'react'
 import { ArrowRight, Brain, Mail, ShieldCheck } from 'lucide-react'
 import { COLORS } from '../theme'
 import Wordmark from '../Wordmark'
-import HeroBrain from './HeroBrain'
+
+const HeroField = dynamic(() => import('./HeroField'), { ssr: false, loading: () => null })
 
 const NAV_LINKS: readonly [string, string][] = [
-  ['#pijlers', 'Pijlers'],
+  ['#brein', 'Pijlers'],
   ['#aanpak', 'Aanpak'],
   ['#platform', 'Platform'],
 ]
 
 const SOCIALS: readonly { href: string; label: string; icon: typeof Brain }[] = [
-  { href: '#pijlers', label: 'Naar de zes pijlers', icon: Brain },
+  { href: '#brein', label: 'Naar het brein met de zes pijlers', icon: Brain },
   { href: '/contact', label: 'Neem contact op', icon: Mail },
   { href: '/voorwaarden#privacy', label: 'Privacy en voorwaarden', icon: ShieldCheck },
 ]
@@ -32,23 +34,15 @@ export default function LiquidHero() {
 
   return (
     <section className="relative flex min-h-screen flex-col overflow-hidden">
-      {/* 3D-brein als achtergrond (decoratief; tekstalternatief hieronder) */}
-      <HeroBrain />
+      {/* Neuraal deeltjesveld als rustige achtergrond (decoratief) */}
+      <HeroField />
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0"
         style={{
-          background: [
-            // plateau achter de hero-tekst zodat contrast niet afhangt van de breinkleur eronder
-            `radial-gradient(ellipse 90% 55% at 50% 42%, ${COLORS.navyDeep}8C 0%, ${COLORS.navyDeep}59 45%, transparent 75%)`,
-            `linear-gradient(180deg, ${COLORS.navyDeep}B3 0%, transparent 32%, transparent 62%, ${COLORS.navyDeep}CC 100%)`,
-          ].join(', '),
+          background: `linear-gradient(180deg, ${COLORS.navyDeep}B3 0%, transparent 32%, transparent 62%, ${COLORS.navyDeep}CC 100%)`,
         }}
       />
-      <p className="sr-only">
-        Een driedimensionaal brein in zes gekleurde vlakken: de pijlers Energie, Slaap,
-        Stress, Stemming, Beweging en Voeding waarop MentaForce welzijn meet.
-      </p>
 
       {/* Navbar */}
       <header className="relative z-20 px-6 py-6">

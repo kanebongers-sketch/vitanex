@@ -2,6 +2,7 @@ import LiquidMotion from '@/components/marketing/liquid/LiquidMotion'
 import LiquidStyles from '@/components/marketing/liquid/LiquidStyles'
 import LiquidHero from '@/components/marketing/liquid/LiquidHero'
 import LiquidAbout from '@/components/marketing/liquid/LiquidAbout'
+import BrainScroll from '@/components/marketing/landing/BrainScroll'
 import LiquidFeature from '@/components/marketing/liquid/LiquidFeature'
 import LiquidPhilosophy from '@/components/marketing/liquid/LiquidPhilosophy'
 import LiquidServices from '@/components/marketing/liquid/LiquidServices'
@@ -15,6 +16,7 @@ export default function MarketingPage() {
         <main>
           <LiquidHero />
           <LiquidAbout />
+          <BrainScroll />
           <LiquidFeature />
           <LiquidPhilosophy />
           <LiquidServices />

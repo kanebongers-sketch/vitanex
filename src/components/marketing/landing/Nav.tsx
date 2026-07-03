@@ -6,7 +6,7 @@ import { COLORS, FONT, MAXW, EASE } from '../theme'
 import Wordmark from '../Wordmark'
 
 const LINKS: [string, string][] = [
-  ['/#pijlers', 'De pijlers'],
+  ['/#brein', 'De pijlers'],
   ['/#aanpak', 'Aanpak'],
   ['/#platform', 'Platform'],
 ]
