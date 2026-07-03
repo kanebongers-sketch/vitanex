@@ -25,7 +25,7 @@ export default function Nav() {
       style={{
         position: 'sticky', top: 0, zIndex: 50,
         fontFamily: FONT.grotesk,
-        background: scrolled ? 'rgba(7,18,40,0.78)' : 'transparent',
+        background: scrolled ? COLORS.navyScrim : 'transparent',
         backdropFilter: scrolled ? 'blur(18px) saturate(150%)' : 'none',
         WebkitBackdropFilter: scrolled ? 'blur(18px) saturate(150%)' : 'none',
         borderBottom: `1px solid ${scrolled ? COLORS.line : 'transparent'}`,

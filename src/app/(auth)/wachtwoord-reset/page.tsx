@@ -8,16 +8,9 @@ import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
 import { Check, Clock } from 'lucide-react'
 import { LogoFull } from '@/components/layout/Logo'
+import { AuthKaart } from '@/components/ui/AuthKaart'
 
 type Status = 'laden' | 'gereed' | 'opslaan' | 'klaar' | 'fout_token' | 'fout_opslaan'
-
-const KAART_STIJL = {
-  background: 'var(--bg-card)',
-  border: '1px solid var(--border)',
-  borderRadius: 24,
-  boxShadow: '0 20px 60px rgba(0,0,0,0.35)',
-  padding: '36px 32px',
-} as const
 
 export default function WachtwoordReset() {
   const router = useRouter()
@@ -73,8 +66,7 @@ export default function WachtwoordReset() {
   )
 
   if (status === 'fout_token') return (
-    <main className="mf-mesh-bg min-h-screen flex items-center justify-center p-5">
-      <div className="w-full max-w-sm text-center mf-animate-up" style={KAART_STIJL}>
+    <AuthKaart className="text-center">
         <div
           className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6"
           style={{ background: 'var(--mf-amber-light)' }}
@@ -90,13 +82,11 @@ export default function WachtwoordReset() {
           style={{ background: 'var(--mf-green)', color: 'var(--bg-app)' }}>
           Nieuwe resetlink aanvragen
         </Link>
-      </div>
-    </main>
+    </AuthKaart>
   )
 
   if (status === 'klaar') return (
-    <main className="mf-mesh-bg min-h-screen flex items-center justify-center p-5">
-      <div className="w-full max-w-sm text-center mf-animate-up" style={KAART_STIJL}>
+    <AuthKaart className="text-center">
         <div
           className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6"
           style={{ background: 'var(--mf-green-light)' }}
@@ -105,14 +95,11 @@ export default function WachtwoordReset() {
         </div>
         <h1 className="text-xl font-semibold mb-2" style={{ color: 'var(--text-1)' }}>Wachtwoord gewijzigd</h1>
         <p className="text-sm" style={{ color: 'var(--text-2)' }}>Je wordt doorgestuurd naar de app…</p>
-      </div>
-    </main>
+    </AuthKaart>
   )
 
   return (
-    <main className="mf-mesh-bg min-h-screen flex items-center justify-center p-5">
-      <div className="w-full max-w-sm mf-animate-up" style={KAART_STIJL}>
-
+    <AuthKaart>
         <div className="flex justify-center mb-8">
           <Link href="/" aria-label="MentaForce home">
             <LogoFull iconSize={38} />
@@ -211,7 +198,6 @@ export default function WachtwoordReset() {
           )}
           {status === 'opslaan' ? 'Opslaan...' : 'Wachtwoord opslaan'}
         </button>
-      </div>
-    </main>
+    </AuthKaart>
   )
 }

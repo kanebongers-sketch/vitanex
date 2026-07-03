@@ -38,7 +38,7 @@ export async function GET(req: NextRequest) {
     .maybeSingle()
 
   if (cache?.samenvatting) {
-    return NextResponse.json({ rapport: cache, week_start: weekStart, cached: true })
+    return NextResponse.json({ rapport: cache, week_start: weekStart })
   }
 
   // Data ophalen parallel
@@ -137,5 +137,5 @@ Alleen JSON, geen extra tekst. Nederlands.`
     }, { onConflict: 'user_id,week_start' })
   }
 
-  return NextResponse.json({ rapport, week_start: weekStart, cached: false })
+  return NextResponse.json({ rapport, week_start: weekStart })
 }

@@ -8,6 +8,7 @@ import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
 import { Check } from 'lucide-react'
 import { LogoFull } from '@/components/layout/Logo'
+import { AuthKaart } from '@/components/ui/AuthKaart'
 
 type LoginStatus =
   | 'idle'
@@ -77,33 +78,28 @@ export default function Login() {
   }
 
   return (
-    <main
-      className="mf-mesh-bg min-h-screen flex flex-col items-center justify-center p-5"
+    <AuthKaart
+      className="relative"
+      achtergrond={
+        <div className="fixed inset-0 pointer-events-none overflow-hidden" aria-hidden>
+          <div style={{
+            position: 'absolute', top: '-10%', right: '-5%',
+            width: 400, height: 400, borderRadius: '50%',
+            background: 'radial-gradient(circle, var(--mf-green-light) 0%, transparent 70%)',
+          }} />
+          <div style={{
+            position: 'absolute', bottom: '-10%', left: '-5%',
+            width: 350, height: 350, borderRadius: '50%',
+            background: 'radial-gradient(circle, color-mix(in srgb, var(--mf-green) 8%, transparent) 0%, transparent 70%)',
+          }} />
+        </div>
+      }
+      naKaart={
+        <p className="text-[11px] mt-6 text-center" style={{ color: 'var(--text-4)' }}>
+          AVG-conform · Anoniem · Veilig versleuteld
+        </p>
+      }
     >
-      {/* Decorative blobs */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden" aria-hidden>
-        <div style={{
-          position: 'absolute', top: '-10%', right: '-5%',
-          width: 400, height: 400, borderRadius: '50%',
-          background: 'radial-gradient(circle, var(--mf-green-light) 0%, transparent 70%)',
-        }} />
-        <div style={{
-          position: 'absolute', bottom: '-10%', left: '-5%',
-          width: 350, height: 350, borderRadius: '50%',
-          background: 'radial-gradient(circle, color-mix(in srgb, var(--mf-green) 8%, transparent) 0%, transparent 70%)',
-        }} />
-      </div>
-
-      <div
-        className="w-full max-w-sm relative mf-animate-up"
-        style={{
-          background: 'var(--bg-card)',
-          border: '1px solid var(--border)',
-          borderRadius: 24,
-          boxShadow: '0 20px 60px rgba(0,0,0,0.35)',
-          padding: '36px 32px',
-        }}
-      >
         {/* Logo */}
         <div className="flex justify-center mb-8">
           <Link href="/" aria-label="MentaForce home">
@@ -295,12 +291,6 @@ export default function Login() {
             Gratis registreren
           </Link>
         </p>
-      </div>
-
-      {/* Footer */}
-      <p className="text-[11px] mt-6 text-center" style={{ color: 'var(--text-4)' }}>
-        AVG-conform · Anoniem · Veilig versleuteld
-      </p>
-    </main>
+    </AuthKaart>
   )
 }

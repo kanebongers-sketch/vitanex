@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { MailCheck } from 'lucide-react'
 import { LogoFull } from '@/components/layout/Logo'
+import { AuthKaart } from '@/components/ui/AuthKaart'
 
 type Status = 'idle' | 'loading' | 'verstuurd' | 'not_found' | 'error'
 
@@ -36,17 +37,7 @@ export default function WachtwoordVergeten() {
   }
 
   return (
-    <main className="mf-mesh-bg min-h-screen flex flex-col items-center justify-center p-5">
-      <div
-        className="w-full max-w-sm relative mf-animate-up"
-        style={{
-          background: 'var(--bg-card)',
-          border: '1px solid var(--border)',
-          borderRadius: 24,
-          boxShadow: '0 20px 60px rgba(0,0,0,0.35)',
-          padding: '36px 32px',
-        }}
-      >
+    <AuthKaart className="relative">
         <div className="flex justify-center mb-8">
           <Link href="/login" aria-label="Terug naar inloggen">
             <LogoFull iconSize={38} />
@@ -147,7 +138,6 @@ export default function WachtwoordVergeten() {
             </p>
           </>
         )}
-      </div>
-    </main>
+    </AuthKaart>
   )
 }

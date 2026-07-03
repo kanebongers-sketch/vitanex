@@ -8,6 +8,7 @@ export const COLORS = {
   navy: '#0B1B3A',
   navyElev: '#0F2347',
   navyLine: '#15315C',
+  navyScrim: 'rgba(7,18,40,0.78)', // semi-transparant navyDeep — nav-achtergrond bij scroll (met blur)
 
   // Electric Cyan (enige accentkleur)
   cyan: '#00E5FF',

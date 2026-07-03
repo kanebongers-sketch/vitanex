@@ -48,7 +48,13 @@ export default function ReflectiePage() {
     const d = new Date()
     // Maandag van de HUIDIGE week — ook op zondag (getDay() === 0).
     d.setDate(d.getDate() - ((d.getDay() + 6) % 7))
-    return d.toISOString().slice(0, 10)
+    // Lokale datumdelen — toISOString() (UTC) schuift rond middernacht
+    // lokale tijd een dag terug en schreef dan naar de vórige week.
+    return [
+      d.getFullYear(),
+      String(d.getMonth() + 1).padStart(2, '0'),
+      String(d.getDate()).padStart(2, '0'),
+    ].join('-')
   })()
 
   useEffect(() => {

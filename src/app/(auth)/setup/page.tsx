@@ -2,21 +2,14 @@
 
 export const dynamic = 'force-dynamic'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
 import { Check, Settings } from 'lucide-react'
+import { AuthKaart } from '@/components/ui/AuthKaart'
 
 type Stap = 'controleer' | 'token' | 'bezig' | 'klaar' | 'fout'
-
-const KAART_STIJL = {
-  background: 'var(--bg-card)',
-  border: '1px solid var(--border)',
-  borderRadius: 24,
-  boxShadow: '0 20px 60px rgba(0,0,0,0.35)',
-  padding: '36px 32px',
-} as const
 
 export default function Setup() {
   const router = useRouter()
@@ -26,17 +19,21 @@ export default function Setup() {
   const [foutmelding, setFoutmelding] = useState('')
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null)
 
-  async function controleerToegang() {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) { router.push('/login'); return }
-    const { data: profiel } = await supabase.from('profiles').select('rol').eq('id', user.id).single()
-    if (profiel?.rol !== 'admin') {
-      setIsAdmin(false)
-    } else {
-      setIsAdmin(true)
-      setStap('token')
+  // Controleer toegang bij laden
+  useEffect(() => {
+    async function controleerToegang() {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { router.push('/login'); return }
+      const { data: profiel } = await supabase.from('profiles').select('rol').eq('id', user.id).single()
+      if (profiel?.rol !== 'admin') {
+        setIsAdmin(false)
+      } else {
+        setIsAdmin(true)
+        setStap('token')
+      }
     }
-  }
+    controleerToegang()
+  }, [router])
 
   async function uitvoeren() {
     if (!mgmtToken.trim()) return
@@ -63,9 +60,7 @@ export default function Setup() {
     }
   }
 
-  // Controleer toegang bij laden
   if (isAdmin === null) {
-    controleerToegang()
     return (
       <main className="mf-mesh-bg min-h-screen flex items-center justify-center">
         <span className="mf-spinner" aria-hidden style={{ width: 24, height: 24 }} />
@@ -75,22 +70,18 @@ export default function Setup() {
 
   if (isAdmin === false) {
     return (
-      <main className="mf-mesh-bg min-h-screen flex items-center justify-center p-5">
-        <div className="w-full max-w-sm text-center mf-animate-up" style={KAART_STIJL}>
-          <h1 className="text-lg font-semibold mb-2" style={{ color: 'var(--text-1)' }}>Geen toegang</h1>
-          <p className="text-sm mb-4" style={{ color: 'var(--text-3)' }}>Alleen admins kunnen de setup uitvoeren.</p>
-          <Link href="/admin" className="text-sm underline transition hover:opacity-70" style={{ color: 'var(--mf-green)' }}>
-            ← Terug naar admin
-          </Link>
-        </div>
-      </main>
+      <AuthKaart className="text-center">
+        <h1 className="text-lg font-semibold mb-2" style={{ color: 'var(--text-1)' }}>Geen toegang</h1>
+        <p className="text-sm mb-4" style={{ color: 'var(--text-3)' }}>Alleen admins kunnen de setup uitvoeren.</p>
+        <Link href="/admin" className="text-sm underline transition hover:opacity-70" style={{ color: 'var(--mf-green)' }}>
+          ← Terug naar admin
+        </Link>
+      </AuthKaart>
     )
   }
 
   return (
-    <main className="mf-mesh-bg min-h-screen flex items-center justify-center p-5">
-      <div className="w-full max-w-lg mf-animate-up" style={KAART_STIJL}>
-
+    <AuthKaart maxWidth="lg">
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
           <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
@@ -192,7 +183,6 @@ export default function Setup() {
             </button>
           </>
         )}
-      </div>
-    </main>
+    </AuthKaart>
   )
 }

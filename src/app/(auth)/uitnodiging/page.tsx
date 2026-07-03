@@ -9,16 +9,9 @@ import { supabase } from '@/lib/supabase'
 import { Suspense } from 'react'
 import { Link2Off, Mail, MailCheck, UserRound } from 'lucide-react'
 import { LogoFull } from '@/components/layout/Logo'
+import { AuthKaart } from '@/components/ui/AuthKaart'
 
 type Status = 'laden' | 'gereed' | 'ongeldig' | 'registreren' | 'bevestig_nodig' | 'al_geregistreerd' | 'fout'
-
-const KAART_STIJL = {
-  background: 'var(--bg-card)',
-  border: '1px solid var(--border)',
-  borderRadius: 24,
-  boxShadow: '0 20px 60px rgba(0,0,0,0.35)',
-  padding: '36px 32px',
-} as const
 
 function UitnodigingForm() {
   const router = useRouter()
@@ -117,8 +110,7 @@ function UitnodigingForm() {
   )
 
   if (status === 'ongeldig') return (
-    <main className="mf-mesh-bg min-h-screen flex items-center justify-center p-5">
-      <div className="w-full max-w-sm text-center mf-animate-up" style={KAART_STIJL}>
+    <AuthKaart className="text-center">
         <div
           className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6"
           style={{ background: 'var(--mf-red-light)' }}
@@ -133,13 +125,11 @@ function UitnodigingForm() {
           className="text-sm font-medium transition hover:opacity-70" style={{ color: 'var(--mf-green)' }}>
           Contact opnemen
         </a>
-      </div>
-    </main>
+    </AuthKaart>
   )
 
   if (status === 'al_geregistreerd') return (
-    <main className="mf-mesh-bg min-h-screen flex items-center justify-center p-5">
-      <div className="w-full max-w-sm text-center mf-animate-up" style={KAART_STIJL}>
+    <AuthKaart className="text-center">
         <div
           className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6"
           style={{ background: 'var(--mf-green-light)' }}
@@ -155,13 +145,11 @@ function UitnodigingForm() {
           style={{ background: 'var(--mf-green)', color: 'var(--bg-app)' }}>
           Inloggen
         </Link>
-      </div>
-    </main>
+    </AuthKaart>
   )
 
   if (status === 'bevestig_nodig') return (
-    <main className="mf-mesh-bg min-h-screen flex items-center justify-center p-5">
-      <div className="w-full max-w-sm text-center mf-animate-up" style={KAART_STIJL}>
+    <AuthKaart className="text-center">
         <div
           className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6"
           style={{ background: 'var(--mf-green-light)' }}
@@ -206,14 +194,11 @@ function UitnodigingForm() {
           style={{ color: 'var(--text-3)' }}>
           Bevestigingsmail opnieuw sturen
         </button>
-      </div>
-    </main>
+    </AuthKaart>
   )
 
   return (
-    <main className="mf-mesh-bg min-h-screen flex items-center justify-center p-5">
-      <div className="w-full max-w-sm mf-animate-up" style={KAART_STIJL}>
-
+    <AuthKaart>
         <div className="flex justify-center mb-8">
           <LogoFull iconSize={38} />
         </div>
@@ -300,8 +285,7 @@ function UitnodigingForm() {
           )}
           {status === 'registreren' ? 'Account aanmaken...' : 'Account aanmaken'}
         </button>
-      </div>
-    </main>
+    </AuthKaart>
   )
 }
 

@@ -29,8 +29,14 @@ export function getMaandag(): string {
   const dag = nu.getDay() === 0 ? 6 : nu.getDay() - 1
   const ma = new Date(nu)
   ma.setDate(nu.getDate() - dag)
-  ma.setHours(0, 0, 0, 0)
-  return ma.toISOString().slice(0, 10)
+  // Lokale datumdelen formatteren (zoals vandaag() hieronder) — toISOString()
+  // serialiseert naar UTC en gaf op NL-machines structureel de zóndag terug
+  // (maandag 00:00 lokaal = zondag 22:00/23:00 UTC).
+  return [
+    ma.getFullYear(),
+    String(ma.getMonth() + 1).padStart(2, '0'),
+    String(ma.getDate()).padStart(2, '0'),
+  ].join('-')
 }
 
 export function vandaag(): string {
