@@ -3,6 +3,7 @@
 export const dynamic = 'force-dynamic'
 
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { Suspense } from 'react'
@@ -149,11 +150,11 @@ function UitnodigingForm() {
         <p className="text-sm mb-6 leading-relaxed" style={{ color: 'var(--text-2)' }}>
           Er bestaat al een account voor <strong style={{ color: 'var(--text-1)' }}>{tokenData?.email}</strong>. Log gewoon in om verder te gaan.
         </p>
-        <a href="/login"
+        <Link href="/login"
           className="block w-full text-center py-3.5 rounded-2xl text-sm font-semibold transition hover:opacity-90"
           style={{ background: 'var(--mf-green)', color: 'var(--bg-app)' }}>
           Inloggen
-        </a>
+        </Link>
       </div>
     </main>
   )
@@ -194,11 +195,11 @@ function UitnodigingForm() {
           </div>
         </div>
 
-        <a href="/login"
+        <Link href="/login"
           className="block w-full text-center py-3.5 rounded-2xl text-sm font-semibold transition hover:opacity-90"
           style={{ background: 'var(--mf-green)', color: 'var(--bg-app)' }}>
           Ga naar inloggen
-        </a>
+        </Link>
         <button
           onClick={() => supabase.auth.resend({ type: 'signup', email: tokenData?.email ?? '' })}
           className="mt-3 text-xs transition hover:opacity-70 underline"

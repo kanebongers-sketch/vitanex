@@ -104,7 +104,7 @@ export default function WachtwoordReset() {
           <Check size={28} strokeWidth={3} aria-hidden style={{ color: 'var(--mf-green)' }} />
         </div>
         <h1 className="text-xl font-semibold mb-2" style={{ color: 'var(--text-1)' }}>Wachtwoord gewijzigd</h1>
-        <p className="text-sm" style={{ color: 'var(--text-2)' }}>Je wordt doorgestuurd naar het inlogscherm...</p>
+        <p className="text-sm" style={{ color: 'var(--text-2)' }}>Je wordt doorgestuurd naar de app…</p>
       </div>
     </main>
   )
