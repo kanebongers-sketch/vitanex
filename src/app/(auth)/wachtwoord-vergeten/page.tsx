@@ -1,10 +1,12 @@
-﻿'use client'
+'use client'
 
 export const dynamic = 'force-dynamic'
 
 import { useState } from 'react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
+import { MailCheck } from 'lucide-react'
+import { LogoFull } from '@/components/layout/Logo'
 
 type Status = 'idle' | 'loading' | 'verstuurd' | 'not_found' | 'error'
 
@@ -34,42 +36,51 @@ export default function WachtwoordVergeten() {
   }
 
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center p-8"
-      style={{ background: 'linear-gradient(135deg, #E1F5EE 0%, #E6F1FB 100%)' }}>
-      <div className="max-w-md w-full bg-white rounded-2xl border border-gray-100 p-10 shadow-sm mf-animate-up">
-
-        <Link href="/login" className="flex items-center gap-2 mb-8">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center"
-            style={{ background: 'var(--mentaforce-primary)' }}>
-            <span className="text-white text-xs font-bold">M</span>
-          </div>
-          <span className="font-semibold text-gray-900">MentaForce</span>
-        </Link>
+    <main className="mf-mesh-bg min-h-screen flex flex-col items-center justify-center p-5">
+      <div
+        className="w-full max-w-sm relative mf-animate-up"
+        style={{
+          background: 'var(--bg-card)',
+          border: '1px solid var(--border)',
+          borderRadius: 24,
+          boxShadow: '0 20px 60px rgba(0,0,0,0.35)',
+          padding: '36px 32px',
+        }}
+      >
+        <div className="flex justify-center mb-8">
+          <Link href="/login" aria-label="Terug naar inloggen">
+            <LogoFull iconSize={38} />
+          </Link>
+        </div>
 
         {status === 'verstuurd' ? (
           <div className="text-center">
-            <div className="w-16 h-16 rounded-full flex items-center justify-center text-3xl mx-auto mb-6"
-              style={{ background: 'var(--mf-green-light)' }}>
-              📬
+            <div
+              className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6"
+              style={{ background: 'var(--mf-green-light)' }}
+            >
+              <MailCheck size={28} aria-hidden style={{ color: 'var(--mf-green)' }} />
             </div>
-            <h1 className="text-xl font-semibold text-gray-900 mb-2">Mail verstuurd</h1>
-            <p className="text-sm text-gray-500 mb-2 leading-relaxed">
+            <h1 className="text-xl font-semibold mb-2" style={{ color: 'var(--text-1)' }}>Mail verstuurd</h1>
+            <p className="text-sm mb-2 leading-relaxed" style={{ color: 'var(--text-2)' }}>
               We hebben een resetlink gestuurd naar
             </p>
-            <p className="font-semibold text-gray-900 mb-6">{email}</p>
-            <p className="text-xs text-gray-400 mb-8 leading-relaxed">
+            <p className="font-semibold mb-6" style={{ color: 'var(--text-1)' }}>{email}</p>
+            <p className="text-xs mb-8 leading-relaxed" style={{ color: 'var(--text-3)' }}>
               Klik op de link in de mail om een nieuw wachtwoord in te stellen. Controleer ook je spam-map.
             </p>
-            <Link href="/login"
-              className="block w-full text-center py-3 rounded-xl text-white text-sm font-semibold transition hover:opacity-90"
-              style={{ background: 'var(--mentaforce-primary)' }}>
+            <Link
+              href="/login"
+              className="block w-full text-center py-3.5 rounded-2xl text-sm font-semibold transition hover:opacity-90"
+              style={{ background: 'var(--mf-green)', color: 'var(--bg-app)' }}
+            >
               Terug naar inloggen
             </Link>
           </div>
         ) : (
           <>
-            <h1 className="text-xl font-semibold text-gray-900 mb-1">Wachtwoord vergeten</h1>
-            <p className="text-gray-400 text-sm mb-8">
+            <h1 className="text-xl font-semibold mb-1" style={{ color: 'var(--text-1)' }}>Wachtwoord vergeten</h1>
+            <p className="text-sm mb-8" style={{ color: 'var(--text-2)' }}>
               Vul je e-mailadres in. We sturen je een link om een nieuw wachtwoord in te stellen.
             </p>
 
@@ -104,24 +115,33 @@ export default function WachtwoordVergeten() {
                 aria-describedby={status === 'not_found' || status === 'error' ? 'reset-fout' : undefined}
                 onChange={e => { setEmail(e.target.value); if (status !== 'idle') setStatus('idle') }}
                 onKeyDown={e => e.key === 'Enter' && stuurResetMail()}
-                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-gray-400 focus-visible:ring-2 transition"
-                style={{ ['--tw-ring-color' as string]: 'var(--mentaforce-primary)' }}
+                className="mf-input"
+                style={{ borderRadius: 14, padding: '12px 16px' }}
               />
             </div>
 
             <button
               onClick={stuurResetMail}
               disabled={!email.trim() || status === 'loading'}
-              className="w-full text-white rounded-xl py-3 text-sm font-semibold transition disabled:opacity-40 flex items-center justify-center gap-2"
-              style={{ background: 'var(--mentaforce-primary)' }}>
+              className="w-full rounded-2xl py-3.5 text-sm font-semibold transition disabled:opacity-40 flex items-center justify-center gap-2"
+              style={{ background: 'var(--mf-green)', color: 'var(--bg-app)' }}>
               {status === 'loading' && (
-                <div className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                <span
+                  className="mf-spinner"
+                  aria-hidden
+                  style={{
+                    width: 16,
+                    height: 16,
+                    borderColor: 'color-mix(in srgb, var(--bg-app) 25%, transparent)',
+                    borderTopColor: 'var(--bg-app)',
+                  }}
+                />
               )}
               {status === 'loading' ? 'Versturen...' : 'Resetlink versturen'}
             </button>
 
-            <p className="text-xs text-center text-gray-400 mt-6">
-              <Link href="/login" className="font-medium hover:text-gray-600 transition">
+            <p className="text-xs text-center mt-6" style={{ color: 'var(--text-3)' }}>
+              <Link href="/login" className="font-medium transition hover:opacity-70" style={{ color: 'var(--mf-green)' }}>
                 Terug naar inloggen
               </Link>
             </p>

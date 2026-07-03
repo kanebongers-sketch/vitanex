@@ -160,7 +160,11 @@ export default function CoachPagina() {
     setHerstelTekst(null)
     if (inputRef.current) inputRef.current.style.height = 'auto'
 
-    const huidige = basis ?? berichten
+    // Typt de gebruiker ná een fout een nieuw bericht (i.p.v. "Opnieuw
+    // proberen"), verwijder dan eerst het gestrande user+fout-paar: zo blijft
+    // er geen dode fout-bubbel hangen en gaat de foutmelding niet als
+    // assistant-bericht mee naar het model.
+    const huidige = basis ?? (herstelTekst ? berichten.slice(0, -2) : berichten)
     const gebruikerBericht: ChatBericht = { id: `u-${huidige.length}`, role: 'user', content: invoer }
     const assistentId = `a-${huidige.length + 1}`
     const nieuweLijst: ChatBericht[] = [
@@ -228,9 +232,11 @@ export default function CoachPagina() {
     setLaden(false)
     if (!mislukt) inputRef.current?.focus()
 
-    // Sla na elk voltooid antwoord een weeksamenvatting op zodra het gesprek
-    // inhoud heeft (upsert per week maakt dubbele calls onschadelijk).
-    if (volledigAntwoord) {
+    // Sla na elk succesvol afgerond antwoord een weeksamenvatting op zodra het
+    // gesprek inhoud heeft (upsert per week maakt dubbele calls onschadelijk).
+    // Een afgebroken antwoord (mid-stream fout ná gedeeltelijke tokens) telt
+    // bewust niet mee — een half antwoord hoort niet in de samenvatting.
+    if (!mislukt && volledigAntwoord) {
       const voltooid = [...api, { role: 'assistant' as const, content: volledigAntwoord }]
       if (voltooid.length >= 4) {
         authFetch('/api/coach/samenvatting', {

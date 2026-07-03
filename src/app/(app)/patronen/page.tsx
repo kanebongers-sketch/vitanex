@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
@@ -133,24 +133,25 @@ export default function PatronenPage() {
   const [fout, setFout] = useState<string | null>(null)
   const [premiumNodig, setPremiumNodig] = useState(false)
 
-  useEffect(() => {
-    async function init() {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) { router.replace('/login'); return }
+  // Laad-logica als aanroepbare functie, zodat 'Opnieuw proberen' geen
+  // window.location.reload() nodig heeft (zelfde patroon als rapport/page.tsx).
+  const laad = useCallback(async () => {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) { router.replace('/login'); return }
 
-      try {
-        const res = await authFetch('/api/patronen')
-        if (res.status === 403) { setPremiumNodig(true); return }
-        if (!res.ok) throw new Error()
-        setData(await res.json())
-      } catch {
-        setFout('Kon patronen niet ophalen. Probeer het opnieuw.')
-      } finally {
-        setLaden(false)
-      }
+    try {
+      const res = await authFetch('/api/patronen')
+      if (res.status === 403) { setPremiumNodig(true); return }
+      if (!res.ok) throw new Error()
+      setData(await res.json())
+    } catch {
+      setFout('Kon patronen niet ophalen. Probeer het opnieuw.')
+    } finally {
+      setLaden(false)
     }
-    void init()
   }, [router])
+
+  useEffect(() => { void laad() }, [laad])
 
   return (
     <>
@@ -211,7 +212,7 @@ export default function PatronenPage() {
             <Card style={{ padding: '32px 24px', textAlign: 'center', marginTop: 24 }}>
               <p style={{ fontSize: 14, color: 'var(--text-2)', marginBottom: 4, fontWeight: 600 }}>Patronen niet geladen</p>
               <p style={{ fontSize: 13, color: 'var(--text-4)', marginBottom: 20, lineHeight: 1.5 }}>{fout}</p>
-              <Button onClick={() => location.reload()}>Opnieuw proberen</Button>
+              <Button onClick={() => { setFout(null); setLaden(true); void laad() }}>Opnieuw proberen</Button>
             </Card>
           )}
 

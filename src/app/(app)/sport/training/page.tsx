@@ -344,7 +344,7 @@ export default function TrainingLoggerPage() {
                       {oef.gif_url ? (
                         <img
                           src={oef.gif_url}
-                          alt=""
+                          alt={`Demonstratie van de oefening ${oef.naam}`}
                           style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                         />
                       ) : (

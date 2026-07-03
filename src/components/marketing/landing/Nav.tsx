@@ -75,10 +75,12 @@ export default function Nav() {
       </div>
 
       {open && (
-        <div style={{ borderTop: `1px solid ${COLORS.line}`, marginTop: 14, padding: '18px 28px', display: 'flex', flexDirection: 'column', gap: 16, background: 'rgba(7,18,40,0.96)' }}>
+        <div style={{ borderTop: `1px solid ${COLORS.line}`, marginTop: 14, padding: '18px 28px', display: 'flex', flexDirection: 'column', gap: 16, background: COLORS.navyDeep }}>
           {LINKS.map(([href, label]) => (
             <a key={href} href={href} onClick={() => setOpen(false)} style={{ color: COLORS.inkDim, textDecoration: 'none', fontSize: 15 }}>{label}</a>
           ))}
+          <Link href="/login" onClick={() => setOpen(false)} style={{ color: COLORS.inkDim, textDecoration: 'none', fontSize: 15 }}>Inloggen</Link>
+          <Link href="/register" onClick={() => setOpen(false)} style={{ color: COLORS.inkDim, textDecoration: 'none', fontSize: 15 }}>Zelf starten</Link>
           <Link href="/contact" onClick={() => setOpen(false)} style={{ color: COLORS.navyDeep, background: COLORS.cyan, padding: '12px 0', borderRadius: 10, textAlign: 'center', textDecoration: 'none', fontWeight: 600, fontSize: 14 }}>Demo aanvragen</Link>
         </div>
       )}

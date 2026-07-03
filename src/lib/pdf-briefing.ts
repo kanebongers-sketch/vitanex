@@ -66,14 +66,18 @@ interface BriefingData {
   kalender_morgen?: KalenderDag[]
 }
 
-// PDFKit kent geen CSS-variabelen; deze waarden spiegelen theme.ts
-// (--mf-green-dark #16B6CC — cyaan met voldoende contrast op wit).
-const GROEN = '#16B6CC'
-const GROEN_DARK = '#0E8FA3'
+// PDFKit kent geen CSS-variabelen, dus hier staan letterlijke hexwaarden die
+// theme.ts spiegelen. Twee-tonig systeem: NAVY (COLORS.navy) voor vlakken en
+// kleine tekst op wit; CYAAN (COLORS.cyan) alléén als accent op donkere
+// vlakken — cyaantinten op wit halen geen AA-contrast (~2,4:1). Hiërarchie
+// via grijstinten, niet via extra kleuren.
+const NAVY = '#0B1B3A'
+const CYAAN = '#00E5FF'
+const NAVY_BG = '#EDF2FB'
 const DONKER = '#0D1117'
 const GRIJS = '#6b7280'
+const GRIJS_LICHT = '#9ca3af'
 const LICHTGRIJS = '#f3f4f6'
-const ORANJE = '#E8A020'
 
 export async function generateBriefingPDF(briefing: BriefingData): Promise<Buffer> {
   // webpackIgnore prevents Turbopack from bundling pdfkit statically.
@@ -102,11 +106,11 @@ export async function generateBriefingPDF(briefing: BriefingData): Promise<Buffe
     const filmDatumNL = new Date(briefing.datum).toLocaleDateString('nl-NL', {
       weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
     })
-    doc.fillColor('#9ca3af').font('Helvetica').fontSize(10)
+    doc.fillColor(GRIJS_LICHT).font('Helvetica').fontSize(10)
        .text(`Filmdag: ${filmDatumNL.charAt(0).toUpperCase() + filmDatumNL.slice(1)}`, margin, 44)
 
     const minuten = Math.round((briefing.totale_opnametijd_sec ?? 0) / 60)
-    doc.fillColor('#9ca3af').font('Helvetica').fontSize(10)
+    doc.fillColor(GRIJS_LICHT).font('Helvetica').fontSize(10)
        .text(`${briefing.videos?.length ?? 0} videos  ·  ~${minuten} min opnemen`, margin, 60)
 
     // "POST MORGEN" badge
@@ -117,7 +121,7 @@ export async function generateBriefingPDF(briefing: BriefingData): Promise<Buffe
       weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
     })
     const postLabel = `POST MORGEN — ${postDatumNL.charAt(0).toUpperCase() + postDatumNL.slice(1)}`
-    doc.rect(margin, 78, contentW, 22).fill(GROEN)
+    doc.rect(margin, 78, contentW, 22).fill(NAVY)
     doc.fillColor('#ffffff').font('Helvetica-Bold').fontSize(10)
        .text(postLabel, margin + 10, 84, { width: contentW - 20 })
 
@@ -127,7 +131,7 @@ export async function generateBriefingPDF(briefing: BriefingData): Promise<Buffe
 
     // ── Thema ───────────────────────────────────────────────────
     if (briefing.meta?.thema) {
-      doc.fillColor(GROEN).font('Helvetica-Bold').fontSize(11)
+      doc.fillColor(NAVY).font('Helvetica-Bold').fontSize(11)
          .text('THEMA VAN DE DAG', margin, doc.y)
       doc.fillColor(DONKER).font('Helvetica').fontSize(13)
          .text(briefing.meta.thema, margin, doc.y + 4, { width: contentW })
@@ -148,7 +152,7 @@ export async function generateBriefingPDF(briefing: BriefingData): Promise<Buffe
       const topY = doc.y
 
       // Nummer badge
-      doc.rect(margin, topY, 28, 28).fill(GROEN)
+      doc.rect(margin, topY, 28, 28).fill(NAVY)
       doc.fillColor('#ffffff').font('Helvetica-Bold').fontSize(14)
          .text(String(v.nummer), margin, topY + 7, { width: 28, align: 'center' })
 
@@ -168,7 +172,7 @@ export async function generateBriefingPDF(briefing: BriefingData): Promise<Buffe
       doc.moveDown(0.8)
 
       // Hook
-      doc.fillColor(GROEN).font('Helvetica-Bold').fontSize(9)
+      doc.fillColor(NAVY).font('Helvetica-Bold').fontSize(9)
          .text('HOOK', margin, doc.y)
       doc.fillColor(DONKER).font('Helvetica-Bold').fontSize(11)
          .text(`"${v.hook}"`, margin, doc.y + 2, { width: contentW })
@@ -182,7 +186,7 @@ export async function generateBriefingPDF(briefing: BriefingData): Promise<Buffe
       }
 
       // Script
-      doc.fillColor(GROEN).font('Helvetica-Bold').fontSize(9)
+      doc.fillColor(NAVY).font('Helvetica-Bold').fontSize(9)
          .text('SCRIPT', margin, doc.y)
       doc.fillColor('#374151').font('Helvetica').fontSize(10)
          .text(v.script, margin, doc.y + 2, { width: contentW })
@@ -194,19 +198,19 @@ export async function generateBriefingPDF(briefing: BriefingData): Promise<Buffe
         const prodY = doc.y
 
         if (v.camera_opstelling) {
-          doc.fillColor(ORANJE).font('Helvetica-Bold').fontSize(9).text('CAMERA', margin, prodY)
+          doc.fillColor(NAVY).font('Helvetica-Bold').fontSize(9).text('CAMERA', margin, prodY)
           doc.fillColor('#374151').font('Helvetica').fontSize(9)
              .text(v.camera_opstelling, margin, prodY + 12, { width: colW3 })
         }
         if (v.kleding) {
           const kledingX = margin + colW3 + 12
-          doc.fillColor(ORANJE).font('Helvetica-Bold').fontSize(9).text('KLEDING', kledingX, prodY)
+          doc.fillColor(NAVY).font('Helvetica-Bold').fontSize(9).text('KLEDING', kledingX, prodY)
           doc.fillColor('#374151').font('Helvetica').fontSize(9)
              .text(v.kleding, kledingX, prodY + 12, { width: colW3 })
         }
         if (v.licht) {
           const lichtX = margin + (colW3 + 12) * 2
-          doc.fillColor(ORANJE).font('Helvetica-Bold').fontSize(9).text('LICHT', lichtX, prodY)
+          doc.fillColor(NAVY).font('Helvetica-Bold').fontSize(9).text('LICHT', lichtX, prodY)
           doc.fillColor('#374151').font('Helvetica').fontSize(9)
              .text(v.licht, lichtX, prodY + 12, { width: colW3 })
         }
@@ -215,7 +219,7 @@ export async function generateBriefingPDF(briefing: BriefingData): Promise<Buffe
 
       // Opname volgorde
       if (v.opname_volgorde?.length) {
-        doc.fillColor(ORANJE).font('Helvetica-Bold').fontSize(9).text('OPNAME VOLGORDE', margin, doc.y)
+        doc.fillColor(NAVY).font('Helvetica-Bold').fontSize(9).text('OPNAME VOLGORDE', margin, doc.y)
         const shots = v.opname_volgorde.map((s, i) => `${i + 1}. ${s}`).join('\n')
         doc.fillColor('#374151').font('Helvetica').fontSize(9)
            .text(shots, margin, doc.y + 2, { width: contentW })
@@ -226,14 +230,14 @@ export async function generateBriefingPDF(briefing: BriefingData): Promise<Buffe
       const colW = (contentW - 12) / 2
 
       const brollY = doc.y
-      doc.fillColor(GROEN).font('Helvetica-Bold').fontSize(9)
+      doc.fillColor(NAVY).font('Helvetica-Bold').fontSize(9)
          .text('B-ROLL', margin, brollY)
       const brollItems = (v.broll ?? []).map((b) => `• ${b}`).join('\n')
       doc.fillColor('#374151').font('Helvetica').fontSize(9.5)
          .text(brollItems, margin, brollY + 12, { width: colW })
 
       const ctaX = margin + colW + 12
-      doc.fillColor(GROEN).font('Helvetica-Bold').fontSize(9)
+      doc.fillColor(NAVY).font('Helvetica-Bold').fontSize(9)
          .text('CTA', ctaX, brollY)
       doc.fillColor('#374151').font('Helvetica').fontSize(9.5)
          .text(v.cta, ctaX, brollY + 12, { width: colW })
@@ -242,10 +246,10 @@ export async function generateBriefingPDF(briefing: BriefingData): Promise<Buffe
 
       // Productie tip
       if (v.productie_tip) {
-        doc.rect(margin, doc.y, contentW, 24).fill('#fff7ed')
-        doc.fillColor(ORANJE).font('Helvetica-Bold').fontSize(8.5)
+        doc.rect(margin, doc.y, contentW, 24).fill(NAVY_BG)
+        doc.fillColor(NAVY).font('Helvetica-Bold').fontSize(8.5)
            .text('💡 PRO TIP', margin + 8, doc.y + 6)
-        doc.fillColor('#92400e').font('Helvetica').fontSize(9)
+        doc.fillColor('#374151').font('Helvetica').fontSize(9)
            .text(v.productie_tip, margin + 8, doc.y + 2, { width: contentW - 16 })
         doc.moveDown(1.2)
       }
@@ -267,7 +271,7 @@ export async function generateBriefingPDF(briefing: BriefingData): Promise<Buffe
       if (doc.y > doc.page.height - 80) doc.addPage()
 
       doc.rect(margin, doc.y, contentW, 38).fill(LICHTGRIJS)
-      doc.fillColor(GROEN).font('Helvetica-Bold').fontSize(9)
+      doc.fillColor(NAVY).font('Helvetica-Bold').fontSize(9)
          .text('TIP VAN DE DAG', margin + 10, doc.y + 8)
       doc.fillColor(DONKER).font('Helvetica').fontSize(10.5)
          .text(briefing.meta.tip, margin + 10, doc.y + 4, { width: contentW - 20 })
@@ -278,10 +282,8 @@ export async function generateBriefingPDF(briefing: BriefingData): Promise<Buffe
     if (briefing.stories?.length) {
       if (doc.y > doc.page.height - 160) doc.addPage()
 
-      const PAARS = '#7C3AED'
-
       // Sectie header
-      doc.rect(margin, doc.y, contentW, 26).fill(PAARS)
+      doc.rect(margin, doc.y, contentW, 26).fill(NAVY)
       doc.fillColor('#ffffff').font('Helvetica-Bold').fontSize(11)
          .text('📱  INSTAGRAM STORIES — vandaag posten', margin + 10, doc.y + 7)
       doc.moveDown(1.4)
@@ -295,10 +297,10 @@ export async function generateBriefingPDF(briefing: BriefingData): Promise<Buffe
         const frameY = doc.y
 
         // Kader per story frame
-        doc.rect(frameX, frameY, storyColW, 110).stroke(PAARS)
+        doc.rect(frameX, frameY, storyColW, 110).stroke(NAVY)
 
         // Frame nummer + type
-        doc.fillColor(PAARS).font('Helvetica-Bold').fontSize(8)
+        doc.fillColor(NAVY).font('Helvetica-Bold').fontSize(8)
            .text(`FRAME ${s.frame} — ${s.type.toUpperCase()}`, frameX + 6, frameY + 6, { width: storyColW - 12 })
 
         // Tekst op scherm
@@ -307,7 +309,7 @@ export async function generateBriefingPDF(briefing: BriefingData): Promise<Buffe
 
         // Poll opties indien aanwezig
         if (s.interactie && s.interactie !== 'geen') {
-          doc.fillColor(PAARS).font('Helvetica-Bold').fontSize(8)
+          doc.fillColor(NAVY).font('Helvetica-Bold').fontSize(8)
              .text(s.interactie, frameX + 6, frameY + 50, { width: storyColW - 12 })
           if (s.optie_a) {
             doc.fillColor(GRIJS).font('Helvetica').fontSize(8)
@@ -332,12 +334,13 @@ export async function generateBriefingPDF(briefing: BriefingData): Promise<Buffe
     const kalenderSections: { label: string; kleur: string; dagen: KalenderDag[] }[] = []
     if (briefing.kalender_vandaag?.length) {
       const vandaagNL = new Date(briefing.datum).toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long' })
-      kalenderSections.push({ label: `Vandaag posten — ${vandaagNL.charAt(0).toUpperCase() + vandaagNL.slice(1)}`, kleur: GROEN, dagen: briefing.kalender_vandaag })
+      kalenderSections.push({ label: `Vandaag posten — ${vandaagNL.charAt(0).toUpperCase() + vandaagNL.slice(1)}`, kleur: NAVY, dagen: briefing.kalender_vandaag })
     }
     if (briefing.kalender_morgen?.length) {
       const morgenRaw = postDatumRaw
       const morgenNL = new Date(morgenRaw).toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long' })
-      kalenderSections.push({ label: `Morgen posten — ${morgenNL.charAt(0).toUpperCase() + morgenNL.slice(1)}`, kleur: '#185FA5', dagen: briefing.kalender_morgen })
+      // Hiërarchie vandaag/morgen via navy vs. donkergrijs, geen extra kleur
+      kalenderSections.push({ label: `Morgen posten — ${morgenNL.charAt(0).toUpperCase() + morgenNL.slice(1)}`, kleur: '#374151', dagen: briefing.kalender_morgen })
     }
 
     for (const sectie of kalenderSections) {
@@ -400,9 +403,9 @@ export async function generateBriefingPDF(briefing: BriefingData): Promise<Buffe
     // ── Footer (op elke pagina via addPage hook is complex — zet op laatste pagina) ──
     const footerY = doc.page.height - 32
     doc.rect(0, footerY - 4, pageW, 36).fill(DONKER)
-    doc.fillColor('#6b7280').font('Helvetica').fontSize(8)
+    doc.fillColor(GRIJS_LICHT).font('Helvetica').fontSize(8)
        .text('MentaForce · AI Content OS · Film vandaag · Post morgen', margin, footerY + 4)
-    doc.fillColor(GROEN).font('Helvetica-Bold').fontSize(8)
+    doc.fillColor(CYAAN).font('Helvetica-Bold').fontSize(8)
        .text(`Post: ${postDatumNL.charAt(0).toUpperCase() + postDatumNL.slice(1)}`, margin, footerY + 4, { width: contentW, align: 'right' })
 
     doc.end()

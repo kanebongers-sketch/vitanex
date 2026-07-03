@@ -120,8 +120,6 @@ export async function GET(req: NextRequest) {
       `<a href="${pdfUrl}">📄 Open volledige briefing PDF</a>`
     )
 
-    console.log(`[CRON] Briefing ${vandaag} → Storage: ${pdfUrl}`)
-
     // Op maandag ook de weekplanning genereren
     let weekplanningUrl: string | null = null
     if (new Date().getDay() === 1) {
@@ -156,7 +154,6 @@ export async function GET(req: NextRequest) {
             (weekplanningUrl ? `<a href="${weekplanningUrl}">📋 Open volledige weekplanning PDF</a>` : '')
           )
         }
-        console.log(`[CRON] Weekplanning gegenereerd → ${weekplanningUrl}`)
       } catch (wpErr) {
         console.error('[CRON] Weekplanning mislukt:', wpErr)
       }

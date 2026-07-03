@@ -111,6 +111,9 @@ export default function CheckIn() {
 
   const [sectieIdx,  setSectieIdx]  = useState(0)
   const [antwoorden, setAntwoorden] = useState<Record<string, number>>({})
+  // Spiegel van de laatste antwoorden: snelle opeenvolgende clicks lezen anders
+  // een stale closure en verliezen elkaars antwoord (zie stelIn).
+  const antwoordenRef = useRef(antwoorden)
   const [laden,      setLaden]      = useState(false)
   const [fout,       setFout]       = useState<string | null>(null)
   const [advancing,  setAdvancing]  = useState(false)
@@ -125,6 +128,9 @@ export default function CheckIn() {
     if (advanceTimer.current) clearTimeout(advanceTimer.current)
     if (reactieTimer.current) clearTimeout(reactieTimer.current)
   }, [])
+
+  // Houd de spiegel gelijk aan de state, ook bij resets (verwijderSessie).
+  useEffect(() => { antwoordenRef.current = antwoorden }, [antwoorden])
 
   const weekStart = vandaag()
 
@@ -249,8 +255,11 @@ export default function CheckIn() {
 
   function stelIn(code: string, waarde: number) {
     if (advancing) return
-    const nieuw = { ...antwoorden, [code]: waarde }
-    setAntwoorden(nieuw)
+    // Functionele update + ref-merge: twee snelle clicks vlak na elkaar mogen
+    // elkaars antwoord niet overschrijven via een stale `antwoorden`-closure.
+    const nieuw = { ...antwoordenRef.current, [code]: waarde }
+    antwoordenRef.current = nieuw
+    setAntwoorden(prev => ({ ...prev, [code]: waarde }))
 
     const isLaatste = sectieIdx === totaalSecties - 1
     if (!sectieCompleet(sectieIdx, nieuw) || isLaatste) return
@@ -291,7 +300,7 @@ export default function CheckIn() {
       setSectieIdx(s => s + 1)
       scrollTop()
     } else {
-      if (userId) doSubmit(antwoorden, userId)
+      if (userId) doSubmit(antwoordenRef.current, userId)
     }
   }
 

@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 export const dynamic = 'force-dynamic'
 
@@ -6,8 +6,17 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
+import { Check, Settings } from 'lucide-react'
 
 type Stap = 'controleer' | 'token' | 'bezig' | 'klaar' | 'fout'
+
+const KAART_STIJL = {
+  background: 'var(--bg-card)',
+  border: '1px solid var(--border)',
+  borderRadius: 24,
+  boxShadow: '0 20px 60px rgba(0,0,0,0.35)',
+  padding: '36px 32px',
+} as const
 
 export default function Setup() {
   const router = useRouter()
@@ -58,59 +67,66 @@ export default function Setup() {
   if (isAdmin === null) {
     controleerToegang()
     return (
-      <main className="min-h-screen flex items-center justify-center" style={{ background: 'var(--mf-purple-light)' }}>
-        <div className="w-6 h-6 rounded-full border-2 border-gray-200 animate-spin" style={{ borderTopColor: 'var(--mf-purple)' }} />
+      <main className="mf-mesh-bg min-h-screen flex items-center justify-center">
+        <span className="mf-spinner" aria-hidden style={{ width: 24, height: 24 }} />
       </main>
     )
   }
 
   if (isAdmin === false) {
     return (
-      <main className="min-h-screen flex items-center justify-center p-8" style={{ background: 'var(--mf-purple-light)' }}>
-        <div className="bg-white rounded-2xl border border-gray-100 p-8 max-w-md w-full text-center">
-          <p className="text-gray-700 font-medium mb-2">Geen toegang</p>
-          <p className="text-gray-400 text-sm mb-4">Alleen admins kunnen de setup uitvoeren.</p>
-          <Link href="/admin" className="text-sm text-purple-600 underline">← Terug naar admin</Link>
+      <main className="mf-mesh-bg min-h-screen flex items-center justify-center p-5">
+        <div className="w-full max-w-sm text-center mf-animate-up" style={KAART_STIJL}>
+          <h1 className="text-lg font-semibold mb-2" style={{ color: 'var(--text-1)' }}>Geen toegang</h1>
+          <p className="text-sm mb-4" style={{ color: 'var(--text-3)' }}>Alleen admins kunnen de setup uitvoeren.</p>
+          <Link href="/admin" className="text-sm underline transition hover:opacity-70" style={{ color: 'var(--mf-green)' }}>
+            ← Terug naar admin
+          </Link>
         </div>
       </main>
     )
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center p-8" style={{ background: 'var(--mf-purple-light)' }}>
-      <div className="bg-white rounded-2xl border border-gray-100 p-8 max-w-lg w-full">
+    <main className="mf-mesh-bg min-h-screen flex items-center justify-center p-5">
+      <div className="w-full max-w-lg mf-animate-up" style={KAART_STIJL}>
 
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold"
-            style={{ background: 'var(--mf-purple)' }}>⚙️</div>
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+            style={{ background: 'var(--mf-green-light)' }}>
+            <Settings size={20} aria-hidden style={{ color: 'var(--mf-green)' }} />
+          </div>
           <div>
-            <h1 className="text-lg font-semibold text-gray-900">Documenten setup</h1>
-            <p className="text-xs text-gray-400">Eenmalig uitvoeren om het dossier-systeem te activeren</p>
+            <h1 className="text-lg font-semibold" style={{ color: 'var(--text-1)' }}>Documenten setup</h1>
+            <p className="text-xs" style={{ color: 'var(--text-3)' }}>Eenmalig uitvoeren om het dossier-systeem te activeren</p>
           </div>
         </div>
 
         {stap === 'token' && (
           <>
-            <div className="rounded-xl p-4 mb-5" style={{ background: 'var(--mf-purple-light)', borderLeft: '3px solid #8B5CF6' }}>
-              <p className="text-sm font-semibold mb-1" style={{ color: '#3C3489' }}>Supabase Management Token nodig</p>
-              <p className="text-xs leading-relaxed" style={{ color: '#3C3489' }}>
+            <div className="rounded-xl p-4 mb-5" style={{ background: 'var(--mf-green-light)', borderLeft: '3px solid var(--mf-green)' }}>
+              <p className="text-sm font-semibold mb-1" style={{ color: 'var(--text-1)' }}>Supabase Management Token nodig</p>
+              <p className="text-xs leading-relaxed" style={{ color: 'var(--text-2)' }}>
                 Dit token geeft eenmalig toestemming om de database-tabel aan te maken.
                 Het wordt nergens opgeslagen.
               </p>
             </div>
 
-            <ol className="text-sm text-gray-600 mb-5 space-y-2">
+            <ol className="text-sm mb-5 space-y-2" style={{ color: 'var(--text-2)' }}>
               <li className="flex gap-2">
-                <span className="w-5 h-5 rounded-full bg-purple-100 text-purple-700 text-xs flex items-center justify-center font-bold flex-shrink-0 mt-0.5">1</span>
-                <span>Ga naar <a href="https://supabase.com/dashboard/account/tokens" target="_blank" rel="noopener noreferrer" className="text-purple-600 underline font-medium">supabase.com/dashboard/account/tokens</a></span>
+                <span className="w-5 h-5 rounded-full text-xs flex items-center justify-center font-bold flex-shrink-0 mt-0.5"
+                  style={{ background: 'var(--mf-green-light)', color: 'var(--mf-green)' }}>1</span>
+                <span>Ga naar <a href="https://supabase.com/dashboard/account/tokens" target="_blank" rel="noopener noreferrer" className="underline font-medium transition hover:opacity-70" style={{ color: 'var(--mf-green)' }}>supabase.com/dashboard/account/tokens</a></span>
               </li>
               <li className="flex gap-2">
-                <span className="w-5 h-5 rounded-full bg-purple-100 text-purple-700 text-xs flex items-center justify-center font-bold flex-shrink-0 mt-0.5">2</span>
+                <span className="w-5 h-5 rounded-full text-xs flex items-center justify-center font-bold flex-shrink-0 mt-0.5"
+                  style={{ background: 'var(--mf-green-light)', color: 'var(--mf-green)' }}>2</span>
                 <span>Klik <strong>Generate new token</strong> → naam bijv. &quot;MentaForce setup&quot;</span>
               </li>
               <li className="flex gap-2">
-                <span className="w-5 h-5 rounded-full bg-purple-100 text-purple-700 text-xs flex items-center justify-center font-bold flex-shrink-0 mt-0.5">3</span>
+                <span className="w-5 h-5 rounded-full text-xs flex items-center justify-center font-bold flex-shrink-0 mt-0.5"
+                  style={{ background: 'var(--mf-green-light)', color: 'var(--mf-green)' }}>3</span>
                 <span>Kopieer het token en plak het hieronder</span>
               </li>
             </ol>
@@ -123,14 +139,15 @@ export default function Setup() {
               value={mgmtToken}
               autoComplete="off"
               onChange={e => setMgmtToken(e.target.value)}
-              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-purple-400 mb-4"
+              className="mf-input mb-4"
+              style={{ width: '100%', borderRadius: 14, padding: '12px 16px' }}
             />
 
             <button
               onClick={uitvoeren}
               disabled={!mgmtToken.trim()}
-              className="w-full py-3 rounded-xl text-white text-sm font-semibold transition disabled:opacity-40"
-              style={{ background: 'var(--mf-purple)' }}
+              className="w-full py-3.5 rounded-2xl text-sm font-semibold transition disabled:opacity-40"
+              style={{ background: 'var(--mf-green)', color: 'var(--bg-app)' }}
             >
               Setup uitvoeren
             </button>
@@ -139,22 +156,24 @@ export default function Setup() {
 
         {stap === 'bezig' && (
           <div className="text-center py-8">
-            <div className="w-8 h-8 rounded-full border-2 border-gray-200 animate-spin mx-auto mb-4" style={{ borderTopColor: 'var(--mf-purple)' }} />
-            <p className="text-sm text-gray-500">Tabel en bucket aanmaken...</p>
+            <span className="mf-spinner mx-auto mb-4" aria-hidden style={{ width: 32, height: 32, display: 'block' }} />
+            <p className="text-sm" style={{ color: 'var(--text-3)' }}>Tabel en bucket aanmaken...</p>
           </div>
         )}
 
         {stap === 'klaar' && (
           <>
-            <div className="rounded-xl p-4 mb-5" style={{ background: 'var(--mf-green-light)', borderLeft: '3px solid #1D9E75' }}>
-              <p className="text-sm font-semibold mb-2" style={{ color: 'var(--mf-green-dark)' }}>✓ Setup voltooid!</p>
+            <div className="rounded-xl p-4 mb-5" style={{ background: 'var(--mf-green-light)', borderLeft: '3px solid var(--mf-green)' }}>
+              <p className="text-sm font-semibold mb-2 flex items-center gap-1.5" style={{ color: 'var(--mf-green)' }}>
+                <Check size={14} strokeWidth={3} aria-hidden /> Setup voltooid!
+              </p>
               {resultaat && Object.entries(resultaat).filter(([k]) => k !== 'ok').map(([k, v]) => (
-                <p key={k} className="text-xs" style={{ color: 'var(--mf-green-dark)' }}>{v}</p>
+                <p key={k} className="text-xs" style={{ color: 'var(--text-2)' }}>{v}</p>
               ))}
             </div>
             <Link href="/admin"
-              className="block w-full py-3 rounded-xl text-white text-sm font-semibold text-center"
-              style={{ background: 'var(--mf-purple)' }}>
+              className="block w-full py-3.5 rounded-2xl text-sm font-semibold text-center transition hover:opacity-90"
+              style={{ background: 'var(--mf-green)', color: 'var(--bg-app)' }}>
               Terug naar admin
             </Link>
           </>
@@ -167,7 +186,8 @@ export default function Setup() {
               <p className="text-xs" style={{ color: 'var(--mf-red)' }}>{foutmelding}</p>
             </div>
             <button onClick={() => setStap('token')}
-              className="w-full py-3 rounded-xl border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 transition">
+              className="w-full py-3.5 rounded-2xl text-sm font-medium transition hover:opacity-70"
+              style={{ border: '1px solid var(--border-strong)', color: 'var(--text-2)', background: 'transparent' }}>
               Probeer opnieuw
             </button>
           </>

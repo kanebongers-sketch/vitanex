@@ -34,7 +34,6 @@ interface Rapport {
 interface WeekRapportResponse {
   rapport: Rapport | null
   week_start: string
-  cached: boolean
   bericht?: string
 }
 

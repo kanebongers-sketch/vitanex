@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 export const dynamic = 'force-dynamic'
 
@@ -6,8 +6,18 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
+import { Check, Clock } from 'lucide-react'
+import { LogoFull } from '@/components/layout/Logo'
 
 type Status = 'laden' | 'gereed' | 'opslaan' | 'klaar' | 'fout_token' | 'fout_opslaan'
+
+const KAART_STIJL = {
+  background: 'var(--bg-card)',
+  border: '1px solid var(--border)',
+  borderRadius: 24,
+  boxShadow: '0 20px 60px rgba(0,0,0,0.35)',
+  padding: '36px 32px',
+} as const
 
 export default function WachtwoordReset() {
   const router = useRouter()
@@ -54,28 +64,30 @@ export default function WachtwoordReset() {
   }
 
   if (status === 'laden') return (
-    <main className="min-h-screen flex items-center justify-center"
-      style={{ background: 'linear-gradient(135deg, #E1F5EE 0%, #E6F1FB 100%)' }}>
+    <main className="mf-mesh-bg min-h-screen flex items-center justify-center">
       <div className="text-center">
-        <div className="w-8 h-8 rounded-full border-2 border-gray-200 animate-spin mx-auto mb-4"
-          style={{ borderTopColor: 'var(--mentaforce-primary)' }} />
-        <p className="text-sm text-gray-400">Link controleren...</p>
+        <span className="mf-spinner mx-auto mb-4" aria-hidden style={{ width: 32, height: 32, display: 'block' }} />
+        <p className="text-sm" style={{ color: 'var(--text-3)' }}>Link controleren...</p>
       </div>
     </main>
   )
 
   if (status === 'fout_token') return (
-    <main className="min-h-screen flex items-center justify-center p-8"
-      style={{ background: 'linear-gradient(135deg, #E1F5EE 0%, #E6F1FB 100%)' }}>
-      <div className="max-w-md w-full bg-white rounded-2xl border border-gray-100 p-10 shadow-sm text-center">
-        <div className="text-4xl mb-4">⏱️</div>
-        <h1 className="text-xl font-semibold text-gray-900 mb-2">Link verlopen</h1>
-        <p className="text-sm text-gray-500 mb-8 leading-relaxed">
+    <main className="mf-mesh-bg min-h-screen flex items-center justify-center p-5">
+      <div className="w-full max-w-sm text-center mf-animate-up" style={KAART_STIJL}>
+        <div
+          className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6"
+          style={{ background: 'var(--mf-amber-light)' }}
+        >
+          <Clock size={28} aria-hidden style={{ color: 'var(--mf-amber)' }} />
+        </div>
+        <h1 className="text-xl font-semibold mb-2" style={{ color: 'var(--text-1)' }}>Link verlopen</h1>
+        <p className="text-sm mb-8 leading-relaxed" style={{ color: 'var(--text-2)' }}>
           De resetlink is verlopen of al gebruikt. Vraag een nieuwe link aan.
         </p>
         <Link href="/wachtwoord-vergeten"
-          className="block w-full text-center py-3 rounded-xl text-white text-sm font-semibold transition hover:opacity-90"
-          style={{ background: 'var(--mentaforce-primary)' }}>
+          className="block w-full text-center py-3.5 rounded-2xl text-sm font-semibold transition hover:opacity-90"
+          style={{ background: 'var(--mf-green)', color: 'var(--bg-app)' }}>
           Nieuwe resetlink aanvragen
         </Link>
       </div>
@@ -83,34 +95,32 @@ export default function WachtwoordReset() {
   )
 
   if (status === 'klaar') return (
-    <main className="min-h-screen flex items-center justify-center p-8"
-      style={{ background: 'linear-gradient(135deg, #E1F5EE 0%, #E6F1FB 100%)' }}>
-      <div className="max-w-md w-full bg-white rounded-2xl border border-gray-100 p-10 shadow-sm text-center">
-        <div className="w-16 h-16 rounded-full flex items-center justify-center text-3xl mx-auto mb-6"
-          style={{ background: 'var(--mf-green-light)' }}>
-          ✅
+    <main className="mf-mesh-bg min-h-screen flex items-center justify-center p-5">
+      <div className="w-full max-w-sm text-center mf-animate-up" style={KAART_STIJL}>
+        <div
+          className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6"
+          style={{ background: 'var(--mf-green-light)' }}
+        >
+          <Check size={28} strokeWidth={3} aria-hidden style={{ color: 'var(--mf-green)' }} />
         </div>
-        <h1 className="text-xl font-semibold text-gray-900 mb-2">Wachtwoord gewijzigd</h1>
-        <p className="text-sm text-gray-400">Je wordt doorgestuurd naar het inlogscherm...</p>
+        <h1 className="text-xl font-semibold mb-2" style={{ color: 'var(--text-1)' }}>Wachtwoord gewijzigd</h1>
+        <p className="text-sm" style={{ color: 'var(--text-2)' }}>Je wordt doorgestuurd naar het inlogscherm...</p>
       </div>
     </main>
   )
 
   return (
-    <main className="min-h-screen flex items-center justify-center p-8"
-      style={{ background: 'linear-gradient(135deg, #E1F5EE 0%, #E6F1FB 100%)' }}>
-      <div className="max-w-md w-full bg-white rounded-2xl border border-gray-100 p-10 shadow-sm mf-animate-up">
+    <main className="mf-mesh-bg min-h-screen flex items-center justify-center p-5">
+      <div className="w-full max-w-sm mf-animate-up" style={KAART_STIJL}>
 
-        <Link href="/" className="flex items-center gap-2 mb-8">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center"
-            style={{ background: 'var(--mentaforce-primary)' }}>
-            <span className="text-white text-xs font-bold">M</span>
-          </div>
-          <span className="font-semibold text-gray-900">MentaForce</span>
-        </Link>
+        <div className="flex justify-center mb-8">
+          <Link href="/" aria-label="MentaForce home">
+            <LogoFull iconSize={38} />
+          </Link>
+        </div>
 
-        <h1 className="text-xl font-semibold text-gray-900 mb-1">Nieuw wachtwoord instellen</h1>
-        <p className="text-gray-400 text-sm mb-8">Kies een sterk wachtwoord van minimaal 8 tekens.</p>
+        <h1 className="text-xl font-semibold mb-1" style={{ color: 'var(--text-1)' }}>Nieuw wachtwoord instellen</h1>
+        <p className="text-sm mb-8" style={{ color: 'var(--text-2)' }}>Kies een sterk wachtwoord van minimaal 8 tekens.</p>
 
         {status === 'fout_opslaan' && (
           <div id="reset-fout" role="alert" aria-live="assertive" className="rounded-xl px-4 py-3 mb-5"
@@ -132,10 +142,12 @@ export default function WachtwoordReset() {
               autoComplete="new-password"
               aria-describedby={status === 'fout_opslaan' ? 'reset-fout' : undefined}
               onChange={e => setWachtwoord(e.target.value)}
-              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-gray-400 transition pr-16"
+              className="mf-input pr-16"
+              style={{ width: '100%', borderRadius: 14, padding: '12px 60px 12px 16px' }}
             />
             <button type="button" onClick={() => setToon(t => !t)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 hover:text-gray-600 transition px-1">
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-medium transition hover:opacity-70"
+              style={{ color: 'var(--text-3)' }}>
               {toon ? 'Verberg' : 'Toon'}
             </button>
           </div>
@@ -146,7 +158,7 @@ export default function WachtwoordReset() {
                 <div key={i} className="flex-1 h-1.5 rounded-full transition-all"
                   style={{ background: sterkte > i ? ['var(--mf-red)', 'var(--mf-amber)', 'var(--mf-green)'][i] : 'var(--border)' }} />
               ))}
-              <span className="text-xs text-gray-400 w-10 font-medium">
+              <span className="text-xs w-10 font-medium" style={{ color: 'var(--text-3)' }}>
                 {['Te kort', 'Matig', 'Goed', 'Sterk'][sterkte]}
               </span>
             </div>
@@ -162,8 +174,12 @@ export default function WachtwoordReset() {
             aria-describedby={bevestig && wachtwoord !== bevestig ? 'reset-mismatch' : undefined}
             onChange={e => setBevestig(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && slaOp()}
-            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none transition"
-            style={{ borderColor: bevestig && wachtwoord !== bevestig ? 'var(--mf-red)' : '' }}
+            className="mf-input"
+            style={{
+              borderRadius: 14,
+              padding: '12px 16px',
+              borderColor: bevestig && wachtwoord !== bevestig ? 'var(--mf-red)' : undefined,
+            }}
           />
           {bevestig && wachtwoord !== bevestig && (
             <p id="reset-mismatch" className="text-xs -mt-1" style={{ color: 'var(--mf-red)' }}>Wachtwoorden komen niet overeen</p>
@@ -179,10 +195,19 @@ export default function WachtwoordReset() {
             wachtwoord !== bevestig ||
             wachtwoord.length < 8
           }
-          className="w-full text-white rounded-xl py-3 text-sm font-semibold transition disabled:opacity-40 flex items-center justify-center gap-2"
-          style={{ background: 'var(--mentaforce-primary)' }}>
+          className="w-full rounded-2xl py-3.5 text-sm font-semibold transition disabled:opacity-40 flex items-center justify-center gap-2"
+          style={{ background: 'var(--mf-green)', color: 'var(--bg-app)' }}>
           {status === 'opslaan' && (
-            <div className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
+            <span
+              className="mf-spinner"
+              aria-hidden
+              style={{
+                width: 16,
+                height: 16,
+                borderColor: 'color-mix(in srgb, var(--bg-app) 25%, transparent)',
+                borderTopColor: 'var(--bg-app)',
+              }}
+            />
           )}
           {status === 'opslaan' ? 'Opslaan...' : 'Wachtwoord opslaan'}
         </button>

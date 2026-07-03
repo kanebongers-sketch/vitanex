@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 export const dynamic = 'force-dynamic'
 
@@ -6,8 +6,18 @@ import { useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { Suspense } from 'react'
+import { Link2Off, Mail, MailCheck, UserRound } from 'lucide-react'
+import { LogoFull } from '@/components/layout/Logo'
 
 type Status = 'laden' | 'gereed' | 'ongeldig' | 'registreren' | 'bevestig_nodig' | 'al_geregistreerd' | 'fout'
+
+const KAART_STIJL = {
+  background: 'var(--bg-card)',
+  border: '1px solid var(--border)',
+  borderRadius: 24,
+  boxShadow: '0 20px 60px rgba(0,0,0,0.35)',
+  padding: '36px 32px',
+} as const
 
 function UitnodigingForm() {
   const router = useRouter()
@@ -100,23 +110,26 @@ function UitnodigingForm() {
   }
 
   if (status === 'laden') return (
-    <main className="min-h-screen flex items-center justify-center"
-      style={{ background: 'linear-gradient(135deg, #E1F5EE 0%, #E6F1FB 100%)' }}>
-      <div className="w-8 h-8 rounded-full border-2 border-gray-200 animate-spin"
-        style={{ borderTopColor: 'var(--mentaforce-primary)' }} />
+    <main className="mf-mesh-bg min-h-screen flex items-center justify-center">
+      <span className="mf-spinner" aria-hidden style={{ width: 32, height: 32 }} />
     </main>
   )
 
   if (status === 'ongeldig') return (
-    <main className="min-h-screen flex items-center justify-center bg-gray-50 p-8">
-      <div className="max-w-md w-full bg-white rounded-2xl border border-gray-200 p-10 text-center">
-        <div className="text-4xl mb-4">🔗</div>
-        <h1 className="text-xl font-semibold text-gray-900 mb-2">Link niet geldig</h1>
-        <p className="text-sm text-gray-500 mb-6 leading-relaxed">
+    <main className="mf-mesh-bg min-h-screen flex items-center justify-center p-5">
+      <div className="w-full max-w-sm text-center mf-animate-up" style={KAART_STIJL}>
+        <div
+          className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6"
+          style={{ background: 'var(--mf-red-light)' }}
+        >
+          <Link2Off size={28} aria-hidden style={{ color: 'var(--mf-red)' }} />
+        </div>
+        <h1 className="text-xl font-semibold mb-2" style={{ color: 'var(--text-1)' }}>Link niet geldig</h1>
+        <p className="text-sm mb-6 leading-relaxed" style={{ color: 'var(--text-2)' }}>
           Deze uitnodigingslink is ongeldig of al eerder gebruikt. Vraag je HR-manager om een nieuwe uitnodiging te sturen.
         </p>
         <a href="mailto:info@mentaforce.nl"
-          className="text-sm font-medium transition" style={{ color: 'var(--mentaforce-primary)' }}>
+          className="text-sm font-medium transition hover:opacity-70" style={{ color: 'var(--mf-green)' }}>
           Contact opnemen
         </a>
       </div>
@@ -124,16 +137,21 @@ function UitnodigingForm() {
   )
 
   if (status === 'al_geregistreerd') return (
-    <main className="min-h-screen flex items-center justify-center bg-gray-50 p-8">
-      <div className="max-w-md w-full bg-white rounded-2xl border border-gray-200 p-10 text-center">
-        <div className="text-4xl mb-4">👤</div>
-        <h1 className="text-xl font-semibold text-gray-900 mb-2">Account bestaat al</h1>
-        <p className="text-sm text-gray-500 mb-6 leading-relaxed">
-          Er bestaat al een account voor <strong>{tokenData?.email}</strong>. Log gewoon in om verder te gaan.
+    <main className="mf-mesh-bg min-h-screen flex items-center justify-center p-5">
+      <div className="w-full max-w-sm text-center mf-animate-up" style={KAART_STIJL}>
+        <div
+          className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6"
+          style={{ background: 'var(--mf-green-light)' }}
+        >
+          <UserRound size={28} aria-hidden style={{ color: 'var(--mf-green)' }} />
+        </div>
+        <h1 className="text-xl font-semibold mb-2" style={{ color: 'var(--text-1)' }}>Account bestaat al</h1>
+        <p className="text-sm mb-6 leading-relaxed" style={{ color: 'var(--text-2)' }}>
+          Er bestaat al een account voor <strong style={{ color: 'var(--text-1)' }}>{tokenData?.email}</strong>. Log gewoon in om verder te gaan.
         </p>
         <a href="/login"
-          className="block w-full text-center py-3 rounded-xl text-white text-sm font-semibold transition hover:opacity-90"
-          style={{ background: 'var(--mentaforce-primary)' }}>
+          className="block w-full text-center py-3.5 rounded-2xl text-sm font-semibold transition hover:opacity-90"
+          style={{ background: 'var(--mf-green)', color: 'var(--bg-app)' }}>
           Inloggen
         </a>
       </div>
@@ -141,19 +159,24 @@ function UitnodigingForm() {
   )
 
   if (status === 'bevestig_nodig') return (
-    <main className="min-h-screen flex items-center justify-center bg-gray-50 p-8">
-      <div className="max-w-md w-full bg-white rounded-2xl border border-gray-200 p-10 text-center">
-        <div className="text-5xl mb-6">📬</div>
-        <h1 className="text-xl font-semibold text-gray-900 mb-2">Bevestig je e-mail</h1>
-        <p className="text-sm text-gray-500 mb-2 leading-relaxed">
+    <main className="mf-mesh-bg min-h-screen flex items-center justify-center p-5">
+      <div className="w-full max-w-sm text-center mf-animate-up" style={KAART_STIJL}>
+        <div
+          className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6"
+          style={{ background: 'var(--mf-green-light)' }}
+        >
+          <MailCheck size={28} aria-hidden style={{ color: 'var(--mf-green)' }} />
+        </div>
+        <h1 className="text-xl font-semibold mb-2" style={{ color: 'var(--text-1)' }}>Bevestig je e-mail</h1>
+        <p className="text-sm mb-2 leading-relaxed" style={{ color: 'var(--text-2)' }}>
           We hebben een bevestigingsmail gestuurd naar
         </p>
-        <p className="font-semibold text-gray-900 mb-6">{tokenData?.email}</p>
-        <p className="text-xs text-gray-400 mb-8 leading-relaxed">
+        <p className="font-semibold mb-6" style={{ color: 'var(--text-1)' }}>{tokenData?.email}</p>
+        <p className="text-xs mb-8 leading-relaxed" style={{ color: 'var(--text-3)' }}>
           Klik op de link in de mail om je account te activeren. Controleer ook je spam-map als je niets ontvangt.
         </p>
 
-        <div className="bg-gray-50 rounded-xl p-4 mb-6 text-left">
+        <div className="rounded-xl p-4 mb-6 text-left" style={{ background: 'var(--bg-app)', border: '1px solid var(--border)' }}>
           <div className="flex flex-col gap-2.5">
             {[
               'Klik op de link in de bevestigingsmail',
@@ -161,24 +184,25 @@ function UitnodigingForm() {
               'Log in en doe je eerste check-in',
             ].map((stap, i) => (
               <div key={i} className="flex items-center gap-3">
-                <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
-                  style={{ background: 'var(--mentaforce-primary)' }}>
+                <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
+                  style={{ background: 'var(--mf-green)', color: 'var(--bg-app)' }}>
                   {i + 1}
                 </div>
-                <p className="text-sm text-gray-600">{stap}</p>
+                <p className="text-sm" style={{ color: 'var(--text-2)' }}>{stap}</p>
               </div>
             ))}
           </div>
         </div>
 
         <a href="/login"
-          className="block w-full text-center py-3 rounded-xl text-white text-sm font-semibold transition hover:opacity-90"
-          style={{ background: 'var(--mentaforce-primary)' }}>
+          className="block w-full text-center py-3.5 rounded-2xl text-sm font-semibold transition hover:opacity-90"
+          style={{ background: 'var(--mf-green)', color: 'var(--bg-app)' }}>
           Ga naar inloggen
         </a>
         <button
           onClick={() => supabase.auth.resend({ type: 'signup', email: tokenData?.email ?? '' })}
-          className="mt-3 text-xs text-gray-400 hover:text-gray-600 transition underline">
+          className="mt-3 text-xs transition hover:opacity-70 underline"
+          style={{ color: 'var(--text-3)' }}>
           Bevestigingsmail opnieuw sturen
         </button>
       </div>
@@ -186,27 +210,23 @@ function UitnodigingForm() {
   )
 
   return (
-    <main className="min-h-screen flex items-center justify-center p-8"
-      style={{ background: 'linear-gradient(135deg, #E1F5EE 0%, #E6F1FB 100%)' }}>
-      <div className="max-w-md w-full bg-white rounded-2xl border border-gray-200 p-8 mf-animate-up">
+    <main className="mf-mesh-bg min-h-screen flex items-center justify-center p-5">
+      <div className="w-full max-w-sm mf-animate-up" style={KAART_STIJL}>
 
-        <div className="flex items-center gap-2 mb-6">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center"
-            style={{ background: 'var(--mentaforce-primary)' }}>
-            <span className="text-white text-xs font-bold">M</span>
-          </div>
-          <span className="font-semibold text-gray-900">MentaForce</span>
+        <div className="flex justify-center mb-8">
+          <LogoFull iconSize={38} />
         </div>
 
-        <h1 className="text-2xl font-semibold text-gray-900 mb-1">Je bent uitgenodigd</h1>
-        <p className="text-gray-500 text-sm mb-5 leading-relaxed">
+        <h1 className="text-2xl font-semibold mb-1" style={{ color: 'var(--text-1)', letterSpacing: '-0.03em' }}>Je bent uitgenodigd</h1>
+        <p className="text-sm mb-5 leading-relaxed" style={{ color: 'var(--text-2)' }}>
           Maak je account aan om te starten met MentaForce.
         </p>
 
         {tokenData && (
-          <div className="flex items-center gap-2 text-xs text-gray-500 bg-gray-50 rounded-xl px-4 py-3 mb-6 border border-gray-100">
-            <span>📧</span>
-            <span>Account voor: <strong>{tokenData.email}</strong></span>
+          <div className="flex items-center gap-2 text-xs rounded-xl px-4 py-3 mb-6"
+            style={{ background: 'var(--bg-app)', border: '1px solid var(--border)', color: 'var(--text-2)' }}>
+            <Mail size={14} aria-hidden style={{ color: 'var(--mf-green)', flexShrink: 0 }} />
+            <span>Account voor: <strong style={{ color: 'var(--text-1)' }}>{tokenData.email}</strong></span>
           </div>
         )}
 
@@ -220,7 +240,8 @@ function UitnodigingForm() {
             autoFocus
             autoComplete="name"
             onChange={e => setNaam(e.target.value)}
-            className="border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-gray-400 transition"
+            className="mf-input"
+            style={{ borderRadius: 14, padding: '12px 16px' }}
           />
           <div className="relative">
             <label htmlFor="uitn-wachtwoord" className="sr-only">Wachtwoord</label>
@@ -233,10 +254,12 @@ function UitnodigingForm() {
               aria-describedby={foutMelding ? 'uitn-fout' : undefined}
               onChange={e => setWachtwoord(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && registreren()}
-              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-gray-400 transition pr-16"
+              className="mf-input pr-16"
+              style={{ width: '100%', borderRadius: 14, padding: '12px 60px 12px 16px' }}
             />
             <button type="button" onClick={() => setToonWachtwoord(t => !t)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 hover:text-gray-600 transition px-1">
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-medium transition hover:opacity-70"
+              style={{ color: 'var(--text-3)' }}>
               {toonWachtwoord ? 'Verberg' : 'Toon'}
             </button>
           </div>
@@ -246,7 +269,7 @@ function UitnodigingForm() {
                 <div key={i} className="flex-1 h-1.5 rounded-full transition-all"
                   style={{ background: sterkte > i ? ['var(--mf-red)', 'var(--mf-amber)', 'var(--mf-green)'][i] : 'var(--border)' }} />
               ))}
-              <span className="text-xs text-gray-400 w-10">
+              <span className="text-xs w-10" style={{ color: 'var(--text-3)' }}>
                 {['Te kort', 'Matig', 'Goed', 'Sterk'][sterkte]}
               </span>
             </div>
@@ -260,10 +283,19 @@ function UitnodigingForm() {
         <button
           onClick={registreren}
           disabled={status === 'registreren' || !wachtwoord || !naam.trim() || wachtwoord.length < 8}
-          className="w-full mt-5 text-white rounded-xl py-3 text-sm font-semibold hover:opacity-90 transition disabled:opacity-30 flex items-center justify-center gap-2"
-          style={{ background: 'var(--mentaforce-primary)' }}>
+          className="w-full mt-5 rounded-2xl py-3.5 text-sm font-semibold hover:opacity-90 transition disabled:opacity-40 flex items-center justify-center gap-2"
+          style={{ background: 'var(--mf-green)', color: 'var(--bg-app)' }}>
           {status === 'registreren' && (
-            <div className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
+            <span
+              className="mf-spinner"
+              aria-hidden
+              style={{
+                width: 16,
+                height: 16,
+                borderColor: 'color-mix(in srgb, var(--bg-app) 25%, transparent)',
+                borderTopColor: 'var(--bg-app)',
+              }}
+            />
           )}
           {status === 'registreren' ? 'Account aanmaken...' : 'Account aanmaken'}
         </button>
@@ -275,10 +307,8 @@ function UitnodigingForm() {
 export default function Uitnodiging() {
   return (
     <Suspense fallback={
-      <main className="min-h-screen flex items-center justify-center"
-        style={{ background: 'linear-gradient(135deg, #E1F5EE 0%, #E6F1FB 100%)' }}>
-        <div className="w-8 h-8 rounded-full border-2 border-gray-200 animate-spin"
-          style={{ borderTopColor: 'var(--mentaforce-primary)' }} />
+      <main className="mf-mesh-bg min-h-screen flex items-center justify-center">
+        <span className="mf-spinner" aria-hidden style={{ width: 32, height: 32 }} />
       </main>
     }>
       <UitnodigingForm />

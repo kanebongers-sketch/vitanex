@@ -295,7 +295,7 @@ export default function PrestatiesPagina() {
             </p>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
               <h1 style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--text-1)', margin: 0, letterSpacing: '-0.03em' }}>
-                Prestaties
+                Lichaamsmetingen
               </h1>
               {doelCfg && (
                 <span

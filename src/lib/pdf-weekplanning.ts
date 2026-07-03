@@ -13,22 +13,19 @@ import type {
 } from '@/app/api/content/weekplanning/route'
 
 // ── Kleuren ───────────────────────────────────────────────────────────────
-// PDFKit kent geen CSS-variabelen; deze waarden spiegelen theme.ts:
-// CYAAN = COLORS.cyan (#00E5FF, grote accenten op donker), CYAAN_D =
-// --mf-green-dark (#16B6CC, kleine tekst op wit i.v.m. contrast),
-// NAVY = COLORS.navy (#0B1B3A, vlakvulling achter witte tekst).
+// PDFKit kent geen CSS-variabelen, dus hier staan letterlijke hexwaarden die
+// theme.ts spiegelen. Twee-tonig systeem: NAVY (COLORS.navy) voor vlakken en
+// kleine tekst op wit; CYAAN (COLORS.cyan) alléén als groot accent op donkere
+// vlakken — op wit haalt cyaan geen AA-contrast. Hiërarchie via grijstinten,
+// niet via extra kleuren.
 const ZWART   = '#0A0A0A'
 const WIT     = '#FFFFFF'
 const CYAAN   = '#00E5FF'
-const CYAAN_D = '#16B6CC'
 const NAVY    = '#0B1B3A'
 const NAVY_BG = '#EDF2FB'
-const PAARS   = '#7C3AED'
-const ORANJE   = '#F97316'
 const GRIJS_L  = '#F4F4F5'
 const GRIJS_M  = '#A1A1AA'
 const GRIJS_D  = '#3F3F46'
-const BLAUW    = '#3B82F6'
 
 const A4_W  = 595.28
 const A4_H  = 841.89
@@ -53,7 +50,7 @@ function lijn(doc: PDFDoc, y: number, kleur = GRIJS_L): void {
   doc.moveTo(MAR, y).lineTo(A4_W - MAR, y).strokeColor(kleur).lineWidth(0.5).stroke()
 }
 
-function label(doc: PDFDoc, tekst: string, x: number, y: number, kleur = CYAAN_D): void {
+function label(doc: PDFDoc, tekst: string, x: number, y: number, kleur = NAVY): void {
   doc.fillColor(kleur).font('Helvetica-Bold').fontSize(7).text(tekst, x, y, { lineBreak: false })
 }
 
@@ -131,7 +128,7 @@ function maakKaft(doc: PDFDoc, wp: WeekPlanning): void {
     const actief = dag?.reels?.length > 0
 
     doc.rect(x, y, kol - 2, rijH).fill(actief ? NAVY : GRIJS_D)
-    doc.fillColor(actief ? CYAAN : GRIJS_M).font('Helvetica-Bold').fontSize(8)
+    doc.fillColor(actief ? CYAAN : GRIJS_L).font('Helvetica-Bold').fontSize(8)
        .text(dagNamen[i], x + 4, y + 5, { lineBreak: false })
 
     if (actief && dag) {
@@ -141,14 +138,14 @@ function maakKaft(doc: PDFDoc, wp: WeekPlanning): void {
       const tijden = dag.reels.map(r => r.strategie?.posttijd ?? '').filter(Boolean).join('·')
       doc.fillColor(CYAAN).font('Helvetica').fontSize(5).text(tijden, x + 4, y + 43, { lineBreak: false })
     } else {
-      doc.fillColor(GRIJS_M).font('Helvetica').fontSize(7).text('Rust', x + 4, y + 24, { lineBreak: false })
+      doc.fillColor(GRIJS_L).font('Helvetica').fontSize(7).text('Rust', x + 4, y + 24, { lineBreak: false })
     }
   }
 
-  // Footer
-  doc.fillColor(GRIJS_D).font('Helvetica').fontSize(7)
+  // Footer — GRIJS_M: donkerder grijs haalt op zwart geen AA-contrast
+  doc.fillColor(GRIJS_M).font('Helvetica').fontSize(7)
      .text('MentaForce Content Engine', MAR, A4_H - 36, { lineBreak: false })
-  doc.fillColor(GRIJS_D).font('Helvetica').fontSize(7)
+  doc.fillColor(GRIJS_M).font('Helvetica').fontSize(7)
      .text(new Date(wp.gegenereerd_op).toLocaleDateString('nl-NL'), A4_W - MAR - 80, A4_H - 36, { lineBreak: false })
 }
 
@@ -201,7 +198,7 @@ function maakReelPagina(
 
   // DM share
   if (strategie.dm_share_reden) {
-    doc.fillColor(GRIJS_M).font('Helvetica-Oblique').fontSize(8)
+    doc.fillColor(GRIJS_D).font('Helvetica-Oblique').fontSize(8)
        .text(`📤 ${kap(strategie.dm_share_reden, 120)}`, MAR, y, { width: CON_W, lineBreak: false })
     y += 14
   }
@@ -213,7 +210,7 @@ function maakReelPagina(
   const col2 = MAR + colW + 12
 
   label(doc, 'SCRIPT', MAR, y)
-  doc.fillColor(GRIJS_M).font('Helvetica').fontSize(7).text(reel.duur_doel ?? '20s', MAR + 42, y + 1, { lineBreak: false })
+  doc.fillColor(GRIJS_D).font('Helvetica').fontSize(7).text(reel.duur_doel ?? '20s', MAR + 42, y + 1, { lineBreak: false })
   label(doc, 'PRODUCTIE', col2, y)
   y += 12
 
@@ -274,7 +271,7 @@ function maakReelPagina(
   // CTA + Hashtags naast elkaar
   if (reel.cta) {
     label(doc, 'CTA', MAR, y)
-    doc.fillColor(CYAAN_D).font('Helvetica-Bold').fontSize(9)
+    doc.fillColor(NAVY).font('Helvetica-Bold').fontSize(9)
        .text(kap(reel.cta, 80), MAR + 24, y - 1, { lineBreak: false })
     y += 16
   }
@@ -288,15 +285,15 @@ function maakReelPagina(
   }
 
   if (reel.hashtags?.length) {
-    doc.fillColor(BLAUW).font('Helvetica').fontSize(7.5)
+    doc.fillColor(NAVY).font('Helvetica').fontSize(7.5)
        .text(reel.hashtags.slice(0, 6).join(' '), MAR, y, { width: CON_W, lineBreak: false })
     y += 14
   }
 
   if (reel.productie_tip) {
-    doc.rect(MAR, y, CON_W, 1).fill(ORANJE)
+    doc.rect(MAR, y, CON_W, 1).fill(NAVY)
     y += 5
-    doc.fillColor(ORANJE).font('Helvetica-Bold').fontSize(7.5)
+    doc.fillColor(NAVY).font('Helvetica-Bold').fontSize(7.5)
        .text('💡 TIP  ', MAR, y, { continued: false, lineBreak: false })
     doc.fillColor(ZWART).font('Helvetica').fontSize(7.5)
        .text(kap(reel.productie_tip, 120), MAR + 32, y, { width: CON_W - 32, lineBreak: false })
@@ -305,8 +302,8 @@ function maakReelPagina(
 
   // Stories — alleen op reel 3, en alleen als er ruimte is
   if (verhaalVoegToe && stories?.length && y < A4_H - 155) {
-    lijn(doc, y, PAARS); y += 8
-    doc.rect(MAR, y, CON_W, 22).fill(PAARS)
+    lijn(doc, y, NAVY); y += 8
+    doc.rect(MAR, y, CON_W, 22).fill(NAVY)
     doc.fillColor(WIT).font('Helvetica-Bold').fontSize(9)
        .text('📱  INSTAGRAM STORIES', MAR + 8, y + 7, { lineBreak: false })
     y += 28
@@ -314,13 +311,13 @@ function maakReelPagina(
     const sKol = (CON_W - 8) / 3
     for (const s of stories.slice(0, 3)) {
       const sx = MAR + (s.frame - 1) * (sKol + 4)
-      doc.roundedRect(sx, y, sKol, 90, 4).strokeColor(PAARS).lineWidth(1).stroke()
+      doc.roundedRect(sx, y, sKol, 90, 4).strokeColor(NAVY).lineWidth(1).stroke()
 
-      doc.roundedRect(sx + 5, y + 5, 18, 13, 2).fill(PAARS)
+      doc.roundedRect(sx + 5, y + 5, 18, 13, 2).fill(NAVY)
       doc.fillColor(WIT).font('Helvetica-Bold').fontSize(6.5)
          .text(String(s.frame), sx + 10, y + 9, { lineBreak: false })
 
-      const tKleur = s.type === 'poll' ? ORANJE : s.type === 'cta' ? NAVY : BLAUW
+      const tKleur = s.type === 'cta' ? NAVY : GRIJS_D
       doc.roundedRect(sx + 26, y + 5, 40, 13, 2).fill(tKleur)
       doc.fillColor(WIT).font('Helvetica-Bold').fontSize(6)
          .text(s.type.toUpperCase(), sx + 30, y + 9, { lineBreak: false })
@@ -335,7 +332,7 @@ function maakReelPagina(
 
       if (s.optie_a && s.optie_b) {
         const ob = (sKol - 14) / 2
-        doc.roundedRect(sx + 5, y + 60, ob, 12, 2).fill(ORANJE)
+        doc.roundedRect(sx + 5, y + 60, ob, 12, 2).fill(NAVY)
         doc.fillColor(WIT).font('Helvetica').fontSize(6)
            .text(kap(s.optie_a, 10), sx + 7, y + 64, { lineBreak: false })
         doc.roundedRect(sx + 7 + ob, y + 60, ob, 12, 2).fill(GRIJS_D)
@@ -353,9 +350,9 @@ function maakRustdag(doc: PDFDoc, dagNaam: string, datum: string, pagNr: number,
   doc.fillColor(WIT).font('Helvetica-Bold').fontSize(8).text('MENTAFORCE WEEKPLANNING', MAR, 10, { lineBreak: false })
   doc.fillColor(WIT).font('Helvetica-Bold').fontSize(15)
      .text(`${dagNaam.toUpperCase()} ${datum} — RUSTDAG`, MAR, 25, { lineBreak: false })
-  doc.fillColor(GRIJS_M).font('Helvetica').fontSize(7)
+  doc.fillColor(WIT).font('Helvetica').fontSize(7)
      .text(`${pagNr}/${totaal}`, A4_W - MAR - 30, 38, { lineBreak: false })
-  doc.fillColor(GRIJS_M).font('Helvetica').fontSize(13)
+  doc.fillColor(GRIJS_D).font('Helvetica').fontSize(13)
      .text('Geen content vandaag. Herstel, laden, voorbereiden.', MAR, 110, { width: CON_W, align: 'center', lineBreak: false })
 }
 

@@ -2,10 +2,24 @@ import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 import { getAuthenticatedUser } from '@/lib/api-auth'
 import { createAdminClient } from '@/lib/supabase-admin'
+import { isRateLimited } from '@/lib/rate-limit'
 
 export const dynamic = 'force-dynamic'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+
+type Bericht = { role: 'user' | 'assistant'; content: string }
+
+// Zelfde systeemgrens-validatie als /api/coach: role 'user' | 'assistant'
+// en content van 1–4000 tekens.
+function valideerBericht(b: unknown): b is Bericht {
+  if (typeof b !== 'object' || b === null) return false
+  const { role, content } = b as Record<string, unknown>
+  return (role === 'user' || role === 'assistant')
+    && typeof content === 'string'
+    && content.length >= 1
+    && content.length <= 4000
+}
 
 function berekenWeekStart(datum: Date): string {
   const d = new Date(datum)
@@ -24,15 +38,32 @@ export async function POST(req: NextRequest) {
     const user = await getAuthenticatedUser(req)
     if (!user) return NextResponse.json({ error: 'Niet ingelogd.' }, { status: 401 })
 
-    const { berichten }: { berichten: { role: string; content: string }[] } = await req.json()
+    // Best-effort rem per gebruiker: één samenvatting per gesprek-beurt is
+    // ruim voldoende; 10 per uur dekt normaal gebruik.
+    if (isRateLimited(`coach-samenvatting:${user.id}`, 10, 3600_000)) {
+      return NextResponse.json(
+        { error: 'Te veel samenvattingsverzoeken. Probeer het later opnieuw.' },
+        { status: 429 },
+      )
+    }
+
+    const { berichten }: { berichten: unknown } = await req.json()
 
     if (!Array.isArray(berichten) || berichten.length < 4) {
       return NextResponse.json({ ok: true })
     }
+    if (berichten.length > 50) {
+      return NextResponse.json({ error: 'Te veel berichten in de context.' }, { status: 400 })
+    }
+    for (const b of berichten) {
+      if (!valideerBericht(b)) {
+        return NextResponse.json({ error: 'Ongeldig bericht.' }, { status: 400 })
+      }
+    }
+    const geldigeBerichten: Bericht[] = berichten
 
-    const gespreksTekst = berichten
+    const gespreksTekst = geldigeBerichten
       .slice(-20)
-      .filter(b => b.role === 'user' || b.role === 'assistant')
       .map(b => `${b.role === 'user' ? 'Gebruiker' : 'Vita'}: ${b.content}`)
       .join('\n')
 
