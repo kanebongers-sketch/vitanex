@@ -2,36 +2,25 @@
 
 export const dynamic = 'force-dynamic'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Check, History, BookOpen } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { vitaEvent } from '@/lib/vita/events'
 import Navbar from '@/components/layout/Navbar'
-import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
-import { Field } from '@/components/ui/Field'
-import { Textarea } from '@/components/ui/Textarea'
 import { useToast } from '@/components/ui/Toast'
 import VitaReflectieBegeleider from '@/components/vita/VitaReflectieBegeleider'
-
-
-const REFLECTIE_VRAGEN = [
-  { id: 'hoogtepunt', vraag: 'Wat was het hoogtepunt van deze week?', placeholder: 'Het moment dat me het meest energiek maakte...' },
-  { id: 'uitdaging', vraag: 'Wat was de grootste uitdaging?', placeholder: 'Iets wat me moeilijk afging of stress gaf...' },
-  { id: 'leermoment', vraag: 'Wat heb ik geleerd of ontdekt over mezelf?', placeholder: 'Een inzicht, patroon of nieuwe vaardigheid...' },
-  { id: 'energie', vraag: 'Wat gaf me energie? Wat kostte energie?', placeholder: 'Activiteiten, mensen of situaties die...' },
-  { id: 'volgende_week', vraag: 'Wat wil ik volgende week anders doen?', placeholder: 'Eén concrete verandering of intentie...' },
-  { id: 'dankbaarheid', vraag: 'Waar ben ik dankbaar voor deze week?', placeholder: 'Klein of groot, persoonlijk of professioneel...' },
-]
-
-interface ReflectieEntry {
-  id: string
-  week_start: string
-  antwoorden: Record<string, string>
-  aangemaakt_op: string
-}
+import ReflectieHistorie from './ReflectieHistorie'
+import ReflectieVraagStap from './ReflectieVraagStap'
+import {
+  REFLECTIE_VRAGEN,
+  bepaalWeekStart,
+  berekenWekenOpRij,
+  eersteOpenVraag,
+  type ReflectieEntry,
+} from './reflectieVragen'
 
 export default function ReflectiePage() {
   const router = useRouter()
@@ -43,19 +32,11 @@ export default function ReflectiePage() {
   const [eerdere, setEerdere] = useState<ReflectieEntry[]>([])
   const [toonHistorie, setToonHistorie] = useState(false)
   const [userId, setUserId] = useState<string | null>(null)
+  const [actieveVraag, setActieveVraag] = useState(0)
+  const [weekStart] = useState(() => bepaalWeekStart(new Date()))
 
-  const weekStart = (() => {
-    const d = new Date()
-    // Maandag van de HUIDIGE week — ook op zondag (getDay() === 0).
-    d.setDate(d.getDate() - ((d.getDay() + 6) % 7))
-    // Lokale datumdelen — toISOString() (UTC) schuift rond middernacht
-    // lokale tijd een dag terug en schreef dan naar de vórige week.
-    return [
-      d.getFullYear(),
-      String(d.getMonth() + 1).padStart(2, '0'),
-      String(d.getDate()).padStart(2, '0'),
-    ].join('-')
-  })()
+  const vraagVeldRef = useRef<HTMLTextAreaElement | null>(null)
+  const heeftInitieleFocus = useRef(false)
 
   useEffect(() => {
     async function laad() {
@@ -70,12 +51,29 @@ export default function ReflectiePage() {
           .eq('user_id', user.id).order('week_start', { ascending: false }).limit(8),
       ])
 
-      if (huidig?.antwoorden) setAntwoorden(huidig.antwoorden)
+      const bestaandeAntwoorden = huidig?.antwoorden ?? {}
+      setAntwoorden(bestaandeAntwoorden)
+      // Open bij de eerste nog lege vraag: direct verder waar je gebleven was.
+      setActieveVraag(eersteOpenVraag(bestaandeAntwoorden))
       setEerdere(historie ?? [])
       setLaden(false)
     }
     laad()
   }, [router, weekStart])
+
+  // Direct kunnen typen: focus het tekstveld bij binnenkomst (alleen op brede
+  // schermen — geen toetsenbord-pop op mobiel) en bij elke vraagwissel.
+  useEffect(() => {
+    if (laden || toonHistorie) return
+    const veld = vraagVeldRef.current
+    if (!veld) return
+    if (!heeftInitieleFocus.current) {
+      heeftInitieleFocus.current = true
+      if (window.innerWidth >= 768) veld.focus({ preventScroll: true })
+      return
+    }
+    veld.focus({ preventScroll: true })
+  }, [laden, toonHistorie, actieveVraag])
 
   async function slaOp() {
     if (!userId || Object.values(antwoorden).every(v => !v.trim())) return
@@ -115,8 +113,20 @@ export default function ReflectiePage() {
     })
   }
 
+  function wijzigAntwoord(waarde: string) {
+    // Nieuwe wijziging → 'Opgeslagen'-staat is niet meer waar.
+    setOpgeslagen(false)
+    const vraagId = REFLECTIE_VRAGEN[actieveVraag].id
+    setAntwoorden(prev => ({ ...prev, [vraagId]: waarde }))
+  }
+
   const weekLabel = new Date(weekStart).toLocaleDateString('nl-BE', { day: 'numeric', month: 'long' })
-  const ingevuld = Object.values(antwoorden).filter(v => v.trim()).length
+  const beantwoord = REFLECTIE_VRAGEN.map(v => Boolean(antwoorden[v.id]?.trim()))
+  const ingevuld = beantwoord.filter(Boolean).length
+  const heeftIets = ingevuld > 0
+  // Ritme uit al opgehaalde data (max 8 weken historie) — bij de kaap eerlijk '8+'.
+  const wekenOpRij = berekenWekenOpRij(eerdere.map(e => e.week_start), weekStart)
+  const ritmeLabel = wekenOpRij >= 2 ? ` · ${wekenOpRij >= 8 ? '8+' : wekenOpRij} weken op rij` : ''
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
@@ -129,7 +139,9 @@ export default function ReflectiePage() {
             <div style={{ width: 88, height: 88, borderRadius: '50%', background: 'radial-gradient(circle, color-mix(in srgb, var(--mentaforce-primary) 18%, transparent) 0%, transparent 70%)' }} />
             <div>
               <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 4 }}>Wekelijkse reflectie</h1>
-              <p style={{ fontSize: 13, color: 'var(--text-3)' }}>Week van {weekLabel} · {ingevuld}/{REFLECTIE_VRAGEN.length} vragen beantwoord</p>
+              <p style={{ fontSize: 13, color: 'var(--text-3)' }}>
+                Week van {weekLabel} · {ingevuld} van {REFLECTIE_VRAGEN.length} beantwoord{ritmeLabel}
+              </p>
             </div>
           </div>
           <Button
@@ -145,97 +157,34 @@ export default function ReflectiePage() {
         {laden ? (
           <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 40 }}><div className="mf-spinner" /></div>
         ) : toonHistorie ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            {eerdere.length === 0 ? (
-              <p style={{ fontSize: 13, color: 'var(--text-3)', textAlign: 'center', paddingTop: 40 }}>Nog geen eerdere reflecties</p>
-            ) : eerdere.map(e => {
-              const datum = new Date(e.week_start).toLocaleDateString('nl-BE', { day: 'numeric', month: 'long' })
-              const aantalIngevuld = Object.values(e.antwoorden ?? {}).filter(v => v.trim()).length
-              return (
-                <Card key={e.id} style={{ padding: '18px 20px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                    <div>
-                      <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-1)' }}>Week van {datum}</p>
-                      <p style={{ fontSize: 11, color: 'var(--text-3)' }}>{aantalIngevuld} van 6 vragen</p>
-                    </div>
-                    <div style={{ display: 'flex', gap: 3 }} aria-hidden>
-                      {Array.from({ length: 6 }, (_, i) => (
-                        <div key={i} style={{ width: 6, height: 6, borderRadius: 2, background: i < aantalIngevuld ? 'var(--mentaforce-primary)' : 'var(--border-strong)' }} />
-                      ))}
-                    </div>
-                  </div>
-                  {e.antwoorden?.hoogtepunt && (
-                    <p style={{ fontSize: 12, color: 'var(--text-2)', lineHeight: 1.5, fontStyle: 'italic', borderLeft: '2px solid var(--mentaforce-primary)', paddingLeft: 10 }}>
-                      &ldquo;{e.antwoorden.hoogtepunt.slice(0, 120)}{e.antwoorden.hoogtepunt.length > 120 ? '...' : ''}&rdquo;
-                    </p>
-                  )}
-                </Card>
-              )
-            })}
-          </div>
+          <ReflectieHistorie entries={eerdere} />
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            {/* Vita opent het reflectiemoment — of viert de afronding. Geen
+            {/* Vita opent het reflectiemoment — of erkent de afronding. De key
+                laat de wissel zacht binnenfaden (mf-fade-in, 250ms). Geen
                 automatische redirect: de gebruiker kiest zelf wanneer die verder gaat. */}
-            <VitaReflectieBegeleider fase={opgeslagen ? 'afronden' : 'opening'} />
-            {opgeslagen && (
-              <Link
-                href="/home"
-                className="mf-reflectie-link"
-                style={{
-                  alignSelf: 'flex-start',
-                  fontSize: 13,
-                  fontWeight: 600,
-                  color: 'var(--mentaforce-primary)',
-                  textDecoration: 'none',
-                }}
-              >
-                Naar home →
-              </Link>
-            )}
+            <div key={opgeslagen ? 'afronden' : 'opening'} className="mf-fade-in">
+              <VitaReflectieBegeleider fase={opgeslagen ? 'afronden' : 'opening'} />
+            </div>
 
-            {REFLECTIE_VRAGEN.map((vraag, i) => {
-              const isIngevuld = Boolean(antwoorden[vraag.id]?.trim())
-              return (
-                <Card key={vraag.id} style={{ padding: '20px 22px' }}>
-                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: 12 }}>
-                    <div style={{ width: 24, height: 24, borderRadius: 7, background: isIngevuld ? 'var(--mentaforce-primary-light)' : 'var(--bg-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: isIngevuld ? 'var(--mentaforce-primary)' : 'var(--text-3)', flexShrink: 0 }} aria-hidden>
-                      {isIngevuld ? <Check size={14} aria-hidden /> : i + 1}
-                    </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      {/* Vita begeleidt kort per vraag — een menselijke zin bij het moment. */}
-                      <div style={{ marginBottom: 12 }}>
-                        <VitaReflectieBegeleider fase="vraag" vraagId={vraag.id} size={40} />
-                      </div>
-                      <Field label={vraag.vraag} htmlFor={`reflectie-${vraag.id}`}>
-                        <Textarea
-                          id={`reflectie-${vraag.id}`}
-                          rows={3}
-                          value={antwoorden[vraag.id] ?? ''}
-                          onChange={e => {
-                            // Nieuwe wijziging → 'Opgeslagen!'-staat is niet meer waar.
-                            setOpgeslagen(false)
-                            const waarde = e.target.value
-                            setAntwoorden(prev => ({ ...prev, [vraag.id]: waarde }))
-                          }}
-                          placeholder={vraag.placeholder}
-                        />
-                      </Field>
-                    </div>
-                  </div>
-                </Card>
-              )
-            })}
+            <ReflectieVraagStap
+              index={actieveVraag}
+              waarde={antwoorden[REFLECTIE_VRAGEN[actieveVraag].id] ?? ''}
+              beantwoord={beantwoord}
+              veldRef={vraagVeldRef}
+              onWijzig={wijzigAntwoord}
+              onKies={setActieveVraag}
+            />
 
             <div style={{ display: 'flex', gap: 10 }}>
               <Button
                 onClick={slaOp}
                 loading={opslaan}
-                disabled={opslaan || Object.values(antwoorden).every(v => !v.trim())}
+                disabled={opslaan || !heeftIets}
                 leftIcon={opgeslagen ? <Check size={16} aria-hidden /> : undefined}
                 style={{ flex: 1 }}
               >
-                {opslaan ? 'Opslaan...' : opgeslagen ? 'Opgeslagen!' : 'Reflectie opslaan'}
+                {opslaan ? 'Opslaan...' : opgeslagen ? 'Opgeslagen' : 'Reflectie opslaan'}
               </Button>
               <Link
                 href="/journal"
@@ -259,6 +208,27 @@ export default function ReflectiePage() {
                 Naar journal
               </Link>
             </div>
+
+            {/* Gereserveerde regel (vaste hoogte → geen layout-shift): na het
+                opslaan verschijnt hier zacht de bevestiging + de weg naar huis. */}
+            <div aria-live="polite" style={{ minHeight: 20, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+              {opgeslagen && (
+                <>
+                  <span className="mf-fade-in" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--text-2)' }}>
+                    <Check size={14} aria-hidden style={{ color: 'var(--mentaforce-primary)', flexShrink: 0 }} />
+                    Opgeslagen — je kunt altijd nog aanvullen.
+                  </span>
+                  <Link
+                    href="/home"
+                    className="mf-reflectie-link mf-fade-in"
+                    style={{ fontSize: 13, fontWeight: 600, color: 'var(--mentaforce-primary)', textDecoration: 'none', whiteSpace: 'nowrap' }}
+                  >
+                    Naar home →
+                  </Link>
+                </>
+              )}
+            </div>
+
             <style>{`
               .mf-reflectie-link:hover { opacity: 0.88; }
               .mf-reflectie-link:focus-visible {

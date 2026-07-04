@@ -12,6 +12,8 @@ import { vitaEvent } from '@/lib/vita/events'
 import { useToast } from '@/components/ui/Toast'
 import VitaCheckinBegeleider from '@/components/vita/VitaCheckinBegeleider'
 import Link from 'next/link'
+import VraagKaart, { type Vraag } from './VraagKaart'
+import CheckinResultaat from './CheckinResultaat'
 
 // Decoratieve glow per sectie — verwijst naar de -light pijler-tokens (rgba met lage alpha).
 const SECTIE_KLEUR: Record<string, string> = {
@@ -21,15 +23,6 @@ const SECTIE_KLEUR: Record<string, string> = {
   focus:     'var(--mf-green-light)',
   balans:    'var(--mf-blue-light)',
   motivatie: 'var(--mf-rose-light)',
-}
-
-interface Vraag {
-  code:      string
-  label:     string
-  type:      'schaal'
-  min?:      string
-  max?:      string
-  verplicht: boolean
 }
 
 interface Sectie {
@@ -96,6 +89,76 @@ const DOMEIN_CODES: Record<string, string[]> = {
   motivatie:['motivatie_werk', 'motivatie_zinvol'],
 }
 
+const TOTAAL_VRAGEN = SECTIES.reduce((sum, s) => sum + s.vragen.length, 0)
+
+// Lichte pijler-info voor het resultaatmoment (presentational prop).
+const PIJLER_INFO = SECTIES.map(s => ({ id: s.id, label: s.label, kleur: s.kleur }))
+
+// Interactie-states van de check-in. Rustkleuren van de schaalknoppen staan
+// hier (niet inline) zodat hover/active via CSS kunnen; de geselecteerde staat
+// krijgt zijn sectiekleur inline vanuit VraagKaart. Alle beweging is
+// transform/opacity-only en valt weg onder prefers-reduced-motion.
+const CHECKIN_CSS = `
+  .mf-checkin-pil { transition: opacity 0.15s var(--ease); }
+  .mf-checkin-pil[data-terug]:hover { opacity: 0.8; }
+  .mf-checkin-pil:focus-visible {
+    outline: 2px solid var(--mentaforce-primary);
+    outline-offset: 2px;
+  }
+
+  .mf-vraag-kaart { transition: opacity 0.2s var(--ease), border-color 0.2s var(--ease); }
+  .mf-vraag-stil { opacity: 0.6; }
+  .mf-vraag-stil:hover, .mf-vraag-stil:focus-within { opacity: 1; }
+
+  .mf-schaal-btn {
+    background: var(--bg-subtle);
+    border-color: var(--border);
+    color: var(--text-3);
+    transition: transform 0.18s var(--ease), background 0.15s var(--ease),
+      border-color 0.15s var(--ease), color 0.15s var(--ease), box-shadow 0.18s var(--ease);
+  }
+  .mf-schaal-btn:not([aria-pressed='true']):hover { border-color: var(--border-strong); color: var(--text-1); }
+  .mf-schaal-btn:not([aria-pressed='true']):active { transform: scale(0.96); }
+  .mf-schaal-btn[aria-pressed='true'] {
+    transform: scale(1.06);
+    animation: mf-schaal-pop 0.2s var(--ease);
+  }
+  .mf-schaal-btn:focus-visible {
+    outline: 2px solid var(--mentaforce-primary);
+    outline-offset: 2px;
+  }
+  @keyframes mf-schaal-pop {
+    0%   { transform: scale(0.97); }
+    60%  { transform: scale(1.09); }
+    100% { transform: scale(1.06); }
+  }
+
+  .mf-checkin-nav {
+    transition: transform 0.15s var(--ease), filter 0.15s var(--ease), opacity 0.15s var(--ease);
+  }
+  .mf-checkin-nav:hover:not(:disabled)  { filter: brightness(1.08); }
+  .mf-checkin-nav:active:not(:disabled) { transform: scale(0.98); }
+  .mf-checkin-nav:focus-visible {
+    outline: 2px solid var(--mentaforce-primary);
+    outline-offset: 2px;
+  }
+
+  .mf-toets-tip { display: none; }
+  @media (hover: hover) and (pointer: fine) {
+    .mf-toets-tip { display: block; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .mf-checkin-pil, .mf-vraag-kaart, .mf-schaal-btn, .mf-checkin-nav { transition: none; }
+    .mf-schaal-btn[aria-pressed='true'] { animation: none; }
+  }
+`
+
+interface Resultaat {
+  scores: Record<string, number>
+  sid:    string
+}
+
 export default function CheckIn() {
   const router  = useRouter()
   const { toast } = useToast()
@@ -117,6 +180,8 @@ export default function CheckIn() {
   const [laden,      setLaden]      = useState(false)
   const [fout,       setFout]       = useState<string | null>(null)
   const [advancing,  setAdvancing]  = useState(false)
+  // Kalm resultaatmoment ná succesvol opslaan — de flow eindigt niet abrupt.
+  const [resultaat,  setResultaat]  = useState<Resultaat | null>(null)
   // Toont Vita's bemoedigende reactie terwijl de flow doorschuift. De reactie
   // hoort bij de nét afgeronde pijler en blijft langer staan dan de sectie-wissel.
   const [toonReactie, setToonReactie] = useState(false)
@@ -206,7 +271,7 @@ export default function CheckIn() {
     topRef.current?.scrollIntoView({ behavior: 'smooth' })
   }
 
-  const doSubmit = useCallback(async (ant: Record<string, number>, uid: string) => {
+  const doSubmit = useCallback(async (ant: Record<string, number>) => {
     setLaden(true)
     setFout(null)
     try {
@@ -237,21 +302,29 @@ export default function CheckIn() {
         vlakScores[domein] = som * 2
       }
 
-      const params = new URLSearchParams({
-        slaap:    String(vlakScores.slaap),
-        stress:   String(vlakScores.stress),
-        energie:  String(vlakScores.energie),
-        focus:    String(vlakScores.focus),
-        balans:   String(vlakScores.balans),
-        motivatie:String(vlakScores.motivatie),
-        sid:      data.sessie_id ?? '',
-      })
-      router.push(`/doelkeuze?${params.toString()}`)
+      // Eerst het kalme resultaatmoment; de CTA daar navigeert naar /doelkeuze.
+      setResultaat({ scores: vlakScores, sid: data.sessie_id ?? '' })
+      setLaden(false)
+      window.scrollTo(0, 0)
     } catch (err) {
       setFout(`Opslaan mislukt: ${err instanceof Error ? err.message : String(err)}`)
       setLaden(false)
     }
-  }, [bedrijfId, weekStart, router])
+  }, [bedrijfId, weekStart])
+
+  function gaNaarDoelkeuze() {
+    if (!resultaat) return
+    const params = new URLSearchParams({
+      slaap:    String(resultaat.scores.slaap),
+      stress:   String(resultaat.scores.stress),
+      energie:  String(resultaat.scores.energie),
+      focus:    String(resultaat.scores.focus),
+      balans:   String(resultaat.scores.balans),
+      motivatie:String(resultaat.scores.motivatie),
+      sid:      resultaat.sid,
+    })
+    router.push(`/doelkeuze?${params.toString()}`)
+  }
 
   function stelIn(code: string, waarde: number) {
     if (advancing) return
@@ -293,6 +366,29 @@ export default function CheckIn() {
     }, 1800)
   }
 
+  // Toetsenbord: 1–5 beantwoordt de eerstvolgende open vraag in de huidige
+  // sectie. Via een ref zodat de window-listener maar één keer bindt maar wel
+  // altijd de actuele state ziet.
+  const toetsRef = useRef<(waarde: number) => void>(() => {})
+  useEffect(() => {
+    toetsRef.current = (waarde: number) => {
+      if (checkend || alIngevuld || laden || advancing || resultaat) return
+      const open = SECTIES[sectieIdx].vragen.find(v => antwoordenRef.current[v.code] === undefined)
+      if (open) stelIn(open.code, waarde)
+    }
+  })
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.metaKey || e.ctrlKey || e.altKey || e.repeat) return
+      if (!/^[1-5]$/.test(e.key)) return
+      const doel = e.target as HTMLElement | null
+      if (doel && (doel.tagName === 'INPUT' || doel.tagName === 'TEXTAREA' || doel.tagName === 'SELECT' || doel.isContentEditable)) return
+      toetsRef.current(Number(e.key))
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
+
   function volgendeSectie() {
     if (!sectieCompleet(sectieIdx) || laden) return
     setFout(null)
@@ -300,7 +396,7 @@ export default function CheckIn() {
       setSectieIdx(s => s + 1)
       scrollTop()
     } else {
-      if (userId) doSubmit(antwoordenRef.current, userId)
+      if (userId) doSubmit(antwoordenRef.current)
     }
   }
 
@@ -309,13 +405,20 @@ export default function CheckIn() {
     scrollTop()
   }
 
-  // Voortgang: voltooide secties + vragen in huidige sectie
-  const voortgangPct = useMemo(() => {
-    const voltooideVragen  = SECTIES.slice(0, sectieIdx).reduce((sum, s) => sum + s.vragen.length, 0)
-    const totaalVragen     = SECTIES.reduce((sum, s) => sum + s.vragen.length, 0)
-    const huidigBeantwoord = huidigeSectie.vragen.filter(v => antwoorden[v.code] !== undefined).length
-    return Math.round(((voltooideVragen + huidigBeantwoord) / totaalVragen) * 100)
+  // Voortgang: beantwoorde vragen over de hele check-in ("7 van 12").
+  const voortgang = useMemo(() => {
+    const eerder = SECTIES.slice(0, sectieIdx).reduce((sum, s) => sum + s.vragen.length, 0)
+    const huidig = huidigeSectie.vragen.filter(v => antwoorden[v.code] !== undefined).length
+    const beantwoord = eerder + huidig
+    return { beantwoord, pct: Math.round((beantwoord / TOTAAL_VRAGEN) * 100) }
   }, [sectieIdx, huidigeSectie, antwoorden])
+
+  // Eerstvolgende open vraag: die staat op volle sterkte, de rest is stil.
+  const eersteOpenCode = huidigeSectie.vragen
+    .find(v => antwoorden[v.code] === undefined)?.code ?? null
+
+  const huidigCompleet = sectieCompleet(sectieIdx)
+  const isLaatsteSectie = sectieIdx === totaalSecties - 1
 
   // ── Laadscherm ──────────────────────────────────────────────────────────────
 
@@ -376,6 +479,14 @@ export default function CheckIn() {
     </main>
   )
 
+  // ── Resultaatmoment ──────────────────────────────────────────────────────────
+
+  if (resultaat) return (
+    <main className="mf-mesh-bg min-h-screen flex items-center justify-center p-6">
+      <CheckinResultaat pijlers={PIJLER_INFO} scores={resultaat.scores} onVerder={gaNaarDoelkeuze} />
+    </main>
+  )
+
   // ── Formulier ────────────────────────────────────────────────────────────────
 
   return (
@@ -390,7 +501,7 @@ export default function CheckIn() {
       }}>
         <Check size={16} strokeWidth={2.5} aria-hidden="true" style={{ color: 'var(--bg-app)' }} />
         <p style={{ color: 'var(--bg-app)', fontSize: 13, fontWeight: 600 }}>
-          Je wekelijkse check-in — 12 vragen, klaar in ±2 minuten.
+          Je wekelijkse check-in — {TOTAAL_VRAGEN} vragen, klaar in ±2 minuten.
         </p>
       </div>
 
@@ -410,7 +521,8 @@ export default function CheckIn() {
                   aria-disabled={i >= sectieIdx}
                   tabIndex={i < sectieIdx ? 0 : -1}
                   aria-current={actief ? 'step' : undefined}
-                  className="flex-shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium transition"
+                  data-terug={klaar || undefined}
+                  className="mf-checkin-pil flex-shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium"
                   style={{
                     background: actief ? s.kleur : klaar ? `color-mix(in srgb, ${s.kleur} 13%, transparent)` : 'var(--bg-subtle)',
                     color:      actief ? 'var(--bg-app)' : klaar ? s.kleur : 'var(--text-3)',
@@ -423,22 +535,28 @@ export default function CheckIn() {
             })}
           </div>
 
-          {/* Voortgangsbalk */}
+          {/* Voortgangsbalk — "7 van 12" is concreter dan een percentage */}
           <div className="flex items-center gap-3">
             <div className="flex-1 h-1.5 overflow-hidden" style={{ borderRadius: 9999, background: 'var(--bg-subtle)' }}
-              role="progressbar" aria-valuenow={voortgangPct} aria-valuemin={0} aria-valuemax={100}
-              aria-label={`Voortgang: ${voortgangPct}%`}>
+              role="progressbar" aria-valuenow={voortgang.beantwoord} aria-valuemin={0} aria-valuemax={TOTAAL_VRAGEN}
+              aria-label={`Voortgang: ${voortgang.beantwoord} van ${TOTAAL_VRAGEN} vragen beantwoord`}>
               <div className="h-full transition-all duration-500"
-                style={{ width: `${voortgangPct}%`, background: huidigeSectie.kleur, borderRadius: 9999 }} />
+                style={{ width: `${voortgang.pct}%`, background: huidigeSectie.kleur, borderRadius: 9999 }} />
             </div>
             <span className="text-xs font-semibold flex-shrink-0 tabular-nums" style={{ color: huidigeSectie.kleur }}>
-              {voortgangPct}%
+              {voortgang.beantwoord}
+              <span style={{ color: 'var(--text-4)', fontWeight: 500 }}> / {TOTAAL_VRAGEN}</span>
             </span>
           </div>
         </div>
       </div>
 
       <div className="max-w-lg mx-auto px-5 pt-7">
+
+        {/* Statuswissel voor screenreaders: welke sectie is nu aan de beurt. */}
+        <p className="sr-only" role="status">
+          Sectie {sectieIdx + 1} van {totaalSecties}: {huidigeSectie.label}
+        </p>
 
         {/* Vita loopt mee: rustige aanmoediging per pijler, korte reactie bij doorschuiven.
             Tijdens de reactie-fase blijft de zin bij de nét afgeronde pijler horen. */}
@@ -478,7 +596,7 @@ export default function CheckIn() {
           </div>
         </div>
 
-        {/* Vragen */}
+        {/* Vragen — de eerstvolgende open vraag op volle sterkte, de rest stil */}
         <div className="flex flex-col gap-4">
           {huidigeSectie.vragen.map((vraag, qi) => (
             <VraagKaart
@@ -488,6 +606,7 @@ export default function CheckIn() {
               kleur={huidigeSectie.kleur}
               licht={huidigeSectie.licht}
               nummer={qi + 1}
+              stil={antwoorden[vraag.code] === undefined && vraag.code !== eersteOpenCode}
               onChange={v => stelIn(vraag.code, v)}
             />
           ))}
@@ -500,112 +619,47 @@ export default function CheckIn() {
           </div>
         )}
 
-        {/* Navigatie */}
+        {/* Navigatie — Vorige blijft ruimte innemen zodat niets verschuift */}
         <div className="flex gap-3 mt-6">
-          {sectieIdx > 0 && (
-            <button onClick={vorigeSectie}
-              className="px-5 py-3.5 rounded-xl text-sm font-medium border transition"
-              style={{ borderColor: 'var(--border)', color: 'var(--text-3)', background: 'var(--bg-card)' }}>
-              Vorige
-            </button>
-          )}
+          <button onClick={vorigeSectie} disabled={sectieIdx === 0}
+            className="mf-checkin-nav px-5 py-3.5 rounded-xl text-sm font-medium border"
+            style={{
+              borderColor: 'var(--border)', color: 'var(--text-3)', background: 'var(--bg-card)',
+              visibility: sectieIdx === 0 ? 'hidden' : 'visible',
+            }}>
+            Vorige
+          </button>
           <button
             onClick={volgendeSectie}
-            disabled={!sectieCompleet(sectieIdx) || laden || advancing}
-            className="flex-1 py-3.5 rounded-xl font-semibold text-sm transition disabled:opacity-30 flex items-center justify-center gap-2"
+            disabled={!huidigCompleet || laden || advancing}
+            className="mf-checkin-nav flex-1 py-3.5 rounded-xl font-semibold text-sm disabled:opacity-30 flex items-center justify-center gap-2"
             style={{
-              color: sectieIdx === totaalSecties - 1 ? 'var(--bg-app)' : 'white',
-              background: sectieIdx === totaalSecties - 1
+              color: 'var(--bg-app)',
+              background: isLaatsteSectie
                 ? 'linear-gradient(135deg, var(--mf-green-dark), var(--mf-green))'
                 : huidigeSectie.kleur,
-              boxShadow: sectieIdx === totaalSecties - 1 ? 'var(--shadow-md)' : undefined,
+              boxShadow: isLaatsteSectie ? 'var(--shadow-md)' : undefined,
             }}>
             {laden && <span className="w-4 h-4 rounded-full border-2 border-current border-t-transparent animate-spin" />}
-            {laden ? 'Opslaan...' : advancing ? 'Volgende...' : sectieIdx === totaalSecties - 1 ? 'Afronden' : 'Volgende'}
+            {laden ? 'Opslaan...' : advancing ? 'Volgende...' : isLaatsteSectie ? 'Afronden' : 'Volgende'}
           </button>
         </div>
 
-        {!sectieCompleet(sectieIdx) && (
-          <p className="text-xs text-center mt-3" style={{ color: 'var(--text-4)' }}>
-            Beantwoord beide vragen om door te gaan.
-          </p>
-        )}
+        {/* Hint houdt zijn regelruimte vast — geen layout-shift bij voltooien */}
+        <p className="text-xs text-center mt-3" aria-hidden={huidigCompleet}
+          style={{ color: 'var(--text-4)', minHeight: '1rem', opacity: huidigCompleet ? 0 : 1, transition: 'opacity 0.2s var(--ease)' }}>
+          Beantwoord beide vragen om door te gaan.
+        </p>
+        <p className="mf-toets-tip text-xs text-center mt-1" style={{ color: 'var(--text-4)' }}>
+          Tip: toets 1–5 beantwoordt de open vraag.
+        </p>
 
         <p className="text-xs text-center mt-5 pb-6" style={{ color: 'var(--text-4)' }}>
           Je antwoorden worden beveiligd opgeslagen.
         </p>
       </div>
 
-      <style>{`
-        .mf-schaal-btn:focus-visible {
-          outline: 2px solid var(--mentaforce-primary);
-          outline-offset: 2px;
-        }
-        @media (prefers-reduced-motion: reduce) {
-          .mf-schaal-btn { transition: none !important; }
-        }
-      `}</style>
+      <style>{CHECKIN_CSS}</style>
     </main>
-  )
-}
-
-// ─── VraagKaart ──────────────────────────────────────────────────────────────
-
-function VraagKaart({ vraag, waarde, kleur, licht, nummer, onChange }: {
-  vraag:    Vraag
-  waarde:   number | undefined
-  kleur:    string
-  licht:    string
-  nummer:   number
-  onChange: (v: number) => void
-}) {
-  const geselecteerd = waarde ?? null
-  const beantwoord   = geselecteerd !== null
-
-  return (
-    <div className="rounded-2xl border p-5 transition-all"
-      style={{
-        background:  'var(--bg-card)',
-        borderColor: beantwoord ? `color-mix(in srgb, ${kleur} 38%, transparent)` : 'var(--border)',
-        borderWidth: beantwoord ? 1.5 : 1,
-      }}>
-
-      {/* Vraagnummer + label */}
-      <div className="flex items-start gap-2.5 mb-4">
-        <div className="flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold mt-0.5"
-          style={{ background: beantwoord ? kleur : licht, color: beantwoord ? 'var(--bg-app)' : kleur }}>
-          {beantwoord
-            ? <Check size={11} strokeWidth={3} aria-hidden="true" />
-            : nummer}
-        </div>
-        <p className="text-sm font-medium leading-snug" style={{ color: 'var(--text-1)' }}>{vraag.label}</p>
-      </div>
-
-      {/* Schaalbuttons */}
-      <div className="flex gap-2 mb-2">
-        {[1, 2, 3, 4, 5].map(n => (
-          <button key={n} onClick={() => onChange(n)}
-            aria-label={`${vraag.label}: ${n} van 5`}
-            aria-pressed={geselecteerd === n}
-            className="mf-schaal-btn flex-1 h-11 rounded-xl text-sm font-semibold transition-all border"
-            style={{
-              background:  geselecteerd === n ? kleur : 'var(--bg-subtle)',
-              borderColor: geselecteerd === n ? kleur : 'var(--border)',
-              color:       geselecteerd === n ? 'var(--bg-app)' : 'var(--text-3)',
-              transform:   geselecteerd === n ? 'scale(1.06)' : 'scale(1)',
-              boxShadow:   geselecteerd === n ? `0 2px 8px color-mix(in srgb, ${kleur} 31%, transparent)` : undefined,
-            }}>
-            {n}
-          </button>
-        ))}
-      </div>
-
-      {(vraag.min || vraag.max) && (
-        <div className="flex justify-between text-xs px-0.5 mt-1" style={{ color: 'var(--text-4)' }}>
-          <span>{vraag.min}</span>
-          <span>{vraag.max}</span>
-        </div>
-      )}
-    </div>
   )
 }
