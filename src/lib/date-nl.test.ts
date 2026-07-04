@@ -1,5 +1,7 @@
 import { afterEach, describe, expect, test, vi } from 'vitest'
 import {
+  bepaalWeekStart,
+  berekenWekenOpRij,
   dagstartUtcNL,
   datumMinusDagenNL,
   huidigUurNL,
@@ -127,5 +129,58 @@ describe('toDateString', () => {
 
   test('kapt een ISO-timestamp af tot de datum', () => {
     expect(toDateString('2026-07-03T08:15:30.000Z')).toBe('2026-07-03')
+  })
+})
+
+describe('bepaalWeekStart', () => {
+  test('geeft de maandag van de week voor een doordeweekse dag', () => {
+    // Arrange: woensdag 1 juli 2026
+    const woensdag = new Date(2026, 6, 1, 14, 30)
+    // Act
+    const resultaat = bepaalWeekStart(woensdag)
+    // Assert: maandag 29 juni 2026
+    expect(resultaat).toBe('2026-06-29')
+  })
+
+  test('blijft op zondag in de huidige week (getDay() === 0)', () => {
+    const zondag = new Date(2026, 6, 5, 9, 0)
+    expect(bepaalWeekStart(zondag)).toBe('2026-06-29')
+  })
+
+  test('geeft een maandag zichzelf terug, ook vlak voor middernacht lokaal', () => {
+    const maandagLaat = new Date(2026, 5, 29, 23, 59)
+    expect(bepaalWeekStart(maandagLaat)).toBe('2026-06-29')
+  })
+
+  test('muteert de meegegeven datum niet', () => {
+    const datum = new Date(2026, 6, 1)
+    const kopie = new Date(datum)
+    bepaalWeekStart(datum)
+    expect(datum.getTime()).toBe(kopie.getTime())
+  })
+})
+
+describe('berekenWekenOpRij', () => {
+  test('geeft 0 zonder eerdere entries', () => {
+    expect(berekenWekenOpRij([], '2026-06-29')).toBe(0)
+  })
+
+  test('telt alleen de huidige week als 1', () => {
+    expect(berekenWekenOpRij(['2026-06-29'], '2026-06-29')).toBe(1)
+  })
+
+  test('telt aaneengesloten weken door, ook over een maandgrens', () => {
+    const weken = ['2026-06-29', '2026-06-22', '2026-06-15']
+    expect(berekenWekenOpRij(weken, '2026-06-29')).toBe(3)
+  })
+
+  test('stopt bij een gat in de reeks', () => {
+    const weken = ['2026-06-29', '2026-06-15']
+    expect(berekenWekenOpRij(weken, '2026-06-29')).toBe(1)
+  })
+
+  test('telt vanaf vorige week als deze week nog niet is opgeslagen', () => {
+    const weken = ['2026-06-22', '2026-06-15']
+    expect(berekenWekenOpRij(weken, '2026-06-29')).toBe(2)
   })
 })

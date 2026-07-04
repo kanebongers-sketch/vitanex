@@ -2,11 +2,11 @@
 
 export const dynamic = 'force-dynamic'
 
-import { useEffect, useId, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   BookOpen,
-  Plus,
+  Check,
   Trash2,
   RefreshCw,
   Sparkles,
@@ -76,6 +76,21 @@ function formatDatum(iso: string) {
   })
 }
 
+/** Lokale dag-sleutel (YYYY-MM-DD) — bewust lokaal, niet UTC: een aantekening
+ *  om 00:30 hoort bij de dag waarop je 'm schreef. */
+function dagKey(d: Date): string {
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const dag = String(d.getDate()).padStart(2, '0')
+  return `${d.getFullYear()}-${m}-${dag}`
+}
+
+/** Maandag (lokale tijd) van de week waarin `d` valt. */
+function maandagVan(d: Date): Date {
+  const kopie = new Date(d)
+  kopie.setDate(kopie.getDate() - ((kopie.getDay() + 6) % 7))
+  return kopie
+}
+
 function StemmingDot({ waarde }: { waarde: number }) {
   const s = STEMMINGEN.find(m => m.waarde === waarde)
   if (!s) return null
@@ -92,16 +107,121 @@ function StemmingDot({ waarde }: { waarde: number }) {
   )
 }
 
+/** 7-daagse schrijfstrip + streak, uit de al opgehaalde entries (max 50).
+ *  Reikt de reeks tot aan de oudst geladen entry, dan kan ze in werkelijkheid
+ *  langer zijn — dat tonen we eerlijk als "N+". */
+function ActiviteitStrip({ entries }: { entries: Entry[] }) {
+  const vandaag = new Date()
+  const vandaagKey = dagKey(vandaag)
+  const datumSet = new Set(entries.map(e => dagKey(new Date(e.aangemaakt_op))))
+  const strip = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(vandaag)
+    d.setDate(d.getDate() - (6 - i))
+    const ds = dagKey(d)
+    return {
+      ds,
+      dag: d.toLocaleDateString('nl-NL', { weekday: 'short' }).slice(0, 2),
+      actief: datumSet.has(ds),
+      isVandaag: ds === vandaagKey,
+    }
+  })
+
+  let streak = 0
+  const loper = new Date(vandaag)
+  while (datumSet.has(dagKey(loper))) {
+    streak++
+    loper.setDate(loper.getDate() - 1)
+  }
+  const oudsteGeladen = entries.length > 0
+    ? dagKey(new Date(entries[entries.length - 1].aangemaakt_op))
+    : undefined
+  const oudsteInStreak = new Date(vandaag)
+  oudsteInStreak.setDate(oudsteInStreak.getDate() - (streak - 1))
+  const afgekapt = streak > 0 && entries.length >= 50 && oudsteGeladen !== undefined
+    && dagKey(oudsteInStreak) <= oudsteGeladen
+
+  return (
+    <div style={{ background: 'var(--bg-card)', borderRadius: 16, padding: '14px 16px', marginBottom: 20, border: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 16 }}>
+      <div style={{ flex: 1, display: 'flex', gap: 6 }}>
+        {strip.map(({ ds, dag, actief, isVandaag }) => (
+          <div key={ds} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+            <div style={{
+              width: '100%', height: 28, borderRadius: 6,
+              background: actief ? 'var(--mf-green)' : 'var(--bg-subtle)',
+              opacity: actief ? 0.85 : 0.5,
+              outline: isVandaag ? '2px solid var(--mf-green)' : 'none',
+              outlineOffset: 2,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              {actief && <PenLine size={12} aria-label="Geschreven op deze dag" style={{ color: 'var(--bg-app)' }} />}
+            </div>
+            <span style={{ fontSize: 8, color: isVandaag ? 'var(--text-2)' : 'var(--text-4)', fontWeight: isVandaag ? 800 : 400, textTransform: 'capitalize' }}>{dag}</span>
+          </div>
+        ))}
+      </div>
+      {streak > 0 && (
+        <div style={{ textAlign: 'center', paddingLeft: 12, borderLeft: '1px solid var(--border)', flexShrink: 0 }}>
+          <p style={{ fontSize: 20, fontWeight: 900, color: 'var(--mf-green)', margin: 0, lineHeight: 1 }}>{afgekapt ? `${Math.min(streak, 30)}+` : streak}</p>
+          <p style={{ fontSize: 9, color: 'var(--text-4)', margin: '2px 0 0', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>daagse<br />streak</p>
+        </div>
+      )}
+    </div>
+  )
+}
+
+interface EntryKaartProps {
+  entry: Entry
+  open: boolean
+  onToggle: () => void
+  onVerwijderVraag: () => void
+}
+
+function EntryKaart({ entry, open, onToggle, onVerwijderVraag }: EntryKaartProps) {
+  const preview = entry.inhoud.length > 160 ? entry.inhoud.slice(0, 160) + '...' : entry.inhoud
+  return (
+    <article style={{ background: 'var(--bg-card)', borderRadius: 16, border: '1px solid var(--border)', padding: '18px 20px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          {entry.stemming !== null && <StemmingDot waarde={entry.stemming} />}
+          <p style={{ fontSize: 12, color: 'var(--text-4)', textTransform: 'capitalize' }}>{formatDatum(entry.aangemaakt_op)}</p>
+        </div>
+        <button
+          onClick={onVerwijderVraag}
+          className="mf-journal-del"
+          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-4)', padding: 9, margin: -5, display: 'flex', borderRadius: 8, transition: 'color 0.15s var(--ease), background 0.15s var(--ease)' }}
+          aria-label="Aantekening verwijderen"
+          title="Verwijder"
+        >
+          <Trash2 size={14} aria-hidden />
+        </button>
+      </div>
+      <p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>
+        {open ? entry.inhoud : preview}
+      </p>
+      {entry.inhoud.length > 160 && (
+        <button
+          onClick={onToggle}
+          className="mf-journal-meer"
+          style={{ fontSize: 12, marginTop: 8, fontWeight: 600, color: 'var(--mf-green)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+        >
+          {open ? 'Minder tonen' : 'Meer tonen'}
+        </button>
+      )}
+    </article>
+  )
+}
+
 export default function JournalPagina() {
   const router = useRouter()
   const { toast } = useToast()
   const tekstId = useId()
+  const veldRef = useRef<HTMLTextAreaElement | null>(null)
   const [entries, setEntries] = useState<Entry[]>([])
   const [laden, setLaden] = useState(true)
-  const [nieuwTonen, setNieuwTonen] = useState(false)
   const [tekst, setTekst] = useState('')
   const [stemming, setStemming] = useState<number | null>(null)
   const [opslaan, setOpslaan] = useState(false)
+  const [opgeslagen, setOpgeslagen] = useState(false)
   const [userId, setUserId] = useState<string | null>(null)
   const [uitgevouwen, setUitgevouwen] = useState<string | null>(null)
   const [aiPrompt, setAiPrompt] = useState<string | null>(null)
@@ -129,6 +249,19 @@ export default function JournalPagina() {
     laad()
   }, [router, toast])
 
+  // Direct kunnen typen: focus het veld zodra de pagina er staat — alleen op
+  // brede schermen, zodat op mobiel het toetsenbord niet ongevraagd opent.
+  useEffect(() => {
+    if (laden) return
+    if (window.innerWidth >= 768) veldRef.current?.focus({ preventScroll: true })
+  }, [laden])
+
+  function wijzigTekst(waarde: string) {
+    // Nieuwe wijziging → 'Opgeslagen'-staat is niet meer waar.
+    setOpgeslagen(false)
+    setTekst(waarde)
+  }
+
   async function slaOp() {
     if (!tekst.trim() || !userId) return
     setOpslaan(true)
@@ -141,10 +274,10 @@ export default function JournalPagina() {
       setEntries(prev => [data, ...prev])
       setTekst('')
       setStemming(null)
-      setNieuwTonen(false)
+      setOpgeslagen(true)
       vitaEvent('data_logged', { kind: 'journal' })
     } else {
-      toast({ title: 'Opslaan mislukt', description: 'Je aantekening kon niet worden opgeslagen. Probeer het opnieuw.', variant: 'error' })
+      toast({ title: 'Opslaan mislukt', description: 'Je aantekening kon niet worden opgeslagen. Probeer het opnieuw — je tekst staat er nog.', variant: 'error' })
     }
     setOpslaan(false)
   }
@@ -176,217 +309,162 @@ export default function JournalPagina() {
     }
   }
 
+  // Schrijf-consistentie uit echte, al opgehaalde data: aantal entries in de
+  // huidige week (ma t/m nu, lokale tijd). Geen aparte fetch, geen schatting.
+  const maandagKey = dagKey(maandagVan(new Date()))
+  const vandaagKey = dagKey(new Date())
+  const dezeWeekAantal = entries.filter(e => dagKey(new Date(e.aangemaakt_op)) >= maandagKey).length
+  const bevestiging = dezeWeekAantal >= 2
+    ? `Opgeslagen — je ${dezeWeekAantal}e aantekening deze week.`
+    : 'Opgeslagen — alleen zichtbaar voor jou.'
+
+  // Historie scanbaar per dag/week: vandaag / eerder deze week / eerder.
+  const groepen = [
+    { label: 'Vandaag', items: entries.filter(e => dagKey(new Date(e.aangemaakt_op)) === vandaagKey) },
+    { label: 'Eerder deze week', items: entries.filter(e => { const k = dagKey(new Date(e.aangemaakt_op)); return k >= maandagKey && k !== vandaagKey }) },
+    { label: 'Eerder', items: entries.filter(e => dagKey(new Date(e.aangemaakt_op)) < maandagKey) },
+  ].filter(g => g.items.length > 0)
+
   return (
     <div className="mf-mesh-bg" style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
       <Navbar />
       <style>{`
         .mf-journal-del:hover { color: var(--mf-red); background: var(--mf-red-light); }
         .mf-journal-del:focus-visible { outline: 2px solid var(--mentaforce-primary); outline-offset: 2px; }
+        .mf-journal-chip { transition: border-color 0.15s var(--ease), color 0.15s var(--ease), background 0.15s var(--ease); }
+        .mf-journal-chip:hover { border-color: var(--border-strong); color: var(--text-2); }
+        .mf-journal-chip:focus-visible,
+        .mf-journal-meer:focus-visible,
+        .mf-journal-ai:focus-visible { outline: 2px solid var(--mentaforce-primary); outline-offset: 2px; border-radius: 8px; }
       `}</style>
       <main style={{ padding: '24px 20px 88px', maxWidth: 800, margin: '0 auto' }}>
 
         {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{ position: 'relative', width: 44, height: 44, flexShrink: 0 }}>
-              <div aria-hidden style={{
-                position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
-                width: 72, height: 72, borderRadius: '50%',
-                background: `radial-gradient(circle, ${stemming ? (STEMMING_GLOW[stemming] ?? 'var(--mf-purple-light)') : 'var(--mf-purple-light)'} 0%, transparent 70%)`,
-                zIndex: 0,
-              }} />
-              <div style={{ width: 44, height: 44, borderRadius: 14, background: 'var(--mf-purple-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', zIndex: 1, color: 'var(--mf-purple)' }}>
-                <BookOpen size={22} aria-hidden />
-              </div>
-            </div>
-            <div>
-              <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 2 }}>Journal</h1>
-              <p style={{ color: 'var(--text-4)', fontSize: 13 }}>Schrijf vrij — alleen zichtbaar voor jou.</p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
+          <div style={{ position: 'relative', width: 44, height: 44, flexShrink: 0 }}>
+            <div aria-hidden style={{
+              position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
+              width: 72, height: 72, borderRadius: '50%',
+              background: `radial-gradient(circle, ${stemming ? (STEMMING_GLOW[stemming] ?? 'var(--mf-purple-light)') : 'var(--mf-purple-light)'} 0%, transparent 70%)`,
+              zIndex: 0,
+            }} />
+            <div style={{ width: 44, height: 44, borderRadius: 14, background: 'var(--mf-purple-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', zIndex: 1, color: 'var(--mf-purple)' }}>
+              <BookOpen size={22} aria-hidden />
             </div>
           </div>
-          {!nieuwTonen && (
-            <button
-              onClick={() => setNieuwTonen(true)}
-              style={{
-                display: 'inline-flex', alignItems: 'center', gap: 6,
-                background: 'linear-gradient(135deg, var(--mf-green) 0%, var(--mf-green-dark) 100%)', color: 'var(--bg-app)',
-                borderRadius: 12, padding: '10px 18px',
-                fontSize: 14, fontWeight: 700, border: 'none', cursor: 'pointer',
-              }}
-            >
-              <Plus size={14} strokeWidth={2.5} aria-hidden />
-              Nieuwe aantekening
-            </button>
-          )}
+          <div>
+            <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 2 }}>Journal</h1>
+            <p style={{ color: 'var(--text-4)', fontSize: 13 }}>Schrijf vrij — alleen zichtbaar voor jou.</p>
+          </div>
         </div>
 
-        {/* Nieuw entry form */}
-        {nieuwTonen && (
-          <div style={{ background: 'var(--bg-card)', borderRadius: 20, border: '1px solid var(--border)', padding: '24px', marginBottom: 20 }}>
+        {/* Schrijven vandaag — het hoofdmoment, altijd open en klaar */}
+        <section aria-label="Nieuwe aantekening" style={{ background: 'var(--bg-card)', borderRadius: 20, border: '1px solid var(--border)', padding: '24px', marginBottom: 20 }}>
 
-            {/* AI Prompt */}
-            <div style={{ background: 'var(--mf-purple-light)', borderRadius: 12, padding: '12px 16px', marginBottom: 18, border: '1px solid var(--border-strong)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: aiPrompt ? 8 : 0 }}>
-                <p style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--mf-purple)' }}>
-                  <Sparkles size={13} aria-hidden />
-                  AI reflectievraag
-                </p>
-                <button
-                  onClick={genereerPrompt}
-                  disabled={aiPromptLaden}
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11, fontWeight: 600, color: 'var(--mf-purple)', background: 'none', border: 'none', cursor: aiPromptLaden ? 'default' : 'pointer', opacity: aiPromptLaden ? 0.5 : 1 }}
-                >
-                  {aiPromptLaden ? 'Laden...' : aiPrompt ? <><RefreshCw size={12} aria-hidden /> Nieuw</> : 'Genereer →'}
-                </button>
-              </div>
-              {aiPrompt && (
-                <button
-                  onClick={() => setTekst(prev => prev ? `${prev}\n\n${aiPrompt}\n` : `${aiPrompt}\n`)}
-                  style={{ fontSize: 13, color: 'var(--mf-purple)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, textAlign: 'left', lineHeight: 1.5, fontStyle: 'italic' }}
-                >
-                  &ldquo;{aiPrompt}&rdquo; →
-                </button>
-              )}
-            </div>
+          <Field label="Vandaag" htmlFor={tekstId} hint="Eén of twee zinnen is genoeg — het hoeft nergens heen.">
+            <Textarea
+              ref={veldRef}
+              rows={5}
+              value={tekst}
+              onChange={e => wijzigTekst(e.target.value)}
+              placeholder="Begin te schrijven..."
+              style={{ lineHeight: 1.7 }}
+            />
+          </Field>
 
-            {/* Stemming picker */}
-            <p id={`${tekstId}-stemming-label`} style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-3)', marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Hoe voel je je?</p>
-            <div role="group" aria-labelledby={`${tekstId}-stemming-label`} style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 18 }}>
-              {STEMMINGEN.map(s => {
-                const actief = stemming === s.waarde
-                const Icoon = s.icoon
-                return (
-                  <button
-                    key={s.waarde}
-                    type="button"
-                    aria-pressed={actief}
-                    onClick={() => setStemming(actief ? null : s.waarde)}
-                    style={{
-                      display: 'inline-flex', alignItems: 'center', gap: 6,
-                      padding: '7px 14px', borderRadius: 100, border: `2px solid ${actief ? s.kleur : 'var(--border)'}`,
-                      background: actief ? s.bg : 'var(--bg-subtle)', cursor: 'pointer',
-                      fontSize: 12, fontWeight: 700, color: actief ? s.kleur : 'var(--text-3)',
-                      transition: 'border-color 0.15s var(--ease), color 0.15s var(--ease)',
-                    }}
-                  >
-                    <Icoon size={14} aria-hidden />
-                    {s.label}
-                  </button>
-                )
-              })}
-            </div>
-
-            {/* Prompt chips */}
-            <p id={`${tekstId}-schrijftip-label`} style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-3)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Schrijftip</p>
-            <div role="group" aria-labelledby={`${tekstId}-schrijftip-label`} style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 14 }}>
-              {PROMPTS.map(p => (
+          {/* Stemming (optioneel) */}
+          <p id={`${tekstId}-stemming-label`} style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-3)', margin: '18px 0 10px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Hoe voel je je?</p>
+          <div role="group" aria-labelledby={`${tekstId}-stemming-label`} style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            {STEMMINGEN.map(s => {
+              const actief = stemming === s.waarde
+              const Icoon = s.icoon
+              return (
                 <button
-                  key={p}
+                  key={s.waarde}
                   type="button"
-                  onClick={() => setTekst(prev => prev ? `${prev}\n\n${p}\n` : `${p}\n`)}
+                  aria-pressed={actief}
+                  onClick={() => setStemming(actief ? null : s.waarde)}
+                  className="mf-journal-chip"
                   style={{
-                    fontSize: 12, border: '1px solid var(--border)', borderRadius: 8,
-                    padding: '5px 12px', color: 'var(--text-3)', background: 'var(--bg-subtle)', cursor: 'pointer',
+                    display: 'inline-flex', alignItems: 'center', gap: 6,
+                    padding: '7px 14px', borderRadius: 100, border: `2px solid ${actief ? s.kleur : 'var(--border)'}`,
+                    background: actief ? s.bg : 'var(--bg-subtle)', cursor: 'pointer',
+                    fontSize: 12, fontWeight: 700, color: actief ? s.kleur : 'var(--text-3)',
                   }}
                 >
-                  {p}
+                  <Icoon size={14} aria-hidden />
+                  {s.label}
                 </button>
-              ))}
-            </div>
+              )
+            })}
+          </div>
 
-            <Field label="Je aantekening" htmlFor={tekstId}>
-              <Textarea
-                autoFocus
-                rows={6}
-                value={tekst}
-                onChange={e => setTekst(e.target.value)}
-                placeholder="Begin te schrijven..."
-                style={{ lineHeight: 1.7 }}
-              />
-            </Field>
-
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 12 }}>
+          {/* Schrijftips — rustige hulp, onder het hoofdmoment */}
+          <p id={`${tekstId}-schrijftip-label`} style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-3)', margin: '18px 0 8px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Even geen idee?</p>
+          <div role="group" aria-labelledby={`${tekstId}-schrijftip-label`} style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+            <button
+              type="button"
+              onClick={genereerPrompt}
+              disabled={aiPromptLaden}
+              className="mf-journal-chip"
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 5,
+                fontSize: 12, fontWeight: 600, border: '1px solid var(--border)', borderRadius: 8,
+                padding: '5px 12px', color: 'var(--mf-purple)', background: 'var(--mf-purple-light)',
+                cursor: aiPromptLaden ? 'default' : 'pointer', opacity: aiPromptLaden ? 0.5 : 1,
+              }}
+            >
+              {aiPrompt ? <RefreshCw size={12} aria-hidden /> : <Sparkles size={13} aria-hidden />}
+              {aiPromptLaden ? 'Laden...' : aiPrompt ? 'Nieuwe AI-vraag' : 'AI-reflectievraag'}
+            </button>
+            {PROMPTS.map(p => (
               <button
-                onClick={() => { setNieuwTonen(false); setTekst(''); setStemming(null) }}
-                style={{ fontSize: 13, border: '1px solid var(--border-strong)', borderRadius: 10, padding: '9px 16px', color: 'var(--text-2)', background: 'var(--bg-subtle)', cursor: 'pointer' }}
-              >
-                Annuleer
-              </button>
-              <button
-                onClick={slaOp}
-                disabled={!tekst.trim() || opslaan}
+                key={p}
+                type="button"
+                onClick={() => wijzigTekst(tekst ? `${tekst}\n\n${p}\n` : `${p}\n`)}
+                className="mf-journal-chip"
                 style={{
-                  fontSize: 13, borderRadius: 10, padding: '9px 18px',
-                  color: 'var(--bg-app)', fontWeight: 700, border: 'none', cursor: tekst.trim() && !opslaan ? 'pointer' : 'default',
-                  background: tekst.trim() ? 'linear-gradient(135deg, var(--mf-green) 0%, var(--mf-green-dark) 100%)' : 'var(--border-strong)',
-                  opacity: opslaan ? 0.7 : 1,
+                  fontSize: 12, border: '1px solid var(--border)', borderRadius: 8,
+                  padding: '5px 12px', color: 'var(--text-3)', background: 'var(--bg-subtle)', cursor: 'pointer',
                 }}
               >
-                {opslaan ? 'Opslaan...' : 'Opslaan'}
+                {p}
               </button>
-            </div>
+            ))}
           </div>
-        )}
+          {aiPrompt && (
+            <button
+              type="button"
+              onClick={() => wijzigTekst(tekst ? `${tekst}\n\n${aiPrompt}\n` : `${aiPrompt}\n`)}
+              className="mf-journal-ai mf-fade-in"
+              style={{ display: 'block', fontSize: 13, marginTop: 10, color: 'var(--mf-purple)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, textAlign: 'left', lineHeight: 1.5, fontStyle: 'italic' }}
+            >
+              &ldquo;{aiPrompt}&rdquo; →
+            </button>
+          )}
 
-        {/* 7-daags activiteitstrip */}
-        {!laden && entries.length > 0 && !nieuwTonen && (() => {
-          const vandaag = new Date()
-          const vandaagStr = vandaag.toISOString().split('T')[0]
-          const datumSet = new Set(entries.map(e => e.aangemaakt_op.split('T')[0]))
-          const strip = Array.from({ length: 7 }, (_, i) => {
-            const d = new Date(vandaag)
-            d.setDate(d.getDate() - (6 - i))
-            const ds = d.toISOString().split('T')[0]
-            return { ds, dag: d.toLocaleDateString('nl-NL', { weekday: 'short' }).slice(0, 2), actief: datumSet.has(ds), isVandaag: ds === vandaagStr }
-          })
-          // Streak los van de 7-daagse strip: loop vanaf vandaag terug zolang er
-          // op elke dag een entry staat. We laden max 50 entries; reikt de reeks
-          // tot aan de oudst geladen entry, dan kan ze in werkelijkheid langer
-          // zijn — dat tonen we eerlijk als "N+".
-          const { streak, streakAfgekapt } = (() => {
-            let n = 0
-            const d = new Date(vandaag)
-            while (datumSet.has(d.toISOString().split('T')[0])) {
-              n++
-              d.setDate(d.getDate() - 1)
-            }
-            const oudsteGeladen = entries[entries.length - 1]?.aangemaakt_op.split('T')[0]
-            const oudsteInStreak = new Date(vandaag)
-            oudsteInStreak.setDate(oudsteInStreak.getDate() - (n - 1))
-            const afgekapt = n > 0 && entries.length >= 50 && oudsteGeladen !== undefined
-              && oudsteInStreak.toISOString().split('T')[0] <= oudsteGeladen
-            return { streak: n, streakAfgekapt: afgekapt }
-          })()
-          return (
-            <div style={{ background: 'var(--bg-card)', borderRadius: 16, padding: '14px 16px', marginBottom: 20, border: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 16 }}>
-              <div style={{ flex: 1, display: 'flex', gap: 6 }}>
-                {strip.map(({ ds, dag, actief, isVandaag }) => (
-                  <div key={ds} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-                    <div style={{
-                      width: '100%', height: 28, borderRadius: 6,
-                      background: actief ? 'var(--mf-green)' : 'var(--bg-subtle)',
-                      opacity: actief ? 0.85 : 0.5,
-                      outline: isVandaag ? '2px solid var(--mf-green)' : 'none',
-                      outlineOffset: 2,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    }}>
-                      {actief && <PenLine size={12} aria-label="Geschreven op deze dag" style={{ color: 'var(--bg-app)' }} />}
-                    </div>
-                    <span style={{ fontSize: 8, color: isVandaag ? 'var(--text-2)' : 'var(--text-4)', fontWeight: isVandaag ? 800 : 400, textTransform: 'capitalize' }}>{dag}</span>
-                  </div>
-                ))}
-              </div>
-              {streak > 0 && (
-                <div style={{ textAlign: 'center', paddingLeft: 12, borderLeft: '1px solid var(--border)', flexShrink: 0 }}>
-                  <p style={{ fontSize: 20, fontWeight: 900, color: 'var(--mf-green)', margin: 0, lineHeight: 1 }}>{streakAfgekapt ? `${Math.min(streak, 30)}+` : streak}</p>
-                  <p style={{ fontSize: 9, color: 'var(--text-4)', margin: '2px 0 0', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>daagse<br />streak</p>
-                </div>
+          {/* Opslaan + kalm opslagmoment. De bevestigingsregel deelt de rij met
+              de knop (vaste hoogte) → geen layout-shift. */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 20 }}>
+            <div aria-live="polite" style={{ flex: 1, minHeight: 20, display: 'flex', alignItems: 'center' }}>
+              {opgeslagen && (
+                <span className="mf-fade-in" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--text-2)' }}>
+                  <Check size={14} aria-hidden style={{ color: 'var(--mentaforce-primary)', flexShrink: 0 }} />
+                  {bevestiging}
+                </span>
               )}
             </div>
-          )
-        })()}
+            <Button
+              onClick={slaOp}
+              loading={opslaan}
+              disabled={!tekst.trim() || opslaan}
+            >
+              {opslaan ? 'Opslaan...' : 'Opslaan'}
+            </Button>
+          </div>
+        </section>
 
-        {/* Entries */}
+        {/* Historie — rustig onder het schrijfmoment */}
         {laden ? (
           <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 60 }}>
             <div className="mf-spinner" />
@@ -395,60 +473,32 @@ export default function JournalPagina() {
           <VitaLeegScherm
             emotion="curious"
             titel="Je eerste paar regels"
-            boodschap="Schrijf gewoon op wat er in je opkomt — een gedachte, je dag, waar je mee zit. Alleen jij leest dit terug."
-          >
-            <button
-              onClick={() => setNieuwTonen(true)}
-              style={{
-                display: 'inline-flex', alignItems: 'center', gap: 6,
-                background: 'var(--mentaforce-primary)', color: 'var(--bg-app)',
-                border: 'none', borderRadius: 12, padding: '11px 20px',
-                fontSize: 14, fontWeight: 700, cursor: 'pointer',
-                transition: 'transform 0.15s var(--ease), opacity 0.15s var(--ease)',
-              }}
-            >
-              <Plus size={15} strokeWidth={2.5} aria-hidden />
-              Begin nu
-            </button>
-          </VitaLeegScherm>
+            boodschap="Begin hierboven met wat er nu in je opkomt — een gedachte, je dag, waar je mee zit. Alleen jij leest dit terug."
+          />
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {entries.map(e => {
-              const s = STEMMINGEN.find(m => m.waarde === e.stemming)
-              const isOpen = uitgevouwen === e.id
-              const preview = e.inhoud.length > 160 ? e.inhoud.slice(0, 160) + '...' : e.inhoud
-              return (
-                <div key={e.id} style={{ background: 'var(--bg-card)', borderRadius: 16, border: '1px solid var(--border)', padding: '18px 20px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                      {s && <StemmingDot waarde={s.waarde} />}
-                      <p style={{ fontSize: 12, color: 'var(--text-4)', textTransform: 'capitalize' }}>{formatDatum(e.aangemaakt_op)}</p>
-                    </div>
-                    <button
-                      onClick={() => setVerwijderId(e.id)}
-                      className="mf-journal-del"
-                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-4)', padding: 9, margin: -5, display: 'flex', borderRadius: 8, transition: 'color 0.15s var(--ease), background 0.15s var(--ease)' }}
-                      aria-label="Aantekening verwijderen"
-                      title="Verwijder"
-                    >
-                      <Trash2 size={14} aria-hidden />
-                    </button>
+          <>
+            <ActiviteitStrip entries={entries} />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+              {groepen.map(groep => (
+                <section key={groep.label} aria-label={groep.label}>
+                  <h2 style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 10px 2px' }}>
+                    {groep.label}
+                  </h2>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    {groep.items.map(e => (
+                      <EntryKaart
+                        key={e.id}
+                        entry={e}
+                        open={uitgevouwen === e.id}
+                        onToggle={() => setUitgevouwen(uitgevouwen === e.id ? null : e.id)}
+                        onVerwijderVraag={() => setVerwijderId(e.id)}
+                      />
+                    ))}
                   </div>
-                  <p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>
-                    {isOpen ? e.inhoud : preview}
-                  </p>
-                  {e.inhoud.length > 160 && (
-                    <button
-                      onClick={() => setUitgevouwen(isOpen ? null : e.id)}
-                      style={{ fontSize: 12, marginTop: 8, fontWeight: 600, color: 'var(--mf-green)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
-                    >
-                      {isOpen ? 'Minder tonen' : 'Meer tonen'}
-                    </button>
-                  )}
-                </div>
-              )
-            })}
-          </div>
+                </section>
+              ))}
+            </div>
+          </>
         )}
       </main>
 

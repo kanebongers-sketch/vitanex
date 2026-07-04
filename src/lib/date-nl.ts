@@ -61,3 +61,48 @@ function offsetNL(): string {
 export function toDateString(value: string): string {
   return value.slice(0, 10)
 }
+
+function alsLokaleDatumString(d: Date): string {
+  return [
+    d.getFullYear(),
+    String(d.getMonth() + 1).padStart(2, '0'),
+    String(d.getDate()).padStart(2, '0'),
+  ].join('-')
+}
+
+/**
+ * Maandag van de week waarin `nu` valt, als 'YYYY-MM-DD'.
+ * - Ook op zondag (getDay() === 0) blijft dit de HUIDIGE week.
+ * - Lokale datumdelen (client-side = tijdzone van de gebruiker):
+ *   toISOString() (UTC) schuift rond middernacht lokale tijd een dag terug
+ *   en schreef dan naar de vórige week.
+ */
+export function bepaalWeekStart(nu: Date): string {
+  const d = new Date(nu)
+  d.setDate(d.getDate() - ((d.getDay() + 6) % 7))
+  return alsLokaleDatumString(d)
+}
+
+function vorigeWeek(weekStart: string): string {
+  const [jaar, maand, dag] = weekStart.split('-').map(Number)
+  return alsLokaleDatumString(new Date(jaar, maand - 1, dag - 7))
+}
+
+/**
+ * Aantal aaneengesloten weken (t/m nu) met een entry, op basis van de al
+ * opgehaalde week-starts. Is er deze week nog niets opgeslagen, dan telt de
+ * reeks vanaf vorige week — zo blijft het ritme zichtbaar terwijl je invult.
+ */
+export function berekenWekenOpRij(
+  weekStarts: readonly string[],
+  huidigeWeekStart: string,
+): number {
+  const bekend = new Set(weekStarts)
+  let cursor = bekend.has(huidigeWeekStart) ? huidigeWeekStart : vorigeWeek(huidigeWeekStart)
+  let aantal = 0
+  while (bekend.has(cursor)) {
+    aantal += 1
+    cursor = vorigeWeek(cursor)
+  }
+  return aantal
+}

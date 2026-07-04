@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Check, History, BookOpen } from 'lucide-react'
+import { bepaalWeekStart, berekenWekenOpRij } from '@/lib/date-nl'
 import { supabase } from '@/lib/supabase'
 import { vitaEvent } from '@/lib/vita/events'
 import Navbar from '@/components/layout/Navbar'
@@ -14,13 +15,7 @@ import { useToast } from '@/components/ui/Toast'
 import VitaReflectieBegeleider from '@/components/vita/VitaReflectieBegeleider'
 import ReflectieHistorie from './ReflectieHistorie'
 import ReflectieVraagStap from './ReflectieVraagStap'
-import {
-  REFLECTIE_VRAGEN,
-  bepaalWeekStart,
-  berekenWekenOpRij,
-  eersteOpenVraag,
-  type ReflectieEntry,
-} from './reflectieVragen'
+import { REFLECTIE_VRAGEN, eersteOpenVraag, type ReflectieEntry } from './reflectieVragen'
 
 export default function ReflectiePage() {
   const router = useRouter()

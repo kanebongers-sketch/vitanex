@@ -8,6 +8,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Field } from '@/components/ui/Field'
+import { StepDots } from '@/components/ui/StepDots'
 import { Textarea } from '@/components/ui/Textarea'
 import VitaReflectieBegeleider from '@/components/vita/VitaReflectieBegeleider'
 import { REFLECTIE_VRAGEN } from './reflectieVragen'
@@ -42,44 +43,15 @@ export default function ReflectieVraagStap({
         <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-3)', letterSpacing: '0.02em' }}>
           Vraag {index + 1} van {totaal}
         </p>
-        <nav aria-label="Reflectievragen" style={{ display: 'flex', gap: 2 }}>
-          {REFLECTIE_VRAGEN.map((v, i) => {
-            const isActief = i === index
-            return (
-              <button
-                key={v.id}
-                type="button"
-                onClick={() => onKies(i)}
-                className="mf-reflectie-dot"
-                aria-label={`Vraag ${i + 1}: ${v.vraag}${beantwoord[i] ? ' (beantwoord)' : ''}`}
-                aria-current={isActief ? 'step' : undefined}
-                style={{
-                  width: 24,
-                  height: 24,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  padding: 0,
-                  background: 'transparent',
-                  border: 'none',
-                  cursor: 'pointer',
-                }}
-              >
-                <span
-                  aria-hidden
-                  style={{
-                    width: 6,
-                    height: 6,
-                    borderRadius: 3,
-                    background: beantwoord[i] ? 'var(--mentaforce-primary)' : 'var(--border-strong)',
-                    boxShadow: isActief ? '0 0 0 3px var(--mentaforce-primary-light)' : 'none',
-                    transition: 'background 0.2s var(--ease), box-shadow 0.2s var(--ease)',
-                  }}
-                />
-              </button>
-            )
-          })}
-        </nav>
+        <StepDots
+          count={totaal}
+          activeIndex={index}
+          completed={beantwoord}
+          onSelect={onKies}
+          navLabel="Reflectievragen"
+          stepLabel={i => `Vraag ${i + 1}: ${REFLECTIE_VRAGEN[i].vraag}${beantwoord[i] ? ' (beantwoord)' : ''}`}
+          gap={2}
+        />
       </div>
 
       {/* key = vraag.id: zachte fade + 4px slide (mf-fade-in, 250ms) bij het
@@ -125,14 +97,6 @@ export default function ReflectieVraagStap({
           Volgende
         </Button>
       </div>
-
-      <style>{`
-        .mf-reflectie-dot:focus-visible {
-          outline: 2px solid var(--mentaforce-primary);
-          outline-offset: 2px;
-          border-radius: 6px;
-        }
-      `}</style>
     </Card>
   )
 }

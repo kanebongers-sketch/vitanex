@@ -1,6 +1,7 @@
 // Historie van eerdere weekreflecties — puur presentational.
 
 import { Card } from '@/components/ui/Card'
+import { StepDots } from '@/components/ui/StepDots'
 import { REFLECTIE_VRAGEN, type ReflectieEntry } from './reflectieVragen'
 
 interface ReflectieHistorieProps {
@@ -30,19 +31,11 @@ export default function ReflectieHistorie({ entries }: ReflectieHistorieProps) {
                 <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-1)' }}>Week van {datum}</p>
                 <p style={{ fontSize: 11, color: 'var(--text-3)' }}>{aantalIngevuld} van {totaal} vragen</p>
               </div>
-              <div style={{ display: 'flex', gap: 3 }} aria-hidden>
-                {REFLECTIE_VRAGEN.map((vraag, i) => (
-                  <div
-                    key={vraag.id}
-                    style={{
-                      width: 6,
-                      height: 6,
-                      borderRadius: 2,
-                      background: i < aantalIngevuld ? 'var(--mentaforce-primary)' : 'var(--border-strong)',
-                    }}
-                  />
-                ))}
-              </div>
+              <StepDots
+                count={totaal}
+                completed={REFLECTIE_VRAGEN.map((_, i) => i < aantalIngevuld)}
+                dotRadius={2}
+              />
             </div>
             {e.antwoorden?.hoogtepunt && (
               <p style={{ fontSize: 12, color: 'var(--text-2)', lineHeight: 1.5, fontStyle: 'italic', borderLeft: '2px solid var(--mentaforce-primary)', paddingLeft: 10 }}>
