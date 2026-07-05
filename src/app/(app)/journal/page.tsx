@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation'
 import {
   BookOpen,
   Check,
+  Pencil,
   Trash2,
   RefreshCw,
   Sparkles,
@@ -173,11 +174,17 @@ interface EntryKaartProps {
   entry: Entry
   open: boolean
   onToggle: () => void
+  onBewerk: () => void
   onVerwijderVraag: () => void
 }
 
-function EntryKaart({ entry, open, onToggle, onVerwijderVraag }: EntryKaartProps) {
+function EntryKaart({ entry, open, onToggle, onBewerk, onVerwijderVraag }: EntryKaartProps) {
   const preview = entry.inhoud.length > 160 ? entry.inhoud.slice(0, 160) + '...' : entry.inhoud
+  const knopStijl = {
+    background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-4)',
+    padding: 9, display: 'flex', borderRadius: 8,
+    transition: 'color 0.15s var(--ease), background 0.15s var(--ease)',
+  } as const
   return (
     <article style={{ background: 'var(--bg-card)', borderRadius: 16, border: '1px solid var(--border)', padding: '18px 20px' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
@@ -185,15 +192,26 @@ function EntryKaart({ entry, open, onToggle, onVerwijderVraag }: EntryKaartProps
           {entry.stemming !== null && <StemmingDot waarde={entry.stemming} />}
           <p style={{ fontSize: 12, color: 'var(--text-4)', textTransform: 'capitalize' }}>{formatDatum(entry.aangemaakt_op)}</p>
         </div>
-        <button
-          onClick={onVerwijderVraag}
-          className="mf-journal-del"
-          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-4)', padding: 9, margin: -5, display: 'flex', borderRadius: 8, transition: 'color 0.15s var(--ease), background 0.15s var(--ease)' }}
-          aria-label="Aantekening verwijderen"
-          title="Verwijder"
-        >
-          <Trash2 size={14} aria-hidden />
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 2, margin: '-5px -5px -5px 0' }}>
+          <button
+            onClick={onBewerk}
+            className="mf-journal-edit"
+            style={knopStijl}
+            aria-label="Bewerken"
+            title="Bewerk"
+          >
+            <Pencil size={14} aria-hidden />
+          </button>
+          <button
+            onClick={onVerwijderVraag}
+            className="mf-journal-del"
+            style={knopStijl}
+            aria-label="Aantekening verwijderen"
+            title="Verwijder"
+          >
+            <Trash2 size={14} aria-hidden />
+          </button>
+        </div>
       </div>
       <p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>
         {open ? entry.inhoud : preview}
@@ -216,13 +234,20 @@ export default function JournalPagina() {
   const { toast } = useToast()
   const tekstId = useId()
   const veldRef = useRef<HTMLTextAreaElement | null>(null)
+  const schrijfkaartRef = useRef<HTMLElement | null>(null)
   const [entries, setEntries] = useState<Entry[]>([])
   const [laden, setLaden] = useState(true)
   const [tekst, setTekst] = useState('')
   const [stemming, setStemming] = useState<number | null>(null)
   const [opslaan, setOpslaan] = useState(false)
-  const [opgeslagen, setOpgeslagen] = useState(false)
+  // Onderscheid nieuw vs. bewerkt: een edit is geen nieuwe aantekening en telt
+  // dus niet mee in de consistentie-regel ("je 3e aantekening deze week").
+  const [opgeslagen, setOpgeslagen] = useState<'nieuw' | 'bewerkt' | null>(null)
   const [userId, setUserId] = useState<string | null>(null)
+  // Entry die in de schrijfkaart wordt bewerkt; het lopende concept parkeren we
+  // zolang in een ref, zodat annuleren nooit onverwacht tekst weggooit.
+  const [bewerkId, setBewerkId] = useState<string | null>(null)
+  const conceptRef = useRef<{ tekst: string; stemming: number | null }>({ tekst: '', stemming: null })
   const [uitgevouwen, setUitgevouwen] = useState<string | null>(null)
   const [aiPrompt, setAiPrompt] = useState<string | null>(null)
   const [aiPromptLaden, setAiPromptLaden] = useState(false)
@@ -258,8 +283,37 @@ export default function JournalPagina() {
 
   function wijzigTekst(waarde: string) {
     // Nieuwe wijziging → 'Opgeslagen'-staat is niet meer waar.
-    setOpgeslagen(false)
+    setOpgeslagen(null)
     setTekst(waarde)
+  }
+
+  /** Terug naar nieuw-schrijven, met het geparkeerde concept weer in het veld. */
+  function herstelConcept() {
+    setBewerkId(null)
+    setTekst(conceptRef.current.tekst)
+    setStemming(conceptRef.current.stemming)
+    conceptRef.current = { tekst: '', stemming: null }
+  }
+
+  function startBewerken(entry: Entry) {
+    // Alleen bij de overgang vanaf nieuw-schrijven het concept parkeren; wissel
+    // je van de ene naar de andere entry, dan blijft het oorspronkelijke concept staan.
+    if (!bewerkId) conceptRef.current = { tekst, stemming }
+    setBewerkId(entry.id)
+    setTekst(entry.inhoud)
+    setStemming(entry.stemming)
+    setOpgeslagen(null)
+    const rustig = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    schrijfkaartRef.current?.scrollIntoView({ behavior: rustig ? 'auto' : 'smooth', block: 'start' })
+    veldRef.current?.focus({ preventScroll: true })
+  }
+
+  function annuleerBewerken() {
+    // Bewust geen confirm-dialog: annuleren ís de expliciete keuze om de
+    // wijziging los te laten. Het eerdere concept komt gewoon terug.
+    herstelConcept()
+    setOpgeslagen(null)
+    veldRef.current?.focus({ preventScroll: true })
   }
 
   async function slaOp() {
@@ -274,10 +328,33 @@ export default function JournalPagina() {
       setEntries(prev => [data, ...prev])
       setTekst('')
       setStemming(null)
-      setOpgeslagen(true)
+      setOpgeslagen('nieuw')
       vitaEvent('data_logged', { kind: 'journal' })
     } else {
       toast({ title: 'Opslaan mislukt', description: 'Je aantekening kon niet worden opgeslagen. Probeer het opnieuw — je tekst staat er nog.', variant: 'error' })
+    }
+    setOpslaan(false)
+  }
+
+  async function slaWijzigingOp() {
+    if (!tekst.trim() || !userId || !bewerkId) return
+    const origineel = entries.find(e => e.id === bewerkId)
+    if (!origineel) { herstelConcept(); return }
+    const inhoud = tekst.trim()
+    setOpslaan(true)
+    // Optimistisch: de kaart toont de wijziging direct; bij een fout rollen we terug.
+    setEntries(prev => prev.map(e => (e.id === bewerkId ? { ...e, inhoud, stemming } : e)))
+    const { error } = await supabase
+      .from('journal_entries')
+      .update({ inhoud, stemming })
+      .eq('id', bewerkId)
+      .eq('user_id', userId)
+    if (!error) {
+      herstelConcept()
+      setOpgeslagen('bewerkt')
+    } else {
+      setEntries(prev => prev.map(e => (e.id === origineel.id ? origineel : e)))
+      toast({ title: 'Opslaan mislukt', description: 'Je wijziging kon niet worden opgeslagen. Probeer het opnieuw — je tekst staat er nog.', variant: 'error' })
     }
     setOpslaan(false)
   }
@@ -286,6 +363,8 @@ export default function JournalPagina() {
     const { error } = await supabase.from('journal_entries').delete().eq('id', id)
     if (!error) {
       setEntries(prev => prev.filter(e => e.id !== id))
+      // Werd precies deze entry bewerkt? Dan terug naar nieuw-schrijven.
+      if (id === bewerkId) herstelConcept()
     } else {
       toast({ title: 'Verwijderen mislukt', description: 'De aantekening kon niet worden verwijderd.', variant: 'error' })
     }
@@ -314,9 +393,12 @@ export default function JournalPagina() {
   const maandagKey = dagKey(maandagVan(new Date()))
   const vandaagKey = dagKey(new Date())
   const dezeWeekAantal = entries.filter(e => dagKey(new Date(e.aangemaakt_op)) >= maandagKey).length
-  const bevestiging = dezeWeekAantal >= 2
-    ? `Opgeslagen — je ${dezeWeekAantal}e aantekening deze week.`
-    : 'Opgeslagen — alleen zichtbaar voor jou.'
+  // Een bewerking is geen nieuwe aantekening: geen weektelling, gewoon neutraal.
+  const bevestiging = opgeslagen === 'bewerkt'
+    ? 'Opgeslagen.'
+    : dezeWeekAantal >= 2
+      ? `Opgeslagen — je ${dezeWeekAantal}e aantekening deze week.`
+      : 'Opgeslagen — alleen zichtbaar voor jou.'
 
   // Historie scanbaar per dag/week: vandaag / eerder deze week / eerder.
   const groepen = [
@@ -330,7 +412,12 @@ export default function JournalPagina() {
       <Navbar />
       <style>{`
         .mf-journal-del:hover { color: var(--mf-red); background: var(--mf-red-light); }
-        .mf-journal-del:focus-visible { outline: 2px solid var(--mentaforce-primary); outline-offset: 2px; }
+        .mf-journal-edit:hover { color: var(--mentaforce-primary); background: var(--bg-subtle); }
+        .mf-journal-del:focus-visible,
+        .mf-journal-edit:focus-visible { outline: 2px solid var(--mentaforce-primary); outline-offset: 2px; }
+        .mf-journal-annuleer { transition: color 0.15s var(--ease); }
+        .mf-journal-annuleer:hover { color: var(--text-1); }
+        .mf-journal-annuleer:focus-visible { outline: 2px solid var(--mentaforce-primary); outline-offset: 2px; border-radius: 8px; }
         .mf-journal-chip { transition: border-color 0.15s var(--ease), color 0.15s var(--ease), background 0.15s var(--ease); }
         .mf-journal-chip:hover { border-color: var(--border-strong); color: var(--text-2); }
         .mf-journal-chip:focus-visible,
@@ -358,10 +445,16 @@ export default function JournalPagina() {
           </div>
         </div>
 
-        {/* Schrijven vandaag — het hoofdmoment, altijd open en klaar */}
-        <section aria-label="Nieuwe aantekening" style={{ background: 'var(--bg-card)', borderRadius: 20, border: '1px solid var(--border)', padding: '24px', marginBottom: 20 }}>
+        {/* Schrijven vandaag — het hoofdmoment, altijd open en klaar. Dezelfde
+            kaart is ook de bewerkplek: rustiger dan een tweede formulier.
+            scrollMarginTop houdt de kaart onder de vaste mobiele topbar. */}
+        <section
+          ref={schrijfkaartRef}
+          aria-label={bewerkId ? 'Aantekening bewerken' : 'Nieuwe aantekening'}
+          style={{ background: 'var(--bg-card)', borderRadius: 20, border: '1px solid var(--border)', padding: '24px', marginBottom: 20, scrollMarginTop: 64 }}
+        >
 
-          <Field label="Vandaag" htmlFor={tekstId} hint="Eén of twee zinnen is genoeg — het hoeft nergens heen.">
+          <Field label={bewerkId ? 'Aantekening bewerken' : 'Vandaag'} htmlFor={tekstId} hint="Eén of twee zinnen is genoeg — het hoeft nergens heen.">
             <Textarea
               ref={veldRef}
               rows={5}
@@ -447,19 +540,30 @@ export default function JournalPagina() {
               de knop (vaste hoogte) → geen layout-shift. */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 20 }}>
             <div aria-live="polite" style={{ flex: 1, minHeight: 20, display: 'flex', alignItems: 'center' }}>
-              {opgeslagen && (
+              {opgeslagen !== null && (
                 <span className="mf-fade-in" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--text-2)' }}>
                   <Check size={14} aria-hidden style={{ color: 'var(--mentaforce-primary)', flexShrink: 0 }} />
                   {bevestiging}
                 </span>
               )}
             </div>
+            {bewerkId !== null && (
+              <button
+                type="button"
+                onClick={annuleerBewerken}
+                disabled={opslaan}
+                className="mf-journal-annuleer"
+                style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-3)', background: 'none', border: 'none', cursor: opslaan ? 'default' : 'pointer', padding: '4px 8px', opacity: opslaan ? 0.5 : 1 }}
+              >
+                Annuleren
+              </button>
+            )}
             <Button
-              onClick={slaOp}
+              onClick={bewerkId !== null ? slaWijzigingOp : slaOp}
               loading={opslaan}
               disabled={!tekst.trim() || opslaan}
             >
-              {opslaan ? 'Opslaan...' : 'Opslaan'}
+              {opslaan ? 'Opslaan...' : bewerkId !== null ? 'Wijzigingen opslaan' : 'Opslaan'}
             </Button>
           </div>
         </section>
@@ -491,6 +595,7 @@ export default function JournalPagina() {
                         entry={e}
                         open={uitgevouwen === e.id}
                         onToggle={() => setUitgevouwen(uitgevouwen === e.id ? null : e.id)}
+                        onBewerk={() => startBewerken(e)}
                         onVerwijderVraag={() => setVerwijderId(e.id)}
                       />
                     ))}

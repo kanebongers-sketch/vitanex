@@ -30,18 +30,32 @@ interface DoelKaartProps {
   netGelogd: boolean
   /** Weekdoel zojuist behaald (7/7) — badge verschijnt met zachte fade. */
   netBehaald: boolean
+  /**
+   * Hoe vaak dit doel vórige week gehaald is — alleen doorgegeven als hetzelfde
+   * doel toen ook bestond én er echte historie is. undefined = geen vergelijking tonen.
+   */
+  vorigeWeekGehaald?: number
   onLog: (doel: WeekDoel, gehaald: boolean) => void
   onDetails: (doel: WeekDoel) => void
 }
 
 /** Weektrack: 7 dagcellen met daglabel; vandaag krijgt een gestippelde rand zolang er niet gelogd is. */
-function WeekTrack({ doel, cat, weekDagen, gelogd }: { doel: WeekDoel; cat: CatInfo; weekDagen: string[]; gelogd: boolean }) {
+function WeekTrack({ doel, cat, weekDagen, gelogd, vorigeWeekGehaald }: {
+  doel: WeekDoel; cat: CatInfo; weekDagen: string[]; gelogd: boolean; vorigeWeekGehaald?: number
+}) {
   const aantalGehaald = weekDagen.filter(dag => doel.logs.find(l => l.datum === dag)?.gehaald === true).length
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8, marginBottom: 6 }}>
         <span style={{ fontSize: 11, color: 'var(--text-4)' }}>Deze week</span>
-        <span style={{ fontSize: 11, fontWeight: 700, color: cat.kleur }}>{aantalGehaald}/7 dagen</span>
+        <span style={{ fontSize: 11, fontVariantNumeric: 'tabular-nums' }}>
+          {/* Feitelijke week-op-week-referentie — gedempt, zonder oordeel.
+              Alleen aanwezig als dit doel vorige week ook bestond. */}
+          {vorigeWeekGehaald !== undefined && (
+            <span style={{ color: 'var(--text-4)', fontWeight: 500 }}>vorige week {vorigeWeekGehaald}× · </span>
+          )}
+          <span style={{ fontWeight: 700, color: cat.kleur }}>{aantalGehaald}/7 dagen</span>
+        </span>
       </div>
       <div style={{ display: 'flex', gap: 3 }} role="img" aria-label={`${aantalGehaald} van 7 dagen gehaald deze week`}>
         {weekDagen.map((dag, i) => {
@@ -75,7 +89,7 @@ function WeekTrack({ doel, cat, weekDagen, gelogd }: { doel: WeekDoel; cat: CatI
 }
 
 export default function DoelKaart({
-  doel, cat, weekDagen, isVolgendeStap, netGelogd, netBehaald, onLog, onDetails,
+  doel, cat, weekDagen, isVolgendeStap, netGelogd, netBehaald, vorigeWeekGehaald, onLog, onDetails,
 }: DoelKaartProps) {
   const gelogd = isVandaagGelogd(doel)
   const gehaaldVandaag = logVandaag(doel)?.gehaald === true
@@ -153,7 +167,7 @@ export default function DoelKaart({
         </div>
       </div>
 
-      <WeekTrack doel={doel} cat={cat} weekDagen={weekDagen} gelogd={gelogd} />
+      <WeekTrack doel={doel} cat={cat} weekDagen={weekDagen} gelogd={gelogd} vorigeWeekGehaald={vorigeWeekGehaald} />
 
       {/* Acties — vaste hoogte zodat afvinken geen layout-shift geeft */}
       {gelogd ? (

@@ -19,6 +19,7 @@ import { useToast } from '@/components/ui/Toast'
 import VitaLeegScherm from '@/components/vita/VitaLeegScherm'
 import { PremiumSlot } from '@/components/ui/PremiumSlot'
 import MetriekenPaneel from './MetriekenPaneel'
+import WeekdoelenBlok from './WeekdoelenBlok'
 import {
   heeftWeekData, scoreLabelKleur, type Rapport, type WeekRapportResponse,
 } from './weekrapport'
@@ -227,6 +228,10 @@ export default function InzichtenPagina() {
             )}
           </>
         )}
+
+        {/* 4. Weekdoelen — bewust het enige localStorage-blok op dit scherm;
+            al het andere komt uit de weekrapport-API (zie WeekdoelenBlok). */}
+        {!premiumNodig && !laden && <WeekdoelenBlok />}
       </main>
     </div>
   )

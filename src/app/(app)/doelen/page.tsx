@@ -11,9 +11,9 @@ import Navbar from '@/components/layout/Navbar'
 import { verwerkGoalLog, verwerkGoalVoltooid, LEVEL_NAMEN, type Achievement } from '@/lib/xp'
 import { syncXPNaarServer } from '@/lib/xp-sync'
 import {
-  type WellbeingCat, type WeekDoel, type WeekSelectie,
+  type WellbeingCat, type WeekDoel, type WeekSelectie, type WeekHistorieEntry,
   vandaag, laadWeekSelectie, slaWeekSelectieOp, isVandaagGelogd, logVandaag,
-  scoreKleur, berekenStreak,
+  scoreKleur, berekenStreak, laadWeekHistorie,
 } from '@/lib/weekdoelen'
 import { CAT } from '@/lib/doelen-config'
 import { authFetch } from '@/lib/auth-fetch'
@@ -48,6 +48,29 @@ function maakWeekDagen(weekStart: string): string[] {
   })
 }
 
+/**
+ * De historie-entry van exact de week vóór de actieve week, of null.
+ * Alleen de direct voorafgaande week telt als "vorige week" — een oudere
+ * entry (gat in de historie) levert géén vergelijking op. Lege historie
+ * (vóór de eerste week-rollover) geeft vanzelf null: dan tonen we niets.
+ */
+function vindVorigeWeek(weekStart: string, historie: WeekHistorieEntry[]): WeekHistorieEntry | null {
+  const d = new Date(weekStart)
+  d.setDate(d.getDate() - 7)
+  const vorigeStart = d.toISOString().slice(0, 10)
+  return historie.find(h => h.weekStart === vorigeStart) ?? null
+}
+
+/**
+ * Hoe vaak hetzelfde doel (vlak + titel) vorige week gehaald is, of undefined
+ * als het doel toen niet bestond (of de opgeslagen teller corrupt is) —
+ * dan is er eerlijkheidshalve geen vergelijking te maken.
+ */
+function vorigeWeekGehaaldVoor(doel: WeekDoel, vorigeWeek: WeekHistorieEntry | null): number | undefined {
+  const match = vorigeWeek?.doelen.find(v => v.vlak === doel.vlak && v.doel_titel === doel.doel_titel)
+  return typeof match?.gehaald === 'number' && match.gehaald >= 0 ? match.gehaald : undefined
+}
+
 /* Kaart-hover en check-pop — zelfde karakter als home (150–250ms, alleen
    transform/opacity), met reduced-motion overrides. */
 const DOELEN_STYLES = `
@@ -72,6 +95,9 @@ function DoelenInhoud() {
   const { toast } = useToast()
   const [klaar, setKlaar]         = useState(false)
   const [selectie, setSelectie]   = useState<WeekSelectie | null>(null)
+  // Week-op-week: de afgeronde week direct vóór de actieve week (of null).
+  // Momentopname bij laden — de historie verandert niet tijdens de sessie.
+  const [vorigeWeek, setVorigeWeek] = useState<WeekHistorieEntry | null>(null)
   // Cross-device eerlijkheid: staat er op de server al een check-in van deze week,
   // ook al zijn de doelen op dít apparaat niet lokaal bekend?
   const [heeftCheckinDezeWeek, setHeeftCheckinDezeWeek] = useState(false)
@@ -144,6 +170,7 @@ function DoelenInhoud() {
       const sel = laadWeekSelectie()
       setSelectie(sel)
       if (sel && sel.doelen.length) {
+        setVorigeWeek(vindVorigeWeek(sel.weekStart, laadWeekHistorie()))
         // Hiërarchie bij binnenkomst: open doelen eerst, vandaag-al-gelogde eronder.
         const volgorde = [...sel.doelen]
           .sort((a, b) => Number(isVandaagGelogd(a)) - Number(isVandaagGelogd(b)))
@@ -303,6 +330,14 @@ function DoelenInhoud() {
   const aantalGehaaldVandaag = selectie.doelen.filter(d => logVandaag(d)?.gehaald === true).length
   const vlakLabels = selectie.doelen.map(d => CAT[d.vlak]?.label ?? d.vlak)
 
+  // Week-op-week, alleen met échte historie (gevuld ná de eerste rollover).
+  // Feitelijk en schuldvrij: we tellen wat er vorige week gelogd-gehaald is,
+  // zonder oordeel. Corrupte tellers vallen weg via de number-check.
+  const vorigeWeekGehaald = vorigeWeek
+    ? vorigeWeek.doelen.reduce((som, d) => som + (typeof d.gehaald === 'number' && d.gehaald >= 0 ? d.gehaald : 0), 0)
+    : 0
+  const vorigeWeekTotaalDagen = (vorigeWeek?.doelen.length ?? 0) * 7
+
   // Vaste volgorde uit de momentopname bij laden (open doelen eerst).
   const gesorteerdeDoelen = doelVolgorde.length
     ? [...selectie.doelen].sort((a, b) => doelVolgorde.indexOf(a.vlak) - doelVolgorde.indexOf(b.vlak))
@@ -379,6 +414,7 @@ function DoelenInhoud() {
               isVolgendeStap={doel.vlak === volgendeStapVlak}
               netGelogd={doel.vlak === netGelogdVlak}
               netBehaald={doel.vlak === netBehaaldVlak}
+              vorigeWeekGehaald={vorigeWeekGehaaldVoor(doel, vorigeWeek)}
               onLog={(d, gehaald) => logGehaald(d, gehaald)}
               onDetails={openLog}
             />
@@ -399,9 +435,18 @@ function DoelenInhoud() {
               )
             })}
           </div>
-          <p style={{ fontSize: 12, color: 'var(--text-4)' }}>
-            {aantalGelogdVandaag}/{selectie.doelen.length} vandaag gelogd
-          </p>
+          <div style={{ textAlign: 'right' }}>
+            <p style={{ fontSize: 12, color: 'var(--text-4)', fontVariantNumeric: 'tabular-nums' }}>
+              {aantalGelogdVandaag}/{selectie.doelen.length} vandaag gelogd
+            </p>
+            {/* Alleen tonen met echte historie van exact de vorige week — geen
+                schattingen, geen "0" bij een lege historie. Feitelijk, zonder oordeel. */}
+            {vorigeWeek && vorigeWeekTotaalDagen > 0 && (
+              <p style={{ fontSize: 11, color: 'var(--text-4)', marginTop: 2, fontVariantNumeric: 'tabular-nums' }}>
+                Vorige week {vorigeWeekGehaald} van {vorigeWeekTotaalDagen} dagen gehaald
+              </p>
+            )}
+          </div>
         </Card>
 
         {/* Domein scores */}
