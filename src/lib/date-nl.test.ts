@@ -2,6 +2,7 @@ import { afterEach, describe, expect, test, vi } from 'vitest'
 import {
   bepaalWeekStart,
   berekenWekenOpRij,
+  dagKey,
   dagstartUtcNL,
   datumMinusDagenNL,
   huidigUurNL,
@@ -129,6 +130,50 @@ describe('toDateString', () => {
 
   test('kapt een ISO-timestamp af tot de datum', () => {
     expect(toDateString('2026-07-03T08:15:30.000Z')).toBe('2026-07-03')
+  })
+})
+
+describe('dagKey', () => {
+  /** Lokale YYYY-MM-DD van een Date — onafhankelijke referentie-berekening. */
+  function ymdLokaal(d: Date): string {
+    return [
+      d.getFullYear(),
+      String(d.getMonth() + 1).padStart(2, '0'),
+      String(d.getDate()).padStart(2, '0'),
+    ].join('-')
+  }
+
+  test('formatteert met zero-padding van maand en dag', () => {
+    // Arrange: 5 januari dwingt padding van beide delen af
+    const datum = new Date(2026, 0, 5, 12, 0)
+    // Act & Assert
+    expect(dagKey(datum)).toBe('2026-01-05')
+  })
+
+  test('houdt vlak na middernacht de lokale kalenderdag aan, niet de UTC-dag', () => {
+    // Arrange: 1 juli 00:30 in de LOKALE tijdzone. Op elke machine oost van
+    // UTC zou toISOString() hier '2026-06-30' geven — dagKey moet 1 juli geven.
+    const netNaMiddernacht = new Date(2026, 6, 1, 0, 30)
+    // Act & Assert
+    expect(dagKey(netNaMiddernacht)).toBe('2026-07-01')
+  })
+
+  test('houdt vlak vóór middernacht nog de oude lokale dag aan', () => {
+    const netVoorMiddernacht = new Date(2026, 5, 30, 23, 59)
+    expect(dagKey(netVoorMiddernacht)).toBe('2026-06-30')
+  })
+
+  test('gebruikt zonder argument het huidige moment', () => {
+    // Arrange: vast tijdstip; verwachte waarde onafhankelijk berekend met
+    // dezelfde lokale kalender als de machine waarop de test draait.
+    zetKlokOp('2026-06-30T22:30:00Z')
+    // Act & Assert
+    expect(dagKey()).toBe(ymdLokaal(new Date()))
+  })
+
+  test('is consistent met bepaalWeekStart: een maandag is zijn eigen weekstart', () => {
+    const maandag = new Date(2026, 5, 29, 10, 0)
+    expect(dagKey(maandag)).toBe(bepaalWeekStart(maandag))
   })
 })
 

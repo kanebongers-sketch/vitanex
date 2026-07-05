@@ -1,5 +1,7 @@
 // ─── XP / Fit Level system (localStorage-backed, no DB) ──────────────────────
 
+import { bepaalWeekStart, dagKey } from '@/lib/date-nl'
+
 export interface XPEvent {
   datum: string   // YYYY-MM-DD
   xp: number      // verdiende XP (altijd positief — er is geen straf/decay)
@@ -126,8 +128,14 @@ export function slaXPOp(data: XPData): void {
 
 // ─── Core helpers ─────────────────────────────────────────────────────────────
 
+// Datum-overgang: events kregen vroeger een UTC-dag via toISOString() —
+// een event om 00:30 lokale tijd telde zo bij de vórige dag/week. Sinds deze
+// fix gebruiken we de lokale dagKey(). Reeds opgeslagen events houden hun
+// UTC-afgeleide sleutel, maar het formaat (YYYY-MM-DD) is identiek, dus oude
+// data blijft gewoon leesbaar en vergelijkbaar; hooguit staat een oud
+// rond-middernacht-event één dag te vroeg. Nieuwe events zijn correct.
 function verdienXP(data: XPData, hoeveel: number, reden: string, type: XPEvent['type']): XPData {
-  const event: XPEvent = { datum: new Date().toISOString().slice(0, 10), xp: hoeveel, reden, type }
+  const event: XPEvent = { datum: dagKey(), xp: hoeveel, reden, type }
   return {
     ...data,
     xp: Math.max(0, data.xp + hoeveel),
@@ -135,15 +143,15 @@ function verdienXP(data: XPData, hoeveel: number, reden: string, type: XPEvent['
   }
 }
 
+/** Parseert een YYYY-MM-DD dagsleutel als LOKALE datum — new Date('YYYY-MM-DD')
+ *  is UTC-middernacht en verschuift op machines west van UTC een dag terug. */
+function parseDagKey(s: string): Date {
+  const [jaar, maand, dag] = s.split('-').map(Number)
+  return new Date(jaar, maand - 1, dag)
+}
+
 function sameISOWeek(d1: string, d2: string): boolean {
-  const weekStart = (s: string) => {
-    const d = new Date(s)
-    const day = d.getDay() === 0 ? 6 : d.getDay() - 1
-    d.setDate(d.getDate() - day)
-    d.setHours(0, 0, 0, 0)
-    return d.getTime()
-  }
-  return weekStart(d1) === weekStart(d2)
+  return bepaalWeekStart(parseDagKey(d1)) === bepaalWeekStart(parseDagKey(d2))
 }
 
 function checkAndAwardAchievements(data: XPData): { data: XPData; nieuw: Achievement[] } {
@@ -184,7 +192,7 @@ export function verwerkCheckin(gemiddeldeScore: number): XPResult {
   let data = laadXPData()
   const oudLevel = berekenLevel(data.xp)
 
-  const vandaag = new Date().toISOString().slice(0, 10)
+  const vandaag = dagKey()
   const alAl = data.lastCheckinDatum && sameISOWeek(data.lastCheckinDatum, vandaag)
   let totaalXP = 0
 
@@ -219,7 +227,7 @@ export function verwerkGoalLog(streakLengte: number): XPResult {
   let data = laadXPData()
   const oudLevel = berekenLevel(data.xp)
 
-  const vandaag = new Date().toISOString().slice(0, 10)
+  const vandaag = dagKey()
   let totaalXP = 0
 
   if (data.lastGoalLogDatum !== vandaag) {

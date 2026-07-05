@@ -71,6 +71,19 @@ function alsLokaleDatumString(d: Date): string {
 }
 
 /**
+ * Lokale kalenderdag als 'YYYY-MM-DD' — de centrale dag-sleutel voor
+ * client-side opslag (localStorage-keys, dag-vergelijkingen).
+ *
+ * Bewust lokale datumdelen, géén toISOString(): die serialiseert naar UTC en
+ * schuift vlak na middernacht lokale tijd een dag terug (00:30 NL = 22:30/23:30
+ * UTC de dag ervoor). Client-side draait dit in de tijdzone van de gebruiker;
+ * voor server-side NL-datums gebruik je `vandaagNL()`.
+ */
+export function dagKey(datum: Date = new Date()): string {
+  return alsLokaleDatumString(datum)
+}
+
+/**
  * Maandag van de week waarin `nu` valt, als 'YYYY-MM-DD'.
  * - Ook op zondag (getDay() === 0) blijft dit de HUIDIGE week.
  * - Lokale datumdelen (client-side = tijdzone van de gebruiker):

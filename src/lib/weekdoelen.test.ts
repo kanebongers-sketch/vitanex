@@ -3,6 +3,7 @@ import {
   berekenStreak,
   getMaandag,
   isVandaagGelogd,
+  laadWeekHistorie,
   laadWeekSelectie,
   logVandaag,
   scoreKleur,
@@ -30,6 +31,23 @@ function dagPlus(offset: number): string {
   const d = new Date()
   d.setDate(d.getDate() + offset)
   return ymdLokaal(d)
+}
+
+/** Minimale in-memory localStorage voor de node-environment. */
+function maakLocalStorageStub() {
+  const opslag = new Map<string, string>()
+  return {
+    getItem: (sleutel: string) => opslag.get(sleutel) ?? null,
+    setItem: (sleutel: string, waarde: string) => {
+      opslag.set(sleutel, waarde)
+    },
+    removeItem: (sleutel: string) => {
+      opslag.delete(sleutel)
+    },
+    clear: () => {
+      opslag.clear()
+    },
+  }
 }
 
 function maakDoel(logs: GoalLog[]): WeekDoel {
@@ -212,23 +230,6 @@ describe('scoreKleur en scoreLabel', () => {
 })
 
 describe('laadWeekSelectie en slaWeekSelectieOp', () => {
-  /** Minimale in-memory localStorage voor de node-environment. */
-  function maakLocalStorageStub() {
-    const opslag = new Map<string, string>()
-    return {
-      getItem: (sleutel: string) => opslag.get(sleutel) ?? null,
-      setItem: (sleutel: string, waarde: string) => {
-        opslag.set(sleutel, waarde)
-      },
-      removeItem: (sleutel: string) => {
-        opslag.delete(sleutel)
-      },
-      clear: () => {
-        opslag.clear()
-      },
-    }
-  }
-
   function maakSelectie(weekStart: string): WeekSelectie {
     return {
       weekStart,
@@ -273,5 +274,138 @@ describe('laadWeekSelectie en slaWeekSelectieOp', () => {
     localStorage.setItem('mf-week-doelen-v2', 'geen-geldige-json{')
     // Act & Assert
     expect(laadWeekSelectie()).toBeNull()
+  })
+})
+
+describe('laadWeekHistorie en week-rollover', () => {
+  const HISTORIE_KEY = 'mf-week-doelen-historie-v1'
+
+  function maakSelectie(weekStart: string, logs: GoalLog[] = []): WeekSelectie {
+    return {
+      weekStart,
+      doelen: [maakDoel(logs)],
+      vlak_scores: { slaap: 10 },
+    }
+  }
+
+  beforeEach(() => {
+    vi.stubGlobal('localStorage', maakLocalStorageStub())
+  })
+
+  test('geeft [] bij lege opslag', () => {
+    expect(laadWeekHistorie()).toEqual([])
+  })
+
+  test('geeft [] bij corrupte JSON in plaats van een exception', () => {
+    localStorage.setItem(HISTORIE_KEY, 'geen-geldige-json{')
+    expect(laadWeekHistorie()).toEqual([])
+  })
+
+  test('filtert entries met een ongeldig formaat weg', () => {
+    // Arrange: één geldige en twee ongeldige entries
+    localStorage.setItem(HISTORIE_KEY, JSON.stringify([
+      { weekStart: '2026-06-22', doelen: [] },
+      { weekStart: 'niet-een-datum', doelen: [] },
+      { doelen: [] },
+      42,
+    ]))
+    // Act & Assert
+    expect(laadWeekHistorie()).toEqual([{ weekStart: '2026-06-22', doelen: [] }])
+  })
+
+  test('archiveert een verlopen week bij laden, met per doel het aantal gehaalde dagen', () => {
+    // Arrange: selectie van vorige week (nu = wo 1 jul) met 2 van 3 logs gehaald
+    slaWeekSelectieOp(maakSelectie('2026-06-22', [
+      { datum: '2026-06-22', gehaald: true },
+      { datum: '2026-06-23', gehaald: false },
+      { datum: '2026-06-24', gehaald: true },
+    ]))
+    // Act: rollover — laden geeft null én archiveert
+    expect(laadWeekSelectie()).toBeNull()
+    const historie = laadWeekHistorie()
+    // Assert
+    expect(historie).toHaveLength(1)
+    expect(historie[0].weekStart).toBe('2026-06-22')
+    expect(historie[0].doelen).toEqual([{
+      vlak: 'slaap',
+      doel_titel: 'Voor 23:00 naar bed',
+      target_waarde: 5,
+      eenheid: 'avonden',
+      gehaald: 2,
+    }])
+  })
+
+  test('herhaald laden van dezelfde verlopen week levert geen dubbele entry op', () => {
+    // Arrange
+    slaWeekSelectieOp(maakSelectie('2026-06-22'))
+    // Act
+    laadWeekSelectie()
+    laadWeekSelectie()
+    // Assert
+    expect(laadWeekHistorie()).toHaveLength(1)
+  })
+
+  test('de actieve week wordt niet gearchiveerd', () => {
+    // Arrange: selectie van déze week (ma 29 jun, nu = wo 1 jul)
+    const selectie = maakSelectie('2026-06-29')
+    slaWeekSelectieOp(selectie)
+    // Act
+    expect(laadWeekSelectie()).toEqual(selectie)
+    // Assert
+    expect(laadWeekHistorie()).toEqual([])
+  })
+
+  test('een toekomstige (corrupte) weekStart wordt niet gearchiveerd', () => {
+    slaWeekSelectieOp(maakSelectie('2026-07-13'))
+    expect(laadWeekSelectie()).toBeNull()
+    expect(laadWeekHistorie()).toEqual([])
+  })
+
+  test('overschrijven met een nieuwe week archiveert de oude selectie alsnog', () => {
+    // Arrange: oude week staat nog in opslag, zonder tussenliggende load
+    slaWeekSelectieOp(maakSelectie('2026-06-22', [{ datum: '2026-06-22', gehaald: true }]))
+    // Act: nieuwe week direct opslaan
+    slaWeekSelectieOp(maakSelectie('2026-06-29'))
+    // Assert: oude week gearchiveerd, nieuwe week actief
+    expect(laadWeekHistorie().map(h => h.weekStart)).toEqual(['2026-06-22'])
+    expect(laadWeekSelectie()?.weekStart).toBe('2026-06-29')
+  })
+
+  test('opnieuw opslaan van dezelfde week archiveert niets', () => {
+    slaWeekSelectieOp(maakSelectie('2026-06-29'))
+    slaWeekSelectieOp(maakSelectie('2026-06-29', [{ datum: '2026-06-29', gehaald: true }]))
+    expect(laadWeekHistorie()).toEqual([])
+  })
+
+  test('houdt maximaal 8 weken vast, nieuwste eerst', () => {
+    // Arrange: 10 opeenvolgende maandagen archiveren, oudste eerst
+    // (2026-04-20 + 7n zijn allemaal maandagen vóór de huidige week van 2026-06-29,
+    // zodat de afsluitende save van de huidige week ze allemaal laat archiveren)
+    const maandagen = Array.from({ length: 10 }, (_, i) => {
+      const d = new Date(2026, 3, 20 + i * 7)
+      return [
+        d.getFullYear(),
+        String(d.getMonth() + 1).padStart(2, '0'),
+        String(d.getDate()).padStart(2, '0'),
+      ].join('-')
+    })
+    // Act: elke week opslaan en daarna door de volgende laten overschrijven
+    for (const maandag of maandagen) {
+      slaWeekSelectieOp(maakSelectie(maandag))
+    }
+    slaWeekSelectieOp(maakSelectie('2026-06-29'))
+    // Assert: alleen de 8 nieuwste blijven over (de laatste opgeslagen is actief)
+    const historie = laadWeekHistorie()
+    expect(historie).toHaveLength(8)
+    expect(historie.map(h => h.weekStart)).toEqual([...maandagen].reverse().slice(0, 8))
+  })
+
+  test('bestaande opslag zonder historie-sleutel blijft gewoon werken', () => {
+    // Arrange: alleen een actieve-week-selectie, geen historie (oude gebruikers)
+    const selectie = maakSelectie('2026-06-29')
+    localStorage.setItem('mf-week-doelen-v2', JSON.stringify(selectie))
+    // Act & Assert
+    expect(laadWeekSelectie()).toEqual(selectie)
+    expect(laadWeekHistorie()).toEqual([])
   })
 })
