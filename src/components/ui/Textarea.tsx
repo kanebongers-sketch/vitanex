@@ -7,7 +7,6 @@ import {
   useLayoutEffect,
   useRef,
   type CSSProperties,
-  type FormEvent,
   type RefObject,
   type TextareaHTMLAttributes,
 } from 'react';
@@ -129,7 +128,9 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(function 
   const isControlled = rest.value !== undefined;
   useAutoGrowFallback(innerRef, autoGrow, rest.value);
 
-  const handleInput = (event: FormEvent<HTMLTextAreaElement>) => {
+  // Type de handler af van de prop zelf: in deze Next-typing verwacht
+  // `onInput` een InputEvent<HTMLTextAreaElement>, niet een FormEvent.
+  const handleInput: NonNullable<TextareaProps['onInput']> = (event) => {
     // Ongecontroleerd gebruik heeft geen value-prop; meet dan op input-events.
     if (autoGrow && !isControlled && !supportsFieldSizing()) {
       resizeToContent(event.currentTarget);
