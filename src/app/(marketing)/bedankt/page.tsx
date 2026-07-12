@@ -3,13 +3,13 @@
 import { useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
-import { supabase } from '@/lib/supabase'
-import { verwerkCheckin, laadXPData, LEVEL_NAMEN, LEVEL_KLEUREN, type Achievement } from '@/lib/xp'
-import { syncXPNaarServer } from '@/lib/xp-sync'
+import { supabase } from '@/lib/supabase/supabase'
+import { verwerkCheckin, laadXPData, LEVEL_NAMEN, LEVEL_KLEUREN, type Achievement } from '@/lib/xp/xp'
+import { syncXPNaarServer } from '@/lib/xp/xp-sync'
 import {
   type WellbeingCat, type WeekDoel, type WeekSelectie,
   getMaandag, slaWeekSelectieOp, scoreKleur, scoreLabel,
-} from '@/lib/weekdoelen'
+} from '@/lib/doelen/weekdoelen'
 
 
 // ─── Types ────────────────────────────────────────────────────────────────────

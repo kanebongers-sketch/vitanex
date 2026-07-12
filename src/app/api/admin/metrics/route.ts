@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getAuthenticatedUser } from '@/lib/api-auth'
-import { createAdminClient } from '@/lib/supabase-admin'
+import { getAuthenticatedUser } from '@/lib/auth/api-auth'
+import { createAdminClient } from '@/lib/supabase/supabase-admin'
 
 export const dynamic = 'force-dynamic'
 

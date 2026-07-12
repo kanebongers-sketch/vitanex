@@ -4,7 +4,7 @@ export const dynamic = 'force-dynamic'
 import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { supabase } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase/supabase'
 import Navbar from '@/components/layout/Navbar'
 import {
   Dumbbell, Flame, Clock, ChevronRight, Sparkles, Play,
@@ -14,7 +14,7 @@ import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Progress } from '@/components/ui/Progress'
 import { EmptyState } from '@/components/ui/EmptyState'
-import { DOEL_CONFIG, type FitnessDoel } from '@/lib/gezondheid-berekeningen'
+import { DOEL_CONFIG, type FitnessDoel } from '@/lib/health/gezondheid-berekeningen'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 

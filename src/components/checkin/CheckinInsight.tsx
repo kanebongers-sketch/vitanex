@@ -3,9 +3,9 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Sparkles, TrendingUp, MessageCircle, ArrowRight } from 'lucide-react'
-import { authFetch } from '@/lib/auth-fetch'
-import { CAT } from '@/lib/doelen-config'
-import type { WellbeingCat } from '@/lib/weekdoelen'
+import { authFetch } from '@/lib/auth/auth-fetch'
+import { CAT } from '@/lib/doelen/doelen-config'
+import type { WellbeingCat } from '@/lib/doelen/weekdoelen'
 
 const VLAKKEN: WellbeingCat[] = ['slaap', 'stress', 'energie', 'focus', 'balans', 'motivatie']
 

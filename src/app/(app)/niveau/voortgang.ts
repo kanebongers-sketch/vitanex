@@ -8,7 +8,7 @@
 // heel oude weken kunnen onvolledig zijn — daarom kijken we maximaal 4 weken
 // terug.
 
-import type { XPEvent } from '@/lib/xp'
+import type { XPEvent } from '@/lib/xp/xp'
 
 export interface WeekDag {
   /** Kort NL-label: 'ma' … 'zo'. */

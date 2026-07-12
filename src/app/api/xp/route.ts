@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getAuthenticatedUser } from '@/lib/api-auth'
-import { createAdminClient } from '@/lib/supabase-admin'
-import type { XPData } from '@/lib/xp'
-import { isVerdachteXpSprong, MAX_XP_DELTA_PER_SYNC } from '@/lib/xp-guard'
+import { getAuthenticatedUser } from '@/lib/auth/api-auth'
+import { createAdminClient } from '@/lib/supabase/supabase-admin'
+import type { XPData } from '@/lib/xp/xp'
+import { isVerdachteXpSprong, MAX_XP_DELTA_PER_SYNC } from '@/lib/xp/xp-guard'
 
 export const dynamic = 'force-dynamic'
 

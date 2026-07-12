@@ -1,9 +1,9 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase'
-import { ACTIVITEITEN } from '@/lib/activiteiten'
-import type { ActiviteitKey as AKey } from '@/lib/activiteiten'
+import { supabase } from '@/lib/supabase/supabase'
+import { ACTIVITEITEN } from '@/lib/navigatie/activiteiten'
+import type { ActiviteitKey as AKey } from '@/lib/navigatie/activiteiten'
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 

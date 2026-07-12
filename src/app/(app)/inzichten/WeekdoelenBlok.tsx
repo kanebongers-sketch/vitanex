@@ -12,7 +12,7 @@ import { Card } from '@/components/ui/Card'
 import {
   laadWeekHistorie, laadWeekSelectie,
   type WeekHistorieEntry, type WeekSelectie,
-} from '@/lib/weekdoelen'
+} from '@/lib/doelen/weekdoelen'
 import {
   doelmomentenTekst, telHistorieGehaald, telWeekMomenten, vorigeWeek, vorigeWeekTekst,
 } from './weekdoelen-blok'

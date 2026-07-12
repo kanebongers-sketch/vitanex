@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { stuurTelegram } from '@/lib/telegram'
+import { stuurTelegram } from '@/lib/integraties/telegram'
 
 // Eenmalige trigger — stuurt de huidige weekplanning via Telegram
 export async function GET(req: NextRequest) {

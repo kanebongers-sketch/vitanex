@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
-import { getAuthenticatedUser } from '@/lib/api-auth'
+import { getAuthenticatedUser } from '@/lib/auth/api-auth'
 
 if (!process.env.ANTHROPIC_API_KEY) {
   // Gracefully handled at runtime

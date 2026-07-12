@@ -20,7 +20,7 @@ import {
   LogOut,
   type LucideIcon,
 } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase/supabase'
 
 type NavItem = { href: string; icon: LucideIcon; label: string; exact?: boolean }
 type NavSection = { label: string; items: NavItem[] }

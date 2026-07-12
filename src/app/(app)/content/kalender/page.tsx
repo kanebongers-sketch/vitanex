@@ -6,7 +6,7 @@ import { useEffect, useState, useCallback, useRef } from 'react'
 import type { LucideIcon } from 'lucide-react'
 import { Camera, Users, Briefcase, Calendar, Sparkles, Check, Clock } from 'lucide-react'
 import Link from 'next/link'
-import { authFetch } from '@/lib/auth-fetch'
+import { authFetch } from '@/lib/auth/auth-fetch'
 import Navbar from '@/components/layout/Navbar'
 
 

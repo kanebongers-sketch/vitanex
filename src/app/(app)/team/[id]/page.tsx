@@ -2,14 +2,14 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase/supabase'
 import Navbar from '@/components/layout/Navbar'
 import Link from 'next/link'
 
 import nextDynamic from 'next/dynamic'
 import { BarChart3, MessageCircle, FolderOpen } from 'lucide-react'
-import { Avatar } from '@/components/Avatar'
-import DocumentenSectie from '@/components/DocumentenSectie'
+import { Avatar } from '@/components/ui/Avatar'
+import DocumentenSectie from '@/components/team/DocumentenSectie'
 import GesprekkenTab from '@/components/hr/GesprekkenTab'
 
 // recharts lui laden — alleen wanneer de vitaliteitstrend echt getoond wordt.

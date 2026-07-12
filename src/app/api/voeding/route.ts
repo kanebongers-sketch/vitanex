@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getAuthenticatedUser } from '@/lib/api-auth'
-import { createAdminClient } from '@/lib/supabase-admin'
-import { vandaagNL, datumMinusDagenNL } from '@/lib/date-nl'
-import { effectieveDoelen } from '@/lib/gezondheid-berekeningen'
+import { getAuthenticatedUser } from '@/lib/auth/api-auth'
+import { createAdminClient } from '@/lib/supabase/supabase-admin'
+import { vandaagNL, datumMinusDagenNL } from '@/lib/utils/date-nl'
+import { effectieveDoelen } from '@/lib/health/gezondheid-berekeningen'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
 export const dynamic = 'force-dynamic'

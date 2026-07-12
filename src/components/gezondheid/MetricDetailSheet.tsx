@@ -13,7 +13,7 @@ import {
 import {
   METRICS, STEMMING_INFO, dagKort, metricWaarde,
   type MetricKey, type TrendPunt,
-} from '@/lib/gezondheid-metrics'
+} from '@/lib/health/gezondheid-metrics'
 import {
   SheetRoot, SheetPortal, SheetOverlay, SheetTitle,
 } from '@/components/ui/Sheet'

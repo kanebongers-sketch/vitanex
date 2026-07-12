@@ -4,8 +4,8 @@ export const dynamic = 'force-dynamic'
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
-import { authFetch } from '@/lib/auth-fetch'
+import { supabase } from '@/lib/supabase/supabase'
+import { authFetch } from '@/lib/auth/auth-fetch'
 import Navbar from '@/components/layout/Navbar'
 import { FileText, ChevronDown, ChevronUp, Upload, Printer } from 'lucide-react'
 

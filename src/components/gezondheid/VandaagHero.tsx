@@ -6,9 +6,9 @@
  */
 import { useState } from 'react'
 import { RefreshCw } from 'lucide-react'
-import { METRICS, datumLang, type TrendPunt } from '@/lib/gezondheid-metrics'
-import { BRON_LABELS, type HealthBron } from '@/lib/health-data'
-import type { LaatsteSyncInfo } from '@/lib/health-sync'
+import { METRICS, datumLang, type TrendPunt } from '@/lib/health/gezondheid-metrics'
+import { BRON_LABELS, type HealthBron } from '@/lib/health/health-data'
+import type { LaatsteSyncInfo } from '@/lib/health/health-sync'
 
 export const STAPPEN_DOEL = 10_000
 

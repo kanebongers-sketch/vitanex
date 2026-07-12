@@ -1,7 +1,7 @@
 import { Resend } from 'resend'
 import { NextRequest, NextResponse } from 'next/server'
-import { renderEmail, escapeHtml, EMAIL_KLEUREN } from '@/lib/email-template'
-import { valideerContactPayload, ONDERWERP_LABELS } from '@/lib/contact-validatie'
+import { renderEmail, escapeHtml, EMAIL_KLEUREN } from '@/lib/utils/email-template'
+import { valideerContactPayload, ONDERWERP_LABELS } from '@/lib/utils/contact-validatie'
 
 const CONTACT_EMAIL = 'info@mentaforce.nl'
 

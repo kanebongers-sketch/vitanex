@@ -7,9 +7,9 @@ import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import {
   type WeekDoel, vandaag, isVandaagGelogd, logVandaag, berekenStreak,
-} from '@/lib/weekdoelen'
+} from '@/lib/doelen/weekdoelen'
 
-/** Structureel gelijk aan de entries van CAT in @/lib/doelen-config. */
+/** Structureel gelijk aan de entries van CAT in @/lib/doelen/doelen-config. */
 export interface CatInfo {
   label: string
   kleur: string

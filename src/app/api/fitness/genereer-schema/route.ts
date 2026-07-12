@@ -3,8 +3,8 @@ import { NextRequest, NextResponse } from "next/server"
 export const maxDuration = 300
 import Anthropic from "@anthropic-ai/sdk"
 import { createClient } from "@supabase/supabase-js"
-import { getAuthenticatedUser } from "@/lib/api-auth"
-import { berekenLeeftijd, type FitnessDoel } from "@/lib/gezondheid-berekeningen"
+import { getAuthenticatedUser } from "@/lib/auth/api-auth"
+import { berekenLeeftijd, type FitnessDoel } from "@/lib/health/gezondheid-berekeningen"
 
 // ---------------------------------------------------------------------------
 // Types

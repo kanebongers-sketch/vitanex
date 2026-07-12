@@ -12,8 +12,8 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 import Navbar from '@/components/layout/Navbar'
-import { authFetch } from '@/lib/auth-fetch'
-import { supabase } from '@/lib/supabase'
+import { authFetch } from '@/lib/auth/auth-fetch'
+import { supabase } from '@/lib/supabase/supabase'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { PremiumSlot } from '@/components/ui/PremiumSlot'

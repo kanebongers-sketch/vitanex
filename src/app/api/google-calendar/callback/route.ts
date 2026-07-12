@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createAdminClient } from '@/lib/supabase-admin'
-import { verifyOAuthState } from '@/lib/oauth-state'
+import { createAdminClient } from '@/lib/supabase/supabase-admin'
+import { verifyOAuthState } from '@/lib/auth/oauth-state'
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)

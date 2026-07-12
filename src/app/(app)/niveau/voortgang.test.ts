@@ -2,7 +2,7 @@ import { describe, expect, test } from 'vitest'
 import {
   berekenWeekOverzicht, dagKey, laatsteWeken, momentumTekst, parseDatum, weekStart,
 } from './voortgang'
-import type { XPEvent } from '@/lib/xp'
+import type { XPEvent } from '@/lib/xp/xp'
 
 function event(datum: string): XPEvent {
   return { datum, xp: 15, reden: 'Dagelijkse doelregistratie', type: 'goal' }

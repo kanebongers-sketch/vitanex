@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { generateBriefingPDF } from '@/lib/pdf-briefing'
-import { uploadBriefingPDF } from '@/lib/briefing-storage'
-import { stuurTelegram } from '@/lib/telegram'
+import { generateBriefingPDF } from '@/lib/pdf/pdf-briefing'
+import { uploadBriefingPDF } from '@/lib/pdf/briefing-storage'
+import { stuurTelegram } from '@/lib/integraties/telegram'
 
 // Called daily at 20:00 (NL time) by cron-job.org
 // Protected by CRON_SECRET env var (optional — if not set, any request passes)
@@ -55,13 +55,13 @@ export async function GET(req: NextRequest) {
     return d.getDay() === 0 ? 7 : d.getDay()
   }
 
-  function kalenderVoorDatum(kalData: Record<string, { dag: number; items: unknown[] }[]> | null, datum: string): import('@/lib/pdf-briefing').KalenderDag[] {
+  function kalenderVoorDatum(kalData: Record<string, { dag: number; items: unknown[] }[]> | null, datum: string): import('@/lib/pdf/pdf-briefing').KalenderDag[] {
     if (!kalData) return []
     const dag = getDagVanWeek(datum)
     return (['instagram', 'facebook', 'linkedin'] as const)
       .map(platform => ({
         platform,
-        items: ((kalData[platform] ?? []).find((d) => d.dag === dag)?.items ?? []) as import('@/lib/pdf-briefing').KalenderItem[],
+        items: ((kalData[platform] ?? []).find((d) => d.dag === dag)?.items ?? []) as import('@/lib/pdf/pdf-briefing').KalenderItem[],
       }))
       .filter(p => p.items.length > 0)
   }

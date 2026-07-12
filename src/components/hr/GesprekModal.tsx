@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Lock, Plus, Trash2, Check } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase/supabase'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { Field } from '@/components/ui/Field'

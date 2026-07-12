@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/Textarea'
 import {
   DialogRoot, DialogContent, DialogTitle, DialogDescription,
 } from '@/components/ui/Dialog'
-import { type WeekDoel, logVandaag } from '@/lib/weekdoelen'
+import { type WeekDoel, logVandaag } from '@/lib/doelen/weekdoelen'
 import type { CatInfo } from './DoelKaart'
 
 interface LogDialogProps {

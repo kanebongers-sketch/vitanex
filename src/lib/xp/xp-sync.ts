@@ -1,5 +1,5 @@
-import { supabase } from '@/lib/supabase'
-import { type XPData, laadXPData, slaXPOp } from '@/lib/xp'
+import { supabase } from '@/lib/supabase/supabase'
+import { type XPData, laadXPData, slaXPOp } from '@/lib/xp/xp'
 
 async function getToken(): Promise<string | null> {
   const { data: { session } } = await supabase.auth.getSession()

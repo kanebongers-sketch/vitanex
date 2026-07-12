@@ -5,8 +5,8 @@ export const dynamic = 'force-dynamic'
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { supabase } from '@/lib/supabase'
-import { authFetch } from '@/lib/auth-fetch'
+import { supabase } from '@/lib/supabase/supabase'
+import { authFetch } from '@/lib/auth/auth-fetch'
 import Navbar from '@/components/layout/Navbar'
 import {
   MapPin, Timer, PenLine, Clapperboard, Smartphone, Check, Zap, Camera,

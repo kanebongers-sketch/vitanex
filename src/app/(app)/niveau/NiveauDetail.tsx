@@ -4,7 +4,7 @@
 // game-ladder. XP blijft bestaan als bekrachtiging, niet als hoofdattractie.
 
 import { Card } from '@/components/ui/Card'
-import { LEVEL_BG, LEVEL_KLEUREN, LEVEL_NAMEN, type XPData } from '@/lib/xp'
+import { LEVEL_BG, LEVEL_KLEUREN, LEVEL_NAMEN, type XPData } from '@/lib/xp/xp'
 import { Progress } from '@/components/ui/Progress'
 import SectieKop from './SectieKop'
 

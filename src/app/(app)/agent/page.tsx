@@ -2,7 +2,7 @@
 export const dynamic = 'force-dynamic'
 
 import { useEffect, useState, useCallback } from 'react'
-import { supabase as sb } from '@/lib/supabase'
+import { supabase as sb } from '@/lib/supabase/supabase'
 import Link from 'next/link'
 import {
   Bot, FolderOpen, ClipboardList, Search, Check, X, Mail, Send,

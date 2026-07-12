@@ -3,7 +3,7 @@
  * naar het voorbeeld van de Trends-kaarten in Apple Health.
  */
 import { Footprints, Moon, HeartPulse, Sparkles, Smile, Flame, type LucideIcon } from 'lucide-react'
-import { METRICS, type MetricKey, type Vergelijking } from '@/lib/gezondheid-metrics'
+import { METRICS, type MetricKey, type Vergelijking } from '@/lib/health/gezondheid-metrics'
 
 /** Lucide-icoon + navy/cyan-token per metriek — vervangt de emoji + hardcoded hex uit METRICS. */
 const VISUAL: Record<MetricKey, { Icon: LucideIcon; kleur: string; kleurLicht: string }> = {

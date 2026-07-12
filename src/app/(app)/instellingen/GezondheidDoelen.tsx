@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase/supabase'
 import { Button } from '@/components/ui/Button'
 import {
   ACTIVITEIT_CONFIG,
@@ -9,7 +9,7 @@ import {
   effectieveDoelen,
   type Activiteitsniveau,
   type FitnessDoel,
-} from '@/lib/gezondheid-berekeningen'
+} from '@/lib/health/gezondheid-berekeningen'
 
 interface Props {
   userId: string

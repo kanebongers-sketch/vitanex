@@ -6,10 +6,10 @@ import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { Capacitor } from '@capacitor/core'
 import { Footprints, Smartphone, ChevronRight, Check, PartyPopper } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
-import { authFetch } from '@/lib/auth-fetch'
+import { supabase } from '@/lib/supabase/supabase'
+import { authFetch } from '@/lib/auth/auth-fetch'
 import Navbar from '@/components/layout/Navbar'
-import { STANDAARD_STAPPEN_DOEL } from '@/lib/gezondheid-berekeningen'
+import { STANDAARD_STAPPEN_DOEL } from '@/lib/health/gezondheid-berekeningen'
 import { vitaEvent } from '@/lib/vita/events'
 import { Button } from '@/components/ui/Button'
 import { Field } from '@/components/ui/Field'
@@ -148,7 +148,7 @@ export default function StappenPage() {
     try {
       const platform = Capacitor.getPlatform()
       if (platform === 'ios') {
-        const { leesAppleHealthBereik, vraagAppleHealthPermissies } = await import('@/lib/apple-health')
+        const { leesAppleHealthBereik, vraagAppleHealthPermissies } = await import('@/lib/health/apple-health')
         const ok = await vraagAppleHealthPermissies()
         if (!ok) { setTrackerFout('Geen toegang tot Apple Health'); setTrackerLaden(false); return }
         const metingen = await leesAppleHealthBereik(1)
@@ -170,7 +170,7 @@ export default function StappenPage() {
           setTrackerFout('Geen stappenteller data gevonden in Apple Health')
         }
       } else if (platform === 'android') {
-        const { leesHealthBereik, vraagPermissies } = await import('@/lib/health-connect')
+        const { leesHealthBereik, vraagPermissies } = await import('@/lib/health/health-connect')
         const ok = await vraagPermissies()
         if (!ok) { setTrackerFout('Geen toegang tot Health Connect'); setTrackerLaden(false); return }
         const metingen = await leesHealthBereik(1)

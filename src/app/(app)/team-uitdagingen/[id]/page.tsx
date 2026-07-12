@@ -16,9 +16,9 @@ import {
   ArrowLeft,
   type LucideIcon,
 } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase/supabase'
 import Navbar from '@/components/layout/Navbar'
-import { authFetch } from '@/lib/auth-fetch'
+import { authFetch } from '@/lib/auth/auth-fetch'
 import { vitaEvent } from '@/lib/vita/events'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'

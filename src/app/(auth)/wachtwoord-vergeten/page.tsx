@@ -4,7 +4,7 @@ export const dynamic = 'force-dynamic'
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { supabase } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase/supabase'
 import { MailCheck } from 'lucide-react'
 import { LogoFull } from '@/components/layout/Logo'
 import { AuthKaart } from '@/components/ui/AuthKaart'

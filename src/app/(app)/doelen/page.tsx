@@ -6,17 +6,17 @@ import { Suspense, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Sparkles } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase/supabase'
 import Navbar from '@/components/layout/Navbar'
-import { verwerkGoalLog, verwerkGoalVoltooid, LEVEL_NAMEN, type Achievement } from '@/lib/xp'
-import { syncXPNaarServer } from '@/lib/xp-sync'
+import { verwerkGoalLog, verwerkGoalVoltooid, LEVEL_NAMEN, type Achievement } from '@/lib/xp/xp'
+import { syncXPNaarServer } from '@/lib/xp/xp-sync'
 import {
   type WellbeingCat, type WeekDoel, type WeekSelectie, type WeekHistorieEntry,
   vandaag, laadWeekSelectie, slaWeekSelectieOp, isVandaagGelogd, logVandaag,
   scoreKleur, berekenStreak, laadWeekHistorie,
-} from '@/lib/weekdoelen'
-import { CAT } from '@/lib/doelen-config'
-import { authFetch } from '@/lib/auth-fetch'
+} from '@/lib/doelen/weekdoelen'
+import { CAT } from '@/lib/doelen/doelen-config'
+import { authFetch } from '@/lib/auth/auth-fetch'
 import { vitaEvent } from '@/lib/vita/events'
 import VitaLeegScherm from '@/components/vita/VitaLeegScherm'
 import VitaDoelenBegroeting from '@/components/vita/VitaDoelenBegroeting'

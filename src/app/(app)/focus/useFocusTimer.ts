@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { authFetch } from '@/lib/auth-fetch'
+import { authFetch } from '@/lib/auth/auth-fetch'
 import { vitaEvent } from '@/lib/vita/events'
 import { useToast } from '@/components/ui/Toast'
 import { TIMERS, type TimerTab } from './focus-data'

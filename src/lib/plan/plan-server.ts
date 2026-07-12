@@ -3,7 +3,7 @@
 // plan voor een gebruiker geldt: het plan van zijn bedrijf, of starter
 // wanneer er geen bedrijf of plan is.
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { normaliseerPlan, type Plan } from '@/lib/plan'
+import { normaliseerPlan, type Plan } from '@/lib/plan/plan'
 
 export async function getPlanVoorBedrijf(admin: SupabaseClient, bedrijfId: string): Promise<Plan> {
   const { data: bedrijf } = await admin

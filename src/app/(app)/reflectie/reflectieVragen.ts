@@ -1,6 +1,6 @@
 // Vragen, types en pure helpers voor het wekelijkse reflectiemoment.
 // Bewust zonder React: testbaar en herbruikbaar. Generieke week-helpers
-// (bepaalWeekStart, berekenWekenOpRij) staan in '@/lib/date-nl'.
+// (bepaalWeekStart, berekenWekenOpRij) staan in '@/lib/utils/date-nl'.
 
 export interface ReflectieVraag {
   id: string

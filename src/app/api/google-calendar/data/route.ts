@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createAdminClient } from '@/lib/supabase-admin'
-import { getAuthenticatedUser } from '@/lib/api-auth'
+import { createAdminClient } from '@/lib/supabase/supabase-admin'
+import { getAuthenticatedUser } from '@/lib/auth/api-auth'
 
 async function refreshGoogleToken(refreshToken: string, userId: string): Promise<string | null> {
   const res = await fetch('https://oauth2.googleapis.com/token', {

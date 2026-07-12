@@ -6,10 +6,10 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { CalendarClock } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase/supabase'
 import Navbar from '@/components/layout/Navbar'
-import { laadXPData, berekenLevel, LEVEL_NAMEN } from '@/lib/xp'
-import RadarChart from '@/components/RadarChart'
+import { laadXPData, berekenLevel, LEVEL_NAMEN } from '@/lib/xp/xp'
+import RadarChart from '@/components/ui/RadarChart'
 
 const SCORE_RGB = (s: number): [number, number, number] =>
   s >= 70 ? [0.114, 0.620, 0.459] : s >= 45 ? [0.949, 0.722, 0.141] : [0.886, 0.294, 0.290]

@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getAuthenticatedUser } from '@/lib/api-auth'
-import { createAdminClient } from '@/lib/supabase-admin'
-import { getPlanVoorBedrijf } from '@/lib/plan-server'
-import { heeftFeature } from '@/lib/plan'
+import { getAuthenticatedUser } from '@/lib/auth/api-auth'
+import { createAdminClient } from '@/lib/supabase/supabase-admin'
+import { getPlanVoorBedrijf } from '@/lib/plan/plan-server'
+import { heeftFeature } from '@/lib/plan/plan'
 
 // k-anonimiteit: gemiddelden alleen tonen bij ≥ 5 unieke deelnemers,
 // anders zijn individuele waarden herleidbaar.

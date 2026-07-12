@@ -5,13 +5,13 @@ export const dynamic = 'force-dynamic'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Search, Building2, Mail, Phone, MapPin, Users } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { DialogRoot, DialogContent, DialogTitle } from '@/components/ui/Dialog'
-import { Avatar } from '@/components/Avatar'
+import { Avatar } from '@/components/ui/Avatar'
 
 type Medewerker = {
   id: string

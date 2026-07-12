@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getAuthenticatedUser } from '@/lib/api-auth'
-import { createAdminClient } from '@/lib/supabase-admin'
-import { isToegestaanEvent, schoonMeta } from '@/lib/analytics'
-import { isRateLimited } from '@/lib/rate-limit'
+import { getAuthenticatedUser } from '@/lib/auth/api-auth'
+import { createAdminClient } from '@/lib/supabase/supabase-admin'
+import { isToegestaanEvent, schoonMeta } from '@/lib/analytics/analytics'
+import { isRateLimited } from '@/lib/utils/rate-limit'
 
 export const dynamic = 'force-dynamic'
 

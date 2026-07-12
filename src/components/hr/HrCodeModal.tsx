@@ -24,7 +24,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { Loader2, CheckCircle2 } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase/supabase'
 import { Button } from '@/components/ui/Button'
 import { DialogRoot, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/Dialog'
 

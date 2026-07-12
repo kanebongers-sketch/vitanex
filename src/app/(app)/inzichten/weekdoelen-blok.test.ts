@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import type { GoalLog, WeekDoel, WeekHistorieEntry } from '@/lib/weekdoelen'
+import type { GoalLog, WeekDoel, WeekHistorieEntry } from '@/lib/doelen/weekdoelen'
 import {
   doelmomentenTekst, telHistorieGehaald, telWeekMomenten, vorigeWeek, vorigeWeekTekst,
 } from './weekdoelen-blok'

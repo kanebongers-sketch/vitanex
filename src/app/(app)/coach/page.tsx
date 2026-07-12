@@ -9,8 +9,8 @@ import {
   MessageCircleMore, ListChecks, Compass, RotateCcw,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
-import { authFetch } from '@/lib/auth-fetch'
+import { supabase } from '@/lib/supabase/supabase'
+import { authFetch } from '@/lib/auth/auth-fetch'
 import Navbar from '@/components/layout/Navbar'
 import VitaChatHeader from '@/components/vita/VitaChatHeader'
 import VitaChatBubble, { type ChatBericht } from '@/components/vita/VitaChatBubble'

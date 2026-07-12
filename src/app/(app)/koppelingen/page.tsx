@@ -5,8 +5,8 @@ export const dynamic = 'force-dynamic'
 import { Suspense, useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { RefreshCw, Settings, HeartPulse, Watch, Activity, Calendar, Mail, Heart, Check } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
-import { authFetch } from '@/lib/auth-fetch'
+import { supabase } from '@/lib/supabase/supabase'
+import { authFetch } from '@/lib/auth/auth-fetch'
 import Navbar from '@/components/layout/Navbar'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
@@ -14,9 +14,9 @@ import { Badge } from '@/components/ui/Badge'
 import { useToast } from '@/components/ui/Toast'
 
 
-import { isAndroidApp, leesHealthData, vraagPermissies, type HealthData } from '@/lib/health-connect'
-import { isIosApp, vraagAppleHealthPermissies } from '@/lib/apple-health'
-import { syncGezondheidsdata } from '@/lib/health-sync'
+import { isAndroidApp, leesHealthData, vraagPermissies, type HealthData } from '@/lib/health/health-connect'
+import { isIosApp, vraagAppleHealthPermissies } from '@/lib/health/apple-health'
+import { syncGezondheidsdata } from '@/lib/health/health-sync'
 
 type FitbitData = {
   stappen: number | null

@@ -4,7 +4,7 @@ export const dynamic = 'force-dynamic'
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase/supabase'
 import Link from 'next/link'
 import { Check } from 'lucide-react'
 import { LogoFull } from '@/components/layout/Logo'
@@ -261,7 +261,7 @@ export default function Login() {
         {/* Google SSO */}
         <button
           onClick={async () => {
-            await import('@/lib/supabase').then(({ supabase }) =>
+            await import('@/lib/supabase/supabase').then(({ supabase }) =>
               supabase.auth.signInWithOAuth({
                 provider: 'google',
                 options: { redirectTo: window.location.origin + '/onboarding' },

@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getAuthenticatedUser } from '@/lib/api-auth'
-import { createAdminClient } from '@/lib/supabase-admin'
-import { getStripe, stripePriceIdVoorPlan, BETALEN_NIET_BESCHIKBAAR } from '@/lib/stripe'
-import { normaliseerPlan, PLAN_INFO } from '@/lib/plan'
-import { isRateLimited } from '@/lib/rate-limit'
+import { getAuthenticatedUser } from '@/lib/auth/api-auth'
+import { createAdminClient } from '@/lib/supabase/supabase-admin'
+import { getStripe, stripePriceIdVoorPlan, BETALEN_NIET_BESCHIKBAAR } from '@/lib/integraties/stripe'
+import { normaliseerPlan, PLAN_INFO } from '@/lib/plan/plan'
+import { isRateLimited } from '@/lib/utils/rate-limit'
 
 export const dynamic = 'force-dynamic'
 

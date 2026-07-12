@@ -23,9 +23,9 @@ import {
   X,
   type LucideIcon,
 } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase/supabase'
 import Navbar from '@/components/layout/Navbar'
-import { normaliseerPlan, PLAN_INFO } from '@/lib/plan'
+import { normaliseerPlan, PLAN_INFO } from '@/lib/plan/plan'
 
 
 const BEKIJK_ALS_KEY = 'mentaforce_admin_view_as'

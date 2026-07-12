@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
-import { supabase } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase/supabase'
 import Navbar from '@/components/layout/Navbar'
 import {
   ACTIVITEIT_CONFIG,
@@ -9,7 +9,7 @@ import {
   type Activiteitsniveau,
   type FitnessDoel,
   type Geslacht,
-} from '@/lib/gezondheid-berekeningen'
+} from '@/lib/health/gezondheid-berekeningen'
 
 // ── Berekeningen (inline, geen geboortedatum nodig) ───────────────────────────
 

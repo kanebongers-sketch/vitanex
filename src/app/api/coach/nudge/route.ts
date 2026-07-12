@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getAuthenticatedUser } from '@/lib/api-auth'
+import { getAuthenticatedUser } from '@/lib/auth/api-auth'
 import { detectNudge } from '@/lib/coach/nudges'
 
 export const dynamic = 'force-dynamic'

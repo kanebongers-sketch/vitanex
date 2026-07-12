@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { getAuthenticatedUser } from '@/lib/api-auth'
-import { generateBriefingPDF } from '@/lib/pdf-briefing'
-import { uploadToDrive } from '@/lib/google-drive'
+import { getAuthenticatedUser } from '@/lib/auth/api-auth'
+import { generateBriefingPDF } from '@/lib/pdf/pdf-briefing'
+import { uploadToDrive } from '@/lib/integraties/google-drive'
 
 function getServiceClient() {
   return createClient(

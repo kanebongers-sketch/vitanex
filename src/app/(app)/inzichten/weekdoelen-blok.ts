@@ -6,7 +6,7 @@
 // De historie bewaart per doel alleen het aantal gehaalde logs (geen totaal),
 // dus de vorige-week-regel is een kaal aantal, zonder noemer.
 
-import type { WeekDoel, WeekHistorieEntry } from '@/lib/weekdoelen'
+import type { WeekDoel, WeekHistorieEntry } from '@/lib/doelen/weekdoelen'
 
 export interface WeekMomenten {
   gehaald: number

@@ -1,8 +1,8 @@
 'use client'
 
 import { useEffect } from 'react'
-import { authFetch } from '@/lib/auth-fetch'
-import { isToegestaanEvent } from '@/lib/analytics'
+import { authFetch } from '@/lib/auth/auth-fetch'
+import { isToegestaanEvent } from '@/lib/analytics/analytics'
 import type { VitaEventPayload } from '@/lib/vita/events'
 
 // Onzichtbaar eiland in de (app)-layout: stuurt de bestaande vitaEvents-bus

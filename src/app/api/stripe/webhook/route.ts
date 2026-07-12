@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import type Stripe from 'stripe'
-import { createAdminClient } from '@/lib/supabase-admin'
-import { getStripe } from '@/lib/stripe'
-import { normaliseerPlan } from '@/lib/plan'
+import { createAdminClient } from '@/lib/supabase/supabase-admin'
+import { getStripe } from '@/lib/integraties/stripe'
+import { normaliseerPlan } from '@/lib/plan/plan'
 
 export const dynamic = 'force-dynamic'
 

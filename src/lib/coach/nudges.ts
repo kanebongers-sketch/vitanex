@@ -10,8 +10,8 @@
  * zichtbaar bij openen — zo is er geen extra infrastructuur nodig en betalen we
  * niets voor inactieve gebruikers.
  */
-import { createAdminClient } from '@/lib/supabase-admin'
-import { datumMinusDagenNL } from '@/lib/date-nl'
+import { createAdminClient } from '@/lib/supabase/supabase-admin'
+import { datumMinusDagenNL } from '@/lib/utils/date-nl'
 
 export type NudgeType =
   | 'burnout_stijgend'

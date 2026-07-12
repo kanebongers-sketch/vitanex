@@ -10,10 +10,10 @@ import {
   TreePalm, Thermometer, Star, Briefcase, ClipboardList,
   Car, Utensils, Package, GraduationCap, Handshake, Wallet,
 } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
-import { authFetch } from '@/lib/auth-fetch'
+import { supabase } from '@/lib/supabase/supabase'
+import { authFetch } from '@/lib/auth/auth-fetch'
 import Navbar from '@/components/layout/Navbar'
-import { Avatar } from '@/components/Avatar'
+import { Avatar } from '@/components/ui/Avatar'
 import { useToast } from '@/components/ui/Toast'
 import nextDynamic from 'next/dynamic'
 import GesprekkenTab from '@/components/hr/GesprekkenTab'

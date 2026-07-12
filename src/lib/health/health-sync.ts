@@ -4,7 +4,7 @@
  *   Android app → Health Connect           → /api/health/sync
  *   Web         → Google Fit (server haalt zelf op via /api/google-fit/sync)
  */
-import { authFetch } from './auth-fetch'
+import { authFetch } from '@/lib/auth/auth-fetch'
 import { isAndroidApp, leesHealthBereik } from './health-connect'
 import { isIosApp, leesAppleHealthBereik } from './apple-health'
 import { heeftMeetwaarde, type DagMeting, type HealthBron } from './health-data'

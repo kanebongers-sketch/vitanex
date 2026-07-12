@@ -3,7 +3,7 @@
 // hoe XP werkt. Feitelijk en compact — naslagwerk, geen reclame.
 
 import { Card } from '@/components/ui/Card'
-import type { XPEvent } from '@/lib/xp'
+import type { XPEvent } from '@/lib/xp/xp'
 import SectieKop from './SectieKop'
 
 const TYPE_KLEUR: Record<string, string> = {

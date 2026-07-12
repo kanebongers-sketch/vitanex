@@ -22,7 +22,7 @@ import {
   type Activiteitsniveau,
   type FitnessDoel,
   type GezondheidProfiel,
-} from '@/lib/gezondheid-berekeningen'
+} from '@/lib/health/gezondheid-berekeningen'
 import type { OnboardingAiAnalyse } from '@/app/api/onboarding/analyse/route'
 import { VitaVeld, VitaInput, VitaKaartKeuze, GesprekKnoppen, type KaartOptie } from './VitaKeuze'
 

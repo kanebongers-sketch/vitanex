@@ -11,9 +11,9 @@ import {
   GripVertical, X, LayoutGrid, ChevronRight, Check, CreditCard,
   type LucideIcon,
 } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase/supabase'
 import Navbar from '@/components/layout/Navbar'
-import { ALLE_TILES, DEFAULT_TILES, type TileId } from '@/lib/tiles'
+import { ALLE_TILES, DEFAULT_TILES, type TileId } from '@/lib/navigatie/tiles'
 import GesprekkenTab from '@/components/hr/GesprekkenTab'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'

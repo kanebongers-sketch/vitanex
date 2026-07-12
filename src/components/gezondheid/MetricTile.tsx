@@ -3,7 +3,7 @@
  * grote waarde met eenheid, sparkline rechts en datum onderaan.
  */
 import { ChevronRight, Footprints, Moon, HeartPulse, Sparkles, Smile, Flame, type LucideIcon } from 'lucide-react'
-import { METRICS, STEMMING_INFO, datumLang, type MetricKey, type MetricSamenvatting, type TrendPunt } from '@/lib/gezondheid-metrics'
+import { METRICS, STEMMING_INFO, datumLang, type MetricKey, type MetricSamenvatting, type TrendPunt } from '@/lib/health/gezondheid-metrics'
 import Sparkline from './Sparkline'
 
 /** Lucide-icoon + navy/cyan-token per metriek — vervangt de emoji + hardcoded hex uit METRICS. */

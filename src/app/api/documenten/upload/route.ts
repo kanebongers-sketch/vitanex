@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createAdminClient } from '@/lib/supabase-admin'
+import { createAdminClient } from '@/lib/supabase/supabase-admin'
 
 const MAX_SIZE = 10 * 1024 * 1024 // 10 MB
 const TOEGESTANE_TYPES = new Set([

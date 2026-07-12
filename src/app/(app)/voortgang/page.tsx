@@ -14,9 +14,9 @@ import Link from 'next/link'
 import {
   Sparkles, Sprout, Brain, Award, ChevronRight, type LucideIcon,
 } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase/supabase'
 import Navbar from '@/components/layout/Navbar'
-import { authFetch } from '@/lib/auth-fetch'
+import { authFetch } from '@/lib/auth/auth-fetch'
 import { Card } from '@/components/ui/Card'
 import SectieKop from './SectieKop'
 import TrendOverzicht from './TrendOverzicht'

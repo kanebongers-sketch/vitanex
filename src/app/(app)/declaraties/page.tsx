@@ -8,7 +8,7 @@ import {
   Plus, Car, UtensilsCrossed, Package, GraduationCap, Handshake, Wallet,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'

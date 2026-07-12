@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 import { createClient } from '@supabase/supabase-js'
-import { getAuthenticatedUser } from '@/lib/api-auth'
-import { uploadBriefingPDF } from '@/lib/briefing-storage'
+import { getAuthenticatedUser } from '@/lib/auth/api-auth'
+import { uploadBriefingPDF } from '@/lib/pdf/briefing-storage'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
@@ -450,7 +450,7 @@ export async function POST(req: NextRequest) {
 
     // Stap 7: PDF
     try {
-      const { generateWeekplanningPDF: genPDF } = await import('@/lib/pdf-weekplanning')
+      const { generateWeekplanningPDF: genPDF } = await import('@/lib/pdf/pdf-weekplanning')
       const pdfBuffer = await genPDF(weekplanning)
       const ts = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)
       const pdfUrl = await uploadBriefingPDF(pdfBuffer, `week-${weekStart}-${ts}`)

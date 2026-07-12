@@ -3,13 +3,13 @@
 import { useEffect, useState, useRef, useCallback, type CSSProperties } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { X, Flame, Moon, Zap, Smile, Sparkles, ChevronRight } from 'lucide-react'
-import { authFetch } from '@/lib/auth-fetch'
+import { authFetch } from '@/lib/auth/auth-fetch'
 import PandaFace, { EmotionState } from '@/components/vita/PandaFace'
 import TalkToVita from '@/components/vita/TalkToVita'
 import CelebrationBurst from '@/components/vita/CelebrationBurst'
 import { emotionFromScore, emotionFromEvent, getTimeOfDay, celebrationMessage } from '@/lib/vita/emotion-engine'
 import { getPageGuide } from '@/lib/vita/page-guide'
-import { laadXPData, berekenLevel, LEVEL_NAMEN, LEVEL_KLEUREN, xpVoortgang } from '@/lib/xp'
+import { laadXPData, berekenLevel, LEVEL_NAMEN, LEVEL_KLEUREN, xpVoortgang } from '@/lib/xp/xp'
 import { isCelebrationEvent, type VitaEventPayload } from '@/lib/vita/events'
 
 // Route waar het echte Vita-gesprek leeft. Companion deeplinkt ernaartoe.

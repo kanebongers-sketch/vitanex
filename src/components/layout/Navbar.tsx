@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { supabase } from '@/lib/supabase'
-import { CATEGORIEEN } from '@/lib/categorie-nav'
+import { supabase } from '@/lib/supabase/supabase'
+import { CATEGORIEEN } from '@/lib/navigatie/categorie-nav'
 import {
   CalendarDays, HeartPulse, Activity, Layers, User, Clapperboard,
   MessageSquare, Building2, Users, BarChart3, Star, Trophy,

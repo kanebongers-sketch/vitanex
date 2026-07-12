@@ -1,7 +1,7 @@
 ﻿'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { supabase } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase/supabase'
 import { Paperclip, FileText, Image as ImageIcon, X, Info } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 

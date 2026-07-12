@@ -4,9 +4,9 @@ export const dynamic = 'force-dynamic'
 
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase/supabase'
 import Navbar from '@/components/layout/Navbar'
-import { authFetch } from '@/lib/auth-fetch'
+import { authFetch } from '@/lib/auth/auth-fetch'
 import { Card } from '@/components/ui/Card'
 import { Ring } from '@/components/ui/Ring'
 import { Chart } from '@/components/ui/Chart'
@@ -23,7 +23,7 @@ import {
   DOEL_CONFIG,
   type DoelProfiel,
   type FitnessDoel,
-} from '@/lib/gezondheid-berekeningen'
+} from '@/lib/health/gezondheid-berekeningen'
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 

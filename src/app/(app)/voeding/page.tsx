@@ -12,7 +12,7 @@ import {
   Utensils, CircleCheck, CircleAlert, CircleHelp, Salad,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase/supabase'
 import Navbar from '@/components/layout/Navbar'
 import nextDynamic from 'next/dynamic'
 import VoedingSetup from './VoedingSetup'

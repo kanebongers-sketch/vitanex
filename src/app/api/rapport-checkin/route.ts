@@ -1,7 +1,7 @@
 ﻿import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
-import { createAdminClient } from '@/lib/supabase-admin'
-import { getAuthenticatedUser } from '@/lib/api-auth'
+import { createAdminClient } from '@/lib/supabase/supabase-admin'
+import { getAuthenticatedUser } from '@/lib/auth/api-auth'
 
 if (!process.env.ANTHROPIC_API_KEY) {
   console.error('[rapport-checkin] ANTHROPIC_API_KEY is niet ingesteld in de omgevingsvariabelen')

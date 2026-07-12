@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createAdminClient } from '@/lib/supabase-admin'
-import { getAuthenticatedUser } from '@/lib/api-auth'
+import { createAdminClient } from '@/lib/supabase/supabase-admin'
+import { getAuthenticatedUser } from '@/lib/auth/api-auth'
 
 const GELDIGE_STEMMINGEN = ['moe', 'gestrest', 'ok', 'blij', 'energiek'] as const
 type Stemming = (typeof GELDIGE_STEMMINGEN)[number]

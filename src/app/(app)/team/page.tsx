@@ -5,9 +5,9 @@ export const dynamic = 'force-dynamic'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { supabase } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase/supabase'
 import Navbar from '@/components/layout/Navbar'
-import { Avatar } from '@/components/Avatar'
+import { Avatar } from '@/components/ui/Avatar'
 import { Check, AlertCircle, Copy } from 'lucide-react'
 
 type Token = {

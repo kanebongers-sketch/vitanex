@@ -2,7 +2,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import Anthropic from '@anthropic-ai/sdk'
-import { effectieveDoelen } from '@/lib/gezondheid-berekeningen'
+import { effectieveDoelen } from '@/lib/health/gezondheid-berekeningen'
 
 export const dynamic = 'force-dynamic'
 

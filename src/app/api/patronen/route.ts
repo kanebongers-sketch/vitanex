@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getAuthenticatedUser } from '@/lib/api-auth'
-import { createAdminClient } from '@/lib/supabase-admin'
-import { datumMinusDagenNL, vandaagNL } from '@/lib/date-nl'
-import { getPlanVoorUser } from '@/lib/plan-server'
-import { heeftFeature } from '@/lib/plan'
+import { getAuthenticatedUser } from '@/lib/auth/api-auth'
+import { createAdminClient } from '@/lib/supabase/supabase-admin'
+import { datumMinusDagenNL, vandaagNL } from '@/lib/utils/date-nl'
+import { getPlanVoorUser } from '@/lib/plan/plan-server'
+import { heeftFeature } from '@/lib/plan/plan'
 
 export const dynamic = 'force-dynamic'
 

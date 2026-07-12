@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { ArrowRight, X } from 'lucide-react'
-import { authFetch } from '@/lib/auth-fetch'
+import { authFetch } from '@/lib/auth/auth-fetch'
 import PandaFace, { type EmotionState } from '@/components/vita/PandaFace'
 import type { CoachNudge, NudgeToon } from '@/lib/coach/nudges'
 

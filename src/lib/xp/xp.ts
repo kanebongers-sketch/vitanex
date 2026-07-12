@@ -1,6 +1,6 @@
 // ─── XP / Fit Level system (localStorage-backed, no DB) ──────────────────────
 
-import { bepaalWeekStart, dagKey } from '@/lib/date-nl'
+import { bepaalWeekStart, dagKey } from '@/lib/utils/date-nl'
 
 export interface XPEvent {
   datum: string   // YYYY-MM-DD

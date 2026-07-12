@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
-import { getAuthenticatedUser } from '@/lib/api-auth'
-import { createAdminClient } from '@/lib/supabase-admin'
-import type { Activiteitsniveau, FitnessDoel } from '@/lib/gezondheid-berekeningen'
+import { getAuthenticatedUser } from '@/lib/auth/api-auth'
+import { createAdminClient } from '@/lib/supabase/supabase-admin'
+import type { Activiteitsniveau, FitnessDoel } from '@/lib/health/gezondheid-berekeningen'
 
 export const dynamic = 'force-dynamic'
 

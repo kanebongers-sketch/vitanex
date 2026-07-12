@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getAuthenticatedUser } from '@/lib/api-auth'
-import { createAdminClient } from '@/lib/supabase-admin'
-import { slaDagMetingenOp } from '@/lib/health-sync-server'
-import { isGeldigeDagMeting, type DagMeting, type HealthBron } from '@/lib/health-data'
+import { getAuthenticatedUser } from '@/lib/auth/api-auth'
+import { createAdminClient } from '@/lib/supabase/supabase-admin'
+import { slaDagMetingenOp } from '@/lib/health/health-sync-server'
+import { isGeldigeDagMeting, type DagMeting, type HealthBron } from '@/lib/health/health-data'
 
 const NATIVE_BRONNEN: HealthBron[] = ['health_connect', 'apple_health']
 const MAX_DAGEN = 31

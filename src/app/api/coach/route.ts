@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
-import { getAuthenticatedUser } from '@/lib/api-auth'
-import { buildCoachSystemPrompt } from '@/lib/coach-context'
-import { createAdminClient } from '@/lib/supabase-admin'
-import { getPlanVoorUser } from '@/lib/plan-server'
-import { heeftFeature, VITA_GRATIS_BERICHTEN_PER_DAG } from '@/lib/plan'
+import { getAuthenticatedUser } from '@/lib/auth/api-auth'
+import { buildCoachSystemPrompt } from '@/lib/coach/coach-context'
+import { createAdminClient } from '@/lib/supabase/supabase-admin'
+import { getPlanVoorUser } from '@/lib/plan/plan-server'
+import { heeftFeature, VITA_GRATIS_BERICHTEN_PER_DAG } from '@/lib/plan/plan'
 
 if (!process.env.ANTHROPIC_API_KEY) {
   console.error('[coach] ANTHROPIC_API_KEY is niet ingesteld')

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { supabase } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase/supabase'
 import Navbar from '@/components/layout/Navbar'
 import {
   HeartPulse, Activity, Layers, User, ChevronRight,
@@ -13,7 +13,7 @@ import {
   MessageCircle, Trophy, BarChart2, Link2, FileBarChart, Settings,
   HandHeart,
 } from 'lucide-react'
-import type { CategorieDef } from '@/lib/categorie-nav'
+import type { CategorieDef } from '@/lib/navigatie/categorie-nav'
 import type { LucideIcon } from 'lucide-react'
 
 const ICOON_MAP: Record<string, LucideIcon> = {

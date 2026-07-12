@@ -18,9 +18,9 @@ import {
   Laugh,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase/supabase'
 import Navbar from '@/components/layout/Navbar'
-import { authFetch } from '@/lib/auth-fetch'
+import { authFetch } from '@/lib/auth/auth-fetch'
 import { useToast } from '@/components/ui/Toast'
 import { Field } from '@/components/ui/Field'
 import { Textarea } from '@/components/ui/Textarea'

@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getAuthenticatedUser } from '@/lib/api-auth'
-import { createAdminClient } from '@/lib/supabase-admin'
-import { slaDagMetingenOp } from '@/lib/health-sync-server'
-import { datumInNL } from '@/lib/health-data'
+import { getAuthenticatedUser } from '@/lib/auth/api-auth'
+import { createAdminClient } from '@/lib/supabase/supabase-admin'
+import { slaDagMetingenOp } from '@/lib/health/health-sync-server'
+import { datumInNL } from '@/lib/health/health-data'
 import {
   combineerDagMetingen, parseFitAggregaten, parseFitSlaapSessies,
   type FitAggregateRespons, type FitSessie,
-} from '@/lib/google-fit-parser'
+} from '@/lib/health/google-fit-parser'
 
 const SYNC_DAGEN = 14
 

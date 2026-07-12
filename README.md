@@ -30,19 +30,14 @@ Productie-build checken: `npm run build` · Lint: `npm run lint`
 │   │   ├── admin/            #   Admin-pagina
 │   │   └── api/              #   Server-routes: AI-coach, OAuth-callbacks, documenten,
 │   │                         #   health-insights, voeding, sport, telegram-bot …
-│   ├── components/
-│   │   ├── layout/           # Navbar, HrShell, Logo, AndroidBackHandler
-│   │   ├── hr/               # HR-tabs, gesprekskaarten/-modals, KPI-cards, HR-code modal
-│   │   ├── gezondheid/       # Metriek-tegels, sparklines, detail-sheet, AI-coach card
-│   │   ├── rooster/          # Dienstkaart, weekrooster
-│   │   └── (root)            # Gedeeld: Avatar, CrisisButton, MoodPulse, DocumentenSectie
-│   ├── lib/                  # Gedeelde logica:
-│   │   │                     #   supabase.ts (client) · supabase-admin.ts (service role)
-│   │   │                     #   api-auth.ts + auth-fetch.ts (Bearer-auth voor API-routes)
-│   │   │                     #   oauth-state.ts (CSRF-veilige OAuth-koppelingen)
-│   │   │                     #   gezondheid-metrics.ts · health-connect.ts (wearables)
-│   │   │                     #   xp.ts · tiles.ts · doelen-config.tsx (gamificatie)
-│   │   └── types.ts          # Gedeelde types
+│   ├── components/           # Feature-mappen: ui (primitives), layout, auth, checkin,
+│   │                         #   coach, gezondheid, hr, marketing, rooster, team, three, vita
+│   ├── lib/                  # Gedeelde logica, per domein gegroepeerd in submappen:
+│   │   │                     #   supabase/ · auth/ (api-auth, auth-fetch, oauth-state)
+│   │   │                     #   health/ (metrics, wearables) · xp/ · doelen/ · plan/
+│   │   │                     #   pdf/ · integraties/ (stripe, telegram) · analytics/
+│   │   │                     #   navigatie/ (categorie-nav, tiles) · utils/ · coach/ · vita/
+│   │   └── types.ts          # Gedeelde types (in lib-root)
 │   └── hooks/                # React hooks
 ├── supabase/                 # Database-migraties + edge functions → zie supabase/README.md
 ├── scripts/                  # Hulpscripts (o.a. seed-testuser.mjs voor lokale tests)
@@ -54,8 +49,8 @@ Productie-build checken: `npm run build` · Lint: `npm run lint`
 **Vuistregels:**
 
 - Nieuwe pagina → map in `src/app/`, route = mapnaam (Nederlandse URL's).
-- Nieuw component → in de feature-map waar het bij hoort; alleen écht gedeelde
-  componenten in de root van `components/`.
+- Nieuw component → in de feature-map waar het bij hoort; gedeelde primitives in
+  `components/ui/`.
 - Databasewijziging → genummerde migratie in `supabase/migrations/`.
 - Elke API-route die persoonlijke data raakt verifieert de gebruiker via
   `getAuthenticatedUser()` (zie `src/lib/api-auth.ts`); client-side calls gaan

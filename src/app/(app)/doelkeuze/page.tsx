@@ -5,15 +5,15 @@ export const dynamic = 'force-dynamic'
 import { Suspense, useState } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { Check, AlertTriangle } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase/supabase'
 
-import { CAT, DOELKEUZE_OPTIES } from '@/lib/doelen-config'
-import { verwerkCheckin, LEVEL_NAMEN, type Achievement } from '@/lib/xp'
-import { syncXPNaarServer } from '@/lib/xp-sync'
+import { CAT, DOELKEUZE_OPTIES } from '@/lib/doelen/doelen-config'
+import { verwerkCheckin, LEVEL_NAMEN, type Achievement } from '@/lib/xp/xp'
+import { syncXPNaarServer } from '@/lib/xp/xp-sync'
 import {
   type WellbeingCat, type WeekDoel, type WeekSelectie,
   vandaag, slaWeekSelectieOp,
-} from '@/lib/weekdoelen'
+} from '@/lib/doelen/weekdoelen'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { useToast } from '@/components/ui/Toast'

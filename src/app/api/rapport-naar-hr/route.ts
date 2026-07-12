@@ -1,8 +1,8 @@
 ﻿import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
-import { createAdminClient } from '@/lib/supabase-admin'
-import { getAuthenticatedUser } from '@/lib/api-auth'
-import { renderEmail, escapeHtml, EMAIL_KLEUREN } from '@/lib/email-template'
+import { createAdminClient } from '@/lib/supabase/supabase-admin'
+import { getAuthenticatedUser } from '@/lib/auth/api-auth'
+import { renderEmail, escapeHtml, EMAIL_KLEUREN } from '@/lib/utils/email-template'
 
 export async function POST(req: NextRequest) {
   try {

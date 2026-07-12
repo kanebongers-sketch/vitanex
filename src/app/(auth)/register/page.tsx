@@ -5,7 +5,7 @@ export const dynamic = 'force-dynamic'
 import { Suspense, useState } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase/supabase'
 import { LogoFull } from '@/components/layout/Logo'
 import { Check, User, Users } from 'lucide-react'
 import { HR_CODE_PATROON, type Stap, type GebruikerType } from '@/components/auth/register-helpers'
@@ -209,7 +209,7 @@ function RegisterForm() {
   }
 
   async function registreerMetGoogle() {
-    const { supabase } = await import('@/lib/supabase')
+    const { supabase } = await import('@/lib/supabase/supabase')
     await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo: window.location.origin + '/onboarding' },

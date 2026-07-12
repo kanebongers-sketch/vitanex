@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createAdminClient } from '@/lib/supabase-admin'
+import { createAdminClient } from '@/lib/supabase/supabase-admin'
 
 const PROJECT_REF = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? '')
   .replace('https://', '')

@@ -4,7 +4,7 @@ export const dynamic = 'force-dynamic'
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase/supabase'
 import Link from 'next/link'
 import { Check, Clock } from 'lucide-react'
 import { LogoFull } from '@/components/layout/Logo'

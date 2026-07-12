@@ -3,7 +3,7 @@
 // geven de helpers null terug en vallen de routes eerlijk terug op
 // "neem contact op" — er wordt nooit een kapotte betaalflow getoond.
 import Stripe from 'stripe'
-import type { Plan } from '@/lib/plan'
+import type { Plan } from '@/lib/plan/plan'
 
 let cached: Stripe | null = null
 

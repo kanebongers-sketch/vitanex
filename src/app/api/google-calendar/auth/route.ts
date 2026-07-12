@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getAuthenticatedUser } from '@/lib/api-auth'
-import { createOAuthState } from '@/lib/oauth-state'
+import { getAuthenticatedUser } from '@/lib/auth/api-auth'
+import { createOAuthState } from '@/lib/auth/oauth-state'
 
 /**
  * Start de Google Agenda OAuth-flow voor de ingelogde gebruiker.

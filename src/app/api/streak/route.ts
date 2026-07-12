@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getAuthenticatedUser } from '@/lib/api-auth'
-import { createAdminClient } from '@/lib/supabase-admin'
-import { vandaagNL, datumMinusDagenNL, toDateString } from '@/lib/date-nl'
+import { getAuthenticatedUser } from '@/lib/auth/api-auth'
+import { createAdminClient } from '@/lib/supabase/supabase-admin'
+import { vandaagNL, datumMinusDagenNL, toDateString } from '@/lib/utils/date-nl'
 
 export async function GET(req: NextRequest) {
   const user = await getAuthenticatedUser(req)

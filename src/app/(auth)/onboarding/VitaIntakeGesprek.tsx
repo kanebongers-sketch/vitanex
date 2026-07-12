@@ -15,7 +15,7 @@ import {
   Mars, Venus, Transgender, CircleDashed, ArrowRight,
   Building2, Check, Sparkles,
 } from 'lucide-react'
-import type { GezondheidProfiel } from '@/lib/gezondheid-berekeningen'
+import type { GezondheidProfiel } from '@/lib/health/gezondheid-berekeningen'
 import type { OnboardingAiAnalyse } from '@/app/api/onboarding/analyse/route'
 import type { GebrForm } from './IntakeStappen'
 import { LichaamStap, DoelStap, DoelenPayoff } from './IntakeStappen'

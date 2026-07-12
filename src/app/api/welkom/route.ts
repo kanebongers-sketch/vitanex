@@ -1,6 +1,6 @@
 ﻿import { Resend } from 'resend'
 import { NextRequest, NextResponse } from 'next/server'
-import { renderEmail, renderEmailKnop, escapeHtml, EMAIL_KLEUREN } from '@/lib/email-template'
+import { renderEmail, renderEmailKnop, escapeHtml, EMAIL_KLEUREN } from '@/lib/utils/email-template'
 
 export async function POST(request: NextRequest) {
   try {

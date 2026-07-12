@@ -5,8 +5,8 @@ export const dynamic = 'force-dynamic'
 import { Suspense, useCallback, useEffect, useMemo, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { supabase } from '@/lib/supabase'
-import { authFetch } from '@/lib/auth-fetch'
+import { supabase } from '@/lib/supabase/supabase'
+import { authFetch } from '@/lib/auth/auth-fetch'
 import Navbar from '@/components/layout/Navbar'
 import nextDynamic from 'next/dynamic'
 import { Salad, Dumbbell, ClipboardCheck, Watch, ChevronRight, Activity, type LucideIcon } from 'lucide-react'
@@ -14,11 +14,11 @@ import { Ring } from '@/components/ui/Ring'
 import MetricTile from '@/components/gezondheid/MetricTile'
 import HighlightCard from '@/components/gezondheid/HighlightCard'
 import VandaagHero from '@/components/gezondheid/VandaagHero'
-import { laatsteSyncInfo, syncGezondheidsdata, type LaatsteSyncInfo } from '@/lib/health-sync'
+import { laatsteSyncInfo, syncGezondheidsdata, type LaatsteSyncInfo } from '@/lib/health/health-sync'
 import {
   METRICS, METRIC_VOLGORDE, berekenVergelijkingen, vatMetricSamen,
   type MetricKey, type TrendPunt,
-} from '@/lib/gezondheid-metrics'
+} from '@/lib/health/gezondheid-metrics'
 
 const AiCoachCard = nextDynamic(() => import('@/components/gezondheid/AiCoachCard'), { ssr: false })
 const MetricDetailSheet = nextDynamic(() => import('@/components/gezondheid/MetricDetailSheet'), { ssr: false })

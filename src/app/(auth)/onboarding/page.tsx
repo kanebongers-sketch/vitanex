@@ -11,14 +11,14 @@ export const dynamic = 'force-dynamic'
 
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase/supabase'
 import { Check } from 'lucide-react'
 import {
   type BaselineMeting,
   LEGE_BASELINE,
   type GebrForm,
 } from './IntakeStappen'
-import type { GezondheidProfiel } from '@/lib/gezondheid-berekeningen'
+import type { GezondheidProfiel } from '@/lib/health/gezondheid-berekeningen'
 import type { OnboardingAiAnalyse } from '@/app/api/onboarding/analyse/route'
 import VitaIntakeGesprek, { type IntakeStap } from './VitaIntakeGesprek'
 import HrOnboarding, { type HrStap, type HrForm } from './HrOnboarding'

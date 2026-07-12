@@ -1,4 +1,4 @@
-import { createAdminClient } from '@/lib/supabase-admin'
+import { createAdminClient } from '@/lib/supabase/supabase-admin'
 
 const DOMEIN_LABELS: Record<string, string> = {
   slaap: 'Slaap', stress: 'Stress', energie: 'Energie',

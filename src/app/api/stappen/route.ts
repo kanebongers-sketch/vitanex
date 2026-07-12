@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getAuthenticatedUser } from '@/lib/api-auth'
-import { createAdminClient } from '@/lib/supabase-admin'
-import { effectieveDoelen } from '@/lib/gezondheid-berekeningen'
+import { getAuthenticatedUser } from '@/lib/auth/api-auth'
+import { createAdminClient } from '@/lib/supabase/supabase-admin'
+import { effectieveDoelen } from '@/lib/health/gezondheid-berekeningen'
 
 export const dynamic = 'force-dynamic'
 

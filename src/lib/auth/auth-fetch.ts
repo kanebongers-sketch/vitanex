@@ -3,7 +3,7 @@
  * Automatically attaches the Supabase access token as a Bearer header
  * so API routes can verify the caller's identity.
  */
-import { supabase } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase/supabase'
 
 export async function authFetch(
   input: RequestInfo | URL,
