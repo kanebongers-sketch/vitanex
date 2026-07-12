@@ -3,7 +3,7 @@
 export const dynamic = 'force-dynamic'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase/supabase'
 import Link from 'next/link'
 import { Check } from 'lucide-react'
@@ -29,6 +29,7 @@ function parseSupabaseError(message: string): LoginStatus {
 
 export default function Login() {
   const router = useRouter()
+  const next = useSearchParams().get('next')
   const [email,        setEmail]        = useState('')
   const [wachtwoord,   setWachtwoord]   = useState('')
   const [toonWacht,    setToonWacht]    = useState(false)
@@ -53,6 +54,9 @@ export default function Login() {
     if (!data.user.email_confirmed_at && !data.user.confirmed_at) {
       setStatus('not_confirmed'); return
     }
+
+    // Terugkeer-doel (bv. een coaching-uitnodiging via /coaching/welkom) heeft voorrang
+    if (next) { router.push(next); return }
 
     const { data: profiel } = await supabase
       .from('profiles').select('rol, onboarding_voltooid').eq('id', data.user.id).single()

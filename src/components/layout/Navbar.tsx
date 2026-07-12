@@ -10,6 +10,7 @@ import {
   MessageSquare, Building2, Users, BarChart3, Star, Trophy,
   LayoutDashboard, Calendar, Map, Lightbulb,
   LogOut, ChevronRight, Plus, CheckCircle2, GraduationCap, UserRound,
+  UserPlus, ListChecks,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import WeekRingen from './WeekRingen'
@@ -79,7 +80,8 @@ const HR_ITEMS: NavItem[] = [
 
 // Coaching-sectie — zichtbaar voor de coach-rol (1-op-1 klantbegeleiding)
 const COACH_ITEMS: NavItem[] = [
-  { href: '/coaching', label: 'Klanten', icon: Users },
+  { href: '/coaching',            label: 'Klanten',    icon: Users    },
+  { href: '/coaching/uitnodigen', label: 'Uitnodigen', icon: UserPlus },
 ]
 
 /* ── NavLink ── */
@@ -418,16 +420,11 @@ function SidebarContent({
           </div>
         )}
 
-        {/* Mijn coach — voor klanten die aan een coach gekoppeld zijn */}
+        {/* Coaching voor klanten — zichtbaar zodra ze aan een coach gekoppeld zijn */}
         {heeftCoach && !isCoach && (
           <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--border)' }}>
-            <NavLink
-              href="/mijn-coach"
-              label="Mijn coach"
-              icon={UserRound}
-              pathname={pathname}
-              onClick={onClose}
-            />
+            <NavLink href="/mijn-coach" label="Mijn coach" icon={UserRound} pathname={pathname} onClick={onClose} />
+            <NavLink href="/mijn-taken" label="Mijn taken" icon={ListChecks} pathname={pathname} onClick={onClose} />
           </div>
         )}
       </nav>

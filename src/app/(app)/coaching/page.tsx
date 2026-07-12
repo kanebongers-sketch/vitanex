@@ -112,7 +112,10 @@ export default function CoachingPortaal() {
                 Klant koppelen
               </h2>
               <p style={{ fontSize: 12, color: 'var(--text-3)', marginBottom: 12 }}>
-                De klant moet al een MentaForce-account hebben. Uitnodigen van nieuwe klanten volgt binnenkort.
+                Koppel een bestaand account op e-mailadres, of{' '}
+                <Link href="/coaching/uitnodigen" style={{ color: 'var(--mf-green)', fontWeight: 600, textDecoration: 'none' }}>
+                  nodig een nieuwe klant uit
+                </Link>.
               </p>
               <div style={{ display: 'flex', gap: 10, alignItems: 'flex-end', flexWrap: 'wrap' }}>
                 <div style={{ flex: 1, minWidth: 220 }}>

@@ -13,7 +13,7 @@ import { Badge } from '@/components/ui/Badge'
 import { Avatar } from '@/components/ui/Avatar'
 import RadarChart from '@/components/ui/RadarChart'
 import { KOPPEL_STATUS_STIJL, type KlantDetail } from '@/lib/coaching/relatie'
-import { ArrowLeft, ShieldAlert, TrendingUp, TrendingDown, ArrowRight, CalendarCheck } from 'lucide-react'
+import { ArrowLeft, ShieldAlert, TrendingUp, TrendingDown, ArrowRight, CalendarCheck, ListChecks, Milestone } from 'lucide-react'
 
 function burnoutKleur(score: number | null) {
   if (score === null) return 'var(--text-4)'
@@ -85,6 +85,26 @@ export default function KlantDetailPagina() {
                 {KOPPEL_STATUS_STIJL[klant.status].label}
               </Badge>
             </header>
+
+            {/* Sub-navigatie naar de coaching-modules van deze klant */}
+            <nav aria-label="Klantmodules" style={{ display: 'flex', gap: 8, marginBottom: 24, flexWrap: 'wrap' }}>
+              {[
+                { href: `/coaching/${klantId}/taken`, label: 'Taken', icon: ListChecks },
+                { href: `/coaching/${klantId}/traject`, label: 'Traject', icon: Milestone },
+              ].map(m => {
+                const Icon = m.icon
+                return (
+                  <Link key={m.href} href={m.href} style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 7, padding: '8px 14px',
+                    borderRadius: 10, fontSize: 13, fontWeight: 600, textDecoration: 'none',
+                    color: 'var(--text-2)', background: 'var(--bg-card)', border: '1px solid var(--border)',
+                    transition: 'border-color 0.15s var(--ease), color 0.15s var(--ease)',
+                  }}>
+                    <Icon size={15} aria-hidden style={{ color: 'var(--mf-green)' }} /> {m.label}
+                  </Link>
+                )
+              })}
+            </nav>
 
             {/* Geen inzage → nette lege staat */}
             {!klant.welzijn ? (
