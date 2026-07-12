@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/Button'
 import { Field } from '@/components/ui/Field'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { MailPlus, Mail, ArrowLeft, X, Check, Clock } from 'lucide-react'
-import type { CoachingUitnodiging, UitnodigingStatus } from '@/lib/coaching/uitnodiging-server'
+import type { CoachingUitnodiging, UitnodigingStatus } from '@/lib/coaching/uitnodiging'
 
 const STATUS_STIJL: Record<UitnodigingStatus, { variant: 'warning' | 'success' | 'neutral'; label: string }> = {
   open:         { variant: 'warning', label: 'Openstaand' },

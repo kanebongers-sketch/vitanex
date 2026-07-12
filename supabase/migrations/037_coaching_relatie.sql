@@ -47,7 +47,7 @@ CREATE TRIGGER trigger_coach_klanten_bijgewerkt
 -- Is deze gebruiker een coach (of admin)?
 CREATE OR REPLACE FUNCTION is_coach(uid uuid) RETURNS boolean AS $$
   SELECT EXISTS (SELECT 1 FROM profiles WHERE id = uid AND rol IN ('coach','admin'));
-$$ LANGUAGE sql SECURITY DEFINER STABLE;
+$$ LANGUAGE sql SECURITY DEFINER STABLE SET search_path = public;
 
 -- Is `klant` een ACTIEVE, toestemming-gevende klant van de ingelogde coach?
 -- Bedoeld voor toekomstige coach-leespolicies op welzijnsdata-tabellen.
@@ -59,7 +59,7 @@ CREATE OR REPLACE FUNCTION is_mijn_klant(klant uuid) RETURNS boolean AS $$
       AND status = 'actief'
       AND inzage_toestemming = true
   );
-$$ LANGUAGE sql SECURITY DEFINER STABLE;
+$$ LANGUAGE sql SECURITY DEFINER STABLE SET search_path = public;
 
 -- ─── 4. Row Level Security ──────────────────────────────────
 ALTER TABLE coach_klanten ENABLE ROW LEVEL SECURITY;

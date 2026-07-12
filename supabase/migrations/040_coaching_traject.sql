@@ -60,11 +60,20 @@ COMMENT ON COLUMN coaching_traject_fases.week_van IS '1-gebaseerd startweeknumme
 ALTER TABLE coaching_trajecten     ENABLE ROW LEVEL SECURITY;
 ALTER TABLE coaching_traject_fases ENABLE ROW LEVEL SECURITY;
 
--- Coach beheert zijn eigen trajecten volledig
+-- Coach beheert zijn eigen trajecten volledig — schrijven vereist een ACTIEVE
+-- coach↔klant-relatie (fases erven dit via het bovenliggende traject).
 DROP POLICY IF EXISTS coaching_trajecten_coach ON coaching_trajecten;
 CREATE POLICY coaching_trajecten_coach ON coaching_trajecten FOR ALL
   USING (coach_id = auth.uid())
-  WITH CHECK (coach_id = auth.uid());
+  WITH CHECK (
+    coach_id = auth.uid()
+    AND EXISTS (
+      SELECT 1 FROM coach_klanten ck
+      WHERE ck.coach_id = auth.uid()
+        AND ck.klant_id = coaching_trajecten.klant_id
+        AND ck.status = 'actief'
+    )
+  );
 
 -- Klant mag zijn eigen traject(en) lezen
 DROP POLICY IF EXISTS coaching_trajecten_klant_lezen ON coaching_trajecten;

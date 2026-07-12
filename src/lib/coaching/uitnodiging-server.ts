@@ -8,6 +8,11 @@
 
 import { randomBytes } from 'crypto'
 import { createAdminClient } from '@/lib/supabase/supabase-admin'
+import type { UitnodigingStatus, CoachingUitnodiging } from '@/lib/coaching/uitnodiging'
+
+// Types staan in de client-veilige sibling ./uitnodiging; hier her-geëxporteerd
+// voor bestaande server-side imports.
+export type { UitnodigingStatus, CoachingUitnodiging }
 
 type Admin = ReturnType<typeof createAdminClient>
 
@@ -16,18 +21,6 @@ const EMAIL_PATROON = /^[^@\s]+@[^@\s]+\.[^@\s]+$/
 /** Genereert een geheime, URL-veilige token (48 hex-tekens). */
 function genereerToken(): string {
   return randomBytes(24).toString('hex')
-}
-
-export type UitnodigingStatus = 'open' | 'geaccepteerd' | 'ingetrokken' | 'verlopen'
-
-export interface CoachingUitnodiging {
-  id: string
-  email: string
-  naam: string | null
-  status: UitnodigingStatus
-  aangemaakt_op: string | null
-  verloopt_op: string
-  geaccepteerd_op: string | null
 }
 
 interface MaakResultaatOk {
@@ -167,7 +160,7 @@ export async function accepteerUitnodiging(
 
   const { data: uitnodiging } = await admin
     .from('coaching_uitnodigingen')
-    .select('id, coach_id, status, verloopt_op')
+    .select('id, coach_id, email, status, verloopt_op')
     .eq('token', token)
     .maybeSingle()
 
@@ -191,6 +184,17 @@ export async function accepteerUitnodiging(
   }
   if (uitnodiging.coach_id === userId) {
     return { ok: false, status: 400, fout: 'Je kunt je eigen uitnodiging niet accepteren.' }
+  }
+
+  // Bind de token aan het uitgenodigde e-mailadres: een doorgestuurde of
+  // onderschepte link is zo niet door een ander account te gebruiken.
+  const { data: profiel } = await admin
+    .from('profiles')
+    .select('email')
+    .eq('id', userId)
+    .maybeSingle()
+  if (!profiel?.email || profiel.email.trim().toLowerCase() !== uitnodiging.email.trim().toLowerCase()) {
+    return { ok: false, status: 403, fout: 'Deze uitnodiging is voor een ander e-mailadres. Log in met het uitgenodigde adres.' }
   }
 
   // Koppeling activeren (nieuw of bestaand → 'actief'). inzage_toestemming blijft

@@ -64,7 +64,10 @@ export async function getKlantenVoorCoach(admin: Admin, coachId: string): Promis
 
   return rijen.map(r => {
     const p = profielMap.get(r.klant_id)
-    const laatste = laatsteCheckinMap.get(r.klant_id) ?? null
+    // Check-in-activiteit is welzijnsdata: alleen tonen bij actieve AVG-toestemming
+    // (spiegelt de gate in getKlantDetail/getKlantWelzijn).
+    const magInzien = r.status === 'actief' && r.inzage_toestemming
+    const laatste = magInzien ? (laatsteCheckinMap.get(r.klant_id) ?? null) : null
     return {
       koppeling_id: r.id,
       klant_id: r.klant_id,

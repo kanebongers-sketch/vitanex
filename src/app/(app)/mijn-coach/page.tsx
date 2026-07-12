@@ -61,6 +61,15 @@ export default function MijnCoachPagina() {
     setBezig(null)
   }
 
+  async function beeindig(coachId: string, naam: string) {
+    if (!window.confirm(`Koppeling met ${naam} beëindigen? Je coach kan je gegevens daarna niet meer inzien.`)) return
+    const res = await authFetch('/api/coaching/mijn-coaches', {
+      method: 'POST',
+      body: JSON.stringify({ coach_id: coachId }),
+    })
+    if (res.ok) setCoaches(prev => prev.filter(c => c.coach_id !== coachId))
+  }
+
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
       <Navbar />
@@ -129,6 +138,14 @@ export default function MijnCoachPagina() {
                     }} />
                   </button>
                 </div>
+
+                <button
+                  type="button"
+                  onClick={() => beeindig(c.coach_id, c.coach_naam)}
+                  style={{ marginTop: 14, fontSize: 12, color: 'var(--mf-red)', background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0', fontWeight: 600 }}
+                >
+                  Koppeling beëindigen
+                </button>
               </Card>
             ))}
           </div>

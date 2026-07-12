@@ -63,11 +63,20 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_coaching_voeding_een_actief
 -- ─── 3. Row Level Security ──────────────────────────────────
 ALTER TABLE coaching_voeding_richtlijnen ENABLE ROW LEVEL SECURITY;
 
--- Coach beheert zijn eigen richtlijnen volledig
+-- Coach beheert zijn eigen richtlijnen volledig — schrijven vereist een
+-- ACTIEVE coach↔klant-relatie (verdediging in de diepte).
 DROP POLICY IF EXISTS coaching_voeding_coach ON coaching_voeding_richtlijnen;
 CREATE POLICY coaching_voeding_coach ON coaching_voeding_richtlijnen FOR ALL
   USING (coach_id = auth.uid())
-  WITH CHECK (coach_id = auth.uid());
+  WITH CHECK (
+    coach_id = auth.uid()
+    AND EXISTS (
+      SELECT 1 FROM coach_klanten ck
+      WHERE ck.coach_id = auth.uid()
+        AND ck.klant_id = coaching_voeding_richtlijnen.klant_id
+        AND ck.status = 'actief'
+    )
+  );
 
 -- Klant leest zijn eigen toegewezen richtlijn(en)
 DROP POLICY IF EXISTS coaching_voeding_klant_lezen ON coaching_voeding_richtlijnen;

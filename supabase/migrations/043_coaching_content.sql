@@ -52,11 +52,24 @@ CREATE TRIGGER trigger_coaching_content_bijgewerkt
 -- ─── 2. Row Level Security ──────────────────────────────────
 ALTER TABLE coaching_content ENABLE ROW LEVEL SECURITY;
 
--- Coach beheert zijn eigen content volledig (lezen incl. concepten + schrijven)
+-- Coach beheert zijn eigen content volledig (lezen incl. concepten + schrijven).
+-- Schrijven vereist óf broadcast (klant_id NULL) óf een ACTIEVE relatie met de
+-- betreffende klant — voorkomt content injecteren bij willekeurige klant-id's.
 DROP POLICY IF EXISTS coaching_content_coach ON coaching_content;
 CREATE POLICY coaching_content_coach ON coaching_content FOR ALL
   USING (coach_id = auth.uid())
-  WITH CHECK (coach_id = auth.uid());
+  WITH CHECK (
+    coach_id = auth.uid()
+    AND (
+      klant_id IS NULL
+      OR EXISTS (
+        SELECT 1 FROM coach_klanten ck
+        WHERE ck.coach_id = auth.uid()
+          AND ck.klant_id = coaching_content.klant_id
+          AND ck.status = 'actief'
+      )
+    )
+  );
 
 -- Klant leest gepubliceerde content die voor hem bedoeld is:
 --   * persoonlijk (klant_id = auth.uid()), OF

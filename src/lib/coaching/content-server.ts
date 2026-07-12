@@ -226,15 +226,20 @@ export async function getContentVoorKlant(
     return { ok: false, status: 403, fout: 'Deze klant is niet (actief) aan jou gekoppeld.' }
   }
 
-  const { data, error } = await admin
-    .from('coaching_content')
-    .select(CONTENT_KOLOMMEN)
-    .eq('coach_id', coachId)
-    .or(`klant_id.eq.${klantId},klant_id.is.null`)
-    .order('aangemaakt_op', { ascending: false })
+  // Twee gerichte queries i.p.v. een .or()-filter met geïnterpoleerde klantId
+  // (die splitste user-input in een raw PostgREST-expressie). .eq() is veilig.
+  const [{ data: persoonlijk, error: fout1 }, { data: algemeen, error: fout2 }] = await Promise.all([
+    admin.from('coaching_content').select(CONTENT_KOLOMMEN).eq('coach_id', coachId).eq('klant_id', klantId),
+    admin.from('coaching_content').select(CONTENT_KOLOMMEN).eq('coach_id', coachId).is('klant_id', null),
+  ])
+  if (fout1 || fout2) return { ok: false, status: 500, fout: 'Content ophalen mislukt.' }
 
-  if (error) return { ok: false, status: 500, fout: 'Content ophalen mislukt.' }
-  return { ok: true, content: (data ?? []) as CoachingContent[] }
+  const alles = [
+    ...((persoonlijk ?? []) as CoachingContent[]),
+    ...((algemeen ?? []) as CoachingContent[]),
+  ]
+  alles.sort((a, b) => b.aangemaakt_op.localeCompare(a.aangemaakt_op))
+  return { ok: true, content: alles }
 }
 
 // ─── Klant: mijn leeslijst ───────────────────────────────────────────────────

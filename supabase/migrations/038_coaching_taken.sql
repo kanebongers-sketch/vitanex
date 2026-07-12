@@ -61,11 +61,20 @@ COMMENT ON TABLE coaching_taak_logs IS 'Dagelijkse completie-registratie per coa
 -- ─── 3. Row Level Security ──────────────────────────────────
 ALTER TABLE coaching_taken ENABLE ROW LEVEL SECURITY;
 
--- Coach beheert zijn eigen taken volledig
+-- Coach beheert zijn eigen taken volledig — schrijven vereist een ACTIEVE
+-- coach↔klant-relatie (verdediging in de diepte, ook bij directe REST-calls).
 DROP POLICY IF EXISTS coaching_taken_coach ON coaching_taken;
 CREATE POLICY coaching_taken_coach ON coaching_taken FOR ALL
   USING (coach_id = auth.uid())
-  WITH CHECK (coach_id = auth.uid());
+  WITH CHECK (
+    coach_id = auth.uid()
+    AND EXISTS (
+      SELECT 1 FROM coach_klanten ck
+      WHERE ck.coach_id = auth.uid()
+        AND ck.klant_id = coaching_taken.klant_id
+        AND ck.status = 'actief'
+    )
+  );
 
 -- Klant leest zijn eigen toegewezen taken
 DROP POLICY IF EXISTS coaching_taken_klant_lezen ON coaching_taken;

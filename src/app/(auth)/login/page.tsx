@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic'
 
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase/supabase'
 import Link from 'next/link'
@@ -27,7 +27,7 @@ function parseSupabaseError(message: string): LoginStatus {
   return 'unknown_error'
 }
 
-export default function Login() {
+function LoginInhoud() {
   const router = useRouter()
   const next = useSearchParams().get('next')
   const [email,        setEmail]        = useState('')
@@ -297,5 +297,13 @@ export default function Login() {
           </Link>
         </p>
     </AuthKaart>
+  )
+}
+
+export default function Login() {
+  return (
+    <Suspense fallback={null}>
+      <LoginInhoud />
+    </Suspense>
   )
 }
