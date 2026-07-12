@@ -13,7 +13,8 @@ import { Badge } from '@/components/ui/Badge'
 import { Avatar } from '@/components/ui/Avatar'
 import RadarChart from '@/components/ui/RadarChart'
 import { KOPPEL_STATUS_STIJL, type KlantDetail } from '@/lib/coaching/relatie'
-import { ArrowLeft, ShieldAlert, TrendingUp, TrendingDown, ArrowRight, CalendarCheck, ListChecks, Milestone } from 'lucide-react'
+import { CoachNotitie } from '@/components/coaching/CoachNotitie'
+import { ArrowLeft, ShieldAlert, TrendingUp, TrendingDown, ArrowRight, CalendarCheck, ListChecks, Milestone, Dumbbell, Apple, BookOpen } from 'lucide-react'
 
 function burnoutKleur(score: number | null) {
   if (score === null) return 'var(--text-4)'
@@ -89,8 +90,11 @@ export default function KlantDetailPagina() {
             {/* Sub-navigatie naar de coaching-modules van deze klant */}
             <nav aria-label="Klantmodules" style={{ display: 'flex', gap: 8, marginBottom: 24, flexWrap: 'wrap' }}>
               {[
-                { href: `/coaching/${klantId}/taken`, label: 'Taken', icon: ListChecks },
-                { href: `/coaching/${klantId}/traject`, label: 'Traject', icon: Milestone },
+                { href: `/coaching/${klantId}/taken`,    label: 'Taken',           icon: ListChecks },
+                { href: `/coaching/${klantId}/training`,  label: 'Training',        icon: Dumbbell },
+                { href: `/coaching/${klantId}/voeding`,   label: 'Voeding',         icon: Apple },
+                { href: `/coaching/${klantId}/content`,   label: 'Mindset & stress',icon: BookOpen },
+                { href: `/coaching/${klantId}/traject`,   label: 'Traject',         icon: Milestone },
               ].map(m => {
                 const Icon = m.icon
                 return (
@@ -105,6 +109,8 @@ export default function KlantDetailPagina() {
                 )
               })}
             </nav>
+
+            <CoachNotitie klantId={klantId} initieleNotitie={klant.notitie} />
 
             {/* Geen inzage → nette lege staat */}
             {!klant.welzijn ? (
