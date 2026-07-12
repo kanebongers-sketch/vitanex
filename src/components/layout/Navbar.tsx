@@ -10,7 +10,7 @@ import {
   MessageSquare, Building2, Users, BarChart3, Star, Trophy,
   LayoutDashboard, Calendar, Map, Lightbulb,
   LogOut, ChevronRight, Plus, CheckCircle2, GraduationCap, UserRound,
-  UserPlus, ListChecks, Apple, BookOpen,
+  UserPlus, ListChecks, Apple, BookOpen, Milestone,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import WeekRingen from './WeekRingen'
@@ -425,6 +425,7 @@ function SidebarContent({
           <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--border)' }}>
             <NavLink href="/mijn-coach" label="Mijn coach" icon={UserRound} pathname={pathname} onClick={onClose} />
             <NavLink href="/mijn-taken" label="Mijn taken" icon={ListChecks} pathname={pathname} onClick={onClose} />
+            <NavLink href="/mijn-traject" label="Mijn traject" icon={Milestone} pathname={pathname} onClick={onClose} />
             <NavLink href="/mijn-voeding" label="Mijn voeding" icon={Apple} pathname={pathname} onClick={onClose} />
             <NavLink href="/mijn-content" label="Van je coach" icon={BookOpen} pathname={pathname} onClick={onClose} />
           </div>
