@@ -3,7 +3,7 @@
 
 // ── Gebruiker & profiel ────────────────────────────────────────────────────
 
-export type Rol = 'medewerker' | 'hr' | 'admin'
+export type Rol = 'medewerker' | 'hr' | 'admin' | 'coach'
 
 export interface Profiel {
   id: string

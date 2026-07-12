@@ -66,6 +66,7 @@ export default function Login() {
     const rol = profiel?.rol ?? 'medewerker'
     if (rol === 'admin') router.push('/admin')
     else if (rol === 'hr') router.push('/dashboard')
+    else if (rol === 'coach') router.push('/coaching')
     else router.push('/home')
   }
 

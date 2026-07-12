@@ -9,7 +9,7 @@ import {
   CalendarDays, HeartPulse, Activity, Layers, User, Clapperboard,
   MessageSquare, Building2, Users, BarChart3, Star, Trophy,
   LayoutDashboard, Calendar, Map, Lightbulb,
-  LogOut, ChevronRight, Plus, CheckCircle2,
+  LogOut, ChevronRight, Plus, CheckCircle2, GraduationCap, UserRound,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import WeekRingen from './WeekRingen'
@@ -77,6 +77,11 @@ const HR_ITEMS: NavItem[] = [
   { href: '/hr/uitdagingen',  label: 'Uitdagingen', icon: Trophy    },
 ]
 
+// Coaching-sectie — zichtbaar voor de coach-rol (1-op-1 klantbegeleiding)
+const COACH_ITEMS: NavItem[] = [
+  { href: '/coaching', label: 'Klanten', icon: Users },
+]
+
 /* ── NavLink ── */
 function NavLink({
   href,
@@ -129,6 +134,7 @@ function NavLink({
 function SidebarContent({
   userName,
   userRol,
+  heeftCoach,
   pathname,
   openSections,
   onToggleSection,
@@ -137,6 +143,7 @@ function SidebarContent({
 }: {
   userName: string | null
   userRol: string | null
+  heeftCoach: boolean
   pathname: string
   openSections: Record<string, boolean>
   onToggleSection: (key: string) => void
@@ -144,6 +151,7 @@ function SidebarContent({
   onClose?: () => void
 }) {
   const isHrOrAdmin = userRol === 'hr' || userRol === 'admin'
+  const isCoach = userRol === 'coach' || userRol === 'admin'
   // Content OS is founder-/admin-tooling (briefings, strategie, ideeën) en hoort
   // niet in de navigatie van een gewone medewerker.
   const zichtbareTopItems = TOP_ITEMS.filter(
@@ -344,6 +352,84 @@ function SidebarContent({
             </div>
           </div>
         )}
+
+        {/* Coaching sectie — conditioneel (coach-rol) */}
+        {isCoach && (
+          <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--border)' }}>
+            <button
+              onClick={() => onToggleSection('coaching')}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '7px 8px',
+                width: 'calc(100% - 12px)',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: 13,
+                fontWeight: 500,
+                color: 'var(--text-2)',
+                borderRadius: 8,
+                margin: '1px 6px',
+                transition: 'background 0.12s',
+                letterSpacing: '-0.01em',
+              }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.background = 'color-mix(in srgb, var(--text-1) 6%, transparent)'
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.background = 'none'
+              }}
+            >
+              <span style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+                <GraduationCap size={15} strokeWidth={1.7} style={{ flexShrink: 0, opacity: 0.7 }} />
+                Coaching
+              </span>
+              <ChevronRight
+                size={12}
+                strokeWidth={2}
+                style={{
+                  transform: (openSections['coaching'] ?? false) ? 'rotate(90deg)' : 'rotate(0deg)',
+                  transition: 'transform 0.18s var(--ease)',
+                  opacity: 0.4,
+                }}
+              />
+            </button>
+            <div
+              style={{
+                maxHeight: (openSections['coaching'] ?? false) ? '400px' : '0px',
+                overflow: 'hidden',
+                transition: 'max-height 0.22s var(--ease)',
+              }}
+            >
+              {COACH_ITEMS.map((sub) => (
+                <NavLink
+                  key={sub.href}
+                  href={sub.href}
+                  label={sub.label}
+                  icon={sub.icon}
+                  pathname={pathname}
+                  indent
+                  onClick={onClose}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Mijn coach — voor klanten die aan een coach gekoppeld zijn */}
+        {heeftCoach && !isCoach && (
+          <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--border)' }}>
+            <NavLink
+              href="/mijn-coach"
+              label="Mijn coach"
+              icon={UserRound}
+              pathname={pathname}
+              onClick={onClose}
+            />
+          </div>
+        )}
       </nav>
 
       {/* Check-in CTA */}
@@ -436,6 +522,7 @@ export default function Navbar() {
   const [openMenu, setOpenMenu] = useState(false)
   const [userRol, setUserRol] = useState<string | null>(null)
   const [userName, setUserName] = useState<string | null>(null)
+  const [heeftCoach, setHeeftCoach] = useState(false)
 
   const buildInitialSections = () => {
     const initial: Record<string, boolean> = { hr: false }
@@ -470,6 +557,16 @@ export default function Navbar() {
       if (!mounted || !data) return
       setUserRol(data.rol ?? null)
       setUserName(data.naam ?? null)
+
+      // Heeft deze gebruiker een (menselijke) coach? Dan tonen we "Mijn coach".
+      const { data: koppeling } = await supabase
+        .from('coach_klanten')
+        .select('id')
+        .eq('klant_id', user.id)
+        .in('status', ['actief', 'gepauzeerd'])
+        .limit(1)
+        .maybeSingle()
+      if (mounted) setHeeftCoach(!!koppeling)
     }
 
     laad()
@@ -496,6 +593,7 @@ export default function Navbar() {
   const sharedProps = {
     userName,
     userRol,
+    heeftCoach,
     pathname,
     openSections,
     onToggleSection: toggleSection,
