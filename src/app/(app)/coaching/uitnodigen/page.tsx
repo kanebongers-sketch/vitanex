@@ -4,7 +4,6 @@ export const dynamic = 'force-dynamic'
 
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
 import { supabase } from '@/lib/supabase/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth/auth-fetch'
@@ -12,8 +11,8 @@ import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Field } from '@/components/ui/Field'
-import { EmptyState } from '@/components/ui/EmptyState'
-import { MailPlus, Mail, ArrowLeft, X, Check, Clock } from 'lucide-react'
+import { CoachHeader, CoachStat, CoachEmpty, CoachSkeleton } from '@/components/coaching/CoachChrome'
+import { MailPlus, Mail, X, Check, Clock } from 'lucide-react'
 import type { CoachingUitnodiging, UitnodigingStatus } from '@/lib/coaching/uitnodiging'
 
 const STATUS_STIJL: Record<UitnodigingStatus, { variant: 'warning' | 'success' | 'neutral'; label: string }> = {
@@ -102,52 +101,35 @@ export default function CoachingUitnodigenPagina() {
   const geaccepteerd = uitnodigingen.filter(u => u.status === 'geaccepteerd').length
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
+    <div className="mf-mesh-bg" style={{ minHeight: '100vh' }}>
       <Navbar />
-      <main style={{ padding: '32px 40px 72px', maxWidth: 760, margin: '0 auto' }}>
-
-        {/* Header */}
-        <header style={{ marginBottom: 24 }}>
-          <Link
-            href="/coaching"
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 600, color: 'var(--text-3)', textDecoration: 'none', marginBottom: 12 }}
-          >
-            <ArrowLeft size={14} aria-hidden /> Terug naar coaching
-          </Link>
-          <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 4 }}>
-            Klant uitnodigen
-          </h1>
-          <p style={{ fontSize: 13, color: 'var(--text-3)' }}>
-            Nodig een nieuwe klant uit per e-mail. Ze maken een account aan of loggen in en worden
-            automatisch aan jou gekoppeld.
-          </p>
-        </header>
+      <main className="mf-page-main" style={{ padding: '40px 40px 80px', maxWidth: 720, margin: '0 auto' }}>
+        <CoachHeader
+          eyebrow="Coaching"
+          titel="Klant uitnodigen"
+          subtitel="Nodig een nieuwe klant uit per e-mail. Ze maken een account aan of loggen in en worden automatisch aan jou gekoppeld."
+          backHref="/coaching"
+          backLabel="Terug naar klanten"
+        />
 
         {laden ? (
-          <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 60 }}><div className="mf-spinner" /></div>
+          <CoachSkeleton rijen={3} />
         ) : (
           <>
-            {/* Stat-strip */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 24 }}>
-              {[
-                { label: 'Verstuurd', waarde: uitnodigingen.length, kleur: 'var(--text-1)' },
-                { label: 'Openstaand', waarde: openstaand, kleur: openstaand > 0 ? 'var(--mf-amber)' : 'var(--text-1)' },
-                { label: 'Geaccepteerd', waarde: geaccepteerd, kleur: 'var(--mf-green)' },
-              ].map(s => (
-                <Card key={s.label} style={{ padding: '16px 18px' }}>
-                  <p style={{ fontSize: 20, fontWeight: 800, color: s.kleur }}>{s.waarde}</p>
-                  <p style={{ fontSize: 11, color: 'var(--text-3)', fontWeight: 600, marginTop: 2 }}>{s.label}</p>
-                </Card>
-              ))}
+            {/* Hero-stats */}
+            <div className="mf-animate-up mf-delay-1" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14, marginBottom: 28 }}>
+              <CoachStat label="Verstuurd" waarde={uitnodigingen.length} glow={uitnodigingen.length > 0} />
+              <CoachStat label="Openstaand" waarde={openstaand} accent={openstaand > 0 ? 'var(--mf-amber)' : 'var(--text-1)'} />
+              <CoachStat label="Geaccepteerd" waarde={geaccepteerd} accent="var(--mf-green)" />
             </div>
 
             {/* Uitnodigen-formulier */}
-            <Card style={{ padding: '18px 20px', marginBottom: 24 }}>
-              <h2 style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-1)', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 7 }}>
+            <Card className="mf-animate-up mf-delay-2" style={{ padding: '20px 22px', marginBottom: 28 }}>
+              <h2 style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-1)', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
                 <MailPlus size={15} aria-hidden style={{ color: 'var(--mf-green)' }} />
                 Nieuwe uitnodiging
               </h2>
-              <p style={{ fontSize: 12, color: 'var(--text-3)', marginBottom: 14 }}>
+              <p style={{ fontSize: 12.5, color: 'var(--text-3)', marginBottom: 16, lineHeight: 1.5 }}>
                 De link in de e-mail blijft 14 dagen geldig. De klant bepaalt zelf welke gegevens ze delen.
               </p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -162,7 +144,7 @@ export default function CoachingUitnodigenPagina() {
                         autoComplete="off"
                         onChange={e => { setEmail(e.target.value); setFout(null); setSucces(null) }}
                         onKeyDown={e => e.key === 'Enter' && verstuurUitnodiging()}
-                        style={{ borderRadius: 12, padding: '10px 14px', width: '100%' }}
+                        style={{ borderRadius: 12, padding: '11px 14px', width: '100%' }}
                       />
                     </Field>
                   </div>
@@ -176,7 +158,7 @@ export default function CoachingUitnodigenPagina() {
                         autoComplete="off"
                         onChange={e => setNaam(e.target.value)}
                         onKeyDown={e => e.key === 'Enter' && verstuurUitnodiging()}
-                        style={{ borderRadius: 12, padding: '10px 14px', width: '100%' }}
+                        style={{ borderRadius: 12, padding: '11px 14px', width: '100%' }}
                       />
                     </Field>
                   </div>
@@ -188,37 +170,39 @@ export default function CoachingUitnodigenPagina() {
                 </div>
               </div>
               {succes && (
-                <p role="status" style={{ fontSize: 12, color: 'var(--mf-green)', marginTop: 12, fontWeight: 600 }}>{succes}</p>
+                <p role="status" style={{ fontSize: 12.5, color: 'var(--mf-green)', marginTop: 14, fontWeight: 600 }}>{succes}</p>
               )}
             </Card>
 
             {/* Lijst */}
             {uitnodigingen.length === 0 ? (
-              <Card style={{ padding: 8 }}>
-                <EmptyState
-                  icon={Mail}
-                  title="Nog geen uitnodigingen"
-                  description="Stuur je eerste uitnodiging via het e-mailadres van je klant."
-                />
-              </Card>
+              <CoachEmpty
+                icon={Mail}
+                titel="Nog geen uitnodigingen"
+                tekst="Stuur je eerste uitnodiging via het e-mailadres van je klant."
+              />
             ) : (
-              <section aria-label="Verstuurde uitnodigingen" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <section aria-label="Verstuurde uitnodigingen" className="mf-coach-stagger" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 {uitnodigingen.map(u => {
                   const stijl = STATUS_STIJL[u.status]
                   const verloopt = u.status === 'open' ? new Date(u.verloopt_op).getTime() < Date.now() : false
+                  const isAcc = u.status === 'geaccepteerd'
+                  const wachtOpen = u.status === 'open' && !verloopt
+                  const ringBg = isAcc ? 'var(--mf-green-light)' : wachtOpen ? 'var(--mf-amber-light)' : 'var(--bg-subtle)'
+                  const ringColor = isAcc ? 'var(--mf-green)' : wachtOpen ? 'var(--mf-amber)' : 'var(--text-3)'
                   return (
-                    <Card key={u.id} style={{ padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 14 }}>
+                    <Card key={u.id} style={{ padding: '15px 20px', display: 'flex', alignItems: 'center', gap: 14 }}>
                       <span
                         aria-hidden
-                        style={{ width: 38, height: 38, borderRadius: '50%', flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-subtle)', border: '1px solid var(--border)', color: 'var(--text-3)' }}
+                        style={{ width: 40, height: 40, borderRadius: '50%', flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: ringBg, color: ringColor }}
                       >
-                        {u.status === 'geaccepteerd' ? <Check size={16} style={{ color: 'var(--mf-green)' }} /> : <Clock size={16} />}
+                        {isAcc ? <Check size={17} /> : <Clock size={17} />}
                       </span>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-1)', letterSpacing: '-0.01em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        <p style={{ fontSize: 14.5, fontWeight: 700, color: 'var(--text-1)', letterSpacing: '-0.01em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {u.naam || u.email}
                         </p>
-                        <p style={{ fontSize: 12, color: 'var(--text-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        <p style={{ fontSize: 12.5, color: 'var(--text-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {u.naam ? `${u.email} · ` : ''}
                           {u.status === 'geaccepteerd'
                             ? `Geaccepteerd op ${formatDatum(u.geaccepteerd_op)}`
@@ -226,7 +210,7 @@ export default function CoachingUitnodigenPagina() {
                         </p>
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-                        <Badge variant={verloopt ? 'neutral' : stijl.variant} style={{ fontSize: 10, padding: '2px 8px' }}>
+                        <Badge variant={verloopt ? 'neutral' : stijl.variant} style={{ fontSize: 10, padding: '3px 9px' }}>
                           {verloopt ? 'Verlopen' : stijl.label}
                         </Badge>
                         {u.status === 'open' && (

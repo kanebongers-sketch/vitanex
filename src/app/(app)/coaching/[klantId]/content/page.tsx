@@ -4,16 +4,15 @@ export const dynamic = 'force-dynamic'
 
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter, useParams } from 'next/navigation'
-import Link from 'next/link'
 import { supabase } from '@/lib/supabase/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth/auth-fetch'
 import { Card } from '@/components/ui/Card'
-import { EmptyState } from '@/components/ui/EmptyState'
+import { CoachHeader, CoachSection, CoachEmpty, CoachSkeleton } from '@/components/coaching/CoachChrome'
 import { ContentFormulier, type ContentWaarden } from '@/components/coaching/ContentFormulier'
 import { ContentBeheerRij } from '@/components/coaching/ContentBeheerRij'
 import type { CoachingContent } from '@/lib/coaching/content'
-import { ArrowLeft, BookOpen } from 'lucide-react'
+import { BookOpen, ShieldAlert, Pencil } from 'lucide-react'
 
 /** Bouwt de POST/PATCH-payload; klant_id gaat alleen mee bij aanmaken. */
 function bouwPayload(waarden: ContentWaarden, klantId: string, nieuw: boolean) {
@@ -111,38 +110,57 @@ export default function KlantContentPagina() {
     media_url: bewerkItem.media_url ?? '', voorAlleKlanten: bewerkItem.klant_id === null, gepubliceerd: bewerkItem.gepubliceerd,
   } : undefined
 
+  const gepubliceerd = lijst.filter(c => c.gepubliceerd).length
+
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
+    <div className="mf-mesh-bg" style={{ minHeight: '100vh' }}>
       <Navbar />
-      <main style={{ padding: '32px 40px 72px', maxWidth: 760, margin: '0 auto' }}>
-
-        <Link href={`/coaching/${klantId}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--text-3)', textDecoration: 'none', marginBottom: 20 }}>
-          <ArrowLeft size={15} aria-hidden /> Terug naar klant
-        </Link>
-
-        <header style={{ marginBottom: 24 }}>
-          <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 4 }}>
-            Mindset & stress
-          </h1>
-          <p style={{ fontSize: 13, color: 'var(--text-3)' }}>
-            Schrijf lessen en opdrachten en lever ze aan {klantNaam} of aan al je klanten. Zij lezen wat je publiceert.
-          </p>
-        </header>
+      <main className="mf-page-main" style={{ padding: '40px 40px 80px', maxWidth: 780, margin: '0 auto' }}>
+        <CoachHeader
+          eyebrow="Mindset & stress"
+          titel="Mindset & stress"
+          subtitel={`Schrijf lessen en opdrachten en lever ze aan ${klantNaam} of aan al je klanten. Zij lezen wat je publiceert.`}
+          backHref={`/coaching/${klantId}`}
+          backLabel="Terug naar klant"
+          rechts={!laden && !nietGevonden ? (
+            <span style={{
+              display: 'inline-flex', alignItems: 'center', gap: 7, padding: '8px 14px',
+              borderRadius: 999, fontSize: 12.5, fontWeight: 700,
+              color: 'var(--mf-purple)', background: 'var(--mf-purple-light)',
+              border: '1px solid color-mix(in srgb, var(--mf-purple) 30%, transparent)',
+            }}>
+              <BookOpen size={14} aria-hidden /> {gepubliceerd} gepubliceerd
+            </span>
+          ) : undefined}
+        />
 
         {laden ? (
-          <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 60 }}><div className="mf-spinner" /></div>
+          <CoachSkeleton rijen={3} />
         ) : nietGevonden ? (
-          <Card style={{ padding: 32, textAlign: 'center' }}>
-            <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-1)', marginBottom: 4 }}>Klant niet gevonden</p>
-            <p style={{ fontSize: 13, color: 'var(--text-3)' }}>Deze klant is niet (actief) aan jou gekoppeld.</p>
-          </Card>
+          <CoachEmpty
+            icon={ShieldAlert}
+            toon="wacht"
+            titel="Klant niet gevonden"
+            tekst="Deze klant is niet (actief) aan jou gekoppeld."
+          />
         ) : (
           <>
-            <Card style={{ padding: '20px 22px', marginBottom: 24 }}>
-              <h2 style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-1)', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
-                <BookOpen size={16} aria-hidden style={{ color: 'var(--mf-purple)' }} />
-                {bewerkItem ? 'Content bewerken' : 'Nieuwe content'}
-              </h2>
+            <Card className="mf-animate-up mf-delay-1" style={{ padding: '22px 24px', marginBottom: 26 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 18 }}>
+                <span aria-hidden style={{
+                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                  width: 38, height: 38, borderRadius: 11, flexShrink: 0,
+                  background: 'var(--mf-purple-light)', color: 'var(--mf-purple)',
+                }}>
+                  {bewerkItem ? <Pencil size={17} aria-hidden /> : <BookOpen size={18} aria-hidden />}
+                </span>
+                <div>
+                  <h2 className="mf-h3">{bewerkItem ? 'Content bewerken' : 'Nieuwe content'}</h2>
+                  <p className="mf-caption" style={{ marginTop: 2 }}>
+                    {bewerkItem ? 'Pas een bestaande les of opdracht aan.' : 'Een les of opdracht voor mindset & stress.'}
+                  </p>
+                </div>
+              </div>
               <ContentFormulier
                 key={bewerkItem?.id ?? 'nieuw'}
                 onSubmit={verstuurForm}
@@ -154,32 +172,34 @@ export default function KlantContentPagina() {
               />
             </Card>
 
-            {lijst.length === 0 ? (
-              <Card style={{ padding: 8 }}>
-                <EmptyState
-                  icon={BookOpen}
-                  title="Nog geen content"
-                  description="Voeg hierboven je eerste mindset- of stress-les of -opdracht toe."
-                />
-              </Card>
-            ) : (
-              <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 10 }}>
-                {lijst.map(c => (
-                  <li key={c.id}>
-                    <ContentBeheerRij
-                      content={c}
-                      bezig={actieBezigId === c.id}
-                      bevestigVerwijder={bevestigId === c.id}
-                      onBewerk={() => { setBewerkItem(c); setFormFout(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }}
-                      onTogglePublicatie={() => togglePublicatie(c)}
-                      onVraagVerwijder={() => setBevestigId(c.id)}
-                      onVerwijder={() => verwijder(c.id)}
-                      onAnnuleerVerwijder={() => setBevestigId(null)}
-                    />
-                  </li>
-                ))}
-              </ul>
-            )}
+            <div className="mf-animate-up mf-delay-2">
+              <CoachSection titel="Aangemaakte content">
+                {lijst.length === 0 ? (
+                  <CoachEmpty
+                    icon={BookOpen}
+                    titel="Nog geen content"
+                    tekst="Voeg hierboven je eerste mindset- of stress-les of -opdracht toe."
+                  />
+                ) : (
+                  <ul className="mf-coach-stagger" style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    {lijst.map(c => (
+                      <li key={c.id}>
+                        <ContentBeheerRij
+                          content={c}
+                          bezig={actieBezigId === c.id}
+                          bevestigVerwijder={bevestigId === c.id}
+                          onBewerk={() => { setBewerkItem(c); setFormFout(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }}
+                          onTogglePublicatie={() => togglePublicatie(c)}
+                          onVraagVerwijder={() => setBevestigId(c.id)}
+                          onVerwijder={() => verwijder(c.id)}
+                          onAnnuleerVerwijder={() => setBevestigId(null)}
+                        />
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </CoachSection>
+            </div>
           </>
         )}
       </main>

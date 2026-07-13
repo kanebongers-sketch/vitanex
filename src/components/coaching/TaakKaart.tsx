@@ -31,9 +31,21 @@ export function TaakKaart({ taak, bezig, onToggle }: TaakKaartProps) {
   const stijl = PIJLER_STIJL[taak.pijler]
   const Icoon = PIJLER_ICOON[taak.pijler]
   const gevuld = Math.min(taak.deze_week_gehaald, taak.target_per_week)
+  const gedaan = taak.vandaag_gehaald
 
   return (
-    <Card style={{ padding: '16px 18px', display: 'flex', alignItems: 'center', gap: 14 }}>
+    <Card
+      style={{
+        padding: '16px 18px', display: 'flex', alignItems: 'center', gap: 14,
+        border: gedaan
+          ? '1px solid color-mix(in srgb, var(--mf-green) 34%, var(--border))'
+          : '1px solid var(--border)',
+        background: gedaan
+          ? 'color-mix(in srgb, var(--mf-green) 5%, var(--bg-card))'
+          : 'var(--bg-card)',
+        transition: 'border-color 0.2s var(--ease), background 0.2s var(--ease)',
+      }}
+    >
       <span
         aria-hidden
         style={{
@@ -98,13 +110,14 @@ export function TaakKaart({ taak, bezig, onToggle }: TaakKaartProps) {
           display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
           width: 40, height: 40, borderRadius: '50%', flexShrink: 0, padding: 0,
           cursor: bezig ? 'wait' : 'pointer',
-          background: taak.vandaag_gehaald ? 'var(--mf-green)' : 'transparent',
-          border: taak.vandaag_gehaald ? '1px solid var(--mf-green)' : '1.5px solid var(--border-strong)',
-          color: taak.vandaag_gehaald ? 'var(--bg-app)' : 'var(--text-4)',
-          transition: 'background 0.15s var(--ease), border-color 0.15s var(--ease), transform 0.1s var(--ease)',
+          background: gedaan ? 'var(--mf-green)' : 'transparent',
+          border: gedaan ? '1px solid var(--mf-green)' : '1.5px solid var(--border-strong)',
+          color: gedaan ? 'var(--bg-app)' : 'var(--text-4)',
+          boxShadow: gedaan ? '0 0 16px rgba(0,229,255,0.38)' : 'none',
+          transition: 'background 0.15s var(--ease), border-color 0.15s var(--ease), box-shadow 0.2s var(--ease), transform 0.1s var(--ease)',
         }}
       >
-        <Check size={20} aria-hidden style={{ opacity: taak.vandaag_gehaald ? 1 : 0.35 }} />
+        <Check size={20} aria-hidden style={{ opacity: gedaan ? 1 : 0.35 }} />
       </button>
 
       <style>{`

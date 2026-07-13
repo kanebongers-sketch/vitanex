@@ -4,18 +4,17 @@ export const dynamic = 'force-dynamic'
 
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter, useParams } from 'next/navigation'
-import Link from 'next/link'
 import { supabase } from '@/lib/supabase/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth/auth-fetch'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
-import { EmptyState } from '@/components/ui/EmptyState'
 import { TaakFormulier, type NieuweTaakWaarden } from '@/components/coaching/TaakFormulier'
 import { PIJLER_ICOON } from '@/components/coaching/TaakKaart'
+import { CoachHeader, CoachSection, CoachEmpty, CoachSkeleton } from '@/components/coaching/CoachChrome'
 import { PIJLER_LABELS, PIJLER_STIJL, targetOmschrijving, type TaakMetVoortgang } from '@/lib/coaching/taken'
-import { ArrowLeft, ListChecks, Power, Trash2 } from 'lucide-react'
+import { ListChecks, Power, Trash2, ShieldAlert } from 'lucide-react'
 
 export default function KlantTakenPagina() {
   const router = useRouter()
@@ -86,49 +85,48 @@ export default function KlantTakenPagina() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
+    <div className="mf-mesh-bg" style={{ minHeight: '100vh' }}>
       <Navbar />
-      <main style={{ padding: '32px 40px 72px', maxWidth: 760, margin: '0 auto' }}>
+      <main className="mf-page-main" style={{ padding: '40px 40px 80px', maxWidth: 900, margin: '0 auto' }}>
 
-        <Link href={`/coaching/${klantId}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--text-3)', textDecoration: 'none', marginBottom: 20 }}>
-          <ArrowLeft size={15} aria-hidden /> Terug naar klant
-        </Link>
-
-        <header style={{ marginBottom: 24 }}>
-          <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 4 }}>
-            Coaching-taken
-          </h1>
-          <p style={{ fontSize: 13, color: 'var(--text-3)' }}>
-            Wijs terugkerende gewoontes toe. Je klant vinkt ze af; het telt mee voor hun streak.
-          </p>
-        </header>
+        <CoachHeader
+          eyebrow="Coaching · Taken"
+          titel="Coaching-taken"
+          subtitel="Wijs terugkerende gewoontes toe die je klant helpt opbouwen."
+          backHref={`/coaching/${klantId}`}
+          backLabel="Terug naar klant"
+        />
 
         {laden ? (
-          <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 60 }}><div className="mf-spinner" /></div>
+          <CoachSkeleton rijen={3} />
         ) : nietGevonden ? (
-          <Card style={{ padding: 32, textAlign: 'center' }}>
-            <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-1)', marginBottom: 4 }}>Klant niet gevonden</p>
-            <p style={{ fontSize: 13, color: 'var(--text-3)' }}>Deze klant is niet (actief) aan jou gekoppeld.</p>
-          </Card>
+          <CoachEmpty
+            icon={ShieldAlert}
+            titel="Klant niet gevonden"
+            tekst="Deze klant is niet (actief) aan jou gekoppeld."
+            toon="wacht"
+          />
         ) : (
           <>
-            <Card style={{ padding: '20px 22px', marginBottom: 24 }}>
-              <h2 style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-1)', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Card className="mf-animate-up mf-delay-1" style={{ padding: '20px 22px', marginBottom: 28 }}>
+              <h2 style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-1)', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
                 <ListChecks size={16} aria-hidden style={{ color: 'var(--mf-green)' }} /> Nieuwe taak
               </h2>
+              <p style={{ fontSize: 12.5, color: 'var(--text-3)', marginBottom: 16, lineHeight: 1.5 }}>
+                Je klant vinkt de taak af in het portaal; het telt mee voor hun wekelijkse streak.
+              </p>
               <TaakFormulier onSubmit={maakTaak} bezig={formBezig} fout={formFout} />
             </Card>
 
-            {taken.length === 0 ? (
-              <Card style={{ padding: 8 }}>
-                <EmptyState
+            <CoachSection titel="Toegewezen taken">
+              {taken.length === 0 ? (
+                <CoachEmpty
                   icon={ListChecks}
-                  title="Nog geen taken"
-                  description="Voeg hierboven de eerste gewoonte toe die je deze klant wilt laten opbouwen."
+                  titel="Nog geen taken"
+                  tekst="Voeg hierboven de eerste gewoonte toe die je deze klant wilt laten opbouwen."
                 />
-              </Card>
-            ) : (
-              <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 10 }}>
+              ) : (
+                <ul className="mf-coach-stagger" style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 12 }}>
                 {taken.map(t => {
                   const stijl = PIJLER_STIJL[t.pijler]
                   const Icoon = PIJLER_ICOON[t.pijler]
@@ -180,8 +178,9 @@ export default function KlantTakenPagina() {
                     </li>
                   )
                 })}
-              </ul>
-            )}
+                </ul>
+              )}
+            </CoachSection>
           </>
         )}
       </main>

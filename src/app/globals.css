@@ -1146,3 +1146,86 @@ body {
   color: var(--text-2);
 }
 
+/* ═══════════════════════════════════════════════════════════
+   COACHING (KBHP) — premium editorial surface
+   Donker navy + één cyaan-accent + Space Grotesk. Diepte via
+   glow/mesh/grain, hiërarchie via schaal, ontworpen states.
+   ═══════════════════════════════════════════════════════════ */
+
+/* Terug-link met richtinggevoelige micro-interactie */
+.mf-coach-back {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-size: 13px; font-weight: 500; color: var(--text-3);
+  text-decoration: none; margin-bottom: 22px;
+  transition: color 0.15s var(--ease);
+}
+.mf-coach-back:hover { color: var(--mf-green); }
+.mf-coach-back svg { transition: transform 0.18s var(--ease); }
+.mf-coach-back:hover svg { transform: translateX(-3px); }
+
+/* Aanklikbare kaartrij (klant, taak, content…) — lift + cyaan-rand */
+.mf-coach-row {
+  transition: border-color 0.2s var(--ease), transform 0.14s var(--ease),
+    box-shadow 0.2s var(--ease), background 0.2s var(--ease);
+}
+.mf-coach-row:hover {
+  border-color: color-mix(in srgb, var(--mf-green) 55%, transparent) !important;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md), 0 0 0 1px color-mix(in srgb, var(--mf-green) 22%, transparent);
+}
+.mf-coach-row:active { transform: translateY(0) scale(0.995); }
+.mf-coach-row:focus-visible {
+  outline: none;
+  border-color: var(--mf-green) !important;
+  box-shadow: 0 0 0 3px rgba(0,229,255,0.18);
+}
+
+/* Module-tabs op de klantpagina */
+.mf-coach-tab {
+  transition: color 0.15s var(--ease), border-color 0.15s var(--ease),
+    background 0.15s var(--ease), transform 0.1s var(--ease);
+}
+.mf-coach-tab:hover {
+  color: var(--text-1) !important;
+  border-color: color-mix(in srgb, var(--mf-green) 45%, transparent) !important;
+  background: color-mix(in srgb, var(--mf-green) 6%, var(--bg-card)) !important;
+}
+.mf-coach-tab:active { transform: scale(0.97); }
+.mf-coach-tab[data-actief="true"] {
+  color: var(--mf-green) !important;
+  border-color: color-mix(in srgb, var(--mf-green) 55%, transparent) !important;
+  background: var(--mf-green-light) !important;
+}
+
+/* Zachte cyaan aura achter een sectiekop of hero */
+.mf-coach-aura {
+  position: absolute; pointer-events: none; z-index: 0;
+  width: 420px; height: 420px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(0,229,255,0.12) 0%, transparent 68%);
+  filter: blur(6px);
+}
+
+/* Toggle-switch (toestemming) — premium */
+.mf-coach-switch {
+  position: relative; width: 46px; height: 27px; border-radius: 100px;
+  border: none; cursor: pointer; flex-shrink: 0; padding: 0;
+  transition: background 0.22s var(--ease);
+}
+.mf-coach-switch[data-aan="true"]  { background: var(--mf-green); box-shadow: 0 0 16px rgba(0,229,255,0.4); }
+.mf-coach-switch[data-aan="false"] { background: var(--border-strong); }
+.mf-coach-switch .knop {
+  position: absolute; top: 3px; width: 21px; height: 21px; border-radius: 50%;
+  background: var(--text-1); transition: left 0.22s var(--ease);
+}
+.mf-coach-switch[data-aan="true"]  .knop { left: 22px; }
+.mf-coach-switch[data-aan="false"] .knop { left: 3px; }
+
+/* Stagger-hulp voor lijstitems (erft reduced-motion uit :root) */
+.mf-coach-stagger > * { animation: mf-fade-up var(--mf-motion-duration, 0.4s) var(--ease) both; }
+.mf-coach-stagger > *:nth-child(1) { animation-delay: 0.02s; }
+.mf-coach-stagger > *:nth-child(2) { animation-delay: 0.06s; }
+.mf-coach-stagger > *:nth-child(3) { animation-delay: 0.10s; }
+.mf-coach-stagger > *:nth-child(4) { animation-delay: 0.14s; }
+.mf-coach-stagger > *:nth-child(5) { animation-delay: 0.18s; }
+.mf-coach-stagger > *:nth-child(n+6) { animation-delay: 0.22s; }
+

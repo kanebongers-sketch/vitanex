@@ -4,7 +4,6 @@ export const dynamic = 'force-dynamic'
 
 import { useEffect, useState, useCallback, useMemo, type CSSProperties } from 'react'
 import { useRouter, useParams } from 'next/navigation'
-import Link from 'next/link'
 import { supabase } from '@/lib/supabase/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth/auth-fetch'
@@ -13,14 +12,16 @@ import { Button } from '@/components/ui/Button'
 import { Field } from '@/components/ui/Field'
 import { Input } from '@/components/ui/Input'
 import { Textarea } from '@/components/ui/Textarea'
+import { CoachHeader, CoachSection, CoachEmpty, CoachSkeleton } from '@/components/coaching/CoachChrome'
 import {
   DIEETVOORKEUREN,
   DIEETVOORKEUR_LABELS,
   macroVerdeling,
   type Dieetvoorkeur,
+  type MacroVerdeling,
   type VoedingRichtlijn,
 } from '@/lib/coaching/voeding'
-import { ArrowLeft, Apple, Save, Flame } from 'lucide-react'
+import { Apple, Save, Flame, ShieldAlert, Check } from 'lucide-react'
 
 const SELECT_STYLE: CSSProperties = {
   width: '100%', padding: '10px 14px', fontSize: 15, lineHeight: 1.4,
@@ -66,6 +67,39 @@ function parseNum(waarde: string): number | null {
   if (schoon === '') return null
   const n = Number(schoon)
   return Number.isFinite(n) ? n : null
+}
+
+// Live macro-verdeling als premium segmentbalk + legenda (puur presentational).
+function MacroBalk({ verdeling }: { verdeling: MacroVerdeling }) {
+  const segmenten = [
+    { key: 'eiwit', label: 'Eiwit', pct: verdeling.eiwit_pct, ...MACRO_STIJL.eiwit },
+    { key: 'koolhydraat', label: 'Koolhydraten', pct: verdeling.koolhydraat_pct, ...MACRO_STIJL.koolhydraat },
+    { key: 'vet', label: 'Vet', pct: verdeling.vet_pct, ...MACRO_STIJL.vet },
+  ] as const
+
+  return (
+    <div aria-label="Berekende macroverdeling">
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+        <span className="mf-overline" style={{ color: 'var(--text-3)' }}>Verdeling</span>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12, fontWeight: 700, color: 'var(--mf-green)', fontVariantNumeric: 'tabular-nums' }}>
+          <Flame size={13} aria-hidden /> {verdeling.totaal_kcal} kcal uit macro&apos;s
+        </span>
+      </div>
+      <div style={{ display: 'flex', height: 9, borderRadius: 100, overflow: 'hidden', background: 'var(--bg-subtle)', border: '1px solid var(--border)' }}>
+        {segmenten.map(s => s.pct > 0 && (
+          <span key={s.key} aria-hidden style={{ width: `${s.pct}%`, background: s.kleur }} />
+        ))}
+      </div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, marginTop: 12 }}>
+        {segmenten.map(s => (
+          <span key={s.key} style={{ display: 'inline-flex', alignItems: 'center', gap: 7, fontSize: 12.5, color: 'var(--text-3)' }}>
+            <span aria-hidden style={{ width: 9, height: 9, borderRadius: '50%', background: s.kleur, flexShrink: 0 }} />
+            {s.label} <strong style={{ color: 'var(--text-1)', fontVariantNumeric: 'tabular-nums' }}>{s.pct}%</strong>
+          </span>
+        ))}
+      </div>
+    </div>
+  )
 }
 
 export default function KlantVoedingPagina() {
@@ -153,99 +187,111 @@ export default function KlantVoedingPagina() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
+    <div className="mf-mesh-bg" style={{ minHeight: '100vh' }}>
       <Navbar />
-      <main style={{ padding: '32px 40px 72px', maxWidth: 760, margin: '0 auto' }}>
-
-        <Link href={`/coaching/${klantId}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--text-3)', textDecoration: 'none', marginBottom: 20 }}>
-          <ArrowLeft size={15} aria-hidden /> Terug naar klant
-        </Link>
-
-        <header style={{ marginBottom: 24 }}>
-          <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 4 }}>
-            Voedingsrichtlijn
-          </h1>
-          <p style={{ fontSize: 13, color: 'var(--text-3)' }}>
-            Stel een persoonlijke richtlijn en dagdoelen op. Je klant ziet deze terug bij <strong>Mijn voeding</strong>.
-          </p>
-        </header>
+      <main className="mf-page-main" style={{ padding: '40px 40px 80px', maxWidth: 780, margin: '0 auto' }}>
+        <CoachHeader
+          eyebrow="Voeding"
+          titel="Voedingsrichtlijn"
+          subtitel="Stel een persoonlijke richtlijn en dagdoelen op. Je klant ziet deze terug bij Mijn voeding."
+          backHref={`/coaching/${klantId}`}
+          backLabel="Terug naar klant"
+          rechts={
+            <span style={{
+              display: 'inline-flex', alignItems: 'center', gap: 7, padding: '8px 14px',
+              borderRadius: 999, fontSize: 12.5, fontWeight: 700,
+              color: 'var(--mf-green)', background: 'var(--mf-green-light)',
+              border: '1px solid color-mix(in srgb, var(--mf-green) 30%, transparent)',
+            }}>
+              <Apple size={14} aria-hidden /> {bestaand ? 'Actieve richtlijn' : 'Nieuwe richtlijn'}
+            </span>
+          }
+        />
 
         {laden ? (
-          <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 60 }}><div className="mf-spinner" /></div>
+          <CoachSkeleton rijen={3} />
         ) : nietGevonden ? (
-          <Card style={{ padding: 32, textAlign: 'center' }}>
-            <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-1)', marginBottom: 4 }}>Klant niet gevonden</p>
-            <p style={{ fontSize: 13, color: 'var(--text-3)' }}>Deze klant is niet (actief) aan jou gekoppeld.</p>
-          </Card>
+          <CoachEmpty
+            icon={ShieldAlert}
+            toon="wacht"
+            titel="Klant niet gevonden"
+            tekst="Deze klant is niet (actief) aan jou gekoppeld."
+          />
         ) : (
-          <Card style={{ padding: '22px 24px' }}>
-            <h2 style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-1)', marginBottom: 18, display: 'flex', alignItems: 'center', gap: 8 }}>
-              <Apple size={16} aria-hidden style={{ color: 'var(--mf-green)' }} />
-              {bestaand ? 'Richtlijn bijwerken' : 'Nieuwe richtlijn'}
-            </h2>
+          <>
+            <CoachSection titel="Dagdoelen">
+              <Card className="mf-card-glow mf-animate-up mf-delay-1" style={{ padding: '22px 24px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+                  <Field label="Calorieën per dag (kcal)" hint="Optioneel — laat leeg als je geen caloriedoel wilt opgeven.">
+                    <Input type="number" inputMode="numeric" min={800} max={8000} placeholder="Bijv. 2200"
+                      value={waarden.calorie_doel} onChange={e => zet('calorie_doel', e.target.value)} />
+                  </Field>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              <Field label="Calorieën per dag (kcal)" hint="Optioneel — laat leeg als je geen caloriedoel wilt opgeven.">
-                <Input type="number" inputMode="numeric" min={800} max={8000} placeholder="Bijv. 2200"
-                  value={waarden.calorie_doel} onChange={e => zet('calorie_doel', e.target.value)} />
-              </Field>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+                    <Field label="Eiwit (g)">
+                      <Input type="number" inputMode="numeric" min={0} max={1000} placeholder="0"
+                        value={waarden.eiwit_g} onChange={e => zet('eiwit_g', e.target.value)} />
+                    </Field>
+                    <Field label="Koolhydraten (g)">
+                      <Input type="number" inputMode="numeric" min={0} max={1500} placeholder="0"
+                        value={waarden.koolhydraat_g} onChange={e => zet('koolhydraat_g', e.target.value)} />
+                    </Field>
+                    <Field label="Vet (g)">
+                      <Input type="number" inputMode="numeric" min={0} max={1000} placeholder="0"
+                        value={waarden.vet_g} onChange={e => zet('vet_g', e.target.value)} />
+                    </Field>
+                  </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
-                <Field label="Eiwit (g)">
-                  <Input type="number" inputMode="numeric" min={0} max={1000} placeholder="0"
-                    value={waarden.eiwit_g} onChange={e => zet('eiwit_g', e.target.value)} />
-                </Field>
-                <Field label="Koolhydraten (g)">
-                  <Input type="number" inputMode="numeric" min={0} max={1500} placeholder="0"
-                    value={waarden.koolhydraat_g} onChange={e => zet('koolhydraat_g', e.target.value)} />
-                </Field>
-                <Field label="Vet (g)">
-                  <Input type="number" inputMode="numeric" min={0} max={1000} placeholder="0"
-                    value={waarden.vet_g} onChange={e => zet('vet_g', e.target.value)} />
-                </Field>
-              </div>
-
-              {verdeling && (
-                <div aria-label="Berekende macroverdeling" style={{ display: 'flex', flexWrap: 'wrap', gap: 8, fontSize: 12, color: 'var(--text-3)' }}>
-                  <span style={{ fontWeight: 600, color: 'var(--text-2)' }}>Verdeling ({verdeling.totaal_kcal} kcal uit macro's):</span>
-                  <span style={{ color: MACRO_STIJL.eiwit.kleur, fontWeight: 700 }}>{verdeling.eiwit_pct}% eiwit</span>
-                  <span style={{ color: MACRO_STIJL.koolhydraat.kleur, fontWeight: 700 }}>{verdeling.koolhydraat_pct}% kh</span>
-                  <span style={{ color: MACRO_STIJL.vet.kleur, fontWeight: 700 }}>{verdeling.vet_pct}% vet</span>
+                  {verdeling && <MacroBalk verdeling={verdeling} />}
                 </div>
+              </Card>
+            </CoachSection>
+
+            <CoachSection titel="Persoonlijke richtlijn">
+              <Card className="mf-animate-up mf-delay-2" style={{ padding: '22px 24px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+                  <Field label="Dieetvoorkeur">
+                    <select className="mf-coach-select" style={SELECT_STYLE} value={waarden.dieetvoorkeur}
+                      onChange={e => zet('dieetvoorkeur', e.target.value as Dieetvoorkeur)}>
+                      {DIEETVOORKEUREN.map(d => <option key={d} value={d}>{DIEETVOORKEUR_LABELS[d]}</option>)}
+                    </select>
+                  </Field>
+
+                  <Field label="Richtlijn & toelichting" hint="Bijv. focus op eiwit bij elke maaltijd, 2 stuks fruit per dag, water bij het ontbijt.">
+                    <Textarea rows={5} maxLength={4000} placeholder="Schrijf de persoonlijke voedingsrichtlijn voor deze klant."
+                      value={waarden.richtlijn_tekst} onChange={e => zet('richtlijn_tekst', e.target.value)} />
+                  </Field>
+                </div>
+              </Card>
+            </CoachSection>
+
+            {fout && <p role="alert" style={{ fontSize: 13, color: 'var(--mf-red)', margin: '0 0 14px' }}>{fout}</p>}
+
+            <div className="mf-animate-up mf-delay-3" style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
+              <Button onClick={bewaar} loading={bezig} leftIcon={<Save size={15} aria-hidden />}>
+                {bestaand ? 'Richtlijn bijwerken' : 'Richtlijn opstellen'}
+              </Button>
+              {opgeslagen && (
+                <span role="status" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: 'var(--mf-green)' }}>
+                  <Check size={15} aria-hidden /> Opgeslagen
+                </span>
               )}
-
-              <Field label="Dieetvoorkeur">
-                <select style={SELECT_STYLE} value={waarden.dieetvoorkeur}
-                  onChange={e => zet('dieetvoorkeur', e.target.value as Dieetvoorkeur)}>
-                  {DIEETVOORKEUREN.map(d => <option key={d} value={d}>{DIEETVOORKEUR_LABELS[d]}</option>)}
-                </select>
-              </Field>
-
-              <Field label="Richtlijn & toelichting" hint="Bijv. focus op eiwit bij elke maaltijd, 2 stuks fruit per dag, water bij het ontbijt.">
-                <Textarea rows={5} maxLength={4000} placeholder="Schrijf de persoonlijke voedingsrichtlijn voor deze klant."
-                  value={waarden.richtlijn_tekst} onChange={e => zet('richtlijn_tekst', e.target.value)} />
-              </Field>
-
-              {fout && <p role="alert" style={{ fontSize: 13, color: 'var(--mf-red)', margin: 0 }}>{fout}</p>}
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <Button onClick={bewaar} loading={bezig} leftIcon={<Save size={15} aria-hidden />}>
-                  {bestaand ? 'Richtlijn bijwerken' : 'Richtlijn opstellen'}
-                </Button>
-                {opgeslagen && (
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 13, fontWeight: 600, color: 'var(--mf-green)' }}>
-                    <Flame size={14} aria-hidden /> Opgeslagen
-                  </span>
-                )}
-              </div>
             </div>
-          </Card>
-        )}
 
-        <p style={{ fontSize: 11, color: 'var(--text-4)', marginTop: 16, lineHeight: 1.6 }}>
-          Coaching is geen medische of diëtistische behandeling. Deel geen richtlijn die een medische diagnose vereist;
-          verwijs bij twijfel naar een arts of diëtist.
-        </p>
+            <p className="mf-caption" style={{ marginTop: 22, lineHeight: 1.6, maxWidth: '60ch' }}>
+              Coaching is geen medische of diëtistische behandeling. Deel geen richtlijn die een medische diagnose vereist;
+              verwijs bij twijfel naar een arts of diëtist.
+            </p>
+
+            <style>{`
+              .mf-coach-select:focus-visible {
+                border-color: var(--mentaforce-primary);
+                box-shadow: 0 0 0 3px var(--mentaforce-primary-light);
+                outline: none;
+              }
+            `}</style>
+          </>
+        )}
       </main>
     </div>
   )

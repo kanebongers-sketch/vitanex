@@ -9,7 +9,7 @@ import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth/auth-fetch'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
-import { EmptyState } from '@/components/ui/EmptyState'
+import { CoachHeader, CoachSection, CoachEmpty, CoachSkeleton } from '@/components/coaching/CoachChrome'
 import {
   DIEETVOORKEUR_LABELS,
   isDieetvoorkeur,
@@ -34,10 +34,13 @@ interface MacroRegelProps {
 /** Eén macro-rij met grammen en (indien bekend) een statisch aandeel-balkje. */
 function MacroRegel({ label, gram, pct, stijl }: MacroRegelProps) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
-        <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-2)' }}>{label}</span>
-        <span style={{ fontSize: 14, fontWeight: 800, color: 'var(--text-1)' }}>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 600, color: 'var(--text-2)' }}>
+          <span aria-hidden style={{ width: 8, height: 8, borderRadius: '50%', background: stijl.kleur, flexShrink: 0 }} />
+          {label}
+        </span>
+        <span style={{ fontSize: 14, fontWeight: 800, color: 'var(--text-1)', fontVariantNumeric: 'tabular-nums' }}>
           {gram}<span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-3)', marginLeft: 2 }}>g</span>
           {pct !== null && <span style={{ fontSize: 11, fontWeight: 600, color: stijl.kleur, marginLeft: 8 }}>{pct}%</span>}
         </span>
@@ -79,42 +82,37 @@ export default function MijnVoedingPagina() {
   const toonDieet = richtlijn?.dieetvoorkeur != null && richtlijn.dieetvoorkeur !== 'geen' && isDieetvoorkeur(richtlijn.dieetvoorkeur)
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
+    <div className="mf-mesh-bg" style={{ minHeight: '100vh' }}>
       <Navbar />
-      <main style={{ padding: '32px 40px 72px', maxWidth: 720, margin: '0 auto' }}>
+      <main className="mf-page-main" style={{ padding: '40px 40px 80px', maxWidth: 720, margin: '0 auto' }}>
 
-        <header style={{ marginBottom: 24 }}>
-          <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 4 }}>
-            Mijn voeding
-          </h1>
-          <p style={{ fontSize: 13, color: 'var(--text-3)' }}>
-            De persoonlijke voedingsrichtlijn die je coach voor je heeft opgesteld.
-          </p>
-        </header>
+        <CoachHeader
+          eyebrow="Voeding"
+          titel="Mijn voeding"
+          subtitel="De persoonlijke voedingsrichtlijn die je coach voor je heeft opgesteld."
+        />
 
         {laden ? (
-          <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 60 }}><div className="mf-spinner" /></div>
+          <CoachSkeleton rijen={2} />
         ) : !richtlijn ? (
-          <Card style={{ padding: 8 }}>
-            <EmptyState
-              icon={Apple}
-              title="Nog geen richtlijn"
-              description="Zodra je coach een voedingsrichtlijn voor je opstelt, verschijnt die hier met je persoonlijke dagdoelen."
-            />
-          </Card>
+          <CoachEmpty
+            icon={Apple}
+            titel="Nog geen richtlijn"
+            tekst="Zodra je coach een voedingsrichtlijn voor je opstelt, verschijnt die hier met je persoonlijke dagdoelen."
+          />
         ) : (
           <>
-            {/* Caloriedoel — het anker van de richtlijn */}
+            {/* Caloriedoel — het anker van de richtlijn, als hero-getal */}
             {richtlijn.calorie_doel != null && (
-              <Card style={{ padding: '22px 24px', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 16 }}>
-                <span aria-hidden style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 46, height: 46, borderRadius: 13, flexShrink: 0, background: 'var(--mf-green-light)', color: 'var(--mf-green)' }}>
-                  <Flame size={22} />
+              <Card className="mf-card-glow mf-animate-up mf-delay-1" style={{ padding: '26px 26px', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 20 }}>
+                <span aria-hidden style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 56, height: 56, borderRadius: 16, flexShrink: 0, background: 'var(--mf-green-light)', color: 'var(--mf-green)', boxShadow: '0 0 28px rgba(0,229,255,0.22)' }}>
+                  <Flame size={26} strokeWidth={1.75} />
                 </span>
-                <div>
-                  <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-3)', marginBottom: 2 }}>Caloriedoel per dag</p>
-                  <p style={{ fontSize: 28, fontWeight: 800, color: 'var(--text-1)', lineHeight: 1.1 }}>
+                <div style={{ minWidth: 0 }}>
+                  <p className="mf-overline" style={{ marginBottom: 8 }}>Caloriedoel per dag</p>
+                  <p className="mf-number-large" style={{ color: 'var(--mf-green)', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
                     {richtlijn.calorie_doel}
-                    <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-3)', marginLeft: 5 }}>kcal</span>
+                    <span style={{ fontSize: 17, fontWeight: 700, color: 'var(--text-4)', marginLeft: 7, letterSpacing: 0 }}>kcal</span>
                   </p>
                 </div>
               </Card>
@@ -122,24 +120,25 @@ export default function MijnVoedingPagina() {
 
             {/* Macro-dagdoelen */}
             {heeftMacros && (
-              <Card style={{ padding: '20px 24px', marginBottom: 16 }}>
-                <h2 style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-2)', marginBottom: 16 }}>Macro-dagdoelen</h2>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                  <MacroRegel label="Eiwit" gram={richtlijn.eiwit_g ?? 0} pct={verdeling?.eiwit_pct ?? null} stijl={MACRO_STIJL.eiwit} />
-                  <MacroRegel label="Koolhydraten" gram={richtlijn.koolhydraat_g ?? 0} pct={verdeling?.koolhydraat_pct ?? null} stijl={MACRO_STIJL.koolhydraat} />
-                  <MacroRegel label="Vet" gram={richtlijn.vet_g ?? 0} pct={verdeling?.vet_pct ?? null} stijl={MACRO_STIJL.vet} />
-                </div>
-                {verdeling && (
-                  <p style={{ fontSize: 11, color: 'var(--text-4)', marginTop: 14 }}>
-                    Percentages tonen het aandeel in de energie uit macro's (samen {verdeling.totaal_kcal} kcal).
-                  </p>
-                )}
-              </Card>
+              <CoachSection titel="Macro-dagdoelen" style={{ marginTop: 24 }}>
+                <Card className="mf-animate-up mf-delay-2" style={{ padding: '22px 24px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                    <MacroRegel label="Eiwit" gram={richtlijn.eiwit_g ?? 0} pct={verdeling?.eiwit_pct ?? null} stijl={MACRO_STIJL.eiwit} />
+                    <MacroRegel label="Koolhydraten" gram={richtlijn.koolhydraat_g ?? 0} pct={verdeling?.koolhydraat_pct ?? null} stijl={MACRO_STIJL.koolhydraat} />
+                    <MacroRegel label="Vet" gram={richtlijn.vet_g ?? 0} pct={verdeling?.vet_pct ?? null} stijl={MACRO_STIJL.vet} />
+                  </div>
+                  {verdeling && (
+                    <p className="mf-caption" style={{ marginTop: 16 }}>
+                      Percentages tonen het aandeel in de energie uit macro&apos;s (samen {verdeling.totaal_kcal} kcal).
+                    </p>
+                  )}
+                </Card>
+              </CoachSection>
             )}
 
             {/* Dieetvoorkeur */}
             {toonDieet && richtlijn.dieetvoorkeur && (
-              <Card style={{ padding: '16px 24px', marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+              <Card className="mf-animate-up mf-delay-3" style={{ padding: '16px 24px', marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
                 <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-2)' }}>Dieetvoorkeur</span>
                 <Badge variant="success">{DIEETVOORKEUR_LABELS[richtlijn.dieetvoorkeur]}</Badge>
               </Card>
@@ -147,17 +146,17 @@ export default function MijnVoedingPagina() {
 
             {/* Vrije richtlijn van de coach */}
             {richtlijn.richtlijn_tekst && (
-              <Card style={{ padding: '20px 24px', marginBottom: 16 }}>
-                <h2 style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-2)', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <Apple size={15} aria-hidden style={{ color: 'var(--mf-green)' }} /> Richtlijn van je coach
+              <Card className="mf-animate-up mf-delay-3" style={{ padding: '22px 24px', marginBottom: 16 }}>
+                <h2 className="mf-overline" style={{ marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-3)' }}>
+                  <Apple size={14} aria-hidden style={{ color: 'var(--mf-green)' }} /> Richtlijn van je coach
                 </h2>
-                <p style={{ fontSize: 14, color: 'var(--text-1)', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>
+                <p className="mf-body" style={{ color: 'var(--text-1)', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>
                   {richtlijn.richtlijn_tekst}
                 </p>
               </Card>
             )}
 
-            <p style={{ fontSize: 11, color: 'var(--text-4)', marginTop: 8, lineHeight: 1.6 }}>
+            <p className="mf-caption" style={{ marginTop: 10, lineHeight: 1.6 }}>
               Deze richtlijn is opgesteld door je coach als persoonlijke begeleiding. Coaching is geen medische of
               diëtistische behandeling — heb je gezondheidsklachten of twijfels, raadpleeg dan een arts of diëtist.
             </p>

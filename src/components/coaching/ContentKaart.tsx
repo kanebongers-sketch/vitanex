@@ -33,7 +33,7 @@ export function ContentKaart({ content, onOpen }: ContentKaartProps) {
     <button
       type="button"
       onClick={onOpen}
-      className="mf-lift"
+      className="mf-coach-row"
       style={{
         width: '100%', textAlign: 'left', cursor: 'pointer',
         display: 'flex', alignItems: 'flex-start', gap: 14,

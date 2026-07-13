@@ -8,8 +8,8 @@ import { supabase } from '@/lib/supabase/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth/auth-fetch'
 import { Card } from '@/components/ui/Card'
-import { EmptyState } from '@/components/ui/EmptyState'
 import { ContentKaart } from '@/components/coaching/ContentKaart'
+import { CoachHeader, CoachEmpty, CoachSkeleton } from '@/components/coaching/CoachChrome'
 import {
   PIJLER_LABELS,
   PIJLER_STIJL,
@@ -53,35 +53,30 @@ export default function MijnContentPagina() {
   }, [router, laadContent])
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
+    <div className="mf-mesh-bg" style={{ minHeight: '100vh' }}>
       <Navbar />
-      <main style={{ padding: '32px 40px 72px', maxWidth: 720, margin: '0 auto' }}>
+      <main className="mf-page-main" style={{ padding: '40px 40px 80px', maxWidth: 720, margin: '0 auto' }}>
 
         {geselecteerd ? (
           <DetailWeergave content={geselecteerd} onTerug={() => setGeselecteerd(null)} />
         ) : (
           <>
-            <header style={{ marginBottom: 24 }}>
-              <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 4 }}>
-                Van je coach
-              </h1>
-              <p style={{ fontSize: 13, color: 'var(--text-3)' }}>
-                Mindset- en stress-lessen en -opdrachten die je coach voor je heeft klaargezet.
-              </p>
-            </header>
+            <CoachHeader
+              eyebrow="Mindset & stress"
+              titel="Van je coach"
+              subtitel="Lessen en opdrachten die je coach voor je heeft klaargezet om te lezen."
+            />
 
             {laden ? (
-              <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 60 }}><div className="mf-spinner" /></div>
+              <CoachSkeleton rijen={3} />
             ) : lijst.length === 0 ? (
-              <Card style={{ padding: 8 }}>
-                <EmptyState
-                  icon={BookOpen}
-                  title="Nog niets ontvangen"
-                  description="Zodra je coach een les of opdracht publiceert, verschijnt die hier om te lezen."
-                />
-              </Card>
+              <CoachEmpty
+                icon={BookOpen}
+                titel="Nog niets ontvangen"
+                tekst="Zodra je coach een les of opdracht publiceert, verschijnt die hier om te lezen."
+              />
             ) : (
-              <section aria-label="Content van je coach" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <section aria-label="Content van je coach" className="mf-coach-stagger" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 {lijst.map(c => (
                   <ContentKaart key={c.id} content={c} onOpen={() => setGeselecteerd(c)} />
                 ))}
@@ -105,45 +100,46 @@ function DetailWeergave({ content, onTerug }: DetailWeergaveProps) {
   const TypeIcoon = CONTENT_TYPE_ICOON[content.type]
 
   return (
-    <article>
+    <article className="mf-animate-up">
       <button
         type="button"
         onClick={onTerug}
-        className="mf-pressable"
-        style={{
-          display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--text-3)',
-          background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginBottom: 20,
-          borderRadius: 'var(--radius-sm)',
-        }}
+        className="mf-coach-back"
+        style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
       >
         <ArrowLeft size={15} aria-hidden /> Terug naar overzicht
       </button>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12, flexWrap: 'wrap' }}>
-        <span style={{
-          display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 600,
-          padding: '4px 10px', borderRadius: 100, background: stijl.bg, color: stijl.color,
-        }}>
-          <PijlerIcoon size={13} aria-hidden /> {PIJLER_LABELS[content.pijler]}
-        </span>
-        <span style={{
-          display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 600,
-          padding: '4px 10px', borderRadius: 100, background: 'var(--bg-subtle)', color: 'var(--text-3)',
-          border: '1px solid var(--border-strong)',
-        }}>
-          <TypeIcoon size={13} aria-hidden /> {CONTENT_TYPE_LABELS[content.type]}
-        </span>
-      </div>
+      <header style={{ position: 'relative', marginBottom: 24 }}>
+        <span className="mf-coach-aura" aria-hidden style={{ top: -150, left: -120 }} />
+        <div style={{ position: 'relative' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16, flexWrap: 'wrap' }}>
+            <span style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 600,
+              padding: '4px 10px', borderRadius: 100, background: stijl.bg, color: stijl.color,
+            }}>
+              <PijlerIcoon size={13} aria-hidden /> {PIJLER_LABELS[content.pijler]}
+            </span>
+            <span style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 600,
+              padding: '4px 10px', borderRadius: 100, background: 'var(--bg-subtle)', color: 'var(--text-3)',
+              border: '1px solid var(--border-strong)',
+            }}>
+              <TypeIcoon size={13} aria-hidden /> {CONTENT_TYPE_LABELS[content.type]}
+            </span>
+          </div>
 
-      <h1 style={{ fontSize: 24, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', lineHeight: 1.2 }}>
-        {content.titel}
-      </h1>
-      <p style={{ fontSize: 12, color: 'var(--text-4)', marginTop: 6, marginBottom: 20 }}>
-        Geplaatst op {datumLang(content.aangemaakt_op)}
-      </p>
+          <h1 className="mf-h1" style={{ fontSize: 'clamp(22px, 4vw, 28px)', lineHeight: 1.2 }}>
+            {content.titel}
+          </h1>
+          <p className="mf-caption" style={{ marginTop: 8 }}>
+            Geplaatst op {datumLang(content.aangemaakt_op)}
+          </p>
+        </div>
+      </header>
 
-      <Card style={{ padding: '24px 26px' }}>
-        <div style={{ fontSize: 15, lineHeight: 1.7, color: 'var(--text-1)', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+      <Card className="mf-animate-up mf-delay-1" style={{ padding: '26px 28px' }}>
+        <div style={{ fontSize: 15, lineHeight: 1.75, color: 'var(--text-1)', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
           {content.inhoud}
         </div>
 
@@ -152,12 +148,12 @@ function DetailWeergave({ content, onTerug }: DetailWeergaveProps) {
             href={content.media_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="mf-pressable"
+            className="mf-lift"
             style={{
-              display: 'inline-flex', alignItems: 'center', gap: 8, marginTop: 20, padding: '10px 16px',
+              display: 'inline-flex', alignItems: 'center', gap: 8, marginTop: 22, padding: '10px 16px',
               fontSize: 14, fontWeight: 600, textDecoration: 'none', borderRadius: 'var(--radius-btn)',
-              background: 'var(--mentaforce-primary-light)', color: 'var(--mentaforce-primary)',
-              border: '1px solid var(--mentaforce-primary)',
+              background: 'var(--mf-green-light)', color: 'var(--mf-green)',
+              border: '1px solid color-mix(in srgb, var(--mf-green) 45%, transparent)',
             }}
           >
             <ExternalLink size={15} aria-hidden /> {MEDIA_LABEL[content.type]}

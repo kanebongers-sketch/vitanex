@@ -9,10 +9,10 @@ import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth/auth-fetch'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
-import { EmptyState } from '@/components/ui/EmptyState'
 import { TrajectTijdlijn } from '@/components/coaching/TrajectTijdlijn'
+import { CoachHeader, CoachStat, CoachSection, CoachEmpty, CoachSkeleton } from '@/components/coaching/CoachChrome'
 import { TRAJECT_STATUS_STIJL, type TrajectMetFases } from '@/lib/coaching/traject'
-import { Milestone } from 'lucide-react'
+import { Milestone, Target } from 'lucide-react'
 
 export default function MijnTrajectPagina() {
   const router = useRouter()
@@ -34,58 +34,77 @@ export default function MijnTrajectPagina() {
   }, [router])
 
   const stijl = data ? TRAJECT_STATUS_STIJL[data.traject.status] : null
+  const gestart = data ? data.huidige_week >= 1 : false
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
+    <div className="mf-mesh-bg" style={{ minHeight: '100vh' }}>
       <Navbar />
-      <main style={{ padding: '32px 40px 72px', maxWidth: 760, margin: '0 auto' }}>
+      <main className="mf-page-main" style={{ padding: '40px 40px 80px', maxWidth: 720, margin: '0 auto' }}>
 
-        <header style={{ marginBottom: 24 }}>
-          <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 4 }}>
-            Mijn traject
-          </h1>
-          <p style={{ fontSize: 13, color: 'var(--text-3)' }}>
-            Je begeleidingslijn in fases — waar je nu staat en wat er komt.
-          </p>
-        </header>
+        <CoachHeader
+          eyebrow="Traject"
+          titel="Mijn traject"
+          subtitel="Je begeleidingslijn in fases — waar je nu staat en wat er komt."
+        />
 
         {laden ? (
-          <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 60 }}><div className="mf-spinner" /></div>
+          <CoachSkeleton rijen={2} />
         ) : !data ? (
-          <Card style={{ padding: 8 }}>
-            <EmptyState
-              icon={Milestone}
-              title="Nog geen traject"
-              description="Zodra je coach een traject voor je opstelt, zie je hier je fases en voortgang."
-            />
-          </Card>
+          <CoachEmpty
+            icon={Milestone}
+            titel="Nog geen traject"
+            tekst="Zodra je coach een traject voor je opstelt, zie je hier je fases en voortgang."
+          />
         ) : (
           <>
-            <Card style={{ padding: 20, marginBottom: 20 }}>
-              <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: data.traject.doel ? 10 : 0 }}>
-                <div style={{ flex: 1 }}>
-                  <h2 style={{ fontSize: 17, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.02em' }}>{data.traject.titel}</h2>
-                  <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 2 }}>
-                    {data.traject.duur_maanden} maanden
-                    {data.huidige_week >= 1 ? ` · week ${data.huidige_week}` : ' · nog niet gestart'}
-                  </p>
-                </div>
+            {/* Kerncijfers — waar je staat in het traject */}
+            <div className="mf-animate-up mf-delay-1" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14, marginBottom: 22 }}>
+              <CoachStat
+                label="Huidige week"
+                waarde={gestart ? data.huidige_week : '—'}
+                accent={gestart ? 'var(--mf-green)' : 'var(--text-1)'}
+                hint={gestart ? undefined : 'Nog niet gestart'}
+                glow={gestart}
+              />
+              <CoachStat label="Duur" waarde={<>{data.traject.duur_maanden}<span style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-4)', marginLeft: 4 }}>mnd</span></>} />
+              <CoachStat label="Fases" waarde={data.fases.length} />
+            </div>
+
+            {/* Traject-overzicht: titel, status, doel */}
+            <Card className="mf-animate-up mf-delay-2" style={{ padding: '22px 24px', marginBottom: 24 }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 14, marginBottom: data.traject.doel ? 16 : 0, flexWrap: 'wrap' }}>
+                <h2 className="mf-h2" style={{ minWidth: 0 }}>{data.traject.titel}</h2>
                 {stijl && (
-                  <Badge variant="neutral" style={{ background: stijl.bg, color: stijl.color }}>{stijl.label}</Badge>
+                  <Badge variant="neutral" style={{ background: stijl.bg, color: stijl.color, flexShrink: 0 }}>{stijl.label}</Badge>
                 )}
               </div>
               {data.traject.doel && (
-                <p style={{ fontSize: 14, color: 'var(--text-2)', lineHeight: 1.6 }}>{data.traject.doel}</p>
+                <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+                  <span aria-hidden style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 34, height: 34, borderRadius: 10, flexShrink: 0, background: 'var(--mf-green-light)', color: 'var(--mf-green)' }}>
+                    <Target size={17} />
+                  </span>
+                  <div style={{ minWidth: 0 }}>
+                    <p className="mf-overline" style={{ marginBottom: 5 }}>Jouw doel</p>
+                    <p className="mf-body">{data.traject.doel}</p>
+                  </div>
+                </div>
               )}
             </Card>
 
-            {data.fases.length === 0 ? (
-              <Card style={{ padding: 24, textAlign: 'center' }}>
-                <p style={{ fontSize: 13, color: 'var(--text-3)' }}>Je coach heeft nog geen fases toegevoegd.</p>
-              </Card>
-            ) : (
-              <TrajectTijdlijn data={data} />
-            )}
+            <CoachSection titel="Tijdlijn">
+              {data.fases.length === 0 ? (
+                <CoachEmpty
+                  icon={Milestone}
+                  toon="wacht"
+                  titel="Nog geen fases"
+                  tekst="Je coach heeft nog geen fases aan dit traject toegevoegd."
+                />
+              ) : (
+                <div className="mf-animate-up mf-delay-3">
+                  <TrajectTijdlijn data={data} />
+                </div>
+              )}
+            </CoachSection>
           </>
         )}
       </main>

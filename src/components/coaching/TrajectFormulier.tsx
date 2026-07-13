@@ -127,7 +127,12 @@ export function TrajectFormulier({ klantId, bestaand, onOpgeslagen, onAnnuleren 
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {fases.map((fase, i) => (
-            <div key={fase.sleutel} style={{ padding: '14px 16px', background: 'var(--bg-subtle)', border: `1px solid ${PIJLERS[fase.pijler].kleurToken}`, borderRadius: 'var(--radius-sm)' }}>
+            <div key={fase.sleutel} style={{
+              padding: '14px 16px', background: 'var(--bg-subtle)',
+              border: `1px solid color-mix(in srgb, ${PIJLERS[fase.pijler].kleurToken} 32%, transparent)`,
+              borderLeft: `3px solid ${PIJLERS[fase.pijler].kleurToken}`,
+              borderRadius: 'var(--radius-sm)',
+            }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
                 <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-4)' }}>FASE {i + 1}</span>
                 <select aria-label={`Pijler van fase ${i + 1}`} value={fase.pijler} className="mf-traject-ctrl"

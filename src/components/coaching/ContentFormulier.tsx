@@ -92,13 +92,13 @@ export function ContentFormulier({ onSubmit, bezig, fout, klantNaam, initieel, o
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
         <Field label="Type">
-          <select style={SELECT_STYLE} value={waarden.type} onChange={e => zet('type', e.target.value as ContentType)}>
+          <select className="mf-coach-select" style={SELECT_STYLE} value={waarden.type} onChange={e => zet('type', e.target.value as ContentType)}>
             {CONTENT_TYPES.map(t => <option key={t} value={t}>{CONTENT_TYPE_LABELS[t]}</option>)}
           </select>
         </Field>
 
         <Field label="Pijler">
-          <select style={SELECT_STYLE} value={waarden.pijler} onChange={e => zet('pijler', e.target.value as Pijler)}>
+          <select className="mf-coach-select" style={SELECT_STYLE} value={waarden.pijler} onChange={e => zet('pijler', e.target.value as Pijler)}>
             {PIJLERS.map(p => <option key={p} value={p}>{PIJLER_LABELS[p]}</option>)}
           </select>
         </Field>
@@ -190,6 +190,14 @@ export function ContentFormulier({ onSubmit, bezig, fout, klantNaam, initieel, o
           {bewerken ? 'Wijzigingen opslaan' : 'Content toevoegen'}
         </Button>
       </div>
+
+      <style>{`
+        .mf-coach-select:focus-visible {
+          border-color: var(--mentaforce-primary);
+          box-shadow: 0 0 0 3px var(--mentaforce-primary-light);
+          outline: none;
+        }
+      `}</style>
     </div>
   )
 }

@@ -55,7 +55,7 @@ export function TaakFormulier({ onSubmit, bezig, fout }: TaakFormulierProps) {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       <Field label="Titel" error={fout ?? undefined}>
         <Input
           type="text"

@@ -4,20 +4,19 @@ export const dynamic = 'force-dynamic'
 
 import { useCallback, useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
-import Link from 'next/link'
 import { supabase } from '@/lib/supabase/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth/auth-fetch'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
-import { EmptyState } from '@/components/ui/EmptyState'
+import { CoachHeader, CoachSection, CoachEmpty, CoachSkeleton } from '@/components/coaching/CoachChrome'
 import { PijlerBadge } from '@/components/coaching/PijlerBadge'
 import { TrajectTijdlijn } from '@/components/coaching/TrajectTijdlijn'
 import { TrajectFormulier } from '@/components/coaching/TrajectFormulier'
 import { PIJLERS, PIJLER_VOLGORDE } from '@/lib/coaching/pijlers'
 import { TRAJECT_STATUS_STIJL, type TrajectMetFases } from '@/lib/coaching/traject'
-import { ArrowLeft, Route, Pencil, CalendarRange, Flag } from 'lucide-react'
+import { Route, Pencil, CalendarRange, Flag, ShieldAlert } from 'lucide-react'
 
 function datumKort(iso: string): string {
   return new Date(`${iso}T00:00:00`).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short', year: 'numeric' })
@@ -70,38 +69,33 @@ export default function TrajectPagina() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
+    <div className="mf-mesh-bg" style={{ minHeight: '100vh' }}>
       <Navbar />
-      <main style={{ padding: '32px 40px 72px', maxWidth: 900, margin: '0 auto' }}>
-
-        <Link href={`/coaching/${klantId}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--text-3)', textDecoration: 'none', marginBottom: 20 }}>
-          <ArrowLeft size={15} aria-hidden /> Terug naar klant
-        </Link>
+      <main className="mf-page-main" style={{ padding: '40px 40px 80px', maxWidth: 900, margin: '0 auto' }}>
+        <CoachHeader
+          eyebrow="Traject"
+          titel="Traject"
+          subtitel={`Begeleidingslijn voor ${klantNaam ?? 'je klant'} — opgebouwd rond de drie pijlers.`}
+          backHref={`/coaching/${klantId}`}
+          backLabel="Terug naar klant"
+        />
 
         {laden ? (
-          <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 60 }}><div className="mf-spinner" /></div>
+          <CoachSkeleton rijen={3} />
         ) : geenToegang ? (
-          <Card style={{ padding: 32, textAlign: 'center' }}>
-            <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-1)', marginBottom: 4 }}>Klant niet gevonden</p>
-            <p style={{ fontSize: 13, color: 'var(--text-3)' }}>Deze klant is niet aan jou gekoppeld of bestaat niet.</p>
-          </Card>
+          <CoachEmpty
+            icon={ShieldAlert}
+            toon="wacht"
+            titel="Klant niet gevonden"
+            tekst="Deze klant is niet aan jou gekoppeld of bestaat niet."
+          />
         ) : (
           <>
-            <header style={{ marginBottom: 20 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                <Route size={18} aria-hidden style={{ color: 'var(--mf-green)' }} />
-                <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em' }}>Traject</h1>
-              </div>
-              <p style={{ fontSize: 13, color: 'var(--text-3)' }}>
-                Begeleidingslijn voor <strong style={{ color: 'var(--text-2)' }}>{klantNaam}</strong> — opgebouwd rond de drie pijlers.
-              </p>
-            </header>
-
             {/* Pijler-legenda */}
-            <Card style={{ padding: '14px 18px', marginBottom: 20 }}>
+            <Card className="mf-animate-up mf-delay-1" style={{ padding: '16px 20px', marginBottom: 22 }}>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16 }}>
                 {PIJLER_VOLGORDE.map(p => (
-                  <div key={p} style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 200, flex: 1 }}>
+                  <div key={p} style={{ display: 'flex', alignItems: 'center', gap: 9, minWidth: 210, flex: 1 }}>
                     <PijlerBadge pijler={p} />
                     <span style={{ fontSize: 12, color: 'var(--text-3)', lineHeight: 1.4 }}>{PIJLERS[p].omschrijving}</span>
                   </div>
@@ -110,7 +104,7 @@ export default function TrajectPagina() {
             </Card>
 
             {bewerken ? (
-              <Card style={{ padding: 22 }}>
+              <Card className="mf-animate-up mf-delay-2" style={{ padding: 24 }}>
                 <TrajectFormulier
                   klantId={klantId}
                   bestaand={traject}
@@ -119,45 +113,62 @@ export default function TrajectPagina() {
                 />
               </Card>
             ) : !traject ? (
-              <Card style={{ padding: 8 }}>
-                <EmptyState
+              <div className="mf-animate-up mf-delay-2">
+                <CoachEmpty
                   icon={Route}
-                  title="Nog geen traject"
-                  description="Stel een traject op met fases per pijler, zodat de klant precies weet waar jullie de komende maanden aan werken."
-                  action={<Button onClick={() => setBewerken(true)} leftIcon={<Pencil size={15} aria-hidden />}>Traject opstellen</Button>}
+                  titel="Nog geen traject"
+                  tekst="Stel een traject op met fases per pijler, zodat de klant precies weet waar jullie de komende maanden aan werken."
+                  actie={<Button onClick={() => setBewerken(true)} leftIcon={<Pencil size={15} aria-hidden />}>Traject opstellen</Button>}
                 />
-              </Card>
+              </div>
             ) : (
               <>
                 {/* Traject-header */}
-                <Card style={{ padding: 22, marginBottom: 18 }}>
-                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: 14 }}>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
-                        <h2 style={{ fontSize: 18, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.02em' }}>{traject.traject.titel}</h2>
+                <Card className="mf-card-glow mf-animate-up mf-delay-2" style={{ padding: 24, marginBottom: 20 }}>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6, flexWrap: 'wrap' }}>
+                        <span aria-hidden style={{
+                          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                          width: 34, height: 34, borderRadius: 10, flexShrink: 0,
+                          background: 'var(--mf-green-light)', color: 'var(--mf-green)',
+                        }}>
+                          <Route size={17} aria-hidden />
+                        </span>
+                        <h2 className="mf-h2">{traject.traject.titel}</h2>
                         <Badge variant="neutral" style={{ background: TRAJECT_STATUS_STIJL[traject.traject.status].bg, color: TRAJECT_STATUS_STIJL[traject.traject.status].color }}>
                           {TRAJECT_STATUS_STIJL[traject.traject.status].label}
                         </Badge>
                       </div>
-                      {traject.traject.doel && <p style={{ fontSize: 14, color: 'var(--text-2)', lineHeight: 1.55, maxWidth: '60ch' }}>{traject.traject.doel}</p>}
+                      {traject.traject.doel && <p className="mf-body" style={{ maxWidth: '60ch' }}>{traject.traject.doel}</p>}
                     </div>
                     <Button variant="secondary" size="sm" onClick={() => setBewerken(true)} leftIcon={<Pencil size={14} aria-hidden />}>Bewerken</Button>
                   </div>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 20, paddingTop: 14, borderTop: '1px solid var(--border)' }}>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 20, paddingTop: 16, borderTop: '1px solid var(--border)' }}>
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, fontSize: 13, color: 'var(--text-3)' }}>
                       <CalendarRange size={15} aria-hidden style={{ color: 'var(--mf-green)' }} /> Start {datumKort(traject.traject.start_datum)}
                     </span>
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, fontSize: 13, color: 'var(--text-3)' }}>
                       <Flag size={15} aria-hidden style={{ color: 'var(--mf-green)' }} /> {traject.traject.duur_maanden} maanden
                     </span>
-                    <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-2)', marginLeft: 'auto' }}>
+                    <span style={{
+                      marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 6,
+                      fontSize: 12.5, fontWeight: 700, color: 'var(--mf-green)',
+                      background: 'var(--mf-green-light)', padding: '5px 12px', borderRadius: 999,
+                      border: '1px solid color-mix(in srgb, var(--mf-green) 30%, transparent)',
+                      fontVariantNumeric: 'tabular-nums',
+                    }}>
                       {weekStatusTekst(traject.huidige_week, traject.traject.duur_maanden)}
                     </span>
                   </div>
                 </Card>
 
                 {/* Tijdlijn */}
-                <TrajectTijdlijn data={traject} />
+                <div className="mf-animate-up mf-delay-3">
+                  <CoachSection titel="Fases">
+                    <TrajectTijdlijn data={traject} />
+                  </CoachSection>
+                </div>
               </>
             )}
           </>

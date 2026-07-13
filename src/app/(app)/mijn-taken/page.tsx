@@ -8,10 +8,10 @@ import { supabase } from '@/lib/supabase/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth/auth-fetch'
 import { Card } from '@/components/ui/Card'
-import { EmptyState } from '@/components/ui/EmptyState'
 import { TaakKaart } from '@/components/coaching/TaakKaart'
+import { CoachHeader, CoachEmpty, CoachSkeleton } from '@/components/coaching/CoachChrome'
 import type { TaakMetVoortgang } from '@/lib/coaching/taken'
-import { ListChecks, Sparkles } from 'lucide-react'
+import { ListChecks, Sparkles, Check } from 'lucide-react'
 
 export default function MijnTakenPagina() {
   const router = useRouter()
@@ -39,6 +39,7 @@ export default function MijnTakenPagina() {
 
   const vandaagGehaald = useMemo(() => taken.filter(t => t.vandaag_gehaald).length, [taken])
   const voortgangPct = taken.length > 0 ? Math.round((vandaagGehaald / taken.length) * 100) : 0
+  const allesGehaald = taken.length > 0 && vandaagGehaald === taken.length
 
   async function toggle(taak: TaakMetVoortgang, gehaald: boolean) {
     if (bezigId) return
@@ -72,40 +73,51 @@ export default function MijnTakenPagina() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
+    <div className="mf-mesh-bg" style={{ minHeight: '100vh' }}>
       <Navbar />
-      <main style={{ padding: '32px 40px 72px', maxWidth: 720, margin: '0 auto' }}>
+      <main className="mf-page-main" style={{ padding: '40px 40px 80px', maxWidth: 720, margin: '0 auto' }}>
 
-        <header style={{ marginBottom: 24 }}>
-          <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 4 }}>
-            Mijn taken
-          </h1>
-          <p style={{ fontSize: 13, color: 'var(--text-3)' }}>
-            De gewoontes die je coach voor je heeft klaargezet. Vink af wat je vandaag hebt gedaan.
-          </p>
-        </header>
+        <CoachHeader
+          eyebrow="Vandaag"
+          titel="Mijn taken"
+          subtitel="De gewoontes die je coach voor je heeft klaargezet. Vink af wat je vandaag hebt gedaan."
+        />
 
         {laden ? (
-          <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 60 }}><div className="mf-spinner" /></div>
+          <CoachSkeleton rijen={3} />
         ) : taken.length === 0 ? (
-          <Card style={{ padding: 8 }}>
-            <EmptyState
-              icon={ListChecks}
-              title="Nog geen taken"
-              description="Zodra je coach gewoontes voor je toewijst, verschijnen ze hier om dagelijks af te vinken."
-            />
-          </Card>
+          <CoachEmpty
+            icon={ListChecks}
+            titel="Nog geen taken"
+            tekst="Zodra je coach gewoontes voor je toewijst, verschijnen ze hier om dagelijks af te vinken."
+          />
         ) : (
           <>
-            {/* Dag-voortgang */}
-            <Card style={{ padding: '18px 20px', marginBottom: 20 }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
-                  <Sparkles size={16} aria-hidden style={{ color: 'var(--mf-green)' }} />
-                  <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-1)' }}>Vandaag</span>
+            {/* Dag-voortgang — motiverende hero */}
+            <Card
+              className={`mf-animate-up${allesGehaald ? ' mf-card-glow' : ''}`}
+              style={{ padding: '22px 24px', marginBottom: 22 }}
+            >
+              <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 16, marginBottom: 16 }}>
+                <div style={{ minWidth: 0 }}>
+                  <p className="mf-overline" style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 12, color: 'var(--text-3)' }}>
+                    <Sparkles size={13} aria-hidden style={{ color: 'var(--mf-green)' }} /> Vandaag
+                  </p>
+                  <p className="mf-number-large" style={{ lineHeight: 1, color: allesGehaald ? 'var(--mf-green)' : 'var(--text-1)', fontVariantNumeric: 'tabular-nums' }}>
+                    {vandaagGehaald}
+                    <span style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-4)', letterSpacing: '-0.02em' }}> / {taken.length}</span>
+                  </p>
+                  <p className="mf-caption" style={{ marginTop: 7, display: 'flex', alignItems: 'center', gap: 6 }}>
+                    {allesGehaald
+                      ? <><Check size={13} aria-hidden style={{ color: 'var(--mf-green)' }} /> Alles afgevinkt — sterk gedaan.</>
+                      : 'gewoontes afgevinkt vandaag'}
+                  </p>
                 </div>
-                <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-2)' }}>
-                  {vandaagGehaald}/{taken.length} afgevinkt
+                <span
+                  aria-hidden
+                  style={{ fontSize: 15, fontWeight: 700, color: allesGehaald ? 'var(--mf-green)' : 'var(--text-3)', fontVariantNumeric: 'tabular-nums' }}
+                >
+                  {voortgangPct}%
                 </span>
               </div>
               {/* Compositor-vriendelijke voortgangsbalk (scaleX) */}
@@ -115,19 +127,19 @@ export default function MijnTakenPagina() {
                 aria-valuemin={0}
                 aria-valuemax={100}
                 aria-label="Taken vandaag afgevinkt"
-                style={{ height: 6, borderRadius: 100, background: 'var(--bg-subtle)', overflow: 'hidden' }}
+                style={{ height: 8, borderRadius: 100, background: 'var(--bg-subtle)', overflow: 'hidden' }}
               >
                 <div
                   style={{
                     height: '100%', width: '100%', borderRadius: 100, background: 'var(--mf-green)',
                     transformOrigin: 'left', transform: `scaleX(${voortgangPct / 100})`,
-                    transition: 'transform 0.3s var(--ease)',
+                    transition: 'transform 0.4s var(--ease)',
                   }}
                 />
               </div>
             </Card>
 
-            <section aria-label="Mijn taken" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <section aria-label="Mijn taken" className="mf-coach-stagger" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               {taken.map(t => (
                 <TaakKaart
                   key={t.id}

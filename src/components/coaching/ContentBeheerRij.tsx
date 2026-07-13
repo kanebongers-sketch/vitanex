@@ -33,10 +33,11 @@ export function ContentBeheerRij({
   const Icoon = CONTENT_TYPE_ICOON[content.type]
 
   return (
-    <Card style={{ padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 14, opacity: content.gepubliceerd ? 1 : 0.72 }}>
+    <Card className="mf-lift" style={{ padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 14, opacity: content.gepubliceerd ? 1 : 0.72 }}>
       <span aria-hidden style={{
         display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
         width: 38, height: 38, borderRadius: 11, flexShrink: 0, background: stijl.bg, color: stijl.color,
+        border: `1px solid color-mix(in srgb, ${stijl.color} 22%, transparent)`,
       }}>
         <Icoon size={18} />
       </span>

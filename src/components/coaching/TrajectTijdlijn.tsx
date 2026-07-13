@@ -36,18 +36,24 @@ export function TrajectTijdlijn({ data }: TrajectTijdlijnProps) {
                   width: 16, height: 16, borderRadius: '50%', marginTop: 22,
                   background: isNu ? info.kleurToken : 'var(--bg-card)',
                   border: `2.5px solid ${info.kleurToken}`,
-                  boxShadow: isNu ? `0 0 0 4px ${info.accentBgToken}` : 'none',
+                  boxShadow: isNu
+                    ? `0 0 0 4px ${info.accentBgToken}, 0 0 16px -1px color-mix(in srgb, ${info.kleurToken} 65%, transparent)`
+                    : 'none',
                 }}
               />
               {!isLaatste && <span aria-hidden style={{ flex: 1, width: 2, background: 'var(--border)', minHeight: 24 }} />}
             </div>
 
-            {/* Fase-kaart */}
+            {/* Fase-kaart — de lopende fase krijgt een subtiele pijler-glow + ring */}
             <div
               style={{
                 flex: 1, marginBottom: isLaatste ? 0 : 12, padding: '16px 18px',
-                background: 'var(--bg-card)', borderRadius: 'var(--radius-sm)',
+                background: 'var(--bg-card)',
+                borderRadius: 'var(--radius-sm)',
                 border: `1px solid ${isNu ? info.kleurToken : 'var(--border)'}`,
+                boxShadow: isNu
+                  ? `0 0 0 1px ${info.kleurToken}, 0 10px 30px -12px color-mix(in srgb, ${info.kleurToken} 50%, transparent)`
+                  : 'none',
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 6 }}>

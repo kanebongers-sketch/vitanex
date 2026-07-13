@@ -36,7 +36,7 @@ export function PijlerBadge({ pijler, compact = false, style }: PijlerBadgeProps
         whiteSpace: 'nowrap',
         color: info.kleurToken,
         background: info.accentBgToken,
-        border: `1px solid ${info.kleurToken}`,
+        border: `1px solid color-mix(in srgb, ${info.kleurToken} 38%, transparent)`,
         ...style,
       }}
     >

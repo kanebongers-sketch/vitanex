@@ -4,7 +4,6 @@ export const dynamic = 'force-dynamic'
 
 import { useEffect, useState, useCallback, type CSSProperties } from 'react'
 import { useRouter, useParams } from 'next/navigation'
-import Link from 'next/link'
 import { supabase } from '@/lib/supabase/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth/auth-fetch'
@@ -14,7 +13,7 @@ import { Button } from '@/components/ui/Button'
 import { Field } from '@/components/ui/Field'
 import { Input } from '@/components/ui/Input'
 import { Textarea } from '@/components/ui/Textarea'
-import { EmptyState } from '@/components/ui/EmptyState'
+import { CoachHeader, CoachSection, CoachEmpty, CoachSkeleton } from '@/components/coaching/CoachChrome'
 import {
   DOEL_OPTIES,
   NIVEAUS,
@@ -26,7 +25,7 @@ import {
   type TrainingNiveau,
 } from '@/lib/coaching/training'
 import {
-  ArrowLeft, Dumbbell, Plus, Trash2, Power, ClipboardList, Flame, Clock,
+  Dumbbell, Plus, Trash2, Power, ClipboardList, Flame, Clock, ShieldAlert,
 } from 'lucide-react'
 
 // ── Concept-state (het formulier bouwt hierin op) ─────────────────────────────
@@ -341,7 +340,7 @@ interface SchemaItemProps {
 function SchemaItem({ schema, bezig, onDeactiveer }: SchemaItemProps) {
   const doorCoach = schema.toegewezen_door != null
   return (
-    <Card style={{ padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 14, opacity: schema.actief ? 1 : 0.6 }}>
+    <Card className={schema.actief ? 'mf-card-glow' : undefined} style={{ padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 14, opacity: schema.actief ? 1 : 0.6 }}>
       <span aria-hidden style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 38, height: 38, borderRadius: 11, flexShrink: 0, background: 'var(--mf-green-light)', color: 'var(--mf-green)' }}>
         <Dumbbell size={18} />
       </span>
@@ -434,51 +433,45 @@ export default function KlantTrainingPagina() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
+    <div className="mf-mesh-bg" style={{ minHeight: '100vh' }}>
       <Navbar />
-      <main style={{ padding: '32px 40px 72px', maxWidth: 760, margin: '0 auto' }}>
+      <main className="mf-page-main" style={{ padding: '40px 40px 80px', maxWidth: 900, margin: '0 auto' }}>
 
-        <Link href={`/coaching/${klantId}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--text-3)', textDecoration: 'none', marginBottom: 20 }}>
-          <ArrowLeft size={15} aria-hidden /> Terug naar klant
-        </Link>
-
-        <header style={{ marginBottom: 24 }}>
-          <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 4 }}>
-            Trainingsschema
-          </h1>
-          <p style={{ fontSize: 13, color: 'var(--text-3)' }}>
-            Stel een schema samen. Je klant volgt het in de sport-app; een nieuw schema vervangt het actieve.
-          </p>
-        </header>
+        <CoachHeader
+          eyebrow="Coaching · Training"
+          titel="Trainingsschema"
+          subtitel="Stel een schema samen. Je klant volgt het in de sport-app; een nieuw schema vervangt het actieve."
+          backHref={`/coaching/${klantId}`}
+          backLabel="Terug naar klant"
+        />
 
         {laden ? (
-          <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 60 }}><div className="mf-spinner" /></div>
+          <CoachSkeleton rijen={3} />
         ) : nietGevonden ? (
-          <Card style={{ padding: 32, textAlign: 'center' }}>
-            <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-1)', marginBottom: 4 }}>Klant niet gevonden</p>
-            <p style={{ fontSize: 13, color: 'var(--text-3)' }}>Deze klant is niet (actief) aan jou gekoppeld.</p>
-          </Card>
+          <CoachEmpty
+            icon={ShieldAlert}
+            titel="Klant niet gevonden"
+            tekst="Deze klant is niet (actief) aan jou gekoppeld."
+            toon="wacht"
+          />
         ) : (
           <>
-            <Card style={{ padding: '20px 22px', marginBottom: 24 }}>
+            <Card className="mf-animate-up mf-delay-1" style={{ padding: '20px 22px', marginBottom: 28 }}>
               <h2 style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-1)', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
                 <ClipboardList size={16} aria-hidden style={{ color: 'var(--mf-green)' }} /> Nieuw schema samenstellen
               </h2>
               <SchemaBuilder onSubmit={wijsToe} bezig={bezig} fout={fout} />
             </Card>
 
-            <section style={{ marginBottom: 24 }}>
-              <h2 style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-1)', marginBottom: 12 }}>Schema&apos;s van deze klant</h2>
+            <CoachSection titel="Schema's van deze klant">
               {schemas.length === 0 ? (
-                <Card style={{ padding: 8 }}>
-                  <EmptyState
-                    icon={Dumbbell}
-                    title="Nog geen schema"
-                    description="Stel hierboven het eerste trainingsschema samen voor deze klant."
-                  />
-                </Card>
+                <CoachEmpty
+                  icon={Dumbbell}
+                  titel="Nog geen schema"
+                  tekst="Stel hierboven het eerste trainingsschema samen voor deze klant."
+                />
               ) : (
-                <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <ul className="mf-coach-stagger" style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 12 }}>
                   {schemas.map(s => (
                     <li key={s.id}>
                       <SchemaItem schema={s} bezig={actieId === s.id} onDeactiveer={() => deactiveer(s.id)} />
@@ -486,18 +479,15 @@ export default function KlantTrainingPagina() {
                   ))}
                 </ul>
               )}
-            </section>
+            </CoachSection>
 
-            <section>
-              <h2 style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-1)', marginBottom: 12 }}>Recente trainingen</h2>
+            <CoachSection titel="Recente trainingen">
               {logs.length === 0 ? (
-                <Card style={{ padding: 8 }}>
-                  <EmptyState
-                    icon={Flame}
-                    title="Nog geen trainingen gelogd"
-                    description="Zodra je klant een training afrondt, verschijnt die hier."
-                  />
-                </Card>
+                <CoachEmpty
+                  icon={Flame}
+                  titel="Nog geen trainingen gelogd"
+                  tekst="Zodra je klant een training afrondt, verschijnt die hier."
+                />
               ) : (
                 <Card style={{ overflow: 'hidden' }}>
                   {logs.map((log, i) => (
@@ -520,7 +510,7 @@ export default function KlantTrainingPagina() {
                   ))}
                 </Card>
               )}
-            </section>
+            </CoachSection>
           </>
         )}
       </main>

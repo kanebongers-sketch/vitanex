@@ -9,8 +9,8 @@ import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth/auth-fetch'
 import { Card } from '@/components/ui/Card'
 import { Avatar } from '@/components/ui/Avatar'
-import { EmptyState } from '@/components/ui/EmptyState'
-import { UserRound, ShieldCheck } from 'lucide-react'
+import { CoachHeader, CoachEmpty, CoachSkeleton } from '@/components/coaching/CoachChrome'
+import { UserRound, ShieldCheck, Unlink } from 'lucide-react'
 
 interface MijnCoach {
   koppeling_id: string
@@ -71,83 +71,85 @@ export default function MijnCoachPagina() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
+    <div className="mf-mesh-bg" style={{ minHeight: '100vh' }}>
       <Navbar />
-      <main style={{ padding: '32px 40px 72px', maxWidth: 640, margin: '0 auto' }}>
-
-        <header style={{ marginBottom: 24 }}>
-          <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 4 }}>
-            Mijn coach
-          </h1>
-          <p style={{ fontSize: 13, color: 'var(--text-3)' }}>
-            Beheer wie jouw persoonlijke begeleiding verzorgt en wat ze mogen inzien.
-          </p>
-        </header>
+      <main className="mf-page-main" style={{ padding: '40px 40px 80px', maxWidth: 640, margin: '0 auto' }}>
+        <CoachHeader
+          eyebrow="Persoonlijke begeleiding"
+          titel="Mijn coach"
+          subtitel="Beheer wie jou begeleidt en bepaal zelf wat je coach mag inzien. Je houdt de regie — altijd."
+        />
 
         {laden ? (
-          <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 60 }}><div className="mf-spinner" /></div>
+          <CoachSkeleton rijen={1} />
         ) : coaches.length === 0 ? (
-          <Card style={{ padding: 8 }}>
-            <EmptyState
-              icon={UserRound}
-              title="Je hebt nog geen coach"
-              description="Zodra een coach jou koppelt, verschijnt die hier en kun je inzage in je welzijnsdata toestaan."
-            />
-          </Card>
+          <CoachEmpty
+            icon={UserRound}
+            titel="Je hebt nog geen coach"
+            tekst="Zodra een coach jou koppelt, verschijnt die hier en kun je inzage in je welzijnsdata toestaan."
+          />
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            {coaches.map(c => (
-              <Card key={c.koppeling_id} style={{ padding: 20 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 16 }}>
-                  <Avatar naam={c.coach_naam} avatarUrl={c.coach_avatar} size={48} />
-                  <div style={{ flex: 1 }}>
-                    <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-1)' }}>{c.coach_naam}</p>
-                    <p style={{ fontSize: 12, color: 'var(--text-3)' }}>Je coach sinds {new Date(c.sinds).toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+          <div className="mf-coach-stagger" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            {coaches.map(c => {
+              const voornaam = c.coach_naam.split(' ')[0]
+              const bezigNu = bezig === c.coach_id
+              return (
+                <Card key={c.koppeling_id} className="mf-card-glow" style={{ padding: 0, overflow: 'hidden' }}>
+                  {/* Coach-identiteit */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 15, padding: '20px 22px' }}>
+                    <Avatar naam={c.coach_naam} avatarUrl={c.coach_avatar} size={52} />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p className="mf-overline" style={{ color: 'var(--mf-green)', marginBottom: 5 }}>Jouw coach</p>
+                      <p style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-1)', letterSpacing: '-0.01em' }}>{c.coach_naam}</p>
+                      <p className="mf-caption" style={{ marginTop: 2 }}>
+                        Sinds {new Date(c.sinds).toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' })}
+                      </p>
+                    </div>
                   </div>
-                </div>
 
-                {/* Inzage-toestemming */}
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '14px 16px', borderRadius: 12, background: 'var(--bg-subtle)', border: '1px solid var(--border)' }}>
-                  <ShieldCheck size={18} aria-hidden style={{ color: c.inzage_toestemming ? 'var(--mf-green)' : 'var(--text-4)', flexShrink: 0, marginTop: 1 }} />
-                  <div style={{ flex: 1 }}>
-                    <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-1)', marginBottom: 2 }}>
-                      Deel mijn welzijnsdata met {c.coach_naam.split(' ')[0]}
-                    </p>
-                    <p style={{ fontSize: 12, color: 'var(--text-3)', lineHeight: 1.5 }}>
-                      Je coach ziet dan je check-ins, welzijnsprofiel en voortgang. Je kunt dit altijd weer intrekken.
-                    </p>
+                  {/* Inzage-toestemming */}
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 13, padding: '16px 22px', borderTop: '1px solid var(--border)', background: 'var(--bg-subtle)' }}>
+                    <ShieldCheck
+                      size={18}
+                      aria-hidden
+                      style={{ color: c.inzage_toestemming ? 'var(--mf-green)' : 'var(--text-4)', flexShrink: 0, marginTop: 1, transition: 'color 0.2s var(--ease)' }}
+                    />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--text-1)', marginBottom: 3 }}>
+                        Deel mijn welzijnsdata met {voornaam}
+                      </p>
+                      <p style={{ fontSize: 12.5, color: 'var(--text-3)', lineHeight: 1.5 }}>
+                        Je coach ziet dan je check-ins, welzijnsprofiel en voortgang. Je kunt dit altijd weer intrekken.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={c.inzage_toestemming}
+                      aria-label={`Inzage voor ${c.coach_naam} ${c.inzage_toestemming ? 'aan' : 'uit'}`}
+                      disabled={bezigNu}
+                      onClick={() => zetToestemming(c.coach_id, !c.inzage_toestemming)}
+                      className="mf-coach-switch"
+                      data-aan={c.inzage_toestemming ? 'true' : 'false'}
+                      style={{ cursor: bezigNu ? 'wait' : 'pointer', opacity: bezigNu ? 0.7 : 1 }}
+                    >
+                      <span className="knop" />
+                    </button>
                   </div>
-                  <button
-                    type="button"
-                    role="switch"
-                    aria-checked={c.inzage_toestemming}
-                    aria-label={`Inzage voor ${c.coach_naam} ${c.inzage_toestemming ? 'aan' : 'uit'}`}
-                    disabled={bezig === c.coach_id}
-                    onClick={() => zetToestemming(c.coach_id, !c.inzage_toestemming)}
-                    style={{
-                      position: 'relative', width: 44, height: 26, borderRadius: 100, border: 'none',
-                      cursor: bezig === c.coach_id ? 'wait' : 'pointer', flexShrink: 0, padding: 0,
-                      background: c.inzage_toestemming ? 'var(--mf-green)' : 'var(--border-strong)',
-                      transition: 'background 0.18s var(--ease)',
-                    }}
-                  >
-                    <span style={{
-                      position: 'absolute', top: 3, left: c.inzage_toestemming ? 21 : 3,
-                      width: 20, height: 20, borderRadius: '50%', background: 'var(--bg-card)',
-                      transition: 'left 0.18s var(--ease)', boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
-                    }} />
-                  </button>
-                </div>
 
-                <button
-                  type="button"
-                  onClick={() => beeindig(c.coach_id, c.coach_naam)}
-                  style={{ marginTop: 14, fontSize: 12, color: 'var(--mf-red)', background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0', fontWeight: 600 }}
-                >
-                  Koppeling beëindigen
-                </button>
-              </Card>
-            ))}
+                  {/* Koppeling beëindigen */}
+                  <div style={{ padding: '12px 22px', borderTop: '1px solid var(--border)' }}>
+                    <button
+                      type="button"
+                      onClick={() => beeindig(c.coach_id, c.coach_naam)}
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: 7, fontSize: 12.5, color: 'var(--mf-red)', background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0', fontWeight: 600, borderRadius: 6 }}
+                    >
+                      <Unlink size={14} aria-hidden /> Koppeling beëindigen
+                    </button>
+                  </div>
+                </Card>
+              )
+            })}
           </div>
         )}
       </main>
