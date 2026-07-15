@@ -6,7 +6,8 @@ import { stuurTelegram } from '@/lib/integraties/telegram'
 export async function GET(req: NextRequest) {
   const cronSecret = process.env.CRON_SECRET ?? ''
   const secret = req.headers.get('x-cron-secret') ?? req.nextUrl.searchParams.get('secret')
-  if (cronSecret && secret !== cronSecret) {
+  // Fail closed: zonder geconfigureerd CRON_SECRET is deze route niet aanroepbaar.
+  if (!cronSecret || secret !== cronSecret) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

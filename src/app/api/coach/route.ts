@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 import { getAuthenticatedUser } from '@/lib/auth/api-auth'
-import { buildCoachSystemPrompt } from '@/lib/coach/coach-context'
+import { buildGebruikerContextBlok } from '@/lib/coach/coach-context'
 import { createAdminClient } from '@/lib/supabase/supabase-admin'
 import { getPlanVoorUser } from '@/lib/plan/plan-server'
 import { heeftFeature, VITA_GRATIS_BERICHTEN_PER_DAG } from '@/lib/plan/plan'
@@ -32,7 +32,13 @@ Als de context een afgeleide toestand of toon meegeeft (bijvoorbeeld dat het eve
 Je grenzen (blijven altijd gelden):
 - Je bent geen therapeut, psycholoog of arts, en doet niet alsof.
 - Bij ernstige signalen (aanhoudende somberheid, burn-out, crisis, gedachten aan jezelf iets aandoen) benoem je dat rustig en verwijs je warm door naar professionele hulp of de huisarts. Bij acuut gevaar wijs je op directe hulp (112 of 113 Zelfmoordpreventie).
-- Je geeft nooit medicatieadvies of diagnoses.`
+- Je geeft nooit medicatieadvies of diagnoses.
+
+Eerlijkheid (niet onderhandelbaar):
+- Gebruik UITSLUITEND de cijfers, scores en feiten die in de context staan. Verzin nooit percentages, correlaties, trends of scores — ook niet als het aannemelijk klinkt of het gesprek erom vraagt.
+- Ontbreekt data? Zeg dat gewoon ("dat heb ik nog niet van je gezien") in plaats van iets aan te nemen.
+- Som cijfers niet op. Gebruik ze om te sturen naar één concrete volgende stap.
+- Zie je een verband tussen pijlers (bv. slaap die energie meetrekt), benoem dat alleen als de context het ondersteunt.`
 
 type Bericht = { role: 'user' | 'assistant'; content: string }
 
@@ -47,10 +53,12 @@ function valideerBericht(b: unknown): b is Bericht {
     && content.length <= 4000
 }
 
+// Let op: scores komen NIET meer uit de client — die worden server-side uit het
+// canonieke pijler-model gehaald (zie coach-context.ts). De client mag alleen
+// nog niet-gevoelige presentatiecontext meesturen.
 type GebruikerContext = {
   naam: string
   discPrimair?: string
-  domeinScores?: Record<string, number>
   actieveDoelen?: string[]
 }
 
@@ -162,22 +170,35 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Geen berichten meegegeven.' }, { status: 400 })
     }
 
-    // Bouw gepersonaliseerd systeem-prompt met gebruikerscontext
+    // Volatiele gebruikerscontext, los van de stabiele persona (zie hieronder).
     const defaultContext: GebruikerContext = { naam: 'je', ...gebruiker_context }
-    const systeemTekst = await buildCoachSystemPrompt(BASIS_SYSTEEM, user.id, defaultContext) + openerContext
+    const gebruikerBlok = await buildGebruikerContextBlok(user.id, defaultContext) + openerContext
 
-    // Cap maxTokens: client mag nooit meer dan 600 tokens vragen (voorkomt hoge AI-kosten)
-    const safeMaxTokens = Math.min(Math.max(100, maxTokens ?? 400), 600)
+    // Ruimte voor een écht coach-antwoord. 600 was te krap voor een weekplan of
+    // een antwoord dat meerdere pijlers verbindt.
+    const safeMaxTokens = Math.min(Math.max(100, maxTokens ?? 800), 1600)
 
     const aiStream = await anthropic.messages.create({
-      model: 'claude-sonnet-4-5',
+      model: 'claude-sonnet-5',
       max_tokens: safeMaxTokens,
+      // Sonnet 5 draait adaptive thinking zodra `thinking` ontbreekt. Voor een
+      // chat kiezen we bewust snelheid: de intelligentie komt uit de rijke
+      // context hierboven, niet uit denk-tokens (en denk-tokens tellen mee in
+      // max_tokens, wat het antwoord zou kunnen afkappen).
+      thinking: { type: 'disabled' },
       stream: true,
       system: [
+        // 1. Stabiel en identiek voor élke gebruiker → dit cachet daadwerkelijk.
         {
           type: 'text',
-          text: systeemTekst,
+          text: BASIS_SYSTEEM,
           cache_control: { type: 'ephemeral' },
+        },
+        // 2. Volatiel (scores, stemming, geheugen) → bewust NA de breakpoint,
+        //    anders invalideert elke request de cache.
+        {
+          type: 'text',
+          text: gebruikerBlok,
         },
       ],
       messages: chatBerichten.map((b, i) => {

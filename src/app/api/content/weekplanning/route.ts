@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 import { createClient } from '@supabase/supabase-js'
-import { getAuthenticatedUser } from '@/lib/auth/api-auth'
+import { getAuthenticatedUser, isFounder } from '@/lib/auth/api-auth'
 import { uploadBriefingPDF } from '@/lib/pdf/briefing-storage'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
@@ -325,6 +325,9 @@ export interface WeekPlanning {
 // ── Route Handlers ────────────────────────────────────────────────────────
 
 export async function GET(req: NextRequest) {
+  const user = await getAuthenticatedUser(req)
+  if (!user || !isFounder(user)) return NextResponse.json({ error: 'Geen toegang' }, { status: 403 })
+
   const url = new URL(req.url)
   const weekParam = url.searchParams.get('week')
   const weekStart = weekParam ?? getMaandagVanWeek(new Date())
@@ -342,12 +345,12 @@ export async function GET(req: NextRequest) {
 
 function isCronRequest(req: NextRequest): boolean {
   const cronSecret = process.env.CRON_SECRET
-  if (!cronSecret) return true
+  if (!cronSecret) return false // fail closed
   return req.headers.get('x-cron-secret') === cronSecret
 }
 
 export async function POST(req: NextRequest) {
-  const authorised = isCronRequest(req) || !!(await getAuthenticatedUser(req))
+  const authorised = isCronRequest(req) || isFounder(await getAuthenticatedUser(req))
   if (!authorised) return NextResponse.json({ error: 'Niet ingelogd' }, { status: 401 })
 
   const { forceer = false, week } = await req.json().catch(() => ({}))

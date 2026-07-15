@@ -102,6 +102,7 @@ export function Ring({
           strokeLinecap="round"
           strokeDasharray={circumference}
           strokeDashoffset={dashOffset}
+          style={{ filter: `drop-shadow(0 0 5px color-mix(in srgb, ${color} 55%, transparent))` }}
         />
       </svg>
       {children ? (
@@ -114,6 +115,7 @@ export function Ring({
             alignItems: 'center',
             justifyContent: 'center',
             color: 'var(--text-1)',
+            fontFamily: 'var(--font-mono)',
             fontSize: size >= 80 ? '18px' : '13px',
             fontWeight: 600,
             fontVariantNumeric: 'tabular-nums',

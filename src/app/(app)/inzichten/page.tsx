@@ -20,6 +20,7 @@ import VitaLeegScherm from '@/components/vita/VitaLeegScherm'
 import { PremiumSlot } from '@/components/ui/PremiumSlot'
 import MetriekenPaneel from './MetriekenPaneel'
 import WeekdoelenBlok from './WeekdoelenBlok'
+import { PijlerTrends } from '@/components/pijlers/PijlerTrends'
 import {
   heeftWeekData, scoreLabelKleur, type Rapport, type WeekRapportResponse,
 } from './weekrapport'
@@ -93,10 +94,10 @@ function TekstKaart({ titel, tekst }: { titel: string; tekst: string }) {
 function TipKaart({ tekst }: { tekst: string }) {
   return (
     <div style={{
-      background: 'var(--mf-green-light)', borderRadius: 'var(--radius-card)',
-      padding: '16px 18px', border: '1px solid var(--mf-green-mid)',
+      background: 'var(--brand-soft)', borderRadius: 'var(--radius-card)',
+      padding: '16px 18px', border: '1px solid color-mix(in srgb, var(--brand) 30%, transparent)',
     }}>
-      <p className="mf-section-label" style={{ color: 'var(--mf-green-dark)', marginBottom: 8 }}>
+      <p className="mf-section-label" style={{ color: 'var(--brand)', marginBottom: 8 }}>
         Tip van de week
       </p>
       <p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.65, margin: 0 }}>{tekst}</p>
@@ -188,6 +189,9 @@ export default function InzichtenPagina() {
             </Button>
           )}
         </header>
+
+        {/* Pijler-trends — de kern van Voortgang, altijd zichtbaar (niet premium-gated) */}
+        <PijlerTrends />
 
         {premiumNodig && (
           <PremiumSlot

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 import { createClient } from '@supabase/supabase-js'
-import { getAuthenticatedUser } from '@/lib/auth/api-auth'
+import { getAuthenticatedUser, isFounder } from '@/lib/auth/api-auth'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
@@ -15,6 +15,7 @@ function getServiceClient() {
 export async function GET(req: NextRequest) {
   const user = await getAuthenticatedUser(req)
   if (!user) return NextResponse.json({ error: 'Niet ingelogd' }, { status: 401 })
+  if (!isFounder(user)) return NextResponse.json({ error: 'Geen toegang' }, { status: 403 })
 
   const db = getServiceClient()
   const url = new URL(req.url)
@@ -33,6 +34,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   const user = await getAuthenticatedUser(req)
   if (!user) return NextResponse.json({ error: 'Niet ingelogd' }, { status: 401 })
+  if (!isFounder(user)) return NextResponse.json({ error: 'Geen toegang' }, { status: 403 })
 
   const body = await req.json()
 
@@ -57,6 +59,7 @@ export async function POST(req: NextRequest) {
 export async function PATCH(req: NextRequest) {
   const user = await getAuthenticatedUser(req)
   if (!user) return NextResponse.json({ error: 'Niet ingelogd' }, { status: 401 })
+  if (!isFounder(user)) return NextResponse.json({ error: 'Geen toegang' }, { status: 403 })
 
   const { id, ...updates } = await req.json()
   const db = getServiceClient()
@@ -68,6 +71,7 @@ export async function PATCH(req: NextRequest) {
 export async function DELETE(req: NextRequest) {
   const user = await getAuthenticatedUser(req)
   if (!user) return NextResponse.json({ error: 'Niet ingelogd' }, { status: 401 })
+  if (!isFounder(user)) return NextResponse.json({ error: 'Geen toegang' }, { status: 403 })
 
   const { id } = await req.json()
   const db = getServiceClient()

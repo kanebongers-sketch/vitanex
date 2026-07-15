@@ -9,11 +9,9 @@ import { Sparkles, Square, Wind, Brain, Heart, Target, type LucideIcon } from 'l
 import { supabase } from '@/lib/supabase/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth/auth-fetch'
-import { getActiviteit } from '@/lib/navigatie/activiteiten'
+import { ActiviteitBadge } from '@/components/navigatie/ActiviteitBadge'
 import { useToast } from '@/components/ui/Toast'
 import { vitaEvent } from '@/lib/vita/events'
-
-const ACT = getActiviteit('meditatie')
 
 const MeditationParticles = nextDynamic(() => import('@/components/three/MeditationParticles'), { ssr: false })
 
@@ -202,10 +200,7 @@ export default function MeditatiePagina() {
       <main style={{ padding: '24px 20px 88px', maxWidth: 800, margin: '0 auto' }}>
 
         <header style={{ marginBottom: 16 }}>
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
-            <span style={{ width: 10, height: 10, borderRadius: '50%', background: ACT.kleur, flexShrink: 0 }} />
-            <span style={{ fontSize: 11, fontWeight: 700, color: ACT.kleur, textTransform: 'uppercase', letterSpacing: '0.08em' }}>{ACT.label}</span>
-          </span>
+          <ActiviteitBadge activiteit="meditatie" />
           <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 4 }}>
             Mindfulness & Meditatie
           </h1>

@@ -8,11 +8,9 @@ import { Heart, Sparkle, X, Check } from 'lucide-react'
 import { supabase } from '@/lib/supabase/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth/auth-fetch'
-import { getActiviteit } from '@/lib/navigatie/activiteiten'
+import { ActiviteitBadge } from '@/components/navigatie/ActiviteitBadge'
 import { useToast } from '@/components/ui/Toast'
 import { vitaEvent } from '@/lib/vita/events'
-
-const ACT = getActiviteit('dankbaarheid')
 
 
 interface DankbaarheidLog {
@@ -129,10 +127,7 @@ export default function DankbaarheidPagina() {
       <main style={{ padding: '24px 20px 88px', maxWidth: 800, margin: '0 auto' }}>
 
         <header style={{ marginBottom: 24 }}>
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
-            <span aria-hidden style={{ width: 10, height: 10, borderRadius: '50%', background: 'var(--mentaforce-primary)', flexShrink: 0 }} />
-            <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--mentaforce-primary)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{ACT.label}</span>
-          </span>
+          <ActiviteitBadge activiteit="dankbaarheid" />
           <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', marginBottom: 4 }}>
             Dankbaarheidslogboek
           </h1>

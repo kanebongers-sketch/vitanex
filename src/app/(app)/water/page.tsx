@@ -8,15 +8,13 @@ import { Droplet, PartyPopper, Trash2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth/auth-fetch'
-import { getActiviteit } from '@/lib/navigatie/activiteiten'
+import { ActiviteitBadge } from '@/components/navigatie/ActiviteitBadge'
 import { vitaEvent } from '@/lib/vita/events'
 import { Button } from '@/components/ui/Button'
 import { Field } from '@/components/ui/Field'
 import { Input } from '@/components/ui/Input'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { useToast } from '@/components/ui/Toast'
-
-const ACT = getActiviteit('water')
 
 interface WaterLog {
   id: string
@@ -286,10 +284,7 @@ export default function WaterPagina() {
             <p style={{ color: 'var(--text-3)', fontSize: '0.85rem', margin: '0 0 4px', textTransform: 'capitalize', letterSpacing: '0.01em' }}>
               {formatDatum()}
             </p>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
-              <span style={{ width: 10, height: 10, borderRadius: '50%', background: ACT.kleur, flexShrink: 0 }} />
-              <span style={{ fontSize: 11, fontWeight: 700, color: ACT.kleur, textTransform: 'uppercase', letterSpacing: '0.08em' }}>{ACT.label}</span>
-            </span>
+            <ActiviteitBadge activiteit="water" />
             <h1 style={{
               fontSize: '1.75rem',
               fontWeight: 700,

@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getAuthenticatedUser } from '@/lib/auth/api-auth'
 import { createAdminClient } from '@/lib/supabase/supabase-admin'
 import { vandaagNL, datumMinusDagenNL, toDateString } from '@/lib/utils/date-nl'
+import { berekenStreak } from '@/lib/streak/streak'
+
+/** Zelfde horizon als het datavenster hieronder — verder terugkijken heeft geen zin. */
+const HORIZON_DAGEN = 90
 
 export async function GET(req: NextRequest) {
   const user = await getAuthenticatedUser(req)
@@ -59,17 +63,13 @@ export async function GET(req: NextRequest) {
     activeDates.add(toDateString(row.datum))
   }
 
-  // Bereken huidige streak (consecutive days terug vanaf vandaag)
-  let streak = 0
+  // Huidige streak via de canonieke, vergevende regel (lib/streak): een vandaag
+  // waarop je nog niets logde is een open dag, geen breuk. Deze route telde
+  // eerder hard vanaf vandaag en toonde daardoor élke ochtend 0 tot je iets
+  // logde — precies het dark pattern dat lib/streak beschrijft.
   const vandaag = vandaagNL()
   const actief_vandaag = activeDates.has(vandaag)
-
-  let dagenTerug = 0
-  while (activeDates.has(datumMinusDagenNL(dagenTerug))) {
-    streak++
-    dagenTerug++
-    if (dagenTerug > 90) break
-  }
+  const streak = berekenStreak(activeDates, datumMinusDagenNL, HORIZON_DAGEN)
 
   // Kalender: laatste 90 dagen
   const kalender: { datum: string; actief: boolean }[] = []

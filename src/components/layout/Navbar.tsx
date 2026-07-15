@@ -6,8 +6,8 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabase/supabase'
 import { CATEGORIEEN } from '@/lib/navigatie/categorie-nav'
 import {
-  CalendarDays, HeartPulse, Activity, Layers, User, Clapperboard,
-  MessageSquare, Building2, Users, BarChart3, Star, Trophy,
+  CalendarDays, HeartPulse, Activity, Bot, User, Clapperboard,
+  Building2, Users, BarChart3, Star, Trophy,
   LayoutDashboard, Calendar, Map, Lightbulb,
   LogOut, ChevronRight, Plus, CheckCircle2, GraduationCap, UserRound,
   UserPlus, ListChecks, Apple, BookOpen, Milestone,
@@ -50,12 +50,11 @@ type TopItem = {
 
 /* ── Navigatiestructuur ── */
 const TOP_ITEMS: TopItem[] = [
-  { key: 'vandaag',   label: 'Dashboard', icon: CalendarDays,  href: '/home'    },
-  { key: 'welzijn',   label: 'Welzijn',   icon: HeartPulse,    href: '/welzijn' },
-  { key: 'actief',    label: 'Actief',    icon: Activity,      href: '/actief'  },
-  { key: 'groeien',   label: 'Groeien',   icon: Layers,        href: '/groeien' },
-  { key: 'berichten', label: 'Berichten', icon: MessageSquare, href: '/chat'    },
-  { key: 'profiel',   label: 'Profiel',   icon: User,          href: '/profiel' },
+  { key: 'vandaag',   label: 'Home',      icon: CalendarDays,  href: '/home'      },
+  { key: 'welzijn',   label: 'Welzijn',   icon: HeartPulse,    href: '/welzijn'   },
+  { key: 'vita',      label: 'Vita',      icon: Bot,           href: '/coach'     },
+  { key: 'voortgang', label: 'Voortgang', icon: BarChart3,     href: '/inzichten' },
+  { key: 'profiel',   label: 'Profiel',   icon: User,          href: '/profiel'   },
   {
     key: 'content',
     label: 'Content OS',
@@ -507,11 +506,11 @@ function SidebarContent({
 
 /* ── Mobile bottom bar tabs ── */
 const MOBILE_TABS = [
-  { key: 'vandaag', label: 'Vandaag', icon: CalendarDays,  href: '/home'    },
-  { key: 'welzijn', label: 'Welzijn', icon: HeartPulse,    href: '/welzijn' },
-  { key: 'actief',  label: 'Actief',  icon: Activity,      href: '/actief'  },
-  { key: 'groeien', label: 'Groeien', icon: Layers,        href: '/groeien' },
-  { key: 'profiel', label: 'Profiel', icon: User,          href: '/profiel' },
+  { key: 'vandaag',   label: 'Home',      icon: CalendarDays, href: '/home'      },
+  { key: 'welzijn',   label: 'Welzijn',   icon: HeartPulse,   href: '/welzijn'   },
+  { key: 'vita',      label: 'Vita',      icon: Bot,          href: '/coach'     },
+  { key: 'voortgang', label: 'Voortgang', icon: BarChart3,    href: '/inzichten' },
+  { key: 'profiel',   label: 'Profiel',   icon: User,         href: '/profiel'   },
 ]
 
 /* ── Main Navbar ── */

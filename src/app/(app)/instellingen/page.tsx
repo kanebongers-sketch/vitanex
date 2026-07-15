@@ -375,13 +375,24 @@ export default function Instellingen() {
       localStorage.removeItem('mf-view-mode')
     }
 
-    // Update profiles — rol altijd, bedrijf_id alleen als gewijzigd
-    const update: Record<string, unknown> = { rol: dbRol }
-    if (nieuwBedrijfId !== undefined) update.bedrijf_id = nieuwBedrijfId
-
-    const { error } = await supabase.from('profiles').update(update).eq('id', userId)
-    if (error) {
-      setRolWisselMelding({ type: 'error', tekst: `Fout: ${error.message}` })
+    // Rol-wissel loopt via een founder-gated server-route (service-role). De
+    // guard-trigger op profiles blokkeert client-side rol-escalatie (migratie 044),
+    // dus dit is de enige nog toegestane weg om te wisselen.
+    const { data: { session } } = await supabase.auth.getSession()
+    const res = await fetch('/api/admin/testrol', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+      },
+      body: JSON.stringify({
+        rol: dbRol,
+        ...(nieuwBedrijfId !== undefined ? { bedrijf_id: nieuwBedrijfId } : {}),
+      }),
+    })
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}))
+      setRolWisselMelding({ type: 'error', tekst: `Fout: ${data.error ?? 'wisselen mislukt'}` })
       setRolWisselBezig(false)
       return
     }

@@ -11,6 +11,9 @@ import { emotionFromScore, emotionFromEvent, getTimeOfDay, celebrationMessage } 
 import { getPageGuide } from '@/lib/vita/page-guide'
 import { laadXPData, berekenLevel, LEVEL_NAMEN, LEVEL_KLEUREN, xpVoortgang } from '@/lib/xp/xp'
 import { isCelebrationEvent, type VitaEventPayload } from '@/lib/vita/events'
+import { PIJLER_KEYS, type PijlerKey } from '@/lib/pijlers/pijlers'
+import { scoreNiveau } from '@/lib/pijlers/score'
+import type { PijlerOverzicht } from '@/lib/pijlers/pijlers-server'
 
 // Route waar het echte Vita-gesprek leeft. Companion deeplinkt ernaartoe.
 const COACH_ROUTE = '/coach'
@@ -21,25 +24,62 @@ const HIDDEN_ROUTES = [
   '/onboarding', '/bedankt',
 ]
 
-const READINESS_CACHE_KEY = 'vita-state-v1'
+// v2: de vorige key cachete de readiness-vorm ({ score: 50, heeft_data, … }).
+// Die is weg — een oude cache-entry mag hier nooit als VitaStatus binnenkomen.
+const STATUS_CACHE_KEY = 'vita-status-v2'
+const STREAK_CACHE_KEY = 'vita-streak-v1'
 const VANDAAG_CACHE_KEY = 'vita-vandaag-v1'
 const CACHE_TTL = 5 * 60 * 1000
 
 type Persona = 'stoicijn' | 'optimizer' | 'mentor' | 'challenger' | 'wetenschapper'
 
-interface ReadinessData {
-  score: number
-  label: string
-  slaap_uren: number | null
-  stress_niveau: number | null
-  stemming_waarde: number | null
+/**
+ * Laden, mislukt en "nog niets gemeten" zijn drie verschillende dingen. Ze
+ * samenvatten tot één lege toestand is precies hoe je gebruikers voorliegt over
+ * wat je weet — dus houdt Vita ze uit elkaar.
+ */
+type LaadStatus = 'laden' | 'klaar' | 'fout'
+
+/**
+ * Wat Vita van je weet, uitsluitend uit de canonieke pijler-engine (/api/pijlers).
+ * Elke waarde is 0–100 of `null` — een pijler zonder data blijft leeg, er wordt
+ * nooit een basislijn verzonnen (zie lib/pijlers/score.ts).
+ */
+interface VitaStatus {
+  /** Wellbeing over de laatste 7 dagen, of null als er nog niets gemeten is. */
+  score: number | null
+  /** Hoeveel van de pijlers daadwerkelijk data hebben. */
+  gemeten: number
+  /** Totaal aantal pijlers (doorgaans 6). */
+  totaal: number
+  /** Score per pijler (0–100), of null bij geen data. */
+  pijlers: Readonly<Record<PijlerKey, number | null>>
+  /** Dagen op rij, of null als de streak niet opgehaald kon worden. */
+  streak: number | null
+}
+
+interface StreakResponse {
   streak: number
-  heeft_data: boolean
+}
+
+/** Plat de pijler-lijst tot een lookup; ontbrekende pijlers blijven null. */
+function bouwStatus(overzicht: PijlerOverzicht, streak: number | null): VitaStatus {
+  const perKey = new Map<PijlerKey, number | null>(overzicht.pijlers.map((p) => [p.key, p.score]))
+  const pijlers = Object.fromEntries(
+    PIJLER_KEYS.map((k) => [k, perKey.get(k) ?? null]),
+  ) as Record<PijlerKey, number | null>
+
+  return {
+    score: overzicht.wellbeing.score,
+    gemeten: overzicht.wellbeing.gemeten,
+    totaal: overzicht.wellbeing.totaal,
+    pijlers,
+    streak,
+  }
 }
 
 interface ChecklistItem {
   id: string
-  icoon: string
   titel: string
   status: 'open' | 'gedaan'
   detail: string
@@ -86,22 +126,9 @@ function markPageSeen(path: string) {
   } catch {}
 }
 
-function scoreLabel(score: number): string {
-  if (score >= 85) return 'Uitstekend'
-  if (score >= 70) return 'Vitaal'
-  if (score >= 55) return 'Stabiel'
-  if (score >= 40) return 'Aandacht'
-  return 'Herstel'
-}
-
-// Status-accent volgt het navy/cyan-systeem: cyaan = goed, inkt-grijs = neutraal,
-// amber = aandacht, rood = herstel. Geen losse hex — alles via tokens.
-function scoreColor(score: number): string {
-  if (score >= 70) return 'var(--mentaforce-primary)'
-  if (score >= 55) return 'var(--text-2)'
-  if (score >= 40) return 'var(--mf-amber)'
-  return 'var(--mf-red)'
-}
+// Label + accentkleur komen uit de canonieke schaal (lib/pijlers/score.ts) —
+// dezelfde die Home, de pijler-pagina's en Progress gebruiken. Vita had hier een
+// eigen kopie met eigen drempels; twee schalen = twee waarheden.
 
 const PERSONA_LABELS: Record<Persona, string> = {
   stoicijn: 'De Stoïcijn',
@@ -117,87 +144,95 @@ const PERSONA_LABELS: Record<Persona, string> = {
 const PERSONA_TINT = 'var(--mentaforce-primary-light)'
 const PERSONA_ACCENT_COLOR = 'var(--mentaforce-primary)'
 
+/** True als deze pijler écht gemeten is én in de aandacht-zone valt. */
+function vraagtAandacht(score: number | null): boolean {
+  return score !== null && scoreNiveau(score).niveau === 'laag'
+}
+
 // Warme ik-vorm: Vita praat als companion die je kent, niet als monitor.
 // Geen verzonnen percentages of jargon — alleen wat we echt uit de data weten.
-function vitaMessage(d: ReadinessData, persona: Persona): string {
-  if (!d.heeft_data) {
-    if (persona === 'challenger') return 'Ik heb nog geen data van je. Doe je eerste check-in — dan kan ik je echt uitdagen.'
+//
+// De pijler-engine kijkt over 7 dagen, dus Vita spreekt ook in weken ("deze
+// week"), nooit in "vandaag sliep je X". Dat laatste zou een weekgemiddelde als
+// meting van vannacht presenteren — een claim die de data niet draagt.
+function vitaMessage(s: VitaStatus, persona: Persona): string {
+  // Nog niets gemeten: dat zegt Vita gewoon. Geen cijfer, geen aanname, geen
+  // toon alsof hij je al kent.
+  if (s.score === null) {
+    if (persona === 'challenger') return 'Ik heb nog niets van je gemeten. Doe je eerste check-in — dan kan ik je echt uitdagen.'
     if (persona === 'stoicijn') return 'Ik begin graag bij het begin: doe je eerste check-in, dan weten we waar je staat.'
     if (persona === 'wetenschapper') return 'Ik heb een nulpunt nodig. Vul je eerste check-in in, dan bouw ik jouw baseline op.'
     if (persona === 'optimizer') return 'Zonder data kan ik nog niets voor je fijnslijpen. Start met je eerste check-in.'
     return 'Vul je eerste check-in in — dan leer ik jouw patroon kennen.'
   }
 
-  const slaap = d.slaap_uren !== null ? Number(d.slaap_uren) : null
-  const stress = d.stress_niveau
-  const { score, streak } = d
+  const { score, streak } = s
 
-  if (slaap !== null && slaap < 6) {
-    if (persona === 'stoicijn') return `Ik zie dat je maar ${slaap.toFixed(1)}u sliep — vandaag draait om herstel, zonder ruis.`
-    if (persona === 'optimizer') return `${slaap.toFixed(1)}u slaap ga je merken in je focus. Ik zou vandaag inzetten op herstel.`
-    if (persona === 'challenger') return `${slaap.toFixed(1)}u slaap — dat houd je niet vol. Wat doe je vanavond anders?`
-    if (persona === 'wetenschapper') return `Slaaptekort gedetecteerd: ${slaap.toFixed(1)}u. Ik zou herstel vandaag voorrang geven.`
-    return `Ik zie dat je maar ${slaap.toFixed(1)}u sliep — vandaag draait om herstel.`
+  if (vraagtAandacht(s.pijlers.slaap)) {
+    if (persona === 'stoicijn') return 'Je slaap staat deze week onder druk — richt je op herstel, zonder ruis.'
+    if (persona === 'optimizer') return 'Je slaap blijft deze week achter. Dat ga je in je focus merken — ik zou daar eerst op inzetten.'
+    if (persona === 'challenger') return 'Je slaap blijft deze week achter. Wat doe je vanavond anders?'
+    if (persona === 'wetenschapper') return 'Slaap is deze week je zwakste signaal. Ik zou daar als eerste aan draaien.'
+    return 'Ik zie dat je slaap deze week achterblijft — herstel verdient nu voorrang.'
   }
 
-  if (stress !== null && stress >= 4) {
-    if (persona === 'stoicijn') return 'Ik zie hoge stress bij je. Kijk rustig wat de bron is — en wat je vandaag kunt loslaten.'
-    if (persona === 'optimizer') return 'Je stress staat hoog. Eén bewust ademhalingsmoment vandaag helpt je al herstellen.'
-    if (persona === 'challenger') return 'Ik zie hoge stress bij je. Wat ga je vandaag anders doen?'
-    if (persona === 'wetenschapper') return 'Je stressniveau is hoog — ik zou vandaag bewust een herstelmoment inplannen.'
-    return 'Ik zie een hoog stressniveau bij je. Eén herstelmoment maakt vandaag het verschil.'
+  if (vraagtAandacht(s.pijlers.stress)) {
+    if (persona === 'stoicijn') return 'Je stress loopt deze week op. Kijk rustig wat de bron is — en wat je kunt loslaten.'
+    if (persona === 'optimizer') return 'Je stress staat hoog deze week. Eén bewust ademhalingsmoment per dag helpt al.'
+    if (persona === 'challenger') return 'Je stress loopt deze week op. Wat ga je er concreet aan doen?'
+    if (persona === 'wetenschapper') return 'Stress is deze week je opvallendste signaal — ik zou bewust herstelmomenten inplannen.'
+    return 'Ik zie deze week een hoog stressniveau bij je. Eén herstelmoment maakt het verschil.'
   }
 
-  if (score >= 80) {
-    if (streak >= 14) {
+  if (scoreNiveau(score).niveau === 'goed') {
+    if (streak !== null && streak >= 14) {
       if (persona === 'stoicijn') return `${streak} dagen op rij — dat is discipline die karakter wordt.`
       if (persona === 'optimizer') return `${streak} dagen consistentie. Ik zie je patronen steeds duidelijker worden.`
       if (persona === 'challenger') return `${streak} dagen op rij. Sterk — hoelang houd je dit vol?`
       if (persona === 'wetenschapper') return `${streak} dagen op rij — zo wordt een gewoonte echt onderdeel van je routine.`
       return `${streak} dagen consistentie. Ik zie je patronen steeds duidelijker worden.`
     }
-    if (persona === 'stoicijn') return 'Al je signalen staan goed. Gebruik deze dag zoals je hem bedoeld hebt.'
-    if (persona === 'optimizer') return 'Je zit vandaag op je best — een mooi moment voor diep werk of een stevige sessie.'
-    if (persona === 'wetenschapper') return 'Al je signalen staan goed — vandaag kun je veel aan.'
-    return 'Al je signalen staan op groen. Ik zie een krachtige dag voor je.'
+    if (persona === 'stoicijn') return 'Je signalen staan goed. Gebruik deze week zoals je hem bedoeld hebt.'
+    if (persona === 'optimizer') return 'Je staat er sterk voor — een mooie week voor diep werk of een stevige sessie.'
+    if (persona === 'wetenschapper') return 'Al je gemeten signalen staan goed — je kunt deze week veel aan.'
+    return 'Je signalen staan goed. Ik zie een krachtige week voor je.'
   }
 
-  if (score >= 60) {
-    if (persona === 'stoicijn') return 'Je staat er goed voor. Doe wat je gepland hebt.'
-    if (persona === 'optimizer') return 'Een goede basis vandaag. Kleine acties nu bouwen aan morgen.'
-    if (persona === 'mentor') return 'Je staat er goed voor — gebruik die energie vandaag doelbewust.'
-    return 'Je staat er goed voor. Ik houd je patronen voor je in de gaten.'
+  if (scoreNiveau(score).niveau === 'matig') {
+    if (persona === 'stoicijn') return 'Je staat er redelijk voor. Doe wat je gepland hebt.'
+    if (persona === 'optimizer') return 'Een redelijke basis deze week. Kleine acties nu bouwen aan volgende week.'
+    if (persona === 'mentor') return 'Je staat er redelijk voor — gebruik die energie doelbewust.'
+    return 'Je staat er redelijk voor. Ik houd je patronen voor je in de gaten.'
   }
 
-  if (persona === 'stoicijn') return 'Je signalen zijn vandaag matig. Pas je planning aan — doe wat nodig is, niet meer.'
-  return 'Ik zie dat het wat minder loopt. Kijk bij je voortgang — ik denk met je mee.'
+  if (persona === 'stoicijn') return 'Je signalen vragen deze week aandacht. Pas je planning aan — doe wat nodig is, niet meer.'
+  return 'Ik zie dat het wat minder loopt. Kijk bij je welzijn — ik denk met je mee.'
 }
 
 // Vita kiest zijn toon op basis van wat je op dit moment nodig hebt — niet via
 // een handmatige keuze. Volgorde van prioriteit: eerst steun bij zwaarte.
-function aanbevolenPersona(d: ReadinessData): { persona: Persona; reden: string } {
-  if (!d.heeft_data) {
-    return { persona: 'mentor', reden: 'Je begint net — ik help je rustig op weg.' }
+function aanbevolenPersona(s: VitaStatus): { persona: Persona; reden: string } {
+  // Niets gemeten = Vita kent je nog niet. Hij doet dan niet alsof: rustig op
+  // weg helpen, geen toon die een score veronderstelt.
+  if (s.score === null) {
+    return { persona: 'mentor', reden: 'Ik heb nog niets van je gemeten — ik help je rustig op weg.' }
   }
-
-  const slaap = d.slaap_uren !== null ? Number(d.slaap_uren) : null
-  const stress = d.stress_niveau
-  const stemming = d.stemming_waarde
 
   // Onder druk of laag → je hebt steun nodig → Mentor
-  if ((stress !== null && stress >= 4) || (stemming !== null && stemming <= 2) || d.score < 40) {
+  if (vraagtAandacht(s.pijlers.stress) || vraagtAandacht(s.pijlers.stemming) || vraagtAandacht(s.score)) {
     return { persona: 'mentor', reden: 'Het is even zwaar — ik ben er rustig en steunend voor je.' }
   }
-  // Uitgeput (weinig slaap) → kalmte en herstel → Stoïcijn
-  if (slaap !== null && slaap < 6) {
-    return { persona: 'stoicijn', reden: 'Je bent moe — vandaag draait om herstel, zonder ruis.' }
+  // Slaap onder druk → kalmte en herstel → Stoïcijn
+  if (vraagtAandacht(s.pijlers.slaap)) {
+    return { persona: 'stoicijn', reden: 'Je slaap staat onder druk — deze week draait om herstel, zonder ruis.' }
   }
-  // Op dreef (hoge score én streak) → je kunt uitdaging aan → Challenger
-  if (d.score >= 80 && d.streak >= 7) {
+  // Op dreef (hoge score én streak) → je kunt uitdaging aan → Challenger.
+  // Zonder opgehaalde streak claimen we er geen: dan blijft het Optimizer.
+  if (s.score >= 80 && s.streak !== null && s.streak >= 7) {
     return { persona: 'challenger', reden: 'Je loopt sterk — ik daag je uit om scherp te blijven.' }
   }
   // Goed bezig, aan het bouwen → fijnslijpen → Optimizer
-  if (d.score >= 60) {
+  if (scoreNiveau(s.score).niveau === 'goed') {
     return { persona: 'optimizer', reden: 'Je staat er goed voor — laten we fijnslijpen.' }
   }
   // Rest → rustige begeleiding → Mentor
@@ -358,6 +393,24 @@ function PersonaUitleg({ persona, reden }: { persona: Persona; reden: string }) 
 const ORB_SIZE = 56
 const ORB_POS_KEY = 'vita-orb-pos'
 
+// Het grote getal (of de streep als er nog niets gemeten is) — één stijl, twee
+// toestanden, dus geen gedupliceerde inline-style.
+const scoreStyle: CSSProperties = {
+  fontSize: 42,
+  fontWeight: 900,
+  letterSpacing: '-0.05em',
+  lineHeight: 1,
+}
+
+// De drie pijlers waar Vita's toon op stuurt. Ze tonen de pijlerscore (0–100)
+// uit de canonieke engine, niet de ruwe logwaarde: die had per bron een andere
+// schaal, waardoor stress (1–10) hier als "Stress 8/5" op het scherm kon komen.
+const PIJLER_CHIPS: ReadonlyArray<{ key: PijlerKey; label: string; Icoon: typeof Moon }> = [
+  { key: 'slaap', label: 'Slaap', Icoon: Moon },
+  { key: 'stress', label: 'Stress', Icoon: Zap },
+  { key: 'stemming', label: 'Stemming', Icoon: Smile },
+]
+
 // Gedeelde stijl voor de data-chips (slaap/stress/stemming) — één bron, geen
 // duplicatie. Icoon + label naast elkaar, alles via tokens.
 const dataChipStyle: CSSProperties = {
@@ -378,7 +431,8 @@ export default function VitaCompanion() {
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [toonMeer, setToonMeer] = useState(false)
-  const [data, setData] = useState<ReadinessData | null>(null)
+  const [data, setData] = useState<VitaStatus | null>(null)
+  const [status, setStatus] = useState<LaadStatus>('laden')
   const [vandaag, setVandaag] = useState<VandaagData | null>(null)
   const [xp, setXp] = useState<number>(0)
   const [emotion, setEmotion] = useState<EmotionState>('calm')
@@ -397,26 +451,68 @@ export default function VitaCompanion() {
 
   const isHidden = HIDDEN_ROUTES.some(r => pathname.startsWith(r))
 
-  const loadReadiness = useCallback(async () => {
-    const cached = getCache<ReadinessData>(READINESS_CACHE_KEY)
+  const pasStatusToe = useCallback((next: VitaStatus) => {
+    setData(next)
+    setStatus('klaar')
+    // Zonder score kent Vita je nog niet: nieuwsgierig kijken, niet de neutrale
+    // "gemiddeld"-blik die een verzonnen 50 vroeger opleverde.
+    const rust: EmotionState = next.score !== null ? emotionFromScore(next.score) : 'curious'
+    restEmotionRef.current = rust
+    setEmotion(rust)
+  }, [])
+
+  /**
+   * Streak apart, want het is geen pijler (/api/streak heeft zijn eigen venster).
+   * Lukt het niet, dan blijft de streak `null` en toont Vita 'm niet — een 0 zou
+   * "je reeks is verbroken" beweren, en dat weten we op dat moment juist niet.
+   */
+  const laadStreak = useCallback(async (): Promise<number | null> => {
+    const cached = getCache<StreakResponse>(STREAK_CACHE_KEY)
+    if (cached) return cached.streak
+    try {
+      const res = await authFetch('/api/streak')
+      if (!res.ok) {
+        console.error('[Vita] /api/streak antwoordde met status', res.status)
+        return null
+      }
+      const json = await res.json() as StreakResponse
+      setCache(STREAK_CACHE_KEY, json)
+      return json.streak
+    } catch (err) {
+      console.error('[Vita] streak ophalen mislukt:', err)
+      return null
+    }
+  }, [])
+
+  /**
+   * Vita's beeld van je komt uit de canonieke pijler-engine — dezelfde bron als
+   * Home en de pijler-pagina's, zodat hij nooit een ander getal vertelt.
+   *
+   * Een mislukte fetch is bewust géén "geen data": dat zijn verschillende
+   * toestanden en Vita zegt ze allebei eerlijk (zie de foutmelding hieronder).
+   */
+  const loadStatus = useCallback(async () => {
+    const cached = getCache<VitaStatus>(STATUS_CACHE_KEY)
     if (cached) {
-      setData(cached)
-      const rust = emotionFromScore(cached.score)
-      restEmotionRef.current = rust
-      setEmotion(rust)
+      pasStatusToe(cached)
       return
     }
     try {
-      const res = await authFetch('/api/readiness')
-      if (!res.ok) return
-      const json = await res.json() as ReadinessData
-      setData(json)
-      const rust = emotionFromScore(json.score)
-      restEmotionRef.current = rust
-      setEmotion(rust)
-      setCache(READINESS_CACHE_KEY, json)
-    } catch {}
-  }, [])
+      const [pijlerRes, streak] = await Promise.all([authFetch('/api/pijlers'), laadStreak()])
+      if (!pijlerRes.ok) {
+        console.error('[Vita] /api/pijlers antwoordde met status', pijlerRes.status)
+        setStatus('fout')
+        return
+      }
+      const overzicht = await pijlerRes.json() as PijlerOverzicht
+      const volgende = bouwStatus(overzicht, streak)
+      pasStatusToe(volgende)
+      setCache(STATUS_CACHE_KEY, volgende)
+    } catch (err) {
+      console.error('[Vita] pijlers ophalen mislukt:', err)
+      setStatus('fout')
+    }
+  }, [pasStatusToe, laadStreak])
 
   const loadVandaag = useCallback(async () => {
     const cached = getCache<VandaagData>(VANDAAG_CACHE_KEY)
@@ -432,11 +528,11 @@ export default function VitaCompanion() {
 
   useEffect(() => {
     if (!isHidden) {
-      loadReadiness()
+      loadStatus()
       loadVandaag()
       setXp(laadXPData().xp)
     }
-  }, [isHidden, loadReadiness, loadVandaag])
+  }, [isHidden, loadStatus, loadVandaag])
 
   useEffect(() => {
     if (!open) return
@@ -529,14 +625,16 @@ export default function VitaCompanion() {
   useEffect(() => {
     const handler = (e: Event) => {
       const { type } = (e as CustomEvent<VitaEventPayload>).detail
-      // Houd level, dagquests én readiness vers na een actie. Doordat de persona
-      // uit readiness volgt, past Vita's toon zich zo direct aan je nieuwe status aan.
+      // Houd level, dagquests én je pijlerstatus vers na een actie. Doordat de
+      // persona uit die status volgt, past Vita's toon zich direct aan. Ook de
+      // streak-cache moet weg: een log van vandaag kan de reeks verlengen.
       setXp(laadXPData().xp)
       if (['check_in_completed', 'data_logged', 'mood_logged', 'habit_completed', 'goal_achieved'].includes(type)) {
         clearCache(VANDAAG_CACHE_KEY)
-        clearCache(READINESS_CACHE_KEY)
+        clearCache(STATUS_CACHE_KEY)
+        clearCache(STREAK_CACHE_KEY)
         loadVandaag()
-        loadReadiness()
+        loadStatus()
       }
       // Echte mijlpaal → viering: 'proud'-gezicht + een rustige cyan glow-puls
       // over de orb. Bij prefers-reduced-motion toont de burst een statische
@@ -570,7 +668,7 @@ export default function VitaCompanion() {
     }
     window.addEventListener('vita:event', handler)
     return () => window.removeEventListener('vita:event', handler)
-  }, [open, emotion, loadVandaag, loadReadiness])
+  }, [open, emotion, loadVandaag, loadStatus])
 
   // Ruim de emotie- en viering-timers op bij unmount, zodat er nooit een
   // setState op een verdwenen component valt.
@@ -581,8 +679,11 @@ export default function VitaCompanion() {
 
   useEffect(() => {
     if (!data) return
-    // Op /home zegt VitaDagstart al goedemorgen — daar geen dubbele nudge.
-    if (pathname === '/home') return
+    // Géén uitzondering meer voor /home. Die stond hier omdat VitaDagstart daar
+    // de begroeting droeg — maar de V3-Home rendert dat component niet meer, dus
+    // de uitzondering onderdrukte Vita voor een tegenhanger die er niet is: op
+    // je belangrijkste scherm zei Vita 's ochtends niets. Home heeft nu een eigen
+    // (statische) groet; deze nudge is Vita's stem daarnaast.
     const sessionKey = 'vita-nudge-v1'
     if (sessionStorage.getItem(sessionKey)) return
     const tod = getTimeOfDay()
@@ -624,20 +725,29 @@ export default function VitaCompanion() {
     return () => clearTimeout(timer)
   }, [pathname, isHidden, open])
 
-  if (isHidden || !data) return null
+  if (isHidden || status === 'laden') return null
 
-  const { persona, reden } = aanbevolenPersona(data)
-  const label = scoreLabel(data.score)
-  const accentColor = scoreColor(data.score)
-  const message = vitaMessage(data, persona)
+  // Drie toestanden, drie eerlijke antwoorden:
+  //  • fout        → we weten niets, en zeggen dát (geen score, geen "geen data")
+  //  • score null  → gemeten is er nog niets → "Nog niet gemeten"
+  //  • score       → het echte cijfer uit de pijler-engine
+  const foutmelding = status === 'fout'
+  const niveau = scoreNiveau(data?.score ?? null)
+  const label = foutmelding ? 'Niet opgehaald' : niveau.label
+  const accentColor = niveau.kleur
+  const advies = data ? aanbevolenPersona(data) : null
+  const message = data && advies ? vitaMessage(data, advies.persona) : null
   const guide = getPageGuide(pathname)
   const gaNaar = (url: string) => { setOpen(false); router.push(url) }
 
   // De vaste zin die Vita altijd "zegt" in zijn tekstballon: bij voorkeur je
   // volgende stap op deze pagina, anders een korte status of uitnodiging.
-  const vasteRegel =
-    guide?.stap
-    ?? (data.heeft_data ? `Je staat op ${data.score} — ${label.toLowerCase()}.` : 'Doe je check-in, dan leer ik je kennen.')
+  const vasteRegel = foutmelding
+    ? 'Ik kan je gegevens nu even niet ophalen. Probeer het zo nog eens.'
+    : guide?.stap
+      ?? (data?.score != null
+        ? `Je welzijn staat op ${data.score} — ${niveau.label.toLowerCase()}.`
+        : 'Ik heb nog niets van je gemeten. Doe je check-in, dan leer ik je kennen.')
   const ballonTekst = bubble?.message ?? vasteRegel
 
   if (!pos) return null
@@ -787,17 +897,19 @@ export default function VitaCompanion() {
             }}>
               Vita
             </span>
-            <span style={{
-              fontSize: 10,
-              fontWeight: 600,
-              color: PERSONA_ACCENT_COLOR,
-              background: PERSONA_TINT,
-              padding: '2px 7px',
-              borderRadius: 100,
-              letterSpacing: '0.04em',
-            }}>
-              {PERSONA_LABELS[persona]}
-            </span>
+            {advies && (
+              <span style={{
+                fontSize: 10,
+                fontWeight: 600,
+                color: PERSONA_ACCENT_COLOR,
+                background: PERSONA_TINT,
+                padding: '2px 7px',
+                borderRadius: 100,
+                letterSpacing: '0.04em',
+              }}>
+                {PERSONA_LABELS[advies.persona]}
+              </span>
+            )}
             <button
               className="vita-focusable"
               onClick={() => { setOpen(false); orbRef.current?.focus() }}
@@ -840,15 +952,14 @@ export default function VitaCompanion() {
               <PandaFace emotion={emotion} size={90} />
             </div>
             <div>
-              <div style={{
-                fontSize: 42,
-                fontWeight: 900,
-                color: 'var(--text-1)',
-                letterSpacing: '-0.05em',
-                lineHeight: 1,
-              }}>
-                {data.score}
-              </div>
+              {/* Geen score = een rustige streep, geen getal. Het label eronder
+                  vertelt in woorden wat er aan de hand is, dus de streep zelf is
+                  decoratief voor een screenreader. */}
+              {data?.score != null ? (
+                <div style={{ ...scoreStyle, color: 'var(--text-1)' }}>{data.score}</div>
+              ) : (
+                <div style={{ ...scoreStyle, color: 'var(--text-4)' }} aria-hidden="true">—</div>
+              )}
               <div style={{
                 fontSize: 13,
                 fontWeight: 700,
@@ -857,7 +968,15 @@ export default function VitaCompanion() {
               }}>
                 {label}
               </div>
-              {data.streak > 0 && (
+              {/* Waarop het cijfer rust. Een 72 uit één vlak is iets heel anders
+                  dan een 72 uit zes — dus zegt Vita erbij hoe compleet het beeld
+                  is, in plaats van het cijfer als volledig te presenteren. */}
+              {data?.score != null && (
+                <div style={{ fontSize: 10.5, color: 'var(--text-4)', marginTop: 3 }}>
+                  {data.gemeten} van {data.totaal} vlakken gemeten
+                </div>
+              )}
+              {data?.streak != null && data.streak > 0 && (
                 <div style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -948,45 +1067,39 @@ export default function VitaCompanion() {
           {toonMeer && (
             <>
               {/* Coach-boodschap */}
-              <div style={{
-                margin: '0 14px 14px',
-                padding: '11px 13px',
-                background: 'var(--bg-subtle)',
-                borderRadius: 12,
-                fontSize: 13,
-                color: 'var(--text-2)',
-                lineHeight: 1.6,
-                fontStyle: 'italic',
-              }}>
-                &ldquo;{message}&rdquo;
-              </div>
+              {message && (
+                <div style={{
+                  margin: '0 14px 14px',
+                  padding: '11px 13px',
+                  background: 'var(--bg-subtle)',
+                  borderRadius: 12,
+                  fontSize: 13,
+                  color: 'var(--text-2)',
+                  lineHeight: 1.6,
+                  fontStyle: 'italic',
+                }}>
+                  &ldquo;{message}&rdquo;
+                </div>
+              )}
 
-          {/* Data chips */}
-          {data.heeft_data && (
+          {/* Data chips — alleen de pijlers die écht gemeten zijn */}
+          {data && (
             <div style={{
               padding: '0 14px 12px',
               display: 'flex',
               gap: 6,
               flexWrap: 'wrap',
             }}>
-              {data.slaap_uren !== null && (
-                <span style={dataChipStyle}>
-                  <Moon size={12} aria-hidden="true" strokeWidth={2} />
-                  {Number(data.slaap_uren).toFixed(1)}u slaap
-                </span>
-              )}
-              {data.stress_niveau !== null && (
-                <span style={dataChipStyle}>
-                  <Zap size={12} aria-hidden="true" strokeWidth={2} />
-                  Stress {data.stress_niveau}/5
-                </span>
-              )}
-              {data.stemming_waarde !== null && (
-                <span style={dataChipStyle}>
-                  <Smile size={12} aria-hidden="true" strokeWidth={2} />
-                  Stemming {data.stemming_waarde}/5
-                </span>
-              )}
+              {PIJLER_CHIPS.map(({ key, label: chipLabel, Icoon }) => {
+                const pijlerScore = data.pijlers[key]
+                if (pijlerScore === null) return null
+                return (
+                  <span key={key} style={dataChipStyle}>
+                    <Icoon size={12} aria-hidden="true" strokeWidth={2} />
+                    {chipLabel} {pijlerScore}/100
+                  </span>
+                )
+              })}
             </div>
           )}
 
@@ -997,7 +1110,7 @@ export default function VitaCompanion() {
           <div style={{ borderTop: '1px solid var(--border)', margin: '0 14px' }} />
 
           {/* Persona — automatisch gekozen op basis van wat je nodig hebt */}
-          <PersonaUitleg persona={persona} reden={reden} />
+          {advies && <PersonaUitleg persona={advies.persona} reden={advies.reden} />}
             </>
           )}
         </div>

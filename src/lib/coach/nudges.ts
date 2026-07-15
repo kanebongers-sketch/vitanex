@@ -12,6 +12,10 @@
  */
 import { createAdminClient } from '@/lib/supabase/supabase-admin'
 import { datumMinusDagenNL } from '@/lib/utils/date-nl'
+import { berekenStreak } from '@/lib/streak/streak'
+
+/** Even ver terug als de stemming-query hieronder reikt. */
+const STREAK_HORIZON_DAGEN = 60
 
 export type NudgeType =
   | 'burnout_stijgend'
@@ -68,17 +72,6 @@ function rijenVan(settled: PromiseSettledResult<unknown>, label: string): Rij[] 
   }
   const v = settled.value as { data?: unknown[] | null }
   return (v?.data as Rij[] | null) ?? []
-}
-
-/** Telt aaneengesloten dagen (eindigend vandaag/gisteren) met een mood-log. */
-function streakLengte(datums: Set<string>): number {
-  let streak = 0
-  for (let i = 0; i < 60; i++) {
-    if (datums.has(datumMinusDagenNL(i))) streak++
-    else if (i === 0) continue // vandaag nog niet gelogd telt niet als breuk
-    else break
-  }
-  return streak
 }
 
 export async function detectNudge(userId: string): Promise<CoachNudge | null> {
@@ -191,8 +184,8 @@ export async function detectNudge(userId: string): Promise<CoachNudge | null> {
   }
 
   // ── Streak-mijlpaal (op basis van dagelijkse mood-logs) ──────────────────────
-  const moodDatums = new Set(stemming.map(r => String(r.datum)))
-  const streak = streakLengte(moodDatums)
+  const moodDatums = stemming.map(r => String(r.datum))
+  const streak = berekenStreak(moodDatums, datumMinusDagenNL, STREAK_HORIZON_DAGEN)
   if ([7, 14, 30, 50, 100].includes(streak)) {
     kandidaten.push({
       type: 'streak_mijlpaal',

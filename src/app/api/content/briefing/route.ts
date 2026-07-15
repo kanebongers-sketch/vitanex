@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 import { createClient } from '@supabase/supabase-js'
-import { getAuthenticatedUser } from '@/lib/auth/api-auth'
+import { getAuthenticatedUser, isFounder } from '@/lib/auth/api-auth'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
@@ -286,6 +286,7 @@ function combineerdeBriefing(topics: TopicItem[], scripts: ScriptItem[], product
 export async function GET(req: NextRequest) {
   const user = await getAuthenticatedUser(req)
   if (!user) return NextResponse.json({ error: 'Niet ingelogd' }, { status: 401 })
+  if (!isFounder(user)) return NextResponse.json({ error: 'Geen toegang' }, { status: 403 })
 
   const db = getServiceClient()
   const vandaag = new Date().toISOString().split('T')[0]
@@ -302,12 +303,12 @@ export async function GET(req: NextRequest) {
 
 function isCronRequest(req: NextRequest): boolean {
   const cronSecret = process.env.CRON_SECRET
-  if (!cronSecret) return true
+  if (!cronSecret) return false // fail closed
   return req.headers.get('x-cron-secret') === cronSecret
 }
 
 export async function POST(req: NextRequest) {
-  const authorised = isCronRequest(req) || !!(await getAuthenticatedUser(req))
+  const authorised = isCronRequest(req) || isFounder(await getAuthenticatedUser(req))
   if (!authorised) return NextResponse.json({ error: 'Niet ingelogd' }, { status: 401 })
 
   const { forceer = false } = await req.json().catch(() => ({}))
@@ -382,6 +383,7 @@ export async function POST(req: NextRequest) {
 export async function PATCH(req: NextRequest) {
   const user = await getAuthenticatedUser(req)
   if (!user) return NextResponse.json({ error: 'Niet ingelogd' }, { status: 401 })
+  if (!isFounder(user)) return NextResponse.json({ error: 'Geen toegang' }, { status: 403 })
 
   const { briefing_id, video_nummer, status } = await req.json()
   const db = getServiceClient()

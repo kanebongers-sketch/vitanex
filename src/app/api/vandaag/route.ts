@@ -17,7 +17,6 @@ function defaultChecklist() {
   return [
     {
       id: 'water',
-      icoon: '💧',
       titel: 'Water drinken',
       status: 'open',
       detail: 'Nog niet gestart',
@@ -25,7 +24,6 @@ function defaultChecklist() {
     },
     {
       id: 'stemming',
-      icoon: '😊',
       titel: 'Hoe voel je je?',
       status: 'open',
       detail: 'Nog niet gelogd',
@@ -33,7 +31,6 @@ function defaultChecklist() {
     },
     {
       id: 'slaap',
-      icoon: '😴',
       titel: 'Gisteravond geslapen',
       status: 'open',
       detail: 'Log je slaap',
@@ -41,7 +38,6 @@ function defaultChecklist() {
     },
     {
       id: 'sport',
-      icoon: '🏃',
       titel: 'Bewegen',
       status: 'open',
       detail: 'Nog niet gelogd',
@@ -49,7 +45,6 @@ function defaultChecklist() {
     },
     {
       id: 'meditatie',
-      icoon: '🧘',
       titel: 'Meditatie / ademhaling',
       status: 'open',
       detail: '5 min mediteren',
@@ -57,7 +52,6 @@ function defaultChecklist() {
     },
     {
       id: 'dankbaarheid',
-      icoon: '✍️',
       titel: 'Dankbaarheid',
       status: 'open',
       detail: 'Schrijf 3 dingen',
@@ -148,7 +142,6 @@ export async function GET(req: NextRequest) {
   const checklist = [
     {
       id: 'water',
-      icoon: '💧',
       titel: 'Water drinken',
       status: water_gedaan ? 'gedaan' : 'open',
       detail: water_ml > 0
@@ -158,17 +151,20 @@ export async function GET(req: NextRequest) {
     },
     {
       id: 'stemming',
-      icoon: '😊',
       titel: 'Hoe voel je je?',
       status: stemming_gedaan ? 'gedaan' : 'open',
       detail: stemming_gedaan
-        ? `Gelogd om ${stemming_tijdstip ?? '??:??'}${stemming_waarde != null ? ` — stemming ${stemming_waarde}/10` : ''}`
+        // 1–5, niet 1–10: /stemming schrijft STEMMING_OPTIES (waarde 1..5) en
+        // toont zelf ook /5. De DB-CHECK staat op 1..10, maar dat is een losse
+        // vangrail — niet de schaal. Stond hier eerder als /10, waardoor een
+        // gelogde 4 ("Goed") als 4/10 las: een onware claim, en nog de
+        // verkeerde kant op ook.
+        ? `Gelogd om ${stemming_tijdstip ?? '??:??'}${stemming_waarde != null ? ` — stemming ${stemming_waarde}/5` : ''}`
         : 'Nog niet gelogd',
       url: '/stemming',
     },
     {
       id: 'slaap',
-      icoon: '😴',
       titel: 'Gisteravond geslapen',
       status: slaap_gedaan ? 'gedaan' : 'open',
       detail: slaap_gedaan && slaap_uren != null ? `${slaap_uren} uur geslapen` : 'Log je slaap',
@@ -176,7 +172,6 @@ export async function GET(req: NextRequest) {
     },
     {
       id: 'sport',
-      icoon: '🏃',
       titel: 'Bewegen',
       status: sport_gedaan ? 'gedaan' : 'open',
       detail: sport_gedaan ? 'Gedaan! Goed bezig.' : 'Nog niet gelogd',
@@ -184,7 +179,6 @@ export async function GET(req: NextRequest) {
     },
     {
       id: 'meditatie',
-      icoon: '🧘',
       titel: 'Meditatie / ademhaling',
       status: meditatie_gedaan ? 'gedaan' : 'open',
       detail: meditatie_gedaan
@@ -194,7 +188,6 @@ export async function GET(req: NextRequest) {
     },
     {
       id: 'dankbaarheid',
-      icoon: '✍️',
       titel: 'Dankbaarheid',
       status: dankbaarheid_gedaan ? 'gedaan' : 'open',
       detail: dankbaarheid_gedaan ? 'Geschreven' : 'Schrijf 3 dingen',

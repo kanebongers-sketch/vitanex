@@ -9,15 +9,13 @@ import type { LucideIcon } from 'lucide-react'
 import { supabase } from '@/lib/supabase/supabase'
 import Navbar from '@/components/layout/Navbar'
 import { authFetch } from '@/lib/auth/auth-fetch'
-import { getActiviteit } from '@/lib/navigatie/activiteiten'
+import { ActiviteitBadge } from '@/components/navigatie/ActiviteitBadge'
 import { Field } from '@/components/ui/Field'
 import { Textarea } from '@/components/ui/Textarea'
 import { Button } from '@/components/ui/Button'
 import { useToast } from '@/components/ui/Toast'
 import { vitaEvent } from '@/lib/vita/events'
 import VitaStemmingBegeleider from '@/components/vita/VitaStemmingBegeleider'
-
-const ACT = getActiviteit('mentaal')
 
 interface StemmingOptie {
   waarde: number
@@ -151,10 +149,7 @@ export default function StemmingPagina() {
           <p style={{ fontSize: '0.8rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-4)', margin: '0 0 4px' }}>
             {new Date().toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long' })}
           </p>
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
-            <span style={{ width: 10, height: 10, borderRadius: '50%', background: ACT.kleur, flexShrink: 0 }} aria-hidden />
-            <span style={{ fontSize: 11, fontWeight: 700, color: ACT.kleur, textTransform: 'uppercase', letterSpacing: '0.08em' }}>{ACT.label}</span>
-          </span>
+          <ActiviteitBadge activiteit="stemming" />
           <h1 style={{ fontSize: 24, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.03em', margin: 0 }}>
             Dagelijkse stemming
           </h1>
