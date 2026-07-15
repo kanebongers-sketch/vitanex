@@ -57,10 +57,15 @@
   --mentaforce-accent-light:  rgba(0, 229, 255, 0.12);
 
   /* ── Canoniek merk + functioneel statuspalet (V3 — single source of truth) ──
-     Nieuwe code gebruikt UITSLUITEND deze semantische tokens. De oude
-     --mf-*/--mentaforce-*-namen blijven als alias bestaan tot de migratie
+     Nieuwe code gebruikt UITSLUITEND deze semantische tokens. De oude namen
+     (mf- en mentaforce-prefix) blijven als alias bestaan tot de migratie
      compleet is. Merk = cyaan (positief/CTA/focus); status = gedempt en
-     functioneel (nooit decoratief), afgestemd op de donkere navy. */
+     functioneel (nooit decoratief), afgestemd op de donkere navy.
+
+     LET OP: schrijf die prefixen hier NIET als glob met een asterisk gevolgd
+     door een slash — dat sluit dit blok-commentaar voortijdig af en de rest van
+     de regel belandt als losse tekst in de CSS. Kost je een 500 op elke pagina,
+     en geen enkele unit-test ziet het. */
   --brand:        #00E5FF;
   --brand-strong: #16B6CC;
   --brand-soft:   rgba(0, 229, 255, 0.14);
