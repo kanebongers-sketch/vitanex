@@ -289,6 +289,14 @@ function SidebarContent({
           )
         })}
 
+        {/* LifeOS — Kane's persoonlijke Life OS. Founder-only; de echte gate zit
+            server-side (elke /api/lifeos-route 403't een niet-founder). */}
+        {userRol === 'admin' && (
+          <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--border)' }}>
+            <NavLink href="/lifeos" label="LifeOS" icon={LayoutDashboard} pathname={pathname} onClick={onClose} />
+          </div>
+        )}
+
         {/* HR sectie — conditioneel */}
         {isHrOrAdmin && (
           <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--border)' }}>
