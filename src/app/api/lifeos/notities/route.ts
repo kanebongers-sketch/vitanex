@@ -1,9 +1,10 @@
 // GET  /api/lifeos/notities?soort=brain_dump&datum=YYYY-MM-DD — je notities van een dag
+//   optioneel: &zoek=<tekst> &tag=<tag> &categorie=<categorie>
 // POST /api/lifeos/notities                                    — nieuwe notitie
 //
-// Vervangt Apple Notes / Google Keep. Niet door Notes na te bouwen — door de
-// wrijving weg te halen: één tik, idee uit je hoofd. Geen categorieën, geen
-// tags, geen mappen. Dat is precies de wrijving waardoor mensen het niet doen.
+// Vervangt Apple Notes / Google Keep. De CAPTURE blijft één tik, zonder wrijving:
+// tags en categorie zijn optioneel en post-hoc (je hoeft niets in te delen om
+// iets kwijt te kunnen). Zoeken/filteren is de andere kant: terugvinden.
 //
 // LifeOS binnen MentaForce: de founder-gate + de vaste LIFEOS_USER_ID komen uit
 // `vereisLifeosToegang`. De DB-laag krijgt de service-role-client van de gate
@@ -11,8 +12,9 @@
 
 import { NextResponse, type NextRequest } from 'next/server'
 import { vereisLifeosToegang } from '@/lib/lifeos/admin'
-import { isSoort, leesNieuweNotitie } from '@/lib/lifeos/notities/notities'
-import { haalNotities, maakNotitie, type Reden } from '@/lib/lifeos/notities/opslag'
+import { isNotitieCategorie, isSoort, leesNieuweNotitie } from '@/lib/lifeos/notities/notities'
+import { haalNotities, maakNotitie, type NotitiesFilter, type Reden } from '@/lib/lifeos/notities/opslag'
+import { normaliseerTag } from '@/lib/lifeos/notities/tags'
 import { leesDatumSleutel } from '@/lib/lifeos/datum/datum'
 
 // Geen max-age: je notities veranderen terwijl je kijkt. Een brain dump die na
@@ -58,10 +60,25 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ fout: 'Ongeldige datum; gebruik YYYY-MM-DD.' }, { status: 400 })
   }
 
-  const uitkomst = await haalNotities(toegang.admin, toegang.userId, {
-    soort,
-    ...(datum !== null ? { datum } : {}),
-  })
+  const filter: NotitiesFilter = { soort }
+  if (datum !== null) filter.datum = datum
+
+  const zoek = params.get('zoek')?.trim()
+  if (zoek) filter.zoek = zoek
+
+  // Tag genormaliseerd, zodat "?tag=Werk" ook de opgeslagen 'werk' raakt.
+  const tag = normaliseerTag(params.get('tag'))
+  if (tag !== null) filter.tag = tag
+
+  const categorie = params.get('categorie')
+  if (categorie !== null) {
+    if (!isNotitieCategorie(categorie)) {
+      return NextResponse.json({ fout: 'Onbekende categorie.' }, { status: 400 })
+    }
+    filter.categorie = categorie
+  }
+
+  const uitkomst = await haalNotities(toegang.admin, toegang.userId, filter)
 
   if (!uitkomst.ok) return foutAntwoord(uitkomst.reden)
 

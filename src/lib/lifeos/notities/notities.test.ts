@@ -138,6 +138,9 @@ describe('notitieVanRij', () => {
       tekst: 'Bellen met de boekhouder',
       soort: 'brain_dump',
       datum: '2026-07-16',
+      // Een rij zonder tags/categorie levert de lege norm: geen labels, niet ingedeeld.
+      tags: [],
+      categorie: null,
       aangemaaktOp: '2026-07-16T09:00:00.000Z',
       bijgewerktOp: '2026-07-16T09:00:00.000Z',
     })

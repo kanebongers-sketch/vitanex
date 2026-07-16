@@ -4,11 +4,28 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { CalendarPlus } from 'lucide-react'
 import { Kaart, NogNiets } from '@/components/lifeos/os/Kaart'
 import { haalJson, leesNiets } from '@/lib/lifeos/api/http'
-import { leesAgendaVandaag, vanAfspraakJson, type AgendaVandaag } from '@/lib/lifeos/agenda/agenda'
-import { looptNu } from '@/lib/lifeos/agenda/vrije-blokken'
+import {
+  leesAgendaVandaag,
+  naarAfspraakJson,
+  naarVrijBlokJson,
+  vanAfspraakJson,
+  type AfspraakJson,
+  type AgendaVandaag,
+} from '@/lib/lifeos/agenda/agenda'
+import {
+  eerstvolgendeAfspraak,
+  looptNu,
+  vrijeBlokken,
+  werkVenster,
+} from '@/lib/lifeos/agenda/vrije-blokken'
+import { datumSleutel, leesDatumSleutel } from '@/lib/lifeos/datum/datum'
 import { Dagoverzicht } from './Dagoverzicht'
+import { NieuweAfspraak, type NieuwEventInvoer } from './NieuweAfspraak'
 import { Foutmelding } from '@/components/lifeos/os/Foutmelding'
 import { Knop } from '@/components/lifeos/os/Knop'
+
+/** Alleen de gekoppelde variant; die draagt de events waarop we optimistisch rekenen. */
+type GekoppeldeDag = Extract<AgendaVandaag, { gekoppeld: true }>
 
 // Container: haalt op, kent de staten, plaatst de presentatie. Vervangt het
 // openen van Google Calendar "om even te kijken".
@@ -33,6 +50,9 @@ function leesKoppelUrl(ruw: unknown): { url: string } | null {
 export function AgendaKaart() {
   const [staat, setStaat] = useState<Staat>({ fase: 'laden' })
   const [koppelFout, setKoppelFout] = useState<string | null>(null)
+  // Fout van een schrijf-actie (afspraak toevoegen). Los van de laad-fout: een
+  // mislukte toevoeging mag het geladen overzicht niet wegvegen.
+  const [actieFout, setActieFout] = useState<string | null>(null)
 
   // De eerste sync: gestart-vlag in een ref (mag geen render veroorzaken),
   // afgerond-vlag in state (bepaalt wél wat we tonen).
@@ -50,12 +70,12 @@ export function AgendaKaart() {
   // op, zodat een vlucht die nog in de lucht is bij unmount niets meer zet.
   const generatie = useRef(0)
 
-  const laad = useCallback((): Promise<void> => {
+  const laad = useCallback((init?: RequestInit): Promise<void> => {
     const mijn = ++generatie.current
     // setState staat in de .then-callback, niet in de effect-body: dat is de
     // vorm die React bedoelt ("setState in een callback zodra een extern
     // systeem iets teruggeeft") en die geen cascaderende render veroorzaakt.
-    return haalJson('/api/lifeos/agenda/vandaag', leesAgendaVandaag).then((uitkomst) => {
+    return haalJson('/api/lifeos/agenda/vandaag', leesAgendaVandaag, init).then((uitkomst) => {
       if (mijn !== generatie.current) return // ingehaald of ontkoppeld
       setStaat(
         uitkomst.ok
@@ -116,6 +136,52 @@ export function AgendaKaart() {
     window.location.assign(uitkomst.waarde.url)
   }, [])
 
+  /**
+   * Voegt een afspraak toe: optimistisch, met rollback én een zichtbare fout.
+   *
+   * De optimistische stap herberekent `volgende` en de vrije blokken met dezelfde
+   * pure functies als de server — geen nagemaakte logica, dus het beeld klopt
+   * meteen. Lukt de POST, dan halen we de dag opnieuw op (`no-store`, want
+   * /vandaag cachet 60s en zou de verse afspraak kunnen missen) zodat de echte
+   * server-id en herberekening de tijdelijke vervangen. Mislukt het, dan draaien
+   * we terug naar de snapshot ÉN zeggen we het — nooit stil.
+   */
+  const voegToe = useCallback(
+    async (invoer: NieuwEventInvoer): Promise<{ ok: true } | { ok: false; fout: string }> => {
+      if (staat.fase !== 'ok' || !staat.data.gekoppeld) {
+        return { ok: false, fout: 'Je agenda is niet gekoppeld.' }
+      }
+
+      const terug = staat.data // snapshot voor de rollback
+      const tijdelijk: AfspraakJson = {
+        id: crypto.randomUUID(),
+        titel: invoer.titel,
+        startOp: invoer.startOp,
+        eindOp: invoer.eindOp,
+        heleDag: false,
+        locatie: invoer.locatie ?? null,
+      }
+
+      setActieFout(null)
+      setStaat({ fase: 'ok', data: metNieuweAfspraak(terug, tijdelijk) })
+
+      const uitkomst = await haalJson('/api/lifeos/agenda/events', leesNiets, {
+        method: 'POST',
+        body: JSON.stringify(invoer),
+      })
+
+      if (!uitkomst.ok) {
+        setStaat({ fase: 'ok', data: terug })
+        setActieFout(`${uitkomst.fout} De afspraak is niet aangemaakt.`)
+        return { ok: false, fout: uitkomst.fout }
+      }
+
+      await laad({ cache: 'no-store' })
+      return { ok: true }
+    },
+    [staat, laad],
+  )
+
   return (
     <Kaart titel="Je dag" vervangt="Calendar">
       {staat.fase === 'laden' ? <Skelet /> : null}
@@ -126,7 +192,7 @@ export function AgendaKaart() {
         <div style={{ display: 'grid', gap: 14, justifyItems: 'start' }}>
           <NogNiets
             wat="Agenda niet gekoppeld"
-            waarom="Koppel je Google-agenda: je eerstvolgende afspraak en de vrije blokken waar training of deep work in past. LifeOS leest alleen — schrijven doet het nooit."
+            waarom="Koppel je Google-agenda: je eerstvolgende afspraak, de vrije blokken waar training of deep work in past, en afspraken toevoegen zonder Google te openen."
           />
           <Knop variant="primair" onClick={() => void koppel()}>
             <CalendarPlus size={14} strokeWidth={2.2} aria-hidden="true" />
@@ -144,18 +210,51 @@ export function AgendaKaart() {
           // dan is je week gewoon leeg — dat mag hij dan zeggen.
           <Skelet />
         ) : (
-          <Dagoverzicht
-            volgende={staat.data.volgende}
-            loopt={
-              staat.data.volgende !== null &&
-              looptNu(vanAfspraakJson(staat.data.volgende), new Date())
-            }
-            vrijeBlokken={staat.data.vrijeBlokken}
-          />
+          <div style={{ display: 'grid', gap: 16 }}>
+            <Dagoverzicht
+              volgende={staat.data.volgende}
+              loopt={
+                staat.data.volgende !== null &&
+                looptNu(vanAfspraakJson(staat.data.volgende), new Date())
+              }
+              vrijeBlokken={staat.data.vrijeBlokken}
+            />
+            <NieuweAfspraak onToevoegen={voegToe} />
+            {actieFout ? <Foutmelding bericht={actieFout} /> : null}
+          </div>
         )
       ) : null}
     </Kaart>
   )
+}
+
+/**
+ * De dag mét een zojuist toegevoegde afspraak — optimistisch, maar met de échte
+ * pure functies, niet met een nagemaakte berekening.
+ *
+ * Valt de afspraak op een andere dag dan we tonen, dan raakt hij dit overzicht
+ * niet: we laten het onveranderd (de reload haalt 'm op zodra je naar die dag
+ * kijkt). Anders voegen we 'm toe en herberekenen we `volgende` en de vrije
+ * blokken precies zoals de server dat zou doen.
+ */
+function metNieuweAfspraak(data: GekoppeldeDag, nieuw: AfspraakJson): GekoppeldeDag {
+  const dag = leesDatumSleutel(data.dag)
+  if (!dag || datumSleutel(new Date(nieuw.startOp)) !== data.dag) return data
+
+  const events = [...data.events, nieuw].sort((a, b) => a.startOp.localeCompare(b.startOp))
+  const afspraken = events.map(vanAfspraakJson)
+  const nu = new Date()
+  const isVandaag = data.dag === datumSleutel(nu)
+  const volgende = eerstvolgendeAfspraak(afspraken, nu)
+
+  return {
+    ...data,
+    events,
+    volgende: volgende ? naarAfspraakJson(volgende) : null,
+    vrijeBlokken: vrijeBlokken(afspraken, werkVenster(dag), isVandaag ? { nu } : {}).map(
+      naarVrijBlokJson,
+    ),
+  }
 }
 
 /** Rustige placeholder in navy. Geen spinner-spektakel. */

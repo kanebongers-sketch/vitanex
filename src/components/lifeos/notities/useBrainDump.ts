@@ -6,8 +6,20 @@ import { datumSleutel } from '@/lib/lifeos/datum/datum'
 import {
   leesNotitieAntwoord,
   leesNotitiesAntwoord,
+  type NotitieCategorie,
   type Notitie,
 } from '@/lib/lifeos/notities/notities'
+import { voegTagToe, verwijderTag } from '@/lib/lifeos/notities/tags'
+
+/** Antwoord van /api/lifeos/notities/categoriseer. */
+interface CategorieAntwoord {
+  categorie: NotitieCategorie | 'onbekend'
+}
+function leesCategorieAntwoord(ruw: unknown): CategorieAntwoord | null {
+  if (typeof ruw !== 'object' || ruw === null) return null
+  const c = (ruw as { categorie?: unknown }).categorie
+  return typeof c === 'string' ? { categorie: c as NotitieCategorie | 'onbekend' } : null
+}
 
 // Alle data-logica van de brain dump. `BrainDumpKaart` tekent alleen nog.
 //
@@ -35,12 +47,22 @@ export interface BrainDump {
   voegToe: () => void
   haalWeg: (notitie: Notitie) => void
   opnieuw: () => void
+  /** Zoektekst. Leeg = de notities van vandaag; gevuld = zoeken over alle dagen. */
+  zoek: string
+  zetZoek: (waarde: string) => void
+  /** Voegt een tag toe of haalt 'm weg (optimistisch, met rollback). */
+  wijzigTag: (notitie: Notitie, tag: string, actie: 'toevoegen' | 'weghalen') => void
+  /** Vraagt de AI om een categorie en past die toe. */
+  categoriseer: (notitie: Notitie) => void
+  bezigMetCategorie: string | null
 }
 
 export function useBrainDump(): BrainDump {
   const [staat, setStaat] = useState<BrainDumpStaat>({ fase: 'laden' })
   const [actieFout, setActieFout] = useState<string | null>(null)
   const [tekst, setTekst] = useState('')
+  const [zoek, setZoek] = useState('')
+  const [bezigMetCategorie, setBezigMetCategorie] = useState<string | null>(null)
 
   // De dag in een ref, niet in state: hij stuurt geen render aan, hij bepaalt
   // alleen wát we ophalen. En hij wordt pas ná mount bepaald — `new Date()`
@@ -57,12 +79,18 @@ export function useBrainDump(): BrainDump {
   // vlucht die bij unmount nog loopt niets meer zet. Zie Top3Kaart.
   const generatie = useRef(0)
 
-  const laad = useCallback((voorDag: string): Promise<void> => {
+  // Bouwt de query: is er een zoekterm, dan zoeken we over ALLE dagen (een idee
+  // van vorige week is dan net zo goed vindbaar); anders de notities van vandaag.
+  const bouwQuery = useCallback((zoekterm: string): string => {
+    const term = zoekterm.trim()
+    if (term.length > 0) return `soort=brain_dump&zoek=${encodeURIComponent(term)}`
+    const dag = dagRef.current ?? datumSleutel(new Date())
+    return `soort=brain_dump&datum=${encodeURIComponent(dag)}`
+  }, [])
+
+  const laad = useCallback((query: string): Promise<void> => {
     const mijn = ++generatie.current
-    return haalJson(
-      `/api/lifeos/notities?soort=brain_dump&datum=${encodeURIComponent(voorDag)}`,
-      leesNotitiesAntwoord,
-    ).then((uitkomst) => {
+    return haalJson(`/api/lifeos/notities?${query}`, leesNotitiesAntwoord).then((uitkomst) => {
       if (mijn !== generatie.current) return // ingehaald of ontkoppeld
       setStaat(
         uitkomst.ok
@@ -78,18 +106,28 @@ export function useBrainDump(): BrainDump {
   }, [])
 
   useEffect(() => {
-    const dag = datumSleutel(new Date())
-    dagRef.current = dag
-    void laad(dag)
+    dagRef.current = datumSleutel(new Date())
+    void laad(bouwQuery(''))
     return verval
-  }, [laad, verval])
+  }, [laad, bouwQuery, verval])
+
+  // Zoeken, gedebounced: pas 300ms ná je laatste toetsaanslag laden we opnieuw,
+  // zodat elke letter geen aparte query afvuurt. De generatieteller in `laad`
+  // vangt af dat een trage oudere zoekopdracht een verse inhaalt.
+  const eersteZoek = useRef(true)
+  useEffect(() => {
+    if (eersteZoek.current) {
+      eersteZoek.current = false
+      return // de mount-effect deed de eerste lading al
+    }
+    const id = setTimeout(() => void laad(bouwQuery(zoek)), 300)
+    return () => clearTimeout(id)
+  }, [zoek, laad, bouwQuery])
 
   const opnieuw = useCallback(() => {
-    const dag = dagRef.current
-    if (!dag) return
     setStaat({ fase: 'laden' })
-    void laad(dag)
-  }, [laad])
+    void laad(bouwQuery(zoek))
+  }, [laad, bouwQuery, zoek])
 
   const zetTekst = useCallback((waarde: string) => {
     setTekst(waarde)
@@ -121,6 +159,10 @@ export function useBrainDump(): BrainDump {
           tekst: nieuweTekst,
           soort: 'brain_dump',
           datum: dag,
+          // Een nieuwe notitie start zonder tags en zonder categorie — die
+          // komen pas als je ze toevoegt of de AI-categorie bevestigt.
+          tags: [],
+          categorie: null,
           aangemaaktOp: nu,
           bijgewerktOp: nu,
         },
@@ -191,5 +233,95 @@ export function useBrainDump(): BrainDump {
     [staat],
   )
 
-  return { staat, actieFout, tekst, zetTekst, voegToe, haalWeg, opnieuw }
+  // Vervangt één notitie in de lijst (voor optimistische tag/categorie-updates).
+  const vervangNotitie = useCallback((vervangen: Notitie) => {
+    setStaat((huidig) =>
+      huidig.fase === 'ok'
+        ? { fase: 'ok', notities: huidig.notities.map((n) => (n.id === vervangen.id ? vervangen : n)) }
+        : huidig,
+    )
+  }, [])
+
+  const wijzigTag = useCallback(
+    (notitie: Notitie, tag: string, actie: 'toevoegen' | 'weghalen') => {
+      if (staat.fase !== 'ok' || isOnbevestigd(notitie)) return
+
+      const nieuweTags =
+        actie === 'toevoegen' ? voegTagToe(notitie.tags, tag) : verwijderTag(notitie.tags, tag)
+      // Niets veranderd (dubbele tag, of tag bestond niet)? Geen zinloze PATCH.
+      if (nieuweTags.length === notitie.tags.length && nieuweTags.every((t, i) => t === notitie.tags[i])) {
+        return
+      }
+
+      setActieFout(null)
+      vervangNotitie({ ...notitie, tags: nieuweTags })
+
+      void haalJson(`/api/lifeos/notities/${notitie.id}`, leesNotitieAntwoord, {
+        method: 'PATCH',
+        body: JSON.stringify({ tags: nieuweTags }),
+      }).then((uitkomst) => {
+        if (uitkomst.ok) {
+          vervangNotitie(uitkomst.waarde) // de server is de waarheid
+        } else {
+          vervangNotitie(notitie) // terugdraaien
+          setActieFout(`${uitkomst.fout} De tag is niet opgeslagen.`)
+        }
+      })
+    },
+    [staat, vervangNotitie],
+  )
+
+  const categoriseer = useCallback(
+    (notitie: Notitie) => {
+      if (staat.fase !== 'ok' || isOnbevestigd(notitie)) return
+
+      setActieFout(null)
+      setBezigMetCategorie(notitie.id)
+
+      void haalJson('/api/lifeos/notities/categoriseer', leesCategorieAntwoord, {
+        method: 'POST',
+        body: JSON.stringify({ tekst: notitie.tekst }),
+      }).then((uitkomst) => {
+        setBezigMetCategorie(null)
+        if (!uitkomst.ok) {
+          setActieFout(`${uitkomst.fout}`)
+          return
+        }
+        const suggestie = uitkomst.waarde.categorie
+        if (suggestie === 'onbekend') {
+          // Geen verwijt en geen gok: het model wist het niet. Zeg dat gewoon.
+          setActieFout('De AI kon geen categorie kiezen voor deze notitie.')
+          return
+        }
+        // Wél een suggestie: pas 'm toe (optimistisch, met rollback).
+        vervangNotitie({ ...notitie, categorie: suggestie })
+        void haalJson(`/api/lifeos/notities/${notitie.id}`, leesNotitieAntwoord, {
+          method: 'PATCH',
+          body: JSON.stringify({ categorie: suggestie }),
+        }).then((res) => {
+          if (res.ok) vervangNotitie(res.waarde)
+          else {
+            vervangNotitie(notitie)
+            setActieFout(`${res.fout} De categorie is niet opgeslagen.`)
+          }
+        })
+      })
+    },
+    [staat, vervangNotitie],
+  )
+
+  return {
+    staat,
+    actieFout,
+    tekst,
+    zetTekst,
+    voegToe,
+    haalWeg,
+    opnieuw,
+    zoek,
+    zetZoek: setZoek,
+    wijzigTag,
+    categoriseer,
+    bezigMetCategorie,
+  }
 }

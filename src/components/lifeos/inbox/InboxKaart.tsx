@@ -6,8 +6,10 @@ import { Kaart, NogNiets } from '@/components/lifeos/os/Kaart'
 import { Foutmelding } from '@/components/lifeos/os/Foutmelding'
 import { Knop } from '@/components/lifeos/os/Knop'
 import { haalJson } from '@/lib/lifeos/api/http'
-import { leesInboxVandaag, type InboxVandaag } from '@/lib/lifeos/inbox/inbox'
+import { leesInboxVandaag, type InboxVandaag, type TriageMailJson } from '@/lib/lifeos/inbox/inbox'
 import { Triagelijst } from './Triagelijst'
+import { useSuggesties } from './useSuggesties'
+import { maakActie } from './acties'
 
 // Container: haalt op, kent de staten, plaatst de presentatie. Voor het
 // Avond-moment. Vervangt "even Gmail openen om te kijken of er nog iets ligt".
@@ -33,6 +35,13 @@ function leesKoppelUrl(ruw: unknown): { url: string } | null {
   const url = (ruw as { url?: unknown }).url
   return typeof url === 'string' && url.length > 0 ? { url } : null
 }
+
+/**
+ * Stabiele lege lijst voor de suggestie-hook zolang er geen triage is. Eén vaste
+ * referentie, zodat een render buiten de gekoppelde staat de hook niet elke keer
+ * opnieuw laat vuren.
+ */
+const GEEN_MAILS: readonly TriageMailJson[] = []
 
 export function InboxKaart() {
   const [staat, setStaat] = useState<Staat>({ fase: 'laden' })
@@ -89,6 +98,14 @@ export function InboxKaart() {
     window.location.assign(uitkomst.waarde.url)
   }, [])
 
+  // De mails die de triage al ophaalde. Buiten de gekoppelde staat een stabiele
+  // lege lijst, zodat de analyse pas vuurt als er ook echt post is. De referentie
+  // van `vraagtActie` blijft tussen renders staan (het zit in `staat`), dus de
+  // hook vuurt alleen opnieuw bij een verse laadbeurt — precies wat we willen.
+  const mails: readonly TriageMailJson[] =
+    staat.fase === 'ok' && staat.data.gekoppeld ? staat.data.vraagtActie : GEEN_MAILS
+  const { status: analyseStatus, suggestieVoor } = useSuggesties(mails)
+
   return (
     <Kaart titel="Je inbox" vervangt="Gmail">
       {staat.fase === 'laden' ? <Skelet /> : null}
@@ -114,6 +131,9 @@ export function InboxKaart() {
           mails={staat.data.vraagtActie}
           gescand={staat.data.gescand}
           nietGelezen={staat.data.nietGelezen}
+          suggestieVoor={suggestieVoor}
+          analyseStatus={analyseStatus}
+          onMaak={maakActie}
         />
       ) : null}
     </Kaart>

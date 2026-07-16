@@ -1,7 +1,7 @@
 'use client'
 
 import type { FormEvent } from 'react'
-import { Plus } from 'lucide-react'
+import { Plus, Search } from 'lucide-react'
 import { Kaart, NogNiets } from '@/components/lifeos/os/Kaart'
 import { Foutmelding } from '@/components/lifeos/os/Foutmelding'
 import { Knop } from '@/components/lifeos/os/Knop'
@@ -11,16 +11,24 @@ import { isOnbevestigd, useBrainDump } from './useBrainDump'
 
 // De brain dump. Vervangt Apple Notes / Google Keep openen.
 //
-// Het punt van deze kaart: één tik, idee weg uit je hoofd. Sorteren komt later.
-// Geen categorieën, geen tags, geen mappen — dat is precies de wrijving waardoor
-// mensen hun hoofd niet leegmaken. Als je hier ooit een dropdown aan toevoegt,
-// heb je de functie gesloopt.
+// De CAPTURE blijft één tik, zonder wrijving: het invoerveld hieronder heeft
+// geen categorie-dropdown, geen verplichte tags. Dát is de functie — je hoeft
+// niets in te delen om iets kwijt te kunnen.
 //
-// Alle data-logica (laden, optimistisch toevoegen, rollback) zit in
-// `useBrainDump`. Dit component tekent alleen.
+// Tags, categorie en zoeken zijn POST-HOC: ze leven op de bestaande notities
+// (zie BrainDumpRij) en op de zoekbalk, niet op de capture. Zo kun je terugvinden
+// zonder dat het leegmaken zwaarder wordt.
+//
+// Alle data-logica (laden, zoeken, optimistisch toevoegen, tags, rollback) zit
+// in `useBrainDump`. Dit component tekent alleen.
 
 export function BrainDumpKaart() {
-  const { staat, actieFout, tekst, zetTekst, voegToe, haalWeg, opnieuw } = useBrainDump()
+  const {
+    staat, actieFout, tekst, zetTekst, voegToe, haalWeg, opnieuw,
+    zoek, zetZoek, wijzigTag, categoriseer, bezigMetCategorie,
+  } = useBrainDump()
+
+  const aanHetZoeken = zoek.trim().length > 0
 
   // Enter = opslaan: dat is wat een form standaard doet met één tekstveld. Geen
   // eigen keydown-handler ernaast — die zou de submit-knop en het toetsenbord uit
@@ -55,14 +63,40 @@ export function BrainDumpKaart() {
           </Knop>
         </form>
 
+        {/* Zoeken: los van de capture. Gevuld → over alle dagen; leeg → vandaag. */}
+        <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+          <Search
+            size={14}
+            strokeWidth={2.2}
+            aria-hidden="true"
+            style={{ position: 'absolute', left: 12, color: 'var(--text-4)' }}
+          />
+          <label htmlFor="brain-dump-zoek" style={VERBORGEN}>
+            Zoek in je notities
+          </label>
+          <input
+            id="brain-dump-zoek"
+            type="search"
+            value={zoek}
+            onChange={(e) => zetZoek(e.target.value)}
+            placeholder="Zoek in al je notities…"
+            autoComplete="off"
+            style={{ ...INVOER, paddingLeft: 34 }}
+          />
+        </div>
+
         {staat.fase === 'laden' ? <Skelet /> : null}
 
         {staat.fase === 'fout' ? <Foutmelding bericht={staat.bericht} opnieuw={opnieuw} /> : null}
 
-        {/* Leeg is een dag, geen storing — en dus nadrukkelijk niet dezelfde
-            component als de foutmelding hierboven. */}
+        {/* Leeg heeft twee betekenissen: geen zoekresultaat, of een lege dag.
+            Allebei geen storing — en dus niet dezelfde component als de fout. */}
         {staat.fase === 'ok' && staat.notities.length === 0 ? (
-          <NogNiets wat="Niets in je hoofd vandaag" waarom="Of je hebt het al opgeschreven." />
+          aanHetZoeken ? (
+            <NogNiets wat="Niets gevonden" waarom={`Geen notitie met "${zoek.trim()}".`} />
+          ) : (
+            <NogNiets wat="Niets in je hoofd vandaag" waarom="Of je hebt het al opgeschreven." />
+          )
         ) : null}
 
         {staat.fase === 'ok' && staat.notities.length > 0 ? (
@@ -72,7 +106,11 @@ export function BrainDumpKaart() {
                 key={notitie.id}
                 notitie={notitie}
                 onbevestigd={isOnbevestigd(notitie)}
+                metDatum={aanHetZoeken}
+                bezigMetCategorie={bezigMetCategorie === notitie.id}
                 onWeg={haalWeg}
+                onTag={wijzigTag}
+                onCategoriseer={categoriseer}
               />
             ))}
           </ul>

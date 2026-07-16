@@ -12,6 +12,7 @@
 // Eén type voor beide soorten — zie de onderbouwing bovenin migratie 050.
 
 import { leesDatumSleutel } from '@/lib/lifeos/datum/datum'
+import { leesTags } from './tags'
 
 export const MAX_TEKST_LENGTE = 10_000
 
@@ -25,6 +26,38 @@ export type Soort = 'brain_dump' | 'journal'
 
 export const SOORTEN: readonly Soort[] = Object.freeze(['brain_dump', 'journal'])
 
+/**
+ * De zes categorieën waarin een notitie kan vallen (migratie 090). Bewust géén
+ * 'onbekend': dat is de AI-uitkomst "ik weet het niet", en die slaan we op als
+ * `null` — één manier om "geen categorie" te zeggen. Zie `CategorieSuggestie`
+ * voor de AI-kant, waar 'onbekend' wél bestaat.
+ */
+export const NOTITIE_CATEGORIEEN = [
+  'Werk',
+  'Ideeën',
+  'Persoonlijk',
+  'Projecten',
+  'Training',
+  'Klanten',
+] as const
+
+export type NotitieCategorie = (typeof NOTITIE_CATEGORIEEN)[number]
+
+export function isNotitieCategorie(v: unknown): v is NotitieCategorie {
+  return typeof v === 'string' && (NOTITIE_CATEGORIEEN as readonly string[]).includes(v)
+}
+
+/**
+ * Wat de AI voorstelt: een echte categorie, óf 'onbekend' als het model niets
+ * durfde te kiezen. 'onbekend' is nooit een opgeslagen waarde — de UI vertaalt
+ * het naar "geen suggestie". Verzint niets.
+ */
+export type CategorieSuggestie = NotitieCategorie | 'onbekend'
+
+export function isCategorieSuggestie(v: unknown): v is CategorieSuggestie {
+  return v === 'onbekend' || isNotitieCategorie(v)
+}
+
 /** Een notitie, zoals hij uit de database komt én over de draad gaat. */
 export interface Notitie {
   id: string
@@ -32,8 +65,18 @@ export interface Notitie {
   soort: Soort
   /** Dagsleutel (YYYY-MM-DD). Nooit null: een idee zonder dag ben je kwijt. */
   datum: string
+  /** Genormaliseerde labels (lowercase, dedup). Leeg is de norm, niet fout. */
+  tags: string[]
+  /** Eén van de zes categorieën, of null = nog niet ingedeeld. */
+  categorie: NotitieCategorie | null
   aangemaaktOp: string
   bijgewerktOp: string
+}
+
+/** Alleen de meegestuurde velden worden gewijzigd — zie `leesNotitieWijziging`. */
+export interface NotitieWijziging {
+  tags?: string[]
+  categorie?: NotitieCategorie | null
 }
 
 export interface NieuweNotitie {
@@ -101,6 +144,38 @@ export function leesNieuweNotitie(body: unknown): Validatie<NieuweNotitie> {
   return { ok: true, waarde: { tekst: tekst.waarde, soort: soort.waarde, datum: datum.waarde } }
 }
 
+/**
+ * Een wijziging (PATCH) uit een request-body. Alleen `tags` en/of `categorie`;
+ * beide optioneel, want een PATCH mag één van de twee raken. Tags worden
+ * genormaliseerd (leesTags); categorie moet geldig zijn of expliciet null.
+ * Minstens één van beide moet aanwezig zijn — een lege wijziging is een fout.
+ */
+export function leesNotitieWijziging(body: unknown): Validatie<NotitieWijziging> {
+  if (!isObject(body)) return { ok: false, fout: 'Ongeldige invoer.' }
+
+  const wijziging: NotitieWijziging = {}
+
+  if ('tags' in body) {
+    if (!Array.isArray(body.tags)) return { ok: false, fout: 'Tags moeten een lijst zijn.' }
+    wijziging.tags = leesTags(body.tags)
+  }
+
+  if ('categorie' in body) {
+    if (body.categorie === null) {
+      wijziging.categorie = null
+    } else if (isNotitieCategorie(body.categorie)) {
+      wijziging.categorie = body.categorie
+    } else {
+      return { ok: false, fout: 'Onbekende categorie.' }
+    }
+  }
+
+  if (wijziging.tags === undefined && wijziging.categorie === undefined) {
+    return { ok: false, fout: 'Niets om te wijzigen.' }
+  }
+  return { ok: true, waarde: wijziging }
+}
+
 // ─── Systeemgrens: rijen uit de database ────────────────────────────────────
 
 function tekstOfNull(v: unknown): string | null {
@@ -129,7 +204,16 @@ export function notitieVanRij(rij: unknown): Notitie | null {
   if (aangemaaktOp === null || bijgewerktOp === null) return null
   if (!isSoort(rij.soort)) return null
 
-  return { id, tekst, soort: rij.soort, datum, aangemaaktOp, bijgewerktOp }
+  return {
+    id,
+    tekst,
+    soort: rij.soort,
+    datum,
+    tags: leesTags(rij.tags),
+    categorie: isNotitieCategorie(rij.categorie) ? rij.categorie : null,
+    aangemaaktOp,
+    bijgewerktOp,
+  }
 }
 
 export function notitiesVanRijen(rijen: readonly unknown[]): Notitie[] {
@@ -153,11 +237,20 @@ export function leesNotitieJson(ruw: unknown): Notitie | null {
   if (aangemaaktOp === null || bijgewerktOp === null) return null
   if (!isSoort(ruw.soort)) return null
 
-  return { id, tekst, soort: ruw.soort, datum, aangemaaktOp, bijgewerktOp }
+  return {
+    id,
+    tekst,
+    soort: ruw.soort,
+    datum,
+    tags: leesTags(ruw.tags),
+    categorie: isNotitieCategorie(ruw.categorie) ? ruw.categorie : null,
+    aangemaaktOp,
+    bijgewerktOp,
+  }
 }
 
 /**
- * Het antwoord van `GET /api/notities`.
+ * Het antwoord van `GET /api/lifeos/notities`.
  *
  * Eén kapotte notitie maakt het hele antwoord ongeldig i.p.v. stil te
  * verdwijnen: een brain dump waar zomaar een idee uit weggelaten wordt, is
@@ -171,7 +264,7 @@ export function leesNotitiesAntwoord(ruw: unknown): Notitie[] | null {
   return notities.filter((n): n is Notitie => n !== null)
 }
 
-/** Het antwoord van `POST /api/notities`. */
+/** Het antwoord van `POST /api/lifeos/notities`. */
 export function leesNotitieAntwoord(ruw: unknown): Notitie | null {
   if (!isObject(ruw)) return null
   return leesNotitieJson(ruw.notitie)

@@ -1,10 +1,11 @@
-// ─── LifeOS — Google Calendar (alleen lezen) ────────────────────────────────
+// ─── LifeOS — Google Calendar (lezen + schrijven) ───────────────────────────
 // SERVER-ONLY. Hier staan client_secret en tokens; dit bestand mag nooit in een
 // client-component belanden.
 //
-// Geen `googleapis`-dependency: die sleept een halve SDK mee voor drie
-// HTTP-calls. De REST-API is drie fetches, en de README is expliciet over
-// minimale deps.
+// Geen `googleapis`-dependency: die sleept een halve SDK mee voor een handvol
+// HTTP-calls. De REST-API is een paar fetches, en de README is expliciet over
+// minimale deps. Het lezen staat hier; het schrijven (maken/wijzigen/verwijderen)
+// staat in `schrijven.ts`, dat deze scope en de tokenvernieuwing hergebruikt.
 //
 // Geverifieerd tegen de officiële docs (juli 2026):
 // - OAuth-endpoints + parameters:
@@ -13,10 +14,15 @@
 //   https://developers.google.com/calendar/api/v3/reference/events/list
 //   https://developers.google.com/calendar/api/v3/reference/events
 //
-// ALLEEN LEZEN. LifeOS schrijft niet in je agenda, dus we vragen ook geen
-// write-scope aan. `calendar.events.readonly` is de smalste scope die
-// events.list accepteert — `calendar.readonly` zou er ook je kalenderlijst en
-// instellingen bij geven, en die hebben we niet nodig.
+// LEZEN + SCHRIJVEN. LifeOS maakt, wijzigt en verwijdert afspraken (functie 1),
+// dus vragen we `calendar.events` — de scope die zowel events.list als
+// events.insert/patch/delete dekt. `calendar.readonly` zou je kalenderlijst en
+// instellingen erbij geven én kan niet schrijven; `calendar` (volledig beheer
+// van álle agenda's) is juist te breed. `calendar.events` is precies genoeg.
+//
+// ⚠️  Deze scope is BREDER dan de vorige (`calendar.events.readonly`). Google
+// verhoogt toestemming niet vanzelf: wie eerder read-only koppelde, moet één
+// keer opnieuw koppelen voordat schrijven werkt.
 
 import { leesDatumSleutel } from '@/lib/lifeos/datum/datum'
 
@@ -25,7 +31,7 @@ const TOKEN_ENDPOINT = 'https://oauth2.googleapis.com/token'
 const EVENTS_ENDPOINT = 'https://www.googleapis.com/calendar/v3/calendars/primary/events'
 
 export const GOOGLE_BEREIK: readonly string[] = Object.freeze([
-  'https://www.googleapis.com/auth/calendar.events.readonly',
+  'https://www.googleapis.com/auth/calendar.events',
 ])
 
 const FETCH_TIMEOUT_MS = 10_000

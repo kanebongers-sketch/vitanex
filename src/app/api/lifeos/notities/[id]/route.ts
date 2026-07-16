@@ -1,4 +1,5 @@
 // DELETE /api/lifeos/notities/[id] — weg ermee
+// PATCH  /api/lifeos/notities/[id] — tags en/of categorie bijwerken
 //
 // Een brain dump is een buffer, geen archief: dingen weghalen is de normale
 // bediening, niet een randgeval. Daarom heeft dit endpoint geen "weet je het
@@ -7,7 +8,8 @@
 
 import { NextResponse, type NextRequest } from 'next/server'
 import { vereisLifeosToegang } from '@/lib/lifeos/admin'
-import { verwijderNotitie, type Reden } from '@/lib/lifeos/notities/opslag'
+import { leesNotitieWijziging } from '@/lib/lifeos/notities/notities'
+import { verwijderNotitie, wijzigNotitie, type Reden } from '@/lib/lifeos/notities/opslag'
 
 interface Context {
   // Next 16: params is een Promise. Zie node_modules/next/dist/docs →
@@ -34,4 +36,21 @@ export async function DELETE(req: NextRequest, ctx: Context) {
   if (!uitkomst.ok) return foutAntwoord(uitkomst.reden)
 
   return new NextResponse(null, { status: 204 })
+}
+
+export async function PATCH(req: NextRequest, ctx: Context) {
+  const toegang = await vereisLifeosToegang(req)
+  if (toegang instanceof NextResponse) return toegang
+
+  const body: unknown = await req.json().catch(() => null)
+  const wijziging = leesNotitieWijziging(body)
+  if (!wijziging.ok) {
+    return NextResponse.json({ fout: wijziging.fout }, { status: 400 })
+  }
+
+  const { id } = await ctx.params
+  const uitkomst = await wijzigNotitie(toegang.admin, toegang.userId, id, wijziging.waarde)
+  if (!uitkomst.ok) return foutAntwoord(uitkomst.reden)
+
+  return NextResponse.json({ notitie: uitkomst.waarde })
 }

@@ -1,8 +1,9 @@
 // GET /api/lifeos/agenda/koppel — start de Google-koppeling.
 //
-// Alleen lezen: we vragen `calendar.events.readonly` aan, niets meer. LifeOS
-// schrijft nooit in je agenda, dus vraagt het ook geen toestemming om dat te
-// mogen. Zie `@/lib/lifeos/agenda/google`.
+// Lezen én schrijven: we vragen de `calendar.events`-scope aan (zie
+// `GOOGLE_BEREIK` in `@/lib/lifeos/agenda/google`), zodat LifeOS je dag kan
+// tonen én afspraken kan toevoegen/wijzigen/verwijderen. Wie eerder read-only
+// koppelde moet één keer opnieuw koppelen voordat schrijven werkt.
 
 import { NextResponse, type NextRequest } from 'next/server'
 import { vereisLifeosToegang } from '@/lib/lifeos/admin'

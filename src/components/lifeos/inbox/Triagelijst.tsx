@@ -4,9 +4,16 @@ import { useState } from 'react'
 import { ArrowUpRight } from 'lucide-react'
 import { gmailLink, type TriageMailJson } from '@/lib/lifeos/inbox/inbox'
 import { tijdLabel } from '@/lib/lifeos/datum/datum'
+import type { HaalUitkomst } from '@/lib/lifeos/api/http'
+import type { Suggestie } from '@/lib/lifeos/inbox/analyse'
+import { actieVan, type ActieSuggestie } from './suggestie-actie'
+import { SuggestieActie } from './SuggestieActie'
+import type { AnalyseStatus } from './useSuggesties'
 
 // Presentationeel: props erin, UI eruit. Geen fetch, geen klok — de enige state
-// is de hover van een regel.
+// is de hover van een regel. De AI-suggesties komen als kant-en-klare lookup van
+// boven (`suggestieVoor`) en de aanmaak-call als `onMaak`; deze lijst haalt dus
+// nog steeds niets zelf op.
 //
 // Die hover zit in state en niet in CSS omdat inline styles geen `:hover` kennen
 // en `globals.css` niet van deze functie is. Zelfde afweging (en zelfde vorm) als
@@ -15,9 +22,10 @@ import { tijdLabel } from '@/lib/lifeos/datum/datum'
 //
 // DIT IS GEEN MAILCLIENT — en dat zie je aan wat er niet staat.
 // Geen body, geen preview, geen snippet, geen "lees meer". Elke regel is precies
-// genoeg om te herkennen wát er ligt, en één tik om het in Gmail te openen. Wie
-// hier een preview aan toevoegt, is Gmail aan het nabouwen; dat is maanden werk
-// en levert een slechtere Gmail (README §10).
+// genoeg om te herkennen wát er ligt, en één tik om het in Gmail te openen. De
+// suggestie-knop maakt hoogstens een taak of afspraak aan; hij toont nooit
+// mail-inhoud. Wie hier een preview aan toevoegt, is Gmail aan het nabouwen; dat
+// is maanden werk en levert een slechtere Gmail (README §10).
 
 interface TriagelijstProps {
   mails: TriageMailJson[]
@@ -25,9 +33,22 @@ interface TriagelijstProps {
   gescand: number
   /** Mails die er wel zijn maar die we niet konden lezen. Bijna altijd 0. */
   nietGelezen: number
+  /** De AI-suggestie per mail, of null. Kant-en-klaar van de container. */
+  suggestieVoor: (externId: string) => Suggestie | null
+  /** Staat van de suggestie-analyse, zodat een storing eerlijk gemeld wordt. */
+  analyseStatus: AnalyseStatus
+  /** Maakt de taak/afspraak aan. De container is de enige plek met de fetch. */
+  onMaak: (actie: ActieSuggestie) => Promise<HaalUitkomst<true>>
 }
 
-export function Triagelijst({ mails, gescand, nietGelezen }: TriagelijstProps) {
+export function Triagelijst({
+  mails,
+  gescand,
+  nietGelezen,
+  suggestieVoor,
+  analyseStatus,
+  onMaak,
+}: TriagelijstProps) {
   if (gescand === 0 && nietGelezen === 0) {
     // Wél gekeken, niets gevonden. Dat is een antwoord, geen lege staat: er ligt
     // gewoon geen ongelezen post van vandaag.
@@ -71,10 +92,10 @@ export function Triagelijst({ mails, gescand, nietGelezen }: TriagelijstProps) {
         </p>
       </div>
 
-      <ul style={{ display: 'grid', gap: 2, listStyle: 'none', padding: 0, margin: 0 }}>
+      <ul style={{ display: 'grid', gap: 10, listStyle: 'none', padding: 0, margin: 0 }}>
         {mails.map((mail) => (
           <li key={mail.id}>
-            <Regel mail={mail} />
+            <Regel mail={mail} actie={actieVan(suggestieVoor(mail.id))} onMaak={onMaak} />
           </li>
         ))}
       </ul>
@@ -82,8 +103,31 @@ export function Triagelijst({ mails, gescand, nietGelezen }: TriagelijstProps) {
       <div>
         <Noemer gescand={gescand} getoond={mails.length} />
         <Onleesbaar aantal={nietGelezen} />
+        <AnalyseStoring status={analyseStatus} />
       </div>
     </div>
+  )
+}
+
+/**
+ * De halve storing van de suggesties.
+ *
+ * Lukt de AI-analyse niet, dan verschijnt er bij geen enkele mail een knop.
+ * Zwijgen zou dat laten lezen als "geen van deze mails vraagt om een taak" —
+ * terwijl we het niet hebben kunnen bepalen. Dus zeggen we het, rustig: de mails
+ * hierboven werken gewoon, alleen de suggestie ontbreekt. Fout ≠ leeg.
+ * `role="status"`, geen `alert`: het is een mededeling, geen alarm.
+ */
+function AnalyseStoring({ status }: { status: AnalyseStatus }) {
+  if (status !== 'fout') return null
+
+  return (
+    <p
+      role="status"
+      style={{ fontSize: 11, color: 'var(--text-4)', margin: '6px 0 0', lineHeight: 1.5 }}
+    >
+      AI-suggesties zijn nu even niet beschikbaar. De mails hierboven kun je gewoon in Gmail openen.
+    </p>
   )
 }
 
@@ -131,91 +175,105 @@ function Noemer({ gescand, getoond }: { gescand: number; getoond: number }) {
   )
 }
 
+interface RegelProps {
+  mail: TriageMailJson
+  /** De aanmaakbare actie voor deze mail, of null (geen suggestie → geen knop). */
+  actie: ActieSuggestie | null
+  onMaak: (actie: ActieSuggestie) => Promise<HaalUitkomst<true>>
+}
+
 /**
- * Eén regel: afzender, onderwerp, tijd, en waaróm hij hier staat.
+ * Eén regel: de mail als Gmail-link, en — als de AI er een taak of afspraak in
+ * zag — een aparte knop eronder.
  *
- * De hele regel is de link — een klein pijltje als klikdoel is een pesterij op
- * een telefoon. `target="_blank"` met `rel="noopener noreferrer"`: zonder
- * `noopener` krijgt de geopende pagina `window.opener` en kan hij deze tab
+ * De knop staat NAAST de link, niet erin: een `<button>` in een `<a>` is
+ * ongeldige HTML en breekt toetsenbord- en screenreader-gedrag. De mail-info
+ * blijft één groot kliktoel naar Gmail; de suggestie-knop is een tweede,
+ * duidelijk aparte actie. `target="_blank"` met `rel="noopener noreferrer"`:
+ * zonder `noopener` krijgt de geopende pagina `window.opener` en kan hij deze tab
  * wegnavigeren.
  */
-function Regel({ mail }: { mail: TriageMailJson }) {
+function Regel({ mail, actie, onMaak }: RegelProps) {
   const [hover, setHover] = useState(false)
 
   const afzender = mail.afzender ?? 'Onbekende afzender'
   const onderwerp = mail.onderwerp ?? 'Bericht zonder onderwerp'
 
   return (
-    <a
-      href={gmailLink(mail.id)}
-      target="_blank"
-      rel="noopener noreferrer"
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
-      // De reden staat zichtbaar in de regel; voor een screenreader plakken we
-      // 'm aan de link zodat de aankondiging compleet is zonder de tekst twee
-      // keer voor te lezen.
-      aria-label={`${afzender}: ${onderwerp}. ${mail.reden} Openen in Gmail, nieuw tabblad.`}
-      style={{
-        display: 'grid',
-        gridTemplateColumns: '1fr auto',
-        gap: '0 10px',
-        alignItems: 'baseline',
-        padding: '9px 10px',
-        margin: '0 -10px',
-        borderRadius: 8,
-        textDecoration: 'none',
-        background: hover ? 'var(--bg-raised)' : 'transparent',
-        // Alleen background: geen layout-properties animeren.
-        transition: 'background 180ms var(--ease)',
-      }}
-    >
-      <span
+    <div style={{ display: 'grid', gap: 6 }}>
+      <a
+        href={gmailLink(mail.id)}
+        target="_blank"
+        rel="noopener noreferrer"
+        onMouseEnter={() => setHover(true)}
+        onMouseLeave={() => setHover(false)}
+        // De reden staat zichtbaar in de regel; voor een screenreader plakken we
+        // 'm aan de link zodat de aankondiging compleet is zonder de tekst twee
+        // keer voor te lezen.
+        aria-label={`${afzender}: ${onderwerp}. ${mail.reden} Openen in Gmail, nieuw tabblad.`}
         style={{
-          fontSize: 13,
-          fontWeight: 600,
-          color: 'var(--text-2)',
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
+          display: 'grid',
+          gridTemplateColumns: '1fr auto',
+          gap: '0 10px',
+          alignItems: 'baseline',
+          padding: '9px 10px',
+          margin: '0 -10px',
+          borderRadius: 8,
+          textDecoration: 'none',
+          background: hover ? 'var(--bg-raised)' : 'transparent',
+          // Alleen background: geen layout-properties animeren.
+          transition: 'background 180ms var(--ease)',
         }}
       >
-        {afzender}
-      </span>
+        <span
+          style={{
+            fontSize: 13,
+            fontWeight: 600,
+            color: 'var(--text-2)',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {afzender}
+        </span>
 
-      <span
-        className="os-cijfer"
-        style={{
-          fontSize: 11,
-          display: 'flex',
-          alignItems: 'center',
-          gap: 4,
-          color: hover ? 'var(--brand)' : 'var(--text-4)',
-          transition: 'color 180ms var(--ease)',
-        }}
-      >
-        {tijdLabel(new Date(mail.ontvangenOp))}
-        <ArrowUpRight size={12} strokeWidth={2.2} aria-hidden="true" />
-      </span>
+        <span
+          className="os-cijfer"
+          style={{
+            fontSize: 11,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 4,
+            color: hover ? 'var(--brand)' : 'var(--text-4)',
+            transition: 'color 180ms var(--ease)',
+          }}
+        >
+          {tijdLabel(new Date(mail.ontvangenOp))}
+          <ArrowUpRight size={12} strokeWidth={2.2} aria-hidden="true" />
+        </span>
 
-      <span
-        style={{
-          gridColumn: '1 / -1',
-          fontSize: 13,
-          color: 'var(--text-3)',
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
-        }}
-      >
-        {onderwerp}
-      </span>
+        <span
+          style={{
+            gridColumn: '1 / -1',
+            fontSize: 13,
+            color: 'var(--text-3)',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {onderwerp}
+        </span>
 
-      {/* De reden. Klein, maar altijd zichtbaar: een oordeel dat je niet kunt
-          narekenen is geen oordeel. */}
-      <span style={{ gridColumn: '1 / -1', fontSize: 10.5, color: 'var(--text-4)', marginTop: 3 }}>
-        {mail.reden}
-      </span>
-    </a>
+        {/* De reden. Klein, maar altijd zichtbaar: een oordeel dat je niet kunt
+            narekenen is geen oordeel. */}
+        <span style={{ gridColumn: '1 / -1', fontSize: 10.5, color: 'var(--text-4)', marginTop: 3 }}>
+          {mail.reden}
+        </span>
+      </a>
+
+      {actie ? <SuggestieActie actie={actie} onMaak={onMaak} /> : null}
+    </div>
   )
 }
