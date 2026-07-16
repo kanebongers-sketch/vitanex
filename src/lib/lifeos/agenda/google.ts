@@ -52,7 +52,9 @@ export function googleConfig(): GoogleConfig | null {
   const clientSecret = process.env.GOOGLE_CLIENT_SECRET
   // APP_URL, niet de Host-header: die is door de client te zetten, en dan stuur
   // je de autorisatiecode naar de host van een aanvaller. Zie .env.example.
-  const appUrl = process.env.APP_URL
+  // Val terug op NEXT_PUBLIC_APP_URL: dat is óók een env-tijd-waarde (geen
+  // client-settable Host-header), dus even veilig, en scheelt een dubbele var.
+  const appUrl = process.env.APP_URL ?? process.env.NEXT_PUBLIC_APP_URL
   if (!clientId || !clientSecret || !appUrl) return null
 
   return {

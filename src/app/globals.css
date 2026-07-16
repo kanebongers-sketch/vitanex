@@ -1366,9 +1366,23 @@ body {
   padding: 40px 20px 88px;
 }
 
+/* De cockpit is bewust breder dan één leeskolom: op een 1440-scherm mag hij het
+   venster vullen i.p.v. als smalle strook in een zee van leegte te staan. De
+   padding groeit mee zodat de kaarten op grote schermen ademruimte houden. */
+.os-schil--breed {
+  max-width: 1440px;
+}
+
+@media (min-width: 1200px) {
+  .os-schil--breed {
+    padding-left: 40px;
+    padding-right: 40px;
+  }
+}
+
 /* ─── Kop ──────────────────────────────────────────────────────────────────
-   Mobiel stapelt de groet boven de momentkiezer. Vanaf 1024px staan ze naast
-   elkaar op één basislijn — de kiezer hoort bij de kop, niet erboven. */
+   De groet + datum boven de cockpit. Rustig; het schaalcontrast tussen de 46px
+   groet en de 13px kaarttitels draagt de hiërarchie. */
 .os-kop {
   margin-bottom: 22px;
 }
@@ -1391,87 +1405,142 @@ body {
   margin: 0 0 8px;
 }
 
-.os-kop__vraag {
-  font-size: 16px;
-  color: var(--text-3);
-  margin: 0;
-  max-width: 46ch;
-  line-height: 1.5;
+/* ─── Cockpit ──────────────────────────────────────────────────────────────
+   Eén vullend werkscherm i.p.v. drie moment-tabs. De kern (taken, notities)
+   staat altijd in beeld, en op een breed venster vult de layout de ruimte in
+   plaats van een smalle kolom in leegte te laten staan.
+
+   Ritme via de band-tussenruimte: de zones staan verder uit elkaar dan de
+   kaarten binnen een zone — dat schaalcontrast draagt de hiërarchie. */
+.os-cockpit {
+  display: grid;
+  gap: var(--ruimte-band);
 }
 
-/* ─── Momentkiezer ─────────────────────────────────────────────────────────*/
-.os-kiezer {
-  margin: 20px 0 0;
+/* Vita als volle band bovenaan: hij verbindt de kaarten eronder. */
+.os-cockpit__band {
+  display: block;
 }
 
-.os-kiezer__lijst {
+/* <1024px  productiviteit boven, welzijn-rail eronder — netjes gestapeld.
+   1024px+  asymmetrisch: de brede productiviteitszone naast een smallere rail.
+
+   Bewust géén repeat(auto-fit, minmax(...)): dat geeft precies de uniforme
+   card-grid zonder hiërarchie die we willen vermijden. */
+.os-cockpit__grid {
+  display: grid;
+  gap: var(--ruimte-band);
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 1024px) {
+  .os-cockpit__grid {
+    grid-template-columns: minmax(0, 2.3fr) minmax(0, 1fr);
+    align-items: start;
+  }
+}
+
+/* De productiviteitszone: takenlijst als anker over de volle breedte, daaronder
+   de steunkaarten in een twee-koloms bento. */
+.os-prod {
+  display: grid;
+  gap: var(--ruimte-kaart);
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 640px) {
+  .os-prod {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Het anker (de takenlijst) spant beide kolommen. */
+.os-prod__vol {
+  grid-column: 1 / -1;
+}
+
+/* De welzijn-rail: score-kaart plus de snelknoppen, van bovenaf gestapeld zodat
+   ze niet uitrekken naast een lange productiviteitszone. */
+.os-rail {
+  display: grid;
+  gap: var(--ruimte-kaart);
+  align-content: start;
+}
+
+/* ─── Snelknoppen ──────────────────────────────────────────────────────────
+   Tegels naar Kane's ECHTE MentaForce-gezondheidspagina's. 2×2 raster op elke
+   maat: rustig en voorspelbaar, geen uitrekkende kolommen. */
+.os-snelrij {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.os-snel {
   display: flex;
-  gap: 8px;
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.os-kiezer__knop {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  padding: 9px 15px;
-  border-radius: 999px;
+  flex-direction: column;
+  gap: 12px;
+  padding: 15px 15px 16px;
+  border-radius: 12px;
   border: 1px solid var(--line);
-  background: transparent;
-  color: var(--text-3);
-  font-family: inherit;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  /* transform is compositor-werk; color/border-color zijn paint-only en
-     triggeren geen layout. Nooit width/height/margin animeren. */
+  background: var(--bg-card);
+  text-decoration: none;
+  /* Alleen transform + kleur animeren — nooit layout-properties. */
   transition:
-    transform 180ms var(--ease),
-    color 180ms var(--ease),
-    border-color 180ms var(--ease);
+    transform 200ms var(--ease),
+    border-color 200ms var(--ease),
+    background 200ms var(--ease);
 }
 
-.os-kiezer__knop:active {
-  transform: scale(0.96);
-}
-
-/* Actief onderscheidt zich via rand + achtergrond + tekst, nooit via kleur
-   alléén — het label staat er altijd bij. */
-.os-kiezer__knop[aria-current] {
+.os-snel:hover {
+  transform: translateY(-2px);
   border-color: var(--brand);
+  background: var(--bg-raised);
+}
+
+.os-snel:active {
+  transform: translateY(0);
+}
+
+/* Cyaan als accent: een klein icoonvlak, geen heel paneel. */
+.os-snel__badge {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  display: grid;
+  place-items: center;
   background: var(--brand-soft);
   color: var(--brand);
 }
 
-/* ─── Bento ────────────────────────────────────────────────────────────────
-   <768px  één kolom, de dragende kaart eerst.
-   768px   twee kolommen voor de steunkaarten, dragend over de volle breedte.
-   1024px  asymmetrisch: dragend krijgt ~65% en staat naast een stapel steun.
-
-   Bewust géén repeat(auto-fit, minmax(...)): dat geeft precies de uniforme
-   card-grid zonder hiërarchie die we willen vermijden. */
-.os-moment {
+.os-snel__tekst {
   display: grid;
-  gap: var(--ruimte-kaart);
+  gap: 2px;
 }
 
-.os-bento {
-  display: grid;
-  gap: var(--ruimte-kaart);
-  grid-template-columns: 1fr;
+.os-snel__naam {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-1);
 }
 
-.os-bento__steun {
-  display: grid;
-  gap: var(--ruimte-kaart);
-  grid-template-columns: 1fr;
+.os-snel__sub {
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--text-4);
 }
 
-/* De verbindende band krijgt lucht — dit is het ritme, niet uniforme padding. */
-.os-moment__band {
-  margin-top: calc(var(--ruimte-band) - var(--ruimte-kaart));
+/* Reduced motion: geen liftende tegel, geen transities — de eindstaat blijft
+   volledig bruikbaar. */
+@media (prefers-reduced-motion: reduce) {
+  .os-snel {
+    transition: none;
+  }
+
+  .os-snel:hover,
+  .os-snel:active {
+    transform: none;
+  }
 }
 
 /* ─── Kaart ────────────────────────────────────────────────────────────────
@@ -1634,108 +1703,6 @@ body {
 
 .os-kaart--compact .os-leeg__waarom {
   font-size: 11.5px;
-}
-
-/* ─── De lade ──────────────────────────────────────────────────────────────
-   Eén mechanisme voor alles wat bereikbaar moet zijn maar niet zichtbaar.
-   Native <details>: toetsenbord, screenreader en ctrl+F werken zonder JS, en
-   het blijft een Server Component. */
-.os-lade {
-  border-top: 1px solid var(--line);
-  margin-top: var(--ruimte-band);
-}
-
-.os-lade__knop {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 16px 2px;
-  cursor: pointer;
-  color: var(--text-3);
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  transition:
-    color 180ms var(--ease),
-    transform 180ms var(--ease);
-  /* Weg met de driehoek — beide dialecten. */
-  list-style: none;
-}
-
-.os-lade__knop::-webkit-details-marker {
-  display: none;
-}
-
-.os-lade__knop:active {
-  transform: translateX(1px);
-}
-
-.os-lade[open] > .os-lade__knop {
-  color: var(--text-1);
-}
-
-.os-lade__pijl {
-  flex: none;
-  color: var(--text-4);
-  transition:
-    transform 240ms var(--ease),
-    color 180ms var(--ease);
-}
-
-.os-lade[open] > .os-lade__knop .os-lade__pijl {
-  transform: rotate(90deg);
-  color: var(--brand);
-}
-
-.os-lade__aantal {
-  margin-left: auto;
-  font-size: 11px;
-  color: var(--text-4);
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  padding: 2px 8px;
-}
-
-.os-lade__inhoud {
-  padding: 2px 0 10px;
-}
-
-.os-lade[open] .os-lade__inhoud {
-  animation: os-onthul 260ms var(--ease) both;
-}
-
-/* Alleen transform + opacity: geen height-animatie, geen layout per frame. */
-@keyframes os-onthul {
-  from {
-    opacity: 0;
-    transform: translateY(-6px);
-  }
-
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-.os-lade__raster {
-  display: grid;
-  gap: 12px;
-  grid-template-columns: 1fr;
-}
-
-/* ─── Voet ─────────────────────────────────────────────────────────────────*/
-.os-voet {
-  margin-top: var(--ruimte-sectie);
-  padding-top: 18px;
-  border-top: 1px solid var(--line);
-}
-
-.os-voet__tekst {
-  font-size: 12px;
-  color: var(--text-4);
-  margin: 0;
-  line-height: 1.6;
-  max-width: 60ch;
 }
 
 /* ─── Focus ────────────────────────────────────────────────────────────────

@@ -7,8 +7,9 @@ import type { ReactNode } from 'react'
  *   normaal  — ondersteunend, naast de dragende kaart.
  *   compact  — in de lade: bereikbaar, niet zichtbaar.
  *
- * Nadruk is puur visueel. De plaatsing in het raster hoort bij `MomentLayout`,
- * niet hier — anders weet een kaart iets over de pagina waar hij op staat.
+ * Nadruk is puur visueel. De plaatsing in het raster hoort bij de cockpit-layout
+ * (zie `Cockpit` + de `.os-cockpit`/`.os-prod`-CSS), niet hier — anders weet een
+ * kaart iets over de pagina waar hij op staat.
  */
 export type Nadruk = 'dragend' | 'normaal' | 'compact'
 

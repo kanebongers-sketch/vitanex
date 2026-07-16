@@ -1,4 +1,8 @@
-// GET  /api/lifeos/taken   — je taken (optioneel: van één dag, of alleen de top-3)
+// GET  /api/lifeos/taken   — je taken. Modi via query:
+//                              ?alle=1   → álle taken (voor de TakenLijst)
+//                              ?top3=1   → alleen de top-3 (voor Top3Kaart)
+//                              ?datum=…  → één dag ('ooit' = zonder dag)
+//                            geen params → alle taken, ongefilterd
 // POST /api/lifeos/taken   — nieuwe taak
 //
 // Vervangt Todoist. Niet door Todoist na te bouwen, maar door de enige vraag te
@@ -44,6 +48,17 @@ export async function GET(req: NextRequest) {
   if (toegang instanceof NextResponse) return toegang
 
   const params = req.nextUrl.searchParams
+
+  // De volledige lijst: álle taken, ongefilterd — vandaag, backlog, "ooit" én de
+  // positie-loze bot-taken die via Telegram binnenkomen. De TakenLijst-UI
+  // groepeert client-side. Deze modus staat los van de top-3-modus (`?top3=1`),
+  // die Top3Kaart gebruikt, zodat die ongemoeid blijft.
+  if (params.get('alle') === '1') {
+    const alle = await haalTaken(toegang.admin, toegang.userId, {})
+    if (!alle.ok) return foutAntwoord(alle.reden)
+    return NextResponse.json({ taken: alle.waarde }, { headers: CACHE_HEADERS })
+  }
+
   const datum = params.get('datum')
   if (datum !== null && datum !== 'ooit' && leesDatumSleutel(datum) === null) {
     return NextResponse.json({ fout: 'Ongeldige datum; gebruik YYYY-MM-DD of "ooit".' }, { status: 400 })

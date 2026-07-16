@@ -120,7 +120,7 @@ export function gmailConfig(): GoogleConfig | null {
   const basis = googleConfig()
   if (!basis) return null
 
-  const appUrl = process.env.APP_URL
+  const appUrl = process.env.APP_URL ?? process.env.NEXT_PUBLIC_APP_URL
   if (!appUrl) return null
 
   return { ...basis, redirectUri: `${appUrl.replace(/\/+$/, '')}/api/lifeos/inbox/callback` }

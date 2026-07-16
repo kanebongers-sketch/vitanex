@@ -247,3 +247,51 @@ export function top3Van(taken: readonly Taak[]): (Taak | null)[] {
 export function eersteVrijePositie(taken: readonly Taak[]): Top3Positie | null {
   return TOP3_POSITIES.find((positie) => !taken.some((t) => t.top3Positie === positie)) ?? null
 }
+
+// ─── De volledige lijst, gegroepeerd ────────────────────────────────────────
+// De Top3Kaart beantwoordt "welke drie vandaag?". Deze groepering beantwoordt
+// de andere helft: waar staat de rest? Bot-taken (via Telegram) komen als
+// positie-loze taken binnen — met of zonder dag — en waren nergens zichtbaar
+// tot de TakenLijst ze hier toont.
+
+export interface GegroepeerdeTaken {
+  /** Open taken van vandaag; de top-3 staat hier vooraan (positie oplopend). */
+  vandaag: Taak[]
+  /** Open taken met een dag die niet vandaag is (verleden of toekomst). */
+  backlog: Taak[]
+  /** Open taken zonder dag — de "ooit"-bak; hier landen ook dagloze bot-taken. */
+  ooit: Taak[]
+  /** Afgevinkte taken, nieuwste afvinking eerst. */
+  gedaan: Taak[]
+}
+
+/**
+ * Verdeelt alle taken over de vier bakken van de lijst. Elke taak zit in precies
+ * één bak: 'gedaan' wint van alles (een afgevinkte taak is klaar, waar hij ook
+ * stond), daarna splitst de dag de rest.
+ *
+ * Puur en immutable: filtert naar nieuwe arrays, sorteert op een kopie. De
+ * volgorde bínnen een bak volgt de serverorde (top-3 vooraan, dan aanmaak),
+ * behalve 'gedaan' — daar is de nieuwste afvinking het interessantst.
+ */
+export function groepeerTaken(
+  taken: readonly Taak[],
+  vandaagSleutel: string,
+): GegroepeerdeTaken {
+  const open = taken.filter((t) => !t.klaar)
+  const gedaan = taken.filter((t) => t.klaar).slice().sort(nieuwsteAfvinkingEerst)
+
+  return {
+    vandaag: open.filter((t) => t.datum === vandaagSleutel),
+    backlog: open.filter((t) => t.datum !== null && t.datum !== vandaagSleutel),
+    ooit: open.filter((t) => t.datum === null),
+    gedaan,
+  }
+}
+
+/** Nieuwste afvinking eerst; zonder afvink-moment val terug op de aanmaak. */
+function nieuwsteAfvinkingEerst(a: Taak, b: Taak): number {
+  const aMoment = a.klaarOp ?? a.aangemaaktOp
+  const bMoment = b.klaarOp ?? b.aangemaaktOp
+  return bMoment.localeCompare(aMoment)
+}

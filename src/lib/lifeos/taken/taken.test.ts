@@ -6,6 +6,7 @@ import {
   takenVanRijen,
   top3Van,
   eersteVrijePositie,
+  groepeerTaken,
   isTop3Positie,
   MAX_TITEL_LENGTE,
   type Taak,
@@ -236,6 +237,79 @@ describe('eersteVrijePositie', () => {
     ]
 
     expect(eersteVrijePositie(vol)).toBeNull()
+  })
+})
+
+describe('groepeerTaken', () => {
+  const vandaag = '2026-07-15'
+
+  it('verdeelt taken over vandaag, backlog, ooit en gedaan', () => {
+    // Arrange
+    const taken = [
+      taak({ id: 'v', datum: vandaag, titel: 'Vandaag' }),
+      taak({ id: 'oud', datum: '2026-07-10', titel: 'Gisteren' }),
+      taak({ id: 'later', datum: '2026-07-20', titel: 'Volgende week' }),
+      taak({ id: 'ooit', datum: null, titel: 'Ooit' }),
+      taak({ id: 'af', datum: vandaag, klaar: true, titel: 'Klaar' }),
+    ]
+
+    // Act
+    const groepen = groepeerTaken(taken, vandaag)
+
+    // Assert — elke taak in precies één bak.
+    expect(groepen.vandaag.map((t) => t.id)).toEqual(['v'])
+    expect(groepen.backlog.map((t) => t.id)).toEqual(['oud', 'later'])
+    expect(groepen.ooit.map((t) => t.id)).toEqual(['ooit'])
+    expect(groepen.gedaan.map((t) => t.id)).toEqual(['af'])
+  })
+
+  it('zet een afgevinkte taak in "gedaan", niet in zijn dagbak', () => {
+    const groepen = groepeerTaken([taak({ id: 'x', datum: vandaag, klaar: true })], vandaag)
+
+    expect(groepen.vandaag).toEqual([])
+    expect(groepen.gedaan.map((t) => t.id)).toEqual(['x'])
+  })
+
+  it('toont de nieuwste afvinking eerst in "gedaan"', () => {
+    // Arrange — bewust in verkeerde volgorde aangeleverd.
+    const taken = [
+      taak({ id: 'oud', klaar: true, klaarOp: '2026-07-14T09:00:00.000Z' }),
+      taak({ id: 'nieuw', klaar: true, klaarOp: '2026-07-15T09:00:00.000Z' }),
+    ]
+
+    // Act
+    const groepen = groepeerTaken(taken, vandaag)
+
+    // Assert
+    expect(groepen.gedaan.map((t) => t.id)).toEqual(['nieuw', 'oud'])
+  })
+
+  it('behandelt een dagloze bot-taak als "ooit"', () => {
+    // Bot-taken komen positie-loos en soms zonder dag binnen (zie telegram/uitvoeren).
+    const groepen = groepeerTaken([taak({ id: 'bot', datum: null, top3Positie: null })], vandaag)
+
+    expect(groepen.ooit.map((t) => t.id)).toEqual(['bot'])
+  })
+
+  it('muteert de invoer niet', () => {
+    const taken = [
+      taak({ id: 'b', klaar: true, klaarOp: '2026-07-14T09:00:00.000Z' }),
+      taak({ id: 'a', klaar: true, klaarOp: '2026-07-15T09:00:00.000Z' }),
+    ]
+    const kopie = [...taken]
+
+    groepeerTaken(taken, vandaag)
+
+    expect(taken).toEqual(kopie)
+  })
+
+  it('geeft vier lege bakken bij geen taken', () => {
+    expect(groepeerTaken([], vandaag)).toEqual({
+      vandaag: [],
+      backlog: [],
+      ooit: [],
+      gedaan: [],
+    })
   })
 })
 
