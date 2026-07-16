@@ -68,9 +68,16 @@ export interface LifeosToegang {
  *   if (toegang instanceof NextResponse) return toegang
  *   // vanaf hier: toegang.admin, toegang.userId
  */
-export async function vereisLifeosToegang(
+/**
+ * Alleen de founder-check: ben je ingelogd én de eigenaar? Bewust ZONDER de
+ * service-role-client of `LIFEOS_USER_ID` — dit is puur de poort. Zo hangt
+ * LifeOS-toegang (en de FounderPoort-UI) niet aan de data-env: mist er een
+ * LifeOS-data-var, dan kom je nog steeds binnen en falen alleen de datakaarten
+ * (elk met hun eigen nette melding), i.p.v. een kale 500 → redirect naar /home.
+ */
+export async function vereisFounder(
   req: NextRequest,
-): Promise<LifeosToegang | NextResponse> {
+): Promise<{ email: string } | NextResponse> {
   const user = await getAuthenticatedUser(req)
   if (!user) {
     return NextResponse.json({ error: 'Niet ingelogd.' }, { status: 401 })
@@ -80,9 +87,28 @@ export async function vereisLifeosToegang(
     // hoeft niet te weten dát LifeOS hier draait.
     return NextResponse.json({ error: 'Geen toegang.' }, { status: 403 })
   }
-  return {
-    email: user.email ?? '',
-    userId: lifeosUserId(),
-    admin: createLifeosAdminClient(),
+  return { email: user.email ?? '' }
+}
+
+export async function vereisLifeosToegang(
+  req: NextRequest,
+): Promise<LifeosToegang | NextResponse> {
+  const founder = await vereisFounder(req)
+  if (founder instanceof NextResponse) return founder
+
+  // De data-laag: hier kan een ontbrekende LifeOS-env-var (`LIFEOS_USER_ID`,
+  // `LIFEOS_SUPABASE_URL`, `LIFEOS_SERVICE_ROLE_KEY`) gooien. Vang dat en geef de
+  // échte melding terug (503 + body) i.p.v. een kale, ondoorzichtige 500. Alleen
+  // een geverifieerde founder komt hier ooit, dus de var-naam lekt niet breed.
+  try {
+    return {
+      email: founder.email,
+      userId: lifeosUserId(),
+      admin: createLifeosAdminClient(),
+    }
+  } catch (fout) {
+    const melding = fout instanceof Error ? fout.message : 'LifeOS-configuratie ontbreekt.'
+    console.error('[lifeos] configuratiefout:', melding)
+    return NextResponse.json({ error: melding }, { status: 503 })
   }
 }

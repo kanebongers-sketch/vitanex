@@ -5,13 +5,16 @@
 
 import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
-import { vereisLifeosToegang } from '@/lib/lifeos/admin'
+import { vereisFounder } from '@/lib/lifeos/admin'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 export async function GET(req: NextRequest): Promise<Response> {
-  const toegang = await vereisLifeosToegang(req)
+  // Alleen de founder-check — bewust NIET de volledige data-gate. Toegang tot
+  // LifeOS mag niet afhangen van de service-role-env; anders bonkt één ontbrekende
+  // data-var de founder eruit i.p.v. de datakaarten netjes te laten falen.
+  const toegang = await vereisFounder(req)
   if (toegang instanceof NextResponse) return toegang // 401/403 al klaar
   return NextResponse.json(
     { ok: true },
