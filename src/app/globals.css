@@ -1467,13 +1467,44 @@ body {
   align-content: start;
 }
 
+/* ─── Gezondheids-rij ──────────────────────────────────────────────────────
+   Drie échte invoerkaarten (voeding, water, workout) die naar Kane's
+   MentaForce-data schrijven. Eigen rij over de volle breedte: een formulier
+   heeft ademruimte nodig die de smalle welzijn-rail niet biedt.
+
+   1 kolom mobiel → 2 vanaf 640px → 3 vanaf 1024px. Bewust géén auto-fit: dat
+   geeft de uniforme card-grid zonder hiërarchie die we vermijden. */
+.os-gezond {
+  display: grid;
+  gap: var(--ruimte-kaart);
+  grid-template-columns: 1fr;
+  align-items: start;
+}
+
+@media (min-width: 640px) {
+  .os-gezond {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .os-gezond {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
 /* ─── Snelknoppen ──────────────────────────────────────────────────────────
-   Tegels naar Kane's ECHTE MentaForce-gezondheidspagina's. 2×2 raster op elke
-   maat: rustig en voorspelbaar, geen uitrekkende kolommen. */
+   De Check-in-tegel in de welzijn-rail. Rustig en voorspelbaar. */
 .os-snelrij {
   display: grid;
   gap: 10px;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+/* Check-in staat nu alleen — laat 'm de volle breedte van de rail pakken i.p.v.
+   een halve kolom in leegte. */
+.os-snel--vol {
+  grid-column: 1 / -1;
 }
 
 .os-snel {

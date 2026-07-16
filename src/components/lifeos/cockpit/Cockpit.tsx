@@ -5,6 +5,9 @@ import { FocusKaart } from '@/components/lifeos/focus/FocusKaart'
 import { AgendaKaart } from '@/components/lifeos/agenda/AgendaKaart'
 import { InboxKaart } from '@/components/lifeos/inbox/InboxKaart'
 import { WelzijnScoreKaart } from '@/components/lifeos/welzijn/WelzijnScoreKaart'
+import { VoedingCockpitKaart } from '@/components/lifeos/gezondheid/VoedingCockpitKaart'
+import { WaterCockpitKaart } from '@/components/lifeos/gezondheid/WaterCockpitKaart'
+import { WorkoutCockpitKaart } from '@/components/lifeos/gezondheid/WorkoutCockpitKaart'
 import { SnelKnoppen } from './SnelKnoppen'
 
 // ─── De cockpit ──────────────────────────────────────────────────────────────
@@ -23,8 +26,13 @@ import { SnelKnoppen } from './SnelKnoppen'
 //   2. Productiviteit (de kern) links: de volwaardige takenlijst als anker over
 //      de volle breedte, daaronder brain dump, focus, agenda en inbox in een
 //      twee-koloms bento.
-//   3. Welzijn rechts als zij-rail: de échte MentaForce-welzijnsscore, plus
-//      snelknoppen naar de gezondheidspagina's waar de invoer al werkt.
+//   3. Welzijn rechts als zij-rail: de échte MentaForce-welzijnsscore, plus de
+//      Check-in-tegel.
+//   4. Gezondheid als eigen rij over de volle breedte: drie échte invoerkaarten
+//      (voeding, water, workout) die rechtstreeks naar Kane's MentaForce-data
+//      schrijven — geen tweede DB, geen dubbele cijfers. Ze staan bewust apart
+//      van de rail: een invoerformulier heeft breedte nodig die de smalle rail
+//      niet geeft.
 
 export function Cockpit() {
   return (
@@ -47,11 +55,17 @@ export function Cockpit() {
           <InboxKaart />
         </section>
 
-        <aside className="os-rail" aria-label="Welzijn en gezondheid">
+        <aside className="os-rail" aria-label="Welzijn">
           <WelzijnScoreKaart />
           <SnelKnoppen />
         </aside>
       </div>
+
+      <section className="os-gezond" aria-label="Gezondheid loggen">
+        <VoedingCockpitKaart />
+        <WaterCockpitKaart />
+        <WorkoutCockpitKaart />
+      </section>
     </div>
   )
 }
