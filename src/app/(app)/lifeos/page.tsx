@@ -12,7 +12,7 @@ import { Cockpit } from '@/components/lifeos/cockpit/Cockpit'
 // schaal) los van de MentaForce-tokens, zodat de twee stijlwerelden elkaar niet
 // overschrijven.
 
-export const metadata = { title: 'LifeOS' }
+export const metadata = { title: 'Mijn dashboard' }
 
 export default function LifeosPagina() {
   return (

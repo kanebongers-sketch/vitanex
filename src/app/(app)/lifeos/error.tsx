@@ -48,7 +48,7 @@ export default function LifeosFout({
               margin: 0,
             }}
           >
-            LifeOS kon niet laden
+            Je dashboard kon niet laden
           </h1>
 
           {/* Eerlijk over wat we wél weten: dat het aan ons ligt, en dat je data
@@ -64,7 +64,7 @@ export default function LifeosFout({
               Opnieuw proberen
             </button>
             <Link href="/home" style={STIL}>
-              Naar MentaForce
+              Naar het welzijnsoverzicht
             </Link>
           </div>
         </section>

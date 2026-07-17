@@ -12,7 +12,7 @@ import { MensenBord } from '@/components/lifeos/crm/MensenBord'
 // Eigen route i.p.v. een sectie in de cockpit: een kanban heeft horizontale
 // breedte en een eigen scroll nodig die de verticale cockpit-flow niet geeft.
 
-export const metadata = { title: 'Mensen — LifeOS' }
+export const metadata = { title: 'Mensen' }
 
 export default function MensenPagina() {
   return (

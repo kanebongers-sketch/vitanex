@@ -143,7 +143,7 @@ export function InboxKaart() {
         <div style={{ display: 'grid', gap: 14, justifyItems: 'start' }}>
           <NogNiets
             wat="Gmail niet gekoppeld"
-            waarom="Koppel Gmail: LifeOS zegt je 's avonds welke mails écht iets van je vragen, zodat je de inbox niet meer opent 'om even te kijken'. Het leest alleen afzender en onderwerp — nooit de inhoud. Het kan mails archiveren, als gelezen markeren en concept-antwoorden klaarzetten in je Gmail-concepten. Versturen doe je altijd zelf; dat doet LifeOS nooit."
+            waarom="Koppel Gmail: MentaForce zegt je 's avonds welke mails écht iets van je vragen, zodat je de inbox niet meer opent 'om even te kijken'. Het leest alleen afzender en onderwerp — nooit de inhoud. Het kan mails archiveren, als gelezen markeren en concept-antwoorden klaarzetten in je Gmail-concepten. Versturen doe je altijd zelf; dat doet MentaForce nooit."
           />
           <Knop variant="primair" onClick={() => void koppel()}>
             <MailPlus size={14} strokeWidth={2.2} aria-hidden="true" />
