@@ -4,7 +4,6 @@ import {
   normaliseerTitel,
   parseLinks,
   titelSleutel,
-  verwijstNaar,
   MAX_LINKS_PER_NOTITIE,
   MAX_TITEL_LENGTE,
 } from './links'
@@ -198,21 +197,6 @@ describe('parseLinks', () => {
   })
 })
 
-describe('verwijstNaar', () => {
-  it('matcht hoofdletterloos', () => {
-    expect(verwijstNaar('zie [[Marge-model]]', 'MARGE-MODEL')).toBe(true)
-  })
-
-  it('is onwaar bij een ongeldige titel', () => {
-    expect(verwijstNaar('zie [[Marge-model]]', '  ')).toBe(false)
-    expect(verwijstNaar('zie [[Marge-model]]', null)).toBe(false)
-  })
-
-  it('ziet een verwijzing in code niet — zelfde regel als parseLinks', () => {
-    expect(verwijstNaar('`[[Marge-model]]`', 'Marge-model')).toBe(false)
-  })
-})
-
 // ─── De invariant tussen de twee parsers ────────────────────────────────────
 // `parseLinks` (naar de database) en de markdown-ontleder (naar het scherm)
 // implementeren de code-voorrangsregel elk apart: de één met `maskeerCode`, de
@@ -228,6 +212,14 @@ describe('parseLinks en de markdown-parser zijn het altijd eens', () => {
     'code `[[Niet]]` maar wel [[Wel]]',
     '```\n[[In blok]]\n```\nen [[Erbuiten]]',
     'ongesloten fence\n```\n[[Nooit]]',
+    // Een losse ``` MIDDEN in een regel is geen codeblok — markdown toont de
+    // link erna, dus parseLinks moet 'm ook vinden. Dit is het geval dat een
+    // echte bug liet ontsnappen: de oude maskeerCode maskeerde vanaf hier tot
+    // het einde en verloor [[Tweede]]/[[Derde]] stil.
+    'met [[Eerste]].\n\ndrie backticks ``` in een zin.\n\nzie ook [[Tweede]] en [[Derde]].',
+    'zie ``` voor de config [[Config]]',
+    // Ingesprongen fence (tot 3 spaties) telt nog als regelbegin, net als in markdown.
+    '   ```\n[[Ingesprongen]]\n   ```\nna [[Buiten]]',
     '[[]] leeg en [[   ]] witruimte',
     '[[a[[b]]]] genest',
     'ongesloten [[haak',

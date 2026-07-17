@@ -21,6 +21,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { vereisLifeosToegang } from '@/lib/lifeos/admin'
 import { leesConceptVerzoek, schrijfConcept, type ConceptModel } from '@/lib/lifeos/inbox/concept'
+import { leesConceptInvoer } from '@/lib/lifeos/inbox/concept-bericht'
 import { maakAnthropicConceptModel } from '@/lib/lifeos/inbox/concept-model'
 import { maakConcept, actieFoutHttp } from '@/lib/lifeos/inbox/gmail-acties'
 import { isRateLimited } from '@/lib/utils/rate-limit'
@@ -77,17 +78,33 @@ export async function POST(req: NextRequest) {
     )
   }
 
+  // Diepteverdediging vóór we naar Gmail schrijven. Het model kan een onderwerp
+  // echoën uit een mail van derden — mét een regeleinde erin. `veiligeHeaderwaarde`
+  // (in `maakConcept`) schoont dat later op, maar deze reject-based check weigert
+  // het concept al hier, zodat een geïnjecteerd onderwerp niet stil half wordt
+  // opgeschoond en alsnog verstuurd. Dit is de laag die de kop van
+  // `concept-bericht.ts` belooft en die tot nu toe niet was aangesloten.
+  const invoer = leesConceptInvoer({
+    // Geen ontvanger: wij kennen het adres van de afzender niet (de triage geeft
+    // bewust alleen de weergavenaam door — zie `inbox.ts`). Gmail vult 'm zelf in
+    // zodra het concept aan de thread hangt; anders zet Kane 'm erbij. Een adres
+    // verzinnen uit een naam is precies wat dit product niet doet.
+    aan: null,
+    onderwerp: voorstel.onderwerp,
+    body: voorstel.tekst,
+    ...(verzoek.threadId ? { threadId: verzoek.threadId } : {}),
+  })
+  if (!invoer.ok) {
+    // 502, niet 400: de "client" is hier het model, niet Kane. Zijn verzoek was
+    // geldig; het concept dat eruit kwam is dat niet.
+    return NextResponse.json(
+      { fout: 'Vita maakte een concept dat we niet veilig konden klaarzetten. Probeer het opnieuw.' },
+      { status: 502, headers: CACHE_HEADERS },
+    )
+  }
+
   try {
-    const concept = await maakConcept(toegang.admin, toegang.userId, {
-      // Geen ontvanger: wij kennen het adres van de afzender niet (de triage geeft
-      // bewust alleen de weergavenaam door — zie `inbox.ts`). Gmail vult 'm zelf
-      // in zodra het concept aan de thread hangt; anders zet Kane 'm erbij. Een
-      // adres verzinnen uit een naam is precies wat dit product niet doet.
-      aan: null,
-      onderwerp: voorstel.onderwerp,
-      body: voorstel.tekst,
-      ...(verzoek.threadId ? { threadId: verzoek.threadId } : {}),
-    })
+    const concept = await maakConcept(toegang.admin, toegang.userId, invoer.waarde)
 
     return NextResponse.json(
       { concept, onderwerp: voorstel.onderwerp },

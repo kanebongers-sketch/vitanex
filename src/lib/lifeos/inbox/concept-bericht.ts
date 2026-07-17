@@ -153,15 +153,17 @@ function tekst(v: unknown): string | null {
 }
 
 /**
- * Leest een concept-verzoek.
+ * Leest en valideert een concept-invoer ({aan, onderwerp, body, …}).
  *
  * Let op de asymmetrie met `veiligeHeaderwaarde`: die VERVANGT stilletjes, deze
- * WEIGERT. Dat is met opzet en het is geen dubbelop. De validatie hier kijkt naar
- * wat een CLIENT stuurt — daar is een regeleinde in het adres geen ruis maar een
- * poging, en die hoort een 400 te krijgen in plaats van een stille opschoning.
- * `veiligeHeaderwaarde` is de laatste verdediging voor tekst die niet langs deze
- * grens kwam (een AI-gegenereerd onderwerp, bijvoorbeeld). Twee sloten, twee
- * bedreigingsmodellen.
+ * WEIGERT. Dat is met opzet en het is geen dubbelop. Deze validatie draait op de
+ * grens vóór het bouwen — op een AI-gegenereerd concept (zie
+ * `api/lifeos/inbox/concept/route.ts`): een regeleinde in het onderwerp is daar
+ * geen ruis maar een injectiepoging (een mail van derden die het model echode),
+ * en die hoort het concept te WEIGEREN in plaats van 'm half op te schonen en
+ * alsnog klaar te zetten. `veiligeHeaderwaarde` is dan de laatste verdediging
+ * binnen `bouwConceptBericht` voor wat tóch langs deze grens zou komen. Twee
+ * sloten, twee bedreigingsmodellen — en allebei nu daadwerkelijk aangesloten.
  */
 export function leesConceptInvoer(body: unknown): ConceptValidatie {
   if (!isObject(body)) return { ok: false, fout: 'Ongeldige invoer.' }

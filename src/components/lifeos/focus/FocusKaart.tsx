@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Play, Square, Coffee } from 'lucide-react'
 import { Kaart } from '@/components/lifeos/os/Kaart'
 import { Knop } from '@/components/lifeos/os/Knop'
@@ -31,18 +31,23 @@ export function FocusKaart() {
   const [nu, setNu] = useState<number | null>(null)
   const [waaraan, setWaaraan] = useState('')
 
-  // De klok pas ná mount lezen: de server heeft een andere tijd, en dan wijkt
-  // de eerste render af van de HTML die de server stuurde (hydration-mismatch).
-  const tikRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  // De timer loopt ALLEEN als er een blok actief is. Hij tikte eerst de hele
+  // sessie door — vier setState per seconde, voor altijd, ook op een cockpit die
+  // je open laat staan zonder ooit een blok te starten. De inactieve tak gebruikt
+  // `nu` niet eens. Nu start de klok bij `begin` (die zet ook meteen `nu`, zodat
+  // de eerste render klopt) en stopt hij zodra je terug naar inactief gaat.
+  //
+  // De klok pas ná mount lezen: de server heeft een andere tijd, en dan wijkt de
+  // eerste render af van de HTML die de server stuurde (hydration-mismatch).
+  const actief = sessie.fase !== 'inactief'
 
   useEffect(() => {
+    if (!actief) return
     // setState in een callback (de interval), niet synchroon in de effect-body:
     // dat is de vorm die React bedoelt en die geen cascaderende render geeft.
-    tikRef.current = setInterval(() => setNu(Date.now()), TIK_MS)
-    return () => {
-      if (tikRef.current !== null) clearInterval(tikRef.current)
-    }
-  }, [])
+    const id = setInterval(() => setNu(Date.now()), TIK_MS)
+    return () => clearInterval(id)
+  }, [actief])
 
   const begin = useCallback(() => {
     setSessie(startWerk(Date.now(), waaraan.trim()))

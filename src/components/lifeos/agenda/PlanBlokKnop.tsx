@@ -34,10 +34,14 @@ export function PlanBlokKnop({ blok, onPlan }: PlanBlokKnopProps) {
 
   return (
     <span style={{ display: 'grid', gap: 6, justifyItems: 'end' }}>
+      {/* De aria-label BEVAT de zichtbare tekst "Plan dit blok" (WCAG 2.5.3,
+          Level A): wie met spraakbediening "plan dit blok" zegt, moet deze knop
+          raken. De tijd is de extra context die het onderscheidt van de andere
+          blokken op het scherm. */}
       <Knop
         onClick={() => void plan()}
         disabled={bezig}
-        aria-label={`Plan een focusblok om ${tijdLabel(new Date(blok.startOp))}`}
+        aria-label={`Plan dit blok — focusblok om ${tijdLabel(new Date(blok.startOp))}`}
       >
         <CalendarClock size={13} strokeWidth={2.2} aria-hidden="true" />
         {bezig ? 'Bezig…' : 'Plan dit blok'}

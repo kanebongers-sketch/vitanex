@@ -237,9 +237,14 @@ function IconKnop({
         borderRadius: 999,
         border: '1px solid transparent',
         background: 'transparent',
-        color: zichtbaar ? 'var(--text-2)' : 'var(--text-4)',
+        // Ruststand `--text-3` op volle opacity, niet `--text-4` × 0.5. Die
+        // combinatie gaf ~2,2:1 — onder de 3:1 die WCAG 1.4.11 voor een grafische
+        // control eist. `--text-3` haalt ruim 3:1 en blijft zichtbaar op touch
+        // (waar er geen hover is om 'm te onthullen). Hover verheldert naar
+        // `--text-2`; dat is de affordance, niet het opdoemen uit het niets.
+        color: zichtbaar ? 'var(--text-2)' : 'var(--text-3)',
         cursor: uit ? 'not-allowed' : 'pointer',
-        opacity: uit ? 0.3 : zichtbaar ? 1 : 0.5,
+        opacity: uit ? 0.3 : 1,
         transition: 'opacity 180ms var(--ease), color 180ms var(--ease)',
       }}
     >

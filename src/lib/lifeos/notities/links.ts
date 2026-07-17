@@ -98,12 +98,35 @@ export function titelSleutel(ruw: unknown): string | null {
  * Een ONGESLOTEN fence loopt tot het einde (`` ``` `` zonder wederhelft): dat is
  * wat elke markdown-renderer doet, en `markdown.ts` doet het ook. Zou dat hier
  * niet zo zijn, dan week de grafiek weer af van wat je ziet.
+ *
+ * ─── DE FENCE MOET AAN HET REGELBEGIN STAAN ────────────────────────────────
+ *   `markdown.ts` opent een codeblok ALLEEN bij een regel die (na eventuele
+ *   witruimte) met `` ``` `` begint — `FENCE = /^\s*``` /`, per regel getest. Een
+ *   losse `` ``` `` MIDDEN in een zin ("zie ``` voor de config") is daar gewoon
+ *   tekst, en de `[[link]]` erachter rendert dus als link.
+ *
+ *   Deze functie deed dat eerst NIET: ze matchte `` ``` `` overal, en de
+ *   ongesloten-fence-regel maskeerde vanaf zo'n losse `` ``` `` alles tot het
+ *   einde van de tekst. Elke verwijzing daarna verdween stil uit `parseLinks` —
+ *   terwijl `markdown.ts` ze toonde. De grafiek miste dan kanten die op het
+ *   scherm stonden: precies de divergentie die de kop hierboven belooft te
+ *   voorkomen, maar omgekeerd.
+ *
+ *   Daarom ankeren beide fence-regels nu op regelbegin (`^[ \t]*```` met de
+ *   `m`-vlag), exact zoals `markdown.ts`. Een `` ``` `` midden in een regel valt
+ *   erbuiten en blijft staan; de code-span-stap raakt 'm ook niet (die eist een
+ *   sluitende backtick op dezelfde regel). Zo zijn de twee parsers het weer eens.
  */
 export function maskeerCode(tekst: string): string {
   return tekst
-    .replace(/```[\s\S]*?```/g, ' ') // gesloten fence
-    .replace(/```[\s\S]*$/, ' ') // ongesloten fence: tot het einde
-    .replace(/`[^`\n]+`/g, ' ') // code-span
+    // Gesloten fence: een regel die met ``` begint, tot en met de eerstvolgende
+    // regel die met ``` begint.
+    .replace(/^[ \t]*```[\s\S]*?\n[ \t]*```[^\n]*$/gm, ' ')
+    // Ongesloten fence: een resterende ```-openingsregel loopt tot het einde.
+    .replace(/^[ \t]*```[\s\S]*$/m, ' ')
+    // Code-span: `...` op één regel. Een losse ``` midden in een zin heeft geen
+    // sluitende backtick en valt hier dus buiten — net als in markdown.ts.
+    .replace(/`[^`\n]+`/g, ' ')
 }
 
 /**
@@ -137,16 +160,6 @@ export function parseLinks(tekst: string): string[] {
   }
 
   return uit
-}
-
-/**
- * Verwijst deze tekst naar die titel? Hoofdletterloos, en met dezelfde
- * code-blindering als `parseLinks` — één regel, één antwoord.
- */
-export function verwijstNaar(tekst: string, titel: unknown): boolean {
-  const sleutel = titelSleutel(titel)
-  if (sleutel === null) return false
-  return parseLinks(tekst).some((t) => t.toLowerCase() === sleutel)
 }
 
 /**
