@@ -23,20 +23,25 @@ function UitnodigingForm() {
   const [naam, setNaam] = useState('')
   const [toonWachtwoord, setToonWachtwoord] = useState(false)
   const [foutMelding, setFoutMelding] = useState('')
-  const [tokenData, setTokenData] = useState<{ email: string; bedrijf_id: string } | null>(null)
+  // Alleen het e-mailadres: bedrijf_id leidt de server uit het token af, zodat
+  // de client niet kan meebepalen bij welk bedrijf iemand belandt.
+  const [tokenData, setTokenData] = useState<{ email: string } | null>(null)
 
   useEffect(() => {
     async function checkToken() {
       if (!token) { setStatus('ongeldig'); return }
 
-      const { data } = await supabase
-        .from('uitnodiging_tokens')
-        .select('email, bedrijf_id, gebruikt')
-        .eq('token', token)
-        .single()
+      // Server-side lookup (service-role). Vroeger stond hier een directe query
+      // op uitnodiging_tokens, wat een publieke SELECT-policy vereiste — zie
+      // migratie 045.
+      const res = await fetch(`/api/uitnodiging?token=${encodeURIComponent(token)}`)
+      if (!res.ok) { setStatus('ongeldig'); return }
 
-      if (!data || data.gebruikt) { setStatus('ongeldig'); return }
-      setTokenData({ email: data.email, bedrijf_id: data.bedrijf_id })
+      const data: unknown = await res.json().catch(() => null)
+      const email = (data as { email?: unknown } | null)?.email
+      if (typeof email !== 'string') { setStatus('ongeldig'); return }
+
+      setTokenData({ email })
       setStatus('gereed')
     }
     checkToken()
@@ -75,16 +80,36 @@ function UitnodigingForm() {
       return
     }
 
-    // Profiel aanmaken
-    await supabase.from('profiles').upsert({
-      id: data.user.id,
-      naam: naam.trim(),
-      bedrijf_id: tokenData.bedrijf_id,
-      rol: 'medewerker',
+    // Profiel koppelen + token verbranden — server-side, want bedrijf_id hoort
+    // uit het token te komen en niet uit deze pagina. Zie migratie 045 en
+    // /api/uitnodiging/accepteer.
+    //
+    // De JWT is er normaal direct na signUp (zelfde aanname als
+    // /api/hr-code/koppel). Staat e-mailbevestiging aan én geeft Supabase geen
+    // sessie terug, dan kan de koppeling nu niet: dat melden we in plaats van
+    // het — zoals voorheen — stil te laten mislukken.
+    const sessie = data.session ?? (await supabase.auth.getSession()).data.session
+    if (!sessie) {
+      setStatus('bevestig_nodig')
+      return
+    }
+
+    const koppel = await fetch('/api/uitnodiging/accepteer', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${sessie.access_token}`,
+      },
+      body: JSON.stringify({ token, naam: naam.trim() }),
     })
 
-    // Token markeren als gebruikt
-    await supabase.from('uitnodiging_tokens').update({ gebruikt: true }).eq('token', token)
+    if (!koppel.ok) {
+      const body: unknown = await koppel.json().catch(() => null)
+      const melding = (body as { fout?: unknown } | null)?.fout
+      setFoutMelding(typeof melding === 'string' ? melding : 'Koppelen aan je bedrijf mislukte.')
+      setStatus('gereed')
+      return
+    }
 
     // Welkomstmail sturen (fire-and-forget)
     fetch('/api/welkom', {
