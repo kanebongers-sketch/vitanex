@@ -32,8 +32,13 @@ export async function GET(req: NextRequest, ctx: Context) {
   const uitkomst = await haalBacklinks(toegang.admin, toegang.userId, id)
 
   if (!uitkomst.ok) {
-    // Leeg ≠ fout: "niemand verwijst hiernaar" is een geldig antwoord en komt
-    // hieronder als `[]`. Dit is de storing, en die zegt dat ook.
+    // Een onleesbare id (`/notities/abc/backlinks`) is een cliëntfout → 400, geen
+    // storing. Zonder deze tak kreeg een typfout in de URL een 502, alsof de
+    // server het liet afweten. Leeg ≠ fout: "niemand verwijst hiernaar" komt
+    // hieronder als `[]`, niet hier.
+    if (uitkomst.reden === 'ongeldig') {
+      return NextResponse.json({ fout: 'Dat is geen geldige notitie.' }, { status: 400 })
+    }
     return NextResponse.json({ fout: 'Kon de verwijzingen niet ophalen.' }, { status: 502 })
   }
 

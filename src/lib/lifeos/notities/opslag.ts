@@ -29,6 +29,8 @@ export const KOLOMMEN =
 const UNIEK_GESCHONDEN = '23505'
 /** Postgres: check-constraint geschonden. */
 const CHECK_GESCHONDEN = '23514'
+/** Postgres: tekst die geen geldig type is — bv. 'abc' als uuid. */
+const ONLEESBAAR = '22P02'
 
 export type Reden = 'db' | 'bezet' | 'ongeldig' | 'niet_gevonden'
 export type Uitkomst<T> = { ok: true; waarde: T } | { ok: false; reden: Reden }
@@ -43,6 +45,9 @@ export function vertaalFout(error: unknown): Reden {
   const code = foutCode(error)
   if (code === UNIEK_GESCHONDEN) return 'bezet'
   if (code === CHECK_GESCHONDEN) return 'ongeldig'
+  // Een onleesbare id (`DELETE /notities/abc`) is een cliëntfout, geen storing:
+  // 'ongeldig' → 400, niet 'db' → 502. Zelfde keuze als projecten/opslag.ts.
+  if (code === ONLEESBAAR) return 'ongeldig'
   return 'db'
 }
 

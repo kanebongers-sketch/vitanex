@@ -80,12 +80,12 @@ export async function vereisFounder(
 ): Promise<{ email: string } | NextResponse> {
   const user = await getAuthenticatedUser(req)
   if (!user) {
-    return NextResponse.json({ error: 'Niet ingelogd.' }, { status: 401 })
+    return NextResponse.json({ fout: 'Niet ingelogd.' }, { status: 401 })
   }
   if (!isFounder(user)) {
     // Bewust dezelfde melding als "niet gevonden" zou geven: een niet-founder
     // hoeft niet te weten dát LifeOS hier draait.
-    return NextResponse.json({ error: 'Geen toegang.' }, { status: 403 })
+    return NextResponse.json({ fout: 'Geen toegang.' }, { status: 403 })
   }
   return { email: user.email ?? '' }
 }
@@ -109,6 +109,6 @@ export async function vereisLifeosToegang(
   } catch (fout) {
     const melding = fout instanceof Error ? fout.message : 'LifeOS-configuratie ontbreekt.'
     console.error('[lifeos] configuratiefout:', melding)
-    return NextResponse.json({ error: melding }, { status: 503 })
+    return NextResponse.json({ fout: melding }, { status: 503 })
   }
 }
