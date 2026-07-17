@@ -130,6 +130,23 @@ export default function HomePage() {
 
   useEffect(() => { void Promise.resolve().then(laad) }, [laad])
 
+  // Anker-scroll voor de founder (bv. de nav-link /home#mensen). Het anker-element
+  // (de Mensen-zone) bestaat pas als de cockpit gemount is — dat is ná de
+  // founder-check, dus ruim ná de eerste paint. De browser scrollt zelf alleen bij
+  // die eerste paint, toen het element er nog niet was; daarom scrollen we hier
+  // zelf zodra we weten dat het de founder is. Kleine vertraging zodat de kaarten
+  // eerst hun hoogte pakken. Same-page hash-klikken handelt de browser al af (dan
+  // bestaat het element al) — deze effect vuurt alleen op de eerste founder-render.
+  useEffect(() => {
+    if (isFounder !== true) return
+    const hash = window.location.hash
+    if (hash.length < 2) return
+    const t = setTimeout(() => {
+      document.getElementById(hash.slice(1))?.scrollIntoView({ block: 'start' })
+    }, 350)
+    return () => clearTimeout(t)
+  }, [isFounder])
+
   const groet = `${groetVoor(new Date().getHours())}, ${voornaam}`
 
   /* Afgeleide inzichten — pure logica op de pijlerdata. */
