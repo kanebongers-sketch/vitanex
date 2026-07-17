@@ -28,13 +28,24 @@ import { vereisLifeosToegang } from '@/lib/lifeos/admin'
 import { bepaalIntentie, vraagtOmBevestiging, type Intentie } from '@/lib/lifeos/intentie/intentie'
 import { maakAnthropicModel } from '@/lib/lifeos/intentie/intentie-model'
 import { leesTekst } from '@/lib/lifeos/notities/notities'
+import { isRateLimited } from '@/lib/utils/rate-limit'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
+// Elke aanroep is een betaalde model-call. Zelfde rem als de zusterroutes: de
+// founder-gate stopt vreemden, dit stopt een tikkende UI-lus. Per proces.
+const CATEGORISEER_MAX = 15
+const CATEGORISEER_VENSTER_MS = 60_000
+
 export async function POST(req: NextRequest) {
   const toegang = await vereisLifeosToegang(req)
   if (toegang instanceof NextResponse) return toegang
+
+  // Ná de gate, vóór het model.
+  if (isRateLimited(`notities:categoriseer:${toegang.userId}`, CATEGORISEER_MAX, CATEGORISEER_VENSTER_MS)) {
+    return NextResponse.json({ fout: 'Even te snel achter elkaar. Wacht een momentje.' }, { status: 429 })
+  }
 
   const body: unknown = await req.json().catch(() => null)
   const tekst = leesTekst((body as { tekst?: unknown } | null)?.tekst)

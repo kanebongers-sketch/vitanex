@@ -1,8 +1,12 @@
 // GET /api/lifeos/inbox/koppel — start de Gmail-koppeling.
 //
-// Alleen lezen: we vragen `gmail.readonly` en niets meer. LifeOS verstuurt nooit
-// een mail, markeert niets als gelezen en archiveert niets — dus vraagt het ook
-// geen toestemming om dat te mogen. Zie `src/lib/lifeos/inbox/gmail.ts`.
+// We vragen `gmail.modify` (zie `GMAIL_BEREIK` in `gmail.ts`): lezen, labelen,
+// archiveren en concepten schrijven. LifeOS verstuurt nooit een mail — maar let
+// op, dat is sinds deze scope GEEN scope-garantie meer maar een code-discipline.
+// Google heeft geen scope die concepten toestaat maar versturen verbiedt, dus de
+// scope zou het toelaten; er ís alleen nergens een send-pad in de code, en dat
+// hoort zo te blijven. De eerlijke uitleg staat bij `GMAIL_BEREIK` in
+// `src/lib/lifeos/inbox/gmail.ts` — lees die vóór je hier iets over aanpast.
 //
 // Achter de founder-gate: alleen de founder mag een mailbox koppelen. Het cookie
 // dat we hier zetten draagt het vaste LifeOS-eigenaar-id naar de callback, die

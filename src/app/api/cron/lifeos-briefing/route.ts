@@ -35,6 +35,7 @@
 
 import { type NextRequest } from 'next/server'
 import { createLifeosAdminClient, lifeosUserId } from '@/lib/lifeos/admin'
+import { geheimGelijk } from '@/lib/lifeos/auth/geheim'
 import { maakTelegramBot } from '@/lib/lifeos/telegram/bot'
 import { haalContext } from '@/lib/lifeos/vita/context'
 import { bepaalSignalen, lokaleTijd } from '@/lib/lifeos/vita/signalen'
@@ -72,11 +73,16 @@ function klaar(body: Record<string, unknown>): Response {
  * Fail-closed, gespiegeld aan `/api/cron/dagelijkse-briefing`: zonder
  * geconfigureerd `CRON_SECRET` is deze route niet aanroepbaar. Een cron die
  * standaard openstaat is een publieke knop die Telegram-berichten stuurt.
+ *
+ * De vergelijking is constant-tijd (`geheimGelijk`), net als bij de
+ * Telegram-webhook. Die twee routes hebben hetzelfde probleem — geen sessie, een
+ * gedeeld geheim in een header — en horen daarom hetzelfde slot te hebben. De
+ * legacy-cronroutes ernaast gebruiken nog een kale `===`; dat is geen reden om
+ * die fout hier over te nemen.
  */
 function secretGeldig(req: NextRequest): boolean {
-  const verwacht = process.env.CRON_SECRET ?? ''
   const gegeven = req.headers.get('x-cron-secret') ?? req.nextUrl.searchParams.get('secret')
-  return verwacht.length > 0 && gegeven === verwacht
+  return geheimGelijk(process.env.CRON_SECRET ?? '', gegeven)
 }
 
 export async function GET(req: NextRequest): Promise<Response> {

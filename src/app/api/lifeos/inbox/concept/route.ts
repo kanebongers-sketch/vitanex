@@ -23,15 +23,31 @@ import { vereisLifeosToegang } from '@/lib/lifeos/admin'
 import { leesConceptVerzoek, schrijfConcept, type ConceptModel } from '@/lib/lifeos/inbox/concept'
 import { maakAnthropicConceptModel } from '@/lib/lifeos/inbox/concept-model'
 import { maakConcept, actieFoutHttp } from '@/lib/lifeos/inbox/gmail-acties'
+import { isRateLimited } from '@/lib/utils/rate-limit'
 
 const CACHE_HEADERS = {
   'Cache-Control': 'private, no-store',
   Vary: 'Authorization',
 } as const
 
+// Elke aanroep stuurt afzender + onderwerp naar een betaald model. De founder-gate
+// houdt vreemden buiten, maar niet een dubbelklik of een kapotte retry-lus — en
+// dat is precies de rekening waar de zusterroutes (`vita/vraag`, `vita/geheugen`)
+// zich al tegen indekken. Per proces, dus een rem, geen quotum.
+const CONCEPT_MAX = 8
+const CONCEPT_VENSTER_MS = 60_000
+
 export async function POST(req: NextRequest) {
   const toegang = await vereisLifeosToegang(req)
   if (toegang instanceof NextResponse) return toegang
+
+  // Ná de gate (een 429 hoort niet te lekken dat deze route bestaat), vóór het model.
+  if (isRateLimited(`inbox:concept:${toegang.userId}`, CONCEPT_MAX, CONCEPT_VENSTER_MS)) {
+    return NextResponse.json(
+      { fout: 'Even te snel achter elkaar. Wacht een momentje.' },
+      { status: 429, headers: CACHE_HEADERS },
+    )
+  }
 
   const body: unknown = await req.json().catch(() => null)
   const verzoek = leesConceptVerzoek(body)

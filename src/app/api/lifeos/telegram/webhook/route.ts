@@ -22,7 +22,7 @@
 // zoals de andere LifeOS-opslag, alleen zonder de sessie-gate ervoor.
 
 import { NextResponse, type NextRequest } from 'next/server'
-import { createHash, timingSafeEqual } from 'node:crypto'
+import { geheimGelijk } from '@/lib/lifeos/auth/geheim'
 
 import { leesTelegramBericht, spraakTeLang, MAX_SPRAAK_SECONDEN, type TelegramBericht } from '@/lib/lifeos/telegram/update'
 import { bepaalActie, antwoordTekst } from '@/lib/lifeos/telegram/antwoord'
@@ -84,29 +84,21 @@ function maakOpslag(): UitvoerDeps {
 }
 
 /**
- * Constant-tijd vergelijking van twee geheimen.
- *
- * We hashen eerst naar 32 vaste bytes en vergelijken die met `timingSafeEqual`.
- * Zo lekt de vergelijking niet de lengte van het geheim (die eis stelt
- * `timingSafeEqual` zelf: even lange buffers) en blijft ze constant-tijd.
- */
-function veiligGelijk(a: string, b: string): boolean {
-  const ha = createHash('sha256').update(a).digest()
-  const hb = createHash('sha256').update(b).digest()
-  return timingSafeEqual(ha, hb)
-}
-
-/**
  * De ENIGE beveiliging van deze publieke route (naast de allowlist): het secret
  * dat alleen Telegram en wij kennen. Geen geconfigureerd secret → niemand komt
- * binnen (fail-closed).
+ * binnen (fail-closed; die keuze zit in `geheimGelijk`).
+ *
+ * De constant-tijd-vergelijking stond hier als eigen kopie. Ze is verhuisd naar
+ * `@/lib/lifeos/auth/geheim` omdat de cron-briefing exact hetzelfde probleem
+ * heeft — publieke route, geen sessie, geheim in een header — en daar een kale
+ * `===` gebruikte. Twee sloten die hetzelfde horen te doen, horen hetzelfde slot
+ * te zijn.
  */
 function secretGeldig(req: NextRequest): boolean {
-  const verwacht = process.env.LIFEOS_TELEGRAM_WEBHOOK_SECRET
-  if (!verwacht) return false
-  const gegeven = req.headers.get(SECRET_HEADER)
-  if (!gegeven) return false
-  return veiligGelijk(gegeven, verwacht)
+  return geheimGelijk(
+    process.env.LIFEOS_TELEGRAM_WEBHOOK_SECRET ?? '',
+    req.headers.get(SECRET_HEADER),
+  )
 }
 
 /**
