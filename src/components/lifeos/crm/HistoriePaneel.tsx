@@ -4,7 +4,7 @@ import { useState, type FormEvent } from 'react'
 import { ArrowRight, MessageSquarePlus, Phone, StickyNote } from 'lucide-react'
 import { Knop } from '@/components/lifeos/os/Knop'
 import { Foutmelding } from '@/components/lifeos/os/Foutmelding'
-import { statusDef, type Groep, type HistorieItem } from '@/lib/lifeos/crm/crm'
+import { statusDef, MAX_NOTITIE, type Groep, type HistorieItem } from '@/lib/lifeos/crm/crm'
 import type { HistorieStaat } from './useHistorie'
 
 // De status-geschiedenis als tijdlijn (nieuwste eerst) + een veld om een notitie
@@ -60,7 +60,7 @@ export function HistoriePaneel({ groep, staat, actieFout, bezig, onOpnieuw, onNo
           value={notitie}
           onChange={(e) => setNotitie(e.target.value)}
           placeholder="Wat gebeurde er? Wat is de volgende stap?"
-          maxLength={5000}
+          maxLength={MAX_NOTITIE}
           rows={2}
         />
         <div className="os-crm__notitie-actie">
@@ -83,7 +83,11 @@ function TijdlijnItem({ item, groep }: { item: HistorieItem; groep: Groep }) {
       </span>
       <div className="os-crm__tijdlijn-lijf">
         <p className="os-crm__tijdlijn-tekst">{tekstVan(item, groep)}</p>
-        {item.soort !== 'notitie' && item.notitie ? (
+        {/* De losse extra-notitie bij een gebeurtenis. NIET bij 'notitie' (die
+            staat al in de hoofdtekst) en NIET bij 'follow_up_gezet' (daar ís de
+            notitie de dag, die al geformatteerd in de hoofdtekst staat — anders
+            zag je de rauwe '2026-07-20' er dubbel onder). */}
+        {item.soort !== 'notitie' && item.soort !== 'follow_up_gezet' && item.notitie ? (
           <p className="os-crm__tijdlijn-extra">{item.notitie}</p>
         ) : null}
         <time className="os-crm__tijdlijn-tijd">{tijdVan(item.aangemaaktOp)}</time>
@@ -111,11 +115,24 @@ function tekstVan(item: HistorieItem, groep: Groep): string {
     }
     case 'contact_gelegd':
       return 'Contact gelegd'
-    case 'follow_up_gezet':
-      return item.naarStatus ? `Follow-up gezet op ${item.naarStatus}` : 'Follow-up gezet'
+    case 'follow_up_gezet': {
+      // De gezette dag staat in `notitie` (zie opslag.ts) — niet in naarStatus,
+      // dat is voor dit soort per DB-constraint altijd null.
+      const dag = datumLabel(item.notitie)
+      return dag === null ? 'Follow-up gezet' : `Follow-up gezet op ${dag}`
+    }
     case 'notitie':
       return item.notitie ?? 'Notitie'
   }
+}
+
+/** 'vr 20 jul' uit een YYYY-MM-DD-sleutel, of null als het geen geldige dag is. */
+function datumLabel(sleutel: string | null): string | null {
+  if (sleutel === null || !/^\d{4}-\d{2}-\d{2}$/.test(sleutel)) return null
+  const [jaar, maand, dag] = sleutel.split('-').map(Number)
+  const d = new Date(jaar, maand - 1, dag)
+  if (Number.isNaN(d.getTime())) return null
+  return d.toLocaleDateString('nl-NL', { weekday: 'short', day: 'numeric', month: 'short' })
 }
 
 /** '18 jul 14:30'. Compact — dit staat onder een regel tekst. */

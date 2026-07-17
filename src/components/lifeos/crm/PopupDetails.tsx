@@ -3,7 +3,14 @@
 import { useId, useState, type ReactNode } from 'react'
 import { Mail, Phone, X } from 'lucide-react'
 import { Knop } from '@/components/lifeos/os/Knop'
-import type { Groep, Persoon, PersoonWijziging } from '@/lib/lifeos/crm/crm'
+import {
+  MAX_BIJZONDERHEDEN,
+  MAX_EMAIL,
+  MAX_TELEFOON,
+  type Groep,
+  type Persoon,
+  type PersoonWijziging,
+} from '@/lib/lifeos/crm/crm'
 import { StatusKiezer } from './StatusKiezer'
 
 // De bewerkbare kant van de popup: status verzetten, contact bijwerken (met een
@@ -103,7 +110,7 @@ function ContactVeld({ label, type, waarde, href, icoon, onOpslaan }: ContactVel
           type={type}
           className="os-crm__invoer"
           value={tekst}
-          maxLength={type === 'email' ? 320 : 40}
+          maxLength={type === 'email' ? MAX_EMAIL : MAX_TELEFOON}
           onChange={(e) => setTekst(e.target.value)}
           onBlur={() => {
             if (vuil) void onOpslaan(tekst.trim() || null)
@@ -147,7 +154,7 @@ function BijzonderhedenVeld({
         className="os-crm__invoer os-crm__textarea"
         value={tekst}
         onChange={(e) => setTekst(e.target.value)}
-        maxLength={5000}
+        maxLength={MAX_BIJZONDERHEDEN}
         rows={3}
         placeholder="Wat is belangrijk om te onthouden over deze persoon?"
       />

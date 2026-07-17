@@ -229,7 +229,12 @@ async function logWijzigingen(
     gebeurtenissen.push({ soort: 'status_wijziging', vanStatus, naarStatus: persoon.status })
   }
   if (isGezet(wijziging.laatsteContactOp)) gebeurtenissen.push({ soort: 'contact_gelegd' })
-  if (isGezet(wijziging.followUpDatum)) gebeurtenissen.push({ soort: 'follow_up_gezet' })
+  // De gezette dag gaat mee als `notitie` (het schema heeft geen apart datumveld
+  // voor dit soort), zodat de tijdlijn "Follow-up gezet op 20 jul" kan tonen i.p.v.
+  // een kaal "Follow-up gezet". `isGezet` garandeert dat het een string is.
+  if (isGezet(wijziging.followUpDatum)) {
+    gebeurtenissen.push({ soort: 'follow_up_gezet', notitie: wijziging.followUpDatum ?? null })
+  }
 
   for (const gebeurtenis of gebeurtenissen) {
     const uit = await logGebeurtenis(admin, userId, persoon.id, gebeurtenis)

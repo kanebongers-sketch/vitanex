@@ -4,7 +4,15 @@ import { useState, type FormEvent, type ReactNode } from 'react'
 import { ChevronDown, UserPlus } from 'lucide-react'
 import { Knop } from '@/components/lifeos/os/Knop'
 import { Foutmelding } from '@/components/lifeos/os/Foutmelding'
-import { beginStatus, statussenVoorGroep, type Groep } from '@/lib/lifeos/crm/crm'
+import {
+  beginStatus,
+  statussenVoorGroep,
+  MAX_NAAM,
+  MAX_TELEFOON,
+  MAX_EMAIL,
+  MAX_BIJZONDERHEDEN,
+  type Groep,
+} from '@/lib/lifeos/crm/crm'
 import type { NieuwePersoonInvoer } from './useMensen'
 
 // Iemand toevoegen aan de groep. Presentationeel: velden erin, één callback
@@ -69,7 +77,7 @@ export function NieuwePersoon({ groep, bezig, onToevoegen }: NieuwePersoonProps)
           value={naam}
           onChange={(e) => setNaam(e.target.value)}
           placeholder="Naam toevoegen…"
-          maxLength={200}
+          maxLength={MAX_NAAM}
         />
         <label htmlFor="crm-status" className="sr-only">
           Startstatus
@@ -116,7 +124,7 @@ export function NieuwePersoon({ groep, bezig, onToevoegen }: NieuwePersoonProps)
               className="os-crm__invoer"
               value={telefoon}
               onChange={(e) => setTelefoon(e.target.value)}
-              maxLength={40}
+              maxLength={MAX_TELEFOON}
             />
           </Veld>
           <Veld label="E-mail" htmlFor="crm-email">
@@ -126,7 +134,7 @@ export function NieuwePersoon({ groep, bezig, onToevoegen }: NieuwePersoonProps)
               className="os-crm__invoer"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              maxLength={320}
+              maxLength={MAX_EMAIL}
             />
           </Veld>
           <Veld label="Follow-up-dag" htmlFor="crm-followup">
@@ -146,7 +154,7 @@ export function NieuwePersoon({ groep, bezig, onToevoegen }: NieuwePersoonProps)
                 className="os-crm__invoer os-crm__textarea"
                 value={bijzonderheden}
                 onChange={(e) => setBijzonderheden(e.target.value)}
-                maxLength={5000}
+                maxLength={MAX_BIJZONDERHEDEN}
                 rows={2}
               />
             </Veld>
