@@ -1,0 +1,54 @@
+-- ─────────────────────────────────────────────────────────────────────────────
+-- 046 — wearable_tokens: geen OAuth-tokens meer in de browser
+-- ─────────────────────────────────────────────────────────────────────────────
+-- Wat er stond (003_wearable_tokens.sql:17-23):
+--
+--   create policy "tokens: eigen lezen"
+--     on wearable_tokens for select using (auth.uid() = user_id);
+--   create policy "tokens: admin alles"
+--     on wearable_tokens for all using (
+--       exists (select 1 from profiles where id = auth.uid() and rol = 'admin')
+--     );
+--
+-- Twee problemen.
+--
+-- (1) "eigen lezen" gaf de browser leestoegang tot access_token en
+--     refresh_token — die plat in de kolommen staan. En de app gebruikte dat
+--     ook: src/app/(app)/koppelingen/page.tsx haalde het access_token op om er
+--     een booleaan van te maken ("ben ik gekoppeld?"). Het token stond daarmee
+--     in het geheugen van de tab, bereikbaar voor élk script op de pagina. Eén
+--     XSS = toegang tot iemands Google Fit / Calendar / Fitbit, permanent:
+--     een refresh-token verloopt niet vanzelf.
+--
+-- (2) "admin alles" is FOR ALL, zonder WITH CHECK, en scopet niet op bedrijf.
+--     Elke admin kon dus de tokens van álle gebruikers lezen, wijzigen en
+--     verwijderen. Voor een B2B-product met een anonimiteitsbelofte is dat een
+--     te grote hamer — en hij was nergens voor nodig: alle server-flows lopen
+--     al via createAdminClient() (service-role), die RLS sowieso bypasst.
+--
+-- Na deze migratie heeft wearable_tokens RLS aan en géén enkele policy. Dat is
+-- geen omissie maar het patroon dat 044 zelf als correct documenteert: "RLS aan
+-- zonder policy = deny-all = fail-closed". De tabel wordt uitsluitend nog door
+-- de service-role aangeraakt.
+--
+-- De client praat vanaf nu via twee routes die alleen booleans teruggeven:
+--   GET  /api/koppelingen/status     — wat is er gekoppeld?
+--   POST /api/koppelingen/ontkoppel  — verbreek een koppeling
+--
+-- Bijvangst: het ontkoppelen wérkte niet voor niet-admins. Er was nooit een
+-- DELETE-policy, de client checkte de fout niet, en de toast meldde toch succes.
+-- Dat is nu een echte server-delete met een eerlijk antwoord.
+--
+-- Idempotent: drop if exists. Veilig opnieuw te draaien.
+--
+-- LET OP bij deployen: migratie + routes horen samen. Een oude client tegen een
+-- nieuwe database ziet Google Fit als "niet gekoppeld" (de query wordt geweigerd)
+-- en ontkoppelen doet dan niets — precies de stille storing die hierboven is
+-- beschreven, maar dan zichtbaar.
+
+drop policy if exists "tokens: eigen lezen" on wearable_tokens;
+drop policy if exists "tokens: admin alles" on wearable_tokens;
+
+-- Expliciet intrekken, zoals 036_app_events.sql doet: policies zijn weg, maar
+-- laat geen table-grants achter waar RLS omheen zou kunnen vallen.
+revoke all on table wearable_tokens from anon, authenticated;

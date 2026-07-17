@@ -21,7 +21,7 @@
 // bij een bedrijf waar je niet voor uitgenodigd bent.
 
 import { NextResponse, type NextRequest } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { getAuthenticatedUser } from '@/lib/auth/api-auth'
 import { createAdminClient } from '@/lib/supabase/supabase-admin'
 
 const TOKEN_PATROON = /^[0-9a-f]{48}$/
@@ -49,20 +49,9 @@ export function uitnodigingHoortBij(tokenEmail: string, sessieEmail: string): bo
 
 export async function POST(req: NextRequest) {
   // ── 1. Auth ──────────────────────────────────────────────────────────────
-  const authHeader = req.headers.get('authorization')
-  if (!authHeader?.startsWith('Bearer ')) {
+  const user = await getAuthenticatedUser(req)
+  if (!user?.email) {
     return NextResponse.json({ fout: 'Niet ingelogd.' }, { status: 401 })
-  }
-
-  const supabaseUser = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    { global: { headers: { Authorization: authHeader } } },
-  )
-
-  const { data: { user }, error: authFout } = await supabaseUser.auth.getUser()
-  if (authFout || !user?.email) {
-    return NextResponse.json({ fout: 'Ongeldige sessie.' }, { status: 401 })
   }
 
   // ── 2. Body ──────────────────────────────────────────────────────────────

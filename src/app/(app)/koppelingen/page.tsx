@@ -135,17 +135,18 @@ function KoppelingenInhoud() {
         toast({ title: 'Google Fit succesvol gekoppeld!', variant: 'success' })
       }
 
-      // Check of Google Fit al gekoppeld is
+      // Check of Google Fit al gekoppeld is. Dit was een directe query op
+      // wearable_tokens die het access_token ophaalde om er een booleaan van te
+      // maken — het token stond daarmee in elke tab. De server antwoordt nu met
+      // alleen die booleaan. Zie migratie 046.
       setFitLaden(true)
-      supabase.from('wearable_tokens')
-        .select('access_token')
-        .eq('user_id', user.id)
-        .eq('provider', 'google_fit')
-        .maybeSingle()
-        .then(({ data }) => {
-          if (data?.access_token) setFitVerbonden(true)
-          setFitLaden(false)
+      authFetch('/api/koppelingen/status')
+        .then(r => (r.ok ? r.json() : null))
+        .then((status: { google_fit?: boolean } | null) => {
+          if (status?.google_fit) setFitVerbonden(true)
         })
+        .catch(() => {})
+        .finally(() => setFitLaden(false))
 
       // Health Connect (alleen Android app)
       const android = isAndroidApp()
@@ -200,7 +201,20 @@ function KoppelingenInhoud() {
 
   async function ontkoppel(provider: 'fitbit' | 'google_calendar' | 'google_fit') {
     if (!userId) return
-    await supabase.from('wearable_tokens').delete().eq('user_id', userId).eq('provider', provider)
+
+    // Ging vroeger rechtstreeks naar de tabel. Dat faalde stil voor iedereen die
+    // geen admin was — er was nooit een DELETE-policy, de fout werd niet gelezen
+    // en deze toast beloofde toch succes. Zie migratie 046.
+    const res = await authFetch('/api/koppelingen/ontkoppel', {
+      method: 'POST',
+      body: JSON.stringify({ provider }),
+    }).catch(() => null)
+
+    if (!res?.ok) {
+      toast({ title: 'Ontkoppelen mislukt. Probeer opnieuw.', variant: 'error' })
+      return
+    }
+
     if (provider === 'fitbit') { setFitbitVerbonden(false); setFitbitData(null) }
     else if (provider === 'google_fit') { setFitVerbonden(false); setFitData(null) }
     else { setCalVerbonden(false); setCalData(null) }
