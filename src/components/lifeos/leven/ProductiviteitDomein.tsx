@@ -4,7 +4,7 @@ import { Foutmelding } from '@/components/lifeos/os/Foutmelding'
 import { DomeinSectie, Stat, StatRij } from './DomeinSectie'
 import { useDomein, type DomeinUitkomst } from './useDomein'
 import { DomeinSkelet } from './DomeinSkelet'
-import { haalJson, isObject, getalOfNull } from '@/lib/lifeos/api/http'
+import { haalJson, haalJsonGedeeld, isObject, getalOfNull } from '@/lib/lifeos/api/http'
 import { leesTakenAntwoord } from '@/lib/lifeos/taken/taken'
 import { duurLabel } from '@/lib/lifeos/datum/datum'
 
@@ -44,7 +44,8 @@ async function haalProductiviteit(): Promise<DomeinUitkomst<ProductiviteitData>>
   const [taken, focus] = await Promise.all([
     // `alle=1`: inclusief backlog en "ooit". We tellen hier je hele stapel, niet
     // alleen vandaag — dat is juist wat een domein-overzicht moet laten zien.
-    haalJson('/api/lifeos/taken?alle=1', leesTakenAntwoord),
+    // Gedeeld: TakenLijst haalt dezelfde lijst ook op deze paginaload.
+    haalJsonGedeeld('/api/lifeos/taken?alle=1', leesTakenAntwoord),
     haalJson('/api/focus/log', leesFocus),
   ])
 

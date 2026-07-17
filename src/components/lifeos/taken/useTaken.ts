@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { haalJson, leesNiets } from '@/lib/lifeos/api/http'
+import { haalJson, haalJsonGedeeld, leesNiets } from '@/lib/lifeos/api/http'
 import {
   leesTaakAntwoord,
   leesTakenAntwoord,
@@ -47,7 +47,10 @@ export function useTaken(): TakenBediening {
 
   const laad = useCallback((): Promise<void> => {
     const mijn = ++generatie.current
-    return haalJson('/api/lifeos/taken?alle=1', leesTakenAntwoord).then((uitkomst) => {
+    // Gedeeld: ProductiviteitDomein haalt dezelfde lijst ook op bij het openen van
+    // de cockpit. In-flight coalescing, dus een latere refresh (na een schrijf)
+    // krijgt gewoon verse data — er hangt niets in cache.
+    return haalJsonGedeeld('/api/lifeos/taken?alle=1', leesTakenAntwoord).then((uitkomst) => {
       if (mijn !== generatie.current) return // ingehaald of ontkoppeld
       setStaat(
         uitkomst.ok

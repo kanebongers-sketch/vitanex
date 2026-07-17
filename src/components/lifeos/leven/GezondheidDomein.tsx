@@ -5,7 +5,7 @@ import { KnopLink } from '@/components/lifeos/os/Knop'
 import { DomeinSectie, Stat, StatRij } from './DomeinSectie'
 import { useDomein, type DomeinUitkomst } from './useDomein'
 import { DomeinSkelet } from './DomeinSkelet'
-import { haalJson, isObject, getalOfNull } from '@/lib/lifeos/api/http'
+import { haalJson, haalJsonGedeeld, isObject, getalOfNull } from '@/lib/lifeos/api/http'
 import { leesWellbeing, type WellbeingView } from '@/components/lifeos/welzijn/lees-welzijn'
 import { scoreNiveau } from '@/lib/pijlers/score'
 
@@ -51,7 +51,8 @@ function leesGewicht(ruw: unknown): { gewichtKg: number | null } | null {
 
 async function haalGezondheid(): Promise<DomeinUitkomst<GezondheidData>> {
   const [pijlers, vandaag, metingen] = await Promise.all([
-    haalJson('/api/pijlers', leesWellbeing),
+    // Gedeeld: WelzijnScoreKaart haalt /api/pijlers ook op deze paginaload.
+    haalJsonGedeeld('/api/pijlers', leesWellbeing),
     haalJson('/api/vandaag', leesVandaag),
     haalJson('/api/lichaamsmetingen', leesGewicht),
   ])

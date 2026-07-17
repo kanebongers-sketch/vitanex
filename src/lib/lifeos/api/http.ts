@@ -62,6 +62,46 @@ export function leesFoutmelding(ruw: unknown): string {
 }
 
 /**
+ * Het ruwe resultaat van een fetch, vóór het narrowen. Splitst de drie uitkomsten
+ * die de narrow-stap verschillend behandelt: netwerkfout, HTTP-fout, en gelukt.
+ */
+type RuweUitkomst =
+  | { soort: 'netwerkfout' }
+  | { soort: 'httpfout'; ruw: unknown; status: number }
+  | { soort: 'ok'; ruw: unknown; status: number }
+
+/** De fetch + het parsen. Puur de netwerkkant, geen narrowing — die komt erna. */
+async function haalRuw(pad: string, init: RequestInit): Promise<RuweUitkomst> {
+  let antwoord: Response
+  try {
+    const headers = new Headers(init.headers)
+    headers.set('Accept', 'application/json')
+    antwoord = await authFetch(pad, { ...init, headers })
+  } catch {
+    // Offline, DNS, afgebroken — een echte fout, geen lege staat.
+    return { soort: 'netwerkfout' }
+  }
+
+  const ruw: unknown = antwoord.status === 204 ? null : await antwoord.json().catch(() => null)
+  return antwoord.ok
+    ? { soort: 'ok', ruw, status: antwoord.status }
+    : { soort: 'httpfout', ruw, status: antwoord.status }
+}
+
+/** Narrowt een ruwe uitkomst met `lees`. De systeemgrens: fout ≠ leeg. */
+function narrowRuw<T>(uitkomst: RuweUitkomst, lees: (ruw: unknown) => T | null): HaalUitkomst<T> {
+  if (uitkomst.soort === 'netwerkfout') return { ok: false, fout: 'Geen verbinding.', status: 0 }
+  if (uitkomst.soort === 'httpfout') {
+    return { ok: false, fout: leesFoutmelding(uitkomst.ruw), status: uitkomst.status }
+  }
+  const waarde = lees(uitkomst.ruw)
+  if (waarde === null) {
+    return { ok: false, fout: 'Onverwacht antwoord van de server.', status: uitkomst.status }
+  }
+  return { ok: true, waarde }
+}
+
+/**
  * Haalt JSON op en narrowt het antwoord met `lees`.
  *
  * Geen cast: een server die iets anders teruggeeft dan afgesproken levert een
@@ -72,28 +112,44 @@ export async function haalJson<T>(
   lees: (ruw: unknown) => T | null,
   init: RequestInit = {},
 ): Promise<HaalUitkomst<T>> {
-  let antwoord: Response
-  try {
-    const headers = new Headers(init.headers)
-    headers.set('Accept', 'application/json')
-    antwoord = await authFetch(pad, { ...init, headers })
-  } catch {
-    // Offline, DNS, afgebroken — een echte fout, geen lege staat.
-    return { ok: false, fout: 'Geen verbinding.', status: 0 }
+  return narrowRuw(await haalRuw(pad, init), lees)
+}
+
+// ─── Gedeelde vluchten ───────────────────────────────────────────────────────
+// Twee kaarten kunnen bij dezelfde paginaload dezelfde GET doen: WelzijnScoreKaart
+// én GezondheidDomein halen `/api/pijlers` (met verschillende narrowers), TakenLijst
+// én ProductiviteitDomein halen `/api/lifeos/taken?alle=1`. Zonder dit rekent de
+// server dezelfde (niet-goedkope) pijler-score twee keer uit per load.
+//
+// Dit is PURE in-flight coalescing, geen cache: alleen requests die op hetzelfde
+// moment nog onderweg zijn, delen één vlucht. Zodra de vlucht klaar is, is de
+// entry weg — dus een latere mount doet een verse fetch en er kan geen stale data
+// blijven hangen. Daarom raakt het ook geen schrijfacties: die veranderen niets
+// aan een vlucht die al binnen is.
+const vluchten = new Map<string, Promise<RuweUitkomst>>()
+
+/**
+ * Als `haalJson`, maar deelt een GELIJKTIJDIGE identieke GET met andere kaarten.
+ * Alleen voor read-only endpoints zonder eigen `init` (de coalescing key is puur
+ * het pad — een afwijkende body/headers zou stil de verkeerde vlucht delen).
+ * De narrower blijft per aanroeper: de ruwe respons wordt gedeeld, het narrowen
+ * niet.
+ */
+export async function haalJsonGedeeld<T>(
+  pad: string,
+  lees: (ruw: unknown) => T | null,
+): Promise<HaalUitkomst<T>> {
+  let vlucht = vluchten.get(pad)
+  if (vlucht === undefined) {
+    vlucht = haalRuw(pad, {})
+    vluchten.set(pad, vlucht)
+    // Opruimen ná settle, zodat de volgende load vers begint. `void` want de
+    // wachtenden hangen aan `vlucht` zelf, niet aan deze opruim-belofte.
+    void vlucht.finally(() => {
+      if (vluchten.get(pad) === vlucht) vluchten.delete(pad)
+    })
   }
-
-  const ruw: unknown = antwoord.status === 204 ? null : await antwoord.json().catch(() => null)
-
-  if (!antwoord.ok) {
-    return { ok: false, fout: leesFoutmelding(ruw), status: antwoord.status }
-  }
-
-  const waarde = lees(ruw)
-  if (waarde === null) {
-    return { ok: false, fout: 'Onverwacht antwoord van de server.', status: antwoord.status }
-  }
-
-  return { ok: true, waarde }
+  return narrowRuw(await vlucht, lees)
 }
 
 /** Voor endpoints waarvan alleen "het lukte" telt. */

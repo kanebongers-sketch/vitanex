@@ -5,7 +5,7 @@ import { Minus, TrendingDown, TrendingUp } from 'lucide-react'
 import { Kaart, NogNiets } from '@/components/lifeos/os/Kaart'
 import { KnopLink } from '@/components/lifeos/os/Knop'
 import { Foutmelding } from '@/components/lifeos/os/Foutmelding'
-import { haalJson, isObject, getalOfNull } from '@/lib/lifeos/api/http'
+import { haalJson, haalJsonGedeeld, isObject, getalOfNull } from '@/lib/lifeos/api/http'
 import { PIJLERS, PIJLER_KEYS, isPijlerKey, type PijlerKey } from '@/lib/pijlers/pijlers'
 import { scoreNiveau, type NiveauInfo, type TrendRichting } from '@/lib/pijlers/score'
 import { weekdagKort, weekdagLang } from '@/lib/pijlers/week'
@@ -114,7 +114,8 @@ export function WelzijnScoreKaart() {
     // zónder strip in plaats van de hele kaart op fout te zetten. Het
     // wellbeing-antwoord is wél verplicht — faalt dát, dan is het een storing.
     return Promise.all([
-      haalJson('/api/pijlers', leesWelzijn),
+      // Gedeeld: GezondheidDomein haalt /api/pijlers ook op deze paginaload.
+      haalJsonGedeeld('/api/pijlers', leesWelzijn),
       haalJson('/api/pijlers/week', leesWeek),
     ]).then(([welzijn, week]) => {
       if (mijn !== generatie.current) return
