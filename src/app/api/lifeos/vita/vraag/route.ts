@@ -29,8 +29,15 @@ import Anthropic from '@anthropic-ai/sdk'
 import type { Stream } from '@anthropic-ai/sdk/streaming'
 import { NextResponse, type NextRequest } from 'next/server'
 import { vereisLifeosToegang } from '@/lib/lifeos/admin'
+import { isRateLimited } from '@/lib/utils/rate-limit'
 import { bouwContextBlok } from '@/lib/lifeos/vita/context'
 import { VITA_PERSONA } from '@/lib/lifeos/vita/persona'
+import {
+  isBericht,
+  MAX_GESCHIEDENIS,
+  MAX_VRAAG_TEKENS,
+  type Bericht,
+} from '@/lib/lifeos/vita/gesprek'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -52,31 +59,31 @@ const MODEL = 'claude-sonnet-5'
  */
 const MAX_TOKENS = 2000
 
-/** Grenzen op de invoer. Valideren op de systeemgrens, falen met een duidelijke melding. */
-const MAX_VRAAG_TEKENS = 4000
-const MAX_GESCHIEDENIS = 20
+/**
+ * De rem op een betaald model.
+ *
+ * De founder-gate is het slot — dit is er niet tegen een aanvaller maar tegen een
+ * dubbelklik, een `useEffect` die twee keer vuurt en een retry-loop in de UI. Elke
+ * vraag stuurt de hele dagcontext mee als invoertokens; een loop die dertig keer
+ * per minuut vuurt is dus geen ergernis maar een rekening.
+ *
+ * EERLIJKE PRIJS: in-memory en dus PER PROCES. Draaien er meerdere instances, dan
+ * geldt deze grens per instance en niet globaal; na een herstart is de teller leeg.
+ * Voor een single-tenant app achter een founder-gate is dat genoeg. Noem het geen
+ * quota — dat is het niet.
+ */
+const VRAAG_MAX = 12
+const VRAAG_VENSTER_MS = 60_000
 
-type Rol = 'gebruiker' | 'vita'
-
-interface Bericht {
-  rol: Rol
-  tekst: string
-}
-
+/**
+ * De invoergrenzen (`MAX_VRAAG_TEKENS`, `MAX_GESCHIEDENIS`) en de vorm van een
+ * `Bericht` komen uit `lib/lifeos/vita/gesprek` — dezelfde bron als de client. Zo
+ * kan het invoerveld niet 5000 tekens accepteren die deze route daarna weigert.
+ * De client is het gemak; deze route is het slot.
+ */
 interface GeldigeInvoer {
   vraag: string
   geschiedenis: Bericht[]
-}
-
-function isBericht(v: unknown): v is Bericht {
-  if (typeof v !== 'object' || v === null) return false
-  const b = v as Record<string, unknown>
-  return (
-    (b.rol === 'gebruiker' || b.rol === 'vita') &&
-    typeof b.tekst === 'string' &&
-    b.tekst.length > 0 &&
-    b.tekst.length <= MAX_VRAAG_TEKENS
-  )
 }
 
 /** Valideert de body. Geeft een foutmelding terug i.p.v. te gokken wat bedoeld werd. */
@@ -195,6 +202,12 @@ function naarTekstStroom(
 export async function POST(request: NextRequest): Promise<Response> {
   const toegang = await vereisLifeosToegang(request)
   if (toegang instanceof NextResponse) return toegang
+
+  // Ná de gate (een 429 hoort niet te lekken dat deze route bestaat) en vóór het
+  // model (anders remt hij niets wat geld kost).
+  if (isRateLimited(`vita:vraag:${toegang.userId}`, VRAAG_MAX, VRAAG_VENSTER_MS)) {
+    return fout('Even te snel achter elkaar. Wacht een momentje.', 429)
+  }
 
   const sleutel = process.env.ANTHROPIC_API_KEY
   if (!sleutel) {

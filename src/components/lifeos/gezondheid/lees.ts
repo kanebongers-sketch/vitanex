@@ -1,21 +1,13 @@
 // ─── Gezondheids-kaarten — gedeelde narrowing ──────────────────────────────
-// Kleine, gedeelde bouwstenen om `unknown` server-antwoorden veilig te smallen
-// zonder cast. Eén bron van waarheid voor de drie invoerkaarten (voeding, water,
-// workout), zodat we `isObject`/`getalOfNull` niet drie keer overschrijven.
+// De narrowing-bouwstenen wonen nu in `lib/lifeos/api/http.ts`, náást `haalJson`
+// dat ze gebruikt. Ze stonden hier, in `WelzijnScoreKaart` én in `http.ts` —
+// drie kopieën van dezelfde vier regels, die stilletjes uit elkaar konden
+// groeien terwijl ze de systeemgrens bewaken.
+//
+// Ze worden hier doorgegeven zodat de bestaande imports blijven werken; nieuwe
+// code haalt ze rechtstreeks uit `@/lib/lifeos/api/http`.
 
-export function isObject(v: unknown): v is Record<string, unknown> {
-  return typeof v === 'object' && v !== null && !Array.isArray(v)
-}
-
-/** Eindig getal of `null` — nooit NaN, nooit een string die op een getal lijkt. */
-export function getalOfNull(v: unknown): number | null {
-  return typeof v === 'number' && Number.isFinite(v) ? v : null
-}
-
-/** Niet-lege string of `null`. */
-export function tekstOfNull(v: unknown): string | null {
-  return typeof v === 'string' && v.trim().length > 0 ? v : null
-}
+export { isObject, getalOfNull, tekstOfNull } from '@/lib/lifeos/api/http'
 
 /**
  * Genereert een tijdelijke client-id voor een optimistisch toegevoegde regel.

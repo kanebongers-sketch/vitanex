@@ -8,6 +8,8 @@ import type { HaalUitkomst } from '@/lib/lifeos/api/http'
 import type { Suggestie } from '@/lib/lifeos/inbox/analyse'
 import { actieVan, type ActieSuggestie } from './suggestie-actie'
 import { SuggestieActie } from './SuggestieActie'
+import { MailActies } from './MailActies'
+import type { MailActieSoort } from './mail-acties'
 import type { AnalyseStatus } from './useSuggesties'
 
 // Presentationeel: props erin, UI eruit. Geen fetch, geen klok — de enige state
@@ -39,6 +41,10 @@ interface TriagelijstProps {
   analyseStatus: AnalyseStatus
   /** Maakt de taak/afspraak aan. De container is de enige plek met de fetch. */
   onMaak: (actie: ActieSuggestie) => Promise<HaalUitkomst<true>>
+  /** Archiveert of markeert als gelezen — raakt Gmail zelf. Weglaten = geen knoppen. */
+  onMailActie?: (soort: MailActieSoort, mail: TriageMailJson) => Promise<HaalUitkomst<true>>
+  /** Laat Vita een concept-antwoord schrijven. Weglaten = geen concept-knop. */
+  onConcept?: (mail: TriageMailJson) => Promise<HaalUitkomst<true>>
 }
 
 export function Triagelijst({
@@ -48,6 +54,8 @@ export function Triagelijst({
   suggestieVoor,
   analyseStatus,
   onMaak,
+  onMailActie,
+  onConcept,
 }: TriagelijstProps) {
   if (gescand === 0 && nietGelezen === 0) {
     // Wél gekeken, niets gevonden. Dat is een antwoord, geen lege staat: er ligt
@@ -95,7 +103,13 @@ export function Triagelijst({
       <ul style={{ display: 'grid', gap: 10, listStyle: 'none', padding: 0, margin: 0 }}>
         {mails.map((mail) => (
           <li key={mail.id}>
-            <Regel mail={mail} actie={actieVan(suggestieVoor(mail.id))} onMaak={onMaak} />
+            <Regel
+              mail={mail}
+              actie={actieVan(suggestieVoor(mail.id))}
+              onMaak={onMaak}
+              onMailActie={onMailActie}
+              onConcept={onConcept}
+            />
           </li>
         ))}
       </ul>
@@ -180,6 +194,8 @@ interface RegelProps {
   /** De aanmaakbare actie voor deze mail, of null (geen suggestie → geen knop). */
   actie: ActieSuggestie | null
   onMaak: (actie: ActieSuggestie) => Promise<HaalUitkomst<true>>
+  onMailActie?: TriagelijstProps['onMailActie']
+  onConcept?: TriagelijstProps['onConcept']
 }
 
 /**
@@ -193,7 +209,7 @@ interface RegelProps {
  * zonder `noopener` krijgt de geopende pagina `window.opener` en kan hij deze tab
  * wegnavigeren.
  */
-function Regel({ mail, actie, onMaak }: RegelProps) {
+function Regel({ mail, actie, onMaak, onMailActie, onConcept }: RegelProps) {
   const [hover, setHover] = useState(false)
 
   const afzender = mail.afzender ?? 'Onbekende afzender'
@@ -274,6 +290,10 @@ function Regel({ mail, actie, onMaak }: RegelProps) {
       </a>
 
       {actie ? <SuggestieActie actie={actie} onMaak={onMaak} /> : null}
+
+      {onMailActie && onConcept ? (
+        <MailActies mail={mail} onActie={onMailActie} onConcept={onConcept} />
+      ) : null}
     </div>
   )
 }

@@ -13,9 +13,10 @@
 // ─── GEEN SESSIE, DUS GEEN FOUNDER-GATE ─────────────────────────────────────
 // Anders dan élke andere LifeOS-route gebruikt deze GEEN `vereisLifeosToegang`:
 // Telegram pusht server-to-server, er is geen ingelogde MentaForce-sessie om
-// tegen te gate'n. De beveiliging is daarom tweeledig en blijft dat exact:
+// tegen te gate'n. De beveiliging is daarom drieledig en blijft dat exact:
 //   1. het gedeelde secret, in CONSTANTE tijd vergeleken (bewijst "van Telegram");
-//   2. de chat-id-allowlist (bewijst "van jou").
+//   2. de chat-id-allowlist (bewijst "van jou") — FAIL-CLOSED, zie `toegang.ts`;
+//   3. een snelheidslimiet per chat (begrenst de schade als 1 en 2 ooit lekken).
 // De schrijf naar het LifeOS-project loopt via de service-role-client
 // (`createLifeosAdminClient`) op de vaste `lifeosUserId()` — single-tenant, precies
 // zoals de andere LifeOS-opslag, alleen zonder de sessie-gate ervoor.
@@ -30,6 +31,8 @@ import { maakAnthropicModel } from '@/lib/lifeos/intentie/intentie-model'
 import { voerUit, type UitvoerDeps } from '@/lib/lifeos/telegram/uitvoeren'
 import { maakTelegramBot, type TelegramBot } from '@/lib/lifeos/telegram/bot'
 import { maakWhisperTranscriber, type Transcriber } from '@/lib/lifeos/telegram/transcribe'
+import { beoordeelChatId, leerModusAntwoord } from '@/lib/lifeos/telegram/toegang'
+import { webhookLimiet, waarschuwLimiet, teSnelAntwoord } from '@/lib/lifeos/telegram/limiet'
 import { createLifeosAdminClient, lifeosUserId } from '@/lib/lifeos/admin'
 import { maakTaak as maakTaakInDb } from '@/lib/lifeos/taken/opslag'
 import { maakNotitie as maakNotitieInDb } from '@/lib/lifeos/notities/opslag'
@@ -111,18 +114,12 @@ function secretGeldig(req: NextRequest): boolean {
  * Telegram komt — niet dat JIJ de afzender bent: wie de bot-naam kent, kan hem
  * ook aanschrijven en taken/afspraken in jouw LifeOS laten maken.
  *
- * `LIFEOS_TELEGRAM_ALLOWED_CHAT_ID` (komma-gescheiden) sluit dat af tot jouw eigen
- * chat(s). Bewust NIET fail-closed: niet gezet → het secret blijft de enige
- * gate. Anders is het een kip-ei — je chat-id ken je pas ná je eerste bericht.
+ * De beslissing zelf is puur en staat in `telegram/toegang.ts`; hier lezen we
+ * alleen de env-waarde. FAIL-CLOSED: geen allowlist → niets komt binnen. De
+ * afweging (en de `leer-modus`-escape uit het kip-ei) staat daar uitgelegd.
  */
-export function chatIdToegestaan(chatId: number): boolean {
-  const ruw = process.env.LIFEOS_TELEGRAM_ALLOWED_CHAT_ID
-  if (!ruw || ruw.trim().length === 0) return true // geen allowlist → secret is de gate
-  const toegestaan = ruw
-    .split(',')
-    .map((s) => s.trim())
-    .filter((s) => s.length > 0)
-  return toegestaan.includes(String(chatId))
+function beoordeelChat(chatId: number) {
+  return beoordeelChatId(chatId, process.env.LIFEOS_TELEGRAM_ALLOWED_CHAT_ID)
 }
 
 /**
@@ -150,10 +147,35 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   const bericht = leesTelegramBericht(update)
   if (!bericht) return ack()
 
-  // 2b. Alleen jouw eigen chat mag hem bedienen (als er een allowlist staat). Een
-  // vreemde krijgt geen antwoord en er wordt niets aangemaakt — stil acken, zodat
-  // we het bestaan van de bot niet bevestigen en Telegram niet gaat herhalen.
-  if (!chatIdToegestaan(bericht.chatId)) return ack()
+  // 2b. Alleen jouw eigen chat mag hem bedienen. Een vreemde krijgt geen antwoord
+  // en er wordt niets aangemaakt — stil acken, zodat we het bestaan van de bot
+  // niet bevestigen en Telegram niet gaat herhalen.
+  const besluit = beoordeelChat(bericht.chatId)
+  if (besluit.soort === 'geweigerd') return ack()
+
+  // 2c. Snelheidslimiet vóór élke dure stap (Whisper + Claude) én vóór het
+  // leer-modus-antwoord: ook een terugmelding is een Telegram-call die je niet
+  // ongelimiteerd wilt kunnen uitlokken. De limiet staat ná de allowlist, zodat
+  // de teller in normaal bedrijf alleen jouw eigen chat-id's kan bevatten.
+  const nu = Date.now()
+  const sleutel = String(bericht.chatId)
+  const ruimte = webhookLimiet.toets(sleutel, nu)
+  if (ruimte.soort === 'te_snel') {
+    // Wél zeggen dat we niets doen (fout ≠ stil), maar hooguit één keer per
+    // venster: anders lokt wie blijft pompen 80 "even rustig"-berichten uit en is
+    // de rem zelf de versterker geworden. Zie `waarschuwLimiet`.
+    if (waarschuwLimiet.toets(sleutel, nu).soort === 'ruimte') {
+      await stuurStil(bericht.chatId, teSnelAntwoord(ruimte.opnieuwOverSeconden))
+    }
+    return ack()
+  }
+
+  // 2d. Leer-modus: alleen het chat-id terugmelden. Geen model, geen Whisper,
+  // geen enkele schrijf — zie `toegang.ts` voor waarom dat strikt moet.
+  if (besluit.soort === 'leer_modus') {
+    await stuurStil(bericht.chatId, leerModusAntwoord(bericht.chatId))
+    return ack()
+  }
 
   // 3. Verwerk. Elke fout wordt gelogd; Telegram krijgt hoe dan ook een 200.
   try {
@@ -167,6 +189,22 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     console.error('[lifeos/telegram] verwerken mislukt', fout)
   }
   return ack()
+}
+
+/**
+ * Een los bericht sturen zonder de rest te laten omvallen.
+ *
+ * `maakTelegramBot()` gooit als de bot-token ontbreekt, en dit zijn de twee
+ * plekken (limiet, leer-modus) waar dat de enige actie is. De fout wordt gelogd
+ * — niet stil ingeslikt — maar Telegram krijgt hoe dan ook zijn 200, anders
+ * herhaalt hij hetzelfde bericht en tikt de limiet nog een keer aan.
+ */
+async function stuurStil(chatId: number, tekst: string): Promise<void> {
+  try {
+    await maakTelegramBot().stuurBericht(chatId, tekst)
+  } catch (fout) {
+    console.error('[lifeos/telegram] terugmelden mislukt', fout)
+  }
 }
 
 /** Alles wat `verwerkBericht` nodig heeft — injecteerbaar, dus zonder netwerk testbaar. */

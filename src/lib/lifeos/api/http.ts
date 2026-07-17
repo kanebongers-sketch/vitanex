@@ -17,8 +17,48 @@ export type HaalUitkomst<T> =
   | { ok: true; waarde: T }
   | { ok: false; fout: string; status: number }
 
-function isObject(v: unknown): v is Record<string, unknown> {
+/**
+ * Een gewoon object (geen array, geen null).
+ *
+ * Geëxporteerd omdat élke `lees`-functie hiermee begint. Stond in drie kopieën
+ * (hier, `gezondheid/lees.ts`, `WelzijnScoreKaart`) — één bron is genoeg.
+ */
+export function isObject(v: unknown): v is Record<string, unknown> {
   return typeof v === 'object' && v !== null && !Array.isArray(v)
+}
+
+/** Eindig getal of `null` — nooit NaN, nooit een string die op een getal lijkt. */
+export function getalOfNull(v: unknown): number | null {
+  return typeof v === 'number' && Number.isFinite(v) ? v : null
+}
+
+/** Niet-lege string of `null`. */
+export function tekstOfNull(v: unknown): string | null {
+  return typeof v === 'string' && v.trim().length > 0 ? v : null
+}
+
+/**
+ * De foutmelding uit een foutbody, of een generieke terugval.
+ *
+ * Leest ZOWEL `fout` als `error`, omdat de cockpit twee API's bevraagt die het
+ * niet eens zijn over de sleutel: `/api/lifeos/*` schrijft `fout` (Nederlands,
+ * zoals de rest van deze laag), de MentaForce-kern schrijft `error`
+ * (`/api/stress`, `/api/stemming`, `/api/burnout-predictor`, `/api/xp`,
+ * `/api/streak`, `/api/vandaag`, `/api/lichaamsmetingen` — geverifieerd).
+ *
+ * Zolang hier alleen `fout` stond, viel élke melding van de MentaForce-kant
+ * terug op "Er ging iets mis.". De server zei bijvoorbeeld netjes "Nog geen
+ * doelen ingesteld" en Kane las een nietszeggende zin — precies de eerlijkheid
+ * die de rest van dit bestand bewaakt, weggegooid op de laatste meter.
+ *
+ * Beide lezen i.p.v. één kant hernoemen: `error` is de conventie van ~90 routes
+ * met eigen consumenten buiten LifeOS. Die omdopen is een migratie met risico,
+ * voor een verschil dat de gebruiker nooit ziet. `fout` wint bij twijfel — dat
+ * is de sleutel van deze laag.
+ */
+export function leesFoutmelding(ruw: unknown): string {
+  if (!isObject(ruw)) return 'Er ging iets mis.'
+  return tekstOfNull(ruw.fout) ?? tekstOfNull(ruw.error) ?? 'Er ging iets mis.'
 }
 
 /**
@@ -45,8 +85,7 @@ export async function haalJson<T>(
   const ruw: unknown = antwoord.status === 204 ? null : await antwoord.json().catch(() => null)
 
   if (!antwoord.ok) {
-    const fout = isObject(ruw) && typeof ruw.fout === 'string' ? ruw.fout : 'Er ging iets mis.'
-    return { ok: false, fout, status: antwoord.status }
+    return { ok: false, fout: leesFoutmelding(ruw), status: antwoord.status }
   }
 
   const waarde = lees(ruw)

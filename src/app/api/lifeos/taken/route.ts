@@ -1,6 +1,6 @@
 // GET  /api/lifeos/taken   — je taken. Modi via query:
 //                              ?alle=1   → álle taken (voor de TakenLijst)
-//                              ?top3=1   → alleen de top-3 (voor Top3Kaart)
+//                              ?top3=1   → alleen de taken mét een top-3-plek
 //                              ?datum=…  → één dag ('ooit' = zonder dag)
 //                            geen params → alle taken, ongefilterd
 // POST /api/lifeos/taken   — nieuwe taak
@@ -49,10 +49,14 @@ export async function GET(req: NextRequest) {
 
   const params = req.nextUrl.searchParams
 
-  // De volledige lijst: álle taken, ongefilterd — vandaag, backlog, "ooit" én de
-  // positie-loze bot-taken die via Telegram binnenkomen. De TakenLijst-UI
-  // groepeert client-side. Deze modus staat los van de top-3-modus (`?top3=1`),
-  // die Top3Kaart gebruikt, zodat die ongemoeid blijft.
+  // De volledige lijst: álle taken, ongefilterd — vandaag, te laat, later,
+  // "ooit" én de positie-loze bot-taken die via Telegram binnenkomen. De
+  // TakenLijst-UI groepeert client-side en leidt de top-3 daaruit af; hij haalt
+  // die dus NIET apart op. Dat is met opzet: twee vluchten voor dezelfde taken
+  // lopen uit elkaar zodra je er in de één één afvinkt.
+  //
+  // `?top3=1` blijft bestaan als filter voor wie alleen de gekozen drie wil
+  // (Vita, een bot, een toekomstig scherm) — niet voor deze lijst.
   if (params.get('alle') === '1') {
     const alle = await haalTaken(toegang.admin, toegang.userId, {})
     if (!alle.ok) return foutAntwoord(alle.reden)

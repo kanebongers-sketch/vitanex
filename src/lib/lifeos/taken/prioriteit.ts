@@ -254,7 +254,10 @@ export function passendInBlok(
   energieNu: EnergieNiveau | null = null,
 ): TaakOordeel[] {
   return oordelen.filter((o) => {
-    const taak = o.taak as SlimmeTaak
+    // Geen cast meer nodig: `Taak` draagt de vier feiten zelf sinds migratie 100
+    // in het model landde. Stond hier een `as SlimmeTaak`, en dat is precies het
+    // soort belofte dat blijft staan als het model eronder verandert.
+    const taak = o.taak
     if (taak.klaar) return false
     if (taak.inspanningMinuten === null) return false
     if (taak.inspanningMinuten > minuten) return false

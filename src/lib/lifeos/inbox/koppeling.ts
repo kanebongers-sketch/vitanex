@@ -67,6 +67,48 @@ function tekst(v: unknown): string | null {
   return s.length > 0 ? s : null
 }
 
+export type BereikUitkomst =
+  | { staat: 'ok'; bereik: string[] }
+  | { staat: 'niet_gekoppeld' }
+  | { staat: 'fout'; reden: string }
+
+/**
+ * Het bereik dat Google bij deze koppeling gaf.
+ *
+ * Dit veld werd al sinds het begin geschreven (`bewaarKoppeling`) en nooit
+ * teruggelezen. Sinds de scope van `gmail.readonly` naar `gmail.modify` ging is
+ * dat het verschil tussen "koppel opnieuw voor schrijfrecht" en een kale
+ * Google-403 waar niemand iets aan heeft. Zie `bereik.ts`.
+ *
+ * Een lege array is een geldig antwoord en betekent "we weten het niet" — geen
+ * "geen rechten". Die twee uit elkaar houden is het hele punt; `beoordeelBereik`
+ * doet dat.
+ */
+export async function leesBereik(
+  admin: SupabaseClient,
+  userId: string,
+  dienst: Dienst = GMAIL,
+): Promise<BereikUitkomst> {
+  const { data, error } = await admin
+    .from('koppelingen')
+    .select('bereik')
+    .eq('user_id', userId)
+    .eq('dienst', dienst)
+    .maybeSingle()
+
+  if (error) return { staat: 'fout', reden: 'db' }
+
+  const rij: unknown = data
+  if (!isObject(rij)) return { staat: 'niet_gekoppeld' }
+
+  // Systeemgrens: `bereik` is een text[]-kolom, maar we casten niet. Een rij met
+  // rommel levert een lege lijst — dus 'onbekend', niet een verzonnen scope.
+  const ruw = rij.bereik
+  const bereik = Array.isArray(ruw) ? ruw.filter((s): s is string => typeof s === 'string') : []
+
+  return { staat: 'ok', bereik }
+}
+
 /** Is deze dienst gekoppeld? Leest alleen; ververst niets. */
 export async function koppelingStaat(
   admin: SupabaseClient,
@@ -150,6 +192,61 @@ export async function geldigToken(
   userId: string,
   dienst: Dienst = GMAIL,
 ): Promise<TokenResultaat> {
+  const rij = await leesTokenRij(admin, userId, dienst)
+  if (rij.staat !== 'ok') return rij
+
+  if (rij.geldig && rij.toegangstoken) return { staat: 'ok', toegangstoken: rij.toegangstoken }
+  if (!rij.verversingstoken) return { staat: 'niet_gekoppeld' }
+
+  return vernieuwEnBewaar(admin, userId, dienst, rij.verversingstoken)
+}
+
+/**
+ * Ververs NU, ongeacht wat de administratie zegt over de houdbaarheid.
+ *
+ * Voor het geval dat `geldigToken` per definitie niet kan dekken: het token was
+ * volgens ons nog 40 minuten geldig, en Gmail zegt tóch 401. Dat gebeurt echt —
+ * een wachtwoordwijziging, een ingetrokken app-toestemming, of een
+ * consent-scherm in "Testing" (dan verloopt het refresh-token na 7 dagen).
+ *
+ * Zonder deze functie is het antwoord op zo'n 401 "koppel opnieuw", terwijl één
+ * refresh het had opgelost. De aanroeper gebruikt 'm dus als tweede kans: 401 →
+ * forceer → nog één poging. Zie `inbox/vandaag/route.ts` en `gmail-acties.ts`.
+ *
+ * De discipline uit `google.ts` blijft overeind: alleen `invalid_grant` (echt
+ * ingetrokken) wordt `niet_gekoppeld`. Een netwerkfout is en blijft `fout` — die
+ * mag NOOIT als "niet gekoppeld" eindigen, anders stuurt een hik bij Google je
+ * naar het koppelscherm.
+ */
+export async function forceerVernieuwing(
+  admin: SupabaseClient,
+  userId: string,
+  dienst: Dienst = GMAIL,
+): Promise<TokenResultaat> {
+  const rij = await leesTokenRij(admin, userId, dienst)
+  if (rij.staat !== 'ok') return rij
+  if (!rij.verversingstoken) return { staat: 'niet_gekoppeld' }
+
+  return vernieuwEnBewaar(admin, userId, dienst, rij.verversingstoken)
+}
+
+type TokenRij =
+  | {
+      staat: 'ok'
+      toegangstoken: string | null
+      verversingstoken: string | null
+      /** Is het huidige token nog ruim genoeg geldig om te gebruiken? */
+      geldig: boolean
+    }
+  | { staat: 'niet_gekoppeld' }
+  | { staat: 'fout'; reden: string }
+
+/** De rij + het oordeel over de houdbaarheid. Eén plek, twee aanroepers. */
+async function leesTokenRij(
+  admin: SupabaseClient,
+  userId: string,
+  dienst: Dienst,
+): Promise<TokenRij> {
   const { data, error } = await admin
     .from('koppelingen')
     .select('toegangstoken, verversingstoken, verloopt_op')
@@ -162,26 +259,39 @@ export async function geldigToken(
   const rij: unknown = data
   if (!isObject(rij)) return { staat: 'niet_gekoppeld' }
 
-  const huidig = tekst(rij.toegangstoken)
-  const verversingstoken = tekst(rij.verversingstoken)
+  const toegangstoken = tekst(rij.toegangstoken)
   const verlooptOpTekst = tekst(rij.verloopt_op)
   const verlooptOp = verlooptOpTekst ? new Date(verlooptOpTekst) : null
-  const geldig =
-    huidig !== null &&
-    verlooptOp !== null &&
-    !Number.isNaN(verlooptOp.getTime()) &&
-    verlooptOp.getTime() - Date.now() > VERVERS_MARGE_MS
 
-  if (geldig && huidig) return { staat: 'ok', toegangstoken: huidig }
+  return {
+    staat: 'ok',
+    toegangstoken,
+    verversingstoken: tekst(rij.verversingstoken),
+    geldig:
+      toegangstoken !== null &&
+      verlooptOp !== null &&
+      !Number.isNaN(verlooptOp.getTime()) &&
+      verlooptOp.getTime() - Date.now() > VERVERS_MARGE_MS,
+  }
+}
 
-  if (!verversingstoken) return { staat: 'niet_gekoppeld' }
-
+/**
+ * Wisselt het verversingstoken in en schrijft het resultaat weg.
+ *
+ * Hier zit de reden dat dit bestand geen eigen tokenvernieuwing heeft: dit is
+ * dezelfde provider, dus dezelfde functie (`vernieuwToken` uit agenda/google.ts).
+ * De refresh-call gebruikt de redirect-URI niet, dus de Gmail-config werkt hier
+ * net zo goed.
+ */
+async function vernieuwEnBewaar(
+  admin: SupabaseClient,
+  userId: string,
+  dienst: Dienst,
+  verversingstoken: string,
+): Promise<TokenResultaat> {
   const config = gmailConfig()
   if (!config) return { staat: 'fout', reden: 'niet_ingericht' }
 
-  // Hier zit de reden dat dit bestand geen eigen tokenvernieuwing heeft: dit is
-  // dezelfde provider, dus dezelfde functie. De refresh-call gebruikt de
-  // redirect-URI niet, dus de Gmail-config werkt hier net zo goed.
   const uitkomst = await vernieuwToken(config, verversingstoken)
   if (uitkomst.staat === 'ingetrokken') return { staat: 'niet_gekoppeld' }
   if (uitkomst.staat === 'fout') return { staat: 'fout', reden: uitkomst.reden }

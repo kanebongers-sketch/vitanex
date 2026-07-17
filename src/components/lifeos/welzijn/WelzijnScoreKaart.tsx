@@ -1,14 +1,15 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import Link from 'next/link'
 import { Minus, TrendingDown, TrendingUp } from 'lucide-react'
 import { Kaart, NogNiets } from '@/components/lifeos/os/Kaart'
+import { KnopLink } from '@/components/lifeos/os/Knop'
 import { Foutmelding } from '@/components/lifeos/os/Foutmelding'
-import { haalJson } from '@/lib/lifeos/api/http'
+import { haalJson, isObject, getalOfNull } from '@/lib/lifeos/api/http'
 import { PIJLERS, PIJLER_KEYS, isPijlerKey, type PijlerKey } from '@/lib/pijlers/pijlers'
 import { scoreNiveau, type NiveauInfo, type TrendRichting } from '@/lib/pijlers/score'
 import { weekdagKort, weekdagLang } from '@/lib/pijlers/week'
+import { leesWellbeing, type WellbeingView } from './lees-welzijn'
 
 // ─── LifeOS-cockpit — echte MentaForce-welzijnsdata ─────────────────────────
 // Deze kaart leunt bewust NIET op de LifeOS-database, maar op het canonieke
@@ -29,7 +30,7 @@ interface PijlerView {
 }
 
 interface WelzijnView {
-  wellbeing: { score: number | null; gemeten: number; totaal: number }
+  wellbeing: WellbeingView
   pijlers: Map<PijlerKey, PijlerView>
 }
 
@@ -39,14 +40,9 @@ interface WeekDagView {
 }
 
 // ── Narrowing (geen cast, `unknown` → smalle view) ──────────────────────────
-function isObject(v: unknown): v is Record<string, unknown> {
-  return typeof v === 'object' && v !== null && !Array.isArray(v)
-}
-
-/** Eindig getal of `null` — nooit NaN, nooit een string die op een getal lijkt. */
-function getalOfNull(v: unknown): number | null {
-  return typeof v === 'number' && Number.isFinite(v) ? v : null
-}
+// `isObject`/`getalOfNull` stonden hier als eigen kopie, náást een identieke
+// kopie in `gezondheid/lees.ts` en in `api/http.ts`. Ze bewaken de systeemgrens;
+// drie versies daarvan is er twee te veel. Ze komen nu uit `api/http.ts`.
 
 const RICHTINGEN: readonly TrendRichting[] = ['op', 'neer', 'stabiel', 'geen']
 
@@ -60,11 +56,10 @@ function leesRichting(v: unknown): TrendRichting {
 function leesWelzijn(ruw: unknown): WelzijnView | null {
   if (!isObject(ruw)) return null
 
-  const wb = ruw.wellbeing
-  if (!isObject(wb)) return null
-  const gemeten = getalOfNull(wb.gemeten)
-  const totaal = getalOfNull(wb.totaal)
-  if (gemeten === null || totaal === null) return null
+  // Het wellbeing-blok wordt ook door het Gezondheid-domein gelezen; die
+  // narrowing heeft één eigenaar (`lees-welzijn.ts`).
+  const wellbeing = leesWellbeing(ruw)
+  if (wellbeing === null) return null
 
   const rijen = ruw.pijlers
   if (!Array.isArray(rijen)) return null
@@ -82,10 +77,7 @@ function leesWelzijn(ruw: unknown): WelzijnView | null {
     })
   }
 
-  return {
-    wellbeing: { score: getalOfNull(wb.score), gemeten, totaal },
-    pijlers,
-  }
+  return { wellbeing, pijlers }
 }
 
 /** Narrowt het `/api/pijlers/week`-antwoord. De strip is optioneel/decoratief. */
@@ -147,7 +139,12 @@ export function WelzijnScoreKaart() {
   }, [laad])
 
   return (
-    <Kaart titel="Welzijn" nadruk="dragend">
+    // nadruk="normaal", niet "dragend". `Kaart` schrijft één dragende kaart per
+    // moment voor, en die stond hier én op `FocusKaart` — waardoor de luidste
+    // kaart op het scherm een pomodoro-timer was, naast een even luide
+    // welzijnsscore. Twee kaarten die allebei schreeuwen is geen hiërarchie.
+    // Vita draagt het moment; deze kaart ondersteunt.
+    <Kaart titel="Welzijn" nadruk="normaal">
       {staat.fase === 'laden' ? <Skelet /> : null}
       {staat.fase === 'fout' ? <Foutmelding bericht={staat.bericht} opnieuw={opnieuw} /> : null}
       {staat.fase === 'ok' ? <Inhoud welzijn={staat.welzijn} week={staat.week} /> : null}
@@ -178,9 +175,7 @@ function Inhoud({ welzijn, week }: { welzijn: WelzijnView; week: WeekDagView[] |
 
       {week && week.length > 0 ? <WeekStrip dagen={week} /> : null}
 
-      <Link href="/checkin" className="os-knop-link" style={KNOP_STIJL}>
-        Check-in doen
-      </Link>
+      <KnopLink href="/checkin">Check-in doen</KnopLink>
     </div>
   )
 }
@@ -354,21 +349,3 @@ function Skelet() {
     </div>
   )
 }
-
-// De check-in-link deelt het uiterlijk van de primaire Knop, maar is een echte
-// <a> (navigatie), geen <button> — daarom niet de Knop-primitive hergebruikt.
-const KNOP_STIJL = {
-  display: 'inline-flex',
-  alignItems: 'center',
-  gap: 7,
-  padding: '8px 14px',
-  borderRadius: 999,
-  border: '1px solid var(--brand)',
-  background: 'var(--brand-soft)',
-  color: 'var(--brand)',
-  fontFamily: 'inherit',
-  fontSize: 13,
-  fontWeight: 600,
-  textDecoration: 'none',
-  justifySelf: 'start',
-} as const

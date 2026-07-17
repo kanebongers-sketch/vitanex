@@ -7,9 +7,10 @@
 // Auth: de founder-gate uit `@/lib/lifeos/admin` (`toegang.admin`/`toegang.userId`).
 
 import { NextResponse, type NextRequest } from 'next/server'
+import type { SupabaseClient } from '@supabase/supabase-js'
 import { vereisLifeosToegang } from '@/lib/lifeos/admin'
-import { geldigToken } from '@/lib/lifeos/agenda/koppeling'
-import { haalEvents } from '@/lib/lifeos/agenda/google'
+import { forceerVernieuwing, geldigToken } from '@/lib/lifeos/agenda/koppeling'
+import { haalEvents, type EventsUitkomst } from '@/lib/lifeos/agenda/google'
 import { bewaarEvents } from '@/lib/lifeos/agenda/opslag'
 
 /** Vandaag + 7. Verder vooruit kijken heeft geen doel: je dag runnen is het punt. */
@@ -34,9 +35,18 @@ export async function POST(req: NextRequest) {
   const tot = new Date(van)
   tot.setDate(tot.getDate() + DAGEN_VOORUIT + 1)
 
-  const uitkomst = await haalEvents(token.toegangstoken, van, tot)
+  const uitkomst = await haalMetTweedeKans(
+    toegang.admin,
+    toegang.userId,
+    token.toegangstoken,
+    van,
+    tot,
+  )
   if (uitkomst.staat === 'verlopen') {
-    // Net nog ververst en tóch een 401: de toestemming is ingetrokken.
+    // Een 401, en ook ná een geforceerde refresh nog steeds: de toestemming is
+    // echt ingetrokken. Nu is "koppel opnieuw" het juiste antwoord — vóór de
+    // retry was het een gok, want een token dat volgens ons nog goed was kon ook
+    // gewoon net verlopen zijn.
     return NextResponse.json({ fout: 'De agendakoppeling is verlopen. Koppel opnieuw.' }, { status: 409 })
   }
   if (uitkomst.staat === 'fout') {
@@ -53,4 +63,37 @@ export async function POST(req: NextRequest) {
     van: van.toISOString(),
     tot: tot.toISOString(),
   })
+}
+
+/**
+ * De events ophalen, met precies één tweede kans bij een 401 mid-flight.
+ *
+ * `geldigToken` ververst PROACTIEF (2 minuten marge). Dat dekt het normale geval
+ * en niet het echte: een token dat volgens onze administratie nog 40 minuten goed
+ * is, maar dat Google weigert omdat de toestemming is ingetrokken of het
+ * wachtwoord is gewijzigd. Zonder deze retry kreeg Kane "koppel opnieuw" terwijl
+ * één refresh het had opgelost.
+ *
+ * Precies één keer, geen lus: blijft het 401 ná een verse refresh, dan is de
+ * toestemming echt weg.
+ *
+ * `forceerVernieuwing` houdt de discipline overeind: alleen `invalid_grant` wordt
+ * `niet_gekoppeld`; een netwerkfout blijft `fout` en komt hier als `fout` terug —
+ * dus nooit "je agenda is ontkoppeld" omdat Google net traag was.
+ */
+async function haalMetTweedeKans(
+  admin: SupabaseClient,
+  userId: string,
+  token: string,
+  van: Date,
+  tot: Date,
+): Promise<EventsUitkomst> {
+  const eerste = await haalEvents(token, van, tot)
+  if (eerste.staat !== 'verlopen') return eerste
+
+  const vers = await forceerVernieuwing(admin, userId)
+  if (vers.staat === 'niet_gekoppeld') return { staat: 'verlopen' }
+  if (vers.staat === 'fout') return { staat: 'fout', reden: vers.reden }
+
+  return haalEvents(vers.toegangstoken, van, tot)
 }

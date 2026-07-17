@@ -11,6 +11,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { vereisLifeosToegang } from '@/lib/lifeos/admin'
 import { haalContext, isErIetsGemeten, vakkenMetFout } from '@/lib/lifeos/vita/context'
 import { bepaalSignalen, type Signaal } from '@/lib/lifeos/vita/signalen'
+import { laatstBezorgdOp } from '@/lib/lifeos/vita/briefing-opslag'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -27,6 +28,15 @@ export interface SignalenAntwoord {
   gemeten: boolean
   /** Vakken die door een storing ontbreken. Leeg = alles is opgehaald. */
   bronnenMetFout: string[]
+  /**
+   * Het BEWIJS achter de belofte op de kaart ("ik tik je aan").
+   *
+   * `null` = we konden het niet nagaan. Dan belooft de UI niets — zie
+   * `meekijkTekst` in `lib/lifeos/vita/weergave`. De kaart mag pas zeggen dat Vita
+   * je aantikt als hij dat aantoonbaar gedaan heeft; het bestaan van een
+   * cron-route in de codebase is geen bewijs dat er een cron draait.
+   */
+  dagbriefing: { laatstBezorgdOp: string | null } | null
 }
 
 function fout(melding: string, status: number): Response {
@@ -54,6 +64,12 @@ export async function GET(request: NextRequest): Promise<Response> {
     return fout('Kon je gegevens niet ophalen.', 503)
   }
 
+  // Wanneer stuurde Vita voor het laatst écht een briefing? `undefined` = de query
+  // viel om; dat wordt hier `null` ("niet nagegaan") en nooit stil "nog nooit" —
+  // die twee mogen niet op één hoop, anders vertelt een storing de gebruiker dat
+  // zijn dagbriefing niet loopt.
+  const bezorgd = await laatstBezorgdOp(toegang.admin, toegang.userId, 'telegram')
+
   // Een deels gevallen vak levert geen half signaal op: de motor krijgt alleen
   // wat er écht is, en elke regel heeft positief bewijs nodig om te vuren. Wat
   // ontbreekt, meldt de UI apart via `bronnenMetFout`.
@@ -66,6 +82,7 @@ export async function GET(request: NextRequest): Promise<Response> {
     }),
     gemeten: isErIetsGemeten(context),
     bronnenMetFout: vakkenMetFout(context),
+    dagbriefing: bezorgd === undefined ? null : { laatstBezorgdOp: bezorgd },
   }
 
   return Response.json(antwoord, {

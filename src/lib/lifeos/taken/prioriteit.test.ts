@@ -33,6 +33,7 @@ function taak(overschrijf: Partial<SlimmeTaak> = {}): SlimmeTaak {
     deadline: null,
     inspanningMinuten: null,
     energie: null,
+    projectId: null,
   }
   return { ...basis, ...overschrijf }
 }

@@ -1,0 +1,68 @@
+# Vita's dagbriefing — de planner die de app zelf niet heeft.
+#
+# Render kent geen cron-veld in de repo en er is geen vercel.json, dus de klok
+# staat hier. Zelfde patroon als keep-alive.yml, het bestaande precedent.
+#
+# EERST DIT ZETTEN, anders doet deze workflow niets:
+#   1. GitHub → Settings → Secrets and variables → Actions → `CRON_SECRET`,
+#      met dezelfde waarde als `CRON_SECRET` in de Render-omgeving.
+#   2. In Render: `LIFEOS_TELEGRAM_CHAT_ID` (jouw eigen chat-id).
+#   3. Draai 'm één keer handmatig (Run workflow) en kijk of er echt een bericht
+#      binnenkomt. Een workflow die bestaat is niet hetzelfde als een workflow die
+#      werkt — dat verschil is precies de valse belofte die dit moest oplossen.
+#
+# TIJDZONE: GitHub-cron draait op UTC en kent geen zomertijd. 05:00 UTC is 07:00
+# in de zomer en 06:00 in de winter. Dat is bewust niet weggemoffeld met een
+# tweede schedule: de briefing groet naar het uur waarop hij áánkomt (zie
+# briefing.ts), dus hij klopt in beide gevallen — hij komt 's winters alleen een
+# uur eerder. Wil je exact 07:00 het hele jaar, dan heb je een planner nodig die
+# tijdzones kent (cron-job.org kan dat wél).
+#
+# BETROUWBAARHEID: GitHub voert scheduled workflows soms met vertraging uit en kan
+# ze bij drukte overslaan. Dit is dus een wekker met speling, geen garantie. De
+# route is idempotent (één briefing per dag, afgedwongen door de database), dus een
+# dubbele of late run kan geen dubbel bericht opleveren.
+
+name: Vita dagbriefing
+
+on:
+  schedule:
+    - cron: '0 5 * * *' # 07:00 NL zomertijd, 06:00 wintertijd
+  workflow_dispatch:
+
+# Twee runs tegelijk zijn onschadelijk (de database sluit de tweede buiten), maar
+# ze zijn ook zinloos. Laat de lopende run afmaken.
+concurrency:
+  group: lifeos-briefing
+  cancel-in-progress: false
+
+jobs:
+  briefing:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Stuur de dagbriefing
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${CRON_SECRET}" ]; then
+            echo "::error::CRON_SECRET ontbreekt in de repo-secrets. De route is fail-closed en zou 401 geven."
+            exit 1
+          fi
+
+          # De secret gaat als header mee, niet als query-parameter: query-strings
+          # belanden in access-logs.
+          status=$(curl -sS --max-time 60 \
+            -o response.json -w '%{http_code}' \
+            -H "x-cron-secret: ${CRON_SECRET}" \
+            https://mentaforce.nl/api/cron/lifeos-briefing)
+
+          echo "HTTP ${status}"
+          cat response.json
+          echo
+
+          if [ "${status}" != "200" ]; then
+            echo "::error::De briefing-route gaf ${status}. Er is niets verstuurd."
+            exit 1
+          fi

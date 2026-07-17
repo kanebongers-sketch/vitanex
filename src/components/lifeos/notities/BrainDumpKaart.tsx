@@ -25,10 +25,16 @@ import { isOnbevestigd, useBrainDump } from './useBrainDump'
 export function BrainDumpKaart() {
   const {
     staat, actieFout, tekst, zetTekst, voegToe, haalWeg, opnieuw,
-    zoek, zetZoek, wijzigTag, categoriseer, bezigMetCategorie,
+    zoek, zetZoek, wijzigTag, bewerk, categoriseer, bezigMetCategorie,
+    voorstel, bevestigVoorstel, verwerpVoorstel, bestaandeTitels,
   } = useBrainDump()
 
   const aanHetZoeken = zoek.trim().length > 0
+
+  // Klik op een [[verwijzing]] → zoek 'm op. Dat is de goedkoopste navigatie die
+  // echt werkt: de zoekbalk staat er al, doet al precies dit, en werkt over alle
+  // dagen. Een eigen "spring naar notitie"-route zou hetzelfde doen met meer code.
+  const gaNaarTitel = (titel: string) => zetZoek(titel)
 
   // Enter = opslaan: dat is wat een form standaard doet met één tekstveld. Geen
   // eigen keydown-handler ernaast — die zou de submit-knop en het toetsenbord uit
@@ -108,12 +114,26 @@ export function BrainDumpKaart() {
                 onbevestigd={isOnbevestigd(notitie)}
                 metDatum={aanHetZoeken}
                 bezigMetCategorie={bezigMetCategorie === notitie.id}
+                bestaandeTitels={bestaandeTitels}
+                voorstel={voorstel?.notitieId === notitie.id ? voorstel : undefined}
+                onVoorstelJa={bevestigVoorstel}
+                onVoorstelNee={verwerpVoorstel}
                 onWeg={haalWeg}
                 onTag={wijzigTag}
+                onBewerk={bewerk}
                 onCategoriseer={categoriseer}
+                onLinkKlik={gaNaarTitel}
               />
             ))}
           </ul>
+        ) : null}
+
+        {/* Er zijn meer notities dan deze pagina. Zeggen, niet stil afkappen —
+            anders lijkt een half zoekresultaat het hele antwoord. */}
+        {staat.fase === 'ok' && staat.erIsMeer ? (
+          <p style={NOOT}>
+            Dit zijn de eerste {staat.notities.length}. Er zijn er meer — zoek gerichter om ze te vinden.
+          </p>
         ) : null}
 
         {actieFout ? <Foutmelding bericht={actieFout} /> : null}
@@ -145,6 +165,13 @@ const INVOER: React.CSSProperties = {
   color: 'var(--text-1)',
   fontFamily: 'inherit',
   fontSize: 13,
+}
+
+const NOOT: React.CSSProperties = {
+  margin: 0,
+  fontSize: 11,
+  lineHeight: 1.5,
+  color: 'var(--text-4)',
 }
 
 function Skelet() {

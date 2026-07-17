@@ -1,6 +1,7 @@
 import { MapPin } from 'lucide-react'
 import type { AfspraakJson, VrijBlokJson } from '@/lib/lifeos/agenda/agenda'
 import { duurLabel, tijdLabel } from '@/lib/lifeos/datum/datum'
+import { PlanBlokKnop } from './PlanBlokKnop'
 
 // Presentationeel: props erin, UI eruit. Geen fetch, geen state, geen klok —
 // `loopt` komt van de container, want een component dat zelf `new Date()` leest
@@ -10,6 +11,11 @@ interface DagoverzichtProps {
   volgende: AfspraakJson | null
   loopt: boolean
   vrijeBlokken: VrijBlokJson[]
+  /**
+   * Plant een focusblok in dít blok. Weglaten = de blokken blijven puur
+   * informatief (geen knop), bijvoorbeeld als de agenda nog aan het laden is.
+   */
+  onPlan?: (blok: VrijBlokJson) => Promise<{ ok: true } | { ok: false; fout: string }>
 }
 
 const LABEL: React.CSSProperties = {
@@ -21,11 +27,11 @@ const LABEL: React.CSSProperties = {
   margin: '0 0 8px',
 }
 
-export function Dagoverzicht({ volgende, loopt, vrijeBlokken }: DagoverzichtProps) {
+export function Dagoverzicht({ volgende, loopt, vrijeBlokken, onPlan }: DagoverzichtProps) {
   return (
     <div style={{ display: 'grid', gap: 20 }}>
       <VolgendeAfspraak afspraak={volgende} loopt={loopt} />
-      <VrijeBlokkenLijst blokken={vrijeBlokken} />
+      <VrijeBlokkenLijst blokken={vrijeBlokken} onPlan={onPlan} />
     </div>
   )
 }
@@ -86,7 +92,13 @@ function VolgendeAfspraak({ afspraak, loopt }: { afspraak: AfspraakJson | null; 
   )
 }
 
-function VrijeBlokkenLijst({ blokken }: { blokken: VrijBlokJson[] }) {
+function VrijeBlokkenLijst({
+  blokken,
+  onPlan,
+}: {
+  blokken: VrijBlokJson[]
+  onPlan?: DagoverzichtProps['onPlan']
+}) {
   return (
     <div>
       <p style={LABEL}>Vrije blokken</p>
@@ -95,35 +107,33 @@ function VrijeBlokkenLijst({ blokken }: { blokken: VrijBlokJson[] }) {
           Geen blok van 45 minuten of meer tussen 08:00 en 20:00.
         </p>
       ) : (
-        <ul
-          style={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            gap: 7,
-            listStyle: 'none',
-            padding: 0,
-            margin: 0,
-          }}
-        >
+        <ul style={{ display: 'grid', gap: 7, listStyle: 'none', padding: 0, margin: 0 }}>
           {blokken.map((blok) => (
             <li
               key={blok.startOp}
               style={{
-                display: 'inline-flex',
-                alignItems: 'baseline',
-                gap: 7,
-                padding: '6px 11px',
+                display: 'flex',
+                // Wrapt op smal (320px): dan zakt de knop onder de tijd i.p.v.
+                // ernaast te worden platgedrukt.
+                flexWrap: 'wrap',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: 8,
+                padding: '7px 8px 7px 11px',
                 borderRadius: 8,
                 border: '1px solid var(--line)',
                 background: 'var(--bg-raised)',
               }}
             >
-              <span className="os-cijfer" style={{ fontSize: 13, color: 'var(--text-2)' }}>
-                {`${tijdLabel(new Date(blok.startOp))}–${tijdLabel(new Date(blok.eindOp))}`}
+              <span style={{ display: 'inline-flex', alignItems: 'baseline', gap: 7 }}>
+                <span className="os-cijfer" style={{ fontSize: 13, color: 'var(--text-2)' }}>
+                  {`${tijdLabel(new Date(blok.startOp))}–${tijdLabel(new Date(blok.eindOp))}`}
+                </span>
+                <span style={{ fontSize: 11, color: 'var(--brand)', fontWeight: 600 }}>
+                  {duurLabel(blok.minuten)}
+                </span>
               </span>
-              <span style={{ fontSize: 11, color: 'var(--brand)', fontWeight: 600 }}>
-                {duurLabel(blok.minuten)}
-              </span>
+              {onPlan ? <PlanBlokKnop blok={blok} onPlan={onPlan} /> : null}
             </li>
           ))}
         </ul>

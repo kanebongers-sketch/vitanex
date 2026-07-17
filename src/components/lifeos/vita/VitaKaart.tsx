@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { TriangleAlert, Compass, RefreshCw } from 'lucide-react'
 import { Kaart, NogNiets, type Nadruk } from '@/components/lifeos/os/Kaart'
 import { supabase } from '@/lib/supabase/supabase'
-import { kiesWeergave, type SignalenAntwoord } from '@/lib/lifeos/vita/weergave'
+import { kiesWeergave, meekijkTekst, type SignalenAntwoord } from '@/lib/lifeos/vita/weergave'
 import { SignaalRegel } from './SignaalRegel'
 import type { Signaal } from '@/lib/lifeos/vita/signalen'
 
@@ -31,6 +31,10 @@ function isAntwoord(v: unknown): v is SignalenAntwoord {
     typeof a.gemeten === 'boolean' &&
     Array.isArray(a.bronnenMetFout)
   )
+  // `dagbriefing` staat hier bewust niet in: het veld is optioneel en de UI valt
+  // bij afwezigheid terug op "geen belofte" (zie `meekijkTekst`). Zou het hier
+  // verplicht zijn, dan maakte een gevallen briefing-query de hele kaart tot een
+  // fout — en dan verdwijnen je signalen omdat we je briefing niet konden opzoeken.
 }
 
 interface VitaKaartProps {
@@ -126,7 +130,7 @@ function Inhoud({ staat, opnieuw }: { staat: Staat; opnieuw: () => void }) {
     case 'rustig':
       return (
         <>
-          <Rustig />
+          <Rustig dagbriefing={staat.antwoord.dagbriefing} />
           <DeelsMis bronnen={weergave.bronnenMetFout} />
         </>
       )
@@ -223,8 +227,19 @@ function OpnieuwKnop({ opnieuw }: { opnieuw: () => void }) {
   )
 }
 
-/** Wél data, geen signalen. Een antwoord, geen leegte. */
-function Rustig() {
+/**
+ * Wél data, geen signalen. Een antwoord, geen leegte.
+ *
+ * Hier stond de enige regel in LifeOS die aantoonbaar loog: "Ik blijf meekijken en
+ * tik je aan zodra er iets verandert." Er was geen cron, geen polling, geen push —
+ * Vita draaide uitsluitend als je deze pagina opende.
+ *
+ * De zin komt nu uit `meekijkTekst`, en die keyt op BEWIJS uit `vita_briefingen`:
+ * wat er écht bezorgd is. Geen bewijs → geen belofte. Zou deze tekst afgaan op het
+ * bestaan van de cron-route, dan was de leugen alleen verplaatst — een cron die in
+ * de codebase staat is niet hetzelfde als een cron die draait.
+ */
+function Rustig({ dagbriefing }: { dagbriefing: SignalenAntwoord['dagbriefing'] }) {
   return (
     <div style={{ display: 'flex', alignItems: 'flex-start', gap: 11 }}>
       <Compass
@@ -238,7 +253,7 @@ function Rustig() {
           Niets dat nu je aandacht vraagt.
         </p>
         <p style={{ margin: 0, fontSize: 12, lineHeight: 1.5, color: 'var(--text-4)' }}>
-          Ik blijf meekijken en tik je aan zodra er iets verandert.
+          {meekijkTekst(dagbriefing, new Date())}
         </p>
       </div>
     </div>

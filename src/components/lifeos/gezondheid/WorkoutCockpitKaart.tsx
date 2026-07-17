@@ -31,41 +31,65 @@ type Staat =
   | { fase: 'fout'; bericht: string }
   | { fase: 'ok'; userId: string; logs: TLog[] }
 
+/**
+ * Een mislukte log, mét de training die niet werd opgeslagen.
+ *
+ * We bewaren de invoer omdat `Foutmelding` zonder `opnieuw` een doodlopende weg
+ * is ("Weglaten = geen weg terug. Doe dat niet."). Het formulier is op dat
+ * moment al leeggemaakt noch verzonden — zonder deze kopie zou "opnieuw" de
+ * gebruiker vragen alles opnieuw te typen.
+ */
+interface ActieFout {
+  bericht: string
+  naam: string
+  duurMinuten: number | null
+  notitie: string | null
+}
+
 export function WorkoutCockpitKaart() {
   const [staat, setStaat] = useState<Staat>({ fase: 'laden' })
-  const [actieFout, setActieFout] = useState<string | null>(null)
+  const [actieFout, setActieFout] = useState<ActieFout | null>(null)
   const [bezig, setBezig] = useState(false)
   const generatie = useRef(0)
 
-  const laad = useCallback(async (): Promise<void> => {
+  // Bewust GEEN `async` op de buitenste functie, maar een async IIFE erbinnen —
+  // zelfde vorm als `WaterCockpitKaart`. De React-lintregel `set-state-in-effect`
+  // kan bij een `async` functie niet bewijzen dát er geen setState vóór de eerste
+  // await staat, en gaat er dan conservatief van uit dat het wél zo is. Dat gaf
+  // hier een harde lint-error terwijl de code correct was. Door de asynchronie
+  // één niveau naar binnen te halen is de functie die het effect aanroept
+  // aantoonbaar synchroon-vrij van setState.
+  const laad = useCallback((): Promise<void> => {
     const mijn = ++generatie.current
-    try {
-      const { data: { user }, error: authFout } = await supabase.auth.getUser()
-      if (authFout) throw authFout
-      if (mijn !== generatie.current) return
-      if (!user) {
-        setStaat({ fase: 'fout', bericht: 'Je bent niet ingelogd.' })
-        return
+    return (async () => {
+      try {
+        const { data: { user }, error: authFout } = await supabase.auth.getUser()
+        if (authFout) throw authFout
+        if (mijn !== generatie.current) return
+        if (!user) {
+          setStaat({ fase: 'fout', bericht: 'Je bent niet ingelogd.' })
+          return
+        }
+
+        const { data, error } = await supabase
+          .from('training_logs')
+          .select('id, naam, duur_minuten')
+          .eq('user_id', user.id)
+          .eq('datum', vandaagNL())
+        if (error) throw error
+        if (mijn !== generatie.current) return
+
+        const logs: TLog[] = (data ?? []).map((r) => ({
+          id: String(r.id),
+          naam: typeof r.naam === 'string' ? r.naam : 'Training',
+          duur_minuten: typeof r.duur_minuten === 'number' && Number.isFinite(r.duur_minuten) ? r.duur_minuten : null,
+        }))
+        setStaat({ fase: 'ok', userId: user.id, logs })
+      } catch {
+        if (mijn !== generatie.current) return
+        setStaat({ fase: 'fout', bericht: 'We konden je trainingen niet ophalen. Probeer het opnieuw.' })
       }
-
-      const { data, error } = await supabase
-        .from('training_logs')
-        .select('id, naam, duur_minuten')
-        .eq('user_id', user.id)
-        .eq('datum', vandaagNL())
-      if (error) throw error
-      if (mijn !== generatie.current) return
-
-      const logs: TLog[] = (data ?? []).map((r) => ({
-        id: String(r.id),
-        naam: typeof r.naam === 'string' ? r.naam : 'Training',
-        duur_minuten: typeof r.duur_minuten === 'number' && Number.isFinite(r.duur_minuten) ? r.duur_minuten : null,
-      }))
-      setStaat({ fase: 'ok', userId: user.id, logs })
-    } catch {
-      if (mijn !== generatie.current) return
-      setStaat({ fase: 'fout', bericht: 'We konden je trainingen niet ophalen. Probeer het opnieuw.' })
-    }
+    })()
   }, [])
 
   useEffect(() => {
@@ -116,9 +140,10 @@ export function WorkoutCockpitKaart() {
         return true
       } catch {
         setBezig(false)
-        // Rollback: optimistische regel eruit + zichtbare fout.
+        // Rollback: optimistische regel eruit + zichtbare fout. De invoer gaat
+        // mee zodat "Opnieuw proberen" dezelfde training nog eens kan loggen.
         setStaat((s) => (s.fase === 'ok' ? { ...s, logs: s.logs.filter((l) => l.id !== tijdId) } : s))
-        setActieFout('Opslaan mislukt. Probeer het opnieuw.')
+        setActieFout({ bericht: 'Opslaan mislukt.', naam, duurMinuten, notitie })
         return false
       }
     },
@@ -139,7 +164,7 @@ export function WorkoutCockpitKaart() {
 interface InhoudProps {
   logs: TLog[]
   bezig: boolean
-  actieFout: string | null
+  actieFout: ActieFout | null
   onToevoeg: (naam: string, duurMinuten: number | null, notitie: string | null) => Promise<boolean>
 }
 
@@ -171,9 +196,20 @@ function Inhoud({ logs, bezig, actieFout, onToevoeg }: InhoudProps) {
 
       <WorkoutToevoegen bezig={bezig} onToevoeg={onToevoeg} />
 
-      {actieFout ? <Foutmelding bericht={actieFout} /> : null}
+      {actieFout ? (
+        <Foutmelding
+          bericht={`${actieFout.bericht} "${actieFout.naam}" is niet opgeslagen.`}
+          opnieuw={() => {
+            void onToevoeg(actieFout.naam, actieFout.duurMinuten, actieFout.notitie)
+          }}
+        />
+      ) : null}
 
-      <Link href="/sport/training" className="os-knop-link" style={VOLLEDIG_LINK}>
+      {/* `os-knop-link` stond hier als className, maar die klasse bestaat
+          nergens in globals.css — het uiterlijk kwam volledig uit VOLLEDIG_LINK.
+          Weg: een klasse die niets doet laat de volgende lezer zoeken naar CSS
+          die er niet is. */}
+      <Link href="/sport/training" style={VOLLEDIG_LINK}>
         Volledige workout
         <ArrowUpRight size={14} strokeWidth={2.4} aria-hidden="true" />
       </Link>

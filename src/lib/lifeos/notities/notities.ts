@@ -12,9 +12,20 @@
 // Eén type voor beide soorten — zie de onderbouwing bovenin migratie 050.
 
 import { leesDatumSleutel } from '@/lib/lifeos/datum/datum'
+import { MAX_TITEL_LENGTE, normaliseerTitel } from './links'
 import { leesTags } from './tags'
 
 export const MAX_TEKST_LENGTE = 10_000
+
+/**
+ * Standaard- en maximumaantal notities per pagina.
+ *
+ * Zonder limiet groeit `GET /api/lifeos/notities?zoek=…` mee met de database:
+ * een brain dump van drie jaar is één query die alles ophaalt. 100 is wat een
+ * mens leest; 500 is de bovengrens voor wie bewust doorbladert.
+ */
+export const NOTITIES_LIMIET = 100
+export const MAX_NOTITIES_LIMIET = 500
 
 /**
  * Wat voor tekst dit is.
@@ -65,6 +76,12 @@ export interface Notitie {
   soort: Soort
   /** Dagsleutel (YYYY-MM-DD). Nooit null: een idee zonder dag ben je kwijt. */
   datum: string
+  /**
+   * De naam waaronder andere notities naar deze kunnen verwijzen (`[[Titel]]`),
+   * of null. Null is de NORM, niet onaf: capture blijft één tik zonder titel.
+   * Zie migratie 110 voor de onderbouwing.
+   */
+  titel: string | null
   /** Genormaliseerde labels (lowercase, dedup). Leeg is de norm, niet fout. */
   tags: string[]
   /** Eén van de zes categorieën, of null = nog niet ingedeeld. */
@@ -75,6 +92,10 @@ export interface Notitie {
 
 /** Alleen de meegestuurde velden worden gewijzigd — zie `leesNotitieWijziging`. */
 export interface NotitieWijziging {
+  /** De tekst zelf. Een typefout corrigeren hoort geen delete-en-opnieuw te zijn. */
+  tekst?: string
+  /** Nieuwe titel, of expliciet `null` om 'm weg te halen. */
+  titel?: string | null
   tags?: string[]
   categorie?: NotitieCategorie | null
 }
@@ -83,6 +104,13 @@ export interface NieuweNotitie {
   tekst: string
   soort: Soort
   datum: string
+  /**
+   * Optioneel. Bestaat voor precies één flow: je klikt op een `[[verwijzing]]`
+   * naar een notitie die er nog niet is, en maakt 'm dan mét die titel aan —
+   * waarna alle wachtende verwijzingen naar die titel vanzelf vastklikken.
+   * Bij een gewone capture blijft dit weg.
+   */
+  titel?: string
 }
 
 export type Validatie<T> = { ok: true; waarde: T } | { ok: false; fout: string }
@@ -130,6 +158,21 @@ function leesSoort(v: unknown): Validatie<Soort> {
   return { ok: true, waarde: v }
 }
 
+/**
+ * Leest een titel. Weigert i.p.v. af te kappen — een afgekapte titel wijst stil
+ * naar een andere notitie dan je bedoelde. Zie `normaliseerTitel`.
+ */
+export function leesTitel(v: unknown): Validatie<string> {
+  if (typeof v !== 'string') return { ok: false, fout: 'Titel moet tekst zijn.' }
+  const titel = normaliseerTitel(v)
+  if (titel === null) {
+    return v.trim().length === 0
+      ? { ok: false, fout: 'Een lege titel is geen titel.' }
+      : { ok: false, fout: `Titel mag maximaal ${MAX_TITEL_LENGTE} tekens zijn.` }
+  }
+  return { ok: true, waarde: titel }
+}
+
 /** Nieuwe notitie uit een request-body. Faalt met een leesbare melding. */
 export function leesNieuweNotitie(body: unknown): Validatie<NieuweNotitie> {
   if (!isObject(body)) return { ok: false, fout: 'Ongeldige invoer.' }
@@ -141,19 +184,52 @@ export function leesNieuweNotitie(body: unknown): Validatie<NieuweNotitie> {
   const datum = leesDatum(body.datum)
   if (!datum.ok) return datum
 
-  return { ok: true, waarde: { tekst: tekst.waarde, soort: soort.waarde, datum: datum.waarde } }
+  const nieuw: NieuweNotitie = { tekst: tekst.waarde, soort: soort.waarde, datum: datum.waarde }
+
+  // Alleen als hij meekomt: een titelloze capture is de norm, geen fout.
+  if (body.titel !== undefined && body.titel !== null) {
+    const titel = leesTitel(body.titel)
+    if (!titel.ok) return titel
+    nieuw.titel = titel.waarde
+  }
+
+  return { ok: true, waarde: nieuw }
 }
 
 /**
- * Een wijziging (PATCH) uit een request-body. Alleen `tags` en/of `categorie`;
- * beide optioneel, want een PATCH mag één van de twee raken. Tags worden
- * genormaliseerd (leesTags); categorie moet geldig zijn of expliciet null.
- * Minstens één van beide moet aanwezig zijn — een lege wijziging is een fout.
+ * Een wijziging (PATCH) uit een request-body: `tekst`, `titel`, `tags` en/of
+ * `categorie`. Allemaal optioneel, want een PATCH mag er één raken. Minstens één
+ * moet aanwezig zijn — een lege wijziging is een fout, geen stille no-op.
+ *
+ * `tekst` staat hier bewust bij. Het ontbrak, waardoor een typefout corrigeren
+ * neerkwam op de notitie weggooien en opnieuw typen — met een nieuw id, een
+ * nieuwe aangemaakt_op en verbroken backlinks. Dat is geen bewerken maar
+ * dataverlies met een omweg.
+ *
+ * `titel` mag expliciet `null` zijn: dat is "haal de titel weg". Onderscheid met
+ * "niet meegestuurd" loopt via `in body`, niet via undefined — anders kun je een
+ * titel nooit meer wissen.
  */
 export function leesNotitieWijziging(body: unknown): Validatie<NotitieWijziging> {
   if (!isObject(body)) return { ok: false, fout: 'Ongeldige invoer.' }
 
   const wijziging: NotitieWijziging = {}
+
+  if ('tekst' in body) {
+    const tekst = leesTekst(body.tekst)
+    if (!tekst.ok) return tekst
+    wijziging.tekst = tekst.waarde
+  }
+
+  if ('titel' in body) {
+    if (body.titel === null) {
+      wijziging.titel = null
+    } else {
+      const titel = leesTitel(body.titel)
+      if (!titel.ok) return titel
+      wijziging.titel = titel.waarde
+    }
+  }
 
   if ('tags' in body) {
     if (!Array.isArray(body.tags)) return { ok: false, fout: 'Tags moeten een lijst zijn.' }
@@ -170,7 +246,7 @@ export function leesNotitieWijziging(body: unknown): Validatie<NotitieWijziging>
     }
   }
 
-  if (wijziging.tags === undefined && wijziging.categorie === undefined) {
+  if (Object.keys(wijziging).length === 0) {
     return { ok: false, fout: 'Niets om te wijzigen.' }
   }
   return { ok: true, waarde: wijziging }
@@ -209,6 +285,9 @@ export function notitieVanRij(rij: unknown): Notitie | null {
     tekst,
     soort: rij.soort,
     datum,
+    // Een onleesbare titel (getal, leeg, te lang) valt terug op null i.p.v. de
+    // hele rij te weigeren: de tekst is het kostbare deel, de titel is versiering.
+    titel: normaliseerTitel(rij.titel),
     tags: leesTags(rij.tags),
     categorie: isNotitieCategorie(rij.categorie) ? rij.categorie : null,
     aangemaaktOp,
@@ -242,6 +321,7 @@ export function leesNotitieJson(ruw: unknown): Notitie | null {
     tekst,
     soort: ruw.soort,
     datum,
+    titel: normaliseerTitel(ruw.titel),
     tags: leesTags(ruw.tags),
     categorie: isNotitieCategorie(ruw.categorie) ? ruw.categorie : null,
     aangemaaktOp,
@@ -249,23 +329,74 @@ export function leesNotitieJson(ruw: unknown): Notitie | null {
   }
 }
 
+/** Wat `GET /api/lifeos/notities` oplevert: de pagina plus wat erover te zeggen valt. */
+export interface NotitiesAntwoord {
+  notities: Notitie[]
+  /**
+   * Rijen die de server stuurde maar die we niet konden lezen. Bijna altijd 0.
+   * Is het meer, dan MOET de UI dat zeggen — zie de onderbouwing hieronder.
+   */
+  onleesbaar: number
+  /** Er zijn meer notities dan deze pagina. De UI hoort dat te tonen. */
+  erIsMeer: boolean
+}
+
 /**
  * Het antwoord van `GET /api/lifeos/notities`.
  *
- * Eén kapotte notitie maakt het hele antwoord ongeldig i.p.v. stil te
- * verdwijnen: een brain dump waar zomaar een idee uit weggelaten wordt, is
- * erger dan een zichtbare foutmelding. Fout ≠ leeg.
+ * ─── PER RIJ TOLERANT, MAAR NOOIT STIL ──────────────────────────────────────
+ *
+ * Dit gaf eerst `null` zodra ÉÉN notitie onleesbaar was: dan verdween je hele
+ * brain dump achter "Onverwacht antwoord van de server" — 200 goede notities
+ * onbereikbaar door één rare rij. De redenering ("fout ≠ leeg") klopte, de
+ * conclusie niet: één kapotte rij is geen kapot antwoord.
+ *
+ * Nu: kapotte rijen vallen weg, maar worden GETELD. Dat telletje is de hele
+ * clou — zonder had je stille dataverdwijning, precies wat de oude versie
+ * terecht wilde voorkomen. De UI zegt "1 notitie kon niet gelezen worden" en de
+ * andere 200 staan er gewoon.
+ *
+ * `null` blijft bestaan voor een écht kapot antwoord: geen object, of `notities`
+ * is geen lijst. Dan is er geen pagina, en dat is wél een storing.
  */
-export function leesNotitiesAntwoord(ruw: unknown): Notitie[] | null {
+export function leesNotitiesAntwoord(ruw: unknown): NotitiesAntwoord | null {
   if (!isObject(ruw) || !Array.isArray(ruw.notities)) return null
 
-  const notities = ruw.notities.map(leesNotitieJson)
-  if (notities.some((n) => n === null)) return null
-  return notities.filter((n): n is Notitie => n !== null)
+  const gelezen = ruw.notities.map(leesNotitieJson)
+  const notities = gelezen.filter((n): n is Notitie => n !== null)
+
+  return {
+    notities,
+    onleesbaar: gelezen.length - notities.length,
+    // Ontbreekt het veld, dan claimen we niet dat er meer is. Geen verzonnen
+    // "er is meer" — dat is een belofte die we niet kunnen waarmaken.
+    erIsMeer: ruw.erIsMeer === true,
+  }
 }
 
-/** Het antwoord van `POST /api/lifeos/notities`. */
-export function leesNotitieAntwoord(ruw: unknown): Notitie | null {
+/** Wat `POST`/`PATCH` op een notitie oplevert. */
+export interface NotitieAntwoord {
+  notitie: Notitie
+  /**
+   * De notitie is opgeslagen, maar iets eromheen ging mis — in de praktijk: de
+   * verwijzingen (`[[...]]`) konden niet bijgewerkt worden.
+   *
+   * Bewust GEEN reden om de hele call te laten falen: je tekst is veilig, en dat
+   * is wat telt. Maar ook niet stil: dan zou de grafiek een kant missen zonder
+   * dat iemand weet waarom. Null = niets aan de hand.
+   */
+  waarschuwing: string | null
+}
+
+/** Het antwoord van `POST`/`PATCH` op een notitie. */
+export function leesNotitieAntwoord(ruw: unknown): NotitieAntwoord | null {
   if (!isObject(ruw)) return null
-  return leesNotitieJson(ruw.notitie)
+
+  const notitie = leesNotitieJson(ruw.notitie)
+  if (notitie === null) return null
+
+  return {
+    notitie,
+    waarschuwing: typeof ruw.waarschuwing === 'string' ? ruw.waarschuwing : null,
+  }
 }

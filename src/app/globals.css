@@ -1310,10 +1310,46 @@ body {
   --text-3: rgba(255, 255, 255, 0.62);
   --text-4: rgba(255, 255, 255, 0.5);
 
-  /* Status — gedempt, functioneel. Nooit decoratief. */
-  --status-goed: #34d399;
+  /* Status — gedempt, functioneel. Nooit decoratief.
+
+     "Goed" is het merk-accent, geen eigen groen. Dat is geen smaak maar het
+     wegnemen van een tegenstrijdigheid: `scoreNiveau('goed')` (lib/pijlers/
+     score.ts) geeft `var(--brand)` terug, terwijl deze token op #34d399 stond.
+     Twee groenen/cyanen voor één begrip, náást elkaar op hetzelfde scherm.
+     MentaForce heeft die knoop al doorgehakt in :root — `--status-success:
+     #00E5FF /* positief = merk-cyaan */` — en dit volgt dezelfde lijn. Het
+     scheelt meteen een derde kleur, wat de merkregel sowieso eist.
+
+     Amber en rood blijven wél een eigen kleur: "let op" en "fout" kun je niet
+     met het merk-accent zeggen. Diezelfde asymmetrie staat in MentaForce's
+     :root (success = cyaan, warning = amber, danger = rood). */
+  --status-goed: var(--brand);
   --status-aandacht: #fbbf24;
   --status-laag: #f87171;
+
+  /* Aliassen naar de MentaForce-namen.
+
+     `lib/pijlers/score.ts` en `VoortgangsBalk` zijn gedeeld met MentaForce en
+     vragen om --status-warning/--status-danger/--bg-subtle. Die stonden alleen
+     in MentaForce's :root, dus ze resolvden hier via de cascade naar de
+     MENTAFORCE-waarden (#F5B544 / #FF6B6B / #0A1730). Zichtbaar brak er niets,
+     maar de cockpit toonde letterlijk twee ambers en twee roods naast elkaar.
+     Score.ts mag hier niet gewijzigd worden (gedeeld), dus de tokenlaag trekt
+     het recht: dezelfde namen, LifeOS-waarden.
+
+     Contrast op --bg-card (#0e1f3d), nagerekend met de WCAG-luminantieformule:
+     amber 9,8:1 · rood 5,9:1 · cyaan 10,65:1. Alle drie boven AA (4,5:1) voor
+     kleine tekst. */
+  --status-success: var(--status-goed);
+  --status-success-soft: var(--brand-soft);
+  --status-warning: var(--status-aandacht);
+  --status-warning-soft: rgba(251, 191, 36, 0.14);
+  --status-danger: var(--status-laag);
+  --status-danger-soft: rgba(248, 113, 113, 0.14);
+
+  /* De rustigste vlakvulling: draagt `zacht` van NIVEAU_GEEN ("Nog niet
+     gemeten"). Geen eigen grijs — dat zou een vierde oppervlak zijn. */
+  --bg-subtle: var(--bg-raised);
 
   /* Typografie */
   --font-grotesk: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
@@ -1922,3 +1958,272 @@ body {
 
 /* Binnen de embed blijft de sfeer in de LifeOS-kolom, niet over de nav. */
 .lifeos-root .os-sfeer { position: absolute; z-index: 0; }
+
+/* ─── Schaalkiezer ─────────────────────────────────────────────────────────
+   De 1–10 (stress) en 1–5 (stemming) kiezer. Echte radio's in een fieldset:
+   dat geeft pijltjestoets-navigatie, één tab-stop voor de hele groep en een
+   voorleesbare legenda — allemaal gratis, en allemaal dingen die een rij
+   <button>'s zou moeten namaken.
+
+   De styling hangt aan :checked/:focus-visible/:hover van de input in plaats van
+   aan React-state: de staten horen bij het element, niet bij een render. */
+.os-schaal {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+
+.os-schaal__legenda {
+  padding: 0;
+  font-size: 13px;
+  color: var(--text-2);
+  line-height: 1.45;
+}
+
+.os-schaal__rij {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: 4px;
+  margin-top: 10px;
+}
+
+/* De input zelf is onzichtbaar maar níét display:none — dan zou hij uit de
+   toetsenbord- en voorleesvolgorde vallen. */
+.os-schaal__invoer {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.os-schaal__vak {
+  display: grid;
+  place-items: center;
+  padding: 9px 0;
+  border-radius: 9px;
+  border: 1px solid var(--line);
+  background: var(--bg-raised);
+  color: var(--text-3);
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 13px;
+  cursor: pointer;
+  transition:
+    color 160ms var(--ease),
+    border-color 160ms var(--ease),
+    background 160ms var(--ease),
+    transform 120ms var(--ease);
+}
+
+/* Hover en active hangen aan het LABEL, niet aan de input: die is 1px en
+   weggeklipt, dus daar komt een muis nooit. De input draagt alleen de staten die
+   niet van de aanwijzer afhangen (:checked, :focus-visible, :disabled). */
+.os-schaal__vak:hover {
+  border-color: var(--line-strong);
+  color: var(--text-1);
+}
+
+.os-schaal__vak:active {
+  transform: scale(0.97);
+}
+
+/* Wint van :hover — (0,3,0) tegen (0,2,0) — zodat je keuze zichtbaar blijft
+   terwijl je muis er nog overheen staat. */
+.os-schaal__invoer:checked + .os-schaal__vak {
+  border-color: var(--brand);
+  background: var(--brand-soft);
+  color: var(--brand);
+}
+
+/* De ring hoort om het zichtbare vak, niet om de verstopte input. */
+.os-schaal__invoer:focus-visible + .os-schaal__vak {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+
+.os-schaal__invoer:disabled + .os-schaal__vak {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* Een uitgeschakelde groep mag niet oplichten alsof hij klikbaar is. */
+.os-schaal__invoer:disabled + .os-schaal__vak:hover {
+  border-color: var(--line);
+  color: var(--text-3);
+}
+
+/* De uiteinden benoemen. Zonder deze twee woorden is "7" betekenisloos: is 7
+   veel stress of veel rust? */
+.os-schaal__uiteinden {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 7px 0 0;
+  font-size: 11px;
+  color: var(--text-4);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .os-schaal__vak {
+    transition: none;
+  }
+  .os-schaal__vak:active {
+    transform: none;
+  }
+}
+
+/* ─── Domeinen ("Mijn leven") ──────────────────────────────────────────────
+   Vier levensdomeinen i.p.v. een kaart per tool. Bewust géén auto-fit-grid:
+   dat maakt vier gelijke vakjes zonder rangorde — precies de template-look die
+   we vermijden. Gezondheid is het brede domein (twee kolommen op desktop), de
+   rest volgt eronder. */
+.os-leven {
+  display: grid;
+  gap: var(--ruimte-band);
+}
+
+.os-leven__grid {
+  display: grid;
+  gap: var(--ruimte-kaart);
+  grid-template-columns: 1fr;
+  align-items: start;
+}
+
+@media (min-width: 900px) {
+  .os-leven__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  /* Gezondheid draagt het overzicht: 6 pijlers hebben breedte nodig. */
+  .os-leven__breed {
+    grid-column: 1 / -1;
+  }
+}
+
+/* ─── Zonekop ──────────────────────────────────────────────────────────────
+   Sectiekop boven een zone ("Mijn dag", "Mijn leven"). Het schaalcontrast met
+   de kaarttitels (13px) draagt de hiërarchie — niet een zwaardere rand of een
+   extra kleur.
+
+   Generiek (`os-zone__*`) en niet `os-leven__*`: de cockpit heeft meerdere
+   zones die dezelfde rang hebben. Een tweede kop-stijl ernaast zou ze visueel
+   uit elkaar laten lopen terwijl ze hetzelfde bedoelen. */
+.os-zone__kop {
+  margin: 0 0 2px;
+  font-size: clamp(19px, 2.6vw, 24px);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+.os-zone__intro {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-3);
+  line-height: 1.5;
+  max-width: 62ch;
+}
+
+/* Een zone = kop + inhoud, met bandruimte ertussen. */
+.os-zone {
+  display: grid;
+  gap: var(--ruimte-band);
+}
+
+/* ─── Eén domein ───────────────────────────────────────────────────────────
+   Nadrukkelijk géén `.os-kaart`. Een kaart is een tool ("Water", "vervangt
+   MyFitnessPal"); een domein is een uitsnede van je leven waar meerdere tools
+   onder vallen. Dezelfde vorm geven zou de twee door elkaar laten lopen — en
+   `Kaart` eist een `vervangt`, wat "Gezondheid" niet kan waarmaken.
+
+   Het verschil is bewust rustig: dezelfde navy, maar een gemarkeerde bovenrand
+   en een grotere titel. Diepte via laag en lijn, geen slagschaduw. */
+.os-domein {
+  position: relative;
+  display: grid;
+  align-content: start;
+  gap: 14px;
+  padding: 20px 20px 22px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--bg-card);
+}
+
+/* Een cyaan streepje linksboven: het merkaccent als lijn, nooit als vlak. */
+.os-domein::before {
+  content: '';
+  position: absolute;
+  top: 20px;
+  left: 0;
+  width: 2px;
+  height: 20px;
+  border-radius: 0 2px 2px 0;
+  background: var(--brand);
+}
+
+.os-domein:focus-within {
+  border-color: var(--line-strong);
+}
+
+.os-domein__kop {
+  display: grid;
+  gap: 4px;
+}
+
+/* 19px domeintitel tegen 13px kaarttitel: het schaalcontrast zegt welke van de
+   twee de ander bevat. */
+.os-domein__titel {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  line-height: 1.2;
+}
+
+.os-domein__definitie {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-4);
+  line-height: 1.45;
+}
+
+/* ─── Domein-statistiek ────────────────────────────────────────────────────
+   Eén getal met zijn naam eronder. `waarde` is een tekst en geen getal, want
+   "—" (niet gemeten) is een geldige waarde en 0 is dat meestal niet. */
+.os-stat {
+  display: grid;
+  gap: 3px;
+  align-content: start;
+}
+
+.os-stat__waarde {
+  font-size: 26px;
+  font-weight: 500;
+  line-height: 1;
+  color: var(--text-1);
+}
+
+.os-stat__naam {
+  font-size: 11.5px;
+  color: var(--text-3);
+  line-height: 1.35;
+}
+
+.os-stat__detail {
+  font-size: 11px;
+  color: var(--text-4);
+  line-height: 1.35;
+}
+
+/* Statistieken naast elkaar; wrapt vanzelf op smal. */
+.os-statrij {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 26px 32px;
+}

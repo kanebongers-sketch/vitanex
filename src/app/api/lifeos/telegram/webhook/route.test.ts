@@ -1,6 +1,6 @@
 import { describe, it, expect, afterEach } from 'vitest'
 import { NextRequest } from 'next/server'
-import { POST, chatIdToegestaan } from './route'
+import { POST } from './route'
 
 // ─── De secret-verificatie is de ENIGE beveiliging van deze publieke route ──
 // Dus die testen we het strengst: een fout of ontbrekend secret mag nooit
@@ -70,44 +70,46 @@ describe('POST /api/lifeos/telegram/webhook — secret-verificatie', () => {
 })
 
 // ─── Chat-id-allowlist (defense-in-depth naast het secret) ──────────────────
-// Het secret bewijst "van Telegram", de allowlist bewijst "van jou". We testen
-// de pure beslissing rechtstreeks — geen netwerk, geen model.
-describe('chatIdToegestaan', () => {
-  it('laat alles door als er geen allowlist staat (secret is de gate)', () => {
-    delete process.env.LIFEOS_TELEGRAM_ALLOWED_CHAT_ID
-    expect(chatIdToegestaan(123)).toBe(true)
-  })
-
-  it('laat alles door bij een lege/witruimte-allowlist', () => {
-    process.env.LIFEOS_TELEGRAM_ALLOWED_CHAT_ID = '   '
-    expect(chatIdToegestaan(123)).toBe(true)
-  })
-
-  it('laat alleen de toegestane chat door', () => {
-    process.env.LIFEOS_TELEGRAM_ALLOWED_CHAT_ID = '42'
-    expect(chatIdToegestaan(42)).toBe(true)
-    expect(chatIdToegestaan(43)).toBe(false)
-  })
-
-  it('ondersteunt meerdere chats (komma-gescheiden, met witruimte)', () => {
-    process.env.LIFEOS_TELEGRAM_ALLOWED_CHAT_ID = '42, 99 , 7'
-    expect(chatIdToegestaan(99)).toBe(true)
-    expect(chatIdToegestaan(7)).toBe(true)
-    expect(chatIdToegestaan(8)).toBe(false)
-  })
-})
-
+// Het secret bewijst "van Telegram", de allowlist bewijst "van jou". De pure
+// beslissing staat in `lib/lifeos/telegram/toegang.ts` en wordt daar getest;
+// hier testen we alleen dat de ROUTE 'm respecteert en niets uitvoert.
+//
+// Dat deze tests slagen zónder LIFEOS_TELEGRAM_BOT_TOKEN, ANTHROPIC_API_KEY of
+// LifeOS-database-env is het bewijs zelf: kwam de gate ooit voorbij, dan zou
+// `maakTelegramBot()` / `maakAnthropicModel()` gooien en zou de test dat merken.
 describe('POST /api/lifeos/telegram/webhook — chat-id-allowlist', () => {
   it('ackt (200) zonder te verwerken als de chat niet op de allowlist staat', async () => {
     process.env.LIFEOS_TELEGRAM_WEBHOOK_SECRET = SECRET
     process.env.LIFEOS_TELEGRAM_ALLOWED_CHAT_ID = '42'
-    // Een echt tekstbericht van een VREEMDE chat (99). Zou de allowlist ontbreken,
-    // dan raakte dit het model/de bot; nu wordt het vóór verwerking stil geackt —
-    // en dus zonder netwerk. Dat de test zonder model-env slaagt, bewíjst dat.
     const res = await POST(
       post({ [SECRET_HEADER]: SECRET }, { message: { chat: { id: 99 }, text: 'maak een taak' } }),
     )
     expect(res.status).toBe(200)
     await expect(res.json()).resolves.toEqual({ ok: true })
+  })
+
+  it('verwerkt NIETS als de allowlist ontbreekt — fail-closed', async () => {
+    process.env.LIFEOS_TELEGRAM_WEBHOOK_SECRET = SECRET
+    delete process.env.LIFEOS_TELEGRAM_ALLOWED_CHAT_ID
+    // Dit is de regressie die ertoe doet. Vóór de fix liet een ontbrekende
+    // allowlist ÁLLES door, en was het secret genoeg om autonoom een afspraak in
+    // Kane's echte Google-agenda te laten zetten. Nu: stil acken, niets doen.
+    const res = await POST(
+      post(
+        { [SECRET_HEADER]: SECRET },
+        { message: { chat: { id: 12345 }, text: 'zet morgen om 9 uur een afspraak' } },
+      ),
+    )
+    expect(res.status).toBe(200)
+    await expect(res.json()).resolves.toEqual({ ok: true })
+  })
+
+  it('verwerkt NIETS bij een lege/witruimte-allowlist', async () => {
+    process.env.LIFEOS_TELEGRAM_WEBHOOK_SECRET = SECRET
+    process.env.LIFEOS_TELEGRAM_ALLOWED_CHAT_ID = '   '
+    const res = await POST(
+      post({ [SECRET_HEADER]: SECRET }, { message: { chat: { id: 12345 }, text: 'maak een taak' } }),
+    )
+    expect(res.status).toBe(200)
   })
 })

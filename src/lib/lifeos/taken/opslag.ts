@@ -15,12 +15,17 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { takenVanRijen, taakVanRij, type NieuweTaak, type Taak, type TaakWijziging } from './taken'
 
-const KOLOMMEN = 'id, titel, notitie, klaar, klaar_op, datum, top3_positie, aangemaakt_op'
+const KOLOMMEN =
+  'id, titel, notitie, klaar, klaar_op, datum, top3_positie, impact, inspanning_minuten, energie, deadline, project_id, aangemaakt_op'
 
 /** Postgres: unieke index geschonden. */
 const UNIEK_GESCHONDEN = '23505'
 /** Postgres: check-constraint geschonden. */
 const CHECK_GESCHONDEN = '23514'
+/** Postgres: foreign key geschonden — bv. een project dat niet (meer) bestaat. */
+const FK_GESCHONDEN = '23503'
+/** Postgres: tekst die geen geldig type is — bv. 'abc' als uuid. */
+const ONLEESBAAR = '22P02'
 
 export type Reden = 'db' | 'bezet' | 'ongeldig' | 'niet_gevonden'
 export type Uitkomst<T> = { ok: true; waarde: T } | { ok: false; reden: Reden }
@@ -31,10 +36,21 @@ function foutCode(error: unknown): string | null {
   return typeof code === 'string' ? code : null
 }
 
+/**
+ * Postgres-fout → onze reden. Alles wat de gebruiker fout deed wordt 'ongeldig'
+ * (→ 400); alleen een echte storing blijft 'db' (→ 502).
+ *
+ * De FK- en uuid-gevallen staan hier omdat een niet-bestaand project een fout
+ * van de invoer is, geen storing. Zonder deze twee regels kreeg je een 502 op
+ * je eigen typfout, en dat is een melding die de schuld op de verkeerde plek
+ * legt.
+ */
 function vertaalFout(error: unknown): Reden {
   const code = foutCode(error)
   if (code === UNIEK_GESCHONDEN) return 'bezet'
   if (code === CHECK_GESCHONDEN) return 'ongeldig'
+  if (code === FK_GESCHONDEN) return 'ongeldig'
+  if (code === ONLEESBAAR) return 'ongeldig'
   return 'db'
 }
 
@@ -43,6 +59,12 @@ export interface TakenFilter {
   datum?: string
   /** Alleen de taken die in de top-3 staan. */
   alleenTop3?: boolean
+  /** Eén project, of `'geen'` voor de taken zonder project. Weglaten = alles. */
+  projectId?: string
+  /** Alleen taken met een deadline op of vóór deze dagsleutel. */
+  deadlineTot?: string
+  /** Alleen wat nog open staat. */
+  alleenOpen?: boolean
 }
 
 export async function haalTaken(
@@ -50,16 +72,27 @@ export async function haalTaken(
   userId: string,
   filter: TakenFilter = {},
 ): Promise<Uitkomst<Taak[]>> {
-  const basis = admin.from('taken').select(KOLOMMEN).eq('user_id', userId)
-  const opDatum =
-    filter.datum === undefined
-      ? basis
-      : filter.datum === 'ooit'
-        ? basis.is('datum', null)
-        : basis.eq('datum', filter.datum)
-  const opTop3 = filter.alleenTop3 ? opDatum.not('top3_positie', 'is', null) : opDatum
+  // `let` + hertoewijzing: elke filtermethode geeft dezelfde builder terug, dus
+  // dit blijft één query. Het type komt uit de initialisatie — geen annotatie,
+  // want de generieke typen van PostgREST zijn niet met de hand na te maken.
+  let query = admin.from('taken').select(KOLOMMEN).eq('user_id', userId)
 
-  const { data, error } = await opTop3
+  if (filter.datum !== undefined) {
+    query = filter.datum === 'ooit' ? query.is('datum', null) : query.eq('datum', filter.datum)
+  }
+  if (filter.alleenTop3) query = query.not('top3_positie', 'is', null)
+  if (filter.projectId !== undefined) {
+    query =
+      filter.projectId === 'geen'
+        ? query.is('project_id', null)
+        : query.eq('project_id', filter.projectId)
+  }
+  // Taken zonder deadline vallen hier bewust buiten: je vroeg om wat er vóór een
+  // datum moet, en van een taak zonder deadline weten we dat niet.
+  if (filter.deadlineTot !== undefined) query = query.lte('deadline', filter.deadlineTot)
+  if (filter.alleenOpen) query = query.eq('klaar', false)
+
+  const { data, error } = await query
     .order('top3_positie', { ascending: true, nullsFirst: false })
     .order('aangemaakt_op', { ascending: true })
 
@@ -80,6 +113,14 @@ export async function maakTaak(
       notitie: nieuw.notitie,
       datum: nieuw.datum,
       top3_positie: nieuw.top3Positie,
+      // `?? null` en niet weglaten: de vier feiten zijn optioneel bij het
+      // aanmaken, en een taak zonder oordeel schrijft expliciet "geen oordeel"
+      // weg. Dat is hetzelfde als de default, maar het staat er nu zwart op wit.
+      impact: nieuw.impact ?? null,
+      inspanning_minuten: nieuw.inspanningMinuten ?? null,
+      energie: nieuw.energie ?? null,
+      deadline: nieuw.deadline ?? null,
+      project_id: nieuw.projectId ?? null,
     })
     .select(KOLOMMEN)
     .single()
@@ -108,6 +149,13 @@ export async function wijzigTaak(
   if (wijziging.notitie !== undefined) velden.notitie = wijziging.notitie
   if (wijziging.datum !== undefined) velden.datum = wijziging.datum
   if (wijziging.top3Positie !== undefined) velden.top3_positie = wijziging.top3Positie
+  if (wijziging.impact !== undefined) velden.impact = wijziging.impact
+  if (wijziging.inspanningMinuten !== undefined) {
+    velden.inspanning_minuten = wijziging.inspanningMinuten
+  }
+  if (wijziging.energie !== undefined) velden.energie = wijziging.energie
+  if (wijziging.deadline !== undefined) velden.deadline = wijziging.deadline
+  if (wijziging.projectId !== undefined) velden.project_id = wijziging.projectId
   if (wijziging.klaar !== undefined) {
     velden.klaar = wijziging.klaar
     velden.klaar_op = wijziging.klaar ? new Date().toISOString() : null

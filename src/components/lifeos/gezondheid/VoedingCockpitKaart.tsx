@@ -113,9 +113,22 @@ type Staat =
   | { fase: 'fout'; bericht: string }
   | { fase: 'ok'; view: VoedingView }
 
+/**
+ * Een mislukte log, mét de maaltijd die niet werd opgeslagen.
+ *
+ * De formuliervelden blijven weliswaar staan (`voegToe` geeft false terug), maar
+ * dat is een weg terug die je moet raden. `Foutmelding` zonder `opnieuw` is
+ * expliciet verboden ("Weglaten = geen weg terug. Doe dat niet.") — dus de
+ * invoer gaat mee en de knop doet het echt.
+ */
+interface ActieFout {
+  bericht: string
+  invoer: MaaltijdInvoer
+}
+
 export function VoedingCockpitKaart() {
   const [staat, setStaat] = useState<Staat>({ fase: 'laden' })
-  const [actieFout, setActieFout] = useState<string | null>(null)
+  const [actieFout, setActieFout] = useState<ActieFout | null>(null)
   const [bezig, setBezig] = useState(false)
   const generatie = useRef(0)
 
@@ -177,7 +190,7 @@ export function VoedingCockpitKaart() {
       // Rollback: de optimistische regel eruit + zichtbare fout. De velden in het
       // formulier blijven staan (we geven false terug), zodat niets verloren gaat.
       setStaat((s) => (s.fase === 'ok' ? { fase: 'ok', view: { ...s.view, logs: s.view.logs.filter((l) => l.id !== tijdId) } } : s))
-      setActieFout(uitkomst.fout)
+      setActieFout({ bericht: uitkomst.fout, invoer })
       return false
     },
     [staat, bezig],
@@ -197,7 +210,7 @@ export function VoedingCockpitKaart() {
 interface InhoudProps {
   view: VoedingView
   bezig: boolean
-  actieFout: string | null
+  actieFout: ActieFout | null
   onToevoeg: (invoer: MaaltijdInvoer) => Promise<boolean>
 }
 
@@ -236,7 +249,14 @@ function Inhoud({ view, bezig, actieFout, onToevoeg }: InhoudProps) {
 
       <VoedingToevoegen bezig={bezig} onToevoeg={onToevoeg} />
 
-      {actieFout ? <Foutmelding bericht={actieFout} /> : null}
+      {actieFout ? (
+        <Foutmelding
+          bericht={`${actieFout.bericht} "${actieFout.invoer.omschrijving}" is niet opgeslagen.`}
+          opnieuw={() => {
+            void onToevoeg(actieFout.invoer)
+          }}
+        />
+      ) : null}
     </div>
   )
 }

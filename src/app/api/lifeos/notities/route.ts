@@ -1,5 +1,5 @@
 // GET  /api/lifeos/notities?soort=brain_dump&datum=YYYY-MM-DD — je notities van een dag
-//   optioneel: &zoek=<tekst> &tag=<tag> &categorie=<categorie>
+//   optioneel: &zoek=<tekst> &tag=<tag> &categorie=<categorie> &limiet=<1..500>
 // POST /api/lifeos/notities                                    — nieuwe notitie
 //
 // Vervangt Apple Notes / Google Keep. De CAPTURE blijft één tik, zonder wrijving:
@@ -12,6 +12,7 @@
 
 import { NextResponse, type NextRequest } from 'next/server'
 import { vereisLifeosToegang } from '@/lib/lifeos/admin'
+import { synchroniseerNotitieKennis } from '@/lib/lifeos/notities/kennis'
 import { isNotitieCategorie, isSoort, leesNieuweNotitie } from '@/lib/lifeos/notities/notities'
 import { haalNotities, maakNotitie, type NotitiesFilter, type Reden } from '@/lib/lifeos/notities/opslag'
 import { normaliseerTag } from '@/lib/lifeos/notities/tags'
@@ -78,11 +79,19 @@ export async function GET(req: NextRequest) {
     filter.categorie = categorie
   }
 
+  // Onzin (`?limiet=abc`) → de standaard, geen 400: een kapotte querystring mag
+  // je notities niet onbereikbaar maken. `haalNotities` begrenst zelf.
+  const limiet = Number(params.get('limiet'))
+  if (Number.isFinite(limiet) && limiet > 0) filter.limiet = limiet
+
   const uitkomst = await haalNotities(toegang.admin, toegang.userId, filter)
 
   if (!uitkomst.ok) return foutAntwoord(uitkomst.reden)
 
-  return NextResponse.json({ notities: uitkomst.waarde }, { headers: CACHE_HEADERS })
+  return NextResponse.json(
+    { notities: uitkomst.waarde.notities, erIsMeer: uitkomst.waarde.erIsMeer },
+    { headers: CACHE_HEADERS },
+  )
 }
 
 export async function POST(req: NextRequest) {
@@ -98,5 +107,9 @@ export async function POST(req: NextRequest) {
   const uitkomst = await maakNotitie(toegang.admin, toegang.userId, nieuw.waarde)
   if (!uitkomst.ok) return foutAntwoord(uitkomst.reden)
 
-  return NextResponse.json({ notitie: uitkomst.waarde }, { status: 201 })
+  // De notitie staat er. De verwijzingen erbij — en als dát misgaat is dat een
+  // waarschuwing, geen 502: je tekst is veilig. Zie `synchroniseerNotitieKennis`.
+  const waarschuwing = await synchroniseerNotitieKennis(toegang.admin, toegang.userId, uitkomst.waarde)
+
+  return NextResponse.json({ notitie: uitkomst.waarde, waarschuwing }, { status: 201 })
 }

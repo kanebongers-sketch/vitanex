@@ -10,6 +10,7 @@ import { leesInboxVandaag, type InboxVandaag, type TriageMailJson } from '@/lib/
 import { Triagelijst } from './Triagelijst'
 import { useSuggesties } from './useSuggesties'
 import { maakActie } from './acties'
+import { voerMailActieUit, vraagConcept, type MailActieSoort } from './mail-acties'
 
 // Container: haalt op, kent de staten, plaatst de presentatie. Voor het
 // Avond-moment. Vervangt "even Gmail openen om te kijken of er nog iets ligt".
@@ -98,6 +99,32 @@ export function InboxKaart() {
     window.location.assign(uitkomst.waarde.url)
   }, [])
 
+  /**
+   * Archiveren / gelezen markeren, en daarna de triage opnieuw ophalen.
+   *
+   * Bewust NIET optimistisch de regel weghalen. De triage is een LIVE lezing van
+   * Gmail (geen cache — zie `vandaag/route.ts`), dus na een geslaagde actie geeft
+   * Gmail de mail vanzelf niet meer terug: de lijst klopt dan omdat hij ververst
+   * is, niet omdat wij 'm hebben bijgewerkt. Een regel wegvegen die Gmail nog wél
+   * teruggeeft, zou een mail laten verdwijnen die er nog ligt — en dat is precies
+   * het stille fout-negatief waar deze kaart tegen ontworpen is.
+   */
+  const mailActie = useCallback(
+    async (soort: MailActieSoort, mail: TriageMailJson) => {
+      const uitkomst = await voerMailActieUit(soort, mail)
+      if (uitkomst.ok) await laad()
+      return uitkomst
+    },
+    [laad],
+  )
+
+  /**
+   * Vita schrijft een concept. De lijst verandert daar niet van — het concept
+   * staat in je Gmail-concepten en de mail ligt nog gewoon in je inbox — dus geen
+   * reload. De knop meldt zelf dat het klaarstaat.
+   */
+  const concept = useCallback((mail: TriageMailJson) => vraagConcept(mail), [])
+
   // De mails die de triage al ophaalde. Buiten de gekoppelde staat een stabiele
   // lege lijst, zodat de analyse pas vuurt als er ook echt post is. De referentie
   // van `vraagtActie` blijft tussen renders staan (het zit in `staat`), dus de
@@ -134,6 +161,8 @@ export function InboxKaart() {
           suggestieVoor={suggestieVoor}
           analyseStatus={analyseStatus}
           onMaak={maakActie}
+          onMailActie={mailActie}
+          onConcept={concept}
         />
       ) : null}
     </Kaart>

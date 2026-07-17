@@ -1,8 +1,11 @@
 'use client'
 
-import { useState, type FormEvent } from 'react'
-import { X, Sparkles, Plus } from 'lucide-react'
-import type { Notitie } from '@/lib/lifeos/notities/notities'
+import { useState, type CSSProperties, type FormEvent, type ReactNode } from 'react'
+import { X, Sparkles, Plus, Pencil } from 'lucide-react'
+import type { Notitie, NotitieWijziging } from '@/lib/lifeos/notities/notities'
+import { CategorieVoorstel } from './CategorieVoorstel'
+import { NotitieTekst } from './NotitieTekst'
+import { NotitieBewerker } from './NotitieBewerker'
 
 /** 'YYYY-MM-DD' → kort NL-label ("14 jul"). Voor de datum bij zoekresultaten. */
 function korteDatum(datum: string): string {
@@ -15,20 +18,30 @@ function korteDatum(datum: string): string {
 // weet niets van fetch of optimistische updates.
 //
 // De capture is elders frictieloos; hier, ná het opschrijven, kun je een notitie
-// ordenen: een tag erop, of de AI een categorie laten voorstellen. Alles
-// optioneel — een notitie zonder tags of categorie is de norm, niet onaf.
+// ordenen: een tag erop, een titel eraan (waarmee andere notities ernaar kunnen
+// verwijzen), of de AI een categorie laten voorstellen. Alles optioneel — een
+// notitie zonder titel, tags of categorie is de norm, niet onaf.
 
 interface BrainDumpRijProps {
   notitie: Notitie
   onWeg: (notitie: Notitie) => void
   onTag: (notitie: Notitie, tag: string, actie: 'toevoegen' | 'weghalen') => void
   onCategoriseer: (notitie: Notitie) => void
+  onBewerk: (notitie: Notitie, wijziging: NotitieWijziging) => void
+  /** Zie `BrainDump.bestaandeTitels` — undefined = we weten het niet, dus claim niets. */
+  bestaandeTitels?: ReadonlySet<string>
+  /** Klik op een [[verwijzing]]. Weglaten = verwijzingen zijn tekst, geen knop. */
+  onLinkKlik?: (titel: string) => void
   /** Optimistisch toegevoegd en nog niet bevestigd door de server. */
   onbevestigd?: boolean
   /** Toon de datum (bij zoeken over meerdere dagen). */
   metDatum?: boolean
   /** De AI is nu een categorie aan het bepalen voor déze notitie. */
   bezigMetCategorie?: boolean
+  /** Het AI-voorstel dat op jouw ja/nee wacht (alleen voor deze notitie). */
+  voorstel?: { categorie: string; vertrouwen: number }
+  onVoorstelJa?: () => void
+  onVoorstelNee?: () => void
 }
 
 export function BrainDumpRij({
@@ -36,13 +49,20 @@ export function BrainDumpRij({
   onWeg,
   onTag,
   onCategoriseer,
+  onBewerk,
+  bestaandeTitels,
+  onLinkKlik,
   onbevestigd = false,
   metDatum = false,
   bezigMetCategorie = false,
+  voorstel,
+  onVoorstelJa,
+  onVoorstelNee,
 }: BrainDumpRijProps) {
   const [hover, setHover] = useState(false)
   const [tagOpen, setTagOpen] = useState(false)
   const [nieuweTag, setNieuweTag] = useState('')
+  const [bewerken, setBewerken] = useState(false)
 
   function voegTagToe(e: FormEvent) {
     e.preventDefault()
@@ -53,64 +73,68 @@ export function BrainDumpRij({
     setTagOpen(false)
   }
 
+  function bewaar(wijziging: NotitieWijziging) {
+    onBewerk(notitie, wijziging)
+    setBewerken(false)
+  }
+
+  if (bewerken) {
+    return (
+      <li style={{ ...RIJ, opacity: 1 }}>
+        <NotitieBewerker notitie={notitie} onBewaar={bewaar} onAnnuleer={() => setBewerken(false)} />
+      </li>
+    )
+  }
+
   return (
     <li
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
-      style={{
-        display: 'grid',
-        gap: 7,
-        padding: '10px 2px 11px 0',
-        borderBottom: '1px solid var(--line)',
-        opacity: onbevestigd ? 0.55 : 1,
-        transition: 'opacity 180ms var(--ease)',
-      }}
+      style={{ ...RIJ, opacity: onbevestigd ? 0.55 : 1 }}
     >
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10 }}>
-        <div style={{ minWidth: 0 }}>
+        <div style={{ minWidth: 0, flex: 1 }}>
           {metDatum ? (
             <p className="os-cijfer" style={{ margin: '0 0 3px', fontSize: 11, color: 'var(--text-4)' }}>
               {korteDatum(notitie.datum)}
             </p>
           ) : null}
-          <p
-            style={{
-              margin: 0,
-              fontSize: 13,
-              lineHeight: 1.5,
-              color: 'var(--text-2)',
-              overflowWrap: 'anywhere',
-              whiteSpace: 'pre-wrap',
-            }}
-          >
-            {notitie.tekst}
-          </p>
+
+          {/* De titel is de naam waaronder anderen naar deze notitie verwijzen.
+              Alleen tonen als hij er is — geen leeg veld dat om invulling vraagt. */}
+          {notitie.titel !== null ? <h3 style={TITEL}>{notitie.titel}</h3> : null}
+
+          {/* De koppen in de tekst schuiven één niveau op als er een titel boven
+              staat: h2 (kaart) → h3 (titel) → h4 (tekst). Zonder titel begint de
+              tekst op h3 — anders springt de hiërarchie van h2 naar h4
+              (accessibility.md: koppen in hiërarchie, geen sprongen). */}
+          <NotitieTekst
+            tekst={notitie.tekst}
+            bestaandeTitels={bestaandeTitels}
+            onLinkKlik={onLinkKlik}
+            basisNiveau={notitie.titel !== null ? 4 : 3}
+          />
         </div>
 
-        <button
-          type="button"
-          onClick={() => onWeg(notitie)}
-          disabled={onbevestigd}
-          aria-label={`Verwijder notitie: ${notitie.tekst}`}
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexShrink: 0,
-            width: 24,
-            height: 24,
-            padding: 0,
-            borderRadius: 999,
-            border: '1px solid transparent',
-            background: 'transparent',
-            color: hover ? 'var(--text-2)' : 'var(--text-4)',
-            cursor: onbevestigd ? 'not-allowed' : 'pointer',
-            opacity: onbevestigd ? 0.3 : hover ? 1 : 0.5,
-            transition: 'opacity 180ms var(--ease), color 180ms var(--ease)',
-          }}
-        >
-          <X size={13} strokeWidth={2.4} aria-hidden="true" />
-        </button>
+        <div style={{ display: 'flex', gap: 2, flexShrink: 0 }}>
+          {!onbevestigd ? (
+            <IconKnop
+              label={`Bewerk notitie: ${notitie.tekst.slice(0, 40)}`}
+              zichtbaar={hover}
+              onClick={() => setBewerken(true)}
+            >
+              <Pencil size={12} strokeWidth={2.2} aria-hidden="true" />
+            </IconKnop>
+          ) : null}
+          <IconKnop
+            label={`Verwijder notitie: ${notitie.tekst.slice(0, 40)}`}
+            zichtbaar={hover}
+            uit={onbevestigd}
+            onClick={() => onWeg(notitie)}
+          >
+            <X size={13} strokeWidth={2.4} aria-hidden="true" />
+          </IconKnop>
+        </div>
       </div>
 
       {/* Meta-rij: categorie + tags + acties. Alleen bij bevestigde notities —
@@ -135,7 +159,7 @@ export function BrainDumpRij({
 
           {tagOpen ? (
             <form onSubmit={voegTagToe} style={{ display: 'inline-flex' }}>
-              <label htmlFor={`tag-${notitie.id}`} style={{ position: 'absolute', left: -9999 }}>
+              <label htmlFor={`tag-${notitie.id}`} style={VERBORGEN}>
                 Nieuwe tag
               </label>
               <input
@@ -156,7 +180,7 @@ export function BrainDumpRij({
           )}
 
           {/* AI-categorie: alleen zinvol als er nog geen categorie is. */}
-          {!notitie.categorie ? (
+          {!notitie.categorie && voorstel === undefined ? (
             <button
               type="button"
               onClick={() => onCategoriseer(notitie)}
@@ -170,11 +194,79 @@ export function BrainDumpRij({
           ) : null}
         </div>
       ) : null}
+
+      {voorstel !== undefined && onVoorstelJa !== undefined && onVoorstelNee !== undefined ? (
+        <CategorieVoorstel
+          categorie={voorstel.categorie}
+          vertrouwen={voorstel.vertrouwen}
+          onJa={onVoorstelJa}
+          onNee={onVoorstelNee}
+        />
+      ) : null}
     </li>
   )
 }
 
-const CATEGORIE: React.CSSProperties = {
+/** Icoonknop met ontworpen hover — de focus-ring komt uit globals.css. */
+function IconKnop({
+  children,
+  label,
+  onClick,
+  zichtbaar,
+  uit = false,
+}: {
+  children: ReactNode
+  label: string
+  onClick: () => void
+  zichtbaar: boolean
+  uit?: boolean
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={uit}
+      aria-label={label}
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: 24,
+        height: 24,
+        padding: 0,
+        borderRadius: 999,
+        border: '1px solid transparent',
+        background: 'transparent',
+        color: zichtbaar ? 'var(--text-2)' : 'var(--text-4)',
+        cursor: uit ? 'not-allowed' : 'pointer',
+        opacity: uit ? 0.3 : zichtbaar ? 1 : 0.5,
+        transition: 'opacity 180ms var(--ease), color 180ms var(--ease)',
+      }}
+    >
+      {children}
+    </button>
+  )
+}
+
+const RIJ: CSSProperties = {
+  display: 'grid',
+  gap: 7,
+  padding: '10px 2px 11px 0',
+  borderBottom: '1px solid var(--line)',
+  transition: 'opacity 180ms var(--ease)',
+}
+
+const TITEL: CSSProperties = {
+  margin: '0 0 4px',
+  fontSize: 13,
+  fontWeight: 600,
+  lineHeight: 1.35,
+  letterSpacing: '-0.01em',
+  color: 'var(--text-1)',
+  overflowWrap: 'anywhere',
+}
+
+const CATEGORIE: CSSProperties = {
   fontSize: 11,
   fontWeight: 600,
   padding: '2px 8px',
@@ -183,7 +275,7 @@ const CATEGORIE: React.CSSProperties = {
   color: 'var(--brand)',
 }
 
-const TAG: React.CSSProperties = {
+const TAG: CSSProperties = {
   display: 'inline-flex',
   alignItems: 'center',
   gap: 3,
@@ -194,7 +286,7 @@ const TAG: React.CSSProperties = {
   color: 'var(--text-3)',
 }
 
-const TAG_X: React.CSSProperties = {
+const TAG_X: CSSProperties = {
   display: 'inline-flex',
   padding: 1,
   border: 'none',
@@ -203,7 +295,7 @@ const TAG_X: React.CSSProperties = {
   cursor: 'pointer',
 }
 
-const TAG_INVOER: React.CSSProperties = {
+const TAG_INVOER: CSSProperties = {
   width: 90,
   fontSize: 11,
   padding: '2px 8px',
@@ -214,7 +306,7 @@ const TAG_INVOER: React.CSSProperties = {
   fontFamily: 'inherit',
 }
 
-const ACTIE: React.CSSProperties = {
+const ACTIE: CSSProperties = {
   display: 'inline-flex',
   alignItems: 'center',
   gap: 3,
@@ -226,4 +318,17 @@ const ACTIE: React.CSSProperties = {
   background: 'transparent',
   color: 'var(--text-4)',
   cursor: 'pointer',
+}
+
+/** Zichtbaar voor screenreaders, niet voor het oog. */
+const VERBORGEN: CSSProperties = {
+  position: 'absolute',
+  width: 1,
+  height: 1,
+  padding: 0,
+  margin: -1,
+  overflow: 'hidden',
+  clip: 'rect(0 0 0 0)',
+  whiteSpace: 'nowrap',
+  border: 0,
 }

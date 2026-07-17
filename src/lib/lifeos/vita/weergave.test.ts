@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { kiesWeergave, type SignalenAntwoord } from './weergave'
+import { kiesWeergave, looptDagbriefing, meekijkTekst, type SignalenAntwoord } from './weergave'
 import type { Signaal } from './signalen'
 
 const SIGNAAL: Signaal = {
@@ -83,5 +83,91 @@ describe('kiesWeergave', () => {
     // Act + Assert
     expect(kiesWeergave(deels)).toMatchObject({ soort: 'signalen', bronnenMetFout: ['taken'] })
     expect(kiesWeergave(deelsRustig)).toMatchObject({ soort: 'rustig', bronnenMetFout: ['taken'] })
+  })
+})
+
+// ─── De belofte ─────────────────────────────────────────────────────────────
+// Dit is de regel die loog: "Ik blijf meekijken en tik je aan zodra er iets
+// verandert", terwijl er geen cron, geen polling en geen push bestond. Deze
+// tests bewaken dat de belofte alleen nog uitgesproken wordt op BEWIJS van een
+// écht bezorgde briefing — niet op het bestaan van een cron-route.
+
+const NU = new Date('2026-07-15T09:00:00+02:00')
+
+describe('looptDagbriefing — alleen op bewijs', () => {
+  it('erkent een briefing van vanochtend', () => {
+    // Arrange — twee uur geleden echt bezorgd.
+    const bezorgd = { laatstBezorgdOp: '2026-07-15T05:00:00.000Z' }
+
+    // Act & Assert
+    expect(looptDagbriefing(bezorgd, NU)).toBe(true)
+  })
+
+  it('erkent een gemiste ochtend, want GitHub-cron loopt soms uit', () => {
+    // Arrange — gisterochtend bezorgd, vanochtend overgeslagen. Op een venster van
+    // 24 uur zou de kaart nu zeggen dat de briefing niet loopt, terwijl hij morgen
+    // gewoon weer komt.
+    const bezorgd = { laatstBezorgdOp: '2026-07-14T05:00:00.000Z' }
+
+    // Act & Assert
+    expect(looptDagbriefing(bezorgd, NU)).toBe(true)
+  })
+
+  it('gelooft een briefing van vorige week niet meer', () => {
+    // Arrange — er is al dagen niets gekomen; de cron staat kennelijk stil.
+    const bezorgd = { laatstBezorgdOp: '2026-07-08T05:00:00.000Z' }
+
+    // Act & Assert — anders blijft de belofte staan terwijl er niets komt.
+    expect(looptDagbriefing(bezorgd, NU)).toBe(false)
+  })
+
+  it('belooft niets als er nog nooit een briefing bezorgd is', () => {
+    // Arrange — de tabel is leeg: de cron is er wel, maar draait niet.
+    // Act & Assert
+    expect(looptDagbriefing({ laatstBezorgdOp: null }, NU)).toBe(false)
+  })
+
+  it.each([[null], [undefined]])('belooft niets als we het niet konden nagaan (%s)', (v) => {
+    // Arrange — gevallen query of een oudere client. Twijfel → stilte.
+    // Act & Assert
+    expect(looptDagbriefing(v, NU)).toBe(false)
+  })
+
+  it('gelooft een onleesbare datum niet', () => {
+    expect(looptDagbriefing({ laatstBezorgdOp: 'gisteren' }, NU)).toBe(false)
+  })
+
+  it('gelooft een tijdstempel uit de toekomst niet', () => {
+    // Arrange — een kapotte klok is geen bewijs.
+    const bezorgd = { laatstBezorgdOp: '2026-07-16T05:00:00.000Z' }
+
+    // Act & Assert
+    expect(looptDagbriefing(bezorgd, NU)).toBe(false)
+  })
+})
+
+describe('meekijkTekst', () => {
+  it('belooft de dagbriefing alleen als hij aantoonbaar loopt', () => {
+    // Arrange
+    const bezorgd = { laatstBezorgdOp: '2026-07-15T05:00:00.000Z' }
+
+    // Act
+    const tekst = meekijkTekst(bezorgd, NU)
+
+    // Assert
+    expect(tekst).toContain('dagbriefing')
+  })
+
+  it('zegt eerlijk dat hij je niet aantikt als er geen bewijs is', () => {
+    // Act
+    const tekst = meekijkTekst({ laatstBezorgdOp: null }, NU)
+
+    // Assert — geen "ik tik je aan", want dat doet hij dan niet.
+    expect(tekst).toBe('Ik kijk mee op het moment dat je LifeOS opent. Uit mezelf tik ik je nu nog niet aan.')
+  })
+
+  it('doet geen enkele belofte als de status onbekend is', () => {
+    // Act & Assert — de veilige kant: liever te weinig beloven dan te veel.
+    expect(meekijkTekst(undefined, NU)).toContain('Uit mezelf tik ik je nu nog niet aan')
   })
 })

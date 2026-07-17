@@ -29,17 +29,48 @@
 
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { TIJDZONE, lokaleTijd, datumMinDagen } from './signalen'
-import type { HerstelDag, AgendaEvent, Taak } from './signalen'
+import type { HerstelDag, AgendaEvent } from './signalen'
 import {
   actieveMinutenPerDag,
   leesTrainingLogRij,
   type TrainingLog,
 } from '@/lib/lifeos/training/actieve-minuten'
+import { taakVanRij } from '@/lib/lifeos/taken/taken'
+import type { SlimmeTaak } from '@/lib/lifeos/taken/prioriteit'
 
 /** Hoeveel dagen herstel Vita meekrijgt. Dekt de 5-dagen-beweging-regel ruim. */
 const HERSTEL_DAGEN = 7
 /** Plafond op het geheugen: een prompt vol oude weetjes is geen context maar ruis. */
 const GEHEUGEN_LIMIET = 24
+
+// ─── Plafonds ───────────────────────────────────────────────────────────────
+// Elk vak hieronder gaat bij ELKE vraag mee in de systeemprompt en wordt dus elke
+// keer opnieuw betaald. Een bron zonder plafond is daarmee een open rekening: 500
+// open taken zijn 500 regels prompt, per vraag.
+//
+// Het geheugen had een limiet, de taken niet — die asymmetrie was geen keuze maar
+// een gat. Deze grenzen zijn beleid: ze staan hier bij elkaar zodat ze te
+// verantwoorden en te verstellen zijn, in plaats van verstopt in een query.
+
+/**
+ * Zoveel open taken krijgt Vita te zien. Afkappen is niet gratis: taak 61 bestaat
+ * voor Vita niet. Dat is te verkiezen boven een prompt die door zijn eigen
+ * takenlijst wordt verdrongen — maar het is een afkapping, geen selectie. De
+ * sortering (top-3 eerst) bepaalt dus wat overleeft, en dat is met opzet.
+ */
+const TAKEN_LIMIET = 60
+/** Zoveel brain dumps. Een brain dump is een idee, geen archief om door te spitten. */
+const NOTITIE_LIMIET = 12
+/** Hoeveel dagen brain dumps meegaan. */
+const NOTITIE_DAGEN = 7
+
+/**
+ * Plafonds op de tekstlengte per regel. Afkappen gebeurt ZICHTBAAR (met "…
+ * (ingekort)"): een stil afgekapte notitie leest als een afgemaakte gedachte, en
+ * dan trekt Vita een conclusie uit een zin die nooit zo eindigde.
+ */
+const MAX_JOURNAL_TEKENS = 1200
+const MAX_NOTITIE_TEKENS = 180
 
 // ─── Vakken ─────────────────────────────────────────────────────────────────
 
@@ -50,6 +81,13 @@ export interface Geheugen {
   soort: string
   inhoud: string
   bron: string | null
+}
+
+/** Eén notitie- of journalregel, teruggebracht tot wat de prompt nodig heeft. */
+export interface Tekstregel {
+  /** ISO-datum (YYYY-MM-DD). */
+  datum: string
+  tekst: string
 }
 
 export interface VitaContext {
@@ -73,7 +111,29 @@ export interface VitaContext {
    */
   beweging: Vak<TrainingLog[]>
   agendaVandaag: Vak<AgendaEvent[]>
-  taken: Vak<Taak[]>
+  /**
+   * De OPEN taken. Volledige `SlimmeTaak`-rijen (impact, deadline, inspanning,
+   * energie), zodat zowel de signaalmotor als de dagbriefing op dezelfde ophaal
+   * draaien in plaats van elk hun eigen takenquery te doen.
+   */
+  taken: Vak<SlimmeTaak[]>
+  /**
+   * Wat Kane vandaag afvinkte.
+   *
+   * Hiervóór stond er `.eq('klaar', false)` op de query en zag Vita afgeronde
+   * taken domweg niet. Daardoor kon hij nooit zeggen "je hebt je top-3 al af" —
+   * hij kon alleen zeuren over wat er nog stond. Een stafchef die je voortgang
+   * niet ziet, is een stafchef die alleen maar aanmaant.
+   *
+   * Komt uit dezelfde query als `taken`: één ophaal, twee afgeleiden. Faalt die
+   * query, dan zijn beide vakken `ok:false` — maar `vakkenMetFout` noemt 'taken'
+   * één keer, want het is één bron.
+   */
+  afgerondVandaag: Vak<SlimmeTaak[]>
+  /** De journal van vandaag en gisteren. Wat Kane zelf schreef, niet wat wij maten. */
+  journal: Vak<Tekstregel[]>
+  /** Recente brain dumps. */
+  notities: Vak<Tekstregel[]>
   geheugen: Vak<Geheugen[]>
   /** Het moment waarop deze context is opgebouwd. */
   nu: Date
@@ -106,7 +166,12 @@ export function vakkenMetFout(context: VitaContext): string[] {
     ['slaap', context.slaapBron],
     ['beweging', context.beweging],
     ['agenda', context.agendaVandaag],
+    // `afgerondVandaag` staat hier bewust niet naast: het is dezelfde query als
+    // `taken`. Zou het er wél staan, dan meldde één gevallen query zich als twee
+    // gevallen bronnen — "ik kon je taken en taken niet ophalen".
     ['taken', context.taken],
+    ['journal', context.journal],
+    ['notities', context.notities],
     ['geheugen', context.geheugen],
   ]
   return vakken.filter(([, vak]) => !vak.ok).map(([naam]) => naam)
@@ -145,16 +210,42 @@ function naarAgendaEvent(rij: Rij): AgendaEvent | null {
   }
 }
 
-function naarTaak(rij: Rij): Taak | null {
-  const titel = alsTekst(rij.titel)
-  if (!titel) return null
-  const datum = alsTekst(rij.datum)
-  return {
-    titel,
-    klaar: rij.klaar === true,
-    datum: datum ? datum.slice(0, 10) : null,
-    top3Positie: alsGetal(rij.top3_positie),
+/** Meerdere witruimtes → één spatie. Een prompt-regel is één regel. */
+function eenRegel(tekst: string): string {
+  return tekst.replace(/\s+/g, ' ').trim()
+}
+
+/**
+ * Kapt zichtbaar af. Het staartje is geen opsmuk: zonder die woorden leest een
+ * afgekapte notitie als een afgemaakte gedachte, en trekt Vita een conclusie uit
+ * een zin die nooit zo eindigde.
+ */
+function kort(tekst: string, max: number): string {
+  return tekst.length <= max ? tekst : `${tekst.slice(0, max)}… (ingekort)`
+}
+
+function naarTekstregel(max: number): (rij: Rij) => Tekstregel | null {
+  return (rij) => {
+    const tekst = alsTekst(rij.tekst)
+    const datum = alsTekst(rij.datum)
+    if (!tekst || !datum) return null
+    return { datum: datum.slice(0, 10), tekst: kort(eenRegel(tekst), max) }
   }
+}
+
+/**
+ * Is deze taak vandaag afgevinkt?
+ *
+ * Op `klaar_op` (het moment), niet op `datum` (de dag waarvoor hij gepland stond):
+ * een taak van vorige week die je vandaag afmaakt, is vandaag afgerond. Een
+ * onleesbare `klaar_op` telt niet mee — dan weten we het niet, en dan zeggen we
+ * het niet.
+ */
+function afgerondOp(taak: SlimmeTaak, dag: string): boolean {
+  if (!taak.klaar || taak.klaarOp === null) return false
+  const moment = new Date(taak.klaarOp)
+  if (Number.isNaN(moment.getTime())) return false
+  return lokaleTijd(moment).datum === dag
 }
 
 function naarGeheugen(rij: Rij): Geheugen | null {
@@ -221,7 +312,19 @@ function slaapPerDag(rijen: readonly Rij[]): Map<string, number | null> {
 }
 
 /**
- * Haalt alles op wat Vita over nu moet weten. Vijf queries parallel — geen
+ * De kolommen die `taakVanRij` leest: de basis uit 020 plus de feiten uit 100.
+ *
+ * Moet gelijk blijven aan `KOLOMMEN` in `taken/opslag.ts` (die is niet
+ * geëxporteerd, anders stond hij hier niet). Vergeet je er één, dan leest
+ * `taakVanRij` 'm als `null` — en dan is een taak mét deadline in Vita's context
+ * stilletjes een taak zónder deadline. Geen fout, geen melding: gewoon een feit
+ * dat verdampt.
+ */
+const TAAK_KOLOMMEN =
+  'id, titel, notitie, klaar, klaar_op, datum, top3_positie, impact, inspanning_minuten, energie, deadline, project_id, aangemaakt_op'
+
+/**
+ * Haalt alles op wat Vita over nu moet weten. Zeven queries parallel — geen
  * waterval, en geen tien losse calls per pagina-load.
  */
 export async function haalContext(
@@ -232,13 +335,16 @@ export async function haalContext(
   const vandaag = lokaleTijd(nu).datum
   const dagen = datumReeks(vandaag, HERSTEL_DAGEN)
   const vanaf = datumMinDagen(vandaag, HERSTEL_DAGEN - 1)
+  const gisteren = datumMinDagen(vandaag, 1)
+  const notitiesVanaf = datumMinDagen(vandaag, NOTITIE_DAGEN - 1)
 
   // De agenda halen we op in een ruime UTC-band rond nu en filteren we daarna
   // op lokale dag. Rechtstreeks op "lokale middernacht" filteren zou betekenen
   // dat we de UTC-offset zelf uitrekenen — precies de zomertijd-fout die je één
   // keer per jaar pas ontdekt. Dit kost een handvol extra rijen; dat is niets.
   const band = 36 * 60 * 60 * 1000
-  const [slaapRuw, bewegingVak, agendaRuw, taken, geheugen] = await Promise.all([
+  const bandVanaf = new Date(nu.getTime() - band).toISOString()
+  const [slaapRuw, bewegingVak, agendaRuw, takenRuw, journal, notities, geheugen] = await Promise.all([
     // Slaap: ruwe rijen, per bron per dag. We vertalen ze pas hieronder naar een
     // dag-map, want de spine wil één waarde per dag, niet per bron.
     haalVak(
@@ -265,26 +371,75 @@ export async function haalContext(
         .from('agenda_events')
         .select('titel, start_op, eind_op, hele_dag')
         .eq('user_id', userId)
-        .gte('start_op', new Date(nu.getTime() - band).toISOString())
+        .gte('start_op', bandVanaf)
         .lte('start_op', new Date(nu.getTime() + band).toISOString())
         .order('start_op', { ascending: true }),
       naarAgendaEvent,
     ),
+    // Open taken PLUS wat er recent afgevinkt is. Dat tweede filteren we hieronder
+    // op de lokale dag; hier vragen we een ruime UTC-band op, precies zoals bij de
+    // agenda. Rechtstreeks op "lokale middernacht" filteren zou betekenen dat we de
+    // UTC-offset zelf uitrekenen — de zomertijd-fout die je één keer per jaar pas
+    // ontdekt. Een handvol extra rijen is de prijs; dat is niets.
+    //
+    // De `.or()` spiegelt `agenda/opslag.ts` (zelfde vorm, zelfde soort kolom).
+    // `bandVanaf` is hier veilig te interpoleren omdat het een door ONS berekende
+    // ISO-string is — nooit invoer van buiten. Zie de waarschuwing in
+    // `coaching/content-server.ts`: een gebruikerswaarde in een or-filter plakken
+    // is een injectie in de PostgREST-querytaal, en dan is dit patroon fout.
     haalVak(
       admin
         .from('taken')
-        .select('titel, klaar, datum, top3_positie')
+        .select(TAAK_KOLOMMEN)
         .eq('user_id', userId)
-        .eq('klaar', false)
-        .order('top3_positie', { ascending: true, nullsFirst: false }),
-      naarTaak,
+        .or(`klaar.eq.false,klaar_op.gte.${bandVanaf}`)
+        .order('top3_positie', { ascending: true, nullsFirst: false })
+        // Tiebreaker, en geen cosmetische: mét een `limit` bepaalt de sortering
+        // wélke taken overleven. Zonder tweede sleutel laat je dat aan Postgres
+        // over, en dan hangt het van het toeval af of taak 61 vandaag bestaat.
+        .order('aangemaakt_op', { ascending: false })
+        .limit(TAKEN_LIMIET),
+      // `taakVanRij` is de lezer die de echte taken-API ook gebruikt — inclusief de
+      // feiten uit 100. Niet zelf een tweede lezer schrijven: dan bestaan er twee
+      // vertalingen van dezelfde tabel, en die lopen gegarandeerd uit elkaar.
+      taakVanRij,
     ),
+    // Journal van vandaag en gisteren. Gisteren telt mee omdat de reflectie van
+    // gisteravond precies is wat je 's ochtends wil meenemen — dat is de keten die
+    // losse apps niet leggen.
+    haalVak(
+      admin
+        .from('notities')
+        .select('tekst, datum')
+        .eq('user_id', userId)
+        .eq('soort', 'journal')
+        .gte('datum', gisteren)
+        .order('datum', { ascending: false })
+        .limit(2),
+      naarTekstregel(MAX_JOURNAL_TEKENS),
+    ),
+    haalVak(
+      admin
+        .from('notities')
+        .select('tekst, datum')
+        .eq('user_id', userId)
+        .eq('soort', 'brain_dump')
+        .gte('datum', notitiesVanaf)
+        .order('datum', { ascending: false })
+        .limit(NOTITIE_LIMIET),
+      naarTekstregel(MAX_NOTITIE_TEKENS),
+    ),
+    // `aangemaakt_op` als tiebreaker: `laatst_gebruikt_op` is bij elke rij null
+    // (niets schrijft 'm), en dan is de volgorde zonder tweede sleutel aan Postgres
+    // overgelaten. Met een `limit` erop bepaalt willekeur dan wélke 24 feiten Vita
+    // ziet — en dat mag niet van het toeval afhangen.
     haalVak(
       admin
         .from('vita_geheugen')
         .select('soort, inhoud, bron')
         .eq('user_id', userId)
         .order('laatst_gebruikt_op', { ascending: false, nullsFirst: false })
+        .order('aangemaakt_op', { ascending: false })
         .limit(GEHEUGEN_LIMIET),
       naarGeheugen,
     ),
@@ -320,7 +475,27 @@ export async function haalContext(
     ? { ok: true, waarde: agendaRuw.waarde.filter((e) => lokaleTijd(e.startOp).datum === vandaag) }
     : agendaRuw
 
-  return { herstel, slaapBron, beweging: bewegingVak, agendaVandaag, taken, geheugen, nu }
+  // Eén query, twee afgeleiden. Faalt hij, dan falen ze allebei met dezelfde
+  // melding — want het is dezelfde bron, en die is er niet half.
+  const taken: Vak<SlimmeTaak[]> = takenRuw.ok
+    ? { ok: true, waarde: takenRuw.waarde.filter((t) => !t.klaar) }
+    : takenRuw
+  const afgerondVandaag: Vak<SlimmeTaak[]> = takenRuw.ok
+    ? { ok: true, waarde: takenRuw.waarde.filter((t) => afgerondOp(t, vandaag)) }
+    : takenRuw
+
+  return {
+    herstel,
+    slaapBron,
+    beweging: bewegingVak,
+    agendaVandaag,
+    taken,
+    afgerondVandaag,
+    journal,
+    notities,
+    geheugen,
+    nu,
+  }
 }
 
 // ─── Schrijven ──────────────────────────────────────────────────────────────
@@ -407,10 +582,31 @@ function agendaRegel(event: AgendaEvent): string {
   return `- ${start}–${eind} — ${event.titel}`
 }
 
-function taakRegel(taak: Taak): string {
+/**
+ * Eén taakregel. Toont alleen de feiten die er ZIJN: een ontbrekende impact of
+ * deadline wordt weggelaten, niet als "impact: onbekend" opgeschreven en al
+ * helemaal niet als een middenwaarde ingevuld (zie `prioriteit.ts`).
+ */
+function taakRegel(taak: SlimmeTaak): string {
   const plek = taak.top3Positie === null ? 'overig' : `top-3 #${taak.top3Positie}`
   const dag = taak.datum ?? 'geen dag'
-  return `- [${plek}] ${taak.titel} (${dag})`
+
+  const feiten: string[] = []
+  if (taak.deadline !== null) feiten.push(`deadline ${taak.deadline}`)
+  if (taak.impact !== null) feiten.push(`impact ${taak.impact}/5`)
+  if (taak.inspanningMinuten !== null) feiten.push(`${taak.inspanningMinuten} min`)
+  if (taak.energie !== null) feiten.push(`energie ${taak.energie}`)
+  const staart = feiten.length === 0 ? '' : ` — ${feiten.join(', ')}`
+
+  return `- [${plek}] ${taak.titel} (${dag})${staart}`
+}
+
+function afgerondRegel(taak: SlimmeTaak): string {
+  return `- ${taak.titel}`
+}
+
+function tekstRegel(regel: Tekstregel): string {
+  return `- ${regel.datum} — ${regel.tekst}`
 }
 
 function geheugenRegel(item: Geheugen): string {
@@ -431,10 +627,33 @@ export function schrijfContextBlok(context: VitaContext): string {
     '',
     schrijfVak('Open taken', context.taken, 'Geen open taken.', taakRegel),
     '',
+    // Voortgang hoort in de context. Zonder dit vak ziet Vita alleen wat er nog
+    // staat en klinkt hij als een lijst die nooit korter wordt.
+    schrijfVak(
+      'Vandaag afgerond',
+      context.afgerondVandaag,
+      'Vandaag nog niets afgevinkt. Dat zegt iets over het logboek, niet over de dag.',
+      afgerondRegel,
+    ),
+    '',
+    schrijfVak(
+      'Journal (vandaag en gisteren)',
+      context.journal,
+      'Niets geschreven. Dit is geen streak en geen gemis — het is er gewoon niet.',
+      tekstRegel,
+    ),
+    '',
+    schrijfVak(
+      `Brain dumps (laatste ${NOTITIE_DAGEN} dagen)`,
+      context.notities,
+      'Geen brain dumps.',
+      tekstRegel,
+    ),
+    '',
     schrijfVak(
       'Wat ik over Kane onthoud',
       context.geheugen,
-      'Nog niets onthouden.',
+      'Nog niets onthouden. Verzin hier niets bij: wat hier niet staat, weet je niet.',
       geheugenRegel,
     ),
   ].join('\n')

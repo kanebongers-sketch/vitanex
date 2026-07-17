@@ -3,23 +3,15 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { haalJson, leesNiets } from '@/lib/lifeos/api/http'
 import { datumSleutel } from '@/lib/lifeos/datum/datum'
+import { leesTitelsAntwoord } from '@/lib/lifeos/notities/links'
 import {
   leesNotitieAntwoord,
   leesNotitiesAntwoord,
   type NotitieCategorie,
   type Notitie,
+  type NotitieWijziging,
 } from '@/lib/lifeos/notities/notities'
 import { voegTagToe, verwijderTag } from '@/lib/lifeos/notities/tags'
-
-/** Antwoord van /api/lifeos/notities/categoriseer. */
-interface CategorieAntwoord {
-  categorie: NotitieCategorie | 'onbekend'
-}
-function leesCategorieAntwoord(ruw: unknown): CategorieAntwoord | null {
-  if (typeof ruw !== 'object' || ruw === null) return null
-  const c = (ruw as { categorie?: unknown }).categorie
-  return typeof c === 'string' ? { categorie: c as NotitieCategorie | 'onbekend' } : null
-}
 
 // Alle data-logica van de brain dump. `BrainDumpKaart` tekent alleen nog.
 //
@@ -27,16 +19,49 @@ function leesCategorieAntwoord(ruw: unknown): CategorieAntwoord | null {
 // updates en de rollback zijn het echte werk hier, en die wil je kunnen lezen
 // zonder door JSX heen te scrollen (architecture.md — container/presentational).
 
+/** Antwoord van /api/lifeos/notities/categoriseer. */
+export interface CategorieSuggestieAntwoord {
+  categorie: NotitieCategorie | 'onbekend'
+  /** 0-1, van het model zelf. */
+  vertrouwen: number
+  /**
+   * Ligt het vertrouwen boven de drempel uit `intentie.ts`? De DREMPEL woont
+   * daar, niet hier: één plek die bepaalt wanneer een gok een vraag wordt.
+   */
+  zeker: boolean
+}
+
+function leesCategorieAntwoord(ruw: unknown): CategorieSuggestieAntwoord | null {
+  if (typeof ruw !== 'object' || ruw === null) return null
+  const o = ruw as Record<string, unknown>
+  if (typeof o.categorie !== 'string') return null
+
+  return {
+    categorie: o.categorie as NotitieCategorie | 'onbekend',
+    // Geen gegokte 1: kent de server geen vertrouwen, dan is het 0 en dus
+    // onzeker. Liever te voorzichtig dan een gok die zichzelf zeker noemt.
+    vertrouwen: typeof o.vertrouwen === 'number' && Number.isFinite(o.vertrouwen) ? o.vertrouwen : 0,
+    zeker: o.zeker === true,
+  }
+}
+
 export type BrainDumpStaat =
   | { fase: 'laden' }
   | { fase: 'fout'; bericht: string }
-  | { fase: 'ok'; notities: Notitie[] }
+  | { fase: 'ok'; notities: Notitie[]; erIsMeer: boolean }
 
 /** Optimistische regels krijgen een lokaal id tot de server het echte teruggeeft. */
 export const TIJDELIJK = 'tijdelijk:'
 
 export function isOnbevestigd(notitie: Notitie): boolean {
   return notitie.id.startsWith(TIJDELIJK)
+}
+
+/** Een AI-voorstel dat op bevestiging wacht. Nooit stil toegepast. */
+export interface CategorieVoorstel {
+  notitieId: string
+  categorie: NotitieCategorie
+  vertrouwen: number
 }
 
 export interface BrainDump {
@@ -52,9 +77,23 @@ export interface BrainDump {
   zetZoek: (waarde: string) => void
   /** Voegt een tag toe of haalt 'm weg (optimistisch, met rollback). */
   wijzigTag: (notitie: Notitie, tag: string, actie: 'toevoegen' | 'weghalen') => void
-  /** Vraagt de AI om een categorie en past die toe. */
+  /** Wijzigt tekst en/of titel van een bestaande notitie. */
+  bewerk: (notitie: Notitie, wijziging: NotitieWijziging) => void
+  /** Vraagt de AI om een categorie. Zeker → toepassen; onzeker → voorstel. */
   categoriseer: (notitie: Notitie) => void
   bezigMetCategorie: string | null
+  /** Wacht op bevestiging (het model was niet zeker genoeg). */
+  voorstel: CategorieVoorstel | null
+  bevestigVoorstel: () => void
+  verwerpVoorstel: () => void
+  /**
+   * De titels die bestaan — waarmee de UI een [[verwijzing]] kan duiden.
+   *
+   * `undefined` = we weten het (nog) niet: nog aan het laden, de call mislukte,
+   * of er waren te veel titels. De UI beweert dan van geen enkele verwijzing dat
+   * hij niet bestaat. "Ik weet het niet" is een geldig antwoord; gokken niet.
+   */
+  bestaandeTitels: ReadonlySet<string> | undefined
 }
 
 export function useBrainDump(): BrainDump {
@@ -63,6 +102,10 @@ export function useBrainDump(): BrainDump {
   const [tekst, setTekst] = useState('')
   const [zoek, setZoek] = useState('')
   const [bezigMetCategorie, setBezigMetCategorie] = useState<string | null>(null)
+  const [voorstel, setVoorstel] = useState<CategorieVoorstel | null>(null)
+  // undefined = "ik weet het niet" (nog aan het laden, of het lukte niet). Zie
+  // `BrainDump.bestaandeTitels`: dan claimt de UI niets over een verwijzing.
+  const [bestaandeTitels, setBestaandeTitels] = useState<Set<string> | undefined>(undefined)
 
   // De dag in een ref, niet in state: hij stuurt geen render aan, hij bepaalt
   // alleen wát we ophalen. En hij wordt pas ná mount bepaald — `new Date()`
@@ -92,11 +135,37 @@ export function useBrainDump(): BrainDump {
     const mijn = ++generatie.current
     return haalJson(`/api/lifeos/notities?${query}`, leesNotitiesAntwoord).then((uitkomst) => {
       if (mijn !== generatie.current) return // ingehaald of ontkoppeld
-      setStaat(
-        uitkomst.ok
-          ? { fase: 'ok', notities: uitkomst.waarde }
-          : { fase: 'fout', bericht: uitkomst.fout },
+      if (!uitkomst.ok) {
+        setStaat({ fase: 'fout', bericht: uitkomst.fout })
+        return
+      }
+      const { notities, erIsMeer, onleesbaar } = uitkomst.waarde
+      setStaat({ fase: 'ok', notities, erIsMeer })
+      // Onleesbare rijen zijn zeldzaam, maar ze stil laten verdwijnen is precies
+      // de bug die de tolerante lezer had kunnen introduceren. Dus: zeggen.
+      setActieFout(
+        onleesbaar > 0
+          ? `${onleesbaar} ${onleesbaar === 1 ? 'notitie' : 'notities'} kon niet gelezen worden en ${onleesbaar === 1 ? 'staat' : 'staan'} hier niet bij.`
+          : null,
       )
+    })
+  }, [])
+
+  /**
+   * De titels die bestaan, zodat een `[[verwijzing]]` geduid kan worden.
+   *
+   * Een eigen call en niet afgeleid uit de zichtbare lijst: die bevat alleen
+   * vandaag (of je zoekresultaat), en dan zou een verwijzing naar een notitie
+   * van vorige week er als "bestaat nog niet" uitzien. Dat is een leugen tegen
+   * de gebruiker — en precies het soort dat je niet meer opmerkt.
+   *
+   * Mislukt de call, dan blijft dit `undefined`: geen foutmelding (je notities
+   * doen het gewoon), maar ook geen gok. De verwijzingen krijgen dan de neutrale
+   * stijl.
+   */
+  const laadTitels = useCallback((): Promise<void> => {
+    return haalJson('/api/lifeos/notities/titels', leesTitelsAntwoord).then((uitkomst) => {
+      setBestaandeTitels(uitkomst.ok ? uitkomst.waarde : undefined)
     })
   }, [])
 
@@ -108,8 +177,9 @@ export function useBrainDump(): BrainDump {
   useEffect(() => {
     dagRef.current = datumSleutel(new Date())
     void laad(bouwQuery(''))
+    void laadTitels()
     return verval
-  }, [laad, bouwQuery, verval])
+  }, [laad, bouwQuery, laadTitels, verval])
 
   // Zoeken, gedebounced: pas 300ms ná je laatste toetsaanslag laden we opnieuw,
   // zodat elke letter geen aparte query afvuurt. De generatieteller in `laad`
@@ -152,6 +222,7 @@ export function useBrainDump(): BrainDump {
     tekstRef.current = ''
     setStaat({
       fase: 'ok',
+      erIsMeer: staat.erIsMeer,
       notities: [
         ...terug,
         {
@@ -159,8 +230,9 @@ export function useBrainDump(): BrainDump {
           tekst: nieuweTekst,
           soort: 'brain_dump',
           datum: dag,
-          // Een nieuwe notitie start zonder tags en zonder categorie — die
-          // komen pas als je ze toevoegt of de AI-categorie bevestigt.
+          // Een nieuwe notitie start zonder titel, tags en categorie — die komen
+          // pas als je ze toevoegt of de AI-categorie bevestigt.
+          titel: null,
           tags: [],
           categorie: null,
           aangemaaktOp: nu,
@@ -175,15 +247,18 @@ export function useBrainDump(): BrainDump {
     }).then((uitkomst) => {
       if (uitkomst.ok) {
         // De server is de waarheid: het echte id komt daarvandaan, niet van ons.
-        const bevestigd = uitkomst.waarde
+        const { notitie: bevestigd, waarschuwing } = uitkomst.waarde
         setStaat((huidig) =>
           huidig.fase === 'ok'
             ? {
-                fase: 'ok',
+                ...huidig,
                 notities: huidig.notities.map((n) => (n.id === tijdelijkId ? bevestigd : n)),
               }
             : huidig,
         )
+        // De notitie staat er, maar de verwijzingen niet. Zeggen — anders mist de
+        // grafiek stil een kant.
+        if (waarschuwing !== null) setActieFout(waarschuwing)
         return
       }
 
@@ -191,7 +266,7 @@ export function useBrainDump(): BrainDump {
       // brain dump verdwijnt, is de enige onvergeeflijke bug in deze functie.
       setStaat((huidig) =>
         huidig.fase === 'ok'
-          ? { fase: 'ok', notities: huidig.notities.filter((n) => n.id !== tijdelijkId) }
+          ? { ...huidig, notities: huidig.notities.filter((n) => n.id !== tijdelijkId) }
           : huidig,
       )
 
@@ -219,12 +294,12 @@ export function useBrainDump(): BrainDump {
 
       const terug = staat.notities
       setActieFout(null)
-      setStaat({ fase: 'ok', notities: terug.filter((n) => n.id !== notitie.id) })
+      setStaat({ ...staat, notities: terug.filter((n) => n.id !== notitie.id) })
 
       void haalJson(`/api/lifeos/notities/${notitie.id}`, leesNiets, { method: 'DELETE' }).then(
         (uitkomst) => {
           if (!uitkomst.ok) {
-            setStaat({ fase: 'ok', notities: terug })
+            setStaat((huidig) => (huidig.fase === 'ok' ? { ...huidig, notities: terug } : huidig))
             setActieFout(`${uitkomst.fout} Je notitie staat er nog.`)
           }
         },
@@ -233,14 +308,39 @@ export function useBrainDump(): BrainDump {
     [staat],
   )
 
-  // Vervangt één notitie in de lijst (voor optimistische tag/categorie-updates).
+  // Vervangt één notitie in de lijst (voor optimistische updates).
   const vervangNotitie = useCallback((vervangen: Notitie) => {
     setStaat((huidig) =>
       huidig.fase === 'ok'
-        ? { fase: 'ok', notities: huidig.notities.map((n) => (n.id === vervangen.id ? vervangen : n)) }
+        ? { ...huidig, notities: huidig.notities.map((n) => (n.id === vervangen.id ? vervangen : n)) }
         : huidig,
     )
   }, [])
+
+  /**
+   * Eén PATCH, optimistisch, met rollback. Alle wijzigingen (tag, categorie,
+   * tekst, titel) lopen hierlangs — dat was drie keer bijna-dezelfde code.
+   */
+  const patch = useCallback(
+    (notitie: Notitie, wijziging: NotitieWijziging, optimistisch: Notitie, waarbij: string) => {
+      setActieFout(null)
+      vervangNotitie(optimistisch)
+
+      void haalJson(`/api/lifeos/notities/${notitie.id}`, leesNotitieAntwoord, {
+        method: 'PATCH',
+        body: JSON.stringify(wijziging),
+      }).then((uitkomst) => {
+        if (uitkomst.ok) {
+          vervangNotitie(uitkomst.waarde.notitie) // de server is de waarheid
+          if (uitkomst.waarde.waarschuwing !== null) setActieFout(uitkomst.waarde.waarschuwing)
+          return
+        }
+        vervangNotitie(notitie) // terugdraaien
+        setActieFout(`${uitkomst.fout} ${waarbij}`)
+      })
+    },
+    [vervangNotitie],
+  )
 
   const wijzigTag = useCallback(
     (notitie: Notitie, tag: string, actie: 'toevoegen' | 'weghalen') => {
@@ -249,33 +349,72 @@ export function useBrainDump(): BrainDump {
       const nieuweTags =
         actie === 'toevoegen' ? voegTagToe(notitie.tags, tag) : verwijderTag(notitie.tags, tag)
       // Niets veranderd (dubbele tag, of tag bestond niet)? Geen zinloze PATCH.
-      if (nieuweTags.length === notitie.tags.length && nieuweTags.every((t, i) => t === notitie.tags[i])) {
+      if (
+        nieuweTags.length === notitie.tags.length &&
+        nieuweTags.every((t, i) => t === notitie.tags[i])
+      ) {
         return
       }
 
-      setActieFout(null)
-      vervangNotitie({ ...notitie, tags: nieuweTags })
-
-      void haalJson(`/api/lifeos/notities/${notitie.id}`, leesNotitieAntwoord, {
-        method: 'PATCH',
-        body: JSON.stringify({ tags: nieuweTags }),
-      }).then((uitkomst) => {
-        if (uitkomst.ok) {
-          vervangNotitie(uitkomst.waarde) // de server is de waarheid
-        } else {
-          vervangNotitie(notitie) // terugdraaien
-          setActieFout(`${uitkomst.fout} De tag is niet opgeslagen.`)
-        }
-      })
+      patch(notitie, { tags: nieuweTags }, { ...notitie, tags: nieuweTags }, 'De tag is niet opgeslagen.')
     },
-    [staat, vervangNotitie],
+    [staat, patch],
   )
 
+  const bewerk = useCallback(
+    (notitie: Notitie, wijziging: NotitieWijziging) => {
+      if (staat.fase !== 'ok' || isOnbevestigd(notitie)) return
+
+      const tekstAnders = wijziging.tekst !== undefined && wijziging.tekst !== notitie.tekst
+      const titelAnders = wijziging.titel !== undefined && wijziging.titel !== notitie.titel
+      if (!tekstAnders && !titelAnders) return // niets veranderd: geen PATCH
+
+      const smal: NotitieWijziging = {
+        ...(tekstAnders ? { tekst: wijziging.tekst } : {}),
+        ...(titelAnders ? { titel: wijziging.titel } : {}),
+      }
+      patch(notitie, smal, { ...notitie, ...smal }, 'Je wijziging is niet opgeslagen.')
+
+      // Een nieuwe of gewijzigde titel verandert wélke verwijzingen bestaan: een
+      // `[[Marge-model]]` elders is vanaf nu geen wens meer. Zonder deze
+      // verversing blijft die tot een reload "bestaat nog niet" tonen — precies
+      // het moment waarop het systeem zijn belofte moet waarmaken.
+      if (titelAnders) void laadTitels()
+    },
+    [staat, patch, laadTitels],
+  )
+
+  const pasCategorieToe = useCallback(
+    (notitie: Notitie, categorie: NotitieCategorie) => {
+      patch(
+        notitie,
+        { categorie },
+        { ...notitie, categorie },
+        'De categorie is niet opgeslagen.',
+      )
+    },
+    [patch],
+  )
+
+  /**
+   * Vraagt de AI om een categorie.
+   *
+   * ─── EEN GOK IS EEN VRAAG, GEEN ANTWOORD ──────────────────────────────────
+   * Dit paste elke suggestie meteen toe, hoe onzeker het model ook was — het
+   * `vertrouwen` werd niet eens meegestuurd. Nu bepaalt de server (met de drempel
+   * uit `intentie.ts`) of het zeker genoeg is:
+   *
+   *   zeker   → toepassen; je ziet het gebeuren en kunt het terugdraaien.
+   *   onzeker → als VOORSTEL tonen ("Vita denkt: Idee — toepassen?").
+   *
+   * Zo schuift een gok van 0.2 je notitie nooit stil in de verkeerde bak.
+   */
   const categoriseer = useCallback(
     (notitie: Notitie) => {
       if (staat.fase !== 'ok' || isOnbevestigd(notitie)) return
 
       setActieFout(null)
+      setVoorstel(null)
       setBezigMetCategorie(notitie.id)
 
       void haalJson('/api/lifeos/notities/categoriseer', leesCategorieAntwoord, {
@@ -284,31 +423,32 @@ export function useBrainDump(): BrainDump {
       }).then((uitkomst) => {
         setBezigMetCategorie(null)
         if (!uitkomst.ok) {
-          setActieFout(`${uitkomst.fout}`)
+          setActieFout(uitkomst.fout)
           return
         }
-        const suggestie = uitkomst.waarde.categorie
-        if (suggestie === 'onbekend') {
+
+        const { categorie, vertrouwen, zeker } = uitkomst.waarde
+        if (categorie === 'onbekend') {
           // Geen verwijt en geen gok: het model wist het niet. Zeg dat gewoon.
           setActieFout('De AI kon geen categorie kiezen voor deze notitie.')
           return
         }
-        // Wél een suggestie: pas 'm toe (optimistisch, met rollback).
-        vervangNotitie({ ...notitie, categorie: suggestie })
-        void haalJson(`/api/lifeos/notities/${notitie.id}`, leesNotitieAntwoord, {
-          method: 'PATCH',
-          body: JSON.stringify({ categorie: suggestie }),
-        }).then((res) => {
-          if (res.ok) vervangNotitie(res.waarde)
-          else {
-            vervangNotitie(notitie)
-            setActieFout(`${res.fout} De categorie is niet opgeslagen.`)
-          }
-        })
+
+        if (zeker) pasCategorieToe(notitie, categorie)
+        else setVoorstel({ notitieId: notitie.id, categorie, vertrouwen })
       })
     },
-    [staat, vervangNotitie],
+    [staat, pasCategorieToe],
   )
+
+  const bevestigVoorstel = useCallback(() => {
+    if (staat.fase !== 'ok' || voorstel === null) return
+    const notitie = staat.notities.find((n) => n.id === voorstel.notitieId)
+    setVoorstel(null)
+    if (notitie !== undefined) pasCategorieToe(notitie, voorstel.categorie)
+  }, [staat, voorstel, pasCategorieToe])
+
+  const verwerpVoorstel = useCallback(() => setVoorstel(null), [])
 
   return {
     staat,
@@ -321,7 +461,12 @@ export function useBrainDump(): BrainDump {
     zoek,
     zetZoek: setZoek,
     wijzigTag,
+    bewerk,
     categoriseer,
     bezigMetCategorie,
+    voorstel,
+    bevestigVoorstel,
+    verwerpVoorstel,
+    bestaandeTitels,
   }
 }

@@ -17,9 +17,10 @@
 // 'gmail' al in zijn check-constraint (001_fundament.sql).
 
 import { NextResponse, type NextRequest } from 'next/server'
+import type { SupabaseClient } from '@supabase/supabase-js'
 import { vereisLifeosToegang } from '@/lib/lifeos/admin'
-import { geldigToken } from '@/lib/lifeos/inbox/koppeling'
-import { haalTriageMails } from '@/lib/lifeos/inbox/gmail'
+import { forceerVernieuwing, geldigToken } from '@/lib/lifeos/inbox/koppeling'
+import { haalTriageMails, type MailsUitkomst } from '@/lib/lifeos/inbox/gmail'
 import { triageer } from '@/lib/lifeos/inbox/classificeer'
 import { naarInboxVandaag, type InboxVandaag } from '@/lib/lifeos/inbox/inbox'
 
@@ -55,15 +56,17 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(antwoord, { headers: CACHE_HEADERS })
   }
 
-  const mails = await haalTriageMails(token.toegangstoken)
+  const mails = await haalMetTweedeKans(toegang.admin, toegang.userId, token.toegangstoken)
 
   if (mails.staat === 'verlopen') {
-    // Het token was volgens onze administratie geldig, maar Gmail zegt van niet.
-    // Dat is een fout, geen lege inbox: we weten simpelweg niet wat er ligt.
-    return NextResponse.json(
-      { fout: 'Gmail accepteerde de koppeling niet meer. Koppel opnieuw.' },
-      { status: 502 },
-    )
+    // Gmail zei 401, en zelfs ná een verse refresh accepteert hij 'm niet: de
+    // toestemming is écht ingetrokken. Zelfde situatie als de `niet_gekoppeld`-tak
+    // hierboven, dus zelfde antwoord — en dat is geen lege inbox maar de
+    // koppel-staat: de kaart toont de koppelknop in plaats van te beweren dat er
+    // geen post ligt. Vóór de retry eindigde dit als een kale 502 "koppel
+    // opnieuw", wat hetzelfde zei maar zonder de knop erbij.
+    const antwoord: InboxVandaag = { gekoppeld: false }
+    return NextResponse.json(antwoord, { headers: CACHE_HEADERS })
   }
 
   if (mails.staat === 'fout') {
@@ -73,4 +76,36 @@ export async function GET(req: NextRequest) {
   return NextResponse.json(naarInboxVandaag(triageer(mails.mails), mails.nietGelezen), {
     headers: CACHE_HEADERS,
   })
+}
+
+/**
+ * De triage ophalen, met precies één tweede kans bij een 401 mid-flight.
+ *
+ * `geldigToken` ververst PROACTIEF (2 minuten marge) en dekt daarmee het normale
+ * geval — niet het echte: een token dat volgens ons nog 40 minuten geldig is maar
+ * dat Gmail weigert. Dat gebeurt vaker dan je denkt: staat het OAuth-consent-scherm
+ * op "Testing", dan verloopt het refresh-token elke 7 dagen, en een
+ * wachtwoordwijziging trekt Gmail-tokens sowieso in.
+ *
+ * Zonder deze retry kreeg Kane dan "koppel opnieuw" terwijl één refresh het had
+ * opgelost. Precies één keer, geen lus: blijft het 401 ná een verse refresh, dan
+ * is opnieuw koppelen het juiste antwoord.
+ *
+ * `forceerVernieuwing` houdt de discipline overeind: alleen een echte intrekking
+ * (`invalid_grant`) wordt `niet_gekoppeld`; een netwerkfout blijft `fout` en komt
+ * hier als `fout` terug — nooit als "niet gekoppeld".
+ */
+async function haalMetTweedeKans(
+  admin: SupabaseClient,
+  userId: string,
+  token: string,
+): Promise<MailsUitkomst> {
+  const eerste = await haalTriageMails(token)
+  if (eerste.staat !== 'verlopen') return eerste
+
+  const vers = await forceerVernieuwing(admin, userId)
+  if (vers.staat === 'niet_gekoppeld') return { staat: 'verlopen' }
+  if (vers.staat === 'fout') return { staat: 'fout', reden: vers.reden }
+
+  return haalTriageMails(vers.toegangstoken)
 }

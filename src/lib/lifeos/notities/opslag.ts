@@ -14,13 +14,16 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import {
   notitiesVanRijen,
   notitieVanRij,
+  MAX_NOTITIES_LIMIET,
+  NOTITIES_LIMIET,
   type NieuweNotitie,
   type Notitie,
   type NotitieWijziging,
   type Soort,
 } from './notities'
 
-export const KOLOMMEN = 'id, tekst, soort, datum, tags, categorie, aangemaakt_op, bijgewerkt_op'
+export const KOLOMMEN =
+  'id, tekst, titel, soort, datum, tags, categorie, aangemaakt_op, bijgewerkt_op'
 
 /** Postgres: unieke index geschonden. */
 const UNIEK_GESCHONDEN = '23505'
@@ -53,6 +56,14 @@ export interface NotitiesFilter {
   tag?: string
   /** Filter op categorie. */
   categorie?: string
+  /** Hoeveel notities je maximaal wilt. Weglaten = `NOTITIES_LIMIET` (100). */
+  limiet?: number
+}
+
+/** Eén pagina notities, plus of er nog meer achter zit. */
+export interface NotitiesPagina {
+  notities: Notitie[]
+  erIsMeer: boolean
 }
 
 /**
@@ -61,12 +72,21 @@ export interface NotitiesFilter {
  * Binnen een dag oplopend op `aangemaakt_op`: een brain dump is een lijstje in
  * de volgorde waarin je hem leegde, niet omgekeerd. De dag zelf gaat aflopend —
  * dat matcht de index uit 050 én de leesrichting van een terugblik.
+ *
+ * ─── DE LIMIET ─────────────────────────────────────────────────────────────
+ * Deze query had er geen. Voor "vandaag" viel dat niet op (een dag is klein),
+ * maar `?zoek=de` over drie jaar brain dump haalt de hele tabel op — en die
+ * groeit alleen maar. We vragen er ééntje TE VEEL op (`limiet + 1`): als die
+ * terugkomt, weten we dát er meer is zonder een tweede count-query. De extra rij
+ * gaat er weer af — hij is de vraag, niet het antwoord.
  */
 export async function haalNotities(
   admin: SupabaseClient,
   userId: string,
   filter: NotitiesFilter,
-): Promise<Uitkomst<Notitie[]>> {
+): Promise<Uitkomst<NotitiesPagina>> {
+  const limiet = begrensLimiet(filter.limiet)
+
   let vraag = admin
     .from('notities')
     .select(KOLOMMEN)
@@ -87,15 +107,39 @@ export async function haalNotities(
   const { data, error } = await vraag
     .order('datum', { ascending: false })
     .order('aangemaakt_op', { ascending: true })
+    .limit(limiet + 1)
 
   if (error) return { ok: false, reden: vertaalFout(error) }
-  return { ok: true, waarde: notitiesVanRijen(Array.isArray(data) ? data : []) }
+
+  const rijen = Array.isArray(data) ? data : []
+  const erIsMeer = rijen.length > limiet
+  return {
+    ok: true,
+    waarde: { notities: notitiesVanRijen(rijen.slice(0, limiet)), erIsMeer },
+  }
+}
+
+/** Onzin, negatief of te groot → de veilige standaard. Faalt niet, kapt af. */
+function begrensLimiet(gevraagd: number | undefined): number {
+  if (gevraagd === undefined || !Number.isFinite(gevraagd)) return NOTITIES_LIMIET
+  const heel = Math.floor(gevraagd)
+  if (heel < 1) return NOTITIES_LIMIET
+  return Math.min(heel, MAX_NOTITIES_LIMIET)
 }
 
 /**
- * Werkt tags en/of categorie van één notitie bij. Alleen de meegestuurde velden
- * veranderen (partiële update). `.eq('user_id', ...)` blijft de regel die je niet
- * mag vergeten — zie `verwijderNotitie`.
+ * Werkt tekst, titel, tags en/of categorie van één notitie bij. Alleen de
+ * meegestuurde velden veranderen (partiële update). `.eq('user_id', ...)` blijft
+ * de regel die je niet mag vergeten — zie `verwijderNotitie`.
+ *
+ * `tekst` en `titel` kwamen hier niet doorheen (alleen tags/categorie stonden in
+ * `velden`), waardoor een tekstwijziging stil genegeerd werd: de PATCH gaf 200
+ * met de ONgewijzigde notitie terug. Dat is het ergste soort bug — het lijkt te
+ * werken tot je herlaadt.
+ *
+ * LET OP — wie `tekst` of `titel` wijzigt moet daarna de verwijzingen
+ * hersynchroniseren (`synchroniseerLinks` / `hersyncTitel` in kennis.ts). Deze
+ * module blijft dom en doet dat niet zelf: hij kent de grafiek niet.
  */
 export async function wijzigNotitie(
   admin: SupabaseClient,
@@ -104,6 +148,10 @@ export async function wijzigNotitie(
   wijziging: NotitieWijziging,
 ): Promise<Uitkomst<Notitie>> {
   const velden: Record<string, unknown> = {}
+  if (wijziging.tekst !== undefined) velden.tekst = wijziging.tekst
+  // `null` is hier een geldige waarde ("haal de titel weg"), dus de check is op
+  // undefined — niet op falsy. Met `if (wijziging.titel)` zou wissen nooit werken.
+  if (wijziging.titel !== undefined) velden.titel = wijziging.titel
   if (wijziging.tags !== undefined) velden.tags = wijziging.tags
   if (wijziging.categorie !== undefined) velden.categorie = wijziging.categorie
   // Niets te wijzigen? Dan is dit een no-op-fout, geen stille success — de route
@@ -137,6 +185,10 @@ export async function maakNotitie(
       tekst: nieuw.tekst,
       soort: nieuw.soort,
       datum: nieuw.datum,
+      // Alleen meesturen als hij er is: `titel: undefined` zou PostgREST een
+      // expliciete null laten schrijven en dat is hier hetzelfde, maar zo blijft
+      // de insert leesbaar als "een capture heeft geen titel".
+      ...(nieuw.titel === undefined ? {} : { titel: nieuw.titel }),
     })
     .select(KOLOMMEN)
     .single()

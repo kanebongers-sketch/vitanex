@@ -11,6 +11,7 @@ import {
   vanAfspraakJson,
   type AfspraakJson,
   type AgendaVandaag,
+  type VrijBlokJson,
 } from '@/lib/lifeos/agenda/agenda'
 import {
   eerstvolgendeAfspraak,
@@ -182,6 +183,32 @@ export function AgendaKaart() {
     [staat, laad],
   )
 
+  /**
+   * Plant een focusblok in een vrij blok.
+   *
+   * Bewust NIET optimistisch, anders dan `voegToe`: daar kent de client de exacte
+   * tijden al (hij typte ze), hier bepaalt de SERVER waar het blok landt — die
+   * herrekent de vrije ruimte uit de cache en kan 'm nét ergens anders neerzetten
+   * dan wij denken. Een optimistisch blok op de verkeerde tijd tonen en het daarna
+   * zien verspringen is erger dan een halve seconde wachten. Dus: POST, dan de dag
+   * opnieuw ophalen (`no-store`, want /vandaag cachet 60s) en het echte antwoord tonen.
+   */
+  const planBlok = useCallback(
+    async (blok: VrijBlokJson): Promise<{ ok: true } | { ok: false; fout: string }> => {
+      setActieFout(null)
+      const uitkomst = await haalJson('/api/lifeos/agenda/focusblok', leesNiets, {
+        method: 'POST',
+        body: JSON.stringify({ vanafOp: blok.startOp }),
+      })
+
+      if (!uitkomst.ok) return { ok: false, fout: uitkomst.fout }
+
+      await laad({ cache: 'no-store' })
+      return { ok: true }
+    },
+    [laad],
+  )
+
   return (
     <Kaart titel="Je dag" vervangt="Calendar">
       {staat.fase === 'laden' ? <Skelet /> : null}
@@ -218,6 +245,7 @@ export function AgendaKaart() {
                 looptNu(vanAfspraakJson(staat.data.volgende), new Date())
               }
               vrijeBlokken={staat.data.vrijeBlokken}
+              onPlan={planBlok}
             />
             <NieuweAfspraak onToevoegen={voegToe} />
             {actieFout ? <Foutmelding bericht={actieFout} /> : null}

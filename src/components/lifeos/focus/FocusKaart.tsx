@@ -59,8 +59,11 @@ export function FocusKaart() {
   const vg = nu === null ? null : voortgang(sessie, nu)
   const klaar = rest === 0
 
+  // `normaal`, niet `dragend`: er mag er precies één per moment dragend zijn
+  // (zie os/Kaart.tsx) en dat is Vita — hij legt het verband tussen de rest.
+  // Een eierwekker hoort niet de luidste stem op het scherm te zijn.
   return (
-    <Kaart titel="Focus" vervangt="Pomodoro-apps" nadruk="dragend">
+    <Kaart titel="Focus" vervangt="Pomodoro-apps" nadruk="normaal">
       {sessie.fase === 'inactief' ? (
         <div className="os-focus">
           <p className="os-focus__uitleg">

@@ -8,15 +8,26 @@
 // Verzint niets: kan het model niet kiezen, dan komt er 'onbekend' terug, en dat
 // vertaalt de UI naar "geen suggestie" — nooit een gegokte categorie.
 //
+// ─── VERTROUWEN GAAT MEE, EN DAT IS GEEN DETAIL ─────────────────────────────
+//   Het model levert een `vertrouwen` (0-1) en `intentie.ts` heeft er al een
+//   drempel voor (`VERTROUWEN_DREMPEL`, `vraagtOmBevestiging`). Die werd hier
+//   weggegooid: elke suggestie kwam er even stellig uit, of het model nou 0.95
+//   of 0.20 zeker was. De UI paste 'm dan gewoon toe.
+//
+//   Dat is precies de valse stelligheid die CLAUDE.md verbiedt. Een gok van 0.20
+//   is geen antwoord maar een vraag, en die hoort als vraag op het scherm te
+//   komen ("Vita denkt: Idee — toepassen?"). Nu gaat `vertrouwen` en `zeker` mee,
+//   zodat de UI dat onderscheid kán maken.
+//
 // Founder-only: net als elke LifeOS-route staat hier de `vereisLifeosToegang`-
 // gate ervoor. Deze route raakt geen DB, maar hij mag alleen door de founder
 // aangeroepen worden — de gate is de lock, niet een losse getAuthenticatedUser.
 
 import { NextResponse, type NextRequest } from 'next/server'
 import { vereisLifeosToegang } from '@/lib/lifeos/admin'
-import { bepaalIntentie } from '@/lib/lifeos/intentie/intentie'
+import { bepaalIntentie, vraagtOmBevestiging, type Intentie } from '@/lib/lifeos/intentie/intentie'
 import { maakAnthropicModel } from '@/lib/lifeos/intentie/intentie-model'
-import { leesTekst, type CategorieSuggestie } from '@/lib/lifeos/notities/notities'
+import { leesTekst } from '@/lib/lifeos/notities/notities'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -31,11 +42,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ fout: tekst.fout }, { status: 400 })
   }
 
-  let suggestie: CategorieSuggestie
+  let intentie: Intentie
   try {
-    const intentie = await bepaalIntentie(tekst.waarde, maakAnthropicModel())
-    // De intent-categorie is al 'Werk'|…|'onbekend' — precies onze suggestievorm.
-    suggestie = intentie.categorie
+    intentie = await bepaalIntentie(tekst.waarde, maakAnthropicModel())
   } catch (fout) {
     console.error('[notities/categoriseer] intentie mislukt', fout)
     // Fout≠stil: een modelstoring geeft geen verzonnen categorie, maar een nette
@@ -44,7 +53,15 @@ export async function POST(req: NextRequest) {
   }
 
   return NextResponse.json(
-    { categorie: suggestie },
+    {
+      // De intent-categorie is al 'Werk'|…|'onbekend' — precies onze suggestievorm.
+      categorie: intentie.categorie,
+      vertrouwen: intentie.vertrouwen,
+      // De drempel woont in `intentie.ts`, niet in de UI: één plek die bepaalt
+      // wanneer een gok een vraag wordt. `zeker: false` = tonen als suggestie,
+      // nooit stil toepassen.
+      zeker: !vraagtOmBevestiging(intentie),
+    },
     { headers: { 'Cache-Control': 'private, no-store', Vary: 'Authorization' } },
   )
 }

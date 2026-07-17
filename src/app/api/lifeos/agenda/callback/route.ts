@@ -7,9 +7,13 @@
 // Authorization-header. De bescherming is de HMAC-state (alleen onze eigen,
 // founder-gated koppel-route kan er een maken) plus het HttpOnly-cookie dat die
 // koppel-route zette. De service-role client halen we rechtstreeks op.
+//
+// De eigenaar van de rij is de vaste `lifeosUserId()`, niet iets uit de request:
+// LifeOS is single-tenant, dus er valt niets te kiezen. Zie de uitleg bij het
+// cookie hieronder — dit spiegelt bewust `inbox/callback/route.ts`.
 
 import { NextResponse, type NextRequest } from 'next/server'
-import { createLifeosAdminClient } from '@/lib/lifeos/admin'
+import { createLifeosAdminClient, lifeosUserId } from '@/lib/lifeos/admin'
 import { leesState } from '@/lib/lifeos/auth/oauth-state'
 import { googleConfig, wisselCodeIn } from '@/lib/lifeos/agenda/google'
 import { bewaarKoppeling, KOPPEL_COOKIE } from '@/lib/lifeos/agenda/koppeling'
@@ -51,10 +55,17 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ fout: 'Geen autorisatiecode ontvangen.' }, { status: 400 })
   }
 
-  // Wie startte deze flow? Google's redirect draagt geen Authorization-header,
-  // dus dat staat in het HttpOnly-cookie dat /api/lifeos/agenda/koppel zette.
-  const userId = req.cookies.get(KOPPEL_COOKIE)?.value
-  if (!userId) {
+  // Het cookie is het tweede slot naast de HMAC-state: het wordt alleen gezet
+  // door `/koppel`, en dat endpoint zit achter de founder-gate. De aanwezigheid
+  // ervan bindt deze callback aan een flow die een ingelogde founder startte.
+  //
+  // Let op wat het NIET doet: het kiest de rij-eigenaar niet. De waarde uit het
+  // cookie ging hier ooit rechtstreeks als `userId` naar `bewaarKoppeling` — een
+  // cookie is client-materiaal, en al blokkeert de HMAC-state het in de praktijk,
+  // diepteverdediging hoort niet op één slot te leunen. De inbox-callback deed het
+  // meteen goed; deze trekt gelijk. De eigenaar is de vaste `lifeosUserId()`.
+  const koppelCookie = req.cookies.get(KOPPEL_COOKIE)?.value
+  if (!koppelCookie) {
     return NextResponse.redirect(`${basis}/?agenda=fout&reden=verlopen`)
   }
 
@@ -70,7 +81,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.redirect(`${basis}/?agenda=fout&reden=token`)
   }
 
-  const bewaard = await bewaarKoppeling(admin, userId, uitkomst.tokens)
+  const bewaard = await bewaarKoppeling(admin, lifeosUserId(), uitkomst.tokens)
   if (!bewaard.ok) {
     return NextResponse.redirect(`${basis}/?agenda=fout&reden=${bewaard.reden}`)
   }

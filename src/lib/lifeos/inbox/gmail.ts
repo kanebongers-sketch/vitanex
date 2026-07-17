@@ -1,4 +1,4 @@
-// ─── LifeOS — Gmail (alleen lezen, alleen metadata) ─────────────────────────
+// ─── LifeOS — Gmail (lezen = metadata, schrijven = alleen op jouw klik) ─────
 // SERVER-ONLY. Hier staan client_secret en tokens; dit bestand mag nooit in een
 // client-component belanden.
 //
@@ -6,18 +6,37 @@
 // - Scopes + classificatie:  https://developers.google.com/gmail/api/auth/scopes
 // - messages.list:           https://developers.google.com/gmail/api/reference/rest/v1/users.messages/list
 // - messages.get + format:   https://developers.google.com/gmail/api/reference/rest/v1/users.messages/get
+// - messages.modify:         https://developers.google.com/gmail/api/reference/rest/v1/users.messages/modify
+// - drafts.create:           https://developers.google.com/gmail/api/reference/rest/v1/users.drafts/create
 // - getProfile:              https://developers.google.com/gmail/api/reference/rest/v1/users/getProfile
 // - Zoekoperatoren (is:unread, newer_than:1d, in:inbox):
 //                            https://support.google.com/mail/answer/7190
 //
-// ─── DE TWEE GRENZEN ────────────────────────────────────────────────────────
+// ─── DE GRENZEN ─────────────────────────────────────────────────────────────
 //
-// 1. ALLEEN LEZEN. We vragen `gmail.readonly` en niets meer. Geen send, geen
-//    compose, geen modify. LifeOS verstuurt nooit een mail, markeert nooit iets
-//    als gelezen en archiveert nooit iets. Dat is geen belofte in een comment
-//    maar een gevolg: zonder die scopes kán het niet, ook niet per ongeluk.
+// 1. NOOIT VERSTUREN. LifeOS schrijft concepten; jij drukt op verzenden. Een mail
+//    die namens Kane de deur uit gaat zonder dat hij 'm gezien heeft, is een grens
+//    die dit product niet overschrijdt — een verkeerd verstuurde mail kun je niet
+//    terugnemen, een verkeerd concept gooi je weg.
 //
-// 2. NOOIT DE INHOUD. `gmail.readonly` mág de body lezen — wij vragen 'm alleen
+//    ⚠️ LEES DIT, want het is veranderd. Hier stond ooit: "zonder die scopes kán
+//    het niet, ook niet per ongeluk." Dat is sinds de schrijf-uitbreiding NIET
+//    MEER WAAR, en dat verzwijgen zou erger zijn dan de uitbreiding zelf.
+//
+//    Google heeft geen scope die drafts toestaat maar versturen verbiedt:
+//    `gmail.compose` is letterlijk "create/read/update/delete drafts. Send messages
+//    and drafts", en `gmail.modify` is "all read/write operations except immediate,
+//    permanent deletion" — versturen zit daar dus in. `gmail.send` (alleen sturen)
+//    vragen we niet, maar dat wint niets: `gmail.modify` mag het al.
+//
+//    "Verstuurt nooit" is daarmee van een SCOPE-GARANTIE een CODE-DISCIPLINE
+//    geworden, net als "nooit de inhoud" hieronder. De discipline is: er bestaat
+//    in deze codebase geen aanroep van `messages.send` of `drafts.send`, en die
+//    hoort er nooit te komen. Zoek 'm op vóór je iets toevoegt; vind je 'm, dan is
+//    er iets misgegaan. De enige schrijfacties staan in `gmail-acties.ts` en zijn
+//    er precies drie: concept maken, labels wijzigen, gelezen markeren.
+//
+// 2. NOOIT DE INHOUD. `gmail.modify` mág de body lezen — wij vragen 'm alleen
 //    nooit op: elke messages.get gaat met `format=METADATA` en een expliciete
 //    lijst headers. Dat is code-discipline, en code-discipline erodeert. Wie hier
 //    ooit `format=FULL` neerzet, haalt in één regel de hele inhoud van andermans
@@ -25,10 +44,14 @@
 //
 //    De smallere `gmail.metadata`-scope zou dat op Google's niveau afdwingen in
 //    plaats van op de onze, maar kan géén `q`-queryparameter gebruiken (zie de
-//    scope-docs). Dan vervalt `is:unread newer_than:1d` en moeten we de hele
-//    INBOX pagineren en lokaal filteren. Beide scopes zijn even "restricted",
-//    dus het scheelt niets in verificatie. Afweging staat in het rapport; als
-//    Kane 'm wil omzetten is dit de plek.
+//    scope-docs) én kan niet schrijven. Sinds functie 2 concepten maakt is dat
+//    dus geen optie meer, ook niet als tweede scope: `gmail.modify` overkoepelt
+//    'm volledig, dus hij zou alleen het toestemmingsscherm langer maken.
+//
+// 3. NIETS AUTONOOM. Elke schrijfactie hangt aan een expliciete klik van Kane.
+//    Het model STELT VOOR (`analyseer/route.ts`), het VOERT NIET UIT — dezelfde
+//    asymmetrie als bij de taak/agenda-suggesties. Een AI-concept is een concept,
+//    geen verzonden mail; een archivering gebeurt omdat je op archiveren klikte.
 
 import { googleConfig, type GoogleConfig } from '@/lib/lifeos/agenda/google'
 import { leesMailMeta, type Header } from './headers'
@@ -39,14 +62,41 @@ const BERICHTEN_ENDPOINT = 'https://gmail.googleapis.com/gmail/v1/users/me/messa
 const PROFIEL_ENDPOINT = 'https://gmail.googleapis.com/gmail/v1/users/me/profile'
 
 /**
- * ALLEEN LEZEN. Deze lijst groeit niet.
+ * Precies één scope, en dat is met opzet.
  *
- * Let op: Google rekent élke Gmail-scope tot de "restricted" categorie —
- * `gmail.metadata` net zo goed als `gmail.readonly`. Er is dus geen smallere
- * variant die de verificatie-eis ontloopt. Zie het rapport / .env.example.
+ * `gmail.modify` dekt alle drie de dingen die LifeOS doet: metadata lezen
+ * (messages.list/get, getProfile), een concept maken (drafts.create) en labels
+ * zetten (messages.modify — archiveren = INBOX eraf, gelezen = UNREAD eraf).
+ *
+ * Waarom niet fijnmaziger? Omdat dat niet bestaat:
+ *   - `gmail.readonly`  → kan niets schrijven. Naast modify puur ruis: modify
+ *                         kan alles wat readonly kan.
+ *   - `gmail.compose`   → drafts, maar géén labels. Zou modify er dus niet uit
+ *                         sparen, alleen naast staan — en mag óók versturen.
+ *   - `gmail.labels`    → labels aanmaken/verwijderen als LABEL-objecten, niet
+ *                         labels op een bericht zetten. Lost niets op.
+ *   - `gmail.send`      → vragen we bewust NIET (zie de kop). Maar let op: dat
+ *                         is een gebaar, geen slot — modify mag al versturen.
+ *
+ * Elke Gmail-scope is bij Google "restricted", dus de verificatie-eis is voor
+ * alle varianten gelijk; een smallere set koopt daar niets mee.
+ *
+ * ⚠️ DIT IS BREDER DAN VOORHEEN (`gmail.readonly`). Google verhoogt toestemming
+ * niet vanzelf: wie eerder koppelde, moet één keer OPNIEUW koppelen voordat
+ * concepten en archiveren werken. `bereik.ts` + de pre-flight check maken daar
+ * een nette melding van in plaats van een kale Google-403.
  */
 export const GMAIL_BEREIK: readonly string[] = Object.freeze([
-  'https://www.googleapis.com/auth/gmail.readonly',
+  'https://www.googleapis.com/auth/gmail.modify',
+])
+
+/**
+ * Wat een schrijfactie minimaal nodig heeft. Nu gelijk aan `GMAIL_BEREIK`, maar
+ * apart benoemd zodat de pre-flight check zegt wat hij bedoelt ("mag ik
+ * schrijven?") en niet "is het bereik toevallig identiek?".
+ */
+export const GMAIL_SCHRIJF_BEREIK: readonly string[] = Object.freeze([
+  'https://www.googleapis.com/auth/gmail.modify',
 ])
 
 /**

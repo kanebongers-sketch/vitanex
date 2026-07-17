@@ -128,6 +128,57 @@ export async function geldigToken(
   admin: SupabaseClient,
   userId: string,
 ): Promise<TokenResultaat> {
+  const rij = await leesTokenRij(admin, userId)
+  if (rij.staat !== 'ok') return rij
+
+  if (rij.geldig && rij.toegangstoken) return { staat: 'ok', toegangstoken: rij.toegangstoken }
+  if (!rij.verversingstoken) return { staat: 'niet_gekoppeld' }
+
+  return vernieuwEnBewaar(admin, userId, rij.verversingstoken)
+}
+
+/**
+ * Ververs NU, ongeacht wat de administratie zegt over de houdbaarheid.
+ *
+ * Voor het geval dat `geldigToken` per definitie niet kan dekken: het token was
+ * volgens ons nog 40 minuten geldig, en Google zegt tóch 401. Dat gebeurt echt —
+ * een ingetrokken app-toestemming of een wachtwoordwijziging wacht niet op onze
+ * `verloopt_op`.
+ *
+ * Zonder deze functie was het antwoord op zo'n 401 "de koppeling is verlopen,
+ * koppel opnieuw", terwijl één refresh het had opgelost. De aanroeper gebruikt
+ * 'm dus als tweede kans: 401 → forceer → nog één poging. Zie `sync/route.ts` en
+ * `schrijven.ts`.
+ *
+ * De discipline uit `google.ts` blijft overeind: alleen `invalid_grant` (echt
+ * ingetrokken) wordt `niet_gekoppeld`. Een netwerkfout is en blijft `fout` — die
+ * mag NOOIT als "niet gekoppeld" eindigen, anders vertelt LifeOS je dat je agenda
+ * ontkoppeld is omdat Google net even traag was.
+ */
+export async function forceerVernieuwing(
+  admin: SupabaseClient,
+  userId: string,
+): Promise<TokenResultaat> {
+  const rij = await leesTokenRij(admin, userId)
+  if (rij.staat !== 'ok') return rij
+  if (!rij.verversingstoken) return { staat: 'niet_gekoppeld' }
+
+  return vernieuwEnBewaar(admin, userId, rij.verversingstoken)
+}
+
+type TokenRij =
+  | {
+      staat: 'ok'
+      toegangstoken: string | null
+      verversingstoken: string | null
+      /** Is het huidige token nog ruim genoeg geldig om te gebruiken? */
+      geldig: boolean
+    }
+  | { staat: 'niet_gekoppeld' }
+  | { staat: 'fout'; reden: string }
+
+/** De rij + het oordeel over de houdbaarheid. Eén plek, twee aanroepers. */
+async function leesTokenRij(admin: SupabaseClient, userId: string): Promise<TokenRij> {
   const { data, error } = await admin
     .from('koppelingen')
     .select('toegangstoken, verversingstoken, verloopt_op')
@@ -140,20 +191,28 @@ export async function geldigToken(
   const rij: unknown = data
   if (!isObject(rij)) return { staat: 'niet_gekoppeld' }
 
-  const huidig = tekst(rij.toegangstoken)
-  const verversingstoken = tekst(rij.verversingstoken)
+  const toegangstoken = tekst(rij.toegangstoken)
   const verlooptOpTekst = tekst(rij.verloopt_op)
   const verlooptOp = verlooptOpTekst ? new Date(verlooptOpTekst) : null
-  const geldig =
-    huidig !== null &&
-    verlooptOp !== null &&
-    !Number.isNaN(verlooptOp.getTime()) &&
-    verlooptOp.getTime() - Date.now() > VERVERS_MARGE_MS
 
-  if (geldig && huidig) return { staat: 'ok', toegangstoken: huidig }
+  return {
+    staat: 'ok',
+    toegangstoken,
+    verversingstoken: tekst(rij.verversingstoken),
+    geldig:
+      toegangstoken !== null &&
+      verlooptOp !== null &&
+      !Number.isNaN(verlooptOp.getTime()) &&
+      verlooptOp.getTime() - Date.now() > VERVERS_MARGE_MS,
+  }
+}
 
-  if (!verversingstoken) return { staat: 'niet_gekoppeld' }
-
+/** Wisselt het verversingstoken in en schrijft het resultaat weg. */
+async function vernieuwEnBewaar(
+  admin: SupabaseClient,
+  userId: string,
+  verversingstoken: string,
+): Promise<TokenResultaat> {
   const config = googleConfig()
   if (!config) return { staat: 'fout', reden: 'niet_ingericht' }
 

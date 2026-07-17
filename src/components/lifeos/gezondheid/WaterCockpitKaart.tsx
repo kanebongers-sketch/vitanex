@@ -43,9 +43,21 @@ type Staat =
   | { fase: 'fout'; bericht: string }
   | { fase: 'ok'; water: WaterView }
 
+/**
+ * Een mislukte actie, mét wat er mislukte.
+ *
+ * Alleen het bericht bewaren was niet genoeg: `Foutmelding` zonder `opnieuw`
+ * rendert een doodlopende weg ("Weglaten = geen weg terug. Doe dat niet."), en
+ * om het opnieuw te kunnen doen moeten we weten hóéveel ml het was.
+ */
+interface ActieFout {
+  bericht: string
+  ml: number
+}
+
 export function WaterCockpitKaart() {
   const [staat, setStaat] = useState<Staat>({ fase: 'laden' })
-  const [actieFout, setActieFout] = useState<string | null>(null)
+  const [actieFout, setActieFout] = useState<ActieFout | null>(null)
   const [bezig, setBezig] = useState(false)
   const generatie = useRef(0)
 
@@ -89,9 +101,10 @@ export function WaterCockpitKaart() {
         // Verzoen met het echte servertotaal (niet ons optimistische getal).
         setStaat({ fase: 'ok', water: { vandaag_ml: uitkomst.waarde.nieuw_totaal, doel_ml: uitkomst.waarde.doel_ml } })
       } else {
-        // Rollback naar de staat van vóór de klik + zichtbare fout.
+        // Rollback naar de staat van vóór de klik + zichtbare fout. De ml gaan
+        // mee, zodat "Opnieuw proberen" precies deze slok nog eens kan loggen.
         setStaat({ fase: 'ok', water: voor })
-        setActieFout(uitkomst.fout)
+        setActieFout({ bericht: uitkomst.fout, ml })
       }
     },
     [staat, bezig],
@@ -111,7 +124,7 @@ export function WaterCockpitKaart() {
 interface InhoudProps {
   water: WaterView
   bezig: boolean
-  actieFout: string | null
+  actieFout: ActieFout | null
   onVoegToe: (ml: number) => void
 }
 
@@ -142,7 +155,12 @@ function Inhoud({ water, bezig, actieFout, onVoegToe }: InhoudProps) {
         </Knop>
       </div>
 
-      {actieFout ? <Foutmelding bericht={actieFout} /> : null}
+      {actieFout ? (
+        <Foutmelding
+          bericht={`${actieFout.bericht} Die ${actieFout.ml} ml is niet opgeslagen.`}
+          opnieuw={() => onVoegToe(actieFout.ml)}
+        />
+      ) : null}
     </div>
   )
 }

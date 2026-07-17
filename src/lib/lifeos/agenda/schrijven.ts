@@ -23,7 +23,7 @@
 
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { GOOGLE_CALENDAR } from './agenda'
-import { geldigToken } from './koppeling'
+import { forceerVernieuwing, geldigToken } from './koppeling'
 
 // Eigen endpoint-constante i.p.v. importeren uit google.ts: die exporteert 'm
 // bewust niet (hij hoort bij de read-flow). Dezelfde string, één keer hier.
@@ -148,8 +148,13 @@ export async function maakAgendaEvent(
   const geldig = leesNieuwEvent(invoer)
   if (!geldig.ok) throw new AgendaSchrijfFout('ongeldig', geldig.fout)
 
-  const token = await geldigTokenOfFout(admin, userId)
-  const antwoord = await googleFetch('POST', EVENTS_ENDPOINT, token, naarGoogleAanmaakBody(geldig.waarde))
+  const antwoord = await googleFetchMetVernieuwing(
+    admin,
+    userId,
+    'POST',
+    EVENTS_ENDPOINT,
+    naarGoogleAanmaakBody(geldig.waarde),
+  )
   const event = await leesSchrijfAntwoord(antwoord)
 
   await bewaarInCache(admin, userId, event)
@@ -166,9 +171,14 @@ export async function wijzigAgendaEvent(
   const geldig = leesEventPatch(patch)
   if (!geldig.ok) throw new AgendaSchrijfFout('ongeldig', geldig.fout)
 
-  const token = await geldigTokenOfFout(admin, userId)
   const url = `${EVENTS_ENDPOINT}/${encodeURIComponent(externId)}`
-  const antwoord = await googleFetch('PATCH', url, token, naarGooglePatchBody(geldig.waarde))
+  const antwoord = await googleFetchMetVernieuwing(
+    admin,
+    userId,
+    'PATCH',
+    url,
+    naarGooglePatchBody(geldig.waarde),
+  )
   const event = await leesSchrijfAntwoord(antwoord)
 
   await bewaarInCache(admin, userId, event)
@@ -186,9 +196,8 @@ export async function verwijderAgendaEvent(
   userId: string,
   externId: string,
 ): Promise<void> {
-  const token = await geldigTokenOfFout(admin, userId)
   const url = `${EVENTS_ENDPOINT}/${encodeURIComponent(externId)}`
-  const antwoord = await googleFetch('DELETE', url, token)
+  const antwoord = await googleFetchMetVernieuwing(admin, userId, 'DELETE', url)
 
   if (!antwoord.ok && antwoord.status !== 410) keurStatus(antwoord.status)
 
@@ -389,6 +398,41 @@ async function geldigTokenOfFout(admin: SupabaseClient, userId: string): Promise
   if (token.staat === 'niet_gekoppeld') throw new AgendaSchrijfFout('niet_gekoppeld')
   if (token.staat === 'fout') throw new AgendaSchrijfFout('google', token.reden)
   return token.toegangstoken
+}
+
+/**
+ * Eén Google-call, met precies één tweede kans bij een 401 mid-flight.
+ *
+ * `geldigToken` ververst PROACTIEF (2 minuten marge). Dat dekt het normale geval
+ * en niet het echte: een token dat volgens onze administratie nog 40 minuten goed
+ * is, maar dat Google weigert omdat de toestemming is ingetrokken of het
+ * wachtwoord is gewijzigd. Zonder deze retry ging zo'n 401 rechtstreeks via
+ * `keurStatus` naar `niet_gekoppeld` → "koppel opnieuw", terwijl één refresh het
+ * had opgelost.
+ *
+ * Precies één keer, geen lus: is het token ná een verse refresh nóg steeds niet
+ * goed, dan is de toestemming echt weg en is opnieuw koppelen het juiste antwoord.
+ *
+ * De discipline blijft: `forceerVernieuwing` geeft `fout` bij netwerkproblemen en
+ * alleen `niet_gekoppeld` bij een echte intrekking (`invalid_grant`). Een hik bij
+ * Google mag nooit als "niet gekoppeld" eindigen.
+ */
+async function googleFetchMetVernieuwing(
+  admin: SupabaseClient,
+  userId: string,
+  method: 'POST' | 'PATCH' | 'DELETE',
+  url: string,
+  body?: Record<string, unknown>,
+): Promise<Response> {
+  const token = await geldigTokenOfFout(admin, userId)
+  const eerste = await googleFetch(method, url, token, body)
+  if (eerste.status !== 401) return eerste
+
+  const vers = await forceerVernieuwing(admin, userId)
+  if (vers.staat === 'niet_gekoppeld') throw new AgendaSchrijfFout('niet_gekoppeld')
+  if (vers.staat === 'fout') throw new AgendaSchrijfFout('google', vers.reden)
+
+  return googleFetch(method, url, vers.toegangstoken, body)
 }
 
 async function googleFetch(
