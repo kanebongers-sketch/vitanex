@@ -119,7 +119,7 @@ export function useBrainDump(): BrainDump {
 
   // Generatieteller: zonder deze kunnen twee vluchten elkaar inhalen en wint de
   // oudste die toevallig als laatste terugkomt. `verval` hoogt 'm op, zodat een
-  // vlucht die bij unmount nog loopt niets meer zet. Zie Top3Kaart.
+  // vlucht die bij unmount nog loopt niets meer zet. Zie useTaken.
   const generatie = useRef(0)
 
   // Bouwt de query: is er een zoekterm, dan zoeken we over ALLE dagen (een idee
@@ -169,7 +169,7 @@ export function useBrainDump(): BrainDump {
     })
   }, [])
 
-  /** Verklaart alles wat nu in de lucht is ongeldig — zie Top3Kaart. */
+  /** Verklaart alles wat nu in de lucht is ongeldig — zie useTaken. */
   const verval = useCallback(() => {
     generatie.current++
   }, [])

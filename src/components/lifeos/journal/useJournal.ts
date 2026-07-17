@@ -115,7 +115,7 @@ export function useJournal(): Journal {
 
   /**
    * Verklaart alles wat nu in de lucht is ongeldig en zet de debounce stil —
-   * zie Top3Kaart. Een losse callback en geen inline cleanup: zo leest de
+   * zie useTaken. Een losse callback en geen inline cleanup: zo leest de
    * exhaustive-deps-regel de refs niet als DOM-nodes die tussen render en
    * cleanup verschoven kunnen zijn (dat zijn het niet, het zijn tellers).
    */

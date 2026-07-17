@@ -20,7 +20,7 @@ import { berichtenVoorAnalyse } from './suggestie-actie'
 //
 // We zetten state ALLEEN in de `.then`-callback, nooit synchroon in de
 // effect-body: dat is de vorm die React bedoelt (geen cascaderende renders) en
-// dezelfde afweging als in `Top3Kaart`/`InboxKaart`. Een aparte "laden"-status
+// dezelfde afweging als in `InboxKaart`. Een aparte "laden"-status
 // voegt niets toe — de kaart toont geen spinner, de knoppen verschijnen gewoon
 // zodra ze er zijn — dus die laten we weg.
 
@@ -41,7 +41,7 @@ export function useSuggesties(mails: readonly TriageMailJson[]): SuggestiesResul
 
   // Generatieteller: `mails` verandert bij elke (her)laadbeurt van de inbox.
   // Zonder deze teller kan een trage analyse van een vorige lading een verse
-  // overschrijven. Zelfde patroon als `InboxKaart`/`Top3Kaart`.
+  // overschrijven. Zelfde patroon als `InboxKaart`.
   const generatie = useRef(0)
 
   // Eigen functie i.p.v. `generatie.current++` in de cleanup-body: exhaustive-deps
