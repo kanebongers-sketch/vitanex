@@ -5,6 +5,7 @@ export const dynamic = 'force-dynamic'
 import { useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase/supabase'
+import { authFetch } from '@/lib/auth/auth-fetch'
 import Link from 'next/link'
 import { Check } from 'lucide-react'
 import { LogoFull } from '@/components/layout/Logo'
@@ -65,6 +66,21 @@ function LoginInhoud() {
     if (!profiel?.onboarding_voltooid) {
       router.push('/onboarding')
       return
+    }
+
+    // Founder → direct in het volledige LifeOS-dashboard (Kane's keuze: MentaForce
+    // opent in zijn command center). De check gaat via de bestaande founder-gate
+    // (email-based, server-side); die is de enige bron van "ben ik de founder?".
+    // FAIL-SAFE: een fout of trage poort mag login NOOIT blokkeren — bij twijfel
+    // val je door naar de normale rol-routing hieronder.
+    try {
+      const poort = await authFetch('/api/lifeos/toegang')
+      if (poort.ok) {
+        router.push('/lifeos')
+        return
+      }
+    } catch {
+      // Netwerkfout op de founder-check: negeren, gewoon door naar de rol-routing.
     }
 
     const rol = profiel?.rol ?? 'medewerker'

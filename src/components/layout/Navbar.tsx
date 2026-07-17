@@ -289,11 +289,14 @@ function SidebarContent({
           )
         })}
 
-        {/* LifeOS — Kane's persoonlijke Life OS. Founder-only; de echte gate zit
-            server-side (elke /api/lifeos-route 403't een niet-founder). */}
+        {/* Kane's persoonlijke command center: zijn volledige dashboard (werk,
+            notities, agenda, taken, welzijn) plus het mensen-bord. Founder-only;
+            de echte gate zit server-side (elke /api/lifeos-route 403't een
+            niet-founder, en FounderPoort stuurt niet-founders terug). */}
         {userRol === 'admin' && (
           <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--border)' }}>
-            <NavLink href="/lifeos" label="LifeOS" icon={LayoutDashboard} pathname={pathname} onClick={onClose} />
+            <NavLink href="/lifeos" label="Mijn dashboard" icon={LayoutDashboard} pathname={pathname} onClick={onClose} />
+            <NavLink href="/lifeos/mensen" label="Mensen" icon={Users} pathname={pathname} onClick={onClose} />
           </div>
         )}
 

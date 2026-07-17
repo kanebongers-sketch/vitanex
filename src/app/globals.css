@@ -2294,3 +2294,803 @@ body {
   flex-wrap: wrap;
   gap: 26px 32px;
 }
+
+
+
+/* ═══ LifeOS — CRM: het mensen-bord (kanban) ═══════════════════════════════
+   Erft de navy/cyan-tokens van .lifeos-root. Strak en rustig (Linear-achtig),
+   geen template-card-grid. LET OP: nooit een letterlijke comment-afsluiter in
+   een blok-commentaar (dat sloot ooit de hele build af) — gewone regels dus. */
+
+.os-crm {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 18px;
+  max-width: var(--maxw);
+}
+
+/* De kop van de mensen-pagina: terug-link, titel, intro. */
+.os-crm-kop {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 6px;
+  margin-bottom: var(--ruimte-band);
+}
+
+.os-crm-terug {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: fit-content;
+  margin-bottom: 4px;
+  padding: 4px 2px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-3);
+  text-decoration: none;
+  border-radius: 6px;
+  transition: color 160ms var(--ease);
+}
+
+.os-crm-terug:hover {
+  color: var(--brand);
+}
+
+/* Zichtbare focus overal in het bord (WCAG 2.4.11). */
+.os-crm button:focus-visible,
+.os-crm a:focus-visible,
+.os-crm input:focus-visible,
+.os-crm select:focus-visible,
+.os-crm textarea:focus-visible,
+.os-crm [role='tabpanel']:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+
+/* ── Tabs = groepen ─────────────────────────────────────────────────────── */
+.os-crm__tablijst {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid var(--line);
+}
+
+.os-crm__tab {
+  appearance: none;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  padding: 9px 12px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-3);
+  cursor: pointer;
+  transition: color 180ms var(--ease), border-color 180ms var(--ease);
+}
+
+.os-crm__tab:hover {
+  color: var(--text-2);
+}
+
+.os-crm__tab--actief {
+  color: var(--text-1);
+  border-bottom-color: var(--brand);
+}
+
+.os-crm__omschrijving {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--text-3);
+}
+
+.os-crm__groep {
+  display: grid;
+  gap: 14px;
+}
+
+/* ── Toevoegen ──────────────────────────────────────────────────────────── */
+.os-crm__nieuw {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+}
+
+.os-crm__nieuw-rij {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.os-crm__nieuw-naam {
+  flex: 1 1 200px;
+  min-width: 0;
+}
+
+.os-crm__nieuw-status {
+  flex: 0 1 200px;
+  cursor: pointer;
+}
+
+.os-crm__meer {
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: none;
+  border: none;
+  padding: 2px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-3);
+  cursor: pointer;
+  transition: color 180ms var(--ease);
+}
+
+.os-crm__meer:hover {
+  color: var(--text-1);
+}
+
+.os-crm__nieuw-meer {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px;
+}
+
+.os-crm__nieuw-breed {
+  grid-column: 1 / -1;
+}
+
+/* ── Velden (gedeeld) ───────────────────────────────────────────────────── */
+.os-crm__veld {
+  display: grid;
+  gap: 5px;
+}
+
+.os-crm__label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-4);
+}
+
+.os-crm__invoer {
+  width: 100%;
+  min-width: 0;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+  background: var(--bg-raised);
+  color: var(--text-1);
+  font-family: inherit;
+  font-size: 13px;
+  color-scheme: dark;
+  transition: border-color 160ms var(--ease);
+}
+
+.os-crm__invoer:focus {
+  border-color: var(--brand);
+}
+
+.os-crm__textarea {
+  resize: vertical;
+  min-height: 52px;
+  line-height: 1.5;
+}
+
+.os-crm__hint {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--text-4);
+}
+
+/* ── Het bord: horizontaal scrollen binnen zichzelf ─────────────────────── */
+.os-crm__bord {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  padding-bottom: 8px;
+}
+
+.os-crm__kolom {
+  flex: 0 0 288px;
+  max-width: 288px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  transition: border-color 160ms var(--ease), background 160ms var(--ease);
+}
+
+.os-crm__kolom--over {
+  border-color: var(--brand);
+  background: color-mix(in srgb, var(--brand) 7%, var(--bg-card));
+}
+
+.os-crm__kolom-kop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-bottom: 9px;
+  border-bottom: 1px solid var(--line);
+}
+
+.os-crm__kolom-titel {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-2);
+}
+
+.os-crm__kolom-telling {
+  font-size: 12px;
+  color: var(--text-4);
+}
+
+/* Alleen 'actie' krijgt het cyaan-accent: dit vraagt iets van je. */
+.os-crm__kolom--actie .os-crm__kolom-kop {
+  border-bottom-color: color-mix(in srgb, var(--brand) 45%, transparent);
+}
+
+.os-crm__kolom--actie .os-crm__kolom-titel {
+  color: var(--text-1);
+}
+
+.os-crm__kolom--actie .os-crm__kolom-telling {
+  color: var(--brand);
+}
+
+.os-crm__kolom-lijst {
+  list-style: none;
+  margin: 0;
+  padding: 2px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 44px;
+  max-height: 60vh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.os-crm__kolom-leeg {
+  padding: 14px 10px;
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius-sm);
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: var(--text-4);
+  text-align: center;
+}
+
+/* ── De tegel ───────────────────────────────────────────────────────────── */
+.os-crm__tegel {
+  display: grid;
+  gap: 9px;
+  padding: 11px 12px;
+  background: var(--bg-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  cursor: grab;
+  transition: border-color 160ms var(--ease), opacity 160ms var(--ease);
+}
+
+.os-crm__tegel:hover {
+  border-color: color-mix(in srgb, var(--brand) 32%, var(--line-strong));
+}
+
+.os-crm__tegel--sleept {
+  opacity: 0.4;
+  cursor: grabbing;
+}
+
+.os-crm__tegel-open {
+  display: grid;
+  gap: 7px;
+  width: 100%;
+  padding: 0;
+  background: none;
+  border: none;
+  text-align: left;
+  color: inherit;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.os-crm__tegel-naam {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--text-1);
+}
+
+.os-crm__tegel-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.os-crm__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--bg-card);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-3);
+}
+
+.os-crm__chip--dringend {
+  color: var(--brand);
+  border-color: color-mix(in srgb, var(--brand) 40%, transparent);
+  background: var(--brand-soft);
+}
+
+.os-crm__chip--stil {
+  padding: 2px 6px;
+  color: var(--text-4);
+}
+
+.os-crm__tegel-voet {
+  padding-top: 8px;
+  border-top: 1px solid var(--line);
+}
+
+/* De statuskiezer = het toetsenbord-alternatief voor slepen. */
+.os-crm__verplaats {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.os-crm__verplaats-icoon {
+  flex-shrink: 0;
+  color: var(--text-4);
+}
+
+.os-crm__select {
+  width: 100%;
+  min-width: 0;
+  padding: 6px 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+  background: var(--bg-card);
+  color: var(--text-2);
+  font-family: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  color-scheme: dark;
+  transition: border-color 160ms var(--ease);
+}
+
+.os-crm__select:hover {
+  border-color: var(--line-strong);
+}
+
+.os-crm__select:focus {
+  border-color: var(--brand);
+}
+
+/* ── Skeleton + foutstaten ──────────────────────────────────────────────── */
+.os-crm__kolom--skelet {
+  gap: 12px;
+}
+
+.os-crm__skelet-kop {
+  height: 13px;
+  width: 55%;
+  border-radius: 6px;
+  background: var(--bg-raised);
+}
+
+.os-crm__skelet-tegel {
+  height: 56px;
+  border-radius: var(--radius-md);
+  background: var(--bg-raised);
+}
+
+.os-crm__actiefout,
+.os-crm__laadfout {
+  padding: 4px 2px;
+}
+
+/* ── De popup (dialog) ──────────────────────────────────────────────────── */
+.os-crm__overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 40px 16px;
+  overflow-y: auto;
+  background: color-mix(in srgb, var(--bg-app) 78%, transparent);
+  backdrop-filter: blur(4px);
+}
+
+.os-crm__dialoog {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 560px;
+  max-height: calc(100vh - 80px);
+  background: var(--bg-card);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xl);
+  outline: none;
+}
+
+.os-crm__dialoog-kop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--line);
+  flex-shrink: 0;
+}
+
+.os-crm__dialoog-titelblok {
+  display: grid;
+  gap: 6px;
+}
+
+.os-crm__dialoog-titel {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--text-1);
+}
+
+.os-crm__dialoog-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+
+.os-crm__badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 9px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--brand) 34%, transparent);
+  background: var(--brand-soft);
+  color: var(--brand);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.os-crm__dialoog-groep {
+  font-size: 12px;
+  color: var(--text-4);
+}
+
+.os-crm__sluit {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  background: none;
+  color: var(--text-3);
+  cursor: pointer;
+  transition: color 160ms var(--ease), background 160ms var(--ease);
+}
+
+.os-crm__sluit:hover {
+  color: var(--text-1);
+  background: var(--bg-raised);
+}
+
+.os-crm__dialoog-lijf {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 8px 20px 4px;
+  display: grid;
+  gap: 4px;
+}
+
+.os-crm__sectie {
+  display: grid;
+  gap: 9px;
+  padding: 16px 0;
+}
+
+.os-crm__sectie:not(:last-child) {
+  border-bottom: 1px solid var(--line);
+}
+
+.os-crm__sectie-kop {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--text-4);
+}
+
+.os-crm__contact {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.os-crm__contact-link {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+  color: var(--brand);
+  transition: background 160ms var(--ease), border-color 160ms var(--ease);
+}
+
+.os-crm__contact-link:hover {
+  background: var(--brand-soft);
+  border-color: color-mix(in srgb, var(--brand) 40%, transparent);
+}
+
+.os-crm__followup {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.os-crm__followup .os-crm__invoer {
+  width: auto;
+  flex: 0 1 190px;
+}
+
+.os-crm__wis {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  padding: 4px 2px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-3);
+  cursor: pointer;
+  transition: color 160ms var(--ease);
+}
+
+.os-crm__wis:hover {
+  color: var(--text-1);
+}
+
+.os-crm__notitie {
+  display: grid;
+  gap: 7px;
+  margin-top: 4px;
+}
+
+.os-crm__notitie-actie {
+  display: flex;
+  justify-content: flex-start;
+}
+
+/* ── Tijdlijn ───────────────────────────────────────────────────────────── */
+.os-crm__tijdlijn {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.os-crm__tijdlijn-item {
+  display: grid;
+  grid-template-columns: 24px 1fr;
+  gap: 10px;
+  align-items: start;
+}
+
+.os-crm__tijdlijn-punt {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--bg-raised);
+  color: var(--text-3);
+}
+
+.os-crm__tijdlijn-item:not(:last-child) .os-crm__tijdlijn-punt::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: calc(50% - 0.5px);
+  width: 1px;
+  height: 16px;
+  background: var(--line);
+}
+
+.os-crm__tijdlijn-lijf {
+  display: grid;
+  gap: 3px;
+  padding-top: 2px;
+}
+
+.os-crm__tijdlijn-tekst {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--text-1);
+}
+
+.os-crm__tijdlijn-extra {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--text-3);
+}
+
+.os-crm__tijdlijn-tijd {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-4);
+}
+
+/* ── Voet: contact + verwijderen ────────────────────────────────────────── */
+.os-crm__dialoog-voet {
+  flex-shrink: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 20px;
+  border-top: 1px solid var(--line);
+}
+
+.os-crm__voet-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.os-crm__wis-bevestig {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.os-crm__gevaar {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--status-laag);
+  background: var(--status-danger-soft);
+  color: var(--status-laag);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 160ms var(--ease);
+}
+
+.os-crm__gevaar:hover {
+  background: color-mix(in srgb, var(--status-laag) 22%, transparent);
+}
+
+.os-crm__gevaar-stil {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  padding: 6px 4px;
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-4);
+  cursor: pointer;
+  transition: color 160ms var(--ease);
+}
+
+.os-crm__gevaar-stil:hover {
+  color: var(--status-laag);
+}
+
+/* ── Beweging: hover-lift alleen als het mag, skeleton-puls idem ────────── */
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .os-crm__tegel:hover {
+    transform: translateY(-1px);
+  }
+
+  .os-crm__kolom--skelet .os-crm__skelet-kop,
+  .os-crm__kolom--skelet .os-crm__skelet-tegel {
+    animation: os-crm-puls 1.4s var(--ease) infinite;
+  }
+}
+
+@keyframes os-crm-puls {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .os-crm__tab,
+  .os-crm__tegel,
+  .os-crm__kolom,
+  .os-crm__select,
+  .os-crm__invoer,
+  .os-crm__contact-link,
+  .os-crm__sluit {
+    transition: none;
+  }
+}
+
+/* ── Mobiel: één kolom per veeg, popup bijna schermvullend ──────────────── */
+@media (max-width: 640px) {
+  .os-crm__bord {
+    scroll-snap-type: x mandatory;
+  }
+
+  .os-crm__kolom {
+    flex-basis: 82vw;
+    max-width: 82vw;
+    scroll-snap-align: start;
+  }
+
+  .os-crm__kolom-lijst {
+    max-height: none;
+  }
+
+  .os-crm__overlay {
+    padding: 16px 10px;
+  }
+
+  .os-crm__dialoog {
+    max-height: calc(100vh - 32px);
+  }
+}
