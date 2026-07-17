@@ -55,8 +55,10 @@ export function MijnLeven() {
 
         <ProductiviteitDomein />
 
-        {/* Het domein en zijn gereedschap in één kolom. */}
-        <div style={{ display: 'grid', gap: 'var(--ruimte-kaart)', alignContent: 'start' }}>
+        {/* Het domein en zijn gereedschap in één kolom. Klasse i.p.v. inline:
+            dit bestand zegt zelf (docblock boven) dat plaatsing in CSS hoort, niet
+            in de component. Dit was de enige plek waar die regel boog. */}
+        <div className="os-leven__kolom">
           <GroeiDomein />
           <JournalKaart />
         </div>

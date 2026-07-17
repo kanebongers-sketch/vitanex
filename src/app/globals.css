@@ -1453,6 +1453,17 @@ body {
   gap: var(--ruimte-band);
 }
 
+/* De échte zonebreuk: "Mijn leven" (de reflectie) staat een trap verder van
+   "Mijn dag" (het gereedschap) dan twee kaartblokken binnen een zone van elkaar.
+   Dit is de `--ruimte-sectie`-rung (44px) die wél gedefinieerd was maar nergens
+   gebruikt werd — zonder deze regel kreeg de belangrijkste scheiding van de
+   pagina exact dezelfde 26px als een willekeurige kaartafstand. De `calc`
+   verrekent de bestaande grid-gap zodat de totale afstand precies 44px is, niet
+   26+44. */
+.os-cockpit > .os-leven {
+  margin-top: calc(var(--ruimte-sectie) - var(--ruimte-band));
+}
+
 /* Vita als volle band bovenaan: hij verbindt de kaarten eronder. */
 .os-cockpit__band {
   display: block;
@@ -1526,6 +1537,20 @@ body {
 @media (min-width: 1024px) {
   .os-gezond {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* Vijf kaarten in een grid laat een wees-cel achter: op 3 kolommen 3+2 met een
+   gat, op 2 kolommen 2+2+1. Dat is precies de "muur van gelijke kaarten met een
+   gat" die de regels vermijden. Oplossing: de eerste kaart (Voeding — de rijkste,
+   met kcal, macro's én maaltijd-logger) is het anker en spant twee kolommen. Dan
+   vult de rij exact: 3-koloms wordt Voeding+Water / Workout+Stress+Stemming,
+   2-koloms wordt Voeding-vol / 2×2. Geen gat, en meteen rangorde in een rij die
+   anders vlak was. De plaatsing hoort in CSS (zoals `.os-prod__vol`), niet in de
+   kaart zelf. */
+@media (min-width: 640px) {
+  .os-gezond > :first-child {
+    grid-column: span 2;
   }
 }
 
@@ -1637,6 +1662,18 @@ body {
   pointer-events: none;
 }
 
+/* De laag die de ::before-regel hierboven belooft, en die er nooit was: zonder
+   deze regel stond de opacity permanent op 0 en was elke kaart plat onder de
+   muis — terwijl os/Kaart.tsx letterlijk zegt "de kaart licht op bij hover".
+   Alleen op apparaten die écht hoveren (`hover: hover`), zodat touch geen
+   plakkende hover-staat krijgt na een tik. Opacity is compositor-vriendelijk,
+   dus geen reduced-motion-uitzondering nodig. */
+@media (hover: hover) {
+  .os-kaart:hover::before {
+    opacity: 1;
+  }
+}
+
 /* Cyaan rand + gloed zodra er iets ín de kaart focus heeft. Cyaan is accent:
    een lijn en een gloed, nooit een vlak. */
 .os-kaart::after {
@@ -1656,6 +1693,17 @@ body {
 
 .os-kaart:focus-within::after {
   opacity: 1;
+}
+
+/* Een lift van 1px die de opgelichte laag hierboven begeleidt. De transform-
+   transitie stond al op `.os-kaart` en de `:active`-reset hieronder wachtte al op
+   deze lift — hij ontbrak alleen. `transform` is compositor-vriendelijk (geen
+   layout/paint), maar beweging respecteert reduced-motion: daar blijft alleen de
+   opacity-oplichting over. Alleen op hover-capabele apparaten. */
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .os-kaart:hover {
+    transform: translateY(-1px);
+  }
 }
 
 .os-kaart:active {
@@ -1981,10 +2029,16 @@ body {
   line-height: 1.45;
 }
 
+/* Zelf-wrappend met een echte minimumbreedte, niet één rij die tot 0 krimpt.
+   De oude `grid-auto-flow: column` perste de 10-punts stress-schaal op een smal
+   scherm tot ~21px per vak — onder de 24px die WCAG 2.5.8 als tap-doel eist.
+   `auto-fit` + `minmax(2rem, …)` houdt elk vak op ≥32px: de 10-punts schaal
+   wrapt dan vanzelf naar twee rijen op smal, de 5-punts stemming blijft één rij,
+   en op breed groeien ze naar gelijke kolommen zoals eerst. Geen breakpoint,
+   geen apart geval per schaallengte. */
 .os-schaal__rij {
   display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: minmax(0, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(2rem, 1fr));
   gap: 4px;
   margin-top: 10px;
 }
@@ -2094,6 +2148,14 @@ body {
   gap: var(--ruimte-kaart);
   grid-template-columns: 1fr;
   align-items: start;
+}
+
+/* Een domein plus zijn gereedschap onder elkaar (Groei + de journal-kaart).
+   Stond inline in MijnLeven.tsx; hoort hier, bij de rest van de leven-layout. */
+.os-leven__kolom {
+  display: grid;
+  gap: var(--ruimte-kaart);
+  align-content: start;
 }
 
 @media (min-width: 900px) {
