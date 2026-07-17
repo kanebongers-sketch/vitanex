@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Shield, Users, Leaf, User as UserIcon, AlertTriangle, LogOut, Camera, Mail, Download, Trash2, UserPlus, Eye, X } from 'lucide-react'
 import { supabase } from '@/lib/supabase/supabase'
+import { avatarPad, vergeetAvatar } from '@/lib/avatars/avatars'
 import Navbar, { schakelPortaal, type ViewMode } from '@/components/layout/Navbar'
 import { Avatar } from '@/components/ui/Avatar'
 import HrCodeModal from '@/components/hr/HrCodeModal'
@@ -247,14 +248,18 @@ export default function Instellingen() {
     setAvatarBezig(true)
     try {
       const blob = await cropToSquareJpeg(file, 400)
-      const path = `${userId}/avatar.jpg`
+      const pad = avatarPad(userId)
       const { error: uploadError } = await supabase.storage
-        .from('avatars').upload(path, blob, { upsert: true, contentType: 'image/jpeg' })
+        .from('avatars').upload(pad, blob, { upsert: true, contentType: 'image/jpeg' })
       if (uploadError) throw uploadError
-      const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(path)
-      const urlMetCacheBust = `${publicUrl}?t=${Date.now()}`
-      await supabase.from('profiles').update({ avatar_url: urlMetCacheBust }).eq('id', userId)
-      setAvatarUrl(urlMetCacheBust)
+
+      // Sinds 047 slaan we het PAD op, geen publieke URL: de bucket is privé,
+      // dus zo'n URL zou niet meer werken. Avatar tekent er een tijdelijke URL
+      // bij. De upload is een upsert op hetzelfde pad, dus de vorige getekende
+      // URL moet weg — anders zie je een uur lang je oude foto.
+      vergeetAvatar(pad)
+      await supabase.from('profiles').update({ avatar_url: pad }).eq('id', userId)
+      setAvatarUrl(pad)
     } catch {
       toast({ title: 'Uploaden mislukt', description: 'Probeer een andere afbeelding.', variant: 'error' })
     }
@@ -265,7 +270,9 @@ export default function Instellingen() {
   async function verwijderAvatar() {
     if (!userId) return
     setAvatarBezig(true)
-    await supabase.storage.from('avatars').remove([`${userId}/avatar.jpg`])
+    const pad = avatarPad(userId)
+    await supabase.storage.from('avatars').remove([pad])
+    vergeetAvatar(pad)
     await supabase.from('profiles').update({ avatar_url: null }).eq('id', userId)
     setAvatarUrl(null)
     setAvatarBezig(false)
