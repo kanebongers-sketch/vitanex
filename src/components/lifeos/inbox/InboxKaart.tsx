@@ -149,7 +149,7 @@ export function InboxKaart() {
             <MailPlus size={14} strokeWidth={2.2} aria-hidden="true" />
             Gmail koppelen
           </Knop>
-          {koppelFout ? <Foutmelding bericht={koppelFout} /> : null}
+          {koppelFout ? <Foutmelding bericht={koppelFout} opnieuw={() => void koppel()} /> : null}
         </div>
       ) : null}
 

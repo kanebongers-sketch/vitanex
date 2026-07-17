@@ -225,7 +225,7 @@ export function AgendaKaart() {
             <CalendarPlus size={14} strokeWidth={2.2} aria-hidden="true" />
             Google Agenda koppelen
           </Knop>
-          {koppelFout ? <Foutmelding bericht={koppelFout} /> : null}
+          {koppelFout ? <Foutmelding bericht={koppelFout} opnieuw={() => void koppel()} /> : null}
         </div>
       ) : null}
 
