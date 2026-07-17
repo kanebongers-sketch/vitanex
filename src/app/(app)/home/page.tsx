@@ -9,6 +9,8 @@ import { Sparkles, Target, ChevronRight, ArrowUpRight, ArrowDownRight } from 'lu
 import { supabase } from '@/lib/supabase/supabase'
 import { authFetch } from '@/lib/auth/auth-fetch'
 import Navbar from '@/components/layout/Navbar'
+import { CockpitKop } from '@/components/lifeos/cockpit/CockpitKop'
+import { Cockpit } from '@/components/lifeos/cockpit/Cockpit'
 import { CoachNudgeBanner } from '@/components/coach/CoachNudgeBanner'
 import { WellbeingHero } from '@/components/pijlers/WellbeingHero'
 import { PijlerKaart } from '@/components/pijlers/PijlerKaart'
@@ -82,6 +84,10 @@ export default function HomePage() {
   const [fout, setFout] = useState(false)
   const [voornaam, setVoornaam] = useState('')
   const [data, setData] = useState<PijlerOverzicht | null>(null)
+  // `null` = nog niet nagegaan. Voor de founder wordt /home het volledige
+  // dashboard (de cockpit met werk, notities, agenda, taken, mensen én welzijn);
+  // voor elke andere gebruiker blijft /home exact het welzijn-overzicht hieronder.
+  const [isFounder, setIsFounder] = useState<boolean | null>(null)
 
   const laad = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser()
@@ -91,6 +97,25 @@ export default function HomePage() {
       .from('profiles').select('naam, onboarding_voltooid').eq('id', user.id).single()
     if (!profiel?.onboarding_voltooid) { router.replace('/onboarding'); return }
     setVoornaam((profiel?.naam ?? '').split(' ')[0] || 'jij')
+
+    // Founder-check via dezelfde gate als alle /api/lifeos-routes. FAIL-SAFE: een
+    // fout of niet-founder valt door naar het welzijn-overzicht — /home mag voor
+    // een gewone gebruiker (klantbedrijf) nooit breken op deze check.
+    let founder = false
+    try {
+      const poort = await authFetch('/api/lifeos/toegang')
+      founder = poort.ok
+    } catch {
+      founder = false
+    }
+    setIsFounder(founder)
+
+    // De founder krijgt de cockpit, die zijn eigen data per kaart ophaalt — dus
+    // geen pijler-fetch nodig. Een gewone gebruiker laadt het welzijn-overzicht.
+    if (founder) {
+      setLaden(false)
+      return
+    }
 
     try {
       const res = await authFetch('/api/pijlers')
@@ -121,6 +146,25 @@ export default function HomePage() {
   const aandacht: PijlerResultaat | null = dalers.length
     ? dalers.reduce((ergste, p) => ((p.trend.deltaPct as number) < (ergste.trend.deltaPct as number) ? p : ergste))
     : focus
+
+  // ── De founder: /home ÍS het volledige dashboard ──────────────────────────
+  // Zelfde cockpit-surface als voorheen op /lifeos, nu op /home en mét de navbar
+  // eromheen (die /lifeos niet had). De cockpit draagt zijn eigen `.lifeos-root`-
+  // tokens; de navbar erbuiten houdt de MentaForce-tokens. Beide navy/cyan.
+  if (isFounder === true) {
+    return (
+      <div className="mf-mesh-bg" style={{ minHeight: '100vh' }}>
+        <Navbar />
+        <div className="lifeos-root">
+          <div className="os-sfeer" aria-hidden="true" />
+          <main className="os-schil os-schil--breed">
+            <CockpitKop />
+            <Cockpit />
+          </main>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="mf-mesh-bg" style={{ minHeight: '100vh' }}>

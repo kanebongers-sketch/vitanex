@@ -68,15 +68,16 @@ function LoginInhoud() {
       return
     }
 
-    // Founder → direct in het volledige LifeOS-dashboard (Kane's keuze: MentaForce
-    // opent in zijn command center). De check gaat via de bestaande founder-gate
-    // (email-based, server-side); die is de enige bron van "ben ik de founder?".
-    // FAIL-SAFE: een fout of trage poort mag login NOOIT blokkeren — bij twijfel
-    // val je door naar de normale rol-routing hieronder.
+    // De founder landt op /home — dat ÍS voor hem het volledige dashboard (de
+    // cockpit met werk, notities, agenda, taken, mensen én welzijn). /home
+    // herkent de founder via dezelfde gate en toont dan de cockpit i.p.v. het
+    // welzijn-overzicht, dus we hoeven hier alleen te zorgen dat 'ie niet naar
+    // /admin gaat. FAIL-SAFE: een fout of trage poort mag login NOOIT blokkeren —
+    // bij twijfel val je door naar de normale rol-routing hieronder.
     try {
       const poort = await authFetch('/api/lifeos/toegang')
       if (poort.ok) {
-        router.push('/lifeos')
+        router.push('/home')
         return
       }
     } catch {
