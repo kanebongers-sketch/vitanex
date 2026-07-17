@@ -362,8 +362,12 @@ async function haalBetrokkenNotities(
 
 // ─── Systeemgrens: rijen uit de database ────────────────────────────────────
 // Geen cast: de database is een systeemgrens als elke andere. Zie `notities.ts`.
+// De drie helpers hieronder zijn geëxporteerd t.b.v. directe unit-tests — ze zijn
+// puur en dragen de link-integriteit, dus ze horen apart getest (zelfde reden als
+// `heeftBereik`/`ontbrekendBereik` in inbox/bereik.ts). Ze worden ook intern
+// gebruikt.
 
-function leesTekstVeld(rij: unknown, veld: string): string | null {
+export function leesTekstVeld(rij: unknown, veld: string): string | null {
   if (typeof rij !== 'object' || rij === null) return null
   const waarde = (rij as Record<string, unknown>)[veld]
   if (typeof waarde !== 'string') return null
@@ -372,7 +376,7 @@ function leesTekstVeld(rij: unknown, veld: string): string | null {
 }
 
 /** Een rij zonder bron of doel_titel is onbruikbaar en valt weg. */
-function leesLinkRijen(rijen: readonly unknown[]): LinkRij[] {
+export function leesLinkRijen(rijen: readonly unknown[]): LinkRij[] {
   const uit: LinkRij[] = []
   for (const rij of rijen) {
     const bron = leesTekstVeld(rij, 'bron_id')
@@ -389,7 +393,7 @@ function leesLinkRijen(rijen: readonly unknown[]): LinkRij[] {
   return uit
 }
 
-function inBrokken<T>(lijst: readonly T[], grootte: number): T[][] {
+export function inBrokken<T>(lijst: readonly T[], grootte: number): T[][] {
   const uit: T[][] = []
   for (let i = 0; i < lijst.length; i += grootte) uit.push(lijst.slice(i, i + grootte))
   return uit

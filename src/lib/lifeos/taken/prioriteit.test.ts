@@ -82,6 +82,20 @@ describe('deadlineDruk', () => {
     expect(week).toBeGreaterThan(ooit as number)
   })
 
+  // De trapwaarden zelf pinnen, niet alleen de ordening. Zonder dit blijft een
+  // regressie die twee stappen omwisselt of `<= 3` naar `< 3` verandert groen —
+  // de ordening klopt dan nog steeds. De sprongen staan op vandaag/morgen/3/7/30.
+  it('geeft de exacte trapwaarde per afstand', () => {
+    expect(deadlineDruk('2026-07-17', VANDAAG)).toBe(95) // vandaag
+    expect(deadlineDruk('2026-07-18', VANDAAG)).toBe(75) // morgen
+    expect(deadlineDruk('2026-07-20', VANDAAG)).toBe(55) // 3 dagen (grens <= 3)
+    expect(deadlineDruk('2026-07-21', VANDAAG)).toBe(35) // 4 dagen (net erover)
+    expect(deadlineDruk('2026-07-24', VANDAAG)).toBe(35) // 7 dagen (grens <= 7)
+    expect(deadlineDruk('2026-07-25', VANDAAG)).toBe(15) // 8 dagen (net erover)
+    expect(deadlineDruk('2026-08-16', VANDAAG)).toBe(15) // 30 dagen (grens <= 30)
+    expect(deadlineDruk('2026-08-17', VANDAAG)).toBe(5) // 31 dagen (net erover)
+  })
+
   it('geeft null bij een onleesbare datum', () => {
     expect(deadlineDruk('binnenkort', VANDAAG)).toBeNull()
   })
@@ -90,7 +104,9 @@ describe('deadlineDruk', () => {
 describe('impactDruk', () => {
   it('mapt de schaal 1-5 naar 0-100', () => {
     expect(impactDruk(1)).toBe(0)
+    expect(impactDruk(2)).toBe(25)
     expect(impactDruk(3)).toBe(50)
+    expect(impactDruk(4)).toBe(75)
     expect(impactDruk(5)).toBe(100)
   })
 
