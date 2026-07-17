@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   bouwGrafiek,
+  leesGrafiekAntwoord,
   maakLabel,
   MAX_KNOPEN,
   type KnoopBron,
@@ -42,6 +43,31 @@ describe('maakLabel', () => {
 
   it('negeert een titel die alleen uit witruimte bestaat', () => {
     expect(maakLabel('   ', 'De tekst')).toBe('De tekst')
+  })
+
+  it('laat een eerste regel van exact MAX_LABEL heel — geen ellips op de grens', () => {
+    // Arrange — MAX_LABEL is intern 40; de afkap-check is `> MAX_LABEL`, dus 40 mag.
+    const opDeGrens = 'a'.repeat(40)
+
+    // Act
+    const label = maakLabel(null, opDeGrens)
+
+    // Assert
+    expect(label).toBe(opDeGrens)
+    expect(label).toHaveLength(40)
+    expect(label.endsWith('…')).toBe(false)
+  })
+
+  it('kapt één teken over MAX_LABEL wél af met een ellips', () => {
+    // Arrange — 41 tekens: één over de grens.
+    const eenTeVeel = 'a'.repeat(41)
+
+    // Act
+    const label = maakLabel(null, eenTeVeel)
+
+    // Assert — 40 tekens + ellips = 41.
+    expect(label).toBe(`${'a'.repeat(40)}…`)
+    expect(label).toHaveLength(41)
   })
 })
 
@@ -240,5 +266,157 @@ describe('bouwGrafiek — afkappen op knopen', () => {
     // Assert
     expect(grafiek.afgekapt).toBe(false)
     expect(grafiek.knopen).toHaveLength(20)
+  })
+})
+
+// ─── Systeemgrens: het API-antwoord narrowen ────────────────────────────────
+// `leesGrafiekAntwoord` narrowt een ruw antwoord (uit fetch/JSON) tot een Grafiek
+// of `null`. Geen cast: een half object crasht de tekening drie lagen verderop.
+// `leesKnoop`/`leesKant` zijn niet geëxporteerd; ze worden hier via de publieke
+// functie meegetest.
+
+describe('leesGrafiekAntwoord — vorm van het antwoord', () => {
+  const geldigeKnoop = { sleutel: 'n:a', id: 'a', label: 'A', bestaat: true, graad: 1 }
+
+  it('geeft null bij een niet-object', () => {
+    expect(leesGrafiekAntwoord(null)).toBeNull()
+    expect(leesGrafiekAntwoord(undefined)).toBeNull()
+    expect(leesGrafiekAntwoord(42)).toBeNull()
+    expect(leesGrafiekAntwoord('grafiek')).toBeNull()
+  })
+
+  it('geeft null bij een array — dat is geen antwoord-object', () => {
+    expect(leesGrafiekAntwoord([])).toBeNull()
+  })
+
+  it('geeft null als knopen geen array is', () => {
+    expect(leesGrafiekAntwoord({ kanten: [] })).toBeNull()
+    expect(leesGrafiekAntwoord({ knopen: 'x', kanten: [] })).toBeNull()
+  })
+
+  it('geeft null als kanten geen array is', () => {
+    expect(leesGrafiekAntwoord({ knopen: [] })).toBeNull()
+    expect(leesGrafiekAntwoord({ knopen: [], kanten: 'x' })).toBeNull()
+  })
+
+  it('narrowt een gezond antwoord tot een Grafiek', () => {
+    // Arrange
+    const ruw = {
+      knopen: [geldigeKnoop, { sleutel: 'w:b', id: null, label: 'B', bestaat: false, graad: 1 }],
+      kanten: [{ bron: 'n:a', doel: 'w:b' }],
+      afgekapt: false,
+    }
+
+    // Act
+    const grafiek = leesGrafiekAntwoord(ruw)
+
+    // Assert
+    expect(grafiek).not.toBeNull()
+    expect(grafiek?.knopen.map((k) => k.sleutel).sort()).toEqual(['n:a', 'w:b'])
+    expect(grafiek?.kanten).toEqual([{ bron: 'n:a', doel: 'w:b' }])
+    expect(grafiek?.afgekapt).toBe(false)
+  })
+})
+
+describe('leesGrafiekAntwoord — kapotte knopen en hun kanten', () => {
+  it('laat een kapotte knoop vallen en houdt de gezonde over', () => {
+    // Arrange — tweede knoop mist een label.
+    const ruw = {
+      knopen: [
+        { sleutel: 'n:a', id: 'a', label: 'A', bestaat: true, graad: 1 },
+        { sleutel: 'n:b', id: 'b', label: '', bestaat: true, graad: 1 },
+      ],
+      kanten: [],
+    }
+
+    // Act
+    const grafiek = leesGrafiekAntwoord(ruw)
+
+    // Assert
+    expect(grafiek?.knopen.map((k) => k.sleutel)).toEqual(['n:a'])
+  })
+
+  it('laat een kant vallen die naar een weggevallen knoop wijst', () => {
+    // Arrange — n:b is kapot (bestaat is geen boolean) en valt weg; de kant
+    // n:a → n:b wijst dan nergens heen.
+    const ruw = {
+      knopen: [
+        { sleutel: 'n:a', id: 'a', label: 'A', bestaat: true, graad: 1 },
+        { sleutel: 'n:b', id: 'b', label: 'B', bestaat: 'ja', graad: 1 },
+      ],
+      kanten: [{ bron: 'n:a', doel: 'n:b' }],
+    }
+
+    // Act
+    const grafiek = leesGrafiekAntwoord(ruw)
+
+    // Assert — de knoop weg, dus de kant ook.
+    expect(grafiek?.knopen.map((k) => k.sleutel)).toEqual(['n:a'])
+    expect(grafiek?.kanten).toEqual([])
+  })
+
+  it('laat een kant vallen waarvan een uiteinde nooit als knoop bestond', () => {
+    // Arrange
+    const ruw = {
+      knopen: [{ sleutel: 'n:a', id: 'a', label: 'A', bestaat: true, graad: 1 }],
+      kanten: [{ bron: 'n:a', doel: 'n:onbekend' }],
+    }
+
+    // Act / Assert
+    expect(leesGrafiekAntwoord(ruw)?.kanten).toEqual([])
+  })
+
+  it('laat een kapotte kant vallen (niet-string uiteinde)', () => {
+    // Arrange
+    const ruw = {
+      knopen: [{ sleutel: 'n:a', id: 'a', label: 'A', bestaat: true, graad: 1 }],
+      kanten: [{ bron: 'n:a', doel: 42 }],
+    }
+
+    // Act / Assert
+    expect(leesGrafiekAntwoord(ruw)?.kanten).toEqual([])
+  })
+})
+
+describe('leesGrafiekAntwoord — losse velden', () => {
+  const knoopA = { sleutel: 'n:a', id: 'a', label: 'A', bestaat: true, graad: 1 }
+
+  it('een knoop met een niet-string id krijgt id null i.p.v. te weigeren', () => {
+    // Arrange — id is een getal; de rest is geldig.
+    const ruw = {
+      knopen: [{ sleutel: 'w:b', id: 42, label: 'B', bestaat: false, graad: 0 }],
+      kanten: [],
+    }
+
+    // Act
+    const grafiek = leesGrafiekAntwoord(ruw)
+
+    // Assert — de knoop overleeft, maar zijn id valt terug op null.
+    expect(grafiek?.knopen).toHaveLength(1)
+    expect(grafiek?.knopen[0]?.id).toBeNull()
+  })
+
+  it('weigert een knoop met een niet-eindige graad', () => {
+    // Arrange
+    const ruw = {
+      knopen: [{ sleutel: 'n:a', id: 'a', label: 'A', bestaat: true, graad: Infinity }],
+      kanten: [],
+    }
+
+    // Act / Assert
+    expect(leesGrafiekAntwoord(ruw)?.knopen).toEqual([])
+  })
+
+  it('geeft afgekapt door — alleen exact `true` telt als afgekapt', () => {
+    // Arrange
+    const basis = { knopen: [knoopA], kanten: [] }
+
+    // Act / Assert
+    expect(leesGrafiekAntwoord({ ...basis, afgekapt: true })?.afgekapt).toBe(true)
+    expect(leesGrafiekAntwoord({ ...basis, afgekapt: false })?.afgekapt).toBe(false)
+    expect(leesGrafiekAntwoord(basis)?.afgekapt).toBe(false)
+    // Niet-boolean waarden zijn geen afkapping: `'true'` en `1` blijven false.
+    expect(leesGrafiekAntwoord({ ...basis, afgekapt: 'true' })?.afgekapt).toBe(false)
+    expect(leesGrafiekAntwoord({ ...basis, afgekapt: 1 })?.afgekapt).toBe(false)
   })
 })

@@ -175,12 +175,20 @@ export function leesAgendaVandaag(ruw: unknown): AgendaVandaag | null {
   // verdwijnen zonder dat iemand het merkt.
   if (events.some((e) => e === null) || blokken.some((b) => b === null)) return null
 
+  // `volgende` mag ontbreken (geen eerstvolgende afspraak) → null. Maar is 'ie
+  // AANWEZIG en kapot, dan geldt dezelfde regel als hierboven: een echte
+  // eerstvolgende afspraak die één veld mist, hoort niet stil te verdwijnen. Dat
+  // schond de eigen invariant van deze functie.
+  const geenVolgende = ruw.volgende === null || ruw.volgende === undefined
+  const volgende = geenVolgende ? null : leesAfspraakJson(ruw.volgende)
+  if (!geenVolgende && volgende === null) return null
+
   return {
     gekoppeld: true,
     dag,
     laatsteSync: tekst(ruw.laatsteSync),
     events: events.filter((e): e is AfspraakJson => e !== null),
-    volgende: ruw.volgende === null || ruw.volgende === undefined ? null : leesAfspraakJson(ruw.volgende),
+    volgende,
     vrijeBlokken: blokken.filter((b): b is VrijBlokJson => b !== null),
   }
 }

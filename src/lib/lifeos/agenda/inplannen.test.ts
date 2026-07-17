@@ -10,6 +10,7 @@ import {
   type PlanWens,
 } from './inplannen'
 import { MIN_BLOK_MINUTEN, type VrijBlok } from './vrije-blokken'
+import { MAX_TITEL_LENGTE } from './schrijven'
 
 // Vaste dag, lokale tijd — net als vrije-blokken.test.ts. Geen `new Date()` in
 // de test zelf, anders valt hij om 23:59 anders uit dan om 09:00.
@@ -172,6 +173,21 @@ describe('langsteVrijeMinuten', () => {
   })
 })
 
+describe('naarRuimtes — sortering (via planWensen)', () => {
+  // `naarRuimtes` is module-privé; het normaliseert blokken en sorteert ze
+  // oplopend op starttijd. Dat gedrag is zichtbaar via planWensen: het eerste
+  // passende blok is dan het chronologisch vroegste, ook als de agenda de blokken
+  // in omgekeerde volgorde aanlevert.
+  it('plant in het chronologisch vroegste blok, ook bij omgekeerde invoervolgorde', () => {
+    const { toewijzingen } = planWensen(
+      [blok(14, 15), blok(9, 10)],
+      [wens('Eerste', 60), wens('Tweede', 60)],
+    )
+
+    expect(toewijzingen.map((t) => t.startOp)).toEqual([op(9), op(14)])
+  })
+})
+
 describe('naarNieuwEvent', () => {
   it('zet een toewijzing om in de invoer voor maakAgendaEvent', () => {
     const { toewijzingen } = planWensen([blok(9, 11)], [wens('Deep work', 60)])
@@ -232,6 +248,40 @@ describe('leesFocusVerzoek', () => {
 
   it('weigert een blok langer dan een werkdag', () => {
     expect(leesFocusVerzoek({ minuten: MAX_FOCUS_MINUTEN + 1 }).ok).toBe(false)
+  })
+
+  it('accepteert de duur exact op de ondergrens', () => {
+    const uitkomst = leesFocusVerzoek({ minuten: MIN_BLOK_MINUTEN })
+    expect(uitkomst.ok).toBe(true)
+    if (!uitkomst.ok) return
+    expect(uitkomst.wens.minuten).toBe(MIN_BLOK_MINUTEN)
+  })
+
+  it('accepteert de duur exact op de bovengrens', () => {
+    const uitkomst = leesFocusVerzoek({ minuten: MAX_FOCUS_MINUTEN })
+    expect(uitkomst.ok).toBe(true)
+    if (!uitkomst.ok) return
+    expect(uitkomst.wens.minuten).toBe(MAX_FOCUS_MINUTEN)
+  })
+
+  it('weigert een titel langer dan het maximum, met de exacte melding uit de code', () => {
+    const uitkomst = leesFocusVerzoek({ titel: 'x'.repeat(MAX_TITEL_LENGTE + 1) })
+    expect(uitkomst).toEqual({
+      ok: false,
+      fout: `Titel mag maximaal ${MAX_TITEL_LENGTE} tekens zijn.`,
+    })
+  })
+
+  it('accepteert een titel die exact op de maximale lengte zit', () => {
+    const titel = 'x'.repeat(MAX_TITEL_LENGTE)
+    const uitkomst = leesFocusVerzoek({ titel })
+    expect(uitkomst.ok).toBe(true)
+    if (!uitkomst.ok) return
+    expect(uitkomst.wens.titel).toBe(titel)
+  })
+
+  it('weigert een niet-tekstuele titel met de melding uit de code', () => {
+    expect(leesFocusVerzoek({ titel: 123 })).toEqual({ ok: false, fout: 'Titel moet tekst zijn.' })
   })
 
   it('weigert niet-hele minuten', () => {
