@@ -23,6 +23,14 @@
 //
 //   De volgorde komt van `ordenTaken`, dus de top-3 krijgt als eerste een blok.
 //   Ook als de formule iets anders het zwaarst vindt. Dat is geen bug.
+//
+// ─── DIT IS NIET agenda/inplannen.ts — en dat is met opzet ──────────────────
+//   `agenda/inplannen.ts` legt óók taken in vrije blokken, maar met een ander
+//   doel: dát bestand SCHRIJFT (levert `NieuwAgendaEvent`s voor Google) en pakt
+//   per wens, in aangeleverde volgorde, het eerste passende blok. Dit bestand
+//   ADVISEERT en kiest per blok de best SCORENDE taak. Andere selectie, ander
+//   resultaat — geen gedeelde kern, want die zou twee verschillende dingen
+//   koppelen. Zie de kop van `inplannen.ts` voor de andere kant van dit paar.
 
 import {
   energiePast,

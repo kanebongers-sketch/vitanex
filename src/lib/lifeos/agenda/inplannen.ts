@@ -6,6 +6,21 @@
 // Puur: geen fetch, geen DB, geen `Date.now()` binnenin. Blokken en wensen erin,
 // toewijzingen eruit. Zelfde regel als `vrije-blokken.ts`, en om dezelfde reden.
 //
+// ─── DIT IS NIET taken/dagplan.ts — en dat is met opzet ─────────────────────
+// Er is een tweede plek die ook taken in vrije blokken legt: `taken/dagplan.ts`.
+// Ze lijken op elkaar (allebei greedy over `VrijBlok`), maar het zijn andere
+// algoritmes met een ander doel:
+//
+//   dagplan.ts  ADVISEERT. Per blok kiest het de best SCORENDE taak (via
+//               `passendInBlok`, dat ordening + energie meeneemt). Schrijft niets.
+//   inplannen.ts (hier) SCHRIJFT. Per wens, in de aangeleverde VOLGORDE, het
+//               eerste passende blok. Levert `NieuwAgendaEvent`s voor Google.
+//
+// Ze samenvoegen tot één "first-fit"-kern zou twee dingen koppelen die echt
+// verschillen (kies-beste-per-blok vs eerste-blok-per-wens) — dat is de valse DRY
+// waar coding-style.md tegen waarschuwt ("alleen bij echte herhaling"). De enige
+// echt gedeelde atoom is "past duur D in blok B", en dat is een `>=`.
+//
 // ─── WAT DIT BEWUST NIET DOET: SCOREN ───────────────────────────────────────
 // De VOLGORDE van `wensen` is de prioriteit. Dit bestand herschikt niets, weegt
 // niets en verzint geen eigen oordeel over wat belangrijker is — dat is het werk
