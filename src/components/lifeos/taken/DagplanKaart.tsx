@@ -15,8 +15,8 @@ import {
 
 // Je taken op je agenda: welke taak in welk gat.
 //
-// NIET in de cockpit gemount — bewust. De cockpit is van een andere agent; deze
-// kaart staat klaar om ingehangen te worden zodra daar plek voor gemaakt is.
+// Gemount bovenaan de "Mijn dag"-zone in de cockpit — het advies staat boven het
+// gereedschap (de takenlijst eronder).
 //
 // ─── DE KAART TOONT WAT ER NIET IN PAST ─────────────────────────────────────
 //

@@ -10,6 +10,7 @@ import {
   wisGeheugen as wisBijServer,
 } from '@/lib/lifeos/vita/client'
 import {
+  GEHEUGEN_IN_PROMPT,
   GEHEUGEN_SOORTEN,
   MAX_INHOUD_LENGTE,
   type GeheugenRegel,
@@ -131,12 +132,26 @@ function Lijst({ staat, wis }: { staat: Staat; wis: (id: string) => void }) {
     )
   }
 
+  // Het paneel toont álle regels (je moet ook een oude kunnen wissen), maar Vita
+  // neemt per gesprek alleen de meest recente `GEHEUGEN_IN_PROMPT` mee. Boven die
+  // grens dat eerlijk zeggen — anders lijkt alles wat hier staat ook in elk
+  // gesprek mee te gaan, en dat klopt dan niet.
+  const teVeel = staat.regels.length > GEHEUGEN_IN_PROMPT
+
   return (
-    <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 9 }}>
-      {staat.regels.map((regel) => (
-        <Regel key={regel.id} regel={regel} wis={wis} />
-      ))}
-    </ul>
+    <>
+      <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 9 }}>
+        {staat.regels.map((regel) => (
+          <Regel key={regel.id} regel={regel} wis={wis} />
+        ))}
+      </ul>
+      {teVeel ? (
+        <p style={{ margin: '10px 0 0', fontSize: 12, color: 'var(--text-4)', lineHeight: 1.5 }}>
+          Ik onthoud ze alle {staat.regels.length}, maar per gesprek neem ik de{' '}
+          {GEHEUGEN_IN_PROMPT} meest recente mee.
+        </p>
+      ) : null}
+    </>
   )
 }
 

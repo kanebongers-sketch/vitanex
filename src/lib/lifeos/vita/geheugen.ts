@@ -53,6 +53,16 @@ export type GeheugenSoort = (typeof GEHEUGEN_SOORTEN)[number]
  */
 export const MAX_INHOUD_LENGTE = 500
 
+/**
+ * Hoeveel geheugenregels Vita per gesprek in zijn systeemprompt meeneemt (de
+ * meest recente). Het beheerpaneel toont er méér — álle regels, zodat je ook een
+ * oude kunt wissen — maar dan moet het eerlijk zeggen dat niet alles per vraag
+ * meegaat. Daarom woont dit getal hier, in de gedeelde laag, en niet als los
+ * cijfer in `context.ts`: anders toont de UI een grens die niet klopt met wat de
+ * prompt écht gebruikt zodra de twee uit elkaar lopen.
+ */
+export const GEHEUGEN_IN_PROMPT = 24
+
 export interface NieuwGeheugen {
   soort: GeheugenSoort
   inhoud: string

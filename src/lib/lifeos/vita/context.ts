@@ -37,11 +37,17 @@ import {
 } from '@/lib/lifeos/training/actieve-minuten'
 import { taakVanRij } from '@/lib/lifeos/taken/taken'
 import type { SlimmeTaak } from '@/lib/lifeos/taken/prioriteit'
+import { GEHEUGEN_IN_PROMPT } from './geheugen'
 
 /** Hoeveel dagen herstel Vita meekrijgt. Dekt de 5-dagen-beweging-regel ruim. */
 const HERSTEL_DAGEN = 7
-/** Plafond op het geheugen: een prompt vol oude weetjes is geen context maar ruis. */
-const GEHEUGEN_LIMIET = 24
+/**
+ * Plafond op het geheugen: een prompt vol oude weetjes is geen context maar ruis.
+ * Gedeeld met het beheerpaneel (`geheugen.ts` → `GEHEUGEN_IN_PROMPT`), zodat de UI
+ * eerlijk kan zeggen "de X meest recente hiervan gaan per gesprek mee" i.p.v. te
+ * suggereren dat álles wat je vastlegt ook meegaat.
+ */
+const GEHEUGEN_LIMIET = GEHEUGEN_IN_PROMPT
 
 // ─── Plafonds ───────────────────────────────────────────────────────────────
 // Elk vak hieronder gaat bij ELKE vraag mee in de systeemprompt en wordt dus elke
