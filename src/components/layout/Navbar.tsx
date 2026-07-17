@@ -296,7 +296,7 @@ function SidebarContent({
         {userRol === 'admin' && (
           <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--border)' }}>
             <NavLink href="/home" label="Mijn dashboard" icon={LayoutDashboard} pathname={pathname} onClick={onClose} />
-            <NavLink href="/lifeos/mensen" label="Mensen" icon={Users} pathname={pathname} onClick={onClose} />
+            <NavLink href="/home#mensen" label="Mensen" icon={Users} pathname={pathname} onClick={onClose} />
           </div>
         )}
 

@@ -16,6 +16,7 @@ import { VoedingCockpitKaart } from '@/components/lifeos/gezondheid/VoedingCockp
 import { WaterCockpitKaart } from '@/components/lifeos/gezondheid/WaterCockpitKaart'
 import { WorkoutCockpitKaart } from '@/components/lifeos/gezondheid/WorkoutCockpitKaart'
 import { MijnLeven } from '@/components/lifeos/leven/MijnLeven'
+import { MensenBord } from '@/components/lifeos/crm/MensenBord'
 import { SnelKnoppen } from './SnelKnoppen'
 
 // ─── De cockpit ──────────────────────────────────────────────────────────────
@@ -95,6 +96,24 @@ export function Cockpit() {
       {/* Het gesprek onder het gereedschap: je vraagt Vita iets nádat je gezien
           hebt wat er speelt, niet ervoor. */}
       <VitaGesprek />
+
+      {/* ─── Mensen ────────────────────────────────────────────────────────────
+          Het CRM-bord staat nu op dezelfde pagina i.p.v. een aparte route: alle
+          functies bij elkaar, één dashboard. Eigen zone want een kanban vraagt
+          horizontale breedte en een eigen scroll. Het `id` laat de nav er direct
+          naartoe scrollen (/home#mensen). */}
+      <section id="mensen" className="os-zone" aria-labelledby="os-mensen-kop">
+        <header>
+          <h2 id="os-mensen-kop" className="os-zone__kop">
+            Mensen
+          </h2>
+          <p className="os-zone__intro">
+            Je PT-klanten en je teams. Sleep een kaart naar een andere kolom om de status te
+            wijzigen, of open een kaart voor de geschiedenis en bijzonderheden.
+          </p>
+        </header>
+        <MensenBord />
+      </section>
 
       {/* ─── Loggen ───────────────────────────────────────────────────────────
           Vijf invoerkaarten, geen drie. Stress en stemming zijn erbij gekomen
