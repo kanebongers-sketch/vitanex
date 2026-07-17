@@ -64,6 +64,9 @@ Systeem/
 !.claude/rules/*.md
 !.claude/knowledge/*.md
 !.claude/prompts/*.md
+# Deploy-notities horen bij de migratie waar ze over gaan, en moeten dus mee naar
+# elke machine — de chat waarin ze ontstonden reist niet mee.
+!supabase/migrations/*.md
 
 # Tijdelijke scripts
 test.ps1
