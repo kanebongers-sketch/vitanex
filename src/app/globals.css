@@ -1316,9 +1316,14 @@ body {
      wegnemen van een tegenstrijdigheid: `scoreNiveau('goed')` (lib/pijlers/
      score.ts) geeft `var(--brand)` terug, terwijl deze token op #34d399 stond.
      Twee groenen/cyanen voor één begrip, náást elkaar op hetzelfde scherm.
-     MentaForce heeft die knoop al doorgehakt in :root — `--status-success:
-     #00E5FF /* positief = merk-cyaan */` — en dit volgt dezelfde lijn. Het
+     MentaForce heeft die knoop al doorgehakt in :root — `--status-success` staat
+     daar op #00E5FF (positief = merk-cyaan) — en dit volgt dezelfde lijn. Het
      scheelt meteen een derde kleur, wat de merkregel sowieso eist.
+
+     LET OP: schrijf in dit soort blokken NOOIT een letterlijke CSS-comment-
+     afsluiter (ster-slash). Die sluit het blok-commentaar voortijdig af; de rest
+     wordt dan als CSS geparsed en de build valt om met "Unknown word". Dat is
+     hier één keer gebeurd. Gebruik haakjes, geen comment-markers.
 
      Amber en rood blijven wél een eigen kleur: "let op" en "fout" kun je niet
      met het merk-accent zeggen. Diezelfde asymmetrie staat in MentaForce's
