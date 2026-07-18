@@ -43,6 +43,22 @@ export function leesTags(v: unknown): string[] {
 }
 
 /**
+ * Is de tag-limiet de reden dat deze toevoeging niet zou landen? Waar als de tag
+ * geldig én nieuw is, maar er al `MAX_TAGS` staan.
+ *
+ * Bestaat zodat de UI een eerlijke melding kan tonen i.p.v. de 25e tag stil te
+ * laten verdwijnen: `voegTagToe` geeft bij een volle lijst de tags ongewijzigd
+ * terug, en dat is aan de lengte niet te onderscheiden van een dubbele of
+ * ongeldige tag. Alleen de limiet-reden verdient een melding — een dubbele tag is
+ * geen fout, en een lege invoer heeft de gebruiker zelf in de hand.
+ */
+export function tagLimietBereikt(tags: readonly string[], ruw: unknown): boolean {
+  const tag = normaliseerTag(ruw)
+  if (tag === null || tags.includes(tag)) return false
+  return tags.length >= MAX_TAGS
+}
+
+/**
  * Voegt een tag toe (immutable). Geeft een nieuwe array terug; een ongeldige,
  * dubbele of te-veel-de tag laat de inhoud ongemoeid. De caller ziet aan de
  * lengte of er iets veranderde, en slaat zo een zinloze PATCH over.

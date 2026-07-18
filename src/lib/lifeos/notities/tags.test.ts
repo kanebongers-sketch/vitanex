@@ -1,5 +1,13 @@
 import { describe, it, expect } from 'vitest'
-import { normaliseerTag, leesTags, voegTagToe, verwijderTag, MAX_TAG_LENGTE, MAX_TAGS } from './tags'
+import {
+  normaliseerTag,
+  leesTags,
+  voegTagToe,
+  verwijderTag,
+  tagLimietBereikt,
+  MAX_TAG_LENGTE,
+  MAX_TAGS,
+} from './tags'
 import { normaliseerTitel, MAX_TITEL_LENGTE } from './links'
 
 describe('normaliseerTag', () => {
@@ -146,6 +154,40 @@ describe('voegTagToe', () => {
 
     // Assert — de originele array is niet gegroeid.
     expect(tags).toEqual(['werk'])
+  })
+})
+
+// De bug die dit bewaakt: boven MAX_TAGS gaf `voegTagToe` de lijst ongewijzigd
+// terug en de UI slikte dat stil in — de 25e tag verdween zonder melding. Deze
+// predikaat laat de UI de limiet-reden onderscheiden van dedup/ongeldig, zodat
+// alléén de limiet een eerlijke melding krijgt.
+describe('tagLimietBereikt', () => {
+  it('is waar wanneer een geldige, nieuwe tag niet meer past — de UI moet dat kunnen zeggen', () => {
+    // Arrange — een volle lijst op precies MAX_TAGS.
+    const vol = Array.from({ length: MAX_TAGS }, (_, i) => `tag-${i}`)
+
+    // Act / Assert
+    expect(tagLimietBereikt(vol, 'nieuw')).toBe(true)
+  })
+
+  it('is onwaar zolang er nog ruimte is (één onder de limiet)', () => {
+    const bijna = Array.from({ length: MAX_TAGS - 1 }, (_, i) => `tag-${i}`)
+    expect(tagLimietBereikt(bijna, 'nieuw')).toBe(false)
+  })
+
+  it('is onwaar bij een dubbele tag — die faalt op dedup, niet op de limiet', () => {
+    // Arrange — vol, maar de toevoeging bestaat al (hoofdletter-ongevoelig).
+    const vol = Array.from({ length: MAX_TAGS - 1 }, (_, i) => `tag-${i}`).concat('werk')
+    expect(vol).toHaveLength(MAX_TAGS)
+
+    // Act / Assert — 'Werk' normaliseert naar de al aanwezige 'werk'.
+    expect(tagLimietBereikt(vol, 'Werk')).toBe(false)
+  })
+
+  it('is onwaar bij een ongeldige tag — leeg of niet-tekst raakt de limiet niet', () => {
+    const vol = Array.from({ length: MAX_TAGS }, (_, i) => `tag-${i}`)
+    expect(tagLimietBereikt(vol, '   ')).toBe(false)
+    expect(tagLimietBereikt(vol, 42)).toBe(false)
   })
 })
 

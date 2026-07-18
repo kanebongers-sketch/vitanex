@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { Kaart } from '@/components/lifeos/os/Kaart'
 import { Foutmelding } from '@/components/lifeos/os/Foutmelding'
 import { haalJson } from '@/lib/lifeos/api/http'
+import { luisterOpWijziging } from '@/lib/lifeos/events'
 import { leesGrafiekAntwoord, type Grafiek } from '@/lib/lifeos/notities/grafiek'
 import { KennisGrafiek } from './KennisGrafiek'
 
@@ -43,6 +44,14 @@ export function KennisGrafiekKaart() {
     laad()
     return verval
   }, [laad, verval])
+
+  // Herlaad zodra een notitie of [[link]] elders verandert (aanmaken, bewerken,
+  // verwijderen). Zonder dit bleef de grafiek staan tot een volledige pagina-
+  // herlaad — zie events.ts. `laad` is stabiel en dekt met zijn generatieteller
+  // af dat een verse lading een trage oudere inhaalt; `laad` meldt zelf niets,
+  // dus dit lust niet. `luisterOpWijziging` geeft de opzeg-functie terug, die
+  // hier de effect-cleanup is.
+  useEffect(() => luisterOpWijziging('notities', laad), [laad])
 
   const opnieuw = useCallback(() => {
     setStaat({ fase: 'laden' })

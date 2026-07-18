@@ -7,11 +7,43 @@
 // Deze test bewaakt dat 'ie er blijft.
 
 import { describe, expect, it } from 'vitest'
-import { vertaalFout } from '@/lib/lifeos/notities/opslag'
+import { vertaalFout, zoekFilter } from '@/lib/lifeos/notities/opslag'
 
 function pgFout(code: string): { code: string } {
   return { code }
 }
+
+// De bug die dit bewaakt: zoeken doorzocht alleen `tekst`, dus een notitie op zijn
+// titel zoeken gaf niets. De filter moet over tekst ÉN titel gaan, en robuust zijn
+// tegen LIKE-wildcards en PostgREST-structuurtekens in de zoekterm.
+describe('zoekFilter', () => {
+  it('zoekt over tekst ÉN titel — de titel-tak was de bug', () => {
+    expect(zoekFilter('marge')).toBe('tekst.ilike."%marge%",titel.ilike."%marge%"')
+  })
+
+  it('is hoofdletter-ongevoelig via ilike (niet lower-casen, dat doet de operator)', () => {
+    // De term blijft zoals getypt; `ilike` matcht hoofdletter-ongevoelig.
+    expect(zoekFilter('Marge')).toBe('tekst.ilike."%Marge%",titel.ilike."%Marge%"')
+  })
+
+  it('escapet LIKE-wildcards, zodat wie letterlijk "50%" zoekt geen wildcard triggert', () => {
+    // `%` → `\%` (LIKE-escape), en die `\` wordt voor de or()-quotes verdubbeld: `\\%`.
+    expect(zoekFilter('50%')).toBe('tekst.ilike."%50\\\\%%",titel.ilike."%50\\\\%%"')
+  })
+
+  it('citeert de waarde, zodat een komma de or()-structuur niet breekt', () => {
+    // De komma zit binnen de dubbele quotes; er blijven precies twee takken.
+    expect(zoekFilter('a,b')).toBe('tekst.ilike."%a,b%",titel.ilike."%a,b%"')
+  })
+
+  it('escapet een dubbele quote in de term', () => {
+    expect(zoekFilter('a"b')).toBe('tekst.ilike."%a\\"b%",titel.ilike."%a\\"b%"')
+  })
+
+  it('escapet een backslash in de term (LIKE-escape + or()-quote, dus verviervoudigd)', () => {
+    expect(zoekFilter('a\\b')).toBe('tekst.ilike."%a\\\\\\\\b%",titel.ilike."%a\\\\\\\\b%"')
+  })
+})
 
 describe('vertaalFout', () => {
   it('vertaalt een unieke-index-schending naar "bezet" (→ 409)', () => {

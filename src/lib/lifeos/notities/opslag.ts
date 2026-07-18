@@ -55,7 +55,7 @@ export interface NotitiesFilter {
   soort: Soort
   /** Eén dag. Weglaten = alle dagen (nieuwste eerst). */
   datum?: string
-  /** Vrije zoektekst (substring, case-insensitief op tekst). */
+  /** Vrije zoektekst (substring, case-insensitief, over tekst én titel). */
   zoek?: string
   /** Filter op één tag (exacte, genormaliseerde match). */
   tag?: string
@@ -69,6 +69,26 @@ export interface NotitiesFilter {
 export interface NotitiesPagina {
   notities: Notitie[]
   erIsMeer: boolean
+}
+
+/**
+ * Bouwt de PostgREST-`or()`-filter voor een vrije zoekterm, over tekst ÉN titel.
+ *
+ * Waarom over allebei: je zoekt één keer en wilt een rij als de term in de tekst
+ * óf in de titel zit. De titel is juist de naam waaronder je een notitie terug-
+ * zoekt — zocht dit alleen `tekst`, dan vond zoeken-op-titel niets.
+ *
+ * Twee lagen ontsnapping, allebei nodig — puur en getest zodat de reden vastligt:
+ *   1. LIKE-wildcards (`% _ \`) letterlijk maken, zodat wie "50%" zoekt geen
+ *      wildcard triggert. Het escape-teken is `\`, dus die valt óók onder de set.
+ *   2. PostgREST-structuur: binnen `or(...)` scheiden komma's de voorwaarden en
+ *      groeperen haakjes. De waarde komt daarom tussen dubbele quotes, met `"` en
+ *      `\` ontsnapt — zo breekt een komma of haakje in de zoekterm de filter niet.
+ */
+export function zoekFilter(zoek: string): string {
+  const likeVeilig = zoek.replace(/[\\%_]/g, '\\$&')
+  const geciteerd = likeVeilig.replace(/["\\]/g, '\\$&')
+  return `tekst.ilike."%${geciteerd}%",titel.ilike."%${geciteerd}%"`
 }
 
 /**
@@ -102,11 +122,10 @@ export async function haalNotities(
   if (filter.categorie !== undefined) vraag = vraag.eq('categorie', filter.categorie)
   // Tag-containment: rijen waarvan de tags-array deze tag bevat.
   if (filter.tag !== undefined) vraag = vraag.contains('tags', [filter.tag])
-  // Zoeken: substring, case-insensitief. `%` en `_` in de invoer escapen we,
-  // anders zou een gebruiker die letterlijk "50%" zoekt een wildcard triggeren.
+  // Zoeken: substring, case-insensitief, over tekst ÉN titel. De dubbele
+  // ontsnapping (LIKE-wildcards + PostgREST-structuur) staat in `zoekFilter`.
   if (filter.zoek !== undefined) {
-    const veilig = filter.zoek.replace(/[%_\\]/g, '\\$&')
-    vraag = vraag.ilike('tekst', `%${veilig}%`)
+    vraag = vraag.or(zoekFilter(filter.zoek))
   }
 
   const { data, error } = await vraag

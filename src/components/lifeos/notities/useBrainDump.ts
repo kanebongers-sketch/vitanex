@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { haalJson, leesNiets } from '@/lib/lifeos/api/http'
 import { datumSleutel } from '@/lib/lifeos/datum/datum'
+import { meldWijziging } from '@/lib/lifeos/events'
 import { leesTitelsAntwoord } from '@/lib/lifeos/notities/links'
 import {
   leesNotitieAntwoord,
@@ -11,7 +12,7 @@ import {
   type Notitie,
   type NotitieWijziging,
 } from '@/lib/lifeos/notities/notities'
-import { voegTagToe, verwijderTag } from '@/lib/lifeos/notities/tags'
+import { MAX_TAGS, tagLimietBereikt, voegTagToe, verwijderTag } from '@/lib/lifeos/notities/tags'
 
 // Alle data-logica van de brain dump. `BrainDumpKaart` tekent alleen nog.
 //
@@ -259,6 +260,9 @@ export function useBrainDump(): BrainDump {
         // De notitie staat er, maar de verwijzingen niet. Zeggen — anders mist de
         // grafiek stil een kant.
         if (waarschuwing !== null) setActieFout(waarschuwing)
+        // Een nieuwe notitie kan meteen [[verwijzingen]] bevatten: de kennisgrafiek
+        // elders herleest zichzelf op dit signaal, zonder volledige paginaherlaad.
+        meldWijziging('notities')
         return
       }
 
@@ -301,7 +305,11 @@ export function useBrainDump(): BrainDump {
           if (!uitkomst.ok) {
             setStaat((huidig) => (huidig.fase === 'ok' ? { ...huidig, notities: terug } : huidig))
             setActieFout(`${uitkomst.fout} Je notitie staat er nog.`)
+            return
           }
+          // Weg is weg — met zijn verwijzingen. De grafiek elders moet dat weten,
+          // anders blijft er een knoop staan die nergens meer heen wijst.
+          meldWijziging('notities')
         },
       )
     },
@@ -333,6 +341,9 @@ export function useBrainDump(): BrainDump {
         if (uitkomst.ok) {
           vervangNotitie(uitkomst.waarde.notitie) // de server is de waarheid
           if (uitkomst.waarde.waarschuwing !== null) setActieFout(uitkomst.waarde.waarschuwing)
+          // Tekst of titel kan de verwijzingen veranderd hebben — de kennisgrafiek
+          // elders herleest zichzelf op dit signaal.
+          meldWijziging('notities')
           return
         }
         vervangNotitie(notitie) // terugdraaien
@@ -345,6 +356,13 @@ export function useBrainDump(): BrainDump {
   const wijzigTag = useCallback(
     (notitie: Notitie, tag: string, actie: 'toevoegen' | 'weghalen') => {
       if (staat.fase !== 'ok' || isOnbevestigd(notitie)) return
+
+      // De limiet mag niet stil weigeren: zonder deze melding lijkt de 25e tag
+      // gewoon te verdwijnen. Zeg waaróm i.p.v. een lege no-op.
+      if (actie === 'toevoegen' && tagLimietBereikt(notitie.tags, tag)) {
+        setActieFout(`Een notitie kan maximaal ${MAX_TAGS} tags hebben.`)
+        return
+      }
 
       const nieuweTags =
         actie === 'toevoegen' ? voegTagToe(notitie.tags, tag) : verwijderTag(notitie.tags, tag)
