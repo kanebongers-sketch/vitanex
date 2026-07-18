@@ -1,14 +1,14 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Minus, TrendingDown, TrendingUp } from 'lucide-react'
 import { Kaart, NogNiets } from '@/components/lifeos/os/Kaart'
 import { KnopLink } from '@/components/lifeos/os/Knop'
 import { Foutmelding } from '@/components/lifeos/os/Foutmelding'
+import { PijlerKaart } from '@/components/pijlers/PijlerKaart'
 import { haalJson, haalJsonGedeeld, isObject, getalOfNull } from '@/lib/lifeos/api/http'
 import { luisterOpWijziging } from '@/lib/lifeos/events'
 import { PIJLERS, PIJLER_KEYS, isPijlerKey, type PijlerKey } from '@/lib/pijlers/pijlers'
-import { scoreNiveau, type NiveauInfo, type TrendRichting } from '@/lib/pijlers/score'
+import { scoreNiveau, type TrendRichting } from '@/lib/pijlers/score'
 import { weekdagKort, weekdagLang } from '@/lib/pijlers/week'
 import { leesWellbeing, type WellbeingView } from './lees-welzijn'
 
@@ -177,11 +177,30 @@ function Inhoud({ welzijn, week }: { welzijn: WelzijnView; week: WeekDagView[] |
         <Overall score={wellbeing.score} gemeten={wellbeing.gemeten} totaal={wellbeing.totaal} />
       )}
 
-      <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 2 }}>
-        {PIJLERS.map((def) => (
-          <PijlerRij key={def.key} label={def.label} view={welzijn.pijlers.get(def.key) ?? null} />
-        ))}
-      </ul>
+      {/* De originele MentaForce-pijlerkaarten (`.mf-pk`), niet een eigen
+          dashboard-variant: elk kader is een knop naar het pijler-detail
+          (/pijler/{key}), met de score, het niveau en de trend erin. Zo zien de
+          6 vlakken er door de hele app hetzelfde uit — hier, op /welzijn én op
+          /inzichten. Een pijler zonder data toont een eerlijk streepje. */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
+          gap: 10,
+        }}
+      >
+        {PIJLERS.map((def) => {
+          const view = welzijn.pijlers.get(def.key)
+          return (
+            <PijlerKaart
+              key={def.key}
+              pijler={def}
+              score={view?.score ?? null}
+              trend={{ richting: view?.richting ?? 'geen', deltaPct: view?.deltaPct ?? null }}
+            />
+          )
+        })}
+      </div>
 
       {week && week.length > 0 ? <WeekStrip dagen={week} /> : null}
 
@@ -212,74 +231,6 @@ function Overall({ score, gemeten, totaal }: { score: number; gemeten: number; t
         </p>
       </div>
     </div>
-  )
-}
-
-/** Eén pijler: naam, score (of streepje) en trendrichting. */
-function PijlerRij({ label, view }: { label: string; view: PijlerView | null }) {
-  const score = view?.score ?? null
-  const niveau: NiveauInfo = scoreNiveau(score)
-
-  return (
-    <li
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        gap: 12,
-        padding: '9px 0',
-        borderBottom: '1px solid var(--line)',
-      }}
-    >
-      <span style={{ fontSize: 13, color: 'var(--text-2)', minWidth: 0 }}>{label}</span>
-
-      {score === null ? (
-        // Geen data voor deze pijler. Een streepje, geen 0 — het label eronder
-        // zou "nog niet gemeten" zeggen; hier houden we de rij compact.
-        <span
-          className="os-cijfer"
-          style={{ fontSize: 15, color: 'var(--text-4)' }}
-          aria-label={`${label}: nog niet gemeten`}
-        >
-          —
-        </span>
-      ) : (
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, flex: 'none' }}>
-          <Trend richting={view?.richting ?? 'geen'} deltaPct={view?.deltaPct ?? null} />
-          <span
-            className="os-cijfer"
-            style={{ fontSize: 17, fontWeight: 500, color: niveau.kleur, minWidth: 26, textAlign: 'right' }}
-          >
-            {score}
-          </span>
-        </span>
-      )}
-    </li>
-  )
-}
-
-function Trend({ richting, deltaPct }: { richting: TrendRichting; deltaPct: number | null }) {
-  if (richting === 'geen' || richting === 'stabiel') {
-    return (
-      <Minus
-        size={14}
-        strokeWidth={2.4}
-        aria-label={richting === 'stabiel' ? 'stabiel t.o.v. vorige week' : 'geen trend'}
-        style={{ color: 'var(--text-4)' }}
-      />
-    )
-  }
-
-  const omhoog = richting === 'op'
-  const Icoon = omhoog ? TrendingUp : TrendingDown
-  const pct = deltaPct !== null ? `${Math.abs(deltaPct)}%` : ''
-  return (
-    <Icoon
-      size={14}
-      strokeWidth={2.4}
-      aria-label={`${omhoog ? 'omhoog' : 'omlaag'} ${pct} t.o.v. vorige week`.trim()}
-      style={{ color: omhoog ? 'var(--brand)' : 'var(--status-warning)' }}
-    />
   )
 }
 
