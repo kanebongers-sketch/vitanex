@@ -25,8 +25,19 @@ export async function GET(req: NextRequest) {
     )
   }
 
-  const state = maakState('google_calendar')
-  const url = autorisatieUrl(config, state)
+  // `maakState` gooit als `OAUTH_STATE_SECRET` ontbreekt. Dat is een onvolledige
+  // serverconfiguratie, geen gebruikersfout — dus dezelfde nette 503 + `fout`-vorm
+  // als de ontbrekende client-id hierboven, niet een kale 500.
+  let url: string
+  try {
+    const state = maakState('google_calendar')
+    url = autorisatieUrl(config, state)
+  } catch {
+    return NextResponse.json(
+      { fout: 'De Google-agendakoppeling is nog niet volledig geconfigureerd op de server.' },
+      { status: 503 },
+    )
+  }
 
   // Twee smaken, want een OAuth-flow is een top-level navigatie maar auth loopt
   // via de Authorization-header:

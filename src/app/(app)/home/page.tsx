@@ -5,7 +5,7 @@ export const dynamic = 'force-dynamic'
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Sparkles, Target, ChevronRight, ArrowUpRight, ArrowDownRight } from 'lucide-react'
+import { Sparkles, Target, ChevronRight, ArrowUpRight, ArrowDownRight, CheckCircle2, TriangleAlert, Info, X } from 'lucide-react'
 import { supabase } from '@/lib/supabase/supabase'
 import { authFetch } from '@/lib/auth/auth-fetch'
 import Navbar from '@/components/layout/Navbar'
@@ -175,6 +175,9 @@ export default function HomePage() {
         <div className="lifeos-root">
           <div className="os-sfeer" aria-hidden="true" />
           <main className="os-schil os-schil--breed">
+            {/* Feedback na terugkeer uit de Google OAuth-flow (agenda / Gmail).
+                Alleen voor de founder — de koppelingen leven in dit dashboard. */}
+            <KoppelFeedback />
             <CockpitKop />
             <Cockpit />
           </main>
@@ -316,6 +319,145 @@ function MiniStat({ soort, label, pijler, deltaPct }: { soort: 'op' | 'neer'; la
     </div>
   )
 }
+
+/* ── Koppel-feedback ──────────────────────────────────────────────────────────
+   Na de Google OAuth-flow landt de gebruiker terug op /home met ?agenda=… of
+   ?inbox=… (waarden: gekoppeld · geweigerd · fout, fout evt. met &reden=…). Zonder
+   dit blijft succes én mislukking onzichtbaar. We lezen de param één keer bij mount,
+   tonen een rustige banner, en poetsen de param meteen uit de URL zodat een refresh
+   de melding niet herhaalt. */
+type MeldingToon = 'ok' | 'fout' | 'info'
+interface KoppelMelding {
+  toon: MeldingToon
+  tekst: string
+}
+
+/** Vertaalt één (dienst, status, reden) naar een eerlijke NL-melding. */
+function meldingVoor(dienst: string, status: string, reden: string | null): KoppelMelding | null {
+  if (status === 'gekoppeld') return { toon: 'ok', tekst: `${dienst} gekoppeld.` }
+  if (status === 'geweigerd') {
+    return { toon: 'info', tekst: `${dienst} koppelen geannuleerd — je gaf Google geen toestemming.` }
+  }
+  if (status === 'fout') {
+    if (reden === 'niet_ingericht') {
+      return { toon: 'fout', tekst: `${dienst} koppelen kan nog niet: deze koppeling is op de server niet ingericht.` }
+    }
+    if (reden === 'verlopen') {
+      return { toon: 'fout', tekst: `${dienst} koppelen is verlopen. Start de koppeling opnieuw.` }
+    }
+    return { toon: 'fout', tekst: `${dienst} koppelen is niet gelukt. Probeer het zo opnieuw.` }
+  }
+  return null
+}
+
+/** Leest de koppel-status uit de query-params. Agenda gaat vóór inbox als beide er staan. */
+function leesKoppelMelding(params: URLSearchParams): KoppelMelding | null {
+  const reden = params.get('reden')
+  const agenda = params.get('agenda')
+  if (agenda) return meldingVoor('Google Agenda', agenda, reden)
+  const inbox = params.get('inbox')
+  if (inbox) return meldingVoor('Gmail', inbox, reden)
+  return null
+}
+
+function KoppelFeedback() {
+  const [melding, setMelding] = useState<KoppelMelding | null>(null)
+
+  // Client component: geen useSearchParams (die vraagt een Suspense-grens); we
+  // lezen window.location één keer na mount. Force-dynamic, dus dit is veilig.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const nieuw = leesKoppelMelding(params)
+    if (!nieuw) return
+
+    // Param opruimen (de URL is het externe systeem) — anders toont een refresh de
+    // melding opnieuw. Pad en hash (bv. #mensen) blijven staan.
+    ;['agenda', 'inbox', 'reden'].forEach((k) => params.delete(k))
+    const zoek = params.toString()
+    const schone = `${window.location.pathname}${zoek ? `?${zoek}` : ''}${window.location.hash}`
+    window.history.replaceState(null, '', schone)
+
+    // setState niet synchroon in de effect-body (cascading renders): in een
+    // microtask, net als de dataload elders op deze pagina.
+    let timer: ReturnType<typeof setTimeout> | undefined
+    let afgebroken = false
+    void Promise.resolve().then(() => {
+      if (afgebroken) return
+      setMelding(nieuw)
+      // Bevestiging en annulering verdwijnen vanzelf; een fout blijft staan tot de
+      // gebruiker 'm sluit — een mislukking stilletjes wegpoetsen is oneerlijk.
+      if (nieuw.toon !== 'fout') timer = setTimeout(() => setMelding(null), 6000)
+    })
+
+    return () => {
+      afgebroken = true
+      if (timer) clearTimeout(timer)
+    }
+  }, [])
+
+  if (!melding) return null
+
+  const Icon = melding.toon === 'ok' ? CheckCircle2 : melding.toon === 'fout' ? TriangleAlert : Info
+  const accent =
+    melding.toon === 'ok'
+      ? 'var(--status-success)'
+      : melding.toon === 'fout'
+        ? 'var(--status-danger)'
+        : 'var(--status-info)'
+  const vlak =
+    melding.toon === 'ok'
+      ? 'var(--status-success-soft)'
+      : melding.toon === 'fout'
+        ? 'var(--status-danger-soft)'
+        : 'var(--status-info-soft)'
+
+  return (
+    <div
+      className="koppel-melding"
+      role={melding.toon === 'fout' ? 'alert' : 'status'}
+      style={{ background: vlak, borderColor: `color-mix(in srgb, ${accent} 34%, transparent)` }}
+    >
+      <span className="koppel-melding-ico" style={{ color: accent }}>
+        <Icon size={16} strokeWidth={2.2} aria-hidden="true" />
+      </span>
+      <p className="koppel-melding-tekst">{melding.tekst}</p>
+      <button
+        type="button"
+        className="koppel-melding-sluit"
+        onClick={() => setMelding(null)}
+        aria-label="Melding sluiten"
+      >
+        <X size={15} strokeWidth={2.2} aria-hidden="true" />
+      </button>
+      <style>{koppelMeldingStyle}</style>
+    </div>
+  )
+}
+
+const koppelMeldingStyle = `
+.koppel-melding {
+  display: flex; align-items: flex-start; gap: 11px;
+  padding: 13px 15px; margin-bottom: 18px;
+  border: 1px solid transparent; border-radius: var(--radius-card);
+  animation: koppel-melding-in 0.28s var(--ease) both;
+}
+.koppel-melding-ico { flex-shrink: 0; display: inline-flex; margin-top: 1px; }
+.koppel-melding-tekst { margin: 0; font-size: 13.5px; line-height: 1.5; color: var(--text-1); }
+.koppel-melding-sluit {
+  margin-left: auto; flex-shrink: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 26px; height: 26px; padding: 0; border: 0; border-radius: 7px;
+  background: transparent; color: var(--text-2); cursor: pointer;
+  transition: background 0.15s var(--ease), color 0.15s var(--ease);
+}
+.koppel-melding-sluit:hover { background: color-mix(in srgb, var(--text-1) 10%, transparent); color: var(--text-1); }
+.koppel-melding-sluit:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+@keyframes koppel-melding-in { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .koppel-melding { animation: none; }
+  .koppel-melding-sluit { transition: none; }
+}
+`
 
 /* Page-scoped layout + ontworpen states. Reduced-motion veilig. */
 const homeStyle = `

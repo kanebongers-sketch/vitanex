@@ -47,7 +47,7 @@ export async function GET(req: NextRequest) {
   //    normale keuze, geen fout: rustig terug naar de app.
   const geweigerd = searchParams.get('error')
   if (geweigerd) {
-    return NextResponse.redirect(`${basis}/?agenda=geweigerd`)
+    return NextResponse.redirect(`${basis}/home?agenda=geweigerd`)
   }
 
   const code = searchParams.get('code')
@@ -66,27 +66,27 @@ export async function GET(req: NextRequest) {
   // meteen goed; deze trekt gelijk. De eigenaar is de vaste `lifeosUserId()`.
   const koppelCookie = req.cookies.get(KOPPEL_COOKIE)?.value
   if (!koppelCookie) {
-    return NextResponse.redirect(`${basis}/?agenda=fout&reden=verlopen`)
+    return NextResponse.redirect(`${basis}/home?agenda=fout&reden=verlopen`)
   }
 
   const config = googleConfig()
   if (!config) {
-    return NextResponse.redirect(`${basis}/?agenda=fout&reden=niet_ingericht`)
+    return NextResponse.redirect(`${basis}/home?agenda=fout&reden=niet_ingericht`)
   }
 
   const admin = createLifeosAdminClient()
 
   const uitkomst = await wisselCodeIn(config, code)
   if (uitkomst.staat !== 'ok') {
-    return NextResponse.redirect(`${basis}/?agenda=fout&reden=token`)
+    return NextResponse.redirect(`${basis}/home?agenda=fout&reden=token`)
   }
 
   const bewaard = await bewaarKoppeling(admin, lifeosUserId(), uitkomst.tokens)
   if (!bewaard.ok) {
-    return NextResponse.redirect(`${basis}/?agenda=fout&reden=${bewaard.reden}`)
+    return NextResponse.redirect(`${basis}/home?agenda=fout&reden=${bewaard.reden}`)
   }
 
-  const antwoord = NextResponse.redirect(`${basis}/?agenda=gekoppeld`)
+  const antwoord = NextResponse.redirect(`${basis}/home?agenda=gekoppeld`)
   // Het cookie heeft zijn werk gedaan; laat het niet slingeren.
   antwoord.cookies.delete({ name: KOPPEL_COOKIE, path: '/api/lifeos/agenda' })
   return antwoord

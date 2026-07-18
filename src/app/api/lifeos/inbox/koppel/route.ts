@@ -34,8 +34,20 @@ export async function GET(req: NextRequest) {
 
   // De state is aan de dienst gebonden: een geldige state voor de agenda is
   // straks geen toestemming om hier een mailbox te koppelen. Zie de callback.
-  const state = maakState('gmail')
-  const url = autorisatieUrl(config, state)
+  //
+  // `maakState` gooit als `OAUTH_STATE_SECRET` ontbreekt. Dat is een onvolledige
+  // serverconfiguratie, geen gebruikersfout — dus dezelfde nette 503 + `fout`-vorm
+  // als de ontbrekende client-id hierboven, niet een kale 500.
+  let url: string
+  try {
+    const state = maakState('gmail')
+    url = autorisatieUrl(config, state)
+  } catch {
+    return NextResponse.json(
+      { fout: 'De Gmail-koppeling is nog niet volledig geconfigureerd op de server.' },
+      { status: 503 },
+    )
+  }
 
   // Twee smaken, want een OAuth-flow is een top-level navigatie maar auth loopt
   // via de Authorization-header:
