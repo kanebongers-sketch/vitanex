@@ -20,45 +20,44 @@ import { MensenBord } from '@/components/lifeos/crm/MensenBord'
 import { SnelKnoppen } from './SnelKnoppen'
 
 // ─── De cockpit ──────────────────────────────────────────────────────────────
-// Eén vullend werkscherm in plaats van drie moment-tabs die de kern (taken,
-// notities) verstopten.
+// Eén vullend, breed werkscherm in plaats van zeven losse zones onder elkaar die
+// elk een ánder grid gebruikten. De kaarten liggen nu op één gedeeld 12-koloms
+// clusterraster: elk cluster is een eigen grid met exact hetzelfde kolom-template,
+// zodat de kolomlijnen overal op dezelfde plek vallen en de naden tussen clusters
+// doorlopen. Zie `.os-cluster` + de `.os-tile--*`-span-utilities in globals.css —
+// daar staat ook de rij-optel-controle die bewijst dat geen rij een wees-cel houdt.
 //
 // Server Component: hier zit alleen indeling, geen state. Elke kaart is een eigen
-// client-eiland dat zichzelf ophaalt — de 'use client'-grens ligt zo laag
-// mogelijk, precies één niveau onder deze compositie.
+// client-eiland dat zichzelf ophaalt — de 'use client'-grens ligt zo laag mogelijk,
+// precies één niveau onder deze compositie.
 //
-// ─── Twee vragen, twee zones ────────────────────────────────────────────────
+// ─── Rang via schaal, niet via kleur ────────────────────────────────────────
+// Precies één kaart per scherm mag de luidste zijn: de Vita-band (`dragend`). Hij
+// is niet nóg een widget maar legt het verband tussen de kaarten eronder, dus hij
+// staat bovenaan én is de enige dragende kaart. De brede ankers (Dagplan, Taken)
+// dragen hun rang via een brede span, niet via een luidere nadruk; de rest is
+// gelijkwaardig gereedschap. Cyaan blijft strikt accent.
 //
-// De cockpit is per TOOL ingedeeld: een kaart voor water, een voor taken, een
-// voor je agenda. Dat werkt als je iets wíl doen — het is de "wat doe ik nu?"-
-// vraag. Maar dat is niet de enige vraag die een Life OS moet beantwoorden.
-//
-//   1. "Mijn dag"   — wat doe ik nu? Gereedschap, per tool.
-//   2. "Mijn leven" — hoe sta ik ervoor? Een lens, per domein.
-//
-// Ze staan onder elkaar en niet achter een tab, omdat de tweede vraag anders
-// nooit gesteld wordt. Wel met een kop ertussen: zonder die scheiding wordt dit
-// de widget-muur waar het ontwerp zich tegen verzet — twintig kaarten die
-// allemaal even hard roepen is geen overzicht, dat is ruis met een raster.
-//
-// ─── Waarom Vita bovenaan en dragend ────────────────────────────────────────
-//
-// Vita is niet nóg een widget: hij legt het verband tussen de kaarten eronder.
-// Daarom de volle band én `dragend` — precies één kaart per scherm mag de
-// luidste zijn (zie `os/Kaart.tsx`), en dat hoort de kaart te zijn die je vertelt
-// waar je op moet letten. Hij stond op `normaal` terwijl een pomodoro-timer
-// `dragend` claimde; de luidste stem op het scherm was een eierwekker.
+// ─── Drie clusters, twee banden ─────────────────────────────────────────────
+//   1. Band  — Vita: wat moet je nú weten?
+//   2. Cluster "Mijn dag": je gereedschap.
+//   3. Band  — Vita-gesprek: je vraagt Vita iets nádat je zag wat er speelt.
+//   4. Cluster "Welzijn & loggen": vijf invoerkaarten naar je échte data.
+//   5. Cluster "Verbinden": de mensen om je heen, je kennis en je terugblik.
 
 export function Cockpit() {
   return (
     <div className="os-cockpit">
-      {/* De verbindende band: wat moet je nú weten? */}
+      {/* Band 1 — de verbindende, dragende kaart. */}
       <div className="os-cockpit__band">
         <VitaKaart nadruk="dragend" />
       </div>
 
-      <section className="os-zone" aria-labelledby="os-dag-kop">
-        <header>
+      {/* Cluster "Mijn dag" — Dagplan en Taken zijn de brede ankers (span 6 op
+          12 kolommen), de acht steunkaarten vullen als kwart-tegels exact twee
+          rijen van vier. */}
+      <section className="os-cluster" aria-labelledby="os-dag-kop">
+        <header className="os-cluster__kop">
           <h2 id="os-dag-kop" className="os-zone__kop">
             Mijn dag
           </h2>
@@ -68,78 +67,119 @@ export function Cockpit() {
           </p>
         </header>
 
-        <div className="os-cockpit__grid">
-          <section className="os-prod" aria-label="Werk">
-            {/* Het advies boven het gereedschap: eerst "wat zou ik doen?", dan
-                de volledige lijst om het te doen. */}
-            <div className="os-prod__vol">
-              <DagplanKaart />
-            </div>
-            <div className="os-prod__vol">
-              <TakenLijst />
-            </div>
-            <AgendaKaart />
-            <InboxKaart />
-            <BrainDumpKaart />
-            <FocusKaart />
-          </section>
-
-          <aside className="os-rail" aria-label="Welzijn">
-            <WelzijnScoreKaart />
-            <BurnoutKaart />
-            <VitaGeheugen />
-            <SnelKnoppen />
-          </aside>
+        <div className="os-tile--anker">
+          <DagplanKaart />
+        </div>
+        <div className="os-tile--anker">
+          <TakenLijst />
+        </div>
+        <div className="os-tile--kwart">
+          <WelzijnScoreKaart />
+        </div>
+        <div className="os-tile--kwart">
+          <BurnoutKaart />
+        </div>
+        <div className="os-tile--kwart">
+          <AgendaKaart />
+        </div>
+        <div className="os-tile--kwart">
+          <InboxKaart />
+        </div>
+        <div className="os-tile--kwart">
+          <BrainDumpKaart />
+        </div>
+        <div className="os-tile--kwart">
+          <FocusKaart />
+        </div>
+        <div className="os-tile--kwart">
+          <VitaGeheugen />
+        </div>
+        <div className="os-tile--kwart">
+          <SnelKnoppen />
         </div>
       </section>
 
-      {/* Het gesprek onder het gereedschap: je vraagt Vita iets nádat je gezien
-          hebt wat er speelt, niet ervoor. */}
-      <VitaGesprek />
+      {/* Band 2 — het gesprek onder het gereedschap. Volle breedte, maar de
+          leeskolom krijgt lucht via `.os-cockpit__gesprek` (gecentreerde
+          max-width): een gesprek dat over 1600px uitwaaiert leest niet. */}
+      <div className="os-cockpit__gesprek">
+        <VitaGesprek />
+      </div>
 
-      {/* ─── Mensen ────────────────────────────────────────────────────────────
-          Het CRM-bord staat nu op dezelfde pagina i.p.v. een aparte route: alle
-          functies bij elkaar, één dashboard. Eigen zone want een kanban vraagt
-          horizontale breedte en een eigen scroll. Het `id` laat de nav er direct
-          naartoe scrollen (/home#mensen). */}
-      <section id="mensen" className="os-zone" aria-labelledby="os-mensen-kop">
-        <header>
-          <h2 id="os-mensen-kop" className="os-zone__kop">
-            Mensen
+      {/* Cluster "Welzijn & loggen" — vijf invoerkaarten die naar Kane's ÉCHTE
+          MentaForce-data schrijven via zijn eigen sessie en RLS (één bron, geen
+          dubbele cijfers). Stress en stemming staan erbij omdat die twee pijlers
+          anders nergens een invoerpunt hadden. Op 12 kolommen: Voeding+Water+
+          Workout (elk een derde) op rij 1, Stress+Stemming (elk de helft) op rij
+          2 — geen wees-cel meer. */}
+      <section className="os-cluster" aria-labelledby="os-log-kop">
+        <header className="os-cluster__kop">
+          <h2 id="os-log-kop" className="os-zone__kop">
+            Welzijn &amp; loggen
           </h2>
           <p className="os-zone__intro">
-            Je PT-klanten en je teams. Sleep een kaart naar een andere kolom om de status te
-            wijzigen, of open een kaart voor de geschiedenis en bijzonderheden.
+            Vijf invoerkaarten die naar je échte MentaForce-data schrijven — via je eigen sessie, niet
+            naar een tweede database. Eén bron, geen dubbele cijfers.
           </p>
         </header>
-        <MensenBord />
+
+        <div className="os-tile--derde">
+          <VoedingCockpitKaart />
+        </div>
+        <div className="os-tile--derde">
+          <WaterCockpitKaart />
+        </div>
+        <div className="os-tile--derde">
+          <WorkoutCockpitKaart />
+        </div>
+        <div className="os-tile--half">
+          <StressLogKaart />
+        </div>
+        <div className="os-tile--half">
+          <StemmingLogKaart />
+        </div>
       </section>
 
-      {/* ─── Loggen ───────────────────────────────────────────────────────────
-          Vijf invoerkaarten, geen drie. Stress en stemming zijn erbij gekomen
-          omdat ze anders structureel ontbraken: die twee pijlers worden
-          UITSLUITEND gevoed door `stress_logs` en `stemming_logs`, en er was
-          nergens een invoerpunt. Daardoor kon de welzijnsscore nooit boven
-          "4 van 6 gemeten" komen — niet omdat er niks te meten viel, maar omdat
-          de app er niet naar vroeg.
+      {/* Cluster "Verbinden" — drie volle-breedte-surfaces: het mensen-bord (een
+          kanban vraagt breedte), de kennisgrafiek en de terugblik "Mijn leven".
+          Alle drie span 12. */}
+      <section className="os-cluster" aria-labelledby="os-verbinden-kop">
+        <header className="os-cluster__kop">
+          <h2 id="os-verbinden-kop" className="os-zone__kop">
+            Verbinden
+          </h2>
+          <p className="os-zone__intro">
+            De mensen om je heen, je kennisgrafiek en je terugblik op de zes pijlers.
+          </p>
+        </header>
 
-          Deze vijf schrijven naar Kane's ÉCHTE MentaForce-data via zijn eigen
-          sessie en RLS — niet via de LifeOS-founder-gate, en niet naar een
-          tweede database. Eén bron, geen dubbele cijfers. */}
-      <section className="os-gezond" aria-label="Gezondheid loggen">
-        <VoedingCockpitKaart />
-        <WaterCockpitKaart />
-        <WorkoutCockpitKaart />
-        <StressLogKaart />
-        <StemmingLogKaart />
+        {/* Het CRM-bord op dezelfde pagina i.p.v. een aparte route. Het `id` laat
+            de nav er direct naartoe scrollen (/home#mensen) — behouden. Een
+            aria-label geeft de sectie een naam zonder een tweede kop naast de
+            clusterkop te stapelen. */}
+        <section
+          id="mensen"
+          className="os-tile--vol os-mensen"
+          aria-label="Mensen — je PT-klanten en teams"
+        >
+          <p className="os-zone__intro">
+            Je PT-klanten en je teams. Sleep een kaart naar een andere kolom om de status te wijzigen,
+            of open een kaart voor de geschiedenis en bijzonderheden.
+          </p>
+          <MensenBord />
+        </section>
+
+        {/* De kennisgrafiek: hoort in geest bij de brain dump, maar heeft breedte
+            nodig die de bento niet geeft. */}
+        <div className="os-tile--vol">
+          <KennisGrafiekKaart />
+        </div>
+
+        {/* De tweede vraag: hoe sta ik ervoor? */}
+        <div className="os-tile--vol">
+          <MijnLeven />
+        </div>
       </section>
-
-      {/* De kennisgrafiek staat bij de brain dump in geest, maar niet in plaats:
-          hij heeft breedte nodig die de twee-koloms bento niet geeft. */}
-      <KennisGrafiekKaart />
-
-      {/* De tweede vraag: hoe sta ik ervoor? */}
-      <MijnLeven />
     </div>
   )
 }

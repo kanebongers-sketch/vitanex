@@ -2,8 +2,9 @@ import type { CSSProperties } from 'react'
 
 // ─── De laadstaat van LifeOS ────────────────────────────────────────────────
 // De Suspense-fallback van dit route-segment. Een rustig navy skelet in de vorm
-// van de cockpit: kop, band, en de asymmetrische grid eronder. Zo springt de
-// layout niet zodra de echte kaarten binnenkomen.
+// van de cockpit: kop, Vita-band, en de drie clusters op hetzelfde gedeelde
+// 12-koloms raster (zie `.os-cluster` + `.os-tile--*`). Zo springt de layout niet
+// zodra de echte kaarten binnenkomen.
 //
 // Bewust géén spinner: een draaiend rondje zegt "wacht" en verder niets, terwijl
 // een skelet al vertelt wát er komt. Ook bewust géén pulse-animatie — de
@@ -34,31 +35,68 @@ export default function LifeosLaden() {
               <div style={{ ...KAART, height: 132 }} />
             </div>
 
-            <div className="os-cockpit__grid">
-              <div className="os-prod">
-                <div className="os-prod__vol">
-                  <div style={{ ...KAART, height: 268 }} />
+            {/* Cluster "Mijn dag": twee brede ankers + acht kwart-tegels. */}
+            <section className="os-cluster">
+              <ClusterKop />
+              <div className="os-tile--anker">
+                <div style={{ ...KAART, height: 248 }} />
+              </div>
+              <div className="os-tile--anker">
+                <div style={{ ...KAART, height: 248 }} />
+              </div>
+              {Array.from({ length: 8 }, (_, i) => (
+                <div key={i} className="os-tile--kwart">
+                  <div style={{ ...KAART, height: 172 }} />
                 </div>
-                <div style={{ ...KAART, height: 190 }} />
-                <div style={{ ...KAART, height: 190 }} />
-                <div style={{ ...KAART, height: 190 }} />
-                <div style={{ ...KAART, height: 190 }} />
-              </div>
+              ))}
+            </section>
 
-              <div className="os-rail">
-                <div style={{ ...KAART, height: 320 }} />
-                <div style={{ ...KAART, height: 96 }} />
-              </div>
+            {/* Vita-gesprek als gecentreerde band. */}
+            <div className="os-cockpit__gesprek">
+              <div style={{ ...KAART, height: 220 }} />
             </div>
 
-            <div className="os-gezond">
-              <div style={{ ...KAART, height: 232 }} />
-              <div style={{ ...KAART, height: 232 }} />
-              <div style={{ ...KAART, height: 232 }} />
-            </div>
+            {/* Cluster "Welzijn & loggen": drie derde-tegels + twee halve. */}
+            <section className="os-cluster">
+              <ClusterKop />
+              {Array.from({ length: 3 }, (_, i) => (
+                <div key={i} className="os-tile--derde">
+                  <div style={{ ...KAART, height: 224 }} />
+                </div>
+              ))}
+              {Array.from({ length: 2 }, (_, i) => (
+                <div key={i} className="os-tile--half">
+                  <div style={{ ...KAART, height: 200 }} />
+                </div>
+              ))}
+            </section>
+
+            {/* Cluster "Verbinden": drie volle-breedte-surfaces. */}
+            <section className="os-cluster">
+              <ClusterKop />
+              <div className="os-tile--vol">
+                <div style={{ ...KAART, height: 300 }} />
+              </div>
+              <div className="os-tile--vol">
+                <div style={{ ...KAART, height: 260 }} />
+              </div>
+              <div className="os-tile--vol">
+                <div style={{ ...KAART, height: 300 }} />
+              </div>
+            </section>
           </div>
         </div>
       </main>
+    </div>
+  )
+}
+
+/** De kop van een cluster: een titelbalk + een smallere introregel. */
+function ClusterKop() {
+  return (
+    <div className="os-cluster__kop">
+      <div style={{ ...VLAK, height: 22, width: 'min(220px, 55%)', marginBottom: 8 }} />
+      <div style={{ ...VLAK, height: 12, width: 'min(420px, 80%)' }} />
     </div>
   )
 }

@@ -8,8 +8,8 @@ import type { ReactNode } from 'react'
  *   compact  — in de lade: bereikbaar, niet zichtbaar.
  *
  * Nadruk is puur visueel. De plaatsing in het raster hoort bij de cockpit-layout
- * (zie `Cockpit` + de `.os-cockpit`/`.os-prod`-CSS), niet hier — anders weet een
- * kaart iets over de pagina waar hij op staat.
+ * (zie `Cockpit` + de `.os-cluster`/`.os-tile--*`-CSS), niet hier — anders weet
+ * een kaart iets over de pagina waar hij op staat.
  */
 export type Nadruk = 'dragend' | 'normaal' | 'compact'
 

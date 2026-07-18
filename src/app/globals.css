@@ -1366,10 +1366,14 @@ body {
   /* Ritme. Bewust géén uniforme schaal: de sprong van --ruimte-kaart naar
      --ruimte-band is wat hiërarchie leesbaar maakt. Alles even ver uit elkaar
      is precies de template-look die we niet willen. */
-  --ruimte-kaart: 14px;
+  --ruimte-kaart: 16px;
   --ruimte-band: 26px;
   --ruimte-sectie: 44px;
   --maxw: 1200px;
+  /* De brede cockpit-schil: schaalt mee met het venster i.p.v. een harde 1440.
+     clamp houdt 'm leesbaar op laptops en vult grote schermen; boven 1920px een
+     iets ruimere cap (zie de media query bij .os-schil--breed). */
+  --os-maxw-breed: clamp(1280px, 92vw, 1600px);
   position: relative;
   min-height: 100%;
   background: var(--bg-app);
@@ -1411,13 +1415,21 @@ body {
    venster vullen i.p.v. als smalle strook in een zee van leegte te staan. De
    padding groeit mee zodat de kaarten op grote schermen ademruimte houden. */
 .os-schil--breed {
-  max-width: 1440px;
+  max-width: var(--os-maxw-breed);
 }
 
 @media (min-width: 1200px) {
   .os-schil--breed {
     padding-left: 40px;
     padding-right: 40px;
+  }
+}
+
+/* Boven 1920px een iets ruimere cap: op een 4K-scherm mag de cockpit ademen
+   zonder dat de kaarten belachelijk breed worden. */
+@media (min-width: 1920px) {
+  .lifeos-root {
+    --os-maxw-breed: 1680px;
   }
 }
 
@@ -1455,108 +1467,144 @@ body {
    kaarten binnen een zone — dat schaalcontrast draagt de hiërarchie. */
 .os-cockpit {
   display: grid;
-  gap: var(--ruimte-band);
+  gap: var(--ruimte-sectie);
 }
 
-/* De échte zonebreuk: "Mijn leven" (de reflectie) staat een trap verder van
-   "Mijn dag" (het gereedschap) dan twee kaartblokken binnen een zone van elkaar.
-   Dit is de `--ruimte-sectie`-rung (44px) die wél gedefinieerd was maar nergens
-   gebruikt werd — zonder deze regel kreeg de belangrijkste scheiding van de
-   pagina exact dezelfde 26px als een willekeurige kaartafstand. De `calc`
-   verrekent de bestaande grid-gap zodat de totale afstand precies 44px is, niet
-   26+44. */
-.os-cockpit > .os-leven {
-  margin-top: calc(var(--ruimte-sectie) - var(--ruimte-band));
-}
-
-/* Vita als volle band bovenaan: hij verbindt de kaarten eronder. */
+/* Vita als volle band bovenaan: hij verbindt de kaarten eronder. Een band staat
+   buiten het 12-koloms clusterraster en pakt altijd de volle breedte. */
 .os-cockpit__band {
   display: block;
 }
 
-/* <1024px  productiviteit boven, welzijn-rail eronder — netjes gestapeld.
-   1024px+  asymmetrisch: de brede productiviteitszone naast een smallere rail.
-
-   Bewust géén repeat(auto-fit, minmax(...)): dat geeft precies de uniforme
-   card-grid zonder hiërarchie die we willen vermijden. */
-.os-cockpit__grid {
-  display: grid;
-  gap: var(--ruimte-band);
-  grid-template-columns: 1fr;
+/* De Vita-gesprek-band: volle breedte, maar de leeskolom krijgt lucht. Een
+   gesprek dat over 1600px uitwaaiert leest niet; gecentreerd op een comfortabele
+   leesbreedte wél. */
+.os-cockpit__gesprek {
+  max-width: 880px;
+  margin-inline: auto;
 }
 
-@media (min-width: 1024px) {
-  .os-cockpit__grid {
-    grid-template-columns: minmax(0, 2.3fr) minmax(0, 1fr);
-    align-items: start;
-  }
-}
+/* ─── Eén gedeeld 12-koloms clusterraster ──────────────────────────────────
+   Elk cluster is een EIGEN grid met exact HETZELFDE kolom-template. Omdat elke
+   cluster dezelfde volle breedte en dezelfde kolomlijnen heeft, vallen de naden
+   overal op dezelfde plek — dat is wat de pagina rust geeft. Bewust GÉÉN subgrid
+   (niet te previewen) en géén auto-fit (dat geeft de uniforme card-grid zonder
+   hiërarchie die we vermijden).
 
-/* De productiviteitszone: takenlijst als anker over de volle breedte, daaronder
-   de steunkaarten in een twee-koloms bento. */
-.os-prod {
-  display: grid;
-  gap: var(--ruimte-kaart);
-  grid-template-columns: 1fr;
-}
+   Kolommen per breakpoint:  320-639 -> 1   640-767 -> 4   768-1023 -> 6
+                             1024-1279 -> 8   >=1280 -> 12
 
-@media (min-width: 640px) {
-  .os-prod {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-/* Het anker (de takenlijst) spant beide kolommen. */
-.os-prod__vol {
-  grid-column: 1 / -1;
-}
-
-/* De welzijn-rail: score-kaart plus de snelknoppen, van bovenaf gestapeld zodat
-   ze niet uitrekken naast een lange productiviteitszone. */
-.os-rail {
-  display: grid;
-  gap: var(--ruimte-kaart);
-  align-content: start;
-}
-
-/* ─── Gezondheids-rij ──────────────────────────────────────────────────────
-   Drie échte invoerkaarten (voeding, water, workout) die naar Kane's
-   MentaForce-data schrijven. Eigen rij over de volle breedte: een formulier
-   heeft ademruimte nodig die de smalle welzijn-rail niet biedt.
-
-   1 kolom mobiel → 2 vanaf 640px → 3 vanaf 1024px. Bewust géén auto-fit: dat
-   geeft de uniforme card-grid zonder hiërarchie die we vermijden. */
-.os-gezond {
+   Eén rung binnen het cluster (16px, --ruimte-kaart); tussen clusters staat de
+   sectie-rung (44px, via .os-cockpit). align-items:start houdt kaarten op hun
+   eigen hoogte i.p.v. korte kaarten leeg uit te rekken. */
+.os-cluster {
   display: grid;
   gap: var(--ruimte-kaart);
   grid-template-columns: 1fr;
   align-items: start;
 }
 
+/* De clusterkop spant altijd de volle breedte, zodat de tegels op een nieuwe rij
+   beginnen (geen kop die naast de eerste tegel belandt). */
+.os-cluster__kop {
+  grid-column: 1 / -1;
+}
+
 @media (min-width: 640px) {
-  .os-gezond {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .os-cluster {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 768px) {
+  .os-cluster {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
   }
 }
 
 @media (min-width: 1024px) {
-  .os-gezond {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+  .os-cluster {
+    grid-template-columns: repeat(8, minmax(0, 1fr));
   }
 }
 
-/* Vijf kaarten in een grid laat een wees-cel achter: op 3 kolommen 3+2 met een
-   gat, op 2 kolommen 2+2+1. Dat is precies de "muur van gelijke kaarten met een
-   gat" die de regels vermijden. Oplossing: de eerste kaart (Voeding — de rijkste,
-   met kcal, macro's én maaltijd-logger) is het anker en spant twee kolommen. Dan
-   vult de rij exact: 3-koloms wordt Voeding+Water / Workout+Stress+Stemming,
-   2-koloms wordt Voeding-vol / 2×2. Geen gat, en meteen rangorde in een rij die
-   anders vlak was. De plaatsing hoort in CSS (zoals `.os-prod__vol`), niet in de
-   kaart zelf. */
-@media (min-width: 640px) {
-  .os-gezond > :first-child {
-    grid-column: span 2;
+@media (min-width: 1280px) {
+  .os-cluster {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
   }
+}
+
+/* ─── Span-utilities ───────────────────────────────────────────────────────
+   Eén semantische klasse per tegel. De spans zijn zó gekozen dat ELKE rij, op
+   ELKE breakpoint, exact optelt tot het kolomtotaal — geen wees-cellen.
+
+   Span per breakpoint (kolommen tussen haakjes):
+     klasse    | 1col | 4col | 6col | 8col | 12col
+     --vol     |  vol |   4  |   6  |   8  |   12
+     --anker   |  vol |   4  |   6  |   8  |    6
+     --kwart   |  vol |   2  |   3  |   4  |    3
+     --half    |  vol |   2  |   3  |   4  |    6
+     --derde   |  vol |   4  |   6  |   8  |    4
+
+   Rij-optel-controle per cluster (bewijs dat geen enkele rij een wees-cel houdt):
+     VANDAAG (2x anker + 8x kwart)
+       12col: anker 6+6=12 . kwart 3+3+3+3=12 (x2)
+        8col: anker 8 . 8   . kwart 4+4=8 (x4)
+        6col: anker 6 . 6   . kwart 3+3=6 (x4)
+        4col: anker 4 . 4   . kwart 2+2=4 (x4)
+        1col: elke tegel vol
+     WELZIJN (3x derde + 2x half)
+       12col: derde 4+4+4=12 . half 6+6=12
+        8col: derde 8 (x3)   . half 4+4=8
+        6col: derde 6 (x3)   . half 3+3=6
+        4col: derde 4 (x3)   . half 2+2=4
+        1col: elke tegel vol
+     VERBINDEN (3x vol): elke tegel een eigen volle rij op elke breakpoint. */
+.os-tile--vol,
+.os-tile--anker,
+.os-tile--kwart,
+.os-tile--half,
+.os-tile--derde {
+  grid-column: 1 / -1;
+}
+
+@media (min-width: 640px) {
+  .os-tile--vol   { grid-column: span 4; }
+  .os-tile--anker { grid-column: span 4; }
+  .os-tile--kwart { grid-column: span 2; }
+  .os-tile--half  { grid-column: span 2; }
+  .os-tile--derde { grid-column: span 4; }
+}
+
+@media (min-width: 768px) {
+  .os-tile--vol   { grid-column: span 6; }
+  .os-tile--anker { grid-column: span 6; }
+  .os-tile--kwart { grid-column: span 3; }
+  .os-tile--half  { grid-column: span 3; }
+  .os-tile--derde { grid-column: span 6; }
+}
+
+@media (min-width: 1024px) {
+  .os-tile--vol   { grid-column: span 8; }
+  .os-tile--anker { grid-column: span 8; }
+  .os-tile--kwart { grid-column: span 4; }
+  .os-tile--half  { grid-column: span 4; }
+  .os-tile--derde { grid-column: span 8; }
+}
+
+@media (min-width: 1280px) {
+  .os-tile--vol   { grid-column: span 12; }
+  .os-tile--anker { grid-column: span 6; }
+  .os-tile--kwart { grid-column: span 3; }
+  .os-tile--half  { grid-column: span 6; }
+  .os-tile--derde { grid-column: span 4; }
+}
+
+/* Het mensen-bord binnen de Verbinden-cluster: intro + kanban gestapeld met een
+   kleine tussenruimte. Volle-breedte-surface, dus geen rek-zorg. */
+.os-mensen {
+  display: grid;
+  gap: 12px;
 }
 
 /* ─── Snelknoppen ──────────────────────────────────────────────────────────
@@ -2197,12 +2245,6 @@ body {
   max-width: 62ch;
 }
 
-/* Een zone = kop + inhoud, met bandruimte ertussen. */
-.os-zone {
-  display: grid;
-  gap: var(--ruimte-band);
-}
-
 /* ─── Eén domein ───────────────────────────────────────────────────────────
    Nadrukkelijk géén `.os-kaart`. Een kaart is een tool ("Water", "vervangt
    MyFitnessPal"); een domein is een uitsnede van je leven waar meerdere tools
@@ -2307,7 +2349,9 @@ body {
   z-index: 1;
   display: grid;
   gap: 18px;
-  max-width: var(--maxw);
+  /* Erft de volle breedte van de cluster/schil i.p.v. zichzelf op 1200px af te
+     kappen — de kanban heeft die breedte nodig. */
+  max-width: none;
 }
 
 /* De kop van de mensen-pagina: terug-link, titel, intro. */
@@ -2500,7 +2544,12 @@ body {
   gap: 14px;
   align-items: flex-start;
   overflow-x: auto;
-  overscroll-behavior-x: contain;
+  /* Eén verticale scroller voor het hele bord i.p.v. per kolom: begrens de hoogte
+     zodat de kanban de rest van het dashboard niet wegduwt. De kolom-koppen
+     blijven plakken (zie .os-crm__kolom-kop). */
+  overflow-y: auto;
+  max-height: min(70vh, 640px);
+  overscroll-behavior: contain;
   padding-bottom: 8px;
 }
 
@@ -2523,12 +2572,18 @@ body {
 }
 
 .os-crm__kolom-kop {
+  position: sticky;
+  top: 0;
+  z-index: 1;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
   padding-bottom: 9px;
   border-bottom: 1px solid var(--line);
+  /* Ondoorzichtige achtergrond zodat tegels niet onder de plakkende kop door
+     schemeren tijdens het scrollen van het bord. */
+  background: var(--bg-card);
 }
 
 .os-crm__kolom-titel {
@@ -2565,10 +2620,10 @@ body {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  /* Geen eigen verticale scroll meer: het hele bord scrollt als één geheel
+     (zie .os-crm__bord), met plakkende kolom-koppen. min-height houdt de
+     dropzone bruikbaar als een kolom leeg is. */
   min-height: 44px;
-  max-height: 60vh;
-  overflow-y: auto;
-  overscroll-behavior: contain;
 }
 
 .os-crm__kolom-leeg {
@@ -3074,16 +3129,15 @@ body {
 @media (max-width: 640px) {
   .os-crm__bord {
     scroll-snap-type: x mandatory;
+    /* Mobiel: geen eigen verticale scroll-box — laat de pagina scrollen zodat de
+       kolommen niet in een kort venster geknepen worden. */
+    max-height: none;
   }
 
   .os-crm__kolom {
     flex-basis: 82vw;
     max-width: 82vw;
     scroll-snap-align: start;
-  }
-
-  .os-crm__kolom-lijst {
-    max-height: none;
   }
 
   .os-crm__overlay {
