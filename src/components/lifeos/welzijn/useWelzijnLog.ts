@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { haalJson } from '@/lib/lifeos/api/http'
+import { meldWijziging } from '@/lib/lifeos/events'
 
 // ─── Quick-loggen van één welzijnswaarde ────────────────────────────────────
 // Stress en stemming doen precies hetzelfde: laatste log ophalen, een waarde
@@ -117,6 +118,11 @@ export function useWelzijnLog({ pad, leesNieuwste, leesOpgeslagen, bouwBody, naS
       // Verzoen met wat de server écht opsloeg, niet met ons optimistische gok.
       setStaat({ fase: 'ok', laatste: uitkomst.waarde })
       setGekozen(null)
+      // Meld de wijziging op het welzijn-kanaal zodat de welzijnsscore-kaart
+      // opnieuw laadt. Zonder dit blijft "x van 6 gemeten" achter terwijl de
+      // log server-side wél geschreven is. Ná de geslaagde schrijf, nooit
+      // optimistisch — en deze hook leest zelf niet mee, dus geen herlaad-lus.
+      meldWijziging('welzijn')
       naSucces?.()
       return
     }

@@ -6,6 +6,7 @@ import { Kaart, NogNiets } from '@/components/lifeos/os/Kaart'
 import { KnopLink } from '@/components/lifeos/os/Knop'
 import { Foutmelding } from '@/components/lifeos/os/Foutmelding'
 import { haalJson, haalJsonGedeeld, isObject, getalOfNull } from '@/lib/lifeos/api/http'
+import { luisterOpWijziging } from '@/lib/lifeos/events'
 import { PIJLERS, PIJLER_KEYS, isPijlerKey, type PijlerKey } from '@/lib/pijlers/pijlers'
 import { scoreNiveau, type NiveauInfo, type TrendRichting } from '@/lib/pijlers/score'
 import { weekdagKort, weekdagLang } from '@/lib/pijlers/week'
@@ -133,6 +134,14 @@ export function WelzijnScoreKaart() {
       generatie.current++
     }
   }, [laad])
+
+  // Herlaad zodra stress of stemming elders gelogd wordt: die schrijven naar de
+  // pijler-data waar deze score op leunt, en anders blijft "x van 6 gemeten"
+  // achter terwijl het scherm belooft dat het bijwerkt. Deze kaart schrijft zelf
+  // niets, dus de melding kan geen herlaad-lus met zichzelf vormen. `laad` laadt
+  // op de achtergrond (zonder skelet-flits) en verzoent via de generatieteller.
+  // `luisterOpWijziging` geeft de opzeg-functie terug; die is meteen de cleanup.
+  useEffect(() => luisterOpWijziging('welzijn', () => void laad()), [laad])
 
   const opnieuw = useCallback(() => {
     setStaat({ fase: 'laden' })

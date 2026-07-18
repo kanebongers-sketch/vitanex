@@ -24,12 +24,23 @@ export async function POST(req: NextRequest) {
   const weekStart = berekenWeekStart(new Date())
 
   // Haal laatste 4 weken aan checkin-sessies op
-  const { data: sessies } = await admin
+  const { data: sessies, error: sessiesErr } = await admin
     .from('checkin_sessies')
     .select('id, week_start, checkin_antwoorden(vraag_code, waarde_schaal)')
     .eq('user_id', user.id)
     .order('week_start', { ascending: false })
     .limit(4)
+
+  // Een gevallen query is GEEN "geen check-ins": zou dit doorvallen naar de
+  // lege-tak hieronder, dan zou een DB-storing de gebruiker vertellen dat hij
+  // geen check-ins heeft (fout ≠ leeg). Dus eerst de fout, dan pas de leegte.
+  if (sessiesErr) {
+    console.error('[burnout-predictor] Ophalen check-ins mislukt:', sessiesErr.message)
+    return NextResponse.json(
+      { error: 'Kon je check-ins niet ophalen. Probeer het zo opnieuw.' },
+      { status: 500 },
+    )
+  }
 
   if (!sessies?.length) {
     return NextResponse.json({ bericht: 'Nog geen check-ins gevonden.' }, { status: 200 })
@@ -111,8 +122,17 @@ export async function POST(req: NextRequest) {
       { onConflict: 'user_id,week_start' },
     )
 
+  // Een mislukte upsert mocht niet als succes eindigen: de route gaf hiervóór een
+  // 200 mét een risico-score terug terwijl er niets was opgeslagen. De UI las dat
+  // als "berekend", herlaadde, kreeg een lege lijst en toonde weer "nog niet
+  // uitgerekend" — een stille fout die eruitzag als een klik die niets deed. Nu
+  // een echte foutstatus, zodat de kaart het meldt in plaats van door te draaien.
   if (upsertErr) {
     console.error('[burnout-predictor] Opslaan mislukt:', upsertErr.message)
+    return NextResponse.json(
+      { error: 'Kon je burn-out-risico niet opslaan. Probeer het zo opnieuw.' },
+      { status: 500 },
+    )
   }
 
   return NextResponse.json({
@@ -130,12 +150,23 @@ export async function GET(req: NextRequest) {
   }
 
   const admin = createAdminClient()
-  const { data } = await admin
+  const { data, error } = await admin
     .from('burnout_predictor_scores')
     .select('risico_score, trending, dominante_factor, week_start')
     .eq('user_id', user.id)
     .order('week_start', { ascending: false })
     .limit(8)
+
+  // Zelfde regel als bij de POST: een gevallen lees-query is geen lege historie.
+  // Zonder deze tak zou de kaart bij een storing "nog niet uitgerekend" tonen —
+  // een leugen die eruitziet als een lege staat.
+  if (error) {
+    console.error('[burnout-predictor] Lezen mislukt:', error.message)
+    return NextResponse.json(
+      { error: 'Kon je burn-out-risico niet ophalen. Probeer het zo opnieuw.' },
+      { status: 500 },
+    )
+  }
 
   return NextResponse.json({ scores: data ?? [] })
 }

@@ -46,6 +46,10 @@ export function VitaGeheugen({ nadruk = 'compact', niveau = 2 }: VitaGeheugenPro
   const [inhoud, setInhoud] = useState('')
   const [bezig, setBezig] = useState(false)
   const [schrijfFout, setSchrijfFout] = useState<string | null>(null)
+  // Herlaadteller: bumpen betekent "haal de lijst opnieuw op". Nodig zodat een
+  // bewaarde regel ook zichtbaar wordt als de eerste GET nog liep of gevallen was
+  // — anders zag je 'm pas na een volledige paginaherlaad (zie `bewaar`).
+  const [poging, setPoging] = useState(0)
 
   useEffect(() => {
     const afbreker = new AbortController()
@@ -59,7 +63,7 @@ export function VitaGeheugen({ nadruk = 'compact', niveau = 2 }: VitaGeheugenPro
       )
     })
     return () => afbreker.abort()
-  }, [])
+  }, [poging])
 
   async function bewaar(gebeurtenis: FormEvent) {
     gebeurtenis.preventDefault()
@@ -75,10 +79,21 @@ export function VitaGeheugen({ nadruk = 'compact', niveau = 2 }: VitaGeheugenPro
       setSchrijfFout(uitkomst.melding)
       return
     }
-    // Nieuwste eerst, gelijk aan de sortering van de server.
-    setStaat((h) =>
-      h.fase === 'klaar' ? { fase: 'klaar', regels: [uitkomst.regel, ...h.regels] } : h,
-    )
+
+    if (staat.fase === 'klaar') {
+      // Nieuwste eerst, gelijk aan de sortering van de server. Functionele update:
+      // een tussentijdse wis mag deze prepend niet overschrijven.
+      setStaat((h) =>
+        h.fase === 'klaar' ? { fase: 'klaar', regels: [uitkomst.regel, ...h.regels] } : h,
+      )
+    } else {
+      // De lijst was nog niet zichtbaar (eerste GET liep nog of was gevallen): de
+      // zojuist bewaarde regel zou nergens verschijnen tot een paginaherlaad. Haal
+      // 'm opnieuw op, dan komt hij mét de eventuele andere regels terug — en blijft
+      // "opgeslagen maar onzichtbaar" (fout ≠ leeg) uit.
+      setStaat({ fase: 'laden' })
+      setPoging((p) => p + 1)
+    }
     setInhoud('')
   }
 

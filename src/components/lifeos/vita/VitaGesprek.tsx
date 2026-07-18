@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 'react'
-import { CornerDownLeft } from 'lucide-react'
+import { CircleStop, CornerDownLeft } from 'lucide-react'
 import { Kaart, type Nadruk } from '@/components/lifeos/os/Kaart'
 import { Foutregel } from './Foutregel'
 import { vraagVita } from '@/lib/lifeos/vita/client'
@@ -65,6 +65,19 @@ export function VitaGesprek({ nadruk = 'normaal', niveau = 2 }: VitaGesprekProps
     if (melding !== null) setFout(melding)
   }
 
+  /**
+   * Breekt het lopende antwoord af. De route luistert op `cancel` en stopt met
+   * genereren — dan betalen we ook geen tokens meer voor tekst die je niet wilt.
+   *
+   * Zet `bezig` hier zelf terug: `verstuurVraag` doet dat bij een afgebroken call
+   * NIET (het keert stil terug, want de fout vroegen we zelf aan), en dan bleef het
+   * invoerveld anders voorgoed op slot. Wat al binnengedruppeld is, blijft staan.
+   */
+  function stop() {
+    afbrekerRef.current?.abort()
+    setBezig(false)
+  }
+
   function opVerstuur(gebeurtenis: FormEvent) {
     gebeurtenis.preventDefault()
     void verstuurVraag()
@@ -121,7 +134,13 @@ export function VitaGesprek({ nadruk = 'normaal', niveau = 2 }: VitaGesprekProps
           <p style={{ margin: 0, fontSize: 11, color: 'var(--text-4)' }}>
             Enter verstuurt · Shift+Enter maakt een regel
           </p>
-          <VerstuurKnop bezig={bezig} leeg={invoer.trim().length === 0} />
+          {/* Tijdens het genereren wordt de verstuurknop een stopknop: één rustige
+              plek, geen twee knoppen naast elkaar die om de beurt uitgrijzen. */}
+          {bezig ? (
+            <StopKnop onStop={stop} />
+          ) : (
+            <VerstuurKnop leeg={invoer.trim().length === 0} />
+          )}
         </div>
       </form>
     </Kaart>
@@ -194,13 +213,14 @@ function Denkt() {
 }
 
 
-function VerstuurKnop({ bezig, leeg }: { bezig: boolean; leeg: boolean }) {
+// Alleen zichtbaar wanneer er NIET gegenereerd wordt: tijdens het genereren neemt
+// `StopKnop` deze plek in. Daarom kent deze knop geen `bezig`-staat meer.
+function VerstuurKnop({ leeg }: { leeg: boolean }) {
   const [hover, zetHover] = useState(false)
-  const uit = bezig || leeg
   return (
     <button
       type="submit"
-      disabled={uit}
+      disabled={leeg}
       onMouseEnter={() => zetHover(true)}
       onMouseLeave={() => zetHover(false)}
       style={{
@@ -209,18 +229,49 @@ function VerstuurKnop({ bezig, leeg }: { bezig: boolean; leeg: boolean }) {
         gap: 7,
         padding: '7px 14px',
         borderRadius: 999,
-        border: `1px solid ${!uit && hover ? 'var(--brand)' : 'var(--line-strong)'}`,
+        border: `1px solid ${!leeg && hover ? 'var(--brand)' : 'var(--line-strong)'}`,
         background: 'transparent',
-        color: uit ? 'var(--text-4)' : hover ? 'var(--brand)' : 'var(--text-2)',
+        color: leeg ? 'var(--text-4)' : hover ? 'var(--brand)' : 'var(--text-2)',
         fontFamily: 'inherit',
         fontSize: 12,
         fontWeight: 600,
-        cursor: uit ? 'default' : 'pointer',
+        cursor: leeg ? 'default' : 'pointer',
         transition: 'color 180ms var(--ease), border-color 180ms var(--ease)',
       }}
     >
       <CornerDownLeft size={13} strokeWidth={2.2} aria-hidden="true" />
-      {bezig ? 'Bezig…' : 'Vraag'}
+      Vraag
+    </button>
+  )
+}
+
+/** De stopknop tijdens het genereren. Zelfde rustige vorm als de verstuurknop. */
+function StopKnop({ onStop }: { onStop: () => void }) {
+  const [hover, zetHover] = useState(false)
+  return (
+    <button
+      type="button"
+      onClick={onStop}
+      onMouseEnter={() => zetHover(true)}
+      onMouseLeave={() => zetHover(false)}
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 7,
+        padding: '7px 14px',
+        borderRadius: 999,
+        border: `1px solid ${hover ? 'var(--brand)' : 'var(--line-strong)'}`,
+        background: 'transparent',
+        color: hover ? 'var(--brand)' : 'var(--text-2)',
+        fontFamily: 'inherit',
+        fontSize: 12,
+        fontWeight: 600,
+        cursor: 'pointer',
+        transition: 'color 180ms var(--ease), border-color 180ms var(--ease)',
+      }}
+    >
+      <CircleStop size={13} strokeWidth={2.2} aria-hidden="true" />
+      Stop
     </button>
   )
 }
