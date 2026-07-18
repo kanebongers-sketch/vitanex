@@ -258,6 +258,7 @@ export function AgendaKaart() {
                 looptNu(vanAfspraakJson(staat.data.volgende), new Date())
               }
               afspraken={staat.data.events}
+              dag={staat.data.dag}
               vrijeBlokken={staat.data.vrijeBlokken}
               onPlan={planBlok}
             />
