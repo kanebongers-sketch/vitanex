@@ -96,7 +96,11 @@ export function KennisGrafiek({ grafiek }: KennisGrafiekProps) {
         // De cijfers hieronder zijn geteld, niet geschat. Voor wie de tekening
         // niet ziet is dit de samenvatting; de volledige lijst staat eronder.
         aria-label={`Kennisgrafiek: ${knopen.length} notities, ${kanten.length} verwijzingen.`}
-        style={{ width: '100%', height: 'auto', display: 'block' }}
+        // De grafiek is vierkant (viewBox MAATxMAAT). Op de verbrede cockpit zou
+        // een width:100% 'm net zo hoog als breed maken (~1500px op een breed
+        // scherm). Cap op een leesbare maat en centreer 'm — een netwerk van een
+        // handvol notities hoeft het scherm niet te vullen.
+        style={{ width: '100%', maxWidth: 560, height: 'auto', display: 'block', marginInline: 'auto' }}
       >
         {/* Kanten eerst: lijnen horen achter de stippen. */}
         <g>

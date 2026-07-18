@@ -1500,8 +1500,8 @@ body {
 .os-cluster {
   display: grid;
   gap: var(--ruimte-kaart);
-  grid-template-columns: 1fr;
-  align-items: start;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: stretch;
 }
 
 /* De clusterkop spant altijd de volle breedte, zodat de tegels op een nieuwe rij
@@ -1566,6 +1566,19 @@ body {
 .os-tile--half,
 .os-tile--derde {
   grid-column: 1 / -1;
+}
+
+/* Elke enkel-kaart-tegel is zelf een grid, zodat de kaart erin de (door de
+   cluster gestretchte) tegelhoogte vult. Zonder dit zou `align-items:stretch` op
+   de cluster alleen de lege tegel-div rekken en bleef de kaart zijn natuurlijke
+   hoogte houden — dan zag je alsnog rafelige onderkanten. Nu lijnen de kaarten
+   per rij netjes uit. De volle-breedte-tegels (`--vol`, o.a. het mensen-bord met
+   eigen indeling) blijven buiten deze regel. */
+.os-tile--anker,
+.os-tile--kwart,
+.os-tile--half,
+.os-tile--derde {
+  display: grid;
 }
 
 @media (min-width: 640px) {
