@@ -2,12 +2,14 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { haalJson, haalJsonGedeeld, leesNiets } from '@/lib/lifeos/api/http'
+import { meldWijziging } from '@/lib/lifeos/events'
 import {
   leesTaakAntwoord,
   leesTakenAntwoord,
   type Taak,
   type TaakWijziging,
 } from '@/lib/lifeos/taken/taken'
+import { herstelTaak, vervangTaak, verwijderTaak } from './lijstMutatie'
 
 // Alle bediening van de takenlijst op één plek: laden, afvinken, wijzigen,
 // verwijderen, toevoegen. `TakenLijst` blijft zo compositie; hier zit het
@@ -83,15 +85,27 @@ export function useTaken(): TakenBediening {
   /**
    * Eén weg naar de server voor élke wijziging: afvinken, hernoemen, een feit
    * invullen, een top-3-plek claimen. Optimistisch heen, en bij een fout terug
-   * naar exact de stand van vóór de klik.
+   * naar exact de stand van vóór de klik — maar alléén voor déze taak.
+   *
+   * Per-taak, niet per-lijst: een hele-lijst-snapshot als rollback zou een
+   * gelijktijdige, geslaagde wijziging op een ándere taak meesleuren. Twee snelle
+   * kliks (taak A vinken, dan taak B) waarvan A faalt, mag B niet laten
+   * terugspringen. Alle setStaat-calls zijn daarom functioneel: ze componeren met
+   * wat er ondertussen gebeurde, i.p.v. een verouderde snapshot terug te zetten.
    */
   const stuurWijziging = useCallback(
     async (taak: Taak, wijziging: TaakWijziging, vooruit: Taak, staartTekst: string) => {
       if (staat.fase !== 'ok') return false
 
-      const terug = staat.taken // snapshot voor de rollback
+      const vorige = staat.taken.find((t) => t.id === taak.id)
+      if (vorige === undefined) return false // ingehaald: de taak bestaat niet meer
+
       setActieFout(null)
-      setStaat({ fase: 'ok', taken: terug.map((t) => (t.id === taak.id ? vooruit : t)) })
+      setStaat((huidig) =>
+        huidig.fase === 'ok'
+          ? { fase: 'ok', taken: vervangTaak(huidig.taken, taak.id, vooruit) }
+          : huidig,
+      )
 
       const uitkomst = await haalJson(`/api/lifeos/taken/${taak.id}`, leesTaakAntwoord, {
         method: 'PATCH',
@@ -99,7 +113,12 @@ export function useTaken(): TakenBediening {
       })
 
       if (!uitkomst.ok) {
-        setStaat({ fase: 'ok', taken: terug })
+        // Alleen déze taak terug; een gelijktijdige wijziging elders blijft staan.
+        setStaat((huidig) =>
+          huidig.fase === 'ok'
+            ? { fase: 'ok', taken: vervangTaak(huidig.taken, taak.id, vorige) }
+            : huidig,
+        )
         setActieFout(`${uitkomst.fout} ${staartTekst}`)
         return false
       }
@@ -108,9 +127,12 @@ export function useTaken(): TakenBediening {
       const bevestigd = uitkomst.waarde
       setStaat((huidig) =>
         huidig.fase === 'ok'
-          ? { fase: 'ok', taken: huidig.taken.map((t) => (t.id === bevestigd.id ? bevestigd : t)) }
+          ? { fase: 'ok', taken: vervangTaak(huidig.taken, bevestigd.id, bevestigd) }
           : huidig,
       )
+      // Andere kaarten (het dagplan) rekenen met dezelfde taken en lopen anders
+      // achter. Ná de geslaagde schrijf, nooit optimistisch.
+      meldWijziging('taken')
       return true
     },
     [staat],
@@ -139,18 +161,34 @@ export function useTaken(): TakenBediening {
     async (taak: Taak) => {
       if (staat.fase !== 'ok') return
 
-      const terug = staat.taken // snapshot voor de rollback
+      // De oude plek onthouden, zodat de rollback 'm terugzet zonder de rest van
+      // de lijst (die intussen gewijzigd kan zijn) te overschrijven.
+      const index = staat.taken.findIndex((t) => t.id === taak.id)
+      if (index === -1) return
+      const vorige = staat.taken[index]
+
       setActieFout(null)
-      setStaat({ fase: 'ok', taken: terug.filter((t) => t.id !== taak.id) })
+      setStaat((huidig) =>
+        huidig.fase === 'ok'
+          ? { fase: 'ok', taken: verwijderTaak(huidig.taken, taak.id) }
+          : huidig,
+      )
 
       const uitkomst = await haalJson(`/api/lifeos/taken/${taak.id}`, leesNiets, {
         method: 'DELETE',
       })
 
       if (!uitkomst.ok) {
-        setStaat({ fase: 'ok', taken: terug })
+        setStaat((huidig) =>
+          huidig.fase === 'ok'
+            ? { fase: 'ok', taken: herstelTaak(huidig.taken, vorige, index) }
+            : huidig,
+        )
         setActieFout(`${uitkomst.fout} De taak staat er nog.`)
+        return
       }
+
+      meldWijziging('taken')
     },
     [staat],
   )
@@ -176,6 +214,7 @@ export function useTaken(): TakenBediening {
       setStaat((huidig) =>
         huidig.fase === 'ok' ? { fase: 'ok', taken: [...huidig.taken, nieuw] } : huidig,
       )
+      meldWijziging('taken')
       return true
     },
     [staat],

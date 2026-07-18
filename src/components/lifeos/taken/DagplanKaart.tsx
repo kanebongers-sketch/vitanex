@@ -5,6 +5,7 @@ import { CalendarClock, CircleHelp } from 'lucide-react'
 import { Kaart, NogNiets } from '@/components/lifeos/os/Kaart'
 import { Foutmelding } from '@/components/lifeos/os/Foutmelding'
 import { haalJson } from '@/lib/lifeos/api/http'
+import { luisterOpWijziging } from '@/lib/lifeos/events'
 import { duurLabel, tijdLabel } from '@/lib/lifeos/datum/datum'
 import {
   leesDagplanAntwoord,
@@ -55,6 +56,13 @@ export function DagplanKaart() {
     void laad()
     return verval
   }, [laad, verval])
+
+  // Herlaad zodra een taak elders wijzigt (toevoegen/afvinken/wijzigen/verwijderen):
+  // het dagplan rekent met dezelfde taken en zou anders achterlopen — een taak
+  // zonder tijdsinschatting past ineens wél zodra je die invult. Deze kaart schrijft
+  // zelf geen taken, dus de melding kan geen herlaad-lus met zichzelf vormen.
+  // `luisterOpWijziging` geeft de opzeg-functie terug; die is meteen de cleanup.
+  useEffect(() => luisterOpWijziging('taken', () => void laad()), [laad])
 
   const opnieuw = useCallback(() => {
     setStaat({ fase: 'laden' })

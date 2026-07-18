@@ -5,6 +5,8 @@ import type { Project } from '@/lib/lifeos/projecten/projecten'
 import type { Taak, TaakWijziging } from '@/lib/lifeos/taken/taken'
 import { HINT, INVOER, LABEL, VELD } from './detailStijl'
 import { EnergieVeld, ImpactVeld, InspanningVeld } from './FeitVelden'
+import { NieuwProjectVeld } from './NieuwProjectVeld'
+import type { ProjectMaakUitkomst } from './useProjecten'
 
 // Het detail van één taak: hier vul je de vier feiten in waar `prioriteit.ts`
 // mee rekent. Presentationeel — het weet niets van fetchen, alleen dat een
@@ -24,9 +26,17 @@ interface TaakDetailProps {
   /** Projecten laden mislukt: de keuzelijst zegt dat, i.p.v. leeg te doen. */
   projectenMislukt: boolean
   onWijzig: (wijziging: TaakWijziging) => void
+  /** Maakt een nieuw project aan — de keuzelijst was tot nu toe een doodlopende weg. */
+  onNieuwProject: (naam: string) => Promise<ProjectMaakUitkomst>
 }
 
-export function TaakDetail({ taak, projecten, projectenMislukt, onWijzig }: TaakDetailProps) {
+export function TaakDetail({
+  taak,
+  projecten,
+  projectenMislukt,
+  onWijzig,
+  onNieuwProject,
+}: TaakDetailProps) {
   return (
     <div style={PANEEL}>
       <ImpactVeld impact={taak.impact} onKies={(impact) => onWijzig({ impact })} />
@@ -36,14 +46,46 @@ export function TaakDetail({ taak, projecten, projectenMislukt, onWijzig }: Taak
       />
       <EnergieVeld energie={taak.energie} onKies={(energie) => onWijzig({ energie })} />
       <div style={RIJ}>
+        <DatumVeld datum={taak.datum} onZet={(datum) => onWijzig({ datum })} />
         <DeadlineVeld deadline={taak.deadline} onZet={(deadline) => onWijzig({ deadline })} />
         <ProjectVeld
           projectId={taak.projectId}
           projecten={projecten}
           mislukt={projectenMislukt}
           onKies={(projectId) => onWijzig({ projectId })}
+          onNieuwProject={onNieuwProject}
         />
       </div>
+    </div>
+  )
+}
+
+interface DatumVeldProps {
+  datum: string | null
+  onZet: (v: string | null) => void
+}
+
+/**
+ * De geplande dag (`datum`) — het VOORNEMEN: wanneer wil je 'm doen. Los van de
+ * deadline (de verplichting) hiernaast, en tot nu toe alleen bij het aanmaken te
+ * kiezen. Leeg = "ooit": de taak zakt naar de ooit-bak, geen dag geen alarm.
+ */
+function DatumVeld({ datum, onZet }: DatumVeldProps) {
+  const id = useId()
+
+  return (
+    <div style={VELD}>
+      <label htmlFor={id} style={LABEL}>
+        Geplande dag
+      </label>
+      <input
+        id={id}
+        type="date"
+        value={datum ?? ''}
+        onChange={(e) => onZet(e.target.value === '' ? null : e.target.value)}
+        style={INVOER}
+      />
+      <p style={HINT}>{"Welke dag je 'm wilt doen — leeg = ooit."}</p>
     </div>
   )
 }
@@ -78,9 +120,10 @@ interface ProjectVeldProps {
   projecten: Project[]
   mislukt: boolean
   onKies: (v: string | null) => void
+  onNieuwProject: (naam: string) => Promise<ProjectMaakUitkomst>
 }
 
-function ProjectVeld({ projectId, projecten, mislukt, onKies }: ProjectVeldProps) {
+function ProjectVeld({ projectId, projecten, mislukt, onKies, onNieuwProject }: ProjectVeldProps) {
   const id = useId()
 
   return (
@@ -107,6 +150,11 @@ function ProjectVeld({ projectId, projecten, mislukt, onKies }: ProjectVeldProps
       <p style={HINT}>
         {mislukt ? 'Je projecten konden niet geladen worden.' : 'Waar hoort dit bij?'}
       </p>
+      {/* Kon je projecten niet lezen, dan is een nieuw aanmaken zinloos (en zou de
+          keuzelijst 'm alsnog niet tonen): pas verbergen tot het laden lukt. */}
+      {mislukt ? null : (
+        <NieuwProjectVeld onMaak={onNieuwProject} onGemaakt={(p) => onKies(p.id)} />
+      )}
     </div>
   )
 }

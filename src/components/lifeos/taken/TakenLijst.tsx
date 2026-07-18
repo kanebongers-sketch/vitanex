@@ -18,7 +18,7 @@ import { TaakDetail } from './TaakDetail'
 import { TaakRij } from './TaakRij'
 import { ToevoegVeld } from './ToevoegVeld'
 import { Top3Sectie } from './Top3Sectie'
-import { useProjecten } from './useProjecten'
+import { useProjecten, type ProjectMaakUitkomst } from './useProjecten'
 import { useTaken, type TakenBediening } from './useTaken'
 import { useVandaag } from './useVandaag'
 
@@ -59,6 +59,7 @@ export function TakenLijst() {
           vandaag={vandaag}
           projecten={projecten.projecten}
           projectenMislukt={projecten.mislukt}
+          nieuwProject={projecten.voegToe}
           bediening={taken}
         />
       )}
@@ -74,6 +75,7 @@ interface InhoudProps {
   vandaag: string
   projecten: Project[]
   projectenMislukt: boolean
+  nieuwProject: (naam: string) => Promise<ProjectMaakUitkomst>
   bediening: TakenBediening
 }
 
@@ -84,6 +86,7 @@ function Inhoud({
   vandaag,
   projecten,
   projectenMislukt,
+  nieuwProject,
   bediening,
 }: InhoudProps) {
   // De top-3 is een laag over de taken van vandaag, geen aparte bak: hij wordt
@@ -105,6 +108,7 @@ function Inhoud({
       projecten={projecten}
       projectenMislukt={projectenMislukt}
       onWijzig={(wijziging: TaakWijziging) => void bediening.wijzig(taak, wijziging)}
+      onNieuwProject={nieuwProject}
     />
   )
 
