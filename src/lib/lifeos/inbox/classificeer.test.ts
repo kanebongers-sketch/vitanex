@@ -10,6 +10,7 @@ import { classificeer, triageer, type MailMeta } from './classificeer'
 function mail(afwijking: Partial<MailMeta> = {}): MailMeta {
   return {
     id: 'm1',
+    threadId: 't1',
     afzenderNaam: 'Jan Jansen',
     afzenderAdres: 'jan@example.nl',
     onderwerp: 'Voorstel voor volgende week',

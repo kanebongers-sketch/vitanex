@@ -34,6 +34,9 @@ export function vraagConcept(mail: TriageMailJson): Promise<HaalUitkomst<true>> 
     method: 'POST',
     body: JSON.stringify({
       extern_id: mail.id,
+      // De thread waar dit bericht bij hoort, zodat het concept ónder het gesprek
+      // belandt. Leeg = onbekend; de route degradeert dan naar een los concept.
+      thread_id: mail.threadId,
       afzender: mail.afzender,
       onderwerp: mail.onderwerp,
     }),

@@ -21,6 +21,12 @@ export const GMAIL = 'gmail' as const
 export interface TriageMailJson {
   /** Gmail's message-id. Hiermee bouwen we de deeplink. */
   id: string
+  /**
+   * Gmail's thread-id, zodat een concept-antwoord ónder het gesprek belandt.
+   * Leeg (`''`) als de bron 'm niet had — het concept wordt dan gewoon los
+   * aangemaakt (zie `concept/route.ts`), nooit een fout.
+   */
+  threadId: string
   /** Weergavenaam, of het adres als de afzender geen naam meestuurde. */
   afzender: string | null
   onderwerp: string | null
@@ -77,6 +83,9 @@ export function gmailLink(id: string): string {
 export function naarTriageMailJson(b: BeoordeeldeMail): TriageMailJson {
   return {
     id: b.mail.id,
+    // Geen fallback hier: `MailMeta.threadId` is al een gegarandeerde string.
+    // De fallback voor ontbrekende/oude data hoort in `leesTriageMailJson`.
+    threadId: b.mail.threadId,
     afzender: b.mail.afzenderNaam ?? b.mail.afzenderAdres,
     onderwerp: b.mail.onderwerp,
     ontvangenOp: b.mail.ontvangenOp.toISOString(),
@@ -124,7 +133,20 @@ function leesTriageMailJson(ruw: unknown): TriageMailJson | null {
   const reden = tekst(ruw.reden)
   if (id === null || ontvangenOp === null || reden === null) return null
 
-  return { id, afzender: tekst(ruw.afzender), onderwerp: tekst(ruw.onderwerp), ontvangenOp, reden }
+  // `threadId` staat bewust NIET in de verplichte guard hierboven: een oud of
+  // gecacht antwoord kan 'm missen, en een mail zonder thread-id mag daar niet om
+  // verdwijnen. Fallback naar `''` — dat levert hooguit "concept niet in thread"
+  // op (zie `concept/route.ts`), nooit een geworpen fout. Fout ≠ leeg.
+  const threadId = tekst(ruw.threadId) ?? ''
+
+  return {
+    id,
+    threadId,
+    afzender: tekst(ruw.afzender),
+    onderwerp: tekst(ruw.onderwerp),
+    ontvangenOp,
+    reden,
+  }
 }
 
 /** Het antwoord van `GET /api/inbox/vandaag`, of null als het niet klopt. */

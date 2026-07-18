@@ -123,9 +123,13 @@ export function leesAfzender(waarde: string | null): Afzender {
  * `mijnAdres` komt uit `users.getProfile`. Het `To`-veld wordt hier gelezen,
  * gebruikt voor één ja/nee-vraag, en daarna losgelaten: de adressen van anderen
  * gaan niet mee in `MailMeta` en dus nergens heen.
+ *
+ * `threadId` komt uit Gmail's bericht-antwoord (zie `gmail.ts`) en reist enkel mee
+ * zodat een concept-antwoord ónder het juiste gesprek kan hangen.
  */
 export function leesMailMeta(
   id: string,
+  threadId: string,
   headers: readonly Header[],
   labels: readonly string[],
   ontvangenOp: Date,
@@ -135,6 +139,7 @@ export function leesMailMeta(
 
   return {
     id,
+    threadId,
     afzenderNaam: afzender.naam,
     afzenderAdres: afzender.adres,
     onderwerp: leesHeader(headers, 'Subject'),

@@ -59,6 +59,7 @@ describe('actieVan — welke suggestie wordt een knop', () => {
 describe('berichtenVoorAnalyse — GEEN nieuwe Gmail-call, alleen wat de client al had', () => {
   const mail = (over: Partial<TriageMailJson>): TriageMailJson => ({
     id: 'g1',
+    threadId: 't1',
     afzender: 'Jan',
     onderwerp: 'Hoi',
     ontvangenOp: '2026-07-15T10:00:00+02:00',

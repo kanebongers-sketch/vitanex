@@ -29,6 +29,14 @@
 export interface MailMeta {
   /** Gmail's message-id. Genoeg om een link naar Gmail te bouwen. */
   id: string
+  /**
+   * Gmail's thread-id: het gesprek waar dit bericht bij hoort.
+   *
+   * Nodig zodat een concept-antwoord ÓNDER het gesprek belandt in plaats van los
+   * in je concepten te zweven. Leeg (`''`) betekent "onbekend" — dan wordt het
+   * concept gewoon los aangemaakt (zie `concept/route.ts`), nooit een fout.
+   */
+  threadId: string
   /** Weergavenaam uit `From`, als de afzender er een meestuurde. */
   afzenderNaam: string | null
   /** Adres uit `From`. Nodig voor de no-reply-regel. */

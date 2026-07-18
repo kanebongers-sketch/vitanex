@@ -168,11 +168,12 @@ describe('leesMailMeta', () => {
     ]
 
     // Act
-    const meta = leesMailMeta('m1', headers, ['INBOX', 'UNREAD'], ontvangen, 'kane@example.nl')
+    const meta = leesMailMeta('m1', 't1', headers, ['INBOX', 'UNREAD'], ontvangen, 'kane@example.nl')
 
     // Assert
     expect(meta).toEqual({
       id: 'm1',
+      threadId: 't1',
       afzenderNaam: 'Jan Jansen',
       afzenderAdres: 'jan@example.nl',
       onderwerp: 'Voorstel',
@@ -184,10 +185,18 @@ describe('leesMailMeta', () => {
     })
   })
 
+  test('draagt de thread-id mee', () => {
+    // Zonder deze reist de thread-id niet naar het concept, en komt een
+    // AI-antwoord los te staan i.p.v. ónder het gesprek.
+    const meta = leesMailMeta('m1', 'thread-42', [], [], ontvangen, 'kane@example.nl')
+
+    expect(meta.threadId).toBe('thread-42')
+  })
+
   test('ziet een afmeldlink', () => {
     const headers: Header[] = [{ name: 'List-Unsubscribe', value: '<https://x.nl/uit>' }]
 
-    const meta = leesMailMeta('m1', headers, [], ontvangen, 'kane@example.nl')
+    const meta = leesMailMeta('m1', 't1', headers, [], ontvangen, 'kane@example.nl')
 
     expect(meta.heeftAfmeldlink).toBe(true)
   })
@@ -195,13 +204,13 @@ describe('leesMailMeta', () => {
   test('leest Precedence', () => {
     const headers: Header[] = [{ name: 'Precedence', value: 'bulk' }]
 
-    expect(leesMailMeta('m1', headers, [], ontvangen, 'kane@example.nl').precedence).toBe('bulk')
+    expect(leesMailMeta('m1', 't1', headers, [], ontvangen, 'kane@example.nl').precedence).toBe('bulk')
   })
 
   test('staat je niet in de aan, dan aanMij=false', () => {
     const headers: Header[] = [{ name: 'To', value: 'iemand-anders@example.nl' }]
 
-    expect(leesMailMeta('m1', headers, [], ontvangen, 'kane@example.nl').aanMij).toBe(false)
+    expect(leesMailMeta('m1', 't1', headers, [], ontvangen, 'kane@example.nl').aanMij).toBe(false)
   })
 
   test('houdt geen adressen van derden vast', () => {
@@ -213,14 +222,14 @@ describe('leesMailMeta', () => {
       { name: 'To', value: 'kane@example.nl, piet@example.nl, marie@example.nl' },
     ]
 
-    const meta = leesMailMeta('m1', headers, [], ontvangen, 'kane@example.nl')
+    const meta = leesMailMeta('m1', 't1', headers, [], ontvangen, 'kane@example.nl')
 
     expect(JSON.stringify(meta)).not.toContain('piet@example.nl')
     expect(JSON.stringify(meta)).not.toContain('marie@example.nl')
   })
 
   test('een mail zonder enige header levert nog steeds bruikbare metadata', () => {
-    const meta = leesMailMeta('m1', [], [], ontvangen, 'kane@example.nl')
+    const meta = leesMailMeta('m1', 't1', [], [], ontvangen, 'kane@example.nl')
 
     expect(meta.id).toBe('m1')
     expect(meta.afzenderNaam).toBeNull()

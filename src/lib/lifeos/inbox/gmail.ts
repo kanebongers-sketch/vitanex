@@ -356,11 +356,18 @@ async function haalBericht(
     ? ruw.labelIds.filter((l: unknown): l is string => typeof l === 'string')
     : []
 
+  // Gmail's `threadId` is een string in het messages.get-antwoord; hij hangt het
+  // bericht aan zijn gesprek. Nodig om een concept-antwoord ónder de thread te
+  // zetten (zie `concept/route.ts`). `tekst` narrowt 'm veilig; ontbreekt hij bij
+  // uitzondering, dan wordt het `''` en degradeert de keten naar "concept los",
+  // nooit een crash — fout ≠ leeg.
+  const threadId = tekst(ruw.threadId) ?? ''
+
   // Let op wat hier NIET gebeurt: `ruw.snippet` wordt niet gelezen. Gmail stuurt
   // bij format=METADATA een snippet mee — een stukje body-tekst. Wij lezen het
   // veld niet, dus het komt niet verder dan deze functie. Ga het niet alsnog
   // uitpakken "omdat het er toch al is".
-  return { staat: 'ok', mail: leesMailMeta(id, headers, labels, new Date(ms), mijnAdres) }
+  return { staat: 'ok', mail: leesMailMeta(id, threadId, headers, labels, new Date(ms), mijnAdres) }
 }
 
 /**

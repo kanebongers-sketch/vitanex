@@ -10,6 +10,7 @@ function beoordeeld(afwijking: Partial<BeoordeeldeMail['mail']> = {}): Beoordeel
   return {
     mail: {
       id: 'm1',
+      threadId: 't1',
       afzenderNaam: 'Jan Jansen',
       afzenderAdres: 'jan@example.nl',
       onderwerp: 'Voorstel',
@@ -58,6 +59,12 @@ describe('naarTriageMailJson', () => {
   test('draagt de reden mee', () => {
     expect(naarTriageMailJson(beoordeeld()).reden).toBe('Direct aan jou geadresseerd.')
   })
+
+  test('draagt de thread-id mee', () => {
+    // De kern van de fix: zonder dit veld over de draad kan een concept-antwoord
+    // niet ónder het gesprek belanden en komt het los te staan.
+    expect(naarTriageMailJson(beoordeeld()).threadId).toBe('t1')
+  })
 })
 
 describe('naarInboxVandaag', () => {
@@ -71,6 +78,7 @@ describe('naarInboxVandaag', () => {
       vraagtActie: [
         {
           id: 'm1',
+          threadId: 't1',
           afzender: 'Jan Jansen',
           onderwerp: 'Voorstel',
           ontvangenOp: '2026-07-16T09:00:00.000Z',
@@ -94,6 +102,7 @@ describe('leesInboxVandaag', () => {
     vraagtActie: [
       {
         id: 'm1',
+        threadId: 't1',
         afzender: 'Jan',
         onderwerp: 'Voorstel',
         ontvangenOp: '2026-07-16T09:00:00.000Z',
@@ -104,6 +113,23 @@ describe('leesInboxVandaag', () => {
 
   test('leest een geldig antwoord', () => {
     expect(leesInboxVandaag(geldig)).toEqual(geldig)
+  })
+
+  test('een ontbrekende thread-id valt terug op leeg, geen fout', () => {
+    // Oude of gecachte antwoorden kunnen `threadId` missen. Die mail mag daar niet
+    // om verdwijnen: de narrowing vult `''` in (→ hooguit "concept niet in
+    // thread"), en het antwoord blijft geldig.
+    const zonderThread = {
+      ...geldig,
+      vraagtActie: [{ ...geldig.vraagtActie[0], threadId: undefined }],
+    }
+
+    const antwoord = leesInboxVandaag(zonderThread)
+
+    expect(antwoord).not.toBeNull()
+    if (antwoord?.gekoppeld) {
+      expect(antwoord.vraagtActie[0]?.threadId).toBe('')
+    }
   })
 
   test('leest de niet-gekoppelde tak', () => {
