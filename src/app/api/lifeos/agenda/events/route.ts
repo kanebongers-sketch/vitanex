@@ -12,6 +12,7 @@
 
 import { NextResponse, type NextRequest } from 'next/server'
 import { vereisLifeosToegang } from '@/lib/lifeos/admin'
+import { leesGekozenKalender } from '@/lib/lifeos/agenda/koppeling'
 import { leesNieuwEvent, maakAgendaEvent, schrijfFoutHttp } from '@/lib/lifeos/agenda/schrijven'
 
 export async function POST(req: NextRequest) {
@@ -26,8 +27,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ fout: invoer.fout }, { status: 400 })
   }
 
+  const kalenderId = await leesGekozenKalender(toegang.admin, toegang.userId)
+
   try {
-    const event = await maakAgendaEvent(toegang.admin, toegang.userId, invoer.waarde)
+    const event = await maakAgendaEvent(toegang.admin, toegang.userId, invoer.waarde, kalenderId)
     return NextResponse.json({ event }, { status: 201 })
   } catch (fout) {
     const http = schrijfFoutHttp(fout)

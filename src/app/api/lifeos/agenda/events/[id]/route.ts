@@ -10,6 +10,7 @@
 
 import { NextResponse, type NextRequest } from 'next/server'
 import { vereisLifeosToegang } from '@/lib/lifeos/admin'
+import { leesGekozenKalender } from '@/lib/lifeos/agenda/koppeling'
 import {
   leesEventPatch,
   schrijfFoutHttp,
@@ -35,8 +36,10 @@ export async function PATCH(req: NextRequest, ctx: Context) {
     return NextResponse.json({ fout: patch.fout }, { status: 400 })
   }
 
+  const kalenderId = await leesGekozenKalender(toegang.admin, toegang.userId)
+
   try {
-    const event = await wijzigAgendaEvent(toegang.admin, toegang.userId, id, patch.waarde)
+    const event = await wijzigAgendaEvent(toegang.admin, toegang.userId, id, patch.waarde, kalenderId)
     return NextResponse.json({ event })
   } catch (fout) {
     const http = schrijfFoutHttp(fout)
@@ -51,8 +54,10 @@ export async function DELETE(req: NextRequest, ctx: Context) {
 
   const { id } = await ctx.params
 
+  const kalenderId = await leesGekozenKalender(toegang.admin, toegang.userId)
+
   try {
-    await verwijderAgendaEvent(toegang.admin, toegang.userId, id)
+    await verwijderAgendaEvent(toegang.admin, toegang.userId, id, kalenderId)
     return new NextResponse(null, { status: 204 })
   } catch (fout) {
     const http = schrijfFoutHttp(fout)

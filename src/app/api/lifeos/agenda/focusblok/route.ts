@@ -21,7 +21,7 @@
 
 import { NextResponse, type NextRequest } from 'next/server'
 import { vereisLifeosToegang } from '@/lib/lifeos/admin'
-import { koppelingStaat } from '@/lib/lifeos/agenda/koppeling'
+import { koppelingStaat, leesGekozenKalender } from '@/lib/lifeos/agenda/koppeling'
 import { haalEventsUitCache } from '@/lib/lifeos/agenda/opslag'
 import { datumSleutel } from '@/lib/lifeos/datum/datum'
 import { vrijeBlokken, werkVenster } from '@/lib/lifeos/agenda/vrije-blokken'
@@ -92,8 +92,15 @@ export async function POST(req: NextRequest) {
     )
   }
 
+  const kalenderId = await leesGekozenKalender(toegang.admin, toegang.userId)
+
   try {
-    const event = await maakAgendaEvent(toegang.admin, toegang.userId, naarNieuwEvent(toewijzing))
+    const event = await maakAgendaEvent(
+      toegang.admin,
+      toegang.userId,
+      naarNieuwEvent(toewijzing),
+      kalenderId,
+    )
     return NextResponse.json({ event }, { status: 201 })
   } catch (fout) {
     const http = schrijfFoutHttp(fout)

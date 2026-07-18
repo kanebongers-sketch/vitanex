@@ -37,6 +37,7 @@ import { createLifeosAdminClient, lifeosUserId } from '@/lib/lifeos/admin'
 import { maakTaak as maakTaakInDb } from '@/lib/lifeos/taken/opslag'
 import { maakNotitie as maakNotitieInDb } from '@/lib/lifeos/notities/opslag'
 import { maakAgendaEvent } from '@/lib/lifeos/agenda/schrijven'
+import { leesGekozenKalender } from '@/lib/lifeos/agenda/koppeling'
 
 // node:crypto, FormData en Buffer zijn Node-API's — dwing de Node-runtime af.
 export const runtime = 'nodejs'
@@ -73,7 +74,10 @@ function maakOpslag(): UitvoerDeps {
     maakNotitie: (userId, nieuw) => maakNotitieInDb(admin, userId, nieuw),
     maakAgenda: async (userId, invoer) => {
       try {
-        await maakAgendaEvent(admin, userId, invoer)
+        // Ook de bot schrijft naar de GEKOZEN agenda (null = primary), niet blind
+        // naar primary — dezelfde keuze als de UI en de web-routes.
+        const kalenderId = await leesGekozenKalender(admin, userId)
+        await maakAgendaEvent(admin, userId, invoer, kalenderId)
         return { ok: true }
       } catch (fout) {
         console.error('[lifeos/telegram] agenda-afspraak aanmaken mislukt', fout)

@@ -18,21 +18,49 @@
 // dus vragen we `calendar.events` — de scope die zowel events.list als
 // events.insert/patch/delete dekt. `calendar.readonly` zou je kalenderlijst en
 // instellingen erbij geven én kan niet schrijven; `calendar` (volledig beheer
-// van álle agenda's) is juist te breed. `calendar.events` is precies genoeg.
+// van álle agenda's) is juist te breed. `calendar.events` is precies genoeg voor
+// het werken met afspraken.
 //
-// ⚠️  Deze scope is BREDER dan de vorige (`calendar.events.readonly`). Google
-// verhoogt toestemming niet vanzelf: wie eerder read-only koppelde, moet één
-// keer opnieuw koppelen voordat schrijven werkt.
+// KIEZEN IN WELKE AGENDA (functie 2). Daarnaast vragen we
+// `calendar.calendarlist.readonly`: die enige-lezen-scope laat ons de lijst van je
+// agenda's oplijsten zodat je er één kunt KIEZEN om in te schrijven/lezen. Ze
+// schrijft niets — het kiezen zelf slaan we op in onze eigen `koppelingen`-tabel.
+//
+// ⚠️  De scope is BREDER dan eerdere versies. Google verhoogt toestemming niet
+// vanzelf: wie koppelde vóór een van deze scopes bestond, moet één keer opnieuw
+// koppelen. Concreet: een koppeling zonder `calendarlist.readonly` geeft bij het
+// oplijsten een 403 — de kalenders-route vertaalt dat naar het
+// "opnieuw_koppelen"-sein, zodat de UI om een herkoppeling kan vragen.
 
 import { leesDatumSleutel } from '@/lib/lifeos/datum/datum'
 
 const AUTORISATIE_ENDPOINT = 'https://accounts.google.com/o/oauth2/v2/auth'
 const TOKEN_ENDPOINT = 'https://oauth2.googleapis.com/token'
-const EVENTS_ENDPOINT = 'https://www.googleapis.com/calendar/v3/calendars/primary/events'
+const CALENDAR_LIST_ENDPOINT = 'https://www.googleapis.com/calendar/v3/users/me/calendarList'
 
 export const GOOGLE_BEREIK: readonly string[] = Object.freeze([
   'https://www.googleapis.com/auth/calendar.events',
+  // Nodig om je agenda's te tónen zodat je er één kunt kiezen (functie 2). Alleen
+  // lezen; schrijft niets. Een koppeling zonder deze scope geeft 403 bij het
+  // oplijsten, tot opnieuw koppelen.
+  'https://www.googleapis.com/auth/calendar.calendarlist.readonly',
 ])
+
+/**
+ * De events-URL voor een specifieke agenda. `null` = de primaire agenda (de
+ * default; zo werkt een koppeling zonder gekozen agenda gewoon door op `primary`).
+ *
+ * Eén bron van waarheid: zowel de lees-flow hier als de schrijf-flow in
+ * `schrijven.ts` bouwt zijn URL via deze helper — nooit meer twee losse hardcoded
+ * `primary`-strings die uit elkaar kunnen lopen.
+ *
+ * `encodeURIComponent` is niet optioneel: een kalender-id is vaak een e-mailadres
+ * (met `@`, soms `+`) of een lange groeps-id vol tekens. Ongeëncodeerd bouw je een
+ * kapotte of — erger — verkeerde URL.
+ */
+export function eventsEndpoint(kalenderId: string | null): string {
+  return `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(kalenderId ?? 'primary')}/events`
+}
 
 const FETCH_TIMEOUT_MS = 10_000
 const MAX_PAGINAS = 10
@@ -171,7 +199,8 @@ export type EventsUitkomst =
   | { staat: 'fout'; reden: string }
 
 /**
- * De afspraken tussen `van` en `tot` uit de primaire agenda.
+ * De afspraken tussen `van` en `tot` uit de GEKOZEN agenda (`kalenderId`; `null`
+ * = de primaire agenda).
  *
  * `singleEvents=true` klapt herhalende afspraken uit naar losse instanties —
  * zonder dat krijg je de regel ("elke maandag") in plaats van de afspraak, en
@@ -181,7 +210,13 @@ export type EventsUitkomst =
  * 07:00-09:00 komt dus gewoon mee in een venster dat om 08:00 begint. Dat is
  * precies wat we willen: hij bezet je ochtend.
  */
-export async function haalEvents(toegangstoken: string, van: Date, tot: Date): Promise<EventsUitkomst> {
+export async function haalEvents(
+  toegangstoken: string,
+  van: Date,
+  tot: Date,
+  kalenderId: string | null,
+): Promise<EventsUitkomst> {
+  const endpoint = eventsEndpoint(kalenderId)
   const events: GoogleAfspraak[] = []
   let paginaToken: string | null = null
 
@@ -198,7 +233,7 @@ export async function haalEvents(toegangstoken: string, van: Date, tot: Date): P
 
     let antwoord: Response
     try {
-      antwoord = await fetch(`${EVENTS_ENDPOINT}?${params.toString()}`, {
+      antwoord = await fetch(`${endpoint}?${params.toString()}`, {
         headers: { Authorization: `Bearer ${toegangstoken}` },
         signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
       })
@@ -223,6 +258,111 @@ export async function haalEvents(toegangstoken: string, van: Date, tot: Date): P
   }
 
   return { staat: 'ok', events }
+}
+
+// ─── Kalenders (agenda-lijst, functie 2) ────────────────────────────────────
+
+/** Eén agenda uit de kalenderlijst, genormaliseerd naar onze vorm. */
+export interface GoogleKalender {
+  id: string
+  naam: string
+  primair: boolean
+  /** `owner` of `writer` — we tonen alleen agenda's waarin je mag schrijven. */
+  toegang: string
+}
+
+export type KalendersUitkomst =
+  | { staat: 'ok'; kalenders: GoogleKalender[] }
+  /** 401: het toegangstoken is niet (meer) geldig. */
+  | { staat: 'verlopen' }
+  /** 403: de calendarlist-scope ontbreekt — opnieuw koppelen is de weg terug. */
+  | { staat: 'scope_ontbreekt' }
+  | { staat: 'fout'; reden: string }
+
+/**
+ * De agenda's waarin je mag SCHRIJVEN (owner/writer). Alleen-lezen agenda's laten
+ * we weg: je kunt er geen afspraak of focusblok in plannen, dus kiezen heeft geen
+ * zin. De filter zelf zit in `leesKalender`.
+ */
+export async function haalKalenders(toegangstoken: string): Promise<KalendersUitkomst> {
+  let antwoord: Response
+  try {
+    antwoord = await fetch(CALENDAR_LIST_ENDPOINT, {
+      headers: { Authorization: `Bearer ${toegangstoken}` },
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+    })
+  } catch {
+    return { staat: 'fout', reden: 'netwerk' }
+  }
+
+  const ruw: unknown = await antwoord.json().catch(() => null)
+  return leesKalenderLijst(antwoord.status, ruw)
+}
+
+/**
+ * Puur: HTTP-status + body → uitkomst. Los van de fetch zodat de statusvertaling
+ * (401 verlopen, 403 scope_ontbreekt) én de narrowing zonder netwerk te testen zijn.
+ */
+export function leesKalenderLijst(status: number, ruw: unknown): KalendersUitkomst {
+  if (status === 401) return { staat: 'verlopen' }
+  if (status === 403) return { staat: 'scope_ontbreekt' }
+  if (status < 200 || status >= 300) return { staat: 'fout', reden: `http_${status}` }
+  if (!isObject(ruw)) return { staat: 'fout', reden: 'onbegrijpelijk_antwoord' }
+
+  const items = Array.isArray(ruw.items) ? ruw.items : []
+  const kalenders = items
+    .map(leesKalender)
+    .filter((k): k is GoogleKalender => k !== null)
+  return { staat: 'ok', kalenders }
+}
+
+/** De rollen waarin je mag schrijven; `reader`/`freeBusyReader` niet. */
+const SCHRIJFBARE_ROLLEN: ReadonlySet<string> = new Set(['owner', 'writer'])
+
+/**
+ * Eén calendarList-item → onze vorm, of null als het onbruikbaar is OF je er niet
+ * in mag schrijven. De accessRole-filter zit hier bewust: een agenda die je niet
+ * kunt vullen, hoort niet in de kiezer.
+ */
+function leesKalender(ruw: unknown): GoogleKalender | null {
+  if (!isObject(ruw)) return null
+
+  const id = tekst(ruw.id)
+  if (!id) return null
+
+  const toegang = tekst(ruw.accessRole)
+  if (!toegang || !SCHRIJFBARE_ROLLEN.has(toegang)) return null
+
+  return {
+    id,
+    // Een agenda zonder summary tonen we op zijn id — beter dan een lege regel.
+    naam: tekst(ruw.summary) ?? id,
+    primair: ruw.primary === true,
+    toegang,
+  }
+}
+
+// ─── Agenda-keuze (systeemgrens: de POST-body) ──────────────────────────────
+
+export const MAX_KALENDER_ID_LENGTE = 1024
+
+export type KalenderKeuze = { ok: true; waarde: string } | { ok: false; fout: string }
+
+/**
+ * De gekozen `kalenderId` uit onbekende invoer (de POST-body). Niet-lege string,
+ * redelijke lengte. Google's exacte id-vorm kennen we niet volledig, dus we
+ * normaliseren alleen de grenzen en vertrouwen de rest niet blind.
+ */
+export function leesKalenderKeuze(body: unknown): KalenderKeuze {
+  if (!isObject(body)) return { ok: false, fout: 'Ongeldige invoer.' }
+  if (typeof body.kalenderId !== 'string') return { ok: false, fout: 'Kies een agenda.' }
+
+  const kalenderId = body.kalenderId.trim()
+  if (kalenderId.length === 0) return { ok: false, fout: 'Kies een agenda.' }
+  if (kalenderId.length > MAX_KALENDER_ID_LENGTE) {
+    return { ok: false, fout: `Agenda-id mag maximaal ${MAX_KALENDER_ID_LENGTE} tekens zijn.` }
+  }
+  return { ok: true, waarde: kalenderId }
 }
 
 // ─── Systeemgrens: narrowing van Google's JSON ──────────────────────────────

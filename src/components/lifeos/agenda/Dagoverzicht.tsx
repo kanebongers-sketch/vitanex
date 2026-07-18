@@ -10,6 +10,8 @@ import { PlanBlokKnop } from './PlanBlokKnop'
 interface DagoverzichtProps {
   volgende: AfspraakJson | null
   loopt: boolean
+  /** Alle afspraken van de getoonde dag (voor de "inzien"-lijst). */
+  afspraken: AfspraakJson[]
   vrijeBlokken: VrijBlokJson[]
   /**
    * Plant een focusblok in dít blok. Weglaten = de blokken blijven puur
@@ -27,13 +29,56 @@ const LABEL: React.CSSProperties = {
   margin: '0 0 8px',
 }
 
-export function Dagoverzicht({ volgende, loopt, vrijeBlokken, onPlan }: DagoverzichtProps) {
+export function Dagoverzicht({ volgende, loopt, afspraken, vrijeBlokken, onPlan }: DagoverzichtProps) {
   return (
     <div style={{ display: 'grid', gap: 20 }}>
       <VolgendeAfspraak afspraak={volgende} loopt={loopt} />
+      <DagAfsprakenLijst afspraken={afspraken} />
       <VrijeBlokkenLijst blokken={vrijeBlokken} onPlan={onPlan} />
     </div>
   )
+}
+
+/** De afspraken van de dag op een rij: tijd + titel. Zo kun je je agenda écht inzien. */
+function DagAfsprakenLijst({ afspraken }: { afspraken: AfspraakJson[] }) {
+  // Leeg? Dan zegt "Hierna" hierboven al genoeg; geen loze kop tonen.
+  if (afspraken.length === 0) return null
+
+  return (
+    <div>
+      <p style={LABEL}>Op de agenda</p>
+      <ul style={{ display: 'grid', gap: 6, listStyle: 'none', padding: 0, margin: 0 }}>
+        {afspraken.map((a) => (
+          <li key={a.id} style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
+            <span
+              className="os-cijfer"
+              style={{ fontSize: 12, color: 'var(--text-3)', flexShrink: 0, minWidth: 92 }}
+            >
+              {dagTijd(a)}
+            </span>
+            <span
+              style={{
+                fontSize: 13,
+                color: 'var(--text-2)',
+                minWidth: 0,
+                overflowWrap: 'anywhere',
+              }}
+            >
+              {a.titel ?? 'Afspraak zonder titel'}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
+/** '09:00–10:00', '09:00' (zonder eind), of 'Hele dag'. */
+function dagTijd(a: AfspraakJson): string {
+  if (a.heleDag) return 'Hele dag'
+  const start = tijdLabel(new Date(a.startOp))
+  const eind = a.eindOp ? tijdLabel(new Date(a.eindOp)) : null
+  return eind ? `${start}–${eind}` : start
 }
 
 function VolgendeAfspraak({ afspraak, loopt }: { afspraak: AfspraakJson | null; loopt: boolean }) {

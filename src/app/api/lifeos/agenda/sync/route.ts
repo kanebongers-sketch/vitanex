@@ -9,7 +9,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { vereisLifeosToegang } from '@/lib/lifeos/admin'
-import { forceerVernieuwing, geldigToken } from '@/lib/lifeos/agenda/koppeling'
+import { forceerVernieuwing, geldigToken, leesGekozenKalender } from '@/lib/lifeos/agenda/koppeling'
 import { haalEvents, type EventsUitkomst } from '@/lib/lifeos/agenda/google'
 import { bewaarEvents } from '@/lib/lifeos/agenda/opslag'
 
@@ -35,12 +35,18 @@ export async function POST(req: NextRequest) {
   const tot = new Date(van)
   tot.setDate(tot.getDate() + DAGEN_VOORUIT + 1)
 
+  // De gekozen agenda (null = primary). We syncen precies die ene agenda naar de
+  // cache; wisselen van agenda + opnieuw syncen ruimt de vorige uit het venster op
+  // (`ruimVerdwenenOp` in opslag.ts), zodat `vandaag` de gekozen agenda toont.
+  const kalenderId = await leesGekozenKalender(toegang.admin, toegang.userId)
+
   const uitkomst = await haalMetTweedeKans(
     toegang.admin,
     toegang.userId,
     token.toegangstoken,
     van,
     tot,
+    kalenderId,
   )
   if (uitkomst.staat === 'verlopen') {
     // Een 401, en ook ná een geforceerde refresh nog steeds: de toestemming is
@@ -87,13 +93,14 @@ async function haalMetTweedeKans(
   token: string,
   van: Date,
   tot: Date,
+  kalenderId: string | null,
 ): Promise<EventsUitkomst> {
-  const eerste = await haalEvents(token, van, tot)
+  const eerste = await haalEvents(token, van, tot, kalenderId)
   if (eerste.staat !== 'verlopen') return eerste
 
   const vers = await forceerVernieuwing(admin, userId)
   if (vers.staat === 'niet_gekoppeld') return { staat: 'verlopen' }
   if (vers.staat === 'fout') return { staat: 'fout', reden: vers.reden }
 
-  return haalEvents(vers.toegangstoken, van, tot)
+  return haalEvents(vers.toegangstoken, van, tot, kalenderId)
 }

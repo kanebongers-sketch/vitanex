@@ -15,6 +15,7 @@ import {
   afspraakVanRij,
   afsprakenVanRijen,
   leesAgendaVandaag,
+  leesKalendersAntwoord,
   naarAfspraakJson,
   naarVrijBlokJson,
   vanAfspraakJson,
@@ -264,6 +265,50 @@ describe('leesAgendaVandaag — systeemgrens: ons eigen API-antwoord', () => {
       expect(gelezen.vrijeBlokken).toEqual([])
       expect(gelezen.volgende).toBeNull()
     }
+  })
+})
+
+describe('leesKalendersAntwoord — systeemgrens: de kalenderlijst', () => {
+  function kalender(overschrijf: Record<string, unknown> = {}): Record<string, unknown> {
+    return { id: 'eigen@x.nl', naam: 'Mijn agenda', primair: true, ...overschrijf }
+  }
+
+  it('leest een geldig antwoord met de gekozen agenda', () => {
+    const gelezen = leesKalendersAntwoord({
+      kalenders: [kalender(), kalender({ id: 'team@x.nl', naam: 'Team', primair: false })],
+      gekozen: 'team@x.nl',
+    })
+
+    expect(gelezen).not.toBeNull()
+    expect(gelezen?.kalenders).toHaveLength(2)
+    expect(gelezen?.kalenders[0]).toEqual({ id: 'eigen@x.nl', naam: 'Mijn agenda', primair: true })
+    expect(gelezen?.gekozen).toBe('team@x.nl')
+  })
+
+  it('leest een ontbrekende of lege gekozen als null (= primary)', () => {
+    expect(leesKalendersAntwoord({ kalenders: [kalender()] })?.gekozen).toBeNull()
+    expect(leesKalendersAntwoord({ kalenders: [kalender()], gekozen: '   ' })?.gekozen).toBeNull()
+  })
+
+  it('leest primair alleen bij een strikte true', () => {
+    const gelezen = leesKalendersAntwoord({ kalenders: [kalender({ primair: 'true' })] })
+    expect(gelezen?.kalenders[0]?.primair).toBe(false)
+  })
+
+  it('weigert iets dat geen object is of geen kalenders-array heeft', () => {
+    expect(leesKalendersAntwoord(null)).toBeNull()
+    expect(leesKalendersAntwoord([])).toBeNull()
+    expect(leesKalendersAntwoord({ kalenders: 'geen-lijst' })).toBeNull()
+  })
+
+  it('verwerpt het hele antwoord bij één kapotte agenda — geen stille verdwijning', () => {
+    // Zelfde regel als leesAgendaVandaag: één kapot item = een kapot antwoord.
+    expect(leesKalendersAntwoord({ kalenders: [kalender(), kalender({ id: undefined })] })).toBeNull()
+    expect(leesKalendersAntwoord({ kalenders: [kalender({ naam: '   ' })] })).toBeNull()
+  })
+
+  it('accepteert een lege kalenderlijst', () => {
+    expect(leesKalendersAntwoord({ kalenders: [] })).toEqual({ kalenders: [], gekozen: null })
   })
 })
 

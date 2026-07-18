@@ -22,6 +22,7 @@ import {
 import { datumSleutel, leesDatumSleutel } from '@/lib/lifeos/datum/datum'
 import { Dagoverzicht } from './Dagoverzicht'
 import { NieuweAfspraak, type NieuwEventInvoer } from './NieuweAfspraak'
+import { AgendaKiezer } from './AgendaKiezer'
 import { Foutmelding } from '@/components/lifeos/os/Foutmelding'
 import { Knop } from '@/components/lifeos/os/Knop'
 
@@ -209,6 +210,17 @@ export function AgendaKaart() {
     [laad],
   )
 
+  /**
+   * Na het wisselen van agenda: eerst de cache opnieuw vullen uit de gekozen
+   * agenda (`/sync`), dan de dag herladen (`no-store`, want /vandaag cachet 60s en
+   * leest de cache). Zonder de sync toont /vandaag nog de vorige agenda, want dat
+   * endpoint leest de cache — niet Google.
+   */
+  const herlaadNaKeuze = useCallback(async () => {
+    await haalJson('/api/lifeos/agenda/sync', leesNiets, { method: 'POST' })
+    await laad({ cache: 'no-store' })
+  }, [laad])
+
   return (
     <Kaart titel="Je dag" vervangt="Calendar">
       {staat.fase === 'laden' ? <Skelet /> : null}
@@ -238,12 +250,14 @@ export function AgendaKaart() {
           <Skelet />
         ) : (
           <div style={{ display: 'grid', gap: 16 }}>
+            <AgendaKiezer onGewijzigd={herlaadNaKeuze} onKoppelOpnieuw={() => void koppel()} />
             <Dagoverzicht
               volgende={staat.data.volgende}
               loopt={
                 staat.data.volgende !== null &&
                 looptNu(vanAfspraakJson(staat.data.volgende), new Date())
               }
+              afspraken={staat.data.events}
               vrijeBlokken={staat.data.vrijeBlokken}
               onPlan={planBlok}
             />

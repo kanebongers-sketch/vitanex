@@ -23,11 +23,12 @@
 
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { GOOGLE_CALENDAR } from './agenda'
+import { eventsEndpoint } from './google'
 import { forceerVernieuwing, geldigToken } from './koppeling'
 
-// Eigen endpoint-constante i.p.v. importeren uit google.ts: die exporteert 'm
-// bewust niet (hij hoort bij de read-flow). Dezelfde string, één keer hier.
-const EVENTS_ENDPOINT = 'https://www.googleapis.com/calendar/v3/calendars/primary/events'
+// De events-URL komt uit de gedeelde `eventsEndpoint`-helper in google.ts: die
+// bouwt 'm voor de GEKOZEN agenda (`kalenderId`; null = primary). Eén bron voor
+// lezen én schrijven — geen tweede hardcoded `primary`-string die kan afwijken.
 const FETCH_TIMEOUT_MS = 10_000
 
 export const MAX_TITEL_LENGTE = 1024
@@ -130,11 +131,13 @@ export function schrijfFoutHttp(fout: unknown): { status: number; bericht: strin
 // ─── Publieke API ───────────────────────────────────────────────────────────
 
 /**
- * Maakt een afspraak aan in je primaire Google-agenda en cachet 'm lokaal.
+ * Maakt een afspraak aan in de GEKOZEN Google-agenda (`kalenderId`; null =
+ * primary) en cachet 'm lokaal.
  *
  * De Telegram-agent gebruikt deze functie: `admin` en `userId` komen van de
- * aanroeper, de rest is de afspraak. Gooit `AgendaSchrijfFout` bij elke
- * mislukking — een Google-fout komt dus nooit als een leeg event terug.
+ * aanroeper, `kalenderId` is de gekozen agenda, de rest is de afspraak. Gooit
+ * `AgendaSchrijfFout` bij elke mislukking — een Google-fout komt dus nooit als
+ * een leeg event terug.
  *
  * De lokale cache-upsert is best-effort: lukt Google maar faalt de cache, dan
  * bestáát de afspraak (hij staat in je agenda) en geven we 'm terug; de volgende
@@ -144,6 +147,7 @@ export async function maakAgendaEvent(
   admin: SupabaseClient,
   userId: string,
   invoer: NieuwAgendaEvent,
+  kalenderId: string | null,
 ): Promise<AgendaEvent> {
   const geldig = leesNieuwEvent(invoer)
   if (!geldig.ok) throw new AgendaSchrijfFout('ongeldig', geldig.fout)
@@ -152,7 +156,7 @@ export async function maakAgendaEvent(
     admin,
     userId,
     'POST',
-    EVENTS_ENDPOINT,
+    eventsEndpoint(kalenderId),
     naarGoogleAanmaakBody(geldig.waarde),
   )
   const event = await leesSchrijfAntwoord(antwoord)
@@ -161,17 +165,18 @@ export async function maakAgendaEvent(
   return event
 }
 
-/** Wijzigt een bestaande afspraak (partieel) en werkt de cache bij. */
+/** Wijzigt een bestaande afspraak (partieel) in de gekozen agenda en werkt de cache bij. */
 export async function wijzigAgendaEvent(
   admin: SupabaseClient,
   userId: string,
   externId: string,
   patch: EventPatch,
+  kalenderId: string | null,
 ): Promise<AgendaEvent> {
   const geldig = leesEventPatch(patch)
   if (!geldig.ok) throw new AgendaSchrijfFout('ongeldig', geldig.fout)
 
-  const url = `${EVENTS_ENDPOINT}/${encodeURIComponent(externId)}`
+  const url = `${eventsEndpoint(kalenderId)}/${encodeURIComponent(externId)}`
   const antwoord = await googleFetchMetVernieuwing(
     admin,
     userId,
@@ -186,7 +191,7 @@ export async function wijzigAgendaEvent(
 }
 
 /**
- * Verwijdert een afspraak bij Google én uit de cache.
+ * Verwijdert een afspraak uit de gekozen agenda bij Google én uit de cache.
  *
  * 410 (Gone) telt als succes: de gewenste eindstaat is "weg", en die is bereikt.
  * 404 gooit wél — een onbekend id is een echte vergissing van de aanroeper.
@@ -195,8 +200,9 @@ export async function verwijderAgendaEvent(
   admin: SupabaseClient,
   userId: string,
   externId: string,
+  kalenderId: string | null,
 ): Promise<void> {
-  const url = `${EVENTS_ENDPOINT}/${encodeURIComponent(externId)}`
+  const url = `${eventsEndpoint(kalenderId)}/${encodeURIComponent(externId)}`
   const antwoord = await googleFetchMetVernieuwing(admin, userId, 'DELETE', url)
 
   if (!antwoord.ok && antwoord.status !== 410) keurStatus(antwoord.status)

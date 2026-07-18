@@ -53,6 +53,65 @@ function tekst(v: unknown): string | null {
   return s.length > 0 ? s : null
 }
 
+/**
+ * Puur: de gekozen `kalender_id` uit een `koppelingen`-rij, of null (= primary).
+ *
+ * `null` is geen fout maar de DEFAULT: een koppeling zonder gekozen agenda (of met
+ * een lege kolom) werkt gewoon door op de primaire agenda. Los gehouden van de DB
+ * zodat de default-regel zonder Supabase te testen is.
+ */
+export function kalenderIdUitRij(rij: unknown): string | null {
+  return isObject(rij) ? tekst(rij.kalender_id) : null
+}
+
+/**
+ * De gekozen agenda (kalender_id) voor de google_calendar-koppeling; null = de
+ * primaire agenda.
+ *
+ * Bij een echte DB-fout loggen we luid en vallen terug op null (primary): de keuze
+ * lezen mag nooit een lees- of schrijfactie blokkeren, en primary is het veilige,
+ * gedocumenteerde standaardgedrag. (Vóór de `kalender_id`-migratie bestaat de kolom
+ * nog niet; ook dan degradeert dit netjes naar primary.)
+ */
+export async function leesGekozenKalender(
+  admin: SupabaseClient,
+  userId: string,
+): Promise<string | null> {
+  const { data, error } = await admin
+    .from('koppelingen')
+    .select('kalender_id')
+    .eq('user_id', userId)
+    .eq('dienst', GOOGLE_CALENDAR)
+    .maybeSingle()
+
+  if (error) {
+    console.error('[agenda] kalenderkeuze lezen mislukt, val terug op primary:', error.message)
+    return null
+  }
+  return kalenderIdUitRij(data)
+}
+
+/**
+ * Zet de gekozen agenda op de bestaande koppeling. Een lege/whitespace keuze
+ * normaliseren we defensief naar null (= primary) — de route valideert al op de
+ * grens, dit is diepteverdediging.
+ */
+export async function zetGekozenKalender(
+  admin: SupabaseClient,
+  userId: string,
+  kalenderId: string,
+): Promise<{ ok: true } | { ok: false; reden: string }> {
+  const schoon = kalenderId.trim()
+  const { error } = await admin
+    .from('koppelingen')
+    .update({ kalender_id: schoon.length > 0 ? schoon : null })
+    .eq('user_id', userId)
+    .eq('dienst', GOOGLE_CALENDAR)
+
+  if (error) return { ok: false, reden: 'db' }
+  return { ok: true }
+}
+
 /** Is er een agenda gekoppeld? Leest alleen; ververst niets. */
 export async function koppelingStaat(
   admin: SupabaseClient,

@@ -50,6 +50,32 @@ export type AgendaVandaag =
       vrijeBlokken: VrijBlokJson[]
     }
 
+/**
+ * Eén agenda in de kiezer, zoals hij over de draad gaat. Structureel gelijk aan
+ * `GoogleKalender` (server, google.ts), maar hier apart zodat de client die
+ * server-only module — met secrets en fetch — nooit hoeft te importeren. Zelfde
+ * grens-patroon als `AfspraakJson` ↔ `GoogleAfspraak`.
+ */
+export interface KalenderJson {
+  id: string
+  naam: string
+  primair: boolean
+}
+
+/** Het antwoord van `GET /api/lifeos/agenda/kalenders`. `gekozen` = null → primary. */
+export interface KalendersAntwoord {
+  kalenders: KalenderJson[]
+  gekozen: string | null
+}
+
+/**
+ * Het sein dat `/kalenders` teruggeeft als de calendarlist-scope ontbreekt (een
+ * koppeling van vóór functie 2). De server zet 'm in `fout`, de UI herkent 'm en
+ * toont dan een "opnieuw koppelen"-knop i.p.v. een kale foutmelding. Eén bron voor
+ * server én client zodat de string niet uit elkaar loopt.
+ */
+export const OPNIEUW_KOPPELEN = 'opnieuw_koppelen'
+
 export function naarAfspraakJson(a: Afspraak): AfspraakJson {
   return {
     id: a.id,
@@ -190,5 +216,35 @@ export function leesAgendaVandaag(ruw: unknown): AgendaVandaag | null {
     events: events.filter((e): e is AfspraakJson => e !== null),
     volgende,
     vrijeBlokken: blokken.filter((b): b is VrijBlokJson => b !== null),
+  }
+}
+
+function leesKalenderJson(ruw: unknown): KalenderJson | null {
+  if (!isObject(ruw)) return null
+
+  const id = tekst(ruw.id)
+  const naam = tekst(ruw.naam)
+  if (id === null || naam === null) return null
+
+  return { id, naam, primair: ruw.primair === true }
+}
+
+/**
+ * Het antwoord van `GET /api/lifeos/agenda/kalenders`, of null als het niet klopt.
+ *
+ * Eén kapotte agenda = een kapot antwoord (zelfde regel als `leesAgendaVandaag`):
+ * stil overslaan zou een agenda uit de kiezer laten verdwijnen zonder dat iemand
+ * het merkt. `gekozen` mag ontbreken → null (dan staat de primaire agenda voor).
+ */
+export function leesKalendersAntwoord(ruw: unknown): KalendersAntwoord | null {
+  if (!isObject(ruw)) return null
+  if (!Array.isArray(ruw.kalenders)) return null
+
+  const kalenders = ruw.kalenders.map(leesKalenderJson)
+  if (kalenders.some((k) => k === null)) return null
+
+  return {
+    kalenders: kalenders.filter((k): k is KalenderJson => k !== null),
+    gekozen: tekst(ruw.gekozen),
   }
 }
