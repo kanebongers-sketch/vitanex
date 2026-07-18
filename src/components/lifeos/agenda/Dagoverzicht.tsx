@@ -1,20 +1,22 @@
 import { MapPin } from 'lucide-react'
 import type { AfspraakJson, VrijBlokJson } from '@/lib/lifeos/agenda/agenda'
 import { duurLabel, tijdLabel } from '@/lib/lifeos/datum/datum'
-import { AgendaRooster } from './AgendaRooster'
+import { AgendaDagenRooster } from './AgendaDagenRooster'
 import { PlanBlokKnop } from './PlanBlokKnop'
 
 // Presentationeel: props erin, UI eruit. Geen fetch, geen state, geen klok —
 // `loopt` komt van de container, want een component dat zelf `new Date()` leest
 // rendert op de server anders dan in de browser.
+//
+// Het meerdaagse rooster (AgendaDagenRooster) haalt zijn eigen dagen op; hier
+// geven we alleen `herlaadSleutel` door, zodat het meebeweegt na een re-sync,
+// een toegevoegde afspraak of een gepland focusblok.
 
 interface DagoverzichtProps {
   volgende: AfspraakJson | null
   loopt: boolean
-  /** Alle afspraken van de getoonde dag (voor het tijdrooster). */
-  afspraken: AfspraakJson[]
-  /** Dagsleutel (YYYY-MM-DD) van de getoonde dag — voor de "nu"-lijn in het rooster. */
-  dag: string
+  /** Teller die de AgendaKaart ophoogt om het meerdaagse rooster te herladen. */
+  herlaadSleutel: number
   vrijeBlokken: VrijBlokJson[]
   /**
    * Plant een focusblok in dít blok. Weglaten = de blokken blijven puur
@@ -35,15 +37,14 @@ const LABEL: React.CSSProperties = {
 export function Dagoverzicht({
   volgende,
   loopt,
-  afspraken,
-  dag,
+  herlaadSleutel,
   vrijeBlokken,
   onPlan,
 }: DagoverzichtProps) {
   return (
     <div style={{ display: 'grid', gap: 20 }}>
       <VolgendeAfspraak afspraak={volgende} loopt={loopt} />
-      <AgendaRooster afspraken={afspraken} dag={dag} />
+      <AgendaDagenRooster herlaadSleutel={herlaadSleutel} />
       <VrijeBlokkenLijst blokken={vrijeBlokken} onPlan={onPlan} />
     </div>
   )

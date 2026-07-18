@@ -14,11 +14,14 @@ import type { Afspraak, VrijBlok } from './vrije-blokken'
 import {
   afspraakVanRij,
   afsprakenVanRijen,
+  groepeerAfsprakenPerDag,
+  leesAgendaDagen,
   leesAgendaVandaag,
   leesKalendersAntwoord,
   naarAfspraakJson,
   naarVrijBlokJson,
   vanAfspraakJson,
+  type AfspraakJson,
 } from './agenda'
 
 // ─── Fabrieken ──────────────────────────────────────────────────────────────
@@ -409,5 +412,154 @@ describe('round-trips — serialiseren en terug', () => {
       locatie: 'Kantoor',
       kleur: '#7986cb',
     })
+  })
+})
+
+describe('groepeerAfsprakenPerDag — verdelen over dagkolommen', () => {
+  // LOKALE constructor zoals rooster.test.ts: `groepeerAfsprakenPerDag` groepeert
+  // op de lokale startdag, dus dit rondt tijdzone-neutraal naar dezelfde dag.
+  function jsonAfspraak(id: string, jaar: number, maand: number, dag: number, uur: number): AfspraakJson {
+    return {
+      id,
+      titel: id,
+      startOp: new Date(jaar, maand - 1, dag, uur, 0, 0, 0).toISOString(),
+      eindOp: new Date(jaar, maand - 1, dag, uur + 1, 0, 0, 0).toISOString(),
+      heleDag: false,
+      locatie: null,
+    }
+  }
+
+  const sleutels = ['2026-07-20', '2026-07-21', '2026-07-22']
+
+  it('geeft elke opgegeven dag een bucket — óók een dag zonder afspraken (lege lijst)', () => {
+    const dagen = groepeerAfsprakenPerDag([], sleutels)
+    expect(dagen.map((d) => d.dag)).toEqual(sleutels)
+    for (const d of dagen) expect(d.afspraken).toEqual([])
+  })
+
+  it('plaatst elke afspraak op zijn lokale startdag', () => {
+    const dagen = groepeerAfsprakenPerDag(
+      [
+        jsonAfspraak('maandag', 2026, 7, 20, 9),
+        jsonAfspraak('dinsdag', 2026, 7, 21, 14),
+        jsonAfspraak('woensdag', 2026, 7, 22, 8),
+      ],
+      sleutels,
+    )
+    expect(dagen[0]?.afspraken.map((a) => a.id)).toEqual(['maandag'])
+    expect(dagen[1]?.afspraken.map((a) => a.id)).toEqual(['dinsdag'])
+    expect(dagen[2]?.afspraken.map((a) => a.id)).toEqual(['woensdag'])
+  })
+
+  it('laat afspraken buiten het bereik vallen (bv. een event dat vóór het venster begon)', () => {
+    const dagen = groepeerAfsprakenPerDag(
+      [
+        jsonAfspraak('gisteren', 2026, 7, 19, 23),
+        jsonAfspraak('vandaag', 2026, 7, 20, 10),
+        jsonAfspraak('overmorgen-plus', 2026, 7, 25, 10),
+      ],
+      sleutels,
+    )
+    expect(dagen.flatMap((d) => d.afspraken.map((a) => a.id))).toEqual(['vandaag'])
+  })
+
+  it('bewaart de invoervolgorde binnen één dag', () => {
+    const dagen = groepeerAfsprakenPerDag(
+      [
+        jsonAfspraak('eerst', 2026, 7, 20, 9),
+        jsonAfspraak('later', 2026, 7, 20, 15),
+        jsonAfspraak('tussen', 2026, 7, 20, 12),
+      ],
+      sleutels,
+    )
+    expect(dagen[0]?.afspraken.map((a) => a.id)).toEqual(['eerst', 'later', 'tussen'])
+  })
+
+  it('slaat een afspraak met een onleesbare starttijd over, zonder te crashen', () => {
+    const kapot: AfspraakJson = {
+      id: 'kapot',
+      titel: 'Kapot',
+      startOp: 'geen-datum',
+      eindOp: null,
+      heleDag: false,
+      locatie: null,
+    }
+    const dagen = groepeerAfsprakenPerDag([kapot, jsonAfspraak('goed', 2026, 7, 20, 9)], sleutels)
+    expect(dagen.flatMap((d) => d.afspraken.map((a) => a.id))).toEqual(['goed'])
+  })
+
+  it('muteert de invoer niet', () => {
+    const invoer = [jsonAfspraak('a', 2026, 7, 20, 9)]
+    const kopie = invoer.map((a) => ({ ...a }))
+    groepeerAfsprakenPerDag(invoer, sleutels)
+    expect(invoer).toEqual(kopie)
+  })
+})
+
+describe('leesAgendaDagen — systeemgrens: het /dagen-antwoord', () => {
+  const geldigeDag = {
+    dag: '2026-07-20',
+    afspraken: [afspraakJson()],
+  }
+
+  it('leest een geldig, gekoppeld antwoord met meerdere dagen', () => {
+    const gelezen = leesAgendaDagen({
+      gekoppeld: true,
+      laatsteSync: '2026-07-20T08:00:00.000Z',
+      dagen: [geldigeDag, { dag: '2026-07-21', afspraken: [] }],
+    })
+
+    expect(gelezen).not.toBeNull()
+    if (gelezen === null || !gelezen.gekoppeld) throw new Error('verwacht gekoppeld')
+    expect(gelezen.laatsteSync).toBe('2026-07-20T08:00:00.000Z')
+    expect(gelezen.dagen).toHaveLength(2)
+    expect(gelezen.dagen[0]?.dag).toBe('2026-07-20')
+    expect(gelezen.dagen[0]?.afspraken[0]?.id).toBe('evt-1')
+    expect(gelezen.dagen[1]?.afspraken).toEqual([])
+  })
+
+  it('leest "niet gekoppeld" als eigen tak', () => {
+    expect(leesAgendaDagen({ gekoppeld: false })).toEqual({ gekoppeld: false })
+  })
+
+  it('leest laatsteSync als null wanneer die ontbreekt', () => {
+    const gelezen = leesAgendaDagen({ gekoppeld: true, dagen: [] })
+    expect(gelezen).not.toBeNull()
+    if (gelezen?.gekoppeld) expect(gelezen.laatsteSync).toBeNull()
+  })
+
+  it('weigert een ontbrekende of niet-boolean gekoppeld', () => {
+    expect(leesAgendaDagen({ dagen: [] })).toBeNull()
+    expect(leesAgendaDagen({ gekoppeld: 'true', dagen: [] })).toBeNull()
+  })
+
+  it('weigert een antwoord waarin dagen geen array is', () => {
+    expect(leesAgendaDagen({ gekoppeld: true, dagen: undefined })).toBeNull()
+    expect(leesAgendaDagen({ gekoppeld: true, dagen: 'geen-lijst' })).toBeNull()
+  })
+
+  it('weigert een dag zonder geldige sleutel of zonder afspraken-array', () => {
+    expect(leesAgendaDagen({ gekoppeld: true, dagen: [{ dag: '   ', afspraken: [] }] })).toBeNull()
+    expect(leesAgendaDagen({ gekoppeld: true, dagen: [{ dag: '2026-07-20' }] })).toBeNull()
+  })
+
+  it('verwerpt het hele antwoord bij één kapotte afspraak in een dag — geen stille verdwijning', () => {
+    const gelezen = leesAgendaDagen({
+      gekoppeld: true,
+      dagen: [{ dag: '2026-07-20', afspraken: [afspraakJson(), afspraakJson({ id: undefined })] }],
+    })
+    expect(gelezen).toBeNull()
+  })
+
+  it('weigert iets dat geen object is', () => {
+    expect(leesAgendaDagen(null)).toBeNull()
+    expect(leesAgendaDagen([])).toBeNull()
+    expect(leesAgendaDagen('gekoppeld')).toBeNull()
+  })
+
+  it('accepteert een lege dagen-lijst', () => {
+    const gelezen = leesAgendaDagen({ gekoppeld: true, laatsteSync: null, dagen: [] })
+    expect(gelezen).not.toBeNull()
+    if (gelezen?.gekoppeld) expect(gelezen.dagen).toEqual([])
   })
 })

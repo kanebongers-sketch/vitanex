@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest'
 import {
+  bepaalVenster,
   bouwRooster,
+  bouwRoosterMetVenster,
   minutenSindsMiddernacht,
   tijdLabelVanMinuten,
   uurLijnen,
@@ -208,5 +210,73 @@ describe('bouwRooster — overlap-lanes', () => {
       afspraak({ id: 'vroeg', startOp: iso(9, 0), eindOp: iso(10, 0) }),
     ])
     expect(rooster.blokken.map((b) => b.id)).toEqual(['vroeg', 'laat'])
+  })
+})
+
+describe('bepaalVenster — gedeeld over meerdere dagen', () => {
+  it('geeft het standaardvenster bij een lege lijst', () => {
+    expect(bepaalVenster([])).toEqual({
+      startMin: VENSTER_START_STANDAARD_MIN,
+      eindMin: VENSTER_EIND_STANDAARD_MIN,
+    })
+  })
+
+  it('geeft het standaardvenster als geen enkele dag afspraken heeft', () => {
+    expect(bepaalVenster([[], [], []])).toEqual({
+      startMin: VENSTER_START_STANDAARD_MIN,
+      eindMin: VENSTER_EIND_STANDAARD_MIN,
+    })
+  })
+
+  it('neemt de UNIE: de vroegste start én het laatste eind over álle dagen', () => {
+    // Dag 1 duwt de bovenkant naar 06:00, dag 2 duwt de onderkant naar 23:00.
+    const dag1 = [afspraak({ startOp: iso(6, 30), eindOp: iso(7, 15) })]
+    const dag2 = [afspraak({ startOp: iso(22, 10), eindOp: iso(22, 50) })]
+    const venster = bepaalVenster([dag1, dag2])
+    expect(venster.startMin).toBe(6 * 60)
+    expect(venster.eindMin).toBe(23 * 60)
+  })
+
+  it('komt voor één dag overeen met het venster dat bouwRooster kiest', () => {
+    const dag = [afspraak({ startOp: iso(6, 30), eindOp: iso(23, 10) })]
+    const venster = bepaalVenster([dag])
+    const rooster = bouwRooster(dag)
+    expect(venster.startMin).toBe(rooster.vensterStartMin)
+    expect(venster.eindMin).toBe(rooster.vensterEindMin)
+  })
+})
+
+describe('bouwRoosterMetVenster — uitlijning over kolommen', () => {
+  it('positioneert topMin t.o.v. het MEEGEGEVEN venster, niet het eigen venster', () => {
+    // Een 09:00-afspraak met een venster dat op 06:00 begint → topMin = 180.
+    const venster = { startMin: 6 * 60, eindMin: 23 * 60 }
+    const rooster = bouwRoosterMetVenster([afspraak({ startOp: iso(9, 0), eindOp: iso(10, 0) })], venster)
+    expect(rooster.vensterStartMin).toBe(6 * 60)
+    expect(rooster.vensterEindMin).toBe(23 * 60)
+    expect(rooster.blokken[0]?.topMin).toBe(9 * 60 - 6 * 60)
+  })
+
+  it('lijnt hetzelfde kloktijdstip in twee dagen op dezelfde hoogte uit', () => {
+    // Dag B trekt het gedeelde venster naar 06:00; dan moet de 09:00-afspraak in
+    // BEIDE kolommen dezelfde topMin krijgen — dát is de uitlijning.
+    const dagA = [afspraak({ id: 'a9', startOp: iso(9, 0), eindOp: iso(10, 0) })]
+    const dagB = [
+      afspraak({ id: 'b6', startOp: iso(6, 30), eindOp: iso(7, 0) }),
+      afspraak({ id: 'b9', startOp: iso(9, 0), eindOp: iso(10, 0) }),
+    ]
+    const venster = bepaalVenster([dagA, dagB])
+    const rA = bouwRoosterMetVenster(dagA, venster)
+    const rB = bouwRoosterMetVenster(dagB, venster)
+    const a9 = rA.blokken.find((b) => b.id === 'a9')
+    const b9 = rB.blokken.find((b) => b.id === 'b9')
+    expect(a9?.topMin).toBe(3 * 60) // 09:00 − 06:00
+    expect(a9?.topMin).toBe(b9?.topMin)
+  })
+
+  it('muteert de invoer niet', () => {
+    const invoer = [afspraak({ startOp: iso(9, 0), eindOp: iso(10, 0) })]
+    const kopie = invoer.map((a) => ({ ...a }))
+    bouwRoosterMetVenster(invoer, { startMin: 6 * 60, eindMin: 23 * 60 })
+    expect(invoer).toEqual(kopie)
   })
 })

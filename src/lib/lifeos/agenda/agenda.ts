@@ -5,6 +5,7 @@
 // Puur: geen fetch, geen DB, geen secrets. Dit bestand mag dus veilig in een
 // client-component geïmporteerd worden.
 
+import { datumSleutel } from '../datum/datum'
 import type { Afspraak, VrijBlok } from './vrije-blokken'
 
 /** De bronnen die LifeOS kan lezen. Alleen lezen — nooit schrijven. */
@@ -50,6 +51,28 @@ export type AgendaVandaag =
       /** De afspraak die nu loopt, of anders de eerstvolgende. */
       volgende: AfspraakJson | null
       vrijeBlokken: VrijBlokJson[]
+    }
+
+/** Eén dag in de meerdaagse weergave, zoals hij over de draad gaat. */
+export interface AgendaDag {
+  /** Dagsleutel (YYYY-MM-DD, lokaal). */
+  dag: string
+  afspraken: AfspraakJson[]
+}
+
+/**
+ * Het antwoord van `GET /api/lifeos/agenda/dagen`: meerdere dagen tegelijk voor de
+ * meerdaagse ("3 dagen") weergave. `dagen` staat op datum gesorteerd; een dag
+ * zonder afspraken is een LEGE lijst, geen fout. Zelfde "niet gekoppeld"-tak als
+ * {@link AgendaVandaag} — dat is geen "geen afspraken".
+ */
+export type AgendaDagen =
+  | { gekoppeld: false }
+  | {
+      gekoppeld: true
+      /** Wanneer de cache voor het laatst gevuld is. null = nog nooit gesynct. */
+      laatsteSync: string | null
+      dagen: AgendaDag[]
     }
 
 /**
@@ -134,6 +157,31 @@ export function vanAfspraakJson(j: AfspraakJson): Afspraak {
     locatie: j.locatie,
     kleur: j.kleur ?? null,
   }
+}
+
+/**
+ * PUUR: verdeel de afspraken over de opgegeven dagen op basis van hun LOKALE
+ * startdag. Elke dag uit `dagSleutels` krijgt een bucket — óók als er niets op
+ * staat (een lege lijst, geen fout). Afspraken waarvan de startdag buiten
+ * `dagSleutels` valt, vallen weg: een event dat vóór het venster begon en erin
+ * doorloopt (de cache levert het mee) hoort niet in een dag die het niet start.
+ * De volgorde binnen een dag blijft die van de invoer. Muteert de invoer niet.
+ */
+export function groepeerAfsprakenPerDag(
+  afspraken: readonly AfspraakJson[],
+  dagSleutels: readonly string[],
+): AgendaDag[] {
+  const perDag = new Map<string, AfspraakJson[]>()
+  for (const sleutel of dagSleutels) perDag.set(sleutel, [])
+
+  for (const a of afspraken) {
+    const start = new Date(a.startOp)
+    if (Number.isNaN(start.getTime())) continue
+    const bucket = perDag.get(datumSleutel(start))
+    if (bucket) bucket.push(a)
+  }
+
+  return dagSleutels.map((dag) => ({ dag, afspraken: perDag.get(dag) ?? [] }))
 }
 
 // ─── Systeemgrens: rijen uit de database ────────────────────────────────────
@@ -247,6 +295,39 @@ export function leesAgendaVandaag(ruw: unknown): AgendaVandaag | null {
     events: events.filter((e): e is AfspraakJson => e !== null),
     volgende,
     vrijeBlokken: blokken.filter((b): b is VrijBlokJson => b !== null),
+  }
+}
+
+/** Eén dag uit het `/dagen`-antwoord, of null als de vorm niet klopt. */
+function leesAgendaDag(ruw: unknown): AgendaDag | null {
+  if (!isObject(ruw)) return null
+
+  const dag = tekst(ruw.dag)
+  if (dag === null || !Array.isArray(ruw.afspraken)) return null
+
+  const afspraken = ruw.afspraken.map(leesAfspraakJson)
+  // Eén kapotte afspraak = een kapot antwoord (zelfde regel als leesAgendaVandaag):
+  // stil overslaan zou een afspraak laten verdwijnen zonder dat iemand het merkt.
+  if (afspraken.some((a) => a === null)) return null
+
+  return { dag, afspraken: afspraken.filter((a): a is AfspraakJson => a !== null) }
+}
+
+/** Het antwoord van `GET /api/lifeos/agenda/dagen`, of null als het niet klopt. */
+export function leesAgendaDagen(ruw: unknown): AgendaDagen | null {
+  if (!isObject(ruw)) return null
+
+  if (ruw.gekoppeld === false) return { gekoppeld: false }
+  if (ruw.gekoppeld !== true) return null
+  if (!Array.isArray(ruw.dagen)) return null
+
+  const dagen = ruw.dagen.map(leesAgendaDag)
+  if (dagen.some((d) => d === null)) return null
+
+  return {
+    gekoppeld: true,
+    laatsteSync: tekst(ruw.laatsteSync),
+    dagen: dagen.filter((d): d is AgendaDag => d !== null),
   }
 }
 

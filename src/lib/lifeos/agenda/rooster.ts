@@ -8,7 +8,7 @@
 // gebruiker. `startOp`/`eindOp` zijn ISO-strings met offset; `new Date(iso)`
 // geeft het juiste moment, en `getHours()`/`getMinutes()` leest dat terug in de
 // tijdzone van de runtime (de browser). Op de server draait dit niet — het
-// rooster is een client-eiland (zie AgendaRooster.tsx).
+// rooster is een client-eiland (zie DagenRoosterGrid.tsx).
 
 import type { AfspraakJson } from './agenda'
 
@@ -152,26 +152,32 @@ function splits(afspraken: readonly AfspraakJson[]): {
   return { tijd, heleDag }
 }
 
+/** Een tijd-venster in lokale minuten sinds middernacht, uitgelijnd op hele uren. */
+export interface RoosterVenster {
+  startMin: number
+  eindMin: number
+}
+
 /**
  * Het tijdvenster: standaard 07:00–22:00, verruimd zodat elke afspraak past.
  * Vroegste start naar beneden afgerond op het hele uur, laatste (getekende) eind
  * naar boven. Geklemd op 00:00–24:00.
  */
-function bepaalVenster(tijd: readonly TijdAfspraak[]): { start: number; eind: number } {
-  let start = VENSTER_START_STANDAARD_MIN
-  let eind = VENSTER_EIND_STANDAARD_MIN
+function vensterVanTijd(tijd: readonly TijdAfspraak[]): RoosterVenster {
+  let startMin = VENSTER_START_STANDAARD_MIN
+  let eindMin = VENSTER_EIND_STANDAARD_MIN
 
   for (const a of tijd) {
-    if (a.startMin < start) start = Math.floor(a.startMin / 60) * 60
-    if (a.eindDisplayMin > eind) eind = Math.ceil(a.eindDisplayMin / 60) * 60
+    if (a.startMin < startMin) startMin = Math.floor(a.startMin / 60) * 60
+    if (a.eindDisplayMin > eindMin) eindMin = Math.ceil(a.eindDisplayMin / 60) * 60
   }
 
-  start = Math.max(0, start)
-  eind = Math.min(MINUTEN_PER_DAG, eind)
+  startMin = Math.max(0, startMin)
+  eindMin = Math.min(MINUTEN_PER_DAG, eindMin)
   // Vangnet: houd het venster minstens één uur hoog, mocht clampen het dichtknijpen.
-  if (eind <= start) eind = Math.min(MINUTEN_PER_DAG, start + 60)
+  if (eindMin <= startMin) eindMin = Math.min(MINUTEN_PER_DAG, startMin + 60)
 
-  return { start, eind }
+  return { startMin, eindMin }
 }
 
 /**
@@ -242,18 +248,39 @@ function positioneer(tijd: readonly TijdAfspraak[], vensterStartMin: number): Ro
 }
 
 /**
+ * Het GEDEELDE venster over één of meer dagen: standaard 07:00–22:00, verruimd
+ * zodat élke afspraak van álle dagen past. Zo lijnen de uur-rijen van meerdere
+ * dagkolommen naast elkaar uit — de rij "10:00" staat in elke kolom op dezelfde
+ * hoogte. Puur; muteert de invoer niet. Een lege lijst geeft het standaardvenster.
+ */
+export function bepaalVenster(dagen: readonly (readonly AfspraakJson[])[]): RoosterVenster {
+  const alleTijd = dagen.flatMap((afspraken) => splits(afspraken).tijd)
+  return vensterVanTijd(alleTijd)
+}
+
+/**
+ * Bouwt het rooster van één dag met een EXPLICIET venster (zie {@link bepaalVenster}),
+ * zodat meerdere dagen op dezelfde uur-as tekenen. Muteert de invoer niet.
+ */
+export function bouwRoosterMetVenster(
+  afspraken: readonly AfspraakJson[],
+  venster: RoosterVenster,
+): Rooster {
+  const { tijd, heleDag } = splits(afspraken)
+  const blokken = positioneer(tijd, venster.startMin)
+
+  return {
+    vensterStartMin: venster.startMin,
+    vensterEindMin: venster.eindMin,
+    blokken,
+    heleDag,
+  }
+}
+
+/**
  * Bouwt het rooster uit de afspraken van één dag: het venster, de blokken (met
  * positie en lane-verdeling) en de hele-dag-events apart. Muteert de invoer niet.
  */
 export function bouwRooster(afspraken: readonly AfspraakJson[]): Rooster {
-  const { tijd, heleDag } = splits(afspraken)
-  const { start, eind } = bepaalVenster(tijd)
-  const blokken = positioneer(tijd, start)
-
-  return {
-    vensterStartMin: start,
-    vensterEindMin: eind,
-    blokken,
-    heleDag,
-  }
+  return bouwRoosterMetVenster(afspraken, bepaalVenster([afspraken]))
 }

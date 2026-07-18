@@ -65,6 +65,11 @@ export function AgendaKaart() {
   const syncGestart = useRef(false)
   const [syncKlaar, setSyncKlaar] = useState(false)
 
+  // Herlaad-teller voor het meerdaagse rooster (AgendaDagenRooster). Dat eiland
+  // haalt zijn eigen dagen op; door deze teller op te hogen na een re-sync, een
+  // toegevoegde afspraak of een gepland focusblok blijft het in de pas met /vandaag.
+  const [roosterNonce, setRoosterNonce] = useState(0)
+
   // Generatieteller: `laad` wordt vanaf drie plekken aangeroepen (mount, na de
   // eerste sync, en de retry-knop). Zonder deze teller kunnen twee vluchten
   // elkaar inhalen en wint de oudste die toevallig als laatste terugkomt — dan
@@ -179,6 +184,7 @@ export function AgendaKaart() {
       }
 
       await laad({ cache: 'no-store' })
+      setRoosterNonce((n) => n + 1)
       return { ok: true }
     },
     [staat, laad],
@@ -205,6 +211,7 @@ export function AgendaKaart() {
       if (!uitkomst.ok) return { ok: false, fout: uitkomst.fout }
 
       await laad({ cache: 'no-store' })
+      setRoosterNonce((n) => n + 1)
       return { ok: true }
     },
     [laad],
@@ -219,6 +226,7 @@ export function AgendaKaart() {
   const herlaadNaKeuze = useCallback(async () => {
     await haalJson('/api/lifeos/agenda/sync', leesNiets, { method: 'POST' })
     await laad({ cache: 'no-store' })
+    setRoosterNonce((n) => n + 1)
   }, [laad])
 
   return (
@@ -257,8 +265,7 @@ export function AgendaKaart() {
                 staat.data.volgende !== null &&
                 looptNu(vanAfspraakJson(staat.data.volgende), new Date())
               }
-              afspraken={staat.data.events}
-              dag={staat.data.dag}
+              herlaadSleutel={roosterNonce}
               vrijeBlokken={staat.data.vrijeBlokken}
               onPlan={planBlok}
             />
