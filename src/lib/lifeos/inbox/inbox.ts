@@ -17,6 +17,15 @@ import type { BeoordeeldeMail, Triage } from './classificeer'
 
 export const GMAIL = 'gmail' as const
 
+/**
+ * Het sein dat de inbox-routes teruggeven als de Gmail-koppeling te weinig scope
+ * heeft (een koppeling van vóór de schrijf-uitbreiding: alleen leesrechten). De
+ * server zet 'm in `fout`, de UI herkent 'm en toont dan een "opnieuw
+ * koppelen"-knop i.p.v. een kale foutmelding. Eén bron voor server én client zodat
+ * de string niet uit elkaar loopt — spiegelt `OPNIEUW_KOPPELEN` in de agenda.
+ */
+export const OPNIEUW_KOPPELEN = 'opnieuw_koppelen'
+
 /** Eén regel in de triage. Genoeg om 'm te herkennen en te openen — meer niet. */
 export interface TriageMailJson {
   /** Gmail's message-id. Hiermee bouwen we de deeplink. */

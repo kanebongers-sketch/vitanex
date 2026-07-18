@@ -22,7 +22,7 @@ import { vereisLifeosToegang } from '@/lib/lifeos/admin'
 import { forceerVernieuwing, geldigToken } from '@/lib/lifeos/inbox/koppeling'
 import { haalTriageMails, type MailsUitkomst } from '@/lib/lifeos/inbox/gmail'
 import { triageer } from '@/lib/lifeos/inbox/classificeer'
-import { naarInboxVandaag, type InboxVandaag } from '@/lib/lifeos/inbox/inbox'
+import { naarInboxVandaag, OPNIEUW_KOPPELEN, type InboxVandaag } from '@/lib/lifeos/inbox/inbox'
 
 // `no-store`, niet `max-age`: dit is post. Geen enkele cache — geen browser, geen
 // CDN, geen proxy — mag hier een kopie van houden.
@@ -67,6 +67,21 @@ export async function GET(req: NextRequest) {
     // opnieuw", wat hetzelfde zei maar zonder de knop erbij.
     const antwoord: InboxVandaag = { gekoppeld: false }
     return NextResponse.json(antwoord, { headers: CACHE_HEADERS })
+  }
+
+  if (mails.staat === 'scope_ontbreekt') {
+    // Gmail gaf 403: de koppeling heeft te weinig scope (alleen leesrechten, van
+    // vóór de schrijf-uitbreiding). Dat is een INSTRUCTIE, geen storing — dus geen
+    // kale 502 maar het `opnieuw_koppelen`-sein (in `fout`, herkenbaar voor de
+    // kaart) met een uitleg. De kaart toont dan een "opnieuw koppelen"-knop i.p.v.
+    // te beweren dat er iets stuk is. Zelfde patroon als de agenda-kalenders.
+    return NextResponse.json(
+      {
+        fout: OPNIEUW_KOPPELEN,
+        bericht: 'Koppel Gmail opnieuw — je gaf eerder alleen leesrechten.',
+      },
+      { status: 409 },
+    )
   }
 
   if (mails.staat === 'fout') {

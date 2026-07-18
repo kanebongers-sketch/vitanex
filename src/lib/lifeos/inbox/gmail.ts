@@ -209,6 +209,8 @@ export type ProfielUitkomst =
   | { staat: 'ok'; adres: string }
   /** 401: het toegangstoken is niet (meer) geldig. */
   | { staat: 'verlopen' }
+  /** 403: de koppeling heeft te weinig scope — opnieuw koppelen is de weg terug. */
+  | { staat: 'scope_ontbreekt' }
   | { staat: 'fout'; reden: string }
 
 export type MailsUitkomst =
@@ -227,10 +229,12 @@ export type MailsUitkomst =
       nietGelezen: number
     }
   | { staat: 'verlopen' }
+  /** 403: de koppeling heeft te weinig scope — opnieuw koppelen is de weg terug. */
+  | { staat: 'scope_ontbreekt' }
   | { staat: 'fout'; reden: string }
 
-/** `verlopen` en `fout` zijn overal hetzelfde; alleen de geslaagde tak verschilt. */
-type Mislukt = { staat: 'verlopen' } | { staat: 'fout'; reden: string }
+/** `verlopen`, `scope_ontbreekt` en `fout` zijn overal hetzelfde; alleen de geslaagde tak verschilt. */
+type Mislukt = { staat: 'verlopen' } | { staat: 'scope_ontbreekt' } | { staat: 'fout'; reden: string }
 
 type IdsUitkomst = { staat: 'ok'; ids: string[] } | Mislukt
 type BerichtUitkomst = { staat: 'ok'; mail: MailMeta } | Mislukt
@@ -249,9 +253,35 @@ function tekst(v: unknown): string | null {
   return s.length > 0 ? s : null
 }
 
-type Antwoord = { staat: 'ok'; ruw: unknown } | { staat: 'verlopen' } | { staat: 'fout'; reden: string }
+type Antwoord =
+  | { staat: 'ok'; ruw: unknown }
+  | { staat: 'verlopen' }
+  | { staat: 'scope_ontbreekt' }
+  | { staat: 'fout'; reden: string }
 
-/** Eén GET met Bearer-token. Fout, verlopen en ok zijn hier al uit elkaar. */
+/**
+ * PUUR: een niet-ok HTTP-status → de bijbehorende mislukking. Los van de fetch
+ * zodat de statusvertaling zonder netwerk te testen is — spiegelt
+ * `leesKalenderLijst` in agenda/google.ts.
+ *
+ *   401 → verlopen        het token is niet (meer) geldig; één refresh kan helpen.
+ *   403 → scope_ontbreekt de koppeling heeft te weinig rechten (een leesrecht-only
+ *                         koppeling van vóór de schrijf-uitbreiding, of een
+ *                         ingetrokken vinkje). Google's reden is dan meestal
+ *                         `insufficientPermissions`. Dit is een INSTRUCTIE (koppel
+ *                         opnieuw), geen storing en geen lege inbox — daarom een
+ *                         eigen tak i.p.v. platgeslagen op `fout`/502.
+ *   rest → fout           een echte storing (5xx, 429, onverwacht).
+ */
+export function statusNaarFout(
+  status: number,
+): { staat: 'verlopen' } | { staat: 'scope_ontbreekt' } | { staat: 'fout'; reden: string } {
+  if (status === 401) return { staat: 'verlopen' }
+  if (status === 403) return { staat: 'scope_ontbreekt' }
+  return { staat: 'fout', reden: `http_${status}` }
+}
+
+/** Eén GET met Bearer-token. Fout, verlopen, scope-tekort en ok zijn hier al uit elkaar. */
 async function haal(url: string, toegangstoken: string): Promise<Antwoord> {
   let antwoord: Response
   try {
@@ -264,10 +294,7 @@ async function haal(url: string, toegangstoken: string): Promise<Antwoord> {
     return { staat: 'fout', reden: 'netwerk' }
   }
 
-  if (antwoord.status === 401) return { staat: 'verlopen' }
-  // 403 met reden `insufficientPermissions` betekent meestal: de gebruiker heeft
-  // het vinkje voor de Gmail-scope weggehaald. Dat is een fout, geen lege inbox.
-  if (!antwoord.ok) return { staat: 'fout', reden: `http_${antwoord.status}` }
+  if (!antwoord.ok) return statusNaarFout(antwoord.status)
 
   const ruw: unknown = await antwoord.json().catch(() => null)
   return { staat: 'ok', ruw }
@@ -403,6 +430,10 @@ export async function haalTriageMails(toegangstoken: string): Promise<MailsUitko
 
     for (const uitkomst of uitkomsten) {
       if (uitkomst.staat === 'verlopen') return { staat: 'verlopen' }
+      // Scope-tekort raakt élk bericht gelijk: doorgaan zou het als `nietGelezen`
+      // tellen en de storing verhullen. Stoppen en het sein doorgeven, net als bij
+      // `verlopen` — dan wordt het straks een nette "koppel opnieuw", geen 502.
+      if (uitkomst.staat === 'scope_ontbreekt') return { staat: 'scope_ontbreekt' }
       if (uitkomst.staat === 'ok') mails.push(uitkomst.mail)
       else nietGelezen++
     }

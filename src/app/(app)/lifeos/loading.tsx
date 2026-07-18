@@ -2,7 +2,7 @@ import type { CSSProperties } from 'react'
 
 // ─── De laadstaat van LifeOS ────────────────────────────────────────────────
 // De Suspense-fallback van dit route-segment. Een rustig navy skelet in de vorm
-// van de cockpit: kop, Vita-band, en de drie clusters op hetzelfde gedeelde
+// van de cockpit: kop, Vita-band, en de twee clusters op hetzelfde gedeelde
 // 12-koloms raster (zie `.os-cluster` + `.os-tile--*`). Zo springt de layout niet
 // zodra de echte kaarten binnenkomen.
 //
@@ -35,7 +35,9 @@ export default function LifeosLaden() {
               <div style={{ ...KAART, height: 132 }} />
             </div>
 
-            {/* Cluster "Mijn dag": twee brede ankers + acht kwart-tegels. */}
+            {/* Cluster "Mijn dag": twee brede ankers, vier halve tegels (de
+                breedte-dragende kaarten) en vier kwart-tegels (de compacte
+                tools) — zelfde verdeling als de echte cockpit. */}
             <section className="os-cluster">
               <ClusterKop />
               <div className="os-tile--anker">
@@ -44,8 +46,13 @@ export default function LifeosLaden() {
               <div className="os-tile--anker">
                 <div style={{ ...KAART, height: 248 }} />
               </div>
-              {Array.from({ length: 8 }, (_, i) => (
-                <div key={i} className="os-tile--kwart">
+              {Array.from({ length: 4 }, (_, i) => (
+                <div key={`half-${i}`} className="os-tile--half">
+                  <div style={{ ...KAART, height: 208 }} />
+                </div>
+              ))}
+              {Array.from({ length: 4 }, (_, i) => (
+                <div key={`kwart-${i}`} className="os-tile--kwart">
                   <div style={{ ...KAART, height: 172 }} />
                 </div>
               ))}
@@ -55,21 +62,6 @@ export default function LifeosLaden() {
             <div className="os-cockpit__gesprek">
               <div style={{ ...KAART, height: 220 }} />
             </div>
-
-            {/* Cluster "Welzijn & loggen": drie derde-tegels + twee halve. */}
-            <section className="os-cluster">
-              <ClusterKop />
-              {Array.from({ length: 3 }, (_, i) => (
-                <div key={i} className="os-tile--derde">
-                  <div style={{ ...KAART, height: 224 }} />
-                </div>
-              ))}
-              {Array.from({ length: 2 }, (_, i) => (
-                <div key={i} className="os-tile--half">
-                  <div style={{ ...KAART, height: 200 }} />
-                </div>
-              ))}
-            </section>
 
             {/* Cluster "Verbinden": drie volle-breedte-surfaces. */}
             <section className="os-cluster">

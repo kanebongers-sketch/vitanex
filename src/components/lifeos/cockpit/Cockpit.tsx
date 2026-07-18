@@ -30,8 +30,10 @@ import { SnelKnoppen } from './SnelKnoppen'
 // Precies één kaart per scherm mag de luidste zijn: de Vita-band (`dragend`). Hij
 // is niet nóg een widget maar legt het verband tussen de kaarten eronder, dus hij
 // staat bovenaan én is de enige dragende kaart. De brede ankers (Dagplan, Taken)
-// dragen hun rang via een brede span, niet via een luidere nadruk; de rest is
-// gelijkwaardig gereedschap. Cyaan blijft strikt accent.
+// dragen hun rang via een brede span, niet via een luidere nadruk; daaronder
+// krijgen de kaarten die breedte dragen (Welzijn, Agenda, Inbox, Brain dump) een
+// halve tegel en de compacte tools een kwart — rang via schaal, niet via kleur.
+// Cyaan blijft strikt accent.
 //
 // ─── Twee clusters, twee banden ─────────────────────────────────────────────
 //   1. Band  — Vita: wat moet je nú weten?
@@ -53,8 +55,12 @@ export function Cockpit() {
       </div>
 
       {/* Cluster "Mijn dag" — Dagplan en Taken zijn de brede ankers (span 6 op
-          12 kolommen), de acht steunkaarten vullen als kwart-tegels exact twee
-          rijen van vier. */}
+          12 kolommen). Daaronder twee rijen halve tegels voor de kaarten die
+          breedte dragen (Welzijn, de agenda met haar 3-dagen-rooster, Inbox,
+          Brain dump) en één rij van vier kwart-tegels voor de compacte tools
+          (Burn-out, Focus, Vita-geheugen, Snelknoppen). Op 12 kolommen telt elke
+          rij exact op tot 12; op smaller vallen half en kwart samen tot paren —
+          zie de rij-optel-controle in globals.css. */}
       <section className="os-cluster" aria-labelledby="os-dag-kop">
         <header className="os-cluster__kop">
           <h2 id="os-dag-kop" className="os-zone__kop">
@@ -72,20 +78,25 @@ export function Cockpit() {
         <div className="os-tile--anker">
           <TakenLijst />
         </div>
-        <div className="os-tile--kwart">
+        {/* Twee rijen halve tegels: de kaarten die breedte dragen. De agenda
+            heeft haar 3-dagen-rooster (min ~448px) en agendalijst; op een halve
+            tegel passen de drie dagkolommen comfortabel i.p.v. samengeperst. */}
+        <div className="os-tile--half">
           <WelzijnScoreKaart />
         </div>
-        <div className="os-tile--kwart">
-          <BurnoutKaart />
-        </div>
-        <div className="os-tile--kwart">
+        <div className="os-tile--half">
           <AgendaKaart />
         </div>
-        <div className="os-tile--kwart">
+        <div className="os-tile--half">
           <InboxKaart />
         </div>
-        <div className="os-tile--kwart">
+        <div className="os-tile--half">
           <BrainDumpKaart />
+        </div>
+
+        {/* Eén rij van vier kwart-tegels: de compacte tools. */}
+        <div className="os-tile--kwart">
+          <BurnoutKaart />
         </div>
         <div className="os-tile--kwart">
           <FocusKaart />

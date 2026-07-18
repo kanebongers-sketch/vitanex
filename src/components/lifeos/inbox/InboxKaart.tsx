@@ -6,7 +6,12 @@ import { Kaart, NogNiets } from '@/components/lifeos/os/Kaart'
 import { Foutmelding } from '@/components/lifeos/os/Foutmelding'
 import { Knop } from '@/components/lifeos/os/Knop'
 import { haalJson } from '@/lib/lifeos/api/http'
-import { leesInboxVandaag, type InboxVandaag, type TriageMailJson } from '@/lib/lifeos/inbox/inbox'
+import {
+  leesInboxVandaag,
+  OPNIEUW_KOPPELEN,
+  type InboxVandaag,
+  type TriageMailJson,
+} from '@/lib/lifeos/inbox/inbox'
 import { Triagelijst } from './Triagelijst'
 import { useSuggesties } from './useSuggesties'
 import { maakActie } from './acties'
@@ -15,20 +20,27 @@ import { voerMailActieUit, vraagConcept, type MailActieSoort } from './mail-acti
 // Container: haalt op, kent de staten, plaatst de presentatie. Voor het
 // Avond-moment. Vervangt "even Gmail openen om te kijken of er nog iets ligt".
 //
-// Drie staten die echt verschillen, plus laden:
-//   fout           — er ging iets mis. Weg terug: opnieuw proberen.
-//   niet gekoppeld — we mogen niet kijken. Weg terug: koppelen.
-//   gekoppeld      — de triage.
+// Vier staten die echt verschillen, plus laden:
+//   fout             — er ging iets mis. Weg terug: opnieuw proberen.
+//   niet gekoppeld   — we mogen niet kijken. Weg terug: koppelen.
+//   opnieuw koppelen — wél gekoppeld, maar met te weinig rechten (alleen lezen,
+//                      van vóór de schrijf-uitbreiding). Gmail gaf 403; de weg
+//                      terug is dezelfde koppel-flow, die nu de volledige scope
+//                      vraagt. Bewust géén "fout": het is een instructie, geen
+//                      storing — en géén "niet gekoppeld": er ís een koppeling.
+//   gekoppeld        — de triage.
 //
-// "Niets vraagt iets van je" is GEEN vierde staat maar een uitkomst van de derde:
-// we hebben gekeken en het antwoord is nul. Dat verschil is hier het hele punt.
-// Een netwerkfout die als "geen mail" rendert, vertelt Kane dat niemand iets van
-// hem wil terwijl er een aanmaning ligt — dat is de duurste bug die deze kaart
+// "Niets vraagt iets van je" is GEEN aparte staat maar een uitkomst van de
+// laatste: we hebben gekeken en het antwoord is nul. Dat verschil is hier het hele
+// punt. Een netwerkfout die als "geen mail" rendert, vertelt Kane dat niemand iets
+// van hem wil terwijl er een aanmaning ligt — dat is de duurste bug die deze kaart
 // kan hebben, en daarom heeft `fout` een eigen tak die niets over je post beweert.
 
 type Staat =
   | { fase: 'laden' }
   | { fase: 'fout'; bericht: string }
+  /** Wél gekoppeld, maar met te weinig scope: alleen opnieuw koppelen helpt. */
+  | { fase: 'opnieuw_koppelen' }
   | { fase: 'ok'; data: InboxVandaag }
 
 function leesKoppelUrl(ruw: unknown): { url: string } | null {
@@ -59,11 +71,15 @@ export function InboxKaart() {
     const mijn = ++generatie.current
     return haalJson('/api/lifeos/inbox/vandaag', leesInboxVandaag).then((uitkomst) => {
       if (mijn !== generatie.current) return // ingehaald of ontkoppeld
-      setStaat(
-        uitkomst.ok
-          ? { fase: 'ok', data: uitkomst.waarde }
-          : { fase: 'fout', bericht: uitkomst.fout },
-      )
+      if (uitkomst.ok) {
+        setStaat({ fase: 'ok', data: uitkomst.waarde })
+      } else if (uitkomst.fout === OPNIEUW_KOPPELEN) {
+        // Het scope-sein van de route: te weinig rechten, geen storing. Eigen tak,
+        // zodat de kaart een "opnieuw koppelen"-knop toont i.p.v. een kale fout.
+        setStaat({ fase: 'opnieuw_koppelen' })
+      } else {
+        setStaat({ fase: 'fout', bericht: uitkomst.fout })
+      }
     })
   }, [])
 
@@ -138,6 +154,20 @@ export function InboxKaart() {
       {staat.fase === 'laden' ? <Skelet /> : null}
 
       {staat.fase === 'fout' ? <Foutmelding bericht={staat.bericht} opnieuw={opnieuw} /> : null}
+
+      {staat.fase === 'opnieuw_koppelen' ? (
+        <div style={{ display: 'grid', gap: 14, justifyItems: 'start' }}>
+          <NogNiets
+            wat="Koppel Gmail opnieuw"
+            waarom="Je gaf Gmail eerder alleen leesrechten; koppel opnieuw om je inbox te gebruiken. MentaForce leest dan afzender en onderwerp — nooit de inhoud — en kan mails archiveren, als gelezen markeren en concept-antwoorden klaarzetten in je Gmail-concepten. Versturen doe je altijd zelf."
+          />
+          <Knop variant="primair" onClick={() => void koppel()}>
+            <MailPlus size={14} strokeWidth={2.2} aria-hidden="true" />
+            Gmail opnieuw koppelen
+          </Knop>
+          {koppelFout ? <Foutmelding bericht={koppelFout} opnieuw={() => void koppel()} /> : null}
+        </div>
+      ) : null}
 
       {staat.fase === 'ok' && !staat.data.gekoppeld ? (
         <div style={{ display: 'grid', gap: 14, justifyItems: 'start' }}>

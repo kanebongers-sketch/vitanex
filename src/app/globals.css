@@ -1547,19 +1547,18 @@ body {
      --derde   |  vol |   4  |   6  |   8  |    4
 
    Rij-optel-controle per cluster (bewijs dat geen enkele rij een wees-cel houdt):
-     VANDAAG (2x anker + 8x kwart)
-       12col: anker 6+6=12 . kwart 3+3+3+3=12 (x2)
-        8col: anker 8 . 8   . kwart 4+4=8 (x4)
-        6col: anker 6 . 6   . kwart 3+3=6 (x4)
-        4col: anker 4 . 4   . kwart 2+2=4 (x4)
+     MIJN DAG (2x anker + 4x half + 4x kwart)
+       12col: anker 6+6=12 . half 6+6=12 (x2) . kwart 3+3+3+3=12
+        8col: anker 8 (x2)  . half/kwart span 4 -> 4+4=8 (x4)
+        6col: anker 6 (x2)  . half/kwart span 3 -> 3+3=6 (x4)
+        4col: anker 4 (x2)  . half/kwart span 2 -> 2+2=4 (x4)
         1col: elke tegel vol
-     WELZIJN (3x derde + 2x half)
-       12col: derde 4+4+4=12 . half 6+6=12
-        8col: derde 8 (x3)   . half 4+4=8
-        6col: derde 6 (x3)   . half 3+3=6
-        4col: derde 4 (x3)   . half 2+2=4
-        1col: elke tegel vol
-     VERBINDEN (3x vol): elke tegel een eigen volle rij op elke breakpoint. */
+       (op 8col en smaller vallen half en kwart samen tot dezelfde breedte, dus
+        de acht kleine tegels paren netjes 2-per-rij — even aantal, geen wees-cel.)
+     VERBINDEN (3x vol): elke tegel een eigen volle rij op elke breakpoint.
+   --half draagt de vier breedte-kaarten in Mijn dag (en het laad-skelet). --derde
+   blijft als span-utility gedefinieerd voor symmetrie met de set, maar is nu in
+   geen enkel cluster in gebruik. */
 .os-tile--vol,
 .os-tile--anker,
 .os-tile--kwart,
