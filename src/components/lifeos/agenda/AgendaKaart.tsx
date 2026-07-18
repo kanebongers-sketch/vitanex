@@ -22,7 +22,7 @@ import {
 import { datumSleutel, leesDatumSleutel } from '@/lib/lifeos/datum/datum'
 import { Dagoverzicht } from './Dagoverzicht'
 import { NieuweAfspraak, type NieuwEventInvoer } from './NieuweAfspraak'
-import { AgendaKiezer } from './AgendaKiezer'
+import { AgendaKalenders } from './AgendaKalenders'
 import { Foutmelding } from '@/components/lifeos/os/Foutmelding'
 import { Knop } from '@/components/lifeos/os/Knop'
 
@@ -250,7 +250,7 @@ export function AgendaKaart() {
           <Skelet />
         ) : (
           <div style={{ display: 'grid', gap: 16 }}>
-            <AgendaKiezer onGewijzigd={herlaadNaKeuze} onKoppelOpnieuw={() => void koppel()} />
+            <AgendaKalenders onGewijzigd={herlaadNaKeuze} onKoppelOpnieuw={() => void koppel()} />
             <Dagoverzicht
               volgende={staat.data.volgende}
               loopt={

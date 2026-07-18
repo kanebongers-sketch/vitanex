@@ -3,6 +3,7 @@ import {
   eventsEndpoint,
   leesKalenderKeuze,
   leesKalenderLijst,
+  leesZichtbaarKeuze,
   MAX_KALENDER_ID_LENGTE,
 } from './google'
 
@@ -62,31 +63,45 @@ describe('leesKalenderLijst — status → uitkomst', () => {
   })
 })
 
-describe('leesKalenderLijst — narrowing + accessRole-filter', () => {
-  it('houdt owner en writer, laat reader en freeBusyReader vallen', () => {
+describe('leesKalenderLijst — narrowing + alle agenda\'s + kleur', () => {
+  it('houdt ALLE agenda\'s (ook reader/freeBusyReader), met hun toegang en kleur', () => {
     // Act
     const uitkomst = leesKalenderLijst(200, {
       items: [
-        { id: 'eigen@x.nl', summary: 'Mijn agenda', primary: true, accessRole: 'owner' },
-        { id: 'team@x.nl', summary: 'Team', accessRole: 'writer' },
-        { id: 'feest@x.nl', summary: 'Feestdagen', accessRole: 'reader' },
+        { id: 'eigen@x.nl', summary: 'Mijn agenda', primary: true, accessRole: 'owner', backgroundColor: '#00E5FF' },
+        { id: 'team@x.nl', summary: 'Team', accessRole: 'writer', backgroundColor: '#33b679' },
+        { id: 'feest@x.nl', summary: 'Feestdagen', accessRole: 'reader', backgroundColor: '#f6bf26' },
         { id: 'vrij@x.nl', summary: 'Vrij/bezet', accessRole: 'freeBusyReader' },
       ],
     })
 
-    // Assert — alleen agenda's waarin je mag schrijven, want in de rest kun je
-    // geen afspraak plannen.
+    // Assert — de weergave toont ALLES; de toegang bepaalt later of je erin mag
+    // schrijven. Ook alleen-lezen agenda's (Feestdagen) horen in de lijst.
     if (uitkomst.staat !== 'ok') throw new Error('verwacht ok')
-    expect(uitkomst.kalenders.map((k) => k.id)).toEqual(['eigen@x.nl', 'team@x.nl'])
+    expect(uitkomst.kalenders.map((k) => k.id)).toEqual([
+      'eigen@x.nl',
+      'team@x.nl',
+      'feest@x.nl',
+      'vrij@x.nl',
+    ])
     expect(uitkomst.kalenders[0]).toEqual({
       id: 'eigen@x.nl',
       naam: 'Mijn agenda',
+      kleur: '#00E5FF',
       primair: true,
       toegang: 'owner',
     })
+    // Een alleen-lezen agenda blijft, met zijn eigen kleur en rol.
+    expect(uitkomst.kalenders[2]).toEqual({
+      id: 'feest@x.nl',
+      naam: 'Feestdagen',
+      kleur: '#f6bf26',
+      primair: false,
+      toegang: 'reader',
+    })
   })
 
-  it('slaat items zonder id of zonder accessRole over', () => {
+  it('slaat alleen items zonder id over; een ontbrekende rol wordt lege toegang', () => {
     const uitkomst = leesKalenderLijst(200, {
       items: [
         { summary: 'Geen id', accessRole: 'owner' },
@@ -96,7 +111,17 @@ describe('leesKalenderLijst — narrowing + accessRole-filter', () => {
       ],
     })
     if (uitkomst.staat !== 'ok') throw new Error('verwacht ok')
-    expect(uitkomst.kalenders.map((k) => k.id)).toEqual(['goed@x.nl'])
+    // 'geen-rol@x.nl' blijft nu wél staan (weergave toont alles), met toegang ''.
+    expect(uitkomst.kalenders.map((k) => k.id)).toEqual(['geen-rol@x.nl', 'goed@x.nl'])
+    expect(uitkomst.kalenders[0]?.toegang).toBe('')
+  })
+
+  it('leest kleur als null wanneer backgroundColor ontbreekt', () => {
+    const uitkomst = leesKalenderLijst(200, {
+      items: [{ id: 'a@x.nl', accessRole: 'owner' }],
+    })
+    if (uitkomst.staat !== 'ok') throw new Error('verwacht ok')
+    expect(uitkomst.kalenders[0]?.kleur).toBeNull()
   })
 
   it('valt terug op de id als naam wanneer summary ontbreekt', () => {
@@ -149,5 +174,35 @@ describe('leesKalenderKeuze — de POST-body', () => {
   it('weigert een absurd lange id', () => {
     const teLang = 'x'.repeat(MAX_KALENDER_ID_LENGTE + 1)
     expect(leesKalenderKeuze({ kalenderId: teLang }).ok).toBe(false)
+  })
+})
+
+describe('leesZichtbaarKeuze — de zichtbaarheids-POST-body', () => {
+  it('accepteert een geldige id met een boolean zichtbaar', () => {
+    const aan = leesZichtbaarKeuze({ kalenderId: 'werk@x.nl', zichtbaar: true })
+    expect(aan).toEqual({ ok: true, kalenderId: 'werk@x.nl', zichtbaar: true })
+
+    const uit = leesZichtbaarKeuze({ kalenderId: 'werk@x.nl', zichtbaar: false })
+    expect(uit).toEqual({ ok: true, kalenderId: 'werk@x.nl', zichtbaar: false })
+  })
+
+  it('trimt de id (via leesKalenderKeuze)', () => {
+    const uitkomst = leesZichtbaarKeuze({ kalenderId: '  team@x.nl  ', zichtbaar: true })
+    expect(uitkomst.ok).toBe(true)
+    if (uitkomst.ok) expect(uitkomst.kalenderId).toBe('team@x.nl')
+  })
+
+  it('weigert een ontbrekende of niet-boolean zichtbaar', () => {
+    expect(leesZichtbaarKeuze({ kalenderId: 'a@x.nl' }).ok).toBe(false)
+    // Waarheids-achtige waarden tellen niet: een tikfout mag niet stil aan/uit zetten.
+    expect(leesZichtbaarKeuze({ kalenderId: 'a@x.nl', zichtbaar: 'true' }).ok).toBe(false)
+    expect(leesZichtbaarKeuze({ kalenderId: 'a@x.nl', zichtbaar: 1 }).ok).toBe(false)
+    expect(leesZichtbaarKeuze({ kalenderId: 'a@x.nl', zichtbaar: null }).ok).toBe(false)
+  })
+
+  it('weigert een ongeldige id, ook met een geldige boolean', () => {
+    expect(leesZichtbaarKeuze({ kalenderId: '', zichtbaar: true }).ok).toBe(false)
+    expect(leesZichtbaarKeuze({ zichtbaar: true }).ok).toBe(false)
+    expect(leesZichtbaarKeuze(null).ok).toBe(false)
   })
 })

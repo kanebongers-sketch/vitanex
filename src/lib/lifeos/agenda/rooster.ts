@@ -30,6 +30,8 @@ export interface RoosterBlok {
   id: string
   titel: string | null
   locatie: string | null
+  /** De kleur van de agenda waaruit dit event komt (hex), of null → cyaan-stijl. */
+  kleur: string | null
   /** Starttijd in lokale minuten sinds middernacht. */
   startMin: number
   /** Echte eindtijd in lokale minuten, of null als de duur onbekend is. */
@@ -49,6 +51,8 @@ export interface HeleDagAfspraak {
   id: string
   titel: string | null
   locatie: string | null
+  /** De kleur van de agenda (hex), of null → cyaan-stijl. */
+  kleur: string | null
 }
 
 export interface Rooster {
@@ -99,6 +103,7 @@ interface TijdAfspraak {
   id: string
   titel: string | null
   locatie: string | null
+  kleur: string | null
   startMin: number
   eindMin: number | null
   duurMin: number
@@ -119,7 +124,7 @@ function splits(afspraken: readonly AfspraakJson[]): {
 
   for (const a of afspraken) {
     if (a.heleDag) {
-      heleDag.push({ id: a.id, titel: a.titel, locatie: a.locatie })
+      heleDag.push({ id: a.id, titel: a.titel, locatie: a.locatie, kleur: a.kleur ?? null })
       continue
     }
 
@@ -136,6 +141,7 @@ function splits(afspraken: readonly AfspraakJson[]): {
       id: a.id,
       titel: a.titel,
       locatie: a.locatie,
+      kleur: a.kleur ?? null,
       startMin,
       eindMin: rawEind,
       duurMin,
@@ -220,6 +226,7 @@ function positioneer(tijd: readonly TijdAfspraak[], vensterStartMin: number): Ro
       id: a.id,
       titel: a.titel,
       locatie: a.locatie,
+      kleur: a.kleur,
       startMin: a.startMin,
       eindMin: a.eindMin,
       topMin: a.startMin - vensterStartMin,

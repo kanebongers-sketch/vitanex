@@ -126,6 +126,12 @@ describe('afspraakVanRij — systeemgrens: één DB-rij', () => {
     expect(a?.locatie).toBeNull()
   })
 
+  it('leest kleur uit de rij, en null wanneer die ontbreekt of leeg is', () => {
+    expect(afspraakVanRij(rij({ kleur: '#f6bf26' }))?.kleur).toBe('#f6bf26')
+    expect(afspraakVanRij(rij({ kleur: undefined }))?.kleur).toBeNull()
+    expect(afspraakVanRij(rij({ kleur: '   ' }))?.kleur).toBeNull()
+  })
+
   it('leest heleDag alleen bij een strikte true, niet bij een waarheids-achtige waarde', () => {
     expect(afspraakVanRij(rij({ hele_dag: true }))?.heleDag).toBe(true)
     expect(afspraakVanRij(rij({ hele_dag: 'true' }))?.heleDag).toBe(false)
@@ -270,24 +276,54 @@ describe('leesAgendaVandaag — systeemgrens: ons eigen API-antwoord', () => {
 
 describe('leesKalendersAntwoord — systeemgrens: de kalenderlijst', () => {
   function kalender(overschrijf: Record<string, unknown> = {}): Record<string, unknown> {
-    return { id: 'eigen@x.nl', naam: 'Mijn agenda', primair: true, ...overschrijf }
+    return {
+      id: 'eigen@x.nl',
+      naam: 'Mijn agenda',
+      kleur: '#00E5FF',
+      toegang: 'owner',
+      primair: true,
+      zichtbaar: true,
+      ...overschrijf,
+    }
   }
 
-  it('leest een geldig antwoord met de gekozen agenda', () => {
+  it('leest een geldig antwoord met het schrijf-doel', () => {
     const gelezen = leesKalendersAntwoord({
-      kalenders: [kalender(), kalender({ id: 'team@x.nl', naam: 'Team', primair: false })],
-      gekozen: 'team@x.nl',
+      kalenders: [kalender(), kalender({ id: 'team@x.nl', naam: 'Team', primair: false, kleur: '#33b679' })],
+      schrijfDoel: 'team@x.nl',
     })
 
     expect(gelezen).not.toBeNull()
     expect(gelezen?.kalenders).toHaveLength(2)
-    expect(gelezen?.kalenders[0]).toEqual({ id: 'eigen@x.nl', naam: 'Mijn agenda', primair: true })
-    expect(gelezen?.gekozen).toBe('team@x.nl')
+    expect(gelezen?.kalenders[0]).toEqual({
+      id: 'eigen@x.nl',
+      naam: 'Mijn agenda',
+      kleur: '#00E5FF',
+      toegang: 'owner',
+      primair: true,
+      zichtbaar: true,
+    })
+    expect(gelezen?.schrijfDoel).toBe('team@x.nl')
   })
 
-  it('leest een ontbrekende of lege gekozen als null (= primary)', () => {
-    expect(leesKalendersAntwoord({ kalenders: [kalender()] })?.gekozen).toBeNull()
-    expect(leesKalendersAntwoord({ kalenders: [kalender()], gekozen: '   ' })?.gekozen).toBeNull()
+  it('leest kleur en toegang als null/leeg wanneer ze ontbreken', () => {
+    const gelezen = leesKalendersAntwoord({
+      kalenders: [kalender({ kleur: undefined, toegang: undefined })],
+    })
+    expect(gelezen?.kalenders[0]?.kleur).toBeNull()
+    expect(gelezen?.kalenders[0]?.toegang).toBe('')
+  })
+
+  it('leest zichtbaar als true tenzij expliciet false', () => {
+    const aan = leesKalendersAntwoord({ kalenders: [kalender({ zichtbaar: undefined })] })
+    const uit = leesKalendersAntwoord({ kalenders: [kalender({ zichtbaar: false })] })
+    expect(aan?.kalenders[0]?.zichtbaar).toBe(true)
+    expect(uit?.kalenders[0]?.zichtbaar).toBe(false)
+  })
+
+  it('leest een ontbrekende of leeg schrijfDoel als null (= primary)', () => {
+    expect(leesKalendersAntwoord({ kalenders: [kalender()] })?.schrijfDoel).toBeNull()
+    expect(leesKalendersAntwoord({ kalenders: [kalender()], schrijfDoel: '   ' })?.schrijfDoel).toBeNull()
   })
 
   it('leest primair alleen bij een strikte true', () => {
@@ -308,12 +344,12 @@ describe('leesKalendersAntwoord — systeemgrens: de kalenderlijst', () => {
   })
 
   it('accepteert een lege kalenderlijst', () => {
-    expect(leesKalendersAntwoord({ kalenders: [] })).toEqual({ kalenders: [], gekozen: null })
+    expect(leesKalendersAntwoord({ kalenders: [] })).toEqual({ kalenders: [], schrijfDoel: null })
   })
 })
 
 describe('round-trips — serialiseren en terug', () => {
-  it('naarAfspraakJson → vanAfspraakJson geeft dezelfde afspraak terug', () => {
+  it('naarAfspraakJson → vanAfspraakJson geeft dezelfde afspraak terug, inclusief kleur', () => {
     const a: Afspraak = {
       id: 'evt-1',
       titel: 'Standup',
@@ -321,12 +357,15 @@ describe('round-trips — serialiseren en terug', () => {
       eindOp: new Date('2026-07-20T09:15:00.000Z'),
       heleDag: false,
       locatie: 'Kantoor',
+      kleur: '#33b679',
     }
 
-    expect(vanAfspraakJson(naarAfspraakJson(a))).toEqual(a)
+    const json = naarAfspraakJson(a)
+    expect(json.kleur).toBe('#33b679')
+    expect(vanAfspraakJson(json)).toEqual(a)
   })
 
-  it('behoudt een null-eindOp door de heen-en-terug-vertaling', () => {
+  it('behoudt een null-eindOp en een null-kleur door de heen-en-terug-vertaling', () => {
     const a: Afspraak = {
       id: 'evt-2',
       titel: null,
@@ -334,10 +373,12 @@ describe('round-trips — serialiseren en terug', () => {
       eindOp: null,
       heleDag: true,
       locatie: null,
+      kleur: null,
     }
 
     const json = naarAfspraakJson(a)
     expect(json.eindOp).toBeNull()
+    expect(json.kleur).toBeNull()
     expect(vanAfspraakJson(json)).toEqual(a)
   })
 
@@ -356,7 +397,7 @@ describe('round-trips — serialiseren en terug', () => {
   })
 
   it('een DB-rij door afspraakVanRij en dan naarAfspraakJson normaliseert de tijden', () => {
-    const a = afspraakVanRij(rij())
+    const a = afspraakVanRij(rij({ kleur: '#7986cb' }))
     expect(a).not.toBeNull()
     if (a === null) return
     expect(naarAfspraakJson(a)).toEqual({
@@ -366,6 +407,7 @@ describe('round-trips — serialiseren en terug', () => {
       eindOp: '2026-07-20T09:15:00.000Z',
       heleDag: false,
       locatie: 'Kantoor',
+      kleur: '#7986cb',
     })
   })
 })

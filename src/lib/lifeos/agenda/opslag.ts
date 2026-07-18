@@ -33,7 +33,7 @@ export async function haalEventsUitCache(
 ): Promise<Uitkomst<Afspraak[]>> {
   const { data, error } = await admin
     .from('agenda_events')
-    .select('id, titel, start_op, eind_op, hele_dag, locatie')
+    .select('id, titel, start_op, eind_op, hele_dag, locatie, kleur')
     .eq('user_id', userId)
     .lt('start_op', tot.toISOString())
     .or(`eind_op.gte.${van.toISOString()},eind_op.is.null`)
@@ -74,23 +74,38 @@ export async function laatsteSync(
 }
 
 /**
- * Zet de opgehaalde afspraken in de cache en ruim op wat Google niet meer geeft.
+ * Zet de opgehaalde afspraken (uit ALLE zichtbare agenda's, al gemerged en
+ * gekleurd) in de cache en ruim op wat er niet meer hoort.
  *
  * Idempotent: dezelfde sync twee keer draaien levert exact dezelfde rijen op —
  * de unieke index (user_id, bron, extern_id) doet het werk, niet een
- * read-then-write in deze functie.
+ * read-then-write in deze functie. Elk event draagt nu ook zijn `kalender_id` en
+ * `kleur`, zodat de weergave weet uit welke agenda het komt en welke kleur het krijgt.
+ *
+ * `zichtbareIds` = de agenda's die aan staan; `gesyncteIds` = die waarvan de fetch
+ * deze ronde ook echt slaagde. Dat onderscheid stuurt de opruiming (zie
+ * `ruimVerdwenenOp`): een agenda die je uitzette wordt geleegd, maar een agenda
+ * waarvan Google net even niet antwoordde blijft staan — een hik mag je dag niet wissen.
  */
 export async function bewaarEvents(
   admin: SupabaseClient,
   userId: string,
   alleEvents: readonly GoogleAfspraak[],
+  zichtbareIds: readonly string[],
+  gesyncteIds: readonly string[],
   van: Date,
   tot: Date,
 ): Promise<Uitkomst<number>> {
   // Een event dat eindigt vóór het begint schendt de check-constraint, en dan
   // faalt de HELE upsert — één kapotte afspraak zou je hele sync slopen. Liever
   // die ene overslaan dan de dag verliezen.
-  const events = alleEvents.filter((e) => !e.eindOp || e.eindOp.getTime() >= e.startOp.getTime())
+  const geldig = alleEvents.filter((e) => !e.eindOp || e.eindOp.getTime() >= e.startOp.getTime())
+
+  // Dedup op extern_id: dezelfde afspraak kan op twee zichtbare agenda's staan (een
+  // uitnodiging op je werk- én je privé-agenda). De unieke index laat één rij toe,
+  // en Postgres weigert een upsert die diezelfde rij twee keer in één batch raakt.
+  // We houden de laatst gemergede versie — dus de kleur van de laatst gesyncte agenda.
+  const events = laatstePerExternId(geldig)
 
   if (events.length > 0) {
     const rijen = events.map((e) => ({
@@ -102,6 +117,8 @@ export async function bewaarEvents(
       eind_op: e.eindOp ? e.eindOp.toISOString() : null,
       hele_dag: e.heleDag,
       locatie: e.locatie,
+      kalender_id: e.kalenderId ?? null,
+      kleur: e.kleur ?? null,
     }))
 
     const { error } = await admin
@@ -111,33 +128,91 @@ export async function bewaarEvents(
     if (error) return { ok: false, reden: 'db' }
   }
 
-  const opgeruimd = await ruimVerdwenenOp(admin, userId, events, van, tot)
+  const opgeruimd = await ruimVerdwenenOp(admin, userId, events, zichtbareIds, gesyncteIds, van, tot)
   if (!opgeruimd.ok) return opgeruimd
 
   return { ok: true, waarde: events.length }
 }
 
 /**
- * Weg met wat Google in dit venster niet meer teruggeeft: afgezegd of verplaatst.
+ * PUUR: dedupliceer events op `externId`, de LAATSTE wint.
+ *
+ * Zo landt een afspraak die op twee agenda's staat (een uitnodiging) één keer in
+ * de cache, met de kleur van de laatst gesyncte agenda — en voorkomen we dat de
+ * batch-upsert dezelfde rij twee keer raakt, wat Postgres zou weigeren. Behoudt de
+ * volgorde van eerste verschijning niet expliciet; de upsert is orde-onafhankelijk.
+ */
+export function laatstePerExternId(events: readonly GoogleAfspraak[]): GoogleAfspraak[] {
+  const perId = new Map<string, GoogleAfspraak>()
+  for (const e of events) perId.set(e.externId, e)
+  return [...perId.values()]
+}
+
+/** Een cache-rij, beperkt tot wat de opruiming nodig heeft. */
+export interface CacheRijRef {
+  externId: string
+  kalenderId: string | null
+}
+
+/**
+ * PUUR: welke extern_ids moeten uit het venster weg na een multi-agenda-sync?
+ *
+ * De vier gevallen, in volgorde:
+ *  1. Nog steeds gezien (deze sync teruggekregen) → HOUDEN.
+ *  2. Geen `kalender_id` (door de schrijf-flow gemaakt, nog niet door een sync
+ *     gekleurd) → HOUDEN; niet aan ons om die te wissen.
+ *  3. Agenda staat uit / bestaat niet meer (niet in `zichtbareIds`) → WEG. Zo
+ *     verdwijnen events van een uitgevinkte agenda uit je dag.
+ *  4. Agenda staat aan én is deze ronde succesvol gesynct, maar dit event kwam
+ *     niet terug → WEG (afgezegd of verplaatst).
+ * Rest: agenda staat aan maar de fetch faalde → HOUDEN. Een Google-hik mag geen
+ * events wissen.
+ *
+ * Getest zonder database — dit is de riskantste beslissing van de sync.
+ */
+export function teVerwijderenExternIds(
+  rijen: readonly CacheRijRef[],
+  geziene: ReadonlySet<string>,
+  zichtbareIds: ReadonlySet<string>,
+  gesyncteIds: ReadonlySet<string>,
+): string[] {
+  const weg: string[] = []
+  for (const rij of rijen) {
+    if (geziene.has(rij.externId)) continue
+    if (rij.kalenderId === null) continue
+    if (!zichtbareIds.has(rij.kalenderId)) {
+      weg.push(rij.externId)
+      continue
+    }
+    if (gesyncteIds.has(rij.kalenderId)) weg.push(rij.externId)
+  }
+  return weg
+}
+
+/**
+ * Weg met wat er niet meer hoort in dit venster: events van uitgevinkte agenda's,
+ * en events uit succesvol gesyncte agenda's die niet terugkwamen (afgezegd/verplaatst).
  *
  * Alleen binnen [van, tot) — buiten het gesyncte venster weten we niets, en dan
  * is weggooien een gok.
  *
  * Eerst lezen, dan het verschil verwijderen. Niet "delete waar extern_id NOT IN
  * (alle 200 ids)": die filter reist als querystring naar PostgREST en loopt bij
- * een volle week tegen de URL-limiet aan. In het normale geval is er niets
- * afgezegd en doen we hier dus helemaal geen delete.
+ * een volle week tegen de URL-limiet aan. In het normale geval is er niets weg te
+ * gooien en doen we hier dus helemaal geen delete.
  */
 async function ruimVerdwenenOp(
   admin: SupabaseClient,
   userId: string,
   events: readonly GoogleAfspraak[],
+  zichtbareIds: readonly string[],
+  gesyncteIds: readonly string[],
   van: Date,
   tot: Date,
 ): Promise<Uitkomst<null>> {
   const { data, error: leesFout } = await admin
     .from('agenda_events')
-    .select('extern_id')
+    .select('extern_id, kalender_id')
     .eq('user_id', userId)
     .eq('bron', GOOGLE_CALENDAR)
     .gte('start_op', van.toISOString())
@@ -145,24 +220,39 @@ async function ruimVerdwenenOp(
 
   if (leesFout) return { ok: false, reden: 'db' }
 
-  const gezien = new Set(events.map((e) => e.externId))
-  const verdwenen = (Array.isArray(data) ? data : [])
-    .map((rij: unknown) =>
-      typeof rij === 'object' && rij !== null && 'extern_id' in rij
-        ? (rij as { extern_id: unknown }).extern_id
-        : null,
-    )
-    .filter((id): id is string => typeof id === 'string' && !gezien.has(id))
+  const rijen = (Array.isArray(data) ? data : [])
+    .map(cacheRijRefUitRij)
+    .filter((r): r is CacheRijRef => r !== null)
 
-  if (verdwenen.length === 0) return { ok: true, waarde: null }
+  const geziene = new Set(events.map((e) => e.externId))
+  const weg = teVerwijderenExternIds(
+    rijen,
+    geziene,
+    new Set(zichtbareIds),
+    new Set(gesyncteIds),
+  )
+
+  if (weg.length === 0) return { ok: true, waarde: null }
 
   const { error } = await admin
     .from('agenda_events')
     .delete()
     .eq('user_id', userId)
     .eq('bron', GOOGLE_CALENDAR)
-    .in('extern_id', verdwenen)
+    .in('extern_id', weg)
 
   if (error) return { ok: false, reden: 'db' }
   return { ok: true, waarde: null }
+}
+
+/** Systeemgrens: één cache-rij → {externId, kalenderId}, of null als onbruikbaar. */
+function cacheRijRefUitRij(rij: unknown): CacheRijRef | null {
+  if (typeof rij !== 'object' || rij === null) return null
+  const externId = (rij as { extern_id?: unknown }).extern_id
+  if (typeof externId !== 'string' || externId.length === 0) return null
+  const kalenderId = (rij as { kalender_id?: unknown }).kalender_id
+  return {
+    externId,
+    kalenderId: typeof kalenderId === 'string' && kalenderId.length > 0 ? kalenderId : null,
+  }
 }

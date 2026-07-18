@@ -20,6 +20,8 @@ export interface AfspraakJson {
   eindOp: string | null
   heleDag: boolean
   locatie: string | null
+  /** De kleur van de agenda waaruit dit event komt (hex), of null. Kleurt het blok. */
+  kleur?: string | null
 }
 
 export interface VrijBlokJson {
@@ -51,21 +53,46 @@ export type AgendaVandaag =
     }
 
 /**
- * Eén agenda in de kiezer, zoals hij over de draad gaat. Structureel gelijk aan
- * `GoogleKalender` (server, google.ts), maar hier apart zodat de client die
- * server-only module — met secrets en fetch — nooit hoeft te importeren. Zelfde
- * grens-patroon als `AfspraakJson` ↔ `GoogleAfspraak`.
+ * Eén agenda in de weergave, zoals hij over de draad gaat. Structureel verwant
+ * aan `GoogleKalender` (server, google.ts) plus de opgeslagen `zichtbaar`-vlag,
+ * maar hier apart zodat de client die server-only module — met secrets en fetch —
+ * nooit hoeft te importeren. Zelfde grens-patroon als `AfspraakJson` ↔ `GoogleAfspraak`.
  */
 export interface KalenderJson {
   id: string
   naam: string
+  /** Google's backgroundColor (hex), of null. De kleur van deze agenda. */
+  kleur: string | null
+  /** `owner`/`writer`/`reader`/`freeBusyReader`. Bepaalt of je erin mag schrijven. */
+  toegang: string
   primair: boolean
+  /** Wordt deze agenda getoond in de weergave? (het vinkje) */
+  zichtbaar: boolean
 }
 
-/** Het antwoord van `GET /api/lifeos/agenda/kalenders`. `gekozen` = null → primary. */
+/**
+ * Het antwoord van `GET /api/lifeos/agenda/kalenders`.
+ *
+ * `kalenders` = ALLE agenda's (met kleur + zichtbaar-vlag) voor de weergave.
+ * `schrijfDoel` = de agenda waar NIEUWE afspraken/focusblokken heen gaan (null =
+ * de primaire agenda). Weergave-zichtbaarheid en schrijf-doel zijn bewust twee
+ * verschillende dingen.
+ */
 export interface KalendersAntwoord {
   kalenders: KalenderJson[]
-  gekozen: string | null
+  schrijfDoel: string | null
+}
+
+/** De rollen waarin je in een agenda mag SCHRIJVEN. */
+const SCHRIJFBARE_ROLLEN: ReadonlySet<string> = new Set(['owner', 'writer'])
+
+/**
+ * Mag je in een agenda met deze `toegang` schrijven? Client-veilig (puur), zodat
+ * de schrijf-doel-kiezer de beschrijfbare agenda's kan filteren zonder de
+ * server-only `google.ts` te importeren.
+ */
+export function isSchrijfbaar(toegang: string): boolean {
+  return SCHRIJFBARE_ROLLEN.has(toegang)
 }
 
 /**
@@ -84,6 +111,7 @@ export function naarAfspraakJson(a: Afspraak): AfspraakJson {
     eindOp: a.eindOp ? a.eindOp.toISOString() : null,
     heleDag: a.heleDag,
     locatie: a.locatie,
+    kleur: a.kleur ?? null,
   }
 }
 
@@ -104,6 +132,7 @@ export function vanAfspraakJson(j: AfspraakJson): Afspraak {
     eindOp: j.eindOp ? new Date(j.eindOp) : null,
     heleDag: j.heleDag,
     locatie: j.locatie,
+    kleur: j.kleur ?? null,
   }
 }
 
@@ -143,6 +172,7 @@ export function afspraakVanRij(rij: unknown): Afspraak | null {
     eindOp: moment(rij.eind_op),
     heleDag: rij.hele_dag === true,
     locatie: tekst(rij.locatie),
+    kleur: tekst(rij.kleur),
   }
 }
 
@@ -169,6 +199,7 @@ function leesAfspraakJson(ruw: unknown): AfspraakJson | null {
     eindOp: tekst(ruw.eindOp),
     heleDag: ruw.heleDag === true,
     locatie: tekst(ruw.locatie),
+    kleur: tekst(ruw.kleur),
   }
 }
 
@@ -226,15 +257,24 @@ function leesKalenderJson(ruw: unknown): KalenderJson | null {
   const naam = tekst(ruw.naam)
   if (id === null || naam === null) return null
 
-  return { id, naam, primair: ruw.primair === true }
+  return {
+    id,
+    naam,
+    kleur: tekst(ruw.kleur),
+    toegang: tekst(ruw.toegang) ?? '',
+    primair: ruw.primair === true,
+    // Ontbrekend of niet-strikt-false → zichtbaar. Een agenda hoort standaard te
+    // verschijnen; alleen een expliciete `false` verbergt 'm.
+    zichtbaar: ruw.zichtbaar !== false,
+  }
 }
 
 /**
  * Het antwoord van `GET /api/lifeos/agenda/kalenders`, of null als het niet klopt.
  *
  * Eén kapotte agenda = een kapot antwoord (zelfde regel als `leesAgendaVandaag`):
- * stil overslaan zou een agenda uit de kiezer laten verdwijnen zonder dat iemand
- * het merkt. `gekozen` mag ontbreken → null (dan staat de primaire agenda voor).
+ * stil overslaan zou een agenda uit de weergave laten verdwijnen zonder dat iemand
+ * het merkt. `schrijfDoel` mag ontbreken → null (dan staat de primaire agenda voor).
  */
 export function leesKalendersAntwoord(ruw: unknown): KalendersAntwoord | null {
   if (!isObject(ruw)) return null
@@ -245,6 +285,6 @@ export function leesKalendersAntwoord(ruw: unknown): KalendersAntwoord | null {
 
   return {
     kalenders: kalenders.filter((k): k is KalenderJson => k !== null),
-    gekozen: tekst(ruw.gekozen),
+    schrijfDoel: tekst(ruw.schrijfDoel),
   }
 }

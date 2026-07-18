@@ -1,13 +1,15 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import type { AfspraakJson } from '@/lib/lifeos/agenda/agenda'
 import { datumSleutel } from '@/lib/lifeos/datum/datum'
+import { blokStijlVoorKleur } from '@/lib/lifeos/agenda/kleur'
 import {
   bouwRooster,
   minutenSindsMiddernacht,
   tijdLabelVanMinuten,
   uurLijnen,
+  type HeleDagAfspraak,
   type RoosterBlok,
 } from '@/lib/lifeos/agenda/rooster'
 
@@ -148,8 +150,12 @@ export function AgendaRooster({ afspraken, dag }: AgendaRoosterProps) {
   )
 }
 
-/** De hele-dag-events als rustige cyaan-getinte chips bovenaan het rooster. */
-function HeleDagStrook({ items }: { items: { id: string; titel: string | null }[] }) {
+/**
+ * De hele-dag-events als chips bovenaan het rooster: elk met een kleur-stipje in
+ * de eigen agenda-kleur en een subtiel getinte rand. Zonder kleur valt de chip
+ * terug op de cyaan-stijl.
+ */
+function HeleDagStrook({ items }: { items: HeleDagAfspraak[] }) {
   return (
     <ul
       style={{
@@ -162,21 +168,35 @@ function HeleDagStrook({ items }: { items: { id: string; titel: string | null }[
       }}
     >
       {items.map((item) => (
-        <li
-          key={item.id}
-          style={{
-            fontSize: 12,
-            color: 'var(--text-1)',
-            padding: '3px 9px',
-            borderRadius: 999,
-            border: '1px solid color-mix(in srgb, var(--brand) 34%, transparent)',
-            background: 'var(--brand-soft)',
-          }}
-        >
-          {item.titel ?? 'Afspraak zonder titel'}
-        </li>
+        <HeleDagChip key={item.id} titel={item.titel} kleur={item.kleur} />
       ))}
     </ul>
+  )
+}
+
+function HeleDagChip({ titel, kleur }: { titel: string | null; kleur: string | null }) {
+  const stijl = blokStijlVoorKleur(kleur)
+  const rand = stijl?.rand ?? 'var(--brand)'
+  return (
+    <li
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 6,
+        fontSize: 12,
+        color: 'var(--text-1)',
+        padding: '3px 10px',
+        borderRadius: 999,
+        border: `1px solid color-mix(in srgb, ${rand} 40%, transparent)`,
+        background: `color-mix(in srgb, ${rand} 16%, transparent)`,
+      }}
+    >
+      <span
+        aria-hidden="true"
+        style={{ width: 7, height: 7, borderRadius: 999, background: rand, flexShrink: 0 }}
+      />
+      {titel ?? 'Afspraak zonder titel'}
+    </li>
   )
 }
 
@@ -213,7 +233,12 @@ function UurLijn({ min, vensterStartMin }: { min: number; vensterStartMin: numbe
   )
 }
 
-/** Eén afspraak-blok, cyaan-getint, op zijn plek en in zijn lane-kolom. */
+/**
+ * Eén afspraak-blok op zijn plek en in zijn lane-kolom, in de kleur van zijn
+ * agenda. De tekst is wit óf donker — dat wat het beste contrasteert met de
+ * bloklichtheid (WCAG, `blokStijlVoorKleur`). Zonder kleur valt het blok terug op
+ * de cyaan-stijl.
+ */
 function RoosterBlokItem({ blok }: { blok: RoosterBlok }) {
   const top = PAD_Y + blok.topMin * PX_PER_MIN
   const hoogte = Math.max(18, blok.duurMin * PX_PER_MIN)
@@ -223,6 +248,24 @@ function RoosterBlokItem({ blok }: { blok: RoosterBlok }) {
     blok.eindMin !== null
       ? `${tijdLabelVanMinuten(blok.startMin)}–${tijdLabelVanMinuten(blok.eindMin)}`
       : tijdLabelVanMinuten(blok.startMin)
+
+  const stijl = blokStijlVoorKleur(blok.kleur)
+  // Gekleurd: agenda-kleur als achtergrond, tekst in de best-contrasterende tint.
+  // Geen kleur: de vertrouwde cyaan-stijl.
+  const kleurStijl: CSSProperties = stijl
+    ? {
+        background: stijl.achtergrond,
+        border: `1px solid color-mix(in srgb, ${stijl.rand} 45%, #060E1C)`,
+        borderLeft: `3px solid ${stijl.rand}`,
+      }
+    : {
+        // `border` eerst, dan `borderLeft`: de linkerrand wint als accentbalk.
+        border: '1px solid color-mix(in srgb, var(--brand) 28%, transparent)',
+        borderLeft: '3px solid var(--brand)',
+        background: 'var(--brand-soft)',
+      }
+  const tijdKleur = stijl ? stijl.tekst : 'var(--text-2)'
+  const titelKleur = stijl ? stijl.tekst : 'var(--text-1)'
 
   return (
     <li
@@ -240,18 +283,14 @@ function RoosterBlokItem({ blok }: { blok: RoosterBlok }) {
         overflow: 'hidden',
         padding: '3px 7px',
         borderRadius: 6,
-        // `border` eerst, dan `borderLeft`: de linkerrand wint en wordt de dikke
-        // cyaan accentbalk, de rest een dunne cyaan-getinte lijn.
-        border: '1px solid color-mix(in srgb, var(--brand) 28%, transparent)',
-        borderLeft: '3px solid var(--brand)',
-        background: 'var(--brand-soft)',
         boxSizing: 'border-box',
+        ...kleurStijl,
       }}
     >
       <span
         className="os-cijfer"
         aria-hidden="true"
-        style={{ fontSize: 11, color: 'var(--text-2)', whiteSpace: 'nowrap' }}
+        style={{ fontSize: 11, color: tijdKleur, opacity: stijl ? 0.85 : 1, whiteSpace: 'nowrap' }}
       >
         {tijd}
       </span>
@@ -260,7 +299,7 @@ function RoosterBlokItem({ blok }: { blok: RoosterBlok }) {
         style={{
           fontSize: 12,
           fontWeight: 600,
-          color: 'var(--text-1)',
+          color: titelKleur,
           minWidth: 0,
           overflow: 'hidden',
           textOverflow: 'ellipsis',

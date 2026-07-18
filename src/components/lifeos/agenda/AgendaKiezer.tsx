@@ -1,123 +1,28 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react'
-import { Calendar } from 'lucide-react'
-import { haalJson, leesNiets } from '@/lib/lifeos/api/http'
-import {
-  leesKalendersAntwoord,
-  OPNIEUW_KOPPELEN,
-  type KalendersAntwoord,
-} from '@/lib/lifeos/agenda/agenda'
-import { Knop } from '@/components/lifeos/os/Knop'
-import { Foutmelding } from '@/components/lifeos/os/Foutmelding'
+import { type CSSProperties } from 'react'
+import { PencilLine } from 'lucide-react'
+import type { KalenderJson } from '@/lib/lifeos/agenda/agenda'
 
-// De agenda-kiezer: in wélke Google-agenda LifeOS schrijft en leest. Haalt de
-// beschrijfbare agenda's op, toont de huidige keuze, en laat de container na een
-// wijziging de dag opnieuw synchroniseren zodat de weergave de nieuwe agenda toont.
-//
-// Container-light: hij kent zijn eigen laad-/keuze-staat, maar het herladen van de
-// dag (sync + /vandaag) doet de AgendaKaart — die bezit de dag-data.
+// De schrijf-doel-kiezer: in wélke Google-agenda NIEUWE afspraken en focusblokken
+// landen. Bewust iets anders dan de weergave-vinkjes ernaast (die bepalen wat je
+// ZIET). Presentationeel: de data en het opslaan komen van de container
+// (`AgendaKalenders`); dit component toont alleen de keuze.
 
 interface AgendaKiezerProps {
-  /**
-   * Roept de container om de dag opnieuw te synchroniseren + laden na een keuze.
-   * Zonder deze stap toont /vandaag nog de vorige agenda (die staat in de cache).
-   */
-  onGewijzigd: () => Promise<void>
-  /** De bestaande koppel-flow (vraagt nu óók de calendarlist-scope). */
-  onKoppelOpnieuw: () => void
+  /** Alleen de beschrijfbare agenda's (owner/writer) — in de rest kun je niet plannen. */
+  kalenders: KalenderJson[]
+  /** De huidige keuze (kalender-id), of null = de primaire agenda. */
+  schrijfDoel: string | null
+  /** Staat er een opslag-actie open? Dan disablen we de select. */
+  bezig: boolean
+  onKies: (kalenderId: string) => void
 }
 
-type Staat =
-  | { fase: 'laden' }
-  | { fase: 'fout'; bericht: string }
-  /** De koppeling mist de calendarlist-scope: alleen opnieuw koppelen helpt. */
-  | { fase: 'opnieuw_koppelen' }
-  | { fase: 'ok'; data: KalendersAntwoord }
-
-export function AgendaKiezer({ onGewijzigd, onKoppelOpnieuw }: AgendaKiezerProps) {
-  const [staat, setStaat] = useState<Staat>({ fase: 'laden' })
-  const [bezig, setBezig] = useState(false)
-  const [actieFout, setActieFout] = useState<string | null>(null)
-
-  // Zelfde generatie-/verval-patroon als AgendaKaart: een vlucht die bij unmount
-  // nog loopt, zet straks niets meer.
-  const generatie = useRef(0)
-
-  const laadKalenders = useCallback((): Promise<void> => {
-    const mijn = ++generatie.current
-    return haalJson('/api/lifeos/agenda/kalenders', leesKalendersAntwoord).then((uitkomst) => {
-      if (mijn !== generatie.current) return
-      if (uitkomst.ok) {
-        setStaat({ fase: 'ok', data: uitkomst.waarde })
-      } else if (uitkomst.fout === OPNIEUW_KOPPELEN) {
-        // Het sein uit /kalenders: scope ontbreekt. Geen kale foutmelding, maar
-        // de nette herkoppel-knop.
-        setStaat({ fase: 'opnieuw_koppelen' })
-      } else {
-        setStaat({ fase: 'fout', bericht: uitkomst.fout })
-      }
-    })
-  }, [])
-
-  const verval = useCallback(() => {
-    generatie.current++
-  }, [])
-
-  useEffect(() => {
-    void laadKalenders()
-    return verval
-  }, [laadKalenders, verval])
-
-  const kies = useCallback(
-    async (kalenderId: string) => {
-      const mijn = generatie.current
-      setActieFout(null)
-      setBezig(true)
-
-      const uitkomst = await haalJson('/api/lifeos/agenda/kalender', leesNiets, {
-        method: 'POST',
-        body: JSON.stringify({ kalenderId }),
-      })
-      if (mijn !== generatie.current) return
-      if (!uitkomst.ok) {
-        setBezig(false)
-        setActieFout(uitkomst.fout)
-        return
-      }
-
-      // Optimistisch de keuze in de select bijwerken, dan de dag laten herladen.
-      setStaat((s) => (s.fase === 'ok' ? { fase: 'ok', data: { ...s.data, gekozen: kalenderId } } : s))
-      await onGewijzigd()
-      if (mijn !== generatie.current) return
-      setBezig(false)
-    },
-    [onGewijzigd],
-  )
-
-  if (staat.fase === 'laden') return <KiezerSkelet />
-
-  if (staat.fase === 'fout') {
-    return <Foutmelding bericht={staat.bericht} opnieuw={() => void laadKalenders()} />
-  }
-
-  if (staat.fase === 'opnieuw_koppelen') {
-    return (
-      <div style={{ display: 'grid', gap: 8, justifyItems: 'start' }}>
-        <p style={{ fontSize: 12, color: 'var(--text-3)', margin: 0, lineHeight: 1.5 }}>
-          Koppel je agenda opnieuw om te kunnen kiezen in welke agenda LifeOS schrijft.
-        </p>
-        <Knop onClick={onKoppelOpnieuw}>
-          <Calendar size={13} strokeWidth={2.2} aria-hidden="true" />
-          Koppel opnieuw om je agenda te kiezen
-        </Knop>
-      </div>
-    )
-  }
-
+export function AgendaKiezer({ kalenders, schrijfDoel, bezig, onKies }: AgendaKiezerProps) {
   // Geen beschrijfbare agenda gevonden: niets te kiezen. Eerlijk melden i.p.v. een
   // lege select tonen.
-  if (staat.data.kalenders.length === 0) {
+  if (kalenders.length === 0) {
     return (
       <p style={{ fontSize: 12, color: 'var(--text-4)', margin: 0 }}>
         Geen agenda gevonden waarin je mag schrijven.
@@ -127,51 +32,38 @@ export function AgendaKiezer({ onGewijzigd, onKoppelOpnieuw }: AgendaKiezerProps
 
   // null (nog geen keuze) = de primaire agenda: toon die als geselecteerd.
   const gekozenId =
-    staat.data.gekozen ??
-    staat.data.kalenders.find((k) => k.primair)?.id ??
-    staat.data.kalenders[0]?.id ??
+    schrijfDoel ??
+    kalenders.find((k) => k.primair)?.id ??
+    kalenders[0]?.id ??
     ''
 
   return (
     <div style={{ display: 'grid', gap: 6 }}>
-      <label htmlFor="agenda-kiezer" style={LABEL}>
-        Agenda
+      <label htmlFor="agenda-schrijfdoel" style={LABEL}>
+        Nieuwe afspraken gaan naar
       </label>
       <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-        <Calendar
+        <PencilLine
           size={14}
           strokeWidth={2.2}
           aria-hidden="true"
           style={{ position: 'absolute', left: 11, color: 'var(--text-4)', pointerEvents: 'none' }}
         />
         <select
-          id="agenda-kiezer"
+          id="agenda-schrijfdoel"
           value={gekozenId}
           disabled={bezig}
-          onChange={(e) => void kies(e.target.value)}
+          onChange={(e) => onKies(e.target.value)}
           style={SELECT}
         >
-          {staat.data.kalenders.map((k) => (
+          {kalenders.map((k) => (
             <option key={k.id} value={k.id}>
               {k.primair ? `${k.naam} (hoofdagenda)` : k.naam}
             </option>
           ))}
         </select>
       </div>
-      {bezig ? (
-        <span style={{ fontSize: 11, color: 'var(--text-4)' }}>Bijwerken…</span>
-      ) : null}
-      {actieFout ? <Foutmelding bericht={actieFout} /> : null}
-    </div>
-  )
-}
-
-/** Rustige placeholder in navy terwijl de agenda's laden. */
-function KiezerSkelet() {
-  return (
-    <div aria-hidden="true" style={{ display: 'grid', gap: 6 }}>
-      <div style={{ height: 11, width: '22%', borderRadius: 4, background: 'var(--bg-raised)' }} />
-      <div style={{ height: 38, width: '100%', borderRadius: 10, background: 'var(--bg-raised)' }} />
+      {bezig ? <span style={{ fontSize: 11, color: 'var(--text-4)' }}>Bijwerken…</span> : null}
     </div>
   )
 }

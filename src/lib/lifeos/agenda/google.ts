@@ -190,6 +190,10 @@ export interface GoogleAfspraak {
   eindOp: Date | null
   heleDag: boolean
   locatie: string | null
+  /** Uit welke agenda dit event komt. Wordt bij de multi-agenda-sync toegevoegd. */
+  kalenderId?: string | null
+  /** De kleur van die agenda (hex). Draagt de kleur naar de blokken in de weergave. */
+  kleur?: string | null
 }
 
 export type EventsUitkomst =
@@ -266,8 +270,10 @@ export async function haalEvents(
 export interface GoogleKalender {
   id: string
   naam: string
+  /** Google's `backgroundColor` (hex), of null. De kleur van deze agenda in de weergave. */
+  kleur: string | null
   primair: boolean
-  /** `owner` of `writer` — we tonen alleen agenda's waarin je mag schrijven. */
+  /** `owner`/`writer`/`reader`/`freeBusyReader`. Bepaalt of je erin mag schrijven. */
   toegang: string
 }
 
@@ -280,9 +286,10 @@ export type KalendersUitkomst =
   | { staat: 'fout'; reden: string }
 
 /**
- * De agenda's waarin je mag SCHRIJVEN (owner/writer). Alleen-lezen agenda's laten
- * we weg: je kunt er geen afspraak of focusblok in plannen, dus kiezen heeft geen
- * zin. De filter zelf zit in `leesKalender`.
+ * ALLE agenda's uit je kalenderlijst — óók alleen-lezen (zoals "Verjaardagen" of
+ * "Feestdagen"). De weergave wil ze allemaal kunnen tonen en aan/uit zetten; de
+ * schrijf-doel-kiezer filtert er client-side de beschrijfbare (owner/writer) uit.
+ * Elke agenda draagt `kleur` (Google's backgroundColor) voor de weergave.
  */
 export async function haalKalenders(toegangstoken: string): Promise<KalendersUitkomst> {
   let antwoord: Response
@@ -316,13 +323,13 @@ export function leesKalenderLijst(status: number, ruw: unknown): KalendersUitkom
   return { staat: 'ok', kalenders }
 }
 
-/** De rollen waarin je mag schrijven; `reader`/`freeBusyReader` niet. */
-const SCHRIJFBARE_ROLLEN: ReadonlySet<string> = new Set(['owner', 'writer'])
-
 /**
- * Eén calendarList-item → onze vorm, of null als het onbruikbaar is OF je er niet
- * in mag schrijven. De accessRole-filter zit hier bewust: een agenda die je niet
- * kunt vullen, hoort niet in de kiezer.
+ * Eén calendarList-item → onze vorm, of null als het onbruikbaar is (geen id).
+ *
+ * Géén accessRole-filter meer: de weergave toont ALLE agenda's. Wél lezen we
+ * `accessRole` als `toegang`, zodat de schrijf-doel-kiezer client-side de
+ * beschrijfbare eruit kan halen. Ontbreekt de rol, dan is 'toegang' een lege
+ * string (= niet-beschrijfbaar) — veilig, want dan valt hij buiten de kiezer.
  */
 function leesKalender(ruw: unknown): GoogleKalender | null {
   if (!isObject(ruw)) return null
@@ -330,15 +337,13 @@ function leesKalender(ruw: unknown): GoogleKalender | null {
   const id = tekst(ruw.id)
   if (!id) return null
 
-  const toegang = tekst(ruw.accessRole)
-  if (!toegang || !SCHRIJFBARE_ROLLEN.has(toegang)) return null
-
   return {
     id,
     // Een agenda zonder summary tonen we op zijn id — beter dan een lege regel.
     naam: tekst(ruw.summary) ?? id,
+    kleur: tekst(ruw.backgroundColor),
     primair: ruw.primary === true,
-    toegang,
+    toegang: tekst(ruw.accessRole) ?? '',
   }
 }
 
@@ -363,6 +368,26 @@ export function leesKalenderKeuze(body: unknown): KalenderKeuze {
     return { ok: false, fout: `Agenda-id mag maximaal ${MAX_KALENDER_ID_LENGTE} tekens zijn.` }
   }
   return { ok: true, waarde: kalenderId }
+}
+
+export type ZichtbaarKeuze =
+  | { ok: true; kalenderId: string; zichtbaar: boolean }
+  | { ok: false; fout: string }
+
+/**
+ * De zichtbaarheids-keuze uit onbekende invoer (de POST-body van
+ * `/agenda/kalender/zichtbaar`): een geldige `kalenderId` plus een strikte
+ * boolean `zichtbaar`. Hergebruikt `leesKalenderKeuze` voor de id-grens, en eist
+ * een echte boolean — géén waarheids-achtige waarde, zodat een tikfout niet stil
+ * een agenda aan- of uitzet.
+ */
+export function leesZichtbaarKeuze(body: unknown): ZichtbaarKeuze {
+  const keuze = leesKalenderKeuze(body)
+  if (!keuze.ok) return keuze
+  if (!isObject(body) || typeof body.zichtbaar !== 'boolean') {
+    return { ok: false, fout: 'Zichtbaarheid moet true of false zijn.' }
+  }
+  return { ok: true, kalenderId: keuze.waarde, zichtbaar: body.zichtbaar }
 }
 
 // ─── Systeemgrens: narrowing van Google's JSON ──────────────────────────────

@@ -1,8 +1,10 @@
-// GET /api/lifeos/agenda/kalenders — de agenda's waaruit je kunt kiezen.
+// GET /api/lifeos/agenda/kalenders — ALLE agenda's voor de multi-agenda-weergave.
 //
-// Lijst alleen de agenda's op waarin je mag SCHRIJVEN (owner/writer): in een
-// alleen-lezen agenda kun je geen afspraak of focusblok plannen, dus die hoort
-// niet in de kiezer. `gekozen` is de huidige keuze (null = de primaire agenda).
+// Geeft elke agenda terug met kleur, toegang, primair-vlag en `zichtbaar` (het
+// vinkje). De lijst spiegelen we eerst naar `agenda_kalenders` (ververs: naam,
+// kleur en toegang bijwerken, de `zichtbaar`-voorkeur behouden). `schrijfDoel` is
+// de agenda waar NIEUWE afspraken heen gaan (null = de primaire agenda) — dat is
+// iets anders dan de weergave-vinkjes.
 //
 // ─── OPNIEUW KOPPELEN BIJ ONTBREKENDE SCOPE ─────────────────────────────────
 // Het oplijsten vraagt de `calendarlist.readonly`-scope. Een koppeling van vóór
@@ -17,6 +19,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { vereisLifeosToegang } from '@/lib/lifeos/admin'
 import { forceerVernieuwing, geldigToken, leesGekozenKalender } from '@/lib/lifeos/agenda/koppeling'
 import { haalKalenders, type KalendersUitkomst } from '@/lib/lifeos/agenda/google'
+import { bouwKalenderWeergave, leesKalenders, verversKalenders } from '@/lib/lifeos/agenda/kalenders'
 import { OPNIEUW_KOPPELEN } from '@/lib/lifeos/agenda/agenda'
 
 export async function GET(req: NextRequest) {
@@ -50,8 +53,27 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ fout: 'Google is niet bereikbaar.' }, { status: 502 })
   }
 
-  const gekozen = await leesGekozenKalender(toegang.admin, toegang.userId)
-  return NextResponse.json({ kalenders: uitkomst.kalenders, gekozen })
+  // Spiegel de verse Google-lijst naar onze tabel (naam/kleur/toegang bijwerken,
+  // zichtbaar-voorkeur behouden). Faalt dat, dan is de lijst niet betrouwbaar te
+  // combineren met de opgeslagen zichtbaarheid — dan liever een nette 502 dan een
+  // weergave die de verkeerde agenda's aan/uit toont.
+  const ververst = await verversKalenders(toegang.admin, toegang.userId, uitkomst.kalenders)
+  if (!ververst.ok) {
+    return NextResponse.json({ fout: 'Kon je agenda-lijst niet bijwerken.' }, { status: 502 })
+  }
+
+  const [opgeslagen, schrijfDoel] = await Promise.all([
+    leesKalenders(toegang.admin, toegang.userId),
+    leesGekozenKalender(toegang.admin, toegang.userId),
+  ])
+  if (!opgeslagen.ok) {
+    return NextResponse.json({ fout: 'Kon je agenda-lijst niet lezen.' }, { status: 502 })
+  }
+
+  return NextResponse.json({
+    kalenders: bouwKalenderWeergave(uitkomst.kalenders, opgeslagen.waarde),
+    schrijfDoel,
+  })
 }
 
 /**

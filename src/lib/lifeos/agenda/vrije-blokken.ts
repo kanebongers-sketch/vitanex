@@ -19,6 +19,8 @@ export interface Afspraak {
   /** Hele-dag-event: heeft een datum, geen tijd. */
   heleDag: boolean
   locatie: string | null
+  /** De kleur van de agenda waaruit dit event komt (hex), of undefined/null als onbekend. */
+  kleur?: string | null
 }
 
 /** Een tijdvenster. Absolute momenten, geen uren — dus tijdzone-neutraal. */
