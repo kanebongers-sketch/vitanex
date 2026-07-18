@@ -19,6 +19,23 @@ export function sorteringAanEinde(kolom: readonly Persoon[]): number {
 }
 
 /**
+ * De sortering om `sleepId` ONDERAAN een andere status te zetten — voor een
+ * statuswissel via de kiezer (tegel) of de popup. Cruciaal: de oude sortering
+ * hoort bij de OUDE kolom; hem meenemen zou de persoon in de nieuwe kolom op een
+ * willekeurige plek zetten (of midden tussen bestaande tegels laten vallen). We
+ * rekenen dus een verse plek achter de laatste van de doelstatus, met de persoon
+ * zelf eruit gefilterd (anders telt zijn eigen — nog niet verplaatste — regel mee).
+ */
+export function sorteringVoorStatus(
+  personen: readonly Persoon[],
+  status: string,
+  sleepId: string,
+): number {
+  const doelKolom = kolomVan(personen, status).filter((p) => p.id !== sleepId)
+  return sorteringAanEinde(doelKolom)
+}
+
+/**
  * De sortering om `sleepId` vóór `doelId` te zetten: het gemiddelde van de tegel
  * erboven en de doeltegel. Geeft `null` als het doel niet (meer) in de kolom zit.
  */

@@ -99,6 +99,14 @@ function ContactVeld({ label, type, waarde, href, icoon, onOpslaan }: ContactVel
   const [tekst, setTekst] = useState(waarde ?? '')
   const vuil = tekst.trim() !== (waarde ?? '')
 
+  // Opslaan op blur. Mislukt de schrijf, dan valt het veld terug op de serverwaarde
+  // i.p.v. de niet-opgeslagen invoer te blijven tonen ("lijkt opgeslagen maar was
+  // het niet"). De fout zelf toont de popup, boven de voet.
+  async function bewaar() {
+    const gelukt = await onOpslaan(tekst.trim() || null)
+    if (!gelukt) setTekst(waarde ?? '')
+  }
+
   return (
     <div className="os-crm__veld">
       <label htmlFor={id} className="os-crm__label">
@@ -113,7 +121,7 @@ function ContactVeld({ label, type, waarde, href, icoon, onOpslaan }: ContactVel
           maxLength={type === 'email' ? MAX_EMAIL : MAX_TELEFOON}
           onChange={(e) => setTekst(e.target.value)}
           onBlur={() => {
-            if (vuil) void onOpslaan(tekst.trim() || null)
+            if (vuil) void bewaar()
           }}
         />
         {href ? (
@@ -140,8 +148,11 @@ function BijzonderhedenVeld({
 
   async function bewaar() {
     setBezig(true)
-    await onOpslaan(tekst.trim() || null)
+    const gelukt = await onOpslaan(tekst.trim() || null)
     setBezig(false)
+    // Mislukt? Terug naar de serverwaarde — nooit de niet-opgeslagen tekst laten
+    // staan alsof hij bewaard is. De fout toont de popup.
+    if (!gelukt) setTekst(waarde ?? '')
   }
 
   return (

@@ -4,7 +4,12 @@
 
 import { describe, expect, it } from 'vitest'
 import type { Persoon } from '@/lib/lifeos/crm/crm'
-import { kolomVan, sorteringAanEinde, sorteringVoor } from '@/components/lifeos/crm/sortering'
+import {
+  kolomVan,
+  sorteringAanEinde,
+  sorteringVoor,
+  sorteringVoorStatus,
+} from '@/components/lifeos/crm/sortering'
 
 function persoon(over: Partial<Persoon> & { id: string }): Persoon {
   return {
@@ -79,5 +84,35 @@ describe('sorteringVoor', () => {
   it('geeft null als het doel de gesleepte tegel zelf is', () => {
     // doel === sleep: na het wegfilteren van de sleep is het doel weg → null
     expect(sorteringVoor(kolom, 'a', 'a')).toBeNull()
+  })
+})
+
+describe('sorteringVoorStatus', () => {
+  // De kern van de statuswissel via de kiezer/popup: de persoon landt ONDERAAN de
+  // doelstatus met een verse sortering — nooit met zijn oude (kolom-vreemde) plek.
+  it('zet de persoon achter de laatste van de doelstatus', () => {
+    const personen = [
+      persoon({ id: 'x', status: 'benaderd', sortering: 1000 }),
+      persoon({ id: 'y', status: 'benaderd', sortering: 2000 }),
+      persoon({ id: 'a', status: 'moet_benaderen', sortering: 500 }),
+    ]
+    // 'a' naar 'benaderd' → achter 'y' (2000) → 2001, NIET 'a's oude 500.
+    expect(sorteringVoorStatus(personen, 'benaderd', 'a')).toBe(2001)
+  })
+
+  it('geeft 0 voor een lege doelkolom', () => {
+    const personen = [persoon({ id: 'a', status: 'moet_benaderen', sortering: 5 })]
+    expect(sorteringVoorStatus(personen, 'benaderd', 'a')).toBe(0)
+  })
+
+  // De valkuil: staat de persoon (nog) zelf in de doelstatus, dan mag hij niet als
+  // eigen buur meetellen — anders rekent hij met zijn oude plek en beweegt hij niet.
+  it('telt de persoon zelf niet mee als hij al in de doelstatus staat', () => {
+    const personen = [
+      persoon({ id: 'a', status: 'benaderd', sortering: 1000 }),
+      persoon({ id: 'b', status: 'benaderd', sortering: 2000 }),
+    ]
+    // 'b' zelf eruit → achter 'a' (1000) → 1001.
+    expect(sorteringVoorStatus(personen, 'benaderd', 'b')).toBe(1001)
   })
 })

@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { statussenVoorGroep, type Groep, type Persoon } from '@/lib/lifeos/crm/crm'
 import { Foutmelding } from '@/components/lifeos/os/Foutmelding'
 import { useMensen } from './useMensen'
-import { kolomVan, sorteringAanEinde, sorteringVoor } from './sortering'
+import { kolomVan, sorteringAanEinde, sorteringVoor, sorteringVoorStatus } from './sortering'
 import { StatusKolom } from './StatusKolom'
 import { NieuwePersoon } from './NieuwePersoon'
 import { PersoonPopup } from './PersoonPopup'
@@ -53,10 +53,18 @@ export function GroepBord({ groep }: { groep: Groep }) {
     void mensen.verplaats(p, doel.status, sortering)
   }
 
+  // Eén weg voor een statuswissel via de kiezer — zowel op de tegel (bord) als in
+  // de popup. De persoon landt ONDERAAN de doelstatus met een verse sortering; de
+  // popup stuurde eerder alleen `{ status }` zonder sortering, waardoor de tegel
+  // met zijn oude (kolom-vreemde) plek bleef staan en niet naar de juiste plek
+  // hersorteerde. `sorteringVoorStatus` is puur en getest (zie sortering.test.ts).
+  function verplaatsNaarStatus(persoon: Persoon, status: string): Promise<boolean> {
+    if (persoon.status === status) return Promise.resolve(true)
+    return mensen.verplaats(persoon, status, sorteringVoorStatus(personen, status, persoon.id))
+  }
+
   function kiesStatus(persoon: Persoon, status: string) {
-    if (persoon.status === status) return
-    const doelKolom = kolomVan(personen, status).filter((x) => x.id !== persoon.id)
-    void mensen.verplaats(persoon, status, sorteringAanEinde(doelKolom))
+    void verplaatsNaarStatus(persoon, status)
   }
 
   // `dragend` op de opgepakte tegel vuurt na élke drop of annulering: hier ruimen
@@ -82,7 +90,10 @@ export function GroepBord({ groep }: { groep: Groep }) {
     <div className="os-crm__groep">
       <NieuwePersoon groep={groep} bezig={mensen.bezig} onToevoegen={mensen.voegToe} />
 
-      {mensen.actieFout ? (
+      {/* Bord-brede actiefout (slepen, toevoegen). Staat de popup open, dan hoort
+          een mislukte popup-mutatie IN de popup — anders valt 'm achter de
+          fullscreen-overlay en is 'm onzichtbaar. Daar toont de popup 'm zelf. */}
+      {mensen.actieFout && !openPersoon ? (
         <div className="os-crm__actiefout">
           <Foutmelding bericht={mensen.actieFout} />
         </div>
@@ -116,8 +127,15 @@ export function GroepBord({ groep }: { groep: Groep }) {
         <PersoonPopup
           persoon={openPersoon}
           groep={groep}
+          actieFout={mensen.actieFout}
           onSluit={() => setOpenId(null)}
-          onWijzig={(wijziging) => mensen.wijzig(openPersoon, wijziging)}
+          onWijzig={(wijziging) =>
+            // Een statuswissel loopt via dezelfde weg als op het bord (verse
+            // sortering, onderaan de doelkolom). De overige velden gaan direct.
+            wijziging.status !== undefined
+              ? verplaatsNaarStatus(openPersoon, wijziging.status)
+              : mensen.wijzig(openPersoon, wijziging)
+          }
           onContactGelegd={() => mensen.contactGelegd(openPersoon)}
           onVerwijder={() => mensen.verwijder(openPersoon)}
         />

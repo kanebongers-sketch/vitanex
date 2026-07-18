@@ -3,6 +3,7 @@
 import { useCallback, useId, useState } from 'react'
 import { Phone, Trash2, X } from 'lucide-react'
 import { Knop } from '@/components/lifeos/os/Knop'
+import { Foutmelding } from '@/components/lifeos/os/Foutmelding'
 import { groepDef, statusDef, type Groep, type Persoon, type PersoonWijziging } from '@/lib/lifeos/crm/crm'
 import { Dialoog } from './Dialoog'
 import { PopupDetails } from './PopupDetails'
@@ -16,6 +17,9 @@ import { useHistorie } from './useHistorie'
 interface PersoonPopupProps {
   persoon: Persoon
   groep: Groep
+  /** Fout van een popup-mutatie (status, contact, follow-up, veld, verwijderen).
+   *  Wordt IN de dialog getoond — nooit erachter, waar 'm onzichtbaar zou zijn. */
+  actieFout: string | null
   onSluit: () => void
   onWijzig: (wijziging: PersoonWijziging) => Promise<boolean>
   onContactGelegd: () => Promise<boolean>
@@ -25,6 +29,7 @@ interface PersoonPopupProps {
 export function PersoonPopup({
   persoon,
   groep,
+  actieFout,
   onSluit,
   onWijzig,
   onContactGelegd,
@@ -83,6 +88,15 @@ export function PersoonPopup({
           onNotitie={historie.voegNotitieToe}
         />
       </div>
+
+      {/* De mutatie-fout hoort hier: binnen de dialog, boven de voet, buiten het
+          scrollbare lijf — zo blijft 'm altijd zichtbaar en valt 'm niet achter de
+          overlay. Inline spacing want de CSS-tokens/-classes wonen elders. */}
+      {actieFout ? (
+        <div style={{ flexShrink: 0, padding: '0 20px 12px' }}>
+          <Foutmelding bericht={actieFout} />
+        </div>
+      ) : null}
 
       <footer className="os-crm__dialoog-voet">
         <div className="os-crm__voet-links">

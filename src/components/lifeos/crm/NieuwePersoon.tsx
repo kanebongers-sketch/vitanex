@@ -3,7 +3,6 @@
 import { useState, type FormEvent, type ReactNode } from 'react'
 import { ChevronDown, UserPlus } from 'lucide-react'
 import { Knop } from '@/components/lifeos/os/Knop'
-import { Foutmelding } from '@/components/lifeos/os/Foutmelding'
 import {
   beginStatus,
   statussenVoorGroep,
@@ -35,7 +34,6 @@ export function NieuwePersoon({ groep, bezig, onToevoegen }: NieuwePersoonProps)
   const [followUpDatum, setFollowUpDatum] = useState('')
   const [bijzonderheden, setBijzonderheden] = useState('')
   const [meer, setMeer] = useState(false)
-  const [fout, setFout] = useState<string | null>(null)
 
   const kanVersturen = naam.trim().length > 0 && !bezig
 
@@ -43,7 +41,9 @@ export function NieuwePersoon({ groep, bezig, onToevoegen }: NieuwePersoonProps)
     e.preventDefault()
     if (!kanVersturen) return
 
-    setFout(null)
+    // Mislukt de POST, dan zet `useMensen` de (specifieke) foutmelding en toont
+    // `GroepBord` 'm onder dit formulier. Hier geen tweede, generieke melding:
+    // dat gaf de fout dubbel.
     const gelukt = await onToevoegen({
       naam: naam.trim(),
       status,
@@ -53,10 +53,7 @@ export function NieuwePersoon({ groep, bezig, onToevoegen }: NieuwePersoonProps)
       bijzonderheden: bijzonderheden.trim() || null,
     })
 
-    if (!gelukt) {
-      setFout('Toevoegen lukte niet. Probeer het opnieuw.')
-      return
-    }
+    if (!gelukt) return
     // Gelukt: velden leeg, status laten staan voor de volgende.
     setNaam('')
     setTelefoon('')
@@ -161,8 +158,6 @@ export function NieuwePersoon({ groep, bezig, onToevoegen }: NieuwePersoonProps)
           </div>
         </div>
       ) : null}
-
-      {fout ? <Foutmelding bericht={fout} /> : null}
     </form>
   )
 }
