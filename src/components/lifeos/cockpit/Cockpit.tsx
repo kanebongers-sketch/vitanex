@@ -10,11 +10,6 @@ import { AgendaKaart } from '@/components/lifeos/agenda/AgendaKaart'
 import { InboxKaart } from '@/components/lifeos/inbox/InboxKaart'
 import { WelzijnScoreKaart } from '@/components/lifeos/welzijn/WelzijnScoreKaart'
 import { BurnoutKaart } from '@/components/lifeos/welzijn/BurnoutKaart'
-import { StressLogKaart } from '@/components/lifeos/welzijn/StressLogKaart'
-import { StemmingLogKaart } from '@/components/lifeos/welzijn/StemmingLogKaart'
-import { VoedingCockpitKaart } from '@/components/lifeos/gezondheid/VoedingCockpitKaart'
-import { WaterCockpitKaart } from '@/components/lifeos/gezondheid/WaterCockpitKaart'
-import { WorkoutCockpitKaart } from '@/components/lifeos/gezondheid/WorkoutCockpitKaart'
 import { MijnLeven } from '@/components/lifeos/leven/MijnLeven'
 import { MensenBord } from '@/components/lifeos/crm/MensenBord'
 import { SnelKnoppen } from './SnelKnoppen'
@@ -38,12 +33,16 @@ import { SnelKnoppen } from './SnelKnoppen'
 // dragen hun rang via een brede span, niet via een luidere nadruk; de rest is
 // gelijkwaardig gereedschap. Cyaan blijft strikt accent.
 //
-// ─── Drie clusters, twee banden ─────────────────────────────────────────────
+// ─── Twee clusters, twee banden ─────────────────────────────────────────────
 //   1. Band  — Vita: wat moet je nú weten?
-//   2. Cluster "Mijn dag": je gereedschap.
+//   2. Cluster "Mijn dag": je gereedschap (incl. de 6 pijlers als knop-kaarten).
 //   3. Band  — Vita-gesprek: je vraagt Vita iets nádat je zag wat er speelt.
-//   4. Cluster "Welzijn & loggen": vijf invoerkaarten naar je échte data.
-//   5. Cluster "Verbinden": de mensen om je heen, je kennis en je terugblik.
+//   4. Cluster "Verbinden": de mensen om je heen, je kennis en je terugblik.
+//
+// De losse invoerkaarten (Voeding/Water/Workout/Stress/Stemming) stonden hier als
+// inline-gemak, maar zijn eruit: de 6 pijlerkaarten dekken het welzijnsbeeld, en
+// loggen leeft op de eigen MentaForce-pagina's (/checkin, /stress, /stemming,
+// /voeding, /water) plus de "Check-in doen"-knop in de Welzijn-kaart.
 
 export function Cockpit() {
   return (
@@ -105,40 +104,6 @@ export function Cockpit() {
       <div className="os-cockpit__gesprek">
         <VitaGesprek />
       </div>
-
-      {/* Cluster "Welzijn & loggen" — vijf invoerkaarten die naar Kane's ÉCHTE
-          MentaForce-data schrijven via zijn eigen sessie en RLS (één bron, geen
-          dubbele cijfers). Stress en stemming staan erbij omdat die twee pijlers
-          anders nergens een invoerpunt hadden. Op 12 kolommen: Voeding+Water+
-          Workout (elk een derde) op rij 1, Stress+Stemming (elk de helft) op rij
-          2 — geen wees-cel meer. */}
-      <section className="os-cluster" aria-labelledby="os-log-kop">
-        <header className="os-cluster__kop">
-          <h2 id="os-log-kop" className="os-zone__kop">
-            Welzijn &amp; loggen
-          </h2>
-          <p className="os-zone__intro">
-            Vijf invoerkaarten die naar je échte MentaForce-data schrijven — via je eigen sessie, niet
-            naar een tweede database. Eén bron, geen dubbele cijfers.
-          </p>
-        </header>
-
-        <div className="os-tile--derde">
-          <VoedingCockpitKaart />
-        </div>
-        <div className="os-tile--derde">
-          <WaterCockpitKaart />
-        </div>
-        <div className="os-tile--derde">
-          <WorkoutCockpitKaart />
-        </div>
-        <div className="os-tile--half">
-          <StressLogKaart />
-        </div>
-        <div className="os-tile--half">
-          <StemmingLogKaart />
-        </div>
-      </section>
 
       {/* Cluster "Verbinden" — drie volle-breedte-surfaces: het mensen-bord (een
           kanban vraagt breedte), de kennisgrafiek en de terugblik "Mijn leven".
