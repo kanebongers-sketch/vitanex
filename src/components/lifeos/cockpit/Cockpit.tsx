@@ -1,18 +1,14 @@
 import { VitaKaart } from '@/components/lifeos/vita/VitaKaart'
 import { VitaGesprek } from '@/components/lifeos/vita/VitaGesprek'
-import { VitaGeheugen } from '@/components/lifeos/vita/VitaGeheugen'
 import { DagplanKaart } from '@/components/lifeos/taken/DagplanKaart'
 import { TakenLijst } from '@/components/lifeos/taken/TakenLijst'
 import { BrainDumpKaart } from '@/components/lifeos/notities/BrainDumpKaart'
 import { KennisGrafiekKaart } from '@/components/lifeos/notities/KennisGrafiekKaart'
-import { FocusKaart } from '@/components/lifeos/focus/FocusKaart'
 import { AgendaKaart } from '@/components/lifeos/agenda/AgendaKaart'
 import { InboxKaart } from '@/components/lifeos/inbox/InboxKaart'
 import { WelzijnScoreKaart } from '@/components/lifeos/welzijn/WelzijnScoreKaart'
-import { BurnoutKaart } from '@/components/lifeos/welzijn/BurnoutKaart'
 import { MijnLeven } from '@/components/lifeos/leven/MijnLeven'
 import { MensenBord } from '@/components/lifeos/crm/MensenBord'
-import { SnelKnoppen } from './SnelKnoppen'
 
 // ─── De cockpit ──────────────────────────────────────────────────────────────
 // Eén vullend, breed werkscherm in plaats van zeven losse zones onder elkaar die
@@ -31,9 +27,8 @@ import { SnelKnoppen } from './SnelKnoppen'
 // is niet nóg een widget maar legt het verband tussen de kaarten eronder, dus hij
 // staat bovenaan én is de enige dragende kaart. De brede ankers (Dagplan, Taken)
 // dragen hun rang via een brede span, niet via een luidere nadruk; daaronder
-// krijgen de kaarten die breedte dragen (Welzijn, Agenda, Inbox, Brain dump) een
-// halve tegel en de compacte tools een kwart — rang via schaal, niet via kleur.
-// Cyaan blijft strikt accent.
+// krijgen de kaarten die breedte dragen (Welzijn, Agenda, Inbox, Brain dump) elk
+// een halve tegel — rang via schaal, niet via kleur. Cyaan blijft strikt accent.
 //
 // ─── Twee clusters, twee banden ─────────────────────────────────────────────
 //   1. Band  — Vita: wat moet je nú weten?
@@ -57,10 +52,8 @@ export function Cockpit() {
       {/* Cluster "Mijn dag" — Dagplan en Taken zijn de brede ankers (span 6 op
           12 kolommen). Daaronder twee rijen halve tegels voor de kaarten die
           breedte dragen (Welzijn, de agenda met haar 3-dagen-rooster, Inbox,
-          Brain dump) en één rij van vier kwart-tegels voor de compacte tools
-          (Burn-out, Focus, Vita-geheugen, Snelknoppen). Op 12 kolommen telt elke
-          rij exact op tot 12; op smaller vallen half en kwart samen tot paren —
-          zie de rij-optel-controle in globals.css. */}
+          Brain dump). Elke rij telt op 12 kolommen exact op tot 12; op smaller
+          vallen de halve tegels samen tot paren. */}
       <section className="os-cluster" aria-labelledby="os-dag-kop">
         <header className="os-cluster__kop">
           <h2 id="os-dag-kop" className="os-zone__kop">
@@ -92,20 +85,6 @@ export function Cockpit() {
         </div>
         <div className="os-tile--half">
           <BrainDumpKaart />
-        </div>
-
-        {/* Eén rij van vier kwart-tegels: de compacte tools. */}
-        <div className="os-tile--kwart">
-          <BurnoutKaart />
-        </div>
-        <div className="os-tile--kwart">
-          <FocusKaart />
-        </div>
-        <div className="os-tile--kwart">
-          <VitaGeheugen />
-        </div>
-        <div className="os-tile--kwart">
-          <SnelKnoppen />
         </div>
       </section>
 
