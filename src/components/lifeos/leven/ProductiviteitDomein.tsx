@@ -44,7 +44,7 @@ async function haalProductiviteit(): Promise<DomeinUitkomst<ProductiviteitData>>
   const [taken, focus] = await Promise.all([
     // `alle=1`: inclusief backlog en "ooit". We tellen hier je hele stapel, niet
     // alleen vandaag — dat is juist wat een domein-overzicht moet laten zien.
-    // Gedeeld: TakenLijst haalt dezelfde lijst ook op deze paginaload.
+    // Gedeeld: de cockpit (VangOp, via useTaken) haalt dezelfde lijst ook op.
     haalJsonGedeeld('/api/lifeos/taken?alle=1', leesTakenAntwoord),
     haalJson('/api/focus/log', leesFocus),
   ])

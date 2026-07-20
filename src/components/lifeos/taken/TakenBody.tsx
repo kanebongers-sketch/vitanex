@@ -1,7 +1,7 @@
 'use client'
 
 import type { CSSProperties, ReactNode } from 'react'
-import { Kaart, NogNiets } from '@/components/lifeos/os/Kaart'
+import { NogNiets } from '@/components/lifeos/os/Kaart'
 import { Foutmelding } from '@/components/lifeos/os/Foutmelding'
 import type { Project } from '@/lib/lifeos/projecten/projecten'
 import { ordenTaken } from '@/lib/lifeos/taken/prioriteit'
@@ -18,52 +18,55 @@ import { TaakDetail } from './TaakDetail'
 import { TaakRij } from './TaakRij'
 import { ToevoegVeld } from './ToevoegVeld'
 import { Top3Sectie } from './Top3Sectie'
-import { useProjecten, type ProjectMaakUitkomst } from './useProjecten'
-import { useTaken, type TakenBediening } from './useTaken'
-import { useVandaag } from './useVandaag'
+import type { ProjectMaakUitkomst, ProjectenBediening } from './useProjecten'
+import type { TakenBediening } from './useTaken'
 
-// Container voor de héle takenlijst, inclusief de top-3. Hier worden de
-// bot-taken (via Telegram binnengekomen, top3-loos) zichtbaar; ze stonden alleen
-// in de database.
+// De takenlijst als INBEDBAAR blok: top-3, groepen en detail — maar zónder eigen
+// `Kaart`-wrapper en zónder de snelle "voor vandaag"-capture (die zit nu in de
+// gedeelde "Vang op"-balk bovenaan, zie `vangop/VangOp.tsx`).
 //
-// Compositie, geen gedrag: het laden en wijzigen zit in `useTaken`, het oordelen
-// in `prioriteit.ts`, het groeperen in `taken.ts`. Deze component beslist alleen
-// wat waar staat.
+// Presentational: `taken`, `projecten` en `vandaag` komen als props binnen. Het
+// laden en wijzigen zit in `useTaken`/`useProjecten` (die de container VangOp
+// bezit), het oordelen in `prioriteit.ts`, het groeperen in `taken.ts`. Deze
+// component beslist alleen wat waar staat.
+//
+// De "ooit, zonder datum"-capture bLIJFT hier: dat is een taken-eigen route naar
+// een datumloze taak, geen kopie van de balk bovenaan (die maakt altijd een taak
+// voor vándaag). Zonder dit veld zou die functie verdwijnen.
 
-export function TakenLijst() {
-  const taken = useTaken()
-  const projecten = useProjecten()
+interface TakenBodyProps {
+  taken: TakenBediening
+  projecten: ProjectenBediening
+  /** De dag volgens de browser, of `null` zolang we op de server renderen. */
+  vandaag: string | null
+}
 
-  // De dag volgens de BROWSER, niet volgens de server: op een server in UTC is
-  // "vandaag" om 01:00 Nederlandse tijd nog gisteren. `null` = we renderen op de
-  // server en weten het nog niet. Zie `useVandaag`.
-  const vandaag = useVandaag()
+export function TakenBody({ taken, projecten, vandaag }: TakenBodyProps) {
   const staat = taken.staat
 
   // Eén ketting, dus precies één staat tegelijk: fout wint van laden, laden van
-  // inhoud. Drie losse `? :`-blokken naast elkaar kunnen samen renderen — dan
+  // inhoud. Drie losse blokken naast elkaar zouden samen kunnen renderen — dan
   // staat er een skelet ónder een foutmelding.
+  if (staat.fase === 'fout') {
+    return <Foutmelding bericht={staat.bericht} opnieuw={taken.opnieuw} />
+  }
+  if (staat.fase === 'laden' || vandaag === null) {
+    return <Skelet />
+  }
+
   return (
-    <Kaart titel="Alles op je lijst" vervangt="Todoist · Things">
-      {staat.fase === 'fout' ? (
-        <Foutmelding bericht={staat.bericht} opnieuw={taken.opnieuw} />
-      ) : staat.fase === 'laden' || vandaag === null ? (
-        <Skelet />
-      ) : (
-        <Inhoud
-          groepen={groepeerTaken(staat.taken, vandaag)}
-          // De top-3 wordt uit de dag zelf afgeleid, niet uit de bakken: een
-          // afgevinkte top-3-taak zit in 'gedaan' maar houdt zijn plek.
-          vandaagAlles={takenVanDag(staat.taken, vandaag)}
-          leeg={staat.taken.length === 0}
-          vandaag={vandaag}
-          projecten={projecten.projecten}
-          projectenMislukt={projecten.mislukt}
-          nieuwProject={projecten.voegToe}
-          bediening={taken}
-        />
-      )}
-    </Kaart>
+    <Inhoud
+      groepen={groepeerTaken(staat.taken, vandaag)}
+      // De top-3 wordt uit de dag zelf afgeleid, niet uit de bakken: een
+      // afgevinkte top-3-taak zit in 'gedaan' maar houdt zijn plek.
+      vandaagAlles={takenVanDag(staat.taken, vandaag)}
+      leeg={staat.taken.length === 0}
+      vandaag={vandaag}
+      projecten={projecten.projecten}
+      projectenMislukt={projecten.mislukt}
+      nieuwProject={projecten.voegToe}
+      bediening={taken}
+    />
   )
 }
 
@@ -117,7 +120,7 @@ function Inhoud({
       {leeg ? (
         <NogNiets
           wat="Nog geen taken"
-          waarom="Wat je hier zet — of via Telegram naar de bot stuurt — landt op deze lijst."
+          waarom="Wat je hierboven bij 'Vang op' als taak zet — of via Telegram naar de bot stuurt — landt op deze lijst."
         />
       ) : (
         <>
@@ -156,29 +159,17 @@ function Inhoud({
             bediening={bediening}
             detailVoor={detailVoor}
           />
-          <Groep
-            titel="Gedaan"
-            taken={groepen.gedaan}
-            vandaag={vandaag}
-            bediening={bediening}
-          />
+          <Groep titel="Gedaan" taken={groepen.gedaan} vandaag={vandaag} bediening={bediening} />
         </>
       )}
 
-      <div style={{ display: 'grid', gap: 8 }}>
-        <ToevoegVeld
-          label="Nieuwe taak voor vandaag"
-          placeholder="Wat moet er vandaag gebeuren?"
-          bezig={bediening.bezig}
-          onToevoeg={(titel) => bediening.voegToe(titel, vandaag)}
-        />
-        <ToevoegVeld
-          label="Iets voor ooit, zonder datum"
-          placeholder="Ooit, geen datum"
-          bezig={bediening.bezig}
-          onToevoeg={(titel) => bediening.voegToe(titel, null)}
-        />
-      </div>
+      {/* Alleen de datumloze route: "vandaag" gaat via de gedeelde capture-balk. */}
+      <ToevoegVeld
+        label="Iets voor ooit, zonder datum"
+        placeholder="Ooit, geen datum"
+        bezig={bediening.bezig}
+        onToevoeg={(titel) => bediening.voegToe(titel, null)}
+      />
 
       {bediening.actieFout ? <Foutmelding bericht={bediening.actieFout} /> : null}
 

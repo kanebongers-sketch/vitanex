@@ -1,8 +1,7 @@
 import { VitaKaart } from '@/components/lifeos/vita/VitaKaart'
 import { VitaGesprek } from '@/components/lifeos/vita/VitaGesprek'
 import { DagplanKaart } from '@/components/lifeos/taken/DagplanKaart'
-import { TakenLijst } from '@/components/lifeos/taken/TakenLijst'
-import { BrainDumpKaart } from '@/components/lifeos/notities/BrainDumpKaart'
+import { VangOp } from '@/components/lifeos/vangop/VangOp'
 import { KennisGrafiekKaart } from '@/components/lifeos/notities/KennisGrafiekKaart'
 import { AgendaKaart } from '@/components/lifeos/agenda/AgendaKaart'
 import { InboxKaart } from '@/components/lifeos/inbox/InboxKaart'
@@ -24,10 +23,10 @@ import { MensenBord } from '@/components/lifeos/crm/MensenBord'
 // ─── Rang via schaal, niet via kleur ────────────────────────────────────────
 // Precies één kaart per scherm mag de luidste zijn: de Vita-band (`dragend`). Hij
 // is niet nóg een widget maar legt het verband tussen de kaarten eronder, dus hij
-// staat bovenaan én is de enige dragende kaart. De brede ankers (Dagplan, Taken)
-// dragen hun rang via een brede span, niet via een luidere nadruk; daaronder
-// krijgen de kaarten die breedte dragen (Welzijn, Agenda, Inbox, Brain dump) elk
-// een halve tegel — rang via schaal, niet via kleur. Cyaan blijft strikt accent.
+// staat bovenaan én is de enige dragende kaart. De brede ankers (Dagplan, Vang op)
+// dragen hun rang via een brede span, niet via een luidere nadruk; daaronder een
+// paar halve tegels (Welzijn, Agenda) en de inbox als volle-breedte-lijst — rang
+// via schaal, niet via kleur. Cyaan blijft strikt accent.
 //
 // ─── Twee clusters, twee banden ─────────────────────────────────────────────
 //   1. Band  — Vita: wat moet je nú weten?
@@ -48,11 +47,11 @@ export function Cockpit() {
         <VitaKaart nadruk="dragend" />
       </div>
 
-      {/* Cluster "Mijn dag" — Dagplan en Taken zijn de brede ankers (span 6 op
-          12 kolommen). Daaronder twee rijen halve tegels voor de kaarten die
-          breedte dragen (Welzijn, de agenda met haar 3-dagen-rooster, Inbox,
-          Brain dump). Elke rij telt op 12 kolommen exact op tot 12; op smaller
-          vallen de halve tegels samen tot paren. */}
+      {/* Cluster "Mijn dag" — Dagplan en Vang op zijn de brede ankers (span 6 op
+          12 kolommen). Daaronder één rij halve tegels (Welzijn + de agenda met
+          haar 3-dagen-rooster) en de inbox als volle-breedte-lijst. Elke rij telt
+          op 12 kolommen exact op tot 12; op smaller vallen de halve tegels samen
+          tot een paar en pakt de volle tegel de hele breedte. */}
       <section className="os-cluster" aria-labelledby="os-dag-kop">
         <header className="os-cluster__kop">
           <h2 id="os-dag-kop" className="os-zone__kop">
@@ -67,23 +66,25 @@ export function Cockpit() {
         <div className="os-tile--anker">
           <DagplanKaart />
         </div>
+        {/* "Vang op": één capture-balk voor taken én notities, met de rijke lijst
+            eronder. Vervangt de losse takenlijst + brain dump — de systemen erachter
+            bleven gescheiden, alleen de dubbele invoer is samengevoegd. */}
         <div className="os-tile--anker">
-          <TakenLijst />
+          <VangOp />
         </div>
-        {/* Twee rijen halve tegels: de kaarten die breedte dragen. De agenda
-            heeft haar 3-dagen-rooster (min ~448px) en agendalijst; op een halve
-            tegel passen de drie dagkolommen comfortabel i.p.v. samengeperst. */}
+        {/* Eén rij halve tegels. De agenda heeft haar 3-dagen-rooster (min ~448px)
+            en agendalijst; op een halve tegel passen de drie dagkolommen comfortabel
+            i.p.v. samengeperst. */}
         <div className="os-tile--half">
           <WelzijnScoreKaart />
         </div>
         <div className="os-tile--half">
           <AgendaKaart />
         </div>
-        <div className="os-tile--half">
+        {/* De inbox als volle-breedte-lijst: een triage-lijst leest prettig met
+            ruimte, en zo telt de laatste rij van dit cluster netjes op tot 12. */}
+        <div className="os-tile--vol">
           <InboxKaart />
-        </div>
-        <div className="os-tile--half">
-          <BrainDumpKaart />
         </div>
       </section>
 

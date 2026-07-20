@@ -117,7 +117,7 @@ export async function haalJson<T>(
 
 // ─── Gedeelde vluchten ───────────────────────────────────────────────────────
 // Twee kaarten kunnen bij dezelfde paginaload dezelfde GET doen: WelzijnScoreKaart
-// én GezondheidDomein halen `/api/pijlers` (met verschillende narrowers), TakenLijst
+// én GezondheidDomein halen `/api/pijlers` (met verschillende narrowers), VangOp
 // én ProductiviteitDomein halen `/api/lifeos/taken?alle=1`. Zonder dit rekent de
 // server dezelfde (niet-goedkope) pijler-score twee keer uit per load.
 //

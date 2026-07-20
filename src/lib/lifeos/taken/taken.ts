@@ -515,7 +515,7 @@ export function takenVanDag(taken: readonly Taak[], dagSleutel: string): Taak[] 
 // `top3Van` beantwoordt "welke drie vandaag?". Deze groepering beantwoordt de
 // andere helft: waar staat de rest? Bot-taken (via Telegram) komen als
 // positie-loze taken binnen — met of zonder dag — en waren nergens zichtbaar
-// tot de TakenLijst ze hier toont.
+// tot de taken-UI ze hier toont.
 
 export interface GegroepeerdeTaken {
   /** Open taken van vandaag; de top-3 staat hier vooraan (positie oplopend). */

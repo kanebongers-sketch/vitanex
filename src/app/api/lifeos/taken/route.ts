@@ -1,5 +1,5 @@
 // GET  /api/lifeos/taken   — je taken. Modi via query:
-//                              ?alle=1   → álle taken (voor de TakenLijst)
+//                              ?alle=1   → álle taken (voor de taken-UI)
 //                              ?top3=1   → alleen de taken mét een top-3-plek
 //                              ?datum=…  → één dag ('ooit' = zonder dag)
 //                            geen params → alle taken, ongefilterd
@@ -51,7 +51,7 @@ export async function GET(req: NextRequest) {
 
   // De volledige lijst: álle taken, ongefilterd — vandaag, te laat, later,
   // "ooit" én de positie-loze bot-taken die via Telegram binnenkomen. De
-  // TakenLijst-UI groepeert client-side en leidt de top-3 daaruit af; hij haalt
+  // taken-UI groepeert client-side en leidt de top-3 daaruit af; hij haalt
   // die dus NIET apart op. Dat is met opzet: twee vluchten voor dezelfde taken
   // lopen uit elkaar zodra je er in de één één afvinkt.
   //

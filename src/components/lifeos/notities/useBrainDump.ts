@@ -14,7 +14,8 @@ import {
 } from '@/lib/lifeos/notities/notities'
 import { MAX_TAGS, tagLimietBereikt, voegTagToe, verwijderTag } from '@/lib/lifeos/notities/tags'
 
-// Alle data-logica van de brain dump. `BrainDumpKaart` tekent alleen nog.
+// Alle data-logica van de brain dump. `BrainDumpBody` tekent alleen nog (de
+// container `VangOp` bezit deze hook en geeft 'm door).
 //
 // Een eigen hook en geen 280-regels-component: het laden, de optimistische
 // updates en de rollback zijn het echte werk hier, en die wil je kunnen lezen
