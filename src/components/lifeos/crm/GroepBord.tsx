@@ -13,16 +13,24 @@ import { PersoonPopup } from './PersoonPopup'
 import { useBordWeergave } from './kop/useBordWeergave'
 import { BordOverzicht } from './kop/BordOverzicht'
 import { BordGereedschap } from './kop/BordGereedschap'
+import { RitmeVak } from './RitmeVak'
+import { WeekStrip } from './WeekStrip'
 
-// De kanban van één groep. Bezit het slepen (welke tegel is opgepakt) en welke
-// popup open staat; de data + de mutaties komen uit `useMensen`. Het bord scrollt
-// horizontaal binnen zichzelf — de pagina zelf nooit (zie `.os-crm__bord`).
+// Eén groep, twee weergaven:
+//   • Ritme (default) — "wie moet ik deze week spreken", op basis van laatste
+//     contact, plus een week-strip met je geplande gesprekken. Dit is wat je
+//     meestal wilt: iedereen is actief, je houdt gewoon je belronde bij.
+//   • Pipeline — de kanban met status-kolommen en slepen, voor wie de fasen wél
+//     wil sturen (bv. nieuwe PT-klanten van "benaderen" naar "klant").
+// Deze component bezit de data + mutaties (`useMensen`), het slepen (kanban) en
+// welke popup open staat. Het bord scrollt binnen zichzelf, de pagina nooit.
 
 export function GroepBord({ groep }: { groep: Groep }) {
   const mensen = useMensen(groep)
   const statussen = statussenVoorGroep(groep)
   const weergave = useBordWeergave()
 
+  const [modus, setModus] = useState<'ritme' | 'pipeline'>('ritme')
   const [sleepId, setSleepId] = useState<string | null>(null)
   const [overStatus, setOverStatus] = useState<string | null>(null)
   const [openId, setOpenId] = useState<string | null>(null)
@@ -102,19 +110,29 @@ export function GroepBord({ groep }: { groep: Groep }) {
 
   return (
     <div className="os-crm__groep">
-      {/* De cockpit boven het bord: eerlijke cijfers + zoeken/filteren/sorteren.
-          Pas zichtbaar zodra er iemand ís — een leeg bord blijft rustig. */}
-      {heeftMensen ? <BordOverzicht overzicht={overzicht} /> : null}
-
       <NieuwePersoon groep={groep} bezig={mensen.bezig} onToevoegen={mensen.voegToe} />
 
+      {/* Weergave-schakelaar: ritme (belronde) of pipeline (kanban). Pas zichtbaar
+          zodra er iemand ís — een leeg bord hoeft geen keuze. */}
       {heeftMensen ? (
-        <BordGereedschap
-          keuze={weergave.keuze}
-          onZoek={weergave.setZoek}
-          onAlleenOpvolgen={weergave.setAlleenOpvolgen}
-          onSortering={weergave.setSortering}
-        />
+        <div className="os-crm__modus" role="group" aria-label="Weergave kiezen">
+          <button
+            type="button"
+            className={`os-crm__modus-knop${modus === 'ritme' ? ' os-crm__modus-knop--actief' : ''}`}
+            aria-pressed={modus === 'ritme'}
+            onClick={() => setModus('ritme')}
+          >
+            Ritme
+          </button>
+          <button
+            type="button"
+            className={`os-crm__modus-knop${modus === 'pipeline' ? ' os-crm__modus-knop--actief' : ''}`}
+            aria-pressed={modus === 'pipeline'}
+            onClick={() => setModus('pipeline')}
+          >
+            Pipeline
+          </button>
+        </div>
       ) : null}
 
       {/* Bord-brede actiefout (slepen, toevoegen). Staat de popup open, dan hoort
@@ -126,37 +144,66 @@ export function GroepBord({ groep }: { groep: Groep }) {
         </div>
       ) : null}
 
-      {/* Filter actief maar niets komt overeen: zeg het eerlijk i.p.v. een bord
-          vol lege kolommen te tonen zonder uitleg. */}
-      {geenResultaten ? (
-        <p className="os-crm__geen-resultaten" role="status">
-          Niemand komt overeen met je zoekopdracht of filter.
-        </p>
-      ) : null}
-
-      <div className="os-crm__bord">
-        {statussen.map((status) => (
-          <StatusKolom
-            key={status.key}
-            status={status}
-            groep={groep}
-            personen={sorteerPersonen(kolomVan(zichtbaar, status.key), weergave.keuze.sortering)}
+      {modus === 'ritme' ? (
+        <>
+          {/* De belronde: eerst je week in de agenda, dan de cijfers, dan wie
+              je deze week nog moet spreken. */}
+          <WeekStrip />
+          {heeftMensen ? <BordOverzicht overzicht={overzicht} /> : null}
+          <RitmeVak
+            personen={personen}
             vandaag={vandaag}
-            sleepId={sleepId}
-            over={overStatus === status.key}
-            bordLeeg={bordLeeg}
             onOpen={(p) => setOpenId(p.id)}
-            onKies={kiesStatus}
-            onBeginSleep={(p) => setSleepId(p.id)}
-            onEindSleep={eindSleep}
-            onOver={() => {
-              if (overStatus !== status.key) setOverStatus(status.key)
+            onGesproken={(p) => {
+              void mensen.contactGelegd(p)
             }}
-            onDropOpKolom={dropOpKolom}
-            onDropOpTegel={dropOpTegel}
           />
-        ))}
-      </div>
+        </>
+      ) : (
+        <>
+          {heeftMensen ? <BordOverzicht overzicht={overzicht} /> : null}
+          {heeftMensen ? (
+            <BordGereedschap
+              keuze={weergave.keuze}
+              onZoek={weergave.setZoek}
+              onAlleenOpvolgen={weergave.setAlleenOpvolgen}
+              onSortering={weergave.setSortering}
+            />
+          ) : null}
+
+          {/* Filter actief maar niets komt overeen: zeg het eerlijk i.p.v. een
+              bord vol lege kolommen te tonen zonder uitleg. */}
+          {geenResultaten ? (
+            <p className="os-crm__geen-resultaten" role="status">
+              Niemand komt overeen met je zoekopdracht of filter.
+            </p>
+          ) : null}
+
+          <div className="os-crm__bord">
+            {statussen.map((status) => (
+              <StatusKolom
+                key={status.key}
+                status={status}
+                groep={groep}
+                personen={sorteerPersonen(kolomVan(zichtbaar, status.key), weergave.keuze.sortering)}
+                vandaag={vandaag}
+                sleepId={sleepId}
+                over={overStatus === status.key}
+                bordLeeg={bordLeeg}
+                onOpen={(p) => setOpenId(p.id)}
+                onKies={kiesStatus}
+                onBeginSleep={(p) => setSleepId(p.id)}
+                onEindSleep={eindSleep}
+                onOver={() => {
+                  if (overStatus !== status.key) setOverStatus(status.key)
+                }}
+                onDropOpKolom={dropOpKolom}
+                onDropOpTegel={dropOpTegel}
+              />
+            ))}
+          </div>
+        </>
+      )}
 
       {openPersoon ? (
         <PersoonPopup

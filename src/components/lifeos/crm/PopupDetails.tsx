@@ -15,6 +15,7 @@ import {
   type PersoonWijziging,
 } from '@/lib/lifeos/crm/crm'
 import { StatusKiezer } from './StatusKiezer'
+import { PlanGesprek } from './PlanGesprek'
 
 // De bewerkbare kant van de drawer: status verzetten, de gegevens (naam, telefoon,
 // e-mail) inline bijwerken met een klikbare contact-actie, de follow-up-dag zetten
@@ -71,6 +72,11 @@ export function PopupDetails({ persoon, groep, vandaag, onWijzig }: PopupDetails
           icoon={<Mail size={14} strokeWidth={2.2} aria-hidden="true" />}
           onOpslaan={(v) => onWijzig({ email: v })}
         />
+      </section>
+
+      <section className="os-crm__sectie">
+        <h3 className="os-crm__sectie-kop">Plan gesprek</h3>
+        <PlanGesprek naam={persoon.naam} />
       </section>
 
       <section className="os-crm__sectie">
