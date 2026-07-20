@@ -118,36 +118,73 @@ function gelijkInConstanteTijd(verwacht: string, ontvangen: string): boolean {
 }
 
 /**
+ * De uitkomst van een state-beoordeling. Drie gevallen, bewust gescheiden:
+ *
+ *  - `geldig`   — door ons ondertekend, juiste vorm, nog binnen de TTL.
+ *  - `verlopen` — door ons ondertekend en verder in orde (bekende dienst),
+ *                 maar de TTL is voorbij. Dit is géén aanval: alleen wie het
+ *                 geheim heeft kan een geldige handtekening maken, dus dit is
+ *                 aantoonbaar een flow die wíj startten — de gebruiker was
+ *                 gewoon te traag. De aanroeper mag hem netjes terugsturen.
+ *  - `ongeldig` — ontbrekend, gemanipuleerd, onleesbaar of met een onbekende
+ *                 dienst. Niet van ons; dit is het CSRF-geval. Hard weigeren.
+ *
+ * `dienst` zit alleen op de eerste twee: bij `ongeldig` ís er geen te
+ * vertrouwen dienst (de handtekening klopte niet, of de dienst is onbekend).
+ */
+export type StateBeoordeling =
+  | { staat: 'geldig'; dienst: Dienst }
+  | { staat: 'verlopen'; dienst: Dienst }
+  | { staat: 'ongeldig' }
+
+/**
+ * Beoordeelt een state uit een OAuth-callback en houdt "verlopen" apart van
+ * "ongeldig". Zie `StateBeoordeling` voor waarom dat onderscheid ertoe doet:
+ * een verlopen-maar-door-ons-ondertekende state is een trage gebruiker, geen
+ * aanvaller, en verdient een nette terugkeer i.p.v. een harde 400.
+ */
+export function beoordeelState(state: string | null | undefined): StateBeoordeling {
+  if (!state) return { staat: 'ongeldig' }
+
+  const delen = state.split('.')
+  if (delen.length !== 2) return { staat: 'ongeldig' }
+
+  const [payload, handtekening] = delen
+  if (!payload || !handtekening) return { staat: 'ongeldig' }
+
+  // Handtekening eerst. Pas als die klopt is de payload iets waar we JSON van
+  // proberen te maken — en pas dan mag "verlopen" überhaupt in beeld komen: een
+  // vervaltijd uit een niet-geverifieerde payload zegt niets.
+  if (!gelijkInConstanteTijd(teken(payload), handtekening)) return { staat: 'ongeldig' }
+
+  try {
+    const ruw: unknown = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8'))
+    if (typeof ruw !== 'object' || ruw === null) return { staat: 'ongeldig' }
+
+    const { d, exp } = ruw as Partial<StatePayload>
+    if (!isDienst(d)) return { staat: 'ongeldig' }
+    if (typeof exp !== 'number' || !Number.isFinite(exp)) return { staat: 'ongeldig' }
+
+    // Handtekening klopt en de vorm is in orde. Alleen de tijd bepaalt nu nog of
+    // hij geldig of verlopen is — beide zijn aantoonbaar van ons.
+    if (Date.now() > exp) return { staat: 'verlopen', dienst: d }
+
+    return { staat: 'geldig', dienst: d }
+  } catch {
+    return { staat: 'ongeldig' }
+  }
+}
+
+/**
  * Verifieert een state uit een OAuth-callback.
  *
  * Geeft `{ dienst }` als de state door ons is ondertekend en nog geldig is,
  * anders `null`. Ongeldig, gemanipuleerd, verlopen of onleesbaar → allemaal
- * `null`; de aanroeper hoeft het verschil niet te weten en een aanvaller al
- * helemaal niet.
+ * `null`; de meeste aanroepers hoeven het verschil niet te weten en een
+ * aanvaller al helemaal niet. Wie "verlopen" wél apart wil behandelen (om een
+ * trage gebruiker netjes terug te sturen) gebruikt `beoordeelState`.
  */
 export function leesState(state: string | null | undefined): { dienst: Dienst } | null {
-  if (!state) return null
-
-  const delen = state.split('.')
-  if (delen.length !== 2) return null
-
-  const [payload, handtekening] = delen
-  if (!payload || !handtekening) return null
-
-  // Handtekening eerst. Pas als die klopt is de payload iets waar we JSON van
-  // proberen te maken.
-  if (!gelijkInConstanteTijd(teken(payload), handtekening)) return null
-
-  try {
-    const ruw: unknown = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8'))
-    if (typeof ruw !== 'object' || ruw === null) return null
-
-    const { d, exp } = ruw as Partial<StatePayload>
-    if (!isDienst(d)) return null
-    if (typeof exp !== 'number' || !Number.isFinite(exp) || Date.now() > exp) return null
-
-    return { dienst: d }
-  } catch {
-    return null
-  }
+  const oordeel = beoordeelState(state)
+  return oordeel.staat === 'geldig' ? { dienst: oordeel.dienst } : null
 }

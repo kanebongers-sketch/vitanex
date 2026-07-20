@@ -18,7 +18,7 @@
 
 import { NextResponse, type NextRequest } from 'next/server'
 import { createLifeosAdminClient, lifeosUserId } from '@/lib/lifeos/admin'
-import { leesState } from '@/lib/lifeos/auth/oauth-state'
+import { beoordeelState } from '@/lib/lifeos/auth/oauth-state'
 import { wisselCodeIn } from '@/lib/lifeos/agenda/google'
 import { gmailConfig } from '@/lib/lifeos/inbox/gmail'
 import { bewaarKoppeling, KOPPEL_COOKIE, KOPPEL_COOKIE_PAD } from '@/lib/lifeos/inbox/koppeling'
@@ -36,15 +36,23 @@ export async function GET(req: NextRequest) {
 
   const { searchParams } = new URL(req.url)
 
-  // 1. State eerst, vóór alles. Een ongeldige of verlopen state betekent dat deze
-  //    callback niet hoort bij een flow die wij gestart zijn — dat is CSRF. Daar
-  //    redirecten we niet vriendelijk voor terug: harde 400, geen code-inwisseling,
-  //    niets opgeslagen.
+  // 1. State eerst, vóór alles. Twee gevallen, bewust uit elkaar gehouden:
   //
-  //    Ook de dienst moet kloppen: een geldige state voor de agenda is geen
-  //    toestemming om hier een mailbox aan te koppelen.
-  const state = leesState(searchParams.get('state'))
-  if (!state || state.dienst !== 'gmail') {
+  //    a. Verlopen, maar wél door ons ondertekend en voor deze dienst — dat is
+  //       geen aanval maar een trage gebruiker (het OAuth-scherm duurde te lang).
+  //       Alleen wie het geheim heeft kan een geldige handtekening maken, dus dit
+  //       is aantoonbaar een flow die wíj startten. Rustig terug naar /home met
+  //       een "start opnieuw"-melding i.p.v. een kale JSON-400.
+  //
+  //    b. Ongeldig of voor een andere dienst — die state hoort niet bij een flow
+  //       die wij gestart zijn (een geldige state voor de agenda is geen
+  //       toestemming om hier een mailbox te koppelen). Dat is het CSRF-geval:
+  //       harde 400, geen code-inwisseling, niets opgeslagen.
+  const oordeel = beoordeelState(searchParams.get('state'))
+  if (oordeel.staat === 'verlopen' && oordeel.dienst === 'gmail') {
+    return NextResponse.redirect(`${basis}/home?inbox=fout&reden=verlopen`)
+  }
+  if (oordeel.staat !== 'geldig' || oordeel.dienst !== 'gmail') {
     return NextResponse.json({ fout: 'Ongeldige of verlopen state.' }, { status: 400 })
   }
 

@@ -12,7 +12,7 @@
 
 import { createHmac } from 'node:crypto'
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { isDienst, leesState, maakState } from '@/lib/lifeos/auth/oauth-state'
+import { beoordeelState, isDienst, leesState, maakState } from '@/lib/lifeos/auth/oauth-state'
 
 const TEST_GEHEIM = 'test-geheim-voor-oauth-state-32bytes!!'
 const NU = 1_800_000_000_000 // vast moment, zodat exp voorspelbaar is
@@ -147,6 +147,54 @@ describe('leesState — vervaltijd', () => {
 
   it('weigert een state één milliseconde ná het vervalmoment', () => {
     const state = ondertekendeState({ n: 'x', d: 'whoop', exp: NU - 1 })
+    expect(leesState(state)).toBeNull()
+  })
+})
+
+describe('beoordeelState — houdt verlopen apart van ongeldig', () => {
+  // De reden dat deze functie bestaat: een callback mag een trage-maar-echte
+  // gebruiker (verlopen state die wíj ondertekenden) netjes terugsturen, en moet
+  // een vervalste state (ongeldig) hard weigeren. Dat onderscheid wordt hier
+  // bewaakt.
+  it('noemt een verse eigen state geldig, met dienst', () => {
+    expect(beoordeelState(maakState('gmail'))).toEqual({ staat: 'geldig', dienst: 'gmail' })
+  })
+
+  it('noemt een door-ons-ondertekende maar verlopen state "verlopen", met dienst', () => {
+    const state = maakState('gmail')
+    vi.setSystemTime(NU + 10 * 60 * 1000 + 1) // net voorbij de TTL
+    expect(beoordeelState(state)).toEqual({ staat: 'verlopen', dienst: 'gmail' })
+  })
+
+  it('behoudt de juiste dienst op de verlopen-uitkomst', () => {
+    const state = maakState('google_calendar')
+    vi.setSystemTime(NU + 10 * 60 * 1000 + 1)
+    expect(beoordeelState(state)).toEqual({ staat: 'verlopen', dienst: 'google_calendar' })
+  })
+
+  it('noemt een gemanipuleerde handtekening ongeldig — nooit verlopen', () => {
+    // Cruciaal: een verlopen exp uit een payload die wij NIET ondertekenden mag
+    // nooit als "verlopen" tellen, anders is het onderscheid een lek. Bad sig →
+    // ongeldig, ook al staat er een keurige (verlopen) exp in.
+    const kapot = ondertekendeState({ n: 'x', d: 'gmail', exp: NU - 1 })
+    const [payload] = kapot.split('.')
+    const fakeSig = createHmac('sha256', 'ander-geheim').update(payload).digest('base64url')
+    expect(beoordeelState(`${payload}.${fakeSig}`)).toEqual({ staat: 'ongeldig' })
+  })
+
+  it('noemt een onbekende dienst ongeldig — geen dienst om te vertrouwen', () => {
+    expect(beoordeelState(ondertekendeState({ n: 'x', d: 'onbekend', exp: NU + 1000 })))
+      .toEqual({ staat: 'ongeldig' })
+  })
+
+  it('noemt een ontbrekende state ongeldig', () => {
+    expect(beoordeelState(null)).toEqual({ staat: 'ongeldig' })
+    expect(beoordeelState('')).toEqual({ staat: 'ongeldig' })
+  })
+
+  it('leesState blijft null geven op een verlopen state (dun laagje op beoordeelState)', () => {
+    const state = maakState('gmail')
+    vi.setSystemTime(NU + 10 * 60 * 1000 + 1)
     expect(leesState(state)).toBeNull()
   })
 })
