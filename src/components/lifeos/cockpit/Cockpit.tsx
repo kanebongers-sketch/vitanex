@@ -7,7 +7,6 @@ import { KennisGrafiekKaart } from '@/components/lifeos/notities/KennisGrafiekKa
 import { AgendaKaart } from '@/components/lifeos/agenda/AgendaKaart'
 import { InboxKaart } from '@/components/lifeos/inbox/InboxKaart'
 import { WelzijnScoreKaart } from '@/components/lifeos/welzijn/WelzijnScoreKaart'
-import { MijnLeven } from '@/components/lifeos/leven/MijnLeven'
 import { MensenBord } from '@/components/lifeos/crm/MensenBord'
 
 // ─── De cockpit ──────────────────────────────────────────────────────────────
@@ -95,16 +94,18 @@ export function Cockpit() {
         <VitaGesprek />
       </div>
 
-      {/* Cluster "Verbinden" — drie volle-breedte-surfaces: het mensen-bord (een
-          kanban vraagt breedte), de kennisgrafiek en de terugblik "Mijn leven".
-          Alle drie span 12. */}
+      {/* Cluster "Verbinden" — twee volle-breedte-surfaces: het mensen-bord (een
+          kanban vraagt breedte) en de kennisgrafiek. Beide span 12. De terugblik
+          "Mijn leven" stond hier, maar hoort niet op een dashboard dat op werk,
+          dagelijkse taken en CRM is gericht — die component blijft bestaan voor
+          een eigen plek. */}
       <section className="os-cluster" aria-labelledby="os-verbinden-kop">
         <header className="os-cluster__kop">
           <h2 id="os-verbinden-kop" className="os-zone__kop">
             Verbinden
           </h2>
           <p className="os-zone__intro">
-            De mensen om je heen, je kennisgrafiek en je terugblik op de zes pijlers.
+            De mensen om je heen en je kennisgrafiek.
           </p>
         </header>
 
@@ -128,11 +129,6 @@ export function Cockpit() {
             nodig die de bento niet geeft. */}
         <div className="os-tile--vol">
           <KennisGrafiekKaart />
-        </div>
-
-        {/* De tweede vraag: hoe sta ik ervoor? */}
-        <div className="os-tile--vol">
-          <MijnLeven />
         </div>
       </section>
     </div>
