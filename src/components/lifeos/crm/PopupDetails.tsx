@@ -3,9 +3,12 @@
 import { useId, useState, type ReactNode } from 'react'
 import { Mail, Phone, X } from 'lucide-react'
 import { Knop } from '@/components/lifeos/os/Knop'
+import { datumSleutel } from '@/lib/lifeos/datum/datum'
+import { mailHref, telHref } from '@/lib/lifeos/crm/contact'
 import {
   MAX_BIJZONDERHEDEN,
   MAX_EMAIL,
+  MAX_NAAM,
   MAX_TELEFOON,
   type Groep,
   type Persoon,
@@ -13,17 +16,20 @@ import {
 } from '@/lib/lifeos/crm/crm'
 import { StatusKiezer } from './StatusKiezer'
 
-// De bewerkbare kant van de popup: status verzetten, contact bijwerken (met een
-// klikbare tel:/mailto:-actie), de follow-up-dag zetten of wissen, en de
-// bijzonderheden bewerken. Elke wijziging gaat via één callback naar de container.
+// De bewerkbare kant van de drawer: status verzetten, de gegevens (naam, telefoon,
+// e-mail) inline bijwerken met een klikbare contact-actie, de follow-up-dag zetten
+// (drie snelknoppen + vrije datumkeuze) of wissen, en de bijzonderheden bewerken.
+// Elke wijziging gaat via één callback naar de container.
 
 interface PopupDetailsProps {
   persoon: Persoon
   groep: Groep
+  /** "Nu"-snapshot uit de drawer: basis voor de follow-up-snelknoppen. */
+  vandaag: Date
   onWijzig: (wijziging: PersoonWijziging) => Promise<boolean>
 }
 
-export function PopupDetails({ persoon, groep, onWijzig }: PopupDetailsProps) {
+export function PopupDetails({ persoon, groep, vandaag, onWijzig }: PopupDetailsProps) {
   return (
     <>
       <section className="os-crm__sectie">
@@ -37,20 +43,31 @@ export function PopupDetails({ persoon, groep, onWijzig }: PopupDetailsProps) {
       </section>
 
       <section className="os-crm__sectie">
-        <h3 className="os-crm__sectie-kop">Contact</h3>
-        <ContactVeld
+        <h3 className="os-crm__sectie-kop">Gegevens</h3>
+        <InlineTekstVeld
+          label="Naam"
+          waarde={persoon.naam}
+          maxLength={MAX_NAAM}
+          verplicht
+          onOpslaan={(v) => onWijzig({ naam: v ?? persoon.naam })}
+        />
+        <InlineTekstVeld
           label="Telefoon"
           type="tel"
           waarde={persoon.telefoon}
-          href={persoon.telefoon ? `tel:${persoon.telefoon}` : null}
+          maxLength={MAX_TELEFOON}
+          href={telHref(persoon.telefoon)}
+          linkLabel={`Bel ${persoon.naam}`}
           icoon={<Phone size={14} strokeWidth={2.2} aria-hidden="true" />}
           onOpslaan={(v) => onWijzig({ telefoon: v })}
         />
-        <ContactVeld
+        <InlineTekstVeld
           label="E-mail"
           type="email"
           waarde={persoon.email}
-          href={persoon.email ? `mailto:${persoon.email}` : null}
+          maxLength={MAX_EMAIL}
+          href={mailHref(persoon.email)}
+          linkLabel={`Mail ${persoon.naam}`}
           icoon={<Mail size={14} strokeWidth={2.2} aria-hidden="true" />}
           onOpslaan={(v) => onWijzig({ email: v })}
         />
@@ -58,23 +75,7 @@ export function PopupDetails({ persoon, groep, onWijzig }: PopupDetailsProps) {
 
       <section className="os-crm__sectie">
         <h3 className="os-crm__sectie-kop">Follow-up-dag</h3>
-        <div className="os-crm__followup">
-          <input
-            type="date"
-            className="os-crm__invoer"
-            style={{ colorScheme: 'dark' }}
-            value={persoon.followUpDatum ?? ''}
-            aria-label="Follow-up-dag"
-            onChange={(e) => void onWijzig({ followUpDatum: e.target.value || null })}
-          />
-          {persoon.followUpDatum ? (
-            <button type="button" className="os-crm__wis" onClick={() => void onWijzig({ followUpDatum: null })}>
-              <X size={13} strokeWidth={2.2} aria-hidden="true" />
-              Wissen
-            </button>
-          ) : null}
-        </div>
-        <p className="os-crm__hint">Geen dag = geen follow-up. Zet er een om iemand terug te zien op het bord.</p>
+        <FollowUpVeld persoon={persoon} vandaag={vandaag} onWijzig={onWijzig} />
       </section>
 
       <section className="os-crm__sectie">
@@ -85,27 +86,59 @@ export function PopupDetails({ persoon, groep, onWijzig }: PopupDetailsProps) {
   )
 }
 
-interface ContactVeldProps {
-  label: string
-  type: 'tel' | 'email'
-  waarde: string | null
-  href: string | null
-  icoon: ReactNode
-  onOpslaan: (v: string | null) => Promise<boolean>
-}
-
-function ContactVeld({ label, type, waarde, href, icoon, onOpslaan }: ContactVeldProps) {
-  const id = useId()
+/**
+ * Opslaan-op-blur met terugval. Mislukt de schrijf, dan valt het veld terug op de
+ * serverwaarde i.p.v. de niet-opgeslagen invoer te blijven tonen ("lijkt
+ * opgeslagen maar was het niet"). Een `verplicht` veld dat leeggemaakt wordt slaat
+ * niet op (de server weigert dat) maar keert stil terug naar de serverwaarde.
+ */
+function useOpslagVeld(
+  waarde: string | null,
+  onOpslaan: (v: string | null) => Promise<boolean>,
+  verplicht: boolean,
+) {
   const [tekst, setTekst] = useState(waarde ?? '')
   const vuil = tekst.trim() !== (waarde ?? '')
 
-  // Opslaan op blur. Mislukt de schrijf, dan valt het veld terug op de serverwaarde
-  // i.p.v. de niet-opgeslagen invoer te blijven tonen ("lijkt opgeslagen maar was
-  // het niet"). De fout zelf toont de popup, boven de voet.
   async function bewaar() {
-    const gelukt = await onOpslaan(tekst.trim() || null)
+    const schoon = tekst.trim()
+    if (verplicht && schoon === '') {
+      setTekst(waarde ?? '')
+      return
+    }
+    const gelukt = await onOpslaan(schoon || null)
     if (!gelukt) setTekst(waarde ?? '')
   }
+
+  return { tekst, setTekst, vuil, bewaar }
+}
+
+interface InlineTekstVeldProps {
+  label: string
+  type?: 'text' | 'tel' | 'email'
+  waarde: string | null
+  maxLength: number
+  verplicht?: boolean
+  /** Klikbare contact-actie naast het veld (tel:/mailto:), of null. */
+  href?: string | null
+  linkLabel?: string
+  icoon?: ReactNode
+  onOpslaan: (v: string | null) => Promise<boolean>
+}
+
+function InlineTekstVeld({
+  label,
+  type = 'text',
+  waarde,
+  maxLength,
+  verplicht = false,
+  href = null,
+  linkLabel,
+  icoon,
+  onOpslaan,
+}: InlineTekstVeldProps) {
+  const id = useId()
+  const { tekst, setTekst, vuil, bewaar } = useOpslagVeld(waarde, onOpslaan, verplicht)
 
   return (
     <div className="os-crm__veld">
@@ -118,20 +151,85 @@ function ContactVeld({ label, type, waarde, href, icoon, onOpslaan }: ContactVel
           type={type}
           className="os-crm__invoer"
           value={tekst}
-          maxLength={type === 'email' ? MAX_EMAIL : MAX_TELEFOON}
+          maxLength={maxLength}
           onChange={(e) => setTekst(e.target.value)}
           onBlur={() => {
             if (vuil) void bewaar()
           }}
         />
-        {href ? (
-          <a className="os-crm__contact-link" href={href} aria-label={`${label} openen`}>
+        {href !== null ? (
+          <a className="os-crm__contact-link" href={href} aria-label={linkLabel ?? `${label} openen`}>
             {icoon}
           </a>
         ) : null}
       </div>
     </div>
   )
+}
+
+interface FollowUpVeldProps {
+  persoon: Persoon
+  vandaag: Date
+  onWijzig: (wijziging: PersoonWijziging) => Promise<boolean>
+}
+
+function FollowUpVeld({ persoon, vandaag, onWijzig }: FollowUpVeldProps) {
+  const opties = snelOpties(vandaag)
+
+  return (
+    <>
+      <div className="crm-drawer__snel" role="group" aria-label="Snel een follow-up-dag kiezen">
+        {opties.map((o) => (
+          <button
+            key={o.label}
+            type="button"
+            className="crm-drawer__snelknop"
+            aria-pressed={persoon.followUpDatum === o.sleutel}
+            onClick={() => {
+              // Al gekozen? Niet opnieuw schrijven — dat zou een dubbel historie-item
+              // opleveren voor dezelfde dag.
+              if (persoon.followUpDatum !== o.sleutel) void onWijzig({ followUpDatum: o.sleutel })
+            }}
+          >
+            {o.label}
+          </button>
+        ))}
+      </div>
+      <div className="os-crm__followup">
+        <input
+          type="date"
+          className="os-crm__invoer"
+          style={{ colorScheme: 'dark' }}
+          value={persoon.followUpDatum ?? ''}
+          aria-label="Follow-up-dag (kies zelf een datum)"
+          onChange={(e) => void onWijzig({ followUpDatum: e.target.value || null })}
+        />
+        {persoon.followUpDatum ? (
+          <button type="button" className="os-crm__wis" onClick={() => void onWijzig({ followUpDatum: null })}>
+            <X size={13} strokeWidth={2.2} aria-hidden="true" />
+            Wissen
+          </button>
+        ) : null}
+      </div>
+      <p className="os-crm__hint">Geen dag = geen follow-up. Zet er een om iemand terug te zien op het bord.</p>
+    </>
+  )
+}
+
+interface SnelOptie {
+  label: string
+  sleutel: string
+}
+
+/** Vandaag / over 3 dagen / volgende week als lokale YYYY-MM-DD-sleutels. */
+function snelOpties(vandaag: Date): SnelOptie[] {
+  const opDag = (dagen: number): string =>
+    datumSleutel(new Date(vandaag.getFullYear(), vandaag.getMonth(), vandaag.getDate() + dagen))
+  return [
+    { label: 'Vandaag', sleutel: opDag(0) },
+    { label: 'Over 3 dagen', sleutel: opDag(3) },
+    { label: 'Volgende week', sleutel: opDag(7) },
+  ]
 }
 
 function BijzonderhedenVeld({
@@ -151,7 +249,7 @@ function BijzonderhedenVeld({
     const gelukt = await onOpslaan(tekst.trim() || null)
     setBezig(false)
     // Mislukt? Terug naar de serverwaarde — nooit de niet-opgeslagen tekst laten
-    // staan alsof hij bewaard is. De fout toont de popup.
+    // staan alsof hij bewaard is. De fout toont de drawer.
     if (!gelukt) setTekst(waarde ?? '')
   }
 

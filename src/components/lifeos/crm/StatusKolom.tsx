@@ -2,7 +2,7 @@
 
 import { type DragEvent } from 'react'
 import type { Groep, Persoon, StatusDef } from '@/lib/lifeos/crm/crm'
-import { PersoonTegel } from './PersoonTegel'
+import { PersoonKaart } from './kaart/PersoonKaart'
 
 // Eén status-kolom = één dropzone. De `tint` van de status stuurt het kopaccent:
 // `actie` krijgt het cyaan-accent (dit vraagt iets van je), de rest blijft
@@ -76,7 +76,7 @@ export function StatusKolom({
 
       <ul className="os-crm__kolom-lijst" role="list">
         {personen.map((p) => (
-          <PersoonTegel
+          <PersoonKaart
             key={p.id}
             persoon={p}
             groep={groep}

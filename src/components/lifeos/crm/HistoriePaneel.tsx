@@ -1,19 +1,22 @@
 'use client'
 
 import { useState, type FormEvent } from 'react'
-import { ArrowRight, MessageSquarePlus, Phone, StickyNote } from 'lucide-react'
+import { ArrowRight, CalendarClock, MessageSquarePlus, Phone, StickyNote } from 'lucide-react'
 import { Knop } from '@/components/lifeos/os/Knop'
 import { Foutmelding } from '@/components/lifeos/os/Foutmelding'
 import { statusDef, MAX_NOTITIE, type Groep, type HistorieItem } from '@/lib/lifeos/crm/crm'
 import type { HistorieStaat } from './useHistorie'
 
-// De status-geschiedenis als tijdlijn (nieuwste eerst) + een veld om een notitie
-// toe te voegen. Presentationeel: de staat en de callbacks komen uit de popup,
-// die `useHistorie` bezit. Fout ≠ leeg: een laadfout krijgt een eigen staat met
-// retry, geen valse "nog geen geschiedenis".
+// De activiteiten-tijdlijn (nieuwste eerst) + een veld om een notitie toe te
+// voegen. Presentationeel: de staat en de callbacks komen uit de drawer, die
+// `useHistorie` bezit. Elke gebeurtenis krijgt een eigen icoon per soort en een
+// relatieve tijd (met de precieze stempel als tooltip). Fout ≠ leeg: een laadfout
+// krijgt een eigen staat met retry, geen valse "nog geen geschiedenis".
 
 interface HistoriePaneelProps {
   groep: Groep
+  /** "Nu"-snapshot uit de drawer: basis voor de relatieve tijden. */
+  vandaag: Date
   staat: HistorieStaat
   actieFout: string | null
   bezig: boolean
@@ -21,7 +24,7 @@ interface HistoriePaneelProps {
   onNotitie: (notitie: string) => Promise<boolean>
 }
 
-export function HistoriePaneel({ groep, staat, actieFout, bezig, onOpnieuw, onNotitie }: HistoriePaneelProps) {
+export function HistoriePaneel({ groep, vandaag, staat, actieFout, bezig, onOpnieuw, onNotitie }: HistoriePaneelProps) {
   const [notitie, setNotitie] = useState('')
 
   async function verstuur(e: FormEvent) {
@@ -45,7 +48,7 @@ export function HistoriePaneel({ groep, staat, actieFout, bezig, onOpnieuw, onNo
       ) : (
         <ol className="os-crm__tijdlijn">
           {staat.items.map((item) => (
-            <TijdlijnItem key={item.id} item={item} groep={groep} />
+            <TijdlijnItem key={item.id} item={item} groep={groep} vandaag={vandaag} />
           ))}
         </ol>
       )}
@@ -75,7 +78,7 @@ export function HistoriePaneel({ groep, staat, actieFout, bezig, onOpnieuw, onNo
   )
 }
 
-function TijdlijnItem({ item, groep }: { item: HistorieItem; groep: Groep }) {
+function TijdlijnItem({ item, groep, vandaag }: { item: HistorieItem; groep: Groep; vandaag: Date }) {
   return (
     <li className="os-crm__tijdlijn-item">
       <span className="os-crm__tijdlijn-punt" aria-hidden="true">
@@ -90,15 +93,19 @@ function TijdlijnItem({ item, groep }: { item: HistorieItem; groep: Groep }) {
         {item.soort !== 'notitie' && item.soort !== 'follow_up_gezet' && item.notitie ? (
           <p className="os-crm__tijdlijn-extra">{item.notitie}</p>
         ) : null}
-        <time className="os-crm__tijdlijn-tijd">{tijdVan(item.aangemaaktOp)}</time>
+        <time className="os-crm__tijdlijn-tijd" dateTime={item.aangemaaktOp} title={absoluutVan(item.aangemaaktOp)}>
+          {relatieveTijd(item.aangemaaktOp, vandaag)}
+        </time>
       </div>
     </li>
   )
 }
 
+/** Eén icoon per soort — de vier gebeurtenissen zijn zo in één oogopslag te lezen. */
 function SoortIcoon({ item }: { item: HistorieItem }) {
   if (item.soort === 'status_wijziging') return <ArrowRight size={13} strokeWidth={2.4} />
   if (item.soort === 'contact_gelegd') return <Phone size={13} strokeWidth={2.4} />
+  if (item.soort === 'follow_up_gezet') return <CalendarClock size={13} strokeWidth={2.4} />
   return <StickyNote size={13} strokeWidth={2.4} />
 }
 
@@ -135,9 +142,40 @@ function datumLabel(sleutel: string | null): string | null {
   return d.toLocaleDateString('nl-NL', { weekday: 'short', day: 'numeric', month: 'short' })
 }
 
-/** '18 jul 14:30'. Compact — dit staat onder een regel tekst. */
-function tijdVan(iso: string): string {
+/** 'zojuist', '20 min geleden', 'gisteren', '3 dagen geleden' — en de datum zelf
+ *  zodra het langer dan een maand geleden is. Kort; dit staat onder een regel. */
+function relatieveTijd(iso: string, nu: Date): string {
   const d = new Date(iso)
   if (Number.isNaN(d.getTime())) return ''
-  return d.toLocaleString('nl-NL', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
+
+  const ms = nu.getTime() - d.getTime()
+  if (ms < 60_000) return 'zojuist'
+
+  const min = Math.floor(ms / 60_000)
+  if (min < 60) return `${min} min geleden`
+
+  const uur = Math.floor(min / 60)
+  if (uur < 24) return `${uur} uur geleden`
+
+  const dag = Math.floor(uur / 24)
+  if (dag === 1) return 'gisteren'
+  if (dag < 7) return `${dag} dagen geleden`
+  if (dag < 31) {
+    const weken = Math.floor(dag / 7)
+    return weken === 1 ? '1 week geleden' : `${weken} weken geleden`
+  }
+  return absoluutVan(iso)
+}
+
+/** '18 jul 2026, 14:30' — de precieze stempel, voor de tooltip en lange perioden. */
+function absoluutVan(iso: string): string {
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return ''
+  return d.toLocaleString('nl-NL', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
 }

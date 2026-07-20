@@ -2566,13 +2566,17 @@ body {
 }
 
 .os-crm__kolom {
+  /* De kolom is een terugliggende trog (donkerder dan een kaart) zodat de
+     --bg-card-kaarten er zichtbaar boven zweven: diepte via laag, niet via
+     zware schaduw. Op één var zodat de plakkende kop dezelfde tint pakt. */
+  --kolom-bg: color-mix(in srgb, var(--bg-app) 60%, var(--bg-card));
   flex: 0 0 288px;
   max-width: 288px;
   display: flex;
   flex-direction: column;
   gap: 10px;
   padding: 12px;
-  background: var(--bg-card);
+  background: var(--kolom-bg);
   border: 1px solid var(--line);
   border-radius: var(--radius-card);
   transition: border-color 160ms var(--ease), background 160ms var(--ease);
@@ -2593,9 +2597,9 @@ body {
   gap: 8px;
   padding-bottom: 9px;
   border-bottom: 1px solid var(--line);
-  /* Ondoorzichtige achtergrond zodat tegels niet onder de plakkende kop door
-     schemeren tijdens het scrollen van het bord. */
-  background: var(--bg-card);
+  /* Ondoorzichtige achtergrond zodat kaarten niet onder de plakkende kop door
+     schemeren tijdens het scrollen — matcht de trog-tint van de kolom. */
+  background: var(--kolom-bg);
 }
 
 .os-crm__kolom-titel {
@@ -2608,8 +2612,14 @@ body {
 }
 
 .os-crm__kolom-telling {
-  font-size: 12px;
-  color: var(--text-4);
+  min-width: 22px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--text-1) 8%, transparent);
+  font-size: 11px;
+  font-weight: 600;
+  text-align: center;
+  color: var(--text-3);
 }
 
 /* Alleen 'actie' krijgt het cyaan-accent: dit vraagt iets van je. */
@@ -2623,6 +2633,18 @@ body {
 
 .os-crm__kolom--actie .os-crm__kolom-telling {
   color: var(--brand);
+  background: var(--brand-soft);
+}
+
+/* Filter/zoek levert niets op: een rustige melding boven het bord. */
+.os-crm__geen-resultaten {
+  margin: 0;
+  padding: 10px 14px;
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  color: var(--text-3);
+  text-align: center;
 }
 
 .os-crm__kolom-lijst {
