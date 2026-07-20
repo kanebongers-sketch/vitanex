@@ -12,7 +12,7 @@
 
 import { createHmac } from 'node:crypto'
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { beoordeelState, isDienst, leesState, maakState } from '@/lib/lifeos/auth/oauth-state'
+import { beoordeelState, isDienst, leesState, maakState, STATE_TTL_MS } from '@/lib/lifeos/auth/oauth-state'
 
 const TEST_GEHEIM = 'test-geheim-voor-oauth-state-32bytes!!'
 const NU = 1_800_000_000_000 // vast moment, zodat exp voorspelbaar is
@@ -129,13 +129,13 @@ describe('leesState — geldig ondertekend maar kapotte inhoud', () => {
 describe('leesState — vervaltijd', () => {
   it('weigert een verlopen state', () => {
     const state = maakState('whoop')
-    vi.setSystemTime(NU + 10 * 60 * 1000 + 1) // net voorbij de TTL van 10 min
+    vi.setSystemTime(NU + STATE_TTL_MS + 1) // net voorbij de TTL
     expect(leesState(state)).toBeNull()
   })
 
   it('accepteert een state die nog binnen de TTL valt', () => {
     const state = maakState('whoop')
-    vi.setSystemTime(NU + 10 * 60 * 1000 - 1) // net binnen de TTL
+    vi.setSystemTime(NU + STATE_TTL_MS - 1) // net binnen de TTL
     expect(leesState(state)).toEqual({ dienst: 'whoop' })
   })
 
@@ -162,13 +162,13 @@ describe('beoordeelState — houdt verlopen apart van ongeldig', () => {
 
   it('noemt een door-ons-ondertekende maar verlopen state "verlopen", met dienst', () => {
     const state = maakState('gmail')
-    vi.setSystemTime(NU + 10 * 60 * 1000 + 1) // net voorbij de TTL
+    vi.setSystemTime(NU + STATE_TTL_MS + 1) // net voorbij de TTL
     expect(beoordeelState(state)).toEqual({ staat: 'verlopen', dienst: 'gmail' })
   })
 
   it('behoudt de juiste dienst op de verlopen-uitkomst', () => {
     const state = maakState('google_calendar')
-    vi.setSystemTime(NU + 10 * 60 * 1000 + 1)
+    vi.setSystemTime(NU + STATE_TTL_MS + 1)
     expect(beoordeelState(state)).toEqual({ staat: 'verlopen', dienst: 'google_calendar' })
   })
 
@@ -194,7 +194,7 @@ describe('beoordeelState — houdt verlopen apart van ongeldig', () => {
 
   it('leesState blijft null geven op een verlopen state (dun laagje op beoordeelState)', () => {
     const state = maakState('gmail')
-    vi.setSystemTime(NU + 10 * 60 * 1000 + 1)
+    vi.setSystemTime(NU + STATE_TTL_MS + 1)
     expect(leesState(state)).toBeNull()
   })
 })

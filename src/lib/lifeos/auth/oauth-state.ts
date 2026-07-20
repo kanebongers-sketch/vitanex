@@ -55,11 +55,23 @@ export function isDienst(waarde: unknown): waarde is Dienst {
 /**
  * Levensduur van een state.
  *
- * 10 minuten is ruim genoeg voor een OAuth-scherm inclusief inloggen en 2FA, en
- * kort genoeg dat een state die ergens in een logregel of browsergeschiedenis
- * blijft hangen snel waardeloos is.
+ * 30 minuten. Dit dekt een échte koppel-flow met marge: het Google-scherm
+ * (account kiezen + toestemming + soms 2FA) plus de onvermijdelijke pauzes
+ * ertussen. 10 minuten bleek in de praktijk te krap — een state die tijdens het
+ * account-kiezen verliep, sneuvelde in de callback met een kale 400 en de token
+ * werd nooit opgeslagen. Langer dan een half uur hoeft niet, en het is kort
+ * genoeg dat een state die in een logregel of browsergeschiedenis blijft hangen
+ * snel waardeloos is.
+ *
+ * Dit is een CSRF-venster, geen sessie. Een aanvaller kan zonder het geheim
+ * überhaupt geen geldige state maken, en de callback vraagt daarnaast nóg een
+ * slot: het HttpOnly koppel-cookie. 10 → 30 min verbreedt dus hooguit het
+ * venster waarin een reeds-door-ons-uitgegeven state herbruikbaar is — en dat is,
+ * zonder server-side nonce-opslag, sowieso al zo (zie de kop van dit bestand).
+ *
+ * Geëxporteerd zodat de tests de grens toetsen zonder het getal te dupliceren.
  */
-const STATE_TTL_MS = 10 * 60 * 1000
+export const STATE_TTL_MS = 30 * 60 * 1000
 
 function geheim(): string {
   const s = process.env.OAUTH_STATE_SECRET
