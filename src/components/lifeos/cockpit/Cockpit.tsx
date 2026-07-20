@@ -1,3 +1,4 @@
+import { DagbriefingKaart } from '@/components/lifeos/dagbriefing/DagbriefingKaart'
 import { VitaKaart } from '@/components/lifeos/vita/VitaKaart'
 import { VitaGesprek } from '@/components/lifeos/vita/VitaGesprek'
 import { DagplanKaart } from '@/components/lifeos/taken/DagplanKaart'
@@ -21,18 +22,20 @@ import { MensenBord } from '@/components/lifeos/crm/MensenBord'
 // precies één niveau onder deze compositie.
 //
 // ─── Rang via schaal, niet via kleur ────────────────────────────────────────
-// Precies één kaart per scherm mag de luidste zijn: de Vita-band (`dragend`). Hij
-// is niet nóg een widget maar legt het verband tussen de kaarten eronder, dus hij
-// staat bovenaan én is de enige dragende kaart. De brede ankers (Dagplan, Vang op)
-// dragen hun rang via een brede span, niet via een luidere nadruk; daaronder een
-// paar halve tegels (Welzijn, Agenda) en de inbox als volle-breedte-lijst — rang
-// via schaal, niet via kleur. Cyaan blijft strikt accent.
+// De dagbriefing-band staat bovenaan en is de luidste: het is het eerste wat je
+// 's ochtends leest — de COO-briefing die de dag samenvat. Vita volgt eronder als
+// je interactieve companion: nog altijd `dragend`, maar één trap onder de briefing.
+// De brede ankers (Dagplan, Vang op) dragen hun rang via een brede span, niet via
+// een luidere nadruk; daaronder een paar halve tegels (Welzijn, Agenda) en de
+// inbox als volle-breedte-lijst — rang via schaal, niet via kleur. Cyaan blijft
+// strikt accent.
 //
-// ─── Twee clusters, twee banden ─────────────────────────────────────────────
-//   1. Band  — Vita: wat moet je nú weten?
-//   2. Cluster "Mijn dag": je gereedschap (incl. de 6 pijlers als knop-kaarten).
-//   3. Band  — Vita-gesprek: je vraagt Vita iets nádat je zag wat er speelt.
-//   4. Cluster "Verbinden": de mensen om je heen, je kennis en je terugblik.
+// ─── Drie banden, twee clusters ─────────────────────────────────────────────
+//   1. Band  — Dagbriefing: wat is vandaag het beeld? (het eerste wat je leest)
+//   2. Band  — Vita: wat moet je nú weten?
+//   3. Cluster "Mijn dag": je gereedschap (incl. de 6 pijlers als knop-kaarten).
+//   4. Band  — Vita-gesprek: je vraagt Vita iets nádat je zag wat er speelt.
+//   5. Cluster "Verbinden": de mensen om je heen, je kennis en je terugblik.
 //
 // De losse invoerkaarten (Voeding/Water/Workout/Stress/Stemming) stonden hier als
 // inline-gemak, maar zijn eruit: de 6 pijlerkaarten dekken het welzijnsbeeld, en
@@ -42,7 +45,13 @@ import { MensenBord } from '@/components/lifeos/crm/MensenBord'
 export function Cockpit() {
   return (
     <div className="os-cockpit">
-      {/* Band 1 — de verbindende, dragende kaart. */}
+      {/* Band 1 — de dagbriefing: het eerste wat je 's ochtends leest, de luidste
+          band via schaal en een zachte cyaan-gloed. */}
+      <div className="os-cockpit__band">
+        <DagbriefingKaart />
+      </div>
+
+      {/* Band 2 — de verbindende, dragende kaart onder de briefing. */}
       <div className="os-cockpit__band">
         <VitaKaart nadruk="dragend" />
       </div>
