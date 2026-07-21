@@ -152,21 +152,45 @@ export function laatstePerExternId(events: readonly GoogleAfspraak[]): GoogleAfs
 export interface CacheRijRef {
   externId: string
   kalenderId: string | null
+  /**
+   * Wanneer de rij voor het laatst is bijgewerkt (epoch ms), of null als onbekend.
+   * Alleen nodig voor de grace op schrijf-flow-events (kalender_id nog null).
+   */
+  bijgewerktOp: number | null
 }
+
+/**
+ * Hoe lang een net via de schrijf-flow aangemaakte afspraak (nog zonder
+ * `kalender_id`) blijft staan voordat de sync 'm mag reconcileren.
+ *
+ * Ruim genoeg voor Google-propagatie + één sync-ronde die 'm alsnog van een echte
+ * kalender-id voorziet; kort genoeg dat een in Google verwíjderde afspraak snel uit
+ * je dashboard verdwijnt in plaats van eeuwig te blijven hangen.
+ */
+export const SCHRIJF_GRACE_MS = 2 * 60_000
 
 /**
  * PUUR: welke extern_ids moeten uit het venster weg na een multi-agenda-sync?
  *
- * De vier gevallen, in volgorde:
+ * De gevallen, in volgorde:
  *  1. Nog steeds gezien (deze sync teruggekregen) → HOUDEN.
- *  2. Geen `kalender_id` (door de schrijf-flow gemaakt, nog niet door een sync
- *     gekleurd) → HOUDEN; niet aan ons om die te wissen.
+ *  2. Geen `kalender_id` (via de schrijf-flow gemaakt, nog niet door een sync van
+ *     een echte kalender-id voorzien):
+ *       - vers (binnen `SCHRIJF_GRACE_MS`) → HOUDEN. Een net gemaakte afspraak mag
+ *         niet meteen weggevaagd worden door een sync die Google net voor is.
+ *       - voorbij de grace én er is minstens één agenda succesvol gesynct → WEG.
+ *         Niet-teruggezien betekent dan: in Google verwijderd of verplaatst. Dit is
+ *         de fix voor "via het dashboard gepland, in Google verwijderd, bleef
+ *         hangen": zonder deze reconciliatie bleef zo'n rij eeuwig staan.
  *  3. Agenda staat uit / bestaat niet meer (niet in `zichtbareIds`) → WEG. Zo
  *     verdwijnen events van een uitgevinkte agenda uit je dag.
  *  4. Agenda staat aan én is deze ronde succesvol gesynct, maar dit event kwam
  *     niet terug → WEG (afgezegd of verplaatst).
  * Rest: agenda staat aan maar de fetch faalde → HOUDEN. Een Google-hik mag geen
  * events wissen.
+ *
+ * `nu` (epoch ms) komt van de aanroeper zodat dit deterministisch te testen is —
+ * dezelfde afspraak als bij de klok in `intentie.ts`/`vrije-blokken.ts`.
  *
  * Getest zonder database — dit is de riskantste beslissing van de sync.
  */
@@ -175,11 +199,20 @@ export function teVerwijderenExternIds(
   geziene: ReadonlySet<string>,
   zichtbareIds: ReadonlySet<string>,
   gesyncteIds: ReadonlySet<string>,
+  nu: number,
 ): string[] {
   const weg: string[] = []
   for (const rij of rijen) {
     if (geziene.has(rij.externId)) continue
-    if (rij.kalenderId === null) continue
+
+    if (rij.kalenderId === null) {
+      const vers = rij.bijgewerktOp !== null && nu - rij.bijgewerktOp < SCHRIJF_GRACE_MS
+      // Vers houden; en bij een totaal gefaalde sync (niets gesynct) niets wissen.
+      if (vers || gesyncteIds.size === 0) continue
+      weg.push(rij.externId)
+      continue
+    }
+
     if (!zichtbareIds.has(rij.kalenderId)) {
       weg.push(rij.externId)
       continue
@@ -212,7 +245,7 @@ async function ruimVerdwenenOp(
 ): Promise<Uitkomst<null>> {
   const { data, error: leesFout } = await admin
     .from('agenda_events')
-    .select('extern_id, kalender_id')
+    .select('extern_id, kalender_id, bijgewerkt_op')
     .eq('user_id', userId)
     .eq('bron', GOOGLE_CALENDAR)
     .gte('start_op', van.toISOString())
@@ -230,6 +263,7 @@ async function ruimVerdwenenOp(
     geziene,
     new Set(zichtbareIds),
     new Set(gesyncteIds),
+    Date.now(),
   )
 
   if (weg.length === 0) return { ok: true, waarde: null }
@@ -245,14 +279,17 @@ async function ruimVerdwenenOp(
   return { ok: true, waarde: null }
 }
 
-/** Systeemgrens: één cache-rij → {externId, kalenderId}, of null als onbruikbaar. */
+/** Systeemgrens: één cache-rij → {externId, kalenderId, bijgewerktOp}, of null als onbruikbaar. */
 function cacheRijRefUitRij(rij: unknown): CacheRijRef | null {
   if (typeof rij !== 'object' || rij === null) return null
   const externId = (rij as { extern_id?: unknown }).extern_id
   if (typeof externId !== 'string' || externId.length === 0) return null
   const kalenderId = (rij as { kalender_id?: unknown }).kalender_id
+  const bijgewerktRuw = (rij as { bijgewerkt_op?: unknown }).bijgewerkt_op
+  const bijgewerktMs = typeof bijgewerktRuw === 'string' ? Date.parse(bijgewerktRuw) : Number.NaN
   return {
     externId,
     kalenderId: typeof kalenderId === 'string' && kalenderId.length > 0 ? kalenderId : null,
+    bijgewerktOp: Number.isFinite(bijgewerktMs) ? bijgewerktMs : null,
   }
 }

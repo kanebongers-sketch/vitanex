@@ -7,8 +7,18 @@ import type { GoogleAfspraak } from './google'
 // regels — houden bij vers/geen-agenda, weg bij uitgevinkt/afgezegd, laten staan
 // bij een gefaalde fetch.
 
-function rij(externId: string, kalenderId: string | null): CacheRijRef {
-  return { externId, kalenderId }
+const NU = Date.parse('2026-07-20T12:00:00.000Z')
+/** Binnen de grace: net aangemaakt. */
+const VERS = NU - 30_000
+/** Voorbij de grace: al een sync-ronde oud. */
+const OUD = NU - 10 * 60_000
+
+function rij(
+  externId: string,
+  kalenderId: string | null,
+  bijgewerktOp: number | null = NU,
+): CacheRijRef {
+  return { externId, kalenderId, bijgewerktOp }
 }
 
 const zichtbaar = new Set(['werk@x.nl', 'feest@x.nl'])
@@ -20,17 +30,47 @@ describe('teVerwijderenExternIds', () => {
       new Set(['a']),
       zichtbaar,
       new Set(['werk@x.nl']),
+      NU,
     )
     expect(weg).toEqual([])
   })
 
-  it('houdt een event zonder kalender_id (door de schrijf-flow gemaakt)', () => {
-    // Niet aan de sync om die te wissen: die is niet van een agenda-fetch.
+  it('houdt een VERSE schrijf-flow-afspraak (binnen de grace)', () => {
+    // Net via het dashboard gemaakt, nog geen kalender_id: niet meteen wegvegen —
+    // een sync mag Google net voor zijn.
     const weg = teVerwijderenExternIds(
-      [rij('handmatig', null)],
+      [rij('handmatig', null, VERS)],
       new Set(),
       zichtbaar,
       new Set(['werk@x.nl']),
+      NU,
+    )
+    expect(weg).toEqual([])
+  })
+
+  it('verwijdert een VERLOPEN schrijf-flow-afspraak die niet meer terugkomt', () => {
+    // Voorbij de grace, niet teruggezien, er is succesvol gesynct → in Google
+    // verwijderd. Dit is de fix voor "gepland via dashboard, verwijderd in Google,
+    // bleef hangen".
+    const weg = teVerwijderenExternIds(
+      [rij('handmatig', null, OUD)],
+      new Set(),
+      zichtbaar,
+      new Set(['werk@x.nl']),
+      NU,
+    )
+    expect(weg).toEqual(['handmatig'])
+  })
+
+  it('houdt een verlopen schrijf-flow-afspraak als er niets gesynct is', () => {
+    // Totaal gefaalde sync (geen enkele agenda) mag niets wissen — ook geen
+    // handmatige. Een hik is geen verwijdering.
+    const weg = teVerwijderenExternIds(
+      [rij('handmatig', null, OUD)],
+      new Set(),
+      new Set(),
+      new Set(),
+      NU,
     )
     expect(weg).toEqual([])
   })
@@ -42,6 +82,7 @@ describe('teVerwijderenExternIds', () => {
       new Set(),
       zichtbaar,
       new Set(['werk@x.nl', 'feest@x.nl']),
+      NU,
     )
     expect(weg).toEqual(['a'])
   })
@@ -53,6 +94,7 @@ describe('teVerwijderenExternIds', () => {
       new Set(['b']),
       zichtbaar,
       new Set(['werk@x.nl']),
+      NU,
     )
     expect(weg).toEqual(['a'])
   })
@@ -65,6 +107,7 @@ describe('teVerwijderenExternIds', () => {
       new Set(),
       zichtbaar,
       new Set(['werk@x.nl']), // feest@x.nl ontbreekt → gefaald
+      NU,
     )
     expect(weg).toEqual([])
   })
@@ -76,22 +119,26 @@ describe('teVerwijderenExternIds', () => {
         rij('afgezegd', 'werk@x.nl'), // gesynct, niet terug → weg
         rij('uitgevinkt', 'oud@x.nl'), // niet zichtbaar → weg
         rij('gefaald', 'feest@x.nl'), // zichtbaar maar niet gesynct → houden
-        rij('handmatig', null), // geen agenda → houden
+        rij('handmatig', null, VERS), // verse schrijf-flow → houden
+        rij('verwijderd', null, OUD), // verlopen schrijf-flow, weg in Google → weg
       ],
       new Set(['vers']),
       zichtbaar,
       new Set(['werk@x.nl']),
+      NU,
     )
-    expect(weg.sort()).toEqual(['afgezegd', 'uitgevinkt'])
+    expect(weg.sort()).toEqual(['afgezegd', 'uitgevinkt', 'verwijderd'])
   })
 
   it('leegt alles met een agenda als er geen zichtbare agenda\'s zijn', () => {
-    // Geen zichtbare agenda's → alle agenda-events weg, alleen handmatige blijven.
+    // Geen zichtbare agenda's → alle agenda-events weg. Een verse handmatige blijft
+    // (binnen de grace); gesyncteIds is hier leeg, dus de handmatige blijft sowieso.
     const weg = teVerwijderenExternIds(
-      [rij('a', 'werk@x.nl'), rij('b', 'feest@x.nl'), rij('handmatig', null)],
+      [rij('a', 'werk@x.nl'), rij('b', 'feest@x.nl'), rij('handmatig', null, VERS)],
       new Set(),
       new Set(),
       new Set(),
+      NU,
     )
     expect(weg.sort()).toEqual(['a', 'b'])
   })
