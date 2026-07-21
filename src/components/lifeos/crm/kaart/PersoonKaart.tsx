@@ -1,9 +1,10 @@
 'use client'
 
 import { type DragEvent } from 'react'
-import { CalendarClock, Clock, GripVertical } from 'lucide-react'
+import { CalendarClock, Clock, Flame, GripVertical, TrendingUp } from 'lucide-react'
 import type { Groep, Persoon } from '@/lib/lifeos/crm/crm'
 import { contactVersheid, type Versheid } from '@/lib/lifeos/crm/versheid'
+import { scoorLead, type Lead } from '@/lib/lifeos/crm/leadscore'
 import { followUpLabel, type FollowUp } from '@/components/lifeos/crm/followUp'
 import { StatusKiezer } from '@/components/lifeos/crm/StatusKiezer'
 import { Monogram } from './Monogram'
@@ -122,10 +123,14 @@ const CSS = `
   font-weight: 600;
   color: var(--text-3);
 }
-.crm-kaart__chip--dringend {
+.crm-kaart__chip--dringend,
+.crm-kaart__chip--heet {
   color: var(--brand);
   border-color: color-mix(in srgb, var(--brand) 42%, transparent);
   background: var(--brand-soft);
+}
+.crm-kaart__chip--koud {
+  color: var(--text-4);
 }
 .crm-kaart__versheid {
   display: inline-flex;
@@ -160,23 +165,55 @@ const CSS = `
 }
 `
 
+interface KoopkansChipProps {
+  lead: Lead
+}
+
+// De koopkans-chip: subtiel signaal van waarschijnlijke koopintentie, afgeleid uit
+// echte data (fase + follow-up + versheid). Cyaan ALLEEN voor 'heet' (dat vraagt
+// actie); 'warm' rustig neutraal, 'koud' gedempt. Het niveau staat in de tekst
+// (niet enkel kleur); `title`/`aria-label` dragen de reden als tekstalternatief.
+function KoopkansChip({ lead }: KoopkansChipProps) {
+  const Icoon = lead.niveau === 'heet' ? Flame : TrendingUp
+  const modifier =
+    lead.niveau === 'heet'
+      ? ' crm-kaart__chip--heet'
+      : lead.niveau === 'koud'
+        ? ' crm-kaart__chip--koud'
+        : ''
+  return (
+    <span
+      className={`crm-kaart__chip${modifier}`}
+      title={lead.reden}
+      aria-label={`Koopkans ${lead.niveau} — ${lead.reden}`}
+    >
+      <Icoon size={12} strokeWidth={2.2} aria-hidden="true" />
+      Koopkans: {lead.niveau}
+    </span>
+  )
+}
+
 interface SignalenProps {
   followUp: FollowUp | null
+  lead: Lead | null
   versheid: Versheid
 }
 
-// De chip-rij (follow-up) en de versheid-regel. Apart gehouden zodat de kaart
-// zelf compact blijft. Versheid krijgt pas een amber accent + duiding als het
+// De chip-rij (follow-up + koopkans) en de versheid-regel. Apart gehouden zodat de
+// kaart zelf compact blijft. Versheid krijgt pas een amber accent + duiding als het
 // écht koud is; "nog geen contact" blijft neutraal (een verse lead is niet koud).
-function KaartSignalen({ followUp, versheid }: SignalenProps) {
+function KaartSignalen({ followUp, lead, versheid }: SignalenProps) {
   return (
     <>
-      {followUp ? (
+      {followUp || lead ? (
         <div className="crm-kaart__chips">
-          <span className={`crm-kaart__chip${followUp.dringend ? ' crm-kaart__chip--dringend' : ''}`}>
-            <CalendarClock size={12} strokeWidth={2.2} aria-hidden="true" />
-            {followUp.tekst}
-          </span>
+          {followUp ? (
+            <span className={`crm-kaart__chip${followUp.dringend ? ' crm-kaart__chip--dringend' : ''}`}>
+              <CalendarClock size={12} strokeWidth={2.2} aria-hidden="true" />
+              {followUp.tekst}
+            </span>
+          ) : null}
+          {lead ? <KoopkansChip lead={lead} /> : null}
         </div>
       ) : null}
 
@@ -205,6 +242,7 @@ export function PersoonKaart({
 }: PersoonKaartProps) {
   const followUp = persoon.followUpDatum ? followUpLabel(persoon.followUpDatum, vandaag) : null
   const versheid = contactVersheid(persoon.laatsteContactOp, vandaag)
+  const lead = scoorLead(persoon, vandaag)
 
   function opSleepStart(e: DragEvent) {
     e.dataTransfer.effectAllowed = 'move'
@@ -243,7 +281,7 @@ export function PersoonKaart({
         </button>
       </div>
 
-      <KaartSignalen followUp={followUp} versheid={versheid} />
+      <KaartSignalen followUp={followUp} lead={lead} versheid={versheid} />
 
       <ContactActies persoon={persoon} />
 
