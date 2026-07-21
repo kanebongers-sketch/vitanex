@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { ArrowUpRight } from 'lucide-react'
-import { gmailLink, type TriageMailJson } from '@/lib/lifeos/inbox/inbox'
+import { gmailInboxLink, gmailLink, type TriageMailJson } from '@/lib/lifeos/inbox/inbox'
 import { tijdLabel } from '@/lib/lifeos/datum/datum'
 import type { HaalUitkomst } from '@/lib/lifeos/api/http'
 import type { Suggestie } from '@/lib/lifeos/inbox/analyse'
@@ -30,8 +30,11 @@ import type { AnalyseStatus } from './useSuggesties'
 // is maanden werk en levert een slechtere Gmail (README §10).
 
 interface TriagelijstProps {
+  /** Ongelezen post die om actie vraagt — je to-do, bovenaan. */
   mails: TriageMailJson[]
-  /** Hoeveel ongelezen mails er beoordeeld zijn. De noemer. */
+  /** Al het overige van vandaag: gelezen post en ruis. Het volledige overzicht. */
+  overige: TriageMailJson[]
+  /** Hoeveel mails van vandaag er beoordeeld zijn. De noemer. */
   gescand: number
   /** Mails die er wel zijn maar die we niet konden lezen. Bijna altijd 0. */
   nietGelezen: number
@@ -47,8 +50,11 @@ interface TriagelijstProps {
   onConcept?: (mail: TriageMailJson) => Promise<HaalUitkomst<true>>
 }
 
+const LIJST_STIJL = { display: 'grid', gap: 10, listStyle: 'none', padding: 0, margin: 0 } as const
+
 export function Triagelijst({
   mails,
+  overige,
   gescand,
   nietGelezen,
   suggestieVoor,
@@ -59,67 +65,118 @@ export function Triagelijst({
 }: TriagelijstProps) {
   if (gescand === 0 && nietGelezen === 0) {
     // Wél gekeken, niets gevonden. Dat is een antwoord, geen lege staat: er ligt
-    // gewoon geen ongelezen post van vandaag.
+    // gewoon geen post van vandaag.
     return (
-      <p style={{ fontSize: 14, color: 'var(--text-3)', margin: 0, lineHeight: 1.5 }}>
-        Geen ongelezen mail van vandaag.
-      </p>
-    )
-  }
-
-  if (mails.length === 0) {
-    return (
-      <div>
-        <p className="os-cijfer" style={{ fontSize: 30, lineHeight: 1, margin: '0 0 8px' }}>
-          0
+      <div style={{ display: 'grid', gap: 12, justifyItems: 'start' }}>
+        <p style={{ fontSize: 14, color: 'var(--text-3)', margin: 0, lineHeight: 1.5 }}>
+          Geen mail van vandaag.
         </p>
-        <p style={{ fontSize: 14, color: 'var(--text-2)', margin: '0 0 4px', fontWeight: 600 }}>
-          Niets vraagt iets van je.
-        </p>
-        <Noemer gescand={gescand} getoond={0} />
-        <Onleesbaar aantal={nietGelezen} />
+        <OpenInGmail />
       </div>
     )
   }
 
   return (
-    <div style={{ display: 'grid', gap: 14 }}>
-      <div>
-        {/* Hiërarchie via schaal: het aantal is het cijfer waar je op mikt, de
-            regels lezen daarna. */}
-        <p
-          className="os-cijfer"
-          style={{ fontSize: 30, lineHeight: 1, margin: '0 0 8px', color: 'var(--brand)' }}
-        >
-          {mails.length}
-        </p>
-        <p style={{ fontSize: 14, color: 'var(--text-2)', margin: 0, fontWeight: 600 }}>
-          {mails.length === 1
-            ? 'mail vraagt vandaag iets van je'
-            : 'mails vragen vandaag iets van je'}
-        </p>
-      </div>
+    <div style={{ display: 'grid', gap: 18 }}>
+      {/* Vraagt actie — je to-do: alleen ongelezen post die er inhoudelijk toe doet. */}
+      <section style={{ display: 'grid', gap: 12 }}>
+        {mails.length > 0 ? (
+          <>
+            <div>
+              {/* Hiërarchie via schaal: het aantal is het cijfer waar je op mikt,
+                  de regels lezen daarna. */}
+              <p
+                className="os-cijfer"
+                style={{ fontSize: 30, lineHeight: 1, margin: '0 0 8px', color: 'var(--brand)' }}
+              >
+                {mails.length}
+              </p>
+              <p style={{ fontSize: 14, color: 'var(--text-2)', margin: 0, fontWeight: 600 }}>
+                {mails.length === 1
+                  ? 'mail vraagt vandaag iets van je'
+                  : 'mails vragen vandaag iets van je'}
+              </p>
+            </div>
 
-      <ul style={{ display: 'grid', gap: 10, listStyle: 'none', padding: 0, margin: 0 }}>
-        {mails.map((mail) => (
-          <li key={mail.id}>
-            <Regel
-              mail={mail}
-              actie={actieVan(suggestieVoor(mail.id))}
-              onMaak={onMaak}
-              onMailActie={onMailActie}
-              onConcept={onConcept}
-            />
-          </li>
-        ))}
-      </ul>
+            <ul style={LIJST_STIJL}>
+              {mails.map((mail) => (
+                <li key={mail.id}>
+                  <Regel
+                    mail={mail}
+                    actie={actieVan(suggestieVoor(mail.id))}
+                    onMaak={onMaak}
+                    onMailActie={onMailActie}
+                    onConcept={onConcept}
+                  />
+                </li>
+              ))}
+            </ul>
+            <AnalyseStoring status={analyseStatus} />
+          </>
+        ) : (
+          <p style={{ fontSize: 14, color: 'var(--text-3)', margin: 0, lineHeight: 1.5 }}>
+            Niets ongelezen vraagt vandaag om actie.
+          </p>
+        )}
+      </section>
 
-      <div>
-        <Noemer gescand={gescand} getoond={mails.length} />
+      {/* Alles van vandaag — het volledige overzicht: gelezen post en de ruis die
+          de to-do niet haalde. Geen actieknoppen; puur om te zien wát er ligt. */}
+      {overige.length > 0 ? (
+        <section style={{ display: 'grid', gap: 10 }}>
+          <h3
+            style={{
+              fontSize: 11,
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+              color: 'var(--text-4)',
+              fontWeight: 600,
+              margin: 0,
+            }}
+          >
+            Alles van vandaag · {gescand}
+          </h3>
+          <ul style={LIJST_STIJL}>
+            {overige.map((mail) => (
+              <li key={mail.id}>
+                <Regel mail={mail} actie={null} onMaak={onMaak} />
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
+      <div style={{ display: 'grid', gap: 8, justifyItems: 'start' }}>
         <Onleesbaar aantal={nietGelezen} />
-        <AnalyseStoring status={analyseStatus} />
+        <OpenInGmail />
       </div>
     </div>
+  )
+}
+
+/**
+ * De sprong naar Gmail zelf. De kaart is geen mailclient (zie de kop); voor "alles
+ * echt lezen, beantwoorden, verwijderen" is Gmail één tik verderop.
+ */
+function OpenInGmail() {
+  return (
+    <a
+      href={gmailInboxLink()}
+      target="_blank"
+      rel="noopener noreferrer"
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 5,
+        fontSize: 12,
+        fontWeight: 600,
+        color: 'var(--brand)',
+        textDecoration: 'none',
+      }}
+    >
+      Alles openen in Gmail
+      <ArrowUpRight size={12} strokeWidth={2.2} aria-hidden="true" />
+    </a>
   )
 }
 
@@ -168,23 +225,6 @@ function Onleesbaar({ aantal }: { aantal: number }) {
       {aantal === 1
         ? 'Van 1 mail konden we de gegevens niet ophalen; die staat hier niet tussen.'
         : `Van ${aantal} mails konden we de gegevens niet ophalen; die staan hier niet tussen.`}
-    </p>
-  )
-}
-
-/**
- * De verantwoording.
- *
- * Zonder dit getal verbergt de kaart hoeveel er is weggefilterd, en is de
- * classificatie niet te controleren — precies het stille fout-negatief waar
- * `classificeer.ts` voor waarschuwt. "3 van de 47" zegt eerlijk: er zijn er 44
- * weggelaten, en als je twijfelt staat Gmail één tik verderop.
- */
-function Noemer({ gescand, getoond }: { gescand: number; getoond: number }) {
-  return (
-    <p style={{ fontSize: 11, color: 'var(--text-4)', margin: 0, lineHeight: 1.5 }}>
-      {`${getoond} van de ${gescand} ongelezen ${gescand === 1 ? 'mail' : 'mails'} van vandaag. `}
-      De rest is nieuwsbrief, bulk of no-reply.
     </p>
   )
 }

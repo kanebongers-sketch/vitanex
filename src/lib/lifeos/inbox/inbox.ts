@@ -71,7 +71,13 @@ export type InboxVandaag =
        * niets weten" is. Dan is de noemer een leugen.
        */
       nietGelezen: number
+      /** Ongelezen post die om actie vraagt, nieuwste eerst. Je to-do. */
       vraagtActie: TriageMailJson[]
+      /**
+       * Al het overige van vandaag: gelezen post en weggefilterde ruis, nieuwste
+       * eerst. Zo toont de kaart álles van vandaag, niet alleen de to-do.
+       */
+      overige: TriageMailJson[]
     }
 
 /**
@@ -111,7 +117,19 @@ export function naarInboxVandaag(triage: Triage, nietGelezen: number): InboxGeko
     gescand: triage.gescand,
     nietGelezen,
     vraagtActie: triage.vraagtActie.map(naarTriageMailJson),
+    overige: triage.overige.map(naarTriageMailJson),
   }
+}
+
+/**
+ * De deeplink naar je hele inbox in Gmail.
+ *
+ * Zelfde `u/0`-caveat als `gmailLink`: dat is "het eerste account in deze browser",
+ * niet per se het gekoppelde. Voor de gewone gebruiker met één Google-account klopt
+ * het; met meerdere accounts kan Gmail een ander postvak openen.
+ */
+export function gmailInboxLink(): string {
+  return 'https://mail.google.com/mail/u/0/#inbox'
 }
 
 // ─── Systeemgrens: het antwoord van onze eigen API ──────────────────────────
@@ -175,10 +193,16 @@ export function leesInboxVandaag(ruw: unknown): InboxVandaag | null {
   // verdwijnen zonder dat iemand het merkt — en dat is hier het gevaar.
   if (mails.some((m) => m === null)) return null
 
+  // `overige` mag ontbreken (een ouder/gecacht antwoord van vóór deze uitbreiding):
+  // dan is het een lege lijst, geen kapot antwoord. Een kapot ITEM erin is dat wél.
+  const overigeRuw = Array.isArray(ruw.overige) ? ruw.overige.map(leesTriageMailJson) : []
+  if (overigeRuw.some((m) => m === null)) return null
+
   return {
     gekoppeld: true,
     gescand,
     nietGelezen,
     vraagtActie: mails.filter((m): m is TriageMailJson => m !== null),
+    overige: overigeRuw.filter((m): m is TriageMailJson => m !== null),
   }
 }

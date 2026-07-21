@@ -147,7 +147,16 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   // en er wordt niets aangemaakt — stil acken, zodat we het bestaan van de bot
   // niet bevestigen en Telegram niet gaat herhalen.
   const besluit = beoordeelChat(bericht.chatId)
-  if (besluit.soort === 'geweigerd') return ack()
+  if (besluit.soort === 'geweigerd') {
+    // Stil naar de afzender toe (we bevestigen het bestaan van de bot niet), maar
+    // WÉL server-side loggen: dit is hoe je je eigen chat-id vindt om op de
+    // allowlist te zetten (`LIFEOS_TELEGRAM_ALLOWED_CHAT_ID`). Alleen het chat-id,
+    // niets uit het bericht — dat lekt niets nieuws en staat enkel in je eigen log.
+    console.warn(
+      `[lifeos/telegram] bericht van niet-toegestane chat genegeerd — chat-id: ${bericht.chatId}. Zet dit id in LIFEOS_TELEGRAM_ALLOWED_CHAT_ID om de bot te activeren.`,
+    )
+    return ack()
+  }
 
   // 2c. Snelheidslimiet vóór élke dure stap (Whisper + Claude) én vóór het
   // leer-modus-antwoord: ook een terugmelding is een Telegram-call die je niet

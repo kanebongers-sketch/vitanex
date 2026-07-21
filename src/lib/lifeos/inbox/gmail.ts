@@ -128,13 +128,15 @@ const FETCH_TIMEOUT_MS = 10_000
  * Quota (geverifieerd, https://developers.google.com/gmail/api/reference/quota,
  * limieten van 1 mei 2026): 6.000 eenheden per minuut per gebruiker. getProfile
  * kost 1, messages.list 5, messages.get 20. Eén triage is dus
- * 1 + 5 + 40×20 = 806 eenheden — ruim binnen de minuutlimiet, ook als je de kaart
- * een paar keer per avond ververst.
+ * 1 + 5 + 60×20 = 1.206 eenheden — ruim binnen de minuutlimiet, ook als je de kaart
+ * een paar keer per dag ververst.
  *
- * 40 is óók een inhoudelijke grens: liggen er meer dan 40 ongelezen mails van
- * vandaag, dan is "open Gmail" het juiste antwoord en niet een langere lijst.
+ * 60 is óók een inhoudelijke grens: nu de kaart álle mail van vandaag toont (niet
+ * alleen ongelezen) ligt de teller hoger, maar liggen er méér dan 60 mails van
+ * vandaag, dan is "open Gmail" het juiste antwoord en niet een nóg langere lijst.
+ * De kaart zegt eerlijk "X van de Y", dus een afkapping verbergt niets.
  */
-const MAX_BERICHTEN = 40
+const MAX_BERICHTEN = 60
 
 /**
  * Hoeveel messages.get-calls tegelijk.
@@ -147,16 +149,22 @@ const MAX_BERICHTEN = 40
 const BLOKGROOTTE = 8
 
 /**
- * Ongelezen, in de inbox, van ongeveer de laatste dag.
+ * In de inbox, van ongeveer de laatste dag — gelezen én ongelezen.
+ *
+ * Bewust GEEN `is:unread` (meer): de kaart toont álles van vandaag, niet alleen
+ * ongelezen. Het ongelezen/gelezen-onderscheid is niet weg, het is verplaatst naar
+ * `triageer` (classificeer.ts): ongelezen + relevant → "vraagt actie" (je to-do),
+ * de rest → "alles van vandaag" (het overzicht). Zo zie je gelezen post nog terug
+ * zonder dat die je to-do vervuilt.
  *
  * Operatoren geverifieerd (https://support.google.com/mail/answer/7190), maar de
  * exacte grens van `newer_than:1d` documenteert Google niet: het kan "24 uur
  * geleden" of "sinds gisteren 00:00" betekenen. Bewust NIET dichtgetimmerd met
- * een eigen filter op `internalDate`: dan zou een mail van 25 uur oud die nog
- * ongelezen is en iets van je vraagt alsnog verdwijnen. Het venster mag ruim
- * uitvallen — te veel tonen kost een blik, te weinig tonen kost je een deadline.
+ * een eigen filter op `internalDate`: dan zou een mail van 25 uur oud alsnog
+ * verdwijnen. Het venster mag ruim uitvallen — te veel tonen kost een blik, te
+ * weinig tonen kost je een deadline.
  */
-const ZOEKOPDRACHT = 'is:unread in:inbox newer_than:1d'
+const ZOEKOPDRACHT = 'in:inbox newer_than:1d'
 
 /**
  * De Gmail-config: dezelfde Google-client als de agenda, andere redirect.

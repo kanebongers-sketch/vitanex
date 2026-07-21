@@ -186,6 +186,7 @@ export function InboxKaart() {
       {staat.fase === 'ok' && staat.data.gekoppeld ? (
         <Triagelijst
           mails={staat.data.vraagtActie}
+          overige={staat.data.overige}
           gescand={staat.data.gescand}
           nietGelezen={staat.data.nietGelezen}
           suggestieVoor={suggestieVoor}

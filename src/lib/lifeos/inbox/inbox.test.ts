@@ -68,8 +68,11 @@ describe('naarTriageMailJson', () => {
 })
 
 describe('naarInboxVandaag', () => {
-  test('geeft de tellers en de mails door', () => {
-    const antwoord = naarInboxVandaag({ gescand: 12, vraagtActie: [beoordeeld()] }, 0)
+  test('geeft de tellers en beide lijsten door', () => {
+    const antwoord = naarInboxVandaag(
+      { gescand: 12, vraagtActie: [beoordeeld({ id: 'm1' })], overige: [beoordeeld({ id: 'm2' })] },
+      0,
+    )
 
     expect(antwoord).toEqual({
       gekoppeld: true,
@@ -85,12 +88,22 @@ describe('naarInboxVandaag', () => {
           reden: 'Direct aan jou geadresseerd.',
         },
       ],
+      overige: [
+        {
+          id: 'm2',
+          threadId: 't1',
+          afzender: 'Jan Jansen',
+          onderwerp: 'Voorstel',
+          ontvangenOp: '2026-07-16T09:00:00.000Z',
+          reden: 'Direct aan jou geadresseerd.',
+        },
+      ],
     })
   })
 
   test('draagt onleesbare mails naar buiten', () => {
     // Dit getal mag nergens onderweg verdwijnen: zonder dit is de noemer een leugen.
-    expect(naarInboxVandaag({ gescand: 3, vraagtActie: [] }, 6).nietGelezen).toBe(6)
+    expect(naarInboxVandaag({ gescand: 3, vraagtActie: [], overige: [] }, 6).nietGelezen).toBe(6)
   })
 })
 
@@ -109,10 +122,36 @@ describe('leesInboxVandaag', () => {
         reden: 'Direct aan jou geadresseerd.',
       },
     ],
+    overige: [
+      {
+        id: 'm2',
+        threadId: 't2',
+        afzender: 'Piet',
+        onderwerp: 'Nieuwsbrief',
+        ontvangenOp: '2026-07-16T08:00:00.000Z',
+        reden: 'Nieuwsbrief: er zit een afmeldlink in de headers.',
+      },
+    ],
   }
 
   test('leest een geldig antwoord', () => {
     expect(leesInboxVandaag(geldig)).toEqual(geldig)
+  })
+
+  test('een ontbrekende overige-lijst valt terug op leeg, geen fout', () => {
+    // Een ouder/gecacht antwoord van vóór deze uitbreiding mist `overige`. Dat mag
+    // geen kapot antwoord zijn — het is gewoon een lege lijst.
+    const { overige: _weg, ...zonderOverige } = geldig
+    void _weg
+    expect(leesInboxVandaag(zonderOverige)).toEqual({ ...zonderOverige, overige: [] })
+  })
+
+  test('één kapotte overige-mail maakt het hele antwoord kapot', () => {
+    // Dezelfde belofte als voor vraagtActie: stil overslaan zou een mail laten
+    // verdwijnen. Liever de foutstaat.
+    const antwoord = leesInboxVandaag({ ...geldig, overige: [{ id: 'm2' }] })
+
+    expect(antwoord).toBeNull()
   })
 
   test('een ontbrekende thread-id valt terug op leeg, geen fout', () => {
@@ -139,7 +178,13 @@ describe('leesInboxVandaag', () => {
   test('een lege triage is geldig, geen fout', () => {
     const antwoord = leesInboxVandaag({ gekoppeld: true, gescand: 0, nietGelezen: 0, vraagtActie: [] })
 
-    expect(antwoord).toEqual({ gekoppeld: true, gescand: 0, nietGelezen: 0, vraagtActie: [] })
+    expect(antwoord).toEqual({
+      gekoppeld: true,
+      gescand: 0,
+      nietGelezen: 0,
+      vraagtActie: [],
+      overige: [],
+    })
   })
 
   test.each([

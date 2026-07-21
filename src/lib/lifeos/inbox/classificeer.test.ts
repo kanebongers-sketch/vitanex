@@ -166,6 +166,44 @@ describe('triageer', () => {
 
     expect(triage.gescand).toBe(0)
     expect(triage.vraagtActie).toEqual([])
+    expect(triage.overige).toEqual([])
+  })
+
+  test('gelezen post (geen UNREAD-label) hoort bij overige, niet bij de to-do', () => {
+    // Je hebt 'm al gezien: relevant om terug te vinden, maar niet je to-do.
+    const triage = triageer([
+      mail({ id: 'gelezen', labels: ['INBOX'] }),
+      mail({ id: 'ongelezen', labels: ['INBOX', 'UNREAD'] }),
+    ])
+
+    expect(triage.vraagtActie.map((b) => b.mail.id)).toEqual(['ongelezen'])
+    expect(triage.overige.map((b) => b.mail.id)).toEqual(['gelezen'])
+  })
+
+  test('vraagtActie en overige samen dekken elke mail precies één keer', () => {
+    // De belofte van "alles van vandaag": niets valt dubbel of stil weg.
+    const mails = [
+      mail({ id: 'post' }),
+      mail({ id: 'nieuwsbrief', heeftAfmeldlink: true }),
+      mail({ id: 'gelezen', labels: ['INBOX'] }),
+    ]
+    const triage = triageer(mails)
+
+    expect(triage.vraagtActie.map((b) => b.mail.id)).toEqual(['post'])
+    expect([...triage.vraagtActie, ...triage.overige].map((b) => b.mail.id).sort()).toEqual([
+      'gelezen',
+      'nieuwsbrief',
+      'post',
+    ])
+  })
+
+  test('overige is nieuwste eerst', () => {
+    const triage = triageer([
+      mail({ id: 'oud', heeftAfmeldlink: true, ontvangenOp: new Date('2026-07-16T08:00:00Z') }),
+      mail({ id: 'nieuw', heeftAfmeldlink: true, ontvangenOp: new Date('2026-07-16T11:00:00Z') }),
+    ])
+
+    expect(triage.overige.map((b) => b.mail.id)).toEqual(['nieuw', 'oud'])
   })
 
   test('alleen nieuwsbrieven: niets vraagt iets, maar ze zijn wel geteld', () => {

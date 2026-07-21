@@ -175,8 +175,22 @@ export interface BeoordeeldeMail {
 export interface Triage {
   /** Hoeveel mails we bekeken hebben. De noemer — zie `InboxKaart`. */
   gescand: number
-  /** Alleen wat iets van je vraagt, nieuwste eerst. */
+  /** Ongelezen post die iets van je vraagt, nieuwste eerst. Je to-do. */
   vraagtActie: BeoordeeldeMail[]
+  /**
+   * Al het overige van vandaag: gelezen post en weggefilterde ruis (nieuwsbrief,
+   * bulk, no-reply), nieuwste eerst. Zo zie je écht álles van vandaag — niet alleen
+   * wat om actie vraagt — terwijl de to-do bovenaan wél alleen het urgente toont.
+   */
+  overige: BeoordeeldeMail[]
+}
+
+/** Gmail's UNREAD-label. Aanwezig = nog niet gelezen. */
+const UNREAD = 'UNREAD'
+
+/** Ongelezen? Gelezen post heb je al gezien; die hoort in het overzicht, niet in de to-do. */
+function isOngelezen(mail: MailMeta): boolean {
+  return mail.labels.includes(UNREAD)
 }
 
 /**
@@ -186,12 +200,25 @@ export interface Triage {
  * zodat zichtbaar is hoeveel er is weggefilterd. Een teller die alleen de
  * uitkomst laat zien, verbergt precies datgene waar je hem op zou willen
  * controleren.
+ *
+ * `vraagtActie` = ongelezen ÉN inhoudelijk relevant (de content-regels van
+ * `classificeer`). `overige` = al het andere van vandaag: gelezen post én de
+ * weggefilterde ruis. Samen dekken ze elke opgehaalde mail precies één keer, zodat
+ * de kaart álles van vandaag kan tonen zonder iets dubbel of stil weg te laten.
  */
 export function triageer(mails: readonly MailMeta[]): Triage {
-  const vraagtActie = mails
-    .map((mail): BeoordeeldeMail => ({ mail, oordeel: classificeer(mail) }))
-    .filter((b) => b.oordeel.vraagtActie)
-    .sort((a, b) => b.mail.ontvangenOp.getTime() - a.mail.ontvangenOp.getTime())
+  const beoordeeld = mails.map((mail): BeoordeeldeMail => ({ mail, oordeel: classificeer(mail) }))
+  const nieuwsteEerst = (a: BeoordeeldeMail, b: BeoordeeldeMail): number =>
+    b.mail.ontvangenOp.getTime() - a.mail.ontvangenOp.getTime()
 
-  return { gescand: mails.length, vraagtActie }
+  const vraagtActie = beoordeeld
+    .filter((b) => b.oordeel.vraagtActie && isOngelezen(b.mail))
+    .sort(nieuwsteEerst)
+
+  // Alles wat niet in de to-do belandde: gelezen post + ruis. `filter`/`sort` op
+  // een kopie, dus de invoer blijft ongemoeid (net als bij vraagtActie).
+  const actieIds = new Set(vraagtActie.map((b) => b.mail.id))
+  const overige = beoordeeld.filter((b) => !actieIds.has(b.mail.id)).sort(nieuwsteEerst)
+
+  return { gescand: mails.length, vraagtActie, overige }
 }
