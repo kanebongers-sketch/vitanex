@@ -211,6 +211,8 @@ export type ProfielUitkomst =
   | { staat: 'verlopen' }
   /** 403: de koppeling heeft te weinig scope — opnieuw koppelen is de weg terug. */
   | { staat: 'scope_ontbreekt' }
+  /** 403: de Gmail-API staat uit in het Cloud-project — opnieuw koppelen helpt niet, de API moet aan. */
+  | { staat: 'api_uit' }
   | { staat: 'fout'; reden: string }
 
 export type MailsUitkomst =
@@ -231,10 +233,16 @@ export type MailsUitkomst =
   | { staat: 'verlopen' }
   /** 403: de koppeling heeft te weinig scope — opnieuw koppelen is de weg terug. */
   | { staat: 'scope_ontbreekt' }
+  /** 403: de Gmail-API staat uit in het Cloud-project — opnieuw koppelen helpt niet, de API moet aan. */
+  | { staat: 'api_uit' }
   | { staat: 'fout'; reden: string }
 
-/** `verlopen`, `scope_ontbreekt` en `fout` zijn overal hetzelfde; alleen de geslaagde tak verschilt. */
-type Mislukt = { staat: 'verlopen' } | { staat: 'scope_ontbreekt' } | { staat: 'fout'; reden: string }
+/** `verlopen`, `scope_ontbreekt`, `api_uit` en `fout` zijn overal hetzelfde; alleen de geslaagde tak verschilt. */
+type Mislukt =
+  | { staat: 'verlopen' }
+  | { staat: 'scope_ontbreekt' }
+  | { staat: 'api_uit' }
+  | { staat: 'fout'; reden: string }
 
 type IdsUitkomst = { staat: 'ok'; ids: string[] } | Mislukt
 type BerichtUitkomst = { staat: 'ok'; mail: MailMeta } | Mislukt
@@ -257,6 +265,7 @@ type Antwoord =
   | { staat: 'ok'; ruw: unknown }
   | { staat: 'verlopen' }
   | { staat: 'scope_ontbreekt' }
+  | { staat: 'api_uit' }
   | { staat: 'fout'; reden: string }
 
 /**
@@ -272,6 +281,12 @@ type Antwoord =
  *                         opnieuw), geen storing en geen lege inbox — daarom een
  *                         eigen tak i.p.v. platgeslagen op `fout`/502.
  *   rest → fout           een echte storing (5xx, 429, onverwacht).
+ *
+ * LET OP: 403 is hier de bodyloze terugval (`scope_ontbreekt`). Een 403 kan óók
+ * betekenen dat de Gmail-API uitstaat in het Cloud-project — dat is een héél
+ * andere oplossing (API aanzetten, niet opnieuw koppelen). `haal` leest daarom bij
+ * een 403 de body en verfijnt met `duid403`; deze pure functie kent dat verschil
+ * niet en mag het niet raden.
  */
 export function statusNaarFout(
   status: number,
@@ -279,6 +294,48 @@ export function statusNaarFout(
   if (status === 401) return { staat: 'verlopen' }
   if (status === 403) return { staat: 'scope_ontbreekt' }
   return { staat: 'fout', reden: `http_${status}` }
+}
+
+/**
+ * PUUR: verfijnt een Gmail-403 aan de hand van de foutbody. Google gebruikt
+ * dezelfde status voor twee dingen die een totaal andere oplossing hebben:
+ *
+ *   - de Gmail-API staat UIT in het Cloud-project. Google's reden is dan
+ *     `accessNotConfigured` / `SERVICE_DISABLED`, met een boodschap als "Gmail API
+ *     has not been used in project … before or it is disabled". → `api_uit`.
+ *     Opnieuw koppelen lost dit NOOIT op — de API moet aan (net als de Agenda-API,
+ *     die in hetzelfde project wél aanstaat).
+ *   - het token mist scope (`insufficientPermissions` /
+ *     `ACCESS_TOKEN_SCOPE_INSUFFICIENT`). → `scope_ontbreekt`. Dán is opnieuw
+ *     koppelen wél de weg terug.
+ *
+ * Ze platslaan op één "koppel opnieuw" stuurde Kane bij een uitgeschakelde API
+ * eindeloos het koppelscherm in terwijl elke poging weer op dezelfde 403 stukliep.
+ * Bij twijfel `scope_ontbreekt`: dat is de veiligere gok (opnieuw koppelen doet
+ * geen kwaad), terwijl "zet de API aan" bij een échte scope-fout een doodlopend
+ * spoor zou zijn.
+ */
+export function duid403(ruw: unknown): { staat: 'api_uit' } | { staat: 'scope_ontbreekt' } {
+  return noemtApiUit(ruw) ? { staat: 'api_uit' } : { staat: 'scope_ontbreekt' }
+}
+
+/** Zegt de Google-foutbody dat de API uitstaat (`accessNotConfigured`/`SERVICE_DISABLED`)? */
+function noemtApiUit(ruw: unknown): boolean {
+  if (!isObject(ruw)) return false
+  const fout = isObject(ruw.error) ? ruw.error : null
+  if (!fout) return false
+
+  const redenen: string[] = []
+  for (const lijst of [fout.errors, fout.details]) {
+    if (!Array.isArray(lijst)) continue
+    for (const item of lijst) {
+      if (isObject(item) && typeof item.reason === 'string') redenen.push(item.reason)
+    }
+  }
+  if (redenen.includes('accessNotConfigured') || redenen.includes('SERVICE_DISABLED')) return true
+
+  const boodschap = typeof fout.message === 'string' ? fout.message : ''
+  return /has not been used in project|it is disabled/i.test(boodschap)
 }
 
 /** Eén GET met Bearer-token. Fout, verlopen, scope-tekort en ok zijn hier al uit elkaar. */
@@ -294,7 +351,17 @@ async function haal(url: string, toegangstoken: string): Promise<Antwoord> {
     return { staat: 'fout', reden: 'netwerk' }
   }
 
-  if (!antwoord.ok) return statusNaarFout(antwoord.status)
+  if (!antwoord.ok) {
+    // Een 403 kan "te weinig scope" óf "Gmail-API staat uit" zijn — twee heel
+    // verschillende oplossingen. Alleen bij een 403 lezen we de body (die is klein
+    // en we gooien 'm anders weg) om `duid403` te laten kiezen. Andere statussen
+    // gaan langs de pure `statusNaarFout`.
+    if (antwoord.status === 403) {
+      const foutRuw: unknown = await antwoord.json().catch(() => null)
+      return duid403(foutRuw)
+    }
+    return statusNaarFout(antwoord.status)
+  }
 
   const ruw: unknown = await antwoord.json().catch(() => null)
   return { staat: 'ok', ruw }
@@ -430,10 +497,12 @@ export async function haalTriageMails(toegangstoken: string): Promise<MailsUitko
 
     for (const uitkomst of uitkomsten) {
       if (uitkomst.staat === 'verlopen') return { staat: 'verlopen' }
-      // Scope-tekort raakt élk bericht gelijk: doorgaan zou het als `nietGelezen`
-      // tellen en de storing verhullen. Stoppen en het sein doorgeven, net als bij
-      // `verlopen` — dan wordt het straks een nette "koppel opnieuw", geen 502.
+      // Scope-tekort en een uitgeschakelde API raken élk bericht gelijk: doorgaan
+      // zou het als `nietGelezen` tellen en de storing verhullen. Stoppen en het
+      // sein doorgeven, net als bij `verlopen` — dan wordt het straks een nette
+      // "koppel opnieuw" resp. "zet de Gmail-API aan", geen 502.
       if (uitkomst.staat === 'scope_ontbreekt') return { staat: 'scope_ontbreekt' }
+      if (uitkomst.staat === 'api_uit') return { staat: 'api_uit' }
       if (uitkomst.staat === 'ok') mails.push(uitkomst.mail)
       else nietGelezen++
     }

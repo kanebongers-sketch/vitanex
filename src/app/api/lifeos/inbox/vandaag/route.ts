@@ -69,6 +69,22 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(antwoord, { headers: CACHE_HEADERS })
   }
 
+  if (mails.staat === 'api_uit') {
+    // Gmail gaf 403 met `accessNotConfigured`/`SERVICE_DISABLED`: de Gmail-API
+    // staat uit in het Google Cloud-project. Opnieuw koppelen lost dit NIET op
+    // (dat geeft dezelfde 403 terug) — de API moet aan, net als de Agenda-API die
+    // in hetzelfde project wél aanstaat. Bewust géén `OPNIEUW_KOPPELEN`-sein: de
+    // kaart toont dan een gewone foutmelding met de juiste instructie i.p.v. een
+    // koppelknop die in een cirkel leidt.
+    return NextResponse.json(
+      {
+        fout:
+          'De Gmail-API staat nog uit in Google Cloud. Zet ‘m aan voor hetzelfde project als je Agenda (console.cloud.google.com → APIs → Gmail API → Inschakelen) en probeer opnieuw.',
+      },
+      { status: 502 },
+    )
+  }
+
   if (mails.staat === 'scope_ontbreekt') {
     // Gmail gaf 403: de koppeling heeft te weinig scope (alleen leesrechten, van
     // vóór de schrijf-uitbreiding). Dat is een INSTRUCTIE, geen storing — dus geen

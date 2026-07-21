@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { statusNaarFout } from './gmail'
+import { duid403, statusNaarFout } from './gmail'
 
 // De statusvertaling is de kern van de "koppel opnieuw"-fix: een 403 van Gmail
 // (te weinig scope — een leesrecht-only koppeling van vóór de schrijf-uitbreiding)
@@ -26,4 +26,68 @@ describe('statusNaarFout', () => {
     // reden — dat is diagnostiek, geen gebruikerstekst.
     expect(statusNaarFout(status)).toEqual({ staat: 'fout', reden: `http_${status}` })
   })
+})
+
+// De 403-verfijning: dezelfde status, twee totaal verschillende oplossingen. Een
+// uitgeschakelde Gmail-API mag NOOIT als "koppel opnieuw" eindigen, want dan loopt
+// Kane in een cirkel — elke her-koppeling stuit weer op precies deze 403.
+describe('duid403', () => {
+  test('accessNotConfigured (API uit) → api_uit', () => {
+    // De echte body die Gmail geeft als de API uitstaat: reason in `errors[]`.
+    const body = {
+      error: {
+        code: 403,
+        message:
+          'Gmail API has not been used in project 123456 before or it is disabled. Enable it by visiting …',
+        errors: [{ message: 'Gmail API …', domain: 'usageLimits', reason: 'accessNotConfigured' }],
+        status: 'PERMISSION_DENIED',
+      },
+    }
+    expect(duid403(body)).toEqual({ staat: 'api_uit' })
+  })
+
+  test('SERVICE_DISABLED in details[] → api_uit', () => {
+    // Google zet dezelfde oorzaak soms als ErrorInfo in `details[]`.
+    const body = {
+      error: {
+        code: 403,
+        message: 'Permission denied.',
+        details: [
+          {
+            '@type': 'type.googleapis.com/google.rpc.ErrorInfo',
+            reason: 'SERVICE_DISABLED',
+            domain: 'googleapis.com',
+            metadata: { service: 'gmail.googleapis.com' },
+          },
+        ],
+      },
+    }
+    expect(duid403(body)).toEqual({ staat: 'api_uit' })
+  })
+
+  test('alleen de boodschap (geen reason-veld) → api_uit via tekstherkenning', () => {
+    const body = { error: { code: 403, message: 'Gmail API … before or it is disabled.' } }
+    expect(duid403(body)).toEqual({ staat: 'api_uit' })
+  })
+
+  test('insufficientPermissions (te weinig scope) → scope_ontbreekt', () => {
+    const body = {
+      error: {
+        code: 403,
+        message: 'Request had insufficient authentication scopes.',
+        errors: [{ message: 'Insufficient Permission', domain: 'global', reason: 'insufficientPermissions' }],
+        status: 'PERMISSION_DENIED',
+      },
+    }
+    expect(duid403(body)).toEqual({ staat: 'scope_ontbreekt' })
+  })
+
+  test.each([null, undefined, {}, { error: 'kapot' }, { error: {} }, 'tekst'])(
+    'onbegrijpelijke/lege body (%s) → scope_ontbreekt (veilige gok)',
+    (body) => {
+      // Bij twijfel opnieuw koppelen: dat doet geen kwaad, terwijl "zet de API aan"
+      // bij een echte scope-fout een doodlopend spoor zou zijn.
+      expect(duid403(body)).toEqual({ staat: 'scope_ontbreekt' })
+    },
+  )
 })
