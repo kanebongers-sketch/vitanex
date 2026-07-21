@@ -93,15 +93,17 @@ export function Cockpit() {
         <div className="os-tile--half">
           <AgendaKaart />
         </div>
-        {/* De inbox als volle-breedte-lijst: een triage-lijst leest prettig met
-            ruimte. */}
-        <div className="os-tile--vol">
+        {/* Inbox en programma naast elkaar (half): op een breed scherm past er zo
+            veel meer op het dashboard, en een halve kolom is voor beide ruim genoeg
+            — een triage-lijst en een schema hoeven niet 2400px breed te zijn. Op
+            smaller stapelen ze vanzelf (zie de os-tile--half breakpoints). */}
+        <div className="os-tile--half">
           <InboxKaart />
         </div>
         {/* Mijn programma: Kane's eigen training- en voedingsschema (uit zijn
             Excel), om zijn dag te volgen — kies een sessie of voedingsdag. De
             volledige weergave staat ook op de aparte /programma-pagina. */}
-        <div className="os-tile--vol">
+        <div className="os-tile--half">
           <ProgrammaKaart />
         </div>
       </section>
@@ -146,15 +148,14 @@ export function Cockpit() {
           <MensenBord />
         </section>
 
-        {/* Het geld-overzicht: naast de mensen die het opleveren. Handmatig-eerst
-            en eerlijk — pas cijfers als er data is, nooit een verzonnen getal. */}
-        <div className="os-tile--vol">
+        {/* Geld en kennis naast elkaar (half): scheelt een volle rij en houdt de
+            kaarten op een prettige breedte i.p.v. de hele 2400px. Op smaller
+            stapelen ze vanzelf. */}
+        <div className="os-tile--half">
           <FinanceKaart />
         </div>
 
-        {/* De kennisgrafiek: hoort in geest bij de brain dump, maar heeft breedte
-            nodig die de bento niet geeft. */}
-        <div className="os-tile--vol">
+        <div className="os-tile--half">
           <KennisGrafiekKaart />
         </div>
       </section>
