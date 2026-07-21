@@ -65,9 +65,17 @@ describe('bepaalActie', () => {
     expect(bepaalActie(intentie({ soort: 'idee', categorie: 'Ideeën' }))).toBe('maak_notitie')
   })
 
-  it('vraagt terug bij onduidelijk of laag vertrouwen — geen automatische actie', () => {
-    expect(bepaalActie(intentie({ soort: 'onduidelijk' }))).toBe('vraag_bevestiging')
-    expect(bepaalActie(intentie({ soort: 'agenda', wanneer: '2026-07-20T09:00:00+02:00', vertrouwen: 0.2 }))).toBe('vraag_bevestiging')
+  it('vraagt NOOIT terug: onduidelijk → notitie (de veilige vangbak)', () => {
+    expect(bepaalActie(intentie({ soort: 'onduidelijk' }))).toBe('maak_notitie')
+  })
+
+  it('kiest ook bij laag vertrouwen automatisch — een agenda mét tijd wordt gewoon een afspraak', () => {
+    // De enige rem op de agenda is "geen tijd" (→ taak), niet het vertrouwen: er
+    // wordt niet meer teruggevraagd, dus laag vertrouwen mag geen memo blokkeren.
+    expect(
+      bepaalActie(intentie({ soort: 'agenda', wanneer: '2026-07-20T09:00:00+02:00', vertrouwen: 0.2 })),
+    ).toBe('maak_agenda')
+    expect(bepaalActie(intentie({ soort: 'taak', vertrouwen: 0.1 }))).toBe('maak_taak')
   })
 })
 
@@ -84,9 +92,9 @@ describe('antwoordTekst', () => {
     expect(t).toContain('lukte niet')
   })
 
-  it('vraagt terug zonder iets te beweren te hebben gedaan', () => {
-    const t = antwoordTekst(intentie({ soort: 'onduidelijk', titel: 'eh' }), 'vraag_bevestiging')
-    expect(t).toContain('niet zeker')
+  it('bevestigt een taak met de titel', () => {
+    const t = antwoordTekst(intentie({ soort: 'taak', titel: 'Vuilnis buiten zetten' }), 'maak_taak')
+    expect(t).toContain('Vuilnis buiten zetten')
   })
 
   it('zet de categorie bij een notitie', () => {

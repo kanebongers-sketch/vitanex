@@ -6,9 +6,15 @@
 //
 // ─── EERLIJKHEID (dezelfde regel als overal in LifeOS) ──────────────────────
 // Het model mag NIETS verzinnen dat er niet staat. Geen datum genoemd → wanneer
-// = null, nooit een gegokte "morgen". Twijfelt het model → soort 'onduidelijk',
-// zodat de app terugvraagt in plaats van de verkeerde actie te nemen. Een
-// verkeerd geplande afspraak is erger dan een vraag.
+// = null, nooit een gegokte "morgen". Dát is de harde grens — want een verkeerd
+// geplande AFSPRAAK is de enige dure vergissing.
+//
+// De Telegram-bot vraagt NIET meer terug (Kane's wens): elk bericht belandt
+// automatisch op de juiste plek. Het model kiest daarom bij voorkeur een concrete
+// soort; bij echte twijfel valt de routing terug op 'notitie' (de veilige vangbak,
+// zie `telegram/antwoord.ts#bepaalActie`), niet op een terugvraag. 'onduidelijk'
+// blijft bestaan voor de gedeelde consumenten (Gmail-analyse, notitie-categorie),
+// maar wordt door het model vrijwel nooit gekozen.
 //
 // De classificatie draait via tool-use (gedwongen JSON), niet via vrije tekst
 // die we daarna moeten parsen. Zo kan het antwoord geen vorm hebben die we niet
@@ -169,18 +175,22 @@ export function bouwSysteemPrompt(nu: Date): string {
     `Nu is het: ${nuTekst} (Europe/Amsterdam).`,
     '',
     'Classificeer het bericht in precies één soort:',
-    '- taak: iets dat gedaan moet worden ("offerte sturen").',
-    '- agenda: een afspraak met een tijd ("maandag 9:00 overleg").',
-    '- notitie: informatie om te bewaren.',
+    '- taak: iets dat gedaan moet worden, inclusief een to-do of iets om niet te',
+    '  vergeten ("offerte sturen", "niet vergeten de vuilnis buiten te zetten",',
+    '  "denk aan de melk", "Ruben nog terugbellen").',
+    '- agenda: een afspraak met een concrete tijd ("maandag 9:00 overleg").',
+    '- notitie: informatie of een gedachte om te bewaren, zonder actie.',
     '- herinnering: een taak mét een moment om aan herinnerd te worden.',
     '- idee: een inval, vaak voor een project ("idee voor MentaForce: ...").',
     '- follow_up: iets waar later op teruggekomen moet worden.',
-    '- onduidelijk: je weet het niet zeker. Kies dit liever dan te gokken.',
+    '- onduidelijk: alleen als het écht geen van bovenstaande is. Kies dit vrijwel nooit.',
     '',
     'HARDE REGELS:',
     '- Verzin NOOIT een datum of tijd die niet in het bericht staat. Geen tijd genoemd → wanneer = null.',
     '- Reken relatieve tijd ("vrijdag", "morgen om 9") uit naar ISO 8601 mét offset, op basis van "nu" hierboven.',
-    '- Twijfel je over de soort? Kies onduidelijk en zet vertrouwen laag.',
+    '- KIES ALTIJD een concrete soort — er wordt niet teruggevraagd. Weet je het',
+    '  echt niet? Kies notitie (de veilige vangbak), niet onduidelijk. Een kort of',
+    '  losstaand bericht ("Test", "melk", "goed idee") is gewoon een notitie.',
     '- Bij een idee of notitie: kies een categorie (Werk/Ideeën/Persoonlijk/Projecten/Training/Klanten).',
     '- toelichting: één zin waarom, verwijzend naar de woorden in het bericht.',
   ].join('\n')

@@ -3,28 +3,33 @@
 // terugstuurt. De uitvoering (echt een taak/afspraak/notitie aanmaken) gebeurt
 // in de webhook-route; hier zit alleen de beslissing en de tekst.
 
-import { vraagtOmBevestiging, type Intentie } from '@/lib/lifeos/intentie/intentie'
+import type { Intentie } from '@/lib/lifeos/intentie/intentie'
 
 export type TelegramActie =
   | 'maak_taak'
   | 'maak_agenda'
   | 'maak_notitie'
-  | 'vraag_bevestiging'
 
 /**
  * Welke actie hoort bij deze intentie?
  *
- * Bij te laag vertrouwen of een onduidelijke soort: NIET automatisch handelen,
- * maar terugvragen. Een verkeerd aangemaakte afspraak is vervelender dan een
- * extra vraag — dezelfde afweging als in het intentiebrein.
+ * De bot VRAAGT NOOIT TERUG (Kane's expliciete wens): elk bericht/elke spraakmemo
+ * belandt automatisch op de juiste plek. De afweging is verschoven — vroeger woog
+ * "liever vragen dan verkeerd handelen", maar in de praktijk is elke terugvraag
+ * wrijving en is de duurste vergissing (een verkeerd geplande AFSPRAAK) al
+ * afgedekt: een agenda-afspraak ontstaat alleen bij een échte tijd, en het brein
+ * verzint nooit een tijd (zie `intentie.ts`). Taak↔notitie fout is goedkoop:
+ * beide zijn in één tik te verplaatsen.
+ *
+ * Daarom: soort met een tijd en agenda-bedoeling → afspraak; een to-do of
+ * herinnering → taak; en al het overige, inclusief 'onduidelijk', → notitie (de
+ * veilige vangbak, zodat geen enkele memo zoekraakt).
  */
 export function bepaalActie(intentie: Intentie): TelegramActie {
-  if (vraagtOmBevestiging(intentie)) return 'vraag_bevestiging'
-
   switch (intentie.soort) {
     case 'agenda':
       // Een afspraak zonder tijd kunnen we niet in de agenda zetten; dan is het
-      // eerder een taak. Val daar veilig op terug.
+      // eerder een taak. Val daar veilig op terug — nooit terugvragen.
       return intentie.wanneer ? 'maak_agenda' : 'maak_taak'
     case 'taak':
     case 'herinnering':
@@ -33,8 +38,11 @@ export function bepaalActie(intentie: Intentie): TelegramActie {
     case 'notitie':
     case 'idee':
       return 'maak_notitie'
+    case 'onduidelijk':
     default:
-      return 'vraag_bevestiging'
+      // Geen terugvraag meer: onduidelijk → notitie. Een notitie verplaatsen kost
+      // niets, en zo raakt geen bericht zoek terwijl we het toch niet plaatsten.
+      return 'maak_notitie'
   }
 }
 
@@ -62,13 +70,6 @@ export function antwoordTekst(
   actie: TelegramActie,
   gelukt = true,
 ): string {
-  if (actie === 'vraag_bevestiging') {
-    return [
-      `Ik weet niet zeker wat je hiermee wilt: "${intentie.titel}".`,
-      'Bedoel je een taak, een afspraak of een notitie? Zeg het er even bij.',
-    ].join('\n')
-  }
-
   if (!gelukt) {
     return `Ik begreep "${intentie.titel}", maar het opslaan lukte niet. Probeer het zo nog eens.`
   }

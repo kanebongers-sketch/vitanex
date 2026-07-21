@@ -92,10 +92,6 @@ export async function voerUit(
   nu: Date = new Date(),
 ): Promise<VoerUitResultaat> {
   switch (actie) {
-    // Niets aanmaken — de bot vraagt terug. Geen actie is hier een succes, geen fout.
-    case 'vraag_bevestiging':
-      return { gelukt: true }
-
     case 'maak_taak': {
       const nieuw: NieuweTaak = {
         titel: kap(intentie.titel, MAX_TITEL_LENGTE),

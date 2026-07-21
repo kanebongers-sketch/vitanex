@@ -149,13 +149,3 @@ describe('voerUit — maak_agenda', () => {
   })
 })
 
-describe('voerUit — vraag_bevestiging', () => {
-  it('maakt niets aan en meldt gelukt (de bot vraagt terug)', async () => {
-    const opslag = nepOpslag()
-    const res = await voerUit(USER, intentie({ soort: 'onduidelijk' }), 'vraag_bevestiging', opslag, NU)
-    expect(res.gelukt).toBe(true)
-    expect(opslag.taken).toHaveLength(0)
-    expect(opslag.notities).toHaveLength(0)
-    expect(opslag.agenda).toHaveLength(0)
-  })
-})
