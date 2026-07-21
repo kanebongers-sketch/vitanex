@@ -33,11 +33,8 @@ import { maakTelegramBot, type TelegramBot } from '@/lib/lifeos/telegram/bot'
 import { maakWhisperTranscriber, type Transcriber } from '@/lib/lifeos/telegram/transcribe'
 import { beoordeelChatId, leerModusAntwoord } from '@/lib/lifeos/telegram/toegang'
 import { webhookLimiet, waarschuwLimiet, teSnelAntwoord } from '@/lib/lifeos/telegram/limiet'
-import { createLifeosAdminClient, lifeosUserId } from '@/lib/lifeos/admin'
-import { maakTaak as maakTaakInDb } from '@/lib/lifeos/taken/opslag'
-import { maakNotitie as maakNotitieInDb } from '@/lib/lifeos/notities/opslag'
-import { maakAgendaEvent } from '@/lib/lifeos/agenda/schrijven'
-import { leesGekozenKalender } from '@/lib/lifeos/agenda/koppeling'
+import { lifeosUserId } from '@/lib/lifeos/admin'
+import { maakOpslag } from '@/lib/lifeos/capture/opslag-adapter'
 
 // node:crypto, FormData en Buffer zijn Node-API's — dwing de Node-runtime af.
 export const runtime = 'nodejs'
@@ -46,46 +43,6 @@ export const dynamic = 'force-dynamic'
 
 /** Telegram zet het geheim dat wij bij setWebhook meegaven in deze header. */
 const SECRET_HEADER = 'x-telegram-bot-api-secret-token'
-
-/**
- * De échte databaseschrijf-operaties voor `voerUit`. `voerUit` blijft puur en
- * injecteerbaar; hier krijgt hij de echte opslaglaag op het LifeOS-project.
- *
- * ÉÉN service-role-client, gedeeld door de drie schrijf-adapters. Bewust een
- * factory (geen module-const): `createLifeosAdminClient()` leest de LifeOS-env en
- * gooit als die ontbreekt. Door 'm pas hier — ná de secret- en allowlist-gate — te
- * bouwen, heeft een import van deze route (bv. in de tests) geen LifeOS-env nodig
- * en bouwt de 401-tak nooit een client.
- *
- * De MentaForce-opslagfuncties nemen `admin` als EERSTE parameter (anders dan de
- * standalone); de adapters geven de gedeelde client door en houden zo het
- * `UitvoerDeps`-contract `(userId, nieuw)` intact.
- *
- * `maakAgendaEvent` GOOIT bij mislukking (`AgendaSchrijfFout`) en geeft anders het
- * event terug — een andere vorm dan `maakTaak`/`maakNotitie`, die een `Uitkomst`
- * teruggeven. De agenda-adapter maakt er één contract van: gelukt=true/false. De
- * fout wordt server-side gelogd (fout ≠ stil) en niet als een leeg succes verstopt.
- * Er wordt bewust alleen de fout gelogd — nooit de intentie-inhoud of de tokens.
- */
-function maakOpslag(): UitvoerDeps {
-  const admin = createLifeosAdminClient()
-  return {
-    maakTaak: (userId, nieuw) => maakTaakInDb(admin, userId, nieuw),
-    maakNotitie: (userId, nieuw) => maakNotitieInDb(admin, userId, nieuw),
-    maakAgenda: async (userId, invoer) => {
-      try {
-        // Ook de bot schrijft naar de GEKOZEN agenda (null = primary), niet blind
-        // naar primary — dezelfde keuze als de UI en de web-routes.
-        const kalenderId = await leesGekozenKalender(admin, userId)
-        await maakAgendaEvent(admin, userId, invoer, kalenderId)
-        return { ok: true }
-      } catch (fout) {
-        console.error('[lifeos/telegram] agenda-afspraak aanmaken mislukt', fout)
-        return { ok: false }
-      }
-    },
-  }
-}
 
 /**
  * De ENIGE beveiliging van deze publieke route (naast de allowlist): het secret
