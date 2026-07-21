@@ -8,6 +8,7 @@ import { AgendaKaart } from '@/components/lifeos/agenda/AgendaKaart'
 import { InboxKaart } from '@/components/lifeos/inbox/InboxKaart'
 import { WelzijnScoreKaart } from '@/components/lifeos/welzijn/WelzijnScoreKaart'
 import { MensenBord } from '@/components/lifeos/crm/MensenBord'
+import { FinanceKaart } from '@/components/lifeos/finance/FinanceKaart'
 
 // ─── De cockpit ──────────────────────────────────────────────────────────────
 // Eén vullend, breed werkscherm in plaats van zeven losse zones onder elkaar die
@@ -35,7 +36,8 @@ import { MensenBord } from '@/components/lifeos/crm/MensenBord'
 //   2. Band  — Vita: wat moet je nú weten?
 //   3. Cluster "Mijn dag": je gereedschap (incl. de 6 pijlers als knop-kaarten).
 //   4. Band  — Vita-gesprek: je vraagt Vita iets nádat je zag wat er speelt.
-//   5. Cluster "Verbinden": de mensen om je heen, je kennis en je terugblik.
+//   5. Cluster "Verbinden": de mensen om je heen, je geld en je kennis — je
+//      zakelijke overzicht.
 //
 // De losse invoerkaarten (Voeding/Water/Workout/Stress/Stemming) stonden hier als
 // inline-gemak, maar zijn eruit: de 6 pijlerkaarten dekken het welzijnsbeeld, en
@@ -104,9 +106,11 @@ export function Cockpit() {
         <VitaGesprek />
       </div>
 
-      {/* Cluster "Verbinden" — twee volle-breedte-surfaces: het mensen-bord (een
-          kanban vraagt breedte) en de kennisgrafiek. Beide span 12. De terugblik
-          "Mijn leven" stond hier, maar hoort niet op een dashboard dat op werk,
+      {/* Cluster "Verbinden" — drie volle-breedte-surfaces: het mensen-bord (een
+          kanban vraagt breedte), het geld-overzicht en de kennisgrafiek. Elk span
+          12, dus elk een eigen rij. Samen Kane's zakelijke overzicht: de mensen,
+          het geld dat ze opleveren en de kennis eromheen. De terugblik "Mijn
+          leven" stond hier, maar hoort niet op een dashboard dat op werk,
           dagelijkse taken en CRM is gericht — die component blijft bestaan voor
           een eigen plek. */}
       <section className="os-cluster" aria-labelledby="os-verbinden-kop">
@@ -115,7 +119,7 @@ export function Cockpit() {
             Verbinden
           </h2>
           <p className="os-zone__intro">
-            De mensen om je heen en je kennisgrafiek.
+            De mensen om je heen, je geldoverzicht en je kennisgrafiek.
           </p>
         </header>
 
@@ -134,6 +138,12 @@ export function Cockpit() {
           </p>
           <MensenBord />
         </section>
+
+        {/* Het geld-overzicht: naast de mensen die het opleveren. Handmatig-eerst
+            en eerlijk — pas cijfers als er data is, nooit een verzonnen getal. */}
+        <div className="os-tile--vol">
+          <FinanceKaart />
+        </div>
 
         {/* De kennisgrafiek: hoort in geest bij de brain dump, maar heeft breedte
             nodig die de bento niet geeft. */}
