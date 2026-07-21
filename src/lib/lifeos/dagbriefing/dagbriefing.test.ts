@@ -22,10 +22,14 @@ function feiten(overschrijf: Partial<DagbriefingFeiten> = {}): DagbriefingFeiten
     crm: { teSprekenAantal: 0, teSprekenNamen: [] },
     agenda: { aantal: 1, eerstvolgende: { titel: 'Standup', tijd: '09:00' } },
     welzijn: null,
+    finance: null,
     nu: MIDDAG,
     ...overschrijf,
   }
 }
+
+/** Een gevuld finance-blok: omzet met winst, iets openstaand, één verlopen factuur. */
+const FINANCE = { omzet: 5000, kosten: 1200, winst: 3800, openstaand: 2400, verlopenAantal: 1 }
 
 /** Een nep-model dat teruggeeft wat de test wil — geen netwerk. */
 function nepModel(antwoord: unknown): BriefingModel {
@@ -143,6 +147,24 @@ describe('deterministischeKern — eerlijk, uit exact de feiten', () => {
     const alles = [kern.briefing, ...kern.prioriteiten, ...kern.risicos, ...kern.kansen].join(' ')
     expect(alles).not.toContain('/100')
   })
+
+  it('markeert een verlopen factuur als risico als er finance-data is', () => {
+    const kern = deterministischeKern(feiten({ finance: FINANCE }))
+    expect(kern.risicos.some((r) => r.toLowerCase().includes('verlopen'))).toBe(true)
+  })
+
+  it('opent de briefing met het geld-beeld en noemt de openstaande facturen als kans', () => {
+    const kern = deterministischeKern(feiten({ finance: FINANCE }))
+    expect(kern.briefing).toContain('omzet')
+    expect(kern.briefing).toContain('€')
+    expect(kern.kansen.some((k) => k.includes('open') && k.includes('€'))).toBe(true)
+  })
+
+  it('noemt geen enkel bedrag als finance null is (geen verzonnen geld)', () => {
+    const kern = deterministischeKern(feiten({ finance: null }))
+    const alles = [kern.briefing, ...kern.prioriteiten, ...kern.risicos, ...kern.kansen].join(' ')
+    expect(alles).not.toContain('€')
+  })
 })
 
 describe('feitenTekst & systeemprompt', () => {
@@ -158,6 +180,25 @@ describe('feitenTekst & systeemprompt', () => {
     const prompt = dagbriefingSysteem(MIDDAG)
     expect(prompt).toContain('Verzin NOOIT')
     expect(prompt.toLowerCase()).toContain('geen data')
+  })
+
+  it('neemt de echte finance-cijfers mee in de feitentekst', () => {
+    const t = feitenTekst(feiten({ finance: FINANCE }))
+    expect(t).toContain('Finance')
+    expect(t).toContain('omzet')
+    expect(t.toLowerCase()).toContain('verlopen')
+  })
+
+  it('markeert finance als "geen data" als het finance-blok null is', () => {
+    const t = feitenTekst(feiten({ finance: null }))
+    expect(t).toContain('Geen finance-data beschikbaar')
+    expect(t).not.toContain('€')
+  })
+
+  it('vertelt het model dat het de finance-cijfers mag noemen', () => {
+    const prompt = dagbriefingSysteem(MIDDAG).toLowerCase()
+    expect(prompt).toContain('finance')
+    expect(prompt).toContain('verlopen')
   })
 })
 
@@ -197,5 +238,18 @@ describe('stelDagbriefingSamen — end-to-end met een nep-model', () => {
     const b = await stelDagbriefingSamen(feiten(), nepModel({ prioriteiten: ['x'] }))
     // Niet de model-prioriteit 'x', maar de deterministische dag-taken.
     expect(b.prioriteiten).toEqual(['Offerte sturen', 'Ruben bellen'])
+  })
+
+  it('geeft de finance-feiten als feitentekst aan het model mee', async () => {
+    let ontvangen = ''
+    const model: BriefingModel = {
+      schrijf: async (_systeem, feitenTekst) => {
+        ontvangen = feitenTekst
+        return { briefing: 'x', prioriteiten: [], risicos: [], kansen: [] }
+      },
+    }
+    await stelDagbriefingSamen(feiten({ finance: FINANCE }), model)
+    expect(ontvangen).toContain('omzet')
+    expect(ontvangen.toLowerCase()).toContain('verlopen')
   })
 })

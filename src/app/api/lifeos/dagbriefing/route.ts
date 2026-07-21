@@ -29,12 +29,16 @@ import { eerstvolgendeAfspraak, type Afspraak } from '@/lib/lifeos/agenda/vrije-
 import { datumSleutel } from '@/lib/lifeos/datum/datum'
 import { berekenPijlerOverzicht, type PijlerOverzicht } from '@/lib/pijlers/pijlers-server'
 import { pijlerDef } from '@/lib/pijlers/pijlers'
+import { haalTransacties, haalFacturen } from '@/lib/lifeos/finance/opslag'
+import { bouwOverzicht, type Factuur, type Transactie } from '@/lib/lifeos/finance/finance'
+import type { SupabaseClient } from '@supabase/supabase-js'
 import {
   stelDagbriefingSamen,
   type AgendaFeiten,
   type BriefingModel,
   type CrmFeiten,
   type DagbriefingFeiten,
+  type FinanceFeiten,
   type TakenFeiten,
   type WelzijnFeiten,
 } from '@/lib/lifeos/dagbriefing/dagbriefing'
@@ -102,10 +106,15 @@ export async function GET(req: NextRequest): Promise<Response> {
   const crm = naarCrmFeiten(personenUit.waarde, nu)
   const agenda = naarAgendaFeiten(agendaUit.waarde, nu)
 
-  // ── Welzijn (best-effort, andere database) ──────────────────────────────────
-  const welzijn = await haalWelzijn(req)
+  // ── Best-effort: welzijn (andere database) én finance (eigen project) ───────
+  // Beide mogen falen zonder de briefing op te blazen: dan zijn ze gewoon null.
+  const maand = vandaag.slice(0, 7)
+  const [welzijn, finance] = await Promise.all([
+    haalWelzijn(req),
+    haalFinance(toegang.admin, toegang.userId, maand, vandaag),
+  ])
 
-  const feiten: DagbriefingFeiten = { taken, crm, agenda, welzijn, nu }
+  const feiten: DagbriefingFeiten = { taken, crm, agenda, welzijn, finance, nu }
 
   // Het model is optioneel: mist de sleutel of valt de config weg, dan blijft
   // `model` null en levert `stelDagbriefingSamen` de deterministische briefing.
@@ -190,5 +199,63 @@ function naarWelzijnFeiten(overzicht: PijlerOverzicht): WelzijnFeiten | null {
       label: pijlerDef(laagste.key)?.label ?? laagste.key,
       score: laagste.score,
     },
+  }
+}
+
+// ─── Finance (best-effort, eigen LifeOS-project) ────────────────────────────
+// Omzet/kosten/winst deze maand + openstaand + verlopen facturen. Alles hier is
+// best-effort: faalt een lees → finance = null en de briefing zwijgt er eerlijk
+// over. Nooit een 502 op finance — de kern-tak hierboven bewaakt dat al.
+
+/** De maand vóór `maand` ('YYYY-MM'), voor de "is finance in gebruik?"-check. */
+function vorigeMaandVan(maand: string): string {
+  const jaar = Number(maand.slice(0, 4))
+  const m = Number(maand.slice(5, 7))
+  const pj = m === 1 ? jaar - 1 : jaar
+  const pm = m === 1 ? 12 : m - 1
+  return `${pj}-${String(pm).padStart(2, '0')}`
+}
+
+async function haalFinance(
+  admin: SupabaseClient,
+  userId: string,
+  maand: string,
+  vandaag: string,
+): Promise<FinanceFeiten | null> {
+  try {
+    const [transactiesUit, facturenUit] = await Promise.all([
+      haalTransacties(admin, userId),
+      haalFacturen(admin, userId),
+    ])
+    if (!transactiesUit.ok || !facturenUit.ok) return null
+    return naarFinanceFeiten(transactiesUit.waarde, facturenUit.waarde, maand, vandaag)
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Overzicht → feiten. `null` als er deze én vorige maand geen transactie is én
+ * geen enkele factuur: dan is finance niet in gebruik en zwijgt de briefing.
+ */
+function naarFinanceFeiten(
+  transacties: readonly Transactie[],
+  facturen: readonly Factuur[],
+  maand: string,
+  vandaag: string,
+): FinanceFeiten | null {
+  const vorige = vorigeMaandVan(maand)
+  const heeftData =
+    facturen.length > 0 ||
+    transacties.some((t) => t.datum.slice(0, 7) === maand || t.datum.slice(0, 7) === vorige)
+  if (!heeftData) return null
+
+  const overzicht = bouwOverzicht(transacties, facturen, maand, vandaag)
+  return {
+    omzet: overzicht.omzet,
+    kosten: overzicht.kosten,
+    winst: overzicht.winst,
+    openstaand: overzicht.openstaand,
+    verlopenAantal: overzicht.verlopenAantal,
   }
 }

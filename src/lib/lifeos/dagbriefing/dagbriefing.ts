@@ -58,11 +58,26 @@ export interface WelzijnFeiten {
   laagstePijler: { label: string; score: number } | null
 }
 
+export interface FinanceFeiten {
+  /** Omzet (euro) van DEZE maand. Echte optelsom, geen prognose. */
+  omzet: number
+  /** Kosten (euro) van deze maand. */
+  kosten: number
+  /** Winst = omzet − kosten (euro). Mag negatief zijn (verlies). */
+  winst: number
+  /** Openstaand factuurbedrag (euro): alles wat nog niet binnen is. */
+  openstaand: number
+  /** Aantal facturen dat over de vervaldatum is (nog 'open'). */
+  verlopenAantal: number
+}
+
 export interface DagbriefingFeiten {
   taken: TakenFeiten | null
   crm: CrmFeiten | null
   agenda: AgendaFeiten | null
   welzijn: WelzijnFeiten | null
+  /** Geld deze maand. `null` als er niets is ingevoerd — dan zwijgt de briefing erover. */
+  finance: FinanceFeiten | null
   /** Het huidige moment. Expliciet, nooit een verborgen Date.now(). */
   nu: Date
 }
@@ -192,6 +207,26 @@ function benoem(titels: readonly string[]): string {
   return rest > 0 ? `${lijst}…` : lijst
 }
 
+// ─── Geld ───────────────────────────────────────────────────────────────────
+// Bedragen komen als échte euro-getallen binnen (finance rekent in centen en
+// levert euro's af). Hier alleen weergave: hele euro's, want een briefing leest
+// prettiger zonder centen — dat is presentatie, geen verzonnen cijfer.
+
+const EURO_FMT = new Intl.NumberFormat('nl-NL', {
+  style: 'currency',
+  currency: 'EUR',
+  maximumFractionDigits: 0,
+})
+
+function euro(bedrag: number): string {
+  return EURO_FMT.format(bedrag)
+}
+
+/** "€3.800 winst" of "€500 verlies" — het teken vertaalt naar een woord. */
+function winstLabel(winst: number): string {
+  return winst >= 0 ? `${euro(winst)} winst` : `${euro(-winst)} verlies`
+}
+
 // ─── De feiten als tekst (de enige input voor het model) ─────────────────────
 
 function takenBlok(taken: TakenFeiten | null): string {
@@ -240,6 +275,21 @@ function welzijnBlok(welzijn: WelzijnFeiten | null): string {
   return regels.length > 0 ? regels.join('\n') : 'Geen welzijnsdata gemeten.'
 }
 
+function financeBlok(finance: FinanceFeiten | null): string {
+  if (finance === null) return 'Geen finance-data beschikbaar.'
+  const regels: string[] = [
+    `- Deze maand: ${euro(finance.omzet)} omzet, ${euro(finance.kosten)} kosten, ${winstLabel(finance.winst)}.`,
+  ]
+  if (finance.openstaand > 0) {
+    regels.push(`- Openstaand: ${euro(finance.openstaand)} aan facturen nog niet binnen.`)
+  }
+  if (finance.verlopenAantal > 0) {
+    const woord = meervoud(finance.verlopenAantal, 'factuur is', 'facturen zijn')
+    regels.push(`- Verlopen: ${finance.verlopenAantal} ${woord} over de vervaldatum.`)
+  }
+  return regels.join('\n')
+}
+
 /** De feiten als één compact, feitelijk tekstblok. */
 export function feitenTekst(feiten: DagbriefingFeiten): string {
   return [
@@ -256,6 +306,9 @@ export function feitenTekst(feiten: DagbriefingFeiten): string {
     '',
     '## Welzijn',
     welzijnBlok(feiten.welzijn),
+    '',
+    '## Finance (deze maand)',
+    financeBlok(feiten.finance),
   ].join('\n')
 }
 
@@ -273,10 +326,17 @@ export function dagbriefingSysteem(nu: Date): string {
     '- risicos: 0–3 dingen die misgaan als je niets doet.',
     '- kansen: 0–3 kansen die vandaag openliggen.',
     '',
+    'Er kan een blok FINANCE zijn met de geld-cijfers van deze maand: omzet, kosten,',
+    'winst, openstaand factuurbedrag en het aantal verlopen facturen. Je MAG die',
+    'noemen in de briefing, prioriteiten, risico\'s of kansen — maar uitsluitend de',
+    'exacte bedragen en aantallen uit de feiten. Verlopen facturen markeer je als',
+    'risico als het aantal groter dan 0 is. Bereken zelf geen percentages of groei;',
+    'winst = omzet − kosten staat al in de feiten.',
+    '',
     'HARDE REGELS (niet onderhandelbaar):',
-    '- Verzin NOOIT cijfers, percentages, namen, taken of afspraken die niet in de feiten staan.',
+    '- Verzin NOOIT cijfers, percentages, bedragen, namen, taken of afspraken die niet in de feiten staan.',
     '- Een vak dat "geen data" zegt is leeg: benoem dat eerlijk of laat het weg. Vul het nooit op.',
-    '- Gebruik alleen de exacte titels, namen en getallen uit de feiten.',
+    '- Gebruik alleen de exacte titels, namen, bedragen en getallen uit de feiten.',
     '- Geen valse urgentie, geen motivatie-cliché, geen vleierij. Concreet en rustig.',
     '- Nederlands, helder en menselijk.',
     '- Is er nergens data? Zeg dat het rustig is; verzin geen drukte.',
@@ -326,10 +386,19 @@ export function leesModelBriefing(raw: unknown): BriefingKern | null {
 // Zonder model, uit exact dezelfde feiten. Elke zin komt uit een feit; er is geen
 // tak die iets verzint. Zo breekt de kaart nooit als het model of de sleutel valt.
 
+/** De geld-zin voor de briefing, of null als er deze maand geen omzet/kosten liep. */
+function financeZin(finance: FinanceFeiten): string | null {
+  if (finance.omzet <= 0 && finance.kosten <= 0) return null
+  return `Deze maand staat er ${euro(finance.omzet)} omzet tegenover ${euro(finance.kosten)} kosten (${winstLabel(finance.winst)}).`
+}
+
 function fallbackBriefing(feiten: DagbriefingFeiten): string {
   const zinnen: string[] = []
 
-  const { taken, agenda, crm } = feiten
+  const { taken, agenda, crm, finance } = feiten
+  // Geld eerst: de COO opent met het geld-beeld als dat er is.
+  const geld = finance ? financeZin(finance) : null
+  if (geld) zinnen.push(geld)
   if (agenda && agenda.aantal > 0) {
     const volgende = agenda.eerstvolgende
       ? ` De eerste is ${agenda.eerstvolgende.titel} om ${agenda.eerstvolgende.tijd}.`
@@ -360,8 +429,12 @@ function fallbackPrioriteiten(taken: TakenFeiten | null): string[] {
 
 function fallbackRisicos(feiten: DagbriefingFeiten): string[] {
   const risicos: string[] = []
-  const { taken, welzijn } = feiten
+  const { taken, welzijn, finance } = feiten
 
+  if (finance && finance.verlopenAantal > 0) {
+    const woord = meervoud(finance.verlopenAantal, 'factuur is', 'facturen zijn')
+    risicos.push(`${finance.verlopenAantal} ${woord} verlopen — over de vervaldatum.`)
+  }
   if (taken && taken.teLaatAantal > 0) {
     const titels = taken.teLaatTitels.length > 0 ? `: ${benoem(taken.teLaatTitels)}` : ''
     risicos.push(`${taken.teLaatAantal} ${meervoud(taken.teLaatAantal, 'taak is', 'taken zijn')} over tijd${titels}.`)
@@ -374,8 +447,11 @@ function fallbackRisicos(feiten: DagbriefingFeiten): string[] {
 
 function fallbackKansen(feiten: DagbriefingFeiten): string[] {
   const kansen: string[] = []
-  const { crm, agenda, welzijn } = feiten
+  const { crm, agenda, welzijn, finance } = feiten
 
+  if (finance && finance.openstaand > 0) {
+    kansen.push(`${euro(finance.openstaand)} staat open aan facturen — te innen.`)
+  }
   if (crm && crm.teSprekenAantal > 0) {
     const namen = crm.teSprekenNamen.length > 0 ? `: ${benoem(crm.teSprekenNamen)}` : ''
     kansen.push(`${crm.teSprekenAantal} ${meervoud(crm.teSprekenAantal, 'contact', 'contacten')} deze week spreken${namen}.`)
