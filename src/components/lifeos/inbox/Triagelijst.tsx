@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { ArrowUpRight } from 'lucide-react'
+import { ArrowUpRight, ChevronDown } from 'lucide-react'
 import { gmailInboxLink, gmailLink, type TriageMailJson } from '@/lib/lifeos/inbox/inbox'
 import { tijdLabel } from '@/lib/lifeos/datum/datum'
 import type { HaalUitkomst } from '@/lib/lifeos/api/http'
@@ -12,29 +12,29 @@ import { MailActies } from './MailActies'
 import type { MailActieSoort } from './mail-acties'
 import type { AnalyseStatus } from './useSuggesties'
 
-// Presentationeel: props erin, UI eruit. Geen fetch, geen klok — de enige state
-// is de hover van een regel. De AI-suggesties komen als kant-en-klare lookup van
-// boven (`suggestieVoor`) en de aanmaak-call als `onMaak`; deze lijst haalt dus
-// nog steeds niets zelf op.
+// Presentationeel: props erin, UI eruit. De enige state is de hover van een regel
+// en of "alles van vandaag" is uitgeklapt. De AI-suggesties komen als kant-en-klare
+// lookup van boven (`suggestieVoor`) en de aanmaak-call als `onMaak`; deze lijst
+// haalt dus nog steeds niets zelf op.
 //
-// Die hover zit in state en niet in CSS omdat inline styles geen `:hover` kennen
-// en `globals.css` niet van deze functie is. Zelfde afweging (en zelfde vorm) als
-// `os/Knop.tsx`. De focus-ring komt wél uit globals.css (`:focus-visible`) en is
-// er dus sowieso — ook als iemand deze component vergeet.
+// ─── SUPER OVERZICHTELIJK: BELANGRIJK VOOROP ────────────────────────────────
+// De kaart leidt met wat ertoe doet: de belangrijke mails van vandaag als rustige,
+// scanbare kaartjes (afzender vet, onderwerp, een reden-pill die zegt wáárom het
+// belangrijk is, en de acties eronder). Al het overige van vandaag — gelezen post
+// en ruis — zit ingeklapt achter één knop, zodat het het belangrijke niet verdringt.
+// Hiërarchie via schaal en een cyaan accent, niet via kleurenlawaai.
 //
 // DIT IS GEEN MAILCLIENT — en dat zie je aan wat er niet staat.
-// Geen body, geen preview, geen snippet, geen "lees meer". Elke regel is precies
-// genoeg om te herkennen wát er ligt, en één tik om het in Gmail te openen. De
-// suggestie-knop maakt hoogstens een taak of afspraak aan; hij toont nooit
-// mail-inhoud. Wie hier een preview aan toevoegt, is Gmail aan het nabouwen; dat
-// is maanden werk en levert een slechtere Gmail (README §10).
+// Geen body, geen preview, geen snippet. Elke regel is precies genoeg om te
+// herkennen wát er ligt, en één tik om het in Gmail te openen. De suggestie-knop
+// maakt hoogstens een taak of afspraak aan; hij toont nooit mail-inhoud.
 
 interface TriagelijstProps {
-  /** Ongelezen post die om actie vraagt — je to-do, bovenaan. */
+  /** Ongelezen post die om actie vraagt — de belangrijke mails, vooraan. */
   mails: TriageMailJson[]
-  /** Al het overige van vandaag: gelezen post en ruis. Het volledige overzicht. */
+  /** Al het overige van vandaag: gelezen post en ruis. Ingeklapt, het volledige overzicht. */
   overige: TriageMailJson[]
-  /** Hoeveel mails van vandaag er beoordeeld zijn. De noemer. */
+  /** Hoeveel mails van vandaag er beoordeeld zijn. */
   gescand: number
   /** Mails die er wel zijn maar die we niet konden lezen. Bijna altijd 0. */
   nietGelezen: number
@@ -63,9 +63,10 @@ export function Triagelijst({
   onMailActie,
   onConcept,
 }: TriagelijstProps) {
+  const [toonAlles, setToonAlles] = useState(false)
+
   if (gescand === 0 && nietGelezen === 0) {
-    // Wél gekeken, niets gevonden. Dat is een antwoord, geen lege staat: er ligt
-    // gewoon geen post van vandaag.
+    // Wél gekeken, niets gevonden. Dat is een antwoord, geen lege staat.
     return (
       <div style={{ display: 'grid', gap: 12, justifyItems: 'start' }}>
         <p style={{ fontSize: 14, color: 'var(--text-3)', margin: 0, lineHeight: 1.5 }}>
@@ -78,71 +79,85 @@ export function Triagelijst({
 
   return (
     <div style={{ display: 'grid', gap: 18 }}>
-      {/* Vraagt actie — je to-do: alleen ongelezen post die er inhoudelijk toe doet. */}
+      {/* Belangrijk vandaag — de kop is het cijfer waar je op mikt. */}
       <section style={{ display: 'grid', gap: 12 }}>
-        {mails.length > 0 ? (
-          <>
-            <div>
-              {/* Hiërarchie via schaal: het aantal is het cijfer waar je op mikt,
-                  de regels lezen daarna. */}
-              <p
-                className="os-cijfer"
-                style={{ fontSize: 30, lineHeight: 1, margin: '0 0 8px', color: 'var(--brand)' }}
-              >
-                {mails.length}
-              </p>
-              <p style={{ fontSize: 14, color: 'var(--text-2)', margin: 0, fontWeight: 600 }}>
-                {mails.length === 1
-                  ? 'mail vraagt vandaag iets van je'
-                  : 'mails vragen vandaag iets van je'}
-              </p>
-            </div>
-
-            <ul style={LIJST_STIJL}>
-              {mails.map((mail) => (
-                <li key={mail.id}>
-                  <Regel
-                    mail={mail}
-                    actie={actieVan(suggestieVoor(mail.id))}
-                    onMaak={onMaak}
-                    onMailActie={onMailActie}
-                    onConcept={onConcept}
-                  />
-                </li>
-              ))}
-            </ul>
-            <AnalyseStoring status={analyseStatus} />
-          </>
-        ) : (
-          <p style={{ fontSize: 14, color: 'var(--text-3)', margin: 0, lineHeight: 1.5 }}>
-            Niets ongelezen vraagt vandaag om actie.
-          </p>
-        )}
-      </section>
-
-      {/* Alles van vandaag — het volledige overzicht: gelezen post en de ruis die
-          de to-do niet haalde. Geen actieknoppen; puur om te zien wát er ligt. */}
-      {overige.length > 0 ? (
-        <section style={{ display: 'grid', gap: 10 }}>
-          <h3
-            style={{
-              fontSize: 11,
-              letterSpacing: '0.08em',
-              textTransform: 'uppercase',
-              color: 'var(--text-4)',
-              fontWeight: 600,
-              margin: 0,
-            }}
+        <div>
+          <p
+            className="os-cijfer"
+            style={{ fontSize: 34, lineHeight: 1, margin: '0 0 4px', color: 'var(--brand)' }}
           >
-            Alles van vandaag · {gescand}
-          </h3>
+            {mails.length}
+          </p>
+          <p style={{ fontSize: 13.5, color: 'var(--text-2)', margin: 0, fontWeight: 600 }}>
+            {mails.length === 1 ? 'belangrijke mail vandaag' : 'belangrijke mails vandaag'}
+          </p>
+        </div>
+
+        {mails.length > 0 ? (
           <ul style={LIJST_STIJL}>
-            {overige.map((mail) => (
+            {mails.map((mail) => (
               <li key={mail.id}>
-                <Regel mail={mail} actie={null} onMaak={onMaak} />
+                <BelangrijkeMail
+                  mail={mail}
+                  actie={actieVan(suggestieVoor(mail.id))}
+                  onMaak={onMaak}
+                  onMailActie={onMailActie}
+                  onConcept={onConcept}
+                />
               </li>
             ))}
           </ul>
+        ) : (
+          <p style={{ fontSize: 13.5, color: 'var(--text-3)', margin: 0, lineHeight: 1.5 }}>
+            Niets belangrijks ongelezen. Alles van vandaag staat hieronder.
+          </p>
+        )}
+
+        <AnalyseStoring status={analyseStatus} />
+      </section>
+
+      {/* Alles van vandaag — ingeklapt, zodat het het belangrijke niet verdringt. */}
+      {overige.length > 0 ? (
+        <section style={{ display: 'grid', gap: 10 }}>
+          <button
+            type="button"
+            onClick={() => setToonAlles((v) => !v)}
+            aria-expanded={toonAlles}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              justifySelf: 'start',
+              fontSize: 12,
+              fontWeight: 600,
+              color: 'var(--text-3)',
+              background: 'transparent',
+              border: 'none',
+              padding: '4px 0',
+              cursor: 'pointer',
+            }}
+          >
+            <ChevronDown
+              size={14}
+              strokeWidth={2.2}
+              aria-hidden="true"
+              style={{
+                transform: toonAlles ? 'rotate(180deg)' : 'none',
+                transition: 'transform 180ms var(--ease)',
+              }}
+            />
+            {toonAlles ? 'Verberg' : 'Toon'} alles van vandaag · {overige.length}
+          </button>
+
+          {toonAlles ? (
+            <ul style={LIJST_STIJL}>
+              {overige.map((mail) => (
+                <li key={mail.id}>
+                  <OverigeMail mail={mail} />
+                </li>
+              ))}
+            </ul>
+          ) : null}
         </section>
       ) : null}
 
@@ -185,8 +200,7 @@ function OpenInGmail() {
  *
  * Lukt de AI-analyse niet, dan verschijnt er bij geen enkele mail een knop.
  * Zwijgen zou dat laten lezen als "geen van deze mails vraagt om een taak" —
- * terwijl we het niet hebben kunnen bepalen. Dus zeggen we het, rustig: de mails
- * hierboven werken gewoon, alleen de suggestie ontbreekt. Fout ≠ leeg.
+ * terwijl we het niet hebben kunnen bepalen. Dus zeggen we het, rustig.
  * `role="status"`, geen `alert`: het is een mededeling, geen alarm.
  */
 function AnalyseStoring({ status }: { status: AnalyseStatus }) {
@@ -195,7 +209,7 @@ function AnalyseStoring({ status }: { status: AnalyseStatus }) {
   return (
     <p
       role="status"
-      style={{ fontSize: 11, color: 'var(--text-4)', margin: '6px 0 0', lineHeight: 1.5 }}
+      style={{ fontSize: 11, color: 'var(--text-4)', margin: 0, lineHeight: 1.5 }}
     >
       AI-suggesties zijn nu even niet beschikbaar. De mails hierboven kun je gewoon in Gmail openen.
     </p>
@@ -205,9 +219,8 @@ function AnalyseStoring({ status }: { status: AnalyseStatus }) {
 /**
  * De halve storing.
  *
- * Gmail gaf het id wel, de metadata niet. Zwijgen zou de noemer hierboven tot een
- * leugen maken — "3 van de 12" terwijl er ook nog 6 zijn waar we niets van weten.
- * `role="status"`, geen `alert`: het is een mededeling, geen alarm.
+ * Gmail gaf het id wel, de metadata niet. Zwijgen zou de kaart tot een leugen
+ * maken. `role="status"`, geen `alert`: het is een mededeling, geen alarm.
  */
 function Onleesbaar({ aantal }: { aantal: number }) {
   if (aantal === 0) return null
@@ -218,7 +231,7 @@ function Onleesbaar({ aantal }: { aantal: number }) {
       style={{
         fontSize: 11,
         color: 'var(--status-aandacht)',
-        margin: '6px 0 0',
+        margin: 0,
         lineHeight: 1.5,
       }}
     >
@@ -239,81 +252,76 @@ interface RegelProps {
 }
 
 /**
- * Eén regel: de mail als Gmail-link, en — als de AI er een taak of afspraak in
- * zag — een aparte knop eronder.
+ * Eén belangrijke mail als kaartje: afzender vet, onderwerp, een reden-pill die
+ * zegt wáárom het belangrijk is, de tijd, en de acties eronder.
  *
- * De knop staat NAAST de link, niet erin: een `<button>` in een `<a>` is
- * ongeldige HTML en breekt toetsenbord- en screenreader-gedrag. De mail-info
- * blijft één groot kliktoel naar Gmail; de suggestie-knop is een tweede,
- * duidelijk aparte actie. `target="_blank"` met `rel="noopener noreferrer"`:
- * zonder `noopener` krijgt de geopende pagina `window.opener` en kan hij deze tab
- * wegnavigeren.
+ * De knoppen staan NAAST de link, niet erin: een `<button>` in een `<a>` is
+ * ongeldige HTML en breekt toetsenbord- en screenreader-gedrag. `target="_blank"`
+ * met `rel="noopener noreferrer"`: zonder `noopener` krijgt de geopende pagina
+ * `window.opener` en kan hij deze tab wegnavigeren.
  */
-function Regel({ mail, actie, onMaak, onMailActie, onConcept }: RegelProps) {
+function BelangrijkeMail({ mail, actie, onMaak, onMailActie, onConcept }: RegelProps) {
   const [hover, setHover] = useState(false)
 
   const afzender = mail.afzender ?? 'Onbekende afzender'
   const onderwerp = mail.onderwerp ?? 'Bericht zonder onderwerp'
 
   return (
-    <div style={{ display: 'grid', gap: 6 }}>
+    <div
+      style={{
+        display: 'grid',
+        gap: 8,
+        padding: '12px 14px',
+        background: hover ? 'var(--bg-raised)' : 'var(--bg-card)',
+        border: '1px solid var(--line)',
+        // Het cyaan accent aan de linkerkant: dít is belangrijk. Semantisch, geen sier.
+        borderLeft: '2px solid var(--brand)',
+        borderRadius: 'var(--radius-card)',
+        transition: 'background 180ms var(--ease)',
+      }}
+    >
       <a
         href={gmailLink(mail.id)}
         target="_blank"
         rel="noopener noreferrer"
         onMouseEnter={() => setHover(true)}
         onMouseLeave={() => setHover(false)}
-        // De reden staat zichtbaar in de regel; voor een screenreader plakken we
-        // 'm aan de link zodat de aankondiging compleet is zonder de tekst twee
-        // keer voor te lezen.
         aria-label={`${afzender}: ${onderwerp}. ${mail.reden} Openen in Gmail, nieuw tabblad.`}
-        style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr auto',
-          gap: '0 10px',
-          alignItems: 'baseline',
-          padding: '9px 10px',
-          margin: '0 -10px',
-          borderRadius: 8,
-          textDecoration: 'none',
-          background: hover ? 'var(--bg-raised)' : 'transparent',
-          // Alleen background: geen layout-properties animeren.
-          transition: 'background 180ms var(--ease)',
-        }}
+        style={{ display: 'grid', gap: 4, textDecoration: 'none' }}
       >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 10 }}>
+          <span
+            style={{
+              fontSize: 14,
+              fontWeight: 700,
+              color: 'var(--text-1)',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {afzender}
+          </span>
+          <span
+            className="os-cijfer"
+            style={{
+              fontSize: 11,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 4,
+              color: hover ? 'var(--brand)' : 'var(--text-4)',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {tijdLabel(new Date(mail.ontvangenOp))}
+            <ArrowUpRight size={12} strokeWidth={2.2} aria-hidden="true" />
+          </span>
+        </div>
+
         <span
           style={{
-            fontSize: 13,
-            fontWeight: 600,
+            fontSize: 13.5,
             color: 'var(--text-2)',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
-          }}
-        >
-          {afzender}
-        </span>
-
-        <span
-          className="os-cijfer"
-          style={{
-            fontSize: 11,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 4,
-            color: hover ? 'var(--brand)' : 'var(--text-4)',
-            transition: 'color 180ms var(--ease)',
-          }}
-        >
-          {tijdLabel(new Date(mail.ontvangenOp))}
-          <ArrowUpRight size={12} strokeWidth={2.2} aria-hidden="true" />
-        </span>
-
-        <span
-          style={{
-            gridColumn: '1 / -1',
-            fontSize: 13,
-            color: 'var(--text-3)',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
             whiteSpace: 'nowrap',
@@ -321,13 +329,24 @@ function Regel({ mail, actie, onMaak, onMailActie, onConcept }: RegelProps) {
         >
           {onderwerp}
         </span>
-
-        {/* De reden. Klein, maar altijd zichtbaar: een oordeel dat je niet kunt
-            narekenen is geen oordeel. */}
-        <span style={{ gridColumn: '1 / -1', fontSize: 10.5, color: 'var(--text-4)', marginTop: 3 }}>
-          {mail.reden}
-        </span>
       </a>
+
+      {/* Waarom dit belangrijk is — als pill, klein maar altijd zichtbaar: een
+          oordeel dat je niet kunt narekenen is geen oordeel. */}
+      <span
+        style={{
+          justifySelf: 'start',
+          fontSize: 10.5,
+          fontWeight: 600,
+          color: 'var(--brand)',
+          background: 'var(--brand-soft)',
+          borderRadius: 999,
+          padding: '2px 9px',
+          lineHeight: 1.5,
+        }}
+      >
+        {mail.reden}
+      </span>
 
       {actie ? <SuggestieActie actie={actie} onMaak={onMaak} /> : null}
 
@@ -335,5 +354,64 @@ function Regel({ mail, actie, onMaak, onMailActie, onConcept }: RegelProps) {
         <MailActies mail={mail} onActie={onMailActie} onConcept={onConcept} />
       ) : null}
     </div>
+  )
+}
+
+/**
+ * Eén regel uit "alles van vandaag": compact, één tik naar Gmail, geen acties.
+ * Bewust rustiger dan `BelangrijkeMail` — dit is het overzicht, niet de to-do.
+ */
+function OverigeMail({ mail }: { mail: TriageMailJson }) {
+  const [hover, setHover] = useState(false)
+
+  const afzender = mail.afzender ?? 'Onbekende afzender'
+  const onderwerp = mail.onderwerp ?? 'Bericht zonder onderwerp'
+
+  return (
+    <a
+      href={gmailLink(mail.id)}
+      target="_blank"
+      rel="noopener noreferrer"
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      aria-label={`${afzender}: ${onderwerp}. Openen in Gmail, nieuw tabblad.`}
+      style={{
+        display: 'grid',
+        gridTemplateColumns: '1fr auto',
+        gap: '0 10px',
+        alignItems: 'baseline',
+        padding: '7px 10px',
+        margin: '0 -10px',
+        borderRadius: 8,
+        textDecoration: 'none',
+        background: hover ? 'var(--bg-raised)' : 'transparent',
+        transition: 'background 180ms var(--ease)',
+      }}
+    >
+      <span
+        style={{
+          fontSize: 12.5,
+          color: 'var(--text-3)',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+        }}
+      >
+        <span style={{ color: 'var(--text-2)', fontWeight: 600 }}>{afzender}</span>
+        {'  ·  '}
+        {onderwerp}
+      </span>
+      <span
+        className="os-cijfer"
+        style={{
+          fontSize: 10.5,
+          color: hover ? 'var(--brand)' : 'var(--text-4)',
+          whiteSpace: 'nowrap',
+          transition: 'color 180ms var(--ease)',
+        }}
+      >
+        {tijdLabel(new Date(mail.ontvangenOp))}
+      </span>
+    </a>
   )
 }
