@@ -11,6 +11,7 @@ import {
   LayoutDashboard, Calendar, Map, Lightbulb,
   LogOut, ChevronRight, CheckCircle2, GraduationCap, UserRound,
   UserPlus, ListChecks, Apple, BookOpen, Milestone, Dumbbell, FolderKanban,
+  UsersRound,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import WeekRingen from './WeekRingen'
@@ -299,6 +300,7 @@ function SidebarContent({
             <NavLink href="/home#mensen" label="Mensen" icon={Users} pathname={pathname} onClick={onClose} />
             <NavLink href="/projecten" label="Projecten" icon={FolderKanban} pathname={pathname} onClick={onClose} />
             <NavLink href="/programma" label="Programma" icon={Dumbbell} pathname={pathname} onClick={onClose} />
+            <NavLink href="/team-kpi" label="Team" icon={UsersRound} pathname={pathname} onClick={onClose} />
           </div>
         )}
 
