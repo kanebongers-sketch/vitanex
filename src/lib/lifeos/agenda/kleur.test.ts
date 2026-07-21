@@ -151,7 +151,9 @@ describe('blokStijlVoorKleur', () => {
       const donker = leesHex('#0B1B3A')
       if (!bg || !tekst || !licht || !donker) throw new Error('kleuren moeten parsen')
       const gekozen = contrast(bg, tekst)
-      const andere = contrast(bg, tekst === '#EAF2FF' ? donker : licht)
+      // Vergelijk de gekozen HEX (`stijl.tekst`), niet de geparste `Rgb`: de andere
+      // tekstkleur is donker als de gekozene licht is, en andersom.
+      const andere = contrast(bg, stijl.tekst === '#EAF2FF' ? donker : licht)
       expect(gekozen).toBeGreaterThanOrEqual(andere)
     }
   })
