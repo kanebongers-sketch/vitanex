@@ -9,6 +9,7 @@ import { InboxKaart } from '@/components/lifeos/inbox/InboxKaart'
 import { WelzijnScoreKaart } from '@/components/lifeos/welzijn/WelzijnScoreKaart'
 import { MensenBord } from '@/components/lifeos/crm/MensenBord'
 import { FinanceKaart } from '@/components/lifeos/finance/FinanceKaart'
+import { ProgrammaKaart } from '@/components/lifeos/programma/ProgrammaKaart'
 
 // ─── De cockpit ──────────────────────────────────────────────────────────────
 // Eén vullend, breed werkscherm in plaats van zeven losse zones onder elkaar die
@@ -93,9 +94,15 @@ export function Cockpit() {
           <AgendaKaart />
         </div>
         {/* De inbox als volle-breedte-lijst: een triage-lijst leest prettig met
-            ruimte, en zo telt de laatste rij van dit cluster netjes op tot 12. */}
+            ruimte. */}
         <div className="os-tile--vol">
           <InboxKaart />
+        </div>
+        {/* Mijn programma: Kane's eigen training- en voedingsschema (uit zijn
+            Excel), om zijn dag te volgen — kies een sessie of voedingsdag. De
+            volledige weergave staat ook op de aparte /programma-pagina. */}
+        <div className="os-tile--vol">
+          <ProgrammaKaart />
         </div>
       </section>
 
