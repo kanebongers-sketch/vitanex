@@ -10,6 +10,7 @@ import { WelzijnScoreKaart } from '@/components/lifeos/welzijn/WelzijnScoreKaart
 import { MensenBord } from '@/components/lifeos/crm/MensenBord'
 import { FinanceKaart } from '@/components/lifeos/finance/FinanceKaart'
 import { ProgrammaKaart } from '@/components/lifeos/programma/ProgrammaKaart'
+import { BlokKaart } from '@/components/lifeos/blok/BlokKaart'
 
 // ─── De cockpit ──────────────────────────────────────────────────────────────
 // Eén vullend, breed werkscherm in plaats van zeven losse zones onder elkaar die
@@ -75,6 +76,13 @@ export function Cockpit() {
           </p>
         </header>
 
+        {/* Training van vandaag: het interactieve 4-weken blok. Volle breedte en
+            bovenaan, want Kane vult 'm op zijn telefoon in tijdens de sessie —
+            vorige prestatie, voorgesteld gewicht en per set één tik om te loggen.
+            De statische ProgrammaKaart (Excel-schema) blijft ernaast staan. */}
+        <div className="os-tile--vol">
+          <BlokKaart />
+        </div>
         <div className="os-tile--anker">
           <DagplanKaart />
         </div>
