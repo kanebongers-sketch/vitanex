@@ -125,18 +125,19 @@ function leesGelogd(v: unknown): GelogdeSet[] {
 
 const ADVIEZEN: readonly AdviesSoort[] = ['verhoog', 'behoud', 'let_op', 'onbekend']
 
+function leesSoort(v: unknown): 'kracht' | 'cardio' | 'rust' {
+  return v === 'cardio' || v === 'rust' ? v : 'kracht'
+}
+
 function leesKeuzes(v: unknown): BlokKeuze[] {
   if (!Array.isArray(v)) return []
   return v
     .filter(isObject)
-    .map((k) => {
-      const soort = k.soort
-      return {
-        code: tekstOfNull(k.code) ?? '',
-        titel: tekstOfNull(k.titel) ?? '',
-        soort: soort === 'kracht' || soort === 'cardio' || soort === 'rust' ? soort : 'kracht',
-      }
-    })
+    .map((k): BlokKeuze => ({
+      code: tekstOfNull(k.code) ?? '',
+      titel: tekstOfNull(k.titel) ?? '',
+      soort: leesSoort(k.soort),
+    }))
     .filter((k) => k.code.length > 0)
 }
 
