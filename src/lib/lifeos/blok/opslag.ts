@@ -124,13 +124,21 @@ export async function haalSessieOpDatum(
   admin: SupabaseClient,
   userId: string,
   datum: string,
+  sessieCode?: string,
 ): Promise<Uitkomst<SessieRij | null>> {
-  const { data, error } = await admin
+  let vraag = admin
     .from('trainingen')
     .select(SESSIE_KOLOMMEN)
     .eq('user_id', userId)
     .eq('datum', datum)
     .not('sessie_code', 'is', null)
+
+  // Met een expliciete code halen we precies díe sessie op. Zonder code (het
+  // auto-schema) valt het terug op de laatst aangemaakte sessie van de dag. Dit
+  // maakt "kies zelf je training" mogelijk: twee sessies op één dag botsen niet.
+  if (sessieCode !== undefined) vraag = vraag.eq('sessie_code', sessieCode)
+
+  const { data, error } = await vraag
     .order('aangemaakt_op', { ascending: false })
     .limit(1)
     .maybeSingle()

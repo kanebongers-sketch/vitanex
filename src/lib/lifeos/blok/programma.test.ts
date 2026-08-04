@@ -11,6 +11,7 @@ import {
   pasWeekToe,
   pasWeekToeOpOefening,
   planVoorDatum,
+  planVoorSessie,
   weekProfiel,
 } from './programma'
 import { UPPER_A, LOWER_A, KRACHT_SESSIES } from './kracht-sessies'
@@ -221,5 +222,37 @@ describe('planVoorDatum', () => {
 
   it('geeft null bij een onmogelijke weekdag', () => {
     expect(planVoorDatum(start, '2026-08-10', 9)).toBeNull()
+  })
+})
+
+describe('planVoorSessie — zelf je training kiezen', () => {
+  const start = '2026-08-03'
+
+  it('overschrijft het weekschema: Lower B op een rustdag (vrijdag)', () => {
+    // Vrijdag 7 aug is normaal rust; je kiest Lower B.
+    const plan = planVoorSessie(start, '2026-08-07', 'lower_b')
+    expect(plan?.dag.code).toBe('lower_b')
+    expect(plan?.week).toBe(1)
+  })
+
+  it('behoudt de weekmodulatie uit de datum, niet uit de sessie', () => {
+    // Upper A in week 2 → profiel Progressie, ongeacht welke weekdag.
+    const plan = planVoorSessie(start, '2026-08-11', 'upper_a')
+    expect(plan?.week).toBe(2)
+    expect(plan?.profiel.naam).toBe('Progressie')
+  })
+
+  it('geeft bij een zelfgekozen Hyrox de rondes van die week', () => {
+    const plan = planVoorSessie(start, '2026-08-17', 'hyrox')
+    expect(plan?.dag.code).toBe('hyrox')
+    expect(plan?.rondes).toBe(hyroxRondes(3))
+  })
+
+  it('geeft null bij een onbekende sessiecode', () => {
+    expect(planVoorSessie(start, '2026-08-10', 'benchpressen')).toBeNull()
+  })
+
+  it('geeft null buiten het blok', () => {
+    expect(planVoorSessie(start, '2026-09-15', 'upper_a')).toBeNull()
   })
 })

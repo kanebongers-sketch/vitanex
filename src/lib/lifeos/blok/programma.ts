@@ -162,6 +162,27 @@ export function planVoorDatum(startDatum: string, datum: string, weekdag: number
   const dag = dagVoorWeekdag(weekdag)
   if (!dag) return null
 
+  return bouwPlan(datum, week, dag)
+}
+
+/**
+ * Het plan voor een ZELFGEKOZEN sessie op een datum — de gebruiker overschrijft het
+ * weekschema ("ik doe vandaag Lower B in plaats van de geplande rustdag"). De week,
+ * en dus de modulatie, volgt nog steeds uit de datum; alleen wélke sessie verandert.
+ * Null buiten het blok of bij een onbekende code.
+ */
+export function planVoorSessie(startDatum: string, datum: string, sessieCode: string): DagPlan | null {
+  const week = blokWeekVoorDatum(startDatum, datum)
+  if (week === null) return null
+
+  const dag = dagVoorCode(sessieCode)
+  if (!dag) return null
+
+  return bouwPlan(datum, week, dag)
+}
+
+/** Bouwt een DagPlan uit een dag + week — met weekmodulatie voor krachtsessies. */
+function bouwPlan(datum: string, week: 1 | 2 | 3 | 4, dag: BlokDag): DagPlan {
   const gemoduleerd = dag.soort === 'kracht' ? pasWeekToe(dag, week) : dag
   return {
     datum,

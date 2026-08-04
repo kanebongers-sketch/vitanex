@@ -44,6 +44,12 @@ export interface BlokProfiel {
   advies: string
 }
 
+export interface BlokKeuze {
+  code: string
+  titel: string
+  soort: 'kracht' | 'cardio' | 'rust'
+}
+
 export interface BlokRust {
   toelichting: readonly string[]
 }
@@ -72,6 +78,8 @@ export interface BlokVandaag {
   soort?: 'kracht' | 'cardio' | 'rust'
   titel?: string
   focus?: string
+  gekozenCode?: string
+  keuzes?: BlokKeuze[]
   warmup?: readonly string[]
   duurMinuten?: number
   sessie?: BlokSessie | null
@@ -116,6 +124,21 @@ function leesGelogd(v: unknown): GelogdeSet[] {
 }
 
 const ADVIEZEN: readonly AdviesSoort[] = ['verhoog', 'behoud', 'let_op', 'onbekend']
+
+function leesKeuzes(v: unknown): BlokKeuze[] {
+  if (!Array.isArray(v)) return []
+  return v
+    .filter(isObject)
+    .map((k) => {
+      const soort = k.soort
+      return {
+        code: tekstOfNull(k.code) ?? '',
+        titel: tekstOfNull(k.titel) ?? '',
+        soort: soort === 'kracht' || soort === 'cardio' || soort === 'rust' ? soort : 'kracht',
+      }
+    })
+    .filter((k) => k.code.length > 0)
+}
 
 function leesOefening(v: unknown): OefeningVandaag | null {
   if (!isObject(v)) return null
@@ -169,6 +192,8 @@ export function leesBlokVandaag(ruw: unknown): BlokVandaag | null {
     soort,
     titel: tekstOfNull(ruw.titel) ?? undefined,
     focus: tekstOfNull(ruw.focus) ?? undefined,
+    gekozenCode: tekstOfNull(ruw.gekozenCode) ?? undefined,
+    keuzes: leesKeuzes(ruw.keuzes),
   }
 
   if (soort === 'rust' && isObject(ruw.rust)) {

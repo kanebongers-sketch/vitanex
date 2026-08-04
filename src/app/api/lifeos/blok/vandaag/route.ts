@@ -12,7 +12,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { vereisLifeosToegang } from '@/lib/lifeos/admin'
 import { datumSleutel } from '@/lib/lifeos/datum/datum'
-import { planVoorDatum, type DagPlan } from '@/lib/lifeos/blok/programma'
+import { planVoorDatum, planVoorSessie, isSessieCode, BLOK_WEEK, type DagPlan } from '@/lib/lifeos/blok/programma'
 import { haalOfStartBlok } from '@/lib/lifeos/blok/instellingen'
 import { haalSessieOpDatum, haalSets, haalLaatstePrestatie } from '@/lib/lifeos/blok/opslag'
 import { bepaalAdvies, voorgesteldGewicht } from '@/lib/lifeos/blok/progressie'
@@ -45,12 +45,22 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   const start = await haalOfStartBlok(toegang.admin, toegang.userId, datum)
   if (!start.ok) return NextResponse.json({ fout: 'Kon je blok niet laden.' }, { status: 502 })
 
-  const plan = planVoorDatum(start.waarde, datum, weekdag)
+  // Een zelfgekozen sessie (`?sessie=lower_b`) overschrijft het weekschema. Zonder
+  // die param volgt het schema uit de weekdag. De week (en modulatie) blijft altijd
+  // uit de datum komen — je kiest wélke training, niet in welke week je zit.
+  const gekozen = req.nextUrl.searchParams.get('sessie')
+  const plan = isSessieCode(gekozen)
+    ? planVoorSessie(start.waarde, datum, gekozen)
+    : planVoorDatum(start.waarde, datum, weekdag)
+
   if (plan === null) {
     // Buiten de 4 weken: het blok is klaar (of nog niet begonnen). De UI toont dan
     // de evaluatie/herstart, geen sessie.
     return NextResponse.json({ inBlok: false, startDatum: start.waarde, datum })
   }
+
+  // De 7 sessies waaruit je kunt kiezen (voor de keuzebalk), plus welke nu actief is.
+  const keuzes = BLOK_WEEK.map((d) => ({ code: d.code, titel: d.titel, soort: d.soort }))
 
   const basis = {
     inBlok: true as const,
@@ -60,6 +70,8 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     soort: plan.dag.soort,
     titel: plan.dag.titel,
     focus: plan.dag.focus,
+    gekozenCode: plan.dag.code,
+    keuzes,
   }
 
   if (plan.dag.soort === 'rust') {
@@ -98,7 +110,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
  * ~8 en ze zijn onafhankelijk.
  */
 async function bouwOefeningen(admin: SupabaseClient, userId: string, datum: string, plan: DagPlan) {
-  const sessie = plan.dag.soort === 'kracht' ? await haalSessieOpDatum(admin, userId, datum) : null
+  const sessie = plan.dag.soort === 'kracht' ? await haalSessieOpDatum(admin, userId, datum, plan.dag.code) : null
   const sessieRij = sessie && sessie.ok ? sessie.waarde : null
   const gelogdeSets = sessieRij ? await haalSets(admin, sessieRij.id) : null
   const gelogd = gelogdeSets && gelogdeSets.ok ? gelogdeSets.waarde : []

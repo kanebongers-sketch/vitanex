@@ -7,7 +7,7 @@ import { Knop } from '@/components/lifeos/os/Knop'
 import { Foutmelding } from '@/components/lifeos/os/Foutmelding'
 import { haalJson, leesNiets } from '@/lib/lifeos/api/http'
 import { datumSleutel } from '@/lib/lifeos/datum/datum'
-import { leesBlokVandaag, type BlokVandaag, type OefeningVandaag } from './blok-client'
+import { leesBlokVandaag, type BlokVandaag, type OefeningVandaag, type BlokKeuze, type VorigeSet } from './blok-client'
 
 // De trainingskaart op /home: "wat moet ik vandaag doen?" en, in één scherm, het
 // loggen ervan. Mobiel-first — grote tikdoelen, minimaal typen. De progressie
@@ -25,15 +25,18 @@ export function BlokKaart() {
   const [data, setData] = useState<BlokVandaag | null>(null)
   const [fout, setFout] = useState<string | null>(null)
   const [laden, setLaden] = useState(true)
+  // De zelfgekozen sessie voor vandaag (null = het auto-schema volgen).
+  const [gekozen, setGekozen] = useState<string | null>(null)
 
   // Generatieteller: een trage oudere vlucht (of één die na unmount terugkomt)
   // mag een verse stand niet overschrijven. Zelfde patroon als de andere kaarten.
   const generatie = useRef(0)
 
-  const laad = useCallback((): Promise<void> => {
+  const laad = useCallback((code: string | null): Promise<void> => {
     const mijn = ++generatie.current
     const { datum, weekdag } = vandaagContext()
-    return haalJson(`/api/lifeos/blok/vandaag?datum=${datum}&weekdag=${weekdag}`, leesBlokVandaag).then((uit) => {
+    const sessie = code ? `&sessie=${code}` : ''
+    return haalJson(`/api/lifeos/blok/vandaag?datum=${datum}&weekdag=${weekdag}${sessie}`, leesBlokVandaag).then((uit) => {
       if (mijn !== generatie.current) return // ingehaald of ontkoppeld
       if (uit.ok) {
         setData(uit.waarde)
@@ -50,9 +53,9 @@ export function BlokKaart() {
   }, [])
 
   useEffect(() => {
-    void laad()
+    void laad(gekozen)
     return verval
-  }, [laad, verval])
+  }, [laad, verval, gekozen])
 
   if (laden) {
     return (
@@ -64,7 +67,7 @@ export function BlokKaart() {
   if (fout !== null) {
     return (
       <Kaart titel="Training van vandaag" vervangt="je coach">
-        <Foutmelding bericht={fout} opnieuw={() => void laad()} />
+        <Foutmelding bericht={fout} opnieuw={() => void laad(gekozen)} />
       </Kaart>
     )
   }
@@ -81,12 +84,52 @@ export function BlokKaart() {
   return (
     <Kaart titel="Training van vandaag" vervangt="je coach">
       <div style={{ display: 'grid', gap: 14 }}>
+        <SessiePicker keuzes={data.keuzes ?? []} actief={data.gekozenCode} onKies={setGekozen} />
         <Kop data={data} />
-        {data.soort === 'kracht' ? <Kracht data={data} onVeranderd={laad} /> : null}
+        {data.soort === 'kracht' ? <Kracht data={data} onVeranderd={() => laad(gekozen)} /> : null}
         {data.soort === 'cardio' ? <CardioInfo data={data} /> : null}
         {data.soort === 'rust' ? <RustInfo data={data} /> : null}
       </div>
     </Kaart>
+  )
+}
+
+// ─── Dagkeuze: kies zelf welke sessie je vandaag doet ────────────────────────
+// Overschrijft het weekschema. De actieve chip is wat de server nu serveert
+// (data.gekozenCode) — of dat nu het auto-schema is of jouw keuze.
+
+function SessiePicker({ keuzes, actief, onKies }: { keuzes: BlokKeuze[]; actief: string | undefined; onKies: (code: string) => void }) {
+  if (keuzes.length === 0) return null
+  return (
+    <div role="group" aria-label="Kies je training van vandaag" style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 2, margin: '0 -2px', scrollbarWidth: 'thin' }}>
+      {keuzes.map((k) => {
+        const aan = k.code === actief
+        return (
+          <button
+            key={k.code}
+            type="button"
+            onClick={() => onKies(k.code)}
+            aria-pressed={aan}
+            style={{
+              flexShrink: 0,
+              padding: '6px 12px',
+              borderRadius: 999,
+              border: `1px solid ${aan ? 'var(--brand)' : 'var(--line)'}`,
+              background: aan ? 'var(--brand-soft)' : 'transparent',
+              color: aan ? 'var(--brand)' : 'var(--text-3)',
+              fontSize: 12.5,
+              fontWeight: 600,
+              fontFamily: 'inherit',
+              cursor: 'pointer',
+              whiteSpace: 'nowrap',
+              transition: 'color 150ms var(--ease), border-color 150ms var(--ease), background 150ms var(--ease)',
+            }}
+          >
+            {k.titel}
+          </button>
+        )
+      })}
+    </div>
   )
 }
 
@@ -124,11 +167,11 @@ function Kracht({ data, onVeranderd }: { data: BlokVandaag; onVeranderd: () => P
     const uit = await haalJson<{ trainingId: string }>(
       '/api/lifeos/blok/start',
       (r) => (typeof r === 'object' && r !== null && typeof (r as { trainingId?: unknown }).trainingId === 'string' ? { trainingId: (r as { trainingId: string }).trainingId } : null),
-      { ...JSON_POST, body: JSON.stringify({ sessieCode: leidCode(data.titel), blokWeek: data.week, datum }) },
+      { ...JSON_POST, body: JSON.stringify({ sessieCode: data.gekozenCode ?? leidCode(data.titel), blokWeek: data.week, datum }) },
     )
     if (uit.ok) setTrainingId(uit.waarde.trainingId)
     setBezig(false)
-  }, [trainingId, bezig, data.titel, data.week])
+  }, [trainingId, bezig, data.titel, data.week, data.gekozenCode])
 
   const oefeningen = data.oefeningen ?? []
 
@@ -239,7 +282,10 @@ function OefeningLogger({ oefening, trainingId }: { oefening: OefeningVandaag; t
       <div style={{ display: 'grid', gap: 6, marginTop: 8 }}>
         {sets.map((r, i) => (
           <div key={i} style={{ display: 'grid', gridTemplateColumns: 'auto 1fr auto auto', gap: 6, alignItems: 'center' }}>
-            <span style={{ fontSize: 11, color: 'var(--text-4)', width: 30 }}>Set {i + 1}</span>
+            <span style={{ display: 'grid', width: 58, lineHeight: 1.15 }}>
+              <span style={{ fontSize: 11, color: 'var(--text-3)', fontWeight: 600 }}>Set {i + 1}</span>
+              <span style={{ fontSize: 10.5, color: 'var(--text-4)', fontFamily: 'var(--font-mono)' }}>{vorigeSetLabel(oefening.vorige[i])}</span>
+            </span>
             <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
               <Stepper onClick={() => stapGewicht(i, -oefening.stap)} icon={<Minus size={13} />} />
               <input inputMode="decimal" value={r.gewicht} onChange={(e) => zet(i, 'gewicht', e.target.value)} placeholder="kg" style={veldStijl(64)} aria-label={`Gewicht set ${i + 1}`} />
@@ -254,6 +300,13 @@ function OefeningLogger({ oefening, trainingId }: { oefening: OefeningVandaag; t
       </div>
     </div>
   )
+}
+
+/** "60×8" voor de vorige keer van deze set, of "—" als je 'm toen niet deed. */
+function vorigeSetLabel(set: VorigeSet | undefined): string {
+  if (!set || set.gewichtKg == null) return '—'
+  const reps = set.herhalingen != null ? `×${set.herhalingen}` : ''
+  return `${set.gewichtKg}${reps}`
 }
 
 function VorigeRegel({ oefening }: { oefening: OefeningVandaag }) {
