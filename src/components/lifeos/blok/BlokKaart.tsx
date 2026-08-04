@@ -161,11 +161,11 @@ function Kracht({ data, onVeranderd }: { data: BlokVandaag; onVeranderd: () => P
 }
 
 /** De titel → sessie_code. Vaste mapping; het programma kent er zes. */
-function leidCode(titel: string): string {
+function leidCode(titel: string | undefined): string {
   const m: Record<string, string> = {
     'Upper A': 'upper_a', 'Lower A': 'lower_a', 'Upper B': 'upper_b', 'Lower B': 'lower_b',
   }
-  return m[titel] ?? 'upper_a'
+  return (titel && m[titel]) ?? 'upper_a'
 }
 
 function Warmup({ regels }: { regels: readonly string[] }) {
