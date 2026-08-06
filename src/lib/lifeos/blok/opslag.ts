@@ -407,6 +407,35 @@ export async function bewaarCardio(
   return { ok: true, waarde: null }
 }
 
+/** De opgeslagen cardio-details van een sessie, of null als er nog niets staat. */
+export async function haalCardio(
+  admin: SupabaseClient,
+  userId: string,
+  trainingId: string,
+): Promise<Uitkomst<CardioKolommen | null>> {
+  const { data, error } = await admin
+    .from('blok_cardio')
+    .select('duur_minuten, afstand_meter, gem_hartslag, gem_pace_sec_per_km, rpe, onderdelen')
+    .eq('user_id', userId)
+    .eq('training_id', trainingId)
+    .maybeSingle()
+
+  if (error) return mislukt(vertaalFout(error))
+  if (data === null || data === undefined) return { ok: true, waarde: null }
+
+  return {
+    ok: true,
+    waarde: {
+      duur_minuten: getal(data.duur_minuten),
+      afstand_meter: getal(data.afstand_meter),
+      gem_hartslag: getal(data.gem_hartslag),
+      gem_pace_sec_per_km: getal(data.gem_pace_sec_per_km),
+      rpe: getal(data.rpe),
+      onderdelen: Array.isArray(data.onderdelen) ? data.onderdelen : null,
+    },
+  }
+}
+
 // ─── Keuring van wat er in gaat (puur) ──────────────────────────────────────
 
 /**

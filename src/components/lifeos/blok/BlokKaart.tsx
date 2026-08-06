@@ -87,7 +87,7 @@ export function BlokKaart() {
         <SessiePicker keuzes={data.keuzes ?? []} actief={data.gekozenCode} onKies={setGekozen} />
         <Kop data={data} />
         {data.soort === 'kracht' ? <Kracht data={data} onVeranderd={() => laad(gekozen)} /> : null}
-        {data.soort === 'cardio' ? <CardioInfo data={data} /> : null}
+        {data.soort === 'cardio' ? <CardioInfo data={data} onVeranderd={() => laad(gekozen)} /> : null}
         {data.soort === 'rust' ? <RustInfo data={data} /> : null}
       </div>
     </Kaart>
@@ -343,35 +343,151 @@ function Afronden({ trainingId, onKlaar }: { trainingId: string; onKlaar: () => 
   )
 }
 
-// ─── Cardio + rust: alleen tonen (loggen komt in ronde 2) ────────────────────
+// ─── Cardio: doel tonen → starten → invullen → opslaan → afronden ────────────
 
-function CardioInfo({ data }: { data: BlokVandaag }) {
+function CardioInfo({ data, onVeranderd }: { data: BlokVandaag; onVeranderd: () => Promise<void> }) {
   const c = data.cardio
+  const [trainingId, setTrainingId] = useState<string | null>(data.sessie?.trainingId ?? null)
+  const [bezig, setBezig] = useState(false)
+  const voltooid = data.sessie?.voltooidOp != null
+
+  const start = useCallback(async () => {
+    if (trainingId || bezig) return
+    setBezig(true)
+    const { datum } = vandaagContext()
+    const uit = await haalJson<{ trainingId: string }>(
+      '/api/lifeos/blok/start',
+      (r) => (isObj(r) && typeof r.trainingId === 'string' ? { trainingId: r.trainingId } : null),
+      { ...JSON_POST, body: JSON.stringify({ sessieCode: data.gekozenCode, blokWeek: data.week, datum }) },
+    )
+    if (uit.ok) setTrainingId(uit.waarde.trainingId)
+    setBezig(false)
+  }, [trainingId, bezig, data.gekozenCode, data.week])
+
   if (!c) return null
+
   return (
-    <div style={{ display: 'grid', gap: 8 }}>
+    <div style={{ display: 'grid', gap: 10 }}>
+      <CardioDoel c={c} />
+      {!trainingId ? (
+        <Knop variant="primair" onClick={() => void start()} disabled={bezig}>
+          {bezig ? 'Bezig…' : 'Start cardio'}
+        </Knop>
+      ) : (
+        <>
+          <CardioLogger
+            trainingId={trainingId}
+            soort={data.gekozenCode === 'hyrox' ? 'hyrox' : 'zone2'}
+            stations={c.stations}
+            gelogd={data.cardioGelogd ?? null}
+          />
+          {!voltooid ? <Afronden trainingId={trainingId} onKlaar={onVeranderd} /> : (
+            <p style={{ fontSize: 13, color: 'var(--brand)', margin: 0, fontWeight: 600 }}>✅ Sessie afgerond — sterk gedaan.</p>
+          )}
+        </>
+      )}
+    </div>
+  )
+}
+
+function CardioDoel({ c }: { c: NonNullable<BlokVandaag['cardio']> }) {
+  return (
+    <div style={{ display: 'grid', gap: 6 }}>
       <p style={{ fontSize: 13, color: 'var(--text-2)', margin: 0 }}>
         Doelduur {c.duurBereik[0]}–{c.duurBereik[1]} min · RPE {c.rpeDoel[0]}-{c.rpeDoel[1]}
         {c.hartslagZone ? ` · HR ${c.hartslagZone[0]}-${c.hartslagZone[1]}%` : ''}
         {c.rondes ? ` · ${c.rondes} rondes` : ''}
       </p>
-      {c.stations ? (
-        <ol style={{ margin: 0, paddingLeft: 18, display: 'grid', gap: 3 }}>
-          {c.stations.map((s, i) => (
-            <li key={i} style={{ fontSize: 12.5, color: 'var(--text-3)', lineHeight: 1.5 }}>
-              <strong style={{ color: 'var(--text-2)' }}>{s.naam}</strong> — {s.doelWaarde} {s.eenheid}
-              {s.belasting ? ` (${s.belasting})` : ''}
-            </li>
-          ))}
-        </ol>
-      ) : (
+      {!c.stations ? (
         <ul style={{ margin: 0, paddingLeft: 18, display: 'grid', gap: 3 }}>
           {c.toelichting.map((t, i) => (
             <li key={i} style={{ fontSize: 12.5, color: 'var(--text-3)', lineHeight: 1.5 }}>{t}</li>
           ))}
         </ul>
-      )}
+      ) : null}
     </div>
+  )
+}
+
+/** Het invulformulier: Zone 2 (duur/afstand/hartslag/RPE) of Hyrox (per station + totaal). */
+function CardioLogger({
+  trainingId,
+  soort,
+  stations,
+  gelogd,
+}: {
+  trainingId: string
+  soort: 'zone2' | 'hyrox'
+  stations: NonNullable<BlokVandaag['cardio']>['stations']
+  gelogd: BlokVandaag['cardioGelogd']
+}) {
+  const [duur, setDuur] = useState(getalNaarInvoer(gelogd?.duurMinuten))
+  const [afstand, setAfstand] = useState(getalNaarInvoer(gelogd?.afstandMeter))
+  const [hartslag, setHartslag] = useState(getalNaarInvoer(gelogd?.gemHartslag))
+  const [rpe, setRpe] = useState(getalNaarInvoer(gelogd?.rpe))
+  const [perStation, setPerStation] = useState<string[]>(() =>
+    (stations ?? []).map((s) => {
+      const eerder = leesEerderStation(gelogd?.onderdelen, s.naam)
+      return eerder !== null ? String(eerder) : ''
+    }),
+  )
+  const [status, setStatus] = useState<'leeg' | 'bezig' | 'ok'>('leeg')
+
+  const opslaan = useCallback(async () => {
+    setStatus('bezig')
+    const onderdelen = soort === 'hyrox' && stations
+      ? stations.map((s, i) => ({ naam: s.naam, eenheid: s.eenheid, waarde: getalOfLeeg(perStation[i]) }))
+      : undefined
+    const details = {
+      duurMinuten: getalOfLeeg(duur),
+      afstandMeter: getalOfLeeg(afstand),
+      gemHartslag: getalOfLeeg(hartslag),
+      rpe: getalOfLeeg(rpe),
+      ...(onderdelen ? { onderdelen } : {}),
+    }
+    const uit = await haalJson('/api/lifeos/blok/cardio', leesNiets, {
+      ...JSON_POST,
+      body: JSON.stringify({ trainingId, soort, details }),
+    })
+    setStatus(uit.ok ? 'ok' : 'leeg')
+  }, [soort, stations, perStation, duur, afstand, hartslag, rpe, trainingId])
+
+  return (
+    <div style={{ background: 'var(--bg-card)', border: '1px solid var(--line)', borderLeft: '2px solid var(--brand)', borderRadius: 'var(--radius-card)', padding: '12px', display: 'grid', gap: 10 }}>
+      {soort === 'hyrox' && stations ? (
+        <div style={{ display: 'grid', gap: 6 }}>
+          {stations.map((s, i) => (
+            <label key={i} style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 8, alignItems: 'center' }}>
+              <span style={{ fontSize: 12.5, color: 'var(--text-2)' }}>
+                {s.naam} <span style={{ color: 'var(--text-4)' }}>· doel {s.doelWaarde} {s.eenheid}</span>
+              </span>
+              <input inputMode="decimal" value={perStation[i] ?? ''} onChange={(e) => setPerStation((p) => p.map((v, j) => (j === i ? e.target.value : v)))} placeholder={s.eenheid} style={veldStijl(76)} aria-label={`${s.naam} in ${s.eenheid}`} />
+            </label>
+          ))}
+        </div>
+      ) : null}
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
+        <VeldMetLabel label="Duur (min)" value={duur} onChange={setDuur} />
+        {soort === 'zone2' ? <VeldMetLabel label="Afstand (m)" value={afstand} onChange={setAfstand} /> : null}
+        {soort === 'zone2' ? <VeldMetLabel label="Gem. HR" value={hartslag} onChange={setHartslag} /> : null}
+        <VeldMetLabel label="RPE (1-10)" value={rpe} onChange={setRpe} />
+      </div>
+
+      <Knop variant="primair" onClick={() => void opslaan()} disabled={status === 'bezig'}>
+        <Check size={15} strokeWidth={2.2} aria-hidden />{' '}
+        {status === 'bezig' ? 'Bezig…' : status === 'ok' ? 'Opgeslagen ✓' : 'Cardio opslaan'}
+      </Knop>
+    </div>
+  )
+}
+
+function VeldMetLabel({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+  return (
+    <label style={{ display: 'grid', gap: 3 }}>
+      <span style={{ fontSize: 11, color: 'var(--text-4)' }}>{label}</span>
+      <input inputMode="decimal" value={value} onChange={(e) => onChange(e.target.value)} style={veldStijl(0)} aria-label={label} />
+    </label>
   )
 }
 
@@ -398,9 +514,36 @@ function Stepper({ onClick, icon }: { onClick: () => void; icon: ReactNode }) {
 const toggleStijl = { display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 600, color: 'var(--text-3)', background: 'transparent', border: 'none', padding: '2px 0', cursor: 'pointer' } as const
 
 function veldStijl(w: number): CSSProperties {
-  return { width: w, height: 34, borderRadius: 8, border: '1px solid var(--line)', background: 'var(--bg-app)', color: 'var(--text-1)', fontSize: 15, textAlign: 'center', fontFamily: 'var(--font-mono)' }
+  // w === 0 → volle breedte (voor velden in een grid-cel); anders een vaste breedte.
+  return { width: w === 0 ? '100%' : w, height: 34, borderRadius: 8, border: '1px solid var(--line)', background: 'var(--bg-app)', color: 'var(--text-1)', fontSize: 15, textAlign: 'center', fontFamily: 'var(--font-mono)', boxSizing: 'border-box' }
 }
 
 function logKnopStijl(gelogd: boolean): CSSProperties {
   return { width: 40, height: 34, borderRadius: 8, border: '1px solid var(--line)', background: gelogd ? 'var(--brand)' : 'var(--bg-raised)', color: gelogd ? 'var(--bg-app)' : 'var(--text-3)', display: 'grid', placeItems: 'center', cursor: 'pointer', transition: 'background 150ms var(--ease)' }
+}
+
+// ─── Kleine getal-/vorm-helpers voor het cardio-formulier ────────────────────
+
+function isObj(v: unknown): v is Record<string, unknown> {
+  return typeof v === 'object' && v !== null
+}
+
+/** Een getal → invoerstring, of leeg als het niet gemeten is. */
+function getalNaarInvoer(n: number | null | undefined): string {
+  return typeof n === 'number' && Number.isFinite(n) ? String(n) : ''
+}
+
+/** Een invoerstring → getal, of null bij leeg/onzin (nooit 0 verzinnen). */
+function getalOfLeeg(s: string): number | null {
+  const t = s.trim()
+  if (t === '') return null
+  const n = Number(t)
+  return Number.isFinite(n) ? n : null
+}
+
+/** De eerder gelogde waarde van een Hyrox-station op naam, of null. */
+function leesEerderStation(onderdelen: unknown[] | null | undefined, naam: string): number | null {
+  if (!Array.isArray(onderdelen)) return null
+  const gevonden = onderdelen.find((o) => isObj(o) && o.naam === naam)
+  return isObj(gevonden) && typeof gevonden.waarde === 'number' ? gevonden.waarde : null
 }

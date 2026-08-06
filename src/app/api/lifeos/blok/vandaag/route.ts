@@ -14,7 +14,7 @@ import { vereisLifeosToegang } from '@/lib/lifeos/admin'
 import { datumSleutel } from '@/lib/lifeos/datum/datum'
 import { planVoorDatum, planVoorSessie, isSessieCode, BLOK_WEEK, type DagPlan } from '@/lib/lifeos/blok/programma'
 import { haalOfStartBlok } from '@/lib/lifeos/blok/instellingen'
-import { haalSessieOpDatum, haalSets, haalLaatstePrestatie } from '@/lib/lifeos/blok/opslag'
+import { haalSessieOpDatum, haalSets, haalLaatstePrestatie, haalCardio } from '@/lib/lifeos/blok/opslag'
 import { bepaalAdvies, voorgesteldGewicht } from '@/lib/lifeos/blok/progressie'
 import type { KrachtSessie } from '@/lib/lifeos/blok/types'
 
@@ -79,8 +79,15 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   }
 
   if (plan.dag.soort === 'cardio') {
+    // Ook cardio krijgt een sessie (voor Start/afronden) en, als die er is, de al
+    // opgeslagen details zodat het formulier voorgevuld terugkomt.
+    const sessie = await haalSessieOpDatum(toegang.admin, toegang.userId, datum, plan.dag.code)
+    const sessieRij = sessie.ok ? sessie.waarde : null
+    const gelogd = sessieRij ? await haalCardio(toegang.admin, toegang.userId, sessieRij.id) : null
+
     return NextResponse.json({
       ...basis,
+      sessie: sessieRij ? { trainingId: sessieRij.id, voltooidOp: sessieRij.voltooidOp } : null,
       cardio: {
         duurBereik: plan.dag.duurBereik,
         rpeDoel: plan.dag.rpeDoel,
@@ -89,6 +96,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         rondes: plan.rondes ?? null,
         toelichting: plan.dag.toelichting,
       },
+      cardioGelogd: gelogd && gelogd.ok ? gelogd.waarde : null,
     })
   }
 

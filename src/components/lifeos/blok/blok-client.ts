@@ -70,6 +70,16 @@ export interface BlokSessie {
   voltooidOp: string | null
 }
 
+/** Wat je bij een cardio-sessie al opsloeg (snake_case in het antwoord → camel hier). */
+export interface CardioGelogd {
+  duurMinuten: number | null
+  afstandMeter: number | null
+  gemHartslag: number | null
+  gemPaceSecPerKm: number | null
+  rpe: number | null
+  onderdelen: unknown[] | null
+}
+
 export interface BlokVandaag {
   inBlok: boolean
   datum: string
@@ -86,6 +96,7 @@ export interface BlokVandaag {
   oefeningen?: OefeningVandaag[]
   rust?: BlokRust
   cardio?: BlokCardio
+  cardioGelogd?: CardioGelogd | null
   startDatum?: string
 }
 
@@ -201,24 +212,46 @@ export function leesBlokVandaag(ruw: unknown): BlokVandaag | null {
     return { ...basis, rust: { toelichting: Array.isArray(ruw.rust.toelichting) ? ruw.rust.toelichting.filter((t): t is string => typeof t === 'string') : [] } }
   }
   if (soort === 'cardio' && isObject(ruw.cardio)) {
-    return { ...basis, cardio: leesCardio(ruw.cardio) }
+    return {
+      ...basis,
+      cardio: leesCardio(ruw.cardio),
+      sessie: leesSessie(ruw.sessie),
+      cardioGelogd: leesCardioGelogd(ruw.cardioGelogd),
+    }
   }
   if (soort === 'kracht') {
     const oefeningen = Array.isArray(ruw.oefeningen)
       ? ruw.oefeningen.map(leesOefening).filter((o): o is OefeningVandaag => o !== null)
       : []
-    const sessie = isObject(ruw.sessie) && tekstOfNull(ruw.sessie.trainingId)
-      ? { trainingId: ruw.sessie.trainingId as string, voltooidOp: tekstOfNull(ruw.sessie.voltooidOp) }
-      : null
     return {
       ...basis,
       warmup: Array.isArray(ruw.warmup) ? ruw.warmup.filter((t): t is string => typeof t === 'string') : [],
       duurMinuten: getalOfNull(ruw.duurMinuten) ?? undefined,
-      sessie,
+      sessie: leesSessie(ruw.sessie),
       oefeningen,
     }
   }
   return basis
+}
+
+/** De sessie (trainingId + voltooidOp), of null. Gedeeld door kracht en cardio. */
+function leesSessie(v: unknown): BlokSessie | null {
+  if (!isObject(v)) return null
+  const trainingId = tekstOfNull(v.trainingId)
+  return trainingId === null ? null : { trainingId, voltooidOp: tekstOfNull(v.voltooidOp) }
+}
+
+/** De al opgeslagen cardio-details (snake_case in het antwoord), of null. */
+function leesCardioGelogd(v: unknown): CardioGelogd | null {
+  if (!isObject(v)) return null
+  return {
+    duurMinuten: getalOfNull(v.duur_minuten),
+    afstandMeter: getalOfNull(v.afstand_meter),
+    gemHartslag: getalOfNull(v.gem_hartslag),
+    gemPaceSecPerKm: getalOfNull(v.gem_pace_sec_per_km),
+    rpe: getalOfNull(v.rpe),
+    onderdelen: Array.isArray(v.onderdelen) ? v.onderdelen : null,
+  }
 }
 
 function leesCardio(v: Record<string, unknown>): BlokCardio {
