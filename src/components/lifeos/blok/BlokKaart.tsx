@@ -204,7 +204,10 @@ function Kracht({ data, onVeranderd }: { data: BlokVandaag; onVeranderd: () => P
   return (
     <div style={{ display: 'grid', gap: 12 }}>
       <Warmup regels={data.warmup ?? []} />
-      <ul style={{ display: 'grid', gap: 12, listStyle: 'none', padding: 0, margin: 0 }}>
+      {/* Oefeningen vloeien in meerdere kolommen zodra de kaart breed genoeg is
+          (auto-fill vanaf ~340px per oefening) — op de telefoon één kolom, op
+          desktop 2+ zodat de breedte benut wordt i.p.v. één lange smalle lijst. */}
+      <ul style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 12, listStyle: 'none', padding: 0, margin: 0 }}>
         {oefeningen.map((o) => (
           <li key={o.naam}>
             <OefeningLogger oefening={o} trainingId={trainingId} />
