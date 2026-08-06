@@ -17,6 +17,18 @@ import { BlokVoortgang } from './BlokVoortgang'
 
 const JSON_POST = { method: 'POST', headers: { 'content-type': 'application/json' } } as const
 
+// Zichtbare cyan focus-ring op elk veld/elke knop in de kaart (toetsenbord-a11y):
+// inline styles kunnen geen :focus-visible, dus één scoped stylesheet doet alle
+// interactieve elementen tegelijk. Geen outline:none zonder vervanging.
+const BLOK_CSS = `
+.blok-scope input:focus-visible,
+.blok-scope button:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+`
+
 function vandaagContext(): { datum: string; weekdag: number } {
   const nu = new Date()
   return { datum: datumSleutel(nu), weekdag: nu.getDay() }
@@ -84,7 +96,8 @@ export function BlokKaart() {
 
   return (
     <Kaart titel="Training van vandaag" vervangt="je coach">
-      <div style={{ display: 'grid', gap: 14 }}>
+      <style href="blok-kaart" precedence="medium">{BLOK_CSS}</style>
+      <div className="blok-scope" style={{ display: 'grid', gap: 14 }}>
         <SessiePicker keuzes={data.keuzes ?? []} actief={data.gekozenCode} onKies={setGekozen} />
         <Kop data={data} />
         {data.soort === 'kracht' ? <Kracht data={data} onVeranderd={() => laad(gekozen)} /> : null}
@@ -284,16 +297,17 @@ function OefeningLogger({ oefening, trainingId }: { oefening: OefeningVandaag; t
       <div style={{ display: 'grid', gap: 6, marginTop: 8 }}>
         {sets.map((r, i) => (
           <div key={i} style={{ display: 'grid', gridTemplateColumns: 'auto 1fr auto auto', gap: 6, alignItems: 'center' }}>
-            <span style={{ display: 'grid', width: 58, lineHeight: 1.15 }}>
+            <span style={{ display: 'grid', width: 50, lineHeight: 1.15 }}>
               <span style={{ fontSize: 11, color: 'var(--text-3)', fontWeight: 600 }}>Set {i + 1}</span>
               <span style={{ fontSize: 10.5, color: 'var(--text-4)', fontFamily: 'var(--font-mono)' }}>{vorigeSetLabel(oefening.vorige[i])}</span>
             </span>
-            <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+            <div style={{ display: 'flex', gap: 4, alignItems: 'center', minWidth: 0 }}>
               <Stepper onClick={() => stapGewicht(i, -oefening.stap)} icon={<Minus size={13} />} />
-              <input inputMode="decimal" value={r.gewicht} onChange={(e) => zet(i, 'gewicht', e.target.value)} placeholder="kg" style={veldStijl(64)} aria-label={`Gewicht set ${i + 1}`} />
+              {/* Flexibel: krimpt mee op smalle telefoons i.p.v. de rij te laten overlopen. */}
+              <input inputMode="decimal" value={r.gewicht} onChange={(e) => zet(i, 'gewicht', e.target.value)} placeholder="kg" style={{ ...veldStijl(0), minWidth: 0 }} aria-label={`Gewicht set ${i + 1}`} />
               <Stepper onClick={() => stapGewicht(i, oefening.stap)} icon={<Plus size={13} />} />
             </div>
-            <input inputMode="numeric" value={r.reps} onChange={(e) => zet(i, 'reps', e.target.value)} placeholder="reps" style={veldStijl(56)} aria-label={`Reps set ${i + 1}`} />
+            <input inputMode="numeric" value={r.reps} onChange={(e) => zet(i, 'reps', e.target.value)} placeholder="reps" style={veldStijl(50)} aria-label={`Reps set ${i + 1}`} />
             <button type="button" onClick={() => void log(i)} aria-label={`Set ${i + 1} loggen`} style={logKnopStijl(r.gelogd)}>
               <Check size={16} strokeWidth={2.6} />
             </button>
