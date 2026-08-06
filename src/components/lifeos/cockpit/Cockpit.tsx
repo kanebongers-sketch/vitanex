@@ -76,11 +76,12 @@ export function Cockpit() {
           </p>
         </header>
 
-        {/* Training van vandaag: het interactieve 4-weken blok. Volle breedte en
-            bovenaan, want Kane vult 'm op zijn telefoon in tijdens de sessie —
-            vorige prestatie, voorgesteld gewicht en per set één tik om te loggen.
-            De statische ProgrammaKaart (Excel-schema) blijft ernaast staan. */}
-        <div className="os-tile--vol">
+        {/* Training van vandaag: het interactieve 4-weken blok, als eerste anker.
+            Op de telefoon (één kolom) blijft het bovenaan en vol-breedte, precies
+            waar Kane het invult tijdens de sessie. Op desktop is het een anker
+            (halve breedte) i.p.v. vol-breedte, zodat een smalle logging-kolom niet
+            over 3000px uitsmeert en het naast het dagplan komt — denser scherm. */}
+        <div className="os-tile--anker">
           <BlokKaart />
         </div>
         <div className="os-tile--anker">
