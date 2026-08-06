@@ -8,6 +8,7 @@ import { Foutmelding } from '@/components/lifeos/os/Foutmelding'
 import { haalJson, leesNiets } from '@/lib/lifeos/api/http'
 import { datumSleutel } from '@/lib/lifeos/datum/datum'
 import { leesBlokVandaag, type BlokVandaag, type OefeningVandaag, type BlokKeuze, type VorigeSet } from './blok-client'
+import { BlokVoortgang } from './BlokVoortgang'
 
 // De trainingskaart op /home: "wat moet ik vandaag doen?" en, in één scherm, het
 // loggen ervan. Mobiel-first — grote tikdoelen, minimaal typen. De progressie
@@ -89,6 +90,7 @@ export function BlokKaart() {
         {data.soort === 'kracht' ? <Kracht data={data} onVeranderd={() => laad(gekozen)} /> : null}
         {data.soort === 'cardio' ? <CardioInfo data={data} onVeranderd={() => laad(gekozen)} /> : null}
         {data.soort === 'rust' ? <RustInfo data={data} /> : null}
+        <BlokVoortgang />
       </div>
     </Kaart>
   )
