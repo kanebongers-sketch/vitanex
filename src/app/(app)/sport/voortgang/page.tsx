@@ -13,6 +13,7 @@ import { Badge } from '@/components/ui/Badge'
 import { Chart, type ChartDatum } from '@/components/ui/Chart'
 import { Table, THead, TBody, Tr, Th, Td } from '@/components/ui/Table'
 import { EmptyState } from '@/components/ui/EmptyState'
+import { beste1RM, piekGewicht, weekStreak } from '@/lib/sport/stats'
 
 
 type OefeningLog = {
@@ -110,6 +111,11 @@ export default function VoortgangPage() {
   const totaalTrainingen = new Set(logs.map(l => l.training_logs.datum)).size
   const totaalSets = logs.length
   const besteOefening = [...oefeningen].sort((a, b) => b.progressieProcent - a.progressieProcent)[0]
+  const streak = weekStreak([...new Set(logs.map(l => l.training_logs.datum))], new Date().toISOString().slice(0, 10))
+
+  const actieveSets = actieveGroep ? actieveGroep.logs.map(l => ({ herhalingen: l.herhalingen, gewichtKg: l.gewicht_kg })) : []
+  const geschat1rm = beste1RM(actieveSets)
+  const persoonlijkRecord = piekGewicht(actieveSets)
 
   const recenteLogs = actieveGroep
     ? [...actieveGroep.logs].sort((a, b) => b.aangemaakt_op.localeCompare(a.aangemaakt_op)).slice(0, 10)
@@ -147,11 +153,12 @@ export default function VoortgangPage() {
           <p style={{ color: 'var(--text-3)', fontSize: 15 }}>Volg je gewichtsprogressie per oefening</p>
         </header>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 32 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 16, marginBottom: 32 }}>
           {[
+            { label: 'Weekstreak', waarde: streak > 0 ? `${streak} wk` : '—', kleur: 'var(--mf-orange)', sub: streak > 0 ? 'weken op rij' : 'train deze week' },
             { label: 'Trainingen', waarde: totaalTrainingen, kleur: 'var(--mf-blue)' },
             { label: 'Sets gelogd', waarde: totaalSets, kleur: 'var(--mentaforce-primary)' },
-            { label: 'Beste oefening', waarde: besteOefening ? `+${besteOefening.progressieProcent}%` : '—', kleur: 'var(--mf-orange)', sub: besteOefening?.naam },
+            { label: 'Meeste vooruitgang', waarde: besteOefening ? `+${besteOefening.progressieProcent}%` : '—', kleur: 'var(--mf-purple)', sub: besteOefening?.naam },
           ].map((stat, i) => (
             <Card key={i} style={{ padding: '20px 16px' }}>
               <p style={{ fontSize: 12, color: 'var(--text-3)', marginBottom: 4 }}>{stat.label}</p>
@@ -191,8 +198,8 @@ export default function VoortgangPage() {
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, flexWrap: 'wrap', gap: 8 }}>
                     <h2 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-1)' }}>{actieveGroep.naam}</h2>
                     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                      <Badge variant="success">Start: {actieveGroep.beginGewicht} kg</Badge>
-                      <Badge variant="accent">Nu: {actieveGroep.huidigGewicht} kg</Badge>
+                      {persoonlijkRecord > 0 && <Badge variant="accent">PR: {persoonlijkRecord} kg</Badge>}
+                      {geschat1rm > 0 && <Badge variant="accent">Gesch. 1RM: {geschat1rm} kg</Badge>}
                       <Badge variant={actieveGroep.progressieProcent >= 0 ? 'success' : 'danger'}>
                         {actieveGroep.progressieProcent >= 0 ? '+' : ''}{actieveGroep.progressieProcent}%
                       </Badge>
