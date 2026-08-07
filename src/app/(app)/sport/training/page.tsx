@@ -17,6 +17,7 @@ import { Textarea } from '@/components/ui/Textarea'
 import { Progress } from '@/components/ui/Progress'
 import { useToast } from '@/components/ui/Toast'
 import { vitaEvent } from '@/lib/vita/events'
+import { stelGewichtVoor, leesRepBereik, type Suggestie } from '@/lib/sport/suggestie'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -33,6 +34,7 @@ type OefeningState = {
   uitvoering_tip: string
   gif_url: string | null
   laadt_img: boolean
+  suggestie: Suggestie | null
 }
 
 type OefeningData = {
@@ -120,12 +122,42 @@ export default function TrainingLoggerPage() {
       uitvoering_tip: o.uitvoering_tip,
       gif_url: null,
       laadt_img: true,
+      suggestie: null,
       setsGedaan: Array.from({ length: o.sets }, () => ({ herhalingen: 0, gewicht_kg: null, voltooid: false })),
     }))
     setOefeningen(init)
     setTimerSec(0)
     setTimerActive(true)
     setScherm('actief')
+
+    // Vorige prestatie + gewichtssuggestie per oefening (achtergrond). Vult het
+    // gewicht alvast voor; verzint niks als er geen historie is.
+    if (userId) {
+      training.oefeningen.forEach((o, idx) => {
+        if ((o.heeft_gewicht ?? true) === false) return
+        void supabase
+          .from('oefening_logs')
+          .select('herhalingen, gewicht_kg')
+          .eq('user_id', userId)
+          .eq('oefening_naam', o.naam)
+          .order('aangemaakt_op', { ascending: false })
+          .limit(8)
+          .then(({ data }) => {
+            const vorige = (data ?? []).map((r) => ({
+              herhalingen: typeof r.herhalingen === 'number' ? r.herhalingen : 0,
+              gewichtKg: r.gewicht_kg === null || r.gewicht_kg === undefined ? null : Number(r.gewicht_kg),
+            }))
+            const suggestie = stelGewichtVoor(vorige, leesRepBereik(o.herhalingen).max)
+            setOefeningen((prev) => prev.map((oe, i) => i !== idx ? oe : {
+              ...oe,
+              suggestie,
+              setsGedaan: suggestie.voorstelKg !== null
+                ? oe.setsGedaan.map((set) => ({ ...set, gewicht_kg: set.gewicht_kg ?? suggestie.voorstelKg }))
+                : oe.setsGedaan,
+            }))
+          })
+      })
+    }
 
     // Laad afbeeldingen per oefening op de achtergrond
     training.oefeningen.forEach((o, idx) => {
@@ -141,7 +173,7 @@ export default function TrainingLoggerPage() {
           i === idx ? { ...oe, laadt_img: false } : oe
         )))
     })
-  }, [])
+  }, [userId])
 
   const updateSet = (oi: number, si: number, veld: keyof SetLog, val: number | boolean | null) =>
     setOefeningen(prev => prev.map((o, i) => i !== oi ? o : {
@@ -369,6 +401,12 @@ export default function TrainingLoggerPage() {
                           {oef.doelSets} sets × {oef.doelHerhalingen} herhalingen
                           {!oef.heeft_gewicht && ' · bodyweight'}
                         </div>
+                        {oef.heeft_gewicht && oef.suggestie && oef.suggestie.actie !== 'onbekend' && (
+                          <div style={{ fontSize: 11.5, marginTop: 4, fontWeight: 600, color: oef.suggestie.actie === 'verhoog' ? 'var(--mentaforce-primary)' : 'var(--text-3)' }}>
+                            Vorige: {oef.suggestie.vorigeGewichtKg} kg × {oef.suggestie.vorigeReps}
+                            {oef.suggestie.voorstelKg !== null && ` · ${oef.suggestie.actie === 'verhoog' ? 'probeer' : 'houd'} ${oef.suggestie.voorstelKg} kg`}
+                          </div>
+                        )}
                       </div>
                       {/* Voortgang bolletjes */}
                       <div style={{ position: 'absolute', top: 10, right: 10, display: 'flex', gap: 4 }} aria-hidden>
