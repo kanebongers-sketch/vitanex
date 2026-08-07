@@ -22,13 +22,14 @@ const AiCoachCard = nextDynamic(() => import('@/components/gezondheid/AiCoachCar
 
 // Geëxtraheerd uit deze pagina (was 1378 regels) naar de voeding-feature-map.
 import { CalorieRing, MacroRing, RdiBalk, GezondheidBadge } from '@/components/voeding/Ringen'
+import { berekenDagTotaal, schaalNaarPortie, waterDoelInGlazen } from '@/components/voeding/berekeningen'
 import {
   RDI, MICRO_META, MAALTIJD_VOLGORDE, MAALTIJD_ICOON, MAALTIJD_KLEUR,
-  MAALTIJD_LABEL, MAALTIJD_VOL_LABEL, DOEL_KCAL, ML_PER_GLAS,
+  MAALTIJD_LABEL, MAALTIJD_VOL_LABEL, DOEL_KCAL,
 } from '@/components/voeding/constants'
 import type {
   AiAnalyse, VoedingLog,
-  ZoekResultaat, DagTotaal, VoedingDoelen, Scherm,
+  ZoekResultaat, VoedingDoelen, Scherm,
 } from '@/components/voeding/types'
 
 // Macro-kleuren als tokens (geen hardcoded hex): hergebruikt over rings, balken en donuts.
@@ -132,20 +133,11 @@ export default function VoedingPage() {
   // ── Data ─────────────────────────────────────────────────────────────────────
 
 
-  const dagTotaal: DagTotaal = logs.reduce(
-    (acc, l) => ({
-      calorieen:      acc.calorieen      + (l.calorieen      ?? 0),
-      eiwitten_g:     acc.eiwitten_g     + (l.eiwitten_g     ?? 0),
-      koolhydraten_g: acc.koolhydraten_g + (l.koolhydraten_g ?? 0),
-      vetten_g:       acc.vetten_g       + (l.vetten_g       ?? 0),
-      vezels_g:       acc.vezels_g       + (l.vezels_g       ?? 0),
-    }),
-    { calorieen: 0, eiwitten_g: 0, koolhydraten_g: 0, vetten_g: 0, vezels_g: 0 }
-  )
+  const dagTotaal = berekenDagTotaal(logs)
 
   // ── Water ────────────────────────────────────────────────────────────────────
 
-  const waterDoelGlazen = Math.max(4, Math.round(waterDoelMl / ML_PER_GLAS))
+  const waterDoelGlazen = waterDoelInGlazen(waterDoelMl)
 
   const setWaterSave = (n: number) => {
     const clamped = Math.max(0, Math.min(waterDoelGlazen + 4, n))
@@ -308,16 +300,11 @@ export default function VoedingPage() {
   const voegProductToe = async () => {
     if (!token || !geselecteerdProduct) return
     setOpslaan(true)
-    const factor = portieGram / 100
     const p = geselecteerdProduct.per_100g
     const body = {
       datum: vandaag, maaltijd_type: form.maaltijd_type,
       omschrijving: geselecteerdProduct.naam + (geselecteerdProduct.merk ? ` (${geselecteerdProduct.merk})` : ''),
-      calorieen: Math.round((p.calorieen || 0) * factor),
-      eiwitten_g: Number(((p.eiwitten_g || 0) * factor).toFixed(1)),
-      koolhydraten_g: Number(((p.koolhydraten_g || 0) * factor).toFixed(1)),
-      vetten_g: Number(((p.vetten_g || 0) * factor).toFixed(1)),
-      vezels_g: Number(((p.vezels_g || 0) * factor).toFixed(1)),
+      ...schaalNaarPortie(p, portieGram),
       portie_gram: portieGram, bron: 'manueel',
       food_database_id: geselecteerdProduct.id, food_database_bron: geselecteerdProduct.bron,
       ai_analyse: { micronutrienten: p.micronutrienten },
