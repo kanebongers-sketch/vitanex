@@ -18,6 +18,7 @@ import { Progress } from '@/components/ui/Progress'
 import { useToast } from '@/components/ui/Toast'
 import { vitaEvent } from '@/lib/vita/events'
 import { stelGewichtVoor, leesRepBereik, type Suggestie } from '@/lib/sport/suggestie'
+import { useRustTimer } from '@/components/sport/useRustTimer'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -35,6 +36,7 @@ type OefeningState = {
   gif_url: string | null
   laadt_img: boolean
   suggestie: Suggestie | null
+  rusttijd_sec: number
 }
 
 type OefeningData = {
@@ -87,6 +89,7 @@ export default function TrainingLoggerPage() {
   const [timerActive, setTimerActive]       = useState(false)
   const [notities, setNotities]             = useState('')
   const [opslaan, setOpslaan]               = useState(false)
+  const rust = useRustTimer()
 
   useEffect(() => {
     if (!timerActive) return
@@ -123,6 +126,7 @@ export default function TrainingLoggerPage() {
       gif_url: null,
       laadt_img: true,
       suggestie: null,
+      rusttijd_sec: o.rusttijd_sec && o.rusttijd_sec > 0 ? o.rusttijd_sec : 90,
       setsGedaan: Array.from({ length: o.sets }, () => ({ herhalingen: 0, gewicht_kg: null, voltooid: false })),
     }))
     setOefeningen(init)
@@ -477,7 +481,12 @@ export default function TrainingLoggerPage() {
                               )}
                               <button
                                 type="button"
-                                onClick={() => updateSet(oi, si, 'voltooid', !set.voltooid)}
+                                onClick={() => {
+                                  const wordtVoltooid = !set.voltooid
+                                  updateSet(oi, si, 'voltooid', wordtVoltooid)
+                                  // Alleen bij afvinken (niet bij ongedaan maken) de rust starten.
+                                  if (wordtVoltooid) rust.start(oef.rusttijd_sec)
+                                }}
                                 aria-pressed={set.voltooid}
                                 aria-label={`Set ${si + 1} ${set.voltooid ? 'ongedaan maken' : 'als voltooid markeren'}`}
                                 className="mf-pressable"
@@ -581,6 +590,29 @@ export default function TrainingLoggerPage() {
           </>
         )}
 
+      {/* Rust-afteltimer: verschijnt zodra je een set afvinkt, piept als de rust om is. */}
+      {scherm === 'actief' && rust.actief && (
+        <div role="status" aria-live="polite"
+          style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 50, background: 'var(--bg-card)', borderTop: '1px solid var(--border)', padding: '12px 16px calc(12px + env(safe-area-inset-bottom))', boxShadow: '0 -4px 20px rgba(0,0,0,0.15)' }}>
+          <div style={{ maxWidth: 560, margin: '0 auto', display: 'flex', alignItems: 'center', gap: 12 }}>
+            <Timer size={18} aria-hidden style={{ color: 'var(--mentaforce-primary)', flexShrink: 0 }} />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--text-1)' }}>Rust · {fmt(rust.rustSec)}</div>
+              <div style={{ height: 4, borderRadius: 999, background: 'var(--bg-subtle)', marginTop: 5, overflow: 'hidden' }}>
+                <div style={{ height: '100%', background: 'var(--mentaforce-primary)', width: `${rust.totaal > 0 ? (rust.rustSec / rust.totaal) * 100 : 0}%`, transition: 'width 1s linear' }} />
+              </div>
+            </div>
+            <button type="button" onClick={() => rust.verleng(15)}
+              style={{ height: 36, padding: '0 12px', borderRadius: 10, border: '1px solid var(--border)', background: 'var(--bg-subtle)', color: 'var(--text-2)', fontSize: 13, fontWeight: 700, cursor: 'pointer', flexShrink: 0 }}>
+              +15s
+            </button>
+            <button type="button" onClick={rust.slaOver}
+              style={{ height: 36, padding: '0 14px', borderRadius: 10, border: 'none', background: 'var(--mentaforce-primary)', color: 'var(--bg-app)', fontSize: 13, fontWeight: 800, cursor: 'pointer', flexShrink: 0 }}>
+              Sla over
+            </button>
+          </div>
+        </div>
+      )}
       </main>
     </div>
   )
