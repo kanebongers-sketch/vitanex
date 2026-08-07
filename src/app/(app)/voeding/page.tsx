@@ -16,8 +16,6 @@ import nextDynamic from 'next/dynamic'
 import VoedingSetup from './VoedingSetup'
 import { vitaEvent } from '@/lib/vita/events'
 import { useToast } from '@/components/ui/Toast'
-import { Field } from '@/components/ui/Field'
-import { Input } from '@/components/ui/Input'
 const AiCoachCard = nextDynamic(() => import('@/components/gezondheid/AiCoachCard'), { ssr: false })
 
 // Geëxtraheerd uit deze pagina (was 1378 regels) naar de voeding-feature-map.
@@ -25,12 +23,13 @@ import { CalorieRing, MacroRing, RdiBalk, GezondheidBadge } from '@/components/v
 import { berekenDagTotaal, schaalNaarPortie, waterDoelInGlazen } from '@/components/voeding/berekeningen'
 import { VoiceLogger } from '@/components/voeding/VoiceLogger'
 import { HUISHOUDMATEN } from '@/components/voeding/huishoudmaten'
+import { VoedingVeld, MaaltijdSelector } from '@/components/voeding/VoedingVelden'
 import {
   RDI, MICRO_META, MAALTIJD_VOLGORDE, MAALTIJD_ICOON, MAALTIJD_KLEUR,
   MAALTIJD_LABEL, MAALTIJD_VOL_LABEL, DOEL_KCAL,
 } from '@/components/voeding/constants'
 import type {
-  AiAnalyse, VoedingLog,
+  AiAnalyse, VoedingLog, VoedingForm,
   ZoekResultaat, VoedingDoelen, Scherm,
 } from '@/components/voeding/types'
 
@@ -73,8 +72,8 @@ export default function VoedingPage() {
   const [analyse, setAnalyse]         = useState<AiAnalyse | null>(null)
 
   // Form state
-  const [form, setForm] = useState({
-    maaltijd_type: 'lunch' as VoedingLog['maaltijd_type'],
+  const [form, setForm] = useState<VoedingForm>({
+    maaltijd_type: 'lunch',
     omschrijving: '', calorieen: '', eiwitten_g: '',
     koolhydraten_g: '', vetten_g: '', vezels_g: '', portie_gram: '',
   })
@@ -347,47 +346,15 @@ export default function VoedingPage() {
   const kCalKleur = dagTotaal.calorieen > calorieDoel * 1.05 ? 'var(--mf-red)' : dagTotaal.calorieen > calorieDoel * 0.75 ? 'var(--mf-green)' : 'var(--mf-amber)'
   const logsByMaaltijd = MAALTIJD_VOLGORDE.reduce((acc, mt) => { acc[mt] = logs.filter(l => l.maaltijd_type === mt); return acc }, {} as Record<string, VoedingLog[]>)
 
-  function renderInputVeld({ label, veld, type = 'text', suffix = '' }: { label: string; veld: keyof typeof form; type?: string; suffix?: string }) {
-    // Eenheid in het label (bv. "Calorieën (kcal)") houdt de label-koppeling intact
-    // en is voorleesbaar — beter dan een losse, niet-gekoppelde suffix.
-    const labelMetEenheid = suffix ? `${label} (${suffix})` : label
-    return (
-      <Field label={labelMetEenheid}>
-        <Input
-          type={type}
-          inputMode={type === 'number' ? 'decimal' : undefined}
-          value={form[veld]}
-          onChange={e => setForm(prev => ({ ...prev, [veld]: e.target.value }))}
-          placeholder={type === 'number' ? '0' : ''}
-        />
-      </Field>
-    )
-  }
+  // Dunne wrappers om de geëxtraheerde velden (VoedingVelden.tsx), zodat de
+  // call-sites in de schermen ongewijzigd blijven maar de JSX uit dit bestand is.
+  const renderInputVeld = (p: { label: string; veld: keyof VoedingForm; type?: string; suffix?: string }) => (
+    <VoedingVeld {...p} form={form} setForm={setForm} />
+  )
 
-  function renderMaaltijdSelector() {
-    return (
-      <div role="group" aria-label="Maaltijdtype" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6 }}>
-        {MAALTIJD_VOLGORDE.map(mt => {
-          const actief = form.maaltijd_type === mt
-          const Icoon = MAALTIJD_ICOON[mt]
-          return (
-            <button key={mt} type="button" onClick={() => setForm(prev => ({ ...prev, maaltijd_type: mt }))}
-              aria-pressed={actief}
-              aria-label={MAALTIJD_VOL_LABEL[mt]}
-              style={{ minHeight: 44, padding: '9px 4px', borderRadius: 10,
-                border: `1.5px solid ${actief ? MAALTIJD_KLEUR[mt] : 'var(--border)'}`,
-                background: actief ? `color-mix(in srgb, ${MAALTIJD_KLEUR[mt]} 14%, transparent)` : 'var(--bg-card)',
-                color: actief ? MAALTIJD_KLEUR[mt] : 'var(--text-3)',
-                fontSize: 10, fontWeight: 700, cursor: 'pointer',
-                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3 }}>
-              <Icoon size={16} aria-hidden strokeWidth={1.75} style={{ color: actief ? MAALTIJD_KLEUR[mt] : 'var(--text-3)' }} />
-              <span>{MAALTIJD_LABEL[mt]}</span>
-            </button>
-          )
-        })}
-      </div>
-    )
-  }
+  const renderMaaltijdSelector = () => (
+    <MaaltijdSelector waarde={form.maaltijd_type} onKies={(mt) => setForm((prev) => ({ ...prev, maaltijd_type: mt }))} />
+  )
 
   // ── Loading ───────────────────────────────────────────────────────────────────
 

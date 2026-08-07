@@ -74,3 +74,15 @@ export interface VoedingDoelen {
 }
 
 export type Scherm = 'overzicht' | 'analyseren' | 'bevestigen' | 'manueel' | 'zoeken' | 'detail'
+
+/** Het invulformulier (handmatig + foto-correctie). Waarden zijn strings zoals in de inputs. */
+export interface VoedingForm {
+  maaltijd_type: MaaltijdType
+  omschrijving: string
+  calorieen: string
+  eiwitten_g: string
+  koolhydraten_g: string
+  vetten_g: string
+  vezels_g: string
+  portie_gram: string
+}
