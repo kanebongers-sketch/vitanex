@@ -24,6 +24,7 @@ const AiCoachCard = nextDynamic(() => import('@/components/gezondheid/AiCoachCar
 import { CalorieRing, MacroRing, RdiBalk, GezondheidBadge } from '@/components/voeding/Ringen'
 import { berekenDagTotaal, schaalNaarPortie, waterDoelInGlazen } from '@/components/voeding/berekeningen'
 import { VoiceLogger } from '@/components/voeding/VoiceLogger'
+import { HUISHOUDMATEN } from '@/components/voeding/huishoudmaten'
 import {
   RDI, MICRO_META, MAALTIJD_VOLGORDE, MAALTIJD_ICOON, MAALTIJD_KLEUR,
   MAALTIJD_LABEL, MAALTIJD_VOL_LABEL, DOEL_KCAL,
@@ -994,6 +995,24 @@ export default function VoedingPage() {
                   </div>
                   <button type="button" aria-label="Portie 5 gram meer" onClick={() => setPortieGram(portieGram + 5)}
                     style={{ width: 44, height: 44, borderRadius: 10, border: '1.5px solid var(--mentaforce-primary)', background: 'var(--mentaforce-primary)', fontSize: 20, cursor: 'pointer', color: 'var(--bg-app)', fontWeight: 800, flexShrink: 0 }}>+</button>
+                </div>
+                {/* Huishoudmaten: zet de gram op een typische maat (1 snee = 35g). */}
+                <div role="group" aria-label="Kies een huishoudmaat" style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginBottom: 8 }}>
+                  {HUISHOUDMATEN.map(maat => {
+                    const actief = portieGram === maat.gram
+                    return (
+                      <button key={maat.id} type="button" onClick={() => setPortieGram(maat.gram)}
+                        aria-pressed={actief} aria-label={`1 ${maat.label} (${maat.gram} gram)`}
+                        style={{ minHeight: 36, padding: '7px 11px', borderRadius: 20,
+                          border: `1.5px solid ${actief ? 'var(--mentaforce-primary)' : 'var(--border)'}`,
+                          background: actief ? 'color-mix(in srgb, var(--mentaforce-primary) 14%, transparent)' : 'var(--bg-subtle)',
+                          color: actief ? 'var(--mentaforce-primary)' : 'var(--text-3)',
+                          fontSize: 12, fontWeight: 700, cursor: 'pointer',
+                          transition: 'background 0.15s var(--ease), border-color 0.15s var(--ease), color 0.15s var(--ease)' }}>
+                        {maat.label} <span style={{ opacity: 0.6, fontWeight: 600 }}>{maat.gram}g</span>
+                      </button>
+                    )
+                  })}
                 </div>
                 <div role="group" aria-label="Snelkeuze portiegrootte" style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
                   {[30, 50, 100, 150, 200, 250, 300].map(g => {
