@@ -6,12 +6,10 @@ import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import {
-  Sunrise, Sun, Moon, Apple, Cookie,
   Search, Camera, ScanBarcode, Pencil,
   Droplet, Check, Lightbulb, Settings, Target,
   Utensils, CircleCheck, CircleAlert, CircleHelp, Salad,
 } from 'lucide-react'
-import type { LucideIcon } from 'lucide-react'
 import { supabase } from '@/lib/supabase/supabase'
 import Navbar from '@/components/layout/Navbar'
 import nextDynamic from 'next/dynamic'
@@ -21,6 +19,17 @@ import { useToast } from '@/components/ui/Toast'
 import { Field } from '@/components/ui/Field'
 import { Input } from '@/components/ui/Input'
 const AiCoachCard = nextDynamic(() => import('@/components/gezondheid/AiCoachCard'), { ssr: false })
+
+// Geëxtraheerd uit deze pagina (was 1378 regels) naar de voeding-feature-map.
+import { CalorieRing, MacroRing, RdiBalk, GezondheidBadge } from '@/components/voeding/Ringen'
+import {
+  RDI, MICRO_META, MAALTIJD_VOLGORDE, MAALTIJD_ICOON, MAALTIJD_KLEUR,
+  MAALTIJD_LABEL, MAALTIJD_VOL_LABEL, DOEL_KCAL, ML_PER_GLAS,
+} from '@/components/voeding/constants'
+import type {
+  AiAnalyse, VoedingLog,
+  ZoekResultaat, DagTotaal, VoedingDoelen, Scherm,
+} from '@/components/voeding/types'
 
 // Macro-kleuren als tokens (geen hardcoded hex): hergebruikt over rings, balken en donuts.
 const MACRO_KLEUR = {
@@ -39,195 +48,6 @@ const KCAL_GLOW = (gegeten: number, doel: number): string =>
     ? 'var(--mentaforce-primary-light)'
     : 'var(--mf-amber-light)'
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
-interface VoedingLog {
-  id: string
-  datum: string
-  maaltijd_type: 'ontbijt' | 'tussendoortje_1' | 'lunch' | 'tussendoortje_2' | 'diner' | 'avondsnack'
-  omschrijving: string
-  calorieen: number | null
-  eiwitten_g: number | null
-  koolhydraten_g: number | null
-  vetten_g: number | null
-  vezels_g: number | null
-  portie_gram: number | null
-  bron: 'foto' | 'manueel'
-  foto_url: string | null
-  ai_analyse: AiAnalyse | null
-}
-
-interface AiAnalyse {
-  gerecht: string
-  beschrijving: string
-  portie_gram: number
-  calorieen: number
-  macros: { eiwitten_g: number; koolhydraten_g: number; vetten_g: number; vezels_g: number }
-  ingredienten: string[]
-  maaltijd_type: string
-  gezondheid_score: number
-  tips: string
-  betrouwbaarheid: 'laag' | 'gemiddeld' | 'hoog'
-}
-
-interface NutrientenPer100g {
-  calorieen: number
-  eiwitten_g: number
-  koolhydraten_g: number
-  suikers_g: number
-  vetten_g: number
-  verzadigd_vet_g: number
-  vezels_g: number
-  zout_mg: number
-  micronutrienten: Record<string, number | null>
-}
-
-interface ZoekResultaat {
-  id: string
-  naam: string
-  merk: string | null
-  hoeveelheid?: string | null
-  bron: 'open_food_facts' | 'usda'
-  per_100g: NutrientenPer100g
-  foto_url: string | null
-}
-
-interface DagTotaal {
-  calorieen: number; eiwitten_g: number; koolhydraten_g: number; vetten_g: number; vezels_g: number
-}
-
-/** Persoonlijke voedingsdoelen + dieetcontext uit het intake-profiel (via /api/voeding). */
-interface VoedingDoelen {
-  calorie_doel: number | null
-  calorie_handmatig: boolean
-  macros: { eiwit_g: number; koolhydraten_g: number; vet_g: number } | null
-  dieetvoorkeur: string | null
-  allergieen: string[]
-  profiel_compleet: boolean
-}
-
-type Scherm = 'overzicht' | 'analyseren' | 'bevestigen' | 'manueel' | 'zoeken' | 'detail'
-
-// ─── RDI (EU aanbevolen dagelijkse inname) ────────────────────────────────────
-
-const RDI: Record<string, number> = {
-  calorieen: 2000, eiwitten_g: 50, koolhydraten_g: 260, suikers_g: 90,
-  vetten_g: 70, verzadigd_vet_g: 20, vezels_g: 25, zout_mg: 6000,
-  vitamine_a_ug: 800, vitamine_c_mg: 80, vitamine_d_ug: 5, vitamine_e_mg: 12,
-  vitamine_b12_ug: 2.5, folaat_ug: 200, calcium_mg: 800, ijzer_mg: 14,
-  magnesium_mg: 375, kalium_mg: 2000, natrium_mg: 2000, zink_mg: 10,
-}
-
-const MICRO_META: Record<string, { label: string; eenheid: string; rdi_key: string }> = {
-  vitamine_a_ug:   { label: 'Vitamine A',   eenheid: 'μg', rdi_key: 'vitamine_a_ug'   },
-  vitamine_c_mg:   { label: 'Vitamine C',   eenheid: 'mg', rdi_key: 'vitamine_c_mg'   },
-  vitamine_d_ug:   { label: 'Vitamine D',   eenheid: 'μg', rdi_key: 'vitamine_d_ug'   },
-  vitamine_e_mg:   { label: 'Vitamine E',   eenheid: 'mg', rdi_key: 'vitamine_e_mg'   },
-  vitamine_b12_ug: { label: 'Vitamine B12', eenheid: 'μg', rdi_key: 'vitamine_b12_ug' },
-  folaat_ug:       { label: 'Folaat',       eenheid: 'μg', rdi_key: 'folaat_ug'       },
-  calcium_mg:      { label: 'Calcium',      eenheid: 'mg', rdi_key: 'calcium_mg'      },
-  ijzer_mg:        { label: 'IJzer',        eenheid: 'mg', rdi_key: 'ijzer_mg'        },
-  magnesium_mg:    { label: 'Magnesium',    eenheid: 'mg', rdi_key: 'magnesium_mg'    },
-  kalium_mg:       { label: 'Kalium',       eenheid: 'mg', rdi_key: 'kalium_mg'       },
-  natrium_mg:      { label: 'Natrium',      eenheid: 'mg', rdi_key: 'natrium_mg'      },
-  zink_mg:         { label: 'Zink',         eenheid: 'mg', rdi_key: 'zink_mg'         },
-}
-
-// ─── Constants ────────────────────────────────────────────────────────────────
-
-const MAALTIJD_VOLGORDE: VoedingLog['maaltijd_type'][] = ['ontbijt', 'tussendoortje_1', 'lunch', 'tussendoortje_2', 'diner', 'avondsnack']
-const MAALTIJD_ICOON: Record<string, LucideIcon> = { ontbijt: Sunrise, tussendoortje_1: Apple, lunch: Sun, tussendoortje_2: Cookie, diner: Moon, avondsnack: Cookie }
-const MAALTIJD_KLEUR: Record<string, string> = { ontbijt: 'var(--mf-amber)', tussendoortje_1: 'var(--mf-amber)', lunch: 'var(--mf-green)', tussendoortje_2: 'var(--mf-amber-dark)', diner: 'var(--mf-purple)', avondsnack: 'var(--mf-red)' }
-const MAALTIJD_LABEL: Record<string, string> = { ontbijt: 'Ontbijt', tussendoortje_1: 'Tuss. 1', lunch: 'Lunch', tussendoortje_2: 'Tuss. 2', diner: 'Diner', avondsnack: 'Avond' }
-const MAALTIJD_VOL_LABEL: Record<string, string> = { ontbijt: 'Ontbijt', tussendoortje_1: 'Tussendoortje 1', lunch: 'Lunch', tussendoortje_2: 'Tussendoortje 2', diner: 'Diner', avondsnack: 'Avondsnack' }
-const DOEL_KCAL = 2000
-const ML_PER_GLAS = 250
-
-// ─── SVG Componenten ──────────────────────────────────────────────────────────
-
-function CalorieRing({ gegeten, doel, kleur }: { gegeten: number; doel: number; kleur: string }) {
-  const r = 70, circ = 2 * Math.PI * r
-  const pct = Math.min(1, gegeten / doel)
-  const over = gegeten > doel
-  const ariaLabel = over
-    ? `${gegeten} van ${doel} kcal gegeten, ${gegeten - doel} kcal over het doel`
-    : `${gegeten} van ${doel} kcal gegeten, ${doel - gegeten} kcal resterend`
-  return (
-    <svg width="180" height="180" viewBox="0 0 180 180" style={{ display: 'block' }} role="img" aria-label={ariaLabel}>
-      <circle cx="90" cy="90" r={r} fill="none" style={{ stroke: 'var(--bg-subtle)' }} strokeWidth="12" />
-      <circle cx="90" cy="90" r={r} fill="none"
-        style={{ stroke: over ? 'var(--mf-red)' : kleur, transition: 'stroke-dasharray 1s ease' }} strokeWidth="12"
-        strokeDasharray={`${pct * circ} ${circ}`}
-        strokeLinecap="round" transform="rotate(-90 90 90)" />
-      <text x="90" y="82" textAnchor="middle" fontSize="28" fontWeight="900" style={{ fill: over ? 'var(--mf-red)' : 'var(--text-1)' }}>{gegeten}</text>
-      <text x="90" y="100" textAnchor="middle" fontSize="12" style={{ fill: 'var(--text-4)' }} fontWeight="600">kcal</text>
-      <text x="90" y="116" textAnchor="middle" fontSize="11" style={{ fill: over ? 'var(--mf-red)' : 'var(--mf-green)' }} fontWeight="700">
-        {over ? `+${gegeten - doel} over` : `${doel - gegeten} resterend`}
-      </text>
-    </svg>
-  )
-}
-
-function MacroRing({ waarde, max, kleur, label, eenheid }: { waarde: number; max: number; kleur: string; label: string; eenheid: string }) {
-  const r = 26, circ = 2 * Math.PI * r
-  const pct = Math.min(1, waarde / max)
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-      <svg width="68" height="68" viewBox="0 0 68 68" role="img" aria-label={`${label}: ${waarde.toFixed(0)}${eenheid} van ${max.toFixed(0)}${eenheid}`}>
-        <circle cx="34" cy="34" r={r} fill="none" style={{ stroke: 'var(--bg-subtle)' }} strokeWidth="6" />
-        <circle cx="34" cy="34" r={r} fill="none" style={{ stroke: kleur, transition: 'stroke-dasharray 1s ease' }} strokeWidth="6"
-          strokeDasharray={`${pct * circ} ${circ}`} strokeLinecap="round"
-          transform="rotate(-90 34 34)" />
-        <text x="34" y="37" textAnchor="middle" fontSize="11" fontWeight="800" style={{ fill: kleur }}>{waarde.toFixed(0)}{eenheid}</text>
-      </svg>
-      <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-3)' }}>{label}</span>
-    </div>
-  )
-}
-
-function RdiBalk({ label, waarde, eenheid, rdi, kleur = 'var(--mentaforce-primary)', sub = false }: {
-  label: string; waarde: number; eenheid: string; rdi: number; kleur?: string; sub?: boolean
-}) {
-  const pctRaw = Math.round((waarde / rdi) * 100)
-  const pct = Math.min(100, pctRaw)
-  const overRdi = pctRaw > 100
-  return (
-    <div style={{ padding: '8px 0', borderBottom: '1px solid var(--border)' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
-        <span style={{ fontSize: 13, color: sub ? 'var(--text-4)' : 'var(--text-2)', fontWeight: sub ? 400 : 600 }}>{label}</span>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontSize: 13, fontWeight: 700, color: sub ? 'var(--text-4)' : 'var(--text-2)' }}>{waarde.toFixed(1)} {eenheid}</span>
-          <span style={{
-            fontSize: 10, fontWeight: 800, borderRadius: 20, padding: '2px 7px',
-            background: overRdi ? 'var(--mf-red-light)' : pct >= 50 ? 'var(--mf-green-light)' : 'var(--mf-amber-light)',
-            color: overRdi ? 'var(--mf-red)' : pct >= 50 ? 'var(--mentaforce-primary)' : 'var(--mf-amber)',
-          }}>{pctRaw}%</span>
-        </div>
-      </div>
-      <div role="img" aria-label={`${label}: ${waarde.toFixed(1)} ${eenheid}, ${pctRaw}% van de dagelijkse behoefte`}
-        style={{ height: 4, borderRadius: 9999, background: 'var(--bg-subtle)', overflow: 'hidden' }}>
-        <div style={{
-          height: '100%', borderRadius: 9999, width: '100%',
-          transform: `scaleX(${Math.min(100, pct) / 100})`,
-          transformOrigin: 'left center',
-          background: overRdi ? 'var(--mf-red)' : kleur,
-          transition: 'transform 0.8s var(--ease)',
-        }} />
-      </div>
-    </div>
-  )
-}
-
-function GezondheidBadge({ score }: { score: number }) {
-  const kleur = score >= 7 ? 'var(--mf-green)' : score >= 4 ? 'var(--mf-amber)' : 'var(--mf-red)'
-  const bg    = score >= 7 ? 'var(--mf-green-light)' : score >= 4 ? 'var(--mf-amber-light)' : 'var(--mf-red-light)'
-  const label = score >= 7 ? 'Gezond' : score >= 4 ? 'Matig' : 'Ongezond'
-  return (
-    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: bg, color: kleur, borderRadius: 20, padding: '2px 8px', fontSize: 11, fontWeight: 700 }}>
-      {score}/10 · {label}
-    </span>
-  )
-}
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
