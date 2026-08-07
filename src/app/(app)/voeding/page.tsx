@@ -6,7 +6,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import {
-  Search, Camera, ScanBarcode, Pencil,
+  Search, Camera, ScanBarcode, Pencil, Mic,
   Droplet, Check, Lightbulb, Settings, Target,
   Utensils, CircleCheck, CircleAlert, CircleHelp, Salad,
 } from 'lucide-react'
@@ -23,6 +23,7 @@ const AiCoachCard = nextDynamic(() => import('@/components/gezondheid/AiCoachCar
 // Geëxtraheerd uit deze pagina (was 1378 regels) naar de voeding-feature-map.
 import { CalorieRing, MacroRing, RdiBalk, GezondheidBadge } from '@/components/voeding/Ringen'
 import { berekenDagTotaal, schaalNaarPortie, waterDoelInGlazen } from '@/components/voeding/berekeningen'
+import { VoiceLogger } from '@/components/voeding/VoiceLogger'
 import {
   RDI, MICRO_META, MAALTIJD_VOLGORDE, MAALTIJD_ICOON, MAALTIJD_KLEUR,
   MAALTIJD_LABEL, MAALTIJD_VOL_LABEL, DOEL_KCAL,
@@ -93,6 +94,7 @@ export default function VoedingPage() {
   // Setup wizard: toon wanneer profiel incompleet is, of handmatig geopend
   const [heeftSetupGezien, setHeeftSetupGezien] = useState(false)
   const [toontSetup, setToontSetup] = useState(false)
+  const [toontVoice, setToontVoice] = useState(false)
 
   // Session
   const [token, setToken] = useState<string | null>(null)
@@ -584,7 +586,28 @@ export default function VoedingPage() {
                 <span style={{ fontSize: 12, fontWeight: 700 }}>Manueel</span>
                 <span style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 1 }}>Zelf invoeren</span>
               </button>
+              {/* Inspreken — volle breedte, signature-feature */}
+              <button type="button" className="vd-action"
+                aria-label="Maaltijd inspreken"
+                style={{ gridColumn: '1 / -1', flexDirection: 'row', gap: 8 }}
+                onClick={() => setToontVoice(true)}>
+                <Mic size={20} aria-hidden style={{ color: 'var(--mentaforce-primary)' }} />
+                <span style={{ fontSize: 13, fontWeight: 800 }}>Inspreken</span>
+                <span style={{ fontSize: 10, color: 'var(--text-3)' }}>— zeg wat je at</span>
+              </button>
             </div>
+
+            {/* Voice-loggen: opnemen → schatting → corrigeren → opslaan. */}
+            {toontVoice && token && (
+              <div style={{ marginBottom: 16 }}>
+                <VoiceLogger
+                  token={token}
+                  datum={vandaag}
+                  onSluit={() => setToontVoice(false)}
+                  onKlaar={() => { setToontVoice(false); void laadLogs(token); toast({ title: 'Toegevoegd aan je dag', variant: 'success' }) }}
+                />
+              </div>
+            )}
 
             {/* ── AI Voedingscoach ── */}
             {logs.length >= 2 && (
