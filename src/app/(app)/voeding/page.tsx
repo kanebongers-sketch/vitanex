@@ -8,7 +8,7 @@ import Image from 'next/image'
 import {
   Search, Camera, ScanBarcode, Pencil, Mic,
   Droplet, Check, Lightbulb, Settings, Target,
-  Utensils, CircleCheck, CircleAlert, CircleHelp, Salad,
+  CircleCheck, CircleAlert, CircleHelp, Salad,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase/supabase'
 import Navbar from '@/components/layout/Navbar'
@@ -24,6 +24,7 @@ import { berekenDagTotaal, schaalNaarPortie, waterDoelInGlazen } from '@/compone
 import { VoiceLogger } from '@/components/voeding/VoiceLogger'
 import { HUISHOUDMATEN } from '@/components/voeding/huishoudmaten'
 import { VoedingVeld, MaaltijdSelector } from '@/components/voeding/VoedingVelden'
+import { ProductFoto } from '@/components/voeding/ProductFoto'
 import {
   RDI, MICRO_META, MAALTIJD_VOLGORDE, MAALTIJD_ICOON, MAALTIJD_KLEUR,
   MAALTIJD_LABEL, MAALTIJD_VOL_LABEL, DOEL_KCAL,
@@ -595,9 +596,7 @@ export default function VoedingPage() {
                   {recenteFoods.slice(0, 4).map(r => (
                     <button key={r.id} type="button" aria-label={`Selecteer ${r.naam}`} onClick={() => selecteerProduct(r)}
                       style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 12, padding: '10px 12px', cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', gap: 10 }}>
-                      <div style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--bg-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0 }}>
-                        {r.foto_url ? <img src={r.foto_url} alt="" style={{ width: 36, height: 36, borderRadius: 10, objectFit: 'cover' }} /> : <Utensils size={18} aria-hidden style={{ color: 'var(--text-4)' }} />}
-                      </div>
+                      <ProductFoto src={r.foto_url} alt={r.naam} size={44} radius={10} />
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-1)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.naam}</p>
                         <p style={{ fontSize: 11, color: 'var(--text-4)', margin: 0 }}>{r.per_100g.calorieen} kcal/100g · {r.per_100g.eiwitten_g}g eiwit</p>
@@ -834,9 +833,7 @@ export default function VoedingPage() {
                   {recenteFoods.map(r => (
                     <button key={r.id} type="button" aria-label={`Selecteer ${r.naam}`} onClick={() => selecteerProduct(r)}
                       style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 12, padding: '10px 12px', cursor: 'pointer', textAlign: 'left', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-                      <div style={{ width: 40, height: 40, borderRadius: 10, background: 'var(--bg-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0, overflow: 'hidden' }}>
-                        {r.foto_url ? <img src={r.foto_url} alt="" style={{ width: 40, height: 40, objectFit: 'cover' }} /> : <Utensils size={18} aria-hidden style={{ color: 'var(--text-4)' }} />}
-                      </div>
+                      <ProductFoto src={r.foto_url} alt={r.naam} size={44} radius={10} />
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-1)', margin: '0 0 2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.naam}</p>
                         <p style={{ fontSize: 11, color: 'var(--text-4)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.per_100g.calorieen} kcal · {r.per_100g.eiwitten_g}g eiwit · {r.per_100g.koolhydraten_g}g koolh.</p>
@@ -879,9 +876,7 @@ export default function VoedingPage() {
                   <button key={r.id} type="button" aria-label={`Selecteer ${r.naam}`} onClick={() => selecteerProduct(r)}
                     style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 14, padding: '12px 14px', cursor: 'pointer', textAlign: 'left', display: 'flex', gap: 12, alignItems: 'flex-start',
                       transition: 'box-shadow 0.15s' }}>
-                    <div style={{ width: 50, height: 50, borderRadius: 12, background: 'var(--bg-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0, overflow: 'hidden' }}>
-                      {r.foto_url ? <img src={r.foto_url} alt={r.naam} style={{ width: 50, height: 50, objectFit: 'cover' }} /> : <Utensils size={22} aria-hidden style={{ color: 'var(--text-4)' }} />}
-                    </div>
+                    <ProductFoto src={r.foto_url} alt={r.naam} size={56} radius={12} />
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-1)', margin: '0 0 2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.naam}</p>
                       {r.merk && <p style={{ fontSize: 11, color: 'var(--text-4)', margin: '0 0 4px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.merk}</p>}
