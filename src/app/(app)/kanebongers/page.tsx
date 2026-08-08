@@ -35,6 +35,17 @@ export default function KanebongersPage() {
     if (status === 'geen') router.replace('/home')
   }, [status, router])
 
+  // Anker-scroll (bv. de nav-link /kanebongers#mensen): het anker-element (de
+  // Mensen-zone) bestaat pas als de cockpit ná de founder-check gemount is, ruim ná
+  // de eerste paint — dus scrollen we hier zelf zodra we weten dat het de founder is.
+  useEffect(() => {
+    if (status !== 'ok') return
+    const hash = window.location.hash
+    if (hash.length < 2) return
+    const t = setTimeout(() => { document.getElementById(hash.slice(1))?.scrollIntoView({ block: 'start' }) }, 350)
+    return () => clearTimeout(t)
+  }, [status])
+
   if (status !== 'ok') {
     return <main className="mf-home" aria-busy="true" aria-label="Laden" style={{ minHeight: '100vh' }} />
   }

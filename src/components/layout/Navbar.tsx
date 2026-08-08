@@ -298,8 +298,8 @@ function SidebarContent({
             niet-founder, en FounderPoort stuurt niet-founders terug). */}
         {userRol === 'admin' && (
           <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--border)' }}>
-            <NavLink href="/home" label="Mijn dashboard" icon={LayoutDashboard} pathname={pathname} onClick={onClose} />
-            <NavLink href="/home#mensen" label="Mensen" icon={Users} pathname={pathname} onClick={onClose} />
+            <NavLink href="/kanebongers" label="Mijn dashboard" icon={LayoutDashboard} pathname={pathname} onClick={onClose} />
+            <NavLink href="/kanebongers#mensen" label="Mensen" icon={Users} pathname={pathname} onClick={onClose} />
             <NavLink href="/projecten" label="Projecten" icon={FolderKanban} pathname={pathname} onClick={onClose} />
             <NavLink href="/omzet-analyse" label="Analyse" icon={TrendingUp} pathname={pathname} onClick={onClose} />
             <NavLink href="/programma" label="Programma" icon={Dumbbell} pathname={pathname} onClick={onClose} />
