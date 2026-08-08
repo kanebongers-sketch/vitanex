@@ -70,7 +70,7 @@ export default function WorkoutBouwenPage() {
       toast({ title: 'Workout opgeslagen', variant: 'success' })
       router.push('/sport/training')
     } else {
-      toast({ title: 'Opslaan mislukt', variant: 'danger' })
+      toast({ title: 'Opslaan mislukt', variant: 'error' })
     }
   }
 
