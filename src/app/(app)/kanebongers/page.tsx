@@ -9,6 +9,7 @@ import { authFetch } from '@/lib/auth/auth-fetch'
 import Navbar from '@/components/layout/Navbar'
 import { CockpitKop } from '@/components/lifeos/cockpit/CockpitKop'
 import { Cockpit } from '@/components/lifeos/cockpit/Cockpit'
+import { KoppelFeedback } from '@/components/lifeos/KoppelFeedback'
 
 // Kane's persoonlijke werk-OS (de founder-cockpit), losgeknipt van de publieke
 // consumenten-app. Verborgen achter de founder-gate (dezelfde als /api/lifeos):
@@ -44,6 +45,7 @@ export default function KanebongersPage() {
       <div className="lifeos-root">
         <div className="os-sfeer" aria-hidden="true" />
         <main className="os-schil os-schil--breed">
+          <KoppelFeedback />
           <CockpitKop />
           <Cockpit />
         </main>
