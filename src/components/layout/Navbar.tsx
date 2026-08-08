@@ -524,11 +524,11 @@ function SidebarContent({
 
 /* ── Mobile bottom bar tabs ── */
 const MOBILE_TABS = [
-  { key: 'vandaag',   label: 'Home',      icon: CalendarDays, href: '/home'      },
-  { key: 'welzijn',   label: 'Welzijn',   icon: HeartPulse,   href: '/welzijn'   },
-  { key: 'vita',      label: 'Vita',      icon: Bot,          href: '/coach'     },
-  { key: 'voortgang', label: 'Voortgang', icon: BarChart3,    href: '/inzichten' },
-  { key: 'profiel',   label: 'Profiel',   icon: User,         href: '/profiel'   },
+  { key: 'vandaag',  label: 'Home',     icon: CalendarDays, href: '/home'    },
+  { key: 'voeding',  label: 'Voeding',  icon: Apple,        href: '/voeding' },
+  { key: 'training', label: 'Training', icon: Dumbbell,     href: '/sport'   },
+  { key: 'vita',     label: 'Vita',     icon: Bot,          href: '/coach'   },
+  { key: 'profiel',  label: 'Profiel',  icon: User,         href: '/profiel' },
 ]
 
 /* ── Main Navbar ── */
