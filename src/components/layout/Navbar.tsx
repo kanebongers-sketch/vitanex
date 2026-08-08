@@ -52,7 +52,9 @@ type TopItem = {
 /* ── Navigatiestructuur ── */
 const TOP_ITEMS: TopItem[] = [
   { key: 'vandaag',   label: 'Home',      icon: CalendarDays,  href: '/home'      },
-  { key: 'welzijn',   label: 'Welzijn',   icon: HeartPulse,    href: '/welzijn'   },
+  { key: 'actief',    label: 'Fysiek',    icon: Dumbbell,      href: '/actief'    },
+  { key: 'welzijn',   label: 'Mentaal',   icon: HeartPulse,    href: '/welzijn'   },
+  { key: 'groeien',   label: 'Groeien',   icon: TrendingUp,    href: '/groeien'   },
   { key: 'vita',      label: 'Vita',      icon: Bot,           href: '/coach'     },
   { key: 'voortgang', label: 'Voortgang', icon: BarChart3,     href: '/inzichten' },
   { key: 'profiel',   label: 'Profiel',   icon: User,          href: '/profiel'   },
