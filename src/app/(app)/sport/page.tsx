@@ -8,7 +8,7 @@ import { supabase } from '@/lib/supabase/supabase'
 import Navbar from '@/components/layout/Navbar'
 import {
   Dumbbell, Flame, Clock, ChevronRight, Sparkles, Play,
-  TrendingUp, Calendar, BarChart2, Zap,
+  TrendingUp, Calendar, BarChart2, Zap, Plus,
 } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
@@ -350,6 +350,7 @@ export default function SportPagina() {
         <nav aria-label="Sport-acties" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
           {[
             { href: '/sport/genereer', label: 'Nieuw schema', sub: 'AI-gegenereerd', icon: <Sparkles size={18} aria-hidden /> },
+            { href: '/sport/bouwen', label: 'Eigen workout', sub: 'Zelf samenstellen', icon: <Plus size={18} aria-hidden /> },
             { href: '/sport/voortgang', label: 'Voortgang', sub: 'Statistieken', icon: <TrendingUp size={18} aria-hidden /> },
             { href: '/sport/oefeningen', label: 'Oefeningen', sub: 'Bibliotheek', icon: <Dumbbell size={18} aria-hidden /> },
             { href: '/sport/training', label: 'Training starten', sub: 'Direct beginnen', icon: <Zap size={18} aria-hidden /> },
