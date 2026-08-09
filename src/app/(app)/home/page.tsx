@@ -11,6 +11,7 @@ import { authFetch } from '@/lib/auth/auth-fetch'
 import Navbar from '@/components/layout/Navbar'
 import { scoreNiveau } from '@/lib/pijlers/score'
 import type { PijlerOverzicht } from '@/lib/pijlers/pijlers-server'
+import { RetentieBalk } from '@/components/home/RetentieBalk'
 
 // De consumenten-home: een tegel-grid (Apple-Health-stijl) met de dagscore en een
 // Vita-knop bovenaan. De founder-cockpit (werk-OS) is verhuisd naar /kanebongers.
@@ -76,6 +77,9 @@ export default function HomePage() {
       <main style={{ maxWidth: 720, margin: '0 auto', padding: '20px 16px 96px' }}>
         <p style={{ fontSize: 13, color: 'var(--text-4)', margin: '0 0 2px' }}>{new Date().toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
         <h1 style={{ fontSize: 26, fontWeight: 900, color: 'var(--text-1)', margin: '0 0 18px', letterSpacing: '-0.02em' }}>{groetVoor(new Date().getHours())}, {voornaam || '…'}</h1>
+
+        {/* Dagelijkse lus: streak + check-in — de reden om terug te komen */}
+        <RetentieBalk />
 
         {/* Dagscore + Vita */}
         <section aria-label="Vandaag" style={{ display: 'flex', gap: 14, alignItems: 'stretch', marginBottom: 24, flexWrap: 'wrap' }}>
