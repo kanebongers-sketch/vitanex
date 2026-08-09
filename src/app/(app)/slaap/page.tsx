@@ -17,7 +17,7 @@ import { Input } from '@/components/ui/Input'
 import { Textarea } from '@/components/ui/Textarea'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { useToast } from '@/components/ui/Toast'
-import { urenUitTijden } from '@/lib/slaap/stats'
+import { urenUitTijden, slaapschuld, regelmaat } from '@/lib/slaap/stats'
 
 interface SlaapLog {
   id: string
@@ -144,6 +144,10 @@ export default function SlaapPagina() {
   const [uitgerust, setUitgerust] = useState<number>(3)
   const [bedtijd, setBedtijd] = useState('')
   const [wektijd, setWektijd] = useState('')
+  const [doelUren, setDoelUren] = useState<number>(8)
+  const [streefbedtijd, setStreefbedtijd] = useState('')
+  const [heeftDoel, setHeeftDoel] = useState(false)
+  const [doelOpslaan, setDoelOpslaan] = useState(false)
   const [notitie, setNotitie] = useState('')
 
   useEffect(() => {
@@ -153,10 +157,12 @@ export default function SlaapPagina() {
 
       const res = await authFetch('/api/slaap?limit=14')
       if (res.ok) {
-        const json = await res.json() as { logs: SlaapLog[]; gemiddeld_uren: number | null; gemiddeld_kwaliteit: number | null }
+        const json = await res.json() as { logs: SlaapLog[]; gemiddeld_uren: number | null; gemiddeld_kwaliteit: number | null; doel?: { uren: number | null; streefbedtijd: string | null } }
         setLogs(json.logs ?? [])
         setGemiddeldUren(json.gemiddeld_uren)
         setGemiddeldKwaliteit(json.gemiddeld_kwaliteit)
+        if (json.doel?.uren != null) { setDoelUren(json.doel.uren); setHeeftDoel(true) }
+        if (json.doel?.streefbedtijd) setStreefbedtijd(json.doel.streefbedtijd.slice(0, 5))
 
         const vandaag = json.logs.find(l => l.datum === new Date().toISOString().split('T')[0])
         if (vandaag) {
@@ -202,6 +208,28 @@ export default function SlaapPagina() {
     }
     setOpslaan(false)
   }
+
+  async function verstuurDoel() {
+    setDoelOpslaan(true)
+    try {
+      const res = await authFetch('/api/slaap/doel', {
+        method: 'POST',
+        body: JSON.stringify({ uren: doelUren, streefbedtijd: streefbedtijd || null }),
+      })
+      if (res.ok) { setHeeftDoel(true); toast({ title: 'Slaapdoel opgeslagen', variant: 'success' }) }
+      else toast({ title: 'Opslaan mislukt', variant: 'error' })
+    } catch {
+      toast({ title: 'Opslaan mislukt', variant: 'error' })
+    }
+    setDoelOpslaan(false)
+  }
+
+  // Afgeleide inzichten (pure stats): slaapschuld t.o.v. je doel + regelmaat van je
+  // bedtijd, over de recente nachten. Eerlijk: geen data → geen cijfer.
+  const urenReeks = logs.map(l => l.uren_slaap)
+  const schuld = heeftDoel ? slaapschuld(urenReeks, doelUren) : null
+  const bedtijden = logs.map(l => l.bedtijd).filter((b): b is string => typeof b === 'string' && b.length > 0)
+  const regelmaatScore = regelmaat(bedtijden)
 
   if (laden) return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
@@ -256,6 +284,44 @@ export default function SlaapPagina() {
             })()}
           </div>
         )}
+
+        {/* Slaapschuld + regelmaat — de "functioneel beter"-inzichten */}
+        {(schuld !== null || regelmaatScore !== null) && (
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 20 }}>
+            {schuld !== null && (
+              <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)', padding: '16px' }}>
+                <p style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-4)', margin: '0 0 6px' }}>Slaapschuld</p>
+                <p style={{ fontSize: 22, fontWeight: 800, color: schuld === 0 ? 'var(--mf-green)' : 'var(--mf-amber)', margin: 0, letterSpacing: '-0.02em' }}>
+                  {schuld === 0 ? 'Op schema' : urenNaarTijd(schuld)}
+                </p>
+                <p style={{ fontSize: '0.7rem', color: 'var(--text-4)', margin: '3px 0 0' }}>tekort t.o.v. je doel ({doelUren}u)</p>
+              </div>
+            )}
+            {regelmaatScore !== null && (
+              <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)', padding: '16px' }}>
+                <p style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-4)', margin: '0 0 6px' }}>Regelmaat</p>
+                <p style={{ fontSize: 22, fontWeight: 800, color: regelmaatScore >= 70 ? 'var(--mf-green)' : regelmaatScore >= 40 ? 'var(--mf-amber)' : 'var(--mf-red)', margin: 0, letterSpacing: '-0.02em' }}>
+                  {regelmaatScore}<span style={{ fontSize: 13, color: 'var(--text-4)' }}>/100</span>
+                </p>
+                <p style={{ fontSize: '0.7rem', color: 'var(--text-4)', margin: '3px 0 0' }}>consistentie van je bedtijd</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Slaapdoel instellen */}
+        <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)', padding: '16px', marginBottom: 20 }}>
+          <p style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-4)', margin: '0 0 10px' }}>Slaapdoel</p>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: 10, alignItems: 'end' }}>
+            <Field label="Doel (uren)">
+              <Input type="number" inputMode="decimal" min={4} max={12} step={0.5} value={doelUren} onChange={e => setDoelUren(Math.max(0, Math.min(24, parseFloat(e.target.value) || 0)))} />
+            </Field>
+            <Field label="Streefbedtijd">
+              <Input type="time" value={streefbedtijd} onChange={e => setStreefbedtijd(e.target.value)} />
+            </Field>
+            <Button onClick={verstuurDoel} loading={doelOpslaan} variant="secondary">{doelOpslaan ? '…' : (heeftDoel ? 'Bijwerken' : 'Instellen')}</Button>
+          </div>
+        </div>
 
         <div className={logs.length > 0 ? 'mf-home-layout' : ''} style={{ alignItems: 'start' }}>
         <div>{/* form column */}
