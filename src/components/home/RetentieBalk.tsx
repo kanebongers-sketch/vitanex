@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Flame, CheckCircle2, ChevronRight } from 'lucide-react'
 import { authFetch } from '@/lib/auth/auth-fetch'
+import { huidigeMijlpaal, volgendeMijlpaal, dagenTotVolgende } from '@/lib/streak/mijlpaal'
 
 // De dagelijkse lus op de home: je (vergevende) streak + de check-in-CTA. Dit is de
 // reden om terug te komen — genuine waarde + zachte gewoontevorming, geen dark
@@ -38,19 +39,33 @@ export function RetentieBalk() {
   if (data === null) return null
 
   const { streak, actiefVandaag } = data
+  const mijlpaal = huidigeMijlpaal(streak)
+  const volgende = volgendeMijlpaal(streak)
+  const tot = dagenTotVolgende(streak)
 
   return (
-    <section aria-label="Je dagelijkse lus" style={{ display: 'flex', gap: 12, alignItems: 'stretch', marginBottom: 16, flexWrap: 'wrap' }}>
-      {/* Streak */}
-      <div style={{ flex: '1 1 150px', display: 'flex', alignItems: 'center', gap: 12, background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 16, padding: '14px 16px' }}>
-        <span style={{ width: 40, height: 40, borderRadius: 12, background: streak > 0 ? 'var(--mf-amber-light)' : 'var(--bg-subtle)', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
-          <Flame size={22} aria-hidden style={{ color: streak > 0 ? 'var(--mf-amber)' : 'var(--text-4)' }} />
-        </span>
-        <span>
-          <span style={{ display: 'block', fontSize: 22, fontWeight: 900, color: 'var(--text-1)', lineHeight: 1 }}>{streak}</span>
-          <span style={{ display: 'block', fontSize: 12, color: 'var(--text-4)', marginTop: 2 }}>{streak === 1 ? 'dag op rij' : 'dagen op rij'}</span>
-        </span>
-      </div>
+    <div style={{ marginBottom: 16 }}>
+      {/* Mijlpaal-viering (alleen op een exacte drempel) */}
+      {mijlpaal && (
+        <div role="status" style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'var(--mf-amber-light)', border: '1px solid var(--mf-amber)', borderRadius: 14, padding: '10px 14px', marginBottom: 10 }}>
+          <span aria-hidden style={{ fontSize: 20 }}>{mijlpaal.emoji}</span>
+          <span style={{ fontSize: 13.5, fontWeight: 800, color: 'var(--text-1)' }}>{mijlpaal.titel}</span>
+        </div>
+      )}
+
+      <section aria-label="Je dagelijkse lus" style={{ display: 'flex', gap: 12, alignItems: 'stretch', flexWrap: 'wrap' }}>
+        {/* Streak */}
+        <div style={{ flex: '1 1 150px', display: 'flex', alignItems: 'center', gap: 12, background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 16, padding: '14px 16px' }}>
+          <span style={{ width: 40, height: 40, borderRadius: 12, background: streak > 0 ? 'var(--mf-amber-light)' : 'var(--bg-subtle)', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
+            <Flame size={22} aria-hidden style={{ color: streak > 0 ? 'var(--mf-amber)' : 'var(--text-4)' }} />
+          </span>
+          <span style={{ minWidth: 0 }}>
+            <span style={{ display: 'block', fontSize: 22, fontWeight: 900, color: 'var(--text-1)', lineHeight: 1 }}>{streak}</span>
+            <span style={{ display: 'block', fontSize: 12, color: 'var(--text-4)', marginTop: 2 }}>
+              {tot !== null && volgende ? `nog ${tot} tot ${volgende.emoji}` : (streak === 1 ? 'dag op rij' : 'dagen op rij')}
+            </span>
+          </span>
+        </div>
 
       {/* Dagelijkse check-in — de haak */}
       {actiefVandaag ? (
@@ -68,6 +83,7 @@ export function RetentieBalk() {
           <ChevronRight size={20} aria-hidden style={{ color: 'var(--bg-app)', flexShrink: 0 }} />
         </Link>
       )}
-    </section>
+      </section>
+    </div>
   )
 }
