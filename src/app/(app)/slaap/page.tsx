@@ -17,18 +17,21 @@ import { Input } from '@/components/ui/Input'
 import { Textarea } from '@/components/ui/Textarea'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { useToast } from '@/components/ui/Toast'
+import { urenUitTijden } from '@/lib/slaap/stats'
 
 interface SlaapLog {
   id: string
   datum: string
   uren_slaap: number
   kwaliteit: number | null
+  uitgerust: number | null
   bedtijd: string | null
   wektijd: string | null
   notitie: string | null
 }
 
 const KWALITEIT_LABELS = ['', 'Heel slecht', 'Slecht', 'Gemiddeld', 'Goed', 'Uitstekend']
+const UITGERUST_LABELS = ['', 'Uitgeput', 'Moe', 'Oké', 'Fris', 'Topfit']
 // Index 0 is leeg (kwaliteit start bij 1); lucide-iconen volgen dezelfde 5-puntsschaal als stemming.
 const KWALITEIT_ICOON: (LucideIcon | null)[] = [null, Angry, Frown, Meh, Smile, Laugh]
 
@@ -138,6 +141,7 @@ export default function SlaapPagina() {
   const [datum, setDatum] = useState(new Date().toISOString().split('T')[0])
   const [uren, setUren] = useState<number>(7.5)
   const [kwaliteit, setKwaliteit] = useState<number>(3)
+  const [uitgerust, setUitgerust] = useState<number>(3)
   const [bedtijd, setBedtijd] = useState('')
   const [wektijd, setWektijd] = useState('')
   const [notitie, setNotitie] = useState('')
@@ -158,6 +162,7 @@ export default function SlaapPagina() {
         if (vandaag) {
           setUren(vandaag.uren_slaap)
           setKwaliteit(vandaag.kwaliteit ?? 3)
+          setUitgerust(vandaag.uitgerust ?? 3)
           setBedtijd(vandaag.bedtijd ?? '')
           setWektijd(vandaag.wektijd ?? '')
           setNotitie(vandaag.notitie ?? '')
@@ -173,7 +178,7 @@ export default function SlaapPagina() {
     try {
       const res = await authFetch('/api/slaap', {
         method: 'POST',
-        body: JSON.stringify({ datum, uren_slaap: uren, kwaliteit, bedtijd: bedtijd || undefined, wektijd: wektijd || undefined, notitie: notitie || undefined }),
+        body: JSON.stringify({ datum, uren_slaap: uren, kwaliteit, uitgerust, bedtijd: bedtijd || undefined, wektijd: wektijd || undefined, notitie: notitie || undefined }),
       })
       if (res.ok) {
         const json = await res.json() as { log: SlaapLog }
@@ -351,14 +356,50 @@ export default function SlaapPagina() {
             </p>
           </div>
 
+          <div style={{ marginBottom: 16 }}>
+            <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-2)', marginBottom: 8 }} id="slaap-uitgerust-label">Hoe uitgerust voel je je?</p>
+            <div style={{ display: 'flex', gap: 8 }} role="group" aria-labelledby="slaap-uitgerust-label">
+              {[1, 2, 3, 4, 5].map(u => {
+                const actief = uitgerust === u
+                return (
+                  <button
+                    key={u}
+                    type="button"
+                    onClick={() => setUitgerust(u)}
+                    aria-pressed={actief}
+                    aria-label={UITGERUST_LABELS[u]}
+                    style={{
+                      flex: 1, height: 44, minWidth: 44, borderRadius: 'var(--radius-sm)',
+                      border: actief ? '1px solid transparent' : '1px solid var(--border-strong)',
+                      cursor: 'pointer',
+                      background: actief ? 'var(--mentaforce-primary)' : 'var(--bg-subtle)',
+                      color: actief ? 'var(--bg-app)' : 'var(--text-3)',
+                      fontSize: 13, fontWeight: 700,
+                    }}
+                  >
+                    {u}
+                  </button>
+                )
+              })}
+            </div>
+            <p style={{ fontSize: 11, color: 'var(--text-4)', marginTop: 6, textAlign: 'center' }}>
+              {UITGERUST_LABELS[uitgerust]}
+            </p>
+          </div>
+
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 16 }}>
             <Field label="Bedtijd">
-              <Input type="time" value={bedtijd} onChange={e => setBedtijd(e.target.value)} />
+              <Input type="time" value={bedtijd} onChange={e => { const v = e.target.value; setBedtijd(v); const u = urenUitTijden(v, wektijd); if (u !== null) setUren(u) }} />
             </Field>
             <Field label="Wektijd">
-              <Input type="time" value={wektijd} onChange={e => setWektijd(e.target.value)} />
+              <Input type="time" value={wektijd} onChange={e => { const v = e.target.value; setWektijd(v); const u = urenUitTijden(bedtijd, v); if (u !== null) setUren(u) }} />
             </Field>
           </div>
+          {bedtijd && wektijd && urenUitTijden(bedtijd, wektijd) !== null && (
+            <p style={{ fontSize: 11, color: 'var(--text-4)', margin: '-8px 0 16px', textAlign: 'center' }}>
+              Duur automatisch berekend uit je tijden: <strong style={{ color: 'var(--text-2)' }}>{urenNaarTijd(urenUitTijden(bedtijd, wektijd) as number)}</strong>
+            </p>
+          )}
 
           <div style={{ marginBottom: 16 }}>
             <Field label="Notitie">

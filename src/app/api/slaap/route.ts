@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
 
     const { data } = await admin
       .from('slaap_logs')
-      .select('id, datum, uren_slaap, kwaliteit, bedtijd, wektijd, notitie, aangemaakt_op')
+      .select('id, datum, uren_slaap, kwaliteit, uitgerust, bedtijd, wektijd, notitie, bron, aangemaakt_op')
       .eq('user_id', user.id)
       .order('datum', { ascending: false })
       .limit(limit)
@@ -27,8 +27,23 @@ export async function GET(req: NextRequest) {
       ? Math.round((metKwaliteit.reduce((s, l) => s + (l.kwaliteit ?? 0), 0) / metKwaliteit.length) * 10) / 10
       : null
 
+    // Het slaapdoel (uren + streefbedtijd) uit het profiel — voedt slaapschuld + doel-UI.
+    const { data: profiel } = await admin
+      .from('profiles')
+      .select('slaap_doel_uren, slaap_streefbedtijd')
+      .eq('id', user.id)
+      .maybeSingle()
+
     return NextResponse.json(
-      { logs: data ?? [], gemiddeld_uren: gemiddeldUren, gemiddeld_kwaliteit: gemiddeldKwaliteit },
+      {
+        logs: data ?? [],
+        gemiddeld_uren: gemiddeldUren,
+        gemiddeld_kwaliteit: gemiddeldKwaliteit,
+        doel: {
+          uren: typeof profiel?.slaap_doel_uren === 'number' ? profiel.slaap_doel_uren : null,
+          streefbedtijd: typeof profiel?.slaap_streefbedtijd === 'string' ? profiel.slaap_streefbedtijd : null,
+        },
+      },
       { headers: { 'Cache-Control': 'private, max-age=60, stale-while-revalidate=30' } }
     )
   } catch (err) {
@@ -46,12 +61,13 @@ export async function POST(req: NextRequest) {
       datum?: unknown
       uren_slaap?: unknown
       kwaliteit?: unknown
+      uitgerust?: unknown
       bedtijd?: unknown
       wektijd?: unknown
       notitie?: unknown
     } = await req.json()
 
-    const { datum, uren_slaap, kwaliteit, bedtijd, wektijd, notitie } = body
+    const { datum, uren_slaap, kwaliteit, uitgerust, bedtijd, wektijd, notitie } = body
 
     if (
       typeof datum !== 'string' ||
@@ -72,11 +88,12 @@ export async function POST(req: NextRequest) {
         datum,
         uren_slaap,
         kwaliteit: typeof kwaliteit === 'number' ? kwaliteit : null,
-        bedtijd: typeof bedtijd === 'string' ? bedtijd : null,
-        wektijd: typeof wektijd === 'string' ? wektijd : null,
+        uitgerust: typeof uitgerust === 'number' && uitgerust >= 1 && uitgerust <= 5 ? uitgerust : null,
+        bedtijd: typeof bedtijd === 'string' && bedtijd.length > 0 ? bedtijd : null,
+        wektijd: typeof wektijd === 'string' && wektijd.length > 0 ? wektijd : null,
         notitie: typeof notitie === 'string' ? notitie.trim() : null,
       }, { onConflict: 'user_id,datum' })
-      .select('id, datum, uren_slaap, kwaliteit, bedtijd, wektijd, notitie')
+      .select('id, datum, uren_slaap, kwaliteit, uitgerust, bedtijd, wektijd, notitie')
       .single()
 
     if (error) {
