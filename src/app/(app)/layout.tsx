@@ -1,6 +1,7 @@
 import Script from "next/script";
 import AndroidBackHandler from "@/components/layout/AndroidBackHandler";
 import AnalyticsListener from "@/components/layout/AnalyticsListener";
+import PushRegistration from "@/components/layout/PushRegistration";
 import { ToastProvider } from "@/components/ui/Toast";
 
 // Vita is bewust géén globale pop-up meer (te chaotisch): Vita heeft zijn eigen
@@ -10,6 +11,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <ToastProvider>
       <AndroidBackHandler />
+      <PushRegistration />
       <Script src="/theme-init.js" strategy="beforeInteractive" />
       {children}
       <AnalyticsListener />
