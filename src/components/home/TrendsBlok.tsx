@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
-import { TrendingUp, TrendingDown, Minus, Moon, Scale, ChevronRight, type LucideIcon } from 'lucide-react'
+import { TrendingUp, TrendingDown, Minus, Moon, Scale, Footprints, Smile, ChevronRight, type LucideIcon } from 'lucide-react'
 import { authFetch } from '@/lib/auth/auth-fetch'
 
 // Zichtbare vooruitgang op de home: echte grafieken (sparklines) + weektrend per
@@ -25,14 +25,18 @@ function gem(reeks: readonly number[]): number | null {
   return reeks.reduce((a, b) => a + b, 0) / reeks.length
 }
 
-/** Leest een {datum, <veld>} reeks (nieuwste eerst) chronologisch uit een antwoord. */
-function leesReeks(ruw: unknown, lijstSleutel: string, veld: string): number[] {
+/**
+ * Leest een reeks chronologisch (oud → nieuw) uit een antwoord. Het datumveld is
+ * instelbaar: sommige bronnen dragen `datum` (YYYY-MM-DD), andere `aangemaakt_op`
+ * (ISO-timestamp) — beide sorteren correct als string.
+ */
+function leesReeks(ruw: unknown, lijstSleutel: string, veld: string, datumVeld = 'datum'): number[] {
   const o = typeof ruw === 'object' && ruw !== null ? ruw as Record<string, unknown> : {}
   const lijst = Array.isArray(o[lijstSleutel]) ? (o[lijstSleutel] as unknown[]) : []
   return lijst
     .map((r) => (typeof r === 'object' && r !== null ? r as Record<string, unknown> : null))
-    .filter((r): r is Record<string, unknown> => r !== null && typeof r.datum === 'string' && typeof r[veld] === 'number')
-    .sort((a, b) => (a.datum as string).localeCompare(b.datum as string))
+    .filter((r): r is Record<string, unknown> => r !== null && typeof r[datumVeld] === 'string' && typeof r[veld] === 'number')
+    .sort((a, b) => (a[datumVeld] as string).localeCompare(b[datumVeld] as string))
     .map((r) => r[veld] as number)
 }
 
@@ -40,12 +44,17 @@ export function TrendsBlok() {
   const [reeksen, setReeksen] = useState<Reeks[] | null>(null)
 
   const laad = useCallback((): Promise<void> => {
+    const haal = (url: string) => authFetch(url).then((r) => (r.ok ? r.json() : null)).catch(() => null)
     return Promise.all([
-      authFetch('/api/slaap?limit=14').then((r) => (r.ok ? r.json() : null)).catch(() => null),
-      authFetch('/api/lichaamsmetingen?limit=14').then((r) => (r.ok ? r.json() : null)).catch(() => null),
-    ]).then(([slaapRuw, gewichtRuw]) => {
+      haal('/api/slaap?limit=14'),
+      haal('/api/lichaamsmetingen?limit=14'),
+      haal('/api/stappen?dagen=14'),
+      haal('/api/stemming?limit=14'),
+    ]).then(([slaapRuw, gewichtRuw, stappenRuw, stemmingRuw]) => {
       const kandidaten: Reeks[] = [
         { key: 'slaap', label: 'Slaap', eenheid: 'u', icoon: Moon, route: '/slaap', waarden: leesReeks(slaapRuw, 'logs', 'uren_slaap'), meerIsBeter: true, decimalen: 1 },
+        { key: 'stappen', label: 'Stappen', eenheid: '', icoon: Footprints, route: '/stappen', waarden: leesReeks(stappenRuw, 'dagen', 'stappen'), meerIsBeter: true, decimalen: 0 },
+        { key: 'stemming', label: 'Stemming', eenheid: '', icoon: Smile, route: '/stemming', waarden: leesReeks(stemmingRuw, 'logs', 'stemming', 'aangemaakt_op'), meerIsBeter: true, decimalen: 1 },
         { key: 'gewicht', label: 'Gewicht', eenheid: 'kg', icoon: Scale, route: '/prestaties', waarden: leesReeks(gewichtRuw, 'metingen', 'gewicht_kg'), meerIsBeter: null, decimalen: 1 },
       ]
       setReeksen(kandidaten.filter((r) => r.waarden.length >= 3))

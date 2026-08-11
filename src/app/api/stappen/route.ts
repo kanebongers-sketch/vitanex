@@ -16,8 +16,11 @@ export async function GET(req: NextRequest) {
 
   const admin = createAdminClient()
   const vandaag = vandaagNL()
-  const zeveDagenGelden = new Date(Date.now() - 6 * 86_400_000)
-  const startDatum = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Amsterdam' }).format(zeveDagenGelden)
+  // Standaard 7 dagen; ?dagen=N (1–60) verbreedt het venster, bv. voor de weektrend.
+  const dagenRaw = parseInt(new URL(req.url).searchParams.get('dagen') ?? '7', 10)
+  const dagen = isNaN(dagenRaw) ? 7 : Math.min(Math.max(dagenRaw, 1), 60)
+  const vanaf = new Date(Date.now() - (dagen - 1) * 86_400_000)
+  const startDatum = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Amsterdam' }).format(vanaf)
 
   const { data, error } = await admin
     .from('dagmetingen')
