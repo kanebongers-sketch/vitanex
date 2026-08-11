@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
   try {
     const { data, error } = await admin
       .from('stemming_logs')
-      .select('id, stemming, energie, emoji, notitie, aangemaakt_op')
+      .select('id, stemming, energie, stress, emoji, notitie, aangemaakt_op')
       .eq('user_id', user.id)
       .order('aangemaakt_op', { ascending: false })
       .limit(limit)
@@ -35,14 +35,14 @@ export async function POST(req: NextRequest) {
   const user = await getAuthenticatedUser(req)
   if (!user) return NextResponse.json({ error: 'Niet ingelogd.' }, { status: 401 })
 
-  let body: { stemming: number; energie?: number; emoji?: string; notitie?: string }
+  let body: { stemming: number; energie?: number; stress?: number; emoji?: string; notitie?: string }
   try {
     body = await req.json()
   } catch {
     return NextResponse.json({ error: 'Ongeldig JSON verzoek.' }, { status: 400 })
   }
 
-  const { stemming, energie, emoji, notitie } = body
+  const { stemming, energie, stress, emoji, notitie } = body
 
   if (!Number.isInteger(stemming) || stemming < 1 || stemming > 5) {
     return NextResponse.json({ error: 'stemming moet een geheel getal zijn tussen 1 en 5.' }, { status: 400 })
@@ -50,6 +50,10 @@ export async function POST(req: NextRequest) {
 
   if (energie !== undefined && (typeof energie !== 'number' || energie < 1 || energie > 5)) {
     return NextResponse.json({ error: 'energie moet een getal zijn tussen 1 en 5.' }, { status: 400 })
+  }
+
+  if (stress !== undefined && (typeof stress !== 'number' || stress < 1 || stress > 5)) {
+    return NextResponse.json({ error: 'stress moet een getal zijn tussen 1 en 5.' }, { status: 400 })
   }
 
   const admin = createAdminClient()
@@ -61,10 +65,11 @@ export async function POST(req: NextRequest) {
         user_id: user.id,
         stemming,
         energie: energie ?? null,
+        stress: stress ?? null,
         emoji: emoji ?? null,
         notitie: notitie?.trim() ?? null,
       })
-      .select('id, stemming, energie, emoji, notitie, aangemaakt_op')
+      .select('id, stemming, energie, stress, emoji, notitie, aangemaakt_op')
       .single()
 
     if (error) {
