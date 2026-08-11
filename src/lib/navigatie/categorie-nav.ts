@@ -29,9 +29,8 @@ export const CATEGORIEEN: Record<'welzijn' | 'actief' | 'groeien' | 'profiel', C
     kleur: 'var(--mf-green)',
     icoon: 'heart-pulse',
     items: [
-      { href: '/stemming',   label: 'Stemming',   icoon: 'smile' },
+      { href: '/welzijn',    label: 'Mentaal welzijn', icoon: 'smile' },
       { href: '/slaap',      label: 'Slaap',      icoon: 'moon'  },
-      { href: '/stress',     label: 'Stress',     icoon: 'zap'   },
       { href: '/meditatie',  label: 'Meditatie',  icoon: 'leaf'  },
       { href: '/ademhaling', label: 'Ademhaling', icoon: 'wind'  },
       { href: '/inzichten',  label: 'Inzichten',  icoon: 'sparkles' },

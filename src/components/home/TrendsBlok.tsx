@@ -54,7 +54,7 @@ export function TrendsBlok() {
       const kandidaten: Reeks[] = [
         { key: 'slaap', label: 'Slaap', eenheid: 'u', icoon: Moon, route: '/slaap', waarden: leesReeks(slaapRuw, 'logs', 'uren_slaap'), meerIsBeter: true, decimalen: 1 },
         { key: 'stappen', label: 'Stappen', eenheid: '', icoon: Footprints, route: '/stappen', waarden: leesReeks(stappenRuw, 'dagen', 'stappen'), meerIsBeter: true, decimalen: 0 },
-        { key: 'stemming', label: 'Stemming', eenheid: '', icoon: Smile, route: '/stemming', waarden: leesReeks(stemmingRuw, 'logs', 'stemming', 'aangemaakt_op'), meerIsBeter: true, decimalen: 1 },
+        { key: 'stemming', label: 'Stemming', eenheid: '', icoon: Smile, route: '/welzijn', waarden: leesReeks(stemmingRuw, 'logs', 'stemming', 'aangemaakt_op'), meerIsBeter: true, decimalen: 1 },
         { key: 'gewicht', label: 'Gewicht', eenheid: 'kg', icoon: Scale, route: '/prestaties', waarden: leesReeks(gewichtRuw, 'metingen', 'gewicht_kg'), meerIsBeter: null, decimalen: 1 },
       ]
       setReeksen(kandidaten.filter((r) => r.waarden.length >= 3))
