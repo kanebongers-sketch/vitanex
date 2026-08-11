@@ -5,11 +5,12 @@ export const dynamic = 'force-dynamic'
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { Capacitor } from '@capacitor/core'
-import { Footprints, Smartphone, ChevronRight, Check, PartyPopper } from 'lucide-react'
+import { Footprints, Smartphone, ChevronRight, Check, PartyPopper, Route, Flame, Sparkles, Target } from 'lucide-react'
 import { supabase } from '@/lib/supabase/supabase'
 import { authFetch } from '@/lib/auth/auth-fetch'
 import Navbar from '@/components/layout/Navbar'
 import { STANDAARD_STAPPEN_DOEL } from '@/lib/health/gezondheid-berekeningen'
+import { afstandKm, doelStreak, kiesStappenViering } from '@/lib/stappen/stats'
 import { vitaEvent } from '@/lib/vita/events'
 import { Button } from '@/components/ui/Button'
 import { Field } from '@/components/ui/Field'
@@ -31,6 +32,11 @@ function dagNaam(datum: string): string {
 
 function vandaagStr(): string {
   return new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Amsterdam' }).format(new Date())
+}
+
+/** N dagen terug als YYYY-MM-DD in NL-tijd — voor doel-streak en Vita-viering. */
+function dagTerugNL(n: number): string {
+  return new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Amsterdam' }).format(new Date(Date.now() - n * 86_400_000))
 }
 
 function StappenRing({ stappen, doel }: { stappen: number; doel: number }) {
@@ -97,12 +103,15 @@ export default function StappenPage() {
   const [succes, setSucces] = useState(false)
   const [trackerLaden, setTrackerLaden] = useState(false)
   const [trackerFout, setTrackerFout] = useState<string | null>(null)
+  const [doelEditor, setDoelEditor] = useState(false)
+  const [doelInvoer, setDoelInvoer] = useState('')
+  const [doelBezig, setDoelBezig] = useState(false)
 
   const laadData = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { router.push('/login'); return }
 
-    const res = await authFetch('/api/stappen')
+    const res = await authFetch('/api/stappen?dagen=30')
     if (res.ok) {
       const json = await res.json() as { dagen: DagStap[]; stappen_doel?: number; stappen_handmatig?: boolean }
       setDagen(json.dagen ?? [])
@@ -200,8 +209,34 @@ export default function StappenPage() {
     setTrackerLaden(false)
   }
 
+  async function slaOpDoel() {
+    const n = parseInt(doelInvoer.replace(/\D/g, ''), 10)
+    if (!n || n < 1000 || n > 50000) {
+      toast({ title: 'Ongeldig doel', description: 'Kies tussen 1.000 en 50.000 stappen.', variant: 'warning' })
+      return
+    }
+    setDoelBezig(true)
+    const res = await authFetch('/api/stappen/doel', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ doel: n }),
+    })
+    setDoelBezig(false)
+    if (res.ok) {
+      setDoel(n)
+      setDoelHandmatig(true)
+      setDoelEditor(false)
+      setDoelInvoer('')
+    } else {
+      toast({ title: 'Opslaan mislukt', description: 'Kon je doel niet opslaan.', variant: 'error' })
+    }
+  }
+
   const pct = Math.min(Math.round((vandaag / doel) * 100), 100)
   const maxStappen = Math.max(...dagen.map(d => d.stappen ?? 0), doel)
+  const afstand = afstandKm(vandaag)
+  const streak = doelStreak(dagen, doel, dagTerugNL)
+  const viering = kiesStappenViering(dagen, doel, dagTerugNL)
 
   if (laden) return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-app)' }}>
@@ -259,7 +294,54 @@ export default function StappenPage() {
               Voer je stappen in of sync via je tracker
             </p>
           )}
+
+          {/* Afstand (schatting) + doel-streak */}
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 28, marginTop: 18, paddingTop: 16, borderTop: '1px solid var(--border)' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 18, fontWeight: 800, color: 'var(--text-1)' }}>
+                <Route size={15} aria-hidden style={{ color: KLEUR }} /> ~{afstand.toLocaleString('nl-NL', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} km
+              </span>
+              <span style={{ fontSize: 11, color: 'var(--text-4)' }}>afstand (schatting)</span>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 18, fontWeight: 800, color: streak > 0 ? DOEL_BEREIKT : 'var(--text-3)' }}>
+                <Flame size={15} aria-hidden style={{ color: streak > 0 ? DOEL_BEREIKT : 'var(--text-4)' }} /> {streak}
+              </span>
+              <span style={{ fontSize: 11, color: 'var(--text-4)' }}>{streak === 1 ? 'dag doel gehaald' : 'dagen op rij'}</span>
+            </div>
+          </div>
+
+          {/* Doel aanpassen */}
+          {!doelEditor ? (
+            <button type="button" onClick={() => { setDoelEditor(true); setDoelInvoer(String(doel)) }}
+              style={{ marginTop: 14, background: 'none', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 600, color: 'var(--text-3)' }}>
+              <Target size={13} aria-hidden /> Dagdoel aanpassen
+            </button>
+          ) : (
+            <div style={{ marginTop: 14, display: 'flex', gap: 8, justifyContent: 'center', alignItems: 'flex-end' }}>
+              <Field label="Nieuw dagdoel" htmlFor="doel-invoer">
+                <Input id="doel-invoer" type="number" inputMode="numeric" value={doelInvoer}
+                  onChange={e => setDoelInvoer(e.target.value)} onKeyDown={e => e.key === 'Enter' && slaOpDoel()}
+                  style={{ width: 120 }} />
+              </Field>
+              <Button onClick={slaOpDoel} loading={doelBezig} disabled={doelBezig || !doelInvoer}>Opslaan</Button>
+              <Button variant="ghost" onClick={() => setDoelEditor(false)}>Annuleren</Button>
+            </div>
+          )}
         </div>
+
+        {/* Vita viert een echte prestatie */}
+        {viering && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, background: 'var(--brand-soft, var(--mf-green-light))', border: '1px solid var(--brand, var(--mentaforce-primary))', borderRadius: 16, padding: '14px 16px', marginBottom: 16 }}>
+            <span style={{ width: 36, height: 36, borderRadius: 999, background: 'var(--brand, var(--mentaforce-primary))', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
+              <Sparkles size={19} aria-hidden style={{ color: 'var(--bg-app)' }} />
+            </span>
+            <div>
+              <span style={{ display: 'block', fontSize: 11, fontWeight: 700, color: 'var(--brand, var(--mentaforce-primary))', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Vita</span>
+              <span style={{ display: 'block', fontSize: 13.5, color: 'var(--text-1)', lineHeight: 1.4 }}>{viering.emoji} {viering.tekst}</span>
+            </div>
+          </div>
+        )}
 
         {/* Succes melding */}
         {succes && (
