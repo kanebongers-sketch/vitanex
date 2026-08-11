@@ -12,6 +12,7 @@ import Navbar from '@/components/layout/Navbar'
 import { scoreNiveau } from '@/lib/pijlers/score'
 import type { PijlerOverzicht } from '@/lib/pijlers/pijlers-server'
 import { RetentieBalk } from '@/components/home/RetentieBalk'
+import { TrendsBlok } from '@/components/home/TrendsBlok'
 
 // De consumenten-home: een tegel-grid (Apple-Health-stijl) met de dagscore en een
 // Vita-knop bovenaan. De founder-cockpit (werk-OS) is verhuisd naar /kanebongers.
@@ -127,6 +128,11 @@ export default function HomePage() {
               </Link>
             )
           })}
+        </div>
+
+        {/* Zichtbare vooruitgang: een echte trend-grafiek (nu slaap) */}
+        <div style={{ marginTop: 24 }}>
+          <TrendsBlok />
         </div>
       </main>
     </div>
