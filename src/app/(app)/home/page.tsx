@@ -13,6 +13,7 @@ import { scoreNiveau } from '@/lib/pijlers/score'
 import type { PijlerOverzicht } from '@/lib/pijlers/pijlers-server'
 import { RetentieBalk } from '@/components/home/RetentieBalk'
 import { TrendsBlok } from '@/components/home/TrendsBlok'
+import { VitaInzicht } from '@/components/home/VitaInzicht'
 
 // De consumenten-home: een tegel-grid (Apple-Health-stijl) met de dagscore en een
 // Vita-knop bovenaan. De founder-cockpit (werk-OS) is verhuisd naar /kanebongers.
@@ -81,6 +82,9 @@ export default function HomePage() {
 
         {/* Dagelijkse lus: streak + check-in — de reden om terug te komen */}
         <RetentieBalk />
+
+        {/* Vita's eerlijke inzicht uit je data (alleen bij een echt signaal) */}
+        <VitaInzicht />
 
         {/* Dagscore + Vita */}
         <section aria-label="Vandaag" style={{ display: 'flex', gap: 14, alignItems: 'stretch', marginBottom: 24, flexWrap: 'wrap' }}>
