@@ -5,7 +5,9 @@ import Link from 'next/link'
 import { Sparkles } from 'lucide-react'
 import { authFetch } from '@/lib/auth/auth-fetch'
 import { gemiddelde, slaapschuld, regelmaat } from '@/lib/slaap/stats'
-import { kiesVitaInzicht, type VitaInzichtTekst } from '@/lib/vita/inzicht'
+import { kiesVitaInzicht } from '@/lib/vita/inzicht'
+import { dagGemiddelde, kiesSterksteVerband } from '@/lib/vita/verbanden'
+import { verbandDefinities } from '@/lib/vita/verband-teksten'
 
 // Vita's stem op de home: één eerlijk inzicht uit je data ("je slaapschuld daalt").
 // Alleen bij een écht signaal (kiesVitaInzicht → null = niets tonen). Bouwt de
@@ -30,31 +32,48 @@ function leesStreak(ruw: unknown): number {
   return typeof o.streak === 'number' && Number.isFinite(o.streak) ? o.streak : 0
 }
 
+interface VitaToon { emoji: string; tekst: string; label: string }
+
+function lijst(ruw: unknown, sleutel: string): unknown[] {
+  const o = typeof ruw === 'object' && ruw !== null ? ruw as Record<string, unknown> : {}
+  return Array.isArray(o[sleutel]) ? (o[sleutel] as unknown[]) : []
+}
+
 export function VitaInzicht() {
-  const [inzicht, setInzicht] = useState<VitaInzichtTekst | null>(null)
+  const [toon, setToon] = useState<VitaToon | null>(null)
 
   const laad = useCallback((): Promise<void> => {
+    const haal = (url: string) => authFetch(url).then((r) => (r.ok ? r.json() : null)).catch(() => null)
     return Promise.all([
-      authFetch('/api/slaap?limit=14').then((r) => (r.ok ? r.json() : null)).catch(() => null),
-      authFetch('/api/streak').then((r) => (r.ok ? r.json() : null)).catch(() => null),
-    ]).then(([slaapRuw, streakRuw]) => {
+      haal('/api/slaap?limit=30'),
+      haal('/api/streak'),
+      haal('/api/stemming?limit=30'),
+      haal('/api/stappen?dagen=30'),
+    ]).then(([slaapRuw, streakRuw, stemmingRuw, stappenRuw]) => {
+      // 1. Cross-pijler verband — het meest onderscheidende inzicht, dus voorrang.
+      const verband = kiesSterksteVerband(verbandDefinities({
+        slaapUren: dagGemiddelde(lijst(slaapRuw, 'logs'), 'datum', 'uren_slaap'),
+        stemming: dagGemiddelde(lijst(stemmingRuw, 'logs'), 'aangemaakt_op', 'stemming'),
+        stappen: dagGemiddelde(lijst(stappenRuw, 'dagen'), 'datum', 'stappen'),
+      }))
+      if (verband) { setToon({ emoji: '🔗', tekst: verband.tekst, label: 'Vita ziet een verband' }); return }
+
+      // 2. Terugval: enkel-pijler slaap-inzicht.
       const { uren, bedtijden, doel } = leesSlaap(slaapRuw)
-      // De sleep-API geeft nieuwste eerst; "deze week" = de eerste 7.
-      const dezeWeek = gemiddelde(uren.slice(0, 7))
-      const vorigeWeek = gemiddelde(uren.slice(7, 14))
-      setInzicht(kiesVitaInzicht({
-        slaapDezeWeek: dezeWeek,
-        slaapVorigeWeek: vorigeWeek,
+      const inzicht = kiesVitaInzicht({
+        slaapDezeWeek: gemiddelde(uren.slice(0, 7)),
+        slaapVorigeWeek: gemiddelde(uren.slice(7, 14)),
         slaapschuld: doel !== null ? slaapschuld(uren, doel) : null,
         regelmaat: regelmaat(bedtijden),
         streak: leesStreak(streakRuw),
-      }))
+      })
+      if (inzicht) setToon({ emoji: inzicht.emoji, tekst: inzicht.tekst, label: 'Vita' })
     })
   }, [])
 
   useEffect(() => { void laad() }, [laad])
 
-  if (inzicht === null) return null
+  if (toon === null) return null
 
   return (
     <Link href="/coach" aria-label="Praat met Vita over dit inzicht"
@@ -63,8 +82,8 @@ export function VitaInzicht() {
         <Sparkles size={20} aria-hidden style={{ color: 'var(--bg-app)' }} />
       </span>
       <span style={{ minWidth: 0 }}>
-        <span style={{ display: 'block', fontSize: 11, fontWeight: 700, color: 'var(--brand, var(--mentaforce-primary))', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Vita</span>
-        <span style={{ display: 'block', fontSize: 13.5, color: 'var(--text-1)', lineHeight: 1.45 }}>{inzicht.emoji} {inzicht.tekst}</span>
+        <span style={{ display: 'block', fontSize: 11, fontWeight: 700, color: 'var(--brand, var(--mentaforce-primary))', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{toon.label}</span>
+        <span style={{ display: 'block', fontSize: 13.5, color: 'var(--text-1)', lineHeight: 1.45 }}>{toon.emoji} {toon.tekst}</span>
       </span>
     </Link>
   )
