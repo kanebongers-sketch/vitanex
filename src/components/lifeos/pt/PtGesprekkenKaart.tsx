@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { CalendarPlus, Check, ChevronDown, Mail, MailX } from 'lucide-react'
+import { CalendarPlus, Check, ChevronDown, ClipboardCheck, Mail, MailX } from 'lucide-react'
 import { Kaart, NogNiets } from '@/components/lifeos/os/Kaart'
 import { Foutmelding } from '@/components/lifeos/os/Foutmelding'
 import { Knop } from '@/components/lifeos/os/Knop'
@@ -13,14 +13,15 @@ import {
   type PtGesprekkenAntwoord,
   type PtStatus,
 } from '@/lib/lifeos/pt-gesprek/pt-gesprek'
+import { CoachingAfronden } from './CoachingAfronden'
 
 // Container: het 2-wekelijkse PT-coachgesprek. Per PT-klant of er binnen 14 dagen
-// een "Coachgesprek PT - Kane (Naam)" in je agenda staat. Zo niet: één knop plant
-// 'm in en nodigt de klant uit via mail (uit je CRM). Zie /api/lifeos/pt-gesprekken.
+// een "Coachgesprek PT - Kane (Naam)" in je agenda staat, plus twee acties:
+//   Inplannen — voor wie nog geen komende afspraak heeft (de eerste zetten).
+//   Afronden  — ná een sessie: het evaluatieformulier invullen én meteen de
+//               volgende inplannen, zodat de cyclus vanzelf doorrolt.
 //
-// SUPER OVERZICHTELIJK: het draait om wie er NOG moet. Die staan vooraan met de
-// inplan-knop; wie al geregeld is, zit ingeklapt achter één regel — zo verdringt
-// het afgevinkte het openstaande niet.
+// Wie nog moet worden ingepland staat vooraan; wie geregeld is zit ingeklapt.
 
 const GESPREK_DUUR_MIN = 30
 
@@ -32,19 +33,13 @@ type Staat =
 export function PtGesprekkenKaart() {
   const [staat, setStaat] = useState<Staat>({ fase: 'laden' })
   const signaal = useRefreshSignaal()
-
-  // Generatieteller: een trage oudere vlucht mag een verse stand niet overschrijven.
   const generatie = useRef(0)
 
   const laad = useCallback((): Promise<void> => {
     const mijn = ++generatie.current
     return haalJson('/api/lifeos/pt-gesprekken', leesPtGesprekken).then((uitkomst) => {
       if (mijn !== generatie.current) return
-      setStaat(
-        uitkomst.ok
-          ? { fase: 'ok', data: uitkomst.waarde }
-          : { fase: 'fout', bericht: uitkomst.fout },
-      )
+      setStaat(uitkomst.ok ? { fase: 'ok', data: uitkomst.waarde } : { fase: 'fout', bericht: uitkomst.fout })
     })
   }, [])
 
@@ -71,13 +66,13 @@ export function PtGesprekkenKaart() {
         />
       ) : null}
       {staat.fase === 'ok' && staat.data.gekoppeld ? (
-        <Overzicht pts={staat.data.pts} onGepland={laad} />
+        <Overzicht pts={staat.data.pts} onVernieuw={laad} />
       ) : null}
     </Kaart>
   )
 }
 
-function Overzicht({ pts, onGepland }: { pts: PtStatus[]; onGepland: () => Promise<void> }) {
+function Overzicht({ pts, onVernieuw }: { pts: PtStatus[]; onVernieuw: () => Promise<void> }) {
   const [toonGeregeld, setToonGeregeld] = useState(false)
 
   if (pts.length === 0) {
@@ -98,27 +93,27 @@ function Overzicht({ pts, onGepland }: { pts: PtStatus[]; onGepland: () => Promi
           {teDoen.length}
         </p>
         <p style={{ fontSize: 13.5, color: 'var(--text-2)', margin: 0, fontWeight: 600 }}>
-          {teDoen.length === 1 ? 'PT wacht nog op een gesprek' : 'PT’s wachten nog op een gesprek'}
+          {teDoen.length === 1 ? 'PT zonder komende afspraak' : 'PT’s zonder komende afspraak'}
         </p>
       </div>
 
       {teDoen.length > 0 ? (
-        <ul style={{ display: 'grid', gap: 10, listStyle: 'none', padding: 0, margin: 0 }}>
+        <ul style={{ display: 'grid', gap: 4, listStyle: 'none', padding: 0, margin: 0 }}>
           {teDoen.map((pt) => (
             <li key={pt.id}>
-              <TeDoenRij pt={pt} onGepland={onGepland} />
+              <PtRij pt={pt} onVernieuw={onVernieuw} />
             </li>
           ))}
         </ul>
       ) : (
         <p style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13.5, color: 'var(--text-3)', margin: 0 }}>
           <Check size={15} strokeWidth={2.2} aria-hidden style={{ color: 'var(--brand)' }} />
-          Alle PT-gesprekken staan gepland.
+          Bij elke PT staat een volgende afspraak.
         </p>
       )}
 
       {geregeld.length > 0 ? (
-        <div style={{ display: 'grid', gap: 8 }}>
+        <div style={{ display: 'grid', gap: 6 }}>
           <button
             type="button"
             onClick={() => setToonGeregeld((v) => !v)}
@@ -136,15 +131,10 @@ function Overzicht({ pts, onGepland }: { pts: PtStatus[]; onGepland: () => Promi
             {toonGeregeld ? 'Verberg' : 'Toon'} geplande gesprekken · {geregeld.length}
           </button>
           {toonGeregeld ? (
-            <ul style={{ display: 'grid', gap: 6, listStyle: 'none', padding: 0, margin: 0 }}>
+            <ul style={{ display: 'grid', gap: 4, listStyle: 'none', padding: 0, margin: 0 }}>
               {geregeld.map((pt) => (
-                <li
-                  key={pt.id}
-                  style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--text-3)' }}
-                >
-                  <Check size={14} strokeWidth={2.2} aria-hidden style={{ color: 'var(--brand)', flexShrink: 0 }} />
-                  <span style={{ color: 'var(--text-2)', fontWeight: 600 }}>{pt.naam}</span>
-                  {pt.wanneer ? <span style={{ color: 'var(--text-4)' }}>· {datumLabel(pt.wanneer)}</span> : null}
+                <li key={pt.id}>
+                  <PtRij pt={pt} onVernieuw={onVernieuw} />
                 </li>
               ))}
             </ul>
@@ -155,9 +145,67 @@ function Overzicht({ pts, onGepland }: { pts: PtStatus[]; onGepland: () => Promi
   )
 }
 
-/** Eén openstaande PT: naam + mail-status, en een inline inplan-formulier. */
-function TeDoenRij({ pt, onGepland }: { pt: PtStatus; onGepland: () => Promise<void> }) {
-  const [open, setOpen] = useState(false)
+type Modus = 'dicht' | 'inplannen' | 'afronden'
+
+/** Eén PT: status + de acties Inplannen (nog geen afspraak) en Afronden (na sessie). */
+function PtRij({ pt, onVernieuw }: { pt: PtStatus; onVernieuw: () => Promise<void> }) {
+  const [modus, setModus] = useState<Modus>('dicht')
+
+  async function sluitEnVernieuw() {
+    setModus('dicht')
+    await onVernieuw()
+  }
+
+  return (
+    <div style={{ display: 'grid', gap: 8, padding: '10px 0', borderTop: '1px solid var(--border)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+        <div style={{ minWidth: 0 }}>
+          <p style={{ margin: 0, fontSize: 14, fontWeight: 600, color: 'var(--text-1)' }}>{pt.naam}</p>
+          <p style={{ margin: '2px 0 0', display: 'flex', alignItems: 'center', gap: 5, fontSize: 11.5, color: 'var(--text-4)' }}>
+            {pt.ingepland ? (
+              <>
+                <Check size={12} aria-hidden style={{ color: 'var(--brand)' }} />
+                Gepland{pt.wanneer ? ` · ${datumLabel(pt.wanneer)}` : ''}
+              </>
+            ) : pt.email ? (
+              <>
+                <Mail size={12} aria-hidden /> {pt.email}
+              </>
+            ) : (
+              <>
+                <MailX size={12} aria-hidden /> Geen mailadres bekend
+              </>
+            )}
+          </p>
+        </div>
+        {modus === 'dicht' ? (
+          <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+            {!pt.ingepland ? (
+              <Knop variant="primair" onClick={() => setModus('inplannen')}>
+                <CalendarPlus size={14} strokeWidth={2.2} aria-hidden />
+                Inplannen
+              </Knop>
+            ) : null}
+            <Knop onClick={() => setModus('afronden')}>
+              <ClipboardCheck size={14} strokeWidth={2.2} aria-hidden />
+              Afronden
+            </Knop>
+          </div>
+        ) : null}
+      </div>
+
+      {modus === 'inplannen' ? (
+        <InplanForm pt={pt} onKlaar={sluitEnVernieuw} onAnnuleer={() => setModus('dicht')} />
+      ) : null}
+      {modus === 'afronden' ? (
+        <CoachingAfronden pt={pt} onKlaar={sluitEnVernieuw} onAnnuleer={() => setModus('dicht')} />
+      ) : null}
+    </div>
+  )
+}
+
+/** De snelle "eerste afspraak zetten" (geen evaluatie) — datum/tijd → POST /events. */
+function InplanForm({ pt, onKlaar, onAnnuleer }: { pt: PtStatus; onKlaar: () => Promise<void>; onAnnuleer: () => void }) {
   const [datum, setDatum] = useState(standaardDatum)
   const [tijd, setTijd] = useState('10:00')
   const [bezig, setBezig] = useState(false)
@@ -186,63 +234,22 @@ function TeDoenRij({ pt, onGepland }: { pt: PtStatus; onGepland: () => Promise<v
       setFout(uitkomst.fout)
       return
     }
-    await onGepland() // de kaart herlaadt; deze rij verdwijnt naar "geregeld"
+    await onKlaar()
   }
 
   return (
-    <div style={{ display: 'grid', gap: 8, padding: '10px 0', borderTop: '1px solid var(--border)' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
-        <div style={{ minWidth: 0 }}>
-          <p style={{ margin: 0, fontSize: 14, fontWeight: 600, color: 'var(--text-1)' }}>{pt.naam}</p>
-          <p style={{ margin: '2px 0 0', display: 'flex', alignItems: 'center', gap: 5, fontSize: 11.5, color: 'var(--text-4)' }}>
-            {pt.email ? (
-              <>
-                <Mail size={12} aria-hidden /> Nodigt {pt.email} uit
-              </>
-            ) : (
-              <>
-                <MailX size={12} aria-hidden /> Geen mailadres — plant in zonder uitnodiging
-              </>
-            )}
-          </p>
-        </div>
-        {!open ? (
-          <Knop variant="primair" onClick={() => setOpen(true)}>
-            <CalendarPlus size={14} strokeWidth={2.2} aria-hidden />
-            Inplannen
-          </Knop>
-        ) : null}
+    <div style={{ display: 'grid', gap: 8, paddingTop: 4 }}>
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        <input type="date" value={datum} onChange={(e) => setDatum(e.target.value)} aria-label={`Datum afspraak ${pt.naam}`} style={veldStijl} />
+        <input type="time" value={tijd} onChange={(e) => setTijd(e.target.value)} aria-label={`Tijd afspraak ${pt.naam}`} style={veldStijl} />
       </div>
-
-      {open ? (
-        <div style={{ display: 'grid', gap: 8 }}>
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            <input
-              type="date"
-              value={datum}
-              onChange={(e) => setDatum(e.target.value)}
-              aria-label={`Datum coachgesprek ${pt.naam}`}
-              style={veldStijl}
-            />
-            <input
-              type="time"
-              value={tijd}
-              onChange={(e) => setTijd(e.target.value)}
-              aria-label={`Tijd coachgesprek ${pt.naam}`}
-              style={veldStijl}
-            />
-          </div>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <Knop variant="primair" onClick={() => void plan()} disabled={bezig}>
-              {bezig ? 'Bezig…' : pt.email ? 'Inplannen + uitnodigen' : 'Inplannen'}
-            </Knop>
-            <Knop onClick={() => { setOpen(false); setFout(null) }} disabled={bezig}>
-              Annuleren
-            </Knop>
-          </div>
-          {fout ? <Foutmelding bericht={fout} /> : null}
-        </div>
-      ) : null}
+      <div style={{ display: 'flex', gap: 8 }}>
+        <Knop variant="primair" onClick={() => void plan()} disabled={bezig}>
+          {bezig ? 'Bezig…' : pt.email ? 'Inplannen + uitnodigen' : 'Inplannen'}
+        </Knop>
+        <Knop onClick={onAnnuleer} disabled={bezig}>Annuleren</Knop>
+      </div>
+      {fout ? <Foutmelding bericht={fout} /> : null}
     </div>
   )
 }
@@ -258,7 +265,7 @@ const veldStijl: React.CSSProperties = {
   padding: '7px 10px',
 }
 
-/** Standaarddatum: overmorgen, als YYYY-MM-DD in lokale tijd. Een rustig startpunt. */
+/** Standaarddatum voor een eerste afspraak: overmorgen. */
 function standaardDatum(): string {
   const d = new Date()
   d.setDate(d.getDate() + 2)
