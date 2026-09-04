@@ -23,7 +23,6 @@ import {
 import { datumSleutel, leesDatumSleutel } from '@/lib/lifeos/datum/datum'
 import { Dagoverzicht } from './Dagoverzicht'
 import { NieuweAfspraak, type NieuwEventInvoer } from './NieuweAfspraak'
-import { AgendaKalenders } from './AgendaKalenders'
 import { Foutmelding } from '@/components/lifeos/os/Foutmelding'
 import { Knop } from '@/components/lifeos/os/Knop'
 
@@ -219,18 +218,6 @@ export function AgendaKaart() {
     [laad],
   )
 
-  /**
-   * Na het wisselen van agenda: eerst de cache opnieuw vullen uit de gekozen
-   * agenda (`/sync`), dan de dag herladen (`no-store`, want /vandaag cachet 60s en
-   * leest de cache). Zonder de sync toont /vandaag nog de vorige agenda, want dat
-   * endpoint leest de cache — niet Google.
-   */
-  const herlaadNaKeuze = useCallback(async () => {
-    await haalJson('/api/lifeos/agenda/sync', leesNiets, { method: 'POST' })
-    await laad({ cache: 'no-store' })
-    setRoosterNonce((n) => n + 1)
-  }, [laad])
-
   return (
     <Kaart titel="Je dag" vervangt="Calendar">
       {staat.fase === 'laden' ? <Skelet /> : null}
@@ -260,7 +247,9 @@ export function AgendaKaart() {
           <Skelet />
         ) : (
           <div style={{ display: 'grid', gap: 16 }}>
-            <AgendaKalenders onGewijzigd={herlaadNaKeuze} onKoppelOpnieuw={() => void koppel()} />
+            {/* De kalender-kiezer (zichtbaarheid + schrijf-doel) is bewust weg: je
+                dag staat altijd op je persoonlijke agenda, de andere heb je nooit
+                nodig. Alleen je dag + "nieuwe afspraak". */}
             <Dagoverzicht
               volgende={staat.data.volgende}
               loopt={
