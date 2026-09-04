@@ -36,7 +36,7 @@ export interface TakenBediening {
   vink: (taak: Taak) => void
   verwijder: (taak: Taak) => void
   wijzig: (taak: Taak, wijziging: TaakWijziging) => Promise<boolean>
-  voegToe: (titel: string, datum: string | null) => Promise<boolean>
+  voegToe: (titel: string, datum: string | null, categorie?: string | null) => Promise<boolean>
 }
 
 export function useTaken(): TakenBediening {
@@ -197,14 +197,14 @@ export function useTaken(): TakenBediening {
   )
 
   const voegToe = useCallback(
-    async (titel: string, datum: string | null): Promise<boolean> => {
+    async (titel: string, datum: string | null, categorie: string | null = null): Promise<boolean> => {
       if (staat.fase !== 'ok') return false
 
       setBezig(true)
       setActieFout(null)
       const uitkomst = await haalJson('/api/lifeos/taken', leesTaakAntwoord, {
         method: 'POST',
-        body: JSON.stringify({ titel, datum }),
+        body: JSON.stringify({ titel, datum, categorie }),
       })
       setBezig(false)
 

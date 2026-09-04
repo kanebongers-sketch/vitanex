@@ -13,6 +13,7 @@ function taak(over: Partial<SlimmeTaak> = {}): SlimmeTaak {
     id: '11111111-1111-4111-8111-111111111111',
     titel: 'Offerte afmaken',
     notitie: null,
+    categorie: null,
     klaar: false,
     klaarOp: null,
     datum: VANDAAG,

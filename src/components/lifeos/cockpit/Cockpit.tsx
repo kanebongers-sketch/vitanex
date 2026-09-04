@@ -1,8 +1,7 @@
 import { DagbriefingKaart } from '@/components/lifeos/dagbriefing/DagbriefingKaart'
 import { VitaKaart } from '@/components/lifeos/vita/VitaKaart'
 import { VitaGesprek } from '@/components/lifeos/vita/VitaGesprek'
-import { DagplanKaart } from '@/components/lifeos/taken/DagplanKaart'
-import { VangOp } from '@/components/lifeos/vangop/VangOp'
+import { TakenApple } from '@/components/lifeos/taken/TakenApple'
 import { KennisGrafiekKaart } from '@/components/lifeos/notities/KennisGrafiekKaart'
 import { AgendaKaart } from '@/components/lifeos/agenda/AgendaKaart'
 import { InboxKaart } from '@/components/lifeos/inbox/InboxKaart'
@@ -27,9 +26,8 @@ import { RefreshProvider } from '@/components/lifeos/os/RefreshContext'
 // De dagbriefing-band staat bovenaan en is de luidste: het is het eerste wat je
 // 's ochtends leest — de COO-briefing die de dag samenvat. Vita volgt eronder als
 // je interactieve companion: nog altijd `dragend`, maar één trap onder de briefing.
-// De brede ankers (Dagplan, Vang op) dragen hun rang via een brede span, niet via
-// een luidere nadruk; daaronder een rij halve tegels (Agenda, Inbox) — rang via
-// schaal, niet via kleur. Cyaan blijft strikt accent.
+// Daaronder het cluster "Mijn dag": vier halve tegels (to-do's, agenda, inbox,
+// PT-gesprekken) — rang via schaal, niet via kleur. Cyaan blijft strikt accent.
 //
 // Welzijn, training en voeding stonden hier ook, maar zijn eruit: welzijn dubbelde
 // met de gewone app (Home → zes pijlers) en training/voeding kregen een eigen
@@ -38,7 +36,7 @@ import { RefreshProvider } from '@/components/lifeos/os/RefreshContext'
 // ─── Drie banden, twee clusters ─────────────────────────────────────────────
 //   1. Band  — Dagbriefing: wat is vandaag het beeld? (het eerste wat je leest)
 //   2. Band  — Vita: wat moet je nú weten?
-//   3. Cluster "Mijn dag": je gereedschap — dagplan, vang op, agenda en inbox.
+//   3. Cluster "Mijn dag": je gereedschap — to-do's, agenda, inbox, PT-gesprekken.
 //   4. Band  — Vita-gesprek: je vraagt Vita iets nádat je zag wat er speelt.
 //   5. Cluster "Verbinden": de mensen om je heen, je geld en je kennis — je
 //      zakelijke overzicht.
@@ -74,27 +72,18 @@ export function Cockpit() {
             Mijn dag
           </h2>
           <p className="os-zone__intro">
-            Je gereedschap. Het dagplan adviseert op basis van wat je hebt ingevuld — je top-3 blijft
-            jouw keuze en wint altijd van het advies.
+            Je gereedschap: een rustige to-do-lijst, je agenda, je inbox en je PT-gesprekken.
           </p>
         </header>
 
-        {/* Dagplan en Vang op zijn de brede ankers (span 6). Welzijn is eruit — dat
-            zit al in de gewone app (Home → de zes pijlers) en dubbelde hier; Training
-            (het 4-weken-blok) en het programma-/voedingsschema verhuisden naar de
-            eigen /training-pagina in de sidebar. Zo blijft dit dashboard op werk,
-            taken en agenda gericht i.p.v. álles tegelijk. */}
-        <div className="os-tile--anker">
-          <DagplanKaart />
+        {/* Vier halve tegels (2×2). De "Je dag"/Dagplan-kaart is eruit: die dubbelde
+            met de takenlijst (taken zonder tijdsinschatting verschenen daar als "past
+            niet"). Taken leven nu op één plek — de simpele to-do-lijst hieronder,
+            gegroepeerd per eigen categorie, met afvinken. Op smaller stapelen de
+            halve tegels vanzelf. */}
+        <div className="os-tile--half">
+          <TakenApple />
         </div>
-        {/* "Vang op": één capture-balk voor taken én notities, met de rijke lijst
-            eronder. Vervangt de losse takenlijst + brain dump — de systemen erachter
-            bleven gescheiden, alleen de dubbele invoer is samengevoegd. */}
-        <div className="os-tile--anker">
-          <VangOp />
-        </div>
-        {/* Eén rij halve tegels: de agenda (met haar 1-dag/7-dagen-rooster) en de
-            inbox-triage. Samen 12 kolommen; op smaller stapelen ze vanzelf. */}
         <div className="os-tile--half">
           <AgendaKaart />
         </div>
