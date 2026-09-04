@@ -16,7 +16,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { takenVanRijen, taakVanRij, type NieuweTaak, type Taak, type TaakWijziging } from './taken'
 
 const KOLOMMEN =
-  'id, titel, notitie, klaar, klaar_op, datum, top3_positie, impact, inspanning_minuten, energie, deadline, project_id, aangemaakt_op'
+  'id, titel, notitie, categorie, klaar, klaar_op, datum, top3_positie, impact, inspanning_minuten, energie, deadline, project_id, aangemaakt_op'
 
 /** Postgres: unieke index geschonden. */
 const UNIEK_GESCHONDEN = '23505'
@@ -111,6 +111,7 @@ export async function maakTaak(
       user_id: userId,
       titel: nieuw.titel,
       notitie: nieuw.notitie,
+      categorie: nieuw.categorie ?? null,
       datum: nieuw.datum,
       top3_positie: nieuw.top3Positie,
       // `?? null` en niet weglaten: de vier feiten zijn optioneel bij het
@@ -147,6 +148,7 @@ export async function wijzigTaak(
   const velden: Record<string, unknown> = {}
   if (wijziging.titel !== undefined) velden.titel = wijziging.titel
   if (wijziging.notitie !== undefined) velden.notitie = wijziging.notitie
+  if (wijziging.categorie !== undefined) velden.categorie = wijziging.categorie
   if (wijziging.datum !== undefined) velden.datum = wijziging.datum
   if (wijziging.top3Positie !== undefined) velden.top3_positie = wijziging.top3Positie
   if (wijziging.impact !== undefined) velden.impact = wijziging.impact

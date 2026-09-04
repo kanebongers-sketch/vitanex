@@ -24,6 +24,7 @@ function taak(overschrijf: Partial<SlimmeTaak> = {}): SlimmeTaak {
     id: 'id-1',
     titel: 'Een taak',
     notitie: null,
+    categorie: null,
     klaar: false,
     klaarOp: null,
     datum: null,

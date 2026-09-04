@@ -7,6 +7,7 @@ function taak(overschrijf: Partial<Taak> = {}): Taak {
     id: 'id-1',
     titel: 'Iets doen',
     notitie: null,
+    categorie: null,
     klaar: false,
     klaarOp: null,
     datum: null,

@@ -54,6 +54,8 @@ export interface Taak {
   id: string
   titel: string
   notitie: string | null
+  /** Vrije categorie (Apple-Notes-mapje), of null. */
+  categorie: string | null
   klaar: boolean
   /** ISO-moment waarop je 'm afvinkte, of null. */
   klaarOp: string | null
@@ -80,6 +82,7 @@ export interface Taak {
 export interface NieuweTaak {
   titel: string
   notitie: string | null
+  categorie?: string | null
   datum: string | null
   top3Positie: Top3Positie | null
   impact?: number | null
@@ -93,6 +96,7 @@ export interface NieuweTaak {
 export interface TaakWijziging {
   titel?: string
   notitie?: string | null
+  categorie?: string | null
   klaar?: boolean
   datum?: string | null
   top3Positie?: Top3Positie | null
@@ -228,6 +232,11 @@ function leesFeiten(body: Record<string, unknown>): Validatie<Feiten> {
 }
 
 /** Nieuwe taak uit een request-body. Faalt met een leesbare melding. */
+/** Vrije categorie uit invoer: getrimd, leeg -> null. Geen validatie: het is een mapje-naam. */
+function catVan(v: unknown): string | null {
+  return typeof v === 'string' && v.trim().length > 0 ? v.trim() : null
+}
+
 export function leesNieuweTaak(body: unknown): Validatie<NieuweTaak> {
   if (!isObject(body)) return { ok: false, fout: 'Ongeldige invoer.' }
 
@@ -255,6 +264,7 @@ export function leesNieuweTaak(body: unknown): Validatie<NieuweTaak> {
       notitie: notitie.waarde,
       datum: datum.waarde,
       top3Positie: top3Positie.waarde,
+      categorie: catVan(body.categorie),
       ...feiten.waarde,
     },
   }
@@ -340,6 +350,9 @@ function leesFeitenWijziging(body: Record<string, unknown>): Validatie<TaakWijzi
     const projectId = leesProject(body.projectId)
     if (!projectId.ok) return projectId
     wijziging.projectId = projectId.waarde
+  }
+  if ('categorie' in body) {
+    wijziging.categorie = catVan(body.categorie)
   }
 
   return { ok: true, waarde: wijziging }
@@ -427,6 +440,7 @@ export function taakVanRij(rij: unknown): Taak | null {
     id,
     titel,
     notitie: tekst(rij.notitie),
+    categorie: tekst(rij.categorie),
     klaar: rij.klaar === true,
     klaarOp: tekst(rij.klaar_op),
     datum: tekst(rij.datum),
@@ -457,6 +471,7 @@ export function leesTaakJson(ruw: unknown): Taak | null {
     id,
     titel,
     notitie: tekst(ruw.notitie),
+    categorie: tekst(ruw.categorie),
     klaar: ruw.klaar === true,
     klaarOp: tekst(ruw.klaarOp),
     datum: tekst(ruw.datum),
