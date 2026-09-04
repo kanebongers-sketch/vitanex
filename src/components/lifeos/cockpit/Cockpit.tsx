@@ -8,6 +8,7 @@ import { AgendaKaart } from '@/components/lifeos/agenda/AgendaKaart'
 import { InboxKaart } from '@/components/lifeos/inbox/InboxKaart'
 import { MensenBord } from '@/components/lifeos/crm/MensenBord'
 import { FinanceKaart } from '@/components/lifeos/finance/FinanceKaart'
+import { PtGesprekkenKaart } from '@/components/lifeos/pt/PtGesprekkenKaart'
 import { RefreshProvider } from '@/components/lifeos/os/RefreshContext'
 
 // ─── De cockpit ──────────────────────────────────────────────────────────────
@@ -99,6 +100,11 @@ export function Cockpit() {
         </div>
         <div className="os-tile--half">
           <InboxKaart />
+        </div>
+        {/* PT-gesprekken: het 2-wekelijkse coachgesprek per PT-klant. Compact —
+            toont vooral wie nog ingepland moet worden; de rest zit ingeklapt. */}
+        <div className="os-tile--half">
+          <PtGesprekkenKaart />
         </div>
       </section>
 
