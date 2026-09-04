@@ -1,5 +1,5 @@
 // GET /api/lifeos/pt-coaching?persoon=<id> — de coaching-geschiedenis van één
-// PT-klant, nieuwste eerst. Het verloop over tijd: gaat het beter of niet?
+// PT-teamlid, nieuwste eerst. Het verloop over tijd: gaat het beter of niet?
 //
 // Auth: de founder-gate uit `@/lib/lifeos/admin`.
 
@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
 
   const persoon = req.nextUrl.searchParams.get('persoon')
   if (!persoon) {
-    return NextResponse.json({ fout: 'Geen PT-klant opgegeven.' }, { status: 400 })
+    return NextResponse.json({ fout: 'Geen PT-teamlid opgegeven.' }, { status: 400 })
   }
 
   const uitkomst = await haalEvaluaties(toegang.admin, toegang.userId, persoon)

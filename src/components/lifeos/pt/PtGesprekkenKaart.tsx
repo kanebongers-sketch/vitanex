@@ -15,7 +15,7 @@ import {
 } from '@/lib/lifeos/pt-gesprek/pt-gesprek'
 import { CoachingAfronden } from './CoachingAfronden'
 
-// Container: het 2-wekelijkse PT-coachgesprek. Per PT-klant of er binnen 14 dagen
+// Container: het 2-wekelijkse PT-coachgesprek. Per PT-teamlid of er binnen 14 dagen
 // een "Coachgesprek PT - Kane (Naam)" in je agenda staat, plus twee acties:
 //   Inplannen — voor wie nog geen komende afspraak heeft (de eerste zetten).
 //   Afronden  — ná een sessie: het evaluatieformulier invullen én meteen de
@@ -62,7 +62,7 @@ export function PtGesprekkenKaart() {
       {staat.fase === 'ok' && !staat.data.gekoppeld ? (
         <NogNiets
           wat="Agenda niet gekoppeld"
-          waarom="Koppel je Google Agenda, dan zie je hier per PT-klant of het 2-wekelijkse coachgesprek al gepland staat — en plan je 'm met één knop in."
+          waarom="Koppel je Google Agenda, dan zie je hier per PT-teamlid of het 2-wekelijkse coachgesprek al gepland staat — en plan je 'm met één knop in."
         />
       ) : null}
       {staat.fase === 'ok' && staat.data.gekoppeld ? (
@@ -78,7 +78,7 @@ function Overzicht({ pts, onVernieuw }: { pts: PtStatus[]; onVernieuw: () => Pro
   if (pts.length === 0) {
     return (
       <p style={{ fontSize: 14, color: 'var(--text-3)', margin: 0, lineHeight: 1.5 }}>
-        Nog geen PT-klanten in je mensen-bord. Voeg ze toe (groep PT-klant), dan verschijnen ze hier.
+        Nog geen PT-team in je mensen-bord. Voeg teamleden toe (groep PT-team), dan verschijnen ze hier.
       </p>
     )
   }
@@ -93,7 +93,7 @@ function Overzicht({ pts, onVernieuw }: { pts: PtStatus[]; onVernieuw: () => Pro
           {teDoen.length}
         </p>
         <p style={{ fontSize: 13.5, color: 'var(--text-2)', margin: 0, fontWeight: 600 }}>
-          {teDoen.length === 1 ? 'PT zonder komende afspraak' : 'PT’s zonder komende afspraak'}
+          {teDoen.length === 1 ? 'teamlid zonder komende afspraak' : 'teamleden zonder komende afspraak'}
         </p>
       </div>
 
@@ -108,7 +108,7 @@ function Overzicht({ pts, onVernieuw }: { pts: PtStatus[]; onVernieuw: () => Pro
       ) : (
         <p style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13.5, color: 'var(--text-3)', margin: 0 }}>
           <Check size={15} strokeWidth={2.2} aria-hidden style={{ color: 'var(--brand)' }} />
-          Bij elke PT staat een volgende afspraak.
+          Bij elk teamlid staat een volgende afspraak.
         </p>
       )}
 

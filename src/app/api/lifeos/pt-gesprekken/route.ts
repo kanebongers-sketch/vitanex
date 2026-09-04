@@ -1,6 +1,6 @@
 // GET /api/lifeos/pt-gesprekken — het 2-wekelijkse PT-coachgesprek per klant.
 //
-// Voor elke PT-klant (CRM-groep `pt_klant`): staat er binnen de komende 14 dagen
+// Voor elk PT-teamlid (CRM-groep `pt_team`): staat er binnen de komende 14 dagen
 // een afspraak "Coachgesprek PT - Kane (Naam)" in je agenda? Zo ja → geregeld;
 // zo nee → nog inplannen. De detectie leest LIVE uit Google (de gekozen agenda,
 // dezelfde waar de "Inplannen"-knop de afspraak in zet), zodat een net-gemaakte
@@ -30,10 +30,10 @@ export async function GET(req: NextRequest) {
   const toegang = await vereisLifeosToegang(req)
   if (toegang instanceof NextResponse) return toegang
 
-  // 1. De PT-klanten uit het CRM.
-  const personen = await haalPersonen(toegang.admin, toegang.userId, 'pt_klant')
+  // 1. Het PT-team uit het CRM.
+  const personen = await haalPersonen(toegang.admin, toegang.userId, 'pt_team')
   if (!personen.ok) {
-    return NextResponse.json({ fout: 'Kon je PT-klanten niet lezen.' }, { status: 502 })
+    return NextResponse.json({ fout: 'Kon je PT-team niet lezen.' }, { status: 502 })
   }
 
   // 2. Het agenda-token. "Niet gekoppeld" is een eigen tak (de kaart toont dan de

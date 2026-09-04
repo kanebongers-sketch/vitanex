@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
   const { persoonId, volgendeStartOp } = body as { persoonId?: unknown; volgendeStartOp?: unknown }
 
   if (typeof persoonId !== 'string' || persoonId.length === 0) {
-    return NextResponse.json({ fout: 'Onbekende PT-klant.' }, { status: 400 })
+    return NextResponse.json({ fout: 'Onbekend PT-teamlid.' }, { status: 400 })
   }
   const evaluatie = leesEvaluatie((body as { evaluatie?: unknown }).evaluatie)
   if (!evaluatie.ok) {
@@ -48,13 +48,13 @@ export async function POST(req: NextRequest) {
 
   // De persoon zelf ophalen (naam + mail voor de uitnodiging), server-side — de
   // client stuurt alleen het id, niet de naam/mail die we vertrouwen.
-  const personen = await haalPersonen(toegang.admin, toegang.userId, 'pt_klant')
+  const personen = await haalPersonen(toegang.admin, toegang.userId, 'pt_team')
   if (!personen.ok) {
-    return NextResponse.json({ fout: 'Kon je PT-klanten niet lezen.' }, { status: 502 })
+    return NextResponse.json({ fout: 'Kon je PT-team niet lezen.' }, { status: 502 })
   }
   const persoon = personen.waarde.find((p) => p.id === persoonId)
   if (!persoon) {
-    return NextResponse.json({ fout: 'Deze PT-klant bestaat niet.' }, { status: 404 })
+    return NextResponse.json({ fout: 'Dit PT-teamlid bestaat niet.' }, { status: 404 })
   }
 
   // 1. De evaluatie opslaan. Dít is de kern — mislukt het, dan stoppen we.
