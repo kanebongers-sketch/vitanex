@@ -1,0 +1,23 @@
+name: Dagplanning mail
+on:
+  schedule:
+    - cron: '0 5 * * 1-5'   # ma–vr, 07:00 NL zomertijd / 06:00 winter
+  workflow_dispatch:
+concurrency:
+  group: dagplanning-mail
+  cancel-in-progress: false
+jobs:
+  dagplanning:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Plan de blokken en stuur de dagplanning
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          set -euo pipefail
+          [ -z "${CRON_SECRET}" ] && { echo "::error::CRON_SECRET ontbreekt"; exit 1; }
+          status=$(curl -sS --max-time 60 -o response.json -w '%{http_code}' \
+            -H "x-cron-secret: ${CRON_SECRET}" \
+            https://mentaforce.nl/api/cron/dagplanning-mail)
+          echo "HTTP ${status}"; cat response.json; echo
+          [ "${status}" != "200" ] && { echo "::error::route gaf ${status}"; exit 1; } || true
