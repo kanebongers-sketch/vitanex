@@ -26,8 +26,11 @@ type Staat =
   | { fase: 'fout'; bericht: string }
   | { fase: 'ok'; data: AgendaDagen }
 
-const KEUZES = [1, 3] as const
-const STANDAARD_AANTAL = 3
+// 1 dag = "vandaag in detail", 7 dagen = het weekritme-overzicht. De 3-dagen-stand
+// verviel: hij dubbelde met het week-overzicht zonder een eigen doel. Standaard de
+// week, want dat is het beeld waar je op mikt als je de agenda opent.
+const KEUZES = [1, 7] as const
+const STANDAARD_AANTAL = 7
 
 export function AgendaDagenRooster({ herlaadSleutel = 0 }: AgendaDagenRoosterProps) {
   const [aantal, setAantal] = useState<number>(STANDAARD_AANTAL)
@@ -102,7 +105,7 @@ export function AgendaDagenRooster({ herlaadSleutel = 0 }: AgendaDagenRoosterPro
   )
 }
 
-/** Rustig segment-schakelaartje: 1 dag / 3 dagen. Cyaan markeert de keuze. */
+/** Rustig segment-schakelaartje: 1 dag / 7 dagen. Cyaan markeert de keuze. */
 function DagenSchakelaar({ aantal, onKies }: { aantal: number; onKies: (n: number) => void }) {
   return (
     <div
