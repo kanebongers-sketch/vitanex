@@ -25,8 +25,9 @@ import { geldigToken, leesGekozenKalender } from '@/lib/lifeos/agenda/koppeling'
 import { haalEvents } from '@/lib/lifeos/agenda/google'
 import { maakAgendaEvent } from '@/lib/lifeos/agenda/schrijven'
 import type { Afspraak } from '@/lib/lifeos/agenda/vrije-blokken'
+import { haalTaken } from '@/lib/lifeos/taken/opslag'
 import { kiesBewegingsblokken } from '@/lib/lifeos/dagplanning/bewegingsplan'
-import { bouwDagplanningMail, type DagItem } from '@/lib/lifeos/dagplanning/dagplanning'
+import { bouwDagplanningMail, type DagItem, type DagTodo } from '@/lib/lifeos/dagplanning/dagplanning'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -133,6 +134,17 @@ export async function GET(req: NextRequest): Promise<Response> {
   await plaats(SPORT_TITEL, plan.sport, heeftBlok(afspraken, SPORT_TITEL))
   await plaats(WANDEL_TITEL, plan.wandeling, heeftBlok(afspraken, WANDEL_TITEL))
 
+  // Je open to-do's erbij. Best-effort: lukt het lezen niet, dan gaat de mail
+  // gewoon zonder takenlijst — een agenda-mail zonder to-do's is nog steeds nuttig.
+  const vandaagKey = `${nu.getFullYear()}-${String(nu.getMonth() + 1).padStart(2, '0')}-${String(nu.getDate()).padStart(2, '0')}`
+  const takenUitkomst = await haalTaken(admin, userId, { alleenOpen: true })
+  const todos: DagTodo[] = takenUitkomst.ok
+    ? takenUitkomst.waarde
+        .map((t) => ({ titel: t.titel, top3: t.top3Positie !== null, vandaag: t.datum === vandaagKey }))
+        // Top-3 eerst, dan wat vandaag gepland staat, dan de rest.
+        .sort((a, b) => Number(b.top3) - Number(a.top3) || Number(b.vandaag) - Number(a.vandaag))
+    : []
+
   // De mail: de bestaande agenda + wat we net toevoegden.
   const items: DagItem[] = [
     ...afspraken.map((e) => ({
@@ -145,7 +157,7 @@ export async function GET(req: NextRequest): Promise<Response> {
     ...nieuw,
   ]
 
-  const mail = bouwDagplanningMail(nu, items)
+  const mail = bouwDagplanningMail(nu, items, todos)
 
   try {
     const resend = new Resend(process.env.RESEND_API_KEY)

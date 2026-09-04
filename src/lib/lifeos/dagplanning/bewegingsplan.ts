@@ -15,6 +15,24 @@ export const WANDEL_MIN = 60
 /** Vóór dit uur = "ochtend" voor de sport-voorkeur. */
 const OCHTEND_GRENS_UUR = 12
 
+/**
+ * Rondt een moment OMHOOG naar het eerstvolgende hele of halve uur (:00 of :30).
+ * Omhoog, niet af: een blok mag nooit vóór het vrije gat beginnen. 16:37 → 17:00,
+ * 16:12 → 16:30, 16:00 blijft 16:00. Zo staan de blokken op nette tijden.
+ */
+function rondOpNaarHalfUur(d: Date): Date {
+  const r = new Date(d)
+  r.setSeconds(0, 0)
+  const m = r.getMinutes()
+  if (m === 0 || m === 30) return r
+  if (m < 30) r.setMinutes(30)
+  else {
+    r.setMinutes(0)
+    r.setHours(r.getHours() + 1)
+  }
+  return r
+}
+
 export interface Bewegingsblokken {
   /** Het gekozen sport-venster, of null als er die dag geen 90 min vrij was. */
   sport: Venster | null
@@ -32,21 +50,29 @@ export interface Bewegingsblokken {
  * juist een blok ná de middag, zodat het niet meteen tegen de sport aan plakt.
  */
 function kiesSlot(vrije: readonly VrijBlok[], duurMin: number, voorMiddag: boolean): Venster | null {
-  const passend = vrije.filter((b) => b.minuten >= duurMin)
-  if (passend.length === 0) return null
+  // Per vrij blok: rond de start op naar :00/:30 en houd het alleen als het blok
+  // daarná nog past. Afronden kost ruimte, dus een gat dat precies `duurMin` lang
+  // is maar op :37 begint valt hier af — dat is de bedoeling: liever een net
+  // tijdstip dan een strak-passend rommeltijdstip.
+  const kandidaten = vrije
+    .map((b) => {
+      const startOp = rondOpNaarHalfUur(b.startOp)
+      const eindOp = new Date(startOp.getTime() + duurMin * 60_000)
+      return eindOp.getTime() <= b.eindOp.getTime() ? { startOp, eindOp } : null
+    })
+    .filter((v): v is Venster => v !== null)
 
-  let keuze = passend[0]
+  if (kandidaten.length === 0) return null
+
+  let keuze = kandidaten[0]
   if (voorMiddag) {
-    const ochtend = passend.find((b) => b.startOp.getHours() < OCHTEND_GRENS_UUR)
+    const ochtend = kandidaten.find((k) => k.startOp.getHours() < OCHTEND_GRENS_UUR)
     if (ochtend) keuze = ochtend
   } else {
-    const naMiddag = passend.find((b) => b.startOp.getHours() >= OCHTEND_GRENS_UUR)
+    const naMiddag = kandidaten.find((k) => k.startOp.getHours() >= OCHTEND_GRENS_UUR)
     if (naMiddag) keuze = naMiddag
   }
-
-  const startOp = new Date(keuze.startOp)
-  const eindOp = new Date(startOp.getTime() + duurMin * 60_000)
-  return { startOp, eindOp }
+  return keuze
 }
 
 /**

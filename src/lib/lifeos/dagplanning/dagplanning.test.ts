@@ -44,6 +44,22 @@ describe('bouwDagplanningMail', () => {
     expect(mail.html).toContain('&lt;script&gt;')
   })
 
+  test('zet je to-do’s in de mail, met de top-3 gemarkeerd', () => {
+    const mail = bouwDagplanningMail(DAG, [], [
+      { titel: 'Bon Linsey en Maartje', top3: true, vandaag: true },
+      { titel: 'Kaartjes pt', top3: false, vandaag: false },
+    ])
+    expect(mail.tekst).toContain('JE TO-DO’S')
+    expect(mail.tekst).toContain('Bon Linsey en Maartje')
+    expect(mail.tekst).toContain('★') // top-3 markering
+    expect(mail.html).toContain('Kaartjes pt')
+  })
+
+  test('zonder to-do’s: eerlijke "geen open taken"', () => {
+    const mail = bouwDagplanningMail(DAG, [])
+    expect(mail.tekst).toContain('Geen open taken')
+  })
+
   test('toont alleen de start als het eind onbekend is', () => {
     const mail = bouwDagplanningMail(DAG, [item(9, null, 'Open eind')])
     // Geen en-dash-tijdvak, wel een starttijd.
