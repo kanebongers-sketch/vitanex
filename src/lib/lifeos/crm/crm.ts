@@ -116,6 +116,12 @@ export function statusDef(groep: Groep, status: string): StatusDef | null {
 
 // ─── De persoon ─────────────────────────────────────────────────────────────
 
+export type PtLocatie = 'bergeijk' | 'someren' | 'budel'
+export const PT_LOCATIES: readonly PtLocatie[] = Object.freeze(['bergeijk', 'someren', 'budel'])
+export function isPtLocatie(v: unknown): v is PtLocatie {
+  return typeof v === 'string' && (PT_LOCATIES as readonly string[]).includes(v)
+}
+
 export interface Persoon {
   id: string
   naam: string
@@ -130,6 +136,12 @@ export interface Persoon {
   bijzonderheden: string | null
   /** ISO-moment van laatste contact, of null. */
   laatsteContactOp: string | null
+  /** PT-klant: hoe vaak per week (1 of 2), of null = nog niet ingesteld. */
+  sessiesPerWeek: number | null
+  /** PT-klant: waar traint deze klant. */
+  locatie: PtLocatie | null
+  /** PT-klant: op vakantie t/m deze dag (YYYY-MM-DD), of null. Dan even niet meetellen. */
+  vakantieTot: string | null
   aangemaaktOp: string
 }
 
@@ -257,6 +269,9 @@ export interface PersoonWijziging {
   email?: string | null
   bijzonderheden?: string | null
   laatsteContactOp?: string | null
+  sessiesPerWeek?: number | null
+  locatie?: PtLocatie | null
+  vakantieTot?: string | null
 }
 
 /**
@@ -316,6 +331,23 @@ export function leesPersoonWijziging(body: unknown, groep: Groep): Validatie<Per
     } else {
       return { ok: false, fout: 'Laatste contact moet een moment of null zijn.' }
     }
+  }
+
+  if ('sessiesPerWeek' in body) {
+    const n = body.sessiesPerWeek
+    if (n !== 1 && n !== 2 && n !== null) return { ok: false, fout: 'Sessies per week is 1 of 2.' }
+    wijziging.sessiesPerWeek = n
+  }
+  if ('locatie' in body) {
+    if (body.locatie !== null && !isPtLocatie(body.locatie)) {
+      return { ok: false, fout: 'Onbekende locatie.' }
+    }
+    wijziging.locatie = body.locatie
+  }
+  if ('vakantieTot' in body) {
+    const d = leesDatum(body.vakantieTot)
+    if (!d.ok) return d
+    wijziging.vakantieTot = d.waarde
   }
 
   if (Object.keys(wijziging).length === 0) return { ok: false, fout: 'Niets om te wijzigen.' }

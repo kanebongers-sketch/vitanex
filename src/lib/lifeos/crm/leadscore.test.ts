@@ -26,6 +26,9 @@ function maakPersoon(over: Partial<Persoon> = {}): Persoon {
     email: null,
     bijzonderheden: null,
     laatsteContactOp: null,
+    sessiesPerWeek: null,
+    locatie: null,
+    vakantieTot: null,
     aangemaaktOp: dagenGeleden(100),
     ...over,
   }

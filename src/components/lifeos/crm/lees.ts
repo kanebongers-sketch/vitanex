@@ -11,6 +11,7 @@ import { getalOfNull, isObject, tekstOfNull } from '@/lib/lifeos/api/http'
 import {
   HISTORIE_SOORTEN,
   isGroep,
+  isPtLocatie,
   type HistorieItem,
   type HistorieSoort,
   type Persoon,
@@ -45,6 +46,9 @@ export function leesPersoonJson(ruw: unknown): Persoon | null {
     email: tekstOfNull(ruw.email),
     bijzonderheden: tekstOfNull(ruw.bijzonderheden),
     laatsteContactOp: tekstOfNull(ruw.laatsteContactOp),
+    sessiesPerWeek: getalOfNull(ruw.sessiesPerWeek),
+    locatie: isPtLocatie(ruw.locatie) ? ruw.locatie : null,
+    vakantieTot: tekstOfNull(ruw.vakantieTot),
     aangemaaktOp,
   }
 }

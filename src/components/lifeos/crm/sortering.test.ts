@@ -22,6 +22,9 @@ function persoon(over: Partial<Persoon> & { id: string }): Persoon {
     email: null,
     bijzonderheden: null,
     laatsteContactOp: null,
+    sessiesPerWeek: null,
+    locatie: null,
+    vakantieTot: null,
     aangemaaktOp: '2026-07-17T09:00:00.000Z',
     ...over,
   }

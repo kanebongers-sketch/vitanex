@@ -37,6 +37,9 @@ describe('persoonVanRij', () => {
       email: 'jan@example.com',
       bijzonderheden: 'Wil graag zaterdag',
       laatsteContactOp: '2026-07-17T09:00:00.000Z',
+      sessiesPerWeek: null,
+      locatie: null,
+      vakantieTot: null,
       aangemaaktOp: '2026-07-01T08:00:00.000Z',
     })
   })

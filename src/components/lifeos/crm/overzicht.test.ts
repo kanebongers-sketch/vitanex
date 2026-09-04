@@ -17,6 +17,9 @@ function persoon(over: Partial<Persoon>): Persoon {
     email: over.email ?? null,
     bijzonderheden: over.bijzonderheden ?? null,
     laatsteContactOp: over.laatsteContactOp ?? null,
+    sessiesPerWeek: over.sessiesPerWeek ?? null,
+    locatie: over.locatie ?? null,
+    vakantieTot: over.vakantieTot ?? null,
     aangemaaktOp: over.aangemaaktOp ?? '2026-01-01T00:00:00.000Z',
   }
 }

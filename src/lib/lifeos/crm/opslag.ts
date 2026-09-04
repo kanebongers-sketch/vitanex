@@ -20,6 +20,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import {
   isGroep,
+  isPtLocatie,
   type Groep,
   type NieuwePersoon,
   type Persoon,
@@ -29,7 +30,7 @@ import { vertaalFout, type Reden, type Uitkomst } from './fout'
 import { logGebeurtenis, type Gebeurtenis } from './historie'
 
 export const PERSOON_KOLOMMEN =
-  'id, naam, groep, status, sortering, follow_up_datum, telefoon, email, bijzonderheden, laatste_contact_op, aangemaakt_op'
+  'id, naam, groep, status, sortering, follow_up_datum, telefoon, email, bijzonderheden, laatste_contact_op, sessies_per_week, locatie, vakantie_tot, aangemaakt_op'
 
 /**
  * De stap tussen twee opeenvolgende posities in een kolom. Ruim genoeg om er nog
@@ -191,6 +192,9 @@ function veldenVanWijziging(wijziging: PersoonWijziging): Record<string, unknown
   if (wijziging.email !== undefined) velden.email = wijziging.email
   if (wijziging.bijzonderheden !== undefined) velden.bijzonderheden = wijziging.bijzonderheden
   if (wijziging.laatsteContactOp !== undefined) velden.laatste_contact_op = wijziging.laatsteContactOp
+  if (wijziging.sessiesPerWeek !== undefined) velden.sessies_per_week = wijziging.sessiesPerWeek
+  if (wijziging.locatie !== undefined) velden.locatie = wijziging.locatie
+  if (wijziging.vakantieTot !== undefined) velden.vakantie_tot = wijziging.vakantieTot
   return velden
 }
 
@@ -328,6 +332,9 @@ export function persoonVanRij(rij: unknown): Persoon | null {
     email: tekst(rij.email),
     bijzonderheden: tekst(rij.bijzonderheden),
     laatsteContactOp: tekst(rij.laatste_contact_op),
+    sessiesPerWeek: getal(rij.sessies_per_week),
+    locatie: isPtLocatie(rij.locatie) ? rij.locatie : null,
+    vakantieTot: tekst(rij.vakantie_tot),
     aangemaaktOp,
   }
 }
