@@ -15,6 +15,18 @@ function afspraak(startUur: number, eindUur: number, titel = 'Afspraak'): Afspra
   }
 }
 
+/** Afspraak met minuutprecisie, om een "rommelig" vrij gat te maken. */
+function afspraakM(sU: number, sM: number, eU: number, eM: number, titel = 'Afspraak'): Afspraak {
+  return {
+    id: `${titel}-${sU}:${sM}`,
+    titel,
+    startOp: new Date(2026, 8, 7, sU, sM),
+    eindOp: new Date(2026, 8, 7, eU, eM),
+    heleDag: false,
+    locatie: null,
+  }
+}
+
 const DAG = new Date(2026, 8, 7)
 
 function uur(d: Date): number {
@@ -52,6 +64,20 @@ describe('kiesBewegingsblokken', () => {
     const { sport, wandeling } = kiesBewegingsblokken([afspraak(8, 20, 'Vol')], DAG)
     expect(sport).toBeNull()
     expect(wandeling).toBeNull()
+  })
+
+  test('rondt de starttijd af naar een heel of half uur', () => {
+    // Afspraak eindigt op 09:07 → het vrije gat begint rommelig; sport moet op
+    // een net tijdstip (09:30) staan, niet op 09:07.
+    const { sport, wandeling } = kiesBewegingsblokken([afspraakM(8, 0, 9, 7, 'Call')], DAG)
+
+    expect(sport).not.toBeNull()
+    if (sport) {
+      expect([0, 30]).toContain(sport.startOp.getMinutes())
+      expect(uur(sport.startOp)).toBe(9.5)
+    }
+    // Ook de wandeling staat op een net tijdstip.
+    if (wandeling) expect([0, 30]).toContain(wandeling.startOp.getMinutes())
   })
 
   test('respecteert `nu`: plant niets vóór het huidige moment', () => {

@@ -18,6 +18,15 @@ export interface DagItem {
   beweging?: boolean
 }
 
+/** Eén open taak voor de to-do-sectie in de mail. */
+export interface DagTodo {
+  titel: string
+  /** Staat in de top-3 van vandaag — krijgt een accent. */
+  top3: boolean
+  /** Gepland voor vandaag. */
+  vandaag: boolean
+}
+
 export interface DagplanningMail {
   onderwerp: string
   html: string
@@ -51,7 +60,11 @@ function gesorteerd(items: readonly DagItem[]): DagItem[] {
   })
 }
 
-export function bouwDagplanningMail(dag: Date, items: readonly DagItem[]): DagplanningMail {
+export function bouwDagplanningMail(
+  dag: Date,
+  items: readonly DagItem[],
+  todos: readonly DagTodo[] = [],
+): DagplanningMail {
   const datum = datumLang(dag)
   const rijen = gesorteerd(items)
 
@@ -64,7 +77,17 @@ export function bouwDagplanningMail(dag: Date, items: readonly DagItem[]): Dagpl
   const tekstRegels = rijen.length
     ? rijen.map((i) => `${tijdvak(i)}  ${i.titel}${i.beweging ? '  (ingepland)' : ''}`)
     : ['Je agenda is vandaag leeg — mooie ruimte.']
-  const tekst = [`Je dag — ${datum}`, '', ...tekstRegels, '', 'Sport en wandeling zijn automatisch ingepland.'].join('\n')
+  const tekstTodos = todos.length
+    ? ['', 'JE TO-DO’S', ...todos.map((t) => `- ${t.titel}${t.top3 ? '  ★' : t.vandaag ? '  (vandaag)' : ''}`)]
+    : ['', 'Geen open taken op je lijst.']
+  const tekst = [
+    `Je dag — ${datum}`,
+    '',
+    ...tekstRegels,
+    ...tekstTodos,
+    '',
+    'Sport en wandeling zijn automatisch ingepland.',
+  ].join('\n')
 
   // ── HTML ── (inline styles: mailclients negeren <style>-blokken vaak)
   const rijHtml = rijen.length
@@ -80,11 +103,27 @@ export function bouwDagplanningMail(dag: Date, items: readonly DagItem[]): Dagpl
         .join('')
     : `<tr><td colspan="2" style="padding:8px 0;color:#5b6b86;">Je agenda is vandaag leeg — mooie ruimte.</td></tr>`
 
+  // ── To-do-sectie ──
+  const todoLijst = todos.length
+    ? `<ul style="margin:6px 0 0;padding-left:18px;font-size:14px;line-height:1.7;">${todos
+        .map((t) => {
+          const accent = t.top3 ? 'color:#0a7c8a;font-weight:600;' : 'color:#0b1b3a;'
+          const merk = t.top3 ? ' <span style="color:#0a7c8a;">★</span>' : t.vandaag ? ' <span style="color:#8a97ad;font-size:12px;">· vandaag</span>' : ''
+          return `<li style="${accent}">${escape(t.titel)}${merk}</li>`
+        })
+        .join('')}</ul>`
+    : `<p style="margin:6px 0 0;font-size:14px;color:#5b6b86;">Geen open taken op je lijst.</p>`
+
+  const todoHtml = `
+    <h2 style="margin:24px 0 0;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:#5b6b86;">Je to-do’s</h2>
+    ${todoLijst}`
+
   const html = `<div style="font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px;color:#0b1b3a;">
     <p style="margin:0 0 2px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#5b6b86;">Je dagplanning</p>
     <h1 style="margin:0 0 16px;font-size:20px;color:#0b1b3a;">${escape(datum)}</h1>
     <table style="border-collapse:collapse;width:100%;font-size:14px;">${rijHtml}</table>
-    <p style="margin:20px 0 0;font-size:12px;color:#8a97ad;">Sport (90 min, incl. reistijd) en een wandeling (60 min) zijn automatisch in je agenda gezet.</p>
+    ${todoHtml}
+    <p style="margin:24px 0 0;font-size:12px;color:#8a97ad;">Sport (90 min, incl. reistijd) en een wandeling (60 min) zijn automatisch in je agenda gezet.</p>
   </div>`
 
   return { onderwerp, html, tekst }
