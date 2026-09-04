@@ -3,7 +3,7 @@ import { bepaalWeekStatus, matchtPtSessie, ptSessieTitel, type PtEvent, type PtK
 
 describe('ptSessieTitel', () => {
   test('bouwt de titel met naam en locatie', () => {
-    expect(ptSessieTitel('Iris', 'someren')).toBe('PT Iris (Someren)')
+    expect(ptSessieTitel('Iris', 'someren')).toBe('PT Iris Someren')
   })
   test('zonder locatie alleen naam', () => {
     expect(ptSessieTitel('Rick', null)).toBe('PT Rick')

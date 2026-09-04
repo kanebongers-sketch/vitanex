@@ -15,9 +15,9 @@ export const LOCATIE_LABEL: Record<PtLocatie, string> = {
 /** Hoe vaak per week als er niets is ingesteld: één keer. */
 export const STANDAARD_PER_WEEK = 1
 
-/** De vaste sessie-titel: "PT Iris (Someren)". */
+/** De vaste sessie-titel: "PT Iris Someren" (naam + locatie, geen haakjes). */
 export function ptSessieTitel(naam: string, locatie: PtLocatie | null): string {
-  const loc = locatie ? ` (${LOCATIE_LABEL[locatie]})` : ''
+  const loc = locatie ? ` ${LOCATIE_LABEL[locatie]}` : ''
   return `PT ${naam.trim()}${loc}`
 }
 
