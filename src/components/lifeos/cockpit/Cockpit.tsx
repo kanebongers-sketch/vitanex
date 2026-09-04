@@ -6,11 +6,10 @@ import { VangOp } from '@/components/lifeos/vangop/VangOp'
 import { KennisGrafiekKaart } from '@/components/lifeos/notities/KennisGrafiekKaart'
 import { AgendaKaart } from '@/components/lifeos/agenda/AgendaKaart'
 import { InboxKaart } from '@/components/lifeos/inbox/InboxKaart'
-import { WelzijnScoreKaart } from '@/components/lifeos/welzijn/WelzijnScoreKaart'
 import { MensenBord } from '@/components/lifeos/crm/MensenBord'
 import { FinanceKaart } from '@/components/lifeos/finance/FinanceKaart'
-import { ProgrammaKaart } from '@/components/lifeos/programma/ProgrammaKaart'
-import { BlokKaart } from '@/components/lifeos/blok/BlokKaart'
+import { PtGesprekkenKaart } from '@/components/lifeos/pt/PtGesprekkenKaart'
+import { RefreshProvider } from '@/components/lifeos/os/RefreshContext'
 
 // ─── De cockpit ──────────────────────────────────────────────────────────────
 // Eén vullend, breed werkscherm in plaats van zeven losse zones onder elkaar die
@@ -29,14 +28,17 @@ import { BlokKaart } from '@/components/lifeos/blok/BlokKaart'
 // 's ochtends leest — de COO-briefing die de dag samenvat. Vita volgt eronder als
 // je interactieve companion: nog altijd `dragend`, maar één trap onder de briefing.
 // De brede ankers (Dagplan, Vang op) dragen hun rang via een brede span, niet via
-// een luidere nadruk; daaronder een paar halve tegels (Welzijn, Agenda) en de
-// inbox als volle-breedte-lijst — rang via schaal, niet via kleur. Cyaan blijft
-// strikt accent.
+// een luidere nadruk; daaronder een rij halve tegels (Agenda, Inbox) — rang via
+// schaal, niet via kleur. Cyaan blijft strikt accent.
+//
+// Welzijn, training en voeding stonden hier ook, maar zijn eruit: welzijn dubbelde
+// met de gewone app (Home → zes pijlers) en training/voeding kregen een eigen
+// /training-pagina in de sidebar. Dit dashboard blijft op werk, taken en agenda.
 //
 // ─── Drie banden, twee clusters ─────────────────────────────────────────────
 //   1. Band  — Dagbriefing: wat is vandaag het beeld? (het eerste wat je leest)
 //   2. Band  — Vita: wat moet je nú weten?
-//   3. Cluster "Mijn dag": je gereedschap (incl. de 6 pijlers als knop-kaarten).
+//   3. Cluster "Mijn dag": je gereedschap — dagplan, vang op, agenda en inbox.
 //   4. Band  — Vita-gesprek: je vraagt Vita iets nádat je zag wat er speelt.
 //   5. Cluster "Verbinden": de mensen om je heen, je geld en je kennis — je
 //      zakelijke overzicht.
@@ -48,6 +50,7 @@ import { BlokKaart } from '@/components/lifeos/blok/BlokKaart'
 
 export function Cockpit() {
   return (
+    <RefreshProvider>
     <div className="os-cockpit">
       {/* Band 1 — de dagbriefing: het eerste wat je 's ochtends leest, de luidste
           band via schaal en een zachte cyaan-gloed. */}
@@ -76,14 +79,11 @@ export function Cockpit() {
           </p>
         </header>
 
-        {/* Training van vandaag: het interactieve 4-weken blok, als eerste anker.
-            Op de telefoon (één kolom) blijft het bovenaan en vol-breedte, precies
-            waar Kane het invult tijdens de sessie. Op desktop is het een anker
-            (halve breedte) i.p.v. vol-breedte, zodat een smalle logging-kolom niet
-            over 3000px uitsmeert en het naast het dagplan komt — denser scherm. */}
-        <div className="os-tile--anker">
-          <BlokKaart />
-        </div>
+        {/* Dagplan en Vang op zijn de brede ankers (span 6). Welzijn is eruit — dat
+            zit al in de gewone app (Home → de zes pijlers) en dubbelde hier; Training
+            (het 4-weken-blok) en het programma-/voedingsschema verhuisden naar de
+            eigen /training-pagina in de sidebar. Zo blijft dit dashboard op werk,
+            taken en agenda gericht i.p.v. álles tegelijk. */}
         <div className="os-tile--anker">
           <DagplanKaart />
         </div>
@@ -93,27 +93,18 @@ export function Cockpit() {
         <div className="os-tile--anker">
           <VangOp />
         </div>
-        {/* Eén rij halve tegels. De agenda heeft haar 3-dagen-rooster (min ~448px)
-            en agendalijst; op een halve tegel passen de drie dagkolommen comfortabel
-            i.p.v. samengeperst. */}
-        <div className="os-tile--half">
-          <WelzijnScoreKaart />
-        </div>
+        {/* Eén rij halve tegels: de agenda (met haar 1-dag/7-dagen-rooster) en de
+            inbox-triage. Samen 12 kolommen; op smaller stapelen ze vanzelf. */}
         <div className="os-tile--half">
           <AgendaKaart />
         </div>
-        {/* Inbox en programma naast elkaar (half): op een breed scherm past er zo
-            veel meer op het dashboard, en een halve kolom is voor beide ruim genoeg
-            — een triage-lijst en een schema hoeven niet 2400px breed te zijn. Op
-            smaller stapelen ze vanzelf (zie de os-tile--half breakpoints). */}
         <div className="os-tile--half">
           <InboxKaart />
         </div>
-        {/* Mijn programma: Kane's eigen training- en voedingsschema (uit zijn
-            Excel), om zijn dag te volgen — kies een sessie of voedingsdag. De
-            volledige weergave staat ook op de aparte /programma-pagina. */}
+        {/* PT-gesprekken: het 2-wekelijkse coachgesprek per PT-klant. Compact —
+            toont vooral wie nog ingepland moet worden; de rest zit ingeklapt. */}
         <div className="os-tile--half">
-          <ProgrammaKaart />
+          <PtGesprekkenKaart />
         </div>
       </section>
 
@@ -169,5 +160,6 @@ export function Cockpit() {
         </div>
       </section>
     </div>
+    </RefreshProvider>
   )
 }

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { haalJson, haalJsonGedeeld, leesNiets } from '@/lib/lifeos/api/http'
+import { useRefreshSignaal } from '@/components/lifeos/os/RefreshContext'
 import { meldWijziging } from '@/lib/lifeos/events'
 import {
   leesTaakAntwoord,
@@ -46,6 +47,7 @@ export function useTaken(): TakenBediening {
   // Generatieteller: `laad` loopt vanaf mount en vanaf de retry-knop. Zonder
   // deze teller wint een oudere vlucht die toevallig als laatste terugkomt. De
   // cleanup hoogt 'm op, zodat een vlucht die bij unmount nog loopt niets zet.
+  const signaal = useRefreshSignaal()
   const generatie = useRef(0)
 
   const laad = useCallback((): Promise<void> => {
@@ -76,7 +78,7 @@ export function useTaken(): TakenBediening {
   useEffect(() => {
     void laad()
     return verval
-  }, [laad, verval])
+  }, [laad, verval, signaal])
 
   const opnieuw = useCallback(() => {
     setStaat({ fase: 'laden' })

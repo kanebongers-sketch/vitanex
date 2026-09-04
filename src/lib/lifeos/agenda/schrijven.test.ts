@@ -63,6 +63,27 @@ describe('naarGoogleAanmaakBody', () => {
     expect(body.location).toBe('Eersel')
     expect(body.description).toBe('Met het team')
   })
+
+  it('zet genodigden om naar Google-attendees', () => {
+    const body = naarGoogleAanmaakBody({
+      titel: 'Coachgesprek PT - Kane (Iris)',
+      startOp: '2026-07-16T09:00:00.000Z',
+      eindOp: '2026-07-16T09:30:00.000Z',
+      genodigden: ['iris@x.nl'],
+    })
+
+    expect(body.attendees).toEqual([{ email: 'iris@x.nl' }])
+  })
+
+  it('laat attendees weg als er geen genodigden zijn', () => {
+    const body = naarGoogleAanmaakBody({
+      titel: 'Overleg',
+      startOp: '2026-07-16T09:00:00.000Z',
+      eindOp: '2026-07-16T10:00:00.000Z',
+    })
+
+    expect('attendees' in body).toBe(false)
+  })
 })
 
 describe('naarGooglePatchBody', () => {
@@ -158,6 +179,24 @@ describe('leesNieuwEvent', () => {
     // Act + Assert
     expect(leesNieuwEvent(null).ok).toBe(false)
     expect(leesNieuwEvent('afspraak').ok).toBe(false)
+  })
+
+  it('leest genodigden: trim, lowercase, ontdubbel', () => {
+    const uitkomst = leesNieuwEvent({ ...geldig, genodigden: [' Iris@X.nl ', 'iris@x.nl'] })
+
+    expect(uitkomst.ok).toBe(true)
+    if (uitkomst.ok) expect(uitkomst.waarde.genodigden).toEqual(['iris@x.nl'])
+  })
+
+  it('laat genodigden weg als de lijst leeg is (geen leeg veld → geen mail)', () => {
+    const uitkomst = leesNieuwEvent({ ...geldig, genodigden: [] })
+
+    expect(uitkomst.ok).toBe(true)
+    if (uitkomst.ok) expect('genodigden' in uitkomst.waarde).toBe(false)
+  })
+
+  it('weigert een onzin-adres — we sturen straks een echte uitnodiging', () => {
+    expect(leesNieuwEvent({ ...geldig, genodigden: ['geen-mail'] }).ok).toBe(false)
   })
 })
 

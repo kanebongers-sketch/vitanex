@@ -56,7 +56,16 @@ export interface NieuwAgendaEvent {
   eindOp: string
   locatie?: string
   beschrijving?: string
+  /**
+   * E-mailadressen die Google een uitnodiging stuurt (`sendUpdates=all`). Leeg of
+   * weggelaten = geen genodigden, geen mail. Gebruikt voor bv. het PT-coachgesprek:
+   * de klant krijgt de afspraak in zijn eigen agenda. Versturen doet Google, niet
+   * wij — maar alléén als hier adressen staan, dus nooit per ongeluk.
+   */
+  genodigden?: string[]
 }
+
+export const MAX_GENODIGDEN = 25
 
 /**
  * Een deelwijziging. Alleen aanwezige velden veranderen — zo verzet je een
@@ -152,11 +161,16 @@ export async function maakAgendaEvent(
   const geldig = leesNieuwEvent(invoer)
   if (!geldig.ok) throw new AgendaSchrijfFout('ongeldig', geldig.fout)
 
+  // `sendUpdates=all` alléén als er genodigden zijn: dan mailt Google de
+  // uitnodiging. Geen genodigden → geen query → Google verstuurt niets.
+  const heeftGenodigden = (geldig.waarde.genodigden?.length ?? 0) > 0
+  const endpoint = eventsEndpoint(kalenderId) + (heeftGenodigden ? '?sendUpdates=all' : '')
+
   const antwoord = await googleFetchMetVernieuwing(
     admin,
     userId,
     'POST',
-    eventsEndpoint(kalenderId),
+    endpoint,
     naarGoogleAanmaakBody(geldig.waarde),
   )
   const event = await leesSchrijfAntwoord(antwoord)
@@ -225,6 +239,12 @@ export function naarGoogleAanmaakBody(invoer: NieuwAgendaEvent): Record<string, 
   }
   if (invoer.locatie) body.location = invoer.locatie
   if (invoer.beschrijving) body.description = invoer.beschrijving
+  // Google's `attendees` is de genodigdenlijst; het versturen zelf regelt de
+  // `sendUpdates=all`-query in `maakAgendaEvent`. Alleen zetten als er iemand is,
+  // zodat een gewone afspraak geen leeg attendees-veld meekrijgt.
+  if (invoer.genodigden && invoer.genodigden.length > 0) {
+    body.attendees = invoer.genodigden.map((email) => ({ email }))
+  }
   return body
 }
 
@@ -278,6 +298,35 @@ function leesTekstOptioneel(v: unknown, veld: string, max: number): Validatie<st
   return { ok: true, waarde: tekst }
 }
 
+/** Simpele, defensieve e-mailcheck: genoeg om onzin te weren, niet om de RFC na te spelen. */
+function isEmail(v: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)
+}
+
+/**
+ * De genodigdenlijst uit onbekende invoer. Leeg/afwezig → undefined (geen mail).
+ * Trim + lowercase + ontdubbel, en weiger onzin-adressen: we sturen straks een
+ * echte uitnodiging, dus een kapot adres hoort hier te sneuvelen, niet bij Google.
+ */
+function leesGenodigden(v: unknown): Validatie<string[] | undefined> {
+  if (v === null || v === undefined) return { ok: true, waarde: undefined }
+  if (!Array.isArray(v)) return { ok: false, fout: 'Genodigden moet een lijst e-mailadressen zijn.' }
+
+  const uniek = new Set<string>()
+  for (const item of v) {
+    if (typeof item !== 'string') return { ok: false, fout: 'Elke genodigde is een e-mailadres.' }
+    const email = item.trim().toLowerCase()
+    if (email.length === 0) continue
+    if (!isEmail(email)) return { ok: false, fout: `"${item}" is geen geldig e-mailadres.` }
+    uniek.add(email)
+  }
+  if (uniek.size === 0) return { ok: true, waarde: undefined }
+  if (uniek.size > MAX_GENODIGDEN) {
+    return { ok: false, fout: `Maximaal ${MAX_GENODIGDEN} genodigden per afspraak.` }
+  }
+  return { ok: true, waarde: [...uniek] }
+}
+
 /** Nieuwe afspraak uit onbekende invoer. Faalt met een leesbare melding. */
 export function leesNieuwEvent(body: unknown): Validatie<NieuwAgendaEvent> {
   if (!isObject(body)) return { ok: false, fout: 'Ongeldige invoer.' }
@@ -295,6 +344,8 @@ export function leesNieuwEvent(body: unknown): Validatie<NieuwAgendaEvent> {
   if (!locatie.ok) return locatie
   const beschrijving = leesTekstOptioneel(body.beschrijving, 'Beschrijving', MAX_BESCHRIJVING_LENGTE)
   if (!beschrijving.ok) return beschrijving
+  const genodigden = leesGenodigden(body.genodigden)
+  if (!genodigden.ok) return genodigden
 
   return {
     ok: true,
@@ -304,6 +355,7 @@ export function leesNieuwEvent(body: unknown): Validatie<NieuwAgendaEvent> {
       eindOp: eindOp.waarde,
       ...(locatie.waarde !== undefined ? { locatie: locatie.waarde } : {}),
       ...(beschrijving.waarde !== undefined ? { beschrijving: beschrijving.waarde } : {}),
+      ...(genodigden.waarde !== undefined ? { genodigden: genodigden.waarde } : {}),
     },
   }
 }

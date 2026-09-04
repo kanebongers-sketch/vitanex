@@ -648,7 +648,19 @@ a:focus:not(:focus-visible) {
   body.mf-has-sidebar {
     padding-left: 240px;
     min-height: 100%;
+    /* Reflow mee als de sidebar in-/uitschuift. Alleen padding: goedkoop, geen
+       layout-thrash op elke frame. */
+    transition: padding-left 0.24s var(--ease);
   }
+  /* Sidebar ingeschoven: content pakt de volle breedte. De aside zelf schuift
+     via translateX weg (zie Navbar). */
+  body.mf-has-sidebar.mf-sidebar-collapsed {
+    padding-left: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.mf-has-sidebar { transition: none; }
 }
 
 @media (max-width: 767px) {

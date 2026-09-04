@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { CalendarPlus } from 'lucide-react'
 import { Kaart, NogNiets } from '@/components/lifeos/os/Kaart'
+import { useRefreshSignaal } from '@/components/lifeos/os/RefreshContext'
 import { haalJson, leesNiets } from '@/lib/lifeos/api/http'
 import {
   leesAgendaVandaag,
@@ -75,6 +76,7 @@ export function AgendaKaart() {
   // elkaar inhalen en wint de oudste die toevallig als laatste terugkomt — dan
   // overschrijft verouderde data een verser antwoord. De cleanup hoogt 'm ook
   // op, zodat een vlucht die nog in de lucht is bij unmount niets meer zet.
+  const signaal = useRefreshSignaal()
   const generatie = useRef(0)
 
   const laad = useCallback((init?: RequestInit): Promise<void> => {
@@ -108,7 +110,7 @@ export function AgendaKaart() {
   useEffect(() => {
     void laad()
     return verval
-  }, [laad, verval])
+  }, [laad, verval, signaal])
 
   // Wel gekoppeld, nooit gesynct? Dan is de cache leeg omdat niemand gekeken
   // heeft — niet omdat je dag leeg is. Eerst kijken, dan pas iets beweren.

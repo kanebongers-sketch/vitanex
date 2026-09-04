@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState, type CSSProperties } from 're
 import { CalendarClock, CircleHelp } from 'lucide-react'
 import { Kaart, NogNiets } from '@/components/lifeos/os/Kaart'
 import { Foutmelding } from '@/components/lifeos/os/Foutmelding'
+import { useRefreshSignaal } from '@/components/lifeos/os/RefreshContext'
 import { haalJson } from '@/lib/lifeos/api/http'
 import { luisterOpWijziging } from '@/lib/lifeos/events'
 import { duurLabel, tijdLabel } from '@/lib/lifeos/datum/datum'
@@ -35,6 +36,7 @@ export function DagplanKaart() {
 
   // Zelfde generatieteller als in `useTaken`: een vlucht die bij unmount nog
   // loopt mag niets meer zetten.
+  const signaal = useRefreshSignaal()
   const generatie = useRef(0)
 
   const laad = useCallback((): Promise<void> => {
@@ -55,7 +57,7 @@ export function DagplanKaart() {
   useEffect(() => {
     void laad()
     return verval
-  }, [laad, verval])
+  }, [laad, verval, signaal])
 
   // Herlaad zodra een taak elders wijzigt (toevoegen/afvinken/wijzigen/verwijderen):
   // het dagplan rekent met dezelfde taken en zou anders achterlopen — een taak

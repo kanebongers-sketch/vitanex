@@ -299,6 +299,7 @@ function SidebarContent({
         {userRol === 'admin' && (
           <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--border)' }}>
             <NavLink href="/kanebongers" label="Mijn dashboard" icon={LayoutDashboard} pathname={pathname} onClick={onClose} />
+            <NavLink href="/training" label="Training" icon={Dumbbell} pathname={pathname} onClick={onClose} />
             <NavLink href="/kanebongers#mensen" label="Mensen" icon={Users} pathname={pathname} onClick={onClose} />
             <NavLink href="/projecten" label="Projecten" icon={FolderKanban} pathname={pathname} onClick={onClose} />
             <NavLink href="/omzet-analyse" label="Analyse" icon={TrendingUp} pathname={pathname} onClick={onClose} />
@@ -551,12 +552,30 @@ export default function Navbar() {
 
   const [openSections, setOpenSections] = useState<Record<string, boolean>>(buildInitialSections)
 
+  // Sidebar in- of uitgeschoven (alleen desktop; mobiel heeft zijn eigen slide-over).
+  // Start dicht=false; de echte voorkeur lezen we ná mount uit localStorage, zodat
+  // server en client dezelfde eerste render hebben (geen hydration-mismatch).
+  const [collapsed, setCollapsed] = useState(false)
+
   useEffect(() => {
     document.body.classList.add('mf-has-sidebar', 'mf-has-tabbar')
     return () => {
       document.body.classList.remove('mf-has-sidebar', 'mf-has-tabbar')
     }
   }, [])
+
+  // Voorkeur inlezen (één keer, na mount).
+  useEffect(() => {
+    try { setCollapsed(localStorage.getItem('mf-sidebar-collapsed') === '1') } catch { /* ok */ }
+  }, [])
+
+  // De body-class stuurt de content-reflow (zie globals.css); de voorkeur bewaren
+  // we per browser. localStorage kan gooien (privémodus) — dat mag de UI niet breken.
+  useEffect(() => {
+    document.body.classList.toggle('mf-sidebar-collapsed', collapsed)
+    try { localStorage.setItem('mf-sidebar-collapsed', collapsed ? '1' : '0') } catch { /* ok */ }
+    return () => { document.body.classList.remove('mf-sidebar-collapsed') }
+  }, [collapsed])
 
   useEffect(() => {
     let mounted = true
@@ -621,18 +640,27 @@ export default function Navbar() {
     <>
       <style>{`
         .mf-sidebar { display: none; }
+        .mf-sidebar-toggle { display: none; }
         .mf-topbar  { display: flex; }
         .mf-bottombar { display: flex; }
         @media (min-width: 768px) {
-          .mf-sidebar   { display: flex !important; }
+          .mf-sidebar        { display: flex !important; }
+          .mf-sidebar-toggle { display: flex !important; }
           .mf-topbar    { display: none !important; }
           .mf-bottombar { display: none !important; }
         }
+        .mf-sidebar-toggle:hover { color: var(--text-1); border-color: var(--text-3); }
+        .mf-sidebar-toggle:focus-visible { outline: 2px solid var(--mf-green); outline-offset: 2px; }
+        @media (prefers-reduced-motion: reduce) {
+          .mf-sidebar, .mf-sidebar-toggle, .mf-sidebar-toggle > svg { transition: none !important; }
+        }
       `}</style>
 
-      {/* Desktop sidebar */}
+      {/* Desktop sidebar. Schuift via translateX weg als 'ie ingeklapt is; de
+          content reflowt mee via de body-class (globals.css). */}
       <aside
         className="mf-sidebar"
+        aria-hidden={collapsed || undefined}
         style={{
           position: 'fixed',
           top: 0,
@@ -644,10 +672,49 @@ export default function Navbar() {
           overflowY: 'auto',
           zIndex: 40,
           flexDirection: 'column',
+          transform: collapsed ? 'translateX(-100%)' : 'none',
+          transition: 'transform 0.24s var(--ease)',
         }}
       >
         <SidebarContent {...sharedProps} />
       </aside>
+
+      {/* In-/uitklapknop (alleen desktop). Zit aan de rand van de sidebar als 'ie
+          open is en schuift naar de linkerrand als 'ie dicht is — de knop wijst zo
+          altijd naar wat er gebeurt. */}
+      <button
+        type="button"
+        className="mf-sidebar-toggle"
+        onClick={() => setCollapsed((c) => !c)}
+        aria-label={collapsed ? 'Sidebar tonen' : 'Sidebar verbergen'}
+        aria-pressed={collapsed}
+        style={{
+          position: 'fixed',
+          top: 14,
+          left: collapsed ? 10 : SIDEBAR_W - 30,
+          zIndex: 41,
+          width: 28,
+          height: 28,
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: 0,
+          borderRadius: 8,
+          border: '1px solid var(--border)',
+          background: 'var(--bg-card)',
+          color: 'var(--text-3)',
+          cursor: 'pointer',
+          transition: 'left 0.24s var(--ease), color 0.12s, border-color 0.12s',
+        }}
+      >
+        <ChevronRight
+          size={16}
+          strokeWidth={2.2}
+          style={{
+            transform: collapsed ? 'none' : 'rotate(180deg)',
+            transition: 'transform 0.24s var(--ease)',
+          }}
+        />
+      </button>
 
       {/* Mobile topbar */}
       <div

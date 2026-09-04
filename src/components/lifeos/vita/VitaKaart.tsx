@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { TriangleAlert, Compass, RefreshCw } from 'lucide-react'
 import { Kaart, NogNiets, type Nadruk } from '@/components/lifeos/os/Kaart'
 import { supabase } from '@/lib/supabase/supabase'
+import { useRefreshSignaal } from '@/components/lifeos/os/RefreshContext'
 import { kiesWeergave, meekijkTekst, type SignalenAntwoord } from '@/lib/lifeos/vita/weergave'
 import { SignaalRegel } from './SignaalRegel'
 import type { Signaal } from '@/lib/lifeos/vita/signalen'
@@ -87,6 +88,8 @@ export function VitaKaart({ nadruk = 'dragend', niveau = 2 }: VitaKaartProps) {
   const [staat, setStaat] = useState<Staat>({ fase: 'laden' })
   const [poging, setPoging] = useState(0)
 
+  const signaal = useRefreshSignaal()
+
   useEffect(() => {
     const afbreker = new AbortController()
     async function laad() {
@@ -96,7 +99,7 @@ export function VitaKaart({ nadruk = 'dragend', niveau = 2 }: VitaKaartProps) {
     }
     void laad()
     return () => afbreker.abort()
-  }, [poging])
+  }, [poging, signaal])
 
   function opnieuw() {
     setStaat({ fase: 'laden' })
