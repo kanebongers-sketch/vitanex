@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { Kaart, NogNiets } from '@/components/lifeos/os/Kaart'
 import { Foutmelding } from '@/components/lifeos/os/Foutmelding'
 import { haalJson } from '@/lib/lifeos/api/http'
+import { useRefreshSignaal } from '@/components/lifeos/os/RefreshContext'
 import { huidigeMaand, leesOverzicht, type FinanceOverzicht } from './finance'
 import { KernCijfers } from './KernCijfers'
 import { MiniTrend } from './MiniTrend'
@@ -30,6 +31,7 @@ export function FinanceKaart() {
 
   // Generatieteller: een trage oudere vlucht (of één die na unmount terugkomt)
   // mag een verse stand niet overschrijven. Zelfde patroon als de andere kaarten.
+  const signaal = useRefreshSignaal()
   const generatie = useRef(0)
 
   const laad = useCallback((): Promise<void> => {
@@ -53,7 +55,7 @@ export function FinanceKaart() {
   useEffect(() => {
     void laad()
     return verval
-  }, [laad, verval])
+  }, [laad, verval, signaal])
 
   const opnieuw = useCallback(() => {
     setStaat({ fase: 'laden' })

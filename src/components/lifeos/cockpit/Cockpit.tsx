@@ -8,6 +8,7 @@ import { AgendaKaart } from '@/components/lifeos/agenda/AgendaKaart'
 import { InboxKaart } from '@/components/lifeos/inbox/InboxKaart'
 import { MensenBord } from '@/components/lifeos/crm/MensenBord'
 import { FinanceKaart } from '@/components/lifeos/finance/FinanceKaart'
+import { RefreshProvider } from '@/components/lifeos/os/RefreshContext'
 
 // ─── De cockpit ──────────────────────────────────────────────────────────────
 // Eén vullend, breed werkscherm in plaats van zeven losse zones onder elkaar die
@@ -48,6 +49,7 @@ import { FinanceKaart } from '@/components/lifeos/finance/FinanceKaart'
 
 export function Cockpit() {
   return (
+    <RefreshProvider>
     <div className="os-cockpit">
       {/* Band 1 — de dagbriefing: het eerste wat je 's ochtends leest, de luidste
           band via schaal en een zachte cyaan-gloed. */}
@@ -152,5 +154,6 @@ export function Cockpit() {
         </div>
       </section>
     </div>
+    </RefreshProvider>
   )
 }

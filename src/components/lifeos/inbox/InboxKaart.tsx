@@ -5,6 +5,7 @@ import { MailPlus } from 'lucide-react'
 import { Kaart, NogNiets } from '@/components/lifeos/os/Kaart'
 import { Foutmelding } from '@/components/lifeos/os/Foutmelding'
 import { Knop } from '@/components/lifeos/os/Knop'
+import { useRefreshSignaal } from '@/components/lifeos/os/RefreshContext'
 import { haalJson } from '@/lib/lifeos/api/http'
 import {
   leesInboxVandaag,
@@ -65,6 +66,7 @@ export function InboxKaart() {
   // de oudste die toevallig als laatste terugkomt — dan overschrijft verouderde
   // data een verser antwoord. De cleanup hoogt 'm ook op, zodat een vlucht die
   // bij unmount nog in de lucht is niets meer zet.
+  const signaal = useRefreshSignaal()
   const generatie = useRef(0)
 
   const laad = useCallback((): Promise<void> => {
@@ -98,7 +100,7 @@ export function InboxKaart() {
   useEffect(() => {
     void laad()
     return verval
-  }, [laad, verval])
+  }, [laad, verval, signaal])
 
   const opnieuw = useCallback(() => {
     setStaat({ fase: 'laden' })

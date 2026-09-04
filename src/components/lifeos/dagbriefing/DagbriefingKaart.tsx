@@ -5,6 +5,7 @@ import { RefreshCw, Sparkles, Sunrise, Target, TriangleAlert, type LucideIcon } 
 import { haalJson, isObject, tekstOfNull } from '@/lib/lifeos/api/http'
 import { datumSleutel, tijdLabel } from '@/lib/lifeos/datum/datum'
 import { Foutmelding } from '@/components/lifeos/os/Foutmelding'
+import { useRefreshSignaal } from '@/components/lifeos/os/RefreshContext'
 
 // ─── De dagbriefing-band ────────────────────────────────────────────────────
 // De luidste band bovenaan de cockpit: een rustige "COO-ochtendbriefing" die de
@@ -71,6 +72,7 @@ export function DagbriefingKaart() {
 
   // Generatieteller: een vlucht die na unmount of een verse ververs terugkomt,
   // zet niets meer — anders wint de oudste die toevallig als laatste binnenkomt.
+  const signaal = useRefreshSignaal()
   const generatie = useRef(0)
 
   const laad = useCallback((): Promise<void> => {
@@ -92,7 +94,7 @@ export function DagbriefingKaart() {
   useEffect(() => {
     void laad()
     return verval
-  }, [laad, verval])
+  }, [laad, verval, signaal])
 
   // Ververs houdt de huidige briefing in beeld (bezig-staat op de knop) i.p.v.
   // terug te vallen op de skeleton — een handmatige verversing is geen koude start.
