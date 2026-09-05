@@ -56,8 +56,10 @@ export async function GET(req: NextRequest) {
   const nu = new Date()
   const weekVan = maandagVan(nu)
   const weekTot = new Date(weekVan.getTime() + 7 * 24 * 60 * 60 * 1000)
+  // Ook de vórige week meelezen: een 2-wekelijks abonnement kijkt over twee weken.
+  const leesVan = new Date(weekVan.getTime() - 7 * 24 * 60 * 60 * 1000)
 
-  const events = await haalEvents(token.toegangstoken, weekVan, weekTot, kalenderId)
+  const events = await haalEvents(token.toegangstoken, leesVan, weekTot, kalenderId)
   if (events.staat === 'verlopen') {
     const antwoord: PtKlantenAntwoord = { gekoppeld: false }
     return NextResponse.json(antwoord, { headers: CACHE_HEADERS })
@@ -72,7 +74,8 @@ export async function GET(req: NextRequest) {
     id: p.id,
     naam: p.naam,
     email: p.email,
-    sessiesPerWeek: p.sessiesPerWeek,
+    abonnement: p.abonnement,
+    duo: p.duo,
     locatie: p.locatie,
     vakantieTot: p.vakantieTot,
   }))
@@ -80,7 +83,7 @@ export async function GET(req: NextRequest) {
 
   const antwoord: PtKlantenAntwoord = {
     gekoppeld: true,
-    klanten: bepaalWeekStatus(klanten, ptEvents, vandaagKey),
+    klanten: bepaalWeekStatus(klanten, ptEvents, weekVan.toISOString(), vandaagKey),
   }
   return NextResponse.json(antwoord, { headers: CACHE_HEADERS })
 }

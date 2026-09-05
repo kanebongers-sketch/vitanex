@@ -122,6 +122,12 @@ export function isPtLocatie(v: unknown): v is PtLocatie {
   return typeof v === 'string' && (PT_LOCATIES as readonly string[]).includes(v)
 }
 
+export type Abonnement = 'wekelijks_1' | 'wekelijks_2' | 'tweewekelijks_1'
+export const ABONNEMENTEN: readonly Abonnement[] = Object.freeze(['wekelijks_1', 'wekelijks_2', 'tweewekelijks_1'])
+export function isAbonnement(v: unknown): v is Abonnement {
+  return typeof v === 'string' && (ABONNEMENTEN as readonly string[]).includes(v)
+}
+
 export interface Persoon {
   id: string
   naam: string
@@ -142,6 +148,10 @@ export interface Persoon {
   locatie: PtLocatie | null
   /** PT-klant: op vakantie t/m deze dag (YYYY-MM-DD), of null. Dan even niet meetellen. */
   vakantieTot: string | null
+  /** PT-klant: het abonnement dat de inplan-cadans bepaalt, of null = nog niet ingesteld. */
+  abonnement: Abonnement | null
+  /** PT-klant: twee personen in één sessie (zelfde cadans). */
+  duo: boolean
   aangemaaktOp: string
 }
 
@@ -272,6 +282,8 @@ export interface PersoonWijziging {
   sessiesPerWeek?: number | null
   locatie?: PtLocatie | null
   vakantieTot?: string | null
+  abonnement?: Abonnement | null
+  duo?: boolean
 }
 
 /**
@@ -348,6 +360,16 @@ export function leesPersoonWijziging(body: unknown, groep: Groep): Validatie<Per
     const d = leesDatum(body.vakantieTot)
     if (!d.ok) return d
     wijziging.vakantieTot = d.waarde
+  }
+  if ('abonnement' in body) {
+    if (body.abonnement !== null && !isAbonnement(body.abonnement)) {
+      return { ok: false, fout: 'Onbekend abonnement.' }
+    }
+    wijziging.abonnement = body.abonnement
+  }
+  if ('duo' in body) {
+    if (typeof body.duo !== 'boolean') return { ok: false, fout: 'Duo moet ja/nee zijn.' }
+    wijziging.duo = body.duo
   }
 
   if (Object.keys(wijziging).length === 0) return { ok: false, fout: 'Niets om te wijzigen.' }

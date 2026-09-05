@@ -1,19 +1,21 @@
 // ─── LifeOS — PT-klanten: wekelijkse sessies bewaken ────────────────────────
 // PUUR. Geen fetch, geen DB. De naamconventie van een PT-sessie, de detectie of
-// een afspraak bij een klant hoort, en de week-status per klant (nodig vs
-// ingepland, vakantie-aware). Zo kun je nooit iemand vergeten in te plannen.
+// een afspraak bij een klant hoort, en de status per klant op basis van zijn
+// ABONNEMENT (1×/week, 2×/week of 1×/2 weken). Zo vergeet je niemand.
 
-import type { PtLocatie } from '../crm/crm'
+import type { Abonnement, PtLocatie } from '../crm/crm'
 
-/** De labels van de drie locaties, voor de titel en de UI. */
 export const LOCATIE_LABEL: Record<PtLocatie, string> = {
   bergeijk: 'Bergeijk',
   someren: 'Someren',
   budel: 'Budel',
 }
 
-/** Hoe vaak per week als er niets is ingesteld: één keer. */
-export const STANDAARD_PER_WEEK = 1
+export const ABONNEMENT_LABEL: Record<Abonnement, string> = {
+  wekelijks_1: '1× per week',
+  wekelijks_2: '2× per week',
+  tweewekelijks_1: '1× per 2 weken',
+}
 
 /** De vaste sessie-titel: "PT Iris Someren" (naam + locatie, geen haakjes). */
 export function ptSessieTitel(naam: string, locatie: PtLocatie | null): string {
@@ -27,9 +29,7 @@ function normaliseer(s: string): string {
 
 /**
  * Herkent een PT-sessie met déze klant aan de titel: er staat een los "pt"-woord
- * in én de naam van de klant. Losjes (substring, hoofdletterongevoelig), want je
- * typt de titel niet altijd exact. "Lunch met Iris" telt niet mee (geen "pt"),
- * en "PT Rick" telt niet mee voor Iris (andere naam).
+ * in én de naam van de klant. Losjes (substring, hoofdletterongevoelig).
  */
 export function matchtPtSessie(titel: string | null, naam: string): boolean {
   if (!titel) return false
@@ -39,13 +39,29 @@ export function matchtPtSessie(titel: string | null, naam: string): boolean {
   return /\bpt\b/.test(t) && t.includes(n)
 }
 
+/**
+ * De cadans achter een abonnement: hoeveel sessies nodig, over hoeveel weken.
+ * `null` (nog niet ingesteld) telt als 1× per week — het meest voorkomende.
+ */
+export function cadans(abonnement: Abonnement | null): { nodig: number; weken: 1 | 2 } {
+  switch (abonnement) {
+    case 'wekelijks_2':
+      return { nodig: 2, weken: 1 }
+    case 'tweewekelijks_1':
+      return { nodig: 1, weken: 2 }
+    case 'wekelijks_1':
+    default:
+      return { nodig: 1, weken: 1 }
+  }
+}
+
 /** Eén PT-klant met zijn config, zoals de status-berekening 'm nodig heeft. */
 export interface PtKlant {
   id: string
   naam: string
   email: string | null
-  /** 1 of 2, of null = nog niet ingesteld (telt als 1). */
-  sessiesPerWeek: number | null
+  abonnement: Abonnement | null
+  duo: boolean
   locatie: PtLocatie | null
   /** Op vakantie t/m deze dag (YYYY-MM-DD), of null. */
   vakantieTot: string | null
@@ -57,34 +73,47 @@ export interface PtEvent {
   startOp: string
 }
 
-/** De week-status per klant: hoeveel sessies nodig vs. ingepland deze week. */
+/** De status per klant: nodig vs. ingepland binnen zijn cadans-venster. */
 export interface PtWeekStatus {
   id: string
   naam: string
   email: string | null
   locatie: PtLocatie | null
-  sessiesPerWeek: number
-  /** Hoeveel er deze week gepland staan. */
+  abonnement: Abonnement | null
+  duo: boolean
+  /** De vensterlengte in weken (1 = deze week, 2 = per 2 weken). */
+  weken: 1 | 2
+  nodig: number
   ingepland: number
   /** Hoeveel er nog moeten (0 = klaar; nooit negatief). */
   tekort: number
-  /** Staat deze klant op vakantie op de peildatum? Dan niet meetellen. */
   opVakantie: boolean
 }
 
 /**
- * Bepaalt per klant de week-status. `events` zijn al op de kalenderweek gefilterd
- * door de aanroeper. `vandaagKey` (YYYY-MM-DD) beslist de vakantie: een klant met
- * `vakantieTot >= vandaag` telt als "op vakantie" en heeft geen tekort.
+ * De status per klant. `events` beslaan minstens de vorige + huidige week (zodat
+ * een 2-wekelijks abonnement zijn hele venster ziet); `weekVanISO` is de maandag
+ * van de huidige week. Per klant kijken we in het juiste venster: wekelijks alleen
+ * deze week, tweewekelijks de laatste twee weken.
  */
 export function bepaalWeekStatus(
   klanten: readonly PtKlant[],
   events: readonly PtEvent[],
+  weekVanISO: string,
   vandaagKey: string,
 ): PtWeekStatus[] {
+  const weekVan = new Date(weekVanISO).getTime()
+  const weekTot = weekVan + 7 * 24 * 60 * 60 * 1000
+  const vorigeVan = weekVan - 7 * 24 * 60 * 60 * 1000
+
   return klanten.map((k) => {
-    const nodig = k.sessiesPerWeek ?? STANDAARD_PER_WEEK
-    const ingepland = events.filter((e) => matchtPtSessie(e.titel, k.naam)).length
+    const { nodig, weken } = cadans(k.abonnement)
+    const vensterVan = weken === 2 ? vorigeVan : weekVan
+    const ingepland = events.filter((e) => {
+      if (!matchtPtSessie(e.titel, k.naam)) return false
+      const t = new Date(e.startOp).getTime()
+      return t >= vensterVan && t < weekTot
+    }).length
     const opVakantie = k.vakantieTot !== null && vandaagKey <= k.vakantieTot
     const tekort = opVakantie ? 0 : Math.max(0, nodig - ingepland)
     return {
@@ -92,7 +121,10 @@ export function bepaalWeekStatus(
       naam: k.naam,
       email: k.email,
       locatie: k.locatie,
-      sessiesPerWeek: nodig,
+      abonnement: k.abonnement,
+      duo: k.duo,
+      weken,
+      nodig,
       ingepland,
       tekort,
       opVakantie,
@@ -115,6 +147,9 @@ function tekstOfNull(v: unknown): string | null {
 function isLoc(v: unknown): v is PtLocatie {
   return v === 'bergeijk' || v === 'someren' || v === 'budel'
 }
+function isAbo(v: unknown): v is Abonnement {
+  return v === 'wekelijks_1' || v === 'wekelijks_2' || v === 'tweewekelijks_1'
+}
 function heelGetal(v: unknown): number | null {
   return typeof v === 'number' && Number.isInteger(v) && v >= 0 ? v : null
 }
@@ -123,10 +158,10 @@ function leesStatus(ruw: unknown): PtWeekStatus | null {
   if (!isObject(ruw)) return null
   const id = tekstOfNull(ruw.id)
   const naam = tekstOfNull(ruw.naam)
-  const sessiesPerWeek = heelGetal(ruw.sessiesPerWeek)
+  const nodig = heelGetal(ruw.nodig)
   const ingepland = heelGetal(ruw.ingepland)
   const tekort = heelGetal(ruw.tekort)
-  if (id === null || naam === null || sessiesPerWeek === null || ingepland === null || tekort === null) {
+  if (id === null || naam === null || nodig === null || ingepland === null || tekort === null) {
     return null
   }
   return {
@@ -134,7 +169,10 @@ function leesStatus(ruw: unknown): PtWeekStatus | null {
     naam,
     email: tekstOfNull(ruw.email),
     locatie: isLoc(ruw.locatie) ? ruw.locatie : null,
-    sessiesPerWeek,
+    abonnement: isAbo(ruw.abonnement) ? ruw.abonnement : null,
+    duo: ruw.duo === true,
+    weken: ruw.weken === 2 ? 2 : 1,
+    nodig,
     ingepland,
     tekort,
     opVakantie: ruw.opVakantie === true,

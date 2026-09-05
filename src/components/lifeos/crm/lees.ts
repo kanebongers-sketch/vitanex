@@ -12,6 +12,7 @@ import {
   HISTORIE_SOORTEN,
   isGroep,
   isPtLocatie,
+  isAbonnement,
   type HistorieItem,
   type HistorieSoort,
   type Persoon,
@@ -49,6 +50,8 @@ export function leesPersoonJson(ruw: unknown): Persoon | null {
     sessiesPerWeek: getalOfNull(ruw.sessiesPerWeek),
     locatie: isPtLocatie(ruw.locatie) ? ruw.locatie : null,
     vakantieTot: tekstOfNull(ruw.vakantieTot),
+    abonnement: isAbonnement(ruw.abonnement) ? ruw.abonnement : null,
+    duo: ruw.duo === true,
     aangemaaktOp,
   }
 }

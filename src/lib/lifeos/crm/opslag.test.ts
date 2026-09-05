@@ -40,6 +40,8 @@ describe('persoonVanRij', () => {
       sessiesPerWeek: null,
       locatie: null,
       vakantieTot: null,
+      abonnement: null,
+      duo: false,
       aangemaaktOp: '2026-07-01T08:00:00.000Z',
     })
   })

@@ -21,6 +21,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import {
   isGroep,
   isPtLocatie,
+  isAbonnement,
   type Groep,
   type NieuwePersoon,
   type Persoon,
@@ -30,7 +31,7 @@ import { vertaalFout, type Reden, type Uitkomst } from './fout'
 import { logGebeurtenis, type Gebeurtenis } from './historie'
 
 export const PERSOON_KOLOMMEN =
-  'id, naam, groep, status, sortering, follow_up_datum, telefoon, email, bijzonderheden, laatste_contact_op, sessies_per_week, locatie, vakantie_tot, aangemaakt_op'
+  'id, naam, groep, status, sortering, follow_up_datum, telefoon, email, bijzonderheden, laatste_contact_op, sessies_per_week, locatie, vakantie_tot, abonnement, duo, aangemaakt_op'
 
 /**
  * De stap tussen twee opeenvolgende posities in een kolom. Ruim genoeg om er nog
@@ -195,6 +196,8 @@ function veldenVanWijziging(wijziging: PersoonWijziging): Record<string, unknown
   if (wijziging.sessiesPerWeek !== undefined) velden.sessies_per_week = wijziging.sessiesPerWeek
   if (wijziging.locatie !== undefined) velden.locatie = wijziging.locatie
   if (wijziging.vakantieTot !== undefined) velden.vakantie_tot = wijziging.vakantieTot
+  if (wijziging.abonnement !== undefined) velden.abonnement = wijziging.abonnement
+  if (wijziging.duo !== undefined) velden.duo = wijziging.duo
   return velden
 }
 
@@ -335,6 +338,8 @@ export function persoonVanRij(rij: unknown): Persoon | null {
     sessiesPerWeek: getal(rij.sessies_per_week),
     locatie: isPtLocatie(rij.locatie) ? rij.locatie : null,
     vakantieTot: tekst(rij.vakantie_tot),
+    abonnement: isAbonnement(rij.abonnement) ? rij.abonnement : null,
+    duo: rij.duo === true,
     aangemaaktOp,
   }
 }

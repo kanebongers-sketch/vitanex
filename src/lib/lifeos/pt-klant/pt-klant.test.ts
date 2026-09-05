@@ -25,10 +25,13 @@ describe('matchtPtSessie', () => {
 
 describe('bepaalWeekStatus', () => {
   const klanten: PtKlant[] = [
-    { id: 'a', naam: 'Iris', email: 'iris@x.nl', sessiesPerWeek: 2, locatie: 'someren', vakantieTot: null },
-    { id: 'b', naam: 'Rick', email: null, sessiesPerWeek: 1, locatie: 'budel', vakantieTot: null },
-    { id: 'c', naam: 'Sam', email: null, sessiesPerWeek: null, locatie: null, vakantieTot: '2026-09-30' },
+    { id: 'a', naam: 'Iris', email: 'iris@x.nl', abonnement: 'wekelijks_2', duo: false, locatie: 'someren', vakantieTot: null },
+    { id: 'b', naam: 'Rick', email: null, abonnement: 'wekelijks_1', duo: false, locatie: 'budel', vakantieTot: null },
+    { id: 'c', naam: 'Sam', email: null, abonnement: null, duo: false, locatie: null, vakantieTot: '2026-09-30' },
+    { id: 'd', naam: 'Tess', email: null, abonnement: 'tweewekelijks_1', duo: false, locatie: 'bergeijk', vakantieTot: null },
   ]
+  // Maandag van de week; VANDAAG valt in diezelfde week.
+  const WEEK_VAN = '2026-09-07T00:00:00.000Z'
   const VANDAAG = '2026-09-07'
 
   test('telt geplande sessies en berekent het tekort per klant', () => {
@@ -37,27 +40,37 @@ describe('bepaalWeekStatus', () => {
       { titel: 'PT Iris (Someren)', startOp: '2026-09-10T09:00:00.000Z' },
       // Rick: nog niets → tekort 1.
     ]
-    const status = bepaalWeekStatus(klanten, events, VANDAAG)
+    const status = bepaalWeekStatus(klanten, events, WEEK_VAN, VANDAAG)
     const iris = status.find((s) => s.id === 'a')!
     const rick = status.find((s) => s.id === 'b')!
-    expect(iris).toMatchObject({ sessiesPerWeek: 2, ingepland: 2, tekort: 0 })
-    expect(rick).toMatchObject({ sessiesPerWeek: 1, ingepland: 0, tekort: 1 })
+    expect(iris).toMatchObject({ nodig: 2, weken: 1, ingepland: 2, tekort: 0 })
+    expect(rick).toMatchObject({ nodig: 1, weken: 1, ingepland: 0, tekort: 1 })
   })
 
-  test('null frequentie telt als 1×/week', () => {
-    const sam = bepaalWeekStatus(klanten, [], VANDAAG).find((s) => s.id === 'c')!
-    expect(sam.sessiesPerWeek).toBe(1)
+  test('2-wekelijks abonnement kijkt over twee weken', () => {
+    // Tess: 1× per 2 weken. Een sessie in de vórige week telt mee → geen tekort.
+    const events: PtEvent[] = [
+      { titel: 'PT Tess Bergeijk', startOp: '2026-09-02T09:00:00.000Z' },
+    ]
+    const tess = bepaalWeekStatus(klanten, events, WEEK_VAN, VANDAAG).find((s) => s.id === 'd')!
+    expect(tess).toMatchObject({ nodig: 1, weken: 2, ingepland: 1, tekort: 0 })
+  })
+
+  test('geen abonnement telt als 1×/week', () => {
+    const sam = bepaalWeekStatus(klanten, [], WEEK_VAN, VANDAAG).find((s) => s.id === 'c')!
+    expect(sam.nodig).toBe(1)
+    expect(sam.weken).toBe(1)
   })
 
   test('op vakantie: geen tekort, wel gemarkeerd', () => {
     // Sam is op vakantie t/m 30 sep; op 7 sep telt hij niet mee.
-    const sam = bepaalWeekStatus(klanten, [], VANDAAG).find((s) => s.id === 'c')!
+    const sam = bepaalWeekStatus(klanten, [], WEEK_VAN, VANDAAG).find((s) => s.id === 'c')!
     expect(sam.opVakantie).toBe(true)
     expect(sam.tekort).toBe(0)
   })
 
   test('vakantie voorbij: telt weer mee', () => {
-    const na = bepaalWeekStatus(klanten, [], '2026-10-01').find((s) => s.id === 'c')!
+    const na = bepaalWeekStatus(klanten, [], WEEK_VAN, '2026-10-01').find((s) => s.id === 'c')!
     expect(na.opVakantie).toBe(false)
     expect(na.tekort).toBe(1)
   })

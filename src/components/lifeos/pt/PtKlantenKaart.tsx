@@ -7,8 +7,9 @@ import { Foutmelding } from '@/components/lifeos/os/Foutmelding'
 import { Knop } from '@/components/lifeos/os/Knop'
 import { useRefreshSignaal } from '@/components/lifeos/os/RefreshContext'
 import { haalJson, leesNiets } from '@/lib/lifeos/api/http'
-import { PT_LOCATIES, type PtLocatie } from '@/lib/lifeos/crm/crm'
+import { ABONNEMENTEN, PT_LOCATIES, type Abonnement, type PtLocatie } from '@/lib/lifeos/crm/crm'
 import {
+  ABONNEMENT_LABEL,
   LOCATIE_LABEL,
   leesPtKlanten,
   ptSessieTitel,
@@ -166,7 +167,9 @@ function KlantRij({ klant, onVernieuw }: { klant: PtWeekStatus; onVernieuw: () =
               </>
             ) : (
               <>
-                {locLabel} · {klant.ingepland}/{klant.sessiesPerWeek} deze week
+                {locLabel}
+                {klant.duo ? ' · Duo' : ''} · {klant.ingepland}/{klant.nodig}{' '}
+                {klant.weken === 2 ? 'per 2 weken' : 'deze week'}
               </>
             )}
           </p>
@@ -246,7 +249,8 @@ function InplanForm({ klant, onKlaar, onAnnuleer }: { klant: PtWeekStatus; onKla
 }
 
 function InstelForm({ klant, onKlaar, onAnnuleer }: { klant: PtWeekStatus; onKlaar: () => Promise<void>; onAnnuleer: () => void }) {
-  const [freq, setFreq] = useState<number>(klant.sessiesPerWeek)
+  const [abonnement, setAbonnement] = useState<Abonnement | ''>(klant.abonnement ?? '')
+  const [duo, setDuo] = useState(klant.duo)
   const [locatie, setLocatie] = useState<PtLocatie | ''>(klant.locatie ?? '')
   const [vakantie, setVakantie] = useState('')
   const [bezig, setBezig] = useState(false)
@@ -269,30 +273,20 @@ function InstelForm({ klant, onKlaar, onAnnuleer }: { klant: PtWeekStatus; onKla
 
   return (
     <div style={{ display: 'grid', gap: 10, paddingTop: 4 }}>
-      <div style={{ display: 'grid', gap: 4 }}>
-        <span style={label}>Sessies per week</span>
-        <div style={{ display: 'inline-flex', gap: 4 }}>
-          {[1, 2].map((n) => {
-            const actief = n === freq
-            return (
-              <button
-                key={n}
-                type="button"
-                aria-pressed={actief}
-                onClick={() => setFreq(n)}
-                style={{
-                  ...knopjeStijl,
-                  border: `1px solid ${actief ? 'var(--brand)' : 'var(--line)'}`,
-                  background: actief ? 'var(--brand-soft)' : 'transparent',
-                  color: actief ? 'var(--brand)' : 'var(--text-3)',
-                }}
-              >
-                {n}× per week
-              </button>
-            )
-          })}
-        </div>
-      </div>
+      <label style={{ display: 'grid', gap: 4 }}>
+        <span style={label}>Abonnement</span>
+        <select value={abonnement} onChange={(e) => setAbonnement(e.target.value as Abonnement | '')} style={veld}>
+          <option value="">— kies —</option>
+          {ABONNEMENTEN.map((a) => (
+            <option key={a} value={a}>{ABONNEMENT_LABEL[a]}</option>
+          ))}
+        </select>
+      </label>
+
+      <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--text-2)' }}>
+        <input type="checkbox" checked={duo} onChange={(e) => setDuo(e.target.checked)} />
+        Duo (twee personen, één sessie)
+      </label>
 
       <label style={{ display: 'grid', gap: 4 }}>
         <span style={label}>Locatie</span>
@@ -313,7 +307,7 @@ function InstelForm({ klant, onKlaar, onAnnuleer }: { klant: PtWeekStatus; onKla
         <Knop
           variant="primair"
           disabled={bezig}
-          onClick={() => void bewaar({ sessiesPerWeek: freq, locatie: locatie || null, vakantieTot: vakantie || null })}
+          onClick={() => void bewaar({ abonnement: abonnement || null, duo, locatie: locatie || null, vakantieTot: vakantie || null })}
         >
           {bezig ? 'Bezig…' : 'Opslaan'}
         </Knop>
