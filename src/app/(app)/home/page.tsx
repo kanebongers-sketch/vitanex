@@ -5,11 +5,12 @@ export const dynamic = 'force-dynamic'
 import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Apple, Dumbbell, Moon, Footprints, Brain, Sparkles, ChevronRight, type LucideIcon } from 'lucide-react'
+import { Apple, Moon, Footprints, Zap, Activity, Smile, Sparkles, ChevronRight, type LucideIcon } from 'lucide-react'
 import { supabase } from '@/lib/supabase/supabase'
 import { authFetch } from '@/lib/auth/auth-fetch'
 import Navbar from '@/components/layout/Navbar'
-import { scoreNiveau } from '@/lib/pijlers/score'
+import { scoreNiveau, naarCijfer } from '@/lib/pijlers/score'
+import { PIJLERS, type PijlerKey } from '@/lib/pijlers/pijlers'
 import type { PijlerOverzicht } from '@/lib/pijlers/pijlers-server'
 import { RetentieBalk } from '@/components/home/RetentieBalk'
 import { TrendsBlok } from '@/components/home/TrendsBlok'
@@ -19,21 +20,22 @@ import { VitaInzicht } from '@/components/home/VitaInzicht'
 // tegels): dagscore als held, Vita's cross-pijler-inzicht als slim hart, de
 // daglus (streak + check-in) als reden om terug te komen.
 
-interface Tegel {
-  label: string
-  route: string
-  Icon: LucideIcon
-  /** Pijlersleutel voor de score, of 'mentaal' (samengesteld), of null (geen score). */
-  bron: string | null
+// De vijf tegels zijn vervangen door de zes canonieke pijlers: elk met een eigen
+// kleur, elk met zijn rapportcijfer. Zo telt álles zichtbaar mee — óók je stappen
+// (via Beweging) — en heeft elke pijler zijn eigen herkenbare identiteit.
+const PIJLER_ICON: Record<string, LucideIcon> = {
+  Zap, Moon, Activity, Smile, Footprints, Apple,
 }
 
-const TEGELS: readonly Tegel[] = [
-  { label: 'Voeding', route: '/voeding', Icon: Apple, bron: 'voeding' },
-  { label: 'Training', route: '/sport', Icon: Dumbbell, bron: 'beweging' },
-  { label: 'Slaap', route: '/slaap', Icon: Moon, bron: 'slaap' },
-  { label: 'Stappen', route: '/stappen', Icon: Footprints, bron: null },
-  { label: 'Mentaal welzijn', route: '/welzijn', Icon: Brain, bron: 'mentaal' },
-]
+/** Waar een pijler-tegel heen linkt: naar de log-pagina waar die bestaat. */
+const PIJLER_ROUTE: Record<PijlerKey, string> = {
+  energie: '/pijler/energie',
+  slaap: '/slaap',
+  stress: '/stress',
+  stemming: '/stemming',
+  beweging: '/stappen',
+  voeding: '/voeding',
+}
 
 function groetVoor(uur: number): string {
   if (uur < 6) return 'Goedenacht'
@@ -42,17 +44,11 @@ function groetVoor(uur: number): string {
   return 'Goedenavond'
 }
 
-/** Mentaal welzijn = gemiddelde van de beschikbare stemming/stress-scores. */
-function mentaalScore(scores: Map<string, number | null>): number | null {
-  const vals = ['stemming', 'stress'].map((k) => scores.get(k) ?? null).filter((v): v is number => typeof v === 'number')
-  if (vals.length === 0) return null
-  return Math.round(vals.reduce((a, b) => a + b, 0) / vals.length)
-}
-
-function tegelScore(t: Tegel, scores: Map<string, number | null>): number | null {
-  if (t.bron === null) return null
-  if (t.bron === 'mentaal') return mentaalScore(scores)
-  return scores.get(t.bron) ?? null
+/** Rapportcijfer als NL-tekst: "7,4", "10", of "–" bij geen data. */
+function cijferTekst(score: number | null): string {
+  const c = naarCijfer(score)
+  if (c === null) return '–'
+  return c.toLocaleString('nl-NL', { minimumFractionDigits: c === 10 ? 0 : 1, maximumFractionDigits: 1 })
 }
 
 export default function HomePage() {
@@ -122,26 +118,29 @@ export default function HomePage() {
           <ChevronRight size={18} aria-hidden style={{ color: 'var(--brand, var(--mentaforce-primary))', flexShrink: 0 }} />
         </Link>
 
-        {/* De vijf pijlers */}
+        {/* De zes pijlers — elk zijn eigen kleur en rapportcijfer */}
         <h2 style={{ fontSize: 13, fontWeight: 800, color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 10px' }}>Jouw pijlers</h2>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 12 }}>
-          {TEGELS.map((t) => {
-            const score = tegelScore(t, scores)
+          {PIJLERS.map((p) => {
+            const score = scores.get(p.key) ?? null
             const tnv = scoreNiveau(score)
-            const heeftScore = t.bron !== null
+            const Icon = PIJLER_ICON[p.icoon] ?? Sparkles
+            const gemeten = score !== null
             return (
-              <Link key={t.route} href={t.route} aria-label={t.label}
+              <Link key={p.key} href={PIJLER_ROUTE[p.key]} aria-label={`${p.label}${gemeten ? `, cijfer ${cijferTekst(score)} van 10` : ', nog niet gemeten'}`}
                 style={{ textDecoration: 'none', background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 18, padding: '16px 16px', display: 'flex', flexDirection: 'column', gap: 12, minHeight: 116 }}>
                 <span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ width: 42, height: 42, borderRadius: 13, background: heeftScore && score !== null ? tnv.zacht : 'var(--bg-subtle)', display: 'grid', placeItems: 'center' }}>
-                    <t.Icon size={21} aria-hidden style={{ color: heeftScore && score !== null ? tnv.kleur : 'var(--text-3)' }} />
+                  <span style={{ width: 42, height: 42, borderRadius: 13, background: p.kleurZacht, display: 'grid', placeItems: 'center' }}>
+                    <Icon size={21} aria-hidden style={{ color: p.kleur }} />
                   </span>
-                  <ChevronRight size={16} aria-hidden style={{ color: 'var(--text-4)' }} />
+                  {gemeten
+                    ? <span aria-hidden style={{ fontSize: 22, fontWeight: 900, color: p.kleur, letterSpacing: '-0.02em', lineHeight: 1 }}>{cijferTekst(score)}</span>
+                    : <ChevronRight size={16} aria-hidden style={{ color: 'var(--text-4)' }} />}
                 </span>
                 <span style={{ marginTop: 'auto' }}>
-                  <span style={{ display: 'block', fontSize: 15, fontWeight: 800, color: 'var(--text-1)' }}>{t.label}</span>
-                  <span style={{ display: 'block', fontSize: 12, color: score !== null ? tnv.kleur : 'var(--text-4)', fontWeight: 600, marginTop: 1 }}>
-                    {score !== null ? `${score} · ${tnv.label}` : heeftScore ? 'Nog niet gemeten' : 'Openen'}
+                  <span style={{ display: 'block', fontSize: 15, fontWeight: 800, color: 'var(--text-1)' }}>{p.label}</span>
+                  <span style={{ display: 'block', fontSize: 12, color: gemeten ? 'var(--text-3)' : 'var(--text-4)', fontWeight: 600, marginTop: 1 }}>
+                    {gemeten ? tnv.label : 'Nog niet gemeten'}
                   </span>
                 </span>
               </Link>
@@ -163,12 +162,14 @@ function DagscoreRing({ score, kleur, size = 84 }: { score: number | null; kleur
   const r = c - 8
   const circ = 2 * Math.PI * r
   const pct = score !== null ? Math.min(1, Math.max(0, score / 100)) : 0
-  const font = Math.round(size * 0.26)
+  const font = Math.round(size * 0.3)
+  const cijfer = naarCijfer(score)
+  const tekst = cijfer === null ? '–' : cijfer.toLocaleString('nl-NL', { minimumFractionDigits: cijfer === 10 ? 0 : 1, maximumFractionDigits: 1 })
   return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} role="img" aria-label={score !== null ? `Dagscore ${score} van 100` : 'Dagscore nog niet gemeten'} style={{ flexShrink: 0 }}>
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} role="img" aria-label={cijfer !== null ? `Dagscore ${tekst} van 10` : 'Dagscore nog niet gemeten'} style={{ flexShrink: 0 }}>
       <circle cx={c} cy={c} r={r} fill="none" style={{ stroke: 'var(--bg-subtle)' }} strokeWidth="9" />
       <circle cx={c} cy={c} r={r} fill="none" style={{ stroke: kleur, transition: 'stroke-dasharray 0.8s var(--ease, ease)' }} strokeWidth="9" strokeLinecap="round" strokeDasharray={`${pct * circ} ${circ}`} transform={`rotate(-90 ${c} ${c})`} />
-      <text x={c} y={c + font / 3} textAnchor="middle" fontSize={font} fontWeight="900" style={{ fill: 'var(--text-1)' }}>{score !== null ? score : '–'}</text>
+      <text x={c} y={c + font / 3} textAnchor="middle" fontSize={font} fontWeight="900" style={{ fill: 'var(--text-1)' }}>{tekst}</text>
     </svg>
   )
 }

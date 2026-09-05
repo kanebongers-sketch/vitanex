@@ -10,6 +10,10 @@ import {
   wellbeingScore,
   scoreNiveau,
   berekenTrend,
+  calorieAdherentie,
+  eiwitAdherentie,
+  voedingKwaliteit,
+  naarCijfer,
 } from './score'
 
 describe('clamp0100', () => {
@@ -128,5 +132,64 @@ describe('berekenTrend', () => {
     expect(berekenTrend(66, 60)).toEqual({ richting: 'op', deltaPct: 10 })
     expect(berekenTrend(54, 60)).toEqual({ richting: 'neer', deltaPct: -10 })
     expect(berekenTrend(61, 60)).toEqual({ richting: 'stabiel', deltaPct: 2 })
+  })
+})
+
+describe('calorieAdherentie', () => {
+  it('100 binnen ±10% van het doel', () => {
+    expect(calorieAdherentie(2000, 2000)).toBe(100)
+    expect(calorieAdherentie(1850, 2000)).toBe(100) // −7,5%
+    expect(calorieAdherentie(2180, 2000)).toBe(100) // +9%
+  })
+  it('minder bij te weinig of te veel, nooit negatief', () => {
+    expect(calorieAdherentie(1400, 2000)).toBeLessThan(100) // −30%
+    expect(calorieAdherentie(3000, 2000)).toBeLessThan(100) // +50%
+    expect(calorieAdherentie(200, 2000)).toBeGreaterThanOrEqual(0)
+  })
+  it('geen data → 0', () => {
+    expect(calorieAdherentie(0, 2000)).toBe(0)
+    expect(calorieAdherentie(2000, 0)).toBe(0)
+  })
+})
+
+describe('eiwitAdherentie', () => {
+  it('doel halen (of meer) = 100', () => {
+    expect(eiwitAdherentie(150, 150)).toBe(100)
+    expect(eiwitAdherentie(200, 150)).toBe(100)
+  })
+  it('eronder lineair', () => {
+    expect(eiwitAdherentie(75, 150)).toBe(50)
+  })
+})
+
+describe('voedingKwaliteit', () => {
+  it('null zonder kcal-doel of zonder gelogde dag', () => {
+    expect(voedingKwaliteit([{ kcal: 2000, eiwit: 150 }], null, 150)).toBeNull()
+    expect(voedingKwaliteit([], 2000, 150)).toBeNull()
+    expect(voedingKwaliteit([{ kcal: 0, eiwit: 0 }], 2000, 150)).toBeNull()
+  })
+  it('combineert calorie- en eiwitadherentie per dag', () => {
+    // Perfecte dag → 100.
+    expect(voedingKwaliteit([{ kcal: 2000, eiwit: 150 }], 2000, 150)).toBe(100)
+    // Calorie perfect, eiwit half → (100 + 50) / 2 = 75.
+    expect(voedingKwaliteit([{ kcal: 2000, eiwit: 75 }], 2000, 150)).toBe(75)
+  })
+  it('zonder eiwitdoel telt alleen calorie-adherentie', () => {
+    expect(voedingKwaliteit([{ kcal: 2000, eiwit: null }], 2000, null)).toBe(100)
+  })
+  it('middelt over de gelogde dagen', () => {
+    expect(voedingKwaliteit([{ kcal: 2000, eiwit: null }, { kcal: 1000, eiwit: null }], 2000, null))
+      .toBe(Math.round((100 + calorieAdherentie(1000, 2000)) / 2))
+  })
+})
+
+describe('naarCijfer', () => {
+  it('0–100 → rapportcijfer 0–10 met één decimaal', () => {
+    expect(naarCijfer(74)).toBe(7.4)
+    expect(naarCijfer(100)).toBe(10)
+    expect(naarCijfer(5)).toBe(0.5)
+  })
+  it('null blijft null', () => {
+    expect(naarCijfer(null)).toBeNull()
   })
 })

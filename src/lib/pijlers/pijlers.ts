@@ -27,6 +27,10 @@ export interface PijlerDef {
   omschrijving: string
   /** lucide-react icoonnaam (UI mapt naar component). */
   icoon: string
+  /** Eigen pijlerkleur (CSS-token). Elke pijler is herkenbaar aan zijn kleur. */
+  kleur: string
+  /** Zachte variant van de pijlerkleur (CSS-token) voor achtergronden. */
+  kleurZacht: string
   /** 0-based positie in de canonieke volgorde. */
   volgorde: number
 }
@@ -37,6 +41,8 @@ export const PIJLERS: readonly PijlerDef[] = [
     label: 'Energie',
     omschrijving: 'Hoeveel energie en vitaliteit je door de week ervaart.',
     icoon: 'Zap',
+    kleur: 'var(--mf-amber)',
+    kleurZacht: 'var(--mf-amber-light)',
     volgorde: 0,
   },
   {
@@ -44,6 +50,8 @@ export const PIJLERS: readonly PijlerDef[] = [
     label: 'Slaap',
     omschrijving: 'Je slaapkwaliteit, -duur en hoe uitgerust je opstaat.',
     icoon: 'Moon',
+    kleur: 'var(--mf-blue)',
+    kleurZacht: 'var(--mf-blue-light)',
     volgorde: 1,
   },
   {
@@ -51,6 +59,8 @@ export const PIJLERS: readonly PijlerDef[] = [
     label: 'Stress',
     omschrijving: 'Ervaren spanning en je gevoel van controle daarover.',
     icoon: 'Activity',
+    kleur: 'var(--mf-red)',
+    kleurZacht: 'var(--mf-red-light)',
     volgorde: 2,
   },
   {
@@ -58,6 +68,8 @@ export const PIJLERS: readonly PijlerDef[] = [
     label: 'Stemming',
     omschrijving: 'Je algemene stemming en mentale balans van dag tot dag.',
     icoon: 'Smile',
+    kleur: 'var(--mf-purple)',
+    kleurZacht: 'var(--mf-purple-light)',
     volgorde: 3,
   },
   {
@@ -65,6 +77,8 @@ export const PIJLERS: readonly PijlerDef[] = [
     label: 'Beweging',
     omschrijving: 'Fysieke activiteit in je dagelijks leven — stappen en training.',
     icoon: 'Footprints',
+    kleur: 'var(--mf-green)',
+    kleurZacht: 'var(--mf-green-light)',
     volgorde: 4,
   },
   {
@@ -72,6 +86,8 @@ export const PIJLERS: readonly PijlerDef[] = [
     label: 'Voeding',
     omschrijving: 'Voeding en hydratatie — vol te houden, zonder obsessie.',
     icoon: 'Apple',
+    kleur: 'var(--mf-orange)',
+    kleurZacht: 'var(--mf-orange-light)',
     volgorde: 5,
   },
 ] as const

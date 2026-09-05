@@ -20,13 +20,16 @@ import {
   vanCheckin4tot20,
   vanSlaapUren,
   vanDoelRatio,
+  voedingKwaliteit,
   pijlerScore,
   wellbeingScore,
   berekenTrend,
   type Bron,
   type Trend,
   type Wellbeing,
+  type VoedingDag,
 } from './score'
+import { effectieveDoelen, type Geslacht, type Activiteitsniveau, type FitnessDoel } from '@/lib/health/gezondheid-berekeningen'
 
 // Standaard dagdoelen als de gebruiker (nog) geen eigen doel heeft ingesteld.
 const DEFAULT_STAPPEN_DOEL = 7000
@@ -59,7 +62,18 @@ interface NativeRow extends DatumRow { stappen: number | null; slaap_minuten: nu
 interface TrainingRow extends DatumRow { duur_minuten: number | null }
 interface WaterRow extends DatumRow { ml: number | null }
 interface CheckinRow { scores: Record<string, number> | null; aangemaakt_op: string }
-interface DoelRow { stappen_doel: number | null; water_doel_ml: number | null }
+interface VoedingLogRow extends DatumRow { calorieen: number | null; eiwitten_g: number | null }
+interface ProfielRow {
+  stappen_doel: number | null
+  water_doel_ml: number | null
+  gewicht_kg: number | null
+  lengte_cm: number | null
+  geboortedatum: string | null
+  geslacht: Geslacht | null
+  activiteitsniveau: Activiteitsniveau | null
+  fitness_doel: FitnessDoel | null
+  calorie_doel: number | null
+}
 
 // ── Datumhelpers ────────────────────────────────────────────────────────────
 function ymd(d: Date): string {
@@ -98,7 +112,7 @@ interface Vensterdata {
   stappen: number[] // reeds gecombineerd (dagmetingen + native), per dag
   training: TrainingRow[]
   water: WaterRow[]
-  voedingDagen: Set<string>
+  voeding: VoedingDag[] // dagtotalen kcal + eiwit, voor de kwaliteitsscore
   checkin: CheckinRow | null
 }
 
@@ -112,6 +126,8 @@ function scorePijlers(
   data: Vensterdata,
   stappenDoel: number,
   waterDoel: number,
+  kcalDoel: number | null,
+  eiwitDoel: number | null,
 ): Record<PijlerKey, { score: number | null; bronnen: string[] }> {
   const ciEnergie = leesCheckin(data.checkin?.scores ?? null, 'energie')
   const ciSlaap = leesCheckin(data.checkin?.scores ?? null, 'slaap')
@@ -167,10 +183,12 @@ function scorePijlers(
     { naam: 'Training', bron: data.training.length > 0 ? norm(trainingMin, (v) => vanDoelRatio(v, TRAINING_MIN_PER_WEEK_DOEL)) : null },
   ])
 
-  // Voeding — water (t.o.v. doel) + logging-consistentie (dagen gelogd / 7)
+  // Voeding — voedingskwaliteit (wát je eet: calorie- + eiwitdoel, zwaarst) +
+  // hydratatie. NIET langer "dagen gelogd": invullen ≠ goed eten.
+  const voedingKwal = voedingKwaliteit(data.voeding, kcalDoel, eiwitDoel)
   const voeding = bouw([
+    { naam: 'Voedingskwaliteit', bron: voedingKwal !== null ? { waarde: voedingKwal, gewicht: 2 } : null },
     { naam: 'Hydratatie', bron: norm(gemWater, (v) => vanDoelRatio(v, waterDoel)) },
-    { naam: 'Voeding gelogd', bron: data.voedingDagen.size > 0 ? { waarde: Math.min(100, (data.voedingDagen.size / 7) * 100), gewicht: 1 } : null },
   ])
 
   return { energie, slaap, stress, stemming, beweging, voeding }
@@ -216,9 +234,9 @@ export async function berekenPijlerOverzicht(
     admin.from('health_native_logs').select('datum, stappen, slaap_minuten').eq('user_id', userId).gte('datum', vanaf14),
     admin.from('training_logs').select('datum, duur_minuten').eq('user_id', userId).gte('datum', vanaf14),
     admin.from('water_logs').select('datum, ml').eq('user_id', userId).gte('datum', vanaf14),
-    admin.from('voeding_logs').select('datum').eq('user_id', userId).gte('datum', vanaf14),
+    admin.from('voeding_logs').select('datum, calorieen, eiwitten_g').eq('user_id', userId).gte('datum', vanaf14),
     admin.from('checkin_analyses').select('scores, aangemaakt_op').eq('user_id', userId).order('aangemaakt_op', { ascending: false }).limit(2),
-    admin.from('profiles').select('stappen_doel, water_doel_ml').eq('id', userId).maybeSingle(),
+    admin.from('profiles').select('stappen_doel, water_doel_ml, gewicht_kg, lengte_cm, geboortedatum, geslacht, activiteitsniveau, fitness_doel, calorie_doel').eq('id', userId).maybeSingle(),
   ])
 
   const slaap = (slaapRes.data ?? []) as SlaapRow[]
@@ -228,12 +246,37 @@ export async function berekenPijlerOverzicht(
   const native = (nativeRes.data ?? []) as NativeRow[]
   const training = (trainingRes.data ?? []) as TrainingRow[]
   const water = (waterRes.data ?? []) as WaterRow[]
-  const voeding = (voedingRes.data ?? []) as DatumRow[]
+  const voeding = (voedingRes.data ?? []) as VoedingLogRow[]
   const checkins = (checkinRes.data ?? []) as CheckinRow[]
-  const profiel = (profielRes.data ?? null) as DoelRow | null
+  const profiel = (profielRes.data ?? null) as ProfielRow | null
 
   const stappenDoel = profiel?.stappen_doel && profiel.stappen_doel > 0 ? profiel.stappen_doel : DEFAULT_STAPPEN_DOEL
   const waterDoel = profiel?.water_doel_ml && profiel.water_doel_ml > 0 ? profiel.water_doel_ml : DEFAULT_WATER_DOEL_ML
+
+  // Persoonlijke calorie-/eiwitdoelen voor de voedingskwaliteit (wát je eet).
+  const doelen = effectieveDoelen({
+    gewicht_kg: profiel?.gewicht_kg ?? null,
+    lengte_cm: profiel?.lengte_cm ?? null,
+    geboortedatum: profiel?.geboortedatum ?? null,
+    geslacht: profiel?.geslacht ?? null,
+    activiteitsniveau: profiel?.activiteitsniveau ?? null,
+    fitness_doel: profiel?.fitness_doel ?? null,
+    calorie_doel: profiel?.calorie_doel ?? null,
+  })
+  const kcalDoel = doelen.calorie_doel
+  const eiwitDoel = doelen.macros?.eiwit_g ?? null
+
+  // Dagtotalen kcal + eiwit (meerdere maaltijden per dag optellen).
+  const voedingPerDag = new Map<string, { kcal: number; eiwit: number; heeftEiwit: boolean }>()
+  for (const r of voeding) {
+    const kcal = num(r.calorieen)
+    if (!Number.isFinite(kcal)) continue
+    const bestaand = voedingPerDag.get(r.datum) ?? { kcal: 0, eiwit: 0, heeftEiwit: false }
+    bestaand.kcal += kcal
+    const eiwit = num(r.eiwitten_g)
+    if (Number.isFinite(eiwit)) { bestaand.eiwit += eiwit; bestaand.heeftEiwit = true }
+    voedingPerDag.set(r.datum, bestaand)
+  }
 
   // Combineer stappen uit dagmetingen + wearable, hoogste per dag telt.
   const stappenPerDag = new Map<string, number>()
@@ -261,13 +304,15 @@ export async function berekenPijlerOverzicht(
       stappen: [...stappenPerDag.entries()].filter(([d]) => inWindow(d)).map(([, v]) => v),
       training: training.filter((r) => inWindow(r.datum)),
       water: water.filter((r) => inWindow(r.datum)),
-      voedingDagen: new Set(voeding.filter((r) => inWindow(r.datum)).map((r) => r.datum)),
+      voeding: [...voedingPerDag.entries()]
+        .filter(([d]) => inWindow(d))
+        .map(([, v]): VoedingDag => ({ kcal: v.kcal, eiwit: v.heeftEiwit ? v.eiwit : null })),
       checkin: soort === 'huidig' ? (checkins[0] ?? null) : (checkins[1] ?? null),
     }
   }
 
-  const huidig = scorePijlers(bouwVenster('huidig'), stappenDoel, waterDoel)
-  const vorig = scorePijlers(bouwVenster('vorig'), stappenDoel, waterDoel)
+  const huidig = scorePijlers(bouwVenster('huidig'), stappenDoel, waterDoel, kcalDoel, eiwitDoel)
+  const vorig = scorePijlers(bouwVenster('vorig'), stappenDoel, waterDoel, kcalDoel, eiwitDoel)
 
   const pijlers: PijlerResultaat[] = PIJLER_KEYS.map((key) => {
     const score = huidig[key].score

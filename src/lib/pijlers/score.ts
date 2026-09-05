@@ -48,6 +48,70 @@ export function vanDoelRatio(waarde: number, doel: number): number {
   return clamp0100((waarde / doel) * 100)
 }
 
+// ── Voedingskwaliteit: op basis van WAT je eet, niet óf je invult ────────────
+// De oude voedingsscore telde puur "dagen gelogd / 7" — dan scoort iemand die
+// junk logt even hoog als iemand die zijn doelen haalt. Deze score kijkt naar de
+// werkelijke inname t.o.v. de persoonlijke calorie- en eiwitdoelen.
+
+/**
+ * Calorie-adherentie: 100 binnen ±10% van het dagdoel; daarbuiten lineair
+ * minder. Té weinig eten straft iets zwaarder dan té veel (−15 vs −12 per 10%).
+ */
+export function calorieAdherentie(kcal: number, doel: number): number {
+  if (!Number.isFinite(kcal) || kcal <= 0 || !Number.isFinite(doel) || doel <= 0) return 0
+  const ratio = kcal / doel
+  if (ratio >= 0.9 && ratio <= 1.1) return 100
+  if (ratio < 0.9) return clamp0100(100 - (0.9 - ratio) * 150)
+  return clamp0100(100 - (ratio - 1.1) * 120)
+}
+
+/** Eiwit-adherentie: je eiwitdoel halen = 100; eronder lineair, erboven vol. */
+export function eiwitAdherentie(eiwit: number, doel: number): number {
+  if (!Number.isFinite(eiwit) || eiwit < 0 || !Number.isFinite(doel) || doel <= 0) return 0
+  return clamp0100((eiwit / doel) * 100)
+}
+
+/** Eén dag voeding als YYYY-MM-DD-totalen; eiwit optioneel. */
+export interface VoedingDag {
+  kcal: number
+  eiwit: number | null
+}
+
+/**
+ * Voedingskwaliteit over de gelogde dagen: gemiddelde van de dagscores, waarbij
+ * elke dag calorie- (50%) en eiwit-adherentie (50%) combineert. Zonder eiwitdoel
+ * telt alleen calorie-adherentie. Geen kcal-doel of geen gelogde dag → null
+ * (nooit een verzonnen getal — eerlijkheids-merkregel).
+ */
+export function voedingKwaliteit(
+  dagen: readonly VoedingDag[],
+  kcalDoel: number | null,
+  eiwitDoel: number | null,
+): number | null {
+  if (kcalDoel === null || !Number.isFinite(kcalDoel) || kcalDoel <= 0) return null
+  const scores: number[] = []
+  for (const d of dagen) {
+    if (!Number.isFinite(d.kcal) || d.kcal <= 0) continue
+    const cal = calorieAdherentie(d.kcal, kcalDoel)
+    if (eiwitDoel && eiwitDoel > 0 && d.eiwit != null && Number.isFinite(d.eiwit)) {
+      scores.push(cal * 0.5 + eiwitAdherentie(d.eiwit, eiwitDoel) * 0.5)
+    } else {
+      scores.push(cal)
+    }
+  }
+  if (scores.length === 0) return null
+  return Math.round(scores.reduce((a, b) => a + b, 0) / scores.length)
+}
+
+/**
+ * Rapportcijfer 0–10 (één decimaal) uit een 0–100-score. Puur presentatie: het
+ * canonieke model blijft 0–100. `null` blijft `null` (nog niet gemeten).
+ */
+export function naarCijfer(score: number | null): number | null {
+  if (score === null || !Number.isFinite(score)) return null
+  return Math.round(clamp0100(score)) / 10
+}
+
 // ── Pijlerscore uit meerdere bronnen ────────────────────────────────────────
 
 export interface Bron {
