@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, type ReactNode } from 'react'
+import { useState, type ReactNode, type CSSProperties } from 'react'
 import Link from 'next/link'
-import { ChevronRight } from 'lucide-react'
+import { ChevronRight, Sparkles } from 'lucide-react'
 import { authFetch } from '@/lib/auth/auth-fetch'
 import { Button } from '@/components/ui/Button'
 import { useToast } from '@/components/ui/Toast'
@@ -262,6 +262,30 @@ function VoedingForm({ kleur, onKlaar, onClose }: FormProps) {
   const [wat, setWat] = useState('')
   const [kcal, setKcal] = useState('')
   const [eiwit, setEiwit] = useState('')
+  const [schatBezig, setSchatBezig] = useState(false)
+  const [geschat, setGeschat] = useState<null | 'laag' | 'gemiddeld' | 'hoog'>(null)
+
+  const veldStijl: CSSProperties = { height: 46, borderRadius: 12, border: '1px solid var(--border)', background: 'var(--bg-app)', color: 'var(--text-1)', padding: '0 14px', fontSize: 15 }
+
+  async function schatMetVita() {
+    const oms = wat.trim()
+    if (oms === '') { toast({ title: 'Wat at je?', description: 'Typ eerst kort wat je at.', variant: 'warning' }); return }
+    setSchatBezig(true)
+    try {
+      const res = await authFetch('/api/voeding/schat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ omschrijving: oms }) })
+      const data = await res.json().catch(() => null) as { calorieen?: number; eiwitten_g?: number; betrouwbaarheid?: 'laag' | 'gemiddeld' | 'hoog'; error?: string } | null
+      if (!res.ok || !data || typeof data.calorieen !== 'number') {
+        toast({ title: 'Schatten lukte niet', description: data?.error ?? 'Vul de waarden zelf in.', variant: 'error' }); return
+      }
+      setKcal(String(data.calorieen))
+      if (typeof data.eiwitten_g === 'number') setEiwit(String(data.eiwitten_g))
+      setGeschat(data.betrouwbaarheid ?? 'gemiddeld')
+    } catch {
+      toast({ title: 'Geen verbinding', variant: 'error' })
+    } finally {
+      setSchatBezig(false)
+    }
+  }
 
   async function bewaarMaaltijd() {
     const oms = wat.trim()
@@ -277,14 +301,18 @@ function VoedingForm({ kleur, onKlaar, onClose }: FormProps) {
   return (
     <div style={{ display: 'grid', gap: 16 }}>
       <Veld label="Maaltijd loggen">
-        <input value={wat} onChange={(e) => setWat(e.target.value)} placeholder="Wat at je? bijv. 2 boterhammen kaas"
-          style={{ height: 46, borderRadius: 12, border: '1px solid var(--border)', background: 'var(--bg-app)', color: 'var(--text-1)', padding: '0 14px', fontSize: 15 }} />
+        <input value={wat} onChange={(e) => { setWat(e.target.value); setGeschat(null) }} placeholder="Wat at je? bijv. 2 boterhammen kaas" style={veldStijl} />
+        <button type="button" onClick={schatMetVita} disabled={schatBezig || wat.trim() === ''}
+          style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7, minHeight: 42, borderRadius: 12, cursor: schatBezig || wat.trim() === '' ? 'default' : 'pointer', fontSize: 13.5, fontWeight: 800, border: `1.5px solid ${kleur}`, background: 'transparent', color: kleur, opacity: wat.trim() === '' ? 0.5 : 1 }}>
+          <Sparkles size={15} aria-hidden /> {schatBezig ? 'Vita schat…' : 'Schat kcal met Vita'}
+        </button>
         <div style={{ display: 'flex', gap: 10 }}>
-          <input inputMode="numeric" value={kcal} onChange={(e) => setKcal(e.target.value)} placeholder="kcal"
-            style={{ flex: 1, minWidth: 0, height: 46, borderRadius: 12, border: '1px solid var(--border)', background: 'var(--bg-app)', color: 'var(--text-1)', padding: '0 14px', fontSize: 15 }} />
-          <input inputMode="numeric" value={eiwit} onChange={(e) => setEiwit(e.target.value)} placeholder="eiwit (g)"
-            style={{ flex: 1, minWidth: 0, height: 46, borderRadius: 12, border: '1px solid var(--border)', background: 'var(--bg-app)', color: 'var(--text-1)', padding: '0 14px', fontSize: 15 }} />
+          <input inputMode="numeric" value={kcal} onChange={(e) => setKcal(e.target.value)} placeholder="kcal" style={{ ...veldStijl, flex: 1, minWidth: 0 }} />
+          <input inputMode="numeric" value={eiwit} onChange={(e) => setEiwit(e.target.value)} placeholder="eiwit (g)" style={{ ...veldStijl, flex: 1, minWidth: 0 }} />
         </div>
+        {geschat && (
+          <span style={{ fontSize: 12, color: 'var(--text-4)' }}>Geschat door Vita ({geschat} betrouwbaar) — pas gerust aan.</span>
+        )}
         <Button onClick={bewaarMaaltijd} loading={bezig} disabled={wat.trim() === ''} style={{ background: kleur, borderColor: kleur }}>Maaltijd opslaan</Button>
       </Veld>
 
