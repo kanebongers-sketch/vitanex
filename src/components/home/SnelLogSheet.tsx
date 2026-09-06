@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, type ReactNode, type CSSProperties } from 'react'
+import { useRef, useState, type ReactNode, type CSSProperties } from 'react'
 import Link from 'next/link'
-import { ChevronRight, Sparkles } from 'lucide-react'
+import { ChevronRight, Sparkles, Camera } from 'lucide-react'
 import { authFetch } from '@/lib/auth/auth-fetch'
+import { supabase } from '@/lib/supabase/supabase'
 import { Button } from '@/components/ui/Button'
 import { useToast } from '@/components/ui/Toast'
 import { SheetRoot, SheetContent, SheetTitle, SheetDescription } from '@/components/ui/Sheet'
@@ -263,9 +264,18 @@ function VoedingForm({ kleur, onKlaar, onClose }: FormProps) {
   const [kcal, setKcal] = useState('')
   const [eiwit, setEiwit] = useState('')
   const [schatBezig, setSchatBezig] = useState(false)
+  const [fotoBezig, setFotoBezig] = useState(false)
   const [geschat, setGeschat] = useState<null | 'laag' | 'gemiddeld' | 'hoog'>(null)
+  const fotoInput = useRef<HTMLInputElement>(null)
 
   const veldStijl: CSSProperties = { height: 46, borderRadius: 12, border: '1px solid var(--border)', background: 'var(--bg-app)', color: 'var(--text-1)', padding: '0 14px', fontSize: 15 }
+
+  /** Vult de kcal/eiwit-velden met een schatting en markeert de betrouwbaarheid. */
+  function toonSchatting(kcalNum: number, eiwitNum: number | undefined, betrouw: 'laag' | 'gemiddeld' | 'hoog' | undefined) {
+    setKcal(String(Math.round(kcalNum)))
+    if (typeof eiwitNum === 'number') setEiwit(String(Math.round(eiwitNum)))
+    setGeschat(betrouw ?? 'gemiddeld')
+  }
 
   async function schatMetVita() {
     const oms = wat.trim()
@@ -277,14 +287,42 @@ function VoedingForm({ kleur, onKlaar, onClose }: FormProps) {
       if (!res.ok || !data || typeof data.calorieen !== 'number') {
         toast({ title: 'Schatten lukte niet', description: data?.error ?? 'Vul de waarden zelf in.', variant: 'error' }); return
       }
-      setKcal(String(data.calorieen))
-      if (typeof data.eiwitten_g === 'number') setEiwit(String(data.eiwitten_g))
-      setGeschat(data.betrouwbaarheid ?? 'gemiddeld')
+      toonSchatting(data.calorieen, data.eiwitten_g, data.betrouwbaarheid)
     } catch {
       toast({ title: 'Geen verbinding', variant: 'error' })
     } finally {
       setSchatBezig(false)
     }
+  }
+
+  // Foto → Vita leest kcal/eiwit uit het beeld. Multipart mag géén JSON-Content-Type
+  // hebben (browser zet de boundary), dus plain fetch met het Bearer-token — niet authFetch.
+  async function analyseerFoto(file: File) {
+    setFotoBezig(true)
+    try {
+      const tok = (await supabase.auth.getSession()).data.session?.access_token
+      if (!tok) { toast({ title: 'Log opnieuw in', variant: 'error' }); return }
+      const fd = new FormData()
+      fd.append('foto', file)
+      const res = await fetch('/api/voeding/analyseer', { method: 'POST', headers: { Authorization: `Bearer ${tok}` }, body: fd })
+      const json = await res.json().catch(() => null) as { analyse?: { gerecht?: string; calorieen?: number; macros?: { eiwitten_g?: number }; betrouwbaarheid?: 'laag' | 'gemiddeld' | 'hoog' }; error?: string } | null
+      const a = json?.analyse
+      if (!res.ok || !a || typeof a.calorieen !== 'number') {
+        toast({ title: 'Foto lezen lukte niet', description: json?.error ?? 'Probeer een duidelijkere foto.', variant: 'error' }); return
+      }
+      if (typeof a.gerecht === 'string' && a.gerecht.trim() !== '') setWat(a.gerecht.trim())
+      toonSchatting(a.calorieen, a.macros?.eiwitten_g, a.betrouwbaarheid)
+    } catch {
+      toast({ title: 'Geen verbinding', variant: 'error' })
+    } finally {
+      setFotoBezig(false)
+    }
+  }
+
+  function onFotoGekozen(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (file) analyseerFoto(file)
+    e.target.value = ''
   }
 
   async function bewaarMaaltijd() {
@@ -302,10 +340,17 @@ function VoedingForm({ kleur, onKlaar, onClose }: FormProps) {
     <div style={{ display: 'grid', gap: 16 }}>
       <Veld label="Maaltijd loggen">
         <input value={wat} onChange={(e) => { setWat(e.target.value); setGeschat(null) }} placeholder="Wat at je? bijv. 2 boterhammen kaas" style={veldStijl} />
-        <button type="button" onClick={schatMetVita} disabled={schatBezig || wat.trim() === ''}
-          style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7, minHeight: 42, borderRadius: 12, cursor: schatBezig || wat.trim() === '' ? 'default' : 'pointer', fontSize: 13.5, fontWeight: 800, border: `1.5px solid ${kleur}`, background: 'transparent', color: kleur, opacity: wat.trim() === '' ? 0.5 : 1 }}>
-          <Sparkles size={15} aria-hidden /> {schatBezig ? 'Vita schat…' : 'Schat kcal met Vita'}
-        </button>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button type="button" onClick={schatMetVita} disabled={schatBezig || fotoBezig || wat.trim() === ''}
+            style={{ flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7, minHeight: 42, borderRadius: 12, cursor: schatBezig || fotoBezig || wat.trim() === '' ? 'default' : 'pointer', fontSize: 13.5, fontWeight: 800, border: `1.5px solid ${kleur}`, background: 'transparent', color: kleur, opacity: schatBezig || fotoBezig || wat.trim() === '' ? 0.5 : 1 }}>
+            <Sparkles size={15} aria-hidden /> {schatBezig ? 'Vita schat…' : 'Schat met Vita'}
+          </button>
+          <button type="button" onClick={() => fotoInput.current?.click()} disabled={schatBezig || fotoBezig} aria-label="Maak of kies een foto van je maaltijd"
+            style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7, minHeight: 42, padding: '0 14px', borderRadius: 12, cursor: schatBezig || fotoBezig ? 'default' : 'pointer', fontSize: 13.5, fontWeight: 800, border: `1.5px solid ${kleur}`, background: 'transparent', color: kleur, opacity: schatBezig || fotoBezig ? 0.5 : 1 }}>
+            <Camera size={15} aria-hidden /> {fotoBezig ? 'Lezen…' : 'Foto'}
+          </button>
+        </div>
+        <input ref={fotoInput} type="file" accept="image/*" capture="environment" onChange={onFotoGekozen} hidden />
         <div style={{ display: 'flex', gap: 10 }}>
           <input inputMode="numeric" value={kcal} onChange={(e) => setKcal(e.target.value)} placeholder="kcal" style={{ ...veldStijl, flex: 1, minWidth: 0 }} />
           <input inputMode="numeric" value={eiwit} onChange={(e) => setEiwit(e.target.value)} placeholder="eiwit (g)" style={{ ...veldStijl, flex: 1, minWidth: 0 }} />
