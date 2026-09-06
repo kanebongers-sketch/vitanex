@@ -12,9 +12,28 @@ import Navbar from '@/components/layout/Navbar'
 import { scoreNiveau, naarCijfer } from '@/lib/pijlers/score'
 import { PIJLERS, type PijlerKey } from '@/lib/pijlers/pijlers'
 import type { PijlerOverzicht } from '@/lib/pijlers/pijlers-server'
+import type { CSSProperties } from 'react'
 import { RetentieBalk } from '@/components/home/RetentieBalk'
 import { TrendsBlok } from '@/components/home/TrendsBlok'
-import { VitaInzicht } from '@/components/home/VitaInzicht'
+import { useVitaInzicht } from '@/components/home/VitaInzicht'
+
+// ── Eén card-taal voor de hele home ─────────────────────────────────────────
+// De home voelde "chaotisch" doordat elk blok zijn eigen radius, rand en accent
+// had. Deze constanten zijn de enige bron: zelfde radius, rand en sectie-kop
+// overal. Rust ontstaat door herhaling, niet door variatie.
+const CARD: CSSProperties = {
+  background: 'var(--bg-card)',
+  border: '1px solid var(--border)',
+  borderRadius: 18,
+}
+const SECTIE_KOP: CSSProperties = {
+  fontSize: 12,
+  fontWeight: 800,
+  color: 'var(--text-4)',
+  textTransform: 'uppercase',
+  letterSpacing: '0.08em',
+  margin: '0 0 10px',
+}
 
 // De consumenten-home. Bewust gefocust op de VIJF echte pijlers (niet tien dunne
 // tegels): dagscore als held, Vita's cross-pijler-inzicht als slim hart, de
@@ -83,77 +102,90 @@ export default function HomePage() {
   return (
     <div className="mf-mesh-bg" style={{ background: 'var(--bg-app)', minHeight: '100vh' }}>
       <Navbar />
-      <main style={{ maxWidth: 640, margin: '0 auto', padding: '20px 16px 96px' }}>
-        <p style={{ fontSize: 13, color: 'var(--text-4)', margin: '0 0 2px' }}>{new Date().toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
-        <h1 style={{ fontSize: 27, fontWeight: 900, color: 'var(--text-1)', margin: '0 0 18px', letterSpacing: '-0.02em' }}>{groetVoor(new Date().getHours())}, {voornaam || '…'}</h1>
+      <main style={{ maxWidth: 620, margin: '0 auto', padding: '20px 16px 96px', display: 'flex', flexDirection: 'column', gap: 22 }}>
+        {/* Kop */}
+        <header>
+          <p style={{ fontSize: 13, color: 'var(--text-4)', margin: '0 0 2px' }}>{new Date().toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
+          <h1 style={{ fontSize: 26, fontWeight: 900, color: 'var(--text-1)', margin: 0, letterSpacing: '-0.02em' }}>{groetVoor(new Date().getHours())}, {voornaam || '…'}</h1>
+        </header>
 
-        {/* Held: dagscore */}
-        <section aria-label="Dagscore" style={{ display: 'flex', alignItems: 'center', gap: 20, background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 22, padding: '22px 24px', marginBottom: 14 }}>
-          <DagscoreRing score={dagscore} kleur={niveau.kleur} size={104} />
-          <div style={{ minWidth: 0 }}>
-            <p style={{ fontSize: 12, color: 'var(--text-4)', margin: 0, textTransform: 'uppercase', letterSpacing: '0.07em', fontWeight: 700 }}>Dagscore</p>
-            <p style={{ fontSize: 20, fontWeight: 900, color: 'var(--text-1)', margin: '3px 0 0', letterSpacing: '-0.01em' }}>{niveau.label}</p>
-            <p style={{ fontSize: 12.5, color: 'var(--text-3)', margin: '4px 0 0' }}>
-              {laden ? 'laden…' : dagscore !== null ? `${alleScores.length} van ${scores.size} pijlers gemeten vandaag` : 'Log iets om je dag in beeld te brengen'}
-            </p>
+        {/* Anker: dagscore + de daglus (streak + check-in) in één kaart */}
+        <section aria-label="Vandaag" style={{ ...CARD }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 20, padding: '22px 22px' }}>
+            <DagscoreRing score={dagscore} kleur={niveau.kleur} size={100} />
+            <div style={{ minWidth: 0 }}>
+              <p style={{ ...SECTIE_KOP, margin: 0 }}>Dagscore</p>
+              <p style={{ fontSize: 21, fontWeight: 900, color: 'var(--text-1)', margin: '4px 0 0', letterSpacing: '-0.01em' }}>{niveau.label}</p>
+              <p style={{ fontSize: 12.5, color: 'var(--text-3)', margin: '4px 0 0', lineHeight: 1.4 }}>
+                {laden ? 'laden…' : dagscore !== null ? `${alleScores.length} van ${scores.size} pijlers gemeten vandaag` : 'Log iets om je dag in beeld te brengen'}
+              </p>
+            </div>
+          </div>
+          <RetentieBalk />
+        </section>
+
+        {/* De zes pijlers — elk zijn eigen kleur, rapportcijfer en voortgang */}
+        <section aria-label="Jouw pijlers">
+          <h2 style={SECTIE_KOP}>Jouw pijlers</h2>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(168px, 1fr))', gap: 12 }}>
+            {PIJLERS.map((p) => {
+              const score = scores.get(p.key) ?? null
+              const tnv = scoreNiveau(score)
+              const Icon = PIJLER_ICON[p.icoon] ?? Sparkles
+              const gemeten = score !== null
+              return (
+                <Link key={p.key} href={PIJLER_ROUTE[p.key]} aria-label={`${p.label}${gemeten ? `, cijfer ${cijferTekst(score)} van 10 — ${tnv.label}` : ', nog niet gemeten'}`}
+                  style={{ ...CARD, textDecoration: 'none', padding: '15px 15px 16px', display: 'flex', flexDirection: 'column', gap: 12, minHeight: 118 }}>
+                  <span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+                      <Icon size={17} aria-hidden style={{ color: p.kleur, flexShrink: 0 }} />
+                      <span style={{ fontSize: 14.5, fontWeight: 800, color: 'var(--text-1)' }}>{p.label}</span>
+                    </span>
+                    <span aria-hidden style={{ fontSize: 22, fontWeight: 900, color: gemeten ? 'var(--text-1)' : 'var(--text-4)', letterSpacing: '-0.02em', lineHeight: 1 }}>
+                      {gemeten ? cijferTekst(score) : '–'}
+                    </span>
+                  </span>
+                  <span style={{ marginTop: 'auto', display: 'block' }}>
+                    <span aria-hidden style={{ display: 'block', height: 6, borderRadius: 999, background: 'var(--bg-subtle)', overflow: 'hidden' }}>
+                      <span style={{ display: 'block', height: '100%', width: `${gemeten ? Math.max(5, Math.min(100, score)) : 0}%`, background: p.kleur, borderRadius: 999, transition: 'width 0.6s var(--ease, ease)' }} />
+                    </span>
+                    <span style={{ display: 'block', fontSize: 11.5, color: gemeten ? 'var(--text-3)' : 'var(--text-4)', fontWeight: 600, marginTop: 7 }}>
+                      {gemeten ? tnv.label : 'Nog niet gemeten'}
+                    </span>
+                  </span>
+                </Link>
+              )
+            })}
           </div>
         </section>
 
-        {/* Dagelijkse lus: streak + check-in */}
-        <RetentieBalk />
-
-        {/* Vita's cross-pijler-inzicht (alleen bij een echt signaal) */}
-        <VitaInzicht />
-
-        {/* Vraag Vita */}
-        <Link href="/coach" aria-label="Open Vita, je coach"
-          style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 12, background: 'var(--brand-soft, var(--mentaforce-primary-light))', border: '1px solid var(--brand, var(--mentaforce-primary))', borderRadius: 16, padding: '14px 16px', marginBottom: 24 }}>
-          <span style={{ width: 40, height: 40, borderRadius: 999, background: 'var(--brand, var(--mentaforce-primary))', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
-            <Sparkles size={20} style={{ color: 'var(--bg-app)' }} aria-hidden />
-          </span>
-          <span style={{ flex: 1, minWidth: 0 }}>
-            <span style={{ display: 'block', fontSize: 15, fontWeight: 800, color: 'var(--brand, var(--mentaforce-primary))' }}>Vraag Vita</span>
-            <span style={{ display: 'block', fontSize: 12.5, color: 'var(--text-3)' }}>Je persoonlijke coach — vraag wat je maar wilt</span>
-          </span>
-          <ChevronRight size={18} aria-hidden style={{ color: 'var(--brand, var(--mentaforce-primary))', flexShrink: 0 }} />
-        </Link>
-
-        {/* De zes pijlers — elk zijn eigen kleur en rapportcijfer */}
-        <h2 style={{ fontSize: 13, fontWeight: 800, color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 10px' }}>Jouw pijlers</h2>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 12 }}>
-          {PIJLERS.map((p) => {
-            const score = scores.get(p.key) ?? null
-            const tnv = scoreNiveau(score)
-            const Icon = PIJLER_ICON[p.icoon] ?? Sparkles
-            const gemeten = score !== null
-            return (
-              <Link key={p.key} href={PIJLER_ROUTE[p.key]} aria-label={`${p.label}${gemeten ? `, cijfer ${cijferTekst(score)} van 10` : ', nog niet gemeten'}`}
-                style={{ textDecoration: 'none', background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 18, padding: '16px 16px', display: 'flex', flexDirection: 'column', gap: 12, minHeight: 116 }}>
-                <span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ width: 42, height: 42, borderRadius: 13, background: p.kleurZacht, display: 'grid', placeItems: 'center' }}>
-                    <Icon size={21} aria-hidden style={{ color: p.kleur }} />
-                  </span>
-                  {gemeten
-                    ? <span aria-hidden style={{ fontSize: 22, fontWeight: 900, color: p.kleur, letterSpacing: '-0.02em', lineHeight: 1 }}>{cijferTekst(score)}</span>
-                    : <ChevronRight size={16} aria-hidden style={{ color: 'var(--text-4)' }} />}
-                </span>
-                <span style={{ marginTop: 'auto' }}>
-                  <span style={{ display: 'block', fontSize: 15, fontWeight: 800, color: 'var(--text-1)' }}>{p.label}</span>
-                  <span style={{ display: 'block', fontSize: 12, color: gemeten ? 'var(--text-3)' : 'var(--text-4)', fontWeight: 600, marginTop: 1 }}>
-                    {gemeten ? tnv.label : 'Nog niet gemeten'}
-                  </span>
-                </span>
-              </Link>
-            )
-          })}
-        </div>
+        {/* Vita — één kaart: toont een echt inzicht als dat er is, anders de coach */}
+        <VitaKaart />
 
         {/* Zichtbare vooruitgang: trends */}
-        <div style={{ marginTop: 24 }}>
-          <TrendsBlok />
-        </div>
+        <TrendsBlok />
       </main>
     </div>
+  )
+}
+
+/** Eén Vita-kaart: een concreet data-inzicht als dat er is, altijd tikbaar naar de coach. */
+function VitaKaart() {
+  const inzicht = useVitaInzicht()
+  return (
+    <Link href="/coach" aria-label={inzicht ? 'Praat met Vita over dit inzicht' : 'Open Vita, je coach'}
+      style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 13, background: 'var(--brand-soft, var(--mentaforce-primary-light))', border: '1px solid var(--brand, var(--mentaforce-primary))', borderRadius: 18, padding: '15px 16px' }}>
+      <span style={{ width: 40, height: 40, borderRadius: 999, background: 'var(--brand, var(--mentaforce-primary))', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
+        <Sparkles size={20} style={{ color: 'var(--bg-app)' }} aria-hidden />
+      </span>
+      <span style={{ flex: 1, minWidth: 0 }}>
+        <span style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--brand, var(--mentaforce-primary))', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{inzicht?.label ?? 'Vraag Vita'}</span>
+        <span style={{ display: 'block', fontSize: 13, color: inzicht ? 'var(--text-1)' : 'var(--text-3)', lineHeight: 1.45, marginTop: 1 }}>
+          {inzicht ? `${inzicht.emoji} ${inzicht.tekst}` : 'Je persoonlijke coach — vraag wat je maar wilt'}
+        </span>
+      </span>
+      <ChevronRight size={18} aria-hidden style={{ color: 'var(--brand, var(--mentaforce-primary))', flexShrink: 0 }} />
+    </Link>
   )
 }
 

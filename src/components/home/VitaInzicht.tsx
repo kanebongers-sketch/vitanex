@@ -1,8 +1,6 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import Link from 'next/link'
-import { Sparkles } from 'lucide-react'
 import { authFetch } from '@/lib/auth/auth-fetch'
 import { gemiddelde, slaapschuld, regelmaat } from '@/lib/slaap/stats'
 import { kiesVitaInzicht } from '@/lib/vita/inzicht'
@@ -39,7 +37,12 @@ function lijst(ruw: unknown, sleutel: string): unknown[] {
   return Array.isArray(o[sleutel]) ? (o[sleutel] as unknown[]) : []
 }
 
-export function VitaInzicht() {
+/**
+ * Vita's beste inzicht uit je data, of null als er (nog) geen echt signaal is.
+ * Losgekoppeld van de weergave zodat de home er één Vita-kaart van kan maken
+ * i.p.v. twee losse blokken.
+ */
+export function useVitaInzicht(): VitaToon | null {
   const [toon, setToon] = useState<VitaToon | null>(null)
 
   const laad = useCallback((): Promise<void> => {
@@ -50,7 +53,6 @@ export function VitaInzicht() {
       haal('/api/stemming?limit=30'),
       haal('/api/stappen?dagen=30'),
     ]).then(([slaapRuw, streakRuw, stemmingRuw, stappenRuw]) => {
-      // 1. Cross-pijler verband — het meest onderscheidende inzicht, dus voorrang.
       const verband = kiesSterksteVerband(verbandDefinities({
         slaapUren: dagGemiddelde(lijst(slaapRuw, 'logs'), 'datum', 'uren_slaap'),
         stemming: dagGemiddelde(lijst(stemmingRuw, 'logs'), 'aangemaakt_op', 'stemming'),
@@ -58,7 +60,6 @@ export function VitaInzicht() {
       }))
       if (verband) { setToon({ emoji: '🔗', tekst: verband.tekst, label: 'Vita ziet een verband' }); return }
 
-      // 2. Terugval: enkel-pijler slaap-inzicht.
       const { uren, bedtijden, doel } = leesSlaap(slaapRuw)
       const inzicht = kiesVitaInzicht({
         slaapDezeWeek: gemiddelde(uren.slice(0, 7)),
@@ -73,18 +74,6 @@ export function VitaInzicht() {
 
   useEffect(() => { void laad() }, [laad])
 
-  if (toon === null) return null
-
-  return (
-    <Link href="/coach" aria-label="Praat met Vita over dit inzicht"
-      style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 12, background: 'var(--brand-soft, var(--mf-green-light))', border: '1px solid var(--brand, var(--mentaforce-primary))', borderRadius: 16, padding: '14px 16px', marginBottom: 16 }}>
-      <span style={{ width: 38, height: 38, borderRadius: 999, background: 'var(--brand, var(--mentaforce-primary))', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
-        <Sparkles size={20} aria-hidden style={{ color: 'var(--bg-app)' }} />
-      </span>
-      <span style={{ minWidth: 0 }}>
-        <span style={{ display: 'block', fontSize: 11, fontWeight: 700, color: 'var(--brand, var(--mentaforce-primary))', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{toon.label}</span>
-        <span style={{ display: 'block', fontSize: 13.5, color: 'var(--text-1)', lineHeight: 1.45 }}>{toon.emoji} {toon.tekst}</span>
-      </span>
-    </Link>
-  )
+  return toon
 }
+

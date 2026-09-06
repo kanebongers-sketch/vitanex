@@ -66,8 +66,8 @@ export function TrendsBlok() {
   if (reeksen === null || reeksen.length === 0) return null
 
   return (
-    <section aria-label="Trends" style={{ marginBottom: 24 }}>
-      <h2 style={{ fontSize: 13, fontWeight: 800, color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 10px' }}>Trends</h2>
+    <section aria-label="Trends">
+      <h2 style={{ fontSize: 12, fontWeight: 800, color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 10px' }}>Trends</h2>
       <div style={{ display: 'grid', gap: 8 }}>
         {reeksen.map((r) => <TrendRij key={r.key} reeks={r} />)}
       </div>
@@ -83,7 +83,7 @@ function TrendRij({ reeks }: { reeks: Reeks }) {
   const Icon = reeks.icoon
 
   return (
-    <Link href={reeks.route} aria-label={`${reeks.label}-trend bekijken`} style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 14, background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 16, padding: '14px 16px' }}>
+    <Link href={reeks.route} aria-label={`${reeks.label}-trend bekijken`} style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 14, background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 18, padding: '14px 16px' }}>
       <span style={{ width: 38, height: 38, borderRadius: 12, background: 'var(--bg-subtle)', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
         <Icon size={19} aria-hidden style={{ color: 'var(--text-3)' }} />
       </span>
