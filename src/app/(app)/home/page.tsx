@@ -5,7 +5,7 @@ export const dynamic = 'force-dynamic'
 import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Apple, Moon, Footprints, Zap, Activity, Smile, Sparkles, ChevronRight, Plus, CheckCircle2, type LucideIcon } from 'lucide-react'
+import { Apple, Moon, Footprints, Zap, Activity, Smile, Droplet, Sparkles, ChevronRight, Plus, CheckCircle2, type LucideIcon } from 'lucide-react'
 import { supabase } from '@/lib/supabase/supabase'
 import { authFetch } from '@/lib/auth/auth-fetch'
 import Navbar from '@/components/layout/Navbar'
@@ -45,7 +45,7 @@ const SECTIE_KOP: CSSProperties = {
 // kleur, elk met zijn rapportcijfer. Zo telt álles zichtbaar mee — óók je stappen
 // (via Beweging) — en heeft elke pijler zijn eigen herkenbare identiteit.
 const PIJLER_ICON: Record<string, LucideIcon> = {
-  Zap, Moon, Activity, Smile, Footprints, Apple,
+  Zap, Moon, Activity, Smile, Footprints, Apple, Droplet,
 }
 
 /** Waar een pijler-tegel heen linkt: naar de log-pagina waar die bestaat. */
@@ -67,8 +67,11 @@ function groetVoor(uur: number): string {
 
 interface DagActie { pijler: PijlerKey; label: string; icoon: string }
 
-/** De openstaande dag-acties, in ochtend→avond-volgorde. Stappen zijn doelbewust:
- *  onder je dagdoel toont hij hoeveel je nog te gaan hebt. */
+/** Eén glas water in ml — de eenheid waarin we de water-nudge tellen. */
+const GLAS_ML = 250
+
+/** De openstaande dag-acties, in ochtend→avond-volgorde. Stappen én water zijn
+ *  doelbewust: onder je dagdoel tonen ze concreet hoeveel je nog te gaan hebt. */
 function openstaandeActies(v: VandaagStatus): DagActie[] {
   const acties: DagActie[] = []
   if (!v.gevoel) acties.push({ pijler: 'stemming', label: 'Hoe voel je je?', icoon: 'Smile' })
@@ -81,7 +84,14 @@ function openstaandeActies(v: VandaagStatus): DagActie[] {
       icoon: 'Footprints',
     })
   }
-  if (!v.voeding) acties.push({ pijler: 'voeding', label: 'Hou je water bij', icoon: 'Apple' })
+  if (v.water.doel > 0 && v.water.ml < v.water.doel) {
+    const glazen = Math.ceil((v.water.doel - v.water.ml) / GLAS_ML)
+    acties.push({
+      pijler: 'voeding',
+      label: v.water.ml === 0 ? 'Hou je water bij' : `Nog ${glazen} ${glazen === 1 ? 'glas' : 'glazen'} water tot je doel`,
+      icoon: 'Droplet',
+    })
+  }
   if (!v.stress) acties.push({ pijler: 'stress', label: 'Hoeveel spanning voel je?', icoon: 'Activity' })
   return acties
 }
@@ -89,11 +99,14 @@ function openstaandeActies(v: VandaagStatus): DagActie[] {
 function leesVandaag(ruw: unknown): VandaagStatus | null {
   if (typeof ruw !== 'object' || ruw === null) return null
   const o = ruw as Record<string, unknown>
-  const s = (typeof o.stappen === 'object' && o.stappen !== null) ? o.stappen as Record<string, unknown> : {}
+  const obj = (v: unknown) => (typeof v === 'object' && v !== null) ? v as Record<string, unknown> : {}
+  const s = obj(o.stappen)
+  const w = obj(o.water)
   const getal = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) ? v : 0)
   return {
     gevoel: o.gevoel === true, stress: o.stress === true, slaap: o.slaap === true, voeding: o.voeding === true,
     stappen: { waarde: getal(s.waarde), doel: getal(s.doel) || 8000 },
+    water: { ml: getal(w.ml), doel: getal(w.doel) || 2000 },
   }
 }
 

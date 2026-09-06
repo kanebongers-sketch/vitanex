@@ -26,6 +26,8 @@ export interface VandaagStatus {
   voeding: boolean
   /** Stappen vandaag t.o.v. het persoonlijke dagdoel. */
   stappen: { waarde: number; doel: number }
+  /** Gedronken ml vandaag t.o.v. het persoonlijke waterdoel. */
+  water: { ml: number; doel: number }
 }
 
 export async function GET(req: NextRequest) {
@@ -46,30 +48,35 @@ export async function GET(req: NextRequest) {
     db.from(tabel).select('stappen').eq('user_id', uid).eq('datum', vandaag).maybeSingle()
       .then(({ data }) => (data && typeof data.stappen === 'number' ? data.stappen : 0))
 
-  const [gevoel, stress, slaap, voeding, water, stapDag, stapNative, profielRes] = await Promise.all([
+  /** Som van de vandaag gedronken ml (0 als er niets is gelogd). */
+  const waterMlVandaag = db.from('water_logs').select('ml').eq('user_id', uid).eq('datum', vandaag)
+    .then(({ data }) => (data ?? []).reduce((som, r) => som + (typeof r.ml === 'number' ? r.ml : 0), 0))
+
+  const [gevoel, stress, slaap, voeding, waterMl, stapDag, stapNative, profielRes] = await Promise.all([
     opDatum('stemming_logs'),
     heeftRij(db.from('stress_logs').select('*', { count: 'exact', head: true }).eq('user_id', uid).gte('aangemaakt_op', dagstart)),
     opDatum('slaap_logs'),
     opDatum('voeding_logs'),
-    opDatum('water_logs'),
+    waterMlVandaag,
     stappenVan('dagmetingen'),
     stappenVan('health_native_logs'),
-    db.from('profiles').select('gewicht_kg, lengte_cm, geboortedatum, geslacht, activiteitsniveau, fitness_doel, stappen_doel').eq('id', uid).maybeSingle(),
+    db.from('profiles').select('gewicht_kg, lengte_cm, geboortedatum, geslacht, activiteitsniveau, fitness_doel, stappen_doel, water_doel_ml').eq('id', uid).maybeSingle(),
   ])
 
   const p = profielRes.data
   const doel = effectieveDoelen({
     gewicht_kg: p?.gewicht_kg ?? null, lengte_cm: p?.lengte_cm ?? null, geboortedatum: p?.geboortedatum ?? null,
     geslacht: p?.geslacht ?? null, activiteitsniveau: p?.activiteitsniveau ?? null, fitness_doel: p?.fitness_doel ?? null,
-    stappen_doel: p?.stappen_doel ?? null,
+    stappen_doel: p?.stappen_doel ?? null, water_doel_ml: p?.water_doel_ml ?? null,
   })
 
   const status: VandaagStatus = {
     gevoel,
     stress,
     slaap,
-    voeding: voeding || water,
+    voeding: voeding || waterMl > 0,
     stappen: { waarde: Math.max(stapDag, stapNative), doel: doel.stappen_doel },
+    water: { ml: waterMl, doel: doel.water_doel_ml },
   }
   return NextResponse.json(status, { headers: { 'Cache-Control': 'private, no-store' } })
 }
