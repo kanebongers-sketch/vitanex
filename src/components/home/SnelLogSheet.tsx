@@ -26,13 +26,22 @@ function vandaagNL(): string {
 }
 
 /** De pijler bepaalt welk invoertype we tonen. */
-const SOORT: Record<PijlerKey, 'gevoel' | 'stress' | 'slaap' | 'stappen' | 'water'> = {
+const SOORT: Record<PijlerKey, 'gevoel' | 'stress' | 'slaap' | 'stappen' | 'voeding'> = {
   stemming: 'gevoel',
   energie: 'gevoel',
   stress: 'stress',
   slaap: 'slaap',
   beweging: 'stappen',
-  voeding: 'water',
+  voeding: 'voeding',
+}
+
+/** Maaltijdtype op basis van het tijdstip (NL-uur). */
+function maaltijdNu(): string {
+  const uur = parseInt(new Date().toLocaleString('nl-NL', { timeZone: 'Europe/Amsterdam', hour: '2-digit', hour12: false }), 10)
+  if (uur < 11) return 'ontbijt'
+  if (uur < 15) return 'lunch'
+  if (uur < 21) return 'diner'
+  return 'snack'
 }
 
 const TITEL: Record<PijlerKey, { titel: string; sub: string }> = {
@@ -41,7 +50,7 @@ const TITEL: Record<PijlerKey, { titel: string; sub: string }> = {
   stress: { titel: 'Hoeveel spanning?', sub: '1 is helemaal rustig, 10 is heel gespannen.' },
   slaap: { titel: 'Hoe lang sliep je?', sub: 'Het aantal uren van afgelopen nacht.' },
   beweging: { titel: 'Stappen vandaag', sub: 'Kies snel of vul je eigen aantal in.' },
-  voeding: { titel: 'Water bijhouden', sub: 'Tik een glas of beker erbij.' },
+  voeding: { titel: 'Voeding & water', sub: 'Log snel een maaltijd of tik een glas water erbij.' },
 }
 
 export function SnelLogSheet({ pijler, route, onClose, onGelogd }: SnelLogSheetProps) {
@@ -64,7 +73,7 @@ export function SnelLogSheet({ pijler, route, onClose, onGelogd }: SnelLogSheetP
         {soort === 'stress' && <StressForm kleur={kleur} onKlaar={onGelogd} onClose={onClose} />}
         {soort === 'slaap' && <SlaapForm kleur={kleur} onKlaar={onGelogd} onClose={onClose} />}
         {soort === 'stappen' && <StappenForm kleur={kleur} onKlaar={onGelogd} onClose={onClose} />}
-        {soort === 'water' && <WaterForm kleur={kleur} onKlaar={onGelogd} />}
+        {soort === 'voeding' && <VoedingForm kleur={kleur} onKlaar={onGelogd} onClose={onClose} />}
 
         {pijler && (
           <Link href={route} onClick={onClose}
@@ -247,7 +256,50 @@ function StappenForm({ kleur, onKlaar, onClose }: FormProps) {
   )
 }
 
-function WaterForm({ kleur, onKlaar }: { kleur: string; onKlaar: () => void }) {
+function VoedingForm({ kleur, onKlaar, onClose }: FormProps) {
+  const { toast } = useToast()
+  const { opslaan, bezig } = useOpslaan()
+  const [wat, setWat] = useState('')
+  const [kcal, setKcal] = useState('')
+  const [eiwit, setEiwit] = useState('')
+
+  async function bewaarMaaltijd() {
+    const oms = wat.trim()
+    if (oms === '') { toast({ title: 'Wat at je?', description: 'Vul kort in wat je at.', variant: 'warning' }); return }
+    const kcalNum = parseInt(kcal.replace(/\D/g, ''), 10)
+    const eiwitNum = parseInt(eiwit.replace(/\D/g, ''), 10)
+    const body: Record<string, unknown> = { maaltijd_type: maaltijdNu(), omschrijving: oms, bron: 'snel' }
+    if (Number.isFinite(kcalNum) && kcalNum > 0) body.calorieen = kcalNum
+    if (Number.isFinite(eiwitNum) && eiwitNum > 0) body.eiwitten_g = eiwitNum
+    if (await opslaan('/api/voeding', body, onKlaar)) onClose()
+  }
+
+  return (
+    <div style={{ display: 'grid', gap: 16 }}>
+      <Veld label="Maaltijd loggen">
+        <input value={wat} onChange={(e) => setWat(e.target.value)} placeholder="Wat at je? bijv. 2 boterhammen kaas"
+          style={{ height: 46, borderRadius: 12, border: '1px solid var(--border)', background: 'var(--bg-app)', color: 'var(--text-1)', padding: '0 14px', fontSize: 15 }} />
+        <div style={{ display: 'flex', gap: 10 }}>
+          <input inputMode="numeric" value={kcal} onChange={(e) => setKcal(e.target.value)} placeholder="kcal"
+            style={{ flex: 1, minWidth: 0, height: 46, borderRadius: 12, border: '1px solid var(--border)', background: 'var(--bg-app)', color: 'var(--text-1)', padding: '0 14px', fontSize: 15 }} />
+          <input inputMode="numeric" value={eiwit} onChange={(e) => setEiwit(e.target.value)} placeholder="eiwit (g)"
+            style={{ flex: 1, minWidth: 0, height: 46, borderRadius: 12, border: '1px solid var(--border)', background: 'var(--bg-app)', color: 'var(--text-1)', padding: '0 14px', fontSize: 15 }} />
+        </div>
+        <Button onClick={bewaarMaaltijd} loading={bezig} disabled={wat.trim() === ''} style={{ background: kleur, borderColor: kleur }}>Maaltijd opslaan</Button>
+      </Veld>
+
+      <div aria-hidden style={{ display: 'flex', alignItems: 'center', gap: 10, color: 'var(--text-4)', fontSize: 12 }}>
+        <span style={{ flex: 1, height: 1, background: 'var(--border)' }} /> of drink <span style={{ flex: 1, height: 1, background: 'var(--border)' }} />
+      </div>
+
+      <Veld label="Water">
+        <WaterKnoppen kleur={kleur} onKlaar={onKlaar} />
+      </Veld>
+    </div>
+  )
+}
+
+function WaterKnoppen({ kleur, onKlaar }: { kleur: string; onKlaar: () => void }) {
   const { toast } = useToast()
   const [bezig, setBezig] = useState(false)
   const [totaal, setTotaal] = useState<number | null>(null)
@@ -268,11 +320,11 @@ function WaterForm({ kleur, onKlaar }: { kleur: string; onKlaar: () => void }) {
   }
 
   return (
-    <div style={{ display: 'grid', gap: 14 }}>
+    <div style={{ display: 'grid', gap: 10 }}>
       <div style={{ display: 'flex', gap: 10 }}>
         {[250, 500].map((ml) => (
           <button key={ml} type="button" disabled={bezig} onClick={() => voegToe(ml)}
-            style={{ flex: 1, minHeight: 56, borderRadius: 14, border: `1.5px solid ${kleur}`, background: `color-mix(in srgb, ${kleur} 14%, transparent)`, color: kleur, fontSize: 16, fontWeight: 800, cursor: bezig ? 'default' : 'pointer' }}>
+            style={{ flex: 1, minHeight: 52, borderRadius: 14, border: `1.5px solid ${kleur}`, background: `color-mix(in srgb, ${kleur} 14%, transparent)`, color: kleur, fontSize: 16, fontWeight: 800, cursor: bezig ? 'default' : 'pointer' }}>
             +{ml} ml
           </button>
         ))}

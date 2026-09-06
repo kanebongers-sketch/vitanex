@@ -8,6 +8,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getAuthenticatedUser } from '@/lib/auth/api-auth'
 import { createAdminClient } from '@/lib/supabase/supabase-admin'
 import { vandaagNL, dagstartUtcNL } from '@/lib/utils/date-nl'
+import { effectieveDoelen } from '@/lib/health/gezondheid-berekeningen'
 
 export const dynamic = 'force-dynamic'
 
@@ -22,8 +23,9 @@ export interface VandaagStatus {
   gevoel: boolean
   stress: boolean
   slaap: boolean
-  beweging: boolean
   voeding: boolean
+  /** Stappen vandaag t.o.v. het persoonlijke dagdoel. */
+  stappen: { waarde: number; doel: number }
 }
 
 export async function GET(req: NextRequest) {
@@ -39,22 +41,35 @@ export async function GET(req: NextRequest) {
   const opDatum = (tabel: string) =>
     heeftRij(db.from(tabel).select('*', { count: 'exact', head: true }).eq('user_id', uid).eq('datum', vandaag))
 
-  const [gevoel, stress, slaap, stappenDag, stappenNative, voeding, water] = await Promise.all([
+  /** Stappen vandaag uit één tabel (dagmetingen of native), of 0. */
+  const stappenVan = (tabel: string) =>
+    db.from(tabel).select('stappen').eq('user_id', uid).eq('datum', vandaag).maybeSingle()
+      .then(({ data }) => (data && typeof data.stappen === 'number' ? data.stappen : 0))
+
+  const [gevoel, stress, slaap, voeding, water, stapDag, stapNative, profielRes] = await Promise.all([
     opDatum('stemming_logs'),
     heeftRij(db.from('stress_logs').select('*', { count: 'exact', head: true }).eq('user_id', uid).gte('aangemaakt_op', dagstart)),
     opDatum('slaap_logs'),
-    opDatum('dagmetingen'),
-    opDatum('health_native_logs'),
     opDatum('voeding_logs'),
     opDatum('water_logs'),
+    stappenVan('dagmetingen'),
+    stappenVan('health_native_logs'),
+    db.from('profiles').select('gewicht_kg, lengte_cm, geboortedatum, geslacht, activiteitsniveau, fitness_doel, stappen_doel').eq('id', uid).maybeSingle(),
   ])
+
+  const p = profielRes.data
+  const doel = effectieveDoelen({
+    gewicht_kg: p?.gewicht_kg ?? null, lengte_cm: p?.lengte_cm ?? null, geboortedatum: p?.geboortedatum ?? null,
+    geslacht: p?.geslacht ?? null, activiteitsniveau: p?.activiteitsniveau ?? null, fitness_doel: p?.fitness_doel ?? null,
+    stappen_doel: p?.stappen_doel ?? null,
+  })
 
   const status: VandaagStatus = {
     gevoel,
     stress,
     slaap,
-    beweging: stappenDag || stappenNative,
     voeding: voeding || water,
+    stappen: { waarde: Math.max(stapDag, stapNative), doel: doel.stappen_doel },
   }
   return NextResponse.json(status, { headers: { 'Cache-Control': 'private, no-store' } })
 }

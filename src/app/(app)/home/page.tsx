@@ -65,21 +65,35 @@ function groetVoor(uur: number): string {
   return 'Goedenavond'
 }
 
-/** De mogelijke dag-acties, in een rustige ochtend→avond-volgorde. */
-const TE_DOEN: readonly { sleutel: keyof VandaagStatus; pijler: PijlerKey; label: string; icoon: string }[] = [
-  { sleutel: 'gevoel', pijler: 'stemming', label: 'Hoe voel je je?', icoon: 'Smile' },
-  { sleutel: 'slaap', pijler: 'slaap', label: 'Log je slaap van vannacht', icoon: 'Moon' },
-  { sleutel: 'beweging', pijler: 'beweging', label: 'Vul je stappen in', icoon: 'Footprints' },
-  { sleutel: 'voeding', pijler: 'voeding', label: 'Hou je water bij', icoon: 'Apple' },
-  { sleutel: 'stress', pijler: 'stress', label: 'Hoeveel spanning voel je?', icoon: 'Activity' },
-]
+interface DagActie { pijler: PijlerKey; label: string; icoon: string }
+
+/** De openstaande dag-acties, in ochtend→avond-volgorde. Stappen zijn doelbewust:
+ *  onder je dagdoel toont hij hoeveel je nog te gaan hebt. */
+function openstaandeActies(v: VandaagStatus): DagActie[] {
+  const acties: DagActie[] = []
+  if (!v.gevoel) acties.push({ pijler: 'stemming', label: 'Hoe voel je je?', icoon: 'Smile' })
+  if (!v.slaap) acties.push({ pijler: 'slaap', label: 'Log je slaap van vannacht', icoon: 'Moon' })
+  if (v.stappen.doel > 0 && v.stappen.waarde < v.stappen.doel) {
+    const rest = v.stappen.doel - v.stappen.waarde
+    acties.push({
+      pijler: 'beweging',
+      label: v.stappen.waarde === 0 ? 'Vul je stappen in' : `Nog ${rest.toLocaleString('nl-NL')} stappen tot je doel`,
+      icoon: 'Footprints',
+    })
+  }
+  if (!v.voeding) acties.push({ pijler: 'voeding', label: 'Hou je water bij', icoon: 'Apple' })
+  if (!v.stress) acties.push({ pijler: 'stress', label: 'Hoeveel spanning voel je?', icoon: 'Activity' })
+  return acties
+}
 
 function leesVandaag(ruw: unknown): VandaagStatus | null {
   if (typeof ruw !== 'object' || ruw === null) return null
   const o = ruw as Record<string, unknown>
+  const s = (typeof o.stappen === 'object' && o.stappen !== null) ? o.stappen as Record<string, unknown> : {}
+  const getal = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) ? v : 0)
   return {
-    gevoel: o.gevoel === true, stress: o.stress === true, slaap: o.slaap === true,
-    beweging: o.beweging === true, voeding: o.voeding === true,
+    gevoel: o.gevoel === true, stress: o.stress === true, slaap: o.slaap === true, voeding: o.voeding === true,
+    stappen: { waarde: getal(s.waarde), doel: getal(s.doel) || 8000 },
   }
 }
 
@@ -156,7 +170,7 @@ export default function HomePage() {
 
         {/* Te doen vandaag — wat mist er nog, direct tikbaar om te loggen */}
         {vandaag && (() => {
-          const open = TE_DOEN.filter((t) => !vandaag[t.sleutel])
+          const open = openstaandeActies(vandaag)
           return (
             <section aria-label="Te doen vandaag">
               <h2 style={SECTIE_KOP}>Te doen vandaag</h2>
@@ -171,7 +185,7 @@ export default function HomePage() {
                     const Icon = PIJLER_ICON[t.icoon] ?? Plus
                     const kleur = pijlerDef(t.pijler)?.kleur ?? 'var(--brand)'
                     return (
-                      <button key={t.sleutel} type="button" onClick={() => setSnelLog(t.pijler)} aria-label={`${t.label} — snel loggen`}
+                      <button key={t.pijler} type="button" onClick={() => setSnelLog(t.pijler)} aria-label={`${t.label} — snel loggen`}
                         style={{ ...CARD, textAlign: 'left', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px' }}>
                         <span style={{ width: 34, height: 34, borderRadius: 10, background: pijlerDef(t.pijler)?.kleurZacht ?? 'var(--bg-subtle)', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
                           <Icon size={17} aria-hidden style={{ color: kleur }} />
