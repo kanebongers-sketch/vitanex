@@ -5,13 +5,14 @@ export const dynamic = 'force-dynamic'
 import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Apple, Moon, Footprints, Zap, Activity, Smile, Sparkles, ChevronRight, Plus, type LucideIcon } from 'lucide-react'
+import { Apple, Moon, Footprints, Zap, Activity, Smile, Sparkles, ChevronRight, Plus, CheckCircle2, type LucideIcon } from 'lucide-react'
 import { supabase } from '@/lib/supabase/supabase'
 import { authFetch } from '@/lib/auth/auth-fetch'
 import Navbar from '@/components/layout/Navbar'
 import { scoreNiveau, naarCijfer } from '@/lib/pijlers/score'
-import { PIJLERS, type PijlerKey } from '@/lib/pijlers/pijlers'
+import { PIJLERS, pijlerDef, type PijlerKey } from '@/lib/pijlers/pijlers'
 import type { PijlerOverzicht } from '@/lib/pijlers/pijlers-server'
+import type { VandaagStatus } from '@/app/api/home/vandaag/route'
 import type { CSSProperties } from 'react'
 import { RetentieBalk } from '@/components/home/RetentieBalk'
 import { TrendsBlok } from '@/components/home/TrendsBlok'
@@ -64,6 +65,24 @@ function groetVoor(uur: number): string {
   return 'Goedenavond'
 }
 
+/** De mogelijke dag-acties, in een rustige ochtend→avond-volgorde. */
+const TE_DOEN: readonly { sleutel: keyof VandaagStatus; pijler: PijlerKey; label: string; icoon: string }[] = [
+  { sleutel: 'gevoel', pijler: 'stemming', label: 'Hoe voel je je?', icoon: 'Smile' },
+  { sleutel: 'slaap', pijler: 'slaap', label: 'Log je slaap van vannacht', icoon: 'Moon' },
+  { sleutel: 'beweging', pijler: 'beweging', label: 'Vul je stappen in', icoon: 'Footprints' },
+  { sleutel: 'voeding', pijler: 'voeding', label: 'Hou je water bij', icoon: 'Apple' },
+  { sleutel: 'stress', pijler: 'stress', label: 'Hoeveel spanning voel je?', icoon: 'Activity' },
+]
+
+function leesVandaag(ruw: unknown): VandaagStatus | null {
+  if (typeof ruw !== 'object' || ruw === null) return null
+  const o = ruw as Record<string, unknown>
+  return {
+    gevoel: o.gevoel === true, stress: o.stress === true, slaap: o.slaap === true,
+    beweging: o.beweging === true, voeding: o.voeding === true,
+  }
+}
+
 /** Rapportcijfer als NL-tekst: "7,4", "10", of "–" bij geen data. */
 function cijferTekst(score: number | null): string {
   const c = naarCijfer(score)
@@ -75,8 +94,21 @@ export default function HomePage() {
   const router = useRouter()
   const [voornaam, setVoornaam] = useState('')
   const [scores, setScores] = useState<Map<string, number | null>>(new Map())
+  const [vandaag, setVandaag] = useState<VandaagStatus | null>(null)
   const [laden, setLaden] = useState(true)
   const [snelLog, setSnelLog] = useState<PijlerKey | null>(null)
+
+  // Haalt de scores én de "vandaag gelogd"-status op. Gedeeld door de eerste
+  // load en de verversing na een snelle log (geen laad-flits bij verversen).
+  const haalData = useCallback((): Promise<void> => {
+    return Promise.all([
+      authFetch('/api/pijlers').then((res) => (res.ok ? res.json() as Promise<PijlerOverzicht> : null)).catch(() => null),
+      authFetch('/api/home/vandaag').then((res) => (res.ok ? res.json() : null)).catch(() => null),
+    ]).then(([ov, vnd]) => {
+      if (ov) setScores(new Map(ov.pijlers.map((p) => [p.key, p.score])))
+      const v = leesVandaag(vnd); if (v) setVandaag(v)
+    })
+  }, [])
 
   const laad = useCallback((): Promise<void> => {
     return supabase.auth.getUser().then(({ data }) => {
@@ -85,24 +117,12 @@ export default function HomePage() {
         .then(({ data: profiel }) => {
           if (!profiel?.onboarding_voltooid) { router.replace('/onboarding'); return }
           setVoornaam((profiel?.naam ?? '').split(' ')[0] || 'jij')
-          return authFetch('/api/pijlers')
-            .then((res) => (res.ok ? res.json() as Promise<PijlerOverzicht> : null))
-            .then((ov) => { if (ov) setScores(new Map(ov.pijlers.map((p) => [p.key, p.score]))) })
-            .catch(() => { /* dagscore valt netjes terug op "nog niet gemeten" */ })
-            .finally(() => setLaden(false))
+          return haalData().finally(() => setLaden(false))
         })
     }).catch(() => setLaden(false))
-  }, [router])
+  }, [router, haalData])
 
   useEffect(() => { void laad() }, [laad])
-
-  // Herlaadt alleen de scores (na een snelle log), zonder laad-flits.
-  const verversScores = useCallback((): void => {
-    void authFetch('/api/pijlers')
-      .then((res) => (res.ok ? res.json() as Promise<PijlerOverzicht> : null))
-      .then((ov) => { if (ov) setScores(new Map(ov.pijlers.map((p) => [p.key, p.score]))) })
-      .catch(() => { /* stil: de bestaande scores blijven staan */ })
-  }, [])
 
   // Dagscore = gemiddelde van álle gemeten pijlers (ontkoppeld van de tegels).
   const alleScores = [...scores.values()].filter((s): s is number => typeof s === 'number')
@@ -133,6 +153,41 @@ export default function HomePage() {
           </div>
           <RetentieBalk />
         </section>
+
+        {/* Te doen vandaag — wat mist er nog, direct tikbaar om te loggen */}
+        {vandaag && (() => {
+          const open = TE_DOEN.filter((t) => !vandaag[t.sleutel])
+          return (
+            <section aria-label="Te doen vandaag">
+              <h2 style={SECTIE_KOP}>Te doen vandaag</h2>
+              {open.length === 0 ? (
+                <div style={{ ...CARD, display: 'flex', alignItems: 'center', gap: 10, padding: '14px 16px' }}>
+                  <CheckCircle2 size={18} aria-hidden style={{ color: 'var(--brand, var(--mf-green))', flexShrink: 0 }} />
+                  <span style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--text-1)' }}>Je bent bij voor vandaag. Mooi.</span>
+                </div>
+              ) : (
+                <div style={{ display: 'grid', gap: 8 }}>
+                  {open.map((t) => {
+                    const Icon = PIJLER_ICON[t.icoon] ?? Plus
+                    const kleur = pijlerDef(t.pijler)?.kleur ?? 'var(--brand)'
+                    return (
+                      <button key={t.sleutel} type="button" onClick={() => setSnelLog(t.pijler)} aria-label={`${t.label} — snel loggen`}
+                        style={{ ...CARD, textAlign: 'left', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px' }}>
+                        <span style={{ width: 34, height: 34, borderRadius: 10, background: pijlerDef(t.pijler)?.kleurZacht ?? 'var(--bg-subtle)', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
+                          <Icon size={17} aria-hidden style={{ color: kleur }} />
+                        </span>
+                        <span style={{ flex: 1, minWidth: 0, fontSize: 14, fontWeight: 700, color: 'var(--text-1)' }}>{t.label}</span>
+                        <span aria-hidden style={{ display: 'grid', placeItems: 'center', width: 26, height: 26, borderRadius: 999, border: `1.5px solid ${kleur}`, color: kleur, flexShrink: 0 }}>
+                          <Plus size={15} />
+                        </span>
+                      </button>
+                    )
+                  })}
+                </div>
+              )}
+            </section>
+          )
+        })()}
 
         {/* De zes pijlers — elk zijn eigen kleur, rapportcijfer en voortgang */}
         <section aria-label="Jouw pijlers">
@@ -182,7 +237,7 @@ export default function HomePage() {
         pijler={snelLog}
         route={snelLog ? PIJLER_ROUTE[snelLog] : '/home'}
         onClose={() => setSnelLog(null)}
-        onGelogd={verversScores}
+        onGelogd={haalData}
       />
     </div>
   )

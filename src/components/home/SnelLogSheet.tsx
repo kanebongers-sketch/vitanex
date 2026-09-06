@@ -128,6 +128,7 @@ function useOpslaan() {
         toast({ title: 'Opslaan mislukt', description: 'Probeer het zo nog eens.', variant: 'error' })
         return false
       }
+      toast({ title: 'Opgeslagen', description: 'Je score is bijgewerkt.', variant: 'success' })
       klaar()
       return true
     } catch {
