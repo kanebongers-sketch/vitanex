@@ -5,7 +5,7 @@ export const dynamic = 'force-dynamic'
 import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Apple, Moon, Footprints, Zap, Activity, Smile, Sparkles, ChevronRight, type LucideIcon } from 'lucide-react'
+import { Apple, Moon, Footprints, Zap, Activity, Smile, Sparkles, ChevronRight, Plus, type LucideIcon } from 'lucide-react'
 import { supabase } from '@/lib/supabase/supabase'
 import { authFetch } from '@/lib/auth/auth-fetch'
 import Navbar from '@/components/layout/Navbar'
@@ -16,6 +16,7 @@ import type { CSSProperties } from 'react'
 import { RetentieBalk } from '@/components/home/RetentieBalk'
 import { TrendsBlok } from '@/components/home/TrendsBlok'
 import { useVitaInzicht } from '@/components/home/VitaInzicht'
+import { SnelLogSheet } from '@/components/home/SnelLogSheet'
 
 // ── Eén card-taal voor de hele home ─────────────────────────────────────────
 // De home voelde "chaotisch" doordat elk blok zijn eigen radius, rand en accent
@@ -75,6 +76,7 @@ export default function HomePage() {
   const [voornaam, setVoornaam] = useState('')
   const [scores, setScores] = useState<Map<string, number | null>>(new Map())
   const [laden, setLaden] = useState(true)
+  const [snelLog, setSnelLog] = useState<PijlerKey | null>(null)
 
   const laad = useCallback((): Promise<void> => {
     return supabase.auth.getUser().then(({ data }) => {
@@ -93,6 +95,14 @@ export default function HomePage() {
   }, [router])
 
   useEffect(() => { void laad() }, [laad])
+
+  // Herlaadt alleen de scores (na een snelle log), zonder laad-flits.
+  const verversScores = useCallback((): void => {
+    void authFetch('/api/pijlers')
+      .then((res) => (res.ok ? res.json() as Promise<PijlerOverzicht> : null))
+      .then((ov) => { if (ov) setScores(new Map(ov.pijlers.map((p) => [p.key, p.score]))) })
+      .catch(() => { /* stil: de bestaande scores blijven staan */ })
+  }, [])
 
   // Dagscore = gemiddelde van álle gemeten pijlers (ontkoppeld van de tegels).
   const alleScores = [...scores.values()].filter((s): s is number => typeof s === 'number')
@@ -134,8 +144,9 @@ export default function HomePage() {
               const Icon = PIJLER_ICON[p.icoon] ?? Sparkles
               const gemeten = score !== null
               return (
-                <Link key={p.key} href={PIJLER_ROUTE[p.key]} aria-label={`${p.label}${gemeten ? `, cijfer ${cijferTekst(score)} van 10 — ${tnv.label}` : ', nog niet gemeten'}`}
-                  style={{ ...CARD, textDecoration: 'none', padding: '15px 15px 16px', display: 'flex', flexDirection: 'column', gap: 12, minHeight: 118 }}>
+                <button key={p.key} type="button" onClick={() => setSnelLog(p.key)}
+                  aria-label={`${p.label} snel loggen${gemeten ? ` — nu cijfer ${cijferTekst(score)} van 10, ${tnv.label}` : ', nog niet gemeten'}`}
+                  style={{ ...CARD, textAlign: 'left', cursor: 'pointer', padding: '15px 15px 16px', display: 'flex', flexDirection: 'column', gap: 12, minHeight: 118 }}>
                   <span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
                       <Icon size={17} aria-hidden style={{ color: p.kleur, flexShrink: 0 }} />
@@ -149,11 +160,11 @@ export default function HomePage() {
                     <span aria-hidden style={{ display: 'block', height: 6, borderRadius: 999, background: 'var(--bg-subtle)', overflow: 'hidden' }}>
                       <span style={{ display: 'block', height: '100%', width: `${gemeten ? Math.max(5, Math.min(100, score)) : 0}%`, background: p.kleur, borderRadius: 999, transition: 'width 0.6s var(--ease, ease)' }} />
                     </span>
-                    <span style={{ display: 'block', fontSize: 11.5, color: gemeten ? 'var(--text-3)' : 'var(--text-4)', fontWeight: 600, marginTop: 7 }}>
-                      {gemeten ? tnv.label : 'Nog niet gemeten'}
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11.5, color: gemeten ? 'var(--text-3)' : p.kleur, fontWeight: 600, marginTop: 7 }}>
+                      {gemeten ? tnv.label : <><Plus size={12} aria-hidden style={{ flexShrink: 0 }} /> Tik om te loggen</>}
                     </span>
                   </span>
-                </Link>
+                </button>
               )
             })}
           </div>
@@ -165,6 +176,14 @@ export default function HomePage() {
         {/* Zichtbare vooruitgang: trends */}
         <TrendsBlok />
       </main>
+
+      {/* Snel loggen vanaf de home — score werkt direct bij */}
+      <SnelLogSheet
+        pijler={snelLog}
+        route={snelLog ? PIJLER_ROUTE[snelLog] : '/home'}
+        onClose={() => setSnelLog(null)}
+        onGelogd={verversScores}
+      />
     </div>
   )
 }
