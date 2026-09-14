@@ -77,11 +77,12 @@ export function kiesWeergave(antwoord: SignalenAntwoord): Weergave {
 // Er was geen cron, geen polling, geen push. Vita draaide alleen als Kane de
 // pagina opende. De zin klonk als een eigenschap van het product en was een wens.
 //
-// Nu is er wél een dagbriefing (`/api/cron/lifeos-briefing`). Maar een cron die in
-// de codebase STAAT is niet hetzelfde als een cron die DRAAIT: hij hangt aan een
-// GitHub-secret, een env-var en een workflow die iemand moet aanzetten. Zou deze
-// tekst afgaan op het bestaan van dat bestand, dan hadden we de leugen alleen
-// verplaatst — van "we gaan het bouwen" naar "we hebben het gebouwd".
+// Nu is er wél een dagbriefing: hij zit in de ochtendmail (`/api/cron/dagplanning-
+// mail`, kanaal 'email'). Maar een cron die in de codebase STAAT is niet hetzelfde
+// als een cron die DRAAIT: hij hangt aan een GitHub-secret, een env-var en een
+// workflow die iemand moet aanzetten. Zou deze tekst afgaan op het bestaan van dat
+// bestand, dan hadden we de leugen alleen verplaatst — van "we gaan het bouwen"
+// naar "we hebben het gebouwd".
 //
 // Daarom keyt de zin op BEWIJS: `laatstBezorgdOp` komt uit `vita_briefingen`, en
 // daar staat alleen in wat écht verstuurd is. Geen bewijs → geen belofte.

@@ -68,7 +68,12 @@ export async function GET(request: NextRequest): Promise<Response> {
   // viel om; dat wordt hier `null` ("niet nagegaan") en nooit stil "nog nooit" —
   // die twee mogen niet op één hoop, anders vertelt een storing de gebruiker dat
   // zijn dagbriefing niet loopt.
-  const bezorgd = await laatstBezorgdOp(toegang.admin, toegang.userId, 'telegram')
+  //
+  // Kanaal 'email', niet 'telegram': de dagbriefing zit sinds de dagplanning-mail
+  // in de ochtendmail (kanaal 'email' in vita_briefingen). De losse Telegram-
+  // briefing is gepensioneerd. Zou dit nog op 'telegram' keyen, dan zei de kaart
+  // dat de briefing niet loopt terwijl je 'm elke ochtend in je mail krijgt.
+  const bezorgd = await laatstBezorgdOp(toegang.admin, toegang.userId, 'email')
 
   // Een deels gevallen vak levert geen half signaal op: de motor krijgt alleen
   // wat er écht is, en elke regel heeft positief bewijs nodig om te vuren. Wat

@@ -6,7 +6,7 @@
 //
 // De sync-logica zelf staat in `@/lib/lifeos/agenda/sync`. Deze route is enkel de
 // server-to-server ingang: geen sessie, dus geen founder-gate — het slot is het
-// gedeelde `CRON_SECRET`, fail-closed, precies als `cron/lifeos-briefing`.
+// gedeelde `CRON_SECRET`, fail-closed, precies als `cron/dagplanning-mail`.
 //
 // ─── INPLANNEN (dit doet zichzelf niet) ─────────────────────────────────────
 //   Render kent geen cron-veld in de repo en er is geen vercel.json. De planner
@@ -34,7 +34,7 @@ function klaar(body: Record<string, unknown>): Response {
 }
 
 /**
- * Fail-closed, gespiegeld aan `cron/lifeos-briefing`: zonder geconfigureerd
+ * Fail-closed, gespiegeld aan `cron/dagplanning-mail`: zonder geconfigureerd
  * `CRON_SECRET` is deze route niet aanroepbaar. Constant-tijd-vergelijking, want
  * een gedeeld geheim in een header hoort niet met een kale `===` vergeleken te
  * worden.

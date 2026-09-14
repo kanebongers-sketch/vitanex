@@ -5,17 +5,18 @@
 //
 // ─── WAAROM DIT EEN LIB IS EN GEEN ROUTE ────────────────────────────────────
 // De sync draaide alleen wanneer Kane de agenda-kaart opende. Daardoor zag Vita
-// zijn agenda niet: de ochtend-briefing (`cron/lifeos-briefing`) leest uit
-// `agenda_events`, maar niets ververste die tabel eerst — dus een afspraak die
-// je gisteren in Google zette, bestond voor de briefing niet. "Al het andere
+// zijn agenda niet: Vita's signalen in de ochtendmail komen uit `haalContext`, en
+// dat leest de `agenda_events`-cache — maar niets ververste die tabel eerst, dus
+// een afspraak die je gisteren in Google zette, bestond voor Vita niet. "Al het andere
 // wacht tot Kane een pagina opent" — dat is precies het verschil tussen een
 // dashboard en een stafchef.
 //
 // Door de logica hier los te trekken van de sessie-route kan ze OOK server-to-
-// server draaien: één keer per cron (om de cache warm te houden) en één keer
-// vlak vóór elke briefing (zodat Vita op verse data redeneert). De route en de
-// cron mappen deze uitkomst elk op hun eigen antwoord — de logica staat op één
-// plek, niet in tweevoud.
+// server draaien: één keer per cron (`cron/lifeos-agenda-sync`, om de cache warm
+// te houden) en één keer vlak vóór de ochtend-briefing (`cron/dagplanning-mail`,
+// zodat Vita's signalen op verse agenda redeneren). De route en de crons mappen
+// deze uitkomst elk op hun eigen antwoord — de logica staat op één plek, niet in
+// tweevoud.
 //
 // De service-role client en het userId komen als PARAMETER binnen (zie
 // `@/lib/lifeos/admin`): de sessie-route reikt ze aan achter de founder-gate, de

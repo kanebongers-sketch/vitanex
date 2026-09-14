@@ -4,7 +4,7 @@
 // op een plek die past bij hoe je dag eruitziet, en mail je daarna je dagplanning.
 //
 // ─── GEEN SESSIE, DUS GEEN FOUNDER-GATE ─────────────────────────────────────
-// Server-to-server, net als /api/cron/lifeos-briefing: geen ingelogde sessie. De
+// Server-to-server, net als /api/cron/lifeos-agenda-sync: geen ingelogde sessie. De
 // beveiliging is het gedeelde CRON_SECRET (fail-closed: leeg = niemand komt binnen).
 // De schrijf loopt via de service-role op de vaste lifeosUserId() — single-tenant.
 //
@@ -29,6 +29,7 @@ import { haalTaken } from '@/lib/lifeos/taken/opslag'
 import { kiesBewegingsblokken } from '@/lib/lifeos/dagplanning/bewegingsplan'
 import { bouwDagplanningMail, type DagItem, type DagTodo } from '@/lib/lifeos/dagplanning/dagplanning'
 import { haalContext } from '@/lib/lifeos/vita/context'
+import { syncAgenda } from '@/lib/lifeos/agenda/sync'
 import { bepaalSignalen, lokaleTijd } from '@/lib/lifeos/vita/signalen'
 import { claimBriefing, geefClaimTerug, markeerBezorgd } from '@/lib/lifeos/vita/briefing-opslag'
 
@@ -184,6 +185,21 @@ export async function GET(req: NextRequest): Promise<Response> {
     })),
     ...nieuw,
   ]
+
+  // Ververs de agenda-cache VÓÓR we Vita's signalen lezen. De mail-body hierboven
+  // leest de agenda al live uit Google, maar Vita's signalen komen uit `haalContext`,
+  // en dat leest de `agenda_events`-CACHE. Zonder deze sync redeneert Vita op een
+  // cache die alleen ververst wordt als je de agenda-kaart opent — dan wijkt "wat
+  // opvalt" af van de agenda die er pal boven staat. Best-effort: een gefaalde sync
+  // (Google onbereikbaar, niet gekoppeld) mag de mail nooit tegenhouden.
+  try {
+    const sync = await syncAgenda(admin, userId)
+    if (sync.staat !== 'ok') {
+      console.warn(`[dagplanning-mail] agenda-sync niet ok (${sync.staat}); Vita's signalen draaien op de cache.`)
+    }
+  } catch (oorzaak) {
+    console.error('[dagplanning-mail] agenda-sync wierp een fout; Vita draait op de cache.', oorzaak)
+  }
 
   // Vita's observaties ("wat opvalt") — de dagbriefing zit nu in deze mail. Puur
   // best-effort: lukt het ophalen niet, dan gaat de mail zonder Vita-sectie. De
