@@ -130,3 +130,16 @@ export function bepaalHernoem(
 
   return { nieuweTitel: canoniek }
 }
+
+/**
+ * De canonieke titel als de titel AL de canonieke vorm van precies één persoon is,
+ * anders `null`. Gebruikt om een al-goede afspraak alsnog als "van LifeOS" vast te
+ * leggen (backfill), zodat een latere correctie erop óók herkend wordt — ook voor
+ * afspraken die een eerdere versie zonder geheugen al had hernoemd.
+ */
+export function alCanoniekVoorPersoon(titel: string | null, personen: readonly Persoon[]): string | null {
+  const match = matchPersoonInTitel(titel, personen)
+  if (match.soort !== 'match') return null
+  const canoniek = canoniekeTitel(match.persoon)
+  return (titel ?? '').trim() === canoniek ? canoniek : null
+}

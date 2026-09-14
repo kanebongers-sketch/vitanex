@@ -37,6 +37,7 @@ import {
   afgerondeTakenSinds,
   koudeContacten,
   type WeekFinance,
+  type WeekZelf,
 } from '@/lib/lifeos/weekmail/weekmail'
 
 export const runtime = 'nodejs'
@@ -118,6 +119,39 @@ async function haalKoud(
   return koudeContacten(personen.waarde, nu)
 }
 
+/**
+ * Zelf-evaluatie: wat LifeOS zelf deed. Telt de afspraken die het aantoonbaar zelf
+ * benoemde (hernoem_geschreven gezet) en hoe vaak jij dat corrigeerde
+ * (hernoem_geblokkeerd). Best-effort: een gevallen query → `null` → geen sectie.
+ */
+async function haalZelf(
+  admin: ReturnType<typeof createLifeosAdminClient>,
+  userId: string,
+): Promise<WeekZelf | null> {
+  try {
+    const [hernoemd, gecorrigeerd] = await Promise.all([
+      admin
+        .from('agenda_events')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', userId)
+        .not('hernoem_geschreven', 'is', null),
+      admin
+        .from('agenda_events')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', userId)
+        .eq('hernoem_geblokkeerd', true),
+    ])
+    if (hernoemd.error || gecorrigeerd.error) {
+      console.error('[weekmail] zelf-evaluatie tellen mislukt')
+      return null
+    }
+    return { hernoemd: hernoemd.count ?? 0, gecorrigeerd: gecorrigeerd.count ?? 0 }
+  } catch (oorzaak) {
+    console.error('[weekmail] zelf-evaluatie wierp een fout', oorzaak)
+    return null
+  }
+}
+
 export async function GET(req: NextRequest): Promise<Response> {
   if (!secretGeldig(req)) return fout('Unauthorized', 401)
 
@@ -141,13 +175,14 @@ export async function GET(req: NextRequest): Promise<Response> {
 
   // Alle bronnen best-effort en parallel: één trage of gevallen bron mag de mail
   // niet tegenhouden. Elke helper vangt zijn eigen fout en levert leeg/null op.
-  const [afgerondeTaken, finance, koud] = await Promise.all([
+  const [afgerondeTaken, finance, koud, zelf] = await Promise.all([
     haalAfgerond(admin, userId, vanaf, nu),
     haalFinance(admin, userId, nu),
     haalKoud(admin, userId, nu),
+    haalZelf(admin, userId),
   ])
 
-  const mail = bouwWeekmail(nu, { afgerondeTaken, finance, koudeContacten: koud })
+  const mail = bouwWeekmail(nu, { afgerondeTaken, finance, koudeContacten: koud, zelf })
 
   try {
     const resend = new Resend(process.env.RESEND_API_KEY)
@@ -172,5 +207,6 @@ export async function GET(req: NextRequest): Promise<Response> {
     afgerond: afgerondeTaken.length,
     finance: finance !== null,
     koudeContacten: koud.length,
+    zelf: zelf ?? undefined,
   })
 }

@@ -68,11 +68,22 @@ export interface WeekFinance {
   verlopenAantal: number
 }
 
+/**
+ * Wat LifeOS zélf deed, voor de zelf-evaluatie. `null` = niet nagegaan (geen sectie).
+ * Eerlijk: `hernoemd` telt de afspraken die LifeOS aantoonbaar zelf benoemde
+ * (met geheugen), `gecorrigeerd` hoe vaak jij dat terugdraaide.
+ */
+export interface WeekZelf {
+  hernoemd: number
+  gecorrigeerd: number
+}
+
 export interface WeekmailInvoer {
   /** Titels van wat je deze week afvinkte (al gefilterd + begrensd hoort niet: dat doet de builder). */
   afgerondeTaken: readonly string[]
   finance: WeekFinance | null
   koudeContacten: readonly { naam: string; dagen: number }[]
+  zelf: WeekZelf | null
 }
 
 export interface Weekmail {
@@ -103,12 +114,33 @@ function duurTekst(dagen: number): string {
 }
 
 /**
+ * De zelf-evaluatie-regels: wat LifeOS deed en hoe vaak jij het corrigeerde. Leeg
+ * als er niets te melden is (geen hernoemingen, geen correcties) — geen sectie dan.
+ */
+function zelfRegels(zelf: WeekZelf | null): string[] {
+  if (!zelf || (zelf.hernoemd === 0 && zelf.gecorrigeerd === 0)) return []
+  const regels: string[] = []
+  if (zelf.hernoemd > 0) {
+    regels.push(
+      `Ik benoemde ${zelf.hernoemd} ${zelf.hernoemd === 1 ? 'afspraak' : 'afspraken'} automatisch naar de juiste persoon.`,
+    )
+  }
+  if (zelf.gecorrigeerd > 0) {
+    regels.push(
+      `Je corrigeerde me ${zelf.gecorrigeerd} keer — ${zelf.gecorrigeerd === 1 ? 'die afspraak laat' : 'die afspraken laat'} ik voortaan met rust.`,
+    )
+  }
+  return regels
+}
+
+/**
  * Bouwt de week-terugblik. `dag` is de maandag waarop hij verstuurd wordt; de
  * secties beschrijven de zeven dagen ervóór.
  */
 export function bouwWeekmail(dag: Date, invoer: WeekmailInvoer): Weekmail {
   const datum = datumLang(dag)
   const { afgerondeTaken, finance, koudeContacten: koud } = invoer
+  const zelf = zelfRegels(invoer.zelf)
 
   const onderwerp = `Je week — terugblik ${datum}`
 
@@ -145,7 +177,11 @@ export function bouwWeekmail(dag: Date, invoer: WeekmailInvoer): Weekmail {
       ]
     : []
 
-  const tekst = [`Je week — terugblik ${datum}`, '', ...tekstAfgerond, ...tekstFinance, ...tekstKoud].join('\n')
+  const tekstZelf = zelf.length ? ['', 'VAN LIFEOS ZELF', ...zelf.map((r) => `- ${r}`)] : []
+
+  const tekst = [`Je week — terugblik ${datum}`, '', ...tekstAfgerond, ...tekstFinance, ...tekstKoud, ...tekstZelf].join(
+    '\n',
+  )
 
   // ── HTML ── (inline styles: mailclients negeren <style>-blokken vaak)
   const kop = (t: string): string =>
@@ -176,6 +212,13 @@ export function bouwWeekmail(dag: Date, invoer: WeekmailInvoer): Weekmail {
         .join('')}${koud.length > CONTACTEN_LIMIET ? `<li style="color:#5b6b86;">en nog ${koud.length - CONTACTEN_LIMIET} meer</li>` : ''}</ul>`
     : ''
 
+  const zelfHtml = zelf.length
+    ? `${kop('Van LifeOS zelf')}
+      <ul style="margin:6px 0 0;padding-left:18px;font-size:14px;line-height:1.7;color:#5b6b86;">${zelf
+        .map((r) => `<li>${escape(r)}</li>`)
+        .join('')}</ul>`
+    : ''
+
   const html = `<div style="font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px;color:#0b1b3a;">
     <p style="margin:0 0 2px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#5b6b86;">Je week — terugblik</p>
     <h1 style="margin:0 0 4px;font-size:20px;color:#0b1b3a;">${escape(datum)}</h1>
@@ -183,6 +226,7 @@ export function bouwWeekmail(dag: Date, invoer: WeekmailInvoer): Weekmail {
     ${afgerondHtml}
     ${financeHtml}
     ${koudHtml}
+    ${zelfHtml}
   </div>`
 
   return { onderwerp, html, tekst }

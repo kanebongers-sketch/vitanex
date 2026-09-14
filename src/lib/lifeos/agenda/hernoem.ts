@@ -20,7 +20,7 @@ import { forceerVernieuwing, geldigToken, leesGekozenKalender } from './koppelin
 import { haalEvents } from './google'
 import { wijzigAgendaEvent } from './schrijven'
 import { haalPersonen } from '@/lib/lifeos/crm/opslag'
-import { bepaalHernoem } from '@/lib/lifeos/crm/agenda-match'
+import { bepaalHernoem, alCanoniekVoorPersoon } from '@/lib/lifeos/crm/agenda-match'
 
 /** Zoveel dagen vooruit kijken vanaf nu. Verder vooruit hernoemen heeft geen doel. */
 const DAGEN_VOORUIT = 7
@@ -125,7 +125,24 @@ export async function hernoemAfspraken(admin: SupabaseClient, userId: string): P
 
     // 3. Nog niet aangeraakt: hernoemen als het een kale naam is die eenduidig matcht.
     const doel = bepaalHernoem(event.titel, personen)
-    if (!doel) continue
+    if (!doel) {
+      // Geen hernoem nodig — maar staat de afspraak al in de canonieke vorm en hebben
+      // we 'm nog niet als "van LifeOS" vastgelegd? Dan backfillen (geen Google-schrijf),
+      // zodat een latere correctie ook op deze afspraak herkend wordt. Dekt de
+      // afspraken die een eerdere versie zonder geheugen al hernoemde.
+      if (eigen?.geschreven == null) {
+        const canon = alCanoniekVoorPersoon(event.titel, personen)
+        if (canon) {
+          const { error } = await admin
+            .from('agenda_events')
+            .update({ hernoem_geschreven: canon })
+            .eq('user_id', userId)
+            .eq('extern_id', event.externId)
+          if (error) console.error(`[agenda-hernoem] backfill van ${event.externId} mislukt: ${error.message}`)
+        }
+      }
+      continue
+    }
     try {
       await wijzigAgendaEvent(admin, userId, event.externId, { titel: doel.nieuweTitel }, kalenderId)
       // Onthoud wat we schreven, zodat een latere wijziging als correctie telt.

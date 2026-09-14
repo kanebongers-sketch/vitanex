@@ -93,7 +93,7 @@ describe('koudeContacten', () => {
 })
 
 describe('bouwWeekmail', () => {
-  const basis: WeekmailInvoer = { afgerondeTaken: [], finance: null, koudeContacten: [] }
+  const basis: WeekmailInvoer = { afgerondeTaken: [], finance: null, koudeContacten: [], zelf: null }
 
   test('lege week: eerlijke "niets afgevinkt", geen finance-/contact-sectie', () => {
     const mail = bouwWeekmail(MAANDAG, basis)
@@ -129,6 +129,26 @@ describe('bouwWeekmail', () => {
     expect(mail.tekst).toContain('VERWATEREND CONTACT')
     expect(mail.tekst).toContain('Jan')
     expect(mail.tekst).toContain('maanden')
+  })
+
+  test('zelf-evaluatie: benoemd + gecorrigeerd verschijnen', () => {
+    const mail = bouwWeekmail(MAANDAG, { ...basis, zelf: { hernoemd: 5, gecorrigeerd: 2 } })
+    expect(mail.tekst).toContain('VAN LIFEOS ZELF')
+    expect(mail.tekst).toContain('5 afspraken automatisch')
+    expect(mail.tekst).toContain('Je corrigeerde me 2 keer')
+    expect(mail.html).toContain('Van LifeOS zelf')
+  })
+
+  test('zelf-evaluatie: niets gedaan = geen sectie', () => {
+    const mail = bouwWeekmail(MAANDAG, { ...basis, zelf: { hernoemd: 0, gecorrigeerd: 0 } })
+    expect(mail.tekst).not.toContain('VAN LIFEOS ZELF')
+    expect(mail.html).not.toContain('Van LifeOS zelf')
+  })
+
+  test('enkelvoud in de zelf-evaluatie', () => {
+    const mail = bouwWeekmail(MAANDAG, { ...basis, zelf: { hernoemd: 1, gecorrigeerd: 1 } })
+    expect(mail.tekst).toContain('1 afspraak automatisch')
+    expect(mail.tekst).toContain('die afspraak laat ik voortaan met rust')
   })
 
   test('escapet gebruikerstekst in taken en namen', () => {

@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { matchPersoonInTitel, groepKort, koppelTekst, groepTag, canoniekeTitel, bepaalHernoem } from './agenda-match'
+import { matchPersoonInTitel, groepKort, koppelTekst, groepTag, canoniekeTitel, bepaalHernoem, alCanoniekVoorPersoon } from './agenda-match'
 import type { Persoon, Groep } from './crm'
 
 function persoon(naam: string, groep: Groep = 'pt_klant'): Persoon {
@@ -118,5 +118,11 @@ describe('bepaalHernoem — de poort vóór een schrijf naar de agenda', () => {
   test('ambigu → niets (nooit een gok naar de agenda schrijven)', () => {
     const kevin2 = persoon('Kevin de Wit', 'pt_klant')
     expect(bepaalHernoem('Kevin', [kevin, kevin2])).toBeNull()
+  })
+
+  test('alCanoniekVoorPersoon: al-goede titel → canoniek, anders null', () => {
+    expect(alCanoniekVoorPersoon('Kevin Cranenbroeck PT', [kevin])).toBe('Kevin Cranenbroeck PT')
+    expect(alCanoniekVoorPersoon('Kevin', [kevin])).toBeNull() // nog niet canoniek
+    expect(alCanoniekVoorPersoon('Boodschappen', [kevin])).toBeNull() // geen match
   })
 })
