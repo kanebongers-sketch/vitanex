@@ -22,7 +22,7 @@ import { wijzigAgendaEvent } from './schrijven'
 import { haalPersonen } from '@/lib/lifeos/crm/opslag'
 import { bepaalHernoem } from '@/lib/lifeos/crm/agenda-match'
 
-/** Vandaag + 7. Verleden hernoemen heeft geen zin; verder vooruit ook niet. */
+/** Zoveel dagen vooruit kijken vanaf nu. Verder vooruit hernoemen heeft geen doel. */
 const DAGEN_VOORUIT = 7
 
 export type HernoemUitkomst =
@@ -48,8 +48,9 @@ export async function hernoemAfspraken(admin: SupabaseClient, userId: string): P
   // sport/wandel-blokken in zet. `null` = je primary.
   const kalenderId = await leesGekozenKalender(admin, userId)
 
+  // VANAF NU, niet vanaf middernacht: een afspraak van vanochtend die al voorbij is
+  // laten we met rust. Alleen wat nog komt (of nu bezig is) wordt hernoemd.
   const van = new Date()
-  van.setHours(0, 0, 0, 0)
   const tot = new Date(van)
   tot.setDate(tot.getDate() + DAGEN_VOORUIT + 1)
 
