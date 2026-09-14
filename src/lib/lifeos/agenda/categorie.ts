@@ -45,3 +45,54 @@ export function categoriseerAfspraak(titel: string | null, personen: readonly Pe
   const match = matchPersoonInTitel(titel, personen)
   return match.soort === 'match' ? match.persoon.groep : 'overig'
 }
+
+// ─── JSON over de draad ─────────────────────────────────────────────────────
+// Gedeeld door de route (schrijft) en het bord (leest). Narrowen aan de grens:
+// een onbekende categorie wordt "overig", nooit een cast.
+
+/** Eén afspraak met zijn categorie, zoals de API 'm teruggeeft. */
+export interface CategorieEventJson {
+  id: string
+  titel: string | null
+  startOp: string
+  eindOp: string | null
+  heleDag: boolean
+  categorie: AgendaCategorie
+}
+
+export type CategorieAntwoord =
+  | { gekoppeld: false }
+  | { gekoppeld: true; events: CategorieEventJson[] }
+
+function isCategorie(v: unknown): v is AgendaCategorie {
+  return typeof v === 'string' && (CATEGORIE_VOLGORDE as readonly string[]).includes(v)
+}
+
+function leesEvent(ruw: unknown): CategorieEventJson | null {
+  if (typeof ruw !== 'object' || ruw === null) return null
+  const o = ruw as Record<string, unknown>
+  if (typeof o.id !== 'string' || typeof o.startOp !== 'string') return null
+  return {
+    id: o.id,
+    titel: typeof o.titel === 'string' ? o.titel : null,
+    startOp: o.startOp,
+    eindOp: typeof o.eindOp === 'string' ? o.eindOp : null,
+    heleDag: o.heleDag === true,
+    // Onbekende categorie valt terug op "overig" — nooit de UI laten omvallen.
+    categorie: isCategorie(o.categorie) ? o.categorie : 'overig',
+  }
+}
+
+/** Leest het API-antwoord, narrowend. `null` = onbruikbaar antwoord. */
+export function leesCategorieAntwoord(ruw: unknown): CategorieAntwoord | null {
+  if (typeof ruw !== 'object' || ruw === null) return null
+  const o = ruw as Record<string, unknown>
+  if (o.gekoppeld === false) return { gekoppeld: false }
+  if (o.gekoppeld !== true || !Array.isArray(o.events)) return null
+  const events: CategorieEventJson[] = []
+  for (const rij of o.events) {
+    const event = leesEvent(rij)
+    if (event) events.push(event)
+  }
+  return { gekoppeld: true, events }
+}
