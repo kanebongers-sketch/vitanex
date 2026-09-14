@@ -7,9 +7,9 @@
 // PUUR: geen fetch, geen DB, geen React. De validatie hieronder is de systeemgrens
 // (user input) en is zo testbaar zonder database. Zelfde opzet als `taken.ts`.
 
-export type Groep = 'pt_klant' | 'budel_team' | 'pt_team'
+export type Groep = 'pt_klant' | 'budel_team' | 'pt_team' | 'management'
 
-export const GROEPEN: readonly Groep[] = Object.freeze(['pt_klant', 'budel_team', 'pt_team'])
+export const GROEPEN: readonly Groep[] = Object.freeze(['pt_klant', 'budel_team', 'pt_team', 'management'])
 
 /**
  * De tint van een statuskolom, voor de UI. STRIKT navy+cyan (zie branding):
@@ -78,6 +78,12 @@ export const GROEP_DEFS: readonly GroepDef[] = Object.freeze([
     key: 'pt_team',
     label: 'PT-team',
     omschrijving: 'Je eigen personal-training-team.',
+    statussen: TEAM_STATUSSEN,
+  },
+  {
+    key: 'management',
+    label: 'Management',
+    omschrijving: 'Het managementteam boven je (Ruben, Ken, Dave).',
     statussen: TEAM_STATUSSEN,
   },
 ])

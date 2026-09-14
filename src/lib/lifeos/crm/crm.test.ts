@@ -17,9 +17,14 @@ import {
 } from '@/lib/lifeos/crm/crm'
 
 describe('groepen en statussen', () => {
-  it('kent precies drie groepen', () => {
-    expect(GROEPEN).toEqual(['pt_klant', 'budel_team', 'pt_team'])
-    expect(GROEP_DEFS).toHaveLength(3)
+  it('kent de vier groepen', () => {
+    expect(GROEPEN).toEqual(['pt_klant', 'budel_team', 'pt_team', 'management'])
+    expect(GROEP_DEFS).toHaveLength(4)
+  })
+
+  it('management is een geldige groep met de team-statussen', () => {
+    expect(isGroep('management')).toBe(true)
+    expect(statussenVoorGroep('management').map((s) => s.key)).toContain('actief')
   })
 
   it('isGroep herkent geldige en weigert ongeldige groepen', () => {

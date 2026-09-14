@@ -71,6 +71,7 @@ const GROEP_KORT: Record<Groep, string> = {
   pt_klant: 'PT-klant',
   budel_team: 'Team Budel',
   pt_team: 'PT-team',
+  management: 'Management',
 }
 
 /** Korte, enkelvoudige groepnaam voor een inline-tag ("PT-klant"). */
@@ -92,8 +93,15 @@ export function koppelTekst(match: PersoonMatch): string | null {
 // ─── Automatisch hernoemen (schrijft naar de agenda) ────────────────────────
 // De tag die achter de naam komt bij een hernoem. Bewust kort: PT-klant → "PT",
 // teamlid → "Team". Zo staat er "Kevin Cranenbroeck PT" in je agenda.
-export function groepTag(groep: Groep): 'PT' | 'Team' {
-  return groep === 'pt_klant' ? 'PT' : 'Team'
+export function groepTag(groep: Groep): string {
+  switch (groep) {
+    case 'pt_klant':
+      return 'PT'
+    case 'management':
+      return 'MT'
+    default:
+      return 'Team'
+  }
 }
 
 /** De canonieke titel voor een persoon: volledige naam + rol-tag. */
