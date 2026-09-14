@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { crmOpvolging, factuurAandacht, bouwAandacht } from './aandacht'
+import { crmOpvolging, factuurAandacht, inboxAandacht, bouwAandacht } from './aandacht'
 import type { Persoon } from '@/lib/lifeos/crm/crm'
 import type { Factuur } from '@/lib/lifeos/finance/finance'
 
@@ -133,15 +133,40 @@ describe('factuurAandacht', () => {
   })
 })
 
+describe('inboxAandacht', () => {
+  test('null (niet nagegaan) = geen regel', () => {
+    expect(inboxAandacht(null)).toBeNull()
+  })
+
+  test('0 actie-mails = geen regel', () => {
+    expect(inboxAandacht(0)).toBeNull()
+  })
+
+  test('1 mail: enkelvoud, dringend', () => {
+    expect(inboxAandacht(1)).toEqual({ tekst: '1 mail vraagt een reactie', dringend: true })
+  })
+
+  test('meerdere: meervoud', () => {
+    expect(inboxAandacht(4)?.tekst).toBe('4 mails vragen een reactie')
+  })
+})
+
 describe('bouwAandacht', () => {
-  test('combineert CRM-regels en de factuurregel, CRM eerst', () => {
+  test('volgorde: CRM, dan inbox, dan finance', () => {
     const punten = bouwAandacht(
       [persoon({ naam: 'Sanne', followUpDatum: VANDAAG })],
       [factuur({ vervaldatum: '2026-09-01' })],
       VANDAAG,
+      3,
     )
     expect(punten[0].tekst).toContain('Sanne')
-    expect(punten[punten.length - 1].tekst).toContain('vervaldatum')
+    expect(punten[1].tekst).toContain('mails vragen een reactie')
+    expect(punten[2].tekst).toContain('vervaldatum')
+  })
+
+  test('inbox weggelaten als niet nagegaan', () => {
+    const punten = bouwAandacht([persoon({ naam: 'Sanne', followUpDatum: VANDAAG })], [], VANDAAG, null)
+    expect(punten.some((p) => p.tekst.includes('reactie'))).toBe(false)
   })
 
   test('alles leeg = geen punten', () => {

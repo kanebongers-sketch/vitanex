@@ -31,6 +31,9 @@ import { bouwDagplanningMail, type DagItem, type DagTodo } from '@/lib/lifeos/da
 import { bouwAandacht, type Aandachtspunt } from '@/lib/lifeos/dagplanning/aandacht'
 import { haalPersonen } from '@/lib/lifeos/crm/opslag'
 import { haalFacturen } from '@/lib/lifeos/finance/opslag'
+import { geldigToken as geldigMailToken, forceerVernieuwing as forceerMailVernieuwing } from '@/lib/lifeos/inbox/koppeling'
+import { haalTriageMails } from '@/lib/lifeos/inbox/gmail'
+import { triageer } from '@/lib/lifeos/inbox/classificeer'
 import { haalContext } from '@/lib/lifeos/vita/context'
 import { syncAgenda } from '@/lib/lifeos/agenda/sync'
 import { bepaalSignalen, lokaleTijd } from '@/lib/lifeos/vita/signalen'
@@ -90,17 +93,49 @@ async function haalVitaSignalen(
 }
 
 /**
+ * Hoeveel ongelezen mails vragen om een reactie? Best-effort en GOEDKOOP: één
+ * Gmail-metadata-fetch (max 40 berichten) + de regelgebaseerde `triageer` — geen
+ * AI-call, dus geen kosten per ochtend. `null` = niet nagegaan (Gmail niet
+ * gekoppeld, toestemming ingetrokken, of Gmail even onbereikbaar): dan toont de
+ * mail geen inbox-regel i.p.v. een misleidende "0". Één verse-token-herkansing bij
+ * een 401, gespiegeld aan `inbox/vandaag/route.ts`.
+ */
+async function haalInboxActie(
+  admin: ReturnType<typeof createLifeosAdminClient>,
+  userId: string,
+): Promise<number | null> {
+  try {
+    const token = await geldigMailToken(admin, userId)
+    if (token.staat !== 'ok') return null
+
+    let mails = await haalTriageMails(token.toegangstoken)
+    if (mails.staat === 'verlopen') {
+      const vers = await forceerMailVernieuwing(admin, userId)
+      if (vers.staat !== 'ok') return null
+      mails = await haalTriageMails(vers.toegangstoken)
+    }
+    if (mails.staat !== 'ok') return null
+
+    return triageer(mails.mails).vraagtActie.length
+  } catch (oorzaak) {
+    console.error('[dagplanning-mail] inbox-triage mislukt', oorzaak)
+    return null
+  }
+}
+
+/**
  * Cross-domein aandachtspunten ("Vraagt je aandacht"): wie je vandaag zou opvolgen
- * (CRM) en welke facturen open of te laat staan (finance). Best-effort, net als de
- * Vita-signalen: valt een bron om, dan levert die gewoon geen regels op — de mail
- * gaat door met wat er wél is, nooit met een halve of verzonnen sectie.
+ * (CRM), hoeveel mail een reactie vraagt (inbox) en welke facturen open of te laat
+ * staan (finance). Best-effort, net als de Vita-signalen: valt een bron om, dan
+ * levert die gewoon geen regels op — de mail gaat door met wat er wél is, nooit met
+ * een halve of verzonnen sectie.
  */
 async function haalAandacht(
   admin: ReturnType<typeof createLifeosAdminClient>,
   userId: string,
   vandaagKey: string,
 ): Promise<Aandachtspunt[]> {
-  const [personen, facturen] = await Promise.all([
+  const [personen, facturen, inboxActie] = await Promise.all([
     haalPersonen(admin, userId).catch((oorzaak) => {
       console.error('[dagplanning-mail] CRM ophalen mislukt', oorzaak)
       return { ok: false as const, reden: 'db' as const }
@@ -109,11 +144,13 @@ async function haalAandacht(
       console.error('[dagplanning-mail] facturen ophalen mislukt', oorzaak)
       return { ok: false as const, reden: 'db' as const }
     }),
+    haalInboxActie(admin, userId),
   ])
   return bouwAandacht(
     personen.ok ? personen.waarde : [],
     facturen.ok ? facturen.waarde : [],
     vandaagKey,
+    inboxActie,
   )
 }
 

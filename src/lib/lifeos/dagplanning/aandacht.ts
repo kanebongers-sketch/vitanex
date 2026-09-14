@@ -100,14 +100,32 @@ export function factuurAandacht(facturen: readonly Factuur[], vandaagKey: string
 }
 
 /**
- * Alle aandachtspunten voor vandaag: CRM-opvolging eerst (mensen boven cijfers),
- * dan de factuurregel. Leeg = de mail laat de hele sectie weg.
+ * De inbox-regel: hoeveel ongelezen mails vragen een reactie. `null` = niet
+ * nagegaan (Gmail niet gekoppeld of even onbereikbaar) → geen regel, geen valse
+ * "0 mails" die suggereert dat we keken. 0 echte actie-mails is óók geen regel:
+ * een lege to-do hoort niet als aandachtspunt.
+ */
+export function inboxAandacht(actie: number | null): Aandachtspunt | null {
+  if (actie === null || actie <= 0) return null
+  return { tekst: `${actie} ${actie === 1 ? 'mail vraagt' : 'mails vragen'} een reactie`, dringend: true }
+}
+
+/**
+ * Alle aandachtspunten voor vandaag, in volgorde van "vraagt een menselijk
+ * antwoord": CRM-opvolging (mensen boven cijfers), dan de inbox, dan de facturen.
+ * Leeg = de mail laat de hele sectie weg.
  */
 export function bouwAandacht(
   personen: readonly Persoon[],
   facturen: readonly Factuur[],
   vandaagKey: string,
+  inboxActie: number | null = null,
 ): Aandachtspunt[] {
+  const inbox = inboxAandacht(inboxActie)
   const factuur = factuurAandacht(facturen, vandaagKey)
-  return [...crmOpvolging(personen, vandaagKey), ...(factuur ? [factuur] : [])]
+  return [
+    ...crmOpvolging(personen, vandaagKey),
+    ...(inbox ? [inbox] : []),
+    ...(factuur ? [factuur] : []),
+  ]
 }
