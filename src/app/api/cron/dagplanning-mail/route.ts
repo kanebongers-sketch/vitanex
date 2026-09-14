@@ -28,6 +28,9 @@ import type { Afspraak } from '@/lib/lifeos/agenda/vrije-blokken'
 import { haalTaken } from '@/lib/lifeos/taken/opslag'
 import { kiesBewegingsblokken } from '@/lib/lifeos/dagplanning/bewegingsplan'
 import { bouwDagplanningMail, type DagItem, type DagTodo } from '@/lib/lifeos/dagplanning/dagplanning'
+import { bouwAandacht, type Aandachtspunt } from '@/lib/lifeos/dagplanning/aandacht'
+import { haalPersonen } from '@/lib/lifeos/crm/opslag'
+import { haalFacturen } from '@/lib/lifeos/finance/opslag'
 import { haalContext } from '@/lib/lifeos/vita/context'
 import { syncAgenda } from '@/lib/lifeos/agenda/sync'
 import { bepaalSignalen, lokaleTijd } from '@/lib/lifeos/vita/signalen'
@@ -84,6 +87,34 @@ async function haalVitaSignalen(
     console.error('[dagplanning-mail] Vita-signalen ophalen mislukt', oorzaak)
     return []
   }
+}
+
+/**
+ * Cross-domein aandachtspunten ("Vraagt je aandacht"): wie je vandaag zou opvolgen
+ * (CRM) en welke facturen open of te laat staan (finance). Best-effort, net als de
+ * Vita-signalen: valt een bron om, dan levert die gewoon geen regels op — de mail
+ * gaat door met wat er wél is, nooit met een halve of verzonnen sectie.
+ */
+async function haalAandacht(
+  admin: ReturnType<typeof createLifeosAdminClient>,
+  userId: string,
+  vandaagKey: string,
+): Promise<Aandachtspunt[]> {
+  const [personen, facturen] = await Promise.all([
+    haalPersonen(admin, userId).catch((oorzaak) => {
+      console.error('[dagplanning-mail] CRM ophalen mislukt', oorzaak)
+      return { ok: false as const, reden: 'db' as const }
+    }),
+    haalFacturen(admin, userId).catch((oorzaak) => {
+      console.error('[dagplanning-mail] facturen ophalen mislukt', oorzaak)
+      return { ok: false as const, reden: 'db' as const }
+    }),
+  ])
+  return bouwAandacht(
+    personen.ok ? personen.waarde : [],
+    facturen.ok ? facturen.waarde : [],
+    vandaagKey,
+  )
 }
 
 export async function GET(req: NextRequest): Promise<Response> {
@@ -207,7 +238,10 @@ export async function GET(req: NextRequest): Promise<Response> {
   // dubbeling), niet de hele briefingtekst.
   const vitaSignalen = await haalVitaSignalen(admin, userId, nu)
 
-  const mail = bouwDagplanningMail(nu, items, todos, vitaSignalen)
+  // "Vraagt je aandacht": CRM-opvolging + facturen. Best-effort, zie haalAandacht.
+  const aandacht = await haalAandacht(admin, userId, vandaagKey)
+
+  const mail = bouwDagplanningMail(nu, items, todos, vitaSignalen, aandacht)
 
   // Eén mail per dag, wie of wat 'm ook triggert (cron-job.org op tijd + GitHub als
   // trage back-up). Claim vlak vóór het sturen: zo verspilt een dubbele run hooguit
@@ -250,6 +284,7 @@ export async function GET(req: NextRequest): Promise<Response> {
     verstuurd: true,
     nieuweBlokken: nieuw.map((n) => n.titel),
     vitaSignalen: vitaSignalen.length,
+    aandacht: aandacht.length,
     problemen,
     aantalItems: items.length,
   })

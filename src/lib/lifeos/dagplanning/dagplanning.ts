@@ -6,6 +6,8 @@
 // van de server: een mail die "07:00" hoort te zeggen mag niet "05:00" worden
 // omdat de host in UTC draait.
 
+import type { Aandachtspunt } from './aandacht'
+
 const TIJDZONE = 'Europe/Amsterdam'
 
 export interface DagItem {
@@ -66,6 +68,8 @@ export function bouwDagplanningMail(
   todos: readonly DagTodo[] = [],
   /** Vita's observaties voor vandaag ("wat opvalt"). Leeg = geen Vita-sectie. */
   vitaSignalen: readonly string[] = [],
+  /** Cross-domein aandachtspunten (CRM-opvolging, facturen). Leeg = geen sectie. */
+  aandacht: readonly Aandachtspunt[] = [],
 ): DagplanningMail {
   const datum = datumLang(dag)
   const rijen = gesorteerd(items)
@@ -85,12 +89,16 @@ export function bouwDagplanningMail(
   const tekstVita = vitaSignalen.length
     ? ['VAN VITA', ...vitaSignalen.map((s) => `- ${s}`), '']
     : []
+  const tekstAandacht = aandacht.length
+    ? ['', 'VRAAGT JE AANDACHT', ...aandacht.map((a) => `- ${a.tekst}${a.dringend ? '  !' : ''}`)]
+    : []
   const tekst = [
     `Je dag — ${datum}`,
     '',
     ...tekstVita,
     ...tekstRegels,
     ...tekstTodos,
+    ...tekstAandacht,
     '',
     'Sport en wandeling zijn automatisch ingepland.',
   ].join('\n')
@@ -124,6 +132,18 @@ export function bouwDagplanningMail(
     <h2 style="margin:24px 0 0;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:#5b6b86;">Je to-do’s</h2>
     ${todoLijst}`
 
+  // ── Vraagt je aandacht ── (cross-domein: CRM-opvolging + facturen)
+  const aandachtHtml = aandacht.length
+    ? `
+    <h2 style="margin:24px 0 0;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:#5b6b86;">Vraagt je aandacht</h2>
+    <ul style="margin:6px 0 0;padding-left:18px;font-size:14px;line-height:1.7;">${aandacht
+      .map((a) => {
+        const accent = a.dringend ? 'color:#0a7c8a;font-weight:600;' : 'color:#0b1b3a;'
+        return `<li style="${accent}">${escape(a.tekst)}</li>`
+      })
+      .join('')}</ul>`
+    : ''
+
   // ── Van Vita ── (cross-signaal observaties; alleen als er iets te melden is)
   const vitaHtml = vitaSignalen.length
     ? `<div style="margin:0 0 20px;padding:14px 16px;background:#f2fbfd;border:1px solid #cfeef4;border-left:3px solid #0a7c8a;border-radius:10px;">
@@ -140,6 +160,7 @@ export function bouwDagplanningMail(
     ${vitaHtml}
     <table style="border-collapse:collapse;width:100%;font-size:14px;">${rijHtml}</table>
     ${todoHtml}
+    ${aandachtHtml}
     <p style="margin:24px 0 0;font-size:12px;color:#8a97ad;">Sport (90 min, incl. reistijd) en een wandeling (60 min) zijn automatisch in je agenda gezet.</p>
   </div>`
 
