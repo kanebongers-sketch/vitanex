@@ -30,6 +30,8 @@ import { kiesBewegingsblokken } from '@/lib/lifeos/dagplanning/bewegingsplan'
 import { bouwDagplanningMail, type DagItem, type DagTodo } from '@/lib/lifeos/dagplanning/dagplanning'
 import { bouwAandacht, type Aandachtspunt } from '@/lib/lifeos/dagplanning/aandacht'
 import { haalPersonen } from '@/lib/lifeos/crm/opslag'
+import type { Persoon } from '@/lib/lifeos/crm/crm'
+import { matchPersoonInTitel, koppelTekst } from '@/lib/lifeos/crm/agenda-match'
 import { haalFacturen } from '@/lib/lifeos/finance/opslag'
 import { geldigToken as geldigMailToken, forceerVernieuwing as forceerMailVernieuwing } from '@/lib/lifeos/inbox/koppeling'
 import { haalTriageMails } from '@/lib/lifeos/inbox/gmail'
@@ -134,24 +136,30 @@ async function haalAandacht(
   admin: ReturnType<typeof createLifeosAdminClient>,
   userId: string,
   vandaagKey: string,
+  personen: readonly Persoon[],
 ): Promise<Aandachtspunt[]> {
-  const [personen, facturen, inboxActie] = await Promise.all([
-    haalPersonen(admin, userId).catch((oorzaak) => {
-      console.error('[dagplanning-mail] CRM ophalen mislukt', oorzaak)
-      return { ok: false as const, reden: 'db' as const }
-    }),
+  const [facturen, inboxActie] = await Promise.all([
     haalFacturen(admin, userId).catch((oorzaak) => {
       console.error('[dagplanning-mail] facturen ophalen mislukt', oorzaak)
       return { ok: false as const, reden: 'db' as const }
     }),
     haalInboxActie(admin, userId),
   ])
-  return bouwAandacht(
-    personen.ok ? personen.waarde : [],
-    facturen.ok ? facturen.waarde : [],
-    vandaagKey,
-    inboxActie,
-  )
+  return bouwAandacht(personen, facturen.ok ? facturen.waarde : [], vandaagKey, inboxActie)
+}
+
+/** De CRM-personen, best-effort: één ophaal, gedeeld door de agenda-koppeling én de aandacht-sectie. */
+async function haalCrmPersonen(
+  admin: ReturnType<typeof createLifeosAdminClient>,
+  userId: string,
+): Promise<Persoon[]> {
+  try {
+    const uit = await haalPersonen(admin, userId)
+    return uit.ok ? uit.waarde : []
+  } catch (oorzaak) {
+    console.error('[dagplanning-mail] CRM ophalen mislukt', oorzaak)
+    return []
+  }
 }
 
 export async function GET(req: NextRequest): Promise<Response> {
@@ -242,7 +250,13 @@ export async function GET(req: NextRequest): Promise<Response> {
         .sort((a, b) => Number(b.top3) - Number(a.top3) || Number(b.vandaag) - Number(a.vandaag))
     : []
 
-  // De mail: de bestaande agenda + wat we net toevoegden.
+  // De CRM-personen één keer ophalen: zowel de agenda-koppeling hieronder als de
+  // "Vraagt je aandacht"-sectie draaien erop.
+  const personen = await haalCrmPersonen(admin, userId)
+
+  // De mail: de bestaande agenda + wat we net toevoegden. Elke afspraak krijgt een
+  // koppeling als de titel eenduidig naar één CRM-persoon wijst ("Training Sanne" →
+  // "Sanne · PT-klant"). Bij twijfel (meerdere matches) een eerlijke hint, nooit een gok.
   const items: DagItem[] = [
     ...afspraken.map((e) => ({
       startOp: e.startOp,
@@ -250,6 +264,7 @@ export async function GET(req: NextRequest): Promise<Response> {
       titel: e.titel ?? '(zonder titel)',
       heleDag: e.heleDag,
       beweging: (e.titel ?? '').trim() === SPORT_TITEL || (e.titel ?? '').trim() === WANDEL_TITEL,
+      koppeling: koppelTekst(matchPersoonInTitel(e.titel, personen)) ?? undefined,
     })),
     ...nieuw,
   ]
@@ -276,7 +291,7 @@ export async function GET(req: NextRequest): Promise<Response> {
   const vitaSignalen = await haalVitaSignalen(admin, userId, nu)
 
   // "Vraagt je aandacht": CRM-opvolging + facturen. Best-effort, zie haalAandacht.
-  const aandacht = await haalAandacht(admin, userId, vandaagKey)
+  const aandacht = await haalAandacht(admin, userId, vandaagKey, personen)
 
   const mail = bouwDagplanningMail(nu, items, todos, vitaSignalen, aandacht)
 

@@ -382,6 +382,40 @@ describe('CRM en finance — Vita praat óók over mensen en geld', () => {
     expect(blok).toMatch(/## Finance \(deze maand\)[\s\S]*Omzet/)
   })
 
+  it('koppelt een afspraak aan de juiste CRM-persoon via de titel', async () => {
+    // Arrange — een afspraak "Training Sanne" vandaag, en Sanne in het CRM.
+    const admin = nepAdmin({
+      agenda_events: {
+        data: [
+          {
+            titel: 'Training Sanne',
+            start_op: '2026-07-15T09:00:00+02:00',
+            eind_op: '2026-07-15T10:00:00+02:00',
+            hele_dag: false,
+          },
+        ],
+      },
+      crm_personen: {
+        data: [
+          {
+            id: '55555555-5555-4555-8555-555555555555',
+            naam: 'Sanne',
+            groep: 'pt_klant',
+            status: 'actieve_klant',
+            sortering: 0,
+            aangemaakt_op: '2026-01-01T00:00:00.000Z',
+          },
+        ],
+      },
+    })
+
+    // Act
+    const blok = schrijfContextBlok(await haalContext('kane', admin, NU))
+
+    // Assert — de afspraak draagt de koppeling.
+    expect(blok).toMatch(/## Agenda vandaag[\s\S]*Training Sanne · Sanne · PT-klant/)
+  })
+
   it('toont opvolgen (vandaag) en verwaterend contact uit de CRM-rijen', async () => {
     // Arrange — Sanne moet vandaag opgevolgd; Tom sprak je maanden niet.
     const admin = nepAdmin({

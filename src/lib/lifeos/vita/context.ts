@@ -44,6 +44,7 @@ import { haalTransacties, haalFacturen } from '@/lib/lifeos/finance/opslag'
 import { bouwOverzicht, type Overzicht } from '@/lib/lifeos/finance/finance'
 import { crmOpvolging } from '@/lib/lifeos/dagplanning/aandacht'
 import { koudeContacten } from '@/lib/lifeos/weekmail/weekmail'
+import { matchPersoonInTitel, koppelTekst } from '@/lib/lifeos/crm/agenda-match'
 
 /** Hoeveel dagen herstel Vita meekrijgt. Dekt de 5-dagen-beweging-regel ruim. */
 const HERSTEL_DAGEN = 7
@@ -696,6 +697,28 @@ function schrijfCrm(context: VitaContext): string {
   return `## ${kop}\n${regels.join('\n')}`
 }
 
+/**
+ * De agenda voor Vita, mét persoons-koppeling. Wijst een afspraaktitel eenduidig
+ * naar één CRM-persoon ("Training Sanne"), dan hangt Vita die eraan ("· Sanne ·
+ * PT-klant") — zo weet hij dat je afspraak over die klant gaat. Bij twijfel geen
+ * gok maar een eerlijke hint (zie `agenda-match.ts`). Faalt de CRM-bron, dan tonen
+ * we de agenda gewoon zonder koppeling i.p.v. de hele sectie te laten vallen.
+ */
+function schrijfAgenda(context: VitaContext): string {
+  const kop = 'Agenda vandaag'
+  if (!context.agendaVandaag.ok) return `## ${kop}\n${FOUT_REGEL}`
+
+  const events = context.agendaVandaag.waarde
+  if (events.length === 0) return `## ${kop}\nGeen afspraken vandaag.`
+
+  const personen = context.crm.ok ? context.crm.waarde : []
+  const regels = events.map((e) => {
+    const koppel = koppelTekst(matchPersoonInTitel(e.titel, personen))
+    return koppel ? `${agendaRegel(e)} · ${koppel}` : agendaRegel(e)
+  })
+  return `## ${kop}\n${regels.join('\n')}`
+}
+
 /** De financiële maandstand voor Vita. Echte cijfers uit `bouwOverzicht`, geen schatting. */
 function schrijfFinance(context: VitaContext): string {
   const kop = 'Finance (deze maand)'
@@ -721,7 +744,7 @@ export function schrijfContextBlok(context: VitaContext): string {
     '',
     schrijfBeweging(context),
     '',
-    schrijfVak('Agenda vandaag', context.agendaVandaag, 'Geen afspraken vandaag.', agendaRegel),
+    schrijfAgenda(context),
     '',
     schrijfVak('Open taken', context.taken, 'Geen open taken.', taakRegel),
     '',

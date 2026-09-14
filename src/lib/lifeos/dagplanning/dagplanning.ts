@@ -18,6 +18,8 @@ export interface DagItem {
   heleDag: boolean
   /** True voor de zelf-ingeplande sport/wandel-blokken — die krijgen een accent. */
   beweging?: boolean
+  /** Gekoppelde persoon ("Sanne · PT-klant") of een hint ("meerdere mogelijke personen"), of niets. */
+  koppeling?: string
 }
 
 /** Eén open taak voor de to-do-sectie in de mail. */
@@ -81,7 +83,10 @@ export function bouwDagplanningMail(
 
   // ── Tekst (plain) ──
   const tekstRegels = rijen.length
-    ? rijen.map((i) => `${tijdvak(i)}  ${i.titel}${i.beweging ? '  (ingepland)' : ''}`)
+    ? rijen.map(
+        (i) =>
+          `${tijdvak(i)}  ${i.titel}${i.beweging ? '  (ingepland)' : ''}${i.koppeling ? `  · ${i.koppeling}` : ''}`,
+      )
     : ['Je agenda is vandaag leeg — mooie ruimte.']
   const tekstTodos = todos.length
     ? ['', 'JE TO-DO’S', ...todos.map((t) => `- ${t.titel}${t.top3 ? '  ★' : t.vandaag ? '  (vandaag)' : ''}`)]
@@ -109,9 +114,12 @@ export function bouwDagplanningMail(
         .map((i) => {
           const accent = i.beweging ? 'color:#0a7c8a;font-weight:600;' : 'color:#0b1b3a;'
           const merk = i.beweging ? ' <span style="color:#0a7c8a;">•</span>' : ''
+          const koppeling = i.koppeling
+            ? `<span style="color:#5b6b86;font-size:12px;"> · ${escape(i.koppeling)}</span>`
+            : ''
           return `<tr>
             <td style="padding:8px 12px 8px 0;white-space:nowrap;color:#5b6b86;font-variant-numeric:tabular-nums;vertical-align:top;">${escape(tijdvak(i))}</td>
-            <td style="padding:8px 0;${accent}">${escape(i.titel)}${merk}</td>
+            <td style="padding:8px 0;${accent}">${escape(i.titel)}${merk}${koppeling}</td>
           </tr>`
         })
         .join('')

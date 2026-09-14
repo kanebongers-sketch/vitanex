@@ -38,6 +38,12 @@ describe('bouwDagplanningMail', () => {
     expect(mail.tekst).toContain('(ingepland)')
   })
 
+  test('toont de persoons-koppeling achter een afspraak', () => {
+    const mail = bouwDagplanningMail(DAG, [item(9, 10, 'Training Sanne', { koppeling: 'Sanne · PT-klant' })])
+    expect(mail.tekst).toContain('Training Sanne  · Sanne · PT-klant')
+    expect(mail.html).toContain('Sanne · PT-klant')
+  })
+
   test('geen aandachtspunten: geen "Vraagt je aandacht"-sectie', () => {
     const mail = bouwDagplanningMail(DAG, [item(9, 10, 'Afspraak')], [], [], [])
     expect(mail.html).not.toContain('Vraagt je aandacht')
