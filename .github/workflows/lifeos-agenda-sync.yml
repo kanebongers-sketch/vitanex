@@ -1,0 +1,67 @@
+# LifeOS agenda-sync — houdt de agenda-cache warm door de dag heen.
+#
+# Render kent geen cron-veld in de repo en er is geen vercel.json, dus de klok
+# staat hier. Zelfde patroon als lifeos-briefing.yml.
+#
+# EERST DIT ZETTEN, anders doet deze workflow niets:
+#   1. GitHub → Settings → Secrets and variables → Actions → `CRON_SECRET`,
+#      met dezelfde waarde als `CRON_SECRET` in de Render-omgeving.
+#      (Dezelfde secret die de briefing al gebruikt — niets extra's.)
+#   2. Draai 'm één keer handmatig (Run workflow) en kijk of er `gesynct` in de
+#      response staat. Een workflow die bestaat is niet hetzelfde als een workflow
+#      die werkt.
+#
+# WAAROM DE BRIEFING DIT NIET AL DEKT: de briefing ververst de agenda ook, maar
+# draait één keer per ochtend. Deze cron dekt de rest van de dag, zodat een
+# afspraak die je 's middags in Google zet, óók bij de agenda-kaart en een
+# tussentijdse Vita-vraag terechtkomt — niet pas morgenochtend.
+#
+# BETROUWBAARHEID: GitHub voert scheduled workflows soms met vertraging uit en kan
+# ze bij drukte overslaan. Dit is dus een wekker met speling, geen garantie. De
+# route is idempotent (dezelfde rijen bij een dubbele run), dus late of dubbele
+# runs kunnen geen kwaad.
+
+name: LifeOS agenda-sync
+
+on:
+  schedule:
+    # Elk half uur tussen 05:00 en 21:00 UTC (≈ 06:00–23:00 NL). GitHub-cron
+    # draait op UTC zonder zomertijd; exacte minuten zijn hier niet kritisch.
+    - cron: '0,30 5-21 * * *'
+  workflow_dispatch:
+
+# Twee runs tegelijk zijn onschadelijk (de sync is idempotent), maar ook zinloos.
+concurrency:
+  group: lifeos-agenda-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Synchroniseer de agenda-cache
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${CRON_SECRET}" ]; then
+            echo "::error::CRON_SECRET ontbreekt in de repo-secrets. De route is fail-closed en zou 401 geven."
+            exit 1
+          fi
+
+          # De secret gaat als header mee, niet als query-parameter: query-strings
+          # belanden in access-logs.
+          status=$(curl -sS --max-time 60 \
+            -o response.json -w '%{http_code}' \
+            -H "x-cron-secret: ${CRON_SECRET}" \
+            https://mentaforce.nl/api/cron/lifeos-agenda-sync)
+
+          echo "HTTP ${status}"
+          cat response.json
+          echo
+
+          if [ "${status}" != "200" ]; then
+            echo "::error::De agenda-sync-route gaf ${status}."
+            exit 1
+          fi

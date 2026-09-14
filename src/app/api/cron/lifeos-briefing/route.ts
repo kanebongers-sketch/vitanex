@@ -38,6 +38,7 @@ import { createLifeosAdminClient, lifeosUserId } from '@/lib/lifeos/admin'
 import { geheimGelijk } from '@/lib/lifeos/auth/geheim'
 import { maakTelegramBot } from '@/lib/lifeos/telegram/bot'
 import { haalContext } from '@/lib/lifeos/vita/context'
+import { syncAgenda } from '@/lib/lifeos/agenda/sync'
 import { bepaalSignalen, lokaleTijd } from '@/lib/lifeos/vita/signalen'
 import { stelBriefingSamen } from '@/lib/lifeos/vita/briefing'
 import { claimBriefing, geefClaimTerug, markeerBezorgd } from '@/lib/lifeos/vita/briefing-opslag'
@@ -108,6 +109,23 @@ export async function GET(req: NextRequest): Promise<Response> {
   }
 
   const nu = new Date()
+
+  // Ververs de agenda-cache VÓÓR we de context lezen. `haalContext` leest uit
+  // `agenda_events`, en die tabel werd tot nu toe alleen ververst wanneer Kane de
+  // agenda-kaart opende. Een afspraak die je gisteren in Google zette, bestond dus
+  // niet voor de ochtend-briefing. Dít is de plek waar dat wordt rechtgezet.
+  //
+  // BEST-EFFORT: een gefaalde sync (Google onbereikbaar, niet gekoppeld) mag de
+  // briefing NOOIT tegenhouden — dan valt Vita terug op wat er in de cache staat,
+  // precies zoals daarvoor. We loggen de uitkomst en gaan door.
+  try {
+    const sync = await syncAgenda(admin, userId)
+    if (sync.staat !== 'ok') {
+      console.warn(`[lifeos/cron-briefing] agenda-sync niet ok (${sync.staat}); briefing draait op de cache.`)
+    }
+  } catch (oorzaak) {
+    console.error('[lifeos/cron-briefing] agenda-sync wierp een fout; briefing draait op de cache.', oorzaak)
+  }
 
   let context: Awaited<ReturnType<typeof haalContext>>
   try {
