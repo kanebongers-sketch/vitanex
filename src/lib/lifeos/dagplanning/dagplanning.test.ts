@@ -65,4 +65,18 @@ describe('bouwDagplanningMail', () => {
     // Geen en-dash-tijdvak, wel een starttijd.
     expect(mail.tekst).toMatch(/\d{2}:\d{2}\s+Open eind/)
   })
+
+  test('voegt Vita-signalen toe als sectie, en escapet ze', () => {
+    const mail = bouwDagplanningMail(DAG, [], [], ['Je herstel daalt <3 dagen', 'Volle agenda'])
+    expect(mail.tekst).toContain('VAN VITA')
+    expect(mail.tekst).toContain('- Je herstel daalt <3 dagen')
+    expect(mail.html).toContain('Van Vita')
+    expect(mail.html).toContain('Je herstel daalt &lt;3 dagen') // geen HTML-injectie
+  })
+
+  test('geen Vita-signalen: geen Vita-sectie', () => {
+    const mail = bouwDagplanningMail(DAG, [item(9, 10, 'Werk')])
+    expect(mail.tekst).not.toContain('VAN VITA')
+    expect(mail.html).not.toContain('Van Vita')
+  })
 })

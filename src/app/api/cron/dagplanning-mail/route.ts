@@ -28,6 +28,9 @@ import type { Afspraak } from '@/lib/lifeos/agenda/vrije-blokken'
 import { haalTaken } from '@/lib/lifeos/taken/opslag'
 import { kiesBewegingsblokken } from '@/lib/lifeos/dagplanning/bewegingsplan'
 import { bouwDagplanningMail, type DagItem, type DagTodo } from '@/lib/lifeos/dagplanning/dagplanning'
+import { haalContext } from '@/lib/lifeos/vita/context'
+import { bepaalSignalen, lokaleTijd } from '@/lib/lifeos/vita/signalen'
+import { claimBriefing, geefClaimTerug, markeerBezorgd } from '@/lib/lifeos/vita/briefing-opslag'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -55,6 +58,31 @@ function secretGeldig(req: NextRequest): boolean {
 /** Bestaat er vandaag al een (niet-hele-dag) blok met deze titel? Dan niet dubbel maken. */
 function heeftBlok(events: readonly Afspraak[], titel: string): boolean {
   return events.some((e) => !e.heleDag && (e.titel ?? '').trim() === titel)
+}
+
+/**
+ * Vita's observaties voor vandaag als losse regels ("wat opvalt"). Best-effort:
+ * elke fout of ontbrekende bron levert een lege lijst op — de dagmail gaat dan
+ * gewoon zonder Vita-sectie, nooit met een halve of verzonnen briefing.
+ */
+async function haalVitaSignalen(
+  admin: ReturnType<typeof createLifeosAdminClient>,
+  userId: string,
+  nu: Date,
+): Promise<string[]> {
+  try {
+    const context = await haalContext(userId, admin, nu)
+    const signalen = bepaalSignalen({
+      herstel: context.herstel.ok ? context.herstel.waarde : [],
+      agendaVandaag: context.agendaVandaag.ok ? context.agendaVandaag.waarde : [],
+      taken: context.taken.ok ? context.taken.waarde : [],
+      nu,
+    })
+    return signalen.map((s) => s.tekst)
+  } catch (oorzaak) {
+    console.error('[dagplanning-mail] Vita-signalen ophalen mislukt', oorzaak)
+    return []
+  }
 }
 
 export async function GET(req: NextRequest): Promise<Response> {
@@ -157,7 +185,26 @@ export async function GET(req: NextRequest): Promise<Response> {
     ...nieuw,
   ]
 
-  const mail = bouwDagplanningMail(nu, items, todos)
+  // Vita's observaties ("wat opvalt") — de dagbriefing zit nu in deze mail. Puur
+  // best-effort: lukt het ophalen niet, dan gaat de mail zonder Vita-sectie. De
+  // agenda + taken staan al in de mail, dus we nemen alléén de signalen over (geen
+  // dubbeling), niet de hele briefingtekst.
+  const vitaSignalen = await haalVitaSignalen(admin, userId, nu)
+
+  const mail = bouwDagplanningMail(nu, items, todos, vitaSignalen)
+
+  // Eén mail per dag, wie of wat 'm ook triggert (cron-job.org op tijd + GitHub als
+  // trage back-up). Claim vlak vóór het sturen: zo verspilt een dubbele run hooguit
+  // wat leeswerk, maar krijgt Kane nooit twee dagmails. Slot = de insert.
+  const datum = lokaleTijd(nu).datum
+  const claim = await claimBriefing(admin, userId, datum, 'email')
+  if (claim.soort === 'bezet') {
+    return klaar({ verstuurd: false, reden: 'vandaag al verstuurd', datum })
+  }
+  if (claim.soort === 'fout') {
+    console.error('[dagplanning-mail] claim mislukt:', claim.melding)
+    return fout('Kon de dagmail niet vastleggen; niets verstuurd.', 503)
+  }
 
   try {
     const resend = new Resend(process.env.RESEND_API_KEY)
@@ -170,16 +217,23 @@ export async function GET(req: NextRequest): Promise<Response> {
     })
     if (error) {
       console.error('[dagplanning-mail] Resend-fout:', error)
+      await geefClaimTerug(admin, claim.id)
       return fout('Blokken gepland, maar de mail kon niet worden verzonden.', 502)
     }
   } catch (oorzaak) {
     console.error('[dagplanning-mail] mail versturen mislukt', oorzaak)
+    await geefClaimTerug(admin, claim.id)
     return fout('Blokken gepland, maar de mail kon niet worden verzonden.', 502)
   }
+
+  // De mail is de deur uit — leg vast dat vandaag bezorgd is (best-effort, net als
+  // de briefing: een mislukte markering is geen reden om opnieuw te sturen).
+  await markeerBezorgd(admin, claim.id, mail.tekst, nu)
 
   return klaar({
     verstuurd: true,
     nieuweBlokken: nieuw.map((n) => n.titel),
+    vitaSignalen: vitaSignalen.length,
     problemen,
     aantalItems: items.length,
   })

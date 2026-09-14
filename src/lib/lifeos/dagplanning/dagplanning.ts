@@ -64,6 +64,8 @@ export function bouwDagplanningMail(
   dag: Date,
   items: readonly DagItem[],
   todos: readonly DagTodo[] = [],
+  /** Vita's observaties voor vandaag ("wat opvalt"). Leeg = geen Vita-sectie. */
+  vitaSignalen: readonly string[] = [],
 ): DagplanningMail {
   const datum = datumLang(dag)
   const rijen = gesorteerd(items)
@@ -80,9 +82,13 @@ export function bouwDagplanningMail(
   const tekstTodos = todos.length
     ? ['', 'JE TO-DO’S', ...todos.map((t) => `- ${t.titel}${t.top3 ? '  ★' : t.vandaag ? '  (vandaag)' : ''}`)]
     : ['', 'Geen open taken op je lijst.']
+  const tekstVita = vitaSignalen.length
+    ? ['VAN VITA', ...vitaSignalen.map((s) => `- ${s}`), '']
+    : []
   const tekst = [
     `Je dag — ${datum}`,
     '',
+    ...tekstVita,
     ...tekstRegels,
     ...tekstTodos,
     '',
@@ -118,9 +124,20 @@ export function bouwDagplanningMail(
     <h2 style="margin:24px 0 0;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:#5b6b86;">Je to-do’s</h2>
     ${todoLijst}`
 
+  // ── Van Vita ── (cross-signaal observaties; alleen als er iets te melden is)
+  const vitaHtml = vitaSignalen.length
+    ? `<div style="margin:0 0 20px;padding:14px 16px;background:#f2fbfd;border:1px solid #cfeef4;border-left:3px solid #0a7c8a;border-radius:10px;">
+        <p style="margin:0 0 6px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#0a7c8a;font-weight:600;">Van Vita</p>
+        <ul style="margin:0;padding-left:18px;font-size:14px;line-height:1.7;color:#0b1b3a;">${vitaSignalen
+          .map((s) => `<li>${escape(s)}</li>`)
+          .join('')}</ul>
+      </div>`
+    : ''
+
   const html = `<div style="font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px;color:#0b1b3a;">
     <p style="margin:0 0 2px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#5b6b86;">Je dagplanning</p>
     <h1 style="margin:0 0 16px;font-size:20px;color:#0b1b3a;">${escape(datum)}</h1>
+    ${vitaHtml}
     <table style="border-collapse:collapse;width:100%;font-size:14px;">${rijHtml}</table>
     ${todoHtml}
     <p style="margin:24px 0 0;font-size:12px;color:#8a97ad;">Sport (90 min, incl. reistijd) en een wandeling (60 min) zijn automatisch in je agenda gezet.</p>
