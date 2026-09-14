@@ -34,7 +34,7 @@ function nepAdmin(perTabel: Record<string, TabelData>): SupabaseClient {
   const fabriek = (tabel: string) => {
     const chain: Record<string, unknown> = {}
     const filters: Record<string, unknown> = {}
-    for (const m of ['select', 'gte', 'lte', 'order', 'limit', 'or', 'not']) {
+    for (const m of ['select', 'gte', 'lte', 'lt', 'order', 'limit', 'or', 'not']) {
       chain[m] = () => chain
     }
     chain.eq = (kolom: string, waarde: unknown) => {
@@ -362,5 +362,60 @@ describe('lege toestand', () => {
     const blok = schrijfContextBlok(context)
     expect(blok).toContain('Geen slaap gemeten')
     expect(blok).toContain('Geen beweging gelogd')
+  })
+})
+
+describe('CRM en finance — Vita praat óók over mensen en geld', () => {
+  it('rendert een lege CRM- en finance-sectie eerlijk, zonder storing', async () => {
+    // Arrange — geen mensen, geen transacties/facturen (leeg, niet kapot).
+    const admin = nepAdmin({})
+
+    // Act
+    const context = await haalContext('kane', admin, NU)
+    const blok = schrijfContextBlok(context)
+
+    // Assert — beide secties bestaan, geen van beide is een storing.
+    expect(context.crm.ok).toBe(true)
+    expect(context.finance.ok).toBe(true)
+    expect(blok).toContain('## CRM (mensen)')
+    expect(blok).toContain('Niemand staat op opvolgen')
+    expect(blok).toMatch(/## Finance \(deze maand\)[\s\S]*Omzet/)
+  })
+
+  it('toont opvolgen (vandaag) en verwaterend contact uit de CRM-rijen', async () => {
+    // Arrange — Sanne moet vandaag opgevolgd; Tom sprak je maanden niet.
+    const admin = nepAdmin({
+      crm_personen: {
+        data: [
+          {
+            id: '33333333-3333-4333-8333-333333333333',
+            naam: 'Sanne',
+            groep: 'pt_klant',
+            status: 'actieve_klant',
+            sortering: 0,
+            follow_up_datum: VANDAAG,
+            laatste_contact_op: '2026-07-14T09:00:00.000Z',
+            aangemaakt_op: '2026-01-01T00:00:00.000Z',
+          },
+          {
+            id: '44444444-4444-4444-8444-444444444444',
+            naam: 'Tom',
+            groep: 'pt_klant',
+            status: 'actieve_klant',
+            sortering: 1,
+            follow_up_datum: null,
+            laatste_contact_op: '2026-01-01T09:00:00.000Z',
+            aangemaakt_op: '2026-01-01T00:00:00.000Z',
+          },
+        ],
+      },
+    })
+
+    // Act
+    const blok = schrijfContextBlok(await haalContext('kane', admin, NU))
+
+    // Assert
+    expect(blok).toContain('Sanne opvolgen (vandaag)')
+    expect(blok).toMatch(/Verwaterend[\s\S]*Tom/)
   })
 })

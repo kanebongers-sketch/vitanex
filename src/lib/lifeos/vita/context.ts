@@ -38,6 +38,12 @@ import {
 import { taakVanRij } from '@/lib/lifeos/taken/taken'
 import type { SlimmeTaak } from '@/lib/lifeos/taken/prioriteit'
 import { GEHEUGEN_IN_PROMPT } from './geheugen'
+import { haalPersonen } from '@/lib/lifeos/crm/opslag'
+import type { Persoon } from '@/lib/lifeos/crm/crm'
+import { haalTransacties, haalFacturen } from '@/lib/lifeos/finance/opslag'
+import { bouwOverzicht, type Overzicht } from '@/lib/lifeos/finance/finance'
+import { crmOpvolging } from '@/lib/lifeos/dagplanning/aandacht'
+import { koudeContacten } from '@/lib/lifeos/weekmail/weekmail'
 
 /** Hoeveel dagen herstel Vita meekrijgt. Dekt de 5-dagen-beweging-regel ruim. */
 const HERSTEL_DAGEN = 7
@@ -136,6 +142,14 @@ export interface VitaContext {
    * één keer, want het is één bron.
    */
   afgerondVandaag: Vak<SlimmeTaak[]>
+  /**
+   * De CRM-personen. Volledige rijen zodat de tekst er zowel de opvolg-lijst (wie
+   * je vandaag of eerder zou benaderen) als de verwaterende contacten uit afleidt —
+   * één ophaal, twee afgeleiden, net als bij `taken`.
+   */
+  crm: Vak<Persoon[]>
+  /** De financiële maandstand (omzet/kosten/winst/openstaand), of een fout. */
+  finance: Vak<Overzicht>
   /** De journal van vandaag en gisteren. Wat Kane zelf schreef, niet wat wij maten. */
   journal: Vak<Tekstregel[]>
   /** Recente brain dumps. */
@@ -176,6 +190,8 @@ export function vakkenMetFout(context: VitaContext): string[] {
     // `taken`. Zou het er wél staan, dan meldde één gevallen query zich als twee
     // gevallen bronnen — "ik kon je taken en taken niet ophalen".
     ['taken', context.taken],
+    ['crm', context.crm],
+    ['finance', context.finance],
     ['journal', context.journal],
     ['notities', context.notities],
     ['geheugen', context.geheugen],
@@ -330,8 +346,17 @@ const TAAK_KOLOMMEN =
   'id, titel, notitie, klaar, klaar_op, datum, top3_positie, impact, inspanning_minuten, energie, deadline, project_id, aangemaakt_op'
 
 /**
- * Haalt alles op wat Vita over nu moet weten. Zeven queries parallel — geen
- * waterval, en geen tien losse calls per pagina-load.
+ * Zet het `Uitkomst`-model van de opslag-helpers (ok/reden) om naar het `Vak`-model
+ * van dit bestand (ok/melding). Zo delen CRM en finance dezelfde geteste read als de
+ * mails, zonder dat context.ts een tweede querylezer krijgt die uit de pas loopt.
+ */
+function uitkomstNaarVak<T>(u: { ok: true; waarde: T } | { ok: false; reden: string }): Vak<T> {
+  return u.ok ? { ok: true, waarde: u.waarde } : { ok: false, melding: u.reden }
+}
+
+/**
+ * Haalt alles op wat Vita over nu moet weten. Parallel — geen waterval, en geen
+ * tien losse calls per pagina-load.
  */
 export async function haalContext(
   userId: string,
@@ -451,6 +476,25 @@ export async function haalContext(
     ),
   ])
 
+  // CRM en finance erbij, zodat Vita óók over mensen en geld kan meepraten (niet
+  // alleen in de mails). Aparte batch om de grote parallel-array leesbaar te houden;
+  // nog steeds parallel bínnen de batch. Deze reads gebruiken de bestaande, geteste
+  // opslag-helpers. `.catch` per call houdt een gevallen bron geïsoleerd: één
+  // netwerkfout hier mag niet de hele context laten omvallen (dan zou een CRM-storing
+  // ook je slaap en agenda meesleuren).
+  const maand = vandaag.slice(0, 7)
+  const dbFout = { ok: false as const, reden: 'db' }
+  const [personenU, transactiesU, facturenU] = await Promise.all([
+    haalPersonen(admin, userId).catch(() => dbFout),
+    haalTransacties(admin, userId, { maand }).catch(() => dbFout),
+    haalFacturen(admin, userId).catch(() => dbFout),
+  ])
+  const crm: Vak<Persoon[]> = uitkomstNaarVak(personenU)
+  const finance: Vak<Overzicht> =
+    transactiesU.ok && facturenU.ok
+      ? { ok: true, waarde: bouwOverzicht(transactiesU.waarde, facturenU.waarde, maand, vandaag) }
+      : { ok: false, melding: 'Finance niet op te halen.' }
+
   // ── De spine samenstellen ──────────────────────────────────────────────────
   const slaapMap = slaapRuw.ok ? slaapPerDag(slaapRuw.waarde) : new Map<string, number | null>()
   const bewegingMap = bewegingVak.ok
@@ -497,6 +541,8 @@ export async function haalContext(
     agendaVandaag,
     taken,
     afgerondVandaag,
+    crm,
+    finance,
     journal,
     notities,
     geheugen,
@@ -529,6 +575,8 @@ const TIJD_FMT = new Intl.DateTimeFormat('nl-NL', {
   minute: '2-digit',
   hourCycle: 'h23',
 })
+
+const EURO_FMT = new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR' })
 
 /** Rendert een vak: fout, leeg of regels. Nooit twee daarvan door elkaar. */
 function schrijfVak<T>(
@@ -620,6 +668,50 @@ function geheugenRegel(item: Geheugen): string {
   return `- ${item.soort}: ${item.inhoud}${bron}`
 }
 
+/**
+ * CRM voor Vita: wie je vandaag of eerder zou opvolgen, en welke contacten
+ * verwateren. Herbruikt exact de pure afleidingen van de mails (`crmOpvolging`,
+ * `koudeContacten`), zodat Vita's chat en de dag-/weekmail hetzelfde zeggen.
+ */
+function schrijfCrm(context: VitaContext): string {
+  const kop = 'CRM (mensen)'
+  if (!context.crm.ok) return `## ${kop}\n${FOUT_REGEL}`
+
+  const personen = context.crm.waarde
+  const opvolgen = crmOpvolging(personen, lokaleTijd(context.nu).datum)
+  const koud = koudeContacten(personen, context.nu)
+  if (opvolgen.length === 0 && koud.length === 0) {
+    return `## ${kop}\nNiemand staat op opvolgen en geen contact is verwaterd. Verzin hier niemand bij.`
+  }
+
+  const regels: string[] = []
+  if (opvolgen.length > 0) {
+    regels.push('Opvolgen:')
+    regels.push(...opvolgen.map((a) => `- ${a.tekst}`))
+  }
+  if (koud.length > 0) {
+    regels.push('Verwaterend (lang geen contact):')
+    regels.push(...koud.slice(0, 8).map((c) => `- ${c.naam} (${c.dagen} dagen geleden)`))
+  }
+  return `## ${kop}\n${regels.join('\n')}`
+}
+
+/** De financiële maandstand voor Vita. Echte cijfers uit `bouwOverzicht`, geen schatting. */
+function schrijfFinance(context: VitaContext): string {
+  const kop = 'Finance (deze maand)'
+  if (!context.finance.ok) return `## ${kop}\n${FOUT_REGEL}`
+
+  const o = context.finance.waarde
+  const verlopen = o.verlopenAantal > 0 ? ` (${o.verlopenAantal} over de vervaldatum)` : ''
+  return [
+    `## ${kop}`,
+    `- Omzet: ${EURO_FMT.format(o.omzet)}`,
+    `- Kosten: ${EURO_FMT.format(o.kosten)}`,
+    `- Winst: ${EURO_FMT.format(o.winst)}`,
+    `- Openstaand: ${EURO_FMT.format(o.openstaand)}${verlopen}`,
+  ].join('\n')
+}
+
 /** Zet een opgehaalde context om in het tekstblok voor de prompt. */
 export function schrijfContextBlok(context: VitaContext): string {
   return [
@@ -641,6 +733,10 @@ export function schrijfContextBlok(context: VitaContext): string {
       'Vandaag nog niets afgevinkt. Dat zegt iets over het logboek, niet over de dag.',
       afgerondRegel,
     ),
+    '',
+    schrijfCrm(context),
+    '',
+    schrijfFinance(context),
     '',
     schrijfVak(
       'Journal (vandaag en gisteren)',
