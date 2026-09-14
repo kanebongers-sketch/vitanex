@@ -53,13 +53,16 @@ export async function GET(req: NextRequest) {
   }
 
   const kalenderId = await leesGekozenKalender(toegang.admin, toegang.userId)
+  const WEEK_MS = 7 * 24 * 60 * 60 * 1000
   const nu = new Date()
   const weekVan = maandagVan(nu)
-  const weekTot = new Date(weekVan.getTime() + 7 * 24 * 60 * 60 * 1000)
-  // Ook de vórige week meelezen: een 2-wekelijks abonnement kijkt over twee weken.
-  const leesVan = new Date(weekVan.getTime() - 7 * 24 * 60 * 60 * 1000)
+  // Lees vorige, huidige én komende week: een 2-wekelijks abonnement kijkt breed
+  // (zie bepaalWeekStatus), dus een klant die volgende week geboekt staat moet ook
+  // meegeteld worden — anders wordt hij onterecht als "moet nog ingepland" geflagd.
+  const leesVan = new Date(weekVan.getTime() - WEEK_MS)
+  const leesTot = new Date(weekVan.getTime() + 2 * WEEK_MS)
 
-  const events = await haalEvents(token.toegangstoken, leesVan, weekTot, kalenderId)
+  const events = await haalEvents(token.toegangstoken, leesVan, leesTot, kalenderId)
   if (events.staat === 'verlopen') {
     const antwoord: PtKlantenAntwoord = { gekoppeld: false }
     return NextResponse.json(antwoord, { headers: CACHE_HEADERS })

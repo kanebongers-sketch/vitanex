@@ -91,10 +91,16 @@ export interface PtWeekStatus {
 }
 
 /**
- * De status per klant. `events` beslaan minstens de vorige + huidige week (zodat
- * een 2-wekelijks abonnement zijn hele venster ziet); `weekVanISO` is de maandag
- * van de huidige week. Per klant kijken we in het juiste venster: wekelijks alleen
- * deze week, tweewekelijks de laatste twee weken.
+ * De status per klant. `events` beslaan minstens de vorige, huidige én komende week
+ * (zodat een 2-wekelijks abonnement zijn hele venster ziet); `weekVanISO` is de
+ * maandag van de huidige week. Per klant kijken we in het juiste venster: wekelijks
+ * alleen deze week; tweewekelijks breed — vorige, deze én komende week.
+ *
+ * Waarom óók de komende week? Een tweewekelijkse klant die volgende week geboekt
+ * staat (maar deze en vorige week niet) is NIET vergeten — hij komt gewoon volgende
+ * week. Keek het venster alleen achteruit, dan werd zo iemand onterecht als "moet
+ * nog ingepland" geflagd. Het venster verbreedt alleen; niemand die eerder goed
+ * stond valt er nu buiten.
  */
 export function bepaalWeekStatus(
   klanten: readonly PtKlant[],
@@ -102,17 +108,20 @@ export function bepaalWeekStatus(
   weekVanISO: string,
   vandaagKey: string,
 ): PtWeekStatus[] {
+  const WEEK_MS = 7 * 24 * 60 * 60 * 1000
   const weekVan = new Date(weekVanISO).getTime()
-  const weekTot = weekVan + 7 * 24 * 60 * 60 * 1000
-  const vorigeVan = weekVan - 7 * 24 * 60 * 60 * 1000
+  const weekTot = weekVan + WEEK_MS
+  const vorigeVan = weekVan - WEEK_MS
+  const volgendeTot = weekTot + WEEK_MS
 
   return klanten.map((k) => {
     const { nodig, weken } = cadans(k.abonnement)
     const vensterVan = weken === 2 ? vorigeVan : weekVan
+    const vensterTot = weken === 2 ? volgendeTot : weekTot
     const ingepland = events.filter((e) => {
       if (!matchtPtSessie(e.titel, k.naam)) return false
       const t = new Date(e.startOp).getTime()
-      return t >= vensterVan && t < weekTot
+      return t >= vensterVan && t < vensterTot
     }).length
     const opVakantie = k.vakantieTot !== null && vandaagKey <= k.vakantieTot
     const tekort = opVakantie ? 0 : Math.max(0, nodig - ingepland)

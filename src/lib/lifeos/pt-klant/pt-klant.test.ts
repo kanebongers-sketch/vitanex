@@ -47,13 +47,32 @@ describe('bepaalWeekStatus', () => {
     expect(rick).toMatchObject({ nodig: 1, weken: 1, ingepland: 0, tekort: 1 })
   })
 
-  test('2-wekelijks abonnement kijkt over twee weken', () => {
+  test('2-wekelijks abonnement kijkt over twee weken (vorige week telt mee)', () => {
     // Tess: 1× per 2 weken. Een sessie in de vórige week telt mee → geen tekort.
     const events: PtEvent[] = [
       { titel: 'PT Tess Bergeijk', startOp: '2026-09-02T09:00:00.000Z' },
     ]
     const tess = bepaalWeekStatus(klanten, events, WEEK_VAN, VANDAAG).find((s) => s.id === 'd')!
     expect(tess).toMatchObject({ nodig: 1, weken: 2, ingepland: 1, tekort: 0 })
+  })
+
+  test('2-wekelijks: een boeking in de KOMENDE week telt óók mee (geen valse flag)', () => {
+    // De Elize-casus: 1× per 2 weken, niets deze of vorige week, maar wél volgende
+    // week geboekt. Vroeger keek het venster alleen achteruit → onterecht tekort 1.
+    const events: PtEvent[] = [
+      { titel: 'PT Tess Bergeijk', startOp: '2026-09-16T09:00:00.000Z' }, // volgende week
+    ]
+    const tess = bepaalWeekStatus(klanten, events, WEEK_VAN, VANDAAG).find((s) => s.id === 'd')!
+    expect(tess).toMatchObject({ nodig: 1, weken: 2, ingepland: 1, tekort: 0 })
+  })
+
+  test('wekelijks blijft alleen deze week kijken (komende week telt niet mee)', () => {
+    // Rick: 1×/week. Een boeking volgende week dekt deze week niet → tekort blijft 1.
+    const events: PtEvent[] = [
+      { titel: 'PT Rick Budel', startOp: '2026-09-16T09:00:00.000Z' }, // volgende week
+    ]
+    const rick = bepaalWeekStatus(klanten, events, WEEK_VAN, VANDAAG).find((s) => s.id === 'b')!
+    expect(rick).toMatchObject({ nodig: 1, weken: 1, ingepland: 0, tekort: 1 })
   })
 
   test('geen abonnement telt als 1×/week', () => {
