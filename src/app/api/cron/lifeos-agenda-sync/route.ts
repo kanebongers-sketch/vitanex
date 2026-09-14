@@ -74,16 +74,22 @@ export async function GET(req: NextRequest): Promise<Response> {
       // Best-effort: een fout hierin mag de geslaagde sync niet omkeren; hij wordt
       // gelogd en de volgende ronde probeert het opnieuw (idempotent).
       let hernoemd = 0
+      let geblokkeerd = 0
       try {
         const h = await hernoemAfspraken(admin, userId)
-        if (h.staat === 'ok') hernoemd = h.hernoemd
-        else console.warn(`[lifeos/cron-agenda-sync] hernoemen niet ok (${h.staat}).`)
+        if (h.staat === 'ok') {
+          hernoemd = h.hernoemd
+          geblokkeerd = h.geblokkeerd
+        } else {
+          console.warn(`[lifeos/cron-agenda-sync] hernoemen niet ok (${h.staat}).`)
+        }
       } catch (oorzaak) {
         console.error('[lifeos/cron-agenda-sync] hernoemen wierp een fout', oorzaak)
       }
       return klaar({
         gesynct: uitkomst.gesynct,
         hernoemd,
+        geblokkeerd,
         van: uitkomst.van.toISOString(),
         tot: uitkomst.tot.toISOString(),
       })

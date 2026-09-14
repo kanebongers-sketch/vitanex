@@ -26,13 +26,49 @@ import { bepaalHernoem } from '@/lib/lifeos/crm/agenda-match'
 const DAGEN_VOORUIT = 7
 
 export type HernoemUitkomst =
-  | { staat: 'ok'; hernoemd: number; bekeken: number }
+  | { staat: 'ok'; hernoemd: number; geblokkeerd: number; bekeken: number }
   | { staat: 'niet_gekoppeld' }
   | { staat: 'onbereikbaar' }
 
+/** Wat LifeOS onthoudt per afspraak, om te leren van correcties (migratie 220). */
+interface HernoemStaat {
+  /** De titel die wij zelf schreven, of null als we deze afspraak nooit hernoemden. */
+  geschreven: string | null
+  /** true = gebruiker corrigeerde onze hernoem; met rust laten. */
+  geblokkeerd: boolean
+}
+
+/** Leest de hernoem-staat per extern_id uit de cache. Fout → lege map (dan gedraagt het zich als "nog nooit hernoemd"). */
+async function leesHernoemStaat(
+  admin: SupabaseClient,
+  userId: string,
+  externIds: readonly string[],
+): Promise<Map<string, HernoemStaat>> {
+  const staat = new Map<string, HernoemStaat>()
+  if (externIds.length === 0) return staat
+  const { data, error } = await admin
+    .from('agenda_events')
+    .select('extern_id, hernoem_geschreven, hernoem_geblokkeerd')
+    .eq('user_id', userId)
+    .in('extern_id', externIds)
+  if (error || !Array.isArray(data)) {
+    console.error('[agenda-hernoem] hernoem-staat lezen mislukt:', error?.message ?? 'onverwacht antwoord')
+    return staat
+  }
+  for (const rij of data) {
+    if (typeof rij?.extern_id !== 'string') continue
+    staat.set(rij.extern_id, {
+      geschreven: typeof rij.hernoem_geschreven === 'string' ? rij.hernoem_geschreven : null,
+      geblokkeerd: rij.hernoem_geblokkeerd === true,
+    })
+  }
+  return staat
+}
+
 /**
- * Hernoemt de kale-naam-afspraken in de persoonlijke agenda. Idempotent: een titel
- * die al canoniek is, wordt overgeslagen — dus dit mag elke sync-ronde draaien.
+ * Hernoemt de kale-naam-afspraken in de persoonlijke agenda, en LEERT van correcties:
+ * heb je onze hernoem teruggedraaid of aangepast, dan raakt LifeOS die afspraak nooit
+ * meer aan (migratie 220). Idempotent: een titel die al canoniek is, wordt overgeslagen.
  */
 export async function hernoemAfspraken(admin: SupabaseClient, userId: string): Promise<HernoemUitkomst> {
   const token = await geldigToken(admin, userId)
@@ -41,7 +77,7 @@ export async function hernoemAfspraken(admin: SupabaseClient, userId: string): P
 
   // Geen personen → niets om naar te koppelen. Geen fout, gewoon niets te doen.
   const personenU = await haalPersonen(admin, userId).catch(() => ({ ok: false as const, reden: 'db' as const }))
-  if (!personenU.ok || personenU.waarde.length === 0) return { staat: 'ok', hernoemd: 0, bekeken: 0 }
+  if (!personenU.ok || personenU.waarde.length === 0) return { staat: 'ok', hernoemd: 0, geblokkeerd: 0, bekeken: 0 }
   const personen = personenU.waarde
 
   // DE PERSOONLIJKE AGENDA, en alleen die. Zelfde kalender waar de dagmail al je
@@ -64,12 +100,41 @@ export async function hernoemAfspraken(admin: SupabaseClient, userId: string): P
   if (uit.staat === 'verlopen') return { staat: 'niet_gekoppeld' }
   if (uit.staat === 'fout') return { staat: 'onbereikbaar' }
 
+  const staat = await leesHernoemStaat(admin, userId, uit.events.map((e) => e.externId))
+
   let hernoemd = 0
+  let geblokkeerd = 0
   for (const event of uit.events) {
+    const eigen = staat.get(event.externId)
+
+    // 1. Al geblokkeerd (jij hebt 'm ooit gecorrigeerd) → met rust laten.
+    if (eigen?.geblokkeerd) continue
+
+    // 2. Wij schreven ooit een titel, maar die is nu anders → JIJ hebt 'm gecorrigeerd.
+    //    Zet de "handen af"-vlag en raak deze afspraak nooit meer aan.
+    if (eigen?.geschreven != null && (event.titel ?? '') !== eigen.geschreven) {
+      const { error } = await admin
+        .from('agenda_events')
+        .update({ hernoem_geblokkeerd: true })
+        .eq('user_id', userId)
+        .eq('extern_id', event.externId)
+      if (error) console.error(`[agenda-hernoem] blokkeren van ${event.externId} mislukt: ${error.message}`)
+      else geblokkeerd++
+      continue
+    }
+
+    // 3. Nog niet aangeraakt: hernoemen als het een kale naam is die eenduidig matcht.
     const doel = bepaalHernoem(event.titel, personen)
     if (!doel) continue
     try {
       await wijzigAgendaEvent(admin, userId, event.externId, { titel: doel.nieuweTitel }, kalenderId)
+      // Onthoud wat we schreven, zodat een latere wijziging als correctie telt.
+      const { error } = await admin
+        .from('agenda_events')
+        .update({ hernoem_geschreven: doel.nieuweTitel })
+        .eq('user_id', userId)
+        .eq('extern_id', event.externId)
+      if (error) console.error(`[agenda-hernoem] onthouden van ${event.externId} mislukt: ${error.message}`)
       hernoemd++
     } catch (oorzaak) {
       // Best-effort: bv. een 403 op een uitnodiging van iemand anders (die je niet
@@ -79,5 +144,5 @@ export async function hernoemAfspraken(admin: SupabaseClient, userId: string): P
     }
   }
 
-  return { staat: 'ok', hernoemd, bekeken: uit.events.length }
+  return { staat: 'ok', hernoemd, geblokkeerd, bekeken: uit.events.length }
 }
