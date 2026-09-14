@@ -88,3 +88,45 @@ export function koppelTekst(match: PersoonMatch): string | null {
   if (match.soort === 'ambigu') return 'meerdere mogelijke personen'
   return null
 }
+
+// ─── Automatisch hernoemen (schrijft naar de agenda) ────────────────────────
+// De tag die achter de naam komt bij een hernoem. Bewust kort: PT-klant → "PT",
+// teamlid → "Team". Zo staat er "Kevin Cranenbroeck PT" in je agenda.
+export function groepTag(groep: Groep): 'PT' | 'Team' {
+  return groep === 'pt_klant' ? 'PT' : 'Team'
+}
+
+/** De canonieke titel voor een persoon: volledige naam + rol-tag. */
+export function canoniekeTitel(persoon: Persoon): string {
+  return `${persoon.naam.trim()} ${groepTag(persoon.groep)}`
+}
+
+/**
+ * Moet deze afspraak-titel herschreven worden, en zo ja waarnaar? `null` = met rust
+ * laten. Dit is de POORT vóór een schrijf naar je agenda, dus streng:
+ *
+ *   1. De titel moet eenduidig naar één persoon wijzen (nooit bij twijfel).
+ *   2. De titel moet een "kale naam" zijn — alleen naam-woorden, geen extra context.
+ *      Zo wordt "Kevin" wél "Kevin Cranenbroeck PT", maar "Training Kevin met intake"
+ *      met rust gelaten: we mangelen nooit een rijkere titel.
+ *   3. De titel mag nog niet de canonieke vorm zijn (idempotent — geen dubbele "PT").
+ */
+export function bepaalHernoem(
+  titel: string | null,
+  personen: readonly Persoon[],
+): { nieuweTitel: string } | null {
+  const match = matchPersoonInTitel(titel, personen)
+  if (match.soort !== 'match') return null
+
+  const canoniek = canoniekeTitel(match.persoon)
+  const huidige = (titel ?? '').trim()
+  if (huidige === canoniek) return null // al goed — nooit opnieuw schrijven
+
+  // Alleen een kale naam: elk woord in de titel is een naam-woord van deze persoon.
+  const titelTokens = tokens(huidige)
+  const naamTokens = tokens(match.persoon.naam)
+  const kaleNaam = titelTokens.length > 0 && titelTokens.every((t) => naamTokens.includes(t))
+  if (!kaleNaam) return null
+
+  return { nieuweTitel: canoniek }
+}

@@ -21,6 +21,7 @@ import { type NextRequest } from 'next/server'
 import { createLifeosAdminClient, lifeosUserId } from '@/lib/lifeos/admin'
 import { geheimGelijk } from '@/lib/lifeos/auth/geheim'
 import { syncAgenda } from '@/lib/lifeos/agenda/sync'
+import { hernoemAfspraken } from '@/lib/lifeos/agenda/hernoem'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -67,8 +68,26 @@ export async function GET(req: NextRequest): Promise<Response> {
   }
 
   switch (uitkomst.staat) {
-    case 'ok':
-      return klaar({ gesynct: uitkomst.gesynct, van: uitkomst.van.toISOString(), tot: uitkomst.tot.toISOString() })
+    case 'ok': {
+      // De cache is vers — hernoem nu de kale-naam-afspraken in je PERSOONLIJKE
+      // agenda naar de volledige naam + rol-tag ("Kevin" → "Kevin Cranenbroeck PT").
+      // Best-effort: een fout hierin mag de geslaagde sync niet omkeren; hij wordt
+      // gelogd en de volgende ronde probeert het opnieuw (idempotent).
+      let hernoemd = 0
+      try {
+        const h = await hernoemAfspraken(admin, userId)
+        if (h.staat === 'ok') hernoemd = h.hernoemd
+        else console.warn(`[lifeos/cron-agenda-sync] hernoemen niet ok (${h.staat}).`)
+      } catch (oorzaak) {
+        console.error('[lifeos/cron-agenda-sync] hernoemen wierp een fout', oorzaak)
+      }
+      return klaar({
+        gesynct: uitkomst.gesynct,
+        hernoemd,
+        van: uitkomst.van.toISOString(),
+        tot: uitkomst.tot.toISOString(),
+      })
+    }
     case 'niet_gekoppeld':
       // Geen fout: er is simpelweg niets te syncen. 200 zodat de workflow niet
       // elke keer als "mislukt" oplicht terwijl er niets aan de hand is.

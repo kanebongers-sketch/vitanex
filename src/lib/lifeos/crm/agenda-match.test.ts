@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { matchPersoonInTitel, groepKort, koppelTekst } from './agenda-match'
+import { matchPersoonInTitel, groepKort, koppelTekst, groepTag, canoniekeTitel, bepaalHernoem } from './agenda-match'
 import type { Persoon, Groep } from './crm'
 
 function persoon(naam: string, groep: Groep = 'pt_klant'): Persoon {
@@ -79,5 +79,44 @@ describe('groepKort / koppelTekst', () => {
     expect(koppelTekst({ soort: 'match', persoon: persoon('Sanne', 'pt_klant') })).toBe('Sanne · PT-klant')
     expect(koppelTekst({ soort: 'ambigu', kandidaten: [] })).toBe('meerdere mogelijke personen')
     expect(koppelTekst({ soort: 'geen' })).toBeNull()
+  })
+})
+
+describe('bepaalHernoem — de poort vóór een schrijf naar de agenda', () => {
+  const kevin = persoon('Kevin Cranenbroeck', 'pt_klant')
+  const lisa = persoon('Lisa Jansen', 'pt_team')
+
+  test('groepTag / canoniekeTitel', () => {
+    expect(groepTag('pt_klant')).toBe('PT')
+    expect(groepTag('pt_team')).toBe('Team')
+    expect(canoniekeTitel(kevin)).toBe('Kevin Cranenbroeck PT')
+    expect(canoniekeTitel(lisa)).toBe('Lisa Jansen Team')
+  })
+
+  test('kale voornaam → volledige naam + tag', () => {
+    expect(bepaalHernoem('Kevin', [kevin])).toEqual({ nieuweTitel: 'Kevin Cranenbroeck PT' })
+    expect(bepaalHernoem('kevin', [kevin])).toEqual({ nieuweTitel: 'Kevin Cranenbroeck PT' })
+  })
+
+  test('teamlid krijgt de Team-tag', () => {
+    expect(bepaalHernoem('Lisa', [lisa])).toEqual({ nieuweTitel: 'Lisa Jansen Team' })
+  })
+
+  test('al canoniek → niet opnieuw schrijven (idempotent)', () => {
+    expect(bepaalHernoem('Kevin Cranenbroeck PT', [kevin])).toBeNull()
+  })
+
+  test('rijkere titel wordt met rust gelaten (geen mangelen)', () => {
+    expect(bepaalHernoem('Training Kevin met intake', [kevin])).toBeNull()
+    expect(bepaalHernoem('Bellen Kevin 10:00', [kevin])).toBeNull()
+  })
+
+  test('geen match → niets', () => {
+    expect(bepaalHernoem('Boodschappen', [kevin])).toBeNull()
+  })
+
+  test('ambigu → niets (nooit een gok naar de agenda schrijven)', () => {
+    const kevin2 = persoon('Kevin de Wit', 'pt_klant')
+    expect(bepaalHernoem('Kevin', [kevin, kevin2])).toBeNull()
   })
 })
