@@ -84,6 +84,16 @@ export function PopupDetails({ persoon, groep, vandaag, onWijzig }: PopupDetails
         <FollowUpVeld persoon={persoon} vandaag={vandaag} onWijzig={onWijzig} />
       </section>
 
+      {/* Vakantie: alleen zinvol voor PT-klanten — die telt de weekstatus mee als
+          "moet nog inplannen". Op vakantie t/m een dag → die klant telt tot dan niet
+          mee. Dezelfde vakantie zit ook in de PT-klanten-kaart; hier bij de bron. */}
+      {groep === 'pt_klant' ? (
+        <section className="os-crm__sectie">
+          <h3 className="os-crm__sectie-kop">Vakantie</h3>
+          <VakantieVeld persoon={persoon} onWijzig={onWijzig} />
+        </section>
+      ) : null}
+
       <section className="os-crm__sectie">
         <h3 className="os-crm__sectie-kop">Bijzonderheden</h3>
         <BijzonderhedenVeld waarde={persoon.bijzonderheden} onOpslaan={(v) => onWijzig({ bijzonderheden: v })} />
@@ -218,6 +228,42 @@ function FollowUpVeld({ persoon, vandaag, onWijzig }: FollowUpVeldProps) {
         ) : null}
       </div>
       <p className="os-crm__hint">Geen dag = geen follow-up. Zet er een om iemand terug te zien op het bord.</p>
+    </>
+  )
+}
+
+interface VakantieVeldProps {
+  persoon: Persoon
+  onWijzig: (wijziging: PersoonWijziging) => Promise<boolean>
+}
+
+/**
+ * Op vakantie t/m een dag. Zolang die dag in de toekomst ligt telt de PT-klant niet
+ * mee als "moet nog inplannen" (de weekstatus slaat 'm over). Leeg = niet op
+ * vakantie. Dezelfde control staat op de PT-klanten-kaart; hier bij de bron.
+ */
+function VakantieVeld({ persoon, onWijzig }: VakantieVeldProps) {
+  return (
+    <>
+      <div className="os-crm__followup">
+        <input
+          type="date"
+          className="os-crm__invoer"
+          style={{ colorScheme: 'dark' }}
+          value={persoon.vakantieTot ?? ''}
+          aria-label="Op vakantie t/m (kies een datum)"
+          onChange={(e) => void onWijzig({ vakantieTot: e.target.value || null })}
+        />
+        {persoon.vakantieTot ? (
+          <button type="button" className="os-crm__wis" onClick={() => void onWijzig({ vakantieTot: null })}>
+            <X size={13} strokeWidth={2.2} aria-hidden="true" />
+            Terug van vakantie
+          </button>
+        ) : null}
+      </div>
+      <p className="os-crm__hint">
+        Op vakantie t/m deze dag — dan telt deze klant tot dan niet mee als moet-nog-inplannen.
+      </p>
     </>
   )
 }
