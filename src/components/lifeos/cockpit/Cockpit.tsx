@@ -27,8 +27,9 @@ import { RefreshProvider } from '@/components/lifeos/os/RefreshContext'
 // De dagbriefing-band staat bovenaan en is de luidste: het is het eerste wat je
 // 's ochtends leest — de COO-briefing die de dag samenvat. Vita volgt eronder als
 // je interactieve companion: nog altijd `dragend`, maar één trap onder de briefing.
-// Daaronder het cluster "Mijn dag": vier halve tegels (to-do's, agenda, inbox,
-// PT-gesprekken) — rang via schaal, niet via kleur. Cyaan blijft strikt accent.
+// Daaronder het cluster "Mijn dag": twee rijen halve tegels (to-do's + agenda,
+// dan het PT-paar) met de inbox als volle-breedte-lijst — rang via schaal, niet
+// via kleur. Cyaan blijft strikt accent.
 //
 // Welzijn, training en voeding stonden hier ook, maar zijn eruit: welzijn dubbelde
 // met de gewone app (Home → zes pijlers) en training/voeding kregen een eigen
@@ -37,7 +38,7 @@ import { RefreshProvider } from '@/components/lifeos/os/RefreshContext'
 // ─── Drie banden, twee clusters ─────────────────────────────────────────────
 //   1. Band  — Dagbriefing: wat is vandaag het beeld? (het eerste wat je leest)
 //   2. Band  — Vita: wat moet je nú weten?
-//   3. Cluster "Mijn dag": je gereedschap — to-do's, agenda, inbox, PT-gesprekken.
+//   3. Cluster "Mijn dag": je gereedschap — to-do's, agenda, PT-planning, inbox.
 //   4. Band  — Vita-gesprek: je vraagt Vita iets nádat je zag wat er speelt.
 //   5. Cluster "Verbinden": de mensen om je heen, je geld en je kennis — je
 //      zakelijke overzicht.
@@ -62,44 +63,43 @@ export function Cockpit() {
         <VitaKaart nadruk="dragend" />
       </div>
 
-      {/* Cluster "Mijn dag" — Dagplan en Vang op zijn de brede ankers (span 6 op
-          12 kolommen). Daaronder één rij halve tegels (Welzijn + de agenda met
-          haar 3-dagen-rooster) en de inbox als volle-breedte-lijst. Elke rij telt
-          op 12 kolommen exact op tot 12; op smaller vallen de halve tegels samen
-          tot een paar en pakt de volle tegel de hele breedte. */}
+      {/* Cluster "Mijn dag" — je gereedschap op het gedeelde 12-koloms raster.
+          Twee rijen van twee halve tegels (span 6), dan de inbox als volle-breedte-
+          lijst (span 12). Zo telt elke rij exact op tot 12 — geen wees-cel, geen
+          rafelige onderrand — en op smaller stapelen de tegels netjes. Een óneven
+          aantal halve tegels zou de laatste alleen in een halve kolom laten hangen;
+          vandaar 2×2 halve + 1 volle i.p.v. vijf halve. */}
       <section className="os-cluster" aria-labelledby="os-dag-kop">
         <header className="os-cluster__kop">
           <h2 id="os-dag-kop" className="os-zone__kop">
             Mijn dag
           </h2>
           <p className="os-zone__intro">
-            Je gereedschap: een rustige to-do-lijst, je agenda, je inbox en je PT-gesprekken.
+            Je gereedschap: een rustige to-do-lijst, je agenda, je PT-planning en je inbox.
           </p>
         </header>
 
-        {/* Vier halve tegels (2×2). De "Je dag"/Dagplan-kaart is eruit: die dubbelde
-            met de takenlijst (taken zonder tijdsinschatting verschenen daar als "past
-            niet"). Taken leven nu op één plek — de simpele to-do-lijst hieronder,
-            gegroepeerd per eigen categorie, met afvinken. Op smaller stapelen de
-            halve tegels vanzelf. */}
+        {/* Rij 1 — de dagelijkse ankers: wát er moet gebeuren en wannéér. */}
         <div className="os-tile--half">
           <TakenApple />
         </div>
         <div className="os-tile--half">
           <AgendaKaart />
         </div>
-        <div className="os-tile--half">
-          <InboxKaart />
-        </div>
-        {/* PT-gesprekken: het 2-wekelijkse coachgesprek per PT-klant. Compact —
-            toont vooral wie nog ingepland moet worden; de rest zit ingeklapt. */}
+
+        {/* Rij 2 — het PT-paar, naast elkaar omdat ze bij elkaar horen: het
+            2-wekelijkse coachgesprek per klant, en wie deze week nog ingepland moet
+            worden (1×/2× per week, per locatie, vakantie-aware). */}
         <div className="os-tile--half">
           <PtGesprekkenKaart />
         </div>
-        {/* PT-klanten deze week: 1×/2× per week, per locatie, vakantie-aware —
-            zodat je niemand vergeet in te plannen. */}
         <div className="os-tile--half">
           <PtKlantenKaart />
+        </div>
+
+        {/* Rij 3 — de inbox als rustige volle-breedte-lijst onder het gereedschap. */}
+        <div className="os-tile--vol">
+          <InboxKaart />
         </div>
       </section>
 

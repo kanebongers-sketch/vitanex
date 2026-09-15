@@ -35,24 +35,19 @@ export default function LifeosLaden() {
               <div style={{ ...KAART, height: 132 }} />
             </div>
 
-            {/* Cluster "Mijn dag": twee brede ankers (Dagplan + Vang op), twee
-                halve tegels (Welzijn + Agenda) en de inbox als volle-breedte-lijst
-                — zelfde verdeling als de echte cockpit. */}
+            {/* Cluster "Mijn dag": twee rijen van twee halve tegels (Taken +
+                Agenda, dan het PT-paar) en de inbox als volle-breedte-lijst —
+                exact dezelfde verdeling als de echte cockpit, zodat de layout niet
+                springt als de kaarten binnenkomen. */}
             <section className="os-cluster">
               <ClusterKop />
-              <div className="os-tile--anker">
-                <div style={{ ...KAART, height: 248 }} />
-              </div>
-              <div className="os-tile--anker">
-                <div style={{ ...KAART, height: 248 }} />
-              </div>
-              {Array.from({ length: 2 }, (_, i) => (
+              {Array.from({ length: 4 }, (_, i) => (
                 <div key={`half-${i}`} className="os-tile--half">
-                  <div style={{ ...KAART, height: 208 }} />
+                  <div style={{ ...KAART, height: 236 }} />
                 </div>
               ))}
               <div className="os-tile--vol">
-                <div style={{ ...KAART, height: 208 }} />
+                <div style={{ ...KAART, height: 168 }} />
               </div>
             </section>
 
