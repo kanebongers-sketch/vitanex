@@ -131,6 +131,42 @@ export async function geefClaimTerug(admin: SupabaseClient, id: string): Promise
 }
 
 /**
+ * Goedkope voor-check: bestaat er voor deze dag al een claim op dit kanaal
+ * (geclaimd óf al bezorgd — er staat een rij)? Puur een optimalisatie voor
+ * herhaalde aanroepen: de dagmail-workflow probeert 's ochtends meerdere keren
+ * (voor het geval GitHub een geplande tik laat vallen), en zonder deze check zou
+ * elke poging eerst de agenda + inbox aflopen om pas bij de claim te stranden.
+ *
+ * Dit VERVANGT het slot niet — dat blijft de INSERT in `claimBriefing`. Een race
+ * die hier langs glipt (twee runs die tegelijk niets zien) wordt daar alsnog
+ * gevangen: precies één insert lukt. `undefined` bij een fout, en dat is nadrukkelijk
+ * NIET "nog niet verstuurd": bij twijfel loopt de route gewoon door naar de claim,
+ * zodat een hikkende query nooit een dag stil maakt.
+ */
+export async function alGeclaimdVandaag(
+  admin: SupabaseClient,
+  userId: string,
+  datum: string,
+  kanaal: BriefingKanaal,
+): Promise<boolean | undefined> {
+  try {
+    const { data, error } = await admin
+      .from('vita_briefingen')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('datum', datum)
+      .eq('kanaal', kanaal)
+      .limit(1)
+      .maybeSingle()
+
+    if (error) return undefined
+    return data !== null
+  } catch {
+    return undefined
+  }
+}
+
+/**
  * Wanneer stuurde Vita voor het laatst écht een briefing? `null` = nog nooit.
  *
  * Dit is het bewijs achter de belofte op de Vita-kaart. De kaart mag pas zeggen

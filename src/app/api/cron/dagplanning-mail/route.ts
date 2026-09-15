@@ -39,7 +39,7 @@ import { triageer } from '@/lib/lifeos/inbox/classificeer'
 import { haalContext } from '@/lib/lifeos/vita/context'
 import { syncAgenda } from '@/lib/lifeos/agenda/sync'
 import { bepaalSignalen, lokaleTijd } from '@/lib/lifeos/vita/signalen'
-import { claimBriefing, geefClaimTerug, markeerBezorgd } from '@/lib/lifeos/vita/briefing-opslag'
+import { alGeclaimdVandaag, claimBriefing, geefClaimTerug, markeerBezorgd } from '@/lib/lifeos/vita/briefing-opslag'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -189,6 +189,20 @@ export async function GET(req: NextRequest): Promise<Response> {
     return klaar({ verstuurd: false, reden: 'weekend' })
   }
 
+  // De dag-sleutel (lokaal) — gedeeld door de goedkope voor-check hier en de claim
+  // vlak vóór het sturen. Beide moeten exact dezelfde datum-string gebruiken.
+  const datum = lokaleTijd(nu).datum
+
+  // ─── INHAAL-VANGNET (goedkope kant) ───────────────────────────────────────
+  // De workflow probeert 's ochtends meerdere keren, zodat een door GitHub gemiste
+  // tik van 05:00 alsnog wordt ingehaald door 05:30/06:00/… Is de dagmail van
+  // vandaag al geclaimd, dan stoppen we hier — vóór we de agenda en inbox aflopen.
+  // Zo doet alleen de éérste geslaagde poging op een dag echt werk; de rest is één
+  // goedkope DB-lezing. Het échte slot tegen dubbele mails blijft de claim onderaan.
+  if ((await alGeclaimdVandaag(admin, userId, datum, 'email')) === true) {
+    return klaar({ verstuurd: false, reden: 'vandaag al verstuurd', datum })
+  }
+
   const token = await geldigToken(admin, userId)
   if (token.staat === 'niet_gekoppeld') return fout('Agenda niet gekoppeld.', 503)
   if (token.staat === 'fout') return fout('Kon de agenda niet lezen.', 503)
@@ -295,10 +309,10 @@ export async function GET(req: NextRequest): Promise<Response> {
 
   const mail = bouwDagplanningMail(nu, items, todos, vitaSignalen, aandacht)
 
-  // Eén mail per dag, wie of wat 'm ook triggert (cron-job.org op tijd + GitHub als
-  // trage back-up). Claim vlak vóór het sturen: zo verspilt een dubbele run hooguit
-  // wat leeswerk, maar krijgt Kane nooit twee dagmails. Slot = de insert.
-  const datum = lokaleTijd(nu).datum
+  // Eén mail per dag, wie of wat 'm ook triggert (de meerdere ochtend-tikken van de
+  // workflow + een handmatige run). Claim vlak vóór het sturen: zo verspilt een
+  // dubbele run hooguit wat leeswerk, maar krijgt Kane nooit twee dagmails. Slot =
+  // de insert (de goedkope voor-check hierboven is enkel een versnelling, geen slot).
   const claim = await claimBriefing(admin, userId, datum, 'email')
   if (claim.soort === 'bezet') {
     return klaar({ verstuurd: false, reden: 'vandaag al verstuurd', datum })

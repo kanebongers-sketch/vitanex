@@ -1,7 +1,11 @@
 name: Dagplanning mail
 on:
   schedule:
-    - cron: '0 5 * * 1-5'   # ma–vr, 07:00 NL zomertijd / 06:00 winter
+    # ma–vr, elke 30 min van 05:00–08:30 UTC (07:00–10:30 NL zomer / 06:00–09:30 winter).
+    # GitHub laat geplande tikken onder drukte soms vallen; daarom meerdere pogingen.
+    # De route stuurt hooguit één mail per dag (de claim is het slot) en stopt bij
+    # elke volgende poging goedkoop — de eerste die landt wint, de rest doet niets.
+    - cron: '0,30 5-8 * * 1-5'
   workflow_dispatch:
 concurrency:
   group: dagplanning-mail
