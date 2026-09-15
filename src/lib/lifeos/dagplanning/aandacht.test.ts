@@ -1,7 +1,8 @@
 import { describe, expect, test } from 'vitest'
-import { crmOpvolging, factuurAandacht, inboxAandacht, bouwAandacht } from './aandacht'
+import { crmOpvolging, factuurAandacht, inboxAandacht, afhaakAandacht, bouwAandacht } from './aandacht'
 import type { Persoon } from '@/lib/lifeos/crm/crm'
 import type { Factuur } from '@/lib/lifeos/finance/finance'
+import type { Afhaak } from '@/lib/lifeos/pt-klant/afhaak'
 
 const VANDAAG = '2026-09-14'
 
@@ -151,17 +152,45 @@ describe('inboxAandacht', () => {
   })
 })
 
+function afhaak(over: Partial<Afhaak> = {}): Afhaak {
+  return { id: 'k', naam: 'Kevin', wekenGeleden: 3, ...over }
+}
+
+describe('afhaakAandacht', () => {
+  test('een regel per afgehaakte klant, niet dringend', () => {
+    const punten = afhaakAandacht([afhaak({ naam: 'Kevin', wekenGeleden: 3 })])
+    expect(punten).toEqual([{ tekst: 'Kevin was 3 weken niet op PT — even contact?', dringend: false }])
+  })
+
+  test('enkelvoud "week" bij 1', () => {
+    expect(afhaakAandacht([afhaak({ wekenGeleden: 1 })])[0].tekst).toContain('1 week niet')
+  })
+
+  test('boven de limiet één samenvattende regel', () => {
+    const zes = Array.from({ length: 6 }, (_, i) => afhaak({ id: `k${i}`, naam: `Klant ${i}` }))
+    const punten = afhaakAandacht(zes)
+    expect(punten).toHaveLength(6) // 5 namen + 1 samenvatting
+    expect(punten[5].tekst).toBe('en nog 1 klant die je een tijd niet zag')
+  })
+
+  test('leeg = geen regels', () => {
+    expect(afhaakAandacht([])).toEqual([])
+  })
+})
+
 describe('bouwAandacht', () => {
-  test('volgorde: CRM, dan inbox, dan finance', () => {
+  test('volgorde: CRM, dan afhaak, dan inbox, dan finance', () => {
     const punten = bouwAandacht(
       [persoon({ naam: 'Sanne', followUpDatum: VANDAAG })],
       [factuur({ vervaldatum: '2026-09-01' })],
       VANDAAG,
       3,
+      [afhaak({ naam: 'Kevin', wekenGeleden: 3 })],
     )
     expect(punten[0].tekst).toContain('Sanne')
-    expect(punten[1].tekst).toContain('mails vragen een reactie')
-    expect(punten[2].tekst).toContain('vervaldatum')
+    expect(punten[1].tekst).toContain('Kevin')
+    expect(punten[2].tekst).toContain('mails vragen een reactie')
+    expect(punten[3].tekst).toContain('vervaldatum')
   })
 
   test('inbox weggelaten als niet nagegaan', () => {

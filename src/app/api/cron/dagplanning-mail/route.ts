@@ -31,6 +31,8 @@ import { bouwDagplanningMail, type DagItem, type DagTodo } from '@/lib/lifeos/da
 import { bouwAandacht, type Aandachtspunt } from '@/lib/lifeos/dagplanning/aandacht'
 import { haalPersonen } from '@/lib/lifeos/crm/opslag'
 import type { Persoon } from '@/lib/lifeos/crm/crm'
+import { bepaalAfhaak, type Afhaak } from '@/lib/lifeos/pt-klant/afhaak'
+import type { PtKlant, PtEvent } from '@/lib/lifeos/pt-klant/pt-klant'
 import { matchPersoonInTitel, koppelTekst } from '@/lib/lifeos/crm/agenda-match'
 import { haalFacturen } from '@/lib/lifeos/finance/opslag'
 import { geldigToken as geldigMailToken, forceerVernieuwing as forceerMailVernieuwing } from '@/lib/lifeos/inbox/koppeling'
@@ -137,6 +139,7 @@ async function haalAandacht(
   userId: string,
   vandaagKey: string,
   personen: readonly Persoon[],
+  afhaak: readonly Afhaak[],
 ): Promise<Aandachtspunt[]> {
   const [facturen, inboxActie] = await Promise.all([
     haalFacturen(admin, userId).catch((oorzaak) => {
@@ -145,7 +148,45 @@ async function haalAandacht(
     }),
     haalInboxActie(admin, userId),
   ])
-  return bouwAandacht(personen, facturen.ok ? facturen.waarde : [], vandaagKey, inboxActie)
+  return bouwAandacht(personen, facturen.ok ? facturen.waarde : [], vandaagKey, inboxActie, afhaak)
+}
+
+/**
+ * PT-klanten die je een tijd niet op PT zag ("afhaak"). Leest een breed venster
+ * (laatste 8 weken) uit je persoonlijke agenda, zodat "had wél sessies, maar niet
+ * meer" te onderscheiden is van "net begonnen". Best-effort: valt de agenda-lezing
+ * om, dan gewoon geen afhaak-regels — nooit een verzonnen zorg. De echte gate en de
+ * naam-koppeling zitten in `bepaalAfhaak` (puur, getest).
+ */
+async function haalAfhaak(
+  toegangstoken: string,
+  kalenderId: string | null,
+  personen: readonly Persoon[],
+  nu: Date,
+): Promise<Afhaak[]> {
+  const ptKlanten: PtKlant[] = personen
+    .filter((p) => p.groep === 'pt_klant')
+    .map((p) => ({
+      id: p.id,
+      naam: p.naam,
+      email: p.email,
+      abonnement: p.abonnement,
+      duo: p.duo,
+      locatie: p.locatie,
+      vakantieTot: p.vakantieTot,
+    }))
+  if (ptKlanten.length === 0) return []
+
+  try {
+    const van = new Date(nu.getTime() - 56 * 24 * 60 * 60 * 1000)
+    const gelezen = await haalEvents(toegangstoken, van, nu, kalenderId)
+    if (gelezen.staat !== 'ok') return []
+    const events: PtEvent[] = gelezen.events.map((e) => ({ titel: e.titel, startOp: e.startOp.toISOString() }))
+    return bepaalAfhaak(ptKlanten, events, nu)
+  } catch (oorzaak) {
+    console.error('[dagplanning-mail] afhaak-venster ophalen mislukt', oorzaak)
+    return []
+  }
 }
 
 /** De CRM-personen, best-effort: één ophaal, gedeeld door de agenda-koppeling én de aandacht-sectie. */
@@ -304,8 +345,12 @@ export async function GET(req: NextRequest): Promise<Response> {
   // dubbeling), niet de hele briefingtekst.
   const vitaSignalen = await haalVitaSignalen(admin, userId, nu)
 
-  // "Vraagt je aandacht": CRM-opvolging + facturen. Best-effort, zie haalAandacht.
-  const aandacht = await haalAandacht(admin, userId, vandaagKey, personen)
+  // Afhaak-signaal: PT-klanten die je een tijd niet op PT zag. Best-effort — leest
+  // een breed agenda-venster; valt dat om, dan gewoon geen afhaak-regels.
+  const afhaak = await haalAfhaak(token.toegangstoken, kalenderId, personen, nu)
+
+  // "Vraagt je aandacht": CRM-opvolging + afhaak + inbox + facturen. Best-effort.
+  const aandacht = await haalAandacht(admin, userId, vandaagKey, personen, afhaak)
 
   const mail = bouwDagplanningMail(nu, items, todos, vitaSignalen, aandacht)
 

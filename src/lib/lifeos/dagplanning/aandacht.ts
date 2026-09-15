@@ -11,6 +11,7 @@
 
 import type { Persoon } from '@/lib/lifeos/crm/crm'
 import type { Factuur } from '@/lib/lifeos/finance/finance'
+import type { Afhaak } from '@/lib/lifeos/pt-klant/afhaak'
 import { naarCenten, naarEuro } from '@/lib/lifeos/finance/finance'
 
 /** Eén regel voor de "Vraagt je aandacht"-sectie. */
@@ -64,6 +65,27 @@ export function crmOpvolging(personen: readonly Persoon[], vandaagKey: string): 
   return punten
 }
 
+/** Zoveel afgehaakte klanten tonen we bij naam; daarboven één samenvattende regel. */
+const AFHAAK_LIMIET = 5
+
+/**
+ * Wie haakt af: PT-klanten die je een tijd niet meer op PT zag (zie
+ * `pt-klant/afhaak`). Niet `dringend` — het is geen "vandaag", maar een retentie-
+ * seintje dat je niet wilt missen. Leeg → geen regels.
+ */
+export function afhaakAandacht(afhaak: readonly Afhaak[]): Aandachtspunt[] {
+  const punten: Aandachtspunt[] = afhaak.slice(0, AFHAAK_LIMIET).map((a) => ({
+    tekst: `${a.naam} was ${a.wekenGeleden} ${a.wekenGeleden === 1 ? 'week' : 'weken'} niet op PT — even contact?`,
+    dringend: false,
+  }))
+
+  const rest = afhaak.length - AFHAAK_LIMIET
+  if (rest > 0) {
+    punten.push({ tekst: `en nog ${rest} ${rest === 1 ? 'klant' : 'klanten'} die je een tijd niet zag`, dringend: false })
+  }
+  return punten
+}
+
 /**
  * Eén samenvattende factuurregel, of `null` als er niets openstaat.
  *
@@ -112,19 +134,21 @@ export function inboxAandacht(actie: number | null): Aandachtspunt | null {
 
 /**
  * Alle aandachtspunten voor vandaag, in volgorde van "vraagt een menselijk
- * antwoord": CRM-opvolging (mensen boven cijfers), dan de inbox, dan de facturen.
- * Leeg = de mail laat de hele sectie weg.
+ * antwoord": CRM-opvolging (mensen boven cijfers), dan afgehaakte klanten, dan de
+ * inbox, dan de facturen. Leeg = de mail laat de hele sectie weg.
  */
 export function bouwAandacht(
   personen: readonly Persoon[],
   facturen: readonly Factuur[],
   vandaagKey: string,
   inboxActie: number | null = null,
+  afhaak: readonly Afhaak[] = [],
 ): Aandachtspunt[] {
   const inbox = inboxAandacht(inboxActie)
   const factuur = factuurAandacht(facturen, vandaagKey)
   return [
     ...crmOpvolging(personen, vandaagKey),
+    ...afhaakAandacht(afhaak),
     ...(inbox ? [inbox] : []),
     ...(factuur ? [factuur] : []),
   ]
