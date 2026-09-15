@@ -24,8 +24,9 @@ export default function AgendaCategoriePagina() {
             <h1 className="os-zone__kop">Categorieën</h1>
             <p className="os-zone__intro">
               Je afspraken van de komende twee weken, verdeeld over je categorieën. Klik een
-              categorie aan of uit om die te tonen of weg te filteren — handig om bijvoorbeeld
-              Overig even te verbergen.
+              categorie aan of uit om die te tonen of weg te filteren, of kies per afspraak zelf
+              een andere bak — LifeOS onthoudt dat en zet afspraken met dezelfde naam voortaan
+              vanzelf goed.
             </p>
           </header>
           <AgendaCategorieBord />

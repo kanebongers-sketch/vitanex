@@ -46,6 +46,32 @@ export function categoriseerAfspraak(titel: string | null, personen: readonly Pe
   return match.soort === 'match' ? match.persoon.groep : 'overig'
 }
 
+// ─── Leren van jouw herindeling ─────────────────────────────────────────────
+// Wijs je een afspraak zelf een categorie toe, dan onthoudt LifeOS dat per
+// GENORMALISEERDE titel: elke volgende afspraak met dezelfde titel valt dan in
+// dezelfde bak. Zo generaliseert de correctie ("Tandarts" → Persoonlijk) i.p.v. per
+// losse afspraak. Jouw regel WINT van de auto-categorie, zodat je ook een foute
+// auto-match kunt rechtzetten.
+
+/** Titel → vergelijkbare sleutel: lowercase, witruimte samengevouwen, getrimd. */
+export function normaliseerTitel(titel: string | null): string {
+  return (titel ?? '').toLowerCase().replace(/\s+/g, ' ').trim()
+}
+
+/**
+ * De categorie mét jouw geleerde regels. Is er een regel voor deze (genormaliseerde)
+ * titel, dan wint die; anders de auto-afleiding. Een lege titel heeft geen regel.
+ */
+export function categoriseerMet(
+  titel: string | null,
+  personen: readonly Persoon[],
+  regels: ReadonlyMap<string, AgendaCategorie>,
+): AgendaCategorie {
+  const norm = normaliseerTitel(titel)
+  const regel = norm ? regels.get(norm) : undefined
+  return regel ?? categoriseerAfspraak(titel, personen)
+}
+
 // ─── JSON over de draad ─────────────────────────────────────────────────────
 // Gedeeld door de route (schrijft) en het bord (leest). Narrowen aan de grens:
 // een onbekende categorie wordt "overig", nooit een cast.

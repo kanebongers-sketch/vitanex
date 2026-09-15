@@ -8,11 +8,12 @@
 // + laten leren is de volgende stap.
 
 import { useCallback, useEffect, useState } from 'react'
-import { haalJson } from '@/lib/lifeos/api/http'
+import { haalJson, leesNiets } from '@/lib/lifeos/api/http'
 import {
   CATEGORIE_VOLGORDE,
   categorieLabel,
   leesCategorieAntwoord,
+  normaliseerTitel,
   type AgendaCategorie,
   type CategorieEventJson,
 } from '@/lib/lifeos/agenda/categorie'
@@ -50,6 +51,7 @@ function tijdstip(event: CategorieEventJson): string {
 export function AgendaCategorieBord() {
   const [staat, setStaat] = useState<Staat>({ fase: 'laden' })
   const [verborgen, setVerborgen] = useState<ReadonlySet<AgendaCategorie>>(new Set())
+  const [actieFout, setActieFout] = useState<string | null>(null)
 
   // `.then`-stijl (geen async-functie), gespiegeld aan `useMensen`: setState gebeurt
   // ná de fetch in de callback, nooit synchroon in het effect. De begintoestand is
@@ -76,6 +78,37 @@ export function AgendaCategorieBord() {
   useEffect(() => {
     void laad()
   }, [laad])
+
+  // Zelf herindelen + laten leren: alle afspraken met dezelfde titel verhuizen
+  // optimistisch mee (de regel generaliseert), en de keuze wordt server-side
+  // onthouden. Faalt het opslaan, dan draaien we terug én zeggen we het.
+  const herindeel = useCallback(
+    (event: CategorieEventJson, nieuw: AgendaCategorie) => {
+      const norm = normaliseerTitel(event.titel)
+      setActieFout(null)
+      setStaat((s) =>
+        s.fase === 'ok'
+          ? {
+              fase: 'ok',
+              events: s.events.map((e) =>
+                normaliseerTitel(e.titel) === norm ? { ...e, categorie: nieuw } : e,
+              ),
+            }
+          : s,
+      )
+      void haalJson('/api/lifeos/agenda/categorieen/regel', leesNiets, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ titel: event.titel, categorie: nieuw }),
+      }).then((uitkomst) => {
+        if (!uitkomst.ok) {
+          setActieFout('Kon de wijziging niet opslaan — je verse stand is teruggezet.')
+          void laad()
+        }
+      })
+    },
+    [laad],
+  )
 
   const toggle = useCallback((categorie: AgendaCategorie) => {
     setVerborgen((huidig) => {
@@ -133,6 +166,11 @@ export function AgendaCategorieBord() {
 
   return (
     <div>
+      {actieFout && (
+        <p role="alert" style={foutBalk}>
+          {actieFout}
+        </p>
+      )}
       {/* Filter-chips: klik om een categorie te verbergen (bv. "Overig"). */}
       <div role="group" aria-label="Filter categorieën" style={chipRij}>
         {zichtbaar.map((cat) => {
@@ -170,7 +208,24 @@ export function AgendaCategorieBord() {
                       <span style={{ color: 'var(--text-3)', fontSize: 13, whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>
                         {tijdstip(event)}
                       </span>
-                      <span style={{ color: 'var(--text-1)', fontSize: 14 }}>{event.titel ?? '(zonder titel)'}</span>
+                      <span style={{ color: 'var(--text-1)', fontSize: 14, flex: 1, minWidth: 0 }}>
+                        {event.titel ?? '(zonder titel)'}
+                      </span>
+                      <select
+                        aria-label={`Categorie van ${event.titel ?? 'afspraak'}`}
+                        value={event.categorie}
+                        onChange={(e) => {
+                          const gekozen = CATEGORIE_VOLGORDE.find((c) => c === e.target.value)
+                          if (gekozen) herindeel(event, gekozen)
+                        }}
+                        style={selectStijl}
+                      >
+                        {CATEGORIE_VOLGORDE.map((c) => (
+                          <option key={c} value={c}>
+                            {categorieLabel(c)}
+                          </option>
+                        ))}
+                      </select>
                     </li>
                   ))}
                 </ul>
@@ -252,8 +307,28 @@ const lijstStijl: React.CSSProperties = {
 }
 const rij: React.CSSProperties = {
   display: 'flex',
-  alignItems: 'baseline',
+  alignItems: 'center',
   gap: 14,
   padding: '10px 14px',
   background: 'var(--bg-card)',
+}
+const selectStijl: React.CSSProperties = {
+  flexShrink: 0,
+  padding: '5px 8px',
+  borderRadius: 8,
+  border: '1px solid var(--line-strong)',
+  background: 'var(--bg-raised)',
+  color: 'var(--text-2)',
+  fontSize: 12,
+  fontWeight: 600,
+  cursor: 'pointer',
+}
+const foutBalk: React.CSSProperties = {
+  margin: '0 0 12px',
+  padding: '10px 14px',
+  borderRadius: 12,
+  background: 'var(--status-danger-soft)',
+  border: '1px solid var(--status-danger)',
+  color: 'var(--text-1)',
+  fontSize: 13,
 }

@@ -15,7 +15,8 @@ import { vereisLifeosToegang } from '@/lib/lifeos/admin'
 import { haalPersonen } from '@/lib/lifeos/crm/opslag'
 import { geldigToken, leesGekozenKalender } from '@/lib/lifeos/agenda/koppeling'
 import { haalEvents } from '@/lib/lifeos/agenda/google'
-import { categoriseerAfspraak, type CategorieAntwoord, type CategorieEventJson } from '@/lib/lifeos/agenda/categorie'
+import { categoriseerMet, type CategorieAntwoord, type CategorieEventJson } from '@/lib/lifeos/agenda/categorie'
+import { haalCategorieRegels } from '@/lib/lifeos/agenda/categorie-opslag'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -46,6 +47,11 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ fout: 'Kon je agenda niet lezen.' }, { status: 502 })
   }
 
+  // Je geleerde regels erbij: die winnen van de auto-categorie. Best-effort — kan
+  // de tabel niet gelezen worden, dan categoriseren we puur automatisch.
+  const regelsUit = await haalCategorieRegels(toegang.admin, toegang.userId)
+  const regels = regelsUit.ok ? regelsUit.waarde : new Map()
+
   const kalenderId = await leesGekozenKalender(toegang.admin, toegang.userId)
 
   const van = new Date()
@@ -66,7 +72,7 @@ export async function GET(req: NextRequest) {
     startOp: e.startOp.toISOString(),
     eindOp: e.eindOp ? e.eindOp.toISOString() : null,
     heleDag: e.heleDag,
-    categorie: categoriseerAfspraak(e.titel, personen.waarde),
+    categorie: categoriseerMet(e.titel, personen.waarde, regels),
   }))
 
   const antwoord: CategorieAntwoord = { gekoppeld: true, events }

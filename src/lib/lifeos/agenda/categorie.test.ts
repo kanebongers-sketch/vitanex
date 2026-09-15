@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { categoriseerAfspraak, categorieLabel, CATEGORIE_VOLGORDE } from './categorie'
+import { categoriseerAfspraak, categoriseerMet, normaliseerTitel, categorieLabel, CATEGORIE_VOLGORDE, type AgendaCategorie } from './categorie'
 import type { Persoon, Groep } from '@/lib/lifeos/crm/crm'
 
 function persoon(naam: string, groep: Groep): Persoon {
@@ -52,6 +52,35 @@ describe('categoriseerAfspraak', () => {
     for (const titel of ['Tandarts', 'Sporten', 'Verjaardag']) {
       expect(categoriseerAfspraak(titel, personen)).not.toBe('persoonlijk')
     }
+  })
+})
+
+describe('categoriseerMet — geleerde regels winnen', () => {
+  const regels = new Map<string, AgendaCategorie>([['tandarts', 'persoonlijk']])
+
+  test('een regel wint van de auto-categorie', () => {
+    // Zonder regel zou "Tandarts" in Overig vallen; de regel maakt 'm Persoonlijk.
+    expect(categoriseerAfspraak('Tandarts', personen)).toBe('overig')
+    expect(categoriseerMet('Tandarts', personen, regels)).toBe('persoonlijk')
+  })
+
+  test('normalisatie: hoofdletters en witruimte doen er niet toe', () => {
+    expect(categoriseerMet('  TANDARTS  ', personen, regels)).toBe('persoonlijk')
+  })
+
+  test('een regel wint óók van een auto-match (foute match rechtzetten)', () => {
+    const eigen = new Map<string, AgendaCategorie>([['training kevin', 'persoonlijk']])
+    expect(categoriseerAfspraak('Training Kevin', personen)).toBe('pt_klant')
+    expect(categoriseerMet('Training Kevin', personen, eigen)).toBe('persoonlijk')
+  })
+
+  test('geen regel → auto-afleiding', () => {
+    expect(categoriseerMet('Training Kevin', personen, regels)).toBe('pt_klant')
+  })
+
+  test('normaliseerTitel vouwt witruimte samen', () => {
+    expect(normaliseerTitel('  Tand  arts ')).toBe('tand arts')
+    expect(normaliseerTitel(null)).toBe('')
   })
 })
 
