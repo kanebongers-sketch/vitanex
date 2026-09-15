@@ -1384,12 +1384,13 @@ body {
   --maxw: 1200px;
   /* De brede cockpit-schil: vult bewust bijna het hele venster i.p.v. als smalle
      kolom in een zee van leegte te staan (Kane wil zoveel mogelijk op het scherm).
-     `min(95vw, …)` laat een klein gootje van 2.5vw per kant — genoeg ademruimte,
-     geen verspilde honderden pixels — en cap't op grote schermen zodat de kaarten
-     niet absurd breed worden. Geen harde floor: op smallere vensters schaalt 95vw
-     vanzelf mee, dus nooit horizontale overflow. Boven 1920px een ruimere cap (zie
-     de media query bij .os-schil--breed). */
-  --os-maxw-breed: min(96vw, 2560px);
+     `100%` (niet `vw`) zodat de schil de BESCHIKBARE breedte vult: staat de vaste
+     sidebar links, dan schuift de body 240px op (body.mf-has-sidebar) en telt die
+     240px NIET meer mee — met `vw` liep de rechterkant anders onder/achter de
+     sidebar door en werd 'ie afgekapt. Het gootje komt van de eigen padding van
+     .os-schil--breed; de cap houdt de kaarten op grote schermen niet absurd breed.
+     Boven 1920px een ruimere cap (zie de media query bij .os-schil--breed). */
+  --os-maxw-breed: min(100%, 2560px);
   position: relative;
   min-height: 100%;
   background: var(--bg-app);
@@ -1443,17 +1444,17 @@ body {
 
 /* Boven 1920px, en nog ruimer boven 2560px: op een groot/4K-scherm (Kane draait
    3840px) moet de cockpit het venster blijven vullen i.p.v. honderden pixels leeg
-   te laten. Nog steeds `min(96vw, …)` zodat er een slim gootje blijft en er nooit
-   horizontale overflow ontstaat. */
+   te laten. Nog steeds `min(100%, …)` zodat de schil de beschikbare breedte naast
+   de sidebar vult en er nooit horizontale overflow ontstaat. */
 @media (min-width: 1920px) {
   .lifeos-root {
-    --os-maxw-breed: min(96vw, 3000px);
+    --os-maxw-breed: min(100%, 3000px);
   }
 }
 
 @media (min-width: 2560px) {
   .lifeos-root {
-    --os-maxw-breed: min(96vw, 3200px);
+    --os-maxw-breed: min(100%, 3200px);
   }
 }
 
