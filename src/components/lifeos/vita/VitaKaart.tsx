@@ -46,6 +46,10 @@ interface VitaKaartProps {
   nadruk?: Nadruk
   /** Kopniveau; geef 3 mee als deze kaart in een lade staat. */
   niveau?: 2 | 3
+  /** Titel-override; standaard "Vita". Binnen de Vandaag-kaart bv. "Wat opvalt". */
+  titel?: string
+  /** Plat: zonder eigen omlijsting, voor gebruik ín een andere kaart. */
+  plat?: boolean
 }
 
 /**
@@ -84,7 +88,7 @@ async function haalSignalen(signaal: AbortSignal): Promise<Staat> {
   }
 }
 
-export function VitaKaart({ nadruk = 'dragend', niveau = 2 }: VitaKaartProps) {
+export function VitaKaart({ nadruk = 'dragend', niveau = 2, titel = 'Vita', plat = false }: VitaKaartProps) {
   const [staat, setStaat] = useState<Staat>({ fase: 'laden' })
   const [poging, setPoging] = useState(0)
 
@@ -107,7 +111,7 @@ export function VitaKaart({ nadruk = 'dragend', niveau = 2 }: VitaKaartProps) {
   }
 
   return (
-    <Kaart titel="Vita" nadruk={nadruk} niveau={niveau}>
+    <Kaart titel={titel} nadruk={nadruk} niveau={niveau} plat={plat}>
       <Inhoud staat={staat} opnieuw={opnieuw} />
     </Kaart>
   )

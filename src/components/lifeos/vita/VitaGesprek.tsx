@@ -24,9 +24,13 @@ interface VitaGesprekProps {
   nadruk?: Nadruk
   /** Kopniveau; geef 3 mee als deze kaart in een lade staat. */
   niveau?: 2 | 3
+  /** Titel-override; standaard "Vraag het Vita". Binnen Vandaag bv. "Vraag Vita". */
+  titel?: string
+  /** Plat: zonder eigen omlijsting, voor gebruik ín een andere kaart. */
+  plat?: boolean
 }
 
-export function VitaGesprek({ nadruk = 'normaal', niveau = 2 }: VitaGesprekProps) {
+export function VitaGesprek({ nadruk = 'normaal', niveau = 2, titel = 'Vraag het Vita', plat = false }: VitaGesprekProps) {
   const [berichten, setBerichten] = useState<Bericht[]>([])
   const [invoer, setInvoer] = useState('')
   const [bezig, setBezig] = useState(false)
@@ -93,7 +97,7 @@ export function VitaGesprek({ nadruk = 'normaal', niveau = 2 }: VitaGesprekProps
   }
 
   return (
-    <Kaart titel="Vraag het Vita" nadruk={nadruk} niveau={niveau}>
+    <Kaart titel={titel} nadruk={nadruk} niveau={niveau} plat={plat}>
       <Verloop berichten={berichten} bezig={bezig} />
       {fout === null ? null : <Foutregel melding={fout} />}
       <form onSubmit={opVerstuur} style={{ marginTop: 14 }}>

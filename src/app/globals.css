@@ -1540,14 +1540,6 @@ body {
   display: block;
 }
 
-/* De Vita-gesprek-band: volle breedte, maar de leeskolom krijgt lucht. Een
-   gesprek dat over 1600px uitwaaiert leest niet; gecentreerd op een comfortabele
-   leesbreedte wél. */
-.os-cockpit__gesprek {
-  max-width: 880px;
-  margin-inline: auto;
-}
-
 /* ─── Eén gedeeld 12-koloms clusterraster ──────────────────────────────────
    Elk cluster is een EIGEN grid met exact HETZELFDE kolom-template. Omdat elke
    cluster dezelfde volle breedte en dezelfde kolomlijnen heeft, vallen de naden
@@ -1674,13 +1666,6 @@ body {
   .os-tile--kwart { grid-column: span 3; }
   .os-tile--half  { grid-column: span 6; }
   .os-tile--derde { grid-column: span 4; }
-}
-
-/* Het mensen-bord binnen de Verbinden-cluster: intro + kanban gestapeld met een
-   kleine tussenruimte. Volle-breedte-surface, dus geen rek-zorg. */
-.os-mensen {
-  display: grid;
-  gap: 12px;
 }
 
 /* ─── Snelknoppen ──────────────────────────────────────────────────────────
@@ -1851,6 +1836,36 @@ body {
 .os-kaart--compact {
   padding: 14px 14px 16px;
   border-radius: 12px;
+}
+
+/* Plat: geen eigen omlijsting — voor een kaart binnen een kaart (Vita's signalen
+   en vraag-balk binnen de Vandaag-kaart). Geen vlak, rand, padding of hover/focus-
+   doos; de titel wordt een klein bovenschrift. De focus-ring blijft op de
+   bedienbare elementen zelf, dus toetsenbord-focus blijft zichtbaar. */
+.os-kaart--plat {
+  background: none;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+}
+.os-kaart--plat::before,
+.os-kaart--plat::after {
+  display: none;
+}
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .os-kaart--plat:hover {
+    transform: none;
+  }
+}
+.os-kaart--plat .os-kaart__kop {
+  margin-bottom: 10px;
+}
+.os-kaart--plat .os-kaart__titel {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--text-4);
 }
 
 .os-kaart__kop {

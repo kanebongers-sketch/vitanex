@@ -2,159 +2,91 @@ import { DagbriefingKaart } from '@/components/lifeos/dagbriefing/DagbriefingKaa
 import { VitaKaart } from '@/components/lifeos/vita/VitaKaart'
 import { VitaGesprek } from '@/components/lifeos/vita/VitaGesprek'
 import { TakenApple } from '@/components/lifeos/taken/TakenApple'
-import { KennisGrafiekKaart } from '@/components/lifeos/notities/KennisGrafiekKaart'
 import { AgendaKaart } from '@/components/lifeos/agenda/AgendaKaart'
 import { InboxKaart } from '@/components/lifeos/inbox/InboxKaart'
-import { MensenBord } from '@/components/lifeos/crm/MensenBord'
-import { FinanceKaart } from '@/components/lifeos/finance/FinanceKaart'
 import { PtGesprekkenKaart } from '@/components/lifeos/pt/PtGesprekkenKaart'
 import { PtKlantenKaart } from '@/components/lifeos/pt/PtKlantenKaart'
 import { RefreshProvider } from '@/components/lifeos/os/RefreshContext'
 
-// ─── De cockpit ──────────────────────────────────────────────────────────────
-// Eén vullend, breed werkscherm in plaats van zeven losse zones onder elkaar die
-// elk een ánder grid gebruikten. De kaarten liggen nu op één gedeeld 12-koloms
-// clusterraster: elk cluster is een eigen grid met exact hetzelfde kolom-template,
-// zodat de kolomlijnen overal op dezelfde plek vallen en de naden tussen clusters
-// doorlopen. Zie `.os-cluster` + de `.os-tile--*`-span-utilities in globals.css —
-// daar staat ook de rij-optel-controle die bewijst dat geen rij een wees-cel houdt.
+// ─── De cockpit — één dag-scherm ────────────────────────────────────────────
+// Dit dashboard gaat over VANDAAG en niets anders. De zware overzichten (het
+// Mensen-kanban, je geld, je kennisgrafiek) hebben elk hun eigen pagina en zijn
+// bereikbaar via de wayfinding-tegels onder de begroeting — ze staan niet meer
+// ingebed. Dat haalt twee dingen weg die het scherm rommelig maakten: dezelfde
+// Mensen-lijst die zowel een link als een heel bord was, en een pagina die tien
+// zware oppervlakken tegelijk droeg.
 //
 // Server Component: hier zit alleen indeling, geen state. Elke kaart is een eigen
-// client-eiland dat zichzelf ophaalt — de 'use client'-grens ligt zo laag mogelijk,
-// precies één niveau onder deze compositie.
+// client-eiland dat zichzelf ophaalt — de 'use client'-grens ligt zo laag mogelijk.
 //
-// ─── Rang via schaal, niet via kleur ────────────────────────────────────────
-// De dagbriefing-band staat bovenaan en is de luidste: het is het eerste wat je
-// 's ochtends leest — de COO-briefing die de dag samenvat. Vita volgt eronder als
-// je interactieve companion: nog altijd `dragend`, maar één trap onder de briefing.
-// Daaronder het cluster "Mijn dag": twee rijen halve tegels (to-do's + agenda,
-// dan het PT-paar) met de inbox als volle-breedte-lijst — rang via schaal, niet
-// via kleur. Cyaan blijft strikt accent.
+// ─── Eén Vita-stem, geen drie ───────────────────────────────────────────────
+// Vita stond er drie keer: de dagbriefing, de "wat opvalt"-signalen en de vraag-
+// balk, elk als losse band. Nu wonen ze in ÉÉN "Vandaag"-kaart: de briefing
+// bovenaan, daaronder (achter een dunne lijn) wat opvalt en de vraag-balk. Eén
+// oppervlak, één stem.
 //
-// Welzijn, training en voeding stonden hier ook, maar zijn eruit: welzijn dubbelde
-// met de gewone app (Home → zes pijlers) en training/voeding kregen een eigen
-// /training-pagina in de sidebar. Dit dashboard blijft op werk, taken en agenda.
-//
-// ─── Drie banden, twee clusters ─────────────────────────────────────────────
-//   1. Band  — Dagbriefing: wat is vandaag het beeld? (het eerste wat je leest)
-//   2. Band  — Vita: wat moet je nú weten?
-//   3. Cluster "Mijn dag": je gereedschap — to-do's, agenda, PT-planning, inbox.
-//   4. Band  — Vita-gesprek: je vraagt Vita iets nádat je zag wat er speelt.
-//   5. Cluster "Verbinden": de mensen om je heen, je geld en je kennis — je
-//      zakelijke overzicht.
-//
-// De losse invoerkaarten (Voeding/Water/Workout/Stress/Stemming) stonden hier als
-// inline-gemak, maar zijn eruit: de 6 pijlerkaarten dekken het welzijnsbeeld, en
-// loggen leeft op de eigen MentaForce-pagina's (/checkin, /stress, /stemming,
-// /voeding, /water) plus de "Check-in doen"-knop in de Welzijn-kaart.
+// ─── De volgorde, van boven naar onder ──────────────────────────────────────
+//   1. Vandaag  — de briefing + Vita's signalen + vraag-balk (het eerste wat je leest).
+//   2. Mijn dag — je taken en je agenda: wat moet er gebeuren en wanneer.
+//   3. Deze week — wie je nog moet inplannen (PT-klanten) en de PT-gesprekken.
+//   4. Inbox    — wat er écht een reactie vraagt, als rustige volle-breedte-lijst.
 
 export function Cockpit() {
   return (
     <RefreshProvider>
-    <div className="os-cockpit">
-      {/* Band 1 — de dagbriefing: het eerste wat je 's ochtends leest, de luidste
-          band via schaal en een zachte cyaan-gloed. */}
-      <div className="os-cockpit__band">
-        <DagbriefingKaart />
-      </div>
-
-      {/* Band 2 — de verbindende, dragende kaart onder de briefing. */}
-      <div className="os-cockpit__band">
-        <VitaKaart nadruk="dragend" />
-      </div>
-
-      {/* Cluster "Mijn dag" — je gereedschap op het gedeelde 12-koloms raster.
-          Twee rijen van twee halve tegels (span 6), dan de inbox als volle-breedte-
-          lijst (span 12). Zo telt elke rij exact op tot 12 — geen wees-cel, geen
-          rafelige onderrand — en op smaller stapelen de tegels netjes. Een óneven
-          aantal halve tegels zou de laatste alleen in een halve kolom laten hangen;
-          vandaar 2×2 halve + 1 volle i.p.v. vijf halve. */}
-      <section className="os-cluster" aria-labelledby="os-dag-kop">
-        <header className="os-cluster__kop">
-          <h2 id="os-dag-kop" className="os-zone__kop">
-            Mijn dag
-          </h2>
-          <p className="os-zone__intro">
-            Je gereedschap: een rustige to-do-lijst, je agenda, je PT-planning en je inbox.
-          </p>
-        </header>
-
-        {/* Rij 1 — de dagelijkse ankers: wát er moet gebeuren en wannéér. */}
-        <div className="os-tile--half">
-          <TakenApple />
-        </div>
-        <div className="os-tile--half">
-          <AgendaKaart />
+      <div className="os-cockpit">
+        {/* Band 1 — Vandaag: de briefing draagt de kaart; Vita's "wat opvalt" en de
+            vraag-balk hangen erin via de `extra`-slot, zodat het één oppervlak is. */}
+        <div className="os-cockpit__band">
+          <DagbriefingKaart
+            extra={
+              <>
+                <VitaKaart plat titel="Wat opvalt" nadruk="normaal" />
+                <VitaGesprek plat titel="Vraag Vita" nadruk="normaal" />
+              </>
+            }
+          />
         </div>
 
-        {/* Rij 2 — het PT-paar, naast elkaar omdat ze bij elkaar horen: het
-            2-wekelijkse coachgesprek per klant, en wie deze week nog ingepland moet
-            worden (1×/2× per week, per locatie, vakantie-aware). */}
-        <div className="os-tile--half">
-          <PtGesprekkenKaart />
-        </div>
-        <div className="os-tile--half">
-          <PtKlantenKaart />
-        </div>
-
-        {/* Rij 3 — de inbox als rustige volle-breedte-lijst onder het gereedschap. */}
-        <div className="os-tile--vol">
-          <InboxKaart />
-        </div>
-      </section>
-
-      {/* Band 2 — het gesprek onder het gereedschap. Volle breedte, maar de
-          leeskolom krijgt lucht via `.os-cockpit__gesprek` (gecentreerde
-          max-width): een gesprek dat over 1600px uitwaaiert leest niet. */}
-      <div className="os-cockpit__gesprek">
-        <VitaGesprek />
-      </div>
-
-      {/* Cluster "Verbinden" — drie volle-breedte-surfaces: het mensen-bord (een
-          kanban vraagt breedte), het geld-overzicht en de kennisgrafiek. Elk span
-          12, dus elk een eigen rij. Samen Kane's zakelijke overzicht: de mensen,
-          het geld dat ze opleveren en de kennis eromheen. De terugblik "Mijn
-          leven" stond hier, maar hoort niet op een dashboard dat op werk,
-          dagelijkse taken en CRM is gericht — die component blijft bestaan voor
-          een eigen plek. */}
-      <section className="os-cluster" aria-labelledby="os-verbinden-kop">
-        <header className="os-cluster__kop">
-          <h2 id="os-verbinden-kop" className="os-zone__kop">
-            Verbinden
-          </h2>
-          <p className="os-zone__intro">
-            De mensen om je heen, je geldoverzicht en je kennisgrafiek.
-          </p>
-        </header>
-
-        {/* Het CRM-bord op dezelfde pagina i.p.v. een aparte route. Het `id` laat
-            de nav er direct naartoe scrollen (/home#mensen) — behouden. Een
-            aria-label geeft de sectie een naam zonder een tweede kop naast de
-            clusterkop te stapelen. */}
-        <section
-          id="mensen"
-          className="os-tile--vol os-mensen"
-          aria-label="Mensen — je PT-klanten en teams"
-        >
-          <p className="os-zone__intro">
-            Je PT-klanten en je teams. Sleep een kaart naar een andere kolom om de status te wijzigen,
-            of open een kaart voor de geschiedenis en bijzonderheden.
-          </p>
-          <MensenBord />
+        {/* Cluster "Mijn dag" — twee halve tegels die exact optellen tot de volle
+            breedte: wat moet er gebeuren (taken) en wanneer (agenda). */}
+        <section className="os-cluster" aria-labelledby="os-dag-kop">
+          <header className="os-cluster__kop">
+            <h2 id="os-dag-kop" className="os-zone__kop">
+              Mijn dag
+            </h2>
+            <p className="os-zone__intro">Je taken en je agenda voor vandaag — wat moet er gebeuren en wanneer.</p>
+          </header>
+          <div className="os-tile--half">
+            <TakenApple />
+          </div>
+          <div className="os-tile--half">
+            <AgendaKaart />
+          </div>
         </section>
 
-        {/* Geld en kennis naast elkaar (half): scheelt een volle rij en houdt de
-            kaarten op een prettige breedte i.p.v. de hele 2400px. Op smaller
-            stapelen ze vanzelf. */}
-        <div className="os-tile--half">
-          <FinanceKaart />
-        </div>
+        {/* Cluster "Deze week" — het PT-paar, naast elkaar want ze horen bij elkaar:
+            wie je deze week nog moet inplannen, en de 2-wekelijkse coachgesprekken. */}
+        <section className="os-cluster" aria-labelledby="os-week-kop">
+          <header className="os-cluster__kop">
+            <h2 id="os-week-kop" className="os-zone__kop">
+              Deze week
+            </h2>
+            <p className="os-zone__intro">Wie je nog moet inplannen, en de PT-gesprekken die eraan komen.</p>
+          </header>
+          <div className="os-tile--half">
+            <PtKlantenKaart />
+          </div>
+          <div className="os-tile--half">
+            <PtGesprekkenKaart />
+          </div>
+        </section>
 
-        <div className="os-tile--half">
-          <KennisGrafiekKaart />
+        {/* Band — de inbox als rustige volle-breedte-lijst onder het gereedschap. */}
+        <div className="os-cockpit__band">
+          <InboxKaart />
         </div>
-      </section>
-    </div>
+      </div>
     </RefreshProvider>
   )
 }

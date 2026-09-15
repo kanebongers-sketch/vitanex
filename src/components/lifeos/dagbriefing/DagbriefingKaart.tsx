@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { RefreshCw, Sparkles, Sunrise, Target, TriangleAlert, type LucideIcon } from 'lucide-react'
 import { haalJson, isObject, tekstOfNull } from '@/lib/lifeos/api/http'
 import { datumSleutel, tijdLabel } from '@/lib/lifeos/datum/datum'
@@ -66,7 +66,13 @@ function leesDagbriefing(ruw: unknown): Dagbriefing | null {
   }
 }
 
-export function DagbriefingKaart() {
+/**
+ * `extra` hangt onder de briefing binnen dezelfde "Vandaag"-kaart, gescheiden door
+ * een dunne lijn. Zo woont Vita's "wat opvalt" + de vraag-balk in één oppervlak
+ * met de briefing, i.p.v. als losse banden eronder — het dashboard toont zo één
+ * Vita-stem, niet drie.
+ */
+export function DagbriefingKaart({ extra }: { extra?: ReactNode }) {
   const [staat, setStaat] = useState<Staat>({ fase: 'laden' })
   const [bezig, setBezig] = useState(false)
 
@@ -125,6 +131,8 @@ export function DagbriefingKaart() {
       {staat.fase === 'laden' ? <DagbriefSkelet /> : null}
       {staat.fase === 'fout' ? <Foutmelding bericht={staat.bericht} opnieuw={opnieuw} /> : null}
       {staat.fase === 'ok' ? <DagbriefInhoud data={staat.data} /> : null}
+
+      {extra ? <div className="dagbrief__extra">{extra}</div> : null}
     </section>
   )
 }
@@ -285,6 +293,15 @@ const CSS = `
   border-radius: var(--radius-card);
   box-shadow: var(--shadow-card), 0 0 44px -26px var(--brand-glow);
   overflow: hidden;
+}
+
+/* De Vita-extra (wat opvalt + vraag-balk) binnen dezelfde Vandaag-kaart: onder de
+   briefing, gescheiden door een dunne lijn, met eigen ritme tussen de twee delen. */
+.dagbrief__extra {
+  display: grid;
+  gap: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
 }
 
 .dagbrief__kop {

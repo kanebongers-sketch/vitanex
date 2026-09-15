@@ -300,7 +300,7 @@ function SidebarContent({
           <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--border)' }}>
             <NavLink href="/kanebongers" label="Mijn dashboard" icon={LayoutDashboard} pathname={pathname} onClick={onClose} />
             <NavLink href="/training" label="Training" icon={Dumbbell} pathname={pathname} onClick={onClose} />
-            <NavLink href="/kanebongers#mensen" label="Mensen" icon={Users} pathname={pathname} onClick={onClose} />
+            <NavLink href="/lifeos/mensen" label="Mensen" icon={Users} pathname={pathname} onClick={onClose} />
             <NavLink href="/projecten" label="Projecten" icon={FolderKanban} pathname={pathname} onClick={onClose} />
             <NavLink href="/omzet-analyse" label="Analyse" icon={TrendingUp} pathname={pathname} onClick={onClose} />
             <NavLink href="/programma" label="Programma" icon={Dumbbell} pathname={pathname} onClick={onClose} />

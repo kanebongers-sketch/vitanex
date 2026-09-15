@@ -26,6 +26,13 @@ interface KaartProps {
   nadruk?: Nadruk
   /** Kopniveau. 2 in het moment zelf, 3 in de lade — nooit een sprong. */
   niveau?: 2 | 3
+  /**
+   * Plat = zonder eigen omlijsting (rand, vlak, padding). Voor een kaart die
+   * ín een andere kaart woont — zoals Vita's signalen en vraag-balk binnen de
+   * "Vandaag"-kaart — zodat je één oppervlak ziet i.p.v. een kaart-in-een-kaart.
+   * De titel wordt dan een klein bovenschrift.
+   */
+  plat?: boolean
   children: ReactNode
 }
 
@@ -39,11 +46,11 @@ interface KaartProps {
  * krijgt een cyaan rand zodra er iets ín hem focus heeft — hij reageert dus
  * pas als er echt iets te bedienen valt.
  */
-export function Kaart({ titel, vervangt, nadruk = 'normaal', niveau = 2, children }: KaartProps) {
+export function Kaart({ titel, vervangt, nadruk = 'normaal', niveau = 2, plat = false, children }: KaartProps) {
   const Kop = niveau === 3 ? 'h3' : 'h2'
 
   return (
-    <section className={`os-kaart os-kaart--${nadruk}`}>
+    <section className={`os-kaart os-kaart--${nadruk}${plat ? ' os-kaart--plat' : ''}`}>
       <header className="os-kaart__kop">
         <Kop className="os-kaart__titel">{titel}</Kop>
         {vervangt ? <span className="os-kaart__vervangt">vervangt {vervangt}</span> : null}

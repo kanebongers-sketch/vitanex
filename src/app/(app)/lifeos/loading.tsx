@@ -29,46 +29,45 @@ export default function LifeosLaden() {
             <div style={{ ...VLAK, height: 40, width: 'min(360px, 70%)' }} />
           </div>
 
+          {/* Wayfinding-tegels onder de begroeting. */}
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 28 }}>
+            {Array.from({ length: 5 }, (_, i) => (
+              <div key={`nav-${i}`} style={{ ...VLAK, height: 40, width: 128, borderRadius: 14 }} />
+            ))}
+          </div>
+
           <div className="os-cockpit">
-            {/* Vita als volle band. */}
+            {/* Vandaag: de briefing-hero met Vita's signalen + vraag-balk erin —
+                de langste kaart, één oppervlak. Zelfde vorm als de echte cockpit,
+                zodat de layout niet springt als de kaarten binnenkomen. */}
             <div className="os-cockpit__band">
-              <div style={{ ...KAART, height: 132 }} />
+              <div style={{ ...KAART, height: 360 }} />
             </div>
 
-            {/* Cluster "Mijn dag": twee rijen van twee halve tegels (Taken +
-                Agenda, dan het PT-paar) en de inbox als volle-breedte-lijst —
-                exact dezelfde verdeling als de echte cockpit, zodat de layout niet
-                springt als de kaarten binnenkomen. */}
+            {/* Cluster "Mijn dag": twee halve tegels (taken + agenda). */}
             <section className="os-cluster">
               <ClusterKop />
-              {Array.from({ length: 4 }, (_, i) => (
-                <div key={`half-${i}`} className="os-tile--half">
+              {Array.from({ length: 2 }, (_, i) => (
+                <div key={`dag-${i}`} className="os-tile--half">
                   <div style={{ ...KAART, height: 236 }} />
                 </div>
               ))}
-              <div className="os-tile--vol">
-                <div style={{ ...KAART, height: 168 }} />
-              </div>
             </section>
 
-            {/* Vita-gesprek als gecentreerde band. */}
-            <div className="os-cockpit__gesprek">
-              <div style={{ ...KAART, height: 220 }} />
-            </div>
-
-            {/* Cluster "Verbinden": drie volle-breedte-surfaces. */}
+            {/* Cluster "Deze week": twee halve tegels (PT-klanten + PT-gesprekken). */}
             <section className="os-cluster">
               <ClusterKop />
-              <div className="os-tile--vol">
-                <div style={{ ...KAART, height: 300 }} />
-              </div>
-              <div className="os-tile--vol">
-                <div style={{ ...KAART, height: 260 }} />
-              </div>
-              <div className="os-tile--vol">
-                <div style={{ ...KAART, height: 300 }} />
-              </div>
+              {Array.from({ length: 2 }, (_, i) => (
+                <div key={`week-${i}`} className="os-tile--half">
+                  <div style={{ ...KAART, height: 208 }} />
+                </div>
+              ))}
             </section>
+
+            {/* Inbox: volle-breedte-lijst. */}
+            <div className="os-cockpit__band">
+              <div style={{ ...KAART, height: 168 }} />
+            </div>
           </div>
         </div>
       </main>

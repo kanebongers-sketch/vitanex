@@ -8,6 +8,7 @@ import { supabase } from '@/lib/supabase/supabase'
 import { authFetch } from '@/lib/auth/auth-fetch'
 import Navbar from '@/components/layout/Navbar'
 import { CockpitKop } from '@/components/lifeos/cockpit/CockpitKop'
+import { CockpitSnelnav } from '@/components/lifeos/cockpit/CockpitSnelnav'
 import { Cockpit } from '@/components/lifeos/cockpit/Cockpit'
 import { KoppelFeedback } from '@/components/lifeos/KoppelFeedback'
 
@@ -58,6 +59,7 @@ export default function KanebongersPage() {
         <main className="os-schil os-schil--breed">
           <KoppelFeedback />
           <CockpitKop />
+          <CockpitSnelnav />
           <Cockpit />
         </main>
       </div>
