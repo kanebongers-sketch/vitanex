@@ -72,6 +72,7 @@ const GROEP_KORT: Record<Groep, string> = {
   budel_team: 'Team Budel',
   pt_team: 'PT-team',
   management: 'Management',
+  marketing: 'Marketing',
 }
 
 /** Korte, enkelvoudige groepnaam voor een inline-tag ("PT-klant"). */

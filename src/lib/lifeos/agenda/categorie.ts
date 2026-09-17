@@ -25,6 +25,7 @@ export const CATEGORIE_VOLGORDE: readonly AgendaCategorie[] = [
   'pt_team',
   'management',
   'budel_team',
+  'marketing',
   'persoonlijk',
   'overig',
 ]

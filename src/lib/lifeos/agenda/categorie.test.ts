@@ -88,6 +88,7 @@ describe('categorieLabel / volgorde', () => {
   test('labels per categorie', () => {
     expect(categorieLabel('pt_klant')).toBe('PT-klanten')
     expect(categorieLabel('management')).toBe('Management')
+    expect(categorieLabel('marketing')).toBe('Marketing')
     expect(categorieLabel('persoonlijk')).toBe('Persoonlijk')
     expect(categorieLabel('overig')).toBe('Overig')
   })
@@ -95,5 +96,6 @@ describe('categorieLabel / volgorde', () => {
   test('Overig staat achteraan in de volgorde', () => {
     expect(CATEGORIE_VOLGORDE[CATEGORIE_VOLGORDE.length - 1]).toBe('overig')
     expect(CATEGORIE_VOLGORDE).toContain('management')
+    expect(CATEGORIE_VOLGORDE).toContain('marketing')
   })
 })
