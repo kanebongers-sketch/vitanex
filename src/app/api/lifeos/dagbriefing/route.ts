@@ -22,7 +22,7 @@ import { getAuthenticatedUser } from '@/lib/auth/api-auth'
 import { createAdminClient } from '@/lib/supabase/supabase-admin'
 import { haalTaken } from '@/lib/lifeos/taken/opslag'
 import { groepeerTaken } from '@/lib/lifeos/taken/taken'
-import { haalPersonen } from '@/lib/lifeos/crm/opslag'
+import { haalPersonenMetAgenda } from '@/lib/lifeos/crm/agenda-contact-ophalen'
 import { verdeelRitme } from '@/components/lifeos/crm/ritme'
 import { haalEventsUitCache } from '@/lib/lifeos/agenda/opslag'
 import { eerstvolgendeAfspraak, type Afspraak } from '@/lib/lifeos/agenda/vrije-blokken'
@@ -83,12 +83,13 @@ export async function GET(req: NextRequest): Promise<Response> {
   dagEind.setDate(dagEind.getDate() + 1)
 
   let takenUit: Awaited<ReturnType<typeof haalTaken>>
-  let personenUit: Awaited<ReturnType<typeof haalPersonen>>
+  let personenUit: Awaited<ReturnType<typeof haalPersonenMetAgenda>>
   let agendaUit: Awaited<ReturnType<typeof haalEventsUitCache>>
   try {
     ;[takenUit, personenUit, agendaUit] = await Promise.all([
       haalTaken(toegang.admin, toegang.userId, { alleenOpen: true }),
-      haalPersonen(toegang.admin, toegang.userId),
+      // Mét laatste afspraak: wie je deze week al zag, hoef je niet nog te "spreken".
+      haalPersonenMetAgenda(toegang.admin, toegang.userId, nu),
       haalEventsUitCache(toegang.admin, toegang.userId, dagStart, dagEind),
     ])
   } catch {
