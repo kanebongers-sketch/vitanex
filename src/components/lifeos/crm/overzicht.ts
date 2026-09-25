@@ -6,7 +6,7 @@
 // cijfer — er is geen losse teller die kan gaan afwijken.
 
 import type { Persoon, StatusDef } from '@/lib/lifeos/crm/crm'
-import { contactVersheid } from '@/lib/lifeos/crm/versheid'
+import { contactVersheid, laatsteContactMoment } from '@/lib/lifeos/crm/versheid'
 import { followUpLabel } from './followUp'
 
 export interface BordOverzicht {
@@ -43,7 +43,7 @@ export function bouwOverzicht(
       if (fu?.dringend) opvolgen++
     }
     if (goedeStatussen.has(p.status)) actief++
-    if (contactVersheid(p.laatsteContactOp, vandaag).koud) koud++
+    if (contactVersheid(laatsteContactMoment(p), vandaag).koud) koud++
   }
 
   return { totaal: personen.length, opvolgen, actief, koud }

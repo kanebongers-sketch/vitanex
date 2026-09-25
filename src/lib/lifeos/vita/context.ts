@@ -38,7 +38,7 @@ import {
 import { taakVanRij } from '@/lib/lifeos/taken/taken'
 import type { SlimmeTaak } from '@/lib/lifeos/taken/prioriteit'
 import { GEHEUGEN_IN_PROMPT } from './geheugen'
-import { haalPersonen } from '@/lib/lifeos/crm/opslag'
+import { haalPersonenMetAgenda } from '@/lib/lifeos/crm/agenda-contact-ophalen'
 import type { Persoon } from '@/lib/lifeos/crm/crm'
 import { haalTransacties, haalFacturen } from '@/lib/lifeos/finance/opslag'
 import { bouwOverzicht, type Overzicht } from '@/lib/lifeos/finance/finance'
@@ -486,7 +486,9 @@ export async function haalContext(
   const maand = vandaag.slice(0, 7)
   const dbFout = { ok: false as const, reden: 'db' }
   const [personenU, transactiesU, facturenU] = await Promise.all([
-    haalPersonen(admin, userId).catch(() => dbFout),
+    // Mét laatste afspraak uit de agenda-cache: anders noemt Vita een klant die elke
+    // week traint "verwaterend" (zie crm/agenda-contact.ts).
+    haalPersonenMetAgenda(admin, userId, nu).catch(() => dbFout),
     haalTransacties(admin, userId, { maand }).catch(() => dbFout),
     haalFacturen(admin, userId).catch(() => dbFout),
   ])

@@ -2,7 +2,7 @@
 
 import { CheckCircle2, Clock } from 'lucide-react'
 import type { Persoon } from '@/lib/lifeos/crm/crm'
-import { contactVersheid, type Versheid } from '@/lib/lifeos/crm/versheid'
+import { contactVersheid, laatsteContactMoment, type Versheid } from '@/lib/lifeos/crm/versheid'
 import { Monogram } from './kaart/Monogram'
 import { ContactActies } from './kaart/ContactActies'
 import { PlanGesprek } from './PlanGesprek'
@@ -141,7 +141,7 @@ const CSS = `
 `
 
 export function RitmeKaart({ persoon, vandaag, onOpen, onGesproken }: RitmeKaartProps) {
-  const versheid = contactVersheid(persoon.laatsteContactOp, vandaag)
+  const versheid = contactVersheid(laatsteContactMoment(persoon), vandaag)
 
   return (
     <li className="crm-ritme__kaart">

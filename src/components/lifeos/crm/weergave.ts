@@ -8,6 +8,7 @@
 // bordbreed filteren, dan per statuskolom sorteren.
 
 import type { Persoon } from '@/lib/lifeos/crm/crm'
+import { laatsteContactMoment } from '@/lib/lifeos/crm/versheid'
 import { followUpLabel } from './followUp'
 
 export type Sortering = 'handmatig' | 'naam' | 'follow_up' | 'laatst_contact'
@@ -101,7 +102,7 @@ export function sorteerPersonen(personen: readonly Persoon[], sortering: Sorteri
     case 'follow_up':
       return lijst.sort((a, b) => dagWaarde(a.followUpDatum) - dagWaarde(b.followUpDatum) || opSortering(a, b))
     case 'laatst_contact':
-      return lijst.sort((a, b) => contactWaarde(a.laatsteContactOp) - contactWaarde(b.laatsteContactOp) || opSortering(a, b))
+      return lijst.sort((a, b) => contactWaarde(laatsteContactMoment(a)) - contactWaarde(laatsteContactMoment(b)) || opSortering(a, b))
     case 'handmatig':
     default:
       return lijst.sort(opSortering)

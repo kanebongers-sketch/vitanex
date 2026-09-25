@@ -154,6 +154,11 @@ export interface Persoon {
   bijzonderheden: string | null
   /** ISO-moment van laatste contact, of null. */
   laatsteContactOp: string | null
+  /**
+   * AFGELEID, niet opgeslagen: de laatste (voorbije) afspraak met deze persoon in je
+   * agenda. Zie `agenda-contact.ts`. Ontbreekt = niet nagegaan.
+   */
+  laatsteAfspraakOp?: string | null
   /** PT-klant: hoe vaak per week (1 of 2), of null = nog niet ingesteld. */
   sessiesPerWeek: number | null
   /** PT-klant: waar traint deze klant. */

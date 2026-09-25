@@ -5,7 +5,7 @@ import { History, Phone, Snowflake, Trash2, X } from 'lucide-react'
 import { Knop } from '@/components/lifeos/os/Knop'
 import { Foutmelding } from '@/components/lifeos/os/Foutmelding'
 import { initialen } from '@/lib/lifeos/crm/monogram'
-import { contactVersheid } from '@/lib/lifeos/crm/versheid'
+import { contactVersheid, laatsteContactMoment } from '@/lib/lifeos/crm/versheid'
 import { groepDef, statusDef, type Groep, type Persoon, type PersoonWijziging } from '@/lib/lifeos/crm/crm'
 import { Dialoog } from './Dialoog'
 import { DrawerStijl } from './DrawerStijl'
@@ -67,7 +67,7 @@ export function PersoonPopup({
   }
 
   const statusLabel = statusDef(groep, persoon.status)?.label ?? persoon.status
-  const versheid = contactVersheid(persoon.laatsteContactOp, vandaag)
+  const versheid = contactVersheid(laatsteContactMoment(persoon), vandaag)
   const toegevoegd = datumLabel(persoon.aangemaaktOp)
 
   return (

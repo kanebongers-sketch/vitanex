@@ -3,7 +3,7 @@
 import { type DragEvent } from 'react'
 import { CalendarClock, Clock, Flame, GripVertical, TrendingUp } from 'lucide-react'
 import type { Groep, Persoon } from '@/lib/lifeos/crm/crm'
-import { contactVersheid, type Versheid } from '@/lib/lifeos/crm/versheid'
+import { contactVersheid, laatsteContactMoment, type Versheid } from '@/lib/lifeos/crm/versheid'
 import { scoorLead, type Lead } from '@/lib/lifeos/crm/leadscore'
 import { followUpLabel, type FollowUp } from '@/components/lifeos/crm/followUp'
 import { StatusKiezer } from '@/components/lifeos/crm/StatusKiezer'
@@ -241,7 +241,7 @@ export function PersoonKaart({
   onDropHier,
 }: PersoonKaartProps) {
   const followUp = persoon.followUpDatum ? followUpLabel(persoon.followUpDatum, vandaag) : null
-  const versheid = contactVersheid(persoon.laatsteContactOp, vandaag)
+  const versheid = contactVersheid(laatsteContactMoment(persoon), vandaag)
   const lead = scoorLead(persoon, vandaag)
 
   function opSleepStart(e: DragEvent) {

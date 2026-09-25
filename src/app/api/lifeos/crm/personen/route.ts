@@ -13,7 +13,8 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { vereisLifeosToegang } from '@/lib/lifeos/admin'
 import { isGroep, leesNieuwePersoon } from '@/lib/lifeos/crm/crm'
-import { haalPersonen, maakPersoon } from '@/lib/lifeos/crm/opslag'
+import { maakPersoon } from '@/lib/lifeos/crm/opslag'
+import { haalPersonenMetAgenda } from '@/lib/lifeos/crm/agenda-contact-ophalen'
 import type { Reden } from '@/lib/lifeos/crm/fout'
 
 export const runtime = 'nodejs'
@@ -50,10 +51,13 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ fout: 'Onbekende groep.' }, { status: 400 })
   }
 
-  const uitkomst = await haalPersonen(toegang.admin, toegang.userId, groep ?? undefined)
+  // Altijd álle personen ophalen: de agenda-koppeling (laatste afspraak per persoon)
+  // moet naamgenoten in andere groepen kennen om niet te gokken. Filteren daarna.
+  const uitkomst = await haalPersonenMetAgenda(toegang.admin, toegang.userId, new Date())
   if (!uitkomst.ok) return foutAntwoord(uitkomst.reden)
 
-  return NextResponse.json({ personen: uitkomst.waarde }, { headers: CACHE_HEADERS })
+  const personen = groep === null ? uitkomst.waarde : uitkomst.waarde.filter((p) => p.groep === groep)
+  return NextResponse.json({ personen }, { headers: CACHE_HEADERS })
 }
 
 export async function POST(req: NextRequest) {

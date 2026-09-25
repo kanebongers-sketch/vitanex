@@ -19,6 +19,21 @@ export interface Versheid {
 /** Vanaf hoeveel dagen zonder contact we het "koud" noemen. */
 export const KOUD_NA_DAGEN = 30
 
+/**
+ * Het laatste échte contactmoment: gelogd contact óf een voorbije afspraak in je
+ * agenda, wat later is. Zonder de agenda stond een klant die elke week traint als
+ * "verwaterend" omdat je het contact niet apart logde.
+ */
+export function laatsteContactMoment(p: {
+  laatsteContactOp: string | null
+  laatsteAfspraakOp?: string | null
+}): string | null {
+  const a = p.laatsteContactOp
+  const b = p.laatsteAfspraakOp ?? null
+  if (!a || !b) return a ?? b
+  return new Date(b).getTime() > new Date(a).getTime() ? b : a
+}
+
 /** Middernacht (lokaal) van een datum — zodat "dagen geleden" op daggrenzen telt. */
 function naarDagbegin(d: Date): number {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime()

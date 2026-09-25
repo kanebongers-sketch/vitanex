@@ -47,6 +47,7 @@ export function leesPersoonJson(ruw: unknown): Persoon | null {
     email: tekstOfNull(ruw.email),
     bijzonderheden: tekstOfNull(ruw.bijzonderheden),
     laatsteContactOp: tekstOfNull(ruw.laatsteContactOp),
+    laatsteAfspraakOp: tekstOfNull(ruw.laatsteAfspraakOp),
     sessiesPerWeek: getalOfNull(ruw.sessiesPerWeek),
     locatie: isPtLocatie(ruw.locatie) ? ruw.locatie : null,
     vakantieTot: tekstOfNull(ruw.vakantieTot),

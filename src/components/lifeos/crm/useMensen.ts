@@ -102,11 +102,17 @@ export function useMensen(groep: Groep): MensenBediening {
         return false
       }
 
-      // De server is de waarheid (o.a. laatsteContactOp komt daarvandaan).
+      // De server is de waarheid (o.a. laatsteContactOp komt daarvandaan). Alleen de
+      // afgeleide laatste afspraak zit niet in een PATCH-antwoord: die houden we vast.
       const bevestigd = uitkomst.waarde
       setStaat((huidig) =>
         huidig.fase === 'ok'
-          ? { fase: 'ok', personen: huidig.personen.map((p) => (p.id === bevestigd.id ? bevestigd : p)) }
+          ? {
+              fase: 'ok',
+              personen: huidig.personen.map((p) =>
+                p.id === bevestigd.id ? { ...bevestigd, laatsteAfspraakOp: p.laatsteAfspraakOp } : p,
+              ),
+            }
           : huidig,
       )
       return true

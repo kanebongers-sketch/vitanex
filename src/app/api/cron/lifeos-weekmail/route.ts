@@ -27,7 +27,7 @@ import { datumSleutel } from '@/lib/lifeos/datum/datum'
 import { haalTaken } from '@/lib/lifeos/taken/opslag'
 import { haalTransacties, haalFacturen } from '@/lib/lifeos/finance/opslag'
 import { bouwOverzicht } from '@/lib/lifeos/finance/finance'
-import { haalPersonen } from '@/lib/lifeos/crm/opslag'
+import { haalPersonenMetAgenda } from '@/lib/lifeos/crm/agenda-contact-ophalen'
 import type { Persoon } from '@/lib/lifeos/crm/crm'
 import { haalPtSignalen } from '@/lib/lifeos/pt-klant/afhaak-ophalen'
 import { lokaleTijd } from '@/lib/lifeos/vita/signalen'
@@ -110,7 +110,7 @@ async function haalCrmPersonen(
   admin: ReturnType<typeof createLifeosAdminClient>,
   userId: string,
 ): Promise<Persoon[]> {
-  const personen = await haalPersonen(admin, userId).catch((oorzaak) => {
+  const personen = await haalPersonenMetAgenda(admin, userId, new Date()).catch((oorzaak) => {
     console.error('[weekmail] CRM ophalen mislukt', oorzaak)
     return { ok: false as const, reden: 'db' as const }
   })

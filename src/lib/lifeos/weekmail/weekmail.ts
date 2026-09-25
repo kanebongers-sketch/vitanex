@@ -11,7 +11,7 @@
 
 import type { Taak } from '@/lib/lifeos/taken/taken'
 import type { Persoon } from '@/lib/lifeos/crm/crm'
-import { contactVersheid } from '@/lib/lifeos/crm/versheid'
+import { contactVersheid, laatsteContactMoment } from '@/lib/lifeos/crm/versheid'
 
 const TIJDZONE = 'Europe/Amsterdam'
 
@@ -49,7 +49,7 @@ export function koudeContacten(
   vandaag: Date,
 ): { naam: string; dagen: number }[] {
   return personen
-    .map((p) => ({ naam: p.naam, versheid: contactVersheid(p.laatsteContactOp, vandaag) }))
+    .map((p) => ({ naam: p.naam, versheid: contactVersheid(laatsteContactMoment(p), vandaag) }))
     .filter((x) => x.versheid.koud && x.versheid.dagen !== null)
     .map((x) => ({ naam: x.naam, dagen: x.versheid.dagen as number }))
     .sort((a, b) => b.dagen - a.dagen)

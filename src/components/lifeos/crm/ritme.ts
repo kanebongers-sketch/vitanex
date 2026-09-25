@@ -9,7 +9,7 @@
 // al gehad.
 
 import type { Persoon } from '@/lib/lifeos/crm/crm'
-import { contactVersheid } from '@/lib/lifeos/crm/versheid'
+import { contactVersheid, laatsteContactMoment } from '@/lib/lifeos/crm/versheid'
 
 /** Het ritme: eens per week. Wie langer dan dit niets hoorde, is aan de beurt. */
 export const RITME_DAGEN = 7
@@ -23,8 +23,9 @@ export interface RitmeVerdeling {
 
 /** ms van het laatste contact; nooit-gesproken telt als "oneindig lang geleden". */
 function contactWaarde(p: Persoon): number {
-  if (!p.laatsteContactOp) return Number.NEGATIVE_INFINITY
-  const t = new Date(p.laatsteContactOp).getTime()
+  const moment = laatsteContactMoment(p)
+  if (!moment) return Number.NEGATIVE_INFINITY
+  const t = new Date(moment).getTime()
   return Number.isNaN(t) ? Number.NEGATIVE_INFINITY : t
 }
 
@@ -39,7 +40,7 @@ export function verdeelRitme(personen: readonly Persoon[], vandaag: Date | null)
   const gesproken: Persoon[] = []
 
   for (const p of personen) {
-    const versheid = contactVersheid(p.laatsteContactOp, vandaag)
+    const versheid = contactVersheid(laatsteContactMoment(p), vandaag)
     if (versheid.dagen === null || versheid.dagen >= RITME_DAGEN) teSpreken.push(p)
     else gesproken.push(p)
   }

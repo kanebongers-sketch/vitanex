@@ -9,7 +9,7 @@
 // geeft ook null: de badge verschijnt enkel waar 'ie betekenis heeft.
 
 import type { Persoon } from './crm'
-import { contactVersheid } from './versheid'
+import { contactVersheid, laatsteContactMoment } from './versheid'
 import { followUpLabel } from '@/components/lifeos/crm/followUp'
 
 export type Koopkans = 'heet' | 'warm' | 'koud'
@@ -71,7 +71,7 @@ export function scoorLead(persoon: Persoon, vandaag: Date | null): Lead | null {
     redenen.push(followUp.tekst === 'te laat' ? 'opvolging te laat' : 'opvolging vandaag')
   }
 
-  const versheid = contactVersheid(persoon.laatsteContactOp, vandaag)
+  const versheid = contactVersheid(laatsteContactMoment(persoon), vandaag)
   if (versheid.koud) {
     score += KOUD_MALUS
     redenen.push('lang niets gehoord')
