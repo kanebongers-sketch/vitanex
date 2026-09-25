@@ -53,10 +53,26 @@ describe('bouwStrategie', () => {
     }
   })
 
-  it('het hoofdaanbod blijft winstgevend na acquisitie', () => {
-    const kern = bouwStrategie().producten.filter((p) => p.rol === 'hoofdproduct' || p.rol === 'hoofdaanbod')
+  it('het hoofdproduct is niet verlieslatend, ook niet met betaalde acquisitie', () => {
+    const kern = bouwStrategie().producten.filter((p) => p.rol === 'hoofdproduct')
     expect(kern.length).toBeGreaterThan(0)
-    for (const p of kern) expect(p.marge.naAds).toBeGreaterThan(0)
+    for (const p of kern) expect(p.marge.naAds).toBeGreaterThanOrEqual(0)
+  })
+
+  it('zonder eigen voorraad: elk actief fysiek product is print-on-demand of pre-order', () => {
+    const fysiekNu = bouwStrategie().producten.filter(
+      (p) => p.verzendkosten > 0 && p.rol !== 'later' && p.rol !== 'vergelijking',
+    )
+    for (const p of fysiekNu) expect(p.naam).toMatch(/print-on-demand|pre-order/)
+  })
+
+  it('elke fase heeft een door- én een herzien-regel', () => {
+    const fasen = bouwStrategie().fasen
+    expect(fasen.length).toBeGreaterThan(0)
+    for (const f of fasen) {
+      expect(f.doorAls.length).toBeGreaterThan(0)
+      expect(f.herzienAls.length).toBeGreaterThan(0)
+    }
   })
 })
 
@@ -70,6 +86,12 @@ describe('leesStrategie', () => {
   it('een product zonder marge laat het hele plan vallen', () => {
     const ruw = antwoord()
     delete ruw.strategie.producten[0].marge
+    expect(leesStrategie(ruw)).toBeNull()
+  })
+
+  it('een fase zonder herzien-regel laat het hele plan vallen', () => {
+    const ruw = antwoord()
+    delete ruw.strategie.fasen[0].herzienAls
     expect(leesStrategie(ruw)).toBeNull()
   })
 

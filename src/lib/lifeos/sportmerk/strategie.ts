@@ -5,103 +5,64 @@
 // publieke bundle of HTML-payload belandt.
 //
 // EERLIJK: marktclaims hebben een bron; prijzen en kostprijzen zijn schattingen
-// tot er leveranciersoffertes zijn (zie `openBeslissingen`). Marges worden hier
+// tot er offertes of platformprijzen zijn. Marges worden hier
 // niet getypt maar uitgerekend (`berekenMarge`), zodat ze nooit uit de pas lopen
 // met de aannames die de pagina ernaast toont.
 
 import { berekenMarge, MARGE_AANNAMES, VERZENDING_STANDAARD } from './marge'
+import { FASEN } from './fasen'
 import type { ProductAanname, Strategie } from './types'
 
 const PRODUCTEN: ProductAanname[] = [
   {
-    id: 'tas',
-    naam: 'Modulaire gym-/racetas',
-    rol: 'hoofdproduct',
-    prijsInclBtw: 119,
-    kostprijs: { min: 20, max: 28 },
-    verzendkosten: VERZENDING_STANDAARD,
-    retourRisico: 'laag',
-    toelichting: 'Schoen- en natvak, geen maten, licht. Draagt het merk.',
-  },
-  {
-    id: 'race-kit',
-    naam: 'Race-kit-bundel (tas + handschoenen + straps + belt)',
-    rol: 'hoofdaanbod',
-    prijsInclBtw: 149,
-    kostprijs: { min: 30, max: 38 },
-    verzendkosten: VERZENDING_STANDAARD,
-    retourRisico: 'laag',
-    toelichting: 'Tilt de orderwaarde ruim boven de acquisitiekosten.',
-  },
-  {
     id: 'programma',
     naam: 'Trainingsprogramma (12 weken naar een fitness race)',
-    rol: 'margemotor',
+    rol: 'hoofdproduct',
     prijsInclBtw: 49,
     kostprijs: { min: 1, max: 3 },
     verzendkosten: 0,
     retourRisico: 'laag',
-    toelichting: 'Jouw PT-expertise als product. Als upsell zonder eigen acquisitiekosten.',
+    toelichting: 'Nul voorraad. Via de wachtlijst en gyms/PT\u2019s zonder advertentiekosten; met ads net break-even.',
   },
   {
-    id: 'vest',
-    naam: 'Weighted vest 6–10 kg',
-    rol: 'later',
-    prijsInclBtw: 129,
-    kostprijs: { min: 32, max: 40 },
-    verzendkosten: 13,
-    retourRisico: 'middel',
-    toelichting: 'Zwaar: dure vracht en verzending, en een retour kost veel.',
+    id: 'abonnement',
+    naam: 'Doorlopend programma (abonnement, per maand)',
+    rol: 'margemotor',
+    prijsInclBtw: 14,
+    kostprijs: { min: 0.5, max: 1.5 },
+    verzendkosten: 0,
+    retourRisico: 'laag',
+    toelichting: 'Per maand gerekend: één betaalde klant verdient zich pas na ~4 maanden terug. Retentie beslist.',
   },
   {
-    id: 'sleeves',
-    naam: 'Knee sleeves 7 mm',
-    rol: 'add-on',
-    prijsInclBtw: 55,
-    kostprijs: { min: 8, max: 12 },
-    verzendkosten: VERZENDING_STANDAARD,
-    retourRisico: 'middel',
-    toelichting: 'Maatgevoelig. Alleen als toevoeging aan een order.',
-  },
-  {
-    id: 'handschoenen',
-    naam: 'Race-/griphandschoenen',
+    id: 'cap',
+    naam: 'Geborduurde cap (print-on-demand)',
     rol: 'add-on',
     prijsInclBtw: 35,
-    kostprijs: { min: 4, max: 6 },
-    verzendkosten: VERZENDING_STANDAARD,
-    retourRisico: 'middel',
-    toelichting: 'Maatgevoelig. Onderdeel van de race-kit.',
+    kostprijs: { min: 15, max: 19 },
+    verzendkosten: 5,
+    retourRisico: 'laag',
+    toelichting: 'Merkdrager, geen winstbron. Alleen naast een programma of als community-merch.',
   },
   {
-    id: 'belt-cap',
-    naam: 'Running belt / cap',
-    rol: 'add-on',
-    prijsInclBtw: 37,
-    kostprijs: { min: 4, max: 8 },
+    id: 'tas',
+    naam: 'Modulaire gym-/racetas (pre-order)',
+    rol: 'later',
+    prijsInclBtw: 119,
+    kostprijs: { min: 20, max: 28 },
     verzendkosten: VERZENDING_STANDAARD,
     retourRisico: 'laag',
-    toelichting: 'One-size, goed zichtbaar merkdrager. Los niet rendabel via ads.',
+    toelichting: 'Pas in fase 4: klanten betalen vooraf de productierun. Geen minimum gehaald = iedereen terugbetaald.',
   },
   {
-    id: 'straps',
-    naam: 'Lifting straps',
-    rol: 'add-on',
-    prijsInclBtw: 25,
-    kostprijs: { min: 2, max: 4 },
-    verzendkosten: VERZENDING_STANDAARD,
+    id: 'pod-tas',
+    naam: 'Gymtas via print-on-demand (ter vergelijking)',
+    rol: 'vergelijking',
+    prijsInclBtw: 119,
+    kostprijs: { min: 38, max: 44 },
+    verzendkosten: 12,
     retourRisico: 'laag',
-    toelichting: 'Hoog margepercentage, maar te weinig euro per order.',
-  },
-  {
-    id: 'padeltas',
-    naam: 'Padeltas (reserverichting)',
-    rol: 'reserve',
-    prijsInclBtw: 129,
-    kostprijs: { min: 22, max: 30 },
-    verzendkosten: VERZENDING_STANDAARD,
-    retourRisico: 'laag',
-    toelichting: 'Ter vergelijking: sterke marge, maar je voorsprong werkt daar niet.',
+    toelichting: 'Afgewezen: dunne marge en een generieke blank met jouw logo erop.',
   },
 ]
 
@@ -111,24 +72,25 @@ function aannamesVoorWeergave(): Strategie['aannames'] {
   return [
     { label: 'Btw', waarde: pct(a.btw) },
     { label: 'Betaalkosten', waarde: `${pct(a.betaalkosten)} van de orderwaarde` },
-    { label: 'Verzending', waarde: `€${VERZENDING_STANDAARD} per order (vest €13, digitaal €0)` },
+    { label: 'Verzending', waarde: `€${VERZENDING_STANDAARD} per order (cap €5, print-on-demand-tas €12, digitaal €0)` },
     {
       label: 'Retourreserve',
       waarde: `laag ${pct(a.retourReserve.laag)} · middel ${pct(a.retourReserve.middel)} · hoog ${pct(a.retourReserve.hoog)}`,
     },
     { label: 'Acquisitie per klant', waarde: `€${a.cacPerKlant} (benchmark EU lifestyle ~€28, niet ons cijfer)` },
-    { label: 'Kostprijs', waarde: 'Midden van de range; schatting tot er offertes zijn' },
+    { label: 'Kostprijs', waarde: 'Midden van de range; schatting tot er offertes of platformprijzen zijn' },
+    { label: 'Abonnement', waarde: 'Marge per maand, niet per klant' },
   ]
 }
 
 export function bouwStrategie(): Strategie {
   return {
     bijgewerkt: '2026-09-25',
-    fase: 'Fase 1 — Strategie (nog niet bouwen)',
+    fase: 'Fase 0 — Fundament',
     richting: {
       naam: 'Richting A — Hybrid athlete',
       samenvatting:
-        'Een merk voor wie tilt én loopt en naar een fitness race toewerkt. Een premium tas en race-kit als hoofdaanbod, jouw trainingsprogramma’s als margemotor.',
+        'Een trainingsmerk voor wie tilt én loopt en naar een fitness race toewerkt. Digital-first en zonder eigen voorraad: jouw programma’s zijn het product, fysieke producten volgen via pre-order zodra het publiek er is.',
       genomenOp: '2026-09-25',
     },
     waarom: [
@@ -155,7 +117,7 @@ export function bouwStrategie(): Strategie {
         bron: null,
       },
       {
-        tekst: 'Hoofdproduct zonder maten, licht en zonder elektronica: weinig retouren, simpele logistiek.',
+        tekst: 'Digitaal hoofdproduct: geen voorraad, geen verzending, geen maten en ~95% brutomarge.',
         bron: null,
       },
     ],
@@ -174,33 +136,47 @@ export function bouwStrategie(): Strategie {
       },
       { titel: 'Supplementen', tekst: 'EFSA/NVWA-regels, houdbaarheid; niet te dropshippen. Fase 5+.' },
       { titel: 'Recovery-elektronica en home gym', tekst: 'Defecten, CE, garantie, zware verzending.' },
+      {
+        titel: 'Eigen voorraad en print-on-demand als hoofdmodel',
+        tekst: 'Voorraad: besloten op 25 september 2026, geen optie. Print-on-demand: te dunne marge en een generieke uitstraling.',
+      },
     ],
     risicos: [
       {
-        titel: 'Geen eigen voorraad',
-        tekst: 'Besloten op 25 september 2026. Een tas met eigen ontwerp is dan alleen haalbaar via pre-order (klanten financieren de productierun). Print-on-demand-tassen laten na ads ~€5 per order over en zijn generieke blanks: dat botst met de merkambitie.',
+        titel: 'Het staat of valt met jouw content',
+        tekst: 'Zonder voorraad en met krappe ads-marges is organisch bereik de motor. Zonder vaste contentritme werkt dit model niet.',
       },
       {
-        titel: '“Hyrox” is een merknaam',
-        tekst: 'Niet gebruiken in merk- of productnamen zonder licentie; spreek van “fitness racing” en “hybrid”. Laat dit merkrechtelijk toetsen.',
+        titel: 'Eerste maanden weinig omzet',
+        tekst: 'Een lijst van 500 met 4% conversie is ~20 verkopen, ~€1.000. Dit is een publiek opbouwen, geen snelle omzet.',
+      },
+      {
+        titel: '\u201CHyrox\u201D is een merknaam',
+        tekst: 'Niet gebruiken in merk- of productnamen zonder licentie; spreek van \u201Cfitness racing\u201D en \u201Chybrid\u201D. Laat dit merkrechtelijk toetsen.',
+      },
+      {
+        titel: 'Btw op digitale producten in de EU',
+        tekst: 'Boven de EU-drempel geldt het btw-tarief van het land van de klant (OSS). Een merchant-of-record-platform kan dit overnemen. Laat dit door je boekhouder bevestigen.',
+      },
+      {
+        titel: 'Herroepingsrecht en gezondheidsclaims',
+        tekst: 'Bij digitale content vervalt het herroepingsrecht alleen met expliciete toestemming vóór levering. Geen medische claims; wel een disclaimer. Juridisch laten toetsen.',
       },
       {
         titel: 'Afhankelijk van één trend',
-        tekst: 'Fitness racing groeit hard, maar hangt aan één organisator. Het merk moet over de hybrid athlete gaan, niet over één event.',
-      },
-      {
-        titel: 'Productveiligheid (GPSR)',
-        tekst: 'Producten van buiten de EU vragen een verantwoordelijke marktdeelnemer in de EU. Juridisch laten toetsen.',
+        tekst: 'Fitness racing hangt aan één organisator. Het merk moet over de hybrid athlete gaan, niet over één event.',
       },
     ],
     openBeslissingen: [
-      'Model zonder voorraad: digital-first (programma\u2019s + print-on-demand-merch), pre-order van de tas, of een combinatie.',
-      'Startbudget en startmarkt: aangenomen €5–15k en Nederland/Benelux.',
+      'Merknaam en positionering (volgende stap; vóór domein, handles en merkdepot).',
+      'Hoeveel uur per week je structureel aan content kunt besteden.',
+      'Waar het programma leeft: pdf + video, een bestaand coaching-platform, of later een eigen app.',
     ],
     volgendeStappen: [
-      'Merkpositionering: namen, belofte, tone of voice, visuele richting.',
-      '5–8 leveranciers benaderen voor offertes en samples (tas eerst).',
-      'Validatieplan met vooraf vastgelegde stop-, herhaal- en opschaalcriteria.',
+      'Merkpositionering: 5–10 naamrichtingen, belofte, tone of voice, visuele richting.',
+      'Naam checken: domein, social handles, BOIP/EUIPO-merkenregister.',
+      'Gratis instapmiddel ontwerpen (bijv. 4-weken intro of race-ready test) + wachtlijstpagina.',
     ],
+    fasen: FASEN,
   }
 }

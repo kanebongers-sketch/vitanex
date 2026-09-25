@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { ArrowUpRight } from 'lucide-react'
 import type { Strategie, TitelTekst } from '@/lib/lifeos/sportmerk/types'
+import { FasenPlan } from './FasenPlan'
 import { MargeTabel } from './MargeTabel'
 
 // ─── Sportmerk — de strategie, gelezen ──────────────────────────────────────
@@ -56,7 +57,11 @@ export function SportmerkInhoud({ strategie }: { strategie: Strategie }) {
         </ul>
       </Sectie>
 
-      <Sectie titel="Marge per order" intro="Schattingen tot er offertes zijn. De maatstaf is wat er na één betaalde klant overblijft.">
+      <Sectie titel="Plan" intro="Elke fase heeft vooraf vastgelegde beslisregels. De drempels zijn startaannames, geen benchmarks.">
+        <FasenPlan fasen={s.fasen} />
+      </Sectie>
+
+      <Sectie titel="Marge per order" intro="Schattingen tot er offertes of platformprijzen zijn. De maatstaf is wat er na één betaalde klant overblijft.">
         <MargeTabel producten={s.producten} aannames={s.aannames} />
       </Sectie>
 

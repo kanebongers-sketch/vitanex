@@ -17,6 +17,7 @@ const ROL_LABEL: Record<ProductRol, string> = {
   'add-on': 'Add-on',
   later: 'Later',
   reserve: 'Reserve',
+  vergelijking: 'Vergelijking',
 }
 
 interface MargeTabelProps {

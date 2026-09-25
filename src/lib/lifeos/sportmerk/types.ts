@@ -5,7 +5,7 @@
 
 export type Risico = 'laag' | 'middel' | 'hoog'
 
-export type ProductRol = 'hoofdproduct' | 'hoofdaanbod' | 'margemotor' | 'add-on' | 'later' | 'reserve'
+export type ProductRol = 'hoofdproduct' | 'hoofdaanbod' | 'margemotor' | 'add-on' | 'later' | 'reserve' | 'vergelijking'
 
 /** Eén productrichting zoals we 'm nu inschatten — nog géén offerte. */
 export interface ProductAanname {
@@ -53,6 +53,15 @@ export interface TitelTekst {
   tekst: string
 }
 
+/** Eén fase van het uitvoeringsplan, met vooraf vastgelegde beslisregels. */
+export interface Fase {
+  naam: string
+  periode: string
+  doel: string
+  doorAls: string
+  herzienAls: string
+}
+
 export interface Strategie {
   /** YYYY-MM-DD: wanneer deze inschatting voor het laatst is herzien. */
   bijgewerkt: string
@@ -66,4 +75,5 @@ export interface Strategie {
   risicos: TitelTekst[]
   openBeslissingen: string[]
   volgendeStappen: string[]
+  fasen: Fase[]
 }

@@ -8,6 +8,7 @@ import { getalOfNull, isObject, tekstOfNull } from '@/lib/lifeos/api/http'
 import type {
   Argument,
   BerekendeMarge,
+  Fase,
   LabelWaarde,
   ProductMetMarge,
   ProductRol,
@@ -17,7 +18,7 @@ import type {
 } from '@/lib/lifeos/sportmerk/types'
 
 const RISICOS: readonly Risico[] = ['laag', 'middel', 'hoog']
-const ROLLEN: readonly ProductRol[] = ['hoofdproduct', 'hoofdaanbod', 'margemotor', 'add-on', 'later', 'reserve']
+const ROLLEN: readonly ProductRol[] = ['hoofdproduct', 'hoofdaanbod', 'margemotor', 'add-on', 'later', 'reserve', 'vergelijking']
 
 function isRisico(v: unknown): v is Risico {
   return typeof v === 'string' && (RISICOS as readonly string[]).includes(v)
@@ -101,6 +102,17 @@ function leesTitelTekst(ruw: unknown): TitelTekst | null {
   return titel === null || tekst === null ? null : { titel, tekst }
 }
 
+function leesFase(ruw: unknown): Fase | null {
+  if (!isObject(ruw)) return null
+  const naam = tekstOfNull(ruw.naam)
+  const periode = tekstOfNull(ruw.periode)
+  const doel = tekstOfNull(ruw.doel)
+  const doorAls = tekstOfNull(ruw.doorAls)
+  const herzienAls = tekstOfNull(ruw.herzienAls)
+  if (naam === null || periode === null || doel === null || doorAls === null || herzienAls === null) return null
+  return { naam, periode, doel, doorAls, herzienAls }
+}
+
 function leesRichting(ruw: unknown): Strategie['richting'] | null {
   if (!isObject(ruw)) return null
   const naam = tekstOfNull(ruw.naam)
@@ -123,8 +135,23 @@ export function leesStrategie(ruw: unknown): Strategie | null {
   const risicos = leesLijst(s.risicos, leesTitelTekst)
   const openBeslissingen = leesLijst(s.openBeslissingen, tekstOfNull)
   const volgendeStappen = leesLijst(s.volgendeStappen, tekstOfNull)
+  const fasen = leesLijst(s.fasen, leesFase)
   if (bijgewerkt === null || fase === null || richting === null) return null
   if (waarom === null || doelgroep === null || aannames === null || producten === null) return null
   if (geschrapt === null || risicos === null || openBeslissingen === null || volgendeStappen === null) return null
-  return { bijgewerkt, fase, richting, waarom, doelgroep, aannames, producten, geschrapt, risicos, openBeslissingen, volgendeStappen }
+  if (fasen === null) return null
+  return {
+    bijgewerkt,
+    fase,
+    richting,
+    waarom,
+    doelgroep,
+    aannames,
+    producten,
+    geschrapt,
+    risicos,
+    openBeslissingen,
+    volgendeStappen,
+    fasen,
+  }
 }

@@ -53,6 +53,32 @@ export const SPM_CSS = `
 .spm__tt dt { font-size: 15px; font-weight: 600; color: var(--text-1); }
 .spm__tt dd { margin: 3px 0 0; font-size: 14px; line-height: 1.55; color: var(--text-3); }
 
+/* ── Plan: genummerde fasen ───────────────────────────────────────────────── */
+.spm__fasen { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; }
+.spm__fase {
+  display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 14px;
+  padding: 18px 0; border-top: 1px solid var(--line);
+}
+.spm__fase:last-child { border-bottom: 1px solid var(--line); }
+.spm__fase-nr {
+  margin: 0; font-size: 22px; font-weight: 600; line-height: 1.2;
+  color: var(--brand); font-variant-numeric: tabular-nums;
+}
+.spm__fase-body { display: grid; gap: 6px; }
+.spm__fase-periode {
+  margin: 0; font-size: 11px; font-weight: 600; letter-spacing: 0.05em;
+  text-transform: uppercase; color: var(--text-3);
+}
+.spm__fase-naam { margin: 0; font-size: 18px; font-weight: 600; letter-spacing: -0.01em; color: var(--text-1); }
+.spm__fase-doel { margin: 0; font-size: 14px; line-height: 1.55; color: var(--text-2); max-width: 70ch; }
+.spm__fase-regels { margin: 6px 0 0; display: grid; gap: 10px; }
+@media (min-width: 760px) {
+  .spm__fase { grid-template-columns: 64px minmax(0, 1fr); }
+  .spm__fase-regels { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
+}
+.spm__fase-regels dt { font-size: 11px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-3); }
+.spm__fase-regels dd { margin: 3px 0 0; font-size: 13px; line-height: 1.5; color: var(--text-2); }
+
 /* ── Marge-tabel ──────────────────────────────────────────────────────────── */
 .spm__marge { display: grid; gap: 16px; }
 .spm__tabel-wrap {
