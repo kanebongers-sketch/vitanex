@@ -56,6 +56,13 @@ export function bepaalActie(intentie: Intentie): TelegramActie {
 /** Een leesbaar moment ("vrijdag 09:00") uit een ISO-string, of null. */
 export function leesMoment(wanneer: string | null): string | null {
   if (!wanneer) return null
+  // Kale datum: alleen de dag ("vrijdag 26 september"), geen verzonnen 02:00.
+  const dag = /^(\d{4})-(\d{2})-(\d{2})$/.exec(wanneer)
+  if (dag) {
+    const middag = new Date(Date.UTC(Number(dag[1]), Number(dag[2]) - 1, Number(dag[3]), 12))
+    if (Number.isNaN(middag.getTime())) return null
+    return middag.toLocaleDateString('nl-NL', { timeZone: 'Europe/Amsterdam', weekday: 'long', day: 'numeric', month: 'long' })
+  }
   const d = new Date(wanneer)
   if (Number.isNaN(d.getTime())) return null
   return d.toLocaleString('nl-NL', {

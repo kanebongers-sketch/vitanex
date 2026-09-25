@@ -112,5 +112,6 @@ describe('leesMoment', () => {
   it('geeft null bij geen of onzin-tijd', () => {
     expect(leesMoment(null)).toBeNull()
     expect(leesMoment('geen datum')).toBeNull()
+    expect(leesMoment('2026-09-26')).toBe('zaterdag 26 september')
   })
 })
