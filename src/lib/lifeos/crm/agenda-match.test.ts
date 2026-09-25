@@ -78,6 +78,16 @@ describe('groepKort / koppelTekst', () => {
   test('koppelTekst: match → "Naam · groep", ambigu → melding, geen → null', () => {
     expect(koppelTekst({ soort: 'match', persoon: persoon('Sanne', 'pt_klant') })).toBe('Sanne · PT-klant')
     expect(koppelTekst({ soort: 'ambigu', kandidaten: [] })).toBe('meerdere mogelijke personen')
+  })
+
+  test('koppelTekst: meerdere verschillende mensen is geen dubbelzinnigheid', () => {
+    const p = (naam: string, groep: Groep) => persoon(naam, groep)
+    const mt = { soort: 'ambigu' as const, kandidaten: [p('Ruben', 'management'), p('Ken', 'management'), p('Dave', 'management')] }
+    expect(koppelTekst(mt)).toBe('Ruben, Ken en Dave · Management')
+    const mix = { soort: 'ambigu' as const, kandidaten: [p('Ruben', 'management'), p('Marit', 'marketing')] }
+    expect(koppelTekst(mix)).toBe('Ruben (Management) en Marit (Marketing)')
+    const naamgenoten = { soort: 'ambigu' as const, kandidaten: [p('Nieck', 'pt_team'), p('Nieck', 'budel_team')] }
+    expect(koppelTekst(naamgenoten)).toBe('meerdere mogelijke personen')
     expect(koppelTekst({ soort: 'geen' })).toBeNull()
   })
 })

@@ -43,6 +43,13 @@ describe('categoriseerAfspraak', () => {
     expect(categoriseerAfspraak('Boodschappen', personen)).toBe('overig')
   })
 
+  test('afspraak met meerdere mensen uit één groep → die groep', () => {
+    const mt = [persoon('Ruben', 'management'), persoon('Ken', 'management'), persoon('Dave', 'management'), persoon('Marit', 'marketing')]
+    expect(categoriseerAfspraak('Ruben Ken en Dave', mt)).toBe('management')
+    // Mix van groepen → eerlijk Overig (tenzij je een regel vastzet).
+    expect(categoriseerAfspraak('Ruben en Marit', mt)).toBe('overig')
+  })
+
   test('ambigu (twee dezelfde voornaam) → Overig, geen gok', () => {
     const twee = [persoon('Kevin', 'pt_klant'), persoon('Kevin', 'management')]
     expect(categoriseerAfspraak('Bellen Kevin', twee)).toBe('overig')

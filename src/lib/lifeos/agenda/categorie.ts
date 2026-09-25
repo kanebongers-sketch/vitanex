@@ -14,7 +14,7 @@
 
 import type { Persoon, Groep } from '@/lib/lifeos/crm/crm'
 import { groepDef } from '@/lib/lifeos/crm/crm'
-import { koppelTekst, matchPersoonInTitel } from '@/lib/lifeos/crm/agenda-match'
+import { gedeeldeGroep, isGroepsafspraak, koppelTekst, matchPersoonInTitel } from '@/lib/lifeos/crm/agenda-match'
 
 /** Een categorie: een CRM-groep, of één van de twee afgeleide bakken. */
 export type AgendaCategorie = Groep | 'persoonlijk' | 'overig'
@@ -44,7 +44,13 @@ export function categorieLabel(categorie: AgendaCategorie): string {
  */
 export function categoriseerAfspraak(titel: string | null, personen: readonly Persoon[]): AgendaCategorie {
   const match = matchPersoonInTitel(titel, personen)
-  return match.soort === 'match' ? match.persoon.groep : 'overig'
+  if (match.soort === 'match') return match.persoon.groep
+  // Een afspraak met meerdere verschillende mensen uit één groep ("Ruben Ken en
+  // Dave") hoort gewoon bij die groep. Naamgenoten of een mix blijven Overig.
+  if (match.soort === 'ambigu' && isGroepsafspraak(match.kandidaten)) {
+    return gedeeldeGroep(match.kandidaten) ?? 'overig'
+  }
+  return 'overig'
 }
 
 // ─── Leren van jouw herindeling ─────────────────────────────────────────────

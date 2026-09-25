@@ -87,8 +87,37 @@ export function groepKort(groep: Groep): string {
  */
 export function koppelTekst(match: PersoonMatch): string | null {
   if (match.soort === 'match') return `${match.persoon.naam} · ${groepKort(match.persoon.groep)}`
-  if (match.soort === 'ambigu') return 'meerdere mogelijke personen'
+  if (match.soort === 'ambigu') {
+    if (!isGroepsafspraak(match.kandidaten)) return 'meerdere mogelijke personen'
+    const groep = gedeeldeGroep(match.kandidaten)
+    return groep
+      ? `${opsomming(match.kandidaten.map((p) => p.naam))} · ${groepKort(groep)}`
+      : opsomming(match.kandidaten.map((p) => `${p.naam} (${groepKort(p.groep)})`))
+  }
   return null
+}
+
+/**
+ * Meerdere kandidaten kan twee dingen betekenen. Naamgenoten (twee Niecks): dan
+ * weten we niet wíe — echt dubbelzinnig. Verschillende namen ("Ruben Ken en
+ * Dave"): dan is het een afspraak mét meerdere mensen — niets dubbelzinnigs aan.
+ */
+export function isGroepsafspraak(kandidaten: readonly Persoon[]): boolean {
+  if (kandidaten.length < 2) return false
+  const namen = new Set(kandidaten.map((p) => woordTokens(p.naam).join(' ')))
+  return namen.size === kandidaten.length
+}
+
+/** De groep die alle kandidaten delen, of null als ze uit verschillende groepen komen. */
+export function gedeeldeGroep(kandidaten: readonly Persoon[]): Groep | null {
+  const groepen = new Set(kandidaten.map((p) => p.groep))
+  return groepen.size === 1 ? kandidaten[0].groep : null
+}
+
+/** "A", "A en B", "A, B en C". */
+function opsomming(delen: readonly string[]): string {
+  if (delen.length <= 1) return delen.join('')
+  return `${delen.slice(0, -1).join(', ')} en ${delen[delen.length - 1]}`
 }
 
 // ─── Automatisch hernoemen (schrijft naar de agenda) ────────────────────────
