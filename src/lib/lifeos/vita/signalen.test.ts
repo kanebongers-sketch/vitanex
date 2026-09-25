@@ -195,6 +195,18 @@ describe('korte-slaap-training', () => {
     expect(signalen[0]?.tekst).toContain('Training benen')
   })
 
+  it('herkent het sportblok dat LifeOS zelf inplant als training', () => {
+    // Arrange — "Sporten (incl. reistijd)" is de titel van de dagplanning.
+    const korteNacht = invoer({
+      nu: om('08:00'),
+      herstel: [herstelDag({ slaapMinuten: 300 })],
+      agendaVandaag: [event({ titel: 'Sporten (incl. reistijd)', startOp: om('14:00'), eindOp: om('15:30') })],
+    })
+
+    // Act + Assert
+    expect(bepaalSignalen(korteNacht)[0]?.soort).toBe('korte-slaap-training')
+  })
+
   it('zwijgt bij zes uur slaap of meer', () => {
     // Arrange — precies op de drempel: 6u00 is geen korte nacht.
     const genoeg = invoer({
@@ -267,8 +279,24 @@ describe('volle-dag-training', () => {
     expect(signalen).toHaveLength(1)
     expect(signalen[0]?.soort).toBe('volle-dag-training')
     expect(signalen[0]?.tekst).toBe(
-      'drie afspraken vandaag en geen vrij blok overdag. Zet je training op vanavond.',
+      'Drie afspraken vandaag en geen vrij blok overdag. Zet je training op vanavond.',
     )
+  })
+
+  it('zwijgt als er vandaag al een training gepland staat — geen tegenstrijdig advies', () => {
+    // Arrange — de echte mail van 25-09: de dagplanning plande zelf een sportblok
+    // in, waardoor de dag "vol" werd, en Vita adviseerde daarna vanavond te trainen.
+    const alGepland = invoer({
+      nu: om('08:00'),
+      agendaVandaag: [
+        event({ titel: 'Werken in Budel', startOp: om('09:00'), eindOp: om('13:00') }),
+        event({ titel: 'Sporten (incl. reistijd)', startOp: om('13:00'), eindOp: om('14:30') }),
+        event({ titel: 'Overleg', startOp: om('14:30'), eindOp: om('18:00') }),
+      ],
+    })
+
+    // Act + Assert
+    expect(bepaalSignalen(alGepland).map((s) => s.soort)).not.toContain('volle-dag-training')
   })
 
   it('zwijgt als er een vrij blok van een uur overblijft', () => {
@@ -483,7 +511,7 @@ describe('rangschikking', () => {
   }
 
   it('geeft nooit meer dan drie signalen terug', () => {
-    // Arrange — alle vijf de regels vuren.
+    // Arrange — alle regels die tegelijk kúnnen vuren, vuren.
     const alles = alarmDag()
 
     // Act
@@ -500,8 +528,16 @@ describe('rangschikking', () => {
     // Act
     const soorten = bepaalSignalen(alles).map((s) => s.soort)
 
-    // Assert — de afspraak over 30 minuten wint van "je sliep kort".
-    expect(soorten).toEqual(['afspraak-nabij', 'korte-slaap-training', 'volle-dag-training'])
+    // Assert — de afspraak over 30 minuten wint van "je sliep kort". "Volle dag →
+    // train vanavond" vuurt hier bewust NIET: er staat al een training gepland, en
+    // dat advies ernaast zou tegenstrijdig zijn (zie volle-dag-training).
+    expect(soorten).toEqual(['afspraak-nabij', 'korte-slaap-training', 'top3-open'])
+  })
+
+  it('"korte nacht + training" en "volle dag, train vanavond" sluiten elkaar uit', () => {
+    // Het eerste vereist een geplande training, het tweede juist géén.
+    const soorten = bepaalSignalen(alarmDag()).map((s) => s.soort)
+    expect(soorten.includes('korte-slaap-training') && soorten.includes('volle-dag-training')).toBe(false)
   })
 
   it('levert aflopende urgentie op', () => {

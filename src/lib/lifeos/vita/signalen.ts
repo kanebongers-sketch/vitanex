@@ -139,6 +139,9 @@ const URGENTIE: Readonly<Record<SignaalSoort, number>> = Object.freeze({
  * tweede ondermijnt het vertrouwen in alles wat Vita zegt.
  */
 const TRAINING_WOORDEN: readonly string[] = [
+  // "Sporten (incl. reistijd)" is het blok dat LifeOS zélf inplant (dagplanning-
+  // mail) — zonder dit woord herkende Vita zijn eigen trainingsblok niet.
+  'sporten',
   'training',
   'workout',
   'gym',
@@ -328,13 +331,18 @@ function volleDagTraining(invoer: SignaalInvoer): Signaal | null {
     (e) => !e.heleDag && lokaleTijd(e.startOp).datum === vandaag,
   )
   if (afspraken.length < VOLLE_DAG_AFSPRAKEN) return null
+  // Staat er vandaag al een training (bv. het sportblok dat de dagplanning net
+  // inplande)? Dan is "zet je training op vanavond" tegenstrijdig advies: je
+  // training ís er al. Vaak is dat blok juist wat de dag "vol" maakt.
+  if (afspraken.some((e) => isTraining(e.titel))) return null
   if (heeftVrijBlokOverdag(agendaVandaag, vandaag)) return null
 
+  const aantal = inWoorden(afspraken.length)
   return {
     soort: 'volle-dag-training',
     urgentie: URGENTIE['volle-dag-training'],
     tekst:
-      `${inWoorden(afspraken.length)} afspraken vandaag en geen vrij blok overdag. ` +
+      `${aantal.charAt(0).toUpperCase()}${aantal.slice(1)} afspraken vandaag en geen vrij blok overdag. ` +
       `Zet je training op vanavond.`,
   }
 }
