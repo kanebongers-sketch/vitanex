@@ -61,7 +61,7 @@ describe('crmOpvolging', () => {
 
   test('verstreken datum = "te laat"', () => {
     const punten = crmOpvolging([persoon({ naam: 'Tom', followUpDatum: '2026-09-01' })], VANDAAG)
-    expect(punten[0].tekst).toBe('Tom opvolgen (te laat)')
+    expect(punten[0].tekst).toBe('Tom opvolgen (te laat, sinds 1 sep)')
   })
 
   test('te laat staat vóór vandaag, oudste bovenaan', () => {
@@ -74,10 +74,22 @@ describe('crmOpvolging', () => {
       VANDAAG,
     )
     expect(punten.map((p) => p.tekst)).toEqual([
-      'Ouder opvolgen (te laat)',
-      'Nieuwer opvolgen (te laat)',
+      'Ouder opvolgen (te laat, sinds 1 sep)',
+      'Nieuwer opvolgen (te laat, sinds 10 sep)',
       'Vandaag opvolgen (vandaag)',
     ])
+  })
+
+  test('twee mensen met dezelfde naam → de groep erbij, zodat je weet wie', () => {
+    const punten = crmOpvolging(
+      [
+        persoon({ naam: 'Nieck', groep: 'pt_team', status: 'actief', followUpDatum: VANDAAG }),
+        persoon({ naam: 'Nieck', groep: 'budel_team', status: 'actief' }),
+        persoon({ naam: 'Sanne', followUpDatum: VANDAAG }),
+      ],
+      VANDAAG,
+    )
+    expect(punten.map((p) => p.tekst)).toEqual(['Nieck (PT-team) opvolgen (vandaag)', 'Sanne opvolgen (vandaag)'])
   })
 
   test('boven het plafond: één samenvattende, niet-dringende restregel', () => {

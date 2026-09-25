@@ -14,7 +14,7 @@
 
 import type { Persoon, Groep } from '@/lib/lifeos/crm/crm'
 import { groepDef } from '@/lib/lifeos/crm/crm'
-import { matchPersoonInTitel } from '@/lib/lifeos/crm/agenda-match'
+import { koppelTekst, matchPersoonInTitel } from '@/lib/lifeos/crm/agenda-match'
 
 /** Een categorie: een CRM-groep, of één van de twee afgeleide bakken. */
 export type AgendaCategorie = Groep | 'persoonlijk' | 'overig'
@@ -71,6 +71,26 @@ export function categoriseerMet(
   const norm = normaliseerTitel(titel)
   const regel = norm ? regels.get(norm) : undefined
   return regel ?? categoriseerAfspraak(titel, personen)
+}
+
+/**
+ * De koppel-tekst achter een afspraak ("Nieck · PT-team"), met je geleerde regels.
+ * Is de naam dubbelzinnig (twee Niecks) maar heb je op het categorieën-scherm
+ * vastgezet in welke categorie deze titel hoort, dan kiezen we de kandidaat uit
+ * díe groep — in plaats van "meerdere mogelijke personen" te blijven tonen.
+ */
+export function koppelTekstMetRegels(
+  titel: string | null,
+  personen: readonly Persoon[],
+  regels: ReadonlyMap<string, AgendaCategorie>,
+): string | null {
+  const match = matchPersoonInTitel(titel, personen)
+  if (match.soort === 'ambigu') {
+    const regel = regels.get(normaliseerTitel(titel))
+    const gekozen = regel ? match.kandidaten.filter((p) => p.groep === regel) : []
+    if (gekozen.length === 1) return koppelTekst({ soort: 'match', persoon: gekozen[0] })
+  }
+  return koppelTekst(match)
 }
 
 // ─── JSON over de draad ─────────────────────────────────────────────────────

@@ -29,12 +29,14 @@ import { maakAgendaEvent } from '@/lib/lifeos/agenda/schrijven'
 import type { Afspraak } from '@/lib/lifeos/agenda/vrije-blokken'
 import { haalTaken } from '@/lib/lifeos/taken/opslag'
 import { kiesBewegingsblokken } from '@/lib/lifeos/dagplanning/bewegingsplan'
-import { bouwDagplanningMail, type DagItem, type DagTodo } from '@/lib/lifeos/dagplanning/dagplanning'
+import { bouwDagplanningMail, vitaVoorMail, type DagItem, type DagTodo } from '@/lib/lifeos/dagplanning/dagplanning'
 import { bouwAandacht, type Aandachtspunt } from '@/lib/lifeos/dagplanning/aandacht'
 import { haalPersonen } from '@/lib/lifeos/crm/opslag'
 import type { Persoon } from '@/lib/lifeos/crm/crm'
 import { haalPtSignalen, type PtSignalen } from '@/lib/lifeos/pt-klant/afhaak-ophalen'
-import { matchPersoonInTitel, koppelTekst } from '@/lib/lifeos/crm/agenda-match'
+import { koppelTekstMetRegels } from '@/lib/lifeos/agenda/categorie'
+import { haalCategorieRegels } from '@/lib/lifeos/agenda/categorie-opslag'
+import type { AgendaCategorie } from '@/lib/lifeos/agenda/categorie'
 import { haalFacturen } from '@/lib/lifeos/finance/opslag'
 import { geldigToken as geldigMailToken, forceerVernieuwing as forceerMailVernieuwing } from '@/lib/lifeos/inbox/koppeling'
 import { haalTriageMails } from '@/lib/lifeos/inbox/gmail'
@@ -90,7 +92,7 @@ async function haalVitaSignalen(
       taken: context.taken.ok ? context.taken.waarde : [],
       nu,
     })
-    return signalen.map((s) => s.tekst)
+    return vitaVoorMail(signalen)
   } catch (oorzaak) {
     console.error('[dagplanning-mail] Vita-signalen ophalen mislukt', oorzaak)
     return []
@@ -271,6 +273,11 @@ export async function GET(req: NextRequest): Promise<Response> {
   // De CRM-personen één keer ophalen: zowel de agenda-koppeling hieronder als de
   // "Vraagt je aandacht"-sectie draaien erop.
   const personen = await haalCrmPersonen(admin, userId)
+  // Je geleerde categorie-regels (categorieën-scherm): lossen dubbelzinnige namen op
+  // in de koppeling achter elke afspraak. Best-effort — zonder regels gewoon zonder.
+  const regels: ReadonlyMap<string, AgendaCategorie> = await haalCategorieRegels(admin, userId)
+    .then((u) => (u.ok ? u.waarde : new Map<string, AgendaCategorie>()))
+    .catch(() => new Map<string, AgendaCategorie>())
 
   // De mail: de bestaande agenda + wat we net toevoegden. Elke afspraak krijgt een
   // koppeling als de titel eenduidig naar één CRM-persoon wijst ("Training Sanne" →
@@ -282,7 +289,7 @@ export async function GET(req: NextRequest): Promise<Response> {
       titel: e.titel ?? '(zonder titel)',
       heleDag: e.heleDag,
       beweging: (e.titel ?? '').trim() === SPORT_TITEL || (e.titel ?? '').trim() === WANDEL_TITEL,
-      koppeling: koppelTekst(matchPersoonInTitel(e.titel, personen)) ?? undefined,
+      koppeling: koppelTekstMetRegels(e.titel, personen, regels) ?? undefined,
     })),
     ...nieuw,
   ]

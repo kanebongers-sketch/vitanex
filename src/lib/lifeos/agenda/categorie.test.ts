@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { categoriseerAfspraak, categoriseerMet, normaliseerTitel, categorieLabel, CATEGORIE_VOLGORDE, type AgendaCategorie } from './categorie'
+import { categoriseerAfspraak, categoriseerMet, normaliseerTitel, categorieLabel, koppelTekstMetRegels, CATEGORIE_VOLGORDE, type AgendaCategorie } from './categorie'
 import type { Persoon, Groep } from '@/lib/lifeos/crm/crm'
 
 function persoon(naam: string, groep: Groep): Persoon {
@@ -97,5 +97,31 @@ describe('categorieLabel / volgorde', () => {
     expect(CATEGORIE_VOLGORDE[CATEGORIE_VOLGORDE.length - 1]).toBe('overig')
     expect(CATEGORIE_VOLGORDE).toContain('management')
     expect(CATEGORIE_VOLGORDE).toContain('marketing')
+  })
+})
+
+describe('koppelTekstMetRegels — dubbelzinnige naam via je geleerde regel', () => {
+  const tweeNiecks = [persoon('Nieck', 'pt_team'), persoon('Nieck', 'budel_team')]
+
+  test('zonder regel: eerlijk "meerdere mogelijke personen"', () => {
+    expect(koppelTekstMetRegels('Nieck', tweeNiecks, new Map())).toBe('meerdere mogelijke personen')
+  })
+
+  test('met regel: kiest de Nieck uit de vastgezette groep', () => {
+    const regels = new Map<string, AgendaCategorie>([
+      ['nieck', 'pt_team'],
+      ['nieck - kane assistent manager', 'budel_team'],
+    ])
+    expect(koppelTekstMetRegels('Nieck', tweeNiecks, regels)).toBe('Nieck · PT-team')
+    expect(koppelTekstMetRegels('Nieck - Kane Assistent Manager', tweeNiecks, regels)).toBe('Nieck · Team Budel')
+  })
+
+  test('regel naar een categorie zonder kandidaat (bv. persoonlijk) → blijft eerlijk dubbelzinnig', () => {
+    const regels = new Map<string, AgendaCategorie>([['nieck', 'persoonlijk']])
+    expect(koppelTekstMetRegels('Nieck', tweeNiecks, regels)).toBe('meerdere mogelijke personen')
+  })
+
+  test('een eenduidige match verandert niet', () => {
+    expect(koppelTekstMetRegels('Training Kevin', personen, new Map())).toBe('Kevin · PT-klant')
   })
 })

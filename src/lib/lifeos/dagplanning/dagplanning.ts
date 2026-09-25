@@ -10,6 +10,16 @@ import type { Aandachtspunt } from './aandacht'
 
 const TIJDZONE = 'Europe/Amsterdam'
 
+/**
+ * Vita's signalen voor in de mail. De mail is een momentopname die je later leest:
+ * "X begint over 15 minuten" klopt alleen op het verzendmoment en is dan meestal
+ * het blok dat de mail zelf net inplande. Dat signaal hoort op het live dashboard,
+ * niet in een ochtendmail — de rest gaat wel mee.
+ */
+export function vitaVoorMail(signalen: readonly { soort: string; tekst: string }[]): string[] {
+  return signalen.filter((s) => s.soort !== 'afspraak-nabij').map((s) => s.tekst)
+}
+
 export interface DagItem {
   startOp: Date
   /** null = duur onbekend (dan tonen we alleen de starttijd). */

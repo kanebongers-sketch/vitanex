@@ -14,6 +14,7 @@ import type { Factuur } from '@/lib/lifeos/finance/finance'
 import type { Afhaak } from '@/lib/lifeos/pt-klant/afhaak'
 import type { OnbekendePtSessie, PtStatusHint } from '@/lib/lifeos/pt-klant/klantstatus'
 import { naarCenten, naarEuro } from '@/lib/lifeos/finance/finance'
+import { groepKort } from '@/lib/lifeos/crm/agenda-match'
 
 /** Eén regel voor de "Vraagt je aandacht"-sectie. */
 export interface Aandachtspunt {
@@ -29,6 +30,13 @@ export interface Aandachtspunt {
 const CRM_LIMIET = 8
 
 const EURO_FMT = new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR' })
+
+const DAG_KORT = new Intl.DateTimeFormat('nl-NL', { day: 'numeric', month: 'short', timeZone: 'Europe/Amsterdam' })
+
+/** Een dagsleutel (YYYY-MM-DD) als moment midden op die dag: tijdzone-veilig voor de weergave. */
+function dagAlsMoment(dagKey: string): Date {
+  return new Date(`${dagKey}T12:00:00Z`)
+}
 
 /** Centen → '€ 1.234,56'. Sommeren gebeurt in centen om float-drift te vermijden. */
 function euroTekst(centen: number): string {
@@ -54,10 +62,22 @@ export function crmOpvolging(personen: readonly Persoon[], vandaagKey: string): 
       return a.naam.localeCompare(b.naam, 'nl')
     })
 
-  const punten: Aandachtspunt[] = teDoen.slice(0, CRM_LIMIET).map((p) => ({
-    tekst: `${p.naam} opvolgen (${(p.followUpDatum as string) < vandaagKey ? 'te laat' : 'vandaag'})`,
-    dringend: true,
-  }))
+  // Heet iemand hetzelfde als een ander in je CRM (twee Niecks)? Dan de groep
+  // erbij — anders weet je niet wíe je moet opvolgen.
+  const naamTelling = new Map<string, number>()
+  for (const p of personen) {
+    const sleutel = p.naam.trim().toLowerCase()
+    naamTelling.set(sleutel, (naamTelling.get(sleutel) ?? 0) + 1)
+  }
+  const wie = (p: Persoon): string =>
+    (naamTelling.get(p.naam.trim().toLowerCase()) ?? 0) > 1 ? `${p.naam} (${groepKort(p.groep)})` : p.naam
+
+  const punten: Aandachtspunt[] = teDoen.slice(0, CRM_LIMIET).map((p) => {
+    const datum = p.followUpDatum as string
+    // "Te laat" zonder sinds-wanneer zegt niet of het gisteren was of drie weken.
+    const wanneer = datum < vandaagKey ? `te laat, sinds ${DAG_KORT.format(dagAlsMoment(datum))}` : 'vandaag'
+    return { tekst: `${wie(p)} opvolgen (${wanneer})`, dringend: true }
+  })
 
   const rest = teDoen.length - CRM_LIMIET
   if (rest > 0) {
@@ -107,7 +127,6 @@ export function statusHintAandacht(hints: readonly PtStatusHint[]): Aandachtspun
   return punten
 }
 
-const DAG_KORT = new Intl.DateTimeFormat('nl-NL', { day: 'numeric', month: 'short', timeZone: 'Europe/Amsterdam' })
 
 /**
  * PT-sessies met iemand die niet in je CRM staat (zie `pt-klant/klantstatus`):

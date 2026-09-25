@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { bouwDagplanningMail, type DagItem } from './dagplanning'
+import { bouwDagplanningMail, type DagItem, vitaVoorMail } from './dagplanning'
 
 const DAG = new Date(2026, 8, 7) // ma 7 sep 2026
 
@@ -102,5 +102,16 @@ describe('bouwDagplanningMail', () => {
     const mail = bouwDagplanningMail(DAG, [item(9, 10, 'Werk')])
     expect(mail.tekst).not.toContain('VAN VITA')
     expect(mail.html).not.toContain('Van Vita')
+  })
+})
+
+describe('vitaVoorMail', () => {
+  test('laat "begint over X minuten" weg — dat klopt alleen op het verzendmoment', () => {
+    expect(
+      vitaVoorMail([
+        { soort: 'afspraak-nabij', tekst: 'Sporten (incl. reistijd) begint over 15 minuten.' },
+        { soort: 'korte-slaap-training', tekst: 'Je sliep 5u10 en hebt Sporten gepland.' },
+      ]),
+    ).toEqual(['Je sliep 5u10 en hebt Sporten gepland.'])
   })
 })
