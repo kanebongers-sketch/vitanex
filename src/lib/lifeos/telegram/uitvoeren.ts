@@ -17,7 +17,7 @@
 // `maak_agenda` zonder een geldige tijd maakt niets aan (`gelukt: false`). Het
 // brein verzint nooit een datum; deze laag zet er ook nooit een.
 
-import { datumSleutel } from '@/lib/lifeos/datum/datum'
+import { datumSleutel, leesDatumSleutel } from '@/lib/lifeos/datum/datum'
 import { MAX_TITEL_LENGTE, type NieuweTaak } from '@/lib/lifeos/taken/taken'
 import { MAX_TEKST_LENGTE, type NieuweNotitie } from '@/lib/lifeos/notities/notities'
 import type { Intentie } from '@/lib/lifeos/intentie/intentie'
@@ -67,6 +67,9 @@ function kap(tekst: string, max: number): string {
 /** De dagsleutel uit een ISO-tijd, of null als er geen (geldige) tijd is. */
 function dagUit(wanneer: string | null): string | null {
   if (!wanneer) return null
+  // Een kale datum is al een dagsleutel. Niet via `new Date` (= UTC-middernacht),
+  // dat kan in een andere tijdzone een dag verschuiven.
+  if (/^\d{4}-\d{2}-\d{2}$/.test(wanneer)) return leesDatumSleutel(wanneer) ? wanneer : null
   const d = new Date(wanneer)
   return Number.isNaN(d.getTime()) ? null : datumSleutel(d)
 }

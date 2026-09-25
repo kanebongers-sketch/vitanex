@@ -25,12 +25,19 @@ export type TelegramActie =
  * herinnering → taak; en al het overige, inclusief 'onduidelijk', → notitie (de
  * veilige vangbak, zodat geen enkele memo zoekraakt).
  */
+/** Bevat de ISO-string een kloktijd ("…T09:00")? Een kale datum telt niet. */
+export function heeftKloktijd(wanneer: string | null): boolean {
+  return wanneer !== null && /T\d{2}:\d{2}/.test(wanneer) && !Number.isNaN(new Date(wanneer).getTime())
+}
+
 export function bepaalActie(intentie: Intentie): TelegramActie {
   switch (intentie.soort) {
     case 'agenda':
       // Een afspraak zonder tijd kunnen we niet in de agenda zetten; dan is het
       // eerder een taak. Val daar veilig op terug — nooit terugvragen.
-      return intentie.wanneer ? 'maak_agenda' : 'maak_taak'
+      // Alleen een dag ("vrijdag" → "2026-09-26") is óók geen tijd: dat werd anders
+      // een afspraak om 00:00 UTC = 02:00 's nachts. Dan een taak op die dag.
+      return heeftKloktijd(intentie.wanneer) ? 'maak_agenda' : 'maak_taak'
     case 'taak':
     case 'herinnering':
     case 'follow_up':

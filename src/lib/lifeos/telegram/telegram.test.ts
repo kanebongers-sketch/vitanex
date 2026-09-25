@@ -52,6 +52,8 @@ describe('bepaalActie', () => {
   it('agenda mét tijd → afspraak, zónder tijd → taak', () => {
     expect(bepaalActie(intentie({ soort: 'agenda', wanneer: '2026-07-20T09:00:00+02:00' }))).toBe('maak_agenda')
     expect(bepaalActie(intentie({ soort: 'agenda', wanneer: null }))).toBe('maak_taak')
+    // Alleen een dag, geen tijd → taak op die dag, geen afspraak om 02:00.
+    expect(bepaalActie(intentie({ soort: 'agenda', wanneer: '2026-09-26' }))).toBe('maak_taak')
   })
 
   it('taak/herinnering/follow_up → taak', () => {

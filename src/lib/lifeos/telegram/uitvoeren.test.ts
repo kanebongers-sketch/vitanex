@@ -76,6 +76,12 @@ describe('voerUit — maak_taak', () => {
     expect(opslag.taken[0]?.nieuw.datum).toBe('2026-07-17')
   })
 
+  it('een kale datum wordt precies die dag (geen tijdzone-verschuiving)', async () => {
+    const opslag = nepOpslag()
+    await voerUit(USER, intentie({ soort: 'agenda', wanneer: '2026-09-26' }), 'maak_taak', opslag, NU)
+    expect(opslag.taken[0]?.nieuw.datum).toBe('2026-09-26')
+  })
+
   it('meldt gelukt=false als de insert mislukt — bevestigt niets wat niet gebeurde', async () => {
     const opslag = nepOpslag(false)
     const res = await voerUit(USER, intentie({ soort: 'taak' }), 'maak_taak', opslag, NU)
