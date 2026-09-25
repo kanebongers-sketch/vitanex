@@ -156,12 +156,17 @@ export function maandVolledig(maand: string): string {
  *
  * Nederlandse invoer accepteren zonder te gokken: een komma is de decimaal, dus
  * bij een komma vallen de duizendtal-punten weg ('1.234,56' → 1234.56). Zonder
- * komma blijft de invoer intact ('1234.56'). Fail fast: 0, negatief of onzin → null.
+ * komma: punten in groepjes van drie zijn duizendtallen ('1.250' → 1250), anders
+ * is de punt de decimaal ('12.50'). Een '€' vooraan mag. Fail fast: 0, negatief
+ * of onzin → null.
  */
 export function parseBedrag(ruw: string): number | null {
-  let s = ruw.trim().replace(/\s/g, '')
+  let s = ruw.trim().replace(/\s/g, '').replace(/^€/, '')
   if (s === '') return null
   if (s.includes(',')) s = s.replace(/\./g, '').replace(',', '.')
+  // Nederlandse duizendtallen zonder komma: "1.250" is twaalfhonderdvijftig, geen
+  // 1,25. Alleen bij precies groepjes van drie cijfers; "12.50" blijft 12,50.
+  else if (/^\d{1,3}(\.\d{3})+$/.test(s)) s = s.replace(/\./g, '')
   const n = Number(s)
   return Number.isFinite(n) && n > 0 ? n : null
 }
