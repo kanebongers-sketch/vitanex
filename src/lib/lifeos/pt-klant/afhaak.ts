@@ -41,11 +41,13 @@ export function bepaalAfhaak(
   klanten: readonly PtKlant[],
   events: readonly PtEvent[],
   vandaag: Date,
+  /** Alle bekende namen (hele CRM) voor de naam-koppeling; standaard de klanten zelf. */
+  alleNamen?: readonly string[],
 ): Afhaak[] {
   const nu = vandaag.getTime()
   const vandaagKey = datumSleutel(vandaag)
 
-  const namen = klanten.map((k) => k.naam)
+  const namen = alleNamen ?? klanten.map((k) => k.naam)
   const uit: Afhaak[] = []
   for (const k of klanten) {
     const opVakantie = k.vakantieTot !== null && vandaagKey <= k.vakantieTot

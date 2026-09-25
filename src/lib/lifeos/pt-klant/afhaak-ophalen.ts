@@ -50,7 +50,7 @@ export async function haalPtSignalen(
 
     const events: PtEvent[] = gelezen.events.map((e) => ({ titel: e.titel, startOp: e.startOp.toISOString() }))
     return {
-      afhaak: bepaalAfhaak(ptKlantenUit(personen), events, nu),
+      afhaak: bepaalAfhaak(ptKlantenUit(personen), events, nu, personen.map((p) => p.naam)),
       statusHints: bepaalStatusHints(personen, events, nu),
       onbekend: bepaalOnbekendePtSessies(personen, events, nu),
     }

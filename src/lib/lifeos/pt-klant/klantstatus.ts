@@ -71,9 +71,9 @@ export function bepaalStatusHints(
   nu: Date,
 ): PtStatusHint[] {
   const nuMs = nu.getTime()
-  // Alle PT-namen (ook actief/inactief): een duo-titel hoort bij het duo, wie de
-  // status ook heeft.
-  const namen = personen.filter((p) => p.groep === 'pt_klant').map((p) => p.naam)
+  // Álle CRM-namen: een duo-titel hoort bij het duo (wie de status ook heeft), en
+  // een voornaam telt alleen als niemand anders in je CRM zo heet.
+  const namen = personen.map((p) => p.naam)
   const uit: PtStatusHint[] = []
 
   for (const p of personen) {

@@ -82,12 +82,13 @@ export async function GET(req: NextRequest) {
   const vandaagKey = `${nu.getFullYear()}-${String(nu.getMonth() + 1).padStart(2, '0')}-${String(nu.getDate()).padStart(2, '0')}`
 
   const klanten = ptKlantenUit(personen.waarde)
+  const alleNamen = personen.waarde.map((p) => p.naam)
   const ptEvents: PtEvent[] = events.events.map((e) => ({ titel: e.titel, startOp: e.startOp.toISOString() }))
 
   const antwoord: PtKlantenAntwoord = {
     gekoppeld: true,
-    klanten: bepaalWeekStatus(klanten, ptEvents, weekVan.toISOString(), vandaagKey),
-    afhaak: bepaalAfhaak(klanten, ptEvents, nu),
+    klanten: bepaalWeekStatus(klanten, ptEvents, weekVan.toISOString(), vandaagKey, alleNamen),
+    afhaak: bepaalAfhaak(klanten, ptEvents, nu, alleNamen),
     statusHints: bepaalStatusHints(personen.waarde, ptEvents, nu),
     onbekend: bepaalOnbekendePtSessies(personen.waarde, ptEvents, nu),
     // Ook komende afspraken: een typfout in volgende week wil je vóór die tijd zien.

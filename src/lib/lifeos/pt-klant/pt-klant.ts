@@ -41,11 +41,7 @@ function isKaleNaam(titel: readonly string[], naam: readonly string[], andereNam
   if (titel.length === 0) return false
   if (gelijk(titel, naam)) return true
   if (titel.length !== 1 || naam[0] !== titel[0]) return false
-  const zelfdeVoornaam = new Set(
-    andereNamen.map((a) => woordTokens(a)).filter((a) => a[0] === titel[0]).map((a) => a.join(' ')),
-  )
-  zelfdeVoornaam.add(naam.join(' '))
-  return zelfdeVoornaam.size === 1
+  return uniekeVoornaam(naam, andereNamen)
 }
 
 /**
@@ -62,12 +58,35 @@ export function matchtPtSessie(titel: string | null, naam: string, andereNamen: 
   const t = woordTokens(titel ?? '')
   const n = woordTokens(naam)
   if (n.length === 0) return false
-  if (!t.includes('pt')) return isKaleNaam(t, n, andereNamen)
-  if (!bevatReeks(t, n)) return false
+  if (!isPtTitel(t)) return isKaleNaam(t, n, andereNamen)
+
+  if (bevatReeks(t, n)) {
+    return !andereNamen.some((ander) => {
+      const a = woordTokens(ander)
+      return a.length > n.length && bevatReeks(a, n) && bevatReeks(t, a)
+    })
+  }
+  // Voornaam-terugval ("Joris - Personal training" voor "Joris Bax"), net als de
+  // CRM-koppeling: alleen als niemand anders in `andereNamen` die voornaam heeft,
+  // en er geen ándere bekende naam volledig in de titel staat.
+  if (n.length < 2 || !t.includes(n[0]) || !uniekeVoornaam(n, andereNamen)) return false
   return !andereNamen.some((ander) => {
     const a = woordTokens(ander)
-    return a.length > n.length && bevatReeks(a, n) && bevatReeks(t, a)
+    return a.length > 0 && a.join(' ') !== n.join(' ') && bevatReeks(t, a)
   })
+}
+
+/** "PT" als los woord, of voluit "personal training" (ook "personaltraining"). */
+function isPtTitel(t: readonly string[]): boolean {
+  return t.includes('pt') || t.includes('personaltraining') || bevatReeks(t, ['personal', 'training'])
+}
+
+function uniekeVoornaam(naam: readonly string[], andereNamen: readonly string[]): boolean {
+  const zelfde = new Set(
+    andereNamen.map((a) => woordTokens(a)).filter((a) => a[0] === naam[0]).map((a) => a.join(' ')),
+  )
+  zelfde.add(naam.join(' '))
+  return zelfde.size === 1
 }
 
 /**
@@ -138,6 +157,8 @@ export function bepaalWeekStatus(
   events: readonly PtEvent[],
   weekVanISO: string,
   vandaagKey: string,
+  /** Alle bekende namen (hele CRM) voor de naam-koppeling; standaard de klanten zelf. */
+  alleNamen?: readonly string[],
 ): PtWeekStatus[] {
   const WEEK_MS = 7 * 24 * 60 * 60 * 1000
   const weekVan = new Date(weekVanISO).getTime()
@@ -145,7 +166,7 @@ export function bepaalWeekStatus(
   const vorigeVan = weekVan - WEEK_MS
   const volgendeTot = weekTot + WEEK_MS
 
-  const namen = klanten.map((k) => k.naam)
+  const namen = alleNamen ?? klanten.map((k) => k.naam)
   return klanten.map((k) => {
     const { nodig, weken } = cadans(k.abonnement)
     const vensterVan = weken === 2 ? vorigeVan : weekVan

@@ -42,15 +42,35 @@ describe('matchtPtSessie', () => {
     expect(matchtPtSessie('Optie Iris', 'Iris')).toBe(false)
     expect(matchtPtSessie('PT-sessie Iris', 'Iris')).toBe(true)
   })
-  test('meerdelige naam moet aaneengesloten staan', () => {
-    expect(matchtPtSessie('John Van Der Sanden PT', 'John Van Der Sanden')).toBe(true)
-    expect(matchtPtSessie('John en Van Der Sanden PT', 'John Van Der Sanden')).toBe(false)
+  test('meerdelige naam: aaneengesloten telt altijd; los alleen via een unieke voornaam', () => {
+    const tweeJohns = ['John Van Der Sanden', 'John Smit']
+    expect(matchtPtSessie('John Van Der Sanden PT', 'John Van Der Sanden', tweeJohns)).toBe(true)
+    // "John" is hier niet uniek → de losse delen tellen niet.
+    expect(matchtPtSessie('John en Van Der Sanden PT', 'John Van Der Sanden', tweeJohns)).toBe(false)
   })
   test('een langere klantnaam in de titel wint: "Ellen" krijgt geen krediet voor het duo', () => {
     const namen = ['Ellen', 'Marjan en Ellen']
     expect(matchtPtSessie('Marjan en Ellen PT', 'Ellen', namen)).toBe(false)
     expect(matchtPtSessie('Marjan en Ellen PT', 'Marjan en Ellen', namen)).toBe(true)
     expect(matchtPtSessie('Ellen PT', 'Ellen', namen)).toBe(true)
+  })
+  test('"Personal training" voluit telt als PT', () => {
+    expect(matchtPtSessie('Joris Bax - Personal training', 'Joris Bax')).toBe(true)
+    expect(matchtPtSessie('Personaltraining Joris Bax', 'Joris Bax')).toBe(true)
+    expect(matchtPtSessie('Training Joris Bax', 'Joris Bax')).toBe(false)
+  })
+  test('unieke voornaam in een PT-titel telt ("Joris - Personal training" voor Joris Bax)', () => {
+    const crm = ['Joris Bax', 'Kevin', 'Iris']
+    expect(matchtPtSessie('Joris - Personal training', 'Joris Bax', crm)).toBe(true)
+    expect(matchtPtSessie('Joris PT', 'Joris Bax', crm)).toBe(true)
+  })
+  test('voornaam die iemand anders in je CRM óók heeft → telt niet (coachgesprek met teamlid Iris)', () => {
+    const crm = ['Iris Jansen', 'Iris'] // klant Iris Jansen, PT-teamlid Iris
+    expect(matchtPtSessie('Coachgesprek PT - Kane (Iris)', 'Iris Jansen', crm)).toBe(false)
+  })
+  test('voornaam-terugval niet als een ándere bekende naam volledig in de titel staat', () => {
+    const crm = ['Joris Bax', 'Kevin']
+    expect(matchtPtSessie('PT Kevin (vervangt Joris)', 'Joris Bax', crm)).toBe(false)
   })
   test('twee losse klanten in één sessie krijgen allebei krediet', () => {
     const namen = ['Kevin', 'Sanne']
