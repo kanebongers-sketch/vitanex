@@ -2515,6 +2515,19 @@ body {
   cursor: pointer;
 }
 
+.os-crm__dubbel {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: var(--brand);
+}
+
+/* Leeg: uit de grid-flow (geen lege gap), maar wél in de boom — zo blijft de
+   aria-live-regio bestaan en wordt de waarschuwing voorgelezen zodra hij komt. */
+.os-crm__dubbel:empty {
+  position: absolute;
+}
+
 .os-crm__meer {
   justify-self: start;
   display: inline-flex;

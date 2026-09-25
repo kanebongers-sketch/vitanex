@@ -110,7 +110,7 @@ export function GroepBord({ groep }: { groep: Groep }) {
 
   return (
     <div className="os-crm__groep">
-      <NieuwePersoon groep={groep} bezig={mensen.bezig} onToevoegen={mensen.voegToe} />
+      <NieuwePersoon groep={groep} bezig={mensen.bezig} personen={personen} onToevoegen={mensen.voegToe} />
 
       {/* Weergave-schakelaar: ritme (belronde) of pipeline (kanban). Pas zichtbaar
           zodra er iemand ís — een leeg bord hoeft geen keuze. */}

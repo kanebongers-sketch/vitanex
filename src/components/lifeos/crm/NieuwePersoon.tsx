@@ -11,8 +11,10 @@ import {
   MAX_EMAIL,
   MAX_BIJZONDERHEDEN,
   type Groep,
+  type Persoon,
 } from '@/lib/lifeos/crm/crm'
 import type { NieuwePersoonInvoer } from './useMensen'
+import { bestaandeNaamgenoot } from './dubbel'
 
 // Iemand toevoegen aan de groep. Presentationeel: velden erin, één callback
 // eruit. Naam + status staan altijd zichtbaar; de rest (contact, follow-up,
@@ -22,10 +24,12 @@ import type { NieuwePersoonInvoer } from './useMensen'
 interface NieuwePersoonProps {
   groep: Groep
   bezig: boolean
+  /** De mensen die al in deze groep staan — voor de dubbele-naam-waarschuwing. */
+  personen: readonly Persoon[]
   onToevoegen: (invoer: NieuwePersoonInvoer) => Promise<boolean>
 }
 
-export function NieuwePersoon({ groep, bezig, onToevoegen }: NieuwePersoonProps) {
+export function NieuwePersoon({ groep, bezig, personen, onToevoegen }: NieuwePersoonProps) {
   const statussen = statussenVoorGroep(groep)
   const [naam, setNaam] = useState('')
   const [status, setStatus] = useState(() => beginStatus(groep))
@@ -36,6 +40,8 @@ export function NieuwePersoon({ groep, bezig, onToevoegen }: NieuwePersoonProps)
   const [meer, setMeer] = useState(false)
 
   const kanVersturen = naam.trim().length > 0 && !bezig
+  // Waarschuwen, niet blokkeren: twee echte mensen mogen dezelfde naam hebben.
+  const naamgenoot = bestaandeNaamgenoot(naam, personen)
 
   async function verstuur(e: FormEvent) {
     e.preventDefault()
@@ -75,6 +81,7 @@ export function NieuwePersoon({ groep, bezig, onToevoegen }: NieuwePersoonProps)
           onChange={(e) => setNaam(e.target.value)}
           placeholder="Naam toevoegen…"
           maxLength={MAX_NAAM}
+          aria-describedby={naamgenoot ? 'crm-naam-dubbel' : undefined}
         />
         <label htmlFor="crm-status" className="sr-only">
           Startstatus
@@ -93,9 +100,13 @@ export function NieuwePersoon({ groep, bezig, onToevoegen }: NieuwePersoonProps)
         </select>
         <Knop type="submit" variant="primair" disabled={!kanVersturen}>
           <UserPlus size={14} strokeWidth={2.2} aria-hidden="true" />
-          {bezig ? 'Bezig…' : 'Toevoegen'}
+          {bezig ? 'Bezig…' : naamgenoot ? 'Toch toevoegen' : 'Toevoegen'}
         </Knop>
       </div>
+
+      <p id="crm-naam-dubbel" className="os-crm__dubbel" aria-live="polite">
+        {naamgenoot ? `${naamgenoot.naam} staat al in deze groep — zelfde persoon? Open dan die kaart.` : null}
+      </p>
 
       <button
         type="button"
