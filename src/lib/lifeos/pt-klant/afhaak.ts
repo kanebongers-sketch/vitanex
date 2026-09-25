@@ -45,6 +45,7 @@ export function bepaalAfhaak(
   const nu = vandaag.getTime()
   const vandaagKey = datumSleutel(vandaag)
 
+  const namen = klanten.map((k) => k.naam)
   const uit: Afhaak[] = []
   for (const k of klanten) {
     const opVakantie = k.vakantieTot !== null && vandaagKey <= k.vakantieTot
@@ -53,7 +54,7 @@ export function bepaalAfhaak(
     // De laatste sessie tot nu (toekomstige boekingen tellen niet als "gezien").
     let laatste = Number.NEGATIVE_INFINITY
     for (const e of events) {
-      if (!matchtPtSessie(e.titel, k.naam)) continue
+      if (!matchtPtSessie(e.titel, k.naam, namen)) continue
       const t = new Date(e.startOp).getTime()
       if (Number.isNaN(t) || t > nu) continue
       if (t > laatste) laatste = t

@@ -4,8 +4,9 @@
 // ABONNEMENT (1×/week, 2×/week of 1×/2 weken). Zo vergeet je niemand.
 
 import type { Abonnement, PtLocatie } from '../crm/crm'
+import { bevatReeks, woordTokens } from '../crm/agenda-match'
 import type { Afhaak } from './afhaak'
-import type { PtStatusHint } from './klantstatus'
+import type { OnbekendePtSessie, PtStatusHint } from './klantstatus'
 
 export const LOCATIE_LABEL: Record<PtLocatie, string> = {
   bergeijk: 'Bergeijk',
@@ -25,20 +26,48 @@ export function ptSessieTitel(naam: string, locatie: PtLocatie | null): string {
   return `PT ${naam.trim()}${loc}`
 }
 
-function normaliseer(s: string): string {
-  return s.trim().toLowerCase()
+function gelijk(a: readonly string[], b: readonly string[]): boolean {
+  return a.length === b.length && a.every((x, i) => x === b[i])
 }
 
 /**
- * Herkent een PT-sessie met déze klant aan de titel: er staat een los "pt"-woord
- * in én de naam van de klant. Losjes (substring, hoofdletterongevoelig).
+ * Een titel die ALLEEN uit de naam van de klant bestaat ("Atousa Oweisie", of
+ * "Atousa" als geen andere klant zo heet) is ook een PT-sessie: zo zet je een
+ * PT-klant vaak in je agenda, en de auto-hernoem behandelt precies zo'n kale naam
+ * al als PT-sessie (hij maakt er "Naam PT" van). Tellen en hernoemen zijn het nu
+ * eens. Een voornaam die meerdere klanten delen is dubbelzinnig → telt niet.
  */
-export function matchtPtSessie(titel: string | null, naam: string): boolean {
-  if (!titel) return false
-  const n = normaliseer(naam)
+function isKaleNaam(titel: readonly string[], naam: readonly string[], andereNamen: readonly string[]): boolean {
+  if (titel.length === 0) return false
+  if (gelijk(titel, naam)) return true
+  if (titel.length !== 1 || naam[0] !== titel[0]) return false
+  const zelfdeVoornaam = new Set(
+    andereNamen.map((a) => woordTokens(a)).filter((a) => a[0] === titel[0]).map((a) => a.join(' ')),
+  )
+  zelfdeVoornaam.add(naam.join(' '))
+  return zelfdeVoornaam.size === 1
+}
+
+/**
+ * Herkent een PT-sessie met déze klant aan de titel: er staat een los woord "pt"
+ * in én de naam van de klant als hele woorden, aaneengesloten ("Tom" telt niet in
+ * "Tomas PT"). Hoofdletter-ongevoelig.
+ *
+ * `andereNamen`: de namen van je andere PT-klanten. Staat er in de titel een
+ * LANGERE klantnaam die deze naam bevat, dan is het diens sessie — een klant
+ * "Ellen" krijgt geen krediet voor "Marjan en Ellen PT" als "Marjan en Ellen" zelf
+ * een klant is.
+ */
+export function matchtPtSessie(titel: string | null, naam: string, andereNamen: readonly string[] = []): boolean {
+  const t = woordTokens(titel ?? '')
+  const n = woordTokens(naam)
   if (n.length === 0) return false
-  const t = normaliseer(titel)
-  return /\bpt\b/.test(t) && t.includes(n)
+  if (!t.includes('pt')) return isKaleNaam(t, n, andereNamen)
+  if (!bevatReeks(t, n)) return false
+  return !andereNamen.some((ander) => {
+    const a = woordTokens(ander)
+    return a.length > n.length && bevatReeks(a, n) && bevatReeks(t, a)
+  })
 }
 
 /**
@@ -116,12 +145,13 @@ export function bepaalWeekStatus(
   const vorigeVan = weekVan - WEEK_MS
   const volgendeTot = weekTot + WEEK_MS
 
+  const namen = klanten.map((k) => k.naam)
   return klanten.map((k) => {
     const { nodig, weken } = cadans(k.abonnement)
     const vensterVan = weken === 2 ? vorigeVan : weekVan
     const vensterTot = weken === 2 ? volgendeTot : weekTot
     const ingepland = events.filter((e) => {
-      if (!matchtPtSessie(e.titel, k.naam)) return false
+      if (!matchtPtSessie(e.titel, k.naam, namen)) return false
       const t = new Date(e.startOp).getTime()
       return t >= vensterVan && t < vensterTot
     }).length
@@ -154,6 +184,8 @@ export type PtKlantenAntwoord =
       afhaak: Afhaak[]
       /** Traint al, maar staat nog als prospect (zie `klantstatus.ts`). */
       statusHints: PtStatusHint[]
+      /** PT-sessies met iemand die niet in je CRM staat (zie `klantstatus.ts`). */
+      onbekend: OnbekendePtSessie[]
     }
 
 function isObject(v: unknown): v is Record<string, unknown> {
@@ -217,6 +249,15 @@ function leesStatusHint(ruw: unknown): PtStatusHint | null {
   return { id, naam, status, statusLabel, sessies }
 }
 
+function leesOnbekend(ruw: unknown): OnbekendePtSessie | null {
+  if (!isObject(ruw)) return null
+  const titel = tekstOfNull(ruw.titel)
+  const laatsteOp = tekstOfNull(ruw.laatsteOp)
+  const aantal = heelGetal(ruw.aantal)
+  if (titel === null || laatsteOp === null || aantal === null) return null
+  return { titel, aantal, laatsteOp }
+}
+
 /** Het antwoord van `GET /api/lifeos/pt-klanten`, of null als het niet klopt. */
 export function leesPtKlanten(ruw: unknown): PtKlantenAntwoord | null {
   if (!isObject(ruw)) return null
@@ -233,5 +274,14 @@ export function leesPtKlanten(ruw: unknown): PtKlantenAntwoord | null {
   const statusHints = Array.isArray(ruw.statusHints)
     ? ruw.statusHints.map(leesStatusHint).filter((h): h is PtStatusHint => h !== null)
     : []
-  return { gekoppeld: true, klanten: klanten.filter((k): k is PtWeekStatus => k !== null), afhaak, statusHints }
+  const onbekend = Array.isArray(ruw.onbekend)
+    ? ruw.onbekend.map(leesOnbekend).filter((o): o is OnbekendePtSessie => o !== null)
+    : []
+  return {
+    gekoppeld: true,
+    klanten: klanten.filter((k): k is PtWeekStatus => k !== null),
+    afhaak,
+    statusHints,
+    onbekend,
+  }
 }

@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { crmOpvolging, factuurAandacht, inboxAandacht, afhaakAandacht, statusHintAandacht, bouwAandacht } from './aandacht'
+import { crmOpvolging, factuurAandacht, inboxAandacht, afhaakAandacht, statusHintAandacht, onbekendAandacht, bouwAandacht } from './aandacht'
 import type { Persoon } from '@/lib/lifeos/crm/crm'
 import type { Factuur } from '@/lib/lifeos/finance/finance'
 import type { Afhaak } from '@/lib/lifeos/pt-klant/afhaak'
@@ -186,7 +186,7 @@ describe('bouwAandacht', () => {
       [factuur({ vervaldatum: '2026-09-01' })],
       VANDAAG,
       3,
-      [afhaak({ naam: 'Kevin', wekenGeleden: 3 })],
+      { afhaak: [afhaak({ naam: 'Kevin', wekenGeleden: 3 })] },
     )
     expect(punten[0].tekst).toContain('Sanne')
     expect(punten[1].tekst).toContain('Kevin')
@@ -228,10 +228,21 @@ describe('statusHintAandacht', () => {
       [factuur({ vervaldatum: '2026-09-01' })],
       VANDAAG,
       2,
-      [],
-      [hint()],
+      { statusHints: [hint()] },
     )
     expect(punten[punten.length - 1].tekst).toContain('Joris Bax traint al')
     expect(punten[0].tekst).toContain('Sanne')
+  })
+})
+
+describe('onbekendAandacht', () => {
+  test('noemt de titel, aantal en laatste dag, niet dringend', () => {
+    const punten = onbekendAandacht([{ titel: 'Darren PT', aantal: 2, laatsteOp: '2026-09-25T08:00:00.000Z' }])
+    expect(punten).toEqual([{ tekst: '"Darren PT" (2×, laatst 25 sep) — staat nog niet in je CRM', dringend: false }])
+  })
+
+  test('één keer → geen "1×"', () => {
+    const [p] = onbekendAandacht([{ titel: 'Darren PT', aantal: 1, laatsteOp: '2026-09-25T08:00:00.000Z' }])
+    expect(p.tekst).toBe('"Darren PT" (laatst 25 sep) — staat nog niet in je CRM')
   })
 })

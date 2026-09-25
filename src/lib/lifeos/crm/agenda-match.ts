@@ -19,12 +19,12 @@ export type PersoonMatch =
   | { soort: 'ambigu'; kandidaten: Persoon[] }
 
 /** Woord-tokens, lowercase, inclusief accenten (é, ï). Leestekens vallen weg. */
-function tokens(tekst: string): string[] {
+export function woordTokens(tekst: string): string[] {
   return tekst.toLowerCase().match(/\p{L}+/gu) ?? []
 }
 
 /** Komt `naald` (een reeks tokens) aaneengesloten voor in `hooiberg`? */
-function bevatReeks(hooiberg: readonly string[], naald: readonly string[]): boolean {
+export function bevatReeks(hooiberg: readonly string[], naald: readonly string[]): boolean {
   if (naald.length === 0) return false
   for (let i = 0; i + naald.length <= hooiberg.length; i++) {
     let gelijk = true
@@ -45,12 +45,12 @@ function bevatReeks(hooiberg: readonly string[], naald: readonly string[]): bool
  * telt niet ("Tom" matcht niet in "Tomaten").
  */
 export function matchPersoonInTitel(titel: string | null, personen: readonly Persoon[]): PersoonMatch {
-  const titelTokens = tokens(titel ?? '')
+  const titelTokens = woordTokens(titel ?? '')
   if (titelTokens.length === 0) return { soort: 'geen' }
 
   // 1) Volledige naam, aaneengesloten. Wint van een losse voornaam.
   const volledig = personen.filter((p) => {
-    const naamTokens = tokens(p.naam)
+    const naamTokens = woordTokens(p.naam)
     return naamTokens.length > 0 && bevatReeks(titelTokens, naamTokens)
   })
   if (volledig.length === 1) return { soort: 'match', persoon: volledig[0] }
@@ -58,7 +58,7 @@ export function matchPersoonInTitel(titel: string | null, personen: readonly Per
 
   // 2) Unieke voornaam (eerste naamdeel) als los woord in de titel.
   const voornaam = personen.filter((p) => {
-    const naamTokens = tokens(p.naam)
+    const naamTokens = woordTokens(p.naam)
     return naamTokens.length > 0 && titelTokens.includes(naamTokens[0])
   })
   if (voornaam.length === 1) return { soort: 'match', persoon: voornaam[0] }
@@ -137,8 +137,8 @@ export function bepaalHernoem(
   if (huidige === canoniek) return null // al goed — nooit opnieuw schrijven
 
   // Alleen een kale naam: elk woord in de titel is een naam-woord van deze persoon.
-  const titelTokens = tokens(huidige)
-  const naamTokens = tokens(match.persoon.naam)
+  const titelTokens = woordTokens(huidige)
+  const naamTokens = woordTokens(match.persoon.naam)
   const kaleNaam = titelTokens.length > 0 && titelTokens.every((t) => naamTokens.includes(t))
   if (!kaleNaam) return null
 

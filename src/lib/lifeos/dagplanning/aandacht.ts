@@ -12,7 +12,7 @@
 import type { Persoon } from '@/lib/lifeos/crm/crm'
 import type { Factuur } from '@/lib/lifeos/finance/finance'
 import type { Afhaak } from '@/lib/lifeos/pt-klant/afhaak'
-import type { PtStatusHint } from '@/lib/lifeos/pt-klant/klantstatus'
+import type { OnbekendePtSessie, PtStatusHint } from '@/lib/lifeos/pt-klant/klantstatus'
 import { naarCenten, naarEuro } from '@/lib/lifeos/finance/finance'
 
 /** Eén regel voor de "Vraagt je aandacht"-sectie. */
@@ -107,6 +107,31 @@ export function statusHintAandacht(hints: readonly PtStatusHint[]): Aandachtspun
   return punten
 }
 
+const DAG_KORT = new Intl.DateTimeFormat('nl-NL', { day: 'numeric', month: 'short', timeZone: 'Europe/Amsterdam' })
+
+/**
+ * PT-sessies met iemand die niet in je CRM staat (zie `pt-klant/klantstatus`):
+ * die klant is onzichtbaar voor je planning en signalen tot je 'm toevoegt.
+ */
+export function onbekendAandacht(onbekend: readonly OnbekendePtSessie[]): Aandachtspunt[] {
+  const punten: Aandachtspunt[] = onbekend.slice(0, HINT_LIMIET).map((o) => ({
+    tekst: `"${o.titel}" (${o.aantal === 1 ? '' : `${o.aantal}×, `}laatst ${DAG_KORT.format(new Date(o.laatsteOp))}) — staat nog niet in je CRM`,
+    dringend: false,
+  }))
+  const rest = onbekend.length - HINT_LIMIET
+  if (rest > 0) {
+    punten.push({ tekst: `en nog ${rest} PT-${rest === 1 ? 'sessie' : 'sessies'} met iemand buiten je CRM`, dringend: false })
+  }
+  return punten
+}
+
+/** De PT-signalen voor de mail, allemaal optioneel (niet nagegaan = leeg). */
+export interface PtAandacht {
+  afhaak?: readonly Afhaak[]
+  statusHints?: readonly PtStatusHint[]
+  onbekend?: readonly OnbekendePtSessie[]
+}
+
 /**
  * Eén samenvattende factuurregel, of `null` als er niets openstaat.
  *
@@ -163,17 +188,17 @@ export function bouwAandacht(
   facturen: readonly Factuur[],
   vandaagKey: string,
   inboxActie: number | null = null,
-  afhaak: readonly Afhaak[] = [],
-  statusHints: readonly PtStatusHint[] = [],
+  pt: PtAandacht = {},
 ): Aandachtspunt[] {
   const inbox = inboxAandacht(inboxActie)
   const factuur = factuurAandacht(facturen, vandaagKey)
   return [
     ...crmOpvolging(personen, vandaagKey),
-    ...afhaakAandacht(afhaak),
+    ...afhaakAandacht(pt.afhaak ?? []),
     ...(inbox ? [inbox] : []),
     ...(factuur ? [factuur] : []),
     // Administratie achteraan: eerst mensen en geld, dan "je CRM loopt achter".
-    ...statusHintAandacht(statusHints),
+    ...statusHintAandacht(pt.statusHints ?? []),
+    ...onbekendAandacht(pt.onbekend ?? []),
   ]
 }

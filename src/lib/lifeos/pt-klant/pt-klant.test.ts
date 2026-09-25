@@ -18,8 +18,44 @@ describe('matchtPtSessie', () => {
   test('een gewone afspraak met de naam telt niet — er moet "pt" bij', () => {
     expect(matchtPtSessie('Lunch met Iris', 'Iris')).toBe(false)
   })
+  test('een kale naam (alleen de naam) is ook een PT-sessie — zoals de auto-hernoem het ziet', () => {
+    expect(matchtPtSessie('Atousa Oweisie', 'Atousa Oweisie')).toBe(true)
+    expect(matchtPtSessie('Atousa', 'Atousa Oweisie', ['Atousa Oweisie', 'Kevin'])).toBe(true)
+  })
+  test('kale voornaam die twee klanten delen is dubbelzinnig → telt niet', () => {
+    const namen = ['Kevin Jansen', 'Kevin de Vries']
+    expect(matchtPtSessie('Kevin', 'Kevin Jansen', namen)).toBe(false)
+  })
+  test('kale achternaam of een deel van de naam telt niet', () => {
+    expect(matchtPtSessie('Oweisie', 'Atousa Oweisie')).toBe(false)
+    expect(matchtPtSessie('Atousa bellen', 'Atousa Oweisie')).toBe(false)
+  })
   test('matcht niet de sessie van een andere klant', () => {
     expect(matchtPtSessie('PT Rick', 'Iris')).toBe(false)
+  })
+  test('hele woorden: "Tom" telt niet in "Tomas PT" of "Atom PT"', () => {
+    expect(matchtPtSessie('Tomas PT', 'Tom')).toBe(false)
+    expect(matchtPtSessie('Atom PT', 'Tom')).toBe(false)
+    expect(matchtPtSessie('Tom PT', 'Tom')).toBe(true)
+  })
+  test('"pt" moet een los woord zijn', () => {
+    expect(matchtPtSessie('Optie Iris', 'Iris')).toBe(false)
+    expect(matchtPtSessie('PT-sessie Iris', 'Iris')).toBe(true)
+  })
+  test('meerdelige naam moet aaneengesloten staan', () => {
+    expect(matchtPtSessie('John Van Der Sanden PT', 'John Van Der Sanden')).toBe(true)
+    expect(matchtPtSessie('John en Van Der Sanden PT', 'John Van Der Sanden')).toBe(false)
+  })
+  test('een langere klantnaam in de titel wint: "Ellen" krijgt geen krediet voor het duo', () => {
+    const namen = ['Ellen', 'Marjan en Ellen']
+    expect(matchtPtSessie('Marjan en Ellen PT', 'Ellen', namen)).toBe(false)
+    expect(matchtPtSessie('Marjan en Ellen PT', 'Marjan en Ellen', namen)).toBe(true)
+    expect(matchtPtSessie('Ellen PT', 'Ellen', namen)).toBe(true)
+  })
+  test('twee losse klanten in één sessie krijgen allebei krediet', () => {
+    const namen = ['Kevin', 'Sanne']
+    expect(matchtPtSessie('PT Kevin en Sanne', 'Kevin', namen)).toBe(true)
+    expect(matchtPtSessie('PT Kevin en Sanne', 'Sanne', namen)).toBe(true)
   })
 })
 
@@ -133,5 +169,19 @@ describe('leesPtKlanten — statusHints', () => {
   test('oud antwoord zonder statusHints → lege lijst', () => {
     const uit = leesPtKlanten({ gekoppeld: true, klanten: [status] })
     expect(uit?.gekoppeld && uit.statusHints).toEqual([])
+  })
+})
+
+describe('leesPtKlanten — onbekend', () => {
+  test('leest geldige regels, laat kapotte weg, ontbrekend veld → leeg', () => {
+    const status = { id: 'k1', naam: 'Kevin', nodig: 1, ingepland: 0, tekort: 1 }
+    const uit = leesPtKlanten({
+      gekoppeld: true,
+      klanten: [status],
+      onbekend: [{ titel: 'Darren PT', aantal: 2, laatsteOp: '2026-09-25T08:00:00.000Z' }, { titel: 'x' }],
+    })
+    expect(uit?.gekoppeld && uit.onbekend.map((o) => o.titel)).toEqual(['Darren PT'])
+    const oud = leesPtKlanten({ gekoppeld: true, klanten: [status] })
+    expect(oud?.gekoppeld && oud.onbekend).toEqual([])
   })
 })

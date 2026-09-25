@@ -7,6 +7,7 @@ import { Foutmelding } from '@/components/lifeos/os/Foutmelding'
 import { Knop } from '@/components/lifeos/os/Knop'
 import { AfhaakLijst } from './AfhaakLijst'
 import { StatusHintLijst } from './StatusHintLijst'
+import { OnbekendLijst } from './OnbekendLijst'
 import { useRefreshSignaal } from '@/components/lifeos/os/RefreshContext'
 import { haalJson, leesNiets } from '@/lib/lifeos/api/http'
 import { ABONNEMENTEN, PT_LOCATIES, type Abonnement, type PtLocatie } from '@/lib/lifeos/crm/crm'
@@ -70,6 +71,7 @@ export function PtKlantenKaart() {
           <Overzicht klanten={staat.data.klanten} onVernieuw={laad} />
           <AfhaakLijst afhaak={staat.data.afhaak} />
           <StatusHintLijst hints={staat.data.statusHints} />
+          <OnbekendLijst onbekend={staat.data.onbekend} />
         </div>
       ) : null}
     </Kaart>

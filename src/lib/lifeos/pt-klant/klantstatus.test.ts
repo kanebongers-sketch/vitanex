@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { bepaalStatusHints, ptKlantenUit, telMeeVoorPlanning } from './klantstatus'
+import { bepaalOnbekendePtSessies, bepaalStatusHints, ptKlantenUit, telMeeVoorPlanning } from './klantstatus'
 import type { PtEvent } from './pt-klant'
 import type { Persoon } from '@/lib/lifeos/crm/crm'
 
@@ -103,5 +103,36 @@ describe('bepaalStatusHints', () => {
       NU,
     )
     expect(hints.map((h) => h.naam)).toEqual(['Bram', 'Anna'])
+  })
+})
+
+describe('bepaalOnbekendePtSessies', () => {
+  const crm = [
+    persoon({ naam: 'Kevin', status: 'actieve_klant' }),
+    persoon({ naam: 'Tristan', groep: 'pt_team', status: 'actief' }),
+    persoon({ naam: 'Amey', groep: 'pt_team', status: 'actief' }),
+  ]
+  const ev = (titel: string, dagen: number): PtEvent => ({ titel, startOp: new Date(NU.getTime() - dagen * DAG).toISOString() })
+
+  test('PT-sessie met iemand buiten het CRM → gemeld, met aantal en laatste keer', () => {
+    const uit = bepaalOnbekendePtSessies(crm, [ev('Darren PT', 9), ev('Darren PT', 2)], NU)
+    expect(uit).toEqual([{ titel: 'Darren PT', aantal: 2, laatsteOp: ev('', 2).startOp }])
+  })
+
+  test('bekende mensen — ook uit een andere groep — worden niet gemeld', () => {
+    const uit = bepaalOnbekendePtSessies(
+      crm,
+      [ev('Kevin PT', 1), ev('Tristan PT - Kane', 3), ev('Coachgesprek PT - Kane (Amey)', 4)],
+      NU,
+    )
+    expect(uit).toEqual([])
+  })
+
+  test('geen naam over (alleen PT/locatie/vaste woorden) → niets', () => {
+    expect(bepaalOnbekendePtSessies(crm, [ev('PT Budel', 1), ev('PT sessie', 2)], NU)).toEqual([])
+  })
+
+  test('zonder "pt" of in de toekomst → niet gemeld', () => {
+    expect(bepaalOnbekendePtSessies(crm, [ev('Lunch Darren', 1), ev('Darren PT', -3)], NU)).toEqual([])
   })
 })

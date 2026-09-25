@@ -11,6 +11,7 @@
 
 import type { Persoon } from '@/lib/lifeos/crm/crm'
 import { statusDef } from '@/lib/lifeos/crm/crm'
+import { matchPersoonInTitel, woordTokens } from '@/lib/lifeos/crm/agenda-match'
 import { matchtPtSessie, type PtEvent, type PtKlant } from './pt-klant'
 
 const ACTIEF = 'actieve_klant'
@@ -70,13 +71,16 @@ export function bepaalStatusHints(
   nu: Date,
 ): PtStatusHint[] {
   const nuMs = nu.getTime()
+  // Alle PT-namen (ook actief/inactief): een duo-titel hoort bij het duo, wie de
+  // status ook heeft.
+  const namen = personen.filter((p) => p.groep === 'pt_klant').map((p) => p.naam)
   const uit: PtStatusHint[] = []
 
   for (const p of personen) {
     if (p.groep !== 'pt_klant' || p.status === ACTIEF || p.status === INACTIEF) continue
     const sessies = events.filter((e) => {
       const t = new Date(e.startOp).getTime()
-      return !Number.isNaN(t) && t <= nuMs && matchtPtSessie(e.titel, p.naam)
+      return !Number.isNaN(t) && t <= nuMs && matchtPtSessie(e.titel, p.naam, namen)
     }).length
     if (sessies < HINT_MIN_SESSIES) continue
     uit.push({
@@ -89,4 +93,57 @@ export function bepaalStatusHints(
   }
 
   return uit.sort((a, b) => b.sessies - a.sessies || a.naam.localeCompare(b.naam, 'nl'))
+}
+
+// ─── PT-sessies met iemand die niet in je CRM staat ─────────────────────────
+// "Darren PT" in je agenda, maar geen Darren in je CRM: die klant is onzichtbaar
+// voor je weekplanning, het afhaak-signaal en de categorieën. We melden het, zodat
+// je 'm kunt toevoegen. Alleen als er na het wegstrepen van vaste woorden (PT,
+// jouw naam, locaties, "sessie"…) nog iets naam-achtigs overblijft — een kale
+// "PT Budel" is geen onbekende persoon.
+
+const GEEN_NAAM = new Set([
+  'pt', 'kane', 'sessie', 'training', 'trainen', 'les', 'duo', 'intake', 'proefles', 'proeftraining',
+  'coachgesprek', 'gesprek', 'budel', 'bergeijk', 'someren', 'en', 'met', 'van', 'de', 'het',
+])
+
+export interface OnbekendePtSessie {
+  /** De titel zoals hij het laatst in je agenda stond, bv. "Darren PT". */
+  titel: string
+  aantal: number
+  /** ISO-moment van de laatste keer. */
+  laatsteOp: string
+}
+
+export function bepaalOnbekendePtSessies(
+  personen: readonly Persoon[],
+  events: readonly PtEvent[],
+  nu: Date,
+): OnbekendePtSessie[] {
+  const nuMs = nu.getTime()
+  const perSleutel = new Map<string, OnbekendePtSessie>()
+
+  for (const e of events) {
+    const t = new Date(e.startOp).getTime()
+    if (Number.isNaN(t) || t > nuMs || !e.titel) continue
+    const tokens = woordTokens(e.titel)
+    if (!tokens.includes('pt')) continue
+    const rest = tokens.filter((w) => !GEEN_NAAM.has(w))
+    if (rest.length === 0) continue
+    if (matchPersoonInTitel(e.titel, personen).soort !== 'geen') continue
+
+    const sleutel = rest.join(' ')
+    const bekend = perSleutel.get(sleutel)
+    if (!bekend) {
+      perSleutel.set(sleutel, { titel: e.titel, aantal: 1, laatsteOp: e.startOp })
+    } else {
+      bekend.aantal += 1
+      if (e.startOp > bekend.laatsteOp) {
+        bekend.laatsteOp = e.startOp
+        bekend.titel = e.titel
+      }
+    }
+  }
+
+  return [...perSleutel.values()].sort((a, b) => b.aantal - a.aantal || (a.laatsteOp < b.laatsteOp ? 1 : -1))
 }

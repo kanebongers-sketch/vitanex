@@ -18,7 +18,7 @@ import { haalEvents } from '@/lib/lifeos/agenda/google'
 import { bepaalWeekStatus, type PtEvent, type PtKlantenAntwoord } from '@/lib/lifeos/pt-klant/pt-klant'
 import { bepaalAfhaak } from '@/lib/lifeos/pt-klant/afhaak'
 import { AFHAAK_VENSTER_DAGEN } from '@/lib/lifeos/pt-klant/afhaak-ophalen'
-import { bepaalStatusHints, ptKlantenUit } from '@/lib/lifeos/pt-klant/klantstatus'
+import { bepaalOnbekendePtSessies, bepaalStatusHints, ptKlantenUit } from '@/lib/lifeos/pt-klant/klantstatus'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -41,7 +41,9 @@ export async function GET(req: NextRequest) {
   const toegang = await vereisLifeosToegang(req)
   if (toegang instanceof NextResponse) return toegang
 
-  const personen = await haalPersonen(toegang.admin, toegang.userId, 'pt_klant')
+  // Álle personen: de weekstatus filtert zelf op PT-klanten, maar "onbekende PT-
+  // sessie" moet weten dat bv. een PT-teamlid wél in je CRM staat.
+  const personen = await haalPersonen(toegang.admin, toegang.userId)
   if (!personen.ok) {
     return NextResponse.json({ fout: 'Kon je PT-klanten niet lezen.' }, { status: 502 })
   }
@@ -87,6 +89,7 @@ export async function GET(req: NextRequest) {
     klanten: bepaalWeekStatus(klanten, ptEvents, weekVan.toISOString(), vandaagKey),
     afhaak: bepaalAfhaak(klanten, ptEvents, nu),
     statusHints: bepaalStatusHints(personen.waarde, ptEvents, nu),
+    onbekend: bepaalOnbekendePtSessies(personen.waarde, ptEvents, nu),
   }
   return NextResponse.json(antwoord, { headers: CACHE_HEADERS })
 }

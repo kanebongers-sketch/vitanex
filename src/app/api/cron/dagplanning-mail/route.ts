@@ -149,7 +149,7 @@ async function haalAandacht(
     }),
     haalInboxActie(admin, userId),
   ])
-  return bouwAandacht(personen, facturen.ok ? facturen.waarde : [], vandaagKey, inboxActie, pt.afhaak, pt.statusHints)
+  return bouwAandacht(personen, facturen.ok ? facturen.waarde : [], vandaagKey, inboxActie, pt)
 }
 
 /** De CRM-personen, best-effort: één ophaal, gedeeld door de agenda-koppeling én de aandacht-sectie. */

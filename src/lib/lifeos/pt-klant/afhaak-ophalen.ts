@@ -12,7 +12,13 @@ import type { Persoon } from '@/lib/lifeos/crm/crm'
 import { geldigToken, leesGekozenKalender } from '@/lib/lifeos/agenda/koppeling'
 import { haalEvents } from '@/lib/lifeos/agenda/google'
 import { bepaalAfhaak, type Afhaak } from './afhaak'
-import { bepaalStatusHints, ptKlantenUit, type PtStatusHint } from './klantstatus'
+import {
+  bepaalOnbekendePtSessies,
+  bepaalStatusHints,
+  ptKlantenUit,
+  type OnbekendePtSessie,
+  type PtStatusHint,
+} from './klantstatus'
 import type { PtEvent } from './pt-klant'
 
 /** Het venster dat `bepaalAfhaak` nodig heeft om "gestopt" van "net begonnen" te scheiden. */
@@ -21,9 +27,10 @@ export const AFHAAK_VENSTER_DAGEN = 56
 export interface PtSignalen {
   afhaak: Afhaak[]
   statusHints: PtStatusHint[]
+  onbekend: OnbekendePtSessie[]
 }
 
-const LEEG: PtSignalen = { afhaak: [], statusHints: [] }
+const LEEG: PtSignalen = { afhaak: [], statusHints: [], onbekend: [] }
 
 export async function haalPtSignalen(
   admin: SupabaseClient,
@@ -31,7 +38,6 @@ export async function haalPtSignalen(
   personen: readonly Persoon[],
   nu: Date,
 ): Promise<PtSignalen> {
-  if (!personen.some((p) => p.groep === 'pt_klant')) return LEEG
 
   try {
     const token = await geldigToken(admin, userId)
@@ -46,6 +52,7 @@ export async function haalPtSignalen(
     return {
       afhaak: bepaalAfhaak(ptKlantenUit(personen), events, nu),
       statusHints: bepaalStatusHints(personen, events, nu),
+      onbekend: bepaalOnbekendePtSessies(personen, events, nu),
     }
   } catch (oorzaak) {
     console.error('[pt-signalen] agenda-venster ophalen mislukt', oorzaak)
