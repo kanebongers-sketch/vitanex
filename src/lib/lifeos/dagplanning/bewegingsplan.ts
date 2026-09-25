@@ -6,6 +6,7 @@
 // zodat "wat is er vrij" op precies één plek wordt berekend en getest.
 
 import { vrijeBlokken, werkVenster, type Afspraak, type Venster, type VrijBlok } from '../agenda/vrije-blokken'
+import { isEigenTraining } from '../agenda/training'
 
 /** Sporten: een uur, plus 30 min reistijd = 90 min in de agenda. */
 export const SPORT_MIN = 90
@@ -86,6 +87,15 @@ function kiesWandelSlot(vrije: readonly VrijBlok[], sport: Venster | null): Vens
   )
 }
 
+/** De eerste eigen training van de dag (met tijden), of `null`. */
+function eersteEigenTraining(events: readonly Afspraak[]): Venster | null {
+  const training = events
+    .filter((e) => !e.heleDag && isEigenTraining(e.titel))
+    .sort((a, b) => a.startOp.getTime() - b.startOp.getTime())[0]
+  // Onbekende eindtijd: we verzinnen geen duur — "na de training" = na de start.
+  return training ? { startOp: training.startOp, eindOp: training.eindOp ?? training.startOp } : null
+}
+
 /**
  * Plaatst het sport- en wandelblok in de vrije ruimte van de dag.
  *
@@ -95,6 +105,11 @@ function kiesWandelSlot(vrije: readonly VrijBlok[], sport: Venster | null): Vens
  *
  * `nu` (optioneel): plan niets in het verleden. Draait de cron om 09:00, dan zoekt
  * hij ruimte vanaf 09:00, niet vanaf het begin van het werkvenster.
+ *
+ * Staat er al een eigen training in je agenda ("Rick gym", "Sporten"), dan plannen
+ * we géén extra sportblok — je sport die dag al (25-09: "Sporten 14:00" naast
+ * "Rick gym 17:00"). De wandeling komt dan ná die training. Een PT-sessie met een
+ * klant telt niet als jouw training (zie `isEigenTraining`).
  */
 export function kiesBewegingsblokken(
   events: readonly Afspraak[],
@@ -104,7 +119,8 @@ export function kiesBewegingsblokken(
   const venster = werkVenster(dag)
   const opties = { minMinuten: WANDEL_MIN, nu }
 
-  const sport = kiesSportSlot(vrijeBlokken(events, venster, opties))
+  const eigen = eersteEigenTraining(events)
+  const sport = eigen ? null : kiesSportSlot(vrijeBlokken(events, venster, opties))
 
   const metSport: readonly Afspraak[] = sport
     ? [
@@ -112,7 +128,7 @@ export function kiesBewegingsblokken(
         { id: 'sport-reserve', titel: 'Sport', startOp: sport.startOp, eindOp: sport.eindOp, heleDag: false, locatie: null },
       ]
     : events
-  const wandeling = kiesWandelSlot(vrijeBlokken(metSport, venster, opties), sport)
+  const wandeling = kiesWandelSlot(vrijeBlokken(metSport, venster, opties), sport ?? eigen)
 
   return { sport, wandeling }
 }

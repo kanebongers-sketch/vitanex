@@ -32,6 +32,8 @@
 // tegen iemand wiens wearable simpelweg niet synct, is precies de leugen die
 // MentaForce jarenlang vertelde met een verzonnen `score: 50`.
 
+import { isEigenTraining } from '@/lib/lifeos/agenda/training'
+
 // ─── Invoer ─────────────────────────────────────────────────────────────────
 
 /** Eén dag herstel. Elk meetveld is nullable: `null` = niet gemeten. */
@@ -132,25 +134,8 @@ const URGENTIE: Readonly<Record<SignaalSoort, number>> = Object.freeze({
   'geen-beweging': 20,
 })
 
-/**
- * Titels die op een training wijzen. Bewust kort en bewust conservatief: een
- * gemiste training kost één signaal, een verkeerd herkende training levert
- * advies over een afspraak die geen training is. Het eerste is een gemis, het
- * tweede ondermijnt het vertrouwen in alles wat Vita zegt.
- */
-const TRAINING_WOORDEN: readonly string[] = [
-  // "Sporten (incl. reistijd)" is het blok dat LifeOS zélf inplant (dagplanning-
-  // mail) — zonder dit woord herkende Vita zijn eigen trainingsblok niet.
-  'sporten',
-  'training',
-  'workout',
-  'gym',
-  'sportschool',
-  'fitness',
-  'crossfit',
-  'hardlopen',
-  'hardloop',
-]
+// De trainingsherkenning woont in `agenda/training.ts` (gedeeld met de dagplanning;
+// een PT-sessie met een klant telt daar bewust níet als jouw training).
 
 // ─── Tijd ───────────────────────────────────────────────────────────────────
 // De tijdzone staat hier vast in plaats van dat we op de zone van het proces
@@ -252,8 +237,7 @@ function afspraakNabij(invoer: SignaalInvoer): Signaal | null {
 // ─── Regel 2: kort geslapen én een training gepland ─────────────────────────
 
 function isTraining(titel: string): boolean {
-  const klein = titel.toLowerCase()
-  return TRAINING_WOORDEN.some((woord) => klein.includes(woord))
+  return isEigenTraining(titel)
 }
 
 function korteSlaapTraining(invoer: SignaalInvoer): Signaal | null {

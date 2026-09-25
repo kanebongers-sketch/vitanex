@@ -109,5 +109,20 @@ describe('kiesBewegingsblokken', () => {
     expect(sport && uur(sport.startOp)).toBe(18.5)
     expect(wandeling && uur(wandeling.startOp)).toBe(10)
   })
-})
 
+  test('eigen training in de agenda → geen extra sportblok, wandeling erna (echte dag 25-09)', () => {
+    const { sport, wandeling } = kiesBewegingsblokken([afspraak(14, 15, 'Rick gym')], DAG)
+    expect(sport).toBeNull()
+    expect(wandeling && uur(wandeling.startOp)).toBeGreaterThanOrEqual(15)
+  })
+
+  test('het eigen sportblok van een eerdere run telt ook als training', () => {
+    const { sport } = kiesBewegingsblokken([afspraakM(9, 0, 10, 30, 'Sporten (incl. reistijd)')], DAG)
+    expect(sport).toBeNull()
+  })
+
+  test('een PT-sessie met een klant is geen eigen training', () => {
+    const { sport } = kiesBewegingsblokken([afspraak(9, 10, 'Kevin PT'), afspraak(10, 11, 'Personal training Sanne')], DAG)
+    expect(sport).not.toBeNull()
+  })
+})
