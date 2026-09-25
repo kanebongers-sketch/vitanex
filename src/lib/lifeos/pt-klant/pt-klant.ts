@@ -5,6 +5,7 @@
 
 import type { Abonnement, PtLocatie } from '../crm/crm'
 import type { Afhaak } from './afhaak'
+import type { PtStatusHint } from './klantstatus'
 
 export const LOCATIE_LABEL: Record<PtLocatie, string> = {
   bergeijk: 'Bergeijk',
@@ -151,6 +152,8 @@ export type PtKlantenAntwoord =
       klanten: PtWeekStatus[]
       /** Klanten die afhaken (zie `afhaak.ts`); leeg = niemand of niet nagegaan. */
       afhaak: Afhaak[]
+      /** Traint al, maar staat nog als prospect (zie `klantstatus.ts`). */
+      statusHints: PtStatusHint[]
     }
 
 function isObject(v: unknown): v is Record<string, unknown> {
@@ -203,6 +206,17 @@ function leesAfhaak(ruw: unknown): Afhaak | null {
   return { id, naam, wekenGeleden }
 }
 
+function leesStatusHint(ruw: unknown): PtStatusHint | null {
+  if (!isObject(ruw)) return null
+  const id = tekstOfNull(ruw.id)
+  const naam = tekstOfNull(ruw.naam)
+  const status = tekstOfNull(ruw.status)
+  const statusLabel = tekstOfNull(ruw.statusLabel)
+  const sessies = heelGetal(ruw.sessies)
+  if (id === null || naam === null || status === null || statusLabel === null || sessies === null) return null
+  return { id, naam, status, statusLabel, sessies }
+}
+
 /** Het antwoord van `GET /api/lifeos/pt-klanten`, of null als het niet klopt. */
 export function leesPtKlanten(ruw: unknown): PtKlantenAntwoord | null {
   if (!isObject(ruw)) return null
@@ -216,5 +230,8 @@ export function leesPtKlanten(ruw: unknown): PtKlantenAntwoord | null {
   const afhaak = Array.isArray(ruw.afhaak)
     ? ruw.afhaak.map(leesAfhaak).filter((a): a is Afhaak => a !== null)
     : []
-  return { gekoppeld: true, klanten: klanten.filter((k): k is PtWeekStatus => k !== null), afhaak }
+  const statusHints = Array.isArray(ruw.statusHints)
+    ? ruw.statusHints.map(leesStatusHint).filter((h): h is PtStatusHint => h !== null)
+    : []
+  return { gekoppeld: true, klanten: klanten.filter((k): k is PtWeekStatus => k !== null), afhaak, statusHints }
 }

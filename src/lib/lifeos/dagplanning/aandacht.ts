@@ -12,6 +12,7 @@
 import type { Persoon } from '@/lib/lifeos/crm/crm'
 import type { Factuur } from '@/lib/lifeos/finance/finance'
 import type { Afhaak } from '@/lib/lifeos/pt-klant/afhaak'
+import type { PtStatusHint } from '@/lib/lifeos/pt-klant/klantstatus'
 import { naarCenten, naarEuro } from '@/lib/lifeos/finance/finance'
 
 /** Eén regel voor de "Vraagt je aandacht"-sectie. */
@@ -86,6 +87,26 @@ export function afhaakAandacht(afhaak: readonly Afhaak[]): Aandachtspunt[] {
   return punten
 }
 
+/** Zoveel status-voorstellen bij naam; daarboven één samenvattende regel. */
+const HINT_LIMIET = 3
+
+/**
+ * Je CRM loopt achter: iemand traint al (zie `pt-klant/klantstatus`), maar staat
+ * nog op een prospect-status. Een voorstel, geen actie — LifeOS verandert je CRM
+ * niet zelf. Niet `dringend`: het is administratie, geen mens die wacht.
+ */
+export function statusHintAandacht(hints: readonly PtStatusHint[]): Aandachtspunt[] {
+  const punten: Aandachtspunt[] = hints.slice(0, HINT_LIMIET).map((h) => ({
+    tekst: `${h.naam} traint al (${h.sessies}× in 8 weken) maar staat op "${h.statusLabel}" — zet op Actieve klant?`,
+    dringend: false,
+  }))
+  const rest = hints.length - HINT_LIMIET
+  if (rest > 0) {
+    punten.push({ tekst: `en nog ${rest} ${rest === 1 ? 'klant' : 'klanten'} met een verouderde status`, dringend: false })
+  }
+  return punten
+}
+
 /**
  * Eén samenvattende factuurregel, of `null` als er niets openstaat.
  *
@@ -143,6 +164,7 @@ export function bouwAandacht(
   vandaagKey: string,
   inboxActie: number | null = null,
   afhaak: readonly Afhaak[] = [],
+  statusHints: readonly PtStatusHint[] = [],
 ): Aandachtspunt[] {
   const inbox = inboxAandacht(inboxActie)
   const factuur = factuurAandacht(facturen, vandaagKey)
@@ -151,5 +173,7 @@ export function bouwAandacht(
     ...afhaakAandacht(afhaak),
     ...(inbox ? [inbox] : []),
     ...(factuur ? [factuur] : []),
+    // Administratie achteraan: eerst mensen en geld, dan "je CRM loopt achter".
+    ...statusHintAandacht(statusHints),
   ]
 }

@@ -1,57 +1,54 @@
-// ─── LifeOS — afhaak-signaal ophalen (SERVER-ONLY) ──────────────────────────
-// De I/O-kant van `afhaak.ts`: leest een breed venster (laatste 8 weken) uit je
-// persoonlijke agenda en laat de pure `bepaalAfhaak` beslissen wie afhaakt.
-// Gedeeld door de ochtendmail en de weekmail, zodat beide exact hetzelfde signaal
-// geven. Best-effort: niet gekoppeld, verlopen of onbereikbaar → gewoon geen
-// signalen — nooit een verzonnen zorg, nooit een omgevallen mail.
+// ─── LifeOS — PT-signalen ophalen (SERVER-ONLY) ─────────────────────────────
+// De I/O-kant van de PT-signalen: leest één breed venster (laatste 8 weken) uit je
+// persoonlijke agenda en laat de pure logica beslissen:
+//   - afhaak     (`afhaak.ts`)      — lopende klant, maar al weken niet op PT;
+//   - statusHints (`klantstatus.ts`) — traint al, maar staat nog als prospect.
+// Eén Google-call voor beide. Gedeeld door de ochtendmail en de weekmail, zodat
+// ze exact hetzelfde zeggen. Best-effort: niet gekoppeld, verlopen of onbereikbaar
+// → lege lijsten — nooit een verzonnen zorg, nooit een omgevallen mail.
 
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Persoon } from '@/lib/lifeos/crm/crm'
 import { geldigToken, leesGekozenKalender } from '@/lib/lifeos/agenda/koppeling'
 import { haalEvents } from '@/lib/lifeos/agenda/google'
 import { bepaalAfhaak, type Afhaak } from './afhaak'
-import type { PtKlant, PtEvent } from './pt-klant'
+import { bepaalStatusHints, ptKlantenUit, type PtStatusHint } from './klantstatus'
+import type { PtEvent } from './pt-klant'
 
 /** Het venster dat `bepaalAfhaak` nodig heeft om "gestopt" van "net begonnen" te scheiden. */
 export const AFHAAK_VENSTER_DAGEN = 56
 
-/** De PT-klanten uit je CRM, in de vorm die de PT-logica verwacht. */
-export function ptKlantenUit(personen: readonly Persoon[]): PtKlant[] {
-  return personen
-    .filter((p) => p.groep === 'pt_klant')
-    .map((p) => ({
-      id: p.id,
-      naam: p.naam,
-      email: p.email,
-      abonnement: p.abonnement,
-      duo: p.duo,
-      locatie: p.locatie,
-      vakantieTot: p.vakantieTot,
-    }))
+export interface PtSignalen {
+  afhaak: Afhaak[]
+  statusHints: PtStatusHint[]
 }
 
-export async function haalAfhaak(
+const LEEG: PtSignalen = { afhaak: [], statusHints: [] }
+
+export async function haalPtSignalen(
   admin: SupabaseClient,
   userId: string,
   personen: readonly Persoon[],
   nu: Date,
-): Promise<Afhaak[]> {
-  const klanten = ptKlantenUit(personen)
-  if (klanten.length === 0) return []
+): Promise<PtSignalen> {
+  if (!personen.some((p) => p.groep === 'pt_klant')) return LEEG
 
   try {
     const token = await geldigToken(admin, userId)
-    if (token.staat !== 'ok') return []
+    if (token.staat !== 'ok') return LEEG
     const kalenderId = await leesGekozenKalender(admin, userId)
 
     const van = new Date(nu.getTime() - AFHAAK_VENSTER_DAGEN * 24 * 60 * 60 * 1000)
     const gelezen = await haalEvents(token.toegangstoken, van, nu, kalenderId)
-    if (gelezen.staat !== 'ok') return []
+    if (gelezen.staat !== 'ok') return LEEG
 
     const events: PtEvent[] = gelezen.events.map((e) => ({ titel: e.titel, startOp: e.startOp.toISOString() }))
-    return bepaalAfhaak(klanten, events, nu)
+    return {
+      afhaak: bepaalAfhaak(ptKlantenUit(personen), events, nu),
+      statusHints: bepaalStatusHints(personen, events, nu),
+    }
   } catch (oorzaak) {
-    console.error('[afhaak] agenda-venster ophalen mislukt', oorzaak)
-    return []
+    console.error('[pt-signalen] agenda-venster ophalen mislukt', oorzaak)
+    return LEEG
   }
 }

@@ -33,8 +33,7 @@ import { bouwDagplanningMail, type DagItem, type DagTodo } from '@/lib/lifeos/da
 import { bouwAandacht, type Aandachtspunt } from '@/lib/lifeos/dagplanning/aandacht'
 import { haalPersonen } from '@/lib/lifeos/crm/opslag'
 import type { Persoon } from '@/lib/lifeos/crm/crm'
-import type { Afhaak } from '@/lib/lifeos/pt-klant/afhaak'
-import { haalAfhaak } from '@/lib/lifeos/pt-klant/afhaak-ophalen'
+import { haalPtSignalen, type PtSignalen } from '@/lib/lifeos/pt-klant/afhaak-ophalen'
 import { matchPersoonInTitel, koppelTekst } from '@/lib/lifeos/crm/agenda-match'
 import { haalFacturen } from '@/lib/lifeos/finance/opslag'
 import { geldigToken as geldigMailToken, forceerVernieuwing as forceerMailVernieuwing } from '@/lib/lifeos/inbox/koppeling'
@@ -141,7 +140,7 @@ async function haalAandacht(
   userId: string,
   vandaagKey: string,
   personen: readonly Persoon[],
-  afhaak: readonly Afhaak[],
+  pt: PtSignalen,
 ): Promise<Aandachtspunt[]> {
   const [facturen, inboxActie] = await Promise.all([
     haalFacturen(admin, userId).catch((oorzaak) => {
@@ -150,7 +149,7 @@ async function haalAandacht(
     }),
     haalInboxActie(admin, userId),
   ])
-  return bouwAandacht(personen, facturen.ok ? facturen.waarde : [], vandaagKey, inboxActie, afhaak)
+  return bouwAandacht(personen, facturen.ok ? facturen.waarde : [], vandaagKey, inboxActie, pt.afhaak, pt.statusHints)
 }
 
 /** De CRM-personen, best-effort: één ophaal, gedeeld door de agenda-koppeling én de aandacht-sectie. */
@@ -309,12 +308,12 @@ export async function GET(req: NextRequest): Promise<Response> {
   // dubbeling), niet de hele briefingtekst.
   const vitaSignalen = await haalVitaSignalen(admin, userId, nu)
 
-  // Afhaak-signaal: PT-klanten die je een tijd niet op PT zag. Best-effort — leest
-  // een breed agenda-venster; valt dat om, dan gewoon geen afhaak-regels.
-  const afhaak = await haalAfhaak(admin, userId, personen, nu)
+  // PT-signalen (afhaak + "traint al maar staat als prospect"): één breed agenda-
+  // venster, best-effort — valt dat om, dan gewoon geen PT-regels.
+  const pt = await haalPtSignalen(admin, userId, personen, nu)
 
   // "Vraagt je aandacht": CRM-opvolging + afhaak + inbox + facturen. Best-effort.
-  const aandacht = await haalAandacht(admin, userId, vandaagKey, personen, afhaak)
+  const aandacht = await haalAandacht(admin, userId, vandaagKey, personen, pt)
 
   const mail = bouwDagplanningMail(nu, items, todos, vitaSignalen, aandacht)
 

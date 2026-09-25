@@ -1,8 +1,9 @@
 import { describe, expect, test } from 'vitest'
-import { crmOpvolging, factuurAandacht, inboxAandacht, afhaakAandacht, bouwAandacht } from './aandacht'
+import { crmOpvolging, factuurAandacht, inboxAandacht, afhaakAandacht, statusHintAandacht, bouwAandacht } from './aandacht'
 import type { Persoon } from '@/lib/lifeos/crm/crm'
 import type { Factuur } from '@/lib/lifeos/finance/finance'
 import type { Afhaak } from '@/lib/lifeos/pt-klant/afhaak'
+import type { PtStatusHint } from '@/lib/lifeos/pt-klant/klantstatus'
 
 const VANDAAG = '2026-09-14'
 
@@ -200,5 +201,37 @@ describe('bouwAandacht', () => {
 
   test('alles leeg = geen punten', () => {
     expect(bouwAandacht([], [], VANDAAG)).toEqual([])
+  })
+})
+
+function hint(over: Partial<PtStatusHint> = {}): PtStatusHint {
+  return { id: 'j', naam: 'Joris Bax', status: 'moet_benaderen', statusLabel: 'Moet benaderen', sessies: 5, ...over }
+}
+
+describe('statusHintAandacht', () => {
+  test('een voorstel per klant, niet dringend, met sessies en statusnaam', () => {
+    expect(statusHintAandacht([hint()])).toEqual([
+      { tekst: 'Joris Bax traint al (5× in 8 weken) maar staat op "Moet benaderen" — zet op Actieve klant?', dringend: false },
+    ])
+  })
+
+  test('boven de limiet één samenvattende regel', () => {
+    const vier = Array.from({ length: 4 }, (_, i) => hint({ id: `h${i}`, naam: `K${i}` }))
+    const punten = statusHintAandacht(vier)
+    expect(punten).toHaveLength(4)
+    expect(punten[3].tekst).toBe('en nog 1 klant met een verouderde status')
+  })
+
+  test('staat achteraan in bouwAandacht (administratie na mensen en geld)', () => {
+    const punten = bouwAandacht(
+      [persoon({ naam: 'Sanne', followUpDatum: VANDAAG })],
+      [factuur({ vervaldatum: '2026-09-01' })],
+      VANDAAG,
+      2,
+      [],
+      [hint()],
+    )
+    expect(punten[punten.length - 1].tekst).toContain('Joris Bax traint al')
+    expect(punten[0].tekst).toContain('Sanne')
   })
 })

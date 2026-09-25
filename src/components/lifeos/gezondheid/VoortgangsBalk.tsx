@@ -25,7 +25,6 @@ export function VoortgangsBalk({ label, gelogd, doel, eenheid, kleur = 'var(--br
   const heeftDoel = doel !== null && doel > 0
   const over = heeftDoel && gelogd > (doel as number)
   const fractie = heeftDoel ? Math.min(1, gelogd / (doel as number)) : 0
-  const pct = Math.round(fractie * 100)
   const vulKleur = over ? 'var(--status-warning)' : kleur
 
   return (

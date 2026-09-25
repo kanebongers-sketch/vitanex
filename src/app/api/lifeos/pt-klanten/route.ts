@@ -17,7 +17,8 @@ import { geldigToken, leesGekozenKalender } from '@/lib/lifeos/agenda/koppeling'
 import { haalEvents } from '@/lib/lifeos/agenda/google'
 import { bepaalWeekStatus, type PtEvent, type PtKlantenAntwoord } from '@/lib/lifeos/pt-klant/pt-klant'
 import { bepaalAfhaak } from '@/lib/lifeos/pt-klant/afhaak'
-import { AFHAAK_VENSTER_DAGEN, ptKlantenUit } from '@/lib/lifeos/pt-klant/afhaak-ophalen'
+import { AFHAAK_VENSTER_DAGEN } from '@/lib/lifeos/pt-klant/afhaak-ophalen'
+import { bepaalStatusHints, ptKlantenUit } from '@/lib/lifeos/pt-klant/klantstatus'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -85,6 +86,7 @@ export async function GET(req: NextRequest) {
     gekoppeld: true,
     klanten: bepaalWeekStatus(klanten, ptEvents, weekVan.toISOString(), vandaagKey),
     afhaak: bepaalAfhaak(klanten, ptEvents, nu),
+    statusHints: bepaalStatusHints(personen.waarde, ptEvents, nu),
   }
   return NextResponse.json(antwoord, { headers: CACHE_HEADERS })
 }

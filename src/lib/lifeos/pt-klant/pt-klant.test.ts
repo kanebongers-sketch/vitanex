@@ -114,3 +114,24 @@ describe('leesPtKlanten — afhaak', () => {
     expect(uit?.gekoppeld && uit.afhaak).toEqual([])
   })
 })
+
+describe('leesPtKlanten — statusHints', () => {
+  const status = { id: 'k1', naam: 'Kevin', nodig: 1, ingepland: 0, tekort: 1 }
+
+  test('leest geldige hints en laat kapotte weg', () => {
+    const uit = leesPtKlanten({
+      gekoppeld: true,
+      klanten: [status],
+      statusHints: [
+        { id: 'j', naam: 'Joris', status: 'moet_benaderen', statusLabel: 'Moet benaderen', sessies: 4 },
+        { id: 'x', naam: 'Kapot' },
+      ],
+    })
+    expect(uit?.gekoppeld && uit.statusHints.map((h) => h.naam)).toEqual(['Joris'])
+  })
+
+  test('oud antwoord zonder statusHints → lege lijst', () => {
+    const uit = leesPtKlanten({ gekoppeld: true, klanten: [status] })
+    expect(uit?.gekoppeld && uit.statusHints).toEqual([])
+  })
+})

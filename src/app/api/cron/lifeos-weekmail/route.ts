@@ -29,7 +29,7 @@ import { haalTransacties, haalFacturen } from '@/lib/lifeos/finance/opslag'
 import { bouwOverzicht } from '@/lib/lifeos/finance/finance'
 import { haalPersonen } from '@/lib/lifeos/crm/opslag'
 import type { Persoon } from '@/lib/lifeos/crm/crm'
-import { haalAfhaak } from '@/lib/lifeos/pt-klant/afhaak-ophalen'
+import { haalPtSignalen } from '@/lib/lifeos/pt-klant/afhaak-ophalen'
 import { lokaleTijd } from '@/lib/lifeos/vita/signalen'
 import { alGeclaimdVandaag, claimBriefing, geefClaimTerug, markeerBezorgd } from '@/lib/lifeos/vita/briefing-opslag'
 import {
@@ -187,7 +187,7 @@ export async function GET(req: NextRequest): Promise<Response> {
     haalZelf(admin, userId),
   ])
   const koud = koudeContacten(personen, nu)
-  const afhaak = await haalAfhaak(admin, userId, personen, nu)
+  const { afhaak } = await haalPtSignalen(admin, userId, personen, nu)
 
   const mail = bouwWeekmail(nu, { afgerondeTaken, finance, koudeContacten: koud, afhaak, zelf })
 

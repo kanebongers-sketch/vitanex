@@ -45,11 +45,14 @@ interface RefreshProviderProps {
 export function RefreshProvider({ children, intervalMs = INTERVAL_MS }: RefreshProviderProps) {
   const [signaal, setSignaal] = useState(0)
   // Wanneer we voor het laatst tikten. In een ref: het stuurt geen render, het
-  // beslist alleen of terugkeer naar de tab een verse tik verdient.
-  const laatsteTik = useRef(Date.now())
+  // beslist alleen of terugkeer naar de tab een verse tik verdient. Start op 0 en
+  // wordt bij mount in het effect gezet: `Date.now()` hoort niet in de render
+  // (onzuiver — elke render zou 'm opnieuw evalueren).
+  const laatsteTik = useRef(0)
 
   useEffect(() => {
     if (typeof document === 'undefined') return
+    laatsteTik.current = Date.now()
 
     function tik() {
       laatsteTik.current = Date.now()
