@@ -61,7 +61,7 @@ export function SportmerkInhoud({ strategie }: { strategie: Strategie }) {
         <FasenPlan fasen={s.fasen} />
       </Sectie>
 
-      <Sectie titel="Marge per order" intro="Schattingen tot er offertes of platformprijzen zijn. De maatstaf is wat er na één betaalde klant overblijft.">
+      <Sectie titel="Marge per order" intro="Schattingen tot er leveranciersprijzen zijn. De maatstaf is wat er na één betaalde klant overblijft.">
         <MargeTabel producten={s.producten} aannames={s.aannames} />
       </Sectie>
 

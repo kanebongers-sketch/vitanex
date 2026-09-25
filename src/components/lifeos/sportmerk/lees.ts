@@ -9,6 +9,7 @@ import type {
   Argument,
   BerekendeMarge,
   Fase,
+  Levering,
   LabelWaarde,
   ProductMetMarge,
   ProductRol,
@@ -19,6 +20,12 @@ import type {
 
 const RISICOS: readonly Risico[] = ['laag', 'middel', 'hoog']
 const ROLLEN: readonly ProductRol[] = ['hoofdproduct', 'hoofdaanbod', 'margemotor', 'add-on', 'later', 'reserve', 'vergelijking']
+
+const LEVERINGEN: readonly Levering[] = ['eu-leverancier', 'pre-order']
+
+function isLevering(v: unknown): v is Levering {
+  return typeof v === 'string' && (LEVERINGEN as readonly string[]).includes(v)
+}
 
 function isRisico(v: unknown): v is Risico {
   return typeof v === 'string' && (RISICOS as readonly string[]).includes(v)
@@ -61,11 +68,12 @@ function leesProduct(ruw: unknown): ProductMetMarge | null {
   const marge = leesMarge(ruw.marge)
   if (id === null || naam === null || toelichting === null || marge === null) return null
   if (prijsInclBtw === null || verzendkosten === null || min === null || max === null) return null
-  if (!isRol(ruw.rol) || !isRisico(ruw.retourRisico)) return null
+  if (!isRol(ruw.rol) || !isRisico(ruw.retourRisico) || !isLevering(ruw.levering)) return null
   return {
     id,
     naam,
     rol: ruw.rol,
+    levering: ruw.levering,
     prijsInclBtw,
     kostprijs: { min, max },
     verzendkosten,

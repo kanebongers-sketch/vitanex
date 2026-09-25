@@ -14,6 +14,7 @@ function product(over: Partial<ProductAanname>): ProductAanname {
     id: 'x',
     naam: 'X',
     rol: 'add-on',
+    levering: 'eu-leverancier',
     prijsInclBtw: 121,
     kostprijs: { min: 20, max: 30 },
     verzendkosten: 6,
@@ -59,11 +60,10 @@ describe('bouwStrategie', () => {
     for (const p of kern) expect(p.marge.naAds).toBeGreaterThanOrEqual(0)
   })
 
-  it('zonder eigen voorraad: elk actief fysiek product is print-on-demand of pre-order', () => {
-    const fysiekNu = bouwStrategie().producten.filter(
-      (p) => p.verzendkosten > 0 && p.rol !== 'later' && p.rol !== 'vergelijking',
-    )
-    for (const p of fysiekNu) expect(p.naam).toMatch(/print-on-demand|pre-order/)
+  it('zonder eigen voorraad: wat nu verkocht wordt, levert een EU-leverancier', () => {
+    const nu = bouwStrategie().producten.filter((p) => p.rol !== 'later')
+    expect(nu.length).toBeGreaterThan(0)
+    for (const p of nu) expect(p.levering).toBe('eu-leverancier')
   })
 
   it('elke fase heeft een door- én een herzien-regel', () => {
@@ -86,6 +86,12 @@ describe('leesStrategie', () => {
   it('een product zonder marge laat het hele plan vallen', () => {
     const ruw = antwoord()
     delete ruw.strategie.producten[0].marge
+    expect(leesStrategie(ruw)).toBeNull()
+  })
+
+  it('weigert een onbekende levering (bijv. eigen voorraad)', () => {
+    const ruw = antwoord()
+    ruw.strategie.producten[0].levering = 'eigen-voorraad'
     expect(leesStrategie(ruw)).toBeNull()
   })
 

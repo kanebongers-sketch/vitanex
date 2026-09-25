@@ -7,15 +7,22 @@ export type Risico = 'laag' | 'middel' | 'hoog'
 
 export type ProductRol = 'hoofdproduct' | 'hoofdaanbod' | 'margemotor' | 'add-on' | 'later' | 'reserve' | 'vergelijking'
 
+/**
+ * Hoe het product bij de klant komt. Bewust géén "eigen voorraad": dat is
+ * besloten (25 sep 2026) en hoort dus niet eens representeerbaar te zijn.
+ */
+export type Levering = 'eu-leverancier' | 'pre-order'
+
 /** Eén productrichting zoals we 'm nu inschatten — nog géén offerte. */
 export interface ProductAanname {
   id: string
   naam: string
   rol: ProductRol
+  levering: Levering
   prijsInclBtw: number
-  /** Landed cost-range: inkoop + vracht + invoerrechten + verpakking. */
+  /** Kostprijs-range bij de leverancier, inclusief logo en verpakking. */
   kostprijs: { min: number; max: number }
-  /** Uitgaande verzending per order (3PL + vervoerder). 0 voor digitaal. */
+  /** Uitgaande verzending per order naar de klant. */
   verzendkosten: number
   retourRisico: Risico
   toelichting: string

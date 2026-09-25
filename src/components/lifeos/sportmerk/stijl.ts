@@ -96,6 +96,10 @@ export const SPM_CSS = `
 .spm__tabel tbody th { font-weight: 400; }
 .spm__tabel td { color: var(--text-2); }
 .spm__product { display: block; font-weight: 600; color: var(--text-1); }
+.spm__levering {
+  display: block; margin-top: 2px; font-size: 11px; font-weight: 600; letter-spacing: 0.04em;
+  text-transform: uppercase; color: var(--text-2);
+}
 .spm__toelichting { display: block; margin-top: 3px; font-size: 13px; line-height: 1.45; color: var(--text-3); }
 .spm__tabel .spm__num { text-align: right !important; font-variant-numeric: tabular-nums; white-space: nowrap; color: var(--text-1); }
 .spm__tabel .spm__winst { color: var(--brand); font-weight: 600; }

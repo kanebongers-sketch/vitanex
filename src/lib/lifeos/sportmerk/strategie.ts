@@ -4,65 +4,86 @@
 // gated route `/api/lifeos/sportmerk` leest het, zodat het plan nooit in een
 // publieke bundle of HTML-payload belandt.
 //
+// Model (25 sep 2026): het ZONE2-model, maar voor de hybrid athlete. Merk als
+// held, breed accessoire-assortiment, snelle levering via leveranciers met een
+// EU-magazijn, groei via ads en creators. Geen eigen voorraad, oprichter uit
+// beeld, niets dat raakt aan zijn werk.
+//
 // EERLIJK: marktclaims hebben een bron; prijzen en kostprijzen zijn schattingen
-// tot er offertes of platformprijzen zijn. Marges worden hier
-// niet getypt maar uitgerekend (`berekenMarge`), zodat ze nooit uit de pas lopen
-// met de aannames die de pagina ernaast toont.
+// tot er leveranciersprijzen zijn. Marges worden hier niet getypt maar
+// uitgerekend (`berekenMarge`), zodat ze nooit uit de pas lopen met de
+// aannames die de pagina ernaast toont.
 
-import { berekenMarge, MARGE_AANNAMES, VERZENDING_STANDAARD } from './marge'
 import { FASEN } from './fasen'
+import { berekenMarge, MARGE_AANNAMES, VERZENDING_STANDAARD } from './marge'
 import type { ProductAanname, Strategie } from './types'
 
 const PRODUCTEN: ProductAanname[] = [
   {
-    id: 'tas',
-    naam: 'Modulaire gym-/racetas (pre-order)',
+    id: 'race-dag-bundel',
+    naam: 'Race-dag-bundel: tas + straps + handschoenen + belt',
+    rol: 'hoofdaanbod',
+    levering: 'eu-leverancier',
+    prijsInclBtw: 109,
+    kostprijs: { min: 32, max: 40 },
+    verzendkosten: VERZENDING_STANDAARD,
+    retourRisico: 'laag',
+    toelichting: 'De order die de ads moet dragen. Break-even bij ~€43 acquisitie per klant.',
+  },
+  {
+    id: 'gymtas',
+    naam: 'Hybrid gymtas (standaardmodel met logo)',
     rol: 'hoofdproduct',
+    levering: 'eu-leverancier',
+    prijsInclBtw: 89,
+    kostprijs: { min: 22, max: 30 },
+    verzendkosten: VERZENDING_STANDAARD,
+    retourRisico: 'laag',
+    toelichting: 'Instapproduct en merkdrager. Los net break-even met ads; de bundel is het doel.',
+  },
+  {
+    id: 'grip-set',
+    naam: 'Grip-set: straps + handschoenen + chalk',
+    rol: 'add-on',
+    levering: 'eu-leverancier',
+    prijsInclBtw: 49,
+    kostprijs: { min: 8, max: 12 },
+    verzendkosten: VERZENDING_STANDAARD,
+    retourRisico: 'middel',
+    toelichting: 'Chalk en grips slijten: een reden om terug te komen.',
+  },
+  {
+    id: 'sleeves',
+    naam: 'Knee sleeves 7 mm',
+    rol: 'add-on',
+    levering: 'eu-leverancier',
+    prijsInclBtw: 49,
+    kostprijs: { min: 12, max: 16 },
+    verzendkosten: VERZENDING_STANDAARD,
+    retourRisico: 'middel',
+    toelichting: 'Maatgevoelig. Alleen als toevoeging aan een order.',
+  },
+  {
+    id: 'sokken',
+    naam: 'Trainingssokken 3-pack',
+    rol: 'add-on',
+    levering: 'eu-leverancier',
+    prijsInclBtw: 19,
+    kostprijs: { min: 3, max: 5 },
+    verzendkosten: VERZENDING_STANDAARD,
+    retourRisico: 'laag',
+    toelichting: 'Herhaalaankoop. Los verlieslatend; als toevoeging deelt hij de verzending.',
+  },
+  {
+    id: 'eigen-tas',
+    naam: 'Eigen ontworpen racetas',
+    rol: 'later',
+    levering: 'pre-order',
     prijsInclBtw: 119,
     kostprijs: { min: 20, max: 28 },
     verzendkosten: VERZENDING_STANDAARD,
     retourRisico: 'laag',
-    toelichting: 'De held van het merk. Schoen- en natvak, geen maten, licht. Break-even bij ~€60 acquisitie per klant.',
-  },
-  {
-    id: 'race-kit',
-    naam: 'Race-kit-bundel (pre-order): tas + handschoenen + straps + belt',
-    rol: 'hoofdaanbod',
-    prijsInclBtw: 149,
-    kostprijs: { min: 30, max: 38 },
-    verzendkosten: VERZENDING_STANDAARD,
-    retourRisico: 'laag',
-    toelichting: 'Tilt de orderwaarde; zonder eigen gezicht betaal je voor bereik, dus dit is de order die dat draagt.',
-  },
-  {
-    id: 'straps',
-    naam: 'Lifting straps (in een drop, pre-order)',
-    rol: 'add-on',
-    prijsInclBtw: 25,
-    kostprijs: { min: 2, max: 4 },
-    verzendkosten: VERZENDING_STANDAARD,
-    retourRisico: 'laag',
-    toelichting: 'Alleen als toevoeging aan een tas- of bundelorder; los niet rendabel.',
-  },
-  {
-    id: 'belt-cap',
-    naam: 'Running belt / cap (in een drop, pre-order)',
-    rol: 'add-on',
-    prijsInclBtw: 37,
-    kostprijs: { min: 4, max: 8 },
-    verzendkosten: VERZENDING_STANDAARD,
-    retourRisico: 'laag',
-    toelichting: 'One-size merkdrager. Meeproduceren in dezelfde run als de tas.',
-  },
-  {
-    id: 'pod-tas',
-    naam: 'Gymtas via print-on-demand (ter vergelijking)',
-    rol: 'vergelijking',
-    prijsInclBtw: 119,
-    kostprijs: { min: 38, max: 44 },
-    verzendkosten: 12,
-    retourRisico: 'laag',
-    toelichting: 'Afgewezen: dunne marge en een generieke blank met jouw logo erop.',
+    toelichting: 'Vanaf maand 6 als drop, zodra er klanten zijn die erop wachten.',
   },
 ]
 
@@ -72,13 +93,13 @@ function aannamesVoorWeergave(): Strategie['aannames'] {
   return [
     { label: 'Btw', waarde: pct(a.btw) },
     { label: 'Betaalkosten', waarde: `${pct(a.betaalkosten)} van de orderwaarde` },
-    { label: 'Verzending', waarde: `€${VERZENDING_STANDAARD} per order via EU-3PL (print-on-demand-tas €12)` },
+    { label: 'Verzending', waarde: `€${VERZENDING_STANDAARD} per order naar de klant` },
     {
       label: 'Retourreserve',
       waarde: `laag ${pct(a.retourReserve.laag)} · middel ${pct(a.retourReserve.middel)} · hoog ${pct(a.retourReserve.hoog)}`,
     },
     { label: 'Acquisitie per klant', waarde: `€${a.cacPerKlant} (benchmark EU lifestyle ~€28, niet ons cijfer)` },
-    { label: 'Kostprijs', waarde: 'Midden van de range; schatting tot er offertes of platformprijzen zijn' },
+    { label: 'Kostprijs', waarde: 'Midden van de range, incl. logo; schatting tot er leveranciersprijzen zijn' },
   ]
 }
 
@@ -87,14 +108,18 @@ export function bouwStrategie(): Strategie {
     bijgewerkt: '2026-09-25',
     fase: 'Fase 0 — Fundament',
     richting: {
-      naam: 'Richting A — Hybrid athlete',
+      naam: 'Het ZONE2-model, voor de hybrid athlete',
       samenvatting:
-        'Een productmerk voor wie tilt én loopt en naar een fitness race toewerkt. Zonder eigen voorraad en zonder jou in beeld: producten verschijnen in drops via pre-order, content komt van creators en productbeeld. Volledig los van je werk.',
+        'Een merk voor wie tilt én loopt en naar een fitness race toewerkt. Het merk is de held: een naam met betekenis, sterk beeld, bundels en goede service. Snelle levering via leveranciers met een EU-magazijn, groei via ads en creators. Geen eigen voorraad, jij uit beeld, los van je werk.',
       genomenOp: '2026-09-25',
     },
     waarom: [
       {
-        tekst: 'Hyrox in de Benelux groeide van 2.100 deelnemers (2021) naar ~50.000 per seizoen (2024/25).',
+        tekst: 'Bewijs dat het model in NL werkt: ZONE2 verkoopt hardloopaccessoires zonder oprichter in beeld, met ~181 actieve Meta-ads en 4,8 op Trustpilot. Omzetschatting (extern, onzeker): $66–97k per maand.',
+        bron: { label: 'Brandsearch', url: 'https://brandsearch.co/brands/zone2sportswear.com' },
+      },
+      {
+        tekst: 'ZONE2 bedient lopers, niet de hybrid athlete. Die groep groeit hard: Hyrox Benelux ging van 2.100 (2021) naar ~50.000 deelnemers per seizoen.',
         bron: { label: 'Hyrox Benelux', url: 'https://hyroxbenelux.com/growth-of-the-hyrox-community/' },
       },
       {
@@ -105,23 +130,8 @@ export function bouwStrategie(): Strategie {
         },
       },
       {
-        tekst: 'Europa: 75,5 mln fitnessleden in 2025, maar maar 9,3% penetratie tegen 24,9% in de VS.',
-        bron: {
-          label: 'EuropeActive/Deloitte',
-          url: 'https://www.europeactive.eu/blog/press-corner-4/strong-growth-in-members-and-revenues-for-european-health-fitness-market-in-2025-140',
-        },
-      },
-      {
-        tekst: 'Het merk is de held, niet de oprichter: productbeeld, creators en klanten maken de content. Jij blijft onzichtbaar.',
-        bron: null,
-      },
-      {
-        tekst: 'Pre-order in drops: klanten financieren elke productierun, dus geen eigen voorraad. Drops passen bij het raceseizoen.',
-        bron: null,
-      },
-      {
-        tekst: 'Hoofdproduct zonder maten, licht en zonder elektronica: weinig retouren, simpele logistiek.',
-        bron: null,
+        tekst: 'ZONE2-reviews prijzen vooral de klantenservice. Service en eerlijke levertijden zijn een onderscheid dat geen leverancier voor je regelt.',
+        bron: { label: 'Trustpilot', url: 'https://nl.trustpilot.com/review/zone2sportswear.com?page=2' },
       },
     ],
     doelgroep: [
@@ -132,57 +142,55 @@ export function bouwStrategie(): Strategie {
     aannames: aannamesVoorWeergave(),
     producten: PRODUCTEN.map((p) => ({ ...p, marge: berekenMarge(p) })),
     geschrapt: [
-      { titel: 'Losse lifting-accessoires als merk', tekst: 'Verzadigd en per order onder de acquisitiegrens.' },
+      { titel: 'Een tweede hardloopmerk', tekst: 'Die plek heeft ZONE2 al. Kopiëren is geen merk.' },
       {
-        titel: 'Kleding',
-        tekst: 'Online 30–46% retouren in Europa. Pas als merch zodra het merk staat.',
-      },
-      { titel: 'Supplementen', tekst: 'EFSA/NVWA-regels, houdbaarheid; niet te dropshippen. Fase 5+.' },
-      { titel: 'Recovery-elektronica en home gym', tekst: 'Defecten, CE, garantie, zware verzending.' },
-      {
-        titel: 'Eigen voorraad en print-on-demand',
-        tekst: 'Voorraad: besloten op 25 september 2026, geen optie. Print-on-demand: te dunne marge en een generieke uitstraling.',
+        titel: 'Eigen voorraad',
+        tekst: 'Besloten op 25 september 2026. Leveranciers met een EU-magazijn houden de voorraad; de eigen tas komt later via pre-order.',
       },
       {
-        titel: 'Coaching, programma\u2019s en gym-partners',
+        titel: 'Coaching, programma’s en gym-partners',
         tekst: 'Bewust niet: je wilt een productmerk, geen tweede coachingbedrijf, en niets dat raakt aan je werk of andere gyms.',
+      },
+      {
+        titel: 'Kleding, supplementen, elektronica',
+        tekst: 'Retouren (30–46% bij kleding), regelgeving en defecten. Niet in de start.',
       },
     ],
     risicos: [
       {
-        titel: 'Zonder gezicht betaal je voor bereik',
-        tekst: 'Geen eigen content betekent leunen op ads en creators. Boven ~€60 acquisitie per tasklant (~€75 per bundel) wordt een order verlieslatend.',
+        titel: 'Krappe marge met betaalde ads',
+        tekst: 'Losse producten van €19–49 verliezen geld na één betaalde klant. Stuur op bundels en een gemiddelde orderwaarde ≥ €75; de bundel is break-even bij ~€43 acquisitie.',
       },
       {
-        titel: 'Pre-order vraagt vertrouwen',
-        tekst: 'Een onbekend merk plus 8–12 weken wachten converteert slechter dan op voorraad. Eerlijke levertermijn, echte samplebeelden, volledige terugbetaling als het minimum niet gehaald wordt.',
+        titel: 'Standaardproducten zijn vergelijkbaar',
+        tekst: 'Wat jij verkoopt kan een ander ook inkopen. Onderscheid komt alleen van naam, eigen beeld, bundels en service. Nooit leveranciersfoto’s gebruiken.',
       },
       {
-        titel: 'Eigen geld vóór de eerste omzet',
-        tekst: 'Geen voorraad, wel samples, beeld en een advertentietest: ~€1–2,5k (aanname, te bevestigen met offertes).',
+        titel: 'Voorraad en levertijd niet in eigen hand',
+        tekst: 'De leverancier houdt de voorraad. Twee leveranciers per kernproduct, voorraadkoppeling met de shop, en nooit “op voorraad” tonen wat het niet is.',
       },
       {
         titel: 'Anoniem blijven heeft grenzen',
-        tekst: 'Een webshop moet bedrijfsnaam, KvK-nummer en adres tonen en het KvK-register is openbaar. Je naam hoeft niet in de merkcommunicatie. Gebruik niets van je werk: geen tijd, leden of materialen. Laat de bedrijfsvorm door je boekhouder toetsen.',
+        tekst: 'Een webshop moet bedrijfsnaam, KvK-nummer en adres tonen en het KvK-register is openbaar. Je naam hoeft niet in de merkcommunicatie. Gebruik niets van je werk. Laat de bedrijfsvorm door je boekhouder toetsen.',
       },
       {
-        titel: '\u201CHyrox\u201D is een merknaam',
-        tekst: 'Niet gebruiken in merk- of productnamen zonder licentie; spreek van \u201Cfitness racing\u201D en \u201Chybrid\u201D. Laat dit merkrechtelijk toetsen.',
+        titel: '“Hyrox” en “Roxzone” zijn merknamen',
+        tekst: 'Niet gebruiken in merk- of productnamen zonder licentie; spreek van “fitness racing” en “hybrid”. Laat de gekozen naam merkrechtelijk toetsen.',
       },
       {
-        titel: 'Productveiligheid (GPSR) en btw',
-        tekst: 'Producten van buiten de EU vragen een verantwoordelijke marktdeelnemer in de EU; bij verkoop in meerdere EU-landen speelt OSS-btw. Juridisch en fiscaal laten toetsen.',
+        titel: 'Consumentenrecht en productveiligheid',
+        tekst: '14 dagen herroepingsrecht met een retouradres in de EU; productveiligheid (GPSR) en OSS-btw bij verkoop in meerdere EU-landen. Juridisch en fiscaal laten toetsen.',
       },
     ],
     openBeslissingen: [
-      'Budget vóór de eerste omzet: ~€1–2,5k voor samples, beeld en een advertentietest (aanname).',
-      'Merknaam en positionering (volgende stap; vóór domein, handles en merkdepot).',
+      'Merknaam: een naam met eigen betekenis voor de doelgroep, zoals “zone 2” dat voor lopers heeft.',
+      'Budget vóór de eerste omzet: ~€1–2k voor testbestellingen, eigen beeld en een advertentietest (aanname).',
       'Bedrijfsvorm (eenmanszaak met handelsnaam of BV), mede vanwege zichtbaarheid in het KvK-register.',
     ],
     volgendeStappen: [
-      'Merkpositionering: 5–10 naamrichtingen, belofte, tone of voice, visuele richting.',
-      'Tas-onderzoek via het merk, niet via jou: korte enquête en 15–20 gesprekken in online communities (Reddit, Discord, Strava-clubs).',
-      'Leverancierslijst opstellen: 3–5 tassenmakers benaderen voor samples, kostprijs en MOQ.',
+      'Naamrichtingen met betekenis, daarna domein, handles en merkenregister checken.',
+      'Leverancierslijst: 3–5 leveranciers of fulfilmentpartners met voorraad in de EU en logo-opties.',
+      'Assortiment en bundels vastleggen: 5–8 producten, 2–3 bundels.',
     ],
     fasen: FASEN,
   }

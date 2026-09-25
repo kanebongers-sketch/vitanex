@@ -1,5 +1,5 @@
 import { formatEuro } from '@/components/lifeos/finance/finance'
-import type { LabelWaarde, ProductMetMarge, ProductRol } from '@/lib/lifeos/sportmerk/types'
+import type { LabelWaarde, Levering, ProductMetMarge, ProductRol } from '@/lib/lifeos/sportmerk/types'
 
 // ─── Sportmerk — marge per order ────────────────────────────────────────────
 // Presentational: de uitgerekende unit economics per product, met de aannames
@@ -18,6 +18,11 @@ const ROL_LABEL: Record<ProductRol, string> = {
   later: 'Later',
   reserve: 'Reserve',
   vergelijking: 'Vergelijking',
+}
+
+const LEVERING_LABEL: Record<Levering, string> = {
+  'eu-leverancier': 'EU-leverancier · 2–5 dagen',
+  'pre-order': 'Pre-order · drop',
 }
 
 interface MargeTabelProps {
@@ -47,6 +52,7 @@ export function MargeTabel({ producten, aannames }: MargeTabelProps) {
               <tr key={p.id}>
                 <th scope="row">
                   <span className="spm__product">{p.naam}</span>
+                  <span className="spm__levering">{LEVERING_LABEL[p.levering]}</span>
                   <span className="spm__toelichting">{p.toelichting}</span>
                 </th>
                 <td data-label="Rol">
