@@ -87,4 +87,27 @@ describe('kiesBewegingsblokken', () => {
     expect(sport).not.toBeNull()
     if (sport) expect(sport.startOp.getTime()).toBeGreaterThanOrEqual(nu.getTime())
   })
+
+  test('wandeling komt ná de sport, ook als er vóór de sport een gat is (echte dag 22-09)', () => {
+    // Mail om 11:42; om 13:00 een overleg van 30 min. Sport past niet om 12:00
+    // (zou tot 13:30 lopen) → 13:30–15:00. Het gat 12:00–13:00 past wel een
+    // wandeling, maar die hoort ná de sport.
+    const nu = new Date(2026, 8, 7, 11, 42)
+    const { sport, wandeling } = kiesBewegingsblokken([afspraakM(13, 0, 13, 30, 'Ruben en Marit')], DAG, nu)
+
+    expect(sport && uur(sport.startOp)).toBe(13.5)
+    expect(wandeling).not.toBeNull()
+    expect(wandeling!.startOp.getTime()).toBeGreaterThanOrEqual(sport!.eindOp.getTime())
+  })
+
+  test('is er na de sport geen ruimte meer, dan valt de wandeling terug op eerder', () => {
+    // Vrij: 10:00–11:00 (past wandeling, geen sport) en 18:30–20:00 (sport).
+    const { sport, wandeling } = kiesBewegingsblokken(
+      [afspraak(8, 10, 'Ochtend'), afspraakM(11, 0, 18, 30, 'Dag')],
+      DAG,
+    )
+    expect(sport && uur(sport.startOp)).toBe(18.5)
+    expect(wandeling && uur(wandeling.startOp)).toBe(10)
+  })
 })
+

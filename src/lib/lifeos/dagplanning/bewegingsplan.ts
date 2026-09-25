@@ -41,15 +41,11 @@ export interface Bewegingsblokken {
 }
 
 /**
- * Kiest binnen de vrije blokken een venster van `duurMin`.
- *
- * `vrijeBlokken` levert chronologisch, dus het eerste passende blok is het
- * vroegste. `voorMiddag` verschuift de voorkeur: sporten wil je 's ochtends, dus
- * pak dan het vroegste blok dat vóór 12:00 begint; is dat er niet, val terug op
- * het vroegste dat er wél is (liever later sporten dan niet). De wandeling zoekt
- * juist een blok ná de middag, zodat het niet meteen tegen de sport aan plakt.
+ * Alle vensters van `duurMin` binnen de vrije blokken, chronologisch (want
+ * `vrijeBlokken` levert chronologisch). Sport en wandeling kiezen daaruit elk
+ * volgens hun eigen voorkeur (zie hieronder).
  */
-function kiesSlot(vrije: readonly VrijBlok[], duurMin: number, voorMiddag: boolean): Venster | null {
+function kandidatenIn(vrije: readonly VrijBlok[], duurMin: number): Venster[] {
   // Per vrij blok: rond de start op naar :00/:30 en houd het alleen als het blok
   // daarná nog past. Afronden kost ruimte, dus een gat dat precies `duurMin` lang
   // is maar op :37 begint valt hier af — dat is de bedoeling: liever een net
@@ -61,18 +57,33 @@ function kiesSlot(vrije: readonly VrijBlok[], duurMin: number, voorMiddag: boole
       return eindOp.getTime() <= b.eindOp.getTime() ? { startOp, eindOp } : null
     })
     .filter((v): v is Venster => v !== null)
+  return kandidaten
+}
 
-  if (kandidaten.length === 0) return null
+/** Sport: het vroegste venster dat vóór 12:00 begint; anders het vroegste dat er is. */
+function kiesSportSlot(vrije: readonly VrijBlok[]): Venster | null {
+  const kandidaten = kandidatenIn(vrije, SPORT_MIN)
+  return kandidaten.find((k) => k.startOp.getHours() < OCHTEND_GRENS_UUR) ?? kandidaten[0] ?? null
+}
 
-  let keuze = kandidaten[0]
-  if (voorMiddag) {
-    const ochtend = kandidaten.find((k) => k.startOp.getHours() < OCHTEND_GRENS_UUR)
-    if (ochtend) keuze = ochtend
-  } else {
-    const naMiddag = kandidaten.find((k) => k.startOp.getHours() >= OCHTEND_GRENS_UUR)
-    if (naMiddag) keuze = naMiddag
-  }
-  return keuze
+/**
+ * Wandeling: ná de sport — dat is het ontwerp ("sporten, wandeling erna"). In
+ * volgorde van voorkeur: na de sport én 's middags (gespreid, niet tegen de sport
+ * aan geplakt), na de sport, 's middags, en anders wat er vrij is. Zonder die
+ * eerste twee regels kwam de wandeling soms vóór de sport (22-09: wandelen 12:00,
+ * sporten 13:30), omdat alleen naar "na 12:00" werd gekeken.
+ */
+function kiesWandelSlot(vrije: readonly VrijBlok[], sport: Venster | null): Venster | null {
+  const kandidaten = kandidatenIn(vrije, WANDEL_MIN)
+  const naSport = (k: Venster) => sport === null || k.startOp.getTime() >= sport.eindOp.getTime()
+  const middag = (k: Venster) => k.startOp.getHours() >= OCHTEND_GRENS_UUR
+  return (
+    kandidaten.find((k) => naSport(k) && middag(k)) ??
+    kandidaten.find(naSport) ??
+    kandidaten.find(middag) ??
+    kandidaten[0] ??
+    null
+  )
 }
 
 /**
@@ -93,7 +104,7 @@ export function kiesBewegingsblokken(
   const venster = werkVenster(dag)
   const opties = { minMinuten: WANDEL_MIN, nu }
 
-  const sport = kiesSlot(vrijeBlokken(events, venster, opties), SPORT_MIN, true)
+  const sport = kiesSportSlot(vrijeBlokken(events, venster, opties))
 
   const metSport: readonly Afspraak[] = sport
     ? [
@@ -101,7 +112,7 @@ export function kiesBewegingsblokken(
         { id: 'sport-reserve', titel: 'Sport', startOp: sport.startOp, eindOp: sport.eindOp, heleDag: false, locatie: null },
       ]
     : events
-  const wandeling = kiesSlot(vrijeBlokken(metSport, venster, opties), WANDEL_MIN, false)
+  const wandeling = kiesWandelSlot(vrijeBlokken(metSport, venster, opties), sport)
 
   return { sport, wandeling }
 }
