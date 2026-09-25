@@ -31,6 +31,10 @@ describe('matchtCoachgesprek', () => {
   test('geen titel of lege naam matcht nooit', () => {
     expect(matchtCoachgesprek(null, 'Iris')).toBe(false)
     expect(matchtCoachgesprek('Coachgesprek PT - Kane ()', '')).toBe(false)
+    // Hele woorden: "Jamey" is niet "Amey", "Bennet" niet "Ben".
+    expect(matchtCoachgesprek('Coachgesprek PT - Kane (Jamey)', 'Amey')).toBe(false)
+    expect(matchtCoachgesprek('Coachgesprek PT - Kane (Bennet)', 'Ben')).toBe(false)
+    expect(matchtCoachgesprek('Coachgesprek PT - Kane (Amey)', 'Amey')).toBe(true)
   })
 })
 

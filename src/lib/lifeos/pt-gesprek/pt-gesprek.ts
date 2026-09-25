@@ -9,6 +9,8 @@
 // nog. Meer logica zit er niet achter — bewust, want een simpele regel op de
 // titel is te controleren en te corrigeren.
 
+import { bevatReeks, woordTokens } from '@/lib/lifeos/crm/agenda-match'
+
 /** Het vaste voorvoegsel; de klantnaam komt er tussen haakjes achter. */
 export const COACHGESPREK_PREFIX = 'Coachgesprek PT - Kane'
 
@@ -17,24 +19,20 @@ export function coachgesprekTitel(naam: string): string {
   return `${COACHGESPREK_PREFIX} (${naam.trim()})`
 }
 
-function normaliseer(s: string): string {
-  return s.trim().toLowerCase()
-}
-
 /**
- * Herkent een coachgesprek-afspraak voor déze klant aan de titel: bevat hij het
- * "coachgesprek pt"-signaal én de naam van de klant?
+ * Herkent een coachgesprek-afspraak voor déze persoon aan de titel: bevat hij het
+ * "coachgesprek pt"-signaal én de naam als hele woorden?
  *
- * Losjes (substring, hoofdletterongevoelig): je typt de naam in je agenda
- * misschien niet exact zoals in het CRM, en een gemiste match zou onterecht "nog
- * inplannen" tonen. Een lege naam matcht nooit — dan zou élk coachgesprek meetellen.
+ * Hoofdletter- en accent-ongevoelig, maar op HELE woorden: eerder was het een
+ * substring, en dan telde "Coachgesprek PT - Kane (Jamey)" ook voor PT-teamlid
+ * Amey. Een lege naam matcht nooit — dan zou élk coachgesprek meetellen.
  */
 export function matchtCoachgesprek(titel: string | null, naam: string): boolean {
   if (!titel) return false
-  const n = normaliseer(naam)
+  const n = woordTokens(naam)
   if (n.length === 0) return false
-  const t = normaliseer(titel)
-  return t.includes('coachgesprek pt') && t.includes(n)
+  const t = woordTokens(titel)
+  return bevatReeks(t, ['coachgesprek', 'pt']) && bevatReeks(t, n)
 }
 
 /** Eén PT-klant zoals de detectie 'm nodig heeft. */
