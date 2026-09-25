@@ -228,16 +228,16 @@ describe('bouwOverzicht', () => {
     expect(o.trend[5]).toEqual({ maand: '2026-07', omzet: 100, kosten: 0, winst: 100 })
   })
 
-  it('telt openstaand (niet-betaald) en verlopen (open én vervaldatum < vandaag)', () => {
+  it('telt openstaand (niet-betaald) en verlopen (gemarkeerd, of open én vervaldatum < vandaag)', () => {
     const facturen = [
       factuur({ status: 'open', bedrag: 500, vervaldatum: '2026-07-10' }), // verlopen + openstaand
       factuur({ status: 'open', bedrag: 200, vervaldatum: '2026-08-01' }), // toekomst → alleen openstaand
       factuur({ status: 'open', bedrag: 50, vervaldatum: null }), // geen vervaldatum → alleen openstaand
       factuur({ status: 'betaald', bedrag: 999, vervaldatum: '2026-01-01' }), // binnen → telt nergens
-      factuur({ status: 'verlopen', bedrag: 300, vervaldatum: '2026-05-01' }), // niet-betaald → openstaand, maar status≠open → geen verlopen-telling
+      factuur({ status: 'verlopen', bedrag: 300, vervaldatum: '2026-05-01' }), // zelf als verlopen gemarkeerd → openstaand én verlopen
     ]
     const o = bouwOverzicht([], facturen, '2026-07', VANDAAG)
     expect(o.openstaand).toBe(1050) // 500 + 200 + 50 + 300
-    expect(o.verlopenAantal).toBe(1) // alleen de open + over de vervaldatum
+    expect(o.verlopenAantal).toBe(2) // de open over de vervaldatum + de gemarkeerde
   })
 })

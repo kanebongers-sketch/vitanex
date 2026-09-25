@@ -404,8 +404,14 @@ function isOpenstaand(f: Factuur): boolean {
   return f.status !== 'betaald'
 }
 
-/** Verlopen: over de vervaldatum en nog 'open' (zoals de contract-spec voorschrijft). */
+/**
+ * Verlopen: door jou als 'verlopen' gemarkeerd, of nog 'open' en over de
+ * vervaldatum. Eerder telde alleen dat laatste, waardoor een factuur die je zelf op
+ * 'verlopen' zette uit de telling viel — terwijl de dagmail ('Vraagt je aandacht')
+ * hem wél meetelde. Nu zeggen alle plekken hetzelfde.
+ */
 function isVerlopen(f: Factuur, vandaag: string): boolean {
+  if (f.status === 'verlopen') return true
   return f.status === 'open' && f.vervaldatum !== null && f.vervaldatum < vandaag
 }
 
