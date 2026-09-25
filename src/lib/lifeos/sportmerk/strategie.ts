@@ -177,8 +177,8 @@ export function bouwStrategie(): Strategie {
     ],
     risicos: [
       {
-        titel: 'Geen puur dropshipping',
-        tekst: 'Een tas met eigen ontwerp is niet te dropshippen. Realistisch: small-batch (~150–300 stuks, ~€3–6k) via een EU-3PL, na een pre-ordertest. MOQ en prijzen zijn aannames.',
+        titel: 'Geen eigen voorraad',
+        tekst: 'Besloten op 25 september 2026. Een tas met eigen ontwerp is dan alleen haalbaar via pre-order (klanten financieren de productierun). Print-on-demand-tassen laten na ads ~€5 per order over en zijn generieke blanks: dat botst met de merkambitie.',
       },
       {
         titel: '“Hyrox” is een merknaam',
@@ -194,7 +194,7 @@ export function bouwStrategie(): Strategie {
       },
     ],
     openBeslissingen: [
-      'Accepteer je een eerste kleine voorraad (~€3–6k, na een pre-ordertest) in plaats van puur dropshippen?',
+      'Model zonder voorraad: digital-first (programma\u2019s + print-on-demand-merch), pre-order van de tas, of een combinatie.',
       'Startbudget en startmarkt: aangenomen €5–15k en Nederland/Benelux.',
     ],
     volgendeStappen: [
