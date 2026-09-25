@@ -1,7 +1,8 @@
 name: Dagplanning mail
 on:
   schedule:
-    # ma–vr, elke 30 min van 05:00–08:30 UTC (07:00–10:30 NL zomer / 06:00–09:30 winter).
+    # ma–vr, elke 30 min van 05:00–08:30 UTC (07:00–10:30 NL zomer / 06:00–09:30 winter;
+    # de route stuurt nooit vóór 07:00 NL, dus 's winters wint de tik van 06:00 UTC).
     # GitHub laat geplande tikken onder drukte soms vallen; daarom meerdere pogingen.
     # De route stuurt hooguit één mail per dag (de claim is het slot) en stopt bij
     # elke volgende poging goedkoop — de eerste die landt wint, de rest doet niets.

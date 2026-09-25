@@ -50,6 +50,8 @@ export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 const SPORT_TITEL = 'Sporten (incl. reistijd)'
+/** De dagmail gaat nooit eerder dan 07:00 NL-tijd (zie de grens in de handler). */
+const VROEGSTE_MINUUT = 7 * 60
 const WANDEL_TITEL = 'Wandelen'
 const MAIL_VAN = 'MentaForce <onboarding@resend.dev>'
 
@@ -197,7 +199,14 @@ export async function GET(req: NextRequest): Promise<Response> {
 
   // De dag-sleutel (lokaal) — gedeeld door de goedkope voor-check hier en de claim
   // vlak vóór het sturen. Beide moeten exact dezelfde datum-string gebruiken.
-  const datum = lokaleTijd(nu).datum
+  const { datum, minutenVanDag } = lokaleTijd(nu)
+
+  // Niet vóór 07:00 NL. De klok tikt in UTC (pg_cron en GitHub kennen geen
+  // zomertijd): 05:00 UTC is 's zomers 07:00, maar 's winters 06:00. De klok tikt
+  // daarom ook om 06:00 UTC; deze grens zorgt dat 's winters pas díe tik stuurt.
+  if (minutenVanDag < VROEGSTE_MINUUT) {
+    return klaar({ verstuurd: false, reden: 'te vroeg (vóór 07:00)', datum })
+  }
 
   // ─── INHAAL-VANGNET (goedkope kant) ───────────────────────────────────────
   // De workflow probeert 's ochtends meerdere keren, zodat een door GitHub gemiste
