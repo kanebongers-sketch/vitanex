@@ -77,7 +77,7 @@ export function matchtPtSessie(titel: string | null, naam: string, andereNamen: 
 }
 
 /** "PT" als los woord, of voluit "personal training" (ook "personaltraining"). */
-function isPtTitel(t: readonly string[]): boolean {
+export function isPtTitel(t: readonly string[]): boolean {
   return t.includes('pt') || t.includes('personaltraining') || bevatReeks(t, ['personal', 'training'])
 }
 

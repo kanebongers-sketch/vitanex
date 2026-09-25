@@ -11,7 +11,8 @@
 // jouw workout (het woord "training"), en zou de dagplanning je sportblok
 // schrappen op elke dag dat je klanten hebt.
 
-import { bevatReeks, woordTokens } from '@/lib/lifeos/crm/agenda-match'
+import { woordTokens } from '@/lib/lifeos/crm/agenda-match'
+import { isPtTitel } from '@/lib/lifeos/pt-klant/pt-klant'
 
 const TRAINING_WOORDEN: readonly string[] = [
   // "Sporten (incl. reistijd)" is het blok dat LifeOS zélf inplant.
@@ -26,15 +27,10 @@ const TRAINING_WOORDEN: readonly string[] = [
   'hardloop',
 ]
 
-/** Een PT-sessie met een klant: los woord "pt", of "personal training" voluit. */
-function isPtSessie(titel: string): boolean {
-  const t = woordTokens(titel)
-  return t.includes('pt') || t.includes('personaltraining') || bevatReeks(t, ['personal', 'training'])
-}
-
 export function isEigenTraining(titel: string | null): boolean {
   if (!titel) return false
-  if (isPtSessie(titel)) return false
+  // Een PT-sessie met een klant (zelfde regel als de PT-weekstatus).
+  if (isPtTitel(woordTokens(titel))) return false
   const klein = titel.toLowerCase()
   return TRAINING_WOORDEN.some((woord) => klein.includes(woord))
 }
