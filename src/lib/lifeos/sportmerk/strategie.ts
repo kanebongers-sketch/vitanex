@@ -108,7 +108,7 @@ export function bouwStrategie(): Strategie {
     bijgewerkt: '2026-09-25',
     fase: 'Fase 0 — Fundament',
     richting: {
-      naam: 'Het ZONE2-model, voor de hybrid athlete',
+      naam: '8X1 — het ZONE2-model, voor de hybrid athlete',
       samenvatting:
         'Een merk voor wie tilt én loopt en naar een fitness race toewerkt. Het merk is de held: een naam met betekenis, sterk beeld, bundels en goede service. Snelle levering via leveranciers met een EU-magazijn, groei via ads en creators. Geen eigen voorraad, jij uit beeld, los van je werk.',
       genomenOp: '2026-09-25',
@@ -175,7 +175,7 @@ export function bouwStrategie(): Strategie {
       },
       {
         titel: '“Hyrox” en “Roxzone” zijn merknamen',
-        tekst: 'Niet gebruiken in merk- of productnamen zonder licentie; spreek van “fitness racing” en “hybrid”. Laat de gekozen naam merkrechtelijk toetsen.',
+        tekst: '8X1 verwijst naar het format, niet naar het merk: nooit “Hyrox” in merk, ads of productnamen, en geen huisstijl die erop lijkt. Een cijfercombinatie kan als te beschrijvend worden geweigerd; registreer als beeldmerk en laat een merkenspecialist toetsen.',
       },
       {
         titel: 'Consumentenrecht en productveiligheid',
@@ -183,12 +183,12 @@ export function bouwStrategie(): Strategie {
       },
     ],
     openBeslissingen: [
-      'Merknaam: een naam met eigen betekenis voor de doelgroep, zoals “zone 2” dat voor lopers heeft.',
+      'Merknaam: werktitel 8X1. Nog checken: domein (8x1.com is vrijwel zeker bezet), handles en het merkenregister, als beeldmerk.',
       'Budget vóór de eerste omzet: ~€1–2k voor testbestellingen, eigen beeld en een advertentietest (aanname).',
       'Bedrijfsvorm (eenmanszaak met handelsnaam of BV), mede vanwege zichtbaarheid in het KvK-register.',
     ],
     volgendeStappen: [
-      'Naamrichtingen met betekenis, daarna domein, handles en merkenregister checken.',
+      'Merkuitwerking 8X1: belofte, tone of voice, visuele richting (ver van de Hyrox-huisstijl).',
       'Leverancierslijst: 3–5 leveranciers of fulfilmentpartners met voorraad in de EU en logo-opties.',
       'Assortiment en bundels vastleggen: 5–8 producten, 2–3 bundels.',
     ],
