@@ -32,14 +32,14 @@ const PRODUCTEN: ProductAanname[] = [
   },
   {
     id: 'gymtas',
-    naam: 'Hybrid gymtas (standaardmodel met logo)',
+    naam: 'Hybrid gymtas (standaardmodel, eigen label en verpakking)',
     rol: 'hoofdproduct',
     levering: 'eu-leverancier',
     prijsInclBtw: 89,
     kostprijs: { min: 22, max: 30 },
     verzendkosten: VERZENDING_STANDAARD,
     retourRisico: 'laag',
-    toelichting: 'Instapproduct en merkdrager. Los net break-even met ads; de bundel is het doel.',
+    toelichting: 'Instapproduct. Logo óp de tas vraagt een minimale afname (= voorraad); zonder voorraad alleen een merk-label en eigen verpakking.',
   },
   {
     id: 'grip-set',
@@ -62,17 +62,6 @@ const PRODUCTEN: ProductAanname[] = [
     verzendkosten: VERZENDING_STANDAARD,
     retourRisico: 'middel',
     toelichting: 'Maatgevoelig. Alleen als toevoeging aan een order.',
-  },
-  {
-    id: 'sokken',
-    naam: 'Trainingssokken 3-pack',
-    rol: 'add-on',
-    levering: 'eu-leverancier',
-    prijsInclBtw: 19,
-    kostprijs: { min: 3, max: 5 },
-    verzendkosten: VERZENDING_STANDAARD,
-    retourRisico: 'laag',
-    toelichting: 'Herhaalaankoop. Los verlieslatend; als toevoeging deelt hij de verzending.',
   },
   {
     id: 'eigen-tas',
@@ -99,7 +88,7 @@ function aannamesVoorWeergave(): Strategie['aannames'] {
       waarde: `laag ${pct(a.retourReserve.laag)} · middel ${pct(a.retourReserve.middel)} · hoog ${pct(a.retourReserve.hoog)}`,
     },
     { label: 'Acquisitie per klant', waarde: `€${a.cacPerKlant} (benchmark EU lifestyle ~€28, niet ons cijfer)` },
-    { label: 'Kostprijs', waarde: 'Midden van de range, incl. logo; schatting tot er leveranciersprijzen zijn' },
+    { label: 'Kostprijs', waarde: 'Midden van de range, incl. eigen verpakking; schatting tot er leveranciersprijzen zijn' },
   ]
 }
 
@@ -166,6 +155,10 @@ export function bouwStrategie(): Strategie {
         tekst: 'Wat jij verkoopt kan een ander ook inkopen. Onderscheid komt alleen van naam, eigen beeld, bundels en service. Nooit leveranciersfoto’s gebruiken.',
       },
       {
+        titel: 'Logo óp het product kan niet zonder voorraad',
+        tekst: 'Een eigen logo op straps, sleeves of een tas vraagt een minimale afname (100–500 stuks). Zonder voorraad: standaardproducten met eigen verpakking en inserts, of print-on-demand (duurder). Overstappen op eigen productie pas als een product bewezen verkoopt, en alleen als jij dat dan wilt.',
+      },
+      {
         titel: 'Voorraad en levertijd niet in eigen hand',
         tekst: 'De leverancier houdt de voorraad. Twee leveranciers per kernproduct, voorraadkoppeling met de shop, en nooit “op voorraad” tonen wat het niet is.',
       },
@@ -189,8 +182,8 @@ export function bouwStrategie(): Strategie {
     ],
     volgendeStappen: [
       'Merkuitwerking 8X1: belofte, tone of voice, visuele richting (ver van de Hyrox-huisstijl).',
-      'Leverancierslijst: 3–5 leveranciers of fulfilmentpartners met voorraad in de EU en logo-opties.',
-      'Assortiment en bundels vastleggen: 5–8 producten, 2–3 bundels.',
+      'Accounts bij CJdropshipping (EU-magazijnen) en BigBuy (Spanje): jij maakt ze aan, ik help met de productkeuze.',
+      'Testbestellingen van tas, straps, handschoenen en belt naar je eigen adres: levertijd, kwaliteit en verpakking beoordelen.',
     ],
     fasen: FASEN,
   }
