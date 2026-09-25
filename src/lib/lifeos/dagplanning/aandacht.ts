@@ -13,7 +13,7 @@ import type { Persoon } from '@/lib/lifeos/crm/crm'
 import type { Factuur } from '@/lib/lifeos/finance/finance'
 import type { Afhaak } from '@/lib/lifeos/pt-klant/afhaak'
 import type { PtWeekStatus } from '@/lib/lifeos/pt-klant/pt-klant'
-import type { OnbekendePtSessie, PtStatusHint } from '@/lib/lifeos/pt-klant/klantstatus'
+import type { MogelijkeTypfout, OnbekendePtSessie, PtStatusHint } from '@/lib/lifeos/pt-klant/klantstatus'
 import { naarCenten, naarEuro } from '@/lib/lifeos/finance/finance'
 import { groepKort, opsomming } from '@/lib/lifeos/crm/agenda-match'
 
@@ -159,12 +159,24 @@ export function inplanAandacht(inplannen: readonly PtWeekStatus[]): Aandachtspun
   return [{ tekst: `PT nog in te plannen: ${opsomming(namen)}`, dringend: false }]
 }
 
+/**
+ * Mogelijke typfout in een klantnaam ("Kevnin" → Kevin?): die sessie telt niet mee,
+ * dus staat Kevin misschien onterecht bij "nog in te plannen". Een vraag, geen actie.
+ */
+export function typfoutAandacht(typfouten: readonly MogelijkeTypfout[]): Aandachtspunt[] {
+  return typfouten.slice(0, HINT_LIMIET).map((t) => ({
+    tekst: `"${t.titel}" (${DAG_KORT.format(new Date(t.op))}) in je agenda — bedoel je ${t.bedoeld}? Die sessie telt nu niet mee.`,
+    dringend: false,
+  }))
+}
+
 /** De PT-signalen voor de mail, allemaal optioneel (niet nagegaan = leeg). */
 export interface PtAandacht {
   afhaak?: readonly Afhaak[]
   statusHints?: readonly PtStatusHint[]
   onbekend?: readonly OnbekendePtSessie[]
   inplannen?: readonly PtWeekStatus[]
+  typfouten?: readonly MogelijkeTypfout[]
 }
 
 /**
@@ -229,6 +241,8 @@ export function bouwAandacht(
   return [
     ...crmOpvolging(personen, vandaagKey),
     ...inplanAandacht(pt.inplannen ?? []),
+    // Direct eronder: een typfout verklaart vaak een naam in de inplan-regel.
+    ...typfoutAandacht(pt.typfouten ?? []),
     ...afhaakAandacht(pt.afhaak ?? []),
     ...(inbox ? [inbox] : []),
     ...(factuur ? [factuur] : []),

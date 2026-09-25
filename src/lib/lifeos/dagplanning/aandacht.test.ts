@@ -184,6 +184,17 @@ describe('inplanAandacht', () => {
     expect(regel).toEqual({ tekst: 'PT nog in te plannen: Kevin, Iris (nog 1 van 2) en Tess (per 2 weken)', dringend: false })
   })
 
+  test('typfout staat direct onder de inplan-regel', () => {
+    const punten = bouwAandacht([], [], '2026-09-28', null, {
+      inplannen: [status('Kevin', 1, 1)],
+      typfouten: [{ titel: 'Kevnin', bedoeld: 'Kevin', op: '2026-09-22T17:30:00Z' }],
+    })
+    expect(punten.map((p) => p.tekst)).toEqual([
+      'PT nog in te plannen: Kevin',
+      '"Kevnin" (22 sep) in je agenda — bedoel je Kevin? Die sessie telt nu niet mee.',
+    ])
+  })
+
   test('staat in bouwAandacht ná de CRM-opvolging', () => {
     const punten = bouwAandacht([], [], '2026-09-28', null, { inplannen: [status('Kevin', 1, 1)] })
     expect(punten.map((p) => p.tekst)).toEqual(['PT nog in te plannen: Kevin'])

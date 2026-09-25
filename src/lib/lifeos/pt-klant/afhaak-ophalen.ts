@@ -18,7 +18,9 @@ import { bepaalAfhaak, type Afhaak } from './afhaak'
 import {
   bepaalOnbekendePtSessies,
   bepaalStatusHints,
+  bepaalTypfouten,
   ptKlantenUit,
+  type MogelijkeTypfout,
   type OnbekendePtSessie,
   type PtStatusHint,
 } from './klantstatus'
@@ -34,9 +36,11 @@ export interface PtSignalen {
   onbekend: OnbekendePtSessie[]
   /** Klanten met een tekort deze week (niet op vakantie). */
   inplannen: PtWeekStatus[]
+  /** "Kevnin" → Kevin? Zo'n sessie telt niet mee, dus hoort hij naast `inplannen`. */
+  typfouten: MogelijkeTypfout[]
 }
 
-const LEEG: PtSignalen = { afhaak: [], statusHints: [], onbekend: [], inplannen: [] }
+const LEEG: PtSignalen = { afhaak: [], statusHints: [], onbekend: [], inplannen: [], typfouten: [] }
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000
 
 export async function haalPtSignalen(
@@ -68,6 +72,9 @@ export async function haalPtSignalen(
       statusHints: bepaalStatusHints(personen, events, nu),
       onbekend: bepaalOnbekendePtSessies(personen, events, nu),
       inplannen: week.filter((k) => k.tekort > 0),
+      // Alleen vanaf deze maandag: dáár tellen ze mee voor de inplan-regel. Een
+      // typfout van weken terug zou anders elke ochtend terugkomen.
+      typfouten: bepaalTypfouten(personen, events).filter((t) => new Date(t.op).getTime() >= weekVan.getTime()),
     }
   } catch (oorzaak) {
     console.error('[pt-signalen] agenda-venster ophalen mislukt', oorzaak)
