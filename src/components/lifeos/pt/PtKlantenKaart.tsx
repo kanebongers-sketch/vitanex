@@ -10,6 +10,7 @@ import { StatusHintLijst } from './StatusHintLijst'
 import { AgendaCheckLijst } from './AgendaCheckLijst'
 import { useRefreshSignaal } from '@/components/lifeos/os/RefreshContext'
 import { haalJson, leesNiets } from '@/lib/lifeos/api/http'
+import { terugVanVakantieSleutel } from '@/lib/lifeos/datum/datum'
 import { ABONNEMENTEN, PT_LOCATIES, type Abonnement, type PtLocatie } from '@/lib/lifeos/crm/crm'
 import {
   ABONNEMENT_LABEL,
@@ -260,7 +261,8 @@ function InstelForm({ klant, onKlaar, onAnnuleer }: { klant: PtWeekStatus; onKla
   const [abonnement, setAbonnement] = useState<Abonnement | ''>(klant.abonnement ?? '')
   const [duo, setDuo] = useState(klant.duo)
   const [locatie, setLocatie] = useState<PtLocatie | ''>(klant.locatie ?? '')
-  const [vakantie, setVakantie] = useState('')
+  // Begint op de huidige waarde: leeg beginnen wiste bij elke Opslaan de vakantie.
+  const [vakantie, setVakantie] = useState(klant.vakantieTot ?? '')
   const [bezig, setBezig] = useState(false)
   const [fout, setFout] = useState<string | null>(null)
 
@@ -320,7 +322,9 @@ function InstelForm({ klant, onKlaar, onAnnuleer }: { klant: PtWeekStatus; onKla
           {bezig ? 'Bezig…' : 'Opslaan'}
         </Knop>
         {klant.opVakantie ? (
-          <Knop disabled={bezig} onClick={() => void bewaar({ vakantieTot: null })}>Terug van vakantie</Knop>
+          <Knop disabled={bezig} onClick={() => void bewaar({ vakantieTot: terugVanVakantieSleutel(new Date()) })}>
+            Terug van vakantie
+          </Knop>
         ) : null}
         <Knop onClick={onAnnuleer} disabled={bezig}>Annuleren</Knop>
       </div>

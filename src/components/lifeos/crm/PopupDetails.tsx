@@ -3,7 +3,7 @@
 import { useId, useState, type ReactNode } from 'react'
 import { Mail, Phone, X } from 'lucide-react'
 import { Knop } from '@/components/lifeos/os/Knop'
-import { datumSleutel } from '@/lib/lifeos/datum/datum'
+import { datumSleutel, terugVanVakantieSleutel } from '@/lib/lifeos/datum/datum'
 import { mailHref, telHref } from '@/lib/lifeos/crm/contact'
 import {
   MAX_BIJZONDERHEDEN,
@@ -254,8 +254,12 @@ function VakantieVeld({ persoon, onWijzig }: VakantieVeldProps) {
           aria-label="Op vakantie t/m (kies een datum)"
           onChange={(e) => void onWijzig({ vakantieTot: e.target.value || null })}
         />
-        {persoon.vakantieTot ? (
-          <button type="button" className="os-crm__wis" onClick={() => void onWijzig({ vakantieTot: null })}>
+        {persoon.vakantieTot !== null && persoon.vakantieTot >= datumSleutel(new Date()) ? (
+          <button
+            type="button"
+            className="os-crm__wis"
+            onClick={() => void onWijzig({ vakantieTot: terugVanVakantieSleutel(new Date()) })}
+          >
             <X size={13} strokeWidth={2.2} aria-hidden="true" />
             Terug van vakantie
           </button>

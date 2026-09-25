@@ -151,6 +151,22 @@ describe('bepaalWeekStatus', () => {
   })
 })
 
+describe('vakantieTot over de draad', () => {
+  test('de weekstatus draagt de ingestelde t/m-dag mee (het instel-formulier start erop)', () => {
+    const klant: PtKlant = { id: 's', naam: 'Sam', email: null, abonnement: 'wekelijks_1', duo: false, locatie: null, vakantieTot: '2026-09-30' }
+    const [status] = bepaalWeekStatus([klant], [], '2026-09-07T00:00:00.000Z', '2026-09-07')
+    expect(status.vakantieTot).toBe('2026-09-30')
+    const uit = leesPtKlanten({ gekoppeld: true, klanten: [status] })
+    expect(uit?.gekoppeld && uit.klanten[0].vakantieTot).toBe('2026-09-30')
+  })
+
+  test('onzin of ontbrekend → null', () => {
+    const basis = { id: 'k1', naam: 'Kevin', nodig: 1, ingepland: 0, tekort: 1 }
+    const uit = leesPtKlanten({ gekoppeld: true, klanten: [{ ...basis, vakantieTot: 'morgen' }, basis] })
+    expect(uit?.gekoppeld && uit.klanten.map((k) => k.vakantieTot)).toEqual([null, null])
+  })
+})
+
 describe('leesPtKlanten — afhaak', () => {
   const status = { id: 'k1', naam: 'Kevin', nodig: 1, ingepland: 0, tekort: 1 }
 

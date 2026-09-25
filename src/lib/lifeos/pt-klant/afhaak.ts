@@ -9,9 +9,11 @@
 //     en liever geen signaal dan een verzonnen zorg.
 //   - De drempel volgt de cadans: een weekklant valt op na ~3 weken stilte, een
 //     2-wekelijkse pas na ~4 weken — anders zou "normaal ritme" al alarm geven.
-//   - Op vakantie telt niet als afhaken.
+//   - Op vakantie telt niet als afhaken — en ook ná de vakantie telt de stilte
+//     pas vanaf de laatste vakantiedag. Anders stond een klant die net terug is
+//     van drie weken weg meteen als "afgehaakt" in je lijst.
 
-import { datumSleutel } from '@/lib/lifeos/datum/datum'
+import { datumSleutel, leesDatumSleutel } from '@/lib/lifeos/datum/datum'
 import { cadans, matchtPtSessie, type PtKlant, type PtEvent } from './pt-klant'
 
 const DAG_MS = 24 * 60 * 60 * 1000
@@ -30,6 +32,12 @@ export interface Afhaak {
  */
 function drempelDagen(weken: 1 | 2): number {
   return weken === 2 ? 28 : 21
+}
+
+/** Het moment waarop de (laatste) vakantie eindigde: middernacht ná de t/m-dag. */
+function vakantieEinde(vakantieTot: string | null): number {
+  const dag = vakantieTot ? leesDatumSleutel(vakantieTot) : null
+  return dag ? dag.getTime() + DAG_MS : Number.NEGATIVE_INFINITY
 }
 
 /**
@@ -64,9 +72,11 @@ export function bepaalAfhaak(
     // Geen historie in het venster → niet flaggen (zie de kop: liever geen signaal).
     if (laatste === Number.NEGATIVE_INFINITY) continue
 
+    // De stilte telt vanaf de laatste sessie óf het einde van de vakantie, wat later is.
     const dagen = Math.floor((nu - laatste) / DAG_MS)
+    const stilteDagen = Math.floor((nu - Math.max(laatste, vakantieEinde(k.vakantieTot))) / DAG_MS)
     const { weken } = cadans(k.abonnement)
-    if (dagen >= drempelDagen(weken)) {
+    if (stilteDagen >= drempelDagen(weken)) {
       uit.push({ id: k.id, naam: k.naam, wekenGeleden: Math.floor(dagen / 7) })
     }
   }

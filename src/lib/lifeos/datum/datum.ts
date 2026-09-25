@@ -41,6 +41,15 @@ export function leesDatumSleutel(sleutel: string): Date | null {
   return d
 }
 
+/**
+ * De t/m-dag bij "Terug van vakantie": gisteren. Niet leegmaken — dan weet LifeOS
+ * niet meer dat de stilte van de afgelopen weken vakantie was, en staat een klant
+ * die net terug is meteen als "afgehaakt" in je lijst (zie pt-klant/afhaak.ts).
+ */
+export function terugVanVakantieSleutel(vandaag: Date): string {
+  return datumSleutel(new Date(vandaag.getFullYear(), vandaag.getMonth(), vandaag.getDate() - 1))
+}
+
 /** '14:30'. Altijd 24-uurs — dit is een Nederlandse app. */
 export function tijdLabel(d: Date): string {
   return d.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })

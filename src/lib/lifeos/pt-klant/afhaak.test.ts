@@ -39,6 +39,15 @@ describe('bepaalAfhaak', () => {
     expect(uit).toEqual([])
   })
 
+  test('net terug van vakantie → stilte telt vanaf de laatste vakantiedag', () => {
+    // Laatste sessie 30 dagen terug, maar t/m 10 sep op vakantie (5 dagen geleden).
+    expect(bepaalAfhaak([klant('Elize', 'wekelijks_1', '2026-09-10')], [sessie('Elize', 30)], NU)).toEqual([])
+    // Vakantie al lang voorbij (t/m 1 aug): dan telt de stilte gewoon.
+    expect(bepaalAfhaak([klant('Elize', 'wekelijks_1', '2026-08-01')], [sessie('Elize', 30)], NU)).toEqual([
+      { id: 'elize', naam: 'Elize', wekenGeleden: 4 },
+    ])
+  })
+
   test('klant zonder énige sessie in het venster → niet flaggen (geen verzonnen zorg)', () => {
     expect(bepaalAfhaak([klant('Nieuw', 'wekelijks_1')], [], NU)).toEqual([])
   })

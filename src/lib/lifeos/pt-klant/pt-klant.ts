@@ -138,6 +138,8 @@ export interface PtWeekStatus {
   /** Hoeveel er nog moeten (0 = klaar; nooit negatief). */
   tekort: number
   opVakantie: boolean
+  /** De ingestelde t/m-dag (ook als die al voorbij is) — het instel-formulier houdt 'm vast. */
+  vakantieTot: string | null
 }
 
 /**
@@ -190,6 +192,7 @@ export function bepaalWeekStatus(
       ingepland,
       tekort,
       opVakantie,
+      vakantieTot: k.vakantieTot,
     }
   })
 }
@@ -249,6 +252,7 @@ function leesStatus(ruw: unknown): PtWeekStatus | null {
     ingepland,
     tekort,
     opVakantie: ruw.opVakantie === true,
+    vakantieTot: typeof ruw.vakantieTot === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(ruw.vakantieTot) ? ruw.vakantieTot : null,
   }
 }
 
