@@ -118,13 +118,15 @@ async function haalCrmPersonen(
 }
 
 /**
- * Zelf-evaluatie: wat LifeOS zelf deed. Telt de afspraken die het aantoonbaar zelf
- * benoemde (hernoem_geschreven gezet) en hoe vaak jij dat corrigeerde
+ * Zelf-evaluatie: wat LifeOS zelf deed, over de afspraken van de afgelopen week.
+ * Telt de afspraken die het aantoonbaar zelf benoemde (hernoem_geschreven gezet) en hoe vaak jij dat corrigeerde
  * (hernoem_geblokkeerd). Best-effort: een gevallen query → `null` → geen sectie.
  */
 async function haalZelf(
   admin: ReturnType<typeof createLifeosAdminClient>,
   userId: string,
+  vanaf: Date,
+  tot: Date,
 ): Promise<WeekZelf | null> {
   try {
     const [hernoemd, gecorrigeerd] = await Promise.all([
@@ -132,11 +134,15 @@ async function haalZelf(
         .from('agenda_events')
         .select('*', { count: 'exact', head: true })
         .eq('user_id', userId)
+        .gte('start_op', vanaf.toISOString())
+        .lt('start_op', tot.toISOString())
         .not('hernoem_geschreven', 'is', null),
       admin
         .from('agenda_events')
         .select('*', { count: 'exact', head: true })
         .eq('user_id', userId)
+        .gte('start_op', vanaf.toISOString())
+        .lt('start_op', tot.toISOString())
         .eq('hernoem_geblokkeerd', true),
     ])
     if (hernoemd.error || gecorrigeerd.error) {
@@ -184,7 +190,7 @@ export async function GET(req: NextRequest): Promise<Response> {
     haalAfgerond(admin, userId, vanaf, nu),
     haalFinance(admin, userId, nu),
     haalCrmPersonen(admin, userId),
-    haalZelf(admin, userId),
+    haalZelf(admin, userId, vanaf, nu),
   ])
   const koud = koudeContacten(personen, nu)
   const { afhaak } = await haalPtSignalen(admin, userId, personen, nu)

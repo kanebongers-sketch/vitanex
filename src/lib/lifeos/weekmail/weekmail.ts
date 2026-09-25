@@ -70,8 +70,10 @@ export interface WeekFinance {
 
 /**
  * Wat LifeOS zélf deed, voor de zelf-evaluatie. `null` = niet nagegaan (geen sectie).
- * Eerlijk: `hernoemd` telt de afspraken die LifeOS aantoonbaar zelf benoemde
- * (met geheugen), `gecorrigeerd` hoe vaak jij dat terugdraaide.
+ * Eerlijk: beide tellen alleen afspraken van de AFGELOPEN WEEK. `hernoemd` = die
+ * LifeOS aantoonbaar zelf benoemde (met geheugen), `gecorrigeerd` = waar jij dat
+ * terugdraaide. (Er is geen tijdstip van de hernoeming zelf; de afspraakdatum is
+ * de eerlijkste week-maat die er is — en nooit een all-time-teller als weekcijfer.)
  */
 export interface WeekZelf {
   hernoemd: number
@@ -127,7 +129,7 @@ function zelfRegels(zelf: WeekZelf | null): string[] {
   const regels: string[] = []
   if (zelf.hernoemd > 0) {
     regels.push(
-      `Ik benoemde ${zelf.hernoemd} ${zelf.hernoemd === 1 ? 'afspraak' : 'afspraken'} automatisch naar de juiste persoon.`,
+      `Van je afspraken van afgelopen week benoemde ik er ${zelf.hernoemd} automatisch naar de juiste persoon.`,
     )
   }
   if (zelf.gecorrigeerd > 0) {

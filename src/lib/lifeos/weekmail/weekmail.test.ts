@@ -134,7 +134,7 @@ describe('bouwWeekmail', () => {
   test('zelf-evaluatie: benoemd + gecorrigeerd verschijnen', () => {
     const mail = bouwWeekmail(MAANDAG, { ...basis, zelf: { hernoemd: 5, gecorrigeerd: 2 } })
     expect(mail.tekst).toContain('VAN LIFEOS ZELF')
-    expect(mail.tekst).toContain('5 afspraken automatisch')
+    expect(mail.tekst).toContain('van afgelopen week benoemde ik er 5 automatisch')
     expect(mail.tekst).toContain('Je corrigeerde me 2 keer')
     expect(mail.html).toContain('Van LifeOS zelf')
   })
@@ -167,7 +167,7 @@ describe('bouwWeekmail', () => {
 
   test('enkelvoud in de zelf-evaluatie', () => {
     const mail = bouwWeekmail(MAANDAG, { ...basis, zelf: { hernoemd: 1, gecorrigeerd: 1 } })
-    expect(mail.tekst).toContain('1 afspraak automatisch')
+    expect(mail.tekst).toContain('benoemde ik er 1 automatisch')
     expect(mail.tekst).toContain('die afspraak laat ik voortaan met rust')
   })
 
