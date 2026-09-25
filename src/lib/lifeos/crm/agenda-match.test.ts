@@ -89,6 +89,8 @@ describe('bepaalHernoem — de poort vóór een schrijf naar de agenda', () => {
   test('groepTag / canoniekeTitel', () => {
     expect(groepTag('pt_klant')).toBe('PT')
     expect(groepTag('pt_team')).toBe('Team')
+    expect(groepTag('management')).toBe('MT')
+    expect(groepTag('marketing')).toBe('Marketing')
     expect(canoniekeTitel(kevin)).toBe('Kevin Cranenbroeck PT')
     expect(canoniekeTitel(lisa)).toBe('Lisa Jansen Team')
   })

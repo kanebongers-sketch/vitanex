@@ -94,15 +94,20 @@ export function koppelTekst(match: PersoonMatch): string | null {
 // ─── Automatisch hernoemen (schrijft naar de agenda) ────────────────────────
 // De tag die achter de naam komt bij een hernoem. Bewust kort: PT-klant → "PT",
 // teamlid → "Team". Zo staat er "Kevin Cranenbroeck PT" in je agenda.
+//
+// Een Record i.p.v. een switch-met-default: een nieuwe groep MOET hier een eigen
+// tag krijgen (compile-fout anders). Met een default werd Marketing stilletjes
+// "Team" — "Marit Team" in je agenda.
+const GROEP_TAG: Record<Groep, string> = {
+  pt_klant: 'PT',
+  budel_team: 'Team',
+  pt_team: 'Team',
+  management: 'MT',
+  marketing: 'Marketing',
+}
+
 export function groepTag(groep: Groep): string {
-  switch (groep) {
-    case 'pt_klant':
-      return 'PT'
-    case 'management':
-      return 'MT'
-    default:
-      return 'Team'
-  }
+  return GROEP_TAG[groep]
 }
 
 /** De canonieke titel voor een persoon: volledige naam + rol-tag. */

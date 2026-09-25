@@ -1,6 +1,5 @@
 import { FounderPoort } from '@/components/lifeos/auth/FounderPoort'
 import { CockpitKop } from '@/components/lifeos/cockpit/CockpitKop'
-import { CockpitSnelnav } from '@/components/lifeos/cockpit/CockpitSnelnav'
 import { Cockpit } from '@/components/lifeos/cockpit/Cockpit'
 
 // LifeOS — Kane's persoonlijke Life OS, ingebed in MentaForce achter een
@@ -22,7 +21,6 @@ export default function LifeosPagina() {
         <div className="os-sfeer" aria-hidden="true" />
         <main className="os-schil os-schil--breed">
           <CockpitKop />
-          <CockpitSnelnav />
           <Cockpit />
         </main>
       </div>

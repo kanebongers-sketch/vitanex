@@ -8,11 +8,11 @@
 // server-to-server ingang: geen sessie, dus geen founder-gate — het slot is het
 // gedeelde `CRON_SECRET`, fail-closed, precies als `cron/dagplanning-mail`.
 //
-// ─── INPLANNEN (dit doet zichzelf niet) ─────────────────────────────────────
-//   Render kent geen cron-veld in de repo en er is geen vercel.json. De planner
-//   staat daarom buiten de app, in `.github/workflows/lifeos-agenda-sync.yml`,
-//   net als de briefing. Zet `CRON_SECRET` in de repo-secrets (zelfde waarde als
-//   in Render) en draai de workflow één keer handmatig om te zien dát hij werkt.
+// ─── INPLANNEN ──────────────────────────────────────────────────────────────
+//   Primair: de database-klok (pg_cron, migratie 270), elk half uur 05–21 UTC op
+//   de minuut. Back-up: `.github/workflows/lifeos-agenda-sync.yml` (GitHub-cron
+//   alléén liep maar ± 4× per dag). Beide sturen `CRON_SECRET` mee; het geheim
+//   staat in Vault als `lifeos_cron_secret`.
 //
 //   Idempotent: twee runs leveren dezelfde rijen op (unieke index uit migratie
 //   020). Een dubbele of late run kan dus geen kwaad.

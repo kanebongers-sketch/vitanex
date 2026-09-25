@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { bepaalWeekStatus, matchtPtSessie, ptSessieTitel, type PtEvent, type PtKlant } from './pt-klant'
+import { bepaalWeekStatus, leesPtKlanten, matchtPtSessie, ptSessieTitel, type PtEvent, type PtKlant } from './pt-klant'
 
 describe('ptSessieTitel', () => {
   test('bouwt de titel met naam en locatie', () => {
@@ -92,5 +92,25 @@ describe('bepaalWeekStatus', () => {
     const na = bepaalWeekStatus(klanten, [], WEEK_VAN, '2026-10-01').find((s) => s.id === 'c')!
     expect(na.opVakantie).toBe(false)
     expect(na.tekort).toBe(1)
+  })
+})
+
+describe('leesPtKlanten — afhaak', () => {
+  const status = { id: 'k1', naam: 'Kevin', nodig: 1, ingepland: 0, tekort: 1 }
+
+  test('leest geldige afhaak-regels mee', () => {
+    const uit = leesPtKlanten({ gekoppeld: true, klanten: [status], afhaak: [{ id: 'k1', naam: 'Kevin', wekenGeleden: 4 }] })
+    expect(uit?.gekoppeld && uit.afhaak).toEqual([{ id: 'k1', naam: 'Kevin', wekenGeleden: 4 }])
+  })
+
+  test('een kapotte afhaak-regel valt weg; de weekstatus blijft staan', () => {
+    const uit = leesPtKlanten({ gekoppeld: true, klanten: [status], afhaak: [{ naam: 'x' }, { id: 'k2', naam: 'Iris', wekenGeleden: 3 }] })
+    expect(uit?.gekoppeld && uit.klanten).toHaveLength(1)
+    expect(uit?.gekoppeld && uit.afhaak.map((a) => a.naam)).toEqual(['Iris'])
+  })
+
+  test('oud antwoord zonder afhaak-veld → lege lijst, geen fout', () => {
+    const uit = leesPtKlanten({ gekoppeld: true, klanten: [status] })
+    expect(uit?.gekoppeld && uit.afhaak).toEqual([])
   })
 })

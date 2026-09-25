@@ -15,7 +15,9 @@ import { vereisLifeosToegang } from '@/lib/lifeos/admin'
 import { haalPersonen } from '@/lib/lifeos/crm/opslag'
 import { geldigToken, leesGekozenKalender } from '@/lib/lifeos/agenda/koppeling'
 import { haalEvents } from '@/lib/lifeos/agenda/google'
-import { bepaalWeekStatus, type PtEvent, type PtKlant, type PtKlantenAntwoord } from '@/lib/lifeos/pt-klant/pt-klant'
+import { bepaalWeekStatus, type PtEvent, type PtKlantenAntwoord } from '@/lib/lifeos/pt-klant/pt-klant'
+import { bepaalAfhaak } from '@/lib/lifeos/pt-klant/afhaak'
+import { AFHAAK_VENSTER_DAGEN, ptKlantenUit } from '@/lib/lifeos/pt-klant/afhaak-ophalen'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -59,7 +61,10 @@ export async function GET(req: NextRequest) {
   // Lees vorige, huidige én komende week: een 2-wekelijks abonnement kijkt breed
   // (zie bepaalWeekStatus), dus een klant die volgende week geboekt staat moet ook
   // meegeteld worden — anders wordt hij onterecht als "moet nog ingepland" geflagd.
-  const leesVan = new Date(weekVan.getTime() - WEEK_MS)
+  // Breed terug (8 weken) zodat hetzelfde venster óók het afhaak-signaal draagt —
+  // één Google-call voor beide. De weekstatus filtert zelf per klant op zijn eigen
+  // cadans-venster, dus de extra historie verandert daar niets aan.
+  const leesVan = new Date(Math.min(weekVan.getTime() - WEEK_MS, nu.getTime() - AFHAAK_VENSTER_DAGEN * 24 * 60 * 60 * 1000))
   const leesTot = new Date(weekVan.getTime() + 2 * WEEK_MS)
 
   const events = await haalEvents(token.toegangstoken, leesVan, leesTot, kalenderId)
@@ -73,20 +78,13 @@ export async function GET(req: NextRequest) {
 
   const vandaagKey = `${nu.getFullYear()}-${String(nu.getMonth() + 1).padStart(2, '0')}-${String(nu.getDate()).padStart(2, '0')}`
 
-  const klanten: PtKlant[] = personen.waarde.map((p) => ({
-    id: p.id,
-    naam: p.naam,
-    email: p.email,
-    abonnement: p.abonnement,
-    duo: p.duo,
-    locatie: p.locatie,
-    vakantieTot: p.vakantieTot,
-  }))
+  const klanten = ptKlantenUit(personen.waarde)
   const ptEvents: PtEvent[] = events.events.map((e) => ({ titel: e.titel, startOp: e.startOp.toISOString() }))
 
   const antwoord: PtKlantenAntwoord = {
     gekoppeld: true,
     klanten: bepaalWeekStatus(klanten, ptEvents, weekVan.toISOString(), vandaagKey),
+    afhaak: bepaalAfhaak(klanten, ptEvents, nu),
   }
   return NextResponse.json(antwoord, { headers: CACHE_HEADERS })
 }

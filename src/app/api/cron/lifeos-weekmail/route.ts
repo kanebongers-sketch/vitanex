@@ -8,20 +8,16 @@
 // slot is het gedeelde CRON_SECRET (fail-closed: leeg = niemand komt binnen). De
 // lezen lopen via de service-role op de vaste lifeosUserId() — single-tenant.
 //
-// ─── INPLANNEN (dit doet zichzelf niet) ─────────────────────────────────────
-// Render kent geen cron-veld in de repo; de klok staat in
-// `.github/workflows/lifeos-weekmail.yml`, die deze route maandagochtend aanroept.
-// Zet daarvoor CRON_SECRET in de repo-secrets (zelfde waarde als in Render).
+// ─── INPLANNEN ──────────────────────────────────────────────────────────────
+// Twee klokken: de database (pg_cron, migratie 270 — op de minuut, maandag 06:00
+// UTC) en `.github/workflows/lifeos-weekmail.yml` als back-up. Beide sturen het
+// gedeelde CRON_SECRET mee.
 //
-// ─── IDEMPOTENTIE (bewuste keuze) ───────────────────────────────────────────
-// Anders dan de dagmail claimt deze route GEEN per-dag-slot in `vita_briefingen`.
-// Dat slot bestaat omdat de dagmail door TWEE planners geraakt wordt (cron-job.org
-// + GitHub als back-up) en dan nooit dubbel mag sturen. De weekmail heeft precies
-// één planner (de GitHub-workflow, met een concurrency-guard). Één planner = geen
-// race, dus geen slot nodig — en het `vita_briefingen.kanaal`-check-constraint kent
-// alleen 'telegram'/'email', dus een 'weekmail'-kanaal zou eerst een migratie
-// vragen. Komt er ooit een tweede trigger bij: voeg dan dat kanaal + de claim toe
-// (spiegel `dagplanning-mail`), niet eerder.
+// ─── IDEMPOTENTIE ───────────────────────────────────────────────────────────
+// Twee planners = een race. Daarom claimt deze route, net als de dagmail, één
+// verzending per dag in `vita_briefingen` (kanaal 'weekmail', migratie 280): wie
+// de insert wint, stuurt; de rest zwijgt. Een goedkope voor-check stopt een latere
+// aanroep al vóór alle leeswerk.
 
 import { type NextRequest } from 'next/server'
 import { Resend } from 'resend'
@@ -32,6 +28,10 @@ import { haalTaken } from '@/lib/lifeos/taken/opslag'
 import { haalTransacties, haalFacturen } from '@/lib/lifeos/finance/opslag'
 import { bouwOverzicht } from '@/lib/lifeos/finance/finance'
 import { haalPersonen } from '@/lib/lifeos/crm/opslag'
+import type { Persoon } from '@/lib/lifeos/crm/crm'
+import { haalAfhaak } from '@/lib/lifeos/pt-klant/afhaak-ophalen'
+import { lokaleTijd } from '@/lib/lifeos/vita/signalen'
+import { alGeclaimdVandaag, claimBriefing, geefClaimTerug, markeerBezorgd } from '@/lib/lifeos/vita/briefing-opslag'
 import {
   bouwWeekmail,
   afgerondeTakenSinds,
@@ -105,18 +105,16 @@ async function haalFinance(
   }
 }
 
-/** Contacten die verwateren (koud). Best-effort → leeg bij fout. */
-async function haalKoud(
+/** De CRM-personen, best-effort → leeg bij fout. Gedeeld door "verwaterend contact" en "afhaak". */
+async function haalCrmPersonen(
   admin: ReturnType<typeof createLifeosAdminClient>,
   userId: string,
-  nu: Date,
-): Promise<{ naam: string; dagen: number }[]> {
+): Promise<Persoon[]> {
   const personen = await haalPersonen(admin, userId).catch((oorzaak) => {
     console.error('[weekmail] CRM ophalen mislukt', oorzaak)
     return { ok: false as const, reden: 'db' as const }
   })
-  if (!personen.ok) return []
-  return koudeContacten(personen.waarde, nu)
+  return personen.ok ? personen.waarde : []
 }
 
 /**
@@ -172,17 +170,36 @@ export async function GET(req: NextRequest): Promise<Response> {
 
   const nu = new Date()
   const vanaf = new Date(nu.getTime() - WEEK_MS)
+  const datum = lokaleTijd(nu).datum
+
+  // Goedkope voor-check: is de weekmail van vandaag al geclaimd (door de andere
+  // klok)? Dan stoppen vóór alle leeswerk. Het échte slot is de claim hieronder.
+  if ((await alGeclaimdVandaag(admin, userId, datum, 'weekmail')) === true) {
+    return klaar({ verstuurd: false, reden: 'vandaag al verstuurd', datum })
+  }
 
   // Alle bronnen best-effort en parallel: één trage of gevallen bron mag de mail
   // niet tegenhouden. Elke helper vangt zijn eigen fout en levert leeg/null op.
-  const [afgerondeTaken, finance, koud, zelf] = await Promise.all([
+  const [afgerondeTaken, finance, personen, zelf] = await Promise.all([
     haalAfgerond(admin, userId, vanaf, nu),
     haalFinance(admin, userId, nu),
-    haalKoud(admin, userId, nu),
+    haalCrmPersonen(admin, userId),
     haalZelf(admin, userId),
   ])
+  const koud = koudeContacten(personen, nu)
+  const afhaak = await haalAfhaak(admin, userId, personen, nu)
 
-  const mail = bouwWeekmail(nu, { afgerondeTaken, finance, koudeContacten: koud, zelf })
+  const mail = bouwWeekmail(nu, { afgerondeTaken, finance, koudeContacten: koud, afhaak, zelf })
+
+  // Claim vlak vóór het sturen (spiegelt de dagmail): de insert is het slot.
+  const claim = await claimBriefing(admin, userId, datum, 'weekmail')
+  if (claim.soort === 'bezet') {
+    return klaar({ verstuurd: false, reden: 'vandaag al verstuurd', datum })
+  }
+  if (claim.soort === 'fout') {
+    console.error('[weekmail] claim mislukt:', claim.melding)
+    return fout('Kon de weekmail niet vastleggen; niets verstuurd.', 503)
+  }
 
   try {
     const resend = new Resend(process.env.RESEND_API_KEY)
@@ -195,18 +212,23 @@ export async function GET(req: NextRequest): Promise<Response> {
     })
     if (error) {
       console.error('[weekmail] Resend-fout:', error)
+      await geefClaimTerug(admin, claim.id)
       return fout('De weekmail kon niet worden verzonden.', 502)
     }
   } catch (oorzaak) {
     console.error('[weekmail] mail versturen mislukt', oorzaak)
+    await geefClaimTerug(admin, claim.id)
     return fout('De weekmail kon niet worden verzonden.', 502)
   }
+
+  await markeerBezorgd(admin, claim.id, mail.tekst, nu)
 
   return klaar({
     verstuurd: true,
     afgerond: afgerondeTaken.length,
     finance: finance !== null,
     koudeContacten: koud.length,
+    afhaak: afhaak.length,
     zelf: zelf ?? undefined,
   })
 }

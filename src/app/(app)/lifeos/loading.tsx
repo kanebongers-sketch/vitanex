@@ -29,13 +29,6 @@ export default function LifeosLaden() {
             <div style={{ ...VLAK, height: 40, width: 'min(360px, 70%)' }} />
           </div>
 
-          {/* Wayfinding-tegels onder de begroeting. */}
-          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 28 }}>
-            {Array.from({ length: 5 }, (_, i) => (
-              <div key={`nav-${i}`} style={{ ...VLAK, height: 40, width: 128, borderRadius: 14 }} />
-            ))}
-          </div>
-
           <div className="os-cockpit">
             {/* Vandaag: de briefing-hero met Vita's signalen + vraag-balk erin —
                 de langste kaart, één oppervlak. Zelfde vorm als de echte cockpit,

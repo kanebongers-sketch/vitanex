@@ -83,6 +83,11 @@ export interface WeekmailInvoer {
   afgerondeTaken: readonly string[]
   finance: WeekFinance | null
   koudeContacten: readonly { naam: string; dagen: number }[]
+  /**
+   * PT-klanten die afhaken (zie `pt-klant/afhaak`): lopend abonnement, maar al
+   * weken niet op PT. Optioneel: niet nagegaan of niemand → geen sectie.
+   */
+  afhaak?: readonly { naam: string; wekenGeleden: number }[]
   zelf: WeekZelf | null
 }
 
@@ -140,6 +145,7 @@ function zelfRegels(zelf: WeekZelf | null): string[] {
 export function bouwWeekmail(dag: Date, invoer: WeekmailInvoer): Weekmail {
   const datum = datumLang(dag)
   const { afgerondeTaken, finance, koudeContacten: koud } = invoer
+  const afhaak = invoer.afhaak ?? []
   const zelf = zelfRegels(invoer.zelf)
 
   const onderwerp = `Je week — terugblik ${datum}`
@@ -177,9 +183,20 @@ export function bouwWeekmail(dag: Date, invoer: WeekmailInvoer): Weekmail {
       ]
     : []
 
+  const wekenTekst = (w: number): string => `${w} ${w === 1 ? 'week' : 'weken'} niet op PT`
+
+  const tekstAfhaak = afhaak.length
+    ? [
+        '',
+        'PT-KLANTEN DIE AFHAKEN',
+        ...afhaak.slice(0, CONTACTEN_LIMIET).map((a) => `- ${a.naam} — ${wekenTekst(a.wekenGeleden)}`),
+        ...(afhaak.length > CONTACTEN_LIMIET ? [`- en nog ${afhaak.length - CONTACTEN_LIMIET} meer`] : []),
+      ]
+    : []
+
   const tekstZelf = zelf.length ? ['', 'VAN LIFEOS ZELF', ...zelf.map((r) => `- ${r}`)] : []
 
-  const tekst = [`Je week — terugblik ${datum}`, '', ...tekstAfgerond, ...tekstFinance, ...tekstKoud, ...tekstZelf].join(
+  const tekst = [`Je week — terugblik ${datum}`, '', ...tekstAfgerond, ...tekstFinance, ...tekstAfhaak, ...tekstKoud, ...tekstZelf].join(
     '\n',
   )
 
@@ -212,6 +229,14 @@ export function bouwWeekmail(dag: Date, invoer: WeekmailInvoer): Weekmail {
         .join('')}${koud.length > CONTACTEN_LIMIET ? `<li style="color:#5b6b86;">en nog ${koud.length - CONTACTEN_LIMIET} meer</li>` : ''}</ul>`
     : ''
 
+  const afhaakHtml = afhaak.length
+    ? `${kop('PT-klanten die afhaken')}
+      <ul style="margin:6px 0 0;padding-left:18px;font-size:14px;line-height:1.7;color:#0b1b3a;">${afhaak
+        .slice(0, CONTACTEN_LIMIET)
+        .map((a) => `<li>${escape(a.naam)} <span style="color:#5b6b86;">— ${wekenTekst(a.wekenGeleden)}</span></li>`)
+        .join('')}${afhaak.length > CONTACTEN_LIMIET ? `<li style="color:#5b6b86;">en nog ${afhaak.length - CONTACTEN_LIMIET} meer</li>` : ''}</ul>`
+    : ''
+
   const zelfHtml = zelf.length
     ? `${kop('Van LifeOS zelf')}
       <ul style="margin:6px 0 0;padding-left:18px;font-size:14px;line-height:1.7;color:#5b6b86;">${zelf
@@ -225,6 +250,7 @@ export function bouwWeekmail(dag: Date, invoer: WeekmailInvoer): Weekmail {
     <p style="margin:0 0 8px;font-size:13px;color:#8a97ad;">De afgelopen zeven dagen op een rij.</p>
     ${afgerondHtml}
     ${financeHtml}
+    ${afhaakHtml}
     ${koudHtml}
     ${zelfHtml}
   </div>`

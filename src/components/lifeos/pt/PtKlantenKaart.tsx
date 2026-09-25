@@ -5,6 +5,7 @@ import { CalendarPlus, Check, ChevronDown, Palmtree, Settings2 } from 'lucide-re
 import { Kaart, NogNiets } from '@/components/lifeos/os/Kaart'
 import { Foutmelding } from '@/components/lifeos/os/Foutmelding'
 import { Knop } from '@/components/lifeos/os/Knop'
+import { AfhaakLijst } from './AfhaakLijst'
 import { useRefreshSignaal } from '@/components/lifeos/os/RefreshContext'
 import { haalJson, leesNiets } from '@/lib/lifeos/api/http'
 import { ABONNEMENTEN, PT_LOCATIES, type Abonnement, type PtLocatie } from '@/lib/lifeos/crm/crm'
@@ -64,7 +65,10 @@ export function PtKlantenKaart() {
         />
       ) : null}
       {staat.fase === 'ok' && staat.data.gekoppeld ? (
-        <Overzicht klanten={staat.data.klanten} onVernieuw={laad} />
+        <div style={{ display: 'grid', gap: 16 }}>
+          <Overzicht klanten={staat.data.klanten} onVernieuw={laad} />
+          <AfhaakLijst afhaak={staat.data.afhaak} />
+        </div>
       ) : null}
     </Kaart>
   )
@@ -332,10 +336,6 @@ const veld: CSSProperties = {
   padding: '7px 10px',
 }
 const label: CSSProperties = { fontSize: 11.5, fontWeight: 600, color: 'var(--text-4)' }
-const knopjeStijl: CSSProperties = {
-  cursor: 'pointer', borderRadius: 8, padding: '6px 12px', fontFamily: 'inherit',
-  fontSize: 13, fontWeight: 600, transition: 'color 150ms, background 150ms, border-color 150ms',
-}
 
 function standaardDatum(): string {
   const d = new Date()

@@ -8,9 +8,11 @@
 // beveiliging is het gedeelde CRON_SECRET (fail-closed: leeg = niemand komt binnen).
 // De schrijf loopt via de service-role op de vaste lifeosUserId() — single-tenant.
 //
-// ─── INPLANNEN (dit doet zichzelf niet) ─────────────────────────────────────
-// Er is geen vercel.json; de klok staat in .github/workflows/dagplanning-mail.yml,
-// die deze route ma–vr aanroept. Zet daarvoor CRON_SECRET in de repo-secrets.
+// ─── INPLANNEN ──────────────────────────────────────────────────────────────
+// Primair: de database-klok (pg_cron, migratie 270) — ma–vr 05:00 UTC op de
+// minuut, plus een herkansing om 05:30. Back-up: .github/workflows/dagplanning-
+// mail.yml. (GitHub-cron alléén bleek uren te laat: de mail kwam rond 11:45.)
+// Beide sturen CRON_SECRET mee; het geheim staat in Vault als `lifeos_cron_secret`.
 //
 // ─── TIJDZONE ───────────────────────────────────────────────────────────────
 // De dag-/weekdagbepaling en het werkvenster gebruiken lokale tijd. Zet op de host
@@ -31,8 +33,8 @@ import { bouwDagplanningMail, type DagItem, type DagTodo } from '@/lib/lifeos/da
 import { bouwAandacht, type Aandachtspunt } from '@/lib/lifeos/dagplanning/aandacht'
 import { haalPersonen } from '@/lib/lifeos/crm/opslag'
 import type { Persoon } from '@/lib/lifeos/crm/crm'
-import { bepaalAfhaak, type Afhaak } from '@/lib/lifeos/pt-klant/afhaak'
-import type { PtKlant, PtEvent } from '@/lib/lifeos/pt-klant/pt-klant'
+import type { Afhaak } from '@/lib/lifeos/pt-klant/afhaak'
+import { haalAfhaak } from '@/lib/lifeos/pt-klant/afhaak-ophalen'
 import { matchPersoonInTitel, koppelTekst } from '@/lib/lifeos/crm/agenda-match'
 import { haalFacturen } from '@/lib/lifeos/finance/opslag'
 import { geldigToken as geldigMailToken, forceerVernieuwing as forceerMailVernieuwing } from '@/lib/lifeos/inbox/koppeling'
@@ -149,44 +151,6 @@ async function haalAandacht(
     haalInboxActie(admin, userId),
   ])
   return bouwAandacht(personen, facturen.ok ? facturen.waarde : [], vandaagKey, inboxActie, afhaak)
-}
-
-/**
- * PT-klanten die je een tijd niet op PT zag ("afhaak"). Leest een breed venster
- * (laatste 8 weken) uit je persoonlijke agenda, zodat "had wél sessies, maar niet
- * meer" te onderscheiden is van "net begonnen". Best-effort: valt de agenda-lezing
- * om, dan gewoon geen afhaak-regels — nooit een verzonnen zorg. De echte gate en de
- * naam-koppeling zitten in `bepaalAfhaak` (puur, getest).
- */
-async function haalAfhaak(
-  toegangstoken: string,
-  kalenderId: string | null,
-  personen: readonly Persoon[],
-  nu: Date,
-): Promise<Afhaak[]> {
-  const ptKlanten: PtKlant[] = personen
-    .filter((p) => p.groep === 'pt_klant')
-    .map((p) => ({
-      id: p.id,
-      naam: p.naam,
-      email: p.email,
-      abonnement: p.abonnement,
-      duo: p.duo,
-      locatie: p.locatie,
-      vakantieTot: p.vakantieTot,
-    }))
-  if (ptKlanten.length === 0) return []
-
-  try {
-    const van = new Date(nu.getTime() - 56 * 24 * 60 * 60 * 1000)
-    const gelezen = await haalEvents(toegangstoken, van, nu, kalenderId)
-    if (gelezen.staat !== 'ok') return []
-    const events: PtEvent[] = gelezen.events.map((e) => ({ titel: e.titel, startOp: e.startOp.toISOString() }))
-    return bepaalAfhaak(ptKlanten, events, nu)
-  } catch (oorzaak) {
-    console.error('[dagplanning-mail] afhaak-venster ophalen mislukt', oorzaak)
-    return []
-  }
 }
 
 /** De CRM-personen, best-effort: één ophaal, gedeeld door de agenda-koppeling én de aandacht-sectie. */
@@ -347,7 +311,7 @@ export async function GET(req: NextRequest): Promise<Response> {
 
   // Afhaak-signaal: PT-klanten die je een tijd niet op PT zag. Best-effort — leest
   // een breed agenda-venster; valt dat om, dan gewoon geen afhaak-regels.
-  const afhaak = await haalAfhaak(token.toegangstoken, kalenderId, personen, nu)
+  const afhaak = await haalAfhaak(admin, userId, personen, nu)
 
   // "Vraagt je aandacht": CRM-opvolging + afhaak + inbox + facturen. Best-effort.
   const aandacht = await haalAandacht(admin, userId, vandaagKey, personen, afhaak)

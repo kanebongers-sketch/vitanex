@@ -139,6 +139,26 @@ describe('bouwWeekmail', () => {
     expect(mail.html).toContain('Van LifeOS zelf')
   })
 
+  test('afhakende PT-klanten krijgen een eigen sectie, escaped en met enkelvoud', () => {
+    const mail = bouwWeekmail(MAANDAG, {
+      ...basis,
+      afhaak: [
+        { naam: 'Kevin', wekenGeleden: 4 },
+        { naam: '<b>Iris</b>', wekenGeleden: 1 },
+      ],
+    })
+    expect(mail.tekst).toContain('PT-KLANTEN DIE AFHAKEN')
+    expect(mail.tekst).toContain('- Kevin — 4 weken niet op PT')
+    expect(mail.tekst).toContain('1 week niet op PT')
+    expect(mail.html).toContain('PT-klanten die afhaken')
+    expect(mail.html).not.toContain('<b>Iris</b>')
+  })
+
+  test('geen afhaak (of niet nagegaan) = geen sectie', () => {
+    expect(bouwWeekmail(MAANDAG, basis).html).not.toContain('afhaken')
+    expect(bouwWeekmail(MAANDAG, { ...basis, afhaak: [] }).tekst).not.toContain('AFHAKEN')
+  })
+
   test('zelf-evaluatie: niets gedaan = geen sectie', () => {
     const mail = bouwWeekmail(MAANDAG, { ...basis, zelf: { hernoemd: 0, gecorrigeerd: 0 } })
     expect(mail.tekst).not.toContain('VAN LIFEOS ZELF')

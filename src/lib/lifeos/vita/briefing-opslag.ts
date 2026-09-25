@@ -20,8 +20,8 @@
 
 import type { SupabaseClient } from '@supabase/supabase-js'
 
-/** De kanalen die de briefing kent. Spiegelt de check-constraint (120 + 210). */
-export type BriefingKanaal = 'telegram' | 'email'
+/** De kanalen die de briefing kent. Spiegelt de check-constraint (120 + 210 + 280). */
+export type BriefingKanaal = 'telegram' | 'email' | 'weekmail'
 
 /** Postgres: unieke index geschonden — hier: iemand was ons voor. */
 const UNIEK_GESCHONDEN = '23505'

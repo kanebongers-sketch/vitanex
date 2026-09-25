@@ -1483,46 +1483,6 @@ body {
   margin: 0 0 8px;
 }
 
-/* ─── Snelkoppelingen ──────────────────────────────────────────────────────
-   Wayfinding onder de begroeting: een rij tegels naar de sub-schermen die het
-   dashboard zelf niet toont (Categorieën, Mensen). Rang via schaal; cyaan strikt
-   als accent op het icoon en op hover/focus — geen vlakvuller. */
-.os-snelnav {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin: 0 0 var(--ruimte-band);
-}
-.os-snelnav__tegel {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  padding: 11px 16px;
-  border-radius: 14px;
-  background: var(--bg-card);
-  border: 1px solid var(--line);
-  color: var(--text-2);
-  font-size: 14px;
-  font-weight: 600;
-  text-decoration: none;
-  transition: border-color 0.15s var(--ease), color 0.15s var(--ease),
-    transform 0.15s var(--ease), box-shadow 0.15s var(--ease);
-}
-.os-snelnav__tegel:hover {
-  border-color: var(--brand);
-  color: var(--text-1);
-  transform: translateY(-1px);
-}
-.os-snelnav__tegel:focus-visible {
-  outline: none;
-  border-color: var(--brand);
-  box-shadow: 0 0 0 3px var(--brand-soft);
-}
-.os-snelnav__tegel svg {
-  color: var(--brand);
-  flex-shrink: 0;
-}
-
 /* ─── Cockpit ──────────────────────────────────────────────────────────────
    Eén vullend werkscherm i.p.v. drie moment-tabs. De kern (taken, notities)
    staat altijd in beeld, en op een breed venster vult de layout de ruimte in

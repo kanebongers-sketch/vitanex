@@ -10,9 +10,9 @@ import { RefreshProvider } from '@/components/lifeos/os/RefreshContext'
 
 // ─── De cockpit — één dag-scherm ────────────────────────────────────────────
 // Dit dashboard gaat over VANDAAG en niets anders. De zware overzichten (het
-// Mensen-kanban, je geld, je kennisgrafiek) hebben elk hun eigen pagina en zijn
-// bereikbaar via de wayfinding-tegels onder de begroeting — ze staan niet meer
-// ingebed. Dat haalt twee dingen weg die het scherm rommelig maakten: dezelfde
+// Mensen-kanban, je geld, je kennisgrafiek, de agenda-categorieën) hebben elk
+// hun eigen pagina en zijn bereikbaar via de sidebar — ze staan niet meer
+// ingebed, en er is geen tweede navigatie die de sidebar dubbelt. Dat haalt twee dingen weg die het scherm rommelig maakten: dezelfde
 // Mensen-lijst die zowel een link als een heel bord was, en een pagina die tien
 // zware oppervlakken tegelijk droeg.
 //

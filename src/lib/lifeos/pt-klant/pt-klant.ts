@@ -4,6 +4,7 @@
 // ABONNEMENT (1×/week, 2×/week of 1×/2 weken). Zo vergeet je niemand.
 
 import type { Abonnement, PtLocatie } from '../crm/crm'
+import type { Afhaak } from './afhaak'
 
 export const LOCATIE_LABEL: Record<PtLocatie, string> = {
   bergeijk: 'Bergeijk',
@@ -145,7 +146,12 @@ export function bepaalWeekStatus(
 
 export type PtKlantenAntwoord =
   | { gekoppeld: false }
-  | { gekoppeld: true; klanten: PtWeekStatus[] }
+  | {
+      gekoppeld: true
+      klanten: PtWeekStatus[]
+      /** Klanten die afhaken (zie `afhaak.ts`); leeg = niemand of niet nagegaan. */
+      afhaak: Afhaak[]
+    }
 
 function isObject(v: unknown): v is Record<string, unknown> {
   return typeof v === 'object' && v !== null && !Array.isArray(v)
@@ -188,6 +194,15 @@ function leesStatus(ruw: unknown): PtWeekStatus | null {
   }
 }
 
+function leesAfhaak(ruw: unknown): Afhaak | null {
+  if (!isObject(ruw)) return null
+  const id = tekstOfNull(ruw.id)
+  const naam = tekstOfNull(ruw.naam)
+  const wekenGeleden = heelGetal(ruw.wekenGeleden)
+  if (id === null || naam === null || wekenGeleden === null) return null
+  return { id, naam, wekenGeleden }
+}
+
 /** Het antwoord van `GET /api/lifeos/pt-klanten`, of null als het niet klopt. */
 export function leesPtKlanten(ruw: unknown): PtKlantenAntwoord | null {
   if (!isObject(ruw)) return null
@@ -196,5 +211,10 @@ export function leesPtKlanten(ruw: unknown): PtKlantenAntwoord | null {
   if (!Array.isArray(ruw.klanten)) return null
   const klanten = ruw.klanten.map(leesStatus)
   if (klanten.some((k) => k === null)) return null
-  return { gekoppeld: true, klanten: klanten.filter((k): k is PtWeekStatus => k !== null) }
+  // Afhaak is aanvullend: ontbreekt of klopt een regel niet, dan valt alleen díé
+  // regel weg — de weekstatus (de kern van de kaart) blijft staan.
+  const afhaak = Array.isArray(ruw.afhaak)
+    ? ruw.afhaak.map(leesAfhaak).filter((a): a is Afhaak => a !== null)
+    : []
+  return { gekoppeld: true, klanten: klanten.filter((k): k is PtWeekStatus => k !== null), afhaak }
 }
