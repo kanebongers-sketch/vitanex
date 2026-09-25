@@ -6,7 +6,7 @@
 import type { Abonnement, PtLocatie } from '../crm/crm'
 import { bevatReeks, woordTokens } from '../crm/agenda-match'
 import type { Afhaak } from './afhaak'
-import type { OnbekendePtSessie, PtStatusHint } from './klantstatus'
+import type { MogelijkeTypfout, OnbekendePtSessie, PtStatusHint } from './klantstatus'
 
 export const LOCATIE_LABEL: Record<PtLocatie, string> = {
   bergeijk: 'Bergeijk',
@@ -186,6 +186,8 @@ export type PtKlantenAntwoord =
       statusHints: PtStatusHint[]
       /** PT-sessies met iemand die niet in je CRM staat (zie `klantstatus.ts`). */
       onbekend: OnbekendePtSessie[]
+      /** Mogelijke typfout in een klantnaam ("Kevnin" → Kevin). */
+      typfouten: MogelijkeTypfout[]
     }
 
 function isObject(v: unknown): v is Record<string, unknown> {
@@ -258,6 +260,15 @@ function leesOnbekend(ruw: unknown): OnbekendePtSessie | null {
   return { titel, aantal, laatsteOp }
 }
 
+function leesTypfout(ruw: unknown): MogelijkeTypfout | null {
+  if (!isObject(ruw)) return null
+  const titel = tekstOfNull(ruw.titel)
+  const bedoeld = tekstOfNull(ruw.bedoeld)
+  const op = tekstOfNull(ruw.op)
+  if (titel === null || bedoeld === null || op === null) return null
+  return { titel, bedoeld, op }
+}
+
 /** Het antwoord van `GET /api/lifeos/pt-klanten`, of null als het niet klopt. */
 export function leesPtKlanten(ruw: unknown): PtKlantenAntwoord | null {
   if (!isObject(ruw)) return null
@@ -277,11 +288,15 @@ export function leesPtKlanten(ruw: unknown): PtKlantenAntwoord | null {
   const onbekend = Array.isArray(ruw.onbekend)
     ? ruw.onbekend.map(leesOnbekend).filter((o): o is OnbekendePtSessie => o !== null)
     : []
+  const typfouten = Array.isArray(ruw.typfouten)
+    ? ruw.typfouten.map(leesTypfout).filter((t): t is MogelijkeTypfout => t !== null)
+    : []
   return {
     gekoppeld: true,
     klanten: klanten.filter((k): k is PtWeekStatus => k !== null),
     afhaak,
     statusHints,
     onbekend,
+    typfouten,
   }
 }

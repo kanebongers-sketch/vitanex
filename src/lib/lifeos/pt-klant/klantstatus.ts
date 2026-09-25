@@ -147,3 +147,66 @@ export function bepaalOnbekendePtSessies(
 
   return [...perSleutel.values()].sort((a, b) => b.aantal - a.aantal || (a.laatsteOp < b.laatsteOp ? 1 : -1))
 }
+
+// ─── Mogelijke typfout in een klantnaam ─────────────────────────────────────
+// "Kevnin" in je agenda telt niet als Kevins sessie — zijn weekstatus zegt dan
+// "moet nog ingepland" terwijl hij gewoon komt. We vragen "bedoel je Kevin?"; we
+// passen niets zelf aan. Streng om vals alarm te voorkomen: alleen een kale naam
+// (na wegstrepen van PT/locatie/vaste woorden precies één woord van ≥ 4 letters),
+// die géén CRM-naam is, en die op precies één letter na (ontbrekend, extra, anders
+// of omgewisseld) de voornaam van precies één PT-klant is.
+
+/** Damerau-Levenshtein ≤ 1: één invoeging, weglating, vervanging of omwisseling. */
+export function scheeltEenLetter(a: string, b: string): boolean {
+  if (a === b) return false
+  if (Math.abs(a.length - b.length) > 1) return false
+  if (a.length === b.length) {
+    const verschil: number[] = []
+    for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) verschil.push(i)
+    if (verschil.length === 1) return true
+    return (
+      verschil.length === 2 &&
+      verschil[1] === verschil[0] + 1 &&
+      a[verschil[0]] === b[verschil[1]] &&
+      a[verschil[1]] === b[verschil[0]]
+    )
+  }
+  const [kort, lang] = a.length < b.length ? [a, b] : [b, a]
+  for (let i = 0; i < lang.length; i++) {
+    if (lang.slice(0, i) + lang.slice(i + 1) === kort) return true
+  }
+  return false
+}
+
+export interface MogelijkeTypfout {
+  /** De titel zoals hij in je agenda staat, bv. "Kevnin". */
+  titel: string
+  /** De PT-klant die waarschijnlijk bedoeld is. */
+  bedoeld: string
+  /** ISO-moment van de (eerstvolgende of laatste) afspraak met deze titel. */
+  op: string
+}
+
+export function bepaalTypfouten(personen: readonly Persoon[], events: readonly PtEvent[]): MogelijkeTypfout[] {
+  const bekendeWoorden = new Set(personen.flatMap((p) => woordTokens(p.naam)))
+  const klanten = personen.filter((p) => p.groep === 'pt_klant')
+  const perTitel = new Map<string, MogelijkeTypfout>()
+
+  for (const e of events) {
+    if (!e.titel) continue
+    const rest = woordTokens(e.titel).filter((w) => !GEEN_NAAM.has(w))
+    if (rest.length !== 1) continue
+    const woord = rest[0]
+    if (woord.length < 4 || bekendeWoorden.has(woord)) continue
+
+    const kandidaten = klanten.filter((k) => {
+      const voornaam = woordTokens(k.naam)[0]
+      return voornaam !== undefined && scheeltEenLetter(woord, voornaam)
+    })
+    if (kandidaten.length !== 1) continue
+
+    const sleutel = e.titel.trim().toLowerCase()
+    if (!perTitel.has(sleutel)) perTitel.set(sleutel, { titel: e.titel.trim(), bedoeld: kandidaten[0].naam, op: e.startOp })
+  }
+  return [...perTitel.values()]
+}

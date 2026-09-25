@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { bepaalOnbekendePtSessies, bepaalStatusHints, ptKlantenUit, telMeeVoorPlanning } from './klantstatus'
+import { bepaalOnbekendePtSessies, bepaalStatusHints, bepaalTypfouten, ptKlantenUit, scheeltEenLetter, telMeeVoorPlanning } from './klantstatus'
 import type { PtEvent } from './pt-klant'
 import type { Persoon } from '@/lib/lifeos/crm/crm'
 
@@ -134,5 +134,44 @@ describe('bepaalOnbekendePtSessies', () => {
 
   test('zonder "pt" of in de toekomst → niet gemeld', () => {
     expect(bepaalOnbekendePtSessies(crm, [ev('Lunch Darren', 1), ev('Darren PT', -3)], NU)).toEqual([])
+  })
+})
+
+describe('scheeltEenLetter', () => {
+  test('één letter extra, weg, anders of omgewisseld', () => {
+    expect(scheeltEenLetter('kevnin', 'kevin')).toBe(true)
+    expect(scheeltEenLetter('kvin', 'kevin')).toBe(true)
+    expect(scheeltEenLetter('kevon', 'kevin')).toBe(true)
+    expect(scheeltEenLetter('kveín', 'kevín')).toBe(true)
+  })
+  test('gelijk of twee+ verschillen → nee', () => {
+    expect(scheeltEenLetter('kevin', 'kevin')).toBe(false)
+    expect(scheeltEenLetter('kelvinn', 'kevin')).toBe(false)
+    expect(scheeltEenLetter('karin', 'kevin')).toBe(false)
+  })
+})
+
+describe('bepaalTypfouten', () => {
+  const crm = [
+    persoon({ naam: 'Kevin', status: 'actieve_klant' }),
+    persoon({ naam: 'Nicolle', status: 'actieve_klant' }),
+    persoon({ naam: 'Karin', groep: 'budel_team', status: 'actief' }),
+  ]
+  const ev = (titel: string): PtEvent => ({ titel, startOp: '2026-09-22T17:30:00.000Z' })
+
+  test('"Kevnin" → bedoel je Kevin?', () => {
+    expect(bepaalTypfouten(crm, [ev('Kevnin')])).toEqual([{ titel: 'Kevnin', bedoeld: 'Kevin', op: '2026-09-22T17:30:00.000Z' }])
+  })
+
+  test('ook met PT erbij, en één melding per titel', () => {
+    expect(bepaalTypfouten(crm, [ev('Nicole PT'), ev('Nicole PT')]).map((t) => t.bedoeld)).toEqual(['Nicolle'])
+  })
+
+  test('een bestaande CRM-naam is nooit een typfout (Karin ≠ Kevin-typo)', () => {
+    expect(bepaalTypfouten(crm, [ev('Karin')])).toEqual([])
+  })
+
+  test('korte woorden en titels met meer dan één naamwoord → stil', () => {
+    expect(bepaalTypfouten(crm, [ev('Kev'), ev('Kevnin en Jan'), ev('Lunch')])).toEqual([])
   })
 })

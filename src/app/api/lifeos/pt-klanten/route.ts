@@ -18,7 +18,7 @@ import { haalEvents } from '@/lib/lifeos/agenda/google'
 import { bepaalWeekStatus, type PtEvent, type PtKlantenAntwoord } from '@/lib/lifeos/pt-klant/pt-klant'
 import { bepaalAfhaak } from '@/lib/lifeos/pt-klant/afhaak'
 import { AFHAAK_VENSTER_DAGEN } from '@/lib/lifeos/pt-klant/afhaak-ophalen'
-import { bepaalOnbekendePtSessies, bepaalStatusHints, ptKlantenUit } from '@/lib/lifeos/pt-klant/klantstatus'
+import { bepaalOnbekendePtSessies, bepaalStatusHints, bepaalTypfouten, ptKlantenUit } from '@/lib/lifeos/pt-klant/klantstatus'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -90,6 +90,8 @@ export async function GET(req: NextRequest) {
     afhaak: bepaalAfhaak(klanten, ptEvents, nu),
     statusHints: bepaalStatusHints(personen.waarde, ptEvents, nu),
     onbekend: bepaalOnbekendePtSessies(personen.waarde, ptEvents, nu),
+    // Ook komende afspraken: een typfout in volgende week wil je vóór die tijd zien.
+    typfouten: bepaalTypfouten(personen.waarde, ptEvents),
   }
   return NextResponse.json(antwoord, { headers: CACHE_HEADERS })
 }
