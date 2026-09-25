@@ -67,7 +67,10 @@ export function PersoonPopup({
   }
 
   const statusLabel = statusDef(groep, persoon.status)?.label ?? persoon.status
-  const versheid = contactVersheid(laatsteContactMoment(persoon), vandaag)
+  const moment = laatsteContactMoment(persoon)
+  const versheid = contactVersheid(moment, vandaag)
+  // Komt het moment uit je agenda (niet uit gelogd contact)? Dan zeggen we dat ook.
+  const viaAfspraak = moment !== null && moment !== persoon.laatsteContactOp
   const toegevoegd = datumLabel(persoon.aangemaaktOp)
 
   return (
@@ -103,7 +106,7 @@ export function PersoonPopup({
               ) : (
                 <History size={15} strokeWidth={2.2} aria-hidden="true" className="crm-drawer__versheid-icoon" />
               )}
-              {versheidZin(versheid.tekst, versheid.dagen, versheid.koud)}
+              {versheidZin(versheid.tekst, versheid.dagen, versheid.koud, viaAfspraak)}
             </p>
             <span className="crm-drawer__versheid-knop">
               <Knop variant="stil" onClick={() => void contactNu()}>
@@ -162,10 +165,11 @@ export function PersoonPopup({
 
 /** Een menselijke zin over de contact-versheid. Geen verzonnen data: leunt puur op
  *  wat `contactVersheid` teruggeeft (dagen, tekst, koud). */
-function versheidZin(tekst: string, dagen: number | null, koud: boolean): string {
+function versheidZin(tekst: string, dagen: number | null, koud: boolean, viaAfspraak: boolean): string {
   if (dagen === null) return 'Nog geen contact vastgelegd'
-  if (koud) return `Laatst gesproken ${tekst} — dit contact verwatert`
-  return `Laatst gesproken: ${tekst}`
+  const wat = viaAfspraak ? 'Laatste afspraak' : 'Laatst gesproken'
+  if (koud) return `${wat} ${tekst} — dit contact verwatert`
+  return `${wat}: ${tekst}`
 }
 
 /** '18 jul 2026' of '' bij een ongeldige datum. */
