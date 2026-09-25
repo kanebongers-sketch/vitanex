@@ -15,7 +15,7 @@ import { vereisLifeosToegang } from '@/lib/lifeos/admin'
 import { haalPersonen } from '@/lib/lifeos/crm/opslag'
 import { geldigToken, leesGekozenKalender } from '@/lib/lifeos/agenda/koppeling'
 import { haalEvents } from '@/lib/lifeos/agenda/google'
-import { bepaalWeekStatus, type PtEvent, type PtKlantenAntwoord } from '@/lib/lifeos/pt-klant/pt-klant'
+import { bepaalWeekStatus, maandagVan, type PtEvent, type PtKlantenAntwoord } from '@/lib/lifeos/pt-klant/pt-klant'
 import { bepaalAfhaak } from '@/lib/lifeos/pt-klant/afhaak'
 import { AFHAAK_VENSTER_DAGEN } from '@/lib/lifeos/pt-klant/afhaak-ophalen'
 import { bepaalOnbekendePtSessies, bepaalStatusHints, bepaalTypfouten, ptKlantenUit } from '@/lib/lifeos/pt-klant/klantstatus'
@@ -27,15 +27,6 @@ const CACHE_HEADERS = {
   'Cache-Control': 'private, no-store',
   Vary: 'Authorization',
 } as const
-
-/** Maandag 00:00 van de week waarin `nu` valt (lokale tijd). */
-function maandagVan(nu: Date): Date {
-  const maandag = new Date(nu)
-  maandag.setHours(0, 0, 0, 0)
-  const offset = (nu.getDay() + 6) % 7 // 0=zondag → 6 dagen terug; 1=maandag → 0
-  maandag.setDate(maandag.getDate() - offset)
-  return maandag
-}
 
 export async function GET(req: NextRequest) {
   const toegang = await vereisLifeosToegang(req)

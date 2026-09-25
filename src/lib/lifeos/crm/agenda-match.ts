@@ -115,7 +115,7 @@ export function gedeeldeGroep(kandidaten: readonly Persoon[]): Groep | null {
 }
 
 /** "A", "A en B", "A, B en C". */
-function opsomming(delen: readonly string[]): string {
+export function opsomming(delen: readonly string[]): string {
   if (delen.length <= 1) return delen.join('')
   return `${delen.slice(0, -1).join(', ')} en ${delen[delen.length - 1]}`
 }

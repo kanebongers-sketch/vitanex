@@ -142,6 +142,15 @@ export interface PtWeekStatus {
   vakantieTot: string | null
 }
 
+/** Maandag 00:00 van de week waarin `nu` valt (lokale tijd). */
+export function maandagVan(nu: Date): Date {
+  const maandag = new Date(nu)
+  maandag.setHours(0, 0, 0, 0)
+  const offset = (nu.getDay() + 6) % 7 // 0=zondag → 6 dagen terug; 1=maandag → 0
+  maandag.setDate(maandag.getDate() - offset)
+  return maandag
+}
+
 /**
  * De status per klant. `events` beslaan minstens de vorige, huidige én komende week
  * (zodat een 2-wekelijks abonnement zijn hele venster ziet); `weekVanISO` is de

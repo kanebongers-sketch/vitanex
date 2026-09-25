@@ -12,9 +12,10 @@
 import type { Persoon } from '@/lib/lifeos/crm/crm'
 import type { Factuur } from '@/lib/lifeos/finance/finance'
 import type { Afhaak } from '@/lib/lifeos/pt-klant/afhaak'
+import type { PtWeekStatus } from '@/lib/lifeos/pt-klant/pt-klant'
 import type { OnbekendePtSessie, PtStatusHint } from '@/lib/lifeos/pt-klant/klantstatus'
 import { naarCenten, naarEuro } from '@/lib/lifeos/finance/finance'
-import { groepKort } from '@/lib/lifeos/crm/agenda-match'
+import { groepKort, opsomming } from '@/lib/lifeos/crm/agenda-match'
 
 /** Eén regel voor de "Vraagt je aandacht"-sectie. */
 export interface Aandachtspunt {
@@ -144,19 +145,33 @@ export function onbekendAandacht(onbekend: readonly OnbekendePtSessie[]): Aandac
   return punten
 }
 
+/**
+ * Wie mist er nog een PT-sessie (de weekstatus van de PT-kaart)? Eén regel met de
+ * namen, zodat je 's ochtends meteen ziet wie je moet appen. Niet `dringend`: het
+ * is inplan-werk, geen brand. "nog 1 van 2" = er mist er één van de twee deze week.
+ */
+export function inplanAandacht(inplannen: readonly PtWeekStatus[]): Aandachtspunt[] {
+  if (inplannen.length === 0) return []
+  const namen = inplannen.map((k) => {
+    if (k.weken === 2) return `${k.naam} (per 2 weken)`
+    return k.nodig > 1 ? `${k.naam} (nog ${k.tekort} van ${k.nodig})` : k.naam
+  })
+  return [{ tekst: `PT nog in te plannen: ${opsomming(namen)}`, dringend: false }]
+}
+
 /** De PT-signalen voor de mail, allemaal optioneel (niet nagegaan = leeg). */
 export interface PtAandacht {
   afhaak?: readonly Afhaak[]
   statusHints?: readonly PtStatusHint[]
   onbekend?: readonly OnbekendePtSessie[]
+  inplannen?: readonly PtWeekStatus[]
 }
 
 /**
  * Eén samenvattende factuurregel, of `null` als er niets openstaat.
  *
- * "Te laat" is hier bewust breder dan finance's interne `isVerlopen` (die telt
- * alleen status 'open' over de vervaldatum): voor een ochtend-nudge is óók een
- * factuur die jij handmatig op 'verlopen' zette te laat. Openstaand = niet 'betaald',
+ * "Te laat" = handmatig op 'verlopen' gezet, of over de vervaldatum (net als
+ * finance's `isVerlopen`, plus een 'verlopen' zonder vervaldatum telt ook). Openstaand = niet 'betaald',
  * gelijk aan finance's eigen definitie. Te laat wint van gewoon-open: dat is de regel
  * die actie vraagt.
  */
@@ -199,7 +214,7 @@ export function inboxAandacht(actie: number | null): Aandachtspunt | null {
 
 /**
  * Alle aandachtspunten voor vandaag, in volgorde van "vraagt een menselijk
- * antwoord": CRM-opvolging (mensen boven cijfers), dan afgehaakte klanten, dan de
+ * antwoord": CRM-opvolging (mensen boven cijfers), dan PT inplannen en afgehaakte klanten, dan de
  * inbox, dan de facturen. Leeg = de mail laat de hele sectie weg.
  */
 export function bouwAandacht(
@@ -213,6 +228,7 @@ export function bouwAandacht(
   const factuur = factuurAandacht(facturen, vandaagKey)
   return [
     ...crmOpvolging(personen, vandaagKey),
+    ...inplanAandacht(pt.inplannen ?? []),
     ...afhaakAandacht(pt.afhaak ?? []),
     ...(inbox ? [inbox] : []),
     ...(factuur ? [factuur] : []),

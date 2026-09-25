@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'vitest'
-import { crmOpvolging, factuurAandacht, inboxAandacht, afhaakAandacht, statusHintAandacht, onbekendAandacht, bouwAandacht } from './aandacht'
+import { crmOpvolging, factuurAandacht, inboxAandacht, afhaakAandacht, statusHintAandacht, onbekendAandacht, bouwAandacht, inplanAandacht } from './aandacht'
+import type { PtWeekStatus } from '@/lib/lifeos/pt-klant/pt-klant'
 import type { Persoon } from '@/lib/lifeos/crm/crm'
 import type { Factuur } from '@/lib/lifeos/finance/finance'
 import type { Afhaak } from '@/lib/lifeos/pt-klant/afhaak'
@@ -168,6 +169,26 @@ describe('inboxAandacht', () => {
 function afhaak(over: Partial<Afhaak> = {}): Afhaak {
   return { id: 'k', naam: 'Kevin', wekenGeleden: 3, ...over }
 }
+
+describe('inplanAandacht', () => {
+  function status(naam: string, nodig: number, tekort: number, weken: 1 | 2 = 1): PtWeekStatus {
+    return { id: naam, naam, email: null, locatie: null, abonnement: null, duo: false, weken, nodig, ingepland: nodig - tekort, tekort, opVakantie: false, vakantieTot: null }
+  }
+
+  test('niemand → geen regel', () => {
+    expect(inplanAandacht([])).toEqual([])
+  })
+
+  test('één regel met namen; 2×-klanten met wat er mist, 2-wekelijks gemarkeerd', () => {
+    const [regel] = inplanAandacht([status('Kevin', 1, 1), status('Iris', 2, 1), status('Tess', 1, 1, 2)])
+    expect(regel).toEqual({ tekst: 'PT nog in te plannen: Kevin, Iris (nog 1 van 2) en Tess (per 2 weken)', dringend: false })
+  })
+
+  test('staat in bouwAandacht ná de CRM-opvolging', () => {
+    const punten = bouwAandacht([], [], '2026-09-28', null, { inplannen: [status('Kevin', 1, 1)] })
+    expect(punten.map((p) => p.tekst)).toEqual(['PT nog in te plannen: Kevin'])
+  })
+})
 
 describe('afhaakAandacht', () => {
   test('een regel per afgehaakte klant, niet dringend', () => {
