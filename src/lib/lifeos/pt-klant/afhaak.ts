@@ -62,13 +62,18 @@ export function bepaalAfhaak(
     if (opVakantie) continue
 
     // De laatste sessie tot nu (toekomstige boekingen tellen niet als "gezien").
+    // Staat er al een volgende sessie geboekt, dan haakt de klant niet af: geen
+    // "even contact?" voor iemand die al ingepland staat.
     let laatste = Number.NEGATIVE_INFINITY
+    let geboekt = false
     for (const e of events) {
       if (!matchtPtSessie(e.titel, k.naam, namen)) continue
       const t = new Date(e.startOp).getTime()
-      if (Number.isNaN(t) || t > nu) continue
-      if (t > laatste) laatste = t
+      if (Number.isNaN(t)) continue
+      if (t > nu) geboekt = true
+      else if (t > laatste) laatste = t
     }
+    if (geboekt) continue
     // Geen historie in het venster → niet flaggen (zie de kop: liever geen signaal).
     if (laatste === Number.NEGATIVE_INFINITY) continue
 

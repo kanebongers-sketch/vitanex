@@ -66,6 +66,8 @@ export interface WeekFinance {
   winst: number
   openstaand: number
   verlopenAantal: number
+  /** Transacties deze maand. 0 (en niets openstaand) = niets gelogd, geen echte nul-maand. */
+  aantalTransacties?: number
 }
 
 /**
@@ -165,7 +167,11 @@ export function bouwWeekmail(dag: Date, invoer: WeekmailInvoer): Weekmail {
       ]
     : ['AFGEROND', 'Niets afgevinkt deze week. Dat zegt iets over het logboek, niet over je week.']
 
-  const tekstFinance = finance
+  // Niets gelogd deze maand? Dan geen rij nullen die leest als "je verdiende niets".
+  const financeLeeg = finance !== null && finance.aantalTransacties === 0 && finance.openstaand === 0
+  const tekstFinance = financeLeeg && finance
+    ? ['', `FINANCE (${finance.maandLabel})`, `Nog niets vastgelegd in ${finance.maandLabel}.`]
+    : finance
     ? [
         '',
         `FINANCE (${finance.maandLabel})`,
@@ -213,7 +219,9 @@ export function bouwWeekmail(dag: Date, invoer: WeekmailInvoer): Weekmail {
         .join('')}${takenRest > 0 ? `<li style="color:#5b6b86;">en nog ${takenRest} meer</li>` : ''}</ul>`
     : `${kop('Afgerond')}<p style="margin:6px 0 0;font-size:14px;color:#5b6b86;">Niets afgevinkt deze week — dat zegt iets over het logboek, niet over je week.</p>`
 
-  const financeHtml = finance
+  const financeHtml = financeLeeg && finance
+    ? `${kop(`Finance — ${finance.maandLabel}`)}<p style="margin:6px 0 0;font-size:14px;color:#5b6b86;">Nog niets vastgelegd in ${escape(finance.maandLabel)}.</p>`
+    : finance
     ? `${kop(`Finance — ${finance.maandLabel}`)}
       <table style="margin:6px 0 0;border-collapse:collapse;width:100%;font-size:14px;color:#0b1b3a;">
         <tr><td style="padding:3px 0;color:#5b6b86;">Omzet</td><td style="padding:3px 0;text-align:right;font-variant-numeric:tabular-nums;">${euro(finance.omzet)}</td></tr>

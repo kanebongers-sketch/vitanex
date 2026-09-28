@@ -131,6 +131,14 @@ describe('bouwWeekmail', () => {
     expect(mail.tekst).toContain('maanden')
   })
 
+  test('finance: niets gelogd deze maand → geen rij nullen', () => {
+    const finance = { maandLabel: 'september', omzet: 0, kosten: 0, winst: 0, openstaand: 0, verlopenAantal: 0, aantalTransacties: 0 }
+    const mail = bouwWeekmail(MAANDAG, { ...basis, finance })
+    expect(mail.tekst).toContain('Nog niets vastgelegd in september.')
+    expect(mail.tekst).not.toContain('Omzet')
+    expect(mail.html).toContain('Nog niets vastgelegd in september.')
+  })
+
   test('zelf-evaluatie: benoemd + gecorrigeerd verschijnen', () => {
     const mail = bouwWeekmail(MAANDAG, { ...basis, zelf: { hernoemd: 5, gecorrigeerd: 2 } })
     expect(mail.tekst).toContain('VAN LIFEOS ZELF')

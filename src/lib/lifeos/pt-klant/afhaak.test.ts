@@ -52,6 +52,10 @@ describe('bepaalAfhaak', () => {
     expect(bepaalAfhaak([klant('Nieuw', 'wekelijks_1')], [], NU)).toEqual([])
   })
 
+  test('lang stil, maar al een volgende sessie geboekt → geen signaal', () => {
+    expect(bepaalAfhaak([klant('Kevin', 'wekelijks_1')], [sessie('Kevin', 30), sessie('Kevin', -2)], NU)).toEqual([])
+  })
+
   test('alleen een toekomstige boeking telt niet als "gezien"', () => {
     // Enkel een sessie 3 dagen ín de toekomst; geen historie → geen signaal.
     expect(bepaalAfhaak([klant('Tom', 'wekelijks_1')], [sessie('Tom', -3)], NU)).toEqual([])
