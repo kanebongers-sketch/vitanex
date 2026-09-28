@@ -8,12 +8,12 @@
 // slot is het gedeelde CRON_SECRET (fail-closed: leeg = niemand komt binnen). De
 // lezen lopen via de service-role op de vaste lifeosUserId() — single-tenant.
 //
-// ─── INPLANNEN ──────────────────────────────────────────────────────────────
+// ─── INPLANNEN ──────────────────────────────────────────────────────────────────────
 // Twee klokken: de database (pg_cron, migratie 270 — op de minuut, maandag 06:00
 // UTC) en `.github/workflows/lifeos-weekmail.yml` als back-up. Beide sturen het
 // gedeelde CRON_SECRET mee.
 //
-// ─── IDEMPOTENTIE ───────────────────────────────────────────────────────────
+// ─── IDEMPOTENTIE ─────────────────────────────────────────────────────────────────────
 // Twee planners = een race. Daarom claimt deze route, net als de dagmail, één
 // verzending per dag in `vita_briefingen` (kanaal 'weekmail', migratie 280): wie
 // de insert wint, stuurt; de rest zwijgt. Een goedkope voor-check stopt een latere
@@ -102,6 +102,7 @@ async function haalFinance(
     winst: overzicht.winst,
     openstaand: overzicht.openstaand,
     verlopenAantal: overzicht.verlopenAantal,
+    aantalTransacties: overzicht.aantalTransacties,
   }
 }
 
