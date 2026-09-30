@@ -18,6 +18,8 @@ import { haalEvents } from '@/lib/lifeos/agenda/google'
 import { bepaalWeekStatus, maandagVan, type PtEvent, type PtKlantenAntwoord } from '@/lib/lifeos/pt-klant/pt-klant'
 import { bepaalAfhaak } from '@/lib/lifeos/pt-klant/afhaak'
 import { AFHAAK_VENSTER_DAGEN } from '@/lib/lifeos/pt-klant/afhaak-ophalen'
+import { inplanVoorstellen } from '@/lib/lifeos/pt-klant/voorstel'
+import type { Afspraak } from '@/lib/lifeos/agenda/vrije-blokken'
 import { bepaalOnbekendePtSessies, bepaalStatusHints, bepaalTypfouten, ptKlantenUit } from '@/lib/lifeos/pt-klant/klantstatus'
 
 export const runtime = 'nodejs'
@@ -76,9 +78,25 @@ export async function GET(req: NextRequest) {
   const alleNamen = personen.waarde.map((p) => p.naam)
   const ptEvents: PtEvent[] = events.events.map((e) => ({ titel: e.titel, startOp: e.startOp.toISOString() }))
 
+  // Je hele agenda (niet alleen PT) voor de voorstellen: een voorstel mag nooit
+  // over een andere afspraak heen vallen.
+  const agenda: Afspraak[] = events.events.map((e) => ({
+    id: e.externId,
+    titel: e.titel,
+    startOp: e.startOp,
+    eindOp: e.eindOp,
+    heleDag: e.heleDag,
+    locatie: e.locatie,
+  }))
+  const weekstatus = bepaalWeekStatus(klanten, ptEvents, weekVan.toISOString(), vandaagKey, alleNamen).map((k) => {
+    if (k.tekort === 0 || k.opVakantie) return k
+    const tot = new Date(weekVan.getTime() + k.weken * WEEK_MS)
+    return { ...k, voorstellen: inplanVoorstellen(k.naam, agenda, nu, tot, alleNamen) }
+  })
+
   const antwoord: PtKlantenAntwoord = {
     gekoppeld: true,
-    klanten: bepaalWeekStatus(klanten, ptEvents, weekVan.toISOString(), vandaagKey, alleNamen),
+    klanten: weekstatus,
     afhaak: bepaalAfhaak(klanten, ptEvents, nu, alleNamen),
     statusHints: bepaalStatusHints(personen.waarde, ptEvents, nu),
     onbekend: bepaalOnbekendePtSessies(personen.waarde, ptEvents, nu),

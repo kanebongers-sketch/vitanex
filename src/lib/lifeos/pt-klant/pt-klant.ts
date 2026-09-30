@@ -6,6 +6,7 @@
 import type { Abonnement, PtLocatie } from '../crm/crm'
 import { bevatReeks, woordTokens } from '../crm/agenda-match'
 import type { Afhaak } from './afhaak'
+import type { InplanVoorstel } from './voorstel'
 import type { MogelijkeTypfout, OnbekendePtSessie, PtStatusHint } from './klantstatus'
 
 export const LOCATIE_LABEL: Record<PtLocatie, string> = {
@@ -140,6 +141,8 @@ export interface PtWeekStatus {
   opVakantie: boolean
   /** De ingestelde t/m-dag (ook als die al voorbij is) — het instel-formulier houdt 'm vast. */
   vakantieTot: string | null
+  /** Inplan-voorstellen bij een tekort (zie `voorstel.ts`). Ontbreekt = niet berekend. */
+  voorstellen?: InplanVoorstel[]
 }
 
 /** Maandag 00:00 van de week waarin `nu` valt (lokale tijd). */
@@ -262,7 +265,18 @@ function leesStatus(ruw: unknown): PtWeekStatus | null {
     tekort,
     opVakantie: ruw.opVakantie === true,
     vakantieTot: typeof ruw.vakantieTot === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(ruw.vakantieTot) ? ruw.vakantieTot : null,
+    voorstellen: leesVoorstellen(ruw.voorstellen),
   }
+}
+
+/** Inplan-voorstellen: alleen geldige momenten met een bekende reden. */
+function leesVoorstellen(ruw: unknown): InplanVoorstel[] {
+  if (!Array.isArray(ruw)) return []
+  return ruw.flatMap((v): InplanVoorstel[] => {
+    if (!isObject(v) || typeof v.startOp !== 'string' || Number.isNaN(new Date(v.startOp).getTime())) return []
+    if (v.reden !== 'gewoonte' && v.reden !== 'vrij') return []
+    return [{ startOp: v.startOp, reden: v.reden }]
+  })
 }
 
 function leesAfhaak(ruw: unknown): Afhaak | null {

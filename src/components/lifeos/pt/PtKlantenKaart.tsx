@@ -8,6 +8,7 @@ import { Knop } from '@/components/lifeos/os/Knop'
 import { AfhaakLijst } from './AfhaakLijst'
 import { StatusHintLijst } from './StatusHintLijst'
 import { AgendaCheckLijst } from './AgendaCheckLijst'
+import { InplanForm, veld } from './PtInplanForm'
 import { useRefreshSignaal } from '@/components/lifeos/os/RefreshContext'
 import { haalJson, leesNiets } from '@/lib/lifeos/api/http'
 import { terugVanVakantieSleutel } from '@/lib/lifeos/datum/datum'
@@ -16,7 +17,6 @@ import {
   ABONNEMENT_LABEL,
   LOCATIE_LABEL,
   leesPtKlanten,
-  ptSessieTitel,
   type PtKlantenAntwoord,
   type PtWeekStatus,
 } from '@/lib/lifeos/pt-klant/pt-klant'
@@ -24,8 +24,6 @@ import {
 // Container: de wekelijkse PT-sessies. Per klant of er deze week genoeg gepland
 // staat (1× of 2×), wie er nog moet, wie op vakantie is. Eén knop plant een
 // sessie in (op de juiste locatie). Zo vergeet je nooit iemand.
-
-const SESSIE_DUUR_MIN = 60
 
 type Staat =
   | { fase: 'laden' }
@@ -208,55 +206,6 @@ function KlantRij({ klant, onVernieuw }: { klant: PtWeekStatus; onVernieuw: () =
   )
 }
 
-function InplanForm({ klant, onKlaar, onAnnuleer }: { klant: PtWeekStatus; onKlaar: () => Promise<void>; onAnnuleer: () => void }) {
-  const [datum, setDatum] = useState(standaardDatum)
-  const [tijd, setTijd] = useState('10:00')
-  const [bezig, setBezig] = useState(false)
-  const [fout, setFout] = useState<string | null>(null)
-
-  async function plan() {
-    const start = new Date(`${datum}T${tijd}`)
-    if (Number.isNaN(start.getTime())) {
-      setFout('Kies een geldige datum en tijd.')
-      return
-    }
-    setBezig(true)
-    setFout(null)
-    const eind = new Date(start.getTime() + SESSIE_DUUR_MIN * 60_000)
-    const uitkomst = await haalJson('/api/lifeos/agenda/events', leesNiets, {
-      method: 'POST',
-      body: JSON.stringify({
-        titel: ptSessieTitel(klant.naam, klant.locatie),
-        startOp: start.toISOString(),
-        eindOp: eind.toISOString(),
-        locatie: klant.locatie ? LOCATIE_LABEL[klant.locatie] : undefined,
-      }),
-    })
-    setBezig(false)
-    if (!uitkomst.ok) {
-      setFout(uitkomst.fout)
-      return
-    }
-    await onKlaar()
-  }
-
-  return (
-    <div style={{ display: 'grid', gap: 8, paddingTop: 4 }}>
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-        <input type="date" value={datum} onChange={(e) => setDatum(e.target.value)} aria-label="Datum sessie" style={veld} />
-        <input type="time" value={tijd} onChange={(e) => setTijd(e.target.value)} aria-label="Tijd sessie" style={veld} />
-      </div>
-      <div style={{ display: 'flex', gap: 8 }}>
-        <Knop variant="primair" onClick={() => void plan()} disabled={bezig}>
-          {bezig ? 'Bezig…' : `Inplannen${klant.locatie ? ` in ${LOCATIE_LABEL[klant.locatie]}` : ''}`}
-        </Knop>
-        <Knop onClick={onAnnuleer} disabled={bezig}>Annuleren</Knop>
-      </div>
-      {fout ? <Foutmelding bericht={fout} /> : null}
-    </div>
-  )
-}
-
 function InstelForm({ klant, onKlaar, onAnnuleer }: { klant: PtWeekStatus; onKlaar: () => Promise<void>; onAnnuleer: () => void }) {
   const [abonnement, setAbonnement] = useState<Abonnement | ''>(klant.abonnement ?? '')
   const [duo, setDuo] = useState(klant.duo)
@@ -333,25 +282,7 @@ function InstelForm({ klant, onKlaar, onAnnuleer }: { klant: PtWeekStatus; onKla
   )
 }
 
-const veld: CSSProperties = {
-  appearance: 'none',
-  fontFamily: 'inherit',
-  fontSize: 13,
-  color: 'var(--text-1)',
-  background: 'var(--bg-raised)',
-  border: '1px solid var(--line)',
-  borderRadius: 8,
-  padding: '7px 10px',
-}
 const label: CSSProperties = { fontSize: 11.5, fontWeight: 600, color: 'var(--text-4)' }
-
-function standaardDatum(): string {
-  const d = new Date()
-  d.setDate(d.getDate() + 1)
-  const mm = String(d.getMonth() + 1).padStart(2, '0')
-  const dd = String(d.getDate()).padStart(2, '0')
-  return `${d.getFullYear()}-${mm}-${dd}`
-}
 
 function Skelet() {
   return (
