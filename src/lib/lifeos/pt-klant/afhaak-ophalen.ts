@@ -4,7 +4,9 @@
 //   - afhaak     (`afhaak.ts`)      — lopende klant, maar al weken niet op PT;
 //   - statusHints (`klantstatus.ts`) — traint al, maar staat nog als prospect;
 //   - inplannen  (`pt-klant.ts`)     — wie deze week nog een sessie mist (dezelfde
-//     weekstatus als de PT-kaart op het dashboard).
+//     weekstatus als de PT-kaart op het dashboard);
+//   - coachgesprekken (`pt-gesprek.ts`) — PT-teamleden zonder coachgesprek in de
+//     afgelopen én komende twee weken.
 // Eén Google-call voor alles; het venster loopt door t/m volgende week, want een
 // 2-wekelijkse klant die volgende week geboekt staat is níet "nog in te plannen". Gedeeld door de ochtendmail en de weekmail, zodat
 // ze exact hetzelfde zeggen. Best-effort: niet gekoppeld, verlopen of onbereikbaar
@@ -26,6 +28,7 @@ import {
 } from './klantstatus'
 import { bepaalWeekStatus, maandagVan, type PtEvent, type PtWeekStatus } from './pt-klant'
 import { datumSleutel } from '@/lib/lifeos/datum/datum'
+import { coachAchterstand, type CoachAchterstand } from '@/lib/lifeos/pt-gesprek/pt-gesprek'
 
 /** Het venster dat `bepaalAfhaak` nodig heeft om "gestopt" van "net begonnen" te scheiden. */
 export const AFHAAK_VENSTER_DAGEN = 56
@@ -38,9 +41,13 @@ export interface PtSignalen {
   inplannen: PtWeekStatus[]
   /** "Kevnin" → Kevin? Zo'n sessie telt niet mee, dus hoort hij naast `inplannen`. */
   typfouten: MogelijkeTypfout[]
+  /** PT-teamleden die achterlopen met hun 2-wekelijkse coachgesprek. */
+  coachgesprekken: CoachAchterstand[]
 }
 
-const LEEG: PtSignalen = { afhaak: [], statusHints: [], onbekend: [], inplannen: [], typfouten: [] }
+const LEEG: PtSignalen = { afhaak: [], statusHints: [], onbekend: [], inplannen: [], typfouten: [], coachgesprekken: [] }
+/** Het coachgesprek-ritme kijkt twee weken vooruit. */
+const COACH_VOORUIT_MS = 14 * 24 * 60 * 60 * 1000
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000
 
 export async function haalPtSignalen(
@@ -57,7 +64,7 @@ export async function haalPtSignalen(
 
     const weekVan = maandagVan(nu)
     const van = new Date(Math.min(weekVan.getTime() - WEEK_MS, nu.getTime() - AFHAAK_VENSTER_DAGEN * 24 * 60 * 60 * 1000))
-    const tot = new Date(weekVan.getTime() + 2 * WEEK_MS)
+    const tot = new Date(Math.max(weekVan.getTime() + 2 * WEEK_MS, nu.getTime() + COACH_VOORUIT_MS))
     const gelezen = await haalEvents(token.toegangstoken, van, tot, kalenderId)
     if (gelezen.staat !== 'ok') return LEEG
 
@@ -75,6 +82,11 @@ export async function haalPtSignalen(
       // Alleen vanaf deze maandag: dáár tellen ze mee voor de inplan-regel. Een
       // typfout van weken terug zou anders elke ochtend terugkomen.
       typfouten: bepaalTypfouten(personen, events).filter((t) => new Date(t.op).getTime() >= weekVan.getTime()),
+      coachgesprekken: coachAchterstand(
+        personen.filter((p) => p.groep === 'pt_team' && p.status !== 'inactief'),
+        events,
+        nu,
+      ),
     }
   } catch (oorzaak) {
     console.error('[pt-signalen] agenda-venster ophalen mislukt', oorzaak)

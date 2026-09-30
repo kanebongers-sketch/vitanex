@@ -13,6 +13,7 @@ import type { Persoon } from '@/lib/lifeos/crm/crm'
 import type { Factuur } from '@/lib/lifeos/finance/finance'
 import type { Afhaak } from '@/lib/lifeos/pt-klant/afhaak'
 import type { PtWeekStatus } from '@/lib/lifeos/pt-klant/pt-klant'
+import type { CoachAchterstand } from '@/lib/lifeos/pt-gesprek/pt-gesprek'
 import type { MogelijkeTypfout, OnbekendePtSessie, PtStatusHint } from '@/lib/lifeos/pt-klant/klantstatus'
 import { naarCenten, naarEuro } from '@/lib/lifeos/finance/finance'
 import { groepKort, opsomming } from '@/lib/lifeos/crm/agenda-match'
@@ -170,6 +171,18 @@ export function typfoutAandacht(typfouten: readonly MogelijkeTypfout[]): Aandach
   }))
 }
 
+/**
+ * PT-teamleden die hun 2-wekelijkse coachgesprek missen (zie `pt-gesprek`). Eén
+ * regel, met wanneer het laatste was, zodat je ziet wie het langst wacht.
+ */
+export function coachAandacht(achterstand: readonly CoachAchterstand[]): Aandachtspunt[] {
+  if (achterstand.length === 0) return []
+  const namen = achterstand.map((a) =>
+    a.laatsteOp === null ? `${a.naam} (nog geen)` : `${a.naam} (laatst ${DAG_KORT.format(new Date(a.laatsteOp))})`,
+  )
+  return [{ tekst: `Coachgesprek inplannen: ${opsomming(namen)}`, dringend: false }]
+}
+
 /** De PT-signalen voor de mail, allemaal optioneel (niet nagegaan = leeg). */
 export interface PtAandacht {
   afhaak?: readonly Afhaak[]
@@ -177,6 +190,7 @@ export interface PtAandacht {
   onbekend?: readonly OnbekendePtSessie[]
   inplannen?: readonly PtWeekStatus[]
   typfouten?: readonly MogelijkeTypfout[]
+  coachgesprekken?: readonly CoachAchterstand[]
 }
 
 /**
@@ -243,6 +257,7 @@ export function bouwAandacht(
     ...inplanAandacht(pt.inplannen ?? []),
     // Direct eronder: een typfout verklaart vaak een naam in de inplan-regel.
     ...typfoutAandacht(pt.typfouten ?? []),
+    ...coachAandacht(pt.coachgesprekken ?? []),
     ...afhaakAandacht(pt.afhaak ?? []),
     ...(inbox ? [inbox] : []),
     ...(factuur ? [factuur] : []),

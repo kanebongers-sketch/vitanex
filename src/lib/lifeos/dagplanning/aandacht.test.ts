@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { crmOpvolging, factuurAandacht, inboxAandacht, afhaakAandacht, statusHintAandacht, onbekendAandacht, bouwAandacht, inplanAandacht } from './aandacht'
+import { crmOpvolging, factuurAandacht, inboxAandacht, afhaakAandacht, statusHintAandacht, onbekendAandacht, bouwAandacht, inplanAandacht, coachAandacht } from './aandacht'
 import type { PtWeekStatus } from '@/lib/lifeos/pt-klant/pt-klant'
 import type { Persoon } from '@/lib/lifeos/crm/crm'
 import type { Factuur } from '@/lib/lifeos/finance/finance'
@@ -198,6 +198,15 @@ describe('inplanAandacht', () => {
   test('staat in bouwAandacht ná de CRM-opvolging', () => {
     const punten = bouwAandacht([], [], '2026-09-28', null, { inplannen: [status('Kevin', 1, 1)] })
     expect(punten.map((p) => p.tekst)).toEqual(['PT nog in te plannen: Kevin'])
+  })
+})
+
+describe('coachAandacht', () => {
+  test('niemand → geen regel; anders één regel met "laatst" of "nog geen"', () => {
+    expect(coachAandacht([])).toEqual([])
+    expect(coachAandacht([{ naam: 'Tristan', laatsteOp: null }, { naam: 'Dylan', laatsteOp: '2026-09-09T16:30:00Z' }])).toEqual([
+      { tekst: 'Coachgesprek inplannen: Tristan (nog geen) en Dylan (laatst 9 sep)', dringend: false },
+    ])
   })
 })
 

@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { bepaalStatus, coachgesprekTitel, matchtCoachgesprek, type PtEvent, type PtPersoon } from './pt-gesprek'
+import { bepaalStatus, coachAchterstand, coachgesprekTitel, matchtCoachgesprek, type PtEvent, type PtPersoon } from './pt-gesprek'
 
 describe('coachgesprekTitel', () => {
   test('bouwt de vaste naam met de klant ertussen', () => {
@@ -63,5 +63,30 @@ describe('bepaalStatus', () => {
 
   test('geen events: iedereen moet nog ingepland worden', () => {
     expect(bepaalStatus(personen, []).every((s) => !s.ingepland)).toBe(true)
+  })
+})
+
+describe('coachAchterstand', () => {
+  const NU = new Date('2026-09-30T08:00:00Z')
+  const gesprek = (naam: string, iso: string): PtEvent => ({ titel: `Coachgesprek PT - Kane (${naam})`, startOp: iso })
+
+  test('gesprek in de afgelopen of komende 14 dagen = op ritme', () => {
+    const events = [gesprek('Michael', '2026-09-28T18:00:00Z'), gesprek('Brandon', '2026-10-10T10:00:00Z')]
+    expect(coachAchterstand([{ naam: 'Michael' }, { naam: 'Brandon' }], events, NU)).toEqual([])
+  })
+
+  test('te lang geleden en niets gepland → achterstand met "laatst"', () => {
+    const uit = coachAchterstand([{ naam: 'Dylan' }], [gesprek('Dylan', '2026-09-09T16:30:00Z')], NU)
+    expect(uit).toEqual([{ naam: 'Dylan', laatsteOp: '2026-09-09T16:30:00.000Z' }])
+  })
+
+  test('nooit gezien eerst, dan langst geleden; ander gesprek telt niet', () => {
+    const events = [
+      gesprek('Dylan', '2026-09-09T16:30:00Z'),
+      gesprek('Amey', '2026-08-20T10:00:00Z'),
+      { titel: 'Tristan PT - Kane', startOp: '2026-09-17T13:00:00Z' },
+    ]
+    const uit = coachAchterstand([{ naam: 'Dylan' }, { naam: 'Tristan' }, { naam: 'Amey' }], events, NU)
+    expect(uit.map((a) => a.naam)).toEqual(['Tristan', 'Amey', 'Dylan'])
   })
 })

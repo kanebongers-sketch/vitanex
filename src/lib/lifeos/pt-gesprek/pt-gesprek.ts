@@ -82,6 +82,45 @@ export function bepaalStatus(
   })
 }
 
+// ─── Achterstand voor de ochtendmail ────────────────────────────────────────
+// Het ritme is om de twee weken. Wie de afgelopen 14 dagen geen coachgesprek had
+// én de komende 14 dagen niets gepland heeft, loopt achter. "Laatst" komt uit de
+// historie die de aanroeper meegeeft (null = in dat venster nooit gezien).
+
+const RITME_MS = 14 * 24 * 60 * 60 * 1000
+
+export interface CoachAchterstand {
+  naam: string
+  /** ISO-start van het laatste coachgesprek in het meegegeven venster, of null. */
+  laatsteOp: string | null
+}
+
+/** Teamleden die achterlopen met hun coachgesprek. Nooit-gezien eerst, dan langst geleden. */
+export function coachAchterstand(
+  personen: readonly { naam: string }[],
+  events: readonly PtEvent[],
+  nu: Date,
+): CoachAchterstand[] {
+  const nuMs = nu.getTime()
+  const uit: CoachAchterstand[] = []
+  for (const p of personen) {
+    let laatste: number | null = null
+    let binnenRitme = false
+    for (const e of events) {
+      if (!matchtCoachgesprek(e.titel, p.naam)) continue
+      const t = new Date(e.startOp).getTime()
+      if (Number.isNaN(t)) continue
+      if (Math.abs(t - nuMs) <= RITME_MS) binnenRitme = true
+      if (t <= nuMs && (laatste === null || t > laatste)) laatste = t
+    }
+    if (!binnenRitme) uit.push({ naam: p.naam, laatsteOp: laatste === null ? null : new Date(laatste).toISOString() })
+  }
+  return uit.sort((a, b) => {
+    if (a.laatsteOp === null || b.laatsteOp === null) return a.laatsteOp === null ? (b.laatsteOp === null ? 0 : -1) : 1
+    return a.laatsteOp < b.laatsteOp ? -1 : 1
+  })
+}
+
 // ─── De vorm over de draad (systeemgrens) ───────────────────────────────────
 // "Niet gekoppeld" is een eigen tak, geen lege lijst — anders zegt de kaart
 // "alles ingepland" terwijl we niet in de agenda kónden kijken. Zelfde patroon
