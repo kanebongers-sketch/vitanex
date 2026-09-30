@@ -23,6 +23,7 @@ import { geheimGelijk } from '@/lib/lifeos/auth/geheim'
 import { syncAgenda } from '@/lib/lifeos/agenda/sync'
 import { hernoemAfspraken } from '@/lib/lifeos/agenda/hernoem'
 import { voerAutomatischeActiesUit } from '@/lib/lifeos/automatisch/uitvoeren'
+import { kleurAfspraken } from '@/lib/lifeos/agenda/kleuren'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -96,8 +97,18 @@ export async function GET(req: NextRequest): Promise<Response> {
       } catch (oorzaak) {
         console.error('[lifeos/cron-agenda-sync] hernoemen wierp een fout', oorzaak)
       }
+      // Tot slot de kleuren per categorie (na het hernoemen: de titel bepaalt de
+      // categorie). Best-effort, zoals de rest.
+      let gekleurd = 0
+      try {
+        const k = await kleurAfspraken(admin, userId)
+        if (k.staat === 'ok') gekleurd = k.gekleurd
+      } catch (oorzaak) {
+        console.error('[lifeos/cron-agenda-sync] kleuren wierp een fout', oorzaak)
+      }
       return klaar({
         gesynct: uitkomst.gesynct,
+        gekleurd,
         hernoemd,
         geblokkeerd,
         automatisch,

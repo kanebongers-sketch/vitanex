@@ -78,6 +78,8 @@ export interface EventPatch {
   eindOp?: string
   locatie?: string | null
   beschrijving?: string | null
+  /** Google-kleur '1'..'11' (zie agenda/kleur.ts). */
+  kleurId?: string
 }
 
 // ─── Fouten ─────────────────────────────────────────────────────────────────
@@ -257,6 +259,7 @@ export function naarGooglePatchBody(patch: EventPatch): Record<string, unknown> 
   // maakt het leeg. Zo kun je een locatie bewust weghalen.
   if (patch.locatie !== undefined) body.location = patch.locatie ?? ''
   if (patch.beschrijving !== undefined) body.description = patch.beschrijving ?? ''
+  if (patch.kleurId !== undefined) body.colorId = patch.kleurId
   return body
 }
 
@@ -396,6 +399,13 @@ export function leesEventPatch(body: unknown): Validatie<EventPatch> {
     const beschrijving = leesTekstOptioneel(body.beschrijving, 'Beschrijving', MAX_BESCHRIJVING_LENGTE)
     if (!beschrijving.ok) return beschrijving
     patch.beschrijving = beschrijving.waarde ?? null
+  }
+
+  if ('kleurId' in body) {
+    if (typeof body.kleurId !== 'string' || !/^(?:[1-9]|1[01])$/.test(body.kleurId)) {
+      return { ok: false, fout: 'Kleur moet een Google-kleur 1 t/m 11 zijn.' }
+    }
+    patch.kleurId = body.kleurId
   }
 
   if (Object.keys(patch).length === 0) return { ok: false, fout: 'Niets om te wijzigen.' }

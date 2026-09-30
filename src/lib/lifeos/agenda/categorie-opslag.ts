@@ -4,18 +4,13 @@
 // net als de andere LifeOS-opslagmodules. Elke query filtert zelf op user_id.
 
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { normaliseerTitel, type AgendaCategorie } from './categorie'
+import { CATEGORIE_VOLGORDE, normaliseerTitel, type AgendaCategorie } from './categorie'
 
 export type Uitkomst<T> = { ok: true; waarde: T } | { ok: false; reden: string }
 
-const GELDIGE_CATEGORIEEN: readonly AgendaCategorie[] = [
-  'pt_klant',
-  'budel_team',
-  'pt_team',
-  'management',
-  'persoonlijk',
-  'overig',
-]
+// Eén bron: de categorielijst zelf. Een eigen lijst hier miste 'marketing', waardoor
+// je Marketing-regels bij het teruglezen stil wegvielen.
+const GELDIGE_CATEGORIEEN: readonly AgendaCategorie[] = CATEGORIE_VOLGORDE
 
 /** Alle regels als map `genormaliseerde titel → categorie`. Fout ≠ leeg. */
 export async function haalCategorieRegels(

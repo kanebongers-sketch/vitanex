@@ -194,6 +194,8 @@ export interface GoogleAfspraak {
   kalenderId?: string | null
   /** De kleur van die agenda (hex). Draagt de kleur naar de blokken in de weergave. */
   kleur?: string | null
+  /** De eigen kleur van deze afspraak in Google ('1'..'11'), of null = kleur van de agenda. */
+  kleurId?: string | null
 }
 
 export type EventsUitkomst =
@@ -453,6 +455,7 @@ function leesEvent(ruw: unknown): GoogleAfspraak | null {
     eindOp: eind ? eind.op : null,
     heleDag: start.heleDag,
     locatie: tekst(ruw.location),
+    kleurId: tekst(ruw.colorId),
   }
 }
 
