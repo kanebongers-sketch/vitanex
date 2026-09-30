@@ -11,6 +11,8 @@
 
 import { bevatReeks, woordTokens } from '@/lib/lifeos/crm/agenda-match'
 
+import type { TeamExtra, VorigeEvaluatie } from './team'
+
 /** Het vaste voorvoegsel; de klantnaam komt er tussen haakjes achter. */
 export const COACHGESPREK_PREFIX = 'Coachgesprek PT - Kane'
 
@@ -57,6 +59,8 @@ export interface PtStatus {
   ingepland: boolean
   /** ISO-start van de gevonden afspraak, of null als er niets staat. */
   wanneer: string | null
+  /** Dicht op je team (zie `team.ts`). Ontbreekt bij een ouder antwoord. */
+  extra?: TeamExtra
 }
 
 /**
@@ -149,6 +153,26 @@ function leesPtStatus(ruw: unknown): PtStatus | null {
     email: tekstOfNull(ruw.email),
     ingepland: ruw.ingepland === true,
     wanneer: tekstOfNull(ruw.wanneer),
+    ...(isObject(ruw.extra) ? { extra: leesExtra(ruw.extra) } : {}),
+  }
+}
+
+function leesVorige(ruw: unknown): VorigeEvaluatie | null {
+  if (!isObject(ruw) || !isObject(ruw.scores)) return null
+  const op = tekstOfNull(ruw.op)
+  const { algemeen, energie, voortgang } = ruw.scores
+  if (op === null || typeof algemeen !== 'number' || typeof energie !== 'number' || typeof voortgang !== 'number') return null
+  return { op, scores: { algemeen, energie, voortgang }, notitie: tekstOfNull(ruw.notitie), aandachtspunt: tekstOfNull(ruw.aandachtspunt) }
+}
+
+/** Tolerant: een onleesbaar veld wordt leeg, de rest van het teamlid blijft staan. */
+function leesExtra(ruw: Record<string, unknown>): TeamExtra {
+  return {
+    laatsteGesprekOp: tekstOfNull(ruw.laatsteGesprekOp),
+    nuBezigOp: tekstOfNull(ruw.nuBezigOp),
+    teVerslaan: ruw.teVerslaan === true,
+    vorige: leesVorige(ruw.vorige),
+    voorstelVolgende: tekstOfNull(ruw.voorstelVolgende),
   }
 }
 

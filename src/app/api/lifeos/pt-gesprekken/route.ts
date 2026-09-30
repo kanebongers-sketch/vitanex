@@ -15,11 +15,14 @@ import { haalPersonen } from '@/lib/lifeos/crm/opslag'
 import { geldigToken, leesGekozenKalender } from '@/lib/lifeos/agenda/koppeling'
 import { haalEvents } from '@/lib/lifeos/agenda/google'
 import { bepaalStatus, type PtEvent, type PtGesprekkenAntwoord } from '@/lib/lifeos/pt-gesprek/pt-gesprek'
+import { teamExtra, type AgendaBlok } from '@/lib/lifeos/pt-gesprek/team'
+import { haalLaatsteEvaluaties } from '@/lib/lifeos/pt-coaching/opslag'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 const VENSTER_DAGEN = 14
+const TERUG_DAGEN = 21
 
 const CACHE_HEADERS = {
   'Cache-Control': 'private, no-store',
@@ -49,8 +52,11 @@ export async function GET(req: NextRequest) {
 
   // 3. De afspraken van de komende 14 dagen uit de gekozen agenda.
   const kalenderId = await leesGekozenKalender(toegang.admin, toegang.userId)
-  const van = new Date()
-  const tot = new Date(van.getTime() + VENSTER_DAGEN * 24 * 60 * 60 * 1000)
+  // Terug (voor "verslag invullen" en het voorstel) én vooruit (wat staat er gepland).
+  // Vooruit tot ruim na het voorstel, zodat een botsing met iets anders zichtbaar is.
+  const nu = new Date()
+  const van = new Date(nu.getTime() - TERUG_DAGEN * 24 * 60 * 60 * 1000)
+  const tot = new Date(nu.getTime() + (VENSTER_DAGEN + 7) * 24 * 60 * 60 * 1000)
 
   const events = await haalEvents(token.toegangstoken, van, tot, kalenderId)
   if (events.staat === 'verlopen') {
@@ -62,14 +68,22 @@ export async function GET(req: NextRequest) {
   }
 
   // 4. De regel toepassen (puur, getest in pt-gesprek.test.ts).
-  const ptEvents: PtEvent[] = events.events.map((e) => ({
-    titel: e.titel,
-    startOp: e.startOp.toISOString(),
-  }))
+  // "Ingepland" = een gesprek in de komende 14 dagen (zoals altijd).
+  const grens = nu.getTime() + VENSTER_DAGEN * 24 * 60 * 60 * 1000
+  const ptEvents: PtEvent[] = events.events
+    .filter((e) => e.startOp.getTime() >= nu.getTime() && e.startOp.getTime() <= grens)
+    .map((e) => ({ titel: e.titel, startOp: e.startOp.toISOString() }))
+  const team = personen.waarde.filter((p) => p.status !== 'inactief')
+  const agenda: AgendaBlok[] = events.events.map((e) => ({ titel: e.titel, startOp: e.startOp, eindOp: e.eindOp, heleDag: e.heleDag }))
+  const laatste = await haalLaatsteEvaluaties(toegang.admin, toegang.userId, team.map((p) => p.id))
   const pts = bepaalStatus(
-    personen.waarde.map((p) => ({ id: p.id, naam: p.naam, email: p.email })),
+    team.map((p) => ({ id: p.id, naam: p.naam, email: p.email })),
     ptEvents,
-  )
+  ).map((s) => {
+    const ev = laatste.get(s.id)
+    const vorige = ev ? { op: ev.aangemaaktOp, scores: ev.scores, notitie: ev.notitie, aandachtspunt: ev.aandachtspunt } : null
+    return { ...s, extra: teamExtra(s.naam, agenda, vorige, nu) }
+  })
 
   const antwoord: PtGesprekkenAntwoord = { gekoppeld: true, pts }
   return NextResponse.json(antwoord, { headers: CACHE_HEADERS })

@@ -5,6 +5,7 @@ import { Knop } from '@/components/lifeos/os/Knop'
 import { Foutmelding } from '@/components/lifeos/os/Foutmelding'
 import { haalJson } from '@/lib/lifeos/api/http'
 import { coachgesprekTitel, type PtStatus } from '@/lib/lifeos/pt-gesprek/pt-gesprek'
+import type { VorigeEvaluatie } from '@/lib/lifeos/pt-gesprek/team'
 import { leesAfrondResultaat } from '@/lib/lifeos/pt-coaching/pt-coaching'
 
 // Het formulier dat je invult wanneer je een coaching hebt gehad: drie korte
@@ -28,12 +29,16 @@ const SCORE_LABELS = [
 type ScoreKey = (typeof SCORE_LABELS)[number]['key']
 
 export function CoachingAfronden({ pt, onKlaar, onAnnuleer }: Props) {
+  // Het voorstel van LifeOS (twee weken na dit gesprek, zelfde tijd, vrij in je
+  // agenda) staat al ingevuld: goedkeuren = afronden. Aanpassen mag altijd.
+  const voorstel = pt.extra?.voorstelVolgende ? new Date(pt.extra.voorstelVolgende) : null
   const [scores, setScores] = useState<Record<ScoreKey, number>>({ algemeen: 3, energie: 3, voortgang: 3 })
   const [notitie, setNotitie] = useState('')
   const [aandachtspunt, setAandachtspunt] = useState('')
   const [planVolgende, setPlanVolgende] = useState(true)
-  const [datum, setDatum] = useState(standaardDatum)
-  const [tijd, setTijd] = useState('10:00')
+  const [datum, setDatum] = useState(() => (voorstel ? dagSleutel(voorstel) : standaardDatum()))
+  const [tijd, setTijd] = useState(() => (voorstel ? tijdSleutel(voorstel) : '10:00'))
+  const isVoorstel = voorstel !== null && datum === dagSleutel(voorstel) && tijd === tijdSleutel(voorstel)
   const [bezig, setBezig] = useState(false)
   const [fout, setFout] = useState<string | null>(null)
 
@@ -81,6 +86,7 @@ export function CoachingAfronden({ pt, onKlaar, onAnnuleer }: Props) {
 
   return (
     <div style={{ display: 'grid', gap: 12, paddingTop: 10 }}>
+      {pt.extra?.vorige ? <VorigeKeer vorige={pt.extra.vorige} /> : null}
       {SCORE_LABELS.map(({ key, label }) => (
         <ScoreKiezer
           key={key}
@@ -116,6 +122,12 @@ export function CoachingAfronden({ pt, onKlaar, onAnnuleer }: Props) {
           <input type="checkbox" checked={planVolgende} onChange={(e) => setPlanVolgende(e.target.checked)} />
           Volgende afspraak nu inplannen{pt.email ? ' + uitnodigen' : ''}
         </label>
+        {planVolgende && isVoorstel ? (
+          <p style={{ margin: 0, fontSize: 12.5, color: 'var(--text-2)' }}>
+            <span style={{ color: 'var(--brand)', fontWeight: 600 }}>Voorstel:</span> {MOMENT.format(voorstel)} — twee weken na
+            dit gesprek en vrij in je agenda. Pas aan of keur goed.
+          </p>
+        ) : null}
         {planVolgende ? (
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             <input type="date" value={datum} onChange={(e) => setDatum(e.target.value)} aria-label="Datum volgende afspraak" style={veldStijl} />
@@ -126,7 +138,7 @@ export function CoachingAfronden({ pt, onKlaar, onAnnuleer }: Props) {
 
       <div style={{ display: 'flex', gap: 8 }}>
         <Knop variant="primair" onClick={() => void afronden()} disabled={bezig}>
-          {bezig ? 'Bezig…' : 'Coaching afronden'}
+          {bezig ? 'Bezig…' : planVolgende ? 'Afronden + volgende inplannen' : 'Coaching afronden'}
         </Knop>
         <Knop onClick={onAnnuleer} disabled={bezig}>Annuleren</Knop>
       </div>
@@ -180,6 +192,34 @@ const veldStijl: React.CSSProperties = {
   border: '1px solid var(--line)',
   borderRadius: 8,
   padding: '7px 10px',
+}
+
+const MOMENT = new Intl.DateTimeFormat('nl-NL', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
+const DAG_KORT = new Intl.DateTimeFormat('nl-NL', { day: 'numeric', month: 'short' })
+
+function dagSleutel(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+function tijdSleutel(d: Date): string {
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+}
+
+/** Wat jullie vorige keer bespraken — zodat je niet blanco begint. */
+function VorigeKeer({ vorige }: { vorige: VorigeEvaluatie }) {
+  const { algemeen, energie, voortgang } = vorige.scores
+  return (
+    <div style={{ display: 'grid', gap: 4, padding: '10px 12px', borderRadius: 10, border: '1px solid var(--line)', background: 'var(--bg-raised)' }}>
+      <p style={{ ...labelStijl, margin: 0 }}>
+        Vorige keer · {DAG_KORT.format(new Date(vorige.op))} · algemeen {algemeen}/5 · energie {energie}/5 · voortgang {voortgang}/5
+      </p>
+      {vorige.notitie ? <p style={{ margin: 0, fontSize: 13, color: 'var(--text-2)', lineHeight: 1.5 }}>{vorige.notitie}</p> : null}
+      {vorige.aandachtspunt ? (
+        <p style={{ margin: 0, fontSize: 13, color: 'var(--text-1)', lineHeight: 1.5 }}>
+          <span style={{ color: 'var(--brand)', fontWeight: 600 }}>Aandachtspunt:</span> {vorige.aandachtspunt}
+        </p>
+      ) : null}
+    </div>
+  )
 }
 
 /** Standaard: over 2 weken, als YYYY-MM-DD (lokaal). De cadans is ~2-wekelijks. */

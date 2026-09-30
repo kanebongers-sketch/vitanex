@@ -30,11 +30,13 @@ import type { Afspraak } from '@/lib/lifeos/agenda/vrije-blokken'
 import { haalTaken } from '@/lib/lifeos/taken/opslag'
 import { kiesBewegingsblokken } from '@/lib/lifeos/dagplanning/bewegingsplan'
 import { bouwDagplanningMail, vitaVoorMail, type DagItem, type DagTodo } from '@/lib/lifeos/dagplanning/dagplanning'
-import { bouwAandacht, type Aandachtspunt } from '@/lib/lifeos/dagplanning/aandacht'
+import { bouwAandacht, type Aandachtspunt, type PtAandacht } from '@/lib/lifeos/dagplanning/aandacht'
 import { haalPersonen } from '@/lib/lifeos/crm/opslag'
 import type { Persoon } from '@/lib/lifeos/crm/crm'
-import { haalPtSignalen, type PtSignalen } from '@/lib/lifeos/pt-klant/afhaak-ophalen'
+import { haalPtSignalen } from '@/lib/lifeos/pt-klant/afhaak-ophalen'
 import { haalRecenteActies } from '@/lib/lifeos/automatisch/uitvoeren'
+import { matchtCoachgesprek } from '@/lib/lifeos/pt-gesprek/pt-gesprek'
+import { haalLaatsteEvaluaties } from '@/lib/lifeos/pt-coaching/opslag'
 import { koppelTekstMetRegels } from '@/lib/lifeos/agenda/categorie'
 import { haalCategorieRegels } from '@/lib/lifeos/agenda/categorie-opslag'
 import type { AgendaCategorie } from '@/lib/lifeos/agenda/categorie'
@@ -145,7 +147,7 @@ async function haalAandacht(
   userId: string,
   vandaagKey: string,
   personen: readonly Persoon[],
-  pt: PtSignalen,
+  pt: PtAandacht,
 ): Promise<Aandachtspunt[]> {
   const [facturen, inboxActie] = await Promise.all([
     haalFacturen(admin, userId).catch((oorzaak) => {
@@ -328,9 +330,27 @@ export async function GET(req: NextRequest): Promise<Response> {
   // PT-signalen (afhaak + "traint al maar staat als prospect"): één breed agenda-
   // venster, best-effort — valt dat om, dan gewoon geen PT-regels.
   const pt = await haalPtSignalen(admin, userId, personen, nu)
+  // Vandaag een coachgesprek? Haal op wat er vorige keer besproken is (best-effort).
+  const team = personen.filter((p) => p.groep === 'pt_team' && p.status !== 'inactief')
+  const gesprekkenVandaag = team.flatMap((p) =>
+    afspraken.filter((e) => !e.heleDag && matchtCoachgesprek(e.titel, p.naam)).map((e) => ({ persoon: p, startOp: e.startOp })),
+  )
+  const laatsteEvaluaties = gesprekkenVandaag.length
+    ? await haalLaatsteEvaluaties(admin, userId, gesprekkenVandaag.map((g) => g.persoon.id)).catch(() => new Map())
+    : new Map()
+  const coachVandaag = gesprekkenVandaag
+    .sort((a, b) => a.startOp.getTime() - b.startOp.getTime())
+    .map((g) => {
+      const ev = laatsteEvaluaties.get(g.persoon.id)
+      return {
+        naam: g.persoon.naam,
+        startOp: g.startOp,
+        vorige: ev ? { op: ev.aangemaaktOp, scores: ev.scores, notitie: ev.notitie, aandachtspunt: ev.aandachtspunt } : null,
+      }
+    })
 
   // "Vraagt je aandacht": CRM-opvolging + afhaak + inbox + facturen. Best-effort.
-  const aandacht = await haalAandacht(admin, userId, vandaagKey, personen, pt)
+  const aandacht = await haalAandacht(admin, userId, vandaagKey, personen, { ...pt, coachVandaag })
 
   // Wat LifeOS het afgelopen etmaal zelf regelde (best-effort: fout → geen sectie).
   const automatisch = await haalRecenteActies(admin, userId, new Date(nu.getTime() - 24 * 60 * 60 * 1000)).catch(() => [])

@@ -14,6 +14,7 @@ import type { Factuur } from '@/lib/lifeos/finance/finance'
 import type { Afhaak } from '@/lib/lifeos/pt-klant/afhaak'
 import type { PtWeekStatus } from '@/lib/lifeos/pt-klant/pt-klant'
 import type { CoachAchterstand } from '@/lib/lifeos/pt-gesprek/pt-gesprek'
+import type { VorigeEvaluatie } from '@/lib/lifeos/pt-gesprek/team'
 import type { MogelijkeTypfout, OnbekendePtSessie, PtStatusHint } from '@/lib/lifeos/pt-klant/klantstatus'
 import { naarCenten, naarEuro } from '@/lib/lifeos/finance/finance'
 import { groepKort, opsomming } from '@/lib/lifeos/crm/agenda-match'
@@ -183,6 +184,33 @@ export function coachAandacht(achterstand: readonly CoachAchterstand[]): Aandach
   return [{ tekst: `Coachgesprek inplannen: ${opsomming(namen)}`, dringend: false }]
 }
 
+/** Een coachgesprek van vandaag, met wat er vorige keer besproken is. */
+export interface CoachVandaag {
+  naam: string
+  startOp: Date
+  vorige: VorigeEvaluatie | null
+}
+
+const TIJD = new Intl.DateTimeFormat('nl-NL', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone: 'Europe/Amsterdam' })
+
+/**
+ * Voorbereiding: staat er vandaag een coachgesprek, dan zie je 's ochtends al wat
+ * jullie vorige keer bespraken — het aandachtspunt eerst, anders de notitie.
+ */
+export function coachVoorbereiding(gesprekken: readonly CoachVandaag[]): Aandachtspunt[] {
+  return gesprekken.map((g) => {
+    const kop = `Vandaag ${TIJD.format(g.startOp)} coachgesprek met ${g.naam}`
+    if (!g.vorige) return { tekst: `${kop} — nog geen eerder verslag.`, dringend: false }
+    const wanneer = DAG_KORT.format(new Date(g.vorige.op))
+    const inhoud = g.vorige.aandachtspunt
+      ? `aandachtspunt: ${g.vorige.aandachtspunt}`
+      : g.vorige.notitie
+        ? g.vorige.notitie
+        : `scores ${g.vorige.scores.algemeen}/${g.vorige.scores.energie}/${g.vorige.scores.voortgang}`
+    return { tekst: `${kop} — vorige keer (${wanneer}) ${inhoud}`, dringend: false }
+  })
+}
+
 /** De PT-signalen voor de mail, allemaal optioneel (niet nagegaan = leeg). */
 export interface PtAandacht {
   afhaak?: readonly Afhaak[]
@@ -191,6 +219,7 @@ export interface PtAandacht {
   inplannen?: readonly PtWeekStatus[]
   typfouten?: readonly MogelijkeTypfout[]
   coachgesprekken?: readonly CoachAchterstand[]
+  coachVandaag?: readonly CoachVandaag[]
 }
 
 /**
@@ -253,6 +282,8 @@ export function bouwAandacht(
   const inbox = inboxAandacht(inboxActie)
   const factuur = factuurAandacht(facturen, vandaagKey)
   return [
+    // Vandaag een coachgesprek? Dan eerst je voorbereiding.
+    ...coachVoorbereiding(pt.coachVandaag ?? []),
     ...crmOpvolging(personen, vandaagKey),
     ...inplanAandacht(pt.inplannen ?? []),
     // Direct eronder: een typfout verklaart vaak een naam in de inplan-regel.

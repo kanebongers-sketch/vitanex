@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { crmOpvolging, factuurAandacht, inboxAandacht, afhaakAandacht, statusHintAandacht, onbekendAandacht, bouwAandacht, inplanAandacht, coachAandacht } from './aandacht'
+import { crmOpvolging, factuurAandacht, inboxAandacht, afhaakAandacht, statusHintAandacht, onbekendAandacht, bouwAandacht, inplanAandacht, coachAandacht, coachVoorbereiding } from './aandacht'
 import type { PtWeekStatus } from '@/lib/lifeos/pt-klant/pt-klant'
 import type { Persoon } from '@/lib/lifeos/crm/crm'
 import type { Factuur } from '@/lib/lifeos/finance/finance'
@@ -198,6 +198,21 @@ describe('inplanAandacht', () => {
   test('staat in bouwAandacht ná de CRM-opvolging', () => {
     const punten = bouwAandacht([], [], '2026-09-28', null, { inplannen: [status('Kevin', 1, 1)] })
     expect(punten.map((p) => p.tekst)).toEqual(['PT nog in te plannen: Kevin'])
+  })
+})
+
+describe('coachVoorbereiding', () => {
+  test('aandachtspunt van vorige keer, of eerlijk "nog geen eerder verslag"', () => {
+    const vorige = { op: '2026-09-14T19:00:00Z', scores: { algemeen: 4, energie: 3, voortgang: 4 }, notitie: 'Goed', aandachtspunt: 'Planning strakker' }
+    expect(
+      coachVoorbereiding([
+        { naam: 'Michael', startOp: new Date('2026-09-28T18:00:00Z'), vorige },
+        { naam: 'Darren', startOp: new Date('2026-09-28T08:00:00Z'), vorige: null },
+      ]).map((p) => p.tekst),
+    ).toEqual([
+      'Vandaag 20:00 coachgesprek met Michael — vorige keer (14 sep) aandachtspunt: Planning strakker',
+      'Vandaag 10:00 coachgesprek met Darren — nog geen eerder verslag.',
+    ])
   })
 })
 

@@ -71,3 +71,24 @@ export async function haalEvaluaties(
   if (error) return { ok: false, reden: 'db' }
   return { ok: true, waarde: (Array.isArray(data) ? (data as Rij[]) : []).map(vanRij) }
 }
+
+/** De laatste evaluatie per persoon (voor het team-overzicht). Fout → leeg: dan geen "vorige keer". */
+export async function haalLaatsteEvaluaties(
+  admin: SupabaseClient,
+  userId: string,
+  persoonIds: readonly string[],
+): Promise<Map<string, EvaluatieJson>> {
+  const uit = new Map<string, EvaluatieJson>()
+  if (persoonIds.length === 0) return uit
+  const { data, error } = await admin
+    .from('pt_coaching')
+    .select(`persoon_id, ${KOLOMMEN}`)
+    .eq('user_id', userId)
+    .in('persoon_id', persoonIds)
+    .order('aangemaakt_op', { ascending: false })
+  if (error || !Array.isArray(data)) return uit
+  for (const r of data as (Rij & { persoon_id: string })[]) {
+    if (!uit.has(r.persoon_id)) uit.set(r.persoon_id, vanRij(r))
+  }
+  return uit
+}

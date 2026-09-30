@@ -14,6 +14,7 @@ import {
   type PtStatus,
 } from '@/lib/lifeos/pt-gesprek/pt-gesprek'
 import { CoachingAfronden } from './CoachingAfronden'
+import { CoachPopup } from './CoachPopup'
 
 // Container: het 2-wekelijkse PT-coachgesprek. Per PT-teamlid of er binnen 14 dagen
 // een "Coachgesprek PT - Kane (Naam)" in je agenda staat, plus twee acties:
@@ -66,7 +67,10 @@ export function PtGesprekkenKaart() {
         />
       ) : null}
       {staat.fase === 'ok' && staat.data.gekoppeld ? (
-        <Overzicht pts={staat.data.pts} onVernieuw={laad} />
+        <>
+          <CoachPopup pts={staat.data.pts} onKlaar={laad} />
+          <Overzicht pts={staat.data.pts} onVernieuw={laad} />
+        </>
       ) : null}
     </Kaart>
   )
@@ -83,11 +87,28 @@ function Overzicht({ pts, onVernieuw }: { pts: PtStatus[]; onVernieuw: () => Pro
     )
   }
 
-  const teDoen = pts.filter((p) => !p.ingepland)
-  const geregeld = pts.filter((p) => p.ingepland)
+  // Eerst wat af moet: gesprekken die geweest zijn maar nog geen verslag hebben.
+  const verslag = pts.filter((p) => p.extra?.teVerslaan)
+  const teDoen = pts.filter((p) => !p.ingepland && !p.extra?.teVerslaan)
+  const geregeld = pts.filter((p) => p.ingepland && !p.extra?.teVerslaan)
 
   return (
     <div style={{ display: 'grid', gap: 16 }}>
+      {verslag.length > 0 ? (
+        <div style={{ display: 'grid', gap: 4, padding: '12px 14px', borderRadius: 12, border: '1px solid color-mix(in srgb, var(--brand) 35%, var(--line))', background: 'color-mix(in srgb, var(--brand) 6%, transparent)' }}>
+          <p style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 7, fontSize: 12, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--brand)' }}>
+            <ClipboardCheck size={14} strokeWidth={2.2} aria-hidden />
+            Verslag invullen · {verslag.length}
+          </p>
+          <ul style={{ display: 'grid', gap: 4, listStyle: 'none', padding: 0, margin: 0 }}>
+            {verslag.map((pt) => (
+              <li key={pt.id}>
+                <PtRij pt={pt} onVernieuw={onVernieuw} />
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
       <div>
         <p className="os-cijfer" style={{ fontSize: 34, lineHeight: 1, margin: '0 0 4px', color: 'var(--brand)' }}>
           {teDoen.length}
@@ -162,7 +183,9 @@ function PtRij({ pt, onVernieuw }: { pt: PtStatus; onVernieuw: () => Promise<voi
         <div style={{ minWidth: 0 }}>
           <p style={{ margin: 0, fontSize: 14, fontWeight: 600, color: 'var(--text-1)' }}>{pt.naam}</p>
           <p style={{ margin: '2px 0 0', display: 'flex', alignItems: 'center', gap: 5, fontSize: 11.5, color: 'var(--text-4)' }}>
-            {pt.ingepland ? (
+            {pt.extra?.teVerslaan && pt.extra.laatsteGesprekOp ? (
+              <>Gesprek geweest · {datumLabel(pt.extra.laatsteGesprekOp)} · nog geen verslag</>
+            ) : pt.ingepland ? (
               <>
                 <Check size={12} aria-hidden style={{ color: 'var(--brand)' }} />
                 Gepland{pt.wanneer ? ` · ${datumLabel(pt.wanneer)}` : ''}
@@ -177,6 +200,11 @@ function PtRij({ pt, onVernieuw }: { pt: PtStatus; onVernieuw: () => Promise<voi
               </>
             )}
           </p>
+          {pt.extra?.vorige?.aandachtspunt ? (
+            <p style={{ margin: '3px 0 0', fontSize: 12, color: 'var(--text-3)', lineHeight: 1.4 }}>
+              <span style={{ color: 'var(--brand)', fontWeight: 600 }}>Aandachtspunt:</span> {pt.extra.vorige.aandachtspunt}
+            </p>
+          ) : null}
         </div>
         {modus === 'dicht' ? (
           <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
@@ -186,9 +214,9 @@ function PtRij({ pt, onVernieuw }: { pt: PtStatus; onVernieuw: () => Promise<voi
                 Inplannen
               </Knop>
             ) : null}
-            <Knop onClick={() => setModus('afronden')}>
+            <Knop variant={pt.extra?.teVerslaan ? 'primair' : 'stil'} onClick={() => setModus('afronden')}>
               <ClipboardCheck size={14} strokeWidth={2.2} aria-hidden />
-              Afronden
+              {pt.extra?.teVerslaan ? 'Verslag invullen' : 'Afronden'}
             </Knop>
           </div>
         ) : null}
