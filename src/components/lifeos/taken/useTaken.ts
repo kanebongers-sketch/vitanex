@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { haalJson, haalJsonGedeeld, leesNiets } from '@/lib/lifeos/api/http'
 import { useRefreshSignaal } from '@/components/lifeos/os/RefreshContext'
-import { meldWijziging } from '@/lib/lifeos/events'
+import { luisterOpWijziging, meldWijziging } from '@/lib/lifeos/events'
 import {
   leesTaakAntwoord,
   leesTakenAntwoord,
@@ -79,6 +79,9 @@ export function useTaken(): TakenBediening {
     void laad()
     return verval
   }, [laad, verval, signaal])
+
+  // Een taak toegevoegd via de snelle +-knop (of elders)? Stil opnieuw ophalen.
+  useEffect(() => luisterOpWijziging('taken', () => void laad()), [laad])
 
   const opnieuw = useCallback(() => {
     setStaat({ fase: 'laden' })

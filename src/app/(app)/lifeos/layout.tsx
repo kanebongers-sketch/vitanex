@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import Navbar from '@/components/layout/Navbar'
+import { SnelTaakKnop } from '@/components/lifeos/taken/SnelTaakKnop'
 
 // Alle LifeOS-schermen delen dezelfde app-shell als de rest van de app: de vaste
 // sidebar links (Navbar) staat er áltijd. Zonder deze layout renderde elke
@@ -16,6 +17,8 @@ export default function LifeosLayout({ children }: { children: ReactNode }) {
     <div className="mf-mesh-bg" style={{ minHeight: '100vh' }}>
       <Navbar />
       {children}
+      {/* Overal snel een taak toevoegen (+ rechtsonder, sneltoets n). */}
+      <SnelTaakKnop />
     </div>
   )
 }
