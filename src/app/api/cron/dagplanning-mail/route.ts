@@ -36,7 +36,11 @@ import type { Persoon } from '@/lib/lifeos/crm/crm'
 import { haalPtSignalen } from '@/lib/lifeos/pt-klant/afhaak-ophalen'
 import { haalRecenteActies } from '@/lib/lifeos/automatisch/uitvoeren'
 import { matchtCoachgesprek } from '@/lib/lifeos/pt-gesprek/pt-gesprek'
-import { haalLaatsteEvaluaties } from '@/lib/lifeos/pt-coaching/opslag'
+import { haalLaatsteEvaluaties, haalRecenteEvaluaties } from '@/lib/lifeos/pt-coaching/opslag'
+import { coachSignalen as coachSignalen_ } from '@/lib/lifeos/pt-coaching/signaal'
+import { bewaakAgenda, type Melding } from '@/lib/lifeos/agenda/bewaker'
+import { haalEventsUitCache } from '@/lib/lifeos/agenda/opslag'
+import { categoriseerMet } from '@/lib/lifeos/agenda/categorie'
 import { koppelTekstMetRegels } from '@/lib/lifeos/agenda/categorie'
 import { haalCategorieRegels } from '@/lib/lifeos/agenda/categorie-opslag'
 import type { AgendaCategorie } from '@/lib/lifeos/agenda/categorie'
@@ -171,6 +175,29 @@ async function haalCrmPersonen(
     console.error('[dagplanning-mail] CRM ophalen mislukt', oorzaak)
     return []
   }
+}
+
+/** De komende 7 dagen uit de agenda-cache, per afspraak met categorie, door de bewaker. */
+async function haalBewaker(
+  admin: ReturnType<typeof createLifeosAdminClient>,
+  userId: string,
+  personen: readonly Persoon[],
+  regels: ReadonlyMap<string, AgendaCategorie>,
+  nu: Date,
+): Promise<Melding[]> {
+  const van = new Date(nu)
+  van.setHours(0, 0, 0, 0)
+  const tot = new Date(van)
+  tot.setDate(tot.getDate() + 7)
+  const cache = await haalEventsUitCache(admin, userId, van, tot)
+  if (!cache.ok) return []
+  const afspraken = cache.waarde.map((a) => ({ ...a, categorie: categoriseerMet(a.titel, personen, regels) }))
+  const dagen = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(van)
+    d.setDate(d.getDate() + i)
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  })
+  return bewaakAgenda(afspraken, dagen)
 }
 
 export async function GET(req: NextRequest): Promise<Response> {
@@ -330,6 +357,9 @@ export async function GET(req: NextRequest): Promise<Response> {
   // PT-signalen (afhaak + "traint al maar staat als prospect"): één breed agenda-
   // venster, best-effort — valt dat om, dan gewoon geen PT-regels.
   const pt = await haalPtSignalen(admin, userId, personen, nu)
+  // Agenda-bewaker: de komende 7 dagen uit de cache (botsingen, reistijd, rust).
+  // Best-effort — zonder cache gewoon geen meldingen.
+  const bewaker = await haalBewaker(admin, userId, personen, regels, nu).catch(() => [])
   // Vandaag een coachgesprek? Haal op wat er vorige keer besproken is (best-effort).
   const team = personen.filter((p) => p.groep === 'pt_team' && p.status !== 'inactief')
   const gesprekkenVandaag = team.flatMap((p) =>
@@ -338,6 +368,8 @@ export async function GET(req: NextRequest): Promise<Response> {
   const laatsteEvaluaties = gesprekkenVandaag.length
     ? await haalLaatsteEvaluaties(admin, userId, gesprekkenVandaag.map((g) => g.persoon.id)).catch(() => new Map())
     : new Map()
+  // Twee coachgesprekken op rij laag op hetzelfde vlak → signaal.
+  const coachSignalen = coachSignalen_(team, await haalRecenteEvaluaties(admin, userId, team.map((p) => p.id)).catch(() => new Map()))
   const coachVandaag = gesprekkenVandaag
     .sort((a, b) => a.startOp.getTime() - b.startOp.getTime())
     .map((g) => {
@@ -350,7 +382,7 @@ export async function GET(req: NextRequest): Promise<Response> {
     })
 
   // "Vraagt je aandacht": CRM-opvolging + afhaak + inbox + facturen. Best-effort.
-  const aandacht = await haalAandacht(admin, userId, vandaagKey, personen, { ...pt, coachVandaag })
+  const aandacht = await haalAandacht(admin, userId, vandaagKey, personen, { ...pt, coachVandaag, bewaker, coachSignalen })
 
   // Wat LifeOS het afgelopen etmaal zelf regelde (best-effort: fout → geen sectie).
   const automatisch = await haalRecenteActies(admin, userId, new Date(nu.getTime() - 24 * 60 * 60 * 1000)).catch(() => [])

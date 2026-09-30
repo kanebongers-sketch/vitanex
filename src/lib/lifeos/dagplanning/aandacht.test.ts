@@ -201,6 +201,23 @@ describe('inplanAandacht', () => {
   })
 })
 
+describe('bouwAandacht — bewaker en coachsignalen', () => {
+  test('botsing/reistijd bovenaan en dringend, rust onderaan, coachsignaal erbij', () => {
+    const punten = bouwAandacht([], [], '2026-10-01', null, {
+      bewaker: [
+        { soort: 'rust', tekst: 'Rust' },
+        { soort: 'botsing', tekst: 'Botsing' },
+      ],
+      coachSignalen: [{ naam: 'Iris', tekst: 'Energie van Iris 2× op rij laag (1 en 2) — bespreek dit' }],
+    })
+    expect(punten).toEqual([
+      { tekst: 'Botsing', dringend: true },
+      { tekst: 'Energie van Iris 2× op rij laag (1 en 2) — bespreek dit', dringend: false },
+      { tekst: 'Rust', dringend: false },
+    ])
+  })
+})
+
 describe('coachVoorbereiding', () => {
   test('aandachtspunt van vorige keer, of eerlijk "nog geen eerder verslag"', () => {
     const vorige = { op: '2026-09-14T19:00:00Z', scores: { algemeen: 4, energie: 3, voortgang: 4 }, notitie: 'Goed', aandachtspunt: 'Planning strakker' }

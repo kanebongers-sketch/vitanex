@@ -92,3 +92,26 @@ export async function haalLaatsteEvaluaties(
   }
   return uit
 }
+
+/** De laatste `aantal` evaluaties per persoon, nieuwste eerst (voor signalen). Fout → leeg. */
+export async function haalRecenteEvaluaties(
+  admin: SupabaseClient,
+  userId: string,
+  persoonIds: readonly string[],
+  aantal = 2,
+): Promise<Map<string, EvaluatieJson[]>> {
+  const uit = new Map<string, EvaluatieJson[]>()
+  if (persoonIds.length === 0) return uit
+  const { data, error } = await admin
+    .from('pt_coaching')
+    .select(`persoon_id, ${KOLOMMEN}`)
+    .eq('user_id', userId)
+    .in('persoon_id', persoonIds)
+    .order('aangemaakt_op', { ascending: false })
+  if (error || !Array.isArray(data)) return uit
+  for (const r of data as (Rij & { persoon_id: string })[]) {
+    const lijst = uit.get(r.persoon_id) ?? []
+    if (lijst.length < aantal) uit.set(r.persoon_id, [...lijst, vanRij(r)])
+  }
+  return uit
+}

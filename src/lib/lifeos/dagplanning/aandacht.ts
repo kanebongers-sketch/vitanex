@@ -15,6 +15,8 @@ import type { Afhaak } from '@/lib/lifeos/pt-klant/afhaak'
 import type { PtWeekStatus } from '@/lib/lifeos/pt-klant/pt-klant'
 import type { CoachAchterstand } from '@/lib/lifeos/pt-gesprek/pt-gesprek'
 import type { VorigeEvaluatie } from '@/lib/lifeos/pt-gesprek/team'
+import type { Melding } from '@/lib/lifeos/agenda/bewaker'
+import type { CoachSignaal } from '@/lib/lifeos/pt-coaching/signaal'
 import type { MogelijkeTypfout, OnbekendePtSessie, PtStatusHint } from '@/lib/lifeos/pt-klant/klantstatus'
 import { naarCenten, naarEuro } from '@/lib/lifeos/finance/finance'
 import { groepKort, opsomming } from '@/lib/lifeos/crm/agenda-match'
@@ -220,6 +222,10 @@ export interface PtAandacht {
   typfouten?: readonly MogelijkeTypfout[]
   coachgesprekken?: readonly CoachAchterstand[]
   coachVandaag?: readonly CoachVandaag[]
+  /** Agenda-bewaker: botsingen, reistijd, rust (zie agenda/bewaker). */
+  bewaker?: readonly Melding[]
+  /** Twee coachgesprekken op rij laag op hetzelfde vlak. */
+  coachSignalen?: readonly CoachSignaal[]
 }
 
 /**
@@ -281,9 +287,15 @@ export function bouwAandacht(
 ): Aandachtspunt[] {
   const inbox = inboxAandacht(inboxActie)
   const factuur = factuurAandacht(facturen, vandaagKey)
+  const bewaker = pt.bewaker ?? []
+  // Botsingen en reistijd vragen actie vóór die dag: bovenaan en dringend.
+  const agendaActie = bewaker.filter((m) => m.soort !== 'rust').map((m) => ({ tekst: m.tekst, dringend: true }))
+  const rust = bewaker.filter((m) => m.soort === 'rust').map((m) => ({ tekst: m.tekst, dringend: false }))
   return [
+    ...agendaActie,
     // Vandaag een coachgesprek? Dan eerst je voorbereiding.
     ...coachVoorbereiding(pt.coachVandaag ?? []),
+    ...(pt.coachSignalen ?? []).map((c) => ({ tekst: c.tekst, dringend: false })),
     ...crmOpvolging(personen, vandaagKey),
     ...inplanAandacht(pt.inplannen ?? []),
     // Direct eronder: een typfout verklaart vaak een naam in de inplan-regel.
@@ -295,5 +307,7 @@ export function bouwAandacht(
     // Administratie achteraan: eerst mensen en geld, dan "je CRM loopt achter".
     ...statusHintAandacht(pt.statusHints ?? []),
     ...onbekendAandacht(pt.onbekend ?? []),
+    // Rust als laatste: een seintje, geen taak.
+    ...rust,
   ]
 }
