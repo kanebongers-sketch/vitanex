@@ -127,6 +127,31 @@ describe('bepaalHernoem — de poort vóór een schrijf naar de agenda', () => {
     expect(bepaalHernoem('Boodschappen', [kevin])).toBeNull()
   })
 
+  test('zelfde afspraak, andere opmaak → één layout "Naam PT [Locatie]" (echte titels)', () => {
+    const elize = persoon('Elize Van Den Akker', 'pt_klant')
+    const joris = persoon('Joris Bax', 'pt_klant')
+    const luna = persoon('Luna', 'pt_team')
+    const alle = [kevin, elize, joris, luna]
+    expect(bepaalHernoem('PT Elize Van Den Akker Budel', alle)).toEqual({ nieuweTitel: 'Elize Van Den Akker PT Budel' })
+    expect(bepaalHernoem('Joris - Personal Training Bergeijk', alle)).toEqual({ nieuweTitel: 'Joris Bax PT Bergeijk' })
+    expect(bepaalHernoem('Joris PT', alle)).toEqual({ nieuweTitel: 'Joris Bax PT' })
+    expect(bepaalHernoem('Kevin PT', alle)).toEqual({ nieuweTitel: 'Kevin Cranenbroeck PT' })
+    // Al in de layout → niets (idempotent), ook met locatie.
+    expect(bepaalHernoem('Joris Bax PT Bergeijk', alle)).toBeNull()
+    expect(bepaalHernoem('Luna Team', alle)).toBeNull()
+  })
+
+  test('rijkere titels en andere rollen blijven zoals ze zijn', () => {
+    const michael = persoon('Michael', 'pt_team')
+    const marit = persoon('Marit', 'marketing')
+    const iris = persoon('Iris', 'pt_team')
+    const alle = [kevin, michael, marit, iris]
+    expect(bepaalHernoem('Coachgesprek PT - Kane (Michael)', alle)).toBeNull()
+    expect(bepaalHernoem('Marit - Social Media PT', alle)).toBeNull()
+    // "PT" hoort alleen bij klanten: een teamlid met "PT" erachter blijft staan.
+    expect(bepaalHernoem('Iris PT', alle)).toBeNull()
+  })
+
   test('ambigu → niets (nooit een gok naar de agenda schrijven)', () => {
     const kevin2 = persoon('Kevin de Wit', 'pt_klant')
     expect(bepaalHernoem('Kevin', [kevin, kevin2])).toBeNull()

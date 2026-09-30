@@ -21,10 +21,14 @@ export const ABONNEMENT_LABEL: Record<Abonnement, string> = {
   tweewekelijks_1: '1× per 2 weken',
 }
 
-/** De vaste sessie-titel: "PT Iris Someren" (naam + locatie, geen haakjes). */
+/**
+ * De vaste sessie-titel: "Iris Jansen PT Someren" — dezelfde layout als het
+ * automatisch gelijktrekken in je agenda (`bepaalHernoem`), zodat een sessie die
+ * je via LifeOS inplant nooit nog hernoemd hoeft te worden.
+ */
 export function ptSessieTitel(naam: string, locatie: PtLocatie | null): string {
   const loc = locatie ? ` ${LOCATIE_LABEL[locatie]}` : ''
-  return `PT ${naam.trim()}${loc}`
+  return `${naam.trim()} PT${loc}`
 }
 
 function gelijk(a: readonly string[], b: readonly string[]): boolean {

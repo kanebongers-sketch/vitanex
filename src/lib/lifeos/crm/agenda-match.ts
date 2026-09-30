@@ -144,14 +144,51 @@ export function canoniekeTitel(persoon: Persoon): string {
   return `${persoon.naam.trim()} ${groepTag(persoon.groep)}`
 }
 
+// ─── Eén layout voor alle afspraken met een persoon ─────────────────────────
+// "Naam Tag [Locatie]": "Joris Bax PT Bergeijk", "Luna Team", "Ken MT". Een titel
+// die alleen uit naam-woorden, opmaak-woorden (de tag, "personal training",
+// "sessie") en een locatie bestaat, is dezelfde afspraak in een andere opmaak — die
+// mag LifeOS gelijktrekken. Staat er iets anders in ("Coachgesprek … (Michael)",
+// "Marit - Social Media"), dan is het een rijkere titel en blijft hij zoals hij is.
+
+const LOCATIES: Record<string, string> = { budel: 'Budel', bergeijk: 'Bergeijk', someren: 'Someren' }
+/** Opmaakwoorden die bij een PT-sessie horen (alleen voor PT-klanten). */
+const PT_OPMAAK = new Set(['pt', 'personal', 'training', 'personaltraining', 'sessie'])
+
+/** De locatie die in de titel staat (als los woord), of null. */
+function locatieUit(titelTokens: readonly string[]): string | null {
+  const gevonden = titelTokens.find((t) => t in LOCATIES)
+  return gevonden ? LOCATIES[gevonden] : null
+}
+
+/** De canonieke titel in de vaste layout, mét de locatie als die in de titel stond. */
+function canoniekMetLocatie(persoon: Persoon, titelTokens: readonly string[]): string {
+  const loc = persoon.groep === 'pt_klant' ? locatieUit(titelTokens) : null
+  return loc ? `${canoniekeTitel(persoon)} ${loc}` : canoniekeTitel(persoon)
+}
+
+/** Bestaat de titel alleen uit naam-, opmaak- en locatiewoorden van deze persoon? */
+function isZelfdeAfspraak(titelTokens: readonly string[], persoon: Persoon): boolean {
+  const naamTokens = woordTokens(persoon.naam)
+  const tagTokens = woordTokens(groepTag(persoon.groep))
+  const pt = persoon.groep === 'pt_klant'
+  return (
+    titelTokens.length > 0 &&
+    titelTokens.some((t) => naamTokens.includes(t)) &&
+    titelTokens.every(
+      (t) => naamTokens.includes(t) || tagTokens.includes(t) || (pt && (PT_OPMAAK.has(t) || t in LOCATIES)),
+    )
+  )
+}
+
 /**
  * Moet deze afspraak-titel herschreven worden, en zo ja waarnaar? `null` = met rust
  * laten. Dit is de POORT vóór een schrijf naar je agenda, dus streng:
  *
  *   1. De titel moet eenduidig naar één persoon wijzen (nooit bij twijfel).
- *   2. De titel moet een "kale naam" zijn — alleen naam-woorden, geen extra context.
- *      Zo wordt "Kevin" wél "Kevin Cranenbroeck PT", maar "Training Kevin met intake"
- *      met rust gelaten: we mangelen nooit een rijkere titel.
+ *   2. De titel mag alleen naam-, opmaak- en locatiewoorden bevatten (zie hierboven):
+ *      "Kevin" en "PT Kevin Budel" worden "Kevin Cranenbroeck PT (Budel)", maar
+ *      "Training Kevin met intake" blijft: we mangelen nooit een rijkere titel.
  *   3. De titel mag nog niet de canonieke vorm zijn (idempotent — geen dubbele "PT").
  */
 export function bepaalHernoem(
@@ -161,16 +198,12 @@ export function bepaalHernoem(
   const match = matchPersoonInTitel(titel, personen)
   if (match.soort !== 'match') return null
 
-  const canoniek = canoniekeTitel(match.persoon)
   const huidige = (titel ?? '').trim()
-  if (huidige === canoniek) return null // al goed — nooit opnieuw schrijven
-
-  // Alleen een kale naam: elk woord in de titel is een naam-woord van deze persoon.
   const titelTokens = woordTokens(huidige)
-  const naamTokens = woordTokens(match.persoon.naam)
-  const kaleNaam = titelTokens.length > 0 && titelTokens.every((t) => naamTokens.includes(t))
-  if (!kaleNaam) return null
+  if (!isZelfdeAfspraak(titelTokens, match.persoon)) return null
 
+  const canoniek = canoniekMetLocatie(match.persoon, titelTokens)
+  if (huidige === canoniek) return null // al goed — nooit opnieuw schrijven
   return { nieuweTitel: canoniek }
 }
 
@@ -183,6 +216,7 @@ export function bepaalHernoem(
 export function alCanoniekVoorPersoon(titel: string | null, personen: readonly Persoon[]): string | null {
   const match = matchPersoonInTitel(titel, personen)
   if (match.soort !== 'match') return null
-  const canoniek = canoniekeTitel(match.persoon)
-  return (titel ?? '').trim() === canoniek ? canoniek : null
+  const huidige = (titel ?? '').trim()
+  const canoniek = canoniekMetLocatie(match.persoon, woordTokens(huidige))
+  return huidige === canoniek ? canoniek : null
 }
