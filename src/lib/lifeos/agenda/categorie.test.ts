@@ -39,8 +39,8 @@ describe('categoriseerAfspraak', () => {
   })
 
   test('geen match → Overig (het wegfilter-vak)', () => {
-    expect(categoriseerAfspraak('Tandarts', personen)).toBe('overig')
-    expect(categoriseerAfspraak('Boodschappen', personen)).toBe('overig')
+    expect(categoriseerAfspraak('Btw boschdijk', personen)).toBe('overig')
+    expect(categoriseerAfspraak('BO ceryle', personen)).toBe('overig')
   })
 
   test('afspraak met meerdere mensen uit één groep → die groep', () => {
@@ -55,24 +55,34 @@ describe('categoriseerAfspraak', () => {
     expect(categoriseerAfspraak('Bellen Kevin', twee)).toBe('overig')
   })
 
-  test('Persoonlijk komt nooit uit de auto-afleiding (leer-categorie)', () => {
-    for (const titel of ['Tandarts', 'Sporten', 'Verjaardag']) {
-      expect(categoriseerAfspraak(titel, personen)).not.toBe('persoonlijk')
-    }
+  test('zonder persoon: trefwoorden (echte titels)', () => {
+    expect(categoriseerAfspraak('Werken in Budel', personen)).toBe('budel_team')
+    expect(categoriseerAfspraak('Werk Budel', personen)).toBe('budel_team')
+    expect(categoriseerAfspraak('Sporten (incl. reistijd)', personen)).toBe('persoonlijk')
+    expect(categoriseerAfspraak('Rick gym', personen)).toBe('persoonlijk')
+    expect(categoriseerAfspraak('Psycholoog Peer ADHD', personen)).toBe('persoonlijk')
+    expect(categoriseerAfspraak('Gezamenlijke rekening Rabobank', personen)).toBe('persoonlijk')
+    expect(categoriseerAfspraak('Social media post', personen)).toBe('marketing')
+    expect(categoriseerAfspraak('BO ceryle', personen)).toBe('overig')
+  })
+
+  test('een persoon gaat vóór een trefwoord; een PT-sessie is geen Persoonlijk', () => {
+    expect(categoriseerAfspraak('Training Kevin', personen)).toBe('pt_klant')
+    expect(categoriseerAfspraak('Darren PT', personen)).toBe('overig')
   })
 })
 
 describe('categoriseerMet — geleerde regels winnen', () => {
-  const regels = new Map<string, AgendaCategorie>([['tandarts', 'persoonlijk']])
+  const regels = new Map<string, AgendaCategorie>([['bo ceryle', 'persoonlijk']])
 
   test('een regel wint van de auto-categorie', () => {
-    // Zonder regel zou "Tandarts" in Overig vallen; de regel maakt 'm Persoonlijk.
-    expect(categoriseerAfspraak('Tandarts', personen)).toBe('overig')
-    expect(categoriseerMet('Tandarts', personen, regels)).toBe('persoonlijk')
+    // Zonder regel zou "BO ceryle" in Overig vallen; de regel maakt 'm Persoonlijk.
+    expect(categoriseerAfspraak('BO ceryle', personen)).toBe('overig')
+    expect(categoriseerMet('BO ceryle', personen, regels)).toBe('persoonlijk')
   })
 
   test('normalisatie: hoofdletters en witruimte doen er niet toe', () => {
-    expect(categoriseerMet('  TANDARTS  ', personen, regels)).toBe('persoonlijk')
+    expect(categoriseerMet('  BO  CERYLE  ', personen, regels)).toBe('persoonlijk')
   })
 
   test('een regel wint óók van een auto-match (foute match rechtzetten)', () => {

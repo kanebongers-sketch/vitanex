@@ -39,13 +39,15 @@ export interface PtSignalen {
   onbekend: OnbekendePtSessie[]
   /** Klanten met een tekort deze week (niet op vakantie). */
   inplannen: PtWeekStatus[]
-  /** "Kevnin" → Kevin? Zo'n sessie telt niet mee, dus hoort hij naast `inplannen`. */
+  /** "Kevnin" → Kevin? Zo'n sessie telt niet mee, dus hoort hij naast `inplannen`. Vanaf deze week (voor de mail). */
   typfouten: MogelijkeTypfout[]
+  /** Álle typfouten in het venster, ook van vorige weken (voor het automatisch verbeteren). */
+  typfoutenAlle: MogelijkeTypfout[]
   /** PT-teamleden die achterlopen met hun 2-wekelijkse coachgesprek. */
   coachgesprekken: CoachAchterstand[]
 }
 
-const LEEG: PtSignalen = { afhaak: [], statusHints: [], onbekend: [], inplannen: [], typfouten: [], coachgesprekken: [] }
+const LEEG: PtSignalen = { afhaak: [], statusHints: [], onbekend: [], inplannen: [], typfouten: [], typfoutenAlle: [], coachgesprekken: [] }
 /** Het coachgesprek-ritme kijkt twee weken vooruit. */
 const COACH_VOORUIT_MS = 14 * 24 * 60 * 60 * 1000
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000
@@ -70,9 +72,10 @@ export async function haalPtSignalen(
 
     // Afhaak, statusHints en onbekend kijken zelf alleen naar het verleden (t ≤ nu);
     // de toekomst in dit venster is er voor de weekstatus.
-    const events: PtEvent[] = gelezen.events.map((e) => ({ titel: e.titel, startOp: e.startOp.toISOString() }))
+    const events: PtEvent[] = gelezen.events.map((e) => ({ titel: e.titel, startOp: e.startOp.toISOString(), id: e.externId }))
     const klanten = ptKlantenUit(personen)
     const alleNamen = personen.map((p) => p.naam)
+    const typfoutenAlle = bepaalTypfouten(personen, events)
     const week = bepaalWeekStatus(klanten, events, weekVan.toISOString(), datumSleutel(nu), alleNamen)
     return {
       afhaak: bepaalAfhaak(klanten, events, nu, alleNamen),
@@ -81,7 +84,8 @@ export async function haalPtSignalen(
       inplannen: week.filter((k) => k.tekort > 0),
       // Alleen vanaf deze maandag: dáár tellen ze mee voor de inplan-regel. Een
       // typfout van weken terug zou anders elke ochtend terugkomen.
-      typfouten: bepaalTypfouten(personen, events).filter((t) => new Date(t.op).getTime() >= weekVan.getTime()),
+      typfouten: typfoutenAlle.filter((t) => new Date(t.op).getTime() >= weekVan.getTime()),
+      typfoutenAlle,
       coachgesprekken: coachAchterstand(
         personen.filter((p) => p.groep === 'pt_team' && p.status !== 'inactief'),
         events,

@@ -74,6 +74,8 @@ function gesorteerd(items: readonly DagItem[]): DagItem[] {
   })
 }
 
+const AUTOMATISCH_UITLEG = 'Klopt iets niet? Zet het terug in Mensen of je agenda — LifeOS doet het dan niet opnieuw.'
+
 export function bouwDagplanningMail(
   dag: Date,
   items: readonly DagItem[],
@@ -82,6 +84,8 @@ export function bouwDagplanningMail(
   vitaSignalen: readonly string[] = [],
   /** Cross-domein aandachtspunten (CRM-opvolging, facturen). Leeg = geen sectie. */
   aandacht: readonly Aandachtspunt[] = [],
+  /** Wat LifeOS het afgelopen etmaal zelf deed. Leeg = geen sectie. */
+  automatisch: readonly string[] = [],
 ): DagplanningMail {
   const datum = datumLang(dag)
   const rijen = gesorteerd(items)
@@ -107,6 +111,9 @@ export function bouwDagplanningMail(
   const tekstAandacht = aandacht.length
     ? ['', 'VRAAGT JE AANDACHT', ...aandacht.map((a) => `- ${a.tekst}${a.dringend ? '  !' : ''}`)]
     : []
+  const tekstAutomatisch = automatisch.length
+    ? ['', 'AUTOMATISCH GEDAAN', ...automatisch.map((a) => `- ${a}`), AUTOMATISCH_UITLEG]
+    : []
   const tekst = [
     `Je dag — ${datum}`,
     '',
@@ -114,6 +121,7 @@ export function bouwDagplanningMail(
     ...tekstRegels,
     ...tekstTodos,
     ...tekstAandacht,
+    ...tekstAutomatisch,
     '',
     'Sport en wandeling zijn automatisch ingepland.',
   ].join('\n')
@@ -162,6 +170,16 @@ export function bouwDagplanningMail(
       .join('')}</ul>`
     : ''
 
+  // ── Automatisch gedaan ── (wat LifeOS zelf regelde; eerlijk melden, terug te draaien)
+  const automatischHtml = automatisch.length
+    ? `
+    <h2 style="margin:24px 0 0;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:#5b6b86;">Automatisch gedaan</h2>
+    <ul style="margin:6px 0 0;padding-left:18px;font-size:14px;line-height:1.7;color:#0b1b3a;">${automatisch
+      .map((a) => `<li>${escape(a)}</li>`)
+      .join('')}</ul>
+    <p style="margin:4px 0 0;font-size:12px;color:#8a97ad;">${escape(AUTOMATISCH_UITLEG)}</p>`
+    : ''
+
   // ── Van Vita ── (cross-signaal observaties; alleen als er iets te melden is)
   const vitaHtml = vitaSignalen.length
     ? `<div style="margin:0 0 20px;padding:14px 16px;background:#f2fbfd;border:1px solid #cfeef4;border-left:3px solid #0a7c8a;border-radius:10px;">
@@ -179,6 +197,7 @@ export function bouwDagplanningMail(
     <table style="border-collapse:collapse;width:100%;font-size:14px;">${rijHtml}</table>
     ${todoHtml}
     ${aandachtHtml}
+    ${automatischHtml}
     <p style="margin:24px 0 0;font-size:12px;color:#8a97ad;">Sport (90 min, incl. reistijd) en een wandeling (60 min) zijn automatisch in je agenda gezet.</p>
   </div>`
 

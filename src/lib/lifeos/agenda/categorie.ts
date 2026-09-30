@@ -7,14 +7,14 @@
 // Matcht er niets (of meerdere → geen gok), dan valt de afspraak in "Overig" —
 // het vak dat je kunt wegfilteren en waaruit LifeOS leert (later).
 //
-// "Persoonlijk" is (nog) geen auto-uitkomst: er is geen betrouwbaar signaal om
-// "tandarts" van "overig" te onderscheiden. Het is een LEER-categorie: je wijst 'm
-// toe en LifeOS onthoudt het. De categorie bestaat hier al zodat de UI en het leren
-// erop kunnen bouwen; de auto-afleiding levert 'm nooit uit zichzelf op.
+// Zonder persoon in de titel kijken we naar herkenbare trefwoorden (zie
+// `trefwoordCategorie`): "Werken in Budel" → Team Budel, "Sporten"/"Tandarts" →
+// Persoonlijk, "Social media post" → Marketing. Jouw eigen regels winnen altijd.
 
 import type { Persoon, Groep } from '@/lib/lifeos/crm/crm'
 import { groepDef } from '@/lib/lifeos/crm/crm'
-import { gedeeldeGroep, isGroepsafspraak, koppelTekst, matchPersoonInTitel } from '@/lib/lifeos/crm/agenda-match'
+import { bevatReeks, gedeeldeGroep, isGroepsafspraak, koppelTekst, matchPersoonInTitel, woordTokens } from '@/lib/lifeos/crm/agenda-match'
+import { isEigenTraining } from './training'
 
 /** Een categorie: een CRM-groep, of één van de twee afgeleide bakken. */
 export type AgendaCategorie = Groep | 'persoonlijk' | 'overig'
@@ -50,7 +50,30 @@ export function categoriseerAfspraak(titel: string | null, personen: readonly Pe
   if (match.soort === 'ambigu' && isGroepsafspraak(match.kandidaten)) {
     return gedeeldeGroep(match.kandidaten) ?? 'overig'
   }
-  return 'overig'
+  // Mensen gaan vóór: bleef er geen (eenduidige) persoon over, dan de trefwoorden.
+  return match.soort === 'geen' ? (trefwoordCategorie(titel) ?? 'overig') : 'overig'
+}
+
+// ─── Trefwoorden (standaard-indeling zonder persoon) ────────────────────────
+// Zodat niet alles zonder naam in "Overig" belandt. Bewust kort en herkenbaar;
+// jouw eigen regels (categorieën-scherm) winnen altijd, en een persoon in de titel
+// ook. Een PT-sessie met een klant is geen "Persoonlijk" (zie `isEigenTraining`).
+
+const PERSOONLIJK = new Set([
+  'wandelen', 'wandeling', 'tandarts', 'huisarts', 'fysio', 'fysiotherapeut', 'psycholoog', 'kapper',
+  'verjaardag', 'feest', 'verrassingsfeest', 'verassingsfeest', 'oktoberfest', 'bruiloft', 'eten', 'diner',
+  'etentje', 'boodschappen', 'auto', 'garage', 'apk', 'bank', 'rekening', 'vakantie',
+])
+const MARKETING_REEKSEN: readonly (readonly string[])[] = [['social', 'media'], ['content'], ['fotoshoot'], ['nieuwsbrief']]
+
+/** Categorie op trefwoord, of null als niets herkenbaars. */
+export function trefwoordCategorie(titel: string | null): AgendaCategorie | null {
+  if (!titel) return null
+  const t = woordTokens(titel)
+  if (t.includes('budel') && (t.includes('werk') || t.includes('werken'))) return 'budel_team'
+  if (MARKETING_REEKSEN.some((r) => bevatReeks(t, r))) return 'marketing'
+  if (isEigenTraining(titel) || t.some((w) => PERSOONLIJK.has(w))) return 'persoonlijk'
+  return null
 }
 
 // ─── Leren van jouw herindeling ─────────────────────────────────────────────

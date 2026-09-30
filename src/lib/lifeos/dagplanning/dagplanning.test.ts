@@ -115,3 +115,18 @@ describe('vitaVoorMail', () => {
     ).toEqual(['Je sliep 5u10 en hebt Sporten gepland.'])
   })
 })
+
+describe('bouwDagplanningMail — automatisch gedaan', () => {
+  test('sectie met wat LifeOS zelf deed, plus hoe je het terugdraait', () => {
+    const mail = bouwDagplanningMail(new Date(2026, 9, 1), [], [], [], [], ['Darren toegevoegd als PT-klant (uit "Darren PT")'])
+    expect(mail.tekst).toContain('AUTOMATISCH GEDAAN')
+    expect(mail.tekst).toContain('- Darren toegevoegd als PT-klant')
+    expect(mail.html).toContain('Automatisch gedaan')
+    expect(mail.html).toContain('uit &quot;Darren PT&quot;')
+    expect(mail.tekst).toContain('LifeOS doet het dan niet opnieuw')
+  })
+
+  test('niets gedaan → geen sectie', () => {
+    expect(bouwDagplanningMail(new Date(2026, 9, 1), []).tekst).not.toContain('AUTOMATISCH')
+  })
+})

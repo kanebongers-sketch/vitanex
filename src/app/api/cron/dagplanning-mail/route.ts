@@ -34,6 +34,7 @@ import { bouwAandacht, type Aandachtspunt } from '@/lib/lifeos/dagplanning/aanda
 import { haalPersonen } from '@/lib/lifeos/crm/opslag'
 import type { Persoon } from '@/lib/lifeos/crm/crm'
 import { haalPtSignalen, type PtSignalen } from '@/lib/lifeos/pt-klant/afhaak-ophalen'
+import { haalRecenteActies } from '@/lib/lifeos/automatisch/uitvoeren'
 import { koppelTekstMetRegels } from '@/lib/lifeos/agenda/categorie'
 import { haalCategorieRegels } from '@/lib/lifeos/agenda/categorie-opslag'
 import type { AgendaCategorie } from '@/lib/lifeos/agenda/categorie'
@@ -331,7 +332,9 @@ export async function GET(req: NextRequest): Promise<Response> {
   // "Vraagt je aandacht": CRM-opvolging + afhaak + inbox + facturen. Best-effort.
   const aandacht = await haalAandacht(admin, userId, vandaagKey, personen, pt)
 
-  const mail = bouwDagplanningMail(nu, items, todos, vitaSignalen, aandacht)
+  // Wat LifeOS het afgelopen etmaal zelf regelde (best-effort: fout → geen sectie).
+  const automatisch = await haalRecenteActies(admin, userId, new Date(nu.getTime() - 24 * 60 * 60 * 1000)).catch(() => [])
+  const mail = bouwDagplanningMail(nu, items, todos, vitaSignalen, aandacht, automatisch)
 
   // Eén mail per dag, wie of wat 'm ook triggert (de meerdere ochtend-tikken van de
   // workflow + een handmatige run). Claim vlak vóór het sturen: zo verspilt een

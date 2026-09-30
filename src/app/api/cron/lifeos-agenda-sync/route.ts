@@ -22,6 +22,7 @@ import { createLifeosAdminClient, lifeosUserId } from '@/lib/lifeos/admin'
 import { geheimGelijk } from '@/lib/lifeos/auth/geheim'
 import { syncAgenda } from '@/lib/lifeos/agenda/sync'
 import { hernoemAfspraken } from '@/lib/lifeos/agenda/hernoem'
+import { voerAutomatischeActiesUit } from '@/lib/lifeos/automatisch/uitvoeren'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -73,6 +74,15 @@ export async function GET(req: NextRequest): Promise<Response> {
       // agenda naar de volledige naam + rol-tag ("Kevin" → "Kevin Cranenbroeck PT").
       // Best-effort: een fout hierin mag de geslaagde sync niet omkeren; hij wordt
       // gelogd en de volgende ronde probeert het opnieuw (idempotent).
+      // Eerst de automatische acties (status → actief, typfouten, nieuwe PT-namen),
+      // zodat een net toegevoegde naam in dezelfde ronde al hernoemd kan worden.
+      // Best-effort, net als het hernoemen: een fout keert de sync niet om.
+      let automatisch = 0
+      try {
+        automatisch = (await voerAutomatischeActiesUit(admin, userId)).uitgevoerd
+      } catch (oorzaak) {
+        console.error('[lifeos/cron-agenda-sync] automatische acties wierpen een fout', oorzaak)
+      }
       let hernoemd = 0
       let geblokkeerd = 0
       try {
@@ -90,6 +100,7 @@ export async function GET(req: NextRequest): Promise<Response> {
         gesynct: uitkomst.gesynct,
         hernoemd,
         geblokkeerd,
+        automatisch,
         van: uitkomst.van.toISOString(),
         tot: uitkomst.tot.toISOString(),
       })
