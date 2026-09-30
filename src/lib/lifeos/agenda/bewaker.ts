@@ -7,6 +7,10 @@
 //   3. Rust: vier of meer avonden op rij werk tot 20:30 of later, of een week
 //      zonder één vrije avond. Persoonlijke afspraken (etentje, feest) tellen
 //      niet als werk.
+// Bij een botsing of te weinig reistijd stelt LifeOS meteen een oplossing voor:
+// het dichtstbijzijnde vrije moment die dag (tussen 08:00 en 21:00, op :00/:30).
+// Het schuift het flexibelste blok (je eigen sport/wandeling) als dat kan.
+// Een coachgesprek tíjdens een wandeling is geen botsing: walk & talk mag.
 // PUUR: afspraken + categorie in → meldingen uit. Geen fetch, geen "nu" binnenin.
 
 import type { Afspraak } from './vrije-blokken'
@@ -52,8 +56,56 @@ export function locatieVan(a: Afspraak): string | null {
   return null
 }
 
-/** Twee afspraken die elkaar overlappen (lange blokken tellen niet mee). */
-export function botsingen(afspraken: readonly BewaakAfspraak[]): Melding[] {
+/** Walk & talk: een coachgesprek tijdens je wandeling is prima. */
+function magSamen(a: Afspraak, b: Afspraak): boolean {
+  const isWandeling = (x: Afspraak) => (x.titel ?? '').trim().toLowerCase() === 'wandelen'
+  const isCoach = (x: Afspraak) => woordTokens(x.titel ?? '').includes('coachgesprek')
+  return (isWandeling(a) && isCoach(b)) || (isWandeling(b) && isCoach(a))
+}
+
+/** Je eigen blokken (door LifeOS gepland) zijn het makkelijkst te verschuiven. */
+function isFlexibel(a: Afspraak): boolean {
+  const t = (a.titel ?? '').trim().toLowerCase()
+  return t === 'wandelen' || t.startsWith('sporten')
+}
+
+const DAG_VAN_MIN = 8 * 60
+const DAG_TOT_MIN = 21 * 60
+const STAP_MIN = 30
+
+/**
+ * Het vrije moment die dag dat het dichtst bij de huidige start ligt, voor een
+ * afspraak van dezelfde duur. Lange blokken tellen niet als bezet (daar mag je in).
+ * `vanaf` = niet eerder dan dit moment (bv. na reistijd). null = geen plek.
+ */
+function vrijMoment(
+  te: BewaakAfspraak & { eindOp: Date },
+  alle: readonly BewaakAfspraak[],
+  nu: Date | null,
+  vanaf: number | null = null,
+): Date | null {
+  const duur = te.eindOp.getTime() - te.startOp.getTime()
+  const basis = minuutVanDag(te.startOp)
+  const dag = dagSleutel(te.startOp)
+  const anderen = alle
+    .filter(getimed)
+    .filter((x) => x.id !== te.id && dagSleutel(x.startOp) === dag)
+    .filter((x) => x.eindOp.getTime() - x.startOp.getTime() < LANG_BLOK_MS && !magSamen(x, te))
+  let beste: Date | null = null
+  for (let m = DAG_VAN_MIN; m + duur / MIN <= DAG_TOT_MIN; m += STAP_MIN) {
+    if (m === basis) continue
+    const start = te.startOp.getTime() + (m - basis) * MIN
+    if (nu && start < nu.getTime() + 60 * MIN) continue
+    if (vanaf !== null && start < vanaf) continue
+    const bezet = anderen.some((x) => x.startOp.getTime() < start + duur && x.eindOp.getTime() > start)
+    if (bezet) continue
+    if (beste === null || Math.abs(m - basis) < Math.abs(minuutVanDag(beste) - basis)) beste = new Date(start)
+  }
+  return beste
+}
+
+/** Twee afspraken die elkaar overlappen (lange blokken en walk & talk tellen niet), met een voorstel. */
+export function botsingen(afspraken: readonly BewaakAfspraak[], nu: Date | null = null): Melding[] {
   const kort = afspraken.filter(getimed).filter((a) => a.eindOp.getTime() - a.startOp.getTime() < LANG_BLOK_MS)
   const gesorteerd = [...kort].sort((a, b) => a.startOp.getTime() - b.startOp.getTime())
   const uit: Melding[] = []
@@ -62,9 +114,16 @@ export function botsingen(afspraken: readonly BewaakAfspraak[]): Melding[] {
       const a = gesorteerd[i]
       const b = gesorteerd[j]
       if (b.startOp.getTime() >= a.eindOp.getTime()) break
+      if (magSamen(a, b)) continue
+      // Schuif je eigen sport/wandel-blok als dat kan, anders de latere afspraak.
+      const schuif = isFlexibel(a) && !isFlexibel(b) ? a : b
+      const plek = vrijMoment(schuif, afspraken, nu)
+      const voorstel = plek
+        ? `voorstel: zet "${titel(schuif)}" op ${TIJD.format(plek)}`
+        : 'die dag is er geen vrije plek meer — kies zelf'
       uit.push({
         soort: 'botsing',
-        tekst: `${DAG.format(a.startOp)}: "${titel(a)}" (${TIJD.format(a.startOp)}) en "${titel(b)}" (${TIJD.format(b.startOp)}) overlappen`,
+        tekst: `${DAG.format(a.startOp)}: "${titel(a)}" (${TIJD.format(a.startOp)}) en "${titel(b)}" (${TIJD.format(b.startOp)}) overlappen — ${voorstel}`,
       })
     }
   }
@@ -72,7 +131,7 @@ export function botsingen(afspraken: readonly BewaakAfspraak[]): Melding[] {
 }
 
 /** Opeenvolgende afspraken op verschillende locaties met te weinig tijd ertussen. */
-export function reistijd(afspraken: readonly BewaakAfspraak[]): Melding[] {
+export function reistijd(afspraken: readonly BewaakAfspraak[], nu: Date | null = null): Melding[] {
   const metLocatie = afspraken
     .filter(getimed)
     .map((a) => ({ a, loc: locatieVan(a) }))
@@ -86,9 +145,14 @@ export function reistijd(afspraken: readonly BewaakAfspraak[]): Melding[] {
     const tussen = volgende.a.startOp.getTime() - vorige.a.eindOp.getTime()
     if (tussen < 0 || tussen >= REISTIJD_MS) continue
     const minuten = Math.round(tussen / MIN)
+    // Voorstel: de volgende afspraak later, met minstens 20 min reistijd ertussen.
+    const plek = vrijMoment(volgende.a, afspraken, nu, vorige.a.eindOp.getTime() + REISTIJD_MS)
+    const voorstel = plek
+      ? `voorstel: "${titel(volgende.a)}" naar ${TIJD.format(plek)}`
+      : 'later die dag is er geen plek — overweeg een andere dag'
     uit.push({
       soort: 'reistijd',
-      tekst: `${DAG.format(volgende.a.startOp)}: ${minuten === 0 ? 'geen' : `${minuten} min`} reistijd van ${vorige.loc} (${titel(vorige.a)}, tot ${TIJD.format(vorige.a.eindOp)}) naar ${volgende.loc} (${titel(volgende.a)}, ${TIJD.format(volgende.a.startOp)})`,
+      tekst: `${DAG.format(volgende.a.startOp)}: ${minuten === 0 ? 'geen' : `${minuten} min`} reistijd van ${vorige.loc} (${titel(vorige.a)}, tot ${TIJD.format(vorige.a.eindOp)}) naar ${volgende.loc} (${titel(volgende.a)}, ${TIJD.format(volgende.a.startOp)}) — ${voorstel}`,
     })
   }
   return uit
@@ -132,8 +196,8 @@ export function rust(afspraken: readonly BewaakAfspraak[], dagen: readonly strin
 }
 
 /** Alles samen, zonder dubbele regels. */
-export function bewaakAgenda(afspraken: readonly BewaakAfspraak[], dagen: readonly string[]): Melding[] {
-  const alle = [...botsingen(afspraken), ...reistijd(afspraken), ...rust(afspraken, dagen)]
+export function bewaakAgenda(afspraken: readonly BewaakAfspraak[], dagen: readonly string[], nu: Date | null = null): Melding[] {
+  const alle = [...botsingen(afspraken, nu), ...reistijd(afspraken, nu), ...rust(afspraken, dagen)]
   const gezien = new Set<string>()
   return alle.filter((m) => (gezien.has(m.tekst) ? false : (gezien.add(m.tekst), true)))
 }

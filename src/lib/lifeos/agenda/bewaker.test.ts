@@ -17,6 +17,31 @@ describe('botsingen', () => {
     expect(uit[0].tekst).toContain('12:00')
   })
 
+  test('walk & talk: een coachgesprek tijdens de wandeling is geen botsing (echte agenda 14 sep)', () => {
+    expect(
+      botsingen([
+        a('Wandelen', '2026-09-14T11:30:00Z', '2026-09-14T12:30:00Z', 'persoonlijk'),
+        a('Coachgesprek PT - Kane (Iris)', '2026-09-14T12:00:00Z', '2026-09-14T12:30:00Z', 'pt_team'),
+      ]),
+    ).toEqual([])
+  })
+
+  test('voorstel: je eigen sportblok schuift, naar het dichtstbijzijnde vrije moment', () => {
+    const [m] = botsingen([
+      a('Sporten (incl. reistijd)', '2026-10-01T09:00:00Z', '2026-10-01T10:30:00Z', 'persoonlijk'), // 11:00–12:30 NL
+      a('Ken MT', '2026-10-01T10:00:00Z', '2026-10-01T11:00:00Z', 'management'), // 12:00–13:00 NL
+    ])
+    expect(m.tekst).toContain('voorstel: zet "Sporten (incl. reistijd)" op 10:30')
+  })
+
+  test('voorstel bij twee gewone afspraken: de latere schuift', () => {
+    const [m] = botsingen([
+      a('Coachgesprek PT - Kane (Brandon)', '2026-09-29T10:00:00Z', '2026-09-29T10:30:00Z', 'pt_team'),
+      a('Coachgesprek PT - Kane (Peter)', '2026-09-29T10:00:00Z', '2026-09-29T10:30:00Z', 'pt_team'),
+    ])
+    expect(m.tekst).toMatch(/voorstel: zet "Coachgesprek PT - Kane \((Brandon|Peter)\)" op (11:30|12:30)/)
+  })
+
   test('een lang werkblok met afspraken erin is geen botsing', () => {
     expect(
       botsingen([
@@ -42,6 +67,8 @@ describe('reistijd', () => {
     expect(uit).toHaveLength(1)
     expect(uit[0].tekst).toContain('10 min reistijd van Bergeijk')
     expect(uit[0].tekst).toContain('naar Budel')
+    // 18:30 eind in Bergeijk + 20 min → eerste vrije :00/:30 is 19:00 NL.
+    expect(uit[0].tekst).toContain('voorstel: "Elize PT Budel" naar 19:00')
   })
 
   test('zelfde locatie, of genoeg tijd, of onbekende locatie → niets', () => {

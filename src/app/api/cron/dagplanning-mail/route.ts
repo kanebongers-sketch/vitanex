@@ -197,7 +197,7 @@ async function haalBewaker(
     d.setDate(d.getDate() + i)
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
   })
-  return bewaakAgenda(afspraken, dagen)
+  return bewaakAgenda(afspraken, dagen, nu)
 }
 
 export async function GET(req: NextRequest): Promise<Response> {
