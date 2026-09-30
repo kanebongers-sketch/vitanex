@@ -160,9 +160,10 @@ function leesPtStatus(ruw: unknown): PtStatus | null {
 function leesVorige(ruw: unknown): VorigeEvaluatie | null {
   if (!isObject(ruw) || !isObject(ruw.scores)) return null
   const op = tekstOfNull(ruw.op)
+  const id = tekstOfNull(ruw.id)
   const { algemeen, energie, voortgang } = ruw.scores
-  if (op === null || typeof algemeen !== 'number' || typeof energie !== 'number' || typeof voortgang !== 'number') return null
-  return { op, scores: { algemeen, energie, voortgang }, notitie: tekstOfNull(ruw.notitie), aandachtspunt: tekstOfNull(ruw.aandachtspunt) }
+  if (op === null || id === null || typeof algemeen !== 'number' || typeof energie !== 'number' || typeof voortgang !== 'number') return null
+  return { id, op, scores: { algemeen, energie, voortgang }, notitie: tekstOfNull(ruw.notitie), aandachtspunt: tekstOfNull(ruw.aandachtspunt) }
 }
 
 /** Tolerant: een onleesbaar veld wordt leeg, de rest van het teamlid blijft staan. */

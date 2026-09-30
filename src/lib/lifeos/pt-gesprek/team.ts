@@ -19,6 +19,8 @@ export interface AgendaBlok {
 }
 
 export interface VorigeEvaluatie {
+  /** Id van het verslag (voor de pdf-download). */
+  id: string
   /** ISO-moment waarop het verslag werd opgeslagen. */
   op: string
   scores: { algemeen: number; energie: number; voortgang: number }

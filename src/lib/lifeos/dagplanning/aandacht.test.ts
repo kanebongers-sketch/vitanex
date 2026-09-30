@@ -220,7 +220,7 @@ describe('bouwAandacht — bewaker en coachsignalen', () => {
 
 describe('coachVoorbereiding', () => {
   test('aandachtspunt van vorige keer, of eerlijk "nog geen eerder verslag"', () => {
-    const vorige = { op: '2026-09-14T19:00:00Z', scores: { algemeen: 4, energie: 3, voortgang: 4 }, notitie: 'Goed', aandachtspunt: 'Planning strakker' }
+    const vorige = { id: 'ev-1', op: '2026-09-14T19:00:00Z', scores: { algemeen: 4, energie: 3, voortgang: 4 }, notitie: 'Goed', aandachtspunt: 'Planning strakker' }
     expect(
       coachVoorbereiding([
         { naam: 'Michael', startOp: new Date('2026-09-28T18:00:00Z'), vorige },

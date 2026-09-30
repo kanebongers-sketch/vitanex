@@ -7,6 +7,7 @@ import { haalJson } from '@/lib/lifeos/api/http'
 import { coachgesprekTitel, type PtStatus } from '@/lib/lifeos/pt-gesprek/pt-gesprek'
 import type { VorigeEvaluatie } from '@/lib/lifeos/pt-gesprek/team'
 import { leesAfrondResultaat } from '@/lib/lifeos/pt-coaching/pt-coaching'
+import { VerslagDownload } from './VerslagDownload'
 
 // Het formulier dat je invult wanneer je een coaching hebt gehad: drie korte
 // scores + een notitie, en meteen de volgende afspraak. Eén "Afronden" slaat de
@@ -73,14 +74,10 @@ export function CoachingAfronden({ pt, onKlaar, onAnnuleer }: Props) {
       setFout(uitkomst.fout)
       return
     }
-    if (uitkomst.waarde.afspraakFout) {
-      // De evaluatie is opgeslagen; alleen de volgende afspraak miste. Eerlijk
-      // melden i.p.v. doen alsof alles lukte — de kaart herlaadt zodat je 'm
-      // handmatig kunt inplannen.
-      setFout(`Evaluatie opgeslagen. Maar: ${uitkomst.waarde.afspraakFout}`)
-      await onKlaar()
-      return
-    }
+    // De evaluatie is opgeslagen; mislukte de volgende afspraak of de pdf-mail,
+    // dan eerlijk melden i.p.v. doen alsof alles lukte.
+    const missers = [uitkomst.waarde.afspraakFout, uitkomst.waarde.mailFout].filter((m): m is string => m !== null)
+    if (missers.length > 0) setFout(`Evaluatie opgeslagen. Maar: ${missers.join(' ')}`)
     await onKlaar()
   }
 
@@ -144,7 +141,7 @@ export function CoachingAfronden({ pt, onKlaar, onAnnuleer }: Props) {
       </div>
       {fout ? <Foutmelding bericht={fout} /> : null}
       <p style={{ margin: 0, fontSize: 11, color: 'var(--text-4)' }}>
-        Afspraak heet: “{coachgesprekTitel(pt.naam)}”.
+        Afspraak heet: “{coachgesprekTitel(pt.naam)}”. Het verslag gaat als pdf naar je mail.
       </p>
     </div>
   )
@@ -211,6 +208,8 @@ function VorigeKeer({ vorige }: { vorige: VorigeEvaluatie }) {
     <div style={{ display: 'grid', gap: 4, padding: '10px 12px', borderRadius: 10, border: '1px solid var(--line)', background: 'var(--bg-raised)' }}>
       <p style={{ ...labelStijl, margin: 0 }}>
         Vorige keer · {DAG_KORT.format(new Date(vorige.op))} · algemeen {algemeen}/5 · energie {energie}/5 · voortgang {voortgang}/5
+        {' · '}
+        <VerslagDownload id={vorige.id} />
       </p>
       {vorige.notitie ? <p style={{ margin: 0, fontSize: 13, color: 'var(--text-2)', lineHeight: 1.5 }}>{vorige.notitie}</p> : null}
       {vorige.aandachtspunt ? (

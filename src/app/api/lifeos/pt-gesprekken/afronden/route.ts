@@ -4,7 +4,8 @@
 //   1. de evaluatie (3 scores + notitie) opslaan in pt_coaching;
 //   2. een samenvatting in de CRM-tijdlijn van de persoon loggen;
 //   3. de VOLGENDE afspraak inplannen (datum/tijd die je koos — flexibel) en de
-//      klant uitnodigen via z'n mailadres.
+//      klant uitnodigen via z'n mailadres;
+//   4. het verslag als pdf naar je eigen inbox mailen.
 //
 // De evaluatie is leidend: lukt stap 3 niet, dan is de coaching tóch vastgelegd
 // en meldt het antwoord `afspraakFout` zodat je de volgende handmatig kunt zetten.
@@ -21,6 +22,7 @@ import { maakAgendaEvent, schrijfFoutHttp } from '@/lib/lifeos/agenda/schrijven'
 import { coachgesprekTitel } from '@/lib/lifeos/pt-gesprek/pt-gesprek'
 import { evaluatieSamenvatting, leesEvaluatie, type AfrondResultaat } from '@/lib/lifeos/pt-coaching/pt-coaching'
 import { slaEvaluatieOp } from '@/lib/lifeos/pt-coaching/opslag'
+import { mailVerslag } from '@/lib/lifeos/pt-coaching/verslag-mail'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -74,6 +76,7 @@ export async function POST(req: NextRequest) {
   //    (je plant later handmatig in via de kaart). Wél een datum → inplannen +
   //    uitnodigen.
   let afspraakFout: string | null = null
+  let volgende: Date | null = null
   if (typeof volgendeStartOp === 'string' && volgendeStartOp.trim().length > 0) {
     const start = new Date(volgendeStartOp)
     if (Number.isNaN(start.getTime())) {
@@ -93,6 +96,7 @@ export async function POST(req: NextRequest) {
           },
           kalenderId,
         )
+        volgende = start
       } catch (fout) {
         const http = schrijfFoutHttp(fout)
         afspraakFout = http?.bericht ?? 'De volgende afspraak kon niet worden aangemaakt.'
@@ -100,7 +104,17 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  const resultaat: AfrondResultaat = { afspraakFout }
+  // 4. Het verslag als pdf mailen. Best-effort, net als de afspraak.
+  const mailFout = await mailVerslag({
+    naam: persoon.naam,
+    op: new Date(bewaard.waarde.aangemaaktOp),
+    scores: bewaard.waarde.scores,
+    notitie: bewaard.waarde.notitie,
+    aandachtspunt: bewaard.waarde.aandachtspunt,
+    volgende,
+  })
+
+  const resultaat: AfrondResultaat = { afspraakFout, mailFout, evaluatieId: bewaard.waarde.id }
   return NextResponse.json(resultaat, {
     headers: { 'Cache-Control': 'private, no-store', Vary: 'Authorization' },
   })

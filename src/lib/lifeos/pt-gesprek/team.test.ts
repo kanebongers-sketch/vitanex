@@ -6,7 +6,7 @@ function blok(titel: string, j: number, m: number, d: number, u: number, min = 0
   return { titel, startOp, eindOp: new Date(startOp.getTime() + duur * 60_000), heleDag: false }
 }
 const gesprek = (naam: string, d: number, u: number, min = 0) => blok(`Coachgesprek PT - Kane (${naam})`, 2026, 9, d, u, min)
-const evaluatie = (op: Date): VorigeEvaluatie => ({ op: op.toISOString(), scores: { algemeen: 4, energie: 3, voortgang: 4 }, notitie: 'Goed gesprek', aandachtspunt: 'Planning' })
+const evaluatie = (op: Date): VorigeEvaluatie => ({ id: 'ev-1', op: op.toISOString(), scores: { algemeen: 4, energie: 3, voortgang: 4 }, notitie: 'Goed gesprek', aandachtspunt: 'Planning' })
 
 describe('teamExtra', () => {
   test('tijdens het gesprek: nuBezig + teVerslaan, voorstel twee weken later zelfde tijd', () => {

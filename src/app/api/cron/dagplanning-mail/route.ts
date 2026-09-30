@@ -377,7 +377,7 @@ export async function GET(req: NextRequest): Promise<Response> {
       return {
         naam: g.persoon.naam,
         startOp: g.startOp,
-        vorige: ev ? { op: ev.aangemaaktOp, scores: ev.scores, notitie: ev.notitie, aandachtspunt: ev.aandachtspunt } : null,
+        vorige: ev ? { id: ev.id, op: ev.aangemaaktOp, scores: ev.scores, notitie: ev.notitie, aandachtspunt: ev.aandachtspunt } : null,
       }
     })
 

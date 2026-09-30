@@ -81,7 +81,7 @@ export async function GET(req: NextRequest) {
     ptEvents,
   ).map((s) => {
     const ev = laatste.get(s.id)
-    const vorige = ev ? { op: ev.aangemaaktOp, scores: ev.scores, notitie: ev.notitie, aandachtspunt: ev.aandachtspunt } : null
+    const vorige = ev ? { id: ev.id, op: ev.aangemaaktOp, scores: ev.scores, notitie: ev.notitie, aandachtspunt: ev.aandachtspunt } : null
     return { ...s, extra: teamExtra(s.naam, agenda, vorige, nu) }
   })
 

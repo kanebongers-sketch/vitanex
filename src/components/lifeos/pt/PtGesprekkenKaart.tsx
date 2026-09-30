@@ -15,6 +15,7 @@ import {
 } from '@/lib/lifeos/pt-gesprek/pt-gesprek'
 import { CoachingAfronden } from './CoachingAfronden'
 import { CoachPopup } from './CoachPopup'
+import { VerslagDownload } from './VerslagDownload'
 
 // Container: het 2-wekelijkse PT-coachgesprek. Per PT-teamlid of er binnen 14 dagen
 // een "Coachgesprek PT - Kane (Naam)" in je agenda staat, plus twee acties:
@@ -203,6 +204,11 @@ function PtRij({ pt, onVernieuw }: { pt: PtStatus; onVernieuw: () => Promise<voi
           {pt.extra?.vorige?.aandachtspunt ? (
             <p style={{ margin: '3px 0 0', fontSize: 12, color: 'var(--text-3)', lineHeight: 1.4 }}>
               <span style={{ color: 'var(--brand)', fontWeight: 600 }}>Aandachtspunt:</span> {pt.extra.vorige.aandachtspunt}
+            </p>
+          ) : null}
+          {pt.extra?.vorige ? (
+            <p style={{ margin: '3px 0 0', fontSize: 12, color: 'var(--text-3)' }}>
+              Laatste verslag · <VerslagDownload id={pt.extra.vorige.id} />
             </p>
           ) : null}
         </div>

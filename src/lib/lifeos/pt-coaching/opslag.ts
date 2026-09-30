@@ -115,3 +115,21 @@ export async function haalRecenteEvaluaties(
   }
   return uit
 }
+
+/** Eén evaluatie op id, mét van wie hij is (voor de pdf). Niet gevonden → `null`. */
+export async function haalEvaluatie(
+  admin: SupabaseClient,
+  userId: string,
+  id: string,
+): Promise<OpslagUitkomst<(EvaluatieJson & { persoonId: string }) | null>> {
+  const { data, error } = await admin
+    .from('pt_coaching')
+    .select(`persoon_id, ${KOLOMMEN}`)
+    .eq('user_id', userId)
+    .eq('id', id)
+    .maybeSingle()
+  if (error) return { ok: false, reden: 'db' }
+  if (!data) return { ok: true, waarde: null }
+  const r = data as Rij & { persoon_id: string }
+  return { ok: true, waarde: { ...vanRij(r), persoonId: r.persoon_id } }
+}

@@ -137,10 +137,14 @@ export function leesEvaluaties(ruw: unknown): EvaluatieJson[] | null {
  */
 export interface AfrondResultaat {
   afspraakFout: string | null
+  /** Lukte het mailen van de pdf niet, dan staat hier waarom. */
+  mailFout: string | null
+  /** Het id van het bewaarde verslag (voor de pdf-download). */
+  evaluatieId: string | null
 }
 
 export function leesAfrondResultaat(ruw: unknown): AfrondResultaat | null {
   if (!isObject(ruw)) return null
-  const f = ruw.afspraakFout
-  return { afspraakFout: typeof f === 'string' && f.trim().length > 0 ? f : null }
+  const tekst = (v: unknown): string | null => (typeof v === 'string' && v.trim().length > 0 ? v : null)
+  return { afspraakFout: tekst(ruw.afspraakFout), mailFout: tekst(ruw.mailFout), evaluatieId: tekst(ruw.evaluatieId) }
 }
