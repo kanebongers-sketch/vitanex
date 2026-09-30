@@ -2,11 +2,13 @@
 // PUUR. Geen fetch, geen DB, geen Date.now() binnenin — de tijd komt er altijd
 // ín. Kiest elke weekdag een plek voor twee vaste blokken op basis van hoe de dag
 // eruitziet: sporten (90 min, incl. reistijd) het liefst 's ochtends, en een
-// wandeling (60 min) erna. Leunt op de bestaande `vrijeBlokken`-logica (functie 2),
-// zodat "wat is er vrij" op precies één plek wordt berekend en getest.
+// wandeling (60 min) in een ánder dagdeel — bij voorkeur tijdens een coachgesprek.
+// Leunt op de bestaande `vrijeBlokken`-logica (functie 2), zodat "wat is er vrij"
+// op precies één plek wordt berekend en getest.
 
 import { vrijeBlokken, werkVenster, type Afspraak, type Venster, type VrijBlok } from '../agenda/vrije-blokken'
 import { isEigenTraining } from '../agenda/training'
+import { woordTokens } from '../crm/agenda-match'
 
 /** Sporten: een uur, plus 30 min reistijd = 90 min in de agenda. */
 export const SPORT_MIN = 90
@@ -15,6 +17,8 @@ export const WANDEL_MIN = 60
 
 /** Vóór dit uur = "ochtend" voor de sport-voorkeur. */
 const OCHTEND_GRENS_UUR = 12
+/** Vanaf dit uur = "avond" (dagdelen: sport en wandeling nooit in hetzelfde). */
+const AVOND_GRENS_UUR = 18
 
 /**
  * Rondt een moment OMHOOG naar het eerstvolgende hele of halve uur (:00 of :30).
@@ -68,21 +72,84 @@ function kiesSportSlot(vrije: readonly VrijBlok[]): Venster | null {
 }
 
 /**
- * Wandeling: ná de sport — dat is het ontwerp ("sporten, wandeling erna"). In
- * volgorde van voorkeur: na de sport én 's middags (gespreid, niet tegen de sport
- * aan geplakt), na de sport, 's middags, en anders wat er vrij is. Zonder die
- * eerste twee regels kwam de wandeling soms vóór de sport (22-09: wandelen 12:00,
- * sporten 13:30), omdat alleen naar "na 12:00" werd gekeken.
+ * Álle :00/:30-starts binnen de vrije blokken waar `duurMin` nog past — niet alleen
+ * het begin van elk blok. Zo kan de wandeling 's avonds vallen in een blok dat al
+ * 's middags begint (15:00–20:00 → ook 18:00).
  */
-function kiesWandelSlot(vrije: readonly VrijBlok[], sport: Venster | null): Venster | null {
-  const kandidaten = kandidatenIn(vrije, WANDEL_MIN)
-  const naSport = (k: Venster) => sport === null || k.startOp.getTime() >= sport.eindOp.getTime()
-  const middag = (k: Venster) => k.startOp.getHours() >= OCHTEND_GRENS_UUR
+function alleKandidatenIn(vrije: readonly VrijBlok[], duurMin: number): Venster[] {
+  const duurMs = duurMin * 60_000
+  const uit: Venster[] = []
+  for (const b of vrije) {
+    for (let t = rondOpNaarHalfUur(b.startOp).getTime(); t + duurMs <= b.eindOp.getTime(); t += 30 * 60_000) {
+      uit.push({ startOp: new Date(t), eindOp: new Date(t + duurMs) })
+    }
+  }
+  return uit
+}
+
+type Dagdeel = 'ochtend' | 'middag' | 'avond'
+
+/** Ochtend vóór 12:00, middag tot 18:00, avond daarna. */
+function dagdeel(d: Date): Dagdeel {
+  const u = d.getHours()
+  return u < OCHTEND_GRENS_UUR ? 'ochtend' : u < AVOND_GRENS_UUR ? 'middag' : 'avond'
+}
+
+/**
+ * Walk & talk: staat er vandaag een coachgesprek in een ánder dagdeel dan je
+ * sport, dan wordt dat je wandeling — het uur vanaf de start van het gesprek,
+ * als dat verder vrij is. Twee vliegen in één klap.
+ */
+function wandelMetCoachgesprek(
+  events: readonly Afspraak[],
+  venster: Venster,
+  anker: Venster | null,
+  nu?: Date,
+): Venster | null {
+  const gesprekken = events
+    .filter((e) => !e.heleDag && woordTokens(e.titel ?? '').includes('coachgesprek'))
+    .sort((a, b) => a.startOp.getTime() - b.startOp.getTime())
+  for (const g of gesprekken) {
+    const startOp = g.startOp
+    const eindOp = new Date(startOp.getTime() + WANDEL_MIN * 60_000)
+    if (nu && startOp.getTime() < nu.getTime()) continue
+    if (startOp.getTime() < venster.startOp.getTime() || eindOp.getTime() > venster.eindOp.getTime()) continue
+    if (anker && dagdeel(startOp) === dagdeel(anker.startOp)) continue
+    const botst = events.some(
+      (e) => e !== g && !e.heleDag && e.eindOp !== null && e.startOp.getTime() < eindOp.getTime() && e.eindOp.getTime() > startOp.getTime(),
+    )
+    const botstMetAnker = anker !== null && anker.startOp.getTime() < eindOp.getTime() && anker.eindOp.getTime() > startOp.getTime()
+    if (!botst && !botstMetAnker) return { startOp, eindOp }
+  }
+  return null
+}
+
+/**
+ * Wandeling: in een ánder dagdeel dan de sport (ochtend / middag / avond) — niet
+ * er vlak tegenaan. Voorkeur: een coachgesprek als walk & talk; dan ná de sport in
+ * een ander dagdeel; dan vóór de sport in een ander dagdeel. Lukt dat die dag niet,
+ * dan het vrije uur het verst van de sport af.
+ */
+function kiesWandelSlot(
+  vrije: readonly VrijBlok[],
+  anker: Venster | null,
+  events: readonly Afspraak[],
+  venster: Venster,
+  nu?: Date,
+): Venster | null {
+  const metGesprek = wandelMetCoachgesprek(events, venster, anker, nu)
+  if (metGesprek) return metGesprek
+
+  const kandidaten = alleKandidatenIn(vrije, WANDEL_MIN)
+  if (anker === null) return kandidaten.find((k) => k.startOp.getHours() >= OCHTEND_GRENS_UUR) ?? kandidaten[0] ?? null
+  const anderDeel = (k: Venster) => dagdeel(k.startOp) !== dagdeel(anker.startOp)
+  const naSport = (k: Venster) => k.startOp.getTime() >= anker.eindOp.getTime()
+  const afstand = (k: Venster) =>
+    Math.min(Math.abs(k.startOp.getTime() - anker.eindOp.getTime()), Math.abs(anker.startOp.getTime() - k.eindOp.getTime()))
   return (
-    kandidaten.find((k) => naSport(k) && middag(k)) ??
-    kandidaten.find(naSport) ??
-    kandidaten.find(middag) ??
-    kandidaten[0] ??
+    kandidaten.find((k) => anderDeel(k) && naSport(k)) ??
+    kandidaten.find(anderDeel) ??
+    [...kandidaten].sort((a, b) => afstand(b) - afstand(a))[0] ??
     null
   )
 }
@@ -128,7 +195,7 @@ export function kiesBewegingsblokken(
         { id: 'sport-reserve', titel: 'Sport', startOp: sport.startOp, eindOp: sport.eindOp, heleDag: false, locatie: null },
       ]
     : events
-  const wandeling = kiesWandelSlot(vrijeBlokken(metSport, venster, opties), sport ?? eigen)
+  const wandeling = kiesWandelSlot(vrijeBlokken(metSport, venster, opties), sport ?? eigen, events, venster, nu)
 
   return { sport, wandeling }
 }

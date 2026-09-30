@@ -125,4 +125,29 @@ describe('kiesBewegingsblokken', () => {
     const { sport } = kiesBewegingsblokken([afspraak(9, 10, 'Kevin PT'), afspraak(10, 11, 'Personal training Sanne')], DAG)
     expect(sport).not.toBeNull()
   })
+
+  test('sport en wandeling nooit in hetzelfde dagdeel', () => {
+    const deel = (d: Date) => (d.getHours() < 12 ? 'ochtend' : d.getHours() < 18 ? 'middag' : 'avond')
+    for (const events of [[], [afspraak(8, 10, 'Werk')], [afspraak(8, 13, 'Werk'), afspraak(15, 17, 'PT')]]) {
+      const { sport, wandeling } = kiesBewegingsblokken(events, DAG)
+      expect(sport).not.toBeNull()
+      expect(wandeling).not.toBeNull()
+      expect(deel(wandeling!.startOp)).not.toBe(deel(sport!.startOp))
+    }
+  })
+
+  test('walk & talk: een coachgesprek in een ander dagdeel wordt je wandeling', () => {
+    const gesprek = afspraakM(16, 0, 16, 30, 'Coachgesprek PT - Kane (Michael)')
+    const { sport, wandeling } = kiesBewegingsblokken([gesprek], DAG)
+    expect(sport && uur(sport.startOp)).toBe(8)
+    expect(wandeling && uur(wandeling.startOp)).toBe(16)
+    expect(wandeling && uur(wandeling.eindOp)).toBe(17)
+  })
+
+  test('coachgesprek in hetzelfde dagdeel als de sport → geen walk & talk', () => {
+    const gesprek = afspraakM(10, 0, 10, 30, 'Coachgesprek PT - Kane (Iris)')
+    const { sport, wandeling } = kiesBewegingsblokken([gesprek], DAG)
+    expect(sport && sport.startOp.getHours()).toBeLessThan(12)
+    expect(wandeling && wandeling.startOp.getHours()).toBeGreaterThanOrEqual(12)
+  })
 })
