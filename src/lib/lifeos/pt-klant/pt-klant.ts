@@ -122,6 +122,8 @@ export interface PtKlant {
 export interface PtEvent {
   titel: string | null
   startOp: string
+  /** Het Google-id, als de aanroeper het meegeeft (nodig om een titel te verbeteren). */
+  id?: string
 }
 
 /** De status per klant: nodig vs. ingepland binnen zijn cadans-venster. */
@@ -305,7 +307,7 @@ function leesOnbekend(ruw: unknown): OnbekendePtSessie | null {
   const laatsteOp = tekstOfNull(ruw.laatsteOp)
   const aantal = heelGetal(ruw.aantal)
   if (titel === null || laatsteOp === null || aantal === null) return null
-  return { titel, aantal, laatsteOp }
+  return { titel, aantal, laatsteOp, naam: tekstOfNull(ruw.naam) ?? titel }
 }
 
 function leesTypfout(ruw: unknown): MogelijkeTypfout | null {
@@ -314,7 +316,8 @@ function leesTypfout(ruw: unknown): MogelijkeTypfout | null {
   const bedoeld = tekstOfNull(ruw.bedoeld)
   const op = tekstOfNull(ruw.op)
   if (titel === null || bedoeld === null || op === null) return null
-  return { titel, bedoeld, op }
+  const eventIds = Array.isArray(ruw.eventIds) ? ruw.eventIds.filter((x): x is string => typeof x === 'string' && x.length > 0) : []
+  return { titel, bedoeld, op, eventIds, nieuweTitel: tekstOfNull(ruw.nieuweTitel) ?? titel }
 }
 
 /** Het antwoord van `GET /api/lifeos/pt-klanten`, of null als het niet klopt. */

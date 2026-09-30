@@ -69,8 +69,8 @@ export function PtKlantenKaart() {
         <div style={{ display: 'grid', gap: 16 }}>
           <Overzicht klanten={staat.data.klanten} onVernieuw={laad} />
           <AfhaakLijst afhaak={staat.data.afhaak} />
-          <StatusHintLijst hints={staat.data.statusHints} />
-          <AgendaCheckLijst onbekend={staat.data.onbekend} typfouten={staat.data.typfouten} />
+          <StatusHintLijst hints={staat.data.statusHints} onGewijzigd={laad} />
+          <AgendaCheckLijst onbekend={staat.data.onbekend} typfouten={staat.data.typfouten} onGewijzigd={laad} />
         </div>
       ) : null}
     </Kaart>

@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { bepaalOnbekendePtSessies, bepaalStatusHints, bepaalTypfouten, ptKlantenUit, scheeltEenLetter, telMeeVoorPlanning } from './klantstatus'
+import { bepaalOnbekendePtSessies, bepaalStatusHints, bepaalTypfouten, naamUitTitel, ptKlantenUit, scheeltEenLetter, telMeeVoorPlanning } from './klantstatus'
 import type { PtEvent } from './pt-klant'
 import type { Persoon } from '@/lib/lifeos/crm/crm'
 
@@ -116,7 +116,8 @@ describe('bepaalOnbekendePtSessies', () => {
 
   test('PT-sessie met iemand buiten het CRM → gemeld, met aantal en laatste keer', () => {
     const uit = bepaalOnbekendePtSessies(crm, [ev('Darren PT', 9), ev('Darren PT', 2)], NU)
-    expect(uit).toEqual([{ titel: 'Darren PT', aantal: 2, laatsteOp: ev('', 2).startOp }])
+    expect(uit).toMatchObject([{ titel: 'Darren PT', aantal: 2, laatsteOp: ev('', 2).startOp }])
+    expect(uit[0].naam).toBe('Darren')
   })
 
   test('bekende mensen — ook uit een andere groep — worden niet gemeld', () => {
@@ -151,6 +152,16 @@ describe('scheeltEenLetter', () => {
   })
 })
 
+describe('naamUitTitel', () => {
+  test('haalt PT, locatie en vaste woorden weg; hoofdletter vooraan', () => {
+    expect(naamUitTitel('Darren PT')).toBe('Darren')
+    expect(naamUitTitel('PT darren Budel')).toBe('Darren')
+    expect(naamUitTitel('Rens en Natasha PT')).toBe('Rens en Natasha')
+    expect(naamUitTitel('PT john van der sanden')).toBe('John van der Sanden')
+    expect(naamUitTitel('Sessie met Darren PT')).toBe('Darren')
+  })
+})
+
 describe('bepaalTypfouten', () => {
   const crm = [
     persoon({ naam: 'Kevin', status: 'actieve_klant' }),
@@ -160,7 +171,10 @@ describe('bepaalTypfouten', () => {
   const ev = (titel: string): PtEvent => ({ titel, startOp: '2026-09-22T17:30:00.000Z' })
 
   test('"Kevnin" → bedoel je Kevin?', () => {
-    expect(bepaalTypfouten(crm, [ev('Kevnin')])).toEqual([{ titel: 'Kevnin', bedoeld: 'Kevin', op: '2026-09-22T17:30:00.000Z' }])
+    expect(bepaalTypfouten(crm, [ev('Kevnin')])).toMatchObject([{ titel: 'Kevnin', bedoeld: 'Kevin', op: '2026-09-22T17:30:00.000Z' }])
+    // Met Google-id's: alle afspraken met die titel, en de verbeterde titel.
+    const metId = bepaalTypfouten(crm, [{ ...ev('Kevnin PT'), id: 'a' }, { ...ev('kevnin pt'), id: 'b' }])
+    expect(metId[0]).toMatchObject({ eventIds: ['a', 'b'], nieuweTitel: 'Kevin PT' })
   })
 
   test('ook met PT erbij, en één melding per titel', () => {

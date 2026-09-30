@@ -187,7 +187,7 @@ describe('inplanAandacht', () => {
   test('typfout staat direct onder de inplan-regel', () => {
     const punten = bouwAandacht([], [], '2026-09-28', null, {
       inplannen: [status('Kevin', 1, 1)],
-      typfouten: [{ titel: 'Kevnin', bedoeld: 'Kevin', op: '2026-09-22T17:30:00Z' }],
+      typfouten: [{ titel: 'Kevnin', bedoeld: 'Kevin', op: '2026-09-22T17:30:00Z', eventIds: [], nieuweTitel: 'Kevin' }],
     })
     expect(punten.map((p) => p.tekst)).toEqual([
       'PT nog in te plannen: Kevin',
@@ -290,12 +290,12 @@ describe('statusHintAandacht', () => {
 
 describe('onbekendAandacht', () => {
   test('noemt de titel, aantal en laatste dag, niet dringend', () => {
-    const punten = onbekendAandacht([{ titel: 'Darren PT', aantal: 2, laatsteOp: '2026-09-25T08:00:00.000Z' }])
+    const punten = onbekendAandacht([{ titel: 'Darren PT', aantal: 2, laatsteOp: '2026-09-25T08:00:00.000Z', naam: 'Darren' }])
     expect(punten).toEqual([{ tekst: '"Darren PT" (2×, laatst 25 sep) — staat nog niet in je CRM', dringend: false }])
   })
 
   test('één keer → geen "1×"', () => {
-    const [p] = onbekendAandacht([{ titel: 'Darren PT', aantal: 1, laatsteOp: '2026-09-25T08:00:00.000Z' }])
+    const [p] = onbekendAandacht([{ titel: 'Darren PT', aantal: 1, laatsteOp: '2026-09-25T08:00:00.000Z', naam: 'Darren' }])
     expect(p.tekst).toBe('"Darren PT" (laatst 25 sep) — staat nog niet in je CRM')
   })
 })

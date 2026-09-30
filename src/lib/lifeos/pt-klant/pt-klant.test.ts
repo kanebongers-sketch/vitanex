@@ -230,7 +230,7 @@ describe('leesPtKlanten — typfouten', () => {
       klanten: [status],
       typfouten: [{ titel: 'Kevnin', bedoeld: 'Kevin', op: '2026-09-22T17:30:00.000Z' }, { titel: 'x' }],
     })
-    expect(uit?.gekoppeld && uit.typfouten).toEqual([{ titel: 'Kevnin', bedoeld: 'Kevin', op: '2026-09-22T17:30:00.000Z' }])
+    expect(uit?.gekoppeld && uit.typfouten).toMatchObject([{ titel: 'Kevnin', bedoeld: 'Kevin', op: '2026-09-22T17:30:00.000Z' }])
     const oud = leesPtKlanten({ gekoppeld: true, klanten: [status] })
     expect(oud?.gekoppeld && oud.typfouten).toEqual([])
   })

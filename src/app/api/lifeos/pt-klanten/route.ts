@@ -76,7 +76,7 @@ export async function GET(req: NextRequest) {
 
   const klanten = ptKlantenUit(personen.waarde)
   const alleNamen = personen.waarde.map((p) => p.naam)
-  const ptEvents: PtEvent[] = events.events.map((e) => ({ titel: e.titel, startOp: e.startOp.toISOString() }))
+  const ptEvents: PtEvent[] = events.events.map((e) => ({ titel: e.titel, startOp: e.startOp.toISOString(), id: e.externId }))
 
   // Je hele agenda (niet alleen PT) voor de voorstellen: een voorstel mag nooit
   // over een andere afspraak heen vallen.

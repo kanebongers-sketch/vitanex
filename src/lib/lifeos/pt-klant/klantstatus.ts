@@ -113,6 +113,30 @@ export interface OnbekendePtSessie {
   aantal: number
   /** ISO-moment van de laatste keer. */
   laatsteOp: string
+  /** De naam uit de titel (zonder "PT", locatie en vaste woorden), bv. "Darren". Voor "toevoegen". */
+  naam: string
+}
+
+/** Verbindingswoorden die bínnen een naam horen ("Rens en Natasha", "John van der Sanden"). */
+const IN_NAAM = new Set(['en', 'van', 'de', 'der', 'den', 'het'])
+
+/**
+ * De naam uit een titel, in de oorspronkelijke schrijfwijze: zonder "PT", locatie en
+ * vaste woorden, maar mét verbindingswoorden binnen de naam. "Darren PT" → "Darren",
+ * "Rens en Natasha PT" → "Rens en Natasha".
+ */
+export function naamUitTitel(titel: string): string {
+  const woorden = titel
+    .split(/[^\p{L}'-]+/u)
+    .filter((w) => w.length > 0)
+    .filter((w) => {
+      const t = woordTokens(w)[0] ?? ''
+      return IN_NAAM.has(t) || !GEEN_NAAM.has(t)
+    })
+  // Geen verbindingswoord aan begin of eind ("en Darren" is geen naam).
+  while (woorden.length > 0 && IN_NAAM.has(woorden[0].toLowerCase())) woorden.shift()
+  while (woorden.length > 0 && IN_NAAM.has(woorden[woorden.length - 1].toLowerCase())) woorden.pop()
+  return woorden.map((w) => (IN_NAAM.has(w.toLowerCase()) ? w.toLowerCase() : w.charAt(0).toUpperCase() + w.slice(1))).join(' ')
 }
 
 export function bepaalOnbekendePtSessies(
@@ -135,7 +159,7 @@ export function bepaalOnbekendePtSessies(
     const sleutel = rest.join(' ')
     const bekend = perSleutel.get(sleutel)
     if (!bekend) {
-      perSleutel.set(sleutel, { titel: e.titel, aantal: 1, laatsteOp: e.startOp })
+      perSleutel.set(sleutel, { titel: e.titel, aantal: 1, laatsteOp: e.startOp, naam: naamUitTitel(e.titel) })
     } else {
       bekend.aantal += 1
       if (e.startOp > bekend.laatsteOp) {
@@ -185,6 +209,16 @@ export interface MogelijkeTypfout {
   bedoeld: string
   /** ISO-moment van de (eerstvolgende of laatste) afspraak met deze titel. */
   op: string
+  /** De Google-id's van alle afspraken met deze titel (leeg als de aanroeper ze niet gaf). */
+  eventIds: string[]
+  /** De titel met de verbeterde naam, bv. "Kevnin PT" → "Kevin PT". */
+  nieuweTitel: string
+}
+
+/** Vervangt `woord` (als los woord, hoofdletter-ongevoelig) door `door`. */
+function vervangWoord(titel: string, woord: string, door: string): string {
+  const veilig = woord.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  return titel.replace(new RegExp(`(^|[^\\p{L}])${veilig}(?=$|[^\\p{L}])`, 'iu'), `$1${door}`)
 }
 
 export function bepaalTypfouten(personen: readonly Persoon[], events: readonly PtEvent[]): MogelijkeTypfout[] {
@@ -206,7 +240,19 @@ export function bepaalTypfouten(personen: readonly Persoon[], events: readonly P
     if (kandidaten.length !== 1) continue
 
     const sleutel = e.titel.trim().toLowerCase()
-    if (!perTitel.has(sleutel)) perTitel.set(sleutel, { titel: e.titel.trim(), bedoeld: kandidaten[0].naam, op: e.startOp })
+    const bestaand = perTitel.get(sleutel)
+    if (bestaand) {
+      if (e.id) bestaand.eventIds.push(e.id)
+      continue
+    }
+    const voornaam = kandidaten[0].naam.split(/\s+/)[0]
+    perTitel.set(sleutel, {
+      titel: e.titel.trim(),
+      bedoeld: kandidaten[0].naam,
+      op: e.startOp,
+      eventIds: e.id ? [e.id] : [],
+      nieuweTitel: vervangWoord(e.titel.trim(), woord, voornaam),
+    })
   }
   return [...perTitel.values()]
 }
