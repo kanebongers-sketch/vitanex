@@ -24,6 +24,8 @@ import { syncAgenda } from '@/lib/lifeos/agenda/sync'
 import { hernoemAfspraken } from '@/lib/lifeos/agenda/hernoem'
 import { voerAutomatischeActiesUit } from '@/lib/lifeos/automatisch/uitvoeren'
 import { kleurAfspraken } from '@/lib/lifeos/agenda/kleuren'
+import { verwerkMail } from '@/lib/lifeos/mail-taken/uitvoeren'
+import { planAgendaBlokken } from '@/lib/lifeos/blokken/uitvoeren'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -106,8 +108,26 @@ export async function GET(req: NextRequest): Promise<Response> {
       } catch (oorzaak) {
         console.error('[lifeos/cron-agenda-sync] kleuren wierp een fout', oorzaak)
       }
+      // Mail → to-do (en afvinken wat je al beantwoordde), dán de blokken: zo komt
+      // een net binnengekomen mail in dezelfde ronde al in het mail-blok.
+      let mail = { nieuw: 0, afgevinkt: 0 }
+      try {
+        const m = await verwerkMail(admin, userId)
+        mail = { nieuw: m.nieuw.length, afgevinkt: m.afgevinkt.length }
+      } catch (oorzaak) {
+        console.error('[lifeos/cron-agenda-sync] mail verwerken wierp een fout', oorzaak)
+      }
+      let blokken = { gepland: 0, opgeruimd: 0 }
+      try {
+        const b = await planAgendaBlokken(admin, userId)
+        blokken = { gepland: b.gepland.length, opgeruimd: b.opgeruimd }
+      } catch (oorzaak) {
+        console.error('[lifeos/cron-agenda-sync] blokken plannen wierp een fout', oorzaak)
+      }
       return klaar({
         gesynct: uitkomst.gesynct,
+        mail,
+        blokken,
         gekleurd,
         hernoemd,
         geblokkeerd,

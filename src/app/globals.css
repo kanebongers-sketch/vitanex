@@ -3270,3 +3270,6 @@ body {
     max-height: calc(100vh - 32px);
   }
 }
+
+/* LifeOS to-do: "nu mee bezig"-knop — rustig, cyaan op hover. */
+.lifeos-nu-knop:hover:not(:disabled) { color: var(--brand); border-color: var(--brand); }

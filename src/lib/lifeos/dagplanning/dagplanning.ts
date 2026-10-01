@@ -74,7 +74,7 @@ function gesorteerd(items: readonly DagItem[]): DagItem[] {
   })
 }
 
-const AUTOMATISCH_UITLEG = 'Klopt iets niet? Zet het terug in Mensen of je agenda — LifeOS doet het dan niet opnieuw.'
+const AUTOMATISCH_UITLEG = 'Klopt iets niet? Zet het terug in Mensen, je to-do of je agenda — LifeOS doet het dan niet opnieuw.'
 
 export function bouwDagplanningMail(
   dag: Date,

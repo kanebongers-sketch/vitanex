@@ -38,4 +38,12 @@ describe('groepeerOpTijd', () => {
     const uit = groepeerOpTijd([taak('Ma', '2026-10-05')], '2026-10-04')
     expect(uit.map((g) => g.kop)).toEqual(['Morgen'])
   })
+  test('geen dag maar wel een deadline → groep van de deadline (niet "Ooit")', () => {
+    const metDeadline = { ...taak('Factuur', null), deadline: '2026-10-01' }
+    const uit = groepeerOpTijd([metDeadline, taak('Ooit', null)], '2026-09-30')
+    expect(uit.map((g) => [g.sleutel, g.taken.map((t) => t.titel)])).toEqual([
+      ['morgen', ['Factuur']],
+      ['ooit', ['Ooit']],
+    ])
+  })
 })

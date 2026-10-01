@@ -7,6 +7,7 @@ import { groepeerOpTijd } from '@/lib/lifeos/taken/tijdgroepen'
 import type { Taak } from '@/lib/lifeos/taken/taken'
 import { useTaken } from './useTaken'
 import { SnelInvoer } from './SnelInvoer'
+import { NuBezigKnop } from './NuBezigKnop'
 
 // Je to-do's, overzichtelijk op tijd: Te laat, Vandaag, Morgen, Deze week, Later,
 // Ooit. Toevoegen is één regel ("morgen Ruben bellen #werk"); de categorie staat
@@ -64,7 +65,7 @@ export function TakenApple() {
 
 function TaakRegel({ taak, toonDag, onVink }: { taak: Taak; toonDag: boolean; onVink: () => void }) {
   return (
-    <li>
+    <li style={{ display: 'flex', alignItems: 'flex-start', gap: 8, borderBottom: '1px solid var(--line)' }}>
       <label style={rijStijl}>
         <input
           type="checkbox"
@@ -75,8 +76,10 @@ function TaakRegel({ taak, toonDag, onVink }: { taak: Taak; toonDag: boolean; on
         />
         <span style={{ flex: 1, minWidth: 0, fontSize: 14, color: 'var(--text-1)', lineHeight: 1.4 }}>{taak.titel}</span>
         {toonDag && taak.datum ? <span style={metaStijl}>{dagLabel(taak.datum)}</span> : null}
+        {!taak.datum && taak.deadline ? <span style={metaStijl}>vóór {dagLabel(taak.deadline)}</span> : null}
         {taak.categorie ? <span style={chipStijl}>{taak.categorie}</span> : null}
       </label>
+      <NuBezigKnop taakId={taak.id} titel={taak.titel} />
     </li>
   )
 }
@@ -90,12 +93,13 @@ const kopStijl: CSSProperties = {
 }
 
 const rijStijl: CSSProperties = {
+  flex: 1,
+  minWidth: 0,
   display: 'flex',
   alignItems: 'flex-start',
   gap: 9,
   padding: '7px 0',
   cursor: 'pointer',
-  borderBottom: '1px solid var(--line)',
 }
 
 const metaStijl: CSSProperties = { flexShrink: 0, fontSize: 12, color: 'var(--text-3)', paddingTop: 1 }

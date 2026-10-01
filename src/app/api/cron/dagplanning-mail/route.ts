@@ -35,6 +35,7 @@ import { haalPersonen } from '@/lib/lifeos/crm/opslag'
 import type { Persoon } from '@/lib/lifeos/crm/crm'
 import { haalPtSignalen } from '@/lib/lifeos/pt-klant/afhaak-ophalen'
 import { haalRecenteActies } from '@/lib/lifeos/automatisch/uitvoeren'
+import { haalRecenteBlokkenEnMail } from '@/lib/lifeos/blokken/recent'
 import { matchtCoachgesprek } from '@/lib/lifeos/pt-gesprek/pt-gesprek'
 import { haalLaatsteEvaluaties, haalRecenteEvaluaties } from '@/lib/lifeos/pt-coaching/opslag'
 import { coachSignalen as coachSignalen_ } from '@/lib/lifeos/pt-coaching/signaal'
@@ -385,7 +386,12 @@ export async function GET(req: NextRequest): Promise<Response> {
   const aandacht = await haalAandacht(admin, userId, vandaagKey, personen, { ...pt, coachVandaag, bewaker, coachSignalen })
 
   // Wat LifeOS het afgelopen etmaal zelf regelde (best-effort: fout → geen sectie).
-  const automatisch = await haalRecenteActies(admin, userId, new Date(nu.getTime() - 24 * 60 * 60 * 1000)).catch(() => [])
+  const etmaal = new Date(nu.getTime() - 24 * 60 * 60 * 1000)
+  const [acties, blokkenEnMail] = await Promise.all([
+    haalRecenteActies(admin, userId, etmaal).catch(() => []),
+    haalRecenteBlokkenEnMail(admin, userId, etmaal).catch(() => []),
+  ])
+  const automatisch = [...acties, ...blokkenEnMail]
   const mail = bouwDagplanningMail(nu, items, todos, vitaSignalen, aandacht, automatisch)
 
   // Eén mail per dag, wie of wat 'm ook triggert (de meerdere ochtend-tikken van de

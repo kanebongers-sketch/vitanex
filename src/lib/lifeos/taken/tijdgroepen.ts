@@ -50,14 +50,16 @@ export function groepeerOpTijd(taken: readonly Taak[], vandaag: string): TijdGro
   const per = new Map<TijdGroepSleutel, Taak[]>()
   for (const t of taken) {
     if (t.klaar) continue
-    const g = groepVan(t.datum, vandaag)
+    // Geen dag gekozen maar wél een deadline (bv. een taak uit je mail)? Dan telt
+    // de deadline — anders verdwijnt "factuur vóór vrijdag" onder "Ooit".
+    const g = groepVan(t.datum ?? t.deadline, vandaag)
     per.set(g, [...(per.get(g) ?? []), t])
   }
   return VOLGORDE.filter((g) => per.has(g)).map((g) => ({
     sleutel: g,
     kop: KOPPEN[g],
     taken: [...(per.get(g) ?? [])].sort(
-      (a, b) => (a.datum ?? '').localeCompare(b.datum ?? '') || a.aangemaaktOp.localeCompare(b.aangemaaktOp),
+      (a, b) => (a.datum ?? a.deadline ?? '').localeCompare(b.datum ?? b.deadline ?? '') || a.aangemaaktOp.localeCompare(b.aangemaaktOp),
     ),
   }))
 }

@@ -72,6 +72,8 @@ export function trefwoordCategorie(titel: string | null): AgendaCategorie | null
   const t = woordTokens(titel)
   if (t.includes('budel') && (t.includes('werk') || t.includes('werken'))) return 'budel_team'
   if (MARKETING_REEKSEN.some((r) => bevatReeks(t, r))) return 'marketing'
+  // Het vaste bouwblok "PT uitbouwen" is werk áán je business: management-kleur.
+  if (t.includes('bouwblok')) return 'management'
   if (isEigenTraining(titel) || t.some((w) => PERSOONLIJK.has(w))) return 'persoonlijk'
   return null
 }

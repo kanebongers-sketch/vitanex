@@ -63,6 +63,7 @@ describe('categoriseerAfspraak', () => {
     expect(categoriseerAfspraak('Psycholoog Peer ADHD', personen)).toBe('persoonlijk')
     expect(categoriseerAfspraak('Gezamenlijke rekening Rabobank', personen)).toBe('persoonlijk')
     expect(categoriseerAfspraak('Social media post', personen)).toBe('marketing')
+    expect(categoriseerAfspraak('Bouwblok: PT uitbouwen', personen)).toBe('management')
     expect(categoriseerAfspraak('BO ceryle', personen)).toBe('overig')
   })
 
