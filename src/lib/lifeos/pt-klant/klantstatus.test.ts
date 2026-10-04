@@ -121,7 +121,7 @@ describe('bepaalOnbekendePtSessies', () => {
   })
 
   test('LifeOS-blokken ("Bouwblok: PT uitbouwen") zijn geen onbekende klant', () => {
-    expect(bepaalOnbekendePtSessies(crm, [ev('Bouwblok: PT uitbouwen', 2), ev('Taak: PT-schema Darren', 1)], NU)).toEqual([])
+    expect(bepaalOnbekendePtSessies(crm, [ev('Bouwblok: PT uitbouwen', 2), ev('Taak: PT-schema Darren', 1), ev('PT overleg', 1)], NU)).toEqual([])
   })
 
   test('bekende mensen — ook uit een andere groep — worden niet gemeld', () => {

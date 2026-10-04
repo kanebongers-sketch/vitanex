@@ -64,6 +64,12 @@ describe('categoriseerAfspraak', () => {
     expect(categoriseerAfspraak('Gezamenlijke rekening Rabobank', personen)).toBe('persoonlijk')
     expect(categoriseerAfspraak('Social media post', personen)).toBe('marketing')
     expect(categoriseerAfspraak('Bouwblok: PT uitbouwen', personen)).toBe('management')
+    expect(categoriseerAfspraak('Vergadering Fit Factory', personen)).toBe('pt_team')
+    expect(categoriseerAfspraak('Teamoverleg', personen)).toBe('pt_team')
+    expect(categoriseerAfspraak('PT-meeting', personen)).toBe('pt_team')
+    expect(categoriseerAfspraak('MT overleg', personen)).toBe('management')
+    expect(categoriseerAfspraak('Overleg Budel', personen)).toBe('budel_team')
+    expect(categoriseerAfspraak('Marketing meeting', personen)).toBe('marketing')
     expect(categoriseerAfspraak('BO ceryle', personen)).toBe('overig')
   })
 

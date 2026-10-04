@@ -14,6 +14,7 @@ import { statusDef } from '@/lib/lifeos/crm/crm'
 import { matchPersoonInTitel, woordTokens } from '@/lib/lifeos/crm/agenda-match'
 import { matchtPtSessie, type PtEvent, type PtKlant } from './pt-klant'
 import { isLifeosBlok } from '@/lib/lifeos/blokken/titels'
+import { isVergadering } from '@/lib/lifeos/agenda/vergadering'
 
 const ACTIEF = 'actieve_klant'
 const INACTIEF = 'inactief'
@@ -152,7 +153,7 @@ export function bepaalOnbekendePtSessies(
     const t = new Date(e.startOp).getTime()
     if (Number.isNaN(t) || t > nuMs || !e.titel) continue
     // LifeOS' eigen blokken ("Bouwblok: PT uitbouwen") zijn geen sessie met een klant.
-    if (isLifeosBlok(e.titel)) continue
+    if (isLifeosBlok(e.titel) || isVergadering(e.titel)) continue
     const tokens = woordTokens(e.titel)
     if (!tokens.includes('pt')) continue
     const rest = tokens.filter((w) => !GEEN_NAAM.has(w))

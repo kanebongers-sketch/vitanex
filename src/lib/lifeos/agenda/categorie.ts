@@ -15,6 +15,7 @@ import type { Persoon, Groep } from '@/lib/lifeos/crm/crm'
 import { groepDef } from '@/lib/lifeos/crm/crm'
 import { bevatReeks, gedeeldeGroep, isGroepsafspraak, koppelTekst, matchPersoonInTitel, woordTokens } from '@/lib/lifeos/crm/agenda-match'
 import { isEigenTraining } from './training'
+import { isVergadering, vergaderCategorie } from './vergadering'
 
 /** Een categorie: een CRM-groep, of één van de twee afgeleide bakken. */
 export type AgendaCategorie = Groep | 'persoonlijk' | 'overig'
@@ -71,6 +72,8 @@ export function trefwoordCategorie(titel: string | null): AgendaCategorie | null
   if (!titel) return null
   const t = woordTokens(titel)
   if (t.includes('budel') && (t.includes('werk') || t.includes('werken'))) return 'budel_team'
+  // Een werkvergadering zonder herkenbare persoon: bij wie hoort hij (zie vergadering.ts)?
+  if (isVergadering(titel)) return vergaderCategorie(t)
   if (MARKETING_REEKSEN.some((r) => bevatReeks(t, r))) return 'marketing'
   // Het vaste bouwblok "PT uitbouwen" is werk áán je business: management-kleur.
   if (t.includes('bouwblok')) return 'management'
