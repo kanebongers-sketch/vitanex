@@ -15,7 +15,8 @@ export interface CsvPositie {
 
 export interface CsvPortefeuille {
   posities: CsvPositie[]
-  cashEur: number
+  /** De cash-regel in euro, of `null` als de export er geen had (dan je cash niet aanraken). */
+  cashEur: number | null
 }
 
 /** Eén CSV-regel → velden, met aanhalingstekens ("2240,50") als één veld. */
@@ -39,11 +40,30 @@ export function splitsRegel(regel: string): string[] {
   return velden.map((v) => v.trim())
 }
 
-/** "2.240,50" / "2240,50" / "2240.50" → 2240.5; leeg/onzin → null. */
+/** Alleen punten als duizendtallen: "1.234" of "12.345.678" (Nederlandse notatie zonder decimalen). */
+const DUIZENDTALLEN_MET_PUNT = /^-?\d{1,3}(\.\d{3})+$/
+
+/**
+ * "2.240,50" / "2240,50" / "2240.50" / "2,240.50" → 2240.5; "1.234" → 1234;
+ * leeg/onzin → null. Staan er zowel punten als komma's in, dan is het laatste
+ * scheidingsteken de decimaal. Een DEGIRO-export is Nederlands, dus een kaal
+ * "1.234" is duizend-tweehonderd-vierendertig, geen 1,234.
+ */
 export function leesGetal(v: string | undefined): number | null {
   if (!v) return null
   const schoon = v.replace(/\s/g, '')
-  const genormaliseerd = schoon.includes(',') ? schoon.replace(/\./g, '').replace(',', '.') : schoon
+  let genormaliseerd: string
+  if (schoon.includes(',') && schoon.includes('.')) {
+    genormaliseerd = schoon.lastIndexOf(',') > schoon.lastIndexOf('.')
+      ? schoon.replace(/\./g, '').replace(',', '.')
+      : schoon.replace(/,/g, '')
+  } else if (schoon.includes(',')) {
+    genormaliseerd = schoon.replace(',', '.')
+  } else if (DUIZENDTALLEN_MET_PUNT.test(schoon)) {
+    genormaliseerd = schoon.replace(/\./g, '')
+  } else {
+    genormaliseerd = schoon
+  }
   const n = Number(genormaliseerd)
   return Number.isFinite(n) ? n : null
 }
@@ -57,12 +77,12 @@ export function leesDegiroCsv(tekst: string): CsvPortefeuille | null {
   if (!kop[0]?.startsWith('product') || !kop.some((k) => k.includes('isin'))) return null
 
   const posities: CsvPositie[] = []
-  let cashEur = 0
+  let cashEur: number | null = null
   for (const regel of regels.slice(1)) {
     const [naam, isin, aantal, slot, valuta, , eur] = splitsRegel(regel)
     if (!naam) continue
     if (/^cash/i.test(naam)) {
-      cashEur += leesGetal(eur) ?? 0
+      cashEur = (cashEur ?? 0) + (leesGetal(eur) ?? 0)
       continue
     }
     const n = leesGetal(aantal)
@@ -70,5 +90,5 @@ export function leesDegiroCsv(tekst: string): CsvPortefeuille | null {
     if (!isin || !ISIN.test(isin) || n === null || n <= 0 || koers === null) continue
     posities.push({ naam, isin, aantal: n, slotkoers: koers, valuta: (valuta || 'EUR').toUpperCase(), waardeEur: leesGetal(eur) })
   }
-  return { posities, cashEur: Math.round(cashEur * 100) / 100 }
+  return { posities, cashEur: cashEur === null ? null : Math.round(cashEur * 100) / 100 }
 }

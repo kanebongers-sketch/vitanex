@@ -2,6 +2,7 @@ import { describe, expect, test } from 'vitest'
 import { leesDegiroCsv, leesGetal, splitsRegel } from './csv'
 import { leesKoers, leesZoek, type Koers } from './yahoo'
 import { kiesBeste } from './koppel'
+import { inlegNaWijziging } from './opslag'
 import { benodigdeSymbolen, naarEuroFactor, rekenRegel, rekenTotaal, type KoersStand, type Positie } from './portefeuille'
 
 const CSV = `Product,Symbool/ISIN,Aantal,Slotkoers,Lokale waarde,,Waarde in EUR
@@ -27,6 +28,9 @@ describe('DEGIRO-CSV', () => {
   test('getallen en regels', () => {
     expect(leesGetal('2.240,50')).toBe(2240.5)
     expect(leesGetal('7.5')).toBe(7.5)
+    expect(leesGetal('1.234')).toBe(1234)
+    expect(leesGetal('2,240.50')).toBe(2240.5)
+    expect(leesGetal('12,5')).toBe(12.5)
     expect(leesGetal('')).toBeNull()
     expect(splitsRegel('"a, b",c')).toEqual(['a, b', 'c'])
   })
@@ -90,5 +94,18 @@ describe('portefeuille', () => {
   })
   test('benodigde symbolen inclusief wisselkoersen', () => {
     expect(benodigdeSymbolen([vusa, crwv])).toEqual(['VUSA.AS', 'CRWV', 'EURUSD=X'])
+  })
+})
+
+describe('inlegNaWijziging', () => {
+  test('verkocht: inleg naar rato omlaag', () => {
+    expect(inlegNaWijziging(1000, 10, 4)).toBe(400)
+  })
+  test('bijgekocht: inleg onbekend (anders lijkt je winst te mooi)', () => {
+    expect(inlegNaWijziging(1000, 10, 15)).toBeNull()
+  })
+  test('zelfde aantal of geen inleg: ongewijzigd', () => {
+    expect(inlegNaWijziging(1000, 10, 10)).toBe(1000)
+    expect(inlegNaWijziging(null, 10, 4)).toBeNull()
   })
 })

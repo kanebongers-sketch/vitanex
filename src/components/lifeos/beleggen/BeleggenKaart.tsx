@@ -81,10 +81,12 @@ export function BeleggenKaart() {
               onImporteer={async (csv) => {
                 const uit = await doe('/api/lifeos/beleggen/import', 'POST', { csv })
                 if (!uit.ok || typeof uit.data !== 'object' || uit.data === null) return null
-                const d = uit.data as { geimporteerd?: unknown; nietGekoppeld?: unknown }
+                const d = uit.data as { geimporteerd?: unknown; nietGekoppeld?: unknown; nietInExport?: unknown }
                 const n = Array.isArray(d.geimporteerd) ? d.geimporteerd.length : 0
                 const mis = Array.isArray(d.nietGekoppeld) ? d.nietGekoppeld.length : 0
-                return `${n} positie${n === 1 ? '' : 's'} ingelezen${mis ? `, ${mis} niet gevonden — voeg die toe via zoeken` : ''}. Vul nu je GAK in.`
+                const weg = Array.isArray(d.nietInExport) ? d.nietInExport.filter((x): x is string => typeof x === 'string') : []
+                const wegTekst = weg.length ? ` Niet meer in je export (verkocht?): ${weg.join(', ')} — verwijder ze in de lijst als dat klopt.` : ''
+                return `${n} positie${n === 1 ? '' : 's'} ingelezen${mis ? `, ${mis} niet gevonden — voeg die toe via zoeken` : ''}. Vul nu je GAK in.${wegTekst}`
               }}
             />
 

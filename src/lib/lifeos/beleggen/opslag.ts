@@ -45,15 +45,34 @@ export interface NieuwePositie {
   inlegEur?: number | null
 }
 
-/** Toevoegen, of (bij een import) bijwerken op symbool — een eerder ingevulde GAK/inleg blijft dan staan. */
+/**
+ * De totale inleg na een gewijzigd aantal. Verkocht (minder stuks): naar rato,
+ * want bij gemiddelde kostprijs neemt de inleg evenredig af. Bijgekocht (meer
+ * stuks): onbekend tegen welke prijs, dus `null` — de oude inleg zou je winst te
+ * mooi voorstellen. Puur, los getest.
+ */
+export function inlegNaWijziging(inleg: number | null, oudAantal: number, nieuwAantal: number): number | null {
+  if (inleg === null || oudAantal <= 0 || nieuwAantal === oudAantal) return inleg
+  if (nieuwAantal < oudAantal) return Math.round((inleg * nieuwAantal) / oudAantal * 100) / 100
+  return null
+}
+
+/** Toevoegen, of (bij een import) bijwerken op symbool — een eerder ingevulde GAK blijft dan staan. */
 export async function bewaarPositie(admin: SupabaseClient, userId: string, p: NieuwePositie, bijwerken = false): Promise<Uitkomst<Positie>> {
   if (bijwerken) {
-    const { data: bestaand } = await admin.from('belegging_posities').select('id, aankoopprijs, inleg_eur').eq('user_id', userId).eq('symbool', p.symbool).maybeSingle()
+    const { data: bestaand, error } = await admin
+      .from('belegging_posities')
+      .select('id, aantal, aankoopprijs, inleg_eur')
+      .eq('user_id', userId)
+      .eq('symbool', p.symbool)
+      .maybeSingle()
+    if (error) return { ok: false, reden: 'db' }
     if (bestaand) {
-      const b = bestaand as { id: string; aankoopprijs: number | null; inleg_eur: number | null }
+      const b = bestaand as { id: string; aantal: number | string; aankoopprijs: number | null; inleg_eur: number | null }
       return wijzigPositie(admin, userId, b.id, {
         aantal: p.aantal, naam: p.naam, isin: p.isin,
-        aankoopprijs: p.aankoopprijs ?? num(b.aankoopprijs), inlegEur: p.inlegEur ?? num(b.inleg_eur),
+        aankoopprijs: p.aankoopprijs ?? num(b.aankoopprijs),
+        inlegEur: p.inlegEur ?? inlegNaWijziging(num(b.inleg_eur), Number(b.aantal), p.aantal),
       })
     }
   }
@@ -94,7 +113,8 @@ export async function verwijderPositie(admin: SupabaseClient, userId: string, id
 }
 
 export async function haalCash(admin: SupabaseClient, userId: string): Promise<number> {
-  const { data } = await admin.from('belegging_rekening').select('cash_eur').eq('user_id', userId).maybeSingle()
+  const { data, error } = await admin.from('belegging_rekening').select('cash_eur').eq('user_id', userId).maybeSingle()
+  if (error) console.error('[beleggen] cash ophalen mislukt', error)
   return data ? Number((data as { cash_eur: number | string }).cash_eur) : 0
 }
 
@@ -104,7 +124,8 @@ export async function zetCash(admin: SupabaseClient, userId: string, cashEur: nu
 }
 
 export async function haalKoersen(admin: SupabaseClient, userId: string): Promise<Map<string, KoersStand>> {
-  const { data } = await admin.from('belegging_koersen').select('symbool, koers, vorige_slot, valuta, opgehaald_op').eq('user_id', userId)
+  const { data, error } = await admin.from('belegging_koersen').select('symbool, koers, vorige_slot, valuta, opgehaald_op').eq('user_id', userId)
+  if (error) console.error('[beleggen] koersen ophalen mislukt', error)
   const uit = new Map<string, KoersStand>()
   for (const r of (Array.isArray(data) ? data : []) as { symbool: string; koers: number | string; vorige_slot: number | string | null; valuta: string; opgehaald_op: string }[]) {
     uit.set(r.symbool, { koers: Number(r.koers), vorigeSlot: num(r.vorige_slot), valuta: r.valuta, opgehaaldOp: r.opgehaald_op })
@@ -115,9 +136,10 @@ export async function haalKoersen(admin: SupabaseClient, userId: string): Promis
 export async function bewaarKoersen(admin: SupabaseClient, userId: string, rijen: readonly { symbool: string; koers: number; vorigeSlot: number | null; valuta: string; marktTijd: Date | null }[]): Promise<void> {
   if (rijen.length === 0) return
   const nu = new Date().toISOString()
-  await admin.from('belegging_koersen').upsert(
+  const { error } = await admin.from('belegging_koersen').upsert(
     rijen.map((r) => ({ user_id: userId, symbool: r.symbool, koers: r.koers, vorige_slot: r.vorigeSlot, valuta: r.valuta, markt_tijd: r.marktTijd?.toISOString() ?? null, opgehaald_op: nu })),
   )
+  if (error) console.error('[beleggen] koersen bewaren mislukt', error)
 }
 
 export interface HistoriePunt {
@@ -127,12 +149,16 @@ export interface HistoriePunt {
 }
 
 export async function haalHistorie(admin: SupabaseClient, userId: string): Promise<HistoriePunt[]> {
-  const { data } = await admin.from('belegging_historie').select('dag, waarde_eur, inleg_eur').eq('user_id', userId).order('dag').limit(800)
-  return ((Array.isArray(data) ? data : []) as { dag: string; waarde_eur: number | string; inleg_eur: number | string | null }[]).map((r) => ({
+  // Nieuwste eerst ophalen en dan omdraaien: oplopend + limit hield na 800 dagen
+  // juist de OUDSTE dagen over en liet de recente weg.
+  const { data, error } = await admin.from('belegging_historie').select('dag, waarde_eur, inleg_eur').eq('user_id', userId).order('dag', { ascending: false }).limit(800)
+  if (error) console.error('[beleggen] historie ophalen mislukt', error)
+  return ((Array.isArray(data) ? data : []) as { dag: string; waarde_eur: number | string; inleg_eur: number | string | null }[]).reverse().map((r) => ({
     dag: r.dag, waardeEur: Number(r.waarde_eur), inlegEur: num(r.inleg_eur),
   }))
 }
 
 export async function bewaarDagwaarde(admin: SupabaseClient, userId: string, punt: HistoriePunt): Promise<void> {
-  await admin.from('belegging_historie').upsert({ user_id: userId, dag: punt.dag, waarde_eur: punt.waardeEur, inleg_eur: punt.inlegEur, bijgewerkt_op: new Date().toISOString() })
+  const { error } = await admin.from('belegging_historie').upsert({ user_id: userId, dag: punt.dag, waarde_eur: punt.waardeEur, inleg_eur: punt.inlegEur, bijgewerkt_op: new Date().toISOString() })
+  if (error) console.error('[beleggen] dagwaarde bewaren mislukt', error)
 }
