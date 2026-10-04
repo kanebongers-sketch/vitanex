@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "NODE_OPTIONS=--max-old-space-size=4096 next build",
-    "start": "next start -p ${PORT:-3000} -H 0.0.0.0",
+    "start": "TZ=${TZ:-Europe/Amsterdam} next start -p ${PORT:-3000} -H 0.0.0.0",
     "lint": "eslint",
     "typecheck": "next typegen && NODE_OPTIONS=--max-old-space-size=4096 tsc --noEmit",
     "test": "vitest run",
