@@ -48,24 +48,35 @@ export async function synchroniseerLinks(
   const opgelost = await zoekTitels(admin, userId, titels)
   if (!opgelost.ok) return opgelost
 
-  const weg = await admin
+  // Eerst de nieuwe stand erin (upsert op de unieke bron+sleutel), pas dán de
+  // verouderde links weg. Omgekeerd — eerst alles weg, dan invoegen — liet een
+  // mislukte insert de notitie zonder één link achter.
+  if (titels.length > 0) {
+    const rijen = titels.map((titel) => ({
+      user_id: userId,
+      bron_id: notitie.id,
+      doel_id: opgelost.waarde.get(titel.toLowerCase()) ?? null,
+      doel_titel: titel,
+    }))
+    const { error } = await admin.from('notitie_links').upsert(rijen, { onConflict: 'bron_id,doel_sleutel' })
+    if (error) return { ok: false, reden: vertaalFout(error) }
+  }
+
+  const bestaand = await admin
     .from('notitie_links')
-    .delete()
+    .select('id, doel_sleutel')
     .eq('bron_id', notitie.id)
     .eq('user_id', userId)
+  if (bestaand.error) return { ok: false, reden: vertaalFout(bestaand.error) }
+
+  const houden = new Set(titels.map((t) => t.trim().toLowerCase()))
+  const verouderd = (Array.isArray(bestaand.data) ? bestaand.data : [])
+    .filter((r: { doel_sleutel: string | null }) => r.doel_sleutel === null || !houden.has(r.doel_sleutel))
+    .map((r: { id: string }) => r.id)
+  if (verouderd.length === 0) return { ok: true, waarde: null }
+
+  const weg = await admin.from('notitie_links').delete().eq('user_id', userId).in('id', verouderd)
   if (weg.error) return { ok: false, reden: vertaalFout(weg.error) }
-
-  if (titels.length === 0) return { ok: true, waarde: null }
-
-  const rijen = titels.map((titel) => ({
-    user_id: userId,
-    bron_id: notitie.id,
-    doel_id: opgelost.waarde.get(titel.toLowerCase()) ?? null,
-    doel_titel: titel,
-  }))
-
-  const { error } = await admin.from('notitie_links').insert(rijen)
-  if (error) return { ok: false, reden: vertaalFout(error) }
   return { ok: true, waarde: null }
 }
 

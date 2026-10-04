@@ -34,12 +34,32 @@ async function eigenAdressen(token: string): Promise<Set<string>> {
   return eigen
 }
 
-/** Welke berichten en threads al een taak hebben. Fout → null: dan niets doen (anders dubbel). */
-async function bekend(admin: SupabaseClient, userId: string): Promise<{ berichten: Set<string>; openThreads: Set<string> } | null> {
-  const { data, error } = await admin.from(TABEL).select('bericht_id, thread_id, beantwoord_op, taak_id').eq('user_id', userId)
-  if (error || !Array.isArray(data)) return null
+/**
+ * Welke van DEZE berichten en threads al een taak hebben. Gericht opgevraagd (`in`)
+ * i.p.v. de hele tabel: die groeit elke dag, en boven 1000 rijen kapte PostgREST
+ * stil af — dan leek een oude thread "nieuw" en kwam er een dubbele taak.
+ * Fout → null: dan niets doen (anders dubbel).
+ */
+async function bekend(
+  admin: SupabaseClient,
+  userId: string,
+  berichtIds: readonly string[],
+  threadIds: readonly string[],
+): Promise<{ berichten: Set<string>; openThreads: Set<string> } | null> {
   const berichten = new Set<string>()
   const openThreads = new Set<string>()
+  if (berichtIds.length === 0 && threadIds.length === 0) return { berichten, openThreads }
+  const lijst = (ids: readonly string[]) => ids.map((id) => `"${id.replace(/"/g, '')}"`).join(',')
+  const filters = [
+    ...(berichtIds.length ? [`bericht_id.in.(${lijst(berichtIds)})`] : []),
+    ...(threadIds.length ? [`thread_id.in.(${lijst(threadIds)})`] : []),
+  ]
+  const { data, error } = await admin
+    .from(TABEL)
+    .select('bericht_id, thread_id, beantwoord_op, taak_id')
+    .eq('user_id', userId)
+    .or(filters.join(','))
+  if (error || !Array.isArray(data)) return null
   for (const r of data as { bericht_id: string; thread_id: string; beantwoord_op: string | null; taak_id: string | null }[]) {
     berichten.add(r.bericht_id)
     if (r.thread_id && r.beantwoord_op === null && r.taak_id !== null) openThreads.add(r.thread_id)
@@ -76,7 +96,12 @@ async function maakMailTaak(admin: SupabaseClient, userId: string, v: MailTaakVo
 async function nieuweTaken(admin: SupabaseClient, userId: string, token: string): Promise<string[]> {
   const gelezen = await haalTriageMails(token)
   if (gelezen.staat !== 'ok') return []
-  const al = await bekend(admin, userId)
+  const al = await bekend(
+    admin,
+    userId,
+    gelezen.mails.map((m) => m.id),
+    [...new Set(gelezen.mails.map((m) => m.threadId).filter((t): t is string => !!t))],
+  )
   if (al === null) return []
   const eigen = await eigenAdressen(token)
 
