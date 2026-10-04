@@ -20,8 +20,7 @@ export type HaalUitkomst<T> =
 /**
  * Een gewoon object (geen array, geen null).
  *
- * Geëxporteerd omdat élke `lees`-functie hiermee begint. Stond in drie kopieën
- * (hier, `gezondheid/lees.ts`, `WelzijnScoreKaart`) — één bron is genoeg.
+ * Geëxporteerd omdat élke `lees`-functie hiermee begint — één bron is genoeg.
  */
 export function isObject(v: unknown): v is Record<string, unknown> {
   return typeof v === 'object' && v !== null && !Array.isArray(v)
@@ -116,10 +115,9 @@ export async function haalJson<T>(
 }
 
 // ─── Gedeelde vluchten ───────────────────────────────────────────────────────
-// Twee kaarten kunnen bij dezelfde paginaload dezelfde GET doen: WelzijnScoreKaart
-// én GezondheidDomein halen `/api/pijlers` (met verschillende narrowers), VangOp
-// én ProductiviteitDomein halen `/api/lifeos/taken?alle=1`. Zonder dit rekent de
-// server dezelfde (niet-goedkope) pijler-score twee keer uit per load.
+// Twee kaarten kunnen bij dezelfde paginaload dezelfde GET doen (bv. de takenlijst
+// en het projectenbord halen allebei `/api/lifeos/taken?alle=1`). Zonder dit doet
+// de server hetzelfde werk twee keer per load.
 //
 // Dit is PURE in-flight coalescing, geen cache: alleen requests die op hetzelfde
 // moment nog onderweg zijn, delen één vlucht. Zodra de vlucht klaar is, is de

@@ -8,7 +8,7 @@
 // gisteren.
 //
 // Puur bestand: geen fetch, geen DB, geen React, geen verborgen `Date.now()`.
-// De klok komt er altijd ín (zie `lib/focus/focus.ts`), zodat dit testbaar is
+// De klok komt er altijd ín als parameter, zodat dit testbaar is
 // zonder de tijd te mocken.
 
 import { datumSleutel, leesDatumSleutel, tijdLabel } from '@/lib/lifeos/datum/datum'

@@ -8,7 +8,7 @@ import type { CSSProperties } from 'react'
 //
 // Bewust géén spinner: een draaiend rondje zegt "wacht" en verder niets, terwijl
 // een skelet al vertelt wát er komt. Ook bewust géén pulse-animatie — de
-// kaart-skeletten in de cockpit zijn ook statisch (zie `WelzijnScoreKaart`), en
+// kaart-skeletten in de cockpit zijn ook statisch, en
 // een stilstaand scherm dat oplicht zodra het klaar is, is rustiger dan een
 // scherm dat vast staat te knipperen.
 //

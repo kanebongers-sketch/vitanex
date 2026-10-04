@@ -109,8 +109,7 @@ interface KnopLinkProps extends GedeeldeProps {
  *
  * Bestaat omdat navigatie een `<a>` hoort te zijn: middelklik, "open in nieuw
  * tabblad" en de statusbalk werken niet op een `<button onClick={router.push}>`.
- * Stond eerder als een losse `KNOP_STIJL`-kopie in `WelzijnScoreKaart` — twee
- * kopieën van hetzelfde uiterlijk die uit elkaar zouden groeien.
+ * Eén plek voor dit uiterlijk, zodat losse kopieën niet uit elkaar groeien.
  *
  * Geen `disabled`: een uitgeschakelde link bestaat niet in HTML. Valt er niets
  * te navigeren, render dan geen link.
