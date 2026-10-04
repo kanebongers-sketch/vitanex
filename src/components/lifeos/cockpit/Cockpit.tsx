@@ -8,6 +8,9 @@ import { PtGesprekkenKaart } from '@/components/lifeos/pt/PtGesprekkenKaart'
 import { PtKlantenKaart } from '@/components/lifeos/pt/PtKlantenKaart'
 import { RefreshProvider } from '@/components/lifeos/os/RefreshContext'
 import { BeleggenKaart } from '@/components/lifeos/beleggen/BeleggenKaart'
+import { DagplanKaart } from '@/components/lifeos/taken/DagplanKaart'
+import { JournalKaart } from '@/components/lifeos/journal/JournalKaart'
+import { VitaGeheugenKaart } from '@/components/lifeos/vita/VitaGeheugenKaart'
 
 // ─── De cockpit — één dag-scherm ────────────────────────────────────────────
 // Dit dashboard gaat over VANDAAG en niets anders. De zware overzichten (het
@@ -28,10 +31,11 @@ import { BeleggenKaart } from '@/components/lifeos/beleggen/BeleggenKaart'
 //
 // ─── De volgorde, van boven naar onder ──────────────────────────────────────
 //   1. Vandaag  — de briefing + Vita's signalen + vraag-balk (het eerste wat je leest).
-//   2. Mijn dag — je taken en je agenda: wat moet er gebeuren en wanneer.
+//   2. Mijn dag — welke taak in welk gat (dagplan), je taken en je agenda.
 //   3. Deze week — wie je nog moet inplannen (PT-klanten) en de PT-gesprekken.
 //   4. Inbox    — wat er écht een reactie vraagt, als rustige volle-breedte-lijst.
 //   5. Beleggingen — je portefeuille: waarde, vandaag, winst/verlies, verloop.
+//   6. Terugblik — je journal van vandaag en wat Vita over je onthoudt.
 
 export function Cockpit() {
   return (
@@ -59,6 +63,9 @@ export function Cockpit() {
             </h2>
             <p className="os-zone__intro">Je taken en je agenda voor vandaag — wat moet er gebeuren en wanneer.</p>
           </header>
+          <div className="os-tile--vol">
+            <DagplanKaart />
+          </div>
           <div className="os-tile--half">
             <TakenApple />
           </div>
@@ -89,10 +96,27 @@ export function Cockpit() {
           <InboxKaart />
         </div>
 
-        {/* Band — je beleggingen, onderaan: geen dagwerk, wel in één blik te zien. */}
+        {/* Band — je beleggingen: geen dagwerk, wel in één blik te zien. */}
         <div className="os-cockpit__band">
           <BeleggenKaart />
         </div>
+
+        {/* Cluster "Terugblik" — het avond-moment: wat ging er vandaag, en wat Vita
+            over je weet (en wat jij daar zelf aan bijstelt). */}
+        <section className="os-cluster" aria-labelledby="os-terug-kop">
+          <header className="os-cluster__kop">
+            <h2 id="os-terug-kop" className="os-zone__kop">
+              Terugblik
+            </h2>
+            <p className="os-zone__intro">Je journal van vandaag, en wat Vita over je onthoudt.</p>
+          </header>
+          <div className="os-tile--half">
+            <JournalKaart />
+          </div>
+          <div className="os-tile--half">
+            <VitaGeheugenKaart />
+          </div>
+        </section>
       </div>
     </RefreshProvider>
   )
