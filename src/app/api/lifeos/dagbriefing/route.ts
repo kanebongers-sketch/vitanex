@@ -26,10 +26,13 @@ import { haalPersonenMetAgenda } from '@/lib/lifeos/crm/agenda-contact-ophalen'
 import { verdeelRitme } from '@/components/lifeos/crm/ritme'
 import { haalEventsUitCache } from '@/lib/lifeos/agenda/opslag'
 import { eerstvolgendeAfspraak, type Afspraak } from '@/lib/lifeos/agenda/vrije-blokken'
-import { datumSleutel } from '@/lib/lifeos/datum/datum'
+import { dagPlus, dagVan, opMoment } from '@/lib/lifeos/blokken/tijd'
+import { isRateLimited } from '@/lib/utils/rate-limit'
 import { berekenPijlerOverzicht, type PijlerOverzicht } from '@/lib/pijlers/pijlers-server'
 import { pijlerDef } from '@/lib/pijlers/pijlers'
 import {
+  feitenTekst,
+  groetVoor,
   stelDagbriefingSamen,
   type AgendaFeiten,
   type BriefingModel,
@@ -39,6 +42,7 @@ import {
   type WelzijnFeiten,
 } from '@/lib/lifeos/dagbriefing/dagbriefing'
 import { maakAnthropicBriefingModel } from '@/lib/lifeos/dagbriefing/dagbriefing-model'
+import { metDagCache } from '@/lib/lifeos/dagbriefing/cache'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -57,6 +61,10 @@ const TIJD_FMT = new Intl.DateTimeFormat('nl-NL', {
   hourCycle: 'h23',
 })
 
+/** Handmatig verversen kost een modelcall; dit is de bovengrens per uur. */
+const MAX_VERVERSINGEN_PER_UUR = 10
+const UUR_MS = 60 * 60 * 1000
+
 /** Eén nette 502 voor elke kern-leesfout, zodat de tak niet uiteenloopt. */
 function foutAntwoord(): Response {
   return NextResponse.json(
@@ -70,13 +78,12 @@ export async function GET(req: NextRequest): Promise<Response> {
   if (toegang instanceof NextResponse) return toegang
 
   const nu = new Date()
-  const vandaag = datumSleutel(nu)
+  // Altijd Amsterdamse dag, ook als de server in UTC draait.
+  const vandaag = dagVan(nu)
 
   // ── Kern-data uit het LifeOS-project: taken, CRM, agenda-vandaag ────────────
-  const dagStart = new Date(nu)
-  dagStart.setHours(0, 0, 0, 0)
-  const dagEind = new Date(dagStart)
-  dagEind.setDate(dagEind.getDate() + 1)
+  const dagStart = opMoment(vandaag, 0)
+  const dagEind = opMoment(dagPlus(vandaag, 1), 0)
 
   let takenUit: Awaited<ReturnType<typeof haalTaken>>
   let personenUit: Awaited<ReturnType<typeof haalPersonenMetAgenda>>
@@ -109,17 +116,27 @@ export async function GET(req: NextRequest): Promise<Response> {
 
   const feiten: DagbriefingFeiten = { taken, crm, agenda, welzijn, nu }
 
-  // Het model is optioneel: mist de sleutel of valt de config weg, dan blijft
-  // `model` null en levert `stelDagbriefingSamen` de deterministische briefing.
-  let model: BriefingModel | null = null
-  try {
-    model = maakAnthropicBriefingModel()
-  } catch {
-    model = null
-  }
+  // De knop "ververs" vraagt een nieuwe briefing; begrensd, want elke keer is
+  // een modelcall. Boven de grens krijg je gewoon de opgeslagen versie.
+  const wilVerversen = req.nextUrl.searchParams.get('ververs') === '1'
+  const forceer =
+    wilVerversen && !isRateLimited(`dagbriefing:${toegang.userId}`, MAX_VERVERSINGEN_PER_UUR, UUR_MS)
 
-  const briefing = await stelDagbriefingSamen(feiten, model)
+  const { waarde } = await metDagCache(toegang.userId, feitenTekst(feiten), nu, forceer, () =>
+    stelDagbriefingSamen(feiten, maakModel()),
+  )
+  // De groet hoort bij nu, niet bij het moment waarop de briefing geschreven werd.
+  const briefing = { ...waarde, groet: groetVoor(nu) }
   return NextResponse.json(briefing, { headers: CACHE_HEADERS })
+}
+
+/** Het model is optioneel: mist de sleutel of valt de config weg, dan de deterministische briefing. */
+function maakModel(): BriefingModel | null {
+  try {
+    return maakAnthropicBriefingModel()
+  } catch {
+    return null
+  }
 }
 
 // ─── Feiten bouwen ──────────────────────────────────────────────────────────

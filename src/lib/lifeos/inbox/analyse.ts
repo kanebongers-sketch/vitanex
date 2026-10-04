@@ -32,6 +32,7 @@ import {
   type Intentie,
   type IntentieModel,
 } from '@/lib/lifeos/intentie/intentie'
+import { heeftKloktijd } from '@/lib/lifeos/telegram/antwoord'
 
 /**
  * Wat we van één mail aan de analyse geven. Exact wat de triage al toonde:
@@ -79,9 +80,10 @@ export function suggestieVanIntentie(intentie: Intentie, externId: string): Sugg
 
   switch (intentie.soort) {
     case 'agenda':
-      // Een afspraak zonder tijd kunnen we niet in de agenda zetten; dan is het
-      // eerder een taak. Zelfde veilige terugval als bij Telegram.
-      return intentie.wanneer
+      // Een afspraak zonder kloktijd kunnen we niet in de agenda zetten; dan is het
+      // eerder een taak. Ook een kale datum ("vrijdag") telt niet als tijd: die
+      // werd anders een afspraak om 02:00 's nachts. Zelfde regel als Telegram.
+      return heeftKloktijd(intentie.wanneer)
         ? {
             externId,
             soort: 'agenda',
@@ -146,16 +148,29 @@ export async function analyseerMail(
   return suggestieVanIntentie(intentie, mail.externId)
 }
 
+/** Zoveel modelaanroepen tegelijk. Genoeg voor snelheid, zonder 40 calls in één klap. */
+export const GELIJKTIJDIG = 5
+
 /**
- * Analyseer een lijst mails. Parallel: elke analyse is een losse modelaanroep en
- * ze hangen niet van elkaar af.
+ * Analyseer een lijst mails. Begrensd parallel: elke analyse is een losse
+ * modelaanroep, maar we sturen er hooguit GELIJKTIJDIG tegelijk. De volgorde van
+ * de uitkomst volgt de invoer.
  */
 export async function analyseerMails(
   mails: readonly MailKenmerk[],
   model: IntentieModel,
   nu: Date = new Date(),
 ): Promise<Suggestie[]> {
-  return Promise.all(mails.map((m) => analyseerMail(m, model, nu)))
+  const uitkomst: Suggestie[] = new Array(mails.length)
+  let volgende = 0
+  const werker = async (): Promise<void> => {
+    while (volgende < mails.length) {
+      const i = volgende++
+      uitkomst[i] = await analyseerMail(mails[i], model, nu)
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(GELIJKTIJDIG, mails.length) }, werker))
+  return uitkomst
 }
 
 // ─── Systeemgrens: het verzoek aan onze eigen API ───────────────────────────

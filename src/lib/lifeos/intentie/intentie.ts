@@ -226,7 +226,9 @@ export async function bepaalIntentie(
     raw = await model.classificeer(bouwSysteemPrompt(nu), schoon)
   } catch (fout) {
     // Een modelstoring mag geen verkeerde actie worden: val terug op onduidelijk,
-    // dan vraagt de app terug. Fout≠leeg, ook hier.
+    // dan vraagt de app terug. Fout≠leeg, ook hier. Wel loggen: anders merkt
+    // niemand dat elke memo een notitie wordt omdat Claude onbereikbaar is.
+    console.error('[intentie] modelaanroep mislukt', fout)
     return {
       soort: 'onduidelijk', titel: schoon.slice(0, 80), wanneer: null, duurMinuten: null,
       persoon: null, project: null, categorie: 'onbekend', vertrouwen: 0,

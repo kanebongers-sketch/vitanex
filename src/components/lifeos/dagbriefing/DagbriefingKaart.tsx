@@ -81,9 +81,12 @@ export function DagbriefingKaart({ extra }: { extra?: ReactNode }) {
   const signaal = useRefreshSignaal()
   const generatie = useRef(0)
 
-  const laad = useCallback((): Promise<void> => {
+  // `nieuw` = de knop: vraag de server om een verse briefing i.p.v. de bewaarde.
+  // De automatische verversing elke 5 minuten gebruikt de bewaarde (geen modelcall).
+  const laad = useCallback((nieuw = false): Promise<void> => {
     const mijn = ++generatie.current
-    return haalJson('/api/lifeos/dagbriefing', leesDagbriefing).then((uitkomst) => {
+    const url = nieuw ? '/api/lifeos/dagbriefing?ververs=1' : '/api/lifeos/dagbriefing'
+    return haalJson(url, leesDagbriefing).then((uitkomst) => {
       if (mijn !== generatie.current) return
       setStaat(
         uitkomst.ok
@@ -106,7 +109,7 @@ export function DagbriefingKaart({ extra }: { extra?: ReactNode }) {
   // terug te vallen op de skeleton — een handmatige verversing is geen koude start.
   const ververs = useCallback(() => {
     setBezig(true)
-    void laad().finally(() => setBezig(false))
+    void laad(true).finally(() => setBezig(false))
   }, [laad])
 
   const opnieuw = useCallback(() => {

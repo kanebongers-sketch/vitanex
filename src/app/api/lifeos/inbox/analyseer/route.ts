@@ -2,7 +2,9 @@
 //
 // FUNCTIE 2, het AI-deel. De client stuurt de afzender + het onderwerp mee die
 // de triage al toonde, zodat we Gmail NIET opnieuw hoeven te raken. We halen hier
-// dus niets bij Gmail op, lezen geen body, en slaan niets op — de inbox-grenzen
+// dus niets bij Gmail op en lezen geen body. Het enige dat we onthouden is de
+// suggestie per mail, in het geheugen van het proces en alleen voor vandaag
+// (`suggestie-cache.ts`), zodat een verversing geen nieuwe modelcalls kost. De inbox-grenzen
 // uit `gmail.ts` gelden onverkort. Het enige externe dat we bellen is het
 // intentiebrein (Claude), en alleen om afzender+onderwerp te classificeren.
 //
@@ -20,6 +22,8 @@ import { vereisLifeosToegang } from '@/lib/lifeos/admin'
 import { maakAnthropicModel } from '@/lib/lifeos/intentie/intentie-model'
 import { type IntentieModel } from '@/lib/lifeos/intentie/intentie'
 import { analyseerMails, leesAnalyseVerzoek, naarSuggestieJson } from '@/lib/lifeos/inbox/analyse'
+import { onthoud, splitsBekend } from '@/lib/lifeos/inbox/suggestie-cache'
+import { isRateLimited } from '@/lib/utils/rate-limit'
 
 // `no-store`: dit gaat over afzenders en onderwerpen van derden. Geen enkele
 // cache — browser, CDN of proxy — mag hier een kopie van houden. `Vary` staat er
@@ -28,6 +32,10 @@ const CACHE_HEADERS = {
   'Cache-Control': 'private, no-store',
   Vary: 'Authorization',
 } as const
+
+/** Analyse-verzoeken per uur. Een normale dag zit hier ruim onder; dit is de noodrem. */
+const MAX_VERZOEKEN_PER_UUR = 60
+const UUR_MS = 60 * 60 * 1000
 
 export async function POST(req: NextRequest) {
   const toegang = await vereisLifeosToegang(req)
@@ -45,6 +53,18 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ suggesties: [] }, { headers: CACHE_HEADERS })
   }
 
+  const nu = new Date()
+  const { bekend, nieuw } = splitsBekend(verzoek.berichten, nu)
+
+  // Alles al bekend? Dan geen modelcall en geen telling tegen de rate limit.
+  if (nieuw.length === 0) {
+    return NextResponse.json({ suggesties: bekend.map(naarSuggestieJson) }, { headers: CACHE_HEADERS })
+  }
+
+  if (isRateLimited(`inbox-analyse:${toegang.userId}`, MAX_VERZOEKEN_PER_UUR, UUR_MS)) {
+    return NextResponse.json({ fout: 'Even te veel analyses; probeer het zo opnieuw.' }, { status: 429 })
+  }
+
   let model: IntentieModel
   try {
     model = maakAnthropicModel()
@@ -55,9 +75,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ fout: 'De AI-analyse is nu niet beschikbaar.' }, { status: 503 })
   }
 
-  const suggesties = await analyseerMails(verzoek.berichten, model)
+  const vers = await analyseerMails(nieuw, model, nu)
+  onthoud(nieuw, vers, nu)
   return NextResponse.json(
-    { suggesties: suggesties.map(naarSuggestieJson) },
+    { suggesties: [...bekend, ...vers].map(naarSuggestieJson) },
     { headers: CACHE_HEADERS },
   )
 }

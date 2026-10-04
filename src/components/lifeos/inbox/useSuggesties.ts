@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { haalJson } from '@/lib/lifeos/api/http'
 import { leesSuggesties, type Suggestie } from '@/lib/lifeos/inbox/analyse'
 import type { TriageMailJson } from '@/lib/lifeos/inbox/inbox'
@@ -51,6 +51,14 @@ export function useSuggesties(mails: readonly TriageMailJson[]): SuggestiesResul
     generatie.current++
   }, [])
 
+  // De inbox levert bij elke verversing een nieuwe `mails`-array, ook als er niets
+  // veranderde. Als string vergeleken analyseren we alleen opnieuw als de set mails
+  // (id + afzender + onderwerp) echt anders is — anders geen verzoek.
+  const verzoekBody = useMemo(
+    () => JSON.stringify({ berichten: berichtenVoorAnalyse(mails) }),
+    [mails],
+  )
+
   useEffect(() => {
     // Geen post = niets te analyseren. Geen fetch, en geen synchrone setState:
     // de begintoestand ('inactief', lege map) is al correct, en een verouderde
@@ -59,11 +67,10 @@ export function useSuggesties(mails: readonly TriageMailJson[]): SuggestiesResul
     if (mails.length === 0) return
 
     const mijn = ++generatie.current
-    const berichten = berichtenVoorAnalyse(mails)
 
     void haalJson('/api/lifeos/inbox/analyseer', leesSuggesties, {
       method: 'POST',
-      body: JSON.stringify({ berichten }),
+      body: verzoekBody,
     }).then((uitkomst) => {
       if (mijn !== generatie.current) return // ingehaald of ontkoppeld
 
@@ -80,7 +87,7 @@ export function useSuggesties(mails: readonly TriageMailJson[]): SuggestiesResul
     })
 
     return verval
-  }, [mails, verval])
+  }, [mails.length, verzoekBody, verval])
 
   const suggestieVoor = useCallback(
     (externId: string): Suggestie | null => kaart.get(externId) ?? null,
