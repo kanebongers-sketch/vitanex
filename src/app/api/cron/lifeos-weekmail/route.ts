@@ -27,6 +27,9 @@ import { haalTaken } from '@/lib/lifeos/taken/opslag'
 import { haalPersonenMetAgenda } from '@/lib/lifeos/crm/agenda-contact-ophalen'
 import type { Persoon } from '@/lib/lifeos/crm/crm'
 import { haalPtSignalen } from '@/lib/lifeos/pt-klant/afhaak-ophalen'
+import { haalEventsUitCache } from '@/lib/lifeos/agenda/opslag'
+import { haalCategorieRegels } from '@/lib/lifeos/agenda/categorie-opslag'
+import { tijdPerCategorie, type CategorieTijd } from '@/lib/lifeos/weekmail/agenda-tijd'
 import { lokaleTijd } from '@/lib/lifeos/vita/signalen'
 import { alGeclaimdVandaag, claimBriefing, geefClaimTerug, markeerBezorgd } from '@/lib/lifeos/vita/briefing-opslag'
 import {
@@ -71,6 +74,31 @@ async function haalAfgerond(
   })
   if (!taken.ok) return []
   return afgerondeTakenSinds(taken.waarde, vanaf, tot).map((t) => t.titel)
+}
+
+/**
+ * Agenda-uren van de afgelopen week per categorie, uit de agenda-cache (geen
+ * Google-call). Best-effort: faalt de cache, dan geen sectie in plaats van een
+ * misleidende "0 uur".
+ */
+async function haalAgendaTijd(
+  admin: ReturnType<typeof createLifeosAdminClient>,
+  userId: string,
+  personen: readonly Persoon[],
+  vanaf: Date,
+  nu: Date,
+): Promise<CategorieTijd[]> {
+  try {
+    const [events, regels] = await Promise.all([
+      haalEventsUitCache(admin, userId, vanaf, nu),
+      haalCategorieRegels(admin, userId),
+    ])
+    if (!events.ok) return []
+    return tijdPerCategorie(events.waarde, personen, regels.ok ? regels.waarde : new Map())
+  } catch (oorzaak) {
+    console.error('[weekmail] agenda-tijd ophalen mislukt', oorzaak)
+    return []
+  }
 }
 
 /** De CRM-personen, best-effort → leeg bij fout. Gedeeld door "verwaterend contact" en "afhaak". */
@@ -160,9 +188,12 @@ export async function GET(req: NextRequest): Promise<Response> {
     haalZelf(admin, userId, vanaf, nu),
   ])
   const koud = koudeContacten(personen, nu)
-  const { afhaak } = await haalPtSignalen(admin, userId, personen, nu)
+  const [{ afhaak }, agendaTijd] = await Promise.all([
+    haalPtSignalen(admin, userId, personen, nu),
+    haalAgendaTijd(admin, userId, personen, vanaf, nu),
+  ])
 
-  const mail = bouwWeekmail(nu, { afgerondeTaken, koudeContacten: koud, afhaak, zelf })
+  const mail = bouwWeekmail(nu, { afgerondeTaken, koudeContacten: koud, afhaak, agendaTijd, zelf })
 
   // Claim vlak vóór het sturen (spiegelt de dagmail): de insert is het slot.
   const claim = await claimBriefing(admin, userId, datum, 'weekmail')

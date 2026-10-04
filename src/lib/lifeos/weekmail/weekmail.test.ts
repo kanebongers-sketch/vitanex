@@ -170,4 +170,12 @@ describe('bouwWeekmail', () => {
     expect(mail.html).toContain('&lt;script&gt;')
     expect(mail.html).toContain('A &amp; B')
   })
+
+  test('agenda-tijd per categorie, en geen sectie als er niets is', () => {
+    const mail = bouwWeekmail(MAANDAG, { ...basis, agendaTijd: [{ label: 'PT-klant', minuten: 750 }, { label: 'Overig', minuten: 45 }] })
+    expect(mail.tekst).toContain('JE AGENDA-TIJD')
+    expect(mail.tekst).toContain('- PT-klant: 12u 30m')
+    expect(mail.html).toContain('Je agenda-tijd')
+    expect(bouwWeekmail(MAANDAG, basis).tekst).not.toContain('AGENDA-TIJD')
+  })
 })
