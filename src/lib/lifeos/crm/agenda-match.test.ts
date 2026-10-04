@@ -105,6 +105,12 @@ describe('bepaalHernoem — de poort vóór een schrijf naar de agenda', () => {
     expect(canoniekeTitel(lisa)).toBe('Lisa Jansen Team')
   })
 
+  test('LifeOS-blokken worden nooit hernoemd, ook niet als er een "klant" met die woorden bestaat', () => {
+    const nep = persoon('Bouwblok Uitbouwen', 'pt_klant')
+    expect(bepaalHernoem('Bouwblok: PT uitbouwen', [nep])).toBeNull()
+    expect(bepaalHernoem('Taak: Kevin', [kevin])).toBeNull()
+  })
+
   test('kale voornaam → volledige naam + tag', () => {
     expect(bepaalHernoem('Kevin', [kevin])).toEqual({ nieuweTitel: 'Kevin Cranenbroeck PT' })
     expect(bepaalHernoem('kevin', [kevin])).toEqual({ nieuweTitel: 'Kevin Cranenbroeck PT' })

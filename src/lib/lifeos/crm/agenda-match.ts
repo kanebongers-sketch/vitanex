@@ -12,6 +12,7 @@
 // persoon aan je afspraak hangen.
 
 import type { Persoon, Groep } from './crm'
+import { isLifeosBlok } from '@/lib/lifeos/blokken/titels'
 
 export type PersoonMatch =
   | { soort: 'geen' }
@@ -195,6 +196,8 @@ export function bepaalHernoem(
   titel: string | null,
   personen: readonly Persoon[],
 ): { nieuweTitel: string } | null {
+  // LifeOS' eigen blokken ("Bouwblok: PT uitbouwen", "Taak: …") nooit hernoemen.
+  if (isLifeosBlok(titel)) return null
   const match = matchPersoonInTitel(titel, personen)
   if (match.soort !== 'match') return null
 

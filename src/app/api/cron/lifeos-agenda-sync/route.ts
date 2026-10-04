@@ -117,10 +117,10 @@ export async function GET(req: NextRequest): Promise<Response> {
       } catch (oorzaak) {
         console.error('[lifeos/cron-agenda-sync] mail verwerken wierp een fout', oorzaak)
       }
-      let blokken = { gepland: 0, opgeruimd: 0 }
+      let blokken = { gepland: 0, opgeruimd: 0, hersteld: 0 }
       try {
         const b = await planAgendaBlokken(admin, userId)
-        blokken = { gepland: b.gepland.length, opgeruimd: b.opgeruimd }
+        blokken = { gepland: b.gepland.length, opgeruimd: b.opgeruimd, hersteld: b.hersteld }
       } catch (oorzaak) {
         console.error('[lifeos/cron-agenda-sync] blokken plannen wierp een fout', oorzaak)
       }

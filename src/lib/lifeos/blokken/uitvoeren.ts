@@ -12,7 +12,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { leesGekozenKalender } from '@/lib/lifeos/agenda/koppeling'
 import { haalEventsUitCache } from '@/lib/lifeos/agenda/opslag'
-import { AgendaSchrijfFout, maakAgendaEvent, verwijderAgendaEvent } from '@/lib/lifeos/agenda/schrijven'
+import { AgendaSchrijfFout, maakAgendaEvent, verwijderAgendaEvent, wijzigAgendaEvent } from '@/lib/lifeos/agenda/schrijven'
 import { haalTaken } from '@/lib/lifeos/taken/opslag'
 import { HORIZON_DAGEN, planBlokken, teOpruimen, type BestaandBlok, type BlokSoort, type BlokVoorstel, type TaakKandidaat } from './plan'
 
@@ -23,6 +23,7 @@ const MAX_NIEUW = 12
 export interface BlokkenUitkomst {
   gepland: string[]
   opgeruimd: number
+  hersteld: number
 }
 
 interface Rij {
@@ -31,12 +32,13 @@ interface Rij {
   soort: BlokSoort
   taak_ids: string[] | null
   extern_id: string | null
+  titel: string
   start_op: string | null
   status: 'gepland' | 'opgeruimd'
 }
 
-async function leesBlokken(admin: SupabaseClient, userId: string): Promise<(BestaandBlok & { id: string; externId: string | null })[] | null> {
-  const { data, error } = await admin.from(TABEL).select('id, sleutel, soort, taak_ids, extern_id, start_op, status').eq('user_id', userId)
+async function leesBlokken(admin: SupabaseClient, userId: string): Promise<(BestaandBlok & { id: string; externId: string | null; titel: string })[] | null> {
+  const { data, error } = await admin.from(TABEL).select('id, sleutel, soort, taak_ids, extern_id, titel, start_op, status').eq('user_id', userId)
   if (error || !Array.isArray(data)) return null
   return (data as Rij[]).map((r) => ({
     id: r.id,
@@ -44,6 +46,7 @@ async function leesBlokken(admin: SupabaseClient, userId: string): Promise<(Best
     soort: r.soort,
     taakIds: r.taak_ids ?? [],
     externId: r.extern_id,
+    titel: r.titel,
     startOp: r.start_op ? new Date(r.start_op) : null,
     status: r.status,
   }))
@@ -82,6 +85,42 @@ async function zetInAgenda(admin: SupabaseClient, userId: string, v: BlokVoorste
   }
 }
 
+/**
+ * Zette LifeOS zelf (het hernoemen) een andere titel op een van zijn eigen blokken,
+ * dan krijgt het blok zijn eigen titel terug. Hernoemde JIJ het, dan blijft het
+ * staan: alleen wanneer de huidige titel precies is wat LifeOS schreef
+ * (`hernoem_geschreven`), was het LifeOS.
+ */
+async function herstelTitels(
+  admin: SupabaseClient,
+  userId: string,
+  blokken: readonly { externId: string | null; titel: string; status: string; startOp: Date | null }[],
+  kalenderId: string | null,
+  nu: Date,
+): Promise<number> {
+  const actief = blokken.filter((b) => b.status === 'gepland' && b.externId && b.startOp && b.startOp > nu)
+  if (actief.length === 0) return 0
+  const { data, error } = await admin
+    .from('agenda_events')
+    .select('extern_id, titel, hernoem_geschreven')
+    .eq('user_id', userId)
+    .in('extern_id', actief.map((b) => b.externId as string))
+  if (error || !Array.isArray(data)) return 0
+  let hersteld = 0
+  for (const r of data as { extern_id: string; titel: string | null; hernoem_geschreven: string | null }[]) {
+    const blok = actief.find((b) => b.externId === r.extern_id)
+    if (!blok || r.titel === blok.titel || r.titel === null || r.hernoem_geschreven !== r.titel) continue
+    try {
+      await wijzigAgendaEvent(admin, userId, r.extern_id, { titel: blok.titel }, kalenderId)
+      await admin.from('agenda_events').update({ hernoem_geschreven: null }).eq('user_id', userId).eq('extern_id', r.extern_id)
+      hersteld++
+    } catch (oorzaak) {
+      console.warn(`[blokken] titel van ${r.extern_id} niet hersteld:`, oorzaak instanceof Error ? oorzaak.message : oorzaak)
+    }
+  }
+  return hersteld
+}
+
 async function ruimOp(
   admin: SupabaseClient,
   userId: string,
@@ -102,7 +141,7 @@ async function ruimOp(
 }
 
 export async function planAgendaBlokken(admin: SupabaseClient, userId: string, nu = new Date()): Promise<BlokkenUitkomst> {
-  const leeg: BlokkenUitkomst = { gepland: [], opgeruimd: 0 }
+  const leeg: BlokkenUitkomst = { gepland: [], opgeruimd: 0, hersteld: 0 }
   const [blokken, uitMail, taken, agenda] = await Promise.all([
     leesBlokken(admin, userId),
     mailTaakIds(admin, userId),
@@ -122,6 +161,8 @@ export async function planAgendaBlokken(admin: SupabaseClient, userId: string, n
     if (b && (await ruimOp(admin, userId, b, kalenderId))) opgeruimd++
   }
 
+  const hersteld = await herstelTitels(admin, userId, blokken, kalenderId, nu)
+
   const kandidaten: TaakKandidaat[] = open.map((t) => ({
     id: t.id,
     titel: t.titel,
@@ -137,5 +178,5 @@ export async function planAgendaBlokken(admin: SupabaseClient, userId: string, n
   for (const v of voorstellen) {
     if (await zetInAgenda(admin, userId, v, kalenderId)) gepland.push(v.titel)
   }
-  return { gepland, opgeruimd }
+  return { gepland, opgeruimd, hersteld }
 }
