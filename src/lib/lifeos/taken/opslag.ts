@@ -67,37 +67,54 @@ export interface TakenFilter {
   alleenOpen?: boolean
 }
 
+/**
+ * PostgREST geeft standaard hooguit 1000 rijen per verzoek. Zonder paginering
+ * vielen bij een grote stapel (álle taken, ook afgevinkte) stil de laatste weg —
+ * en omdat we oplopend op aanmaakdatum sorteren, waren dat juist de nieuwste.
+ */
+const PAGINA = 1000
+
 export async function haalTaken(
   admin: SupabaseClient,
   userId: string,
   filter: TakenFilter = {},
 ): Promise<Uitkomst<Taak[]>> {
-  // `let` + hertoewijzing: elke filtermethode geeft dezelfde builder terug, dus
-  // dit blijft één query. Het type komt uit de initialisatie — geen annotatie,
-  // want de generieke typen van PostgREST zijn niet met de hand na te maken.
-  let query = admin.from('taken').select(KOLOMMEN).eq('user_id', userId)
+  // Per pagina een verse builder: een PostgREST-builder is na `await` verbruikt.
+  const bouw = () => {
+    let query = admin.from('taken').select(KOLOMMEN).eq('user_id', userId)
 
-  if (filter.datum !== undefined) {
-    query = filter.datum === 'ooit' ? query.is('datum', null) : query.eq('datum', filter.datum)
+    if (filter.datum !== undefined) {
+      query = filter.datum === 'ooit' ? query.is('datum', null) : query.eq('datum', filter.datum)
+    }
+    if (filter.alleenTop3) query = query.not('top3_positie', 'is', null)
+    if (filter.projectId !== undefined) {
+      query =
+        filter.projectId === 'geen'
+          ? query.is('project_id', null)
+          : query.eq('project_id', filter.projectId)
+    }
+    // Taken zonder deadline vallen hier bewust buiten: je vroeg om wat er vóór een
+    // datum moet, en van een taak zonder deadline weten we dat niet.
+    if (filter.deadlineTot !== undefined) query = query.lte('deadline', filter.deadlineTot)
+    if (filter.alleenOpen) query = query.eq('klaar', false)
+
+    // `id` als laatste sleutel: een stabiele volgorde, anders kan een rij tussen
+    // twee pagina's verschuiven en dubbel of nooit meekomen.
+    return query
+      .order('top3_positie', { ascending: true, nullsFirst: false })
+      .order('aangemaakt_op', { ascending: true })
+      .order('id', { ascending: true })
   }
-  if (filter.alleenTop3) query = query.not('top3_positie', 'is', null)
-  if (filter.projectId !== undefined) {
-    query =
-      filter.projectId === 'geen'
-        ? query.is('project_id', null)
-        : query.eq('project_id', filter.projectId)
+
+  const rijen: unknown[] = []
+  for (let van = 0; ; van += PAGINA) {
+    const { data, error } = await bouw().range(van, van + PAGINA - 1)
+    if (error) return { ok: false, reden: vertaalFout(error) }
+    const pagina = Array.isArray(data) ? data : []
+    rijen.push(...pagina)
+    if (pagina.length < PAGINA) break
   }
-  // Taken zonder deadline vallen hier bewust buiten: je vroeg om wat er vóór een
-  // datum moet, en van een taak zonder deadline weten we dat niet.
-  if (filter.deadlineTot !== undefined) query = query.lte('deadline', filter.deadlineTot)
-  if (filter.alleenOpen) query = query.eq('klaar', false)
-
-  const { data, error } = await query
-    .order('top3_positie', { ascending: true, nullsFirst: false })
-    .order('aangemaakt_op', { ascending: true })
-
-  if (error) return { ok: false, reden: vertaalFout(error) }
-  return { ok: true, waarde: takenVanRijen(Array.isArray(data) ? data : []) }
+  return { ok: true, waarde: takenVanRijen(rijen) }
 }
 
 export async function maakTaak(

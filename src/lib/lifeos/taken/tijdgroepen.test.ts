@@ -46,4 +46,14 @@ describe('groepeerOpTijd', () => {
       ['ooit', ['Ooit']],
     ])
   })
+
+  test('een verstreken deadline wint van een geplande dag in de toekomst', () => {
+    const t = { ...taak('Offerte', '2026-10-02'), deadline: '2026-09-29' }
+    expect(groepeerOpTijd([t], '2026-09-30').map((g) => g.kop)).toEqual(['Te laat'])
+  })
+
+  test('een deadline morgen trekt een taak gepland voor volgende week naar "Morgen"', () => {
+    const t = { ...taak('Offerte', '2026-10-06'), deadline: '2026-10-01' }
+    expect(groepeerOpTijd([t], '2026-09-30').map((g) => g.kop)).toEqual(['Morgen'])
+  })
 })

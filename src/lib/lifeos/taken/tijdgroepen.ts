@@ -45,21 +45,31 @@ function groepVan(datum: string | null, vandaag: string): TijdGroepSleutel {
   return 'later'
 }
 
+/**
+ * De dag die telt voor de groepering: de vroegste van geplande dag en deadline.
+ * Gepland voor vrijdag maar de deadline was gisteren? Dan is hij te laat, niet
+ * "deze week". Alleen een deadline (bv. een taak uit je mail)? Dan telt die,
+ * anders verdwijnt "factuur vóór vrijdag" onder "Ooit".
+ */
+function telDag(t: Taak): string | null {
+  if (t.datum === null) return t.deadline
+  if (t.deadline === null) return t.datum
+  return t.deadline < t.datum ? t.deadline : t.datum
+}
+
 /** De open taken per tijdgroep, in vaste volgorde; binnen een groep op datum, dan op volgorde van aanmaken. */
 export function groepeerOpTijd(taken: readonly Taak[], vandaag: string): TijdGroep[] {
   const per = new Map<TijdGroepSleutel, Taak[]>()
   for (const t of taken) {
     if (t.klaar) continue
-    // Geen dag gekozen maar wél een deadline (bv. een taak uit je mail)? Dan telt
-    // de deadline — anders verdwijnt "factuur vóór vrijdag" onder "Ooit".
-    const g = groepVan(t.datum ?? t.deadline, vandaag)
+    const g = groepVan(telDag(t), vandaag)
     per.set(g, [...(per.get(g) ?? []), t])
   }
   return VOLGORDE.filter((g) => per.has(g)).map((g) => ({
     sleutel: g,
     kop: KOPPEN[g],
     taken: [...(per.get(g) ?? [])].sort(
-      (a, b) => (a.datum ?? a.deadline ?? '').localeCompare(b.datum ?? b.deadline ?? '') || a.aangemaaktOp.localeCompare(b.aangemaaktOp),
+      (a, b) => (telDag(a) ?? '').localeCompare(telDag(b) ?? '') || a.aangemaaktOp.localeCompare(b.aangemaaktOp),
     ),
   }))
 }

@@ -16,13 +16,13 @@
 // Auth: de founder-gate uit `@/lib/lifeos/admin`.
 
 import { NextResponse, type NextRequest } from 'next/server'
-import { vereisLifeosToegang } from '@/lib/lifeos/admin'
+import { vereisLifeosToegang, type LifeosToegang } from '@/lib/lifeos/admin'
 import { haalPersonen } from '@/lib/lifeos/crm/opslag'
 import { logGebeurtenis } from '@/lib/lifeos/crm/historie'
 import { leesGekozenKalender } from '@/lib/lifeos/agenda/koppeling'
 import { maakAgendaEvent, schrijfFoutHttp } from '@/lib/lifeos/agenda/schrijven'
 import { coachgesprekTitel } from '@/lib/lifeos/pt-gesprek/pt-gesprek'
-import { evaluatieSamenvatting, leesEvaluatie, type AfrondResultaat } from '@/lib/lifeos/pt-coaching/pt-coaching'
+import { evaluatieSamenvatting, leesEvaluatie, type AfrondResultaat, type EvaluatieInvoer } from '@/lib/lifeos/pt-coaching/pt-coaching'
 import { nieuwAandachtspunt, slaEvaluatieOp, verwerkOordelen } from '@/lib/lifeos/pt-coaching/opslag'
 import { leesOordelen } from '@/lib/lifeos/pt-coaching/aandachtspunten'
 import { mailVerslag } from '@/lib/lifeos/pt-coaching/verslag-mail'
@@ -32,6 +32,24 @@ export const dynamic = 'force-dynamic'
 
 /** De volgende afspraak duurt standaard een half uur; alleen de start kies je. */
 const GESPREK_DUUR_MIN = 30
+
+/**
+ * Eén keer afronden = één evaluatie, één uitnodiging, één mail. Het formulier
+ * stuurt een eigen sleutel mee; een dubbelklik of een retry met dezelfde sleutel
+ * krijgt het eerste resultaat terug in plaats van alles nog eens te doen.
+ * Geheugen per proces is genoeg: retries komen binnen seconden.
+ */
+const AL_AFGEROND = new Map<string, { op: number; resultaat: Promise<AfrondResultaat | null> }>()
+const SLEUTEL_VENSTER_MS = 10 * 60 * 1000
+
+function leesSleutel(body: object): string | null {
+  const s = (body as { sleutel?: unknown }).sleutel
+  return typeof s === 'string' && s.length > 0 && s.length <= 100 ? s : null
+}
+
+function ruimSleutelsOp(nu: number): void {
+  for (const [k, v] of AL_AFGEROND) if (nu - v.op > SLEUTEL_VENSTER_MS) AL_AFGEROND.delete(k)
+}
 
 export async function POST(req: NextRequest) {
   const toegang = await vereisLifeosToegang(req)
@@ -43,6 +61,18 @@ export async function POST(req: NextRequest) {
   }
   const { persoonId, volgendeStartOp } = body as { persoonId?: unknown; volgendeStartOp?: unknown }
 
+  const sleutel = leesSleutel(body)
+  if (sleutel) {
+    const nu = Date.now()
+    ruimSleutelsOp(nu)
+    const eerder = AL_AFGEROND.get(sleutel)
+    if (eerder) {
+      const resultaat = await eerder.resultaat
+      if (resultaat) return NextResponse.json(resultaat, { headers: { 'Cache-Control': 'private, no-store', Vary: 'Authorization' } })
+      return NextResponse.json({ fout: 'Dit gesprek wordt al afgerond.' }, { status: 409 })
+    }
+  }
+
   if (typeof persoonId !== 'string' || persoonId.length === 0) {
     return NextResponse.json({ fout: 'Onbekend PT-teamlid.' }, { status: 400 })
   }
@@ -51,6 +81,35 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ fout: evaluatie.fout }, { status: 400 })
   }
 
+  // Vanaf hier één keer per sleutel: wie tegelijk met dezelfde sleutel binnenkomt,
+  // wacht op dit resultaat (zie AL_AFGEROND).
+  const werk = rondAf(toegang, body, persoonId, volgendeStartOp, evaluatie.waarde)
+  if (sleutel) {
+    AL_AFGEROND.set(sleutel, {
+      op: Date.now(),
+      resultaat: werk.then((u) => (u instanceof NextResponse ? null : u)),
+    })
+  }
+  const uitkomst = await werk
+  if (uitkomst instanceof NextResponse) {
+    // Mislukt vóór er iets is opgeslagen: een nieuwe poging moet gewoon kunnen.
+    if (sleutel) AL_AFGEROND.delete(sleutel)
+    return uitkomst
+  }
+  return NextResponse.json(uitkomst, {
+    headers: { 'Cache-Control': 'private, no-store', Vary: 'Authorization' },
+  })
+}
+
+/** Het eigenlijke afronden. Een NextResponse = een fout vóór of tijdens het opslaan. */
+async function rondAf(
+  toegang: LifeosToegang,
+  body: object,
+  persoonId: string,
+  volgendeStartOp: unknown,
+  evaluatieWaarde: EvaluatieInvoer,
+): Promise<AfrondResultaat | NextResponse> {
+  const evaluatie = { waarde: evaluatieWaarde }
   // De persoon zelf ophalen (naam + mail voor de uitnodiging), server-side — de
   // client stuurt alleen het id, niet de naam/mail die we vertrouwen.
   const personen = await haalPersonen(toegang.admin, toegang.userId, 'pt_team')
@@ -72,9 +131,14 @@ export async function POST(req: NextRequest) {
   //     het nieuwe niet meteen "een gesprek open" telt). Best-effort.
   const opvolging = await verwerkOordelen(
     toegang.admin, toegang.userId, persoonId, leesOordelen((body as { oordelen?: unknown }).oordelen),
-  ).catch(() => [])
+  ).catch((fout) => {
+    console.error('[pt-gesprekken/afronden] aandachtspunten beoordelen mislukt', fout)
+    return []
+  })
   if (evaluatie.waarde.aandachtspunt) {
-    await nieuwAandachtspunt(toegang.admin, toegang.userId, persoonId, evaluatie.waarde.aandachtspunt, bewaard.waarde.id).catch(() => undefined)
+    await nieuwAandachtspunt(toegang.admin, toegang.userId, persoonId, evaluatie.waarde.aandachtspunt, bewaard.waarde.id).catch(
+      (fout) => console.error('[pt-gesprekken/afronden] nieuw aandachtspunt mislukt', fout),
+    )
   }
 
   // 2. Een samenvatting in de CRM-tijdlijn. Best-effort: de evaluatie staat al
@@ -127,8 +191,5 @@ export async function POST(req: NextRequest) {
     opvolging,
   })
 
-  const resultaat: AfrondResultaat = { afspraakFout, mailFout, evaluatieId: bewaard.waarde.id }
-  return NextResponse.json(resultaat, {
-    headers: { 'Cache-Control': 'private, no-store', Vary: 'Authorization' },
-  })
+  return { afspraakFout, mailFout, evaluatieId: bewaard.waarde.id }
 }

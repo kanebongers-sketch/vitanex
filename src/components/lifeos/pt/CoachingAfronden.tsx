@@ -45,6 +45,11 @@ export function CoachingAfronden({ pt, onKlaar, onAnnuleer }: Props) {
   const [oordelen, setOordelen] = useState<Record<string, Oordeel>>({})
   const [bezig, setBezig] = useState(false)
   const [fout, setFout] = useState<string | null>(null)
+  // Opgeslagen, maar de afspraak of de mail lukte niet: die melding moet blijven
+  // staan tot jij sluit. Eerder sloot het formulier meteen en zag je hem nooit.
+  const [opgeslagenMelding, setOpgeslagenMelding] = useState<string | null>(null)
+  // Eén sleutel per afronding: een dubbelklik of retry doet het niet twee keer.
+  const [sleutel] = useState(() => crypto.randomUUID())
 
   async function afronden() {
     let volgendeStartOp: string | undefined
@@ -63,6 +68,7 @@ export function CoachingAfronden({ pt, onKlaar, onAnnuleer }: Props) {
       method: 'POST',
       body: JSON.stringify({
         persoonId: pt.id,
+        sleutel,
         evaluatie: {
           scores,
           notitie: notitie.trim() || undefined,
@@ -81,7 +87,10 @@ export function CoachingAfronden({ pt, onKlaar, onAnnuleer }: Props) {
     // De evaluatie is opgeslagen; mislukte de volgende afspraak of de pdf-mail,
     // dan eerlijk melden i.p.v. doen alsof alles lukte.
     const missers = [uitkomst.waarde.afspraakFout, uitkomst.waarde.mailFout].filter((m): m is string => m !== null)
-    if (missers.length > 0) setFout(`Evaluatie opgeslagen. Maar: ${missers.join(' ')}`)
+    if (missers.length > 0) {
+      setOpgeslagenMelding(`Evaluatie opgeslagen. Maar: ${missers.join(' ')}`)
+      return
+    }
     await onKlaar()
   }
 
@@ -146,12 +155,21 @@ export function CoachingAfronden({ pt, onKlaar, onAnnuleer }: Props) {
         ) : null}
       </div>
 
-      <div style={{ display: 'flex', gap: 8 }}>
-        <Knop variant="primair" onClick={() => void afronden()} disabled={bezig}>
-          {bezig ? 'Bezig…' : planVolgende ? 'Afronden + volgende inplannen' : 'Coaching afronden'}
-        </Knop>
-        <Knop onClick={onAnnuleer} disabled={bezig}>Annuleren</Knop>
-      </div>
+      {opgeslagenMelding ? (
+        <>
+          <Foutmelding bericht={opgeslagenMelding} />
+          <div style={{ display: 'flex', gap: 8 }}>
+            <Knop variant="primair" onClick={() => void onKlaar()}>Sluiten</Knop>
+          </div>
+        </>
+      ) : (
+        <div style={{ display: 'flex', gap: 8 }}>
+          <Knop variant="primair" onClick={() => void afronden()} disabled={bezig}>
+            {bezig ? 'Bezig…' : planVolgende ? 'Afronden + volgende inplannen' : 'Coaching afronden'}
+          </Knop>
+          <Knop onClick={onAnnuleer} disabled={bezig}>Annuleren</Knop>
+        </div>
+      )}
       {fout ? <Foutmelding bericht={fout} /> : null}
       <p style={{ margin: 0, fontSize: 11, color: 'var(--text-4)' }}>
         Afspraak heet: “{coachgesprekTitel(pt.naam)}”. Het verslag gaat als pdf naar je mail.

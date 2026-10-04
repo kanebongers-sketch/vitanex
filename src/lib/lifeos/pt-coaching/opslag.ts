@@ -183,7 +183,7 @@ export async function verwerkOordelen(
   for (const punt of open) {
     const oordeel = oordelen.find((o) => o.id === punt.id)?.oordeel ?? null
     const na = naOordeel(punt, oordeel)
-    await admin
+    const { error } = await admin
       .from('pt_aandachtspunten')
       .update({
         status: na.opgelost ? 'opgelost' : 'open',
@@ -194,11 +194,17 @@ export async function verwerkOordelen(
       })
       .eq('user_id', userId)
       .eq('id', punt.id)
+    // Supabase gooit niet bij een mislukte update; zonder deze check meldde het
+    // verslag "verwerkt" terwijl het punt gewoon open bleef staan.
+    if (error) throw new Error(`Aandachtspunt bijwerken mislukt: ${error.message}`)
     verslag.push({ tekst: punt.tekst, oordeel })
   }
   return verslag
 }
 
 export async function nieuwAandachtspunt(admin: SupabaseClient, userId: string, persoonId: string, tekst: string, bronId: string): Promise<void> {
-  await admin.from('pt_aandachtspunten').insert({ user_id: userId, persoon_id: persoonId, tekst, bron_coaching_id: bronId })
+  const { error } = await admin
+    .from('pt_aandachtspunten')
+    .insert({ user_id: userId, persoon_id: persoonId, tekst, bron_coaching_id: bronId })
+  if (error) throw new Error(`Aandachtspunt opslaan mislukt: ${error.message}`)
 }
