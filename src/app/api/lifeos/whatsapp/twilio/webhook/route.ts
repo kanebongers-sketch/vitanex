@@ -19,6 +19,7 @@
 // De pijplijn (Groq + Claude) rondt ruim binnen Twilio's venster af.
 
 import { NextResponse, type NextRequest } from 'next/server'
+import { berichtDedup, twilioBerichtId } from '@/lib/lifeos/capture/dedup'
 import { leesTwilioBericht, type TwilioBericht } from '@/lib/lifeos/whatsapp/twilio/update'
 import { handtekeningGeldig } from '@/lib/lifeos/whatsapp/twilio/handtekening'
 import { bouwTwimlAntwoord, bouwLeegTwiml } from '@/lib/lifeos/whatsapp/twilio/twiml'
@@ -90,19 +91,31 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     return twiml(bouwLeegTwiml())
   }
 
+  // 2b½. Een herhaling van een bericht dat we al verwerkten (de dienst deed een
+  //      retry omdat wij te traag antwoordden) slaan we over. Vóór de limiet, zodat
+  //      een retry geen ruimte opeet.
+  if (!berichtDedup.eerste(twilioBerichtId(params))) return twiml(bouwLeegTwiml())
+
   // 2c. Snelheidslimiet vóór de dure stappen (Groq + Claude). Ná de allowlist.
   const ruimte = webhookLimiet.toets(bericht.from, Date.now())
   if (ruimte.soort === 'te_snel') return twiml(bouwLeegTwiml())
 
   // 3. Verwerk en antwoord in TwiML. `verwerkBericht` geeft altijd een tekst terug
   //    (ook bij een fout), zodat de gebruiker nooit in het ongewisse blijft.
-  const antwoord = await verwerkBericht(bericht, {
-    userId: lifeosUserId(),
-    client: maakTwilioClient(),
-    transcriber: maakWhisperTranscriber(),
-    model: maakAnthropicModel(),
-  })
-  return twiml(bouwTwimlAntwoord(antwoord))
+  //    Ontbreekt er config (env), dan loggen en een leeg antwoord: een 500 zou
+  //    Twilio laten herhalen zonder dat het ooit lukt.
+  try {
+    const antwoord = await verwerkBericht(bericht, {
+      userId: lifeosUserId(),
+      client: maakTwilioClient(),
+      transcriber: maakWhisperTranscriber(),
+      model: maakAnthropicModel(),
+    })
+    return twiml(bouwTwimlAntwoord(antwoord))
+  } catch (fout) {
+    console.error('[lifeos/whatsapp-twilio] verwerken mislukt', fout)
+    return twiml(bouwLeegTwiml())
+  }
 }
 
 /** Alles wat `verwerkBericht` nodig heeft — injecteerbaar, dus zonder netwerk testbaar. */

@@ -19,6 +19,7 @@
 
 import { NextResponse, type NextRequest } from 'next/server'
 import { geheimGelijk } from '@/lib/lifeos/auth/geheim'
+import { berichtDedup, whatsAppBerichtId } from '@/lib/lifeos/capture/dedup'
 import { leesWhatsAppBericht, type WhatsAppBericht } from '@/lib/lifeos/whatsapp/update'
 import { beoordeelAfzender } from '@/lib/lifeos/whatsapp/toegang'
 import { handtekeningGeldig } from '@/lib/lifeos/whatsapp/handtekening'
@@ -102,6 +103,11 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     )
     return ack()
   }
+
+  // 2b½. Een herhaling van een bericht dat we al verwerkten (de dienst deed een
+  //      retry omdat wij te traag antwoordden) slaan we over. Vóór de limiet, zodat
+  //      een retry geen ruimte opeet.
+  if (!berichtDedup.eerste(whatsAppBerichtId(payload))) return ack()
 
   // 2c. Snelheidslimiet vóór élke dure stap (Groq + Claude). Ná de allowlist, zodat
   //     de teller in normaal bedrijf alleen jouw eigen nummer bevat.

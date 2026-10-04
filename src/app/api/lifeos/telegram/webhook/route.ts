@@ -24,6 +24,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { geheimGelijk } from '@/lib/lifeos/auth/geheim'
 
+import { berichtDedup, telegramBerichtId } from '@/lib/lifeos/capture/dedup'
 import { leesTelegramBericht, spraakTeLang, MAX_SPRAAK_SECONDEN, type TelegramBericht } from '@/lib/lifeos/telegram/update'
 import { bepaalActie, antwoordTekst } from '@/lib/lifeos/telegram/antwoord'
 import { bepaalIntentie, type IntentieModel } from '@/lib/lifeos/intentie/intentie'
@@ -120,6 +121,11 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   // ongelimiteerd wilt kunnen uitlokken. De limiet staat ná de allowlist, zodat
   // de teller in normaal bedrijf alleen jouw eigen chat-id's kan bevatten.
   const nu = Date.now()
+  // 2b½. Een herhaling van een bericht dat we al verwerkten (de dienst deed een
+  //      retry omdat wij te traag antwoordden) slaan we over. Vóór de limiet, zodat
+  //      een retry geen ruimte opeet.
+  if (!berichtDedup.eerste(telegramBerichtId(update), nu)) return ack()
+
   const sleutel = String(bericht.chatId)
   const ruimte = webhookLimiet.toets(sleutel, nu)
   if (ruimte.soort === 'te_snel') {

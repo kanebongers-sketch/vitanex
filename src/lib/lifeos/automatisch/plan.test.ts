@@ -20,7 +20,7 @@ describe('planAutomatischeActies', () => {
     const acties = planAutomatischeActies(
       {
         statusHints: [{ id: 'p1', naam: 'Nicolle', status: 'moet_benaderen', sessies: 8, statusLabel: 'Moet benaderen' }],
-        typfouten: [{ titel: 'Kevnin', bedoeld: 'Kevin', op: '2026-09-22T17:30:00Z', eventIds: ['e1', 'e2'], nieuweTitel: 'Kevin' }],
+        typfouten: [{ titel: 'Kevnin PT', bedoeld: 'Kevin', op: '2026-09-22T17:30:00Z', eventIds: ['e1', 'e2'], nieuweTitel: 'Kevin PT' }],
         onbekend: [
           { titel: 'Darren PT', aantal: 2, laatsteOp: '2026-09-25T09:30:00Z', naam: 'Darren' },
           { titel: 'Vergadering Fit Factory PT', aantal: 1, laatsteOp: '2026-08-20T08:00:00Z', naam: 'Vergadering Fit Factory' },
@@ -42,12 +42,39 @@ describe('planAutomatischeActies', () => {
     const acties = planAutomatischeActies(
       {
         statusHints: [{ id: 'p1', naam: 'Nicolle', status: 'moet_benaderen', sessies: 8, statusLabel: 'Moet benaderen' }],
-        typfouten: [{ titel: 'Kevnin', bedoeld: 'Kevin', op: '2026-09-22T17:30:00Z', eventIds: ['e1', 'e3'], nieuweTitel: 'Kevin' }],
+        typfouten: [{ titel: 'Kevnin PT', bedoeld: 'Kevin', op: '2026-09-22T17:30:00Z', eventIds: ['e1', 'e3'], nieuweTitel: 'Kevin PT' }],
         onbekend: [{ titel: 'Darren PT', aantal: 2, laatsteOp: '2026-09-25T09:30:00Z', naam: 'Darren' }],
       },
       gedaan,
     )
     expect(acties.map((a) => a.sleutel)).toEqual(['e3'])
+  })
+
+  test('hernoemt nooit een afspraak zonder PT (privé "Anna" ≠ klant "Anne")', () => {
+    const acties = planAutomatischeActies(
+      { ...LEEG, typfouten: [{ titel: 'Anna', bedoeld: 'Anne', op: '2026-09-22T17:30:00Z', eventIds: ['e1'], nieuweTitel: 'Anne' }] },
+      new Set(),
+    )
+    expect(acties).toEqual([])
+  })
+
+  test('hernoemt geen vergadering, ook niet met PT erin', () => {
+    const acties = planAutomatischeActies(
+      {
+        ...LEEG,
+        typfouten: [{ titel: 'Overleg Kevnin PT', bedoeld: 'Kevin', op: '2026-09-22T17:30:00Z', eventIds: ['e1'], nieuweTitel: 'Overleg Kevin PT' }],
+      },
+      new Set(),
+    )
+    expect(acties).toEqual([])
+  })
+
+  test('één losse PT-afspraak maakt nog geen nieuwe klant', () => {
+    const acties = planAutomatischeActies(
+      { ...LEEG, onbekend: [{ titel: 'Darren PT', aantal: 1, laatsteOp: '2026-09-25T09:30:00Z', naam: 'Darren' }] },
+      new Set(),
+    )
+    expect(acties).toEqual([])
   })
 
   test('niets te doen → leeg', () => {

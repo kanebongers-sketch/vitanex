@@ -3,16 +3,16 @@
 //   → { persoon: Persoon }.  400 ongeldig · 404 niet gevonden · 409 conflict.
 // DELETE /api/lifeos/crm/personen/[id] — weg ermee (historie cascadet) → 204.
 //
-// `groep` moet mee in de PATCH-body: een nieuwe status valideren we tegen de
-// JUISTE groep (een klant-status op een teamlid is een fout, geen "kan gebeuren").
-// De groep zelf wijzigt niet — dat is een verhuizing, geen wijziging (zie crm.ts).
+// Een nieuwe status valideren we tegen de JUISTE groep: die uit de database, niet
+// die de client meestuurt (een klant-status op een teamlid is een fout, geen "kan
+// gebeuren"). De groep zelf wijzigt niet — dat is een verhuizing (zie crm.ts).
 //
 // Auth: de founder-gate uit `@/lib/lifeos/admin` (`toegang.admin`/`toegang.userId`).
 
 import { NextResponse, type NextRequest } from 'next/server'
 import { vereisLifeosToegang } from '@/lib/lifeos/admin'
 import { isGroep, leesPersoonWijziging } from '@/lib/lifeos/crm/crm'
-import { verwijderPersoon, wijzigPersoon } from '@/lib/lifeos/crm/opslag'
+import { haalGroep, verwijderPersoon, wijzigPersoon } from '@/lib/lifeos/crm/opslag'
 import type { Reden } from '@/lib/lifeos/crm/fout'
 
 export const runtime = 'nodejs'
@@ -43,10 +43,12 @@ export async function PATCH(req: NextRequest, ctx: Context) {
   const { id } = await ctx.params
 
   const body: unknown = await req.json().catch(() => null)
-  // De groep bepaalt tegen welke statusset we valideren; hij hoort in de body.
-  const groep = isObject(body) ? body.groep : undefined
+  // De groep bepaalt tegen welke statusset we valideren: lees hem uit de database.
+  const opgeslagen = await haalGroep(toegang.admin, toegang.userId, id)
+  if (!opgeslagen.ok) return foutAntwoord(opgeslagen.reden)
+  const groep = opgeslagen.waarde
   if (!isGroep(groep)) {
-    return NextResponse.json({ fout: 'Geef de groep mee zodat de status klopt.' }, { status: 400 })
+    return NextResponse.json({ fout: 'Deze persoon heeft een onbekende groep.' }, { status: 502 })
   }
 
   const wijziging = leesPersoonWijziging(body, groep)
@@ -69,8 +71,4 @@ export async function DELETE(req: NextRequest, ctx: Context) {
   if (!uitkomst.ok) return foutAntwoord(uitkomst.reden)
 
   return new NextResponse(null, { status: 204 })
-}
-
-function isObject(v: unknown): v is Record<string, unknown> {
-  return typeof v === 'object' && v !== null && !Array.isArray(v)
 }

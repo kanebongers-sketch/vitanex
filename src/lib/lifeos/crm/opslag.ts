@@ -29,6 +29,7 @@ import {
 } from './crm'
 import { vertaalFout, type Reden, type Uitkomst } from './fout'
 import { logGebeurtenis, type Gebeurtenis } from './historie'
+import { woordTokens } from './agenda-match'
 
 export const PERSOON_KOLOMMEN =
   'id, naam, groep, status, sortering, follow_up_datum, telefoon, email, bijzonderheden, laatste_contact_op, sessies_per_week, locatie, vakantie_tot, abonnement, duo, aangemaakt_op'
@@ -202,6 +203,28 @@ function veldenVanWijziging(wijziging: PersoonWijziging): Record<string, unknown
 }
 
 /** De huidige status van een persoon lezen — voor de `van_status` in het log. */
+/**
+ * De groep zoals die in de database staat. De PATCH valideert de status hiertegen,
+ * niet tegen wat de client meestuurt: anders kon een teamlid een klant-status krijgen
+ * en uit alle kolommen van het bord vallen.
+ */
+export async function haalGroep(
+  admin: SupabaseClient,
+  userId: string,
+  id: string,
+): Promise<Uitkomst<unknown>> {
+  const { data, error } = await admin
+    .from('crm_personen')
+    .select('groep')
+    .eq('id', id)
+    .eq('user_id', userId)
+    .maybeSingle()
+
+  if (error) return { ok: false, reden: vertaalFout(error) }
+  if (!data) return { ok: false, reden: 'niet_gevonden' }
+  return { ok: true, waarde: isObject(data) ? data.groep : null }
+}
+
 async function huidigeStatus(
   admin: SupabaseClient,
   userId: string,
@@ -282,12 +305,37 @@ export async function verwijderPersoon(
     .delete()
     .eq('id', id)
     .eq('user_id', userId)
-    .select('id')
+    .select('id, naam')
     .maybeSingle()
 
   if (error) return { ok: false, reden: vertaalFout(error) }
   if (!data) return { ok: false, reden: 'niet_gevonden' }
+
+  const naam = isObject(data) ? tekst(data.naam) : null
+  if (naam) await onthoudVerwijderd(admin, userId, naam)
   return { ok: true, waarde: null }
+}
+
+/**
+ * Onthoud in het logboek van de automatische acties dat deze naam weg moet
+ * blijven. Zonder dit zag de cron de PT-sessies van de afgelopen 8 weken, vond
+ * de naam "onbekend" en voegde hem een half uur later opnieuw toe. De sleutel is
+ * dezelfde die `planAutomatischeActies` gebruikt, dus het logboek blokkeert hem.
+ * Best-effort: mislukt dit, dan is de persoon wél verwijderd (en dat melden we).
+ */
+async function onthoudVerwijderd(admin: SupabaseClient, userId: string, naam: string): Promise<void> {
+  const sleutel = woordTokens(naam).join(' ')
+  if (!sleutel) return
+  const { error } = await admin.from('automatische_acties').upsert(
+    {
+      user_id: userId,
+      soort: 'persoon_toegevoegd',
+      sleutel,
+      omschrijving: `${naam} verwijderd — wordt niet automatisch opnieuw toegevoegd`,
+    },
+    { onConflict: 'user_id,soort,sleutel', ignoreDuplicates: true },
+  )
+  if (error) console.error('[crm] verwijderde naam niet vastgelegd', error)
 }
 
 // ─── Systeemgrens: rijen uit de database ────────────────────────────────────
