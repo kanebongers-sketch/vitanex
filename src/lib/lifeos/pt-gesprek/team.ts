@@ -10,6 +10,7 @@
 // PUUR: geen fetch, geen Date.now() — `nu` komt erin.
 
 import { matchtCoachgesprek } from './pt-gesprek'
+import type { OpenPunt } from '@/lib/lifeos/pt-coaching/aandachtspunten'
 
 export interface AgendaBlok {
   titel: string | null
@@ -28,12 +29,22 @@ export interface VorigeEvaluatie {
   aandachtspunt: string | null
 }
 
+/** Eén punt in het scoreverloop van een PT'er (oudste eerst in de lijst). */
+export interface VerloopPunt {
+  op: string
+  scores: { algemeen: number; energie: number; voortgang: number }
+}
+
 export interface TeamExtra {
   laatsteGesprekOp: string | null
   nuBezigOp: string | null
   teVerslaan: boolean
   vorige: VorigeEvaluatie | null
   voorstelVolgende: string | null
+  /** Open aandachtspunten uit eerdere gesprekken (leeg als er geen zijn). */
+  openPunten?: OpenPunt[]
+  /** De scores van de laatste gesprekken, oudste eerst. */
+  verloop?: VerloopPunt[]
 }
 
 const MIN = 60_000

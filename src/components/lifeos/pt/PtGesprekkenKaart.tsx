@@ -16,6 +16,7 @@ import {
 import { CoachingAfronden } from './CoachingAfronden'
 import { CoachPopup } from './CoachPopup'
 import { VerslagDownload } from './VerslagDownload'
+import { ScoreVerloop } from './ScoreVerloop'
 
 // Container: het 2-wekelijkse PT-coachgesprek. Per PT-teamlid of er binnen 14 dagen
 // een "Coachgesprek PT - Kane (Naam)" in je agenda staat, plus twee acties:
@@ -201,11 +202,16 @@ function PtRij({ pt, onVernieuw }: { pt: PtStatus; onVernieuw: () => Promise<voi
               </>
             )}
           </p>
-          {pt.extra?.vorige?.aandachtspunt ? (
-            <p style={{ margin: '3px 0 0', fontSize: 12, color: 'var(--text-3)', lineHeight: 1.4 }}>
-              <span style={{ color: 'var(--brand)', fontWeight: 600 }}>Aandachtspunt:</span> {pt.extra.vorige.aandachtspunt}
+          {(pt.extra?.openPunten ?? []).map((p) => (
+            <p key={p.id} style={{ margin: '3px 0 0', fontSize: 12, color: 'var(--text-3)', lineHeight: 1.4 }}>
+              <span style={{ color: p.laatsteOordeel === 'erger' ? 'var(--status-danger)' : 'var(--brand)', fontWeight: 600 }}>
+                {p.laatsteOordeel === 'erger' ? 'Erger:' : 'Open punt:'}
+              </span>{' '}
+              {p.tekst}
+              {p.keerOpen > 0 ? <span style={{ color: 'var(--text-4)' }}> · {p.keerOpen}× open</span> : null}
             </p>
-          ) : null}
+          ))}
+          <ScoreVerloop verloop={pt.extra?.verloop ?? []} />
           {pt.extra?.vorige ? (
             <p style={{ margin: '3px 0 0', fontSize: 12, color: 'var(--text-3)' }}>
               Laatste verslag · <VerslagDownload id={pt.extra.vorige.id} />

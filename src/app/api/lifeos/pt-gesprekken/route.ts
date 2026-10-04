@@ -16,12 +16,14 @@ import { geldigToken, leesGekozenKalender } from '@/lib/lifeos/agenda/koppeling'
 import { haalEvents } from '@/lib/lifeos/agenda/google'
 import { bepaalStatus, type PtEvent, type PtGesprekkenAntwoord } from '@/lib/lifeos/pt-gesprek/pt-gesprek'
 import { teamExtra, type AgendaBlok } from '@/lib/lifeos/pt-gesprek/team'
-import { haalLaatsteEvaluaties } from '@/lib/lifeos/pt-coaching/opslag'
+import { haalLaatsteEvaluaties, haalOpenPunten, haalRecenteEvaluaties } from '@/lib/lifeos/pt-coaching/opslag'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 const VENSTER_DAGEN = 14
+/** Zoveel gesprekken toont het scoreverloop per PT'er. */
+const VERLOOP_GESPREKKEN = 8
 const TERUG_DAGEN = 21
 
 const CACHE_HEADERS = {
@@ -75,14 +77,20 @@ export async function GET(req: NextRequest) {
     .map((e) => ({ titel: e.titel, startOp: e.startOp.toISOString() }))
   const team = personen.waarde.filter((p) => p.status !== 'inactief')
   const agenda: AgendaBlok[] = events.events.map((e) => ({ titel: e.titel, startOp: e.startOp, eindOp: e.eindOp, heleDag: e.heleDag }))
-  const laatste = await haalLaatsteEvaluaties(toegang.admin, toegang.userId, team.map((p) => p.id))
+  const ids = team.map((p) => p.id)
+  const [laatste, recent, punten] = await Promise.all([
+    haalLaatsteEvaluaties(toegang.admin, toegang.userId, ids),
+    haalRecenteEvaluaties(toegang.admin, toegang.userId, ids, VERLOOP_GESPREKKEN),
+    haalOpenPunten(toegang.admin, toegang.userId, ids),
+  ])
   const pts = bepaalStatus(
     team.map((p) => ({ id: p.id, naam: p.naam, email: p.email })),
     ptEvents,
   ).map((s) => {
     const ev = laatste.get(s.id)
     const vorige = ev ? { id: ev.id, op: ev.aangemaaktOp, scores: ev.scores, notitie: ev.notitie, aandachtspunt: ev.aandachtspunt } : null
-    return { ...s, extra: teamExtra(s.naam, agenda, vorige, nu) }
+    const verloop = [...(recent.get(s.id) ?? [])].reverse().map((e) => ({ op: e.aangemaaktOp, scores: e.scores }))
+    return { ...s, extra: { ...teamExtra(s.naam, agenda, vorige, nu), openPunten: punten.get(s.id) ?? [], verloop } }
   })
 
   const antwoord: PtGesprekkenAntwoord = { gekoppeld: true, pts }

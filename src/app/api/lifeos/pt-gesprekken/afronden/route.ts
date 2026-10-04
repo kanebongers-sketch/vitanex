@@ -5,7 +5,9 @@
 //   2. een samenvatting in de CRM-tijdlijn van de persoon loggen;
 //   3. de VOLGENDE afspraak inplannen (datum/tijd die je koos — flexibel) en de
 //      klant uitnodigen via z'n mailadres;
-//   4. het verslag als pdf naar je eigen inbox mailen.
+//   4. de open aandachtspunten van vorige keer beoordelen, en een nieuw
+//      aandachtspunt als open punt vastleggen;
+//   5. het verslag als pdf naar je eigen inbox mailen.
 //
 // De evaluatie is leidend: lukt stap 3 niet, dan is de coaching tóch vastgelegd
 // en meldt het antwoord `afspraakFout` zodat je de volgende handmatig kunt zetten.
@@ -21,7 +23,8 @@ import { leesGekozenKalender } from '@/lib/lifeos/agenda/koppeling'
 import { maakAgendaEvent, schrijfFoutHttp } from '@/lib/lifeos/agenda/schrijven'
 import { coachgesprekTitel } from '@/lib/lifeos/pt-gesprek/pt-gesprek'
 import { evaluatieSamenvatting, leesEvaluatie, type AfrondResultaat } from '@/lib/lifeos/pt-coaching/pt-coaching'
-import { slaEvaluatieOp } from '@/lib/lifeos/pt-coaching/opslag'
+import { nieuwAandachtspunt, slaEvaluatieOp, verwerkOordelen } from '@/lib/lifeos/pt-coaching/opslag'
+import { leesOordelen } from '@/lib/lifeos/pt-coaching/aandachtspunten'
 import { mailVerslag } from '@/lib/lifeos/pt-coaching/verslag-mail'
 
 export const runtime = 'nodejs'
@@ -65,6 +68,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ fout: 'Kon de evaluatie niet opslaan.' }, { status: 502 })
   }
 
+  // 1b. Aandachtspunten: eerst de oude beoordelen, dan het nieuwe vastleggen (zodat
+  //     het nieuwe niet meteen "een gesprek open" telt). Best-effort.
+  const opvolging = await verwerkOordelen(
+    toegang.admin, toegang.userId, persoonId, leesOordelen((body as { oordelen?: unknown }).oordelen),
+  ).catch(() => [])
+  if (evaluatie.waarde.aandachtspunt) {
+    await nieuwAandachtspunt(toegang.admin, toegang.userId, persoonId, evaluatie.waarde.aandachtspunt, bewaard.waarde.id).catch(() => undefined)
+  }
+
   // 2. Een samenvatting in de CRM-tijdlijn. Best-effort: de evaluatie staat al
   //    veilig in pt_coaching, dus een mislukte logregel mag het niet omvallen.
   await logGebeurtenis(toegang.admin, toegang.userId, persoonId, {
@@ -104,7 +116,7 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // 4. Het verslag als pdf mailen. Best-effort, net als de afspraak.
+  // 5. Het verslag als pdf mailen. Best-effort, net als de afspraak.
   const mailFout = await mailVerslag({
     naam: persoon.naam,
     op: new Date(bewaard.waarde.aangemaaktOp),
@@ -112,6 +124,7 @@ export async function POST(req: NextRequest) {
     notitie: bewaard.waarde.notitie,
     aandachtspunt: bewaard.waarde.aandachtspunt,
     volgende,
+    opvolging,
   })
 
   const resultaat: AfrondResultaat = { afspraakFout, mailFout, evaluatieId: bewaard.waarde.id }

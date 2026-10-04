@@ -8,6 +8,8 @@ import { coachgesprekTitel, type PtStatus } from '@/lib/lifeos/pt-gesprek/pt-ges
 import type { VorigeEvaluatie } from '@/lib/lifeos/pt-gesprek/team'
 import { leesAfrondResultaat } from '@/lib/lifeos/pt-coaching/pt-coaching'
 import { VerslagDownload } from './VerslagDownload'
+import { OpenPuntenKeuze } from './OpenPuntenKeuze'
+import type { Oordeel } from '@/lib/lifeos/pt-coaching/aandachtspunten'
 
 // Het formulier dat je invult wanneer je een coaching hebt gehad: drie korte
 // scores + een notitie, en meteen de volgende afspraak. Eén "Afronden" slaat de
@@ -40,6 +42,7 @@ export function CoachingAfronden({ pt, onKlaar, onAnnuleer }: Props) {
   const [datum, setDatum] = useState(() => (voorstel ? dagSleutel(voorstel) : standaardDatum()))
   const [tijd, setTijd] = useState(() => (voorstel ? tijdSleutel(voorstel) : '10:00'))
   const isVoorstel = voorstel !== null && datum === dagSleutel(voorstel) && tijd === tijdSleutel(voorstel)
+  const [oordelen, setOordelen] = useState<Record<string, Oordeel>>({})
   const [bezig, setBezig] = useState(false)
   const [fout, setFout] = useState<string | null>(null)
 
@@ -66,6 +69,7 @@ export function CoachingAfronden({ pt, onKlaar, onAnnuleer }: Props) {
           aandachtspunt: aandachtspunt.trim() || undefined,
         },
         volgendeStartOp,
+        oordelen: Object.entries(oordelen).map(([id, oordeel]) => ({ id, oordeel })),
       }),
     })
     setBezig(false)
@@ -84,6 +88,15 @@ export function CoachingAfronden({ pt, onKlaar, onAnnuleer }: Props) {
   return (
     <div style={{ display: 'grid', gap: 12, paddingTop: 10 }}>
       {pt.extra?.vorige ? <VorigeKeer vorige={pt.extra.vorige} /> : null}
+      <OpenPuntenKeuze
+        punten={pt.extra?.openPunten ?? []}
+        oordelen={oordelen}
+        onKies={(id, oordeel) =>
+          setOordelen((huidig) =>
+            oordeel ? { ...huidig, [id]: oordeel } : Object.fromEntries(Object.entries(huidig).filter(([k]) => k !== id)),
+          )
+        }
+      />
       {SCORE_LABELS.map(({ key, label }) => (
         <ScoreKiezer
           key={key}

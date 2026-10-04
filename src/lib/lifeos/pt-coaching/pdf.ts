@@ -26,7 +26,11 @@ export interface VerslagPdfInvoer {
   aandachtspunt: string | null
   /** Het volgende gesprek, als dat is ingepland. */
   volgende?: Date | null
+  /** Wat er met de open aandachtspunten van vorige keer gebeurde. */
+  opvolging?: readonly { tekst: string; oordeel: 'opgelost' | 'loopt' | 'erger' | null }[]
 }
+
+const OPVOLG_LABEL = { opgelost: 'Opgelost', loopt: 'Loopt nog', erger: 'Erger geworden' } as const
 
 const DATUM = new Intl.DateTimeFormat('nl-NL', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Europe/Amsterdam' })
 const MOMENT = new Intl.DateTimeFormat('nl-NL', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone: 'Europe/Amsterdam' })
@@ -91,6 +95,9 @@ export async function maakVerslagPdf(v: VerslagPdfInvoer): Promise<Buffer> {
       y += hoogte + 28 + 6
     }
 
+    if (v.opvolging && v.opvolging.length > 0) {
+      blok('Opvolging vorige aandachtspunten', v.opvolging.map((o) => `• ${o.tekst} — ${o.oordeel ? OPVOLG_LABEL[o.oordeel] : 'nog open'}`).join('\n'))
+    }
     blok('Wat besproken', v.notitie ?? 'Geen verslag ingevuld.')
     blok('Aandachtspunt', v.aandachtspunt ?? 'Geen aandachtspunt.')
     if (v.volgende) blok('Volgend gesprek', MOMENT.format(v.volgende))

@@ -5,6 +5,7 @@
 
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { EvaluatieInvoer, EvaluatieJson } from './pt-coaching'
+import { naOordeel, type OpenPunt, type Oordeel, type PuntOordeel } from './aandachtspunten'
 
 export type OpslagUitkomst<T> = { ok: true; waarde: T } | { ok: false; reden: 'db' }
 
@@ -132,4 +133,72 @@ export async function haalEvaluatie(
   if (!data) return { ok: true, waarde: null }
   const r = data as Rij & { persoon_id: string }
   return { ok: true, waarde: { ...vanRij(r), persoonId: r.persoon_id } }
+}
+
+// ─── Aandachtspunten (migratie 340) ─────────────────────────────────────────
+
+interface PuntRij {
+  id: string
+  persoon_id: string
+  tekst: string
+  aangemaakt_op: string
+  keer_open: number
+  laatste_oordeel: Oordeel | null
+}
+
+function puntVanRij(r: PuntRij): OpenPunt {
+  return { id: r.id, tekst: r.tekst, sinds: r.aangemaakt_op, keerOpen: r.keer_open, laatsteOordeel: r.laatste_oordeel }
+}
+
+/** De open aandachtspunten per persoon, oudste eerst. Fout → leeg (dan geen opvolging, geen crash). */
+export async function haalOpenPunten(admin: SupabaseClient, userId: string, persoonIds: readonly string[]): Promise<Map<string, OpenPunt[]>> {
+  const uit = new Map<string, OpenPunt[]>()
+  if (persoonIds.length === 0) return uit
+  const { data, error } = await admin
+    .from('pt_aandachtspunten')
+    .select('id, persoon_id, tekst, aangemaakt_op, keer_open, laatste_oordeel')
+    .eq('user_id', userId)
+    .eq('status', 'open')
+    .in('persoon_id', persoonIds)
+    .order('aangemaakt_op')
+  if (error || !Array.isArray(data)) return uit
+  for (const r of data as PuntRij[]) uit.set(r.persoon_id, [...(uit.get(r.persoon_id) ?? []), puntVanRij(r)])
+  return uit
+}
+
+/**
+ * Na een afgerond gesprek: elk open punt van deze persoon krijgt zijn oordeel
+ * (geen oordeel = blijft open, telt een gesprek erbij). Geeft terug wat er met
+ * welk punt gebeurde, voor het verslag. Best-effort per punt.
+ */
+export async function verwerkOordelen(
+  admin: SupabaseClient,
+  userId: string,
+  persoonId: string,
+  oordelen: readonly PuntOordeel[],
+): Promise<{ tekst: string; oordeel: Oordeel | null }[]> {
+  const open = (await haalOpenPunten(admin, userId, [persoonId])).get(persoonId) ?? []
+  const nu = new Date().toISOString()
+  const verslag: { tekst: string; oordeel: Oordeel | null }[] = []
+  for (const punt of open) {
+    const oordeel = oordelen.find((o) => o.id === punt.id)?.oordeel ?? null
+    const na = naOordeel(punt, oordeel)
+    await admin
+      .from('pt_aandachtspunten')
+      .update({
+        status: na.opgelost ? 'opgelost' : 'open',
+        keer_open: na.keerOpen,
+        laatste_oordeel: na.laatsteOordeel,
+        bijgewerkt_op: nu,
+        ...(na.opgelost ? { opgelost_op: nu } : {}),
+      })
+      .eq('user_id', userId)
+      .eq('id', punt.id)
+    verslag.push({ tekst: punt.tekst, oordeel })
+  }
+  return verslag
+}
+
+export async function nieuwAandachtspunt(admin: SupabaseClient, userId: string, persoonId: string, tekst: string, bronId: string): Promise<void> {
+  await admin.from('pt_aandachtspunten').insert({ user_id: userId, persoon_id: persoonId, tekst, bron_coaching_id: bronId })
 }

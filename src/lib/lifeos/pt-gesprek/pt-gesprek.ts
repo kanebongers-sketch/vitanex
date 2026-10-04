@@ -11,7 +11,8 @@
 
 import { bevatReeks, woordTokens } from '@/lib/lifeos/crm/agenda-match'
 
-import type { TeamExtra, VorigeEvaluatie } from './team'
+import type { TeamExtra, VerloopPunt, VorigeEvaluatie } from './team'
+import { leesOpenPunten } from '@/lib/lifeos/pt-coaching/aandachtspunten'
 
 /** Het vaste voorvoegsel; de klantnaam komt er tussen haakjes achter. */
 export const COACHGESPREK_PREFIX = 'Coachgesprek PT - Kane'
@@ -166,6 +167,17 @@ function leesVorige(ruw: unknown): VorigeEvaluatie | null {
   return { id, op, scores: { algemeen, energie, voortgang }, notitie: tekstOfNull(ruw.notitie), aandachtspunt: tekstOfNull(ruw.aandachtspunt) }
 }
 
+function leesVerloop(ruw: unknown): VerloopPunt[] {
+  if (!Array.isArray(ruw)) return []
+  return ruw.flatMap((v): VerloopPunt[] => {
+    if (!isObject(v) || !isObject(v.scores)) return []
+    const op = tekstOfNull(v.op)
+    const { algemeen, energie, voortgang } = v.scores
+    if (op === null || typeof algemeen !== 'number' || typeof energie !== 'number' || typeof voortgang !== 'number') return []
+    return [{ op, scores: { algemeen, energie, voortgang } }]
+  })
+}
+
 /** Tolerant: een onleesbaar veld wordt leeg, de rest van het teamlid blijft staan. */
 function leesExtra(ruw: Record<string, unknown>): TeamExtra {
   return {
@@ -174,6 +186,8 @@ function leesExtra(ruw: Record<string, unknown>): TeamExtra {
     teVerslaan: ruw.teVerslaan === true,
     vorige: leesVorige(ruw.vorige),
     voorstelVolgende: tekstOfNull(ruw.voorstelVolgende),
+    openPunten: leesOpenPunten(ruw.openPunten),
+    verloop: leesVerloop(ruw.verloop),
   }
 }
 

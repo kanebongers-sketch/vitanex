@@ -37,7 +37,8 @@ import { haalPtSignalen } from '@/lib/lifeos/pt-klant/afhaak-ophalen'
 import { haalRecenteActies } from '@/lib/lifeos/automatisch/uitvoeren'
 import { haalRecenteBlokkenEnMail } from '@/lib/lifeos/blokken/recent'
 import { matchtCoachgesprek } from '@/lib/lifeos/pt-gesprek/pt-gesprek'
-import { haalLaatsteEvaluaties, haalRecenteEvaluaties } from '@/lib/lifeos/pt-coaching/opslag'
+import { haalLaatsteEvaluaties, haalOpenPunten, haalRecenteEvaluaties } from '@/lib/lifeos/pt-coaching/opslag'
+import { puntSignalen } from '@/lib/lifeos/pt-coaching/aandachtspunten'
 import { coachSignalen as coachSignalen_ } from '@/lib/lifeos/pt-coaching/signaal'
 import { bewaakAgenda, type Melding } from '@/lib/lifeos/agenda/bewaker'
 import { haalEventsUitCache } from '@/lib/lifeos/agenda/opslag'
@@ -370,7 +371,12 @@ export async function GET(req: NextRequest): Promise<Response> {
     ? await haalLaatsteEvaluaties(admin, userId, gesprekkenVandaag.map((g) => g.persoon.id)).catch(() => new Map())
     : new Map()
   // Twee coachgesprekken op rij laag op hetzelfde vlak → signaal.
-  const coachSignalen = coachSignalen_(team, await haalRecenteEvaluaties(admin, userId, team.map((p) => p.id)).catch(() => new Map()))
+  // Plus: aandachtspunten die al 2 gesprekken openstaan of erger werden.
+  const [recenteEvaluaties, openPunten] = await Promise.all([
+    haalRecenteEvaluaties(admin, userId, team.map((p) => p.id)).catch(() => new Map()),
+    haalOpenPunten(admin, userId, team.map((p) => p.id)).catch(() => new Map()),
+  ])
+  const coachSignalen = [...coachSignalen_(team, recenteEvaluaties), ...puntSignalen(team, openPunten)]
   const coachVandaag = gesprekkenVandaag
     .sort((a, b) => a.startOp.getTime() - b.startOp.getTime())
     .map((g) => {
