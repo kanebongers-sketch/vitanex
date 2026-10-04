@@ -26,6 +26,7 @@ import { voerAutomatischeActiesUit } from '@/lib/lifeos/automatisch/uitvoeren'
 import { kleurAfspraken } from '@/lib/lifeos/agenda/kleuren'
 import { verwerkMail } from '@/lib/lifeos/mail-taken/uitvoeren'
 import { planAgendaBlokken } from '@/lib/lifeos/blokken/uitvoeren'
+import { haalOverzicht } from '@/lib/lifeos/beleggen/dienst'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -124,8 +125,14 @@ export async function GET(req: NextRequest): Promise<Response> {
       } catch (oorzaak) {
         console.error('[lifeos/cron-agenda-sync] blokken plannen wierp een fout', oorzaak)
       }
+      // Beleggingen: koersen verversen en de dagwaarde vastleggen, ook als je het
+      // dashboard niet opent — anders krijgt het verloop gaten. Best-effort.
+      const beleggingen = await haalOverzicht(admin, userId)
+        .then((o) => (o ? o.totaal.waardeEur : null))
+        .catch(() => null)
       return klaar({
         gesynct: uitkomst.gesynct,
+        beleggingen,
         mail,
         blokken,
         gekleurd,

@@ -7,6 +7,7 @@ import { InboxKaart } from '@/components/lifeos/inbox/InboxKaart'
 import { PtGesprekkenKaart } from '@/components/lifeos/pt/PtGesprekkenKaart'
 import { PtKlantenKaart } from '@/components/lifeos/pt/PtKlantenKaart'
 import { RefreshProvider } from '@/components/lifeos/os/RefreshContext'
+import { BeleggenKaart } from '@/components/lifeos/beleggen/BeleggenKaart'
 
 // ─── De cockpit — één dag-scherm ────────────────────────────────────────────
 // Dit dashboard gaat over VANDAAG en niets anders. De zware overzichten (het
@@ -30,6 +31,7 @@ import { RefreshProvider } from '@/components/lifeos/os/RefreshContext'
 //   2. Mijn dag — je taken en je agenda: wat moet er gebeuren en wanneer.
 //   3. Deze week — wie je nog moet inplannen (PT-klanten) en de PT-gesprekken.
 //   4. Inbox    — wat er écht een reactie vraagt, als rustige volle-breedte-lijst.
+//   5. Beleggingen — je portefeuille: waarde, vandaag, winst/verlies, verloop.
 
 export function Cockpit() {
   return (
@@ -85,6 +87,11 @@ export function Cockpit() {
         {/* Band — de inbox als rustige volle-breedte-lijst onder het gereedschap. */}
         <div className="os-cockpit__band">
           <InboxKaart />
+        </div>
+
+        {/* Band — je beleggingen, onderaan: geen dagwerk, wel in één blik te zien. */}
+        <div className="os-cockpit__band">
+          <BeleggenKaart />
         </div>
       </div>
     </RefreshProvider>

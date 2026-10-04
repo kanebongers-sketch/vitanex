@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { FounderPoort } from '@/components/lifeos/auth/FounderPoort'
 import { FinanceKaart } from '@/components/lifeos/finance/FinanceKaart'
+import { BeleggenKaart } from '@/components/lifeos/beleggen/BeleggenKaart'
 
 // Geld: Kane's financieel overzicht (facturen open/te laat, omzet). Founder-only,
 // net als de rest van LifeOS; de echte gate zit server-side op elke /api/lifeos-
@@ -23,10 +24,11 @@ export default function GeldPagina() {
             </Link>
             <h1 className="os-zone__kop">Geld</h1>
             <p className="os-zone__intro">
-              Je facturen en omzet in één oogopslag: wat er open staat, wat te lang wacht, en wat er binnenkwam.
+              Je facturen, omzet en beleggingen in één oogopslag.
             </p>
           </header>
           <FinanceKaart />
+          <BeleggenKaart />
         </main>
       </div>
     </FounderPoort>
