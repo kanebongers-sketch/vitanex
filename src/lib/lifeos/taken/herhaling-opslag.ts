@@ -85,7 +85,8 @@ export async function maakVolgendeKeer(
 
   if (!nieuw.ok) {
     console.error('[taken/herhaling] volgende keer aanmaken mislukt', nieuw.reden)
-    await admin.from(TABEL).insert({ taak_id: taak.id, user_id: userId, regel })
+    const { error: terug } = await admin.from(TABEL).insert({ taak_id: taak.id, user_id: userId, regel })
+    if (terug) console.error('[taken/herhaling] regel terugzetten mislukt; reeks gestopt', terug)
     return null
   }
 

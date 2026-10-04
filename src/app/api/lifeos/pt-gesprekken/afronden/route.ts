@@ -83,7 +83,12 @@ export async function POST(req: NextRequest) {
 
   // Vanaf hier één keer per sleutel: wie tegelijk met dezelfde sleutel binnenkomt,
   // wacht op dit resultaat (zie AL_AFGEROND).
-  const werk = rondAf(toegang, body, persoonId, volgendeStartOp, evaluatie.waarde)
+  // Een onverwachte worp wordt een nette 502 (en geeft de sleutel vrij), zodat de
+  // map nooit een afgewezen belofte vasthoudt waar een retry tien minuten op stukloopt.
+  const werk = rondAf(toegang, body, persoonId, volgendeStartOp, evaluatie.waarde).catch((fout: unknown) => {
+    console.error('[pt-gesprekken/afronden] afronden mislukt', fout)
+    return NextResponse.json({ fout: 'Afronden mislukt. Kijk of de evaluatie er al staat voor je opnieuw probeert.' }, { status: 502 })
+  })
   if (sleutel) {
     AL_AFGEROND.set(sleutel, {
       op: Date.now(),

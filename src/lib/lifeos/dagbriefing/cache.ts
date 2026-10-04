@@ -56,6 +56,9 @@ export function magHergebruiken<T>(
 /** Eén regel per gebruiker. Single-tenant in de praktijk, maar per sleutel is net zo goedkoop. */
 const geheugen = new Map<string, CacheRegel<unknown>>()
 
+/** Lopende aanmaak per gebruiker: twee tabs tegelijk = één modelcall, niet twee. */
+const onderweg = new Map<string, Promise<unknown>>()
+
 /**
  * Geeft de opgeslagen waarde terug als die nog goed is, anders `maak()` en onthoudt
  * het resultaat. `maak` wordt hooguit één keer aangeroepen.
@@ -76,12 +79,22 @@ export async function metDagCache<T>(
     return { waarde: regel.waarde, uitCache: true }
   }
 
-  const waarde = await maak()
-  geheugen.set(gebruiker, { dag, sleutel, waarde, gemaaktOp: nu })
-  return { waarde, uitCache: false }
+  const lopend = onderweg.get(gebruiker) as Promise<T> | undefined
+  if (lopend && !forceer) return { waarde: await lopend, uitCache: true }
+
+  const belofte = maak()
+  onderweg.set(gebruiker, belofte)
+  try {
+    const waarde = await belofte
+    geheugen.set(gebruiker, { dag, sleutel, waarde, gemaaktOp: nu })
+    return { waarde, uitCache: false }
+  } finally {
+    if (onderweg.get(gebruiker) === belofte) onderweg.delete(gebruiker)
+  }
 }
 
 /** Alleen voor tests: begin met een leeg geheugen. */
 export function legeDagCache(): void {
   geheugen.clear()
+  onderweg.clear()
 }

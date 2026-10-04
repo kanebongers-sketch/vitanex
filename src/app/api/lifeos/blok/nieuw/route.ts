@@ -7,11 +7,10 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { vereisLifeosToegang } from '@/lib/lifeos/admin'
 import { zetBlokStart } from '@/lib/lifeos/blok/instellingen'
+import { leesDatumSleutel } from '@/lib/lifeos/datum/datum'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
-
-const DATUM_PATROON = /^\d{4}-\d{2}-\d{2}$/
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
   const toegang = await vereisLifeosToegang(req)
@@ -19,7 +18,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
   const body: unknown = await req.json().catch(() => null)
   const datum = typeof body === 'object' && body !== null ? (body as { datum?: unknown }).datum : undefined
-  if (typeof datum !== 'string' || !DATUM_PATROON.test(datum)) {
+  // Vorm én kalender: 2026-02-31 is geen dag, en moet een 400 zijn, geen 502.
+  if (typeof datum !== 'string' || leesDatumSleutel(datum) === null) {
     return NextResponse.json({ fout: 'Geef een geldige startdatum mee.' }, { status: 400 })
   }
 
