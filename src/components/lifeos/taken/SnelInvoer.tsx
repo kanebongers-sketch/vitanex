@@ -1,7 +1,7 @@
 'use client'
 
 import { useId, useMemo, useState, type FormEvent } from 'react'
-import { CalendarDays, Plus, Tag } from 'lucide-react'
+import { CalendarDays, Flag, Plus, Tag } from 'lucide-react'
 import { Foutmelding } from '@/components/lifeos/os/Foutmelding'
 import { haalJson, leesNiets } from '@/lib/lifeos/api/http'
 import { meldWijziging } from '@/lib/lifeos/events'
@@ -44,7 +44,12 @@ export function SnelInvoer({ onToegevoegd, autoFocus = false }: Props) {
     setFout(null)
     const uitkomst = await haalJson('/api/lifeos/taken', leesNiets, {
       method: 'POST',
-      body: JSON.stringify({ titel: voorbeeld.titel, datum: voorbeeld.datum, categorie: voorbeeld.categorie }),
+      body: JSON.stringify({
+        titel: voorbeeld.titel,
+        datum: voorbeeld.datum,
+        deadline: voorbeeld.deadline,
+        categorie: voorbeeld.categorie,
+      }),
     })
     setBezig(false)
     if (!uitkomst.ok) {
@@ -91,6 +96,11 @@ export function SnelInvoer({ onToegevoegd, autoFocus = false }: Props) {
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
               <CalendarDays size={12} aria-hidden /> {voorbeeld.datum ? dagLabel(voorbeeld.datum) : 'Ooit'}
             </span>
+            {voorbeeld.deadline ? (
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                <Flag size={12} aria-hidden /> uiterlijk {dagLabel(voorbeeld.deadline)}
+              </span>
+            ) : null}
             {voorbeeld.categorie ? (
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                 <Tag size={12} aria-hidden /> {voorbeeld.categorie}
@@ -98,7 +108,7 @@ export function SnelInvoer({ onToegevoegd, autoFocus = false }: Props) {
             ) : null}
           </>
         ) : (
-          'Dag en #categorie mag je er gewoon in typen.'
+          'Dag, “vóór vr” en #categorie mag je er gewoon in typen.'
         )}
       </p>
       {fout ? <Foutmelding bericht={fout} /> : null}

@@ -3,7 +3,9 @@
 // we de dag en de categorie; de rest is de titel. Geen formulier met drie velden.
 //
 //   Dag       vandaag · morgen · overmorgen · maandag…zondag (ook di/wo/do/vr/za)
-//             · volgende week (= maandag) · 3/10 · 3-10 · 3 okt
+//             · volgende week (= maandag) · volgende week vrijdag · 3/10 · 3-10 · 3 okt
+//   Deadline  "vóór/voor/uiterlijk/deadline" + een dag: "offerte vóór vr" zet de
+//             deadline, niet de geplande dag. Beide mag: "morgen offerte vóór vr".
 //   Categorie #woord (het eerste #woord; hoofdletter vooraan)
 //
 // Herkennen we niets, dan blijft de hele tekst de titel en is de taak "ooit". Een
@@ -14,8 +16,13 @@ export interface SnelleTaak {
   titel: string
   /** YYYY-MM-DD of null (= ooit). */
   datum: string | null
+  /** YYYY-MM-DD of null: wanneer het uiterlijk af moet. */
+  deadline: string | null
   categorie: string | null
 }
+
+/** Woorden die van de dag erna een deadline maken. */
+const DEADLINE_WOORDEN = '(?:vóór|voor|uiterlijk|deadline)'
 
 const WEEKDAGEN: Record<string, number> = {
   // Geen "ma" en "zo": dat zijn ook gewone woorden ("ma bellen", "zo snel mogelijk").
@@ -57,23 +64,35 @@ interface Treffer {
   patroon: RegExp
 }
 
-function vindDag(tekst: string, vandaag: Date): Treffer | null {
-  const kandidaten: [RegExp, (m: RegExpMatchArray) => Date | null][] = [
-    [/(^|\s)(volgende week)(?=\s|$)/i, () => plus(vandaag, ((8 - vandaag.getDay()) % 7) || 7)],
-    [/(^|\s)(overmorgen)(?=\s|$)/i, () => plus(vandaag, 2)],
-    [/(^|\s)(morgen)(?=\s|$)/i, () => plus(vandaag, 1)],
-    [/(^|\s)(vandaag)(?=\s|$)/i, () => plus(vandaag, 0)],
-    [/(^|\s)(\d{1,2})[/-](\d{1,2})(?=\s|$)/, (m) => datumVan(Number(m[2]), Number(m[3]), vandaag)],
-    [
-      new RegExp(`(^|\\s)(\\d{1,2}) (${Object.keys(MAANDEN).join('|')})(?=\\s|$)`, 'i'),
-      (m) => datumVan(Number(m[2]), MAANDEN[m[3].toLowerCase()], vandaag),
-    ],
-    [
-      new RegExp(`(^|\\s)(${Object.keys(WEEKDAGEN).sort((a, b) => b.length - a.length).join('|')})(?=\\s|$)`, 'i'),
-      (m) => plus(vandaag, (WEEKDAGEN[m[2].toLowerCase()] - vandaag.getDay() + 7) % 7),
-    ],
+const WEEKDAG_NAMEN = Object.keys(WEEKDAGEN).sort((a, b) => b.length - a.length).join('|')
+
+/** Volgende week op een weekdag: de maandag van volgende week + de weekdag (zo = einde van die week). */
+function volgendeWeekOp(vandaag: Date, weekdag: number): Date {
+  const maandag = ((8 - vandaag.getDay()) % 7) || 7
+  return plus(vandaag, maandag + ((weekdag + 6) % 7))
+}
+
+/**
+ * Zoekt een dag-uitdrukking. Met `alsDeadline` alleen na een deadline-woord
+ * ("vóór vr"); anders alleen zónder (zodat "vóór vr" geen geplande dag wordt).
+ */
+function vindDag(tekst: string, vandaag: Date, alsDeadline: boolean): Treffer | null {
+  const kandidaten: [string, (m: RegExpMatchArray) => Date | null][] = [
+    [`(volgende week) (${WEEKDAG_NAMEN})`, (m) => volgendeWeekOp(vandaag, WEEKDAGEN[m[3].toLowerCase()])],
+    ['(volgende week)', () => plus(vandaag, ((8 - vandaag.getDay()) % 7) || 7)],
+    ['(overmorgen)', () => plus(vandaag, 2)],
+    ['(morgen)', () => plus(vandaag, 1)],
+    ['(vandaag)', () => plus(vandaag, 0)],
+    ['(\\d{1,2})[/-](\\d{1,2})', (m) => datumVan(Number(m[2]), Number(m[3]), vandaag)],
+    [`(\\d{1,2}) (${Object.keys(MAANDEN).join('|')})`, (m) => datumVan(Number(m[2]), MAANDEN[m[3].toLowerCase()], vandaag)],
+    [`(${WEEKDAG_NAMEN})`, (m) => plus(vandaag, (WEEKDAGEN[m[2].toLowerCase()] - vandaag.getDay() + 7) % 7)],
   ]
-  for (const [patroon, maak] of kandidaten) {
+  for (const [bron, maak] of kandidaten) {
+    // Zonder deadline-woord mag er ook géén direct vóór staan: anders pakt de
+    // gewone dag-zoeker het stuk "vr" uit "vóór vr" alsnog als geplande dag.
+    const patroon = alsDeadline
+      ? new RegExp(`(^|\\s)${DEADLINE_WOORDEN}\\s+${bron}(?=\\s|$)`, 'i')
+      : new RegExp(`(^|\\s)(?<!${DEADLINE_WOORDEN}\\s+)${bron}(?=\\s|$)`, 'i')
     const m = tekst.match(patroon)
     if (!m) continue
     const datum = maak(m)
@@ -92,8 +111,17 @@ export function leesSnelleTaak(invoer: string, vandaag: Date): SnelleTaak {
     tekst = tekst.replace(hash[0], ' ')
   }
 
+  // Eerst de deadline, dan pas de geplande dag: anders ziet de dag-zoeker het
+  // "vr" in "vóór vr" en plant hij de taak op vrijdag.
+  let deadline: string | null = null
+  const uiterlijk = vindDag(tekst, vandaag, true)
+  if (uiterlijk) {
+    deadline = sleutel(uiterlijk.datum)
+    tekst = tekst.replace(uiterlijk.patroon, ' ')
+  }
+
   let datum: string | null = null
-  const dag = vindDag(tekst, vandaag)
+  const dag = vindDag(tekst, vandaag, false)
   if (dag) {
     datum = sleutel(dag.datum)
     tekst = tekst.replace(dag.patroon, ' ')
@@ -101,6 +129,6 @@ export function leesSnelleTaak(invoer: string, vandaag: Date): SnelleTaak {
 
   const titel = tekst.replace(/\s+/g, ' ').trim()
   // Alleen een dag of categorie, zonder titel? Dan was het geen dag maar de taak zelf.
-  if (!titel) return { titel: invoer.trim(), datum: null, categorie: null }
-  return { titel: titel.charAt(0).toUpperCase() + titel.slice(1), datum, categorie }
+  if (!titel) return { titel: invoer.trim(), datum: null, deadline: null, categorie: null }
+  return { titel: titel.charAt(0).toUpperCase() + titel.slice(1), datum, deadline, categorie }
 }
