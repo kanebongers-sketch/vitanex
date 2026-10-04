@@ -9,6 +9,7 @@ import { haalJson, leesNiets } from '@/lib/lifeos/api/http'
 import { datumSleutel } from '@/lib/lifeos/datum/datum'
 import { leesBlokVandaag, type BlokVandaag, type OefeningVandaag, type BlokKeuze, type VorigeSet } from './blok-client'
 import { BlokVoortgang } from './BlokVoortgang'
+import { BlokAfgerond } from './BlokAfgerond'
 
 // De trainingskaart op /home: "wat moet ik vandaag doen?" en, in één scherm, het
 // loggen ervan. Mobiel-first — grote tikdoelen, minimaal typen. De progressie
@@ -87,9 +88,7 @@ export function BlokKaart() {
   if (data === null || data.inBlok === false) {
     return (
       <Kaart titel="Training van vandaag" vervangt="je coach">
-        <p style={{ fontSize: 14, color: 'var(--text-3)', margin: 0, lineHeight: 1.5 }}>
-          Je 4-weken blok is afgerond. 💪 Klaar voor de evaluatie en een nieuw blok.
-        </p>
+        <BlokAfgerond vandaag={vandaagContext().datum} onGestart={() => laad(gekozen)} />
       </Kaart>
     )
   }
