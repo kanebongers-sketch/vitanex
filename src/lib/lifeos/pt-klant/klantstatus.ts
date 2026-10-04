@@ -13,6 +13,7 @@ import type { Persoon } from '@/lib/lifeos/crm/crm'
 import { statusDef } from '@/lib/lifeos/crm/crm'
 import { matchPersoonInTitel, woordTokens } from '@/lib/lifeos/crm/agenda-match'
 import { matchtPtSessie, type PtEvent, type PtKlant } from './pt-klant'
+import { isLifeosBlok } from '@/lib/lifeos/blokken/titels'
 
 const ACTIEF = 'actieve_klant'
 const INACTIEF = 'inactief'
@@ -150,6 +151,8 @@ export function bepaalOnbekendePtSessies(
   for (const e of events) {
     const t = new Date(e.startOp).getTime()
     if (Number.isNaN(t) || t > nuMs || !e.titel) continue
+    // LifeOS' eigen blokken ("Bouwblok: PT uitbouwen") zijn geen sessie met een klant.
+    if (isLifeosBlok(e.titel)) continue
     const tokens = woordTokens(e.titel)
     if (!tokens.includes('pt')) continue
     const rest = tokens.filter((w) => !GEEN_NAAM.has(w))
@@ -227,7 +230,7 @@ export function bepaalTypfouten(personen: readonly Persoon[], events: readonly P
   const perTitel = new Map<string, MogelijkeTypfout>()
 
   for (const e of events) {
-    if (!e.titel) continue
+    if (!e.titel || isLifeosBlok(e.titel)) continue
     const rest = woordTokens(e.titel).filter((w) => !GEEN_NAAM.has(w))
     if (rest.length !== 1) continue
     const woord = rest[0]
