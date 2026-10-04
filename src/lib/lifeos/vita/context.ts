@@ -40,8 +40,6 @@ import type { SlimmeTaak } from '@/lib/lifeos/taken/prioriteit'
 import { GEHEUGEN_IN_PROMPT } from './geheugen'
 import { haalPersonenMetAgenda } from '@/lib/lifeos/crm/agenda-contact-ophalen'
 import type { Persoon } from '@/lib/lifeos/crm/crm'
-import { haalTransacties, haalFacturen } from '@/lib/lifeos/finance/opslag'
-import { bouwOverzicht, type Overzicht } from '@/lib/lifeos/finance/finance'
 import { crmOpvolging } from '@/lib/lifeos/dagplanning/aandacht'
 import { koudeContacten } from '@/lib/lifeos/weekmail/weekmail'
 import { matchPersoonInTitel, koppelTekst } from '@/lib/lifeos/crm/agenda-match'
@@ -149,8 +147,6 @@ export interface VitaContext {
    * één ophaal, twee afgeleiden, net als bij `taken`.
    */
   crm: Vak<Persoon[]>
-  /** De financiële maandstand (omzet/kosten/winst/openstaand), of een fout. */
-  finance: Vak<Overzicht>
   /** De journal van vandaag en gisteren. Wat Kane zelf schreef, niet wat wij maten. */
   journal: Vak<Tekstregel[]>
   /** Recente brain dumps. */
@@ -192,7 +188,6 @@ export function vakkenMetFout(context: VitaContext): string[] {
     // gevallen bronnen — "ik kon je taken en taken niet ophalen".
     ['taken', context.taken],
     ['crm', context.crm],
-    ['finance', context.finance],
     ['journal', context.journal],
     ['notities', context.notities],
     ['geheugen', context.geheugen],
@@ -348,7 +343,7 @@ const TAAK_KOLOMMEN =
 
 /**
  * Zet het `Uitkomst`-model van de opslag-helpers (ok/reden) om naar het `Vak`-model
- * van dit bestand (ok/melding). Zo delen CRM en finance dezelfde geteste read als de
+ * van dit bestand (ok/melding). Zo deelt CRM dezelfde geteste read als de
  * mails, zonder dat context.ts een tweede querylezer krijgt die uit de pas loopt.
  */
 function uitkomstNaarVak<T>(u: { ok: true; waarde: T } | { ok: false; reden: string }): Vak<T> {
@@ -477,26 +472,17 @@ export async function haalContext(
     ),
   ])
 
-  // CRM en finance erbij, zodat Vita óók over mensen en geld kan meepraten (niet
+  // CRM erbij, zodat Vita óók over mensen kan meepraten (niet
   // alleen in de mails). Aparte batch om de grote parallel-array leesbaar te houden;
   // nog steeds parallel bínnen de batch. Deze reads gebruiken de bestaande, geteste
   // opslag-helpers. `.catch` per call houdt een gevallen bron geïsoleerd: één
   // netwerkfout hier mag niet de hele context laten omvallen (dan zou een CRM-storing
   // ook je slaap en agenda meesleuren).
-  const maand = vandaag.slice(0, 7)
   const dbFout = { ok: false as const, reden: 'db' }
-  const [personenU, transactiesU, facturenU] = await Promise.all([
-    // Mét laatste afspraak uit de agenda-cache: anders noemt Vita een klant die elke
-    // week traint "verwaterend" (zie crm/agenda-contact.ts).
-    haalPersonenMetAgenda(admin, userId, nu).catch(() => dbFout),
-    haalTransacties(admin, userId, { maand }).catch(() => dbFout),
-    haalFacturen(admin, userId).catch(() => dbFout),
-  ])
+  // Mét laatste afspraak uit de agenda-cache: anders noemt Vita een klant die elke
+  // week traint "verwaterend" (zie crm/agenda-contact.ts).
+  const personenU = await haalPersonenMetAgenda(admin, userId, nu).catch(() => dbFout)
   const crm: Vak<Persoon[]> = uitkomstNaarVak(personenU)
-  const finance: Vak<Overzicht> =
-    transactiesU.ok && facturenU.ok
-      ? { ok: true, waarde: bouwOverzicht(transactiesU.waarde, facturenU.waarde, maand, vandaag) }
-      : { ok: false, melding: 'Finance niet op te halen.' }
 
   // ── De spine samenstellen ──────────────────────────────────────────────────
   const slaapMap = slaapRuw.ok ? slaapPerDag(slaapRuw.waarde) : new Map<string, number | null>()
@@ -545,7 +531,6 @@ export async function haalContext(
     taken,
     afgerondVandaag,
     crm,
-    finance,
     journal,
     notities,
     geheugen,
@@ -578,8 +563,6 @@ const TIJD_FMT = new Intl.DateTimeFormat('nl-NL', {
   minute: '2-digit',
   hourCycle: 'h23',
 })
-
-const EURO_FMT = new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR' })
 
 /** Rendert een vak: fout, leeg of regels. Nooit twee daarvan door elkaar. */
 function schrijfVak<T>(
@@ -721,22 +704,6 @@ function schrijfAgenda(context: VitaContext): string {
   return `## ${kop}\n${regels.join('\n')}`
 }
 
-/** De financiële maandstand voor Vita. Echte cijfers uit `bouwOverzicht`, geen schatting. */
-function schrijfFinance(context: VitaContext): string {
-  const kop = 'Finance (deze maand)'
-  if (!context.finance.ok) return `## ${kop}\n${FOUT_REGEL}`
-
-  const o = context.finance.waarde
-  const verlopen = o.verlopenAantal > 0 ? ` (${o.verlopenAantal} over de vervaldatum)` : ''
-  return [
-    `## ${kop}`,
-    `- Omzet: ${EURO_FMT.format(o.omzet)}`,
-    `- Kosten: ${EURO_FMT.format(o.kosten)}`,
-    `- Winst: ${EURO_FMT.format(o.winst)}`,
-    `- Openstaand: ${EURO_FMT.format(o.openstaand)}${verlopen}`,
-  ].join('\n')
-}
-
 /** Zet een opgehaalde context om in het tekstblok voor de prompt. */
 export function schrijfContextBlok(context: VitaContext): string {
   return [
@@ -760,8 +727,6 @@ export function schrijfContextBlok(context: VitaContext): string {
     ),
     '',
     schrijfCrm(context),
-    '',
-    schrijfFinance(context),
     '',
     schrijfVak(
       'Journal (vandaag en gisteren)',

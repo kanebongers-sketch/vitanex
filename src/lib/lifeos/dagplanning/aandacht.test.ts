@@ -1,8 +1,7 @@
 import { describe, expect, test } from 'vitest'
-import { crmOpvolging, factuurAandacht, inboxAandacht, afhaakAandacht, statusHintAandacht, onbekendAandacht, bouwAandacht, inplanAandacht, coachAandacht, coachVoorbereiding } from './aandacht'
+import { crmOpvolging, inboxAandacht, afhaakAandacht, statusHintAandacht, onbekendAandacht, bouwAandacht, inplanAandacht, coachAandacht, coachVoorbereiding } from './aandacht'
 import type { PtWeekStatus } from '@/lib/lifeos/pt-klant/pt-klant'
 import type { Persoon } from '@/lib/lifeos/crm/crm'
-import type { Factuur } from '@/lib/lifeos/finance/finance'
 import type { Afhaak } from '@/lib/lifeos/pt-klant/afhaak'
 import type { PtStatusHint } from '@/lib/lifeos/pt-klant/klantstatus'
 
@@ -26,20 +25,6 @@ function persoon(over: Partial<Persoon> = {}): Persoon {
     abonnement: null,
     duo: false,
     aangemaaktOp: '2026-01-01T00:00:00Z',
-    ...over,
-  }
-}
-
-function factuur(over: Partial<Factuur> = {}): Factuur {
-  return {
-    id: crypto.randomUUID(),
-    klant: 'Klant',
-    bedrag: 100,
-    status: 'open',
-    factuurdatum: '2026-09-01',
-    vervaldatum: '2026-09-30',
-    persoonId: null,
-    aangemaaktOp: '2026-09-01T00:00:00Z',
     ...over,
   }
 }
@@ -103,51 +88,6 @@ describe('crmOpvolging', () => {
   })
 })
 
-describe('factuurAandacht', () => {
-  test('niets openstaand = null', () => {
-    expect(factuurAandacht([factuur({ status: 'betaald' })], VANDAAG)).toBeNull()
-  })
-
-  test('open, nog niet vervallen = niet-dringende openstaand-regel', () => {
-    const punt = factuurAandacht([factuur({ bedrag: 250, vervaldatum: '2026-09-30' })], VANDAAG)
-    expect(punt).not.toBeNull()
-    expect(punt?.dringend).toBe(false)
-    expect(punt?.tekst).toContain('1 openstaande factuur')
-    expect(punt?.tekst).toContain('€')
-    expect(punt?.tekst).toContain('250')
-  })
-
-  test('over de vervaldatum = dringend en wint van gewoon-open', () => {
-    const punt = factuurAandacht(
-      [
-        factuur({ bedrag: 100, vervaldatum: '2026-09-01' }), // te laat
-        factuur({ bedrag: 300, vervaldatum: '2026-09-30' }), // nog niet
-      ],
-      VANDAAG,
-    )
-    expect(punt?.dringend).toBe(true)
-    expect(punt?.tekst).toContain('1 factuur over de vervaldatum')
-  })
-
-  test('status "verlopen" telt als te laat, ook zonder vervaldatum', () => {
-    const punt = factuurAandacht([factuur({ status: 'verlopen', vervaldatum: null })], VANDAAG)
-    expect(punt?.dringend).toBe(true)
-    expect(punt?.tekst).toContain('over de vervaldatum')
-  })
-
-  test('sommeert de te-late bedragen', () => {
-    const punt = factuurAandacht(
-      [
-        factuur({ bedrag: 100, vervaldatum: '2026-09-01' }),
-        factuur({ bedrag: 150.5, vervaldatum: '2026-09-02' }),
-      ],
-      VANDAAG,
-    )
-    expect(punt?.tekst).toContain('2 facturen over de vervaldatum')
-    expect(punt?.tekst).toContain('250,50')
-  })
-})
-
 describe('inboxAandacht', () => {
   test('null (niet nagegaan) = geen regel', () => {
     expect(inboxAandacht(null)).toBeNull()
@@ -185,7 +125,7 @@ describe('inplanAandacht', () => {
   })
 
   test('typfout staat direct onder de inplan-regel', () => {
-    const punten = bouwAandacht([], [], '2026-09-28', null, {
+    const punten = bouwAandacht([], '2026-09-28', null, {
       inplannen: [status('Kevin', 1, 1)],
       typfouten: [{ titel: 'Kevnin', bedoeld: 'Kevin', op: '2026-09-22T17:30:00Z', eventIds: [], nieuweTitel: 'Kevin' }],
     })
@@ -196,14 +136,14 @@ describe('inplanAandacht', () => {
   })
 
   test('staat in bouwAandacht ná de CRM-opvolging', () => {
-    const punten = bouwAandacht([], [], '2026-09-28', null, { inplannen: [status('Kevin', 1, 1)] })
+    const punten = bouwAandacht([], '2026-09-28', null, { inplannen: [status('Kevin', 1, 1)] })
     expect(punten.map((p) => p.tekst)).toEqual(['PT nog in te plannen: Kevin'])
   })
 })
 
 describe('bouwAandacht — bewaker en coachsignalen', () => {
   test('botsing/reistijd bovenaan en dringend, rust onderaan, coachsignaal erbij', () => {
-    const punten = bouwAandacht([], [], '2026-10-01', null, {
+    const punten = bouwAandacht([], '2026-10-01', null, {
       bewaker: [
         { soort: 'rust', tekst: 'Rust' },
         { soort: 'botsing', tekst: 'Botsing' },
@@ -265,10 +205,9 @@ describe('afhaakAandacht', () => {
 })
 
 describe('bouwAandacht', () => {
-  test('volgorde: CRM, dan afhaak, dan inbox, dan finance', () => {
+  test('volgorde: CRM, dan afhaak, dan inbox', () => {
     const punten = bouwAandacht(
       [persoon({ naam: 'Sanne', followUpDatum: VANDAAG })],
-      [factuur({ vervaldatum: '2026-09-01' })],
       VANDAAG,
       3,
       { afhaak: [afhaak({ naam: 'Kevin', wekenGeleden: 3 })] },
@@ -276,16 +215,15 @@ describe('bouwAandacht', () => {
     expect(punten[0].tekst).toContain('Sanne')
     expect(punten[1].tekst).toContain('Kevin')
     expect(punten[2].tekst).toContain('mails vragen een reactie')
-    expect(punten[3].tekst).toContain('vervaldatum')
   })
 
   test('inbox weggelaten als niet nagegaan', () => {
-    const punten = bouwAandacht([persoon({ naam: 'Sanne', followUpDatum: VANDAAG })], [], VANDAAG, null)
+    const punten = bouwAandacht([persoon({ naam: 'Sanne', followUpDatum: VANDAAG })], VANDAAG, null)
     expect(punten.some((p) => p.tekst.includes('reactie'))).toBe(false)
   })
 
   test('alles leeg = geen punten', () => {
-    expect(bouwAandacht([], [], VANDAAG)).toEqual([])
+    expect(bouwAandacht([], VANDAAG)).toEqual([])
   })
 })
 
@@ -307,10 +245,9 @@ describe('statusHintAandacht', () => {
     expect(punten[3].tekst).toBe('en nog 1 klant met een verouderde status')
   })
 
-  test('staat achteraan in bouwAandacht (administratie na mensen en geld)', () => {
+  test('staat achteraan in bouwAandacht (administratie na mensen)', () => {
     const punten = bouwAandacht(
       [persoon({ naam: 'Sanne', followUpDatum: VANDAAG })],
-      [factuur({ vervaldatum: '2026-09-01' })],
       VANDAAG,
       2,
       { statusHints: [hint()] },

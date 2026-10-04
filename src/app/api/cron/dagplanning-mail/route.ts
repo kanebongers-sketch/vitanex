@@ -46,7 +46,6 @@ import { categoriseerMet } from '@/lib/lifeos/agenda/categorie'
 import { koppelTekstMetRegels } from '@/lib/lifeos/agenda/categorie'
 import { haalCategorieRegels } from '@/lib/lifeos/agenda/categorie-opslag'
 import type { AgendaCategorie } from '@/lib/lifeos/agenda/categorie'
-import { haalFacturen } from '@/lib/lifeos/finance/opslag'
 import { geldigToken as geldigMailToken, forceerVernieuwing as forceerMailVernieuwing } from '@/lib/lifeos/inbox/koppeling'
 import { haalTriageMails } from '@/lib/lifeos/inbox/gmail'
 import { triageer } from '@/lib/lifeos/inbox/classificeer'
@@ -143,8 +142,7 @@ async function haalInboxActie(
 
 /**
  * Cross-domein aandachtspunten ("Vraagt je aandacht"): wie je vandaag zou opvolgen
- * (CRM), hoeveel mail een reactie vraagt (inbox) en welke facturen open of te laat
- * staan (finance). Best-effort, net als de Vita-signalen: valt een bron om, dan
+ * (CRM) en hoeveel mail een reactie vraagt (inbox). Best-effort, net als de Vita-signalen: valt een bron om, dan
  * levert die gewoon geen regels op — de mail gaat door met wat er wél is, nooit met
  * een halve of verzonnen sectie.
  */
@@ -155,14 +153,8 @@ async function haalAandacht(
   personen: readonly Persoon[],
   pt: PtAandacht,
 ): Promise<Aandachtspunt[]> {
-  const [facturen, inboxActie] = await Promise.all([
-    haalFacturen(admin, userId).catch((oorzaak) => {
-      console.error('[dagplanning-mail] facturen ophalen mislukt', oorzaak)
-      return { ok: false as const, reden: 'db' as const }
-    }),
-    haalInboxActie(admin, userId),
-  ])
-  return bouwAandacht(personen, facturen.ok ? facturen.waarde : [], vandaagKey, inboxActie, pt)
+  const inboxActie = await haalInboxActie(admin, userId)
+  return bouwAandacht(personen, vandaagKey, inboxActie, pt)
 }
 
 /** De CRM-personen, best-effort: één ophaal, gedeeld door de agenda-koppeling én de aandacht-sectie. */
@@ -388,7 +380,7 @@ export async function GET(req: NextRequest): Promise<Response> {
       }
     })
 
-  // "Vraagt je aandacht": CRM-opvolging + afhaak + inbox + facturen. Best-effort.
+  // "Vraagt je aandacht": CRM-opvolging + afhaak + inbox. Best-effort.
   const aandacht = await haalAandacht(admin, userId, vandaagKey, personen, { ...pt, coachVandaag, bewaker, coachSignalen })
 
   // Wat LifeOS het afgelopen etmaal zelf regelde (best-effort: fout → geen sectie).

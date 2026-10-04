@@ -365,21 +365,20 @@ describe('lege toestand', () => {
   })
 })
 
-describe('CRM en finance — Vita praat óók over mensen en geld', () => {
-  it('rendert een lege CRM- en finance-sectie eerlijk, zonder storing', async () => {
-    // Arrange — geen mensen, geen transacties/facturen (leeg, niet kapot).
+describe('CRM — Vita praat óók over mensen', () => {
+  it('rendert een lege CRM-sectie eerlijk, zonder storing', async () => {
+    // Arrange — geen mensen (leeg, niet kapot).
     const admin = nepAdmin({})
 
     // Act
     const context = await haalContext('kane', admin, NU)
     const blok = schrijfContextBlok(context)
 
-    // Assert — beide secties bestaan, geen van beide is een storing.
+    // Assert — de sectie bestaat en is geen storing.
     expect(context.crm.ok).toBe(true)
-    expect(context.finance.ok).toBe(true)
     expect(blok).toContain('## CRM (mensen)')
     expect(blok).toContain('Niemand staat op opvolgen')
-    expect(blok).toMatch(/## Finance \(deze maand\)[\s\S]*Omzet/)
+    expect(blok).not.toContain('Finance')
   })
 
   it('koppelt een afspraak aan de juiste CRM-persoon via de titel', async () => {

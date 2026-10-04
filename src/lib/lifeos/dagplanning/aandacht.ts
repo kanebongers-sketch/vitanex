@@ -1,16 +1,15 @@
 // ─── LifeOS — dagplanning: "Vraagt je aandacht" (puur) ──────────────────────
 // De ochtendmail toonde je dag (agenda + taken) en Vita's observaties. Maar een
-// stafchef ziet méér dan je agenda: wie je vandaag zou opvolgen (CRM) en welke
-// facturen open of te laat staan (finance). Dit bestand leidt die aandachtspunten
+// stafchef ziet méér dan je agenda: wie je vandaag zou opvolgen (CRM), welke
+// PT-klanten aandacht vragen en wat er in je inbox wacht. Dit bestand leidt die aandachtspunten
 // puur af — data in → regels uit, geen fetch, geen DB — zodat de route ze
 // best-effort ophaalt en de mail ze rendert.
 //
 // EERLIJK: elk punt steunt op een écht feit uit je eigen data (een follow-up-datum
-// die jij zette, een factuurstatus). We verzinnen hier niets bij; een lege bron
+// die jij zette, een PT-sessie in je agenda). We verzinnen hier niets bij; een lege bron
 // levert gewoon geen regel op.
 
 import type { Persoon } from '@/lib/lifeos/crm/crm'
-import type { Factuur } from '@/lib/lifeos/finance/finance'
 import type { Afhaak } from '@/lib/lifeos/pt-klant/afhaak'
 import type { PtWeekStatus } from '@/lib/lifeos/pt-klant/pt-klant'
 import type { CoachAchterstand } from '@/lib/lifeos/pt-gesprek/pt-gesprek'
@@ -18,7 +17,6 @@ import type { VorigeEvaluatie } from '@/lib/lifeos/pt-gesprek/team'
 import type { Melding } from '@/lib/lifeos/agenda/bewaker'
 import type { CoachSignaal } from '@/lib/lifeos/pt-coaching/signaal'
 import type { MogelijkeTypfout, OnbekendePtSessie, PtStatusHint } from '@/lib/lifeos/pt-klant/klantstatus'
-import { naarCenten, naarEuro } from '@/lib/lifeos/finance/finance'
 import { groepKort, opsomming } from '@/lib/lifeos/crm/agenda-match'
 
 /** Eén regel voor de "Vraagt je aandacht"-sectie. */
@@ -34,18 +32,12 @@ export interface Aandachtspunt {
  */
 const CRM_LIMIET = 8
 
-const EURO_FMT = new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR' })
 
 const DAG_KORT = new Intl.DateTimeFormat('nl-NL', { day: 'numeric', month: 'short', timeZone: 'Europe/Amsterdam' })
 
 /** Een dagsleutel (YYYY-MM-DD) als moment midden op die dag: tijdzone-veilig voor de weergave. */
 function dagAlsMoment(dagKey: string): Date {
   return new Date(`${dagKey}T12:00:00Z`)
-}
-
-/** Centen → '€ 1.234,56'. Sommeren gebeurt in centen om float-drift te vermijden. */
-function euroTekst(centen: number): string {
-  return EURO_FMT.format(naarEuro(centen))
 }
 
 /**
@@ -229,40 +221,6 @@ export interface PtAandacht {
 }
 
 /**
- * Eén samenvattende factuurregel, of `null` als er niets openstaat.
- *
- * "Te laat" = handmatig op 'verlopen' gezet, of over de vervaldatum (net als
- * finance's `isVerlopen`, plus een 'verlopen' zonder vervaldatum telt ook). Openstaand = niet 'betaald',
- * gelijk aan finance's eigen definitie. Te laat wint van gewoon-open: dat is de regel
- * die actie vraagt.
- */
-export function factuurAandacht(facturen: readonly Factuur[], vandaagKey: string): Aandachtspunt | null {
-  const openstaand = facturen.filter((f) => f.status !== 'betaald')
-  if (openstaand.length === 0) return null
-
-  const somCenten = (lijst: readonly Factuur[]): number =>
-    lijst.reduce((som, f) => som + naarCenten(f.bedrag), 0)
-
-  const teLaat = openstaand.filter(
-    (f) => f.status === 'verlopen' || (f.vervaldatum !== null && f.vervaldatum < vandaagKey),
-  )
-
-  if (teLaat.length > 0) {
-    const n = teLaat.length
-    return {
-      tekst: `${n} ${n === 1 ? 'factuur' : 'facturen'} over de vervaldatum — ${euroTekst(somCenten(teLaat))}`,
-      dringend: true,
-    }
-  }
-
-  const n = openstaand.length
-  return {
-    tekst: `${n} openstaande ${n === 1 ? 'factuur' : 'facturen'} — ${euroTekst(somCenten(openstaand))}`,
-    dringend: false,
-  }
-}
-
-/**
  * De inbox-regel: hoeveel ongelezen mails vragen een reactie. `null` = niet
  * nagegaan (Gmail niet gekoppeld of even onbereikbaar) → geen regel, geen valse
  * "0 mails" die suggereert dat we keken. 0 echte actie-mails is óók geen regel:
@@ -276,17 +234,15 @@ export function inboxAandacht(actie: number | null): Aandachtspunt | null {
 /**
  * Alle aandachtspunten voor vandaag, in volgorde van "vraagt een menselijk
  * antwoord": CRM-opvolging (mensen boven cijfers), dan PT inplannen en afgehaakte klanten, dan de
- * inbox, dan de facturen. Leeg = de mail laat de hele sectie weg.
+ * inbox. Leeg = de mail laat de hele sectie weg.
  */
 export function bouwAandacht(
   personen: readonly Persoon[],
-  facturen: readonly Factuur[],
   vandaagKey: string,
   inboxActie: number | null = null,
   pt: PtAandacht = {},
 ): Aandachtspunt[] {
   const inbox = inboxAandacht(inboxActie)
-  const factuur = factuurAandacht(facturen, vandaagKey)
   const bewaker = pt.bewaker ?? []
   // Botsingen en reistijd vragen actie vóór die dag: bovenaan en dringend.
   const agendaActie = bewaker.filter((m) => m.soort !== 'rust').map((m) => ({ tekst: m.tekst, dringend: true }))
@@ -303,8 +259,7 @@ export function bouwAandacht(
     ...coachAandacht(pt.coachgesprekken ?? []),
     ...afhaakAandacht(pt.afhaak ?? []),
     ...(inbox ? [inbox] : []),
-    ...(factuur ? [factuur] : []),
-    // Administratie achteraan: eerst mensen en geld, dan "je CRM loopt achter".
+    // Administratie achteraan: eerst mensen, dan "je CRM loopt achter".
     ...statusHintAandacht(pt.statusHints ?? []),
     ...onbekendAandacht(pt.onbekend ?? []),
     // Rust als laatste: een seintje, geen taak.

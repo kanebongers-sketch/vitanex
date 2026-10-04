@@ -53,13 +53,13 @@ describe('bouwDagplanningMail', () => {
   test('aandachtspunten verschijnen in tekst en HTML', () => {
     const mail = bouwDagplanningMail(DAG, [item(9, 10, 'Afspraak')], [], [], [
       { tekst: 'Sanne opvolgen (vandaag)', dringend: true },
-      { tekst: '2 openstaande facturen — € 350,00', dringend: false },
+      { tekst: '3 mails vragen een reactie', dringend: false },
     ])
     expect(mail.tekst).toContain('VRAAGT JE AANDACHT')
     expect(mail.tekst).toContain('Sanne opvolgen (vandaag)')
     expect(mail.html).toContain('Vraagt je aandacht')
     expect(mail.html).toContain('Sanne opvolgen (vandaag)')
-    expect(mail.html).toContain('2 openstaande facturen')
+    expect(mail.html).toContain('3 mails vragen een reactie')
   })
 
   test('escapet titels — geen HTML-injectie in de mail', () => {

@@ -1,6 +1,6 @@
 // ─── LifeOS — GET /api/cron/lifeos-weekmail ─────────────────────────────────
 // Elke maandagochtend een persoonlijke week-terugblik per e-mail: wat je afrondde,
-// hoe de maand er financieel voor staat, en welke contacten verwateren. De dagmail
+// welke PT-klanten afhaken en welke contacten verwateren. De dagmail
 // kijkt vooruit (je dag); deze kijkt terug (je week).
 //
 // ─── GEEN SESSIE, DUS GEEN FOUNDER-GATE ─────────────────────────────────────
@@ -25,8 +25,6 @@ import { createLifeosAdminClient, lifeosUserId } from '@/lib/lifeos/admin'
 import { geheimGelijk } from '@/lib/lifeos/auth/geheim'
 import { datumSleutel } from '@/lib/lifeos/datum/datum'
 import { haalTaken } from '@/lib/lifeos/taken/opslag'
-import { haalTransacties, haalFacturen } from '@/lib/lifeos/finance/opslag'
-import { bouwOverzicht } from '@/lib/lifeos/finance/finance'
 import { haalPersonenMetAgenda } from '@/lib/lifeos/crm/agenda-contact-ophalen'
 import type { Persoon } from '@/lib/lifeos/crm/crm'
 import { haalPtSignalen } from '@/lib/lifeos/pt-klant/afhaak-ophalen'
@@ -36,7 +34,6 @@ import {
   bouwWeekmail,
   afgerondeTakenSinds,
   koudeContacten,
-  type WeekFinance,
   type WeekZelf,
 } from '@/lib/lifeos/weekmail/weekmail'
 
@@ -75,35 +72,6 @@ async function haalAfgerond(
   })
   if (!taken.ok) return []
   return afgerondeTakenSinds(taken.waarde, vanaf, tot).map((t) => t.titel)
-}
-
-/** De financiële maandstand, of `null` als een bron omviel (dan geen finance-sectie). */
-async function haalFinance(
-  admin: ReturnType<typeof createLifeosAdminClient>,
-  userId: string,
-  nu: Date,
-): Promise<WeekFinance | null> {
-  const maand = datumSleutel(nu).slice(0, 7)
-  const vandaag = datumSleutel(nu)
-  const [transacties, facturen] = await Promise.all([
-    haalTransacties(admin, userId, { maand }).catch(() => ({ ok: false as const, reden: 'db' as const })),
-    haalFacturen(admin, userId).catch(() => ({ ok: false as const, reden: 'db' as const })),
-  ])
-  // Fout ≠ leeg: viel een bron om, dan geen verzonnen nul-maand maar géén sectie.
-  if (!transacties.ok || !facturen.ok) {
-    console.error('[weekmail] finance ophalen mislukt')
-    return null
-  }
-  const overzicht = bouwOverzicht(transacties.waarde, facturen.waarde, maand, vandaag)
-  return {
-    maandLabel: nu.toLocaleDateString('nl-NL', { timeZone: 'Europe/Amsterdam', month: 'long' }),
-    omzet: overzicht.omzet,
-    kosten: overzicht.kosten,
-    winst: overzicht.winst,
-    openstaand: overzicht.openstaand,
-    verlopenAantal: overzicht.verlopenAantal,
-    aantalTransacties: overzicht.aantalTransacties,
-  }
 }
 
 /** De CRM-personen, best-effort → leeg bij fout. Gedeeld door "verwaterend contact" en "afhaak". */
@@ -187,16 +155,15 @@ export async function GET(req: NextRequest): Promise<Response> {
 
   // Alle bronnen best-effort en parallel: één trage of gevallen bron mag de mail
   // niet tegenhouden. Elke helper vangt zijn eigen fout en levert leeg/null op.
-  const [afgerondeTaken, finance, personen, zelf] = await Promise.all([
+  const [afgerondeTaken, personen, zelf] = await Promise.all([
     haalAfgerond(admin, userId, vanaf, nu),
-    haalFinance(admin, userId, nu),
     haalCrmPersonen(admin, userId),
     haalZelf(admin, userId, vanaf, nu),
   ])
   const koud = koudeContacten(personen, nu)
   const { afhaak } = await haalPtSignalen(admin, userId, personen, nu)
 
-  const mail = bouwWeekmail(nu, { afgerondeTaken, finance, koudeContacten: koud, afhaak, zelf })
+  const mail = bouwWeekmail(nu, { afgerondeTaken, koudeContacten: koud, afhaak, zelf })
 
   // Claim vlak vóór het sturen (spiegelt de dagmail): de insert is het slot.
   const claim = await claimBriefing(admin, userId, datum, 'weekmail')
@@ -233,7 +200,6 @@ export async function GET(req: NextRequest): Promise<Response> {
   return klaar({
     verstuurd: true,
     afgerond: afgerondeTaken.length,
-    finance: finance !== null,
     koudeContacten: koud.length,
     afhaak: afhaak.length,
     zelf: zelf ?? undefined,

@@ -93,9 +93,9 @@ describe('koudeContacten', () => {
 })
 
 describe('bouwWeekmail', () => {
-  const basis: WeekmailInvoer = { afgerondeTaken: [], finance: null, koudeContacten: [], zelf: null }
+  const basis: WeekmailInvoer = { afgerondeTaken: [], koudeContacten: [], zelf: null }
 
-  test('lege week: eerlijke "niets afgevinkt", geen finance-/contact-sectie', () => {
+  test('lege week: eerlijke "niets afgevinkt", geen contact-sectie', () => {
     const mail = bouwWeekmail(MAANDAG, basis)
     expect(mail.onderwerp).toContain('terugblik')
     expect(mail.tekst).toContain('Niets afgevinkt deze week')
@@ -110,17 +110,6 @@ describe('bouwWeekmail', () => {
     expect(mail.html).toContain('A')
   })
 
-  test('finance-sectie toont omzet/kosten/winst', () => {
-    const mail = bouwWeekmail(MAANDAG, {
-      ...basis,
-      finance: { maandLabel: 'september', omzet: 5000, kosten: 1200, winst: 3800, openstaand: 900, verlopenAantal: 1 },
-    })
-    expect(mail.tekst).toContain('FINANCE (september)')
-    expect(mail.tekst).toContain('Winst')
-    expect(mail.tekst).toContain('over de vervaldatum')
-    expect(mail.html).toContain('Finance — september')
-  })
-
   test('verwaterende contacten met duur', () => {
     const mail = bouwWeekmail(MAANDAG, {
       ...basis,
@@ -129,14 +118,6 @@ describe('bouwWeekmail', () => {
     expect(mail.tekst).toContain('VERWATEREND CONTACT')
     expect(mail.tekst).toContain('Jan')
     expect(mail.tekst).toContain('maanden')
-  })
-
-  test('finance: niets gelogd deze maand → geen rij nullen', () => {
-    const finance = { maandLabel: 'september', omzet: 0, kosten: 0, winst: 0, openstaand: 0, verlopenAantal: 0, aantalTransacties: 0 }
-    const mail = bouwWeekmail(MAANDAG, { ...basis, finance })
-    expect(mail.tekst).toContain('Nog niets vastgelegd in september.')
-    expect(mail.tekst).not.toContain('Omzet')
-    expect(mail.html).toContain('Nog niets vastgelegd in september.')
   })
 
   test('zelf-evaluatie: benoemd + gecorrigeerd verschijnen', () => {

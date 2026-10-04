@@ -1,6 +1,6 @@
 // ─── LifeOS — wekelijkse terugblik-mail (puur) ──────────────────────────────
-// Elke maandagochtend een persoonlijke week-review: wat je afrondde, hoe de maand
-// er financieel voor staat, en welke contacten verwateren. Geen fetch, geen DB:
+// Elke maandagochtend een persoonlijke week-review: wat je afrondde, welke
+// PT-klanten afhaken en welke contacten verwateren. Geen fetch, geen DB:
 // selectors + builder zijn puur (data in → regels/HTML uit), zodat de route ze
 // best-effort voedt en dit bestand zonder mailserver of database testbaar is.
 //
@@ -18,8 +18,6 @@ const TIJDZONE = 'Europe/Amsterdam'
 /** Zoveel afgeronde taken en koude contacten tonen we bij naam; de rest als telling. */
 const TAKEN_LIMIET = 12
 const CONTACTEN_LIMIET = 8
-
-const EURO_FMT = new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR' })
 
 // ─── Selectors (puur) ───────────────────────────────────────────────────────
 
@@ -57,19 +55,6 @@ export function koudeContacten(
 
 // ─── Builder (puur) ─────────────────────────────────────────────────────────
 
-/** De financiële maandstand, of `null` als de bron omviel (dan geen finance-sectie). */
-export interface WeekFinance {
-  /** Leesbaar maandlabel, bv. 'september'. */
-  maandLabel: string
-  omzet: number
-  kosten: number
-  winst: number
-  openstaand: number
-  verlopenAantal: number
-  /** Transacties deze maand. 0 (en niets openstaand) = niets gelogd, geen echte nul-maand. */
-  aantalTransacties?: number
-}
-
 /**
  * Wat LifeOS zélf deed, voor de zelf-evaluatie. `null` = niet nagegaan (geen sectie).
  * Eerlijk: beide tellen alleen afspraken van de AFGELOPEN WEEK. `hernoemd` = die
@@ -85,7 +70,6 @@ export interface WeekZelf {
 export interface WeekmailInvoer {
   /** Titels van wat je deze week afvinkte (al gefilterd + begrensd hoort niet: dat doet de builder). */
   afgerondeTaken: readonly string[]
-  finance: WeekFinance | null
   koudeContacten: readonly { naam: string; dagen: number }[]
   /**
    * PT-klanten die afhaken (zie `pt-klant/afhaak`): lopend abonnement, maar al
@@ -107,10 +91,6 @@ function datumLang(d: Date): string {
 
 function escape(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
-}
-
-function euro(bedrag: number): string {
-  return EURO_FMT.format(bedrag)
 }
 
 /** "3 weken" / "2 maanden" — grof, zoals de tegel-tekst; precisie hoort hier niet. */
@@ -148,7 +128,7 @@ function zelfRegels(zelf: WeekZelf | null): string[] {
  */
 export function bouwWeekmail(dag: Date, invoer: WeekmailInvoer): Weekmail {
   const datum = datumLang(dag)
-  const { afgerondeTaken, finance, koudeContacten: koud } = invoer
+  const { afgerondeTaken, koudeContacten: koud } = invoer
   const afhaak = invoer.afhaak ?? []
   const zelf = zelfRegels(invoer.zelf)
 
@@ -166,21 +146,6 @@ export function bouwWeekmail(dag: Date, invoer: WeekmailInvoer): Weekmail {
         ...(takenRest > 0 ? [`- en nog ${takenRest} meer`] : []),
       ]
     : ['AFGEROND', 'Niets afgevinkt deze week. Dat zegt iets over het logboek, niet over je week.']
-
-  // Niets gelogd deze maand? Dan geen rij nullen die leest als "je verdiende niets".
-  const financeLeeg = finance !== null && finance.aantalTransacties === 0 && finance.openstaand === 0
-  const tekstFinance = financeLeeg && finance
-    ? ['', `FINANCE (${finance.maandLabel})`, `Nog niets vastgelegd in ${finance.maandLabel}.`]
-    : finance
-    ? [
-        '',
-        `FINANCE (${finance.maandLabel})`,
-        `- Omzet: ${euro(finance.omzet)}`,
-        `- Kosten: ${euro(finance.kosten)}`,
-        `- Winst: ${euro(finance.winst)}`,
-        `- Openstaand: ${euro(finance.openstaand)}${finance.verlopenAantal > 0 ? ` (${finance.verlopenAantal} over de vervaldatum)` : ''}`,
-      ]
-    : []
 
   const tekstKoud = koud.length
     ? [
@@ -204,7 +169,7 @@ export function bouwWeekmail(dag: Date, invoer: WeekmailInvoer): Weekmail {
 
   const tekstZelf = zelf.length ? ['', 'VAN LIFEOS ZELF', ...zelf.map((r) => `- ${r}`)] : []
 
-  const tekst = [`Je week — terugblik ${datum}`, '', ...tekstAfgerond, ...tekstFinance, ...tekstAfhaak, ...tekstKoud, ...tekstZelf].join(
+  const tekst = [`Je week — terugblik ${datum}`, '', ...tekstAfgerond, ...tekstAfhaak, ...tekstKoud, ...tekstZelf].join(
     '\n',
   )
 
@@ -218,18 +183,6 @@ export function bouwWeekmail(dag: Date, invoer: WeekmailInvoer): Weekmail {
         .map((t) => `<li>${escape(t)}</li>`)
         .join('')}${takenRest > 0 ? `<li style="color:#5b6b86;">en nog ${takenRest} meer</li>` : ''}</ul>`
     : `${kop('Afgerond')}<p style="margin:6px 0 0;font-size:14px;color:#5b6b86;">Niets afgevinkt deze week — dat zegt iets over het logboek, niet over je week.</p>`
-
-  const financeHtml = financeLeeg && finance
-    ? `${kop(`Finance — ${finance.maandLabel}`)}<p style="margin:6px 0 0;font-size:14px;color:#5b6b86;">Nog niets vastgelegd in ${escape(finance.maandLabel)}.</p>`
-    : finance
-    ? `${kop(`Finance — ${finance.maandLabel}`)}
-      <table style="margin:6px 0 0;border-collapse:collapse;width:100%;font-size:14px;color:#0b1b3a;">
-        <tr><td style="padding:3px 0;color:#5b6b86;">Omzet</td><td style="padding:3px 0;text-align:right;font-variant-numeric:tabular-nums;">${euro(finance.omzet)}</td></tr>
-        <tr><td style="padding:3px 0;color:#5b6b86;">Kosten</td><td style="padding:3px 0;text-align:right;font-variant-numeric:tabular-nums;">${euro(finance.kosten)}</td></tr>
-        <tr><td style="padding:3px 0;font-weight:600;">Winst</td><td style="padding:3px 0;text-align:right;font-weight:600;font-variant-numeric:tabular-nums;color:#0a7c8a;">${euro(finance.winst)}</td></tr>
-        <tr><td style="padding:3px 0;color:#5b6b86;">Openstaand</td><td style="padding:3px 0;text-align:right;font-variant-numeric:tabular-nums;">${euro(finance.openstaand)}${finance.verlopenAantal > 0 ? ` <span style="color:#0a7c8a;">(${finance.verlopenAantal} te laat)</span>` : ''}</td></tr>
-      </table>`
-    : ''
 
   const koudHtml = koud.length
     ? `${kop('Verwaterend contact')}
@@ -259,7 +212,6 @@ export function bouwWeekmail(dag: Date, invoer: WeekmailInvoer): Weekmail {
     <h1 style="margin:0 0 4px;font-size:20px;color:#0b1b3a;">${escape(datum)}</h1>
     <p style="margin:0 0 8px;font-size:13px;color:#8a97ad;">De afgelopen zeven dagen op een rij.</p>
     ${afgerondHtml}
-    ${financeHtml}
     ${afhaakHtml}
     ${koudHtml}
     ${zelfHtml}

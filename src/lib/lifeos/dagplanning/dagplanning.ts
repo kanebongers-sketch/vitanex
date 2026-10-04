@@ -82,7 +82,7 @@ export function bouwDagplanningMail(
   todos: readonly DagTodo[] = [],
   /** Vita's observaties voor vandaag ("wat opvalt"). Leeg = geen Vita-sectie. */
   vitaSignalen: readonly string[] = [],
-  /** Cross-domein aandachtspunten (CRM-opvolging, facturen). Leeg = geen sectie. */
+  /** Cross-domein aandachtspunten (CRM-opvolging, PT, inbox). Leeg = geen sectie. */
   aandacht: readonly Aandachtspunt[] = [],
   /** Wat LifeOS het afgelopen etmaal zelf deed. Leeg = geen sectie. */
   automatisch: readonly string[] = [],
@@ -158,7 +158,7 @@ export function bouwDagplanningMail(
     <h2 style="margin:24px 0 0;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:#5b6b86;">Je to-do’s</h2>
     ${todoLijst}`
 
-  // ── Vraagt je aandacht ── (cross-domein: CRM-opvolging + facturen)
+  // ── Vraagt je aandacht ── (cross-domein: CRM-opvolging + PT + inbox)
   const aandachtHtml = aandacht.length
     ? `
     <h2 style="margin:24px 0 0;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:#5b6b86;">Vraagt je aandacht</h2>

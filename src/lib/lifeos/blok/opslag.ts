@@ -9,7 +9,7 @@
 // KRITIEK: die client omzeilt RLS. Elke query die een gebruiker kent filtert
 // daarom ZELF op `user_id` — zonder die filter zou een geraden id de rij van een
 // ander raken. Single-tenant maakt dat vandaag theoretisch, maar dit is de regel
-// die je niet één keer mag vergeten (zie `finance/opslag.ts`).
+// die je niet één keer mag vergeten (zie `crm/fout.ts`).
 //
 // ─── DE GRENS BIJ `training_id` — lees dit voor je een route schrijft ────────
 // `haalSets()` en `logSet()` krijgen alleen een `trainingId` mee, geen userId: ze
@@ -94,7 +94,7 @@ function foutCode(error: unknown): string | null {
 /**
  * Postgres-fout → onze reden. Alles wat de aanroeper fout deed wordt 'ongeldig'
  * (→ 400); alleen een echte storing blijft 'db' (→ 502). Zelfde indeling als
- * `finance/opslag.ts` en `crm/fout.ts`, zodat de routes één mapping hebben.
+ * `crm/fout.ts`, zodat de routes één mapping hebben.
  */
 function vertaalFout(error: unknown): Reden {
   const code = foutCode(error)
