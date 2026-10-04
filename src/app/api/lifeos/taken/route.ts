@@ -15,6 +15,8 @@ import { vereisLifeosToegang } from '@/lib/lifeos/admin'
 import { leesNieuweTaak } from '@/lib/lifeos/taken/taken'
 import { haalTaken, maakTaak, type Reden } from '@/lib/lifeos/taken/opslag'
 import { leesDatumSleutel } from '@/lib/lifeos/datum/datum'
+import { isHerhaalRegel } from '@/lib/lifeos/taken/herhaling'
+import { zetHerhaling } from '@/lib/lifeos/taken/herhaling-opslag'
 
 // Geen max-age hier, anders dan bij de agenda: je taken veranderen terwijl je
 // kijkt. Een top-3 die na een reload nog de oude stand toont, is erger dan een
@@ -88,8 +90,21 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ fout: nieuw.fout }, { status: 400 })
   }
 
+  // Optioneel een herhaalregel ("elke week"). Onbekende waarde = een fout van de
+  // client, niet stil negeren: anders denk je dat hij herhaalt terwijl dat niet zo is.
+  const herhalingRuw = typeof body === 'object' && body !== null ? (body as { herhaling?: unknown }).herhaling : undefined
+  if (herhalingRuw !== undefined && herhalingRuw !== null && !isHerhaalRegel(herhalingRuw)) {
+    return NextResponse.json({ fout: 'Onbekende herhaling.' }, { status: 400 })
+  }
+
   const uitkomst = await maakTaak(toegang.admin, toegang.userId, nieuw.waarde)
   if (!uitkomst.ok) return foutAntwoord(uitkomst.reden)
 
-  return NextResponse.json({ taak: uitkomst.waarde }, { status: 201 })
+  let waarschuwing: string | null = null
+  if (isHerhaalRegel(herhalingRuw)) {
+    const gezet = await zetHerhaling(toegang.admin, toegang.userId, uitkomst.waarde.id, herhalingRuw)
+    if (!gezet.ok) waarschuwing = gezet.melding
+  }
+
+  return NextResponse.json({ taak: uitkomst.waarde, waarschuwing }, { status: 201 })
 }

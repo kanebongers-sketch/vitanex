@@ -1,11 +1,18 @@
 'use client'
 
 import { useId, useMemo, useState, type FormEvent } from 'react'
-import { CalendarDays, Flag, Plus, Tag } from 'lucide-react'
+import { CalendarDays, Flag, Plus, Repeat, Tag } from 'lucide-react'
 import { Foutmelding } from '@/components/lifeos/os/Foutmelding'
-import { haalJson, leesNiets } from '@/lib/lifeos/api/http'
+import { haalJson, isObject } from '@/lib/lifeos/api/http'
 import { meldWijziging } from '@/lib/lifeos/events'
 import { leesSnelleTaak } from '@/lib/lifeos/taken/snelinvoer'
+import { HERHAAL_LABEL } from '@/lib/lifeos/taken/herhaling'
+
+/** Het antwoord van POST /api/lifeos/taken: alleen de waarschuwing hebben we hier nodig. */
+function leesWaarschuwing(ruw: unknown): { waarschuwing: string | null } | null {
+  if (!isObject(ruw)) return null
+  return { waarschuwing: typeof ruw.waarschuwing === 'string' ? ruw.waarschuwing : null }
+}
 
 // Eén regel, zoals je het zegt: "morgen Ruben bellen #werk". Terwijl je typt zie je
 // wat LifeOS ervan maakt (dag + categorie); Enter en hij staat erin. Gedeeld door
@@ -42,13 +49,14 @@ export function SnelInvoer({ onToegevoegd, autoFocus = false }: Props) {
     if (!voorbeeld || bezig) return
     setBezig(true)
     setFout(null)
-    const uitkomst = await haalJson('/api/lifeos/taken', leesNiets, {
+    const uitkomst = await haalJson('/api/lifeos/taken', leesWaarschuwing, {
       method: 'POST',
       body: JSON.stringify({
         titel: voorbeeld.titel,
         datum: voorbeeld.datum,
         deadline: voorbeeld.deadline,
         categorie: voorbeeld.categorie,
+        herhaling: voorbeeld.herhaling,
       }),
     })
     setBezig(false)
@@ -57,6 +65,8 @@ export function SnelInvoer({ onToegevoegd, autoFocus = false }: Props) {
       return
     }
     setTekst('')
+    // De taak staat erin; lukte alleen de herhaling niet, zeg dat dan wél.
+    if (uitkomst.waarde.waarschuwing) setFout(uitkomst.waarde.waarschuwing)
     meldWijziging('taken')
     onToegevoegd?.(voorbeeld.titel)
   }
@@ -96,6 +106,11 @@ export function SnelInvoer({ onToegevoegd, autoFocus = false }: Props) {
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
               <CalendarDays size={12} aria-hidden /> {voorbeeld.datum ? dagLabel(voorbeeld.datum) : 'Ooit'}
             </span>
+            {voorbeeld.herhaling ? (
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                <Repeat size={12} aria-hidden /> {HERHAAL_LABEL[voorbeeld.herhaling]}
+              </span>
+            ) : null}
             {voorbeeld.deadline ? (
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                 <Flag size={12} aria-hidden /> uiterlijk {dagLabel(voorbeeld.deadline)}
@@ -108,7 +123,7 @@ export function SnelInvoer({ onToegevoegd, autoFocus = false }: Props) {
             ) : null}
           </>
         ) : (
-          'Dag, “vóór vr” en #categorie mag je er gewoon in typen.'
+          'Dag, “vóór vr”, “elke ma” en #categorie mag je er gewoon in typen.'
         )}
       </p>
       {fout ? <Foutmelding bericht={fout} /> : null}

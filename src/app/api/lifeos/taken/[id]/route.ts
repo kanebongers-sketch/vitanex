@@ -11,6 +11,8 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { vereisLifeosToegang } from '@/lib/lifeos/admin'
 import { leesTaakWijziging } from '@/lib/lifeos/taken/taken'
 import { verwijderTaak, wijzigTaak, type Reden } from '@/lib/lifeos/taken/opslag'
+import { maakVolgendeKeer } from '@/lib/lifeos/taken/herhaling-opslag'
+import { dagVan } from '@/lib/lifeos/blokken/tijd'
 
 interface Context {
   // Next 16: params is een Promise. Zie node_modules/next/dist/docs →
@@ -52,7 +54,13 @@ export async function PATCH(req: NextRequest, ctx: Context) {
   const uitkomst = await wijzigTaak(toegang.admin, toegang.userId, id, wijziging.waarde)
   if (!uitkomst.ok) return foutAntwoord(uitkomst.reden)
 
-  return NextResponse.json({ taak: uitkomst.waarde })
+  // Afgevinkt en herhalend? Dan staat de volgende keer meteen klaar.
+  const volgende =
+    wijziging.waarde.klaar === true
+      ? await maakVolgendeKeer(toegang.admin, toegang.userId, uitkomst.waarde, dagVan(new Date()))
+      : null
+
+  return NextResponse.json({ taak: uitkomst.waarde, volgende })
 }
 
 export async function DELETE(req: NextRequest, ctx: Context) {

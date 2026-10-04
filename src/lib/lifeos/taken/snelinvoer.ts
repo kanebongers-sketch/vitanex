@@ -6,11 +6,16 @@
 //             · volgende week (= maandag) · volgende week vrijdag · 3/10 · 3-10 · 3 okt
 //   Deadline  "vóór/voor/uiterlijk/deadline" + een dag: "offerte vóór vr" zet de
 //             deadline, niet de geplande dag. Beide mag: "morgen offerte vóór vr".
+//   Herhaling elke dag/werkdag/week/maand · elke 2 weken · dagelijks/wekelijks/
+//             maandelijks · elke maandag (ook "elke ma": na "elke" is het geen gewoon woord)
 //   Categorie #woord (het eerste #woord; hoofdletter vooraan)
 //
 // Herkennen we niets, dan blijft de hele tekst de titel en is de taak "ooit". Een
 // weekdag betekent de eerstvolgende keer, vandaag inbegrepen ("vrijdag" op vrijdag
 // = vandaag). Een datum in het verleden van dit jaar schuift naar volgend jaar.
+// Een herhalende taak zonder dag begint vandaag (anders herhaalt hij "ooit").
+
+import type { HerhaalRegel } from './herhaling'
 
 export interface SnelleTaak {
   titel: string
@@ -19,10 +24,24 @@ export interface SnelleTaak {
   /** YYYY-MM-DD of null: wanneer het uiterlijk af moet. */
   deadline: string | null
   categorie: string | null
+  /** Herhaalregel, of null als de taak één keer is. */
+  herhaling: HerhaalRegel | null
 }
 
 /** Woorden die van de dag erna een deadline maken. */
 const DEADLINE_WOORDEN = '(?:vóór|voor|uiterlijk|deadline)'
+
+/** Vaste herhaal-uitdrukkingen (zonder weekdag). Langste eerst, zodat "elke werkdag" niet als "elke dag"… */
+const HERHAAL_UITDRUKKINGEN: [RegExp, HerhaalRegel][] = [
+  [/(^|\s)(elke werkdag)(?=\s|$)/i, 'werkdagen'],
+  [/(^|\s)(elke 2 weken|om de week|tweewekelijks)(?=\s|$)/i, 'tweewekelijks'],
+  [/(^|\s)(elke dag|dagelijks)(?=\s|$)/i, 'dagelijks'],
+  [/(^|\s)(elke week|wekelijks)(?=\s|$)/i, 'wekelijks'],
+  [/(^|\s)(elke maand|maandelijks)(?=\s|$)/i, 'maandelijks'],
+]
+
+/** Na "elke" mogen ook "ma" en "zo": "elke ma" kan niets anders betekenen. */
+const ELKE_WEEKDAG: Record<string, number> = { zo: 0, ma: 1 }
 
 const WEEKDAGEN: Record<string, number> = {
   // Geen "ma" en "zo": dat zijn ook gewone woorden ("ma bellen", "zo snel mogelijk").
@@ -101,6 +120,28 @@ function vindDag(tekst: string, vandaag: Date, alsDeadline: boolean): Treffer | 
   return null
 }
 
+interface HerhaalTreffer {
+  regel: HerhaalRegel
+  /** Bij "elke maandag": de eerstvolgende maandag (vandaag inbegrepen). */
+  datum: Date | null
+  patroon: RegExp
+}
+
+function vindHerhaling(tekst: string, vandaag: Date): HerhaalTreffer | null {
+  const weekdagen = { ...WEEKDAGEN, ...ELKE_WEEKDAG }
+  const namen = Object.keys(weekdagen).sort((a, b) => b.length - a.length).join('|')
+  const elkeDag = new RegExp(`(^|\\s)elke (${namen})(?=\\s|$)`, 'i')
+  const m = tekst.match(elkeDag)
+  if (m) {
+    const doel = weekdagen[m[2].toLowerCase()]
+    return { regel: 'wekelijks', datum: plus(vandaag, (doel - vandaag.getDay() + 7) % 7), patroon: elkeDag }
+  }
+  for (const [patroon, regel] of HERHAAL_UITDRUKKINGEN) {
+    if (patroon.test(tekst)) return { regel, datum: null, patroon }
+  }
+  return null
+}
+
 export function leesSnelleTaak(invoer: string, vandaag: Date): SnelleTaak {
   let tekst = ` ${invoer.trim()} `
 
@@ -109,6 +150,17 @@ export function leesSnelleTaak(invoer: string, vandaag: Date): SnelleTaak {
   if (hash) {
     categorie = hash[2].charAt(0).toUpperCase() + hash[2].slice(1)
     tekst = tekst.replace(hash[0], ' ')
+  }
+
+  // Herhaling eerst: anders ziet de dag-zoeker "maandag" in "elke maandag" als
+  // een losse dag en blijft "elke" in de titel staan.
+  let herhaling: HerhaalRegel | null = null
+  let herhaalDag: Date | null = null
+  const herhaal = vindHerhaling(tekst, vandaag)
+  if (herhaal) {
+    herhaling = herhaal.regel
+    herhaalDag = herhaal.datum
+    tekst = tekst.replace(herhaal.patroon, ' ')
   }
 
   // Eerst de deadline, dan pas de geplande dag: anders ziet de dag-zoeker het
@@ -127,8 +179,12 @@ export function leesSnelleTaak(invoer: string, vandaag: Date): SnelleTaak {
     tekst = tekst.replace(dag.patroon, ' ')
   }
 
+  // Een herhalende taak heeft een eerste keer nodig: de weekdag uit "elke maandag",
+  // anders een losse dag die je noemde, anders vandaag.
+  if (herhaling !== null && datum === null) datum = sleutel(herhaalDag ?? plus(vandaag, 0))
+
   const titel = tekst.replace(/\s+/g, ' ').trim()
   // Alleen een dag of categorie, zonder titel? Dan was het geen dag maar de taak zelf.
-  if (!titel) return { titel: invoer.trim(), datum: null, deadline: null, categorie: null }
-  return { titel: titel.charAt(0).toUpperCase() + titel.slice(1), datum, deadline, categorie }
+  if (!titel) return { titel: invoer.trim(), datum: null, deadline: null, categorie: null, herhaling: null }
+  return { titel: titel.charAt(0).toUpperCase() + titel.slice(1), datum, deadline, categorie, herhaling }
 }
