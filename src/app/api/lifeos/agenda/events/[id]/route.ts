@@ -11,6 +11,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { vereisLifeosToegang } from '@/lib/lifeos/admin'
 import { leesGekozenKalender } from '@/lib/lifeos/agenda/koppeling'
+import { kalenderVanEvent } from '@/lib/lifeos/agenda/opslag'
 import {
   leesEventPatch,
   schrijfFoutHttp,
@@ -36,7 +37,9 @@ export async function PATCH(req: NextRequest, ctx: Context) {
     return NextResponse.json({ fout: patch.fout }, { status: 400 })
   }
 
-  const kalenderId = await leesGekozenKalender(toegang.admin, toegang.userId)
+  // De agenda waar het event écht in staat; onbekend → je schrijf-agenda.
+  const kalenderId =
+    (await kalenderVanEvent(toegang.admin, toegang.userId, id)) ?? (await leesGekozenKalender(toegang.admin, toegang.userId))
 
   try {
     const event = await wijzigAgendaEvent(toegang.admin, toegang.userId, id, patch.waarde, kalenderId)
@@ -54,7 +57,9 @@ export async function DELETE(req: NextRequest, ctx: Context) {
 
   const { id } = await ctx.params
 
-  const kalenderId = await leesGekozenKalender(toegang.admin, toegang.userId)
+  // De agenda waar het event écht in staat; onbekend → je schrijf-agenda.
+  const kalenderId =
+    (await kalenderVanEvent(toegang.admin, toegang.userId, id)) ?? (await leesGekozenKalender(toegang.admin, toegang.userId))
 
   try {
     await verwijderAgendaEvent(toegang.admin, toegang.userId, id, kalenderId)

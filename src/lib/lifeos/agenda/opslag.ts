@@ -279,6 +279,28 @@ async function ruimVerdwenenOp(
   return { ok: true, waarde: null }
 }
 
+/**
+ * In welke Google-agenda staat dit event? Uit de cache, of null als we het niet
+ * weten (nog niet gesynct, of via de schrijf-flow gemaakt). Wijzigen en
+ * verwijderen moeten naar díé agenda — niet naar je schrijf-agenda, anders geeft
+ * Google 404 op een afspraak die in een andere zichtbare agenda staat.
+ */
+export async function kalenderVanEvent(admin: SupabaseClient, userId: string, externId: string): Promise<string | null> {
+  const { data, error } = await admin
+    .from('agenda_events')
+    .select('kalender_id')
+    .eq('user_id', userId)
+    .eq('bron', GOOGLE_CALENDAR)
+    .eq('extern_id', externId)
+    .maybeSingle()
+  if (error) {
+    console.error('[agenda] kalender van event opzoeken mislukt', error)
+    return null
+  }
+  const id = (data as { kalender_id?: unknown } | null)?.kalender_id
+  return typeof id === 'string' && id.length > 0 ? id : null
+}
+
 /** Systeemgrens: één cache-rij → {externId, kalenderId, bijgewerktOp}, of null als onbruikbaar. */
 function cacheRijRefUitRij(rij: unknown): CacheRijRef | null {
   if (typeof rij !== 'object' || rij === null) return null
