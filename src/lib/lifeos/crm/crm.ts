@@ -7,6 +7,8 @@
 // PUUR: geen fetch, geen DB, geen React. De validatie hieronder is de systeemgrens
 // (user input) en is zo testbaar zonder database. Zelfde opzet als `taken.ts`.
 
+import { leesDatumSleutel } from '@/lib/lifeos/datum/datum'
+
 export type Groep = 'pt_klant' | 'budel_team' | 'pt_team' | 'management' | 'marketing'
 
 export const GROEPEN: readonly Groep[] = Object.freeze(['pt_klant', 'budel_team', 'pt_team', 'management', 'marketing'])
@@ -237,7 +239,9 @@ function leesOptioneleTekst(v: unknown, wat: string, max: number): Validatie<str
 function leesDatum(v: unknown): Validatie<string | null> {
   if (v === null || v === undefined) return { ok: true, waarde: null }
   if (typeof v !== 'string') return { ok: false, fout: 'Datum moet YYYY-MM-DD zijn.' }
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(v)) return { ok: false, fout: 'Datum moet YYYY-MM-DD zijn.' }
+  // Vorm én kalender: 2026-02-30 is geen dag. Postgres zou hem weigeren met een
+  // 502 als gevolg; hier wordt het een leesbare 400.
+  if (leesDatumSleutel(v) === null) return { ok: false, fout: 'Datum moet een bestaande dag zijn (YYYY-MM-DD).' }
   return { ok: true, waarde: v }
 }
 

@@ -73,6 +73,15 @@ export async function haalEvaluaties(
   return { ok: true, waarde: (Array.isArray(data) ? (data as Rij[]) : []).map(vanRij) }
 }
 
+/**
+ * Bovengrens voor de "laatste per persoon"-queries. Coachgesprekken zijn
+ * 2-wekelijks (~26 per jaar per persoon): een jaar per persoon is ruim genoeg om
+ * de laatste twee van iedereen te vinden, zonder elk jaar de hele historie te lezen.
+ */
+function evaluatieLimiet(personen: number): number {
+  return Math.max(50, personen * 26)
+}
+
 /** De laatste evaluatie per persoon (voor het team-overzicht). Fout → leeg: dan geen "vorige keer". */
 export async function haalLaatsteEvaluaties(
   admin: SupabaseClient,
@@ -87,6 +96,7 @@ export async function haalLaatsteEvaluaties(
     .eq('user_id', userId)
     .in('persoon_id', persoonIds)
     .order('aangemaakt_op', { ascending: false })
+    .limit(evaluatieLimiet(persoonIds.length))
   if (error || !Array.isArray(data)) return uit
   for (const r of data as (Rij & { persoon_id: string })[]) {
     if (!uit.has(r.persoon_id)) uit.set(r.persoon_id, vanRij(r))
@@ -109,6 +119,7 @@ export async function haalRecenteEvaluaties(
     .eq('user_id', userId)
     .in('persoon_id', persoonIds)
     .order('aangemaakt_op', { ascending: false })
+    .limit(evaluatieLimiet(persoonIds.length))
   if (error || !Array.isArray(data)) return uit
   for (const r of data as (Rij & { persoon_id: string })[]) {
     const lijst = uit.get(r.persoon_id) ?? []
