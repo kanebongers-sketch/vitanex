@@ -38,8 +38,15 @@ describe('mailNaarTaak', () => {
     expect(mailNaarTaak(mail({ onderwerp: 'Offerte personal training' }))).toMatchObject({ soort: 'offerte', deadline: '2026-10-04' })
   })
 
-  test('gelezen, reclame, geen actie, agenda-melding of eigen mail → geen taak', () => {
-    expect(mailNaarTaak(mail({ labels: ['INBOX'] }))).toBeNull()
+  test('gelezen mail telt gewoon mee (je leest op je telefoon)', () => {
+    expect(mailNaarTaak(mail({ labels: ['INBOX'] }))?.soort).toBe('reageren')
+  })
+
+  test('hypotheekofferte is een offerte', () => {
+    expect(mailNaarTaak(mail({ onderwerp: 'Uw hypotheekofferte' }))?.soort).toBe('offerte')
+  })
+
+  test('reclame, geen actie, agenda-melding of eigen mail → geen taak', () => {
     expect(mailNaarTaak(mail({ labels: ['UNREAD', 'CATEGORY_PROMOTIONS'], onderwerp: 'Factuur korting!' }))).toBeNull()
     expect(mailNaarTaak(mail({}, false))).toBeNull()
     expect(mailNaarTaak(mail({ onderwerp: 'Uitnodiging: Coachgesprek @ do 2 okt' }))).toBeNull()

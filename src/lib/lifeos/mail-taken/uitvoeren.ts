@@ -1,16 +1,18 @@
 // ─── LifeOS — mail → to-do, en weer afvinken (SERVER-ONLY) ──────────────────
 // Draait na elke agenda-sync (elk half uur overdag):
-//   1. Nieuwe, ongelezen mail die iets van je vraagt → een taak met een logische
-//      deadline (regels in `regels.ts`). Elke mail hoogstens één keer, en per
-//      gesprek hoogstens één open taak.
+//   1. Gesprekken die op jou wachten (laatste bericht van een ander, nog in je
+//      inbox — gelezen of niet, zie `gesprekken.ts`) en iets van je vragen → een
+//      taak met een logische deadline (`regels.ts`). Elk bericht hoogstens één
+//      keer, en per gesprek hoogstens één open taak.
 //   2. Heb je inmiddels gereageerd (een verstuurd bericht in de thread), dan vinkt
 //      LifeOS de "Reageren op …"-taak af. Facturen niet: betalen zie je niet in Gmail.
 // LifeOS leest alleen afzender + onderwerp, nooit de inhoud (zie `inbox/gmail.ts`).
 
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { geldigToken } from '@/lib/lifeos/inbox/koppeling'
-import { haalProfiel, haalTriageMails } from '@/lib/lifeos/inbox/gmail'
-import { triageer } from '@/lib/lifeos/inbox/classificeer'
+import { haalProfiel } from '@/lib/lifeos/inbox/gmail'
+import { classificeer } from '@/lib/lifeos/inbox/classificeer'
+import { haalWachtendeGesprekken } from './gesprekken'
 import { maakTaak, wijzigTaak } from '@/lib/lifeos/taken/opslag'
 import { mailNaarTaak, type MailTaakVoorstel } from './regels'
 import { antwoordInThread } from './thread'
@@ -25,13 +27,15 @@ export interface MailTakenUitkomst {
   afgevinkt: string[]
 }
 
-async function eigenAdressen(token: string): Promise<Set<string>> {
+/** Je eigen adressen, plus het Gmail-adres zelf (nodig voor "stond ik in de aan?"). */
+async function eigenAdressen(token: string): Promise<{ eigen: Set<string>; mijnAdres: string | null }> {
   const eigen = new Set<string>()
   const ingesteld = process.env.LIFEOS_DAGPLANNING_MAIL?.trim().toLowerCase()
   if (ingesteld) eigen.add(ingesteld)
   const profiel = await haalProfiel(token).catch(() => null)
-  if (profiel?.staat === 'ok') eigen.add(profiel.adres.toLowerCase())
-  return eigen
+  const mijnAdres = profiel?.staat === 'ok' ? profiel.adres.toLowerCase() : null
+  if (mijnAdres) eigen.add(mijnAdres)
+  return { eigen, mijnAdres }
 }
 
 /**
@@ -94,20 +98,21 @@ async function maakMailTaak(admin: SupabaseClient, userId: string, v: MailTaakVo
 }
 
 async function nieuweTaken(admin: SupabaseClient, userId: string, token: string): Promise<string[]> {
-  const gelezen = await haalTriageMails(token)
-  if (gelezen.staat !== 'ok') return []
+  const { eigen, mijnAdres } = await eigenAdressen(token)
+  // Zonder je eigen adres kun je "aan mij" niet beoordelen: dan liever niets.
+  if (!mijnAdres) return []
+  const wachtend = await haalWachtendeGesprekken(token, mijnAdres)
+  if (wachtend === null) return []
   const al = await bekend(
     admin,
     userId,
-    gelezen.mails.map((m) => m.id),
-    [...new Set(gelezen.mails.map((m) => m.threadId).filter((t): t is string => !!t))],
+    wachtend.map((m) => m.id),
+    [...new Set(wachtend.map((m) => m.threadId).filter((t): t is string => !!t))],
   )
   if (al === null) return []
-  const eigen = await eigenAdressen(token)
 
-  const triage = triageer(gelezen.mails)
-  const voorstellen = [...triage.vraagtActie, ...triage.overige]
-    .map((b) => mailNaarTaak(b, eigen))
+  const voorstellen = wachtend
+    .map((mail) => mailNaarTaak({ mail, oordeel: classificeer(mail) }, eigen))
     .filter((v): v is MailTaakVoorstel => v !== null && !al.berichten.has(v.berichtId) && !al.openThreads.has(v.threadId))
     // Oudste eerst: wie het langst wacht, staat het eerst op je lijst.
     .sort((a, b) => a.ontvangenOp.getTime() - b.ontvangenOp.getTime())

@@ -35,7 +35,8 @@ export interface MailTaakVoorstel {
 
 const FACTUUR = /\b(factuur|facturen|invoice|betaling|betaalverzoek|aanmaning|herinnering\s+betaling|openstaand)\b/i
 const AANMANING = /\b(aanmaning|herinnering|reminder|achterstallig)\b/i
-const OFFERTE = /\b(offerte|contract|overeenkomst|voorstel|samenwerking|ondertekenen|tekenen)\b/i
+// "offerte" ook in samenstellingen: "hypotheekofferte", "offerteaanvraag".
+const OFFERTE = /(offerte|\b(contract|overeenkomst|voorstel|samenwerking|ondertekenen|tekenen)\b)/i
 const DRINGEND = /\b(dringend|urgent|spoed|asap)\b/i
 /** Gmail-categorieën die nooit een taak worden, ook niet met "factuur" erin. */
 const RECLAME = new Set(['CATEGORY_PROMOTIONS', 'CATEGORY_SOCIAL', 'CATEGORY_FORUMS'])
@@ -68,14 +69,15 @@ function naamVan(m: BeoordeeldeMail['mail']): string {
 const DATUM = new Intl.DateTimeFormat('nl-NL', { day: 'numeric', month: 'long', timeZone: 'Europe/Amsterdam' })
 
 /**
- * Wordt deze mail een taak? Alleen ONGELEZEN post:
- *   - die volgens de triage iets van je vraagt (direct aan jou, geen bulk), of
+ * Wordt deze mail een taak? Het bericht wacht op jou (dat bepaalt
+ * `gesprekken.ts`: laatste in het gesprek, van een ander, nog in je inbox —
+ * gelezen of niet, want je leest op je telefoon). Daarnaast moet het:
+ *   - volgens de triage iets van je vragen (direct aan jou, geen bulk), of
  *   - met een factuur in het onderwerp — die komt vaak van een no-reply-adres
  *     en valt dan door de triage, maar moet wél betaald.
  */
 export function mailNaarTaak(b: BeoordeeldeMail, eigen: ReadonlySet<string> = new Set()): MailTaakVoorstel | null {
   const m = b.mail
-  if (!m.labels.includes('UNREAD')) return null
   if (m.labels.some((l) => RECLAME.has(l))) return null
   if (isEigen(m.afzenderAdres, m.afzenderNaam, eigen)) return null
 
