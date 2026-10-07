@@ -32,11 +32,18 @@ function obj(v: unknown): Record<string, unknown> | null {
   return typeof v === 'object' && v !== null && !Array.isArray(v) ? (v as Record<string, unknown>) : null
 }
 
+/** Een gesprek dat op jou wacht: het laatste bericht, en of jij eerder in dit gesprek mailde. */
+export interface Wachtend {
+  mail: MailMeta
+  /** Jij stuurde eerder al een bericht in dit gesprek: een echte correspondentie. */
+  inGesprek: boolean
+}
+
 /**
- * Het threads.get-antwoord → het laatste bericht als `MailMeta`, alléén als het op
- * jou wacht (van een ander, nog in je inbox). Anders null. Puur en getest.
+ * Het threads.get-antwoord → het laatste bericht, alléén als het op jou wacht (van
+ * een ander, nog in je inbox). Anders null. Puur en getest.
  */
-export function wachtOpJou(ruw: unknown, mijnAdres: string): MailMeta | null {
+export function wachtOpJou(ruw: unknown, mijnAdres: string): Wachtend | null {
   const thread = obj(ruw)
   const berichten = Array.isArray(thread?.messages) ? thread.messages : []
   const echt = berichten
@@ -63,7 +70,8 @@ export function wachtOpJou(ruw: unknown, mijnAdres: string): MailMeta | null {
     const o = obj(h)
     return o && typeof o.name === 'string' && typeof o.value === 'string' ? [{ name: o.name, value: o.value }] : []
   })
-  return leesMailMeta(id, threadId, headers, labels, new Date(ms), mijnAdres)
+  const inGesprek = echt.some((b) => Array.isArray(b.labelIds) && b.labelIds.includes('SENT'))
+  return { mail: leesMailMeta(id, threadId, headers, labels, new Date(ms), mijnAdres), inGesprek }
 }
 
 async function haal(url: string, token: string): Promise<unknown> {
@@ -73,7 +81,7 @@ async function haal(url: string, token: string): Promise<unknown> {
 }
 
 /** De gesprekken in je inbox waarvan het laatste bericht op jou wacht. Fout → null (dan deze ronde niets). */
-export async function haalWachtendeGesprekken(token: string, mijnAdres: string): Promise<MailMeta[] | null> {
+export async function haalWachtendeGesprekken(token: string, mijnAdres: string): Promise<Wachtend[] | null> {
   try {
     const lijst = obj(await haal(`${BERICHTEN}?${new URLSearchParams({ q: ZOEK, maxResults: String(MAX_BERICHTEN) })}`, token))
     const berichten = Array.isArray(lijst?.messages) ? lijst.messages : []
@@ -81,7 +89,7 @@ export async function haalWachtendeGesprekken(token: string, mijnAdres: string):
 
     const params = new URLSearchParams({ format: 'METADATA' })
     for (const h of HEADERS) params.append('metadataHeaders', h)
-    const uit: MailMeta[] = []
+    const uit: Wachtend[] = []
     for (let i = 0; i < threads.length; i += BLOK) {
       const blok = await Promise.all(
         threads.slice(i, i + BLOK).map((t) => haal(`${THREADS}/${encodeURIComponent(t)}?${params}`, token).catch(() => null)),

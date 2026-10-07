@@ -14,7 +14,7 @@ import { haalProfiel } from '@/lib/lifeos/inbox/gmail'
 import { classificeer } from '@/lib/lifeos/inbox/classificeer'
 import { haalWachtendeGesprekken } from './gesprekken'
 import { maakTaak, wijzigTaak } from '@/lib/lifeos/taken/opslag'
-import { mailNaarTaak, type MailTaakVoorstel } from './regels'
+import { mailNaarTaak, persoonlijkOndanksBulk, type MailTaakVoorstel } from './regels'
 import { antwoordInThread } from './thread'
 
 const TABEL = 'mail_taken'
@@ -121,16 +121,23 @@ async function nieuweTaken(admin: SupabaseClient, userId: string, token: string)
   const al = await bekend(
     admin,
     userId,
-    wachtend.map((m) => m.id),
-    [...new Set(wachtend.map((m) => m.threadId).filter((t): t is string => !!t))],
+    wachtend.map((w) => w.mail.id),
+    [...new Set(wachtend.map((w) => w.mail.threadId).filter((t): t is string => !!t))],
   )
   if (al === null) return { nieuw: [], wachtend: wachtend.length, kandidaten: 0, fout: 'db' }
 
   const redenen: Record<string, number> = {}
   const tel = (r: string) => { redenen[r] = (redenen[r] ?? 0) + 1 }
   const voorstellen = wachtend
-    .map((mail) => {
-      const oordeel = classificeer(mail)
+    .map(({ mail, inGesprek }) => {
+      const triage = classificeer(mail)
+      // Afmeldlink/bulk is te grof voor persoonlijke mail van grote bedrijven, en voor
+      // een gesprek waarin jij al mailde. No-reply en "niet aan jou" blijven weg.
+      const bulkSignaal = mail.heeftAfmeldlink || (mail.precedence !== null && /^(bulk|list)$/i.test(mail.precedence))
+      const oordeel =
+        !triage.vraagtActie && bulkSignaal && persoonlijkOndanksBulk(mail, inGesprek)
+          ? { vraagtActie: true, reden: 'Persoonlijk ondanks afmeldlink' }
+          : triage
       const v = mailNaarTaak({ mail, oordeel }, eigen)
       if (!v) tel(oordeel.vraagtActie ? 'regels' : oordeel.reden.split(':')[0].slice(0, 40))
       return v

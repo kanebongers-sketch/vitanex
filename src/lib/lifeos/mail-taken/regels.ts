@@ -41,6 +41,14 @@ const DRINGEND = /\b(dringend|urgent|spoed|asap)\b/i
 /** Gmail-categorieën die nooit een taak worden, ook niet met "factuur" erin. */
 const RECLAME = new Set(['CATEGORY_PROMOTIONS', 'CATEGORY_SOCIAL', 'CATEGORY_FORUMS'])
 const MAX_TITEL = 110
+/** Automatische antwoorden: daar valt niets op te reageren. */
+const AUTO_ANTWOORD = /^(automatisch antwoord|automatic reply|auto(matic)?[- ]?reply|out of office|afwezig(heidsmelding)?\s*:)/i
+/**
+ * Onderwerpen die om actie vragen, óók als de afzender een afmeldlink meestuurt:
+ * grote bedrijven (bank, verzekeraar) mailen persoonlijke zaken via hetzelfde
+ * systeem als hun nieuwsbrief.
+ */
+const ACTIE_ONDERWERP = /(offerte|factuur|aanvraag|overeenkomst|contract|dossier|betaalverzoek)/i
 /** Agenda-meldingen: die regelt je agenda al, geen to-do. */
 const AGENDA_MELDING = /^(uitnodiging|bijgewerkte uitnodiging|invitation|updated invitation|geaccepteerd|accepted|afgewezen|declined|voorlopig|tentative|geannuleerd|canceled|cancelled)\b/i
 
@@ -82,7 +90,7 @@ export function mailNaarTaak(b: BeoordeeldeMail, eigen: ReadonlySet<string> = ne
   if (isEigen(m.afzenderAdres, m.afzenderNaam, eigen)) return null
 
   const onderwerp = schoonOnderwerp(m.onderwerp)
-  if (AGENDA_MELDING.test(onderwerp)) return null
+  if (AGENDA_MELDING.test(onderwerp) || AUTO_ANTWOORD.test(onderwerp)) return null
   const naam = naamVan(m)
   const ontvangen = dagVan(m.ontvangenOp)
   const isFactuur = FACTUUR.test(onderwerp)
@@ -131,4 +139,14 @@ export function mailNaarTaak(b: BeoordeeldeMail, eigen: ReadonlySet<string> = ne
     onderwerp: m.onderwerp,
     ontvangenOp: m.ontvangenOp,
   }
+}
+
+/**
+ * Is een mail die de triage als nieuwsbrief/bulk wegzette tóch persoonlijk? Ja als
+ * hij direct aan jou gericht is én (je mailde eerder in dit gesprek, of het
+ * onderwerp vraagt duidelijk om actie). No-reply-adressen blijven altijd weg.
+ */
+export function persoonlijkOndanksBulk(m: BeoordeeldeMail['mail'], inGesprek: boolean): boolean {
+  if (!m.aanMij) return false
+  return inGesprek || ACTIE_ONDERWERP.test(schoonOnderwerp(m.onderwerp))
 }

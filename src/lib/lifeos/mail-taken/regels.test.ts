@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { mailNaarTaak, schoonOnderwerp } from './regels'
+import { mailNaarTaak, persoonlijkOndanksBulk, schoonOnderwerp } from './regels'
 import type { BeoordeeldeMail, MailMeta } from '@/lib/lifeos/inbox/classificeer'
 
 const ONTVANGEN = new Date('2026-10-01T08:00:00Z') // do 1 okt
@@ -58,6 +58,21 @@ describe('mailNaarTaak', () => {
     const t = mailNaarTaak(mail({ onderwerp: 'a'.repeat(300) }))
     expect(t?.titel.length).toBeLessThanOrEqual(110)
     expect(t?.titel.endsWith('…')).toBe(true)
+  })
+})
+
+describe('persoonlijk ondanks afmeldlink', () => {
+  test('hypotheekofferte en aanvraag aan jou → ja; eerder gemaild in het gesprek → ja', () => {
+    expect(persoonlijkOndanksBulk(mail({ onderwerp: 'Hypotheekofferte met algemene voorwaarden' }).mail, false)).toBe(true)
+    expect(persoonlijkOndanksBulk(mail({ onderwerp: 'Uw aanvraag hypotheekbescherming' }).mail, false)).toBe(true)
+    expect(persoonlijkOndanksBulk(mail({ onderwerp: 'Tot zaterdag' }).mail, true)).toBe(true)
+  })
+  test('gewone nieuwsbrief of niet aan jou → nee', () => {
+    expect(persoonlijkOndanksBulk(mail({ onderwerp: 'Voorkom financiële zorgen' }).mail, false)).toBe(false)
+    expect(persoonlijkOndanksBulk(mail({ onderwerp: 'Uw offerte', aanMij: false }).mail, true)).toBe(false)
+  })
+  test('automatisch antwoord wordt nooit een taak', () => {
+    expect(mailNaarTaak(mail({ onderwerp: 'Automatisch antwoord: Uw aanvraag' }))).toBeNull()
   })
 })
 

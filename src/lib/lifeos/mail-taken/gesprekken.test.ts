@@ -9,7 +9,8 @@ function bericht(id: string, ms: number, labels: string[], from = 'Jan <jan@exam
 describe('wachtOpJou', () => {
   test('laatste bericht van een ander, in je inbox (ook al gelezen) → wacht op jou', () => {
     const m = wachtOpJou({ messages: [bericht('a', 1, ['INBOX']), bericht('b', 3, ['SENT'], IK, 'jan@example.nl'), bericht('c', 5, ['INBOX', 'IMPORTANT'])] }, IK)
-    expect(m).toMatchObject({ id: 'c', threadId: 't1', afzenderNaam: 'Jan', aanMij: true, onderwerp: 'Vraag over rooster' })
+    expect(m?.mail).toMatchObject({ id: 'c', threadId: 't1', afzenderNaam: 'Jan', aanMij: true, onderwerp: 'Vraag over rooster' })
+    expect(m?.inGesprek).toBe(true)
   })
   test('jij reageerde als laatste → niets', () => {
     expect(wachtOpJou({ messages: [bericht('a', 1, ['INBOX']), bericht('b', 3, ['SENT'], IK)] }, IK)).toBeNull()
@@ -19,7 +20,10 @@ describe('wachtOpJou', () => {
   })
   test('concepten tellen niet mee; volgorde op tijd, niet op lijst', () => {
     const m = wachtOpJou({ messages: [bericht('c', 5, ['INBOX']), bericht('d', 9, ['DRAFT']), bericht('a', 1, ['SENT'], IK)] }, IK)
-    expect(m?.id).toBe('c')
+    expect(m?.mail.id).toBe('c')
+  })
+  test('alleen berichten van anderen → niet in gesprek', () => {
+    expect(wachtOpJou({ messages: [bericht('a', 1, ['INBOX'])] }, IK)?.inGesprek).toBe(false)
   })
   test('onzin → null', () => {
     expect(wachtOpJou(null, IK)).toBeNull()
