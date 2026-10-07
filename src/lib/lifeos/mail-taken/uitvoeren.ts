@@ -25,6 +25,11 @@ const MAX_THREADS = 15
 export interface MailTakenUitkomst {
   nieuw: string[]
   afgevinkt: string[]
+  /** Hoeveel gesprekken op je reactie wachtten, en hoeveel daarvan een taak waard waren (voor het cron-antwoord). */
+  wachtend?: number
+  kandidaten?: number
+  /** Waarom er niets gelezen kon worden, als dat zo was. */
+  fout?: string
 }
 
 /** Je eigen adressen, plus het Gmail-adres zelf (nodig voor "stond ik in de aan?"). */
@@ -97,19 +102,26 @@ async function maakMailTaak(admin: SupabaseClient, userId: string, v: MailTaakVo
   return true
 }
 
-async function nieuweTaken(admin: SupabaseClient, userId: string, token: string): Promise<string[]> {
+interface NieuwUitkomst {
+  nieuw: string[]
+  wachtend: number
+  kandidaten: number
+  fout?: string
+}
+
+async function nieuweTaken(admin: SupabaseClient, userId: string, token: string): Promise<NieuwUitkomst> {
   const { eigen, mijnAdres } = await eigenAdressen(token)
   // Zonder je eigen adres kun je "aan mij" niet beoordelen: dan liever niets.
-  if (!mijnAdres) return []
+  if (!mijnAdres) return { nieuw: [], wachtend: 0, kandidaten: 0, fout: 'geen_profiel' }
   const wachtend = await haalWachtendeGesprekken(token, mijnAdres)
-  if (wachtend === null) return []
+  if (wachtend === null) return { nieuw: [], wachtend: 0, kandidaten: 0, fout: 'gmail' }
   const al = await bekend(
     admin,
     userId,
     wachtend.map((m) => m.id),
     [...new Set(wachtend.map((m) => m.threadId).filter((t): t is string => !!t))],
   )
-  if (al === null) return []
+  if (al === null) return { nieuw: [], wachtend: wachtend.length, kandidaten: 0, fout: 'db' }
 
   const voorstellen = wachtend
     .map((mail) => mailNaarTaak({ mail, oordeel: classificeer(mail) }, eigen))
@@ -127,7 +139,7 @@ async function nieuweTaken(admin: SupabaseClient, userId: string, token: string)
       if (v.threadId) threads.add(v.threadId)
     }
   }
-  return nieuw
+  return { nieuw, wachtend: wachtend.length, kandidaten: voorstellen.length }
 }
 
 /** "Reageren"/"offerte"-taken waarop je inmiddels antwoordde → afvinken. */
@@ -158,8 +170,8 @@ async function vinkBeantwoordAf(admin: SupabaseClient, userId: string, token: st
 
 export async function verwerkMail(admin: SupabaseClient, userId: string): Promise<MailTakenUitkomst> {
   const token = await geldigToken(admin, userId)
-  if (token.staat !== 'ok') return { nieuw: [], afgevinkt: [] }
+  if (token.staat !== 'ok') return { nieuw: [], afgevinkt: [], fout: `token_${token.staat}` }
   const afgevinkt = await vinkBeantwoordAf(admin, userId, token.toegangstoken)
-  const nieuw = await nieuweTaken(admin, userId, token.toegangstoken)
-  return { nieuw, afgevinkt }
+  const { nieuw, wachtend, kandidaten, fout } = await nieuweTaken(admin, userId, token.toegangstoken)
+  return { nieuw, afgevinkt, wachtend, kandidaten, ...(fout ? { fout } : {}) }
 }

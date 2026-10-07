@@ -111,10 +111,16 @@ export async function GET(req: NextRequest): Promise<Response> {
       }
       // Mail → to-do (en afvinken wat je al beantwoordde), dán de blokken: zo komt
       // een net binnengekomen mail in dezelfde ronde al in het mail-blok.
-      let mail = { nieuw: 0, afgevinkt: 0 }
+      let mail: Record<string, number | string> = { nieuw: 0, afgevinkt: 0 }
       try {
         const m = await verwerkMail(admin, userId)
-        mail = { nieuw: m.nieuw.length, afgevinkt: m.afgevinkt.length }
+        mail = {
+          nieuw: m.nieuw.length,
+          afgevinkt: m.afgevinkt.length,
+          wachtend: m.wachtend ?? 0,
+          kandidaten: m.kandidaten ?? 0,
+          ...(m.fout ? { fout: m.fout } : {}),
+        }
       } catch (oorzaak) {
         console.error('[lifeos/cron-agenda-sync] mail verwerken wierp een fout', oorzaak)
       }
