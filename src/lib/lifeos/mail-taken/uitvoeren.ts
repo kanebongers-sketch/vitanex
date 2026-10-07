@@ -28,6 +28,7 @@ export interface MailTakenUitkomst {
   /** Hoeveel gesprekken op je reactie wachtten, en hoeveel daarvan een taak waard waren (voor het cron-antwoord). */
   wachtend?: number
   kandidaten?: number
+  redenen?: Record<string, number>
   /** Waarom er niets gelezen kon worden, als dat zo was. */
   fout?: string
 }
@@ -106,6 +107,8 @@ interface NieuwUitkomst {
   nieuw: string[]
   wachtend: number
   kandidaten: number
+  /** Waarom wachtende gesprekken géén taak werden, geteld per reden. */
+  redenen?: Record<string, number>
   fout?: string
 }
 
@@ -123,8 +126,15 @@ async function nieuweTaken(admin: SupabaseClient, userId: string, token: string)
   )
   if (al === null) return { nieuw: [], wachtend: wachtend.length, kandidaten: 0, fout: 'db' }
 
+  const redenen: Record<string, number> = {}
+  const tel = (r: string) => { redenen[r] = (redenen[r] ?? 0) + 1 }
   const voorstellen = wachtend
-    .map((mail) => mailNaarTaak({ mail, oordeel: classificeer(mail) }, eigen))
+    .map((mail) => {
+      const oordeel = classificeer(mail)
+      const v = mailNaarTaak({ mail, oordeel }, eigen)
+      if (!v) tel(oordeel.vraagtActie ? 'regels' : oordeel.reden.split(':')[0].slice(0, 40))
+      return v
+    })
     .filter((v): v is MailTaakVoorstel => v !== null && !al.berichten.has(v.berichtId) && !al.openThreads.has(v.threadId))
     // Oudste eerst: wie het langst wacht, staat het eerst op je lijst.
     .sort((a, b) => a.ontvangenOp.getTime() - b.ontvangenOp.getTime())
@@ -139,7 +149,7 @@ async function nieuweTaken(admin: SupabaseClient, userId: string, token: string)
       if (v.threadId) threads.add(v.threadId)
     }
   }
-  return { nieuw, wachtend: wachtend.length, kandidaten: voorstellen.length }
+  return { nieuw, wachtend: wachtend.length, kandidaten: voorstellen.length, redenen }
 }
 
 /** "Reageren"/"offerte"-taken waarop je inmiddels antwoordde → afvinken. */
@@ -172,6 +182,6 @@ export async function verwerkMail(admin: SupabaseClient, userId: string): Promis
   const token = await geldigToken(admin, userId)
   if (token.staat !== 'ok') return { nieuw: [], afgevinkt: [], fout: `token_${token.staat}` }
   const afgevinkt = await vinkBeantwoordAf(admin, userId, token.toegangstoken)
-  const { nieuw, wachtend, kandidaten, fout } = await nieuweTaken(admin, userId, token.toegangstoken)
-  return { nieuw, afgevinkt, wachtend, kandidaten, ...(fout ? { fout } : {}) }
+  const { nieuw, wachtend, kandidaten, redenen, fout } = await nieuweTaken(admin, userId, token.toegangstoken)
+  return { nieuw, afgevinkt, wachtend, kandidaten, redenen, ...(fout ? { fout } : {}) }
 }

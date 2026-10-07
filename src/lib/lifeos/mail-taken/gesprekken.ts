@@ -23,9 +23,10 @@ const TIMEOUT_MS = 10_000
 const HEADERS = ['From', 'To', 'Subject', 'List-Unsubscribe', 'Precedence']
 /** Hoe ver terug: lang genoeg voor een weekend, kort genoeg om oud nieuws te laten liggen. */
 export const ZOEK = 'in:inbox newer_than:4d -category:promotions -category:social -category:forums'
-const MAX_BERICHTEN = 80
-const MAX_GESPREKKEN = 30
-const BLOK = 6
+const MAX_BERICHTEN = 150
+/** Je inbox telt veel nieuwsbrieven; 30 was te krap (echte mails vielen buiten de selectie). */
+const MAX_GESPREKKEN = 80
+const BLOK = 10
 
 function obj(v: unknown): Record<string, unknown> | null {
   return typeof v === 'object' && v !== null && !Array.isArray(v) ? (v as Record<string, unknown>) : null
