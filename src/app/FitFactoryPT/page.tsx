@@ -8,7 +8,7 @@ import { FfHero } from '@/components/lifeos/pt-dashboard/FfHero'
 import { FIT_FACTORY } from '@/components/marketing/theme'
 import { barlow, inter } from '@/app/fonts/fit-factory'
 
-// /lead — de ingang voor het Fit Factory PT-team: tik je naam aan en je komt in
+// /FitFactoryPT (voorheen /lead) — de ingang voor het Fit Factory PT-team: tik je naam aan en je komt in
 // je eigen app (/<naam>). Alleen voornamen; de gegevens zitten achter de pincode
 // van elke PT'er.
 

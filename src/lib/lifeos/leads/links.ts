@@ -197,7 +197,7 @@ export async function pinSignalen(
     .map((p) => ({ naam: p.naam, tekst: `${p.naam} koos een pincode voor de lead tracker — keur goed op je dashboard (PT-gesprekken).` }))
 }
 
-/** Voor de publieke /lead-pagina: elke actieve PT'er met zijn link, op naam. Alleen voornaam + code. */
+/** Voor de publieke /FitFactoryPT-pagina: elke actieve PT'er met zijn link, op naam. Alleen voornaam + code. */
 export async function haalActieveLinks(admin: SupabaseClient): Promise<{ code: string; naam: string }[]> {
   const { data: links, error } = await admin.from('pt_lead_links').select('persoon_id, code').eq('actief', true)
   if (error || !Array.isArray(links) || links.length === 0) return []

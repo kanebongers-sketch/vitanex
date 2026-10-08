@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import type { ReactNode } from 'react'
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import { ptSessie } from '@/lib/lifeos/pt-dashboard/sessie'
 import { PtNav } from '@/components/lifeos/pt-dashboard/PtNav'
 import { PinPoort } from '@/components/lifeos/pt-dashboard/PinPoort'
@@ -45,6 +45,8 @@ export const viewport: Viewport = { themeColor: FIT_FACTORY.zwart }
 
 export default async function PtLayout({ children, params }: Props) {
   const { pt } = await params
+  // /fitfactorypt, /FITFACTORYPT, … → de echte ingang (pagina-routes zijn wél hoofdlettergevoelig).
+  if (pt.toLowerCase() === 'fitfactorypt') redirect('/FitFactoryPT')
   const s = await ptSessie(pt)
   if (!s) notFound()
 
