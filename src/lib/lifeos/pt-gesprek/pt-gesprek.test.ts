@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { bepaalStatus, coachAchterstand, coachgesprekTitel, matchtCoachgesprek, type PtEvent, type PtPersoon } from './pt-gesprek'
+import { bepaalStatus, coachAchterstand, coachgesprekTitel, leesPtGesprekken, matchtCoachgesprek, type PtEvent, type PtPersoon } from './pt-gesprek'
 
 describe('coachgesprekTitel', () => {
   test('bouwt de vaste naam met de klant ertussen', () => {
@@ -70,8 +70,8 @@ describe('coachAchterstand', () => {
   const NU = new Date('2026-09-30T08:00:00Z')
   const gesprek = (naam: string, iso: string): PtEvent => ({ titel: `Coachgesprek PT - Kane (${naam})`, startOp: iso })
 
-  test('gesprek in de afgelopen of komende 14 dagen = op ritme', () => {
-    const events = [gesprek('Michael', '2026-09-28T18:00:00Z'), gesprek('Brandon', '2026-10-10T10:00:00Z')]
+  test('gesprek in de afgelopen of komende week = op ritme', () => {
+    const events = [gesprek('Michael', '2026-09-28T18:00:00Z'), gesprek('Brandon', '2026-10-05T10:00:00Z')]
     expect(coachAchterstand([{ naam: 'Michael' }, { naam: 'Brandon' }], events, NU)).toEqual([])
   })
 
@@ -88,5 +88,18 @@ describe('coachAchterstand', () => {
     ]
     const uit = coachAchterstand([{ naam: 'Dylan' }, { naam: 'Tristan' }, { naam: 'Amey' }], events, NU)
     expect(uit.map((a) => a.naam)).toEqual(['Tristan', 'Amey', 'Dylan'])
+  })
+})
+
+describe('leesPtGesprekken — lead tracker', () => {
+  const basis = { id: 'p1', naam: 'Joey', email: null, ingepland: false, wanneer: null }
+  test('lead-link en samenvatting komen door; een kapotte link wordt null', () => {
+    const leads = { nieuw: 0, perStatus: {}, klantenTotaal: 0, lijst: [], sinds: '2026-10-01T00:00:00.000Z' }
+    const goed = leesPtGesprekken({ gekoppeld: true, pts: [{ ...basis, extra: { leadLink: { code: 'joey', pinStatus: 'wacht', pinAangevraagdOp: '2026-10-08T09:00:00Z' }, leads } }] })
+    const extra = goed && goed.gekoppeld ? goed.pts[0].extra : undefined
+    expect(extra?.leadLink).toEqual({ code: 'joey', pinStatus: 'wacht', pinAangevraagdOp: '2026-10-08T09:00:00Z' })
+    expect(extra?.leads?.nieuw).toBe(0)
+    const kapot = leesPtGesprekken({ gekoppeld: true, pts: [{ ...basis, extra: { leadLink: { code: '../x', pinStatus: 'actief' } } }] })
+    expect(kapot && kapot.gekoppeld ? kapot.pts[0].extra?.leadLink : 'x').toBeNull()
   })
 })

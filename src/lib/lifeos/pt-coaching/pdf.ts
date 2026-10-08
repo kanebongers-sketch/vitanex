@@ -8,6 +8,7 @@
 // gebundeld vindt het zijn fontbestanden niet meer.
 
 import type { EvaluatieScores } from './pt-coaching'
+import { BRON_LABEL, STATUS_LABEL, leadRegel, type LeadSamenvatting } from '@/lib/lifeos/leads/leads'
 
 type PDFDocumentConstructor = new (options?: PDFKit.PDFDocumentOptions) => PDFKit.PDFDocument
 
@@ -28,6 +29,8 @@ export interface VerslagPdfInvoer {
   volgende?: Date | null
   /** Wat er met de open aandachtspunten van vorige keer gebeurde. */
   opvolging?: readonly { tekst: string; oordeel: 'opgelost' | 'loopt' | 'erger' | null }[]
+  /** Wat de PT'er sinds het vorige gesprek in de lead tracker invulde. */
+  leads?: LeadSamenvatting | null
 }
 
 const OPVOLG_LABEL = { opgelost: 'Opgelost', loopt: 'Loopt nog', erger: 'Erger geworden' } as const
@@ -40,6 +43,13 @@ const SCORES: { key: keyof EvaluatieScores; label: string }[] = [
   { key: 'energie', label: 'Energie / motivatie' },
   { key: 'voortgang', label: 'Voortgang richting doel' },
 ]
+
+/** Het lead-blok: de telling, dan per nieuwe lead één regel. */
+function leadTekst(s: LeadSamenvatting): string {
+  const regels = s.lijst.map((l) => `• ${l.naam} — ${STATUS_LABEL[l.status]} (${BRON_LABEL[l.bron]})`)
+  const meer = s.nieuw > s.lijst.length ? [`… en nog ${s.nieuw - s.lijst.length}`] : []
+  return [leadRegel(s), ...regels, ...meer].join('\n')
+}
 
 /** Bestandsnaam: "Coachgesprek-Michael-2026-09-30.pdf". */
 export function verslagBestandsnaam(naam: string, op: Date): string {
@@ -85,11 +95,17 @@ export async function maakVerslagPdf(v: VerslagPdfInvoer): Promise<Buffer> {
 
     // ── Blokken ──
     function blok(kop: string, tekst: string) {
+      doc.font('Helvetica').fontSize(12)
+      const hoogte = doc.heightOfString(tekst, { width: breed - 32, lineGap: 3 })
+      // Past het blok niet meer boven de voet? Dan op een nieuwe pagina verder.
+      if (y + 34 + hoogte + 28 > doc.page.height - 72) {
+        doc.addPage({ size: 'A4', margin: 0 })
+        y = M - 14
+      }
       y += 14
       doc.fillColor(NAVY).font('Helvetica-Bold').fontSize(11).text(kop.toUpperCase(), M, y, { characterSpacing: 1.2 })
       y += 20
       doc.font('Helvetica').fontSize(12)
-      const hoogte = doc.heightOfString(tekst, { width: breed - 32, lineGap: 3 })
       doc.roundedRect(M, y, breed, hoogte + 28, 8).fill(VLAK)
       doc.fillColor(NAVY).text(tekst, M + 16, y + 14, { width: breed - 32, lineGap: 3 })
       y += hoogte + 28 + 6
@@ -98,6 +114,7 @@ export async function maakVerslagPdf(v: VerslagPdfInvoer): Promise<Buffer> {
     if (v.opvolging && v.opvolging.length > 0) {
       blok('Opvolging vorige aandachtspunten', v.opvolging.map((o) => `• ${o.tekst} — ${o.oordeel ? OPVOLG_LABEL[o.oordeel] : 'nog open'}`).join('\n'))
     }
+    if (v.leads) blok('Lead tracker', leadTekst(v.leads))
     blok('Wat besproken', v.notitie ?? 'Geen verslag ingevuld.')
     blok('Aandachtspunt', v.aandachtspunt ?? 'Geen aandachtspunt.')
     if (v.volgende) blok('Volgend gesprek', MOMENT.format(v.volgende))

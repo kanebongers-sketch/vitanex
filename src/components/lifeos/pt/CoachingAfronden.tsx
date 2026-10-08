@@ -10,6 +10,8 @@ import { leesAfrondResultaat } from '@/lib/lifeos/pt-coaching/pt-coaching'
 import { VerslagDownload } from './VerslagDownload'
 import { OpenPuntenKeuze } from './OpenPuntenKeuze'
 import type { Oordeel } from '@/lib/lifeos/pt-coaching/aandachtspunten'
+import { RITME_DAGEN } from '@/lib/lifeos/pt-gesprek/ritme'
+import { LeadOverzicht } from './LeadOverzicht'
 
 // Het formulier dat je invult wanneer je een coaching hebt gehad: drie korte
 // scores + een notitie, en meteen de volgende afspraak. Eén "Afronden" slaat de
@@ -32,7 +34,7 @@ const SCORE_LABELS = [
 type ScoreKey = (typeof SCORE_LABELS)[number]['key']
 
 export function CoachingAfronden({ pt, onKlaar, onAnnuleer }: Props) {
-  // Het voorstel van LifeOS (twee weken na dit gesprek, zelfde tijd, vrij in je
+  // Het voorstel van LifeOS (een week na dit gesprek, zelfde tijd, vrij in je
   // agenda) staat al ingevuld: goedkeuren = afronden. Aanpassen mag altijd.
   const voorstel = pt.extra?.voorstelVolgende ? new Date(pt.extra.voorstelVolgende) : null
   const [scores, setScores] = useState<Record<ScoreKey, number>>({ algemeen: 3, energie: 3, voortgang: 3 })
@@ -97,6 +99,7 @@ export function CoachingAfronden({ pt, onKlaar, onAnnuleer }: Props) {
   return (
     <div style={{ display: 'grid', gap: 12, paddingTop: 10 }}>
       {pt.extra?.vorige ? <VorigeKeer vorige={pt.extra.vorige} /> : null}
+      {pt.extra?.leads ? <LeadOverzicht leads={pt.extra.leads} pinActief={pt.extra.leadLink?.pinStatus === 'actief'} /> : null}
       <OpenPuntenKeuze
         punten={pt.extra?.openPunten ?? []}
         oordelen={oordelen}
@@ -143,7 +146,7 @@ export function CoachingAfronden({ pt, onKlaar, onAnnuleer }: Props) {
         </label>
         {planVolgende && isVoorstel ? (
           <p style={{ margin: 0, fontSize: 12.5, color: 'var(--text-2)' }}>
-            <span style={{ color: 'var(--brand)', fontWeight: 600 }}>Voorstel:</span> {MOMENT.format(voorstel)} — twee weken na
+            <span style={{ color: 'var(--brand)', fontWeight: 600 }}>Voorstel:</span> {MOMENT.format(voorstel)} — een week na
             dit gesprek en vrij in je agenda. Pas aan of keur goed.
           </p>
         ) : null}
@@ -252,10 +255,10 @@ function VorigeKeer({ vorige }: { vorige: VorigeEvaluatie }) {
   )
 }
 
-/** Standaard: over 2 weken, als YYYY-MM-DD (lokaal). De cadans is ~2-wekelijks. */
+/** Standaard: over één ritme (een week), als YYYY-MM-DD (lokaal). */
 function standaardDatum(): string {
   const d = new Date()
-  d.setDate(d.getDate() + 14)
+  d.setDate(d.getDate() + RITME_DAGEN)
   const mm = String(d.getMonth() + 1).padStart(2, '0')
   const dd = String(d.getDate()).padStart(2, '0')
   return `${d.getFullYear()}-${mm}-${dd}`

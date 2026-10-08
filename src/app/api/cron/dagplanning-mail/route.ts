@@ -39,6 +39,9 @@ import { haalRecenteBlokkenEnMail } from '@/lib/lifeos/blokken/recent'
 import { matchtCoachgesprek } from '@/lib/lifeos/pt-gesprek/pt-gesprek'
 import { haalLaatsteEvaluaties, haalOpenPunten, haalRecenteEvaluaties } from '@/lib/lifeos/pt-coaching/opslag'
 import { puntSignalen } from '@/lib/lifeos/pt-coaching/aandachtspunten'
+import { haalLeadsVoor, pinSignalen } from '@/lib/lifeos/leads/opslag'
+import { leadRegel, vatLeadsSamen } from '@/lib/lifeos/leads/leads'
+import { RITME_DAGEN } from '@/lib/lifeos/pt-gesprek/ritme'
 import { coachSignalen as coachSignalen_ } from '@/lib/lifeos/pt-coaching/signaal'
 import { bewaakAgenda, type Melding } from '@/lib/lifeos/agenda/bewaker'
 import { haalEventsUitCache } from '@/lib/lifeos/agenda/opslag'
@@ -364,11 +367,15 @@ export async function GET(req: NextRequest): Promise<Response> {
     : new Map()
   // Twee coachgesprekken op rij laag op hetzelfde vlak → signaal.
   // Plus: aandachtspunten die al 2 gesprekken openstaan of erger werden.
-  const [recenteEvaluaties, openPunten] = await Promise.all([
+  // Plus: pincodes voor de lead tracker die op jouw goedkeuring wachten.
+  const [recenteEvaluaties, openPunten, pins, leadsVandaag] = await Promise.all([
     haalRecenteEvaluaties(admin, userId, team.map((p) => p.id)).catch(() => new Map()),
     haalOpenPunten(admin, userId, team.map((p) => p.id)).catch(() => new Map()),
+    pinSignalen(admin, userId, team).catch(() => []),
+    haalLeadsVoor(admin, userId, gesprekkenVandaag.map((g) => g.persoon.id)).catch(() => new Map()),
   ])
-  const coachSignalen = [...coachSignalen_(team, recenteEvaluaties), ...puntSignalen(team, openPunten)]
+  const coachSignalen = [...coachSignalen_(team, recenteEvaluaties), ...puntSignalen(team, openPunten), ...pins]
+  const weekTerug = new Date(nu.getTime() - RITME_DAGEN * 24 * 60 * 60 * 1000)
   const coachVandaag = gesprekkenVandaag
     .sort((a, b) => a.startOp.getTime() - b.startOp.getTime())
     .map((g) => {
@@ -377,6 +384,7 @@ export async function GET(req: NextRequest): Promise<Response> {
         naam: g.persoon.naam,
         startOp: g.startOp,
         vorige: ev ? { id: ev.id, op: ev.aangemaaktOp, scores: ev.scores, notitie: ev.notitie, aandachtspunt: ev.aandachtspunt } : null,
+        leads: leadRegel(vatLeadsSamen(leadsVandaag.get(g.persoon.id) ?? [], ev ? new Date(ev.aangemaaktOp) : weekTerug)),
       }
     })
 

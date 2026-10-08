@@ -17,8 +17,11 @@ import { CoachingAfronden } from './CoachingAfronden'
 import { CoachPopup } from './CoachPopup'
 import { VerslagDownload } from './VerslagDownload'
 import { ScoreVerloop } from './ScoreVerloop'
+import { PinGoedkeuren } from './PinGoedkeuren'
+import { LeadLinkRegel } from './LeadLinkRegel'
+import { GESPREK_DUUR_MIN } from '@/lib/lifeos/pt-gesprek/ritme'
 
-// Container: het 2-wekelijkse PT-coachgesprek. Per PT-teamlid of er binnen 14 dagen
+// Container: het wekelijkse PT-coachgesprek. Per PT-teamlid of er binnen het ritme
 // een "Coachgesprek PT - Kane (Naam)" in je agenda staat, plus twee acties:
 //   Inplannen — voor wie nog geen komende afspraak heeft (de eerste zetten).
 //   Afronden  — ná een sessie: het evaluatieformulier invullen én meteen de
@@ -26,7 +29,6 @@ import { ScoreVerloop } from './ScoreVerloop'
 //
 // Wie nog moet worden ingepland staat vooraan; wie geregeld is zit ingeklapt.
 
-const GESPREK_DUUR_MIN = 30
 
 type Staat =
   | { fase: 'laden' }
@@ -65,7 +67,7 @@ export function PtGesprekkenKaart() {
       {staat.fase === 'ok' && !staat.data.gekoppeld ? (
         <NogNiets
           wat="Agenda niet gekoppeld"
-          waarom="Koppel je Google Agenda, dan zie je hier per PT-teamlid of het 2-wekelijkse coachgesprek al gepland staat — en plan je 'm met één knop in."
+          waarom="Koppel je Google Agenda, dan zie je hier per PT-teamlid of het wekelijkse coachgesprek al gepland staat — en plan je 'm met één knop in."
         />
       ) : null}
       {staat.fase === 'ok' && staat.data.gekoppeld ? (
@@ -96,6 +98,7 @@ function Overzicht({ pts, onVernieuw }: { pts: PtStatus[]; onVernieuw: () => Pro
 
   return (
     <div style={{ display: 'grid', gap: 16 }}>
+      <PinGoedkeuren pts={pts} onVernieuw={onVernieuw} />
       {verslag.length > 0 ? (
         <div style={{ display: 'grid', gap: 4, padding: '12px 14px', borderRadius: 12, border: '1px solid color-mix(in srgb, var(--brand) 35%, var(--line))', background: 'color-mix(in srgb, var(--brand) 6%, transparent)' }}>
           <p style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 7, fontSize: 12, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--brand)' }}>
@@ -212,6 +215,7 @@ function PtRij({ pt, onVernieuw }: { pt: PtStatus; onVernieuw: () => Promise<voi
             </p>
           ))}
           <ScoreVerloop verloop={pt.extra?.verloop ?? []} />
+          <LeadLinkRegel pt={pt} onVernieuw={onVernieuw} />
           {pt.extra?.vorige ? (
             <p style={{ margin: '3px 0 0', fontSize: 12, color: 'var(--text-3)' }}>
               Laatste verslag · <VerslagDownload id={pt.extra.vorige.id} />

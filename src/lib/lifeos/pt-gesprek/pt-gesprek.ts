@@ -1,4 +1,4 @@
-// ─── LifeOS — het 2-wekelijkse PT-coachgesprek ──────────────────────────────
+// ─── LifeOS — het wekelijkse PT-coachgesprek ──────────────────────────────
 // PUUR. Geen fetch, geen DB. De naamconventie van de afspraak + de detectie of
 // er voor een PT-klant al een gesprek gepland staat. Eigen bestand zodat het
 // zonder Google-account testbaar is — de regel die bepaalt wat "afgevinkt" is,
@@ -11,8 +11,10 @@
 
 import { bevatReeks, woordTokens } from '@/lib/lifeos/crm/agenda-match'
 
-import type { TeamExtra, VerloopPunt, VorigeEvaluatie } from './team'
+import type { LeadLinkInfo, TeamExtra, VerloopPunt, VorigeEvaluatie } from './team'
+import { CODE_PATROON, isPinStatus, leesLeadSamenvatting } from '@/lib/lifeos/leads/leads'
 import { leesOpenPunten } from '@/lib/lifeos/pt-coaching/aandachtspunten'
+import { RITME_DAGEN } from './ritme'
 
 /** Het vaste voorvoegsel; de klantnaam komt er tussen haakjes achter. */
 export const COACHGESPREK_PREFIX = 'Coachgesprek PT - Kane'
@@ -88,11 +90,11 @@ export function bepaalStatus(
 }
 
 // ─── Achterstand voor de ochtendmail ────────────────────────────────────────
-// Het ritme is om de twee weken. Wie de afgelopen 14 dagen geen coachgesprek had
-// én de komende 14 dagen niets gepland heeft, loopt achter. "Laatst" komt uit de
+// Het ritme is elke week (zie ritme.ts). Wie het afgelopen ritme geen coachgesprek
+// had én de komende periode niets gepland heeft, loopt achter. "Laatst" komt uit de
 // historie die de aanroeper meegeeft (null = in dat venster nooit gezien).
 
-const RITME_MS = 14 * 24 * 60 * 60 * 1000
+const RITME_MS = RITME_DAGEN * 24 * 60 * 60 * 1000
 
 export interface CoachAchterstand {
   naam: string
@@ -188,7 +190,14 @@ function leesExtra(ruw: Record<string, unknown>): TeamExtra {
     voorstelVolgende: tekstOfNull(ruw.voorstelVolgende),
     openPunten: leesOpenPunten(ruw.openPunten),
     verloop: leesVerloop(ruw.verloop),
+    leadLink: leesLeadLink(ruw.leadLink),
+    leads: leesLeadSamenvatting(ruw.leads),
   }
+}
+
+function leesLeadLink(ruw: unknown): LeadLinkInfo | null {
+  if (!isObject(ruw) || typeof ruw.code !== 'string' || !CODE_PATROON.test(ruw.code) || !isPinStatus(ruw.pinStatus)) return null
+  return { code: ruw.code, pinStatus: ruw.pinStatus, pinAangevraagdOp: tekstOfNull(ruw.pinAangevraagdOp) }
 }
 
 /** Het antwoord van `GET /api/lifeos/pt-gesprekken`, of null als het niet klopt. */

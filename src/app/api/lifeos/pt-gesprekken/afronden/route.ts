@@ -23,15 +23,17 @@ import { leesGekozenKalender } from '@/lib/lifeos/agenda/koppeling'
 import { maakAgendaEvent, schrijfFoutHttp } from '@/lib/lifeos/agenda/schrijven'
 import { coachgesprekTitel } from '@/lib/lifeos/pt-gesprek/pt-gesprek'
 import { evaluatieSamenvatting, leesEvaluatie, type AfrondResultaat, type EvaluatieInvoer } from '@/lib/lifeos/pt-coaching/pt-coaching'
-import { nieuwAandachtspunt, slaEvaluatieOp, verwerkOordelen } from '@/lib/lifeos/pt-coaching/opslag'
+import { haalLaatsteEvaluaties, nieuwAandachtspunt, slaEvaluatieOp, verwerkOordelen } from '@/lib/lifeos/pt-coaching/opslag'
 import { leesOordelen } from '@/lib/lifeos/pt-coaching/aandachtspunten'
 import { mailVerslag } from '@/lib/lifeos/pt-coaching/verslag-mail'
+import { GESPREK_DUUR_MIN, RITME_DAGEN } from '@/lib/lifeos/pt-gesprek/ritme'
+import { haalLeadsVoor } from '@/lib/lifeos/leads/opslag'
+import { vatLeadsSamen, type LeadSamenvatting } from '@/lib/lifeos/leads/leads'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 /** De volgende afspraak duurt standaard een half uur; alleen de start kies je. */
-const GESPREK_DUUR_MIN = 30
 
 /**
  * Eén keer afronden = één evaluatie, één uitnodiging, één mail. Het formulier
@@ -126,6 +128,9 @@ async function rondAf(
     return NextResponse.json({ fout: 'Dit PT-teamlid bestaat niet.' }, { status: 404 })
   }
 
+  // 0. De leads sinds het vorige verslag — vóór het opslaan, anders is "vorige" dit verslag.
+  const leads = await leadsSindsVorige(toegang, persoonId)
+
   // 1. De evaluatie opslaan. Dít is de kern — mislukt het, dan stoppen we.
   const bewaard = await slaEvaluatieOp(toegang.admin, toegang.userId, persoonId, evaluatie.waarde)
   if (!bewaard.ok) {
@@ -194,7 +199,23 @@ async function rondAf(
     aandachtspunt: bewaard.waarde.aandachtspunt,
     volgende,
     opvolging,
+    leads,
   })
 
   return { afspraakFout, mailFout, evaluatieId: bewaard.waarde.id }
+}
+
+/** Lead-samenvatting voor het verslag; best-effort (null bij een fout). */
+async function leadsSindsVorige(toegang: LifeosToegang, persoonId: string): Promise<LeadSamenvatting | null> {
+  try {
+    const [laatste, leads] = await Promise.all([
+      haalLaatsteEvaluaties(toegang.admin, toegang.userId, [persoonId]),
+      haalLeadsVoor(toegang.admin, toegang.userId, [persoonId]),
+    ])
+    const vorige = laatste.get(persoonId)
+    const sinds = vorige ? new Date(vorige.aangemaaktOp) : new Date(Date.now() - RITME_DAGEN * 24 * 60 * 60 * 1000)
+    return vatLeadsSamen(leads.get(persoonId) ?? [], sinds)
+  } catch {
+    return null
+  }
 }

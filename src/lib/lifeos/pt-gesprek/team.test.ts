@@ -9,12 +9,12 @@ const gesprek = (naam: string, d: number, u: number, min = 0) => blok(`Coachgesp
 const evaluatie = (op: Date): VorigeEvaluatie => ({ id: 'ev-1', op: op.toISOString(), scores: { algemeen: 4, energie: 3, voortgang: 4 }, notitie: 'Goed gesprek', aandachtspunt: 'Planning' })
 
 describe('teamExtra', () => {
-  test('tijdens het gesprek: nuBezig + teVerslaan, voorstel twee weken later zelfde tijd', () => {
+  test('tijdens het gesprek: nuBezig + teVerslaan, voorstel een week later zelfde tijd', () => {
     const nu = new Date(2026, 8, 28, 20, 10) // ma 28 sep 20:10, gesprek 20:00–20:30
     const x = teamExtra('Michael', [gesprek('Michael', 28, 20)], null, nu)
     expect(x.nuBezigOp).toBe(new Date(2026, 8, 28, 20, 0).toISOString())
     expect(x.teVerslaan).toBe(true)
-    expect(x.voorstelVolgende).toBe(new Date(2026, 9, 12, 20, 0).toISOString()) // ma 12 okt 20:00
+    expect(x.voorstelVolgende).toBe(new Date(2026, 9, 5, 20, 0).toISOString()) // ma 5 okt 20:00
   })
 
   test('verslag al opgeslagen → geen popup en niets meer te verslaan', () => {
@@ -46,12 +46,12 @@ describe('teamExtra', () => {
 
 describe('voorstelNa', () => {
   test('botst het tijdstip → de dichtstbijzijnde vrije dag, zelfde tijd', () => {
-    const agenda = [blok('Werken in Budel', 2026, 10, 12, 18, 0, 180)] // ma 12 okt 18:00–21:00
+    const agenda = [blok('Werken in Budel', 2026, 10, 5, 18, 0, 180)] // ma 5 okt 18:00–21:00
     const s = voorstelNa(new Date(2026, 8, 28, 20, 0), agenda, new Date(2026, 8, 29, 9))
-    expect(s.toISOString()).toBe(new Date(2026, 9, 13, 20, 0).toISOString()) // di 13 okt 20:00
+    expect(s.toISOString()).toBe(new Date(2026, 9, 6, 20, 0).toISOString()) // di 6 okt 20:00
   })
 
-  test('twee weken is al voorbij → eerstvolgende zelfde weekdag', () => {
+  test('een week is al voorbij → eerstvolgende zelfde weekdag', () => {
     const s = voorstelNa(new Date(2026, 8, 7, 10, 0), [], new Date(2026, 8, 30, 12))
     expect(s.toISOString()).toBe(new Date(2026, 9, 5, 10, 0).toISOString()) // ma 5 okt 10:00
   })

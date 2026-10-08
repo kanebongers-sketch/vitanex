@@ -4,13 +4,15 @@
 //     nog niet verslagen → het dashboard opent het formulier vanzelf;
 //   - `teVerslaan`: het laatste gesprek is geweest, maar er is nog geen verslag;
 //   - `vorige`: wat jullie vorige keer bespraken (scores, notitie, aandachtspunt);
-//   - `voorstelVolgende`: het volgende gesprek, twee weken na het laatste op
+//   - `voorstelVolgende`: het volgende gesprek, een week (ritme.ts) na het laatste op
 //     hetzelfde tijdstip — een dag opgeschoven als dat botst. Een voorstel dat je
 //     goedkeurt, geen afspraak die LifeOS zelf zet.
 // PUUR: geen fetch, geen Date.now() — `nu` komt erin.
 
 import { matchtCoachgesprek } from './pt-gesprek'
 import type { OpenPunt } from '@/lib/lifeos/pt-coaching/aandachtspunten'
+import { GESPREK_DUUR_MIN, RITME_DAGEN } from './ritme'
+import type { LeadSamenvatting, PinStatus } from '@/lib/lifeos/leads/leads'
 
 export interface AgendaBlok {
   titel: string | null
@@ -45,11 +47,21 @@ export interface TeamExtra {
   openPunten?: OpenPunt[]
   /** De scores van de laatste gesprekken, oudste eerst. */
   verloop?: VerloopPunt[]
+  /** De lead-link van deze PT'er (/lead/<code>) en de stand van zijn pincode. */
+  leadLink?: LeadLinkInfo | null
+  /** Leads sinds het vorige gesprek (of de afgelopen week). */
+  leads?: LeadSamenvatting | null
+}
+
+export interface LeadLinkInfo {
+  code: string
+  pinStatus: PinStatus
+  pinAangevraagdOp: string | null
 }
 
 const MIN = 60_000
 const DAG = 24 * 60 * MIN
-const GESPREK_MIN = 30
+const GESPREK_MIN = GESPREK_DUUR_MIN
 /** Zo lang na het einde springt het formulier nog vanzelf open. */
 const NA_AFLOOP_MS = 60 * MIN
 /** Een gesprek ouder dan dit vraagt geen verslag meer. */
@@ -70,11 +82,11 @@ function plusDagen(ms: number, dagen: number): number {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate() + dagen, d.getHours(), d.getMinutes()).getTime()
 }
 
-/** Twee weken na `basis`, op hetzelfde tijdstip; bij een botsing de dichtstbijzijnde vrije dag. */
+/** Eén ritme (een week) na `basis`, op hetzelfde tijdstip; bij een botsing de dichtstbijzijnde vrije dag. */
 export function voorstelNa(basis: Date, agenda: readonly AgendaBlok[], nu: Date): Date {
   const vroegst = nu.getTime() + 60 * MIN
-  let doel = plusDagen(basis.getTime(), 14)
-  // Al te laat voor twee weken? Dan dezelfde weekdag + tijd, eerstvolgende keer.
+  let doel = plusDagen(basis.getTime(), RITME_DAGEN)
+  // Al te laat? Dan dezelfde weekdag + tijd, eerstvolgende keer.
   while (doel < vroegst) doel = plusDagen(doel, 7)
   for (const offset of [0, 1, -1, 2, -2, 3]) {
     const s = plusDagen(doel, offset)

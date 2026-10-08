@@ -167,7 +167,7 @@ export function typfoutAandacht(typfouten: readonly MogelijkeTypfout[]): Aandach
 }
 
 /**
- * PT-teamleden die hun 2-wekelijkse coachgesprek missen (zie `pt-gesprek`). Eén
+ * PT-teamleden die hun wekelijkse coachgesprek missen (zie `pt-gesprek`). Eén
  * regel, met wanneer het laatste was, zodat je ziet wie het langst wacht.
  */
 export function coachAandacht(achterstand: readonly CoachAchterstand[]): Aandachtspunt[] {
@@ -183,6 +183,8 @@ export interface CoachVandaag {
   naam: string
   startOp: Date
   vorige: VorigeEvaluatie | null
+  /** De lead-tracker-regel sinds het vorige gesprek (zie leads/leads.ts `leadRegel`). */
+  leads?: string | null
 }
 
 const TIJD = new Intl.DateTimeFormat('nl-NL', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone: 'Europe/Amsterdam' })
@@ -194,14 +196,15 @@ const TIJD = new Intl.DateTimeFormat('nl-NL', { hour: '2-digit', minute: '2-digi
 export function coachVoorbereiding(gesprekken: readonly CoachVandaag[]): Aandachtspunt[] {
   return gesprekken.map((g) => {
     const kop = `Vandaag ${TIJD.format(g.startOp)} coachgesprek met ${g.naam}`
-    if (!g.vorige) return { tekst: `${kop} — nog geen eerder verslag.`, dringend: false }
+    const leads = g.leads ? ` · Leads: ${g.leads}` : ''
+    if (!g.vorige) return { tekst: `${kop} — nog geen eerder verslag.${leads}`, dringend: false }
     const wanneer = DAG_KORT.format(new Date(g.vorige.op))
     const inhoud = g.vorige.aandachtspunt
       ? `aandachtspunt: ${g.vorige.aandachtspunt}`
       : g.vorige.notitie
         ? g.vorige.notitie
         : `scores ${g.vorige.scores.algemeen}/${g.vorige.scores.energie}/${g.vorige.scores.voortgang}`
-    return { tekst: `${kop} — vorige keer (${wanneer}) ${inhoud}`, dringend: false }
+    return { tekst: `${kop} — vorige keer (${wanneer}) ${inhoud}${leads}`, dringend: false }
   })
 }
 

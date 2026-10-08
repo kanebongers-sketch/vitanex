@@ -43,7 +43,7 @@ export interface PtSignalen {
   typfouten: MogelijkeTypfout[]
   /** Álle typfouten in het venster, ook van vorige weken (voor het automatisch verbeteren). */
   typfoutenAlle: MogelijkeTypfout[]
-  /** PT-teamleden die achterlopen met hun 2-wekelijkse coachgesprek. */
+  /** PT-teamleden die achterlopen met hun wekelijkse coachgesprek. */
   coachgesprekken: CoachAchterstand[]
 }
 

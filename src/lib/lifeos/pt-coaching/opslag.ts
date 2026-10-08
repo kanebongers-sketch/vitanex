@@ -75,11 +75,11 @@ export async function haalEvaluaties(
 
 /**
  * Bovengrens voor de "laatste per persoon"-queries. Coachgesprekken zijn
- * 2-wekelijks (~26 per jaar per persoon): een jaar per persoon is ruim genoeg om
+ * wekelijks (~52 per jaar per persoon): een jaar per persoon is ruim genoeg om
  * de laatste twee van iedereen te vinden, zonder elk jaar de hele historie te lezen.
  */
 function evaluatieLimiet(personen: number): number {
-  return Math.max(50, personen * 26)
+  return Math.max(50, personen * 52)
 }
 
 /** De laatste evaluatie per persoon (voor het team-overzicht). Fout → leeg: dan geen "vorige keer". */

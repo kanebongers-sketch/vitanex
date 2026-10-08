@@ -171,6 +171,10 @@ describe('coachVoorbereiding', () => {
       'Vandaag 10:00 coachgesprek met Darren — nog geen eerder verslag.',
     ])
   })
+  test('met de lead-tracker-regel erachter', () => {
+    const [p] = coachVoorbereiding([{ naam: 'Joey', startOp: new Date('2026-10-12T08:00:00Z'), vorige: null, leads: '3 nieuwe leads · 1 klant geworden' }])
+    expect(p.tekst).toBe('Vandaag 10:00 coachgesprek met Joey — nog geen eerder verslag. · Leads: 3 nieuwe leads · 1 klant geworden')
+  })
 })
 
 describe('coachAandacht', () => {
