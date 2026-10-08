@@ -3674,4 +3674,78 @@ body {
 }
 @media (prefers-reduced-motion: reduce) {
   .lifeos-root .ffdos-tab { transition: none; }
+/* ═══ PT-app: kennisbank (.ffk-*) — /<naam>/bibliotheek ═══════════════════════
+   Hub (zoeken, documentenkaart, kaarten per categorie) en de lezer. Leesbaarheid
+   eerst: tekst max ~68ch, ruime regelhoogte, tabellen scrollen horizontaal op de
+   telefoon. Alleen tokens; de Fit Factory-skin (.ff) levert de kleuren. */
+.lifeos-root .ffk-zoek { display: grid; gap: 8px; }
+.lifeos-root .ffk-zoekveld { padding-right: 44px; }
+.lifeos-root .ffk-zoekveld::-webkit-search-cancel-button { display: none; }
+.lifeos-root .ffk-wis { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); display: grid; place-items: center; width: 34px; height: 34px; border: 0; border-radius: 9px; background: transparent; color: var(--text-3); cursor: pointer; transition: color 160ms var(--ease), background 160ms var(--ease); }
+.lifeos-root .ffk-wis:hover { color: var(--text-1); background: var(--bg-card); }
+.lifeos-root .ffk-wis:focus-visible { outline: 2px solid var(--brand); outline-offset: 0; }
+.lifeos-root .ffk-treffers { gap: 6px; }
+.lifeos-root .ffk-treffer { display: grid; gap: 4px; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg-card); text-decoration: none; color: var(--text-2); transition: border-color 160ms var(--ease); }
+.lifeos-root .ffk-treffer:hover { border-color: var(--line-strong); }
+.lifeos-root .ffk-treffer-waar { font-size: 14.5px; font-weight: 600; color: var(--text-1); overflow-wrap: anywhere; }
+.lifeos-root .ffk-treffer-kop { color: var(--brand); font-weight: 600; }
+.lifeos-root .ffk-treffer-snippet { font-size: 13.5px; line-height: 1.55; color: var(--text-3); max-width: 68ch; overflow-wrap: anywhere; }
+.lifeos-root .ffk-treffer mark { background: var(--brand-soft); color: var(--text-1); border-radius: 3px; padding: 0 1px; }
+
+.lifeos-root .ffk-documenten { display: flex; align-items: center; gap: 14px; padding: 18px; border-radius: 14px; text-decoration: none; color: var(--text-1); border: 1px solid color-mix(in srgb, var(--brand) 45%, var(--line)); background: linear-gradient(135deg, var(--brand-soft), transparent 70%), var(--bg-card); transition: border-color 160ms var(--ease), transform 160ms var(--ease); }
+.lifeos-root .ffk-documenten:hover { border-color: var(--brand); }
+.lifeos-root .ffk-documenten:active { transform: scale(0.99); }
+.lifeos-root .ffk-documenten-icoon { flex: none; color: var(--brand); }
+.lifeos-root .ffk-documenten-tekst { display: grid; gap: 2px; min-width: 0; }
+.lifeos-root .ffk-documenten-titel { font-family: var(--ff-kop, inherit); font-size: 22px; font-weight: 700; letter-spacing: 0.02em; text-transform: uppercase; line-height: 1.1; }
+.lifeos-root .ffk-documenten-uitleg { font-size: 13.5px; line-height: 1.45; color: var(--text-3); }
+.lifeos-root .ffk-pijl { flex: none; margin-left: auto; color: var(--text-3); }
+
+.lifeos-root .ffk-kaarten { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)); }
+.lifeos-root .ffk-kaart { height: 100%; box-sizing: border-box; display: grid; align-content: start; gap: 6px; padding: 16px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg-card); text-decoration: none; transition: border-color 160ms var(--ease), transform 160ms var(--ease); }
+.lifeos-root .ffk-kaart:hover { border-color: color-mix(in srgb, var(--brand) 55%, var(--line)); }
+.lifeos-root .ffk-kaart:active { transform: scale(0.99); }
+.lifeos-root .ffk-kaart-titel { font-family: var(--ff-kop, inherit); font-size: 20px; font-weight: 700; letter-spacing: 0.02em; text-transform: uppercase; line-height: 1.1; color: var(--text-1); }
+.lifeos-root .ffk-kaart-sub { font-size: 13.5px; line-height: 1.45; color: var(--text-2); }
+.lifeos-root .ffk-kaart-meta { margin-top: 4px; font-size: 12.5px; font-weight: 600; color: var(--brand); }
+.lifeos-root .ffk-documenten:focus-visible, .lifeos-root .ffk-kaart:focus-visible, .lifeos-root .ffk-treffer:focus-visible,
+.lifeos-root .ffk-chip:focus-visible, .lifeos-root .ffk-tabel-scroll:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+/* De lezer */
+.lifeos-root .ffk-lezer { display: grid; gap: 28px; }
+.lifeos-root .ffk-kop { display: grid; gap: 6px; padding-top: 8px; }
+.lifeos-root .ffk-terug { display: inline-flex; align-items: center; gap: 6px; justify-self: start; min-height: 40px; font-size: 14px; }
+.lifeos-root .ffk-titel { margin: 0; font-size: clamp(36px, 9vw, 56px); line-height: 0.98; font-weight: 700; color: var(--text-1); overflow-wrap: anywhere; }
+.lifeos-root .ffk-ondertitel { margin: 6px 0 0; max-width: 60ch; font-size: 16px; line-height: 1.55; color: var(--text-2); }
+.lifeos-root .ffk-bronregel { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin-top: 6px; }
+.lifeos-root .ffk-inhoud { display: grid; gap: 8px; padding: 14px; border-radius: 14px; border: 1px solid var(--line); background: var(--bg-card); }
+.lifeos-root .ffk-inhoud-label { margin: 0; font-size: 12px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-3); }
+.lifeos-root .ffk-chips { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.lifeos-root .ffk-chip { text-decoration: none; text-align: left; line-height: 1.25; }
+.lifeos-root .ffk-sectie { display: grid; gap: 14px; scroll-margin-top: 76px; padding-top: 22px; border-top: 1px solid var(--line); }
+@media (min-width: 820px) { .lifeos-root .ffk-sectie { scroll-margin-top: 136px; } }
+.lifeos-root .ffk-sectiekop { margin: 0; font-size: clamp(24px, 6vw, 30px); line-height: 1.05; font-weight: 700; color: var(--text-1); max-width: 30ch; }
+.lifeos-root .ffk-sectie:target .ffk-sectiekop { color: var(--brand); }
+.lifeos-root .ffk-blok { display: grid; gap: 8px; min-width: 0; }
+.lifeos-root .ffk-bloktitel { margin: 6px 0 0; font-size: 18px; font-weight: 700; line-height: 1.2; color: var(--text-1); max-width: 68ch; }
+.lifeos-root .ffk-tekst { margin: 0; max-width: 68ch; font-size: 16px; line-height: 1.7; color: var(--text-2); overflow-wrap: anywhere; }
+.lifeos-root .ffk-lijst, .lifeos-root .ffk-stappen { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; max-width: 68ch; font-size: 16px; line-height: 1.6; color: var(--text-2); }
+.lifeos-root .ffk-lijst li { position: relative; padding-left: 20px; overflow-wrap: anywhere; }
+.lifeos-root .ffk-lijst li::before { content: ''; position: absolute; left: 2px; top: 0.75em; width: 7px; height: 2px; background: var(--brand); }
+.lifeos-root .ffk-stappen { counter-reset: ffk-stap; gap: 10px; }
+.lifeos-root .ffk-stappen li { counter-increment: ffk-stap; position: relative; padding-left: 40px; min-height: 28px; overflow-wrap: anywhere; }
+.lifeos-root .ffk-stappen li::before { content: counter(ffk-stap, decimal-leading-zero); position: absolute; left: 0; top: 0; font-family: var(--ff-kop, inherit); font-size: 18px; font-weight: 700; line-height: 1.45; color: var(--brand); font-variant-numeric: tabular-nums; }
+.lifeos-root .ffk-tip { display: grid; gap: 4px; max-width: 68ch; padding: 14px 16px; border-radius: 12px; border-left: 3px solid var(--brand); background: var(--brand-soft); }
+.lifeos-root .ffk-tip-titel { margin: 0; font-family: var(--ff-kop, inherit); font-size: 16px; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; color: var(--text-1); }
+.lifeos-root .ffk-tip-tekst { margin: 0; font-size: 15.5px; line-height: 1.65; color: var(--text-2); overflow-wrap: anywhere; }
+.lifeos-root .ffk-tabel-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain; border-radius: 12px; border: 1px solid var(--line); background: var(--bg-card); }
+.lifeos-root .ffk-tabel { width: 100%; border-collapse: collapse; font-size: 14.5px; line-height: 1.5; }
+.lifeos-root .ffk-tabel th, .lifeos-root .ffk-tabel td { padding: 11px 14px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--line); }
+.lifeos-root .ffk-tabel thead th { font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-3); border-bottom-color: var(--line-strong); white-space: nowrap; }
+.lifeos-root .ffk-tabel tbody th { font-weight: 600; color: var(--text-1); min-width: 7em; }
+.lifeos-root .ffk-tabel td { color: var(--text-2); min-width: 7em; max-width: 52ch; }
+.lifeos-root .ffk-tabel tbody tr:last-child > * { border-bottom: 0; }
+@media (prefers-reduced-motion: reduce) {
+  .lifeos-root .ffk-documenten, .lifeos-root .ffk-kaart, .lifeos-root .ffk-treffer, .lifeos-root .ffk-wis { transition: none; }
+  .lifeos-root .ffk-documenten:active, .lifeos-root .ffk-kaart:active { transform: none; }
 }
