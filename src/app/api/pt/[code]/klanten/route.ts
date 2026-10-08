@@ -4,6 +4,8 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { leesKlantInvoer, zonderPrijs } from '@/lib/lifeos/pt-dashboard/abonnementen'
 import { voegKlantToe } from '@/lib/lifeos/pt-dashboard/klanten-opslag'
+import { synchroniseerMetCrm } from '@/lib/lifeos/pt-dashboard/crm-sync'
+import { dagSleutelNl } from '@/lib/lifeos/leads/leads'
 import { GEEN_CACHE, foutAntwoord, nieuweKlantToegang } from '@/lib/lifeos/leads/toegang'
 
 export const runtime = 'nodejs'
@@ -25,5 +27,7 @@ export async function POST(req: NextRequest, ctx: Context) {
   if (!r.beheerderId) delete invoer.waarde.prijsAfwijkend
   const uit = await voegKlantToe(r.admin, r.link, invoer.waarde)
   if (!uit.ok) return foutAntwoord('Opslaan mislukt. Probeer het opnieuw.', 502)
+  // Kane's eigen klant → ook in zijn CRM-planning (best effort).
+  if (r.beheerderId) await synchroniseerMetCrm(r.admin, r.link.userId, r.beheerderId, uit.waarde, dagSleutelNl(new Date())).catch(() => undefined)
   return NextResponse.json(r.beheerderId ? uit.waarde : zonderPrijs(uit.waarde), { status: 201, headers: GEEN_CACHE })
 }

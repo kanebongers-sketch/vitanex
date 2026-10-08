@@ -6,6 +6,8 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { leesKlantInvoer, zonderPrijs } from '@/lib/lifeos/pt-dashboard/abonnementen'
 import { verplaatsKlant, verwijderKlant, wijzigKlant } from '@/lib/lifeos/pt-dashboard/klanten-opslag'
+import { crmKlantInactief, synchroniseerMetCrm } from '@/lib/lifeos/pt-dashboard/crm-sync'
+import { dagSleutelNl } from '@/lib/lifeos/leads/leads'
 import { GEEN_CACHE, foutAntwoord, isUuid, klantToegang, verplaatsNaar } from '@/lib/lifeos/leads/toegang'
 
 export const runtime = 'nodejs'
@@ -32,6 +34,8 @@ export async function PUT(req: NextRequest, ctx: Context) {
     const verplaatst = await verplaatsKlant(r.admin, r.link, id, naar)
     if (!verplaatst.ok) return foutAntwoord('Opgeslagen, maar verplaatsen naar de andere trainer mislukte.', 502)
   }
+  // Kane's eigen klanten lopen mee in zijn CRM-planning (best effort).
+  if (r.beheerderId) await synchroniseerMetCrm(r.admin, r.link.userId, r.beheerderId, uit.waarde, dagSleutelNl(new Date())).catch(() => undefined)
   return NextResponse.json(r.beheerderId ? uit.waarde : zonderPrijs(uit.waarde), { headers: GEEN_CACHE })
 }
 
@@ -40,7 +44,11 @@ export async function DELETE(req: NextRequest, ctx: Context) {
   if (!isUuid(id)) return foutAntwoord('Klant bestaat niet.', 404)
   const r = await klantToegang(req, code, id)
   if (r instanceof NextResponse) return r
+  const { data: koppeling } = r.beheerderId
+    ? await r.admin.from('pt_klanten').select('crm_persoon_id').eq('id', id).eq('user_id', r.link.userId).maybeSingle()
+    : { data: null }
   const uit = await verwijderKlant(r.admin, r.link, id)
   if (!uit.ok) return uit.reden === 'niet_gevonden' ? foutAntwoord('Klant bestaat niet.', 404) : foutAntwoord('Verwijderen mislukt.', 502)
+  await crmKlantInactief(r.admin, r.link.userId, (koppeling?.crm_persoon_id as string | null) ?? null).catch(() => undefined)
   return new Response(null, { status: 204, headers: GEEN_CACHE })
 }

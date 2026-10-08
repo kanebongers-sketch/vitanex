@@ -16,7 +16,7 @@ export function BeheerPaneel() {
       <section className="ptd-sectie" aria-labelledby="beheer-klanten-kop">
         <div className="ptd-sectiekop">
           <h2 id="beheer-klanten-kop">Mijn PT-klanten</h2>
-          <span>wie je deze week nog moet inplannen</span>
+          <span>wie je deze week nog moet inplannen · klanten wijzig je onder Klanten, de planning loopt mee</span>
         </div>
         <PtKlantenKaart />
       </section>
