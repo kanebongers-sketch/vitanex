@@ -8,7 +8,8 @@ import {
 import { dagKort } from '@/lib/lifeos/pt-dashboard/datum'
 import { ContactActies } from './velden'
 
-// Eén PT-klant: abonnement + prijs, looptijd en status. Met `onBewerk`
+// Eén PT-klant: abonnement, looptijd en status (prijs alleen met `toonPrijs`:
+// eigenaren en Kane — PT'ers zien geen bedragen). Met `onBewerk`
 // bewerkbaar (PT'er), zonder alleen-lezen (Kane, eigenaar).
 
 function badge(k: PtKlant, vandaag: string): string {
@@ -30,9 +31,11 @@ interface Props {
   dossierHref?: string
   /** Bij wie de klant traint — in lijsten van het hele team. */
   trainer?: string
+  /** De maandprijs tonen (eigenaar/Kane). */
+  toonPrijs?: boolean
 }
 
-export function KlantKaart({ klant: k, vandaag, onBewerk, dossierHref, trainer }: Props) {
+export function KlantKaart({ klant: k, vandaag, onBewerk, dossierHref, trainer, toonPrijs = false }: Props) {
   const vastTot = eindeVastePeriode(k.startdatum)
   const inVast = vastTot >= vandaag && k.startdatum <= vandaag
   return (
@@ -46,7 +49,7 @@ export function KlantKaart({ klant: k, vandaag, onBewerk, dossierHref, trainer }
       </div>
       <div className="ptd-meta">
         {trainer ? <span className="ptd-trainer">PT {trainer}</span> : null}
-        <span>{abonnementRegel(k)}</span>
+        <span>{abonnementRegel(k, toonPrijs)}</span>
       </div>
       <div className="ptd-meta">
         <span>Start {dagKort(k.startdatum)}</span>

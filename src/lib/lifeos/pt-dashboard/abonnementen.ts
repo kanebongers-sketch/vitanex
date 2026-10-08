@@ -213,8 +213,10 @@ export function euro(n: number): string {
   return new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(n)
 }
 
-export function abonnementRegel(k: Pick<PtKlant, 'abonnement' | 'club'>): string {
-  return `${ABONNEMENT[k.abonnement].label} · ${CLUB_LABEL[k.club]} · ${euro(maandprijs(k.abonnement, k.club))} p/m`
+/** "2x per week · Eersel · €519 p/m". Zonder `toonPrijs` (PT'ers zien geen bedragen) valt de prijs weg. */
+export function abonnementRegel(k: Pick<PtKlant, 'abonnement' | 'club'>, toonPrijs = true): string {
+  const basis = `${ABONNEMENT[k.abonnement].label} · ${CLUB_LABEL[k.club]}`
+  return toonPrijs ? `${basis} · ${euro(maandprijs(k.abonnement, k.club))} p/m` : basis
 }
 
 /** Eén regel voor coachgesprek/pdf/mail: "5 lopende abonnementen · €1.795 p/m · 1 bevroren". */

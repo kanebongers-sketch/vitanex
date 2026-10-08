@@ -65,7 +65,7 @@ export function Dossier({ code, vandaag, klant: beginKlant, intake: beginIntake,
 
   return (
     <div className="ptd-sectie ffdos">
-      <DossierKop code={code} klant={klant} vandaag={vandaag} />
+      <DossierKop code={code} klant={klant} vandaag={vandaag} toonPrijs={alleenLezen} />
       <TrajectTijdlijn startdatum={klant.startdatum} vandaag={vandaag} />
 
       <div className="ffdos-tabs" role="tablist" aria-label="Dossier" onKeyDown={toets}>

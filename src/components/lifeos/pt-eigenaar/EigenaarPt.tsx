@@ -78,7 +78,7 @@ export async function EigenaarPt({ code, id }: { code: string; id: string }) {
           <p className="ptd-leeg">{pt.naam} heeft geen lopende PT-klanten ingevuld.</p>
         ) : (
           <ul className="ptd-lijst">
-            {lopend.slice(0, MAX_LIJST).map((k) => <KlantKaart key={k.id} klant={k} vandaag={g.vandaag} dossierHref={`/${code}/klanten/${k.id}`} />)}
+            {lopend.slice(0, MAX_LIJST).map((k) => <KlantKaart key={k.id} klant={k} vandaag={g.vandaag} toonPrijs dossierHref={`/${code}/klanten/${k.id}`} />)}
           </ul>
         )}
         <Link className="ptd-knop ptd-knop--klein" href={`/${code}/klanten?pt=${pt.id}&toon=alle`}>Alle klanten van {pt.naam} ({klanten.length})</Link>

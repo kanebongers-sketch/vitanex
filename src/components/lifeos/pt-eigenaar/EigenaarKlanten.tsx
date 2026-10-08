@@ -63,6 +63,7 @@ export async function EigenaarKlanten({ code, pt, toon }: Props) {
             <KlantKaart
               key={klant.id}
               klant={klant}
+              toonPrijs
               vandaag={g.vandaag}
               trainer={gekozen ? undefined : naamVan.get(ptId)}
               dossierHref={`/${code}/klanten/${klant.id}`}

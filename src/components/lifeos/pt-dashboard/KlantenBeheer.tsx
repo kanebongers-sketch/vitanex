@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Plus } from 'lucide-react'
-import { isLopend, euro, vatKlantenSamen, type PtKlant } from '@/lib/lifeos/pt-dashboard/abonnementen'
+import { isLopend, vatKlantenSamen, type PtKlant } from '@/lib/lifeos/pt-dashboard/abonnementen'
 import type { Club } from '@/lib/lifeos/pt-dashboard/clubs'
 import { KlantFormulier } from './KlantFormulier'
 import { KlantKaart } from './KlantKaart'
@@ -61,7 +61,6 @@ export function KlantenBeheer({ code, vandaag, begin, standaardClub, vanLead, st
     <section className="ptd-sectie" aria-labelledby="klanten-kop">
       <div className="ptd-tegels">
         <Tegel getal={String(s.lopend)} label="Lopende abonnementen" uitleg={`${s.personen} ${s.personen === 1 ? 'persoon' : 'personen'}`} />
-        <Tegel getal={euro(s.maandwaarde)} label="Per maand" uitleg="incl. btw, zonder bevroren" accent />
         <Tegel getal={String(s.sessiesPerWeek)} label="Sessies per week" uitleg="volgens abonnement" />
         <Tegel getal={String(s.vastBijnaKlaar.length)} label="Vaste periode bijna klaar" uitleg="binnen 30 dagen" />
       </div>

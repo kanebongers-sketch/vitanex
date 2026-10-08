@@ -82,7 +82,7 @@ export function PtTeamDetail({ id }: { id: string }) {
         <ul className="ptd-lijst">
           {[...d.klanten]
             .sort((a, b) => Number(isLopend(b, d.vandaag)) - Number(isLopend(a, d.vandaag)))
-            .map((k) => <KlantKaart key={k.id} klant={k} vandaag={d.vandaag} />)}
+            .map((k) => <KlantKaart key={k.id} klant={k} vandaag={d.vandaag} toonPrijs />)}
         </ul>
       )}
 

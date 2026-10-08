@@ -3,7 +3,7 @@
 import { useState, type FormEvent } from 'react'
 import { Foutmelding } from '@/components/lifeos/os/Foutmelding'
 import {
-  ABONNEMENT, ABONNEMENTEN, KLANT_STATUSSEN, KLANT_STATUS_LABEL, eindeVastePeriode, euro, laatsteDag, leesKlant, maandprijs,
+  ABONNEMENT, ABONNEMENTEN, KLANT_STATUSSEN, KLANT_STATUS_LABEL, eindeVastePeriode, laatsteDag, leesKlant,
   type KlantInvoer, type PtKlant,
 } from '@/lib/lifeos/pt-dashboard/abonnementen'
 import { CLUBS, CLUB_LABEL, isClub, type Club } from '@/lib/lifeos/pt-dashboard/clubs'
@@ -95,7 +95,7 @@ export function KlantFormulier({ code, vandaag, standaardClub, klant, vanLead, o
           {ABONNEMENTEN.map((a) => (
             <button key={a} type="button" aria-pressed={v.abonnement === a} onClick={() => zet('abonnement', a)}>
               <strong>{ABONNEMENT[a].label}</strong>
-              <span>{euro(v.club ? maandprijs(a, v.club) : ABONNEMENT[a].prijs)} p/m{ABONNEMENT[a].duo ? ' per duo' : ''}</span>
+              <span>{ABONNEMENT[a].duo ? 'Twee personen' : 'Eén persoon'}</span>
             </button>
           ))}
         </div>
@@ -104,7 +104,7 @@ export function KlantFormulier({ code, vandaag, standaardClub, klant, vanLead, o
       </div>
 
       {ABONNEMENT[v.abonnement].duo ? (
-        <Veld label="Duo-partner" id={`kduo-${id}`} hint="De prijs geldt per duo; beide krijgen een eigen plan en metingen.">
+        <Veld label="Duo-partner" id={`kduo-${id}`} hint="Eén abonnement voor twee; beide krijgen een eigen plan en metingen.">
           <input id={`kduo-${id}`} className="ptd-invoer" value={v.duoPartner ?? ''} onChange={(e) => zet('duoPartner', e.target.value || null)} maxLength={120} autoComplete="off" />
         </Veld>
       ) : null}
@@ -115,7 +115,7 @@ export function KlantFormulier({ code, vandaag, standaardClub, klant, vanLead, o
         waarde={v.status}
         onKies={(s) => s && setV((x) => ({ ...x, status: s, opgezegdOp: s === 'opgezegd' || s === 'gestopt' ? (x.opgezegdOp ?? vandaag) : null }))}
       />
-      {v.status === 'bevroren' ? <p className="ptd-hint">Bevroren (blessure, ziekte): telt niet mee in de maandwaarde tot je hem weer op actief zet.</p> : null}
+      {v.status === 'bevroren' ? <p className="ptd-hint">Bevroren (blessure, ziekte): telt niet mee als lopende klant tot je hem weer op actief zet.</p> : null}
       {metEinde ? (
         <Veld
           label={v.status === 'opgezegd' ? 'Opgezegd op *' : 'Gestopt op *'}
