@@ -1,6 +1,7 @@
 'use client'
 
-import { Pencil } from 'lucide-react'
+import Link from 'next/link'
+import { FolderOpen, Pencil } from 'lucide-react'
 import {
   KLANT_STATUS_LABEL, abonnementRegel, eindeVastePeriode, isLopend, laatsteDag, type PtKlant,
 } from '@/lib/lifeos/pt-dashboard/abonnementen'
@@ -16,7 +17,20 @@ function badge(k: PtKlant, vandaag: string): string {
   return 'ptd-badge ptd-badge--stil'
 }
 
-export function KlantKaart({ klant: k, vandaag, onBewerk }: { klant: PtKlant; vandaag: string; onBewerk?: () => void }) {
+/** De statusbadge van een klant (ook gebruikt in het dossier). */
+export function KlantBadge({ klant: k, vandaag }: { klant: PtKlant; vandaag: string }) {
+  return <span className={badge(k, vandaag)}>{k.startdatum > vandaag ? 'Start binnenkort' : KLANT_STATUS_LABEL[k.status]}</span>
+}
+
+interface Props {
+  klant: PtKlant
+  vandaag: string
+  onBewerk?: () => void
+  /** Link naar het klantdossier (alleen voor de PT'er zelf). */
+  dossierHref?: string
+}
+
+export function KlantKaart({ klant: k, vandaag, onBewerk, dossierHref }: Props) {
   const vastTot = eindeVastePeriode(k.startdatum)
   const inVast = vastTot >= vandaag && k.startdatum <= vandaag
   return (
@@ -26,7 +40,7 @@ export function KlantKaart({ klant: k, vandaag, onBewerk }: { klant: PtKlant; va
           {k.naam}
           {k.duoPartner ? <span className="ptd-zacht"> &amp; {k.duoPartner}</span> : null}
         </span>
-        <span className={badge(k, vandaag)}>{k.startdatum > vandaag ? 'Start binnenkort' : KLANT_STATUS_LABEL[k.status]}</span>
+        <KlantBadge klant={k} vandaag={vandaag} />
       </div>
       <div className="ptd-meta">
         <span>{abonnementRegel(k)}</span>
@@ -47,6 +61,11 @@ export function KlantKaart({ klant: k, vandaag, onBewerk }: { klant: PtKlant; va
       {k.notitie ? <p className="ptd-tekst">{k.notitie}</p> : null}
       {onBewerk ? (
         <div className="ptd-acties ptd-acties--rij">
+          {dossierHref ? (
+            <Link className="ptd-knop ptd-knop--klein" href={dossierHref} aria-label={`Dossier van ${k.naam}`}>
+              <FolderOpen size={14} aria-hidden /> Dossier
+            </Link>
+          ) : null}
           <ContactActies contact={k.contact} naam={k.naam} />
           <button type="button" className="ptd-knop ptd-knop--klein" onClick={onBewerk} aria-label={`${k.naam} bewerken`}>
             <Pencil size={14} aria-hidden /> Bewerk

@@ -130,7 +130,7 @@ export function KlantenBeheer({ code, vandaag, begin, standaardClub, vanLead, st
                 />
               </li>
             ) : (
-              <KlantKaart key={k.id} klant={k} vandaag={vandaag} onBewerk={() => setBewerk(k.id)} />
+              <KlantKaart key={k.id} klant={k} vandaag={vandaag} onBewerk={() => setBewerk(k.id)} dossierHref={`/${code}/klanten/${k.id}`} />
             ),
           )}
         </ul>
