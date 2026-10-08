@@ -44,12 +44,13 @@ const nextConfig: NextConfig = {
   // met een echte 307 door naar het inlogscherm — vóór er iets gerenderd wordt,
   // dus geen flits van de landing. De pagina's zelf staan er nog.
   async redirects() {
-    // De ingang van het PT-team heet mentaforce.nl/FitFactoryPT. Oude links
-    // (/lead, /lead/joey) en de kleine-lettervariant sturen door.
+    // De ingang van het PT-team heet mentaforce.nl/FitFactoryPT; oude links
+    // (/lead, /lead/joey) sturen door. LET OP: redirects matchen hoofdletter-
+    // ONgevoelig — een regel /fitfactorypt → /FitFactoryPT zou op zichzelf
+    // lussen. Andere schrijfwijzen vangt src/app/[pt]/layout.tsx op.
     const leadLinks = [
       { source: '/lead/:code([a-z0-9-]{2,60})', destination: '/:code/lead', permanent: true },
       { source: '/lead', destination: '/FitFactoryPT', permanent: true },
-      { source: '/fitfactorypt', destination: '/FitFactoryPT', permanent: true },
     ]
     if (!SITE_VERBORGEN) return leadLinks
     return [
