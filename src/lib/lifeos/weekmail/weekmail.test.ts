@@ -178,4 +178,19 @@ describe('bouwWeekmail', () => {
     expect(mail.html).toContain('Je agenda-tijd')
     expect(bouwWeekmail(MAANDAG, basis).tekst).not.toContain('AGENDA-TIJD')
   })
+
+  test('PT-team: regels per PT\'er + totaal, ge-escapet; geen sectie zonder gegevens', () => {
+    const mail = bouwWeekmail(MAANDAG, {
+      ...basis,
+      ptTeam: { regels: [{ naam: 'Joey <J>', tekst: '3 leads · 1 nieuwe klant' }], totaal: 'Team: 3 leads · 1 nieuwe klant' },
+    })
+    expect(mail.tekst).toContain('PT-TEAM AFGELOPEN WEEK')
+    expect(mail.tekst).toContain('- Joey <J>: 3 leads · 1 nieuwe klant')
+    expect(mail.tekst).toContain('Team: 3 leads · 1 nieuwe klant')
+    expect(mail.html).toContain('Joey &lt;J&gt;')
+    expect(bouwWeekmail(MAANDAG, { ...basis, ptTeam: null }).tekst).not.toContain('PT-TEAM')
+    const leeg = bouwWeekmail(MAANDAG, { ...basis, ptTeam: { regels: [], totaal: 'Niemand van het PT-team vulde afgelopen week iets in.' } })
+    expect(leeg.html).not.toContain('<ul style="margin:6px 0 0;padding-left:18px;font-size:14px;line-height:1.7;color:#0b1b3a;"></ul>')
+    expect(leeg.tekst).toContain('Niemand van het PT-team')
+  })
 })

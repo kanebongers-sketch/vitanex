@@ -13,6 +13,7 @@ import type { Taak } from '@/lib/lifeos/taken/taken'
 import type { Persoon } from '@/lib/lifeos/crm/crm'
 import { contactVersheid, laatsteContactMoment } from '@/lib/lifeos/crm/versheid'
 import { duurLabel } from '@/lib/lifeos/datum/datum'
+import type { PtTeamWeek } from '@/lib/lifeos/pt-dashboard/team-week'
 
 const TIJDZONE = 'Europe/Amsterdam'
 
@@ -82,6 +83,11 @@ export interface WeekmailInvoer {
    * Optioneel: niet nagegaan of leeg → geen sectie.
    */
   agendaTijd?: readonly { label: string; minuten: number }[]
+  /**
+   * Wat het PT-team in zijn dashboards invulde (zie `pt-dashboard/team-week`).
+   * Optioneel: niet nagegaan, omgevallen of geen team → geen sectie.
+   */
+  ptTeam?: PtTeamWeek | null
   zelf: WeekZelf | null
 }
 
@@ -178,9 +184,14 @@ export function bouwWeekmail(dag: Date, invoer: WeekmailInvoer): Weekmail {
     ? ['', 'JE AGENDA-TIJD', ...agendaTijd.map((c) => `- ${c.label}: ${duurLabel(c.minuten)}`)]
     : []
 
+  const ptTeam = invoer.ptTeam ?? null
+  const tekstPtTeam = ptTeam
+    ? ['', 'PT-TEAM AFGELOPEN WEEK', ...ptTeam.regels.map((r) => `- ${r.naam}: ${r.tekst}`), ptTeam.totaal]
+    : []
+
   const tekstZelf = zelf.length ? ['', 'VAN LIFEOS ZELF', ...zelf.map((r) => `- ${r}`)] : []
 
-  const tekst = [`Je week — terugblik ${datum}`, '', ...tekstAfgerond, ...tekstAgenda, ...tekstAfhaak, ...tekstKoud, ...tekstZelf].join(
+  const tekst = [`Je week — terugblik ${datum}`, '', ...tekstAfgerond, ...tekstAgenda, ...tekstPtTeam, ...tekstAfhaak, ...tekstKoud, ...tekstZelf].join(
     '\n',
   )
 
@@ -221,6 +232,17 @@ export function bouwWeekmail(dag: Date, invoer: WeekmailInvoer): Weekmail {
         .join('')}</table>`
     : ''
 
+  const ptTeamHtml = ptTeam
+    ? `${kop('PT-team afgelopen week')}${
+        ptTeam.regels.length
+          ? `<ul style="margin:6px 0 0;padding-left:18px;font-size:14px;line-height:1.7;color:#0b1b3a;">${ptTeam.regels
+              .map((r) => `<li>${escape(r.naam)} <span style="color:#5b6b86;">— ${escape(r.tekst)}</span></li>`)
+              .join('')}</ul>`
+          : ''
+      }
+      <p style="margin:6px 0 0;font-size:14px;font-weight:600;color:#0b1b3a;">${escape(ptTeam.totaal)}</p>`
+    : ''
+
   const zelfHtml = zelf.length
     ? `${kop('Van LifeOS zelf')}
       <ul style="margin:6px 0 0;padding-left:18px;font-size:14px;line-height:1.7;color:#5b6b86;">${zelf
@@ -234,6 +256,7 @@ export function bouwWeekmail(dag: Date, invoer: WeekmailInvoer): Weekmail {
     <p style="margin:0 0 8px;font-size:13px;color:#8a97ad;">De afgelopen zeven dagen op een rij.</p>
     ${afgerondHtml}
     ${agendaHtml}
+    ${ptTeamHtml}
     ${afhaakHtml}
     ${koudHtml}
     ${zelfHtml}

@@ -12,6 +12,7 @@ import { WeekTrend } from '@/components/lifeos/pt-dashboard/WeekTrend'
 import { Funnel } from '@/components/lifeos/pt-dashboard/Funnel'
 import { BronTabel } from '@/components/lifeos/pt-dashboard/BronTabel'
 import { ClubTabel } from './ClubTabel'
+import { ExportKnoppen } from './ExportKnoppen'
 
 // Container: Kane's blik op het hele PT-team — wat elke PT'er in zijn eigen
 // dashboard (/<naam>) invulde, naast elkaar. Alleen-lezen.
@@ -83,6 +84,7 @@ export function PtTeamOverzicht() {
             </tbody>
           </table>
         </div>
+        <ExportKnoppen />
         <p className="ptd-hint">
           Een 0 betekent: niets ingevuld in het dashboard — niet per se niets gedaan. Pincodes keur je goed op het dashboard bij
           PT-gesprekken.

@@ -7,7 +7,18 @@
 // in wat de server precies probeerde te zeggen.
 
 import { describe, expect, it } from 'vitest'
-import { getalOfNull, isObject, leesFoutmelding, tekstOfNull } from '@/lib/lifeos/api/http'
+import { bestandsnaamUit, getalOfNull, isObject, leesFoutmelding, tekstOfNull } from '@/lib/lifeos/api/http'
+
+describe('bestandsnaamUit', () => {
+  it('leest de naam uit Content-Disposition, met of zonder quotes', () => {
+    expect(bestandsnaamUit('attachment; filename="pt-leads-2026-10-08.csv"')).toBe('pt-leads-2026-10-08.csv')
+    expect(bestandsnaamUit('attachment; filename=pt.csv')).toBe('pt.csv')
+  })
+  it('null zonder naam', () => {
+    expect(bestandsnaamUit(null)).toBeNull()
+    expect(bestandsnaamUit('attachment')).toBeNull()
+  })
+})
 
 describe('leesFoutmelding', () => {
   it('leest `fout` — de sleutel van de LifeOS-routes', () => {
