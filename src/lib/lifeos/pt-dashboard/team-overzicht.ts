@@ -5,7 +5,8 @@
 // (Beheer, via de LifeOS-API).
 
 import { isPinStatus, type Lead, type PinStatus } from '@/lib/lifeos/leads/leads'
-import type { PtKlant } from './abonnementen'
+import { vatKlantenSamen, type PtKlant } from './abonnementen'
+import { CLUBS, type Club } from './clubs'
 import { clubMatrix, ptOverzicht, type ClubMatrix, type LeadCijfers } from './overzicht'
 import { analyseer, type Analyse } from './analyse'
 import type { PtDoelen } from './doelen'
@@ -30,12 +31,31 @@ export interface TeamRij {
   doelen: PtDoelen | null
 }
 
+/** Per vestiging: lopende abonnementen, personen en maandomzet (zoals de Excel-samenvatting). */
+export interface VestigingRij {
+  club: Club
+  lopend: number
+  personen: number
+  bevroren: number
+  maandwaarde: number
+}
+
 export interface TeamOverzicht {
   vandaag: string
   rijen: TeamRij[]
   clubs: ClubMatrix
   /** Funnel & trends over alle leads van het team; null als het antwoord die niet bevat. */
   analyse: Analyse | null
+  /** Klanten en omzet per vestiging; alleen vestigingen met klanten. */
+  vestigingen: VestigingRij[]
+}
+
+/** Klanten van het hele team per vestiging samengevat. */
+export function perVestiging(klanten: readonly PtKlant[], vandaag: string): VestigingRij[] {
+  return CLUBS.flatMap((club) => {
+    const s = vatKlantenSamen(klanten.filter((k) => k.club === club), vandaag)
+    return s.lopend === 0 ? [] : [{ club, lopend: s.lopend, personen: s.personen, bevroren: s.bevroren, maandwaarde: s.maandwaarde }]
+  }).sort((a, b) => b.maandwaarde - a.maandwaarde)
 }
 
 export function bouwTeamOverzicht(
@@ -64,7 +84,7 @@ export function bouwTeamOverzicht(
     }
   })
   const alle = [...leads.values()].flat()
-  return { vandaag, rijen, clubs: clubMatrix(alle), analyse: analyseer(alle, vandaag) }
+  return { vandaag, rijen, clubs: clubMatrix(alle), analyse: analyseer(alle, vandaag), vestigingen: perVestiging([...klanten.values()].flat(), vandaag) }
 }
 
 // ─── Uitlezen (systeemgrens) ──────────────────────────────────────────────────

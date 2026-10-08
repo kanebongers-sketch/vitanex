@@ -8,10 +8,11 @@ import { WeekTrend } from '@/components/lifeos/pt-dashboard/WeekTrend'
 import { Funnel } from '@/components/lifeos/pt-dashboard/Funnel'
 import { BronTabel } from '@/components/lifeos/pt-dashboard/BronTabel'
 import { ClubTabel } from './ClubTabel'
+import { VestigingTabel } from './VestigingTabel'
 
-// Het hele PT-team in één beeld: totalen, per PT'er, per club en de team-trend.
-// Puur — gedeeld door Kane (LifeOS, /lifeos/pt-team) en de eigenaar (/<naam> in
-// de PT-app). `ptHref` is het pad waar een naam naartoe linkt (+ "/<id>").
+// Het hele PT-team in één beeld: totalen, per PT'er, omzet per vestiging, leads
+// per club en de team-trend. Puur — voor de eigenaren en de beheerder op de
+// Team-pagina van de PT-app. `ptHref` is het pad waar een naam naartoe linkt (+ "/<id>").
 
 const PIN = { geen: 'Nog geen pincode', wacht: 'Pincode wacht op jou', actief: 'Actief' } as const
 
@@ -25,7 +26,7 @@ interface Props {
 }
 
 export function TeamOverzichtWeergave({ data, ptHref, toonPin = false, children }: Props) {
-  const { rijen, clubs, analyse } = data
+  const { rijen, clubs, analyse, vestigingen } = data
   const som = (f: (r: (typeof rijen)[number]) => number) => rijen.reduce((s, r) => s + f(r), 0)
   const leadsTotaal = som((r) => r.leads.totaal)
   const klant = som((r) => r.leads.klant)
@@ -80,6 +81,8 @@ export function TeamOverzichtWeergave({ data, ptHref, toonPin = false, children 
         )}
         {children}
       </section>
+
+      <VestigingTabel vestigingen={vestigingen} />
 
       <ClubTabel clubs={clubs} />
 

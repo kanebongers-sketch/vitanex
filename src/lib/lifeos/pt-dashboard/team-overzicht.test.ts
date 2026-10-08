@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest'
 import type { Lead } from '@/lib/lifeos/leads/leads'
 import type { PtKlant } from './abonnementen'
-import { bouwTeamOverzicht, leesEigenaren } from './team-overzicht'
+import { bouwTeamOverzicht, leesEigenaren, perVestiging } from './team-overzicht'
 
 const lead = (over: Partial<Lead> = {}): Lead => ({
   id: 'l', naam: 'X', contact: null, club: 'eersel', bron: 'vloer', interesse: null, status: 'nieuw', volgendeStap: null,
@@ -49,5 +49,23 @@ describe('leesEigenaren', () => {
   test('geeft een lege lijst als het veld ontbreekt (oudere server)', () => {
     expect(leesEigenaren({ vandaag: '2026-10-08', rijen: [], clubs: [] })).toEqual([])
     expect(leesEigenaren(null)).toEqual([])
+  })
+})
+
+describe('perVestiging', () => {
+  test('telt lopende abonnementen, personen en omzet per vestiging; lege vestigingen vallen weg', () => {
+    const rijen = perVestiging(
+      [
+        { ...klant, id: 'a', club: 'budel', abonnement: '1x' },
+        { ...klant, id: 'b', club: 'budel', abonnement: 'duo_1x', prijsAfwijkend: 299 },
+        { ...klant, id: 'c', club: 'eersel', abonnement: '2x' },
+        { ...klant, id: 'd', club: 'bladel', status: 'gestopt', opgezegdOp: '2026-09-15' },
+      ],
+      '2026-10-08',
+    )
+    expect(rijen).toEqual([
+      { club: 'budel', lopend: 2, personen: 3, bevroren: 0, maandwaarde: 299 + 299 },
+      { club: 'eersel', lopend: 1, personen: 1, bevroren: 0, maandwaarde: 519 },
+    ])
   })
 })

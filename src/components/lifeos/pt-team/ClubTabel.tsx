@@ -10,7 +10,7 @@ export function ClubTabel({ clubs }: { clubs: ClubMatrix }) {
   return (
     <section className="ptd-sectie" aria-labelledby="club-kop">
       <div className="ptd-sectiekop">
-        <h2 id="club-kop">Per club</h2>
+        <h2 id="club-kop">Leads per club</h2>
         <span>alle leads</span>
       </div>
       {clubs.length === 0 ? (
