@@ -5,7 +5,7 @@ import { createLifeosAdminClient } from '@/lib/lifeos/admin'
 import { haalActieveLinks } from '@/lib/lifeos/leads/links'
 import { LeadKop } from '@/components/lifeos/leads/LeadKop'
 
-// /lead — de ingang voor het PT-team: tik je naam aan en je komt op je eigen
+// /FitFactoryPT — de ingang voor het PT-team (voorheen /lead): tik je naam aan en je komt op je eigen
 // dashboard (/<naam>). Alleen voornamen; de gegevens zitten achter de pincode van
 // elke PT'er.
 

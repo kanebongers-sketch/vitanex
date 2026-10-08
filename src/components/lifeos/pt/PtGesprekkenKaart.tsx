@@ -15,7 +15,6 @@ import {
   type PtStatus,
 } from '@/lib/lifeos/pt-gesprek/pt-gesprek'
 import { CoachingAfronden } from './CoachingAfronden'
-import { CoachPopup } from './CoachPopup'
 import { VerslagDownload } from './VerslagDownload'
 import { ScoreVerloop } from './ScoreVerloop'
 import { PinGoedkeuren } from './PinGoedkeuren'
@@ -72,10 +71,7 @@ export function PtGesprekkenKaart() {
         />
       ) : null}
       {staat.fase === 'ok' && staat.data.gekoppeld ? (
-        <>
-          <CoachPopup pts={staat.data.pts} onKlaar={laad} />
-          <Overzicht pts={staat.data.pts} onVernieuw={laad} />
-        </>
+        <Overzicht pts={staat.data.pts} onVernieuw={laad} />
       ) : null}
     </Kaart>
   )

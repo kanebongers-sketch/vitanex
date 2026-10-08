@@ -44,8 +44,13 @@ const nextConfig: NextConfig = {
   // met een echte 307 door naar het inlogscherm — vóór er iets gerenderd wordt,
   // dus geen flits van de landing. De pagina's zelf staan er nog.
   async redirects() {
-    // Oude lead-links (/lead/joey) zijn al gedeeld: echte 308 naar /joey/lead.
-    const leadLinks = [{ source: '/lead/:code([a-z0-9-]{2,60})', destination: '/:code/lead', permanent: true }]
+    // De ingang van het PT-team heet mentaforce.nl/FitFactoryPT. Oude links
+    // (/lead, /lead/joey) en de kleine-lettervariant sturen door.
+    const leadLinks = [
+      { source: '/lead/:code([a-z0-9-]{2,60})', destination: '/:code/lead', permanent: true },
+      { source: '/lead', destination: '/FitFactoryPT', permanent: true },
+      { source: '/fitfactorypt', destination: '/FitFactoryPT', permanent: true },
+    ]
     if (!SITE_VERBORGEN) return leadLinks
     return [
       ...leadLinks,
