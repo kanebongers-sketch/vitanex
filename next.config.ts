@@ -44,12 +44,17 @@ const nextConfig: NextConfig = {
   // met een echte 307 door naar het inlogscherm — vóór er iets gerenderd wordt,
   // dus geen flits van de landing. De pagina's zelf staan er nog.
   async redirects() {
-    if (!SITE_VERBORGEN) return []
-    return ['/', '/contact', '/voorwaarden', '/bedankt', '/register', '/uitnodiging'].map((source) => ({
-      source,
-      destination: '/login',
-      permanent: false,
-    }))
+    // Oude lead-links (/lead/joey) zijn al gedeeld: echte 308 naar /joey/lead.
+    const leadLinks = [{ source: '/lead/:code([a-z0-9-]{2,60})', destination: '/:code/lead', permanent: true }]
+    if (!SITE_VERBORGEN) return leadLinks
+    return [
+      ...leadLinks,
+      ...['/', '/contact', '/voorwaarden', '/bedankt', '/register', '/uitnodiging'].map((source) => ({
+        source,
+        destination: '/login',
+        permanent: false,
+      })),
+    ]
   },
 
   async headers() {
