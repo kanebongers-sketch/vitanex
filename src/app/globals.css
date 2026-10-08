@@ -3515,6 +3515,9 @@ body {
   background: var(--bg-app);
   color: var(--text-1);
   min-height: 100vh;
+  /* body is een flex-kolom met vaste hoogte: niet laten krimpen, anders blijft de
+     pagina één scherm hoog en schijnt de navy body eronder door. */
+  flex: none;
 }
 .lifeos-root.ff :where(h1, h2, h3, .ptd-titel, .ptd-getal, .ptd-naam, .ptd-nav a, .ptd-knop, .ptd-chip, .ptd-badge, .ptd-label, .ptd-merk) {
   font-family: var(--ff-kop);
@@ -3533,7 +3536,7 @@ body {
 .lifeos-root.ff .ptd-tegel, .lifeos-root.ff .ptd-rij, .lifeos-root.ff .ptd-form, .lifeos-root.ff .ptd-kaart { border-radius: 12px; }
 
 /* De balk bovenaan: logo links, naam + uitloggen rechts. */
-.lifeos-root.ff .ff-balk { position: sticky; top: 0; z-index: 30; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: max(10px, env(safe-area-inset-top)) 16px 10px; background: rgba(16, 16, 20, 0.88); backdrop-filter: blur(14px); border-bottom: 1px solid var(--line); }
+.lifeos-root.ff .ff-balk { position: sticky; top: 0; z-index: 30; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: max(10px, env(safe-area-inset-top)) max(16px, calc((100% - 928px) / 2)) 10px; background: rgba(16, 16, 20, 0.88); backdrop-filter: blur(14px); border-bottom: 1px solid var(--line); }
 .lifeos-root.ff .ff-logo { display: block; height: 34px; width: auto; }
 .lifeos-root.ff .ff-balk-rechts { display: flex; align-items: center; gap: 10px; }
 .lifeos-root.ff .ff-wie { font-family: var(--ff-kop); font-size: 15px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-2); }
