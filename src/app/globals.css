@@ -3674,6 +3674,7 @@ body {
 }
 @media (prefers-reduced-motion: reduce) {
   .lifeos-root .ffdos-tab { transition: none; }
+}
 /* ═══ PT-app: kennisbank (.ffk-*) — /<naam>/bibliotheek ═══════════════════════
    Hub (zoeken, documentenkaart, kaarten per categorie) en de lezer. Leesbaarheid
    eerst: tekst max ~68ch, ruime regelhoogte, tabellen scrollen horizontaal op de
