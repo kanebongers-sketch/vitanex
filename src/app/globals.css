@@ -3604,3 +3604,74 @@ body {
 .lifeos-root .ffdoc-balk::-moz-progress-bar { background: var(--brand); border-radius: 999px; }
 .lifeos-root .ffdoc-fout { margin: 0; font-size: 13px; line-height: 1.45; color: var(--status-laag); }
 @media (prefers-reduced-motion: reduce) { .lifeos-root .ffdoc-zone { transition: none; } }
+/* ═══ PT-app — klantdossier (/<naam>/klanten/<id>) ════════════════════════════
+   Kop, 13-weekse tijdlijn, tabbladen Intake / Metingen / Notities. Alleen
+   tokens (var(--brand), --line, --text-*), zodat de .ff-skin vanzelf volgt. */
+.lifeos-root .ffdos { gap: 16px; }
+.lifeos-root .ffdos-kop { display: grid; gap: 8px; }
+.lifeos-root .ffdos-terug { display: inline-flex; align-items: center; gap: 4px; justify-self: start; min-height: 32px; font-size: 14px; }
+.lifeos-root .ffdos-terug:focus-visible, .lifeos-root .ffdos-tab:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; border-radius: 8px; }
+.lifeos-root .ffdos-naam { margin: 0; font-size: clamp(28px, 8vw, 40px); line-height: 1; font-weight: 700; color: var(--text-1); overflow-wrap: anywhere; }
+
+.lifeos-root .ffdos-traject { display: grid; gap: 12px; padding: 16px; }
+.lifeos-root .ffdos-weeknr { font-size: 14px; font-weight: 600; color: var(--brand); font-variant-numeric: tabular-nums; }
+.lifeos-root .ffdos-fase { color: var(--text-1); }
+.lifeos-root .ffdos-tijdlijn { display: grid; gap: 6px; }
+.lifeos-root .ffdos-weken, .lifeos-root .ffdos-fases { display: grid; grid-template-columns: repeat(14, minmax(0, 1fr)); gap: 3px; }
+.lifeos-root .ffdos-weken { list-style: none; margin: 0; padding: 0; }
+.lifeos-root .ffdos-week { position: relative; display: grid; place-items: center; height: 36px; border-radius: 6px; border: 1px solid var(--line); background: var(--bg-raised); font-size: 12.5px; font-weight: 600; color: var(--text-3); font-variant-numeric: tabular-nums; }
+.lifeos-root .ffdos-week--voorbij { background: color-mix(in srgb, var(--brand) 16%, var(--bg-raised)); border-color: transparent; color: var(--text-2); }
+.lifeos-root .ffdos-week--nu { background: var(--brand); border-color: var(--brand); color: var(--bg-app); }
+.lifeos-root .ffdos-stip { position: absolute; bottom: 4px; width: 4px; height: 4px; border-radius: 50%; background: var(--brand); }
+.lifeos-root .ffdos-week--nu .ffdos-stip { background: var(--bg-app); }
+.lifeos-root .ffdos-faseband { min-width: 0; padding-top: 6px; border-top: 2px solid var(--line-strong); font-size: 11.5px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lifeos-root .ffdos-faseband--nu { border-top-color: var(--brand); color: var(--text-1); }
+.lifeos-root .ffdos-deze-week { display: grid; gap: 6px; padding-top: 12px; border-top: 1px solid var(--line); }
+.lifeos-root .ffdos-taken { margin: 0; padding-left: 18px; display: grid; gap: 4px; font-size: 14.5px; line-height: 1.45; color: var(--text-1); }
+.lifeos-root .ffdos-taken li::marker { color: var(--brand); }
+
+.lifeos-root .ffdos-tabs { display: flex; gap: 4px; padding: 4px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg-card); }
+.lifeos-root .ffdos-tab { flex: 1 1 0; display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 8px 6px; border: 0; border-radius: 9px; background: transparent; font: inherit; font-size: 15px; font-weight: 600; color: var(--text-3); cursor: pointer; transition: color 160ms var(--ease), background 160ms var(--ease); }
+.lifeos-root .ffdos-tab:hover { color: var(--text-1); }
+.lifeos-root .ffdos-tab[aria-selected='true'] { background: var(--brand-soft); color: var(--brand); }
+.lifeos-root .ffdos-tab small { font-size: 12px; opacity: 0.85; font-variant-numeric: tabular-nums; }
+.lifeos-root.ff .ffdos-tab { font-family: var(--ff-kop); font-size: 16px; letter-spacing: 0.05em; text-transform: uppercase; }
+
+.lifeos-root .ffdos-intake { display: grid; gap: 12px; }
+.lifeos-root .ffdos-sectie > summary { cursor: pointer; list-style: none; gap: 10px; }
+.lifeos-root .ffdos-sectie > summary::-webkit-details-marker { display: none; }
+.lifeos-root .ffdos-sectie > summary:focus-visible { outline: 2px solid var(--brand); outline-offset: -2px; border-radius: 12px; }
+.lifeos-root .ffdos-sectie-stand { margin-left: auto; font-size: 13px; font-weight: 600; color: var(--text-3); font-variant-numeric: tabular-nums; }
+.lifeos-root .ffdos-velden { margin: 0; border: 0; min-width: 0; }
+.lifeos-root .ffdos-janee { display: grid; gap: 8px; padding-bottom: 10px; border-bottom: 1px solid var(--line); }
+.lifeos-root .ffdos-uitkomst { margin: 0; padding: 10px 12px; border-radius: 10px; border-left: 2px solid var(--brand); background: var(--brand-soft); font-size: 14px; color: var(--text-2); }
+.lifeos-root .ffdos-uitkomst strong { color: var(--text-1); }
+.lifeos-root .ffdos-opslaan { position: sticky; bottom: calc(76px + env(safe-area-inset-bottom)); z-index: 5; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg-card); }
+.lifeos-root .ffdos-opslaan .ptd-hint { display: inline-flex; align-items: center; gap: 5px; }
+
+.lifeos-root .ffdos-verwacht { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13.5px; color: var(--text-3); }
+.lifeos-root .ffdos-verwacht--open { color: var(--status-aandacht); }
+.lifeos-root .ffdos-start { justify-self: start; }
+.lifeos-root .ffdos-verschil { font-weight: 600; color: var(--text-1); white-space: nowrap; }
+.lifeos-root .ffdos-grafiek { margin: 0; display: grid; gap: 6px; padding: 14px 16px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg-card); }
+.lifeos-root .ffdos-svg { display: block; width: 100%; height: auto; max-height: 220px; overflow: visible; font-family: inherit; }
+.lifeos-root .ffdos-as { stroke: var(--line-strong); stroke-width: 1; }
+.lifeos-root .ffdos-lijn { fill: none; stroke: var(--brand); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.lifeos-root .ffdos-punt { fill: var(--bg-card); stroke: var(--brand); stroke-width: 2; }
+.lifeos-root .ffdos-as-tekst { fill: var(--text-3); font-size: 11px; }
+.lifeos-root .ffdos-waarde { fill: var(--text-1); font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+@media (min-width: 768px) {
+  .lifeos-root .ffdos-week { height: 42px; font-size: 14px; }
+}
+/* Vanaf 820px staat de tabbalk bovenin (zie .ff-tabs), dus de opslaanbalk mag omlaag. */
+@media (min-width: 820px) {
+  .lifeos-root .ffdos-opslaan { bottom: 12px; }
+}
+.lifeos-root .ptd-tabel td small { font-size: 11.5px; color: var(--text-3); }
+@media (max-width: 380px) {
+  .lifeos-root .ffdos-faseband { font-size: 10.5px; letter-spacing: 0.02em; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lifeos-root .ffdos-tab { transition: none; }
+}
