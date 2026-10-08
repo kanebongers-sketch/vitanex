@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
+import Link from 'next/link'
 import { CalendarPlus, Check, ChevronDown, ClipboardCheck, Mail, MailX } from 'lucide-react'
 import { Kaart, NogNiets } from '@/components/lifeos/os/Kaart'
 import { Foutmelding } from '@/components/lifeos/os/Foutmelding'
@@ -98,6 +99,9 @@ function Overzicht({ pts, onVernieuw }: { pts: PtStatus[]; onVernieuw: () => Pro
 
   return (
     <div style={{ display: 'grid', gap: 16 }}>
+      <Link href="/lifeos/pt-team" className="os-crm-terug">
+        Leads &amp; klanten per PT&apos;er →
+      </Link>
       <PinGoedkeuren pts={pts} onVernieuw={onVernieuw} />
       {verslag.length > 0 ? (
         <div style={{ display: 'grid', gap: 4, padding: '12px 14px', borderRadius: 12, border: '1px solid color-mix(in srgb, var(--brand) 35%, var(--line))', background: 'color-mix(in srgb, var(--brand) 6%, transparent)' }}>

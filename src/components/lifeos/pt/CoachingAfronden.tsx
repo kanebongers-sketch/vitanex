@@ -99,7 +99,7 @@ export function CoachingAfronden({ pt, onKlaar, onAnnuleer }: Props) {
   return (
     <div style={{ display: 'grid', gap: 12, paddingTop: 10 }}>
       {pt.extra?.vorige ? <VorigeKeer vorige={pt.extra.vorige} /> : null}
-      {pt.extra?.leads ? <LeadOverzicht leads={pt.extra.leads} pinActief={pt.extra.leadLink?.pinStatus === 'actief'} /> : null}
+      {pt.extra?.leads ? <LeadOverzicht leads={pt.extra.leads} klanten={pt.extra.klanten ?? null} pinActief={pt.extra.leadLink?.pinStatus === 'actief'} /> : null}
       <OpenPuntenKeuze
         punten={pt.extra?.openPunten ?? []}
         oordelen={oordelen}

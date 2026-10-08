@@ -31,6 +31,8 @@ export interface VerslagPdfInvoer {
   opvolging?: readonly { tekst: string; oordeel: 'opgelost' | 'loopt' | 'erger' | null }[]
   /** Wat de PT'er sinds het vorige gesprek in de lead tracker invulde. */
   leads?: LeadSamenvatting | null
+  /** De lopende PT-abonnementen van deze PT'er, als één regel. */
+  klanten?: string | null
 }
 
 const OPVOLG_LABEL = { opgelost: 'Opgelost', loopt: 'Loopt nog', erger: 'Erger geworden' } as const
@@ -115,6 +117,7 @@ export async function maakVerslagPdf(v: VerslagPdfInvoer): Promise<Buffer> {
       blok('Opvolging vorige aandachtspunten', v.opvolging.map((o) => `• ${o.tekst} — ${o.oordeel ? OPVOLG_LABEL[o.oordeel] : 'nog open'}`).join('\n'))
     }
     if (v.leads) blok('Lead tracker', leadTekst(v.leads))
+    if (v.klanten) blok('PT-klanten', v.klanten)
     blok('Wat besproken', v.notitie ?? 'Geen verslag ingevuld.')
     blok('Aandachtspunt', v.aandachtspunt ?? 'Geen aandachtspunt.')
     if (v.volgende) blok('Volgend gesprek', MOMENT.format(v.volgende))

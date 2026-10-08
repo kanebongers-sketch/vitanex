@@ -18,8 +18,11 @@ import { bepaalStatus, type PtEvent, type PtGesprekkenAntwoord } from '@/lib/lif
 import { teamExtra, type AgendaBlok } from '@/lib/lifeos/pt-gesprek/team'
 import { haalLaatsteEvaluaties, haalOpenPunten, haalRecenteEvaluaties } from '@/lib/lifeos/pt-coaching/opslag'
 import { RITME_DAGEN } from '@/lib/lifeos/pt-gesprek/ritme'
-import { haalLeadsVoor, zorgVoorLinks } from '@/lib/lifeos/leads/opslag'
-import { vatLeadsSamen } from '@/lib/lifeos/leads/leads'
+import { haalLeadsVoor } from '@/lib/lifeos/leads/opslag'
+import { zorgVoorLinks } from '@/lib/lifeos/leads/links'
+import { dagSleutelNl, vatLeadsSamen } from '@/lib/lifeos/leads/leads'
+import { haalKlantenVoor } from '@/lib/lifeos/pt-dashboard/klanten-opslag'
+import { klantRegel, vatKlantenSamen } from '@/lib/lifeos/pt-dashboard/abonnementen'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -82,13 +85,15 @@ export async function GET(req: NextRequest) {
   const team = personen.waarde.filter((p) => p.status !== 'inactief')
   const agenda: AgendaBlok[] = events.events.map((e) => ({ titel: e.titel, startOp: e.startOp, eindOp: e.eindOp, heleDag: e.heleDag }))
   const ids = team.map((p) => p.id)
-  const [laatste, recent, punten, links, leads] = await Promise.all([
+  const [laatste, recent, punten, links, leads, klanten] = await Promise.all([
     haalLaatsteEvaluaties(toegang.admin, toegang.userId, ids),
     haalRecenteEvaluaties(toegang.admin, toegang.userId, ids, VERLOOP_GESPREKKEN),
     haalOpenPunten(toegang.admin, toegang.userId, ids),
     zorgVoorLinks(toegang.admin, toegang.userId, team),
     haalLeadsVoor(toegang.admin, toegang.userId, ids),
+    haalKlantenVoor(toegang.admin, toegang.userId, ids),
   ])
+  const vandaag = dagSleutelNl(nu)
   // Leads tellen vanaf het vorige verslag; zonder verslag de afgelopen week.
   const weekTerug = new Date(nu.getTime() - RITME_DAGEN * 24 * 60 * 60 * 1000)
   const pts = bepaalStatus(
@@ -107,7 +112,8 @@ export async function GET(req: NextRequest) {
         openPunten: punten.get(s.id) ?? [],
         verloop,
         leadLink: link,
-        leads: link ? vatLeadsSamen(leads.get(s.id) ?? [], leadsSinds) : null,
+        leads: link ? vatLeadsSamen(leads.get(s.id) ?? [], leadsSinds, vandaag) : null,
+        klanten: link ? klantRegel(vatKlantenSamen(klanten.get(s.id) ?? [], vandaag)) : null,
       },
     }
   })

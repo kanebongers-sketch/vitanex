@@ -192,6 +192,7 @@ function leesExtra(ruw: Record<string, unknown>): TeamExtra {
     verloop: leesVerloop(ruw.verloop),
     leadLink: leesLeadLink(ruw.leadLink),
     leads: leesLeadSamenvatting(ruw.leads),
+    klanten: tekstOfNull(ruw.klanten),
   }
 }
 

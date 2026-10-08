@@ -1,9 +1,9 @@
-// POST /api/lead/[code]/pin — de PT'er kiest zijn pincode (6 cijfers).
+// POST /api/pt/[code]/pin — de PT'er kiest een pincode (6 cijfers).
 // Die werkt pas als Kane 'm in het dashboard goedkeurt; tot dan "wacht". Een pin
 // die al gekozen is, kan hier niet overschreven worden (alleen Kane kan resetten).
 
 import { NextResponse, type NextRequest } from 'next/server'
-import { kiesPin } from '@/lib/lifeos/leads/opslag'
+import { kiesPin } from '@/lib/lifeos/leads/links'
 import { GEEN_CACHE, foutAntwoord, leesPin, linkVoor } from '@/lib/lifeos/leads/toegang'
 
 export const runtime = 'nodejs'
@@ -22,6 +22,6 @@ export async function POST(req: NextRequest, ctx: Context) {
 
   const uit = await kiesPin(r.admin, r.link, pin, new Date())
   if (uit === 'db') return foutAntwoord('Opslaan mislukt. Probeer het opnieuw.', 502)
-  if (uit === 'al_gekozen') return foutAntwoord('Voor deze link is al een pincode gekozen. Vraag Kane om hem te resetten als dat niet klopt.', 409)
+  if (uit === 'al_gekozen') return foutAntwoord('Voor deze pagina is al een pincode gekozen. Vraag Kane om hem te resetten als dat niet klopt.', 409)
   return NextResponse.json({ staat: 'wacht' }, { headers: GEEN_CACHE })
 }

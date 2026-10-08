@@ -3299,3 +3299,138 @@ body {
   .lifeos-root .lead-naam, .lifeos-root .lead-naam svg { transition: none; }
   .lifeos-root .lead-naam:hover svg, .lifeos-root .lead-naam:active { transform: none; }
 }
+
+/* ═══ PT-dashboard (/<naam>) — Fit Factory PT'ers ═══════════════════════════
+   Mobiel eerst: dit vul je in tussen twee klanten door. Alle staten (hover,
+   focus, pressed) hier, niet inline. Twee kleuren: navy + cyaan; amber/rood
+   alleen als functionele status (te laat), nooit decoratief. */
+.lifeos-root .ptd { max-width: 960px; margin: 0 auto; padding: 20px 16px 96px; display: grid; gap: 22px; }
+.lifeos-root .ptd-kop { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.lifeos-root .ptd-merk { margin: 0; font-size: 11.5px; font-weight: 600; letter-spacing: 0.16em; color: var(--text-3); }
+.lifeos-root .ptd-merk b { color: var(--brand); font-weight: 600; }
+.lifeos-root .ptd-titel { margin: 4px 0 0; font-size: clamp(28px, 7vw, 40px); line-height: 1.05; font-weight: 600; letter-spacing: -0.02em; color: var(--text-1); }
+.lifeos-root .ptd-sub { margin: 6px 0 0; font-size: 14px; color: var(--text-3); }
+
+.lifeos-root .ptd-nav { display: flex; gap: 4px; padding: 4px; border-radius: 14px; border: 1px solid var(--line); background: var(--bg-card); position: sticky; top: 8px; z-index: 20; backdrop-filter: blur(12px); }
+.lifeos-root .ptd-nav a { flex: 1; text-align: center; padding: 10px 8px; border-radius: 10px; font-size: 14px; font-weight: 600; color: var(--text-3); text-decoration: none; transition: color 160ms var(--ease), background 160ms var(--ease); }
+.lifeos-root .ptd-nav a:hover { color: var(--text-1); }
+.lifeos-root .ptd-nav a[aria-current='page'] { color: var(--brand); background: var(--brand-soft); }
+
+.lifeos-root .ptd-sectie { display: grid; gap: 12px; }
+.lifeos-root .ptd-sectiekop { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.lifeos-root .ptd-sectiekop h2 { margin: 0; font-size: 17px; font-weight: 600; color: var(--text-1); }
+.lifeos-root .ptd-sectiekop span { font-size: 12.5px; color: var(--text-3); }
+
+.lifeos-root .ptd-tegels { display: grid; gap: 10px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (min-width: 720px) { .lifeos-root .ptd-tegels { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.lifeos-root .ptd-tegel { display: grid; gap: 4px; padding: 14px 16px; border-radius: 14px; border: 1px solid var(--line); background: var(--bg-card); }
+.lifeos-root .ptd-tegel p { margin: 0; }
+.lifeos-root .ptd-tegel .ptd-getal { font-size: 28px; line-height: 1.05; font-weight: 600; letter-spacing: -0.02em; color: var(--text-1); font-variant-numeric: tabular-nums; }
+.lifeos-root .ptd-tegel .ptd-getal--accent { color: var(--brand); }
+.lifeos-root .ptd-tegel .ptd-label { font-size: 12.5px; font-weight: 600; color: var(--text-3); }
+.lifeos-root .ptd-tegel .ptd-uitleg { font-size: 12px; color: var(--text-4); }
+
+.lifeos-root .ptd-kaart { border-radius: 14px; border: 1px solid var(--line); background: var(--bg-card); }
+.lifeos-root .ptd-lijst { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.lifeos-root .ptd-rij { display: grid; gap: 6px; padding: 14px 16px; border-radius: 14px; border: 1px solid var(--line); background: var(--bg-card); transition: border-color 160ms var(--ease); }
+.lifeos-root .ptd-rij:hover { border-color: var(--line-strong); }
+.lifeos-root .ptd-rij--open { border-color: color-mix(in srgb, var(--brand) 45%, var(--line)); }
+.lifeos-root .ptd-rij-kop { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.lifeos-root .ptd-naam { font-size: 15.5px; font-weight: 600; color: var(--text-1); overflow-wrap: anywhere; }
+.lifeos-root .ptd-meta { display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: 12.5px; color: var(--text-3); }
+.lifeos-root .ptd-tekst { margin: 0; font-size: 13.5px; line-height: 1.5; color: var(--text-2); white-space: pre-line; overflow-wrap: anywhere; }
+.lifeos-root .ptd-leeg { margin: 0; padding: 18px 16px; border-radius: 14px; border: 1px dashed var(--line-strong); font-size: 14px; line-height: 1.5; color: var(--text-3); }
+
+.lifeos-root .ptd-badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: 999px; font-size: 12px; font-weight: 600; border: 1px solid var(--line-strong); color: var(--text-2); white-space: nowrap; }
+.lifeos-root .ptd-badge--accent { color: var(--brand); border-color: color-mix(in srgb, var(--brand) 45%, transparent); background: var(--brand-soft); }
+.lifeos-root .ptd-badge--let-op { color: var(--status-aandacht); border-color: color-mix(in srgb, var(--status-aandacht) 45%, transparent); background: var(--status-warning-soft); }
+.lifeos-root .ptd-badge--stil { color: var(--text-4); }
+
+.lifeos-root .ptd-acties { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.lifeos-root .ptd-knop { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 40px; padding: 8px 14px; border-radius: 11px; font: inherit; font-size: 14px; font-weight: 600; text-decoration: none; cursor: pointer; border: 1px solid var(--line-strong); background: transparent; color: var(--text-1); transition: border-color 160ms var(--ease), background 160ms var(--ease), transform 120ms var(--ease), opacity 160ms; }
+.lifeos-root .ptd-knop:hover { border-color: var(--brand); }
+.lifeos-root .ptd-knop:active { transform: scale(0.98); }
+.lifeos-root .ptd-knop:disabled { opacity: 0.5; cursor: default; transform: none; }
+.lifeos-root .ptd-knop--primair { background: var(--brand); border-color: var(--brand); color: var(--bg-app); }
+.lifeos-root .ptd-knop--primair:hover { background: var(--brand-strong); border-color: var(--brand-strong); }
+.lifeos-root .ptd-knop--klein { min-height: 34px; padding: 6px 11px; font-size: 13px; border-radius: 10px; }
+.lifeos-root .ptd-knop--gevaar { color: var(--status-laag); }
+.lifeos-root .ptd-knop--gevaar:hover { border-color: var(--status-laag); }
+.lifeos-root .ptd-link { color: var(--brand); font-weight: 600; text-decoration: none; }
+.lifeos-root .ptd-link:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+.lifeos-root .ptd-filters { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; }
+.lifeos-root .ptd-filters::-webkit-scrollbar { display: none; }
+.lifeos-root .ptd-chip { flex: none; display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 999px; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; border: 1px solid var(--line); background: transparent; color: var(--text-3); transition: color 160ms var(--ease), border-color 160ms var(--ease), background 160ms var(--ease); }
+.lifeos-root .ptd-chip:hover { color: var(--text-1); border-color: var(--line-strong); }
+.lifeos-root .ptd-chip[aria-pressed='true'] { color: var(--brand); border-color: color-mix(in srgb, var(--brand) 50%, transparent); background: var(--brand-soft); }
+.lifeos-root .ptd-chip small { font-size: 11.5px; opacity: 0.8; font-variant-numeric: tabular-nums; }
+
+.lifeos-root .ptd-form { display: grid; gap: 14px; padding: 16px; border-radius: 16px; border: 1px solid color-mix(in srgb, var(--brand) 35%, var(--line)); background: var(--bg-card); }
+.lifeos-root .ptd-form h3 { margin: 0; font-size: 16px; font-weight: 600; color: var(--text-1); }
+.lifeos-root .ptd-raster { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); }
+.lifeos-root .ptd-veld { display: grid; gap: 6px; min-width: 0; }
+.lifeos-root .ptd-veld > label, .lifeos-root .ptd-veld > span { font-size: 12.5px; font-weight: 600; color: var(--text-3); }
+.lifeos-root .ptd-invoer { appearance: none; width: 100%; box-sizing: border-box; min-height: 44px; font: inherit; font-size: 16px; color: var(--text-1); background: var(--bg-raised); border: 1px solid var(--line); border-radius: 11px; padding: 10px 12px; transition: border-color 160ms var(--ease); }
+.lifeos-root select.ptd-invoer { appearance: auto; }
+.lifeos-root textarea.ptd-invoer { resize: vertical; min-height: 76px; line-height: 1.5; }
+.lifeos-root .ptd-invoer:hover { border-color: var(--line-strong); }
+.lifeos-root .ptd-invoer:focus-visible { outline: 2px solid var(--brand); outline-offset: 1px; border-color: transparent; }
+.lifeos-root .ptd-keuzes { display: flex; flex-wrap: wrap; gap: 6px; }
+.lifeos-root .ptd-vinkje { display: flex; align-items: center; gap: 10px; min-height: 44px; font-size: 14px; color: var(--text-2); cursor: pointer; }
+.lifeos-root .ptd-vinkje input { width: 20px; height: 20px; accent-color: var(--brand); }
+.lifeos-root .ptd-hint { margin: 0; font-size: 12.5px; line-height: 1.45; color: var(--text-3); }
+
+.lifeos-root .ptd-abo { display: grid; gap: 8px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.lifeos-root .ptd-abo button { display: grid; gap: 2px; text-align: left; padding: 12px; border-radius: 12px; font: inherit; cursor: pointer; border: 1px solid var(--line); background: var(--bg-raised); color: var(--text-2); transition: border-color 160ms var(--ease), background 160ms var(--ease); }
+.lifeos-root .ptd-abo button:hover { border-color: var(--line-strong); }
+.lifeos-root .ptd-abo button[aria-pressed='true'] { border-color: var(--brand); background: var(--brand-soft); color: var(--text-1); }
+.lifeos-root .ptd-abo strong { font-size: 14px; font-weight: 600; }
+.lifeos-root .ptd-abo span { font-size: 13px; color: var(--brand); font-variant-numeric: tabular-nums; }
+
+.lifeos-root .ptd-tabel { width: 100%; border-collapse: collapse; font-size: 13.5px; font-variant-numeric: tabular-nums; }
+.lifeos-root .ptd-tabel th { text-align: left; font-size: 12px; font-weight: 600; color: var(--text-3); padding: 8px 10px; border-bottom: 1px solid var(--line-strong); white-space: nowrap; }
+.lifeos-root .ptd-tabel td { padding: 10px; border-bottom: 1px solid var(--line); color: var(--text-2); white-space: nowrap; }
+.lifeos-root .ptd-tabel td:first-child, .lifeos-root .ptd-tabel th:first-child { position: sticky; left: 0; background: var(--bg-card); color: var(--text-1); font-weight: 600; }
+.lifeos-root .ptd-tabel tfoot td { font-weight: 600; color: var(--text-1); border-bottom: none; }
+.lifeos-root .ptd-scroll { overflow-x: auto; border-radius: 14px; border: 1px solid var(--line); background: var(--bg-card); }
+
+.lifeos-root .ptd details > summary { cursor: pointer; list-style: none; }
+.lifeos-root .ptd details > summary::-webkit-details-marker { display: none; }
+
+.lifeos-root .ptd-knop:focus-visible, .lifeos-root .ptd-chip:focus-visible, .lifeos-root .ptd-nav a:focus-visible,
+.lifeos-root .ptd-abo button:focus-visible, .lifeos-root .ptd-link:focus-visible, .lifeos-root .ptd summary:focus-visible {
+  outline: 2px solid var(--brand); outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .lifeos-root .ptd *, .lifeos-root .ptd *::before { transition: none !important; }
+  .lifeos-root .ptd-knop:active { transform: none; }
+}
+.lifeos-root .ptd-tekstknop { justify-self: start; background: none; border: 0; padding: 4px 0; font: inherit; font-size: 14px; font-weight: 600; color: var(--brand); cursor: pointer; }
+.lifeos-root .ptd-tekstknop:hover { text-decoration: underline; text-underline-offset: 3px; }
+.lifeos-root .ptd-tekstknop:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; border-radius: 4px; }
+.lifeos-root .ptd-invoer--klein { min-height: 34px; width: auto; font-size: 13px; padding: 5px 8px; border-radius: 10px; }
+.lifeos-root .ptd-acties--rij { margin-top: 4px; }
+.lifeos-root .ptd-vink { display: inline-flex; align-items: center; gap: 4px; }
+.lifeos-root .ptd-vink svg { color: var(--brand); }
+.lifeos-root .ptd-meta > span { overflow-wrap: anywhere; }
+.lifeos-root .ptd-zoek-icoon { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); color: var(--text-4); pointer-events: none; }
+.lifeos-root .ptd-invoer--zoek { padding-left: 38px; }
+.lifeos-root .ptd-zoek { position: relative; }
+.lifeos-root .ptd-rechts { margin-left: auto; }
+.lifeos-root .ptd-zacht { color: var(--text-3); font-weight: 500; }
+.lifeos-root .ptd-details > summary { padding: 14px 16px; font-size: 15px; font-weight: 600; color: var(--text-1); display: flex; justify-content: space-between; align-items: center; }
+.lifeos-root .ptd-details > summary::after { content: '+'; color: var(--brand); font-size: 20px; line-height: 1; }
+.lifeos-root .ptd-details[open] > summary::after { content: '−'; }
+.lifeos-root .ptd-details-inhoud { display: grid; gap: 12px; padding: 0 16px 16px; }
+.lifeos-root .ptd-prijsregel { justify-content: space-between; font-size: 13.5px; color: var(--text-2); }
+.lifeos-root .ptd-prijsregel span:last-child { color: var(--brand); font-variant-numeric: tabular-nums; }
+.lifeos-root .ptd-voorwaarden { margin: 0; display: grid; gap: 8px; }
+.lifeos-root .ptd-voorwaarden div { display: grid; gap: 2px; }
+.lifeos-root .ptd-voorwaarden dt { font-size: 12.5px; font-weight: 600; color: var(--text-3); }
+.lifeos-root .ptd-voorwaarden dd { margin: 0; font-size: 13.5px; line-height: 1.5; color: var(--text-2); }
+.lifeos-root .ptd-smal { max-width: 440px; width: 100%; justify-self: center; }
+.lifeos-root .ptd-pin { font-size: 24px; letter-spacing: 0.45em; text-align: center; }
+.lifeos-root .ptd-voet { margin-top: 12px; text-align: center; max-width: 520px; justify-self: center; }
+.lifeos-root .ptd-kort { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.lifeos-root .ptd--ingebed { padding: 0; max-width: none; margin: 0; }

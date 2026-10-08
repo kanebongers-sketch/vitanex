@@ -16,7 +16,7 @@ export function LeadLinkRegel({ pt, onVernieuw }: { pt: PtStatus; onVernieuw: ()
   const [gekopieerd, setGekopieerd] = useState(false)
   const [melding, setMelding] = useState<string | null>(null)
   if (!link) return null
-  const pad = `/lead/${link.code}`
+  const pad = `/${link.code}`
 
   async function kopieer() {
     const url = `${window.location.origin}${pad}`
@@ -43,8 +43,13 @@ export function LeadLinkRegel({ pt, onVernieuw }: { pt: PtStatus; onVernieuw: ()
           <span style={{ color: 'var(--brand)', fontWeight: 600 }}>Leads:</span> {leadRegel(pt.extra.leads)}
         </p>
       ) : null}
+      {pt.extra?.klanten ? (
+        <p style={{ margin: 0, fontSize: 12, color: 'var(--text-3)', lineHeight: 1.4 }}>
+          <span style={{ color: 'var(--brand)', fontWeight: 600 }}>Klanten:</span> {pt.extra.klanten}
+        </p>
+      ) : null}
       <p style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', fontSize: 12, color: 'var(--text-4)' }}>
-        <button type="button" onClick={() => void kopieer()} aria-label={`Lead-link van ${pt.naam} kopiëren`} style={linkKnop}>
+        <button type="button" onClick={() => void kopieer()} aria-label={`Dashboard-link van ${pt.naam} kopiëren`} style={linkKnop}>
           {gekopieerd ? <Check size={12} aria-hidden /> : <Copy size={12} aria-hidden />}
           {gekopieerd ? 'Gekopieerd' : pad}
         </button>

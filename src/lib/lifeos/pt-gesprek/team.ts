@@ -51,6 +51,8 @@ export interface TeamExtra {
   leadLink?: LeadLinkInfo | null
   /** Leads sinds het vorige gesprek (of de afgelopen week). */
   leads?: LeadSamenvatting | null
+  /** Eén regel over de lopende PT-abonnementen van deze PT'er (zie `klantRegel`). */
+  klanten?: string | null
 }
 
 export interface LeadLinkInfo {

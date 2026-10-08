@@ -39,7 +39,8 @@ import { haalRecenteBlokkenEnMail } from '@/lib/lifeos/blokken/recent'
 import { matchtCoachgesprek } from '@/lib/lifeos/pt-gesprek/pt-gesprek'
 import { haalLaatsteEvaluaties, haalOpenPunten, haalRecenteEvaluaties } from '@/lib/lifeos/pt-coaching/opslag'
 import { puntSignalen } from '@/lib/lifeos/pt-coaching/aandachtspunten'
-import { haalLeadsVoor, pinSignalen } from '@/lib/lifeos/leads/opslag'
+import { haalLeadsVoor } from '@/lib/lifeos/leads/opslag'
+import { pinSignalen } from '@/lib/lifeos/leads/links'
 import { leadRegel, vatLeadsSamen } from '@/lib/lifeos/leads/leads'
 import { RITME_DAGEN } from '@/lib/lifeos/pt-gesprek/ritme'
 import { coachSignalen as coachSignalen_ } from '@/lib/lifeos/pt-coaching/signaal'
@@ -384,7 +385,7 @@ export async function GET(req: NextRequest): Promise<Response> {
         naam: g.persoon.naam,
         startOp: g.startOp,
         vorige: ev ? { id: ev.id, op: ev.aangemaaktOp, scores: ev.scores, notitie: ev.notitie, aandachtspunt: ev.aandachtspunt } : null,
-        leads: leadRegel(vatLeadsSamen(leadsVandaag.get(g.persoon.id) ?? [], ev ? new Date(ev.aangemaaktOp) : weekTerug)),
+        leads: leadRegel(vatLeadsSamen(leadsVandaag.get(g.persoon.id) ?? [], ev ? new Date(ev.aangemaaktOp) : weekTerug, vandaagKey)),
       }
     })
 

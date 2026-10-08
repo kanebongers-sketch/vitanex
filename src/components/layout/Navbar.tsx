@@ -11,7 +11,7 @@ import {
   LayoutDashboard, Calendar, Map, Lightbulb,
   LogOut, ChevronRight, CheckCircle2, GraduationCap, UserRound,
   UserPlus, ListChecks, Apple, BookOpen, Milestone, Dumbbell, FolderKanban,
-  TrendingUp, LayoutGrid, Network,
+  TrendingUp, LayoutGrid, Network, ClipboardList,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import WeekRingen from './WeekRingen'
@@ -301,6 +301,7 @@ function SidebarContent({
             <NavLink href="/kanebongers" label="Mijn dashboard" icon={LayoutDashboard} pathname={pathname} onClick={onClose} />
             <NavLink href="/training" label="Training" icon={Dumbbell} pathname={pathname} onClick={onClose} />
             <NavLink href="/lifeos/mensen" label="Mensen" icon={Users} pathname={pathname} onClick={onClose} />
+            <NavLink href="/lifeos/pt-team" label="PT-team" icon={ClipboardList} pathname={pathname} onClick={onClose} />
             <NavLink href="/lifeos/agenda-categorieen" label="Categorieën" icon={LayoutGrid} pathname={pathname} onClick={onClose} />
             <NavLink href="/lifeos/kennis" label="Kennis" icon={Network} pathname={pathname} onClick={onClose} />
             <NavLink href="/projecten" label="Projecten" icon={FolderKanban} pathname={pathname} onClick={onClose} />

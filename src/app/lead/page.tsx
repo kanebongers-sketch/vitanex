@@ -2,12 +2,12 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ChevronRight } from 'lucide-react'
 import { createLifeosAdminClient } from '@/lib/lifeos/admin'
-import { haalActieveLinks } from '@/lib/lifeos/leads/opslag'
+import { haalActieveLinks } from '@/lib/lifeos/leads/links'
 import { LeadKop } from '@/components/lifeos/leads/LeadKop'
 
 // /lead — de ingang voor het PT-team: tik je naam aan en je komt op je eigen
-// lead tracker (/lead/<naam>). Alleen voornamen; de leads zelf zitten achter de
-// pincode van elke PT'er.
+// dashboard (/<naam>). Alleen voornamen; de gegevens zitten achter de pincode van
+// elke PT'er.
 
 export const dynamic = 'force-dynamic'
 
@@ -27,7 +27,7 @@ export default async function LeadStart() {
         <LeadKop titel="Wie ben jij?">
           <p style={{ margin: 0, fontSize: 14, lineHeight: 1.55, color: 'var(--text-2)' }}>
             Kies je naam. De eerste keer kies je een pincode van 6 cijfers; zodra Kane die goedkeurt, vul je hier elke
-            week in met wie je gesproken hebt.
+            week in met wie je gesproken hebt en houd je je PT-klanten bij.
           </p>
         </LeadKop>
 
@@ -42,7 +42,7 @@ export default async function LeadStart() {
             <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 8 }}>
               {team.map((p) => (
                 <li key={p.code}>
-                  <Link href={`/lead/${p.code}`} className="lead-naam">
+                  <Link href={`/${p.code}`} className="lead-naam">
                     <span>{p.naam}</span>
                     <ChevronRight size={18} strokeWidth={2.2} aria-hidden />
                   </Link>
@@ -53,7 +53,7 @@ export default async function LeadStart() {
         )}
 
         <p style={{ margin: 0, fontSize: 12, lineHeight: 1.55, color: 'var(--text-3)' }}>
-          Sla je eigen pagina op je beginscherm op, dan heb je hem altijd bij de hand.
+          Sla je eigen pagina op je beginscherm op (mentaforce.nl/jouwnaam), dan heb je hem altijd bij de hand.
         </p>
       </div>
     </main>

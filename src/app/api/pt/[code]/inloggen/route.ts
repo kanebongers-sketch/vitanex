@@ -1,8 +1,8 @@
-// POST /api/lead/[code]/inloggen — pincode invullen; goed → sessiecookie (httpOnly)
-// voor dit toestel. Na 5 foute pogingen is de link 15 minuten dicht.
+// POST /api/pt/[code]/inloggen — pincode invullen; goed → sessiecookie (httpOnly)
+// voor dit toestel. Na 5 foute pogingen is de pagina 15 minuten dicht.
 
 import { NextResponse, type NextRequest } from 'next/server'
-import { logIn } from '@/lib/lifeos/leads/opslag'
+import { logIn } from '@/lib/lifeos/leads/links'
 import { sessieCookieNaam } from '@/lib/lifeos/leads/pin'
 import { GEEN_CACHE, foutAntwoord, leesPin, linkVoor } from '@/lib/lifeos/leads/toegang'
 

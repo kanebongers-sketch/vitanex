@@ -1,0 +1,30 @@
+import { ptGegevens } from '@/lib/lifeos/pt-dashboard/sessie'
+import { meestGebruikteClub } from '@/lib/lifeos/pt-dashboard/overzicht'
+import { LeadsBeheer } from '@/components/lifeos/pt-dashboard/LeadsBeheer'
+import { Foutmelding } from '@/components/lifeos/os/Foutmelding'
+
+// /<naam>/lead — de lead tracker van de PT'er.
+
+interface Props {
+  params: Promise<{ pt: string }>
+  searchParams: Promise<{ [k: string]: string | string[] | undefined }>
+}
+
+export default async function LeadsPagina({ params, searchParams }: Props) {
+  const [{ pt }, zoek] = await Promise.all([params, searchParams])
+  const g = await ptGegevens(pt)
+  if (!g) return null
+  if (!g.leads) return <Foutmelding bericht="Je leads konden niet geladen worden. Vernieuw de pagina." />
+  const open = typeof zoek.open === 'string' ? zoek.open : null
+  return (
+    <LeadsBeheer
+      code={g.link.code}
+      vandaag={g.vandaag}
+      begin={g.leads}
+      standaardClub={meestGebruikteClub(g.leads, g.klanten ?? [])}
+      gekoppeld={(g.klanten ?? []).flatMap((k) => (k.leadId ? [k.leadId] : []))}
+      startNieuw={zoek.nieuw === '1'}
+      startOpen={open && g.leads.some((l) => l.id === open) ? open : null}
+    />
+  )
+}

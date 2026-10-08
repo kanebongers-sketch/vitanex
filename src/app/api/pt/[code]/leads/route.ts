@@ -1,8 +1,4 @@
-// POST /api/lead/[code] — een PT'er voegt een lead toe via zijn eigen lead-link.
-//
-// PUBLIEK, maar achter de pincode: alleen een toestel dat met de (door Kane
-// goedgekeurde) pin is ingelogd mag schrijven — zie `ingelogdeLink`. Er gaat
-// nooit een user_id of persoon_id terug naar de browser.
+// POST /api/pt/[code]/leads — een PT'er voegt een lead toe (achter de pincode).
 
 import { NextResponse, type NextRequest } from 'next/server'
 import { dagSleutelNl, leesNieuweLead } from '@/lib/lifeos/leads/leads'

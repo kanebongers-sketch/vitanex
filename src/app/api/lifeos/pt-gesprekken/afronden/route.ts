@@ -28,7 +28,9 @@ import { leesOordelen } from '@/lib/lifeos/pt-coaching/aandachtspunten'
 import { mailVerslag } from '@/lib/lifeos/pt-coaching/verslag-mail'
 import { GESPREK_DUUR_MIN, RITME_DAGEN } from '@/lib/lifeos/pt-gesprek/ritme'
 import { haalLeadsVoor } from '@/lib/lifeos/leads/opslag'
-import { vatLeadsSamen, type LeadSamenvatting } from '@/lib/lifeos/leads/leads'
+import { dagSleutelNl, vatLeadsSamen, type LeadSamenvatting } from '@/lib/lifeos/leads/leads'
+import { haalKlantenVoor } from '@/lib/lifeos/pt-dashboard/klanten-opslag'
+import { klantRegel, vatKlantenSamen } from '@/lib/lifeos/pt-dashboard/abonnementen'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -129,7 +131,7 @@ async function rondAf(
   }
 
   // 0. De leads sinds het vorige verslag — vóór het opslaan, anders is "vorige" dit verslag.
-  const leads = await leadsSindsVorige(toegang, persoonId)
+  const { leads, klanten } = await leadsSindsVorige(toegang, persoonId)
 
   // 1. De evaluatie opslaan. Dít is de kern — mislukt het, dan stoppen we.
   const bewaard = await slaEvaluatieOp(toegang.admin, toegang.userId, persoonId, evaluatie.waarde)
@@ -200,22 +202,32 @@ async function rondAf(
     volgende,
     opvolging,
     leads,
+    klanten,
   })
 
   return { afspraakFout, mailFout, evaluatieId: bewaard.waarde.id }
 }
 
-/** Lead-samenvatting voor het verslag; best-effort (null bij een fout). */
-async function leadsSindsVorige(toegang: LifeosToegang, persoonId: string): Promise<LeadSamenvatting | null> {
+/** Lead- en klantstand voor het verslag; best-effort (leeg bij een fout). */
+async function leadsSindsVorige(
+  toegang: LifeosToegang,
+  persoonId: string,
+): Promise<{ leads: LeadSamenvatting | null; klanten: string | null }> {
   try {
-    const [laatste, leads] = await Promise.all([
+    const [laatste, leads, klanten] = await Promise.all([
       haalLaatsteEvaluaties(toegang.admin, toegang.userId, [persoonId]),
       haalLeadsVoor(toegang.admin, toegang.userId, [persoonId]),
+      haalKlantenVoor(toegang.admin, toegang.userId, [persoonId]),
     ])
     const vorige = laatste.get(persoonId)
-    const sinds = vorige ? new Date(vorige.aangemaaktOp) : new Date(Date.now() - RITME_DAGEN * 24 * 60 * 60 * 1000)
-    return vatLeadsSamen(leads.get(persoonId) ?? [], sinds)
+    const nu = new Date()
+    const sinds = vorige ? new Date(vorige.aangemaaktOp) : new Date(nu.getTime() - RITME_DAGEN * 24 * 60 * 60 * 1000)
+    const vandaag = dagSleutelNl(nu)
+    return {
+      leads: vatLeadsSamen(leads.get(persoonId) ?? [], sinds, vandaag),
+      klanten: klantRegel(vatKlantenSamen(klanten.get(persoonId) ?? [], vandaag)),
+    }
   } catch {
-    return null
+    return { leads: null, klanten: null }
   }
 }

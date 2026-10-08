@@ -4,7 +4,7 @@
 
 import { NextResponse, type NextRequest } from 'next/server'
 import { vereisLifeosToegang } from '@/lib/lifeos/admin'
-import { beoordeelPin } from '@/lib/lifeos/leads/opslag'
+import { beoordeelPin } from '@/lib/lifeos/leads/links'
 import type { PinActie } from '@/lib/lifeos/leads/leads'
 
 export const runtime = 'nodejs'
