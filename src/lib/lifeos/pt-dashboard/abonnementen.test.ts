@@ -67,3 +67,10 @@ describe('invoer', () => {
     expect(leesKlantInvoer({ naam: 'A', club: 'budel', abonnement: '1x', startdatum: '2026-10-01', status: 'opgezegd', opgezegdOp: '2026-09-01' }).ok).toBe(false)
   })
 })
+
+describe('notitie', () => {
+  test('regeleinden blijven staan, overtollige witruimte niet', () => {
+    const r = leesKlantInvoer({ naam: 'A', club: 'budel', abonnement: '1x', startdatum: '2026-10-01', notitie: '  Doel: 5 kg\r\n\n\n\nKnie   links  ' })
+    expect(r.ok && r.waarde.notitie).toBe('Doel: 5 kg\n\nKnie links')
+  })
+})

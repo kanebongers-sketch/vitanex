@@ -160,6 +160,13 @@ function tekst(v: unknown, max: number): string | null {
   return t.length === 0 ? null : t.slice(0, max)
 }
 
+/** Als `tekst`, maar regeleinden blijven staan (notities); max 2 lege regels achter elkaar. */
+function tekstMetRegels(v: unknown, max: number): string | null {
+  if (typeof v !== 'string') return null
+  const t = v.replace(/\r\n?/g, '\n').replace(/[^\S\n]+/g, ' ').replace(/ *\n */g, '\n').replace(/\n{3,}/g, '\n\n').trim()
+  return t.length === 0 ? null : t.slice(0, max)
+}
+
 /** Formulier → klant, of een leesbare fout. */
 export function leesKlantInvoer(body: unknown): Lees<KlantInvoer> {
   if (typeof body !== 'object' || body === null) return { ok: false, fout: 'Ongeldige invoer.' }
@@ -187,7 +194,7 @@ export function leesKlantInvoer(body: unknown): Lees<KlantInvoer> {
       startdatum: o.startdatum,
       status,
       opgezegdOp: status === 'opgezegd' || status === 'gestopt' ? opgezegdOp : null,
-      notitie: tekst(o.notitie, 1000),
+      notitie: tekstMetRegels(o.notitie, 1000),
       leadId: typeof o.leadId === 'string' && /^[0-9a-f-]{36}$/i.test(o.leadId) ? o.leadId : null,
     },
   }
