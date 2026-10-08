@@ -26,25 +26,29 @@ interface Props {
   onAnnuleer: () => void
 }
 
+/** Tijdens het invullen mag de club nog leeg zijn; opslaan vraagt er dan om. */
+type Concept = Omit<KlantInvoer, 'club'> & { club: Club | null }
+
 export function KlantFormulier({ code, vandaag, standaardClub, klant, vanLead, onOpgeslagen, onVerwijderd, onAnnuleer }: Props) {
-  const [v, setV] = useState<KlantInvoer>(() =>
+  const [v, setV] = useState<Concept>(() =>
     klant
       ? { ...klant }
       : {
           naam: vanLead?.naam ?? '', contact: vanLead?.contact ?? null, duoPartner: null,
-          club: vanLead?.club ?? standaardClub ?? 'budel', abonnement: '1x', startdatum: vandaag,
+          club: vanLead?.club ?? standaardClub, abonnement: '1x', startdatum: vandaag,
           status: 'actief', opgezegdOp: null, notitie: null, leadId: vanLead?.id ?? null,
         },
   )
   const [bezig, setBezig] = useState(false)
   const [fout, setFout] = useState<string | null>(null)
-  const zet = <K extends keyof KlantInvoer>(k: K, w: KlantInvoer[K]) => setV((x) => ({ ...x, [k]: w }))
+  const zet = <K extends keyof Concept>(k: K, w: Concept[K]) => setV((x) => ({ ...x, [k]: w }))
   const id = klant?.id ?? 'nieuw'
   const metEinde = v.status === 'opgezegd' || v.status === 'gestopt'
 
   async function opslaan(e: FormEvent) {
     e.preventDefault()
     if (bezig) return
+    if (!v.club) return setFout('Kies de club waar deze klant traint.')
     setBezig(true)
     setFout(null)
     const uit = klant
@@ -75,7 +79,8 @@ export function KlantFormulier({ code, vandaag, standaardClub, klant, vanLead, o
           <input id={`kcontact-${id}`} className="ptd-invoer" value={v.contact ?? ''} onChange={(e) => zet('contact', e.target.value || null)} maxLength={160} inputMode="tel" autoComplete="off" />
         </Veld>
         <Veld label="Club *" id={`kclub-${id}`}>
-          <select id={`kclub-${id}`} className="ptd-invoer" value={v.club} onChange={(e) => isClub(e.target.value) && zet('club', e.target.value)}>
+          <select id={`kclub-${id}`} className="ptd-invoer" value={v.club ?? ''} onChange={(e) => zet('club', isClub(e.target.value) ? e.target.value : null)} required>
+            <option value="" disabled>Kies…</option>
             {CLUBS.map((c) => <option key={c} value={c}>{CLUB_LABEL[c]}</option>)}
           </select>
         </Veld>
@@ -90,11 +95,12 @@ export function KlantFormulier({ code, vandaag, standaardClub, klant, vanLead, o
           {ABONNEMENTEN.map((a) => (
             <button key={a} type="button" aria-pressed={v.abonnement === a} onClick={() => zet('abonnement', a)}>
               <strong>{ABONNEMENT[a].label}</strong>
-              <span>{euro(maandprijs(a, v.club))} p/m{ABONNEMENT[a].duo ? ' per duo' : ''}</span>
+              <span>{euro(v.club ? maandprijs(a, v.club) : ABONNEMENT[a].prijs)} p/m{ABONNEMENT[a].duo ? ' per duo' : ''}</span>
             </button>
           ))}
         </div>
         {v.club === 'eersel' ? <p className="ptd-hint">Eersel heeft eigen prijzen; die staan hierboven al.</p> : null}
+        {v.club === null ? <p className="ptd-hint">Kies eerst de club: in Eersel gelden andere prijzen.</p> : null}
       </div>
 
       {ABONNEMENT[v.abonnement].duo ? (

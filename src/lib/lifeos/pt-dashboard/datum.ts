@@ -23,3 +23,10 @@ export function relatief(dag: string, vandaag: string): string {
   if (verschil < 0) return `${-verschil} dagen te laat`
   return dagKort(dag)
 }
+
+/** Voor een datum in het verleden: "vandaag", "gisteren", of de korte datum. */
+export function geleden(dag: string, vandaag: string): string {
+  if (dag === vandaag) return 'vandaag'
+  const verschil = Math.round((Date.parse(`${vandaag}T12:00:00Z`) - Date.parse(`${dag}T12:00:00Z`)) / 86_400_000)
+  return verschil === 1 ? 'gisteren' : dagKort(dag)
+}

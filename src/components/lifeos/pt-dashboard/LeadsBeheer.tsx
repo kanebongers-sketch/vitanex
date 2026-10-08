@@ -30,7 +30,7 @@ interface Props {
 
 const FILTERS: { sleutel: Filter; label: string }[] = [
   { sleutel: 'open', label: 'Open' },
-  { sleutel: 'opvolgen', label: 'Opvolgen' },
+  { sleutel: 'opvolgen', label: 'Nu opvolgen' },
   { sleutel: 'klant', label: 'Klant geworden' },
   { sleutel: 'geen_interesse', label: 'Geen interesse' },
   { sleutel: 'alles', label: 'Alles' },

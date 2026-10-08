@@ -6,7 +6,7 @@ import {
   BRON_LABEL, INTERESSE_LABEL, LEAD_STATUSSEN, STAP_LABEL, STATUS_LABEL, isStatus, moetOpvolgen, type Lead, type LeadStatus,
 } from '@/lib/lifeos/leads/leads'
 import { CLUB_LABEL } from '@/lib/lifeos/pt-dashboard/clubs'
-import { relatief } from '@/lib/lifeos/pt-dashboard/datum'
+import { geleden, relatief } from '@/lib/lifeos/pt-dashboard/datum'
 import { ContactActies } from './velden'
 
 // Eén lead in de lijst. Met `onBewerk`/`onStatus` is hij bewerkbaar (PT'er);
@@ -37,7 +37,7 @@ export function LeadKaart({ lead, vandaag, onBewerk, onStatus, klantHref }: Prop
         <span className={statusBadge(lead.status)}>{STATUS_LABEL[lead.status]}</span>
       </div>
       <div className="ptd-meta">
-        <span>{relatief(lead.gesprokenOp, vandaag) === 'vandaag' ? 'Vandaag gesproken' : `Gesproken ${relatief(lead.gesprokenOp, vandaag)}`}</span>
+        <span>Gesproken {geleden(lead.gesprokenOp, vandaag)}</span>
         {lead.club ? <span>{CLUB_LABEL[lead.club]}</span> : null}
         <span>{BRON_LABEL[lead.bron]}</span>
         {lead.interesse ? <span>{INTERESSE_LABEL[lead.interesse]}</span> : null}
