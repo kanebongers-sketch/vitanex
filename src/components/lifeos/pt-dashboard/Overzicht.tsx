@@ -4,7 +4,9 @@ import { STAP_LABEL, STATUS_LABEL, type Lead } from '@/lib/lifeos/leads/leads'
 import { ABONNEMENT, eindeVastePeriode, euro } from '@/lib/lifeos/pt-dashboard/abonnementen'
 import type { PtOverzicht } from '@/lib/lifeos/pt-dashboard/overzicht'
 import { dagKort, relatief } from '@/lib/lifeos/pt-dashboard/datum'
+import type { DoelenWeergave } from '@/lib/lifeos/pt-dashboard/doelen'
 import { Tegel } from './Tegel'
+import { DoelVoortgang } from './DoelVoortgang'
 import { ContactActies } from './velden'
 
 // /<naam> — wat vraagt vandaag aandacht, en hoe sta je ervoor. Puur weergave:
@@ -14,9 +16,11 @@ interface Props {
   code: string
   vandaag: string
   o: PtOverzicht
+  /** Doelen van Kane met voortgang; leeg/null = sectie verborgen. */
+  doelen?: DoelenWeergave | null
 }
 
-export function Overzicht({ code, vandaag, o }: Props) {
+export function Overzicht({ code, vandaag, o, doelen }: Props) {
   const opvolgen = [...o.teLaat, ...o.vandaag]
   const leeg = o.leads.totaal === 0 && o.klanten.lopend === 0
   return (
@@ -32,6 +36,8 @@ export function Overzicht({ code, vandaag, o }: Props) {
         />
         <Tegel getal={euro(o.klanten.maandwaarde)} label="Abonnementen p/m" uitleg={`${o.klanten.lopend} lopend · incl. btw`} />
       </div>
+
+      {doelen ? <DoelVoortgang weergave={doelen} /> : null}
 
       <div className="ptd-acties">
         <Link className="ptd-knop ptd-knop--primair" href={`/${code}/lead?nieuw=1`}><Plus size={18} aria-hidden /> Lead invullen</Link>

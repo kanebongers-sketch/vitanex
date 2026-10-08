@@ -11,6 +11,7 @@ import { haalLeadsVoor } from '@/lib/lifeos/leads/opslag'
 import { dagSleutelNl } from '@/lib/lifeos/leads/leads'
 import { haalKlantenVoor } from '@/lib/lifeos/pt-dashboard/klanten-opslag'
 import { bouwTeamOverzicht } from '@/lib/lifeos/pt-dashboard/team-overzicht'
+import { haalDoelenVoor } from '@/lib/lifeos/pt-dashboard/doelen-opslag'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -24,16 +25,19 @@ export async function GET(req: NextRequest) {
   const team = personen.waarde.filter((p) => p.status !== 'inactief' && !isVergadering(p.naam))
   const ids = team.map((p) => p.id)
 
-  const [links, leads, klanten] = await Promise.all([
+  const [links, leads, klanten, doelen] = await Promise.all([
     zorgVoorLinks(toegang.admin, toegang.userId, team),
     haalLeadsVoor(toegang.admin, toegang.userId, ids),
     haalKlantenVoor(toegang.admin, toegang.userId, ids),
+    haalDoelenVoor(toegang.admin, toegang.userId, ids),
   ])
   const overzicht = bouwTeamOverzicht(
     team.map((p) => ({ id: p.id, naam: p.naam, code: links.get(p.id)?.code ?? null, pinStatus: links.get(p.id)?.pinStatus ?? null })),
     leads,
     klanten,
     dagSleutelNl(new Date()),
+    // Doelen zijn een extra laag: lukt het lezen niet, dan het overzicht zonder doelen.
+    doelen.ok ? doelen.waarde : undefined,
   )
   return NextResponse.json(overzicht, { headers: { 'Cache-Control': 'private, no-store', Vary: 'Authorization' } })
 }

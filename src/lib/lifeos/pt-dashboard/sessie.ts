@@ -10,6 +10,7 @@ import { sessieGeldig, vindLink } from '@/lib/lifeos/leads/links'
 import { sessieCookieNaam } from '@/lib/lifeos/leads/pin'
 import { haalLeadsVan } from '@/lib/lifeos/leads/opslag'
 import { haalKlantenVan } from './klanten-opslag'
+import { haalDoelenVoor } from './doelen-opslag'
 
 export const ptSessie = cache(async (code: string) => {
   if (!CODE_PATROON.test(code)) return null
@@ -21,15 +22,21 @@ export const ptSessie = cache(async (code: string) => {
   return { admin, link, ingelogd }
 })
 
-/** Alles van één ingelogde PT'er: leads + klanten + vandaag. Null = niet ingelogd. */
+/** Alles van één ingelogde PT'er: leads + klanten + doelen + vandaag. Null = niet ingelogd. */
 export const ptGegevens = cache(async (code: string) => {
   const s = await ptSessie(code)
   if (!s?.ingelogd) return null
-  const [leads, klanten] = await Promise.all([haalLeadsVan(s.admin, s.link), haalKlantenVan(s.admin, s.link)])
+  const [leads, klanten, doelen] = await Promise.all([
+    haalLeadsVan(s.admin, s.link),
+    haalKlantenVan(s.admin, s.link),
+    haalDoelenVoor(s.admin, s.link.userId, [s.link.persoonId]),
+  ])
   return {
     link: s.link,
     leads: leads.ok ? leads.waarde : null,
     klanten: klanten.ok ? klanten.waarde : null,
+    // Doelen zijn optioneel: niet gezet of niet leesbaar → geen doelensectie.
+    doelen: doelen.ok ? (doelen.waarde.get(s.link.persoonId) ?? null) : null,
     vandaag: dagSleutelNl(new Date()),
   }
 })
