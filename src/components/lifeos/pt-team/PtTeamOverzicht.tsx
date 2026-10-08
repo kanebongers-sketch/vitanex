@@ -85,6 +85,7 @@ export function PtTeamOverzicht() {
           </table>
         </div>
         <ExportKnoppen />
+        <div className="ptd-acties"><Link className="ptd-knop ptd-knop--klein" href="/lifeos/pt-team/documenten">PT-documenten beheren</Link></div>
         <p className="ptd-hint">
           Een 0 betekent: niets ingevuld in het dashboard — niet per se niets gedaan. Pincodes keur je goed op het dashboard bij
           PT-gesprekken.

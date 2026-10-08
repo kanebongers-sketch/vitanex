@@ -3571,3 +3571,36 @@ body {
 .lifeos-root.ff .ff-smal { max-width: 520px; }
 .lifeos-root.ff .ff-hero-sub { margin: 4px 0 0; max-width: 46ch; font-size: 14px; line-height: 1.5; color: rgba(255, 255, 255, 0.82); }
 .lifeos-root.ff .lead-naam { font-family: var(--ff-kop); font-size: 22px; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; border-radius: 12px; }
+
+/* ═══ PT-documenten — bibliotheek (PT-app) + beheer (LifeOS) — .ffdoc-* ═══════
+   Bouwt op de .ptd-* componenten; alleen kleuren via variabelen, zodat het in de
+   Fit Factory-skin (.ff) amber is en in LifeOS cyaan. */
+.lifeos-root .ffdoc-kop { display: grid; gap: 6px; }
+.lifeos-root .ffdoc-kop h1 { margin: 0; font-size: clamp(30px, 8vw, 44px); line-height: 1; font-weight: 700; color: var(--text-1); }
+.lifeos-root .ffdoc-kop .ptd-sub { max-width: 60ch; line-height: 1.5; }
+.lifeos-root .ffdoc-terug { display: inline-flex; align-items: center; gap: 6px; text-decoration: none; }
+.lifeos-root .ffdoc-rij { grid-template-columns: auto minmax(0, 1fr); align-items: start; column-gap: 14px; }
+.lifeos-root .ffdoc-rij .ptd-naam { margin: 0; }
+.lifeos-root .ffdoc-icoon { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 11px; background: var(--brand-soft); color: var(--brand); }
+.lifeos-root .ffdoc-tekst { display: grid; gap: 6px; min-width: 0; }
+.lifeos-root .ffdoc-open { grid-column: 1 / -1; justify-self: stretch; min-height: 44px; }
+@media (min-width: 560px) {
+  .lifeos-root .ffdoc-rij { grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; }
+  .lifeos-root .ffdoc-open { grid-column: auto; justify-self: end; }
+}
+.lifeos-root .ffdoc-groep { display: grid; gap: 8px; }
+.lifeos-root .ffdoc-groepkop { margin: 6px 0 0; font-size: 13px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-3); }
+
+.lifeos-root .ffdoc-zone { display: grid; justify-items: center; gap: 10px; padding: 26px 16px; border-radius: 16px; border: 1.5px dashed var(--line-strong); background: var(--bg-card); text-align: center; color: var(--text-3); transition: border-color 160ms var(--ease), background 160ms var(--ease); }
+.lifeos-root .ffdoc-zone p { margin: 0; }
+.lifeos-root .ffdoc-zone > svg { color: var(--brand); }
+.lifeos-root .ffdoc-zone[data-sleept] { border-color: var(--brand); background: var(--brand-soft); }
+.lifeos-root .ffdoc-bestandsnaam { font-size: 13px; color: var(--text-3); overflow-wrap: anywhere; }
+.lifeos-root .ffdoc-upload { gap: 12px; }
+.lifeos-root .ffdoc-voortgang { display: flex; align-items: center; gap: 10px; }
+.lifeos-root .ffdoc-balk { flex: 1; height: 6px; appearance: none; border: 0; border-radius: 999px; overflow: hidden; background: var(--bg-raised); color: var(--brand); }
+.lifeos-root .ffdoc-balk::-webkit-progress-bar { background: var(--bg-raised); border-radius: 999px; }
+.lifeos-root .ffdoc-balk::-webkit-progress-value { background: var(--brand); border-radius: 999px; }
+.lifeos-root .ffdoc-balk::-moz-progress-bar { background: var(--brand); border-radius: 999px; }
+.lifeos-root .ffdoc-fout { margin: 0; font-size: 13px; line-height: 1.45; color: var(--status-laag); }
+@media (prefers-reduced-motion: reduce) { .lifeos-root .ffdoc-zone { transition: none; } }
