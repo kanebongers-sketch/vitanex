@@ -3490,3 +3490,81 @@ body {
   .lifeos-root .ptd-nav { gap: 2px; padding: 3px; }
   .lifeos-root .ptd-nav a { flex: 1 1 auto; padding: 10px 4px; font-size: 13.5px; }
 }
+
+/* ═══ Fit Factory Personal Training — skin voor de PT-app (.lifeos-root.ff) ══════
+   White-label op verzoek van Kane: de PT-app draagt de huisstijl van Fit Factory PT
+   (zie FIT_FACTORY in theme.ts). Alle .ptd-* componenten lezen CSS-variabelen, dus
+   hier herdefiniëren we alleen de tokens + typografie; de componenten blijven gelijk.
+   Contrast (WCAG): amber #E8A33F op #101014 ≈ 8.7:1; zwarte tekst op amber ≈ 8.7:1. */
+.lifeos-root.ff {
+  --brand: #e8a33f;
+  --brand-strong: #f2b65c;
+  --brand-soft: rgba(232, 163, 63, 0.14);
+  --brand-glow: rgba(232, 163, 63, 0.3);
+  --bg-app: #101014;
+  --bg-card: #1a1a1f;
+  --bg-raised: #24242a;
+  --line: rgba(255, 255, 255, 0.08);
+  --line-strong: rgba(255, 255, 255, 0.16);
+  /* "Let op" mag niet dezelfde kleur hebben als het merk-accent: koraalrood. */
+  --status-aandacht: #f47c66;
+  --status-warning: #f47c66;
+  --status-warning-soft: rgba(244, 124, 102, 0.14);
+  --ff-kop: var(--ff-barlow), 'Barlow Condensed', 'Arial Narrow', sans-serif;
+  font-family: var(--ff-inter), Inter, ui-sans-serif, system-ui, sans-serif;
+  background: var(--bg-app);
+  color: var(--text-1);
+  min-height: 100vh;
+}
+.lifeos-root.ff :where(h1, h2, h3, .ptd-titel, .ptd-getal, .ptd-naam, .ptd-nav a, .ptd-knop, .ptd-chip, .ptd-badge, .ptd-label, .ptd-merk) {
+  font-family: var(--ff-kop);
+}
+.lifeos-root.ff :where(h1, h2, h3, .ptd-titel) { text-transform: uppercase; letter-spacing: 0.01em; }
+.lifeos-root.ff .ptd-sectiekop h2 { font-size: 21px; font-weight: 700; }
+.lifeos-root.ff .ptd-form h3 { font-size: 19px; font-weight: 700; }
+.lifeos-root.ff .ptd-naam { font-size: 18px; font-weight: 600; letter-spacing: 0.01em; }
+.lifeos-root.ff .ptd-tegel .ptd-getal { font-size: 34px; font-weight: 700; letter-spacing: 0; }
+.lifeos-root.ff .ptd-tegel .ptd-label { font-size: 13px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-3); }
+.lifeos-root.ff .ptd-knop { font-size: 16px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
+.lifeos-root.ff .ptd-knop--klein { font-size: 14px; }
+.lifeos-root.ff .ptd-knop--primair { color: #101014; }
+.lifeos-root.ff .ptd-chip { font-size: 14px; letter-spacing: 0.03em; }
+.lifeos-root.ff .ptd-badge { font-size: 13px; letter-spacing: 0.04em; text-transform: uppercase; }
+.lifeos-root.ff .ptd-tegel, .lifeos-root.ff .ptd-rij, .lifeos-root.ff .ptd-form, .lifeos-root.ff .ptd-kaart { border-radius: 12px; }
+
+/* De balk bovenaan: logo links, naam + uitloggen rechts. */
+.lifeos-root.ff .ff-balk { position: sticky; top: 0; z-index: 30; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: max(10px, env(safe-area-inset-top)) 16px 10px; background: rgba(16, 16, 20, 0.88); backdrop-filter: blur(14px); border-bottom: 1px solid var(--line); }
+.lifeos-root.ff .ff-logo { display: block; height: 34px; width: auto; }
+.lifeos-root.ff .ff-balk-rechts { display: flex; align-items: center; gap: 10px; }
+.lifeos-root.ff .ff-wie { font-family: var(--ff-kop); font-size: 15px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-2); }
+
+/* Hero met de teamfoto (overzicht + inlogscherm), zoals de covers van hun documenten. */
+.lifeos-root.ff .ff-hero { position: relative; overflow: hidden; border-radius: 14px; min-height: 210px; display: flex; align-items: flex-end; border: 1px solid var(--line); background: #0b0b0e; }
+.lifeos-root.ff .ff-hero picture, .lifeos-root.ff .ff-hero img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 30%; }
+.lifeos-root.ff .ff-hero::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(16, 16, 20, 0.15) 0%, rgba(16, 16, 20, 0.55) 45%, rgba(16, 16, 20, 0.95) 100%); }
+.lifeos-root.ff .ff-hero-tekst { position: relative; z-index: 1; padding: 18px 18px 16px; display: grid; gap: 4px; }
+.lifeos-root.ff .ff-boventitel { margin: 0; font-family: var(--ff-kop); font-size: 13px; font-weight: 600; letter-spacing: 0.22em; text-transform: uppercase; color: var(--brand); }
+.lifeos-root.ff .ff-hero h1 { margin: 0; font-family: var(--ff-kop); font-size: clamp(40px, 11vw, 64px); line-height: 0.95; font-weight: 700; text-transform: uppercase; color: #fff; }
+.lifeos-root.ff .ff-streep { width: 56px; height: 2px; background: var(--brand); border: 0; margin: 6px 0 0; }
+
+/* Navigatie: onderbalk op de telefoon (app-gevoel), pillen bovenaan vanaf tablet. */
+.lifeos-root.ff .ff-inhoud { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
+.lifeos-root.ff .ff-tabs { position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; padding: 6px 6px max(8px, env(safe-area-inset-bottom)); background: rgba(16, 16, 20, 0.94); backdrop-filter: blur(16px); border-top: 1px solid var(--line); }
+.lifeos-root.ff .ff-tabs a { display: grid; justify-items: center; gap: 3px; padding: 6px 2px; border-radius: 10px; text-decoration: none; color: var(--text-3); font-family: var(--ff-kop); font-size: 12.5px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; transition: color 160ms var(--ease); }
+.lifeos-root.ff .ff-tabs a svg { width: 22px; height: 22px; }
+.lifeos-root.ff .ff-tabs a:hover { color: var(--text-1); }
+.lifeos-root.ff .ff-tabs a[aria-current='page'] { color: var(--brand); }
+.lifeos-root.ff .ff-tabs a:focus-visible { outline: 2px solid var(--brand); outline-offset: -2px; }
+@media (min-width: 820px) {
+  .lifeos-root.ff .ff-inhoud { padding-bottom: 64px; }
+  .lifeos-root.ff .ff-tabs { position: sticky; top: 64px; bottom: auto; max-width: 928px; margin: 14px auto 0; border: 1px solid var(--line); border-radius: 14px; padding: 4px; }
+  .lifeos-root.ff .ff-tabs a { grid-auto-flow: column; align-items: center; justify-content: center; gap: 8px; padding: 10px 8px; font-size: 15px; }
+  .lifeos-root.ff .ff-tabs a svg { width: 18px; height: 18px; }
+  .lifeos-root.ff .ff-tabs a[aria-current='page'] { background: var(--brand-soft); }
+}
+.lifeos-root.ff .ff-voet { display: grid; gap: 6px; justify-items: center; text-align: center; margin-top: 18px; color: var(--text-4); font-size: 12px; line-height: 1.5; }
+.lifeos-root.ff .ff-voet img { height: 22px; width: auto; opacity: 0.75; }
+@media (prefers-reduced-motion: reduce) { .lifeos-root.ff .ff-tabs a { transition: none; } }
+.lifeos-root.ff .ff-smal { max-width: 520px; }
+.lifeos-root.ff .ff-hero-sub { margin: 4px 0 0; max-width: 46ch; font-size: 14px; line-height: 1.5; color: rgba(255, 255, 255, 0.82); }
+.lifeos-root.ff .lead-naam { font-family: var(--ff-kop); font-size: 22px; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; border-radius: 12px; }
