@@ -25,7 +25,12 @@ describe('team-overzicht', () => {
     expect(t.rijen[0].leads.conversie).toBe(50)
     expect(t.rijen[1]).toMatchObject({ naam: 'Luna', klantenLopend: 0, laatsteLead: null })
     expect(t.clubs).toHaveLength(1)
+    expect(t.analyse?.funnel.map((s) => s.aantal)).toEqual([2, 1, 1])
+    expect(t.analyse?.weken.at(-1)).toMatchObject({ start: '2026-10-05', leads: 1, klant: 1 })
     expect(leesTeamOverzicht(JSON.parse(JSON.stringify(t)))).toEqual(t)
+  })
+  test('oud antwoord zonder analyse blijft leesbaar', () => {
+    expect(leesTeamOverzicht({ vandaag: '2026-10-08', rijen: [], clubs: [] })?.analyse).toBeNull()
   })
   test('detail: kapotte items vallen weg, de rest blijft', () => {
     const d = leesPtDetail({ naam: 'Joey', code: 'joey', vandaag: '2026-10-08', leads: [lead(), { kapot: true }], klanten: [klant] })

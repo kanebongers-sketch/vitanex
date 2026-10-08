@@ -4,8 +4,11 @@ import { STAP_LABEL, STATUS_LABEL, type Lead } from '@/lib/lifeos/leads/leads'
 import { ABONNEMENT, eindeVastePeriode, euro } from '@/lib/lifeos/pt-dashboard/abonnementen'
 import type { PtOverzicht } from '@/lib/lifeos/pt-dashboard/overzicht'
 import { dagKort, relatief } from '@/lib/lifeos/pt-dashboard/datum'
+import { funnel, weekReeks } from '@/lib/lifeos/pt-dashboard/analyse'
 import { Tegel } from './Tegel'
 import { ContactActies } from './velden'
+import { WeekTrend } from './WeekTrend'
+import { Funnel } from './Funnel'
 
 // /<naam> — wat vraagt vandaag aandacht, en hoe sta je ervoor. Puur weergave:
 // alle cijfers komen uit `ptOverzicht` (lib/lifeos/pt-dashboard/overzicht.ts).
@@ -14,9 +17,11 @@ interface Props {
   code: string
   vandaag: string
   o: PtOverzicht
+  /** Alle leads van deze PT'er, voor "Jouw trend". */
+  leads: readonly Lead[]
 }
 
-export function Overzicht({ code, vandaag, o }: Props) {
+export function Overzicht({ code, vandaag, o, leads }: Props) {
   const opvolgen = [...o.teLaat, ...o.vandaag]
   const leeg = o.leads.totaal === 0 && o.klanten.lopend === 0
   return (
@@ -92,6 +97,19 @@ export function Overzicht({ code, vandaag, o }: Props) {
           </ul>
         </section>
       ) : null}
+
+      {leeg ? null : (
+        <section className="ptd-sectie" aria-labelledby="trend-kop">
+          <div className="ptd-sectiekop">
+            <h2 id="trend-kop">Jouw trend</h2>
+            <span>uit je eigen leads</span>
+          </div>
+          <div className="ptd-an-raster">
+            <WeekTrend weken={weekReeks(leads, vandaag)} />
+            <Funnel stappen={funnel(leads)} />
+          </div>
+        </section>
+      )}
     </>
   )
 }

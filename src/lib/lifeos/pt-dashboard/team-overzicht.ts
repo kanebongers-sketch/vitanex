@@ -8,6 +8,7 @@ import { LEAD_STATUSSEN, leesLead, type Lead, type LeadStatus, isPinStatus, type
 import { isClub, type Club } from './clubs'
 import { leesKlant, type PtKlant } from './abonnementen'
 import { clubMatrix, ptOverzicht, type ClubMatrix, type LeadCijfers } from './overzicht'
+import { analyseer, leesAnalyse, type Analyse } from './analyse'
 
 export interface TeamRij {
   id: string
@@ -31,6 +32,8 @@ export interface TeamOverzicht {
   vandaag: string
   rijen: TeamRij[]
   clubs: ClubMatrix
+  /** Funnel & trends over alle leads van het team; null als het antwoord die niet bevat. */
+  analyse: Analyse | null
 }
 
 export function bouwTeamOverzicht(
@@ -56,7 +59,8 @@ export function bouwTeamOverzicht(
       laatsteLead: l.reduce<string | null>((m, x) => (m === null || x.gesprokenOp > m ? x.gesprokenOp : m), null),
     }
   })
-  return { vandaag, rijen, clubs: clubMatrix([...leads.values()].flat()) }
+  const alle = [...leads.values()].flat()
+  return { vandaag, rijen, clubs: clubMatrix(alle), analyse: analyseer(alle, vandaag) }
 }
 
 // ─── Uitlezen (systeemgrens) ──────────────────────────────────────────────────
@@ -102,7 +106,7 @@ export function leesTeamOverzicht(ruw: unknown): TeamOverzicht | null {
     if (!x || !(isClub(x.club) || x.club === 'onbekend')) return []
     return [{ club: x.club as Club | 'onbekend', totaal: getal(x.totaal), perStatus: perStatus(x.perStatus) }]
   })
-  return { vandaag: o.vandaag, rijen, clubs }
+  return { vandaag: o.vandaag, rijen, clubs, analyse: leesAnalyse(o.analyse) }
 }
 
 export interface PtDetail {

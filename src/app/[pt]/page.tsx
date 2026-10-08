@@ -10,5 +10,5 @@ export default async function PtOverzichtPagina({ params }: { params: Promise<{ 
   const g = await ptGegevens(pt)
   if (!g) return null
   if (!g.leads || !g.klanten) return <Foutmelding bericht="Je gegevens konden niet geladen worden. Vernieuw de pagina." />
-  return <Overzicht code={g.link.code} vandaag={g.vandaag} o={ptOverzicht(g.leads, g.klanten, g.vandaag)} />
+  return <Overzicht code={g.link.code} vandaag={g.vandaag} o={ptOverzicht(g.leads, g.klanten, g.vandaag)} leads={g.leads} />
 }

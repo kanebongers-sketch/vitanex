@@ -1,5 +1,6 @@
 // GET /api/lifeos/pt-team — per PT'er de kerncijfers uit het PT-dashboard
-// (leads, opvolging, klanten, maandwaarde) + per club de leads per status.
+// (leads, opvolging, klanten, maandwaarde) + per club de leads per status +
+// team-brede funnel & trends (`analyse`, zie pt-dashboard/analyse.ts).
 // Auth: de founder-gate uit `@/lib/lifeos/admin`.
 
 import { NextResponse, type NextRequest } from 'next/server'

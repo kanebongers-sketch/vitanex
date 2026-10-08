@@ -8,6 +8,9 @@ import { leesTeamOverzicht, type TeamOverzicht } from '@/lib/lifeos/pt-dashboard
 import { euro } from '@/lib/lifeos/pt-dashboard/abonnementen'
 import { dagKort } from '@/lib/lifeos/pt-dashboard/datum'
 import { Tegel } from '@/components/lifeos/pt-dashboard/Tegel'
+import { WeekTrend } from '@/components/lifeos/pt-dashboard/WeekTrend'
+import { Funnel } from '@/components/lifeos/pt-dashboard/Funnel'
+import { BronTabel } from '@/components/lifeos/pt-dashboard/BronTabel'
 import { ClubTabel } from './ClubTabel'
 
 // Container: Kane's blik op het hele PT-team — wat elke PT'er in zijn eigen
@@ -32,7 +35,7 @@ export function PtTeamOverzicht() {
 
   if (staat.fase === 'laden') return <p className="ptd-hint">Laden…</p>
   if (staat.fase === 'fout') return <Foutmelding bericht={staat.bericht} opnieuw={() => void laad()} />
-  const { rijen, clubs } = staat.data
+  const { rijen, clubs, analyse } = staat.data
   const som = (f: (r: (typeof rijen)[number]) => number) => rijen.reduce((s, r) => s + f(r), 0)
   const leadsTotaal = som((r) => r.leads.totaal)
   const klant = som((r) => r.leads.klant)
@@ -86,6 +89,20 @@ export function PtTeamOverzicht() {
       </section>
 
       <ClubTabel clubs={clubs} />
+
+      {analyse ? (
+        <section className="ptd-sectie" aria-labelledby="team-trend-kop">
+          <div className="ptd-sectiekop">
+            <h2 id="team-trend-kop">Team-trend</h2>
+            <span>alle leads van het team</span>
+          </div>
+          <div className="ptd-an-raster">
+            <WeekTrend weken={analyse.weken} kop="Leads per week — team" />
+            <Funnel stappen={analyse.funnel} />
+            <div className="ptd-an-blok--breed"><BronTabel bronnen={analyse.bronnen} /></div>
+          </div>
+        </section>
+      ) : null}
     </div>
   )
 }
