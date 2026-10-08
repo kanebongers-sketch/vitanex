@@ -18,7 +18,7 @@ const NIET_GEVONDEN = 'Dit document bestaat niet (meer).'
 
 export async function GET(req: NextRequest, ctx: Context) {
   const { code, id } = await ctx.params
-  const r = await ingelogdeLink(req, code)
+  const r = await ingelogdeLink(req, code, { eigenaarMag: true })
   if (r instanceof NextResponse) return r
   if (!isUuid(id)) return foutAntwoord(NIET_GEVONDEN, 404)
 

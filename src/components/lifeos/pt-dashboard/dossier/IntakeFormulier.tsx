@@ -19,6 +19,8 @@ interface Props {
   klantId: string
   begin: Intake | null
   onOpgeslagen: (i: Intake) => void
+  /** Meekijken (eigenaar): alle velden dicht, geen opslaan. */
+  alleenLezen?: boolean
 }
 
 type Concept = Record<string, Antwoord>
@@ -40,7 +42,7 @@ function SectieExtra({ sectie, a }: { sectie: IntakeSectie; a: Concept }) {
   return null
 }
 
-export function IntakeFormulier({ code, klantId, begin, onOpgeslagen }: Props) {
+export function IntakeFormulier({ code, klantId, begin, onOpgeslagen, alleenLezen = false }: Props) {
   const [a, setA] = useState<Concept>(() => ({ ...(begin?.antwoorden ?? {}) }))
   const [gewijzigd, setGewijzigd] = useState(false)
   const [bezig, setBezig] = useState(false)
@@ -99,7 +101,7 @@ export function IntakeFormulier({ code, klantId, begin, onOpgeslagen }: Props) {
               <span>{s.titel}</span>
               <span className="ffdos-sectie-stand">{sv.beantwoord}/{sv.totaal}</span>
             </summary>
-            <fieldset className="ptd-details-inhoud ffdos-velden">
+            <fieldset className="ptd-details-inhoud ffdos-velden" disabled={alleenLezen}>
               <legend className="sr-only">{s.titel}</legend>
               {s.uitleg ? <p className="ptd-hint">{s.uitleg}</p> : null}
               {s.velden.map((veld) => (
@@ -112,6 +114,7 @@ export function IntakeFormulier({ code, klantId, begin, onOpgeslagen }: Props) {
       })}
 
       {fout ? <Foutmelding bericht={fout} /> : null}
+      {alleenLezen ? null : (
       <div className="ptd-acties ffdos-opslaan">
         <button type="submit" className="ptd-knop ptd-knop--primair" disabled={bezig || !gewijzigd}>
           {bezig ? 'Opslaan…' : 'Intake opslaan'}
@@ -124,6 +127,7 @@ export function IntakeFormulier({ code, klantId, begin, onOpgeslagen }: Props) {
           ) : null}
         </span>
       </div>
+      )}
     </form>
   )
 }

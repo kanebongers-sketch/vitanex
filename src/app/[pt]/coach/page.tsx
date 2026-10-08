@@ -5,15 +5,18 @@ import { haalOpenPuntenVan } from '@/lib/lifeos/pt-coaching/opslag'
 import { CheckinFormulier } from '@/components/lifeos/pt-dashboard/CheckinFormulier'
 import { CoachPunten } from '@/components/lifeos/pt-dashboard/CoachPunten'
 import { Foutmelding } from '@/components/lifeos/os/Foutmelding'
+import { EigenaarCoach } from '@/components/lifeos/pt-eigenaar/EigenaarCoach'
 
 // /<naam>/coach — de PT'er bereidt het wekelijkse coachgesprek met Kane voor:
 // de open aandachtspunten uit eerdere gesprekken (alleen lezen) en de check-in
 // van deze week. De layout regelt de pincode; zonder sessie rendert dit niets.
+// Een eigenaar ziet hier de check-ins en open punten van het hele team.
 
 export default async function CoachPagina({ params }: { params: Promise<{ pt: string }> }) {
   const { pt } = await params
   const s = await ptSessie(pt)
   if (!s?.ingelogd) return null
+  if (s.link.rol === 'eigenaar') return <EigenaarCoach code={s.link.code} />
 
   const week = huidigeWeek(new Date())
   const [checkin, punten] = await Promise.all([

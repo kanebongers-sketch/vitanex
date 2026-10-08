@@ -1,0 +1,101 @@
+import type { ReactNode } from 'react'
+import Link from 'next/link'
+import type { TeamOverzicht } from '@/lib/lifeos/pt-dashboard/team-overzicht'
+import { euro } from '@/lib/lifeos/pt-dashboard/abonnementen'
+import { dagKort } from '@/lib/lifeos/pt-dashboard/datum'
+import { Tegel } from '@/components/lifeos/pt-dashboard/Tegel'
+import { WeekTrend } from '@/components/lifeos/pt-dashboard/WeekTrend'
+import { Funnel } from '@/components/lifeos/pt-dashboard/Funnel'
+import { BronTabel } from '@/components/lifeos/pt-dashboard/BronTabel'
+import { ClubTabel } from './ClubTabel'
+
+// Het hele PT-team in één beeld: totalen, per PT'er, per club en de team-trend.
+// Puur — gedeeld door Kane (LifeOS, /lifeos/pt-team) en de eigenaar (/<naam> in
+// de PT-app). `ptHref` is het pad waar een naam naartoe linkt (+ "/<id>").
+
+const PIN = { geen: 'Nog geen pincode', wacht: 'Pincode wacht op jou', actief: 'Actief' } as const
+
+interface Props {
+  data: TeamOverzicht
+  ptHref: string
+  /** Kolom met de pincode-status van elke PT'er (alleen voor Kane). */
+  toonPin?: boolean
+  /** Onder de tabel: export, beheerlinks, uitleg. */
+  children?: ReactNode
+}
+
+export function TeamOverzichtWeergave({ data, ptHref, toonPin = false, children }: Props) {
+  const { rijen, clubs, analyse } = data
+  const som = (f: (r: (typeof rijen)[number]) => number) => rijen.reduce((s, r) => s + f(r), 0)
+  const leadsTotaal = som((r) => r.leads.totaal)
+  const klant = som((r) => r.leads.klant)
+
+  return (
+    <>
+      <div className="ptd-tegels">
+        <Tegel getal={String(som((r) => r.leads.dezeWeek))} label="Leads deze week" uitleg={`${som((r) => r.leads.dezeMaand)} deze maand`} />
+        <Tegel getal={String(som((r) => r.leads.open))} label="Open leads" uitleg={`${som((r) => r.teLaat)} opvolging te laat`} />
+        <Tegel getal={String(klant)} label="Klant geworden" uitleg={leadsTotaal ? `${Math.round((klant / leadsTotaal) * 100)}% van ${leadsTotaal} leads` : 'nog geen leads'} accent />
+        <Tegel getal={euro(som((r) => r.maandwaarde))} label="PT-abonnementen p/m" uitleg={`${som((r) => r.klantenLopend)} lopend · incl. btw`} />
+      </div>
+
+      <section className="ptd-sectie" aria-labelledby="team-kop">
+        <div className="ptd-sectiekop">
+          <h2 id="team-kop">Per PT&apos;er</h2>
+          <span>klik een naam voor alle leads en klanten</span>
+        </div>
+        {rijen.length === 0 ? (
+          <p className="ptd-leeg">Er staan nog geen PT&apos;ers in het team.</p>
+        ) : (
+          <div className="ptd-scroll">
+            <table className="ptd-tabel">
+              <thead>
+                <tr>
+                  <th scope="col">PT&apos;er</th><th scope="col">Leads wk</th><th scope="col">Doel wk</th><th scope="col">Maand</th><th scope="col">Open</th>
+                  <th scope="col">Te laat</th><th scope="col">Klant</th><th scope="col">Conversie</th><th scope="col">Abonnementen</th>
+                  <th scope="col">Per maand</th><th scope="col">Laatste lead</th>
+                  {toonPin ? <th scope="col">Dashboard</th> : null}
+                </tr>
+              </thead>
+              <tbody>
+                {rijen.map((r) => (
+                  <tr key={r.id}>
+                    <td><Link className="ptd-link" href={`${ptHref}/${r.id}`}>{r.naam}</Link></td>
+                    <td>{r.leads.dezeWeek}</td>
+                    <td>{r.doelen?.leadsPerWeek ? `${r.leads.dezeWeek}/${r.doelen.leadsPerWeek}` : '–'}</td>
+                    <td>{r.leads.dezeMaand}</td>
+                    <td>{r.leads.open}</td>
+                    <td>{r.teLaat > 0 ? <span className="ptd-badge ptd-badge--let-op">{r.teLaat}</span> : 0}</td>
+                    <td>{r.leads.klant}</td>
+                    <td>{r.leads.conversie === null ? '–' : `${r.leads.conversie}%`}</td>
+                    <td>{r.klantenLopend}{r.bevroren > 0 ? ` (${r.bevroren} bevr.)` : ''}</td>
+                    <td>{euro(r.maandwaarde)}</td>
+                    <td>{r.laatsteLead ? dagKort(r.laatsteLead) : '–'}</td>
+                    {toonPin ? <td>{r.pinStatus ? PIN[r.pinStatus] : '–'}</td> : null}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+        {children}
+      </section>
+
+      <ClubTabel clubs={clubs} />
+
+      {analyse ? (
+        <section className="ptd-sectie" aria-labelledby="team-trend-kop">
+          <div className="ptd-sectiekop">
+            <h2 id="team-trend-kop">Team-trend</h2>
+            <span>alle leads van het team</span>
+          </div>
+          <div className="ptd-an-raster">
+            <WeekTrend weken={analyse.weken} kop="Leads per week — team" />
+            <Funnel stappen={analyse.funnel} />
+            <div className="ptd-an-blok--breed"><BronTabel bronnen={analyse.bronnen} /></div>
+          </div>
+        </section>
+      ) : null}
+    </>
+  )
+}

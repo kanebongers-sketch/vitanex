@@ -145,3 +145,24 @@ export function leesPtDetail(ruw: unknown): PtDetail | null {
     doelenFout: o.doelenFout === true,
   }
 }
+
+// ─── Eigenaren (meekijkers, bv. Ruben) ────────────────────────────────────────
+
+/** Een eigenaar met zijn PT-app-link, zodat Kane de pincode kan goedkeuren. */
+export interface EigenaarRij {
+  id: string
+  naam: string
+  code: string
+  pinStatus: PinStatus
+  pinAangevraagdOp: string | null
+}
+
+export function leesEigenaren(ruw: unknown): EigenaarRij[] {
+  const lijst = obj(ruw)?.eigenaren
+  if (!Array.isArray(lijst)) return []
+  return lijst.flatMap((e): EigenaarRij[] => {
+    const x = obj(e)
+    if (!x || typeof x.id !== 'string' || typeof x.naam !== 'string' || typeof x.code !== 'string' || !isPinStatus(x.pinStatus)) return []
+    return [{ id: x.id, naam: x.naam, code: x.code, pinStatus: x.pinStatus, pinAangevraagdOp: typeof x.pinAangevraagdOp === 'string' ? x.pinAangevraagdOp : null }]
+  })
+}

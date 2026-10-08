@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest'
 import type { Lead } from '@/lib/lifeos/leads/leads'
 import type { PtKlant } from './abonnementen'
-import { bouwTeamOverzicht, leesPtDetail, leesTeamOverzicht } from './team-overzicht'
+import { bouwTeamOverzicht, leesEigenaren, leesPtDetail, leesTeamOverzicht } from './team-overzicht'
 
 const lead = (over: Partial<Lead> = {}): Lead => ({
   id: 'l', naam: 'X', contact: null, club: 'eersel', bron: 'vloer', interesse: null, status: 'nieuw', volgendeStap: null,
@@ -42,5 +42,25 @@ describe('team-overzicht', () => {
     expect(leesPtDetail({ naam: 'Joey', code: null, vandaag: '2026-10-08', leads: [], klanten: [], doelen: { leadsPerWeek: 3 } })?.doelen)
       .toEqual({ leadsPerWeek: 3, klantenPerMaand: null, abonnementen: null, notitie: null })
     expect(leesPtDetail({ naam: 'x' })).toBeNull()
+  })
+})
+
+describe('leesEigenaren', () => {
+  test('leest geldige eigenaren en laat kapotte rijen weg', () => {
+    const ruw = {
+      eigenaren: [
+        { id: 'e1', naam: 'Ruben', code: 'ruben', pinStatus: 'wacht', pinAangevraagdOp: '2026-10-08T10:00:00Z' },
+        { id: 'e2', naam: 'Zonder code', pinStatus: 'actief' },
+        { id: 'e3', naam: 'Rare pin', code: 'x', pinStatus: 'kapot' },
+      ],
+    }
+    expect(leesEigenaren(ruw)).toEqual([
+      { id: 'e1', naam: 'Ruben', code: 'ruben', pinStatus: 'wacht', pinAangevraagdOp: '2026-10-08T10:00:00Z' },
+    ])
+  })
+
+  test('geeft een lege lijst als het veld ontbreekt (oudere server)', () => {
+    expect(leesEigenaren({ vandaag: '2026-10-08', rijen: [], clubs: [] })).toEqual([])
+    expect(leesEigenaren(null)).toEqual([])
   })
 })

@@ -26,9 +26,11 @@ interface Props {
   intake: Intake | null
   metingen: Meting[]
   startTab: DossierTab
+  /** Meekijken (eigenaar): het hele dossier zonder bewerken. */
+  alleenLezen?: boolean
 }
 
-export function Dossier({ code, vandaag, klant: beginKlant, intake: beginIntake, metingen: beginMetingen, startTab }: Props) {
+export function Dossier({ code, vandaag, klant: beginKlant, intake: beginIntake, metingen: beginMetingen, startTab, alleenLezen = false }: Props) {
   const [klant, setKlant] = useState(beginKlant)
   const [intake, setIntake] = useState(beginIntake)
   const [metingen, setMetingen] = useState(beginMetingen)
@@ -89,13 +91,13 @@ export function Dossier({ code, vandaag, klant: beginKlant, intake: beginIntake,
       </div>
 
       <div role="tabpanel" id="ffdos-paneel-intake" aria-labelledby="ffdos-tab-intake" hidden={tab !== 'intake'}>
-        <IntakeFormulier code={code} klantId={klant.id} begin={intake} onOpgeslagen={setIntake} />
+        <IntakeFormulier code={code} klantId={klant.id} begin={intake} onOpgeslagen={setIntake} alleenLezen={alleenLezen} />
       </div>
       <div role="tabpanel" id="ffdos-paneel-metingen" aria-labelledby="ffdos-tab-metingen" hidden={tab !== 'metingen'}>
-        <MetingenPaneel code={code} klantId={klant.id} startdatum={klant.startdatum} vandaag={vandaag} metingen={metingen} onWijzig={setMetingen} />
+        <MetingenPaneel code={code} klantId={klant.id} startdatum={klant.startdatum} vandaag={vandaag} metingen={metingen} onWijzig={setMetingen} alleenLezen={alleenLezen} />
       </div>
       <div role="tabpanel" id="ffdos-paneel-notities" aria-labelledby="ffdos-tab-notities" hidden={tab !== 'notities'}>
-        <NotitiesPaneel code={code} klant={klant} onOpgeslagen={setKlant} />
+        <NotitiesPaneel code={code} klant={klant} onOpgeslagen={setKlant} alleenLezen={alleenLezen} />
       </div>
     </div>
   )

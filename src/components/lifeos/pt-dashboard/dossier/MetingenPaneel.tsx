@@ -23,6 +23,8 @@ interface Props {
   vandaag: string
   metingen: Meting[]
   onWijzig: (m: Meting[]) => void
+  /** Meekijken (eigenaar): geen toevoegen of verwijderen. */
+  alleenLezen?: boolean
 }
 
 function samenvatting(m: Meting): string {
@@ -39,7 +41,7 @@ function standaardSoort(metingen: readonly Meting[], week: number): MetingSoort 
   return week >= 13 ? 'eind' : 'tussen'
 }
 
-export function MetingenPaneel({ code, klantId, startdatum, vandaag, metingen, onWijzig }: Props) {
+export function MetingenPaneel({ code, klantId, startdatum, vandaag, metingen, onWijzig, alleenLezen = false }: Props) {
   const [nieuw, setNieuw] = useState(false)
   const [fout, setFout] = useState<string | null>(null)
   const week = trajectWeek(startdatum, vandaag)
@@ -72,7 +74,7 @@ export function MetingenPaneel({ code, klantId, startdatum, vandaag, metingen, o
         ))}
       </ul>
 
-      {nieuw ? (
+      {alleenLezen ? null : nieuw ? (
         <MetingFormulier
           code={code}
           klantId={klantId}
@@ -131,11 +133,13 @@ export function MetingenPaneel({ code, klantId, startdatum, vandaag, metingen, o
               </div>
               <p className="ptd-tekst">{samenvatting(m)}</p>
               {m.notitie ? <p className="ptd-hint">{m.notitie}</p> : null}
+              {alleenLezen ? null : (
               <div className="ptd-acties">
                 <button type="button" className="ptd-knop ptd-knop--klein ptd-knop--gevaar" onClick={() => void verwijder(m)} aria-label={`Meting van ${dagKort(m.datum)} verwijderen`}>
                   <Trash2 size={14} aria-hidden /> Verwijder
                 </button>
               </div>
+              )}
             </li>
           ))}
         </ul>

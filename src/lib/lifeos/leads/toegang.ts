@@ -26,12 +26,19 @@ export async function linkVoor(code: string): Promise<PtToegang | NextResponse> 
   return link ? { admin, link } : foutAntwoord('Deze link werkt niet (meer).', 404)
 }
 
-/** Als `linkVoor`, maar ook ingelogd met de pincode. */
-export async function ingelogdeLink(req: NextRequest, code: string): Promise<PtToegang | NextResponse> {
+/**
+ * Als `linkVoor`, maar ook ingelogd met de pincode. Standaard alleen voor een
+ * PT'er: een eigenaar kijkt mee maar schrijft geen leads, klanten of check-ins
+ * (anders zouden die op zijn naam belanden). `eigenaarMag` voor wat hij wél mag
+ * (bv. een document openen).
+ */
+export async function ingelogdeLink(req: NextRequest, code: string, { eigenaarMag = false } = {}): Promise<PtToegang | NextResponse> {
   const r = await linkVoor(code)
   if (r instanceof NextResponse) return r
   const ok = await sessieGeldig(r.admin, r.link, req.cookies.get(sessieCookieNaam(r.link.code))?.value, new Date())
-  return ok ? r : foutAntwoord('Je bent uitgelogd. Vernieuw de pagina en vul je pincode in.', 401)
+  if (!ok) return foutAntwoord('Je bent uitgelogd. Vernieuw de pagina en vul je pincode in.', 401)
+  if (r.link.rol === 'eigenaar' && !eigenaarMag) return foutAntwoord('Als eigenaar kijk je mee; aanpassen doet de PT\'er zelf.', 403)
+  return r
 }
 
 /** De `pin` uit de body, als die 6 cijfers is. */

@@ -9,7 +9,7 @@ import { dagKort } from '@/lib/lifeos/pt-dashboard/datum'
 import { ContactActies } from './velden'
 
 // Eén PT-klant: abonnement + prijs, looptijd en status. Met `onBewerk`
-// bewerkbaar (PT'er), zonder alleen-lezen (Kane).
+// bewerkbaar (PT'er), zonder alleen-lezen (Kane, eigenaar).
 
 function badge(k: PtKlant, vandaag: string): string {
   if (k.status === 'actief') return 'ptd-badge ptd-badge--accent'
@@ -26,11 +26,13 @@ interface Props {
   klant: PtKlant
   vandaag: string
   onBewerk?: () => void
-  /** Link naar het klantdossier (alleen voor de PT'er zelf). */
+  /** Link naar het klantdossier (PT'er zelf, of de eigenaar alleen-lezen). */
   dossierHref?: string
+  /** Bij wie de klant traint — in lijsten van het hele team. */
+  trainer?: string
 }
 
-export function KlantKaart({ klant: k, vandaag, onBewerk, dossierHref }: Props) {
+export function KlantKaart({ klant: k, vandaag, onBewerk, dossierHref, trainer }: Props) {
   const vastTot = eindeVastePeriode(k.startdatum)
   const inVast = vastTot >= vandaag && k.startdatum <= vandaag
   return (
@@ -43,6 +45,7 @@ export function KlantKaart({ klant: k, vandaag, onBewerk, dossierHref }: Props) 
         <KlantBadge klant={k} vandaag={vandaag} />
       </div>
       <div className="ptd-meta">
+        {trainer ? <span className="ptd-trainer">PT {trainer}</span> : null}
         <span>{abonnementRegel(k)}</span>
       </div>
       <div className="ptd-meta">
@@ -59,17 +62,21 @@ export function KlantKaart({ klant: k, vandaag, onBewerk, dossierHref }: Props) 
         {k.contact ? <span>{k.contact}</span> : null}
       </div>
       {k.notitie ? <p className="ptd-tekst">{k.notitie}</p> : null}
-      {onBewerk ? (
+      {onBewerk || dossierHref ? (
         <div className="ptd-acties ptd-acties--rij">
           {dossierHref ? (
             <Link className="ptd-knop ptd-knop--klein" href={dossierHref} aria-label={`Dossier van ${k.naam}`}>
               <FolderOpen size={14} aria-hidden /> Dossier
             </Link>
           ) : null}
-          <ContactActies contact={k.contact} naam={k.naam} />
-          <button type="button" className="ptd-knop ptd-knop--klein" onClick={onBewerk} aria-label={`${k.naam} bewerken`}>
-            <Pencil size={14} aria-hidden /> Bewerk
-          </button>
+          {onBewerk ? (
+            <>
+              <ContactActies contact={k.contact} naam={k.naam} />
+              <button type="button" className="ptd-knop ptd-knop--klein" onClick={onBewerk} aria-label={`${k.naam} bewerken`}>
+                <Pencil size={14} aria-hidden /> Bewerk
+              </button>
+            </>
+          ) : null}
         </div>
       ) : null}
     </li>
