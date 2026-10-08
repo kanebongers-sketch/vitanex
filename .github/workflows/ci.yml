@@ -1,5 +1,5 @@
 # CI-vangnet: elke push naar main en elke PR wordt getypecheckt en getest,
-# zodat build-fouten hier stranden in plaats van pas bij de Render-deploy.
+# en gebouwd, zodat build-fouten hier stranden in plaats van pas bij de Render-deploy.
 name: CI
 
 on:
@@ -15,7 +15,7 @@ jobs:
   verify:
     name: Typecheck & tests
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
 
@@ -33,3 +33,13 @@ jobs:
 
       - name: Unit tests (vitest)
         run: npm test
+
+      # Een kapotte build (bv. een CSS-syntaxfout) haalt typecheck en tests wél;
+      # zonder deze stap strandt hij pas op Render. Dummy-waarden: de build leest
+      # alleen of ze bestaan, er wordt niets aangeroepen.
+      - name: Productiebuild (next build)
+        run: npm run build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://ci-dummy.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-dummy
+          SUPABASE_SERVICE_ROLE_KEY: ci-dummy
