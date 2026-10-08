@@ -1,6 +1,7 @@
 import type { NextConfig } from 'next'
 import path from 'path'
 import fs from 'fs'
+import { SITE_VERBORGEN } from './src/lib/site-modus'
 
 // Walk up from __dirname until we find node_modules/next.
 // This makes the config work in both the main checkout and git worktrees.
@@ -37,6 +38,18 @@ const nextConfig: NextConfig = {
       },
     ],
     unoptimized: process.env.CAPACITOR_BUILD === 'true',
+  },
+
+  // Tijdelijk verborgen site (src/lib/site-modus.ts): de publieke pagina's sturen
+  // met een echte 307 door naar het inlogscherm — vóór er iets gerenderd wordt,
+  // dus geen flits van de landing. De pagina's zelf staan er nog.
+  async redirects() {
+    if (!SITE_VERBORGEN) return []
+    return ['/', '/contact', '/voorwaarden', '/bedankt', '/register', '/uitnodiging'].map((source) => ({
+      source,
+      destination: '/login',
+      permanent: false,
+    }))
   },
 
   async headers() {

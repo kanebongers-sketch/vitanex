@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
+import { SITE_VERBORGEN } from "@/lib/site-modus";
 
 export const metadata: Metadata = {
   title: "MentaForce – Burn-out preventie voor Nederlandse teams",
@@ -13,5 +15,8 @@ export const metadata: Metadata = {
 };
 
 export default function MarketingLayout({ children }: { children: React.ReactNode }) {
+  // Tijdelijk verborgen (zie lib/site-modus.ts). De echte 307 zit in next.config.ts;
+  // dit is het vangnet voor een pad dat daar (nog) niet in staat.
+  if (SITE_VERBORGEN) redirect("/login");
   return <>{children}</>;
 }

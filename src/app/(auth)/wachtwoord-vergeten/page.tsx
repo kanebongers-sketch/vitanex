@@ -4,6 +4,7 @@ export const dynamic = 'force-dynamic'
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { SITE_VERBORGEN } from '@/lib/site-modus'
 import { supabase } from '@/lib/supabase/supabase'
 import { MailCheck } from 'lucide-react'
 import { LogoFull } from '@/components/layout/Logo'
@@ -80,8 +81,12 @@ export default function WachtwoordVergeten() {
                 style={{ background: 'var(--mf-red-light)', border: '1px solid var(--mf-red)' }}>
                 <p className="text-sm font-medium" style={{ color: 'var(--mf-red)' }}>Geen account gevonden.</p>
                 <p className="text-xs mt-0.5" style={{ color: 'var(--mf-red)' }}>
-                  Dit e-mailadres is niet geregistreerd.{' '}
-                  <Link href="/register" className="underline font-medium">Registreer je</Link>.
+                  Dit e-mailadres is niet geregistreerd.
+                  {!SITE_VERBORGEN && (
+                    <>
+                      {' '}<Link href="/register" className="underline font-medium">Registreer je</Link>.
+                    </>
+                  )}
                 </p>
               </div>
             )}
