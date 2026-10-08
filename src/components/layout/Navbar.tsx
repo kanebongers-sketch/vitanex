@@ -16,6 +16,7 @@ import {
 import type { LucideIcon } from 'lucide-react'
 import WeekRingen from './WeekRingen'
 import { Wordmark } from './Logo'
+import { PT_APP_BEHEER } from '@/lib/lifeos/pt-dashboard/beheer'
 
 // Een categorie-tab blijft actief als je op een van zijn onderdelen zit
 // (bijv. "Welzijn" oplichten terwijl je op /stemming bent).
@@ -301,7 +302,7 @@ function SidebarContent({
             <NavLink href="/kanebongers" label="Mijn dashboard" icon={LayoutDashboard} pathname={pathname} onClick={onClose} />
             <NavLink href="/training" label="Training" icon={Dumbbell} pathname={pathname} onClick={onClose} />
             <NavLink href="/lifeos/mensen" label="Mensen" icon={Users} pathname={pathname} onClick={onClose} />
-            <NavLink href="/lifeos/pt-team" label="PT-team" icon={ClipboardList} pathname={pathname} onClick={onClose} />
+            <NavLink href={PT_APP_BEHEER} label="Fit Factory PT" icon={ClipboardList} pathname={pathname} onClick={onClose} />
             <NavLink href="/lifeos/agenda-categorieen" label="Categorieën" icon={LayoutGrid} pathname={pathname} onClick={onClose} />
             <NavLink href="/lifeos/kennis" label="Kennis" icon={Network} pathname={pathname} onClick={onClose} />
             <NavLink href="/projecten" label="Projecten" icon={FolderKanban} pathname={pathname} onClick={onClose} />

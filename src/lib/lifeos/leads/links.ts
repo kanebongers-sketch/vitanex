@@ -9,8 +9,22 @@ import { isVergadering } from '@/lib/lifeos/agenda/vergadering'
 import { CODE_PATROON, isPinStatus, linkCodeVoor, type PinActie, type PinStatus } from './leads'
 import { SESSIE_DAGEN, hashPin, nieuwSessieToken, pinKlopt, tokenHash } from './pin'
 
-/** `pt` = een PT'er met eigen leads en klanten; `eigenaar` = kijkt mee met het hele team (alleen lezen). */
-export type LinkRol = 'pt' | 'eigenaar'
+/**
+ * `pt` = een PT'er met eigen leads en klanten; `eigenaar` = kijkt mee met het
+ * hele team (alleen lezen, eigen pincode); `beheerder` = Kane: ziet alles wat een
+ * eigenaar ziet plus het beheer, en logt in via zijn MentaForce-hoofdaccount
+ * (geen pincode — `pin_hash` blijft leeg, dus inloggen met een pin kan niet).
+ */
+export type LinkRol = 'pt' | 'eigenaar' | 'beheerder'
+
+/** Kijkt deze rol mee met het hele team (eigenaar of beheerder)? */
+export function kijktMee(rol: LinkRol): boolean {
+  return rol !== 'pt'
+}
+
+function leesRol(v: unknown): LinkRol {
+  return v === 'eigenaar' || v === 'beheerder' ? v : 'pt'
+}
 
 export interface LeadLink {
   rol: LinkRol
@@ -29,7 +43,7 @@ export interface LeadLink {
 const LINK_KOLOMMEN = 'rol, user_id, persoon_id, code, actief, pin_hash, pin_status, mislukt, geblokkeerd_tot'
 
 /** Bij welke CRM-groep elke rol hoort: een PT'er zit in het PT-team, een eigenaar in management. */
-const GROEP_VOOR_ROL: Record<LinkRol, string> = { pt: 'pt_team', eigenaar: 'management' }
+const GROEP_VOOR_ROL: Record<LinkRol, string> = { pt: 'pt_team', eigenaar: 'management', beheerder: 'management' }
 
 /**
  * De PT'er (of eigenaar) achter een code — alleen als de link actief is en de
@@ -46,7 +60,7 @@ export async function vindLink(admin: SupabaseClient, code: string): Promise<Lea
     .eq('id', link.persoon_id)
     .eq('user_id', link.user_id)
     .maybeSingle()
-  const rol: LinkRol = link.rol === 'eigenaar' ? 'eigenaar' : 'pt'
+  const rol = leesRol(link.rol)
   if (!p || p.groep !== GROEP_VOOR_ROL[rol] || p.status === 'inactief' || isVergadering(p.naam)) return null
   return {
     rol,
@@ -240,10 +254,10 @@ export async function pinSignalen(
   const wacht = new Set(error || !Array.isArray(data) ? [] : (data as { persoon_id: string }[]).map((r) => r.persoon_id))
   const pts = team
     .filter((p) => wacht.has(p.id))
-    .map((p) => ({ naam: p.naam, tekst: `${p.naam} koos een pincode voor de lead tracker — keur goed op je dashboard (PT-gesprekken).` }))
+    .map((p) => ({ naam: p.naam, tekst: `${p.naam} koos een pincode voor de PT-app — keur goed in Fit Factory PT (Coach).` }))
   const eig = (eigenaren ?? [])
     .filter((e) => e.pinStatus === 'wacht')
-    .map((e) => ({ naam: e.naam, tekst: `${e.naam} (eigenaar) koos een pincode voor de PT-app — keur goed bij PT-team.` }))
+    .map((e) => ({ naam: e.naam, tekst: `${e.naam} (eigenaar) koos een pincode voor de PT-app — keur goed in Fit Factory PT (Beheer).` }))
   return [...pts, ...eig]
 }
 
@@ -267,6 +281,33 @@ export async function haalActieveLinks(admin: SupabaseClient): Promise<{ code: s
       return naam ? [{ code: l.code, naam }] : []
     })
     .sort((a, b) => a.naam.localeCompare(b.naam, 'nl'))
+}
+
+/**
+ * Kane (beheerder) opent de PT-app vanuit zijn hoofdaccount: geen pincode, maar
+ * een sessie op zijn beheerderslink. De aanroeper heeft de founder-gate al
+ * gepasseerd. Null = geen actieve beheerderslink of opslaan mislukt.
+ */
+export async function startBeheerSessie(
+  admin: SupabaseClient,
+  userId: string,
+  nu: Date,
+): Promise<{ code: string; token: string; verlooptOp: Date } | null> {
+  const { data, error } = await admin
+    .from('pt_lead_links')
+    .select('persoon_id, code')
+    .eq('user_id', userId)
+    .eq('rol', 'beheerder')
+    .eq('actief', true)
+    .limit(1)
+    .maybeSingle()
+  if (error || !data) return null
+  const token = nieuwSessieToken()
+  const verlooptOp = new Date(nu.getTime() + SESSIE_DAGEN * 24 * 60 * 60 * 1000)
+  const { error: fout } = await admin
+    .from('pt_lead_sessies')
+    .insert({ token_hash: tokenHash(token), persoon_id: data.persoon_id, verloopt_op: verlooptOp.toISOString() })
+  return fout ? null : { code: data.code, token, verlooptOp }
 }
 
 /** Dit toestel uitloggen: de sessie verdwijnt uit de database. */

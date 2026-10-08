@@ -6,7 +6,7 @@
 
 import { CLUB_LABEL, isClub, type Club } from './clubs'
 
-export const ABONNEMENTEN = ['1x', '2x', 'duo_1x', 'duo_2x'] as const
+export const ABONNEMENTEN = ['1x', '2x', 'duo_1x', 'duo_2x', '1x_2w'] as const
 export type Abonnement = (typeof ABONNEMENTEN)[number]
 
 interface AbonnementInfo {
@@ -16,7 +16,8 @@ interface AbonnementInfo {
   prijs: number
   prijsEersel: number
   duo: boolean
-  sessiesPerWeek: 1 | 2
+  /** Gemiddeld; 0,5 bij eens per twee weken. */
+  sessiesPerWeek: number
 }
 
 export const ABONNEMENT: Record<Abonnement, AbonnementInfo> = {
@@ -24,6 +25,8 @@ export const ABONNEMENT: Record<Abonnement, AbonnementInfo> = {
   '2x': { label: '2x per week', kort: '2x p/w', prijs: 499, prijsEersel: 519, duo: false, sessiesPerWeek: 2 },
   duo_1x: { label: 'Duo · 1x per week', kort: 'Duo 1x', prijs: 399, prijsEersel: 419, duo: true, sessiesPerWeek: 1 },
   duo_2x: { label: 'Duo · 2x per week', kort: 'Duo 2x', prijs: 599, prijsEersel: 619, duo: true, sessiesPerWeek: 2 },
+  // Staat niet in de abonnementen-pdf, wel in het PT-dashboard (Excel) van Fit Factory.
+  '1x_2w': { label: '1x per 2 weken', kort: '1x p/2w', prijs: 169, prijsEersel: 169, duo: false, sessiesPerWeek: 0.5 },
 }
 
 export const VASTE_MAANDEN = 3

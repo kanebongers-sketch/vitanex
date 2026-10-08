@@ -1,13 +1,13 @@
 // ─── LifeOS — PT-dashboard: wie kijkt er (SERVER-ONLY, voor pagina's) ───────
 // Layout en pagina's van /[pt] vragen allebei "welke PT'er, en is dit toestel
 // ingelogd?" — `cache` zorgt dat dat per request één keer naar de database gaat.
-// Een eigenaar (rol `eigenaar`) krijgt hier geen eigen leads, maar het hele team.
+// Een eigenaar of beheerder krijgt hier geen eigen leads, maar het hele team.
 
 import { cache } from 'react'
 import { cookies } from 'next/headers'
 import { createLifeosAdminClient } from '@/lib/lifeos/admin'
 import { CODE_PATROON, dagSleutelNl } from '@/lib/lifeos/leads/leads'
-import { sessieGeldig, vindLink, type LeadLink } from '@/lib/lifeos/leads/links'
+import { kijktMee, sessieGeldig, vindLink, type LeadLink } from '@/lib/lifeos/leads/links'
 import { sessieCookieNaam } from '@/lib/lifeos/leads/pin'
 import { haalLeadsVan } from '@/lib/lifeos/leads/opslag'
 import { haalKlantenVan } from './klanten-opslag'
@@ -23,6 +23,12 @@ export const ptSessie = cache(async (code: string) => {
   const token = (await cookies()).get(sessieCookieNaam(link.code))?.value
   const ingelogd = await sessieGeldig(admin, link, token, new Date())
   return { admin, link, ingelogd }
+})
+
+/** Wie kijkt er mee (eigenaar/beheerder)? Voor de pagina's die per rol een andere weergave kiezen. */
+export const meekijker = cache(async (code: string) => {
+  const s = await ptSessie(code)
+  return s?.ingelogd && kijktMee(s.link.rol) ? s.link : null
 })
 
 /** Alles van één ingelogde PT'er: leads + klanten + doelen + vandaag. Null = niet ingelogd (of een eigenaar). */
@@ -50,7 +56,7 @@ export const ptGegevens = cache(async (code: string) => {
  */
 export const eigenaarGegevens = cache(async (code: string) => {
   const s = await ptSessie(code)
-  if (!s?.ingelogd || s.link.rol !== 'eigenaar') return null
+  if (!s?.ingelogd || !kijktMee(s.link.rol)) return null
   const team = await haalPtTeamGegevens(s.admin, s.link.userId)
   const doelen = team ? await haalDoelenVoor(s.admin, s.link.userId, team.team.map((p) => p.id)) : null
   return {

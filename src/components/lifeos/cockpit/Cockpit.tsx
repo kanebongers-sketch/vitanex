@@ -4,8 +4,6 @@ import { VitaGesprek } from '@/components/lifeos/vita/VitaGesprek'
 import { TakenApple } from '@/components/lifeos/taken/TakenApple'
 import { AgendaKaart } from '@/components/lifeos/agenda/AgendaKaart'
 import { InboxKaart } from '@/components/lifeos/inbox/InboxKaart'
-import { PtGesprekkenKaart } from '@/components/lifeos/pt/PtGesprekkenKaart'
-import { PtKlantenKaart } from '@/components/lifeos/pt/PtKlantenKaart'
 import { RefreshProvider } from '@/components/lifeos/os/RefreshContext'
 import { BeleggenKaart } from '@/components/lifeos/beleggen/BeleggenKaart'
 import { DagplanKaart } from '@/components/lifeos/taken/DagplanKaart'
@@ -32,10 +30,11 @@ import { VitaGeheugenKaart } from '@/components/lifeos/vita/VitaGeheugenKaart'
 // ─── De volgorde, van boven naar onder ──────────────────────────────────────
 //   1. Vandaag  — de briefing + Vita's signalen + vraag-balk (het eerste wat je leest).
 //   2. Mijn dag — welke taak in welk gat (dagplan), je taken en je agenda.
-//   3. Deze week — wie je nog moet inplannen (PT-klanten) en de PT-gesprekken.
-//   4. Inbox    — wat er écht een reactie vraagt, als rustige volle-breedte-lijst.
-//   5. Beleggingen — je portefeuille: waarde, vandaag, winst/verlies, verloop.
-//   6. Terugblik — je journal van vandaag en wat Vita over je onthoudt.
+//   3. Inbox    — wat er écht een reactie vraagt, als rustige volle-breedte-lijst.
+//   4. Beleggingen — je portefeuille: waarde, vandaag, winst/verlies, verloop.
+//   5. Terugblik — je journal van vandaag en wat Vita over je onthoudt.
+// Alles van Fit Factory PT (klanten inplannen, coachgesprekken, het team) staat
+// in de PT-app (PT_APP_BEHEER), niet meer hier.
 
 export function Cockpit() {
   return (
@@ -71,23 +70,6 @@ export function Cockpit() {
           </div>
           <div className="os-tile--half">
             <AgendaKaart />
-          </div>
-        </section>
-
-        {/* Cluster "Deze week" — het PT-paar, naast elkaar want ze horen bij elkaar:
-            wie je deze week nog moet inplannen, en de 2-wekelijkse coachgesprekken. */}
-        <section className="os-cluster" aria-labelledby="os-week-kop">
-          <header className="os-cluster__kop">
-            <h2 id="os-week-kop" className="os-zone__kop">
-              Deze week
-            </h2>
-            <p className="os-zone__intro">Wie je nog moet inplannen, en de PT-gesprekken die eraan komen.</p>
-          </header>
-          <div className="os-tile--half">
-            <PtKlantenKaart />
-          </div>
-          <div className="os-tile--half">
-            <PtGesprekkenKaart />
           </div>
         </section>
 

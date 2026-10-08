@@ -5,7 +5,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { createLifeosAdminClient } from '@/lib/lifeos/admin'
-import { sessieGeldig, vindLink, type LeadLink } from './links'
+import { kijktMee, sessieGeldig, vindLink, type LeadLink } from './links'
 import { sessieCookieNaam } from './pin'
 
 export const GEEN_CACHE = { 'Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex' } as const
@@ -37,7 +37,7 @@ export async function ingelogdeLink(req: NextRequest, code: string, { eigenaarMa
   if (r instanceof NextResponse) return r
   const ok = await sessieGeldig(r.admin, r.link, req.cookies.get(sessieCookieNaam(r.link.code))?.value, new Date())
   if (!ok) return foutAntwoord('Je bent uitgelogd. Vernieuw de pagina en vul je pincode in.', 401)
-  if (r.link.rol === 'eigenaar' && !eigenaarMag) return foutAntwoord('Als eigenaar kijk je mee; aanpassen doet de PT\'er zelf.', 403)
+  if (kijktMee(r.link.rol) && !eigenaarMag) return foutAntwoord('Als eigenaar kijk je mee; aanpassen doet de PT\'er zelf.', 403)
   return r
 }
 

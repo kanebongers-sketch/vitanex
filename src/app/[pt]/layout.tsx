@@ -4,6 +4,8 @@ import { notFound, redirect } from 'next/navigation'
 import { ptSessie } from '@/lib/lifeos/pt-dashboard/sessie'
 import { PtNav } from '@/components/lifeos/pt-dashboard/PtNav'
 import { PinPoort } from '@/components/lifeos/pt-dashboard/PinPoort'
+import { HoofdaccountLogin } from '@/components/lifeos/pt-dashboard/HoofdaccountLogin'
+import { kijktMee } from '@/lib/lifeos/leads/links'
 import { UitlogKnop } from '@/components/lifeos/pt-dashboard/UitlogKnop'
 import { FfLogo } from '@/components/lifeos/pt-dashboard/FfLogo'
 import { FfHero } from '@/components/lifeos/pt-dashboard/FfHero'
@@ -14,7 +16,8 @@ import { barlow, inter } from '@/app/fonts/fit-factory'
 // mentaforce.nl/<naam> — de app van één Fit Factory PT'er (bv. /joey): overzicht,
 // leads, klanten, coachgesprek en de kennisbank met de Fit Factory PT-documenten.
 // Een eigenaar (rol `eigenaar`, bv. /ruben) krijgt dezelfde app over het hele team,
-// alleen lezen — de pagina's kiezen zelf welke weergave.
+// alleen lezen — de pagina's kiezen zelf welke weergave. De beheerder (Kane) ziet
+// dat ook, plus Beheer, en logt in via zijn hoofdaccount in plaats van een pincode.
 // In de huisstijl van Fit Factory Personal Training (zie FIT_FACTORY in theme.ts).
 // Vaste pagina's (/login, /lead, …) winnen altijd van dit dynamische segment; een
 // onbekende naam geeft een 404. Alles achter de pincode die de PT'er zelf kiest
@@ -51,7 +54,7 @@ export default async function PtLayout({ children, params }: Props) {
   if (pt.toLowerCase() === 'fitfactorypt') redirect('/FitFactoryPT')
   const s = await ptSessie(pt)
   if (!s) notFound()
-  const eigenaar = s.link.rol === 'eigenaar'
+  const eigenaar = kijktMee(s.link.rol)
 
   return (
     <main className={`lifeos-root ff ${barlow.variable} ${inter.variable}`}>
@@ -69,7 +72,7 @@ export default async function PtLayout({ children, params }: Props) {
         ) : (
           <>
             <FfHero boventitel={eigenaar ? 'Personal Training · eigenaar' : 'Personal Training · jouw app'} titel={`Hoi ${s.link.naam}`} />
-            <PinPoort code={s.link.code} pinStatus={s.link.pinStatus} />
+            {s.link.rol === 'beheerder' ? <HoofdaccountLogin /> : <PinPoort code={s.link.code} pinStatus={s.link.pinStatus} />}
           </>
         )}
         <footer className="ff-voet">

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { ptSessie } from '@/lib/lifeos/pt-dashboard/sessie'
+import { kijktMee } from '@/lib/lifeos/leads/links'
 import { EigenaarPt } from '@/components/lifeos/pt-eigenaar/EigenaarPt'
 
 // /<eigenaar>/team/<id> — één PT'er door de ogen van de eigenaar (alleen lezen).
@@ -16,6 +17,6 @@ export default async function TeamLidPagina({ params }: Props) {
   const { pt, id } = await params
   const s = await ptSessie(pt)
   if (!s?.ingelogd) return null
-  if (s.link.rol !== 'eigenaar') notFound()
+  if (!kijktMee(s.link.rol)) notFound()
   return <EigenaarPt code={s.link.code} id={id} />
 }

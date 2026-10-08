@@ -1,4 +1,4 @@
-import { ptGegevens, ptSessie } from '@/lib/lifeos/pt-dashboard/sessie'
+import { meekijker, ptGegevens } from '@/lib/lifeos/pt-dashboard/sessie'
 import { meestGebruikteClub, ptOverzicht } from '@/lib/lifeos/pt-dashboard/overzicht'
 import { CLUB_LABEL } from '@/lib/lifeos/pt-dashboard/clubs'
 import { FfHero } from '@/components/lifeos/pt-dashboard/FfHero'
@@ -12,8 +12,8 @@ import { EigenaarTeam } from '@/components/lifeos/pt-eigenaar/EigenaarTeam'
 
 export default async function PtOverzichtPagina({ params }: { params: Promise<{ pt: string }> }) {
   const { pt } = await params
-  const s = await ptSessie(pt)
-  if (s?.ingelogd && s.link.rol === 'eigenaar') return <EigenaarTeam code={s.link.code} />
+  const mee = await meekijker(pt)
+  if (mee) return <EigenaarTeam code={mee.code} />
   const g = await ptGegevens(pt)
   if (!g) return null
   if (!g.leads || !g.klanten) return <Foutmelding bericht="Je gegevens konden niet geladen worden. Vernieuw de pagina." />

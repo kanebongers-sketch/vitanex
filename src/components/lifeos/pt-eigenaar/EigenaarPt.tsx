@@ -19,6 +19,7 @@ import { BronTabel } from '@/components/lifeos/pt-dashboard/BronTabel'
 import { Foutmelding } from '@/components/lifeos/os/Foutmelding'
 import { CheckinKaart } from './CheckinKaart'
 import { TEAM_FOUT } from './teksten'
+import { DoelenBewerken } from '@/components/lifeos/pt-beheer/DoelenBewerken'
 
 // /<eigenaar>/team/<id> — alles van één PT'er, zoals die het in zijn eigen app
 // ziet: cijfers, doelen, opvolging, klanten, trend en de check-in van deze week.
@@ -54,7 +55,9 @@ export async function EigenaarPt({ code, id }: { code: string; id: string }) {
         <Tegel getal={euro(o.klanten.maandwaarde)} label="Abonnementen p/m" uitleg={`${o.klanten.lopend} lopend · ${o.klanten.sessiesPerWeek} sessies p/w`} />
       </div>
 
-      {doelen ? (
+      {g.link.rol === 'beheerder' ? (
+        <DoelenBewerken persoonId={pt.id} naam={pt.naam} doelen={g.doelen.get(pt.id) ?? null} leads={leads} klanten={klanten} vandaag={g.vandaag} />
+      ) : doelen ? (
         <section className="ptd-sectie" aria-labelledby="eig-doelen-kop">
           <div className="ptd-sectiekop"><h2 id="eig-doelen-kop">Doelen</h2><span>gezet door Kane</span></div>
           {doelen.notitie ? <p className="ptd-doel-notitie">{doelen.notitie}</p> : null}

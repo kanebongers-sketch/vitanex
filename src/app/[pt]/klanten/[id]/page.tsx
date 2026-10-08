@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { ptGegevens, ptSessie } from '@/lib/lifeos/pt-dashboard/sessie'
 import { haalIntake, haalMetingen } from '@/lib/lifeos/pt-dashboard/dossier-opslag'
 import { isUuid } from '@/lib/lifeos/leads/toegang'
+import { kijktMee } from '@/lib/lifeos/leads/links'
 import { Dossier } from '@/components/lifeos/pt-dashboard/dossier/Dossier'
 import { leesDossierTab } from '@/components/lifeos/pt-dashboard/dossier/tabs'
 import { Foutmelding } from '@/components/lifeos/os/Foutmelding'
@@ -23,7 +24,7 @@ export const metadata: Metadata = { title: 'Klantdossier · Fit Factory PT' }
 export default async function KlantDossierPagina({ params, searchParams }: Props) {
   const [{ pt, id }, zoek] = await Promise.all([params, searchParams])
   const [g, s] = await Promise.all([ptGegevens(pt), ptSessie(pt)])
-  if (s?.ingelogd && s.link.rol === 'eigenaar') return <EigenaarDossier code={s.link.code} id={id} startTab={leesDossierTab(zoek.tab)} />
+  if (s?.ingelogd && kijktMee(s.link.rol)) return <EigenaarDossier code={s.link.code} id={id} startTab={leesDossierTab(zoek.tab)} />
   if (!g || !s) return null
   if (!g.klanten) return <Foutmelding bericht="Je klanten konden niet geladen worden. Vernieuw de pagina." />
   const klant = isUuid(id) ? g.klanten.find((k) => k.id === id) : undefined

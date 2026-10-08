@@ -1,4 +1,5 @@
 import { ptSessie } from '@/lib/lifeos/pt-dashboard/sessie'
+import { kijktMee } from '@/lib/lifeos/leads/links'
 import { huidigeWeek, weekLabel } from '@/lib/lifeos/pt-dashboard/checkin'
 import { haalCheckin } from '@/lib/lifeos/pt-dashboard/checkin-opslag'
 import { haalOpenPuntenVan } from '@/lib/lifeos/pt-coaching/opslag'
@@ -16,7 +17,7 @@ export default async function CoachPagina({ params }: { params: Promise<{ pt: st
   const { pt } = await params
   const s = await ptSessie(pt)
   if (!s?.ingelogd) return null
-  if (s.link.rol === 'eigenaar') return <EigenaarCoach code={s.link.code} />
+  if (kijktMee(s.link.rol)) return <EigenaarCoach code={s.link.code} beheerder={s.link.rol === 'beheerder'} />
 
   const week = huidigeWeek(new Date())
   const [checkin, punten] = await Promise.all([
