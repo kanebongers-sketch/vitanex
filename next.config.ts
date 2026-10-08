@@ -67,6 +67,12 @@ const nextConfig: NextConfig = {
     const supabaseHost = process.env.NEXT_PUBLIC_SUPABASE_URL
       ? new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).host
       : '*.supabase.co'
+    // LifeOS is een apart Supabase-project (supabase/lifeos-migrations/README.md).
+    // De browser PUT PT-documenten rechtstreeks naar diens Storage via een signed
+    // upload URL; zonder deze host blokkeert de CSP dat ("Geen verbinding met de opslag").
+    const lifeosHost = process.env.LIFEOS_SUPABASE_URL
+      ? new URL(process.env.LIFEOS_SUPABASE_URL).host
+      : 'bbklogjersviaoocgrve.supabase.co'
 
     const isProd = process.env.NODE_ENV === 'production'
 
@@ -76,7 +82,7 @@ const nextConfig: NextConfig = {
       "script-src 'self' 'unsafe-inline' 'unsafe-eval'",   // Turbopack needs unsafe-eval in dev
       "style-src 'self' 'unsafe-inline'",
       `img-src 'self' data: blob: https://${supabaseHost} https://*.openfoodfacts.org https://exercisedb.io https://v2.exercisedb.io https://exercisedb-api.vercel.app https://*.exercisedb.io`,
-      `connect-src 'self' https://${supabaseHost} wss://${supabaseHost} https://world.openfoodfacts.org https://exercisedb.io https://v2.exercisedb.io https://exercisedb-api.vercel.app https://*.exercisedb.io https://api.nal.usda.gov`,
+      `connect-src 'self' https://${supabaseHost} wss://${supabaseHost} https://${lifeosHost} https://world.openfoodfacts.org https://exercisedb.io https://v2.exercisedb.io https://exercisedb-api.vercel.app https://*.exercisedb.io https://api.nal.usda.gov`,
       "font-src 'self' data:",
       "frame-src 'none'",
       "frame-ancestors 'none'",
