@@ -61,12 +61,12 @@ export function NotitiesPaneel({ code, klant, onOpgeslagen, alleenLezen = false 
       </Veld>
       {fout ? <Foutmelding bericht={fout} /> : null}
       {alleenLezen ? null : (
-      <div className="ptd-acties">
-        <button type="submit" className="ptd-knop ptd-knop--primair" disabled={bezig || !gewijzigd}>
-          {bezig ? 'Opslaan…' : 'Notities opslaan'}
-        </button>
-        <span className="ptd-hint" role="status">{opgeslagen && !gewijzigd ? 'Opgeslagen' : ''}</span>
-      </div>
+        <div className="ptd-acties">
+          <button type="submit" className="ptd-knop ptd-knop--primair" disabled={bezig || !gewijzigd}>
+            {bezig ? 'Opslaan…' : 'Notities opslaan'}
+          </button>
+          <span className="ptd-hint" role="status">{opgeslagen && !gewijzigd ? 'Opgeslagen' : ''}</span>
+        </div>
       )}
     </form>
   )

@@ -134,11 +134,11 @@ export function MetingenPaneel({ code, klantId, startdatum, vandaag, metingen, o
               <p className="ptd-tekst">{samenvatting(m)}</p>
               {m.notitie ? <p className="ptd-hint">{m.notitie}</p> : null}
               {alleenLezen ? null : (
-              <div className="ptd-acties">
-                <button type="button" className="ptd-knop ptd-knop--klein ptd-knop--gevaar" onClick={() => void verwijder(m)} aria-label={`Meting van ${dagKort(m.datum)} verwijderen`}>
-                  <Trash2 size={14} aria-hidden /> Verwijder
-                </button>
-              </div>
+                <div className="ptd-acties">
+                  <button type="button" className="ptd-knop ptd-knop--klein ptd-knop--gevaar" onClick={() => void verwijder(m)} aria-label={`Meting van ${dagKort(m.datum)} verwijderen`}>
+                    <Trash2 size={14} aria-hidden /> Verwijder
+                  </button>
+                </div>
               )}
             </li>
           ))}

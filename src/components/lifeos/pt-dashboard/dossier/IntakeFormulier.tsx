@@ -115,18 +115,18 @@ export function IntakeFormulier({ code, klantId, begin, onOpgeslagen, alleenLeze
 
       {fout ? <Foutmelding bericht={fout} /> : null}
       {alleenLezen ? null : (
-      <div className="ptd-acties ffdos-opslaan">
-        <button type="submit" className="ptd-knop ptd-knop--primair" disabled={bezig || !gewijzigd}>
-          {bezig ? 'Opslaan…' : 'Intake opslaan'}
-        </button>
-        <span className="ptd-hint" role="status">
-          {gewijzigd ? 'Niet opgeslagen wijzigingen' : opgeslagen ? (
-            <>
-              <Check size={14} aria-hidden /> Opgeslagen
-            </>
-          ) : null}
-        </span>
-      </div>
+        <div className="ptd-acties ffdos-opslaan">
+          <button type="submit" className="ptd-knop ptd-knop--primair" disabled={bezig || !gewijzigd}>
+            {bezig ? 'Opslaan…' : 'Intake opslaan'}
+          </button>
+          <span className="ptd-hint" role="status">
+            {gewijzigd ? 'Niet opgeslagen wijzigingen' : opgeslagen ? (
+              <>
+                <Check size={14} aria-hidden /> Opgeslagen
+              </>
+            ) : null}
+          </span>
+        </div>
       )}
     </form>
   )
