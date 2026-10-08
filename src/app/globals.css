@@ -3434,3 +3434,36 @@ body {
 .lifeos-root .ptd-voet { margin-top: 12px; text-align: center; max-width: 520px; justify-self: center; }
 .lifeos-root .ptd-kort { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .lifeos-root .ptd--ingebed { padding: 0; max-width: none; margin: 0; }
+
+/* ── PT-dashboard: funnel & trends (.ptd-an-*) ─────────────────────────────── */
+.lifeos-root .ptd-an-raster { display: grid; gap: 12px; grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 760px) { .lifeos-root .ptd-an-raster { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); align-items: start; } }
+.lifeos-root .ptd-an-raster > .ptd-an-blok--breed { grid-column: 1 / -1; }
+.lifeos-root .ptd-an-blok { display: grid; gap: 12px; padding: 16px; border-radius: 14px; border: 1px solid var(--line); background: var(--bg-card); min-width: 0; }
+.lifeos-root .ptd-an-blokkop { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.lifeos-root .ptd-an-blokkop h3 { margin: 0; font-size: 14.5px; font-weight: 600; color: var(--text-1); }
+.lifeos-root .ptd-an-blokkop span { font-size: 12px; color: var(--text-3); }
+.lifeos-root .ptd-an-blok .ptd-scroll { border: none; border-radius: 0; background: transparent; }
+.lifeos-root .ptd-an-blok .ptd-tabel tbody th { font-size: 13.5px; padding: 10px; border-bottom: 1px solid var(--line); }
+
+.lifeos-root .ptd-an-grafiek { display: block; width: 100%; height: auto; max-height: 240px; overflow: visible; font-family: inherit; }
+.lifeos-root .ptd-an-as { stroke: var(--line-strong); stroke-width: 1; }
+.lifeos-root .ptd-an-staaf { fill: color-mix(in srgb, var(--text-1) 22%, transparent); }
+.lifeos-root .ptd-an-staaf--klant { fill: var(--brand); }
+.lifeos-root .ptd-an-waarde { fill: var(--text-2); font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.lifeos-root .ptd-an-wk { fill: var(--text-3); font-size: 11px; }
+.lifeos-root .ptd-an-wk--nu { fill: var(--brand); font-weight: 600; }
+.lifeos-root .ptd-an-legenda { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 12px; color: var(--text-3); }
+.lifeos-root .ptd-an-legenda li { display: inline-flex; align-items: center; gap: 6px; }
+.lifeos-root .ptd-an-stip { display: inline-block; width: 10px; height: 10px; border-radius: 3px; background: color-mix(in srgb, var(--text-1) 22%, transparent); }
+.lifeos-root .ptd-an-stip--klant { background: var(--brand); }
+
+.lifeos-root .ptd-an-funnel { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.lifeos-root .ptd-an-trede { display: grid; gap: 6px; }
+.lifeos-root .ptd-an-trede-kop { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; font-size: 13.5px; color: var(--text-2); }
+.lifeos-root .ptd-an-trede-getal { font-size: 15px; font-weight: 600; color: var(--text-1); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.lifeos-root .ptd-an-trede-getal small { font-size: 12.5px; font-weight: 500; color: var(--text-3); }
+.lifeos-root .ptd-an-trede--klant .ptd-an-trede-getal { color: var(--brand); }
+.lifeos-root .ptd-an-balk { height: 8px; border-radius: 999px; background: color-mix(in srgb, var(--text-1) 8%, transparent); overflow: hidden; }
+.lifeos-root .ptd-an-balk > span { display: block; height: 100%; border-radius: inherit; background: color-mix(in srgb, var(--text-1) 32%, transparent); }
+.lifeos-root .ptd-an-trede--klant .ptd-an-balk > span { background: var(--brand); }

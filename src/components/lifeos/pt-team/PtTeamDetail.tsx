@@ -9,6 +9,10 @@ import { euro, isLopend } from '@/lib/lifeos/pt-dashboard/abonnementen'
 import { Tegel } from '@/components/lifeos/pt-dashboard/Tegel'
 import { LeadKaart } from '@/components/lifeos/pt-dashboard/LeadKaart'
 import { KlantKaart } from '@/components/lifeos/pt-dashboard/KlantKaart'
+import { WeekTrend } from '@/components/lifeos/pt-dashboard/WeekTrend'
+import { Funnel } from '@/components/lifeos/pt-dashboard/Funnel'
+import { BronTabel } from '@/components/lifeos/pt-dashboard/BronTabel'
+import { bronAnalyse, funnel, weekReeks } from '@/lib/lifeos/pt-dashboard/analyse'
 
 // Container: alles van één PT'er, alleen-lezen — precies wat die zelf in zijn
 // dashboard ziet, zodat je het in het coachgesprek samen kunt doorlopen.
@@ -69,6 +73,20 @@ export function PtTeamDetail({ id }: { id: string }) {
             .map((k) => <KlantKaart key={k.id} klant={k} vandaag={d.vandaag} />)}
         </ul>
       )}
+
+      {d.leads.length > 0 ? (
+        <section className="ptd-sectie" aria-labelledby="trend-kop">
+          <div className="ptd-sectiekop">
+            <h2 id="trend-kop">Trend van {d.naam}</h2>
+            <span>uit de eigen leads</span>
+          </div>
+          <div className="ptd-an-raster">
+            <WeekTrend weken={weekReeks(d.leads, d.vandaag)} />
+            <Funnel stappen={funnel(d.leads)} />
+            <div className="ptd-an-blok--breed"><BronTabel bronnen={bronAnalyse(d.leads)} /></div>
+          </div>
+        </section>
+      ) : null}
     </div>
   )
 }
