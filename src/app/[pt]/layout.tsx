@@ -1,10 +1,12 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import type { ReactNode } from 'react'
 import { notFound } from 'next/navigation'
 import { ptSessie } from '@/lib/lifeos/pt-dashboard/sessie'
 import { PtNav } from '@/components/lifeos/pt-dashboard/PtNav'
 import { PinPoort } from '@/components/lifeos/pt-dashboard/PinPoort'
 import { UitlogKnop } from '@/components/lifeos/pt-dashboard/UitlogKnop'
+import { COLORS } from '@/components/marketing/theme'
+import { manifestPad } from '@/lib/lifeos/pt-dashboard/manifest'
 
 // mentaforce.nl/<naam> — het dashboard van één Fit Factory PT'er (bv. /joey):
 // overzicht, leads en PT-klanten met abonnement. Vaste pagina's (/login, /lead, …)
@@ -22,8 +24,18 @@ export async function generateMetadata({ params }: Pick<Props, 'params'>): Promi
     title: s ? `${s.link.naam} · PT-dashboard` : 'PT-dashboard',
     robots: { index: false, follow: false },
     referrer: 'no-referrer',
+    // Op het beginscherm zetten: eigen manifest per PT'er (start op /<naam>).
+    ...(s
+      ? {
+          manifest: manifestPad(s.link.code),
+          appleWebApp: { capable: true, title: s.link.naam, statusBarStyle: 'black' as const },
+          other: { 'apple-mobile-web-app-capable': 'yes' },
+        }
+      : {}),
   }
 }
+
+export const viewport: Viewport = { themeColor: COLORS.navy }
 
 export default async function PtLayout({ children, params }: Props) {
   const { pt } = await params

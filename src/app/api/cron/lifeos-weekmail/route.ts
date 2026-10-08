@@ -31,6 +31,9 @@ import { haalEventsUitCache } from '@/lib/lifeos/agenda/opslag'
 import { haalCategorieRegels } from '@/lib/lifeos/agenda/categorie-opslag'
 import { tijdPerCategorie, type CategorieTijd } from '@/lib/lifeos/weekmail/agenda-tijd'
 import { lokaleTijd } from '@/lib/lifeos/vita/signalen'
+import { dagSleutelNl } from '@/lib/lifeos/leads/leads'
+import { haalPtTeamGegevens } from '@/lib/lifeos/pt-dashboard/team-opslag'
+import { bouwPtTeamWeek, type PtTeamWeek } from '@/lib/lifeos/pt-dashboard/team-week'
 import { alGeclaimdVandaag, claimBriefing, geefClaimTerug, markeerBezorgd } from '@/lib/lifeos/vita/briefing-opslag'
 import {
   bouwWeekmail,
@@ -152,6 +155,21 @@ async function haalZelf(
   }
 }
 
+/** Wat het PT-team afgelopen week invulde. Best-effort: kon het team niet gelezen worden → null → geen sectie. */
+async function haalPtTeamWeek(
+  admin: ReturnType<typeof createLifeosAdminClient>,
+  userId: string,
+  nu: Date,
+): Promise<PtTeamWeek | null> {
+  try {
+    const g = await haalPtTeamGegevens(admin, userId)
+    return g ? bouwPtTeamWeek(g.team, g.leads, g.klanten, dagSleutelNl(nu)) : null
+  } catch (oorzaak) {
+    console.error('[weekmail] PT-team ophalen mislukt', oorzaak)
+    return null
+  }
+}
+
 export async function GET(req: NextRequest): Promise<Response> {
   if (!secretGeldig(req)) return fout('Unauthorized', 401)
 
@@ -182,10 +200,11 @@ export async function GET(req: NextRequest): Promise<Response> {
 
   // Alle bronnen best-effort en parallel: één trage of gevallen bron mag de mail
   // niet tegenhouden. Elke helper vangt zijn eigen fout en levert leeg/null op.
-  const [afgerondeTaken, personen, zelf] = await Promise.all([
+  const [afgerondeTaken, personen, zelf, ptTeam] = await Promise.all([
     haalAfgerond(admin, userId, vanaf, nu),
     haalCrmPersonen(admin, userId),
     haalZelf(admin, userId, vanaf, nu),
+    haalPtTeamWeek(admin, userId, nu),
   ])
   const koud = koudeContacten(personen, nu)
   const [{ afhaak }, agendaTijd] = await Promise.all([
@@ -193,7 +212,7 @@ export async function GET(req: NextRequest): Promise<Response> {
     haalAgendaTijd(admin, userId, personen, vanaf, nu),
   ])
 
-  const mail = bouwWeekmail(nu, { afgerondeTaken, koudeContacten: koud, afhaak, agendaTijd, zelf })
+  const mail = bouwWeekmail(nu, { afgerondeTaken, koudeContacten: koud, afhaak, agendaTijd, ptTeam, zelf })
 
   // Claim vlak vóór het sturen (spiegelt de dagmail): de insert is het slot.
   const claim = await claimBriefing(admin, userId, datum, 'weekmail')
@@ -232,6 +251,7 @@ export async function GET(req: NextRequest): Promise<Response> {
     afgerond: afgerondeTaken.length,
     koudeContacten: koud.length,
     afhaak: afhaak.length,
+    ptTeam: ptTeam ? ptTeam.regels.length : undefined,
     zelf: zelf ?? undefined,
   })
 }

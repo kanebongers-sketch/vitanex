@@ -9,6 +9,7 @@ import { euro } from '@/lib/lifeos/pt-dashboard/abonnementen'
 import { dagKort } from '@/lib/lifeos/pt-dashboard/datum'
 import { Tegel } from '@/components/lifeos/pt-dashboard/Tegel'
 import { ClubTabel } from './ClubTabel'
+import { ExportKnoppen } from './ExportKnoppen'
 
 // Container: Kane's blik op het hele PT-team — wat elke PT'er in zijn eigen
 // dashboard (/<naam>) invulde, naast elkaar. Alleen-lezen.
@@ -79,6 +80,7 @@ export function PtTeamOverzicht() {
             </tbody>
           </table>
         </div>
+        <ExportKnoppen />
         <p className="ptd-hint">
           Een 0 betekent: niets ingevuld in het dashboard — niet per se niets gedaan. Pincodes keur je goed op het dashboard bij
           PT-gesprekken.

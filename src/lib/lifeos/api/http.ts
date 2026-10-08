@@ -150,6 +150,41 @@ export async function haalJsonGedeeld<T>(
   return narrowRuw(await vlucht, lees)
 }
 
+// ─── Bestanden (CSV-export e.d.) ─────────────────────────────────────────────
+
+/** Een gedownload bestand: de inhoud plus de naam die de server voorstelt. */
+export interface Bestand {
+  blob: Blob
+  /** Uit Content-Disposition; null als de server er geen gaf. */
+  bestandsnaam: string | null
+}
+
+/** De bestandsnaam uit een Content-Disposition-header (`filename="…"`), of null. */
+export function bestandsnaamUit(header: string | null): string | null {
+  const m = header?.match(/filename="([^"]+)"/) ?? header?.match(/filename=([^;]+)/)
+  return m ? m[1].trim() : null
+}
+
+/**
+ * Haalt een bestand op met het Bearer-token (een gewone `<a href>` kan geen
+ * header meesturen). Fout ≠ leeg, net als bij `haalJson`.
+ */
+export async function haalBestand(pad: string): Promise<HaalUitkomst<Bestand>> {
+  let antwoord: Response
+  try {
+    antwoord = await authFetch(pad)
+  } catch {
+    return { ok: false, fout: 'Geen verbinding.', status: 0 }
+  }
+  if (!antwoord.ok) {
+    const ruw: unknown = await antwoord.json().catch(() => null)
+    return { ok: false, fout: leesFoutmelding(ruw), status: antwoord.status }
+  }
+  const blob = await antwoord.blob().catch(() => null)
+  if (!blob) return { ok: false, fout: 'Download afgebroken.', status: antwoord.status }
+  return { ok: true, waarde: { blob, bestandsnaam: bestandsnaamUit(antwoord.headers.get('Content-Disposition')) } }
+}
+
 /** Voor endpoints waarvan alleen "het lukte" telt. */
 export function leesNiets(): true {
   return true
