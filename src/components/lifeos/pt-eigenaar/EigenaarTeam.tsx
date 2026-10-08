@@ -27,8 +27,11 @@ export async function EigenaarTeam({ code }: { code: string }) {
 
   return (
     <>
-      <FfHero boventitel="Fit Factory PT · eigenaar" titel={`Hoi ${g.link.naam}`}>
-        <p className="ff-hero-sub">Alles wat het PT-team bijhoudt, live: leads, opvolging, klanten en abonnementen. Je kijkt mee; invullen doen de PT&apos;ers zelf.</p>
+      <FfHero boventitel={`Fit Factory PT · ${g.link.rol === 'beheerder' ? 'beheerder' : 'eigenaar'}`} titel={`Hoi ${g.link.naam}`}>
+        <p className="ff-hero-sub">
+          Alles wat het PT-team bijhoudt, live: leads, opvolging, klanten en abonnementen.
+          {g.link.rol === 'beheerder' ? ' Klanten en doelen pas je hier ook aan.' : ' Je kijkt mee; invullen doen de PT\'ers zelf.'}
+        </p>
       </FfHero>
       <TeamOverzichtWeergave data={data} ptHref={`/${code}/team`}>
         <div className="ptd-acties">

@@ -46,6 +46,8 @@ export async function generateMetadata({ params }: Pick<Props, 'params'>): Promi
   }
 }
 
+const ROL_LABEL = { pt: 'jouw app', eigenaar: 'eigenaar', beheerder: 'beheerder' } as const
+
 export const viewport: Viewport = { themeColor: FIT_FACTORY.zwart }
 
 export default async function PtLayout({ children, params }: Props) {
@@ -71,12 +73,14 @@ export default async function PtLayout({ children, params }: Props) {
           children
         ) : (
           <>
-            <FfHero boventitel={eigenaar ? 'Personal Training · eigenaar' : 'Personal Training · jouw app'} titel={`Hoi ${s.link.naam}`} />
+            <FfHero boventitel={`Personal Training · ${ROL_LABEL[s.link.rol]}`} titel={`Hoi ${s.link.naam}`} />
             {s.link.rol === 'beheerder' ? <HoofdaccountLogin /> : <PinPoort code={s.link.code} pinStatus={s.link.pinStatus} />}
           </>
         )}
         <footer className="ff-voet">
-          {eigenaar ? (
+          {s.link.rol === 'beheerder' ? (
+            <span>Je beheert de PT-app van het hele team. Ga zorgvuldig om met de gegevens van leads en klanten. Gegevens staan in de EU.</span>
+          ) : eigenaar ? (
             <span>
               Je kijkt mee met wat het PT-team invult; aanpassen doen de PT&apos;ers zelf. Ga zorgvuldig om met de gegevens van
               leads en klanten. Gegevens staan in de EU.

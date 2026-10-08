@@ -31,7 +31,10 @@ function parseSupabaseError(message: string): LoginStatus {
 
 function LoginInhoud() {
   const router = useRouter()
-  const next = useSearchParams().get('next')
+  // Alleen een intern pad ("/kane", niet "//x" of "https://…"): anders kan een
+  // gedeelde inloglink na het inloggen naar een andere site doorsturen.
+  const nextRuw = useSearchParams().get('next')
+  const next = nextRuw && /^\/(?![/\\])/.test(nextRuw) ? nextRuw : null
   const [email,        setEmail]        = useState('')
   const [wachtwoord,   setWachtwoord]   = useState('')
   const [toonWacht,    setToonWacht]    = useState(false)

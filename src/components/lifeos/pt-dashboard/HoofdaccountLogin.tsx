@@ -2,17 +2,19 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { authFetch } from '@/lib/auth/auth-fetch'
 
 // De ingang van de beheerder (Kane): geen pincode, maar zijn MentaForce-
 // hoofdaccount. Is hij ingelogd, dan zet de server een sessie en ververst de
-// pagina vanzelf. Zo niet, dan eerst inloggen op mentaforce.nl.
+// pagina vanzelf. Zo niet, dan eerst inloggen; daarna stuurt het inlogscherm
+// hem terug naar deze pagina (?next=).
 
 type Staat = 'bezig' | 'niet_ingelogd' | 'fout'
 
 export function HoofdaccountLogin() {
   const router = useRouter()
+  const pad = usePathname()
   const [staat, setStaat] = useState<Staat>('bezig')
 
   useEffect(() => {
@@ -36,8 +38,8 @@ export function HoofdaccountLogin() {
         <p className="ptd-hint">Even je account controleren…</p>
       ) : staat === 'niet_ingelogd' ? (
         <>
-          <p className="ptd-hint">Log eerst in op MentaForce met je hoofdaccount; daarna open je de PT-app vanuit het menu.</p>
-          <Link className="ptd-knop ptd-knop--primair" href="/login">Naar inloggen</Link>
+          <p className="ptd-hint">Log in met je MentaForce-hoofdaccount; daarna kom je meteen terug in de PT-app.</p>
+          <Link className="ptd-knop ptd-knop--primair" href={`/login?next=${encodeURIComponent(pad)}`}>Inloggen</Link>
         </>
       ) : (
         <p role="alert" className="ptd-hint">Inloggen lukte niet. Vernieuw de pagina en probeer het opnieuw.</p>
