@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { checkinTekst, huidigeWeek, leesCheckin, leesCheckinInvoer, momentLabel, weekLabel, weekVan } from './checkin'
+import { checkinTekst, huidigeWeek, kiesCheckin, leesCheckin, leesCheckinInvoer, momentLabel, weekLabel, weekVan, type Checkin } from './checkin'
 
 describe('weekVan', () => {
   test('elke dag valt in de week van zijn maandag', () => {
@@ -68,5 +68,18 @@ describe('labels', () => {
   test('week en moment', () => {
     expect(weekLabel('2026-10-05')).toBe('week van 5 okt')
     expect(momentLabel('2026-10-08T12:32:00.000Z')).toBe('do 8 okt om 14:32')
+  })
+})
+
+describe('kiesCheckin', () => {
+  const c = (week: string, bijgewerktOp: string): Checkin => ({ week, bijgewerktOp, energie: 4, gewonnen: 'x', lastig: null, bespreken: null, focus: null })
+  test('deze week gaat voor', () => {
+    expect(kiesCheckin([c('2026-10-05', '2026-10-06T10:00:00Z'), c('2026-09-28', '2026-10-04T10:00:00Z')], '2026-10-05', null)?.week).toBe('2026-10-05')
+  })
+  test('vorige week alleen als ná het laatste verslag opgeslagen (weekend vóór maandaggesprek)', () => {
+    const weekend = [c('2026-09-28', '2026-10-04T18:00:00Z')]
+    expect(kiesCheckin(weekend, '2026-10-05', '2026-09-29T10:00:00Z')?.week).toBe('2026-09-28')
+    expect(kiesCheckin(weekend, '2026-10-05', '2026-10-05T09:00:00Z')).toBeNull()
+    expect(kiesCheckin([], '2026-10-05', null)).toBeNull()
   })
 })

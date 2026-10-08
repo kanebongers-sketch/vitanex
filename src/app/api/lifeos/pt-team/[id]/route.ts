@@ -41,6 +41,7 @@ export async function GET(req: NextRequest, ctx: Context) {
       leads: leads.get(id) ?? [],
       klanten: klanten.get(id) ?? [],
       doelen: doelen.ok ? (doelen.waarde.get(id) ?? null) : null,
+      doelenFout: !doelen.ok,
     },
     { headers: { 'Cache-Control': 'private, no-store', Vary: 'Authorization' } },
   )

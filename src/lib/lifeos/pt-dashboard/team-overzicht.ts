@@ -122,6 +122,8 @@ export interface PtDetail {
   leads: Lead[]
   klanten: PtKlant[]
   doelen: PtDoelen | null
+  /** Lezen van de doelen mislukt: niet bewerken, anders overschrijf je ze leeg. */
+  doelenFout: boolean
 }
 
 export function leesPtDetail(ruw: unknown): PtDetail | null {
@@ -140,5 +142,6 @@ export function leesPtDetail(ruw: unknown): PtDetail | null {
       return x ? [x] : []
     }),
     doelen: leesDoelen(o.doelen),
+    doelenFout: o.doelenFout === true,
   }
 }

@@ -31,8 +31,8 @@ import { haalLeadsVoor } from '@/lib/lifeos/leads/opslag'
 import { dagSleutelNl, vatLeadsSamen, type LeadSamenvatting } from '@/lib/lifeos/leads/leads'
 import { haalKlantenVoor } from '@/lib/lifeos/pt-dashboard/klanten-opslag'
 import { klantRegel, vatKlantenSamen } from '@/lib/lifeos/pt-dashboard/abonnementen'
-import { huidigeWeek, type Checkin } from '@/lib/lifeos/pt-dashboard/checkin'
-import { haalCheckinsVoor } from '@/lib/lifeos/pt-dashboard/checkin-opslag'
+import { huidigeWeek, kiesCheckin, weekVan, type Checkin } from '@/lib/lifeos/pt-dashboard/checkin'
+import { haalCheckinsVanafVoor } from '@/lib/lifeos/pt-dashboard/checkin-opslag'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -222,7 +222,7 @@ async function leadsSindsVorige(
       haalLaatsteEvaluaties(toegang.admin, toegang.userId, [persoonId]),
       haalLeadsVoor(toegang.admin, toegang.userId, [persoonId]),
       haalKlantenVoor(toegang.admin, toegang.userId, [persoonId]),
-      haalCheckinsVoor(toegang.admin, toegang.userId, [persoonId], huidigeWeek(nu)),
+      haalCheckinsVanafVoor(toegang.admin, toegang.userId, [persoonId], weekVan(dagSleutelNl(new Date(nu.getTime() - 7 * 24 * 60 * 60 * 1000)))),
     ])
     const vorige = laatste.get(persoonId)
     const sinds = vorige ? new Date(vorige.aangemaaktOp) : new Date(nu.getTime() - RITME_DAGEN * 24 * 60 * 60 * 1000)
@@ -230,7 +230,7 @@ async function leadsSindsVorige(
     return {
       leads: vatLeadsSamen(leads.get(persoonId) ?? [], sinds, vandaag),
       klanten: klantRegel(vatKlantenSamen(klanten.get(persoonId) ?? [], vandaag)),
-      voorbereiding: checkins.get(persoonId) ?? null,
+      voorbereiding: kiesCheckin(checkins.get(persoonId) ?? [], huidigeWeek(nu), vorige?.aangemaaktOp ?? null),
     }
   } catch {
     return { leads: null, klanten: null, voorbereiding: null }

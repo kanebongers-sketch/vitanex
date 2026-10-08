@@ -3484,6 +3484,7 @@ body {
 .lifeos-root .ptd-balk-merk { position: absolute; top: -1px; bottom: -1px; width: 2px; margin-left: -1px; background: var(--text-2); }
 @media (prefers-reduced-motion: reduce) {
   .lifeos-root .ptd-balk-vul { transition: none; }
+}
 .lifeos-root .ptd-tekst--sterk { color: var(--text-1); font-size: 14.5px; }
 @media (max-width: 420px) {
   .lifeos-root .ptd-nav { gap: 2px; padding: 3px; }

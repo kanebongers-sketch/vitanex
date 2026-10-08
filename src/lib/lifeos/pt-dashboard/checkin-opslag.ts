@@ -94,3 +94,28 @@ export async function haalCheckinsVoor(
   for (const r of data as (Rij & { persoon_id: string })[]) uit.set(r.persoon_id, vanRij(r))
   return uit
 }
+
+/** Check-ins van meerdere PT'ers vanaf week `vanafWeek` (incl.), per persoon_id, nieuwste eerst. */
+export async function haalCheckinsVanafVoor(
+  admin: SupabaseClient,
+  userId: string,
+  persoonIds: readonly string[],
+  vanafWeek: string,
+): Promise<Map<string, Checkin[]>> {
+  const uit = new Map<string, Checkin[]>()
+  if (persoonIds.length === 0) return uit
+  const { data, error } = await admin
+    .from('pt_weekcheckins')
+    .select(`persoon_id, ${KOLOMMEN}`)
+    .eq('user_id', userId)
+    .gte('week', vanafWeek)
+    .in('persoon_id', [...persoonIds])
+    .order('week', { ascending: false })
+  if (error || !Array.isArray(data)) return uit
+  for (const r of data as (Rij & { persoon_id: string })[]) {
+    const lijst = uit.get(r.persoon_id) ?? []
+    lijst.push(vanRij(r))
+    uit.set(r.persoon_id, lijst)
+  }
+  return uit
+}

@@ -141,8 +141,13 @@ export async function verwijderLead(admin: SupabaseClient, link: LeadLink, id: s
   return Array.isArray(data) && data.length === 1 ? { ok: true, waarde: null } : { ok: false, reden: 'niet_gevonden' }
 }
 
-/** Alle leads van meerdere PT'ers (coachgesprek, team-overzicht), per persoon_id. */
+/** Alle leads van meerdere PT'ers (coachgesprek, team-overzicht), per persoon_id. Bij een fout leeg (best-effort). */
 export async function haalLeadsVoor(admin: SupabaseClient, userId: string, persoonIds: readonly string[]): Promise<Map<string, Lead[]>> {
+  return (await haalLeadsVoorStrikt(admin, userId, persoonIds)) ?? new Map()
+}
+
+/** Als `haalLeadsVoor`, maar null bij een databasefout — voor waar "fout" niet als "niets" mag lijken (export, weekmail). */
+export async function haalLeadsVoorStrikt(admin: SupabaseClient, userId: string, persoonIds: readonly string[]): Promise<Map<string, Lead[]> | null> {
   const uit = new Map<string, Lead[]>()
   if (persoonIds.length === 0) return uit
   const { data, error } = await admin
@@ -152,7 +157,7 @@ export async function haalLeadsVoor(admin: SupabaseClient, userId: string, perso
     .in('persoon_id', [...persoonIds])
     .order('aangemaakt_op', { ascending: false })
     .limit(5000)
-  if (error) return uit
+  if (error) return null
   for (const r of (data ?? []) as (Rij & { persoon_id: string })[]) {
     const l = vanRij(r)
     if (!l) continue

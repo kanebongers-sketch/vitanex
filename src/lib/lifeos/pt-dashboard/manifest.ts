@@ -28,8 +28,10 @@ export function ptManifest(code: string, naam: string): MetadataRoute.Manifest {
     background_color: COLORS.navy,
     theme_color: COLORS.navy,
     icons: [
-      { src: '/logo.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' },
-      { src: '/favicon.ico', sizes: '32x32', type: 'image/x-icon' },
+      // Navy + cyaan "PT." (public/icons); de tekst valt binnen de veilige zone, dus ook maskable.
+      { src: '/icons/pt-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
+      { src: '/icons/pt-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+      { src: '/icons/pt-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
     ],
   }
 }

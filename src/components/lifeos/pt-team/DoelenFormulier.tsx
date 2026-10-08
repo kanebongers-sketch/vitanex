@@ -20,9 +20,11 @@ interface SectieProps {
   klanten: readonly PtKlant[]
   vandaag: string
   onOpgeslagen: (d: PtDoelen) => void
+  /** Lezen mislukt: niet laten bewerken (zou bestaande doelen leeg overschrijven). */
+  leesFout?: boolean
 }
 
-export function DoelenSectie({ persoonId, naam, doelen, leads, klanten, vandaag, onOpgeslagen }: SectieProps) {
+export function DoelenSectie({ persoonId, naam, doelen, leads, klanten, vandaag, onOpgeslagen, leesFout = false }: SectieProps) {
   const [bewerken, setBewerken] = useState(false)
   const items = useMemo(() => (doelen ? voortgang(doelen, leads, klanten, vandaag) : []), [doelen, leads, klanten, vandaag])
   const gezet = heeftDoelen(doelen)
@@ -35,7 +37,9 @@ export function DoelenSectie({ persoonId, naam, doelen, leads, klanten, vandaag,
       </div>
       {gezet && doelen.notitie ? <p className="ptd-doel-notitie">{doelen.notitie}</p> : null}
       {items.length > 0 ? <DoelLijst items={items} /> : null}
-      {bewerken ? (
+      {leesFout ? (
+        <p className="ptd-leeg" role="alert">De doelen konden niet geladen worden. Vernieuw de pagina voordat je ze aanpast.</p>
+      ) : bewerken ? (
         <DoelenFormulier
           persoonId={persoonId}
           naam={naam}

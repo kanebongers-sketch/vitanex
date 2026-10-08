@@ -126,8 +126,13 @@ async function eigenLead(admin: SupabaseClient, link: LeadLink, leadId: string):
   return data ? leadId : null
 }
 
-/** Klanten van meerdere PT'ers (team-overzicht, coachgesprek), per persoon_id. */
+/** Klanten van meerdere PT'ers (team-overzicht, coachgesprek), per persoon_id. Bij een fout leeg (best-effort). */
 export async function haalKlantenVoor(admin: SupabaseClient, userId: string, persoonIds: readonly string[]): Promise<Map<string, PtKlant[]>> {
+  return (await haalKlantenVoorStrikt(admin, userId, persoonIds)) ?? new Map()
+}
+
+/** Als `haalKlantenVoor`, maar null bij een databasefout (export, weekmail). */
+export async function haalKlantenVoorStrikt(admin: SupabaseClient, userId: string, persoonIds: readonly string[]): Promise<Map<string, PtKlant[]> | null> {
   const uit = new Map<string, PtKlant[]>()
   if (persoonIds.length === 0) return uit
   const { data, error } = await admin
@@ -137,7 +142,7 @@ export async function haalKlantenVoor(admin: SupabaseClient, userId: string, per
     .in('persoon_id', [...persoonIds])
     .order('startdatum', { ascending: false })
     .limit(5000)
-  if (error) return uit
+  if (error) return null
   for (const r of (data ?? []) as (Rij & { persoon_id: string })[]) {
     const k = vanRij(r)
     if (!k) continue

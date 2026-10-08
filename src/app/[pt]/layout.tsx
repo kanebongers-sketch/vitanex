@@ -29,6 +29,7 @@ export async function generateMetadata({ params }: Pick<Props, 'params'>): Promi
       ? {
           manifest: manifestPad(s.link.code),
           appleWebApp: { capable: true, title: s.link.naam, statusBarStyle: 'black' as const },
+          icons: { apple: '/icons/apple-touch-icon.png' },
           other: { 'apple-mobile-web-app-capable': 'yes' },
         }
       : {}),

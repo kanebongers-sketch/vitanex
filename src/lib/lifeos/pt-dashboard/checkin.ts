@@ -129,3 +129,23 @@ export function checkinTekst(c: Checkin): string {
   regels.push(`Ingevuld ${momentLabel(c.bijgewerktOp)}`)
   return regels.join('\n')
 }
+
+/**
+ * Welke check-in hoort bij het komende/lopende gesprek? Die van deze week; is
+ * die er niet, dan die van vorige week — maar alleen als hij ná het laatste
+ * verslag is opgeslagen (ingevuld in het weekend voor een gesprek op maandag).
+ */
+export function kiesCheckin(checkins: readonly Checkin[], dezeWeek: string, vorigVerslagOp: string | null): Checkin | null {
+  const nu = checkins.find((c) => c.week === dezeWeek)
+  if (nu) return nu
+  const vorigeWeek = weekVan(plusDagenSleutel(dezeWeek, -7))
+  const vorig = checkins.find((c) => c.week === vorigeWeek)
+  if (!vorig) return null
+  return vorigVerslagOp === null || vorig.bijgewerktOp > vorigVerslagOp ? vorig : null
+}
+
+function plusDagenSleutel(dag: string, n: number): string {
+  const d = new Date(`${dag}T12:00:00Z`)
+  d.setUTCDate(d.getUTCDate() + n)
+  return d.toISOString().slice(0, 10)
+}

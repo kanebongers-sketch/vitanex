@@ -29,7 +29,7 @@ export default async function CoachPagina({ params }: { params: Promise<{ pt: st
           <span>{weekLabel(week)}</span>
         </div>
         <p className="ptd-hint">
-          Vul dit in vóór je gesprek met Kane. Hij leest het in het gesprek, en het komt in het verslag. Je kunt het de hele week
+          Vul dit in vóór je gesprek met Kane. Kane leest het in het gesprek, en het komt in het verslag. Je kunt het de hele week
           aanpassen; op maandag begint een nieuwe check-in.
         </p>
         {checkin.ok ? (

@@ -56,6 +56,7 @@ export function PtTeamDetail({ id }: { id: string }) {
 
       <DoelenSectie
         persoonId={id}
+        leesFout={d.doelenFout}
         naam={d.naam}
         doelen={d.doelen}
         leads={d.leads}

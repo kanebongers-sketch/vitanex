@@ -23,8 +23,8 @@ import { zorgVoorLinks } from '@/lib/lifeos/leads/links'
 import { dagSleutelNl, vatLeadsSamen } from '@/lib/lifeos/leads/leads'
 import { haalKlantenVoor } from '@/lib/lifeos/pt-dashboard/klanten-opslag'
 import { klantRegel, vatKlantenSamen } from '@/lib/lifeos/pt-dashboard/abonnementen'
-import { huidigeWeek } from '@/lib/lifeos/pt-dashboard/checkin'
-import { haalCheckinsVoor } from '@/lib/lifeos/pt-dashboard/checkin-opslag'
+import { huidigeWeek, kiesCheckin, weekVan } from '@/lib/lifeos/pt-dashboard/checkin'
+import { haalCheckinsVanafVoor } from '@/lib/lifeos/pt-dashboard/checkin-opslag'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -94,7 +94,7 @@ export async function GET(req: NextRequest) {
     zorgVoorLinks(toegang.admin, toegang.userId, team),
     haalLeadsVoor(toegang.admin, toegang.userId, ids),
     haalKlantenVoor(toegang.admin, toegang.userId, ids),
-    haalCheckinsVoor(toegang.admin, toegang.userId, ids, huidigeWeek(nu)),
+    haalCheckinsVanafVoor(toegang.admin, toegang.userId, ids, weekVan(dagSleutelNl(new Date(nu.getTime() - 7 * 24 * 60 * 60 * 1000)))),
   ])
   const vandaag = dagSleutelNl(nu)
   // Leads tellen vanaf het vorige verslag; zonder verslag de afgelopen week.
@@ -117,7 +117,7 @@ export async function GET(req: NextRequest) {
         leadLink: link,
         leads: link ? vatLeadsSamen(leads.get(s.id) ?? [], leadsSinds, vandaag) : null,
         klanten: link ? klantRegel(vatKlantenSamen(klanten.get(s.id) ?? [], vandaag)) : null,
-        checkin: checkins.get(s.id) ?? null,
+        checkin: kiesCheckin(checkins.get(s.id) ?? [], huidigeWeek(nu), vorige?.op ?? null),
       },
     }
   })
