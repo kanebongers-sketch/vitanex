@@ -10,7 +10,7 @@ const lead = (over: Partial<Lead> = {}): Lead => ({
 })
 const klant = (over: Partial<PtKlant> = {}): PtKlant => ({
   id: 'k', naam: 'Tom', contact: null, duoPartner: null, club: 'eersel', abonnement: '2x', startdatum: '2026-09-01',
-  status: 'actief', opgezegdOp: null, notitie: null, leadId: null, ...over,
+  status: 'actief', opgezegdOp: null, notitie: null, leadId: null, prijsAfwijkend: null, stopReden: null, ...over,
 })
 
 const regels = (csv: string): string[] => csv.slice(1).split('\r\n')

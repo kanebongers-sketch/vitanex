@@ -3,7 +3,8 @@
 import { useState, type FormEvent } from 'react'
 import { Foutmelding } from '@/components/lifeos/os/Foutmelding'
 import {
-  ABONNEMENT, ABONNEMENTEN, KLANT_STATUSSEN, KLANT_STATUS_LABEL, eindeVastePeriode, laatsteDag, leesKlant,
+  ABONNEMENT, ABONNEMENTEN, KLANT_STATUSSEN, KLANT_STATUS_LABEL, STOP_REDENEN, STOP_REDEN_LABEL, eindeVastePeriode, euro, laatsteDag,
+  leesKlant, maandprijs,
   type KlantInvoer, type PtKlant,
 } from '@/lib/lifeos/pt-dashboard/abonnementen'
 import { CLUBS, CLUB_LABEL, isClub, type Club } from '@/lib/lifeos/pt-dashboard/clubs'
@@ -39,7 +40,7 @@ export function KlantFormulier({ code, vandaag, standaardClub, klant, vanLead, o
       : {
           naam: vanLead?.naam ?? '', contact: vanLead?.contact ?? null, duoPartner: null,
           club: vanLead?.club ?? standaardClub, abonnement: '1x', startdatum: vandaag,
-          status: 'actief', opgezegdOp: null, notitie: null, leadId: vanLead?.id ?? null,
+          status: 'actief', opgezegdOp: null, notitie: null, leadId: vanLead?.id ?? null, stopReden: null, prijsAfwijkend: null,
         },
   )
   const [trainer, setTrainer] = useState(beginTrainer ?? trainers?.[0]?.id ?? '')
@@ -55,7 +56,9 @@ export function KlantFormulier({ code, vandaag, standaardClub, klant, vanLead, o
     if (!v.club) return setFout('Kies de club waar deze klant traint.')
     setBezig(true)
     setFout(null)
-    const body = trainers ? { ...v, trainerId: trainer } : v
+    // Alleen de beheerder (met `trainers`) stuurt trainer en afwijkende prijs mee.
+    // `undefined` valt weg uit de JSON: dan laat de server de opgeslagen prijs staan.
+    const body = trainers ? { ...v, trainerId: trainer } : { ...v, prijsAfwijkend: undefined }
     const uit = klant
       ? await ptApi(code, `klanten/${klant.id}`, 'PUT', body, leesKlant)
       : await ptApi(code, 'klanten', 'POST', body, leesKlant)
@@ -135,6 +138,36 @@ export function KlantFormulier({ code, vandaag, standaardClub, klant, vanLead, o
           hint={v.status === 'opgezegd' && v.opgezegdOp ? `Volgens de voorwaarden loopt het abonnement t/m ${dagLang(laatsteDag(v.startdatum, v.opgezegdOp))}.` : undefined}
         >
           <input id={`kop-${id}`} type="date" className="ptd-invoer" min={v.startdatum} value={v.opgezegdOp ?? ''} onChange={(e) => zet('opgezegdOp', e.target.value || null)} required />
+        </Veld>
+      ) : null}
+
+      {metEinde ? (
+        <Keuzes
+          label="Reden"
+          opties={STOP_REDENEN.map((x) => ({ waarde: x, label: STOP_REDEN_LABEL[x] }))}
+          waarde={v.stopReden}
+          onKies={(x) => zet('stopReden', x)}
+          leegToegestaan
+        />
+      ) : null}
+
+      {trainers && v.club ? (
+        <Veld
+          label="Afwijkende maandprijs (€)"
+          id={`kprijs-${id}`}
+          hint={`Leeg = standaardprijs (${euro(maandprijs(v.abonnement, v.club))} p/m). Alleen zichtbaar voor eigenaren en jou.`}
+        >
+          <input
+            id={`kprijs-${id}`}
+            className="ptd-invoer"
+            inputMode="decimal"
+            value={v.prijsAfwijkend ?? ''}
+            onChange={(e) => {
+              const n = Number(e.target.value.replace(',', '.'))
+              zet('prijsAfwijkend', e.target.value.trim() === '' || !Number.isFinite(n) ? null : n)
+            }}
+            autoComplete="off"
+          />
         </Veld>
       ) : null}
 

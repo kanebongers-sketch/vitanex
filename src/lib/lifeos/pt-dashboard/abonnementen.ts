@@ -6,7 +6,7 @@
 
 import { CLUB_LABEL, isClub, type Club } from './clubs'
 
-export const ABONNEMENTEN = ['1x', '2x', 'duo_1x', 'duo_2x', '1x_2w'] as const
+export const ABONNEMENTEN = ['1x', '2x', 'duo_1x', 'duo_2x', '1x_2w', 'duo_start', 'challenge', 'coaching'] as const
 export type Abonnement = (typeof ABONNEMENTEN)[number]
 
 interface AbonnementInfo {
@@ -25,8 +25,13 @@ export const ABONNEMENT: Record<Abonnement, AbonnementInfo> = {
   '2x': { label: '2x per week', kort: '2x p/w', prijs: 499, prijsEersel: 519, duo: false, sessiesPerWeek: 2 },
   duo_1x: { label: 'Duo · 1x per week', kort: 'Duo 1x', prijs: 399, prijsEersel: 419, duo: true, sessiesPerWeek: 1 },
   duo_2x: { label: 'Duo · 2x per week', kort: 'Duo 2x', prijs: 599, prijsEersel: 619, duo: true, sessiesPerWeek: 2 },
-  // Staat niet in de abonnementen-pdf, wel in het PT-dashboard (Excel) van Fit Factory.
+  // De volgende staan niet in de abonnementen-pdf, wel in het PT-dashboard (Excel)
+  // van Fit Factory. Bij challenge en coaching is het aantal sessies per week
+  // niet bekend: ze tellen niet mee in "sessies per week".
   '1x_2w': { label: '1x per 2 weken', kort: '1x p/2w', prijs: 169, prijsEersel: 169, duo: false, sessiesPerWeek: 0.5 },
+  duo_start: { label: 'Duo · startactie (1x per week)', kort: 'Duo start', prijs: 299, prijsEersel: 299, duo: true, sessiesPerWeek: 1 },
+  challenge: { label: 'Challenge (6 weken)', kort: 'Challenge', prijs: 399, prijsEersel: 419, duo: false, sessiesPerWeek: 0 },
+  coaching: { label: 'Coaching', kort: 'Coaching', prijs: 139, prijsEersel: 139, duo: false, sessiesPerWeek: 0 },
 }
 
 export const VASTE_MAANDEN = 3
@@ -39,6 +44,34 @@ export function isAbonnement(v: unknown): v is Abonnement {
 export function maandprijs(abonnement: Abonnement, club: Club): number {
   const a = ABONNEMENT[abonnement]
   return club === 'eersel' ? a.prijsEersel : a.prijs
+}
+
+/** Wat een klant werkelijk betaalt: de afwijkende prijs (korting, actie) als die er is, anders de standaardprijs. */
+export function klantPrijs(k: Pick<PtKlant, 'abonnement' | 'club' | 'prijsAfwijkend'>): number {
+  return k.prijsAfwijkend ?? maandprijs(k.abonnement, k.club)
+}
+
+/**
+ * De klant zoals een PT'er hem krijgt: zonder afwijkende prijs. PT'ers zien geen
+ * bedragen, ook niet in de data die naar hun browser gaat.
+ */
+export function zonderPrijs(k: PtKlant): PtKlant {
+  return { ...k, prijsAfwijkend: null }
+}
+
+export const STOP_REDENEN = ['doel_behaald', 'financieel', 'tijd', 'blessure', 'verhuisd', 'ontevreden', 'anders'] as const
+export type StopReden = (typeof STOP_REDENEN)[number]
+export const STOP_REDEN_LABEL: Record<StopReden, string> = {
+  doel_behaald: 'Doel behaald',
+  financieel: 'Financieel',
+  tijd: 'Geen tijd',
+  blessure: 'Blessure of ziekte',
+  verhuisd: 'Verhuisd',
+  ontevreden: 'Niet tevreden',
+  anders: 'Anders',
+}
+export function isStopReden(v: unknown): v is StopReden {
+  return typeof v === 'string' && (STOP_REDENEN as readonly string[]).includes(v)
 }
 
 export const KLANT_STATUSSEN = ['actief', 'bevroren', 'opgezegd', 'gestopt'] as const
@@ -67,6 +100,10 @@ export interface PtKlant {
   opgezegdOp: string | null
   notitie: string | null
   leadId: string | null
+  /** Maandprijs als die afwijkt van de standaard (korting, actie). Alleen eigenaren/beheerder; voor PT'ers altijd null. */
+  prijsAfwijkend: number | null
+  /** Waarom de klant opzegde of stopte; alleen bij opgezegd/gestopt. */
+  stopReden: StopReden | null
 }
 
 // ─── Datums (dagsleutels, geen tijdzones) ─────────────────────────────────────
@@ -132,7 +169,7 @@ export function vatKlantenSamen(klanten: readonly PtKlant[], vandaag: string): K
   return {
     lopend: lopend.length,
     bevroren: lopend.filter((k) => k.status === 'bevroren').length,
-    maandwaarde: betalend.reduce((s, k) => s + maandprijs(k.abonnement, k.club), 0),
+    maandwaarde: betalend.reduce((s, k) => s + klantPrijs(k), 0),
     personen: lopend.reduce((s, k) => s + (ABONNEMENT[k.abonnement].duo ? 2 : 1), 0),
     sessiesPerWeek: betalend.reduce((s, k) => s + ABONNEMENT[k.abonnement].sessiesPerWeek, 0),
     vastBijnaKlaar: lopend
@@ -153,7 +190,11 @@ export function plusDagen(dag: string, n: number): string {
 // ─── Invoer (systeemgrens) ────────────────────────────────────────────────────
 
 type Lees<T> = { ok: true; waarde: T } | { ok: false; fout: string }
-export type KlantInvoer = Omit<PtKlant, 'id'>
+/**
+ * Formulierinvoer. `prijsAfwijkend` is `undefined` als die niet meegestuurd is:
+ * dan blijft de opgeslagen prijs staan (zo wist een PT'er hem nooit bij opslaan).
+ */
+export type KlantInvoer = Omit<PtKlant, 'id' | 'prijsAfwijkend'> & { prijsAfwijkend?: number | null }
 
 const DAG = /^\d{4}-\d{2}-\d{2}$/
 
@@ -199,8 +240,16 @@ export function leesKlantInvoer(body: unknown): Lees<KlantInvoer> {
       opgezegdOp: status === 'opgezegd' || status === 'gestopt' ? opgezegdOp : null,
       notitie: tekstMetRegels(o.notitie, 1000),
       leadId: typeof o.leadId === 'string' && /^[0-9a-f-]{36}$/i.test(o.leadId) ? o.leadId : null,
+      stopReden: (status === 'opgezegd' || status === 'gestopt') && isStopReden(o.stopReden) ? o.stopReden : null,
+      ...(Object.hasOwn(o, 'prijsAfwijkend') ? { prijsAfwijkend: leesPrijs(o.prijsAfwijkend) } : {}),
     },
   }
+}
+
+/** Een maandprijs in euro (0–5000, op centen), of null bij leeg/ongeldig. */
+function leesPrijs(v: unknown): number | null {
+  const n = typeof v === 'string' ? Number(v.replace(',', '.')) : v
+  return typeof n === 'number' && Number.isFinite(n) && n >= 0 && n <= 5000 ? Math.round(n * 100) / 100 : null
 }
 
 export function leesKlant(ruw: unknown): PtKlant | null {
@@ -208,7 +257,7 @@ export function leesKlant(ruw: unknown): PtKlant | null {
   const o = ruw as Record<string, unknown>
   if (typeof o.id !== 'string') return null
   const r = leesKlantInvoer(o)
-  return r.ok ? { id: o.id, ...r.waarde } : null
+  return r.ok ? { id: o.id, ...r.waarde, prijsAfwijkend: r.waarde.prijsAfwijkend ?? null } : null
 }
 
 /** "€1.297" */
@@ -217,9 +266,11 @@ export function euro(n: number): string {
 }
 
 /** "2x per week · Eersel · €519 p/m". Zonder `toonPrijs` (PT'ers zien geen bedragen) valt de prijs weg. */
-export function abonnementRegel(k: Pick<PtKlant, 'abonnement' | 'club'>, toonPrijs = true): string {
+export function abonnementRegel(k: Pick<PtKlant, 'abonnement' | 'club'> & { prijsAfwijkend?: number | null }, toonPrijs = true): string {
   const basis = `${ABONNEMENT[k.abonnement].label} · ${CLUB_LABEL[k.club]}`
-  return toonPrijs ? `${basis} · ${euro(maandprijs(k.abonnement, k.club))} p/m` : basis
+  if (!toonPrijs) return basis
+  const prijs = k.prijsAfwijkend ?? maandprijs(k.abonnement, k.club)
+  return `${basis} · ${euro(prijs)} p/m${k.prijsAfwijkend != null ? ' (afwijkend)' : ''}`
 }
 
 /** Eén regel voor coachgesprek/pdf/mail: "5 lopende abonnementen · €1.795 p/m · 1 bevroren". */

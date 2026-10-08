@@ -14,6 +14,7 @@ import { haalKlantenVan } from './klanten-opslag'
 import { haalDoelenVoor } from './doelen-opslag'
 import { haalPtTeamGegevens } from './team-opslag'
 import type { PtDoelen } from './doelen'
+import { zonderPrijs } from './abonnementen'
 
 export const ptSessie = cache(async (code: string) => {
   if (!CODE_PATROON.test(code)) return null
@@ -43,7 +44,8 @@ export const ptGegevens = cache(async (code: string) => {
   return {
     link: s.link,
     leads: leads.ok ? leads.waarde : null,
-    klanten: klanten.ok ? klanten.waarde : null,
+    // PT'ers zien geen bedragen: de afwijkende prijs gaat niet mee naar de browser.
+    klanten: klanten.ok ? klanten.waarde.map(zonderPrijs) : null,
     // Doelen zijn optioneel: niet gezet of niet leesbaar → geen doelensectie.
     doelen: doelen.ok ? (doelen.waarde.get(s.link.persoonId) ?? null) : null,
     vandaag: dagSleutelNl(new Date()),

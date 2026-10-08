@@ -10,7 +10,7 @@ const lead = (over: Partial<Lead> = {}): Lead => ({
 })
 const klant = (over: Partial<PtKlant> = {}): PtKlant => ({
   id: 'k', naam: 'Y', contact: null, duoPartner: null, club: 'eersel', abonnement: '2x', startdatum: '2026-09-01',
-  status: 'actief', opgezegdOp: null, notitie: null, leadId: null, ...over,
+  status: 'actief', opgezegdOp: null, notitie: null, leadId: null, prijsAfwijkend: null, stopReden: null, ...over,
 })
 const geen: PtDoelen = { leadsPerWeek: null, klantenPerMaand: null, abonnementen: null, notitie: null }
 // 2026-10-08 is een donderdag: dag 4 van de week (ma 5 okt), dag 8 van 31.

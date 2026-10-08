@@ -1,9 +1,11 @@
 import { describe, expect, test } from 'vitest'
-import { eindeVastePeriode, isLopend, laatsteDag, leesKlantInvoer, maandprijs, vatKlantenSamen, type PtKlant } from './abonnementen'
+import {
+  abonnementRegel, eindeVastePeriode, euro, isLopend, klantPrijs, laatsteDag, leesKlantInvoer, maandprijs, vatKlantenSamen, zonderPrijs, type PtKlant,
+} from './abonnementen'
 
 const klant = (over: Partial<PtKlant> = {}): PtKlant => ({
   id: 'k1', naam: 'Sanne', contact: null, duoPartner: null, club: 'budel', abonnement: '1x',
-  startdatum: '2026-09-01', status: 'actief', opgezegdOp: null, notitie: null, leadId: null, ...over,
+  startdatum: '2026-09-01', status: 'actief', opgezegdOp: null, notitie: null, leadId: null, prijsAfwijkend: null, stopReden: null, ...over,
 })
 
 describe('prijzen (Fit Factory PT 2026)', () => {
@@ -72,5 +74,42 @@ describe('notitie', () => {
   test('regeleinden blijven staan, overtollige witruimte niet', () => {
     const r = leesKlantInvoer({ naam: 'A', club: 'budel', abonnement: '1x', startdatum: '2026-10-01', notitie: '  Doel: 5 kg\r\n\n\n\nKnie   links  ' })
     expect(r.ok && r.waarde.notitie).toBe('Doel: 5 kg\n\nKnie links')
+  })
+})
+
+describe('afwijkende prijs en reden van stoppen', () => {
+  const basis = { naam: 'Stefanie', club: 'eindhoven_boschdijk', abonnement: '1x', startdatum: '2026-09-01', status: 'actief' }
+
+  test('klantPrijs: afwijkend gaat voor de standaard; de maandwaarde telt ermee', () => {
+    expect(klantPrijs(klant({ abonnement: '1x', club: 'budel' }))).toBe(299)
+    expect(klantPrijs(klant({ abonnement: '1x', club: 'budel', prijsAfwijkend: 249 }))).toBe(249)
+    expect(vatKlantenSamen([klant({ prijsAfwijkend: 249 }), klant({ id: 'b' })], '2026-10-08').maandwaarde).toBe(249 + 299)
+  })
+
+  test('zonderPrijs: een PT\'er krijgt de afwijkende prijs nooit mee', () => {
+    expect(zonderPrijs(klant({ prijsAfwijkend: 249 })).prijsAfwijkend).toBeNull()
+  })
+
+  test('invoer zonder prijsveld laat de opgeslagen prijs staan (undefined, niet null)', () => {
+    const zonder = leesKlantInvoer(basis)
+    expect(zonder.ok && 'prijsAfwijkend' in zonder.waarde).toBe(false)
+    const leeg = leesKlantInvoer({ ...basis, prijsAfwijkend: null })
+    expect(leeg.ok && leeg.waarde.prijsAfwijkend).toBeNull()
+    const met = leesKlantInvoer({ ...basis, prijsAfwijkend: '249,50' })
+    expect(met.ok && met.waarde.prijsAfwijkend).toBe(249.5)
+    const rommel = leesKlantInvoer({ ...basis, prijsAfwijkend: -5 })
+    expect(rommel.ok && rommel.waarde.prijsAfwijkend).toBeNull()
+  })
+
+  test('reden telt alleen bij opgezegd of gestopt', () => {
+    const actief = leesKlantInvoer({ ...basis, stopReden: 'tijd' })
+    expect(actief.ok && actief.waarde.stopReden).toBeNull()
+    const gestopt = leesKlantInvoer({ ...basis, status: 'gestopt', opgezegdOp: '2026-10-01', stopReden: 'tijd' })
+    expect(gestopt.ok && gestopt.waarde.stopReden).toBe('tijd')
+  })
+
+  test('abonnementRegel toont een afwijkende prijs als zodanig', () => {
+    expect(abonnementRegel({ abonnement: '1x', club: 'budel', prijsAfwijkend: 249 })).toBe(`1x per week · Budel · ${euro(249)} p/m (afwijkend)`)
+    expect(abonnementRegel({ abonnement: '1x', club: 'budel', prijsAfwijkend: 249 }, false)).toBe('1x per week · Budel')
   })
 })

@@ -2,7 +2,7 @@
 // De beheerder kiest de trainer (`trainerId` in de body); een eigenaar mag niet.
 
 import { NextResponse, type NextRequest } from 'next/server'
-import { leesKlantInvoer } from '@/lib/lifeos/pt-dashboard/abonnementen'
+import { leesKlantInvoer, zonderPrijs } from '@/lib/lifeos/pt-dashboard/abonnementen'
 import { voegKlantToe } from '@/lib/lifeos/pt-dashboard/klanten-opslag'
 import { GEEN_CACHE, foutAntwoord, nieuweKlantToegang } from '@/lib/lifeos/leads/toegang'
 
@@ -21,7 +21,9 @@ export async function POST(req: NextRequest, ctx: Context) {
   if (r instanceof NextResponse) return r
   const invoer = leesKlantInvoer(body)
   if (!invoer.ok) return foutAntwoord(invoer.fout, 400)
+  // Alleen de beheerder zet een afwijkende prijs; van een PT'er telt die nooit mee.
+  if (!r.beheerderId) delete invoer.waarde.prijsAfwijkend
   const uit = await voegKlantToe(r.admin, r.link, invoer.waarde)
   if (!uit.ok) return foutAntwoord('Opslaan mislukt. Probeer het opnieuw.', 502)
-  return NextResponse.json(uit.waarde, { status: 201, headers: GEEN_CACHE })
+  return NextResponse.json(r.beheerderId ? uit.waarde : zonderPrijs(uit.waarde), { status: 201, headers: GEEN_CACHE })
 }

@@ -5,11 +5,11 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { LeadLink } from '@/lib/lifeos/leads/links'
 import { isClub } from './clubs'
-import { isAbonnement, isKlantStatus, type KlantInvoer, type PtKlant } from './abonnementen'
+import { isAbonnement, isKlantStatus, isStopReden, type KlantInvoer, type PtKlant } from './abonnementen'
 
 export type KlantUitkomst<T> = { ok: true; waarde: T } | { ok: false; reden: 'db' | 'niet_gevonden' }
 
-const KOLOMMEN = 'id, naam, contact, duo_partner, locatie, abonnement, startdatum, status, opgezegd_op, notitie, lead_id'
+const KOLOMMEN = 'id, naam, contact, duo_partner, locatie, abonnement, startdatum, status, opgezegd_op, notitie, lead_id, prijs_afwijkend, stop_reden'
 
 interface Rij {
   id: string
@@ -23,6 +23,8 @@ interface Rij {
   opgezegd_op: string | null
   notitie: string | null
   lead_id: string | null
+  prijs_afwijkend: number | string | null
+  stop_reden: string | null
 }
 
 function vanRij(r: Rij): PtKlant | null {
@@ -39,6 +41,9 @@ function vanRij(r: Rij): PtKlant | null {
     opgezegdOp: r.opgezegd_op,
     notitie: r.notitie,
     leadId: r.lead_id,
+    // numeric komt als string uit PostgREST.
+    prijsAfwijkend: r.prijs_afwijkend === null ? null : Number(r.prijs_afwijkend),
+    stopReden: isStopReden(r.stop_reden) ? r.stop_reden : null,
   }
 }
 
@@ -61,6 +66,9 @@ function naarRij(k: KlantInvoer) {
     opgezegd_op: k.opgezegdOp,
     notitie: k.notitie,
     lead_id: k.leadId,
+    stop_reden: k.stopReden,
+    // Alleen meesturen als hij in de invoer zat; anders blijft de opgeslagen prijs staan.
+    ...(k.prijsAfwijkend !== undefined ? { prijs_afwijkend: k.prijsAfwijkend } : {}),
   }
 }
 

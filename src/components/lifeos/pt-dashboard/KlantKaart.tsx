@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { FolderOpen, Pencil } from 'lucide-react'
 import {
-  KLANT_STATUS_LABEL, abonnementRegel, eindeVastePeriode, isLopend, laatsteDag, type PtKlant,
+  KLANT_STATUS_LABEL, STOP_REDEN_LABEL, abonnementRegel, eindeVastePeriode, isLopend, laatsteDag, type PtKlant,
 } from '@/lib/lifeos/pt-dashboard/abonnementen'
 import { dagKort } from '@/lib/lifeos/pt-dashboard/datum'
 import { ContactActies } from './velden'
@@ -62,6 +62,7 @@ export function KlantKaart({ klant: k, vandaag, onBewerk, dossierHref, trainer, 
         ) : k.startdatum <= vandaag ? (
           <span>Maandelijks opzegbaar</span>
         ) : null}
+        {k.stopReden ? <span>Reden: {STOP_REDEN_LABEL[k.stopReden]}</span> : null}
         {k.contact ? <span>{k.contact}</span> : null}
       </div>
       {k.notitie ? <p className="ptd-tekst">{k.notitie}</p> : null}
