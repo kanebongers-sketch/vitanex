@@ -3273,3 +3273,29 @@ body {
 
 /* LifeOS to-do: "nu mee bezig"-knop — rustig, cyaan op hover. */
 .lifeos-nu-knop:hover:not(:disabled) { color: var(--brand); border-color: var(--brand); }
+
+/* ═══ Lead tracker — /lead: naamknoppen (hover/focus ontworpen, geen inline-staten) ═══ */
+.lifeos-root .lead-naam {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 18px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: var(--bg-card);
+  color: var(--text-1);
+  font-size: 17px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: border-color 180ms var(--ease, ease), transform 180ms var(--ease, ease), background 180ms var(--ease, ease);
+}
+.lifeos-root .lead-naam svg { color: var(--text-3); transition: color 180ms var(--ease, ease), transform 180ms var(--ease, ease); }
+.lifeos-root .lead-naam:hover { border-color: var(--brand); background: var(--bg-raised); }
+.lifeos-root .lead-naam:hover svg { color: var(--brand); transform: translateX(2px); }
+.lifeos-root .lead-naam:active { transform: scale(0.99); }
+.lifeos-root .lead-naam:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) {
+  .lifeos-root .lead-naam, .lifeos-root .lead-naam svg { transition: none; }
+  .lifeos-root .lead-naam:hover svg, .lifeos-root .lead-naam:active { transform: none; }
+}

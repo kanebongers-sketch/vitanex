@@ -308,3 +308,25 @@ export async function pinSignalen(
     .filter((p) => wacht.has(p.id))
     .map((p) => ({ naam: p.naam, tekst: `${p.naam} koos een pincode voor de lead tracker — keur goed op je dashboard (PT-gesprekken).` }))
 }
+
+/** Voor de publieke /lead-pagina: elke actieve PT'er met zijn link, op naam. Alleen voornaam + code. */
+export async function haalActieveLinks(admin: SupabaseClient): Promise<{ code: string; naam: string }[]> {
+  const { data: links, error } = await admin.from('pt_lead_links').select('persoon_id, code').eq('actief', true)
+  if (error || !Array.isArray(links) || links.length === 0) return []
+  const rijen = links as { persoon_id: string; code: string }[]
+  const { data: personen } = await admin
+    .from('crm_personen')
+    .select('id, naam, groep, status')
+    .in('id', rijen.map((l) => l.persoon_id))
+  const actief = new Map(
+    ((personen ?? []) as { id: string; naam: string; groep: string; status: string }[])
+      .filter((p) => p.groep === 'pt_team' && p.status !== 'inactief' && !isVergadering(p.naam))
+      .map((p) => [p.id, p.naam.split(' ')[0]]),
+  )
+  return rijen
+    .flatMap((l) => {
+      const naam = actief.get(l.persoon_id)
+      return naam ? [{ code: l.code, naam }] : []
+    })
+    .sort((a, b) => a.naam.localeCompare(b.naam, 'nl'))
+}
