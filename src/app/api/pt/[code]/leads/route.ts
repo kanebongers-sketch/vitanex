@@ -3,7 +3,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { dagSleutelNl, leesNieuweLead } from '@/lib/lifeos/leads/leads'
 import { voegLeadToe } from '@/lib/lifeos/leads/opslag'
-import { GEEN_CACHE, foutAntwoord, ingelogdeLink } from '@/lib/lifeos/leads/toegang'
+import { GEEN_CACHE, foutAntwoord, nieuwToegang } from '@/lib/lifeos/leads/toegang'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -14,11 +14,13 @@ interface Context {
 
 export async function POST(req: NextRequest, ctx: Context) {
   const { code } = await ctx.params
-  const r = await ingelogdeLink(req, code)
+  const body: unknown = await req.json().catch(() => null)
+  const trainerId = typeof body === 'object' && body !== null ? (body as Record<string, unknown>).trainerId : undefined
+  const r = await nieuwToegang(req, code, trainerId)
   if (r instanceof NextResponse) return r
 
   const nu = new Date()
-  const invoer = leesNieuweLead(await req.json().catch(() => null), dagSleutelNl(nu))
+  const invoer = leesNieuweLead(body, dagSleutelNl(nu))
   if (!invoer.ok) return foutAntwoord(invoer.fout, 400)
 
   const uit = await voegLeadToe(r.admin, r.link, invoer.waarde, nu)

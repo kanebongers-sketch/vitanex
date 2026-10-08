@@ -6,7 +6,7 @@ import { leesKlantInvoer, zonderPrijs } from '@/lib/lifeos/pt-dashboard/abonneme
 import { voegKlantToe } from '@/lib/lifeos/pt-dashboard/klanten-opslag'
 import { synchroniseerMetCrm } from '@/lib/lifeos/pt-dashboard/crm-sync'
 import { dagSleutelNl } from '@/lib/lifeos/leads/leads'
-import { GEEN_CACHE, foutAntwoord, nieuweKlantToegang } from '@/lib/lifeos/leads/toegang'
+import { GEEN_CACHE, foutAntwoord, nieuwToegang } from '@/lib/lifeos/leads/toegang'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -19,7 +19,7 @@ export async function POST(req: NextRequest, ctx: Context) {
   const { code } = await ctx.params
   const body: unknown = await req.json().catch(() => null)
   const trainerId = typeof body === 'object' && body !== null ? (body as Record<string, unknown>).trainerId : undefined
-  const r = await nieuweKlantToegang(req, code, trainerId)
+  const r = await nieuwToegang(req, code, trainerId)
   if (r instanceof NextResponse) return r
   const invoer = leesKlantInvoer(body)
   if (!invoer.ok) return foutAntwoord(invoer.fout, 400)

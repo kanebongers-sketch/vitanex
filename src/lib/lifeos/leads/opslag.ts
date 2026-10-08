@@ -141,6 +141,19 @@ export async function verwijderLead(admin: SupabaseClient, link: LeadLink, id: s
   return Array.isArray(data) && data.length === 1 ? { ok: true, waarde: null } : { ok: false, reden: 'niet_gevonden' }
 }
 
+/** Een lead naar een andere trainer verplaatsen (alleen de beheerder; de aanroeper controleerde de trainer). */
+export async function verplaatsLead(admin: SupabaseClient, link: LeadLink, id: string, naarPersoonId: string): Promise<Uitkomst<null>> {
+  const { data, error } = await admin
+    .from('pt_leads')
+    .update({ persoon_id: naarPersoonId, bijgewerkt_op: new Date().toISOString() })
+    .eq('id', id)
+    .eq('user_id', link.userId)
+    .eq('persoon_id', link.persoonId)
+    .select('id')
+  if (error) return { ok: false, reden: 'db' }
+  return Array.isArray(data) && data.length === 1 ? { ok: true, waarde: null } : { ok: false, reden: 'niet_gevonden' }
+}
+
 /** Alle leads van meerdere PT'ers (coachgesprek, team-overzicht), per persoon_id. Bij een fout leeg (best-effort). */
 export async function haalLeadsVoor(admin: SupabaseClient, userId: string, persoonIds: readonly string[]): Promise<Map<string, Lead[]>> {
   return (await haalLeadsVoorStrikt(admin, userId, persoonIds)) ?? new Map()

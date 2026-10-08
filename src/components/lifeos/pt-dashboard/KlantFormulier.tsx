@@ -9,7 +9,7 @@ import {
 } from '@/lib/lifeos/pt-dashboard/abonnementen'
 import { CLUBS, CLUB_LABEL, isClub, type Club } from '@/lib/lifeos/pt-dashboard/clubs'
 import { dagLang } from '@/lib/lifeos/pt-dashboard/datum'
-import { Keuzes, Veld } from './velden'
+import { Keuzes, TrainerVeld, Veld } from './velden'
 import { leesLeeg, ptApi } from './api'
 
 // Een PT-klant met abonnement vastleggen of bijwerken. De prijs volgt uit het
@@ -86,13 +86,7 @@ export function KlantFormulier({ code, vandaag, standaardClub, klant, vanLead, o
         <Veld label="Telefoon / contact" id={`kcontact-${id}`}>
           <input id={`kcontact-${id}`} className="ptd-invoer" value={v.contact ?? ''} onChange={(e) => zet('contact', e.target.value || null)} maxLength={160} inputMode="tel" autoComplete="off" />
         </Veld>
-        {trainers ? (
-          <Veld label="Trainer *" id={`ktrainer-${id}`}>
-            <select id={`ktrainer-${id}`} className="ptd-invoer" value={trainer} onChange={(e) => setTrainer(e.target.value)} required>
-              {trainers.map((t) => <option key={t.id} value={t.id}>{t.naam}</option>)}
-            </select>
-          </Veld>
-        ) : null}
+        {trainers ? <TrainerVeld id={`k-${id}`} trainers={trainers} waarde={trainer} onKies={setTrainer} /> : null}
         <Veld label="Club *" id={`kclub-${id}`}>
           <select id={`kclub-${id}`} className="ptd-invoer" value={v.club ?? ''} onChange={(e) => zet('club', isClub(e.target.value) ? e.target.value : null)} required>
             <option value="" disabled>Kies…</option>

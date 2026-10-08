@@ -4,9 +4,11 @@ import { LeadKaart } from '@/components/lifeos/pt-dashboard/LeadKaart'
 import { Foutmelding } from '@/components/lifeos/os/Foutmelding'
 import { FilterRij, metFilters } from './FilterRij'
 import { TEAM_FOUT } from './teksten'
+import { BeheerLeadsLijst } from '@/components/lifeos/pt-beheer/BeheerLeadsLijst'
 
 // /<eigenaar>/lead — alle leads van het hele team, nieuwste eerst, te filteren
-// op PT'er en stand (filters in de URL). Alleen lezen.
+// op PT'er en stand (filters in de URL). Een eigenaar kijkt mee; de beheerder
+// kan leads ook invullen, bijwerken en verplaatsen.
 
 const WEERGAVEN = ['open', 'te_laat', 'klant', 'alle'] as const
 type Weergave = (typeof WEERGAVEN)[number]
@@ -65,7 +67,16 @@ export async function EigenaarLeads({ code, pt, toon }: Props) {
           aantal: alle.filter((x) => past(x.lead, w, g.vandaag)).length,
         }))}
       />
-      {zichtbaar.length === 0 ? (
+      {g.link.rol === 'beheerder' ? (
+        <BeheerLeadsLijst
+          code={code}
+          vandaag={g.vandaag}
+          items={zichtbaar.map(({ lead, ptId }) => ({ lead, trainerId: ptId }))}
+          trainers={team}
+          standaardTrainer={gekozen?.id ?? g.team.beheerderId ?? team[0]?.id ?? ''}
+          toonTrainer={!gekozen}
+        />
+      ) : zichtbaar.length === 0 ? (
         <p className="ptd-leeg">Geen leads in deze selectie.</p>
       ) : (
         <ul className="ptd-lijst">

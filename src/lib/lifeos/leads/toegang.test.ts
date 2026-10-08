@@ -38,7 +38,7 @@ function nepAdmin() {
 }
 vi.mock('@/lib/lifeos/admin', () => ({ createLifeosAdminClient: () => nepAdmin() }))
 
-import { ingelogdeLink, klantToegang, nieuweKlantToegang, verplaatsNaar } from './toegang'
+import { ingelogdeLink, klantToegang, leadToegang, nieuwToegang, verplaatsNaar } from './toegang'
 
 const USER = 'u-1'
 const KANE = '11111111-1111-4111-8111-111111111111'
@@ -68,6 +68,7 @@ beforeEach(() => {
       { id: OUD, user_id: USER, groep: 'pt_team', status: 'inactief' },
       { id: RUBEN, user_id: USER, groep: 'management', status: 'actief' },
     ],
+    pt_leads: [{ id: KLANT_JOEY, user_id: USER, persoon_id: JOEY }],
     pt_klanten: [
       { id: KLANT_JOEY, user_id: USER, persoon_id: JOEY },
       { id: KLANT_OUD, user_id: USER, persoon_id: OUD },
@@ -121,24 +122,24 @@ describe('klantToegang', () => {
   })
 })
 
-describe('nieuweKlantToegang', () => {
+describe('nieuwToegang', () => {
   it('PT\'er: altijd op eigen naam, een meegestuurde trainer telt niet', async () => {
-    const r = await nieuweKlantToegang(req(), 'joey', KANE)
+    const r = await nieuwToegang(req(), 'joey', KANE)
     expect(r instanceof NextResponse ? null : r.link.persoonId).toBe(JOEY)
   })
   it('beheerder: bij de gekozen trainer, anders bij zichzelf', async () => {
-    const naarJoey = await nieuweKlantToegang(req(), 'kane', JOEY)
+    const naarJoey = await nieuwToegang(req(), 'kane', JOEY)
     expect(naarJoey instanceof NextResponse ? null : naarJoey.link.persoonId).toBe(JOEY)
-    const zelf = await nieuweKlantToegang(req(), 'kane', undefined)
+    const zelf = await nieuwToegang(req(), 'kane', undefined)
     expect(zelf instanceof NextResponse ? null : zelf.link.persoonId).toBe(KANE)
   })
   it('beheerder: geen trainer uit het team (inactief, eigenaar, rommel) → 400', async () => {
-    expect(status(await nieuweKlantToegang(req(), 'kane', OUD))).toBe(400)
-    expect(status(await nieuweKlantToegang(req(), 'kane', RUBEN))).toBe(400)
-    expect(status(await nieuweKlantToegang(req(), 'kane', 'geen-uuid'))).toBe(400)
+    expect(status(await nieuwToegang(req(), 'kane', OUD))).toBe(400)
+    expect(status(await nieuwToegang(req(), 'kane', RUBEN))).toBe(400)
+    expect(status(await nieuwToegang(req(), 'kane', 'geen-uuid'))).toBe(400)
   })
   it('eigenaar: 403', async () => {
-    expect(status(await nieuweKlantToegang(req(), 'ruben', JOEY))).toBe(403)
+    expect(status(await nieuwToegang(req(), 'ruben', JOEY))).toBe(403)
   })
 })
 
@@ -155,5 +156,14 @@ describe('verplaatsNaar', () => {
     const r = await klantToegang(req(), 'joey', KLANT_JOEY)
     if (r instanceof NextResponse) throw new Error('verwacht toegang')
     expect(await verplaatsNaar(r, KANE)).toBeNull()
+  })
+})
+
+describe('leadToegang', () => {
+  it('volgt dezelfde regels als klanten: beheerder namens de trainer, eigenaar 403', async () => {
+    const r = await leadToegang(req(), 'kane', KLANT_JOEY)
+    expect(r instanceof NextResponse ? null : r.link.persoonId).toBe(JOEY)
+    expect(status(await leadToegang(req(), 'ruben', KLANT_JOEY))).toBe(403)
+    expect(status(await leadToegang(req(), 'kane', KLANT_OUD))).toBe(404) // geen lead met dit id
   })
 })
