@@ -14,6 +14,7 @@ import { bevatReeks, woordTokens } from '@/lib/lifeos/crm/agenda-match'
 import type { LeadLinkInfo, TeamExtra, VerloopPunt, VorigeEvaluatie } from './team'
 import { CODE_PATROON, isPinStatus, leesLeadSamenvatting } from '@/lib/lifeos/leads/leads'
 import { leesOpenPunten } from '@/lib/lifeos/pt-coaching/aandachtspunten'
+import { leesCheckin } from '@/lib/lifeos/pt-dashboard/checkin'
 import { RITME_DAGEN } from './ritme'
 
 /** Het vaste voorvoegsel; de klantnaam komt er tussen haakjes achter. */
@@ -193,6 +194,7 @@ function leesExtra(ruw: Record<string, unknown>): TeamExtra {
     leadLink: leesLeadLink(ruw.leadLink),
     leads: leesLeadSamenvatting(ruw.leads),
     klanten: tekstOfNull(ruw.klanten),
+    checkin: leesCheckin(ruw.checkin),
   }
 }
 

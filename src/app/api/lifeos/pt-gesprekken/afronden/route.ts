@@ -31,6 +31,8 @@ import { haalLeadsVoor } from '@/lib/lifeos/leads/opslag'
 import { dagSleutelNl, vatLeadsSamen, type LeadSamenvatting } from '@/lib/lifeos/leads/leads'
 import { haalKlantenVoor } from '@/lib/lifeos/pt-dashboard/klanten-opslag'
 import { klantRegel, vatKlantenSamen } from '@/lib/lifeos/pt-dashboard/abonnementen'
+import { huidigeWeek, type Checkin } from '@/lib/lifeos/pt-dashboard/checkin'
+import { haalCheckinsVoor } from '@/lib/lifeos/pt-dashboard/checkin-opslag'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -131,7 +133,7 @@ async function rondAf(
   }
 
   // 0. De leads sinds het vorige verslag — vóór het opslaan, anders is "vorige" dit verslag.
-  const { leads, klanten } = await leadsSindsVorige(toegang, persoonId)
+  const { leads, klanten, voorbereiding } = await leadsSindsVorige(toegang, persoonId)
 
   // 1. De evaluatie opslaan. Dít is de kern — mislukt het, dan stoppen we.
   const bewaard = await slaEvaluatieOp(toegang.admin, toegang.userId, persoonId, evaluatie.waarde)
@@ -203,31 +205,34 @@ async function rondAf(
     opvolging,
     leads,
     klanten,
+    voorbereiding,
   })
 
   return { afspraakFout, mailFout, evaluatieId: bewaard.waarde.id }
 }
 
-/** Lead- en klantstand voor het verslag; best-effort (leeg bij een fout). */
+/** Lead- en klantstand + de weekcheck-in van de PT'er voor het verslag; best-effort (leeg bij een fout). */
 async function leadsSindsVorige(
   toegang: LifeosToegang,
   persoonId: string,
-): Promise<{ leads: LeadSamenvatting | null; klanten: string | null }> {
+): Promise<{ leads: LeadSamenvatting | null; klanten: string | null; voorbereiding: Checkin | null }> {
   try {
-    const [laatste, leads, klanten] = await Promise.all([
+    const nu = new Date()
+    const [laatste, leads, klanten, checkins] = await Promise.all([
       haalLaatsteEvaluaties(toegang.admin, toegang.userId, [persoonId]),
       haalLeadsVoor(toegang.admin, toegang.userId, [persoonId]),
       haalKlantenVoor(toegang.admin, toegang.userId, [persoonId]),
+      haalCheckinsVoor(toegang.admin, toegang.userId, [persoonId], huidigeWeek(nu)),
     ])
     const vorige = laatste.get(persoonId)
-    const nu = new Date()
     const sinds = vorige ? new Date(vorige.aangemaaktOp) : new Date(nu.getTime() - RITME_DAGEN * 24 * 60 * 60 * 1000)
     const vandaag = dagSleutelNl(nu)
     return {
       leads: vatLeadsSamen(leads.get(persoonId) ?? [], sinds, vandaag),
       klanten: klantRegel(vatKlantenSamen(klanten.get(persoonId) ?? [], vandaag)),
+      voorbereiding: checkins.get(persoonId) ?? null,
     }
   } catch {
-    return { leads: null, klanten: null }
+    return { leads: null, klanten: null, voorbereiding: null }
   }
 }

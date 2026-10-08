@@ -3434,3 +3434,8 @@ body {
 .lifeos-root .ptd-voet { margin-top: 12px; text-align: center; max-width: 520px; justify-self: center; }
 .lifeos-root .ptd-kort { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .lifeos-root .ptd--ingebed { padding: 0; max-width: none; margin: 0; }
+.lifeos-root .ptd-tekst--sterk { color: var(--text-1); font-size: 14.5px; }
+@media (max-width: 420px) {
+  .lifeos-root .ptd-nav { gap: 2px; padding: 3px; }
+  .lifeos-root .ptd-nav a { flex: 1 1 auto; padding: 10px 4px; font-size: 13.5px; }
+}

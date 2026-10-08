@@ -177,6 +177,19 @@ export async function haalOpenPunten(admin: SupabaseClient, userId: string, pers
   return uit
 }
 
+/** De open punten van één persoon, oudste eerst — met een échte fout-tak (voor het PT-dashboard). */
+export async function haalOpenPuntenVan(admin: SupabaseClient, userId: string, persoonId: string): Promise<OpslagUitkomst<OpenPunt[]>> {
+  const { data, error } = await admin
+    .from('pt_aandachtspunten')
+    .select('id, persoon_id, tekst, aangemaakt_op, keer_open, laatste_oordeel')
+    .eq('user_id', userId)
+    .eq('status', 'open')
+    .eq('persoon_id', persoonId)
+    .order('aangemaakt_op')
+  if (error || !Array.isArray(data)) return { ok: false, reden: 'db' }
+  return { ok: true, waarde: (data as PuntRij[]).map(puntVanRij) }
+}
+
 /**
  * Na een afgerond gesprek: elk open punt van deze persoon krijgt zijn oordeel
  * (geen oordeel = blijft open, telt een gesprek erbij). Geeft terug wat er met

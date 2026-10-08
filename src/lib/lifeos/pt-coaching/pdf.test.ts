@@ -19,4 +19,19 @@ describe('verslag-pdf', () => {
     expect(pdf.subarray(0, 5).toString()).toBe('%PDF-')
     expect(pdf.length).toBeGreaterThan(1000)
   })
+
+  test('met de voorbereiding van de PT\'er erin', async () => {
+    const pdf = await maakVerslagPdf({
+      naam: 'Joey',
+      op: new Date('2026-10-08T18:00:00Z'),
+      scores: { algemeen: 4, energie: 4, voortgang: 3 },
+      notitie: null,
+      aandachtspunt: null,
+      voorbereiding: {
+        week: '2026-10-05', bijgewerktOp: '2026-10-07T19:10:00.000Z', energie: 2,
+        gewonnen: 'Twee intakes, één werd klant.', lastig: 'Avonden te vol.', bespreken: null, focus: 'Minder avonden.',
+      },
+    })
+    expect(pdf.subarray(0, 5).toString()).toBe('%PDF-')
+  })
 })

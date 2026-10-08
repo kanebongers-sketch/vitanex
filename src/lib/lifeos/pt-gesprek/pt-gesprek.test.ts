@@ -103,3 +103,21 @@ describe('leesPtGesprekken — lead tracker', () => {
     expect(kapot && kapot.gekoppeld ? kapot.pts[0].extra?.leadLink : 'x').toBeNull()
   })
 })
+
+describe('leesPtGesprekken — weekcheck-in', () => {
+  const basis = { id: 'p1', naam: 'Joey', email: null, ingepland: false, wanneer: null }
+  const extraVan = (extra: unknown) => {
+    const a = leesPtGesprekken({ gekoppeld: true, pts: [{ ...basis, extra }] })
+    return a && a.gekoppeld ? a.pts[0].extra : undefined
+  }
+  test('een check-in komt heel door', () => {
+    const checkin = { week: '2026-10-05', bijgewerktOp: '2026-10-08T12:32:00.000Z', energie: 4, gewonnen: 'Twee intakes', lastig: null, bespreken: 'Rooster', focus: null }
+    expect(extraVan({ checkin })?.checkin).toEqual(checkin)
+  })
+  test('geen of kapotte check-in wordt null, de rest van het teamlid blijft staan', () => {
+    expect(extraVan({ klanten: '2 lopend' })?.checkin).toBeNull()
+    const kapot = extraVan({ klanten: '2 lopend', checkin: { week: 'x', energie: 12 } })
+    expect(kapot?.checkin).toBeNull()
+    expect(kapot?.klanten).toBe('2 lopend')
+  })
+})
