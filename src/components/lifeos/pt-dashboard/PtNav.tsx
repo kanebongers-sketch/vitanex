@@ -3,7 +3,8 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
-// Drie tabbladen, plakt bovenaan tijdens scrollen. Actief = aria-current.
+// Vier tabbladen, plakt bovenaan tijdens scrollen. Actief = aria-current.
+// Op een smal scherm krimpen de tabs mee met hun tekst (zie .ptd-nav in globals.css).
 
 export function PtNav({ code }: { code: string }) {
   const pad = usePathname()
@@ -11,6 +12,7 @@ export function PtNav({ code }: { code: string }) {
     { href: `/${code}`, label: 'Overzicht' },
     { href: `/${code}/lead`, label: 'Leads' },
     { href: `/${code}/klanten`, label: 'Klanten' },
+    { href: `/${code}/coach`, label: 'Coach' },
   ]
   return (
     <nav className="ptd-nav" aria-label="PT-dashboard">

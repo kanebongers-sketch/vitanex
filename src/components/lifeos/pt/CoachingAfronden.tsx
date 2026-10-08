@@ -5,9 +5,9 @@ import { Knop } from '@/components/lifeos/os/Knop'
 import { Foutmelding } from '@/components/lifeos/os/Foutmelding'
 import { haalJson } from '@/lib/lifeos/api/http'
 import { coachgesprekTitel, type PtStatus } from '@/lib/lifeos/pt-gesprek/pt-gesprek'
-import type { VorigeEvaluatie } from '@/lib/lifeos/pt-gesprek/team'
 import { leesAfrondResultaat } from '@/lib/lifeos/pt-coaching/pt-coaching'
-import { VerslagDownload } from './VerslagDownload'
+import { VorigeKeer } from './VorigeKeer'
+import { CheckinOverzicht } from './CheckinOverzicht'
 import { OpenPuntenKeuze } from './OpenPuntenKeuze'
 import type { Oordeel } from '@/lib/lifeos/pt-coaching/aandachtspunten'
 import { RITME_DAGEN } from '@/lib/lifeos/pt-gesprek/ritme'
@@ -98,6 +98,7 @@ export function CoachingAfronden({ pt, onKlaar, onAnnuleer }: Props) {
 
   return (
     <div style={{ display: 'grid', gap: 12, paddingTop: 10 }}>
+      <CheckinOverzicht naam={pt.naam} checkin={pt.extra?.checkin ?? null} pinStatus={pt.extra?.leadLink?.pinStatus ?? null} />
       {pt.extra?.vorige ? <VorigeKeer vorige={pt.extra.vorige} /> : null}
       {pt.extra?.leads ? <LeadOverzicht leads={pt.extra.leads} klanten={pt.extra.klanten ?? null} pinActief={pt.extra.leadLink?.pinStatus === 'actief'} /> : null}
       <OpenPuntenKeuze
@@ -226,7 +227,6 @@ const veldStijl: React.CSSProperties = {
 }
 
 const MOMENT = new Intl.DateTimeFormat('nl-NL', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
-const DAG_KORT = new Intl.DateTimeFormat('nl-NL', { day: 'numeric', month: 'short' })
 
 function dagSleutel(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
@@ -235,31 +235,9 @@ function tijdSleutel(d: Date): string {
   return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
 }
 
-/** Wat jullie vorige keer bespraken — zodat je niet blanco begint. */
-function VorigeKeer({ vorige }: { vorige: VorigeEvaluatie }) {
-  const { algemeen, energie, voortgang } = vorige.scores
-  return (
-    <div style={{ display: 'grid', gap: 4, padding: '10px 12px', borderRadius: 10, border: '1px solid var(--line)', background: 'var(--bg-raised)' }}>
-      <p style={{ ...labelStijl, margin: 0 }}>
-        Vorige keer · {DAG_KORT.format(new Date(vorige.op))} · algemeen {algemeen}/5 · energie {energie}/5 · voortgang {voortgang}/5
-        {' · '}
-        <VerslagDownload id={vorige.id} />
-      </p>
-      {vorige.notitie ? <p style={{ margin: 0, fontSize: 13, color: 'var(--text-2)', lineHeight: 1.5 }}>{vorige.notitie}</p> : null}
-      {vorige.aandachtspunt ? (
-        <p style={{ margin: 0, fontSize: 13, color: 'var(--text-1)', lineHeight: 1.5 }}>
-          <span style={{ color: 'var(--brand)', fontWeight: 600 }}>Aandachtspunt:</span> {vorige.aandachtspunt}
-        </p>
-      ) : null}
-    </div>
-  )
-}
-
 /** Standaard: over één ritme (een week), als YYYY-MM-DD (lokaal). */
 function standaardDatum(): string {
   const d = new Date()
   d.setDate(d.getDate() + RITME_DAGEN)
-  const mm = String(d.getMonth() + 1).padStart(2, '0')
-  const dd = String(d.getDate()).padStart(2, '0')
-  return `${d.getFullYear()}-${mm}-${dd}`
+  return dagSleutel(d)
 }
