@@ -9,6 +9,7 @@ import { isClub, type Club } from './clubs'
 import { leesKlant, type PtKlant } from './abonnementen'
 import { clubMatrix, ptOverzicht, type ClubMatrix, type LeadCijfers } from './overzicht'
 import { analyseer, leesAnalyse, type Analyse } from './analyse'
+import { leesDoelen, type PtDoelen } from './doelen'
 
 export interface TeamRij {
   id: string
@@ -26,6 +27,8 @@ export interface TeamRij {
   vastBijnaKlaar: number
   /** Dagsleutel van de laatst gesproken lead, of null. */
   laatsteLead: string | null
+  /** Doelen die Kane zette (pt_doelen), of null. */
+  doelen: PtDoelen | null
 }
 
 export interface TeamOverzicht {
@@ -41,6 +44,7 @@ export function bouwTeamOverzicht(
   leads: ReadonlyMap<string, readonly Lead[]>,
   klanten: ReadonlyMap<string, readonly PtKlant[]>,
   vandaag: string,
+  doelen: ReadonlyMap<string, PtDoelen> = new Map(),
 ): TeamOverzicht {
   const rijen = team.map((p): TeamRij => {
     const l = leads.get(p.id) ?? []
@@ -57,6 +61,7 @@ export function bouwTeamOverzicht(
       sessiesPerWeek: o.klanten.sessiesPerWeek,
       vastBijnaKlaar: o.klanten.vastBijnaKlaar.length,
       laatsteLead: l.reduce<string | null>((m, x) => (m === null || x.gesprokenOp > m ? x.gesprokenOp : m), null),
+      doelen: doelen.get(p.id) ?? null,
     }
   })
   const alle = [...leads.values()].flat()
@@ -99,6 +104,7 @@ export function leesTeamOverzicht(ruw: unknown): TeamOverzicht | null {
       klantenLopend: getal(x.klantenLopend), bevroren: getal(x.bevroren), maandwaarde: getal(x.maandwaarde),
       sessiesPerWeek: getal(x.sessiesPerWeek), vastBijnaKlaar: getal(x.vastBijnaKlaar),
       laatsteLead: typeof x.laatsteLead === 'string' ? x.laatsteLead : null,
+      doelen: leesDoelen(x.doelen),
     }]
   })
   const clubs = o.clubs.flatMap((c): ClubMatrix => {
@@ -115,6 +121,7 @@ export interface PtDetail {
   vandaag: string
   leads: Lead[]
   klanten: PtKlant[]
+  doelen: PtDoelen | null
 }
 
 export function leesPtDetail(ruw: unknown): PtDetail | null {
@@ -132,5 +139,6 @@ export function leesPtDetail(ruw: unknown): PtDetail | null {
       const x = leesKlant(k)
       return x ? [x] : []
     }),
+    doelen: leesDoelen(o.doelen),
   }
 }

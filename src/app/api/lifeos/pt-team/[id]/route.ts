@@ -8,6 +8,7 @@ import { zorgVoorLinks } from '@/lib/lifeos/leads/links'
 import { haalLeadsVoor } from '@/lib/lifeos/leads/opslag'
 import { dagSleutelNl } from '@/lib/lifeos/leads/leads'
 import { haalKlantenVoor } from '@/lib/lifeos/pt-dashboard/klanten-opslag'
+import { haalDoelenVoor } from '@/lib/lifeos/pt-dashboard/doelen-opslag'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -26,10 +27,11 @@ export async function GET(req: NextRequest, ctx: Context) {
   const persoon = personen.waarde.find((p) => p.id === id)
   if (!persoon) return NextResponse.json({ fout: 'Deze PT\'er bestaat niet (meer).' }, { status: 404 })
 
-  const [links, leads, klanten] = await Promise.all([
+  const [links, leads, klanten, doelen] = await Promise.all([
     zorgVoorLinks(toegang.admin, toegang.userId, [persoon]),
     haalLeadsVoor(toegang.admin, toegang.userId, [id]),
     haalKlantenVoor(toegang.admin, toegang.userId, [id]),
+    haalDoelenVoor(toegang.admin, toegang.userId, [id]),
   ])
   return NextResponse.json(
     {
@@ -38,6 +40,7 @@ export async function GET(req: NextRequest, ctx: Context) {
       vandaag: dagSleutelNl(new Date()),
       leads: leads.get(id) ?? [],
       klanten: klanten.get(id) ?? [],
+      doelen: doelen.ok ? (doelen.waarde.get(id) ?? null) : null,
     },
     { headers: { 'Cache-Control': 'private, no-store', Vary: 'Authorization' } },
   )

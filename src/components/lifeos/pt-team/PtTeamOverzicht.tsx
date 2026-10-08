@@ -58,7 +58,7 @@ export function PtTeamOverzicht() {
           <table className="ptd-tabel">
             <thead>
               <tr>
-                <th scope="col">PT&apos;er</th><th scope="col">Leads wk</th><th scope="col">Maand</th><th scope="col">Open</th>
+                <th scope="col">PT&apos;er</th><th scope="col">Leads wk</th><th scope="col">Doel wk</th><th scope="col">Maand</th><th scope="col">Open</th>
                 <th scope="col">Te laat</th><th scope="col">Klant</th><th scope="col">Conversie</th><th scope="col">Abonnementen</th>
                 <th scope="col">Per maand</th><th scope="col">Laatste lead</th><th scope="col">Dashboard</th>
               </tr>
@@ -68,6 +68,7 @@ export function PtTeamOverzicht() {
                 <tr key={r.id}>
                   <td><Link className="ptd-link" href={`/lifeos/pt-team/${r.id}`}>{r.naam}</Link></td>
                   <td>{r.leads.dezeWeek}</td>
+                  <td>{r.doelen?.leadsPerWeek ? `${r.leads.dezeWeek}/${r.doelen.leadsPerWeek}` : '–'}</td>
                   <td>{r.leads.dezeMaand}</td>
                   <td>{r.leads.open}</td>
                   <td>{r.teLaat > 0 ? <span className="ptd-badge ptd-badge--let-op">{r.teLaat}</span> : 0}</td>
