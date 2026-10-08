@@ -28,9 +28,11 @@ interface Props {
   startTab: DossierTab
   /** Meekijken (eigenaar): het hele dossier zonder bewerken. */
   alleenLezen?: boolean
+  /** De maandprijs in de kop (eigenaar/beheerder; PT'ers zien geen bedragen). */
+  toonPrijs?: boolean
 }
 
-export function Dossier({ code, vandaag, klant: beginKlant, intake: beginIntake, metingen: beginMetingen, startTab, alleenLezen = false }: Props) {
+export function Dossier({ code, vandaag, klant: beginKlant, intake: beginIntake, metingen: beginMetingen, startTab, alleenLezen = false, toonPrijs = false }: Props) {
   const [klant, setKlant] = useState(beginKlant)
   const [intake, setIntake] = useState(beginIntake)
   const [metingen, setMetingen] = useState(beginMetingen)
@@ -65,7 +67,7 @@ export function Dossier({ code, vandaag, klant: beginKlant, intake: beginIntake,
 
   return (
     <div className="ptd-sectie ffdos">
-      <DossierKop code={code} klant={klant} vandaag={vandaag} toonPrijs={alleenLezen} />
+      <DossierKop code={code} klant={klant} vandaag={vandaag} toonPrijs={toonPrijs} />
       <TrajectTijdlijn startdatum={klant.startdatum} vandaag={vandaag} />
 
       <div className="ffdos-tabs" role="tablist" aria-label="Dossier" onKeyDown={toets}>

@@ -3,7 +3,7 @@
 
 import { NextResponse, type NextRequest } from 'next/server'
 import { verwijderMeting } from '@/lib/lifeos/pt-dashboard/dossier-opslag'
-import { GEEN_CACHE, foutAntwoord, ingelogdeLink, isUuid } from '@/lib/lifeos/leads/toegang'
+import { GEEN_CACHE, foutAntwoord, isUuid, klantToegang } from '@/lib/lifeos/leads/toegang'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -15,7 +15,7 @@ interface Context {
 export async function DELETE(req: NextRequest, ctx: Context) {
   const { code, id, mid } = await ctx.params
   if (!isUuid(id) || !isUuid(mid)) return foutAntwoord('Meting bestaat niet.', 404)
-  const r = await ingelogdeLink(req, code)
+  const r = await klantToegang(req, code, id)
   if (r instanceof NextResponse) return r
   const uit = await verwijderMeting(r.admin, r.link, id, mid)
   if (!uit.ok) return uit.reden === 'niet_gevonden' ? foutAntwoord('Meting bestaat niet.', 404) : foutAntwoord('Verwijderen mislukt.', 502)

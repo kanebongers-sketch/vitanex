@@ -115,6 +115,19 @@ export async function verwijderKlant(admin: SupabaseClient, link: LeadLink, id: 
   return Array.isArray(data) && data.length === 1 ? { ok: true, waarde: null } : { ok: false, reden: 'niet_gevonden' }
 }
 
+/** Een klant naar een andere trainer verplaatsen (alleen de beheerder; de aanroeper controleerde de trainer). */
+export async function verplaatsKlant(admin: SupabaseClient, link: LeadLink, id: string, naarPersoonId: string): Promise<KlantUitkomst<null>> {
+  const { data, error } = await admin
+    .from('pt_klanten')
+    .update({ persoon_id: naarPersoonId, bijgewerkt_op: new Date().toISOString() })
+    .eq('id', id)
+    .eq('user_id', link.userId)
+    .eq('persoon_id', link.persoonId)
+    .select('id')
+  if (error) return { ok: false, reden: 'db' }
+  return Array.isArray(data) && data.length === 1 ? { ok: true, waarde: null } : { ok: false, reden: 'niet_gevonden' }
+}
+
 async function eigenLead(admin: SupabaseClient, link: LeadLink, leadId: string): Promise<string | null> {
   const { data } = await admin
     .from('pt_leads')

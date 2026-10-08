@@ -5,9 +5,11 @@ import { KlantKaart } from '@/components/lifeos/pt-dashboard/KlantKaart'
 import { Foutmelding } from '@/components/lifeos/os/Foutmelding'
 import { FilterRij, metFilters } from './FilterRij'
 import { TEAM_FOUT } from './teksten'
+import { BeheerKlantenLijst } from '@/components/lifeos/pt-beheer/BeheerKlantenLijst'
 
 // /<eigenaar>/klanten — alle PT-klanten van het team met hun abonnement, te
-// filteren op PT'er en lopend/alle. Elk dossier is in te zien. Alleen lezen.
+// filteren op PT'er en lopend/alle. Elk dossier is in te zien. Een eigenaar
+// kijkt alleen mee; de beheerder (Kane) kan klanten ook toevoegen en bijwerken.
 
 interface Props {
   code: string
@@ -55,7 +57,16 @@ export async function EigenaarKlanten({ code, pt, toon }: Props) {
           { label: 'Alle', href: metFilters(basis, { pt: gekozen?.id ?? null, toon: 'alle' }), actief: !alleenLopend, aantal: alle.length },
         ]}
       />
-      {zichtbaar.length === 0 ? (
+      {g.link.rol === 'beheerder' ? (
+        <BeheerKlantenLijst
+          code={code}
+          vandaag={g.vandaag}
+          items={zichtbaar.map(({ klant, ptId }) => ({ klant, trainerId: ptId }))}
+          trainers={team}
+          standaardTrainer={gekozen?.id ?? g.team.beheerderId ?? team[0]?.id ?? ''}
+          toonTrainer={!gekozen}
+        />
+      ) : zichtbaar.length === 0 ? (
         <p className="ptd-leeg">Geen klanten in deze selectie.</p>
       ) : (
         <ul className="ptd-lijst">

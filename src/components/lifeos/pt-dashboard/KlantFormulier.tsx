@@ -24,12 +24,15 @@ interface Props {
   onOpgeslagen: (k: PtKlant) => void
   onVerwijderd?: (id: string) => void
   onAnnuleer: () => void
+  /** Alleen de beheerder: kies (of wissel) de trainer van deze klant. */
+  trainers?: readonly { id: string; naam: string }[]
+  trainerId?: string
 }
 
 /** Tijdens het invullen mag de club nog leeg zijn; opslaan vraagt er dan om. */
 type Concept = Omit<KlantInvoer, 'club'> & { club: Club | null }
 
-export function KlantFormulier({ code, vandaag, standaardClub, klant, vanLead, onOpgeslagen, onVerwijderd, onAnnuleer }: Props) {
+export function KlantFormulier({ code, vandaag, standaardClub, klant, vanLead, onOpgeslagen, onVerwijderd, onAnnuleer, trainers, trainerId: beginTrainer }: Props) {
   const [v, setV] = useState<Concept>(() =>
     klant
       ? { ...klant }
@@ -39,6 +42,7 @@ export function KlantFormulier({ code, vandaag, standaardClub, klant, vanLead, o
           status: 'actief', opgezegdOp: null, notitie: null, leadId: vanLead?.id ?? null,
         },
   )
+  const [trainer, setTrainer] = useState(beginTrainer ?? trainers?.[0]?.id ?? '')
   const [bezig, setBezig] = useState(false)
   const [fout, setFout] = useState<string | null>(null)
   const zet = <K extends keyof Concept>(k: K, w: Concept[K]) => setV((x) => ({ ...x, [k]: w }))
@@ -51,9 +55,10 @@ export function KlantFormulier({ code, vandaag, standaardClub, klant, vanLead, o
     if (!v.club) return setFout('Kies de club waar deze klant traint.')
     setBezig(true)
     setFout(null)
+    const body = trainers ? { ...v, trainerId: trainer } : v
     const uit = klant
-      ? await ptApi(code, `klanten/${klant.id}`, 'PUT', v, leesKlant)
-      : await ptApi(code, 'klanten', 'POST', v, leesKlant)
+      ? await ptApi(code, `klanten/${klant.id}`, 'PUT', body, leesKlant)
+      : await ptApi(code, 'klanten', 'POST', body, leesKlant)
     setBezig(false)
     if (!uit.ok) return setFout(uit.fout)
     onOpgeslagen(uit.waarde)
@@ -78,6 +83,13 @@ export function KlantFormulier({ code, vandaag, standaardClub, klant, vanLead, o
         <Veld label="Telefoon / contact" id={`kcontact-${id}`}>
           <input id={`kcontact-${id}`} className="ptd-invoer" value={v.contact ?? ''} onChange={(e) => zet('contact', e.target.value || null)} maxLength={160} inputMode="tel" autoComplete="off" />
         </Veld>
+        {trainers ? (
+          <Veld label="Trainer *" id={`ktrainer-${id}`}>
+            <select id={`ktrainer-${id}`} className="ptd-invoer" value={trainer} onChange={(e) => setTrainer(e.target.value)} required>
+              {trainers.map((t) => <option key={t.id} value={t.id}>{t.naam}</option>)}
+            </select>
+          </Veld>
+        ) : null}
         <Veld label="Club *" id={`kclub-${id}`}>
           <select id={`kclub-${id}`} className="ptd-invoer" value={v.club ?? ''} onChange={(e) => zet('club', isClub(e.target.value) ? e.target.value : null)} required>
             <option value="" disabled>Kies…</option>

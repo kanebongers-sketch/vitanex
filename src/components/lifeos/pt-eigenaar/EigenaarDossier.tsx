@@ -8,7 +8,8 @@ import { Foutmelding } from '@/components/lifeos/os/Foutmelding'
 import { TEAM_FOUT } from './teksten'
 
 // /<eigenaar>/klanten/<id> — het dossier van een klant van wie dan ook in het
-// team, precies zoals de PT'er het ziet, maar alleen lezen. Onbekend → 404.
+// team, precies zoals de PT'er het ziet. Een eigenaar alleen lezen; de beheerder
+// kan het ook bijwerken. Onbekend → 404.
 
 export async function EigenaarDossier({ code, id, startTab }: { code: string; id: string; startTab: DossierTab }) {
   const g = await eigenaarGegevens(code)
@@ -20,12 +21,17 @@ export async function EigenaarDossier({ code, id, startTab }: { code: string; id
   if (!gevonden) notFound()
 
   const als = alsPt(g.link, gevonden.pt.id)
+  // De beheerder bewerkt het dossier (de API zoekt zelf de trainer van de klant); een eigenaar kijkt mee.
+  const beheerder = g.link.rol === 'beheerder'
   const [intake, metingen] = await Promise.all([haalIntake(g.admin, als, id), haalMetingen(g.admin, als, id)])
   if (!intake.ok || !metingen.ok) return <Foutmelding bericht="Het dossier kon niet geladen worden. Vernieuw de pagina." />
 
   return (
     <>
-      <p className="ptd-hint">Klant van {gevonden.pt.naam} · je kijkt mee, aanpassen doet {gevonden.pt.naam}.</p>
+      <p className="ptd-hint">
+        Klant van {gevonden.pt.naam}
+        {beheerder ? '' : ` · je kijkt mee, aanpassen doet ${gevonden.pt.naam}.`}
+      </p>
       <Dossier
         key={id}
         code={code}
@@ -34,7 +40,8 @@ export async function EigenaarDossier({ code, id, startTab }: { code: string; id
         intake={intake.waarde}
         metingen={metingen.waarde}
         startTab={startTab}
-        alleenLezen
+        alleenLezen={!beheerder}
+        toonPrijs
       />
     </>
   )
