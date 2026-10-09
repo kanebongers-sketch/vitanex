@@ -55,7 +55,7 @@ export function PinPoort({ code, pinStatus }: { code: string; pinStatus: PinStat
       <p className="ptd-tekst">
         {kiezen
           ? 'Kies zelf 6 cijfers. Kane keurt je pincode eerst goed; daarna log je ermee in. Onthoud hem goed.'
-          : 'Eén keer per telefoon. Daarna blijf je 90 dagen ingelogd.'}
+          : 'Eén keer per telefoon. Daarna blijf je ingelogd: hooguit 90 dagen, en na 30 dagen niet gebruikt log je opnieuw in.'}
       </p>
       <PinVeld id="pin" label="Pincode" waarde={pin} onWijzig={setPin} nieuw={kiezen} />
       {kiezen ? <PinVeld id="pin-herhaal" label="Herhaal pincode" waarde={herhaal} onWijzig={setHerhaal} nieuw /> : null}

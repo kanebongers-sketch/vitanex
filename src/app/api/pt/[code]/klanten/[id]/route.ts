@@ -8,7 +8,7 @@ import { leesKlantInvoer, zonderPrijs } from '@/lib/lifeos/pt-dashboard/abonneme
 import { verplaatsKlant, verwijderKlant, wijzigKlant } from '@/lib/lifeos/pt-dashboard/klanten-opslag'
 import { crmKlantInactief, synchroniseerMetCrm } from '@/lib/lifeos/pt-dashboard/crm-sync'
 import { dagSleutelNl } from '@/lib/lifeos/leads/leads'
-import { GEEN_CACHE, foutAntwoord, isUuid, klantToegang, verplaatsNaar } from '@/lib/lifeos/leads/toegang'
+import { GEEN_CACHE, eisZelfdeOorsprong, foutAntwoord, isUuid, klantToegang, verplaatsNaar } from '@/lib/lifeos/leads/toegang'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -18,6 +18,9 @@ interface Context {
 }
 
 export async function PUT(req: NextRequest, ctx: Context) {
+  // Mutaties alleen vanaf onze eigen pagina's (CSRF-vangrail naast SameSite=Lax).
+  const vreemd = eisZelfdeOorsprong(req)
+  if (vreemd) return vreemd
   const { code, id } = await ctx.params
   if (!isUuid(id)) return foutAntwoord('Klant bestaat niet.', 404)
   const r = await klantToegang(req, code, id)
@@ -40,6 +43,9 @@ export async function PUT(req: NextRequest, ctx: Context) {
 }
 
 export async function DELETE(req: NextRequest, ctx: Context) {
+  // Mutaties alleen vanaf onze eigen pagina's (CSRF-vangrail naast SameSite=Lax).
+  const vreemd = eisZelfdeOorsprong(req)
+  if (vreemd) return vreemd
   const { code, id } = await ctx.params
   if (!isUuid(id)) return foutAntwoord('Klant bestaat niet.', 404)
   const r = await klantToegang(req, code, id)

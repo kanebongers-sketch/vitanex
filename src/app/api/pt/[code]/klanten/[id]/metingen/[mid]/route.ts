@@ -3,7 +3,7 @@
 
 import { NextResponse, type NextRequest } from 'next/server'
 import { verwijderMeting } from '@/lib/lifeos/pt-dashboard/dossier-opslag'
-import { GEEN_CACHE, foutAntwoord, isUuid, klantToegang } from '@/lib/lifeos/leads/toegang'
+import { GEEN_CACHE, eisZelfdeOorsprong, foutAntwoord, isUuid, klantToegang } from '@/lib/lifeos/leads/toegang'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -13,6 +13,9 @@ interface Context {
 }
 
 export async function DELETE(req: NextRequest, ctx: Context) {
+  // Mutaties alleen vanaf onze eigen pagina's (CSRF-vangrail naast SameSite=Lax).
+  const vreemd = eisZelfdeOorsprong(req)
+  if (vreemd) return vreemd
   const { code, id, mid } = await ctx.params
   if (!isUuid(id) || !isUuid(mid)) return foutAntwoord('Meting bestaat niet.', 404)
   const r = await klantToegang(req, code, id)

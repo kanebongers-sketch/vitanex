@@ -4,7 +4,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { huidigeWeek, leesCheckinInvoer } from '@/lib/lifeos/pt-dashboard/checkin'
 import { slaCheckinOp } from '@/lib/lifeos/pt-dashboard/checkin-opslag'
-import { GEEN_CACHE, foutAntwoord, ingelogdeLink } from '@/lib/lifeos/leads/toegang'
+import { GEEN_CACHE, eisZelfdeOorsprong, foutAntwoord, ingelogdeLink } from '@/lib/lifeos/leads/toegang'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -14,6 +14,9 @@ interface Context {
 }
 
 export async function PUT(req: NextRequest, ctx: Context) {
+  // Mutaties alleen vanaf onze eigen pagina's (CSRF-vangrail naast SameSite=Lax).
+  const vreemd = eisZelfdeOorsprong(req)
+  if (vreemd) return vreemd
   const { code } = await ctx.params
   const r = await ingelogdeLink(req, code)
   if (r instanceof NextResponse) return r
