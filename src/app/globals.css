@@ -3365,6 +3365,7 @@ body {
 .lifeos-root .ptd-chip[aria-pressed='true'], .lifeos-root .ptd-chip[aria-current='true'] { color: var(--brand); border-color: color-mix(in srgb, var(--brand) 50%, transparent); background: var(--brand-soft); }
 .lifeos-root a.ptd-chip { text-decoration: none; }
 .lifeos-root .ptd-trainer { color: var(--text-1); font-weight: 600; }
+.lifeos-root .ptd-controle { color: var(--text-1); font-variant-numeric: tabular-nums; letter-spacing: 0.12em; }
 .lifeos-root .ptd-chip small { font-size: 11.5px; opacity: 0.8; font-variant-numeric: tabular-nums; }
 
 .lifeos-root .ptd-form { display: grid; gap: 14px; padding: 16px; border-radius: 16px; border: 1px solid color-mix(in srgb, var(--brand) 35%, var(--line)); background: var(--bg-card); }

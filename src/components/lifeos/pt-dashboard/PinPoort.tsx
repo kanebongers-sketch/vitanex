@@ -7,9 +7,15 @@ import { PIN_PATROON, type PinStatus } from '@/lib/lifeos/leads/leads'
 import { ptApi } from './api'
 
 // Vóór het dashboard: pincode kiezen (eerste keer), wachten op Kane's
-// goedkeuring, of inloggen op dit toestel.
+// goedkeuring, of inloggen op dit toestel. Na het kiezen ziet de PT'er één keer
+// een controlecode; Kane vraagt die na voor hij goedkeurt (zo kan niemand anders
+// ongemerkt als eerste een pin zetten op deze — openbare — link).
 
-const leesStaat = (r: unknown): true | null => (typeof r === 'object' && r !== null ? true : null)
+/** Het antwoord van pin/inloggen: alleen bij een net gekozen pin zit er een controlecode in. */
+const leesStaat = (r: unknown): { controle: string | null } | null =>
+  typeof r === 'object' && r !== null
+    ? { controle: typeof (r as { controle?: unknown }).controle === 'string' ? (r as { controle: string }).controle : null }
+    : null
 
 export function PinPoort({ code, pinStatus }: { code: string; pinStatus: PinStatus }) {
   const router = useRouter()
@@ -18,6 +24,7 @@ export function PinPoort({ code, pinStatus }: { code: string; pinStatus: PinStat
   const [herhaal, setHerhaal] = useState('')
   const [bezig, setBezig] = useState(false)
   const [fout, setFout] = useState<string | null>(null)
+  const [controle, setControle] = useState<string | null>(null)
   const kiezen = staat === 'geen'
 
   async function verstuur(e: FormEvent) {
@@ -32,17 +39,25 @@ export function PinPoort({ code, pinStatus }: { code: string; pinStatus: PinStat
     setPin('')
     setHerhaal('')
     if (!uit.ok) return setFout(uit.fout)
-    if (kiezen) setStaat('wacht')
-    else router.refresh()
+    if (kiezen) {
+      setControle(uit.waarde.controle)
+      setStaat('wacht')
+    } else router.refresh()
   }
 
   if (staat === 'wacht') {
     return (
       <div role="status" className="ptd-form ptd-smal">
         <h3>Je pincode wacht op goedkeuring</h3>
+        {controle ? (
+          <p className="ptd-tekst">
+            Je controlecode: <strong className="ptd-controle">{controle}</strong>. Kane vraagt je om deze code voordat hij je pincode
+            goedkeurt. Je ziet hem maar één keer; schrijf hem op of stuur hem nu naar Kane.
+          </p>
+        ) : null}
         <p className="ptd-tekst">
-          Kane keurt je pincode goed in het dashboard. Daarna log je hier in met die pincode en staat je app klaar.
-          Kom straks terug of vernieuw de pagina.
+          Daarna log je hier in met je pincode en staat je app klaar. Kom straks terug of vernieuw de pagina. Heb je zelf geen pincode
+          gekozen? Laat het Kane weten.
         </p>
         <div><button type="button" className="ptd-knop" onClick={() => router.refresh()}>Vernieuwen</button></div>
       </div>

@@ -102,6 +102,8 @@ export interface EigenaarRij {
   code: string
   pinStatus: PinStatus
   pinAangevraagdOp: string | null
+  /** Bij een wachtende pin: de controlecode om na te vragen. */
+  controle?: string
 }
 
 export function leesEigenaren(ruw: unknown): EigenaarRij[] {
@@ -110,6 +112,10 @@ export function leesEigenaren(ruw: unknown): EigenaarRij[] {
   return lijst.flatMap((e): EigenaarRij[] => {
     const x = obj(e)
     if (!x || typeof x.id !== 'string' || typeof x.naam !== 'string' || typeof x.code !== 'string' || !isPinStatus(x.pinStatus)) return []
-    return [{ id: x.id, naam: x.naam, code: x.code, pinStatus: x.pinStatus, pinAangevraagdOp: typeof x.pinAangevraagdOp === 'string' ? x.pinAangevraagdOp : null }]
+    return [{
+      id: x.id, naam: x.naam, code: x.code, pinStatus: x.pinStatus,
+      pinAangevraagdOp: typeof x.pinAangevraagdOp === 'string' ? x.pinAangevraagdOp : null,
+      ...(typeof x.controle === 'string' && /^\d{4}$/.test(x.controle) ? { controle: x.controle } : {}),
+    }]
   })
 }

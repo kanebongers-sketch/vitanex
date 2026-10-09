@@ -42,13 +42,16 @@ export function PinGoedkeuren({ pts, onVernieuw }: { pts: PtStatus[]; onVernieuw
         Pincode goedkeuren · {wachtend.length}
       </p>
       <p style={{ margin: 0, fontSize: 12, color: 'var(--text-3)', lineHeight: 1.45 }}>
-        Keur alleen goed als de PT&apos;er bevestigt dat die de pincode zelf koos.
+        Keur alleen goed als de PT&apos;er je dezelfde controlecode noemt: dan koos die de pincode echt zelf.
       </p>
       <ul style={{ display: 'grid', gap: 8, listStyle: 'none', padding: 0, margin: 0 }}>
         {wachtend.map((p) => (
           <li key={p.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
             <span style={{ fontSize: 13.5, color: 'var(--text-1)' }}>
               <strong style={{ fontWeight: 600 }}>{p.naam}</strong>
+              {p.extra?.leadLink?.controle ? (
+                <span style={{ color: 'var(--text-2)' }}> · controlecode <strong style={{ fontVariantNumeric: 'tabular-nums', letterSpacing: '0.08em' }}>{p.extra.leadLink.controle}</strong></span>
+              ) : null}
               {p.extra?.leadLink?.pinAangevraagdOp ? (
                 <span style={{ color: 'var(--text-3)' }}> · gekozen {MOMENT.format(new Date(p.extra.leadLink.pinAangevraagdOp))}</span>
               ) : null}

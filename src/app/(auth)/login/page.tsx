@@ -29,12 +29,26 @@ function parseSupabaseError(message: string): LoginStatus {
   return 'unknown_error'
 }
 
+/**
+ * Het terugkeerpad na inloggen, of null. We laten de browser zelf parsen (zoals
+ * de router dat doet) en eisen dezelfde origin: een regex alleen mist trucs als
+ * een tab of backslash ("/\t/evil.com" wordt "https://evil.com").
+ */
+function veiligTerugPad(ruw: string | null): string | null {
+  if (!ruw || !ruw.startsWith('/') || typeof window === 'undefined') return null
+  try {
+    const url = new URL(ruw, window.location.origin)
+    return url.origin === window.location.origin ? `${url.pathname}${url.search}${url.hash}` : null
+  } catch {
+    return null
+  }
+}
+
 function LoginInhoud() {
   const router = useRouter()
-  // Alleen een intern pad ("/kane", niet "//x" of "https://…"): anders kan een
-  // gedeelde inloglink na het inloggen naar een andere site doorsturen.
-  const nextRuw = useSearchParams().get('next')
-  const next = nextRuw && /^\/(?![/\\])/.test(nextRuw) ? nextRuw : null
+  // Alleen een pad op déze site ("/kane"): anders kan een gedeelde inloglink na
+  // het inloggen naar een andere site doorsturen (open redirect).
+  const next = veiligTerugPad(useSearchParams().get('next'))
   const [email,        setEmail]        = useState('')
   const [wachtwoord,   setWachtwoord]   = useState('')
   const [toonWacht,    setToonWacht]    = useState(false)

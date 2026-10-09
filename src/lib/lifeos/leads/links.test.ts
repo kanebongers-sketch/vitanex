@@ -9,7 +9,7 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { beoordeelPin, kiesPin, logIn, sessieGeldig, startBeheerSessie, type LeadLink } from './links'
-import { MAX_BLOKKADES, MAX_POGINGEN, MAX_SESSIES_PER_PERSOON, hashPin, tokenHash } from './pin'
+import { MAX_BLOKKADES, MAX_POGINGEN, MAX_SESSIES_PER_PERSOON, controleCode, hashPin, tokenHash } from './pin'
 
 type Rij = Record<string, unknown>
 type Filter = (r: Rij) => boolean
@@ -145,11 +145,14 @@ describe('logIn', () => {
 
 describe('kiesPin', () => {
   it('alleen zonder pin, nooit op een beheerderslink', async () => {
-    expect(await kiesPin(admin, joey({ pinStatus: 'actief' }), PIN, NU)).toBe('al_gekozen')
-    expect(await kiesPin(admin, joeyMet({ pinStatus: 'geen', pinHash: null }), PIN, NU)).toBe('ok')
+    expect(await kiesPin(admin, joey({ pinStatus: 'actief' }), PIN, NU)).toEqual({ staat: 'al_gekozen' })
+    const gekozen = await kiesPin(admin, joeyMet({ pinStatus: 'geen', pinHash: null }), PIN, NU)
+    expect(gekozen.staat).toBe('ok')
     expect(rij(JOEY).pin_status).toBe('wacht')
+    // De controlecode hoort bij déze keuze: Kane ziet dezelfde, afgeleid van de opgeslagen hash.
+    expect(gekozen.staat === 'ok' && gekozen.controle).toBe(controleCode(String(rij(JOEY).pin_hash)))
     rij(KANE).pin_status = 'geen'
-    expect(await kiesPin(admin, { ...kane(), pinStatus: 'geen' }, PIN, NU)).toBe('geen_pincode')
+    expect(await kiesPin(admin, { ...kane(), pinStatus: 'geen' }, PIN, NU)).toEqual({ staat: 'geen_pincode' })
     expect(rij(KANE)).toMatchObject({ pin_status: 'geen', pin_hash: null })
   })
 })
@@ -219,7 +222,9 @@ describe('startBeheerSessie', () => {
     const s = await startBeheerSessie(admin, USER, NU)
     expect(s?.code).toBe('kane')
     expect(sessies(KANE)).toEqual([expect.objectContaining({ token_hash: tokenHash(s!.token) })])
-    expect(await sessieGeldig(admin, kane(), s!.token, later(1))).toBe(true)
+    expect(await sessieGeldig(admin, kane(), s!.token, later(0, 11))).toBe(true)
+    // Korter dan een PT-sessie: na 12 uur moet Kane via zijn hoofdaccount opnieuw binnenkomen.
+    expect(await sessieGeldig(admin, kane(), s!.token, later(0, 13))).toBe(false)
     rij(KANE).pin_status = 'geen'
     expect(await startBeheerSessie(admin, USER, NU)).toBeNull()
     expect(await startBeheerSessie(admin, 'ander', NU)).toBeNull()

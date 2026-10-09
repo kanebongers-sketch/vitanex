@@ -8,8 +8,8 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { isVergadering } from '@/lib/lifeos/agenda/vergadering'
 import { CODE_PATROON, isPinStatus, linkCodeVoor, type PinActie, type PinStatus } from './leads'
 import {
-  MAX_BLOKKADES, MAX_POGINGEN, MAX_SESSIES_PER_PERSOON, SESSIE_AANRAAK_MS, SESSIE_DAGEN, SESSIE_INACTIEF_DAGEN,
-  blokkadeDuurMin, hashPin, nieuwSessieToken, pinKlopt, tokenHash,
+  BEHEER_SESSIE_UUR, MAX_BLOKKADES, MAX_POGINGEN, MAX_SESSIES_PER_PERSOON, SESSIE_AANRAAK_MS, SESSIE_DAGEN, SESSIE_INACTIEF_DAGEN,
+  blokkadeDuurMin, controleCode, hashPin, nieuwSessieToken, pinKlopt, tokenHash,
 } from './pin'
 
 /**
@@ -95,18 +95,21 @@ const TELLERS_SCHOON = { mislukt: 0, geblokkeerd_tot: null, blokkades: 0 } as co
  * De PT'er kiest een pin. Alleen als er nog geen is (of Kane 'm afwees/resette),
  * en nooit op een beheerderslink (die heeft geen pincode).
  */
-export async function kiesPin(admin: SupabaseClient, link: LeadLink, pin: string, nu: Date): Promise<'ok' | 'al_gekozen' | 'geen_pincode' | 'db'> {
-  if (zonderPincode(link)) return 'geen_pincode'
-  if (link.pinStatus !== 'geen') return 'al_gekozen'
+export type KiesUitkomst = { staat: 'ok'; controle: string } | { staat: 'al_gekozen' } | { staat: 'geen_pincode' } | { staat: 'db' }
+
+export async function kiesPin(admin: SupabaseClient, link: LeadLink, pin: string, nu: Date): Promise<KiesUitkomst> {
+  if (zonderPincode(link)) return { staat: 'geen_pincode' }
+  if (link.pinStatus !== 'geen') return { staat: 'al_gekozen' }
+  const hash = hashPin(pin)
   const { data, error } = await admin
     .from('pt_lead_links')
-    .update({ pin_hash: hashPin(pin), pin_status: 'wacht', pin_aangevraagd_op: nu.toISOString(), ...TELLERS_SCHOON })
+    .update({ pin_hash: hash, pin_status: 'wacht', pin_aangevraagd_op: nu.toISOString(), ...TELLERS_SCHOON })
     .eq('persoon_id', link.persoonId)
     .eq('pin_status', 'geen')
     .neq('rol', 'beheerder')
     .select('persoon_id')
-  if (error) return 'db'
-  return Array.isArray(data) && data.length === 1 ? 'ok' : 'al_gekozen'
+  if (error) return { staat: 'db' }
+  return Array.isArray(data) && data.length === 1 ? { staat: 'ok', controle: controleCode(hash) } : { staat: 'al_gekozen' }
 }
 
 export type InlogUitkomst =
@@ -184,9 +187,9 @@ interface NieuweSessie {
  * toestellen), zodat de tabel niet eindeloos groeit en een gelekte pin niet
  * onbeperkt toestellen kan aanmelden.
  */
-async function maakSessie(admin: SupabaseClient, persoonId: string, nu: Date): Promise<NieuweSessie | null> {
+async function maakSessie(admin: SupabaseClient, persoonId: string, nu: Date, duurMs = SESSIE_DAGEN * 24 * 60 * 60 * 1000): Promise<NieuweSessie | null> {
   const token = nieuwSessieToken()
-  const verlooptOp = new Date(nu.getTime() + SESSIE_DAGEN * 24 * 60 * 60 * 1000)
+  const verlooptOp = new Date(nu.getTime() + duurMs)
   const { error } = await admin.from('pt_lead_sessies').insert({
     token_hash: tokenHash(token),
     persoon_id: persoonId,
@@ -262,6 +265,13 @@ export interface LinkInfo {
   code: string
   pinStatus: PinStatus
   pinAangevraagdOp: string | null
+  /** Bij een pin die op goedkeuring wacht: de controlecode om na te vragen (zie `controleCode`). */
+  controle?: string
+}
+
+/** De controlecode alleen bij een wachtende pin; de hash zelf verlaat de server nooit. */
+function controleVoor(pinStatus: string, pinHash: string | null): { controle?: string } {
+  return pinStatus === 'wacht' && pinHash ? { controle: controleCode(pinHash) } : {}
 }
 
 /**
@@ -277,12 +287,12 @@ export async function zorgVoorLinks(
   const mensen = team.filter((p) => !isVergadering(p.naam))
   const uit = new Map<string, LinkInfo>()
   if (mensen.length === 0) return uit
-  const { data, error } = await admin.from('pt_lead_links').select('persoon_id, code, actief, pin_status, pin_aangevraagd_op')
+  const { data, error } = await admin.from('pt_lead_links').select('persoon_id, code, actief, pin_status, pin_aangevraagd_op, pin_hash')
   if (error) return uit
-  const rijen = (data ?? []) as { persoon_id: string; code: string; actief: boolean; pin_status: string; pin_aangevraagd_op: string | null }[]
+  const rijen = (data ?? []) as { persoon_id: string; code: string; actief: boolean; pin_status: string; pin_aangevraagd_op: string | null; pin_hash: string | null }[]
   const bezet = new Set(rijen.map((r) => r.code))
   for (const r of rijen) {
-    if (r.actief) uit.set(r.persoon_id, { code: r.code, pinStatus: isPinStatus(r.pin_status) ? r.pin_status : 'geen', pinAangevraagdOp: r.pin_aangevraagd_op })
+    if (r.actief) uit.set(r.persoon_id, { code: r.code, pinStatus: isPinStatus(r.pin_status) ? r.pin_status : 'geen', pinAangevraagdOp: r.pin_aangevraagd_op, ...controleVoor(r.pin_status, r.pin_hash) })
   }
   const bekend = new Set(rijen.map((r) => r.persoon_id))
   const nieuw = mensen.filter((p) => !bekend.has(p.id)).map((p) => {
@@ -307,12 +317,12 @@ export interface EigenaarLink extends LinkInfo {
 export async function haalEigenaren(admin: SupabaseClient, userId: string): Promise<EigenaarLink[] | null> {
   const { data: links, error } = await admin
     .from('pt_lead_links')
-    .select('persoon_id, code, pin_status, pin_aangevraagd_op')
+    .select('persoon_id, code, pin_status, pin_aangevraagd_op, pin_hash')
     .eq('user_id', userId)
     .eq('rol', 'eigenaar')
     .eq('actief', true)
   if (error || !Array.isArray(links)) return null
-  const rijen = links as { persoon_id: string; code: string; pin_status: string; pin_aangevraagd_op: string | null }[]
+  const rijen = links as { persoon_id: string; code: string; pin_status: string; pin_aangevraagd_op: string | null; pin_hash: string | null }[]
   if (rijen.length === 0) return []
   const { data: personen, error: fout } = await admin
     .from('crm_personen')
@@ -328,7 +338,7 @@ export async function haalEigenaren(admin: SupabaseClient, userId: string): Prom
   return rijen.flatMap((r) => {
     const naam = naamVan.get(r.persoon_id)
     return naam
-      ? [{ id: r.persoon_id, naam, code: r.code, pinStatus: isPinStatus(r.pin_status) ? r.pin_status : 'geen', pinAangevraagdOp: r.pin_aangevraagd_op }]
+      ? [{ id: r.persoon_id, naam, code: r.code, pinStatus: isPinStatus(r.pin_status) ? r.pin_status : 'geen', pinAangevraagdOp: r.pin_aangevraagd_op, ...controleVoor(r.pin_status, r.pin_hash) }]
       : []
   })
 }
@@ -399,7 +409,7 @@ export async function startBeheerSessie(
     .limit(1)
     .maybeSingle()
   if (error || !data) return null
-  const sessie = await maakSessie(admin, data.persoon_id, nu)
+  const sessie = await maakSessie(admin, data.persoon_id, nu, BEHEER_SESSIE_UUR * 60 * 60 * 1000)
   return sessie ? { code: data.code, ...sessie } : null
 }
 

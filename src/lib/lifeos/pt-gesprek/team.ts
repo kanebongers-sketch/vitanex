@@ -62,6 +62,8 @@ export interface LeadLinkInfo {
   code: string
   pinStatus: PinStatus
   pinAangevraagdOp: string | null
+  /** Bij een wachtende pin: de controlecode om na te vragen. */
+  controle?: string
 }
 
 const MIN = 60_000

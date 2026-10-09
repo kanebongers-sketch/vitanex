@@ -43,7 +43,10 @@ export function EigenaarToegang({ eigenaren, onVernieuw }: { eigenaren: readonly
                 {PIN[e.pinStatus]}
               </span>
             </div>
-            <p className="ptd-meta"><span>mentaforce.nl/{e.code}</span></p>
+            <p className="ptd-meta">
+              <span>mentaforce.nl/{e.code}</span>
+              {e.controle ? <span>Controlecode <strong className="ptd-controle">{e.controle}</strong>: vraag deze na vóór je goedkeurt</span> : null}
+            </p>
             {e.pinStatus !== 'geen' ? (
               <div className="ptd-acties ptd-acties--rij">
                 {e.pinStatus === 'wacht' ? (

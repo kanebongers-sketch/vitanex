@@ -200,7 +200,12 @@ function leesExtra(ruw: Record<string, unknown>): TeamExtra {
 
 function leesLeadLink(ruw: unknown): LeadLinkInfo | null {
   if (!isObject(ruw) || typeof ruw.code !== 'string' || !CODE_PATROON.test(ruw.code) || !isPinStatus(ruw.pinStatus)) return null
-  return { code: ruw.code, pinStatus: ruw.pinStatus, pinAangevraagdOp: tekstOfNull(ruw.pinAangevraagdOp) }
+  return {
+    code: ruw.code,
+    pinStatus: ruw.pinStatus,
+    pinAangevraagdOp: tekstOfNull(ruw.pinAangevraagdOp),
+    ...(typeof ruw.controle === 'string' && /^\d{4}$/.test(ruw.controle) ? { controle: ruw.controle } : {}),
+  }
 }
 
 /** Het antwoord van `GET /api/lifeos/pt-gesprekken`, of null als het niet klopt. */
