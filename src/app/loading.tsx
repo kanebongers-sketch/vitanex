@@ -1,6 +1,13 @@
+import { headers } from 'next/headers'
 import { Wordmark } from '@/components/layout/Logo'
+import { isPtHost } from '@/lib/fit-factory/domein'
 
-export default function Loading() {
+export default async function Loading() {
+  // Op fitfactorypt.nl geen MentaForce-woordmerk, ook niet even tijdens het laden:
+  // dit scherm staat vóór elke pagina, ook vóór de PT-app.
+  const h = await headers()
+  const fitFactory = isPtHost(h.get('x-forwarded-host') ?? h.get('host'))
+
   return (
     <div
       className="mf-mesh-bg"
@@ -11,11 +18,14 @@ export default function Loading() {
         alignItems: 'center',
         justifyContent: 'center',
         gap: 20,
+        ...(fitFactory ? { background: 'var(--bg-app)' } : {}),
       }}
     >
-      <span style={{ marginBottom: 8 }}>
-        <Wordmark size={16} />
-      </span>
+      {fitFactory ? null : (
+        <span style={{ marginBottom: 8 }}>
+          <Wordmark size={16} />
+        </span>
+      )}
 
       <div className="mf-spinner" />
 
