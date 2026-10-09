@@ -11,6 +11,7 @@
 import type { EvaluatieScores } from './pt-coaching'
 import { BRON_LABEL, STATUS_LABEL, leadRegel, type LeadSamenvatting } from '@/lib/lifeos/leads/leads'
 import { checkinTekst, type Checkin } from '@/lib/lifeos/pt-dashboard/checkin'
+import { opTePakkenTekst, type OpTePakken } from './coach-overzicht'
 
 type PDFDocumentConstructor = new (options?: PDFKit.PDFDocumentOptions) => PDFKit.PDFDocument
 
@@ -33,6 +34,8 @@ export interface VerslagPdfInvoer {
   opvolging?: readonly { tekst: string; oordeel: 'opgelost' | 'loopt' | 'erger' | null }[]
   /** Wat de PT'er sinds het vorige gesprek in de lead tracker invulde. */
   leads?: LeadSamenvatting | null
+  /** Welke leads eerst opgepakt moeten worden (stand van het moment van maken). */
+  opTePakken?: OpTePakken | null
   /** De lopende PT-abonnementen van deze PT'er, als één regel. */
   klanten?: string | null
   /** De weekcheck-in die de PT'er vóór het gesprek invulde (op zijn dashboard). */
@@ -121,7 +124,8 @@ export async function maakVerslagPdf(v: VerslagPdfInvoer): Promise<Buffer> {
     if (v.opvolging && v.opvolging.length > 0) {
       blok('Opvolging vorige aandachtspunten', v.opvolging.map((o) => `• ${o.tekst} — ${o.oordeel ? OPVOLG_LABEL[o.oordeel] : 'nog open'}`).join('\n'))
     }
-    if (v.leads) blok('Lead tracker', leadTekst(v.leads))
+    const leadBlok = [v.leads ? leadTekst(v.leads) : null, v.opTePakken ? opTePakkenTekst(v.opTePakken) : null].filter((t): t is string => t !== null)
+    if (leadBlok.length > 0) blok('Lead tracker', leadBlok.join('\n\n'))
     if (v.klanten) blok('PT-klanten', v.klanten)
     blok('Wat besproken', v.notitie ?? 'Geen verslag ingevuld.')
     blok('Aandachtspunt', v.aandachtspunt ?? 'Geen aandachtspunt.')

@@ -3483,6 +3483,16 @@ body {
 .lifeos-root .ptd-checkin-lijst { display: grid; gap: 10px; margin: 6px 0 0; }
 .lifeos-root .ptd-checkin-lijst dd { margin: 2px 0 0; white-space: pre-line; overflow-wrap: anywhere; }
 .lifeos-root .ptd-coach-pt { display: grid; gap: 12px; padding: 14px 16px; }
+/* Coach-overzicht (eigenaar/beheerder): verslagen ingeklapt ónder in de kaart. */
+.lifeos-root .ptd-details--in { margin: 2px -16px -14px; border-top: 1px solid var(--line); }
+.lifeos-root .ptd-details--in > summary { padding: 12px 16px; font-size: 13.5px; }
+.lifeos-root .ptd-verslagen { gap: 0; }
+.lifeos-root .ptd-verslag { display: grid; gap: 6px; padding: 10px 0; border-top: 1px solid var(--line); }
+.lifeos-root .ptd-verslag:first-child { border-top: 0; padding-top: 0; }
+.lifeos-root .ptd-scores { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 0; font-size: 12.5px; color: var(--text-3); font-variant-numeric: tabular-nums; }
+.lifeos-root .ptd-score strong { color: var(--text-1); font-weight: 600; }
+.lifeos-root .ptd-score--laag strong { color: var(--status-aandacht); }
+.lifeos-root .ptd-kleine-link { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; }
 .lifeos-root .ptd-checkin { display: grid; gap: 6px; }
 .lifeos-root .ptd-punten { display: grid; gap: 6px; margin: 6px 0 0; padding-left: 18px; }
 .lifeos-root .ptd-balk { position: relative; height: 8px; border-radius: 999px; background: var(--bg-raised); border: 1px solid var(--line); overflow: hidden; }
