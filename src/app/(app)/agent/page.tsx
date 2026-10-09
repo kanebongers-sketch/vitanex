@@ -67,7 +67,7 @@ export default function AgentPage() {
   useEffect(() => {
     sb.auth.getUser().then(async ({ data: { user } }) => {
       if (!user) { window.location.href = '/login'; return }
-      // Founder-CRM: alleen admins — zelfde gating als Content OS in de Navbar.
+      // Founder-CRM: alleen admins.
       const { data: profiel } = await sb
         .from('profiles').select('rol').eq('id', user.id).single()
       if (profiel?.rol !== 'admin') { window.location.href = '/home'; return }

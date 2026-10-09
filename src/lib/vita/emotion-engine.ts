@@ -60,7 +60,6 @@ export function celebrationMessage(type: string): string | null {
 }
 
 const ROUTE_MAP: Array<[string, RouteContext]> = [
-  ['/content',   { label: 'Content Studio', suggestedEmotion: 'focused'   }],
   ['/check-in',  { label: 'Check-in',       suggestedEmotion: 'curious'   }],
   ['/voortgang', { label: 'Voortgang',      suggestedEmotion: 'motivated' }],
   ['/gewoontes', { label: 'Gewoontes',      suggestedEmotion: 'focused'   }],

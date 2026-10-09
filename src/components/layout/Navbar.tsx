@@ -6,9 +6,7 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabase/supabase'
 import { CATEGORIEEN } from '@/lib/navigatie/categorie-nav'
 import {
-  CalendarDays, HeartPulse, Activity, Bot, User, Clapperboard,
-  Building2, Users, BarChart3, Star, Trophy,
-  LayoutDashboard, Calendar, Map, Lightbulb,
+  CalendarDays, HeartPulse, Activity, Bot, User, Building2, Users, BarChart3, Star, Trophy,
   LogOut, ChevronRight, CheckCircle2, GraduationCap, UserRound,
   UserPlus, ListChecks, Apple, BookOpen, Milestone, Dumbbell,
   TrendingUp, Sunrise,
@@ -61,17 +59,6 @@ const TOP_ITEMS: TopItem[] = [
   { key: 'vita',      label: 'Vita',      icon: Bot,           href: '/coach'     },
   { key: 'voortgang', label: 'Voortgang', icon: BarChart3,     href: '/inzichten' },
   { key: 'profiel',   label: 'Profiel',   icon: User,          href: '/profiel'   },
-  {
-    key: 'content',
-    label: 'Content OS',
-    icon: Clapperboard,
-    items: [
-      { href: '/content',           label: 'Dagelijkse Briefing', icon: LayoutDashboard },
-      { href: '/content/kalender',  label: 'Weekkalender',        icon: Calendar        },
-      { href: '/content/strategie', label: 'Strategie',           icon: Map             },
-      { href: '/content/ideeen',    label: 'Ideeën Bank',         icon: Lightbulb       },
-    ],
-  },
 ]
 
 const HR_ITEMS: NavItem[] = [
@@ -160,11 +147,7 @@ function SidebarContent({
   const { t } = useVertaling()
   const isHrOrAdmin = userRol === 'hr' || userRol === 'admin'
   const isCoach = userRol === 'coach' || userRol === 'admin'
-  // Content OS is founder-/admin-tooling (briefings, strategie, ideeën) en hoort
-  // niet in de navigatie van een gewone medewerker.
-  const zichtbareTopItems = TOP_ITEMS.filter(
-    (item) => item.key !== 'content' || userRol === 'admin'
-  )
+  const zichtbareTopItems = TOP_ITEMS
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>

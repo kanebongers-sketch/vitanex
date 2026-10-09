@@ -5,7 +5,7 @@
 // PDFKit kent geen CSS-variabelen: de hexwaarden spiegelen theme.ts (navy + cyaan;
 // cyaan alleen op navy, want op wit haalt het geen AA-contrast).
 //
-// pdfkit laden we met een webpackIgnore-import (zie lib/pdf/pdf-briefing.ts):
+// pdfkit laden we met een webpackIgnore-import:
 // gebundeld vindt het zijn fontbestanden niet meer.
 
 import type { EvaluatieScores } from './pt-coaching'
