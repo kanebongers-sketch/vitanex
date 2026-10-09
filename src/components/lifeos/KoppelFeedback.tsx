@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { CheckCircle2, TriangleAlert, Info, X } from 'lucide-react'
 
 // Feedback na terugkeer uit de Google OAuth-flow (agenda / Gmail). Leeft in het
-// founder-dashboard (/kanebongers) — daar landen de koppel-callbacks. Geëxtraheerd
+// LifeOS-dashboard (fitfactorypt.nl/lifeoskane) — daar landen de koppel-callbacks. Geëxtraheerd
 // uit de oude /home toen die de consumenten-home werd.
 
 type MeldingToon = 'ok' | 'fout' | 'info'

@@ -1,9 +1,13 @@
 // ─── Site-modus ─────────────────────────────────────────────────────────────
-// TIJDELIJK: de publieke MentaForce-site (landing met het brein, contact,
-// voorwaarden, registreren, uitnodigingen, Google-login) is VERBORGEN, niet
-// verwijderd. PT'ers komen via hun lead-link (/lead/<naam>) binnen en hoeven de
-// app niet te zien; wie op mentaforce.nl landt, ziet alleen het inlogscherm.
+// Schakelaar voor de publieke MentaForce-site (landing met het brein, contact,
+// voorwaarden, registreren, uitnodigingen, Google-login).
 //
-// Terugdraaien = deze waarde op `false` zetten. Alle pagina's staan er nog.
+// UIT (false) sinds 09-10-2026: MentaForce is weer de consumenten-app en de site
+// is gewoon zichtbaar en vindbaar. De Fit Factory PT-app en LifeOS staan op
+// fitfactorypt.nl en hebben hier niets mee te maken.
+//
+// AAN (true) = verbergen: de publieke pagina's sturen dan door naar het
+// inlogscherm, registreren en Google-login verdwijnen, en elke response krijgt
+// een noindex. Er wordt niets verwijderd.
 
-export const SITE_VERBORGEN = true
+export const SITE_VERBORGEN = false

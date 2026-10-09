@@ -180,7 +180,7 @@ export const GERESERVEERD: ReadonlySet<string> = new Set([
   'achievements', 'actief', 'ademhaling', 'admin', 'agent', 'api', 'auth', 'bedankt', 'bestanden', 'burnout', 'chat',
   'checkin', 'coach', 'coaching', 'contact', 'content', 'dankbaarheid', 'dashboard', 'declaraties', 'directory', 'disc',
   'doelen', 'doelkeuze', 'enps', 'focus', 'fonts', 'gezondheid', 'groeien', 'groeiplan', 'home', 'hr', 'instellingen',
-  'inzichten', 'journal', 'kanebongers', 'koppelingen', 'lead', 'FitFactoryPT', 'fitfactorypt', 'lifeos', 'login', 'loonstroken', 'meditatie',
+  'inzichten', 'journal', 'kanebongers', 'koppelingen', 'lead', 'FitFactoryPT', 'fitfactorypt', 'lifeos', 'lifeoskane', 'login', 'loonstroken', 'meditatie',
   'mentale-sterkte', 'mijn-coach', 'mijn-content', 'mijn-gesprekken', 'mijn-rapport', 'mijn-taken', 'mijn-traject',
   'mijn-voeding', 'nieuws', 'niveau', 'onboarding', 'patronen', 'pijler', 'portaal', 'prestaties', 'profiel',
   'programma', 'projecten', 'protocollen', 'psych-veiligheid', 'pulse-survey', 'rapport', 'reflectie', 'register',

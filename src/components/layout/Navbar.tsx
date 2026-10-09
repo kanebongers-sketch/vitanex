@@ -10,13 +10,12 @@ import {
   Building2, Users, BarChart3, Star, Trophy,
   LayoutDashboard, Calendar, Map, Lightbulb,
   LogOut, ChevronRight, CheckCircle2, GraduationCap, UserRound,
-  UserPlus, ListChecks, Apple, BookOpen, Milestone, Dumbbell, FolderKanban,
-  TrendingUp, LayoutGrid, Network, ClipboardList,
+  UserPlus, ListChecks, Apple, BookOpen, Milestone, Dumbbell,
+  TrendingUp,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import WeekRingen from './WeekRingen'
 import { Wordmark } from './Logo'
-import { PT_APP_BEHEER } from '@/lib/lifeos/pt-dashboard/beheer'
 
 // Een categorie-tab blijft actief als je op een van zijn onderdelen zit
 // (bijv. "Welzijn" oplichten terwijl je op /stemming bent).
@@ -292,23 +291,6 @@ function SidebarContent({
             </div>
           )
         })}
-
-        {/* Kane's persoonlijke command center: zijn volledige dashboard (werk,
-            notities, agenda, taken, welzijn) plus het mensen-bord. Founder-only;
-            de echte gate zit server-side (elke /api/lifeos-route 403't een
-            niet-founder, en FounderPoort stuurt niet-founders terug). */}
-        {userRol === 'admin' && (
-          <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--border)' }}>
-            <NavLink href="/kanebongers" label="Mijn dashboard" icon={LayoutDashboard} pathname={pathname} onClick={onClose} />
-            <NavLink href="/training" label="Training" icon={Dumbbell} pathname={pathname} onClick={onClose} />
-            <NavLink href="/lifeos/mensen" label="Mensen" icon={Users} pathname={pathname} onClick={onClose} />
-            <NavLink href={PT_APP_BEHEER} label="Fit Factory PT" icon={ClipboardList} pathname={pathname} onClick={onClose} />
-            <NavLink href="/lifeos/agenda-categorieen" label="Categorieën" icon={LayoutGrid} pathname={pathname} onClick={onClose} />
-            <NavLink href="/lifeos/kennis" label="Kennis" icon={Network} pathname={pathname} onClick={onClose} />
-            <NavLink href="/projecten" label="Projecten" icon={FolderKanban} pathname={pathname} onClick={onClose} />
-            <NavLink href="/programma" label="Programma" icon={Dumbbell} pathname={pathname} onClick={onClose} />
-          </div>
-        )}
 
         {/* HR sectie — conditioneel */}
         {isHrOrAdmin && (

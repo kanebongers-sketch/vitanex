@@ -18,7 +18,7 @@ while (
 // kinderen wel. Op fitfactorypt.nl stuurt src/proxy.ts deze routes weg, zodat er
 // op het Fit Factory-domein niets van MentaForce te zien is. Automatisch, zodat
 // een nieuwe MentaForce-pagina er nooit per ongeluk doorheen glipt.
-const GEEN_MENTAFORCE_ROUTE = new Set(['[pt]', 'FitFactoryPT', 'api', 'fonts', 'lead'])
+const GEEN_MENTAFORCE_ROUTE = new Set(['[pt]', 'FitFactoryPT', 'lifeoskane', 'api', 'fonts', 'lead'])
 function mentaforceRoutes(): string[] {
   const appDir = path.join(__dirname, 'src', 'app')
   const mappen = (dir: string) =>
@@ -77,9 +77,24 @@ const nextConfig: NextConfig = {
       { source: '/lead/:code([a-z0-9-]{2,60})', destination: '/:code/lead', permanent: true },
       { source: '/lead', destination: '/FitFactoryPT', permanent: true },
     ]
-    if (!SITE_VERBORGEN) return leadLinks
+    // LifeOS verhuisde naar fitfactorypt.nl/lifeoskane: MentaForce is weer de
+    // consumenten-app. Oude bladwijzers en de Google-koppel-terugkeer (met query)
+    // komen zo op de nieuwe plek uit.
+    const LIFEOS = 'https://fitfactorypt.nl/lifeoskane'
+    const lifeosLinks = [
+      { source: '/kanebongers', destination: LIFEOS, permanent: true },
+      { source: '/lifeos', destination: LIFEOS, permanent: true },
+      { source: '/lifeos/agenda-categorieen', destination: `${LIFEOS}/categorieen`, permanent: true },
+      { source: '/lifeos/pt-team/:pad*', destination: 'https://fitfactorypt.nl/kane', permanent: true },
+      { source: '/lifeos/:pad*', destination: `${LIFEOS}/:pad*`, permanent: true },
+      { source: '/projecten', destination: `${LIFEOS}/projecten`, permanent: true },
+      { source: '/programma', destination: `${LIFEOS}/programma`, permanent: true },
+      { source: '/training', destination: `${LIFEOS}/training`, permanent: true },
+    ]
+    if (!SITE_VERBORGEN) return [...leadLinks, ...lifeosLinks]
     return [
       ...leadLinks,
+      ...lifeosLinks,
       ...['/', '/contact', '/voorwaarden', '/bedankt', '/register', '/uitnodiging'].map((source) => ({
         source,
         destination: '/login',

@@ -63,8 +63,8 @@ export default function LifeosFout({
             <button type="button" onClick={() => unstable_retry()} style={PRIMAIR}>
               Opnieuw proberen
             </button>
-            <Link href="/home" style={STIL}>
-              Naar het welzijnsoverzicht
+            <Link href="/lifeoskane" style={STIL}>
+              Naar je dashboard
             </Link>
           </div>
         </section>

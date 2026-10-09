@@ -17,11 +17,15 @@
 // LifeOS is single-tenant, dus er valt niets te kiezen.
 
 import { NextResponse, type NextRequest } from 'next/server'
+import { ptUrl } from '@/lib/fit-factory/domein'
 import { createLifeosAdminClient, lifeosUserId } from '@/lib/lifeos/admin'
 import { beoordeelState } from '@/lib/lifeos/auth/oauth-state'
 import { wisselCodeIn } from '@/lib/lifeos/agenda/google'
 import { gmailConfig } from '@/lib/lifeos/inbox/gmail'
 import { bewaarKoppeling, KOPPEL_COOKIE, KOPPEL_COOKIE_PAD } from '@/lib/lifeos/inbox/koppeling'
+
+/** Na het koppelen terug naar het LifeOS-dashboard (fitfactorypt.nl/lifeoskane). */
+const LIFEOS_TERUG = ptUrl('/lifeoskane')
 
 function appUrl(): string | null {
   const url = process.env.APP_URL
@@ -50,7 +54,7 @@ export async function GET(req: NextRequest) {
   //       harde 400, geen code-inwisseling, niets opgeslagen.
   const oordeel = beoordeelState(searchParams.get('state'))
   if (oordeel.staat === 'verlopen' && oordeel.dienst === 'gmail') {
-    return NextResponse.redirect(`${basis}/kanebongers?inbox=fout&reden=verlopen`)
+    return NextResponse.redirect(`${LIFEOS_TERUG}?inbox=fout&reden=verlopen`)
   }
   if (oordeel.staat !== 'geldig' || oordeel.dienst !== 'gmail') {
     return NextResponse.json({ fout: 'Ongeldige of verlopen state.' }, { status: 400 })
@@ -60,7 +64,7 @@ export async function GET(req: NextRequest) {
   //    keuze, geen fout: rustig terug naar de app.
   const geweigerd = searchParams.get('error')
   if (geweigerd) {
-    return NextResponse.redirect(`${basis}/kanebongers?inbox=geweigerd`)
+    return NextResponse.redirect(`${LIFEOS_TERUG}?inbox=geweigerd`)
   }
 
   const code = searchParams.get('code')
@@ -75,12 +79,12 @@ export async function GET(req: NextRequest) {
   // flow legitiem begon.
   const koppelCookie = req.cookies.get(KOPPEL_COOKIE)?.value
   if (!koppelCookie) {
-    return NextResponse.redirect(`${basis}/kanebongers?inbox=fout&reden=verlopen`)
+    return NextResponse.redirect(`${LIFEOS_TERUG}?inbox=fout&reden=verlopen`)
   }
 
   const config = gmailConfig()
   if (!config) {
-    return NextResponse.redirect(`${basis}/kanebongers?inbox=fout&reden=niet_ingericht`)
+    return NextResponse.redirect(`${LIFEOS_TERUG}?inbox=fout&reden=niet_ingericht`)
   }
 
   // `wisselCodeIn` komt uit agenda/google.ts — zelfde provider, zelfde
@@ -88,15 +92,15 @@ export async function GET(req: NextRequest) {
   // exact matchen met wat we in de autorisatie-URL zetten.
   const uitkomst = await wisselCodeIn(config, code)
   if (uitkomst.staat !== 'ok') {
-    return NextResponse.redirect(`${basis}/kanebongers?inbox=fout&reden=token`)
+    return NextResponse.redirect(`${LIFEOS_TERUG}?inbox=fout&reden=token`)
   }
 
   const bewaard = await bewaarKoppeling(createLifeosAdminClient(), lifeosUserId(), uitkomst.tokens)
   if (!bewaard.ok) {
-    return NextResponse.redirect(`${basis}/kanebongers?inbox=fout&reden=${bewaard.reden}`)
+    return NextResponse.redirect(`${LIFEOS_TERUG}?inbox=fout&reden=${bewaard.reden}`)
   }
 
-  const antwoord = NextResponse.redirect(`${basis}/kanebongers?inbox=gekoppeld`)
+  const antwoord = NextResponse.redirect(`${LIFEOS_TERUG}?inbox=gekoppeld`)
   // Het cookie heeft zijn werk gedaan; laat het niet slingeren.
   antwoord.cookies.delete({ name: KOPPEL_COOKIE, path: KOPPEL_COOKIE_PAD })
   return antwoord
