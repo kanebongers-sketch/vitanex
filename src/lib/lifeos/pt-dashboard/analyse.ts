@@ -8,7 +8,7 @@
 //  - de funnel kijkt naar de huidige status.
 // `vandaag` = YYYY-MM-DD (Nederlandse tijd).
 
-import { LEAD_BRONNEN, isBron, type Lead, type LeadBron, type LeadStatus } from '@/lib/lifeos/leads/leads'
+import { LEAD_BRONNEN, type Lead, type LeadBron, type LeadStatus } from '@/lib/lifeos/leads/leads'
 import { plusDagen } from './abonnementen'
 
 export interface WeekPunt {
@@ -46,7 +46,6 @@ export interface Analyse {
   bronnen: BronRij[]
 }
 
-const DAG = /^\d{4}-\d{2}-\d{2}$/
 const middag = (dag: string) => new Date(`${dag}T12:00:00Z`)
 const procent = (deel: number, geheel: number): number | null => (geheel === 0 ? null : Math.round((deel / geheel) * 100))
 
@@ -111,45 +110,4 @@ export function bronAnalyse(leads: readonly Pick<Lead, 'bron' | 'status'>[]): Br
 
 export function analyseer(leads: readonly Lead[], vandaag: string, weken = 8): Analyse {
   return { weken: weekReeks(leads, vandaag, weken), funnel: funnel(leads), bronnen: bronAnalyse(leads) }
-}
-
-// ─── Uitlezen (systeemgrens: API-antwoord) ────────────────────────────────────
-
-function obj(v: unknown): Record<string, unknown> | null {
-  return typeof v === 'object' && v !== null && !Array.isArray(v) ? (v as Record<string, unknown>) : null
-}
-const telling = (v: unknown): number | null => (typeof v === 'number' && Number.isInteger(v) && v >= 0 ? v : null)
-const pctOfNull = (v: unknown): number | null => (typeof v === 'number' && Number.isFinite(v) ? v : null)
-const FUNNEL_SLEUTELS: readonly FunnelSleutel[] = ['gesproken', 'in_gesprek', 'klant']
-
-function leesWeek(v: unknown): WeekPunt[] {
-  const x = obj(v)
-  if (!x || typeof x.start !== 'string' || !DAG.test(x.start)) return []
-  const week = telling(x.week)
-  const leads = telling(x.leads)
-  const klant = telling(x.klant)
-  return week === null || leads === null || klant === null ? [] : [{ start: x.start, week, leads, klant }]
-}
-
-function leesStap(v: unknown): FunnelStap[] {
-  const x = obj(v)
-  const aantal = telling(x?.aantal)
-  if (!x || aantal === null || typeof x.label !== 'string') return []
-  const sleutel = FUNNEL_SLEUTELS.find((s) => s === x.sleutel)
-  return sleutel ? [{ sleutel, label: x.label, aantal, pct: pctOfNull(x.pct) }] : []
-}
-
-function leesBron(v: unknown): BronRij[] {
-  const x = obj(v)
-  const aantal = telling(x?.aantal)
-  const klant = telling(x?.klant)
-  if (!x || !isBron(x.bron) || aantal === null || klant === null) return []
-  return [{ bron: x.bron, aantal, klant, conversie: pctOfNull(x.conversie) }]
-}
-
-/** Een analyse uit JSON; kapotte onderdelen vallen weg, een ontbrekende analyse → null. */
-export function leesAnalyse(ruw: unknown): Analyse | null {
-  const o = obj(ruw)
-  if (!o || !Array.isArray(o.weken) || !Array.isArray(o.funnel) || !Array.isArray(o.bronnen)) return null
-  return { weken: o.weken.flatMap(leesWeek), funnel: o.funnel.flatMap(leesStap), bronnen: o.bronnen.flatMap(leesBron) }
 }

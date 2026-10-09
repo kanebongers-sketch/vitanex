@@ -49,8 +49,11 @@ export function PtGesprekkenKaart() {
 
   useEffect(() => {
     void laad()
+    // Een antwoord dat na het opruimen binnenkomt, telt niet meer (de teller is een
+    // getal, geen DOM-node: het ref-object zelf blijft hetzelfde).
+    const teller = generatie
     return () => {
-      generatie.current++
+      teller.current++
     }
   }, [laad, signaal])
 

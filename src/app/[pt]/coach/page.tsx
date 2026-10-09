@@ -17,7 +17,7 @@ export default async function CoachPagina({ params }: { params: Promise<{ pt: st
   const { pt } = await params
   const s = await ptSessie(pt)
   if (!s?.ingelogd) return null
-  if (kijktMee(s.link.rol)) return <EigenaarCoach code={s.link.code} beheerder={s.link.rol === 'beheerder'} />
+  if (kijktMee(s.link.rol)) return <><h1 className="sr-only">Coach</h1><EigenaarCoach code={s.link.code} beheerder={s.link.rol === 'beheerder'} /></>
 
   const week = huidigeWeek(new Date())
   const [checkin, punten] = await Promise.all([
@@ -27,6 +27,7 @@ export default async function CoachPagina({ params }: { params: Promise<{ pt: st
 
   return (
     <>
+      <h1 className="sr-only">Coach</h1>
       <section className="ptd-sectie" aria-labelledby="ptd-checkin-kop">
         <div className="ptd-sectiekop">
           <h2 id="ptd-checkin-kop">Voorbereiding coachgesprek</h2>

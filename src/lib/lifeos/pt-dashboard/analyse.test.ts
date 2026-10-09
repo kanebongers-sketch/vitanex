@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 import type { Lead } from '@/lib/lifeos/leads/leads'
-import { analyseer, bronAnalyse, funnel, isoWeek, leesAnalyse, maandagVan, weekReeks } from './analyse'
+import { analyseer, bronAnalyse, funnel, isoWeek, maandagVan, weekReeks } from './analyse'
 
 const lead = (over: Partial<Lead> = {}): Lead => ({
   id: 'l', naam: 'X', contact: null, club: 'eersel', bron: 'vloer', interesse: null, status: 'nieuw', volgendeStap: null,
@@ -71,12 +71,13 @@ describe('bronAnalyse', () => {
   })
 })
 
-describe('leesAnalyse', () => {
-  test('rondreis via JSON; kapotte onderdelen vallen weg; ontbrekend → null', () => {
-    const a = analyseer([lead({ status: 'klant', bron: 'referral' }), lead()], '2026-10-08')
-    expect(leesAnalyse(JSON.parse(JSON.stringify(a)))).toEqual(a)
-    const kapot = leesAnalyse({ weken: [{ start: 'x' }, a.weken[0]], funnel: [{ sleutel: 'raar', aantal: 1, label: 'x' }], bronnen: [{ bron: 'tv', aantal: 1, klant: 0 }] })
-    expect(kapot).toEqual({ weken: [a.weken[0]], funnel: [], bronnen: [] })
-    expect(leesAnalyse(undefined)).toBeNull()
+describe('analyseer', () => {
+  test('bundelt weken, funnel en bronnen uit dezelfde leads', () => {
+    const leads = [lead({ id: 'a', status: 'klant' }), lead({ id: 'b', bron: 'referral' })]
+    const a = analyseer(leads, '2026-10-08', 4)
+    expect(a.weken).toHaveLength(4)
+    expect(a.weken.at(-1)).toMatchObject({ start: '2026-10-05', leads: 2, klant: 1 })
+    expect(a.funnel).toEqual(funnel(leads))
+    expect(a.bronnen).toEqual(bronAnalyse(leads))
   })
 })

@@ -3366,6 +3366,12 @@ body {
 .lifeos-root a.ptd-chip { text-decoration: none; }
 .lifeos-root .ptd-trainer { color: var(--text-1); font-weight: 600; }
 .lifeos-root .ptd-controle { color: var(--text-1); font-variant-numeric: tabular-nums; letter-spacing: 0.12em; }
+.lifeos-root .ptd-laden { display: grid; gap: 16px; }
+.lifeos-root .ptd-skelet { border-radius: 12px; background: var(--bg-card); border: 1px solid var(--line); animation: ptd-puls 1.6s ease-in-out infinite; }
+.lifeos-root .ptd-skelet--tegel { height: 96px; }
+.lifeos-root .ptd-skelet--rij { height: 72px; }
+@keyframes ptd-puls { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
+@media (prefers-reduced-motion: reduce) { .lifeos-root .ptd-skelet { animation: none; } }
 .lifeos-root .ptd-chip small { font-size: 11.5px; opacity: 0.8; font-variant-numeric: tabular-nums; }
 
 .lifeos-root .ptd-form { display: grid; gap: 14px; padding: 16px; border-radius: 16px; border: 1px solid color-mix(in srgb, var(--brand) 35%, var(--line)); background: var(--bg-card); }

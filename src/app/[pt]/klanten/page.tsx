@@ -15,13 +15,15 @@ interface Props {
 export default async function KlantenPagina({ params, searchParams }: Props) {
   const [{ pt }, zoek] = await Promise.all([params, searchParams])
   const mee = await meekijker(pt)
-  if (mee) return <EigenaarKlanten code={mee.code} pt={param(zoek, 'pt')} toon={param(zoek, 'toon')} />
+  if (mee) return <><h1 className="sr-only">Klanten van het team</h1><EigenaarKlanten code={mee.code} pt={param(zoek, 'pt')} toon={param(zoek, 'toon')} /></>
   const g = await ptGegevens(pt)
   if (!g) return null
   if (!g.klanten) return <Foutmelding bericht="Je klanten konden niet geladen worden. Vernieuw de pagina." />
   const lead = typeof zoek.vanLead === 'string' ? (g.leads ?? []).find((l) => l.id === zoek.vanLead) : undefined
   const alGekoppeld = lead ? g.klanten.some((k) => k.leadId === lead.id) : false
   return (
+    <>
+    <h1 className="sr-only">Mijn PT-klanten</h1>
     <KlantenBeheer
       code={g.link.code}
       vandaag={g.vandaag}
@@ -30,5 +32,6 @@ export default async function KlantenPagina({ params, searchParams }: Props) {
       vanLead={lead && !alGekoppeld ? { id: lead.id, naam: lead.naam, contact: lead.contact, club: lead.club } : null}
       startNieuw={zoek.nieuw === '1'}
     />
+    </>
   )
 }

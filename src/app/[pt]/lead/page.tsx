@@ -15,7 +15,7 @@ interface Props {
 export default async function LeadsPagina({ params, searchParams }: Props) {
   const [{ pt }, zoek] = await Promise.all([params, searchParams])
   const mee = await meekijker(pt)
-  if (mee) return <EigenaarLeads code={mee.code} pt={param(zoek, 'pt')} toon={param(zoek, 'toon')} />
+  if (mee) return <><h1 className="sr-only">Leads van het team</h1><EigenaarLeads code={mee.code} pt={param(zoek, 'pt')} toon={param(zoek, 'toon')} /></>
   const g = await ptGegevens(pt)
   if (!g) return null
   // Zonder klanten weet de pagina niet welke leads al klant zijn: dan zou elke
@@ -23,6 +23,8 @@ export default async function LeadsPagina({ params, searchParams }: Props) {
   if (!g.leads || !g.klanten) return <Foutmelding bericht="Je leads konden niet geladen worden. Vernieuw de pagina." />
   const open = typeof zoek.open === 'string' ? zoek.open : null
   return (
+    <>
+    <h1 className="sr-only">Mijn leads</h1>
     <LeadsBeheer
       code={g.link.code}
       vandaag={g.vandaag}
@@ -32,5 +34,6 @@ export default async function LeadsPagina({ params, searchParams }: Props) {
       startNieuw={zoek.nieuw === '1'}
       startOpen={open && g.leads.some((l) => l.id === open) ? open : null}
     />
+    </>
   )
 }
