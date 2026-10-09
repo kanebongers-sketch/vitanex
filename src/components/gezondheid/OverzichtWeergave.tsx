@@ -61,6 +61,7 @@ export function OverzichtWeergave({ data, vastgezet }: OverzichtWeergaveProps) {
           <h2 id="kop-alle" className={styles.sectieKop}>Alle metingen</h2>
           <AlleMetrieken
             samenvattingen={overig.map((s) => perSleutel.get(s)).filter((s) => s !== undefined)}
+            gemeten={samenvattingen.map((s) => s.sleutel)}
             vandaag={data.vandaag}
             koppelRoute={KOPPEL_ROUTE}
           />

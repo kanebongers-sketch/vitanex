@@ -15,7 +15,7 @@ export function LegeGezondheid({ koppelRoute }: LegeGezondheidProps) {
       <EmptyState
         icon={Watch}
         title="Nog geen metingen"
-        description="Koppel Apple Health, Health Connect of Google Fit. Daarna verschijnen hier je stappen, slaap, hartslag en meer — naast je eigen normaal zodra er genoeg metingen zijn."
+        description="Koppel Health Connect op je Android-telefoon, of houd zelf je slaap en stappen bij. Daarna verschijnen hier je stappen, slaap, hartslag en meer — naast je eigen normaal zodra er genoeg metingen zijn."
         action={
           <Link href={koppelRoute} className={styles.knopLink}>
             Bron koppelen

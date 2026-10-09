@@ -67,7 +67,7 @@ export function GezondheidOverzicht() {
         <p className={styles.overline}>{vandaag ? datumLang(vandaag) : 'Gezondheid'}</p>
         <h1 className={styles.titel}>Gezondheid</h1>
         <p className={styles.intro}>
-          Je metingen uit Apple Health, Health Connect of Google Fit, aangevuld met wat je zelf invoert —
+          Je metingen van je telefoon of horloge, aangevuld met wat je zelf invoert —
           steeds naast je eigen normaal.
         </p>
         {status.soort === 'klaar' && (

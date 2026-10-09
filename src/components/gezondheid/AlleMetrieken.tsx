@@ -13,6 +13,8 @@ import styles from './gezondheid.module.css'
 
 interface AlleMetriekenProps {
   samenvattingen: readonly MetriekSamenvatting[]
+  /** Alle metingen met data, ook de vastgezette (die staan hier niet in de lijst). */
+  gemeten: readonly MetriekSleutel[]
   vandaag: string
   koppelRoute: string
 }
@@ -32,8 +34,8 @@ export function CompactRegel({ s, vandaag }: { s: MetriekSamenvatting; vandaag: 
   )
 }
 
-export function AlleMetrieken({ samenvattingen, vandaag, koppelRoute }: AlleMetriekenProps) {
-  const metData = new Set<MetriekSleutel>(samenvattingen.map((s) => s.sleutel))
+export function AlleMetrieken({ samenvattingen, gemeten, vandaag, koppelRoute }: AlleMetriekenProps) {
+  const metData = new Set<MetriekSleutel>(gemeten)
   const nietGemeten = METRIEK_SLEUTELS.filter((s) => !metData.has(s))
   const groepen = GROEP_VOLGORDE
     .map((groep) => ({ groep, lijst: samenvattingen.filter((s) => METRIEKEN[s.sleutel].groep === groep) }))
