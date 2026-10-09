@@ -19,7 +19,7 @@ const KLANT = '55555555-5555-4555-8555-555555555555'
 const ANDERE_KLANT = '66666666-6666-4666-8666-666666666666'
 
 const link = (persoonId: string): LeadLink => ({
-  rol: 'pt', userId: USER, persoonId, code: 'x', naam: 'X', pinStatus: 'actief', pinHash: null, mislukt: 0, geblokkeerdTot: null,
+  rol: 'pt', userId: USER, persoonId, code: 'x', naam: 'X', pinStatus: 'actief', pinHash: null, mislukt: 0, geblokkeerdTot: null, blokkades: 0,
 })
 
 const klantRij = (id: string, persoonId: string, over: Record<string, unknown> = {}) => ({

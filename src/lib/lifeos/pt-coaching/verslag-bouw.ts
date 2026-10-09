@@ -19,8 +19,9 @@ import { kiesCheckin, weekVan } from '@/lib/lifeos/pt-dashboard/checkin'
 import { haalCheckinsVanafVoor } from '@/lib/lifeos/pt-dashboard/checkin-opslag'
 import { ptOverzicht } from '@/lib/lifeos/pt-dashboard/overzicht'
 import { RITME_DAGEN } from '@/lib/lifeos/pt-gesprek/ritme'
+import { NextResponse } from 'next/server'
 import { haalEvaluatie, haalEvaluaties } from './opslag'
-import type { VerslagPdfInvoer } from './pdf'
+import { maakVerslagPdf, verslagBestandsnaam, type VerslagPdfInvoer } from './pdf'
 
 const DAG_MS = 24 * 60 * 60 * 1000
 
@@ -81,5 +82,28 @@ export async function bouwVerslag(admin: SupabaseClient, userId: string, id: str
         voorbereiding: kiesCheckin(checkins.get(ev.persoonId) ?? [], weekVan(dagSleutelNl(op)), vorige?.aangemaaktOp ?? null),
       },
     },
+  }
+}
+
+/**
+ * De pdf als HTTP-antwoord. `inline` opent in de browser (PT-app), anders een
+ * download (LifeOS). Lukt het maken niet, dan een nette 500 zonder details.
+ */
+export async function verslagPdfAntwoord(
+  v: GebouwdVerslag,
+  { inline, headers }: { inline: boolean; headers: Record<string, string> },
+): Promise<Response> {
+  try {
+    const pdf = await maakVerslagPdf(v.invoer)
+    return new Response(new Uint8Array(pdf), {
+      headers: {
+        ...headers,
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': `${inline ? 'inline' : 'attachment'}; filename="${verslagBestandsnaam(v.naam, v.op)}"`,
+      },
+    })
+  } catch (oorzaak) {
+    console.error('[coach-verslag] pdf maken mislukt', oorzaak instanceof Error ? oorzaak.message : oorzaak)
+    return NextResponse.json({ fout: 'Kon de pdf niet maken.' }, { status: 500, headers })
   }
 }

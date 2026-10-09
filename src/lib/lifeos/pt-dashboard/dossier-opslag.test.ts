@@ -15,7 +15,7 @@ const SAM = '33333333-3333-4333-8333-333333333333'
 const KLANT = '55555555-5555-4555-8555-555555555555'
 
 const link = (persoonId: string): LeadLink => ({
-  rol: 'pt', userId: USER, persoonId, code: 'x', naam: 'X', pinStatus: 'actief', pinHash: null, mislukt: 0, geblokkeerdTot: null,
+  rol: 'pt', userId: USER, persoonId, code: 'x', naam: 'X', pinStatus: 'actief', pinHash: null, mislukt: 0, geblokkeerdTot: null, blokkades: 0,
 })
 
 const metingRij = (id: string, persoonId: string) => ({
