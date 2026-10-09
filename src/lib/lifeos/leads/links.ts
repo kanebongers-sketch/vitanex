@@ -7,7 +7,10 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { isVergadering } from '@/lib/lifeos/agenda/vergadering'
 import { CODE_PATROON, isPinStatus, linkCodeVoor, type PinActie, type PinStatus } from './leads'
-import { SESSIE_DAGEN, hashPin, nieuwSessieToken, pinKlopt, tokenHash } from './pin'
+import {
+  MAX_BLOKKADES, MAX_POGINGEN, MAX_SESSIES_PER_PERSOON, SESSIE_AANRAAK_MS, SESSIE_DAGEN, SESSIE_INACTIEF_DAGEN,
+  blokkadeDuurMin, hashPin, nieuwSessieToken, pinKlopt, tokenHash,
+} from './pin'
 
 /**
  * `pt` = een PT'er met eigen leads en klanten; `eigenaar` = kijkt mee met het
@@ -38,9 +41,11 @@ export interface LeadLink {
   pinHash: string | null
   mislukt: number
   geblokkeerdTot: string | null
+  /** Hoe vaak de link achter elkaar geblokkeerd raakte (migratie 361); een goede pin of een reset zet 'm op 0. */
+  blokkades: number
 }
 
-const LINK_KOLOMMEN = 'rol, user_id, persoon_id, code, actief, pin_hash, pin_status, mislukt, geblokkeerd_tot'
+const LINK_KOLOMMEN = 'rol, user_id, persoon_id, code, actief, pin_hash, pin_status, mislukt, geblokkeerd_tot, blokkades'
 
 /** Bij welke CRM-groep elke rol hoort: een PT'er zit in het PT-team, een eigenaar in management. */
 const GROEP_VOOR_ROL: Record<LinkRol, string> = { pt: 'pt_team', eigenaar: 'management', beheerder: 'management' }
@@ -72,23 +77,33 @@ export async function vindLink(admin: SupabaseClient, code: string): Promise<Lea
     pinHash: link.pin_hash,
     mislukt: link.mislukt ?? 0,
     geblokkeerdTot: link.geblokkeerd_tot,
+    blokkades: typeof link.blokkades === 'number' ? link.blokkades : 0,
   }
+}
+
+/** Een beheerder logt in via zijn hoofdaccount: op zijn link bestaat geen pincode, nooit. */
+function zonderPincode(link: Pick<LeadLink, 'rol'>): boolean {
+  return link.rol === 'beheerder'
 }
 
 // ─── Pincode ──────────────────────────────────────────────────────────────────
 
-/** Na zoveel foute pogingen gaat de link even dicht. */
-const MAX_POGINGEN = 5
-const BLOKKADE_MIN = 15
+/** Tellers schoon: na een goede pin, een goedkeuring of een reset. */
+const TELLERS_SCHOON = { mislukt: 0, geblokkeerd_tot: null, blokkades: 0 } as const
 
-/** De PT'er kiest een pin. Alleen als er nog geen is (of Kane 'm afwees/resette). */
-export async function kiesPin(admin: SupabaseClient, link: LeadLink, pin: string, nu: Date): Promise<'ok' | 'al_gekozen' | 'db'> {
+/**
+ * De PT'er kiest een pin. Alleen als er nog geen is (of Kane 'm afwees/resette),
+ * en nooit op een beheerderslink (die heeft geen pincode).
+ */
+export async function kiesPin(admin: SupabaseClient, link: LeadLink, pin: string, nu: Date): Promise<'ok' | 'al_gekozen' | 'geen_pincode' | 'db'> {
+  if (zonderPincode(link)) return 'geen_pincode'
   if (link.pinStatus !== 'geen') return 'al_gekozen'
   const { data, error } = await admin
     .from('pt_lead_links')
-    .update({ pin_hash: hashPin(pin), pin_status: 'wacht', pin_aangevraagd_op: nu.toISOString(), mislukt: 0, geblokkeerd_tot: null })
+    .update({ pin_hash: hashPin(pin), pin_status: 'wacht', pin_aangevraagd_op: nu.toISOString(), ...TELLERS_SCHOON })
     .eq('persoon_id', link.persoonId)
     .eq('pin_status', 'geen')
+    .neq('rol', 'beheerder')
     .select('persoon_id')
   if (error) return 'db'
   return Array.isArray(data) && data.length === 1 ? 'ok' : 'al_gekozen'
@@ -98,12 +113,25 @@ export type InlogUitkomst =
   | { staat: 'ok'; token: string; verlooptOp: Date }
   | { staat: 'fout'; over: number }
   | { staat: 'geblokkeerd'; totOp: string }
+  /** Te vaak geblokkeerd: dicht tot Kane de pincode reset. */
+  | { staat: 'gesloten' }
   | { staat: 'niet_actief' }
+  /** Een beheerderslink: inloggen gaat via het hoofdaccount. */
+  | { staat: 'geen_pincode' }
   | { staat: 'db' }
 
-/** Pin controleren; goed → een nieuw sessietoken voor dit toestel. */
+/**
+ * Pin controleren; goed → een nieuw sessietoken voor dit toestel.
+ *
+ * Bruteforce-rem in drie lagen (migraties 351 + 361):
+ *   1. na MAX_POGINGEN foute pogingen een blokkade die per keer verdubbelt;
+ *   2. na MAX_BLOKKADES blokkades gaat de link dicht tot Kane reset;
+ *   3. de route erboven remt daarnaast per IP (toegang.ts).
+ */
 export async function logIn(admin: SupabaseClient, link: LeadLink, pin: string, nu: Date): Promise<InlogUitkomst> {
+  if (zonderPincode(link)) return { staat: 'geen_pincode' }
   if (link.pinStatus !== 'actief') return { staat: 'niet_actief' }
+  if (link.blokkades >= MAX_BLOKKADES) return { staat: 'gesloten' }
   if (link.geblokkeerdTot && new Date(link.geblokkeerdTot).getTime() > nu.getTime()) return { staat: 'geblokkeerd', totOp: link.geblokkeerdTot }
 
   // Eerst een poging RESERVEREN (compare-and-set op de teller), dan pas de pin
@@ -121,42 +149,108 @@ export async function logIn(admin: SupabaseClient, link: LeadLink, pin: string, 
 
   if (!pinKlopt(pin, link.pinHash)) {
     if (poging < MAX_POGINGEN) return { staat: 'fout', over: MAX_POGINGEN - poging }
-    const totOp = new Date(nu.getTime() + BLOKKADE_MIN * 60_000).toISOString()
-    await admin.from('pt_lead_links').update({ mislukt: 0, geblokkeerd_tot: totOp }).eq('persoon_id', link.persoonId)
-    return { staat: 'geblokkeerd', totOp }
+    return blokkeer(admin, link, nu)
   }
 
-  const token = nieuwSessieToken()
-  const verlooptOp = new Date(nu.getTime() + SESSIE_DAGEN * 24 * 60 * 60 * 1000)
-  const { error } = await admin
-    .from('pt_lead_sessies')
-    .insert({ token_hash: tokenHash(token), persoon_id: link.persoonId, verloopt_op: verlooptOp.toISOString() })
-  if (error) return { staat: 'db' }
-  await admin.from('pt_lead_links').update({ mislukt: 0, geblokkeerd_tot: null }).eq('persoon_id', link.persoonId)
-  return { staat: 'ok', token, verlooptOp }
+  const sessie = await maakSessie(admin, link.persoonId, nu)
+  if (!sessie) return { staat: 'db' }
+  await admin.from('pt_lead_links').update(TELLERS_SCHOON).eq('persoon_id', link.persoonId)
+  return { staat: 'ok', ...sessie }
 }
 
-/** Is dit toestel ingelogd op déze link (en is de pin nog actief)? */
-export async function sessieGeldig(admin: SupabaseClient, link: LeadLink, token: string | undefined, nu: Date): Promise<boolean> {
-  if (!token || link.pinStatus !== 'actief' || token.length > 100) return false
+/** De zoveelste blokkade: langer dicht dan de vorige keer, en na de laatste helemaal. */
+async function blokkeer(admin: SupabaseClient, link: LeadLink, nu: Date): Promise<InlogUitkomst> {
+  const blokkades = link.blokkades + 1
+  const gesloten = blokkades >= MAX_BLOKKADES
+  const totOp = gesloten ? null : new Date(nu.getTime() + blokkadeDuurMin(blokkades) * 60_000).toISOString()
+  const { error } = await admin
+    .from('pt_lead_links')
+    .update({ mislukt: 0, geblokkeerd_tot: totOp, blokkades })
+    .eq('persoon_id', link.persoonId)
+  if (error) return { staat: 'db' }
+  return totOp ? { staat: 'geblokkeerd', totOp } : { staat: 'gesloten' }
+}
+
+// ─── Sessies ──────────────────────────────────────────────────────────────────
+
+interface NieuweSessie {
+  token: string
+  verlooptOp: Date
+}
+
+/**
+ * Eén nieuwe sessie voor een toestel: alleen de hash gaat de database in. Ruimt
+ * meteen op wat deze persoon niet meer nodig heeft (verlopen rijen, te veel
+ * toestellen), zodat de tabel niet eindeloos groeit en een gelekte pin niet
+ * onbeperkt toestellen kan aanmelden.
+ */
+async function maakSessie(admin: SupabaseClient, persoonId: string, nu: Date): Promise<NieuweSessie | null> {
+  const token = nieuwSessieToken()
+  const verlooptOp = new Date(nu.getTime() + SESSIE_DAGEN * 24 * 60 * 60 * 1000)
+  const { error } = await admin.from('pt_lead_sessies').insert({
+    token_hash: tokenHash(token),
+    persoon_id: persoonId,
+    verloopt_op: verlooptOp.toISOString(),
+    laatst_gebruikt_op: nu.toISOString(),
+  })
+  if (error) return null
+  await snoeiSessies(admin, persoonId, nu)
+  return { token, verlooptOp }
+}
+
+/** Verlopen sessies weg; daarna blijven hooguit MAX_SESSIES_PER_PERSOON van de nieuwste over. */
+async function snoeiSessies(admin: SupabaseClient, persoonId: string, nu: Date): Promise<void> {
+  await admin.from('pt_lead_sessies').delete().eq('persoon_id', persoonId).lt('verloopt_op', nu.toISOString())
   const { data } = await admin
     .from('pt_lead_sessies')
-    .select('persoon_id, verloopt_op')
-    .eq('token_hash', tokenHash(token))
+    .select('token_hash')
+    .eq('persoon_id', persoonId)
+    .order('aangemaakt_op', { ascending: false })
+    .range(MAX_SESSIES_PER_PERSOON, MAX_SESSIES_PER_PERSOON + 99)
+  const teVeel = (Array.isArray(data) ? (data as { token_hash: string }[]) : []).map((r) => r.token_hash)
+  if (teVeel.length > 0) await admin.from('pt_lead_sessies').delete().in('token_hash', teVeel)
+}
+
+/**
+ * Is dit toestel ingelogd op déze link (en is de pin nog actief)? Een sessie
+ * verloopt hard na SESSIE_DAGEN en zacht na SESSIE_INACTIEF_DAGEN zonder gebruik;
+ * "laatst gebruikt" wordt hooguit één keer per uur bijgewerkt.
+ */
+export async function sessieGeldig(admin: SupabaseClient, link: LeadLink, token: string | undefined, nu: Date): Promise<boolean> {
+  if (!token || link.pinStatus !== 'actief' || token.length > 100) return false
+  const hash = tokenHash(token)
+  const { data } = await admin
+    .from('pt_lead_sessies')
+    .select('persoon_id, verloopt_op, laatst_gebruikt_op, aangemaakt_op')
+    .eq('token_hash', hash)
     .maybeSingle()
-  return !!data && data.persoon_id === link.persoonId && new Date(data.verloopt_op).getTime() > nu.getTime()
+  if (!data || data.persoon_id !== link.persoonId) return false
+
+  const t = nu.getTime()
+  const laatst = new Date(data.laatst_gebruikt_op ?? data.aangemaakt_op).getTime()
+  const verlopen = new Date(data.verloopt_op).getTime() <= t || Number.isNaN(laatst) || t - laatst > SESSIE_INACTIEF_DAGEN * 24 * 60 * 60 * 1000
+  if (verlopen) {
+    await admin.from('pt_lead_sessies').delete().eq('token_hash', hash)
+    return false
+  }
+  if (t - laatst > SESSIE_AANRAAK_MS) {
+    await admin.from('pt_lead_sessies').update({ laatst_gebruikt_op: nu.toISOString() }).eq('token_hash', hash)
+  }
+  return true
 }
 
 /**
  * Kane in het dashboard: een gekozen pin goedkeuren of afwijzen, of resetten
- * (vergeten pin → de PT'er kiest een nieuwe; alle toestellen worden uitgelogd).
+ * (vergeten pin of dichtgelopen link → de PT'er kiest een nieuwe; alle toestellen
+ * worden uitgelogd). Nooit op een beheerderslink: die heeft geen pincode, en een
+ * reset zou 'm buitenspel zetten.
  */
 export async function beoordeelPin(admin: SupabaseClient, userId: string, persoonId: string, actie: PinActie): Promise<'ok' | 'niet_gevonden' | 'db'> {
   const basis = admin.from('pt_lead_links')
   const query = actie === 'goedkeuren'
-    ? basis.update({ pin_status: 'actief', mislukt: 0, geblokkeerd_tot: null }).eq('pin_status', 'wacht')
-    : basis.update({ pin_status: 'geen', pin_hash: null, pin_aangevraagd_op: null, mislukt: 0, geblokkeerd_tot: null })
-  const { data, error } = await query.eq('user_id', userId).eq('persoon_id', persoonId).select('persoon_id')
+    ? basis.update({ pin_status: 'actief', ...TELLERS_SCHOON }).eq('pin_status', 'wacht')
+    : basis.update({ pin_status: 'geen', pin_hash: null, pin_aangevraagd_op: null, ...TELLERS_SCHOON })
+  const { data, error } = await query.eq('user_id', userId).eq('persoon_id', persoonId).neq('rol', 'beheerder').select('persoon_id')
   if (error) return 'db'
   if (!Array.isArray(data) || data.length === 0) return 'niet_gevonden'
   if (actie !== 'goedkeuren') await admin.from('pt_lead_sessies').delete().eq('persoon_id', persoonId)
@@ -287,6 +381,8 @@ export async function haalActieveLinks(admin: SupabaseClient): Promise<{ code: s
  * Kane (beheerder) opent de PT-app vanuit zijn hoofdaccount: geen pincode, maar
  * een sessie op zijn beheerderslink. De aanroeper heeft de founder-gate al
  * gepasseerd. Null = geen actieve beheerderslink of opslaan mislukt.
+ * `pin_status` moet 'actief' zijn, anders keurt `sessieGeldig` de sessie meteen
+ * af en zou de pagina blijven herladen.
  */
 export async function startBeheerSessie(
   admin: SupabaseClient,
@@ -299,15 +395,12 @@ export async function startBeheerSessie(
     .eq('user_id', userId)
     .eq('rol', 'beheerder')
     .eq('actief', true)
+    .eq('pin_status', 'actief')
     .limit(1)
     .maybeSingle()
   if (error || !data) return null
-  const token = nieuwSessieToken()
-  const verlooptOp = new Date(nu.getTime() + SESSIE_DAGEN * 24 * 60 * 60 * 1000)
-  const { error: fout } = await admin
-    .from('pt_lead_sessies')
-    .insert({ token_hash: tokenHash(token), persoon_id: data.persoon_id, verloopt_op: verlooptOp.toISOString() })
-  return fout ? null : { code: data.code, token, verlooptOp }
+  const sessie = await maakSessie(admin, data.persoon_id, nu)
+  return sessie ? { code: data.code, ...sessie } : null
 }
 
 /** Dit toestel uitloggen: de sessie verdwijnt uit de database. */

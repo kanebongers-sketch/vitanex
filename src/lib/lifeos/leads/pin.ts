@@ -35,4 +35,28 @@ export function sessieCookieNaam(code: string): string {
   return `mf_lead_${code.replace(/-/g, '_')}`
 }
 
+// ─── Sessiebeleid ─────────────────────────────────────────────────────────────
+
+/** Een sessie leeft hooguit zo lang, ook als het toestel dagelijks gebruikt wordt. */
 export const SESSIE_DAGEN = 90
+/** Een toestel dat zo lang niet geopend is, moet opnieuw inloggen (gestolen/vergeten telefoon). */
+export const SESSIE_INACTIEF_DAGEN = 30
+/** Hoe vaak we "laatst gebruikt" hooguit bijwerken: één schrijfactie per uur per sessie. */
+export const SESSIE_AANRAAK_MS = 60 * 60 * 1000
+/** Meer toestellen dan dit per persoon: het oudste toestel wordt uitgelogd. */
+export const MAX_SESSIES_PER_PERSOON = 8
+
+/** Zoveel foute pogingen achter elkaar sluiten de link een tijd. */
+export const MAX_POGINGEN = 5
+/** Na zoveel blokkades gaat de link dicht tot Kane de pincode reset. */
+export const MAX_BLOKKADES = 6
+const BLOKKADE_MIN = 15
+
+/**
+ * Hoe lang de n-de blokkade duurt (n ≥ 1): 15 → 30 → 60 → 120 → 240 → 480 min.
+ * Met MAX_POGINGEN = 5 en MAX_BLOKKADES = 6 kan een aanvaller hooguit 30 pins
+ * proberen (0,003% van de 6-cijferige ruimte) voor de link dichtgaat.
+ */
+export function blokkadeDuurMin(blokkade: number): number {
+  return BLOKKADE_MIN * 2 ** Math.max(0, Math.min(blokkade, MAX_BLOKKADES) - 1)
+}

@@ -16,6 +16,44 @@ export function foutAntwoord(fout: string, status: number): NextResponse {
   return NextResponse.json({ fout }, { status, headers: GEEN_CACHE })
 }
 
+// ─── Zelfde oorsprong (CSRF, defense-in-depth naast SameSite=Lax) ─────────────
+
+/** De publieke host van dit verzoek: achter een proxy staat die in X-Forwarded-Host. */
+function hostVan(headers: Headers): string | null {
+  const host = headers.get('x-forwarded-host')?.split(',')[0]?.trim() || headers.get('host')?.trim()
+  return host ? host.toLowerCase() : null
+}
+
+/**
+ * Komt dit verzoek van onze eigen pagina? Browsers sturen op een cross-site
+ * fetch/formulier altijd `Sec-Fetch-Site` (modern) en/of `Origin` (elke POST);
+ * dezelfde origin → `same-origin`, resp. een Origin met onze host. Een PWA in
+ * standalone-modus of de Capacitor-schil laadt mentaforce.nl zelf en is dus
+ * same-origin. Ontbreken beide koppen (geen browser), dan weigeren we ook.
+ */
+export function isZelfdeOorsprong(headers: Headers): boolean {
+  const site = headers.get('sec-fetch-site')
+  if (site) return site === 'same-origin'
+  const origin = headers.get('origin')
+  const host = hostVan(headers)
+  if (!origin || !host) return false
+  try {
+    return new URL(origin).host.toLowerCase() === host
+  } catch {
+    return false
+  }
+}
+
+/** Voor mutatie-routes: null als het verzoek van onze eigen pagina komt, anders een 403. */
+export function eisZelfdeOorsprong(req: NextRequest): NextResponse | null {
+  return isZelfdeOorsprong(req.headers) ? null : foutAntwoord('Dit verzoek komt niet van de app zelf.', 403)
+}
+
+/** Het IP van de bezoeker (voor rate-limiting); achter een proxy de eerste uit X-Forwarded-For. */
+export function ipVan(req: NextRequest): string {
+  return req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || req.headers.get('x-real-ip')?.trim() || 'onbekend'
+}
+
 export interface PtToegang {
   admin: SupabaseClient
   link: LeadLink

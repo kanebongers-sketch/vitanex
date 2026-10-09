@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { hashPin, pinKlopt, nieuwSessieToken, tokenHash, sessieCookieNaam } from './pin'
+import { MAX_BLOKKADES, blokkadeDuurMin, hashPin, pinKlopt, nieuwSessieToken, tokenHash, sessieCookieNaam } from './pin'
 
 describe('pincode', () => {
   test('goede pin klopt, foute niet, hash bevat de pin niet', () => {
@@ -18,5 +18,10 @@ describe('pincode', () => {
     expect(t).not.toBe(nieuwSessieToken())
     expect(tokenHash(t)).toBe(tokenHash(t))
     expect(sessieCookieNaam('joey-2')).toBe('mf_lead_joey_2')
+  })
+  test('blokkade verdubbelt per keer en blijft begrensd', () => {
+    expect([1, 2, 3, 4, 5, 6].map(blokkadeDuurMin)).toEqual([15, 30, 60, 120, 240, 480])
+    expect(blokkadeDuurMin(0)).toBe(15)
+    expect(blokkadeDuurMin(MAX_BLOKKADES + 10)).toBe(blokkadeDuurMin(MAX_BLOKKADES))
   })
 })

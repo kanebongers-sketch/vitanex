@@ -38,7 +38,7 @@ function nepAdmin() {
 }
 vi.mock('@/lib/lifeos/admin', () => ({ createLifeosAdminClient: () => nepAdmin() }))
 
-import { ingelogdeLink, klantToegang, leadToegang, nieuwToegang, verplaatsNaar } from './toegang'
+import { ingelogdeLink, ipVan, isZelfdeOorsprong, klantToegang, leadToegang, nieuwToegang, verplaatsNaar } from './toegang'
 
 const USER = 'u-1'
 const KANE = '11111111-1111-4111-8111-111111111111'
@@ -49,7 +49,7 @@ const KLANT_JOEY = '55555555-5555-4555-8555-555555555555'
 const KLANT_OUD = '66666666-6666-4666-8666-666666666666'
 
 const link = (rol: LeadLink['rol'], persoonId: string, code: string): LeadLink => ({
-  rol, userId: USER, persoonId, code, naam: code, pinStatus: 'actief', pinHash: null, mislukt: 0, geblokkeerdTot: null,
+  rol, userId: USER, persoonId, code, naam: code, pinStatus: 'actief', pinHash: null, mislukt: 0, geblokkeerdTot: null, blokkades: 0,
 })
 const LINKS: Record<string, LeadLink> = {
   joey: link('pt', JOEY, 'joey'),
@@ -156,6 +156,38 @@ describe('verplaatsNaar', () => {
     const r = await klantToegang(req(), 'joey', KLANT_JOEY)
     if (r instanceof NextResponse) throw new Error('verwacht toegang')
     expect(await verplaatsNaar(r, KANE)).toBeNull()
+  })
+})
+
+describe('isZelfdeOorsprong (CSRF)', () => {
+  const koppen = (h: Record<string, string>) => new Headers(h)
+  it('moderne browser: Sec-Fetch-Site beslist', () => {
+    expect(isZelfdeOorsprong(koppen({ 'sec-fetch-site': 'same-origin', origin: 'https://kwaad.nl', host: 'mentaforce.nl' }))).toBe(true)
+    expect(isZelfdeOorsprong(koppen({ 'sec-fetch-site': 'cross-site', origin: 'https://mentaforce.nl', host: 'mentaforce.nl' }))).toBe(false)
+    expect(isZelfdeOorsprong(koppen({ 'sec-fetch-site': 'same-site', host: 'mentaforce.nl' }))).toBe(false)
+    expect(isZelfdeOorsprong(koppen({ 'sec-fetch-site': 'none', host: 'mentaforce.nl' }))).toBe(false)
+  })
+  it('oudere browser (geen Sec-Fetch-Site): Origin moet onze host zijn, ook achter een proxy', () => {
+    expect(isZelfdeOorsprong(koppen({ origin: 'https://mentaforce.nl', host: 'mentaforce.nl' }))).toBe(true)
+    expect(isZelfdeOorsprong(koppen({ origin: 'https://MentaForce.nl', host: 'mentaforce.nl' }))).toBe(true)
+    expect(isZelfdeOorsprong(koppen({ origin: 'https://mentaforce.nl', host: 'intern:3000', 'x-forwarded-host': 'mentaforce.nl, proxy' }))).toBe(true)
+    expect(isZelfdeOorsprong(koppen({ origin: 'http://localhost:3000', host: 'localhost:3000' }))).toBe(true)
+    expect(isZelfdeOorsprong(koppen({ origin: 'https://kwaad.nl', host: 'mentaforce.nl' }))).toBe(false)
+    expect(isZelfdeOorsprong(koppen({ origin: 'https://mentaforce.nl.kwaad.nl', host: 'mentaforce.nl' }))).toBe(false)
+    expect(isZelfdeOorsprong(koppen({ origin: 'null', host: 'mentaforce.nl' }))).toBe(false)
+  })
+  it('zonder enige oorsprong-kop (geen browser): weigeren', () => {
+    expect(isZelfdeOorsprong(koppen({ host: 'mentaforce.nl' }))).toBe(false)
+    expect(isZelfdeOorsprong(koppen({}))).toBe(false)
+  })
+})
+
+describe('ipVan', () => {
+  const verzoek = (h: Record<string, string>) => new NextRequest('https://mentaforce.nl/api/pt/x', { method: 'POST', headers: h })
+  it('eerste uit X-Forwarded-For, anders X-Real-IP, anders onbekend', () => {
+    expect(ipVan(verzoek({ 'x-forwarded-for': '203.0.113.7, 10.0.0.1' }))).toBe('203.0.113.7')
+    expect(ipVan(verzoek({ 'x-real-ip': '203.0.113.9' }))).toBe('203.0.113.9')
+    expect(ipVan(verzoek({}))).toBe('onbekend')
   })
 })
 
