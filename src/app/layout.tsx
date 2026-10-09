@@ -5,7 +5,7 @@ import { barlow } from "./fonts/fit-factory";
 import { headers } from "next/headers";
 import { isPtHost } from "@/lib/fit-factory/domein";
 import { STANDAARD_TAAL, richtingVan, type Taal } from "@/lib/i18n/talen";
-import { BRON, huidigeTaal, laadWoordenboek } from "@/lib/i18n/server";
+import { huidigeTaal, laadBron, laadWoordenboek } from "@/lib/i18n/server";
 import { TaalProvider } from "@/lib/i18n/TaalProvider";
 
 // Huisstijl (okt 2026, de look van Fit Factory): tekst in Inter, koppen in
@@ -38,7 +38,7 @@ export default async function RootLayout({
   const h = await headers();
   const pt = isPtHost(h.get("x-forwarded-host") ?? h.get("host"));
   const taal: Taal = pt ? STANDAARD_TAAL : await huidigeTaal();
-  const woordenboek = await laadWoordenboek(taal);
+  const [woordenboek, bron] = await Promise.all([laadWoordenboek(taal), laadBron()]);
 
   return (
     <html
@@ -47,7 +47,7 @@ export default async function RootLayout({
       className={`${tekst.variable} ${barlow.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <TaalProvider taal={taal} richting={richtingVan(taal)} woordenboek={woordenboek} bron={BRON}>
+        <TaalProvider taal={taal} richting={richtingVan(taal)} woordenboek={woordenboek} bron={bron}>
           {children}
         </TaalProvider>
       </body>

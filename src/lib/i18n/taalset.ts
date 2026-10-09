@@ -16,8 +16,8 @@ export interface Taalset {
 
 export const BRON_WOORDENBOEK: Woordenboek = nl
 
-export function maakTaalset(taal: Taal, boek: Woordenboek): Taalset {
-  return { taal, locale: INTL_LOCALE[taal], t: (sleutel, params) => vertaal(boek, nl, sleutel, params) }
+export function maakTaalset(taal: Taal, boek: Woordenboek, bron: Woordenboek = nl): Taalset {
+  return { taal, locale: INTL_LOCALE[taal], t: (sleutel, params) => vertaal(boek, bron, sleutel, params) }
 }
 
 export const NL: Taalset = maakTaalset(STANDAARD_TAAL, nl)
