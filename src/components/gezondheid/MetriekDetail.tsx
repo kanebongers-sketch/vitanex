@@ -73,7 +73,8 @@ export function MetriekDetail({ sleutel }: MetriekDetailProps) {
       </header>
 
       {status.soort === 'laden' && (
-        <div className={styles.laden} aria-busy="true" aria-label={`${cfg.label} wordt geladen`}>
+        <div className={styles.laden} role="status" aria-busy="true">
+          <span className={styles.srOnly}>{cfg.label} wordt geladen…</span>
           <Skeleton width="40%" height={48} />
           <Skeleton width="100%" height={40} />
           <Skeleton width="100%" height={240} radius="var(--radius-lg)" />

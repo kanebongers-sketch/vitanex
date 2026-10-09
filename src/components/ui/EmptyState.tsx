@@ -6,9 +6,12 @@ export interface EmptyStateProps {
   title: string;
   description?: string;
   action?: ReactNode;
+  /** Kopniveau van de titel; standaard h3. Gebruik 2 direct onder de paginakop (h1). */
+  headingLevel?: 2 | 3 | 4;
 }
 
-export function EmptyState({ icon: Icon, title, description, action }: EmptyStateProps) {
+export function EmptyState({ icon: Icon, title, description, action, headingLevel = 3 }: EmptyStateProps) {
+  const Heading = `h${headingLevel}` as const;
   return (
     <div
       style={{
@@ -37,9 +40,9 @@ export function EmptyState({ icon: Icon, title, description, action }: EmptyStat
         <Icon size={24} aria-hidden />
       </span>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', maxWidth: '38ch' }}>
-        <h3 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-1)', margin: 0 }}>
+        <Heading style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-1)', margin: 0 }}>
           {title}
-        </h3>
+        </Heading>
         {description && (
           <p style={{ fontSize: '14px', color: 'var(--text-3)', margin: 0, lineHeight: 1.5 }}>
             {description}

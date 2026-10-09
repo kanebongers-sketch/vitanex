@@ -15,6 +15,7 @@ export function GezondheidVerwijderen() {
   const { toast } = useToast()
   const [open, setOpen] = useState(false)
   const [bezig, setBezig] = useState(false)
+  const [gewist, setGewist] = useState(false)
 
   async function verwijder() {
     setBezig(true)
@@ -23,6 +24,7 @@ export function GezondheidVerwijderen() {
       if (!res.ok) throw new Error()
       try { localStorage.removeItem('mf-health-sync') } catch { /* geen opslag beschikbaar */ }
       setOpen(false)
+      setGewist(true)
       toast({ title: 'Je gezondheidsdata is verwijderd.', description: 'Trek ook de toegang in bij Health Connect of Apple Health, anders komt nieuwe data weer binnen.', variant: 'success' })
     } catch {
       toast({ title: 'Verwijderen lukte niet.', description: 'Probeer het opnieuw of mail info@mentaforce.nl.', variant: 'error' })
@@ -53,6 +55,9 @@ export function GezondheidVerwijderen() {
           </div>
         </DialogContent>
       </DialogRoot>
+      <p role="status" className="text-xs mt-3" style={{ color: 'var(--text-2)' }}>
+        {gewist ? 'Gewist. Trek nu ook de toegang in bij Health Connect of Apple Health, anders komt er nieuwe data binnen.' : ''}
+      </p>
     </Card>
   )
 }

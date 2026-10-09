@@ -4,7 +4,7 @@
 // actie. De kaart zelf en het formulier zijn presentational.
 
 import Link from 'next/link'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { CalendarDays } from 'lucide-react'
 import { Capacitor } from '@capacitor/core'
@@ -65,6 +65,7 @@ export function VandaagScherm() {
   const [inchecken, setInchecken] = useState(false)
   const [rekening, setRekening] = useState<Rekening | null>(null)
   const [bijgewerkt, setBijgewerkt] = useState<Bijgewerkt | null>(null)
+  const kopRef = useRef<HTMLHeadingElement>(null)
 
   const verwerk = useCallback((uit: Geladen) => {
     if (uit.soort === 'uitgelogd') { router.replace('/login?next=/1'); return }
@@ -98,7 +99,10 @@ export function VandaagScherm() {
       const data = (await res.json()) as { kaart: Kaart | null }
       if (data.kaart) setStatus({ soort: 'klaar', kaart: data.kaart })
       else await laad()
-      window.scrollTo({ top: 0, behavior: 'smooth' })
+      const rustig = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      window.scrollTo({ top: 0, behavior: rustig ? 'auto' : 'smooth' })
+      // Het formulier verdwijnt; zet de focus op de nieuwe kaart zodat die wordt voorgelezen.
+      requestAnimationFrame(() => kopRef.current?.focus({ preventScroll: true }))
     } catch {
       toast({ title: 'Geen verbinding. Je check-in is niet opgeslagen.', variant: 'error' })
     } finally {
@@ -131,7 +135,9 @@ export function VandaagScherm() {
       }
     >
       {status.soort === 'laden' && (
-        <div aria-busy="true" aria-label="Je kaart wordt gemaakt" style={{ display: 'grid', gap: 16 }}>
+        <div role="status" aria-busy="true" style={{ display: 'grid', gap: 16 }}>
+          <h1 className="sr-only">Vandaag</h1>
+          <span className="sr-only">Je kaart wordt gemaakt…</span>
           <Skeleton width="40%" height={14} />
           <Skeleton width="85%" height={44} />
           <Skeleton width="70%" height={16} />
@@ -140,13 +146,14 @@ export function VandaagScherm() {
       )}
       {status.soort === 'fout' && (
         <div role="alert" style={{ display: 'grid', gap: 16 }}>
+          <h1 className="sr-only">Vandaag</h1>
           <p style={{ margin: 0, fontSize: 18, color: 'var(--text-1)' }}>{status.tekst}</p>
           <div><Button variant="secondary" onClick={() => { setStatus({ soort: 'laden' }); void laad() }}>Opnieuw proberen</Button></div>
         </div>
       )}
       {status.soort === 'klaar' && (
         <div style={{ display: 'grid', gap: 48 }}>
-          <VandaagKaart kaart={status.kaart} gekozen={gekozen} onKies={(a, k) => void kies(a, k)} />
+          <VandaagKaart kopRef={kopRef} kaart={status.kaart} gekozen={gekozen} onKies={(a, k) => void kies(a, k)} />
           <BijgewerktTekst bijgewerkt={bijgewerkt} />
           {status.kaart.acties.some((a) => a.knop === 'checkin') && (
             <CheckInFormulier bezig={inchecken} onVerstuur={(w) => void checkIn(w)} />

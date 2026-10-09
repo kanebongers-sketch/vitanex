@@ -17,10 +17,10 @@ function Regel({ regel }: { regel: RekeningRegel }) {
   const titel = TITELS[regel.id]
   return (
     <li style={{ display: 'grid', gap: 14, padding: '28px 0', borderTop: '1px solid var(--border)' }}>
-      <p style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-3)' }}>
+      <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, fontWeight: 500, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-3)' }}>
         {titel}
         <span style={{ color: regel.goed ? 'var(--brand)' : 'var(--text-2)' }}>· {regel.goed ? 'in de zone' : 'kost je iets'}</span>
-      </p>
+      </h3>
       <p style={{ margin: 0, fontSize: 16, color: 'var(--text-1)' }}>{regel.jij}</p>
       <div>
         <p style={{ margin: 0, fontSize: 'clamp(44px, 12vw, 64px)', lineHeight: 1, letterSpacing: '-0.03em', fontWeight: 600, color: regel.goed ? 'var(--brand)' : 'var(--text-1)' }}>
@@ -34,10 +34,10 @@ function Regel({ regel }: { regel: RekeningRegel }) {
           {regel.stap}
         </p>
       )}
-      <ul aria-label="Bronnen" style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 4 }}>
+      <ul aria-label="Bronnen" style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 8 }}>
         {regel.bronnen.map((b) => (
           <li key={b.url} style={{ fontSize: 12, lineHeight: 1.5 }}>
-            <a href={b.url} target="_blank" rel="noopener noreferrer" className="mf-vandaag-link" style={{ color: 'var(--text-3)' }}>
+            <a href={b.url} target="_blank" rel="noopener noreferrer" className="mf-vandaag-link" style={{ color: 'var(--text-3)', display: 'inline-block', padding: '3px 0' }}>
               Bron: {b.titel}
             </a>
           </li>

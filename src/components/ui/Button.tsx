@@ -1,6 +1,6 @@
 'use client';
 
-import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from 'react';
+import { forwardRef, type ButtonHTMLAttributes, type MouseEvent, type ReactNode } from 'react';
 import { Loader2 } from 'lucide-react';
 
 type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
@@ -46,17 +46,31 @@ const VARIANT_STYLE: Record<ButtonVariant, React.CSSProperties> = {
 const ICON_SIZE: Record<ButtonSize, number> = { sm: 15, md: 16, lg: 18 };
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
-  { variant = 'primary', size = 'md', loading = false, leftIcon, rightIcon, disabled, children, style, className, ...rest },
+  { variant = 'primary', size = 'md', loading = false, leftIcon, rightIcon, disabled, children, style, className, onClick, ...rest },
   ref,
 ) {
+  // Tijdens `loading` géén echt `disabled`: een gefocuste knop die disabled wordt
+  // verliest z'n focus (WCAG 2.4.3). We melden 'm als aria-disabled en negeren clicks.
+  const isLoadingOnly = loading && !disabled;
   const isDisabled = disabled || loading;
   const sz = SIZE_STYLE[size];
+
+  function handleClick(event: MouseEvent<HTMLButtonElement>) {
+    if (isLoadingOnly) {
+      event.preventDefault();
+      return;
+    }
+    onClick?.(event);
+  }
 
   return (
     <button
       ref={ref}
-      disabled={isDisabled}
+      {...rest}
+      disabled={disabled}
+      aria-disabled={isLoadingOnly ? true : rest['aria-disabled']}
       aria-busy={loading || undefined}
+      onClick={handleClick}
       className={`mf-pressable mf-ui-btn${className ? ` ${className}` : ''}`}
       style={{
         display: 'inline-flex',
@@ -75,7 +89,6 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
         ...VARIANT_STYLE[variant],
         ...style,
       }}
-      {...rest}
     >
       {loading ? (
         <Loader2 size={ICON_SIZE[size]} className="mf-btn-spin" aria-hidden />
@@ -87,7 +100,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
       <style>{`
         .mf-btn-spin { animation: mf-spin 0.7s linear infinite; }
         @media (prefers-reduced-motion: reduce) { .mf-btn-spin { animation: none; } }
-        .mf-ui-btn:hover:not(:disabled) { opacity: 0.88; }
+        .mf-ui-btn:hover:not(:disabled):not([aria-disabled='true']) { opacity: 0.88; }
         .mf-ui-btn:focus-visible {
           outline: 2px solid var(--mentaforce-primary);
           outline-offset: 2px;

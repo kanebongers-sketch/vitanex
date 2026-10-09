@@ -51,8 +51,64 @@ async function haalPlan(): Promise<PlanRegel[] | 'uitgelogd' | 'fout'> {
 }
 
 const veld: React.CSSProperties = {
-  minHeight: 44, padding: '0 12px', borderRadius: 10, fontSize: 15, fontFamily: 'inherit',
+  minHeight: 44, padding: '0 12px', borderRadius: 10, fontSize: 15, fontFamily: 'inherit', width: '100%',
   color: 'var(--text-1)', background: 'var(--bg-subtle)', border: '1px solid var(--border-strong)',
+  // Anders tekent de browser het klok-icoon en de keuzelijst licht: onzichtbaar op navy.
+  colorScheme: 'dark',
+}
+
+const veldLabel: React.CSSProperties = { display: 'grid', gap: 6, fontSize: 13, color: 'var(--text-3)' }
+
+interface DagRegelProps {
+  dag: { weekdag: number; naam: string }
+  regel: PlanRegel
+  fout: boolean
+  onWijzig: (deel: Partial<PlanRegel>) => void
+}
+
+function DagRegel({ dag, regel: r, fout, onWijzig }: DagRegelProps) {
+  const id = `dag-${dag.weekdag}`
+  const naam = dag.naam.toLowerCase()
+  return (
+    <li style={{ padding: '16px 0', borderTop: '1px solid var(--border)', display: 'grid', gap: 12 }}>
+      <label htmlFor={id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, cursor: 'pointer', minHeight: 32 }}>
+        <span style={{ fontSize: 17, fontWeight: 600 }}>{dag.naam}</span>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 10, fontSize: 14, color: r.actief ? 'var(--brand)' : 'var(--text-3)' }}>
+          <span aria-hidden>{r.actief ? 'Training' : 'Rust'}</span>
+          <input id={id} type="checkbox" role="switch" aria-label={`Training op ${naam}`} checked={r.actief} onChange={(e) => onWijzig({ actief: e.target.checked })} style={{ width: 20, height: 20, accentColor: 'var(--brand)' }} />
+        </span>
+      </label>
+      {r.actief && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: 10 }}>
+          <label style={{ ...veldLabel, gridColumn: '1 / -1' }}>
+            Wat train je
+            <input
+              id={`soort-${dag.weekdag}`} placeholder="Bijv. Benen" maxLength={40} value={r.soort}
+              aria-invalid={fout || undefined} aria-describedby={fout ? `fout-${dag.weekdag}` : undefined}
+              onChange={(e) => onWijzig({ soort: e.target.value })}
+              style={{ ...veld, borderColor: fout ? 'var(--text-1)' : 'var(--border-strong)' }}
+            />
+          </label>
+          {fout && (
+            <p id={`fout-${dag.weekdag}`} style={{ gridColumn: '1 / -1', margin: 0, fontSize: 13, color: 'var(--text-1)' }}>
+              Geef deze trainingsdag een naam, bijvoorbeeld &quot;Benen&quot;.
+            </p>
+          )}
+          <label style={veldLabel}>
+            Zwaarte
+            <select value={r.intensiteit} onChange={(e) => onWijzig({ intensiteit: e.target.value as Intensiteit })} style={veld}>
+              <option value="zwaar">Zwaar</option>
+              <option value="licht">Licht</option>
+            </select>
+          </label>
+          <label style={veldLabel}>
+            Tijd (optioneel)
+            <input type="time" value={r.tijd} onChange={(e) => onWijzig({ tijd: e.target.value })} style={veld} />
+          </label>
+        </div>
+      )}
+    </li>
+  )
 }
 
 export function PlanEditor() {
@@ -60,6 +116,7 @@ export function PlanEditor() {
   const { toast } = useToast()
   const [regels, setRegels] = useState<PlanRegel[] | null>(null)
   const [opslaan, setOpslaan] = useState(false)
+  const [fouten, setFouten] = useState<ReadonlySet<number>>(new Set())
 
   const [laadFout, setLaadFout] = useState(false)
 
@@ -78,13 +135,18 @@ export function PlanEditor() {
 
   function wijzig(weekdag: number, deel: Partial<PlanRegel>) {
     setRegels((rs) => rs && rs.map((r) => (r.weekdag === weekdag ? { ...r, ...deel } : r)))
+    if (deel.soort?.trim() || deel.actief === false) {
+      setFouten((f) => (f.has(weekdag) ? new Set([...f].filter((w) => w !== weekdag)) : f))
+    }
   }
 
   async function bewaar() {
     if (!regels) return
-    const leeg = regels.find((r) => r.actief && r.soort.trim() === '')
-    if (leeg) {
-      toast({ title: 'Geef elke trainingsdag een naam.', description: 'Bijvoorbeeld "Benen" of "Hardlopen".', variant: 'warning' })
+    const leeg = DAGEN.map((d) => regels.find((r) => r.weekdag === d.weekdag))
+      .filter((r): r is PlanRegel => !!r && r.actief && r.soort.trim() === '')
+    setFouten(new Set(leeg.map((r) => r.weekdag)))
+    if (leeg.length > 0) {
+      requestAnimationFrame(() => document.getElementById(`soort-${leeg[0].weekdag}`)?.focus())
       return
     }
     setOpslaan(true)
@@ -126,7 +188,8 @@ export function PlanEditor() {
           Je plan kon niet worden geladen. Ververs de pagina om het opnieuw te proberen.
         </p>
       ) : !regels ? (
-        <div aria-busy="true" aria-label="Plan laden" style={{ display: 'grid', gap: 12 }}>
+        <div role="status" aria-busy="true" style={{ display: 'grid', gap: 12 }}>
+          <span className="sr-only">Je plan wordt geladen…</span>
           {DAGEN.map((d) => <Skeleton key={d.weekdag} height={52} />)}
         </div>
       ) : (
@@ -134,29 +197,9 @@ export function PlanEditor() {
           <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
             {DAGEN.map((d) => {
               const r = regels.find((x) => x.weekdag === d.weekdag)
-              if (!r) return null
-              const id = `dag-${d.weekdag}`
-              return (
-                <li key={d.weekdag} style={{ padding: '16px 0', borderTop: '1px solid var(--border)', display: 'grid', gap: 12 }}>
-                  <label htmlFor={id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, cursor: 'pointer', minHeight: 32 }}>
-                    <span style={{ fontSize: 17, fontWeight: 600 }}>{d.naam}</span>
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 10, fontSize: 14, color: r.actief ? 'var(--brand)' : 'var(--text-3)' }}>
-                      {r.actief ? 'Training' : 'Rust'}
-                      <input id={id} type="checkbox" checked={r.actief} onChange={(e) => wijzig(d.weekdag, { actief: e.target.checked })} style={{ width: 20, height: 20, accentColor: 'var(--brand)' }} />
-                    </span>
-                  </label>
-                  {r.actief && (
-                    <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: 8 }}>
-                      <input aria-label={`Training op ${d.naam.toLowerCase()}`} placeholder="Bijv. Benen" maxLength={40} value={r.soort} onChange={(e) => wijzig(d.weekdag, { soort: e.target.value })} style={{ ...veld, gridColumn: '1 / -1' }} />
-                      <select aria-label={`Zwaarte op ${d.naam.toLowerCase()}`} value={r.intensiteit} onChange={(e) => wijzig(d.weekdag, { intensiteit: e.target.value as Intensiteit })} style={veld}>
-                        <option value="zwaar">Zwaar</option>
-                        <option value="licht">Licht</option>
-                      </select>
-                      <input aria-label={`Tijd op ${d.naam.toLowerCase()} (optioneel)`} type="time" value={r.tijd} onChange={(e) => wijzig(d.weekdag, { tijd: e.target.value })} style={veld} />
-                    </div>
-                  )}
-                </li>
-              )
+              return r ? (
+                <DagRegel key={d.weekdag} dag={d} regel={r} fout={fouten.has(d.weekdag)} onWijzig={(deel) => wijzig(d.weekdag, deel)} />
+              ) : null
             })}
           </ul>
           <Button type="submit" size="lg" loading={opslaan}>Plan opslaan</Button>

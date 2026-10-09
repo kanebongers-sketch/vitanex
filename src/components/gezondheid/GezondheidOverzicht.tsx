@@ -76,7 +76,8 @@ export function GezondheidOverzicht() {
       </header>
 
       {status.soort === 'laden' && (
-        <div className={styles.laden} aria-busy="true" aria-label="Je gezondheidsdata wordt geladen">
+        <div className={styles.laden} role="status" aria-busy="true">
+          <span className={styles.srOnly}>Je gezondheidsdata wordt geladen…</span>
           <Skeleton width="70%" height={32} />
           <Skeleton width="55%" height={32} />
           <Skeleton width="100%" height={180} radius="var(--radius-lg)" />

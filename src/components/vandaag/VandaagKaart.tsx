@@ -27,18 +27,11 @@ function ActieRij({ actie, keuze, onKies }: ActieRijProps) {
   const [toonWaarom, setToonWaarom] = useState(false)
   const klaar = keuze === 'oke'
   const overgeslagen = keuze === 'nee'
+  const titelId = `actie-${actie.id}`
+  const waaromId = `waarom-${actie.id}`
 
   return (
-    <li
-      style={{
-        display: 'grid',
-        gap: 10,
-        padding: '18px 0',
-        borderTop: '1px solid var(--border)',
-        opacity: overgeslagen ? 0.55 : 1,
-        transition: 'opacity 200ms ease',
-      }}
-    >
+    <li style={{ display: 'grid', gap: 10, padding: '18px 0', borderTop: '1px solid var(--border)' }}>
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
         <span
           aria-hidden
@@ -53,26 +46,40 @@ function ActieRij({ actie, keuze, onKies }: ActieRijProps) {
           }}
         />
         <div style={{ flex: 1, minWidth: 0 }}>
-          <p style={{ margin: 0, fontSize: 18, fontWeight: 600, color: 'var(--text-1)', lineHeight: 1.35 }}>{actie.titel}</p>
+          <p
+            id={titelId}
+            style={{
+              margin: 0, fontSize: 18, fontWeight: 600, lineHeight: 1.35,
+              color: overgeslagen ? 'var(--text-3)' : 'var(--text-1)',
+              textDecoration: overgeslagen ? 'line-through' : 'none',
+            }}
+          >
+            {actie.titel}
+            {overgeslagen && <span className="sr-only"> (niet vandaag)</span>}
+          </p>
           <button
             type="button"
             aria-expanded={toonWaarom}
+            aria-controls={waaromId}
             onClick={() => setToonWaarom((w) => !w)}
             className="mf-vandaag-link"
-            style={{ background: 'none', border: 0, padding: 0, marginTop: 4, fontSize: 13, color: 'var(--text-3)', cursor: 'pointer', fontFamily: 'inherit' }}
+            style={{ background: 'none', border: 0, padding: '4px 0', minHeight: 24, marginTop: 2, fontSize: 13, color: 'var(--text-3)', cursor: 'pointer', fontFamily: 'inherit' }}
           >
-            {toonWaarom ? 'Verberg waarom' : 'Waarom?'}
+            Waarom<span className="sr-only">: {actie.titel}</span>?
           </button>
-          {toonWaarom && <p style={{ margin: '6px 0 0', fontSize: 14, color: 'var(--text-2)', lineHeight: 1.5 }}>{actie.waarom}</p>}
+          <p id={waaromId} hidden={!toonWaarom} style={{ margin: '6px 0 0', fontSize: 14, color: 'var(--text-2)', lineHeight: 1.5 }}>
+            {actie.waarom}
+          </p>
         </div>
       </div>
       <div style={{ display: 'flex', gap: 8, paddingLeft: 20, flexWrap: 'wrap' }}>
-        <ActieKnop actie={actie} keuze={keuze} onKies={onKies} />
+        <ActieKnop actie={actie} keuze={keuze} onKies={onKies} titelId={titelId} />
         {actie.knop !== 'checkin' && actie.knop !== 'plan' && !klaar && (
           <button
             type="button"
-            onClick={() => onKies(actie, 'nee')}
+            onClick={() => onKies(actie, overgeslagen ? 'later' : 'nee')}
             aria-pressed={overgeslagen}
+            aria-describedby={titelId}
             className="mf-pressable mf-vandaag-knop"
             style={knopStijl(false)}
           >
@@ -103,41 +110,44 @@ function knopStijl(primair: boolean): React.CSSProperties {
   }
 }
 
-function ActieKnop({ actie, keuze, onKies }: ActieRijProps) {
+function ActieKnop({ actie, keuze, onKies, titelId }: ActieRijProps & { titelId: string }) {
   if (actie.knop === 'checkin') {
-    return <a href="#checkin" className="mf-pressable mf-vandaag-knop" style={knopStijl(true)}>Inchecken</a>
+    return <a href="#checkin" aria-describedby={titelId} className="mf-pressable mf-vandaag-knop" style={knopStijl(true)}>Inchecken</a>
   }
   if (actie.knop === 'plan') {
-    return <Link href="/1/plan" className="mf-pressable mf-vandaag-knop" style={knopStijl(true)}>Plan invullen</Link>
+    return <Link href="/1/plan" aria-describedby={titelId} className="mf-pressable mf-vandaag-knop" style={knopStijl(true)}>Plan invullen</Link>
   }
-  if (keuze === 'oke') {
-    return (
-      <button type="button" onClick={() => onKies(actie, 'later')} className="mf-pressable mf-vandaag-knop" style={knopStijl(false)} aria-label={`${actie.titel}: gedaan, tik om ongedaan te maken`}>
-        <Check size={15} aria-hidden style={{ color: 'var(--brand)' }} /> Gedaan
-      </button>
-    )
-  }
+  const gedaan = keuze === 'oke'
   return (
-    <button type="button" onClick={() => onKies(actie, 'oke')} className="mf-pressable mf-vandaag-knop" style={knopStijl(true)}>
-      <Check size={15} aria-hidden /> Doe ik
+    <button
+      type="button"
+      aria-pressed={gedaan}
+      aria-describedby={titelId}
+      onClick={() => onKies(actie, gedaan ? 'later' : 'oke')}
+      className="mf-pressable mf-vandaag-knop"
+      style={knopStijl(!gedaan)}
+    >
+      <Check size={15} aria-hidden style={gedaan ? { color: 'var(--brand)' } : undefined} /> {gedaan ? 'Gedaan' : 'Doe ik'}
     </button>
   )
 }
 
 interface VandaagKaartProps {
+  /** Krijgt de focus na een check-in, zodat de nieuwe kaart wordt voorgelezen. */
+  kopRef?: React.Ref<HTMLHeadingElement>
   kaart: Kaart
   gekozen: Readonly<Record<string, Keuze>>
   onKies: (actie: Actie, keuze: Keuze) => void
 }
 
-export function VandaagKaart({ kaart, gekozen, onKies }: VandaagKaartProps) {
+export function VandaagKaart({ kopRef, kaart, gekozen, onKies }: VandaagKaartProps) {
   return (
     <article aria-labelledby="vandaag-kop" style={{ display: 'grid', gap: 28 }}>
       <header style={{ display: 'grid', gap: 12 }}>
         <p style={{ margin: 0, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--brand)' }}>
           {datumTekst(kaart.datum)}
         </p>
-        <h1 id="vandaag-kop" style={{ margin: 0, fontSize: 'clamp(32px, 8vw, 48px)', lineHeight: 1.05, letterSpacing: '-0.02em', fontWeight: 600, color: 'var(--text-1)' }}>
+        <h1 id="vandaag-kop" ref={kopRef} tabIndex={-1} style={{ outline: 'none', margin: 0, fontSize: 'clamp(32px, 8vw, 48px)', lineHeight: 1.05, letterSpacing: '-0.02em', fontWeight: 600, color: 'var(--text-1)' }}>
           {kaart.kop}
         </h1>
       </header>

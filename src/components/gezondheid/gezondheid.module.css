@@ -398,7 +398,14 @@
 }
 
 .staafGekozen { fill: var(--brand); }
-.staafOnvolledig { fill: color-mix(in srgb, var(--brand) 25%, transparent); }
+.staafOnvolledig {
+  /* Lopende dag: gestippelde cyaan rand geeft vorm-contrast (≥ 3:1), niet alleen een lagere alpha. */
+  fill: color-mix(in srgb, var(--brand) 20%, transparent);
+  stroke: var(--brand);
+  stroke-width: 1.5;
+  stroke-dasharray: 3 2;
+  vector-effect: non-scaling-stroke;
+}
 
 .lijn {
   fill: none;

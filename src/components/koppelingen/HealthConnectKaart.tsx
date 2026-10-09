@@ -87,7 +87,7 @@ export function HealthConnectKaart() {
             <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-1)' }}>Health Connect</p>
             <p style={{ fontSize: 12, color: 'var(--text-4)' }}>Samsung Health · Fitbit · Google Fit</p>
             <div style={{ marginTop: 4 }}>
-              <Badge variant={gekoppeld ? 'success' : 'neutral'}>{gekoppeld ? '● Gekoppeld' : '○ Niet gekoppeld'}</Badge>
+              <Badge variant={gekoppeld ? 'success' : 'neutral'}><span aria-hidden>{gekoppeld ? '● ' : '○ '}</span>{gekoppeld ? 'Gekoppeld' : 'Niet gekoppeld'}</Badge>
             </div>
           </div>
         </div>
@@ -133,7 +133,7 @@ function Uitleg({ toestand }: { toestand: Toestand | null }) {
   return (
     <p style={tekst}>
       Toegang tot {toestand.rechten} van de {HC_LEESTYPES.length} soorten gegevens.{' '}
-      <button type="button" onClick={() => void openHealthConnect(false)} className="mf-vandaag-link" style={{ background: 'none', border: 0, padding: 0, color: 'var(--brand)', cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit' }}>
+      <button type="button" onClick={() => void openHealthConnect(false)} className="mf-vandaag-link" style={{ background: 'none', border: 0, padding: '2px 0', color: 'var(--brand)', cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit', textDecoration: 'underline', textUnderlineOffset: 3 }}>
         Aanpassen in Health Connect
       </button>
     </p>
