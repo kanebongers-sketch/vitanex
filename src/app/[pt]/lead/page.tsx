@@ -1,9 +1,11 @@
-import { ptGegevens } from '@/lib/lifeos/pt-dashboard/sessie'
+import { meekijker, ptGegevens } from '@/lib/lifeos/pt-dashboard/sessie'
 import { meestGebruikteClub } from '@/lib/lifeos/pt-dashboard/overzicht'
 import { LeadsBeheer } from '@/components/lifeos/pt-dashboard/LeadsBeheer'
 import { Foutmelding } from '@/components/lifeos/os/Foutmelding'
+import { EigenaarLeads } from '@/components/lifeos/pt-eigenaar/EigenaarLeads'
+import { param } from '@/components/lifeos/pt-eigenaar/FilterRij'
 
-// /<naam>/lead — de lead tracker van de PT'er.
+// /<naam>/lead — de lead tracker van de PT'er (eigenaar: alle leads van het team).
 
 interface Props {
   params: Promise<{ pt: string }>
@@ -12,6 +14,8 @@ interface Props {
 
 export default async function LeadsPagina({ params, searchParams }: Props) {
   const [{ pt }, zoek] = await Promise.all([params, searchParams])
+  const mee = await meekijker(pt)
+  if (mee) return <EigenaarLeads code={mee.code} pt={param(zoek, 'pt')} toon={param(zoek, 'toon')} />
   const g = await ptGegevens(pt)
   if (!g) return null
   if (!g.leads) return <Foutmelding bericht="Je leads konden niet geladen worden. Vernieuw de pagina." />

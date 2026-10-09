@@ -5,7 +5,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { leesIntakeAntwoorden } from '@/lib/lifeos/pt-dashboard/intake'
 import { bewaarIntake } from '@/lib/lifeos/pt-dashboard/dossier-opslag'
-import { GEEN_CACHE, foutAntwoord, ingelogdeLink, isUuid } from '@/lib/lifeos/leads/toegang'
+import { GEEN_CACHE, foutAntwoord, isUuid, klantToegang } from '@/lib/lifeos/leads/toegang'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -17,7 +17,7 @@ interface Context {
 export async function PUT(req: NextRequest, ctx: Context) {
   const { code, id } = await ctx.params
   if (!isUuid(id)) return foutAntwoord('Klant bestaat niet.', 404)
-  const r = await ingelogdeLink(req, code)
+  const r = await klantToegang(req, code, id)
   if (r instanceof NextResponse) return r
   const body: unknown = await req.json().catch(() => null)
   if (typeof body !== 'object' || body === null || !('antwoorden' in body)) return foutAntwoord('Ongeldige invoer.', 400)

@@ -41,7 +41,7 @@ export function PinPoort({ code, pinStatus }: { code: string; pinStatus: PinStat
       <div role="status" className="ptd-form ptd-smal">
         <h3>Je pincode wacht op goedkeuring</h3>
         <p className="ptd-tekst">
-          Kane keurt je pincode goed in het dashboard. Daarna log je hier in met die pincode en zie je je leads en klanten.
+          Kane keurt je pincode goed in het dashboard. Daarna log je hier in met die pincode en staat je app klaar.
           Kom straks terug of vernieuw de pagina.
         </p>
         <div><button type="button" className="ptd-knop" onClick={() => router.refresh()}>Vernieuwen</button></div>

@@ -2,12 +2,23 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { BookOpen, LayoutDashboard, MessagesSquare, UserPlus, Users, type LucideIcon } from 'lucide-react'
+import { BookOpen, LayoutDashboard, MessagesSquare, Settings2, UserPlus, Users, type LucideIcon } from 'lucide-react'
+import type { LinkRol } from '@/lib/lifeos/leads/links'
 
 // De app-navigatie: op de telefoon een tabbalk onderin (duimbereik, zoals een
-// echte app), vanaf tablet een rij bovenaan. Actief = aria-current.
+// echte app), vanaf tablet een rij bovenaan. Actief = aria-current. Een eigenaar
+// krijgt dezelfde tabs, maar "Home" heet "Team" (ook actief op /team/<id>); de
+// beheerder (Kane) krijgt daarnaast "Beheer".
 
-const ITEMS: { pad: string; label: string; icoon: LucideIcon }[] = [
+interface Item {
+  pad: string
+  label: string
+  icoon: LucideIcon
+  /** Subpaden die dit item ook actief maken. */
+  ook?: string
+}
+
+const ITEMS: Item[] = [
   { pad: '', label: 'Home', icoon: LayoutDashboard },
   { pad: '/lead', label: 'Leads', icoon: UserPlus },
   { pad: '/klanten', label: 'Klanten', icoon: Users },
@@ -15,13 +26,18 @@ const ITEMS: { pad: string; label: string; icoon: LucideIcon }[] = [
   { pad: '/bibliotheek', label: 'Kennis', icoon: BookOpen },
 ]
 
-export function PtNav({ code }: { code: string }) {
+const EIGENAAR_ITEMS: Item[] = ITEMS.map((i) => (i.pad === '' ? { ...i, label: 'Team', ook: '/team' } : i))
+const BEHEERDER_ITEMS: Item[] = [...EIGENAAR_ITEMS.slice(0, 4), { pad: '/beheer', label: 'Beheer', icoon: Settings2 }, ...EIGENAAR_ITEMS.slice(4)]
+const ITEMS_VOOR: Record<LinkRol, Item[]> = { pt: ITEMS, eigenaar: EIGENAAR_ITEMS, beheerder: BEHEERDER_ITEMS }
+
+export function PtNav({ code, rol = 'pt' }: { code: string; rol?: LinkRol }) {
   const pad = usePathname()
   return (
     <nav className="ff-tabs" aria-label="PT-app">
-      {ITEMS.map(({ pad: p, label, icoon: Icoon }) => {
+      {ITEMS_VOOR[rol].map(({ pad: p, label, icoon: Icoon, ook }) => {
         const href = `/${code}${p}`
-        const actief = p === '' ? pad === href : pad === href || pad.startsWith(`${href}/`)
+        const actief =
+          (p === '' ? pad === href : pad === href || pad.startsWith(`${href}/`)) || (!!ook && pad.startsWith(`/${code}${ook}/`))
         return (
           <Link key={href} href={href} aria-current={actief ? 'page' : undefined}>
             <Icoon aria-hidden strokeWidth={2} />

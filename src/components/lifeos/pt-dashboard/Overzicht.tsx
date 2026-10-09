@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { CalendarClock, Plus } from 'lucide-react'
 import { STAP_LABEL, STATUS_LABEL, type Lead } from '@/lib/lifeos/leads/leads'
-import { ABONNEMENT, eindeVastePeriode, euro } from '@/lib/lifeos/pt-dashboard/abonnementen'
+import { ABONNEMENT, eindeVastePeriode } from '@/lib/lifeos/pt-dashboard/abonnementen'
 import type { PtOverzicht } from '@/lib/lifeos/pt-dashboard/overzicht'
 import { dagKort, relatief } from '@/lib/lifeos/pt-dashboard/datum'
 import { funnel, weekReeks } from '@/lib/lifeos/pt-dashboard/analyse'
@@ -39,7 +39,7 @@ export function Overzicht({ code, vandaag, o, leads, doelen }: Props) {
           uitleg={o.leads.conversie === null ? 'nog geen leads' : `${o.leads.conversie}% van alle leads`}
           accent
         />
-        <Tegel getal={euro(o.klanten.maandwaarde)} label="Abonnementen p/m" uitleg={`${o.klanten.lopend} lopend · incl. btw`} />
+        <Tegel getal={String(o.klanten.lopend)} label="Lopende klanten" uitleg={`${o.klanten.sessiesPerWeek} sessies per week`} />
       </div>
 
       {doelen ? <DoelVoortgang weergave={doelen} /> : null}

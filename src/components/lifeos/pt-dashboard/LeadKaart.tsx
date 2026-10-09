@@ -10,7 +10,7 @@ import { geleden, relatief } from '@/lib/lifeos/pt-dashboard/datum'
 import { ContactActies } from './velden'
 
 // Eén lead in de lijst. Met `onBewerk`/`onStatus` is hij bewerkbaar (PT'er);
-// zonder is hij alleen-lezen (Kane in LifeOS).
+// zonder is hij alleen-lezen (Kane in LifeOS, de eigenaar in de PT-app).
 
 interface Props {
   lead: Lead
@@ -19,6 +19,8 @@ interface Props {
   onStatus?: (s: LeadStatus) => void
   /** Link om van deze klant-geworden lead een abonnement te maken. */
   klantHref?: string
+  /** Welke PT'er de lead sprak — in lijsten van het hele team. */
+  trainer?: string
 }
 
 export function statusBadge(status: LeadStatus): string {
@@ -27,7 +29,7 @@ export function statusBadge(status: LeadStatus): string {
   return 'ptd-badge'
 }
 
-export function LeadKaart({ lead, vandaag, onBewerk, onStatus, klantHref }: Props) {
+export function LeadKaart({ lead, vandaag, onBewerk, onStatus, klantHref, trainer }: Props) {
   const teLaat = moetOpvolgen(lead, vandaag) && lead.opvolgdatum !== vandaag
   const opvolgVandaag = moetOpvolgen(lead, vandaag) && lead.opvolgdatum === vandaag
   return (
@@ -37,6 +39,7 @@ export function LeadKaart({ lead, vandaag, onBewerk, onStatus, klantHref }: Prop
         <span className={statusBadge(lead.status)}>{STATUS_LABEL[lead.status]}</span>
       </div>
       <div className="ptd-meta">
+        {trainer ? <span className="ptd-trainer">PT {trainer}</span> : null}
         <span>Gesproken {geleden(lead.gesprokenOp, vandaag)}</span>
         {lead.club ? <span>{CLUB_LABEL[lead.club]}</span> : null}
         <span>{BRON_LABEL[lead.bron]}</span>

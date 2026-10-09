@@ -8,7 +8,7 @@ import {
 } from '@/lib/lifeos/leads/leads'
 import { CLUBS, CLUB_LABEL, isClub, type Club } from '@/lib/lifeos/pt-dashboard/clubs'
 import { plusDagen } from '@/lib/lifeos/pt-dashboard/abonnementen'
-import { Keuzes, Veld } from './velden'
+import { Keuzes, TrainerVeld, Veld } from './velden'
 import { leesLeeg, ptApi } from './api'
 
 // Eén lead toevoegen of bijwerken. Snel: naam + bron is genoeg; de rest
@@ -23,6 +23,9 @@ interface Props {
   onOpgeslagen: (lead: Lead) => void
   onVerwijderd?: (id: string) => void
   onAnnuleer: () => void
+  /** Alleen de beheerder: kies (of wissel) de trainer van deze lead. */
+  trainers?: readonly { id: string; naam: string }[]
+  trainerId?: string
 }
 
 function leeg(vandaag: string, club: Club | null): NieuweLead {
@@ -38,9 +41,10 @@ const SNEL = [
   { label: 'Over een week', dagen: 7 },
 ] as const
 
-export function LeadFormulier({ code, vandaag, standaardClub, lead, onOpgeslagen, onVerwijderd, onAnnuleer }: Props) {
+export function LeadFormulier({ code, vandaag, standaardClub, lead, onOpgeslagen, onVerwijderd, onAnnuleer, trainers, trainerId }: Props) {
   const [v, setV] = useState<NieuweLead>(() => (lead ? { ...lead } : leeg(vandaag, standaardClub)))
   const [meer, setMeer] = useState(Boolean(lead))
+  const [trainer, setTrainer] = useState(trainerId ?? trainers?.[0]?.id ?? '')
   const [bezig, setBezig] = useState(false)
   const [fout, setFout] = useState<string | null>(null)
   const zet = <K extends keyof NieuweLead>(k: K, w: NieuweLead[K]) => setV((x) => ({ ...x, [k]: w }))
@@ -52,9 +56,10 @@ export function LeadFormulier({ code, vandaag, standaardClub, lead, onOpgeslagen
     if (!v.naam.trim()) return setFout('Vul de naam in van wie je gesproken hebt.')
     setBezig(true)
     setFout(null)
+    const body = trainers ? { ...v, trainerId: trainer } : v
     const uit = lead
-      ? await ptApi(code, `leads/${lead.id}`, 'PUT', v, leesLead)
-      : await ptApi(code, 'leads', 'POST', v, leesLead)
+      ? await ptApi(code, `leads/${lead.id}`, 'PUT', body, leesLead)
+      : await ptApi(code, 'leads', 'POST', body, leesLead)
     setBezig(false)
     if (!uit.ok) return setFout(uit.fout)
     onOpgeslagen(uit.waarde)
@@ -73,6 +78,7 @@ export function LeadFormulier({ code, vandaag, standaardClub, lead, onOpgeslagen
     <form className="ptd-form" onSubmit={(e) => void opslaan(e)} aria-labelledby={`lf-${id}`}>
       <h3 id={`lf-${id}`}>{lead ? `${lead.naam} bijwerken` : 'Nieuwe lead'}</h3>
       <div className="ptd-raster">
+        {trainers ? <TrainerVeld id={`l-${id}`} trainers={trainers} waarde={trainer} onKies={setTrainer} /> : null}
         <Veld label="Naam *" id={`naam-${id}`}>
           <input id={`naam-${id}`} className="ptd-invoer" value={v.naam} onChange={(e) => zet('naam', e.target.value)} maxLength={120} autoComplete="off" required autoFocus={!lead} />
         </Veld>

@@ -15,9 +15,11 @@ interface Props {
   code: string
   klant: PtKlant
   onOpgeslagen: (k: PtKlant) => void
+  /** Meekijken (eigenaar): alleen lezen, geen opslaan. */
+  alleenLezen?: boolean
 }
 
-export function NotitiesPaneel({ code, klant, onOpgeslagen }: Props) {
+export function NotitiesPaneel({ code, klant, onOpgeslagen, alleenLezen = false }: Props) {
   const [tekst, setTekst] = useState(klant.notitie ?? '')
   const [bezig, setBezig] = useState(false)
   const [fout, setFout] = useState<string | null>(null)
@@ -50,6 +52,7 @@ export function NotitiesPaneel({ code, klant, onOpgeslagen }: Props) {
           rows={8}
           maxLength={MAX}
           value={tekst}
+          readOnly={alleenLezen}
           onChange={(e) => {
             setTekst(e.target.value)
             setOpgeslagen(false)
@@ -57,12 +60,14 @@ export function NotitiesPaneel({ code, klant, onOpgeslagen }: Props) {
         />
       </Veld>
       {fout ? <Foutmelding bericht={fout} /> : null}
-      <div className="ptd-acties">
-        <button type="submit" className="ptd-knop ptd-knop--primair" disabled={bezig || !gewijzigd}>
-          {bezig ? 'Opslaan…' : 'Notities opslaan'}
-        </button>
-        <span className="ptd-hint" role="status">{opgeslagen && !gewijzigd ? 'Opgeslagen' : ''}</span>
-      </div>
+      {alleenLezen ? null : (
+        <div className="ptd-acties">
+          <button type="submit" className="ptd-knop ptd-knop--primair" disabled={bezig || !gewijzigd}>
+            {bezig ? 'Opslaan…' : 'Notities opslaan'}
+          </button>
+          <span className="ptd-hint" role="status">{opgeslagen && !gewijzigd ? 'Opgeslagen' : ''}</span>
+        </div>
+      )}
     </form>
   )
 }

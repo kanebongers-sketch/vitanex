@@ -3,13 +3,14 @@
 import Link from 'next/link'
 import { FolderOpen, Pencil } from 'lucide-react'
 import {
-  KLANT_STATUS_LABEL, abonnementRegel, eindeVastePeriode, isLopend, laatsteDag, type PtKlant,
+  KLANT_STATUS_LABEL, STOP_REDEN_LABEL, abonnementRegel, eindeVastePeriode, isLopend, laatsteDag, type PtKlant,
 } from '@/lib/lifeos/pt-dashboard/abonnementen'
 import { dagKort } from '@/lib/lifeos/pt-dashboard/datum'
 import { ContactActies } from './velden'
 
-// Eén PT-klant: abonnement + prijs, looptijd en status. Met `onBewerk`
-// bewerkbaar (PT'er), zonder alleen-lezen (Kane).
+// Eén PT-klant: abonnement, looptijd en status (prijs alleen met `toonPrijs`:
+// eigenaren en Kane — PT'ers zien geen bedragen). Met `onBewerk`
+// bewerkbaar (PT'er), zonder alleen-lezen (Kane, eigenaar).
 
 function badge(k: PtKlant, vandaag: string): string {
   if (k.status === 'actief') return 'ptd-badge ptd-badge--accent'
@@ -26,11 +27,15 @@ interface Props {
   klant: PtKlant
   vandaag: string
   onBewerk?: () => void
-  /** Link naar het klantdossier (alleen voor de PT'er zelf). */
+  /** Link naar het klantdossier (PT'er zelf, of de eigenaar alleen-lezen). */
   dossierHref?: string
+  /** Bij wie de klant traint — in lijsten van het hele team. */
+  trainer?: string
+  /** De maandprijs tonen (eigenaar/Kane). */
+  toonPrijs?: boolean
 }
 
-export function KlantKaart({ klant: k, vandaag, onBewerk, dossierHref }: Props) {
+export function KlantKaart({ klant: k, vandaag, onBewerk, dossierHref, trainer, toonPrijs = false }: Props) {
   const vastTot = eindeVastePeriode(k.startdatum)
   const inVast = vastTot >= vandaag && k.startdatum <= vandaag
   return (
@@ -43,7 +48,8 @@ export function KlantKaart({ klant: k, vandaag, onBewerk, dossierHref }: Props) 
         <KlantBadge klant={k} vandaag={vandaag} />
       </div>
       <div className="ptd-meta">
-        <span>{abonnementRegel(k)}</span>
+        {trainer ? <span className="ptd-trainer">PT {trainer}</span> : null}
+        <span>{abonnementRegel(k, toonPrijs)}</span>
       </div>
       <div className="ptd-meta">
         <span>Start {dagKort(k.startdatum)}</span>
@@ -56,20 +62,25 @@ export function KlantKaart({ klant: k, vandaag, onBewerk, dossierHref }: Props) 
         ) : k.startdatum <= vandaag ? (
           <span>Maandelijks opzegbaar</span>
         ) : null}
+        {k.stopReden ? <span>Reden: {STOP_REDEN_LABEL[k.stopReden]}</span> : null}
         {k.contact ? <span>{k.contact}</span> : null}
       </div>
       {k.notitie ? <p className="ptd-tekst">{k.notitie}</p> : null}
-      {onBewerk ? (
+      {onBewerk || dossierHref ? (
         <div className="ptd-acties ptd-acties--rij">
           {dossierHref ? (
             <Link className="ptd-knop ptd-knop--klein" href={dossierHref} aria-label={`Dossier van ${k.naam}`}>
               <FolderOpen size={14} aria-hidden /> Dossier
             </Link>
           ) : null}
-          <ContactActies contact={k.contact} naam={k.naam} />
-          <button type="button" className="ptd-knop ptd-knop--klein" onClick={onBewerk} aria-label={`${k.naam} bewerken`}>
-            <Pencil size={14} aria-hidden /> Bewerk
-          </button>
+          {onBewerk ? (
+            <>
+              <ContactActies contact={k.contact} naam={k.naam} />
+              <button type="button" className="ptd-knop ptd-knop--klein" onClick={onBewerk} aria-label={`${k.naam} bewerken`}>
+                <Pencil size={14} aria-hidden /> Bewerk
+              </button>
+            </>
+          ) : null}
         </div>
       ) : null}
     </li>

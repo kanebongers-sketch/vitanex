@@ -66,3 +66,14 @@ export function ContactActies({ contact, naam }: { contact: string | null; naam:
     </>
   )
 }
+
+/** Kies de trainer (alleen de beheerder ziet dit, bij klanten en leads). */
+export function TrainerVeld({ id, trainers, waarde, onKies }: { id: string; trainers: readonly { id: string; naam: string }[]; waarde: string; onKies: (id: string) => void }) {
+  return (
+    <Veld label="Trainer *" id={`trainer-${id}`}>
+      <select id={`trainer-${id}`} className="ptd-invoer" value={waarde} onChange={(e) => onKies(e.target.value)} required>
+        {trainers.map((t) => <option key={t.id} value={t.id}>{t.naam}</option>)}
+      </select>
+    </Veld>
+  )
+}

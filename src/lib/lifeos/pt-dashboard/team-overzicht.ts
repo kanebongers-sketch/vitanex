@@ -1,15 +1,15 @@
 // ─── PT-team overzicht voor Kane (PUUR) ─────────────────────────────────────
 // Per PT'er de kerncijfers uit diens dashboard, plus per club de leads per
-// status (het "Overzicht"-tabblad uit de oude Excel). Opbouwen gebeurt op de
-// server (GET /api/lifeos/pt-team), uitlezen in de browser — beide hier, zodat de
-// vorm over de draad op één plek staat.
+// status (het "Overzicht"-tabblad uit de oude Excel). Opgebouwd op de server voor
+// de eigenaren en de beheerder in de PT-app; plus het uitlezen van de eigenaren
+// (Beheer, via de LifeOS-API).
 
-import { LEAD_STATUSSEN, leesLead, type Lead, type LeadStatus, isPinStatus, type PinStatus } from '@/lib/lifeos/leads/leads'
-import { isClub, type Club } from './clubs'
-import { leesKlant, type PtKlant } from './abonnementen'
+import { isPinStatus, type Lead, type PinStatus } from '@/lib/lifeos/leads/leads'
+import { vatKlantenSamen, type PtKlant } from './abonnementen'
+import { CLUBS, type Club } from './clubs'
 import { clubMatrix, ptOverzicht, type ClubMatrix, type LeadCijfers } from './overzicht'
-import { analyseer, leesAnalyse, type Analyse } from './analyse'
-import { leesDoelen, type PtDoelen } from './doelen'
+import { analyseer, type Analyse } from './analyse'
+import type { PtDoelen } from './doelen'
 
 export interface TeamRij {
   id: string
@@ -31,12 +31,31 @@ export interface TeamRij {
   doelen: PtDoelen | null
 }
 
+/** Per vestiging: lopende abonnementen, personen en maandomzet (zoals de Excel-samenvatting). */
+export interface VestigingRij {
+  club: Club
+  lopend: number
+  personen: number
+  bevroren: number
+  maandwaarde: number
+}
+
 export interface TeamOverzicht {
   vandaag: string
   rijen: TeamRij[]
   clubs: ClubMatrix
   /** Funnel & trends over alle leads van het team; null als het antwoord die niet bevat. */
   analyse: Analyse | null
+  /** Klanten en omzet per vestiging; alleen vestigingen met klanten. */
+  vestigingen: VestigingRij[]
+}
+
+/** Klanten van het hele team per vestiging samengevat. */
+export function perVestiging(klanten: readonly PtKlant[], vandaag: string): VestigingRij[] {
+  return CLUBS.flatMap((club) => {
+    const s = vatKlantenSamen(klanten.filter((k) => k.club === club), vandaag)
+    return s.lopend === 0 ? [] : [{ club, lopend: s.lopend, personen: s.personen, bevroren: s.bevroren, maandwaarde: s.maandwaarde }]
+  }).sort((a, b) => b.maandwaarde - a.maandwaarde)
 }
 
 export function bouwTeamOverzicht(
@@ -65,7 +84,7 @@ export function bouwTeamOverzicht(
     }
   })
   const alle = [...leads.values()].flat()
-  return { vandaag, rijen, clubs: clubMatrix(alle), analyse: analyseer(alle, vandaag) }
+  return { vandaag, rijen, clubs: clubMatrix(alle), analyse: analyseer(alle, vandaag), vestigingen: perVestiging([...klanten.values()].flat(), vandaag) }
 }
 
 // ─── Uitlezen (systeemgrens) ──────────────────────────────────────────────────
@@ -73,75 +92,24 @@ export function bouwTeamOverzicht(
 function obj(v: unknown): Record<string, unknown> | null {
   return typeof v === 'object' && v !== null && !Array.isArray(v) ? (v as Record<string, unknown>) : null
 }
-const getal = (v: unknown): number => (typeof v === 'number' && Number.isFinite(v) ? v : 0)
 
-function perStatus(v: unknown): Record<LeadStatus, number> {
-  const o = obj(v) ?? {}
-  return Object.fromEntries(LEAD_STATUSSEN.map((s) => [s, getal(o[s])])) as Record<LeadStatus, number>
-}
+// ─── Eigenaren (meekijkers, bv. Ruben) ────────────────────────────────────────
 
-function leesCijfers(v: unknown): LeadCijfers {
-  const o = obj(v) ?? {}
-  return {
-    totaal: getal(o.totaal), dezeWeek: getal(o.dezeWeek), dezeMaand: getal(o.dezeMaand), open: getal(o.open),
-    klant: getal(o.klant), geenInteresse: getal(o.geenInteresse),
-    conversie: typeof o.conversie === 'number' ? o.conversie : null, perStatus: perStatus(o.perStatus),
-  }
-}
-
-export function leesTeamOverzicht(ruw: unknown): TeamOverzicht | null {
-  const o = obj(ruw)
-  if (!o || typeof o.vandaag !== 'string' || !Array.isArray(o.rijen) || !Array.isArray(o.clubs)) return null
-  const rijen = o.rijen.flatMap((r): TeamRij[] => {
-    const x = obj(r)
-    if (!x || typeof x.id !== 'string' || typeof x.naam !== 'string') return []
-    return [{
-      id: x.id, naam: x.naam,
-      code: typeof x.code === 'string' ? x.code : null,
-      pinStatus: isPinStatus(x.pinStatus) ? x.pinStatus : null,
-      leads: leesCijfers(x.leads),
-      teLaat: getal(x.teLaat), vandaag: getal(x.vandaag), zonderPlan: getal(x.zonderPlan),
-      klantenLopend: getal(x.klantenLopend), bevroren: getal(x.bevroren), maandwaarde: getal(x.maandwaarde),
-      sessiesPerWeek: getal(x.sessiesPerWeek), vastBijnaKlaar: getal(x.vastBijnaKlaar),
-      laatsteLead: typeof x.laatsteLead === 'string' ? x.laatsteLead : null,
-      doelen: leesDoelen(x.doelen),
-    }]
-  })
-  const clubs = o.clubs.flatMap((c): ClubMatrix => {
-    const x = obj(c)
-    if (!x || !(isClub(x.club) || x.club === 'onbekend')) return []
-    return [{ club: x.club as Club | 'onbekend', totaal: getal(x.totaal), perStatus: perStatus(x.perStatus) }]
-  })
-  return { vandaag: o.vandaag, rijen, clubs, analyse: leesAnalyse(o.analyse) }
-}
-
-export interface PtDetail {
+/** Een eigenaar met zijn PT-app-link, zodat Kane de pincode kan goedkeuren. */
+export interface EigenaarRij {
+  id: string
   naam: string
-  code: string | null
-  vandaag: string
-  leads: Lead[]
-  klanten: PtKlant[]
-  doelen: PtDoelen | null
-  /** Lezen van de doelen mislukt: niet bewerken, anders overschrijf je ze leeg. */
-  doelenFout: boolean
+  code: string
+  pinStatus: PinStatus
+  pinAangevraagdOp: string | null
 }
 
-export function leesPtDetail(ruw: unknown): PtDetail | null {
-  const o = obj(ruw)
-  if (!o || typeof o.naam !== 'string' || typeof o.vandaag !== 'string' || !Array.isArray(o.leads) || !Array.isArray(o.klanten)) return null
-  return {
-    naam: o.naam,
-    code: typeof o.code === 'string' ? o.code : null,
-    vandaag: o.vandaag,
-    leads: o.leads.flatMap((l) => {
-      const x = leesLead(l)
-      return x ? [x] : []
-    }),
-    klanten: o.klanten.flatMap((k) => {
-      const x = leesKlant(k)
-      return x ? [x] : []
-    }),
-    doelen: leesDoelen(o.doelen),
-    doelenFout: o.doelenFout === true,
-  }
+export function leesEigenaren(ruw: unknown): EigenaarRij[] {
+  const lijst = obj(ruw)?.eigenaren
+  if (!Array.isArray(lijst)) return []
+  return lijst.flatMap((e): EigenaarRij[] => {
+    const x = obj(e)
+    if (!x || typeof x.id !== 'string' || typeof x.naam !== 'string' || typeof x.code !== 'string' || !isPinStatus(x.pinStatus)) return []
+    return [{ id: x.id, naam: x.naam, code: x.code, pinStatus: x.pinStatus, pinAangevraagdOp: typeof x.pinAangevraagdOp === 'string' ? x.pinAangevraagdOp : null }]
+  })
 }

@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest'
 import type { Lead } from '@/lib/lifeos/leads/leads'
 import type { PtKlant } from './abonnementen'
-import { bouwTeamOverzicht, leesPtDetail, leesTeamOverzicht } from './team-overzicht'
+import { bouwTeamOverzicht, leesEigenaren, perVestiging } from './team-overzicht'
 
 const lead = (over: Partial<Lead> = {}): Lead => ({
   id: 'l', naam: 'X', contact: null, club: 'eersel', bron: 'vloer', interesse: null, status: 'nieuw', volgendeStap: null,
@@ -10,7 +10,7 @@ const lead = (over: Partial<Lead> = {}): Lead => ({
 })
 const klant: PtKlant = {
   id: 'k', naam: 'Y', contact: null, duoPartner: null, club: 'eersel', abonnement: '2x', startdatum: '2026-09-01',
-  status: 'actief', opgezegdOp: null, notitie: null, leadId: null,
+  status: 'actief', opgezegdOp: null, notitie: null, leadId: null, prijsAfwijkend: null, stopReden: null,
 }
 
 describe('team-overzicht', () => {
@@ -29,18 +29,43 @@ describe('team-overzicht', () => {
     expect(t.clubs).toHaveLength(1)
     expect(t.analyse?.funnel.map((s) => s.aantal)).toEqual([2, 1, 1])
     expect(t.analyse?.weken.at(-1)).toMatchObject({ start: '2026-10-05', leads: 1, klant: 1 })
-    expect(leesTeamOverzicht(JSON.parse(JSON.stringify(t)))).toEqual(t)
   })
-  test('oud antwoord zonder analyse blijft leesbaar', () => {
-    expect(leesTeamOverzicht({ vandaag: '2026-10-08', rijen: [], clubs: [] })?.analyse).toBeNull()
+})
+
+describe('leesEigenaren', () => {
+  test('leest geldige eigenaren en laat kapotte rijen weg', () => {
+    const ruw = {
+      eigenaren: [
+        { id: 'e1', naam: 'Ruben', code: 'ruben', pinStatus: 'wacht', pinAangevraagdOp: '2026-10-08T10:00:00Z' },
+        { id: 'e2', naam: 'Zonder code', pinStatus: 'actief' },
+        { id: 'e3', naam: 'Rare pin', code: 'x', pinStatus: 'kapot' },
+      ],
+    }
+    expect(leesEigenaren(ruw)).toEqual([
+      { id: 'e1', naam: 'Ruben', code: 'ruben', pinStatus: 'wacht', pinAangevraagdOp: '2026-10-08T10:00:00Z' },
+    ])
   })
-  test('detail: kapotte items vallen weg, de rest blijft', () => {
-    const d = leesPtDetail({ naam: 'Joey', code: 'joey', vandaag: '2026-10-08', leads: [lead(), { kapot: true }], klanten: [klant] })
-    expect(d?.leads).toHaveLength(1)
-    expect(d?.klanten).toHaveLength(1)
-    expect(d?.doelen).toBeNull()
-    expect(leesPtDetail({ naam: 'Joey', code: null, vandaag: '2026-10-08', leads: [], klanten: [], doelen: { leadsPerWeek: 3 } })?.doelen)
-      .toEqual({ leadsPerWeek: 3, klantenPerMaand: null, abonnementen: null, notitie: null })
-    expect(leesPtDetail({ naam: 'x' })).toBeNull()
+
+  test('geeft een lege lijst als het veld ontbreekt (oudere server)', () => {
+    expect(leesEigenaren({ vandaag: '2026-10-08', rijen: [], clubs: [] })).toEqual([])
+    expect(leesEigenaren(null)).toEqual([])
+  })
+})
+
+describe('perVestiging', () => {
+  test('telt lopende abonnementen, personen en omzet per vestiging; lege vestigingen vallen weg', () => {
+    const rijen = perVestiging(
+      [
+        { ...klant, id: 'a', club: 'budel', abonnement: '1x' },
+        { ...klant, id: 'b', club: 'budel', abonnement: 'duo_1x', prijsAfwijkend: 299 },
+        { ...klant, id: 'c', club: 'eersel', abonnement: '2x' },
+        { ...klant, id: 'd', club: 'bladel', status: 'gestopt', opgezegdOp: '2026-09-15' },
+      ],
+      '2026-10-08',
+    )
+    expect(rijen).toEqual([
+      { club: 'budel', lopend: 2, personen: 3, bevroren: 0, maandwaarde: 299 + 299 },
+      { club: 'eersel', lopend: 1, personen: 1, bevroren: 0, maandwaarde: 519 },
+    ])
   })
 })

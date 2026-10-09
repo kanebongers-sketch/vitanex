@@ -47,16 +47,6 @@ export default function LifeosLaden() {
               ))}
             </section>
 
-            {/* Cluster "Deze week": twee halve tegels (PT-klanten + PT-gesprekken). */}
-            <section className="os-cluster">
-              <ClusterKop />
-              {Array.from({ length: 2 }, (_, i) => (
-                <div key={`week-${i}`} className="os-tile--half">
-                  <div style={{ ...KAART, height: 208 }} />
-                </div>
-              ))}
-            </section>
-
             {/* Inbox: volle-breedte-lijst. */}
             <div className="os-cockpit__band">
               <div style={{ ...KAART, height: 168 }} />
