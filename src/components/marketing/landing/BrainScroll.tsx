@@ -113,7 +113,7 @@ export default function BrainScroll() {
         .bs-pos { width: 100%; display: flex; justify-content: center; }
         .bs-card {
           width: 100%; max-width: 560px;
-          background: rgba(7,18,40,0.72); backdrop-filter: blur(16px);
+          background: rgba(16,16,20,0.78); backdrop-filter: blur(16px);
           -webkit-backdrop-filter: blur(16px);
           border: 1px solid ${COLORS.line}; border-radius: 20px; padding: 22px 24px;
         }

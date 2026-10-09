@@ -63,7 +63,7 @@ const NIVEAU_CONFIG: Record<string, { bg: string; tekst: string; label: string }
 const WELLBEING_KLEUR: Record<string, { k: string; l: string; border: string }> = {
   'Slaap':             { k: 'var(--mf-purple)', l: 'var(--mf-purple-light)', border: 'rgba(139,92,246,0.3)' },
   'Stress':            { k: 'var(--mf-red)', l: 'var(--mf-red-light)', border: 'rgba(226,75,74,0.3)' },
-  'Energie':           { k: 'var(--mentaforce-primary)', l: 'var(--mentaforce-primary-light)', border: 'rgba(0,229,255,0.3)' },
+  'Energie':           { k: 'var(--mentaforce-primary)', l: 'var(--mentaforce-primary-light)', border: 'rgba(232,163,63,0.3)' },
   'Focus':             { k: 'var(--mf-blue)', l: 'var(--mf-blue-light)', border: 'rgba(55,138,221,0.3)' },
   'Werk-privé balans': { k: 'var(--mf-amber)', l: 'var(--mf-amber-light)', border: 'rgba(186,117,23,0.3)' },
   'Motivatie':         { k: 'var(--mf-rose)', l: 'var(--mf-rose-light)', border: 'rgba(157,23,77,0.3)' },

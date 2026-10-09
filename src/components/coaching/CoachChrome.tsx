@@ -113,7 +113,7 @@ export function CoachEmpty({ icon: Icon, titel, tekst, actie, toon = 'neutraal' 
       <span aria-hidden style={{
         display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
         width: 60, height: 60, borderRadius: '50%', background: bg, color: kleur,
-        boxShadow: toon === 'wacht' ? 'none' : '0 0 32px rgba(0,229,255,0.22)',
+        boxShadow: toon === 'wacht' ? 'none' : '0 0 32px rgba(232,163,63,0.22)',
       }}>
         <Icon size={26} strokeWidth={1.75} />
       </span>

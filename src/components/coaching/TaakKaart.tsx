@@ -113,7 +113,7 @@ export function TaakKaart({ taak, bezig, onToggle }: TaakKaartProps) {
           background: gedaan ? 'var(--mf-green)' : 'transparent',
           border: gedaan ? '1px solid var(--mf-green)' : '1.5px solid var(--border-strong)',
           color: gedaan ? 'var(--bg-app)' : 'var(--text-4)',
-          boxShadow: gedaan ? '0 0 16px rgba(0,229,255,0.38)' : 'none',
+          boxShadow: gedaan ? '0 0 16px rgba(232,163,63,0.38)' : 'none',
           transition: 'background 0.15s var(--ease), border-color 0.15s var(--ease), box-shadow 0.2s var(--ease), transform 0.1s var(--ease)',
         }}
       >

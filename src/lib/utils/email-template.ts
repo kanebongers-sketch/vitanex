@@ -3,18 +3,18 @@
 //
 // LET OP: e-mail-HTML ondersteunt geen CSS-variabelen of externe stylesheets.
 // De letterlijke hexwaarden hieronder spiegelen daarom bewust de tokens uit
-// src/components/marketing/theme.ts (COLORS.navyDeep #071228, COLORS.navy
-// #0B1B3A, COLORS.cyan #00E5FF, COLORS.ink #EAF2FF). Wijzigt theme.ts, werk
-// dan ook deze waarden bij.
+// src/components/marketing/theme.ts (COLORS.navyDeep #0B0B0E, COLORS.navy
+// #101014, COLORS.cyan #E8A33F, COLORS.ink #F4F4F5 — grafiet + amber sinds okt
+// 2026). Wijzigt theme.ts, werk dan ook deze waarden bij.
 
 export const EMAIL_KLEUREN = {
-  navyDeep: '#071228',
-  navy: '#0B1B3A',
-  cyan: '#00E5FF',
-  ink: '#EAF2FF',
-  inkDim: 'rgba(234,242,255,0.72)',
-  inkFaint: 'rgba(234,242,255,0.48)',
-  line: 'rgba(234,242,255,0.14)',
+  navyDeep: '#0B0B0E',
+  navy: '#101014',
+  cyan: '#E8A33F',
+  ink: '#F4F4F5',
+  inkDim: 'rgba(244,244,245,0.72)',
+  inkFaint: 'rgba(244,244,245,0.50)',
+  line: 'rgba(255,255,255,0.14)',
 } as const
 
 interface EmailKnop {

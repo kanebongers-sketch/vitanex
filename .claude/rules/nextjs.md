@@ -1,5 +1,12 @@
 # Next.js App Router — MentaForce (Next 16.2.4)
 
+> **Huisstijl gewijzigd (09-10-2026, besluit Kane):** MentaForce heeft nu de Fit Factory-look —
+> grafiet `#101014` / kaarten `#1A1A1F` + amber `#E8A33F`, tekst in Inter, koppen in
+> Barlow Condensed (kapitalen). Waar hieronder navy, cyaan of Space Grotesk staat, lees
+> grafiet, amber en Inter/Barlow. Contrastcijfers voor cyaan gelden niet meer: amber op
+> grafiet ≈ 8.7:1, grafiet-tekst op amber ≈ 8.7:1. Zie `.claude/CLAUDE.md`.
+
+
 ## LET OP: dit is NIET de Next.js die je kent
 
 Deze versie heeft breaking changes t.o.v. je trainingsdata — API's, conventies en

@@ -1,27 +1,29 @@
 // ─── MentaForce landing — design tokens ──────────────────────────────────────
-// Strikt 2-kleurig: Deep Navy + Electric Cyan. Wit/inkt is neutraal (geen "kleur").
+// Huisstijl okt 2026 (op verzoek van Kane): de look van Fit Factory — grafiet +
+// amber. De sleutelnamen (navy/cyan) zijn gebleven zodat alle componenten blijven
+// werken; lees "navy" als "grafiet" en "cyan" als "amber".
 // Het 3D-brein is het ENIGE element dat meerkleurig mag zijn (zie BRAIN_COLORS).
 
 export const COLORS = {
-  // Navy-familie (achtergronden / oppervlakken)
-  navyDeep: '#071228',
-  navy: '#0B1B3A',
-  navyElev: '#0F2347',
-  navyLine: '#15315C',
-  navyScrim: 'rgba(7,18,40,0.78)', // semi-transparant navyDeep — nav-achtergrond bij scroll (met blur)
+  // Grafiet-familie (achtergronden / oppervlakken)
+  navyDeep: '#0B0B0E',
+  navy: '#101014',
+  navyElev: '#1A1A1F',
+  navyLine: '#26262D',
+  navyScrim: 'rgba(16,16,20,0.82)', // semi-transparant grafiet — nav-achtergrond bij scroll (met blur)
 
-  // Electric Cyan (enige accentkleur)
-  cyan: '#00E5FF',
-  cyanDim: '#3FE9FF',
-  cyanSoft: 'rgba(0,229,255,0.12)',
-  cyanGlow: 'rgba(0,229,255,0.35)',
+  // Amber (enige accentkleur)
+  cyan: '#E8A33F',
+  cyanDim: '#F2B65C',
+  cyanSoft: 'rgba(232,163,63,0.12)',
+  cyanGlow: 'rgba(232,163,63,0.30)',
 
   // Neutralen (tekst / lijnen)
-  ink: '#EAF2FF',
-  inkDim: 'rgba(234,242,255,0.62)',
-  inkFaint: 'rgba(234,242,255,0.38)',
-  line: 'rgba(234,242,255,0.10)',
-  lineStrong: 'rgba(234,242,255,0.18)',
+  ink: '#F4F4F5',
+  inkDim: 'rgba(244,244,245,0.62)',
+  inkFaint: 'rgba(244,244,245,0.40)',
+  line: 'rgba(255,255,255,0.08)',
+  lineStrong: 'rgba(255,255,255,0.16)',
 } as const
 
 // 6 breindeel-kleuren — ALLEEN voor het 3D-brein, nergens anders in de UI.

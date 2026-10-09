@@ -1,18 +1,18 @@
 ﻿import type { Viewport } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
+import { barlow } from "./fonts/fit-factory";
 
-// Eén font-familie: Space Grotesk (merk). Geist, Instrument Serif en
-// Plus Jakarta Sans zijn verwijderd, inclusief hun tokens in globals.css.
+// Huisstijl (okt 2026, de look van Fit Factory): tekst in Inter, koppen in
+// Barlow Condensed. Beide zelf gehost (OFL, zie src/app/fonts/OFL-*.txt) — de
+// Render-build heeft zo geen netwerk nodig.
 //
-// Zelf gehost (variabel font, latin, gewicht 300–700; OFL-licentie ernaast) i.p.v.
-// `next/font/google`: die haalt het font tijdens de build bij Google op, en op
-// Render brak de Turbopack-build daarop ("next/font/google queries have exactly
-// one entry"). Met het bestand in de repo heeft de build geen netwerk nodig.
-const spaceGrotesk = localFont({
-  src: './fonts/space-grotesk-latin.woff2',
+// Inter krijgt de variabele --font-grotesk: die naam gebruikt de hele app al als
+// "de tekstletter" (FONT.grotesk, font-grotesk), dus zo wisselt alles in één keer.
+const tekst = localFont({
+  src: './fonts/inter-latin-wght-normal.woff2',
   variable: '--font-grotesk',
-  weight: '300 700',
+  weight: '100 900',
   display: 'swap',
 });
 
@@ -31,7 +31,7 @@ export default function RootLayout({
   return (
     <html
       lang="nl"
-      className={`${spaceGrotesk.variable} h-full antialiased`}
+      className={`${tekst.variable} ${barlow.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         {children}

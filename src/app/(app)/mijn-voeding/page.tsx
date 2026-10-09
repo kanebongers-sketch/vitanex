@@ -105,7 +105,7 @@ export default function MijnVoedingPagina() {
             {/* Caloriedoel — het anker van de richtlijn, als hero-getal */}
             {richtlijn.calorie_doel != null && (
               <Card className="mf-card-glow mf-animate-up mf-delay-1" style={{ padding: '26px 26px', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 20 }}>
-                <span aria-hidden style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 56, height: 56, borderRadius: 16, flexShrink: 0, background: 'var(--mf-green-light)', color: 'var(--mf-green)', boxShadow: '0 0 28px rgba(0,229,255,0.22)' }}>
+                <span aria-hidden style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 56, height: 56, borderRadius: 16, flexShrink: 0, background: 'var(--mf-green-light)', color: 'var(--mf-green)', boxShadow: '0 0 28px rgba(232,163,63,0.22)' }}>
                   <Flame size={26} strokeWidth={1.75} />
                 </span>
                 <div style={{ minWidth: 0 }}>

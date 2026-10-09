@@ -1,7 +1,8 @@
 import localFont from 'next/font/local'
 
 // Fit Factory PT-huisstijl: koppen in Barlow Condensed, tekst in Inter (beide OFL,
-// zelf gehost — zie src/app/fonts/OFL-*.txt). Alleen geladen in de PT-app.
+// zelf gehost — zie src/app/fonts/OFL-*.txt). Sinds okt 2026 ook de huisstijl van
+// MentaForce zelf (zie src/app/layout.tsx).
 
 export const barlow = localFont({
   src: [

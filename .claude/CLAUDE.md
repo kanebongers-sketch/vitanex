@@ -31,15 +31,18 @@ Bouw het hoogst mogelijke welzijnsplatform op het internet. Elke feature is:
 - **3D**: React Three Fiber 9 + drei 10 + three 0.176.
 - **Motion**: framer-motion, gsap, lenis. **Data**: Supabase. **Mobiel**: Capacitor.
 
-## Design system (strikt)
-- **Twee kleuren**: Deep Navy `#0B1B3A` + Electric Cyan `#00E5FF` (wit/inkt is
-  neutrale tekst, geen derde kleur).
+## Design system (strikt) — sinds okt 2026 de Fit Factory-look
+- **Twee kleuren**: Grafiet `#101014` (kaarten `#1A1A1F`) + Amber `#E8A33F` (wit/inkt
+  is neutrale tekst, geen derde kleur). "Let op"-status = koraal `#F47C66`, nooit amber.
+  Besluit van Kane (09-10-2026): MentaForce krijgt dezelfde uitstraling als Fit Factory.
 - Het **3D-brein is het enige meerkleurige element**.
-- Lettertype **Space Grotesk** (kop + tekst) via `--font-grotesk`.
-- Tokens staan in `src/components/marketing/theme.ts` — **nooit hex hardcoden** in
-  componenten.
-- Richting: editoriaal, twee-tonig (à la landonorris.com): groot formaatcontrast,
-  veel witruimte, rustige beweging.
+- Letters: **Inter** voor tekst (via `--font-grotesk`, de naam is historisch) en
+  **Barlow Condensed** in kapitalen voor koppen (`--ff-barlow`, h1–h3 automatisch).
+- Tokens staan in `src/app/globals.css` en `src/components/marketing/theme.ts`
+  (sleutels heten nog `navy`/`cyan` maar zijn grafiet/amber) — **nooit hex hardcoden**.
+- Richting: stoer en editoriaal zoals Fit Factory: grote condensed koppen, foto/hero
+  met verloop, compacte cijfertegels, strakke lijnen, rustige beweging.
+- LifeOS en de PT-app (`.lifeos-root`) hebben hun eigen tokens; daar niet aan komen.
 
 ## Index — regels (`.claude/rules/`)
 `react` · `nextjs` · `threejs` · `ui` · `animation` · `performance` ·
