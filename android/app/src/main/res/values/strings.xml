@@ -4,4 +4,7 @@
     <string name="title_activity_main">MentaForce</string>
     <string name="package_name">nl.mentaforce.app</string>
     <string name="custom_url_scheme">nl.mentaforce.app</string>
+    <!-- Getoond door Health Connect ("waarom vraagt MentaForce dit?"). Moet uitleggen
+         welke gezondheidsdata we lezen en waarvoor. -->
+    <string name="privacy_policy_url">https://mentaforce.nl/voorwaarden#privacy</string>
 </resources>

@@ -3,12 +3,12 @@ import { redirect } from "next/navigation";
 import { SITE_VERBORGEN } from "@/lib/site-modus";
 
 export const metadata: Metadata = {
-  title: "MentaForce – Burn-out preventie voor Nederlandse teams",
-  description: "MentaForce geeft HR-teams realtime inzicht in het welzijn van medewerkers. Herken burn-out risico's vroeg – anoniem, AVG-conform en actiegericht.",
-  keywords: ["burn-out preventie", "vitaliteit werkplek", "HR dashboard", "welzijn medewerkers", "Nederland"],
+  title: "MentaForce – Elke ochtend weet je wat vandaag telt",
+  description: "Je slaap, je stappen en hoe je je voelt, samen in één kaart per dag. Met inzichten uit gepubliceerd onderzoek, bron erbij. AVG-conform.",
+  keywords: ["slaap", "stappen", "stress", "welzijn", "gezondheid app", "Health Connect", "Apple Health", "Nederland"],
   openGraph: {
-    title: "MentaForce – Burn-out preventie voor Nederlandse teams",
-    description: "Realtime inzicht in het welzijn van je team. Herken risico's vroeg – anoniem, AVG-conform en actiegericht.",
+    title: "MentaForce – Elke ochtend weet je wat vandaag telt",
+    description: "Slaap, beweging en hoe je je voelt, samen in één dagkaart, met inzichten uit onderzoek.",
     locale: "nl_NL",
     type: "website",
   },

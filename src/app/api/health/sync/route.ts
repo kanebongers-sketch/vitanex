@@ -1,43 +1,104 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getAuthenticatedUser } from '@/lib/auth/api-auth'
-import { createAdminClient } from '@/lib/supabase/supabase-admin'
-import { slaDagMetingenOp } from '@/lib/health/health-sync-server'
-import { isGeldigeDagMeting, type DagMeting, type HealthBron } from '@/lib/health/health-data'
+import { gebruikerSessie } from '@/lib/supabase/gebruiker'
+import { isRateLimited } from '@/lib/utils/rate-limit'
+import {
+  leesSyncStatus, slaDagMetingenOp, slaWorkoutsOp, werkSyncStatusBij,
+} from '@/lib/health/health-sync-server'
+import { schoonDagMeting, schoonFout, schoonRechten, schoonWorkout } from '@/lib/health/health-validatie'
+import type { DagMeting, HealthBron, WorkoutMeting } from '@/lib/health/health-data'
 
-const NATIVE_BRONNEN: HealthBron[] = ['health_connect', 'apple_health']
-const MAX_DAGEN = 31
+/** Bronnen die de native app mag aanleveren (Google Fit loopt via de server zelf). */
+const NATIVE_BRONNEN: HealthBron[] = ['health_connect', 'healthkit']
+const MAX_DAGEN = 62
+const MAX_WORKOUTS = 300
+const SYNC_PER_VENSTER = 20
+const VENSTER_MS = 10 * 60 * 1000
+
+function json(body: unknown, status = 200) {
+  return NextResponse.json(body, { status })
+}
+
+/** Sync-status per bron, zodat de app incrementeel kan synchroniseren. */
+export async function GET(req: NextRequest) {
+  const sessie = await gebruikerSessie(req)
+  if (!sessie) return json({ error: 'Niet ingelogd' }, 401)
+  try {
+    return json({ status: await leesSyncStatus(sessie.db, sessie.user.id) })
+  } catch (err) {
+    console.error('[health/sync] status', err)
+    return json({ error: 'Status ophalen mislukt' }, 500)
+  }
+}
+
+interface SchoneBody {
+  bron: HealthBron
+  dagen: DagMeting[]
+  workouts: WorkoutMeting[]
+  rechten: string[]
+  fout: string | null
+  overgeslagen: number
+}
+
+/** Valideert de body. Onzin per dag/training valt af; alleen de vorm kan de batch weigeren. */
+function leesBody(body: unknown): SchoneBody | string {
+  if (typeof body !== 'object' || body === null) return 'Ongeldige body'
+  const b = body as Record<string, unknown>
+  if (!NATIVE_BRONNEN.includes(b.bron as HealthBron)) return 'Onbekende bron'
+  const ruweDagen = Array.isArray(b.dagen) ? b.dagen : []
+  const ruweWorkouts = Array.isArray(b.workouts) ? b.workouts : []
+  if (ruweDagen.length > MAX_DAGEN) return `Hooguit ${MAX_DAGEN} dagen per sync`
+  if (ruweWorkouts.length > MAX_WORKOUTS) return `Hooguit ${MAX_WORKOUTS} trainingen per sync`
+
+  const nu = new Date()
+  const dagen = ruweDagen.map(d => schoonDagMeting(d, nu)).filter((d): d is DagMeting => d !== null)
+  const workouts = ruweWorkouts.map(w => schoonWorkout(w, nu)).filter((w): w is WorkoutMeting => w !== null)
+  return {
+    bron: b.bron as HealthBron,
+    dagen,
+    workouts,
+    rechten: schoonRechten(b.rechten),
+    fout: schoonFout(b.fout),
+    overgeslagen: ruweDagen.length - dagen.length + ruweWorkouts.length - workouts.length,
+  }
+}
 
 /**
- * Ontvangt dagmetingen uit de native app (Health Connect op Android,
- * Apple Health op iOS) en slaat ze idempotent op voor de ingelogde gebruiker.
+ * Ontvangt per-dag-metingen en trainingen uit de native app (Health Connect
+ * op Android, Apple Health op iOS) en slaat ze idempotent op met de sessie
+ * van de gebruiker (RLS: alleen eigen rijen).
  */
 export async function POST(req: NextRequest) {
-  const user = await getAuthenticatedUser(req)
-  if (!user) return NextResponse.json({ error: 'Niet ingelogd' }, { status: 401 })
+  const sessie = await gebruikerSessie(req)
+  if (!sessie) return json({ error: 'Niet ingelogd' }, 401)
+  if (isRateLimited(`health-sync:${sessie.user.id}`, SYNC_PER_VENSTER, VENSTER_MS)) {
+    return json({ error: 'Te veel synchronisaties — probeer het zo opnieuw' }, 429)
+  }
 
-  let body: { bron?: string; dagen?: unknown[] }
+  let ruw: unknown
   try {
-    body = await req.json()
+    ruw = await req.json()
   } catch {
-    return NextResponse.json({ error: 'Ongeldige JSON' }, { status: 400 })
+    return json({ error: 'Ongeldige JSON' }, 400)
   }
+  const body = leesBody(ruw)
+  if (typeof body === 'string') return json({ error: body }, 400)
 
-  if (!NATIVE_BRONNEN.includes(body.bron as HealthBron)) {
-    return NextResponse.json({ error: 'Onbekende bron' }, { status: 400 })
-  }
-  if (!Array.isArray(body.dagen) || body.dagen.length === 0 || body.dagen.length > MAX_DAGEN) {
-    return NextResponse.json({ error: `dagen moet 1 t/m ${MAX_DAGEN} metingen bevatten` }, { status: 400 })
-  }
-  if (!body.dagen.every(isGeldigeDagMeting)) {
-    return NextResponse.json({ error: 'Eén of meer metingen zijn ongeldig' }, { status: 400 })
-  }
-
+  const { db, user } = sessie
   try {
-    const admin = createAdminClient()
-    const { opgeslagen } = await slaDagMetingenOp(admin, user.id, body.bron as string, body.dagen as DagMeting[])
-    return NextResponse.json({ ok: true, opgeslagen })
+    const dagen = await slaDagMetingenOp(db, user.id, body.bron, body.dagen)
+    const workouts = await slaWorkoutsOp(db, user.id, body.bron, body.workouts)
+    // Een lege sync (bv. nog geen toestemming) telt niet als "laatste sync":
+    // anders zou de eerstvolgende echte sync de 30 dagen historie overslaan.
+    const heeftData = body.dagen.length > 0 || body.workouts.length > 0
+    await werkSyncStatusBij(db, user.id, body.bron, {
+      rechten: body.rechten,
+      laatsteSync: heeftData ? new Date().toISOString() : undefined,
+      laatsteFout: body.fout,
+    })
+    return json({ ok: true, opgeslagen: dagen.opgeslagen, workouts: workouts.opgeslagen, overgeslagen: body.overgeslagen })
   } catch (err) {
     console.error('[health/sync]', err)
-    return NextResponse.json({ error: 'Opslaan mislukt' }, { status: 500 })
+    await werkSyncStatusBij(db, user.id, body.bron, { laatsteFout: 'Opslaan op de server mislukt' })
+    return json({ error: 'Opslaan mislukt' }, 500)
   }
 }

@@ -7,7 +7,9 @@ import Link from 'next/link'
 import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { CalendarDays } from 'lucide-react'
+import { Capacitor } from '@capacitor/core'
 import { authFetch } from '@/lib/auth/auth-fetch'
+import { syncGezondheidsdata } from '@/lib/health/health-sync'
 import { useToast } from '@/components/ui/Toast'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { Button } from '@/components/ui/Button'
@@ -65,6 +67,13 @@ export function VandaagScherm() {
   useEffect(() => {
     let actief = true
     void haalKaart().then((uit) => { if (actief) verwerk(uit) })
+    // In de app: eerst de kaart tonen, dan op de achtergrond verse slaap en
+    // stappen ophalen. Kwam er iets nieuws binnen, dan de kaart opnieuw maken.
+    if (Capacitor.isNativePlatform()) {
+      void syncGezondheidsdata()
+        .then((uitkomst) => (uitkomst && uitkomst.opgeslagen > 0 ? haalKaart() : null))
+        .then((uit) => { if (uit && actief) verwerk(uit) })
+    }
     return () => { actief = false }
   }, [verwerk])
 

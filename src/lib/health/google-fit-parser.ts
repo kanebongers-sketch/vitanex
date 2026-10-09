@@ -25,7 +25,7 @@ export interface FitSessie {
   activityType?: number
 }
 
-const DATATYPE_NAAR_VELD: Record<string, keyof Omit<DagMeting, 'datum'>> = {
+const DATATYPE_NAAR_VELD: Record<string, 'stappen' | 'hartslag' | 'calorieen'> = {
   'com.google.step_count.delta': 'stappen',
   'com.google.heart_rate.summary': 'hartslag',
   'com.google.calories.expended': 'calorieen',

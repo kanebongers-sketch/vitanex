@@ -4,7 +4,7 @@ export const dynamic = 'force-dynamic'
 
 import { Suspense, useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { RefreshCw, Settings, HeartPulse, Watch, Activity, Calendar, Mail, Heart, Check } from 'lucide-react'
+import { RefreshCw, Watch, Activity, Calendar, Mail, Heart } from 'lucide-react'
 import { supabase } from '@/lib/supabase/supabase'
 import { authFetch } from '@/lib/auth/auth-fetch'
 import Navbar from '@/components/layout/Navbar'
@@ -14,7 +14,8 @@ import { Badge } from '@/components/ui/Badge'
 import { useToast } from '@/components/ui/Toast'
 
 
-import { isAndroidApp, leesHealthData, vraagPermissies, type HealthData } from '@/lib/health/health-connect'
+import { isAndroidApp } from '@/lib/health/health-connect'
+import { HealthConnectKaart } from '@/components/koppelingen/HealthConnectKaart'
 import { isIosApp, vraagAppleHealthPermissies } from '@/lib/health/apple-health'
 import { syncGezondheidsdata } from '@/lib/health/health-sync'
 
@@ -86,9 +87,6 @@ function KoppelingenInhoud() {
   const [ahVerbonden, setAhVerbonden] = useState(false)
   const [ahLaden, setAhLaden] = useState(false)
   const [fitSyncBezig, setFitSyncBezig] = useState(false)
-  const [hcData, setHcData] = useState<HealthData | null>(null)
-  const [hcVerbonden, setHcVerbonden] = useState(false)
-  const [hcLaden, setHcLaden] = useState(false)
 
   const [fitbitData, setFitbitData] = useState<FitbitData | null>(null)
   const [fitbitVerbonden, setFitbitVerbonden] = useState(false)
@@ -153,18 +151,6 @@ function KoppelingenInhoud() {
       setIsAndroid(android)
       setIsIos(isIosApp())
       try { setAhVerbonden(localStorage.getItem('mf-apple-health-verbonden') === '1') } catch { /* ok */ }
-      if (android) {
-        setHcLaden(true)
-        leesHealthData()
-          .then(d => {
-            if (d.stappen !== null || d.slaapMinuten !== null || d.hartslag !== null) {
-              setHcData(d)
-              setHcVerbonden(true)
-            }
-          })
-          .catch(() => {})
-          .finally(() => setHcLaden(false))
-      }
 
       setFitbitLaden(true)
       authFetch('/api/fitbit/data')
@@ -183,9 +169,9 @@ function KoppelingenInhoud() {
       setLaden(false)
     }
     init()
-  }, [router, searchParams])
+  }, [router, searchParams, toast])
 
-  async function startKoppeling(provider: 'fitbit' | 'google-fit' | 'google-calendar') {
+  async function startKoppeling(provider: 'fitbit' | 'google-calendar') {
     try {
       const res = await authFetch(`/api/${provider}/auth`)
       const data = await res.json() as { url?: string; error?: string }
@@ -235,60 +221,11 @@ function KoppelingenInhoud() {
       <style>{`.mf-datarij:last-child { border-bottom: none; }`}</style>
       <div style={{ marginBottom: 24 }}>
         <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-1)', letterSpacing: '-0.02em' }}>Koppelingen</h1>
-        <p style={{ fontSize: 14, color: 'var(--text-3)', marginTop: 2 }}>Verbind je wearables en agenda voor persoonlijke inzichten</p>
+        <p style={{ fontSize: 14, color: 'var(--text-3)', marginTop: 2 }}>Verbind je horloge, telefoon en agenda. Jij kiest wat je deelt; MentaForce leest alleen.</p>
       </div>
 
-      {/* Health Connect — alleen zichtbaar in Android app */}
-      {isAndroid && (
-        <Card style={{ padding: 20, marginBottom: 16 }}>
-          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: 12 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <ProviderLogo><HeartPulse size={20} aria-hidden /></ProviderLogo>
-              <div>
-                <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-1)' }}>Health Connect</p>
-                <p style={{ fontSize: 12, color: 'var(--text-4)' }}>Fitbit · Samsung Health · Google Fit</p>
-                <div style={{ marginTop: 4 }}><StatusBadge connected={hcVerbonden} /></div>
-              </div>
-            </div>
-            {!hcVerbonden && (
-              <Button
-                size="sm"
-                loading={hcLaden}
-                onClick={async () => {
-                  setHcLaden(true)
-                  const ok = await vraagPermissies()
-                  if (ok) {
-                    const d = await leesHealthData()
-                    setHcData(d)
-                    setHcVerbonden(true)
-                    // Stuur direct 14 dagen historie naar je gezondheidslog
-                    const uitkomst = await syncGezondheidsdata({ forceer: true })
-                    if (uitkomst) toast({ title: `${uitkomst.opgeslagen} dagen gesynchroniseerd!`, variant: 'success' })
-                  }
-                  setHcLaden(false)
-                }}
-              >
-                Koppelen
-              </Button>
-            )}
-          </div>
-          {hcLaden ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 0' }}>
-              <div className="mf-spinner" style={{ width: 16, height: 16 }} />
-              <span style={{ fontSize: 12, color: 'var(--text-4)' }}>Data ophalen…</span>
-            </div>
-          ) : hcData ? (
-            <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--border)' }}>
-              <DataRij label="Stappen vandaag" waarde={hcData.stappen?.toLocaleString('nl-BE') ?? null} />
-              <DataRij label="Slaap" waarde={hcData.slaapMinuten !== null ? Math.round(hcData.slaapMinuten / 60 * 10) / 10 : null} eenheid="uur" />
-              <DataRij label="Gemiddelde hartslag" waarde={hcData.hartslag} eenheid="bpm" />
-              <DataRij label="Verbrande calorieën" waarde={hcData.calorieën} eenheid="kcal" />
-            </div>
-          ) : (
-            <p style={{ fontSize: 12, color: 'var(--text-4)', marginTop: 8 }}>Koppel Health Connect om stappen, slaap en hartslag te zien van je Fitbit of Samsung Health.</p>
-          )}
-        </Card>
-      )}
+      {/* Health Connect — alleen in de Android-app */}
+      {isAndroid && <HealthConnectKaart />}
 
       {/* Fitbit */}
       <Card style={{ padding: 20, marginBottom: 16 }}>
@@ -323,7 +260,8 @@ function KoppelingenInhoud() {
         )}
       </Card>
 
-      {/* Google Fit */}
+      {/* Google Fit — stopt; alleen nog zichtbaar voor wie hem al gekoppeld had, om over te stappen */}
+      {fitVerbonden && (
       <Card style={{ padding: 20, marginBottom: 16 }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: 12 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -351,9 +289,7 @@ function KoppelingenInhoud() {
               >{fitSyncBezig ? 'Bezig…' : 'Sync nu'}</Button>
               <Button variant="ghost" size="sm" onClick={() => ontkoppel('google_fit')} style={{ color: 'var(--mf-red)' }}>Ontkoppelen</Button>
             </div>
-          ) : (
-            <Button size="sm" onClick={() => startKoppeling('google-fit')}>Koppelen</Button>
-          )}
+          ) : null}
         </div>
         {fitLaden ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 0' }}>
@@ -366,12 +302,12 @@ function KoppelingenInhoud() {
             <DataRij label="Slaap" waarde={fitData.slaapMinuten !== null ? Math.round(fitData.slaapMinuten / 60 * 10) / 10 : null} eenheid="uur" />
             <DataRij label="Gemiddelde hartslag" waarde={fitData.hartslag} eenheid="bpm" />
           </div>
-        ) : fitVerbonden ? (
-          <p style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, color: 'var(--text-4)', marginTop: 8 }}><Check size={13} aria-hidden style={{ color: 'var(--mentaforce-primary)' }} /> Gekoppeld — data wordt opgehaald bij je volgende check-in.</p>
-        ) : (
-          <p style={{ fontSize: 12, color: 'var(--text-4)', marginTop: 8 }}>Koppel Google Fit om je stappen, slaap en hartslag automatisch mee te nemen in je check-in.</p>
-        )}
+        ) : null}
+        <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 8, lineHeight: 1.5 }}>
+          Google stopt met de Google Fit-koppeling. Gebruik op Android Health Connect; daarna kun je Google Fit hier ontkoppelen.
+        </p>
       </Card>
+      )}
 
       {/* Google Calendar */}
       <Card style={{ padding: 20, marginBottom: 16 }}>
@@ -477,27 +413,10 @@ function KoppelingenInhoud() {
             ? ahVerbonden
               ? 'Stappen en verbranding van je Apple Watch worden automatisch gesynchroniseerd.'
               : 'Koppel Apple Health om stappen en verbranding van je Apple Watch automatisch mee te nemen.'
-            : 'Apple Health koppeling is beschikbaar via de MentaForce iOS-app (HealthKit).'}
+            : 'Apple Health kan alleen vanuit een iPhone-app gekoppeld worden. Die iPhone-app is er nog niet.'}
         </p>
       </Card>
 
-      {/* Admin info */}
-      <div style={{ background: 'var(--mentaforce-primary-light)', border: '1px solid color-mix(in srgb, var(--mentaforce-primary) 35%, transparent)', borderRadius: 'var(--radius-card)', padding: 20, marginTop: 8 }}>
-        <p style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 600, color: 'var(--text-1)', marginBottom: 8 }}>
-          <Settings size={14} aria-hidden style={{ color: 'var(--mentaforce-primary)' }} />
-          Voor beheerders: API-sleutels instellen
-        </p>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-          {[
-            'FITBIT_CLIENT_ID + FITBIT_CLIENT_SECRET → developer.fitbit.com',
-            'GOOGLE_CLIENT_ID + GOOGLE_CLIENT_SECRET → Supabase Google Login',
-            'GOOGLE_FIT_CLIENT_ID + GOOGLE_FIT_CLIENT_SECRET → Google Fit OAuth',
-            'NEXT_PUBLIC_APP_URL=https://mentaforce.nl',
-          ].map(t => (
-            <p key={t} style={{ fontSize: 12, color: 'var(--text-2)', fontFamily: 'monospace' }}>{t}</p>
-          ))}
-        </div>
-      </div>
     </main>
   )
 }

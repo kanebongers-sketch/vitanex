@@ -51,6 +51,15 @@ MentaForce behoudt zich het recht voor accounts te deactiveren bij schending van
 • Persoonlijke journaalentries en coachgesprekken zijn strikt privé
 • Anonieme feedback bevat geen traceerbare metadata
 
+Gezondheidsgegevens van je telefoon of horloge (Health Connect op Android, Apple Health op iPhone):
+• Alleen als jij het aanzet, en per soort gegevens: jij kiest in Health Connect of Apple Health wat je deelt en kunt dat daar op elk moment intrekken
+• MentaForce leest alleen; we schrijven nooit iets terug naar Health Connect of Apple Health
+• Wat we kunnen lezen: stappen, afstand, verdiepingen, actieve en totale calorieën, hartslag, rusthartslag, hartslagvariabiliteit (HRV), VO2max, gewicht, slaap (duur en fases), trainingen, bloedzuurstof en ademhalingsfrequentie. Op iPhone is dat nu beperkt tot stappen, actieve calorieën, hartslag, afstand en trainingen
+• Waarvoor: om je eigen overzicht, je Vandaag-kaart en je persoonlijke inzichten te maken. We bewaren per dag een samenvatting, geen ruwe meetreeksen
+• Gebruik je de AI-coach of de ochtendsamenvatting, dan gaat een samenvatting van deze gegevens naar onze AI-leverancier (Anthropic) om je antwoord te maken
+• Nooit verkocht, nooit gebruikt voor advertenties en nooit gedeeld met je werkgever
+• Verwijderen: mail info@mentaforce.nl, dan verwijderen we je gezondheidsgegevens
+
 Alle gegevensverwerking vindt plaats conform de AVG (Algemene Verordening Gegevensbescherming). Vragen over privacy kunt u stellen via info@mentaforce.nl.`,
   },
   {

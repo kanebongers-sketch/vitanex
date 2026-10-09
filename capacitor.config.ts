@@ -1,6 +1,9 @@
 import type { CapacitorConfig } from '@capacitor/cli'
 
-const isProd = process.env.NODE_ENV === 'production'
+// Standaard productie: voorheen bakte een `npx cap sync` zonder NODE_ENV=production
+// stilletjes http://localhost:3000 in de app (dan bereikt niets, ook de
+// gezondheid-sync, de server). Lokaal testen via de laptop: CAP_DEV=1 npx cap sync.
+const isProd = process.env.CAP_DEV !== '1'
 
 const config: CapacitorConfig = {
   appId: 'nl.mentaforce.app',

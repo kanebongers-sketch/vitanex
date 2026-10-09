@@ -1,70 +1,59 @@
 import { describe, expect, test } from 'vitest'
 import {
-  datumInNL, heeftMeetwaarde, isGeldigeDagMeting, mergeDagMetingen,
-  type BestaandeRij,
+  datumDagenTerug, datumInNL, heeftMeetwaarde, mergeDagMetingen, middernachtNL, normaliseerBron, rondAf,
+  type DagRij,
 } from './health-data'
 
-describe('isGeldigeDagMeting', () => {
-  test('accepteert een normale meting', () => {
-    expect(isGeldigeDagMeting({ datum: '2026-06-11', stappen: 8000, slaapMinuten: 420 })).toBe(true)
+describe('normaliseerBron', () => {
+  test('accepteert de bronnen die de database toestaat', () => {
+    expect(normaliseerBron('health_connect')).toBe('health_connect')
+    expect(normaliseerBron('healthkit')).toBe('healthkit')
+    expect(normaliseerBron('google_health')).toBe('google_health')
   })
 
-  test('accepteert null-velden en weglatingen', () => {
-    expect(isGeldigeDagMeting({ datum: '2026-06-11', stappen: null })).toBe(true)
-    expect(isGeldigeDagMeting({ datum: '2026-06-11' })).toBe(true)
+  test('zet oude bronnamen om (die braken de check-constraint)', () => {
+    expect(normaliseerBron('apple_health')).toBe('healthkit')
+    expect(normaliseerBron('google_fit')).toBe('google_health')
   })
 
-  test('weigert kapotte datums', () => {
-    expect(isGeldigeDagMeting({ datum: '11-06-2026', stappen: 1 })).toBe(false)
-    expect(isGeldigeDagMeting({ datum: 'gisteren' })).toBe(false)
-    expect(isGeldigeDagMeting({})).toBe(false)
-    expect(isGeldigeDagMeting(null)).toBe(false)
-  })
-
-  test('weigert onrealistische of niet-numerieke waarden', () => {
-    expect(isGeldigeDagMeting({ datum: '2026-06-11', stappen: -5 })).toBe(false)
-    expect(isGeldigeDagMeting({ datum: '2026-06-11', stappen: 999999999 })).toBe(false)
-    expect(isGeldigeDagMeting({ datum: '2026-06-11', hartslag: 400 })).toBe(false)
-    expect(isGeldigeDagMeting({ datum: '2026-06-11', slaapMinuten: '420' })).toBe(false)
-    expect(isGeldigeDagMeting({ datum: '2026-06-11', calorieen: NaN })).toBe(false)
+  test('weigert onbekende waarden', () => {
+    expect(normaliseerBron('fitbit')).toBeNull()
+    expect(normaliseerBron(42)).toBeNull()
   })
 })
 
 describe('mergeDagMetingen', () => {
-  const bestaand: BestaandeRij[] = [
-    { datum: '2026-06-10', stappen: 5000, slaap_minuten: 400, hartslag_gemiddeld: 62, calorieen: null },
+  const bestaand: DagRij[] = [
+    { datum: '2026-06-10', stappen: 5000, slaap_minuten: 400, rusthartslag: 58, bedtijd: '2026-06-09T22:10:00.000Z' },
   ]
 
-  test('nieuwe waarden winnen, lege velden behouden bestaande data', () => {
-    const resultaat = mergeDagMetingen(bestaand, [
-      { datum: '2026-06-10', stappen: 7200, calorieen: 1900 },
-    ], 'apple_health')
+  test('nieuwe waarden winnen, lege velden behouden bestaande data van dezelfde bron', () => {
+    // Arrange
+    const nieuw = [{ datum: '2026-06-10', stappen: 7200, actieveKcal: 410 }]
+    // Act
+    const [rij] = mergeDagMetingen(bestaand, nieuw, 'health_connect')
+    // Assert
+    expect(rij.stappen).toBe(7200)
+    expect(rij.slaap_minuten).toBe(400)
+    expect(rij.rusthartslag).toBe(58)
+    expect(rij.actieve_kcal).toBe(410)
+    expect(rij.bedtijd).toBe('2026-06-09T22:10:00.000Z')
+    expect(rij.hrv_ms).toBeNull()
+    expect(rij.bron).toBe('health_connect')
+  })
 
-    expect(resultaat).toHaveLength(1)
-    expect(resultaat[0]).toEqual({
-      datum: '2026-06-10',
-      stappen: 7200,          // nieuw wint
-      slaap_minuten: 400,     // bestaand blijft (bron levert geen slaap)
-      hartslag_gemiddeld: 62, // bestaand blijft
-      calorieen: 1900,        // nieuw vult leeg veld
-      bron: 'apple_health',
-    })
+  test('rondt af op de precisie van de kolom', () => {
+    const [rij] = mergeDagMetingen([], [
+      { datum: '2026-06-10', hartslag: 61.7, rusthartslag: 54.26, gewichtKg: 80.456 },
+    ], 'healthkit')
+    expect(rij.hartslag_gemiddeld).toBe(62)
+    expect(rij.rusthartslag).toBe(54.3)
+    expect(rij.gewicht_kg).toBe(80.46)
   })
 
   test('dagen zonder enige meetwaarde worden overgeslagen', () => {
-    const resultaat = mergeDagMetingen([], [
-      { datum: '2026-06-09' },
-      { datum: '2026-06-10', stappen: 100 },
-    ], 'google_fit')
-    expect(resultaat.map(r => r.datum)).toEqual(['2026-06-10'])
-  })
-
-  test('waarden worden afgerond naar gehele getallen', () => {
-    const resultaat = mergeDagMetingen([], [
-      { datum: '2026-06-10', hartslag: 61.7, calorieen: 1899.4 },
-    ], 'google_fit')
-    expect(resultaat[0].hartslag_gemiddeld).toBe(62)
-    expect(resultaat[0].calorieen).toBe(1899)
+    const rijen = mergeDagMetingen([], [{ datum: '2026-06-09' }, { datum: '2026-06-10', stappen: 100 }], 'healthkit')
+    expect(rijen.map(r => r.datum)).toEqual(['2026-06-10'])
   })
 })
 
@@ -73,15 +62,26 @@ describe('heeftMeetwaarde', () => {
     expect(heeftMeetwaarde({ datum: '2026-06-11' })).toBe(false)
     expect(heeftMeetwaarde({ datum: '2026-06-11', stappen: null })).toBe(false)
     expect(heeftMeetwaarde({ datum: '2026-06-11', stappen: 0 })).toBe(true)
+    expect(heeftMeetwaarde({ datum: '2026-06-11', hrvMs: 40 })).toBe(true)
   })
 })
 
-describe('datumInNL', () => {
+describe('datums in Nederlandse tijd', () => {
   test('UTC-avond valt in Nederland op de volgende dag (zomertijd)', () => {
     expect(datumInNL(new Date('2026-06-10T22:30:00Z'))).toBe('2026-06-11')
   })
 
-  test('UTC-middag blijft dezelfde dag', () => {
-    expect(datumInNL(new Date('2026-06-10T12:00:00Z'))).toBe('2026-06-10')
+  test('middernachtNL kent zomer- en wintertijd', () => {
+    expect(middernachtNL('2026-06-10').toISOString()).toBe('2026-06-09T22:00:00.000Z')
+    expect(middernachtNL('2026-12-10').toISOString()).toBe('2026-12-09T23:00:00.000Z')
+  })
+
+  test('datumDagenTerug telt kalenderdagen terug', () => {
+    expect(datumDagenTerug(2, new Date('2026-10-09T10:00:00Z'))).toBe('2026-10-07')
+  })
+
+  test('rondAf', () => {
+    expect(rondAf(1.256, 2)).toBe(1.26)
+    expect(rondAf(7.5, 0)).toBe(8)
   })
 })

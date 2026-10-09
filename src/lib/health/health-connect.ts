@@ -1,16 +1,197 @@
 /**
- * Health Connect integratie via @devmaxime/capacitor-health-connect
- * Werkt alleen in de Android app (Capacitor), niet in de browser.
+ * Health Connect (Android) via @devmaxime/capacitor-health-connect.
+ * Werkt alleen in de Android-app; in de browser geeft alles netjes
+ * "niet beschikbaar" terug en wordt de plugin nooit geladen.
+ *
+ * Voorwaarden in de native app (zie android/app/src/main/AndroidManifest.xml):
+ * elke READ_*-permissie hieronder moet daar gedeclareerd staan, plus de
+ * privacy-rationale activity. Zonder die declaraties toont Health Connect
+ * geen toestemmingsscherm en komt er nooit data binnen.
  */
-
 import { Capacitor } from '@capacitor/core'
-import { datumInNL, type DagMeting } from './health-data'
+import type { RecordType as PluginRecordType } from '@devmaxime/capacitor-health-connect'
+import {
+  alsVeld, bucketsPerDag, combineerPerDag, puntenPerDag, slaapPerNacht, workoutMinutenPerDag,
+  type Interval, type PerDag,
+} from './health-aggregatie'
+import {
+  intervalPuntUitTekst, parseerAlle, puntUitJson, puntUitTekst, slaapSessieUitJson, workoutUitJson,
+} from './health-connect-parser'
+import { datumDagenTerug, datumInNL, middernachtNL, type DagMeting, type WorkoutMeting } from './health-data'
+import { verrijkWorkouts, type AggregaatType } from './health-connect-workouts'
 
-// Lazy-load de plugin zodat de web build niet breekt
+/** Recordtypes die we lezen. Namen = sleutels van Health Connect's RECORDS_TYPE_NAME_MAP. */
+export const HC_LEESTYPES = [
+  'Steps', 'Distance', 'ActiveCaloriesBurned', 'TotalCaloriesBurned', 'HeartRateSeries',
+  'RestingHeartRate', 'HeartRateVariabilityRmssd', 'Vo2Max', 'Weight', 'SleepSession',
+  'ActivitySession', 'FloorsClimbed', 'OxygenSaturation', 'RespiratoryRate',
+] as const
+export type HcLeestype = (typeof HC_LEESTYPES)[number]
+
+export type HcBeschikbaarheid = 'beschikbaar' | 'niet_geinstalleerd' | 'niet_ondersteund' | 'geen_android'
+
+export const isAndroidApp = (): boolean =>
+  Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'android'
+
 async function getPlugin() {
-  if (!Capacitor.isNativePlatform()) return null
+  if (!isAndroidApp()) return null
   const { HealthConnect } = await import('@devmaxime/capacitor-health-connect')
   return HealthConnect
+}
+
+/** Is Health Connect op dit toestel bruikbaar? */
+export async function healthConnectBeschikbaarheid(): Promise<HcBeschikbaarheid> {
+  const plugin = await getPlugin()
+  if (!plugin) return 'geen_android'
+  try {
+    const { availability } = await plugin.checkAvailability()
+    if (availability === 'Available') return 'beschikbaar'
+    return availability === 'NotInstalled' ? 'niet_geinstalleerd' : 'niet_ondersteund'
+  } catch (err) {
+    console.error('[health-connect] beschikbaarheid', err)
+    return 'niet_ondersteund'
+  }
+}
+
+/** Opent Health Connect (of de Play Store als het nog niet geïnstalleerd is). */
+export async function openHealthConnect(installeren = false): Promise<void> {
+  if (!isAndroidApp()) return
+  const { Health } = await import('capacitor-health')
+  await (installeren ? Health.showHealthConnectInPlayStore() : Health.openHealthConnectSettings())
+}
+
+/** Welke leestypes zijn nu verleend? Leeg op web of bij een fout. */
+export async function verleendeRechten(): Promise<string[]> {
+  const plugin = await getPlugin()
+  if (!plugin) return []
+  try {
+    return (await plugin.getGrantedPermissions()).read ?? []
+  } catch (err) {
+    console.error('[health-connect] rechten lezen', err)
+    return []
+  }
+}
+
+/**
+ * Vraagt leesrechten voor alle types. True als er ten minste één is verleend:
+ * wie bv. alleen stappen deelt, moet die gewoon kunnen syncen.
+ */
+export async function vraagPermissies(): Promise<boolean> {
+  const plugin = await getPlugin()
+  if (!plugin) return false
+  if (await healthConnectBeschikbaarheid() !== 'beschikbaar') return false
+  try {
+    // De plugin-typing kent maar 5 namen; native accepteert alle Health Connect-types.
+    const read = [...HC_LEESTYPES] as unknown as PluginRecordType[]
+    const result = await plugin.requestPermissions({ read, write: [] })
+    return (result.read ?? []).length > 0
+  } catch (err) {
+    console.error('[health-connect] toestemming vragen', err)
+    return false
+  }
+}
+
+type Plugin = NonNullable<Awaited<ReturnType<typeof getPlugin>>>
+
+async function leesRecords(plugin: Plugin, type: HcLeestype, start: Date, eind: Date): Promise<unknown[]> {
+  const res = await plugin.readRecords({
+    start: start.toISOString(), end: eind.toISOString(), type: type as unknown as PluginRecordType,
+  })
+  return Array.isArray(res.records) ? res.records : []
+}
+
+async function leesBuckets(plugin: Plugin, type: AggregaatType, start: Date, eind: Date): Promise<Interval[]> {
+  const res = await plugin.aggregateRecords({
+    start: start.toISOString(), end: eind.toISOString(), type, groupBy: 'day',
+  })
+  return (res.aggregates ?? []).map(a => ({ start: a.startTime, eind: a.endTime, waarde: Number(a.value) }))
+}
+
+/** Resultaat of lege lijst; een geweigerd type mag de rest niet tegenhouden. */
+async function veilig<T>(werk: Promise<T[]>): Promise<T[]> {
+  try {
+    return await werk
+  } catch {
+    return []
+  }
+}
+
+async function leesAggregaten(plugin: Plugin, start: Date, eind: Date): Promise<PerDag[]> {
+  const [stappen, afstand, actief, totaal, hartslag] = await Promise.all([
+    veilig(leesBuckets(plugin, 'Steps', start, eind)),
+    veilig(leesBuckets(plugin, 'Distance', start, eind)),
+    veilig(leesBuckets(plugin, 'ActiveCaloriesBurned', start, eind)),
+    veilig(leesBuckets(plugin, 'TotalCaloriesBurned', start, eind)),
+    veilig(leesBuckets(plugin, 'HeartRate', start, eind)),
+  ])
+  return [
+    alsVeld('stappen', bucketsPerDag(stappen)),
+    alsVeld('afstandM', bucketsPerDag(afstand)),
+    alsVeld('actieveKcal', bucketsPerDag(actief)),
+    alsVeld('calorieen', bucketsPerDag(totaal)),
+    alsVeld('hartslag', bucketsPerDag(hartslag)),
+  ]
+}
+
+async function leesMomenten(plugin: Plugin, start: Date, eind: Date): Promise<PerDag[]> {
+  const lees = (type: HcLeestype) => veilig(leesRecords(plugin, type, start, eind))
+  const [rust, hrv, vo2, gewicht, zuurstof, adem, trappen] = await Promise.all([
+    lees('RestingHeartRate'), lees('HeartRateVariabilityRmssd'), lees('Vo2Max'), lees('Weight'),
+    lees('OxygenSaturation'), lees('RespiratoryRate'), lees('FloorsClimbed'),
+  ])
+  return [
+    alsVeld('rusthartslag', puntenPerDag(parseerAlle(rust, r => puntUitJson(r, 'beatsPerMinute')), 'gemiddelde')),
+    alsVeld('hrvMs', puntenPerDag(parseerAlle(hrv, r => puntUitTekst(r, 'heartRateVariabilityMillis')), 'gemiddelde')),
+    alsVeld('vo2max', puntenPerDag(parseerAlle(vo2, r => puntUitTekst(r, 'vo2MillilitersPerMinuteKilogram')), 'laatste')),
+    alsVeld('gewichtKg', puntenPerDag(parseerAlle(gewicht, r => puntUitJson(r, 'value')), 'laatste')),
+    alsVeld('zuurstofPct', puntenPerDag(parseerAlle(zuurstof, r => puntUitTekst(r, 'percentage')), 'gemiddelde')),
+    alsVeld('ademhalingPm', puntenPerDag(parseerAlle(adem, r => puntUitTekst(r, 'rate')), 'gemiddelde')),
+    alsVeld('verdiepingen', puntenPerDag(parseerAlle(trappen, r => intervalPuntUitTekst(r, 'floors')), 'som')),
+  ]
+}
+
+export interface HcLeesResultaat {
+  dagen: DagMeting[]
+  workouts: WorkoutMeting[]
+}
+
+/**
+ * Leest alles vanaf middernacht (NL) van `vanafDatum` tot nu en aggregeert
+ * per dag. Slaap wordt een dag eerder opgehaald zodat de nacht naar de
+ * eerste dag compleet is.
+ */
+export async function leesHealthConnect(vanafDatum: string): Promise<HcLeesResultaat> {
+  const plugin = await getPlugin()
+  if (!plugin) return { dagen: [], workouts: [] }
+
+  const start = middernachtNL(vanafDatum)
+  const eind = new Date()
+  const slaapStart = new Date(start.getTime() - 12 * 3_600_000)
+
+  const [aggregaten, momenten, slaapRecords, sessieRecords] = await Promise.all([
+    leesAggregaten(plugin, start, eind),
+    leesMomenten(plugin, start, eind),
+    veilig(leesRecords(plugin, 'SleepSession', slaapStart, eind)),
+    veilig(leesRecords(plugin, 'ActivitySession', start, eind)),
+  ])
+
+  const ruweWorkouts = parseerAlle(sessieRecords, workoutUitJson)
+  const workouts = await verrijkWorkouts(ruweWorkouts, (type, s, e) => veilig(leesBuckets(plugin, type, s, e)))
+  const slaap = slaapPerNacht(parseerAlle(slaapRecords, slaapSessieUitJson))
+
+  const dagen = combineerPerDag(
+    ...aggregaten, ...momenten, slaap,
+    alsVeld('beweegminuten', workoutMinutenPerDag(workouts)),
+  ).filter(d => d.datum >= vanafDatum)
+  return { dagen, workouts }
+}
+
+/**
+ * Compatibele helper: de afgelopen N dagen als dagmetingen
+ * (gebruikt door de stappen-pagina).
+ */
+export async function leesHealthBereik(dagenTerug: number): Promise<DagMeting[]> {
+  return (await leesHealthConnect(datumDagenTerug(dagenTerug))).dagen
 }
 
 export type HealthData = {
@@ -20,183 +201,14 @@ export type HealthData = {
   calorieën: number | null
 }
 
-/**
- * Vraag Health Connect permissies aan de gebruiker.
- * Geeft true terug als alle gevraagde read-permissies verleend zijn.
- */
-export async function vraagPermissies(): Promise<boolean> {
-  const plugin = await getPlugin()
-  if (!plugin) return false
-
-  try {
-    const result = await plugin.requestPermissions({
-      read: ['Steps', 'SleepSession', 'RestingHeartRate'],
-      write: [],
-    })
-    // Controleer of alle gevraagde types zijn verleend
-    const verleend = result.read ?? []
-    return (
-      verleend.includes('Steps') &&
-      verleend.includes('SleepSession') &&
-      verleend.includes('RestingHeartRate')
-    )
-  } catch {
-    return false
-  }
-}
-
-/**
- * Lees vandaag's gezondheidsdata uit Health Connect.
- * Gebruikt aggregateRecords voor stappen/calorieën/hartslag,
- * readRecords voor slaap.
- */
+/** Compatibele helper: vandaag in één oogopslag (gebruikt door /koppelingen). */
 export async function leesHealthData(): Promise<HealthData> {
-  const plugin = await getPlugin()
-  const leeg: HealthData = { stappen: null, slaapMinuten: null, hartslag: null, calorieën: null }
-  if (!plugin) return leeg
-
-  const vandaag = new Date()
-  const startDag = new Date(vandaag)
-  startDag.setHours(0, 0, 0, 0)
-  const eindDag = new Date(vandaag)
-  eindDag.setHours(23, 59, 59, 999)
-
-  // Slaap: van 22:00 gisteren tot nu
-  const gisteren22 = new Date(vandaag)
-  gisteren22.setDate(gisteren22.getDate() - 1)
-  gisteren22.setHours(22, 0, 0, 0)
-
-  try {
-    const [stappen, calorieën, hartslag, slaap] = await Promise.allSettled([
-      plugin.aggregateRecords({
-        start: startDag.toISOString(),
-        end: eindDag.toISOString(),
-        type: 'Steps',
-        groupBy: 'day',
-      }),
-      plugin.aggregateRecords({
-        start: startDag.toISOString(),
-        end: eindDag.toISOString(),
-        type: 'ActiveCaloriesBurned',
-        groupBy: 'day',
-      }),
-      plugin.aggregateRecords({
-        start: startDag.toISOString(),
-        end: eindDag.toISOString(),
-        type: 'HeartRate',
-        groupBy: 'day',
-      }),
-      plugin.readRecords({
-        start: gisteren22.toISOString(),
-        end: eindDag.toISOString(),
-        type: 'SleepSession',
-      }),
-    ])
-
-    // Stappen totaal van vandaag
-    let totalStappen: number | null = null
-    if (stappen.status === 'fulfilled') {
-      const aggregates = stappen.value?.aggregates ?? []
-      if (aggregates.length > 0) {
-        totalStappen = Math.round(aggregates.reduce((som, a) => som + (a.value ?? 0), 0))
-      }
-    }
-
-    // Calorieën totaal van vandaag
-    let totalCal: number | null = null
-    if (calorieën.status === 'fulfilled') {
-      const aggregates = calorieën.value?.aggregates ?? []
-      if (aggregates.length > 0) {
-        totalCal = Math.round(aggregates.reduce((som, a) => som + (a.value ?? 0), 0))
-      }
-    }
-
-    // Gemiddelde hartslag vandaag
-    let gemHartslag: number | null = null
-    if (hartslag.status === 'fulfilled') {
-      const aggregates = hartslag.value?.aggregates ?? []
-      if (aggregates.length > 0) {
-        const som = aggregates.reduce((s, a) => s + (a.value ?? 0), 0)
-        gemHartslag = Math.round(som / aggregates.length)
-      }
-    }
-
-    // Slaap: som van slaapsessies in minuten
-    let totalSlaap: number | null = null
-    if (slaap.status === 'fulfilled') {
-      const records = slaap.value?.records ?? []
-      if (records.length > 0) {
-        totalSlaap = Math.round(
-          records.reduce((som: number, r: { startTime: string; endTime: string }) => {
-            const duur = (new Date(r.endTime).getTime() - new Date(r.startTime).getTime()) / 60000
-            return som + duur
-          }, 0)
-        )
-      }
-    }
-
-    return {
-      stappen: totalStappen,
-      slaapMinuten: totalSlaap,
-      hartslag: gemHartslag,
-      calorieën: totalCal,
-    }
-  } catch {
-    return leeg
+  const vandaag = datumInNL(new Date())
+  const d = (await leesHealthBereik(0)).find(m => m.datum === vandaag)
+  return {
+    stappen: d?.stappen ?? null,
+    slaapMinuten: d?.slaapMinuten ?? null,
+    hartslag: d?.rusthartslag ?? d?.hartslag ?? null,
+    calorieën: d?.actieveKcal ?? d?.calorieen ?? null,
   }
-}
-
-export const isAndroidApp = () =>
-  Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'android'
-
-/**
- * Lees de afgelopen N dagen uit Health Connect als dagmetingen,
- * klaar om naar /api/health/sync te sturen.
- */
-export async function leesHealthBereik(dagenTerug: number): Promise<DagMeting[]> {
-  const plugin = await getPlugin()
-  if (!plugin) return []
-
-  const eind = new Date()
-  const start = new Date(eind.getTime() - dagenTerug * 86400000)
-  start.setHours(0, 0, 0, 0)
-
-  const [stappen, calorieen, hartslag, slaap] = await Promise.allSettled([
-    plugin.aggregateRecords({ start: start.toISOString(), end: eind.toISOString(), type: 'Steps', groupBy: 'day' }),
-    plugin.aggregateRecords({ start: start.toISOString(), end: eind.toISOString(), type: 'ActiveCaloriesBurned', groupBy: 'day' }),
-    plugin.aggregateRecords({ start: start.toISOString(), end: eind.toISOString(), type: 'HeartRate', groupBy: 'day' }),
-    plugin.readRecords({ start: start.toISOString(), end: eind.toISOString(), type: 'SleepSession' }),
-  ])
-
-  const perDatum = new Map<string, DagMeting>()
-  const meting = (datum: string): DagMeting => {
-    const bestaand = perDatum.get(datum) ?? { datum }
-    perDatum.set(datum, bestaand)
-    return bestaand
-  }
-
-  const verwerk = (
-    resultaat: PromiseSettledResult<{ aggregates: { startTime: string; value: number }[] }>,
-    veld: 'stappen' | 'calorieen' | 'hartslag'
-  ) => {
-    if (resultaat.status !== 'fulfilled') return
-    for (const a of resultaat.value?.aggregates ?? []) {
-      if (a.value === null || a.value === undefined) continue
-      meting(datumInNL(new Date(a.startTime)))[veld] = Math.round(a.value)
-    }
-  }
-  verwerk(stappen, 'stappen')
-  verwerk(calorieen, 'calorieen')
-  verwerk(hartslag, 'hartslag')
-
-  if (slaap.status === 'fulfilled') {
-    for (const r of (slaap.value?.records ?? []) as { startTime: string; endTime: string }[]) {
-      const duur = (new Date(r.endTime).getTime() - new Date(r.startTime).getTime()) / 60000
-      if (duur <= 0) continue
-      const m = meting(datumInNL(new Date(r.endTime)))
-      m.slaapMinuten = (m.slaapMinuten ?? 0) + Math.round(duur)
-    }
-  }
-
-  return [...perDatum.values()].sort((a, b) => a.datum.localeCompare(b.datum))
 }
