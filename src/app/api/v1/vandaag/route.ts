@@ -6,6 +6,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { gebruikerSessie } from '@/lib/supabase/gebruiker'
 import { haalFeiten } from '@/lib/vandaag/ophalen'
 import { maakKaart } from '@/lib/vandaag/regels'
+import { maakRekening } from '@/lib/vandaag/rekening'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -27,7 +28,7 @@ export async function GET(req: NextRequest) {
     const gekozen = Object.fromEntries(
       (Array.isArray(data) ? data : []).map((r: { actie: string; keuze: string }) => [r.actie, r.keuze]),
     )
-    return NextResponse.json({ kaart, gekozen }, { headers: GEEN_CACHE })
+    return NextResponse.json({ kaart, gekozen, rekening: maakRekening(feiten) }, { headers: GEEN_CACHE })
   } catch (fout) {
     console.error('[v1/vandaag] kaart maken mislukt', fout)
     return NextResponse.json({ fout: 'Je kaart kon niet worden gemaakt. Probeer het zo opnieuw.' }, { status: 502 })
