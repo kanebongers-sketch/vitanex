@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server'
-import { PAD_HEADER, beslis } from '@/lib/fit-factory/domein'
+import { PAD_HEADER, beslis, leesRoutes } from '@/lib/fit-factory/domein'
 
 // Het eigen domein van de Fit Factory PT-app (fitfactorypt.nl). De beslissing
 // zelf staat — getest — in `src/lib/fit-factory/domein.ts`; hier alleen de
@@ -7,12 +7,15 @@ import { PAD_HEADER, beslis } from '@/lib/fit-factory/domein'
 // zodat de PT-layout een oude mentaforce.nl/<naam>/…-link met pad en al kan
 // doorsturen (een layout kent zelf alleen zijn eigen segment).
 
+/** De MentaForce-routes, tijdens de build uit src/app afgeleid (next.config). */
+const MENTAFORCE_ROUTES = leesRoutes(process.env.MENTAFORCE_ROUTES)
+
 export function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl
   const host = request.headers.get('host')
   const actief = process.env.FIT_FACTORY_DOMEIN_ACTIEF === '1'
 
-  const besluit = beslis(host, pathname, search, actief)
+  const besluit = beslis(host, pathname, search, actief, MENTAFORCE_ROUTES)
   if (besluit.soort === 'omleiden') return NextResponse.redirect(besluit.url, 308)
 
   const headers = new Headers(request.headers)
@@ -28,5 +31,9 @@ export function proxy(request: NextRequest) {
 
 export const config = {
   // Niet voor statische bestanden en API's: die hebben geen domeinlogica nodig.
-  matcher: ['/((?!api/|_next/static|_next/image|favicon.ico|icons/|fonts/|models/|.*\\.(?:png|jpg|jpeg|svg|webp|ico|woff2|glb|txt|xml)$).*)'],
+  // favicon.ico wél: op fitfactorypt.nl wordt dat het Fit Factory-icoon.
+  matcher: [
+    '/favicon.ico',
+    '/((?!api/|_next/static|_next/image|favicon.ico|icons/|fonts/|models/|.*\\.(?:png|jpg|jpeg|svg|webp|ico|woff2|glb|txt|xml)$).*)',
+  ],
 }

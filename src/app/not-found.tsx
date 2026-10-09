@@ -1,8 +1,15 @@
 import Link from 'next/link'
 import { Compass } from 'lucide-react'
+import { headers } from 'next/headers'
 import { Wordmark } from '@/components/layout/Logo'
+import { isPtHost } from '@/lib/fit-factory/domein'
+import { FfNietGevonden } from '@/components/lifeos/pt-dashboard/FfNietGevonden'
 
-export default function NietGevonden() {
+export default async function NietGevonden() {
+  // Op fitfactorypt.nl een 404 in de Fit Factory-stijl, zonder MentaForce.
+  const h = await headers()
+  if (isPtHost(h.get('x-forwarded-host') ?? h.get('host'))) return <FfNietGevonden />
+
   return (
     <main
       className="mf-mesh-bg"

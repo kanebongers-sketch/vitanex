@@ -3592,6 +3592,8 @@ body {
 }
 .lifeos-root.ff .ff-voet { display: grid; gap: 6px; justify-items: center; text-align: center; margin-top: 18px; color: var(--text-4); font-size: 12px; line-height: 1.5; }
 .lifeos-root.ff .ff-voet img { height: 22px; width: auto; opacity: 0.75; }
+.lifeos-root.ff .ff-maker { letter-spacing: 0.04em; text-transform: uppercase; font-size: 11px; color: var(--text-3); }
+.lifeos-root.ff .ff-maker strong { color: var(--text-1); font-weight: 700; }
 @media (prefers-reduced-motion: reduce) { .lifeos-root.ff .ff-tabs a { transition: none; } }
 .lifeos-root.ff .ff-smal { max-width: 520px; }
 .lifeos-root.ff .ff-hero-sub { margin: 4px 0 0; max-width: 46ch; font-size: 14px; line-height: 1.5; color: rgba(255, 255, 255, 0.82); }

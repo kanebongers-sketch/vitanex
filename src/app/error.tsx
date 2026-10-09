@@ -3,6 +3,8 @@
 import Link from 'next/link'
 import { AlertTriangle } from 'lucide-react'
 import { Wordmark } from '@/components/layout/Logo'
+import { isPtHost } from '@/lib/fit-factory/domein'
+import FfFout from '@/app/FitFactoryPT/error'
 
 // Next 16.2.4-conventie: error.tsx krijgt { error, unstable_retry }. De docs
 // adviseren unstable_retry() (her-fetch + her-render) boven reset(). We tonen
@@ -13,6 +15,10 @@ export default function Fout({
   error: Error & { digest?: string }
   unstable_retry: () => void
 }) {
+  // Op het Fit Factory-domein nooit het MentaForce-foutscherm.
+  if (typeof window !== 'undefined' && isPtHost(window.location.host)) {
+    return <FfFout error={new Error('fout')} retry={unstable_retry} />
+  }
   return (
     <main
       className="mf-mesh-bg"

@@ -72,7 +72,7 @@ export async function maakVerslagPdf(v: VerslagPdfInvoer): Promise<Buffer> {
 
   return new Promise((resolve, reject) => {
     const chunks: Buffer[] = []
-    const doc = new PDFDocument({ size: 'A4', margin: 0, info: { Title: `Coachgesprek ${v.naam}`, Author: 'LifeOS' } })
+    const doc = new PDFDocument({ size: 'A4', margin: 0, info: { Title: `Coachgesprek ${v.naam}`, Author: 'Kane Bongers' } })
     doc.on('data', (c: Buffer) => chunks.push(c))
     doc.on('end', () => resolve(Buffer.concat(chunks)))
     doc.on('error', reject)
@@ -134,7 +134,7 @@ export async function maakVerslagPdf(v: VerslagPdfInvoer): Promise<Buffer> {
     // ── Voet ──
     const voetY = doc.page.height - 48
     doc.moveTo(M, voetY - 12).lineTo(B - M, voetY - 12).lineWidth(0.5).strokeColor(LIJN).stroke()
-    doc.fillColor(GRIJS).font('Helvetica').fontSize(9).text('Gemaakt met LifeOS · vertrouwelijk', M, voetY, { width: breed })
+    doc.fillColor(GRIJS).font('Helvetica').fontSize(9).text('Fit Factory Personal Training · gemaakt door Kane Bongers · vertrouwelijk', M, voetY, { width: breed })
 
     doc.end()
   })

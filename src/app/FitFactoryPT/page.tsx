@@ -7,6 +7,8 @@ import { FfLogo } from '@/components/lifeos/pt-dashboard/FfLogo'
 import { FfHero } from '@/components/lifeos/pt-dashboard/FfHero'
 import { FIT_FACTORY } from '@/components/marketing/theme'
 import { barlow, inter } from '@/app/fonts/fit-factory'
+import { FfMaker } from '@/components/lifeos/pt-dashboard/FfMaker'
+import { PT_FAVICON } from '@/lib/fit-factory/domein'
 
 // /FitFactoryPT (voorheen /lead) — de ingang voor het Fit Factory PT-team: tik je naam aan en je komt in
 // je eigen app (/<naam>). Alleen voornamen; de gegevens zitten achter de pincode
@@ -19,6 +21,7 @@ export const metadata: Metadata = {
   description: 'De app van het Fit Factory Personal Training-team.',
   robots: { index: false, follow: false },
   referrer: 'no-referrer',
+  icons: { icon: PT_FAVICON, apple: '/icons/apple-touch-icon.png' },
 }
 
 export const viewport: Viewport = { themeColor: FIT_FACTORY.zwart }
@@ -60,6 +63,10 @@ export default async function LeadStart() {
         <p className="ptd-hint">
           Zet je eigen pagina op je beginscherm (fitfactorypt.nl/jouwnaam) — dan opent hij als app.
         </p>
+        <footer className="ff-voet">
+          <span>Fit Factory Personal Training</span>
+          <FfMaker />
+        </footer>
       </div>
     </main>
   )

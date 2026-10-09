@@ -22,6 +22,17 @@ export const PAD_HEADER = 'x-ff-pad'
 /** De ingang van het PT-team; op het eigen domein is dat gewoon de homepage. */
 export const PT_INGANG = '/FitFactoryPT'
 
+/** De Fit Factory-variant van het inlogscherm (alleen de beheerder logt zo in). */
+export const PT_LOGIN = '/FitFactoryPT/login'
+
+/** Het Fit Factory-icoon voor het browsertabblad, i.p.v. het MentaForce-favicon. */
+export const PT_FAVICON = '/icons/pt-192.png'
+
+/** Komma-lijst uit de build-env (next.config) → set. Leeg = niets bekend. */
+export function leesRoutes(lijst: string | undefined): ReadonlySet<string> {
+  return new Set((lijst ?? '').split(',').map((r) => r.trim()).filter(Boolean))
+}
+
 /** Host zonder poort en in kleine letters ("FitFactoryPT.nl:443" → "fitfactorypt.nl"). */
 function schoon(host: string | null | undefined): string {
   return (host ?? '').split(':')[0].trim().toLowerCase()
@@ -55,19 +66,33 @@ export type Beslissing =
  *    www.…           → omleiden naar het kale domein (één adres, één set cookies)
  *    /               → herschrijven naar de ingang (de URL blijft "/")
  *    /FitFactoryPT   → omleiden naar "/" (geen twee adressen voor dezelfde pagina)
- *    rest            → door (/<naam>, /api, /login voor Kane, …)
+ *    /login          → herschrijven naar de Fit Factory-login
+ *    /favicon.ico    → herschrijven naar het Fit Factory-icoon
+ *    MentaForce-route (/home, /lifeos, …) → omleiden naar "/": op dit domein is
+ *                      niets van MentaForce te zien
+ *    rest            → door (/<naam>, /api, …)
  *
  *  mentaforce.nl, alleen met de schakelaar aan
  *    /FitFactoryPT   → fitfactorypt.nl/
  *    (de /<naam>-links stuurt de PT-layout door: alleen die weet of een pad een PT'er is)
  */
-export function beslis(host: string | null | undefined, pad: string, zoek: string, actief: boolean): Beslissing {
+export function beslis(
+  host: string | null | undefined,
+  pad: string,
+  zoek: string,
+  actief: boolean,
+  mentaforceRoutes: ReadonlySet<string> = new Set(),
+): Beslissing {
   const h = schoon(host)
   if (h === `www.${PT_DOMEIN}`) return { soort: 'omleiden', url: ptUrl(`${pad}${zoek}`) }
 
   if (isPtHost(h)) {
     if (pad === '/') return { soort: 'herschrijven', pad: PT_INGANG }
     if (pad === PT_INGANG) return { soort: 'omleiden', url: ptUrl(`/${zoek}`) }
+    if (pad === '/login') return { soort: 'herschrijven', pad: PT_LOGIN }
+    if (pad === '/favicon.ico') return { soort: 'herschrijven', pad: PT_FAVICON }
+    const eerste = pad.split('/')[1] ?? ''
+    if (mentaforceRoutes.has(eerste)) return { soort: 'omleiden', url: ptUrl('/') }
     return { soort: 'door' }
   }
 

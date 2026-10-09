@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { beslis, isPtHost, ptDoorsturen, ptUrl } from './domein'
+import { beslis, isPtHost, leesRoutes, ptDoorsturen, ptUrl } from './domein'
 
 describe('isPtHost', () => {
   test('kaal, www, hoofdletters en poort', () => {
@@ -53,5 +53,38 @@ describe('ptDoorsturen', () => {
     expect(ptDoorsturen('mentaforce.nl', false)).toBe(false)
     expect(ptDoorsturen('localhost:3000', true)).toBe(false)
     expect(ptDoorsturen('fitfactorypt.nl', true)).toBe(false)
+  })
+})
+
+describe('beslis — niets van MentaForce op fitfactorypt.nl', () => {
+  const MF = leesRoutes('home,lifeos,login,admin,kanebongers')
+
+  test('/login wordt de Fit Factory-login (URL blijft /login)', () => {
+    expect(beslis('fitfactorypt.nl', '/login', '?next=%2Fkane', true, MF)).toEqual({ soort: 'herschrijven', pad: '/FitFactoryPT/login' })
+  })
+
+  test('het favicon wordt het Fit Factory-icoon', () => {
+    expect(beslis('fitfactorypt.nl', '/favicon.ico', '', true, MF)).toEqual({ soort: 'herschrijven', pad: '/icons/pt-192.png' })
+  })
+
+  test('MentaForce-routes gaan naar de team-ingang', () => {
+    expect(beslis('fitfactorypt.nl', '/lifeos', '', true, MF)).toEqual({ soort: 'omleiden', url: 'https://fitfactorypt.nl/' })
+    expect(beslis('fitfactorypt.nl', '/home/iets', '', true, MF)).toEqual({ soort: 'omleiden', url: 'https://fitfactorypt.nl/' })
+  })
+
+  test('een PT-naam blijft gewoon door', () => {
+    expect(beslis('fitfactorypt.nl', '/joey/klanten', '', true, MF)).toEqual({ soort: 'door' })
+  })
+
+  test('op mentaforce.nl verandert er niets aan /login of /lifeos', () => {
+    expect(beslis('mentaforce.nl', '/login', '', true, MF)).toEqual({ soort: 'door' })
+    expect(beslis('mentaforce.nl', '/lifeos', '', true, MF)).toEqual({ soort: 'door' })
+  })
+})
+
+describe('leesRoutes', () => {
+  test('komma-lijst naar set, leeg is leeg', () => {
+    expect([...leesRoutes(' home, lifeos ,')]).toEqual(['home', 'lifeos'])
+    expect(leesRoutes(undefined).size).toBe(0)
   })
 })

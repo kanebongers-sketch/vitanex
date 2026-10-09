@@ -13,7 +13,32 @@ while (
   turbopackRoot = path.dirname(turbopackRoot)
 }
 
+// De top-level routes van MentaForce (/home, /lifeos, /login, …), afgeleid uit
+// src/app tijdens de build: route-groepen als (app) tellen niet als segment, hun
+// kinderen wel. Op fitfactorypt.nl stuurt src/proxy.ts deze routes weg, zodat er
+// op het Fit Factory-domein niets van MentaForce te zien is. Automatisch, zodat
+// een nieuwe MentaForce-pagina er nooit per ongeluk doorheen glipt.
+const GEEN_MENTAFORCE_ROUTE = new Set(['[pt]', 'FitFactoryPT', 'api', 'fonts', 'lead'])
+function mentaforceRoutes(): string[] {
+  const appDir = path.join(__dirname, 'src', 'app')
+  const mappen = (dir: string) =>
+    fs.readdirSync(dir, { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => d.name)
+  const routes = new Set<string>()
+  for (const naam of mappen(appDir)) {
+    if (naam.startsWith('(') && naam.endsWith(')')) {
+      for (const kind of mappen(path.join(appDir, naam))) routes.add(kind)
+    } else {
+      routes.add(naam)
+    }
+  }
+  return [...routes].filter((r) => !GEEN_MENTAFORCE_ROUTE.has(r) && !r.startsWith('_') && !r.startsWith('['))
+}
+
 const nextConfig: NextConfig = {
+  env: {
+    MENTAFORCE_ROUTES: mentaforceRoutes().join(','),
+  },
+
   serverExternalPackages: ['pdfkit'],
   transpilePackages: ['three'],
 
@@ -155,6 +180,14 @@ const nextConfig: NextConfig = {
           // en blijven oude resultaten staan.
           ...(SITE_VERBORGEN ? [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }] : []),
         ],
+      },
+      // Het Fit Factory-domein hoort NOOIT in zoekmachines, los van de site-modus:
+      // het is een besloten team-app met gegevens van leads en klanten. Crawlen
+      // blijft toegestaan (zie app/robots.ts), zodat Google deze kop ook ziet.
+      {
+        source: '/(.*)',
+        has: [{ type: 'host' as const, value: '(www\\.)?fitfactorypt\\.nl' }],
+        headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow, noarchive, nosnippet, noimageindex' }],
       },
       // Cache static assets aggressively — alleen in productie.
       // In dev zijn Turbopack-chunknamen stabiel: immutable caching laat de

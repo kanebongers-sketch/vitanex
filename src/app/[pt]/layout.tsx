@@ -13,7 +13,8 @@ import { FfHero } from '@/components/lifeos/pt-dashboard/FfHero'
 import { FIT_FACTORY } from '@/components/marketing/theme'
 import { manifestPad } from '@/lib/lifeos/pt-dashboard/manifest'
 import { barlow, inter } from '@/app/fonts/fit-factory'
-import { PAD_HEADER, ptDoorsturen, ptUrl } from '@/lib/fit-factory/domein'
+import { PAD_HEADER, PT_FAVICON, ptDoorsturen, ptUrl } from '@/lib/fit-factory/domein'
+import { FfMaker } from '@/components/lifeos/pt-dashboard/FfMaker'
 
 // fitfactorypt.nl/<naam> — de app van één Fit Factory PT'er (bv. /joey): overzicht,
 // leads, klanten, coachgesprek en de kennisbank met de Fit Factory PT-documenten.
@@ -36,12 +37,12 @@ export async function generateMetadata({ params }: Pick<Props, 'params'>): Promi
     title: s ? `${s.link.naam} · Fit Factory PT` : 'Fit Factory PT',
     robots: { index: false, follow: false },
     referrer: 'no-referrer',
+    icons: { icon: PT_FAVICON, apple: '/icons/apple-touch-icon.png' },
     // Op het beginscherm zetten: eigen manifest per PT'er (start op /<naam>).
     ...(s
       ? {
           manifest: manifestPad(s.link.code),
           appleWebApp: { capable: true, title: 'Fit Factory PT', statusBarStyle: 'black' as const },
-          icons: { apple: '/icons/apple-touch-icon.png' },
           other: { 'apple-mobile-web-app-capable': 'yes' },
         }
       : {}),
@@ -101,6 +102,7 @@ export default async function PtLayout({ children, params }: Props) {
             </span>
           )}
           <span>Fit Factory Personal Training</span>
+          <FfMaker />
         </footer>
       </div>
     </main>
