@@ -5,7 +5,7 @@
 // regel totaal. Alles afgeleid uit wat er is ingevuld — niets geschat.
 
 import { OPEN_STATUSSEN, type Lead } from '@/lib/lifeos/leads/leads'
-import { euro, isLopend, maandprijs, plusDagen, type PtKlant } from './abonnementen'
+import { euro, isLopend, klantPrijs, plusDagen, type PtKlant } from './abonnementen'
 
 export interface PtWeekCijfers {
   leads: number
@@ -32,7 +32,8 @@ export function ptWeekCijfers(leads: readonly Lead[], klanten: readonly PtKlant[
     nieuweKlanten: klanten.filter((k) => k.startdatum >= van && k.startdatum < vandaag).length,
     teLaat: leads.filter((l) => OPEN_STATUSSEN.includes(l.status) && l.opvolgdatum !== null && l.opvolgdatum < vandaag).length,
     lopend: lopend.length,
-    maandwaarde: lopend.filter((k) => k.status !== 'bevroren').reduce((s, k) => s + maandprijs(k.abonnement, k.club), 0),
+    // Wat klanten écht betalen (afwijkende prijs telt mee), net als in het team-overzicht.
+    maandwaarde: lopend.filter((k) => k.status !== 'bevroren').reduce((s, k) => s + klantPrijs(k), 0),
   }
 }
 

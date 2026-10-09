@@ -68,6 +68,15 @@ describe('invoer', () => {
     expect(leesKlantInvoer({ naam: 'A', club: 'mars', abonnement: '1x', startdatum: '2026-10-01' }).ok).toBe(false)
     expect(leesKlantInvoer({ naam: 'A', club: 'budel', abonnement: '1x', startdatum: '2026-10-01', status: 'opgezegd', opgezegdOp: '2026-09-01' }).ok).toBe(false)
   })
+  test('leadId: alleen een echte uuid komt door, rommel wordt null (raakt de database niet)', () => {
+    const basis = { naam: 'A', club: 'budel', abonnement: '1x', startdatum: '2026-10-01' }
+    const goed = leesKlantInvoer({ ...basis, leadId: '55555555-5555-4555-8555-555555555555' })
+    expect(goed.ok && goed.waarde.leadId).toBe('55555555-5555-4555-8555-555555555555')
+    for (const rommel of ['------------------------------------', 'abc', 42, { id: 'x' }]) {
+      const r = leesKlantInvoer({ ...basis, leadId: rommel })
+      expect(r.ok && r.waarde.leadId).toBe(null)
+    }
+  })
 })
 
 describe('notitie', () => {

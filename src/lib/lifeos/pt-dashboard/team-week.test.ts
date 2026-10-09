@@ -47,6 +47,10 @@ describe('ptWeekCijfers', () => {
     const c = ptWeekCijfers([], [klant(), klant({ status: 'bevroren' }), klant({ status: 'gestopt', opgezegdOp: '2026-08-01' })], MAANDAG)
     expect(c).toMatchObject({ lopend: 2, maandwaarde: 299 })
   })
+  test('maandwaarde rekent met de afwijkende prijs als die er is', () => {
+    const c = ptWeekCijfers([], [klant({ prijsAfwijkend: 250 }), klant()], MAANDAG)
+    expect(c.maandwaarde).toBe(549)
+  })
 })
 
 describe('weekTekst', () => {

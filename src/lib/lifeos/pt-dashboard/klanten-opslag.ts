@@ -7,7 +7,10 @@ import type { LeadLink } from '@/lib/lifeos/leads/links'
 import { isClub } from './clubs'
 import { isAbonnement, isKlantStatus, isStopReden, type KlantInvoer, type PtKlant } from './abonnementen'
 
-export type KlantUitkomst<T> = { ok: true; waarde: T } | { ok: false; reden: 'db' | 'niet_gevonden' }
+export type KlantUitkomst<T> = { ok: true; waarde: T } | { ok: false; reden: 'db' | 'niet_gevonden' | 'te_veel' }
+
+/** Zoveel nieuwe klanten per uur per trainer; meer is eerder een kapotte knop of misbruik (zelfde grens als leads). */
+export const MAX_KLANTEN_PER_UUR = 40
 
 const KOLOMMEN = 'id, naam, contact, duo_partner, locatie, abonnement, startdatum, status, opgezegd_op, notitie, lead_id, prijs_afwijkend, stop_reden'
 
@@ -84,7 +87,17 @@ export async function haalKlantenVan(admin: SupabaseClient, link: LeadLink): Pro
   return { ok: true, waarde: vanRijen(data) }
 }
 
-export async function voegKlantToe(admin: SupabaseClient, link: LeadLink, k: KlantInvoer): Promise<KlantUitkomst<PtKlant>> {
+export async function voegKlantToe(admin: SupabaseClient, link: LeadLink, k: KlantInvoer, nu = new Date()): Promise<KlantUitkomst<PtKlant>> {
+  const uurGeleden = new Date(nu.getTime() - 60 * 60 * 1000).toISOString()
+  const { count, error: telFout } = await admin
+    .from('pt_klanten')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', link.userId)
+    .eq('persoon_id', link.persoonId)
+    .gte('aangemaakt_op', uurGeleden)
+  if (telFout) return { ok: false, reden: 'db' }
+  if ((count ?? 0) >= MAX_KLANTEN_PER_UUR) return { ok: false, reden: 'te_veel' }
+
   // Een lead-koppeling alleen als het een lead van déze PT'er is.
   const leadId = k.leadId ? await eigenLead(admin, link, k.leadId) : null
   const { data, error } = await admin
@@ -123,7 +136,18 @@ export async function verwijderKlant(admin: SupabaseClient, link: LeadLink, id: 
   return Array.isArray(data) && data.length === 1 ? { ok: true, waarde: null } : { ok: false, reden: 'niet_gevonden' }
 }
 
-/** Een klant naar een andere trainer verplaatsen (alleen de beheerder; de aanroeper controleerde de trainer). */
+/** De tabellen die per klant een `persoon_id` (trainer) dragen en met de klant mee verhuizen. */
+const DOSSIER_TABELLEN = ['pt_intakes', 'pt_metingen'] as const
+
+/**
+ * Een klant naar een andere trainer verplaatsen (alleen de beheerder; de
+ * aanroeper controleerde de trainer). Het dossier (intake, metingen) verhuist
+ * mee: anders ziet de nieuwe trainer een leeg dossier en houdt de oude trainer
+ * rechten op gezondheidsgegevens van een klant die niet meer van hem is. De
+ * klant-rij gaat eerst (compare-and-set op de oude trainer, dus twee gelijktijdige
+ * verplaatsingen kunnen niet allebei slagen); migratie 361 bewaakt dezelfde
+ * invariant ook in de database.
+ */
 export async function verplaatsKlant(admin: SupabaseClient, link: LeadLink, id: string, naarPersoonId: string): Promise<KlantUitkomst<null>> {
   const { data, error } = await admin
     .from('pt_klanten')
@@ -133,7 +157,17 @@ export async function verplaatsKlant(admin: SupabaseClient, link: LeadLink, id: 
     .eq('persoon_id', link.persoonId)
     .select('id')
   if (error) return { ok: false, reden: 'db' }
-  return Array.isArray(data) && data.length === 1 ? { ok: true, waarde: null } : { ok: false, reden: 'niet_gevonden' }
+  if (!Array.isArray(data) || data.length !== 1) return { ok: false, reden: 'niet_gevonden' }
+  for (const tabel of DOSSIER_TABELLEN) {
+    const { error: fout } = await admin
+      .from(tabel)
+      .update({ persoon_id: naarPersoonId })
+      .eq('klant_id', id)
+      .eq('user_id', link.userId)
+      .eq('persoon_id', link.persoonId)
+    if (fout) return { ok: false, reden: 'db' }
+  }
+  return { ok: true, waarde: null }
 }
 
 async function eigenLead(admin: SupabaseClient, link: LeadLink, leadId: string): Promise<string | null> {

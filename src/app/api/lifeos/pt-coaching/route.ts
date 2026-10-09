@@ -6,6 +6,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { vereisLifeosToegang } from '@/lib/lifeos/admin'
 import { haalEvaluaties } from '@/lib/lifeos/pt-coaching/opslag'
+import { isUuid } from '@/lib/lifeos/leads/toegang'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -15,7 +16,8 @@ export async function GET(req: NextRequest) {
   if (toegang instanceof NextResponse) return toegang
 
   const persoon = req.nextUrl.searchParams.get('persoon')
-  if (!persoon) {
+  // Een ongeldig id raakt de database niet (zou anders een query-fout → 502 geven).
+  if (!persoon || !isUuid(persoon)) {
     return NextResponse.json({ fout: 'Geen PT-teamlid opgegeven.' }, { status: 400 })
   }
 
