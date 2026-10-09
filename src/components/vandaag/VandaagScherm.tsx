@@ -15,6 +15,7 @@ import { Skeleton } from '@/components/ui/Skeleton'
 import { Button } from '@/components/ui/Button'
 import type { Actie, CheckIn, Kaart } from '@/lib/vandaag/types'
 import type { Rekening } from '@/lib/vandaag/rekening'
+import { bijgewerktRegel, type Bijgewerkt } from '@/lib/vandaag/bijgewerkt'
 import { CheckInFormulier } from './CheckInFormulier'
 import { VandaagKaart, type Keuze } from './VandaagKaart'
 import { VandaagKader } from './VandaagKader'
@@ -31,7 +32,7 @@ async function leesFout(res: Response, standaard: string): Promise<string> {
 type Geladen =
   | { soort: 'uitgelogd' }
   | { soort: 'fout'; tekst: string }
-  | { soort: 'klaar'; kaart: Kaart; gekozen: Record<string, Keuze>; rekening: Rekening | null }
+  | { soort: 'klaar'; kaart: Kaart; gekozen: Record<string, Keuze>; rekening: Rekening | null; bijgewerkt: Bijgewerkt | null }
 
 /** Haalt de kaart op zonder state aan te raken; de caller beslist wat ermee gebeurt. */
 async function haalKaart(): Promise<Geladen> {
@@ -39,11 +40,21 @@ async function haalKaart(): Promise<Geladen> {
     const res = await authFetch('/api/v1/vandaag')
     if (res.status === 401) return { soort: 'uitgelogd' }
     if (!res.ok) return { soort: 'fout', tekst: await leesFout(res, 'Je kaart kon niet worden geladen.') }
-    const data = (await res.json()) as { kaart: Kaart; gekozen?: Record<string, Keuze>; rekening?: Rekening }
-    return { soort: 'klaar', kaart: data.kaart, gekozen: data.gekozen ?? {}, rekening: data.rekening ?? null }
+    const data = (await res.json()) as { kaart: Kaart; gekozen?: Record<string, Keuze>; rekening?: Rekening; bijgewerkt?: Bijgewerkt | null }
+    return { soort: 'klaar', kaart: data.kaart, gekozen: data.gekozen ?? {}, rekening: data.rekening ?? null, bijgewerkt: data.bijgewerkt ?? null }
   } catch {
     return { soort: 'fout', tekst: 'Geen verbinding. Controleer je internet en probeer het opnieuw.' }
   }
+}
+
+function BijgewerktTekst({ bijgewerkt }: { bijgewerkt: Bijgewerkt | null }) {
+  const regel = bijgewerktRegel(bijgewerkt)
+  if (!regel) return null
+  return (
+    <p style={{ margin: '-24px 0 0', fontSize: 13, lineHeight: 1.5, color: regel.oud ? 'var(--text-2)' : 'var(--text-3)' }}>
+      {regel.tekst}
+    </p>
+  )
 }
 
 export function VandaagScherm() {
@@ -53,12 +64,14 @@ export function VandaagScherm() {
   const [gekozen, setGekozen] = useState<Record<string, Keuze>>({})
   const [inchecken, setInchecken] = useState(false)
   const [rekening, setRekening] = useState<Rekening | null>(null)
+  const [bijgewerkt, setBijgewerkt] = useState<Bijgewerkt | null>(null)
 
   const verwerk = useCallback((uit: Geladen) => {
     if (uit.soort === 'uitgelogd') { router.replace('/login?next=/1'); return }
     if (uit.soort === 'fout') { setStatus(uit); return }
     setGekozen(uit.gekozen)
     setRekening(uit.rekening)
+    setBijgewerkt(uit.bijgewerkt)
     setStatus({ soort: 'klaar', kaart: uit.kaart })
   }, [router])
 
@@ -134,6 +147,7 @@ export function VandaagScherm() {
       {status.soort === 'klaar' && (
         <div style={{ display: 'grid', gap: 48 }}>
           <VandaagKaart kaart={status.kaart} gekozen={gekozen} onKies={(a, k) => void kies(a, k)} />
+          <BijgewerktTekst bijgewerkt={bijgewerkt} />
           {status.kaart.acties.some((a) => a.knop === 'checkin') && (
             <CheckInFormulier bezig={inchecken} onVerstuur={(w) => void checkIn(w)} />
           )}

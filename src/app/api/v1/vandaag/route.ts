@@ -20,15 +20,19 @@ export async function GET(req: NextRequest) {
   try {
     const feiten = await haalFeiten(sessie.db, sessie.user.id)
     const kaart = maakKaart(feiten)
-    const { data } = await sessie.db
-      .from('vandaag_acties')
-      .select('actie, keuze')
-      .eq('user_id', sessie.user.id)
-      .eq('datum', kaart.datum)
+    const [{ data }, sync] = await Promise.all([
+      sessie.db.from('vandaag_acties').select('actie, keuze').eq('user_id', sessie.user.id).eq('datum', kaart.datum),
+      sessie.db.from('health_sync_status').select('bron, laatste_sync').eq('user_id', sessie.user.id)
+        .not('laatste_sync', 'is', null).order('laatste_sync', { ascending: false }).limit(1),
+    ])
+    const laatsteSync = (sync.data?.[0] as { bron: string; laatste_sync: string } | undefined) ?? null
     const gekozen = Object.fromEntries(
       (Array.isArray(data) ? data : []).map((r: { actie: string; keuze: string }) => [r.actie, r.keuze]),
     )
-    return NextResponse.json({ kaart, gekozen, rekening: maakRekening(feiten) }, { headers: GEEN_CACHE })
+    return NextResponse.json(
+      { kaart, gekozen, rekening: maakRekening(feiten), bijgewerkt: laatsteSync ? { bron: laatsteSync.bron, tijd: laatsteSync.laatste_sync } : null },
+      { headers: GEEN_CACHE },
+    )
   } catch (fout) {
     console.error('[v1/vandaag] kaart maken mislukt', fout)
     return NextResponse.json({ fout: 'Je kaart kon niet worden gemaakt. Probeer het zo opnieuw.' }, { status: 502 })

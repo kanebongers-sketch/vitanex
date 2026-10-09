@@ -88,6 +88,13 @@ export const KOLOMMEN: readonly KolomDef[] = [
   { veld: 'hartslag', kolom: 'hartslag_gemiddeld', min: 25, max: 250, decimalen: 0 },
   { veld: 'calorieen', kolom: 'calorieen', min: 0, max: 20_000, decimalen: 0 },
   { veld: 'rusthartslag', kolom: 'rusthartslag', min: 25, max: 220, decimalen: 1 },
+  // LET OP: Health Connect levert HRV als RMSSD, Apple HealthKit als SDNN. Dat
+  // zijn verschillende maten; vergelijk HRV alleen met je eigen normaal, nooit
+  // met vaste grenzen of tussen mensen. De Vandaag-kaart gaat ervan uit dat één
+  // gebruiker één telefoon-bron heeft; wisselt iemand van Android naar iPhone,
+  // dan is zijn HRV-normaal de eerste weken gemengd.
+  // Voor iOS: @capgo/capacitor-health leest SDNN, slaapfases, rusthartslag en
+  // VO2max; capacitor-health 8.x kan dat op iOS niet.
   { veld: 'hrvMs', kolom: 'hrv_ms', min: 1, max: 500, decimalen: 1 },
   { veld: 'vo2max', kolom: 'vo2max', min: 10, max: 100, decimalen: 1 },
   { veld: 'gewichtKg', kolom: 'gewicht_kg', min: 20, max: 400, decimalen: 2 },
