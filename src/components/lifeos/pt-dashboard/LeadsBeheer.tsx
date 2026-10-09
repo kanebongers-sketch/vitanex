@@ -46,6 +46,8 @@ function past(l: Lead, f: Filter, vandaag: string): boolean {
 
 export function LeadsBeheer({ code, vandaag, begin, standaardClub, gekoppeld, startNieuw, startOpen }: Props) {
   const router = useRouter()
+  // Leads waarvan de status nu opgeslagen wordt: die kaart is even niet te wijzigen.
+  const [opslaan, setOpslaan] = useState<ReadonlySet<string>>(new Set())
   const [leads, setLeads] = useState<Lead[]>(begin)
   const [filter, setFilter] = useState<Filter>(startOpen ? 'alles' : 'open')
   const [zoek, setZoek] = useState('')
@@ -69,13 +71,20 @@ export function LeadsBeheer({ code, vandaag, begin, standaardClub, gekoppeld, st
   }
 
   async function zetStatus(l: Lead, status: LeadStatus) {
+    if (opslaan.has(l.id)) return
     setFout(null)
-    const vorige = leads
+    setOpslaan((s) => new Set(s).add(l.id))
     const nieuweLead = { ...l, status }
     setLeads((ls) => ls.map((x) => (x.id === l.id ? nieuweLead : x)))
     const uit = await ptApi(code, `leads/${l.id}`, 'PUT', nieuweLead, leesLead)
+    setOpslaan((s) => {
+      const n = new Set(s)
+      n.delete(l.id)
+      return n
+    })
     if (!uit.ok) {
-      setLeads(vorige)
+      // Alleen déze lead terug: andere wijzigingen intussen zijn wél opgeslagen.
+      setLeads((ls) => ls.map((x) => (x.id === l.id ? l : x)))
       setFout(uit.fout)
       return
     }
@@ -161,6 +170,7 @@ export function LeadsBeheer({ code, vandaag, begin, standaardClub, gekoppeld, st
                 vandaag={vandaag}
                 onBewerk={() => setBewerk(l.id)}
                 onStatus={(s) => void zetStatus(l, s)}
+                bezig={opslaan.has(l.id)}
                 klantHref={metKlant.has(l.id) ? undefined : `/${code}/klanten?vanLead=${l.id}`}
               />
             ),

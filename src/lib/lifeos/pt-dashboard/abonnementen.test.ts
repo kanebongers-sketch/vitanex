@@ -106,8 +106,8 @@ describe('afwijkende prijs en reden van stoppen', () => {
     expect(leeg.ok && leeg.waarde.prijsAfwijkend).toBeNull()
     const met = leesKlantInvoer({ ...basis, prijsAfwijkend: '249,50' })
     expect(met.ok && met.waarde.prijsAfwijkend).toBe(249.5)
-    const rommel = leesKlantInvoer({ ...basis, prijsAfwijkend: -5 })
-    expect(rommel.ok && rommel.waarde.prijsAfwijkend).toBeNull()
+    // Een ongeldige prijs is een fout (zie hieronder), geen stille standaardprijs.
+    expect(leesKlantInvoer({ ...basis, prijsAfwijkend: -5 }).ok).toBe(false)
   })
 
   test('reden telt alleen bij opgezegd of gestopt', () => {
@@ -120,5 +120,18 @@ describe('afwijkende prijs en reden van stoppen', () => {
   test('abonnementRegel toont een afwijkende prijs als zodanig', () => {
     expect(abonnementRegel({ abonnement: '1x', club: 'budel', prijsAfwijkend: 249 })).toBe(`1x per week · Budel · ${euro(249)} p/m (afwijkend)`)
     expect(abonnementRegel({ abonnement: '1x', club: 'budel', prijsAfwijkend: 249 }, false)).toBe('1x per week · Budel')
+  })
+})
+
+describe('afwijkende prijs: ongeldig is een fout, niet stil de standaard', () => {
+  const basis = { naam: 'X', club: 'budel', abonnement: '1x', startdatum: '2026-09-01', status: 'actief' }
+  test('te hoog, negatief of geen getal → foutmelding', () => {
+    for (const prijsAfwijkend of [6000, -1, 'abc']) expect(leesKlantInvoer({ ...basis, prijsAfwijkend }).ok).toBe(false)
+  })
+  test('leeg of null → standaardprijs (null)', () => {
+    for (const prijsAfwijkend of [null, '']) {
+      const r = leesKlantInvoer({ ...basis, prijsAfwijkend })
+      expect(r.ok && r.waarde.prijsAfwijkend).toBeNull()
+    }
   })
 })

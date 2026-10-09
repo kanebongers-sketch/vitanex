@@ -42,3 +42,10 @@ describe('dossierTaken', () => {
     expect(dossierTaakTekst(c)).toBe('Week 6 · nog niet gemeten')
   })
 })
+
+describe('dossierTaken: bevroren klanten', () => {
+  test('geen signalen tijdens een blessure (bevroren), ook als het dossier stil is', () => {
+    const k = [klant('blessure', '2026-08-03', { status: 'bevroren' })]
+    expect(dossierTaken(k, new Map([['blessure', stand({ laatsteMeting: '2026-09-01' })]]), VANDAAG)).toEqual([])
+  })
+})

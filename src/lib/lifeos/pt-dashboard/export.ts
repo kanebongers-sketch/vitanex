@@ -80,6 +80,11 @@ function leadRij(trainer: string, l: Lead): string[] {
   ]
 }
 
+/** 299 → "299", 299.5 → "299,50". */
+export function bedragNl(n: number): string {
+  return Number.isInteger(n) ? String(n) : n.toFixed(2).replace('.', ',')
+}
+
 function klantRij(trainer: string, k: PtKlant): string[] {
   return [
     trainer,
@@ -89,12 +94,14 @@ function klantRij(trainer: string, k: PtKlant): string[] {
     CLUB_LABEL[k.club],
     ABONNEMENT[k.abonnement].label,
     // Wat de klant écht betaalt: de afwijkende prijs (korting, actie) als die er is.
-    String(klantPrijs(k)),
+    // Decimale komma: Excel met Nederlandse instellingen leest "299.5" niet als getal.
+    bedragNl(klantPrijs(k)),
     datumNl(k.startdatum),
     datumNl(eindeVastePeriode(k.startdatum)),
     KLANT_STATUS_LABEL[k.status],
     datumNl(k.opgezegdOp),
-    k.opgezegdOp ? datumNl(laatsteDag(k.startdatum, k.opgezegdOp)) : '',
+    // Alleen bij opzeggen loopt het abonnement nog door; gestopt = direct klaar.
+    k.status === 'opgezegd' && k.opgezegdOp ? datumNl(laatsteDag(k.startdatum, k.opgezegdOp)) : '',
     k.notitie ?? '',
   ]
 }

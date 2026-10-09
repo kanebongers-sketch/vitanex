@@ -44,6 +44,8 @@ export function KlantFormulier({ code, vandaag, standaardClub, klant, vanLead, o
         },
   )
   const [trainer, setTrainer] = useState(beginTrainer ?? trainers?.[0]?.id ?? '')
+  // Als tekst, zodat "29," tijdens het typen blijft staan; omzetten gebeurt bij opslaan.
+  const [prijsTekst, setPrijsTekst] = useState(klant?.prijsAfwijkend != null ? String(klant.prijsAfwijkend).replace('.', ',') : '')
   const [bezig, setBezig] = useState(false)
   const [fout, setFout] = useState<string | null>(null)
   const zet = <K extends keyof Concept>(k: K, w: Concept[K]) => setV((x) => ({ ...x, [k]: w }))
@@ -54,11 +56,15 @@ export function KlantFormulier({ code, vandaag, standaardClub, klant, vanLead, o
     e.preventDefault()
     if (bezig) return
     if (!v.club) return setFout('Kies de club waar deze klant traint.')
+    const prijs = prijsTekst.trim() === '' ? null : Number(prijsTekst.trim().replace(',', '.'))
+    if (prijs !== null && (!Number.isFinite(prijs) || prijs < 0 || prijs > 5000)) {
+      return setFout('Vul een geldige maandprijs in (0 tot 5000 euro), of laat het veld leeg.')
+    }
     setBezig(true)
     setFout(null)
     // Alleen de beheerder (met `trainers`) stuurt trainer en afwijkende prijs mee.
     // `undefined` valt weg uit de JSON: dan laat de server de opgeslagen prijs staan.
-    const body = trainers ? { ...v, trainerId: trainer } : { ...v, prijsAfwijkend: undefined }
+    const body = trainers ? { ...v, prijsAfwijkend: prijs, trainerId: trainer } : { ...v, prijsAfwijkend: undefined }
     const uit = klant
       ? await ptApi(code, `klanten/${klant.id}`, 'PUT', body, leesKlant)
       : await ptApi(code, 'klanten', 'POST', body, leesKlant)
@@ -124,7 +130,7 @@ export function KlantFormulier({ code, vandaag, standaardClub, klant, vanLead, o
         waarde={v.status}
         onKies={(s) => s && setV((x) => ({ ...x, status: s, opgezegdOp: s === 'opgezegd' || s === 'gestopt' ? (x.opgezegdOp ?? vandaag) : null }))}
       />
-      {v.status === 'bevroren' ? <p className="ptd-hint">Bevroren (blessure, ziekte): telt niet mee als lopende klant tot je hem weer op actief zet.</p> : null}
+      {v.status === 'bevroren' ? <p className="ptd-hint">Bevroren (blessure, ziekte): het abonnement loopt door, maar telt niet mee in de sessies per week tot je hem weer op actief zet.</p> : null}
       {metEinde ? (
         <Veld
           label={v.status === 'opgezegd' ? 'Opgezegd op *' : 'Gestopt op *'}
@@ -155,11 +161,10 @@ export function KlantFormulier({ code, vandaag, standaardClub, klant, vanLead, o
             id={`kprijs-${id}`}
             className="ptd-invoer"
             inputMode="decimal"
-            value={v.prijsAfwijkend ?? ''}
-            onChange={(e) => {
-              const n = Number(e.target.value.replace(',', '.'))
-              zet('prijsAfwijkend', e.target.value.trim() === '' || !Number.isFinite(n) ? null : n)
-            }}
+            value={prijsTekst}
+            onChange={(e) => setPrijsTekst(e.target.value)}
+            placeholder="bv. 249"
+            maxLength={8}
             autoComplete="off"
           />
         </Veld>

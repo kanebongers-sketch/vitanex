@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest'
 import type { Lead } from '@/lib/lifeos/leads/leads'
 import type { PtKlant } from './abonnementen'
-import { csvCel, datumNl, exportBestandsnaam, isExportSoort, klantenCsv, leadsCsv } from './export'
+import { bedragNl, csvCel, datumNl, exportBestandsnaam, isExportSoort, klantenCsv, leadsCsv } from './export'
 
 const lead = (over: Partial<Lead> = {}): Lead => ({
   id: 'l', naam: 'Sanne', contact: '0612345678', club: 'eersel', bron: 'vloer', interesse: 'warm', status: 'opvolgen',
@@ -85,5 +85,18 @@ describe('hulpjes', () => {
     expect(exportBestandsnaam('leads', '2026-10-08')).toBe('pt-leads-2026-10-08.csv')
     expect(isExportSoort('klanten')).toBe(true)
     expect(isExportSoort('x')).toBe(false)
+  })
+})
+
+describe('klanten-export: randgevallen', () => {
+  test('bedragNl: decimale komma voor Excel (NL)', () => {
+    expect(bedragNl(299)).toBe('299')
+    expect(bedragNl(299.5)).toBe('299,50')
+  })
+  test('gestopt: geen "loopt t/m"; opgezegd wél', () => {
+    // De kolom "Loopt t/m" is de voorlaatste.
+    const looptTm = (over: Partial<PtKlant>) => (klantenCsv([{ naam: 'Joey', items: [klant(over)] }]).split('\r\n')[1] ?? '').split(';').at(-2)
+    expect(looptTm({ status: 'gestopt', opgezegdOp: '2026-10-01' })).toBe('')
+    expect(looptTm({ status: 'opgezegd', opgezegdOp: '2026-10-01', notitie: null })).toBe('30-11-2026')
   })
 })

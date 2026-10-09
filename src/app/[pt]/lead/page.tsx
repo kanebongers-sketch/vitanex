@@ -18,15 +18,17 @@ export default async function LeadsPagina({ params, searchParams }: Props) {
   if (mee) return <EigenaarLeads code={mee.code} pt={param(zoek, 'pt')} toon={param(zoek, 'toon')} />
   const g = await ptGegevens(pt)
   if (!g) return null
-  if (!g.leads) return <Foutmelding bericht="Je leads konden niet geladen worden. Vernieuw de pagina." />
+  // Zonder klanten weet de pagina niet welke leads al klant zijn: dan zou elke
+  // klant-geworden lead weer 'abonnement vastleggen' tonen (kans op dubbele klanten).
+  if (!g.leads || !g.klanten) return <Foutmelding bericht="Je leads konden niet geladen worden. Vernieuw de pagina." />
   const open = typeof zoek.open === 'string' ? zoek.open : null
   return (
     <LeadsBeheer
       code={g.link.code}
       vandaag={g.vandaag}
       begin={g.leads}
-      standaardClub={meestGebruikteClub(g.leads, g.klanten ?? [])}
-      gekoppeld={(g.klanten ?? []).flatMap((k) => (k.leadId ? [k.leadId] : []))}
+      standaardClub={meestGebruikteClub(g.leads, g.klanten)}
+      gekoppeld={g.klanten.flatMap((k) => (k.leadId ? [k.leadId] : []))}
       startNieuw={zoek.nieuw === '1'}
       startOpen={open && g.leads.some((l) => l.id === open) ? open : null}
     />

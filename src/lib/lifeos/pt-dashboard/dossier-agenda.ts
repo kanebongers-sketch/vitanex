@@ -47,6 +47,8 @@ export function dossierTaken(klanten: readonly PtKlant[], stand: ReadonlyMap<str
     // Lopend, óf nog te starten: de intake en nulmeting horen vóór de eerste training.
     const nogTeStarten = klant.status === 'actief' && klant.startdatum > vandaag
     if (!isLopend(klant, vandaag) && !nogTeStarten) continue
+    // Bevroren (blessure, ziekte): er wordt niet getraind, dus ook geen 'niet gemeten'-signalen.
+    if (klant.status === 'bevroren') continue
     const week = trajectWeek(klant.startdatum, vandaag)
     if (week > TRAJECT_WEKEN) continue
     const s = stand.get(klant.id) ?? { intake: false, startmeting: false, laatsteMeting: null, laatsteSessie: null }

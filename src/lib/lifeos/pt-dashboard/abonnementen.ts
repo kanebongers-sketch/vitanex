@@ -228,6 +228,9 @@ export function leesKlantInvoer(body: unknown): Lees<KlantInvoer> {
     return { ok: false, fout: status === 'opgezegd' ? 'Vul in wanneer er is opgezegd.' : 'Vul in wanneer de klant stopte.' }
   }
   if (opgezegdOp && opgezegdOp < o.startdatum) return { ok: false, fout: 'Opzegdatum ligt vóór de startdatum.' }
+  // Een ingevulde maar ongeldige prijs is een fout — niet stil terug naar de standaard.
+  const prijsGezet = Object.hasOwn(o, 'prijsAfwijkend') && o.prijsAfwijkend !== null && o.prijsAfwijkend !== ''
+  if (prijsGezet && leesPrijs(o.prijsAfwijkend) === null) return { ok: false, fout: 'Vul een geldige maandprijs in (0 tot 5000 euro), of laat het veld leeg.' }
   const duo = ABONNEMENT[o.abonnement].duo
   return {
     ok: true,
@@ -250,7 +253,9 @@ export function leesKlantInvoer(body: unknown): Lees<KlantInvoer> {
 
 /** Een maandprijs in euro (0–5000, op centen), of null bij leeg/ongeldig. */
 function leesPrijs(v: unknown): number | null {
-  const n = typeof v === 'string' ? Number(v.replace(',', '.')) : v
+  // Leeg is "geen afwijkende prijs" — Number('') zou 0 geven (een gratis klant).
+  if (typeof v === 'string' && v.trim() === '') return null
+  const n = typeof v === 'string' ? Number(v.trim().replace(',', '.')) : v
   return typeof n === 'number' && Number.isFinite(n) && n >= 0 && n <= 5000 ? Math.round(n * 100) / 100 : null
 }
 

@@ -26,7 +26,8 @@ interface Props {
 }
 
 const FILTERS: { sleutel: Filter; label: string }[] = [
-  { sleutel: 'lopend', label: 'Lopend' },
+  // Ook wie nog moet starten (de tegel telt die niet), vandaar '& gepland'.
+  { sleutel: 'lopend', label: 'Lopend & gepland' },
   { sleutel: 'bevroren', label: 'Bevroren' },
   { sleutel: 'opgezegd', label: 'Opgezegd' },
   { sleutel: 'gestopt', label: 'Gestopt' },

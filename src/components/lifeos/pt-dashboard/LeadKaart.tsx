@@ -21,6 +21,8 @@ interface Props {
   klantHref?: string
   /** Welke PT'er de lead sprak — in lijsten van het hele team. */
   trainer?: string
+  /** De status wordt opgeslagen: keuzelijst even dicht (geen dubbele wijziging). */
+  bezig?: boolean
 }
 
 export function statusBadge(status: LeadStatus): string {
@@ -29,7 +31,7 @@ export function statusBadge(status: LeadStatus): string {
   return 'ptd-badge'
 }
 
-export function LeadKaart({ lead, vandaag, onBewerk, onStatus, klantHref, trainer }: Props) {
+export function LeadKaart({ lead, vandaag, onBewerk, onStatus, klantHref, trainer, bezig = false }: Props) {
   const teLaat = moetOpvolgen(lead, vandaag) && lead.opvolgdatum !== vandaag
   const opvolgVandaag = moetOpvolgen(lead, vandaag) && lead.opvolgdatum === vandaag
   return (
@@ -72,6 +74,7 @@ export function LeadKaart({ lead, vandaag, onBewerk, onStatus, klantHref, traine
               <select
                 className="ptd-invoer ptd-invoer--klein"
                 value={lead.status}
+                disabled={bezig}
                 onChange={(e) => isStatus(e.target.value) && onStatus(e.target.value)}
               >
                 {LEAD_STATUSSEN.map((s) => <option key={s} value={s}>{STATUS_LABEL[s]}</option>)}
