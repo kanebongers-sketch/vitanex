@@ -74,7 +74,8 @@ export type Beslissing =
  *
  *  mentaforce.nl, alleen met de schakelaar aan
  *    /FitFactoryPT   → fitfactorypt.nl/
- *    (de /<naam>-links stuurt de PT-layout door: alleen die weet of een pad een PT'er is)
+ *    /<naam>/…       → fitfactorypt.nl/<naam>/… (alles wat geen MentaForce-route,
+ *                      API of bestand is; in één echte 308, met pad en query)
  */
 export function beslis(
   host: string | null | undefined,
@@ -96,10 +97,27 @@ export function beslis(
     return { soort: 'door' }
   }
 
-  if (actief && isMentaforceHost(h) && pad === PT_INGANG) {
-    return { soort: 'omleiden', url: ptUrl(`/${zoek}`) }
+  if (actief && isMentaforceHost(h)) {
+    if (pad === PT_INGANG) return { soort: 'omleiden', url: ptUrl(`/${zoek}`) }
+    if (isPtPad(pad, mentaforceRoutes)) return { soort: 'omleiden', url: ptUrl(`${pad}${zoek}`) }
   }
   return { soort: 'door' }
+}
+
+/** Mappen en paden op mentaforce.nl die nooit een PT-naam zijn (API, Next, public/). */
+const NOOIT_PT = new Set(['api', '_next', 'icons', 'fonts', 'models', 'brand', 'fitfactory', 'lead'])
+
+/**
+ * Is dit pad op mentaforce.nl een PT-link (/joey, /joey/lead, /lifeoskane)? Ja als
+ * het eerste segment geen MentaForce-route, geen bestand en geen vaste map is.
+ * Zonder routelijst (bv. een kapotte build) nooit: dan liever een omweg via de
+ * PT-layout dan heel MentaForce wegsturen.
+ */
+function isPtPad(pad: string, mentaforceRoutes: ReadonlySet<string>): boolean {
+  const eerste = pad.split('/')[1] ?? ''
+  if (eerste === '' || mentaforceRoutes.size === 0) return false
+  if (eerste.includes('.') || NOOIT_PT.has(eerste)) return false
+  return !mentaforceRoutes.has(eerste)
 }
 
 /**

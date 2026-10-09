@@ -82,6 +82,24 @@ describe('beslis — niets van MentaForce op fitfactorypt.nl', () => {
   })
 })
 
+describe('mentaforce.nl: PT-links direct naar fitfactorypt.nl', () => {
+  const MF = leesRoutes('home,vandaag,lifeos,login')
+  test('/<naam> en /<naam>/… gaan met pad en query in één 308 naar het PT-domein', () => {
+    expect(beslis('mentaforce.nl', '/joey', '', true, MF)).toEqual({ soort: 'omleiden', url: 'https://fitfactorypt.nl/joey' })
+    expect(beslis('mentaforce.nl', '/joey/lead', '?bron=ig', true, MF)).toEqual({ soort: 'omleiden', url: 'https://fitfactorypt.nl/joey/lead?bron=ig' })
+    expect(beslis('www.mentaforce.nl', '/lifeoskane', '', true, MF)).toEqual({ soort: 'omleiden', url: 'https://fitfactorypt.nl/lifeoskane' })
+  })
+  test('MentaForce-routes, de homepagina, API en bestanden blijven', () => {
+    for (const pad of ['/', '/home', '/vandaag/plan', '/api/v1/vandaag', '/theme-init.js', '/icons/x.png', '/_next/x']) {
+      expect(beslis('mentaforce.nl', pad, '', true, MF), pad).toEqual({ soort: 'door' })
+    }
+  })
+  test('zonder schakelaar of zonder routelijst: niets omleiden (veilig)', () => {
+    expect(beslis('mentaforce.nl', '/joey', '', false, MF)).toEqual({ soort: 'door' })
+    expect(beslis('mentaforce.nl', '/joey', '', true, new Set())).toEqual({ soort: 'door' })
+  })
+})
+
 describe('leesRoutes', () => {
   test('komma-lijst naar set, leeg is leeg', () => {
     expect([...leesRoutes(' home, lifeos ,')]).toEqual(['home', 'lifeos'])

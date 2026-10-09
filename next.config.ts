@@ -73,7 +73,16 @@ const nextConfig: NextConfig = {
     // (/lead, /lead/joey) sturen door. LET OP: redirects matchen hoofdletter-
     // ONgevoelig — een regel /fitfactorypt → /FitFactoryPT zou op zichzelf
     // lussen. Andere schrijfwijzen vangt src/app/[pt]/layout.tsx op.
+    // Op mentaforce.nl (schakelaar aan) meteen naar het PT-domein, in één stap.
+    const opMentaforce = [{ type: 'host' as const, value: '(www\\.)?mentaforce\\.nl' }]
+    const leadNaarPtDomein = process.env.FIT_FACTORY_DOMEIN_ACTIEF === '1'
+      ? [
+          { source: '/lead/:code([a-z0-9-]{2,60})', has: opMentaforce, destination: 'https://fitfactorypt.nl/:code/lead', permanent: true },
+          { source: '/lead', has: opMentaforce, destination: 'https://fitfactorypt.nl/', permanent: true },
+        ]
+      : []
     const leadLinks = [
+      ...leadNaarPtDomein,
       { source: '/lead/:code([a-z0-9-]{2,60})', destination: '/:code/lead', permanent: true },
       { source: '/lead', destination: '/FitFactoryPT', permanent: true },
     ]
