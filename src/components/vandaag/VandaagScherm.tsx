@@ -10,6 +10,8 @@ import { CalendarDays } from 'lucide-react'
 import { Capacitor } from '@capacitor/core'
 import { authFetch } from '@/lib/auth/auth-fetch'
 import { syncGezondheidsdata } from '@/lib/health/health-sync'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import { INTL_LOCALE } from '@/lib/i18n/talen'
 import { useToast } from '@/components/ui/Toast'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { Button } from '@/components/ui/Button'
@@ -21,17 +23,11 @@ import { VandaagKaart, type Keuze } from './VandaagKaart'
 import { VandaagKader } from './VandaagKader'
 import { RekeningPaneel } from './RekeningPaneel'
 
-type Status = { soort: 'laden' } | { soort: 'fout'; tekst: string } | { soort: 'klaar'; kaart: Kaart }
-
-async function leesFout(res: Response, standaard: string): Promise<string> {
-  const body: unknown = await res.json().catch(() => null)
-  if (body && typeof body === 'object' && 'fout' in body && typeof body.fout === 'string') return body.fout
-  return standaard
-}
+type Status = { soort: 'laden' } | { soort: 'fout'; sleutel: string } | { soort: 'klaar'; kaart: Kaart }
 
 type Geladen =
   | { soort: 'uitgelogd' }
-  | { soort: 'fout'; tekst: string }
+  | { soort: 'fout'; sleutel: string }
   | { soort: 'klaar'; kaart: Kaart; gekozen: Record<string, Keuze>; rekening: Rekening | null; bijgewerkt: Bijgewerkt | null }
 
 /** Haalt de kaart op zonder state aan te raken; de caller beslist wat ermee gebeurt. */
@@ -39,16 +35,17 @@ async function haalKaart(): Promise<Geladen> {
   try {
     const res = await authFetch('/api/v1/vandaag')
     if (res.status === 401) return { soort: 'uitgelogd' }
-    if (!res.ok) return { soort: 'fout', tekst: await leesFout(res, 'Je kaart kon niet worden geladen.') }
+    if (!res.ok) return { soort: 'fout', sleutel: 'vandaag.foutLaden' }
     const data = (await res.json()) as { kaart: Kaart; gekozen?: Record<string, Keuze>; rekening?: Rekening; bijgewerkt?: Bijgewerkt | null }
     return { soort: 'klaar', kaart: data.kaart, gekozen: data.gekozen ?? {}, rekening: data.rekening ?? null, bijgewerkt: data.bijgewerkt ?? null }
   } catch {
-    return { soort: 'fout', tekst: 'Geen verbinding. Controleer je internet en probeer het opnieuw.' }
+    return { soort: 'fout', sleutel: 'vandaag.geenVerbinding' }
   }
 }
 
 function BijgewerktTekst({ bijgewerkt }: { bijgewerkt: Bijgewerkt | null }) {
-  const regel = bijgewerktRegel(bijgewerkt)
+  const { t, taal } = useVertaling()
+  const regel = bijgewerktRegel(bijgewerkt, new Date(), { t, taal, locale: INTL_LOCALE[taal] })
   if (!regel) return null
   return (
     <p style={{ margin: '-24px 0 0', fontSize: 13, lineHeight: 1.5, color: regel.oud ? 'var(--text-2)' : 'var(--text-3)' }}>
@@ -58,6 +55,7 @@ function BijgewerktTekst({ bijgewerkt }: { bijgewerkt: Bijgewerkt | null }) {
 }
 
 export function VandaagScherm() {
+  const { t } = useVertaling()
   const router = useRouter()
   const { toast } = useToast()
   const [status, setStatus] = useState<Status>({ soort: 'laden' })
@@ -95,7 +93,7 @@ export function VandaagScherm() {
     setInchecken(true)
     try {
       const res = await authFetch('/api/v1/vandaag/checkin', { method: 'POST', body: JSON.stringify(waarden) })
-      if (!res.ok) { toast({ title: await leesFout(res, 'Inchecken lukte niet.'), variant: 'error' }); return }
+      if (!res.ok) { toast({ title: t('vandaag.inchecken_mislukt'), variant: 'error' }); return }
       const data = (await res.json()) as { kaart: Kaart | null }
       if (data.kaart) setStatus({ soort: 'klaar', kaart: data.kaart })
       else await laad()
@@ -104,7 +102,7 @@ export function VandaagScherm() {
       // Het formulier verdwijnt; zet de focus op de nieuwe kaart zodat die wordt voorgelezen.
       requestAnimationFrame(() => kopRef.current?.focus({ preventScroll: true }))
     } catch {
-      toast({ title: 'Geen verbinding. Je check-in is niet opgeslagen.', variant: 'error' })
+      toast({ title: t('vandaag.inchecken_offline'), variant: 'error' })
     } finally {
       setInchecken(false)
     }
@@ -119,10 +117,10 @@ export function VandaagScherm() {
         method: 'POST',
         body: JSON.stringify({ actie: actie.id, keuze, toon: status.kaart.toon }),
       })
-      if (!res.ok) throw new Error(await leesFout(res, 'Opslaan lukte niet.'))
+      if (!res.ok) throw new Error(t('vandaag.opslaan_mislukt'))
     } catch (fout) {
       setGekozen(vorige)
-      toast({ title: fout instanceof Error ? fout.message : 'Opslaan lukte niet.', variant: 'error' })
+      toast({ title: fout instanceof Error ? fout.message : t('vandaag.opslaan_mislukt'), variant: 'error' })
     }
   }
 
@@ -130,14 +128,14 @@ export function VandaagScherm() {
     <VandaagKader
       rechts={
         <Link href="/vandaag/plan" className="mf-pressable mf-vandaag-link" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 14, color: 'var(--text-2)', textDecoration: 'none', minHeight: 40 }}>
-          <CalendarDays size={16} aria-hidden /> Weekplan
+          <CalendarDays size={16} aria-hidden /> {t('vandaag.weekplan')}
         </Link>
       }
     >
       {status.soort === 'laden' && (
         <div role="status" aria-busy="true" style={{ display: 'grid', gap: 16 }}>
-          <h1 className="sr-only">Vandaag</h1>
-          <span className="sr-only">Je kaart wordt gemaakt…</span>
+          <h1 className="sr-only">{t('vandaag.titel')}</h1>
+          <span className="sr-only">{t('vandaag.laden')}</span>
           <Skeleton width="40%" height={14} />
           <Skeleton width="85%" height={44} />
           <Skeleton width="70%" height={16} />
@@ -146,9 +144,9 @@ export function VandaagScherm() {
       )}
       {status.soort === 'fout' && (
         <div role="alert" style={{ display: 'grid', gap: 16 }}>
-          <h1 className="sr-only">Vandaag</h1>
-          <p style={{ margin: 0, fontSize: 18, color: 'var(--text-1)' }}>{status.tekst}</p>
-          <div><Button variant="secondary" onClick={() => { setStatus({ soort: 'laden' }); void laad() }}>Opnieuw proberen</Button></div>
+          <h1 className="sr-only">{t('vandaag.titel')}</h1>
+          <p style={{ margin: 0, fontSize: 18, color: 'var(--text-1)' }}>{t(status.sleutel)}</p>
+          <div><Button variant="secondary" onClick={() => { setStatus({ soort: 'laden' }); void laad() }}>{t('vandaag.opnieuw')}</Button></div>
         </div>
       )}
       {status.soort === 'klaar' && (

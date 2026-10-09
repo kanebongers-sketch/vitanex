@@ -1,10 +1,14 @@
+'use client'
+
 // Ingang naar de Vandaag-kaart, bovenaan de homepagina: "wat telt er vandaag?"
 // in één tik. De kaart zelf staat op /vandaag.
 
 import Link from 'next/link'
 import { ArrowRight, Sunrise } from 'lucide-react'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 
 export function VandaagKaartLink() {
+  const { t } = useVertaling()
   return (
     <Link
       href="/vandaag"
@@ -25,8 +29,8 @@ export function VandaagKaartLink() {
         <Sunrise size={20} />
       </span>
       <span style={{ flex: 1, minWidth: 0 }}>
-        <span style={{ display: 'block', fontSize: 16, fontWeight: 700 }}>Je Vandaag-kaart</span>
-        <span style={{ display: 'block', fontSize: 13, color: 'var(--text-3)', marginTop: 2 }}>Wat telt er vandaag? Op basis van je slaap, je check-in en je plan.</span>
+        <span style={{ display: 'block', fontSize: 16, fontWeight: 700 }}>{t('home.vandaagKaart')}</span>
+        <span style={{ display: 'block', fontSize: 13, color: 'var(--text-3)', marginTop: 2 }}>{t('home.vandaagKaartUitleg')}</span>
       </span>
       <ArrowRight size={18} aria-hidden style={{ color: 'var(--brand)', flex: 'none' }} />
     </Link>

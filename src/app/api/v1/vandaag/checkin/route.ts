@@ -7,6 +7,7 @@ import { gebruikerSessie } from '@/lib/supabase/gebruiker'
 import { leesCheckIn } from '@/lib/vandaag/invoer'
 import { haalFeiten } from '@/lib/vandaag/ophalen'
 import { maakKaart } from '@/lib/vandaag/regels'
+import { huidigeTaalset } from '@/lib/i18n/server'
 import { dagVan } from '@/lib/lifeos/blokken/tijd'
 import { isRateLimited } from '@/lib/utils/rate-limit'
 
@@ -30,7 +31,8 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const kaart = maakKaart(await haalFeiten(sessie.db, sessie.user.id))
+    const [feiten, ts] = await Promise.all([haalFeiten(sessie.db, sessie.user.id), huidigeTaalset()])
+    const kaart = maakKaart(feiten, ts)
     return NextResponse.json({ kaart }, { headers: { 'Cache-Control': 'private, no-store' } })
   } catch (fout) {
     console.error('[v1/vandaag/checkin] kaart maken mislukt', fout)

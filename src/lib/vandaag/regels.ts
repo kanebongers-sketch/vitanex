@@ -17,6 +17,7 @@
 
 import { bepaalSignalen, duur, feitZinnen, herstelZin, type Signalen } from './signalen'
 import type { Actie, Feiten, Kaart, Toon } from './types'
+import { NL, type Taalset } from '@/lib/i18n/taalset'
 
 export const MAX_ACTIES = 3
 
@@ -25,7 +26,9 @@ export const STANDAARD_BEDTIJD = '22:30'
 
 type TrainingAdvies = 'zoals_gepland' | 'lichter' | 'rust'
 
-const TIJD = new Intl.DateTimeFormat('nl-NL', { timeZone: 'Europe/Amsterdam', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
+function tijd(iso: string, ts: Taalset): string {
+  return new Intl.DateTimeFormat(ts.locale, { timeZone: 'Europe/Amsterdam', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(new Date(iso))
+}
 
 /** Regel 1: wat doen we met de training van vandaag? */
 export function trainingAdvies(f: Feiten, s: Signalen): TrainingAdvies | null {
@@ -38,104 +41,50 @@ export function trainingAdvies(f: Feiten, s: Signalen): TrainingAdvies | null {
   return 'zoals_gepland'
 }
 
-function trainingActie(f: Feiten, s: Signalen, advies: TrainingAdvies): Actie | null {
+function trainingReden(f: Feiten, s: Signalen, ts: Taalset): string {
+  if (s.slaapKort) {
+    return s.slaapVerschil !== null ? ts.t('kaart.reden.slaapMinder', { duur: duur(s.slaapVerschil, ts) }) : ts.t('kaart.reden.nachtKort')
+  }
+  if (s.energieLaag) return ts.t('kaart.reden.energieLaag')
+  if (s.herstelLaag) return ts.t('kaart.reden.herstel', { herstel: herstelZin(s, ts) })
+  return ts.t('kaart.reden.meerdere')
+}
+
+function trainingActie(f: Feiten, s: Signalen, advies: TrainingAdvies, ts: Taalset): Actie | null {
   const t = f.training
   if (!t || advies === 'zoals_gepland') return null
-  const reden = s.slaapKort
-    ? s.slaapVerschil !== null
-      ? `Je sliep ${duur(s.slaapVerschil)} minder dan normaal.`
-      : 'Je nacht was kort.'
-    : s.energieLaag
-      ? 'Je energie staat laag.'
-      : s.herstelLaag
-        ? `${herstelZin(s)} Je lichaam is nog aan het herstellen.`
-        : 'Meerdere signalen staan vandaag laag.'
-  const grens = f.grenzen ? ' Zo heeft je trainer het afgesproken.' : ''
+  const params = { reden: trainingReden(f, s, ts), grens: f.grenzen ? ts.t('kaart.reden.grens') : '', soort: t.soort }
   if (advies === 'lichter') {
-    return {
-      id: 'training',
-      titel: `${t.soort} wordt een lichte sessie: zo'n 30 minuten rustig.`,
-      waarom: `${reden} Licht bewegen helpt vandaag meer dan zwaar trainen.${grens}`,
-      knop: 'oke',
-    }
+    return { id: 'training', titel: ts.t('kaart.lichter.titel', params), waarom: ts.t('kaart.lichter.waarom', params), knop: 'oke' }
   }
   return {
     id: 'rust',
-    titel: `Sla ${t.soort.toLowerCase()} vandaag over. Een wandeling mag, hoeft niet.`,
-    waarom: `${reden} Rust is vandaag het plan; morgen pak je het weer op.${grens}`,
+    titel: ts.t('kaart.rust.titel', { ...params, soort: t.soort.toLocaleLowerCase(ts.locale) }),
+    waarom: ts.t('kaart.rust.waarom', params),
     knop: 'oke',
   }
 }
 
+/** Een actie met titel en uitleg uit het woordenboek (kaart.<id>.titel/waarom). */
+function actie(id: Actie['id'], knop: Actie['knop'], ts: Taalset, params?: Record<string, string | number>, waaromSleutel = 'waarom'): Actie {
+  return { id, knop, titel: ts.t(`kaart.${id}.titel`, params), waarom: ts.t(`kaart.${id}.${waaromSleutel}`, params) }
+}
+
 /** Alle kandidaat-acties in volgorde van prioriteit (nog niet afgekapt). */
-function kandidaten(f: Feiten, s: Signalen, advies: TrainingAdvies | null): Actie[] {
+function kandidaten(f: Feiten, s: Signalen, advies: TrainingAdvies | null, ts: Taalset): Actie[] {
   const uit: Actie[] = []
-  const training = advies ? trainingActie(f, s, advies) : null
+  const training = advies ? trainingActie(f, s, advies, ts) : null
   if (training) uit.push(training)
-
-  if (s.aantalLaag >= 3) {
-    uit.push({
-      id: 'minder',
-      titel: 'Schrap of verschuif vandaag één ding van je lijst.',
-      waarom: 'Meerdere signalen staan tegelijk laag. Minder doen is vandaag het plan, geen achterstand.',
-      knop: 'oke',
-    })
-  }
-
+  if (s.aantalLaag >= 3) uit.push(actie('minder', 'oke', ts))
   if (s.zwaarsteAfspraak && (s.stressHoog || s.slaapKort)) {
     const a = s.zwaarsteAfspraak
-    uit.push({
-      id: 'pauze',
-      titel: `Plan 20 minuten pauze vóór "${a.titel}" (${TIJD.format(new Date(a.start))}).`,
-      waarom: s.stressHoog ? 'Je stress is hoog en dit is je zwaarste afspraak.' : 'Na een korte nacht helpt een adempauze vóór je zwaarste afspraak.',
-      knop: 'agenda',
-    })
+    uit.push(actie('pauze', 'agenda', ts, { afspraak: a.titel, tijd: tijd(a.start, ts) }, s.stressHoog ? 'waaromStress' : 'waaromSlaap'))
   }
-
-  if (s.stressHoog) {
-    uit.push({
-      id: 'ademhaling',
-      titel: 'Neem vandaag 5 minuten om rustig te ademen, of wandel even kort.',
-      waarom: `Je stress staat op ${f.checkin?.stress}/5. Een korte pauze haalt de piek eraf.`,
-      knop: 'herinner',
-    })
-  }
-
-  if (s.slaapKort) {
-    uit.push({
-      id: 'bedtijd',
-      titel: `Lichten uit om ${f.bedtijdStreef ?? STANDAARD_BEDTIJD}.`,
-      waarom: 'Eén vroege avond haalt het meeste van een korte nacht in.',
-      knop: 'herinner',
-    })
-  }
-
-  if (s.weinigBewogen && !f.training) {
-    uit.push({
-      id: 'bewegen',
-      titel: 'Wandel vandaag 20 minuten.',
-      waarom: 'Gisteren bewoog je minder dan normaal. Een wandeling maakt het verschil.',
-      knop: 'oke',
-    })
-  }
-
-  if (!f.checkin) {
-    uit.push({
-      id: 'checkin',
-      titel: 'Hoe voel je je? Drie vragen, tien seconden.',
-      waarom: 'Met je check-in kan ik zien of vandaag een gewone dag is.',
-      knop: 'checkin',
-    })
-  }
-
-  if (!f.heeftPlan) {
-    uit.push({
-      id: 'plan',
-      titel: 'Zet je weekplan neer: op welke dagen train je?',
-      waarom: 'Dan kan ik elke ochtend zeggen of je je plan kunt volgen of beter kunt aanpassen.',
-      knop: 'plan',
-    })
-  }
+  if (s.stressHoog) uit.push(actie('ademhaling', 'herinner', ts, { stress: f.checkin?.stress ?? '' }))
+  if (s.slaapKort) uit.push(actie('bedtijd', 'herinner', ts, { tijd: f.bedtijdStreef ?? STANDAARD_BEDTIJD }))
+  if (s.weinigBewogen && !f.training) uit.push(actie('bewegen', 'oke', ts))
+  if (!f.checkin) uit.push(actie('checkin', 'checkin', ts))
+  if (!f.heeftPlan) uit.push(actie('plan', 'plan', ts))
   return uit
 }
 
@@ -146,27 +95,27 @@ function bepaalToon(s: Signalen, advies: TrainingAdvies | null, aanpassingen: nu
   return f.checkin ? 'normaal' : 'onbekend'
 }
 
-function bepaalKop(toon: Toon, f: Feiten, advies: TrainingAdvies | null, acties: readonly Actie[]): string {
-  if (toon === 'onbekend') return 'Goedemorgen. Hoe gaat het vandaag?'
-  if (toon === 'rustig') return 'Rustige dag. Minder is vandaag het plan.'
+function bepaalKop(toon: Toon, f: Feiten, advies: TrainingAdvies | null, acties: readonly Actie[], ts: Taalset): string {
+  if (toon === 'onbekend') return ts.t('kaart.kop.onbekend')
+  if (toon === 'rustig') return ts.t('kaart.kop.rustig')
   if (toon === 'aanpassen') {
-    if (advies === 'lichter') return 'Licht trainen, rustig aan.'
-    if (acties.some((a) => a.id === 'pauze' || a.id === 'ademhaling')) return 'Drukke dag. Bouw rust in.'
-    if (acties.length === 1 && acties[0].id === 'bedtijd') return 'Gewone dag, vroeg naar bed.'
-    return 'Kleine aanpassing vandaag.'
+    if (advies === 'lichter') return ts.t('kaart.kop.lichter')
+    if (acties.some((a) => a.id === 'pauze' || a.id === 'ademhaling')) return ts.t('kaart.kop.druk')
+    if (acties.length === 1 && acties[0].id === 'bedtijd') return ts.t('kaart.kop.vroegBed')
+    return ts.t('kaart.kop.aanpassing')
   }
-  if (f.training) return 'Alles normaal. Je plan staat.'
-  return f.heeftPlan ? 'Alles normaal. Geniet van je rustdag.' : 'Alles normaal.'
+  if (f.training) return ts.t('kaart.kop.normaalPlan')
+  return ts.t(f.heeftPlan ? 'kaart.kop.normaalRust' : 'kaart.kop.normaal')
 }
 
 /** Acties die iets aan je dag veranderen (dus niet: om een check-in of plan vragen). */
 const AANPASSINGEN = new Set(['training', 'rust', 'minder', 'pauze', 'ademhaling', 'bedtijd', 'bewegen'])
 
 /** De kaart van vandaag. */
-export function maakKaart(f: Feiten): Kaart {
+export function maakKaart(f: Feiten, ts: Taalset = NL): Kaart {
   const s = bepaalSignalen(f)
   const advies = trainingAdvies(f, s)
-  const alle = kandidaten(f, s, advies)
+  const alle = kandidaten(f, s, advies, ts)
   const aanpassingen = alle.filter((a) => AANPASSINGEN.has(a.id)).length
   const acties = alle.slice(0, MAX_ACTIES)
   const toon = bepaalToon(s, advies, aanpassingen, f)
@@ -174,8 +123,8 @@ export function maakKaart(f: Feiten): Kaart {
   return {
     datum: f.datum,
     toon,
-    kop: bepaalKop(toon, f, advies, acties),
-    feiten: feitZinnen(f, s),
+    kop: bepaalKop(toon, f, advies, acties, ts),
+    feiten: feitZinnen(f, s, ts),
     acties,
     training: f.training && advies ? { soort: f.training.soort, advies, tijd: f.training.tijd } : null,
   }

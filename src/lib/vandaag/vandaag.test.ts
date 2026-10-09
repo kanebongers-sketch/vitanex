@@ -128,7 +128,7 @@ describe('maakKaart — de regelbibliotheek', () => {
   test('nog niets bekend → vraag om check-in, geen getallen', () => {
     const kaart = maakKaart(feiten({ slaapMinuten: null, checkin: null, stappenGisteren: null, heeftPlan: false, training: null }))
     expect(kaart.toon).toBe('onbekend')
-    expect(kaart.kop).toBe('Goedemorgen. Hoe gaat het vandaag?')
+    expect(kaart.kop).toBe('Hoe gaat het vandaag?')
     expect(kaart.acties.map((a) => a.id)).toEqual(['checkin', 'plan'])
     expect(kaart.feiten).toEqual([])
   })

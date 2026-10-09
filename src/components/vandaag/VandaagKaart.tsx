@@ -7,14 +7,15 @@ import Link from 'next/link'
 import { useState } from 'react'
 import { Check, X } from 'lucide-react'
 import type { Actie, Kaart } from '@/lib/vandaag/types'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import { INTL_LOCALE, type Taal } from '@/lib/i18n/talen'
 
 export type Keuze = 'oke' | 'later' | 'nee'
 
-const ADVIES_TEKST = { zoals_gepland: 'Zoals gepland', lichter: 'Lichter dan gepland', rust: 'Rustdag in plaats van training' } as const
-
-function datumTekst(datum: string): string {
-  const tekst = new Date(`${datum}T12:00:00`).toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long' })
-  return tekst.charAt(0).toUpperCase() + tekst.slice(1)
+function datumTekst(datum: string, taal: Taal): string {
+  const locale = INTL_LOCALE[taal]
+  const tekst = new Date(`${datum}T12:00:00`).toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long' })
+  return tekst.charAt(0).toLocaleUpperCase(locale) + tekst.slice(1)
 }
 
 interface ActieRijProps {
@@ -24,6 +25,7 @@ interface ActieRijProps {
 }
 
 function ActieRij({ actie, keuze, onKies }: ActieRijProps) {
+  const { t } = useVertaling()
   const [toonWaarom, setToonWaarom] = useState(false)
   const klaar = keuze === 'oke'
   const overgeslagen = keuze === 'nee'
@@ -55,7 +57,7 @@ function ActieRij({ actie, keuze, onKies }: ActieRijProps) {
             }}
           >
             {actie.titel}
-            {overgeslagen && <span className="sr-only"> (niet vandaag)</span>}
+            {overgeslagen && <span className="sr-only"> {t('vandaag.nietVandaagStatus')}</span>}
           </p>
           <button
             type="button"
@@ -65,7 +67,7 @@ function ActieRij({ actie, keuze, onKies }: ActieRijProps) {
             className="mf-vandaag-link"
             style={{ background: 'none', border: 0, padding: '4px 0', minHeight: 24, marginTop: 2, fontSize: 13, color: 'var(--text-3)', cursor: 'pointer', fontFamily: 'inherit' }}
           >
-            Waarom<span className="sr-only">: {actie.titel}</span>?
+            {t('vandaag.waarom')}<span className="sr-only">: {actie.titel}</span>?
           </button>
           <p id={waaromId} hidden={!toonWaarom} style={{ margin: '6px 0 0', fontSize: 14, color: 'var(--text-2)', lineHeight: 1.5 }}>
             {actie.waarom}
@@ -83,7 +85,7 @@ function ActieRij({ actie, keuze, onKies }: ActieRijProps) {
             className="mf-pressable mf-vandaag-knop"
             style={knopStijl(false)}
           >
-            <X size={15} aria-hidden /> Niet vandaag
+            <X size={15} aria-hidden /> {t('vandaag.nietVandaag')}
           </button>
         )}
       </div>
@@ -111,11 +113,12 @@ function knopStijl(primair: boolean): React.CSSProperties {
 }
 
 function ActieKnop({ actie, keuze, onKies, titelId }: ActieRijProps & { titelId: string }) {
+  const { t } = useVertaling()
   if (actie.knop === 'checkin') {
-    return <a href="#checkin" aria-describedby={titelId} className="mf-pressable mf-vandaag-knop" style={knopStijl(true)}>Inchecken</a>
+    return <a href="#checkin" aria-describedby={titelId} className="mf-pressable mf-vandaag-knop" style={knopStijl(true)}>{t('vandaag.knopInchecken')}</a>
   }
   if (actie.knop === 'plan') {
-    return <Link href="/vandaag/plan" aria-describedby={titelId} className="mf-pressable mf-vandaag-knop" style={knopStijl(true)}>Plan invullen</Link>
+    return <Link href="/vandaag/plan" aria-describedby={titelId} className="mf-pressable mf-vandaag-knop" style={knopStijl(true)}>{t('vandaag.knopPlan')}</Link>
   }
   const gedaan = keuze === 'oke'
   return (
@@ -127,7 +130,7 @@ function ActieKnop({ actie, keuze, onKies, titelId }: ActieRijProps & { titelId:
       className="mf-pressable mf-vandaag-knop"
       style={knopStijl(!gedaan)}
     >
-      <Check size={15} aria-hidden style={gedaan ? { color: 'var(--brand)' } : undefined} /> {gedaan ? 'Gedaan' : 'Doe ik'}
+      <Check size={15} aria-hidden style={gedaan ? { color: 'var(--brand)' } : undefined} /> {gedaan ? t('vandaag.gedaan') : t('vandaag.doeIk')}
     </button>
   )
 }
@@ -141,11 +144,12 @@ interface VandaagKaartProps {
 }
 
 export function VandaagKaart({ kopRef, kaart, gekozen, onKies }: VandaagKaartProps) {
+  const { t, taal } = useVertaling()
   return (
     <article aria-labelledby="vandaag-kop" style={{ display: 'grid', gap: 28 }}>
       <header style={{ display: 'grid', gap: 12 }}>
         <p style={{ margin: 0, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--brand)' }}>
-          {datumTekst(kaart.datum)}
+          {datumTekst(kaart.datum, taal)}
         </p>
         <h1 id="vandaag-kop" ref={kopRef} tabIndex={-1} style={{ outline: 'none', margin: 0, fontSize: 'clamp(32px, 8vw, 48px)', lineHeight: 1.05, letterSpacing: '-0.02em', fontWeight: 600, color: 'var(--text-1)' }}>
           {kaart.kop}
@@ -153,7 +157,7 @@ export function VandaagKaart({ kopRef, kaart, gekozen, onKies }: VandaagKaartPro
       </header>
 
       {kaart.feiten.length > 0 && (
-        <section aria-label="Waar de kaart op rust">
+        <section aria-label={t('vandaag.feitenLabel')}>
           <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 6 }}>
             {kaart.feiten.map((feit) => (
               <li key={feit} style={{ fontSize: 15, color: 'var(--text-2)', lineHeight: 1.5 }}>{feit}</li>
@@ -163,13 +167,13 @@ export function VandaagKaart({ kopRef, kaart, gekozen, onKies }: VandaagKaartPro
       )}
 
       {kaart.training && (
-        <section aria-label="Training vandaag" style={{ padding: '16px 18px', borderRadius: 16, background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-          <p style={{ margin: 0, fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-3)' }}>Training</p>
+        <section aria-label={t('vandaag.trainingLabel')} style={{ padding: '16px 18px', borderRadius: 16, background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+          <p style={{ margin: 0, fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-3)' }}>{t('vandaag.training')}</p>
           <p style={{ margin: '6px 0 0', fontSize: 18, fontWeight: 600, color: 'var(--text-1)' }}>
             {kaart.training.soort}{kaart.training.tijd ? ` · ${kaart.training.tijd}` : ''}
           </p>
           <p style={{ margin: '2px 0 0', fontSize: 14, color: kaart.training.advies === 'zoals_gepland' ? 'var(--text-2)' : 'var(--brand)' }}>
-            {ADVIES_TEKST[kaart.training.advies]}
+            {t(`vandaag.advies.${kaart.training.advies}`)}
           </p>
         </section>
       )}
@@ -177,7 +181,7 @@ export function VandaagKaart({ kopRef, kaart, gekozen, onKies }: VandaagKaartPro
       {kaart.acties.length > 0 && (
         <section aria-labelledby="acties-kop">
           <h2 id="acties-kop" style={{ margin: '0 0 4px', fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-3)', fontWeight: 500 }}>
-            Wat telt vandaag
+            {t('vandaag.watTelt')}
           </h2>
           <ol style={{ listStyle: 'none', margin: 0, padding: 0 }}>
             {kaart.acties.map((actie) => (

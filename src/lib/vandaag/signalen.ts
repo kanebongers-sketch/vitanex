@@ -8,6 +8,7 @@
 
 import { normaal } from './normaal'
 import type { Afspraak, Feiten } from './types'
+import { NL, type Taalset } from '@/lib/i18n/taalset'
 
 /** Zoveel minuten onder je normaal telt als een korte nacht. */
 export const SLAAP_TEKORT_MIN = 60
@@ -46,13 +47,13 @@ export interface Signalen {
   ietsBekend: boolean
 }
 
-/** "6u10" — kort en leesbaar. */
-export function duur(minuten: number): string {
+/** "6u10" — kort en leesbaar (in het Nederlands; andere talen via het woordenboek). */
+export function duur(minuten: number, ts: Taalset = NL): string {
   const m = Math.max(0, Math.round(minuten))
   const u = Math.floor(m / 60)
   const rest = m % 60
-  if (u === 0) return `${rest} min`
-  return rest === 0 ? `${u}u` : `${u}u${String(rest).padStart(2, '0')}`
+  if (u === 0) return ts.t('duur.min', { m: rest })
+  return rest === 0 ? ts.t('duur.uur', { u }) : ts.t('duur.uurMin', { u, mm: String(rest).padStart(2, '0') })
 }
 
 function afspraakDuur(a: Afspraak): number {
@@ -113,41 +114,43 @@ export function bepaalSignalen(f: Feiten): Signalen {
 }
 
 /** "Je rusthartslag is 6 slagen hoger dan normaal en je HRV 25% lager." */
-export function herstelZin(s: Signalen): string {
+export function herstelZin(s: Signalen, ts: Taalset = NL): string {
   const delen: string[] = []
   if (s.hartslagVerschil !== null && s.hartslagVerschil >= HARTSLAG_HOGER_BPM) {
-    delen.push(`je rusthartslag is ${Math.round(s.hartslagVerschil)} slagen hoger dan normaal`)
+    delen.push(ts.t('kaart.feit.hartslag', { n: Math.round(s.hartslagVerschil) }))
   }
   if (s.hrvFractie !== null && s.hrvFractie <= HRV_LAGER_FRACTIE) {
-    delen.push(`je HRV is ${Math.round((1 - s.hrvFractie) * 100)}% lager dan normaal`)
+    delen.push(ts.t('kaart.feit.hrv', { n: Math.round((1 - s.hrvFractie) * 100) }))
   }
-  const zin = delen.join(' en ')
-  return `${zin.charAt(0).toUpperCase()}${zin.slice(1)}.`
+  const zin = delen.join(ts.t('kaart.feit.en'))
+  return `${zin.charAt(0).toLocaleUpperCase(ts.locale)}${zin.slice(1)}.`
 }
 
 /** De feiten als korte zinnen, alleen wat écht gemeten is. */
-export function feitZinnen(f: Feiten, s: Signalen): string[] {
+export function feitZinnen(f: Feiten, s: Signalen, ts: Taalset = NL): string[] {
   const zinnen: string[] = []
   if (f.slaapMinuten !== null) {
+    const slaap = duur(f.slaapMinuten, ts)
     if (s.slaapVerschil !== null && Math.abs(s.slaapVerschil) >= 30) {
-      const richting = s.slaapVerschil > 0 ? 'minder' : 'meer'
-      zinnen.push(`Je sliep ${duur(f.slaapMinuten)}, ${duur(Math.abs(s.slaapVerschil))} ${richting} dan normaal.`)
+      const richting = ts.t(s.slaapVerschil > 0 ? 'kaart.feit.minder' : 'kaart.feit.meer')
+      zinnen.push(ts.t('kaart.feit.slaapAfwijking', { slaap, verschil: duur(Math.abs(s.slaapVerschil), ts), richting }))
     } else {
-      zinnen.push(`Je sliep ${duur(f.slaapMinuten)}${s.slaapNormaal !== null ? ', ongeveer je normaal' : ''}.`)
+      zinnen.push(ts.t(s.slaapNormaal !== null ? 'kaart.feit.slaapNormaal' : 'kaart.feit.slaap', { slaap }))
     }
   }
-  if (s.herstelLaag) zinnen.push(herstelZin(s))
+  if (s.herstelLaag) zinnen.push(herstelZin(s, ts))
   if (f.checkin) {
-    const delen = [`stemming ${f.checkin.stemming}/5`]
-    if (f.checkin.energie != null) delen.push(`energie ${f.checkin.energie}/5`)
-    if (f.checkin.stress != null) delen.push(`stress ${f.checkin.stress}/5`)
-    zinnen.push(`Je check-in: ${delen.join(', ')}.`)
+    const delen = [ts.t('kaart.feit.deelStemming', { n: f.checkin.stemming })]
+    if (f.checkin.energie != null) delen.push(ts.t('kaart.feit.deelEnergie', { n: f.checkin.energie }))
+    if (f.checkin.stress != null) delen.push(ts.t('kaart.feit.deelStress', { n: f.checkin.stress }))
+    zinnen.push(ts.t('kaart.feit.checkin', { delen: delen.join(', ') }))
   }
   if (s.weinigBewogen && f.stappenGisteren !== null) {
-    zinnen.push(`Gisteren zette je ${f.stappenGisteren.toLocaleString('nl-NL')} stappen, minder dan je normaal.`)
+    zinnen.push(ts.t('kaart.feit.weinigBewogen', { stappen: f.stappenGisteren.toLocaleString(ts.locale) }))
   }
   if (f.afspraken && f.afspraken.length > 0) {
-    zinnen.push(`Je hebt ${f.afspraken.length} ${f.afspraken.length === 1 ? 'afspraak' : 'afspraken'} vandaag.`)
+    const n = f.afspraken.length
+    zinnen.push(n === 1 ? ts.t('kaart.feit.afspraak') : ts.t('kaart.feit.afspraken', { n }))
   }
   return zinnen
 }

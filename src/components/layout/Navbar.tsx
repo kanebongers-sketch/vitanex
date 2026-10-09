@@ -15,6 +15,8 @@ import {
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import WeekRingen from './WeekRingen'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
+import { TaalKiezer } from '@/components/taal/TaalKiezer'
 import { Wordmark } from './Logo'
 
 // Een categorie-tab blijft actief als je op een van zijn onderdelen zit
@@ -155,6 +157,7 @@ function SidebarContent({
   onSignOut: () => void
   onClose?: () => void
 }) {
+  const { t } = useVertaling()
   const isHrOrAdmin = userRol === 'hr' || userRol === 'admin'
   const isCoach = userRol === 'coach' || userRol === 'admin'
   // Content OS is founder-/admin-tooling (briefings, strategie, ideeën) en hoort
@@ -175,10 +178,10 @@ function SidebarContent({
           textTransform: 'uppercase',
           color: 'var(--text-4)',
           margin: '3px 0 12px 0',
-        }}>Welzijn &amp; Vitaliteit</p>
+        }}>{t('nav.ondertitel')}</p>
         <div style={{ marginBottom: 4 }}>
           <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--text-4)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
-            Week voortgang
+            {t('nav.weekVoortgang')}
           </span>
         </div>
         <WeekRingen size={28} />
@@ -218,7 +221,7 @@ function SidebarContent({
                 }}
               >
                 <Icon size={15} strokeWidth={isActive ? 2 : 1.7} style={{ flexShrink: 0, opacity: isActive ? 1 : 0.7 }} />
-                {item.label}
+                {t(`nav.${item.label}`)}
               </Link>
             )
           }
@@ -258,7 +261,7 @@ function SidebarContent({
               >
                 <span style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
                   <Icon size={15} strokeWidth={hasActiveChild ? 2 : 1.7} style={{ flexShrink: 0, opacity: hasActiveChild ? 1 : 0.7 }} />
-                  {item.label}
+                  {t(`nav.${item.label}`)}
                 </span>
                 <ChevronRight
                   size={12}
@@ -281,7 +284,7 @@ function SidebarContent({
                   <NavLink
                     key={sub.href}
                     href={sub.href}
-                    label={sub.label}
+                    label={t(`nav.${sub.label}`)}
                     icon={sub.icon}
                     pathname={pathname}
                     indent
@@ -347,7 +350,7 @@ function SidebarContent({
                 <NavLink
                   key={sub.href}
                   href={sub.href}
-                  label={sub.label}
+                  label={t(`nav.${sub.label}`)}
                   icon={sub.icon}
                   pathname={pathname}
                   indent
@@ -412,7 +415,7 @@ function SidebarContent({
                 <NavLink
                   key={sub.href}
                   href={sub.href}
-                  label={sub.label}
+                  label={t(`nav.${sub.label}`)}
                   icon={sub.icon}
                   pathname={pathname}
                   indent
@@ -426,11 +429,11 @@ function SidebarContent({
         {/* Coaching voor klanten — zichtbaar zodra ze aan een coach gekoppeld zijn */}
         {heeftCoach && !isCoach && (
           <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--border)' }}>
-            <NavLink href="/mijn-coach" label="Mijn coach" icon={UserRound} pathname={pathname} onClick={onClose} />
-            <NavLink href="/mijn-taken" label="Mijn taken" icon={ListChecks} pathname={pathname} onClick={onClose} />
-            <NavLink href="/mijn-traject" label="Mijn traject" icon={Milestone} pathname={pathname} onClick={onClose} />
-            <NavLink href="/mijn-voeding" label="Mijn voeding" icon={Apple} pathname={pathname} onClick={onClose} />
-            <NavLink href="/mijn-content" label="Van je coach" icon={BookOpen} pathname={pathname} onClick={onClose} />
+            <NavLink href="/mijn-coach" label={t('nav.Mijn coach')} icon={UserRound} pathname={pathname} onClick={onClose} />
+            <NavLink href="/mijn-taken" label={t('nav.Mijn taken')} icon={ListChecks} pathname={pathname} onClick={onClose} />
+            <NavLink href="/mijn-traject" label={t('nav.Mijn traject')} icon={Milestone} pathname={pathname} onClick={onClose} />
+            <NavLink href="/mijn-voeding" label={t('nav.Mijn voeding')} icon={Apple} pathname={pathname} onClick={onClose} />
+            <NavLink href="/mijn-content" label={t('nav.Van je coach')} icon={BookOpen} pathname={pathname} onClick={onClose} />
           </div>
         )}
       </nav>
@@ -469,7 +472,7 @@ function SidebarContent({
           }}
         >
           <CheckCircle2 size={14} strokeWidth={2.5} />
-          Start check-in
+          {t('nav.startCheckin')}
         </Link>
 
         <button
@@ -501,8 +504,9 @@ function SidebarContent({
           }}
         >
           <LogOut size={13} strokeWidth={1.8} style={{ opacity: 0.6 }} />
-          Uitloggen {userName ? `(${userName.split(' ')[0]})` : ''}
+          {t('nav.uitloggen')} {userName ? `(${userName.split(' ')[0]})` : ''}
         </button>
+        <div style={{ padding: '6px 8px 2px' }}><TaalKiezer compact /></div>
       </div>
     </div>
   )
@@ -519,6 +523,7 @@ const MOBILE_TABS = [
 
 /* ── Main Navbar ── */
 export default function Navbar() {
+  const { t } = useVertaling()
   const pathname = usePathname()
   const router = useRouter()
 
@@ -671,7 +676,7 @@ export default function Navbar() {
         type="button"
         className="mf-sidebar-toggle"
         onClick={() => setCollapsed((c) => !c)}
-        aria-label={collapsed ? 'Sidebar tonen' : 'Sidebar verbergen'}
+        aria-label={collapsed ? t('nav.sidebarTonen') : t('nav.sidebarVerbergen')}
         aria-pressed={collapsed}
         style={{
           position: 'fixed',
@@ -722,7 +727,7 @@ export default function Navbar() {
 
         <button
           onClick={() => setOpenMenu((o) => !o)}
-          aria-label={openMenu ? 'Menu sluiten' : 'Menu openen'}
+          aria-label={openMenu ? t('nav.menuSluiten') : t('nav.menuOpenen')}
           aria-expanded={openMenu}
           style={{
             background: 'none',
@@ -771,7 +776,7 @@ export default function Navbar() {
         }}
       >
         <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-4)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
-          Week voortgang
+          {t('nav.weekVoortgang')}
         </span>
         <WeekRingen size={34} />
       </div>
@@ -835,7 +840,7 @@ export default function Navbar() {
             <Link
               key={tab.key}
               href={tab.href}
-              aria-label={tab.label}
+              aria-label={t(`nav.${tab.label}`)}
               aria-current={isActive ? 'page' : undefined}
               style={{
                 flex: 1,
@@ -883,7 +888,7 @@ export default function Navbar() {
                   letterSpacing: '0.01em',
                   transition: 'color 0.15s',
                 }}>
-                  {tab.label}
+                  {t(`nav.${tab.label}`)}
                 </span>
               </div>
             </Link>

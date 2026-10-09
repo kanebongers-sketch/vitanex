@@ -3,15 +3,13 @@
 // laatste sync meer dan een dag geleden is.
 
 import { dagPlus, dagVan } from '@/lib/lifeos/blokken/tijd'
+import { NL, type Taalset } from '@/lib/i18n/taalset'
 
 const BRON_NAAM: Record<string, string> = {
   health_connect: 'Health Connect',
   healthkit: 'Apple Health',
   google_health: 'Google Fit',
 }
-
-const TIJD = new Intl.DateTimeFormat('nl-NL', { timeZone: 'Europe/Amsterdam', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
-const DATUM = new Intl.DateTimeFormat('nl-NL', { timeZone: 'Europe/Amsterdam', day: 'numeric', month: 'short' })
 
 export interface Bijgewerkt {
   bron: string
@@ -24,18 +22,16 @@ export interface BijgewerktRegel {
   oud: boolean
 }
 
-export function bijgewerktRegel(b: Bijgewerkt | null, nu: Date = new Date()): BijgewerktRegel | null {
+export function bijgewerktRegel(b: Bijgewerkt | null, nu: Date = new Date(), ts: Taalset = NL): BijgewerktRegel | null {
   if (!b) return null
   const moment = new Date(b.tijd)
   if (Number.isNaN(moment.getTime())) return null
-  const bron = BRON_NAAM[b.bron] ?? 'je telefoon'
+  const bron = BRON_NAAM[b.bron] ?? ts.t('vandaag.bijgewerkt.jeTelefoon')
+  const tijd = new Intl.DateTimeFormat(ts.locale, { timeZone: 'Europe/Amsterdam', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(moment)
   const dag = dagVan(moment)
   const vandaag = dagVan(nu)
-  const gisteren = dagPlus(vandaag, -1)
-  if (dag === vandaag) return { tekst: `Bijgewerkt vandaag om ${TIJD.format(moment)} uit ${bron}.`, oud: false }
-  if (dag === gisteren) return { tekst: `Bijgewerkt gisteren om ${TIJD.format(moment)} uit ${bron}.`, oud: false }
-  return {
-    tekst: `Laatst bijgewerkt op ${DATUM.format(moment)} uit ${bron}. Open de app op je telefoon om je nacht en stappen op te halen.`,
-    oud: true,
-  }
+  if (dag === vandaag) return { tekst: ts.t('vandaag.bijgewerkt.vandaag', { tijd, bron }), oud: false }
+  if (dag === dagPlus(vandaag, -1)) return { tekst: ts.t('vandaag.bijgewerkt.gisteren', { tijd, bron }), oud: false }
+  const datum = new Intl.DateTimeFormat(ts.locale, { timeZone: 'Europe/Amsterdam', day: 'numeric', month: 'short' }).format(moment)
+  return { tekst: ts.t('vandaag.bijgewerkt.oud', { datum, bron }), oud: true }
 }

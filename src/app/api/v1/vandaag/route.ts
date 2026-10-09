@@ -7,6 +7,7 @@ import { gebruikerSessie } from '@/lib/supabase/gebruiker'
 import { haalFeiten } from '@/lib/vandaag/ophalen'
 import { maakKaart } from '@/lib/vandaag/regels'
 import { maakRekening } from '@/lib/vandaag/rekening'
+import { huidigeTaalset } from '@/lib/i18n/server'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -18,8 +19,8 @@ export async function GET(req: NextRequest) {
   if (!sessie) return NextResponse.json({ fout: 'Niet ingelogd.' }, { status: 401 })
 
   try {
-    const feiten = await haalFeiten(sessie.db, sessie.user.id)
-    const kaart = maakKaart(feiten)
+    const [feiten, ts] = await Promise.all([haalFeiten(sessie.db, sessie.user.id), huidigeTaalset()])
+    const kaart = maakKaart(feiten, ts)
     const [{ data }, sync] = await Promise.all([
       sessie.db.from('vandaag_acties').select('actie, keuze').eq('user_id', sessie.user.id).eq('datum', kaart.datum),
       sessie.db.from('health_sync_status').select('bron, laatste_sync').eq('user_id', sessie.user.id)
@@ -30,7 +31,7 @@ export async function GET(req: NextRequest) {
       (Array.isArray(data) ? data : []).map((r: { actie: string; keuze: string }) => [r.actie, r.keuze]),
     )
     return NextResponse.json(
-      { kaart, gekozen, rekening: maakRekening(feiten), bijgewerkt: laatsteSync ? { bron: laatsteSync.bron, tijd: laatsteSync.laatste_sync } : null },
+      { kaart, gekozen, rekening: maakRekening(feiten, ts), bijgewerkt: laatsteSync ? { bron: laatsteSync.bron, tijd: laatsteSync.laatste_sync } : null },
       { headers: GEEN_CACHE },
     )
   } catch (fout) {

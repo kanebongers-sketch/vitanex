@@ -7,6 +7,7 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import type { CheckIn } from '@/lib/vandaag/types'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 
 interface Vraag {
   sleutel: keyof CheckIn
@@ -15,11 +16,8 @@ interface Vraag {
   hoog: string
 }
 
-const VRAGEN: readonly Vraag[] = [
-  { sleutel: 'stemming', vraag: 'Hoe voel je je?', laag: 'Slecht', hoog: 'Top' },
-  { sleutel: 'energie', vraag: 'Hoeveel energie heb je?', laag: 'Leeg', hoog: 'Vol' },
-  { sleutel: 'stress', vraag: 'Hoeveel spanning voel je?', laag: 'Geen', hoog: 'Veel' },
-]
+/** De drie vragen; de teksten komen uit het woordenboek (checkin.<sleutel>…). */
+const SLEUTELS: readonly (keyof CheckIn)[] = ['stemming', 'energie', 'stress']
 
 const SCHAAL = [1, 2, 3, 4, 5] as const
 
@@ -35,6 +33,13 @@ function uitleg(n: number, v: Vraag): string {
 }
 
 export function CheckInFormulier({ bezig, onVerstuur }: CheckInFormulierProps) {
+  const { t } = useVertaling()
+  const VRAGEN: readonly Vraag[] = SLEUTELS.map((sleutel) => ({
+    sleutel,
+    vraag: t(`checkin.${sleutel}`),
+    laag: t(`checkin.${sleutel}Laag`),
+    hoog: t(`checkin.${sleutel}Hoog`),
+  }))
   const [antwoord, setAntwoord] = useState<Partial<Record<keyof CheckIn, number>>>({})
   const [toonHint, setToonHint] = useState(false)
   const compleet = VRAGEN.every((v) => typeof antwoord[v.sleutel] === 'number')
@@ -53,7 +58,7 @@ export function CheckInFormulier({ bezig, onVerstuur }: CheckInFormulierProps) {
     <section id="checkin" aria-labelledby="checkin-kop">
       <form onSubmit={verstuur} style={{ display: 'grid', gap: 22 }}>
         <h2 id="checkin-kop" style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-2)', margin: 0 }}>
-          Check in — tien seconden
+          {t('checkin.kop')}
         </h2>
         {VRAGEN.map((v) => (
           <fieldset key={v.sleutel} style={{ border: 0, padding: 0, margin: 0, display: 'grid', gap: 10 }}>
@@ -89,7 +94,7 @@ export function CheckInFormulier({ bezig, onVerstuur }: CheckInFormulierProps) {
                       className="sr-only"
                     />
                     <span aria-hidden>{n}</span>
-                    <span className="sr-only">{n} van 5{uitleg(n, v)}</span>
+                    <span className="sr-only">{t('checkin.vanVijf', { n })}{uitleg(n, v)}</span>
                   </label>
                 )
               })}
@@ -101,10 +106,10 @@ export function CheckInFormulier({ bezig, onVerstuur }: CheckInFormulierProps) {
           </fieldset>
         ))}
         <p id="checkin-hint" role="status" style={{ margin: 0, fontSize: 14, color: 'var(--text-2)', minHeight: 20 }}>
-          {toonHint ? 'Beantwoord alle drie de vragen om je dag te maken.' : ''}
+          {toonHint ? t('checkin.hint') : ''}
         </p>
         <Button type="submit" size="lg" loading={bezig} aria-disabled={!compleet || undefined} aria-describedby="checkin-hint">
-          Maak mijn dag
+          {t('checkin.verstuur')}
         </Button>
       </form>
     </section>

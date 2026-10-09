@@ -5,13 +5,14 @@
 // ("laag", "hoog") zijn die van de onderzoeken zelf, niet van ons.
 
 import type { Bron, RekeningRegel } from './rekening'
+import { NL, type Taalset } from '@/lib/i18n/taalset'
 
 const BRON_CONDITIE: Bron = {
-  titel: 'Kodama e.a., JAMA (2009) — 33 studies, 102.980 mensen',
+  titel: 'Kodama et al., JAMA (2009)',
   url: 'https://doi.org/10.1001/jama.2009.681',
 }
 const BRON_RUSTHARTSLAG: Bron = {
-  titel: 'Zhang e.a., CMAJ (2016) — 46 studies, 1,2 miljoen mensen',
+  titel: 'Zhang et al., CMAJ (2016)',
   url: 'https://doi.org/10.1503/cmaj.150535',
 }
 
@@ -22,39 +23,36 @@ export const VO2MAX_HOOG = Math.round(10.9 * MET * 10) / 10 // 38,2
 /** Zhang: vergeleken met de laagste groep stijgt het risico vanaf 60 slagen. */
 export const RUSTHARTSLAG_ZONE = 60
 
-function komma(n: number): string {
-  return n.toLocaleString('nl-NL', { maximumFractionDigits: 1 })
+function komma(n: number, ts: Taalset): string {
+  return n.toLocaleString(ts.locale, { maximumFractionDigits: 1 })
 }
 
-export function conditieRegel(vo2max: number): RekeningRegel {
+export function conditieRegel(vo2max: number, ts: Taalset = NL): RekeningRegel {
   const goed = vo2max >= VO2MAX_HOOG
-  const groep = vo2max < VO2MAX_LAAG ? 'laag' : goed ? 'hoog' : 'gemiddeld'
+  const groep = ts.t(`rekening.vo2max.${vo2max < VO2MAX_LAAG ? 'laag' : goed ? 'hoog' : 'gemiddeld'}`)
   const tekort = Math.max(0, VO2MAX_HOOG - vo2max)
   return {
     id: 'vo2max',
     goed,
-    jij: `Je VO2max (conditie) is ${komma(vo2max)}. Dat valt in dit onderzoek in de groep "${groep}".`,
+    jij: ts.t('rekening.vo2max.jij', { waarde: komma(vo2max, ts), groep }),
     getal: '−13%',
-    getalUitleg: 'minder kans op vroegtijdig overlijden per 3,5 punt VO2max hoger',
-    onderzoek: `Conditie is een van de sterkste voorspellers die we kennen. In 33 studies ging elke 3,5 punt VO2max hoger samen met 13% minder kans om vroegtijdig te overlijden. Onder ${komma(VO2MAX_LAAG)} heet dat onderzoek je conditie laag, vanaf ${komma(VO2MAX_HOOG)} hoog. Een verband in grote groepen, geen persoonlijke voorspelling.`,
-    stap: goed ? null : `Je zit ${komma(tekort)} punt onder "hoog". Stevig wandelen, fietsen of hardlopen waarbij je net niet meer kunt praten, een paar keer per week, is wat je conditie omhoog brengt.`,
+    getalUitleg: ts.t('rekening.vo2max.uitleg'),
+    onderzoek: ts.t('rekening.vo2max.onderzoek', { laag: komma(VO2MAX_LAAG, ts), hoog: komma(VO2MAX_HOOG, ts) }),
+    stap: goed ? null : ts.t('rekening.vo2max.stap', { tekort: komma(tekort, ts) }),
     bronnen: [BRON_CONDITIE],
   }
 }
 
-export function rusthartslagRegel(rusthartslag: number): RekeningRegel {
+export function rusthartslagRegel(rusthartslag: number, ts: Taalset = NL): RekeningRegel {
   const goed = rusthartslag < RUSTHARTSLAG_ZONE
-  const r = Math.round(rusthartslag)
   return {
     id: 'rusthartslag',
     goed,
-    jij: `Je rusthartslag is normaal ${r} slagen per minuut.`,
+    jij: ts.t('rekening.rusthartslag.jij', { n: Math.round(rusthartslag) }),
     getal: '+9%',
-    getalUitleg: 'meer kans op vroegtijdig overlijden per 10 slagen hogere rusthartslag',
-    onderzoek: goed
-      ? 'Je zit onder de 60, de groep met het laagste risico in dit onderzoek. Daarboven steeg het risico met ongeveer 9% per 10 slagen, ook binnen wat artsen "normaal" noemen. Een verband, geen bewijs dat verlagen je leven verlengt.'
-      : `In 46 studies steeg het risico op vroegtijdig overlijden met ongeveer 9% per 10 slagen hogere rusthartslag, ook binnen wat artsen "normaal" noemen (60–100). Boven de 80 lag het risico 45% hoger dan in de laagste groep. Een verband, geen bewijs dat verlagen je leven verlengt.`,
-    stap: goed ? null : 'Regelmatige duurtraining en genoeg slaap gaan bij de meeste mensen samen met een lagere rusthartslag. Schiet hij plotseling omhoog of voel je je niet goed: overleg met je huisarts.',
+    getalUitleg: ts.t('rekening.rusthartslag.uitleg'),
+    onderzoek: ts.t(goed ? 'rekening.rusthartslag.goedOnderzoek' : 'rekening.rusthartslag.tekortOnderzoek'),
+    stap: goed ? null : ts.t('rekening.rusthartslag.stap'),
     bronnen: [BRON_RUSTHARTSLAG],
   }
 }

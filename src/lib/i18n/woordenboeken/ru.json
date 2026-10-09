@@ -1,0 +1,257 @@
+{
+  "taal": {
+    "label": "Taal"
+  },
+  "nav": {
+    "ondertitel": "Welzijn & Vitaliteit",
+    "weekVoortgang": "Week voortgang",
+    "startCheckin": "Start check-in",
+    "uitloggen": "Uitloggen",
+    "sidebarTonen": "Sidebar tonen",
+    "sidebarVerbergen": "Sidebar verbergen",
+    "menuOpenen": "Menu openen",
+    "menuSluiten": "Menu sluiten",
+    "Home": "Home",
+    "Vandaag": "Vandaag",
+    "Fysiek": "Fysiek",
+    "Mentaal": "Mentaal",
+    "Groeien": "Groeien",
+    "Vita": "Vita",
+    "Voortgang": "Voortgang",
+    "Profiel": "Profiel",
+    "Voeding": "Voeding",
+    "Training": "Training",
+    "Content OS": "Content OS",
+    "Dagelijkse Briefing": "Dagelijkse briefing",
+    "Weekkalender": "Weekkalender",
+    "Strategie": "Strategie",
+    "Ideeën Bank": "Ideeënbank",
+    "HR": "HR",
+    "HR Portaal": "HR-portaal",
+    "Team": "Team",
+    "Analytics": "Analytics",
+    "Pulse Survey": "Pulse-survey",
+    "eNPS": "eNPS",
+    "Uitdagingen": "Uitdagingen",
+    "Coaching": "Coaching",
+    "Klanten": "Klanten",
+    "Uitnodigen": "Uitnodigen",
+    "Mijn coach": "Mijn coach",
+    "Mijn taken": "Mijn taken",
+    "Mijn traject": "Mijn traject",
+    "Mijn voeding": "Mijn voeding",
+    "Van je coach": "Van je coach"
+  },
+  "home": {
+    "vandaagKaart": "Je Vandaag-kaart",
+    "vandaagKaartUitleg": "Wat telt er vandaag? Op basis van je slaap, je check-in en je plan."
+  },
+  "vandaag": {
+    "titel": "Vandaag",
+    "weekplan": "Weekplan",
+    "laden": "Je kaart wordt gemaakt…",
+    "opnieuw": "Opnieuw proberen",
+    "foutLaden": "Je kaart kon niet worden geladen.",
+    "geenVerbinding": "Geen verbinding. Controleer je internet en probeer het opnieuw.",
+    "inchecken_mislukt": "Inchecken lukte niet.",
+    "inchecken_offline": "Geen verbinding. Je check-in is niet opgeslagen.",
+    "opslaan_mislukt": "Opslaan lukte niet.",
+    "feitenLabel": "Waar de kaart op rust",
+    "trainingLabel": "Training vandaag",
+    "training": "Training",
+    "watTelt": "Wat telt vandaag",
+    "waarom": "Waarom",
+    "nietVandaag": "Niet vandaag",
+    "nietVandaagStatus": "(niet vandaag)",
+    "doeIk": "Doe ik",
+    "gedaan": "Gedaan",
+    "knopInchecken": "Inchecken",
+    "knopPlan": "Plan invullen",
+    "advies": {
+      "zoals_gepland": "Zoals gepland",
+      "lichter": "Lichter dan gepland",
+      "rust": "Rustdag in plaats van training"
+    },
+    "bijgewerkt": {
+      "vandaag": "Bijgewerkt vandaag om {tijd} uit {bron}.",
+      "gisteren": "Bijgewerkt gisteren om {tijd} uit {bron}.",
+      "oud": "Laatst bijgewerkt op {datum} uit {bron}. Open de app op je telefoon om je nacht en stappen op te halen.",
+      "jeTelefoon": "je telefoon"
+    }
+  },
+  "checkin": {
+    "kop": "Check in — tien seconden",
+    "stemming": "Hoe voel je je?",
+    "stemmingLaag": "Slecht",
+    "stemmingHoog": "Top",
+    "energie": "Hoeveel energie heb je?",
+    "energieLaag": "Leeg",
+    "energieHoog": "Vol",
+    "stress": "Hoeveel spanning voel je?",
+    "stressLaag": "Geen",
+    "stressHoog": "Veel",
+    "vanVijf": "{n} van 5",
+    "hint": "Beantwoord alle drie de vragen om je dag te maken.",
+    "verstuur": "Maak mijn dag"
+  },
+  "plan": {
+    "titel": "Je weekplan",
+    "uitleg": "Zet aan op welke dagen je traint. De Vandaag-kaart past je training aan als je slecht sliep of laag zit — nooit andersom.",
+    "laden": "Je plan wordt geladen…",
+    "laadFout": "Je plan kon niet worden geladen. Ververs de pagina om het opnieuw te proberen.",
+    "training": "Training",
+    "rust": "Rust",
+    "trainingOp": "Training op {dag}",
+    "watTrain": "Wat train je",
+    "voorbeeld": "Bijv. Benen",
+    "zwaarte": "Zwaarte",
+    "zwaar": "Zwaar",
+    "licht": "Licht",
+    "tijd": "Tijd (optioneel)",
+    "naamNodig": "Geef deze trainingsdag een naam, bijvoorbeeld \"Benen\".",
+    "opslaan": "Plan opslaan",
+    "opgeslagen": "Plan opgeslagen.",
+    "opslaanMislukt": "Opslaan lukte niet.",
+    "offline": "Geen verbinding. Je plan is niet opgeslagen.",
+    "terug": "Vandaag",
+    "dagen": {
+      "1": "Maandag",
+      "2": "Dinsdag",
+      "3": "Woensdag",
+      "4": "Donderdag",
+      "5": "Vrijdag",
+      "6": "Zaterdag",
+      "0": "Zondag"
+    }
+  },
+  "duur": {
+    "min": "{m} min",
+    "uur": "{u}u",
+    "uurMin": "{u}u{mm}",
+    "minuten": "{m} minuten",
+    "uurLang": "{u} uur"
+  },
+  "kaart": {
+    "kop": {
+      "onbekend": "Hoe gaat het vandaag?",
+      "rustig": "Rustige dag. Minder is vandaag het plan.",
+      "lichter": "Licht trainen, rustig aan.",
+      "druk": "Drukke dag. Bouw rust in.",
+      "vroegBed": "Gewone dag, vroeg naar bed.",
+      "aanpassing": "Kleine aanpassing vandaag.",
+      "normaalPlan": "Alles normaal. Je plan staat.",
+      "normaalRust": "Alles normaal. Geniet van je rustdag.",
+      "normaal": "Alles normaal."
+    },
+    "reden": {
+      "slaapMinder": "Je sliep {duur} minder dan normaal.",
+      "nachtKort": "Je nacht was kort.",
+      "energieLaag": "Je energie staat laag.",
+      "herstel": "{herstel} Je lichaam is nog aan het herstellen.",
+      "meerdere": "Meerdere signalen staan vandaag laag.",
+      "grens": " Zo heeft je trainer het afgesproken."
+    },
+    "lichter": {
+      "titel": "{soort} wordt een lichte sessie: zo'n 30 minuten rustig.",
+      "waarom": "{reden} Licht bewegen helpt vandaag meer dan zwaar trainen.{grens}"
+    },
+    "rust": {
+      "titel": "Sla {soort} vandaag over. Een wandeling mag, hoeft niet.",
+      "waarom": "{reden} Rust is vandaag het plan; morgen pak je het weer op.{grens}"
+    },
+    "minder": {
+      "titel": "Schrap of verschuif vandaag één ding van je lijst.",
+      "waarom": "Meerdere signalen staan tegelijk laag. Minder doen is vandaag het plan, geen achterstand."
+    },
+    "pauze": {
+      "titel": "Plan 20 minuten pauze vóór \"{afspraak}\" ({tijd}).",
+      "waaromStress": "Je stress is hoog en dit is je zwaarste afspraak.",
+      "waaromSlaap": "Na een korte nacht helpt een adempauze vóór je zwaarste afspraak."
+    },
+    "ademhaling": {
+      "titel": "Neem vandaag 5 minuten om rustig te ademen, of wandel even kort.",
+      "waarom": "Je stress staat op {stress}/5. Een korte pauze haalt de piek eraf."
+    },
+    "bedtijd": {
+      "titel": "Lichten uit om {tijd}.",
+      "waarom": "Eén vroege avond haalt het meeste van een korte nacht in."
+    },
+    "bewegen": {
+      "titel": "Wandel vandaag 20 minuten.",
+      "waarom": "Gisteren bewoog je minder dan normaal. Een wandeling maakt het verschil."
+    },
+    "checkin": {
+      "titel": "Hoe voel je je? Drie vragen, tien seconden.",
+      "waarom": "Met je check-in kan ik zien of vandaag een gewone dag is."
+    },
+    "plan": {
+      "titel": "Zet je weekplan neer: op welke dagen train je?",
+      "waarom": "Dan kan ik elke ochtend zeggen of je je plan kunt volgen of beter kunt aanpassen."
+    },
+    "feit": {
+      "slaapAfwijking": "Je sliep {slaap}, {verschil} {richting} dan normaal.",
+      "minder": "minder",
+      "meer": "meer",
+      "slaapNormaal": "Je sliep {slaap}, ongeveer je normaal.",
+      "slaap": "Je sliep {slaap}.",
+      "checkin": "Je check-in: {delen}.",
+      "deelStemming": "stemming {n}/5",
+      "deelEnergie": "energie {n}/5",
+      "deelStress": "stress {n}/5",
+      "weinigBewogen": "Gisteren zette je {stappen} stappen, minder dan je normaal.",
+      "afspraak": "Je hebt 1 afspraak vandaag.",
+      "afspraken": "Je hebt {n} afspraken vandaag.",
+      "hartslag": "je rusthartslag is {n} slagen hoger dan normaal",
+      "hrv": "je HRV is {n}% lager dan normaal",
+      "en": " en "
+    }
+  },
+  "rekening": {
+    "kop": "Wat je gewoontes je kosten",
+    "intro": "Jouw metingen naast groot onderzoek. Geen verzonnen persoonlijke voorspelling — wel de richting.",
+    "teWeinig": "Na {n} dagen met slaap- of stappendata zie je hier wat je gewoontes je kosten. Koppel Health Connect op je Android-telefoon, dan gaat het vanzelf, of houd je slaap en stappen zelf bij.",
+    "inZone": "in de zone",
+    "kostIets": "kost je iets",
+    "bronnen": "Bronnen",
+    "bron": "Bron: {titel}",
+    "titel": {
+      "stappen": "Bewegen",
+      "slaap": "Slaap",
+      "vo2max": "Conditie",
+      "rusthartslag": "Rusthartslag"
+    },
+    "stappen": {
+      "jij": "Je loopt normaal zo'n {stappen} stappen per dag.",
+      "goedUitleg": "minder kans op vroegtijdig overlijden, per 1.000 stappen per dag",
+      "goedOnderzoek": "Je zit in de zone waar het risico in onderzoek afvlakt. Elke 1.000 stappen per dag méér ging samen met 15% minder kans om vroegtijdig te overlijden — en een bovengrens is nog niet gevonden. Het gaat om een verband in grote groepen, geen garantie.",
+      "tekortUitleg": "stappen per dag tekort op de {zone} waar het risico afvlakt",
+      "tekortOnderzoek": "Elke 1.000 stappen per dag méér ging samen met 15% minder kans om vroegtijdig te overlijden. In een Amerikaans model leefde het minst actieve kwart van de 40-plussers tot bijna 11 jaar korter dan het meest actieve kwart. Verbanden in grote groepen — geen persoonlijke voorspelling, wel een duidelijke richting.",
+      "stap": "Dat is ongeveer {minuten} minuten extra wandelen per dag."
+    },
+    "slaap": {
+      "jij": "Je slaapt normaal {duur} per nacht.",
+      "jaren": "4,7 jaar",
+      "goedUitleg": "langer leven bij mannen met vijf gezonde slaapgewoontes (vrouwen: 2,4 jaar)",
+      "goedOnderzoek": "Je haalt de 7 uur — één van de vijf gewoontes uit dit onderzoek. De andere vier: snel inslapen, doorslapen, geen slaapmiddelen en uitgerust wakker worden. Voorlopig onderzoek en een verband, geen bewijs van oorzaak.",
+      "tekortUitleg": "korter leven bij mannen met hooguit één van vijf gezonde slaapgewoontes (vrouwen: 2,4 jaar)",
+      "tekortOnderzoek": "Wie 7–8 uur sliep én de andere vier gewoontes had (snel inslapen, doorslapen, geen slaapmiddelen, uitgerust wakker), leefde gemiddeld langer dan wie er hooguit één had. Jij mist nu al de eerste. Voorlopig onderzoek en een verband, geen bewijs van oorzaak.",
+      "stap": "Je komt {tekort} tekort op 7 uur. Begin met {minuten} minuten eerder naar bed."
+    },
+    "vo2max": {
+      "jij": "Je VO2max (conditie) is {waarde}. Dat valt in dit onderzoek in de groep \"{groep}\".",
+      "laag": "laag",
+      "gemiddeld": "gemiddeld",
+      "hoog": "hoog",
+      "uitleg": "minder kans op vroegtijdig overlijden per 3,5 punt VO2max hoger",
+      "onderzoek": "Conditie is een van de sterkste voorspellers die we kennen. In 33 studies ging elke 3,5 punt VO2max hoger samen met 13% minder kans om vroegtijdig te overlijden. Onder {laag} heet dat onderzoek je conditie laag, vanaf {hoog} hoog. Een verband in grote groepen, geen persoonlijke voorspelling.",
+      "stap": "Je zit {tekort} punt onder \"hoog\". Stevig wandelen, fietsen of hardlopen waarbij je net niet meer kunt praten, een paar keer per week, is wat je conditie omhoog brengt."
+    },
+    "rusthartslag": {
+      "jij": "Je rusthartslag is normaal {n} slagen per minuut.",
+      "uitleg": "meer kans op vroegtijdig overlijden per 10 slagen hogere rusthartslag",
+      "goedOnderzoek": "Je zit onder de 60, de groep met het laagste risico in dit onderzoek. Daarboven steeg het risico met ongeveer 9% per 10 slagen, ook binnen wat artsen \"normaal\" noemen. Een verband, geen bewijs dat verlagen je leven verlengt.",
+      "tekortOnderzoek": "In 46 studies steeg het risico op vroegtijdig overlijden met ongeveer 9% per 10 slagen hogere rusthartslag, ook binnen wat artsen \"normaal\" noemen (60–100). Boven de 80 lag het risico 45% hoger dan in de laagste groep. Een verband, geen bewijs dat verlagen je leven verlengt.",
+      "stap": "Regelmatige duurtraining en genoeg slaap gaan bij de meeste mensen samen met een lagere rusthartslag. Schiet hij plotseling omhoog of voel je je niet goed: overleg met je huisarts."
+    }
+  }
+}

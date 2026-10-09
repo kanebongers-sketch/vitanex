@@ -7,6 +7,7 @@
 
 import { normaal } from './normaal'
 import { conditieRegel, rusthartslagRegel } from './rekening-hart'
+import { NL, type Taalset } from '@/lib/i18n/taalset'
 import type { Feiten } from './types'
 
 /** Waar het sterfterisico in onderzoek afvlakt voor volwassenen onder de 60 (Paluch 2022). */
@@ -42,44 +43,43 @@ export type Rekening =
   | { soort: 'klaar'; regels: RekeningRegel[] }
 
 const BRON_STAPPEN: Bron = {
-  titel: 'Banach e.a., European Journal of Preventive Cardiology (2023) — 17 studies, 226.889 mensen',
+  titel: 'Banach et al., European Journal of Preventive Cardiology (2023)',
   url: 'https://doi.org/10.1093/eurjpc/zwad229',
 }
 const BRON_ACTIEF: Bron = {
-  titel: 'Veerman e.a., British Journal of Sports Medicine (2024) — levensverwachting en beweging',
+  titel: 'Veerman et al., British Journal of Sports Medicine (2024)',
   url: 'https://doi.org/10.1136/bjsports-2024-108125',
 }
 const BRON_SLAAP: Bron = {
-  titel: 'Qian e.a., American College of Cardiology (2023) — 172.321 mensen',
+  titel: 'Qian et al., American College of Cardiology (2023)',
   url: 'https://www.acc.org/About-ACC/Press-Releases/2023/02/22/21/35/Getting-Good-Sleep-Could-Add-Years-to-Your-Life',
 }
 
-function nl(n: number): string {
-  return n.toLocaleString('nl-NL')
+function getal(n: number, ts: Taalset): string {
+  return n.toLocaleString(ts.locale)
 }
 
-function uren(minuten: number): string {
+function uren(minuten: number, ts: Taalset): string {
   const u = Math.floor(minuten / 60)
   const m = Math.round(minuten % 60)
-  if (u === 0) return `${m} minuten`
-  return m === 0 ? `${u} uur` : `${u}u${String(m).padStart(2, '0')}`
+  if (u === 0) return ts.t('duur.minuten', { m })
+  return m === 0 ? ts.t('duur.uurLang', { u }) : ts.t('duur.uurMin', { u, mm: String(m).padStart(2, '0') })
 }
 
 function rondAf(n: number, op: number): number {
   return Math.round(n / op) * op
 }
 
-export function stappenRegel(gemiddeld: number): RekeningRegel {
-  const jij = `Je loopt normaal zo'n ${nl(rondAf(gemiddeld, 100))} stappen per dag.`
+export function stappenRegel(gemiddeld: number, ts: Taalset = NL): RekeningRegel {
+  const jij = ts.t('rekening.stappen.jij', { stappen: getal(rondAf(gemiddeld, 100), ts) })
   if (gemiddeld >= STAPPEN_ZONE) {
     return {
       id: 'stappen',
       goed: true,
       jij,
       getal: '−15%',
-      getalUitleg: 'minder kans op vroegtijdig overlijden, per 1.000 stappen per dag',
-      onderzoek:
-        'Je zit in de zone waar het risico in onderzoek afvlakt. Elke 1.000 stappen per dag méér ging samen met 15% minder kans om vroegtijdig te overlijden — en een bovengrens is nog niet gevonden. Het gaat om een verband in grote groepen, geen garantie.',
+      getalUitleg: ts.t('rekening.stappen.goedUitleg'),
+      onderzoek: ts.t('rekening.stappen.goedOnderzoek'),
       stap: null,
       bronnen: [BRON_STAPPEN],
     }
@@ -90,26 +90,24 @@ export function stappenRegel(gemiddeld: number): RekeningRegel {
     id: 'stappen',
     goed: false,
     jij,
-    getal: `${nl(tekort)}`,
-    getalUitleg: `stappen per dag tekort op de ${nl(STAPPEN_ZONE)} waar het risico afvlakt`,
-    onderzoek:
-      'Elke 1.000 stappen per dag méér ging samen met 15% minder kans om vroegtijdig te overlijden. In een Amerikaans model leefde het minst actieve kwart van de 40-plussers tot bijna 11 jaar korter dan het meest actieve kwart. Verbanden in grote groepen — geen persoonlijke voorspelling, wel een duidelijke richting.',
-    stap: `Dat is ongeveer ${minuten} minuten extra wandelen per dag.`,
+    getal: getal(tekort, ts),
+    getalUitleg: ts.t('rekening.stappen.tekortUitleg', { zone: getal(STAPPEN_ZONE, ts) }),
+    onderzoek: ts.t('rekening.stappen.tekortOnderzoek'),
+    stap: ts.t('rekening.stappen.stap', { minuten }),
     bronnen: [BRON_STAPPEN, BRON_ACTIEF],
   }
 }
 
-export function slaapRegel(gemiddeld: number): RekeningRegel {
-  const jij = `Je slaapt normaal ${uren(gemiddeld)} per nacht.`
+export function slaapRegel(gemiddeld: number, ts: Taalset = NL): RekeningRegel {
+  const jij = ts.t('rekening.slaap.jij', { duur: uren(gemiddeld, ts) })
   if (gemiddeld >= SLAAP_ZONE_MIN) {
     return {
       id: 'slaap',
       goed: true,
       jij,
-      getal: '4,7 jaar',
-      getalUitleg: 'langer leven bij mannen met vijf gezonde slaapgewoontes (vrouwen: 2,4 jaar)',
-      onderzoek:
-        'Je haalt de 7 uur — één van de vijf gewoontes uit dit onderzoek. De andere vier: snel inslapen, doorslapen, geen slaapmiddelen en uitgerust wakker worden. Voorlopig onderzoek en een verband, geen bewijs van oorzaak.',
+      getal: ts.t('rekening.slaap.jaren'),
+      getalUitleg: ts.t('rekening.slaap.goedUitleg'),
+      onderzoek: ts.t('rekening.slaap.goedOnderzoek'),
       stap: null,
       bronnen: [BRON_SLAAP],
     }
@@ -119,11 +117,10 @@ export function slaapRegel(gemiddeld: number): RekeningRegel {
     id: 'slaap',
     goed: false,
     jij,
-    getal: '4,7 jaar',
-    getalUitleg: 'korter leven bij mannen met hooguit één van vijf gezonde slaapgewoontes (vrouwen: 2,4 jaar)',
-    onderzoek:
-      'Wie 7–8 uur sliep én de andere vier gewoontes had (snel inslapen, doorslapen, geen slaapmiddelen, uitgerust wakker), leefde gemiddeld langer dan wie er hooguit één had. Jij mist nu al de eerste. Voorlopig onderzoek en een verband, geen bewijs van oorzaak.',
-    stap: `Je komt ${uren(tekort)} tekort op 7 uur. Begin met ${tekort > 30 ? '30' : String(tekort)} minuten eerder naar bed.`,
+    getal: ts.t('rekening.slaap.jaren'),
+    getalUitleg: ts.t('rekening.slaap.tekortUitleg'),
+    onderzoek: ts.t('rekening.slaap.tekortOnderzoek'),
+    stap: ts.t('rekening.slaap.stap', { tekort: uren(tekort, ts), minuten: tekort > 30 ? 30 : tekort }),
     bronnen: [BRON_SLAAP],
   }
 }
@@ -139,15 +136,15 @@ function metLaatste(laatste: number | null | undefined, historie: readonly numbe
   return [...(laatste != null ? [laatste] : []), ...historie]
 }
 
-export function maakRekening(f: RekeningInvoer): Rekening {
+export function maakRekening(f: RekeningInvoer, ts: Taalset = NL): Rekening {
   const slaap = normaal(metLaatste(f.slaapMinuten, f.slaapHistorie), REKENING_MIN)
   const stappen = normaal(metLaatste(f.stappenGisteren, f.stappenHistorie), REKENING_MIN)
   const hartslag = f.herstel ? normaal(metLaatste(f.herstel.rustHartslag, f.herstel.rustHartslagHistorie), REKENING_MIN) : null
   const regels: RekeningRegel[] = []
-  if (stappen !== null) regels.push(stappenRegel(stappen))
-  if (slaap !== null) regels.push(slaapRegel(slaap))
-  if (f.vo2max != null) regels.push(conditieRegel(f.vo2max))
-  if (hartslag !== null) regels.push(rusthartslagRegel(hartslag))
+  if (stappen !== null) regels.push(stappenRegel(stappen, ts))
+  if (slaap !== null) regels.push(slaapRegel(slaap, ts))
+  if (f.vo2max != null) regels.push(conditieRegel(f.vo2max, ts))
+  if (hartslag !== null) regels.push(rusthartslagRegel(hartslag, ts))
   if (regels.length === 0) return { soort: 'te_weinig_data', nodig: REKENING_MIN }
   // Wat je iets kost eerst: daar zit de winst.
   return { soort: 'klaar', regels: [...regels].sort((a, b) => Number(a.goed) - Number(b.goed)) }

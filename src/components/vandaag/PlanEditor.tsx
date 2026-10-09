@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/Button'
 import { Skeleton } from '@/components/ui/Skeleton'
 import type { Intensiteit } from '@/lib/vandaag/types'
 import { VandaagKader } from './VandaagKader'
+import { useVertaling } from '@/lib/i18n/TaalProvider'
 
 interface PlanRegel {
   weekdag: number
@@ -67,23 +68,24 @@ interface DagRegelProps {
 }
 
 function DagRegel({ dag, regel: r, fout, onWijzig }: DagRegelProps) {
+  const { t } = useVertaling()
   const id = `dag-${dag.weekdag}`
-  const naam = dag.naam.toLowerCase()
+  const naam = t(`plan.dagen.${dag.weekdag}`)
   return (
     <li style={{ padding: '16px 0', borderTop: '1px solid var(--border)', display: 'grid', gap: 12 }}>
       <label htmlFor={id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, cursor: 'pointer', minHeight: 32 }}>
-        <span style={{ fontSize: 17, fontWeight: 600 }}>{dag.naam}</span>
+        <span style={{ fontSize: 17, fontWeight: 600 }}>{t(`plan.dagen.${dag.weekdag}`)}</span>
         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 10, fontSize: 14, color: r.actief ? 'var(--brand)' : 'var(--text-3)' }}>
-          <span aria-hidden>{r.actief ? 'Training' : 'Rust'}</span>
-          <input id={id} type="checkbox" role="switch" aria-label={`Training op ${naam}`} checked={r.actief} onChange={(e) => onWijzig({ actief: e.target.checked })} style={{ width: 20, height: 20, accentColor: 'var(--brand)' }} />
+          <span aria-hidden>{r.actief ? t('plan.training') : t('plan.rust')}</span>
+          <input id={id} type="checkbox" role="switch" aria-label={t('plan.trainingOp', { dag: naam })} checked={r.actief} onChange={(e) => onWijzig({ actief: e.target.checked })} style={{ width: 20, height: 20, accentColor: 'var(--brand)' }} />
         </span>
       </label>
       {r.actief && (
         <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: 10 }}>
           <label style={{ ...veldLabel, gridColumn: '1 / -1' }}>
-            Wat train je
+            {t('plan.watTrain')}
             <input
-              id={`soort-${dag.weekdag}`} placeholder="Bijv. Benen" maxLength={40} value={r.soort}
+              id={`soort-${dag.weekdag}`} placeholder={t('plan.voorbeeld')} maxLength={40} value={r.soort}
               aria-invalid={fout || undefined} aria-describedby={fout ? `fout-${dag.weekdag}` : undefined}
               onChange={(e) => onWijzig({ soort: e.target.value })}
               style={{ ...veld, borderColor: fout ? 'var(--text-1)' : 'var(--border-strong)' }}
@@ -91,18 +93,18 @@ function DagRegel({ dag, regel: r, fout, onWijzig }: DagRegelProps) {
           </label>
           {fout && (
             <p id={`fout-${dag.weekdag}`} style={{ gridColumn: '1 / -1', margin: 0, fontSize: 13, color: 'var(--text-1)' }}>
-              Geef deze trainingsdag een naam, bijvoorbeeld &quot;Benen&quot;.
+              {t('plan.naamNodig')}
             </p>
           )}
           <label style={veldLabel}>
-            Zwaarte
+            {t('plan.zwaarte')}
             <select value={r.intensiteit} onChange={(e) => onWijzig({ intensiteit: e.target.value as Intensiteit })} style={veld}>
-              <option value="zwaar">Zwaar</option>
-              <option value="licht">Licht</option>
+              <option value="zwaar">{t('plan.zwaar')}</option>
+              <option value="licht">{t('plan.licht')}</option>
             </select>
           </label>
           <label style={veldLabel}>
-            Tijd (optioneel)
+            {t('plan.tijd')}
             <input type="time" value={r.tijd} onChange={(e) => onWijzig({ tijd: e.target.value })} style={veld} />
           </label>
         </div>
@@ -112,6 +114,7 @@ function DagRegel({ dag, regel: r, fout, onWijzig }: DagRegelProps) {
 }
 
 export function PlanEditor() {
+  const { t, taal } = useVertaling()
   const router = useRouter()
   const { toast } = useToast()
   const [regels, setRegels] = useState<PlanRegel[] | null>(null)
@@ -157,14 +160,14 @@ export function PlanEditor() {
       const res = await authFetch('/api/v1/plan', { method: 'PUT', body: JSON.stringify({ dagen }) })
       const body: unknown = await res.json().catch(() => null)
       if (!res.ok) {
-        const fout = body && typeof body === 'object' && 'fout' in body && typeof body.fout === 'string' ? body.fout : 'Opslaan lukte niet.'
+        const fout = body && typeof body === 'object' && 'fout' in body && typeof body.fout === 'string' && taal === 'nl' ? body.fout : t('plan.opslaanMislukt')
         toast({ title: fout, variant: 'error' })
         return
       }
-      toast({ title: 'Plan opgeslagen.', variant: 'success' })
+      toast({ title: t('plan.opgeslagen'), variant: 'success' })
       router.push('/vandaag')
     } catch {
-      toast({ title: 'Geen verbinding. Je plan is niet opgeslagen.', variant: 'error' })
+      toast({ title: t('plan.offline'), variant: 'error' })
     } finally {
       setOpslaan(false)
     }
@@ -174,22 +177,22 @@ export function PlanEditor() {
     <VandaagKader
       rechts={
         <Link href="/vandaag" className="mf-vandaag-link" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 14, color: 'var(--text-2)', textDecoration: 'none', minHeight: 40 }}>
-          <ArrowLeft size={16} aria-hidden /> Vandaag
+          <ArrowLeft size={16} aria-hidden /> {t('plan.terug')}
         </Link>
       }
     >
-      <h1 style={{ margin: 0, fontSize: 'clamp(30px, 7vw, 40px)', lineHeight: 1.1, letterSpacing: '-0.02em', fontWeight: 600 }}>Je weekplan</h1>
+      <h1 style={{ margin: 0, fontSize: 'clamp(30px, 7vw, 40px)', lineHeight: 1.1, letterSpacing: '-0.02em', fontWeight: 600 }}>{t('plan.titel')}</h1>
       <p style={{ margin: '12px 0 32px', fontSize: 15, color: 'var(--text-2)', lineHeight: 1.5 }}>
-        Zet aan op welke dagen je traint. De Vandaag-kaart past je training aan als je slecht sliep of laag zit — nooit andersom.
+        {t('plan.uitleg')}
       </p>
 
       {laadFout ? (
         <p role="alert" style={{ margin: 0, fontSize: 16, color: 'var(--text-1)' }}>
-          Je plan kon niet worden geladen. Ververs de pagina om het opnieuw te proberen.
+          {t('plan.laadFout')}
         </p>
       ) : !regels ? (
         <div role="status" aria-busy="true" style={{ display: 'grid', gap: 12 }}>
-          <span className="sr-only">Je plan wordt geladen…</span>
+          <span className="sr-only">{t('plan.laden')}</span>
           {DAGEN.map((d) => <Skeleton key={d.weekdag} height={52} />)}
         </div>
       ) : (
@@ -202,7 +205,7 @@ export function PlanEditor() {
               ) : null
             })}
           </ul>
-          <Button type="submit" size="lg" loading={opslaan}>Plan opslaan</Button>
+          <Button type="submit" size="lg" loading={opslaan}>{t('plan.opslaan')}</Button>
         </form>
       )}
     </VandaagKader>
