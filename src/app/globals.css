@@ -3852,3 +3852,8 @@ body {
   .lifeos-root .ffk-documenten, .lifeos-root .ffk-kaart, .lifeos-root .ffk-treffer, .lifeos-root .ffk-wis { transition: none; }
   .lifeos-root .ffk-documenten:active, .lifeos-root .ffk-kaart:active { transform: none; }
 }
+
+/* /1 — Vandaag-kaart: ontworpen hover-states, rustig (alleen kleur/opacity). */
+.mf-vandaag-knop:hover { border-color: var(--brand) !important; }
+.mf-vandaag-link:hover { color: var(--text-1) !important; }
+.mf-vandaag-keuze:hover { border-color: var(--brand) !important; }
