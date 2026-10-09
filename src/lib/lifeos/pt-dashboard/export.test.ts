@@ -72,6 +72,10 @@ describe('klantenCsv', () => {
     expect(a).toBe('Joey;Tom;;;Eersel;2x per week;519;01-09-2026;30-11-2026;Actief;;;')
     expect(b).toBe('Joey;Duo;Eva;;Budel;Duo · 1x per week;399;01-09-2026;30-11-2026;Opgezegd;10-12-2026;31-01-2027;')
   })
+  test('een afwijkende prijs staat in de export zoals de klant écht betaalt', () => {
+    const [, rij] = regels(klantenCsv([{ naam: 'Joey', items: [klant({ prijsAfwijkend: 450 })] }]))
+    expect(rij.split(';')[6]).toBe('450')
+  })
 })
 
 describe('hulpjes', () => {

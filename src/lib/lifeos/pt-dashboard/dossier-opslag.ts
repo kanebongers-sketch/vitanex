@@ -8,7 +8,10 @@ import type { LeadLink } from '@/lib/lifeos/leads/links'
 import { intakeDatum, leesIntakeAntwoorden, type Intake, type IntakeAntwoorden } from './intake'
 import { leesMeting, type Meting, type MetingInvoer } from './metingen'
 
-export type DossierUitkomst<T> = { ok: true; waarde: T } | { ok: false; reden: 'db' | 'niet_gevonden' }
+export type DossierUitkomst<T> = { ok: true; waarde: T } | { ok: false; reden: 'db' | 'niet_gevonden' | 'te_veel' }
+
+/** Zoveel metingen per klant maximaal — evenveel als `haalMetingen` toont, zodat er nooit metingen "verdwijnen". */
+export const MAX_METINGEN_PER_KLANT = 200
 
 const METING_KOLOMMEN =
   'id, datum, soort, gewicht_kg, vet_pct, taille_cm, heup_cm, borst_cm, arm_cm, been_cm, cardiotest, kracht_oefening, kracht_rm, kracht_kg, fotos_gemaakt, notitie'
@@ -129,7 +132,7 @@ export async function haalMetingen(admin: SupabaseClient, link: LeadLink, klantI
     .eq('user_id', link.userId)
     .eq('persoon_id', link.persoonId)
     .order('datum', { ascending: true })
-    .limit(200)
+    .limit(MAX_METINGEN_PER_KLANT)
   if (error) return { ok: false, reden: 'db' }
   const rijen = Array.isArray(data) ? (data as MetingRij[]) : []
   return { ok: true, waarde: rijen.flatMap((r) => vanMetingRij(r) ?? []) }
@@ -137,6 +140,13 @@ export async function haalMetingen(admin: SupabaseClient, link: LeadLink, klantI
 
 export async function voegMetingToe(admin: SupabaseClient, link: LeadLink, klantId: string, m: MetingInvoer): Promise<DossierUitkomst<Meting>> {
   return metKlant(admin, link, klantId, async () => {
+    const { count, error: telFout } = await admin
+      .from('pt_metingen')
+      .select('id', { count: 'exact', head: true })
+      .eq('klant_id', klantId)
+      .eq('user_id', link.userId)
+    if (telFout) return { ok: false, reden: 'db' }
+    if ((count ?? 0) >= MAX_METINGEN_PER_KLANT) return { ok: false, reden: 'te_veel' }
     const { data, error } = await admin
       .from('pt_metingen')
       .insert({ klant_id: klantId, user_id: link.userId, persoon_id: link.persoonId, ...naarMetingRij(m) })
@@ -147,15 +157,22 @@ export async function voegMetingToe(admin: SupabaseClient, link: LeadLink, klant
   })
 }
 
+/**
+ * Een meting verwijderen. Eerst controleren dat de klant nú van deze trainer
+ * is (`metKlant`): een meting-rij die nog de oude `persoon_id` draagt, mag een
+ * vorige trainer niet meer kunnen weghalen nadat de klant is verplaatst.
+ */
 export async function verwijderMeting(admin: SupabaseClient, link: LeadLink, klantId: string, metingId: string): Promise<DossierUitkomst<null>> {
-  const { data, error } = await admin
-    .from('pt_metingen')
-    .delete()
-    .eq('id', metingId)
-    .eq('klant_id', klantId)
-    .eq('user_id', link.userId)
-    .eq('persoon_id', link.persoonId)
-    .select('id')
-  if (error) return { ok: false, reden: 'db' }
-  return Array.isArray(data) && data.length === 1 ? { ok: true, waarde: null } : { ok: false, reden: 'niet_gevonden' }
+  return metKlant(admin, link, klantId, async () => {
+    const { data, error } = await admin
+      .from('pt_metingen')
+      .delete()
+      .eq('id', metingId)
+      .eq('klant_id', klantId)
+      .eq('user_id', link.userId)
+      .eq('persoon_id', link.persoonId)
+      .select('id')
+    if (error) return { ok: false, reden: 'db' }
+    return Array.isArray(data) && data.length === 1 ? { ok: true, waarde: null } : { ok: false, reden: 'niet_gevonden' }
+  })
 }

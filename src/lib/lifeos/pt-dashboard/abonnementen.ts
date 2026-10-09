@@ -197,6 +197,8 @@ type Lees<T> = { ok: true; waarde: T } | { ok: false; fout: string }
 export type KlantInvoer = Omit<PtKlant, 'id' | 'prijsAfwijkend'> & { prijsAfwijkend?: number | null }
 
 const DAG = /^\d{4}-\d{2}-\d{2}$/
+/** Een strikte uuid: alles anders raakt de database niet (`eigenLead` zou er een query-fout op geven). */
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 function tekst(v: unknown, max: number): string | null {
   if (typeof v !== 'string') return null
@@ -239,7 +241,7 @@ export function leesKlantInvoer(body: unknown): Lees<KlantInvoer> {
       status,
       opgezegdOp: status === 'opgezegd' || status === 'gestopt' ? opgezegdOp : null,
       notitie: tekstMetRegels(o.notitie, 1000),
-      leadId: typeof o.leadId === 'string' && /^[0-9a-f-]{36}$/i.test(o.leadId) ? o.leadId : null,
+      leadId: typeof o.leadId === 'string' && UUID.test(o.leadId) ? o.leadId : null,
       stopReden: (status === 'opgezegd' || status === 'gestopt') && isStopReden(o.stopReden) ? o.stopReden : null,
       ...(Object.hasOwn(o, 'prijsAfwijkend') ? { prijsAfwijkend: leesPrijs(o.prijsAfwijkend) } : {}),
     },

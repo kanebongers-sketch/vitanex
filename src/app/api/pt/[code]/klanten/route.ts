@@ -26,7 +26,11 @@ export async function POST(req: NextRequest, ctx: Context) {
   // Alleen de beheerder zet een afwijkende prijs; van een PT'er telt die nooit mee.
   if (!r.beheerderId) delete invoer.waarde.prijsAfwijkend
   const uit = await voegKlantToe(r.admin, r.link, invoer.waarde)
-  if (!uit.ok) return foutAntwoord('Opslaan mislukt. Probeer het opnieuw.', 502)
+  if (!uit.ok) {
+    return uit.reden === 'te_veel'
+      ? foutAntwoord('Even rustig aan: te veel nieuwe klanten in het afgelopen uur. Probeer het straks opnieuw.', 429)
+      : foutAntwoord('Opslaan mislukt. Probeer het opnieuw.', 502)
+  }
   // Kane's eigen klant → ook in zijn CRM-planning (best effort).
   if (r.beheerderId) await synchroniseerMetCrm(r.admin, r.link.userId, r.beheerderId, uit.waarde, dagSleutelNl(new Date())).catch(() => undefined)
   return NextResponse.json(r.beheerderId ? uit.waarde : zonderPrijs(uit.waarde), { status: 201, headers: GEEN_CACHE })

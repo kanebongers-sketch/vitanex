@@ -10,7 +10,7 @@
 
 import { BRON_LABEL, INTERESSE_LABEL, STAP_LABEL, STATUS_LABEL, type Lead } from '@/lib/lifeos/leads/leads'
 import { CLUB_LABEL } from './clubs'
-import { ABONNEMENT, KLANT_STATUS_LABEL, eindeVastePeriode, laatsteDag, maandprijs, type PtKlant } from './abonnementen'
+import { ABONNEMENT, KLANT_STATUS_LABEL, eindeVastePeriode, klantPrijs, laatsteDag, type PtKlant } from './abonnementen'
 
 export type ExportSoort = 'leads' | 'klanten'
 
@@ -88,7 +88,8 @@ function klantRij(trainer: string, k: PtKlant): string[] {
     k.contact ?? '',
     CLUB_LABEL[k.club],
     ABONNEMENT[k.abonnement].label,
-    String(maandprijs(k.abonnement, k.club)),
+    // Wat de klant écht betaalt: de afwijkende prijs (korting, actie) als die er is.
+    String(klantPrijs(k)),
     datumNl(k.startdatum),
     datumNl(eindeVastePeriode(k.startdatum)),
     KLANT_STATUS_LABEL[k.status],

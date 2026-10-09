@@ -8,6 +8,7 @@ import { vereisLifeosToegang } from '@/lib/lifeos/admin'
 import { haalPersonen } from '@/lib/lifeos/crm/opslag'
 import { haalEvaluatie } from '@/lib/lifeos/pt-coaching/opslag'
 import { maakVerslagPdf, verslagBestandsnaam } from '@/lib/lifeos/pt-coaching/pdf'
+import { isUuid } from '@/lib/lifeos/leads/toegang'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -22,6 +23,7 @@ export async function GET(req: NextRequest, ctx: Context) {
   if (toegang instanceof NextResponse) return toegang
 
   const { id } = await ctx.params
+  if (!isUuid(id)) return NextResponse.json({ fout: 'Dit verslag bestaat niet.' }, { status: 404 })
   const evaluatie = await haalEvaluatie(toegang.admin, toegang.userId, id)
   if (!evaluatie.ok) return NextResponse.json({ fout: 'Kon het verslag niet lezen.' }, { status: 502 })
   if (!evaluatie.waarde) return NextResponse.json({ fout: 'Dit verslag bestaat niet.' }, { status: 404 })
