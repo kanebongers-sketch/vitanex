@@ -1,12 +1,13 @@
 import { headers } from 'next/headers'
 import { Wordmark } from '@/components/layout/Logo'
 import { isPtHost } from '@/lib/fit-factory/domein'
+import FfLaden from '@/app/FitFactoryPT/loading'
 
 export default async function Loading() {
-  // Op fitfactorypt.nl geen MentaForce-woordmerk, ook niet even tijdens het laden:
-  // dit scherm staat vóór elke pagina, ook vóór de PT-app.
+  // Dit scherm staat vóór elke pagina, ook vóór de PT-app (bij verversen zie je
+  // het even). Op fitfactorypt.nl dus het Fit Factory-laadscherm, nooit dit.
   const h = await headers()
-  const fitFactory = isPtHost(h.get('x-forwarded-host') ?? h.get('host'))
+  if (isPtHost(h.get('x-forwarded-host') ?? h.get('host'))) return <FfLaden />
 
   return (
     <div
@@ -18,14 +19,11 @@ export default async function Loading() {
         alignItems: 'center',
         justifyContent: 'center',
         gap: 20,
-        ...(fitFactory ? { background: 'var(--bg-app)' } : {}),
       }}
     >
-      {fitFactory ? null : (
-        <span style={{ marginBottom: 8 }}>
-          <Wordmark size={16} />
-        </span>
-      )}
+      <span style={{ marginBottom: 8 }}>
+        <Wordmark size={16} />
+      </span>
 
       <div className="mf-spinner" />
 
