@@ -3654,6 +3654,10 @@ body {
 .lifeos-root .ffdos-tab[aria-selected='true'] { background: var(--brand-soft); color: var(--brand); }
 .lifeos-root .ffdos-tab small { font-size: 12px; opacity: 0.85; font-variant-numeric: tabular-nums; }
 .lifeos-root.ff .ffdos-tab { font-family: var(--ff-kop); font-size: 16px; letter-spacing: 0.05em; text-transform: uppercase; }
+@media (max-width: 420px) {
+  .lifeos-root .ffdos-tab { font-size: 13.5px; padding: 8px 4px; gap: 4px; }
+  .lifeos-root.ff .ffdos-tab { font-size: 14px; letter-spacing: 0.02em; }
+}
 
 .lifeos-root .ffdos-intake { display: grid; gap: 12px; }
 .lifeos-root .ffdos-sectie > summary { cursor: pointer; list-style: none; gap: 10px; }
@@ -3670,6 +3674,10 @@ body {
 .lifeos-root .ffdos-verwacht { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13.5px; color: var(--text-3); }
 .lifeos-root .ffdos-verwacht--open { color: var(--status-aandacht); }
 .lifeos-root .ffdos-start { justify-self: start; }
+.lifeos-root .ffdos-logboek-form { display: grid; gap: 12px; padding: 14px 16px; }
+.lifeos-root .ffdos-velden--rij { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); }
+.lifeos-root .ffdos-dossiers { display: grid; gap: 8px; }
+.lifeos-root .ffdos-dossier-taak { color: var(--text-2); }
 .lifeos-root .ffdos-verschil { font-weight: 600; color: var(--text-1); white-space: nowrap; }
 .lifeos-root .ffdos-grafiek { margin: 0; display: grid; gap: 6px; padding: 14px 16px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg-card); }
 .lifeos-root .ffdos-svg { display: block; width: 100%; height: auto; max-height: 220px; overflow: visible; font-family: inherit; }

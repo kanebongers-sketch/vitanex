@@ -42,10 +42,10 @@ export function NotitiesPaneel({ code, klant, onOpgeslagen, alleenLezen = false 
   return (
     <form className="ptd-sectie" onSubmit={(e) => void opslaan(e)} aria-labelledby="ffdos-notities-kop">
       <div className="ptd-sectiekop">
-        <h2 id="ffdos-notities-kop">Notities</h2>
+        <h2 id="ffdos-notities-kop">Vaste notitie</h2>
         <span>{tekst.length}/{MAX}</span>
       </div>
-      <Veld label="Notities over deze klant" id="ffdos-notitie" hint="Ook zichtbaar op de klantkaart. Gezondheidsinformatie hoort in de intake, niet hier.">
+      <Veld label="Notities over deze klant" id="ffdos-notitie" hint="Wat je altijd wilt zien: doel, blessures, afspraken. Ook zichtbaar op de klantkaart. Het verloop per training staat in het logboek.">
         <textarea
           id="ffdos-notitie"
           className="ptd-invoer"

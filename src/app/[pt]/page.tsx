@@ -1,4 +1,7 @@
-import { meekijker, ptGegevens } from '@/lib/lifeos/pt-dashboard/sessie'
+import { meekijker, ptGegevens, ptSessie } from '@/lib/lifeos/pt-dashboard/sessie'
+import { haalDossierStand } from '@/lib/lifeos/pt-dashboard/dossier-opslag'
+import { dossierTaken } from '@/lib/lifeos/pt-dashboard/dossier-agenda'
+import { DossiersDezeWeek } from '@/components/lifeos/pt-dashboard/DossiersDezeWeek'
 import { meestGebruikteClub, ptOverzicht } from '@/lib/lifeos/pt-dashboard/overzicht'
 import { CLUB_LABEL } from '@/lib/lifeos/pt-dashboard/clubs'
 import { FfHero } from '@/components/lifeos/pt-dashboard/FfHero'
@@ -18,6 +21,9 @@ export default async function PtOverzichtPagina({ params }: { params: Promise<{ 
   if (!g) return null
   if (!g.leads || !g.klanten) return <Foutmelding bericht="Je gegevens konden niet geladen worden. Vernieuw de pagina." />
   const club = meestGebruikteClub(g.leads, g.klanten)
+  const s = await ptSessie(pt)
+  const stand = s ? await haalDossierStand(s.admin, g.link, g.klanten.map((k) => k.id)) : new Map()
+  const taken = dossierTaken(g.klanten, stand, g.vandaag)
   return (
     <>
       <FfHero boventitel={club ? `Personal Trainer · ${CLUB_LABEL[club]}` : 'Personal Trainer'} titel={`Hoi ${g.link.naam}`} />
@@ -29,6 +35,7 @@ export default async function PtOverzichtPagina({ params }: { params: Promise<{ 
         doelen={doelenWeergave(g.doelen, g.leads, g.klanten, g.vandaag)}
         leads={g.leads}
       />
+      <DossiersDezeWeek code={g.link.code} taken={taken} />
     </>
   )
 }

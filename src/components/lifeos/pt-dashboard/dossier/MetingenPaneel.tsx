@@ -1,20 +1,22 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { Plus, Trash2 } from 'lucide-react'
+import { Plus, Scale, Trash2 } from 'lucide-react'
 import { Foutmelding } from '@/components/lifeos/os/Foutmelding'
 import { dagKort } from '@/lib/lifeos/pt-dashboard/datum'
 import {
-  MAAT_VELDEN, METING_SOORT_LABEL, getalNl, sorteer, verschilSindsStart, verschilTekst, type Meting,
+  CHECK_SOORTEN, MAAT_VELDEN, METING_SOORT_LABEL, getalNl, sorteer, verschilSindsStart, verschilTekst, type Meting,
 } from '@/lib/lifeos/pt-dashboard/metingen'
 import { trajectWeek, verwachteMetingen, type MetingSoort } from '@/lib/lifeos/pt-dashboard/traject'
 import { leesLeeg, ptApi } from '../api'
 import { GewichtLijn } from './GewichtLijn'
 import { MetingFormulier } from './MetingFormulier'
+import { WegingFormulier } from './WegingFormulier'
 
 // Container: de metingen van één klant. Wat er volgens de standaardopbouw
 // gemeten had moeten zijn, het verschil sinds de start, gewicht als lijn,
-// en de lijst (nieuwste eerst) met toevoegen/verwijderen.
+// en de lijst (nieuwste eerst) met toevoegen/verwijderen. 'Snel wegen' legt
+// alleen gewicht (en vet%) vast als losse weging, buiten de meetmomenten om.
 
 interface Props {
   code: string
@@ -42,7 +44,7 @@ function standaardSoort(metingen: readonly Meting[], week: number): MetingSoort 
 }
 
 export function MetingenPaneel({ code, klantId, startdatum, vandaag, metingen, onWijzig, alleenLezen = false }: Props) {
-  const [nieuw, setNieuw] = useState(false)
+  const [nieuw, setNieuw] = useState<'meting' | 'weging' | null>(null)
   const [fout, setFout] = useState<string | null>(null)
   const week = trajectWeek(startdatum, vandaag)
   const verwacht = verwachteMetingen(week)
@@ -66,7 +68,7 @@ export function MetingenPaneel({ code, klantId, startdatum, vandaag, metingen, o
       </div>
 
       <ul className="ffdos-verwacht" aria-label="Metingen volgens de standaardopbouw">
-        {(['start', 'tussen', 'eind'] as const).map((s) => (
+        {CHECK_SOORTEN.map((s) => (
           <li key={s} className={verwacht[s] > telling(s) ? 'ffdos-verwacht--open' : undefined}>
             {METING_SOORT_LABEL[s]}: {telling(s)}
             {verwacht[s] > 0 ? ` van ${verwacht[s]} verwacht tot nu` : ''}
@@ -74,7 +76,7 @@ export function MetingenPaneel({ code, klantId, startdatum, vandaag, metingen, o
         ))}
       </ul>
 
-      {alleenLezen ? null : nieuw ? (
+      {alleenLezen ? null : nieuw === 'meting' ? (
         <MetingFormulier
           code={code}
           klantId={klantId}
@@ -82,14 +84,30 @@ export function MetingenPaneel({ code, klantId, startdatum, vandaag, metingen, o
           standaardSoort={standaardSoort(metingen, week)}
           onOpgeslagen={(m) => {
             onWijzig([...metingen, m])
-            setNieuw(false)
+            setNieuw(null)
           }}
-          onAnnuleer={() => setNieuw(false)}
+          onAnnuleer={() => setNieuw(null)}
+        />
+      ) : nieuw === 'weging' ? (
+        <WegingFormulier
+          code={code}
+          klantId={klantId}
+          vandaag={vandaag}
+          onOpgeslagen={(m) => {
+            onWijzig([...metingen, m])
+            setNieuw(null)
+          }}
+          onAnnuleer={() => setNieuw(null)}
         />
       ) : (
-        <button type="button" className="ptd-knop ptd-knop--primair ffdos-start" onClick={() => setNieuw(true)}>
-          <Plus size={18} aria-hidden /> Meting toevoegen
-        </button>
+        <div className="ptd-acties">
+          <button type="button" className="ptd-knop ptd-knop--primair" onClick={() => setNieuw('weging')}>
+            <Scale size={18} aria-hidden /> Snel wegen
+          </button>
+          <button type="button" className="ptd-knop" onClick={() => setNieuw('meting')}>
+            <Plus size={18} aria-hidden /> Volledige meting
+          </button>
+        </div>
       )}
 
       {verschillen.length > 0 ? (
@@ -129,7 +147,7 @@ export function MetingenPaneel({ code, klantId, startdatum, vandaag, metingen, o
             <li key={m.id} className="ptd-rij">
               <div className="ptd-rij-kop">
                 <span className="ptd-naam">{dagKort(m.datum)}</span>
-                <span className="ptd-badge">{METING_SOORT_LABEL[m.soort]}</span>
+                <span className={m.soort === 'weging' ? 'ptd-badge ptd-badge--stil' : 'ptd-badge'}>{METING_SOORT_LABEL[m.soort]}</span>
               </div>
               <p className="ptd-tekst">{samenvatting(m)}</p>
               {m.notitie ? <p className="ptd-hint">{m.notitie}</p> : null}

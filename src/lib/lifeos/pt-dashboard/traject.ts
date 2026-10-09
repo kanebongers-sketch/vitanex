@@ -23,7 +23,8 @@ export const FASES: readonly Fase[] = [
   { nr: 3, naam: 'Versterken en vasthouden', vanWeek: 9, totWeek: 13, focus: 'Borgen en zelfstandig leren sturen.' },
 ]
 
-export type MetingSoort = 'start' | 'tussen' | 'eind'
+/** 'weging' = een snelle tussentijdse weging; telt niet mee als check-meting. */
+export type MetingSoort = 'start' | 'tussen' | 'eind' | 'weging'
 
 export interface TrajectMoment {
   week: number
@@ -106,5 +107,6 @@ export function verwachteMetingen(week: number): Record<MetingSoort, number> {
     start,
     tussen: tot.filter((m) => m.meting === 'tussen').length,
     eind: tot.some((m) => m.meting === 'eind') ? 1 : 0,
+    weging: 0,
   }
 }

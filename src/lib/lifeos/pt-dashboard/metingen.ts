@@ -6,8 +6,10 @@
 
 import type { MetingSoort } from './traject'
 
-export const METING_SOORTEN = ['start', 'tussen', 'eind'] as const satisfies readonly MetingSoort[]
-export const METING_SOORT_LABEL: Record<MetingSoort, string> = { start: 'Startmeting', tussen: 'Tussenmeting', eind: 'Eindmeting' }
+export const METING_SOORTEN = ['start', 'tussen', 'eind', 'weging'] as const satisfies readonly MetingSoort[]
+export const METING_SOORT_LABEL: Record<MetingSoort, string> = { start: 'Startmeting', tussen: 'Tussenmeting', eind: 'Eindmeting', weging: 'Weging' }
+/** De meetmomenten uit het traject (zonder de losse wegingen). */
+export const CHECK_SOORTEN = ['start', 'tussen', 'eind'] as const satisfies readonly MetingSoort[]
 
 export function isMetingSoort(v: unknown): v is MetingSoort {
   return typeof v === 'string' && (METING_SOORTEN as readonly string[]).includes(v)
@@ -109,7 +111,7 @@ export function leesMeting(ruw: unknown): Meting | null {
 
 // ─── Afgeleiden ───────────────────────────────────────────────────────────────
 
-const SOORT_VOLGORDE: Record<MetingSoort, number> = { start: 0, tussen: 1, eind: 2 }
+const SOORT_VOLGORDE: Record<MetingSoort, number> = { start: 0, weging: 1, tussen: 2, eind: 3 }
 
 /** Oud → nieuw; op dezelfde dag start vóór tussen vóór eind. */
 export function sorteer(metingen: readonly Meting[]): Meting[] {

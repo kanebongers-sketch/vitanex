@@ -1,5 +1,5 @@
 // ─── LifeOS — PT-dashboard: klantdossier (SERVER-ONLY) ──────────────────────
-// `pt_intakes` en `pt_metingen` (migratie 356). Elke query is gescoped op de
+// `pt_intakes`, `pt_metingen` (migratie 356) en `pt_klantnotities` (364). Elke query is gescoped op de
 // PT'er achter de link (user_id + persoon_id) én op een klant van díe PT'er:
 // een klant-id van een andere PT'er geeft altijd 'niet_gevonden'.
 
@@ -7,6 +7,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import type { LeadLink } from '@/lib/lifeos/leads/links'
 import { intakeDatum, leesIntakeAntwoorden, type Intake, type IntakeAntwoorden } from './intake'
 import { leesMeting, type Meting, type MetingInvoer } from './metingen'
+import { leesKlantNotitie, type KlantNotitie, type KlantNotitieInvoer } from './klantnotities'
 
 export type DossierUitkomst<T> = { ok: true; waarde: T } | { ok: false; reden: 'db' | 'niet_gevonden' | 'te_veel' }
 
@@ -175,4 +176,109 @@ export async function verwijderMeting(admin: SupabaseClient, link: LeadLink, kla
     if (error) return { ok: false, reden: 'db' }
     return Array.isArray(data) && data.length === 1 ? { ok: true, waarde: null } : { ok: false, reden: 'niet_gevonden' }
   })
+}
+
+// ─── Logboek (migratie 364) ───────────────────────────────────────────────────
+
+/** Zoveel notities per klant maximaal — evenveel als `haalNotities` toont. */
+export const MAX_NOTITIES_PER_KLANT = 500
+
+const NOTITIE_KOLOMMEN = 'id, datum, soort, tekst, aangemaakt_op'
+
+interface NotitieRij {
+  id: string
+  datum: string
+  soort: string
+  tekst: string
+  aangemaakt_op: string
+}
+
+const vanNotitieRij = (r: NotitieRij): KlantNotitie | null =>
+  leesKlantNotitie({ id: r.id, datum: r.datum, soort: r.soort, tekst: r.tekst, aangemaaktOp: r.aangemaakt_op })
+
+export async function haalNotities(admin: SupabaseClient, link: LeadLink, klantId: string): Promise<DossierUitkomst<KlantNotitie[]>> {
+  const { data, error } = await admin
+    .from('pt_klantnotities')
+    .select(NOTITIE_KOLOMMEN)
+    .eq('klant_id', klantId)
+    .eq('user_id', link.userId)
+    .eq('persoon_id', link.persoonId)
+    .order('datum', { ascending: false })
+    .limit(MAX_NOTITIES_PER_KLANT)
+  if (error) return { ok: false, reden: 'db' }
+  const rijen = Array.isArray(data) ? (data as NotitieRij[]) : []
+  return { ok: true, waarde: rijen.flatMap((r) => vanNotitieRij(r) ?? []) }
+}
+
+export async function voegNotitieToe(admin: SupabaseClient, link: LeadLink, klantId: string, n: KlantNotitieInvoer): Promise<DossierUitkomst<KlantNotitie>> {
+  return metKlant(admin, link, klantId, async () => {
+    const { count, error: telFout } = await admin
+      .from('pt_klantnotities')
+      .select('id', { count: 'exact', head: true })
+      .eq('klant_id', klantId)
+      .eq('user_id', link.userId)
+    if (telFout) return { ok: false, reden: 'db' }
+    if ((count ?? 0) >= MAX_NOTITIES_PER_KLANT) return { ok: false, reden: 'te_veel' }
+    const { data, error } = await admin
+      .from('pt_klantnotities')
+      .insert({ klant_id: klantId, user_id: link.userId, persoon_id: link.persoonId, datum: n.datum, soort: n.soort, tekst: n.tekst })
+      .select(NOTITIE_KOLOMMEN)
+      .single()
+    const uit = !error && data ? vanNotitieRij(data as NotitieRij) : null
+    return uit ? { ok: true, waarde: uit } : { ok: false, reden: 'db' }
+  })
+}
+
+export async function verwijderNotitie(admin: SupabaseClient, link: LeadLink, klantId: string, notitieId: string): Promise<DossierUitkomst<null>> {
+  return metKlant(admin, link, klantId, async () => {
+    const { data, error } = await admin
+      .from('pt_klantnotities')
+      .delete()
+      .eq('id', notitieId)
+      .eq('klant_id', klantId)
+      .eq('user_id', link.userId)
+      .eq('persoon_id', link.persoonId)
+      .select('id')
+    if (error) return { ok: false, reden: 'db' }
+    return Array.isArray(data) && data.length === 1 ? { ok: true, waarde: null } : { ok: false, reden: 'niet_gevonden' }
+  })
+}
+
+// ─── Dossierstand over meerdere klanten (voor het overzicht) ─────────────────
+
+export interface DossierStand {
+  intake: boolean
+  startmeting: boolean
+  /** Datum van de laatste meting of weging, of null. */
+  laatsteMeting: string | null
+  /** Datum van de laatste training of no-show in het logboek, of null. */
+  laatsteSessie: string | null
+}
+
+/** Per klant van deze PT'er: is de intake er, is er een nulmeting, wanneer was de laatste meting/sessie. Fout → lege map. */
+export async function haalDossierStand(admin: SupabaseClient, link: LeadLink, klantIds: readonly string[]): Promise<Map<string, DossierStand>> {
+  const uit = new Map<string, DossierStand>()
+  if (klantIds.length === 0) return uit
+  for (const id of klantIds) uit.set(id, { intake: false, startmeting: false, laatsteMeting: null, laatsteSessie: null })
+  const ids = [...klantIds]
+  const [intakes, metingen, notities] = await Promise.all([
+    admin.from('pt_intakes').select('klant_id').eq('user_id', link.userId).eq('persoon_id', link.persoonId).in('klant_id', ids),
+    admin.from('pt_metingen').select('klant_id, soort, datum').eq('user_id', link.userId).eq('persoon_id', link.persoonId).in('klant_id', ids),
+    admin.from('pt_klantnotities').select('klant_id, datum').eq('user_id', link.userId).eq('persoon_id', link.persoonId).in('klant_id', ids).in('soort', ['training', 'no_show']),
+  ])
+  for (const r of (intakes.data ?? []) as { klant_id: string }[]) {
+    const s = uit.get(r.klant_id)
+    if (s) s.intake = true
+  }
+  for (const r of (metingen.data ?? []) as { klant_id: string; soort: string; datum: string }[]) {
+    const s = uit.get(r.klant_id)
+    if (!s) continue
+    if (r.soort === 'start') s.startmeting = true
+    if (s.laatsteMeting === null || r.datum > s.laatsteMeting) s.laatsteMeting = r.datum
+  }
+  for (const r of (notities.data ?? []) as { klant_id: string; datum: string }[]) {
+    const s = uit.get(r.klant_id)
+    if (s && (s.laatsteSessie === null || r.datum > s.laatsteSessie)) s.laatsteSessie = r.datum
+  }
+  return uit
 }

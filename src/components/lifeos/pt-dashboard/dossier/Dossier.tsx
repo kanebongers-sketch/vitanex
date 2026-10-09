@@ -4,20 +4,22 @@ import { useRef, useState, type KeyboardEvent } from 'react'
 import type { PtKlant } from '@/lib/lifeos/pt-dashboard/abonnementen'
 import { voortgang, type Intake } from '@/lib/lifeos/pt-dashboard/intake'
 import type { Meting } from '@/lib/lifeos/pt-dashboard/metingen'
+import type { KlantNotitie } from '@/lib/lifeos/pt-dashboard/klantnotities'
 import { DossierKop } from './DossierKop'
 import { TrajectTijdlijn } from './TrajectTijdlijn'
 import { IntakeFormulier } from './IntakeFormulier'
 import { MetingenPaneel } from './MetingenPaneel'
 import { NotitiesPaneel } from './NotitiesPaneel'
+import { LogboekPaneel } from './LogboekPaneel'
 import { DOSSIER_TABS, type DossierTab } from './tabs'
 
 // Container: het dossier van één PT-klant. Kop en traject altijd zichtbaar,
-// daaronder tabbladen Intake / Metingen / Notities. Het actieve tabblad staat
+// daaronder tabbladen Intake / Metingen / Logboek / Notities. Het actieve tabblad staat
 // in de URL (?tab=…), zodat terugkomen en delen op dezelfde plek uitkomt. Alle
 // panelen blijven gemonteerd (hidden), zodat een half ingevulde intake niet
 // verdwijnt als je even naar de metingen kijkt.
 
-const LABEL: Record<DossierTab, string> = { intake: 'Intake', metingen: 'Metingen', notities: 'Notities' }
+const LABEL: Record<DossierTab, string> = { intake: 'Intake', metingen: 'Metingen', logboek: 'Logboek', notities: 'Vast' }
 
 interface Props {
   code: string
@@ -25,6 +27,7 @@ interface Props {
   klant: PtKlant
   intake: Intake | null
   metingen: Meting[]
+  notities: KlantNotitie[]
   startTab: DossierTab
   /** Meekijken (eigenaar): het hele dossier zonder bewerken. */
   alleenLezen?: boolean
@@ -32,10 +35,11 @@ interface Props {
   toonPrijs?: boolean
 }
 
-export function Dossier({ code, vandaag, klant: beginKlant, intake: beginIntake, metingen: beginMetingen, startTab, alleenLezen = false, toonPrijs = false }: Props) {
+export function Dossier({ code, vandaag, klant: beginKlant, intake: beginIntake, metingen: beginMetingen, notities: beginNotities, startTab, alleenLezen = false, toonPrijs = false }: Props) {
   const [klant, setKlant] = useState(beginKlant)
   const [intake, setIntake] = useState(beginIntake)
   const [metingen, setMetingen] = useState(beginMetingen)
+  const [notities, setNotities] = useState(beginNotities)
   const [tab, setTab] = useState<DossierTab>(startTab)
   const knoppen = useRef<Partial<Record<DossierTab, HTMLButtonElement | null>>>({})
   const v = voortgang(intake?.antwoorden ?? {})
@@ -62,6 +66,7 @@ export function Dossier({ code, vandaag, klant: beginKlant, intake: beginIntake,
   const telling: Record<DossierTab, string> = {
     intake: `${v.beantwoord}/${v.totaal}`,
     metingen: String(metingen.length),
+    logboek: String(notities.length),
     notities: klant.notitie ? '•' : '',
   }
 
@@ -97,6 +102,9 @@ export function Dossier({ code, vandaag, klant: beginKlant, intake: beginIntake,
       </div>
       <div role="tabpanel" id="ffdos-paneel-metingen" aria-labelledby="ffdos-tab-metingen" hidden={tab !== 'metingen'}>
         <MetingenPaneel code={code} klantId={klant.id} startdatum={klant.startdatum} vandaag={vandaag} metingen={metingen} onWijzig={setMetingen} alleenLezen={alleenLezen} />
+      </div>
+      <div role="tabpanel" id="ffdos-paneel-logboek" aria-labelledby="ffdos-tab-logboek" hidden={tab !== 'logboek'}>
+        <LogboekPaneel code={code} klantId={klant.id} vandaag={vandaag} notities={notities} onWijzig={setNotities} alleenLezen={alleenLezen} />
       </div>
       <div role="tabpanel" id="ffdos-paneel-notities" aria-labelledby="ffdos-tab-notities" hidden={tab !== 'notities'}>
         <NotitiesPaneel code={code} klant={klant} onOpgeslagen={setKlant} alleenLezen={alleenLezen} />

@@ -72,11 +72,11 @@ describe('trajectStand', () => {
 
 describe('verwachteMetingen', () => {
   test('groeit mee met het traject', () => {
-    expect(verwachteMetingen(0)).toEqual({ start: 0, tussen: 0, eind: 0 })
-    expect(verwachteMetingen(1)).toEqual({ start: 1, tussen: 0, eind: 0 })
-    expect(verwachteMetingen(4)).toEqual({ start: 1, tussen: 0, eind: 0 })
-    expect(verwachteMetingen(5)).toEqual({ start: 1, tussen: 1, eind: 0 })
-    expect(verwachteMetingen(13)).toEqual({ start: 1, tussen: 2, eind: 0 })
-    expect(verwachteMetingen(14)).toEqual({ start: 1, tussen: 2, eind: 1 })
+    expect(verwachteMetingen(0)).toEqual({ start: 0, tussen: 0, eind: 0, weging: 0 })
+    expect(verwachteMetingen(1)).toEqual({ start: 1, tussen: 0, eind: 0, weging: 0 })
+    expect(verwachteMetingen(4)).toEqual({ start: 1, tussen: 0, eind: 0, weging: 0 })
+    expect(verwachteMetingen(5)).toEqual({ start: 1, tussen: 1, eind: 0, weging: 0 })
+    expect(verwachteMetingen(13)).toEqual({ start: 1, tussen: 2, eind: 0, weging: 0 })
+    expect(verwachteMetingen(14)).toEqual({ start: 1, tussen: 2, eind: 1, weging: 0 })
   })
 })

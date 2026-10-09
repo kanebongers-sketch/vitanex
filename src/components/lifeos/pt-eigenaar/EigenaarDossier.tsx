@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
 import { alsPt, eigenaarGegevens } from '@/lib/lifeos/pt-dashboard/sessie'
-import { haalIntake, haalMetingen } from '@/lib/lifeos/pt-dashboard/dossier-opslag'
+import { haalIntake, haalMetingen, haalNotities } from '@/lib/lifeos/pt-dashboard/dossier-opslag'
 import { isUuid } from '@/lib/lifeos/leads/toegang'
 import { Dossier } from '@/components/lifeos/pt-dashboard/dossier/Dossier'
 import type { DossierTab } from '@/components/lifeos/pt-dashboard/dossier/tabs'
@@ -23,8 +23,8 @@ export async function EigenaarDossier({ code, id, startTab }: { code: string; id
   const als = alsPt(g.link, gevonden.pt.id)
   // De beheerder bewerkt het dossier (de API zoekt zelf de trainer van de klant); een eigenaar kijkt mee.
   const beheerder = g.link.rol === 'beheerder'
-  const [intake, metingen] = await Promise.all([haalIntake(g.admin, als, id), haalMetingen(g.admin, als, id)])
-  if (!intake.ok || !metingen.ok) return <Foutmelding bericht="Het dossier kon niet geladen worden. Vernieuw de pagina." />
+  const [intake, metingen, notities] = await Promise.all([haalIntake(g.admin, als, id), haalMetingen(g.admin, als, id), haalNotities(g.admin, als, id)])
+  if (!intake.ok || !metingen.ok || !notities.ok) return <Foutmelding bericht="Het dossier kon niet geladen worden. Vernieuw de pagina." />
 
   return (
     <>
@@ -39,6 +39,7 @@ export async function EigenaarDossier({ code, id, startTab }: { code: string; id
         klant={gevonden.klant}
         intake={intake.waarde}
         metingen={metingen.waarde}
+        notities={notities.waarde}
         startTab={startTab}
         alleenLezen={!beheerder}
         toonPrijs

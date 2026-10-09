@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { ptGegevens, ptSessie } from '@/lib/lifeos/pt-dashboard/sessie'
-import { haalIntake, haalMetingen } from '@/lib/lifeos/pt-dashboard/dossier-opslag'
+import { haalIntake, haalMetingen, haalNotities } from '@/lib/lifeos/pt-dashboard/dossier-opslag'
 import { isUuid } from '@/lib/lifeos/leads/toegang'
 import { kijktMee } from '@/lib/lifeos/leads/links'
 import { Dossier } from '@/components/lifeos/pt-dashboard/dossier/Dossier'
@@ -10,7 +10,7 @@ import { Foutmelding } from '@/components/lifeos/os/Foutmelding'
 import { EigenaarDossier } from '@/components/lifeos/pt-eigenaar/EigenaarDossier'
 
 // /<naam>/klanten/<id> — het dossier van één PT-klant: traject, intake,
-// metingen en notities. Alleen klanten van de ingelogde PT'er; een onbekende
+// metingen, logboek en vaste notitie. Alleen klanten van de ingelogde PT'er; een onbekende
 // of andermans klant geeft een 404. Een eigenaar ziet elk dossier van het team, alleen lezen.
 
 interface Props {
@@ -30,8 +30,8 @@ export default async function KlantDossierPagina({ params, searchParams }: Props
   const klant = isUuid(id) ? g.klanten.find((k) => k.id === id) : undefined
   if (!klant) notFound()
 
-  const [intake, metingen] = await Promise.all([haalIntake(s.admin, g.link, klant.id), haalMetingen(s.admin, g.link, klant.id)])
-  if (!intake.ok || !metingen.ok) return <Foutmelding bericht="Het dossier kon niet geladen worden. Vernieuw de pagina." />
+  const [intake, metingen, notities] = await Promise.all([haalIntake(s.admin, g.link, klant.id), haalMetingen(s.admin, g.link, klant.id), haalNotities(s.admin, g.link, klant.id)])
+  if (!intake.ok || !metingen.ok || !notities.ok) return <Foutmelding bericht="Het dossier kon niet geladen worden. Vernieuw de pagina." />
 
   return (
     <Dossier
@@ -41,6 +41,7 @@ export default async function KlantDossierPagina({ params, searchParams }: Props
       klant={klant}
       intake={intake.waarde}
       metingen={metingen.waarde}
+      notities={notities.waarde}
       startTab={leesDossierTab(zoek.tab)}
     />
   )
