@@ -80,6 +80,8 @@ export interface Feiten {
   grenzen: Grenzen | null
   /** Herstel uit je horloge, of null zonder horloge-data. */
   herstel: Herstel | null
+  /** Laatst gemeten VO2max (ml/kg/min) van de afgelopen weken, of null. */
+  vo2max: number | null
 }
 
 /** Het soort actie op de kaart. Elk soort hoort bij één regel uit de bibliotheek. */

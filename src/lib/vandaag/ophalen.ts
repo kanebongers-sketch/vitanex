@@ -77,6 +77,15 @@ function leesHerstel(nativeRijen: Rij[], vandaag: string, gisteren: string): Her
   }
 }
 
+/** De meest recente niet-lege waarde van een kolom (VO2max verandert langzaam). */
+function laatsteWaarde(nativeRijen: Rij[], kolom: string): number | null {
+  const metWaarde = nativeRijen
+    .map((r) => ({ datum: typeof r.datum === 'string' ? r.datum : '', waarde: getal(r[kolom]) }))
+    .filter((r) => r.datum !== '' && r.waarde !== null && r.waarde > 0)
+    .sort((a, b) => (a.datum < b.datum ? 1 : -1))
+  return metWaarde[0]?.waarde ?? null
+}
+
 export async function haalFeiten(db: SupabaseClient, userId: string, nu: Date = new Date()): Promise<Feiten> {
   const vandaag = dagVan(nu)
   const gisteren = dagPlus(vandaag, -1)
@@ -84,7 +93,7 @@ export async function haalFeiten(db: SupabaseClient, userId: string, nu: Date = 
   const begin = opMoment(vandaag, 0).toISOString()
 
   const [native, slaap, metingen, stemming, plan, profiel] = await Promise.all([
-    db.from('health_native_logs').select('datum, stappen, slaap_minuten, rusthartslag, hrv_ms').eq('user_id', userId).gte('datum', vanaf),
+    db.from('health_native_logs').select('datum, stappen, slaap_minuten, rusthartslag, hrv_ms, vo2max').eq('user_id', userId).gte('datum', vanaf),
     db.from('slaap_logs').select('datum, uren_slaap').eq('user_id', userId).gte('datum', vanaf),
     db.from('dagmetingen').select('datum, stappen').eq('user_id', userId).gte('datum', vanaf),
     db
@@ -131,5 +140,6 @@ export async function haalFeiten(db: SupabaseClient, userId: string, nu: Date = 
     // Een trainer koppelen komt in een volgende stap.
     grenzen: null,
     herstel,
+    vo2max: laatsteWaarde(nativeRijen, 'vo2max'),
   }
 }

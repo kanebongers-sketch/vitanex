@@ -22,6 +22,7 @@ function feiten(over: Partial<Feiten> = {}): Feiten {
     afspraken: null,
     grenzen: null,
     herstel: null,
+    vo2max: null,
     ...over,
   }
 }

@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'vitest'
 import { maakRekening, slaapRegel, stappenRegel } from './rekening'
+import { conditieRegel, rusthartslagRegel } from './rekening-hart'
 
 const leeg = { slaapMinuten: null, slaapHistorie: [], stappenGisteren: null, stappenHistorie: [] }
 
@@ -45,5 +46,30 @@ describe('slaapRegel', () => {
   })
   test('nooit een verzonnen persoonlijk getal: alleen het getal uit de bron', () => {
     for (const r of [slaapRegel(300), slaapRegel(480)]) expect(r.getal).toBe('4,7 jaar')
+  })
+})
+
+describe('hart en conditie', () => {
+  test('VO2max: groep uit het onderzoek, tekort tot "hoog", met bron', () => {
+    const r = conditieRegel(32)
+    expect(r.goed).toBe(false)
+    expect(r.jij).toBe('Je VO2max (conditie) is 32. Dat valt in dit onderzoek in de groep "gemiddeld".')
+    expect(r.stap).toContain('6,2 punt onder "hoog"')
+    expect(r.bronnen[0].url).toContain('jama.2009.681')
+  })
+  test('VO2max hoog → in de zone, geen stap', () => {
+    expect(conditieRegel(45).goed).toBe(true)
+    expect(conditieRegel(45).stap).toBeNull()
+    expect(conditieRegel(25).jij).toContain('"laag"')
+  })
+  test('rusthartslag: onder 60 in de zone, daarboven een stap', () => {
+    expect(rusthartslagRegel(55).goed).toBe(true)
+    expect(rusthartslagRegel(72).goed).toBe(false)
+    expect(rusthartslagRegel(72).jij).toBe('Je rusthartslag is normaal 72 slagen per minuut.')
+  })
+  test('maakRekening neemt VO2max en rusthartslag mee als ze er zijn', () => {
+    const r = maakRekening({ ...leeg, vo2max: 40, herstel: { rustHartslag: 70, rustHartslagHistorie: [70, 71, 69, 70], hrv: null, hrvHistorie: [] } })
+    if (r.soort !== 'klaar') throw new Error('verwacht een rekening')
+    expect(r.regels.map((x) => x.id)).toEqual(['rusthartslag', 'vo2max'])
   })
 })

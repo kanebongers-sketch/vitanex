@@ -6,6 +6,7 @@
 // mens — wie dat getal toch verzint, liegt met een decimaal erachter.
 
 import { normaal } from './normaal'
+import { conditieRegel, rusthartslagRegel } from './rekening-hart'
 import type { Feiten } from './types'
 
 /** Waar het sterfterisico in onderzoek afvlakt voor volwassenen onder de 60 (Paluch 2022). */
@@ -21,7 +22,7 @@ export interface Bron {
 }
 
 export interface RekeningRegel {
-  id: 'stappen' | 'slaap'
+  id: 'stappen' | 'slaap' | 'vo2max' | 'rusthartslag'
   /** In de zone (true) of kost het je iets (false)? */
   goed: boolean
   /** Jouw eigen meting, als korte zin. */
@@ -131,12 +132,22 @@ export function slaapRegel(gemiddeld: number): RekeningRegel {
 export const REKENING_MIN = 5
 
 /** De rekening uit je eigen metingen. Zonder genoeg data zegt hij dat eerlijk. */
-export function maakRekening(f: Pick<Feiten, 'slaapMinuten' | 'slaapHistorie' | 'stappenGisteren' | 'stappenHistorie'>): Rekening {
-  const slaap = normaal([...(f.slaapMinuten != null ? [f.slaapMinuten] : []), ...f.slaapHistorie], REKENING_MIN)
-  const stappen = normaal([...(f.stappenGisteren != null ? [f.stappenGisteren] : []), ...f.stappenHistorie], REKENING_MIN)
+type RekeningInvoer = Pick<Feiten, 'slaapMinuten' | 'slaapHistorie' | 'stappenGisteren' | 'stappenHistorie'> &
+  Partial<Pick<Feiten, 'herstel' | 'vo2max'>>
+
+function metLaatste(laatste: number | null | undefined, historie: readonly number[]): number[] {
+  return [...(laatste != null ? [laatste] : []), ...historie]
+}
+
+export function maakRekening(f: RekeningInvoer): Rekening {
+  const slaap = normaal(metLaatste(f.slaapMinuten, f.slaapHistorie), REKENING_MIN)
+  const stappen = normaal(metLaatste(f.stappenGisteren, f.stappenHistorie), REKENING_MIN)
+  const hartslag = f.herstel ? normaal(metLaatste(f.herstel.rustHartslag, f.herstel.rustHartslagHistorie), REKENING_MIN) : null
   const regels: RekeningRegel[] = []
   if (stappen !== null) regels.push(stappenRegel(stappen))
   if (slaap !== null) regels.push(slaapRegel(slaap))
+  if (f.vo2max != null) regels.push(conditieRegel(f.vo2max))
+  if (hartslag !== null) regels.push(rusthartslagRegel(hartslag))
   if (regels.length === 0) return { soort: 'te_weinig_data', nodig: REKENING_MIN }
   // Wat je iets kost eerst: daar zit de winst.
   return { soort: 'klaar', regels: [...regels].sort((a, b) => Number(a.goed) - Number(b.goed)) }

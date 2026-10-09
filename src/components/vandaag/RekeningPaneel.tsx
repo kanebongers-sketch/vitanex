@@ -6,8 +6,15 @@ import type { Rekening, RekeningRegel } from '@/lib/vandaag/rekening'
 
 const KOP_ID = 'rekening-kop'
 
+const TITELS: Record<RekeningRegel['id'], string> = {
+  stappen: 'Bewegen',
+  slaap: 'Slaap',
+  vo2max: 'Conditie',
+  rusthartslag: 'Rusthartslag',
+}
+
 function Regel({ regel }: { regel: RekeningRegel }) {
-  const titel = regel.id === 'stappen' ? 'Bewegen' : 'Slaap'
+  const titel = TITELS[regel.id]
   return (
     <li style={{ display: 'grid', gap: 14, padding: '28px 0', borderTop: '1px solid var(--border)' }}>
       <p style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-3)' }}>
@@ -51,7 +58,7 @@ export function RekeningPaneel({ rekening }: { rekening: Rekening }) {
       </p>
       {rekening.soort === 'te_weinig_data' ? (
         <p style={{ margin: 0, padding: '16px 0', borderTop: '1px solid var(--border)', fontSize: 15, color: 'var(--text-2)', lineHeight: 1.5 }}>
-          Na {rekening.nodig} dagen met slaap- of stappendata zie je hier wat je gewoontes je kosten. Koppel Apple Health of Health Connect, dan gaat het vanzelf.
+          Na {rekening.nodig} dagen met slaap- of stappendata zie je hier wat je gewoontes je kosten. Koppel Health Connect op je Android-telefoon, dan gaat het vanzelf, of houd je slaap en stappen zelf bij.
         </p>
       ) : (
         <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
