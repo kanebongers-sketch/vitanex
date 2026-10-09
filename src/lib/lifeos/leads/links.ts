@@ -56,17 +56,24 @@ const GROEP_VOOR_ROL: Record<LinkRol, string> = { pt: 'pt_team', eigenaar: 'mana
  */
 export async function vindLink(admin: SupabaseClient, code: string): Promise<LeadLink | null> {
   if (!CODE_PATROON.test(code)) return null
-  const { data: link, error } = await admin.from('pt_lead_links').select(LINK_KOLOMMEN).eq('code', code).maybeSingle()
+  // Link + persoon in één vraag (via de foreign key persoon_id → crm_personen):
+  // elke PT-pagina begint hiermee, dus elk rondje naar de database telt.
+  const samen = await admin
+    .from('pt_lead_links')
+    .select(`${LINK_KOLOMMEN}, persoon:crm_personen(naam, groep, status, user_id)`)
+    .eq('code', code)
+    .maybeSingle()
+  // Vangnet: lukt de gecombineerde vraag niet (bv. de relatie is onbekend bij de
+  // API), dan de oude weg met twee vragen — liever trager dan elke PT-pagina 404.
+  const { data: link, error } = samen.error ? await admin.from('pt_lead_links').select(LINK_KOLOMMEN).eq('code', code).maybeSingle() : samen
   if (error || !link || link.actief !== true) return null
 
-  const { data: p } = await admin
-    .from('crm_personen')
-    .select('naam, groep, status')
-    .eq('id', link.persoon_id)
-    .eq('user_id', link.user_id)
-    .maybeSingle()
+  const ruw: unknown = samen.error
+    ? (await admin.from('crm_personen').select('naam, groep, status, user_id').eq('id', link.persoon_id).maybeSingle()).data
+    : persoonUit(samen.data)
+  const p = typeof ruw === 'object' && ruw !== null ? (ruw as { naam: string; groep: string; status: string; user_id: string }) : null
   const rol = leesRol(link.rol)
-  if (!p || p.groep !== GROEP_VOOR_ROL[rol] || p.status === 'inactief' || isVergadering(p.naam)) return null
+  if (!p || p.user_id !== link.user_id || p.groep !== GROEP_VOOR_ROL[rol] || p.status === 'inactief' || isVergadering(p.naam)) return null
   return {
     rol,
     userId: link.user_id,
@@ -79,6 +86,12 @@ export async function vindLink(admin: SupabaseClient, code: string): Promise<Lea
     geblokkeerdTot: link.geblokkeerd_tot,
     blokkades: typeof link.blokkades === 'number' ? link.blokkades : 0,
   }
+}
+
+/** De ingebedde persoon uit een `persoon:crm_personen(...)`-select (object, of soms een lijst van één). */
+function persoonUit(rij: unknown): unknown {
+  const p = typeof rij === 'object' && rij !== null ? (rij as { persoon?: unknown }).persoon : null
+  return Array.isArray(p) ? p[0] : p
 }
 
 /** Een beheerder logt in via zijn hoofdaccount: op zijn link bestaat geen pincode, nooit. */
@@ -214,6 +227,27 @@ async function snoeiSessies(admin: SupabaseClient, persoonId: string, nu: Date):
   if (teVeel.length > 0) await admin.from('pt_lead_sessies').delete().in('token_hash', teVeel)
 }
 
+export interface SessieRij {
+  persoon_id: string
+  verloopt_op: string
+  laatst_gebruikt_op: string | null
+  aangemaakt_op: string
+}
+
+/**
+ * De sessie achter een token, zonder te weten bij welke link — zodat een pagina
+ * die tegelijk met de link kan opzoeken (één rondje minder). Null = geen sessie.
+ */
+export async function leesSessie(admin: SupabaseClient, token: string | undefined): Promise<SessieRij | null> {
+  if (!token || token.length > 100) return null
+  const { data } = await admin
+    .from('pt_lead_sessies')
+    .select('persoon_id, verloopt_op, laatst_gebruikt_op, aangemaakt_op')
+    .eq('token_hash', tokenHash(token))
+    .maybeSingle()
+  return (data as SessieRij | null) ?? null
+}
+
 /**
  * Is dit toestel ingelogd op déze link (en is de pin nog actief)? Een sessie
  * verloopt hard na SESSIE_DAGEN en zacht na SESSIE_INACTIEF_DAGEN zonder gebruik;
@@ -221,12 +255,17 @@ async function snoeiSessies(admin: SupabaseClient, persoonId: string, nu: Date):
  */
 export async function sessieGeldig(admin: SupabaseClient, link: LeadLink, token: string | undefined, nu: Date): Promise<boolean> {
   if (!token || link.pinStatus !== 'actief' || token.length > 100) return false
+  return beoordeelSessie(admin, link, token, await leesSessie(admin, token), nu)
+}
+
+/**
+ * De regels van `sessieGeldig` op een al opgehaalde sessie: hoort hij bij deze
+ * link, is hij niet verlopen of te lang stil? Verlopen → weg; anders hooguit één
+ * keer per uur "laatst gebruikt" bijwerken.
+ */
+export async function beoordeelSessie(admin: SupabaseClient, link: LeadLink, token: string | undefined, data: SessieRij | null, nu: Date): Promise<boolean> {
+  if (!token || link.pinStatus !== 'actief' || token.length > 100) return false
   const hash = tokenHash(token)
-  const { data } = await admin
-    .from('pt_lead_sessies')
-    .select('persoon_id, verloopt_op, laatst_gebruikt_op, aangemaakt_op')
-    .eq('token_hash', hash)
-    .maybeSingle()
   if (!data || data.persoon_id !== link.persoonId) return false
 
   const t = nu.getTime()

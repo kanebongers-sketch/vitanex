@@ -7,7 +7,7 @@ import { cache } from 'react'
 import { cookies } from 'next/headers'
 import { createLifeosAdminClient } from '@/lib/lifeos/admin'
 import { CODE_PATROON, dagSleutelNl } from '@/lib/lifeos/leads/leads'
-import { kijktMee, sessieGeldig, vindLink, type LeadLink } from '@/lib/lifeos/leads/links'
+import { beoordeelSessie, kijktMee, leesSessie, vindLink, type LeadLink } from '@/lib/lifeos/leads/links'
 import { sessieCookieNaam } from '@/lib/lifeos/leads/pin'
 import { haalLeadsVan } from '@/lib/lifeos/leads/opslag'
 import { haalKlantenVan } from './klanten-opslag'
@@ -19,10 +19,12 @@ import { zonderPrijs } from './abonnementen'
 export const ptSessie = cache(async (code: string) => {
   if (!CODE_PATROON.test(code)) return null
   const admin = createLifeosAdminClient()
-  const link = await vindLink(admin, code)
+  // Link en sessie tegelijk opzoeken: de cookienaam volgt uit de code in de URL
+  // (vindLink zoekt op precies die code), dus we hoeven niet op de link te wachten.
+  const token = (await cookies()).get(sessieCookieNaam(code))?.value
+  const [link, sessie] = await Promise.all([vindLink(admin, code), leesSessie(admin, token)])
   if (!link) return null
-  const token = (await cookies()).get(sessieCookieNaam(link.code))?.value
-  const ingelogd = await sessieGeldig(admin, link, token, new Date())
+  const ingelogd = await beoordeelSessie(admin, link, token, sessie, new Date())
   return { admin, link, ingelogd }
 })
 
@@ -59,8 +61,9 @@ export const ptGegevens = cache(async (code: string) => {
 export const eigenaarGegevens = cache(async (code: string) => {
   const s = await ptSessie(code)
   if (!s?.ingelogd || !kijktMee(s.link.rol)) return null
-  const team = await haalPtTeamGegevens(s.admin, s.link.userId)
-  const doelen = team ? await haalDoelenVoor(s.admin, s.link.userId, team.team.map((p) => p.id)) : null
+  // De doelen komen in hetzelfde rondje als leads en klanten mee (zie team-opslag).
+  const team = await haalPtTeamGegevens(s.admin, s.link.userId, { metDoelen: true })
+  const doelen = team?.doelen ?? null
   return {
     admin: s.admin,
     link: s.link,
