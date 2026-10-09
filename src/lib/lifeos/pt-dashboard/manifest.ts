@@ -1,5 +1,5 @@
 // ─── PT-dashboard — web-app-manifest per PT'er (PUUR) ───────────────────────
-// Zodat een PT'er zijn dashboard (mentaforce.nl/<naam>) op het beginscherm van
+// Zodat een PT'er zijn dashboard (fitfactorypt.nl/<naam>) op het beginscherm van
 // de telefoon zet en het opent als een app: eigen start-URL, Fit Factory-huisstijl.
 // Next kent `app/manifest.ts` alleen in de root; per PT'er gaat het daarom via de
 // route handler `src/app/[pt]/manifest.webmanifest/route.ts`.

@@ -59,6 +59,8 @@ const nextConfig: NextConfig = {
         source,
         destination: '/login',
         permanent: false,
+        // Niet op het Fit Factory-domein: daar is "/" de team-ingang (src/proxy.ts).
+        missing: [{ type: 'host' as const, value: '(www\\.)?fitfactorypt\\.nl' }],
       })),
     ]
   },

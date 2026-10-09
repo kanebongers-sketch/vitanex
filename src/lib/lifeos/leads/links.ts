@@ -1,5 +1,5 @@
 // ─── LifeOS — PT-dashboard: link, pincode en sessie (SERVER-ONLY) ────────────
-// Elke PT'er heeft een eigen pagina: mentaforce.nl/<naam> (bv. /joey). De naam is
+// Elke PT'er heeft een eigen pagina: fitfactorypt.nl/<naam> (bv. /joey). De naam is
 // te raden, dus alles daarachter zit achter een pincode die de PT'er zelf kiest
 // en Kane goedkeurt (migratie 351); daarna één keer inloggen per toestel.
 // Een user_id, persoon_id of pin-hash gaat nooit naar de browser.

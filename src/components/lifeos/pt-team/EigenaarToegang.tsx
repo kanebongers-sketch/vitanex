@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { PT_DOMEIN } from '@/lib/fit-factory/domein'
 import type { EigenaarRij } from '@/lib/lifeos/pt-dashboard/team-overzicht'
 import type { PinActie } from '@/lib/lifeos/leads/leads'
 import { Foutmelding } from '@/components/lifeos/os/Foutmelding'
@@ -44,7 +45,7 @@ export function EigenaarToegang({ eigenaren, onVernieuw }: { eigenaren: readonly
               </span>
             </div>
             <p className="ptd-meta">
-              <span>mentaforce.nl/{e.code}</span>
+              <span>{PT_DOMEIN}/{e.code}</span>
               {e.controle ? <span>Controlecode <strong className="ptd-controle">{e.controle}</strong>: vraag deze na vóór je goedkeurt</span> : null}
             </p>
             {e.pinStatus !== 'geen' ? (

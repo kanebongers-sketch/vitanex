@@ -159,7 +159,7 @@ export function slugVoorNaam(naam: string): string {
 }
 
 /**
- * De link-code: gewoon de naam (mentaforce.nl/joey). Bestaat die al (twee Joeys)
+ * De link-code: gewoon de naam (fitfactorypt.nl/joey). Bestaat die al (twee Joeys)
  * of botst hij met een bestaande pagina (/login, /lead, …), dan "joey-2", "joey-3", …
  * De pincode beveiligt de gegevens, niet de URL.
  */

@@ -58,7 +58,7 @@ export default async function LeadStart() {
         )}
 
         <p className="ptd-hint">
-          Zet je eigen pagina op je beginscherm (mentaforce.nl/jouwnaam) — dan opent hij als app.
+          Zet je eigen pagina op je beginscherm (fitfactorypt.nl/jouwnaam) — dan opent hij als app.
         </p>
       </div>
     </main>

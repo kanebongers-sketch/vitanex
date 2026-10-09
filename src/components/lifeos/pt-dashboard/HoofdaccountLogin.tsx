@@ -38,7 +38,7 @@ export function HoofdaccountLogin() {
         <p className="ptd-hint">Even je account controleren…</p>
       ) : staat === 'niet_ingelogd' ? (
         <>
-          <p className="ptd-hint">Log in met je MentaForce-hoofdaccount; daarna kom je meteen terug in de PT-app.</p>
+          <p className="ptd-hint">Log in met je hoofdaccount; daarna kom je meteen terug in de PT-app.</p>
           <Link className="ptd-knop ptd-knop--primair" href={`/login?next=${encodeURIComponent(pad)}`}>Inloggen</Link>
         </>
       ) : (

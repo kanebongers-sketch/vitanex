@@ -61,7 +61,7 @@ export const glassPanel: React.CSSProperties = {
 export const MAXW = 1200
 
 /**
- * Fit Factory Personal Training — de huisstijl van de PT-app (mentaforce.nl/<naam>).
+ * Fit Factory Personal Training — de huisstijl van de PT-app (fitfactorypt.nl/<naam>).
  * Afgeleid uit hun eigen documenten (PT Protocol, Fit Guide, intakeformulier 2026):
  * bijna-zwart, wit, één warm amber accent; koppen in Barlow Condensed, tekst in Inter.
  * Alleen voor de PT-app (white-label); de rest van MentaForce blijft navy + cyaan.

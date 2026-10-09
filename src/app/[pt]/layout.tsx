@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import type { ReactNode } from 'react'
-import { notFound, redirect } from 'next/navigation'
+import { headers } from 'next/headers'
+import { notFound, permanentRedirect, redirect } from 'next/navigation'
 import { ptSessie } from '@/lib/lifeos/pt-dashboard/sessie'
 import { PtNav } from '@/components/lifeos/pt-dashboard/PtNav'
 import { PinPoort } from '@/components/lifeos/pt-dashboard/PinPoort'
@@ -12,8 +13,9 @@ import { FfHero } from '@/components/lifeos/pt-dashboard/FfHero'
 import { FIT_FACTORY } from '@/components/marketing/theme'
 import { manifestPad } from '@/lib/lifeos/pt-dashboard/manifest'
 import { barlow, inter } from '@/app/fonts/fit-factory'
+import { PAD_HEADER, ptDoorsturen, ptUrl } from '@/lib/fit-factory/domein'
 
-// mentaforce.nl/<naam> — de app van één Fit Factory PT'er (bv. /joey): overzicht,
+// fitfactorypt.nl/<naam> — de app van één Fit Factory PT'er (bv. /joey): overzicht,
 // leads, klanten, coachgesprek en de kennisbank met de Fit Factory PT-documenten.
 // Een eigenaar (rol `eigenaar`, bv. /ruben) krijgt dezelfde app over het hele team,
 // alleen lezen — de pagina's kiezen zelf welke weergave. De beheerder (Kane) ziet
@@ -56,6 +58,13 @@ export default async function PtLayout({ children, params }: Props) {
   if (pt.toLowerCase() === 'fitfactorypt') redirect('/FitFactoryPT')
   const s = await ptSessie(pt)
   if (!s) notFound()
+
+  // Oude link (mentaforce.nl/<naam>/…)? Met de schakelaar aan door naar het eigen
+  // domein, met pad en query — de proxy gaf het volledige pad mee in een header.
+  const h = await headers()
+  if (ptDoorsturen(h.get('x-forwarded-host') ?? h.get('host'), process.env.FIT_FACTORY_DOMEIN_ACTIEF === '1')) {
+    permanentRedirect(ptUrl(h.get(PAD_HEADER) ?? `/${pt}`))
+  }
   const eigenaar = kijktMee(s.link.rol)
 
   return (
@@ -91,7 +100,7 @@ export default async function PtLayout({ children, params }: Props) {
               volgen, en vraag of je diegene mag benaderen. Gegevens staan in de EU.
             </span>
           )}
-          <span>Fit Factory Personal Training · app door MentaForce</span>
+          <span>Fit Factory Personal Training</span>
         </footer>
       </div>
     </main>
