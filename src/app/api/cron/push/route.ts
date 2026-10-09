@@ -72,12 +72,13 @@ async function verzamelActiviteit(db: SupabaseClient, userId: string): Promise<A
 }
 
 const DEFAULT_VOORKEUREN: PushVoorkeuren = {
-  checkinAan: true, streakAan: true, vitaWeekAan: true,
+  vandaagAan: true, checkinAan: true, streakAan: true, vitaWeekAan: true,
   stiltetijdStart: '22:00', stiltetijdEind: '08:00', maxPerDag: 2,
 }
 
 interface VoorkeurRij {
   user_id: string
+  vandaag_aan?: boolean
   checkin_aan: boolean
   streak_aan: boolean
   vita_week_aan: boolean
@@ -89,6 +90,7 @@ interface VoorkeurRij {
 function naarVoorkeuren(rij: VoorkeurRij | undefined): PushVoorkeuren {
   if (!rij) return DEFAULT_VOORKEUREN
   return {
+    vandaagAan: rij.vandaag_aan ?? true,
     checkinAan: rij.checkin_aan,
     streakAan: rij.streak_aan,
     vitaWeekAan: rij.vita_week_aan,
@@ -136,7 +138,11 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
     const doelen = tokensPerUser.get(userId) ?? []
     for (const melding of geplande) {
-      const res = await verzendPush(doelen, { titel: melding.titel, tekst: melding.tekst })
+      const res = await verzendPush(doelen, {
+        titel: melding.titel,
+        tekst: melding.tekst,
+        ...(melding.pad ? { data: { pad: melding.pad } } : {}),
+      })
       if (res.verstuurd > 0) {
         totaalVerstuurd += res.verstuurd
         bereikt++

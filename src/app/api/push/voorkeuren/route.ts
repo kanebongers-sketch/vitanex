@@ -10,6 +10,7 @@ import { pushGeconfigureerd } from '@/lib/push/verzend'
 const TIJD = /^\d{1,2}:\d{2}$/
 
 const DEFAULTS = {
+  vandaag_aan: true,
   checkin_aan: true,
   streak_aan: true,
   vita_week_aan: true,
@@ -26,7 +27,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     const admin = createAdminClient()
     const { data, error } = await admin
       .from('push_voorkeuren')
-      .select('checkin_aan, streak_aan, vita_week_aan, stiltetijd_start, stiltetijd_eind, max_per_dag')
+      .select('vandaag_aan, checkin_aan, streak_aan, vita_week_aan, stiltetijd_start, stiltetijd_eind, max_per_dag')
       .eq('user_id', user.id)
       .maybeSingle()
 
@@ -60,6 +61,7 @@ export async function PUT(req: NextRequest): Promise<NextResponse> {
 
     const rij = {
       user_id: user.id,
+      vandaag_aan: typeof body.vandaag_aan === 'boolean' ? body.vandaag_aan : DEFAULTS.vandaag_aan,
       checkin_aan: typeof body.checkin_aan === 'boolean' ? body.checkin_aan : DEFAULTS.checkin_aan,
       streak_aan: typeof body.streak_aan === 'boolean' ? body.streak_aan : DEFAULTS.streak_aan,
       vita_week_aan: typeof body.vita_week_aan === 'boolean' ? body.vita_week_aan : DEFAULTS.vita_week_aan,

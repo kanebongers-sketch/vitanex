@@ -15,7 +15,7 @@
 //
 // Puur: geen klok, geen database, geen netwerk. Alles komt via `Feiten` binnen.
 
-import { bepaalSignalen, duur, feitZinnen, type Signalen } from './signalen'
+import { bepaalSignalen, duur, feitZinnen, herstelZin, type Signalen } from './signalen'
 import type { Actie, Feiten, Kaart, Toon } from './types'
 
 export const MAX_ACTIES = 3
@@ -33,7 +33,7 @@ export function trainingAdvies(f: Feiten, s: Signalen): TrainingAdvies | null {
   if (s.aantalLaag >= 3) return 'rust'
   if (f.training.intensiteit === 'zwaar') {
     if (s.slaapKort) return f.grenzen?.naSlechteNacht === 'rust' ? 'rust' : 'lichter'
-    if (s.energieLaag) return 'lichter'
+    if (s.energieLaag || s.herstelLaag) return 'lichter'
   }
   return 'zoals_gepland'
 }
@@ -47,7 +47,9 @@ function trainingActie(f: Feiten, s: Signalen, advies: TrainingAdvies): Actie | 
       : 'Je nacht was kort.'
     : s.energieLaag
       ? 'Je energie staat laag.'
-      : 'Meerdere signalen staan vandaag laag.'
+      : s.herstelLaag
+        ? `${herstelZin(s)} Je lichaam is nog aan het herstellen.`
+        : 'Meerdere signalen staan vandaag laag.'
   const grens = f.grenzen ? ' Zo heeft je trainer het afgesproken.' : ''
   if (advies === 'lichter') {
     return {

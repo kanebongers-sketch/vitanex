@@ -6,9 +6,10 @@
 
 import { binnenStiltetijd, minutenVanTijd } from './timing'
 
-export type MeldingType = 'checkin' | 'streak' | 'vita_week'
+export type MeldingType = 'vandaag' | 'checkin' | 'streak' | 'vita_week'
 
 export interface PushVoorkeuren {
+  vandaagAan: boolean
   checkinAan: boolean
   streakAan: boolean
   vitaWeekAan: boolean
@@ -38,6 +39,8 @@ export interface GeplandeMelding {
   type: MeldingType
   titel: string
   tekst: string
+  /** Waar een tik op de melding naartoe gaat (app-pad), of geen. */
+  pad?: string
 }
 
 const STREAK_DREMPEL = 2 // pas een streak "in gevaar" melden als er iets te verliezen is
@@ -45,6 +48,9 @@ const STREAK_AVOND_UUR = 20 // niet eerder dan 20:00 waarschuwen
 const VITA_WEEK_UUR_VROEG = 10
 const VITA_WEEK_UUR_LAAT = 12
 const VITA_WEEK_WEEKDAG = 0 // zondag
+/** De Vandaag-kaart: vanaf dit moment (na de standaard-stiltetijd) tot KAART_TOT_UUR. */
+export const KAART_MOMENT = '08:00'
+const KAART_TOT_UUR = 11
 
 function alVerzondenOp(laatst: string | null | undefined, datum: string): boolean {
   return laatst === datum
@@ -66,7 +72,26 @@ export function kiesMeldingen(ctx: PlanContext): GeplandeMelding[] {
   const uur = Math.floor(nuMinuten / 60)
   const slim = minutenVanTijd(ctx.slimMomentCheckin)
 
-  // 3. Streak in gevaar heeft voorrang op de gewone check-in-herinnering:
+  // 3. 's Ochtends: je Vandaag-kaart staat klaar. Eén keer, alleen als je nog
+  //    niets deed vandaag, en nooit meer na de ochtend (dan is het nieuws oud).
+  const kaartVanaf = minutenVanTijd(KAART_MOMENT) ?? 480
+  const kaartTijd =
+    v.vandaagAan &&
+    !ctx.reedsVandaagActief &&
+    nuMinuten >= kaartVanaf &&
+    uur < KAART_TOT_UUR &&
+    !alVerzondenOp(ctx.laatstVerzonden.vandaag, datum)
+
+  if (kaartTijd) {
+    return [{
+      type: 'vandaag',
+      titel: 'Je Vandaag-kaart staat klaar',
+      tekst: 'Check in in tien seconden en zie wat vandaag telt.',
+      pad: '/1',
+    }]
+  }
+
+  // 4. Streak in gevaar heeft voorrang op de gewone check-in-herinnering:
   //    's avonds, streak het beschermen waard, vandaag nog niet actief.
   const streakInGevaar =
     v.streakAan &&
@@ -83,7 +108,7 @@ export function kiesMeldingen(ctx: PlanContext): GeplandeMelding[] {
     }]
   }
 
-  // 4. Gewone check-in-herinnering op het slimme moment, als je nog niet actief was.
+  // 5. Gewone check-in-herinnering op het slimme moment, als je nog niet actief was.
   const checkinTijd =
     v.checkinAan &&
     !ctx.reedsVandaagActief &&
@@ -99,7 +124,7 @@ export function kiesMeldingen(ctx: PlanContext): GeplandeMelding[] {
     }]
   }
 
-  // 5. Vita's weekinzicht: één keer per week, op een rustig moment.
+  // 6. Vita's weekinzicht: één keer per week, op een rustig moment.
   const vitaWeek =
     v.vitaWeekAan &&
     ctx.weekdag === VITA_WEEK_WEEKDAG &&

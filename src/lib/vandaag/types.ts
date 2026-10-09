@@ -43,6 +43,17 @@ export interface Grenzen {
   naSlechteNacht: 'licht' | 'rust'
 }
 
+/**
+ * Herstel uit je horloge: rusthartslag en hartslagvariabiliteit (HRV) van
+ * afgelopen nacht, plus eerdere dagen voor je normaal (nieuwste eerst).
+ */
+export interface Herstel {
+  rustHartslag: number | null
+  rustHartslagHistorie: readonly number[]
+  hrv: number | null
+  hrvHistorie: readonly number[]
+}
+
 /** Alles wat de engine weet over vandaag. Elk veld mag leeg zijn: dan zwijgt de kaart erover. */
 export interface Feiten {
   /** Amsterdamse dagsleutel YYYY-MM-DD. */
@@ -67,6 +78,8 @@ export interface Feiten {
   afspraken: readonly Afspraak[] | null
   /** Grenzen van je trainer, of null zonder trainer. */
   grenzen: Grenzen | null
+  /** Herstel uit je horloge, of null zonder horloge-data. */
+  herstel: Herstel | null
 }
 
 /** Het soort actie op de kaart. Elk soort hoort bij één regel uit de bibliotheek. */

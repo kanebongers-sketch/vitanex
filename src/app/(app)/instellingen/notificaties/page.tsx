@@ -15,6 +15,7 @@ import { useToast } from '@/components/ui/Toast'
 import { activeerPush, pushStatus, type PushStatus } from '@/lib/push/client'
 
 interface Voorkeuren {
+  vandaag_aan: boolean
   checkin_aan: boolean
   streak_aan: boolean
   vita_week_aan: boolean
@@ -24,11 +25,12 @@ interface Voorkeuren {
 }
 
 const DEFAULTS: Voorkeuren = {
-  checkin_aan: true, streak_aan: true, vita_week_aan: true,
+  vandaag_aan: true, checkin_aan: true, streak_aan: true, vita_week_aan: true,
   stiltetijd_start: '22:00', stiltetijd_eind: '08:00', max_per_dag: 2,
 }
 
 const SOORTEN: { key: keyof Voorkeuren; label: string; beschrijving: string }[] = [
+  { key: 'vandaag_aan', label: 'Je Vandaag-kaart', beschrijving: '’s Ochtends één melding dat je kaart klaarstaat. Niet als je al actief was.' },
   { key: 'checkin_aan', label: 'Dagelijkse check-in', beschrijving: 'Een vriendelijke duw op een slim gekozen moment om even in te checken.' },
   { key: 'streak_aan', label: 'Reeks in gevaar', beschrijving: 'Alleen ’s avonds, en alleen als je die dag nog niet actief was.' },
   { key: 'vita_week_aan', label: 'Vita’s weekinzicht', beschrijving: 'Eén keer per week een korte samenvatting van je voortgang.' },

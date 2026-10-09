@@ -10,11 +10,12 @@
 //   check-in  stemming_logs (stemming, energie, stress: 1–5) van vandaag
 //   plan      vandaag_plan (weekdag → training)
 //   bedtijd   profiles.slaap_streefbedtijd
+//   herstel   health_native_logs.rusthartslag en hrv_ms (horloge)
 
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { dagPlus, dagVan, opMoment, weekdag } from '@/lib/lifeos/blokken/tijd'
 import { NORMAAL_DAGEN } from './normaal'
-import type { CheckIn, Feiten, Intensiteit, PlanDag } from './types'
+import type { CheckIn, Feiten, Herstel, Intensiteit, PlanDag } from './types'
 
 type Rij = Record<string, unknown>
 
@@ -59,6 +60,23 @@ function leesCheckIn(r: Rij | undefined): CheckIn | null {
   return { stemming, energie: getal(r.energie), stress: getal(r.stress) }
 }
 
+/**
+ * Rusthartslag en HRV: de meting van vandaag, anders die van gisteren (de
+ * horloge-sync loopt soms achter). Historie = de dagen daarvóór.
+ */
+function leesHerstel(nativeRijen: Rij[], vandaag: string, gisteren: string): Herstel | null {
+  const hartslag = perDag(nativeRijen.map((r) => ({ datum: r.datum, waarde: getal(r.rusthartslag) })))
+  const hrv = perDag(nativeRijen.map((r) => ({ datum: r.datum, waarde: getal(r.hrv_ms) })))
+  if (hartslag.size === 0 && hrv.size === 0) return null
+  const dag = hartslag.has(vandaag) || hrv.has(vandaag) ? vandaag : gisteren
+  return {
+    rustHartslag: hartslag.get(dag) ?? null,
+    rustHartslagHistorie: historie(hartslag, dag),
+    hrv: hrv.get(dag) ?? null,
+    hrvHistorie: historie(hrv, dag),
+  }
+}
+
 export async function haalFeiten(db: SupabaseClient, userId: string, nu: Date = new Date()): Promise<Feiten> {
   const vandaag = dagVan(nu)
   const gisteren = dagPlus(vandaag, -1)
@@ -66,7 +84,7 @@ export async function haalFeiten(db: SupabaseClient, userId: string, nu: Date = 
   const begin = opMoment(vandaag, 0).toISOString()
 
   const [native, slaap, metingen, stemming, plan, profiel] = await Promise.all([
-    db.from('health_native_logs').select('datum, stappen, slaap_minuten').eq('user_id', userId).gte('datum', vanaf),
+    db.from('health_native_logs').select('datum, stappen, slaap_minuten, rusthartslag, hrv_ms').eq('user_id', userId).gte('datum', vanaf),
     db.from('slaap_logs').select('datum, uren_slaap').eq('user_id', userId).gte('datum', vanaf),
     db.from('dagmetingen').select('datum, stappen').eq('user_id', userId).gte('datum', vanaf),
     db
@@ -93,6 +111,7 @@ export async function haalFeiten(db: SupabaseClient, userId: string, nu: Date = 
     ...(metingen.error ? [] : rijen(metingen.data)).map((r) => ({ datum: r.datum, waarde: getal(r.stappen) })),
   ])
 
+  const herstel = leesHerstel(nativeRijen, vandaag, gisteren)
   const planRijen = plan.error ? [] : rijen(plan.data)
   const vandaagWeekdag = weekdag(vandaag)
   const streef = profiel.error ? null : (profiel.data as Rij | null)?.slaap_streefbedtijd
@@ -111,5 +130,6 @@ export async function haalFeiten(db: SupabaseClient, userId: string, nu: Date = 
     afspraken: null,
     // Een trainer koppelen komt in een volgende stap.
     grenzen: null,
+    herstel,
   }
 }

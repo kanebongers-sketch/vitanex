@@ -17,6 +17,10 @@ export const SLAAP_ONDERGRENS_MIN = 360
 export const BEWEGEN_FRACTIE = 0.6
 /** Normaal moet minstens dit zijn, anders is "weinig" geen zinnig signaal. */
 export const BEWEGEN_MIN_NORMAAL = 3000
+/** Zoveel slagen per minuut boven je normale rusthartslag telt als minder hersteld. */
+export const HARTSLAG_HOGER_BPM = 5
+/** HRV onder dit deel van je normaal telt als minder hersteld. */
+export const HRV_LAGER_FRACTIE = 0.8
 
 export interface Signalen {
   slaapKort: boolean
@@ -28,6 +32,12 @@ export interface Signalen {
   stemmingLaag: boolean
   weinigBewogen: boolean
   stappenNormaal: number | null
+  /** Rusthartslag duidelijk boven of HRV duidelijk onder je eigen normaal. */
+  herstelLaag: boolean
+  /** Slagen per minuut boven je normale rusthartslag (positief = hoger), of null. */
+  hartslagVerschil: number | null
+  /** HRV als deel van je normaal (0.8 = 20% lager), of null. */
+  hrvFractie: number | null
   /** Hoeveel van slaap/energie/stress/stemming tegelijk laag staan. */
   aantalLaag: number
   /** De drukste afspraak vandaag (langste), of null. */
@@ -50,6 +60,18 @@ function afspraakDuur(a: Afspraak): number {
   return Math.max(0, (new Date(a.eind).getTime() - new Date(a.start).getTime()) / 60_000)
 }
 
+function herstelSignaal(f: Feiten): Pick<Signalen, 'herstelLaag' | 'hartslagVerschil' | 'hrvFractie'> {
+  const h = f.herstel
+  const hartslagNormaal = h ? normaal(h.rustHartslagHistorie) : null
+  const hrvNormaal = h ? normaal(h.hrvHistorie) : null
+  const hartslagVerschil = h?.rustHartslag != null && hartslagNormaal !== null ? h.rustHartslag - hartslagNormaal : null
+  const hrvFractie = h?.hrv != null && hrvNormaal !== null && hrvNormaal > 0 ? h.hrv / hrvNormaal : null
+  const herstelLaag =
+    (hartslagVerschil !== null && hartslagVerschil >= HARTSLAG_HOGER_BPM) ||
+    (hrvFractie !== null && hrvFractie <= HRV_LAGER_FRACTIE)
+  return { herstelLaag, hartslagVerschil, hrvFractie }
+}
+
 export function bepaalSignalen(f: Feiten): Signalen {
   const slaapNormaal = normaal(f.slaapHistorie)
   const slaapVerschil = f.slaapMinuten !== null && slaapNormaal !== null ? slaapNormaal - f.slaapMinuten : null
@@ -68,7 +90,8 @@ export function bepaalSignalen(f: Feiten): Signalen {
   const energieLaag = c?.energie != null && c.energie <= 2
   const stressHoog = c?.stress != null && c.stress >= 4
   const stemmingLaag = c != null && c.stemming <= 2
-  const aantalLaag = [slaapKort, energieLaag, stressHoog, stemmingLaag].filter(Boolean).length
+  const herstel = herstelSignaal(f)
+  const aantalLaag = [slaapKort, energieLaag, stressHoog, stemmingLaag, herstel.herstelLaag].filter(Boolean).length
 
   const metDuur = (f.afspraken ?? []).filter((a) => afspraakDuur(a) >= 45)
   const zwaarsteAfspraak = metDuur.length ? metDuur.reduce((a, b) => (afspraakDuur(b) > afspraakDuur(a) ? b : a)) : null
@@ -82,10 +105,24 @@ export function bepaalSignalen(f: Feiten): Signalen {
     stemmingLaag,
     weinigBewogen,
     stappenNormaal,
+    ...herstel,
     aantalLaag,
     zwaarsteAfspraak,
-    ietsBekend: f.slaapMinuten !== null || c !== null || f.stappenGisteren !== null,
+    ietsBekend: f.slaapMinuten !== null || c !== null || f.stappenGisteren !== null || herstel.hartslagVerschil !== null || herstel.hrvFractie !== null,
   }
+}
+
+/** "Je rusthartslag is 6 slagen hoger dan normaal en je HRV 25% lager." */
+export function herstelZin(s: Signalen): string {
+  const delen: string[] = []
+  if (s.hartslagVerschil !== null && s.hartslagVerschil >= HARTSLAG_HOGER_BPM) {
+    delen.push(`je rusthartslag is ${Math.round(s.hartslagVerschil)} slagen hoger dan normaal`)
+  }
+  if (s.hrvFractie !== null && s.hrvFractie <= HRV_LAGER_FRACTIE) {
+    delen.push(`je HRV is ${Math.round((1 - s.hrvFractie) * 100)}% lager dan normaal`)
+  }
+  const zin = delen.join(' en ')
+  return `${zin.charAt(0).toUpperCase()}${zin.slice(1)}.`
 }
 
 /** De feiten als korte zinnen, alleen wat écht gemeten is. */
@@ -99,6 +136,7 @@ export function feitZinnen(f: Feiten, s: Signalen): string[] {
       zinnen.push(`Je sliep ${duur(f.slaapMinuten)}${s.slaapNormaal !== null ? ', ongeveer je normaal' : ''}.`)
     }
   }
+  if (s.herstelLaag) zinnen.push(herstelZin(s))
   if (f.checkin) {
     const delen = [`stemming ${f.checkin.stemming}/5`]
     if (f.checkin.energie != null) delen.push(`energie ${f.checkin.energie}/5`)

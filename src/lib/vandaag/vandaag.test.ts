@@ -21,6 +21,7 @@ function feiten(over: Partial<Feiten> = {}): Feiten {
     bedtijdStreef: '23:00',
     afspraken: null,
     grenzen: null,
+    herstel: null,
     ...over,
   }
 }
@@ -146,5 +147,27 @@ describe('maakKaart — de regelbibliotheek', () => {
       }),
     )
     expect(kaart.acties.length).toBeLessThanOrEqual(MAX_ACTIES)
+  })
+})
+
+describe('herstel uit het horloge', () => {
+  const HARTSLAG = [52, 53, 51, 52, 54, 52, 53]
+  const HRV = [60, 62, 58, 61, 59, 60, 63]
+
+  test('rusthartslag 6 slagen boven normaal → minder hersteld, zware training lichter', () => {
+    const k = maakKaart(feiten({ herstel: { rustHartslag: 58, rustHartslagHistorie: HARTSLAG, hrv: null, hrvHistorie: [] } }))
+    expect(k.training?.advies).toBe('lichter')
+    expect(k.feiten).toContain('Je rusthartslag is 6 slagen hoger dan normaal.')
+  })
+
+  test('HRV 25% onder normaal telt ook', () => {
+    const s = bepaalSignalen(feiten({ herstel: { rustHartslag: null, rustHartslagHistorie: [], hrv: 45, hrvHistorie: HRV } }))
+    expect(s.herstelLaag).toBe(true)
+    expect(s.aantalLaag).toBe(1)
+  })
+
+  test('binnen je normaal of te weinig historie → geen signaal', () => {
+    expect(bepaalSignalen(feiten({ herstel: { rustHartslag: 55, rustHartslagHistorie: HARTSLAG, hrv: 55, hrvHistorie: HRV } })).herstelLaag).toBe(false)
+    expect(bepaalSignalen(feiten({ herstel: { rustHartslag: 70, rustHartslagHistorie: [52, 53], hrv: null, hrvHistorie: [] } })).herstelLaag).toBe(false)
   })
 })

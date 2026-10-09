@@ -3,6 +3,7 @@ import { kiesMeldingen, type PlanContext, type PushVoorkeuren } from './planning
 import { minutenVanTijd } from './timing'
 
 const allesAan: PushVoorkeuren = {
+  vandaagAan: true,
   checkinAan: true,
   streakAan: true,
   vitaWeekAan: true,
@@ -86,5 +87,28 @@ describe('kiesMeldingen — Vita weekinzicht', () => {
   it('stuurt niet twee keer dezelfde dag', () => {
     const r = kiesMeldingen(ctx({ weekdag: 0, nuMinuten: minutenVanTijd('11:00')!, reedsVandaagActief: true, laatstVerzonden: { vita_week: '2026-08-11' } }))
     expect(r).toEqual([])
+  })
+})
+
+describe('kiesMeldingen — Vandaag-kaart', () => {
+  const ochtend = (tijd: string, over: Partial<PlanContext> = {}) =>
+    kiesMeldingen(ctx({ nuMinuten: minutenVanTijd(tijd)!, ...over }))
+
+  it('om 08:15 één melding die naar /1 gaat', () => {
+    expect(ochtend('08:15')).toEqual([{
+      type: 'vandaag',
+      titel: 'Je Vandaag-kaart staat klaar',
+      tekst: 'Check in in tien seconden en zie wat vandaag telt.',
+      pad: '/1',
+    }])
+  })
+  it('niet in de stiltetijd, niet na 11:00, niet twee keer, niet als je al actief was', () => {
+    expect(ochtend('07:45')).toEqual([])
+    expect(ochtend('11:05')).toEqual([])
+    expect(ochtend('09:00', { laatstVerzonden: { vandaag: '2026-08-11' } })).toEqual([])
+    expect(ochtend('09:00', { reedsVandaagActief: true })).toEqual([])
+  })
+  it('uit in de voorkeuren = uit', () => {
+    expect(ochtend('09:00', { voorkeuren: { ...allesAan, vandaagAan: false } })).toEqual([])
   })
 })

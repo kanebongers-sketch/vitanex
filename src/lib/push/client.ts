@@ -38,6 +38,16 @@ async function zetListenersOp(platform: string, pn: PushPlugin): Promise<void> {
     }).catch(() => { /* offline — volgende keer opnieuw */ })
   })
   await pn.addListener('registrationError', () => { /* stil; UI toont geen valse belofte */ })
+  // Tik op een melding: naar het pad dat de server meestuurde (alleen eigen app-paden).
+  await pn.addListener('pushNotificationActionPerformed', (actie) => {
+    const pad = (actie.notification.data as Record<string, unknown> | undefined)?.pad
+    if (isAppPad(pad)) window.location.assign(pad)
+  })
+}
+
+/** Alleen een relatief pad binnen de app ("/1"), nooit een externe of protocol-relatieve URL. */
+export function isAppPad(pad: unknown): pad is string {
+  return typeof pad === 'string' && /^\/[A-Za-z0-9/_-]*$/.test(pad) && !pad.startsWith('//')
 }
 
 /** Huidige permissie-status, zonder iets te vragen. */
