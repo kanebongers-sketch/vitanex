@@ -148,6 +148,10 @@ const nextConfig: NextConfig = {
           { key: 'X-Permitted-Cross-Domain-Policies',  value: 'none' },
           // HSTS — only in production to avoid breaking local dev
           ...(isProd ? [{ key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' }] : []),
+          // Verborgen site: nergens in zoekmachines. Werkt alleen als Google de
+          // pagina wél mag ophalen (zie app/robots.ts) — anders ziet hij dit nooit
+          // en blijven oude resultaten staan.
+          ...(SITE_VERBORGEN ? [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }] : []),
         ],
       },
       // Cache static assets aggressively — alleen in productie.
