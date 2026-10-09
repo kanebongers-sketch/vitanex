@@ -15,6 +15,7 @@ import type { PijlerOverzicht } from '@/lib/pijlers/pijlers-server'
 import type { VandaagStatus } from '@/app/api/home/vandaag/route'
 import type { CSSProperties } from 'react'
 import { RetentieBalk } from '@/components/home/RetentieBalk'
+import { VandaagKaartLink } from '@/components/home/VandaagKaartLink'
 import { TrendsBlok } from '@/components/home/TrendsBlok'
 import { useVitaInzicht } from '@/components/home/VitaInzicht'
 import { SnelLogSheet } from '@/components/home/SnelLogSheet'
@@ -165,6 +166,9 @@ export default function HomePage() {
           <p style={{ fontSize: 13, color: 'var(--text-4)', margin: '0 0 2px' }}>{new Date().toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
           <h1 style={{ fontSize: 26, fontWeight: 900, color: 'var(--text-1)', margin: 0, letterSpacing: '-0.02em' }}>{groetVoor(new Date().getHours())}, {voornaam || '…'}</h1>
         </header>
+
+        {/* De Vandaag-kaart: wat telt er vandaag */}
+        <VandaagKaartLink />
 
         {/* Anker: dagscore + de daglus (streak + check-in) in één kaart */}
         <section aria-label="Vandaag" style={{ ...CARD }}>

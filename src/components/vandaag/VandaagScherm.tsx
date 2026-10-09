@@ -1,6 +1,6 @@
 'use client'
 
-// Container voor /1: haalt de kaart op, verstuurt de check-in en de keuzes per
+// Container voor /vandaag: haalt de kaart op, verstuurt de check-in en de keuzes per
 // actie. De kaart zelf en het formulier zijn presentational.
 
 import Link from 'next/link'
@@ -68,7 +68,7 @@ export function VandaagScherm() {
   const kopRef = useRef<HTMLHeadingElement>(null)
 
   const verwerk = useCallback((uit: Geladen) => {
-    if (uit.soort === 'uitgelogd') { router.replace('/login?next=/1'); return }
+    if (uit.soort === 'uitgelogd') { router.replace('/login?next=/vandaag'); return }
     if (uit.soort === 'fout') { setStatus(uit); return }
     setGekozen(uit.gekozen)
     setRekening(uit.rekening)
@@ -129,7 +129,7 @@ export function VandaagScherm() {
   return (
     <VandaagKader
       rechts={
-        <Link href="/1/plan" className="mf-pressable mf-vandaag-link" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 14, color: 'var(--text-2)', textDecoration: 'none', minHeight: 40 }}>
+        <Link href="/vandaag/plan" className="mf-pressable mf-vandaag-link" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 14, color: 'var(--text-2)', textDecoration: 'none', minHeight: 40 }}>
           <CalendarDays size={16} aria-hidden /> Weekplan
         </Link>
       }

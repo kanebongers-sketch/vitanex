@@ -45,7 +45,7 @@ async function zetListenersOp(platform: string, pn: PushPlugin): Promise<void> {
   })
 }
 
-/** Alleen een relatief pad binnen de app ("/1"), nooit een externe of protocol-relatieve URL. */
+/** Alleen een relatief pad binnen de app ("/vandaag"), nooit een externe of protocol-relatieve URL. */
 export function isAppPad(pad: unknown): pad is string {
   return typeof pad === 'string' && /^\/[A-Za-z0-9/_-]*$/.test(pad) && !pad.startsWith('//')
 }

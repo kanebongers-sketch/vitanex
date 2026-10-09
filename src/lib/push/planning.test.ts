@@ -94,12 +94,12 @@ describe('kiesMeldingen — Vandaag-kaart', () => {
   const ochtend = (tijd: string, over: Partial<PlanContext> = {}) =>
     kiesMeldingen(ctx({ nuMinuten: minutenVanTijd(tijd)!, ...over }))
 
-  it('om 08:15 één melding die naar /1 gaat', () => {
+  it('om 08:15 één melding die naar /vandaag gaat', () => {
     expect(ochtend('08:15')).toEqual([{
       type: 'vandaag',
       titel: 'Je Vandaag-kaart staat klaar',
       tekst: 'Check in in tien seconden en zie wat vandaag telt.',
-      pad: '/1',
+      pad: '/vandaag',
     }])
   })
   it('niet in de stiltetijd, niet na 11:00, niet twee keer, niet als je al actief was', () => {

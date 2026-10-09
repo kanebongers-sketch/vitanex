@@ -91,10 +91,16 @@ const nextConfig: NextConfig = {
       { source: '/programma', destination: `${LIFEOS}/programma`, permanent: true },
       { source: '/training', destination: `${LIFEOS}/training`, permanent: true },
     ]
-    if (!SITE_VERBORGEN) return [...leadLinks, ...lifeosLinks]
+    // De Vandaag-kaart heette even /1; het is gewoon /vandaag in MentaForce.
+    const vandaagLinks = [
+      { source: '/1', destination: '/vandaag', permanent: true },
+      { source: '/1/plan', destination: '/vandaag/plan', permanent: true },
+    ]
+    if (!SITE_VERBORGEN) return [...leadLinks, ...lifeosLinks, ...vandaagLinks]
     return [
       ...leadLinks,
       ...lifeosLinks,
+      ...vandaagLinks,
       ...['/', '/contact', '/voorwaarden', '/bedankt', '/register', '/uitnodiging'].map((source) => ({
         source,
         destination: '/login',

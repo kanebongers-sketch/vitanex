@@ -115,7 +115,7 @@ function ActieKnop({ actie, keuze, onKies, titelId }: ActieRijProps & { titelId:
     return <a href="#checkin" aria-describedby={titelId} className="mf-pressable mf-vandaag-knop" style={knopStijl(true)}>Inchecken</a>
   }
   if (actie.knop === 'plan') {
-    return <Link href="/1/plan" aria-describedby={titelId} className="mf-pressable mf-vandaag-knop" style={knopStijl(true)}>Plan invullen</Link>
+    return <Link href="/vandaag/plan" aria-describedby={titelId} className="mf-pressable mf-vandaag-knop" style={knopStijl(true)}>Plan invullen</Link>
   }
   const gedaan = keuze === 'oke'
   return (

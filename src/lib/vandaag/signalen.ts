@@ -1,4 +1,4 @@
-// ─── MentaForce /1 — signalen: wat wijkt vandaag af? ────────────────────────
+// ─── MentaForce Vandaag-kaart — signalen: wat wijkt vandaag af? ────────────────────────
 // Van feiten + normaal naar een handvol ja/nee-signalen, plus de feitzinnen die
 // de kaart toont. De drempels staan hier bij elkaar, zodat ze met trainers
 // getoetst en bijgesteld kunnen worden zonder de regels zelf te raken.

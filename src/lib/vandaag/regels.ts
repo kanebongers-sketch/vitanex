@@ -1,4 +1,4 @@
-// ─── MentaForce /1 — de regelbibliotheek ────────────────────────────────────
+// ─── MentaForce Vandaag-kaart — de regelbibliotheek ────────────────────────────────────
 // Van signalen naar de kaart. Elke regel hieronder is één soort beslissing uit
 // het strategisch advies (§4). De volgorde is de prioriteit; de kaart toont er
 // hooguit drie. "Alles normaal" is een volwaardige uitkomst: geen verzonnen

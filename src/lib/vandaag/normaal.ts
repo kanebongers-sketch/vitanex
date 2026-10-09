@@ -1,4 +1,4 @@
-// ─── MentaForce /1 — je persoonlijke normaal ────────────────────────────────
+// ─── MentaForce Vandaag-kaart — je persoonlijke normaal ────────────────────────────────
 // "Slecht geslapen" betekent voor iedereen iets anders. De kaart vergelijkt met
 // jóuw normaal: de mediaan van je recente dagen. De mediaan, niet het gemiddelde:
 // één gebroken nacht of één marathon trekt hem niet scheef.

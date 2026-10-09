@@ -1,4 +1,4 @@
-// ─── MentaForce /1 — de rekening: wat kosten je gewoontes je? ───────────────
+// ─── MentaForce Vandaag-kaart — de rekening: wat kosten je gewoontes je? ───────────────
 // Confronterend, maar eerlijk. Elk getal hieronder komt letterlijk uit een
 // gepubliceerd onderzoek (bron erbij), of is een rekensom op jouw eigen metingen.
 // Wat we bewust NIET doen: een persoonlijk "je verliest 2,3 jaar" uitrekenen.

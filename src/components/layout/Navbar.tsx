@@ -11,7 +11,7 @@ import {
   LayoutDashboard, Calendar, Map, Lightbulb,
   LogOut, ChevronRight, CheckCircle2, GraduationCap, UserRound,
   UserPlus, ListChecks, Apple, BookOpen, Milestone, Dumbbell,
-  TrendingUp,
+  TrendingUp, Sunrise,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import WeekRingen from './WeekRingen'
@@ -52,6 +52,7 @@ type TopItem = {
 /* ── Navigatiestructuur ── */
 const TOP_ITEMS: TopItem[] = [
   { key: 'vandaag',   label: 'Home',      icon: CalendarDays,  href: '/home'      },
+  { key: 'kaart',     label: 'Vandaag',   icon: Sunrise,       href: '/vandaag'   },
   { key: 'actief',    label: 'Fysiek',    icon: Dumbbell,      href: '/actief'    },
   { key: 'welzijn',   label: 'Mentaal',   icon: HeartPulse,    href: '/welzijn'   },
   { key: 'groeien',   label: 'Groeien',   icon: TrendingUp,    href: '/groeien'   },

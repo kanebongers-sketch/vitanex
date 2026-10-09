@@ -6,7 +6,7 @@ import { isAppPad } from './client'
 
 describe('isAppPad', () => {
   it('accepteert eigen app-paden', () => {
-    expect(isAppPad('/1')).toBe(true)
+    expect(isAppPad("/vandaag")).toBe(true)
     expect(isAppPad('/gezondheid/slaap')).toBe(true)
   })
   it('weigert externe, protocol-relatieve en rare waarden', () => {

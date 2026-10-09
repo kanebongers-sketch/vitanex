@@ -87,7 +87,7 @@ export function kiesMeldingen(ctx: PlanContext): GeplandeMelding[] {
       type: 'vandaag',
       titel: 'Je Vandaag-kaart staat klaar',
       tekst: 'Check in in tien seconden en zie wat vandaag telt.',
-      pad: '/1',
+      pad: '/vandaag',
     }]
   }
 

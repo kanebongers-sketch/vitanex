@@ -1,6 +1,6 @@
 'use client'
 
-// /1/plan: je weekplan in zeven regels. Per dag: rust of training (naam, zwaar of
+// /vandaag/plan: je weekplan in zeven regels. Per dag: rust of training (naam, zwaar of
 // licht, optioneel een tijd). De kaart buigt alleen mee met wat hier staat.
 
 import Link from 'next/link'
@@ -126,7 +126,7 @@ export function PlanEditor() {
     let actief = true
     void haalPlan().then((uit) => {
       if (!actief) return
-      if (uit === 'uitgelogd') router.replace('/login?next=/1/plan')
+      if (uit === 'uitgelogd') router.replace('/login?next=/vandaag/plan')
       else if (uit === 'fout') setLaadFout(true)
       else setRegels(uit)
     })
@@ -162,7 +162,7 @@ export function PlanEditor() {
         return
       }
       toast({ title: 'Plan opgeslagen.', variant: 'success' })
-      router.push('/1')
+      router.push('/vandaag')
     } catch {
       toast({ title: 'Geen verbinding. Je plan is niet opgeslagen.', variant: 'error' })
     } finally {
@@ -173,7 +173,7 @@ export function PlanEditor() {
   return (
     <VandaagKader
       rechts={
-        <Link href="/1" className="mf-vandaag-link" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 14, color: 'var(--text-2)', textDecoration: 'none', minHeight: 40 }}>
+        <Link href="/vandaag" className="mf-vandaag-link" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 14, color: 'var(--text-2)', textDecoration: 'none', minHeight: 40 }}>
           <ArrowLeft size={16} aria-hidden /> Vandaag
         </Link>
       }

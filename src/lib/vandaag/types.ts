@@ -1,4 +1,4 @@
-// ─── MentaForce /1 — de Vandaag-kaart: types ────────────────────────────────
+// ─── MentaForce Vandaag-kaart — de Vandaag-kaart: types ────────────────────────────────
 // De kernbelofte: "Elke ochtend weet je wat vandaag telt." De kaart komt uit een
 // vaste keten (zie strategisch advies §11):
 //

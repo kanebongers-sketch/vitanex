@@ -1,5 +1,5 @@
-// ─── MentaForce /1 — invoer van buiten controleren (puur) ───────────────────
-// Elke body die de /1-API binnenkomt is onbetrouwbaar. Hier wordt hij gelezen en
+// ─── MentaForce Vandaag-kaart — invoer van buiten controleren (puur) ───────────────────
+// Elke body die de Vandaag-API binnenkomt is onbetrouwbaar. Hier wordt hij gelezen en
 // gecontroleerd; de routes zelf casten niets.
 
 import type { ActieSoort, Intensiteit } from './types'

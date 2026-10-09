@@ -1,4 +1,4 @@
-// ─── MentaForce /1 — feiten ophalen (SERVER-ONLY) ───────────────────────────
+// ─── MentaForce Vandaag-kaart — feiten ophalen (SERVER-ONLY) ───────────────────────────
 // Leest alles wat de Vandaag-kaart nodig heeft, met de RLS-gebonden client van
 // de gebruiker (src/lib/supabase/gebruiker.ts). Elke bron is best-effort: valt
 // er één om, dan is dat veld leeg en zwijgt de kaart erover. Een lege bron is
