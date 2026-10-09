@@ -3,6 +3,7 @@
 // + vandaag-al-actief-check via de pure planner) en verstuurt die via FCM.
 // Fail-closed op CRON_SECRET, net als de andere cron-routes.
 
+import { geheimGelijk } from '@/lib/lifeos/auth/geheim'
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { vandaagNL, datumMinusDagenNL, toDateString } from '@/lib/utils/date-nl'
@@ -102,15 +103,20 @@ function naarVoorkeuren(rij: VoorkeurRij | undefined): PushVoorkeuren {
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
   const cronSecret = process.env.CRON_SECRET ?? ''
+  // Header heeft de voorkeur; ?secret= blijft tot de cron-job.org-taak een
+  // header stuurt (een querystring belandt in access-logs).
   const secret = req.headers.get('x-cron-secret') ?? req.nextUrl.searchParams.get('secret')
-  if (!cronSecret || secret !== cronSecret) {
+  if (!cronSecret || !geheimGelijk(cronSecret, secret)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const db = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  )
+  // Zonder service-key ziet RLS niemand en zou de cron stil "0 kandidaten" melden.
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!serviceKey) {
+    console.error('[cron/push] SUPABASE_SERVICE_ROLE_KEY ontbreekt')
+    return NextResponse.json({ error: 'Niet geconfigureerd' }, { status: 500 })
+  }
+  const db = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, serviceKey)
 
   const nu = nuNL()
 

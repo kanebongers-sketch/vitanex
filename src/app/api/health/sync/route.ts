@@ -13,9 +13,11 @@ const MAX_DAGEN = 62
 const MAX_WORKOUTS = 300
 const SYNC_PER_VENSTER = 20
 const VENSTER_MS = 10 * 60 * 1000
+/** 62 dagen + 300 trainingen passen ruim in 1 MB; alles daarboven weigeren vóór het parsen. */
+const MAX_BODY_BYTES = 1_000_000
 
 function json(body: unknown, status = 200) {
-  return NextResponse.json(body, { status })
+  return NextResponse.json(body, { status, headers: { 'Cache-Control': 'private, no-store' } })
 }
 
 /** Sync-status per bron, zodat de app incrementeel kan synchroniseren. */
@@ -50,7 +52,10 @@ function leesBody(body: unknown): SchoneBody | string {
   if (ruweWorkouts.length > MAX_WORKOUTS) return `Hooguit ${MAX_WORKOUTS} trainingen per sync`
 
   const nu = new Date()
-  const dagen = ruweDagen.map(d => schoonDagMeting(d, nu)).filter((d): d is DagMeting => d !== null)
+  // Eén meting per datum: twee keer dezelfde dag in één upsert laat Postgres falen.
+  const dagen = [...new Map(
+    ruweDagen.map(d => schoonDagMeting(d, nu)).filter((d): d is DagMeting => d !== null).map(d => [d.datum, d]),
+  ).values()]
   const workouts = ruweWorkouts.map(w => schoonWorkout(w, nu)).filter((w): w is WorkoutMeting => w !== null)
   return {
     bron: b.bron as HealthBron,
@@ -72,6 +77,10 @@ export async function POST(req: NextRequest) {
   if (!sessie) return json({ error: 'Niet ingelogd' }, 401)
   if (isRateLimited(`health-sync:${sessie.user.id}`, SYNC_PER_VENSTER, VENSTER_MS)) {
     return json({ error: 'Te veel synchronisaties — probeer het zo opnieuw' }, 429)
+  }
+
+  if (Number(req.headers.get('content-length') ?? 0) > MAX_BODY_BYTES) {
+    return json({ error: 'Te veel gegevens in één keer' }, 413)
   }
 
   let ruw: unknown

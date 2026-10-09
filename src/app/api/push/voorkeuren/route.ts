@@ -7,7 +7,7 @@ import { getAuthenticatedUser } from '@/lib/auth/api-auth'
 import { createAdminClient } from '@/lib/supabase/supabase-admin'
 import { pushGeconfigureerd } from '@/lib/push/verzend'
 
-const TIJD = /^\d{1,2}:\d{2}$/
+const TIJD = /^([01]\d|2[0-3]):[0-5]\d$/
 
 const DEFAULTS = {
   vandaag_aan: true,
@@ -39,7 +39,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     return NextResponse.json({
       voorkeuren: data ?? DEFAULTS,
       geconfigureerd: pushGeconfigureerd(),
-    })
+    }, { headers: { 'Cache-Control': 'private, no-store' } })
   } catch (err) {
     console.error('[push voorkeuren GET]', err)
     return NextResponse.json({ error: 'Er is een fout opgetreden.' }, { status: 500 })
@@ -56,7 +56,8 @@ export async function PUT(req: NextRequest): Promise<NextResponse> {
     const user = await getAuthenticatedUser(req)
     if (!user) return NextResponse.json({ error: 'Niet ingelogd.' }, { status: 401 })
 
-    const body: Record<string, unknown> = await req.json().catch(() => ({}))
+    const ruw: unknown = await req.json().catch(() => null)
+    const body: Record<string, unknown> = typeof ruw === 'object' && ruw !== null && !Array.isArray(ruw) ? ruw as Record<string, unknown> : {}
     const maxRuw = typeof body.max_per_dag === 'number' ? Math.round(body.max_per_dag) : DEFAULTS.max_per_dag
 
     const rij = {
