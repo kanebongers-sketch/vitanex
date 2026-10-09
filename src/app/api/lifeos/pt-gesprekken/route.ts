@@ -29,8 +29,12 @@ import { haalCheckinsVanafVoor } from '@/lib/lifeos/pt-dashboard/checkin-opslag'
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
-/** "Ingepland" = binnen het komende ritme (een week) plus een paar dagen speling. */
-const VENSTER_DAGEN = RITME_DAGEN + 2
+/**
+ * "Ingepland" = er staat een volgend coachgesprek in de agenda, tot zestig dagen
+ * vooruit. Eerder was dit één ritme (een week) plus twee dagen: wie twee weken
+ * vooruit stond, telde als "nog inplannen" terwijl de afspraak er gewoon was.
+ */
+const VENSTER_DAGEN = 60
 /** Zoveel gesprekken toont het scoreverloop per PT'er. */
 const VERLOOP_GESPREKKEN = 8
 const TERUG_DAGEN = 21
