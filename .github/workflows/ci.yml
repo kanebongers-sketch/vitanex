@@ -19,6 +19,24 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # De repo is openbaar: een per ongeluk gecommitte sleutel staat meteen op
+      # straat. Deze stap faalt vóór er iets geïnstalleerd wordt op de bekende
+      # vormen van tokens (Supabase/JWT, Anthropic, Stripe, AWS, GitHub, Slack,
+      # Resend, private keys) en op env-bestanden in de boom. Geen externe
+      # dienst, geen token nodig. Bewust streng op vorm, niet op naam: een
+      # variabele die `KEY` heet is geen lek, een `eyJ…` van drie delen wél.
+      - name: Geheimen-check (gecommitte sleutels)
+        run: |
+          set -euo pipefail
+          if git ls-files | grep -E '(^|/)\.env(\..*)?$' | grep -vE '(^|/)\.env\.example$'; then
+            echo '::error::Er staat een .env-bestand in git.'; exit 1
+          fi
+          PATROON='eyJ[A-Za-z0-9_-]{30,}\.[A-Za-z0-9_-]{30,}\.[A-Za-z0-9_-]{20,}|sk-ant-[A-Za-z0-9_-]{20,}|sk_(live|test)_[A-Za-z0-9]{20,}|rk_(live|test)_[A-Za-z0-9]{20,}|whsec_[A-Za-z0-9]{20,}|AKIA[0-9A-Z]{16}|gh[pousr]_[A-Za-z0-9]{30,}|github_pat_[A-Za-z0-9_]{30,}|xox[baprs]-[A-Za-z0-9-]{10,}|re_[A-Za-z0-9]{20,}_[A-Za-z0-9]{10,}|-----BEGIN (RSA |EC |OPENSSH |PGP )?PRIVATE KEY-----|[0-9]{8,10}:AA[A-Za-z0-9_-]{30,}'
+          if git ls-files -z | xargs -0 grep -nE "$PATROON" -- 2>/dev/null; then
+            echo '::error::Er lijkt een sleutel of token in de code te staan (zie regels hierboven). Haal hem weg én roteer hem.'; exit 1
+          fi
+          echo 'Geen sleutels gevonden.'
+
       - uses: actions/setup-node@v4
         with:
           # Zelfde major als Render (24.x) zodat CI en deploy hetzelfde gedrag zien.

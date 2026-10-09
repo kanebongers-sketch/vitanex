@@ -22,6 +22,7 @@ import {
   leesUploadVerzoek,
   type PtDocument,
 } from './documenten-lezers'
+import { leesObjectInfo } from './documenten-opslag'
 import { opslagFout } from './documenten-upload'
 
 const PDF = 'application/pdf'
@@ -182,6 +183,21 @@ describe('groepeerPerCategorie', () => {
     expect(groepen.map((g) => g.label)).toEqual(['Protocollen', 'PT Academy', 'Overig'])
     expect(groepen[0].documenten.map((x) => x.id)).toEqual(['5', '4'])
     expect(groepen[1].documenten.map((x) => x.id)).toEqual(['3', '2'])
+  })
+})
+
+describe('leesObjectInfo — wat de opslag over een object zegt', () => {
+  test('grootte + content-type, camelCase (runtime) én snake_case (typedefinitie); parameters en hoofdletters weg', () => {
+    expect(leesObjectInfo({ size: 10, contentType: 'Application/PDF; charset=binary' })).toEqual({ grootte: 10, mime: 'application/pdf' })
+    expect(leesObjectInfo({ size: 10, content_type: PDF })).toEqual({ grootte: 10, mime: PDF })
+    expect(leesObjectInfo({ size: 10 })).toEqual({ grootte: 10, mime: null })
+  })
+
+  test('zonder bruikbare grootte is er geen info', () => {
+    expect(leesObjectInfo({ contentType: PDF })).toBeNull()
+    expect(leesObjectInfo({ size: '10' })).toBeNull()
+    expect(leesObjectInfo({ size: -1 })).toBeNull()
+    expect(leesObjectInfo(null)).toBeNull()
   })
 })
 

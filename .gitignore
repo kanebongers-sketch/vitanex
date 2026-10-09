@@ -23,6 +23,16 @@
 # misc
 .DS_Store
 *.pem
+# Sleutels en certificaten (native builds, signing) — nooit in een openbare repo
+*.p12
+*.p8
+*.keystore
+*.jks
+*.mobileprovision
+android/keystore.properties
+android/local.properties
+android/app/google-services.json
+ios/App/App/GoogleService-Info.plist
 
 # debug
 npm-debug.log*

@@ -41,6 +41,8 @@ export async function POST(req: NextRequest) {
       return fout('Het bestand staat niet in de opslag. De upload is niet gelukt; probeer het opnieuw.', 409)
     case 'te_groot':
       return fout('Het bestand is groter dan 50 MB en is weer verwijderd.', 413)
+    case 'soort':
+      return fout('De inhoud van het bestand past niet bij de extensie; het is weer verwijderd. Upload het originele bestand.', 415)
     default:
       return fout('Opslaan mislukt. Probeer het opnieuw.', 502)
   }
