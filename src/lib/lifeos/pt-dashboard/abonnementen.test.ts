@@ -135,3 +135,16 @@ describe('afwijkende prijs: ongeldig is een fout, niet stil de standaard', () =>
     }
   })
 })
+
+describe('looptijd: schrikkeljaar en jaarwisseling', () => {
+  test('vaste periode over een schrikkeldag heen', () => {
+    expect(eindeVastePeriode('2027-12-15')).toBe('2028-03-14')
+    expect(eindeVastePeriode('2028-02-29')).toBe('2028-05-28')
+  })
+  test('opzeggen in december: een volle kalendermaand, over de jaarwisseling', () => {
+    expect(laatsteDag('2026-01-05', '2026-12-10')).toBe('2027-01-31')
+  })
+  test('opzeggen binnen de vaste periode: loopt tot het einde daarvan', () => {
+    expect(laatsteDag('2026-09-01', '2026-09-02')).toBe('2026-11-30')
+  })
+})

@@ -21,7 +21,7 @@ import { RITME_DAGEN } from '@/lib/lifeos/pt-gesprek/ritme'
 import { haalLeadsVoor } from '@/lib/lifeos/leads/opslag'
 import { zorgVoorLinks } from '@/lib/lifeos/leads/links'
 import { dagSleutelNl, vatLeadsSamen } from '@/lib/lifeos/leads/leads'
-import { haalKlantenVoor } from '@/lib/lifeos/pt-dashboard/klanten-opslag'
+import { haalKlantenVoorStrikt } from '@/lib/lifeos/pt-dashboard/klanten-opslag'
 import { klantRegel, vatKlantenSamen } from '@/lib/lifeos/pt-dashboard/abonnementen'
 import { huidigeWeek, kiesCheckin, weekVan } from '@/lib/lifeos/pt-dashboard/checkin'
 import { haalCheckinsVanafVoor } from '@/lib/lifeos/pt-dashboard/checkin-opslag'
@@ -97,7 +97,8 @@ export async function GET(req: NextRequest) {
     haalOpenPunten(toegang.admin, toegang.userId, ids),
     zorgVoorLinks(toegang.admin, toegang.userId, team),
     haalLeadsVoor(toegang.admin, toegang.userId, ids),
-    haalKlantenVoor(toegang.admin, toegang.userId, ids),
+    // Strikt: bij een leesfout geen klantenregel, i.p.v. "nog geen abonnementen".
+    haalKlantenVoorStrikt(toegang.admin, toegang.userId, ids),
     haalCheckinsVanafVoor(toegang.admin, toegang.userId, ids, weekVan(dagSleutelNl(new Date(nu.getTime() - 7 * 24 * 60 * 60 * 1000)))),
   ])
   const vandaag = dagSleutelNl(nu)
@@ -120,7 +121,7 @@ export async function GET(req: NextRequest) {
         verloop,
         leadLink: link,
         leads: link ? vatLeadsSamen(leads.get(s.id) ?? [], leadsSinds, vandaag) : null,
-        klanten: link ? klantRegel(vatKlantenSamen(klanten.get(s.id) ?? [], vandaag)) : null,
+        klanten: link && klanten ? klantRegel(vatKlantenSamen(klanten.get(s.id) ?? [], vandaag)) : null,
         checkin: kiesCheckin(checkins.get(s.id) ?? [], huidigeWeek(nu), vorige?.op ?? null),
       },
     }

@@ -13,7 +13,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { haalPersonen } from '@/lib/lifeos/crm/opslag'
 import { haalLeadsVoor } from '@/lib/lifeos/leads/opslag'
 import { dagSleutelNl, vatLeadsSamen } from '@/lib/lifeos/leads/leads'
-import { haalKlantenVoor } from '@/lib/lifeos/pt-dashboard/klanten-opslag'
+import { haalKlantenVoorStrikt } from '@/lib/lifeos/pt-dashboard/klanten-opslag'
 import { klantRegel, vatKlantenSamen } from '@/lib/lifeos/pt-dashboard/abonnementen'
 import { kiesCheckin, weekVan } from '@/lib/lifeos/pt-dashboard/checkin'
 import { haalCheckinsVanafVoor } from '@/lib/lifeos/pt-dashboard/checkin-opslag'
@@ -51,7 +51,7 @@ export async function bouwVerslag(admin: SupabaseClient, userId: string, id: str
     haalPersonen(admin, userId, 'pt_team'),
     haalEvaluaties(admin, userId, ev.persoonId),
     haalLeadsVoor(admin, userId, ids),
-    haalKlantenVoor(admin, userId, ids),
+    haalKlantenVoorStrikt(admin, userId, ids),
     haalCheckinsVanafVoor(admin, userId, ids, weekVan(dagSleutelNl(new Date(op.getTime() - 7 * DAG_MS)))),
   ])
   const naam = personen.ok ? personen.waarde.find((p) => p.id === ev.persoonId)?.naam ?? 'PT-teamlid' : 'PT-teamlid'
@@ -59,6 +59,8 @@ export async function bouwVerslag(admin: SupabaseClient, userId: string, id: str
   const vorige = alle.ok ? alle.waarde.find((e) => e.aangemaaktOp < ev.aangemaaktOp) ?? null : null
   const sinds = vorige ? new Date(vorige.aangemaaktOp) : new Date(op.getTime() - RITME_DAGEN * DAG_MS)
 
+  // Klanten niet leesbaar: liever een eerlijke fout dan een verslag met €0 en 0 abonnementen.
+  if (!klanten) return { ok: false, reden: 'db' }
   const vandaag = dagSleutelNl(nu)
   const eigenLeads = leads.get(ev.persoonId) ?? []
   const eigenKlanten = klanten.get(ev.persoonId) ?? []

@@ -29,7 +29,7 @@ import { mailVerslag } from '@/lib/lifeos/pt-coaching/verslag-mail'
 import { GESPREK_DUUR_MIN, RITME_DAGEN } from '@/lib/lifeos/pt-gesprek/ritme'
 import { haalLeadsVoor } from '@/lib/lifeos/leads/opslag'
 import { dagSleutelNl, vatLeadsSamen, type LeadSamenvatting } from '@/lib/lifeos/leads/leads'
-import { haalKlantenVoor } from '@/lib/lifeos/pt-dashboard/klanten-opslag'
+import { haalKlantenVoorStrikt } from '@/lib/lifeos/pt-dashboard/klanten-opslag'
 import { klantRegel, vatKlantenSamen } from '@/lib/lifeos/pt-dashboard/abonnementen'
 import { huidigeWeek, kiesCheckin, weekVan, type Checkin } from '@/lib/lifeos/pt-dashboard/checkin'
 import { haalCheckinsVanafVoor } from '@/lib/lifeos/pt-dashboard/checkin-opslag'
@@ -221,7 +221,7 @@ async function leadsSindsVorige(
     const [laatste, leads, klanten, checkins] = await Promise.all([
       haalLaatsteEvaluaties(toegang.admin, toegang.userId, [persoonId]),
       haalLeadsVoor(toegang.admin, toegang.userId, [persoonId]),
-      haalKlantenVoor(toegang.admin, toegang.userId, [persoonId]),
+      haalKlantenVoorStrikt(toegang.admin, toegang.userId, [persoonId]),
       haalCheckinsVanafVoor(toegang.admin, toegang.userId, [persoonId], weekVan(dagSleutelNl(new Date(nu.getTime() - 7 * 24 * 60 * 60 * 1000)))),
     ])
     const vorige = laatste.get(persoonId)
@@ -229,7 +229,8 @@ async function leadsSindsVorige(
     const vandaag = dagSleutelNl(nu)
     return {
       leads: vatLeadsSamen(leads.get(persoonId) ?? [], sinds, vandaag),
-      klanten: klantRegel(vatKlantenSamen(klanten.get(persoonId) ?? [], vandaag)),
+      // Leesfout → geen regel in het verslag i.p.v. "nog geen abonnementen".
+      klanten: klanten ? klantRegel(vatKlantenSamen(klanten.get(persoonId) ?? [], vandaag)) : null,
       voorbereiding: kiesCheckin(checkins.get(persoonId) ?? [], huidigeWeek(nu), vorige?.aangemaaktOp ?? null),
     }
   } catch {

@@ -5,7 +5,7 @@
 // regel totaal. Alles afgeleid uit wat er is ingevuld — niets geschat.
 
 import { OPEN_STATUSSEN, type Lead } from '@/lib/lifeos/leads/leads'
-import { euro, isLopend, klantPrijs, plusDagen, type PtKlant } from './abonnementen'
+import { euro, vatKlantenSamen, plusDagen, type PtKlant } from './abonnementen'
 
 export interface PtWeekCijfers {
   leads: number
@@ -26,14 +26,14 @@ const meervoud = (n: number, een: string, meer: string): string => `${n} ${n ===
 
 export function ptWeekCijfers(leads: readonly Lead[], klanten: readonly PtKlant[], vandaag: string): PtWeekCijfers {
   const van = plusDagen(vandaag, -7)
-  const lopend = klanten.filter((k) => isLopend(k, vandaag))
+  // Lopend en omzet uit dezelfde bron als het team-overzicht (afwijkende prijs telt mee, bevroren niet).
+  const s = vatKlantenSamen(klanten, vandaag)
   return {
     leads: leads.filter((l) => l.gesprokenOp >= van && l.gesprokenOp < vandaag).length,
     nieuweKlanten: klanten.filter((k) => k.startdatum >= van && k.startdatum < vandaag).length,
     teLaat: leads.filter((l) => OPEN_STATUSSEN.includes(l.status) && l.opvolgdatum !== null && l.opvolgdatum < vandaag).length,
-    lopend: lopend.length,
-    // Wat klanten écht betalen (afwijkende prijs telt mee), net als in het team-overzicht.
-    maandwaarde: lopend.filter((k) => k.status !== 'bevroren').reduce((s, k) => s + klantPrijs(k), 0),
+    lopend: s.lopend,
+    maandwaarde: s.maandwaarde,
   }
 }
 
