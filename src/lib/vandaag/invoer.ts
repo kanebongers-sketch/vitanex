@@ -20,7 +20,7 @@ export interface CheckInInvoer {
   stress: number
 }
 
-/** Drie schuifjes, elk een geheel getal 1–5. */
+/** Drie vragen, elk een geheel getal 1–5. */
 export function leesCheckIn(body: unknown): Validatie<CheckInInvoer> {
   const o = obj(body)
   const stemming = schaal(o?.stemming)

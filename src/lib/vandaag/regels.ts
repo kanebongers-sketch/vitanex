@@ -120,7 +120,7 @@ function kandidaten(f: Feiten, s: Signalen, advies: TrainingAdvies | null): Acti
   if (!f.checkin) {
     uit.push({
       id: 'checkin',
-      titel: 'Hoe voel je je? Drie schuifjes, 20 seconden.',
+      titel: 'Hoe voel je je? Drie vragen, tien seconden.',
       waarom: 'Met je check-in kan ik zien of vandaag een gewone dag is.',
       knop: 'checkin',
     })
