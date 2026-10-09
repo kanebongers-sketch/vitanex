@@ -58,7 +58,7 @@ Gezondheidsgegevens van je telefoon of horloge (Health Connect op Android, Apple
 • Waarvoor: om je eigen overzicht, je Vandaag-kaart en je persoonlijke inzichten te maken. We bewaren per dag een samenvatting, geen ruwe meetreeksen
 • Gebruik je de AI-coach of de ochtendsamenvatting, dan gaat een samenvatting van deze gegevens naar onze AI-leverancier (Anthropic) om je antwoord te maken
 • Nooit verkocht, nooit gebruikt voor advertenties en nooit gedeeld met je werkgever
-• Verwijderen: mail info@mentaforce.nl, dan verwijderen we je gezondheidsgegevens
+• Inzien en verwijderen: in de app onder Instellingen → Mijn gegevens kun je al je gegevens downloaden en je gezondheidsgegevens zelf wissen. Mailen naar info@mentaforce.nl kan ook
 
 Alle gegevensverwerking vindt plaats conform de AVG (Algemene Verordening Gegevensbescherming). Vragen over privacy kunt u stellen via info@mentaforce.nl.`,
   },

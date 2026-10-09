@@ -8,6 +8,7 @@ import Link from 'next/link'
 import { Shield, Users, Leaf, User as UserIcon, AlertTriangle, LogOut, Camera, Mail, Download, Trash2, UserPlus, Eye, X } from 'lucide-react'
 import { supabase } from '@/lib/supabase/supabase'
 import { avatarPad, vergeetAvatar } from '@/lib/avatars/avatars'
+import { GezondheidVerwijderen } from '@/components/instellingen/GezondheidVerwijderen'
 import Navbar, { schakelPortaal, type ViewMode } from '@/components/layout/Navbar'
 import { Avatar } from '@/components/ui/Avatar'
 import HrCodeModal from '@/components/hr/HrCodeModal'
@@ -438,6 +439,14 @@ export default function Instellingen() {
     'focus_timer_logs', 'water_logs', 'training_logs', 'fitness_schemas',
     'oefening_logs', 'gewoonte_logs', 'survey_antwoorden', 'ai_rapporten',
     'notificatie_voorkeuren',
+    // Gezondheid, slaap en stemming (inclusief wat je telefoon/horloge aanleverde)
+    'health_native_logs', 'health_workouts', 'health_sync_status', 'slaap_logs', 'dagmetingen',
+    'lichaamsmetingen', 'stemming_logs', 'mood_logs', 'stress_logs', 'dankbaarheid_logs',
+    'ademhaling_sessies', 'focus_sessies', 'voeding_logs', 'cardio_sessies', 'sport_logs',
+    'sport_records', 'sport_schemas', 'burnout_scans', 'werkgeluk_logs',
+    // Vandaag-kaart, Vita en voortgang
+    'vandaag_plan', 'vandaag_acties', 'vita_memories', 'vita_insights', 'coach_samenvattingen',
+    'groeiplannen', 'achievements_behaald', 'push_voorkeuren',
   ] as const
 
   async function exporteerData(tabellen: readonly string[], metProfiel: boolean, bestandsnaam: string) {
@@ -1216,6 +1225,8 @@ export default function Instellingen() {
                       </p>
                     )}
                   </Card>
+
+                  <GezondheidVerwijderen />
 
                   <Card style={{ padding: 24 }}>
                     <h2 className="text-base font-semibold mb-1" style={{ color: 'var(--text-1)' }}>Recht op inzage (AVG)</h2>
