@@ -14,7 +14,26 @@ import { isCategorie, type DocumentInvoer, type DocumentWijziging, type PtDocume
 
 export const BUCKET = 'pt-documenten'
 
-export type OpslagUitkomst<T> = { ok: true; waarde: T } | { ok: false; reden: 'db' | 'niet_gevonden' | 'opslag' | 'te_groot' }
+export type OpslagUitkomst<T> = { ok: true; waarde: T } | { ok: false; reden: 'db' | 'niet_gevonden' | 'opslag' | 'te_groot' | 'soort' }
+
+/** Wat de opslag over een object vertelt; alleen wat wij controleren. */
+interface ObjectInfo {
+  grootte: number
+  mime: string | null
+}
+
+/**
+ * Leest grootte en content-type uit het antwoord van `storage.info()`. De
+ * runtime geeft camelCase (`contentType`), de typedefinitie van storage-js
+ * snake_case (`content_type`) — daarom via `unknown`, niet via een cast.
+ */
+export function leesObjectInfo(ruw: unknown): ObjectInfo | null {
+  if (typeof ruw !== 'object' || ruw === null) return null
+  const r = ruw as Record<string, unknown>
+  if (typeof r.size !== 'number' || !Number.isFinite(r.size) || r.size < 0) return null
+  const mime = typeof r.contentType === 'string' ? r.contentType : typeof r.content_type === 'string' ? r.content_type : null
+  return { grootte: r.size, mime: mime ? mime.split(';')[0].trim().toLowerCase() : null }
+}
 
 const KOLOMMEN = 'id, titel, beschrijving, categorie, pad, mime, grootte, volgorde, zichtbaar, bijgewerkt_op'
 
@@ -101,8 +120,9 @@ export async function maakUploadTicket(admin: SupabaseClient, bestandsnaam: stri
 
 /**
  * Legt de metadata vast ná de upload. Controleert eerst dat het object er echt
- * staat en neemt de grootte uit de opslag (niet van de browser). Te groot →
- * object weer weg.
+ * staat en neemt grootte én content-type uit de opslag (niet van de browser).
+ * Te groot, of een ander type dan de extensie belooft (bv. HTML achter
+ * `.pdf`, wat de opslag-host dan als pagina zou serveren) → object weer weg.
  */
 export async function voegDocumentToe(
   admin: SupabaseClient,
@@ -113,12 +133,17 @@ export async function voegDocumentToe(
   if (!soort) return { ok: false, reden: 'opslag' }
   const info = await admin.storage.from(BUCKET).info(invoer.pad)
   if (info.error || !info.data) return { ok: false, reden: 'niet_gevonden' }
-  const grootte = typeof info.data.size === 'number' ? info.data.size : null
-  if (grootte === null) return { ok: false, reden: 'opslag' }
-  if (grootte > MAX_GROOTTE) {
+  const object = leesObjectInfo(info.data)
+  if (!object) return { ok: false, reden: 'opslag' }
+  if (object.grootte > MAX_GROOTTE) {
     await admin.storage.from(BUCKET).remove([invoer.pad])
     return { ok: false, reden: 'te_groot' }
   }
+  if (object.mime !== soort.mime) {
+    await admin.storage.from(BUCKET).remove([invoer.pad])
+    return { ok: false, reden: 'soort' }
+  }
+  const grootte = object.grootte
 
   const { data, error } = await admin
     .from('pt_documenten')

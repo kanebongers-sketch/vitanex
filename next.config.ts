@@ -77,9 +77,26 @@ const nextConfig: NextConfig = {
     const isProd = process.env.NODE_ENV === 'production'
 
     // Content-Security-Policy
+    //
+    // script-src — waarom 'unsafe-inline' er (nog) staat en 'unsafe-eval' niet
+    // meer in productie:
+    //   * 'unsafe-eval' is alleen in development nodig: React reconstrueert
+    //     daar server-stacktraces met eval (zie de Next-guide
+    //     content-security-policy.md: "unsafe-eval is not required for
+    //     production"). De productiebundel (Turbopack) bevat geen eval; de
+    //     CI-build controleert dat niet, dus bij een CSP-melding in de console
+    //     eerst hier kijken.
+    //   * 'unsafe-inline' is nodig zolang er geen nonce is: Next zet zijn eigen
+    //     bootstrap-scripts inline (`self.__next_f.push`). Een nonce vereist een
+    //     proxy.ts die per request een nonce maakt én dwingt élke pagina naar
+    //     dynamic rendering (geen statische landing meer, elke hit door de
+    //     server). Dat is een bewuste latere stap — niet stiekem hier.
+    const scriptSrc = isProd ? "script-src 'self' 'unsafe-inline'" : "script-src 'self' 'unsafe-inline' 'unsafe-eval'"
     const csp = [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval'",   // Turbopack needs unsafe-eval in dev
+      scriptSrc,
+      // 'unsafe-inline' voor stijlen blijft: framer-motion/R3F zetten style-
+      // attributen, en de ui-componenten hebben inline <style>-blokken.
       "style-src 'self' 'unsafe-inline'",
       `img-src 'self' data: blob: https://${supabaseHost} https://*.openfoodfacts.org https://exercisedb.io https://v2.exercisedb.io https://exercisedb-api.vercel.app https://*.exercisedb.io`,
       `connect-src 'self' https://${supabaseHost} wss://${supabaseHost} https://${lifeosHost} https://world.openfoodfacts.org https://exercisedb.io https://v2.exercisedb.io https://exercisedb-api.vercel.app https://*.exercisedb.io https://api.nal.usda.gov`,
@@ -91,6 +108,9 @@ const nextConfig: NextConfig = {
       "form-action 'self'",
       "manifest-src 'self'",
       "worker-src 'self' blob:",
+      // Alleen in productie: in dev draait alles op http://localhost en zou de
+      // browser elk verzoek naar https proberen op te waarderen.
+      ...(isProd ? ['upgrade-insecure-requests'] : []),
     ].join('; ')
 
     // Permissions-Policy — disable unused browser features
@@ -116,6 +136,16 @@ const nextConfig: NextConfig = {
           { key: 'Referrer-Policy',                    value: 'strict-origin-when-cross-origin' },
           { key: 'Permissions-Policy',                 value: permissionsPolicy },
           { key: 'X-DNS-Prefetch-Control',             value: 'on' },
+          // Eigen browsing-context-groep: een pagina die wij openen (of die ons
+          // opent) krijgt geen `window.opener` naar ons. Er zijn geen popup-
+          // flows (OAuth loopt via redirects), dus dit breekt niets.
+          { key: 'Cross-Origin-Opener-Policy',         value: 'same-origin' },
+          // Onze antwoorden (API-JSON, chunks, afbeeldingen) mag een andere site
+          // niet no-cors inladen. `same-site` i.p.v. `same-origin` zodat een
+          // www./apex-split of een subdomein het niet breekt.
+          { key: 'Cross-Origin-Resource-Policy',       value: 'same-site' },
+          // Geen Flash/PDF-crossdomain.xml-beleid: niets mag ons cross-domain lezen.
+          { key: 'X-Permitted-Cross-Domain-Policies',  value: 'none' },
           // HSTS — only in production to avoid breaking local dev
           ...(isProd ? [{ key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' }] : []),
         ],
