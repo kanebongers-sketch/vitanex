@@ -2,7 +2,7 @@ import { describe, expect, test } from 'vitest'
 import { gewichtLijn, leesMeting, leesMetingInvoer, sorteer, verschilSindsStart, verschilTekst, type Meting } from './metingen'
 
 const meting = (over: Partial<Meting> = {}): Meting => ({
-  id: 'm', datum: '2026-09-07', soort: 'start', gewichtKg: null, tailleCm: null, heupCm: null, borstCm: null, armCm: null, beenCm: null,
+  id: 'm', datum: '2026-09-07', soort: 'start', gewichtKg: null, vetPct: null, tailleCm: null, heupCm: null, borstCm: null, armCm: null, beenCm: null,
   cardiotest: null, krachtOefening: null, krachtRm: null, krachtKg: null, fotosGemaakt: false, notitie: null, ...over,
 })
 
@@ -91,5 +91,15 @@ describe('gewichtLijn', () => {
     expect(p[0].y).toBeLessThan(p[2].y)
     for (const x of p) expect(x.y).toBeGreaterThanOrEqual(0)
     for (const x of p) expect(x.y).toBeLessThanOrEqual(100)
+  })
+})
+
+describe('vetpercentage', () => {
+  test('wordt gelezen als maat en valideert de grenzen', () => {
+    const basis = { datum: '2026-09-07', soort: 'start' }
+    const ok = leesMetingInvoer({ ...basis, vetPct: '24,5' })
+    expect(ok.ok && ok.waarde.vetPct).toBe(24.5)
+    const fout = leesMetingInvoer({ ...basis, vetPct: 90 })
+    expect(fout.ok).toBe(false)
   })
 })

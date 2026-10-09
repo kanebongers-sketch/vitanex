@@ -1,5 +1,5 @@
 // ─── Fit Factory PT — metingen door het traject (PUUR) ──────────────────────
-// Velden volgen de startmeting van het intakeformulier: gewicht en omtrekmaten,
+// Velden volgen de startmeting van het intakeformulier: gewicht, vetpercentage en omtrekmaten,
 // cardio- en krachttest, foto's. Geen normen of streefwaarden: we laten alleen
 // zien wat er gemeten is en wat er sinds de start veranderd is.
 // Opslag: pt_metingen (migratie 356), zie dossier-opslag.ts.
@@ -15,6 +15,7 @@ export function isMetingSoort(v: unknown): v is MetingSoort {
 
 export const MAAT_VELDEN = [
   { sleutel: 'gewichtKg', label: 'Gewicht', eenheid: 'kg', min: 20, max: 400 },
+  { sleutel: 'vetPct', label: 'Vetpercentage', eenheid: '%', min: 2, max: 70 },
   { sleutel: 'tailleCm', label: 'Taille', eenheid: 'cm', min: 20, max: 300 },
   { sleutel: 'heupCm', label: 'Heup', eenheid: 'cm', min: 20, max: 300 },
   { sleutel: 'borstCm', label: 'Borst', eenheid: 'cm', min: 20, max: 300 },

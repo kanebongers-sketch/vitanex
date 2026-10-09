@@ -11,7 +11,7 @@ import { leesMeting, type Meting, type MetingInvoer } from './metingen'
 export type DossierUitkomst<T> = { ok: true; waarde: T } | { ok: false; reden: 'db' | 'niet_gevonden' }
 
 const METING_KOLOMMEN =
-  'id, datum, soort, gewicht_kg, taille_cm, heup_cm, borst_cm, arm_cm, been_cm, cardiotest, kracht_oefening, kracht_rm, kracht_kg, fotos_gemaakt, notitie'
+  'id, datum, soort, gewicht_kg, vet_pct, taille_cm, heup_cm, borst_cm, arm_cm, been_cm, cardiotest, kracht_oefening, kracht_rm, kracht_kg, fotos_gemaakt, notitie'
 
 interface MetingRij {
   id: string
@@ -23,6 +23,7 @@ interface MetingRij {
   borst_cm: number | string | null
   arm_cm: number | string | null
   been_cm: number | string | null
+  vet_pct: number | string | null
   cardiotest: string | null
   kracht_oefening: string | null
   kracht_rm: number | null
@@ -34,7 +35,7 @@ interface MetingRij {
 function vanMetingRij(r: MetingRij): Meting | null {
   return leesMeting({
     id: r.id, datum: r.datum, soort: r.soort,
-    gewichtKg: r.gewicht_kg, tailleCm: r.taille_cm, heupCm: r.heup_cm, borstCm: r.borst_cm, armCm: r.arm_cm, beenCm: r.been_cm,
+    gewichtKg: r.gewicht_kg, vetPct: r.vet_pct, tailleCm: r.taille_cm, heupCm: r.heup_cm, borstCm: r.borst_cm, armCm: r.arm_cm, beenCm: r.been_cm,
     cardiotest: r.cardiotest, krachtOefening: r.kracht_oefening, krachtRm: r.kracht_rm, krachtKg: r.kracht_kg,
     fotosGemaakt: r.fotos_gemaakt, notitie: r.notitie,
   })
@@ -43,7 +44,7 @@ function vanMetingRij(r: MetingRij): Meting | null {
 function naarMetingRij(m: MetingInvoer) {
   return {
     datum: m.datum, soort: m.soort,
-    gewicht_kg: m.gewichtKg, taille_cm: m.tailleCm, heup_cm: m.heupCm, borst_cm: m.borstCm, arm_cm: m.armCm, been_cm: m.beenCm,
+    gewicht_kg: m.gewichtKg, vet_pct: m.vetPct, taille_cm: m.tailleCm, heup_cm: m.heupCm, borst_cm: m.borstCm, arm_cm: m.armCm, been_cm: m.beenCm,
     cardiotest: m.cardiotest, kracht_oefening: m.krachtOefening, kracht_rm: m.krachtRm, kracht_kg: m.krachtKg,
     fotos_gemaakt: m.fotosGemaakt, notitie: m.notitie,
   }
