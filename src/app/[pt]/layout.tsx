@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import type { Metadata, Viewport } from 'next'
 import type { ReactNode } from 'react'
 import { headers } from 'next/headers'
@@ -74,6 +75,8 @@ export default async function PtLayout({ children, params }: Props) {
         <FfLogo prioriteit />
         <div className="ff-balk-rechts">
           <span className="ff-wie">{s.link.naam}</span>
+          {/* Alleen voor Kane (beheerder, ingelogd): de verborgen ingang naar LifeOS. */}
+          {s.ingelogd && s.link.rol === 'beheerder' ? <Link href="/lifeoskane" prefetch={false} className="ff-lifeos">LifeOS</Link> : null}
           {s.ingelogd ? <UitlogKnop code={s.link.code} /> : null}
         </div>
       </header>

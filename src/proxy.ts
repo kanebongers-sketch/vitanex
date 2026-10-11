@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { PAD_HEADER, beslis, leesRoutes } from '@/lib/fit-factory/domein'
+import { MENTAFORCE_OFFLINE } from '@/lib/site-modus'
 
 // Het eigen domein van de Fit Factory PT-app (fitfactorypt.nl). De beslissing
 // zelf staat — getest — in `src/lib/fit-factory/domein.ts`; hier alleen de
@@ -15,7 +16,7 @@ export function proxy(request: NextRequest) {
   const host = request.headers.get('host')
   const actief = process.env.FIT_FACTORY_DOMEIN_ACTIEF === '1'
 
-  const besluit = beslis(host, pathname, search, actief, MENTAFORCE_ROUTES)
+  const besluit = beslis(host, pathname, search, actief, MENTAFORCE_ROUTES, MENTAFORCE_OFFLINE)
   if (besluit.soort === 'omleiden') return NextResponse.redirect(besluit.url, 308)
 
   const headers = new Headers(request.headers)

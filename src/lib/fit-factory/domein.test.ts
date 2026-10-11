@@ -100,6 +100,29 @@ describe('mentaforce.nl: PT-links direct naar fitfactorypt.nl', () => {
   })
 })
 
+describe('MentaForce offline', () => {
+  const MF = leesRoutes('home,vandaag,login')
+  const uit = (host: string, pad: string, zoek = '') => beslis(host, pad, zoek, true, MF, true)
+  test('elke MentaForce-pagina op een ander domein gaat naar fitfactorypt.nl', () => {
+    for (const host of ['mentaforce.nl', 'nieuw-domein.nl', 'mentaforce.onrender.com']) {
+      expect(uit(host, '/'), host).toEqual({ soort: 'omleiden', url: 'https://fitfactorypt.nl/' })
+      expect(uit(host, '/home'), host).toEqual({ soort: 'omleiden', url: 'https://fitfactorypt.nl/' })
+      expect(uit(host, '/vandaag/plan'), host).toEqual({ soort: 'omleiden', url: 'https://fitfactorypt.nl/' })
+    }
+  })
+  test('PT-links en LifeOS houden hun pad', () => {
+    expect(uit('nieuw-domein.nl', '/joey/lead', '?x=1')).toEqual({ soort: 'omleiden', url: 'https://fitfactorypt.nl/joey/lead?x=1' })
+    expect(uit('nieuw-domein.nl', '/lifeoskane')).toEqual({ soort: 'omleiden', url: 'https://fitfactorypt.nl/lifeoskane' })
+  })
+  test('API, bestanden, fitfactorypt.nl zelf en localhost blijven werken', () => {
+    expect(uit('nieuw-domein.nl', '/api/cron/push')).toEqual({ soort: 'door' })
+    expect(uit('nieuw-domein.nl', '/theme-init.js')).toEqual({ soort: 'door' })
+    expect(uit('fitfactorypt.nl', '/joey')).toEqual({ soort: 'door' })
+    expect(uit('fitfactorypt.nl', '/lifeoskane')).toEqual({ soort: 'door' })
+    expect(uit('localhost', '/home')).toEqual({ soort: 'door' })
+  })
+})
+
 describe('leesRoutes', () => {
   test('komma-lijst naar set, leeg is leeg', () => {
     expect([...leesRoutes(' home, lifeos ,')]).toEqual(['home', 'lifeos'])

@@ -11,3 +11,11 @@
 // een noindex. Er wordt niets verwijderd.
 
 export const SITE_VERBORGEN = false
+
+// ─── MentaForce offline (besluit Kane, 11-10-2026) ──────────────────────────
+// Het domein mentaforce.nl is losgekoppeld. AAN (true): op elk ander domein dan
+// fitfactorypt.nl stuurt elke pagina door naar fitfactorypt.nl; er is nergens
+// meer een MentaForce-scherm te zien. API's en bestanden blijven werken (de
+// PT-app en LifeOS gebruiken ze), localhost blijft bruikbaar om te ontwikkelen.
+// De code blijft staan: terug online = deze schakelaar op false.
+export const MENTAFORCE_OFFLINE = true

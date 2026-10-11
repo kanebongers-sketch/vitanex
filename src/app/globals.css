@@ -3632,6 +3632,8 @@ body {
 .lifeos-root.ff .ff-logo { display: block; height: 34px; width: auto; }
 .lifeos-root.ff .ff-balk-rechts { display: flex; align-items: center; gap: 10px; }
 .lifeos-root.ff .ff-wie { font-family: var(--ff-kop); font-size: 15px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-2); }
+.lifeos-root.ff .ff-lifeos { display: inline-flex; align-items: center; min-height: 32px; padding: 0 10px; border-radius: 8px; border: 1px solid var(--line-strong); font-family: var(--ff-kop); font-size: 13px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-2); text-decoration: none; transition: color 160ms var(--ease), border-color 160ms var(--ease); }
+.lifeos-root.ff .ff-lifeos:hover { color: var(--brand); border-color: var(--brand); }
 
 /* Hero met de teamfoto (overzicht + inlogscherm), zoals de covers van hun documenten. */
 .lifeos-root.ff .ff-hero { position: relative; overflow: hidden; border-radius: 14px; min-height: 210px; display: flex; align-items: flex-end; border: 1px solid var(--line); background: #0b0b0e; }

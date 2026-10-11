@@ -83,6 +83,7 @@ export function beslis(
   zoek: string,
   actief: boolean,
   mentaforceRoutes: ReadonlySet<string> = new Set(),
+  mentaforceOffline = false,
 ): Beslissing {
   const h = schoon(host)
   if (h === `www.${PT_DOMEIN}`) return { soort: 'omleiden', url: ptUrl(`${pad}${zoek}`) }
@@ -97,11 +98,23 @@ export function beslis(
     return { soort: 'door' }
   }
 
+  // MentaForce offline: op elk ander domein (behalve lokaal) naar fitfactorypt.nl.
+  if (mentaforceOffline && !isLokaal(h) && !isPtHost(h)) {
+    const eerste = pad.split('/')[1] ?? ''
+    if (eerste.includes('.') || NOOIT_PT.has(eerste)) return { soort: 'door' }
+    const naarPt = eerste !== '' && !mentaforceRoutes.has(eerste)
+    return { soort: 'omleiden', url: ptUrl(naarPt ? `${pad}${zoek}` : '/') }
+  }
+
   if (actief && isMentaforceHost(h)) {
     if (pad === PT_INGANG) return { soort: 'omleiden', url: ptUrl(`/${zoek}`) }
     if (isPtPad(pad, mentaforceRoutes)) return { soort: 'omleiden', url: ptUrl(`${pad}${zoek}`) }
   }
   return { soort: 'door' }
+}
+
+function isLokaal(h: string): boolean {
+  return h === 'localhost' || h === '127.0.0.1' || h === '[::1]' || h.endsWith('.localhost')
 }
 
 /** Mappen en paden op mentaforce.nl die nooit een PT-naam zijn (API, Next, public/). */
