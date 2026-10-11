@@ -1,13 +1,13 @@
 import type { CSSProperties } from 'react'
 
 // ─── De laadstaat van LifeOS ────────────────────────────────────────────────
-// De Suspense-fallback van dit route-segment. Een rustig navy skelet in de vorm
-// van de cockpit: kop, Vita-band, en de twee clusters op hetzelfde gedeelde
+// De Suspense-fallback van dit route-segment. Een rustig grafiet skelet in de vorm
+// van de cockpit: hero, Vita-band, en de twee clusters op hetzelfde gedeelde
 // 12-koloms raster (zie `.os-cluster` + `.os-tile--*`). Zo springt de layout niet
 // zodra de echte kaarten binnenkomen.
 //
-// Bewust géén spinner: een draaiend rondje zegt "wacht" en verder niets, terwijl
-// een skelet al vertelt wát er komt. Ook bewust géén pulse-animatie — de
+// Bewust geen spinner: een draaiend rondje zegt "wacht" en verder niets, terwijl
+// een skelet al vertelt wat er komt. Ook bewust geen pulse-animatie: de
 // kaart-skeletten in de cockpit zijn ook statisch, en
 // een stilstaand scherm dat oplicht zodra het klaar is, is rustiger dan een
 // scherm dat vast staat te knipperen.
@@ -18,20 +18,16 @@ import type { CSSProperties } from 'react'
 export default function LifeosLaden() {
   return (
     <div className="lifeos-root">
-      <div className="os-sfeer" aria-hidden="true" />
       <main className="os-schil os-schil--breed" aria-busy="true">
         <p style={SR_ONLY}>Je cockpit wordt geladen.</p>
 
         <div aria-hidden="true">
-          {/* Kop: datumregel + groet. */}
-          <div style={{ marginBottom: 22 }}>
-            <div style={{ ...VLAK, height: 11, width: 132, marginBottom: 10 }} />
-            <div style={{ ...VLAK, height: 40, width: 'min(360px, 70%)' }} />
-          </div>
+          {/* Kop: een leeg vlak in de vorm van de hero (.lk-hero). */}
+          <div className="lk-hero lk-hero--skelet" />
 
           <div className="os-cockpit">
-            {/* Vandaag: de briefing-hero met Vita's signalen + vraag-balk erin —
-                de langste kaart, één oppervlak. Zelfde vorm als de echte cockpit,
+            {/* Vandaag: de briefing-hero met Vita's signalen + vraag-balk erin:
+                de langste kaart, een oppervlak. Zelfde vorm als de echte cockpit,
                 zodat de layout niet springt als de kaarten binnenkomen. */}
             <div className="os-cockpit__band">
               <div style={{ ...KAART, height: 360 }} />
@@ -76,7 +72,7 @@ const VLAK: CSSProperties = {
 
 /** De omtrek van een kaart: hetzelfde vlak, in het formaat van `.os-kaart`. */
 const KAART: CSSProperties = {
-  borderRadius: 16,
+  borderRadius: 12,
   border: '1px solid var(--line)',
   background: 'var(--bg-card)',
 }

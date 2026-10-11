@@ -4,10 +4,10 @@ import { FounderPoort } from '@/components/lifeos/auth/FounderPoort'
 import { LifeosNav } from '@/components/lifeos/os/LifeosNav'
 import { SnelTaakKnop } from '@/components/lifeos/taken/SnelTaakKnop'
 import { PT_FAVICON } from '@/lib/fit-factory/domein'
-import { COLORS } from '@/components/marketing/theme'
+import { FIT_FACTORY } from '@/components/marketing/theme'
 import { barlow, inter } from '@/app/fonts/fit-factory'
 
-// fitfactorypt.nl/lifeoskane — Kane's LifeOS, losgeknipt van MentaForce. Eén
+// fitfactorypt.nl/lifeoskane: Kane's LifeOS, losgeknipt van MentaForce. Een
 // schil voor alle LifeOS-pagina's: het eigen menu, de toegangscontrole (alleen
 // Kane; de echte gate zit server-side op elke /api/lifeos-route) en de snelle
 // taak-knop. Nooit in zoekmachines (ook de X-Robots-Tag van het domein).
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   icons: { icon: PT_FAVICON },
 }
 
-export const viewport: Viewport = { themeColor: COLORS.navyDeep }
+export const viewport: Viewport = { themeColor: FIT_FACTORY.zwart }
 
 export default function LifeosLayout({ children }: { children: ReactNode }) {
   return (

@@ -1408,8 +1408,12 @@ body {
 
 /* LifeOS in de Fit Factory-look (besluit Kane 11-10-2026): grafiet + amber,
    tekst in Inter, koppen in Barlow Condensed. Alleen .lk-app (LifeOS), de PT-app
-   (.ff) heeft zijn eigen blok. Contrast: amber op grafiet ongeveer 8,7:1. */
-.lifeos-root.lk-app {
+   (.ff) heeft zijn eigen blok. Contrast: amber op grafiet ongeveer 8,7:1.
+   LET OP: elke LifeOS-pagina en losse eilanden (SnelTaakKnop) zetten hun eigen
+   .lifeos-root-wrapper binnen .lk-app. Die zou de cyaan basistokens hierboven
+   opnieuw zetten, dus dit blok geldt ook voor elke geneste .lifeos-root. */
+.lifeos-root.lk-app,
+.lk-app .lifeos-root {
   --brand: #e8a33f;
   --brand-strong: #f2b65c;
   --brand-soft: rgba(232, 163, 63, 0.14);
@@ -1421,76 +1425,160 @@ body {
   --line-strong: rgba(255, 255, 255, 0.16);
   /* "Let op" mag niet dezelfde kleur hebben als het merk: koraal, zoals in de PT-app. */
   --status-aandacht: #f47c66;
+  --status-warning: #f47c66;
   --status-warning-soft: rgba(244, 124, 102, 0.14);
+  /* "Info" (bv. kansen in de dagbriefing) was MentaForce-blauw: nu neutrale inkt,
+     zodat er geen derde kleur in de Fit Factory-look sluipt. */
+  --status-info: var(--text-2);
+  --status-info-soft: var(--bg-raised);
+  /* Componenten met eigen stijlblok lezen de MentaForce-namen uit :root. Hier
+     dezelfde namen met de Fit Factory-maat: radius 12, dunne lijnen, geen schaduw. */
+  --border: var(--line);
+  --border-strong: var(--line-strong);
+  --radius-card: 12px;
+  --radius-md: 12px;
+  --radius-sm: 10px;
+  --radius-btn: 10px;
+  --shadow-card: none;
+  /* De Knop-primitive (os/Knop.tsx) leest deze tokens: zelfde knop als .ptd-knop. */
+  --knop-radius: 10px;
+  --knop-padding: 8px 14px;
+  --knop-font: var(--ff-kop);
+  --knop-grootte: 15px;
+  --knop-spatie: 0.04em;
+  --knop-kast: uppercase;
+  --knop-primair-vlak: var(--brand);
+  --knop-primair-vlak-hover: var(--brand-strong);
+  --knop-primair-kleur: var(--bg-app);
+  --knop-stil-kleur: var(--text-1);
+  --knop-stil-vlak-hover: transparent;
+  --knop-stil-kleur-hover: var(--text-1);
   --font-grotesk: var(--ff-inter), Inter, ui-sans-serif, system-ui, sans-serif;
   --ff-kop: var(--ff-barlow), 'Barlow Condensed', 'Arial Narrow', sans-serif;
 }
+/* body is een flex-kolom met vaste hoogte: niet laten krimpen (zelfde reden als .ff). */
+.lifeos-root.lk-app { flex: none; }
 .lifeos-root.lk-app :where(h1, h2, h3) {
   font-family: var(--ff-kop);
   text-transform: uppercase;
   letter-spacing: 0.01em;
 }
+
+/* De balk bovenaan, zoals .ff-balk: logo + LIFEOS links, naam + uitloggen rechts.
+   Vaste hoogte, zodat de tabs eronder precies kunnen plakken. */
 .lk-balk {
   position: sticky;
   top: 0;
   z-index: 40;
+  box-sizing: border-box;
+  height: calc(56px + env(safe-area-inset-top, 0px));
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 10px clamp(16px, 3vw, 32px);
-  background: color-mix(in srgb, var(--bg-app) 86%, transparent);
+  justify-content: space-between;
+  gap: 12px;
+  padding: env(safe-area-inset-top, 0px) clamp(16px, 3vw, 40px) 0;
+  background: color-mix(in srgb, var(--bg-app) 88%, transparent);
   backdrop-filter: blur(14px);
   border-bottom: 1px solid var(--line);
 }
-.lk-merk {
+.lk-merk { display: inline-flex; align-items: center; gap: 12px; min-width: 0; text-decoration: none; border-radius: 8px; }
+.lk-logo { display: block; height: 32px; width: auto; }
+.lk-woordmerk {
+  padding-left: 12px;
+  border-left: 1px solid var(--line-strong);
+  font-family: var(--ff-kop);
+  font-size: 17px;
   font-weight: 700;
-  letter-spacing: 0.12em;
+  line-height: 1.4;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  font-size: 13px;
   color: var(--text-1);
-  text-decoration: none;
-  flex-shrink: 0;
+  white-space: nowrap;
 }
-.lk-merk b { color: var(--brand); }
-.lk-nav {
-  display: flex;
-  gap: 4px;
-  overflow-x: auto;
-  scrollbar-width: none;
-  flex: 1;
-  min-width: 0;
-}
-.lk-nav::-webkit-scrollbar { display: none; }
-.lk-link {
+.lk-woordmerk b { color: var(--brand); font-weight: 700; }
+.lk-balk-rechts { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+.lk-wie { font-family: var(--ff-kop); font-size: 15px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-2); }
+/* Uitloggen = .ptd-knop--klein uit de PT-app. */
+.lk-uit {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
+  min-height: 34px;
+  padding: 6px 11px;
+  border-radius: 10px;
+  border: 1px solid var(--line-strong);
+  background: transparent;
+  color: var(--text-1);
+  font-family: var(--ff-kop);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: border-color 160ms var(--ease), transform 120ms var(--ease);
+}
+.lk-uit:hover { border-color: var(--brand); }
+.lk-uit:active { transform: scale(0.98); }
+@media (max-width: 479px) { .lk-wie { display: none; } }
+@media (max-width: 379px) {
+  .lk-uit-tekst { display: none; }
+  .lk-uit { padding: 6px 9px; }
+  .lk-woordmerk { font-size: 15px; letter-spacing: 0.1em; }
+}
+
+/* De tabs, zoals .ff-tabs op tablet en desktop: een omlijste strook met Barlow-
+   kapitalen, de actieve pagina als amber vlak. LifeOS heeft acht bestemmingen; op
+   een telefoon passen die niet in een onderbalk, dus de strook scrolt horizontaal. */
+.lk-tabs {
+  position: sticky;
+  top: calc(64px + env(safe-area-inset-top, 0px));
+  z-index: 35;
+  display: flex;
+  gap: 4px;
+  max-width: var(--maxw);
+  margin: 12px max(16px, calc((100% - var(--maxw)) / 2)) 0;
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--bg-app) 94%, transparent);
+  backdrop-filter: blur(16px);
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+.lk-tabs::-webkit-scrollbar { display: none; }
+.lk-tab {
+  flex: 1 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 40px;
   padding: 8px 12px;
   border-radius: 10px;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--text-3);
   text-decoration: none;
   white-space: nowrap;
-  transition: color 150ms ease, background-color 150ms ease;
-}
-.lk-link:hover { color: var(--text-1); background: var(--bg-raised); }
-.lk-link[aria-current='page'] { color: var(--text-1); box-shadow: inset 0 -2px 0 var(--brand); border-radius: 10px 10px 4px 4px; }
-.lk-link:focus-visible, .lk-uit:focus-visible, .lk-merk:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
-.lk-uit {
-  display: grid;
-  place-items: center;
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
-  border: 1px solid var(--line);
-  background: transparent;
   color: var(--text-3);
-  cursor: pointer;
-  flex-shrink: 0;
+  font-family: var(--ff-kop);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transition: color 160ms var(--ease), background-color 160ms var(--ease);
 }
-.lk-uit:hover { color: var(--text-1); border-color: var(--line-strong); }
-@media (prefers-reduced-motion: reduce) { .lk-link { transition: none; } }
+.lk-tab svg { flex: none; width: 18px; height: 18px; }
+.lk-tab:hover { color: var(--text-1); }
+.lk-tab[aria-current='page'] { color: var(--brand); background: var(--brand-soft); }
+.lk-tab:focus-visible { outline: 2px solid var(--brand); outline-offset: -2px; }
+.lk-merk:focus-visible, .lk-uit:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+@media (max-width: 559px) {
+  .lk-tab { font-size: 14px; padding: 8px 10px; gap: 6px; }
+  .lk-tab svg { width: 16px; height: 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lk-tab, .lk-uit { transition: none; }
+  .lk-uit:active { transform: none; }
+}
 
 /* Atmosfeer: één zachte cyaan-gloed vanaf de bovenrand. Geen gradient-blob. */
 .os-sfeer {
@@ -3363,6 +3451,241 @@ body {
   .os-crm__dialoog {
     max-height: calc(100vh - 32px);
   }
+}
+
+/* ═══ LifeOS in de Fit Factory PT-stijl (.lk-app) ═════════════════════════════
+   Besluit Kane (11-10-2026): heel LifeOS ziet eruit als de Fit Factory PT-app.
+   De tokens staan bovenin (.lifeos-root.lk-app); hier de vorm: hero, paginakop,
+   kaarten met radius 12 en dunne lijnen, kapitalen-labels, grote condensed
+   cijfers, knoppen en chips zoals .ptd-knop en .ptd-chip. Alles onder
+   .lifeos-root.lk-app, zodat de PT-app (.ff) en MentaForce niet veranderen.
+   De selectors zijn bewust specifiek: veel LifeOS-kaarten zetten hun eigen
+   stijlblok (<style>) in de pagina en die moet deze laag niet overschrijven. */
+
+/* Geen amber gloed in de achtergrond: de Fit Factory-look is vlak en strak. */
+.lifeos-root.lk-app .os-sfeer { display: none; }
+.lifeos-root.lk-app .os-schil { padding-top: 22px; }
+
+/* ── Hero van het dashboard (zoals .ff-hero) ─────────────────────────────── */
+.lifeos-root.lk-app .lk-hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+  min-height: clamp(210px, 24vw, 320px);
+  margin-bottom: var(--ruimte-sectie);
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: var(--bg-card);
+}
+.lifeos-root.lk-app .lk-hero picture,
+.lifeos-root.lk-app .lk-hero img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 30%; }
+.lifeos-root.lk-app .lk-hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--bg-app) 15%, transparent) 0%,
+    color-mix(in srgb, var(--bg-app) 55%, transparent) 45%,
+    color-mix(in srgb, var(--bg-app) 95%, transparent) 100%
+  );
+}
+/* Breed scherm: de foto rechts, de tekst op het donkere deel links. */
+@media (min-width: 900px) {
+  .lifeos-root.lk-app .lk-hero::after {
+    background: linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--bg-app) 94%, transparent) 0%,
+      color-mix(in srgb, var(--bg-app) 70%, transparent) 40%,
+      color-mix(in srgb, var(--bg-app) 15%, transparent) 100%
+    );
+  }
+}
+.lifeos-root.lk-app .lk-hero-tekst { position: relative; z-index: 1; padding: 20px 20px 18px; }
+@media (min-width: 900px) { .lifeos-root.lk-app .lk-hero-tekst { padding: 32px 36px 30px; } }
+.lifeos-root.lk-app .lk-hero .os-kop { margin: 0; display: grid; gap: 4px; }
+.lifeos-root.lk-app .lk-hero .os-kop__datum,
+.lifeos-root.lk-app .lk-boventitel {
+  margin: 0;
+  font-family: var(--ff-kop);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--brand);
+}
+.lifeos-root.lk-app .lk-hero .os-kop__groet {
+  margin: 0;
+  font-size: clamp(40px, 7vw, 76px);
+  line-height: 0.95;
+  font-weight: 700;
+  color: var(--text-1);
+}
+/* De amber streep onder de kop, zoals .ff-streep. */
+.lifeos-root.lk-app .lk-hero .os-kop__groet::after,
+.lifeos-root.lk-app .lk-titel::after,
+.lifeos-root.lk-app .prog-titel::after,
+.lifeos-root.lk-app .proj-titel::after {
+  content: '';
+  display: block;
+  width: 56px;
+  height: 2px;
+  margin-top: 10px;
+  background: var(--brand);
+}
+.lifeos-root.lk-app .lk-hero--skelet::after { display: none; }
+
+/* ── Paginakop (en de koppen van Programma en Projecten) ─────────────────── */
+.lifeos-root.lk-app .lk-kop { display: grid; gap: 6px; margin-bottom: var(--ruimte-band); }
+.lifeos-root.lk-app .lk-titel,
+.lifeos-root.lk-app .prog-titel,
+.lifeos-root.lk-app .proj-titel {
+  margin: 0;
+  font-size: clamp(36px, 7vw, 56px);
+  line-height: 0.98;
+  font-weight: 700;
+  color: var(--text-1);
+}
+.lifeos-root.lk-app .lk-intro { margin: 4px 0 0; max-width: 62ch; font-size: 14.5px; line-height: 1.55; color: var(--text-3); }
+.lifeos-root.lk-app .prog-eyebrow,
+.lifeos-root.lk-app .proj-eyebrow {
+  font-family: var(--ff-kop);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+}
+
+/* ── Zones en clusters ───────────────────────────────────────────────────── */
+.lifeos-root.lk-app .os-zone__kop {
+  font-size: clamp(24px, 2.6vw, 30px);
+  font-weight: 700;
+  line-height: 1.05;
+}
+.lifeos-root.lk-app .os-zone__intro { font-size: 13.5px; }
+
+/* ── Kaarten: radius 12, dunne lijn, kop in Barlow-kapitalen ─────────────── */
+.lifeos-root.lk-app .os-kaart,
+.lifeos-root.lk-app .os-domein,
+.lifeos-root.lk-app .os-snel,
+.lifeos-root.lk-app .os-login__kaart { border-radius: 12px; }
+/* Focus in de kaart: een amber lijn, geen gloed (de PT-app kent geen glow). */
+.lifeos-root.lk-app .os-kaart::after { box-shadow: inset 0 0 0 1px var(--brand); }
+.lifeos-root.lk-app .os-kaart__titel {
+  font-family: var(--ff-kop);
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--text-1);
+}
+.lifeos-root.lk-app .os-kaart--dragend .os-kaart__titel { font-size: clamp(26px, 2.6vw, 32px); letter-spacing: 0.01em; }
+.lifeos-root.lk-app .os-kaart--compact .os-kaart__titel { font-size: 16px; }
+/* Een kaart in een kaart: het kopje wordt een label, zoals .ptd-label. */
+.lifeos-root.lk-app .os-kaart--plat .os-kaart__titel { font-size: 13px; font-weight: 600; letter-spacing: 0.08em; color: var(--text-3); }
+.lifeos-root.lk-app .os-kaart__vervangt { font-family: var(--ff-kop); font-size: 12px; letter-spacing: 0.08em; }
+.lifeos-root.lk-app .os-domein__titel,
+.lifeos-root.lk-app .os-login__kop { font-family: var(--ff-kop); font-size: 22px; font-weight: 700; letter-spacing: 0.02em; text-transform: uppercase; }
+.lifeos-root.lk-app .os-snel__naam { font-family: var(--ff-kop); font-size: 16px; letter-spacing: 0.04em; text-transform: uppercase; }
+
+/* Labels: kapitalen in Barlow, zoals .ptd-label en .ff-boventitel. */
+.lifeos-root.lk-app :is(.os-kop__datum, .os-focus__label, .os-login__label, .os-stat__naam, .os-crm__label, .os-crm__sectie-kop) {
+  font-family: var(--ff-kop);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* Cijfers: groot en condensed, zoals .ptd-getal. */
+.lifeos-root.lk-app .os-cijfer { font-family: var(--ff-kop); font-weight: 700; letter-spacing: 0; }
+.lifeos-root.lk-app .os-stat__waarde { font-family: var(--ff-kop); font-size: 34px; font-weight: 700; }
+.lifeos-root.lk-app .os-focus__klok { font-family: var(--ff-kop); font-weight: 700; letter-spacing: 0; }
+
+/* ── Mensen-bord (CRM) ───────────────────────────────────────────────────── */
+/* Groep-tabs als de PT-tabs: een omlijste strook, actief = amber vlak. */
+.lifeos-root.lk-app .os-crm__tablijst { flex-wrap: wrap; padding: 4px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg-card); }
+.lifeos-root.lk-app .os-crm__tab {
+  flex: 1 1 auto;
+  margin: 0;
+  min-height: 40px;
+  border: 0;
+  border-radius: 10px;
+  font-family: var(--ff-kop);
+  font-size: 15px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  transition: color 160ms var(--ease), background-color 160ms var(--ease);
+}
+.lifeos-root.lk-app .os-crm__tab:hover { color: var(--text-1); }
+.lifeos-root.lk-app .os-crm__tab--actief { color: var(--brand); background: var(--brand-soft); }
+.lifeos-root.lk-app :is(.os-crm__kolom-titel, .os-crm__modus-knop) { font-family: var(--ff-kop); font-size: 14px; letter-spacing: 0.06em; text-transform: uppercase; }
+.lifeos-root.lk-app .os-crm__kolom-telling { font-family: var(--ff-kop); font-weight: 700; }
+.lifeos-root.lk-app .os-crm__tegel { border-radius: 12px; }
+.lifeos-root.lk-app :is(.os-crm__tegel-naam, .crm-kaart__naam) { font-family: var(--ff-kop); font-size: 18px; font-weight: 600; letter-spacing: 0.01em; }
+.lifeos-root.lk-app .os-crm__dialoog-titel { font-family: var(--ff-kop); font-size: 26px; font-weight: 700; letter-spacing: 0.02em; text-transform: uppercase; }
+.lifeos-root.lk-app .os-crm__dialoog { border-radius: 14px; }
+/* Chips en badges: zoals .ptd-badge in de PT-app. */
+.lifeos-root.lk-app :is(.os-crm__chip, .os-crm__badge, .crm-kaart__chip, .proj-tag) {
+  font-family: var(--ff-kop);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.lifeos-root.lk-app .crm-kop__stat-label { font-family: var(--ff-kop); font-size: 13px; letter-spacing: 0.08em; }
+.lifeos-root.lk-app .crm-kop__stat-waarde { font-family: var(--ff-kop); font-size: 34px; font-weight: 700; letter-spacing: 0; }
+
+/* ── Dagbriefing (de Vandaag-kaart) ──────────────────────────────────────── */
+.lifeos-root.lk-app .dagbrief__label { font-family: var(--ff-kop); font-size: 13px; letter-spacing: 0.22em; color: var(--brand); }
+.lifeos-root.lk-app .dagbrief__groet { font-size: clamp(28px, 3.4vw, 40px); line-height: 1; }
+.lifeos-root.lk-app .dagbrief__sectiekop { font-family: var(--ff-kop); font-size: 15px; letter-spacing: 0.08em; color: var(--text-2); }
+.lifeos-root.lk-app .dagbrief__ververs { border-radius: 10px; }
+
+/* ── Programma (training en voeding) ─────────────────────────────────────── */
+.lifeos-root.lk-app :is(.prog-tab, .prog-chip) { font-family: var(--ff-kop); letter-spacing: 0.04em; text-transform: uppercase; }
+.lifeos-root.lk-app .prog-tab { font-size: 15px; border-radius: 10px; }
+.lifeos-root.lk-app .prog-chip { font-size: 14px; }
+.lifeos-root.lk-app :is(.prog-sectie-titel, .prog-doel-kop) { font-family: var(--ff-kop); font-size: 20px; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; }
+.lifeos-root.lk-app :is(.prog-sectie-tag, .prog-table thead th, .prog-foot-label, .prog-macro-label) {
+  font-family: var(--ff-kop);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.lifeos-root.lk-app .prog-macro-getal b { font-family: var(--ff-kop); font-size: 17px; }
+
+/* ── Projecten ───────────────────────────────────────────────────────────── */
+.lifeos-root.lk-app :is(.proj-kaart-titel, .proj-leeg-titel) { font-family: var(--ff-kop); font-size: 21px; font-weight: 700; letter-spacing: 0.02em; text-transform: uppercase; }
+.lifeos-root.lk-app .proj-voortgang-tekst { font-family: var(--ff-kop); font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; }
+
+/* ── Beleggen ────────────────────────────────────────────────────────────── */
+.lifeos-root.lk-app :is(.bel__label, .bel__grafiek-kop) { font-family: var(--ff-kop); font-size: 13px; letter-spacing: 0.08em; color: var(--text-3); }
+.lifeos-root.lk-app .bel__hoofdgetal { font-family: var(--ff-kop); font-size: 40px; line-height: 1; letter-spacing: 0; }
+.lifeos-root.lk-app .bel__getal-m { font-family: var(--ff-kop); font-size: 20px; font-weight: 700; }
+.lifeos-root.lk-app .bel__naam { font-family: var(--ff-kop); font-size: 17px; letter-spacing: 0.01em; }
+/* Knoppen zoals .ptd-knop--klein: radius 10, Barlow-kapitalen, primair vol amber. */
+.lifeos-root.lk-app .bel__knop {
+  min-height: 34px;
+  padding: 6px 11px;
+  border-radius: 10px;
+  border-color: var(--line-strong);
+  color: var(--text-1);
+  font-family: var(--ff-kop);
+  font-size: 14px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.lifeos-root.lk-app .bel__knop:hover { border-color: var(--brand); }
+.lifeos-root.lk-app .bel__knop--stil { border-color: transparent; }
+.lifeos-root.lk-app .bel__knop--primair { background: var(--brand); border-color: var(--brand); color: var(--bg-app); }
+.lifeos-root.lk-app .bel__knop--primair:hover { background: var(--brand-strong); border-color: var(--brand-strong); }
+
+@media (prefers-reduced-motion: reduce) {
+  .lifeos-root.lk-app .os-crm__tab { transition: none; }
 }
 
 /* LifeOS to-do: "nu mee bezig"-knop — rustig, cyaan op hover. */

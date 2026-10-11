@@ -8,9 +8,12 @@ import {
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase/supabase'
 import { PT_APP_BEHEER } from '@/lib/lifeos/pt-dashboard/beheer'
+import { FfLogo } from '@/components/lifeos/pt-dashboard/FfLogo'
 
-// Het menu van LifeOS op fitfactorypt.nl/lifeoskane. Eigen menu, los van de
-// consumenten-app: een vaste balk bovenin die op mobiel horizontaal scrolt.
+// Het menu van LifeOS op fitfactorypt.nl/lifeoskane, in dezelfde opbouw als de
+// Fit Factory PT-app: een balk bovenin (logo + LIFEOS links, naam en uitloggen
+// rechts) en daaronder de tabs in Barlow-kapitalen, de actieve tab als amber vlak.
+// Op een smal scherm scrollen de tabs horizontaal in plaats van te wrappen.
 
 interface Item {
   href: string
@@ -46,21 +49,30 @@ export function LifeosNav() {
   }
 
   return (
-    <header className="lk-balk">
-      <Link href={LIFEOS_BASIS} className="lk-merk" aria-label="LifeOS dashboard">
-        LifeOS<b>.</b>
-      </Link>
-      <nav className="lk-nav" aria-label="LifeOS">
+    <>
+      <header className="lk-balk">
+        <Link href={LIFEOS_BASIS} className="lk-merk" aria-label="LifeOS dashboard">
+          <FfLogo className="lk-logo" prioriteit />
+          <span className="lk-woordmerk" aria-hidden="true">
+            Life<b>OS</b>
+          </span>
+        </Link>
+        <div className="lk-balk-rechts">
+          <span className="lk-wie">Kane</span>
+          <button type="button" className="lk-uit" onClick={() => void uitloggen()} aria-label="Uitloggen">
+            <LogOut size={14} strokeWidth={2} aria-hidden="true" />
+            <span className="lk-uit-tekst">Uitloggen</span>
+          </button>
+        </div>
+      </header>
+      <nav className="lk-tabs" aria-label="LifeOS">
         {ITEMS.map(({ href, label, icoon: Icoon }) => (
-          <Link key={href} href={href} className="lk-link" aria-current={isActief(pad, href) ? 'page' : undefined}>
-            <Icoon size={15} strokeWidth={2} aria-hidden="true" />
+          <Link key={href} href={href} className="lk-tab" aria-current={isActief(pad, href) ? 'page' : undefined}>
+            <Icoon strokeWidth={2} aria-hidden="true" />
             <span>{label}</span>
           </Link>
         ))}
       </nav>
-      <button type="button" className="lk-uit" onClick={() => void uitloggen()} aria-label="Uitloggen">
-        <LogOut size={15} strokeWidth={2} aria-hidden="true" />
-      </button>
-    </header>
+    </>
   )
 }

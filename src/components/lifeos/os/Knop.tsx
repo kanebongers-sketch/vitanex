@@ -34,18 +34,29 @@ interface KnopProps extends GedeeldeProps {
  * ogen — anders gaat er één schuiven zodra iemand de ander bijwerkt.
  */
 function stijl(primair: boolean, actief: boolean, ingedrukt: boolean, disabled: boolean): CSSProperties {
+  // Elke waarde leest eerst een --knop-*-token met de oude waarde als terugval.
+  // LifeOS (.lk-app) zet die tokens op de Fit Factory-stijl (Barlow-kapitalen,
+  // radius 10, amber vlak); overal waar ze ontbreken blijft de knop zoals hij was.
+  const vlak = primair
+    ? actief ? 'var(--knop-primair-vlak-hover, var(--brand-soft))' : 'var(--knop-primair-vlak, var(--brand-soft))'
+    : actief ? 'var(--knop-stil-vlak-hover, var(--brand-soft))' : 'transparent'
+  const kleur = primair
+    ? 'var(--knop-primair-kleur, var(--brand))'
+    : actief ? 'var(--knop-stil-kleur-hover, var(--brand))' : 'var(--knop-stil-kleur, var(--text-2))'
   return {
     display: 'inline-flex',
     alignItems: 'center',
     gap: 7,
-    padding: '8px 14px',
-    borderRadius: 999,
+    padding: 'var(--knop-padding, 8px 14px)',
+    borderRadius: 'var(--knop-radius, 999px)',
     border: `1px solid ${primair || actief ? 'var(--brand)' : 'var(--line-strong)'}`,
-    background: primair || actief ? 'var(--brand-soft)' : 'transparent',
-    color: primair || actief ? 'var(--brand)' : 'var(--text-2)',
-    fontFamily: 'inherit',
-    fontSize: 13,
+    background: vlak,
+    color: kleur,
+    fontFamily: 'var(--knop-font, inherit)',
+    fontSize: 'var(--knop-grootte, 13px)',
     fontWeight: 600,
+    letterSpacing: 'var(--knop-spatie, normal)',
+    textTransform: 'var(--knop-kast, none)' as CSSProperties['textTransform'],
     cursor: disabled ? 'not-allowed' : 'pointer',
     opacity: disabled ? 0.5 : 1,
     // Alleen transform en kleur: geen layout-properties animeren.
