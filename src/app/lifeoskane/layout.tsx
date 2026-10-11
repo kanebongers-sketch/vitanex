@@ -5,6 +5,7 @@ import { LifeosNav } from '@/components/lifeos/os/LifeosNav'
 import { SnelTaakKnop } from '@/components/lifeos/taken/SnelTaakKnop'
 import { PT_FAVICON } from '@/lib/fit-factory/domein'
 import { COLORS } from '@/components/marketing/theme'
+import { barlow, inter } from '@/app/fonts/fit-factory'
 
 // fitfactorypt.nl/lifeoskane — Kane's LifeOS, losgeknipt van MentaForce. Eén
 // schil voor alle LifeOS-pagina's: het eigen menu, de toegangscontrole (alleen
@@ -22,7 +23,7 @@ export const viewport: Viewport = { themeColor: COLORS.navyDeep }
 
 export default function LifeosLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="lifeos-root lk-app">
+    <div className={`lifeos-root lk-app ${barlow.variable} ${inter.variable}`}>
       <LifeosNav />
       <FounderPoort>{children}</FounderPoort>
       {/* Overal snel een taak toevoegen (+ rechtsonder, sneltoets n). */}

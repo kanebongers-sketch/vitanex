@@ -1405,6 +1405,31 @@ body {
    met een dunne lijn; de actieve pagina krijgt een cyaan onderstreep. Op mobiel
    scrolt de linkrij horizontaal i.p.v. te wrappen. */
 .lk-app { min-height: 100vh; }
+
+/* LifeOS in de Fit Factory-look (besluit Kane 11-10-2026): grafiet + amber,
+   tekst in Inter, koppen in Barlow Condensed. Alleen .lk-app (LifeOS), de PT-app
+   (.ff) heeft zijn eigen blok. Contrast: amber op grafiet ongeveer 8,7:1. */
+.lifeos-root.lk-app {
+  --brand: #e8a33f;
+  --brand-strong: #f2b65c;
+  --brand-soft: rgba(232, 163, 63, 0.14);
+  --brand-glow: rgba(232, 163, 63, 0.3);
+  --bg-app: #101014;
+  --bg-card: #1a1a1f;
+  --bg-raised: #24242a;
+  --line: rgba(255, 255, 255, 0.08);
+  --line-strong: rgba(255, 255, 255, 0.16);
+  /* "Let op" mag niet dezelfde kleur hebben als het merk: koraal, zoals in de PT-app. */
+  --status-aandacht: #f47c66;
+  --status-warning-soft: rgba(244, 124, 102, 0.14);
+  --font-grotesk: var(--ff-inter), Inter, ui-sans-serif, system-ui, sans-serif;
+  --ff-kop: var(--ff-barlow), 'Barlow Condensed', 'Arial Narrow', sans-serif;
+}
+.lifeos-root.lk-app :where(h1, h2, h3) {
+  font-family: var(--ff-kop);
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+}
 .lk-balk {
   position: sticky;
   top: 0;
@@ -1474,8 +1499,8 @@ body {
   pointer-events: none;
   z-index: 0;
   background:
-    radial-gradient(46% 34% at 50% -8%, rgba(0, 229, 255, 0.11), transparent 70%),
-    radial-gradient(30% 24% at 88% 4%, rgba(0, 229, 255, 0.05), transparent 70%);
+    radial-gradient(46% 34% at 50% -8%, color-mix(in srgb, var(--brand) 11%, transparent), transparent 70%),
+    radial-gradient(30% 24% at 88% 4%, color-mix(in srgb, var(--brand) 5%, transparent), transparent 70%);
 }
 
 /* Instrument-cijfers: tabulair, zodat een score niet danst bij het updaten. */

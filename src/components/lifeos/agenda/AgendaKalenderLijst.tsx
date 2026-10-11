@@ -93,7 +93,7 @@ function AgendaRij({
             borderRadius: 3,
             background: dotKleur,
             flexShrink: 0,
-            border: '1px solid color-mix(in srgb, #060E1C 30%, transparent)',
+            border: '1px solid color-mix(in srgb, var(--bg-app) 30%, transparent)',
           }}
         />
         <span
